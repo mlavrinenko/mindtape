@@ -1,5 +1,5 @@
 # www/capture.sh — record commands and what they printed, for the docs pages.
-# A www/generate-*.sh script sources it, sets REPO, OUT and MT, and calls
+# A www/generate-*.sh script sources it, sets `REPO`, `OUT` and `MT`, and calls
 # capture_init before its first capture.
 #
 # A record is www/generated/<slug>.json:

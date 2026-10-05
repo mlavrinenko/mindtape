@@ -14,7 +14,7 @@
 # `// docs:hand-typed <reason>` on the line above it. A marker without a
 # reason, or with no block on the next line, fails.
 #
-# PENDING names the sources not yet converted. A listed file may keep its
+# `PENDING` names the sources not yet converted. A listed file may keep its
 # hand-typed blocks; a listed file with none left fails, so the list only
 # shrinks. Each page's own task removes its files.
 #

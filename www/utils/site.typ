@@ -109,14 +109,14 @@
 
 // Resolve one page by route. Three outcomes, not two:
 //
-//   - PAGES is empty (the bootstrap pass, before a single page has been
+//   - `PAGES` is empty (the bootstrap pass, before a single page has been
 //     queried yet): return `none`. Panicking here would make the bootstrap
 //     pass itself un-compilable, which is exactly the chicken-and-egg
 //     www/generate-site-pages.sh exists to break.
-//   - PAGES is non-empty and has the route: return its entry.
-//   - PAGES is non-empty and lacks the route: panic naming it. A silent skip
+//   - `PAGES` is non-empty and has the route: return its entry.
+//   - `PAGES` is non-empty and lacks the route: panic naming it. A silent skip
 //     here is the exact failure this whole change removes — a route is a
-//     string typed by hand in a page header, in NAV above, or in doc prose,
+//     string typed by hand in a page header, in `NAV` above, or in doc prose,
 //     and once the manifest is real, an unknown route is always a mistake,
 //     never a pass still warming up.
 #let page-meta(route) = {

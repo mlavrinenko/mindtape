@@ -6,7 +6,7 @@
 #
 # Pin the three failures www/generate-site-pages.sh and check-doc-facts.sh's
 # pages arm exist to catch — two pages declaring the same route, a page with
-# no `<page-meta>` block, and a page missing from www/utils/site.typ's NAV —
+# no `<page-meta>` block, and a page missing from www/utils/site.typ's `NAV` —
 # each demonstrated by hand once, when they landed
 # (truth/tasks/derive-site-pages-json-from-the-pages-page-meta-blocks.typ),
 # and never proven again since. The evidence lived only in a commit message;
@@ -17,9 +17,9 @@
 # fmt-check/docs::check arm would read the mutation as real, and a failed
 # assertion would leave the repo half-mutated. A copy of www/ under a temp
 # parent is proven to work instead (what the replica leaves out, below, is the
-# one thing it does not copy): www/generate-site-pages.sh derives its REPO from
+# one thing it does not copy): www/generate-site-pages.sh derives its `REPO` from
 # `${BASH_SOURCE[0]}`, so running the copy (never the original) gives it a
-# copied REPO, and it globs the copy's own content/*.typ. site.typ resolves
+# copied `REPO`, and it globs the copy's own content/*.typ. site.typ resolves
 # tola.toml and www/generated/ relative to itself rather than to the root, so
 # the copy needs no re-pointing.
 #
@@ -94,7 +94,7 @@
 # `cp -r www` putting both directories back unnoticed.
 #
 # Cases 1 and 2 drive the replica's own copy of the real producer end to
-# end. Case 3 does not: catching a page missing from NAV lives in check-doc-
+# end. Case 3 does not: catching a page missing from `NAV` lives in check-doc-
 # facts.sh, which needs a release `mt` build and a full regenerate before it
 # can query a single route — far too heavy for a selftest. Its set-
 # difference was extracted to .just/scripts/_nav-diff.sh for exactly this
@@ -143,7 +143,7 @@ if ! gen_out=$(bash www/generate.sh 2>&1); then
 fi
 
 # Each variant needs its own parent dir, with the copy's leaf directory still
-# named "www": generate-site-pages.sh's REPO is the parent of the directory
+# named "www": generate-site-pages.sh's `REPO` is the parent of the directory
 # it lives in (see its own header), so `$variant/www/generate-site-pages.sh`
 # derives REPO=$variant and globs `$variant/www/content/*.typ` correctly —
 # renaming the leaf itself (e.g. to `$tmp/clean`) breaks that derivation and
@@ -176,7 +176,7 @@ done
 
 # Snapshot taken: closing the fd releases the lock, and dropping the
 # handshake stops this process claiming to hold one — so each replica
-# producer takes its own lock over its own temp REPO, exactly as a standalone
+# producer takes its own lock over its own temp `REPO`, exactly as a standalone
 # run does.
 exec 9>&-
 unset MINDTAPE_GENERATED_LOCK
@@ -206,7 +206,7 @@ printf '= No meta page\n\nThis page intentionally has no page-meta block.\n' \
 assert_catches "case 2 (missing page-meta)" "no-meta-probe.typ" \
     bash "$tmp/no-meta/www/generate-site-pages.sh"
 
-# Case 3: a page missing from site.typ's NAV. Cheap on purpose (see header
+# Case 3: a page missing from site.typ's `NAV`. Cheap on purpose (see header
 # above): a synthetic pair of route lists, not a replica.
 assert_catches "case 3 (missing from NAV)" "/orphan/" \
     bash .just/scripts/_nav-diff.sh $'/a/\n/b/\n/orphan/' $'/a/\n/b/'

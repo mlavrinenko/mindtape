@@ -8,7 +8,7 @@
 #
 # Takes two newline-separated route lists as its only two arguments — the
 # pages manifest's routes ($1, www/generated/site-pages.json's keys) and
-# www/utils/site.typ's NAV routes ($2) — and knows nothing about how either
+# www/utils/site.typ's `NAV` routes ($2) — and knows nothing about how either
 # was produced, so a caller can hand it real ones or made-up ones. Leading
 # underscore: no `just` recipe wraps it directly, the same reason
 # `_mutants-env.sh` carries one — every caller here invokes it as a plain
@@ -20,8 +20,8 @@
 # in .mmz/config.yaml (`just check-doc-facts` and `just site-pages-fixture-check`),
 # and the gate checks that each does.
 #
-# Two failure directions, neither implying the other: a page with no NAV
-# entry is invisible in the sidebar, and a NAV entry naming no real page's
+# Two failure directions, neither implying the other: a page with no `NAV`
+# entry is invisible in the sidebar, and a `NAV` entry naming no real page's
 # route 404s the moment it's clicked.
 set -eo pipefail
 routes="$1"

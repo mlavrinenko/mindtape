@@ -56,7 +56,7 @@ Write for a busy engineer who reads each sentence once. The rules apply to comme
    - Bad: “An unknown bare name is refused naming what IS available”
    - Good: “An unknown bare name is refused with a list of the available packs”
 
-`just check-doc-prose` enforces two of these rules. It fails on the history words `now`, `used to`, `no longer`, `anymore` and `formerly`, and on an all-caps word outside its acronym list. It skips raw spans, fenced blocks and double-quoted text, so a quoted bad example passes. It applies the same rules to the full-line `#` comments of every shell script, YAML file, Justfile and `.just` module that git lists, tracked or not yet added, and to every `description` in `schema/config.schema.json`. So a new script is read the day it lands, and a new violation fails the gate outright. The word lists are in `.just/scripts/check-doc-prose.sh`.
+`just check-doc-prose` enforces two of these rules. It fails on the history words `now`, `used to`, `no longer`, `anymore` and `formerly`, and on an all-caps word outside its acronym list. A shell constant passes only as `$NAME`, `${NAME}` or `NAME=`, and a lone capital beside an all-caps word counts as shouting, so wrap a constant’s bare name in backticks. It skips raw spans, fenced blocks and double-quoted text, so a quoted bad example passes. It applies the same rules to the full-line `#` comments of every shell script, YAML file, Justfile and `.just` module that git lists, tracked or not yet added, and to every `description` in `schema/config.schema.json`. So a new script is read the day it lands, and a new violation fails the gate outright. The word lists are in `.just/scripts/check-doc-prose.sh`.
 
 ## The duplicate-prose audit
 

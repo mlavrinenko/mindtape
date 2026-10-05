@@ -1,12 +1,15 @@
 # .just/scripts/check-doc-prose.awk — the scanner check-doc-prose.sh runs over
 # its rows. Input is one row per line of text: file, line, kind (prose or
-# comment) and text, tab separated. The variables `allowed` (acronyms and
-# constants that may be all-caps), `words` and `phrases` (the history lists) come
+# comment) and text, tab separated. The variables `allowed` (acronyms that may
+# be all-caps), `consts` (constants, allowed only as `$NAME`, `${NAME}` or
+# `NAME=`), `words` and `phrases` (the history lists) come
 # from the script. Prints "file:line: message" per hit. A line of `-` names a
 # schema key in the file column and prints "file: message".
 BEGIN {
     n = split(allowed, a, /[ \n]+/)
     for (i = 1; i <= n; i++) ok[a[i]] = 1
+    n = split(consts, a, /[ \n]+/)
+    for (i = 1; i <= n; i++) const[a[i]] = 1
     nw = split(words, word, / /)
     np = split(phrases, phrase, /\|/)
     for (i = 1; i <= np; i++) {
@@ -34,6 +37,15 @@ function visible(line,    out, i, n, c, j, run) {
         i++
     }
     return out
+}
+# An all-caps word of two letters or more: the shape of shouting.
+function caps(tok) {
+    return tok ~ /^[A-Z][A-Z-]*[A-Z]$/ && tok ~ /[A-Z][A-Z]/
+}
+# Token k is a shouted word that sits next to token j through spaces only.
+function shouted(k) {
+    if (k < 1 || k > nt || !caps(tk[k]) || tk[k] in ok || post[k] ~ /^\.[a-z]/) return 0
+    return (k > j ? gap[k] : gap[j]) ~ /^ +$/
 }
 function hit(msg) {
     if (line == "-") printf "%s: %s\n", file, msg
@@ -72,12 +84,27 @@ function count(s, re,    k) {
     sub(/[^a-z0-9_]+$/, "", tail)
     sub(/.*[^a-z0-9_]/, "", tail)
 
-    s = v
+    # Tokens with the text before and after each one, so a constant passes only
+    # as `$NAME`, `${NAME}` or `NAME=`, and a lone capital beside an all-caps
+    # word reads as part of the shouting.
+    nt = 0; s = v; off = 0
     while (match(s, /[A-Za-z0-9_$][A-Za-z0-9_-]*/)) {
-        tok = substr(s, RSTART, RLENGTH)
+        nt++; tk[nt] = substr(s, RSTART, RLENGTH)
+        st = off + RSTART
+        gap[nt] = substr(s, 1, RSTART - 1)
+        pre[nt] = substr(v, st > 2 ? st - 2 : 1, st > 2 ? 2 : st - 1)
+        post[nt] = substr(v, st + RLENGTH, 2)
+        off = st + RLENGTH - 1
         s = substr(s, RSTART + RLENGTH)
-        if (tok !~ /^[A-Z][A-Z-]*[A-Z]$/ || tok !~ /[A-Z][A-Z]/) continue
-        if (tok in ok || s ~ /^\.[a-z]/) continue
+    }
+    for (j = 1; j <= nt; j++) {
+        tok = tk[j]
+        if (tok ~ /^[A-Z]$/) {
+            if (shouted(j - 1) || shouted(j + 1)) hit("all-caps \"" tok "\"")
+            continue
+        }
+        if (!caps(tok) || tok in ok || post[j] ~ /^\.[a-z]/) continue
+        if (tok in const && (post[j] ~ /^=/ || pre[j] ~ /\$\{?$/)) continue
         hit("all-caps \"" tok "\"")
     }
 }

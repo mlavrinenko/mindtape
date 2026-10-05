@@ -551,7 +551,7 @@ commands:
   # www/utils/ (`docs`). `script-check-doc-facts` is the recipe body;
   # `gates-meta` carries the gate-table shape www/generate-facts.sh's
   # gates.json reads back out of the Justfile. `script-nav-diff` is here because
-  # check-doc-facts.sh's NAV arm shells out to .just/scripts/_nav-diff.sh
+  # check-doc-facts.sh's `NAV` arm shells out to .just/scripts/_nav-diff.sh
   # directly. Arm two of script-scope-check walks that hop instead of taking it
   # on trust, so the input is derived and dropping it fails by name.
   - name: just check-doc-facts
@@ -742,7 +742,7 @@ commands:
   # Replica-tree self-test for the docs manifest gate: two pages declaring the
   # same route and a page with no `<page-meta>` block both drive a `cp -r
   # www` copy of www/generate-site-pages.sh (`docs`, since the fixture is
-  # built from the real www/content/**), and a page missing from NAV drives
+  # built from the real www/content/**), and a page missing from `NAV` drives
   # `.just/scripts/_nav-diff.sh` directly against a synthetic pair of route
   # lists. That is the same script-to-script hop `script-nav-diff` covers on
   # `just check-doc-facts` above, and arm two of script-scope-check derives it.

@@ -220,7 +220,7 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
             // www/generate-site-pages.sh's bootstrap pass, before the
             // manifest it queries every page to build exists yet — skip that
             // entry rather than render a labelless link. Once the manifest is
-            // real, a route in NAV with none in it is a bug, not a skip (see
+            // real, a route in `NAV` with none in it is a bug, not a skip (see
             // page-meta's own comment), so nothing here swallows that case.
             let meta = page-meta(route)
             if meta != none {

@@ -82,8 +82,8 @@
   )
 }
 
-// The sidebar groups in NAV order, each a `(title, routes)` pair, for prose
-// that lists the whole site by section. A page added to NAV, or moved to
+// The sidebar groups in `NAV` order, each a `(title, routes)` pair, for prose
+// that lists the whole site by section. A page added to `NAV`, or moved to
 // another group, shows up here with no edit to the source that reads this.
 // Link each route with `www-link`, which fails the render on an unknown one.
 #let www-groups = _site.groups

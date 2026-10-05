@@ -24,7 +24,7 @@ visible=$(./target/debug/mt _cli --json | jq -r '.commands[].name')
 
 # cli-notes.typ imports www/utils/site.typ for `u`, and site.typ reads both
 # www/generated/crate-map.json (PKG_VERSION) and www/generated/site-pages.json
-# (PAGES) at module top level — Typst evaluates a whole module on import, not
+# (`PAGES`) at module top level — Typst evaluates a whole module on import, not
 # just the names pulled out of it. This gate never produces either file
 # itself, but three other `just check` arms do (docs::check, check-doc-facts,
 # docs/generate-md.sh — all via `www/generate.sh`, which `rm -rf`s the whole

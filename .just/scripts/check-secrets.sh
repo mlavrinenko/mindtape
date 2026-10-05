@@ -178,7 +178,7 @@ flock 9
 
 # Asserted rather than assumed — deleting the three lines above restores the
 # race in silence, on a gate that stays green either way. `flock -n` opens
-# the file on a NEW description, which conflicts with the one fd 9 holds, so
+# the file on a new description, which conflicts with the one fd 9 holds, so
 # it can only succeed if the lock is not ours.
 if flock -n target/www-generated.lock true 2>/dev/null; then
     echo "check-secrets: the tree scan is not holding target/www-generated.lock" >&2

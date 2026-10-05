@@ -17,13 +17,13 @@
 # (truth/tasks/derive-the-built-in-priority-tables.typ), every sweep flag in
 # sweep-flags.json needs a www/utils/sweep-flag-notes.typ entry
 # (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-attributes.typ),
-# and every www/content/*.typ page needs a route in site-pages.json and a NAV
+# and every www/content/*.typ page needs a route in site-pages.json and a `NAV`
 # entry in www/utils/site.typ. The first five arms read their Typst dict's
 # keys through the same target/-rooted driver trick as check-doc-coverage.sh,
 # never by grepping quoted strings. The fifth reads a driver too (for
-# NAV) and also compares against the filesystem, so it runs in three
+# `NAV`) and also compares against the filesystem, so it runs in three
 # directions — a page whose own declared route disagrees with its filename, a
-# page with no NAV entry (invisible in the sidebar), and a NAV entry with no
+# page with no `NAV` entry (invisible in the sidebar), and a `NAV` entry with no
 # page (a 404 in it) — each failing by name.
 #
 # It regenerates its own inputs (bash www/generate.sh below, which ends by
@@ -197,11 +197,11 @@ if [ -n "$orphaned" ]; then
     exit 1
 fi
 
-# The pages arm, part two: the manifest vs. www/utils/site.typ's NAV, the
-# other place a route is written by hand. Nothing derives NAV from the
-# manifest any more (NAV only carries group titles and reading order), so the
-# two can disagree — a page missing from NAV is invisible in the sidebar, and
-# a NAV entry naming no real page's route 404s the moment it's clicked. Read
+# The pages arm, part two: the manifest vs. www/utils/site.typ's `NAV`, the
+# other place a route is written by hand. Nothing derives `NAV` from the
+# manifest any more (`NAV` only carries group titles and reading order), so the
+# two can disagree — a page missing from `NAV` is invisible in the sidebar, and
+# a `NAV` entry naming no real page's route 404s the moment it's clicked. Read
 # through the same target/-rooted driver trick as the four arms above, not by
 # grepping quoted strings out of site.typ. The set-difference itself is
 # .just/scripts/_nav-diff.sh, extracted under truth/tasks/pin-the-docs-

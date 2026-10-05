@@ -24,7 +24,7 @@ source "$REPO/www/capture.sh"
 export MINDTAPE_NOW=$API_SERVICE_NOW
 capture_init
 
-# run <file> <project> <mt args...>: write one run's stdout to OUT/<file>,
+# run <file> <project> <mt args...>: write one run's stdout to `OUT`/<file>,
 # from the project's own directory, so every path mt prints is relative.
 run() {
   local file="$1" dir="$2"

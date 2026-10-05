@@ -24,7 +24,7 @@
 #     `bash`: a script is as much a dependency read as run (positional-args-
 #     check.sh greps mutants.sh; a script may assign another's path and run it
 #     a line later). Three shapes are subtracted. A comment
-#     line and a heredoc body are not code — the control fixtures WRITE scripts
+#     line and a heredoc body are not code — the control fixtures write scripts
 #     with a heredoc, so reading one as code would make a fixture an edge of the
 #     gate that runs it. The path must exist: size-fixture-check.sh names
 #     `.just/scripts/_probe.sh`, which it synthesizes inside a replica, and no

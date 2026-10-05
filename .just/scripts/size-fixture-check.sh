@@ -46,7 +46,7 @@ cap=$(yq -r '.limits.Shell' .linecop.yaml)
     for _ in $(seq "$cap"); do echo 'echo probe'; done
 } > "$probe"
 
-# Assert the fixture exists and is genuinely over the cap BEFORE asserting the
+# Assert the fixture exists and is genuinely over the cap before asserting the
 # gate rejects it. A negative test whose fixture was never written passes for
 # the wrong reason — the tool fails, or reports nothing, over an absent file
 # and the assertion reads that as the bug being caught. This repo has shipped

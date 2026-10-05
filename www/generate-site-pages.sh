@@ -3,7 +3,7 @@
 # every www/content/*.typ page's own
 # `#metadata((route, label, title, summary, home)) <page-meta>` block.
 # www/utils/site.typ keeps only what no single page holds: the nav groups and
-# their reading order (NAV).
+# their reading order (`NAV`).
 #
 # www/generate.sh calls this after generate-facts.sh, inside the lock it
 # already holds. Querying a page's `<page-meta>` block is a full compile,
@@ -44,10 +44,10 @@ emit() {
 }
 
 # Bootstrap pass. Compiling any page imports layout.typ -> site.typ, and
-# site.typ's PAGES reads this very file, so it has to exist — even empty —
+# site.typ's `PAGES` reads this very file, so it has to exist — even empty —
 # before the query below can compile the first page. Only seeded when
 # absent: a real build already has a real manifest on disk, and re-seeding it
-# empty here would make every page compile against a momentarily-empty PAGES
+# empty here would make every page compile against a momentarily-empty `PAGES`
 # for no reason.
 if [ ! -f "$OUT/site-pages.json" ]; then
   jq -n '{pages: {}}' | emit site-pages.json
@@ -111,10 +111,10 @@ fi
 # target/-rooted driver, the same trick www/generate-facts.sh used for this
 # artifact before this script existed, moved here verbatim. site.typ resolves
 # its own reads relative to itself rather than the root, so `--root .` here
-# and `--root www` above both work against the same file. NAV rides along in
+# and `--root www` above both work against the same file. `NAV` rides along in
 # the same query in two shapes. The flattened routes order the `pages` object
-# below by NAV's reading order rather than the glob's alphabetical one, and
-# `groups` carries each NAV group's title and routes in order, which
+# below by `NAV`'s reading order rather than the glob's alphabetical one, and
+# `groups` carries each `NAV` group's title and routes in order, which
 # docs/src/readme.typ's index reads.
 printf '#import "/www/utils/site.typ": NAV, PREFIX, REPO, SITE_URL\n#metadata((url: SITE_URL, prefix: PREFIX, repo: REPO, nav: NAV.map(g => g.items).flatten(), groups: NAV.map(g => (title: g.title, routes: g.items)))) <site-meta>\n' \
   >"$workdir/site-meta-driver.typ"

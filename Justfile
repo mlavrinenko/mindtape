@@ -333,7 +333,7 @@ script-scope-check:
 
 # Lock the docs manifest gate itself against three failures: two pages
 # declaring the same route, a page with no `<page-meta>` block, and a page
-# missing from www/utils/site.typ's NAV. A gate that never fires reads
+# missing from www/utils/site.typ's `NAV`. A gate that never fires reads
 # identical to one that cannot fire, so this recipe proves each failure is
 # reported. Why it runs against a replica tree rather than the working one, and
 # why the third case drives `.just/scripts/_nav-diff.sh` directly instead of the

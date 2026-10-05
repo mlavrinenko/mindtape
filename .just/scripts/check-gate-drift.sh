@@ -29,7 +29,7 @@
 # nothing is listed here, and a script that arrives is read by arriving. It
 # reads a script named as much as one run, so it errs toward scanning more.
 #
-# `just check-rrule` is OUT of scope, and by that rule rather than by name: it
+# `just check-rrule` is outside the scope, and by that rule rather than by name: it
 # is not a `just check` arm, so nothing here reaches it. It builds with
 # `cargo run --features rrule` into the shared target/debug on purpose (the
 # feature set is the point, and `cargo run` takes no `--tests`), and CI runs it
