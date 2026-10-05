@@ -263,6 +263,11 @@ pub struct FieldConfig {
     /// A filter naming the tasks held to `values`; every other task keeps
     /// whatever it carries. Absent holds every task.
     pub values_when: Option<String>,
+    /// Whether an `x-<ns>` field holds a list of strings rather than one
+    /// string. `mt check` refuses a string in such a field, and a list in a
+    /// field with `values` that does not declare it. `mt add` offers the field
+    /// as a multi-choice slot.
+    pub multiple: bool,
 }
 
 /// `[tasks.tags]` — optional tag allow-list.
@@ -371,9 +376,10 @@ const OWN_TABLE_FIELDS: [&str; 9] = [
 
 /// Load-time check of every `[tasks.fields.<name>]` key: only `kind` and
 /// `x-<ns>` names are read by validation, so any other key is refused instead
-/// of loading as an inert declaration.
+/// of loading as an inert declaration. `kind` holds one string, so it takes no
+/// `multiple`.
 pub(crate) fn validate_field_names(tasks: &TasksConfig) -> Vec<String> {
-    tasks
+    let mut out: Vec<String> = tasks
         .fields
         .keys()
         .filter(|name| *name != "kind" && !name.starts_with("x-"))
@@ -384,7 +390,17 @@ pub(crate) fn validate_field_names(tasks: &TasksConfig) -> Vec<String> {
                 format!("tasks.fields.{name}: unknown field; [tasks.fields] takes `kind` and `x-<ns>` names")
             }
         })
-        .collect()
+        .collect();
+    out.extend(
+        tasks
+            .fields
+            .iter()
+            .filter(|(name, field)| field.multiple && !name.starts_with("x-"))
+            .map(|(name, _)| {
+                format!("tasks.fields.{name}.multiple: only an `x-<ns>` field holds a list")
+            }),
+    );
+    out
 }
 
 /// `[tasks.body]` — body-shape constraints.

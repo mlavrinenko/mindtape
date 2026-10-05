@@ -79,3 +79,60 @@ fn the_template_check_files_the_slots_own_example() {
     let dir = support::project_with_template_and_config(DOCS_ONLY_TEST, OWN_KIND_TEMPLATE);
     support::mt(dir.path()).arg("check").assert().success();
 }
+
+/// A list-valued field: `x-machine` takes any of the listed machines.
+const MACHINE_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
+     [tasks.fields.x-machine]\nvalues = [\"alpha\", \"beta\"]\nmultiple = true\n\
+     required = true\n";
+
+/// A template that declares its own `x-machine` slot, with no `choices`.
+const OWN_MACHINE_TEMPLATE: &str = "#import \"@local/mindtape:0.2.0\": *\n\
+     #show: task.with(\n  title: slot(\"title\", example: \"T\"),\n  \
+     x-machine: slot(\"machine\", example: (\"alpha\",)),\n)\n";
+
+/// A template that never mentions the field, so `mt add` splices its slot.
+const PLAIN_TEMPLATE: &str = "#import \"@local/mindtape:0.2.0\": *\n\
+     #show: task.with(\n  title: slot(\"title\", example: \"T\"),\n)\n";
+
+fn file_machines(template: &str, slot: &str) -> String {
+    let dir = support::project_with_template_and_config(MACHINE_CONFIG, template);
+    support::mt(dir.path())
+        .args(["add", "--name", "x", "--set", "title=x", "--"])
+        .args([format!("{slot}+=alpha"), format!("{slot}+=beta")])
+        .assert()
+        .success();
+    support::mt(dir.path()).arg("check").assert().success();
+    std::fs::read_to_string(dir.path().join("tasks/x.typ")).unwrap()
+}
+
+#[test]
+fn a_spliced_multiple_field_files_a_list() {
+    let written = file_machines(PLAIN_TEMPLATE, "x-machine");
+    assert!(
+        written.contains(r#"x-machine: ("alpha", "beta")"#),
+        "{written}"
+    );
+}
+
+#[test]
+fn an_inherited_multiple_field_files_a_list() {
+    let written = file_machines(OWN_MACHINE_TEMPLATE, "machine");
+    assert!(
+        written.contains(r#"x-machine: ("alpha", "beta")"#),
+        "{written}"
+    );
+}
+
+#[test]
+fn a_multiple_field_is_described_as_a_multi_choice() {
+    let dir = support::project_with_template_and_config(MACHINE_CONFIG, PLAIN_TEMPLATE);
+    let slots = support::describe_slots(dir.path());
+    let machine = slots
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row["name"] == "x-machine")
+        .unwrap();
+    assert_eq!(machine["kind"], "multichoice", "{machine}");
+    assert_eq!(machine["choices"], serde_json::json!(["alpha", "beta"]));
+}

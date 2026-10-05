@@ -47,10 +47,10 @@ arguments:
   columns: 2,
   table.header([Argument], [What it does]),
   [`kind`],
-  [What the value is: `string` (the default), `int`, `float`, `real`, `bool`, `date` (`YYYY-MM-DD`), `list` (of strings), `choice`, `text` or `raw`.],
+  [What the value is: `string` (the default), `int`, `float`, `real`, `bool`, `date` (`YYYY-MM-DD`), `list` (of strings), `choice`, `multichoice` (a list of the `choices`), `text` or `raw`.],
 
   [`choices`],
-  [The values a `choice` slot accepts. A slot that is a whole field value, as in `kind: slot("kind", example: "test")`, and has no `choices` of its own takes the field's allowed values: `values` from `[tasks.fields.kind]`, `allowed` from `[tasks.assignee]`.],
+  [The values a `choice` or `multichoice` slot accepts. A slot that is a whole field value, as in `kind: slot("kind", example: "test")`, and has no `choices` of its own takes the field's allowed values: `values` from `[tasks.fields.kind]`, `allowed` from `[tasks.assignee]`. A field that holds a list makes the slot a `multichoice`.],
 
   [`default`], [The value used when nothing fills the slot.],
   [`example`],

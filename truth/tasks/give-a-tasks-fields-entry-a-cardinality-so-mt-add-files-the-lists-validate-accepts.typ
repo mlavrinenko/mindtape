@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 4),
+  status: done(2026, 10, 5),
   links: related(
     "describe-every-field-with-one-field-descriptor.typ",
   )[the descriptor absorbs cardinality; either can land first],

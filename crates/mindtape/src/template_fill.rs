@@ -109,7 +109,7 @@ impl fmt::Display for FillError {
             Self::Missing(names) => write!(f, "missing required slot(s): {}", names.join(", ")),
             Self::Type {
                 slot,
-                want: SlotKind::List,
+                want: SlotKind::List | SlotKind::MultiChoice,
                 got,
             } => write!(
                 f,
@@ -264,7 +264,22 @@ fn render(spec: &SlotSpec, value: &RawValue) -> Result<String, FillError> {
         SlotKind::Bool => Ok(coerce_bool(spec, value)?.to_string()),
         SlotKind::Date => render_date(spec, &coerce_str(spec, value)?),
         SlotKind::List => Ok(render_list(&coerce_list(spec, value)?)),
+        SlotKind::MultiChoice => render_multi_choice(spec, value),
     }
+}
+
+fn render_multi_choice(spec: &SlotSpec, value: &RawValue) -> Result<String, FillError> {
+    let items = coerce_list(spec, value)?;
+    if let Some(choices) = &spec.choices
+        && let Some(bad) = items.iter().find(|item| !choices.contains(item))
+    {
+        return Err(FillError::BadChoice {
+            slot: spec.name.clone(),
+            value: bad.clone(),
+            choices: choices.clone(),
+        });
+    }
+    Ok(render_list(&items))
 }
 
 fn render_choice(spec: &SlotSpec, value: &RawValue) -> Result<String, FillError> {

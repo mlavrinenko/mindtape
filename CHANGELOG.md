@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`multiple = true` declares a list-valued `x-<ns>` field.** `mt add`
+  offered every such field as a single-value `choice`, so a list could not be
+  filed. It now offers a `multichoice` slot, spliced or inherited, and files a
+  list. `mt check` refuses a string in a `multiple` field, and a list in a
+  field with `values` that does not declare it.
 - **One descriptor holds a field's rules.** `[tasks.fields.<name>]`,
   `[tasks.assignee]` and `[tasks.tags]` take `values-when`, a filter naming the
   tasks held to the allowed values. Tags default to `!terminal`, as before, and

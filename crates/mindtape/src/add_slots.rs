@@ -13,7 +13,7 @@
 use typst_edit::{Call, Edit, EditError, apply, find_calls, find_method_calls};
 
 use crate::config::{Config, Requirement};
-use crate::field_descriptor::{self, Cardinality, Descriptor};
+use crate::field_descriptor::{self, Descriptor};
 use crate::fields;
 use crate::framework::{Framework, Input, InputKind};
 use crate::numeric::{NumericField, ScaleKind, format_num};
@@ -218,21 +218,33 @@ fn scale_kind_str(kind: ScaleKind) -> &'static str {
 /// the descriptor's own.
 fn field_slot(field: &Descriptor) -> RequiredSlot {
     let name = field.name;
-    let default = field
-        .default
-        .map_or_else(String::new, |value| format!(", default: {value:?}"));
+    let list = field.cardinality.is_list();
+    let literal = |value: &str| {
+        if list {
+            format!("({value:?},)")
+        } else {
+            format!("{value:?}")
+        }
+    };
+    let default = field.default.map_or_else(String::new, |value| {
+        format!(", default: {}", literal(value))
+    });
     let env = field
         .env
         .map_or_else(String::new, |env| format!(", env: \"{env}\""));
-    let example = (field.default)
-        .or(field.allowed.first().map(String::as_str))
-        .unwrap_or(&field.example);
+    let example = literal(
+        (field.default)
+            .or(field.allowed.first().map(String::as_str))
+            .unwrap_or(&field.example),
+    );
     let call = if field.allowed.is_empty() {
-        format!(r#"slot("{name}", prompt: "{name}"{default}{env}, example: {example:?})"#)
+        let kind = if list { r#"kind: "list", "# } else { "" };
+        format!(r#"slot("{name}", {kind}prompt: "{name}"{default}{env}, example: {example})"#)
     } else {
+        let kind = if list { "multichoice" } else { "choice" };
         let choices = choice_list(field.allowed);
         format!(
-            r#"slot("{name}", kind: "choice", choices: ({choices}){default}{env}, example: {example:?})"#
+            r#"slot("{name}", kind: "{kind}", choices: ({choices}){default}{env}, example: {example})"#
         )
     };
     RequiredSlot {
@@ -240,7 +252,7 @@ fn field_slot(field: &Descriptor) -> RequiredSlot {
         config_path: field.path.clone(),
         call,
         env: field.env,
-        default: field.default.map(|value| format!("{value:?}")),
+        default: field.default.map(literal),
     }
 }
 
@@ -279,11 +291,8 @@ pub fn inherit_field_choices(source: &str, config: &Config) -> Result<String, Ed
         .filter_map(|arg| {
             let name = arg.name.as_deref()?;
             let field = described.iter().find(|field| field.name == name)?;
-            if field.cardinality == Cardinality::Many {
-                return None;
-            }
             let slot = slots.iter().find(|slot| slot.range == arg.value_range)?;
-            choice_edits(slot, field.allowed)
+            choice_edits(slot, field.allowed, field.cardinality.is_list())
         })
         .flatten()
         .collect();
@@ -293,22 +302,27 @@ pub fn inherit_field_choices(source: &str, config: &Config) -> Result<String, Ed
     apply(source, edits)
 }
 
-/// The edits that make `slot` a choice over `values`, or `None` when it
-/// keeps its own spec.
-fn choice_edits(slot: &Call, values: &[String]) -> Option<Vec<Edit>> {
+/// The edits that make `slot` a choice over `values` (a multi-choice for a
+/// list field), or `None` when it keeps its own spec.
+fn choice_edits(slot: &Call, values: &[String], list: bool) -> Option<Vec<Edit>> {
     if values.is_empty() || slot.named("choices").is_some() {
         return None;
     }
+    let (plain, kind) = if list {
+        ("list", "multichoice")
+    } else {
+        ("string", "choice")
+    };
     let after_name = slot.positional(0)?.value_range.end;
     let choices = format!(", choices: ({})", choice_list(values));
-    match slot.named("kind").map(|kind| (kind, kind.value.as_str())) {
+    match slot.named("kind").map(|arg| (arg, arg.value.as_str())) {
         None => Some(vec![Edit::new(
             after_name..after_name,
-            format!(r#", kind: "choice"{choices}"#),
+            format!(r#", kind: "{kind}"{choices}"#),
         )]),
-        Some((kind, "string" | "choice")) => Some(vec![
+        Some((arg, declared)) if declared == plain || declared == kind => Some(vec![
             Edit::new(after_name..after_name, choices),
-            Edit::new(kind.value_range.clone(), r#""choice""#),
+            Edit::new(arg.value_range.clone(), format!("{kind:?}")),
         ]),
         Some(_) => None,
     }

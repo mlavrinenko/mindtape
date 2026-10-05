@@ -69,6 +69,8 @@ pub enum SlotKind {
     Raw,
     /// A string constrained to the slot's `choices`.
     Choice,
+    /// A list of strings, each one of the slot's `choices`.
+    MultiChoice,
 }
 
 impl SlotKind {
@@ -86,6 +88,7 @@ impl SlotKind {
             Self::Text => "text",
             Self::Raw => "raw",
             Self::Choice => "choice",
+            Self::MultiChoice => "multichoice",
         }
     }
 
@@ -101,6 +104,7 @@ impl SlotKind {
             "text" => Self::Text,
             "raw" => Self::Raw,
             "choice" => Self::Choice,
+            "multichoice" => Self::MultiChoice,
             _ => return None,
         };
         Some(kind)

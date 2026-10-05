@@ -192,18 +192,18 @@ groups:
       docs/src/contributing/signal-sweep.typ: 6377402d346c38c13ccb9cdc7e5b10913c5c7123dccd47bf6767ca0727a802fe
   prelude-docs:
     source:
-      lib/prelude.typ: f3885971c7addb9a43ece04e43aabd8a7e02f2157ca2cdb3d2336f176757d8ae
+      lib/prelude.typ: 92e96f421312da0880e2d2a91628770f193f52ad719271204eab139a46fc864a
     dependents:
-      docs/src/agents.typ: dfafbd070f771c75319b6634b87b2119730f3233c1cfdeab58612948ef1bbab0
+      docs/src/agents.typ: db573f683c844f3acf22f77df6683dd1248b88d53831a0f6aaa93f8eee0f564e
       docs/src/skill.typ: 1bce54f4da2ee49ecf536973aa51d50ed877b211591fa73d1874e8daf6cf2a4a
       skills/mindtape/references/add-slots.md: 88cb97c15bb273483d526b496a227f2a0794fa279d876b0585dc2d46c5aaa658
-      www/content/concepts.typ: 0bd7e054efd29be594e5d2b829b3f7a086bcac30cb44a5b9b822bdf624a34182
+      www/content/concepts.typ: c95be70bd05eff158c1dc3c083d4f13e540afa8e6313701e5f1b52496a510728
       www/content/dsl.typ: 43d2144e38c5e25e4db01977471effbf41aae8cea314066b177b3e1cb0d60d76
       www/content/index.typ: 7a601844ef661ed501d2a756c9b2617d6460dad3442f1c75e999fef34e590493
       www/content/links.typ: 997d07f188c3995c2865bfaf09ac0751367d117bee4e8f27f969973a26fb26ae
       www/content/priority.typ: 5da0661bc11613b90d9410b36b79436df14ba61a671437e72b601299497f7121
-      www/content/recurring.typ: eff529a7eff2e613f30db1b7c8afc2e9c44f6b24a886eb709927db5bb6cf7c1a
-      www/content/templates.typ: a7ee4770b6d2d689031be981dffb2a1ff2a062dfe0c99e72f84a8f3a516537aa
+      www/content/recurring.typ: ad06f75285c23c8baa885905f72466ccf49d7864306c532cb1f3e87951d9a08d
+      www/content/templates.typ: 9ecab682fdc0e24d33ba88fa0f8224411c362388c54e37c53023e63a05e46797
   priority-frameworks:
     source:
       crates/mindtape/src/frameworks.toml: 69a8880cc7c1682d9423865404c25cc2c0240e54824d4722573d7d1f9cf387cc

@@ -722,6 +722,11 @@
             "null"
           ]
         },
+        "multiple": {
+          "default": false,
+          "description": "Whether an `x-<ns>` field holds a list of strings rather than one\nstring. `mt check` refuses a string in such a field, and a list in a\nfield with `values` that does not declare it. `mt add` offers the field\nas a multi-choice slot.",
+          "type": "boolean"
+        },
         "required": {
           "$ref": "#/$defs/Requirement",
           "description": "Whether the field must be set."

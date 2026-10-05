@@ -277,7 +277,9 @@ fn default_entry(spec: &SlotSpec) -> Option<Entry> {
         SlotKind::Int | SlotKind::Float | SlotKind::Real | SlotKind::Bool => {
             spec.default.clone().map(Entry::Scalar)
         }
-        SlotKind::List if is_empty_list_default(spec) => Some(Entry::List(Vec::new())),
+        SlotKind::List | SlotKind::MultiChoice if is_empty_list_default(spec) => {
+            Some(Entry::List(Vec::new()))
+        }
         _ => None,
     }
 }

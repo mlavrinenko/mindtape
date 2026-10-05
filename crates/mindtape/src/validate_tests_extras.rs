@@ -65,10 +65,7 @@ fn extra_inside_values_passes() {
 fn non_string_extra_against_values_flags() {
     let value = Some(HVal::Dict(BTreeMap::new()));
     let breaches = machine_breaches(value, "wip", &machine_config(&["alpha"]));
-    assert_eq!(
-        breaches,
-        ["a field with allowed values takes a string or a list of strings"]
-    );
+    assert_eq!(breaches, ["takes one string"]);
 }
 
 #[test]
@@ -83,38 +80,35 @@ fn strs(items: &[&str]) -> HVal {
 
 #[test]
 fn list_extra_inside_values_passes() {
-    let cfg = machine_config(&["alpha", "beta"]);
+    let cfg = multiple_config(&["alpha", "beta"]);
     assert!(machine_breaches(Some(strs(&["alpha", "beta"])), "wip", &cfg).is_empty());
 }
 
 #[test]
 fn list_extra_with_unknown_element_flags() {
-    let cfg = machine_config(&["alpha"]);
+    let cfg = multiple_config(&["alpha"]);
     let breaches = machine_breaches(Some(strs(&["alpha", "desktop"])), "wip", &cfg);
     assert_eq!(breaches, ["`desktop` is not an allowed value"]);
 }
 
 #[test]
 fn list_extra_with_non_string_element_flags() {
-    let cfg = machine_config(&["alpha"]);
+    let cfg = multiple_config(&["alpha"]);
     let value = Some(HVal::Array(vec![HVal::Str("alpha".into()), HVal::Int(1)]));
     let breaches = machine_breaches(value, "wip", &cfg);
-    assert_eq!(
-        breaches,
-        ["a field with allowed values takes a string or a list of strings"]
-    );
+    assert_eq!(breaches, ["takes a list of strings"]);
 }
 
 #[test]
 fn empty_list_extra_flags() {
-    let cfg = machine_config(&["alpha"]);
+    let cfg = multiple_config(&["alpha"]);
     let breaches = machine_breaches(Some(HVal::Array(vec![])), "wip", &cfg);
     assert_eq!(breaches, ["an empty list names no allowed value"]);
 }
 
 #[test]
 fn list_extra_repeating_an_element_flags() {
-    let cfg = machine_config(&["alpha"]);
+    let cfg = multiple_config(&["alpha"]);
     let breaches = machine_breaches(Some(strs(&["alpha", "alpha"])), "wip", &cfg);
     assert_eq!(breaches, ["`alpha` is listed twice"]);
 }
@@ -148,4 +142,40 @@ fn core_field_with_its_own_table_fails_load_naming_it() {
     let problem = load_problem("[tasks.fields.priority]\nrequired = true\n").unwrap();
     assert!(problem.contains("tasks.fields.priority"), "{problem}");
     assert!(problem.contains("[tasks.priority]"), "{problem}");
+}
+
+fn multiple_config(values: &[&str]) -> Config {
+    let mut cfg = machine_config(values);
+    cfg.tasks.fields.get_mut("x-machine").unwrap().multiple = true;
+    cfg
+}
+
+#[test]
+fn a_multiple_field_refuses_a_scalar() {
+    let value = Some(HVal::Str("alpha".into()));
+    let breaches = machine_breaches(value, "wip", &multiple_config(&["alpha"]));
+    assert_eq!(breaches, ["takes a list of strings, not one string"]);
+}
+
+#[test]
+fn a_multiple_field_without_values_refuses_a_scalar() {
+    let value = Some(HVal::Str("alpha".into()));
+    let breaches = machine_breaches(value, "wip", &multiple_config(&[]));
+    assert_eq!(breaches, ["takes a list of strings, not one string"]);
+}
+
+#[test]
+fn a_multiple_field_takes_a_list() {
+    let value = Some(strs(&["alpha"]));
+    assert!(machine_breaches(value, "wip", &multiple_config(&["alpha"])).is_empty());
+}
+
+#[test]
+fn a_single_field_with_values_refuses_a_list() {
+    let value = Some(strs(&["alpha"]));
+    let breaches = machine_breaches(value, "wip", &machine_config(&["alpha"]));
+    assert_eq!(
+        breaches,
+        ["takes one string, not a list; `multiple = true` declares a list"]
+    );
 }

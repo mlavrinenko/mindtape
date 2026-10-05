@@ -274,7 +274,7 @@
 // plain values and never calls `slot`. At eval time a slot returns its `default`,
 // keeping a template a previewable, valid task. `kind` drives how `add` renders a
 // filled value ("string", "int", "float", "bool", "date", "list", "text",
-// "choice"); `prompt`/`required`/`choices` steer the fill UI. `env` names an
+// "choice", "multichoice"); `prompt`/`required`/`choices` steer the fill UI. `env` names an
 // environment variable `add` reads at fill time (missing/unreadable variables
 // fall through to the next source); with `env: none` every slot still fills
 // from `MINDTAPE_ADD_<NAME>`. `example` is a sample value `--describe` shows

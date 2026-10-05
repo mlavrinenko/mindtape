@@ -110,8 +110,18 @@ fn an_assignee_slot_offers_the_allowed_names() {
 }
 
 #[test]
-fn a_tags_slot_keeps_its_own_spec() {
-    let template = r#"#show: task.with(tags: slot("tags"))"#;
+fn a_tags_slot_of_another_kind_keeps_its_own_spec() {
+    let template = r#"#show: task.with(tags: slot("tags", kind: "string"))"#;
     let toml = "[tasks.tags]\nallowed = [\"web\"]\n";
     assert_eq!(inherited(toml, template, "tags"), (SlotKind::String, None));
+}
+
+#[test]
+fn a_tags_slot_offers_the_allowed_tags_as_a_multi_choice() {
+    let template = r#"#show: task.with(tags: slot("tags"))"#;
+    let toml = "[tasks.tags]\nallowed = [\"web\"]\n";
+    assert_eq!(
+        inherited(toml, template, "tags"),
+        (SlotKind::MultiChoice, Some(vec!["web".to_owned()]))
+    );
 }

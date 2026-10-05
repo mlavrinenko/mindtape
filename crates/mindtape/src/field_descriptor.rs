@@ -15,10 +15,18 @@ use crate::model::Task;
 pub enum Cardinality {
     /// One string.
     One,
-    /// One string or a list of distinct strings, each allowed.
-    Any,
+    /// A non-empty list of distinct strings, each allowed.
+    Multiple,
     /// A list, empty or repeating allowed; each entry must be allowed.
     Many,
+}
+
+impl Cardinality {
+    /// Whether the field holds a list.
+    #[must_use]
+    pub fn is_list(self) -> bool {
+        self != Self::One
+    }
 }
 
 /// One field's rules, whichever config table declared them: `[tasks.fields]`,
@@ -81,10 +89,10 @@ pub fn descriptors(config: &Config) -> Vec<Descriptor<'_>> {
             required: &field.required,
             default: field.default.as_deref(),
             when: when(field.values_when.as_deref()),
-            cardinality: if name == "kind" {
-                Cardinality::One
+            cardinality: if field.multiple {
+                Cardinality::Multiple
             } else {
-                Cardinality::Any
+                Cardinality::One
             },
             noun: "value",
             hint: false,
@@ -150,47 +158,47 @@ impl Descriptor<'_> {
         self.allowed.is_empty() || self.allowed.iter().any(|allowed| allowed == value)
     }
 
-    /// The messages for one held value: each string must be allowed, and a
-    /// list of the wrong cardinality, an empty or repeating one, or a
-    /// non-string entry is refused. A field without allowed values takes any
-    /// shape.
+    /// The messages for one held value: a value of the wrong cardinality, a
+    /// string that is not allowed, and in a list an empty list, a repeated
+    /// entry or a non-string entry. A single-valued field without allowed
+    /// values takes any shape.
     #[must_use]
     pub fn breaches(&self, task: &Task, value: &HVal) -> Vec<String> {
-        const SHAPE: &str = "a field with allowed values takes a string or a list of strings";
-        if self.allowed.is_empty() {
-            return Vec::new();
+        let refused = |text: &str| self.refusal(task, text);
+        match (self.cardinality, value) {
+            (Cardinality::One, _) if self.allowed.is_empty() => Vec::new(),
+            (Cardinality::One, HVal::Str(text)) if !self.allows(text) => vec![refused(text)],
+            (Cardinality::One, HVal::Str(_)) => Vec::new(),
+            (Cardinality::One, HVal::Array(_)) => {
+                vec!["takes one string, not a list; `multiple = true` declares a list".to_owned()]
+            }
+            (Cardinality::One, _) => vec!["takes one string".to_owned()],
+            (_, HVal::Array(items)) => self.list_breaches(items, refused),
+            (_, HVal::Str(_)) => vec!["takes a list of strings, not one string".to_owned()],
+            _ => vec!["takes a list of strings".to_owned()],
         }
-        let refused = |text: &str| {
-            let derived = if self.cardinality == Cardinality::Many
-                && !task.tags.iter().any(|tag| tag == text)
-            {
+    }
+
+    fn refusal(&self, task: &Task, text: &str) -> String {
+        let derived =
+            if self.cardinality == Cardinality::Many && !task.tags.iter().any(|tag| tag == text) {
                 " derived from folder"
             } else {
                 ""
             };
-            let hint = if self.hint {
-                crate::suggest::hint(self.noun, text, self.allowed)
-            } else {
-                String::new()
-            };
-            format!("`{text}`{derived} is not an allowed {}{hint}", self.noun)
+        let hint = if self.hint {
+            crate::suggest::hint(self.noun, text, self.allowed)
+        } else {
+            String::new()
         };
-        match value {
-            HVal::Str(text) if !self.allows(text) => vec![refused(text)],
-            HVal::Str(_) => Vec::new(),
-            HVal::Array(items) if self.cardinality != Cardinality::One => {
-                self.list_breaches(items, SHAPE, refused)
-            }
-            _ => vec![SHAPE.to_owned()],
-        }
+        format!("`{text}`{derived} is not an allowed {}{hint}", self.noun)
     }
 
-    fn list_breaches(
-        &self,
-        items: &[HVal],
-        shape: &str,
-        refused: impl Fn(&str) -> String,
-    ) -> Vec<String> {
+    fn list_breaches(&self, items: &[HVal], refused: impl Fn(&str) -> String) -> Vec<String> {
+        const SHAPE: &str = "takes a list of strings";
+        if self.allowed.is_empty() {
+            return Vec::new();
+        }
         if items.is_empty() {
             return match self.cardinality {
                 Cardinality::Many => Vec::new(),
@@ -208,7 +216,7 @@ impl Descriptor<'_> {
                     out.push(format!("`{text}` is listed twice"));
                 }
                 HVal::Str(text) => seen.push(text),
-                _ if !out.iter().any(|message| message == shape) => out.push(shape.to_owned()),
+                _ if !out.iter().any(|message| message == SHAPE) => out.push(SHAPE.to_owned()),
                 _ => {}
             }
         }
