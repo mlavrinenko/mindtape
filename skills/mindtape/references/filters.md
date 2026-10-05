@@ -29,7 +29,8 @@ save it in config, because `mt ls` shows what it selects.
 - An `x-<ns>` slot reads whether or not `[tasks.fields]` declares it. Text, a
   number or a boolean compares like any field: `x-machine == "alpha"`. A list
   equals nothing, so `has(x-machine, "alpha")` tests membership. A dict such
-  as `x-goals` takes `has()` and `miss()` only.
+  as `x-goals` takes `has()` and `miss()` only. A config filter naming an
+  undeclared `x-` slot warns at load while other slots are declared.
 
 A name keeps its hyphens, as in the task file: `x-goals`,
 `estimate.src-files`.

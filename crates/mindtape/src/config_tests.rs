@@ -266,3 +266,57 @@ fn unknown_priority_key_fails_the_load_naming_it() {
         "error must name the key: {error:?}"
     );
 }
+
+const MACHINE: &str = "[tasks.fields.x-machine]\nvalues = [\"alpha\"]\n";
+
+fn rule_reading(expr: &str) -> String {
+    format!("{MACHINE}[[tasks.rules]]\nname = \"r\"\nassert = '{expr}'\nwhen = '{expr}'\n")
+}
+
+#[test]
+fn a_filter_naming_an_undeclared_extra_warns_with_the_nearest_declared_name() {
+    let config = parse_config(&rule_reading("x-machnie == \"alpha\"")).unwrap();
+    let warnings = config.warnings();
+    assert_eq!(warnings.len(), 2, "{warnings:?}");
+    assert!(
+        warnings[0].starts_with("tasks.rules[0].assert: `x-machnie`"),
+        "{warnings:?}"
+    );
+    assert!(
+        warnings[0].contains("did you mean: x-machine?"),
+        "{warnings:?}"
+    );
+    assert!(
+        warnings[1].starts_with("tasks.rules[0].when:"),
+        "{warnings:?}"
+    );
+}
+
+#[test]
+fn a_declared_extra_does_not_warn() {
+    let config = parse_config(&rule_reading("x-machine == \"alpha\"")).unwrap();
+    assert!(config.warnings().is_empty());
+}
+
+#[test]
+fn nothing_warns_while_no_extra_is_declared() {
+    let toml = "[[tasks.rules]]\nname = \"r\"\nassert = 'x-machnie == \"alpha\"'\n";
+    assert!(parse_config(toml).unwrap().warnings().is_empty());
+}
+
+#[test]
+fn a_view_and_a_required_filter_warn_too() {
+    let toml = format!(
+        "{MACHINE}required = 'x-machnie == \"alpha\"'\n[views.mine]\nfilter = 'has(x-machnie)'\n"
+    );
+    let warnings = parse_config(&toml).unwrap().warnings();
+    let paths: Vec<&str> = warnings
+        .iter()
+        .filter_map(|w| w.split(':').next())
+        .collect();
+    assert_eq!(
+        paths,
+        ["tasks.fields.x-machine.required", "views.mine.filter"],
+        "{warnings:?}"
+    );
+}

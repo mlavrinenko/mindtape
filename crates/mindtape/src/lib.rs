@@ -56,6 +56,7 @@ mod config_schema;
 mod config_status;
 mod config_tasks;
 mod config_views;
+mod config_warnings;
 pub mod content_gate;
 mod date;
 mod date_pin;

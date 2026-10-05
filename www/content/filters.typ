@@ -64,7 +64,7 @@ backend team's backlog:
   [The written and derived tags. `has(tags, "frontend")` reads them, and `contains` searches them.],
 
   [`x-<ns>`],
-  [An extension field, whether or not `[tasks.fields]` declares it. Text, a number or a boolean compares like any field. A list equals nothing, so `has(field, value)` reads it. A dict takes only `has()` and `miss()`.],
+  [An extension field, whether or not `[tasks.fields]` declares it. Text, a number or a boolean compares like any field. A list equals nothing, so `has(field, value)` reads it. A dict takes only `has()` and `miss()`. A filter in the config that names an undeclared one, while `[tasks.fields]` declares others, prints a warning at load with the nearest declared name.],
 )
 
 A field name may contain `-` between two letters or digits, as in

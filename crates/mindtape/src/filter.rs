@@ -289,6 +289,39 @@ pub(crate) fn expr_problem(source: &str, probe: &Task, config: &Config) -> Optio
     }
 }
 
+/// The `x-` names `source` reads that `[tasks.fields]` does not declare, each
+/// as a warning with the nearest declared name. Empty while the config declares
+/// no `x-` field at all, and for an expression that does not parse: a misspelt
+/// name is a likely typo only beside declared ones, and reading an undeclared
+/// name stays legal.
+#[must_use]
+pub(crate) fn undeclared_extras(source: &str, config: &Config) -> Vec<String> {
+    let declared: Vec<String> = config
+        .tasks
+        .fields
+        .keys()
+        .filter(|name| fields::is_extra(name))
+        .cloned()
+        .collect();
+    let Ok(filter) = Filter::parse(source) else {
+        return Vec::new();
+    };
+    if declared.is_empty() {
+        return Vec::new();
+    }
+    filter
+        .names()
+        .into_iter()
+        .filter(|name| fields::is_extra(name) && !declared.contains(name))
+        .map(|name| {
+            format!(
+                "`{name}` is not declared in [tasks.fields]{}",
+                crate::suggest::hint("field", &name, &declared)
+            )
+        })
+        .collect()
+}
+
 /// [`expr_problem`] for an expression evaluated over the loaded set — a
 /// `[[tasks.rules]]` entry, an `[[on.flip]]` hook — so `count(...)` passes the
 /// dry run: the probe is its own one-task set. The run is dry, so loading

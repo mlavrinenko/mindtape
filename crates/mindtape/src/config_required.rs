@@ -198,30 +198,56 @@ pub(crate) fn validate_requirements(config: &Config) -> Vec<String> {
         .collect()
 }
 
-/// Load-time check of every `values-when` filter, like [`validate_requirements`].
-pub(crate) fn validate_values_when(config: &Config) -> Vec<String> {
+/// Every `values-when` filter in `config`, paired with its dotted TOML path.
+fn values_whens(config: &Config) -> Vec<(String, &str)> {
     let tasks = &config.tasks;
-    let probe = Task::default();
     let mut sources = vec![
         (
             "tasks.assignee.values-when".to_owned(),
-            &tasks.assignee.values_when,
+            tasks.assignee.values_when.as_deref(),
         ),
-        ("tasks.tags.values-when".to_owned(), &tasks.tags.values_when),
+        (
+            "tasks.tags.values-when".to_owned(),
+            tasks.tags.values_when.as_deref(),
+        ),
     ];
     sources.extend(tasks.fields.iter().map(|(name, field)| {
         (
             format!("tasks.fields.{name}.values-when"),
-            &field.values_when,
+            field.values_when.as_deref(),
         )
     }));
     sources
         .into_iter()
+        .filter_map(|(path, source)| Some((path, source?)))
+        .collect()
+}
+
+/// Load-time check of every `values-when` filter, like [`validate_requirements`].
+pub(crate) fn validate_values_when(config: &Config) -> Vec<String> {
+    let probe = Task::default();
+    values_whens(config)
+        .into_iter()
         .filter_map(|(path, source)| {
-            let problem = crate::filter::expr_problem(source.as_deref()?, &probe, config)?;
+            let problem = crate::filter::expr_problem(source, &probe, config)?;
             Some(format!("{path}: {problem}"))
         })
         .collect()
+}
+
+/// Every filter the `[tasks]` field tables store, paired with its dotted TOML
+/// path: the `required` expressions and the `values-when` filters.
+pub(crate) fn field_filters(config: &Config) -> Vec<(String, String)> {
+    let required = requirements(config)
+        .into_iter()
+        .filter_map(|(path, requirement)| match requirement {
+            Requirement::Expr(source) => Some((path, source.clone())),
+            _ => None,
+        });
+    let when = values_whens(config)
+        .into_iter()
+        .map(|(path, source)| (path, source.to_owned()));
+    required.chain(when).collect()
 }
 
 /// Every `required` rule in `config`, paired with its dotted TOML path.

@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A config filter warns on an undeclared `x-` name.** A rule, view,
+  `required` or `values-when` filter naming `x-machnie` beside a declared
+  `x-machine` loaded silently and matched nothing. While `[tasks.fields]`
+  declares any `x-` field, every command now prints a warning with the nearest
+  declared name. Reading an undeclared name stays legal.
 - **A field's config carries the example a spliced slot shows.**
   `[tasks.fields.<name>]`, `[tasks.assignee]`, `[tasks.estimate]` and the
   numeric scales take `example`. Rust no longer invents one (a scale midpoint,

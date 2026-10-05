@@ -132,6 +132,7 @@ pub fn open() -> Result<Project> {
     }
     let config =
         load_config(&root).with_context(|| format!("load {}", config_path(&root).display()))?;
+    warn_config(&root, &config);
     crate::render::link::init(resolve_hyperlinks(hyperlinks_flag(), config.ls.hyperlinks));
     let outcome = load_project(&root, &config);
     Ok(Project {
@@ -139,6 +140,15 @@ pub fn open() -> Result<Project> {
         config,
         outcome,
     })
+}
+
+/// Print each load warning of `config` to stderr, naming its config file.
+fn warn_config(root: &Path, config: &Config) {
+    let file = config_path(root);
+    let shown = file.strip_prefix(root).unwrap_or(&file).display();
+    for warning in config.warnings() {
+        eprintln!("warning: {shown}: {warning}");
+    }
 }
 
 /// The stem hash of every task the project loaded, closed ones included, so a

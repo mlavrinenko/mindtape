@@ -237,6 +237,14 @@ pub enum ConfigError {
 }
 
 impl Config {
+    /// What loads fine but is likely a mistake: a stored filter naming an `x-`
+    /// field that `[tasks.fields]` does not declare, beside declared ones. One
+    /// message per finding, prefixed by the dotted TOML path of the filter.
+    #[must_use]
+    pub fn warnings(&self) -> Vec<String> {
+        crate::config_warnings::warnings(self)
+    }
+
     /// Run semantic checks that go beyond TOML shape (numeric scale and
     /// classification coverage). Returns one joined message per problem.
     ///
