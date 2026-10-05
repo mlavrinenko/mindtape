@@ -48,7 +48,7 @@ pub struct SchemaArgs {
 #[allow(clippy::struct_excessive_bools)] // independent, orthogonal switches
 pub struct InitArgs {
     /// Starter shape to write: a built-in name, a user preset under
-    /// `~/.config/mindtape/presets`, or a path to a config or preset directory.
+    /// `mindtape/presets` in the config directory, or a path to a config or preset directory.
     #[arg(long, short = 'p', value_name = "NAME|PATH")]
     pub preset: Option<String>,
 
@@ -230,7 +230,9 @@ fn print_preset_list() {
         };
         println!("  {name:<10} {description}{marker}");
     }
-    println!("\nuser presets live in ~/.config/mindtape/presets and shadow these.");
+    if let Some(dir) = preset::user_preset_dir() {
+        println!("\nuser presets live in {} and shadow these.", dir.display());
+    }
 }
 
 /// Prepend the `#:schema` comment directive to the scaffold, unless

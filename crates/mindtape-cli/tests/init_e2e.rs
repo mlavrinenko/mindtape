@@ -268,3 +268,27 @@ fn list_presets_writes_nothing() {
     }
     assert!(!dir.path().join(".mindtape/config.toml").exists());
 }
+
+/// `--list-presets` names the user preset directory `mt` resolves, and no
+/// directory when none resolves.
+#[test]
+fn list_presets_names_the_resolved_user_preset_dir() {
+    let dir = tempfile::tempdir().unwrap();
+    let config_home = dir.path().join("config");
+    let output = support::mt(dir.path())
+        .env(mindtape::CONFIG_HOME_ENV, &config_home)
+        .args(["init", "--list-presets"])
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let presets = config_home.join("mindtape").join("presets");
+    assert!(stdout.contains(&*presets.to_string_lossy()), "{stdout}");
+
+    let output = support::mt(dir.path())
+        .env(mindtape::CONFIG_HOME_ENV, "")
+        .args(["init", "--list-presets"])
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(!stdout.contains("user presets"), "{stdout}");
+}

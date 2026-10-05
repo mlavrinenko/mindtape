@@ -86,8 +86,8 @@ each other's status changes until their branches merge, so decide which agent
 takes which task before they start.
 
 To run `mt` on a worktree from another directory, pass `-w <path>` or set
-`MINDTAPE_WORKTREE`. You can also name worktrees in
-`~/.config/mindtape/worktrees.toml`. A `[[worktrees]]` entry with `name` and
+`MINDTAPE_WORKTREE`. You can also name worktrees in `mindtape/worktrees.toml`
+in your #link(u("/config/"))[config directory]. A `[[worktrees]]` entry with `name` and
 `path` makes a leading `@name` argument stand for `-w <path>`. An entry with
 `base` makes `@<dir>` stand for `-w <base>/<dir>` when that directory holds a
 MindTape project. `mt worktrees` lists the entries.

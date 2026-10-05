@@ -73,8 +73,8 @@ the only one. `mt` refuses an unknown name and lists the packs it has:
 An entry with a `/` is a path to a TOML file, as `./team.toml` is above. A
 path is relative to the directory two levels above the config file that names
 it. For `.mindtape/config.toml` that is the project root, and for the user
-layer `~/.config/mindtape/defaults.toml` it is `~/.config`. `mt` refuses a missing file and
-prints the path it resolved.
+layer `mindtape/defaults.toml` it is your config directory, such as `~/.config`
+on Linux. `mt` refuses a missing file and prints the path it resolved.
 
 #callout("warn")[
   `"mindtape-tasks.toml"` has no `/`, so `mt` reads it as the name of a built-in

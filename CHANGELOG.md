@@ -1638,6 +1638,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt init --list-presets` names the real preset directory.** It printed `~/.config/mindtape/presets` on every platform. It now prints the directory `mt` reads presets from, and the `init --preset` and `worktrees` help name the config directory.
 - **`mt add --describe` refuses a title.** `mt add --describe finding` read `finding` as a title and described the default template. It now fails with `--describe takes no title; did you mean -t finding?` when the word names a template.
 - **`mt done --help` prints help.** A shortcut verb's help request exited 1
   behind an `Error:` prefix, opened with an internal doc comment and named the

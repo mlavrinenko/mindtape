@@ -74,7 +74,7 @@ enum Command {
     Graph(graph::GraphArgs),
     /// List or inspect named views (`[views]`).
     Views(views::ViewsArgs),
-    /// List worktree aliases (`@name` sugar; `~/.config/mindtape/worktrees.toml`).
+    /// List worktree aliases (`@name` sugar; `mindtape/worktrees.toml` in the config directory).
     Worktrees(worktrees::WorktreesArgs),
     /// Validate tasks, and the task each template files, against the project
     /// configuration.
