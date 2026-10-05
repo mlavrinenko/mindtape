@@ -8,7 +8,7 @@
 # so --force there would erase local settings; the schema is generated from the
 # config structs, so forcing it is always safe.
 set -eo pipefail
-"$HOME/.cargo/bin/mt" install --no-lib --no-defaults --force
+"${CARGO_HOME:-$HOME/.cargo}/bin/mt" install --no-lib --no-defaults --force
 
 # A SKILL.md is what makes a directory a skill, and the discriminator is
 # load-bearing: `skills/*-workspace` is gitignored eval scratch, so a bare

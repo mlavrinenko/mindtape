@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Body of `just install-bin`. Lands in ~/.cargo/bin.
+# Body of `just install-bin`. Lands in cargo's bin directory, as `cargo install` does.
 set -eo pipefail
-BIN="$HOME/.cargo/bin"
+BIN="${CARGO_HOME:-$HOME/.cargo}/bin"
 cargo build --release -p mindtape-cli
 mkdir -p "$BIN"
 # `install` opens-and-truncates, which is ETXTBSY while any `mt` is still

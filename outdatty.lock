@@ -119,7 +119,7 @@ groups:
     source:
       .config/nextest.toml: a310c30b19df7fce268db1c136bdd93ff76bf2116e28e4fe799be41ba79920e5
       .just/docs.just: c35a9f058ec6f3d427ecdef56a0dee8882b83a34ea29d0795f6401332ef6fee3
-      Justfile: d18c0c36a929421e52d745def73dff667d3018957893019fbc849ec2673235d7
+      Justfile: 1e26bfa820863a3700e4e8feba31fe374ecc7843873fdc89cda6919efe23f0b3
       flake.nix: bccfe42071c1983f7e116d8864028bcc18ae3f41aaccccb71183464f0b8ccbc0
     dependents:
       docs/src/agents.typ: db573f683c844f3acf22f77df6683dd1248b88d53831a0f6aaa93f8eee0f564e
@@ -220,10 +220,10 @@ groups:
       .just/scripts/_gate-drift-control.sh: 451ef81d0b2ae27ca77f6a2c5264cbe1acfb26fea589216c4e5a069f36e50e7e
       .just/scripts/_nav-diff.sh: 83bdc7d3fcec16a2f3bdffeee918477c5e4687393671c338e2a18382a7d855c9
       .just/scripts/_script-graph-control.sh: fac88cd58ce473688f83638aff7b29d580f9f3a701908be6464ba5c1028a7a95
-      .just/scripts/_typst-package.sh: 40d53c21bb19965cc1e0c4c9460f967b85302fde9464cd1b6e8bbfbbbcbe1650
-      .just/scripts/install-bin.sh: 59488152e35fe088cf8e6318ab15a92422142d9d8eff8e1d5591697a9d4305f7
+      .just/scripts/_typst-package.sh: b8ada5d406a5f84d48695c56d70c663a52193d4b1d042df73cbec5c654ddeb96
+      .just/scripts/install-bin.sh: 194415c8f2e9b90aa5534fe7726d4f93525689ef4fde2e517628149af3948318
       .just/scripts/install-lib.sh: a32b796ffb58b5ccdff32d9eb2e69a2535abbb6de3aead82f176e9ca3f8a4e32
-      .just/scripts/install.sh: 3aa20bc0df8a78daced87a57879bf9248314518b7b935347f116c796c340f8f3
+      .just/scripts/install.sh: 3fdd50bb58667467e5ec548a1c38f86a1ee01caa1d6e342dd3745d724747a2aa
       .just/scripts/uninstall-lib.sh: a9c3a5c622cea12c4fe3233f6e4b222425f9bbba36f1cebd92dbff59cb4e9640
     dependents: {}
   sweep-dedup:

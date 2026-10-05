@@ -801,7 +801,7 @@ fork SLUG BASE='HEAD':
 integrate BRANCH:
     bash .just/scripts/integrate.sh '{{ BRANCH }}'
 
-[doc("Build mt in release mode and install it into ~/.cargo/bin")]
+[doc("Build mt in release mode and install it into $CARGO_HOME/bin")]
 [group("dev")]
 install-bin:
     bash .just/scripts/install-bin.sh
