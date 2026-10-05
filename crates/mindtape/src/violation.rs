@@ -82,17 +82,6 @@ impl Location {
             Self::Builtin { .. } | Self::Pack { .. } | Self::Filled { .. } => None,
         }
     }
-
-    /// The same source at another line.
-    #[must_use]
-    pub fn on_line(self, line: usize) -> Self {
-        match self {
-            Self::File { file, .. } => Self::File { file, line },
-            Self::Builtin { template, .. } => Self::Builtin { template, line },
-            Self::Pack { pack, .. } => Self::Pack { pack, line },
-            Self::Filled { .. } => Self::Filled { line },
-        }
-    }
 }
 
 impl std::fmt::Display for Location {
