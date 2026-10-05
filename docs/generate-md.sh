@@ -11,7 +11,7 @@
 # skills/mindtape/SKILL.md, a docs/contributing/*.md deep dive) touches this
 # file not at all.
 #
-# `www/generate.sh` runs first, unconditionally — a source that reads
+# `www/generate.sh` runs first, through `mmz just docs::gen` — a source that reads
 # `www/generated/*.json` must never depend on some other recipe (`docs::gen`,
 # `check-doc-facts`) having run first in this process. It has to run the whole
 # script, not only `www/generate-facts.sh`, because www/generated/site-pages.json
@@ -22,9 +22,9 @@
 # ends by calling `generate-facts.sh` and then `generate-site-pages.sh`
 # itself, so calling it here is the one call this script needs. The call also
 # pays for a `cargo build -p mindtape-cli` standalone (the debug binary; see
-# www/generate.sh).
-# Inside `just check` that cost is free: `docs::check` already ran
-# `generate.sh` first, sharing this same `target/www-generated.lock`.
+# www/generate.sh). Inside `just check` it is usually a cache hit: whichever
+# docs gate takes `target/www-generated.lock` first runs the generator, and
+# mmz finds the record fresh for the rest.
 #
 # typlite (nixpkgs' tinymist, `$out/bin/typlite`; see flake.nix for the pin)
 # is a render path separate from the www/content/*.typ docs site — those pages
@@ -82,7 +82,9 @@ exec 9>"target/www-generated.lock"
 flock 9
 export MINDTAPE_GENERATED_LOCK=1
 
-bash www/generate.sh
+# Through mmz, so a `just check` whose docs::check arm already regenerated this
+# tree finds the record fresh instead of running www/generate.sh again.
+mmz just docs::gen
 
 BANNER_TMPL='<!-- Generated from %s by `just docs md`. Do not edit; edit the source. -->'
 

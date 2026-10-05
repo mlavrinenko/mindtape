@@ -61,7 +61,8 @@ must stay out of them or take the writer's lock.
 
 - `www/generate.sh` deletes and recreates `www/generated/` on every run. Every
   reader and writer of that directory holds the `target/www-generated.lock`
-  flock for its whole run.
+  flock for its whole run. The readers regenerate through
+  `mmz just docs::gen` inside that lock, so the generator runs once per tree.
 - #just.site-pages-fixture-check() copies `www/` into a temporary replica. It
   skips `public/` and `.tola/`, which the #just.docs-check() arm writes, and
   regenerates `www/generated/` inside the lock.

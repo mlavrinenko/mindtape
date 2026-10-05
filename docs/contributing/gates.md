@@ -22,7 +22,7 @@ Every rule reads the `gates-meta` scope, which includes the `Justfile`, so a `Ju
 
 The arms share one working tree. An arm that reads files another arm writes must stay out of them or take the writer’s lock.
 
-- `www/generate.sh` deletes and recreates `www/generated/` on every run. Every reader and writer of that directory holds the `target/www-generated.lock` flock for its whole run.
+- `www/generate.sh` deletes and recreates `www/generated/` on every run. Every reader and writer of that directory holds the `target/www-generated.lock` flock for its whole run. The readers regenerate through `mmz just docs::gen` inside that lock, so the generator runs once per tree.
 - `just site-pages-fixture-check` copies `www/` into a temporary replica. It skips `public/` and `.tola/`, which the `just docs check` arm writes, and regenerates `www/generated/` inside the lock.
 - `just check-secrets` derives a gitleaks allowlist from the paths git ignores, so the scan skips `www/generated/` and `www/.tola/`. gitleaks still stats the skipped directory itself, so the scan also holds the lock. `.just/scripts/check-secrets.sh` has the measurements.
 - mmz hashes a rule’s inputs before it runs the rule, and aborts with exit 8 if a file vanishes during the hash. `www/.gitignore` ignores the temporary files the favicon conversion writes for that reason, and both mmz and the gitleaks bound read that file.

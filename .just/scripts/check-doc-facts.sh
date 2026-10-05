@@ -26,15 +26,15 @@
 # page with no `NAV` entry (invisible in the sidebar), and a `NAV` entry with no
 # page (a 404 in it) — each failing by name.
 #
-# It regenerates its own inputs (bash www/generate.sh below, which ends by
-# calling generate-facts.sh and then generate-site-pages.sh itself) rather
-# than trusting whatever www/generated/ already holds, so this gate never
-# depends on `just docs::gen` having run first. Deriving site-pages.json is a
-# full page compile that needs generate.sh's own captures (hero-source.typ,
-# cli.json, …), so calling generate-facts.sh directly cannot work; see that
-# script's header. Inside `just check` the regenerate is free: docs::check
-# already ran generate.sh and both share target/www-generated.lock, so the
-# captures are already there.
+# It regenerates its own inputs through `mmz just docs::gen` (www/generate.sh,
+# which ends by calling generate-facts.sh and then generate-site-pages.sh
+# itself) rather than trusting whatever www/generated/ already holds, so this
+# gate never depends on another recipe having run first. Deriving
+# site-pages.json is a full page compile that needs generate.sh's own captures
+# (hero-source.typ, cli.json, …), so calling generate-facts.sh directly cannot
+# work; see that script's header. Inside `just check` the regenerate is
+# usually a cache hit: whichever docs gate takes target/www-generated.lock
+# first runs the generator, and mmz finds the record fresh for the rest.
 set -eo pipefail
 # Hold the www/generated/ lock across the regenerate and the typst queries
 # below, not just the regenerate: www/utils/gate-notes.typ reads the
@@ -49,7 +49,7 @@ mkdir -p target
 exec 9>target/www-generated.lock
 flock 9
 export MINDTAPE_GENERATED_LOCK=1
-bash www/generate.sh
+mmz just docs::gen
 tmp=$(mktemp -d -p target)
 trap 'rm -rf "$tmp"' EXIT
 

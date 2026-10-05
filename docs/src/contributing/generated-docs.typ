@@ -21,14 +21,15 @@ map, the DSL fields, the gate table and the linecop caps, all written to
 JSON, and a Typst source can, so each fact is stated once and every doc reads
 it from the same file.
 
-`docs/generate-md.sh` runs `www/generate.sh` before it renders, so a source
-never depends on another recipe having run first. That costs a standalone
-#just.docs-md() a debug build of `mt`, because `www/generate.sh` captures real
-`mt` output. `www/generate-facts.sh` alone is not enough, because
+`docs/generate-md.sh` runs `mmz just docs::gen` before it renders, so a source
+never depends on another recipe having run first. On a changed tree that costs
+a debug build of `mt`, because `www/generate.sh` captures real `mt` output.
+`www/generate-facts.sh` alone is not enough, because
 `www/generate-site-pages.sh` compiles every site page to build the page
-manifest, and the pages read those captures. Inside #just.check() the cost is
-already paid, because #just.docs-check() runs `www/generate.sh` under the same
-lock. Each source is rendered with typlite, from nixpkgs' `tinymist` package.
+manifest, and the pages read those captures. Inside #just.check() the four
+gates that read `www/generated/` share one run: the first to take the lock
+regenerates, and mmz finds the record fresh for the rest. Each source is
+rendered with typlite, from nixpkgs' `tinymist` package.
 
 The site pages under `www/content/` are a separate render path. They open
 with `#show: page.with(...)`, import `@tola` and target HTML. A `docs/src`

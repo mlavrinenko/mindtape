@@ -593,6 +593,31 @@ commands:
     tags: [gate]
     inputs: [rust, policy, example-configs, docs, gates-meta, script-check-doc-spans, script-doc-blocks-lib]
 
+  # The one producer of www/generated/, memoized so the four gates that read it
+  # (docs::check, docs::md-check, check-doc-facts, site-pages-fixture-check)
+  # run www/generate.sh once per tree instead of once each. Each calls `mmz
+  # just docs::gen` under target/www-generated.lock, so the first to take the
+  # lock regenerates and the rest find this record fresh. Not gate-tagged: it
+  # is a producer, and the gates that read it carry the verdict.
+  #
+  # The inputs are the union the four readers declared for running
+  # www/generate.sh themselves: the built `mt` (`rust`), the prelude and root
+  # config (`policy`), the fixtures it captures (`examples`), www/, docs/,
+  # contrib/ and the release workflow (`docs`), the .linecop.yaml it reads back
+  # as linecop-caps.json (`file-size-config`), and the Justfile it dumps for
+  # gates.json and just.typ (`gates-meta`). The `outputs` void the record when
+  # www/generated/ or the favicon is deleted, by a `cargo clean`-style wipe or a
+  # fresh clone, so a reader never meets a fresh record over a missing file.
+  - name: just docs::gen
+    inputs: [rust, policy, examples, file-size-config, docs, gates-meta]
+    outputs:
+      - www/generated/cli.json
+      - www/generated/crate-map.json
+      - www/generated/just.typ
+      - www/generated/site-pages.json
+      - www/generated/hero-card.svg
+      - www/assets/images/favicon-32.png
+
   # docs::gen shells out to the built `mt` binary (rust) and reads the docs
   # tree + the example fixtures (examples) + the project policy/prelude
   # (the generated CLI transcripts reference `mt`'s config-driven output).

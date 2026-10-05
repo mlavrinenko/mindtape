@@ -136,7 +136,7 @@ mkdir -p target
 exec 9>target/www-generated.lock
 flock 9
 export MINDTAPE_GENERATED_LOCK=1
-if ! gen_out=$(bash www/generate.sh 2>&1); then
+if ! gen_out=$(mmz just docs::gen 2>&1); then
     printf '%s\n' "$gen_out" >&2
     problem "could not regenerate www/generated/: the replica has no captures to compile against"
     exit 1

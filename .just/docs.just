@@ -121,6 +121,11 @@ serve: gen
 # difference either. So each is captured and replayed only on failure. A
 # clean gate run prints nothing, and a failing one prints tola's report.
 #
+# It regenerates through `mmz just docs::gen` rather than depending on `gen`,
+# so the four gates that read www/generated/ share one run per tree: the lock
+# makes the others wait for it, and mmz then finds the record fresh
+# (.mmz/config.yaml, the `just docs::gen` rule).
+#
 # `--clean` is here for the same reason as in `build` above: this gate runs
 # `tola validate` over the built HTML, so an incremental `tola build` here
 # would let `check` pass on a page that no current fact produced.
@@ -129,7 +134,8 @@ serve: gen
 [group("docs")]
 [group("gate")]
 [working-directory("www")]
-check: gen
+check:
+    cd .. && mkdir -p target && flock target/www-generated.lock env MINDTAPE_GENERATED_LOCK=1 mmz just docs::gen
     out=$(tola build --clean 2>&1) || { printf '%s\n' "$out"; exit 1; }
     pagefind --site public/mindtape --silent
     out=$(tola validate 2>&1) || { printf '%s\n' "$out"; exit 1; }
