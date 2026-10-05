@@ -116,7 +116,7 @@ pub fn run_external(external: &[String]) -> Result<()> {
 /// The parser for `mt <verb> …`, presented as that verb: named `mt <verb>`,
 /// described in its own words, with the status positional (the verb itself,
 /// already given) left out of the usage.
-fn shortcut_command(verb: &str) -> clap::Command {
+pub(crate) fn shortcut_command(verb: &str) -> clap::Command {
     Shortcut::command()
         .name(verb.to_owned())
         .bin_name(format!("mt {verb}"))

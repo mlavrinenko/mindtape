@@ -184,6 +184,16 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
     ),
     ("link", "apply", Source::FilePath),
     (
+        "_cli",
+        "check_argv",
+        Source::None("a command line the docs show, which no project value predicts"),
+    ),
+    (
+        "_cli",
+        "statuses",
+        Source::None("the status verbs of the projects the docs show"),
+    ),
+    (
         "preset save",
         "name",
         Source::None("the new preset's name, which no existing value predicts"),

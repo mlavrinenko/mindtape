@@ -30,6 +30,16 @@ pub struct CliDumpArgs {
     /// Emit the command tree as JSON (the only supported format).
     #[arg(long)]
     pub json: bool,
+
+    /// Judge one `mt ...` command line the way `mt` would parse it, and exit
+    /// non-zero with the reason when it would refuse. A missing required
+    /// argument passes.
+    #[arg(long, value_name = "LINE")]
+    pub check_argv: Option<String>,
+
+    /// Status verbs `--check-argv` accepts as commands (`mt done ...`).
+    #[arg(long, value_delimiter = ',', requires = "check_argv")]
+    pub statuses: Vec<String>,
 }
 
 /// Run `mt _cli`: print the reflected command tree as pretty JSON.
@@ -39,7 +49,10 @@ pub struct CliDumpArgs {
 ///
 /// # Errors
 /// Propagates a JSON serialization failure (not expected for this fixed shape).
-pub fn run(_args: &CliDumpArgs) -> Result<()> {
+pub fn run(args: &CliDumpArgs) -> Result<()> {
+    if let Some(line) = &args.check_argv {
+        return crate::cli_check::run(line, &args.statuses);
+    }
     println!("{}", dump_json()?);
     Ok(())
 }

@@ -85,7 +85,7 @@ pub fn desugar_argv(argv: Vec<OsString>) -> Result<Vec<OsString>> {
 
 /// The pure core of [`desugar_argv`]: `resolve` maps a token to a path, injected
 /// so the rewrite is testable without touching the filesystem.
-fn desugar_with<F>(argv: Vec<OsString>, resolve: F) -> Result<Vec<OsString>>
+pub(crate) fn desugar_with<F>(argv: Vec<OsString>, resolve: F) -> Result<Vec<OsString>>
 where
     F: Fn(&str) -> Result<PathBuf>,
 {

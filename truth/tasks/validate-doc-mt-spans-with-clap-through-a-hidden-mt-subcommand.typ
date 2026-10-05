@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 4),
+  status: done(2026, 10, 5),
   links: related(
     "read-the-doc-sources-through-one-typst-extractor-shared-by-every-check-doc-gate.typ",
   )[both rewrite check-doc-spans; land the extractor first so this reads spans from it],

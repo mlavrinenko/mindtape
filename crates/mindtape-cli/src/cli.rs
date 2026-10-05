@@ -166,6 +166,15 @@ enum Command {
 }
 
 impl Cli {
+    /// The raw `[verb, args…]` when the line named no command and so falls to
+    /// the status-shortcut fallback.
+    pub(crate) fn status_shortcut(&self) -> Option<&[String]> {
+        match &self.command {
+            Command::Status(external) => Some(external),
+            _ => None,
+        }
+    }
+
     /// Dispatch to the selected command.
     ///
     /// # Errors

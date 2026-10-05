@@ -26,6 +26,12 @@ line of prose with its file and line, so a fence written inside a string hides
 nothing. The same file lists the sources the gates read and fails when a list
 entry matches no file.
 
+The span gate hands each `mt` command line it finds in a span, after a `$ `
+prompt, `VAR=value` words or `&&`, to `mt _cli --check-argv`. That runs the
+`@name` rewrite, clap and the status-verb parser that `mt` itself runs, so the
+gate holds no copy of the command grammar. A missing required argument passes,
+because a span shows part of a command.
+
 = Where the docs live
 
 `www/content/*.typ` is the docs site, and `www/utils/*.typ` holds the notes

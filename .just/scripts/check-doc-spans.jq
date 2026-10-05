@@ -2,11 +2,11 @@
 # runs over every inline code span it extracts. Input is one raw line per span,
 # `<file>\t<line>\t<span>`; output is one finding per line, nothing when clean.
 #
-# Each argument arrives through --slurpfile, so each is a one-element array:
-# $cli is `mt _cli --json` with the hidden dump command added, $schema is
-# schema/config.schema.json, $statuses lists every status verb the project and
-# the examples declare, $files lists tracked file basenames.
-$cli[0] as $cli | $schema[0] as $schema | $statuses[0] as $statuses | $files[0] as $files |
+# It judges config keys only. `mt` command lines go to `mt _cli --check-argv`
+# in check-doc-spans.sh. Each argument arrives through --slurpfile, so each is
+# a one-element array: $schema is schema/config.schema.json and $files lists
+# tracked file basenames.
+$schema[0] as $schema | $files[0] as $files |
 
 def lev($a; $b):
   ($a | explode) as $s | ($b | explode) as $t
@@ -22,71 +22,6 @@ def closest($name; $cands):
 
 # A word the doc writes as a stand-in: `<task>`, `TERM…`, `N`, `*`.
 def placeholder: test("[<>…*]|\\.\\.\\.|^[A-Z][A-Z_]*$");
-
-# ---- mt command spans ------------------------------------------------------
-
-def cmds: $cli.commands | map({key: .name, value: .}) | from_entries;
-def flags($specs): [$specs[] | select(.long != null or .short != null)];
-
-# Walks one `mt ...` segment's words. $st carries the command path so far, the
-# flags valid at this point, and the subcommand names still expected.
-def check_mt($w):
-  def err($m): {msg: $m};
-  def go($i; $st):
-    if $i >= ($w | length) then empty else
-    $w[$i] as $t
-    | (flags($st.specs) + $cli.globals) as $all
-    | if $t == "--" then empty
-      elif $st.skip then go($i + 1; $st | .skip = false)
-      elif $t | test("^--[A-Za-z]") then
-        ($t | ltrimstr("--") | sub("=.*$"; "")) as $n
-        | (first($all[] | select(.long == $n)) // null) as $f
-        | if $f then go($i + 1; $st | .skip = ($f.kind == "option" and ($t | contains("=") | not)))
-          elif $n == "help" or ($n == "version" and $st.path == "mt") then go($i + 1; $st)
-          else err("\($st.path) has no flag --\($n); closest: --\(closest($n; [$all[].long | values]))"),
-            go($i + 1; $st)
-          end
-      elif $t | test("^-[A-Za-z]") then
-        # A short cluster: each letter is a flag until one takes a value, which
-        # is the rest of the word or else the next word.
-        ([$t | ltrimstr("-") | explode[] | [.] | implode]) as $cs
-        | (reduce range(0; $cs | length) as $k ({bad: [], skip: false, done: false};
-            if .done then . else
-              (first($all[] | select(.short == $cs[$k])) // null) as $f
-              | if $f == null and ($cs[$k] == "h" or ($cs[$k] == "V" and $st.path == "mt")) then .
-                elif $f == null then .bad += [$cs[$k]]
-                elif $f.kind == "option" then .done = true | .skip = ($k == ($cs | length) - 1)
-                else . end
-            end)) as $r
-        | ($r.bad[] | err("\($st.path) has no flag -\(.); valid: \([$all[].short | values | "-" + .] | sort | join(", "))")),
-          go($i + 1; $st | .skip = $r.skip)
-      elif $st.path == "mt" then
-        if $t | placeholder then empty
-        elif cmds[$t] then
-          go($i + 1; {path: "mt \($t)", specs: cmds[$t].args, subs: cmds[$t].subcommands, skip: false})
-        elif $statuses | index($t) then
-          go($i + 1; {path: "mt \($t)", specs: cmds["flip"].args, subs: [], skip: false})
-        else err("no subcommand \($t); closest: \(closest($t; (cmds | keys) + $statuses))")
-        end
-      elif ($st.subs | length) > 0 then
-        (first($st.subs[] | select(.name == $t)) // null) as $s
-        | if $t | placeholder then empty
-          elif $s then go($i + 1; {path: "\($st.path) \($t)", specs: $s.args, subs: [], skip: false})
-          else err("\($st.path) has no subcommand \($t); closest: \(closest($t; [$st.subs[].name]))")
-          end
-      else go($i + 1; $st)
-      end
-    end;
-  # A leading `@name` is worktree sugar that mt rewrites to `-w <path>` before
-  # parsing, so the subcommand is the word after it.
-  go(if ($w[1] | startswith("@")) then 2 else 1 end;
-    {path: "mt", specs: [], subs: [], skip: false});
-
-def mt_findings:
-  [splits("\\s+(?:\\||&&|;)\\s+")]
-  | .[] | [scan("(?:'[^']*'|\"[^\"]*\"|[^\\s'\"])+")]
-  | select(.[0] == "mt" and length > 1)
-  | check_mt(.) | .msg;
 
 # ---- config keys -----------------------------------------------------------
 
@@ -161,7 +96,6 @@ def keypath_findings:
 
 split("\t") as [$file, $line, $span]
 | ($span | gsub("^\\s+|\\s+$"; "")) as $s
-| ($s | if startswith("mt ") or test("\\|\\s+mt\\s") then mt_findings
-        elif startswith("[") then header_findings
+| ($s | if startswith("[") then header_findings
         else keypath_findings end)
 | "check-doc-spans: \($file):\($line): `\($s)`: \(.)"

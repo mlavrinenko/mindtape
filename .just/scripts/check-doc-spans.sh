@@ -9,16 +9,17 @@
 #
 # It reads inline code spans, as backtick markup and as `raw("...")`, in the
 # sources the manifest in _doc-blocks-lib.sh names. Fenced blocks and comments
-# are not spans. check-doc-spans.jq checks three shapes:
+# are not spans. Two checks read each span:
 #
-#   - `mt <word> ...`: the word is a subcommand from `mt _cli --json` or a
-#     status verb. Every flag must exist on that command or be global. A quoted
-#     word is an argument, so a filter is never read as flags. A leading
-#     `@name` right after `mt` is worktree sugar and is skipped.
-#   - `[a.b]` or `[[a.b]]`, optionally followed by a key: the path exists in
+#   - An `mt` command line: the span is split at `|`, `&&` and `;`, and each
+#     piece that starts with `mt`, after a `$ ` prompt or `VAR=value` words, goes
+#     to `mt _cli --check-argv`. That is the parser that runs the command, so
+#     the gate holds no copy of its grammar. The status verbs the project and
+#     the examples declare are passed along, because each project names its own.
+#   - check-doc-spans.jq reads the config shapes. `[a.b]` or `[[a.b]]`,
+#     optionally followed by a key: the path exists in
 #     schema/config.schema.json, and `[[...]]` is used exactly for an array of
-#     tables.
-#   - `a.b.c`: the key path exists in the schema.
+#     tables. `a.b.c`: the key path exists in the schema.
 #
 # A span is config-shaped only when its first segment is a top-level schema
 # key. That leaves Cargo tables and just attributes alone. A dotted span that
@@ -26,7 +27,8 @@
 #
 # A control runs first. It checks a synthetic page holding each known-bad
 # shape beside the good ones and asserts the exact findings, because a scanner
-# that matched nothing also prints no findings.
+# that matched nothing also prints no findings. Its bad flags are ones no
+# command will ever take, so a new flag on `mt ls` cannot fail it.
 set -eo pipefail
 # shellcheck source=.just/scripts/_doc-blocks-lib.sh
 source .just/scripts/_doc-blocks-lib.sh
@@ -36,21 +38,13 @@ mt=./target/debug/mt
 tmp=$(mktemp -d -p target)
 trap 'rm -rf "$tmp"' EXIT
 
-# `mt _cli --json` leaves out hidden commands, and the dump command is one of
-# them. The call below shows that its name and flag exist, so the gate adds
-# the command from that call.
-dump=(_cli --json)
-"$mt" "${dump[@]}" | jq --arg name "${dump[0]}" --arg flag "${dump[1]#--}" \
-    '.commands += [{name: $name, subcommands: [],
-        args: [{long: $flag, short: null, kind: "flag"}]}]' >"$tmp/cli.json"
-
 # `mt <status>` runs `mt flip <status>`, and each project declares its own
 # statuses. The docs show this project and the examples, so the verb set is
 # the union of their legends. The empty homes drop any user config layer.
 for d in . examples/*/; do
     [ -d "$d/.mindtape" ] || continue
     MINDTAPE_CONFIG_HOME= MINDTAPE_DATA_HOME= "$mt" -w "$d" config show --json
-done | jq -s '[.[].tasks.status[]?.value] | unique' >"$tmp/statuses.json"
+done | jq -s -r '[.[].tasks.status[]?.value] | unique | join(",")' >"$tmp/statuses"
 git ls-files | sed 's|.*/||' | sort -u | jq -R . | jq -s . >"$tmp/files.json"
 
 # Prints `<file>\t<line>\t<span>` for every inline span the extractor finds
@@ -60,11 +54,37 @@ spans() {
     doc_extract "$@" | awk -F'\t' '$3 == "span" { print $1 "\t" $2 "\t" $4 }'
 }
 
+# Prints `<file>\t<line>\t<span>\t<command line>` for every `mt` command
+# line in a span: each piece between the words `|`, `||`, `&&` and `;`
+# that starts with `mt`, once a leading `$ ` and `VAR=value` words are dropped. The program writes the single quote as
+# \u0027 because it sits inside a single-quoted shell string.
+# shellcheck disable=SC2016
+ARGV_JQ='split("\t") as [$file, $line, $span]
+    | $span
+    | [scan("(?:\u0027[^\u0027]*\u0027|\"[^\"]*\"|[^\\s\u0027\"])+")]
+    | reduce .[] as $w ([[]]; if $w | IN("|", "||", "&&", ";") then . + [[]] else .[-1] += [$w] end)
+    | .[]
+    | if .[0] == "$" then .[1:] else . end
+    | until((.[0] // "") | test("^[A-Za-z_][A-Za-z0-9_]*=") | not; .[1:])
+    | select(.[0] == "mt" and length > 1)
+    | [$file, $line, $span, join(" ")] | @tsv'
+
+# One finding per `mt` command line that `mt _cli --check-argv` refuses.
+argv_findings() {
+    local statuses file line span cmd msg
+    statuses=$(<"$tmp/statuses")
+    spans "$@" | jq -R -r "$ARGV_JQ" |
+        while IFS=$'\t' read -r file line span cmd; do
+            if ! msg=$("$mt" _cli --statuses "$statuses" --check-argv "$cmd" 2>&1); then
+                echo "check-doc-spans: $file:$line: \`$span\`: ${msg#Error: }"
+            fi
+        done
+}
+
 check() {
+    argv_findings "$@"
     spans "$@" | jq -R -r -f .just/scripts/check-doc-spans.jq \
-        --slurpfile cli "$tmp/cli.json" \
         --slurpfile schema schema/config.schema.json \
-        --slurpfile statuses "$tmp/statuses.json" \
         --slurpfile files "$tmp/files.json"
 }
 
@@ -73,11 +93,13 @@ control() {
     cat >"$page" <<'EOF'
 Good: `mt ls 'status != "done"' --sort priority:desc -n 5`, `mt done x -m "why"`,
 `mt _cli --json`, `mt -w examples/minimal ls --json | mt import --dry-run`,
-`mt <cmd> --help`, `mt config show --origin`, `mt ls -in20`, `mt @name ls --json`.
+`mt <cmd> --help`, `mt config show --origin`, `mt ls -in20`, `mt @name ls --json`,
+`cd x && mt ls`, `MINDTAPE_NOW=2026-01-01 mt ls --json`, `$ mt ls`, `mt ls --sort`.
 Good: `[[tasks.roots]]`, `[tasks.priority]`, `[views.<name>]`, `[tasks] roots`,
 `[ls.columns.assignee] when = 'true'`, `[[typst.local-packages]] path`,
 `tasks.estimate.units`, `[workspace.package] version`, `[overlay]`, `typst.toml`.
-Bad: `mt lss`, `mt ls --jsn`, `mt ls -x`, `mt config shw`, `mt @name lsz`.
+Bad: `mt lss`, `mt ls --jsn`, `mt ls --no-such-flag`, `mt config shw`, `mt @name lsz`.
+Bad: `cd x && mt lsj`, `MINDTAPE_NOW=2026-01-01 mt ls --jsn`, `$ mt lsq`, `mt ls | mt lsp`.
 Bad: `[tasks.priorty]`, `tasks.estimate.unit`, `[tasks.roots]`, `[[tasks.priority]]`,
 `[ls] hyperlinkz`, `[tasks.estimate.units]`. #raw("mt lsr")
 // `mt lsc` in a comment line
@@ -99,7 +121,11 @@ EOF
 `[tasks.roots]`: [tasks.roots] names an array of tables; write [[tasks.roots]]
 `mt config shw`: mt config has no subcommand shw; closest: show
 `mt ls --jsn`: mt ls has no flag --jsn; closest: --json
-`mt ls -x`: mt ls has no flag -x; valid: -i, -n, -v, -w
+`mt ls --no-such-flag`: mt ls has no flag --no-such-flag
+`cd x && mt lsj`: no subcommand lsj; closest: ls
+`MINDTAPE_NOW=2026-01-01 mt ls --jsn`: mt ls has no flag --jsn; closest: --json
+`$ mt lsq`: no subcommand lsq; closest: ls
+`mt ls | mt lsp`: no subcommand lsp; closest: ls
 `mt lsh`: no subcommand lsh; closest: ls
 `mt lsi`: no subcommand lsi; closest: ls
 `mt lsr`: no subcommand lsr; closest: ls

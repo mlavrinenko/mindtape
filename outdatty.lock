@@ -16,12 +16,12 @@ groups:
     source:
       crates/mindtape-cli/src/add.rs: 20fd49633b809bc64794b7e143bf2509147087c7aad53bd34cc416e39f82aa44
       crates/mindtape-cli/src/check.rs: b6eb6d5b763e5318372fe15325b66826233fa31bf1e2b12ffd2fdc86cc8172af
-      crates/mindtape-cli/src/cli.rs: d2d5bb0909e08c8bcc63379dcc931574d63f7a1f141091b91d506c05d74cce3b
-      crates/mindtape-cli/src/completion.rs: fce923accb1e0ba2dc80a60b058884baddf0bc7338b72e9009f96c69fa962a5b
+      crates/mindtape-cli/src/cli.rs: 998a5e0830f28171e50336102bca6d4b95e1b936b4b7cc7f1c3bd7cb2abb06fe
+      crates/mindtape-cli/src/completion.rs: 55eb283d7538fe0f22c65c62f657322f36cd4fadcf96d586fc2aebbdb138b2a7
       crates/mindtape-cli/src/config_cmd.rs: 06bfb3545bd2554cb1b5ff0a1f6ec5ad40c82e0b5dd0fd30129871375a92db61
       crates/mindtape-cli/src/eval.rs: 8a475ff5d7f81bafe34362710ea995cd6c1262465ca43f22cc5001f40d5aee15
       crates/mindtape-cli/src/find.rs: 2524ada47afeb3d72c42b35ebf7e9e8c3774fbe4ec8f616186e2c2269228dfdd
-      crates/mindtape-cli/src/flip.rs: 638bfa98e2db8d8531ced90a9ac160985a71c09b4cd3ed710b86fbd4088bd68f
+      crates/mindtape-cli/src/flip.rs: 1d26ca6093be2a63786afb14ac4ffda5909ff576c3a5ef54038858d672ac9ebf
       crates/mindtape-cli/src/go.rs: a2a7a75843c527896b9f9323f16e8c7fe0162294794667df1949dac690fea09a
       crates/mindtape-cli/src/graph.rs: c576d262e16ba21c03e20c4535dabab61a18a2add62730e42103e49772f799e6
       crates/mindtape-cli/src/import.rs: 0992d345f907bc5cf38efc16eb7f4789c55d44e4776a1b3d8a46b8ee4e1f37de
@@ -42,7 +42,7 @@ groups:
       crates/mindtape-cli/src/rm.rs: 978f702e55eccd604b010be68d33564bf72028e546407b2f726fa3c6a1937228
       crates/mindtape-cli/src/set.rs: 66e3e9070be4b50efeeb6cd008f68ce3d4d632592f82508d704c0b3169c88480
       crates/mindtape-cli/src/views.rs: a6987780b57f9651a48af4e5c559b4c3972e06f428be39799af0c9529c6f0483
-      crates/mindtape-cli/src/worktrees.rs: 78617369d3fb90e6e30605fb5e23b3f795f1ab2a671914aefdd5d2b1868a5fc5
+      crates/mindtape-cli/src/worktrees.rs: 844afb5b116a83aec8bf858e286273242881786cb5ddf4dab4c168bff65e4508
       crates/mindtape/src/defaults.toml: 0b73c2b1e699a4827427c1b48ae699fc36e4f9eff6fec7f75313b07fe32a023b
       crates/mindtape/src/fields.rs: 505a700e90befcdc2edd5d58f0d8cdb0253494f93dd0e7f6259daee171c88872
       crates/mindtape/src/lib.rs: 9a82bc0e14e0a8ec4d89c2d9860022636b25e6bf0263864fd1bb0ecf44d8d98f
@@ -75,7 +75,7 @@ groups:
   cli-name:
     source:
       crates/mindtape-cli/Cargo.toml: 8cbd7b803fd7464ee9e4b933572f4769bd318abc7b608121383c51f1a6d555f9
-      crates/mindtape-cli/src/cli.rs: d2d5bb0909e08c8bcc63379dcc931574d63f7a1f141091b91d506c05d74cce3b
+      crates/mindtape-cli/src/cli.rs: 998a5e0830f28171e50336102bca6d4b95e1b936b4b7cc7f1c3bd7cb2abb06fe
     dependents:
       CHANGELOG.md: 184d126c0959177a42ff42419c4d642cfd289ba981f14e91b73b85c9b2e73878
       docs/src/agents.typ: db573f683c844f3acf22f77df6683dd1248b88d53831a0f6aaa93f8eee0f564e
@@ -125,11 +125,11 @@ groups:
       .just/scripts/check-doc-prose.awk: 2cbf36158cf9412b197321d42e9bdd697fa63f8dcb74c878245593d0dc227803
       .just/scripts/check-doc-prose.sh: 95bc03abb463563dfa492dbbd1fefc81e269df4768ad947cae914244cc33d1c5
       .just/scripts/check-doc-recipes.sh: fd397519691e5efe66e3d03a8a8f7bf62b2faaa77d694e8262d998590611909c
-      .just/scripts/check-doc-spans.jq: 58ecc3192c58ecd48d08b2e053571ae5290dc3fe289f43d26d201453dc954a07
-      .just/scripts/check-doc-spans.sh: 797e812edbe02f98165981dda867047dbfb64a2e1728d4cbb3ebef51cc11a551
+      .just/scripts/check-doc-spans.jq: 6289fc7f4c92d03fd925093791c4152cfa29852ece93148efa88343cd1b97888
+      .just/scripts/check-doc-spans.sh: 7bb4d0076f965fe886210bd5519ba998336c0c4f9cd2b5e38ac8d6b8dbf9aae8
       .just/scripts/docs-md-check.sh: 0e26ec16da952dd19702927829331f5f0787feef5356c5ccde2584c0454e673f
     dependents:
-      docs/src/contributing/documentation.typ: ec900e4926b0cc80ac4e236a7537687190c87cef44705ce4aeabc1d152fadcdb
+      docs/src/contributing/documentation.typ: e214f003c72256a2f2820dca9a39f13d396290182e65caad23748774c82e71c6
       docs/src/contributing/generated-docs.typ: 3336200378c00ff63a00121df8376406546683821252d4c3b5019e1c7ffec612
       www/utils/gate-notes.typ: eb02cbe1a75cf660eba9289de8a9bce1b9863183d49779dbde2119d3ac6ffcba
   filter-docs:

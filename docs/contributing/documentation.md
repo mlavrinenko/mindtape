@@ -6,6 +6,8 @@ The doc gates catch mechanical errors. `just docs check` finds a dead link, `jus
 
 The span, recipe, prose and block gates read the Typst sources through one extractor in `.just/scripts/_doc-blocks-lib.sh`. It parses each file with `typstyle --ast` and prints every inline raw, block raw line, comment line and line of prose with its file and line, so a fence written inside a string hides nothing. The same file lists the sources the gates read and fails when a list entry matches no file.
 
+The span gate hands each `mt` command line it finds in a span, after a `$ ` prompt, `VAR=value` words or `&&`, to `mt _cli --check-argv`. That runs the `@name` rewrite, clap and the status-verb parser that `mt` itself runs, so the gate holds no copy of the command grammar. A missing required argument passes, because a span shows part of a command.
+
 ## Where the docs live
 
 `www/content/*.typ` is the docs site, and `www/utils/*.typ` holds the notes its generated references render. `docs/src/readme.typ`, `docs/src/agents.typ` and `docs/src/skill.typ` render to README.md, AGENTS.md and `skills/mindtape/SKILL.md`. `docs/src/contributing.typ` renders CONTRIBUTING.md, and `docs/src/contributing/*.typ` render `docs/contributing/*.md`. Edit the source, never the render: `just docs md` overwrites it.
