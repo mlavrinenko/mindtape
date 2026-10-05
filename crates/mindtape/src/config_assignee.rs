@@ -27,6 +27,9 @@ pub struct AssigneeConfig {
     /// A filter naming the tasks held to `allowed`; every other task keeps
     /// whatever it carries. Absent holds every task.
     pub values_when: Option<String>,
+    /// The assignee `mt check` files a spliced slot with. A required assignee
+    /// with no `example` leaves that slot unfillable.
+    pub example: Option<String>,
 }
 
 #[cfg(test)]

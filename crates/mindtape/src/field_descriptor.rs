@@ -7,6 +7,7 @@
 use typst_harvest::HVal;
 
 use crate::config::{Config, Requirement, RequirementRule};
+use crate::config_tasks::FieldExample;
 use crate::filter::Filter;
 use crate::model::Task;
 
@@ -57,8 +58,8 @@ pub struct Descriptor<'a> {
     pub hint: bool,
     /// The variable a slot for the field reads first.
     pub env: Option<&'static str>,
-    /// The example a slot shows when nothing else does.
-    pub example: String,
+    /// The configured example, as the Typst source a slot shows.
+    pub example: Option<String>,
 }
 
 /// The `[tasks.tags]` filter default: a closed task keeps a tag dropped from
@@ -66,11 +67,14 @@ pub struct Descriptor<'a> {
 /// closed task that carried it.
 const TAGS_VALUES_WHEN: &str = "!terminal";
 
+/// A list of strings as a Typst array literal.
+pub(crate) fn list_source(items: &[String]) -> String {
+    let inner: String = items.iter().map(|item| format!("{item:?}, ")).collect();
+    format!("({inner})")
+}
+
 /// The environment variable an assignee slot reads: the actor running the CLI.
 const PRINCIPAL_ENV: &str = "MINDTAPE_PRINCIPAL";
-
-/// The example an assignee slot shows when the project names no actor.
-const PLACEHOLDER_ASSIGNEE: &str = "someone";
 
 /// Every described field of `config`: each `[tasks.fields]` entry, then
 /// `assignee`, then `tags`.
@@ -97,7 +101,10 @@ pub fn descriptors(config: &Config) -> Vec<Descriptor<'_>> {
             noun: "value",
             hint: false,
             env: None,
-            example: name.strip_prefix("x-").unwrap_or(name).to_owned(),
+            example: field.example.as_ref().map(|example| match example {
+                FieldExample::One(text) => format!("{text:?}"),
+                FieldExample::Many(items) => list_source(items),
+            }),
         })
         .collect();
     let assignee = &tasks.assignee;
@@ -113,11 +120,7 @@ pub fn descriptors(config: &Config) -> Vec<Descriptor<'_>> {
         noun: "assignee",
         hint: false,
         env: Some(PRINCIPAL_ENV),
-        example: config
-            .actors
-            .first()
-            .map_or(PLACEHOLDER_ASSIGNEE, |actor| actor.name.as_str())
-            .to_owned(),
+        example: assignee.example.as_ref().map(|text| format!("{text:?}")),
     });
     out.push(Descriptor {
         name: "tags",
@@ -137,7 +140,7 @@ pub fn descriptors(config: &Config) -> Vec<Descriptor<'_>> {
         noun: "tag",
         hint: true,
         env: None,
-        example: "tag".to_owned(),
+        example: None,
     });
     out
 }

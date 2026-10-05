@@ -104,17 +104,46 @@ fn a_slot_with_neither_example_nor_default_names_the_slot() {
 #[test]
 fn a_slot_added_for_a_required_field_fills_from_config() {
     let config = format!(
-        "{CONFIG}[tasks.difficulty]\nrequired = true\n\
+        "{CONFIG}[tasks.difficulty]\nrequired = true\nexample = 5\n\
          [tasks.priority]\nframework = \"ice\"\nallow-manual = false\nrequired = true\n\
-         [tasks.estimate]\nunits = [\"src-files\"]\nrequired = true\n\
-         [tasks.assignee]\nallowed = [\"max\", \"agent\"]\nrequired = \"!terminal\"\n\
-         [tasks.fields.x-team]\nrequired = true\n\
+         [tasks.estimate]\nunits = [\"src-files\"]\nrequired = true\nexample = {{ src-files = 2 }}\n\
+         [tasks.assignee]\nallowed = [\"max\", \"agent\"]\nrequired = \"!terminal\"\nexample = \"max\"\n\
+         [tasks.fields.x-team]\nrequired = true\nexample = \"core\"\n\
          [[actors]]\nname = \"max\"\nkind = \"human\"\n\
          [[actors]]\nname = \"agent\"\nkind = \"llm\"\n"
     );
     let dir = scaffold_with(&config, &template("\"fix\""));
     let (ok, text) = check(dir.path());
     assert!(ok, "{text}");
+}
+
+/// A field whose shape a rule holds: only a configured example fills it.
+fn ticket(example: &str) -> String {
+    format!(
+        "{CONFIG}[tasks.fields.x-ticket]\nrequired = true\n{example}\
+         [[tasks.rules]]\nname = \"ticket-shape\"\n\
+         assert = 'matches(x-ticket, \"^[A-Z]+-[0-9]+$\")'\nseverity = \"error\"\n"
+    )
+}
+
+#[test]
+fn a_configured_example_fills_a_spliced_slot() {
+    let config = ticket("example = \"ABC-1\"\n");
+    let dir = scaffold_with(&config, &template("\"fix\""));
+    let (ok, text) = check(dir.path());
+    assert!(ok, "{text}");
+}
+
+#[test]
+fn a_spliced_slot_without_an_example_names_its_config_path() {
+    let config = ticket("");
+    let dir = scaffold_with(&config, &template("\"fix\""));
+    let (ok, text) = check(dir.path());
+    assert!(!ok, "{text}");
+    assert!(
+        text.contains("slot `x-ticket` has no example; set `example` in [tasks.fields.x-ticket]"),
+        "{text}"
+    );
 }
 
 #[test]

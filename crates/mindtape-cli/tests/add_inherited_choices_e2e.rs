@@ -83,7 +83,7 @@ fn the_template_check_files_the_slots_own_example() {
 /// A list-valued field: `x-machine` takes any of the listed machines.
 const MACHINE_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
      [tasks.fields.x-machine]\nvalues = [\"alpha\", \"beta\"]\nmultiple = true\n\
-     required = true\n";
+     required = true\nexample = [\"alpha\"]\n";
 
 /// A template that declares its own `x-machine` slot, with no `choices`.
 const OWN_MACHINE_TEMPLATE: &str = "#import \"@local/mindtape:0.2.0\": *\n\

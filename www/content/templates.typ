@@ -89,9 +89,12 @@ A breach about the backlog does not: a `count()` cap, a rule on `ready` or
 A slot with neither an `example` nor a `default` leaves nothing to fill, so
 `mt check` reports the slot and checks nothing else in that template. A slot
 that `mt add` adds for a required field takes its example from config: the
-field's `default` or first value, the first allowed assignee or else the first
-actor, the middle of a numeric scale or framework input, and one of the first
-estimate unit. A template that does not evaluate is one breach carrying the
+`example` key of `[tasks.fields.<name>]`, `[tasks.assignee]`, `[tasks.estimate]`,
+`[tasks.priority]` or `[tasks.difficulty]`, else the field's `default`. A required
+field with neither leaves the slot unfillable, and `mt check` names the table
+that should carry the key. A `multiple` field takes a list, an estimate a table
+such as `{ days = 1 }`. A framework input keeps the example its range gives.
+A template that does not evaluate is one breach carrying the
 Typst error.
 
 The built-in template is reported as `built-in template task`, at the severity

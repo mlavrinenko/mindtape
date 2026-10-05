@@ -77,11 +77,7 @@ pub fn required_core_slots(config: &Config, status: Option<&str>) -> Vec<Require
         out.push(RequiredSlot {
             field: "difficulty".to_owned(),
             config_path: "[tasks.difficulty]".to_owned(),
-            call: format!(
-                r#"slot("difficulty", kind: "{}", prompt: "difficulty", example: {})"#,
-                scale_kind_str(tasks.difficulty.kind),
-                midpoint(&tasks.difficulty)
-            ),
+            call: scale_slot("difficulty", &tasks.difficulty),
             env: None,
             default: None,
         });
@@ -123,11 +119,7 @@ fn priority_slot(config: &Config) -> Option<String> {
         let name = priority.framework.as_deref()?;
         return Some(framework_call(name, priority.active_framework()?));
     }
-    Some(format!(
-        r#"slot("priority", kind: "{}", prompt: "priority", example: {})"#,
-        scale_kind_str(priority.field.kind),
-        midpoint(&priority.field)
-    ))
+    Some(scale_slot("priority", &priority.field))
 }
 
 /// The `framework("name", input: slot(...), …)` call for a strict-framework
@@ -187,14 +179,16 @@ fn leaf_slot(framework: &str, input: &str, spec: &Input) -> String {
     }
 }
 
-/// A scale's midpoint, rounded down on an integer scale: inside the scale
-/// whatever its bounds, as a spliced slot's example.
-fn midpoint(field: &NumericField) -> String {
-    let mid = (field.min + field.max) / 2.0;
-    match field.kind {
-        ScaleKind::Int => format_num(mid.floor()),
-        ScaleKind::Real => format_num(mid),
-    }
+/// The slot for a numeric scale: its kind and, when the config gives one,
+/// its example.
+fn scale_slot(name: &str, field: &NumericField) -> String {
+    let example = field.example.map_or_else(String::new, |value| {
+        format!(", example: {}", format_num(value))
+    });
+    format!(
+        r#"slot("{name}", kind: "{}", prompt: "{name}"{example})"#,
+        scale_kind_str(field.kind)
+    )
 }
 
 /// `values` as the inside of a Typst array literal of strings.
@@ -232,20 +226,17 @@ fn field_slot(field: &Descriptor) -> RequiredSlot {
     let env = field
         .env
         .map_or_else(String::new, |env| format!(", env: \"{env}\""));
-    let example = literal(
-        (field.default)
-            .or(field.allowed.first().map(String::as_str))
-            .unwrap_or(&field.example),
-    );
+    let example = field
+        .example
+        .as_ref()
+        .map_or_else(String::new, |example| format!(", example: {example}"));
     let call = if field.allowed.is_empty() {
         let kind = if list { r#"kind: "list", "# } else { "" };
-        format!(r#"slot("{name}", {kind}prompt: "{name}"{default}{env}, example: {example})"#)
+        format!(r#"slot("{name}", {kind}prompt: "{name}"{default}{env}{example})"#)
     } else {
         let kind = if list { "multichoice" } else { "choice" };
         let choices = choice_list(field.allowed);
-        format!(
-            r#"slot("{name}", kind: "{kind}", choices: ({choices}){default}{env}, example: {example})"#
-        )
+        format!(r#"slot("{name}", kind: "{kind}", choices: ({choices}){default}{env}{example})"#)
     };
     RequiredSlot {
         field: name.to_owned(),
@@ -257,15 +248,16 @@ fn field_slot(field: &Descriptor) -> RequiredSlot {
 }
 
 fn estimate_slot(config: &Config) -> String {
-    let hint = config
-        .tasks
-        .estimate
-        .units
-        .first()
-        .map_or("days", String::as_str);
-    format!(
-        r#"slot("estimate", kind: "text", prompt: "estimate dict, e.g. ({hint}: 1)", example: "({hint}: 1)")"#
-    )
+    let estimate = &config.tasks.estimate;
+    let hint = estimate.units.first().map_or("unit", String::as_str);
+    let example = estimate.example.as_ref().map_or_else(String::new, |pairs| {
+        let inner: Vec<String> = pairs
+            .iter()
+            .map(|(unit, quantity)| format!("{unit}: {}", format_num(*quantity)))
+            .collect();
+        format!(r#", example: "({})""#, inner.join(", "))
+    });
+    format!(r#"slot("estimate", kind: "text", prompt: "estimate dict, e.g. ({hint}: 1)"{example})"#)
 }
 
 /// `source` with each `slot(...)` that is the whole value of a `task.with`

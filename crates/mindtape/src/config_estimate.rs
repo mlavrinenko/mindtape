@@ -11,18 +11,24 @@
 //! [`crate::config_rules`]), so no estimate check runs unless a project wrote
 //! or inherited one.
 
+use std::collections::BTreeMap;
+
 use serde::Deserialize;
 
 use crate::config::Requirement;
 
 /// `[tasks.estimate]` — the legal estimate units and whether one is required.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct EstimateConfig {
     /// Allowed unit names. Empty = any unit.
     pub units: Vec<String>,
     /// Whether an estimate must be set.
     pub required: Requirement,
+    /// The estimate `mt check` files a spliced slot with, as `unit = quantity`
+    /// pairs. A required estimate with no `example` leaves that slot
+    /// unfillable.
+    pub example: Option<BTreeMap<String, f64>>,
 }
 
 #[cfg(test)]

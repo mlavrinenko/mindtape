@@ -15,6 +15,7 @@ fn absent_section_is_unconstrained() {
             allowed: Vec::new(),
             required: Requirement::No,
             values_when: None,
+            example: None,
         }
     );
 }

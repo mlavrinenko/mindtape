@@ -179,7 +179,7 @@ fn required_kind_yields_choice_slot_with_values() {
 #[test]
 fn required_extra_yields_choice_slot_named_after_it() {
     let config = parse_config(
-        "[tasks.fields.x-machine]\nvalues = [\"alpha\", \"desk\"]\nrequired = true\ndefault = \"alpha\"\n",
+        "[tasks.fields.x-machine]\nvalues = [\"alpha\", \"desk\"]\nrequired = true\ndefault = \"alpha\"\nexample = \"desk\"\n",
     )
     .unwrap();
     let slot = single(&config);
@@ -187,7 +187,7 @@ fn required_extra_yields_choice_slot_named_after_it() {
     assert_eq!(slot.config_path, "[tasks.fields.x-machine]");
     assert_eq!(
         slot.call,
-        r#"slot("x-machine", kind: "choice", choices: ("alpha", "desk", ), default: "alpha", example: "alpha")"#
+        r#"slot("x-machine", kind: "choice", choices: ("alpha", "desk", ), default: "alpha", example: "desk")"#
     );
     assert_eq!(slot.default.as_deref(), Some("\"alpha\""));
 }
@@ -316,41 +316,75 @@ fn slot_for(toml: &str, field: &str) -> RequiredSlot {
         .unwrap()
 }
 
-fn example_of(slot: &RequiredSlot) -> String {
+fn example_of(slot: &RequiredSlot) -> Option<String> {
     let call = format!("#f({})", slot.call);
     let specs = crate::template::discover_slots(&call);
     assert_eq!(specs.len(), 1, "{}", slot.call);
-    specs.into_iter().next().unwrap().example.unwrap()
+    specs.into_iter().next().unwrap().example
+}
+
+/// Every spliced slot shows the configured example and invents none: Rust
+/// knows no scale midpoint, first value, placeholder actor or unit.
+#[test]
+fn a_spliced_slot_shows_its_configured_example_and_invents_none() {
+    let cases = [
+        (
+            "kind",
+            "[tasks.fields.kind]\nvalues = [\"feat\", \"fix\"]\nrequired = true\n",
+            "\"fix\"",
+        ),
+        (
+            "x-team",
+            "[tasks.fields.x-team]\nrequired = true\n",
+            "\"core\"",
+        ),
+        ("assignee", "[tasks.assignee]\nrequired = true\n", "\"ada\""),
+        ("priority", "[tasks.priority]\nrequired = true\n", "4"),
+        ("difficulty", "[tasks.difficulty]\nrequired = true\n", "1.5"),
+        (
+            "estimate",
+            "[tasks.estimate]\nunits = [\"src-files\"]\nrequired = true\n",
+            "\"(src-files: 2)\"",
+        ),
+    ];
+    let examples = [
+        ("kind", "\"fix\""),
+        ("x-team", "\"core\""),
+        ("assignee", "\"ada\""),
+        ("priority", "4"),
+        ("difficulty", "1.5"),
+        ("estimate", "{ src-files = 2 }"),
+    ];
+    for ((field, toml, shown), (_, configured)) in cases.into_iter().zip(examples) {
+        let bare = slot_for(toml, field);
+        assert_eq!(example_of(&bare), None, "{}", bare.call);
+        let table = bare.config_path.trim_matches(['[', ']']).to_owned();
+        let with = toml.replace(
+            &format!("[{table}]\n"),
+            &format!("[{table}]\nexample = {configured}\n"),
+        );
+        let given = slot_for(&with, field);
+        assert_eq!(example_of(&given).as_deref(), Some(shown), "{}", given.call);
+    }
 }
 
 #[test]
-fn a_choice_field_s_example_is_its_default_else_its_first_value() {
-    let first = slot_for(
-        "[tasks.fields.kind]\nvalues = [\"feat\", \"fix\"]\nrequired = true\n",
-        "kind",
-    );
-    assert_eq!(example_of(&first), "\"feat\"");
-    let defaulted = slot_for(
-        "[tasks.fields.kind]\nvalues = [\"feat\", \"fix\"]\ndefault = \"fix\"\nrequired = true\n",
-        "kind",
-    );
-    assert_eq!(example_of(&defaulted), "\"fix\"");
-}
-
-#[test]
-fn a_free_field_s_example_names_the_field() {
-    let slot = slot_for("[tasks.fields.x-team]\nrequired = true\n", "x-team");
-    assert_eq!(example_of(&slot), "\"team\"");
-}
-
-#[test]
-fn an_assignee_s_example_is_the_first_allowed_and_keeps_its_choices() {
+fn a_multiple_field_s_example_is_a_list() {
     let slot = slot_for(
-        "[[actors]]\nname = \"max\"\nkind = \"human\"\n[[actors]]\nname = \"agent\"\nkind = \"llm\"\n\
-         [tasks.assignee]\nallowed = [\"max\", \"agent\"]\nrequired = \"!terminal\"\n",
+        "[tasks.fields.x-machine]\nvalues = [\"alpha\", \"beta\"]\nmultiple = true\n\
+         required = true\nexample = [\"alpha\"]\n",
+        "x-machine",
+    );
+    assert!(slot.call.contains("kind: \"multichoice\""), "{}", slot.call);
+    assert_eq!(example_of(&slot).as_deref(), Some("(\"alpha\", )"));
+}
+
+#[test]
+fn an_assignee_slot_keeps_its_choices_and_environment() {
+    let slot = slot_for(
+        "[tasks.assignee]\nallowed = [\"max\", \"agent\"]\nrequired = \"!terminal\"\n",
         "assignee",
     );
-    assert_eq!(example_of(&slot), "\"max\"");
     assert!(
         slot.call.contains("choices: (\"max\", \"agent\", )"),
         "{}",
@@ -361,31 +395,6 @@ fn an_assignee_s_example_is_the_first_allowed_and_keeps_its_choices() {
         "{}",
         slot.call
     );
-}
-
-#[test]
-fn an_open_assignee_s_example_is_the_first_actor_else_a_placeholder() {
-    let actor = slot_for(
-        "[[actors]]\nname = \"ada\"\nkind = \"human\"\n[tasks.assignee]\nrequired = true\n",
-        "assignee",
-    );
-    assert_eq!(example_of(&actor), "\"ada\"");
-    let none = slot_for("[tasks.assignee]\nrequired = true\n", "assignee");
-    assert_eq!(example_of(&none), "\"someone\"");
-}
-
-#[test]
-fn a_numeric_field_s_example_is_its_scale_midpoint() {
-    let priority = slot_for(
-        "[tasks.priority]\nkind = \"int\"\nmin = 0\nmax = 9\nrequired = true\n",
-        "priority",
-    );
-    assert_eq!(example_of(&priority), "4");
-    let difficulty = slot_for(
-        "[tasks.difficulty]\nkind = \"real\"\nmin = 1\nmax = 2\nrequired = true\n",
-        "difficulty",
-    );
-    assert_eq!(example_of(&difficulty), "1.5");
 }
 
 #[test]
@@ -410,13 +419,4 @@ fn each_framework_leaf_s_example_sits_inside_its_range() {
             "{name} = {example}"
         );
     }
-}
-
-#[test]
-fn an_estimate_s_example_is_one_of_its_first_unit() {
-    let slot = slot_for(
-        "[tasks.estimate]\nunits = [\"src-files\"]\nrequired = true\n",
-        "estimate",
-    );
-    assert_eq!(example_of(&slot), "\"(src-files: 1)\"");
 }

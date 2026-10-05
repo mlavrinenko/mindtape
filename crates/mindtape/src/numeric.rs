@@ -164,6 +164,9 @@ pub struct NumericField {
     pub anchors: Vec<Anchor>,
     /// Whether the field must be set.
     pub required: Requirement,
+    /// The value `mt check` files a spliced slot with. A required field with
+    /// no `example` leaves that slot unfillable.
+    pub example: Option<f64>,
 }
 
 impl Default for NumericField {
@@ -175,6 +178,7 @@ impl Default for NumericField {
             bands: Vec::new(),
             anchors: Vec::new(),
             required: Requirement::No,
+            example: None,
         }
     }
 }

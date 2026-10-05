@@ -83,6 +83,7 @@ kind = "int"
 min = 0
 max = 9
 required = "!terminal"
+example = 3
 framework = "ice"
 allow-manual = false
 
@@ -128,6 +129,7 @@ color = "red"
 # means backfilling a prediction nobody will route on.
 [tasks.difficulty]
 required = "!terminal"
+example = 3
 
 # A task estimates how many non-test SOURCE FILES it means to touch — not how
 # long it will take, and not the docs, tests and `CHANGELOG.md` every task
@@ -138,6 +140,7 @@ required = "!terminal"
 [tasks.estimate]
 units = ["src-files"]
 required = "!terminal"
+example = { src-files = 1 }
 
 # No estimate check is built in: the caps and the working-tree budget below are
 # ordinary `[[tasks.rules]]` entries reading `estimate.src-files` and
@@ -296,6 +299,7 @@ allowed = [
 [tasks.fields.kind]
 values = ["feat", "fix", "refactor", "docs", "test", "dev", "milestone"]
 required = "!terminal"
+example = "test"
 
 # Who is working the task. The only distinction this backlog needs is
 # human-vs-model: `max` holds the work no agent can finish — a render loaded in
@@ -320,6 +324,7 @@ required = "!terminal"
 [tasks.assignee]
 allowed = ["max", "agent"]
 required = "!terminal"
+example = "agent"
 
 # A review comment left in a task file is a conversation, not content: a human
 # annotates, an agent reframes the task and removes the note. Forbidding it

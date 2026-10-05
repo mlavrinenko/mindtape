@@ -34,6 +34,7 @@ fn int_bands() -> NumericField {
         ],
         anchors: Vec::new(),
         required: Requirement::No,
+        example: None,
     }
 }
 
@@ -50,6 +51,7 @@ fn anchors() -> NumericField {
             anchor(9.0, "staff"),
         ],
         required: Requirement::No,
+        example: None,
     }
 }
 
@@ -91,6 +93,7 @@ fn real_bands_close_only_the_last() {
         bands: vec![band("lo", 0.0, 0.5), band("hi", 0.5, 1.0)],
         anchors: Vec::new(),
         required: Requirement::No,
+        example: None,
     };
     assert_eq!(field.classify(0.5).unwrap().label, "hi");
     assert_eq!(field.classify(0.25).unwrap().label, "lo");
@@ -130,6 +133,7 @@ fn inverted_scale_is_rejected() {
         bands: Vec::new(),
         anchors: Vec::new(),
         required: Requirement::No,
+        example: None,
     };
     let problems = field.validate("priority");
     assert_eq!(problems, vec!["priority: min 9 must be below max 0"]);

@@ -120,6 +120,14 @@
           },
           "type": "array"
         },
+        "example": {
+          "default": null,
+          "description": "The assignee `mt check` files a spliced slot with. A required assignee\nwith no `example` leaves that slot unfillable.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "required": {
           "$ref": "#/$defs/Requirement",
           "description": "Whether an assignee must be set."
@@ -680,6 +688,18 @@
       "additionalProperties": false,
       "description": "`[tasks.estimate]` — the legal estimate units and whether one is required.",
       "properties": {
+        "example": {
+          "additionalProperties": {
+            "format": "double",
+            "type": "number"
+          },
+          "default": null,
+          "description": "The estimate `mt check` files a spliced slot with, as `unit = quantity`\npairs. A required estimate with no `example` leaves that slot\nunfillable.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
         "required": {
           "$ref": "#/$defs/Requirement",
           "description": "Whether an estimate must be set."
@@ -722,6 +742,17 @@
             "null"
           ]
         },
+        "example": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FieldExample"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The value `mt check` files a spliced slot for this field with: a string,\nor a list of strings for a `multiple` field. A required field with no\n`example` and no `default` leaves that slot unfillable, so\n`mt check` names this table."
+        },
         "multiple": {
           "default": false,
           "description": "Whether an `x-<ns>` field holds a list of strings rather than one\nstring. `mt check` refuses a string in such a field, and a list in a\nfield with `values` that does not declare it. `mt add` offers the field\nas a multi-choice slot.",
@@ -749,6 +780,22 @@
         }
       },
       "type": "object"
+    },
+    "FieldExample": {
+      "anyOf": [
+        {
+          "description": "The example of a single-valued field.",
+          "type": "string"
+        },
+        {
+          "description": "The example of a `multiple` field.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      ],
+      "description": "A `[tasks.fields.<name>] example`: one string, or a list for a `multiple`\nfield."
     },
     "FlipAction": {
       "additionalProperties": false,
@@ -1463,6 +1510,15 @@
           },
           "type": "array"
         },
+        "example": {
+          "default": null,
+          "description": "The value `mt check` files a spliced slot with. A required field with\nno `example` leaves that slot unfillable.",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
         "kind": {
           "$ref": "#/$defs/ScaleKind",
           "description": "Whether the scale is integer or real."
@@ -1522,6 +1578,15 @@
             "$ref": "#/$defs/Band"
           },
           "type": "array"
+        },
+        "example": {
+          "default": null,
+          "description": "The value `mt check` files a spliced slot with. A required field with\nno `example` leaves that slot unfillable.",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
         },
         "framework": {
           "default": null,

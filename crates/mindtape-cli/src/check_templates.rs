@@ -183,8 +183,9 @@ fn file_examples(
     let fail = |err: anyhow::Error| vec![template_failure(home, authored, format!("{err:#}"))];
     let config = &project.config;
     let status = filing_status(config, authored, None);
-    let (spliced, _) = splice_config_slots(authored, config, status.as_deref()).map_err(fail)?;
-    let unfillable = mindtape::unfillable_slots(home, authored, &spliced);
+    let (spliced, injected) =
+        splice_config_slots(authored, config, status.as_deref()).map_err(fail)?;
+    let unfillable = mindtape::unfillable_slots(home, authored, &spliced, &injected);
     if !unfillable.is_empty() {
         return Err(unfillable);
     }

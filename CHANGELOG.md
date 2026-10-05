@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A field's config carries the example a spliced slot shows.**
+  `[tasks.fields.<name>]`, `[tasks.assignee]`, `[tasks.estimate]` and the
+  numeric scales take `example`. Rust no longer invents one (a scale midpoint,
+  the first value, the field name, `someone`), so a required field with no
+  `example` and no `default` leaves its slot unfillable, and `mt check` names
+  the config table that should carry it.
 - **`multiple = true` declares a list-valued `x-<ns>` field.** `mt add`
   offered every such field as a single-value `choice`, so a list could not be
   filed. It now offers a `multichoice` slot, spliced or inherited, and files a

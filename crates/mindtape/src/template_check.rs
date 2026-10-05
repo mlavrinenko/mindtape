@@ -16,6 +16,7 @@ use std::path::Path;
 
 use typst_edit::line_of;
 
+use crate::add_slots::RequiredSlot;
 use crate::severity::Severity;
 use crate::task_spans::TaskCallSpans;
 use crate::template::discover_slots;
@@ -68,9 +69,15 @@ pub struct TemplateSources<'a> {
 /// One breach per slot of `spliced` — the template with `mt add`'s
 /// config-required slots spliced in, each carrying an example from config —
 /// that has neither an `example` nor a `default`, placed at the slot in
-/// `authored`.
+/// `authored`. A slot `mt add` spliced in (`injected`) names the config table
+/// that should carry its example.
 #[must_use]
-pub fn unfillable_slots(home: TemplateHome<'_>, authored: &str, spliced: &str) -> Vec<Violation> {
+pub fn unfillable_slots(
+    home: TemplateHome<'_>,
+    authored: &str,
+    spliced: &str,
+    injected: &[RequiredSlot],
+) -> Vec<Violation> {
     let authored_slots = discover_slots(authored);
     let mut found: Vec<Violation> = discover_slots(spliced)
         .into_iter()
@@ -82,10 +89,16 @@ pub fn unfillable_slots(home: TemplateHome<'_>, authored: &str, spliced: &str) -
                     || call_line(authored),
                     |slot| line_of(authored, slot.range.start),
                 );
-            let message = format!(
-                "slot `{}` has no example or default; give it `example:` so `mt check` can fill it",
-                spec.name
-            );
+            let message = match injected.iter().find(|slot| slot.field == spec.name) {
+                Some(slot) => format!(
+                    "slot `{}` has no example; set `example` in {} so `mt check` can fill it",
+                    spec.name, slot.config_path
+                ),
+                None => format!(
+                    "slot `{}` has no example or default; give it `example:` so `mt check` can fill it",
+                    spec.name
+                ),
+            };
             breach(home, line, message)
         })
         .collect();

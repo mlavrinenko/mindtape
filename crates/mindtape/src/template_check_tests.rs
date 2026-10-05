@@ -28,7 +28,12 @@ fn sources(checked: &str) -> TemplateSources<'_> {
 
 #[test]
 fn every_slot_with_neither_example_nor_default_is_a_breach_at_its_line() {
-    let found = unfillable_slots(TemplateHome::File(Path::new("t.typ")), TEMPLATE, TEMPLATE);
+    let found = unfillable_slots(
+        TemplateHome::File(Path::new("t.typ")),
+        TEMPLATE,
+        TEMPLATE,
+        &[],
+    );
     let at: Vec<(usize, bool)> = (found.iter())
         .map(|v| {
             (
