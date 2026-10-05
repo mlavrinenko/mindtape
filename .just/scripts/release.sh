@@ -5,7 +5,7 @@
 # what it refuses to release over stays above that recipe in the Justfile.
 # Takes the version as $1.
 #
-# The `[confirm(...)]` guard stays on the RECIPE, where `just` enforces it —
+# The `[confirm(...)]` guard stays on the recipe, where `just` enforces it —
 # this script cannot re-implement it, and must not let anyone step around it.
 # So it refuses to run unless MINDTAPE_RELEASE_CONFIRMED is set, which only the
 # recipe sets, right after the prompt is answered. Same handshake shape as

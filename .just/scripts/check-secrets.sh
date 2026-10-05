@@ -8,7 +8,7 @@
 # file, plus the walk bound derived below from what git ignores. History is out of scope; the reason
 # is argued there too.
 #
-# Why the target is `.` and the CWD is the REPO root, measured rather than
+# Why the target is `.` and the CWD is the repo root, measured rather than
 # assumed: gitleaks reports a finding's path exactly as its target was
 # spelled, so `gitleaks dir "$PWD"` yields `/home/…/outdatty.lock` and every
 # `^`-anchored allowlist in .gitleaks.toml silently stops matching — the

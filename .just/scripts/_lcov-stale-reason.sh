@@ -9,7 +9,7 @@
 # staleness tests that could disagree would be worse than none, which is why
 # this is a recipe both call and not a copied five-line block.
 #
-# It reports through STDOUT and ALWAYS exits 0 — an empty stdout means fresh,
+# It reports through STDOUT and always exits 0 — an empty stdout means fresh,
 # any other line names why the lcov is unusable. The exit status is not the
 # channel and must not become one: `crap` treats a reason as fatal while
 # `check-crap` treats it as a reason to skip, and a non-zero exit here would

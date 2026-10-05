@@ -5,7 +5,7 @@
 #
 # What this is for. `just fork` stands a delegated worktree up; this takes it
 # back down, and the one thing it does on the way is an assertion nothing else
-# makes. A fast-forward writes no COMMIT, so `.githooks/pre-commit` — the only
+# makes. A fast-forward writes no commit, so `.githooks/pre-commit` — the only
 # place `mmz --is-fresh --tag gate` fires on its own — never runs on the merge.
 # The branch's own commits ran it, except the ones that carried a `Gate-Scope:`
 # trailer and deliberately skipped it; that scoping is legitimate precisely

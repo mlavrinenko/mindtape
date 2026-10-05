@@ -7,7 +7,7 @@
 # reaches); what counts as a call is argued below, once, for both.
 #
 # The caller sets `dump`, and optionally `extra` (globs naming scripts outside
-# .just/scripts/ to add as nodes) and `reach=1` (recipe DEPENDENCIES become
+# .just/scripts/ to add as nodes) and `reach=1` (recipe dependencies become
 # edges too; the default leaves them, since no rule's scopes turn on one).
 #
 # A script is named by its path in any position, and a `$VAR/name.sh` also
@@ -45,8 +45,8 @@ noop_flags=$(
 EOF
 )
 
-# One pass over the dump for both things it holds: the recipe NAMES (`N`), which
-# are what a nested `just` has to resolve to, and the body LINES (`L`), which are
+# One pass over the dump for both things it holds: the recipe names (`N`), which
+# are what a nested `just` has to resolve to, and the body lines (`L`), which are
 # where a call can be written. Modules are walked recursively (`docs::md-check`'s
 # body is the reason) and a `namepath` is already fully qualified, so it maps
 # straight onto the `just <namepath>` rule names the manifest uses. A body line
@@ -82,7 +82,7 @@ fi
 # body lines, and every non-comment line of every script on disk.
 lines=$(
     grep '^L	' <<<"$dumped" | cut -f2-
-    # A heredoc body is DATA, and the control fixtures write scripts carrying
+    # A heredoc body is data, and the control fixtures write scripts carrying
     # `just` calls and script paths with one — so reading a heredoc as code
     # would make the control's own fixture an edge of the gate that runs it.
     # The opening line is still code (it is where a redirection or a `cat` is).

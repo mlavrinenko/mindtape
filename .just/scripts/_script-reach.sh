@@ -2,11 +2,11 @@
 # .just/scripts/_script-reach.sh — the code lines everything a recipe reaches
 # would run, for a caller that judges the lines itself (check-gate-drift.sh reads
 # them for a cargo build). Same walk as _script-graph.sh (_script-graph-lib.sh),
-# so a shell form one learns the other learns; unlike it, recipe DEPENDENCIES
+# so a shell form one learns the other learns; unlike it, recipe dependencies
 # are edges here, so `check` lands on every arm it hands to `mmz`, and on a
 # module recipe's own `gen`.
 #
-# Usage: _script-reach.sh [--also GLOB]... <just-dump.json> <recipe>..., from a
+# Usage: _script-reach.sh [--also glob]... <just-dump.json> <recipe>..., from a
 # tree root holding `.just/scripts/*.sh`. `--also` adds scripts outside that
 # directory as nodes (www/*.sh). Prints `where<TAB>line` for each recipe body
 # line and each non-comment, non-heredoc script line the recipes reach, a

@@ -2,8 +2,8 @@
 # .just/scripts/mutants-diff.sh — the body of the `mutants-diff` recipe,
 # extracted under
 # truth/tasks/extract-the-coverage-and-release-recipe-bodies-into-scripts.typ.
-# Runs from the repo root, like the recipe that invokes it. What a surviving
-# MISSED mutant means is argued in docs/contributing/mutation-testing.md; where
+# Runs from the repo root, like the recipe that invokes it. What a
+# missed mutant means is argued in docs/contributing/mutation-testing.md; where
 # the speed knobs came from is argued in _mutants-env.sh, next to them. Extra
 # args pass through ("$@").
 #

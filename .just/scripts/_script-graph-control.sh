@@ -4,18 +4,18 @@
 # before its arm two (truth/tasks/follow-script-to-script-calls-in-the-scope-
 # derivation.typ).
 #
-# IT EXISTS BECAUSE THE THING IT GUARDS FAILS GREEN, IN BOTH DIRECTIONS, and
+# It exists because the thing it guards fails green, in both directions, and
 # they are opposite failures with the same printout. A derivation that quietly
 # stopped following an edge reports every rule covered — which is what a correct
 # manifest reports — and puts back exactly the silent stale hit the transitive
 # walk was written to remove. A derivation that reads one word too many demands
-# a scope for a body no rule runs, and that direction is worse: it FAILS A
-# CORRECT MANIFEST, and the obvious repair is to add the input rather than to
+# a scope for a body no rule runs, and that direction is worse: it fails a
+# correct manifest, and the obvious repair is to add the input rather than to
 # fix the reader, so the wrong edge becomes permanent the first time someone is
 # in a hurry. Neither can be seen from the real tree, where the answer and the
 # bug are the same sentence.
 #
-# A SEPARATE FILE rather than a `--control` arm inside the walk, because a
+# A separate file rather than a `--control` arm inside the walk, because a
 # self-test is its own subject, and the
 # walk it drives is already the longest reasoning in that directory. No `just`
 # recipe of its own either — it asserts nothing a reader would run on purpose,
@@ -24,16 +24,16 @@
 # reads script-scope-check.sh naming both files and derives them, which is the
 # feature demonstrating itself.
 #
-# A SYNTHETIC TREE, never the real one. The shapes below have to sit next to
+# A synthetic tree, never the real one. The shapes below have to sit next to
 # each other in one pass — a real script carries one or two of them — and three
 # of the five cannot exist in the tracked tree at all, because two of them are
 # gate failures and the third is a path to a file that does not exist.
 #
-# FIVE CASES ON THREE RUNS, four loud and one silent, because each can rot
+# Five cases on three runs, four loud and one silent, because each can rot
 # without touching another: the script-to-script hop, the nested-`just` hop, the
 # unclassified flag, the unreadable target, and — the silent one — every
 # not-a-call shape staying out of the graph. The last is not decoration. It is
-# the whole reason the arm claimed direct invocation only until now.
+# the property that keeps a script that merely names another out of the graph.
 set -eo pipefail
 
 graph=".just/scripts/_script-graph.sh"
@@ -67,7 +67,7 @@ EOF
 
 # Every not-a-call shape at once. The `just lonely` mentions are the ones that
 # matter most: a hint in an error message is how every script in the real tree
-# spells a recipe name it does NOT run, and reading one as an edge would demand
+# spells a recipe name it does not run, and reading one as an edge would demand
 # `script-lonely` on a rule that never touches it.
 cat >"$ctl/.just/scripts/b.sh" <<'EOF'
 # bash .just/scripts/commented.sh

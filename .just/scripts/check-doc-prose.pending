@@ -1,15 +1,3 @@
-.just/scripts/_lcov-stale-reason.sh
-.just/scripts/mutants-diff.sh
-.just/scripts/_mutants-env.sh
-.just/scripts/mutants.sh
-.just/scripts/_nav-diff.sh
-.just/scripts/positional-args-check.sh
-.just/scripts/release.sh
-.just/scripts/script-attr-check.sh
-.just/scripts/_script-graph-control.sh
-.just/scripts/_script-graph-lib.sh
-.just/scripts/_script-graph.sh
-.just/scripts/_script-reach.sh
 .just/scripts/script-scope-check.sh
 .just/scripts/site-pages-fixture-check.sh
 .just/scripts/size-fixture-check.sh

@@ -14,22 +14,22 @@
 # arg-pattern-check.sh and size-fixture-check.sh, and there for their reason: a
 # convention nothing checks is a comment.
 #
-# TWO ARMS, because the attribute and the setting are each useless alone. The
+# Two arms, because the attribute and the setting are each useless alone. The
 # attribute routes a body to the interpreter; the setting decides what that
 # interpreter is. Miss either and a body runs unstrict — arm 1 catches the body
 # that never reaches the setting, arm 2 catches the setting that would not bite
 # if it did.
 #
-# `.shebang` IS NOT THE DISCRIMINATOR for arm 1, measured on just 1.46 rather
+# `.shebang` is not the discriminator for arm 1, measured on just 1.46 rather
 # than assumed: a `[script]` recipe dumps `shebang: true` exactly as a `#!` body
 # does, because the field means "this body is a script", not "this body opens
 # with `#!`" — the same measurement www/gates.jq records where it reads the
-# field. So arm 1 pairs the two: `shebang: true` AND no `script` key in
+# field. So arm 1 pairs the two: `shebang: true` and no `script` key in
 # `.attributes` is a bare `#!` body, and nothing else is. Attributes come back
 # in two shapes, so the test accepts both rather than assuming one — a
 # no-argument attribute serializes as a bare string (`"positional-arguments"`),
 # an argument-taking one as an object (`{"script": null}`, null because
-# `[script]` takes an OPTIONAL command).
+# `[script]` takes an optional command).
 #
 # `[script("python3")]` passes arm 1 and is meant to. It names its own
 # interpreter at the recipe, which is a visible choice rather than the silent
@@ -37,7 +37,7 @@
 # wrong. What it does not do is escape arm 2 — the file it lives in still has
 # to carry a working setting for every other body in it.
 #
-# WHY ARM 2 RUNS A PROBE INSTEAD OF MATCHING THE SETTING'S TEXT. The dump does
+# Why arm 2 runs a probe instead of matching the setting's text. The dump does
 # not carry the setting at all: `settings` in `just --dump --dump-format json`
 # has no `script_interpreter` key on just 1.46 (measured — `shell` is there,
 # this one is not), so the only static read available is a grep of the file,
@@ -47,17 +47,17 @@
 # fails a literal match, while `["bash", "-e"]` — pipefail dropped, which is the
 # exact half that let `count-tests` exit 0 on a partial count — passes any match
 # loose enough to admit the first. So the replica carries the file's own setting
-# line verbatim, and the assertion is that a `false | true` probe DIES under it.
+# line verbatim, and the assertion is that a `false | true` probe dies under it.
 # That is the property. The spelling is not.
 #
-# WHY EVERY JUSTFILE, not only the ones with `[script]` recipes today. A module
+# Why every justfile, not only the ones with `[script]` recipes today. A module
 # does not inherit the root's setting — measured on just 1.46: the identical
 # `[script]` recipe fails under the root Justfile and prints its after-pipe
 # marker with exit 0 in a module that omits the line. `.just/docs.just`
 # therefore carries a setting no recipe there uses yet, which reads exactly like
 # dead config to anyone tidying up, and deleting it would hand that module's
 # first `[script]` recipe just's default `sh -eu` silently. Requiring the
-# setting per FILE rather than per script recipe is what makes that line
+# setting per file rather than per script recipe is what makes that line
 # load-bearing today instead of on the day it is first needed.
 #
 # Nothing here runs a real recipe body. Arm 1 reads the dump; arm 2 runs only
@@ -77,7 +77,7 @@ trap 'rm -rf "$tmp"' EXIT
 # the echoed `echo REACHED-AFTER-PIPE` line would match the grep on every run.
 marker=REACHED-AFTER-PIPE
 
-# ARM 1. Every recipe just calls a script must carry `[script]`, so the
+# Arm 1. Every recipe just calls a script must carry `[script]`, so the
 # interpreter setting reaches it. `files` walks `.modules` recursively — the
 # same walk gates.jq already needed for the gate table, and the reason is the
 # same: a module is where the next long body is most likely to land, and one
@@ -106,7 +106,7 @@ fi
 
 # write_probe <replica-path> <setting-line>
 # A standalone justfile carrying the setting under test and one `[script]`
-# recipe whose first line fails only as a PIPELINE — `false | true` succeeds
+# recipe whose first line fails only as a pipeline — `false | true` succeeds
 # without pipefail and fails with it, so the probe separates that flag from `-e`
 # rather than conflating the two.
 write_probe() {
@@ -115,9 +115,9 @@ write_probe() {
 }
 
 # The control, run once before the per-file loop. Arm 2 passes a file when the
-# probe DIES, and a probe that dies for an unrelated reason (a broken replica, a
+# probe dies, and a probe that dies for an unrelated reason (a broken replica, a
 # just that cannot parse it, no bash) would read as every file passing. So first
-# require the identical probe to SURVIVE a flagless bash: that pins each failure
+# require the identical probe to survive a flagless bash: that pins each failure
 # below to the flags in the setting line, which is the only thing that differs.
 write_probe "$tmp/control.just" 'set script-interpreter := ["bash"]'
 if ! { control_out=$(just --justfile "$tmp/control.just" probe </dev/null 2>&1) \
@@ -127,7 +127,7 @@ if ! { control_out=$(just --justfile "$tmp/control.just" probe </dev/null 2>&1) 
     exit 1
 fi
 
-# ARM 2. Every justfile in the dump, root and modules alike.
+# Arm 2. Every justfile in the dump, root and modules alike.
 sources=$(jq -r '
   def files: [.source] + ((.modules // {}) | to_entries | map(.value) | map(files) | add // []);
   files[]

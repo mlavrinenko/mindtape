@@ -6,12 +6,12 @@
 # A separate script from arg-pattern-check.sh on purpose, for the reason that
 # one is itself separate from fmt-fixture-check.sh: different subject. That
 # one locks that `[arg(...)]` `pattern`s reject bad input and accept good
-# input at DISPATCH, entirely via `--dry-run`, so no recipe body ever runs.
+# input at dispatch, entirely via `--dry-run`, so no recipe body ever runs.
 # This one locks that `test`, `build`, `mutants` and `mutants-diff` — the
 # recipes that take a passthrough `*ARGS` — actually forward it as a real
 # argument vector instead of a bare string.
 # That property is invisible to `--dry-run`: word-splitting and globbing
-# happen when the shell interpreting the recipe BODY evaluates it, which
+# happen when the shell interpreting the recipe body evaluates it, which
 # dry-run explicitly never does. So this is a two-part check instead:
 #
 #   1. Structural, over `just --dump --dump-format json` — the same source
@@ -27,19 +27,14 @@
 #      (mutants.sh, mutants-diff.sh) — each must consume its own "$@", not
 #      re-join or re-split it.
 #
-# `ask-refactoring` was the fifth until truth/tasks/derive-the-ask-refactoring-
-# flag-table-from-arg-attributes.typ, and left this gate by construction rather
-# than by exemption: it no longer takes a passthrough `*ARGS`. Its five
-# thresholds are declared parameters now, each with an `[arg(...)]` attribute
-# and a digits-only `pattern`, so a value that could be word-split or globbed
-# cannot pass DISPATCH at all, and the body forwards EXPORTED parameters
-# through quoted `"$VAR"` expansions instead of interpolating `{{ }}`. Both
-# halves of what this gate asserted for it are therefore locked elsewhere —
-# the patterns by arg-pattern-check.sh, the quoting by the patterns themselves
-# — and dropping it also closes a scope gap this script had: it grepped
-# contrib/ask-refactoring.sh while its .mmz/config.yaml rule declared only
-# `gates-meta` as input, so an edit to that script could not bust the cache.
-# Nothing outside .just/scripts/** and the two justfiles is read here now.
+# `ask-refactoring` is not covered here, because it takes no passthrough
+# `*ARGS`. Its five thresholds are declared parameters, each with an
+# `[arg(...)]` attribute and a digits-only `pattern`, so a value that could be
+# word-split or globbed cannot pass dispatch at all, and the body forwards
+# exported parameters through quoted `"$VAR"` expansions instead of
+# interpolating `{{ }}`. arg-pattern-check.sh locks the patterns, and the
+# patterns lock the quoting.
+# This script reads nothing outside .just/scripts/** and the two justfiles.
 #
 # Both are static: nothing here runs cargo test, cargo build or cargo
 # mutants. A dynamic proof (an argument containing a space and a glob

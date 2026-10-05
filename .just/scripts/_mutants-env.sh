@@ -21,7 +21,7 @@
 # mutant that ignores the test's override falls through to whatever editor the
 # developer's session carries: a `--wait` GUI editor opens one
 # window per mutant, `run_parses_editor_output` killed at the 30 s timeout, the
-# mutant recorded as TIMEOUT instead of caught. `support::isolate` cannot reach
+# mutant recorded as timeout instead of caught. `support::isolate` cannot reach
 # an in-process read, so the sweep's own environment is the lock: no `$VISUAL`
 # at all, and an `$EDITOR` that cannot exist, so the fall-through is a fast
 # spawn error with the test's real assertion still failing.
@@ -30,7 +30,7 @@ export EDITOR="mt-no-such-editor"
 export CARGO_MUTANTS_JOBS="${CARGO_MUTANTS_JOBS:-3}"
 export RUSTFLAGS="${RUSTFLAGS:-} -Clink-arg=-fuse-ld=mold"
 
-# Each mutant now builds and tests the whole workspace (`test_workspace` in
+# Each mutant builds and tests the whole workspace (`test_workspace` in
 # .cargo/mutants.toml), and Cargo's default build parallelism is one rustc per
 # core *per mutant*. Two mutant workers put ~14 concurrent `mindtape` rustc
 # processes in flight at up to ~6 GB each, enough to exhaust memory and get
