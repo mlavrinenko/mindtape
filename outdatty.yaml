@@ -387,6 +387,17 @@ groups:
       - docs/src/contributing/docs-site-build.typ
       - docs/src/contributing/documentation.typ
 
+  # The script that writes the site's Markdown copies and llms.txt, which
+  # docs-site-build.typ describes and the agents page and the skill point
+  # readers at.
+  - name: site-markdown-docs
+    source:
+      - www/generate-md.sh
+    dependents:
+      - docs/src/contributing/docs-site-build.typ
+      - www/content/agents.typ
+      - docs/src/skill.typ
+
   # The coverage and CRAP scripts, which coverage-crap.typ and crap-baseline.typ
   # describe step by step.
   - name: crap-scripts-docs

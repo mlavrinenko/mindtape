@@ -8,7 +8,7 @@
 // generator writes it with `yq`. The title's backticks are interpolated from a
 // string, never written as a raw span, so the rendered h1 stays plain text and
 // the generator turns it into a `#` heading.
-#import "lib.typ": doc-title
+#import "lib.typ": doc-title, www-llms
 
 #metadata((
   output: "skills/mindtape/SKILL.md",
@@ -59,7 +59,8 @@ after `mt`. In a repo with no tracker, offer `mt init`.
 
 `mt <cmd> --help` lists every flag. Read the project's statuses, link kinds,
 priority scale and tags from `mt config show`, which prints the merged config,
-or the statuses alone from `mt flip --list`. Never guess them.
+or the statuses alone from `mt flip --list`. Never guess them. For what no
+`--help` covers, #www-llms lists every docs page as Markdown.
 
 A `<task>` is a stem, a path, or the stem hash `mt ls` prints in its `slug#`
 column. A stem hash is the same in every listing and changes only when

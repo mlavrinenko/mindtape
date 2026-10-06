@@ -1,14 +1,20 @@
 // Rendering helpers shared across content pages.
 
-#import "site.typ": PKG, u
+#import "site.typ": MARKDOWN, PKG, u
 #import "demo.typ": intro, tagline
 
 // Inline package name, e.g. `@local/mindtape:0.2.0` — always version-synced.
 #let pkg = raw(PKG)
 
+// `html.elem(tag, attrs: attrs, body)`, or the bare body in the Markdown copy
+// (mode.typ), where typlite drops a div or a span together with its content.
+#let el(tag, attrs: (:), body) = if MARKDOWN { body } else {
+  html.elem(tag, attrs: attrs, body)
+}
+
 // A dark terminal panel holding plain text, with leading and trailing blank
 // lines trimmed.
-#let _terminal-panel(body) = html.elem(
+#let _terminal-panel(body) = el(
   "div",
   attrs: (class: "terminal"),
   raw(body.trim("\n", repeat: true), block: true),
@@ -116,13 +122,16 @@
 
 // `terminal()` with the colour the terminal showed: the same panel and the same
 // `$ command` lines, with each coloured run as a span in a selectable `pre`.
-#let terminal-ansi(slug) = html.elem(
-  "div",
-  attrs: (class: "terminal"),
-  html.elem("pre", html.elem("code", _ansi-spans(_transcript(json(
-    "../generated/" + slug + ".json",
-  ))))),
-)
+// The Markdown copy has no colour, so it shows `terminal()`.
+#let terminal-ansi(slug) = if MARKDOWN { terminal(slug) } else {
+  html.elem(
+    "div",
+    attrs: (class: "terminal"),
+    html.elem("pre", html.elem("code", _ansi-spans(_transcript(json(
+      "../generated/" + slug + ".json",
+    ))))),
+  )
+}
 
 // All three hero faces are read from the live fixture and its captures under
 // generated/ (see www/generate.sh) — so none drift from reality: source is the
@@ -130,16 +139,41 @@
 // that same task genuinely compiled by the `task` show rule.
 #let _hero-source = read("../generated/hero-source.typ")
 
-#let face(kind, caption, body) = html.elem(
-  "figure",
-  attrs: (class: "face face-" + kind),
-  {
-    html.elem("figcaption", [#caption])
-    html.elem("div", attrs: (class: "face-body"), body)
-  },
-)
+// One face of the hero. The Markdown copy shows its caption as a paragraph.
+#let face(kind, caption, body) = if MARKDOWN [#caption #parbreak() #body] else {
+  html.elem(
+    "figure",
+    attrs: (class: "face face-" + kind),
+    {
+      html.elem("figcaption", [#caption])
+      html.elem("div", attrs: (class: "face-body"), body)
+    },
+  )
+}
 
-#let hero() = html.elem("section", attrs: (class: "hero"), {
+// The faces both copies show. The typeset card is an inline SVG, which
+// typlite cannot write, so only the HTML hero adds it.
+#let _text-faces() = {
+  face("terminal", "terminal", terminal-ansi("hero-ls"))
+  face("source", "source · throttle-failed-logins-per-ip.typ", raw(
+    _hero-source,
+    lang: "typ",
+    block: true,
+  ))
+}
+
+// typlite joins two `par` calls into one line, so the paragraphs are markup.
+#let _md-hero() = [
+  #tagline
+
+  #intro
+
+  #link(u("/quickstart/"))[Get started] · #link(u("/concepts/"))[How it works]
+
+  #_text-faces()
+]
+
+#let _html-hero() = html.elem("section", attrs: (class: "hero"), {
   html.elem("div", attrs: (class: "hero-lede"), {
     html.elem("h1", tagline)
     html.elem("p", attrs: (class: "hero-sub"), intro)
@@ -157,12 +191,7 @@
     })
   })
   html.elem("div", attrs: (class: "faces"), {
-    face("terminal", "terminal", terminal-ansi("hero-ls"))
-    face("source", "source · throttle-failed-logins-per-ip.typ", raw(
-      _hero-source,
-      lang: "typ",
-      block: true,
-    ))
+    _text-faces()
     // Read the SVG bytes rather than `image("…path…")`: the card is build-time
     // content inlined as a data-uri, not a served asset, so a path literal would
     // trip tola's asset-link validator (generated/ is never copied to public/).
@@ -176,12 +205,16 @@
   ]
 })
 
-// Callout box. kind ∈ note | tip | warn.
-#let callout(kind, body) = html.elem(
-  "div",
-  attrs: (class: "callout callout-" + kind),
-  body,
-)
+#let hero() = if MARKDOWN { _md-hero() } else { _html-hero() }
+
+// Callout box. kind ∈ note | tip | warn. The Markdown copy shows a blockquote
+// that opens with the kind.
+#let _callout-label = (note: "Note", tip: "Tip", warn: "Warning")
+#let callout(kind, body) = if MARKDOWN {
+  quote(block: true)[#strong(_callout-label.at(kind) + ":") #body]
+} else {
+  html.elem("div", attrs: (class: "callout callout-" + kind), body)
+}
 
 // ── Diagrams ─────────────────────────────────────────────────────────────────
 // render_dot in www/capture.sh draws a graph as www/generated/<slug>.svg with
@@ -219,11 +252,14 @@
 
 // The graph <slug> with a caption. Its aria-label lists every edge, so a
 // screen reader, or a renderer that drops the SVG, still has the graph as
-// text.
+// text. The Markdown copy shows the caption and that edge list.
 #let diagram(slug, caption) = {
   let root = xml("../generated/" + slug + ".svg").find(n => (
     type(n) == dictionary and n.tag == "svg"
   ))
+  if MARKDOWN {
+    return [#caption #parbreak() #list(.._svg-edges(root))]
+  }
   let label = "Edges: " + _svg-edges(root).join("; ") + "."
   html.elem("figure", attrs: (class: "diagram"), {
     html.elem(

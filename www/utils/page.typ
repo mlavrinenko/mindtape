@@ -24,6 +24,8 @@
 #import "../templates/tola.typ": wrap-page
 #import "../templates/base.typ": base
 #import "../templates/layout.typ": layout, make-head
+#import "mode.typ": MARKDOWN
+#import "site.typ": render-summary
 
 #let _resolve(meta) = {
   if "active" in meta {
@@ -48,9 +50,25 @@
   out
 }
 
-#let page = wrap-page(
+#let _html-page = wrap-page(
   base: base,
   head: make-head,
   view: (body, m) => layout(body, meta: m),
   transform-meta: _resolve,
 )
+
+// The Markdown copy (see mode.typ): the title, the summary and
+// the body, with no tola wrapper and no chrome. typlite keeps an HTML h1 as a
+// tag, and www/generate-md.sh turns it into `#`. The home page's hero carries
+// the summary as its own lede.
+#let _md-page(body, ..args) = {
+  let m = _resolve(args.named())
+  html.elem("h1")[#m.title]
+  parbreak()
+  if "summary" in m and not m.at("home", default: false) {
+    par(render-summary(m.summary))
+  }
+  body
+}
+
+#let page = if MARKDOWN { _md-page } else { _html-page }

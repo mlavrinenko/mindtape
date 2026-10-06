@@ -5,6 +5,8 @@
 // every page's own `<page-meta>` block by www/generate-site-pages.sh, so this
 // file never restates a label, a title or a summary.
 
+#import "mode.typ": MARKDOWN
+
 // Typst library version, read from lib/typst.toml through the crate map, so a
 // bump reaches the site with no hand edit. The site builds under `--root www`,
 // where Typst refuses a read of lib/typst.toml. www/generate.sh writes
@@ -36,7 +38,18 @@
   if parts.len() < 2 { "" } else { "/" + parts.slice(1).join("/") }
 }
 #let PREFIX = _url-path(SITE_URL)
-#let u(path) = PREFIX + path
+
+// The Markdown copy of a page route: `/cli/ls/#flags` becomes
+// `/cli/ls/index.md#flags`. In the Markdown copy (mode.typ), u() links to the
+// other pages' copies by full URL, because an agent often reads the file away
+// from the site.
+#let md-path(path) = {
+  let (base, ..frag) = path.split("#")
+  let file = if base.ends-with("/") { base + "index.md" } else { base }
+  if frag == () { file } else { file + "#" + frag.join("#") }
+}
+
+#let u(path) = if MARKDOWN { SITE_URL + md-path(path) } else { PREFIX + path }
 
 #let SITE = (
   title: "MindTape",

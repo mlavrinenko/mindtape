@@ -10,7 +10,7 @@ The root docs repeat facts that have a machine-readable source: the crate map, t
 
 `docs/generate-md.sh` runs `mmz just docs::gen` before it renders, so a source never depends on another recipe having run first. On a changed tree that costs a debug build of `mt`, because `www/generate.sh` captures real `mt` output. `www/generate-facts.sh` alone is not enough, because `www/generate-site-pages.sh` compiles every site page to build the page manifest, and the pages read those captures. Inside `just check` the four gates that read `www/generated/` share one run: the first to take the lock regenerates, and mmz finds the record fresh for the rest. Each source is rendered with typlite, from nixpkgs’ `tinymist` package.
 
-The site pages under `www/content/` are a separate render path. They open with `#show: page.with(...)`, import `@tola` and target HTML. A `docs/src` source has neither, so typlite can render it alone. Why the site always rebuilds clean is in [docs/contributing/docs-site-build.md](docs/contributing/docs-site-build.md).
+The site pages under `www/content/` are a separate render path. They open with `#show: page.with(...)`, import `@tola` and target HTML. A `docs/src` source has neither, so typlite can render it alone. Why the site always rebuilds clean, and how typlite renders each site page’s Markdown copy, is in [docs/contributing/docs-site-build.md](docs/contributing/docs-site-build.md).
 
 ### Adding a source
 

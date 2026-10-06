@@ -1,6 +1,8 @@
 // Page chrome: <head>, header, docs sidebar, main, footer.
 
-#import "../utils/site.typ": NAV, REPO, SITE, page-meta, render-summary, u
+#import "../utils/site.typ": (
+  NAV, REPO, SITE, SITE_URL, md-path, page-meta, render-summary, u,
+)
 
 // Set data-theme before first paint (no flash), then a global toggle.
 #let _theme-script = "(function(){var d=document.documentElement;var t=localStorage.getItem('theme');if(t){d.setAttribute('data-theme',t)}else if(window.matchMedia('(prefers-color-scheme:dark)').matches){d.setAttribute('data-theme','dark')}}());function toggleTheme(){var d=document.documentElement;var n=d.getAttribute('data-theme')==='dark'?'light':'dark';d.setAttribute('data-theme',n);localStorage.setItem('theme',n)}"
@@ -125,6 +127,11 @@ nav.appendChild(details);
 heads[0].parentNode.insertBefore(nav,heads[0]);
 });"
 
+// The page's Markdown copy, which www/generate-md.sh writes beside its HTML.
+// The URL is absolute because `tola validate` resolves a site path against
+// its own page list, which holds no `.md` file.
+#let _md-url(route) = SITE_URL + md-path(route)
+
 #let make-head(m) = {
   html.elem("meta", attrs: (charset: "utf-8"))
   html.elem("meta", attrs: (
@@ -171,6 +178,11 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
   html.elem("link", attrs: (
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap",
+  ))
+  html.elem("link", attrs: (
+    rel: "alternate",
+    type: "text/markdown",
+    href: _md-url(m.active),
   ))
   // Assets stay source-relative; tola applies the site prefix on build.
   html.elem("link", attrs: (rel: "stylesheet", href: "/assets/styles/main.css"))
@@ -259,6 +271,11 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
       // Pagefind mounts its input here; the results drawer floats as a popup.
       html.elem("div", attrs: (class: "search", id: "search"))
       html.elem("div", attrs: (class: "header-right"), {
+        html.elem(
+          "a",
+          attrs: (href: _md-url(active), class: "header-link"),
+          [Markdown],
+        )
         html.elem("a", attrs: (href: REPO, class: "header-link"), [GitHub])
         _toggle
       })

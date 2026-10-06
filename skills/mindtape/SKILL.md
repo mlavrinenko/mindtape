@@ -36,7 +36,7 @@ It is when `.mindtape/config.toml` exists. Run `mt` in the directory that holds 
 | Retire a task | `mt rm <task…>` |
 | Validate | `mt check` |
 
-`mt <cmd> --help` lists every flag. Read the project’s statuses, link kinds, priority scale and tags from `mt config show`, which prints the merged config, or the statuses alone from `mt flip --list`. Never guess them.
+`mt <cmd> --help` lists every flag. Read the project’s statuses, link kinds, priority scale and tags from `mt config show`, which prints the merged config, or the statuses alone from `mt flip --list`. Never guess them. For what no `--help` covers, [https://mlavrinenko.github.io/mindtape/llms.txt](https://mlavrinenko.github.io/mindtape/llms.txt) lists every docs page as Markdown.
 
 A `<task>` is a stem, a path, or the stem hash `mt ls` prints in its `slug#` column. A stem hash is the same in every listing and changes only when `mt mv` renames the stem. One that several tasks share is refused. When you mention a task to a person, link its file path.
 

@@ -1,6 +1,6 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": exit-code, terminal
-#import "../utils/site.typ": REPO, u
+#import "../utils/site.typ": REPO, SITE_URL, u
 
 #let meta = (
   route: "/agents/",
@@ -67,6 +67,13 @@ the skills directory your agent reads.
   "https://docs.github.com/en/copilot/concepts/agents/about-agent-skills",
 )[GitHub Copilot]
 each document theirs.
+
+= Read these docs as Markdown
+
+Every page of this site has a Markdown copy at `index.md` under its URL, such
+as #link(SITE_URL + "/concepts/index.md") for Concepts, and the header of each
+page links its copy. #link(SITE_URL + "/llms.txt") lists every copy with its
+summary, so an agent finds the page it needs from one file.
 
 = Read tasks as JSON
 

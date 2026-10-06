@@ -104,6 +104,10 @@
   link(_site.url + route, if pos.len() > 0 { pos.at(0) } else { entry.title })
 }
 
+// A link to the docs site's llms.txt, which www/generate-md.sh writes: every
+// page's Markdown copy with its summary.
+#let www-llms = link(_site.url + "/llms.txt")
+
 // Re-export www/generated/just.typ (www/generate-facts.sh) so a source
 // writes `#import "lib.typ": fact, just` and then `#just.check()` instead of
 // hand-typing a recipe name — a rename fails `just docs::md` naming the

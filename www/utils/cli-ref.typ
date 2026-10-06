@@ -16,7 +16,7 @@
 
 #import "ui.typ": commands, terminal
 #import "cli-notes.typ": cli-notes
-#import "site.typ": u
+#import "site.typ": MARKDOWN, u
 #import "page.typ": page
 
 #let CLI = json("../generated/cli.json")
@@ -89,8 +89,18 @@
   }
 }
 
+// A Markdown table cell holds one line, and an argument's description holds
+// paragraphs, lists and code blocks. So the Markdown copy (mode.typ) lists the
+// arguments, each item opening with the signature.
 #let _args-table(args, key-prefix) = {
   if args.len() == 0 { return }
+  if MARKDOWN {
+    return list(
+      ..args.map(arg => [
+        #raw(_sig(arg)): #_arg-desc(arg, key-prefix + "." + arg.id)
+      ]),
+    )
+  }
   table(
     columns: (auto, 1fr),
     align: (left + top, left + top),

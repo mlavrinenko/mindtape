@@ -13,6 +13,8 @@
 // import that read www/generated/ would race the docs::check arm that deletes
 // it.
 
+#import "mode.typ": MARKDOWN
+
 #let framework-notes = (
   "ice": [
     Impact and ease are guesses, and confidence says how far to trust them.
@@ -50,8 +52,13 @@
   }
 }
 
+// A Markdown table cell holds one line, so the Markdown copy (mode.typ)
+// joins the inputs with commas and the scoring with its note on one line.
 #let _inputs(f) = (
-  f.inputs.map(i => [#raw(i.name) #_domain(i)]).join(linebreak())
+  f
+    .inputs
+    .map(i => [#raw(i.name) #_domain(i)])
+    .join(if MARKDOWN { [, ] } else { linebreak() })
 )
 
 // A framework has a score formula or a list of categories, never both
@@ -87,7 +94,9 @@
     .map(f => (
       raw(f.name),
       _inputs(f),
-      [#_scoring(f) #parbreak() #_note(f.name)],
+      if MARKDOWN { [#_scoring(f): #_note(f.name)] } else {
+        [#_scoring(f) #parbreak() #_note(f.name)]
+      },
     ))
     .flatten(),
 )

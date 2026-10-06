@@ -86,7 +86,8 @@ gen:
     bash www/generate-facts.sh
 
 # Build the documentation site (www/ -> www/public/mindtape) with tola, then
-# index the built HTML with Pagefind (bundle -> public/mindtape/pagefind/).
+# index the built HTML with Pagefind (bundle -> public/mindtape/pagefind/),
+# then write each page's Markdown copy and llms.txt (www/generate-md.sh).
 # gen runs first so the injected transcripts reflect the current binary.
 #
 # `build` passes `--clean` because tola does not track a `json()` read as a
@@ -98,11 +99,11 @@ gen:
 # build never validates HTML that the current facts did not produce.
 # docs/src/contributing/generated-docs.typ states what that costs.
 
-[doc("Build the docs site and index it with Pagefind")]
+[doc("Build the docs site, its Markdown copies and llms.txt")]
 [group("docs")]
 [working-directory("www")]
 build: gen
-    tola build --clean && pagefind --site public/mindtape --silent
+    tola build --clean && pagefind --site public/mindtape --silent && bash generate-md.sh
 
 [doc("Serve the docs locally with hot reload (no search index)")]
 [group("docs")]
@@ -110,8 +111,10 @@ build: gen
 serve: gen
     tola serve
 
-# Build the docs, index with Pagefind, then validate internal links + assets.
-# Pagefind runs before validate so the /pagefind/ bundle exists on disk.
+# Build the docs, index with Pagefind, write the Markdown copies and llms.txt,
+# then validate internal links + assets. Pagefind runs before validate so the
+# /pagefind/ bundle exists on disk. The Pages workflow deploys what this
+# recipe builds, so the Markdown copies ship with the HTML.
 #
 # `tola build`'s `[build]` progress bar and `tola validate`'s `[sitemap]`/
 # `[validate]` lines print on every run, success included. Verified against
@@ -130,7 +133,7 @@ serve: gen
 # `tola validate` over the built HTML, so an incremental `tola build` here
 # would let `check` pass on a page that no current fact produced.
 
-[doc("Build, index, and validate the docs site")]
+[doc("Build, index, and validate the docs site and its Markdown copies")]
 [group("docs")]
 [group("gate")]
 [working-directory("www")]
@@ -138,6 +141,7 @@ check:
     cd .. && mkdir -p target && flock target/www-generated.lock env MINDTAPE_GENERATED_LOCK=1 mmz just docs::gen
     out=$(tola build --clean 2>&1) || { printf '%s\n' "$out"; exit 1; }
     pagefind --site public/mindtape --silent
+    bash generate-md.sh
     out=$(tola validate 2>&1) || { printf '%s\n' "$out"; exit 1; }
 
 # Render docs/src/*.typ to the repo-root Markdown each source declares

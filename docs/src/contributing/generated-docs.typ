@@ -34,7 +34,7 @@ rendered with typlite, from nixpkgs' `tinymist` package.
 The site pages under `www/content/` are a separate render path. They open
 with `#show: page.with(...)`, import `@tola` and target HTML. A `docs/src`
 source has neither, so typlite can render it alone. Why the site always
-rebuilds clean is in
+rebuilds clean, and how typlite renders each site page's Markdown copy, is in
 #link("docs/contributing/docs-site-build.md")[docs/contributing/docs-site-build.md].
 
 == Adding a source

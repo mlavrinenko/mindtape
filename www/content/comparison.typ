@@ -1,5 +1,6 @@
 #import "../utils/page.typ": page
 #import "../utils/site.typ": REPO, u
+#import "../utils/ui.typ": el
 
 #let meta = (
   route: "/comparison/",
@@ -27,7 +28,7 @@
 // amber for partly, grey for no. Rows that describe rather than rate use no
 // colour. The colours come from CSS variables in components.css, so they work
 // in both themes.
-#let cap(level, body) = html.elem(
+#let cap(level, body) = el(
   "span",
   attrs: (class: "cap cap-" + level),
   [#body],
@@ -63,7 +64,7 @@ on a server, outside the repo, so they are not in the table.
 
 The table scrolls sideways on a narrow screen.
 
-#html.elem("div", attrs: (class: "matrix"), table(
+#el("div", attrs: (class: "matrix"), table(
   columns: 9,
   align: left,
   table.header(
