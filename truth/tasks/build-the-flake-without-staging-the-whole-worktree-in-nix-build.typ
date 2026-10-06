@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 6),
+  status: done(2026, 10, 7),
 )
 
 == Problem
@@ -54,7 +54,7 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `Justfile`: replace `git add -A` with `git add -A --intent-to-add`. A git flake reads tracked files from the working tree, so only new files need to be known to git, and their content stays unstaged.
+- `Justfile`: replace `git add -A` with `git ls-files -z --others --exclude-standard | xargs -0 -r git add --intent-to-add --`. A git flake reads tracked files from the working tree, and honours unstaged deletions, so only untracked files need to be known to git, and their content stays unstaged. `git add -A --intent-to-add` is not enough: it still stages deletions. The intent-to-add entries stay in the index.
 
 
 == Rollback

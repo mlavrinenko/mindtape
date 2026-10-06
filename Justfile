@@ -478,13 +478,15 @@ outdatty-update-all:
 
 # Prove `nix build` succeeds in a clean sandbox (no dev shell, no sccache).
 # Catches a committed .cargo/config.toml — or any dev-only setting — leaking
-# into the package build and breaking downstream flake consumers. Stage first:
-# flakes filter source to git-tracked files, and naersk needs the current tree.
+# into the package build and breaking downstream flake consumers. Untracked files
+# are marked intent-to-add first: flakes filter source to git-known files, and
+# this makes new ones visible without staging any content. Edits and deletions
+# stay unstaged; nix reads the working tree.
 
 [doc("Verify nix build succeeds in a clean sandbox")]
 [group("release")]
 nix-build:
-    git add -A
+    git ls-files -z --others --exclude-standard | xargs -0 -r git add --intent-to-add --
     nix build .#default
 
 [doc("Auto-fix clippy warnings")]

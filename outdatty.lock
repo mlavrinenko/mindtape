@@ -138,11 +138,11 @@ groups:
     source:
       .config/nextest.toml: a310c30b19df7fce268db1c136bdd93ff76bf2116e28e4fe799be41ba79920e5
       .just/docs.just: e6a852da423c2ec230c1bc281ab9bb4fe0ce6598a4b4765629adaec32c3714ae
-      Justfile: dc995fd089c44d36f425bb8e4f42404551e0a2d8ccc4702078a6d69652c00eea
+      Justfile: 575fa18e432ea80c7f6c2328db5a19fc2d2210cfe57478ae9948346df0f01dda
       flake.nix: 9da2e53a4c30d4f6d3beffcf732eebebb2bf6476cd5782b9958c8aee01b93248
     dependents:
       docs/src/agents.typ: 48e52ec38d9086566fe2bdaaf0c8404e04988c4f636d39dfae48a8a682507d4c
-      docs/src/contributing.typ: 97c82934196ec6defa4ee0524c46f0e4dcae5352abdca02cce3fe82132bbe696
+      docs/src/contributing.typ: cce80082466c6b8d8030ef0875161c02edcd62e6385ada7bf3ffa4553ca70b1a
       docs/src/contributing/coverage-crap.typ: 4cca206220b9c5494ee882c327f911b731f5194d38a4443069d6978b228cd4f2
       docs/src/contributing/crap-baseline.typ: bcbc918cf8976b8d4b560bd4190c6eb96eab3c2ca3e380108c9996bd65cae98d
       docs/src/contributing/docs-site-build.typ: ab55a155324dc7aacc60167fc5bac4bd09cd9e479dd30d71d8d15f24d942fd6a
