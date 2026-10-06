@@ -39,7 +39,7 @@ first task root, and `--into <dir>` into a directory, in place of each record's
 `file`. `--dry-run` checks the batch and writes nothing: its
 report says `would file` for each record that would be written and ends with
 `dry run: nothing written`. The
-#link(u("/cli/"))[CLI reference] lists every flag.
+#link(u("/cli/import/"))[`mt import` page] lists every flag.
 
 The adapters in `contrib/jq/` read the tracker's own export. They do not read
 your config. They emit the status names of the legend `mt init` writes by

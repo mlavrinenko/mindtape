@@ -51,7 +51,7 @@ and a set of columns, so a listing can be asked for by name:
 Every key is optional. `filter` is a filter expression, and an empty one
 matches every task. `sort` takes the specs `--sort` takes, and `columns` the
 column names `--columns` takes, both listed on the
-#link(u("/cli/"))[CLI reference]. `mt views <name>` prints the
+#link(u("/cli/ls/"))[`mt ls` page]. `mt views <name>` prints the
 `description`.
 
 `mt ls @name` applies the view's filter, sort and columns. Inside a larger

@@ -115,7 +115,7 @@ edge already on the task is not written again:
 #terminal("links-write")
 
 `mt link --apply <file>` merges a whole map of task to kind to targets, from
-YAML or JSON. The #link(u("/cli/"))[CLI reference] lists its other flags.
+YAML or JSON. The #link(u("/cli/link/"))[`mt link` page] lists its other flags.
 
 = Project-declared kinds
 

@@ -117,7 +117,7 @@ groups:
     source:
       .config/nextest.toml: a310c30b19df7fce268db1c136bdd93ff76bf2116e28e4fe799be41ba79920e5
       .just/docs.just: 95440130f6376fa469946aed06b27a316ca408cdee77115b4592d35b229ece73
-      Justfile: 251c597ad4ba3bee80e35b874bdfcbac76e17615ba288d404e4332635b8647ee
+      Justfile: 798102fdc9935b00fe041c15a626cafebd6bd15973b70f47835b7b8f3e1721ed
       flake.nix: bccfe42071c1983f7e116d8864028bcc18ae3f41aaccccb71183464f0b8ccbc0
     dependents:
       docs/src/agents.typ: db573f683c844f3acf22f77df6683dd1248b88d53831a0f6aaa93f8eee0f564e
@@ -125,7 +125,7 @@ groups:
       docs/src/contributing/coverage-crap.typ: 4cca206220b9c5494ee882c327f911b731f5194d38a4443069d6978b228cd4f2
       docs/src/contributing/crap-baseline.typ: bcbc918cf8976b8d4b560bd4190c6eb96eab3c2ca3e380108c9996bd65cae98d
       docs/src/contributing/docs-site-build.typ: 1c238b4e341c292e425a06c09cc5b7d7487a4a0f703df2b7fb4cd7ad37bff1de
-      docs/src/contributing/documentation.typ: e4c6eced33132ec9d65899ff53ba1d758db07ef29825c3e29f828ea246df6462
+      docs/src/contributing/documentation.typ: c8d2c27bb761b7c0d93155f29a9ce6fd4bb70fe772bf57863f20a410187940fe
       docs/src/contributing/example-projects.typ: a0e2cc0bd33ea0f7bdca69f0c3e0f41e11ca7cf0e6d0fc159140ab00ab4a8f77
       docs/src/contributing/gates.typ: 8e3819adb885d5ef84979c964f1561f924a7b5e51eba4900b6e87819bfdf4041
       docs/src/contributing/mutation-testing.typ: 47d36b9534266f15322c41b37158b943ce28b87236af6b514d1d6bfcfbb86316
@@ -133,10 +133,10 @@ groups:
       docs/src/contributing/windows.typ: 7e3c201b3512642d8fa12b1ee5264dbb9e36d59ccf38aded06f4c74366c57491
   doc-gate-scripts-docs:
     source:
-      .just/scripts/_doc-blocks-lib.sh: e56bc6eee3593544ac123da1f69f352c1c6f9f012b201d4127a5a067e697903a
-      .just/scripts/check-doc-blocks.sh: 4af27443eb084ef1803d564a224becaa9000bea50d849ab7c4624b49a028000d
-      .just/scripts/check-doc-coverage.sh: 8dc5a6097d16aad7b613fb68dc2039218da8d817c5c00f807fcbb91af013c783
-      .just/scripts/check-doc-facts.sh: c800e2f882d7421f59e70821ef30f8e23c7bd221d35e1574ee509ded3f4d7276
+      .just/scripts/_doc-blocks-lib.sh: d9e87132af23c43bdb47591f85eec19e313a6cf4bb479be378a86aff598bcd62
+      .just/scripts/check-doc-blocks.sh: 95069c6947bf9a65f48ee44676a515e1c70a7bfd7e53e5c89142940b38b109a7
+      .just/scripts/check-doc-coverage.sh: c0ead091b466abbc7af3f599825c9762c076e3d6ae236816cc7e7e0e8c9c7d8f
+      .just/scripts/check-doc-facts.sh: 9f5370674279de5c29c0943d7ed16bf6af88af44ed29af6187ddd7a7751c0f86
       .just/scripts/check-doc-prose.awk: ee24e35c98ff1a243bc423cfeda62e2a53ffb0d4618a00aa4b9d5c41d1344db4
       .just/scripts/check-doc-prose.sh: ceee9489c0dfc85a7bfea6516ad141d0194bc71bd721396011eac094991f8157
       .just/scripts/check-doc-recipes.sh: fd397519691e5efe66e3d03a8a8f7bf62b2faaa77d694e8262d998590611909c
@@ -144,7 +144,7 @@ groups:
       .just/scripts/check-doc-spans.sh: 7bb4d0076f965fe886210bd5519ba998336c0c4f9cd2b5e38ac8d6b8dbf9aae8
       .just/scripts/docs-md-check.sh: 06b5b942d9a14fa00134ec4de64b4f2e706ae49bf1b55206b2afd54c2d87791f
     dependents:
-      docs/src/contributing/documentation.typ: e4c6eced33132ec9d65899ff53ba1d758db07ef29825c3e29f828ea246df6462
+      docs/src/contributing/documentation.typ: c8d2c27bb761b7c0d93155f29a9ce6fd4bb70fe772bf57863f20a410187940fe
       docs/src/contributing/generated-docs.typ: d798d4589f5dd3c7c04f3dbad21a505e19949cd20f0b48df3bf048a4a71ca414
   filter-docs:
     source:

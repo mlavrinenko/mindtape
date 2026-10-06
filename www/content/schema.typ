@@ -127,7 +127,7 @@ without it, such as a bare array of records. It refuses a version newer than
 its own and names both.
 
 `applied` says which #link(u("/named-sets/"))[view] or
-#link(u("/cli/"))[`[[ls.rules]]` entry] shaped the listing. `rule` is the label of the matching `[[ls.rules]]` entry, or
+#link(u("/cli/ls/#conditional-rules"))[`[[ls.rules]]` entry] shaped the listing. `rule` is the label of the matching `[[ls.rules]]` entry, or
 `null`. Each of `filter`, `sort` and `columns` is `{from, value}`: `value` is
 what the listing used, and `from` names where it came from. That is a view, a
 rule label, `manual` for a value given on the command line, or `match-all` for

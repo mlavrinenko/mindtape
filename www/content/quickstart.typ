@@ -70,7 +70,7 @@ Then make a project, once per repository:
 
 Plain `mt init` asks a few questions first. `--no-input` writes the default
 preset, `flow`, and `mt init --list-presets` lists the others. The
-#link(u("/cli/"))[CLI reference] covers the questions and the presets.
+#link(u("/cli/init/"))[`mt init` page] covers the questions and the presets.
 #link(u("/config/"))[Configuration] covers what the written file can hold.
 
 = File your first task
@@ -102,9 +102,9 @@ A filter expression narrows the list:
 #terminal("qs-filter")
 
 #link(u("/filters/"))[Filters] covers the language: tags, dates, dependency
-state and text search. The #link(u("/cli/"))[CLI reference] covers the listing
-itself: which columns show, the `file` column, hyperlinks, `mt find` and the
-formats for other programs.
+state and text search. The #link(u("/cli/ls/"))[`mt ls` page] covers the listing
+itself: which columns show, the `file` column, hyperlinks and the formats for
+other programs. #link(u("/cli/find/"))[`mt find`] searches by text.
 
 = Change status
 
@@ -131,7 +131,7 @@ command.
 #terminal("qs-check")
 
 It exits non-zero on a violation and names it, so it fits a pre-commit hook or
-CI. The #link(u("/cli/"))[CLI reference] lists what it checks, and
+CI. The #link(u("/cli/check/"))[`mt check` page] lists what it checks, and
 #link(u("/rules/"))[Rules] covers the checks a project adds.
 
 #callout("note")[

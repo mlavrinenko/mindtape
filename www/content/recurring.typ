@@ -114,7 +114,7 @@ series is a chain of files:
 reached its `until` date or a `count` of 0. `--dry-run` prints what it would
 write, `--advance <N>` writes the next N occurrences at once, and `--skip`
 moves the series past the next occurrence without writing one. The
-#link(u("/cli/"))[CLI reference] lists every flag.
+#link(u("/cli/recur/"))[`mt recur` page] lists every flag.
 
 = Calendar rules with rrule
 

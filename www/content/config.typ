@@ -25,7 +25,7 @@
 A project keeps its config in `.mindtape/config.toml` at its root. Every key
 is optional, and a key the project leaves out takes its value from the config
 floor built into `mt`. `mt config show` prints the merged config as TOML, and
-`--origin` lists the files it came from (see #link(u("/cli/"))[`mt config`]).
+`--origin` lists the files it came from (see #link(u("/cli/config/"))[`mt config`]).
 
 = Layers
 
@@ -120,7 +120,7 @@ server, `typst compile` and every project without an entry read it.
 directory. `mt init` starts the config with a `#:schema` line that points at
 the published copy, so an editor with tombi or Taplo completes keys and checks
 values as you type. `mt` reads that line as a TOML comment.
-#link(u("/cli/"))[`mt init`]'s `--schema` and `--no-schema` flags change it.
+#link(u("/cli/init/"))[`mt init`]'s `--schema` and `--no-schema` flags change it.
 
 = Presets
 
@@ -199,7 +199,7 @@ These sections have a page of their own:
 - `[commits]`: #link(u("/commit-rules/"))[Commit rules].
 - `[ls]` and `[rm]` filters: #link(u("/filters/"))[Filter language].
 - `[[ls.rules]]`, `[ls.columns.<name>]` and `[ls] hyperlinks`:
-  #link(u("/cli/"))[CLI reference].
+  #link(u("/cli/ls/"))[`mt ls`].
 
 The two sections below have no other page.
 

@@ -272,7 +272,7 @@ of the order you asked for:
 
 = Without a filter
 
-A bare `mt ls` tries the project's #link(u("/cli/"))[`[[ls.rules]]`] first.
+A bare `mt ls` tries the project's #link(u("/cli/ls/#conditional-rules"))[`[[ls.rules]]`] first.
 If none matches, it applies the default view: the view `[ls] default-view`
 names, or `[views.default]`. The shipped default view is
 `!terminal && (miss(start) || start <= now())`, the open tasks whose start
