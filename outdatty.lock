@@ -69,7 +69,7 @@ groups:
       skills/mindtape/evals/evals.json: b25640b2d11ac263a0572ffc6679165bae4581dee1fe9938112c8e69926ad041
       skills/mindtape/references/add-slots.md: 88cb97c15bb273483d526b496a227f2a0794fa279d876b0585dc2d46c5aaa658
       skills/mindtape/references/filters.md: 8df147f39ce5cb793469dbfcd32a2fb02216ef1b7149351451f507d29328bff2
-      www/content/agents.typ: 038fbf70175c8f73800d2862df57a3b81fb8d9173a7326b9c8b7fc6b82aab975
+      www/content/agents.typ: 1390f01d6ca6f17791277f35150e6d0d67f635a2b0f9c1152a2ed84e78f859c1
       www/content/cli.typ: 0991c1e7cba195281b503c3d1709a0a1c48113eb39640e9a166919188e07c425
       www/content/commit-rules.typ: faaa885176b15ba1c3be1f9d4235a208dc8fbab90aafe1fff11e4b2a52be0c45
       www/content/concepts.typ: c95be70bd05eff158c1dc3c083d4f13e540afa8e6313701e5f1b52496a510728

@@ -12,6 +12,9 @@
 
 #show: page.with(..meta)
 
+// The `owner/repo` both skill installers take, cut from the repository URL.
+#let repo-slug = REPO.split("github.com/").last()
+
 A coding agent drives MindTape through the same `mt` commands you use. Tasks
 are files in your repo, so an agent reads and edits them with the tools it
 already has, and `mt check` tells it when an edit breaks a rule. The examples
@@ -21,9 +24,49 @@ below run against
 = Give your agent the skill
 
 The MindTape repository ships an agent skill in
-#link(REPO + "/tree/main/skills/mindtape")[`skills/mindtape/`]. It tells an
-agent which `mt` command does what, and when to use it. Copy that directory
-into the directory your agent loads skills from.
+#link(REPO + "/tree/main/skills/mindtape")[`skills/mindtape/`]. Its `SKILL.md`
+tells an agent which `mt` command does what and when to use it, and the agent
+reads the files in `references/` when a task needs them. The skill is written
+in the #link("https://agentskills.io")[Agent Skills] format, so every agent
+that supports the format can load it.
+
+GitHub CLI 2.90 and later installs the skill with `gh skill`, a public
+preview. It takes the skill from the latest release:
+
+// docs:hand-typed the build does not install from GitHub
+#raw(
+  "gh skill install "
+    + repo-slug
+    + " mindtape --agent claude-code --scope user",
+  lang: "sh",
+  block: true,
+)
+
+Replace `claude-code` with your agent. `gh skill install --help` lists the
+agents it knows, and
+#link("https://cli.github.com/manual/gh_skill_install")[its manual] covers
+the other flags. `--scope user` makes the skill load in every project.
+
+The #link("https://skills.sh")[skills] CLI installs it with Node.js, from the
+default branch:
+
+// docs:hand-typed the build does not install from GitHub
+#raw(
+  "npx skills add "
+    + repo-slug
+    + " --skill mindtape --agent claude-code --global",
+  lang: "sh",
+  block: true,
+)
+
+To install it by hand, copy `skills/mindtape/` with its `references/` into
+the skills directory your agent reads.
+#link("https://code.claude.com/docs/en/skills")[Claude Code],
+#link("https://developers.openai.com/codex/build-skills")[Codex] and
+#link(
+  "https://docs.github.com/en/copilot/concepts/agents/about-agent-skills",
+)[GitHub Copilot]
+each document theirs.
 
 = Read tasks as JSON
 
