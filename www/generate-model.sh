@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # www/generate-model.sh — capture the runs /concepts/, /links/ and
-# /recurring/ show, against copies of examples/links/ and examples/recurring/.
+# /recurring/ show, against copies of examples/links/ and examples/recurring/,
+# and draw the graph of examples/links/ that /links/ shows.
 # www/generate.sh calls it inside the lock it holds, so this script takes no
 # lock of its own.
 #
@@ -32,6 +33,9 @@ capture --exit 1 --expect 'link target .* not found' concepts-mv-by-hand "$C" 'm
 capture_prep "$C" 'mv tasks/choose-a-provider.typ tasks/pick-a-provider.typ'
 capture concepts-mv "$C" 'mt mv pick-a-provider choose-a-provider'
 capture concepts-mv "$C" 'mt check'
+
+# /links/: the fixture's graph as `mt graph` prints it, drawn.
+"$MT" -w "$REPO/examples/links" graph | render_dot links-graph
 
 # /links/: a parent's progress, and `mt link` writing one edge twice.
 capture links-progress "$REPO/examples/links" "mt ls 'children > 0' --columns title,status,progress"

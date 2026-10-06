@@ -117,6 +117,12 @@
               # the default ruleset is compiled into the binary, so a version
               # bump changes what the gate finds.
               gitleaks
+              # `dot` draws the docs site's diagrams: www/capture.sh's
+              # render_dot lays out the DOT that `mt graph` and the status
+              # legend produce. Typst finds its packages only through the
+              # network at build time, so a Typst Universe renderer such as
+              # diagraph would make the docs build depend on packages.typst.org.
+              graphviz
               hyperfine
               jq
               just

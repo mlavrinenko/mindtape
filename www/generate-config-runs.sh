@@ -2,7 +2,8 @@
 # www/generate-config-runs.sh — capture the writes /statuses/ and /rules/
 # show, each in a copy of its checked fixture: examples/statuses/ for the
 # transition, note and unblocked guards, examples/rules/ for a rule breach, a
-# required field and a warning.
+# required field and a warning. It also draws the moves of the
+# examples/statuses/ legend, from its `mt config show --json`.
 #
 # Called by www/generate.sh with the repo root and the generated/ directory,
 # inside the lock that script already holds, so this one takes none of its
@@ -30,6 +31,10 @@ capture_copy S examples/statuses
 capture --exit 1 --expect 'illegal transition' statuses-transition "$S" 'mt flip done import-xlsx-files'
 capture --exit 1 --expect 'requires a note' statuses-note "$S" 'mt flip failed add-a-dry-run-flag'
 capture --exit 1 --expect 'requires an unblocked task' statuses-unblocked "$S" 'mt flip wip import-xlsx-files'
+
+# The moves the fixture's legend allows, drawn as a graph.
+"$MT" -w "$REPO/examples/statuses" config show --json \
+  | jq -r -f "$REPO/www/status-moves.jq" | render_dot statuses-moves
 
 capture_copy R examples/rules
 capture --exit 1 --expect 'rules\.one-task-in-flight' rules-wip-cap "$R" 'mt flip wip add-csv-export'

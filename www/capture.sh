@@ -179,6 +179,15 @@ capture() {
     fi
 }
 
+# render_dot <slug>: draw the DOT graph on stdin as <slug>.svg with Graphviz's
+# `dot` from the dev shell, so a missing `dot` fails the build. A page inlines
+# the SVG with diagram() in www/utils/ui.typ, and the site's stylesheet colours
+# it for the theme, so the graph is drawn with no background of its own. The
+# edge labels take the sans-serif font `mt graph` gives its nodes.
+render_dot() {
+    dot -Tsvg -Gbgcolor=transparent -Efontname=sans-serif >"$OUT/$1.svg"
+}
+
 # capture_lines <slug> <dir>: capture each line of stdin as a step that exits
 # 0. A quoted heredoc keeps each line exactly as the reader sees it.
 capture_lines() {

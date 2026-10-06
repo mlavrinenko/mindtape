@@ -182,3 +182,55 @@
   attrs: (class: "callout callout-" + kind),
   body,
 )
+
+// ── Diagrams ─────────────────────────────────────────────────────────────────
+// render_dot in www/capture.sh draws a graph as www/generated/<slug>.svg with
+// Graphviz. diagram() rebuilds that SVG as inline elements rather than an
+// <img>, so the stylesheet can colour it for the light and the dark theme.
+// Typst parses a comment in the file as an element with an empty tag, which is
+// dropped. So is the graph's own <title>, which a browser would show as a
+// tooltip over the whole drawing.
+#let _svg-elem(node) = if type(node) == str {
+  if node.trim() != "" { node }
+} else if node.tag != "" {
+  let children = node.children
+  if node.attrs.at("class", default: "") == "graph" {
+    children = children.filter(c => type(c) == str or c.tag != "title")
+  }
+  html.elem(node.tag, attrs: node.attrs, children.map(_svg-elem).join())
+}
+
+// The text of a node's first <tag> child, or none.
+#let _svg-child-text(node, tag) = {
+  let hit = node.children.find(c => type(c) == dictionary and c.tag == tag)
+  if hit != none { hit.children.filter(c => type(c) == str).join() }
+}
+
+// Every edge as text, "<from> <label> <to>", with "to" for an unlabelled
+// edge. Graphviz titles an edge's group "<from>-><to>".
+#let _svg-edges(node) = if type(node) != dictionary { () } else if (
+  node.attrs.at("class", default: "") == "edge"
+) {
+  let (from, to) = _svg-child-text(node, "title").split("->")
+  let label = _svg-child-text(node, "text")
+  if label == none { label = "to" }
+  (from + " " + label + " " + to,)
+} else { node.children.map(_svg-edges).flatten() }
+
+// The graph <slug> with a caption. Its aria-label lists every edge, so a
+// screen reader, or a renderer that drops the SVG, still has the graph as
+// text.
+#let diagram(slug, caption) = {
+  let root = xml("../generated/" + slug + ".svg").find(n => (
+    type(n) == dictionary and n.tag == "svg"
+  ))
+  let label = "Edges: " + _svg-edges(root).join("; ") + "."
+  html.elem("figure", attrs: (class: "diagram"), {
+    html.elem(
+      "svg",
+      attrs: root.attrs + (role: "img", aria-label: label),
+      root.children.map(_svg-elem).join(),
+    )
+    html.elem("figcaption", caption)
+  })
+}

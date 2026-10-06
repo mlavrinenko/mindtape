@@ -71,6 +71,21 @@
 .callout-warn { border-left-color: #d98b00; }
 .callout-note { border-left-color: var(--muted); }
 
+/* Diagrams ---------------------------------------------------------------- */
+/* An inline Graphviz SVG (diagram() in ui.typ), scaled to the text column.
+   Graphviz writes its default colour as "black" and leaves the fill off text
+   in that colour, so those take the theme's colours. A colour `mt graph` chose
+   stays. A label on a filled node stays dark, because the fills are light in
+   both themes. */
+.diagram { margin: 1.3rem 0; }
+.diagram svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+.diagram [stroke="black"] { stroke: var(--fg); }
+.diagram .edge [stroke="black"] { stroke: var(--muted); }
+.diagram .edge [fill="black"] { fill: var(--muted); }
+.diagram text:not([fill]) { fill: var(--fg); }
+.diagram .node:has(> [fill]:not([fill="none"])) text:not([fill]) { fill: #1f2328; }
+.diagram figcaption { text-align: center; color: var(--muted); font-size: 0.9rem; margin-top: 0.4rem; }
+
 /* Native Typst tables ----------------------------------------------------- */
 main table { border-collapse: collapse; width: 100%; margin: 0 0 1.3rem; font-size: 0.9rem; }
 main th, main td { border: 1px solid var(--border); padding: 0.42rem 0.62rem; text-align: left; vertical-align: top; }
