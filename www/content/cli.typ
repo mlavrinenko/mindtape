@@ -1,6 +1,6 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": callout, terminal
-#import "../utils/site.typ": u
+#import "../utils/site.typ": CLI_GROUPS, u
 #import "../utils/cli-ref.typ": CLI, cli-gate, cli-group, render-globals
 
 #let meta = (
@@ -26,20 +26,7 @@ command from that run.
 // The command tree, read from the binary. cli-notes.typ adds prose and
 // examples. cli-gate fails the build when a command has no group or a note
 // names no command, so a new command cannot go missing from this index.
-#let cli-groups = (
-  ("Files", ("add", "import", "mv", "go", "eval")),
-  ("Fields", ("set",)),
-  ("Listing", ("ls", "find")),
-  ("Graph", ("graph",)),
-  ("Links", ("link",)),
-  ("Views", ("views",)),
-  ("Status", ("flip", "review")),
-  ("Recurring tasks", ("recur",)),
-  ("Validate & inspect config", ("check", "config")),
-  ("Retire", ("rm",)),
-  ("Setup", ("init", "install", "worktrees", "preset")),
-)
-#cli-gate(CLI, cli-groups)
+#cli-gate(CLI, CLI_GROUPS)
 
 = Global flags
 
@@ -49,43 +36,43 @@ Every command accepts the same global flags:
 
 = Files
 
-#cli-group(CLI, cli-groups, "Files")
+#cli-group(CLI, CLI_GROUPS, "Files")
 
 = Fields
 
-#cli-group(CLI, cli-groups, "Fields")
+#cli-group(CLI, CLI_GROUPS, "Fields")
 
 = Listing
 
-#cli-group(CLI, cli-groups, "Listing")
+#cli-group(CLI, CLI_GROUPS, "Listing")
 
 = Graph
 
-#cli-group(CLI, cli-groups, "Graph")
+#cli-group(CLI, CLI_GROUPS, "Graph")
 
 = Links
 
-#cli-group(CLI, cli-groups, "Links")
+#cli-group(CLI, CLI_GROUPS, "Links")
 
 = Views
 
-#cli-group(CLI, cli-groups, "Views")
+#cli-group(CLI, CLI_GROUPS, "Views")
 
 = Status
 
-#cli-group(CLI, cli-groups, "Status")
+#cli-group(CLI, CLI_GROUPS, "Status")
 
 = Recurring tasks
 
-#cli-group(CLI, cli-groups, "Recurring tasks")
+#cli-group(CLI, CLI_GROUPS, "Recurring tasks")
 
 = Validate and inspect config
 
-#cli-group(CLI, cli-groups, "Validate & inspect config")
+#cli-group(CLI, CLI_GROUPS, "Validate & inspect config")
 
 = Retire
 
-#cli-group(CLI, cli-groups, "Retire")
+#cli-group(CLI, CLI_GROUPS, "Retire")
 
 = Setup
 
@@ -93,7 +80,7 @@ Every command accepts the same global flags:
 and #link(u("/agents/"))[For AI agents] describe the files these commands
 write.
 
-#cli-group(CLI, cli-groups, "Setup")
+#cli-group(CLI, CLI_GROUPS, "Setup")
 
 #callout("note")[
   #link(u("/agents/"))[For AI agents] collects the JSON output, exit codes

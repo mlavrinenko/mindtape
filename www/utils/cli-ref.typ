@@ -16,7 +16,7 @@
 
 #import "ui.typ": commands, terminal
 #import "cli-notes.typ": cli-notes
-#import "site.typ": MARKDOWN, u
+#import "site.typ": MARKDOWN, cli-route, u
 #import "page.typ": page
 
 #let CLI = json("../generated/cli.json")
@@ -156,8 +156,6 @@
   }
   by.at(name)
 }
-
-#let cli-route(name) = "/cli/" + name + "/"
 
 // ── public: one command's page ───────────────────────────────────────────────
 // The show rule a command page applies. It declares the page's route, label

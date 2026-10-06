@@ -70,7 +70,7 @@ groups:
       skills/mindtape/references/add-slots.md: 88cb97c15bb273483d526b496a227f2a0794fa279d876b0585dc2d46c5aaa658
       skills/mindtape/references/filters.md: 8df147f39ce5cb793469dbfcd32a2fb02216ef1b7149351451f507d29328bff2
       www/content/agents.typ: c662959be1e441b6382159036b4b207a23a50fdd7c0ee738757b14aeb637b830
-      www/content/cli.typ: 0991c1e7cba195281b503c3d1709a0a1c48113eb39640e9a166919188e07c425
+      www/content/cli.typ: c9a9d8f0053ae14b844ea2183b17f27b27648f72e0140c0f3d6377676a32e206
       www/content/commit-rules.typ: 48a5f48dae5bc8582c6b0a70f366c9209bc457845fe95ac8ad5e2524cabf2f69
       www/content/concepts.typ: 634b51648e1de8dcc98e8090f9509542ec0ae69e67751166f8db15cd04cbf2df
       www/content/config.typ: 1e0beebd08fb2ea13ed0b3eb0b3f06728d1fba127356f0566377be1658d61c30
@@ -100,7 +100,7 @@ groups:
       docs/src/contributing/command-semantics.typ: 85411a192024caab69e4e8ffc93583fd70985701a5237799eacb1db4369a2ec9
       docs/src/readme.typ: 84c0bda43d327ef711df98c5c9bf9b96ac333e80906973184c045f432c89be06
       docs/src/skill.typ: c2c1f99555057c80465e0382054300d746b69ed7fca2189f0de1f6857231b165
-      www/content/cli.typ: 0991c1e7cba195281b503c3d1709a0a1c48113eb39640e9a166919188e07c425
+      www/content/cli.typ: c9a9d8f0053ae14b844ea2183b17f27b27648f72e0140c0f3d6377676a32e206
       www/content/index.typ: 7a601844ef661ed501d2a756c9b2617d6460dad3442f1c75e999fef34e590493
       www/content/quickstart.typ: 45626cc5fdcbcead0e43d28f7be4d13a72e87f92d8cf5cd284c5834dde5c069b
   crap-scripts-docs:

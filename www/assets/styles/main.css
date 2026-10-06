@@ -133,6 +133,26 @@ a:hover { color: var(--accent-strong); }
   color: var(--accent); font-weight: 600; background: var(--accent-wash);
 }
 
+/* A sidebar entry with child pages: a <details> whose <summary> holds the
+   entry's link and a chevron, so the native marker is hidden. */
+.sidebar .nav-nested summary {
+  display: flex; align-items: center; cursor: pointer; list-style: none;
+}
+.sidebar .nav-nested summary::-webkit-details-marker { display: none; }
+.sidebar .nav-nested summary::after {
+  content: ""; flex: none; width: 0.4rem; height: 0.4rem; margin-left: 0.4rem;
+  border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+  transform: rotate(-45deg); transition: transform 0.15s;
+}
+.sidebar .nav-nested[open] > summary::after { transform: rotate(45deg); }
+.sidebar .nav-nested summary:hover::after { border-color: var(--accent); }
+.sidebar .nav-nested summary a { flex: 1; }
+.sidebar .nav-nested ul {
+  margin: 0.1rem 0 0.2rem 0.2rem; padding-left: 0.6rem;
+  border-left: 1px solid var(--border);
+}
+.sidebar .nav-nested ul a { font-family: var(--font-mono); font-size: 0.85rem; }
+
 /* Main -------------------------------------------------------------------- */
 main { padding: 2.2rem 0 5rem; max-width: var(--max); min-width: 0; }
 main.home { max-width: 60rem; }

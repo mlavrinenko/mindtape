@@ -124,6 +124,34 @@
   ),
 )
 
+// The CLI commands by index group, in the order the /cli/ index lists them.
+// www/content/cli.typ renders one section per group, and the sidebar lists the
+// same commands in the same order under its CLI entry, so a command is placed
+// here once. cli-ref.typ's `cli-gate` fails the build when a command in
+// www/generated/cli.json is missing here or listed twice.
+#let CLI_GROUPS = (
+  ("Files", ("add", "import", "mv", "go", "eval")),
+  ("Fields", ("set",)),
+  ("Listing", ("ls", "find")),
+  ("Graph", ("graph",)),
+  ("Links", ("link",)),
+  ("Views", ("views",)),
+  ("Status", ("flip", "review")),
+  ("Recurring tasks", ("recur",)),
+  ("Validate & inspect config", ("check", "config")),
+  ("Retire", ("rm",)),
+  ("Setup", ("init", "install", "worktrees", "preset")),
+)
+
+#let cli-route(name) = "/cli/" + name + "/"
+
+// The command pages' routes in index order.
+#let CLI_ROUTES = CLI_GROUPS.map(g => g.at(1)).flatten().map(cli-route)
+
+// Pages the sidebar lists under a `NAV` entry, by the entry's route. Only the
+// CLI entry has any, and its commands come from the index's own list.
+#let NAV_CHILDREN = ("/cli/": CLI_ROUTES)
+
 // The page manifest, route -> {label, title, summary, home?}, which
 // www/generate-site-pages.sh builds from every page's `<page-meta>` block. It
 // is empty during that script's bootstrap pass, because compiling a page reads

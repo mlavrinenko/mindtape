@@ -1,7 +1,8 @@
 // Page chrome: <head>, header, docs sidebar, main, footer.
 
 #import "../utils/site.typ": (
-  NAV, REPO, SITE, SITE_URL, md-path, page-meta, render-summary, u,
+  NAV, NAV_CHILDREN, REPO, SITE, SITE_URL, md-path, page-meta, render-summary,
+  u,
 )
 
 // Set data-theme before first paint (no flash), then a global toggle.
@@ -221,37 +222,55 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
     + html.elem("span", attrs: (class: "theme-icon theme-icon-moon"), [☾]),
 )
 
+// One sidebar link. `page-meta` returns `none` only during
+// www/generate-site-pages.sh's bootstrap pass, before the manifest it queries
+// every page to build exists yet, so that entry renders nothing rather than a
+// labelless link. Once the manifest is real, a route with none in it is a
+// bug, not a skip (see page-meta's own comment), so nothing here swallows
+// that case. A nested page such as /cli/ls/ is the current page in its own
+// entry and marks its parent's entry as the current section.
+#let _nav-link(route, active) = {
+  let meta = page-meta(route)
+  if meta == none { return none }
+  let attrs = (href: u(route))
+  if active == route {
+    attrs.insert("aria-current", "page")
+  } else if (
+    route != "/" and type(active) == str and active.starts-with(route)
+  ) {
+    attrs.insert("aria-current", "true")
+  }
+  html.elem("a", attrs: attrs, [#meta.label])
+}
+
+// An entry with child pages is a native <details>, so it needs no script. It
+// is open on the entry's own page and on every page under it, and the
+// reader's toggle holds until the next navigation. The entry's link sits in
+// the <summary>, so one row both opens the list and goes to the entry's page.
+#let _nav-item(route, active) = {
+  let kids = NAV_CHILDREN.at(route, default: ())
+  let link = _nav-link(route, active)
+  if link == none { return none }
+  if kids.len() == 0 { return html.elem("li", link) }
+  let attrs = (class: "nav-nested")
+  if type(active) == str and active.starts-with(route) {
+    attrs.insert("open", "")
+  }
+  html.elem("li", html.elem("details", attrs: attrs, {
+    html.elem("summary", link)
+    html.elem("ul", for kid in kids {
+      let kid-link = _nav-link(kid, active)
+      if kid-link != none { html.elem("li", kid-link) }
+    })
+  }))
+}
+
 #let _sidebar(active) = html.elem("aside", attrs: (class: "sidebar"), {
   html.elem("nav", attrs: ("aria-label": "Documentation"), {
     for group in NAV {
       html.elem("div", attrs: (class: "nav-group"), {
         html.elem("p", attrs: (class: "nav-title"), [#group.title])
-        html.elem("ul", {
-          for route in group.items {
-            // `page-meta` returns `none` only during
-            // www/generate-site-pages.sh's bootstrap pass, before the
-            // manifest it queries every page to build exists yet — skip that
-            // entry rather than render a labelless link. Once the manifest is
-            // real, a route in `NAV` with none in it is a bug, not a skip (see
-            // page-meta's own comment), so nothing here swallows that case.
-            let meta = page-meta(route)
-            if meta != none {
-              let attrs = (href: u(route))
-              // A nested page such as /cli/ls/ has no entry of its own, so
-              // its parent's entry is marked as the current section.
-              if active == route {
-                attrs.insert("aria-current", "page")
-              } else if (
-                route != "/"
-                  and type(active) == str
-                  and active.starts-with(route)
-              ) {
-                attrs.insert("aria-current", "true")
-              }
-              html.elem("li", html.elem("a", attrs: attrs, [#meta.label]))
-            }
-          }
-        })
+        html.elem("ul", for route in group.items { _nav-item(route, active) })
       })
     }
   })
