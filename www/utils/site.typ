@@ -57,16 +57,26 @@
 )
 
 // Grouped sidebar: group title, and its members' reading order as routes.
-// The groups follow the reader's job, not the page's origin: Problems for an
-// engineer who has a problem and wants the config that solves it, Start for a
-// first look, Model for the one idea the rest rests on, Tasks for authoring a
-// task file, Reference for looking one thing up, Integrate for wiring
-// MindTape into a repo or a tool. No single page can declare this fact:
-// spreading it across the page files as `order:` integers would make the
-// sidebar's shape invisible and let two pages claim one slot (see the
-// umbrella task's "Out of scope"). Every other fact about a nav entry (label,
-// title, summary, home) is declared on the page itself and resolved from
-// `PAGES` below by route.
+// A group is named for the reader's job, not for the page's origin, so a
+// reader scans one short group instead of every page:
+//
+//   - Problems: an engineer with a problem wants the config that solves it.
+//   - Start: a first look.
+//   - Model: the one idea the rest rests on.
+//   - Tasks: authoring a task file.
+//   - Fields: setting the values a task's fields may take, such as the
+//     statuses, the priority scale, the estimate units and the named sets.
+//   - Checks: setting what `mt` refuses, in tasks, commits and flips.
+//   - Reference: looking one thing up in a page that lists every command,
+//     operator, config key or JSON field.
+//   - Integrate: wiring MindTape into a repo, a tool or another tracker.
+//
+// No group holds more than six pages, because a longer run makes the reader
+// read every label again. No single page can declare this fact. Spreading it
+// across the page files as `order:` integers would hide the sidebar's shape
+// and let two pages claim one slot. Every other fact about a nav entry
+// (label, title, summary, home) is declared on the page itself and resolved
+// from `PAGES` below by route.
 #let NAV = (
   (
     title: "Problems",
@@ -92,26 +102,25 @@
     ),
   ),
   (
+    title: "Fields",
+    items: ("/statuses/", "/priority/", "/estimates/", "/named-sets/"),
+  ),
+  (
+    title: "Checks",
+    items: ("/rules/", "/rule-packs/", "/commit-rules/", "/hooks/"),
+  ),
+  (
     title: "Reference",
-    items: (
-      "/cli/",
-      "/filters/",
-      "/priority/",
-      "/config/",
-      "/statuses/",
-      "/rules/",
-      "/rule-packs/",
-      "/commit-rules/",
-      "/named-sets/",
-      "/hooks/",
-      "/estimates/",
-      "/schema/",
-      "/import-export/",
-    ),
+    items: ("/cli/", "/filters/", "/config/", "/schema/"),
   ),
   (
     title: "Integrate",
-    items: ("/self-validating-tasks/", "/agents/", "/internals/"),
+    items: (
+      "/self-validating-tasks/",
+      "/agents/",
+      "/import-export/",
+      "/internals/",
+    ),
   ),
 )
 
