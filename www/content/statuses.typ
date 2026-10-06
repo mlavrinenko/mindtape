@@ -31,14 +31,15 @@
   ("custom-status", "failed-note"),
 )
 
-`[[tasks.status]]` lists a project's legal statuses in lifecycle order.
-`mt check` reports a task whose status is not in the list. Each value is also
-a verb, so `mt wip <task>` runs `mt flip wip <task>`.
+`[[tasks.status]]` is the status legend, the list of a project's legal
+statuses in lifecycle order. `mt check` reports a task whose status is not in
+the list. Moving a task to another status is a flip, and `mt flip` makes it.
+Each value is also a verb, so `mt wip <task>` runs `mt flip wip <task>`.
 
 = The default legend
 
 A project that declares no `[[tasks.status]]` gets this legend from the
-embedded config floor:
+#link(u("/config/"))[config floor], the defaults built into `mt`:
 
 #let floor = json("../generated/floor-legend.json")
 #table(

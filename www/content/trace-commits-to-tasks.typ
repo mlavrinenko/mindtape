@@ -32,8 +32,10 @@ task behind the changed file:
 
 = How it works
 
-`[commits] trailer` names the trailer whose values are task stems. The project
-also extends the `mindtape-tasks` rule pack, as
+`[commits] trailer` names the trailer whose values are task stems, the task
+file names without `.typ`, as #link(u("/concepts/#identity"))[Concepts]
+explains. The project also extends the `mindtape-tasks`
+#link(u("/rule-packs/"))[rule pack], as
 #link(u("/require-a-task-shape/"))[Tasks too vague to start] shows. The pack's
 `work-names-a-task` rule refuses a commit that names no task, unless the commit
 changes only task files.

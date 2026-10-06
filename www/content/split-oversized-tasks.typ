@@ -34,7 +34,10 @@ reads the rule's message and files two smaller tasks.
 = How it works
 
 `[tasks.estimate]` allows one unit, `src-files`, and requires an estimate on
-every open task. #link(u("/estimates/"))[Estimates] lists the other keys.
+every open task. `!terminal` selects the open tasks, because a terminal
+status, such as `done`, ends a task. #link(u("/statuses/"))[Statuses] says
+which statuses are terminal, and #link(u("/estimates/"))[Estimates] lists the
+other estimate keys.
 
 The `split-big-work` rule reads the estimate as a number. Its `when` limits it
 to open tasks, so a closed task keeps its estimate. At `severity = "error"`

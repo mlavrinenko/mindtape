@@ -51,7 +51,7 @@ Outside a git repository, `mt check --commit-msg` fails with
 = The trailer
 
 `[commits] trailer`, `Refs` by default, names the trailer whose values are
-tasks, one stem per line. `mt` refuses a value that is a path, or a stem no
+tasks, one #link(u("/concepts/#identity"))[stem] per line. `mt` refuses a value that is a path, or a stem no
 task has, whatever the rules say. A path changes when its task moves to
 another folder, and a stem is unique in the project:
 
@@ -93,7 +93,7 @@ trailer, and then the same commit names its task:
 
 #terminal("commit-scope-breach")
 
-Rules merge by `name` across config layers and
+Rules merge by `name` across #link(u("/config/#layers"))[config layers] and
 #link(u("/rule-packs/"))[rule packs], as `[[tasks.rules]]` do. A project
 replaces a pack's rule by declaring one with its name, or drops it with
 `disable`.

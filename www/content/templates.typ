@@ -99,7 +99,8 @@ Typst error.
 
 The built-in template is reported as `built-in template task`, at the severity
 `[templates] fallback-severity` sets: `"warning"` by default, or `"error"`. Any
-config layer can set it, the global `defaults.toml` included. A project's own
+#link(u("/config/#layers"))[config layer] can set it, the global
+`defaults.toml` included. A project's own
 templates always report errors.
 
 = See the slots
@@ -166,8 +167,8 @@ an earlier one, and `null` clears it.
 
 = What `mt add` sets for you
 
-- `status`: the first status in the legend that is not terminal, with
-  today's date. A template that sets `status`, as in
+- `status`: the first status in the #link(u("/statuses/"))[legend] that is not
+  terminal, with today's date. A template that sets `status`, as in
   `status: done(2026, 1, 1)`, files at that status with today's date instead.
   `--status <name>` picks another.
 - `id`: a new UUID, only when `[tasks.id] format` is `uuid-v4` or `uuid-v7`.
@@ -184,7 +185,8 @@ an earlier one, and `null` clears it.
 
 = Where the file goes
 
-`mt add` writes to the first task root and names the file after the title:
+`mt add` writes to the first #link(u("/concepts/#a-task-is-a-file"))[task root] and names the
+file after the title:
 `log-slow-database-queries.typ`. `--name <stem>` sets the name, and
 `--to <folder>` files the task in a folder under the root, where it can pick up
 #link(u("/derived-tags/"))[derived tags]. `--into <dir>` writes to another

@@ -32,8 +32,8 @@ it.
 `when` is a #link(u("/filters/"))[filter expression] over the task as it
 stands before the write, so `status == "wip"` matches a task leaving `wip`.
 `into("name")` matches a flip that stamps the status `name`. An empty `when`
-matches every flip. `mt` checks each `into()` against the status legend when
-it loads the config.
+matches every flip. `mt` checks each `into()` against the
+#link(u("/statuses/"))[status legend] when it loads the config.
 
 = Actions
 
@@ -44,7 +44,7 @@ it loads the config.
   table.header([Action], [Effect]),
   [`{ show = "text" }`], [Prints the text.],
   [`{ list = "filter", title = "..." }`],
-  [Prints the matching tasks as a table under `title`. A bare `@view` also brings that view's sort.],
+  [Prints the matching tasks as a table under `title`. A bare `@view` also brings that #link(u("/named-sets/#views"))[view]'s sort.],
 
   [`{ run = "command" }`],
   [Runs the command. If it fails, `mt` prints its output and a warning, and the flip goes ahead.],

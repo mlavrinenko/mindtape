@@ -37,10 +37,12 @@ change that breaks a rule, `mt wip` refuses the second start.
 #link(u("/rules/"))[Rules] covers work-in-progress caps, and
 #link(u("/filters/"))[Filter language] covers `count()`.
 
-`unblocked = true` on `wip` refuses the flip while a `depends-on` edge points
-at a task that is not done. `--force` overrides it. The `blocked` view and the
-`why` column list each waiting task and what it waits on.
-#link(u("/statuses/"))[Statuses] covers unblocked statuses, and
+`tasks.status` lists the statuses a task may hold, and `terminal = true` marks
+`done` as the status that ends a task. `unblocked = true` on `wip` makes
+`mt wip` refuse a task while a `depends-on` edge points at a task that is not
+done. `--force` overrides it. `mt ls blocked` and its `why` column list each
+waiting task and what it waits on.
+#link(u("/statuses/"))[Statuses] covers terminal and unblocked statuses, and
 #link(u("/links/"))[Links] covers the edge kinds.
 
 This repo caps its own work in progress the same way in #own-config.

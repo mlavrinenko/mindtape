@@ -60,9 +60,10 @@ machine-wide `@local` directory. #link(u("/config/"))[Configuration] shows how
 to pin a project to a prelude in its own tree.
 
 `mt install` also writes a completion hook for each shell. Source the one for
-your shell from its startup file. Tab then completes the stems, statuses,
-views, templates and link kinds of the project you are in. The hook asks `mt`
-on every Tab press, so its answers always match the project.
+your shell from its startup file. Tab then completes the task stems (each task
+file's name without `.typ`), statuses, #link(u("/named-sets/#views"))[views],
+templates and link kinds of the project you are in. The hook asks `mt` on every
+Tab press, so its answers always match the project.
 
 Then make a project, once per repository:
 
@@ -75,8 +76,9 @@ preset, `flow`, and `mt init --list-presets` lists the others. The
 
 = File your first task
 
-`mt add` files a task from a template. The default template has one slot, the
-title, so a title is all it needs:
+`mt add` files a task from a template. Each value the template asks for is a
+slot, and the default template has one slot, the title, so a title is all it
+needs:
 
 #terminal("qs-add")
 
@@ -91,9 +93,9 @@ editor mode and named templates.
 
 = List and query
 
-`mt ls` lists the tasks in the default view. In a new project those are the
-tasks that are not done or cancelled and whose `start` date, if they have one,
-has come:
+`mt ls` lists the tasks in the default view, the view a bare `mt ls` applies.
+In a new project those are the tasks that are not done or cancelled and whose
+`start` date, if they have one, has come:
 
 #terminal("qs-ls")
 
@@ -108,8 +110,9 @@ other programs. #link(u("/cli/find/"))[`mt find`] searches by text.
 
 = Change status
 
-Each status in the project's legend is also a command, and it stamps today's
-date. The legend also lists the moves each status allows. `flow` allows
+The project's legend lists the statuses a task may hold, in order. Each status
+in it is also a command, and it stamps today's date. The legend also lists the
+moves each status allows. `flow` allows
 `proposed` to `wip` and `wip` to `done`, so `mt` refuses a jump straight to
 `done`:
 

@@ -27,7 +27,7 @@
 
 `mt check` and every command that writes a task file run the same validation
 pass. It checks each field against the config, such as a status against the
-legend. A project adds checks of its own with the keys on this page. Rules
+#link(u("/statuses/"))[status legend]. A project adds checks of its own with the keys on this page. Rules
 from an ancestor directory's defaults and from rule packs add to the project's
 own, as #link(u("/config/"))[Configuration] describes.
 #link(u("/rule-packs/"))[Rule packs] share one set of rules between projects.
@@ -90,8 +90,8 @@ A `warn` breach prints, and the write goes ahead:
 call. A rule with no `name` reports by its position, `rules[0]`, so a report
 always leads back to its entry. `mt` runs each `assert` and `when` once
 against a sample task when it loads the config, so a rule that names an
-unknown field, view or dictionary is one config error rather than one breach
-per task.
+unknown field, #link(u("/named-sets/"))[view or dictionary] is one config error
+rather than one breach per task.
 
 = Work-in-progress caps
 
@@ -111,14 +111,15 @@ how many tasks may be in a set at once:
 
 `when` repeats the counted filter on purpose. The comparison gives the same
 answer for every task, so the rule reports a breach on every task `when`
-selects: the task being flipped, and each task already in the set. The second
+selects: the task moving into the set, and each task already in it. The second
 line below is the breach on the task already in flight, reported against the
-flip that caused it:
+#link(u("/statuses/"))[flip] that caused it:
 
 #terminal("rules-wip-cap")
 
 The capped set is any filter, so the same rule caps a view
-(`when = '@stuck'`), a priority band or a `kind`.
+(`when = '@stuck'`), a
+#link(u("/priority/"))[priority band] or a `kind`.
 
 = Typst checks
 

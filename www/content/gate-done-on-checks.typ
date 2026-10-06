@@ -31,14 +31,16 @@ its status note:
 
 = How it works
 
-`[[on.flip]]` binds actions to a change of status. `into("done")` in `when`
-matches a flip into `done`. A `run` action with `gate = true` refuses the flip
+`[[on.flip]]` binds actions to a flip, the change of status that `mt flip` or
+a status command such as `mt done` makes. `into("done")` in `when` matches a
+flip into `done`. A `run` action with `gate = true` refuses the flip
 when its command exits non-zero, and prints what the command printed.
 #link(u("/hooks/"))[Flip hooks] lists the action kinds and the environment a
 command runs with.
 
 `--force` lets a person or an agent close a task past a failing check. The
 waiver stays in the task file, so a reviewer sees it in the diff.
-#link(u("/statuses/"))[Statuses] covers the legend and its transitions.
+#link(u("/statuses/"))[Statuses] covers the statuses a project allows and the
+moves between them.
 
 This repo gates its own closes the same way in #own-config.

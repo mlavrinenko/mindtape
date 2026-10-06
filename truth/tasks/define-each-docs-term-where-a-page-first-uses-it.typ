@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 6),
+  status: done(
+    2026,
+    10,
+    6,
+  )[each Problems, Start and reference page defines or links terminal, slot, legend, floor, layer, facet, stem, view, rule pack, gate and flip at first use],
 )
 
 == Problem

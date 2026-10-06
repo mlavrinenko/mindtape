@@ -29,7 +29,7 @@ A field is #strong[authored] when it holds a value written in the task file.
   table.header([Field], [Kind], [Notes]),
   [`id`],
   [computed],
-  [The file stem. `mt import` names each file from the title instead.],
+  [The file #link(u("/concepts/#identity"))[stem]. `mt import` names each file from the title instead.],
 
   [`file`],
   [computed],
@@ -127,9 +127,11 @@ without it, such as a bare array of records. It refuses a version newer than
 its own and names both.
 
 `applied` says which #link(u("/named-sets/"))[view] or
-#link(u("/cli/ls/#conditional-rules"))[`[[ls.rules]]` entry] shaped the listing. `rule` is the label of the matching `[[ls.rules]]` entry, or
-`null`. Each of `filter`, `sort` and `columns` is `{from, value}`: `value` is
-what the listing used, and `from` names where it came from. That is a view, a
+#link(u("/cli/ls/#conditional-rules"))[`[[ls.rules]]` entry] shaped the
+listing. `rule` is the label of the matching `[[ls.rules]]` entry, or `null`.
+`facets` holds the listing's three #link(u("/cli/ls/"))[facets], `filter`,
+`sort` and `columns`, each as `{from, value}`. `value` is what the listing
+used, and `from` names where it came from. That is a view, a
 rule label, `manual` for a value given on the command line, or `match-all` for
 the built-in default. `superseded` is `true` when the matching rule set at
 least one of them and the command line overrode them all.

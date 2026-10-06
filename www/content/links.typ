@@ -89,8 +89,9 @@ kind that has no helper, such as one the project declares:
 = Parents and progress
 
 Each task has two computed fields over the `parent` edges that name it.
-`children` counts those tasks. `progress` is the share of them in a terminal
-status, so a cancelled child counts as finished. In the table, the `progress`
+`children` counts those tasks. `progress` is the share of them in a
+#link(u("/statuses/#the-default-legend"))[terminal] status, so a cancelled
+child counts as finished. In the table, the `progress`
 column shows the counts:
 
 #terminal("links-progress")
@@ -108,7 +109,8 @@ that is both terminal and `unblocked`, as
 = Writing edges with `mt link`
 
 `mt link <task> <kind> <target>` adds an edge and writes the path for you. A
-target can be a stem, a stem with `.typ`, or a path. A bare stem names a task
+target can be a #link(u("/concepts/#identity"))[stem], a stem with `.typ`, or a
+path. A bare stem names a task
 in any folder, and `mt link` writes the path from the linking file to it. An
 edge already on the task is not written again:
 

@@ -13,8 +13,9 @@
 
 #show: page.with(..meta)
 
-`mt` can tag each task by where its file sits: the name of its task root and
-the folders between the root and the file. File a task under `api/tasks/auth/`
+`mt` can tag each task by where its file sits: the name of its
+#link(u("/concepts/#a-task-is-a-file"))[task root] and the folders between the
+root and the file. File a task under `api/tasks/auth/`
 and it matches `has_tag("auth")` with no tag written in it. You can filter by
 folder, and nobody has to tag a task by hand.
 

@@ -33,13 +33,15 @@ with its Problem written as one sentence instead of steps:
 
 = How it works
 
-The project's template asks for each section as a slot, and `mt add` refuses a
-fill that leaves a slot empty. `mt add --describe` lists the slots, so an agent
-learns the shape before it writes. #link(u("/templates/"))[Templates & slots]
+The project's template asks for each section as a slot, a value that `mt add`
+fills in, and `mt add` refuses a fill that leaves a slot empty.
+`mt add --describe` lists the slots, so an agent learns the shape before it
+writes. #link(u("/templates/"))[Templates & slots]
 covers both.
 
-`extends` adds the `mindtape-tasks` rule pack. Its rules require Problem, TO-BE,
-Changes and Out of scope in that order. The Problem must be numbered steps, with
+`extends` adopts the `mindtape-tasks` #link(u("/rule-packs/"))[rule pack], a
+set of rules that `mt` ships. Its rules require Problem, TO-BE, Changes and Out
+of scope in that order. The Problem must be numbered steps, with
 🔴 on the step that shows the bug. Each TO-BE bullet opens with 🟢, and each Changes
 bullet names a file. `mt check` runs the same rules on a task edited by hand.
 #link(u("/rule-packs/"))[Rule packs] lists every rule in the pack and shows how

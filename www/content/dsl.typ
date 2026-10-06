@@ -60,9 +60,9 @@ The prelude has a constructor for each of these statuses:
 
 Each takes the year, month and day the status was set, then an optional note
 as a trailing content block, as `wip` does in the sketch above. A status in
-your legend without a constructor is written with `status(...)`, which
-#link(u("/statuses/"))[The status legend] shows. `mt flip` and the status
-commands such as `mt wip` write this field for you.
+your project's #link(u("/statuses/"))[status legend], its list of allowed
+statuses, that has no constructor is written with `status(...)`. `mt flip` and
+the status commands such as `mt wip` write this field for you.
 
 = Links and recurrence
 

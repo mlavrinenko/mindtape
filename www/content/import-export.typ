@@ -21,7 +21,8 @@ docs build, so each output on this page is what the command printed.
 = Import
 
 `mt import` reads a file, or standard input when you give none. It checks each
-record against this project's config: the status legend, the priority scale,
+record against this project's config: the
+#link(u("/statuses/"))[status legend], the priority scale,
 the `kind` values and the allowed tags. It checks the whole batch as one set,
 so records that link to each other resolve. Then it writes the records that
 pass. A record that fails is reported and not written, and the rest are still
@@ -35,7 +36,7 @@ script can tell a partial import from a whole one.
 
 `--map old=new` renames a status before the check, for a source whose names
 differ from your legend. `--to <dir>` writes the batch into a subfolder of the
-first task root, and `--into <dir>` into a directory, in place of each record's
+first #link(u("/concepts/#a-task-is-a-file"))[task root], and `--into <dir>` into a directory, in place of each record's
 `file`. `--dry-run` checks the batch and writes nothing: its
 report says `would file` for each record that would be written and ends with
 `dry run: nothing written`. The
@@ -103,7 +104,7 @@ import writes:
 #terminal("round-trip-export")
 
 The empty filter `''` lists every task. `mt ls` without it applies the
-project's default view, which in a new project hides finished tasks, so their
+project's default #link(u("/named-sets/#views"))[view], which in a new project hides finished tasks, so their
 records would be missing from the file.
 
 A new project, made by `mt init --no-input`, takes the file back:

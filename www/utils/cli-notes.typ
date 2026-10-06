@@ -16,7 +16,8 @@
       `key@path` tokens, after `--set` or bare after `--`, fill the template's
       other slots, as do a YAML or JSON file given to `-f` and the editor;
       #link(u("/templates/"))[Templates & slots] describes them. `--dedup`
-      decides what happens when a task with the same stem exists: `fail`
+      decides what happens when a task with the same
+      #link(u("/concepts/#identity"))[stem] exists: `fail`
       stops before writing, `skip` writes nothing and exits 0, and
       `add-suffix` adds `-2`, `-3` and so on. The project's default is
       #link(u("/config/"))[`[tasks.naming] dedup`]. Without it, the default is
@@ -98,7 +99,7 @@
   "link": (
     prose: [`mt link <task> <kind> <target>...` adds one edge per target.
       `mt link --apply <file>`, or `-` for stdin, reads a YAML or JSON map of
-      stem to kind to targets, described on #link(u("/dsl/"))[Task DSL]. Both
+      #link(u("/concepts/#identity"))[stem] to kind to targets, described on #link(u("/dsl/"))[Task DSL]. Both
       merge: an edge with the same kind and target is not added twice, so
       re-running either writes nothing new. `--replace`, with `--apply`, makes
       the map the whole edge set of each stem it names. `mt` checks the kind
@@ -151,7 +152,8 @@
       schema or hook. `mt` writes one completion hook per shell under
       `~/.config/mindtape/completions/`. Source the one for your shell from
       its startup file. A hook asks `mt` for completions on each tab press, so
-      it offers this project's stems, statuses, views, templates and link
+      it offers this project's #link(u("/concepts/#identity"))[stems],
+      statuses, #link(u("/named-sets/#views"))[views], templates and link
       kinds, and the presets for `mt init --preset`. A new `mt` needs no
       re-install.],
   ),

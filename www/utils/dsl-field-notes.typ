@@ -28,8 +28,8 @@
   "tags": [An array of strings: `("backend", "auth")`. One tag needs a
     trailing comma, `("backend",)`, because `("backend")` is a string.],
   "due": [The task's deadline, a date.],
-  "start": [The date work on the task can begin. The default view hides the
-    task until then.],
+  "start": [The date work on the task can begin. The default
+    #link(u("/named-sets/#views"))[view] hides the task until then.],
   "reviewed": [The date someone last reviewed the task. `mt review` sets it to
     today.],
   "recur": [A rule that makes the task repeat: `every(weeks: 1)`. See

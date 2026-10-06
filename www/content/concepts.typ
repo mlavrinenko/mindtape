@@ -42,8 +42,8 @@ skip evaluating a file that did not change.
 
 = Identity
 
-A task's id is its filename stem, so `tasks/add-redis-client.typ` is
-`add-redis-client`. Every command that takes a task takes its id, as in
+A task's id is its filename stem, the file name without `.typ`, so
+`tasks/add-redis-client.typ` is `add-redis-client`. Every command that takes a task takes its id, as in
 `mt done add-redis-client`. Setting the `id:` field gives a task another id.
 `mt check` reports two tasks with the same id.
 
@@ -57,7 +57,8 @@ that names no task file, so renaming a file by hand breaks every link to it:
 #terminal("concepts-mv-by-hand")
 
 `mt mv` renames the file and rewrites each link to it. It keeps the file in
-its folder, because a folder can set the task's derived tags:
+its folder, because a folder can set the task's
+#link(u("/derived-tags/"))[derived tags]:
 
 #terminal("concepts-mv")
 
@@ -71,9 +72,11 @@ for a tool built on MindTape, such as `x-speconaut`. `mt ls --json` passes it
 unchanged under `extras`. `mt` checks it only when the config declares it in
 `[tasks.fields.x-<ns>]`, whose `values` and `required` hold it like `kind`. Its
 `values-when` filter limits the check to the tasks it matches, such as
-`"!terminal"` to leave closed tasks alone. A declared field takes one string, or with `multiple = true` a list of strings,
-and `values` holds every element. `mt add` then offers a required one as a slot. A
-#link(u("/filters/"))[filter] reads its value, declared or not. Any other field that `task`
+`"!terminal"` to leave closed tasks alone. A declared field
+takes one string, or with `multiple = true` a list of strings, and `values`
+holds every element. `mt add` then offers a required one as a
+#link(u("/templates/"))[slot]. A #link(u("/filters/"))[filter] reads its value,
+declared or not. Any other field that `task`
 does not declare fails the file with an `unknown task slot` error.
 
 = Where a mistake is caught
@@ -82,16 +85,16 @@ The prelude refuses only what it would otherwise lose before `mt` reads the
 file. That is an undeclared field, and a helper argument it cannot store, such
 as a status note that is not a content block. Typst fails the file on these.
 
-`mt check` checks everything else against the project's config: the status
-legend, the priority and difficulty scales, `kind`, required fields, links,
+`mt check` checks everything else against the project's config: the
+#link(u("/statuses/"))[status legend], the priority and difficulty scales, `kind`, required fields, links,
 recurrence and the type of every value. It names the field and the position of
 a wrong value, such as `tags[1]`.
 
 = Configuration
 
-`.mindtape/config.toml` sits on top of a floor built into `mt`, so a project
-sets only what differs from it. #link(u("/config/"))[Configuration] covers
-how the layers merge and every section.
+`.mindtape/config.toml` holds only what a project changes from the defaults
+built into `mt`. #link(u("/config/"))[Configuration] covers the config files
+`mt` merges, in which order, and every section.
 
 #callout("note")[
   The #link(u("/quickstart/"))[Quickstart] walks from install to a first

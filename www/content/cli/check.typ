@@ -7,8 +7,9 @@
 bounds, links and dependency cycles. It also checks the task each template
 files with its defaults, as #link(u("/templates/"))[Templates & slots]
 describes. It prints each problem and exits non-zero when there is one.
-#link(u("/concepts/"))[Concepts] describes the two layers that check a task,
-and #link(u("/rules/"))[Rules] the checks a project adds.
+#link(u("/concepts/#where-a-mistake-is-caught"))[Concepts] says which mistakes
+the prelude catches and which `mt check` catches, and
+#link(u("/rules/"))[Rules] covers the checks a project adds.
 `mt check --commit-msg <file>` checks a commit message instead, from a
 `commit-msg` hook, against the project's
 #link(u("/commit-rules/"))[commit rules]. `mt check --commits <range>` checks

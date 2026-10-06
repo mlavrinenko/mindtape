@@ -21,7 +21,8 @@ pack `mt` ships, `mindtape-tasks`.
 
 = Adopt a pack
 
-`extends` in any config layer names the packs that layer adopts. A rule the
+`extends` in any #link(u("/config/#layers"))[config layer] names the packs that
+layer adopts. A rule the
 layer declares with the same `name` as a pack's rule replaces that rule where
 the pack put it. MindTape's own `.mindtape/config.toml` adopts
 `mindtape-tasks` and replaces `section-allowlist` to allow one more section,
@@ -92,7 +93,7 @@ config error, so a typo cannot leave a rule running:
 
 = Merge order
 
-`mt` merges each #link(u("/config/"))[config layer] in turn. Within a layer,
+`mt` merges each config layer in turn. Within a layer,
 each rule array takes the rules of the layer's `extends` packs in the order
 listed, then the layer's own rules. After every layer is merged, `mt` drops
 the rules named in any layer's `disable`. A name listed in two layers is

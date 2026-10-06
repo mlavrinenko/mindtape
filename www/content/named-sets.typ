@@ -56,7 +56,8 @@ column names `--columns` takes, both listed on the
 
 `mt ls @name` applies the view's filter, sort and columns. Inside a larger
 expression, `@name` is the view's filter alone, as in
-`mt ls '@waiting && kind == "feat"'`. When no `[[ls.rules]]` entry matches, a
+`mt ls '@waiting && kind == "feat"'`. When no
+#link(u("/cli/ls/#conditional-rules"))[`[[ls.rules]]`] entry matches, a
 bare `mt ls` shows the view named `default`, or the one `[ls] default-view`
 names.
 

@@ -16,8 +16,8 @@
 // examples/api-service, or in a git copy of it for touches().
 
 A filter is a boolean expression over task fields. `mt ls` and `mt rm` take
-one as an argument, and views, `[[tasks.rules]]` and `[[on.flip]]` hooks take
-one in config. The examples on this page ran in `examples/api-service`, a
+one as an argument, and #link(u("/named-sets/#views"))[views],
+`[[tasks.rules]]` and `[[on.flip]]` hooks take one in config. The examples on this page ran in `examples/api-service`, a
 backend team's backlog:
 
 #terminal-ansi("filters-open")
@@ -27,7 +27,9 @@ backend team's backlog:
 #table(
   columns: 2,
   table.header([Field], [Value]),
-  [`status`], [The status name. It sorts by position in the status legend.],
+  [`status`],
+  [The status name. It sorts by position in the #link(u("/statuses/"))[status legend].],
+
   [`status.name`, `status.date`, `status.note`],
   [The name, the ISO date and the note of the status stamp. `status.name` sorts alphabetically.],
 
@@ -104,7 +106,7 @@ same date, which `MINDTAPE_NOW` pins (see
   [The field's list holds the value, its scalar equals it, or its dict has it as a key. `tags` and `estimate` read this way too.],
 
   [`exists`],
-  [Inside `head(...)`, `staged(...)` or `worktree(...)` in a task-scope commit rule: the commit state holds the task's file. Any other filter refuses it.],
+  [Inside `head(...)`, `staged(...)` or `worktree(...)` in a #link(u("/commit-rules/#task-scope"))[task-scope commit rule]: the commit state holds the task's file. Any other filter refuses it.],
 
   [`has_tag("name")`],
   [The task has the tag, written or #link(u("/derived-tags/"))[derived].],
@@ -172,7 +174,8 @@ a view or rule with a bad expression fails by name before any listing.
 
 = Dependencies and counts
 
-`ready` matches an open task whose dependencies are all in a terminal status.
+`ready` matches an open task whose dependencies are all in a
+#link(u("/statuses/#the-default-legend"))[terminal] status.
 `blocked` matches an open task with at least one dependency that is not,
 including one no loaded task answers to. A task in a terminal status is
 neither, and `terminal` matches it. `mt ls` lists ready tasks first.
@@ -240,7 +243,8 @@ path is relative to the repository root:
 
 #terminal("filters-touches")
 
-A trailer may name a task by stem (`Refs: parser`) or by path
+A trailer may name a task by #link(u("/concepts/#identity"))[stem]
+(`Refs: parser`) or by path
 (`Refs: tasks/parser.typ`). A task `mt mv` renamed still matches its old stem,
 through the renames git records. A stem no loaded task answers to belongs to
 a retired task. It matches nothing, and `mt ls --json` lists it under

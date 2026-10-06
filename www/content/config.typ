@@ -23,8 +23,8 @@
 )
 
 A project keeps its config in `.mindtape/config.toml` at its root. Every key
-is optional, and a key the project leaves out takes its value from the config
-floor built into `mt`. `mt config show` prints the merged config as TOML, and
+is optional, and a key the project leaves out takes its value from the floor,
+the defaults built into `mt`. `mt config show` prints the merged config as TOML, and
 `--origin` lists the files it came from (see #link(u("/cli/config/"))[`mt config`]).
 
 = Layers
@@ -40,14 +40,15 @@ floor built into `mt`. `mt config show` prints the merged config as TOML, and
 
 Tables merge key by key, so a project that sets `[ls] hyperlinks` keeps the
 floor's `[ls.columns]`. A scalar or an array replaces the lower layer's value
-whole, so a project's `[[tasks.status]]` replaces the floor's legend. An empty
+whole, so a project's `[[tasks.status]]` replaces the floor's
+#link(u("/statuses/"))[status legend]. An empty
 array removes the floor's value, so `[tasks] status = []` leaves the status
 field unconstrained.
 
 The four rule arrays are the exception. `[[tasks.rules]]`,
 `[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]` and
-`[[commits.rules]]` collect the entries of every layer and of every rule pack
-a layer adopts. An entry replaces a lower layer's entry with the same `name`
+`[[commits.rules]]` collect the entries of every layer and of every
+#link(u("/rule-packs/"))[rule pack] a layer adopts. An entry replaces a lower layer's entry with the same `name`
 in its place, so a project can change one inherited rule and keep the rest.
 Two entries with the same `name` in one layer's array are a config error that
 names both. `extends` and `disable`, which adopt a rule pack and drop a rule,
@@ -227,7 +228,8 @@ in it must be a declared actor. In a filter, `assignee == "ada"` compares the
 name, and `role == "reviewer"` reads the assignee's roles from this registry
 (see #link(u("/filters/"))[Filter language]).
 
-When an assignee is required, `mt add` asks for it in a slot that
+When an assignee is required, `mt add` asks for it in a
+#link(u("/templates/"))[slot] that
 `MINDTAPE_PRINCIPAL` fills, so a harness that sets the variable files tasks
 without a prompt. With the variable unset, an interactive `mt add` prompts,
 and a non-interactive one fails naming the slot.

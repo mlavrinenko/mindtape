@@ -83,7 +83,9 @@ Every read command prints JSON with `--json`: `mt ls`, `mt eval <task>`,
 
 #raw(read("../generated/api-service-ls-ready.json"), lang: "json", block: true)
 
-`-n` keeps the reply short. `truncated` says how many tasks matched and where
+`applied.facets` names where each #link(u("/cli/ls/"))[facet] of the listing,
+its filter, sort and columns, came from. `-n` keeps the reply short.
+`truncated` says how many tasks matched and where
 the next page starts, so `mt ls ready -n 1 --skip 1 --json` returns the next
 task. `truncated` is `null` when the list is complete. An agent that meets a
 `schema_version` it does not know should stop rather than guess.

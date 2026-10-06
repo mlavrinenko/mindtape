@@ -10,9 +10,10 @@
 uses the first matching `[[ls.rules]]` entry, described below, or else the
 default view. `mt ls ''` lists every task.
 
-The listing has three facets: filter, sort and columns. Each layer sets only
-the facets it names. A filter argument replaces the filter and keeps the sort
-and columns of the rule or view underneath. `--sort` and `--columns` replace
+The listing has three facets: filter, sort and columns. An `[[ls.rules]]`
+entry, a view and a command-line argument each set only the facets they name.
+A filter argument replaces the filter and keeps the sort and columns of the
+rule or view underneath. `--sort` and `--columns` replace
 their own facet. A bare `@view` argument replaces each facet that view sets.
 `@default` stands for the default view's facets, which are empty in a project
 that leaves the default view alone, so `--columns @default --sort @default`
@@ -42,7 +43,8 @@ Each column shows when its `[ls.columns.<name>] when` expression holds. The
 expression uses the condition language described under Conditional rules
 below, and `mt` evaluates it
 against the rows it is about to print. A column with no `when` never shows. A
-config layer replaces a `when` whole, so `when = 'false'` hides a column.
+#link(u("/config/#layers"))[config layer] replaces a `when` whole, so
+`when = 'false'` hides a column.
 
 The shipped expressions: `slug#` and `title` are `true`. `status`, `priority`
 and `due` are `nonempty()`. `assignee` is `contested()`, so it shows when the rows
@@ -56,6 +58,21 @@ without reading any links, and `--json` carries `why` on every task.
 `children` counts a task's `parent` children and `progress` shows the finished
 ones, as `3/5`; see #link(u("/links/"))[Parents and progress].
 
+The `slug#` column is the task's stem hash: the shortest prefix, at least
+three characters, of a hash of the
+#link(u("/concepts/#identity"))[filename stem] that no other task's hash
+shares. `mt` hashes every task the project loads, closed ones included, so a
+task has the same stem hash in every listing, filtered or not. It changes
+when `mt mv` gives the task a new stem, and it grows a character when a new
+task's hash shares its prefix, so an old hash is refused rather than naming
+another task. A hash also grows past any stem or filter word it would spell,
+so neither captures it. Every command that takes a `<task>` accepts a
+stem hash. A path or an exact stem wins, and `mt` tries the input as a stem
+hash only when no stem matches. `mt rm`, which also takes filters, reads a
+filter word such as `ready`, a field, a view or a status as a filter before it
+tries a stem hash. A stem hash that more than one task shares is
+refused, and the refusal names each task's stem and hash.
+
 `file` is the task's path, relative to the working directory. Its cell is
 never empty, so `nonempty()` cannot hide it. It shows when stdout is not a
 terminal, because a saved stem hash can turn ambiguous once a new task's hash
@@ -68,20 +85,6 @@ shares its prefix. On a terminal it shows when named, as in
 #link(u("/filters/"))[`path`] field holds the path from the project root.
 `--format path` prints the same cell as `file`, and
 #link(u("/schema/"))[Schema] describes what the JSON and CSV formats carry.
-
-The `slug#` column is the task's stem hash: the shortest prefix, at least
-three characters, of a hash of the filename stem that no other task's hash
-shares. `mt` hashes every task the project loads, closed ones included, so a
-task has the same stem hash in every listing, filtered or not. It changes
-when `mt mv` gives the task a new stem, and it grows a character when a new
-task's hash shares its prefix, so an old hash is refused rather than naming
-another task. A hash also grows past any stem or filter word it would spell,
-so neither captures it. Every command that takes a `<task>` accepts a
-stem hash. A path or an exact stem wins, and `mt` tries the input as a stem
-hash only when no stem matches. `mt rm`, which also takes filters, reads a
-filter word such as `ready`, a field, a view or a status as a filter before it
-tries a stem hash. A stem hash that more than one task shares is
-refused, and the refusal names each task's stem and hash.
 
 `--hyperlinks always`, or `[ls] hyperlinks`, makes the `slug#` column, and
 `file` when shown, links to `[ls] hyperlink-target` (default `file://{abs}`), using
