@@ -8,6 +8,8 @@
 //! - `subject` — the message's first line; compares against a literal.
 //! - `refs` — the stems the task trailer names.
 //! - `files` — every path the commit changes, repository-relative.
+//! - `trailers` — every trailer line of the message as `Key: value`, whatever
+//!   its key: `matches(trailers, "^Changelog: none$")`.
 //! - `tasks_only` — a boolean, bare or called: the commit changes only task
 //!   files.
 //!
@@ -47,7 +49,7 @@ use crate::filter::FilterError;
 use crate::git_state::PathFilter;
 
 /// The field names a commit expression reads, for the refusal message.
-const COMMIT_FIELDS: &str = "subject, refs, files, tasks_only";
+const COMMIT_FIELDS: &str = "subject, refs, files, trailers, tasks_only";
 
 /// A parsed commit-scope expression.
 #[derive(Debug, Clone)]
@@ -206,7 +208,7 @@ fn side(node: &Node<DefaultNumericTypes>, env: Env<'_>) -> Result<Option<FieldVa
         Operator::VariableIdentifierRead { identifier } => {
             match restore_name(identifier).as_str() {
                 "subject" => Ok(Some(FieldValue::Str(env.commit.subject.clone()))),
-                field @ ("refs" | "files") => Err(FilterError::Invalid(format!(
+                field @ ("refs" | "files" | "trailers") => Err(FilterError::Invalid(format!(
                     "`{field}` is a list; test it with has({field}) or matches({field}, \"regex\")"
                 ))),
                 other => Err(unknown_field(other, env)),
@@ -269,6 +271,7 @@ fn values<'a>(field: &str, env: Env<'a>) -> Result<Vec<&'a str>, FilterError> {
         "subject" => Ok(vec![commit.subject.as_str()]),
         "refs" => Ok(commit.refs.iter().map(String::as_str).collect()),
         "files" => Ok(commit.files.iter().map(String::as_str).collect()),
+        "trailers" => Ok(commit.trailers.iter().map(String::as_str).collect()),
         other => Err(unknown_field(other, env)),
     }
 }
@@ -319,7 +322,7 @@ fn unknown_field(name: &str, env: Env<'_>) -> FilterError {
 }
 
 fn not_boolean(name: &str, env: Env<'_>) -> FilterError {
-    if matches!(name, "subject" | "refs" | "files") {
+    if matches!(name, "subject" | "refs" | "files" | "trailers") {
         FilterError::Invalid(format!(
             "bare field `{name}` is not boolean; use has({name}) or a comparison"
         ))

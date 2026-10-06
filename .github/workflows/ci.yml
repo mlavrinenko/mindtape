@@ -55,6 +55,11 @@ jobs:
       # floor is the last commit before `flip-with-work` turned on. A new
       # branch (`before` all zeros), `workflow_dispatch` and a force-push
       # whose `before` is gone have no range and skip, saying so.
+      #
+      # `changelog-with-product-change` raises the floor to the commit that
+      # added it, found by `git log -S` rather than by hash, so a rebase before
+      # integration cannot stale it. Product commits made before the rule
+      # carry no entry, and only commits after it are judged.
       - name: Commit rules (pushed range)
         env:
           FLOOR: 59c947205865b61e586a49c98366e1e4173afec2
@@ -64,6 +69,10 @@ jobs:
           if [ -z "$BEFORE" ] || [ -z "${BEFORE//0/}" ] || ! git cat-file -e "$BEFORE^{commit}"; then
             echo "::notice::no pushed range to check commit rules over"
             exit 0
+          fi
+          RULE=$(git log --reverse --format=%H -S'changelog-with-product-change' -- .mindtape/config.toml | head -n 1)
+          if [ -n "$RULE" ]; then
+            FLOOR=$RULE
           fi
           if ! git merge-base --is-ancestor "$FLOOR" "$BEFORE"; then
             BEFORE=$FLOOR

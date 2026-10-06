@@ -13,6 +13,7 @@ fn record(refs: &[&str], tasks_only: bool) -> CommitRecord {
         renamed_from: Vec::new(),
         tasks_only,
         tasks: Vec::new(),
+        trailers: Vec::new(),
     }
 }
 

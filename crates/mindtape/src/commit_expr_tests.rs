@@ -13,6 +13,7 @@ fn commit() -> CommitRecord {
         renamed_from: Vec::new(),
         tasks_only: false,
         tasks: Vec::new(),
+        trailers: vec!["Changelog: none".to_owned(), "Refs: parser".to_owned()],
     }
 }
 
@@ -38,6 +39,26 @@ fn renamed() -> CommitRecord {
         renamed_from: vec!["src/old.rs".to_owned()],
         ..CommitRecord::default()
     }
+}
+
+#[test]
+fn trailers_are_read_as_whole_lines() {
+    assert!(eval("matches(trailers, \"^Changelog: none$\")"));
+    assert!(!eval("matches(trailers, \"^Changelog: yes\")"));
+    assert!(eval("has(trailers)"));
+    assert!(
+        CommitExpr::parse("miss(trailers)")
+            .unwrap()
+            .matches(&CommitRecord::default(), &Config::default())
+            .unwrap()
+    );
+}
+
+#[test]
+fn a_changelog_rule_reads_files_and_trailers_together() {
+    let expr = "!matches(files, \"^crates/\") || matches(files, \"^CHANGELOG[.]md$\") \
+        || matches(trailers, \"^Changelog: none$\")";
+    assert!(eval(expr));
 }
 
 #[test]
@@ -134,7 +155,7 @@ fn a_task_field_is_refused_naming_what_a_commit_rule_reads() {
     let problem = problem_of("status == \"wip\"").unwrap();
     assert!(problem.contains("status"), "{problem}");
     assert!(
-        problem.contains("subject, refs, files, tasks_only"),
+        problem.contains("subject, refs, files, trailers, tasks_only"),
         "{problem}"
     );
     assert!(problem_of("terminal").is_some());

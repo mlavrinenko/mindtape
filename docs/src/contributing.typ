@@ -128,6 +128,10 @@ refuse. Run `mt wip <stem>` inside the worktree instead.
   until then, because a commit with a flip and no other change is refused.
   Stage the `mt wip` flip with that commit: a commit naming a task that is not
   `wip` in the staged tree is refused too.
+- A commit that changes product code, meaning `crates/**` and `lib/**` apart
+  from tests, also changes `CHANGELOG.md` with an entry under `[Unreleased]`.
+  A change with nothing to announce carries a `Changelog: none` trailer. The
+  commit-msg hook and CI refuse the commit otherwise, whatever its type.
 - A task tagged `decision` has no code of its own. It may close in a commit
   that changes only task files, with a `Refs:` footer naming it.
 

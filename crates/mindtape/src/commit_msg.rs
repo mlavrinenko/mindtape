@@ -65,6 +65,8 @@ pub struct CommitMessage {
     pub subject: String,
     /// Every value of the configured trailer, in message order.
     pub trailers: Vec<TrailerValue>,
+    /// Every trailer line of the block, whatever its key, as `Key: value`.
+    pub trailer_lines: Vec<String>,
 }
 
 /// Read `text` as a commit message whose task trailer is `key`.
@@ -86,6 +88,7 @@ pub fn parse_message(text: &str, key: &str) -> CommitMessage {
     CommitMessage {
         subject,
         trailers: trailer_values(&lines, key),
+        trailer_lines: trailer_lines(&lines),
     }
 }
 
@@ -95,9 +98,9 @@ fn is_scissors(line: &str) -> bool {
     line.starts_with('#') && line.contains(">8")
 }
 
-/// The values of `key` in the trailer block: the last paragraph, when it is
-/// not the subject's own and every line in it is a trailer or a continuation.
-fn trailer_values(lines: &[(usize, &str)], key: &str) -> Vec<TrailerValue> {
+/// The trailer block: the last paragraph, when it is not the subject's own
+/// and every line in it is a trailer or a continuation. Empty otherwise.
+fn trailer_block<'a>(lines: &'a [(usize, &'a str)]) -> Vec<&'a (usize, &'a str)> {
     let content: Vec<&(usize, &str)> = {
         let end = lines
             .iter()
@@ -114,7 +117,12 @@ fn trailer_values(lines: &[(usize, &str)], key: &str) -> Vec<TrailerValue> {
     if start == content.len() || !block.iter().all(|(_, line)| is_trailer_line(line)) {
         return Vec::new();
     }
-    block
+    block.to_vec()
+}
+
+/// The values of `key` in the trailer block.
+fn trailer_values(lines: &[(usize, &str)], key: &str) -> Vec<TrailerValue> {
+    trailer_block(lines)
         .iter()
         .filter_map(|(number, line)| {
             let (name, value) = line.split_once(':')?;
@@ -123,6 +131,15 @@ fn trailer_values(lines: &[(usize, &str)], key: &str) -> Vec<TrailerValue> {
                 line: *number,
             })
         })
+        .collect()
+}
+
+/// Every `Key: value` line of the trailer block, continuations left out.
+fn trailer_lines(lines: &[(usize, &str)]) -> Vec<String> {
+    trailer_block(lines)
+        .iter()
+        .filter(|(_, line)| !line.starts_with(char::is_whitespace))
+        .map(|(_, line)| line.trim().to_owned())
         .collect()
 }
 
@@ -262,6 +279,9 @@ pub struct CommitRecord {
     /// The stems a `scope = "task"` rule runs for: every task file the commit
     /// changes, then every ref, each once. Not an expression field.
     pub tasks: Vec<String>,
+    /// `trailers`: every trailer line of the message, whatever its key, as
+    /// `Key: value`.
+    pub trailers: Vec<String>,
 }
 
 impl CommitRecord {
@@ -310,6 +330,7 @@ impl CommitRecord {
             renamed_from: changed.renamed_from.clone(),
             tasks_only,
             tasks: subjects,
+            trailers: message.trailer_lines.clone(),
         };
         (record, problems)
     }

@@ -34,6 +34,32 @@ fn trailers_come_from_the_last_paragraph_only() {
 }
 
 #[test]
+fn every_trailer_line_is_kept_as_written_for_the_trailers_field() {
+    let message = parse_message(
+        "feat: x\n\nbody\n\nChangelog: none\nRefs: a\n  continued\n",
+        "Refs",
+    );
+    assert_eq!(message.trailer_lines, ["Changelog: none", "Refs: a"]);
+    assert!(
+        parse_message("Changelog: none\n", "Refs")
+            .trailer_lines
+            .is_empty()
+    );
+}
+
+#[test]
+fn a_record_carries_the_trailer_lines() {
+    let message = parse_message("x\n\nChangelog: none\n", "Refs");
+    let (record, _) = CommitRecord::build(
+        &message,
+        &ChangedFiles::default(),
+        &[],
+        &crate::config::Config::default(),
+    );
+    assert_eq!(record.trailers, ["Changelog: none"]);
+}
+
+#[test]
 fn a_continuation_line_stays_in_the_block() {
     assert_eq!(
         values("feat: x\n\nRefs: a\n  continued\nRefs: b\n"),

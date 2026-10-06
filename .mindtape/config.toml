@@ -440,6 +440,29 @@ values = [
   "!examples/**",
 ]
 
+# What ships to a user: the crates' and the Typst library's source. Tests, the
+# docs (`docs/**`, `www/**`), generated files, fixtures (`examples/**`) and the
+# task backlog are not product. `skills/` is left out on purpose: its SKILL.md is
+# generated from `docs/src/`, and a skill-only change is a docs change.
+[dicts.product]
+case = "exact"
+values = [
+  "crates/**",
+  "lib/**",
+  "!crates/*/tests/**",
+  "!**/*test*.rs",
+]
+
+# A commit that changes product code adds a `CHANGELOG.md` entry, or says it has
+# nothing to announce with a `Changelog: none` trailer. The trigger is the files
+# changed, so a `refactor` that alters behaviour is held to it as a `fix` is.
+[[commits.rules]]
+name = "changelog-with-product-change"
+when = 'count(files, "@product") >= 1 && !matches(trailers, "(?i)^Changelog: none$")'
+assert = 'matches(files, "^CHANGELOG[.]md$")'
+message = "add an entry under [Unreleased] in CHANGELOG.md, or add a `Changelog: none` trailer"
+severity = "error"
+
 # A tweak is never open, so `src-budget` (wip only) never sees it; this holds
 # its commit to one source file, by the `source` path set `src-budget` reads.
 [[commits.rules]]

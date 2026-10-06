@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A commit that changes product code must add a changelog entry.** A commit
+  touching `crates/` or `lib/` source outside tests and not `CHANGELOG.md` is
+  refused by the `changelog-with-product-change` rule, locally and in CI, unless
+  it carries a `Changelog: none` trailer. Commit rules read the new `trailers`
+  field, every trailer line as `Key: value`.
 - **Every docs page has a Markdown copy, and the site serves `llms.txt`.**
   typlite renders `<route>/index.md` from the same `www/content/*.typ` source
   as the HTML, each page header links its copy, and `/llms.txt` lists every

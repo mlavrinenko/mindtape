@@ -92,7 +92,7 @@ groups:
       www/content/cli/set.typ: 24b76bb77e2e3c4b0e7a265702758ada5d054e67a705b5f81c778c244cf93c59
       www/content/cli/views.typ: 60a67289f2bb546ff203cfb8047299894e6689b241287c04b0c35374e094422a
       www/content/cli/worktrees.typ: edd512ecff478c88e54c9c8e177d02948a80a3b37ba33d275a888a7cb87416c5
-      www/content/commit-rules.typ: 48a5f48dae5bc8582c6b0a70f366c9209bc457845fe95ac8ad5e2524cabf2f69
+      www/content/commit-rules.typ: ed2d11a99d530d0f09b1940bf3cc5b4e8708cfb733ac117d3468376d4d505740
       www/content/concepts.typ: 09a59054d0c30ca5c5369a96be60f6ee285e813bbc581b90237d587a5c02cf84
       www/content/config.typ: 1e0beebd08fb2ea13ed0b3eb0b3f06728d1fba127356f0566377be1658d61c30
       www/content/derived-tags.typ: 8672009098bded96541cd8a3ca1162e95a4e5d56e1308d1c553d1919cf1620be
@@ -236,7 +236,7 @@ groups:
     source:
       Cargo.toml: 2f9a72134921ea6d7b8cb5b66930d161d21ab158d4a879d6a7b63d3ba4bd0cba
     dependents:
-      CHANGELOG.md: 6c3ebf3dd9a1e778625ce871f18d305324ee52625f90cd5d00df2113b169e2ec
+      CHANGELOG.md: da959805dbfc8ca4d6bf32edc28a2885f0c44a00581ffe0fe71f8d4102da11d2
   scripts-no-doc:
     source:
       .just/scripts/_doc-blocks-control.sh: c8a84db06366a28c52831d0ecf53db96170feb22f8cb7c1655e2b278e2c997f0

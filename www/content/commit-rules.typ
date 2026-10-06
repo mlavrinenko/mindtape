@@ -68,6 +68,10 @@ rule once per commit, over these fields:
   table.header([Field], [Holds]),
   [`subject`], [The message's first line.],
   [`refs`], [The trailer's values, as stems.],
+  [`trailers`],
+  [Every trailer line of the message, whatever its key, as `Key: value`.
+    `matches(trailers, "^Changelog: none$")` finds one.],
+
   [`files`],
   [Every staged path, relative to the repository's top level. A rename is
     both its paths.],
