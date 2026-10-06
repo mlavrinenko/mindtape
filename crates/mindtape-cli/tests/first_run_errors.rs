@@ -130,3 +130,60 @@ fn import_skipped_for_another_reason_prints_no_install_note() {
 
     assert!(!stderr.contains(NOTE), "{stderr}");
 }
+
+/// A project at `dir/p` with its own valid config, ready for a broken layer.
+fn project_with_config(dir: &Path) -> std::path::PathBuf {
+    let project = dir.join("p");
+    std::fs::create_dir_all(project.join(".mindtape")).unwrap();
+    std::fs::write(
+        project.join(".mindtape/config.toml"),
+        "[tasks]\nroots = [\"tasks\"]\n",
+    )
+    .unwrap();
+    project
+}
+
+#[test]
+fn a_syntax_error_in_the_global_defaults_names_that_file() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = project_with_config(dir.path());
+    let config_home = dir.path().join("cfg");
+    std::fs::create_dir_all(config_home.join("mindtape")).unwrap();
+    let defaults = config_home.join("mindtape/defaults.toml");
+    std::fs::write(&defaults, "oops =\n").unwrap();
+
+    let output = support::mt(&project)
+        .env(mindtape::CONFIG_HOME_ENV, &config_home)
+        .arg("ls")
+        .output()
+        .unwrap();
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    assert!(!output.status.success(), "{stderr}");
+    assert!(
+        stderr.contains(&format!("parse error in {}: ", defaults.display())),
+        "{stderr}"
+    );
+    assert_eq!(stderr.matches("line 1, column 7").count(), 1, "{stderr}");
+}
+
+#[test]
+fn a_syntax_error_in_a_path_pack_names_the_pack_file() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = project_with_config(dir.path());
+    std::fs::write(
+        project.join(".mindtape/config.toml"),
+        "extends = [\"./pack.toml\"]\n[tasks]\nroots = [\"tasks\"]\n",
+    )
+    .unwrap();
+    let pack = project.join("./pack.toml");
+    std::fs::write(&pack, "oops =\n").unwrap();
+
+    let (ok, stderr) = run_fresh(&project, &["ls"]);
+
+    assert!(!ok, "{stderr}");
+    assert!(
+        stderr.contains(&format!("parse error in {}: ", pack.display())),
+        "{stderr}"
+    );
+}

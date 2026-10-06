@@ -237,6 +237,15 @@ pub enum ConfigError {
     /// not a source, so a caller printing the chain prints it once.
     #[error("parse error: {0}")]
     Parse(toml::de::Error),
+    /// A config layer or pack other than the project's own contained invalid
+    /// TOML. `origin` names the file, or `pack <name>` for an embedded pack.
+    #[error("parse error in {origin}: {error}")]
+    ParseIn {
+        /// The file path, or `pack <name>`, the TOML error is in.
+        origin: String,
+        /// The TOML error, in the message rather than a `source` link, so a chain prints it once.
+        error: toml::de::Error,
+    },
     /// The config parsed but failed a semantic check (e.g. band coverage).
     #[error("invalid config: {0}")]
     Invalid(String),

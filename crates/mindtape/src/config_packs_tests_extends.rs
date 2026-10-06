@@ -179,3 +179,40 @@ fn a_pack_may_declare_only_rules_under_commits() {
     let err = merge_layers_with_packs_using(&layers, root.path(), registry).unwrap_err();
     assert!(err.to_string().contains("`trailer`"), "{err}");
 }
+
+#[test]
+fn a_syntax_error_in_an_embedded_pack_names_the_pack() {
+    let registry: &[(&str, &str)] = &[("mindtape-broken", "oops =\n")];
+    let root = tempfile::tempdir().unwrap();
+    let layers = [layer(
+        LayerSource::Embedded,
+        "extends = [\"mindtape-broken\"]\n",
+    )];
+
+    let err = merge_layers_with_packs_using(&layers, root.path(), registry).unwrap_err();
+
+    assert!(
+        err.to_string()
+            .starts_with("parse error in pack mindtape-broken: "),
+        "{err}"
+    );
+}
+
+#[test]
+fn a_syntax_error_in_a_global_layer_names_its_file() {
+    let root = tempfile::tempdir().unwrap();
+    let path = root
+        .path()
+        .join("cfg")
+        .join("mindtape")
+        .join("defaults.toml");
+    let layers = [layer(LayerSource::Xdg(path.clone()), "oops =\n")];
+
+    let err = merge_layers_with_packs_using(&layers, root.path(), &[]).unwrap_err();
+
+    assert!(
+        err.to_string()
+            .starts_with(&format!("parse error in {}: ", path.display())),
+        "{err}"
+    );
+}

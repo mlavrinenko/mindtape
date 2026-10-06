@@ -140,7 +140,8 @@ fn merge_layers_with_packs_using(
     let mut disable_names: BTreeSet<String> = BTreeSet::new();
 
     for layer in layers {
-        let mut table: toml::Table = toml::from_str(&layer.text)?;
+        let mut table: toml::Table =
+            toml::from_str(&layer.text).map_err(|error| layer_parse_error(&layer.source, error))?;
         let extends = read_string_list(&table, "extends")?;
         disable_names.extend(read_string_list(&table, "disable")?);
 
@@ -335,7 +336,10 @@ fn resolve_pack(
         let text = std::fs::read_to_string(&path).map_err(|_| {
             ConfigError::Invalid(format!("extends: pack not found: {}", path.display()))
         })?;
-        let table: toml::Table = toml::from_str(&text)?;
+        let table: toml::Table = toml::from_str(&text).map_err(|error| ConfigError::ParseIn {
+            origin: path.display().to_string(),
+            error,
+        })?;
         validate_pack_shape(&table, &path.display().to_string())?;
         Ok(ResolvedPack {
             origin: PackOrigin::Path(path),
@@ -348,7 +352,10 @@ fn resolve_pack(
             .find(|(name, _)| *name == entry)
             .map(|(_, text)| *text)
             .ok_or_else(|| unknown_pack_error(entry, registry))?;
-        let table: toml::Table = toml::from_str(text)?;
+        let table: toml::Table = toml::from_str(text).map_err(|error| ConfigError::ParseIn {
+            origin: format!("pack {entry}"),
+            error,
+        })?;
         validate_pack_shape(&table, entry)?;
         Ok(ResolvedPack {
             origin: PackOrigin::Embedded(entry.to_owned()),
@@ -421,6 +428,18 @@ fn reject_unknown_keys(
 /// the project layer, matching the task's worked example. Falls back to
 /// `root` for the embedded floor (which carries no path, and never declares
 /// `extends`) or a layer path that turns out to be too shallow.
+/// A layer's TOML error, naming the file unless it is the project's own (the
+/// CLI already names that one) or the embedded floor.
+fn layer_parse_error(source: &LayerSource, error: toml::de::Error) -> ConfigError {
+    match source {
+        LayerSource::Xdg(path) | LayerSource::Dir(path) => ConfigError::ParseIn {
+            origin: path.display().to_string(),
+            error,
+        },
+        LayerSource::Project(_) | LayerSource::Embedded => ConfigError::Parse(error),
+    }
+}
+
 fn layer_base_dir(source: &LayerSource, root: &Path) -> PathBuf {
     let path = match source {
         LayerSource::Xdg(path) | LayerSource::Dir(path) | LayerSource::Project(path) => Some(path),
