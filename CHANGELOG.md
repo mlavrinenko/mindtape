@@ -9,6 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Every docs page has a Markdown copy, and the site serves `llms.txt`.**
+  typlite renders `<route>/index.md` from the same `www/content/*.typ` source
+  as the HTML, each page header links its copy, and `/llms.txt` lists every
+  page by sidebar group with its summary. A page typlite cannot render, raw
+  HTML in a copy or a dead `.md` link fails the docs build. The skill points
+  an agent at `llms.txt`.
+- **Each `mt` command has its own docs page.** `/cli/` is an index of the
+  command groups, `/cli/<command>/` holds one command, and the sidebar lists
+  every command under CLI in a `<details>` that opens on the CLI pages. A
+  command with no page fails `check-doc-coverage`.
+- **`/task-files/` explains the Typst in a task file.** One checked file walks
+  the import, the show rule and the body, and six common syntax mistakes each
+  show the `mt check` refusal the build captures for them.
+- **The docs draw the dependency graph and the status moves.** Graphviz,
+  now in the dev shell, renders the links fixture's `mt graph` on the Task
+  links page and the legend's allowed moves on the Statuses page, in both
+  themes.
+- **The Overview shows the language server on a task file.** The build asks
+  `tinymist lsp` for the field completions inside `task.with(...)` and the
+  diagnostic on a misspelled field, against `examples/lsp/`, and draws both
+  as editor-neutral blocks.
+- **`outdatty.lock` merges key by key.** A merge driver registered by
+  `just install-hooks` merges the lock per group and path, so two branches
+  that record different groups rebase without a conflict. A key both sides
+  changed takes the side whose hash matches the merged file, else it
+  conflicts and names the group and path.
+
 - **`mt _cli --json` lists the filter functions, and `check-doc-facts` holds the filter pages to them.** One registry in `filter_eval.rs` names each predicate and function with its arity and dispatches it. A function missing from `www/content/filters.typ` or the skill's `filters.md` now fails the gate, which found `exists` undocumented.
 - **A config filter warns on an undeclared `x-` name.** A rule, view,
   `required` or `values-when` filter naming `x-machnie` beside a declared
@@ -1227,6 +1254,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The docs sidebar groups pages by the reader's job.** The 13-page
+  Reference group splits into Fields, Checks, Reference and Integrate, and
+  every page defines a term such as `terminal`, slot or stem at its first use,
+  or links the page that does.
+- **The agents page names the standard skill installers.** It shows
+  `gh skill install` and `npx skills add` for `skills/mindtape/`, and the
+  skills-directory docs of Claude Code, Codex and GitHub Copilot for a copy by
+  hand.
 - **The template check no longer repeats a skipped rule.** A rule skipped
   for lack of git is reported once, at its config entry, and `mt check` also
   printed it for the built-in template.
