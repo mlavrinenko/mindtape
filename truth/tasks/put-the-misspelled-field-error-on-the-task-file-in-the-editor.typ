@@ -55,8 +55,9 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `lib/prelude.typ`: make Typst itself refuse an unknown named argument of `task`, so the error carries the argument's span, while `x-<ns>` slots still pass.
-- `www/content/index.typ`: drop the sentence that says the error sits at the prelude's check.
+- `lib/prelude.typ`: replace the slot assert with a call that Typst itself refuses. Build a closure whose named parameters are the call's own `x-` names, `eval("(" + xs.map(k => k + ": none, ").join() + ") => none")`, and spread the sink into it. A spread argument keeps its span, so Typst 0.14.2 prints `unexpected argument: titel` under `titel` in the task file, and `x-` fields stay flat.
+- `docs/src/*.typ`, `www/content/*.typ`: wherever a page quotes the `unknown task slot` error, quote the new one.
+- `www/content/index.typ`: drop the sentence that says the error sits at the prelude's check, and draw the captured diagnostic under `titel`.
 
 
 == Rollback
