@@ -182,7 +182,9 @@ fn build_config(
     root: &Path,
 ) -> Result<(Config, Vec<RuleOriginEntry>), ConfigError> {
     let (doc, rule_origins) = merge_doc(layers, root)?;
-    let mut config: Config = toml::Value::Table(doc).try_into()?;
+    let mut config: Config = toml::Value::Table(doc)
+        .try_into()
+        .map_err(|merged| locate_in_project_layer(merged, layers))?;
     config.dict_cache = crate::config::compile_dicts(&config.dicts, root)
         .map_err(ConfigError::Invalid)?
         .into();
@@ -210,6 +212,20 @@ fn build_config(
     // `build_config` was ever called with.
     crate::config_rules_typst::validate_load(&config, root).map_err(ConfigError::Invalid)?;
     Ok((config, rule_origins))
+}
+
+/// The merged document is rebuilt from the layers' values, so an error
+/// deserializing it carries no line or column. When the project's own config,
+/// deserialized alone, fails with the same message, that error has the span,
+/// so it stands in for the merged one. Only the project layer is searched,
+/// because that is the file the CLI names around a load error.
+fn locate_in_project_layer(merged: toml::de::Error, layers: &[Layer]) -> ConfigError {
+    let located = layers
+        .iter()
+        .filter(|layer| matches!(layer.source, LayerSource::Project(_)))
+        .find_map(|layer| toml::from_str::<Config>(&layer.text).err())
+        .filter(|alone| alone.message() == merged.message());
+    ConfigError::Parse(located.unwrap_or(merged))
 }
 
 /// Assemble the merged TOML document for `root` — every discovered layer (and

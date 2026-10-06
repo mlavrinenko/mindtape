@@ -167,6 +167,16 @@ fn report_issues(issues: &[Violation], scope: &str) -> Result<()> {
     bail!("{fatal} validation issue(s) {scope}")
 }
 
+/// Why a filled task was refused when it did not load, with the prelude hint
+/// when the failure is the missing `@local/mindtape` package: `mt add` in a
+/// project with no tasks yet has no load outcome to derive that hint from.
+fn load_refusal(failure: &str) -> String {
+    match crate::install_hint::failure_prelude_hint(failure) {
+        Some(hint) => format!("the task as filled did not load: {failure}\n{hint}"),
+        None => format!("the task as filled did not load: {failure}"),
+    }
+}
+
 /// Validate a rendered task *before* it is written, so a rejected write leaves
 /// nothing on disk. `source` is checked as if it already sat at `file`, against
 /// the project's already-loaded tasks — the same load and the same
@@ -197,7 +207,7 @@ pub fn verify_candidate(project: &Project, file: &Path, source: &str) -> Result<
     // A warning says its piece whether or not the write is refused, and never
     // decides that it is.
     if let Some(failure) = &verdict.load_failure {
-        bail!("the task as filled did not load: {failure}");
+        bail!("{}", load_refusal(failure));
     }
     for violation in &verdict.violations {
         eprintln!("{}", crate::breach::line(violation));

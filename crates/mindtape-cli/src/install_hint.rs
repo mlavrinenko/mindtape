@@ -22,10 +22,12 @@
 
 use mindtape::LoadOutcome;
 
-/// Printed when the prelude cannot be resolved. Names the command, and says it
-/// is per-machine so nobody re-runs it per project.
+/// Printed when the prelude cannot be resolved. Names the command, says it is
+/// per-machine so nobody re-runs it per project, and names the per-project
+/// alternative for a checkout that carries its own prelude.
 const HINT: &str = "note: `@local/mindtape` is not installed — run `mt install` \
-                    (once per machine), then try again";
+                    (once per machine) or pin the prelude under \
+                    `[[typst.local-packages]]`, then try again";
 
 /// The path segment Typst searched: the local-package directory for the
 /// prelude. Matched instead of the diagnostic's wording, which is Typst's to
@@ -44,6 +46,15 @@ pub fn missing_prelude_hint(outcome: &LoadOutcome) -> Option<&'static str> {
         .iter()
         .any(|error| names_prelude_package(&error.message))
         .then_some(HINT)
+}
+
+/// The hint for one load failure, or `None` when the prelude resolved.
+///
+/// For a single candidate that failed on its own — `mt add` in a project with
+/// no tasks yet, whose load outcome holds no error to derive the hint from.
+#[must_use]
+pub fn failure_prelude_hint(message: &str) -> Option<&'static str> {
+    names_prelude_package(message).then_some(HINT)
 }
 
 /// Whether `message` is a load error about the unresolved prelude package.
@@ -115,8 +126,8 @@ mod tests {
     use mindtape::{LoadError, LoadOutcome};
 
     use super::{
-        escaped_hash_hint, is_unknown_variable, load_hints, missing_prelude_hint,
-        names_prelude_package,
+        HINT, escaped_hash_hint, failure_prelude_hint, is_unknown_variable, load_hints,
+        missing_prelude_hint, names_prelude_package,
     };
 
     /// Verbatim from `mt ls` against a project whose prelude is not installed.
@@ -156,6 +167,17 @@ mod tests {
         assert!(!names_prelude_package(
             "eval error: file not found (searched at /tmp/p/packages/local/other/1.0.0/typst.toml)"
         ));
+    }
+
+    /// One candidate's own failure earns the hint only when it names the
+    /// prelude — `mt add` in a project with no tasks to derive it from.
+    #[test]
+    fn a_single_failure_hints_only_when_it_names_the_prelude() {
+        assert_eq!(failure_prelude_hint(REAL), Some(HINT));
+        assert_eq!(
+            failure_prelude_hint("eval error: unknown task slot `foo`"),
+            None
+        );
     }
 
     #[test]

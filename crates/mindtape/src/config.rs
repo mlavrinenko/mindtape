@@ -233,12 +233,19 @@ pub enum ConfigError {
     /// The config file could not be read.
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
-    /// The config file contained invalid TOML.
+    /// The config file contained invalid TOML. The TOML error is the message,
+    /// not a source, so a caller printing the chain prints it once.
     #[error("parse error: {0}")]
-    Parse(#[from] toml::de::Error),
+    Parse(toml::de::Error),
     /// The config parsed but failed a semantic check (e.g. band coverage).
     #[error("invalid config: {0}")]
     Invalid(String),
+}
+
+impl From<toml::de::Error> for ConfigError {
+    fn from(error: toml::de::Error) -> Self {
+        Self::Parse(error)
+    }
 }
 
 impl Config {

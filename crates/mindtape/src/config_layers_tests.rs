@@ -352,3 +352,54 @@ fn a_typst_check_rule_resolves_against_the_project_root() {
     crate::config_rules::check_all(&[task], &config, &mut out);
     assert!(out.is_empty(), "{out:#?}");
 }
+
+// --- where a deserialization error points ---
+
+/// Write `defaults` as `home`'s `.mindtape/defaults.toml` (when given) and
+/// `project_config` as the project's config, then load and return the TOML
+/// error the load failed with.
+fn parse_failure(defaults: Option<&str>, project_config: &str) -> toml::de::Error {
+    let (_tmp, home, project) = home_and_project();
+    if let Some(defaults) = defaults {
+        std::fs::create_dir_all(home.join(".mindtape")).unwrap();
+        std::fs::write(home.join(".mindtape").join("defaults.toml"), defaults).unwrap();
+    }
+    std::fs::create_dir_all(project.join(".mindtape")).unwrap();
+    std::fs::write(
+        project.join(".mindtape").join("config.toml"),
+        project_config,
+    )
+    .unwrap();
+    match super::load_config_layered_from(&project, Some(&home), None).unwrap_err() {
+        crate::config::ConfigError::Parse(error) => error,
+        other => panic!("expected a parse error, got {other}"),
+    }
+}
+
+/// An unknown table in the project's own config keeps its span, so the error
+/// names the line and column instead of only the field.
+#[test]
+fn an_unknown_table_in_the_project_config_keeps_its_span() {
+    let error = parse_failure(None, "[tasks]\nroots = [\"tasks\"]\n[taks]\nx = 1\n");
+    assert!(error.message().contains("unknown field `taks`"), "{error}");
+    assert_eq!(error.span(), Some(27..31), "{error}");
+}
+
+/// An unknown table in an ancestor's `defaults.toml` stays unlocated: the CLI
+/// names the project config around a load error, so a span into another file
+/// would point at the wrong line.
+#[test]
+fn an_unknown_table_in_an_ancestor_defaults_has_no_span() {
+    let error = parse_failure(Some("[taks]\nx = 1\n"), "[tasks]\nroots = [\"tasks\"]\n");
+    assert!(error.message().contains("unknown field `taks`"), "{error}");
+    assert_eq!(error.span(), None, "{error}");
+}
+
+/// When the project config fails alone on a different message than the merged
+/// document, its span would locate a different error, so the merged one stands.
+#[test]
+fn a_project_error_other_than_the_merged_one_is_not_borrowed() {
+    let error = parse_failure(Some("[aaa]\nx = 1\n"), "[zzz]\nx = 1\n");
+    assert!(error.message().contains("unknown field `aaa`"), "{error}");
+    assert_eq!(error.span(), None, "{error}");
+}

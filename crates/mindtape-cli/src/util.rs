@@ -94,8 +94,10 @@ pub fn resolve_root() -> Result<PathBuf> {
 /// logic is testable without touching process-global state.
 fn resolve_root_with(cwd: &Path, override_path: Option<&Path>) -> Result<PathBuf> {
     let Some(path) = override_path else {
-        return find_root(cwd)
-            .context("not inside a MindTape project (no .mindtape/ directory found)");
+        return find_root(cwd).context(
+            "not inside a MindTape project (no .mindtape/ directory found) — run `mt init` \
+             to make one here, or pass `-w <path>` to use another",
+        );
     };
     let base = if path.is_absolute() {
         path.to_path_buf()
