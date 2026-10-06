@@ -64,7 +64,7 @@ doc_blocks_ast() { # <file>
 # its comments apart from its prose, so no gate mistakes a comment for a page.
 DOC_SOURCE_GLOBS=(
     'docs/src/**/*.typ'
-    'www/content/*.typ'
+    'www/content/**/*.typ'
     'www/utils/*.typ'
 )
 

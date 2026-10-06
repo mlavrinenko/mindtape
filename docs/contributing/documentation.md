@@ -10,7 +10,7 @@ The span gate hands each `mt` command line it finds in a span, after a `$ ` prom
 
 ## Where the docs live
 
-`www/content/*.typ` is the docs site, and `www/utils/*.typ` holds the notes its generated references render. `docs/src/readme.typ`, `docs/src/agents.typ` and `docs/src/skill.typ` render to README.md, AGENTS.md and `skills/mindtape/SKILL.md`. `docs/src/contributing.typ` renders CONTRIBUTING.md, and `docs/src/contributing/*.typ` render `docs/contributing/*.md`. Edit the source, never the render: `just docs md` overwrites it.
+`www/content/**/*.typ` is the docs site, and `www/utils/*.typ` holds the notes its generated references render. Each `mt` command has a page, `www/content/cli/<command>.typ`, which renders the command from `www/utils/cli-ref.typ` and may add prose of its own. `just check-doc-coverage` fails on a command with no page or no `www/utils/cli-notes.typ` entry. `docs/src/readme.typ`, `docs/src/agents.typ` and `docs/src/skill.typ` render to README.md, AGENTS.md and `skills/mindtape/SKILL.md`. `docs/src/contributing.typ` renders CONTRIBUTING.md, and `docs/src/contributing/*.typ` render `docs/contributing/*.md`. Edit the source, never the render: `just docs md` overwrites it.
 
 ## Rewrite the whole file
 

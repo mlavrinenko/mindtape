@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # www/generate-site-pages.sh — derive www/generated/site-pages.json from
-# every www/content/*.typ page's own
+# every www/content/**/*.typ page's own
 # `#metadata((route, label, title, summary, home)) <page-meta>` block.
 # www/utils/site.typ keeps only what no single page holds: the nav groups and
 # their reading order (`NAV`).
@@ -65,8 +65,10 @@ trap 'rm -rf "$workdir"' EXIT
 pages_json="{}"
 routes_json="[]"
 summary_problems=""
-for page in "$REPO"/www/content/*.typ; do
-  stem="$(basename "$page" .typ)"
+shopt -s globstar
+for page in "$REPO"/www/content/**/*.typ; do
+  stem="${page#"$REPO"/www/content/}"
+  stem="${stem%.typ}"
   if ! meta="$(typst query --root "$REPO/www" "$page" '<page-meta>' \
       --field value --one --target html --features html 2>"$workdir/err")"; then
     echo "generate-site-pages.sh: $page has no <page-meta> block:" >&2

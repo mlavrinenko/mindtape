@@ -34,5 +34,5 @@ PENDING=(
 shopt -s globstar nullglob
 tmp=$(mktemp)
 trap 'rm -f "$tmp"' EXIT
-doc_blocks_scan docs/src/**/*.typ www/content/*.typ www/utils/*.typ >"$tmp"
+doc_blocks_scan docs/src/**/*.typ www/content/**/*.typ www/utils/*.typ >"$tmp"
 doc_blocks_judge "$tmp" "${PENDING[@]}"

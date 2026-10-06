@@ -1,63 +1,56 @@
 #!/usr/bin/env bash
 # .just/scripts/check-doc-coverage.sh — the body of the `check-doc-coverage`
-# recipe, extracted under truth/tasks/extract-the-long-gate-recipe-bodies-into-
-# scripts.typ. Every path below is repo-root-relative, because the recipe that
-# invokes it runs at the repo root.
+# recipe. Every path below is repo-root-relative, because the recipe runs at
+# the repo root.
 #
-# Doc-coverage gate: every visible top-level `mt` subcommand must have a
-# www/utils/cli-notes.typ entry. `mt find` once shipped with none — the docs
-# site would have carried a new verb with no prose or examples, and only a
-# human reviewing dependents caught it, which is not a mechanism. The check is
-# a set-difference: `mt _cli --json`'s reflected command names (the same dump
-# cli.typ itself renders) minus cli-notes.typ's dict keys.
+# Every visible top-level `mt` command needs a www/utils/cli-notes.typ entry
+# and a page at www/content/cli/<command>.typ, and every page there needs a
+# command. Without the gate a new command ships with no prose and no page, and
+# only a reviewer would notice. Each arm is a set difference against the names
+# `mt _cli --json` reflects, the same dump the CLI pages render.
 set -eo pipefail
 # `--tests`, not a plain build: the test arm links `target/debug/mt` with the
 # dev-dependency features, and a build without them would relink it away
 # mid-run (docs/contributing/gates.md, "One mt binary, one feature set").
 cargo build -p mindtape-cli --tests -q
-# Hidden/internal commands (`_cli` itself, the deprecated `install-lib` alias)
-# are excluded because cli_dump.rs (`crates/mindtape-cli/src/cli_dump.rs`)
-# already drops any `hide = true` command and clap's synthetic `help` pseudo-
-# command before they ever reach this JSON — never by a hand-maintained skip
-# list here, which would rot exactly the way the thing being gated rots.
-visible=$(./target/debug/mt _cli --json | jq -r '.commands[].name')
+# cli_dump.rs drops every `hide = true` command and clap's `help` before they
+# reach this JSON, so the gate needs no skip list of its own.
+visible=$(./target/debug/mt _cli --json | jq -r '.commands[].name' | sort)
 
-# cli-notes.typ imports www/utils/site.typ for `u`, and site.typ reads both
-# www/generated/crate-map.json (PKG_VERSION) and www/generated/site-pages.json
-# (`PAGES`) at module top level — Typst evaluates a whole module on import, not
-# just the names pulled out of it. This gate never produces either file
-# itself, but three other `just check` arms do (docs::check, check-doc-facts,
-# docs/generate-md.sh — all via `www/generate.sh`, which `rm -rf`s the whole
-# directory before repopulating it), and `just check` runs them in parallel
-# with this one. Reading with no lock of its own, this query could land mid-
-# wipe and fail "file not found" on a tree that a moment later is perfectly
-# correct — the same race `www/generate.sh`'s own header argues against for
-# its readers. Same fd-held lock and MINDTAPE_GENERATED_LOCK handshake as
-# those three; unlike them, this script produces nothing, so it only waits
-# for whichever of them is mid-write, never regenerates anything itself.
+# cli-notes.typ imports www/utils/site.typ, which reads www/generated/ at
+# module top level. The docs arms of `just check` rewrite that directory in
+# parallel with this one, so the query waits on the lock they hold while they
+# write. This script writes nothing there.
 mkdir -p target
 exec 9>target/www-generated.lock
 flock 9
 export MINDTAPE_GENERATED_LOCK=1
 
-# Reading cli-notes.typ's keys means actually evaluating the Typst dict, not
-# grepping for quoted strings (a dotted arg-level key like "ls.sort" would
-# false-positive a regex meant to only see top-level command names, and a
-# regex silently drifts the moment the file's shape changes). `typst query`
-# only inspects document content, and cli-notes.typ is a bare `#let` with
-# none, so this throwaway driver imports it and re-exports `cli-notes.keys()`
-# as `metadata` a label query can select. The driver must live inside
-# `--root .` (typst refuses a source outside the project root), so it goes
-# under target/ — gitignored, and already there after the build above.
+# The note keys come from evaluating the Typst dict, because a regex for
+# quoted strings would also match a dotted argument key like "ls.sort".
+# `typst query` reads document content only, so a driver under target/ (inside
+# `--root .`, as typst requires) re-exports the keys as metadata.
 tmp=$(mktemp -d -p target)
 trap 'rm -rf "$tmp"' EXIT
 printf '#import "/www/utils/cli-notes.typ": cli-notes\n#metadata(cli-notes.keys()) <cli-notes-keys>\n' \
     > "$tmp/keys.typ"
 documented=$(typst query --root . "$tmp/keys.typ" '<cli-notes-keys>' \
-    --field value --one | jq -r '.[]')
-missing=$(comm -23 <(sort <<<"$visible") <(sort <<<"$documented"))
-if [ -n "$missing" ]; then
-    echo "check-doc-coverage: undocumented commands (no www/utils/cli-notes.typ entry):" >&2
-    while IFS= read -r name; do echo "  - mt $name" >&2; done <<<"$missing"
-    exit 1
-fi
+    --field value --one | jq -r '.[]' | sort)
+shopt -s nullglob
+paged=$(for f in www/content/cli/*.typ; do basename "$f" .typ; done | sort)
+
+fail=0
+report() {
+    local title="$1" names="$2"
+    [ -n "$names" ] || return 0
+    echo "check-doc-coverage: $title" >&2
+    while IFS= read -r name; do echo "  - $name" >&2; done <<<"$names"
+    fail=1
+}
+report "commands with no www/utils/cli-notes.typ entry:" \
+    "$(comm -23 <(echo "$visible") <(echo "$documented") | sed 's/^/mt /')"
+report "commands with no page (add www/content/cli/<command>.typ):" \
+    "$(comm -23 <(echo "$visible") <(echo "$paged") | sed 's/^/mt /')"
+report "pages under www/content/cli/ that name no command:" \
+    "$(comm -13 <(echo "$visible") <(echo "$paged") | sed 's|^\(.*\)$|www/content/cli/\1.typ|')"
+exit "$fail"

@@ -129,7 +129,7 @@ a:hover { color: var(--accent-strong); }
   font-size: 0.95rem; line-height: 1.5;
 }
 .sidebar a:hover { background: var(--bg-soft); color: var(--accent); }
-.sidebar a[aria-current="page"] {
+.sidebar a[aria-current] {
   color: var(--accent); font-weight: 600; background: var(--accent-wash);
 }
 

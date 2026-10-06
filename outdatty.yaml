@@ -117,7 +117,7 @@ groups:
       # it hands a resolved list to `render()`. So the CSV mapping decision
       # (`#` -> `id`, and `file` as the root-relative record path rather than
       # the table's cwd-relative display) lives here and nowhere else, while
-      # cli.typ and schema.typ each restate it by hand.
+      # www/content/cli/ls.typ and schema.typ each restate it by hand.
       - crates/mindtape-cli/src/output.rs
       - crates/mindtape-cli/src/preset_cmd.rs
       - crates/mindtape-cli/src/recur.rs
@@ -144,6 +144,10 @@ groups:
       - crates/mindtape-cli/src/presets/gated/config.toml
     dependents:
       - www/content/cli.typ
+      # One page per command. Each may carry hand-written prose beside the
+      # reference cli-ref.typ renders, as cli/ls.typ does for columns and
+      # `[[ls.rules]]`.
+      - www/content/cli/*.typ
       - www/content/links.typ
       - www/content/recurring.typ
       - www/content/filters.typ

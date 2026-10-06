@@ -15,8 +15,8 @@
 # (truth/tasks/derive-the-built-in-priority-tables.typ), every sweep flag in
 # sweep-flags.json needs a www/utils/sweep-flag-notes.typ entry
 # (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-attributes.typ),
-# and every www/content/*.typ page needs a route in site-pages.json and a `NAV`
-# entry in www/utils/site.typ. The first four arms read their Typst dict's
+# and every www/content/**/*.typ page needs a route in site-pages.json and,
+# when top-level, a `NAV` entry in www/utils/site.typ. The first four arms read their Typst dict's
 # keys through the same target/-rooted driver trick as check-doc-coverage.sh,
 # never by grepping quoted strings. The pages arm reads a driver too (for
 # `NAV`) and also compares against the filesystem, so it runs in three
@@ -163,12 +163,14 @@ fi
 # two pages declaring the same route; this catches one declaring the wrong one,
 # which is a valid route
 # that simply is not this file's). The route a file maps to is tola's own
-# layout rule — index.typ serves "/" and every other <stem>.typ serves
-# "/<stem>/" — applied here rather than read from anywhere, because the whole
-# point is to catch the file and its own declared route disagreeing.
+# layout rule — index.typ serves "/" and every other <path>.typ under
+# www/content/ serves "/<path>/" — applied here rather than read from
+# anywhere, because the whole point is to catch the file and its own declared
+# route disagreeing.
 routes=$(jq -r '.pages | keys_unsorted[]' www/generated/site-pages.json)
-page_routes=$(for f in www/content/*.typ; do
-    stem=$(basename "$f" .typ)
+page_routes=$(shopt -s globstar; for f in www/content/**/*.typ; do
+    stem=${f#www/content/}
+    stem=${stem%.typ}
     if [ "$stem" = "index" ]; then echo "/"; else echo "/$stem/"; fi
 done)
 unlisted=$(comm -23 <(sort <<<"$page_routes") <(sort <<<"$routes"))
@@ -199,4 +201,17 @@ printf '#import "/www/utils/site.typ": NAV\n#metadata(NAV.map(g => g.items).flat
     > "$tmp/nav-routes.typ"
 nav_routes=$(typst query --root . "$tmp/nav-routes.typ" '<nav-routes>' \
     --field value --one | jq -r '.[]')
-bash .just/scripts/_nav-diff.sh "$routes" "$nav_routes"
+# A nested page, such as /cli/ls/, is reached from its parent page and shares
+# its parent's sidebar entry, so `NAV` lists top-level routes only. Its parent
+# has to be a `NAV` route, or nothing in the sidebar leads to it.
+top_routes=$(grep -E '^/([^/]+/)?$' <<<"$routes")
+strays=$(grep -vE '^/([^/]+/)?$' <<<"$routes" | while IFS= read -r route; do
+    parent=$(sed -E 's|[^/]+/$||' <<<"$route")
+    grep -qxF "$parent" <<<"$nav_routes" || echo "$route"
+done)
+if [ -n "$strays" ]; then
+    echo "check-doc-facts: nested pages whose parent route is not in www/utils/site.typ's NAV:" >&2
+    while IFS= read -r route; do echo "  - $route" >&2; done <<<"$strays"
+    exit 1
+fi
+bash .just/scripts/_nav-diff.sh "$top_routes" "$nav_routes"

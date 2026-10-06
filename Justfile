@@ -217,8 +217,9 @@ check-examples:
     for ex in minimal links estimates dsl statuses rules api-service derived-tags round-trip named-sets priority task-files; do MINDTAPE_DATA_HOME= ./target/debug/mt -w "examples/$ex" check -q || exit 1; done
 
 # Every visible top-level `mt` subcommand must have a www/utils/cli-notes.typ
-# entry. How the set-difference is taken, and what it deliberately never
-# excludes by hand, are argued in .just/scripts/check-doc-coverage.sh.
+# entry and a www/content/cli/<command>.typ page. How the set-difference is
+# taken, and why it excludes nothing by hand, are argued in
+# .just/scripts/check-doc-coverage.sh.
 
 [doc("Fail if a visible mt subcommand has no CLI doc entry")]
 [group("gate")]
@@ -745,7 +746,7 @@ ask-refactoring $WRITE='0' $BASELINE='90' $COVERAGE_FLOOR='88' $CC_FLOOR='5' $FN
 # AGENTS.md and skills/mindtape/SKILL.md are generated from docs/src/*.typ, so
 # scanning both sides of a render would pair every sentence with itself.
 
-DOC_PROSE_PATHS := "www/content/*.typ www/utils/*.typ docs/src/readme.typ docs/src/agents.typ docs/src/skill.typ skills/mindtape/references/*.md"
+DOC_PROSE_PATHS := "www/content/*.typ www/content/cli/*.typ www/utils/*.typ docs/src/readme.typ docs/src/agents.typ docs/src/skill.typ skills/mindtape/references/*.md"
 
 # Report near-duplicate prose sentences across the doc sources, worst pair
 # first. Advisory, not a gate: the threshold is a judgement call and the report

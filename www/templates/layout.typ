@@ -225,7 +225,17 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
             let meta = page-meta(route)
             if meta != none {
               let attrs = (href: u(route))
-              if active == route { attrs.insert("aria-current", "page") }
+              // A nested page such as /cli/ls/ has no entry of its own, so
+              // its parent's entry is marked as the current section.
+              if active == route {
+                attrs.insert("aria-current", "page")
+              } else if (
+                route != "/"
+                  and type(active) == str
+                  and active.starts-with(route)
+              ) {
+                attrs.insert("aria-current", "true")
+              }
               html.elem("li", html.elem("a", attrs: attrs, [#meta.label]))
             }
           }
