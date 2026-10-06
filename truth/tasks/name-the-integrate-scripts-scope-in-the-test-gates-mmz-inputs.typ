@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 6),
+  status: done(
+    2026,
+    10,
+    7,
+  )[forced past failing gate: "mmz --is-fresh --tag gate"],
 )
 
 == Problem

@@ -343,12 +343,12 @@ scopes:
   # matches on the path and does not read the name, so the convention is only a
   # convention.
   #
-  # Ten scripts are named by no rule: crap-baseline.sh, release.sh, fork.sh and
-  # its inverse integrate.sh, the four install scripts (install.sh,
-  # install-bin.sh, install-lib.sh, uninstall-lib.sh) and the two sourced
-  # preambles (_mutants-env.sh, _typst-package.sh). They are bodies of recipes
-  # that no rule in `commands` wraps, and installs mutate the machine, so
-  # memoizing them would skip the mutation. They still get a scope, because
+  # Nine scripts are named by no rule: crap-baseline.sh, release.sh, fork.sh,
+  # the four install scripts (install.sh, install-bin.sh, install-lib.sh,
+  # uninstall-lib.sh) and the two sourced preambles (_mutants-env.sh,
+  # _typst-package.sh). They are bodies of recipes that no rule in `commands`
+  # wraps, and installs mutate the machine, so memoizing them would skip the
+  # mutation. They still get a scope, because
   # script-scope-check demands that every script be named, and `scripts-all`
   # above still gates them for size and drift. A scope with no reader is the
   # visible form of "no memoized rule reads this"; deleting it would hide that.
@@ -471,7 +471,7 @@ commands:
 
   - name: just test
     tags: [gate]
-    inputs: [rust, policy, examples, gates-meta, script-outdatty-lock-merge]
+    inputs: [rust, policy, examples, gates-meta, script-integrate, script-outdatty-lock-merge]
 
   # cargo-llvm-cov instruments and runs the same suite as `just test` (same
   # scope), then writes target/coverage/lcov.info, the artifact `just crap`
@@ -480,7 +480,7 @@ commands:
   # behind a fresh `cover`.
   - name: just cover
     tags: [gate]
-    inputs: [rust, policy, examples, gates-meta, script-cover, script-outdatty-lock-merge]
+    inputs: [rust, policy, examples, gates-meta, script-cover, script-integrate, script-outdatty-lock-merge]
     outputs: [target/coverage/lcov.info]
 
   - name: just machete
