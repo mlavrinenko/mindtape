@@ -62,7 +62,7 @@ Their source sits under `~/.cargo/registry/src/`, at the versions `Cargo.lock` p
 )
 ```
 
-`task` declares each core field as a named parameter, so tinymist completes the field names. Its `..meta` sink takes only `x-<ns>` extension slots, and a misspelled field such as `titel` fails the file with an `unknown task slot` error.
+`task` declares each core field as a named parameter, so tinymist completes the field names. Its `..meta` sink takes only `x-<ns>` extension slots. A misspelled field such as `titel` fails the file with `unexpected argument: titel`, which an editor marks under `titel`.
 
 A field value is a plain shape that Rust interprets. `ice(...)` and the other framework helpers build a `(framework, inputs)` dict, `every(...)` and `rrule(...)` build a recurrence dict, and `depends-on("a.typ") + related("b.typ")[why]` builds typed edges. Rust does all math and date arithmetic.
 

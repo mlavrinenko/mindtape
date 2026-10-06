@@ -33,8 +33,9 @@ them and resolves their links.
 
 Each field is a named parameter of `task`, so a Typst language server such as
 #link("https://myriad-dreamin.github.io/tinymist/")[tinymist] completes the
-names and shows each default. A misspelled field fails the file with an
-`unknown task slot` error that names it.
+names and shows each default. A misspelled field such as `titel` fails the
+file with `unexpected argument: titel`, which the language server marks under
+the misspelled name.
 
 A value is data. The helpers such as `ice(...)` and `every(...)` only build a
 dictionary, and `mt` does the scoring and the date arithmetic.

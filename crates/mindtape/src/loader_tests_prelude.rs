@@ -11,6 +11,10 @@ use crate::config::Config;
 use crate::model::Task;
 use crate::numeric::NumValue;
 use crate::recur::{PeriodUnit, Rule};
+use typst::WorldExt;
+use typst::syntax::VirtualRoot;
+use typst_harvest::HarvestWorld;
+use typst_layout::PagedDocument;
 
 const REAL_PRELUDE: &str = include_str!("../../../lib/prelude.typ");
 
@@ -183,10 +187,10 @@ fn real_prelude_carries_every_core_field_to_the_marker() {
     assert_eq!(task.id, "explicit");
 }
 
-/// The extension discipline, now enforced over `..meta` alone: an `x-<ns>` slot
-/// is collected, and a misspelled core field — which the named parameters do not
-/// absorb, since none is named `titel` — fails the file with the same message
-/// the membership test used to produce.
+/// The extension discipline, enforced over `..meta` alone: an `x-<ns>` slot is
+/// collected, and a misspelled core field — which the named parameters do not
+/// absorb, since none is named `titel` — fails the file with Typst's own
+/// refusal of an argument the callee does not declare.
 #[test]
 fn real_prelude_collects_extensions_and_rejects_unknown_slots() {
     let (_dir, ok) = load_real_prelude(
@@ -201,10 +205,80 @@ fn real_prelude_collects_extensions_and_rejects_unknown_slots() {
          #show: task.with(title: \"T\", titel: \"typo\")\n",
     );
     assert!(bad.tasks.is_empty());
-    assert!(
-        bad.errors[0].message.contains("unknown task slot `titel`"),
-        "unexpected error: {}",
-        bad.errors[0].message
+    assert_eq!(
+        bad.errors[0].message,
+        "eval error: unexpected argument: titel"
+    );
+}
+
+/// Where an editor draws the misspelled-field error: on the misspelled name in
+/// the task file. An error raised inside the prelude would carry the prelude's
+/// span, and tinymist would publish it for the package file instead.
+#[test]
+fn real_prelude_places_the_unknown_slot_error_on_the_name_in_the_task_file() {
+    let source = "#import \"@local/mindtape:0.2.0\": *\n\
+                  #show: task.with(\n  titel: \"typo\",\n  x-speconaut: (spec: \"s.typ\"),\n)\n";
+    let dir = setup();
+    write_pkg(dir.path(), "lib", "mindtape", "0.2.0", REAL_PRELUDE);
+    write(dir.path(), "tasks/t.typ", source);
+    let world = HarvestWorld::with_root(&dir.path().join("tasks/t.typ"), dir.path())
+        .unwrap()
+        .with_local_package("mindtape", dir.path().join("lib"));
+    let world: &dyn typst::World = &world;
+
+    let errors = typst::compile::<PagedDocument>(world).output.unwrap_err();
+    let error = &errors[0];
+    assert_eq!(error.message, "unexpected argument: titel");
+    let file = error.span.id().unwrap();
+    assert_eq!(file.vpath().get_with_slash(), "/tasks/t.typ");
+    assert!(matches!(file.root(), VirtualRoot::Project));
+    let range = world.range(error.span).unwrap();
+    assert!(source[range.start..].starts_with("titel"), "{range:?}");
+}
+
+/// Every call the sink took before it refused through Typst still loads: no
+/// extension slot, several, one whose name Typst parses as `x-` alone, and one
+/// a dictionary spread names with a space, which no parameter can spell.
+#[test]
+fn real_prelude_still_takes_every_extension_slot_it_took() {
+    let cases: [(&str, &[&str]); 4] = [
+        ("", &[]),
+        ("x-a: 1, x-b-2: 2", &["x-a", "x-b-2"]),
+        ("x-: 1", &["x-"]),
+        ("..(\"x-a b\": 1), x-c: 2", &["x-a b", "x-c"]),
+    ];
+    for (fields, keys) in cases {
+        let (_dir, outcome) = load_real_prelude(&format!(
+            "#import \"@local/mindtape:0.2.0\": *\n\
+             #show: task.with(title: \"T\", {fields})\n"
+        ));
+        assert_eq!(outcome.errors, Vec::new(), "`{fields}` failed to load");
+        let extras: Vec<&str> = outcome.tasks[0].extras.keys().map(String::as_str).collect();
+        assert_eq!(extras, keys, "`{fields}`");
+    }
+}
+
+/// The refusals around the extension sink keep their text: a misspelled field
+/// beside a slot no parameter can spell, and a positional argument.
+#[test]
+fn real_prelude_still_refuses_what_the_sink_refused() {
+    let cases = [
+        ("..(\"x-a b\": 1), titel: 2", "unexpected argument: titel"),
+        (
+            "..(\"x-a b\": 1, \"ti tel\": 2)",
+            "unexpected argument: ti tel",
+        ),
+    ];
+    for (field, message) in cases {
+        assert_eq!(prelude_eval_error(field), format!("eval error: {message}"));
+    }
+    let (_dir, outcome) = load_real_prelude(
+        "#import \"@local/mindtape:0.2.0\": *\n\
+         #show: task.with(\"stray\", title: \"T\")\n",
+    );
+    assert_eq!(
+        outcome.errors[0].message,
+        "eval error: assertion failed: task takes no positional args besides its body"
     );
 }
 

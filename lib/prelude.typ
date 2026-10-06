@@ -635,16 +635,41 @@
   body
 }
 
+// An `x-` name Typst can write as a parameter: `x-` and then identifier
+// characters. A dictionary spread can still name a slot `x-a b`.
+#let _x-ident = regex("^x-[\p{XID_Continue}-]*$")
+
+// Refuses every named argument in the sink that is not an `x-<ns>` slot, with
+// Typst's own `unexpected argument: <name>`. The sink is spread into a closure
+// that declares exactly its `x-` names, so Typst raises the error at the
+// misspelled name in the task file, where an editor draws it. A call that
+// spreads an `x-` name no parameter can spell is checked by a spread of the
+// unknown names instead, and that error points here.
+#let _refuse-unknown-slots(meta) = {
+  let names = meta.named().keys().filter(key => key.starts-with("x-"))
+  if names.all(key => key.match(_x-ident) != none) {
+    let declared = names.map(key => key + ": none, ").join()
+    eval("(" + declared + ") => none")(..meta)
+  } else {
+    let unknown = meta
+      .named()
+      .pairs()
+      .filter(((key, _)) => not key.starts-with("x-"))
+    (() => none)(..unknown.to-dict())
+  }
+}
+
 // The task show-rule. Every core field is an explicit named parameter, so the
 // signature IS the core-slot enumeration — no separate `_core-slots` list to
 // drift from the marker builder, and an editor (tinymist) can offer completion,
 // signature help and spelling feedback while a task is authored. That typed
 // authoring is a main reason tasks are Typst and not YAML frontmatter.
 // `..meta` stays as the extension sink only: anything reaching it is by
-// definition not a core field, so the x-<ns> discipline is one assert over the
-// sink rather than a membership test per key. Defaults match what the Rust
-// layer reads for an unset field ("" / none / empty), keeping an omitted field
-// and an explicitly-defaulted one indistinguishable downstream.
+// definition not a core field, so the x-<ns> discipline is one check over the
+// sink (`_refuse-unknown-slots`) rather than a membership test per key.
+// Defaults match what the Rust layer reads for an unset field ("" / none /
+// empty), keeping an omitted field and an explicitly-defaulted one
+// indistinguishable downstream.
 #let task(
   body,
   title: "",
@@ -667,16 +692,8 @@
     meta.pos().len() == 0,
     message: "task takes no positional args besides its body",
   )
-  let extras = (:)
-  for (key, value) in meta.named() {
-    assert(
-      key.starts-with("x-"),
-      message: "unknown task slot `"
-        + key
-        + "`; tool extensions must use an x-<ns> slot",
-    )
-    extras.insert(key, value)
-  }
+  _refuse-unknown-slots(meta)
+  let extras = meta.named()
   let fields = (
     title: title,
     status: status,

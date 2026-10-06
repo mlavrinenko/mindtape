@@ -36,8 +36,8 @@ Rules to respect:
 - Status, kind, priority scale, and tags come from `.mindtape/config.toml`.
 - Custom/extension fields must be namespaced `x-<ns>` (e.g.
   `x-speconaut: ...`). Every other field name is a declared parameter of
-  `task`, so a typo is not kept as an extension — it fails with an
-  `unknown task slot` error naming the field, e.g. `titel`.
+  `task`, so a typo is not kept as an extension — it fails with
+  `unexpected argument: titel` for a field written `titel:`.
 - Edge helpers take plain stem strings, never `link("a.typ")` — that is
   content, and reads as the trailing note. Passing one (or a second note, a
   named arg, a non-string) is an eval error naming the helper, not a dropped

@@ -86,6 +86,11 @@ strsim = "0.11"
 
 [dev-dependencies]
 tempfile = "3"
+# Already in the tree at these versions, under `typst-harvest`. The harvest
+# flattens an eval error to its message, so `loader_tests_prelude.rs` compiles a
+# task file itself to read where Typst places the error.
+typst = "0.15"
+typst-layout = "0.15"
 
 [lints]
 workspace = true

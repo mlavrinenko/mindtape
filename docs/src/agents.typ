@@ -131,9 +131,9 @@ through, is defined in `typst-world` as `typst_world::value::HVal`.
 #raw(dsl.task.code, lang: "typ", block: true)
 
 `task` declares each core field as a named parameter, so tinymist completes
-the field names. Its `..meta` sink takes only `x-<ns>` extension slots, and a
-misspelled field such as `titel` fails the file with an `unknown task slot`
-error.
+the field names. Its `..meta` sink takes only `x-<ns>` extension slots. A
+misspelled field such as `titel` fails the file with
+`unexpected argument: titel`, which an editor marks under `titel`.
 
 A field value is a plain shape that Rust interprets. `ice(...)` and the other
 framework helpers build a `(framework, inputs)` dict, `every(...)` and

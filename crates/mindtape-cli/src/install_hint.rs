@@ -162,7 +162,7 @@ mod tests {
     #[test]
     fn ignores_unrelated_load_errors() {
         assert!(!names_prelude_package(
-            "eval error: unknown task slot `foo`"
+            "eval error: unexpected argument: foo"
         ));
         assert!(!names_prelude_package(
             "eval error: file not found (searched at /tmp/p/packages/local/other/1.0.0/typst.toml)"
@@ -175,7 +175,7 @@ mod tests {
     fn a_single_failure_hints_only_when_it_names_the_prelude() {
         assert_eq!(failure_prelude_hint(REAL), Some(HINT));
         assert_eq!(
-            failure_prelude_hint("eval error: unknown task slot `foo`"),
+            failure_prelude_hint("eval error: unexpected argument: foo"),
             None
         );
     }
@@ -188,7 +188,7 @@ mod tests {
     #[test]
     fn no_hint_for_other_failures() {
         assert_eq!(
-            missing_prelude_hint(&outcome(&["eval error: unknown task slot `foo`"])),
+            missing_prelude_hint(&outcome(&["eval error: unexpected argument: foo"])),
             None
         );
     }
@@ -205,7 +205,7 @@ mod tests {
     #[test]
     fn hints_when_only_some_errors_name_the_package() {
         assert!(
-            missing_prelude_hint(&outcome(&["eval error: unknown task slot `foo`", REAL]))
+            missing_prelude_hint(&outcome(&["eval error: unexpected argument: foo", REAL]))
                 .is_some()
         );
     }
@@ -235,7 +235,7 @@ mod tests {
         ));
         assert_eq!(
             escaped_hash_hint(&outcome(&[
-                "eval error: unknown task slot `unknown variable`"
+                "eval error: unexpected argument: unknown variable"
             ])),
             None
         );
@@ -268,7 +268,7 @@ mod tests {
     #[test]
     fn no_hints_for_an_unrelated_failure() {
         assert_eq!(
-            load_hints(&outcome(&["eval error: unknown task slot `foo`"])).count(),
+            load_hints(&outcome(&["eval error: unexpected argument: foo"])).count(),
             0
         );
     }
