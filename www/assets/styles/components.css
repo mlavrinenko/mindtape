@@ -1,4 +1,4 @@
-/* MindTape docs — components: hero, three faces, terminal, cards, pills. */
+/* MindTape docs — components: hero, three faces, terminal, language server, cards, pills. */
 
 /* Hero -------------------------------------------------------------------- */
 .hero { padding: 1.2rem 0 0.5rem; }
@@ -85,6 +85,55 @@
 .diagram text:not([fill]) { fill: var(--fg); }
 .diagram .node:has(> [fill]:not([fill="none"])) text:not([fill]) { fill: #1f2328; }
 .diagram figcaption { text-align: center; color: var(--muted); font-size: 0.9rem; margin-top: 0.4rem; }
+
+/* Language server --------------------------------------------------------- */
+/* What tinymist returned on a task file (lsp-completion and lsp-diagnostics in
+   ui.typ). The listings keep the light code paper in both themes, because
+   Typst bakes the highlight colours. The frame, the menu and the problems take
+   the theme. --lsp-column is the cursor's column, in characters, so the caret
+   and the menu use the listing's monospace font and size. */
+:root { --lsp-error: #c0362c; --lsp-warning: #9a6700; }
+[data-theme="dark"] { --lsp-error: #ff8278; --lsp-warning: #e5b03f; }
+.lsp {
+  margin: 1.3rem 0; overflow: hidden;
+  border: 1px solid var(--border); border-radius: 12px; background: var(--bg);
+}
+.lsp figcaption {
+  font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted);
+  padding: 0.5rem 0.9rem; border-bottom: 1px solid var(--border); background: var(--bg-soft);
+}
+.lsp figcaption code { font-size: 1em; }
+.lsp-code { background: var(--code-bg); padding: 0.8rem 0; }
+.lsp-code pre {
+  margin: 0; padding: 0 1.1rem; border: none; border-radius: 0; box-shadow: none;
+  background: transparent;
+}
+.lsp-cursor, .lsp-menu { font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.55; }
+.lsp-cursor { padding-left: 1.1rem; height: 1.55em; }
+.lsp-caret {
+  display: inline-block; width: 2px; height: 1.3em; vertical-align: text-bottom;
+  margin-left: calc(var(--lsp-column) * 1ch); background: var(--code-fg);
+}
+.lsp-menu {
+  list-style: none; width: max-content; min-width: 14rem; padding: 0.25rem 0;
+  margin: 0.1rem 0 0.4rem calc(1.1rem + var(--lsp-column) * 1ch);
+  background: var(--bg); color: var(--fg);
+  border: 1px solid var(--border); border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+}
+.lsp-menu li { display: flex; gap: 0.7rem; align-items: baseline; padding: 0.05rem 0.7rem; margin: 0; }
+.lsp-menu li:first-child { background: var(--accent-wash); }
+.lsp-kind { color: var(--accent); font-size: 0.7rem; min-width: 2.6rem; }
+.lsp-problems { list-style: none; margin: 0; padding: 0.4rem 0; border-top: 1px solid var(--border); }
+.lsp-problems li {
+  display: flex; flex-wrap: wrap; gap: 0.2rem 0.7rem; align-items: baseline;
+  margin: 0; padding: 0.3rem 0.9rem; font-size: 0.88rem;
+}
+.lsp-severity { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+.lsp-error .lsp-severity { color: var(--lsp-error); }
+.lsp-warning .lsp-severity { color: var(--lsp-warning); }
+.lsp-message { flex: 1 1 18rem; }
+.lsp-where { font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); }
 
 /* Native Typst tables ----------------------------------------------------- */
 main table { border-collapse: collapse; width: 100%; margin: 0 0 1.3rem; font-size: 0.9rem; }

@@ -2,7 +2,7 @@
 // intro and the showcase task. The problem list comes from www/utils/demo.typ,
 // which README.md renders too.
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": hero
+#import "../utils/ui.typ": hero, lsp-completion, lsp-diagnostics
 #import "../utils/demo.typ": solves, tagline
 #import "../utils/site.typ": u
 
@@ -34,6 +34,18 @@ A task file is Typst code. Over a Markdown file, that gives you four things.
   and every task that imports it uses the same definitions.
 - #strong[Your own validator.] A rule can call a Typst function you write, as
   #link(u("/self-validating-tasks/"))[Self-validating tasks] shows.
+
+The two blocks below are what tinymist, the Typst language server, returned
+when this site was built. On a blank line inside `task.with(...)`, it offers
+each field the file does not set yet.
+
+#lsp-completion()
+
+On a file that writes `titel:`, tinymist reports the unknown slot as it
+compiles the file. The error sits at the prelude's check, so an editor lists
+it among its problems.
+
+#lsp-diagnostics()
 
 = Built for humans and agents
 

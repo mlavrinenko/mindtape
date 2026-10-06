@@ -270,3 +270,97 @@
     html.elem("figcaption", caption)
   })
 }
+
+// ── Language server ──────────────────────────────────────────────────────────
+// www/lsp-capture.py runs tinymist on examples/lsp and writes what it returned
+// to www/generated/lsp-completion.json and lsp-diagnostics.json. The blocks
+// below draw a record the way any editor shows it, without naming one: the
+// source, the menu under the cursor, and the list of problems.
+
+#let _lsp-record(slug) = json("../generated/" + slug + ".json")
+
+// The source lines as a Typst listing. The HTML block joins several listings
+// into one surface, so a listing with no lines draws nothing.
+#let _lsp-listing(lines) = if lines.len() > 0 {
+  raw(lines.join("\n"), lang: "typ", block: true)
+}
+
+// The task file with the cursor on its blank line, and the fields tinymist
+// offered there, as a menu under the cursor.
+#let lsp-completion() = {
+  let record = _lsp-record("lsp-completion")
+  let lines = record.source.trim("\n", at: end, repeat: true).split("\n")
+  let caption = [#record.server · completion · #raw(record.file), line #record.line]
+  if MARKDOWN {
+    return [
+      #caption
+
+      #_lsp-listing(lines)
+
+      #list(..record.items.map(raw))
+    ]
+  }
+  let column = "--lsp-column: " + str(record.column - 1)
+  html.elem("figure", attrs: (class: "lsp"), {
+    html.elem("figcaption", caption)
+    html.elem("div", attrs: (class: "lsp-code"), {
+      _lsp-listing(lines.slice(0, record.line - 1))
+      html.elem("div", attrs: (class: "lsp-cursor", style: column), html.elem(
+        "span",
+        attrs: (class: "lsp-caret"),
+      ))
+      html.elem(
+        "ul",
+        attrs: (class: "lsp-menu", style: column),
+        record
+          .items
+          .map(name => html.elem("li", {
+            html.elem("span", attrs: (class: "lsp-kind"), "field")
+            html.elem("span", name)
+          }))
+          .join(),
+      )
+      _lsp-listing(lines.slice(record.line))
+    })
+  })
+}
+
+// A problem as an editor lists it: where, then what.
+#let _lsp-where(problem) = (
+  problem.file + ":" + str(problem.line) + ":" + str(problem.column)
+)
+
+// The misspelled task file, and each diagnostic tinymist published while it
+// compiled that file.
+#let lsp-diagnostics() = {
+  let record = _lsp-record("lsp-diagnostics")
+  let lines = record.source.trim("\n", at: end, repeat: true).split("\n")
+  let caption = [#record.server · diagnostics · #raw(record.file)]
+  if MARKDOWN {
+    return [
+      #caption
+
+      #_lsp-listing(lines)
+
+      #list(..record.diagnostics.map(p => [
+        #p.severity at #raw(_lsp-where(p)): #p.message
+      ]))
+    ]
+  }
+  html.elem("figure", attrs: (class: "lsp"), {
+    html.elem("figcaption", caption)
+    html.elem("div", attrs: (class: "lsp-code"), _lsp-listing(lines))
+    html.elem(
+      "ul",
+      attrs: (class: "lsp-problems"),
+      record
+        .diagnostics
+        .map(p => html.elem("li", attrs: (class: "lsp-" + p.severity), {
+          html.elem("span", attrs: (class: "lsp-severity"), p.severity)
+          html.elem("span", attrs: (class: "lsp-message"), p.message)
+          html.elem("span", attrs: (class: "lsp-where"), _lsp-where(p))
+        }))
+        .join(),
+    )
+  })
+}
