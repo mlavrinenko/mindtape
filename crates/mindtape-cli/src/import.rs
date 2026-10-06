@@ -93,6 +93,10 @@ fn fail_on_skips(outcomes: &[TaskOutcome]) -> Result<()> {
     if skipped == 0 {
         return Ok(());
     }
+    let problems = outcomes.iter().flat_map(|outcome| &outcome.problems);
+    if let Some(hint) = crate::install_hint::batch_prelude_hint(problems.map(String::as_str)) {
+        eprintln!("{hint}");
+    }
     bail!("{skipped} record(s) skipped");
 }
 

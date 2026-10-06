@@ -279,6 +279,12 @@ fn refuse_rejected(pending: &[Pending<'_>], verdicts: &[Verdict]) -> Result<()> 
     if rejected == 0 {
         return Ok(());
     }
+    let failures = verdicts
+        .iter()
+        .filter_map(|verdict| verdict.load_failure.as_deref());
+    if let Some(hint) = crate::install_hint::batch_prelude_hint(failures) {
+        eprintln!("{hint}");
+    }
     bail!("{rejected} task(s) rejected; nothing was written")
 }
 

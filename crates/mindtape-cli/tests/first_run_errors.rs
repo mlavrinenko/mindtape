@@ -22,13 +22,19 @@ fn run_fresh(dir: &Path, args: &[&str]) -> (bool, String) {
     )
 }
 
-#[test]
-fn add_without_the_prelude_names_mt_install_and_the_local_package_pin() {
+/// A freshly `mt init`ed project in a temp dir, on a machine with no prelude.
+fn fresh_project() -> (tempfile::TempDir, std::path::PathBuf) {
     let home = tempfile::tempdir().unwrap();
     let project = home.path().join("p");
     std::fs::create_dir_all(&project).unwrap();
     let (ok, _) = run_fresh(&project, &["init", "--no-input"]);
     assert!(ok, "mt init failed");
+    (home, project)
+}
+
+#[test]
+fn add_without_the_prelude_names_mt_install_and_the_local_package_pin() {
+    let (_home, project) = fresh_project();
 
     let (ok, stderr) = run_fresh(&project, &["add", "Fix login"]);
 
@@ -91,4 +97,36 @@ fn outside_a_project_the_error_names_mt_init_and_the_worktree_flag() {
         "Error: not inside a MindTape project (no .mindtape/ directory found) — run \
          `mt init` to make one here, or pass `-w <path>` to use another\n"
     );
+}
+
+const NOTE: &str = "note: `@local/mindtape` is not installed — run `mt install` (once per \
+                    machine) or pin the prelude under `[[typst.local-packages]]`, then try again";
+
+const ONE_RECORD: &str = r#"[{"id":"","file":"","title":"Fix login","status":{"name":"proposed","date":"2026-06-01","note":null},"priority":null,"difficulty":null,"kind":null,"estimate":{},"links":[],"tags":[],"derived_tags":[],"due":null,"start":null,"reviewed":null,"body":"","extras":{}}]"#;
+
+#[test]
+fn import_without_the_prelude_prints_the_install_note_once_before_the_skip_count() {
+    let (_home, project) = fresh_project();
+    let record = &ONE_RECORD[1..ONE_RECORD.len() - 1];
+    let two = format!("[{},{}]", record, record.replace("Fix login", "Fix logout"));
+    std::fs::write(project.join("in.json"), two).unwrap();
+
+    let (ok, stderr) = run_fresh(&project, &["import", "in.json"]);
+
+    assert!(!ok, "{stderr}");
+    assert_eq!(stderr.matches(NOTE).count(), 1, "{stderr}");
+    let note_at = stderr.find(NOTE).unwrap();
+    assert!(stderr.rfind("skipped").unwrap() > note_at, "{stderr}");
+    assert!(stderr.rfind("did not load").unwrap() < note_at, "{stderr}");
+}
+
+#[test]
+fn import_skipped_for_another_reason_prints_no_install_note() {
+    let (_home, project) = fresh_project();
+    std::fs::write(project.join("in.json"), ONE_RECORD).unwrap();
+    support::install_lib(&project);
+
+    let (_, stderr) = run_fresh(&project, &["import", "in.json"]);
+
+    assert!(!stderr.contains(NOTE), "{stderr}");
 }

@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 6),
+  status: done(2026, 10, 7),
 )
 
 == Problem
@@ -53,12 +53,13 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape-cli/src/import/write.rs`: print `install_hint::failure_prelude_hint` once after the skipped records.
+- `crates/mindtape-cli/src/import.rs`: `fail_on_skips` prints the note once (via `install_hint::batch_prelude_hint`) after the skipped records.
 - `crates/mindtape-cli/src/pre_write.rs`: the same once in `refuse_rejected`.
+- `crates/mindtape-cli/src/install_hint.rs`: `batch_prelude_hint`, the once-per-batch helper.
 
 == Rollback
 
-- Revert the two files.
+- Revert the three files.
 
 == Out of scope
 

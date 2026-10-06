@@ -57,6 +57,14 @@ pub fn failure_prelude_hint(message: &str) -> Option<&'static str> {
     names_prelude_package(message).then_some(HINT)
 }
 
+/// The hint for a batch of failures, once: `Some` when any message names the
+/// prelude. For a writer that refuses several entries at once (`mt import`,
+/// `mt recur`, `mt mv`) and prints the note after their lines.
+#[must_use]
+pub fn batch_prelude_hint<'a>(messages: impl IntoIterator<Item = &'a str>) -> Option<&'static str> {
+    messages.into_iter().find_map(failure_prelude_hint)
+}
+
 /// Whether `message` is a load error about the unresolved prelude package.
 ///
 /// Deliberately not narrowed to "file not found": a partially written or
@@ -126,8 +134,8 @@ mod tests {
     use mindtape::{LoadError, LoadOutcome};
 
     use super::{
-        HINT, escaped_hash_hint, failure_prelude_hint, is_unknown_variable, load_hints,
-        missing_prelude_hint, names_prelude_package,
+        HINT, batch_prelude_hint, escaped_hash_hint, failure_prelude_hint, is_unknown_variable,
+        load_hints, missing_prelude_hint, names_prelude_package,
     };
 
     /// Verbatim from `mt ls` against a project whose prelude is not installed.
@@ -178,6 +186,19 @@ mod tests {
             failure_prelude_hint("eval error: unexpected argument: foo"),
             None
         );
+    }
+
+    #[test]
+    fn a_batch_hints_once_when_any_failure_names_the_prelude() {
+        assert_eq!(
+            batch_prelude_hint(["eval error: unexpected argument: foo", REAL, REAL]),
+            Some(HINT)
+        );
+        assert_eq!(
+            batch_prelude_hint(["eval error: unexpected argument: foo"]),
+            None
+        );
+        assert_eq!(batch_prelude_hint([]), None);
     }
 
     #[test]
