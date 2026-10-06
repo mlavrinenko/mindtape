@@ -1,0 +1,291 @@
+"""www/lsp-capture.py — what the Typst language server shows on a task file.
+
+www/generate.sh runs `python3 www/lsp-capture.py <repo> <out>`. The script
+starts `tinymist lsp` from the dev shell, speaks the Language Server Protocol
+to it over stdio, and writes two records under <out> for the Overview:
+
+  lsp-completion.json   the fields tinymist offers inside `task.with(...)`
+  lsp-diagnostics.json  what tinymist reports on a file that writes `titel:`
+
+The fixture is examples/lsp. Its task file marks the cursor with a
+`// docs:cursor` line, which this script removes before it opens the file. The
+misspelled file sits in invalid/, outside the project's roots.
+
+tinymist finds `@local/mindtape` where a reader's tinymist finds it: in the
+data home `mt install` writes to. The install goes to a temporary data home,
+from the `mt` this build compiled, so the prelude is this checkout's lib/.
+Fonts and caches are pinned too, so the records depend on the prelude and the
+tinymist version alone.
+
+The build fails when tinymist offers no field, reports no diagnostic, does not
+answer within the timeout, or names a file outside the fixture and the
+installed prelude.
+"""
+
+import json
+import os
+import queue
+import shutil
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+from pathlib import Path
+from urllib.parse import unquote, urlparse
+
+FIXTURE = "examples/lsp"
+COMPLETE = "tasks/fix-the-login-redirect.typ"
+DIAGNOSE = "invalid/misspelled-field.typ"
+CURSOR = "// docs:cursor"
+TIMEOUT = 60
+SEVERITY = {1: "error", 2: "warning", 3: "info", 4: "hint"}
+# LSP CompletionItemKind.Field: tinymist's kind for a named argument.
+FIELD_KIND = 5
+
+
+class CaptureError(Exception):
+    pass
+
+
+def fail(message):
+    raise CaptureError(message)
+
+
+class Server:
+    """One `tinymist lsp` process and the JSON-RPC framing around it."""
+
+    def __init__(self, env, log):
+        self.proc = subprocess.Popen(
+            ["tinymist", "lsp", "--ignore-system-fonts"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=log,
+            env=env,
+        )
+        self.inbox = queue.Queue()
+        self.next_id = 0
+        # Diagnostics tinymist last published, by URI.
+        self.diagnostics = {}
+        threading.Thread(target=self._read, daemon=True).start()
+
+    def _read(self):
+        stream = self.proc.stdout
+        while True:
+            length = None
+            while True:
+                line = stream.readline()
+                if not line:
+                    self.inbox.put(None)
+                    return
+                line = line.decode("ascii").strip()
+                if not line:
+                    break
+                name, _, value = line.partition(":")
+                if name.lower() == "content-length":
+                    length = int(value)
+            self.inbox.put(json.loads(stream.read(length)))
+
+    def _send(self, message):
+        body = json.dumps({"jsonrpc": "2.0", **message}).encode()
+        self.proc.stdin.write(b"Content-Length: %d\r\n\r\n" % len(body) + body)
+        self.proc.stdin.flush()
+
+    def notify(self, method, params):
+        self._send({"method": method, "params": params})
+
+    def _take(self, deadline):
+        try:
+            message = self.inbox.get(timeout=max(0, deadline - time.monotonic()))
+        except queue.Empty:
+            fail(f"tinymist sent nothing for {TIMEOUT}s")
+        if message is None:
+            fail("tinymist exited")
+        if message.get("method") == "textDocument/publishDiagnostics":
+            params = message["params"]
+            self.diagnostics[params["uri"]] = params["diagnostics"]
+        elif "method" in message and "id" in message:
+            # A request from the server, such as workspace/configuration.
+            # Every setting keeps its default.
+            items = message.get("params", {}).get("items")
+            result = [None] * len(items) if items else None
+            self._send({"id": message["id"], "result": result})
+        return message
+
+    def request(self, method, params):
+        self.next_id += 1
+        self._send({"id": self.next_id, "method": method, "params": params})
+        deadline = time.monotonic() + TIMEOUT
+        while True:
+            message = self._take(deadline)
+            if message.get("id") == self.next_id and "method" not in message:
+                if "error" in message:
+                    fail(f"{method}: {message['error']}")
+                return message.get("result")
+
+    def wait_for_diagnostics(self):
+        deadline = time.monotonic() + TIMEOUT
+        while not any(self.diagnostics.values()):
+            self._take(deadline)
+
+    def open(self, uri, text):
+        self.notify(
+            "textDocument/didOpen",
+            {
+                "textDocument": {
+                    "uri": uri,
+                    "languageId": "typst",
+                    "version": 1,
+                    "text": text,
+                }
+            },
+        )
+
+
+def install_prelude(repo, data_home):
+    """Install this build's prelude the way a reader does, into data_home."""
+    env = dict(os.environ, MINDTAPE_DATA_HOME=str(data_home), MINDTAPE_CONFIG_HOME="")
+    subprocess.run(
+        [str(repo / "target/debug/mt"), "install", "--no-defaults", "--no-schema", "--no-completions"],
+        env=env,
+        check=True,
+        stdout=subprocess.DEVNULL,
+    )
+    return data_home / "typst" / "packages"
+
+
+def server_env(tmp):
+    env = dict(os.environ, XDG_DATA_HOME=str(tmp / "data"), XDG_CACHE_HOME=str(tmp / "cache"))
+    for name in ("TYPST_PACKAGE_PATH", "TYPST_PACKAGE_CACHE_PATH", "TYPST_FONT_PATHS", "TYPST_ROOT"):
+        env.pop(name, None)
+    return env
+
+
+def cursor_source(text):
+    """The text with the cursor line emptied to its indent, and the cursor."""
+    lines = text.split("\n")
+    hits = [n for n, line in enumerate(lines) if line.strip() == CURSOR]
+    if len(hits) != 1:
+        fail(f"{COMPLETE} needs one `{CURSOR}` line, found {len(hits)}")
+    line = hits[0]
+    column = lines[line].index(CURSOR)
+    lines[line] = lines[line][:column]
+    return "\n".join(lines), line, column
+
+
+def fields(result):
+    """The named arguments among the completion items, sorted by name."""
+    items = result["items"] if isinstance(result, dict) else result or []
+    names = []
+    for item in items:
+        edit = item.get("textEdit", {}).get("newText") or item.get("insertText") or ""
+        if item.get("kind") == FIELD_KIND and edit.startswith(item["label"] + ":"):
+            names.append(item["label"])
+    return sorted(set(names))
+
+
+def display_path(uri, project, packages):
+    """A URI as the page names it: project-relative, or `@ns/name:ver/file`."""
+    path = Path(unquote(urlparse(uri).path))
+    if path.is_relative_to(project):
+        return str(path.relative_to(project))
+    if path.is_relative_to(packages):
+        parts = path.relative_to(packages).parts
+        if len(parts) > 3:
+            namespace, name, version = parts[:3]
+            return f"@{namespace}/{name}:{version}/" + "/".join(parts[3:])
+    fail(f"tinymist named {uri}, outside the fixture and the installed prelude")
+
+
+def diagnostics(published, project, packages):
+    out = []
+    for uri, entries in published.items():
+        for entry in entries:
+            start = entry["range"]["start"]
+            out.append(
+                {
+                    "file": display_path(uri, project, packages),
+                    "line": start["line"] + 1,
+                    "column": start["character"] + 1,
+                    "severity": SEVERITY.get(entry.get("severity"), "error"),
+                    "message": entry["message"],
+                }
+            )
+    return sorted(out, key=lambda d: (d["file"], d["line"], d["column"], d["message"]))
+
+
+def capture(repo, tmp):
+    project = (repo / FIXTURE).resolve()
+    packages = install_prelude(repo, tmp / "data")
+    if not packages.is_dir():
+        fail(f"mt install wrote no package directory at {packages}")
+    with open(tmp / "tinymist.log", "w") as log:
+        server = Server(server_env(tmp), log)
+        info = server.request(
+            "initialize",
+            {
+                "processId": os.getpid(),
+                "rootUri": project.as_uri(),
+                "capabilities": {"textDocument": {"publishDiagnostics": {}}},
+            },
+        ).get("serverInfo", {})
+        server.notify("initialized", {})
+        name = f"{info.get('name', 'tinymist')} {info.get('version', '')}".strip()
+
+        source, line, column = cursor_source((project / COMPLETE).read_text())
+        server.open((project / COMPLETE).as_uri(), source)
+        offered = fields(
+            server.request(
+                "textDocument/completion",
+                {
+                    "textDocument": {"uri": (project / COMPLETE).as_uri()},
+                    "position": {"line": line, "character": column},
+                },
+            )
+        )
+        if not offered:
+            fail(f"tinymist offered no field at the cursor in {COMPLETE}")
+        completion = {
+            "server": name,
+            "file": COMPLETE,
+            "source": source,
+            "line": line + 1,
+            "column": column + 1,
+            "items": offered,
+        }
+
+        bad = (project / DIAGNOSE).read_text()
+        server.diagnostics.clear()
+        server.open((project / DIAGNOSE).as_uri(), bad)
+        server.wait_for_diagnostics()
+        server.request("shutdown", None)
+        server.notify("exit", None)
+        server.proc.wait(timeout=TIMEOUT)
+        reported = {
+            "server": name,
+            "file": DIAGNOSE,
+            "source": bad,
+            "diagnostics": diagnostics(server.diagnostics, project, packages),
+        }
+    return completion, reported
+
+
+def main():
+    repo, out = (Path(arg).resolve() for arg in sys.argv[1:3])
+    tmp = Path(tempfile.mkdtemp())
+    try:
+        completion, reported = capture(repo, tmp)
+    except CaptureError as error:
+        # The end of tinymist's log first, then the reason, so the reason is
+        # the last line the builder reads.
+        log = tmp / "tinymist.log"
+        if log.exists():
+            sys.stderr.writelines(log.read_text().splitlines(True)[-20:])
+        sys.exit(f"lsp-capture: {error}")
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    for slug, record in (("lsp-completion", completion), ("lsp-diagnostics", reported)):
+        (out / f"{slug}.json").write_text(json.dumps(record, indent=2) + "\n")
+
+
+main()

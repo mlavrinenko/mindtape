@@ -138,6 +138,8 @@ bash "$SCRIPT_DIR/generate-import-export.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-commit-rules.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-reference.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-task-files.sh" "$REPO" "$OUT"
+# What tinymist offers and reports on a task file, for the Overview.
+python3 "$SCRIPT_DIR/lsp-capture.py" "$REPO" "$OUT"
 
 # The hero "source" face reads a real fixture task verbatim. Copy it under
 # generated/ so it lives inside the Typst build root (read() can't escape it).

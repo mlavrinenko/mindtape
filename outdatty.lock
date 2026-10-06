@@ -117,8 +117,8 @@ groups:
     source:
       .config/nextest.toml: a310c30b19df7fce268db1c136bdd93ff76bf2116e28e4fe799be41ba79920e5
       .just/docs.just: e6a852da423c2ec230c1bc281ab9bb4fe0ce6598a4b4765629adaec32c3714ae
-      Justfile: 798102fdc9935b00fe041c15a626cafebd6bd15973b70f47835b7b8f3e1721ed
-      flake.nix: e7707a3c1d3c396239ffaa139a4b9645cd6a0ee59576cc0e78183663edd74b85
+      Justfile: c70a505f5f1a4f57af4a7c2a9662918565976665c6417a1ce57abd19de888b10
+      flake.nix: 572eafe75fa6be64e142f8fd487c023cd4d5ac429a06705416f25c942867936a
     dependents:
       docs/src/agents.typ: db573f683c844f3acf22f77df6683dd1248b88d53831a0f6aaa93f8eee0f564e
       docs/src/contributing.typ: 59fb84e10c3764c1b31d33d6bd59c01562450a6344876ac5faa3a0a15eaa9b50
