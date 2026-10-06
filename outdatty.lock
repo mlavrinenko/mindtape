@@ -71,6 +71,27 @@ groups:
       skills/mindtape/references/filters.md: 8df147f39ce5cb793469dbfcd32a2fb02216ef1b7149351451f507d29328bff2
       www/content/agents.typ: c662959be1e441b6382159036b4b207a23a50fdd7c0ee738757b14aeb637b830
       www/content/cli.typ: c9a9d8f0053ae14b844ea2183b17f27b27648f72e0140c0f3d6377676a32e206
+      www/content/cli/add.typ: 2b9d93757ee3aa04546bb4a2ff975dde6049e8bcd7e9e9ce7e01417bab898a93
+      www/content/cli/check.typ: 8e6be77b171f90e53d632b478a10edc43b3612d80c478b6b2a29f808ce97b327
+      www/content/cli/config.typ: e80111cb871fe4464ea6c4ec06ae78512ef5b6a9752444311509ab1fb5321601
+      www/content/cli/eval.typ: 7468020417eb5c30cb3a0dc949167bffaa0d8769b2ff7b5e64a50e8d354bc7e5
+      www/content/cli/find.typ: daf477aa706afd67733885ea93222bdc533aaf9c0f6ffc9df63fd633571e62b4
+      www/content/cli/flip.typ: b703fb91dd2ff19df7af191d3fde42220938c1e289f2ee1774ba5c6f4105091a
+      www/content/cli/go.typ: c55feee97dce8c5dca7c27b8084070830076d282186479aa2db2485d5fc85360
+      www/content/cli/graph.typ: 929f2ae344b7f3295f9213caede3698e0418d84fb02cc36239e8f7fb113b9c23
+      www/content/cli/import.typ: 1d0548ff74cda8385b6330fe6ac65a082f375c9ac9f3e1ecf0496c8f82447c9a
+      www/content/cli/init.typ: c524b62c3663cef6417dd64107513ff55b1d55f96ffbe93ca42a2c2499bca23d
+      www/content/cli/install.typ: ed61176008fbe18cf9327fa7e27c71f58a2773d24b7c75d6d8eaa4830bf9d1bd
+      www/content/cli/link.typ: 56de8e64dbd6303258f0ec80b1891fcffd46325451a6edd10fad28aac9192996
+      www/content/cli/ls.typ: 5f611aff7aa010c6cdaf7d8cbf10fec2f110219c8035dcccc436149aca4caaf8
+      www/content/cli/mv.typ: d656feb0d528df7c1a5ff2e4484286ffe4ca71d3d1ee311b539a331279c2ee37
+      www/content/cli/preset.typ: 4fe537f9b240f8092b8e5d0504962e5fde37dc0f12fad86910e8f0b089f3eff7
+      www/content/cli/recur.typ: 3ffb9c8ba7076c253e24e02efb972c332c3b7f9e11d000b64844f77dee0efd06
+      www/content/cli/review.typ: bcf2c752351cd775ea4aec69f15aa0517a9f27f08cabb69156566ab468de567d
+      www/content/cli/rm.typ: e6933254d30d9551ee4fbc81cfeaec2eaed77927cbac64ae85dd2dca7598f9f3
+      www/content/cli/set.typ: 24b76bb77e2e3c4b0e7a265702758ada5d054e67a705b5f81c778c244cf93c59
+      www/content/cli/views.typ: 60a67289f2bb546ff203cfb8047299894e6689b241287c04b0c35374e094422a
+      www/content/cli/worktrees.typ: edd512ecff478c88e54c9c8e177d02948a80a3b37ba33d275a888a7cb87416c5
       www/content/commit-rules.typ: 48a5f48dae5bc8582c6b0a70f366c9209bc457845fe95ac8ad5e2524cabf2f69
       www/content/concepts.typ: 09a59054d0c30ca5c5369a96be60f6ee285e813bbc581b90237d587a5c02cf84
       www/content/config.typ: 1e0beebd08fb2ea13ed0b3eb0b3f06728d1fba127356f0566377be1658d61c30

@@ -27,45 +27,39 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 6),
+  status: done(2026, 10, 7),
 )
 
 == Problem
 
 + Integrating the per-command CLI pages and the docs-terms pass, which edited those pages.
-+ 🔴 #raw("outdatty.yaml"): The \`cli-docs\` group lists \`www/content/cli/\*.typ\` as a glob dependent, and \`outdatty.lock\` records no hash for any file it matches, so a reviewed edit to one command page leaves no record.
++ 🔴 #raw("outdatty.lock"): The \`cli-docs\` group lists \`www/content/cli/\*.typ\` as a glob dependent, and the lock recorded no hash for any file it matches, because nobody ran the update after the 21 pages were added. The glob itself works: outdatty 0.5.0 records one hash per matched file, as `outdatty update --group cli-docs --dependent www/content/cli/add.typ` shows.
 
 `outdatty.yaml:150`: `- www/content/cli/*.typ`
-`rg -c 'content/cli/' outdatty.lock` prints nothing, while `www/content/cli.typ` has its hash at lines 73 and 103.
-Appending a line to `www/content/cli/add.typ` and running `outdatty check` reports nothing.
-
-
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
-#raw("outdatty.yaml").
+`rg -c 'content/cli/' outdatty.lock` printed nothing, while `www/content/cli.typ` had its hash.
 
 == TO-BE
 
-- 🟢 Each command page is a dependent outdatty records, so `just outdatty-update cli-docs <path>` after an edit to one leaves a hash for it.
-- 🟢 A new command page joins the group without a hand edit, or a gate names the page missing from it.
+- 🟢 `outdatty.lock` holds a hash for each of the 21 command pages, recorded after reviewing each page against the cli-docs sources, so an edit to one is caught.
+- 🟢 A command page added later is recorded by `just outdatty-update cli-docs <path>`, with no change to `outdatty.yaml`.
 
 
 == Changes
 
-- `outdatty.yaml`: list the command pages so outdatty records them, or confirm with outdatty's docs that a glob dependent records per-file hashes and drop this task.
-- `outdatty.lock`: the recorded hashes.
+- `outdatty.lock`: the 21 hashes, each recorded per page, not as a whole-group update, which would also re-hash `www/content/recurring.typ` unreviewed.
+- Review found no drift: the prose on `check`, `config`, `flip`, `graph`, `link`, `mv`, `recur`, `rm`, `views` and `ls` matches `mt --help`; the other pages only render the generated reference.
 
 
 == Rollback
 
-Revert the commit; the glob stays as before.
+Revert the commit; the pages go back to unrecorded.
 
 == Out of scope
 
 - Other groups' dependents.
+- A gate that names an unrecorded page: `outdatty check` does not flag a dependent with no hash, and that is outdatty's behavior.
 
 
 == Dogfood
 
 This repo's next edit to a command page records its review in `outdatty.lock`.
-
