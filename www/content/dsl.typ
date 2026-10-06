@@ -25,6 +25,7 @@ This one, from `examples/dsl/`, sets most of them:
 
 #raw(sketch.task.code, lang: "typ", block: true)
 
+#link(u("/task-files/"))[Task files] explains the Typst in it, line by line.
 #link(u("/concepts/"))[Concepts] explains how `mt` reads these files, names
 them and resolves their links.
 
@@ -71,8 +72,6 @@ repeat, and #link(u("/recurring/"))[Recurring tasks] covers its rules.
 
 = Task bodies
 
-Everything below `task.with(...)` is Typst markup, so `#` followed by a name
-starts a Typst expression there. Prose such as `tag it #urgent` fails the
-file. Every command then warns `unknown variable: urgent` and leaves the task
-out, and `mt check` fails. Write a literal hash as `\#`, or put the text in
-backticks, where `#` is plain text.
+Everything below `task.with(...)` is the body, in Typst markup.
+#link(u("/task-files/"))[Task files] shows what the markup holds and how to
+write a literal `#` in it.

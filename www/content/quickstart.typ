@@ -84,6 +84,8 @@ The written file is plain Typst that holds the values you gave:
 
 #raw(read("../generated/qs-written.typ"), lang: "typ", block: true)
 
+#link(u("/task-files/"))[Task files] explains each line of it.
+
 #link(u("/templates/"))[Templates & slots] covers templates with more slots,
 editor mode and named templates.
 

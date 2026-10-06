@@ -70,6 +70,7 @@
   (
     title: "Tasks",
     items: (
+      "/task-files/",
       "/dsl/",
       "/links/",
       "/recurring/",
