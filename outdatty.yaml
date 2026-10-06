@@ -299,6 +299,15 @@ groups:
       - examples/estimates/tasks/rename-the-status-glyphs.typ
       - examples/dsl/tasks/add-a-session-store.typ
       - examples/dsl/tasks/fix-the-login-redirect.typ
+      - examples/task-files/tasks/fix-the-login-redirect.typ
+      - examples/task-files/tasks/add-a-session-store.typ
+      - examples/task-files/tasks/log-failed-logins.typ
+      - examples/task-files/invalid/missing-comma.typ
+      - examples/task-files/invalid/dictionary-in-braces.typ
+      - examples/task-files/invalid/one-tag-without-a-comma.typ
+      - examples/task-files/invalid/note-as-a-string.typ
+      - examples/task-files/invalid/links-joined-with-a-comma.typ
+      - examples/task-files/invalid/hash-in-the-body.typ
       - examples/statuses/tasks/add-a-dry-run-flag.typ
       - examples/statuses/tasks/import-xlsx-files.typ
       - examples/statuses/tasks/map-csv-columns.typ

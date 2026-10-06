@@ -1,0 +1,43 @@
+#:schema ../../../schema/config.schema.json
+# examples/task-files/.mindtape/config.toml — the checked project the
+# /task-files/ page walks.
+#
+# tasks/ holds valid task files, and `just check-examples` checks them.
+# invalid/ holds one broken task per syntax mistake the page shows. It sits
+# outside the roots, so `mt` never reads it here. www/generate-task-files.sh
+# copies each broken file into tasks/ of a scratch copy and captures the
+# `mt check` that refuses it.
+
+# Resolve @local/mindtape from lib/ two levels up, the prelude under test,
+# as the other checked examples do.
+[[typst.local-packages]]
+name = "mindtape"
+path = "../../lib"
+
+[tasks]
+roots = ["tasks"]
+
+[tasks.estimate]
+units = ["days", "hours"]
+
+[[tasks.status]]
+value = "todo"
+glyph = "📋"
+color = "cyan"
+
+[[tasks.status]]
+value = "wip"
+glyph = "🔨"
+color = "yellow"
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+
+[[tasks.status]]
+value = "cancelled"
+glyph = "🚫"
+color = "magenta"
+terminal = true

@@ -137,6 +137,7 @@ bash "$SCRIPT_DIR/generate-model.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-import-export.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-commit-rules.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-reference.sh" "$REPO" "$OUT"
+bash "$SCRIPT_DIR/generate-task-files.sh" "$REPO" "$OUT"
 
 # The hero "source" face reads a real fixture task verbatim. Copy it under
 # generated/ so it lives inside the Typst build root (read() can't escape it).
