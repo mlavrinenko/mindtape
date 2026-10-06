@@ -5,7 +5,8 @@ starts `tinymist lsp` from the dev shell, speaks the Language Server Protocol
 to it over stdio, and writes two records under <out> for the Overview:
 
   lsp-completion.json   the fields tinymist offers inside `task.with(...)`
-  lsp-diagnostics.json  what tinymist reports on a file that writes `titel:`
+  lsp-diagnostics.json  what tinymist reports on a file that writes `titel:`,
+                        and where
 
 The fixture is examples/lsp. Its task file marks the cursor with a
 `// docs:cursor` line, which this script removes before it opens the file. The
@@ -17,9 +18,8 @@ from the `mt` this build compiled, so the prelude is this checkout's lib/.
 Fonts and caches are pinned too, so the records depend on the prelude and the
 tinymist version alone.
 
-The build fails when tinymist offers no field, reports no diagnostic, does not
-answer within the timeout, or names a file outside the fixture and the
-installed prelude.
+The build fails when tinymist offers no field, does not answer within the
+timeout, or reports a problem anywhere but the misspelled file, or none there.
 """
 
 import json
@@ -184,34 +184,31 @@ def fields(result):
     return sorted(set(names))
 
 
-def display_path(uri, project, packages):
-    """A URI as the page names it: project-relative, or `@ns/name:ver/file`."""
-    path = Path(unquote(urlparse(uri).path))
-    if path.is_relative_to(project):
-        return str(path.relative_to(project))
-    if path.is_relative_to(packages):
-        parts = path.relative_to(packages).parts
-        if len(parts) > 3:
-            namespace, name, version = parts[:3]
-            return f"@{namespace}/{name}:{version}/" + "/".join(parts[3:])
-    fail(f"tinymist named {uri}, outside the fixture and the installed prelude")
-
-
-def diagnostics(published, project, packages):
+def diagnostics(published, project):
+    """The problems tinymist published for the misspelled file, where it put
+    them. A problem published for any other file is one an editor would not
+    draw in the file the reader wrote, so the build fails on it."""
     out = []
     for uri, entries in published.items():
+        path = Path(unquote(urlparse(uri).path))
+        if entries and path != project / DIAGNOSE:
+            fail(f"tinymist reported {entries[0]['message']!r} on {uri}, not on {DIAGNOSE}")
         for entry in entries:
-            start = entry["range"]["start"]
+            start, end = entry["range"]["start"], entry["range"]["end"]
             out.append(
                 {
-                    "file": display_path(uri, project, packages),
+                    "file": DIAGNOSE,
                     "line": start["line"] + 1,
                     "column": start["character"] + 1,
+                    "end_line": end["line"] + 1,
+                    "end_column": end["character"] + 1,
                     "severity": SEVERITY.get(entry.get("severity"), "error"),
                     "message": entry["message"],
                 }
             )
-    return sorted(out, key=lambda d: (d["file"], d["line"], d["column"], d["message"]))
+    if not out:
+        fail(f"tinymist reported nothing on {DIAGNOSE}")
+    return sorted(out, key=lambda d: (d["line"], d["column"], d["message"]))
 
 
 def capture(repo, tmp):
@@ -265,7 +262,7 @@ def capture(repo, tmp):
             "server": name,
             "file": DIAGNOSE,
             "source": bad,
-            "diagnostics": diagnostics(server.diagnostics, project, packages),
+            "diagnostics": diagnostics(server.diagnostics, project),
         }
     return completion, reported
 

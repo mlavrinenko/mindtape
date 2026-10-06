@@ -114,6 +114,17 @@
   display: inline-block; width: 2px; height: 1.3em; vertical-align: text-bottom;
   margin-left: calc(var(--lsp-column) * 1ch); background: var(--code-fg);
 }
+/* The squiggle row follows the listing that ends on the problem's line. It
+   takes no height, and its span repeats the marked text in a transparent
+   colour one line up, so the wavy underline lands under those characters. The
+   colour is the light-theme one, because the code paper is light in both. */
+.lsp-squiggle { height: 0; padding-left: 1.1rem; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.55; white-space: pre; }
+.lsp-squiggle span {
+  position: relative; top: -1.55em; margin-left: calc(var(--lsp-column) * 1ch);
+  color: transparent; text-decoration: underline wavy #c0362c;
+  text-decoration-skip-ink: none; text-underline-offset: 0.2em; pointer-events: none;
+}
+.lsp-squiggle .lsp-warning { text-decoration-color: #9a6700; }
 .lsp-menu {
   list-style: none; width: max-content; min-width: 14rem; padding: 0.25rem 0;
   margin: 0.1rem 0 0.4rem calc(1.1rem + var(--lsp-column) * 1ch);

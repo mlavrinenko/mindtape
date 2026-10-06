@@ -41,9 +41,8 @@ each field the file does not set yet.
 
 #lsp-completion()
 
-On a file that writes `titel:`, tinymist reports the unknown slot as it
-compiles the file. The error sits at the prelude's check, so an editor lists
-it among its problems.
+On a file that writes `titel:`, tinymist reports the unknown field as it
+compiles the file, and an editor marks it under `titel`.
 
 #lsp-diagnostics()
 

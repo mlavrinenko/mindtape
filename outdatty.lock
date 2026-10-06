@@ -72,7 +72,7 @@ groups:
       www/content/agents.typ: c662959be1e441b6382159036b4b207a23a50fdd7c0ee738757b14aeb637b830
       www/content/cli.typ: c9a9d8f0053ae14b844ea2183b17f27b27648f72e0140c0f3d6377676a32e206
       www/content/commit-rules.typ: 48a5f48dae5bc8582c6b0a70f366c9209bc457845fe95ac8ad5e2524cabf2f69
-      www/content/concepts.typ: 634b51648e1de8dcc98e8090f9509542ec0ae69e67751166f8db15cd04cbf2df
+      www/content/concepts.typ: 09a59054d0c30ca5c5369a96be60f6ee285e813bbc581b90237d587a5c02cf84
       www/content/config.typ: 1e0beebd08fb2ea13ed0b3eb0b3f06728d1fba127356f0566377be1658d61c30
       www/content/derived-tags.typ: 8672009098bded96541cd8a3ca1162e95a4e5d56e1308d1c553d1919cf1620be
       www/content/estimates.typ: add3c0bbcc58db99b226a1127c3c0c7669af1b2b9b345af6ab7f265cf6188078
@@ -95,7 +95,7 @@ groups:
       crates/mindtape-cli/src/cli.rs: 5df33c4dc4b0d3173313e9dd3bb9c8628af7b77a89bd747ee5831e4a336a3cce
     dependents:
       CHANGELOG.md: 509963e6a111c2f6774e0727045ddfacf74f34f46637fe6eb57f3705d1fe6ca3
-      docs/src/agents.typ: db573f683c844f3acf22f77df6683dd1248b88d53831a0f6aaa93f8eee0f564e
+      docs/src/agents.typ: 48e52ec38d9086566fe2bdaaf0c8404e04988c4f636d39dfae48a8a682507d4c
       docs/src/contributing.typ: 97c82934196ec6defa4ee0524c46f0e4dcae5352abdca02cce3fe82132bbe696
       docs/src/contributing/command-semantics.typ: 85411a192024caab69e4e8ffc93583fd70985701a5237799eacb1db4369a2ec9
       docs/src/readme.typ: 84c0bda43d327ef711df98c5c9bf9b96ac333e80906973184c045f432c89be06
@@ -120,7 +120,7 @@ groups:
       Justfile: dc995fd089c44d36f425bb8e4f42404551e0a2d8ccc4702078a6d69652c00eea
       flake.nix: 9da2e53a4c30d4f6d3beffcf732eebebb2bf6476cd5782b9958c8aee01b93248
     dependents:
-      docs/src/agents.typ: db573f683c844f3acf22f77df6683dd1248b88d53831a0f6aaa93f8eee0f564e
+      docs/src/agents.typ: 48e52ec38d9086566fe2bdaaf0c8404e04988c4f636d39dfae48a8a682507d4c
       docs/src/contributing.typ: 97c82934196ec6defa4ee0524c46f0e4dcae5352abdca02cce3fe82132bbe696
       docs/src/contributing/coverage-crap.typ: 4cca206220b9c5494ee882c327f911b731f5194d38a4443069d6978b228cd4f2
       docs/src/contributing/crap-baseline.typ: bcbc918cf8976b8d4b560bd4190c6eb96eab3c2ca3e380108c9996bd65cae98d
@@ -194,17 +194,17 @@ groups:
       docs/src/contributing/signal-sweep.typ: 6377402d346c38c13ccb9cdc7e5b10913c5c7123dccd47bf6767ca0727a802fe
   prelude-docs:
     source:
-      lib/prelude.typ: ff725b01b3243535071d4d7a8d4377177bf53cdb968a26ed0daaec30485bbf1a
+      lib/prelude.typ: 1acc793b904229ee9dccc443f9c1ce523f126ed550fabdf1fa4e1d0f01aa6897
     dependents:
-      docs/src/agents.typ: db573f683c844f3acf22f77df6683dd1248b88d53831a0f6aaa93f8eee0f564e
+      docs/src/agents.typ: 48e52ec38d9086566fe2bdaaf0c8404e04988c4f636d39dfae48a8a682507d4c
       docs/src/skill.typ: c2c1f99555057c80465e0382054300d746b69ed7fca2189f0de1f6857231b165
       skills/mindtape/references/add-slots.md: 88cb97c15bb273483d526b496a227f2a0794fa279d876b0585dc2d46c5aaa658
-      www/content/concepts.typ: 634b51648e1de8dcc98e8090f9509542ec0ae69e67751166f8db15cd04cbf2df
-      www/content/dsl.typ: 8d3649ab4733967c8ed68af5d5a0e5240be2b3a9d4be37d6936d4ace5fb19b22
-      www/content/index.typ: 7a601844ef661ed501d2a756c9b2617d6460dad3442f1c75e999fef34e590493
+      www/content/concepts.typ: 09a59054d0c30ca5c5369a96be60f6ee285e813bbc581b90237d587a5c02cf84
+      www/content/dsl.typ: 15cebaf0078befa313e9fc001ddaa52e65af72b2ce5f827c7eb6ded1df6349b1
+      www/content/index.typ: b476a360a4ca66162a1547e537d9b09879b327ca01184bcc2d677b5385ee333a
       www/content/links.typ: c3540c176e397d7bf08b6c6a1e8b2af60dd9edd24202ed69a80a4ead9dff06d3
       www/content/priority.typ: 5da0661bc11613b90d9410b36b79436df14ba61a671437e72b601299497f7121
-      www/content/recurring.typ: 48ec5e3101b333d3b08050e68ad7f2ce21737f42f78d376033a6e3f556b7a222
+      www/content/recurring.typ: afb954dfbc258b46c66b09120c430b88de0cec274dc9191fdf14145dbe05a3c1
       www/content/templates.typ: dc2ca89dd05f46ef1f2cc7aa8cc4b726c85d68f1a921c4604ba63820e1117eda
   priority-frameworks:
     source:

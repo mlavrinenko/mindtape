@@ -330,8 +330,31 @@
   problem.file + ":" + str(problem.line) + ":" + str(problem.column)
 )
 
-// The misspelled task file, and each diagnostic tinymist published while it
-// compiled that file.
+// The source with a wavy line under each problem's range, the way an editor
+// marks it. A range that runs past its first line is marked to that line's end.
+// The marked text repeats the source in a transparent colour, so the line sits
+// under the same characters in the listing's monospace font.
+#let _lsp-marked(lines, problems) = {
+  let shown = 0
+  for p in problems.sorted(key: p => p.line) {
+    _lsp-listing(lines.slice(shown, p.line))
+    shown = p.line
+    let chars = lines.at(p.line - 1).codepoints()
+    let end = if p.end_line == p.line { p.end_column - 1 } else { chars.len() }
+    html.elem("div", attrs: (class: "lsp-squiggle"), html.elem(
+      "span",
+      attrs: (
+        class: "lsp-" + p.severity,
+        style: "--lsp-column: " + str(p.column - 1),
+      ),
+      chars.slice(p.column - 1, end).join(),
+    ))
+  }
+  _lsp-listing(lines.slice(shown))
+}
+
+// The misspelled task file, marked where tinymist placed each diagnostic it
+// published while it compiled that file, and the list of those problems.
 #let lsp-diagnostics() = {
   let record = _lsp-record("lsp-diagnostics")
   let lines = record.source.trim("\n", at: end, repeat: true).split("\n")
@@ -349,7 +372,10 @@
   }
   html.elem("figure", attrs: (class: "lsp"), {
     html.elem("figcaption", caption)
-    html.elem("div", attrs: (class: "lsp-code"), _lsp-listing(lines))
+    html.elem("div", attrs: (class: "lsp-code"), _lsp-marked(
+      lines,
+      record.diagnostics,
+    ))
     html.elem(
       "ul",
       attrs: (class: "lsp-problems"),
