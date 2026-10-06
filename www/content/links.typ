@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": terminal
+#import "../utils/ui.typ": diagram, terminal
 #import "../utils/site.typ": u
 #import "../utils/slices.typ": checked-slices, render-slices
 #import "../utils/config-ref.typ": config-keys-table, config-values-table
@@ -16,7 +16,7 @@
 
 // The task and config blocks are slices of examples/links/, which
 // `just check-examples` validates. The transcripts are runs against it and a
-// copy of it, made by www/generate-model.sh.
+// copy of it, made by www/generate-model.sh, which also draws its graph.
 #let schema = json("../generated/config-schema.json")
 #let slices = checked-slices(
   json("../generated/links.json"),
@@ -150,3 +150,14 @@ the validator, naming the kind, the validator and the value. `mt` never
 resolves such a target to a task. It leaves it out of `max`, of cycle checks
 and of readiness, even when the kind sets `blocking`. `mt graph` draws each
 such target as a leaf node.
+
+= The graph
+
+`mt graph` prints the tasks and their edges as a Graphviz DOT graph, or as a
+Mermaid flowchart with `--format mermaid`. A filter limits it to the tasks
+that match, and `--no-terminal` leaves out the finished ones. Each node shows
+a task's title and status. A ready task is green, a blocked one red and a
+finished one grey. This is the graph of `examples/links/`, the project whose
+edges this page quotes:
+
+#diagram("links-graph", [`mt graph` on `examples/links/`, drawn by Graphviz])

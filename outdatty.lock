@@ -79,14 +79,14 @@ groups:
       www/content/filters.typ: bf7e54bdf7ebb6a4129f80c7aa0bb330336633ddeefc2ca01cfbf462760fa653
       www/content/hooks.typ: 85508e2df8e94b0f1995e09a557d7ac1a5355ccf2dcfb3dd0a29a0220e231d60
       www/content/import-export.typ: 46c8eb1231a03bd842b36493f7df74e89b33450d9cbe40dd11c129ce20f110b3
-      www/content/links.typ: 997d07f188c3995c2865bfaf09ac0751367d117bee4e8f27f969973a26fb26ae
+      www/content/links.typ: bb795a2f9f52e5b215ae3fb7d87b5613284c20b80b39e2cf21c6994473fa4cd7
       www/content/named-sets.typ: c636919b4d6d8b96f6d902eb56982ddf9aafe2d57030933584829b9b07447e7e
       www/content/priority.typ: 5da0661bc11613b90d9410b36b79436df14ba61a671437e72b601299497f7121
       www/content/quickstart.typ: 710d621900d67aa553e57d0a05f92e68fa5e82f9777b3322c1aac0b88c493531
       www/content/recurring.typ: 48ec5e3101b333d3b08050e68ad7f2ce21737f42f78d376033a6e3f556b7a222
       www/content/rules.typ: 011078a9c3bca8c13be804b91556d8db8be9431b55ccbfcc18b6eb5da6bad615
       www/content/schema.typ: 6eb69ba844be22a4653fb8a2d69b6d68ec9da2c874689909a663a1b4299b9384
-      www/content/statuses.typ: ef993338e298c6b20f2a4a83742aa6a3421a3069cefd6a5c22ec097405c7a7f1
+      www/content/statuses.typ: a6be47133bacb411aefd139c977a0ec687341488ee96afa18242d82c7432530a
       www/content/templates.typ: 075f705427d973d76790cc8e6837cb402fd9a8302cd49cc8468eb8cb8a48f5b9
       www/utils/cli-notes.typ: f5f6449e0e9c31923c07d07b22523157061d4969fc7690b4f5c2119fb80b4052
   cli-name:
@@ -118,7 +118,7 @@ groups:
       .config/nextest.toml: a310c30b19df7fce268db1c136bdd93ff76bf2116e28e4fe799be41ba79920e5
       .just/docs.just: 95440130f6376fa469946aed06b27a316ca408cdee77115b4592d35b229ece73
       Justfile: 798102fdc9935b00fe041c15a626cafebd6bd15973b70f47835b7b8f3e1721ed
-      flake.nix: bccfe42071c1983f7e116d8864028bcc18ae3f41aaccccb71183464f0b8ccbc0
+      flake.nix: e7707a3c1d3c396239ffaa139a4b9645cd6a0ee59576cc0e78183663edd74b85
     dependents:
       docs/src/agents.typ: db573f683c844f3acf22f77df6683dd1248b88d53831a0f6aaa93f8eee0f564e
       docs/src/contributing.typ: 59fb84e10c3764c1b31d33d6bd59c01562450a6344876ac5faa3a0a15eaa9b50
@@ -196,7 +196,7 @@ groups:
       www/content/concepts.typ: c95be70bd05eff158c1dc3c083d4f13e540afa8e6313701e5f1b52496a510728
       www/content/dsl.typ: a60e0a3b9a175f12b07279828cceba28919b81384a841882da934097250bdccc
       www/content/index.typ: 7a601844ef661ed501d2a756c9b2617d6460dad3442f1c75e999fef34e590493
-      www/content/links.typ: 997d07f188c3995c2865bfaf09ac0751367d117bee4e8f27f969973a26fb26ae
+      www/content/links.typ: bb795a2f9f52e5b215ae3fb7d87b5613284c20b80b39e2cf21c6994473fa4cd7
       www/content/priority.typ: 5da0661bc11613b90d9410b36b79436df14ba61a671437e72b601299497f7121
       www/content/recurring.typ: 48ec5e3101b333d3b08050e68ad7f2ce21737f42f78d376033a6e3f556b7a222
       www/content/templates.typ: 075f705427d973d76790cc8e6837cb402fd9a8302cd49cc8468eb8cb8a48f5b9

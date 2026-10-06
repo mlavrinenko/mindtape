@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": terminal
+#import "../utils/ui.typ": diagram, terminal
 #import "../utils/site.typ": u
 #import "../utils/slices.typ": checked-slices, render-slices
 #import "../utils/config-ref.typ": config-keys-table
@@ -17,7 +17,8 @@
 // Every block below comes from examples/statuses/, the project
 // `just check-examples` validates: the legend is a slice of its config, the
 // two status lines are slices of its tasks, and each refusal is a real
-// `mt flip` run against a copy of it (www/generate-config-runs.sh).
+// `mt flip` run against a copy of it (www/generate-config-runs.sh). The same
+// script draws the legend's moves from the fixture's `mt config show --json`.
 #let schema = json("../generated/config-schema.json")
 #let legend = checked-slices(
   json("../generated/statuses-config.json"),
@@ -102,9 +103,14 @@ explains:
 
 = Transitions
 
-`to` lists the statuses a task may move to from this one. With no `to` on any
-entry, a task may move from any status to any other. Once one entry declares
-`to`, `mt flip` refuses a move the list does not name, and prints the moves it
+`to` lists the statuses a task may move to from this one. These are the moves
+the whole legend of `examples/statuses/` allows. A terminal status has a
+double border:
+
+#diagram("statuses-moves", [The moves `to` allows in `examples/statuses/`])
+
+With no `to` on any entry, a task may move from any status to any other. Once
+one entry declares `to`, `mt flip` refuses a move the list does not name, and prints the moves it
 allows:
 
 #terminal("statuses-transition")
