@@ -414,6 +414,13 @@ scopes:
     - ".just/scripts/_mutants-env.sh"
   script-nav-diff:
     - ".just/scripts/_nav-diff.sh"
+  # The merge driver is no recipe's body. The e2e test in
+  # crates/mindtape-cli/tests/outdatty_lock_merge_e2e.rs runs it, together with
+  # the `.gitattributes` line that assigns it, so `just test` and `just cover`
+  # read this scope.
+  script-outdatty-lock-merge:
+    - ".just/scripts/outdatty-lock-merge.sh"
+    - ".gitattributes"
   script-positional-args-check:
     - ".just/scripts/positional-args-check.sh"
   script-release:
@@ -464,7 +471,7 @@ commands:
 
   - name: just test
     tags: [gate]
-    inputs: [rust, policy, examples, gates-meta]
+    inputs: [rust, policy, examples, gates-meta, script-outdatty-lock-merge]
 
   # cargo-llvm-cov instruments and runs the same suite as `just test` (same
   # scope), then writes target/coverage/lcov.info, the artifact `just crap`
@@ -473,7 +480,7 @@ commands:
   # behind a fresh `cover`.
   - name: just cover
     tags: [gate]
-    inputs: [rust, policy, examples, gates-meta, script-cover]
+    inputs: [rust, policy, examples, gates-meta, script-cover, script-outdatty-lock-merge]
     outputs: [target/coverage/lcov.info]
 
   - name: just machete

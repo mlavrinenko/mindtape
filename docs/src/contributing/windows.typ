@@ -46,6 +46,10 @@ machine and fails while other worktrees build beside it. So
 `opening_a_task_still_works_with_hyperlinks_active` poll the transcript for
 the frame they check.
 
+`tests/outdatty_lock_merge_e2e.rs` is `#![cfg(unix)]` as well. It runs the
+`outdatty.lock` merge driver, a bash script that needs `yq`, `jq` and `b3sum`
+from the dev shell, and the Windows job has no dev shell.
+
 = Catching compile errors early
 
 #let rust-channel = fact("crate-map").at("rust-toolchain").at("channel")

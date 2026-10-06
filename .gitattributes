@@ -1,0 +1,4 @@
+# outdatty.lock merges key by key: .just/scripts/outdatty-lock-merge.sh, which
+# `just install-hooks` registers. Delete this line to fall back to git's text
+# merge.
+outdatty.lock merge=outdatty-lock

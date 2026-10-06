@@ -820,15 +820,20 @@ uninstall-lib:
 
 # Point git at the tracked hook dir (pre-commit asserts the memoized gate via
 # `mmz --is-fresh --tag gate`, then checks task-file formatting and structure)
+# and register the `outdatty-lock` merge driver `.gitattributes` assigns to
+# outdatty.lock. The dev shell runs this on entry, and git config is shared by
+# every worktree of a clone, so neither needs a manual step.
 
-[doc("Point git at the tracked hook directory")]
+[doc("Point git at the tracked hooks and register the outdatty.lock merge driver")]
 [extension('.sh')]
 [group("dev")]
 [script]
 install-hooks:
     git config core.hooksPath .githooks
+    git config merge.outdatty-lock.name "outdatty.lock, merged key by key"
+    git config merge.outdatty-lock.driver 'bash .just/scripts/outdatty-lock-merge.sh %O %A %B %P %S %X %Y'
     rm -f .git/hooks/pre-commit
-    echo "installed .githooks"
+    echo "installed .githooks and the outdatty.lock merge driver"
 
 # Tag a release and push (usage: just release 0.3.0). Refuses to run in a
 # dirty worktree, and while CHANGELOG.md has an [Unreleased] section with
