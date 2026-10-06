@@ -56,7 +56,7 @@
   if short != none [#short]
   if long != none {
     let extra = if short != none and long.starts-with(short) {
-      long.slice(short.len()).trim()
+      long.slice(short.len()).trim(".", at: start, repeat: false).trim()
     } else if long != short { long } else { "" }
     if extra != "" {
       parbreak()
