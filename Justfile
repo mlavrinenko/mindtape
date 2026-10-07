@@ -13,7 +13,9 @@
 #
 # `just --list` shows only the last comment line of a recipe, so a summary
 # worth reading there is repeated as an explicit `[doc(...)]` rather than left
-# as a dangling fragment.
+# as a dangling fragment. Leave a blank line between a comment block and a
+# recipe's `[doc(...)]`: just 1.46's `--fmt` deletes the comment line right
+# above it.
 
 set quiet := true
 set unstable := true
