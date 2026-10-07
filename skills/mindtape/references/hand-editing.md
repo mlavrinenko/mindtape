@@ -1,14 +1,15 @@
-# Authoring or editing a task file by hand
+# Editing a task file by hand
 
-Reference for the mindtape skill. Read this only when a task genuinely needs
-what no command covers — chiefly the body. Everything else goes through `mt`;
-a hand edit skips what `mt` stamps, slugs, injects, resolves and validates.
-`links:` included: `mt link` writes typed edges one at a time or from an
-adjacency map, checking the kind, the target and the note rule before it
-writes. A plain field too: `mt set <task> <field>=<value>` writes `title`,
-`priority` (the raw number), `difficulty`, `kind`, `assignee`, `tags`, `due`
-and `start`, validating before it writes. What is left below is the body, a
-framework priority and the `estimate` dict.
+Reference for the mindtape skill. Read this only when a task needs what no
+command writes: the body, a framework priority, the `estimate` dict or an
+`x-<ns>` slot. Change everything else with `mt` commands. A hand edit skips
+what `mt` stamps, slugs, injects, resolves and validates.
+
+| To change | Run |
+|-----------|-----|
+| `links:` | `mt link`, one typed edge at a time or from an adjacency map. It checks the kind, the target and the note rule before it writes. |
+| `title`, `priority` (the raw number), `difficulty`, `kind`, `assignee`, `tags`, `due`, `start` | `mt set <task> <field>=<value>`. It validates before it writes. |
+| Status | `mt <status> <task>` |
 
 A task file is Typst. Edit the fields inside `task.with(...)`:
 
@@ -28,25 +29,27 @@ A task file is Typst. Edit the fields inside `task.with(...)`:
 )
 ```
 
-Rules to respect:
-- One task per file; the stem is the identity. Renaming breaks inbound links —
-  prefer `mt rm` to retire, which rewrites them to tombstones. Without git,
-  `[rm] strategy` decides: `reject` (default, lists the referrers), `unlink`,
-  or `retire` (keeps the file, flips the status).
-- Status, kind, priority scale, and tags come from `.mindtape/config.toml`.
-- Custom/extension fields must be namespaced `x-<ns>` (e.g.
-  `x-speconaut: ...`). Every other field name is a declared parameter of
-  `task`, so a typo is not kept as an extension — it fails with
-  `unexpected argument: titel` for a field written `titel:`.
-- Edge helpers take plain stem strings, never `link("a.typ")` — that is
-  content, and reads as the trailing note. Passing one (or a second note, a
-  named arg, a non-string) is an eval error naming the helper, not a dropped
+Rules:
+
+- Keep one task per file. The stem is the identity, so a rename breaks inbound
+  links. To retire a task, run `mt rm`, which rewrites them to tombstones.
+  Without git, `[rm] strategy` decides: `reject` (the default, lists the
+  referrers), `unlink`, or `retire` (keeps the file, flips the status).
+- Take statuses, kinds, the priority scale and tags from
+  `.mindtape/config.toml`.
+- Name a custom field `x-<ns>`, such as `x-speconaut: ...`. Every other field
+  name is a declared parameter of `task`, so a typo fails instead of becoming
+  an extension: a field written `titel:` fails with
+  `unexpected argument: titel`.
+- Pass an edge helper plain path strings, never `link("a.typ")`. That is
+  content and reads as the trailing note. A `link(...)`, a second note, a named
+  argument or a non-string is an eval error naming the helper, never a dropped
   edge.
-- The body is Typst: a bare `//` starts a line comment and swallows the rest of
-  the line, and under `[tasks.comments] policy = "forbid"` `mt check` rejects
-  the file. `https://…` is safe (Typst auto-links it); `file://`, other URL
-  schemes, and any literal `//` go in backticks.
-- After any hand edit, run `mt check`. A wrong-typed value is a violation
-  naming its position (`tags[1]`, `estimate.days`, `recur.on[1]`), never a
-  silently unset field. A file that fails to evaluate is named with its line:
-  `tasks/x.typ:5: eval error: expected comma`.
+- Write the body as Typst. A bare `//` starts a line comment and swallows the
+  rest of the line, and under `[tasks.comments] policy = "forbid"` `mt check`
+  rejects the file. `https://…` is safe, because Typst links it. Put
+  `file://`, other URL schemes and any literal `//` in backticks.
+- After any hand edit, run `mt check`. It reports a wrong-typed value as a
+  violation naming its position (`tags[1]`, `estimate.days`, `recur.on[1]`),
+  never as an unset field. It names a file that fails to evaluate with its
+  line: `tasks/x.typ:5: eval error: expected comma`.

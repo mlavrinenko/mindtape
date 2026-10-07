@@ -24,18 +24,19 @@ Each task is one Typst file, named by its filename stem. A `links:` target is
 the path to the other task's file from the linking file, such as
 `"../auth/login.typ"`. `mt link` takes a stem and writes that path.
 
-Make every change through `mt`. It writes the slug, the status date and the
-fields the config injects, resolves link targets, and writes nothing when the
-result fails the config's checks. Hand-edit a task file only for what no
-command writes: the body, a framework priority such as
-`ice(...)`, and the `estimate` dict. Follow `references/hand-editing.md`, then
-run `mt check`.
+Change tasks with `mt` commands, not by editing files. `mt` fills in the slug,
+the status date and the injected fields, resolves links, and writes nothing if
+the result breaks a rule. Edit a file by hand only for what no command writes:
+the body, a framework priority like `ice(...)`, `estimate`, and an `x-<ns>`
+slot. Follow
+`references/hand-editing.md`, then run `mt check`.
 
 = Is this a MindTape project?
 
 It is when `.mindtape/config.toml` exists. Run `mt` in the directory that
 holds `.mindtape/` or below it. For another project, pass `-w <path>`, or put
-an alias that `mt worktrees` lists, such as `@name`, right after `mt`. In a repo with no tracker, offer `mt init`.
+an alias that `mt worktrees` lists, such as `@name`, right after `mt`. In a
+repo with no tracker, offer `mt init`.
 
 = Commands
 
@@ -56,16 +57,16 @@ an alias that `mt worktrees` lists, such as `@name`, right after `mt`. In a repo
   [Validate], [`mt check`],
 )
 
-`mt <cmd> --help` lists every flag. Read the project's statuses, link kinds,
+Run `mt <cmd> --help` for every flag. Read the project's statuses, link kinds,
 priority scale and tags from `mt config show`, which prints the merged config
 (`--origin` names the pack or file each rule comes from), or the statuses
-alone from `mt flip --list`. Never guess them. For what no
-`--help` covers, #www-llms lists every docs page as Markdown.
+alone from `mt flip --list`. Never guess them. For what no `--help` covers,
+read #www-llms, which lists every docs page as Markdown.
 
 A `<task>` is a stem, a path, or the stem hash `mt ls` prints in its `slug#`
 column. A stem hash is the same in every listing and changes only when
-`mt mv` renames the stem. One that several tasks share is refused. When you
-mention a task to a person, link its file path.
+`mt mv` renames the stem. `mt` refuses a hash that several tasks share. When
+you mention a task to a person, link its file path.
 
 = Finding tasks
 
@@ -78,27 +79,28 @@ Common filters are `ready` (open, with every `depends-on` target finished),
 `blocked`, `status == "wip"`, `has_tag("t")`, `contains("text")` and
 `due < now()`. `mt ls @<view>` applies a view that `mt views` lists. Before you
 edit a file, run `mt ls 'touches("<path>")'` to read the tasks named in the
-`Refs:` trailers of commits that changed it. `references/filters.md` lists
-every field and function.
+`Refs:` trailers of commits that changed it. For every field and function,
+read `references/filters.md`.
 
 = Filing tasks
 
 `mt add <title…>` makes the filename from the title, writes the task under the
 first root, and checks it before writing. `mt add --list` lists the templates,
 and `mt add --describe` lists a template's slots. Pass a value you type as
-`--set key=value`, and values you generate as YAML on stdin with `-f -`,
-which needs no shell quoting. `--print` shows the task without writing it.
+`--set key=value`. Pass values you generate as YAML on stdin with `-f -`,
+which needs no shell quoting. Add `--print` to see the task without writing
+it.
 
 A key names a template slot, which need not be a field. A framework priority,
-for example, takes its inputs (`--set impact=8`). An unknown slot is an error
-that lists the known ones. When the template has no slot for a field, file the
-task first, then write the field with `mt set`. A `text` slot escapes Typst
-markup, so a code span in it lands as literal backticks. Read
-`references/add-slots.md` before you fill an unfamiliar template.
+for example, takes its inputs (`--set impact=8`). `mt add` refuses an unknown
+slot and lists the known ones. When the template has no slot for a field, file
+the task first, then write the field with `mt set`. A `text` slot escapes
+Typst markup, so a code span in it lands as literal backticks. Before you fill
+an unfamiliar template, read `references/add-slots.md`.
 
 `mt import` files a batch from `mt ls --json`'s schema. It takes each stem from
-the record's `id`, else from its title, so read `references/import.md` before
-you run it.
+the record's `id`, else from its title. Read `references/import.md` before you
+run it.
 
 = Changing status
 
@@ -107,16 +109,17 @@ status with today's date, and `-m "…"` sets the status note. A refused flip
 names its reason: the legend does not allow the transition, the task has an
 unfinished dependency, or it is a parent with an unfinished child. Fix the
 reason. `--force` overrides the refusal and waives a failing `[[on.flip]]`
-gate, so use it only to correct a mistake. A gate runs its command with
-`sh -c` in `mt`'s environment, so exit 127 means `mt` ran outside the
-project's dev shell. Run the flip inside that shell.
+gate. Use it only to correct a mistake. A gate runs its command with `sh -c`
+in `mt`'s environment, so exit 127 means `mt` ran outside the project's dev
+shell. Run the flip inside that shell.
 
-`mt ls blocked --columns title,why` shows what each blocked task waits on. A
-legend may have no `blocked` status, so check `mt flip --list` before you use
-one. To record an external blocker, file a task for it and link to it with
-`depends-on`, or leave the task in a status before work starts with the reason
-as its note. Do not mark a blocked task `wip`, because that counts against any
-work-in-progress cap and tells readers someone is working on it.
+To see what each blocked task waits on, run
+`mt ls blocked --columns title,why`. A legend may have no `blocked` status, so
+check `mt flip --list` before you use one. To record an external blocker, file
+a task for it and link to it with `depends-on`, or leave the task in a status
+before work starts with the reason as its note. Do not mark a blocked task
+`wip`: that counts against any work-in-progress cap and tells readers someone
+is working on it.
 
 = Commits and checks
 
