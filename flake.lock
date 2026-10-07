@@ -6964,11 +6964,11 @@
         "qahq": "qahq_5"
       },
       "locked": {
-        "lastModified": 1791337139,
-        "narHash": "sha256-PizPYSqrjAuWNuT4tI5s3XVpghUK79XowE87gPQjt9E=",
+        "lastModified": 1791396777,
+        "narHash": "sha256-Ru3ndc5iM3MhpqfUXgloG4E22dJrda1lINfRXt38vQo=",
         "owner": "mlavrinenko",
         "repo": "outdatty",
-        "rev": "b6a5518426b00fafcb2b4dcaa6a9c28e323383af",
+        "rev": "9c001c528c684d90fcd9c57a613d252a41c3c644",
         "type": "github"
       },
       "original": {
@@ -7069,11 +7069,11 @@
         "outdatty": "outdatty_7"
       },
       "locked": {
-        "lastModified": 1791373540,
-        "narHash": "sha256-dtSCHddVd/8AyajykzoC7KA2XZ7R63ksAuMAruLmT6k=",
+        "lastModified": 1791397620,
+        "narHash": "sha256-06Q11xDQaXXqxo3ABaIuACnhe/BNVLLyq1zLqobf6GA=",
         "owner": "mlavrinenko",
         "repo": "qahq",
-        "rev": "b316efc80fb8b7f2c392bed79aec545e3624f21e",
+        "rev": "ae800a0d0945f275b1cbd5e3c5e6fd46ace085fb",
         "type": "github"
       },
       "original": {
