@@ -41,10 +41,24 @@
   s
 }
 
+// Help text with its backtick spans as inline code. clap's help is plain text,
+// so only the backticks mark code: the odd pieces of a split on them.
+#let _inline(s) = (
+  s
+    .split("`")
+    .enumerate()
+    .map(((i, piece)) => {
+      if calc.odd(i) { raw(piece) } else { piece }
+    })
+    .join()
+)
+
 // enum-valued args → a tight list of `value` — help
 #let _pvals(arg) = {
   let items = arg.possible_values.map(pv => {
-    if pv.about != none { [#raw(pv.name) — #pv.about] } else { raw(pv.name) }
+    if pv.about != none { [#raw(pv.name) — #_inline(pv.about)] } else {
+      raw(pv.name)
+    }
   })
   list(..items)
 }
@@ -53,14 +67,14 @@
 // dimmed. clap's long help repeats the short line as its first paragraph, so
 // strip that prefix to avoid echoing it.
 #let _desc(short, long) = {
-  if short != none [#short]
+  if short != none [#_inline(short)]
   if long != none {
     let extra = if short != none and long.starts-with(short) {
       long.slice(short.len()).trim(".", at: start, repeat: false).trim()
     } else if long != short { long } else { "" }
     if extra != "" {
       parbreak()
-      _dim[#extra]
+      _dim[#_inline(extra)]
     }
   }
 }
