@@ -175,7 +175,7 @@ pub(crate) fn parse_num_value(
 /// Project the `inputs` dict of a framework value into typed input values.
 /// An input that is not a scalar is reported as `<field>.inputs.<key>`;
 /// whether a scalar is the RIGHT one for the framework (and whether a required
-/// one is missing) is [`crate::framework_validate`]'s question.
+/// one is missing) is [`crate::framework::validate`]'s question.
 fn parse_inputs(
     value: Option<&HVal>,
     field_name: &str,

@@ -22,9 +22,9 @@ Coverage shows that a line ran. Mutation testing shows that a test fails when th
 
 A `TIMEOUT` is no verdict either way. Under parallel load it can hide a real pass or a real survivor. For a verdict you mean to trust, run with `CARGO_MUTANTS_JOBS=2` or lower and a longer timeout. The default speed settings (three mutant jobs, two build jobs and the mold linker, about 3.5 times faster) are for the pre-PR pass. The sweep runs with no `RUSTC_WRAPPER`, because every mutant changes the source and a build cache such as kache only misses and fills its store.
 
-A timeout that repeats is a finding. It means a mutant reached an unbounded loop. Bound such a loop with a `for` over a fixed range. A `while n <= CEILING` loop still hangs once the mutant stops incrementing `n`. `MAX_CATCH_UP_STEPS` in `recur_dates.rs` is an example.
+A timeout that repeats is a finding. It means a mutant reached an unbounded loop. Bound such a loop with a `for` over a fixed range. A `while n <= CEILING` loop still hangs once the mutant stops incrementing `n`. `MAX_CATCH_UP_STEPS` in `recur/dates.rs` is an example.
 
-A survivor inside `#[cfg(not(feature = …))]` code cannot be reached under the sweep’s feature set. Move that code into its own file and add the file to `exclude_globs`, as `recur_rrule_off.rs` is.
+A survivor inside `#[cfg(not(feature = …))]` code cannot be reached under the sweep’s feature set. Move that code into its own file and add the file to `exclude_globs`, as `recur/rrule_off.rs` is.
 
 ## Why CI does not run it
 

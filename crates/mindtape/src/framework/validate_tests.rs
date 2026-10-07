@@ -65,7 +65,7 @@ fn validate_rejects_non_exhaustive_categories() {
 
 // --- Boundary regression tests ---
 // Each test distinguishes real behaviour from a specific mutation in
-// framework_validate.rs.
+// framework/validate.rs.
 
 #[test]
 fn validate_rejects_number_input_with_min_ge_max() {

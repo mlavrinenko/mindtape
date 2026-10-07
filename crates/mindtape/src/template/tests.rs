@@ -1,6 +1,6 @@
 //! Tests for the slot-template engine's discovery half: `discover_slots`
 //! schema reading and the `SlotKind`/`RawValue` spellings it builds on. The
-//! `wrap` helper stays here so the fill half's `template_fill_tests.rs`
+//! `wrap` helper stays here so the fill half's `template/tests_fill.rs`
 //! sibling reaches it via `super::tests`.
 #![allow(clippy::unwrap_used)]
 

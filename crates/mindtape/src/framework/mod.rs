@@ -12,8 +12,17 @@
 //!
 //! Frameworks live entirely in config data. Rust supplies only the evaluator
 //! (reusing `evalexpr`); the config-load-time validation lives in
-//! [`crate::framework_validate`]. Built-ins ship as a baked-in default config
+//! [`crate::framework::validate`]. Built-ins ship as a baked-in default config
 //! layer, deep-merged under any user definitions.
+//!
+//! # Files
+//!
+//! - `eval.rs`: scalar scoring and category predicates.
+//! - `frameworks.toml`: the built-in priority frameworks.
+//! - `validate.rs`: validation of framework definitions against the active scale.
+
+pub(crate) mod eval;
+pub(crate) mod validate;
 
 use std::collections::BTreeMap;
 
@@ -21,8 +30,8 @@ use serde::Deserialize;
 
 use crate::config::PriorityConfig;
 use crate::config::merge::deep_merge;
-use crate::framework_eval::{eval_predicate, eval_score};
-use crate::framework_validate::Scope;
+use crate::framework::eval::{eval_predicate, eval_score};
+use crate::framework::validate::Scope;
 use crate::model::numeric::{InputValue, NumCell, NumValue, format_num};
 
 /// The baked-in framework definitions, parsed from the bundled TOML.
@@ -299,5 +308,4 @@ fn ensure_table<'a>(parent: &'a mut toml::Table, key: &str) -> Option<&'a mut to
 }
 
 #[cfg(test)]
-#[path = "framework_tests.rs"]
 mod tests;

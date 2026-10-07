@@ -14,6 +14,12 @@
 //! `crate::date_pin`) resolves `$MINDTAPE_NOW` once per process and caches the
 //! result; `today_epoch_days`, below, is the single point every helper here
 //! reads through — no other function in this module touches the clock directly.
+//!
+//! # Files
+//!
+//! - `pin.rs`: the env-driven override for "today", resolved once per process.
+
+pub(crate) mod pin;
 
 use chrono::Datelike as _;
 
@@ -38,11 +44,11 @@ pub fn days_ago_iso(count: u64) -> String {
 }
 
 /// Today, as days since the Unix epoch: the process's pinned override if
-/// [`crate::date_pin::init_pinned_today`] resolved one, else the system clock
+/// [`crate::date::pin::init_pinned_today`] resolved one, else the system clock
 /// read in the machine's local timezone. The only place in this module that
 /// reads a clock.
 fn today_epoch_days() -> u64 {
-    if let Some(days) = crate::date_pin::pinned_epoch_days() {
+    if let Some(days) = crate::date::pin::pinned_epoch_days() {
         return days;
     }
     local_epoch_days(&chrono::Local::now())
@@ -264,7 +270,7 @@ mod tests {
     }
 
     /// The clock fallback: no `MINDTAPE_NOW` pin is set in this process (the
-    /// pin is exercised out-of-process — see `date_pin_tests.rs` and
+    /// pin is exercised out-of-process — see `date/pin_tests.rs` and
     /// `crates/mindtape-cli/tests/date_pin_e2e.rs`), so `today_epoch_days`
     /// must report the system clock. Bracketing it between two samples taken
     /// around the call is rollover-safe: if midnight falls inside the window,

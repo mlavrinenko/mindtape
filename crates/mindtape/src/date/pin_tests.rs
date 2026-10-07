@@ -14,7 +14,7 @@ fn empty_string_counts_as_unset() {
 
 #[test]
 fn mindtape_now_plain_date_resolves_to_that_day() {
-    // 2026-06-18 = day 20622 since the Unix epoch (shared with date.rs's
+    // 2026-06-18 = day 20622 since the Unix epoch (shared with date/mod.rs's
     // `known_date_2026_06_18`).
     assert_eq!(resolve(Some("2026-06-18")), Ok(Some(20_622)));
 }
@@ -55,7 +55,7 @@ fn mindtape_now_extra_date_segments_are_malformed() {
 // `crates/mindtape-cli/tests/date_pin_e2e.rs` covers the same ground over the
 // real `mt` binary, but it cannot stand in for this one: cargo-mutants tests
 // only the package holding the mutant (no `--test-workspace`), so a mutant in
-// `date_pin.rs` is never run against the CLI crate's e2e suite.
+// `date/pin.rs` is never run against the CLI crate's e2e suite.
 
 #[test]
 fn pinned_epoch_days_is_none_before_init_runs() {

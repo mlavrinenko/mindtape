@@ -10,7 +10,7 @@ Why `just cover` and `just crap` work the way they do. Read this before you chan
 
 The output level lives in `.config/nextest.toml`, because `cargo llvm-cov nextest` accepts `--status-level fail` and ignores it. With the flag alone, a green run prints one `PASS` line per test, over 2000 lines. `just test` and `just cover` both read the profile, so they print the same way.
 
-`just cover` builds default features only, so `recur_rrule.rs` never compiles there, and `just crap` excludes it rather than score it as 0% covered. `just check-rrule` builds and tests the `rrule` feature across the whole workspace, because `mindtape-cli` has `rrule` code of its own.
+`just cover` builds default features only, so `recur/rrule.rs` never compiles there, and `just crap` excludes it rather than score it as 0% covered. `just check-rrule` builds and tests the `rrule` feature across the whole workspace, because `mindtape-cli` has `rrule` code of its own.
 
 ## Why cover starts clean
 

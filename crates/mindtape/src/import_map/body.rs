@@ -1,7 +1,7 @@
 //! `body:` guarantee: synthesize a minimal `== Summary` when a record's body
 //! is empty and the project's body-header rules would otherwise fail every
 //! import outright — the policy home for "every imported file passes
-//! `mt check`" (`emit.rs` stays pure and never synthesizes on its own).
+//! `mt check`" (`emit/mod.rs` stays pure and never synthesizes on its own).
 
 use crate::config::{Config, HeaderAction, HeaderPathSegment};
 use crate::model::canonical::CanonicalTask;

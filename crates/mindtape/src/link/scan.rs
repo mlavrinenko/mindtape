@@ -134,5 +134,5 @@ pub fn link_edges(source: &str) -> Vec<EdgeCall> {
 }
 
 #[cfg(test)]
-#[path = "link_scan_tests.rs"]
+#[path = "scan_tests.rs"]
 mod tests;

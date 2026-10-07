@@ -311,7 +311,7 @@ fn origin_labels_a_path_packs_rule_as_pack_path() {
 /// `render_origin` resolves that layer through `$MINDTAPE_CONFIG_HOME` (the
 /// one override that lands on every platform — `dirs` reads `$HOME` on Unix
 /// but a known-folder API on Windows, which no env var moves; see
-/// `mindtape::app_dirs`). Setting it on the current process would leak into
+/// `mindtape::loader::app_dirs`). Setting it on the current process would leak into
 /// every other test sharing it, so — like `run_defaults_prints_embedded_floor`
 /// above — this scopes the override to a spawned copy of the test binary
 /// instead of mutating this process's environment.

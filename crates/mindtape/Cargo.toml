@@ -22,7 +22,7 @@ rrule = ["dep:rrule"]
 [dependencies]
 # `default-features = false` + `std` for NaiveDate/Months/Days arithmetic
 # (every recur date computation takes its reference date from the caller), plus
-# `clock` for the one clock read in the tree: `crates/mindtape/src/date.rs`
+# `clock` for the one clock read in the tree: `crates/mindtape/src/date/mod.rs`
 # resolves "today" as the machine's LOCAL calendar date (`Local::now()`), not
 # UTC — see `truth/tasks/decide-whether-today-is-utc-or-local.typ`. `clock`
 # adds `iana-time-zone`; chrono resolves the zone itself (no `localtime_r`), so
@@ -32,7 +32,7 @@ chrono = { version = "0.4", default-features = false, features = [
   "clock",
 ] }
 # The `rrule(...)` escape hatch's expander, behind the `rrule` feature (see
-# `crates/mindtape/src/recur_rrule.rs`). Pulls in chrono-tz + regex, so it
+# `crates/mindtape/src/recur/rrule.rs`). Pulls in chrono-tz + regex, so it
 # stays optional rather than a plain dependency.
 rrule = { version = "0.14", optional = true }
 typst-harvest = "0.4.0"
@@ -52,7 +52,7 @@ typst-edit = "0.1.0"
 # `typst-harvest` already resolves — so it adds no second `typst` crate.
 typstyle-core = "0.15.0"
 # Validates framework input names as Typst identifiers (`is_ident`) before they
-# splice into generated `framework("f", input: …)` calls (`framework_validate.rs`).
+# splice into generated `framework("f", input: …)` calls (`framework/validate.rs`).
 # Same 0.15 already pinned via typstyle-core, so no second typst crate.
 typst-syntax = "0.15"
 artifact-gate = "0.1.0"
@@ -60,7 +60,7 @@ swhid-mint = { version = "0.1.1", default-features = false }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # Content-hashing task files for the persistent per-file harvest cache
-# (`crates/mindtape/src/cache.rs`): a file's SHA-1 keys its cache entry, and a
+# (`crates/mindtape/src/loader/cache.rs`): a file's SHA-1 keys its cache entry, and a
 # per-file digest feeds the prelude/lib fingerprint in the build key.
 sha1 = "0.10"
 # Derives the JSON Schema for `.mindtape/config.toml` straight off the config
@@ -87,7 +87,7 @@ strsim = "0.11"
 [dev-dependencies]
 tempfile = "3"
 # Already in the tree at these versions, under `typst-harvest`. The harvest
-# flattens an eval error to its message, so `loader_tests_prelude.rs` compiles a
+# flattens an eval error to its message, so `loader/tests_prelude.rs` compiles a
 # task file itself to read where Typst places the error.
 typst = "0.15"
 typst-layout = "0.15"

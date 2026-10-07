@@ -10,6 +10,12 @@
 //! `[[tasks.links.kinds]]` ([`LinksConfig`]). [`resolve_kind`] and the
 //! `*_kinds` helpers are the single place that merges the two, so validation,
 //! readiness, and the dependency graph never hand-roll the lookup.
+//!
+//! # Files
+//!
+//! - `scan.rs`: the parse-plane scan for a task's outbound link targets.
+
+pub mod scan;
 
 use serde::Deserialize;
 
@@ -375,5 +381,4 @@ pub enum NoteRule {
 }
 
 #[cfg(test)]
-#[path = "link_tests.rs"]
 mod tests;

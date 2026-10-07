@@ -16,8 +16,8 @@ use std::path::Path;
 
 use typst_edit::line_of;
 
-use crate::add_slots::RequiredSlot;
 use crate::model::task_spans::TaskCallSpans;
+use crate::template::add_slots::RequiredSlot;
 use crate::template::discover_slots;
 use crate::validate::severity::Severity;
 use crate::validate::{Location, Violation};
@@ -164,5 +164,5 @@ fn call_line(source: &str) -> usize {
 }
 
 #[cfg(test)]
-#[path = "template_check_tests.rs"]
+#[path = "check_tests.rs"]
 mod tests;

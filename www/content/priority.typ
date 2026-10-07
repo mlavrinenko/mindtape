@@ -102,7 +102,7 @@ framework's inputs.
 
 `[tasks.priority.frameworks.<name>]` declares a framework's inputs, with
 their types and bounds, and its score formula or categories. The built-ins
-are declared the same way in `crates/mindtape/src/frameworks.toml`, and a
+are declared the same way in `crates/mindtape/src/framework/frameworks.toml`, and a
 project can override any of their keys. A task calls a project's own
 framework with `framework("name", input: value, ...)`. A framework with
 categories instead of a formula sorts each task into a category, and each

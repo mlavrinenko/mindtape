@@ -14,7 +14,7 @@ use anyhow::{Context, Result, bail};
 use chrono::NaiveDate;
 use mindtape::Task;
 use mindtape::recur::Recur;
-use mindtape::recur_dates::{self, effective_materialize};
+use mindtape::recur::dates::{self as recur_dates, effective_materialize};
 use mindtape::today_ymd;
 
 use super::{

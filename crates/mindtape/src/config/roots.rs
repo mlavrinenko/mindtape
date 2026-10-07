@@ -3,7 +3,7 @@
 //! `[[tasks.roots]]` entries name where tasks live and, optionally, a display
 //! name and per-root derivation rule. `[tasks.derive-tags]` holds the
 //! project-wide policy (collectors, separator, slugify). The derivation
-//! algorithm itself lives in [`crate::derive`]; this module is config shape only.
+//! algorithm itself lives in [`crate::loader::derive`]; this module is config shape only.
 
 use std::path::Path;
 

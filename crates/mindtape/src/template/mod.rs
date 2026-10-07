@@ -12,8 +12,17 @@
 //! Split along those same two verbs to stay under the line budget: this file
 //! is discovery only, turning `slot(...)` calls into [`SlotSpec`]s. Coercion,
 //! rendering, and the source rewrite itself — [`fill`], [`FillError`],
-//! [`RawValue`] — live in `template_fill.rs` and are re-exported here so the
+//! [`RawValue`] — live in `template/fill/mod.rs` and are re-exported here so the
 //! public API is unchanged.
+//!
+//! # Files
+//!
+//! - `add_slots.rs`: synthetic `slot(...)` calls for config-required core fields.
+//! - `check.rs`: what `mt check` makes of a template.
+//! - `fill/`: slot fill, coercing caller-supplied values against the discovered slots.
+
+pub mod add_slots;
+pub mod check;
 
 use std::ops::Range;
 
@@ -21,7 +30,6 @@ use typst_edit::{Call, find_calls};
 
 /// Coercion, rendering, and the source rewrite; split out to keep this file
 /// under its line budget. See [`fill`].
-#[path = "template_fill.rs"]
 mod fill;
 pub use fill::{FillError, RawValue, fill, fill_examples};
 
@@ -47,7 +55,7 @@ pub enum SlotKind {
     List,
     /// Raw markup spliced into the body; a markup `#slot(…)` drops its `#`.
     /// Escaped on the way in by the CLI (`add.rs::markup_safe`, via
-    /// [`crate::status_value::escape_markup`]) since a filled value may be
+    /// [`crate::emit::status_value::escape_markup`]) since a filled value may be
     /// caller-supplied and untrusted. Compare [`Self::Raw`].
     Text,
     /// Raw source spliced in verbatim, same as [`Self::Text`] but never
@@ -65,7 +73,7 @@ pub enum SlotKind {
     /// naming the slot; that catches a markup-position slot, which is what
     /// the kind is for. It cannot catch a slot spliced into an argument
     /// position, where the value is an expression and parens are not markup —
-    /// see `template_markup.rs`.
+    /// see `template/fill/markup.rs`.
     Raw,
     /// A string constrained to the slot's `choices`.
     Choice,
@@ -273,9 +281,7 @@ fn parse_string_array(source: &str) -> Vec<String> {
 }
 
 #[cfg(test)]
-#[path = "template_tests.rs"]
 mod tests;
 
 #[cfg(test)]
-#[path = "template_fill_tests.rs"]
 mod tests_fill;

@@ -80,7 +80,7 @@ axis!(Recurrence ("Recurrence — how recurring rules are written:", default = O
 unavailable {
     // `[tasks.recur] rrule = true` only opens the config gate; expanding a rule
     // needs the engine behind the `rrule` cargo feature, which is off by default
-    // (`crates/mindtape/src/recur_rrule.rs`). Without it the composed config is
+    // (`crates/mindtape/src/recur/rrule.rs`). Without it the composed config is
     // accepted and the first `rrule(...)` task fails `mt check` instead.
     Rrule when !HAS_RRULE_ENGINE => "this mt was built without the `rrule` \
         cargo feature, so a task using rrule(...) would fail `mt check` — rebuild \

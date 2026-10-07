@@ -4,7 +4,7 @@
 # deserialisation (`parse_config` in `config/mod.rs`): the user's values win
 # field-by-field (tables merge key-by-key; arrays and scalars replace
 # wholesale). This generalises the built-in priority-frameworks merge
-# (`merge_builtin_frameworks` in `framework.rs`) from one sub-table to the
+# (`merge_builtin_frameworks` in `framework/mod.rs`) from one sub-table to the
 # whole config document.
 #
 # Semantic shift: omitting a section here now means "inherit this floor," not

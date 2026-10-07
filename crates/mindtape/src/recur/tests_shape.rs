@@ -1,6 +1,6 @@
 //! The `recur` field's shape-error channel: what a value `every()`/`rrule()`
 //! passed through must tell the author when the Rust layer cannot read it.
-//! Split from `recur_tests.rs` (which pins the parse itself) for size; shares
+//! Split from `recur/tests.rs` (which pins the parse itself) for size; shares
 //! its fixtures.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 

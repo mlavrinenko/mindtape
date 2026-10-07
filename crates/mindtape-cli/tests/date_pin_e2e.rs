@@ -6,7 +6,7 @@
 //!
 //! These shell out to the compiled `mt` binary (like `recur_e2e.rs`) rather
 //! than calling `mindtape::date` directly: the override is resolved once into
-//! a process-wide cache in `main` (`crates/mindtape/src/date_pin.rs`), so the
+//! a process-wide cache in `main` (`crates/mindtape/src/date/pin.rs`), so the
 //! only race-free way to prove two different pins actually take effect is two
 //! separate processes — each `assert_cmd` invocation is its own OS process
 //! with its own env, so this sidesteps the shared-global-state hazard a

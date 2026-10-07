@@ -1288,7 +1288,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and `mindtape::ready` are now `mindtape::graph::children` and
   `mindtape::graph::ready`, and `mindtape::canonical`, `handle`, `marker`,
   `naming`, `numeric` and `task_spans` are now `mindtape::model::canonical`,
-  `handle`, `marker`, `naming`, `numeric` and `task_spans`. The root
+  `handle`, `marker`, `naming`, `numeric` and `task_spans`, and `mindtape::derive`
+  and `mindtape::app_dirs` are now `mindtape::loader::derive` and
+  `mindtape::loader::app_dirs`, `mindtape::link_scan` is now
+  `mindtape::link::scan`, `mindtape::recur_dates` is now
+  `mindtape::recur::dates`, `mindtape::add_slots` and
+  `mindtape::template_check` are now `mindtape::template::add_slots` and
+  `mindtape::template::check`, and `mindtape::status_value` is now
+  `mindtape::emit::status_value`. The root
   re-exports (`mindtape::Condition` and the rest) are unchanged.
 - **The docs sidebar groups pages by the reader's job.** The 13-page
   Reference group splits into Fields, Checks, Reference and Integrate, and

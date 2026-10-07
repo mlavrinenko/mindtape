@@ -17,9 +17,9 @@
 //! kind is named `raw` because the splice, not the check, is the contract.
 //!
 //! `typst_syntax` is already a direct dependency of this crate (see
-//! `framework_validate.rs`), pinned to the same 0.15 line
+//! `framework/validate.rs`), pinned to the same 0.15 line
 //! `typst-harvest`/`typstyle-core` resolve, so this adds no second `typst`
-//! crate. Split into its own file to keep `template.rs` under its line budget.
+//! crate. Split into its own file to keep `template/mod.rs` under its line budget.
 
 use super::{FillError, RawValue, SlotSpec, coerce_str};
 

@@ -254,7 +254,7 @@ groups:
   # whole wiring.
   - name: priority-frameworks
     source:
-      - crates/mindtape/src/frameworks.toml
+      - crates/mindtape/src/framework/frameworks.toml
     dependents:
       - www/utils/framework-notes.typ
 

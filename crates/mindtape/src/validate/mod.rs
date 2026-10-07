@@ -12,7 +12,7 @@
 //! - `candidate.rs`: validates a rendered task before it is written.
 //! - `links.rs`: the typed `links:` edge checks.
 //! - `priority.rs`: priority framework and manual-override checks.
-//! - `recur.rs`: the task-level `recur` policy check.
+//! - `recur/mod.rs`: the task-level `recur` policy check.
 //! - `severity.rs`: how loudly a config-declared breach reports.
 //! - `violation.rs`: what a check reports and where in the source it points.
 

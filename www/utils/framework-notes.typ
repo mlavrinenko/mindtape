@@ -2,7 +2,7 @@
 // name, and the renderers /priority/ builds its tables from.
 //
 // Everything else on those tables comes from www/generated/frameworks.json,
-// which www/generate-facts.sh derives from crates/mindtape/src/frameworks.toml
+// which www/generate-facts.sh derives from crates/mindtape/src/framework/frameworks.toml
 // and defaults.toml: the framework list, each input's name, type and bounds,
 // the score formula or categories, the shipped bands and difficulty anchors.
 // So a note here never restates a bound or a formula. `just check-doc-facts`

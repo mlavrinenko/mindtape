@@ -26,7 +26,7 @@
 #   - dsl-fields.json   <- lib/prelude.typ's `task` signature, read back
 #                          through its own `<mindtape>` marker, and its
 #                          status constructors
-#   - frameworks.json   <- crates/mindtape/src/frameworks.toml plus the two
+#   - frameworks.json   <- crates/mindtape/src/framework/frameworks.toml plus the two
 #                          scales in defaults.toml (see www/frameworks.jq)
 #   - filter-functions.json <- the filter registry, read back from the
 #                          `filter_functions` key of cli.json (`mt _cli`)
@@ -142,7 +142,7 @@ rm -rf "$tmp"
 # different file from the frameworks that score onto them.
 SCALES="$(tomlq -c '.tasks | {priority, difficulty}' crates/mindtape/src/config/defaults.toml)"
 tomlq -f "$SCRIPT_DIR/frameworks.jq" --argjson scales "$SCALES" \
-  crates/mindtape/src/frameworks.toml | emit frameworks.json
+  crates/mindtape/src/framework/frameworks.toml | emit frameworks.json
 
 # --- filter-functions.json ----------------------------------------------------
 # The filter language's predicates and functions with their arities, off the

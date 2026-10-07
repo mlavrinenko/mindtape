@@ -7,8 +7,8 @@ use std::collections::BTreeMap;
 
 use typst_syntax::is_ident;
 
+use crate::framework::eval::{eval_predicate, parse_check, score_interval};
 use crate::framework::{Framework, InputKind};
-use crate::framework_eval::{eval_predicate, parse_check, score_interval};
 use crate::model::numeric::{InputValue, format_num};
 
 /// The framework-validation scope: the field label, framework name, and scale.
@@ -217,5 +217,5 @@ fn display_input(value: &InputValue) -> String {
 }
 
 #[cfg(test)]
-#[path = "framework_validate_tests.rs"]
+#[path = "validate_tests.rs"]
 mod tests;

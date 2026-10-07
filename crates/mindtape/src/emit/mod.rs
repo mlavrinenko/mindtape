@@ -11,6 +11,14 @@
 //! Split into two helper submodules to stay under the file-size gate:
 //! `format` (Typst literal rendering: strings, numbers, arrays, `HVal`) and
 //! `links` (the `links:` field's per-kind/per-note grouping).
+//!
+//! # Files
+//!
+//! - `format.rs`: Typst literal rendering.
+//! - `links.rs`: `links:` field emission, grouped by kind and note.
+//! - `status_value.rs`: a status field value as Typst source.
+
+pub mod status_value;
 
 pub mod format;
 mod links;
@@ -18,10 +26,10 @@ mod links;
 use std::collections::BTreeMap;
 
 use crate::date::parse_ymd;
+use crate::emit::status_value::status_value;
 use crate::model::numeric::{InputValue, NumValue, format_num};
 use crate::model::{Status, Task};
 use crate::recur::{Recur, Rule};
-use crate::status_value::status_value;
 use format::{hval_to_typ, typ_array, typ_str};
 
 /// Serialize `task` to a full task-file source: the `@local/mindtape`
@@ -190,7 +198,7 @@ fn emit_recur(recur: &Recur) -> String {
                 args.push(format!("on: {}", typ_array(&days)));
             }
             if let Some(start) = start {
-                let (year, month, day) = crate::recur_dates::date_to_ymd(*start);
+                let (year, month, day) = crate::recur::dates::date_to_ymd(*start);
                 args.push(format!("start: on({year}, {month}, {day})"));
             }
             ("every", args)
@@ -213,5 +221,4 @@ fn emit_recur(recur: &Recur) -> String {
 }
 
 #[cfg(test)]
-#[path = "emit_tests.rs"]
 mod tests;

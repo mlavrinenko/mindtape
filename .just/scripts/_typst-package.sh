@@ -4,7 +4,7 @@
 # each script with the same sed would give a version-path change two edit
 # sites and no gate pairing them.
 VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' lib/typst.toml | head -1)
-# The data directory `mt` loads the package from (crates/mindtape/src/app_dirs.rs):
+# The data directory `mt` loads the package from (crates/mindtape/src/loader/app_dirs.rs):
 # `$MINDTAPE_DATA_HOME` when set, where empty means none, else what `dirs`
 # resolves on Linux.
 if [ -n "${MINDTAPE_DATA_HOME+set}" ]; then

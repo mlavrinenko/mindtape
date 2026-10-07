@@ -1,6 +1,6 @@
 //! `recur`'s canonical task-JSON shape — the marker dict verbatim (`rule.kind`,
 //! `on[i]`, …), so a hand-edited canonical record reads the same as the
-//! `every()`/`rrule()` call it came from. Split out from `recur.rs` to stay
+//! `every()`/`rrule()` call it came from. Split out from `recur/mod.rs` to stay
 //! under the file-size gate (`crate::emit`'s `format`/`links` split is the
 //! same reasoning). See `crate::model::canonical`'s field contract.
 
@@ -68,7 +68,7 @@ impl Recur {
                         .copied()
                         .map(|day| weekday_name(day).to_owned())
                         .collect(),
-                    start: start.map(crate::recur_dates::format_iso),
+                    start: start.map(crate::recur::dates::format_iso),
                 },
                 Rule::Rrule { raw } => CanonicalRule::Rrule { raw: raw.clone() },
             },
@@ -101,7 +101,7 @@ impl CanonicalRecur {
                     unit: PeriodUnit::parse(unit).unwrap_or(PeriodUnit::Days),
                     value: *value,
                     weekdays: on.iter().filter_map(|name| parse_weekday(name)).collect(),
-                    start: start.as_deref().and_then(crate::recur_dates::parse_iso),
+                    start: start.as_deref().and_then(crate::recur::dates::parse_iso),
                 },
                 CanonicalRule::Rrule { raw } => Rule::Rrule { raw: raw.clone() },
             },

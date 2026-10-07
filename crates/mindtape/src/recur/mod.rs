@@ -1,26 +1,34 @@
 //! The `recur` field: model, `[tasks.recur]` config, parsing, and the pure
 //! config-driven policy check.
 //!
-//! Mirrors the priority frameworks' discipline: the prelude only shapes a
-//! `(rule, anchor, until, count, materialize)` dict via `every()`/`rrule()` —
-//! no date math there. This module owns the marker parse and
-//! [`check_policy`]; the pure next-date arithmetic lives in
-//! [`crate::recur_dates`] (the same model/computation split as
-//! `framework.rs`/`framework_eval.rs`). `mt recur` (`crates/mindtape-cli`) is
-//! the only writer that ever acts on a [`Recur`] — see
-//! `truth/tasks/recurring-tasks.typ` and `truth/tasks/command-semantics-cqrs.typ`.
+//! Like the priority frameworks, the prelude only shapes a
+//! `(rule, anchor, until, count, materialize)` dict via `every()`/`rrule()`,
+//! with no date math. This module owns the marker parse and [`check_policy`];
+//! the next-date arithmetic lives in [`crate::recur::dates`]. Only `mt recur`
+//! acts on a [`Recur`]; see `truth/tasks/recurring-tasks.typ`.
 //!
-//! `rrule(...)` shares the same dict shape (a [`Rule::Rrule`] variant carrying
-//! the raw rule string), gated by `[tasks.recur] rrule` and the `rrule`
-//! cargo feature (`crates/mindtape/src/recur_rrule.rs`) — see
-//! `truth/tasks/rrule-escape-hatch.typ`. `check_policy` grammar-checks the
-//! raw string at parse time (feature on) and rejects `anchor: "completion"`
-//! on it (date-anchored only); the expansion itself is
-//! [`crate::recur_dates::advance_once`]'s concern.
+//! `rrule(...)` shares the dict shape (a [`Rule::Rrule`] variant carrying the
+//! raw rule string), gated by `[tasks.recur] rrule` and the `rrule` cargo
+//! feature; see `truth/tasks/rrule-escape-hatch.typ`. `check_policy`
+//! grammar-checks the raw string at parse time (feature on) and rejects
+//! `anchor: "completion"` on it, since it is date-anchored only.
 //!
-//! The canonical task-JSON shape ([`CanonicalRecur`]/[`CanonicalRule`], used
-//! by `crate::model::canonical`/`crate::import_map`) lives in the `canonical`
-//! submodule, split out to stay under the file-size gate.
+//! # Files
+//!
+//! - `canonical.rs`: the canonical task-JSON shape, [`CanonicalRecur`] and [`CanonicalRule`].
+//! - `dates.rs`: pure next-occurrence date arithmetic.
+//! - `rrule.rs`: the `rrule(...)` expansion engine, behind the `rrule` feature.
+//! - `rrule_off.rs`: the stand-in compiled when that feature is off.
+
+pub mod dates;
+#[cfg(feature = "rrule")]
+pub(crate) mod rrule;
+// Without the feature, the same module name resolves to a stub with the same
+// surface — so every caller stays one always-compiled function, with no
+// `#[cfg]` twin that a mutation sweep can only ever see as dead code.
+#[cfg(not(feature = "rrule"))]
+#[path = "rrule_off.rs"]
+pub(crate) mod rrule;
 
 mod canonical;
 
@@ -31,7 +39,7 @@ pub use canonical::{CanonicalRecur, CanonicalRule};
 
 /// A task's recurrence: the rule plus the policy riding along with it.
 ///
-/// Every policy field is `None` when the task omits it — [`crate::recur_dates`]
+/// Every policy field is `None` when the task omits it — [`crate::recur::dates`]
 /// resolves the effective value from `[tasks.recur]` rather than the prelude
 /// baking a default in Typst.
 #[derive(Debug, Clone, PartialEq)]
@@ -62,12 +70,12 @@ pub enum Rule {
         value: u32,
         /// Non-empty when `on:` narrowed the period to specific weekdays; the
         /// next date is then the nearest matching weekday rather than a fixed
-        /// `value`-unit jump. See [`crate::recur_dates::advance_once`].
+        /// `value`-unit jump. See [`crate::recur::dates::advance_once`].
         weekdays: Vec<chrono::Weekday>,
         /// `start:` — a date whose Monday-to-Sunday week is an on-week of a
         /// multi-week weekday series; every `value`-th week after it is too.
         /// `None` = the global series epoch
-        /// ([`crate::recur_dates`]'s `SERIES_EPOCH`).
+        /// ([`crate::recur::dates`]'s `SERIES_EPOCH`).
         start: Option<chrono::NaiveDate>,
     },
     /// `rrule("FREQ=MONTHLY;BYDAY=1MO")` — parsed and gated, not yet expanded.
@@ -263,7 +271,7 @@ fn parse_start(
     errors: &mut Vec<crate::model::marker::ShapeError>,
 ) -> Option<chrono::NaiveDate> {
     let text = crate::model::marker::dict_str(dict, "recur", "start", errors)?;
-    let date = crate::recur_dates::parse_iso(&text);
+    let date = crate::recur::dates::parse_iso(&text);
     if date.is_none() {
         errors.push(crate::model::marker::shape_message(
             "recur.start",
@@ -464,11 +472,11 @@ fn check_rrule_rule(raw: &str, anchor: Option<&str>, config: &RecurConfig, out: 
     check_rrule_syntax(raw, out);
 }
 
-/// Grammar-check the raw rule. `crate::recur_rrule` is the real engine with
+/// Grammar-check the raw rule. `crate::recur::rrule` is the real engine with
 /// the `rrule` feature on and an always-`Ok` stub without it, so this stays
 /// one always-compiled function either way.
 fn check_rrule_syntax(raw: &str, out: &mut Vec<String>) {
-    if let Err(message) = crate::recur_rrule::validate_rule(raw) {
+    if let Err(message) = crate::recur::rrule::validate_rule(raw) {
         out.push(message);
     }
 }
@@ -489,9 +497,7 @@ fn check_materialize(value: Option<&str>, out: &mut Vec<String>) {
 }
 
 #[cfg(test)]
-#[path = "recur_tests.rs"]
 mod tests;
 
 #[cfg(test)]
-#[path = "recur_tests_shape.rs"]
 mod tests_shape;

@@ -10,7 +10,7 @@
 //!
 //! Predicates / values:
 //! - `on_branch("glob")` -> bool. Glob-matches the current git branch (the
-//!   same [`globset`] matcher [`crate::derive`] uses for `derive-tags`
+//!   same [`globset`] matcher [`crate::loader::derive`] uses for `derive-tags`
 //!   globs); `false` when not a git repo / detached `HEAD`.
 //! - `tty()` -> bool. Whether stdout is a terminal, i.e. whether a human is
 //!   reading this output directly. Boolean like `on_branch`, so it is used

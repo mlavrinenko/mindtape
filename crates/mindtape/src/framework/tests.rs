@@ -107,7 +107,7 @@ fn user_definition_deep_merges_over_builtin() {
 }
 
 // --- check_input_value boundary regression tests ---
-// Each test distinguishes real behaviour from a specific mutation in framework.rs.
+// Each test distinguishes real behaviour from a specific mutation in framework/mod.rs.
 
 #[test]
 fn check_input_value_accepts_min_boundary() {

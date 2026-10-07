@@ -216,7 +216,7 @@ outdatty-check:
 # environment on Unix only. XDG_DATA_HOME would isolate this gate on Linux,
 # leave macOS reading the machine's packages, and mean nothing on Windows.
 # `mt` resolves the local-package directory through its own setting on every
-# platform (crates/mindtape/src/loader.rs).
+# platform (crates/mindtape/src/loader/mod.rs).
 #
 # The recipe makes one `--tests` build, then runs the binary itself. `cargo
 # run` cannot take `--tests`, and a plain `cargo run` relinks `target/debug/mt`
@@ -428,7 +428,7 @@ bench N='2000':
 
 # Check the `rrule(...)` escape hatch's expansion engine: `just check` builds
 # with default features, so it never compiles or runs this code (see
-# crates/mindtape/src/recur_rrule.rs). Reproduces what CI runs for it. Runs
+# crates/mindtape/src/recur/rrule.rs). Reproduces what CI runs for it. Runs
 # through nextest, the same runner `just test` gates on.
 #
 # Both crates, not only `mindtape`: `mt init`'s recurrence axis hides its
@@ -549,7 +549,7 @@ _lcov-stale-reason:
 # minted over a different file set than the gate scores would report every
 # difference between the two lists as a regression.
 
-CRAP_EXCLUDES := "--exclude **/main.rs --exclude **/recur_rrule.rs --exclude **/ls_interactive/tui.rs --exclude **/*_tests.rs --exclude **/tests.rs --exclude **/*_tests_*.rs --exclude **/tests_*.rs"
+CRAP_EXCLUDES := "--exclude **/main.rs --exclude **/recur/rrule.rs --exclude **/ls_interactive/tui.rs --exclude **/*_tests.rs --exclude **/tests.rs --exclude **/*_tests_*.rs --exclude **/tests_*.rs"
 
 # Same list for a third consumer that is not a `just` recipe: the sweep's
 # undertested arm (contrib/ask-refactoring/undertested.sh) runs `cargo crap` for
@@ -667,7 +667,7 @@ mutants-status +DIR='mutants.out':
 # formatted by one recipe and skipped by the other. A single list cannot omit a
 # path from the check while applying it in the fix.
 
-TOML_FMT_PATHS := ".cargo/mutants.toml .config/nextest.toml .gitleaks.toml .mindtape/config.toml Cargo.toml clippy.toml crates/mindtape-cli/Cargo.toml crates/mindtape-cli/src/axes/headers_spec.toml crates/mindtape-cli/src/axes/workflow_flow.toml crates/mindtape-cli/src/axes/workflow_gated.toml crates/mindtape-cli/src/axes/workflow_personal.toml crates/mindtape-cli/src/axes/workflow_todo_done.toml crates/mindtape-cli/src/presets/flow/config.toml crates/mindtape-cli/src/presets/gated/config.toml crates/mindtape-cli/src/presets/personal/config.toml crates/mindtape-cli/src/presets/todone/config.toml crates/mindtape/Cargo.toml crates/mindtape/src/config/defaults.toml crates/mindtape/src/frameworks.toml crates/mindtape/src/packs/mindtape-tasks.toml examples/api-service/.mindtape/config.toml examples/derived-tags/.mindtape/config.toml examples/dsl/.mindtape/config.toml examples/estimates/.mindtape/config.toml examples/large/.mindtape/config.toml examples/links/.mindtape/config.toml examples/lsp/.mindtape/config.toml examples/minimal/.mindtape/config.toml examples/named-sets/.mindtape/config.toml examples/priority/.mindtape/config.toml examples/recurring/.mindtape/config.toml examples/round-trip/.mindtape/config.toml examples/rules/.mindtape/config.toml examples/self-validating/.mindtape/config.toml examples/statuses/.mindtape/config.toml examples/task-files/.mindtape/config.toml lib/typst.toml rust-toolchain.toml rustfmt.toml tombi.toml www/tola.toml"
+TOML_FMT_PATHS := ".cargo/mutants.toml .config/nextest.toml .gitleaks.toml .mindtape/config.toml Cargo.toml clippy.toml crates/mindtape-cli/Cargo.toml crates/mindtape-cli/src/axes/headers_spec.toml crates/mindtape-cli/src/axes/workflow_flow.toml crates/mindtape-cli/src/axes/workflow_gated.toml crates/mindtape-cli/src/axes/workflow_personal.toml crates/mindtape-cli/src/axes/workflow_todo_done.toml crates/mindtape-cli/src/presets/flow/config.toml crates/mindtape-cli/src/presets/gated/config.toml crates/mindtape-cli/src/presets/personal/config.toml crates/mindtape-cli/src/presets/todone/config.toml crates/mindtape/Cargo.toml crates/mindtape/src/config/defaults.toml crates/mindtape/src/framework/frameworks.toml crates/mindtape/src/packs/mindtape-tasks.toml examples/api-service/.mindtape/config.toml examples/derived-tags/.mindtape/config.toml examples/dsl/.mindtape/config.toml examples/estimates/.mindtape/config.toml examples/large/.mindtape/config.toml examples/links/.mindtape/config.toml examples/lsp/.mindtape/config.toml examples/minimal/.mindtape/config.toml examples/named-sets/.mindtape/config.toml examples/priority/.mindtape/config.toml examples/recurring/.mindtape/config.toml examples/round-trip/.mindtape/config.toml examples/rules/.mindtape/config.toml examples/self-validating/.mindtape/config.toml examples/statuses/.mindtape/config.toml examples/task-files/.mindtape/config.toml lib/typst.toml rust-toolchain.toml rustfmt.toml tombi.toml www/tola.toml"
 TYPST_FMT_PATHS := "lib truth .mindtape/templates examples/api-service/tasks examples/api-service/.mindtape/templates examples/estimates/.mindtape/templates examples/self-validating/.mindtape/templates examples/named-sets/.mindtape/templates examples/derived-tags/api examples/derived-tags/web examples/links/tasks examples/named-sets/tasks examples/priority/tasks examples/recurring/tasks examples/round-trip/tasks examples/dsl/tasks examples/task-files/tasks examples/lsp examples/rules examples/statuses/tasks www/content www/templates www/utils docs/src"
 
 # The same one-list rule for the justfiles themselves. A bare `just --fmt`

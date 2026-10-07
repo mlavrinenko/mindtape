@@ -1,19 +1,26 @@
 //! Discover the project root and load tasks by live-evaluating their files.
+//!
+//! # Files
+//!
+//! - `app_dirs.rs`: where `mt` keeps its per-user state.
+//! - `cache.rs`: the persistent content-hash task cache.
+//! - `derive.rs`: folder-derived virtual tags.
+
+pub mod app_dirs;
+pub mod derive;
 
 use std::path::{Path, PathBuf};
 
 use typst_harvest::{HVal, Harvest, HarvestError, HarvestWorld, SourceSnapshot, batch_harvest};
 
 use crate::config::Config;
-use crate::derive::RootDeriver;
+use crate::loader::derive::RootDeriver;
 use crate::model::Task;
 use crate::model::task_spans::TaskCallSpans;
 
 // The persistent task cache is a loader implementation detail with no public
 // API, so it lives as a private submodule here rather than on the crate's
-// documented `lib.rs` surface. `#[path]` keeps the file flat alongside
-// `loader.rs`, matching the sibling `*_tests.rs` convention.
-#[path = "cache.rs"]
+// documented `lib.rs` surface.
 pub(crate) mod cache;
 
 use cache::{Cached, TaskCache};
@@ -250,7 +257,7 @@ fn item_at(root: &Path, config: &Config, rel: &Path) -> LoadItem {
         let deriver = RootDeriver::new(spec, &config.tasks.derive_tags);
         Some((
             deriver.tags_for(rel_within),
-            crate::derive::depth(rel_within),
+            crate::loader::derive::depth(rel_within),
         ))
     });
     let (folder_tags, depth) = derived.unwrap_or_default();
@@ -275,7 +282,7 @@ fn collect_items(root: &Path, config: &Config) -> Vec<LoadItem> {
         for file in files {
             let rel_within = file.strip_prefix(&dir).unwrap_or(&file);
             let folder_tags = deriver.tags_for(rel_within);
-            let depth = crate::derive::depth(rel_within);
+            let depth = crate::loader::derive::depth(rel_within);
             let rel = file.strip_prefix(root).unwrap_or(&file).to_path_buf();
             items.push(LoadItem {
                 file,
@@ -416,17 +423,13 @@ pub fn first_task_marker(markers: &[typst_harvest::Marker]) -> Option<&HVal> {
 }
 
 #[cfg(test)]
-#[path = "loader_tests.rs"]
 mod tests;
 
 #[cfg(test)]
-#[path = "loader_tests_cache.rs"]
 mod tests_cache;
 
 #[cfg(test)]
-#[path = "loader_tests_prelude.rs"]
 mod tests_prelude;
 
 #[cfg(test)]
-#[path = "loader_tests_eval_line.rs"]
 mod tests_eval_line;

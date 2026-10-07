@@ -31,7 +31,7 @@
 #     llvm-cov emits no records for, so scoring them meant 71 of the 73 "no
 #     matching entry in the LCOV report" warnings and a complexity budget
 #     spent on test helpers. Excluding them changes no verdict.
-#   - `recur_rrule.rs` is real production code, but `just cover` builds with
+#   - `recur/rrule.rs` is real production code, but `just cover` builds with
 #     default features only, so nothing ever compiles it and it would otherwise
 #     score every function inside as phantom 0%-covered (see `just
 #     check-rrule`, which covers it under the `rrule` feature — CI runs it as a

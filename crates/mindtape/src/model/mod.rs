@@ -75,7 +75,7 @@ pub struct Task {
     pub links: Vec<crate::link::Link>,
     /// Authored tags, exactly as written in the file.
     pub tags: Vec<String>,
-    /// Folder-derived virtual tags, injected at load by [`crate::derive`]. Never
+    /// Folder-derived virtual tags, injected at load by [`crate::loader::derive`]. Never
     /// written to the file; empty unless the task's root enables derivation.
     pub derived_tags: Vec<String>,
     /// Nesting depth of the file under its root: 0 for a task sitting directly

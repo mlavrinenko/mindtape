@@ -14,51 +14,31 @@
 // primitive they exist to pin.
 #![cfg_attr(test, allow(clippy::disallowed_methods))]
 
-pub mod add_slots;
-pub mod app_dirs;
 pub mod body;
 pub mod commit;
 pub mod config;
 mod date;
-mod date_pin;
-pub mod derive;
 pub mod emit;
 pub mod filter;
 pub mod format;
 pub mod framework;
-mod framework_eval;
-mod framework_validate;
 pub mod fs_atomic;
 pub mod git;
 pub mod graph;
 pub mod import_map;
 pub mod link;
-pub mod link_scan;
 pub mod loader;
 pub mod model;
 pub mod recur;
-pub mod recur_dates;
-#[cfg(feature = "rrule")]
-mod recur_rrule;
 pub mod rules;
-// Without the feature, the same module name resolves to a stub with the same
-// surface — so every caller stays one always-compiled function, with no
-// `#[cfg]` twin that a mutation sweep can only ever see as dead code.
-#[cfg(not(feature = "rrule"))]
-#[path = "recur_rrule_off.rs"]
-mod recur_rrule;
 pub mod sort;
-pub mod status_value;
 pub mod suggest;
 pub mod template;
-pub mod template_check;
 #[cfg(any(test, feature = "test-support"))]
 pub mod test_support;
 pub mod validate;
 pub mod worktrees;
 
-pub use add_slots::{RequiredSlot, inherit_field_choices, required_core_slots};
-pub use app_dirs::{CONFIG_HOME_ENV, DATA_HOME_ENV, config_home, data_home};
 pub use body::content_gate::{CompiledContentRule, check_content, compile_content_rules};
 pub use body::gate::{CompiledRule, GateError, check_headers, compile_rules};
 pub use body::{BodyRules, check_body_rules};
@@ -85,11 +65,11 @@ pub use config::{
     builtin_dict_names, compile_dicts, config_path, embedded_defaults, load_config, parse_config,
     parse_import_view, roles_of, validate_dicts, validate_views,
 };
+pub use date::pin::{DateOverrideError, init_pinned_today};
 pub use date::{days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};
-pub use date_pin::{DateOverrideError, init_pinned_today};
-pub use derive::RootDeriver;
 pub use emit::emit_task;
 pub use emit::format::{typ_array, typ_str};
+pub use emit::status_value::{STATUS_SHORTCUTS, escape_markup, status_value};
 pub use filter::condition::{Condition, ConditionError};
 pub use filter::condition_env::{ColumnFacts, ConditionEnv};
 pub use filter::{Filter, FilterError};
@@ -106,7 +86,9 @@ pub use import_map::{
     EntryKind, ImportReport, MapOptions, Mapped, ReportEntry, map_canonical, slug_from_title,
     stem_for_title,
 };
-pub use link_scan::{EdgeCall, TargetSpan, link_edges, link_target_spans};
+pub use link::scan::{EdgeCall, TargetSpan, link_edges, link_target_spans};
+pub use loader::app_dirs::{CONFIG_HOME_ENV, DATA_HOME_ENV, config_home, data_home};
+pub use loader::derive::RootDeriver;
 pub use loader::{
     LoadError, LoadOutcome, find_root, load_project, package_overrides, package_root,
 };
@@ -120,12 +102,12 @@ pub use model::task_spans::TaskCallSpans;
 pub use model::{Status, Task, is_history_pointer, normalize_link};
 pub use rules::{CheckSpec, RuleSpec};
 pub use sort::{default_order, default_order_with, difficulty_value, sort_by_specs};
-pub use status_value::{STATUS_SHORTCUTS, escape_markup, status_value};
 pub use suggest::{hint, nearest};
-pub use template::{FillError, RawValue, SlotKind, SlotSpec, discover_slots, fill, fill_examples};
-pub use template_check::{
+pub use template::add_slots::{RequiredSlot, inherit_field_choices, required_core_slots};
+pub use template::check::{
     TemplateHome, TemplateSources, template_breaches, template_failure, unfillable_slots,
 };
+pub use template::{FillError, RawValue, SlotKind, SlotSpec, discover_slots, fill, fill_examples};
 pub use validate::candidate::{
     Candidate, Checked, check_candidate, check_candidates, harvest_candidate, reads_set_breach,
 };

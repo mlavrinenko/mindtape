@@ -93,5 +93,5 @@ fn clamp_to_epoch(days: i64) -> u64 {
 }
 
 #[cfg(test)]
-#[path = "date_pin_tests.rs"]
+#[path = "pin_tests.rs"]
 mod tests;

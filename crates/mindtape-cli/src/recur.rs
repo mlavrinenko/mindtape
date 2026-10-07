@@ -14,10 +14,10 @@ use std::path::Path;
 use anyhow::{Context, Result, anyhow, bail};
 use chrono::NaiveDate;
 use clap::Args;
-use mindtape::recur::{Recur, RecurConfig};
-use mindtape::recur_dates::{
-    self, advance_once, effective_materialize, exhausted, next_date, past_until,
+use mindtape::recur::dates::{
+    self as recur_dates, advance_once, effective_materialize, exhausted, next_date, past_until,
 };
+use mindtape::recur::{Recur, RecurConfig};
 use mindtape::{Task, today_ymd};
 
 use crate::add_values::slug;

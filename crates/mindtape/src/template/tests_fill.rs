@@ -1,7 +1,7 @@
 //! Tests for the slot-template engine's fill half — value coercion against a
 //! slot's kind, per-kind rendering, defaults, the markup-splice pipeline, and
-//! the `FillError` display arms — split out of `template_tests.rs` along the
-//! same discover/fill seam `template.rs` documents for its two source files.
+//! the `FillError` display arms — split out of `template/tests.rs` along the
+//! same discover/fill seam `template/mod.rs` documents for its two source files.
 //! Reaches the shared `wrap` helper from the sibling discovery module via
 //! `super::tests`.
 #![allow(clippy::unwrap_used)]

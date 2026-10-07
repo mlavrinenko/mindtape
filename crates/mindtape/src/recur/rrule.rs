@@ -4,7 +4,7 @@
 //! Wraps the `rrule` crate (RFC 5545 recurrence rules): [`validate_rule`]
 //! grammar-checks a raw rule string at `mt check`/`mt recur` parse time (see
 //! [`crate::recur::check_policy`]); [`next_after`] expands it for
-//! [`crate::recur_dates::advance_once`]. DTSTART is always the reference date
+//! [`crate::recur::dates::advance_once`]. DTSTART is always the reference date
 //! the caller passes in (the task's `due`, or a catch-up cursor mid-loop) —
 //! see `truth/tasks/rrule-escape-hatch.typ`'s "DTSTART is seeded from the
 //! task's `due`" decision. This module never reads the clock.
@@ -12,7 +12,7 @@
 use chrono::{DateTime, Duration, NaiveDate, TimeZone};
 use rrule::{RRule, RRuleSet, Tz, Unvalidated};
 
-use crate::recur_dates::RecurError;
+use crate::recur::dates::RecurError;
 
 /// Grammar/semantic-check `raw` as an RFC 5545 `RRULE` value, independent of
 /// any task's `due` (DTSTART is an arbitrary fixed date — validity never
@@ -67,7 +67,7 @@ fn build_set(raw: &str, dt_start: DateTime<Tz>) -> Result<RRuleSet, rrule::RRule
 }
 
 /// `date` at midnight UTC. The timezone is arbitrary — every date this module
-/// produces or consumes is calendar-only (see [`crate::recur_dates`]'s own
+/// produces or consumes is calendar-only (see [`crate::recur::dates`]'s own
 /// no-clock-reads discipline); UTC just avoids DST ambiguity in the `rrule`
 /// crate's `chrono-tz`-backed clock arithmetic.
 fn midnight_utc(date: NaiveDate) -> DateTime<Tz> {
@@ -75,5 +75,5 @@ fn midnight_utc(date: NaiveDate) -> DateTime<Tz> {
 }
 
 #[cfg(test)]
-#[path = "recur_rrule_tests.rs"]
+#[path = "rrule_tests.rs"]
 mod tests;

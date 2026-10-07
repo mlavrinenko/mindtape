@@ -1,7 +1,7 @@
 //! Persistent content-hash cache: a load's `.mindtape/cache/` entries are
 //! served verbatim when a file/config/prelude hash is unchanged, and bypassed
 //! (fresh eval) the moment any of those hashes moves. Shares
-//! `loader_tests.rs`'s fixtures (`setup`, `write`, `write_pkg`, `TASK_BODY`,
+//! `loader/tests.rs`'s fixtures (`setup`, `write`, `write_pkg`, `TASK_BODY`,
 //! `PRELUDE_STUB`).
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 

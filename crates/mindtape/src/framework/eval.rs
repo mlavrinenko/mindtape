@@ -239,5 +239,5 @@ fn span(values: &[f64]) -> Interval {
 }
 
 #[cfg(test)]
-#[path = "framework_eval_tests.rs"]
+#[path = "eval_tests.rs"]
 mod tests;

@@ -79,7 +79,7 @@ so the task is worth only as much as that measurement still is.
 
 - Pick the remedy, then do it: test the unreached paths, or exclude the file
   from scoring with a reason next to its entry in the `just cover` recipe, in
-  the style its `main.rs` and `recur_rrule.rs` exclusions already use.
+  the style its `main.rs` and `recur/rrule.rs` exclusions already use.
 - If you test, start with the branches that decide something; `just mutants -f`
   on the same file says whether the new tests actually pin behaviour.
 - A written exclusion reason is the only thing that suppresses this finding on

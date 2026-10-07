@@ -4,7 +4,7 @@
 //! Precedence, lowest to highest:
 //! 1. The compiled-in embedded floor (`config/mod.rs`'s `EMBEDDED_DEFAULTS`).
 //! 2. XDG global defaults: `<config home>/mindtape/defaults.toml`, with the
-//!    config home resolved by [`crate::app_dirs::config_home`].
+//!    config home resolved by [`crate::loader::app_dirs::config_home`].
 //! 3. Every `.mindtape/defaults.toml` found walking up from the project root,
 //!    farthest ancestor first, so the nearest one wins.
 //! 4. The project's own `<root>/.mindtape/config.toml`.
@@ -50,14 +50,18 @@ pub enum LayerSource {
 
 /// Locate every config layer that applies to `root`, in precedence order
 /// (lowest first). Reads the real global config dir
-/// ([`crate::app_dirs::config_home`]); see [`load_config_layered`] for the entry point
+/// ([`crate::loader::app_dirs::config_home`]); see [`load_config_layered`] for the entry point
 /// that also supplies the real home directory.
 ///
 /// `home` bounds the ancestor walk-up (never ascended past); pass
 /// `dirs::home_dir()` in production, an injected path in tests.
 #[must_use]
 pub fn discover_layers(root: &Path, home: Option<&Path>) -> Vec<Layer> {
-    discover_layers_with_xdg(root, home, crate::app_dirs::config_home().as_deref())
+    discover_layers_with_xdg(
+        root,
+        home,
+        crate::loader::app_dirs::config_home().as_deref(),
+    )
 }
 
 /// [`discover_layers`] with the XDG global config dir injected, so tests can
@@ -256,7 +260,7 @@ pub fn load_config_layered(
     load_config_layered_from(
         root,
         dirs::home_dir().as_deref(),
-        crate::app_dirs::config_home().as_deref(),
+        crate::loader::app_dirs::config_home().as_deref(),
     )
 }
 

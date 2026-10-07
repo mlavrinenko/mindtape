@@ -45,10 +45,10 @@
 # whose comment there gives the reason a second hand-maintained copy is not
 # acceptable; a third in a shell script is the same mistake. Those globs drop
 # `main.rs` (absent from the lcov, so every function in it would score 0%),
-# `recur_rrule.rs` (feature-gated, uncompiled under the default build) and the
+# `recur/rrule.rs` (feature-gated, uncompiled under the default build) and the
 # `*_tests.rs` / `tests.rs` modules. On top of them this arm applies the coverage
 # arm's two production filters, which catch what the globs miss: ejectest's
-# infix-split siblings (`add_tests_subprocess.rs`) and the `recur_rrule_off.rs`
+# infix-split siblings (`add_tests_subprocess.rs`) and the `recur/rrule_off.rs`
 # stub. A file the coverage arm calls non-production has to be non-production
 # here too, or the dedup would pass a test helper through on the grounds that the
 # other arm never reports it.

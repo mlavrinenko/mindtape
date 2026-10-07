@@ -3,7 +3,7 @@
 //! Mutates each task's `status:` to `<status>` dated today, the same shape
 //! `add` stamps the initial status (shortcut `name(y, m, d)` for a prelude name,
 //! generic `status("name", y, m, d)` otherwise — both via
-//! [`mindtape::status_value`]). The status must be a configured legend value.
+//! [`mindtape::emit::status_value`]). The status must be a configured legend value.
 //!
 //! Every legend value also doubles as a top-level shortcut verb dispatched here:
 //! `mt done a7k x3m` == `mt flip done a7k x3m` (see [`run_external`]).
@@ -356,7 +356,7 @@ fn notice_recur(
     if !legend.terminal().iter().any(|t| t == status) {
         return;
     }
-    match mindtape::recur_dates::effective_materialize(recur, recur_config) {
+    match mindtape::recur::dates::effective_materialize(recur, recur_config) {
         "mutate" => println!(
             "{:?} is recurring (mutate) — closing this ends the series",
             task.id

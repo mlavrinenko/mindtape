@@ -50,11 +50,11 @@ such as kache only misses and fills its store.
 A timeout that repeats is a finding. It means a mutant reached an unbounded
 loop. Bound such a loop with a `for` over a fixed range. A
 `while n <= CEILING` loop still hangs once the mutant stops incrementing `n`.
-`MAX_CATCH_UP_STEPS` in `recur_dates.rs` is an example.
+`MAX_CATCH_UP_STEPS` in `recur/dates.rs` is an example.
 
 A survivor inside `#[cfg(not(feature = …))]` code cannot be reached under the
 sweep's feature set. Move that code into its own file and add the file to
-`exclude_globs`, as `recur_rrule_off.rs` is.
+`exclude_globs`, as `recur/rrule_off.rs` is.
 
 = Why CI does not run it
 

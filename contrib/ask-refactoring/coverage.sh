@@ -85,11 +85,11 @@ ensure_lcov_fresh() {
 #   those two globs — verified to select the identical 110-file set on this
 #   tree — written as one pattern because jq has no glob matcher.
 #
-#   recur_rrule_off.rs. The `#[cfg(not(feature = "rrule"))]` stub that compiles
+#   recur/rrule_off.rs. The `#[cfg(not(feature = "rrule"))]` stub that compiles
 #   under the default feature set `just cover` builds with. `.cargo/mutants.toml`
 #   already excludes it from mutation testing for the same reason: it is a
 #   handful of thin forwarding functions, not undertested logic, and scores low
-#   only because there is almost nothing there to cover. (`recur_rrule.rs`, the
+#   only because there is almost nothing there to cover. (`recur/rrule.rs`, the
 #   real implementation behind the `rrule` feature, does not appear in the
 #   report at all under the default build — nothing compiles it, so llvm-cov
 #   has no records for it either way; `just crap` excludes it explicitly because
@@ -100,7 +100,7 @@ ensure_lcov_fresh() {
 # two agree on which files are production code to begin with. One definition, so
 # they cannot drift apart.
 COVERAGE_TEST_RE='(^|/)([^/]*_)?tests(_[^/]*)?\.rs$'
-COVERAGE_STUB='crates/mindtape/src/recur_rrule_off.rs'
+COVERAGE_STUB='crates/mindtape/src/recur/rrule_off.rs'
 
 score_coverage() {
     jq -r --arg repo "$repo/" --argjson floor "$COVERAGE_FLOOR" \

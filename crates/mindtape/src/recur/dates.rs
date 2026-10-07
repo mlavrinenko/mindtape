@@ -132,11 +132,11 @@ pub fn advance_once(rule: &Rule, from: NaiveDate) -> Result<NaiveDate, RecurErro
 }
 
 /// The `rrule(...)` step: the rule's first occurrence strictly after `from`.
-/// `crate::recur_rrule` is the real engine with the `rrule` feature on and a
-/// fixed-error stub without it (`recur_rrule_off.rs`), so this stays one
+/// `crate::recur::rrule` is the real engine with the `rrule` feature on and a
+/// fixed-error stub without it (`recur/rrule_off.rs`), so this stays one
 /// always-compiled function either way.
 fn advance_rrule(raw: &str, from: NaiveDate) -> Result<NaiveDate, RecurError> {
-    crate::recur_rrule::next_after(raw, from)
+    crate::recur::rrule::next_after(raw, from)
 }
 
 /// Add one `unit`-`value` period to `from`, clamping month/year-end overflow
@@ -250,5 +250,5 @@ pub fn date_to_ymd(date: NaiveDate) -> (i32, u8, u8) {
 }
 
 #[cfg(test)]
-#[path = "recur_dates_tests.rs"]
+#[path = "dates_tests.rs"]
 mod tests;

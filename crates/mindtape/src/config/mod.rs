@@ -105,7 +105,7 @@ pub use crate::config::views::{ViewSpec, validate_views};
 /// carry an opinionated shipped default (status legend, priority/difficulty
 /// scale and classification, roots, templates, `rm`/`ls` defaults). Deep-merged
 /// as the base under the user's config before typed deserialization — see
-/// [`parse_config`]. Mirrors `BUILTIN_FRAMEWORKS` (`framework.rs`). Also the
+/// [`parse_config`]. Mirrors `BUILTIN_FRAMEWORKS` (`framework/mod.rs`). Also the
 /// lowest layer in [`crate::config::layers`]'s multi-file assembly.
 pub(crate) const EMBEDDED_DEFAULTS: &str = include_str!("defaults.toml");
 
@@ -332,7 +332,7 @@ impl Config {
         let mut problems = self.tasks.priority.validate("priority");
         problems.extend(self.tasks.difficulty.validate("difficulty"));
         problems.extend(self.tasks.status.transition_problems());
-        problems.extend(crate::derive::validate_root_globs(self));
+        problems.extend(crate::loader::derive::validate_root_globs(self));
         for spec in &self.ls.default_sort {
             if let Err(msg) = crate::sort::validate_sort_spec(spec) {
                 problems.push(format!("ls.default-sort: {msg}"));

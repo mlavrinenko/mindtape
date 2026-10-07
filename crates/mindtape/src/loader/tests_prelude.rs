@@ -1,7 +1,7 @@
-//! The real, in-tree prelude (not `loader_tests.rs`'s `PRELUDE_STUB`) driven
+//! The real, in-tree prelude (not `loader/tests.rs`'s `PRELUDE_STUB`) driven
 //! end to end: what a task file authors against `@local/mindtape` must arrive
 //! as a [`crate::model::Task`], through the actual Typst eval and harvester
-//! rather than hand-built `HVal` fixtures. Shares `loader_tests.rs`'s
+//! rather than hand-built `HVal` fixtures. Shares `loader/tests.rs`'s
 //! fixtures (`setup`, `write`, `write_pkg`).
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 

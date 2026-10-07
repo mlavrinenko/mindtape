@@ -3,7 +3,7 @@
 //! call with a rendered literal (or its default) so the filled task holds
 //! plain values and never calls `slot`.
 //!
-//! Split from `template.rs` along the module's own two verbs (see its doc
+//! Split from `template/mod.rs` along the module's own two verbs (see its doc
 //! comment): that file turns template source into [`super::SlotSpec`]s
 //! ("discover"), this one turns `SlotSpec`s plus caller values into
 //! rewritten source ("fill"). [`fill`] is the sole entry point the parent
@@ -21,7 +21,6 @@ use super::{SlotKind, SlotSpec, discover_slots};
 
 /// Fill-time validation for `raw`-kind slots; split out to keep this file
 /// under its line budget. See [`markup::render_raw`].
-#[path = "template_markup.rs"]
 mod markup;
 
 /// A caller-supplied fill value, before coercion to a slot's kind. Mirrors the
@@ -42,7 +41,7 @@ pub enum RawValue {
 }
 
 impl RawValue {
-    /// `pub(super)`: also read directly by `template_tests.rs`, a sibling
+    /// `pub(super)`: also read directly by `template/tests.rs`, a sibling
     /// module under `template`, not just by this file's own coercion helpers.
     pub(super) fn type_name(&self) -> &'static str {
         match self {
