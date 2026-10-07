@@ -22,6 +22,7 @@ mod body_headers;
 pub mod candidate;
 pub mod canonical;
 pub mod children;
+mod commit_amend;
 pub mod commit_expr;
 pub mod commit_msg;
 pub mod commit_range;

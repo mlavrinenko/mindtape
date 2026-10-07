@@ -15,12 +15,13 @@
 //! `staged`, its first parent as `head`, no working tree — and loads through
 //! the same [`CommitStates::load`].
 
+use std::collections::BTreeSet;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 use crate::candidate::{Candidate, harvest_source};
-use crate::commit_msg::{CommitMsgError, git, task_stem};
+use crate::commit_msg::{CommitMsgError, changed_paths, git, task_stem};
 use crate::config::Config;
 use crate::git_state::GitStatus;
 use crate::loader::LoadError;
@@ -66,6 +67,14 @@ impl StatePlan {
             command: "status".to_owned(),
             stderr,
         })?;
+        // `HEAD`, or its parent while `git commit --amend` replaces it; the
+        // paths where that differs from `HEAD` join the ones `status` names.
+        let base = crate::commit_amend::base_rev(root)?;
+        let behind_head = if base == "HEAD" {
+            Vec::new()
+        } else {
+            changed_paths(root, &[&base, "HEAD"])?
+        };
         let paths = |pick: fn(bool, bool) -> bool| {
             status
                 .entries()
@@ -81,10 +90,15 @@ impl StatePlan {
                 rev: String::new(),
                 differs: paths(|_, worktree| worktree),
             },
-            // HEAD differs from the working tree wherever either step does.
+            // The base differs from the working tree wherever either step does.
             head: StateSource {
-                rev: "HEAD".to_owned(),
-                differs: paths(|staged, worktree| staged || worktree),
+                rev: base,
+                differs: paths(|staged, worktree| staged || worktree)
+                    .into_iter()
+                    .chain(behind_head)
+                    .collect::<BTreeSet<String>>()
+                    .into_iter()
+                    .collect(),
             },
             worktree: true,
         })

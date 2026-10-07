@@ -62,7 +62,7 @@ groups:
       crates/mindtape-cli/src/worktrees.rs: 844afb5b116a83aec8bf858e286273242881786cb5ddf4dab4c168bff65e4508
       crates/mindtape/src/defaults.toml: 0b73c2b1e699a4827427c1b48ae699fc36e4f9eff6fec7f75313b07fe32a023b
       crates/mindtape/src/fields.rs: 4a01616879dcfffe0e4922aeeafde5068a78f1b1b7b95633bc21d37cb7bd2a10
-      crates/mindtape/src/lib.rs: a7f1b6124f15af658d83a2b63a4bf8d1f09cedfb22d35a5c89ff66e23b429856
+      crates/mindtape/src/lib.rs: 7a0bd4ed8b936257c26865c3db04a9d49874fea98c0c293203b585a255271da0
     dependents:
       docs/src/skill.typ: c2c1f99555057c80465e0382054300d746b69ed7fca2189f0de1f6857231b165
       skills/mindtape/evals/README.md: 096a87126b99bf1befb6a9d23f1aa3021870a0f86e13b655800725fedf762f53
@@ -92,7 +92,7 @@ groups:
       www/content/cli/set.typ: 24b76bb77e2e3c4b0e7a265702758ada5d054e67a705b5f81c778c244cf93c59
       www/content/cli/views.typ: 60a67289f2bb546ff203cfb8047299894e6689b241287c04b0c35374e094422a
       www/content/cli/worktrees.typ: edd512ecff478c88e54c9c8e177d02948a80a3b37ba33d275a888a7cb87416c5
-      www/content/commit-rules.typ: ed2d11a99d530d0f09b1940bf3cc5b4e8708cfb733ac117d3468376d4d505740
+      www/content/commit-rules.typ: 577bd198134df8ae9c2ee2b91c4da6001d384101a18be634d5b6dd42231048cb
       www/content/concepts.typ: 09a59054d0c30ca5c5369a96be60f6ee285e813bbc581b90237d587a5c02cf84
       www/content/config.typ: 1e0beebd08fb2ea13ed0b3eb0b3f06728d1fba127356f0566377be1658d61c30
       www/content/derived-tags.typ: 8672009098bded96541cd8a3ca1162e95a4e5d56e1308d1c553d1919cf1620be

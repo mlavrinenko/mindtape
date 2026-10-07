@@ -74,7 +74,9 @@ rule once per commit, over these fields:
 
   [`files`],
   [Every staged path, relative to the repository's top level. A rename is
-    both its paths.],
+    both its paths. Under `git commit --amend` the paths differ from the
+    parent of the commit being replaced, so an amend that adds a task's flip
+    to its work commit still sees the work.],
 
   [`tasks_only`],
   [Whether the commit stages at least one file and every staged file is a
@@ -111,7 +113,9 @@ of three states:
 #table(
   columns: 2,
   table.header([Reads], [Holds]),
-  [`head(<expr>)`], [The task as of `HEAD`, before the commit.],
+  [`head(<expr>)`],
+  [The task as of `HEAD`, before the commit, or of `HEAD^` under `git commit --amend`.],
+
   [`staged(<expr>)`],
   [The task as the index holds it, which the commit records.],
 

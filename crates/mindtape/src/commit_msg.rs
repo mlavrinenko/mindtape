@@ -172,6 +172,9 @@ pub struct ChangedFiles {
 /// The files staged in the index of the repository holding `root`: what the
 /// commit a `commit-msg` hook guards is about to record.
 ///
+/// While `git commit --amend` makes the commit, "staged" is judged against
+/// `HEAD^`, the parent the amended commit will have.
+///
 /// Read-only (`--no-optional-locks`), and it inherits `GIT_INDEX_FILE`, so
 /// under `git commit -a` or `git commit <paths>` it reads the temporary index
 /// the commit is actually built from.
@@ -184,10 +187,24 @@ pub fn staged_files(root: &Path) -> Result<ChangedFiles, CommitMsgError> {
         CommitMsgError::Git { .. } => CommitMsgError::NotGit(root.display().to_string()),
         other => other,
     })?;
+    let revs = index_revs(root)?;
+    let revs: Vec<&str> = revs.iter().map(String::as_str).collect();
     Ok(ChangedFiles {
-        paths: changed_paths(root, &["--cached"])?,
-        renamed_from: renamed_sources(root, &["--cached"])?,
+        paths: changed_paths(root, &revs)?,
+        renamed_from: renamed_sources(root, &revs)?,
         root_prefix: root_prefix.trim().to_owned(),
+    })
+}
+
+/// The `git diff` arguments naming the index against what the commit follows:
+/// plain `--cached` (`HEAD`, which a repository with no commit yet lacks), or
+/// `--cached <parent>` while amending ([`crate::commit_amend`]).
+pub(crate) fn index_revs(root: &Path) -> Result<Vec<String>, CommitMsgError> {
+    let base = crate::commit_amend::base_rev(root)?;
+    Ok(if base == "HEAD" {
+        vec!["--cached".to_owned()]
+    } else {
+        vec!["--cached".to_owned(), base]
     })
 }
 
