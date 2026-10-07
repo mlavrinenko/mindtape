@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 7),
+  status: done(2026, 10, 7)[both sources and renders under 90%, caps unchanged],
   links: depends-on(
     "fold-rendered-docs-into-their-source-in-the-size-sweep.typ",
   ),

@@ -3,10 +3,9 @@
 // repo loads it, so it says what MindTape is and where its parts live, and
 // leaves how work is done to CONTRIBUTING.md.
 //
-// Crate names come from www/generated/crate-map.json, and the task DSL block
-// is a slice of examples/dsl/, which `just check-examples` validates. The
-// render fails on a crate with no role below, a named dependency missing from
-// the graph, or a docs page with no source file.
+// Crate names come from www/generated/crate-map.json, and the DSL block is a
+// slice of examples/dsl/, which `just check-examples` validates. The render
+// fails on a crate with no role, an unknown dependency or a missing page.
 #import "lib.typ": doc-title, fact, just, num-word
 #import "/www/utils/slices.typ": checked-slices
 
@@ -24,8 +23,7 @@
 }
 
 // A dependency named in the Architecture list. crate-map.json gives a name
-// missing from the dependency graph a null version, and the assert fails on
-// it.
+// missing from the dependency graph a null version, which fails the assert.
 #let dep(name) = {
   let entry = crate-map.at("arch-deps").find(d => d.name == name)
   assert(
@@ -37,35 +35,34 @@
 
 #doc-title[MindTape — AI Agent Context]
 
-\@CONTRIBUTING.md says how work is done in this repo. This file says what
-MindTape is and where its parts live.
+\@CONTRIBUTING.md says how work is done here. This file says what MindTape is
+and where its parts live.
 
 = What is this?
 
 MindTape is a file-based task tracker. Each task is one Typst file
-(`#show: task.with(...)`), and the filename stem is its identity. Every `mt`
-command evaluates the task files under the configured roots through the Typst
-compiler crates. There is no daemon and no database. A content-hash cache in
-`.mindtape/cache/` skips evaluating a file whose bytes did not change.
+(`#show: task.with(...)`), named by its filename stem. Every `mt` command
+evaluates the task files under the configured roots through the Typst compiler
+crates, with no daemon or database. A content-hash cache in `.mindtape/cache/`
+skips a file whose bytes are unchanged.
 
 = Repo map
 
-- `lib/prelude.typ` — the `@local/mindtape` Typst package, which defines the
-  task DSL.
-- `truth/tasks/` — MindTape's own backlog. `mt` here uses the in-tree `lib/`.
+- `lib/prelude.typ` — the `@local/mindtape` package, which defines the task
+  DSL.
+- `truth/tasks/` — MindTape's own backlog, read with the in-tree `lib/`.
 - `truth/goals.typ` and `truth/process-goals.typ` — the product and process
-  goals. Each open task rates every goal in its `x-goals` field, and the
-  `goals` rule checks the ratings with `check-goals` from `truth/lib.typ`.
+  goals. Each open task rates every goal in `x-goals`, and the `goals` rule
+  checks the ratings with `check-goals` from `truth/lib.typ`.
 - `www/content/*.typ` — the docs site, built with tola.
 - `docs/src/*.typ` — the sources of README.md, AGENTS.md, CONTRIBUTING.md,
-  the skill's SKILL.md and the `docs/contributing/*.md` deep dives.
+  SKILL.md and the `docs/contributing/*.md` deep dives.
 - `skills/mindtape/` — the agent skill for driving `mt`, with its references
   and evals.
-- `examples/` — fixture projects. `api-service` is a backend team's backlog,
-  and it feeds the docs and the skill's evals. `minimal` is the smallest config.
-  `dsl` holds the task the DSL block below quotes. `large` is a 2000-task
-  benchmark whose gitignored tasks #just.gen-bench() writes. Each of the others
-  backs one docs page.
+- `examples/` — fixture projects: `api-service`, a backend team's backlog
+  that feeds the docs and the skill's evals; `minimal`, the smallest config;
+  `dsl`, the task quoted below; `large`, a 2000-task benchmark whose gitignored
+  tasks #just.gen-bench() writes. Each other one backs one docs page.
 
 Before you write about a feature, read the `www/content/` page that covers
 it: #page-src("dsl") for task fields, edge kinds and `recur`,
@@ -78,8 +75,8 @@ config key.
 #let workspace = crate-map.at("workspace")
 #let workspace-roles = (
   "mindtape": [the domain library: config, task model, filter language,
-    validation and project loader. Other tools, such as speconaut, depend on
-    it.],
+    validation and project loader, which speconaut and other tools depend
+    on.],
   "mindtape-cli": [the thin `mt` binary, built on clap.],
 )
 
@@ -104,26 +101,21 @@ The cargo workspace has a virtual root manifest and
 )
 
 The Typst plumbing comes from #num-word(substrate.len()) crates.io
-dependencies, and this repo holds none of their source:
+dependencies, whose source sits under `~/.cargo/registry/src/` at the versions
+`Cargo.lock` pins. `HVal`, the value every task field passes through, is
+`typst_world::value::HVal`.
 
 #for c in substrate [
   - #raw(c.name) — #substrate-roles.at(c.name)
 ]
 
-Their source sits under `~/.cargo/registry/src/`, at the versions
-`Cargo.lock` pins. `HVal`, the harvested value every task field passes
-through, is defined in `typst-world` as `typst_world::value::HVal`.
-
-Each folder under `crates/*/src/` is one area, and its `mod.rs` maps its
-files.
-
 = Architecture
 
 - Rust, with the toolchain pinned in `rust-toolchain.toml`.
-- Typst runs eval-only through #dep("typst-eval"). MindTape never lays out or
-  renders a document.
-- #dep("evalexpr") parses the filter language. MindTape walks the parsed tree
-  and evaluates it itself.
+- Typst runs eval-only through #dep("typst-eval"): MindTape never lays out a
+  document.
+- #dep("evalexpr") parses the filter language, and MindTape evaluates the
+  parsed tree itself.
 - #dep("clap") for the CLI, #dep("serde") and #dep("toml") for config,
   #dep("serde_json") and #dep("csv") for output, and a hand-rolled table
   renderer in `crates/mindtape-cli/src/render/`.
@@ -134,9 +126,9 @@ files.
 #raw(dsl.task.code, lang: "typ", block: true)
 
 `task` declares each core field as a named parameter, so tinymist completes
-the field names. Its `..meta` sink takes only `x-<ns>` extension slots. A
-misspelled field such as `titel` fails the file with
-`unexpected argument: titel`, which an editor marks under `titel`.
+field names, and its `..meta` sink takes only `x-<ns>` slots. A misspelled
+field such as `titel` fails with `unexpected argument: titel`, marked under
+`titel`.
 
 A field value is a plain shape that Rust interprets. `ice(...)` and the other
 framework helpers build a `(framework, inputs)` dict, `every(...)` and
@@ -144,15 +136,13 @@ framework helpers build a `(framework, inputs)` dict, `every(...)` and
 `depends-on("a.typ") + related("b.typ")[why]` builds typed edges. Rust does
 all math and date arithmetic.
 
-`docs/contributing/validation-seam.md` says which layer a new validation
-belongs in: the prelude, Rust and config, or the card render.
-
 == Mechanism, not policy
 
 Rust ships mechanisms, and projects write policy as config expressions. Rust
-code never names a specific estimate unit, status, tag, path or threshold. A
+code names no estimate unit, status, tag, path or threshold. A
 new check is a `[[tasks.rules]]` entry. When the filter language cannot
 express it, extend the language with a field, predicate, aggregate or git
-state instead of adding a config table or checker of its own. Shipped defaults
+state, never a config table or checker of its own. Shipped defaults
 live in rule packs under `crates/mindtape/src/packs/`, and a project overrides
-a pack rule by name.
+a pack rule by name. `docs/contributing/validation-seam.md` says which layer a
+new check belongs in: the prelude, Rust and config, or the card render.
