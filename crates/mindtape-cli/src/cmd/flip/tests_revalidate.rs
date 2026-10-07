@@ -25,9 +25,10 @@ const BROKEN_FILE: &str = "#import \"@local/mindtape:0.2.0\": *\n\
 #show: task.with(\n  title: \"Broken\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody [\n";
 
 /// A flip into a status the declared graph cannot reach is refused before the
-/// write, and the file is left exactly as it was. The returned error only
-/// carries the count; the violation text goes to stderr, so
-/// `cmd/flip/tests_output.rs` asserts that half.
+/// write, and the file is left exactly as it was. With one target, the
+/// returned error is that target's refusal, with no batch summary; the
+/// violation text goes to stderr, so `cmd/flip/tests_output.rs` asserts that
+/// half.
 #[test]
 fn refuses_a_flip_into_an_unreachable_status() {
     let dir = tempfile::tempdir().unwrap();
@@ -36,8 +37,8 @@ fn refuses_a_flip_into_an_unreachable_status() {
         .unwrap_err()
         .to_string();
     assert!(
-        err.contains("1 task(s) had problems"),
-        "expected the refusal count: {err}"
+        err.contains("rejected; nothing was written") && !err.contains("had problems"),
+        "expected the target's refusal and no summary: {err}"
     );
     assert_eq!(
         read(dir.path(), "s.typ"),
@@ -48,8 +49,8 @@ fn refuses_a_flip_into_an_unreachable_status() {
 
 /// A flip whose rewrite breaks the file (the status value renders into a Typst
 /// syntax error) is caught as a candidate, so the broken source never reaches
-/// disk. The returned error only carries the count; the message itself goes to
-/// stderr (see `cmd/flip/tests_output.rs`).
+/// disk. The returned error is the target's refusal; the message itself goes
+/// to stderr (see `cmd/flip/tests_output.rs`).
 #[test]
 fn refuses_a_rewrite_that_would_not_load() {
     let dir = tempfile::tempdir().unwrap();
@@ -58,8 +59,8 @@ fn refuses_a_rewrite_that_would_not_load() {
         .unwrap_err()
         .to_string();
     assert!(
-        err.contains("1 task(s) had problems"),
-        "expected the refusal count: {err}"
+        err.contains("rejected; nothing was written") && !err.contains("had problems"),
+        "expected the target's refusal and no summary: {err}"
     );
     assert_eq!(
         read(dir.path(), "alpha.typ"),

@@ -24,7 +24,8 @@
 //!
 //! # Files
 //!
-//! - `batch.rs` — the post-write revalidation of a landed batch.
+//! - `batch.rs` — the post-write revalidation of a landed batch, and the
+//!   batch's error report.
 //! - `guards.rs` — the transition and note guards cleared before a write.
 //! - `hooks.rs` — the `[[on.flip]]` action runner.
 //! - `hooks_cmd.rs` — executing a `run` action's command.
@@ -38,14 +39,15 @@ use std::collections::HashSet;
 use std::io::IsTerminal;
 use std::path::Path;
 
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::{Context, Result};
 use clap::{Args, CommandFactory, FromArgMatches, Parser};
 use mindtape::config::Legend;
 use mindtape::{Config, status_value, today_ymd};
 use typst_edit::apply;
 
-use crate::cmd::flip::batch::{Landed, after_batch};
+use crate::cmd::flip::batch::{Landed, after_batch, finish, note_hint};
 use crate::cmd::flip::hooks::{Hooks, Transition, note_with_overrides};
+use crate::diag::{Command, Diag, Hint};
 use crate::task_edit::{task_with, upsert_named_arg};
 use crate::util::{self, Project};
 
@@ -93,7 +95,16 @@ struct Shortcut {
 /// Returns an error if the project cannot be opened, the status is not a legend
 /// value, or any target fails to resolve or validate after the edit.
 pub fn run(args: &FlipArgs) -> Result<()> {
-    run_with(&util::open()?, args)
+    run_as(&util::open()?, args, Via::Flip)
+}
+
+/// How the user spelled the command, so a hint can repeat it.
+#[derive(Clone, Copy)]
+pub(crate) enum Via {
+    /// `mt flip <status> …`
+    Flip,
+    /// `mt <status> …`
+    Shortcut,
 }
 
 /// Dispatch a per-status shortcut verb: `external` is the raw `[verb, args…]`
@@ -111,7 +122,7 @@ pub fn run_external(external: &[String]) -> Result<()> {
         .as_str();
     let legend = &project.config.tasks.status;
     if !legend.contains(verb) {
-        bail!(unknown_command_message(verb, legend));
+        return Err(unknown_command(verb, legend).into());
     }
     // clap prints a help request to stdout and exits 0, a usage error to
     // stderr and exits 2, as `mt flip` does.
@@ -119,7 +130,7 @@ pub fn run_external(external: &[String]) -> Result<()> {
         .try_get_matches_from(external)
         .unwrap_or_else(|err| err.exit());
     let parsed = Shortcut::from_arg_matches(&matches)?;
-    run_with(&project, &parsed.args)
+    run_as(&project, &parsed.args, Via::Shortcut)
 }
 
 /// The parser for `mt <verb> …`, presented as that verb: named `mt <verb>`,
@@ -144,21 +155,38 @@ fn legend_values(legend: &Legend) -> Vec<&str> {
     legend.entries.iter().map(|e| e.value.as_str()).collect()
 }
 
-/// The "unknown command" message for a shortcut-verb miss (`mt <typo>
-/// <task>`), naming a near legend value when one clears the similarity floor.
-/// Only the message changes here — `verb` still dispatches solely on
-/// `legend.contains`, so which inputs `mt <status> <task>` accepts is
-/// untouched.
-fn unknown_command_message(verb: &str, legend: &Legend) -> String {
-    format!(
-        "unknown command {verb:?}{}; run `mt --help` for commands or \
-         `mt flip --list` for status shortcut verbs",
-        mindtape::suggest::suggestion(verb, &legend_values(legend))
-    )
+/// The usage error for a shortcut-verb miss (`mt <typo> <task>`), naming a
+/// near legend value when one clears the similarity floor. Only the message
+/// changes here: `verb` still dispatches solely on `legend.contains`.
+fn unknown_command(verb: &str, legend: &Legend) -> Diag {
+    let diag = Diag::usage("unknown command").value(verb);
+    match mindtape::suggest::nearest(verb, &legend_values(legend)) {
+        Some(near) => diag.hint(Hint::did_you_mean(near)),
+        None => diag.hint(Hint::new(
+            "run mt --help for commands, or mt flip --list for status verbs",
+        )),
+    }
+}
+
+/// The usage error for a status the legend doesn't declare.
+fn unknown_status(status: &str, legend: &Legend) -> Diag {
+    let diag = Diag::usage("unknown status").value(status);
+    match mindtape::suggest::nearest(status, &legend_values(legend)) {
+        Some(near) => diag.hint(Hint::did_you_mean(near)),
+        None => diag.hint(Hint::run(
+            Command::mt().word("flip").word("--list"),
+            "to see the statuses",
+        )),
+    }
 }
 
 /// Flip `args.status` onto every resolved task in `project`.
+#[cfg(test)]
 pub(crate) fn run_with(project: &Project, args: &FlipArgs) -> Result<()> {
+    run_as(project, args, Via::Flip)
+}
+
+fn run_as(project: &Project, args: &FlipArgs, via: Via) -> Result<()> {
     util::warn_errors(&project.outcome);
     warn_shadowed_verbs(&project.config);
 
@@ -169,25 +197,23 @@ pub(crate) fn run_with(project: &Project, args: &FlipArgs) -> Result<()> {
 
     let status = args.status.as_deref().context("status is required")?;
     if args.tasks.is_empty() {
-        bail!("no tasks given; usage: mt flip <status> <task>...");
+        return Err(Diag::usage("no tasks given")
+            .hint(Hint::new("name at least one task after the status"))
+            .into());
     }
     let legend = &project.config.tasks.status;
     if !legend.is_empty() && !legend.contains(status) {
-        bail!(
-            "unknown status {status:?}; configured legend: {}{}",
-            verbs_csv(legend),
-            mindtape::suggest::suggestion(status, &legend_values(legend))
-        );
+        return Err(unknown_status(status, legend).into());
     }
 
     // Resolve every target before mutating, so each reference reads the project
     // the caller listed.
     let mut resolved = Vec::new();
-    let mut problems: Vec<String> = Vec::new();
+    let mut problems: Vec<Diag> = Vec::new();
     for spec in &args.tasks {
         match util::resolve_task(project, spec) {
             Ok((task, abs)) => resolved.push((spec.clone(), task, abs)),
-            Err(err) => problems.push(format!("{spec}: {err:#}")),
+            Err(err) => problems.push(note_hint(Diag::from(err), spec, args, via)),
         }
     }
 
@@ -208,24 +234,23 @@ pub(crate) fn run_with(project: &Project, args: &FlipArgs) -> Result<()> {
     // cured.
     let mut world = project.outcome.tasks.clone();
     let mut landed = Landed::default();
+    let mut flipped = 0;
     for (spec, task, abs) in &resolved {
         match flip_target(&batch, &mut world, spec, task, abs) {
-            Ok(()) => landed.record(task),
-            Err(problem) => problems.push(format!("{spec}: {problem}")),
+            Ok(()) => {
+                landed.record(task);
+                flipped += 1;
+            }
+            Err(problem) => problems.push(Diag::legacy(format!("{spec}: {problem}"))),
         }
     }
 
     if !landed.is_empty() {
-        after_batch(&project.root, &landed, &mut problems)?;
+        let mut after = Vec::new();
+        after_batch(&project.root, &landed, &mut after)?;
+        problems.extend(after.into_iter().map(Diag::legacy));
     }
-
-    if problems.is_empty() {
-        return Ok(());
-    }
-    for problem in &problems {
-        eprintln!("error: {problem}");
-    }
-    bail!("{} task(s) had problems", problems.len())
+    finish(problems, flipped, args.tasks.len())
 }
 
 /// The pre-write guards; split out to keep this file under its line budget.
@@ -329,7 +354,7 @@ pub(crate) fn status_edit(
     let call = task_with(source)?;
     let value = status_value(status, ymd, note);
     let edit = upsert_named_arg(source, &call, "status", &value)?;
-    apply(source, vec![edit]).map_err(|err| anyhow!(err.to_string()))
+    Ok(apply(source, vec![edit])?)
 }
 
 /// Print a one-line transition summary for one task.
@@ -382,10 +407,13 @@ fn warn_shadowed_verbs(config: &Config) {
     let builtins: HashSet<String> = crate::cli::builtin_subcommand_names().into_iter().collect();
     for entry in &config.tasks.status.entries {
         if builtins.contains(&entry.value) {
-            eprintln!(
-                "warning: status {value:?} shadows the `mt {value}` subcommand; its \
-                 shortcut verb won't dispatch — use `mt flip {value} …`",
-                value = entry.value
+            crate::diag::emit(
+                &Diag::warning("a status shadows the subcommand of its name")
+                    .value(&entry.value)
+                    .hint(Hint::command(
+                        "its shortcut verb won't run; use",
+                        Command::mt().word("flip").arg(&entry.value),
+                    )),
             );
         }
     }
@@ -410,15 +438,10 @@ fn list_verbs(config: &Config) {
     }
 }
 
-/// Comma-separated legend values, for an unknown-status error message.
 /// Whether the post-write hooks should run: a non-quiet run attached to a
 /// terminal. Split out so both operands are stageable without a pty.
 fn hooks_enabled(quiet: bool, stdout_tty: bool) -> bool {
     !quiet && stdout_tty
-}
-
-fn verbs_csv(legend: &Legend) -> String {
-    legend_values(legend).join(", ")
 }
 
 #[cfg(test)]

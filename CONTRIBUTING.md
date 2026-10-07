@@ -26,8 +26,10 @@ The workspace `Cargo.toml` sets its clippy lints to `deny`, so the `clippy` gate
 
 ## Error Handling
 
-- Application code (the CLI) returns `anyhow::Result`.
-- If callers match on a library error type, derive `thiserror::Error` for it, as `RecurError`, `ConfigError` and `FilterError` do.
+- Build every error the user sees as a `Diag` from `crates/mindtape-cli/src/diag/`, such as `Diag::usage("unknown field").value(name).hint(..)`. Its module docs hold the format. The text is a `&'static str`, so a value goes through `.value()`, which quotes it.
+- Pick the kind, not the exit code: `Diag::usage` exits 2, `Diag::refused` and `Diag::failed` exit 1. `main` prints the error and exits with its code.
+- clippy refuses `eprintln!`, `bail!` and `anyhow!`. A module that still uses them carries an `allow` on its `mod` line in `main.rs` or `cmd/mod.rs`, and its fan-out task removes it.
+- If callers match on a library error type, derive `thiserror::Error` for it, as `RecurError`, `ConfigError` and `FilterError` do, and convert it in `diag/from_lib.rs` with a match on every variant.
 - Keep `main.rs` a thin entry point and put the logic in library modules.
 
 ## Testing

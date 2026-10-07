@@ -14,7 +14,7 @@
 use std::ffi::OsString;
 use std::path::PathBuf;
 
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use clap::error::{ContextKind, ContextValue, ErrorKind};
 use clap::{CommandFactory, Parser};
 
@@ -26,7 +26,7 @@ use crate::{cmd::flip, cmd::worktrees};
 /// # Errors
 /// Returns the refusal message when `mt` would not parse the line.
 pub fn run(line: &str, statuses: &[String]) -> Result<()> {
-    check(line, statuses).map_err(|msg| anyhow!(msg))
+    check(line, statuses).map_err(|msg| crate::diag::Diag::legacy(msg).into())
 }
 
 fn check(line: &str, statuses: &[String]) -> Result<(), String> {

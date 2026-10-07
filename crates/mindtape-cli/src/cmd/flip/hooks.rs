@@ -21,7 +21,7 @@
 use std::io::Write;
 use std::path::Path;
 
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use mindtape::config::hooks::{ActionKind, FlipAction, matching_flip_hooks};
 use mindtape::{ConditionEnv, Filter, Readiness, Task, select};
 
@@ -144,7 +144,7 @@ impl<'a> Hooks<'a> {
     ) -> Result<Option<Gate>> {
         match action
             .kind()
-            .map_err(|message| anyhow!("on.flip action: {message}"))?
+            .map_err(|message| crate::diag::Diag::legacy(format!("on.flip action: {message}")))?
         {
             ActionKind::Show(text) => {
                 if self.show {

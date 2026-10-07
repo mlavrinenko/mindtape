@@ -54,14 +54,18 @@ pub fn no_color_set() -> bool {
 // --- Process-global colour state -----------------------------------------
 
 static COLOR_ENABLED: OnceLock<bool> = OnceLock::new();
+static STDERR_COLOR_ENABLED: OnceLock<bool> = OnceLock::new();
 
-/// Resolve and cache the colour decision for this process.
+/// Resolve and cache the colour decisions for this process, one for stdout
+/// and one for stderr, each against its own stream's TTY.
 ///
 /// Must be called exactly once (from `main`). Subsequent calls from the same
 /// process read the cached value without re-checking the TTY or environment.
 pub fn init(choice: ColorChoice) {
     let stdout_is_tty = std::io::stdout().is_terminal();
     let _ = COLOR_ENABLED.get_or_init(|| color_enabled(choice, stdout_is_tty));
+    let stderr_is_tty = std::io::stderr().is_terminal();
+    let _ = STDERR_COLOR_ENABLED.get_or_init(|| color_enabled(choice, stderr_is_tty));
 }
 
 /// Returns whether colour output is active for this process.
@@ -70,6 +74,14 @@ pub fn init(choice: ColorChoice) {
 #[must_use]
 pub fn is_color_active() -> bool {
     COLOR_ENABLED.get().copied().unwrap_or(false)
+}
+
+/// Returns whether the prefix of a stderr line is coloured. Before [`init`],
+/// as when the argv fails to parse, it decides as `--color auto` would.
+#[must_use]
+pub fn is_stderr_color_active() -> bool {
+    *STDERR_COLOR_ENABLED
+        .get_or_init(|| color_enabled(ColorChoice::Auto, std::io::stderr().is_terminal()))
 }
 
 /// A styled string builder backed by `anstyle`.

@@ -52,7 +52,10 @@ fn config_show_outside_a_project_fails_naming_the_reason() {
 
     let output = support::mt(dir.path()).arg("config").assert().failure();
     let stderr = String::from_utf8_lossy(&output.get_output().stderr).into_owned();
-    assert!(stderr.contains("not inside a MindTape project"), "{stderr}");
+    assert!(
+        stderr.contains("no .mindtape/ directory here or above"),
+        "{stderr}"
+    );
 }
 
 #[test]

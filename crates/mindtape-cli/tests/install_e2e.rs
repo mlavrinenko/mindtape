@@ -165,7 +165,7 @@ fn install_lib_is_an_unknown_command() {
     let assert = run_install(home.path(), &["install-lib"]).failure();
     let stderr = String::from_utf8(assert.get_output().stderr.clone()).unwrap();
     assert!(
-        stderr.contains("unknown command \"install-lib\""),
+        stderr.contains("unknown command: 'install-lib'"),
         "{stderr}"
     );
 }

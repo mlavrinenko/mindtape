@@ -68,11 +68,13 @@ pub(crate) fn run_with(args: &GraphArgs, project: util::Project) -> Result<()> {
 fn build(args: &GraphArgs, project: util::Project) -> Result<String> {
     let config = &project.config;
     let readiness = Readiness::compute(&project.outcome.tasks, config);
+    let typed = |err| crate::diag::filter(err, args.filter.as_deref());
     let filter = match args.filter.as_deref() {
-        Some(expr) => Some(Filter::parse(expr)?),
+        Some(expr) => Some(Filter::parse(expr).map_err(typed)?),
         None => None,
     };
-    let mut tasks = select(project.outcome.tasks, filter.as_ref(), config, &readiness)?;
+    let mut tasks =
+        select(project.outcome.tasks, filter.as_ref(), config, &readiness).map_err(typed)?;
     if args.no_terminal {
         let terminal = config.tasks.status.terminal();
         tasks.retain(|task| !task.is_terminal(&terminal));

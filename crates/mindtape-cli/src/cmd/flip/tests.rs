@@ -12,6 +12,7 @@ use mindtape::parse_config;
 use super::{
     FlipArgs, Shortcut, check_note_required, check_transition, hooks_enabled, run_with, status_edit,
 };
+use crate::diag::{plain, plain_anyhow};
 use crate::util::Project;
 
 use mindtape::test_support::PRELUDE;
@@ -343,16 +344,6 @@ fn unknown_status_does_not_touch_file() {
     assert_eq!(before, read(dir.path(), "a.typ"));
 }
 
-#[test]
-fn verbs_csv_includes_legend_values_in_error() {
-    let dir = tempfile::tempdir().unwrap();
-    let project = setup(dir.path(), &[("a.typ", ALPHA)], LEGEND_CONFIG);
-    let msg = run_with(&project, &flip_args("nonexistent", &["a"]))
-        .unwrap_err()
-        .to_string();
-    assert!(msg.contains("wip") && msg.contains("blocked"));
-}
-
 // --- suggest wiring for the unknown-status / shortcut-verb-miss messages
 // (`truth/tasks/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`) --
 
@@ -360,40 +351,49 @@ fn verbs_csv_includes_legend_values_in_error() {
 fn unknown_status_near_miss_offers_a_suggestion() {
     let dir = tempfile::tempdir().unwrap();
     let project = setup(dir.path(), &[("a.typ", ALPHA)], LEGEND_CONFIG);
-    let msg = run_with(&project, &flip_args("donee", &["a"]))
-        .unwrap_err()
-        .to_string();
-    assert!(msg.contains("did you mean: done?"), "{msg}");
+    let msg = plain_anyhow(run_with(&project, &flip_args("donee", &["a"])).unwrap_err());
+    assert_eq!(
+        msg,
+        "error: unknown status: 'donee'\nhint: did you mean done?\n"
+    );
 }
 
 #[test]
 fn unknown_status_far_miss_omits_the_suggestion() {
     let dir = tempfile::tempdir().unwrap();
     let project = setup(dir.path(), &[("a.typ", ALPHA)], LEGEND_CONFIG);
-    let msg = run_with(&project, &flip_args("zzzzzzzz", &["a"]))
-        .unwrap_err()
-        .to_string();
-    assert!(!msg.contains("did you mean"), "{msg}");
+    let msg = plain_anyhow(run_with(&project, &flip_args("zzzzzzzz", &["a"])).unwrap_err());
+    assert_eq!(
+        msg,
+        "error: unknown status: 'zzzzzzzz'\nhint: run mt flip --list to see the statuses\n"
+    );
 }
 
 #[test]
 fn unknown_command_message_near_miss_offers_a_suggestion() {
     let legend = parse_config(LEGEND_CONFIG).unwrap().tasks.status;
-    let msg = super::unknown_command_message("donee", &legend);
-    assert!(msg.contains("did you mean: done?"), "{msg}");
+    let msg = plain(&super::unknown_command("donee", &legend));
+    assert_eq!(
+        msg,
+        "error: unknown command: 'donee'\nhint: did you mean done?\n"
+    );
 }
 
 #[test]
 fn unknown_command_message_far_miss_omits_the_suggestion() {
     let legend = parse_config(LEGEND_CONFIG).unwrap().tasks.status;
-    let msg = super::unknown_command_message("zzzzzzzz", &legend);
-    assert!(!msg.contains("did you mean"), "{msg}");
+    let msg = plain(&super::unknown_command("zzzzzzzz", &legend));
+    assert_eq!(
+        msg,
+        "error: unknown command: 'zzzzzzzz'\n\
+         hint: run mt --help for commands, or mt flip --list for status verbs\n"
+    );
 }
 
 #[test]
 fn unknown_command_message_with_an_empty_legend_omits_the_suggestion() {
     let legend = mindtape::config::Legend::default();
-    let msg = super::unknown_command_message("anything", &legend);
+    let msg = plain(&super::unknown_command("anything", &legend));
     assert!(!msg.contains("did you mean"), "{msg}");
 }
 

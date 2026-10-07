@@ -47,7 +47,7 @@ mt ls 'in_dict("verbs", word(title, 1))'
 mt ls '!matches(word(title, 1), "ing$")'
 mt ls 'in_dict("mindtape-verbs", word(title, 1)) || matches(title, "^`")'
 EOF
-capture --exit 1 --expect 'unknown dict in filter' filters-unknown-dict "$API" "mt ls 'in_dict(\"verb\", word(title, 1))'"
+capture --exit 2 --expect "unknown dict: 'verb'" filters-unknown-dict "$API" "mt ls 'in_dict(\"verb\", word(title, 1))'"
 capture filters-blocked "$API" 'mt ls blocked --columns title,why'
 capture_lines filters-graph "$API" <<'EOF'
 mt ls ready

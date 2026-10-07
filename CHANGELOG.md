@@ -1271,6 +1271,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **An error is one `error:` line, and a wrong command line exits 2.** `mt`
+  prints its errors itself, so Rust's `Error:` and `Caused by:` lines are
+  gone: a cause chain joins into the one line, and every stderr line starts
+  with `error:`, `hint:`, `note:` or `warning:`, coloured on the prefix when
+  stderr is a terminal. A value you typed is single-quoted.
+  `mt wip nonexistent-xyz` prints `error: no task: 'nonexistent-xyz'` and
+  `hint: run mt ls to see your tasks`, with no `1 task(s) had problems` after
+  it; a batch with a failure ends with `error: flipped 1 of 3 tasks; 2 failed`.
+  A target with a space that names no task gets a hint to pass it with `-m`.
+  An unknown command or status, missing targets, and a filter that doesn't
+  parse or names an unknown field exit 2, as clap's errors do:
+  `mt ls 'status == wip'` prints
+  `error: unknown field: 'wip' in filter 'status == wip'`. A config with a
+  TOML syntax error names `file:line:col` on one line.
 - **`--help` says what each flag does in a sentence or two.** Every command,
   flag and value describes itself from your side and leaves out internals,
   `mt init`'s axis flags list what each choice means, and no line shows

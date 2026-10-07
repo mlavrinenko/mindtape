@@ -253,13 +253,20 @@ pub(crate) fn resolve_and_select(args: &LsArgs, project: util::Project) -> Resul
     }
     let readiness = Readiness::compute(&project.outcome.tasks, &project.config);
     let hashes = util::stem_hashes(&project.outcome.tasks, &project.config);
-    let filter = Filter::parse(&bundle.filter)?;
-    let mut tasks = select(
+    // The command line's filter is a usage error when it fails; a view's or
+    // a rule's stays as the config reports it.
+    let typed = |err| match &args.filter {
+        Some(_) => anyhow::Error::from(crate::diag::filter(err, Some(&bundle.filter))),
+        None => err.into(),
+    };
+    let filter = Filter::parse(&bundle.filter).map_err(typed)?;
+    let tasks = select(
         project.outcome.tasks,
         Some(&filter),
         &project.config,
         &readiness,
-    )?;
+    );
+    let mut tasks = tasks.map_err(typed)?;
     sort_tasks(&mut tasks, &bundle.sort, &project.config, &readiness)?;
     let total = tasks.len();
     let skip = args.flags.skip.unwrap_or(0);

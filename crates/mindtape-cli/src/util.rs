@@ -11,6 +11,7 @@ use mindtape::{
     load_config, load_project, write_atomic,
 };
 
+use crate::diag::{Command, Diag, Hint, Note};
 use crate::render::link::HyperlinkChoice;
 
 /// A discovered, loaded project: its root, config and load outcome.
@@ -94,10 +95,13 @@ pub fn resolve_root() -> Result<PathBuf> {
 /// logic is testable without touching process-global state.
 fn resolve_root_with(cwd: &Path, override_path: Option<&Path>) -> Result<PathBuf> {
     let Some(path) = override_path else {
-        return find_root(cwd).context(
-            "not inside a MindTape project (no .mindtape/ directory found) — run `mt init` \
-             to make one here, or pass `-w <path>` to use another",
-        );
+        return find_root(cwd).ok_or_else(|| {
+            Diag::failed("no .mindtape/ directory here or above")
+                .hint(Hint::new(
+                    "run mt init to make one here, or pass -w <path> to use another project",
+                ))
+                .into()
+        });
     };
     let base = if path.is_absolute() {
         path.to_path_buf()
@@ -180,36 +184,40 @@ pub fn resolve_task(project: &Project, id: &str) -> Result<(Task, PathBuf)> {
     let hashes = stem_hashes(tasks, &project.config);
     match mindtape::resolve_ref(tasks, &project.root, &cwd, &hashes, id) {
         Ok(found) => Ok((found.task.clone(), found.path)),
-        Err(RefError::Ambiguous { stems, .. }) => bail!(ambiguous(&hashes, id, &stems)),
-        Err(RefError::NoMatch(_)) => bail!(no_task(project, id)),
-        Err(other) => Err(other.into()),
+        Err(RefError::Ambiguous { stems, .. }) => Err(ambiguous(&hashes, id, &stems).into()),
+        Err(RefError::NoMatch(_)) => Err(no_task(project, id).into()),
+        Err(other) => Err(Diag::from(other).into()),
     }
 }
 
-/// The refusal for a reference no stem or stem hash matches.
-fn no_task(project: &Project, id: &str) -> String {
+/// The refusal for a reference no stem or stem hash matches: the nearest stem
+/// when one is close, else where to list them.
+fn no_task(project: &Project, id: &str) -> Diag {
     let ids: Vec<&str> = project
         .outcome
         .tasks
         .iter()
         .map(|t| t.id.as_str())
         .collect();
-    format!(
-        "no task with id {id:?}{}",
-        mindtape::suggest::suggestion(id, &ids)
-    )
+    let diag = Diag::failed("no task").value(id);
+    match mindtape::suggest::nearest(id, &ids) {
+        Some(near) => diag.hint(Hint::did_you_mean(near)),
+        None => diag.hint(Hint::run(Command::mt().word("ls"), "to see your tasks")),
+    }
 }
 
 /// The refusal for a stem hash several tasks share, naming each by stem and hash.
-fn ambiguous(hashes: &StemHashes, id: &str, stems: &[String]) -> String {
-    let candidates: Vec<String> = stems
-        .iter()
-        .map(|stem| format!("  {} {stem}", hashes.hash_of(stem).unwrap_or_default()))
-        .collect();
-    format!(
-        "stem hash {id:?} names {} tasks; pass a longer hash or the stem:\n{}",
-        stems.len(),
-        candidates.join("\n")
+fn ambiguous(hashes: &StemHashes, id: &str, stems: &[String]) -> Diag {
+    stems.iter().fold(
+        Diag::failed("stem hash names several tasks")
+            .value(id)
+            .hint(Hint::new("pass a longer hash or the stem")),
+        |diag, stem| {
+            diag.note(Note::new("candidate").name(format!(
+                "{} {stem}",
+                hashes.hash_of(stem).unwrap_or_default()
+            )))
+        },
     )
 }
 

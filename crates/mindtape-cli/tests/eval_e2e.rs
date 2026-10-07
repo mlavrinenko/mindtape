@@ -68,5 +68,5 @@ fn eval_names_the_nearest_stem_on_an_unknown_reference() {
 
     assert!(!out.status.success());
     let err = String::from_utf8_lossy(&out.stderr);
-    assert!(err.contains("did you mean: test?"), "{err}");
+    assert!(err.contains("hint: did you mean test?"), "{err}");
 }

@@ -48,7 +48,7 @@ A code block in the docs comes from a real file under `examples/` that `mt check
 - The DSL page’s field table is `lib/prelude.typ`’s own signature.
 - To show a run, use a capture. `www/capture.sh` writes a record of each command the build ran in a terminal, what it printed and its exit code. A page shows the record with `terminal(<slug>)`, or `commands(<slug>)` for the commands alone. Both print each command from the record, so a page can’t show a command that didn’t run.
 
-`exit-code(<slug>)` prints the exit code of a refusal the page shows. A step that exits with an unexpected code fails the build, so a refusal the page shows can’t pass unnoticed. Every `mt` error exits 1, so a refusal capture also names its reason with `--expect <regex>`. The build fails unless the output, without its colour, matches the regex. It also fails on a non-zero `--exit` that has no `--expect`.
+`exit-code(<slug>)` prints the exit code of a refusal the page shows. A step that exits with an unexpected code fails the build, so a refusal the page shows can’t pass unnoticed. Every refusal exits 1, and every usage error 2, so a refusal capture also names its reason with `--expect <regex>`. The build fails unless the output, without its colour, matches the regex. It also fails on a non-zero `--exit` that has no `--expect`.
 
 `just check-doc-blocks` fails on a fenced block, or a block `raw(...)`, whose text is written in the source. If no fixture can hold a block, such as a grammar sketch, put `// docs:hand-typed <reason>` on the line above it. The gate lists the sources not yet converted. A listed source with no hand-typed block left fails, so the list only shrinks.
 
@@ -63,7 +63,7 @@ Each kind of reader gets its own register:
 
 - **The site, README, `CONTRIBUTING.md` and the `docs/contributing/*.md` deep dives** use the voice above.
 - **`--help` text** says in one or two sentences what the flag does, from the user’s side. It leaves out internals such as config tables the user never sees.
-- **An error message** names what failed, quotes the value that failed, and says what to try next when there’s an obvious next step. It is one line that starts with `error:`.
+- **An error message** names what failed, quotes the value that failed, and says what to try next on a `hint:` line when there’s an obvious next step. It’s one line that starts with `error:`. Build it with the `Diag` builder in `crates/mindtape-cli/src/diag/`, whose module docs hold the format.
 - **AGENTS.md, SKILL.md and the skill’s references** are read by agents, any agent and not one vendor’s. They’re imperative: one situation, one action, the exact command. They state the rules an agent must follow, such as making changes through `mt` commands, which a human page leaves as a choice.
 
 ## Plain prose

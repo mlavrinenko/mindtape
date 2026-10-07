@@ -248,7 +248,8 @@ fn revalidate_prints_the_unreachable_violation() {
 /// A rewrite that would not evaluate is refused *before* the write, so the
 /// report says the source did not load rather than that the file did — the
 /// difference being that there is no file. The message is only observable on a
-/// child's stderr: `run_with`'s error carries the problem count alone.
+/// child's stderr. With one target, `run_with` returns that target's refusal
+/// rather than a summary, and the child prints it as `main` would.
 #[test]
 fn refuses_a_rewrite_that_would_not_load() {
     if std::env::var(FLIP_CHILD_ENV).is_err() {
@@ -266,7 +267,8 @@ fn refuses_a_rewrite_that_would_not_load() {
     }
     let dir = tempfile::tempdir().unwrap();
     let project = setup(dir.path(), &[("alpha.typ", ALPHA)], BROKEN_RELOAD_CONFIG);
-    assert!(run_with(&project, &flip_args("broken\"done", &["alpha"])).is_err());
+    let err = run_with(&project, &flip_args("broken\"done", &["alpha"])).unwrap_err();
+    crate::diag::emit(&crate::diag::Diag::from(err));
     assert_eq!(
         std::fs::read_to_string(dir.path().join("tasks/alpha.typ")).unwrap(),
         ALPHA,

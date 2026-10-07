@@ -1,6 +1,7 @@
 //! `mt flip`'s post-write pass: whether anything one landed batch wrote
 //! fails to load or violates a rule ([`revalidate`]), asked of the project as
-//! it stands after the writes.
+//! it stands after the writes; and how the batch reports its problems
+//! ([`finish`]).
 //!
 //! Split out of `cmd/flip/mod.rs`: everything left there is about deciding and
 //! performing one write, everything here is about reporting on all of them at
@@ -13,6 +14,8 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use mindtape::{load_config, load_project, validate};
 
+use crate::cmd::flip::{FlipArgs, Via};
+use crate::diag::{Command, Diag, Hint};
 use crate::util::Project;
 
 /// What a batch actually wrote: the two sets answer "did this problem touch
@@ -70,6 +73,44 @@ fn revalidate(project: &Project, landed: &Landed, problems: &mut Vec<String>) {
             problems.push(crate::render::breach::at(&violation));
         }
     }
+}
+
+/// Report a batch's problems: a single target's last problem is the command's
+/// error, so it gets no summary; several targets end with one.
+pub(crate) fn finish(mut problems: Vec<Diag>, landed: usize, total: usize) -> Result<()> {
+    let last = match problems.pop() {
+        None => return Ok(()),
+        Some(last) if total == 1 => last,
+        Some(last) => {
+            problems.push(last);
+            Diag::batch("flipped", landed, total)
+        }
+    };
+    for problem in &problems {
+        crate::diag::emit(problem);
+    }
+    Err(last.into())
+}
+
+/// A target with a space in it that names no task is most likely a note given
+/// without `-m`: say how to pass it.
+pub(crate) fn note_hint(diag: Diag, spec: &str, args: &FlipArgs, via: Via) -> Diag {
+    if args.note.is_some() || !spec.contains(char::is_whitespace) {
+        return diag;
+    }
+    let status = args.status.as_deref().unwrap_or_default();
+    let command = match via {
+        Via::Flip => Command::mt().word("flip").arg(status),
+        Via::Shortcut => Command::mt().arg(status),
+    };
+    let command = args
+        .tasks
+        .iter()
+        .filter(|task| *task != spec)
+        .fold(command, Command::arg)
+        .word("-m")
+        .arg(spec);
+    diag.hint(Hint::command("to add a note, pass it with -m", command))
 }
 
 impl Landed {

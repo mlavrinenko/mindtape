@@ -1,7 +1,11 @@
 //! `just integrate` refuses a branch that names a task in `Refs:` and leaves
 //! it `wip` at its tip (`.just/scripts/integrate.sh`). The script asks before
 //! it reads the gate record, so these runs never reach `mmz`.
-#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
+#![allow(
+    clippy::unwrap_used,
+    clippy::disallowed_methods,
+    clippy::disallowed_macros
+)]
 
 use std::path::{Path, PathBuf};
 use std::process::Output;

@@ -98,8 +98,8 @@ tell.
 
 `exit-code(<slug>)` prints the exit code of a refusal the page shows. A step
 that exits with an unexpected code fails the build, so a refusal the page
-shows can't pass unnoticed. Every `mt` error exits 1, so a refusal capture
-also names its reason with `--expect <regex>`. The build fails unless the
+shows can't pass unnoticed. Every refusal exits 1, and every usage error 2,
+so a refusal capture also names its reason with `--expect <regex>`. The build fails unless the
 output, without its colour, matches the regex. It also fails on a non-zero
 `--exit` that has no `--expect`.
 
@@ -130,8 +130,9 @@ Each kind of reader gets its own register:
   user's side. It leaves out internals such as config tables the user never
   sees.
 - *An error message* names what failed, quotes the value that failed, and says
-  what to try next when there's an obvious next step. It is one line that
-  starts with `error:`.
+  what to try next on a `hint:` line when there's an obvious next step. It's
+  one line that starts with `error:`. Build it with the `Diag` builder in
+  `crates/mindtape-cli/src/diag/`, whose module docs hold the format.
 - *AGENTS.md, SKILL.md and the skill's references* are read by agents, any
   agent and not one vendor's. They're imperative: one situation, one action,
   the exact command. They state the rules an agent must follow, such as making

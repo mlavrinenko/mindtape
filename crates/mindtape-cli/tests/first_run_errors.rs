@@ -94,8 +94,8 @@ fn outside_a_project_the_error_names_mt_init_and_the_worktree_flag() {
     assert!(!ok, "{stderr}");
     assert_eq!(
         stderr,
-        "Error: not inside a MindTape project (no .mindtape/ directory found) — run \
-         `mt init` to make one here, or pass `-w <path>` to use another\n"
+        "error: no .mindtape/ directory here or above\n\
+         hint: run mt init to make one here, or pass -w <path> to use another project\n"
     );
 }
 
@@ -161,10 +161,14 @@ fn a_syntax_error_in_the_global_defaults_names_that_file() {
 
     assert!(!output.status.success(), "{stderr}");
     assert!(
-        stderr.contains(&format!("parse error in {}: ", defaults.display())),
+        stderr.contains(&format!(
+            "{}:1:7: can't parse config: invalid string, expected",
+            defaults.display()
+        )),
         "{stderr}"
     );
-    assert_eq!(stderr.matches("line 1, column 7").count(), 1, "{stderr}");
+    assert_eq!(stderr.matches(":1:7:").count(), 1, "{stderr}");
+    assert_eq!(stderr.lines().count(), 1, "{stderr}");
 }
 
 #[test]
@@ -183,7 +187,7 @@ fn a_syntax_error_in_a_path_pack_names_the_pack_file() {
 
     assert!(!ok, "{stderr}");
     assert!(
-        stderr.contains(&format!("parse error in {}: ", pack.display())),
+        stderr.contains(&format!("{}:1:7: can't parse config: ", pack.display())),
         "{stderr}"
     );
 }

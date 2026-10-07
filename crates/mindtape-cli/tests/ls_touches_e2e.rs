@@ -73,6 +73,6 @@ fn outside_git_touches_fails_and_every_other_listing_works() {
         .unwrap();
     assert!(!out.status.success());
     let stderr = String::from_utf8_lossy(&out.stderr);
-    assert!(stderr.contains("touches() cannot read git"), "{stderr}");
+    assert!(stderr.contains("can't read git: touches()"), "{stderr}");
     assert!(mt(dir).args(["ls", ""]).output().unwrap().status.success());
 }

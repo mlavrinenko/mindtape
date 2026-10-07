@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 7),
+  status: wip(2026, 10, 7),
   links: depends-on("give-the-docs-a-conversational-voice.typ"),
 )
 

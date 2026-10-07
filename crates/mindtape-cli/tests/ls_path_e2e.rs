@@ -173,7 +173,7 @@ fn the_file_filter_field_fails_loudly_as_unknown() {
         "an unknown field must fail, not list nothing: {out:?}"
     );
     let stderr = String::from_utf8_lossy(&out.stderr);
-    assert!(stderr.contains("unknown field in filter: file"), "{stderr}");
+    assert!(stderr.contains("unknown field: 'file'"), "{stderr}");
 }
 
 /// The same trap on the sort side, which a saved `[query] default_sort` or a

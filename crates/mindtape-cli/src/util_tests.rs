@@ -90,9 +90,8 @@ fn resolve_by_stem_hash_succeeds() {
 fn an_unknown_reference_is_refused_with_a_suggestion() {
     let project = stub_project(vec![stub_task("alpha", "Alpha Task")]);
 
-    let err = resolve_task(&project, "alpah").unwrap_err().to_string();
-    assert!(err.contains("no task with id \"alpah\""), "{err}");
-    assert!(err.contains("did you mean: alpha?"), "{err}");
+    let err = crate::diag::plain_anyhow(resolve_task(&project, "alpah").unwrap_err());
+    assert_eq!(err, "error: no task: 'alpah'\nhint: did you mean alpha?\n");
 }
 
 #[test]
