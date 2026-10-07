@@ -76,7 +76,7 @@ argv_findings() {
     spans "$@" | jq -R -r "$ARGV_JQ" |
         while IFS=$'\t' read -r file line span cmd; do
             if ! msg=$("$mt" _cli --statuses "$statuses" --check-argv "$cmd" 2>&1); then
-                echo "check-doc-spans: $file:$line: \`$span\`: ${msg#Error: }"
+                echo "check-doc-spans: $file:$line: \`$span\`: ${msg#error: }"
             fi
         done
 }

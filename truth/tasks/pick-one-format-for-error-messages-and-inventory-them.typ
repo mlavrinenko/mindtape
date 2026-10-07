@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 7),
+  status: done(
+    2026,
+    10,
+    7,
+  )[the format is in the task and the DSL's module docs; the inventory split became the fan-out tasks],
   links: depends-on("give-the-docs-a-conversational-voice.typ"),
 )
 
