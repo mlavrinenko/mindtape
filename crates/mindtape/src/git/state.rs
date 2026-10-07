@@ -10,7 +10,7 @@
 //!
 //! Consumers: the filter language's `changed(<states>, <glob>…)`
 //! ([`crate::filter`]), and the commit states a `scope = "task"` commit rule
-//! reads ([`crate::commit_tasks`]). Paths are relative to the repository root, whichever directory git is run from.
+//! reads ([`crate::commit::tasks`]). Paths are relative to the repository root, whichever directory git is run from.
 //!
 //! Every git call passes `--no-optional-locks`: reading must not even refresh
 //! `.git/index`'s stat cache, because the commands that read are read commands
@@ -111,7 +111,7 @@ impl GitStatus {
     /// [`Self::read`] with every rename split into its two sides — the source
     /// deleted, the destination added — for a reader that needs every path a
     /// state differs at, not the path the tree now holds
-    /// ([`crate::commit_tasks`]).
+    /// ([`crate::commit::tasks`]).
     ///
     /// # Errors
     /// As [`Self::read`].
@@ -276,7 +276,7 @@ fn glob_set(patterns: &[&str]) -> Result<Option<GlobSet>, String> {
 pub struct GitCache {
     root: PathBuf,
     status: Arc<OnceLock<Result<GitStatus, String>>>,
-    refs: crate::commit_refs::RefsCache,
+    refs: crate::commit::refs::RefsCache,
 }
 
 impl PartialEq for GitCache {
@@ -290,7 +290,7 @@ impl GitCache {
     pub fn set_root(&mut self, root: &Path) {
         self.root = root.to_owned();
         self.status = Arc::default();
-        self.refs = crate::commit_refs::RefsCache::default();
+        self.refs = crate::commit::refs::RefsCache::default();
     }
 
     /// The root's git status, read at most once.
@@ -306,7 +306,7 @@ impl GitCache {
 
     /// The tasks the commits changing `path` name, `set` being the loaded
     /// tasks when there are any — `touches()`'s answer, read from `git log`
-    /// at most once ([`crate::commit_refs`]).
+    /// at most once ([`crate::commit::refs`]).
     ///
     /// # Errors
     /// Why git could not answer (see [`GitStatus::read`]).
@@ -315,7 +315,7 @@ impl GitCache {
         path: &str,
         config: &crate::config::Config,
         set: Option<&[crate::model::Task]>,
-    ) -> Result<Arc<crate::commit_refs::Touched>, String> {
+    ) -> Result<Arc<crate::commit::refs::Touched>, String> {
         self.refs.touching(&self.root, path, config, set)
     }
 
@@ -348,5 +348,5 @@ pub(crate) fn git(root: &Path, args: &[&str]) -> Result<String, String> {
 }
 
 #[cfg(test)]
-#[path = "git_state_tests.rs"]
+#[path = "state_tests.rs"]
 mod tests;

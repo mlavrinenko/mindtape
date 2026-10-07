@@ -8,7 +8,7 @@
 //!   values of the configured trailer.
 //! - [`staged_files`] reads the index with git; the paths a past commit
 //!   changed come in the same [`ChangedFiles`] shape
-//!   ([`crate::commit_range`]).
+//!   ([`crate::commit::range`]).
 //! - [`CommitRecord::build`] joins the two against the loaded tasks: trailer
 //!   values become stems, and a value that is a path or names no task becomes
 //!   a [`RefProblem`] instead — refused whatever rules a project declares,
@@ -20,6 +20,22 @@
 //! dropped) is the trailer block when every line in it is `Key: value` or an
 //! indented continuation, the rule git's own parser applies to a block with no
 //! non-trailer lines. Keys match case-insensitively, as git's do.
+//!
+//! # Files
+//!
+//! - `amend.rs`: which commit a `commit-msg` hook's index becomes the child of.
+//! - `expr.rs`: the expression language of a `scope = "commit"` rule.
+//! - `range.rs`: a range of past commits, read the way the commit being written is.
+//! - `refs.rs`: which tasks shaped a file, from the trailers of its commits.
+//! - `task_expr.rs`: the task half of a `scope = "task"` rule's expression.
+//! - `tasks.rs`: the project as `HEAD`, the index and the working tree see it.
+
+pub(crate) mod amend;
+pub mod expr;
+pub mod range;
+pub mod refs;
+pub mod task_expr;
+pub mod tasks;
 
 use std::path::Path;
 use std::process::Command;
@@ -198,9 +214,9 @@ pub fn staged_files(root: &Path) -> Result<ChangedFiles, CommitMsgError> {
 
 /// The `git diff` arguments naming the index against what the commit follows:
 /// plain `--cached` (`HEAD`, which a repository with no commit yet lacks), or
-/// `--cached <parent>` while amending ([`crate::commit_amend`]).
+/// `--cached <parent>` while amending ([`crate::commit::amend`]).
 pub(crate) fn index_revs(root: &Path) -> Result<Vec<String>, CommitMsgError> {
-    let base = crate::commit_amend::base_rev(root)?;
+    let base = crate::commit::amend::base_rev(root)?;
     Ok(if base == "HEAD" {
         vec!["--cached".to_owned()]
     } else {
@@ -412,5 +428,4 @@ pub(crate) fn is_task_file(path: &str, root_prefix: &str, config: &Config) -> bo
 }
 
 #[cfg(test)]
-#[path = "commit_msg_tests.rs"]
 mod tests;

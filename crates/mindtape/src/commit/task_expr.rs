@@ -2,8 +2,8 @@
 //! task as a commit state holds it.
 //!
 //! A task-scope rule runs once per task the commit changes or names
-//! ([`crate::commit_msg::CommitRecord::tasks`]). It reads the commit's own
-//! fields as a commit rule does ([`crate::commit_expr`]), plus:
+//! ([`crate::commit::CommitRecord::tasks`]). It reads the commit's own
+//! fields as a commit rule does ([`crate::commit::expr`]), plus:
 //!
 //! - `head(<expr>)`, `staged(<expr>)`, `worktree(<expr>)` — any filter
 //!   expression, graph predicates and `count(...)` included, evaluated over
@@ -20,9 +20,9 @@
 
 use evalexpr::{DefaultNumericTypes, Node};
 
-use crate::commit_expr::CommitExpr;
-use crate::commit_msg::CommitRecord;
-use crate::commit_tasks::{CommitStates, ProjectState};
+use crate::commit::CommitRecord;
+use crate::commit::expr::CommitExpr;
+use crate::commit::tasks::{CommitStates, ProjectState};
 use crate::config::Config;
 use crate::fields::FieldValue;
 use crate::filter::expr::call_args;
@@ -159,5 +159,5 @@ pub(crate) fn task_expr_problem(source: &str, config: &Config) -> Option<String>
 }
 
 #[cfg(test)]
-#[path = "commit_task_expr_tests.rs"]
+#[path = "task_expr_tests.rs"]
 mod tests;

@@ -15,9 +15,9 @@
 //!
 //! A rule is the `[[tasks.rules]]` shape (`name`, `when`, `assert`,
 //! `message`, `severity`) over a [`CommitRecord`] instead of a task, in the
-//! language [`crate::commit_expr`] reads. A `scope = "task"` rule runs once
+//! language [`crate::commit::expr`] reads. A `scope = "task"` rule runs once
 //! per task the commit changes or names, reading it as of `HEAD`, the index
-//! and the working tree ([`crate::commit_task_expr`]):
+//! and the working tree ([`crate::commit::task_expr`]):
 //!
 //! ```toml
 //! [[commits.rules]]
@@ -39,10 +39,10 @@
 
 use serde::Deserialize;
 
-use crate::commit_expr::{CommitExpr, commit_expr_problem};
-use crate::commit_msg::CommitRecord;
-use crate::commit_task_expr::{TaskScope, desugar_commit_into, task_expr_problem};
-use crate::commit_tasks::CommitStates;
+use crate::commit::CommitRecord;
+use crate::commit::expr::{CommitExpr, commit_expr_problem};
+use crate::commit::task_expr::{TaskScope, desugar_commit_into, task_expr_problem};
+use crate::commit::tasks::CommitStates;
 use crate::config::Config;
 use crate::filter::FilterError;
 use crate::validate::severity::Severity;

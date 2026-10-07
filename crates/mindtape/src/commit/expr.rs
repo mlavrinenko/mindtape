@@ -28,7 +28,7 @@
 //!
 //! A `scope = "task"` rule reads the same fields, plus the task's states:
 //! `head(...)`, `staged(...)`, `worktree(...)` and `named`, evaluated by
-//! [`crate::commit_task_expr`] against the [`TaskScope`] it runs under.
+//! [`crate::commit::task_expr`] against the [`TaskScope`] it runs under.
 //!
 //! A task field is refused by name: a commit rule sees the commit, not a
 //! task, and a bare `status` that silently read nothing would be a rule that
@@ -38,15 +38,15 @@
 use evalexpr::{DefaultNumericTypes, Node, Operator, build_operator_tree};
 use regex::Regex;
 
-use crate::commit_msg::CommitRecord;
-use crate::commit_task_expr::{STATES, TaskScope};
+use crate::commit::CommitRecord;
+use crate::commit::task_expr::{STATES, TaskScope};
 use crate::config::Config;
 use crate::fields::FieldValue;
 use crate::filter::FilterError;
 use crate::filter::expr::{
     call_args, connective, extract_identifier, extract_literal, restore_name, unwrap_root,
 };
-use crate::git_state::PathFilter;
+use crate::git::state::PathFilter;
 
 /// The field names a commit expression reads, for the refusal message.
 const COMMIT_FIELDS: &str = "subject, refs, files, trailers, tasks_only";
@@ -332,5 +332,5 @@ fn not_boolean(name: &str, env: Env<'_>) -> FilterError {
 }
 
 #[cfg(test)]
-#[path = "commit_expr_tests.rs"]
+#[path = "expr_tests.rs"]
 mod tests;

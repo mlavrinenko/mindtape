@@ -264,7 +264,7 @@ pub fn harvest_candidate(
 /// [`harvest_candidate`], reading a source with no task marker as no task
 /// rather than an error — how the loader reads a `.typ` beside the tasks that
 /// is not one. What a commit state's version of a file loads as
-/// ([`crate::commit_tasks`]).
+/// ([`crate::commit::tasks`]).
 pub(crate) fn harvest_source(
     root: &Path,
     config: &Config,

@@ -77,7 +77,7 @@ fn count(children: &[Node<DefaultNumericTypes>], ctx: &Ctx) -> Result<f64, Filte
 
 /// The left side of a comparison, which must be a field or a count — also
 /// what a task-scope commit rule's `staged(<field>)` resolves to
-/// ([`crate::commit_task_expr`]).
+/// ([`crate::commit::task_expr`]).
 pub(crate) fn left_operand(
     node: &Node<DefaultNumericTypes>,
     ctx: &Ctx,

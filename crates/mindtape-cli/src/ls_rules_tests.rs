@@ -52,7 +52,7 @@ pub(crate) fn project_with_config(dir: &Path, config: mindtape::Config) -> crate
 }
 
 /// Give `dir` a `.git/HEAD` on `branch`, so `on_branch(...)` conditions can
-/// resolve against it (mirrors `crates/mindtape/src/git_tests.rs`'s fixture).
+/// resolve against it (mirrors `crates/mindtape/src/git/tests.rs`'s fixture).
 fn checkout(dir: &Path, branch: &str) {
     std::fs::create_dir_all(dir.join(".git")).unwrap();
     std::fs::write(

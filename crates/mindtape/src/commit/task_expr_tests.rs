@@ -1,9 +1,9 @@
 #![allow(clippy::unwrap_used)]
 
 use super::{TaskScope, desugar_commit_into, task_expr_problem};
-use crate::commit_expr::CommitExpr;
-use crate::commit_msg::CommitRecord;
-use crate::commit_tasks::{CommitStates, ProjectState};
+use crate::commit::CommitRecord;
+use crate::commit::expr::CommitExpr;
+use crate::commit::tasks::{CommitStates, ProjectState};
 use crate::config::{Config, parse_config};
 use crate::model::{Status, Task};
 use crate::test_support::bare_task;
@@ -137,7 +137,7 @@ fn a_malformed_wrapper_or_status_is_refused() {
 fn a_commit_rule_refuses_every_task_reading() {
     for task_only in ["named", "staged(terminal)", "head(status) == \"wip\""] {
         let problem =
-            crate::commit_expr::commit_expr_problem(task_only, &crate::config::Config::default())
+            crate::commit::expr::commit_expr_problem(task_only, &crate::config::Config::default())
                 .unwrap();
         assert!(
             problem.contains("scope = \"task\""),

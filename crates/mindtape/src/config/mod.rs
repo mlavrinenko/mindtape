@@ -170,9 +170,9 @@ pub struct Config {
     pub(crate) rule_sites: crate::rules::sites::RuleSites,
     /// What git says changed under the project root, read the first time a
     /// filter's `changed()` asks and shared from then on. Derived, never
-    /// declared, never equal-compared — see [`crate::git_state::GitCache`].
+    /// declared, never equal-compared — see [`crate::git::state::GitCache`].
     #[serde(skip)]
-    pub(crate) git: crate::git_state::GitCache,
+    pub(crate) git: crate::git::state::GitCache,
     /// `[commits]` — the task trailer and `[[commits.rules]]`, checked by
     /// `mt check --commit-msg`.
     pub commits: crate::config::commits::CommitsConfig,
@@ -385,7 +385,7 @@ impl Config {
     }
 
     /// The stems this command's `touches()` calls met that no task answers
-    /// to, even through a rename — see [`crate::commit_refs`].
+    /// to, even through a rename — see [`crate::commit::refs`].
     #[must_use]
     pub fn retired_refs(&self) -> Vec<String> {
         self.git.retired_refs()

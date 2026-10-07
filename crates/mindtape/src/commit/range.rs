@@ -8,7 +8,7 @@
 //! empty tree.
 //!
 //! The states are still overlays of the one working-tree load
-//! ([`crate::commit_tasks`]), so each lists every path at which its revision
+//! ([`crate::commit::tasks`]), so each lists every path at which its revision
 //! may differ from the working tree: where the parent differs from `HEAD`,
 //! where `HEAD` differs from the working tree, and — for the commit — what the
 //! commit changes. Listing a path that turns out not to differ costs a
@@ -16,9 +16,9 @@
 
 use std::path::Path;
 
-use crate::commit_msg::{ChangedFiles, CommitMsgError, changed_paths, git, renamed_sources};
-use crate::commit_tasks::{StatePlan, StateSource};
-use crate::git_state::GitStatus;
+use crate::commit::tasks::{StatePlan, StateSource};
+use crate::commit::{ChangedFiles, CommitMsgError, changed_paths, git, renamed_sources};
+use crate::git::state::GitStatus;
 
 /// One commit of a range.
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -255,7 +255,7 @@ pub fn desugar_into(when: &str, target: &str) -> String {
 /// Rewrite every `into("name")` call in `when` into whatever `replace` makes
 /// of its name — the one scanner behind both [`desugar_into`] (a flip's
 /// constant) and a task-scope commit rule's state comparison
-/// ([`crate::commit_task_expr::desugar_commit_into`]). String literals pass
+/// ([`crate::commit::task_expr::desugar_commit_into`]). String literals pass
 /// through untouched, and `into` is recognised only as a whole identifier.
 #[must_use]
 pub fn rewrite_into(when: &str, replace: impl Fn(&str) -> String) -> String {

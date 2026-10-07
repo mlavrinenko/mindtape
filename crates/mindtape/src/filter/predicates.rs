@@ -15,7 +15,7 @@ use crate::fields::{self, FieldValue};
 use crate::filter::compare::compare;
 use crate::filter::expr::{call_args, extract_identifier, extract_literal};
 use crate::filter::{Ctx, FilterError, field_value};
-use crate::git_state::{PathFilter, StateSet};
+use crate::git::state::{PathFilter, StateSet};
 use crate::model::Task;
 use crate::numeric::format_num;
 
@@ -144,7 +144,7 @@ pub(crate) fn changed_count(
 }
 
 /// `touches("<path>")`: whether a commit that changed the repository-relative
-/// `path` names the task in its trailer ([`crate::commit_refs`]). The dry run
+/// `path` names the task in its trailer ([`crate::commit::refs`]). The dry run
 /// checks the argument and matches nothing without reading git.
 pub(crate) fn touches(
     children: &[Node<DefaultNumericTypes>],
@@ -169,9 +169,7 @@ pub(crate) fn touches(
             call: "touches",
             reason,
         })?;
-    Ok(touched
-        .stems
-        .contains(&crate::commit_msg::task_stem(ctx.task)))
+    Ok(touched.stems.contains(&crate::commit::task_stem(ctx.task)))
 }
 
 /// `exists`: whether the commit state being read holds the task's file at

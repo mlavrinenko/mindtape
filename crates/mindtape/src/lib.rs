@@ -19,13 +19,7 @@ pub mod app_dirs;
 pub mod body;
 pub mod canonical;
 pub mod children;
-mod commit_amend;
-pub mod commit_expr;
-pub mod commit_msg;
-pub mod commit_range;
-pub mod commit_refs;
-pub mod commit_task_expr;
-pub mod commit_tasks;
+pub mod commit;
 pub mod config;
 mod date;
 mod date_pin;
@@ -41,7 +35,6 @@ mod framework_eval;
 mod framework_validate;
 pub mod fs_atomic;
 pub mod git;
-pub mod git_state;
 pub mod graph;
 pub mod handle;
 pub mod import_map;
@@ -82,13 +75,13 @@ pub use body::gate::{CompiledRule, GateError, check_headers, compile_rules};
 pub use body::{BodyRules, check_body_rules};
 pub use canonical::{CanonicalTask, SCHEMA_VERSION};
 pub use children::{children_violation, unfinished_children};
-pub use commit_expr::CommitExpr;
-pub use commit_msg::{
+pub use commit::expr::CommitExpr;
+pub use commit::range::{CommitRange, PastCommit, RangeCommit};
+pub use commit::tasks::{CommitStates, ProjectState, StatePlan, StateSource};
+pub use commit::{
     ChangedFiles, CommitMessage, CommitMsgError, CommitRecord, RefProblem, TrailerValue,
     parse_message, staged_files,
 };
-pub use commit_range::{CommitRange, PastCommit, RangeCommit};
-pub use commit_tasks::{CommitStates, ProjectState, StatePlan, StateSource};
 pub use config::comments::{CommentsConfig, CommentsError, CommentsPolicy, check_comments};
 pub use config::commits::{CommitBreach, CommitRuleSpec, CommitScope, CommitsConfig, check_commit};
 pub use config::layers::{

@@ -19,7 +19,7 @@
 use std::path::Path;
 use std::process::Command;
 
-use crate::commit_msg::{CommitMsgError, git};
+use crate::commit::{CommitMsgError, git};
 
 /// How far up the process tree to look for the `git commit` that runs the hook.
 const MAX_DEPTH: usize = 12;
@@ -110,5 +110,5 @@ fn from_ps(pid: u32) -> Option<(u32, Vec<String>)> {
 }
 
 #[cfg(test)]
-#[path = "commit_amend_tests.rs"]
+#[path = "amend_tests.rs"]
 mod tests;

@@ -7,6 +7,12 @@
 //! submodule form) redirects to `<path>/HEAD`. Any IO error, or a `HEAD` this
 //! module cannot parse, resolves to `None` — `on_branch` treats that the same
 //! as "not a git repo".
+//!
+//! # Files
+//!
+//! - `state.rs`: what git says has changed, per state, read on demand and read-only.
+
+pub mod state;
 
 use std::path::{Path, PathBuf};
 
@@ -52,5 +58,4 @@ fn parse_head(contents: &str) -> Option<String> {
 }
 
 #[cfg(test)]
-#[path = "git_tests.rs"]
 mod tests;

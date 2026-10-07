@@ -5,7 +5,7 @@
 //! One `git log -M --name-status` over the whole history of `HEAD` yields,
 //! per commit, its message and the paths it changed. [`parse_log`] indexes
 //! every changed path by the stems its trailer names, through the same
-//! trailer parse `mt check --commit-msg` uses ([`crate::commit_msg`]), so a
+//! trailer parse `mt check --commit-msg` uses ([`crate::commit`]), so a
 //! path-form value (`Refs: truth/tasks/<stem>.typ`) and a stem-form one
 //! (`Refs: <stem>`) index the same stem. A rename indexes both of its sides.
 //!
@@ -26,9 +26,9 @@ use std::sync::{Arc, Mutex, OnceLock, PoisonError};
 
 use serde::{Deserialize, Serialize};
 
-use crate::commit_msg::{is_task_file, parse_message, task_stem, value_stem};
+use crate::commit::{is_task_file, parse_message, task_stem, value_stem};
 use crate::config::Config;
-use crate::git_state::git;
+use crate::git::state::git;
 use crate::model::Task;
 
 /// Bump when the cached shape changes: a mismatch is a miss.
@@ -120,7 +120,7 @@ struct Read {
 
 /// The commit-refs index of one project root, read the first time a filter
 /// asks, plus every answer given and every retired stem met. Carried on
-/// [`crate::git_state::GitCache`]; clones share all three.
+/// [`crate::git::state::GitCache`]; clones share all three.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct RefsCache {
     read: Arc<OnceLock<Result<Read, String>>>,
@@ -295,5 +295,5 @@ fn store(path: &Path, head: &str, trailer: &str, refs: &CommitRefs) {
 }
 
 #[cfg(test)]
-#[path = "commit_refs_tests.rs"]
+#[path = "refs_tests.rs"]
 mod tests;

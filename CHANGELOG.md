@@ -1281,7 +1281,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mindtape::gate` and `mindtape::content_gate` are now `mindtape::body`,
   `mindtape::body::gate` and `mindtape::body::content_gate`, and
   `mindtape::candidate` and `mindtape::severity` are now
-  `mindtape::validate::candidate` and `mindtape::validate::severity`. The root
+  `mindtape::validate::candidate` and `mindtape::validate::severity`,
+  `mindtape::commit_msg` is now `mindtape::commit` with `commit_expr`,
+  `commit_range`, `commit_refs`, `commit_task_expr` and `commit_tasks` beneath
+  it, and `mindtape::git_state` is now `mindtape::git::state`. The root
   re-exports (`mindtape::Condition` and the rest) are unchanged.
 - **The docs sidebar groups pages by the reader's job.** The 13-page
   Reference group splits into Fields, Checks, Reference and Integrate, and

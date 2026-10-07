@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use super::check_commit;
-use crate::commit_msg::CommitRecord;
+use crate::commit::CommitRecord;
 use crate::config::parse_config;
 use crate::validate::severity::Severity;
 

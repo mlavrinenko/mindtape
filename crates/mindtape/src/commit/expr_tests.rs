@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used)]
 
 use super::{CommitExpr, commit_expr_problem};
-use crate::commit_msg::CommitRecord;
+use crate::commit::CommitRecord;
 use crate::config::Config;
 use crate::parse_config;
 

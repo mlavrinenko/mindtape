@@ -11,7 +11,7 @@
 //! Where a state's versions come from is a [`StateSource`]: a git revision and
 //! the paths it may differ at. [`StatePlan::index`] builds the hook's plan —
 //! the index as `staged`, `HEAD` as `head`, the working tree kept. A plan for
-//! a past commit ([`crate::commit_range`]) swaps the sources — the commit as
+//! a past commit ([`crate::commit::range`]) swaps the sources — the commit as
 //! `staged`, its first parent as `head`, no working tree — and loads through
 //! the same [`CommitStates::load`].
 
@@ -20,9 +20,9 @@ use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-use crate::commit_msg::{CommitMsgError, changed_paths, git, task_stem};
+use crate::commit::{CommitMsgError, changed_paths, git, task_stem};
 use crate::config::Config;
-use crate::git_state::GitStatus;
+use crate::git::state::GitStatus;
 use crate::loader::LoadError;
 use crate::model::Task;
 use crate::ready::Readiness;
@@ -69,7 +69,7 @@ impl StatePlan {
         })?;
         // `HEAD`, or its parent while `git commit --amend` replaces it; the
         // paths where that differs from `HEAD` join the ones `status` names.
-        let base = crate::commit_amend::base_rev(root)?;
+        let base = crate::commit::amend::base_rev(root)?;
         let behind_head = if base == "HEAD" {
             Vec::new()
         } else {
@@ -190,7 +190,7 @@ fn overlay(
     let files: Vec<(&str, PathBuf)> = source
         .differs
         .iter()
-        .filter(|path| crate::commit_msg::is_task_file(path, &plan.root_prefix, config))
+        .filter(|path| crate::commit::is_task_file(path, &plan.root_prefix, config))
         .filter_map(|path| {
             let rel = path.strip_prefix(&plan.root_prefix)?;
             Some((path.as_str(), PathBuf::from(rel)))
@@ -285,5 +285,5 @@ fn parse_batch(mut out: &[u8], count: usize) -> Vec<Option<String>> {
 }
 
 #[cfg(test)]
-#[path = "commit_tasks_tests.rs"]
+#[path = "tasks_tests.rs"]
 mod tests;

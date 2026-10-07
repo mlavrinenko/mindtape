@@ -48,13 +48,13 @@
 //!
 //! `changed("<states>", "<glob>"…)` counts the distinct paths git reports
 //! changed in `staged`, `worktree`, or both joined with `+`, narrowed by
-//! include globs and `!`-prefixed exclude globs (see [`crate::git_state`]).
+//! include globs and `!`-prefixed exclude globs (see [`crate::git::state`]).
 //! It is a count, so it only appears in a comparison — against a literal or a
 //! field: `changed("staged", "src/**") <= estimate.files`. Either side of a
 //! comparison may name a field when the other is a field or a count.
 //!
 //! `touches("<path>")` matches a task named by the `[commits] trailer` of a
-//! commit that changed the repository-relative path (see [`crate::commit_refs`]).
+//! commit that changed the repository-relative path (see [`crate::commit::refs`]).
 //!
 //! `count(<expr>)` is a count too: how many tasks of the whole loaded set
 //! match `<expr>`, each read as the task in context (see
@@ -380,7 +380,7 @@ pub(crate) struct Ctx<'a> {
 
 impl<'a> Ctx<'a> {
     /// A context reading `task` as one commit state holds it
-    /// ([`crate::commit_task_expr`]): `exists` answers whether the state holds
+    /// ([`crate::commit::task_expr`]): `exists` answers whether the state holds
     /// the file at all, `readiness` is computed over that state's task set.
     pub(crate) fn in_state(
         task: &'a Task,
