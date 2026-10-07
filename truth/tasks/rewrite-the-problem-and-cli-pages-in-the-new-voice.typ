@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 7),
+  status: done(
+    2026,
+    10,
+    7,
+  )[problem pages, CLI index, command pages and cli-notes rewritten in the Voice register],
   links: depends-on("give-the-docs-a-conversational-voice.typ"),
 )
 

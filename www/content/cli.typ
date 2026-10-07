@@ -13,13 +13,16 @@
 
 #show: page.with(..meta)
 
-`mt` is the whole interface. A command prints nothing it does not have to,
-and its exit code says whether it did what was asked. The build generates
-these pages from the binary: the commands and flags come from `mt`'s own
-argument parser (#link(u("/agents/"))[`mt _cli --json`]). Each example is a
-command the build ran in a terminal, most of them in the
-`examples/api-service` project, a backend team's backlog. The page prints the
-command from that run.
+Your task files are plain text, and you can edit them in any editor. `mt`
+does the fiddly parts for you: it stamps status dates, writes link paths,
+fills template slots and checks every task. Each command prints only what you
+need, and its exit code tells you whether it did what you asked.
+
+The build generates these pages from the binary. The commands and flags come
+from `mt`'s own argument parser (#link(u("/agents/"))[`mt _cli --json`]).
+Each example is a command the build ran in a terminal, most of them in
+`examples/api-service`, a sample backend project's backlog. The page prints
+each command as it ran:
 
 #terminal("version")
 
@@ -30,7 +33,7 @@ command from that run.
 
 = Global flags
 
-Every command accepts the same global flags:
+Every command takes these flags:
 
 #render-globals(CLI)
 
@@ -76,13 +79,13 @@ Every command accepts the same global flags:
 
 = Setup
 
-#link(u("/quickstart/"))[Quickstart], #link(u("/config/"))[Configuration]
-and #link(u("/agents/"))[For AI agents] describe the files these commands
-write.
+These commands write the files that #link(u("/quickstart/"))[Quickstart],
+#link(u("/config/"))[Configuration] and #link(u("/agents/"))[For AI agents]
+describe.
 
 #cli-group(CLI, CLI_GROUPS, "Setup")
 
 #callout("note")[
-  #link(u("/agents/"))[For AI agents] collects the JSON output, exit codes
-  and environment variables a script or an agent reads.
+  If a script or an agent drives `mt`, #link(u("/agents/"))[For AI agents]
+  collects the JSON output, exit codes and environment variables it reads.
 ]

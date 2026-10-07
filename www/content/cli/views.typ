@@ -3,7 +3,8 @@
 
 #show: cli-page.with("views")
 
-#link(u("/named-sets/"))[Views & dictionaries] describes views and what
-`@name` means in a listing.
+`mt views` lists the project's views, or shows one by name. To define a view,
+or to see what `@name` means in a listing, read
+#link(u("/named-sets/"))[Views & dictionaries].
 
 #cli-command("views")

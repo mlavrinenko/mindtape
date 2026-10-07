@@ -70,27 +70,27 @@ groups:
       skills/mindtape/references/add-slots.md: 88cb97c15bb273483d526b496a227f2a0794fa279d876b0585dc2d46c5aaa658
       skills/mindtape/references/filters.md: 8df147f39ce5cb793469dbfcd32a2fb02216ef1b7149351451f507d29328bff2
       www/content/agents.typ: c662959be1e441b6382159036b4b207a23a50fdd7c0ee738757b14aeb637b830
-      www/content/cli.typ: c9a9d8f0053ae14b844ea2183b17f27b27648f72e0140c0f3d6377676a32e206
+      www/content/cli.typ: 94606c78f824a29796062798e29b7d3633c4d9c1129f11440fc0a28bd361930a
       www/content/cli/add.typ: 2b9d93757ee3aa04546bb4a2ff975dde6049e8bcd7e9e9ce7e01417bab898a93
-      www/content/cli/check.typ: 8e6be77b171f90e53d632b478a10edc43b3612d80c478b6b2a29f808ce97b327
-      www/content/cli/config.typ: e80111cb871fe4464ea6c4ec06ae78512ef5b6a9752444311509ab1fb5321601
+      www/content/cli/check.typ: 51365c05069ccbed558249b027b20f8aad011d82746ce69aa830b31e3bd825a3
+      www/content/cli/config.typ: 759e88dd07ecfa1a6a754c24faa30145a41f28776504d3628161b59eb4faf885
       www/content/cli/eval.typ: 7468020417eb5c30cb3a0dc949167bffaa0d8769b2ff7b5e64a50e8d354bc7e5
       www/content/cli/find.typ: daf477aa706afd67733885ea93222bdc533aaf9c0f6ffc9df63fd633571e62b4
-      www/content/cli/flip.typ: b703fb91dd2ff19df7af191d3fde42220938c1e289f2ee1774ba5c6f4105091a
+      www/content/cli/flip.typ: e2a040fa7c9bc827bbd7c58510205c6dcf8639cb5d4ac534d77aedf8a4715cd3
       www/content/cli/go.typ: c55feee97dce8c5dca7c27b8084070830076d282186479aa2db2485d5fc85360
-      www/content/cli/graph.typ: 929f2ae344b7f3295f9213caede3698e0418d84fb02cc36239e8f7fb113b9c23
+      www/content/cli/graph.typ: 67d472568fc96a7036f59a54603657d0bccb8021e29c67c8d331ad5e182ca0a4
       www/content/cli/import.typ: 1d0548ff74cda8385b6330fe6ac65a082f375c9ac9f3e1ecf0496c8f82447c9a
       www/content/cli/init.typ: c524b62c3663cef6417dd64107513ff55b1d55f96ffbe93ca42a2c2499bca23d
       www/content/cli/install.typ: ed61176008fbe18cf9327fa7e27c71f58a2773d24b7c75d6d8eaa4830bf9d1bd
-      www/content/cli/link.typ: 56de8e64dbd6303258f0ec80b1891fcffd46325451a6edd10fad28aac9192996
-      www/content/cli/ls.typ: 5f611aff7aa010c6cdaf7d8cbf10fec2f110219c8035dcccc436149aca4caaf8
-      www/content/cli/mv.typ: d656feb0d528df7c1a5ff2e4484286ffe4ca71d3d1ee311b539a331279c2ee37
+      www/content/cli/link.typ: bd7469ffa92c16d15fa77a0c502a09b8a3cea4331a77eae15b75e7a84f31be28
+      www/content/cli/ls.typ: 8f28f6a41abda068179b8250b44e8f9fc409d2ac8ac84b779b9948b6492d3307
+      www/content/cli/mv.typ: 7b1e53503cf9ad86e400df8153d6744ac8c7feb810ceff6f29d0ea59ecbe27d9
       www/content/cli/preset.typ: 4fe537f9b240f8092b8e5d0504962e5fde37dc0f12fad86910e8f0b089f3eff7
-      www/content/cli/recur.typ: 3ffb9c8ba7076c253e24e02efb972c332c3b7f9e11d000b64844f77dee0efd06
+      www/content/cli/recur.typ: f22f68255e3654ad84ad5ddf1c75b07eb508384281bf6f14da246dbe192eac33
       www/content/cli/review.typ: bcf2c752351cd775ea4aec69f15aa0517a9f27f08cabb69156566ab468de567d
-      www/content/cli/rm.typ: e6933254d30d9551ee4fbc81cfeaec2eaed77927cbac64ae85dd2dca7598f9f3
+      www/content/cli/rm.typ: 469e431dd70f7202e38933187b976fa6cca031c5c29be16484de8d8f95e91be3
       www/content/cli/set.typ: 24b76bb77e2e3c4b0e7a265702758ada5d054e67a705b5f81c778c244cf93c59
-      www/content/cli/views.typ: 60a67289f2bb546ff203cfb8047299894e6689b241287c04b0c35374e094422a
+      www/content/cli/views.typ: 9df4c84aa9fce2b98e792ad7fbdc5fbbeda72835bdd47cd589dda25a5685f714
       www/content/cli/worktrees.typ: edd512ecff478c88e54c9c8e177d02948a80a3b37ba33d275a888a7cb87416c5
       www/content/commit-rules.typ: da3aec81507404378d3bfaa2385bd0dfe8997c7ff5b66d98edd9bfada0dd4da6
       www/content/concepts.typ: 09a59054d0c30ca5c5369a96be60f6ee285e813bbc581b90237d587a5c02cf84
@@ -109,7 +109,7 @@ groups:
       www/content/schema.typ: 4df5cc05f00556240d7beeafb81ea4f35a3e9c9412a00d3eade7c7616f58fa21
       www/content/statuses.typ: b632503bee31b1e10fa1e3400a6847e628c5a5720e5cd305542e82a42a4dd2c2
       www/content/templates.typ: dc2ca89dd05f46ef1f2cc7aa8cc4b726c85d68f1a921c4604ba63820e1117eda
-      www/utils/cli-notes.typ: 83d642d033ef755f09211ec7696bf1bf658e5882c93b7903cfb80ec7063cc0f7
+      www/utils/cli-notes.typ: 0054ff451cb3816db6909de1a5ae927c33a2c9f70a81c4deff2da235c17b75ba
   cli-name:
     source:
       crates/mindtape-cli/Cargo.toml: aa7fe5382ed1dfd15050b18e4e32c71b357c70cfaff6071371ac1fb02b1cf877
@@ -121,7 +121,7 @@ groups:
       docs/src/contributing/command-semantics.typ: accc2e04a0fa5f992a12477535b79c79c7ed30c5ad7f35fa535b88d5dda4f60b
       docs/src/readme.typ: 84c0bda43d327ef711df98c5c9bf9b96ac333e80906973184c045f432c89be06
       docs/src/skill.typ: e2c883bd817f075c36ca78463666c34d39388e454cf54a5a3beea7a35f72da6e
-      www/content/cli.typ: c9a9d8f0053ae14b844ea2183b17f27b27648f72e0140c0f3d6377676a32e206
+      www/content/cli.typ: 94606c78f824a29796062798e29b7d3633c4d9c1129f11440fc0a28bd361930a
       www/content/index.typ: b476a360a4ca66162a1547e537d9b09879b327ca01184bcc2d677b5385ee333a
       www/content/quickstart.typ: 45626cc5fdcbcead0e43d28f7be4d13a72e87f92d8cf5cd284c5834dde5c069b
   crap-scripts-docs:

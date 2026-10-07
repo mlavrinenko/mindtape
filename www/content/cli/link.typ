@@ -3,8 +3,9 @@
 
 #show: cli-page.with("link")
 
-`mt link` is the only command that writes `links:`.
-#link(u("/links/"))[Task links] describes the edge kinds, how `mt` checks a
-target, and the map `--apply` reads.
+`mt link` adds edges to a task's `links:` field. You name each target by its
+stem, and `mt` writes the path to its file for you. It's the only command
+that writes `links:`. #link(u("/links/"))[Task links] describes the edge
+kinds, how `mt` checks a target, and the map `--apply` reads.
 
 #cli-command("link")
