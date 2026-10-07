@@ -4,10 +4,10 @@ groups:
   api-service-problems:
     source:
       crates/mindtape/src/packs/mindtape-tasks.toml: ad92738ede81cbe398e8adc34dff707e9b8e19fb174b63c5407fecf55e0d587d
-      examples/api-service/.mindtape/config.toml: 2cd85c5820d5704ab091aec97f87775bb46134ccd348c40340a32b6af6855a87
+      examples/api-service/.mindtape/config.toml: 34ecc6bcc67aec9aca6e9307a0ff2601bdd40701d5d67047af0d38a6173ba26b
       examples/api-service/.mindtape/templates/task.typ: 41157e812de4eb373b1791bf47197f01c74e78db76b9971a478c38d5f3ecc9a8
       examples/api-service/dicts/services.txt: 25d2e5ae4c8231bfd16b9d15dfa934c5fcac55a1bd176572f20466164163c39a
-      examples/api-service/scripts/test: 18b94e6d4e4de1fc07b63abcdc597af431a084e25c4e2691e5045fb925108267
+      examples/api-service/scripts/test: 490e2b2adafd0151a29e903fbd21a77229c0f94ea7724a1ddf7aabc5561f79cc
       examples/api-service/tasks/add-redis-client.typ: f90c6b02e6baa8655a554ed4560581c3a57ecac22ae2a073f4d207998f5613a1
       examples/api-service/tasks/add-request-ids-to-log-lines.typ: e8d57e31af6d3a3c28d7b8d04380b9efbfa2ab44314771a7a10be57d010d9d5c
       examples/api-service/tasks/document-the-webhook-retry-policy.typ: 2097c9b120d669fad5af21e505c38e743ea61cd493b1b2adc0da12fff146f5a1
@@ -22,7 +22,7 @@ groups:
       examples/api-service/tasks/upgrade-the-axum-web-framework.typ: 098f9d43ac19b8e59ddd3691f9f4f56f03cfc48a305aca5d84e15c6a93808a36
       www/generate-api-service.sh: bf3a04f364d6aff62a8a7312cf62b37b286d28e0ad3517f342299e19de9054e1
     dependents:
-      skills/mindtape/evals/README.md: e530d4b6a77d8220a7f138487974a3c0797271020a575b74f51d9379a57d7769
+      skills/mindtape/evals/README.md: 096a87126b99bf1befb6a9d23f1aa3021870a0f86e13b655800725fedf762f53
       skills/mindtape/evals/evals.json: b25640b2d11ac263a0572ffc6679165bae4581dee1fe9938112c8e69926ad041
       www/content/gate-done-on-checks.typ: e1a43a4fcddecb5b96022b4429c3f3b5012126e2f023f34cc94df4bb5ce77b54
       www/content/one-task-at-a-time.typ: e0c06a860fc00dba0cd9e75dcf1a7b87c346656b00f8297228b2f67492a24964

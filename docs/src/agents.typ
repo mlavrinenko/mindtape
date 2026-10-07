@@ -62,7 +62,7 @@ skips a file whose bytes are unchanged.
   SKILL.md and the `docs/contributing/*.md` deep dives.
 - `skills/mindtape/` — the agent skill for driving `mt`, with its references
   and evals.
-- `examples/` — fixture projects: `api-service`, a backend team's backlog
+- `examples/` — fixture projects: `api-service`, a sample backend project's backlog
   that feeds the docs and the skill's evals; `minimal`, the smallest config;
   `dsl`, the task quoted below; `large`, a 2000-task benchmark whose gitignored
   tasks #just.gen-bench() writes. Each other one backs one docs page.
