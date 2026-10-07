@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 7),
+  status: done(
+    2026,
+    10,
+    7,
+  )[CONTRIBUTING and every contributor deep dive speak to the reader],
   links: depends-on("give-the-docs-a-conversational-voice.typ"),
 )
 

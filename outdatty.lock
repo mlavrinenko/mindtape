@@ -118,7 +118,7 @@ groups:
       CHANGELOG.md: 088dee2f59bbceabe3d927a5eefcdc0491c965641f6e0e534c75a5c5cf4aa8e2
       docs/src/agents.typ: 6078c7a3230b6f04a6ce86cdcdc4f989f45895d88ae11a68e93a82fd4fe38e22
       docs/src/contributing.typ: 429d92419717911669e0fa1fdca9809870dbf5d06f4087550562254d07f93dde
-      docs/src/contributing/command-semantics.typ: accc2e04a0fa5f992a12477535b79c79c7ed30c5ad7f35fa535b88d5dda4f60b
+      docs/src/contributing/command-semantics.typ: bb34aceec2040207d20e78a519a933576b3df52f941b6496b8eaa1f4c1e84ebc
       docs/src/readme.typ: 84c0bda43d327ef711df98c5c9bf9b96ac333e80906973184c045f432c89be06
       docs/src/skill.typ: 3f11892a794ac169924ffc611f4b03632bedde8ba651c557638e1c8d6bf73969
       www/content/cli.typ: 94606c78f824a29796062798e29b7d3633c4d9c1129f11440fc0a28bd361930a
@@ -132,8 +132,8 @@ groups:
       .just/scripts/crap-baseline.sh: 9557082bf19d408a02ab75cc5386d1c0667391cd24c07fa62ed595ef521cce87
       .just/scripts/crap.sh: a52e9e067c5273a98e4fcdbe78d1602778178a8e47e400313be2a796114e5384
     dependents:
-      docs/src/contributing/coverage-crap.typ: bfecccfb3a6bd4c9b5ec593538ae5828842d8a45cff626922fce2edd1f47c3cc
-      docs/src/contributing/crap-baseline.typ: bcbc918cf8976b8d4b560bd4190c6eb96eab3c2ca3e380108c9996bd65cae98d
+      docs/src/contributing/coverage-crap.typ: a9d1342bcc89f7e565afbff8e97b512a83a4c2415297eadb81ffc00f594805a6
+      docs/src/contributing/crap-baseline.typ: 766c86263be61830fc97f1b8f57bcf8f8dc91bd37088d3a9bf0b4e960ec4a51f
   dev-shell-docs:
     source:
       .config/nextest.toml: 1aa04153954c5ab8ce468d3e08225b76d6dd1f636874b9591c275c588b89f984
@@ -143,15 +143,15 @@ groups:
     dependents:
       docs/src/agents.typ: 6078c7a3230b6f04a6ce86cdcdc4f989f45895d88ae11a68e93a82fd4fe38e22
       docs/src/contributing.typ: 429d92419717911669e0fa1fdca9809870dbf5d06f4087550562254d07f93dde
-      docs/src/contributing/coverage-crap.typ: bfecccfb3a6bd4c9b5ec593538ae5828842d8a45cff626922fce2edd1f47c3cc
-      docs/src/contributing/crap-baseline.typ: bcbc918cf8976b8d4b560bd4190c6eb96eab3c2ca3e380108c9996bd65cae98d
-      docs/src/contributing/docs-site-build.typ: ab55a155324dc7aacc60167fc5bac4bd09cd9e479dd30d71d8d15f24d942fd6a
-      docs/src/contributing/documentation.typ: c8d2c27bb761b7c0d93155f29a9ce6fd4bb70fe772bf57863f20a410187940fe
-      docs/src/contributing/example-projects.typ: a0e2cc0bd33ea0f7bdca69f0c3e0f41e11ca7cf0e6d0fc159140ab00ab4a8f77
-      docs/src/contributing/gates.typ: 936b8885e6bf861650a49071a1a8ed49ef9e59e93e80bfe867aa73cb9e2329f3
-      docs/src/contributing/mutation-testing.typ: 2b6727506f999a08508b29519efb07c84659aa47634b93486124b953b05779c4
-      docs/src/contributing/signal-sweep.typ: 6377402d346c38c13ccb9cdc7e5b10913c5c7123dccd47bf6767ca0727a802fe
-      docs/src/contributing/windows.typ: 7ab232b0df8c8a113d364121895b1113c5b0519d5de7adb05d3801ecccaa8e24
+      docs/src/contributing/coverage-crap.typ: a9d1342bcc89f7e565afbff8e97b512a83a4c2415297eadb81ffc00f594805a6
+      docs/src/contributing/crap-baseline.typ: 766c86263be61830fc97f1b8f57bcf8f8dc91bd37088d3a9bf0b4e960ec4a51f
+      docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
+      docs/src/contributing/documentation.typ: f361e28c254f7e7e2c1753e1fba96aaab63888594765ed02825db97d3f41a988
+      docs/src/contributing/example-projects.typ: 4f9a0c52894b9c2ab665e42bb728814b3d18badf3e8def57737d695d29912f63
+      docs/src/contributing/gates.typ: f02e5d42d53076a4863a79c748bd521c4cbd2f3cd82827d3c296392dbde3bf87
+      docs/src/contributing/mutation-testing.typ: d1e888ef6d4d5ae63d66530cea776797625b281a3ddd5f90fcf73e96c41a4510
+      docs/src/contributing/signal-sweep.typ: 9699e4af7dc29f71d8d29e7d7904f6cf97d3c0fa62679ad23b10840cb65d2ec1
+      docs/src/contributing/windows.typ: 15081469aa7af07d9e10f2c039eb7fdcca8ae1f85c43227f953a745e06aeeacb
   doc-gate-scripts-docs:
     source:
       .just/scripts/_doc-blocks-lib.sh: d9e87132af23c43bdb47591f85eec19e313a6cf4bb479be378a86aff598bcd62
@@ -165,8 +165,8 @@ groups:
       .just/scripts/check-doc-spans.sh: 7bb4d0076f965fe886210bd5519ba998336c0c4f9cd2b5e38ac8d6b8dbf9aae8
       .just/scripts/docs-md-check.sh: 06b5b942d9a14fa00134ec4de64b4f2e706ae49bf1b55206b2afd54c2d87791f
     dependents:
-      docs/src/contributing/documentation.typ: c8d2c27bb761b7c0d93155f29a9ce6fd4bb70fe772bf57863f20a410187940fe
-      docs/src/contributing/generated-docs.typ: 62185282d7f6ab2c81b8253305598c8b02a2ca60a46dd1931d2191021a42a6ea
+      docs/src/contributing/documentation.typ: f361e28c254f7e7e2c1753e1fba96aaab63888594765ed02825db97d3f41a988
+      docs/src/contributing/generated-docs.typ: 6a981d7c8fd1b98a7ef3ea7916fc8f83bdca254e5d86ba53f300a52902236189
   filter-docs:
     source:
       crates/mindtape/src/filter/aggregate.rs: 51809d59de66e67043aad2e2c48c34aa7b4bcef5289202f62bf663cb35a6a1ca
@@ -200,7 +200,7 @@ groups:
       .just/scripts/site-pages-fixture-check.sh: 4f34c3ddef2f69fc32dac183a19c1038907c4947590a6101572ebf26a88c658f
       .just/scripts/size-fixture-check.sh: 2809f969a7cfef976ccbf1cf1006b46e34f2c21f0d484f36dcbd44ff104481a7
     dependents:
-      docs/src/contributing/gates.typ: 936b8885e6bf861650a49071a1a8ed49ef9e59e93e80bfe867aa73cb9e2329f3
+      docs/src/contributing/gates.typ: f02e5d42d53076a4863a79c748bd521c4cbd2f3cd82827d3c296392dbde3bf87
   lock-merge-docs:
     source:
       .gitattributes: 602150ae6b4466024d4ec8b0fa0fa7cd020d79c6393a3a10e1bb01370ad4d03d
@@ -214,8 +214,8 @@ groups:
       .just/scripts/mutants.sh: 73ae53fc00fd318dc72598fc218cdaa11dea0780768dc238db64ed6267bf365d
     dependents:
       docs/src/contributing.typ: 429d92419717911669e0fa1fdca9809870dbf5d06f4087550562254d07f93dde
-      docs/src/contributing/mutation-testing.typ: 2b6727506f999a08508b29519efb07c84659aa47634b93486124b953b05779c4
-      docs/src/contributing/signal-sweep.typ: 6377402d346c38c13ccb9cdc7e5b10913c5c7123dccd47bf6767ca0727a802fe
+      docs/src/contributing/mutation-testing.typ: d1e888ef6d4d5ae63d66530cea776797625b281a3ddd5f90fcf73e96c41a4510
+      docs/src/contributing/signal-sweep.typ: 9699e4af7dc29f71d8d29e7d7904f6cf97d3c0fa62679ad23b10840cb65d2ec1
   prelude-docs:
     source:
       lib/prelude.typ: 1acc793b904229ee9dccc443f9c1ce523f126ed550fabdf1fa4e1d0f01aa6897
@@ -256,7 +256,7 @@ groups:
     source:
       www/generate-md.sh: 19b79c37384a858be0c7bcbba88bbdf85f4e8287c709651e4f87c9dc161dfc89
     dependents:
-      docs/src/contributing/docs-site-build.typ: ab55a155324dc7aacc60167fc5bac4bd09cd9e479dd30d71d8d15f24d942fd6a
+      docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
       docs/src/skill.typ: 3f11892a794ac169924ffc611f4b03632bedde8ba651c557638e1c8d6bf73969
       www/content/agents.typ: c662959be1e441b6382159036b4b207a23a50fdd7c0ee738757b14aeb637b830
   sweep-dedup:
