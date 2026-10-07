@@ -42,7 +42,7 @@ fn scaffold(files: &[(&str, &str)]) -> (tempfile::TempDir, PathBuf) {
 /// survivor files that `#import "@local/mindtape"`).
 fn scaffold_with_lib(gone_src: &str, live_src: Option<&str>) -> (tempfile::TempDir, PathBuf) {
     let (tmpdir, root) = repo_with(&[("seed.txt", "seed\n")]);
-    mindtape::test_support::write_lib_package(&root, include_str!("../../../lib/prelude.typ"));
+    mindtape::test_support::write_lib_package(&root, mindtape::test_support::PRELUDE);
     std::fs::create_dir_all(root.join("tasks")).unwrap();
     std::fs::write(root.join("tasks/gone.typ"), gone_src).unwrap();
     if let Some(live) = live_src {

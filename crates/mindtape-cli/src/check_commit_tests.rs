@@ -8,7 +8,7 @@ use std::path::Path;
 use super::{run, warn_state_errors};
 use crate::test_util::make_project_with_lib;
 
-const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
+use mindtape::test_support::PRELUDE;
 
 const TASK: &str = "#import \"@local/mindtape:0.2.0\": *\n\
 #show: task.with(\n  title: \"Write the parser\",\n  status: wip(2026, 6, 1),\n)\n";

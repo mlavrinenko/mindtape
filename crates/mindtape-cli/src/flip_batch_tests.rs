@@ -17,7 +17,7 @@ use super::{Landed, revalidate};
 use crate::test_util::make_project_with_lib;
 use crate::util::Project;
 
-const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
+use mindtape::test_support::PRELUDE;
 
 const LEGEND: &str = "[[tasks.status]]\nvalue = \"wip\"\n\
      [[tasks.status]]\nvalue = \"done\"\nterminal = true\n";

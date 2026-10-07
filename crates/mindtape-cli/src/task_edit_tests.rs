@@ -5,7 +5,7 @@ use typst_edit::apply;
 
 use super::{task_with, upsert_named_arg, verify_written};
 
-const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
+use mindtape::test_support::PRELUDE;
 const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n";
 const IMPORT: &str = "#import \"@local/mindtape:0.2.0\": *\n";
 

@@ -16,13 +16,13 @@ use typst::syntax::VirtualRoot;
 use typst_harvest::HarvestWorld;
 use typst_layout::PagedDocument;
 
-const REAL_PRELUDE: &str = include_str!("../../../lib/prelude.typ");
+use crate::test_support::PRELUDE;
 
 /// Load one file authored against the real prelude, under a default config.
 /// The `TempDir` rides along in the return so the caller keeps it alive.
 fn load_real_prelude(source: &str) -> (tempfile::TempDir, LoadOutcome) {
     let dir = setup();
-    write_pkg(dir.path(), "lib", "mindtape", "0.2.0", REAL_PRELUDE);
+    write_pkg(dir.path(), "lib", "mindtape", "0.2.0", PRELUDE);
     write(dir.path(), "tasks/t.typ", source);
     let outcome = load_project(dir.path(), &Config::default());
     (dir, outcome)
@@ -219,7 +219,7 @@ fn real_prelude_places_the_unknown_slot_error_on_the_name_in_the_task_file() {
     let source = "#import \"@local/mindtape:0.2.0\": *\n\
                   #show: task.with(\n  titel: \"typo\",\n  x-speconaut: (spec: \"s.typ\"),\n)\n";
     let dir = setup();
-    write_pkg(dir.path(), "lib", "mindtape", "0.2.0", REAL_PRELUDE);
+    write_pkg(dir.path(), "lib", "mindtape", "0.2.0", PRELUDE);
     write(dir.path(), "tasks/t.typ", source);
     let world = HarvestWorld::with_root(&dir.path().join("tasks/t.typ"), dir.path())
         .unwrap()

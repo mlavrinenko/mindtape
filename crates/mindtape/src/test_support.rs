@@ -87,10 +87,14 @@ pub fn ice_priority(impact: f64, confidence: f64, ease: f64) -> NumValue {
     }
 }
 
+/// The in-tree `lib/prelude.typ`, read once here so no test spells its own
+/// path to it.
+pub const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
+
 /// Write an in-tree `lib/` mindtape package override under `dir` (its
 /// `typst.toml` plus `prelude.typ` from `prelude`), so `@local/mindtape:0.2.0`
 /// resolves in a temp project without a global install. Callers pass the real
-/// prelude via `include_str!("../../../lib/prelude.typ")`. Shared by the emitter
+/// prelude, [`PRELUDE`]. Shared by the emitter
 /// round-trip tests and the CLI flip tests.
 ///
 /// # Panics

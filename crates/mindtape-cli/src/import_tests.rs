@@ -14,7 +14,7 @@ use typst_harvest::HVal;
 use super::{ImportArgs, import_records};
 use crate::util::Project;
 
-const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
+use mindtape::test_support::PRELUDE;
 
 /// `ice` as the priority framework (scalar priorities stay allowed — the
 /// default) and an explicit `wip`/`done` legend, so the fixture can mix

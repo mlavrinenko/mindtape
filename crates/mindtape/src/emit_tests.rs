@@ -23,7 +23,7 @@ use crate::validate::validate;
 
 use super::emit_task;
 
-const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
+use crate::test_support::PRELUDE;
 
 /// Activates `ice` as the priority framework, leaving manual priority
 /// allowed (the default), so both framework- and scalar-priority fixtures

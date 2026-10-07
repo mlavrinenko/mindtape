@@ -149,7 +149,7 @@ fn fill_stdin_reads_when_values_have_non_dash() {
 const RUN_NO_VERIFY_INNER: &str = "_MT_ADD_RUN_NO_VERIFY";
 
 /// In-tree prelude for the @local/mindtape package override.
-const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
+use mindtape::test_support::PRELUDE;
 
 /// A throwaway project for `run()` tests: config with a single tasks root, a
 /// custom template, the @local/mindtape lib, and an empty tasks dir.

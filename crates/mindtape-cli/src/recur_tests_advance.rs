@@ -21,7 +21,7 @@ use crate::util::Project;
 
 // Constants and helpers shared across the targeted tests:
 
-const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
+use mindtape::test_support::PRELUDE;
 
 const RECUR_TASK_SRC: &str = "#import \"@local/mindtape:0.2.0\": *\n\
      #show: task.with(\n  title: \"Chore\",\n  status: wip(2026, 6, 1),\n  \

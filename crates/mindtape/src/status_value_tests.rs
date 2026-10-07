@@ -3,7 +3,7 @@
 
 use super::{STATUS_SHORTCUTS, status_value};
 
-const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
+use crate::test_support::PRELUDE;
 
 #[test]
 fn shortcut_name_uses_bare_constructor() {

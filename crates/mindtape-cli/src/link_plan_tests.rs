@@ -11,7 +11,7 @@ use crate::link_edit::{EdgeSpec, Mode};
 use crate::link_input::Entry;
 use crate::util::Project;
 
-const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
+use mindtape::test_support::PRELUDE;
 
 const ALPHA: &str = "#import \"@local/mindtape:0.2.0\": *\n\
 #show: task.with(\n  title: \"Alpha\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n";

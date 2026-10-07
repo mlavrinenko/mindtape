@@ -171,11 +171,7 @@ fn scaffold_violation_project(dir: &Path, toml: &str) {
         "[package]\nname = \"mindtape\"\nversion = \"0.2.0\"\nentrypoint = \"prelude.typ\"\n",
     )
     .unwrap();
-    std::fs::write(
-        dir.join("lib/prelude.typ"),
-        include_str!("../../../lib/prelude.typ"),
-    )
-    .unwrap();
+    std::fs::write(dir.join("lib/prelude.typ"), mindtape::test_support::PRELUDE).unwrap();
 }
 
 pub(super) fn violation_config() -> Config {

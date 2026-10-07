@@ -355,7 +355,7 @@ fn run_prints_graph_from_disk() {
         .unwrap();
         std::fs::write(
             dir.path().join("lib/prelude.typ"),
-            include_str!("../../../lib/prelude.typ"),
+            mindtape::test_support::PRELUDE,
         )
         .unwrap();
 

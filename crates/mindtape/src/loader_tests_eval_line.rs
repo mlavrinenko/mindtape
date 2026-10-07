@@ -7,13 +7,13 @@ use super::tests::{setup, write, write_pkg};
 use super::{LoadError, load_project};
 use crate::config::Config;
 
-const REAL_PRELUDE: &str = include_str!("../../../lib/prelude.typ");
+use crate::test_support::PRELUDE;
 
 /// Load `tasks/t.typ` holding `source` against the real prelude and return its
 /// one load error.
 fn load_error(source: &str) -> LoadError {
     let dir = setup();
-    write_pkg(dir.path(), "lib", "mindtape", "0.2.0", REAL_PRELUDE);
+    write_pkg(dir.path(), "lib", "mindtape", "0.2.0", PRELUDE);
     write(dir.path(), "tasks/t.typ", source);
     let mut errors = load_project(dir.path(), &Config::default()).errors;
     assert_eq!(errors.len(), 1, "{errors:#?}");
