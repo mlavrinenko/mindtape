@@ -48,4 +48,5 @@ Rules to respect:
   schemes, and any literal `//` go in backticks.
 - After any hand edit, run `mt check`. A wrong-typed value is a violation
   naming its position (`tags[1]`, `estimate.days`, `recur.on[1]`), never a
-  silently unset field.
+  silently unset field. A file that fails to evaluate is named with its line:
+  `tasks/x.typ:5: eval error: expected comma`.

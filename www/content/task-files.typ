@@ -80,7 +80,8 @@ the markup.
 = Mistakes and what `mt check` prints
 
 Each block below shows lines from the file above, then the same lines broken.
-`mt check` reads every task file, names each one that fails, and exits 1.
+`mt check` reads every task file, names each one that fails at the line at
+fault, and exits 1.
 Every other command warns about a file that fails and leaves its task out.
 
 == Separate fields with commas

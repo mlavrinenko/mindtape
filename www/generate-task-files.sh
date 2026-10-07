@@ -31,9 +31,9 @@ check_invalid() {
   rm "$TF/tasks/$1.typ"
 }
 
-check_invalid missing-comma 'expected comma'
-check_invalid dictionary-in-braces 'unexpected colon'
+check_invalid missing-comma 'missing-comma.typ:5: eval error: expected comma'
+check_invalid dictionary-in-braces 'dictionary-in-braces.typ:7: eval error: unexpected colon'
 check_invalid one-tag-without-a-comma 'tags: expected an array, found a string'
-check_invalid note-as-a-string 'note must be a content block'
-check_invalid links-joined-with-a-comma 'no positional args besides its body'
-check_invalid hash-in-the-body 'unknown variable: backend'
+check_invalid note-as-a-string 'note-as-a-string.typ:6: .*note must be a content block'
+check_invalid links-joined-with-a-comma 'links-joined-with-a-comma.typ:3: .*no positional args besides its body'
+check_invalid hash-in-the-body 'hash-in-the-body.typ:9: eval error: unknown variable: backend'

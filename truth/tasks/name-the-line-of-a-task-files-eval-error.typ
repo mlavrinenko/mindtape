@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 7),
+  status: done(
+    2026,
+    10,
+    7,
+  )[LoadError carries the line of the first diagnostic inside the task file, its trace walked through the prelude, else the task.with line; typst-world and typst-harvest 0.4.0],
 )
 
 == Problem
