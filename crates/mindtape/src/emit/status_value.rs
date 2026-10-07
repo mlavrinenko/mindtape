@@ -75,7 +75,7 @@ pub fn status_value(name: &str, ymd: (i32, u8, u8), note: Option<&str>) -> Strin
 /// one deliberate exception, not an oversight: escaping is a default for
 /// values of unknown trust, and a `raw` slot is the *template*, not this
 /// function, asserting its filler is trusted markup — see
-/// `add.rs::markup_safe`.
+/// `cmd/add/mod.rs::markup_safe`.
 #[must_use]
 pub fn escape_markup(text: &str) -> String {
     let mut out = String::with_capacity(text.len());

@@ -1,7 +1,7 @@
 //! `mt preset save` / `mt preset ls` — capture and inspect user presets.
 //!
 //! A preset is a `.mindtape/config.toml` body plus its `templates/` (see
-//! [`crate::preset`]); `mt init --preset` reads one, this module writes and
+//! [`crate::cmd::init::preset`]); `mt init --preset` reads one, this module writes and
 //! lists them. `save` captures the *current project's* config verbatim — no
 //! reverse-engineering of the wizard answers that would have produced it,
 //! since a wrong guess would silently change what the preset means — and
@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
 
-use crate::preset;
+use crate::cmd::init::preset;
 use crate::util;
 
 /// Arguments for `preset`.

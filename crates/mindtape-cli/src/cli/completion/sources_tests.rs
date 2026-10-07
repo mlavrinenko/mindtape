@@ -16,7 +16,7 @@ fn presets_offer_the_builtins_and_the_user_presets() {
         .iter()
         .map(|candidate| candidate.get_value().to_string_lossy().into_owned())
         .collect();
-    let mut expected: Vec<String> = crate::preset::list_builtins()
+    let mut expected: Vec<String> = crate::cmd::init::preset::list_builtins()
         .into_iter()
         .map(|(name, _)| name.to_owned())
         .collect();
@@ -31,7 +31,7 @@ fn presets_offer_the_builtins_and_the_user_presets() {
 fn presets_without_a_user_directory_are_the_builtins() {
     let dir = tempfile::tempdir().unwrap();
     let missing = dir.path().join("absent");
-    let builtins = crate::preset::list_builtins().len();
+    let builtins = crate::cmd::init::preset::list_builtins().len();
     assert_eq!(presets_in(Some(&missing)).len(), builtins);
     assert_eq!(presets_in(None).len(), builtins);
 }

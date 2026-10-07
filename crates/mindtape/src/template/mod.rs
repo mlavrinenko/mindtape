@@ -54,7 +54,7 @@ pub enum SlotKind {
     /// An array of strings, e.g. `("a", "b",)`.
     List,
     /// Raw markup spliced into the body; a markup `#slot(…)` drops its `#`.
-    /// Escaped on the way in by the CLI (`add.rs::markup_safe`, via
+    /// Escaped on the way in by the CLI (`cmd/add/mod.rs::markup_safe`, via
     /// [`crate::emit::status_value::escape_markup`]) since a filled value may be
     /// caller-supplied and untrusted. Compare [`Self::Raw`].
     Text,

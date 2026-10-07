@@ -17,7 +17,7 @@
 # recipe would invalidate the build cache for the whole workspace.
 #
 # The editor pair is the same kind of knob, for the same reason: unit tests
-# read `$VISUAL`/`$EDITOR` in-process (`add_interactive::editor_command`), so a
+# read `$VISUAL`/`$EDITOR` in-process (`cmd::add::interactive::editor_command`), so a
 # mutant that ignores the test's override falls through to whatever editor the
 # developer's session carries: a `--wait` GUI editor opens one
 # window per mutant, `run_parses_editor_output` killed at the 30 s timeout, the

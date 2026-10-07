@@ -18,7 +18,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 
-use crate::init::install_lib;
+use crate::cmd::init::install_lib;
 
 /// Arguments for `install`.
 #[derive(Debug, clap::Args)]

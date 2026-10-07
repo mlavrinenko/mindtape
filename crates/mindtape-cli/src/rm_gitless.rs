@@ -11,7 +11,7 @@ use anyhow::{Context, Result};
 use mindtape::{Config, RmStrategy, Task, link_edges, normalize_link, today_ymd};
 use typst_cleanup::{Deletion, Plan, Rewrite, apply};
 
-use crate::flip::status_edit;
+use crate::cmd::flip::status_edit;
 use crate::git;
 use crate::util;
 

@@ -48,7 +48,7 @@
 # `recur/rrule.rs` (feature-gated, uncompiled under the default build) and the
 # `*_tests.rs` / `tests.rs` modules. On top of them this arm applies the coverage
 # arm's two production filters, which catch what the globs miss: ejectest's
-# infix-split siblings (`add_tests_subprocess.rs`) and the `recur/rrule_off.rs`
+# infix-split siblings (`cmd/add/tests_subprocess.rs`) and the `recur/rrule_off.rs`
 # stub. A file the coverage arm calls non-production has to be non-production
 # here too, or the dedup would pass a test helper through on the grounds that the
 # other arm never reports it.

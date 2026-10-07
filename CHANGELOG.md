@@ -1298,7 +1298,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mindtape::emit::status_value`. The root
   re-exports (`mindtape::Condition` and the rest) are unchanged. The `mt`
   binary's source follows suit, with its shared modules under `cli/` and
-  `render/`.
+  `render/` and its commands under `cmd/`.
 - **The docs sidebar groups pages by the reader's job.** The 13-page
   Reference group splits into Fields, Checks, Reference and Integrate, and
   every page defines a term such as `terminal`, slot or stem at its first use,

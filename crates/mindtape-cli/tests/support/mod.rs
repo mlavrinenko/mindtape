@@ -77,7 +77,7 @@ pub fn mt(dir: &Path) -> assert_cmd::Command {
 /// spawn `mt` through `script(1)`, which passes its environment down.
 ///
 /// The editor pair is scrubbed here, not defaulted: a sweep mutant that
-/// wrongly answers "open the editor" (`add_interactive::should_open -> true`
+/// wrongly answers "open the editor" (`cmd::add::interactive::should_open -> true`
 /// and friends) otherwise spawns whatever `$VISUAL`/`$EDITOR` the developer's
 /// session carries. That happened: `cargo-mutants` ran the add e2e tests with
 /// a `--wait` GUI editor in `VISUAL`, one window per test until the 60 s timeout. In a

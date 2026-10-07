@@ -17,7 +17,7 @@ use anyhow::Result;
 use mindtape::CanonicalTask;
 
 use super::ImportArgs;
-use crate::add::dest_dir;
+use crate::cmd::add::dest_dir;
 use crate::util::Project;
 
 /// The destinations of one batch and the stems claimed so far.

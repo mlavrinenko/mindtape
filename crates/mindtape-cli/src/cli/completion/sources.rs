@@ -90,7 +90,7 @@ pub(super) fn view_names(prefix: &str) -> Vec<CompletionCandidate> {
 /// Template stems, exactly the set `mt add --list` prints.
 pub(super) fn templates() -> Vec<CompletionCandidate> {
     from_project(|project| {
-        crate::add_values::list_templates(&project.config, &project.root)
+        crate::cmd::add::values::list_templates(&project.config, &project.root)
             .into_iter()
             .map(CompletionCandidate::new)
             .collect()
@@ -113,9 +113,9 @@ pub(super) fn link_kinds() -> Vec<CompletionCandidate> {
 /// A user directory that cannot be read yields the built-ins alone — the
 /// quiet failure every other source keeps; `mt preset ls` does the reporting.
 pub(super) fn presets_in(user_dir: Option<&Path>) -> Vec<CompletionCandidate> {
-    let builtins = crate::preset::list_builtins();
+    let builtins = crate::cmd::init::preset::list_builtins();
     let users = user_dir
-        .and_then(|dir| crate::preset::list_user_presets(dir).ok())
+        .and_then(|dir| crate::cmd::init::preset::list_user_presets(dir).ok())
         .unwrap_or_default();
     let mut offered: Vec<CompletionCandidate> = builtins
         .iter()

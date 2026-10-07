@@ -49,7 +49,7 @@ impl NamingConfig {
     /// modes reached the templated-stem path; a bare (unset) `stem` keeps
     /// [`DedupMode::Fail`], today's hard error. This is the single place the
     /// default lives — collision *handling* itself no longer branches on
-    /// whether the stem came from a template (`mindtape_cli::add_dedup`).
+    /// whether the stem came from a template (`mindtape_cli::cmd::add::dedup`).
     #[must_use]
     pub fn effective_dedup(&self) -> DedupMode {
         self.dedup.unwrap_or(if self.stem.is_some() {
@@ -62,7 +62,7 @@ impl NamingConfig {
 
 /// `mt add`'s policy when the destination stem already exists. Config-side
 /// counterpart of `mt add --dedup`; the CLI carries its own `clap::ValueEnum`
-/// (`mindtape` has no clap dependency — see `mindtape_cli::add_dedup::DedupArg`)
+/// (`mindtape` has no clap dependency — see `mindtape_cli::cmd::add::dedup::DedupArg`)
 /// that converts into this one, so the flag and `[tasks.naming] dedup` share a
 /// single vocabulary.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]

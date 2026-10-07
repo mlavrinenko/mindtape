@@ -2,10 +2,10 @@
 //! config default: `fail` (today's hard error, still the default), `skip`
 //! (exit 0, write nothing, report the existing path), and `add-suffix`
 //! (write under a disambiguated stem). The `add-suffix` exhaustion path is
-//! covered as a fast fs-free unit test (`add_dedup_tests.rs`) rather than
+//! covered as a fast fs-free unit test (`cmd/add/dedup_tests.rs`) rather than
 //! here: reaching `naming`'s 10,000-attempt ceiling with real files would
-//! make this suite slow for no extra coverage — `add.rs::run()` calls the
-//! exact same `add_dedup::resolve` the unit test exercises.
+//! make this suite slow for no extra coverage — `cmd/add/mod.rs::run()` calls the
+//! exact same `cmd::add::dedup::resolve` the unit test exercises.
 //!
 //! The section below the bare-stem tests repeats the same three modes with a
 //! `[tasks.naming] stem` template configured (`title` minted, not `--name` —

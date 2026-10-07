@@ -5,7 +5,7 @@
   title: slot(
     "title",
     prompt: "split or re-cap <path>",
-    example: "Split crates/mindtape-cli/src/add.rs",
+    example: "Split crates/mindtape-cli/src/cmd/add/mod.rs",
   ),
   kind: "refactor",
   priority: ice(
@@ -67,7 +67,7 @@
 == Problem
 
 + Run `linecop --format json`.
-+ 🔴 #raw(slot("path", prompt: "repo-relative path of the oversized file", example: "crates/mindtape-cli/src/add.rs")) stands at #slot("lines", kind: "text", prompt: "current line count", example: "494") of its #slot("limit", kind: "text", prompt: "the linecop limit for this file", example: "500")-line budget: #slot("headroom", kind: "text", prompt: "limit minus lines", example: "6") lines of headroom left, #slot("percent", kind: "text", prompt: "lines over limit, as a percentage", example: "98.8")% of the cap spent.
++ 🔴 #raw(slot("path", prompt: "repo-relative path of the oversized file", example: "crates/mindtape-cli/src/cmd/add/mod.rs")) stands at #slot("lines", kind: "text", prompt: "current line count", example: "494") of its #slot("limit", kind: "text", prompt: "the linecop limit for this file", example: "500")-line budget: #slot("headroom", kind: "text", prompt: "limit minus lines", example: "6") lines of headroom left, #slot("percent", kind: "text", prompt: "lines over limit, as a percentage", example: "98.8")% of the cap spent.
 
 #slot(
   "seam",

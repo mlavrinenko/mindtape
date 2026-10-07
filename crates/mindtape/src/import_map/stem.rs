@@ -1,5 +1,5 @@
 //! Deterministic stem minting from a title: `slug_from_title` is the one
-//! slug rule, re-exported for `mindtape-cli::add_values::slug` to call so
+//! slug rule, re-exported for `mindtape_cli::cmd::add::values::slug` to call so
 //! `mt import` and `mt add` mint identical stems from an identical title.
 //! The CLI owns collision handling ([`crate::model::naming::disambiguate`] against
 //! the real destination directory); this only computes the deterministic

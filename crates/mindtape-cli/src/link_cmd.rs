@@ -19,7 +19,7 @@
 use anyhow::{Result, bail};
 use clap::Args;
 
-use crate::flip_batch::{Landed, after_batch};
+use crate::cmd::flip::batch::{Landed, after_batch};
 use crate::link_edit::{EdgeSpec, Mode};
 use crate::link_input::{self, Entry};
 use crate::link_plan::{self, Plan, Staged};

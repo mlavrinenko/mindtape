@@ -3,7 +3,7 @@
 //! The status/due/start edits shared by spawn and mutate, the `links:`
 //! `recurred-from` rewrite (spawn only), and the nested `every()`/`rrule()`
 //! `count:` decrement. Same `task_edit::{task_with, upsert_named_arg}` +
-//! `typst_edit::apply` shape as `flip.rs`'s `status_edit` and `review.rs`'s
+//! `typst_edit::apply` shape as `cmd/flip/mod.rs`'s `status_edit` and `review.rs`'s
 //! `build_edit` — just more fields rewritten at once.
 
 use std::ops::Range;

@@ -4,7 +4,7 @@
 //! No IO and no project here — a source string, the task's evaluated edges, and
 //! the edges the caller asked for go in; one [`typst_edit::Edit`] comes out (or
 //! `None`, when the file already says this). The same `task_edit::{task_with,
-//! upsert_named_arg}` + `typst_edit::apply` shape `flip.rs` and `recur_edit.rs`
+//! upsert_named_arg}` + `typst_edit::apply` shape `cmd/flip/mod.rs` and `recur_edit.rs`
 //! use to rewrite a single named argument.
 
 use std::collections::{HashMap, HashSet};

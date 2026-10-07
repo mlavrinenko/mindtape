@@ -2,7 +2,7 @@
 //!
 //! One parser covers both advertised formats — YAML 1.2 is a superset of JSON,
 //! so a `.json` adjacency map parses here unchanged, with no extension sniffing
-//! and no second error vocabulary (`add_values.rs` sniffs because a `--set`
+//! and no second error vocabulary (`cmd/add/values.rs` sniffs because a `--set`
 //! patch's *values* are typed differently by the two parsers; an adjacency map
 //! is strings all the way down, so nothing here can disagree).
 //!

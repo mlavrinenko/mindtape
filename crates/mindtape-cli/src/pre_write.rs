@@ -368,7 +368,7 @@ fn verdict(result: Result<mindtape::Checked, mindtape::LoadError>) -> Verdict {
 /// a different question from the one the caller asked. `mt add`'s fallback —
 /// write, then verify what landed — is what covers a single such file; a batch
 /// writer warns about the destination instead
-/// ([`crate::add::warn_if_outside_roots`]) and lands it unvalidated.
+/// ([`crate::cmd::add::warn_if_outside_roots`]) and lands it unvalidated.
 fn unchecked() -> Verdict {
     Verdict {
         load_failure: None,

@@ -21,8 +21,8 @@ use clap::{Arg, ArgAction, Command, CommandFactory};
 use serde_json::{Value, json};
 
 use crate::cli::Cli;
-use crate::cli::command_class::{self as command_class, Class};
-use crate::cli::completion::{self as completion, Source};
+use crate::cli::command_class::{self, Class};
+use crate::cli::completion::{self, Source};
 
 /// Arguments for the hidden `_cli` dump command.
 #[derive(Debug, clap::Args)]

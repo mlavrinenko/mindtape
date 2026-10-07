@@ -23,19 +23,19 @@ fn shipped_configs_validate_against_schema() {
     let presets = [
         (
             "todone preset",
-            include_str!("../src/presets/todone/config.toml"),
+            include_str!("../src/cmd/init/presets/todone/config.toml"),
         ),
         (
             "flow preset",
-            include_str!("../src/presets/flow/config.toml"),
+            include_str!("../src/cmd/init/presets/flow/config.toml"),
         ),
         (
             "personal preset",
-            include_str!("../src/presets/personal/config.toml"),
+            include_str!("../src/cmd/init/presets/personal/config.toml"),
         ),
         (
             "gated preset",
-            include_str!("../src/presets/gated/config.toml"),
+            include_str!("../src/cmd/init/presets/gated/config.toml"),
         ),
     ];
     let cases = [

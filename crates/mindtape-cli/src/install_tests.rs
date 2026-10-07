@@ -109,7 +109,7 @@ fn xdg_schema_path_ends_with_config_schema_json() {
 }
 
 /// Regression: the seeded floor text parses and validates on its own — the
-/// same guarantee `init_tests.rs` asserts for the slim/full project scaffolds.
+/// same guarantee `cmd/init/tests.rs` asserts for the slim/full project scaffolds.
 #[test]
 fn seeded_defaults_parses_and_validates() {
     let config = mindtape::parse_config(mindtape::embedded_defaults()).unwrap();

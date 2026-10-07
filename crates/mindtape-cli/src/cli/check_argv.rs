@@ -19,7 +19,7 @@ use clap::error::{ContextKind, ContextValue, ErrorKind};
 use clap::{CommandFactory, Parser};
 
 use crate::cli::Cli;
-use crate::{flip, worktrees};
+use crate::{cmd::flip, worktrees};
 
 /// Judge `line` with `statuses` as the declared status verbs.
 ///

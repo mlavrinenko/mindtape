@@ -20,7 +20,7 @@ use mindtape::recur::dates::{
 use mindtape::recur::{Recur, RecurConfig};
 use mindtape::{Task, today_ymd};
 
-use crate::add_values::slug;
+use crate::cmd::add::values::slug;
 use crate::pre_write::{self, Pending};
 use crate::recur_edit::{
     OccurrenceDates, apply_edits, decrement_count_edit, due_start_edits, set_recurred_from,

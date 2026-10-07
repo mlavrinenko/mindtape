@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used)]
 
 use super::{PresetAction, PresetArgs, SaveArgs, render_ls, save};
-use crate::preset::{self, DEFAULT_PRESET};
+use crate::cmd::init::preset::{self, DEFAULT_PRESET};
 
 /// A project fixture: `.mindtape/config.toml`, optionally with
 /// `.mindtape/templates/*.typ`.
@@ -189,7 +189,7 @@ fn ls_leaves_a_novel_user_preset_unmarked() {
 /// `run` dispatch tests: `save`/`render_ls` above cover the logic, these cover
 /// the `PresetArgs` -> `run` wiring itself (dispatch, `resolve_root`,
 /// `println!`/`print!`), which is otherwise untested. `resolve_root` reads the
-/// process cwd and `preset::user_preset_dir` reads `$MINDTAPE_CONFIG_HOME`, so
+/// process cwd and `cmd::init::preset::user_preset_dir` reads `$MINDTAPE_CONFIG_HOME`, so
 /// each case re-execs the test binary rather than mutating the shared
 /// process's cwd/env.
 const RUN_CHILD_ENV: &str = "_MT_PRESET_RUN_CHILD";

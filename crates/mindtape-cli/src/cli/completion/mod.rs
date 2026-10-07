@@ -227,7 +227,7 @@ impl Source {
             Self::Templates => arg.add(ArgValueCandidates::new(templates)),
             Self::LinkKinds => arg.add(ArgValueCandidates::new(link_kinds)),
             Self::Presets => arg.add(ArgValueCandidates::new(|| {
-                presets_in(crate::preset::user_preset_dir().as_deref())
+                presets_in(crate::cmd::init::preset::user_preset_dir().as_deref())
             })),
             Self::Assignment => arg.add(ArgValueCompleter::new(assignment)),
             Self::TagToken => arg.add(ArgValueCompleter::new(tag_token)),

@@ -134,7 +134,7 @@ fn unknown_set_key_is_a_hard_error() {
 /// `mt add -f -` accepts YAML on stdin, not just JSON — real stdin can only
 /// be exercised by shelling out, hence this lives here rather than as a unit
 /// test (unit coverage for the dispatch/sniff logic itself lives in
-/// `add_values_tests.rs`).
+/// `cmd/add/values_tests.rs`).
 #[test]
 fn end_to_end_files_from_yaml_on_stdin() {
     let dir = tempfile::tempdir().unwrap();

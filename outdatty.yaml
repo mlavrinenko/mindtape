@@ -59,13 +59,13 @@ groups:
   #
   # `cli/mod.rs` only wires the `Command` enum onto each module's `*Args` struct.
   # It names the types and does not declare their fields. Every flag lives in
-  # its own command module (`AddArgs` in `add.rs`, `LsArgs` in `ls.rs`, …), so a
+  # its own command module (`AddArgs` in `cmd/add/mod.rs`, `LsArgs` in `ls.rs`, …), so a
   # flag change there leaves `cli/mod.rs` byte-identical and busts no group unless
   # the module is a source. The modules below are listed explicitly and not as a
   # glob (e.g. `crates/mindtape-cli/src/*.rs`), because the command directory
   # interleaves each command's `*Args` module with its own helper, rendering
-  # and test siblings (`add_dedup.rs`, `add_interactive.rs`, `ls_rules.rs`,
-  # `init_wizard.rs`, `*_tests*.rs`, …) under no naming convention that
+  # and test siblings (`cmd/add/dedup.rs`, `cmd/add/interactive.rs`, `ls_rules.rs`,
+  # `cmd/init/wizard/mod.rs`, `*_tests*.rs`, …) under no naming convention that
   # separates the two (`add*.rs` alone matches five unrelated files). A
   # directory-wide glob would fire this group on internal refactors that touch
   # no documented flag. An explicit list needs a manual add for a brand-new
@@ -85,8 +85,8 @@ groups:
   - name: cli-docs
     source:
       - crates/mindtape-cli/src/cli/mod.rs
-      - crates/mindtape-cli/src/add.rs
-      - crates/mindtape-cli/src/check.rs
+      - crates/mindtape-cli/src/cmd/add/mod.rs
+      - crates/mindtape-cli/src/cmd/check/mod.rs
       # Not an `*Args` module: it declares which argument completes from which
       # project value. The dependents restate that set in prose (cli-notes.typ's
       # `install` entry names the sources a tab press offers), and nothing in
@@ -96,11 +96,11 @@ groups:
       - crates/mindtape-cli/src/config_cmd.rs
       - crates/mindtape-cli/src/eval.rs
       - crates/mindtape-cli/src/find.rs
-      - crates/mindtape-cli/src/flip.rs
+      - crates/mindtape-cli/src/cmd/flip/mod.rs
       - crates/mindtape-cli/src/go.rs
       - crates/mindtape-cli/src/graph.rs
       - crates/mindtape-cli/src/import.rs
-      - crates/mindtape-cli/src/init.rs
+      - crates/mindtape-cli/src/cmd/init/mod.rs
       - crates/mindtape-cli/src/install.rs
       # `mt link`'s flags live in `link_cmd.rs` (`LinkArgs`). Its input format,
       # the adjacency map the docs restate by hand on the DSL page and in
@@ -138,10 +138,10 @@ groups:
       # restates.
       - crates/mindtape/src/model/fields.rs
       - crates/mindtape/src/config/defaults.toml
-      - crates/mindtape-cli/src/presets/todone/config.toml
-      - crates/mindtape-cli/src/presets/flow/config.toml
-      - crates/mindtape-cli/src/presets/personal/config.toml
-      - crates/mindtape-cli/src/presets/gated/config.toml
+      - crates/mindtape-cli/src/cmd/init/presets/todone/config.toml
+      - crates/mindtape-cli/src/cmd/init/presets/flow/config.toml
+      - crates/mindtape-cli/src/cmd/init/presets/personal/config.toml
+      - crates/mindtape-cli/src/cmd/init/presets/gated/config.toml
     dependents:
       - www/content/cli.typ
       # One page per command. Each may carry hand-written prose beside the
@@ -275,8 +275,8 @@ groups:
     source:
       - lib/typst.toml
     dependents:
-      - crates/mindtape-cli/src/init.rs
-      - crates/mindtape-cli/src/presets/gated/templates/task.typ
+      - crates/mindtape-cli/src/cmd/init/mod.rs
+      - crates/mindtape-cli/src/cmd/init/presets/gated/templates/task.typ
       - examples/minimal/tasks/fix-login-bug.typ
       - examples/minimal/tasks/add-dark-mode.typ
       - examples/minimal/tasks/refactor-auth.typ

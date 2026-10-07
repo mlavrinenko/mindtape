@@ -62,7 +62,7 @@ pub(crate) fn land(project: &Project, staged: Vec<StagedTask>) -> Result<Vec<Tas
     let mut warned = HashSet::new();
     for task in &staged {
         if warned.insert(task.dest.clone()) {
-            crate::add::warn_if_outside_roots(project, &task.dest);
+            crate::cmd::add::warn_if_outside_roots(project, &task.dest);
         }
     }
     let problems = check_staged(project, &staged)?;

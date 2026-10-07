@@ -42,7 +42,7 @@ const STUB: &str = "#import \"@local/mindtape:0.2.0\": *\n\n#show: task.with(\n 
 
 /// Write the in-tree `lib/` package override, `config_text` to
 /// `.mindtape/config.toml`, and every `(name, source)` under `tasks/`, then
-/// load the project. Mirrors `crates/mindtape-cli/src/flip_tests.rs::setup`,
+/// load the project. Mirrors `crates/mindtape-cli/src/cmd/flip/tests.rs::setup`,
 /// minus the CLI's `test_util::make_project` (unavailable from this crate).
 fn setup(dir: &Path, config_text: &str, files: &[(String, String)]) -> LoadOutcome {
     crate::test_support::write_lib_package(dir, PRELUDE);

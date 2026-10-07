@@ -10,7 +10,7 @@
 //! So this command is the generic writer for the fields that never earned one.
 //! Three things keep it from becoming a second CLI of its own:
 //!
-//! - the token grammar is `mt add --set`'s, parsed by [`crate::add_tokens`]
+//! - the token grammar is `mt add --set`'s, parsed by [`crate::cmd::add::tokens`]
 //!   itself rather than re-spelled, so `tags+=auth` means here what it means
 //!   there and a third operator can never appear on only one of them;
 //! - the value becomes a Typst literal through the same [`mindtape::typ_str`]
@@ -31,7 +31,7 @@ use clap::Args;
 use mindtape::{RawValue, Task, format_num, parse_ymd, suggest, typ_array, typ_str};
 use typst_edit::apply;
 
-use crate::add_tokens::apply_token;
+use crate::cmd::add::tokens::apply_token;
 use crate::pre_write::{self, Pending};
 use crate::task_edit::{task_with, upsert_named_arg};
 use crate::util;
