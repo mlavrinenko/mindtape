@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **An eval error names the line of the task file.** `mt check` prints
+  `tasks/missing-comma.typ:5: eval error: expected comma` where it printed the
+  file alone, for a syntax error and for an error such as
+  `unexpected argument: titel` alike. An error Typst raises inside the prelude
+  names the task file's line that led into it, or its `task.with(…)` call, and
+  never a prelude line. `LoadError` gains `line` and `place()`, and MindTape
+  requires typst-harvest and typst-world 0.4.
 - **A commit that changes product code must add a changelog entry.** A commit
   touching `crates/` or `lib/` source outside tests and not `CHANGELOG.md` is
   refused by the `changelog-with-product-change` rule, locally and in CI, unless

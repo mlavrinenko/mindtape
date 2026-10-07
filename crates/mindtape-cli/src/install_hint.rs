@@ -149,6 +149,7 @@ mod tests {
                 .enumerate()
                 .map(|(i, message)| LoadError {
                     file: PathBuf::from(format!("tasks/t{i}.typ")),
+                    line: None,
                     message: (*message).to_owned(),
                 })
                 .collect(),

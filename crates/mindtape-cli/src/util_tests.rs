@@ -22,6 +22,7 @@ fn warn_errors_does_not_panic_with_errors() {
         tasks: vec![],
         errors: vec![LoadError {
             file: "broken.typ".into(),
+            line: None,
             message: "eval failed".to_owned(),
         }],
     };
@@ -231,6 +232,7 @@ fn warn_errors_prints_to_stderr() {
         tasks: vec![],
         errors: vec![LoadError {
             file: "broken.typ".into(),
+            line: None,
             message: "eval failed".to_owned(),
         }],
     };

@@ -41,3 +41,38 @@ fn a_cycle_is_reported_at_the_links_line_of_its_first_member() {
         "{text}"
     );
 }
+
+/// The stderr of `mt check` over a task file that fails to evaluate.
+fn eval_warning(source: &str) -> String {
+    let dir = support::scaffold_project(CONFIG);
+    std::fs::write(dir.path().join("tasks/setup-ci.typ"), source).unwrap();
+    let out = support::mt(dir.path()).arg("check").output().unwrap();
+    assert!(!out.status.success(), "the load error must fail the check");
+    String::from_utf8_lossy(&out.stderr).into_owned()
+}
+
+#[test]
+fn a_syntax_error_is_reported_at_its_line() {
+    let text = eval_warning(
+        "#import \"@local/mindtape:0.2.0\": *\n\n\
+         #show: task.with(\n  status: wip(2026, 6, 1),\n  \
+         title: \"Set up CI\"\n  assignee: \"ada\",\n)\n",
+    );
+    assert!(
+        text.contains("warning: tasks/setup-ci.typ:5: eval error: expected comma"),
+        "{text}"
+    );
+}
+
+#[test]
+fn a_misspelled_field_is_reported_at_its_line() {
+    let text = eval_warning(
+        "#import \"@local/mindtape:0.2.0\": *\n\n\
+         #show: task.with(\n  title: \"Set up CI\",\n  status: wip(2026, 6, 1),\n  \
+         titel: \"typo\",\n)\n",
+    );
+    assert!(
+        text.contains("warning: tasks/setup-ci.typ:6: eval error: unexpected argument: titel"),
+        "{text}"
+    );
+}

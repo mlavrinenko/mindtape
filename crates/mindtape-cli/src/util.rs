@@ -218,7 +218,7 @@ fn ambiguous(hashes: &StemHashes, id: &str, stems: &[String]) -> String {
 /// literal hash read as markup — each once for the whole run.
 pub fn warn_errors(outcome: &LoadOutcome) {
     for error in &outcome.errors {
-        eprintln!("warning: {}: {}", error.file.display(), error.message);
+        eprintln!("warning: {}: {}", error.place(), error.message);
     }
     for hint in crate::install_hint::load_hints(outcome) {
         eprintln!("{hint}");

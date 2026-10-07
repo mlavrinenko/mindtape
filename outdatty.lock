@@ -112,17 +112,17 @@ groups:
       www/utils/cli-notes.typ: 83d642d033ef755f09211ec7696bf1bf658e5882c93b7903cfb80ec7063cc0f7
   cli-name:
     source:
-      crates/mindtape-cli/Cargo.toml: 8cbd7b803fd7464ee9e4b933572f4769bd318abc7b608121383c51f1a6d555f9
+      crates/mindtape-cli/Cargo.toml: aa7fe5382ed1dfd15050b18e4e32c71b357c70cfaff6071371ac1fb02b1cf877
       crates/mindtape-cli/src/cli.rs: 5df33c4dc4b0d3173313e9dd3bb9c8628af7b77a89bd747ee5831e4a336a3cce
     dependents:
-      CHANGELOG.md: 509963e6a111c2f6774e0727045ddfacf74f34f46637fe6eb57f3705d1fe6ca3
+      CHANGELOG.md: 06577fcd7e25ea6ea4d232e4d60fbbf08af95d70a3d5b118192bb72910d2ae29
       docs/src/agents.typ: 48e52ec38d9086566fe2bdaaf0c8404e04988c4f636d39dfae48a8a682507d4c
-      docs/src/contributing.typ: 97c82934196ec6defa4ee0524c46f0e4dcae5352abdca02cce3fe82132bbe696
+      docs/src/contributing.typ: cce80082466c6b8d8030ef0875161c02edcd62e6385ada7bf3ffa4553ca70b1a
       docs/src/contributing/command-semantics.typ: 85411a192024caab69e4e8ffc93583fd70985701a5237799eacb1db4369a2ec9
       docs/src/readme.typ: 84c0bda43d327ef711df98c5c9bf9b96ac333e80906973184c045f432c89be06
       docs/src/skill.typ: c2c1f99555057c80465e0382054300d746b69ed7fca2189f0de1f6857231b165
       www/content/cli.typ: c9a9d8f0053ae14b844ea2183b17f27b27648f72e0140c0f3d6377676a32e206
-      www/content/index.typ: 7a601844ef661ed501d2a756c9b2617d6460dad3442f1c75e999fef34e590493
+      www/content/index.typ: b476a360a4ca66162a1547e537d9b09879b327ca01184bcc2d677b5385ee333a
       www/content/quickstart.typ: 45626cc5fdcbcead0e43d28f7be4d13a72e87f92d8cf5cd284c5834dde5c069b
   crap-scripts-docs:
     source:
@@ -239,7 +239,7 @@ groups:
     source:
       Cargo.toml: 2f9a72134921ea6d7b8cb5b66930d161d21ab158d4a879d6a7b63d3ba4bd0cba
     dependents:
-      CHANGELOG.md: da959805dbfc8ca4d6bf32edc28a2885f0c44a00581ffe0fe71f8d4102da11d2
+      CHANGELOG.md: 06577fcd7e25ea6ea4d232e4d60fbbf08af95d70a3d5b118192bb72910d2ae29
   scripts-no-doc:
     source:
       .just/scripts/_doc-blocks-control.sh: c8a84db06366a28c52831d0ecf53db96170feb22f8cb7c1655e2b278e2c997f0

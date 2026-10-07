@@ -60,7 +60,7 @@ fn revalidate(project: &Project, landed: &Landed, problems: &mut Vec<String>) {
         if landed.files.contains(&error.file) {
             problems.push(format!(
                 "{}: failed to load after flip: {}",
-                error.file.display(),
+                error.place(),
                 error.message
             ));
         }

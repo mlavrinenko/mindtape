@@ -205,6 +205,27 @@ fn errors_when_the_source_fails_to_evaluate() {
 
     assert_eq!(err.file, Path::new("tasks/build.typ"));
     assert!(!err.message.is_empty());
+    assert_eq!(err.line, Some(1));
+}
+
+/// A destination that climbs out of the root has no Typst path to evaluate the
+/// source at, so it fails before evaluation, at no line.
+#[test]
+fn errors_when_the_destination_leaves_the_root() {
+    let dir = setup();
+    let err = harvest_candidate(
+        dir.path(),
+        &floor(),
+        Candidate {
+            rel: Path::new("../build.typ"),
+            source: &marker("wip"),
+        },
+    )
+    .unwrap_err();
+
+    assert_eq!(err.file, Path::new("../build.typ"));
+    assert_eq!(err.line, None);
+    assert!(err.message.contains("bad virtual path"), "{}", err.message);
 }
 
 /// A task marker with `depends-on` edges — the batch fixture, since an edge is

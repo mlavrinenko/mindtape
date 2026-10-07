@@ -35,7 +35,7 @@ chrono = { version = "0.4", default-features = false, features = [
 # `crates/mindtape/src/recur_rrule.rs`). Pulls in chrono-tz + regex, so it
 # stays optional rather than a plain dependency.
 rrule = { version = "0.14", optional = true }
-typst-harvest = "0.3.0"
+typst-harvest = "0.4.0"
 # Already in the tree at this exact version, transitively under `typst-harvest`
 # (which re-exports its `World` as `HarvestWorld`), so this edge adds no crate
 # to the build. It is direct because `crates/mindtape/src/candidate.rs` needs
@@ -43,7 +43,7 @@ typst-harvest = "0.3.0"
 # `root_file_id` — to build a world whose main file is an UNWRITTEN source
 # (`World::with_source_override`). Every disk-backed constructor canonicalizes
 # its path, so validating a task before it exists has no other door.
-typst-world = "0.3.2"
+typst-world = "0.4.0"
 typst-cst = "0.2.0"
 typst-edit = "0.1.0"
 # Normalize the Typst source `mt` writes to typstyle's canonical form

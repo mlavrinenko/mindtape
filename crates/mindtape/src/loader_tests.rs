@@ -26,6 +26,7 @@ fn first_task_marker_finds_mindtape_task() {
         Some(Location {
             path: "t.typ".into(),
             line: 1,
+            column: 1,
         })
     };
     let mk = |v: &str| Marker {
@@ -51,6 +52,7 @@ fn first_task_marker_returns_none_without_mindtape_task() {
         location: Some(Location {
             path: "t.typ".into(),
             line: 1,
+            column: 1,
         }),
     };
     assert!(super::first_task_marker(&[mk("other")]).is_none());

@@ -23,8 +23,50 @@ use cache::{Cached, TaskCache};
 pub struct LoadError {
     /// File that failed, relative to the project root when possible.
     pub file: PathBuf,
+    /// One-based line of `file` an eval error points at: the first point of a
+    /// diagnostic inside the file, its trace walked when Typst raised it in
+    /// the prelude, else the file's `task.with(…)` call. Never a prelude line.
+    /// `None` when the failure is not an eval error or has no place at all.
+    pub line: Option<usize>,
     /// Human-readable cause.
     pub message: String,
+}
+
+impl LoadError {
+    /// The failure of the file at `file`, whose text is `source`, to harvest.
+    ///
+    /// The line is the first point of an eval diagnostic inside the file
+    /// itself, its trace walked when Typst raised it in the prelude. Typst
+    /// leaves a show-everything rule out of that trace, so an error raised
+    /// elsewhere that reaches no line of the file falls back to the line of
+    /// the file's `task.with(…)` call, which applied the rule.
+    #[must_use]
+    pub(crate) fn harvest(file: PathBuf, err: &HarvestError, source: &str) -> Self {
+        let line = match err {
+            HarvestError::Eval(eval) => eval.main_location().map(|at| at.line).or_else(|| {
+                let raised_elsewhere = eval.diagnostics.iter().any(|diag| diag.location.is_some());
+                raised_elsewhere
+                    .then(|| TaskCallSpans::parse(source).call_line())
+                    .flatten()
+            }),
+            HarvestError::File(_) | HarvestError::World(_) => None,
+        };
+        Self {
+            file,
+            line,
+            message: err.to_string(),
+        }
+    }
+
+    /// Where the failure is, as a reader opens it: `file:line`, or the file
+    /// alone when no line is known.
+    #[must_use]
+    pub fn place(&self) -> String {
+        match self.line {
+            Some(line) => format!("{}:{line}", self.file.display()),
+            None => self.file.display().to_string(),
+        }
+    }
 }
 
 /// The outcome of loading a project: the tasks found and any per-file errors.
@@ -271,10 +313,11 @@ fn record_miss(
                     .push(assemble_task(miss.item, marker, &miss.source));
             }
         }
-        Err(err) => outcome.errors.push(LoadError {
-            file: miss.item.rel.clone(),
-            message: err.to_string(),
-        }),
+        Err(err) => outcome.errors.push(LoadError::harvest(
+            miss.item.rel.clone(),
+            &err,
+            &miss.source,
+        )),
     }
 }
 
@@ -383,3 +426,7 @@ mod tests_cache;
 #[cfg(test)]
 #[path = "loader_tests_prelude.rs"]
 mod tests_prelude;
+
+#[cfg(test)]
+#[path = "loader_tests_eval_line.rs"]
+mod tests_eval_line;

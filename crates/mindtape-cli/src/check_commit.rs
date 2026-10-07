@@ -37,7 +37,7 @@ pub(crate) fn warn_state_errors(states: &CommitStates, indent: &str) {
         for error in &state.errors {
             println!(
                 "{indent}warn: {} as {name}: {}",
-                error.file.display(),
+                error.place(),
                 error.message
             );
         }

@@ -256,6 +256,7 @@ pub fn harvest_candidate(
 ) -> Result<Task, LoadError> {
     harvest_source(root, config, candidate)?.ok_or_else(|| LoadError {
         file: candidate.rel.to_path_buf(),
+        line: None,
         message: "source harvested no task marker".to_owned(),
     })
 }
@@ -282,6 +283,7 @@ fn eval_marker(
 ) -> Result<Option<HVal>, LoadError> {
     let fail = |message: String| LoadError {
         file: candidate.rel.to_path_buf(),
+        line: None,
         message,
     };
     // Typst virtual paths are `/`-separated on every platform, so a Windows
@@ -299,7 +301,8 @@ fn eval_marker(
     }
     let world = world.with_source_override(id, candidate.source);
 
-    let harvested = harvest(&world).map_err(|err| fail(err.to_string()))?;
+    let harvested = harvest(&world)
+        .map_err(|err| LoadError::harvest(candidate.rel.to_path_buf(), &err, candidate.source))?;
     Ok(harvested
         .with_marker("mindtape.task")
         .next()

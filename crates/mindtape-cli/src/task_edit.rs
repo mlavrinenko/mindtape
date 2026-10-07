@@ -130,7 +130,11 @@ pub fn verify_written(root: &Path, file: &Path) -> Result<()> {
     let rel = file.strip_prefix(root).unwrap_or(file);
 
     if let Some(error) = outcome.errors.iter().find(|err| err.file == rel) {
-        bail!("written task failed to load: {}", error.message);
+        bail!(
+            "written task failed to load: {}: {}",
+            error.place(),
+            error.message
+        );
     }
     let Some(task) = outcome.tasks.iter().find(|task| task.file == rel) else {
         bail!(
