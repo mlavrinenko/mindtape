@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 6),
+  status: done(2026, 10, 7),
 )
 
 == Problem
@@ -48,16 +48,13 @@ left in a closing report no one rereads. It belongs in
 
 == TO-BE
 
-- 🟢 A passing `just check` prints one line per stage at most, and nothing from a tool that found nothing.
-- 🟢 A failing gate prints its tool's full output, as now.
-- 🟢 A fresh baseline makes the CRAP report print no NEW or Removed rows.
+- 🟢 A passing `just check` prints one verdict line: `check: 28 gates passed (7 run, 21 cached)`.
+- 🟢 A failing gate prints its tool's full output and the path of its log, and the verdict names it.
 
 
 == Changes
 
-- `Justfile`: quiet flags or output capture on the machete, linecop and nextest recipes, printing the output only on failure.
-- `.just/scripts/` behind `crap`: print the table only on a regression, and key functions so two impls of one trait method do not collide.
-- `.config/nextest.toml`: a profile that prints only the summary on success, if the recipe change alone cannot.
+- `Justfile`: the `mmz` recipe captures each gate's output under `target/check/` through `.just/scripts/mmz-arm.sh`, and `check` prints the verdict through `.just/scripts/check.sh`.
 
 
 == Rollback
@@ -68,6 +65,7 @@ Revert the commit; each gate prints its full output again.
 
 - What any gate checks. Only what it prints on a pass changes.
 - Running the tests once instead of twice for coverage, its own decision.
+- Keying the two `TaskRef::from` impls apart in the CRAP report. A pass no longer prints the report.
 
 
 == Dogfood

@@ -9,7 +9,7 @@ How `just check` runs its gates, what stops two gates from breaking each other, 
 `just check` runs its gates in three stages, in order, and stops at the first stage with a failing gate. The fast stage builds nothing, so a lint or prose error shows in seconds. The build stage holds every gate that builds or runs `mt`, and they share one build. The last stage runs `just cover` and then `just crap`, because coverage pays an instrumented clean rebuild. Within a stage the gates run in parallel. Ask `just` and mmz for the gates rather than a doc:
 
 ```bash
-just --show check              # the stage recipes, in order
+just --show _check-stages      # the stage recipes, in order
 just --show _check-fast        # the gates in one stage
 just --list --list-submodules  # every gate under [gate], with what it checks
 mmz --status --tag gate        # which gates are fresh, stale or failed now
@@ -17,7 +17,9 @@ mmz --status --tag gate        # which gates are fresh, stale or failed now
 
 Each arm is `just mmz <gate>`, which runs `mmz just <gate>`, so mmz caches each gate under the recipe’s name. An arm whose declared inputs are unchanged since its last pass is skipped. `.mmz/config.yaml` declares the inputs and tags every gate `gate`. Then `mmz --is-fresh --tag gate` asserts that every gate passed against the current tree without running any of them. The pre-commit hook asserts it, and so does `mt flip` into a terminal status, through an `[[on.flip]]` hook.
 
-No arm is wrapped in `chronic`, because mmz already keeps a green re-run quiet. A cache hit prints nothing (`on_hit: ""` in `.mmz/config.yaml`), a miss streams its output live, and a failure exits through just’s `[parallel]`. `just test <filter>` runs outside mmz, so a filtered run never records a pass for the full suite.
+A passing `just check` prints one line, such as `check: 28 gates passed (3 run, 25 cached)`. Mostly an agent reads the output, once the run has ended, and every line it reads costs context. A gate’s progress and its report on a clean tree tell that reader nothing a pass does not. A failing run prints the full log of each failed gate, then a verdict that names them, such as `check: 1 of 28 gates failed: just clippy`, and exits non-zero. A verdict ends with `(10 not run)` when a red stage stopped the run before later stages.
+
+`.just/scripts/mmz-arm.sh` does the capture, once for every arm, so no tool needs a quiet flag. It writes each arm’s output to `target/check/<gate>.log`, and that log stays there after a pass. It asks `mmz --is-fresh` first, to count the arm as run or cached, because a cache hit prints nothing (`on_hit: ""` in `.mmz/config.yaml`). Outside `just check`, `just mmz <gate>` streams its output as before. `just test <filter>` runs outside mmz, so a filtered run never records a pass for the full suite.
 
 Every rule reads the `gates-meta` scope, which includes the `Justfile`, so a `Justfile` edit re-runs every arm. A script under `.just/scripts/` has a scope of its own, so editing it re-runs the arms that reach it and the few that read the whole directory.
 

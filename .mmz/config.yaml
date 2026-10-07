@@ -343,17 +343,19 @@ scopes:
   # matches on the path and does not read the name, so the convention is only a
   # convention.
   #
-  # Nine scripts are named by no rule: crap-baseline.sh, release.sh, fork.sh,
+  # Eleven scripts are named by no rule: crap-baseline.sh, release.sh, fork.sh,
   # the four install scripts (install.sh, install-bin.sh, install-lib.sh,
-  # uninstall-lib.sh) and the two sourced preambles (_mutants-env.sh,
-  # _typst-package.sh). They are bodies of recipes that no rule in `commands`
-  # wraps, and installs mutate the machine, so memoizing them would skip the
-  # mutation. They still get a scope, because
+  # uninstall-lib.sh), the two sourced preambles (_mutants-env.sh,
+  # _typst-package.sh) and the two that run the gates (check.sh, mmz-arm.sh).
+  # They are bodies of recipes that no rule in `commands` wraps, and installs
+  # mutate the machine, so memoizing them would skip the mutation. They still get a scope, because
   # script-scope-check demands that every script be named, and `scripts-all`
   # above still gates them for size and drift. A scope with no reader is the
   # visible form of "no memoized rule reads this"; deleting it would hide that.
   script-arg-pattern-check:
     - ".just/scripts/arg-pattern-check.sh"
+  script-check:
+    - ".just/scripts/check.sh"
   script-check-doc-coverage:
     - ".just/scripts/check-doc-coverage.sh"
   script-check-doc-facts:
@@ -406,6 +408,8 @@ scopes:
     - ".just/scripts/integrate.sh"
   script-lcov-stale-reason:
     - ".just/scripts/_lcov-stale-reason.sh"
+  script-mmz-arm:
+    - ".just/scripts/mmz-arm.sh"
   script-mutants:
     - ".just/scripts/mutants.sh"
   script-mutants-diff:
@@ -446,11 +450,10 @@ scopes:
   script-uninstall-lib:
     - ".just/scripts/uninstall-lib.sh"
 
-# Empty: a cache hit prints nothing. An exit code already carries the verdict,
-# and a per-arm "mmz: skipped <command> (inputs unchanged)" line would drown a
-# real failure mid-stream on a mostly-cached run. A miss still streams live and
-# a failure still exits through `parallel`, so silencing the hit note costs
-# nothing either loses.
+# Empty: a cache hit prints nothing, because an exit code already carries the
+# verdict. A direct `just mmz <gate>` on an unchanged tree stays silent, and
+# under `just check` .just/scripts/mmz-arm.sh asks `mmz --is-fresh` whether an
+# arm was a hit, so the verdict line can count hits without a note per arm.
 on_hit: ""
 
 # `just ask-refactoring` is absent below because memoizing it would defeat it,

@@ -7,7 +7,7 @@
 # Gate membership + row order both come from the Justfile: every gate recipe
 # carries `[group("gate")]` (truth/tasks/tag-just-recipes-with-groups.typ).
 # The JSON dump sorts recipes alphabetically and carries no source order, so
-# row order is read back from `check`'s own dependency list instead — see the
+# row order is read back from `_check-stages`'s dependency list instead — see the
 # "row order" paragraph below for why that changed from the prior derivation.
 #
 # Cross-checked against that same (mmz-unwrapped) dependency list for
@@ -23,15 +23,16 @@
 # would silently drop out of the gate table the day it moved. The two sets
 # compared, $gate_group and $check_deps, use the MANGLED identifier (`::`
 # joined with `-`, same function www/generate-facts.sh's just.typ producer
-# uses). `check`'s dependency list carries the raw `::` form (it is a literal
+# uses). `_check-stages`'s list carries the raw `::` form (it is a literal
 # invocation string, e.g. `docs::check` passed to `mmz`), so it is mangled
 # here too before comparing. The gate's own `name` field is the recipe's real
 # invocation path, `docs::check`: docs/src/contributing.typ prints it verbatim
 # (`raw(g.name)`).
 #
-# `check` runs its arms in stages, each a private recipe (`_check-fast`, …)
-# whose dependencies are the mmz arms, so `arms` below reads through a private
-# dependency to its own list. Row order is then stage order, and within a
+# `check` runs .just/scripts/check.sh, which runs `_check-stages`, so that
+# recipe's dependency list is the one read here. It lists the stages, each a
+# private recipe (`_check-fast`, …) whose dependencies are the mmz arms, so
+# `arms` below reads through a private dependency to its own list. Row order is then stage order, and within a
 # stage the order the stage lists its arms.
 #
 # Row order: this used to read `just --summary --unsorted` (source order,
@@ -83,7 +84,7 @@ def mangle: gsub("::"; "-");
       | if .recipe == "mmz" then .arguments[0]
         elif $by_path[.recipe].private then $by_path[.recipe] | arms
         else .recipe end;
-    .recipes.check | arms | mangle]) as $check_deps_ordered
+    .recipes["_check-stages"] | arms | mangle]) as $check_deps_ordered
 | ($check_deps_ordered | sort) as $check_deps
 | if $gate_group != $check_deps then
     # `(none)` rather than an empty join, and a trailing newline rather than

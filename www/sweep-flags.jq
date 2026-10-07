@@ -20,7 +20,7 @@
 # (`--write`, then one arm at a time). Sorting here would make the rendered
 # table disagree with just's own output for no gain.
 #
-# The recipe name is hardcoded, like `.recipes.check` is in gates.jq. There is
+# The recipe name is hardcoded, like `.recipes["_check-stages"]` is in gates.jq. There is
 # exactly one swept recipe and inventing a discovery rule for a set of one
 # would be a guess about a second one that does not exist.
 

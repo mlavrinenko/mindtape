@@ -30,7 +30,7 @@ rather than a doc:
 
 // docs:hand-typed the commands that list the gates, run against the live Justfile
 ```bash
-just --show check              # the stage recipes, in order
+just --show _check-stages      # the stage recipes, in order
 just --show _check-fast        # the gates in one stage
 just --list --list-submodules  # every gate under [gate], with what it checks
 mmz --status --tag gate        # which gates are fresh, stale or failed now
@@ -43,10 +43,21 @@ Then `mmz --is-fresh --tag gate` asserts that every gate passed against the
 current tree without running any of them. The pre-commit hook asserts it,
 and so does `mt flip` into a terminal status, through an `[[on.flip]]` hook.
 
-No arm is wrapped in `chronic`, because mmz already keeps a green re-run
-quiet. A cache hit prints nothing (`on_hit: ""` in `.mmz/config.yaml`), a
-miss streams its output live, and a failure exits through just's
-`[parallel]`.
+A passing #just.check() prints one line, such as
+`check: 28 gates passed (3 run, 25 cached)`. Mostly an agent reads the
+output, once the run has ended, and every line it reads costs context. A
+gate's progress and its report on a clean tree tell that reader nothing a
+pass does not. A failing run prints the full log of each failed gate, then a
+verdict that names them, such as `check: 1 of 28 gates failed: just clippy`,
+and exits non-zero. A verdict ends with `(10 not run)` when a red stage
+stopped the run before later stages.
+
+`.just/scripts/mmz-arm.sh` does the capture, once for every arm, so no tool
+needs a quiet flag. It writes each arm's output to
+`target/check/<gate>.log`, and that log stays there after a pass. It asks
+`mmz --is-fresh` first, to count the arm as run or cached, because a cache
+hit prints nothing (`on_hit: ""` in `.mmz/config.yaml`). Outside
+#just.check(), #just.mmz("<gate>") streams its output as before.
 #just.test("<filter>") runs outside mmz, so a filtered run never records a
 pass for the full suite.
 

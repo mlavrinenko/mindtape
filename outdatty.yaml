@@ -463,6 +463,8 @@ groups:
   # explains how each runs.
   - name: gate-scripts-docs
     source:
+      - .just/scripts/check.sh
+      - .just/scripts/mmz-arm.sh
       - .just/scripts/check-secrets.sh
       - .just/scripts/check-secrets-manifest.sh
       - .just/scripts/check-gate-drift.sh

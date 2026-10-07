@@ -46,8 +46,8 @@ default:
 fix-check: eject fmt clippy-fix check
 
 # Every arm is `just mmz <subgate>`, so a no-op re-run skips each one whose
-# declared inputs are unchanged. What the memoization buys, why there is no
-# `chronic` wrapper, and how `mt flip` asserts the whole set fresh without
+# declared inputs are unchanged. What the memoization buys, why a pass prints
+# only its verdict, and how `mt flip` asserts the whole set fresh without
 # running any of it are in docs/contributing/gates.md.
 #
 # The arms run in three stages, in order, and the first red stage stops the
@@ -55,10 +55,22 @@ fix-check: eject fmt clippy-fix check
 # seconds. The build stage holds every arm that builds or runs `mt`; they
 # share one `cargo build --tests`. The coverage stage pays an instrumented
 # clean rebuild, so it runs only on a tree every other gate passed.
+#
+# A pass prints one verdict line. A failure prints each failed gate's full log
+# and a verdict naming them. Every arm's log stays under target/check/.
 
-[doc("Run every check-gate sub-recipe, fast stage first")]
+[doc("Run every check gate, fast stage first; print only failures and a verdict")]
 [group("workflow")]
-check: _check-fast _check-build _check-cover
+[no-exit-message]
+check:
+    bash .just/scripts/check.sh
+
+# The stages in order, which check.sh runs with its output captured. A failing
+# stage stops the rest. www/gates.jq reads the gate list from here.
+
+[doc("The check stages in order")]
+[private]
+_check-stages: _check-fast _check-build _check-cover
 
 [doc("The check gates that build nothing")]
 [parallel]
@@ -75,14 +87,15 @@ _check-build: (mmz "test") (mmz "check-examples") (mmz "check-doc-coverage") (mm
 _check-cover: (mmz "cover") (mmz "crap")
 
 # Wrap a just recipe in mmz: `just mmz fmt-check` runs `mmz just fmt-check`.
-# Why the double hop, and why `just test <filter>` deliberately bypasses it,
-# are in docs/contributing/gates.md.
+# Under `just check` it captures the output to target/check/ instead of
+# streaming it. Why the double hop, and why `just test <filter>` deliberately
+# bypasses it, are in docs/contributing/gates.md.
 
 [doc("Run a just recipe through mmz memoization")]
 [group("workflow")]
 [no-exit-message]
 mmz *ARGS:
-    mmz just {{ ARGS }}
+    bash .just/scripts/mmz-arm.sh {{ ARGS }}
 
 [doc("Check formatting without writing changes (CI-friendly)")]
 [group("gate")]
@@ -116,7 +129,8 @@ clippy:
 # output (nextest spells "no Cargo output at all" as the flag given twice).
 # nextest's run banner and summary line have no such flag, so they print even
 # on an all-pass run (verified: `--status-level none` and
-# `--final-status-level none` do not touch them).
+# `--final-status-level none` do not touch them). `just check` captures them
+# and prints them only when the arm fails.
 
 [doc("Run tests only")]
 [group("dev")]
@@ -126,8 +140,8 @@ test *ARGS:
     cargo nextest run --workspace --status-level fail --cargo-quiet --cargo-quiet "$@"
 
 # cargo-machete has no quiet flag (verified: `cargo machete --help` lists
-# none), so "Analyzing dependencies…" and "…Good job!" print on every clean run
-# with no way to silence just the success case.
+# none), so "Analyzing dependencies…" and "…Good job!" print on every clean
+# run. `just check` captures them and prints them only when the arm fails.
 
 [doc("Check for unused dependencies")]
 [group("gate")]
