@@ -193,25 +193,10 @@ check-dry:
 check-secrets:
     bash .just/scripts/check-secrets.sh
 
-# Plain outdatty output lists every passing group, and `--format paths` drops
-# the group and its update command. So a failing run prints each stale group
-# from the JSON: what changed, what to review and the command to run.
-
 [doc("Fail if a source changed without its dependents reconfirmed")]
 [group("gate")]
-[script]
 outdatty-check:
-    report=$(outdatty check --format json) && exit 0
-    jq -r '
-      (.groups[] | select(.status != "ok")
-        | "outdatty: group \(.id) is \(.status)",
-          (.changed_sources[] | "  source changed:  \(.)"),
-          (.unrecorded_dependents[] | "  not in the lock: \(.)"),
-          (.dependents[] | "  review:          \(.)"),
-          "  then run:        just outdatty-update \(.id)"),
-      (.untracked[] | "outdatty: no group tracks \(.)")
-    ' <<<"$report"
-    exit 1
+    outdatty check
 
 # Checks each fixture another tool runs `mt` against, so the fixture cannot go
 # stale: api-service feeds the docs generator and the skill's triage evals,
