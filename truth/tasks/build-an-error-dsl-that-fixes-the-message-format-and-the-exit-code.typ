@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 7),
+  status: done(
+    2026,
+    10,
+    7,
+  )[Diag builder, one renderer, kind-picked exit codes; the unconverted modules are on diag/allowlist.rs for the fan-out],
   links: depends-on(
     "pick-one-format-for-error-messages-and-inventory-them.typ",
   ),

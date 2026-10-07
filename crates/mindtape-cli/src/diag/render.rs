@@ -1,6 +1,6 @@
 //! The renderer: a [`Diag`] to its lines, and the one writer to stderr.
 
-use std::io::Write;
+use std::io::{IsTerminal, Write};
 use std::process::ExitCode;
 
 use anstyle::{AnsiColor, Color, Style};
@@ -129,6 +129,12 @@ fn style(label: &str) -> Style {
 pub(crate) fn emit(diag: &Diag) {
     let text = render(diag, color::is_stderr_color_active());
     let _ = std::io::stderr().lock().write_all(text.as_bytes());
+}
+
+/// Whether stderr is a terminal, for the colour decision. Asked here, so
+/// stderr has one owner.
+pub(crate) fn stderr_is_terminal() -> bool {
+    std::io::stderr().is_terminal()
 }
 
 /// Write `diag` to stderr and return the exit code its kind decides.

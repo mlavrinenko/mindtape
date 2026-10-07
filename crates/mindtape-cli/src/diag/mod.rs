@@ -1,8 +1,7 @@
 //! How `mt` reports a problem. A line for stderr is built here as a [`Diag`]
 //! and printed by [`render`], so a message can't leave the format. The modules
-//! listed with an `allow` in `main.rs` and `cmd/mod.rs` still print some lines
-//! of their own until their fan-out task converts them.
-//!
+//! on the one list in `allowlist.rs` still print some lines of their own until
+//! their fan-out task converts them.
 //!
 //! ```text
 //! error: <what failed>: '<value>'[: <why>]
@@ -32,11 +31,15 @@
 //!
 //! # Files
 //!
+//! - `allowlist.rs` — the modules that still bypass the renderer, and the
+//!   test that holds the source to the list.
 //! - `hint.rs` — [`Hint`], [`Note`] and [`Command`], the lines under an error.
 //! - `render.rs` — the renderer and the one writer to stderr.
 //! - `from_lib.rs` — library errors into a `Diag`, one exhaustive match each.
 //! - `tests.rs` — unit tests.
 
+#[cfg(test)]
+mod allowlist;
 mod from_lib;
 mod hint;
 mod render;
@@ -46,7 +49,7 @@ use std::path::Path;
 
 pub(crate) use from_lib::filter;
 pub(crate) use hint::{Command, Hint, Note};
-pub(crate) use render::{emit, line, report};
+pub(crate) use render::{emit, line, report, stderr_is_terminal};
 
 /// What kind of problem a [`Diag`] reports, which decides the exit code.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

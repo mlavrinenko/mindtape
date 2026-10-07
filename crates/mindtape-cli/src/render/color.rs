@@ -64,7 +64,7 @@ static STDERR_COLOR_ENABLED: OnceLock<bool> = OnceLock::new();
 pub fn init(choice: ColorChoice) {
     let stdout_is_tty = std::io::stdout().is_terminal();
     let _ = COLOR_ENABLED.get_or_init(|| color_enabled(choice, stdout_is_tty));
-    let stderr_is_tty = std::io::stderr().is_terminal();
+    let stderr_is_tty = crate::diag::stderr_is_terminal();
     let _ = STDERR_COLOR_ENABLED.get_or_init(|| color_enabled(choice, stderr_is_tty));
 }
 
@@ -81,7 +81,7 @@ pub fn is_color_active() -> bool {
 #[must_use]
 pub fn is_stderr_color_active() -> bool {
     *STDERR_COLOR_ENABLED
-        .get_or_init(|| color_enabled(ColorChoice::Auto, std::io::stderr().is_terminal()))
+        .get_or_init(|| color_enabled(ColorChoice::Auto, crate::diag::stderr_is_terminal()))
 }
 
 /// A styled string builder backed by `anstyle`.

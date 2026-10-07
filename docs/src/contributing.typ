@@ -61,9 +61,10 @@ gate fails on any violation. These limits shape the code most:
   which quotes it.
 - Pick the kind, not the exit code: `Diag::usage` exits 2, `Diag::refused`
   and `Diag::failed` exit 1. `main` prints the error and exits with its code.
-- clippy refuses `eprintln!`, `bail!` and `anyhow!`. A module that still uses
-  them carries an `allow` on its `mod` line in `main.rs` or `cmd/mod.rs`, and
-  its fan-out task removes it.
+- clippy refuses `eprintln!`, `bail!` and `anyhow!`. A module that still
+  prints or builds an error outside `diag/` is an entry on the one list in
+  `diag/allowlist.rs`, with an `allow` on its `mod` line. The list's test
+  refuses a new entry and a stale one, so the list only shrinks.
 - If callers match on a library error type, derive `thiserror::Error` for it,
   as `RecurError`, `ConfigError` and `FilterError` do, and convert it in
   `diag/from_lib.rs` with a match on every variant.

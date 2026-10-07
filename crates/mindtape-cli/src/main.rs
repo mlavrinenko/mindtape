@@ -41,13 +41,9 @@ mod cli;
 mod cmd;
 mod diag;
 mod git;
-// Modules whose errors don't go through `crate::diag` yet, so `clippy.toml`'s
-// `disallowed-macros` (`eprintln!`, `bail!`, `anyhow!`) is allowed in them.
-// The list only shrinks: each fan-out task of
-// `truth/tasks/build-an-error-dsl-that-fixes-the-message-format-and-the-exit-code.typ`
-// converts its files and drops its module here, and
-// `truth/tasks/drop-anyhow-from-the-mt-binary-so-every-error-is-a-diag.typ`
-// removes the last entry. The other half of the list is in `cmd/mod.rs`.
+// An `allow` below lets a module whose errors don't go through `crate::diag`
+// yet use `clippy.toml`'s disallowed macros. Each one is an entry on the one
+// list in `diag/allowlist.rs`, whose test refuses a new entry.
 #[allow(clippy::disallowed_macros)]
 mod pre_write;
 // Infrastructure for future command migration; not every item is wired yet.

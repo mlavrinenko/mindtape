@@ -13,13 +13,9 @@
 //! - `config.rs`, `eval.rs`, `find.rs`, `go.rs`, `mv.rs`, `preset.rs`,
 //!   `review.rs`, `set.rs`, `views.rs`, `worktrees.rs` — one file each.
 
-// Modules whose errors don't go through `crate::diag` yet, so `clippy.toml`'s
-// `disallowed-macros` (`eprintln!`, `bail!`, `anyhow!`) is allowed in them.
-// The list only shrinks: each fan-out task of
-// `truth/tasks/build-an-error-dsl-that-fixes-the-message-format-and-the-exit-code.typ`
-// converts its files and drops its module here, and
-// `truth/tasks/drop-anyhow-from-the-mt-binary-so-every-error-is-a-diag.typ`
-// removes the last entry. The other half of the list is in `main.rs`.
+// An `allow` below lets a module whose errors don't go through `crate::diag`
+// yet use `clippy.toml`'s disallowed macros. Each one is an entry on the one
+// list in `diag/allowlist.rs`, whose test refuses a new entry.
 #[allow(clippy::disallowed_macros)]
 pub(crate) mod add;
 #[allow(clippy::disallowed_macros)]
