@@ -116,7 +116,7 @@ groups:
       crates/mindtape-cli/src/cli/mod.rs: 28cbe21b3a0b352f7ed1296ef377ac977ffc19d5cc68e0354baf0acedff1111d
     dependents:
       CHANGELOG.md: 088dee2f59bbceabe3d927a5eefcdc0491c965641f6e0e534c75a5c5cf4aa8e2
-      docs/src/agents.typ: dae04921b3cfe68c2ccf75bcd9b3d730a2840d9d8bd49b838622790ff7cf46ad
+      docs/src/agents.typ: 6078c7a3230b6f04a6ce86cdcdc4f989f45895d88ae11a68e93a82fd4fe38e22
       docs/src/contributing.typ: c2e85fc319083f952de0076a79d8c60127f77bf40144b8de889cbaf44401e897
       docs/src/contributing/command-semantics.typ: accc2e04a0fa5f992a12477535b79c79c7ed30c5ad7f35fa535b88d5dda4f60b
       docs/src/readme.typ: 84c0bda43d327ef711df98c5c9bf9b96ac333e80906973184c045f432c89be06
@@ -141,7 +141,7 @@ groups:
       Justfile: 45d4c5e650bf8d949950c8a4d127cde67a05ab0acea41a6dbd5865b67cd3bcfe
       flake.nix: 9da2e53a4c30d4f6d3beffcf732eebebb2bf6476cd5782b9958c8aee01b93248
     dependents:
-      docs/src/agents.typ: dae04921b3cfe68c2ccf75bcd9b3d730a2840d9d8bd49b838622790ff7cf46ad
+      docs/src/agents.typ: 6078c7a3230b6f04a6ce86cdcdc4f989f45895d88ae11a68e93a82fd4fe38e22
       docs/src/contributing.typ: 0b0c5776e936b7e2a5c593e2cd220f01eb37d1f6d7bbf3372695fbff097e53eb
       docs/src/contributing/coverage-crap.typ: bfecccfb3a6bd4c9b5ec593538ae5828842d8a45cff626922fce2edd1f47c3cc
       docs/src/contributing/crap-baseline.typ: bcbc918cf8976b8d4b560bd4190c6eb96eab3c2ca3e380108c9996bd65cae98d
@@ -220,9 +220,9 @@ groups:
     source:
       lib/prelude.typ: 1acc793b904229ee9dccc443f9c1ce523f126ed550fabdf1fa4e1d0f01aa6897
     dependents:
-      docs/src/agents.typ: dae04921b3cfe68c2ccf75bcd9b3d730a2840d9d8bd49b838622790ff7cf46ad
-      docs/src/skill.typ: e2c883bd817f075c36ca78463666c34d39388e454cf54a5a3beea7a35f72da6e
-      skills/mindtape/references/add-slots.md: 88cb97c15bb273483d526b496a227f2a0794fa279d876b0585dc2d46c5aaa658
+      docs/src/agents.typ: 6078c7a3230b6f04a6ce86cdcdc4f989f45895d88ae11a68e93a82fd4fe38e22
+      docs/src/skill.typ: 3f11892a794ac169924ffc611f4b03632bedde8ba651c557638e1c8d6bf73969
+      skills/mindtape/references/add-slots.md: 98b4cb6a935a4d34727f3864de088b51faf4deaa3747cb0b177af137fbb5c71f
       www/content/concepts.typ: 09a59054d0c30ca5c5369a96be60f6ee285e813bbc581b90237d587a5c02cf84
       www/content/dsl.typ: 15cebaf0078befa313e9fc001ddaa52e65af72b2ce5f827c7eb6ded1df6349b1
       www/content/index.typ: b476a360a4ca66162a1547e537d9b09879b327ca01184bcc2d677b5385ee333a

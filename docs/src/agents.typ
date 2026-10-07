@@ -51,6 +51,9 @@ skips a file whose bytes are unchanged.
 - `lib/prelude.typ` — the `@local/mindtape` package, which defines the task
   DSL.
 - `truth/tasks/` — MindTape's own backlog, read with the in-tree `lib/`.
+  Change a task with `mt` commands, as `skills/mindtape/SKILL.md` says. Edit
+  the file by hand only for the body, a framework priority, `estimate` and
+  `x-goals`, then run `mt check`.
 - `truth/goals.typ` and `truth/process-goals.typ` — the product and process
   goals. Each open task rates every goal in `x-goals`, and the `goals` rule
   checks the ratings with `check-goals` from `truth/lib.typ`.
@@ -138,11 +141,11 @@ all math and date arithmetic.
 
 == Mechanism, not policy
 
-Rust ships mechanisms, and projects write policy as config expressions. Rust
-code names no estimate unit, status, tag, path or threshold. A
-new check is a `[[tasks.rules]]` entry. When the filter language cannot
-express it, extend the language with a field, predicate, aggregate or git
-state, never a config table or checker of its own. Shipped defaults
-live in rule packs under `crates/mindtape/src/packs/`, and a project overrides
-a pack rule by name. `docs/contributing/validation-seam.md` says which layer a
+Rust ships mechanisms, and projects write policy as config expressions. Name
+no estimate unit, status, tag, path or threshold in Rust code. Write a new
+check as a `[[tasks.rules]]` entry. When the filter language cannot express
+it, extend the language with a field, predicate, aggregate or git state, never
+a config table or checker of its own. Put shipped defaults in the rule packs
+under `crates/mindtape/src/packs/`, where a project overrides a rule by
+name. `docs/contributing/validation-seam.md` says which layer a
 new check belongs in: the prelude, Rust and config, or the card render.

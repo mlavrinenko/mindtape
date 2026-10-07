@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 7),
+  status: done(
+    2026,
+    10,
+    7,
+  )[agent docs give one action per situation; human pages already leave mt as a choice],
   links: depends-on("give-the-docs-a-conversational-voice.typ"),
 )
 
