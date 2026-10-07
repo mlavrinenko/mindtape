@@ -92,9 +92,28 @@ fi
 source contrib/ask-refactoring/size.sh
 for path in crates/x/src/config/tests_id.rs crates/x/src/config/tests.rs crates/x/src/config/id_tests.rs; do
     flavour=$(printf '[{"path":"%s","language":"Rust","lines":380,"limit":400,"baseline-limit":360}]' "$path" \
-        | score_size | cut -f7)
+        | score_size | cut -f4)
     if [ "$flavour" != test ]; then
         echo "size-fixture-check: score_size read $path as '$flavour', not a test" >&2
         exit 1
     fi
+done
+
+# A rendered file joins its source's finding: one row, keyed by the source, that
+# measures both files. `size_meta` reads the `Generated from` banner off the
+# render and the `<mindtape-md>` block off the source.
+report='[{"path":"./AGENTS.md","language":"Markdown","lines":75,"limit":78,"baseline-limit":70},
+         {"path":"./docs/src/agents.typ","language":"Typst","lines":158,"limit":166,"baseline-limit":149}]'
+rows=$(score_size "$(size_meta <<<"$report")" <<<"$report")
+if [ "$(wc -l <<<"$rows")" -ne 1 ] || [ "$(cut -f1,2 <<<"$rows")" != $'docs/src/agents.typ\tprose' ]; then
+    echo "size-fixture-check: AGENTS.md and its source did not fold into one prose finding:" >&2
+    echo "$rows" >&2
+    exit 1
+fi
+measured=$(cut -f3 <<<"$rows")
+for path in AGENTS.md docs/src/agents.typ; do
+    grep -qF "#raw(\"$path\")" <<<"$measured" || {
+        echo "size-fixture-check: the folded finding does not measure $path: $measured" >&2
+        exit 1
+    }
 done

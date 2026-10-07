@@ -521,8 +521,8 @@ groups:
   #
   # One shape difference is intended and is not drift: sweep-size.typ carries
   # the first two Scope bullets in a `remedy` slot, and the siblings write theirs
-  # literally. linecop caps two languages, so what a remedy is differs per
-  # finding there: carve a Rust module, shed a Markdown section. cargo-mutants
+  # literally. linecop caps several languages, so what a remedy is differs per
+  # finding there: carve a Rust module, rewrite prose. cargo-mutants
   # and llvm-cov only ever report Rust, so a slot in those templates would have
   # exactly one filler and would hide the prose from the reader for nothing.
   - name: sweep-templates

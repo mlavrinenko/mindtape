@@ -40,8 +40,9 @@ overrides:
   # AGENTS.md, CONTRIBUTING.md and SKILL.md are capped as well, because every
   # agent session in this repo loads them whole. The line cap limits how many
   # rules a file holds, and `max_bytes` limits how long they run, because a
-  # long paragraph counts as one line. Both leave about 10% room. When one fires, move reasons
-  # into a docs/contributing/*.md deep dive rather than raise the number.
+  # long paragraph counts as one line. Both leave about 10% room. When one
+  # fires, follow "Rewrite the whole file" in docs/contributing/documentation.md
+  # and never raise the number.
   #
   # A pattern is a `.gitignore` line read from this file's directory. A bare
   # `README.md` matches that name at any depth, and `./README.md` or
@@ -65,11 +66,11 @@ overrides:
 
   # The sources of the four rendered files. agents.typ (151 lines) and
   # skill.typ (131) are capped at their size after a whole rewrite plus about
-  # 10%. An agent loads each whole, so one that outgrows its cap gets rewritten
-  # again, not a higher cap. readme.typ and contributing.typ keep the Markdown
-  # cap plus room for the Typst that reads generated facts. docs/generate-md.sh
-  # takes each source's output path from its `<mindtape-md>` block, and each
-  # source is named after the file it renders.
+  # 10%. An agent loads each whole, so the rule above holds for them too.
+  # readme.typ and contributing.typ keep the Markdown cap plus room for the
+  # Typst that reads generated facts. docs/generate-md.sh takes each source's
+  # output path from its `<mindtape-md>` block, and each source is named after
+  # the file it renders.
   - pattern: "**/docs/src/agents.typ"
     limit: 166
   - pattern: "**/docs/src/readme.typ"

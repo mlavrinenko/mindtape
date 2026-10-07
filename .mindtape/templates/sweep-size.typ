@@ -4,7 +4,7 @@
 #show: task.with(
   title: slot(
     "title",
-    prompt: "split or re-cap <path>",
+    prompt: "split or re-cap <path>, or rewrite <path> under its cap for prose",
     example: "Split crates/mindtape-cli/src/cmd/add/mod.rs",
   ),
   kind: "refactor",
@@ -67,7 +67,14 @@
 == Problem
 
 + Run `linecop --format json`.
-+ 🔴 #raw(slot("path", prompt: "repo-relative path of the oversized file", example: "crates/mindtape-cli/src/cmd/add/mod.rs")) stands at #slot("lines", kind: "text", prompt: "current line count", example: "494") of its #slot("limit", kind: "text", prompt: "the linecop limit for this file", example: "500")-line budget: #slot("headroom", kind: "text", prompt: "limit minus lines", example: "6") lines of headroom left, #slot("percent", kind: "text", prompt: "lines over limit, as a percentage", example: "98.8")% of the cap spent.
+#slot(
+  "measured",
+  kind: "raw",
+  prompt: "one numbered 🔴 line per measured file: a doc source and its render share a finding",
+  example: ```typ
+  + 🔴 #raw("crates/mindtape-cli/src/cmd/add/mod.rs") stands at 494 of its 500-line budget: 6 lines of headroom left, 98.8% of the cap spent.
+  ```,
+)
 
 #slot(
   "seam",

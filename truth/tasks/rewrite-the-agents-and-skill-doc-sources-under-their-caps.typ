@@ -10,7 +10,7 @@
     ease: 7,
   ),
   difficulty: 3,
-  tags: ("swept", "size", "docs"),
+  tags: ("size", "docs"),
   estimate: (src-files: 4),
   x-goals: (
     product: (

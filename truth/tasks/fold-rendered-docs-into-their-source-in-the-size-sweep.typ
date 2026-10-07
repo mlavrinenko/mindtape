@@ -10,7 +10,7 @@
     ease: 6,
   ),
   difficulty: 3,
-  tags: ("swept", "size", "tooling"),
+  tags: ("size", "tooling"),
   estimate: (src-files: 4),
   x-goals: (
     product: (
@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 7),
+  status: done(
+    2026,
+    10,
+    7,
+  )[one finding per doc; the prose remedy links to the rewrite rule],
 )
 
 == Problem

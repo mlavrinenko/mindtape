@@ -37,47 +37,72 @@
 #
 #   estimate is the split path, in `src-files`: the file, the module it sheds,
 #   the parent that declares it — 4 when the carve is big enough to want two
-#   new homes. Markdown
-#   is flat 2: the page and the one it sheds. There is no third file, because
-#   nothing has to declare a Markdown page the way a `mod` line declares a
-#   module.
+#   new homes. Prose is flat 2: the page and the one it sheds. There is no
+#   third file, because nothing declares a page the way a `mod` line declares
+#   a module, and a render is regenerated, not written.
 #
 # The result is monotone in headroom (5,5,4,4,3,3,3 on today's tree) and sits in
 # the `normal` band. That is honest: mechanical refactoring is real work and is
 # never the most important thing on the board.
 #
-# Two axes, kept apart deliberately. Language (linecop's own `language` field,
-# never re-derived from the extension) decides the remedy: a Rust file is carved
-# into a module, a Markdown page sheds a section. Test-versus-production decides
+# Two axes, kept apart deliberately. Kind decides the remedy: linecop's own
+# `language` field, never re-derived from the extension, except that prose
+# (Markdown, or a doc source `size_meta` marks) is one kind whatever its
+# language. A Rust file is carved into a module, prose is rewritten.
+# Test-versus-production decides
 # tone and score, and is a Rust distinction only — it is what `ejectest` already
 # played its move on — so it is scored `false` for anything else rather than
 # left to a path regex that would happen to agree.
+# A rendered doc and its source are one artifact, so they make one finding.
+# `size_meta` maps each reported path to what `score_size` folds by: the
+# source a render names in its `Generated from` banner, and whether the file is
+# prose (a render, or a Typst source carrying a `<mindtape-md>` block). It
+# reads linecop's JSON on stdin and prints `{path: {source?, prose?}}`.
+size_meta() {
+    local path src
+    jq -r '.[].path | ltrimstr("./")' | while read -r path; do
+        src="$(sed -n 's/^<!-- Generated from \(.*\) by `just docs md`\..*/\1/p' "$path" 2>/dev/null | head -n 1)"
+        if [ -n "$src" ]; then
+            jq -n --arg p "$path" --arg s "$src" '{($p): {source: $s, prose: true}}'
+        elif grep -q '<mindtape-md>' "$path" 2>/dev/null; then
+            jq -n --arg p "$path" '{($p): {prose: true}}'
+        fi
+    done | jq -s 'add // {}'
+}
+
+# `$1` is `size_meta`'s map, `{}` when absent. Rows are grouped by source, the
+# tightest member scores the group, and `measured` holds one Problem line per
+# member, with newlines escaped by @tsv.
 score_size() {
-    jq -r '
+    local meta="${1:-}"
+    [ -n "$meta" ] || meta='{}'
+    jq -r --argjson meta "$meta" '
       def clamp($lo; $hi): [[., $lo] | max, $hi] | min;
-      .[]
-      | (.path | ltrimstr("./"))                            as $path
-      | (.language)                                         as $language
-      | ($language == "Rust"
+      def pct: (.lines / .limit * 1000 | round) / 10;
+      map((.path | ltrimstr("./")) as $p
+          | ($meta[$p] // {}) as $m
+          | . + {path: $p, source: ($m.source // $p),
+                 prose: ($m.prose // (.language == "Markdown"))})
+      | group_by(.source)[]
+      | sort_by(-(.lines / .limit)) as $members
+      | $members[0]                                         as $top
+      | $top.source                                         as $path
+      | (if any($members[]; .prose) then "prose" else $top.language end) as $kind
+      | ($kind == "Rust"
          and ($path | test("_tests\\.rs$|(^|/)tests\\.rs$|(^|/)tests_[^/]*\\.rs$|(^|/)tests/"))) as $is_test
-      | (.lines / .limit * 100)                             as $pct
-      | (100 - $pct)                                        as $free
-      | (.limit - .lines)                                   as $headroom
-      | ([.lines - .["baseline-limit"], 0] | max)           as $move
+      | (100 - ($top | pct))                                as $free
+      | ([$top.lines - $top["baseline-limit"], 0] | max)    as $move
       | ((10 - (($free / 1.5) | round)) | clamp(1; 10))     as $impact
       | (if $is_test then 0.7 else 0.9 end)                 as $confidence
       | ((9 - (($move / 20) | round)) - (if $is_test then 2 else 0 end) | clamp(1; 10)) as $ease
       | ((if $move <= 20 then 3 elif $move <= 40 then 4 else 5 end)
           + (if $is_test then 1 else 0 end))                as $difficulty
-      | (if $language == "Markdown" then 2
+      | (if $kind == "prose" then 2
          elif $move > 40 then 4 else 3 end)                 as $files
       | [
           $path,
-          $language,
-          (.lines | tostring),
-          (.limit | tostring),
-          ($headroom | tostring),
-          (($pct * 10 | round) / 10 | tostring),
+          $kind,
+          ([$members[] | "+ 🔴 #raw(\"\(.path)\") stands at \(.lines) of its \(.limit)-line budget: \(.limit - .lines) lines of headroom left, \(pct)% of the cap spent."] | join("\n")),
           (if $is_test then "test" else "production" end),
           ($impact | tostring),
           ($confidence | tostring),
@@ -101,7 +126,7 @@ signal_size() {
         echo "ask-refactoring: linecop failed (exit $rc) or wrote no JSON" >&2
         exit 1
     fi
-    printf '%s' "$json" | score_size
+    printf '%s' "$json" | score_size "$(printf '%s' "$json" | size_meta)"
 }
 
 # One plain sentence on where the seam question stands. Rust splits on the
@@ -113,21 +138,18 @@ seam_for() {
     case "$1:$2" in
         Rust:test) echo "Test code: ejectest already moved these tests out of their parent once, so the eject recipe has no second move here and any further seam is one you draw by hand." ;;
         Rust:*) echo "Production code: linecop measures the file, it cannot tell you where the file wants to be cut, so the seam is yours to choose." ;;
-        Markdown:*) echo "Prose: the seam is a section boundary, and the question is which sections a reader needs in front of them every time versus which ones they go looking for." ;;
+        prose:*) echo "Prose: the seam is a section boundary, and the question is which sections a reader needs in front of them every time versus which ones they go looking for." ;;
         *) echo "linecop measures the file, it cannot tell you where the file wants to be cut, so the seam is yours to choose." ;;
     esac
 }
 
 # The first two Scope bullets, spliced into the `remedy` slot as real markup
-# (`kind: "raw"`). This is the language axis and nothing else: what counts as
+# (`kind: "raw"`). This is the kind axis and nothing else: what counts as
 # a remedy here, and what a split has to amount to for it to have been one. The
-# bullets after it in the template are language-neutral and stay literal there.
+# bullets after it in the template are kind-neutral and stay literal there.
 #
-# Markdown is genuinely a different remedy, not the Rust one reworded. The cost
-# of the wrong answer — compressing in place until the budget goes on phrasing
-# instead of on being right — is already argued at length next to the 300-line
-# overrides in .linecop.yaml, so this points at that reasoning rather than
-# restating it.
+# Prose is a different remedy, not the Rust one reworded. Its rule lives once,
+# in docs/contributing/documentation.md, so this links to it.
 remedy_for() {
     case "$1" in
         Rust)
@@ -141,18 +163,14 @@ remedy_for() {
   and misses the point entirely.
 EOF
             ;;
-        Markdown)
+        prose)
             cat <<'EOF'
-- Pick the remedy, then do it. Either move a section off the always-loaded
-  surface, or raise its cap in `.linecop.yaml` with an override that names a new
-  sane number and says why. Both are correct answers. Compressing the prose in
-  place is not, and `.linecop.yaml` already records what it costs: the 300-line
-  overrides exist because a wall mid-edit turned a round of correctness fixes
-  into a dozen rewording passes.
-- If you move a section, move it somewhere a reader reaches deliberately —
-  progressive disclosure into `references/` for a skill, its own page for the
-  docs site. What the cap defends is the surface that loads every time, so a
-  section still pulled in from a second file has not actually moved.
+- Follow "Rewrite the whole file" in `docs/contributing/documentation.md`:
+  rewrite the source whole for its reader, or move an argument where a reader
+  reaches it deliberately, such as a deep dive or a skill's `references/`.
+  Trimming words to fit is not a fix.
+- Re-cap only a file no session loads whole. The `.linecop.yaml` override of an
+  always-loaded file says it is rewritten, never raised.
 EOF
             ;;
         *)
@@ -170,27 +188,28 @@ EOF
 }
 
 emit_size() {
-    local path="$1" language="$2" lines="$3" limit="$4" headroom="$5" pct="$6" flavour="$7"
-    local impact="$8" confidence="$9" ease="${10}" difficulty="${11}" files="${12}"
+    local path="$1" kind="$2" measured="$3" flavour="$4"
+    local impact="$5" confidence="$6" ease="$7" difficulty="$8" files="$9"
+
+    local title="split or re-cap $path"
+    [ "$kind" = prose ] && title="rewrite $path under its cap"
+    # @tsv escaped the newlines between measured lines.
+    measured="$(printf '%b' "$measured")"
 
     local seam remedy
-    seam="$(seam_for "$language" "$flavour")"
+    seam="$(seam_for "$kind" "$flavour")"
     # Trailing newline stripped by the substitution, so the spliced bullets abut
     # the literal ones after the slot and the Scope reads as one list.
-    remedy="$(remedy_for "$language")"
+    remedy="$(remedy_for "$kind")"
 
     local tags=(--set 'tags+=swept' --set 'tags+=size')
     [ "$flavour" = test ] && tags+=(--set 'tags+=tests')
 
     local args=(
-        add "split or re-cap $path"
+        add "$title"
         -t sweep-size
         --name "$(stem_for size "$path")"
-        --set "path=$path"
-        --set "lines=$lines"
-        --set "limit=$limit"
-        --set "headroom=$headroom"
-        --set "percent=$pct"
+        --set "measured=$measured"
         --set "seam=$seam"
         --set "remedy=$remedy"
         --set "impact=$impact"
@@ -216,7 +235,7 @@ emit_size() {
             *) echo "$outcome $dest" ;;
         esac
     else
-        echo "── would file: $(stem_for size "$path")  [$language $flavour, ice($impact, $confidence, $ease)]"
+        echo "── would file: $(stem_for size "$path")  [$kind $flavour, ice($impact, $confidence, $ease)]"
         "$MT" "${args[@]}" --print
         echo
     fi

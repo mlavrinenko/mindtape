@@ -198,7 +198,7 @@ groups:
       .just/scripts/script-attr-check.sh: fb01697288a0863da85cad64bb5ce1430508f9d56f54e013dcf41a119b64d61d
       .just/scripts/script-scope-check.sh: 472f2dce97a25ca52d15cea103644c9ad817c899f4b76731e2af2318449d15df
       .just/scripts/site-pages-fixture-check.sh: 4f34c3ddef2f69fc32dac183a19c1038907c4947590a6101572ebf26a88c658f
-      .just/scripts/size-fixture-check.sh: 606ae9ad3a0bc0f2e470f5af4a9ee1b08a5b5f0a1c8ef95d263317ee91ff4352
+      .just/scripts/size-fixture-check.sh: 2809f969a7cfef976ccbf1cf1006b46e34f2c21f0d484f36dcbd44ff104481a7
     dependents:
       docs/src/contributing/gates.typ: 936b8885e6bf861650a49071a1a8ed49ef9e59e93e80bfe867aa73cb9e2329f3
   lock-merge-docs:
@@ -266,14 +266,14 @@ groups:
       contrib/ask-refactoring/undertested.sh: 7c6919e9fc11b8c15cdd0e261bc717cc6b80ef7241423d76092dba0a56591b14
   sweep-templates:
     source:
-      .mindtape/templates/sweep-size.typ: 779f38b094ab6a0cd2956b1a2d80b2f363f5c86da5b93f650f28b1895df44ca6
+      .mindtape/templates/sweep-size.typ: a4a63ed8a6f8a331a4e744335f88b7a3fe84238b13c287ab28a059d470332b07
     dependents:
       .mindtape/templates/sweep-coverage.typ: 69b85dc70aab8ba25127e52d13cb34d9f42a8be973ec93e8b28a86a636cf5d5c
       .mindtape/templates/sweep-mutants.typ: ac0b440aac6d93b178ec46b714a6ac3dee36358fec432358b553cb87751c1191
       .mindtape/templates/sweep-undertested.typ: 73e12fd227ecc67d3f3310376f498c5a0559c6ce14202bee3dc185de3e768918
       contrib/ask-refactoring/coverage.sh: bd32655226ab0cd1d391028cfc6c1670499cbd42a2cda77cbfd3a00575207d9c
       contrib/ask-refactoring/mutants.sh: 1583427a46ea48571c0712b97b1dd684778b1010e48122dc63339d4c6d06fc22
-      contrib/ask-refactoring/size.sh: b7767e7acf4d7731888234d56466ee2e7ed04e35af97fd5a3b312d61ce99aa13
+      contrib/ask-refactoring/size.sh: 64b271d734801919441af62bafb997409bf96330e3f0509c86bba4c259d928a8
       contrib/ask-refactoring/undertested.sh: 7c4117a2e331b8bf10c1f3eb001b6d78db952ae496bf79bff13bd95b2d9be599
   task-templates:
     source:
