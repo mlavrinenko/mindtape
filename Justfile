@@ -864,32 +864,33 @@ install-hooks:
     rm -f .git/hooks/pre-commit
     echo "installed .githooks and the outdatty.lock merge driver"
 
-# Tag a release and push the tag (usage: just release 0.3.0). The tag push is
-# the only publish path. .just/scripts/release.sh refuses, before tagging, every
-# state a release has failed from: a dirty tree, a main that differs from
-# origin/main, an existing tag, a version already on crates.io, a CHANGELOG.md
-# with content under [Unreleased] or no dated `[<version>]` section, a HEAD
-# without green CI, and a failing check, nix-build or `cargo publish
-# --dry-run`. Push main first, so the docs site (pages.yml) and CI run on the
-# release tree. A tag whose workflow failed is re-run, never re-tagged:
+# Push main, wait for its CI, then tag (usage: just release 0.3.0). The tag
+# push is the only publish path. .just/scripts/release.sh first refuses every
+# state a release has failed from: a dirty tree, an origin/main with commits
+# main lacks, an existing tag, a version already on crates.io, a CHANGELOG.md
+# with content under [Unreleased] or no dated `[<version>]` section, and a
+# failing check, nix-build or `cargo publish --dry-run`. Then it pushes main,
+# so the docs site (pages.yml) and CI run on the release tree, waits for the
+# ci.yml run on that exact commit, and tags only if it is green. A tag whose
+# workflow failed is re-run, never re-tagged:
 # `gh workflow run release.yml -f tag=v<version>`.
 #
 # The MINDTAPE_RELEASE_CONFIRMED prefix is how the [confirm] guard survives the
 # body living in a script — argued in full in .just/scripts/release.sh.
 
 [arg('VERSION', pattern='\d+\.\d+\.\d+', help='semver, no leading v (e.g. 0.3.0)')]
-[confirm("Tag and push a release to origin — proceed?")]
-[doc("Tag a release and push")]
+[confirm("Push main and a release tag to origin — proceed?")]
+[doc("Push main, wait for its CI, then tag and push the tag")]
 [group("release")]
 [no-exit-message]
 release VERSION:
     MINDTAPE_RELEASE_CONFIRMED=1 bash .just/scripts/release.sh "{{ VERSION }}"
 
-# Every check `just release` makes, without the confirmation, the tag or the
-# push. Run it before `just release`.
+# Every check `just release` makes, without the confirmation or any push; it
+# says what it would push. Run it before `just release`.
 
 [arg('VERSION', pattern='\d+\.\d+\.\d+', help='semver, no leading v (e.g. 0.3.0)')]
-[doc("Run every release check, then stop before tagging")]
+[doc("Run every release check, then say what just release would push")]
 [group("release")]
 [no-exit-message]
 release-dry-run VERSION:

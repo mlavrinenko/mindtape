@@ -156,11 +156,9 @@ worktree's current files. Then it does four things:
   change to one source file that's too small to plan: file it with
   `mt add -t tweak`, which files it done, in the commit that makes the
   change, and name it in `Refs:`.
-- Commit a status flip with the work it claims: `mt wip` in the first work
-  commit, `mt done` in the last. Leave the flip uncommitted until then,
-  because a commit with a flip and no other change is refused. Stage the
-  `mt wip` flip with that first commit, because a commit naming a task that
-  isn't `wip` in the staged tree is refused too.
+- Stage a status flip with the work it claims: `mt wip` with the first work
+  commit, `mt done` with the last. A commit holding only a flip is refused,
+  and so is one naming a task that isn't `wip` in the staged tree.
 - If a commit changes product code (`crates/**` and `lib/**`, tests
   excepted), it also adds an entry under `[Unreleased]` in `CHANGELOG.md`. If
   there's nothing to announce, add a `Changelog: none` trailer instead. The
@@ -214,19 +212,16 @@ neither.
 - The Typst library's version is `version` in `lib/typst.toml`, independent of
   the crates. The `typst-pkg-version` outdatty group lists every file that
   repeats it.
-- `mindtape-cli` depends on `mindtape` by version as well as by path, because
-  crates.io refuses a path-only dependency. Bump it with the workspace
-  version.
-- #just.release("VERSION") tags `vVERSION` and pushes the tag, the only
-  publish path: never run `cargo publish` by hand. It refuses, with an
-  `error:` and a `hint:` line, a `VERSION` that isn't plain semver or differs
-  from the workspace version, a dirty tree, a branch other than `main`, a
-  `main` that differs from `origin/main`, an existing tag, a version already
-  on crates.io, a `CHANGELOG.md` with content under `[Unreleased]` or no dated
-  section for `VERSION`, a HEAD whose `ci.yml` run is not green, and a failing
-  #just.check(), #just.nix-build() or `cargo publish --dry-run`. So push
-  `main` first: the docs site and CI then run on the release tree.
-  #just.release-dry-run("VERSION") runs every check and stops before tagging.
+- `mindtape-cli` depends on `mindtape` by version and path, since crates.io
+  refuses a path-only dependency. Bump it with the workspace version.
+- #just.release("VERSION") is the whole release, and its tag push the only
+  publish path: don't run `cargo publish` or push `main` by hand. Move
+  `[Unreleased]` into a dated section first. It refuses that and every other
+  state a release has failed from, listed above `release` in the `Justfile`.
+  Then it pushes `main`, so the docs site and CI run on the release tree, and
+  tags only once that commit's `ci.yml` run is green.
+  #just.release-dry-run("VERSION") runs the checks and says what it would
+  push.
 - A release whose workflow failed is finished on the same tag with
   `gh workflow run release.yml -f tag=vVERSION`, which skips each crate
   crates.io already has. A pushed tag never moves.
