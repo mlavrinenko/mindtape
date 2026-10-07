@@ -59,7 +59,7 @@ score_size() {
       | (.path | ltrimstr("./"))                            as $path
       | (.language)                                         as $language
       | ($language == "Rust"
-         and ($path | test("_tests\\.rs$|(^|/)tests\\.rs$|(^|/)tests/"))) as $is_test
+         and ($path | test("_tests\\.rs$|(^|/)tests\\.rs$|(^|/)tests_[^/]*\\.rs$|(^|/)tests/"))) as $is_test
       | (.lines / .limit * 100)                             as $pct
       | (100 - $pct)                                        as $free
       | (.limit - .lines)                                   as $headroom

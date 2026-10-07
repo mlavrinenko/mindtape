@@ -84,3 +84,17 @@ else
     echo "  the arm above proves nothing about include_hidden — this gate is miswired" >&2
     exit 1
 fi
+
+# The size arm of `ask-refactoring` scores a test module as a test. Feed
+# `score_size` one themed test module of a `mod.rs` and require the flavour
+# column to read `test`, as it does for `tests.rs` and `*_tests.rs`.
+# shellcheck source=/dev/null
+source contrib/ask-refactoring/size.sh
+for path in crates/x/src/config/tests_id.rs crates/x/src/config/tests.rs crates/x/src/config/id_tests.rs; do
+    flavour=$(printf '[{"path":"%s","language":"Rust","lines":380,"limit":400,"baseline-limit":360}]' "$path" \
+        | score_size | cut -f7)
+    if [ "$flavour" != test ]; then
+        echo "size-fixture-check: score_size read $path as '$flavour', not a test" >&2
+        exit 1
+    fi
+done

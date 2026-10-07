@@ -198,7 +198,7 @@ groups:
       .just/scripts/script-attr-check.sh: fb01697288a0863da85cad64bb5ce1430508f9d56f54e013dcf41a119b64d61d
       .just/scripts/script-scope-check.sh: 472f2dce97a25ca52d15cea103644c9ad817c899f4b76731e2af2318449d15df
       .just/scripts/site-pages-fixture-check.sh: 4f34c3ddef2f69fc32dac183a19c1038907c4947590a6101572ebf26a88c658f
-      .just/scripts/size-fixture-check.sh: 4afe65d4e5eebade4946b572e4b32d92338ea4a6f4bb51ebdc42ded199d77b01
+      .just/scripts/size-fixture-check.sh: 606ae9ad3a0bc0f2e470f5af4a9ee1b08a5b5f0a1c8ef95d263317ee91ff4352
     dependents:
       docs/src/contributing/gates.typ: 936b8885e6bf861650a49071a1a8ed49ef9e59e93e80bfe867aa73cb9e2329f3
   lock-merge-docs:
