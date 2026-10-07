@@ -22,7 +22,7 @@ use typst_cst::{Comment, CommentKind, parse_comments};
 
 use crate::config::Config;
 use crate::model::Task;
-use crate::severity::Severity;
+use crate::validate::severity::Severity;
 use crate::validate::{Location, Violation};
 
 /// `[tasks.comments]` — review-comment policy over a task's whole source file.
@@ -143,8 +143,8 @@ fn to_violation(task: &Task, comment: &Comment, severity: Severity) -> Violation
         message: format!("{} comment: \"{}\"", shape(&comment.kind), comment.text),
         location: Location::at(task.file.clone(), comment.line),
         severity,
-        kind: crate::violation::ViolationKind::Other,
-        reads: Some(crate::violation::reads_of_field("comments")),
+        kind: crate::validate::violation::ViolationKind::Other,
+        reads: Some(crate::validate::violation::reads_of_field("comments")),
     }
 }
 

@@ -38,7 +38,7 @@ rrule = { version = "0.14", optional = true }
 typst-harvest = "0.4.0"
 # Already in the tree at this exact version, transitively under `typst-harvest`
 # (which re-exports its `World` as `HarvestWorld`), so this edge adds no crate
-# to the build. It is direct because `crates/mindtape/src/candidate.rs` needs
+# to the build. It is direct because `crates/mindtape/src/validate/candidate.rs` needs
 # the two items the re-export does not carry — `DiskProvider` and
 # `root_file_id` — to build a world whose main file is an UNWRITTEN source
 # (`World::with_source_override`). Every disk-backed constructor canonicalizes

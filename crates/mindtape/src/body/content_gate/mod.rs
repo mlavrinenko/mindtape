@@ -2,9 +2,9 @@
 //! them against a task's source.
 //!
 //! Rules are declared in `[tasks.body.content]` in `.mindtape/config.toml`
-//! (types in [`crate::body_content`]). Compile them once with
+//! (types in [`crate::body::content`]). Compile them once with
 //! [`compile_content_rules`], then call [`check_content`] once per task's
-//! source text — the mirror image of the heading-tree gating in [`crate::gate`],
+//! source text — the mirror image of the heading-tree gating in [`crate::body::gate`],
 //! which this module reuses for its path selection but not for its evaluation.
 //!
 //! A `path` (the same `HeaderPathSegment` shape the heading rules use)
@@ -25,15 +25,14 @@
 use regex::Regex;
 use typst_cst::{Heading, HeadingNode, parse_headings, tree};
 
-use crate::body_content::{ContentAssert, DensityUnit};
+use crate::body::content::{ContentAssert, DensityUnit};
+use crate::body::gate::GateError;
 use crate::config::{Config, HeaderPathSegment};
 use crate::filter::Filter;
-use crate::gate::GateError;
 use crate::model::Task;
-use crate::severity::Severity;
+use crate::validate::severity::Severity;
 use crate::validate::{Location, Violation};
 
-#[path = "content_gate_density.rs"]
 mod content_gate_density;
 use content_gate_density::density_violation;
 
@@ -47,7 +46,7 @@ pub struct CompiledContentRule {
     /// Override for the default violation message.
     message: Option<String>,
     /// This rule's name if it has one, else its position — see
-    /// [`crate::body_content::ContentRuleConfig::label`].
+    /// [`crate::body::content::ContentRuleConfig::label`].
     label: String,
 }
 
@@ -97,7 +96,7 @@ enum CompiledAssert {
 /// Returns [`GateError`] if any rule has an empty path, an invalid regex, or
 /// an invalid `when` expression.
 pub fn compile_content_rules(
-    rules: &[crate::body_content::ContentRuleConfig],
+    rules: &[crate::body::content::ContentRuleConfig],
 ) -> Result<Vec<CompiledContentRule>, GateError> {
     rules
         .iter()
@@ -107,7 +106,7 @@ pub fn compile_content_rules(
 }
 
 fn compile_content_rule(
-    rule: &crate::body_content::ContentRuleConfig,
+    rule: &crate::body::content::ContentRuleConfig,
     index: usize,
 ) -> Result<CompiledContentRule, GateError> {
     if rule.path.is_empty() {
@@ -194,8 +193,8 @@ pub fn check_content(
                 message: rule.message.clone().unwrap_or(default),
                 location: Location::at(task.file.clone(), node.heading.line),
                 severity: Severity::Error,
-                kind: crate::violation::ViolationKind::Other,
-                reads: crate::violation::reads_of(rule.when.iter()),
+                kind: crate::validate::violation::ViolationKind::Other,
+                reads: crate::validate::violation::reads_of(rule.when.iter()),
             });
         }
     }
@@ -319,5 +318,4 @@ fn rule_applies(rule: &CompiledContentRule, task: &Task, config: &Config) -> boo
 }
 
 #[cfg(test)]
-#[path = "content_gate_tests.rs"]
 mod tests;

@@ -18,7 +18,7 @@
 //!   write uses, so the bytes checked are the bytes written;
 //! - what `mt check` would refuse is refused here too. [`check`] compiles the
 //!   project's header and content body rules
-//!   ([`mindtape::gate`], [`mindtape::content_gate`]) once per batch and runs
+//!   ([`mindtape::body::gate`], [`mindtape::body::content_gate`]) once per batch and runs
 //!   them over each candidate beside [`mindtape::validate`], so a task
 //!   `mt check` would reject never lands in the first place.
 //!

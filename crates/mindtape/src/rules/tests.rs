@@ -4,9 +4,9 @@ use super::{RuleSpec, check_all, labels, set_labels, validate_rules};
 use crate::config::Config;
 use crate::model::{Status, Task};
 use crate::parse_config;
-use crate::severity::Severity;
 use crate::test_support::bare_task;
 use crate::validate::Violation;
+use crate::validate::severity::Severity;
 
 /// A task with a title, a status, and a marker line — the three things a rule
 /// and its report read.
@@ -141,8 +141,8 @@ fn label_prefers_the_name_over_the_index() {
 
 /// Two entries in `[[tasks.rules]]` sharing a `name` — WITHIN one file — is a
 /// config error naming both, the same treatment
-/// `crate::body_headers::validate_header_rules` /
-/// `crate::body_content::validate_content_rules` already give their own
+/// `crate::body::headers::validate_header_rules` /
+/// `crate::body::content::validate_content_rules` already give their own
 /// arrays. Cross-FILE replacement by name (a nearer layer or an extended
 /// pack overriding a farther one's same-named rule) stays legal — that
 /// merge already collapses to one entry before `validate` ever sees this
@@ -347,7 +347,7 @@ assert = 'has(title)'
 
 /// `labels` names a rule by its `name` when it has one, else by its position —
 /// the same fallback [`RuleSpec::label`] uses, since
-/// [`crate::candidate::elsewhere_violations`] matches a violation's `field`
+/// [`crate::validate::candidate::elsewhere_violations`] matches a violation's `field`
 /// against exactly these strings.
 #[test]
 fn labels_names_by_name_then_by_index() {

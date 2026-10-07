@@ -56,7 +56,7 @@ for speed.
 CI job. CRAP is `CC² × uncovered³ + CC`, and the gate fails a function that
 scores above 30. It refuses an lcov older than any source file, so run
 #just.cover() first. It skips test modules (`*_tests.rs`, `tests.rs` and
-ejectest's `*_tests_*.rs`), because llvm-cov emits no coverage for them and
+ejectest's `*_tests_*.rs` and `tests_*.rs`), because llvm-cov emits no coverage for them and
 they would score as undertested production code. `.just/scripts/crap.sh`
 lists every exclude and why each is spelled `**/…`.
 

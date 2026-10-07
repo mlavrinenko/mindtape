@@ -549,7 +549,7 @@ _lcov-stale-reason:
 # minted over a different file set than the gate scores would report every
 # difference between the two lists as a regression.
 
-CRAP_EXCLUDES := "--exclude **/main.rs --exclude **/recur_rrule.rs --exclude **/ls_interactive/tui.rs --exclude **/*_tests.rs --exclude **/tests.rs --exclude **/*_tests_*.rs"
+CRAP_EXCLUDES := "--exclude **/main.rs --exclude **/recur_rrule.rs --exclude **/ls_interactive/tui.rs --exclude **/*_tests.rs --exclude **/tests.rs --exclude **/*_tests_*.rs --exclude **/tests_*.rs"
 
 # Same list for a third consumer that is not a `just` recipe: the sweep's
 # undertested arm (contrib/ask-refactoring/undertested.sh) runs `cargo crap` for

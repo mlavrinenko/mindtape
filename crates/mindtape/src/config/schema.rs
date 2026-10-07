@@ -125,7 +125,7 @@ impl JsonSchema for DensityUnit {
     }
 
     fn schema_id() -> Cow<'static, str> {
-        "mindtape::body_content::DensityUnit".into()
+        "mindtape::body::content::DensityUnit".into()
     }
 
     fn json_schema(_generator: &mut SchemaGenerator) -> Schema {
@@ -144,11 +144,11 @@ impl JsonSchema for ContentAssert {
     }
 
     fn schema_id() -> Cow<'static, str> {
-        "mindtape::body_content::ContentAssert".into()
+        "mindtape::body::content::ContentAssert".into()
     }
 
     fn json_schema(generator: &mut SchemaGenerator) -> Schema {
-        let density = generator.subschema_for::<crate::body_content::DensitySpec>();
+        let density = generator.subschema_for::<crate::body::content::DensitySpec>();
         json_schema!({
             "description": "The assertion made over a matched section's content: the \
                 string `\"non-empty\"`, or a one-key table `{ min-words = N }`, \
@@ -222,7 +222,7 @@ impl JsonSchema for HeaderAction {
     }
 
     fn schema_id() -> Cow<'static, str> {
-        "mindtape::body_headers::HeaderAction".into()
+        "mindtape::body::headers::HeaderAction".into()
     }
 
     fn json_schema(_generator: &mut SchemaGenerator) -> Schema {
@@ -242,7 +242,7 @@ impl JsonSchema for HeaderPathSegment {
     }
 
     fn schema_id() -> Cow<'static, str> {
-        "mindtape::body_headers::HeaderPathSegment".into()
+        "mindtape::body::headers::HeaderPathSegment".into()
     }
 
     fn json_schema(_generator: &mut SchemaGenerator) -> Schema {

@@ -14,7 +14,7 @@ fn breach_at(field: &str, line: usize) -> Violation {
         message: "wrong".to_owned(),
         location: Location::at("tasks/t.typ", line),
         severity: Severity::Error,
-        kind: crate::violation::ViolationKind::Other,
+        kind: crate::validate::violation::ViolationKind::Other,
         reads: None,
     }
 }

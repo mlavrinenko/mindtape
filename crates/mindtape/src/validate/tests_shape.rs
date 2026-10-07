@@ -1,6 +1,6 @@
 //! Where the shape-error channel meets the `required` rules: a field the
 //! marker could not read is reported once, naming the type, and never a second
-//! time as missing. Split out of `validate_tests_fields.rs` (file-size gate),
+//! time as missing. Split out of `validate/tests_fields.rs` (file-size gate),
 //! whose subject is what a single field's constraints say about a value that
 //! DID load.
 

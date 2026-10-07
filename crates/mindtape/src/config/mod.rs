@@ -76,10 +76,10 @@ use thiserror::Error;
 use crate::config::merge::deep_merge_tables;
 use crate::framework::merge_builtin_frameworks;
 
-pub use crate::body_content::{
+pub use crate::body::content::{
     ContentAssert, ContentConfig, ContentRuleConfig, DensitySpec, DensityUnit,
 };
-pub use crate::body_headers::{HeaderAction, HeaderPathSegment, HeaderRuleConfig, HeadersConfig};
+pub use crate::body::headers::{HeaderAction, HeaderPathSegment, HeaderRuleConfig, HeadersConfig};
 pub use crate::config::add::{AddConfig, InteractiveMode};
 pub use crate::config::dicts::{
     BUILTIN_PREFIX, Dict, DictCache, DictCase, DictSpec, Dicts, builtin_dict_names, compile_dicts,
@@ -348,8 +348,8 @@ impl Config {
         problems.extend(crate::rules::validate_rules(self));
         problems.extend(crate::rules::validate_rule_names(self));
         problems.extend(crate::config::commits::validate_commits(self));
-        problems.extend(crate::body_headers::validate_header_rules(self));
-        problems.extend(crate::body_content::validate_content_rules(self));
+        problems.extend(crate::body::headers::validate_header_rules(self));
+        problems.extend(crate::body::content::validate_content_rules(self));
         problems.extend(crate::config::comments::validate_comments(self));
         problems.extend(crate::config::actors::validate_actors(self));
         problems.extend(crate::config::hooks::validate_flip_hooks(self));

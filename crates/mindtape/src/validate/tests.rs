@@ -10,7 +10,7 @@ use crate::test_support::{bare_task, dep_edge, link_edge, noted_edge};
 
 /// Status legend and priority/estimate/tags scale shared by every test in this
 /// file. Field-specific validation (id format, enum fields, priority
-/// frameworks, numeric scales) lives in `validate_tests_fields.rs`; this file
+/// frameworks, numeric scales) lives in `validate/tests_fields.rs`; this file
 /// covers status reachability, the typed `links:` edges, and id uniqueness —
 /// concerns that span more than one task or sit outside a single field.
 pub(super) fn config() -> crate::config::Config {

@@ -5,7 +5,7 @@
 //! One load, three views. The loaded project is the working tree; each other
 //! state is that load with the task files it differs at swapped for its own
 //! versions, read from git in one `git cat-file --batch` and evaluated like a
-//! file that is not on disk ([`crate::candidate`]). A file the state lacks is
+//! file that is not on disk ([`crate::validate::candidate`]). A file the state lacks is
 //! absent from it, so `exists` reads false there.
 //!
 //! Where a state's versions come from is a [`StateSource`]: a git revision and
@@ -20,13 +20,13 @@ use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-use crate::candidate::{Candidate, harvest_source};
 use crate::commit_msg::{CommitMsgError, changed_paths, git, task_stem};
 use crate::config::Config;
 use crate::git_state::GitStatus;
 use crate::loader::LoadError;
 use crate::model::Task;
 use crate::ready::Readiness;
+use crate::validate::candidate::{Candidate, harvest_source};
 
 /// Where one state's versions of the files it differs at come from.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]

@@ -1,6 +1,6 @@
 //! `values-when`: the filter naming the tasks whose field is held to its
 //! allowed values. Tags default to `!terminal`; every other field to all
-//! tasks. Shares `validate_tests.rs`'s `config()`/`task()` fixtures.
+//! tasks. Shares `validate/tests.rs`'s `config()`/`task()` fixtures.
 #![allow(clippy::unwrap_used)]
 
 use typst_harvest::HVal;

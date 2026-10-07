@@ -1,5 +1,5 @@
 //! Config types for `[tasks.body.content]` — the section-content gating rules
-//! ([`ContentRuleConfig`]) compiled by [`crate::content_gate`].
+//! ([`ContentRuleConfig`]) compiled by [`crate::body::content_gate`].
 //!
 //! Where `[tasks.body.headers]` constrains the heading TREE (which headings
 //! exist, their order, their vocabulary), this constrains what is written
@@ -8,7 +8,7 @@
 
 use serde::{Deserialize, Deserializer};
 
-use crate::body_headers::{HeaderPathSegment, duplicate_rule_names, rule_label};
+use crate::body::headers::{HeaderPathSegment, duplicate_rule_names, rule_label};
 
 /// `[tasks.body.content]` — section-content rules.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
@@ -55,7 +55,7 @@ pub struct ContentRuleConfig {
 ///   single unit may carry more than `N` matches of the regex; `per` is
 ///   `section` (the default), `paragraph`, or `sentence`. Unlike the word
 ///   counts and the regex asserts above, a fenced code block is excluded
-///   from matching entirely — see [`crate::content_gate`] for the unit-split
+///   from matching entirely — see [`crate::body::content_gate`] for the unit-split
 ///   rules.
 #[derive(Debug, Clone, PartialEq)]
 pub enum ContentAssert {
@@ -190,7 +190,7 @@ impl<'de> Deserialize<'de> for ContentAssert {
 impl ContentRuleConfig {
     /// How this rule identifies itself in a report: `body.content.rules.<name>`
     /// if it has one, else its position, `body.content.rules[<index>]` — the
-    /// same convention [`crate::body_headers::HeaderRuleConfig::label`] uses.
+    /// same convention [`crate::body::headers::HeaderRuleConfig::label`] uses.
     #[must_use]
     pub fn label(&self, index: usize) -> String {
         rule_label(self.name.as_deref(), "body.content.rules", index)
@@ -213,5 +213,5 @@ pub(crate) fn validate_content_rules(config: &crate::config::Config) -> Vec<Stri
 }
 
 #[cfg(test)]
-#[path = "body_content_tests.rs"]
+#[path = "content_tests.rs"]
 mod tests;

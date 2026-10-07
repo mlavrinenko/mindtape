@@ -26,7 +26,7 @@ pub(crate) fn check_kind(kind: Option<&str>, config: &Config, out: &mut Vec<Repo
 /// Filter `tags` against `[tasks.tags] allowed`: an unlisted tag is kept and
 /// reported as a violation by default, or dropped and reported when
 /// [`MapOptions::drop_unmapped_tags`] is set. An empty allow-list leaves every
-/// tag untouched (unconstrained, matching `validate.rs::check_tags`).
+/// tag untouched (unconstrained, matching `validate/mod.rs::check_tags`).
 pub(crate) fn map_tags(
     tags: Vec<String>,
     config: &Config,

@@ -6,8 +6,8 @@ use typst_cst::CommentKind;
 
 use super::{CommentsPolicy, check_comments, shape, validate_comments};
 use crate::config::Config;
-use crate::severity::Severity;
 use crate::test_support::bare_task;
+use crate::validate::severity::Severity;
 
 /// Write `body` at `root`/`rel`, creating parent directories as needed.
 fn write(root: &Path, rel: &str, body: &str) {

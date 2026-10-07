@@ -1,6 +1,6 @@
 //! `priority:`/`difficulty:` policy mapping: reverse the canonical schema's
 //! framework/scalar shape into [`NumValue`], then report scale and
-//! strict-framework problems via the same pure checks `validate.rs` uses
+//! strict-framework problems via the same pure checks `validate/mod.rs` uses
 //! ([`crate::framework::Framework::check_input_values`],
 //! [`crate::config::PriorityConfig::resolve`], [`NumericField::resolve`]).
 

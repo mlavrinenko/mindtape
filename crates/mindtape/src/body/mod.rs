@@ -1,15 +1,27 @@
 //! The shared per-source entry point for body-rule gating.
 //!
-//! [`crate::gate`] checks heading STRUCTURE and [`crate::content_gate`] checks
+//! [`crate::body::gate`] checks heading STRUCTURE and [`crate::body::content_gate`] checks
 //! section CONTENT; both take one task's source and a pre-compiled rule set.
 //! [`check_body_rules`] runs the two in the order `mt check` always has, so
-//! `mt check` and the candidate seam ([`crate::candidate`]) call one function
+//! `mt check` and the candidate seam ([`crate::validate::candidate`]) call one function
 //! rather than each carrying its own copy of "run headers, then content." A
 //! rule added to either gate is picked up by both callers for free.
+//!
+//! # Files
+//!
+//! - `content.rs`: config types for `[tasks.body.content]`.
+//! - `content_gate/`: section-content gating, compiled from those rules.
+//! - `gate.rs`: body-header gating, rule compilation and heading-tree matching.
+//! - `headers.rs`: config types for `[tasks.body.headers]`.
 
+pub(crate) mod content;
+pub mod content_gate;
+pub mod gate;
+pub(crate) mod headers;
+
+use crate::body::content_gate::{CompiledContentRule, check_content};
+use crate::body::gate::{CompiledRule, check_headers};
 use crate::config::Config;
-use crate::content_gate::{CompiledContentRule, check_content};
-use crate::gate::{CompiledRule, check_headers};
 use crate::model::Task;
 use crate::validate::Violation;
 
@@ -40,5 +52,4 @@ pub fn check_body_rules(
 }
 
 #[cfg(test)]
-#[path = "body_gate_tests.rs"]
 mod tests;

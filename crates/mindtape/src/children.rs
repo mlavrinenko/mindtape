@@ -17,8 +17,8 @@ use crate::config::Config;
 use crate::graph::DepIndex;
 use crate::model::Task;
 use crate::ready::{Blocker, list_targets};
-use crate::severity::Severity;
 use crate::validate::Violation;
+use crate::validate::severity::Severity;
 
 /// The built-in edge kind a child names its parent with.
 pub(crate) const PARENT: &str = "parent";
@@ -104,8 +104,8 @@ pub(crate) fn check(tasks: &[Task], config: &Config, out: &mut Vec<Violation>) {
                 message: children_violation(&status.name, &open),
                 location: task.field_location("status"),
                 severity: Severity::Warn,
-                kind: crate::violation::ViolationKind::Other,
-                reads: Some(crate::violation::reads_of_field("status")),
+                kind: crate::validate::violation::ViolationKind::Other,
+                reads: Some(crate::validate::violation::reads_of_field("status")),
             });
         }
     }

@@ -1,5 +1,5 @@
 //! Config types for `[tasks.body.headers]` — the body-header gating rules
-//! ([`HeaderRuleConfig`]) compiled into `artifact-gate` rules by [`crate::gate`].
+//! ([`HeaderRuleConfig`]) compiled into `artifact-gate` rules by [`crate::body::gate`].
 
 use std::collections::HashMap;
 
@@ -84,7 +84,7 @@ impl HeaderRuleConfig {
 
 /// How a body rule identifies itself in a report: its `name` if it has one,
 /// else its position in the array. Shared by [`HeaderRuleConfig::label`] and
-/// `ContentRuleConfig::label` in [`crate::body_content`], since a
+/// `ContentRuleConfig::label` in [`crate::body::content`], since a
 /// `[[tasks.body.headers.rules]]` entry and a `[[tasks.body.content.rules]]`
 /// one report the same way — only the array's own dotted path (`prefix`)
 /// differs.

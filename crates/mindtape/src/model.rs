@@ -108,7 +108,7 @@ pub struct Task {
     /// Where the `#show: task.with(…)` call and each of its named arguments
     /// sit in the source, so a violation the validation pass raises can point
     /// at the file rather than only name the task. Read off the source by the
-    /// loader (and by [`crate::candidate`], from the source about to be
+    /// loader (and by [`crate::validate::candidate`], from the source about to be
     /// written), once, alongside the [`body`](Self::body) slice after the same
     /// call.
     ///

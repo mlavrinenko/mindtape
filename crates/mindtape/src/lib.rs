@@ -16,10 +16,7 @@
 
 pub mod add_slots;
 pub mod app_dirs;
-mod body_content;
-pub mod body_gate;
-mod body_headers;
-pub mod candidate;
+pub mod body;
 pub mod canonical;
 pub mod children;
 mod commit_amend;
@@ -30,7 +27,6 @@ pub mod commit_refs;
 pub mod commit_task_expr;
 pub mod commit_tasks;
 pub mod config;
-pub mod content_gate;
 mod date;
 mod date_pin;
 mod dep_rank;
@@ -44,7 +40,6 @@ pub mod framework;
 mod framework_eval;
 mod framework_validate;
 pub mod fs_atomic;
-pub mod gate;
 pub mod git;
 pub mod git_state;
 pub mod graph;
@@ -70,7 +65,6 @@ pub mod task_spans;
 #[cfg(not(feature = "rrule"))]
 #[path = "recur_rrule_off.rs"]
 mod recur_rrule;
-pub mod severity;
 pub mod sort;
 pub mod status_value;
 pub mod suggest;
@@ -79,18 +73,13 @@ pub mod template_check;
 #[cfg(any(test, feature = "test-support"))]
 pub mod test_support;
 pub mod validate;
-mod validate_links;
-mod validate_priority;
-mod validate_recur;
-mod violation;
 pub mod worktrees;
 
 pub use add_slots::{RequiredSlot, inherit_field_choices, required_core_slots};
 pub use app_dirs::{CONFIG_HOME_ENV, DATA_HOME_ENV, config_home, data_home};
-pub use body_gate::{BodyRules, check_body_rules};
-pub use candidate::{
-    Candidate, Checked, check_candidate, check_candidates, harvest_candidate, reads_set_breach,
-};
+pub use body::content_gate::{CompiledContentRule, check_content, compile_content_rules};
+pub use body::gate::{CompiledRule, GateError, check_headers, compile_rules};
+pub use body::{BodyRules, check_body_rules};
 pub use canonical::{CanonicalTask, SCHEMA_VERSION};
 pub use children::{children_violation, unfinished_children};
 pub use commit_expr::CommitExpr;
@@ -116,7 +105,6 @@ pub use config::{
     builtin_dict_names, compile_dicts, config_path, embedded_defaults, load_config, parse_config,
     parse_import_view, roles_of, validate_dicts, validate_views,
 };
-pub use content_gate::{CompiledContentRule, check_content, compile_content_rules};
 pub use date::{days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};
 pub use date_pin::{DateOverrideError, init_pinned_today};
 pub use derive::RootDeriver;
@@ -128,7 +116,6 @@ pub use filter::{Filter, FilterError};
 pub use format::format_typst;
 pub use framework::{Category, Framework, Input, InputKind};
 pub use fs_atomic::write_atomic;
-pub use gate::{CompiledRule, GateError, check_headers, compile_rules};
 pub use git::current_branch;
 pub use graph::{Cycle, Edge, edges, find_referrer, resolve_edge, toposort};
 pub use handle::{RefError, Resolution, Resolved, StemHashes, is_path_ref, resolve_ref};
@@ -147,7 +134,6 @@ pub use numeric::{
 };
 pub use ready::{Blocker, Readiness, ReadyState, blockers_of, unblocked_violation, waits_on};
 pub use rules::{CheckSpec, RuleSpec};
-pub use severity::Severity;
 pub use sort::{default_order, default_order_with, difficulty_value, sort_by_specs};
 pub use status_value::{STATUS_SHORTCUTS, escape_markup, status_value};
 pub use suggest::{hint, nearest};
@@ -156,6 +142,10 @@ pub use template::{FillError, RawValue, SlotKind, SlotSpec, discover_slots, fill
 pub use template_check::{
     TemplateHome, TemplateSources, template_breaches, template_failure, unfillable_slots,
 };
+pub use validate::candidate::{
+    Candidate, Checked, check_candidate, check_candidates, harvest_candidate, reads_set_breach,
+};
+pub use validate::severity::Severity;
 pub use validate::{Location, Violation, ViolationKind, validate};
 pub use worktrees::{WorktreeEntry, WorktreeError, WorktreeRegistry};
 

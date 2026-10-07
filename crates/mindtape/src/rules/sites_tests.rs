@@ -6,8 +6,8 @@ use super::RuleSites;
 use crate::config::layers::{LayerSource, load_config_layered_from};
 use crate::config::packs::{PackOrigin, RuleOrigin, RuleOriginEntry};
 use crate::rules::check_all;
-use crate::severity::Severity;
 use crate::test_support::bare_task;
+use crate::validate::severity::Severity;
 use crate::validate::{Location, Violation};
 
 /// A rule git cannot answer, so every config that declares it skips it.

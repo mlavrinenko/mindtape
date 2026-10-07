@@ -2,12 +2,12 @@
 //! (the section, its paragraphs, or its sentences), count each unit's regex
 //! matches, and report the first unit over the bound.
 //!
-//! Split out of [`crate::content_gate`] to stay under the file-size gate; the
+//! Split out of [`crate::body::content_gate`] to stay under the file-size gate; the
 //! split rules ([`density_units`]) are the entire reason this is its own file.
 
 use regex::Regex;
 
-use crate::body_content::DensityUnit;
+use crate::body::content::DensityUnit;
 
 /// The first unit (in document order) whose match count of `re` exceeds
 /// `max`, named by ordinal and — for a paragraph or sentence unit — its

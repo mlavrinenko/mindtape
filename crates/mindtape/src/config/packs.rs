@@ -16,8 +16,8 @@
 //! appending a second copy. That replacement only ever looks at entries from
 //! an EARLIER source: two same-named entries within one source's own array
 //! are both kept untouched, so a same-file mistake still reaches
-//! [`crate::body_headers::validate_header_rules`] /
-//! [`crate::body_content::validate_content_rules`] as a duplicate-name error
+//! [`crate::body::headers::validate_header_rules`] /
+//! [`crate::body::content::validate_content_rules`] as a duplicate-name error
 //! instead of silently collapsing. `disable` then drops every rule (in any of
 //! the four arrays) carrying a listed name, erroring on a name matching
 //! none.

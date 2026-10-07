@@ -62,7 +62,7 @@ groups:
       crates/mindtape-cli/src/worktrees.rs: 844afb5b116a83aec8bf858e286273242881786cb5ddf4dab4c168bff65e4508
       crates/mindtape/src/config/defaults.toml: 966e5c1993de2c5a61e3633138ed30ffb8b7836ed63f627903f58107943d6cc9
       crates/mindtape/src/fields.rs: a51207eacb16a37f2003b12d34ee58352ec715c9f11b80bb41ddf6eecf3a6fcc
-      crates/mindtape/src/lib.rs: 52efa39a90d7bee0a228b1d9608c3c448f0a678b14e798f168edf38b4ff29871
+      crates/mindtape/src/lib.rs: 87b32e5f983f002fb00ee1131e576f506b1fff6c626a517fa55fa48d1cbd786d
     dependents:
       docs/src/skill.typ: c2c1f99555057c80465e0382054300d746b69ed7fca2189f0de1f6857231b165
       skills/mindtape/evals/README.md: 096a87126b99bf1befb6a9d23f1aa3021870a0f86e13b655800725fedf762f53
@@ -130,20 +130,20 @@ groups:
       .just/scripts/cover.sh: b319f75064ea55c2a7600ff1af7127b41817c68409e70613de2eafa4ae71b85f
       .just/scripts/crap-baseline-check.sh: c44c998700a5e14ae944829bc42ef6005e30041525aba2725cfe2fddd005f5e9
       .just/scripts/crap-baseline.sh: 9557082bf19d408a02ab75cc5386d1c0667391cd24c07fa62ed595ef521cce87
-      .just/scripts/crap.sh: 22f24cea4fcc97fbec447b356dc1162b712f5e35c9c355b99cfa1d058c26a326
+      .just/scripts/crap.sh: cc0d3dc3e5308d711e41845e1f4cfde7d0d9cf801b86cdb273df5f93dabc0797
     dependents:
-      docs/src/contributing/coverage-crap.typ: 4cca206220b9c5494ee882c327f911b731f5194d38a4443069d6978b228cd4f2
+      docs/src/contributing/coverage-crap.typ: 9e27453222193a452bf4b8aa5562175a19f73185c6f9d8a296fcb8a16fc83509
       docs/src/contributing/crap-baseline.typ: bcbc918cf8976b8d4b560bd4190c6eb96eab3c2ca3e380108c9996bd65cae98d
   dev-shell-docs:
     source:
       .config/nextest.toml: a310c30b19df7fce268db1c136bdd93ff76bf2116e28e4fe799be41ba79920e5
       .just/docs.just: e6a852da423c2ec230c1bc281ab9bb4fe0ce6598a4b4765629adaec32c3714ae
-      Justfile: 0371655ab425f20dad2cb4b4560804a5f0b03a160937d7f0609e790764d81886
+      Justfile: f279f36bda210020cc7915f7332bd19bd00c5ef70aa8f9b0a3445d21955f5c7f
       flake.nix: 9da2e53a4c30d4f6d3beffcf732eebebb2bf6476cd5782b9958c8aee01b93248
     dependents:
       docs/src/agents.typ: 48e52ec38d9086566fe2bdaaf0c8404e04988c4f636d39dfae48a8a682507d4c
       docs/src/contributing.typ: 1a8b708d948735b9be452fdb62bb3cffac32bd69d8b235807bd4e21f47d67920
-      docs/src/contributing/coverage-crap.typ: 4cca206220b9c5494ee882c327f911b731f5194d38a4443069d6978b228cd4f2
+      docs/src/contributing/coverage-crap.typ: 9e27453222193a452bf4b8aa5562175a19f73185c6f9d8a296fcb8a16fc83509
       docs/src/contributing/crap-baseline.typ: bcbc918cf8976b8d4b560bd4190c6eb96eab3c2ca3e380108c9996bd65cae98d
       docs/src/contributing/docs-site-build.typ: ab55a155324dc7aacc60167fc5bac4bd09cd9e479dd30d71d8d15f24d942fd6a
       docs/src/contributing/documentation.typ: c8d2c27bb761b7c0d93155f29a9ce6fd4bb70fe772bf57863f20a410187940fe

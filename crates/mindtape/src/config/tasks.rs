@@ -14,8 +14,8 @@ use std::collections::{BTreeMap, HashSet};
 
 use serde::{Deserialize, Deserializer};
 
-use crate::body_content::ContentConfig;
-use crate::body_headers::HeadersConfig;
+use crate::body::content::ContentConfig;
+use crate::body::headers::HeadersConfig;
 use crate::config::dicts::Dicts;
 use crate::config::estimate::EstimateConfig;
 use crate::config::required::Requirement;

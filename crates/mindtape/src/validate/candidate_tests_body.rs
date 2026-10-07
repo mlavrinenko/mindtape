@@ -1,7 +1,7 @@
 //! The body-rule half of the candidate seam: a header or content rule
 //! `mt check` already enforces is run over the candidate's own source and
 //! refuses a candidate that breaks it before anything is written. Split out of
-//! `candidate_tests.rs`, which was near the linecop cap, along the
+//! `validate/candidate_tests.rs`, which was near the linecop cap, along the
 //! core-vs-body-rule seam; the shared `marker`/`setup` helpers stay in the
 //! parent test module and are reached through `super::tests`.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
@@ -10,8 +10,8 @@ use std::path::Path;
 
 use super::tests::{marker, setup};
 use super::{BodyRules, Candidate, check_candidate};
-use crate::content_gate::compile_content_rules;
-use crate::gate::compile_rules;
+use crate::body::content_gate::compile_content_rules;
+use crate::body::gate::compile_rules;
 use crate::loader::load_project;
 use crate::parse_config;
 

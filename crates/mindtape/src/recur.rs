@@ -382,7 +382,7 @@ pub(crate) fn weekday_name(day: chrono::Weekday) -> &'static str {
 /// unit/anchor allow-lists, materialize's fixed vocabulary, the
 /// weekday-set/period-unit pairing, and the `rrule` feature flag.
 ///
-/// Pure and [`crate::model::Task`]-free — [`crate::validate_recur`] wraps each
+/// Pure and [`crate::model::Task`]-free — [`crate::validate::recur`] wraps each
 /// string into a [`crate::validate::Violation`] for `mt check`; `mt recur`
 /// calls this directly so a misconfigured task fails before any file is
 /// touched.

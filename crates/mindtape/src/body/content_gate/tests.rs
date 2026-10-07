@@ -4,8 +4,8 @@
 //! `message` override, and the word-count semantics.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+use crate::body::content_gate::{GateError, check_content, compile_content_rules};
 use crate::config::parse_config;
-use crate::content_gate::{GateError, check_content, compile_content_rules};
 use crate::test_support::bare_task;
 
 /// One `[[tasks.body.content.rules]]` entry in TOML, compiled and run against

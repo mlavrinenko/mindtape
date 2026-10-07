@@ -24,9 +24,9 @@
 #
 # What each exclusion buys:
 #
-#   - `*_tests.rs`/`tests.rs`/`*_tests_*.rs` keep CRAP on production code. They
+#   - `*_tests.rs`/`tests.rs`/`*_tests_*.rs`/`tests_*.rs` keep CRAP on production code. They
 #     are inline test modules (`#[path] mod tests`, `ejectest`'s split form
-#     included — `validate_tests_shape.rs`, `config/packs_tests_body.rs`, and
+#     included — `validate/tests_shape.rs`, `config/packs_tests_body.rs`, and
 #     the rest ejectest names when a file crosses the linecop cap), which
 #     llvm-cov emits no records for, so scoring them meant 71 of the 73 "no
 #     matching entry in the LCOV report" warnings and a complexity budget

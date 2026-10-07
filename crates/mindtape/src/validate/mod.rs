@@ -3,9 +3,25 @@
 //! Enforces the declared status lifecycle, enum field constraints, the estimate
 //! unit allow-list, the `required` rules (a filter expression per field, see
 //! [`crate::config::required`]), the tag allow-list, the priority framework
-//! scoring/manual-override policy (see [`crate::validate_priority`]), and the
+//! scoring/manual-override policy (see [`crate::validate::priority`]), and the
 //! typed `links:` edges (resolution, cardinality, notes, cycles — see
-//! [`crate::validate_links`]).
+//! [`crate::validate::links`]).
+//!
+//! # Files
+//!
+//! - `candidate.rs`: validates a rendered task before it is written.
+//! - `links.rs`: the typed `links:` edge checks.
+//! - `priority.rs`: priority framework and manual-override checks.
+//! - `recur.rs`: the task-level `recur` policy check.
+//! - `severity.rs`: how loudly a config-declared breach reports.
+//! - `violation.rs`: what a check reports and where in the source it points.
+
+pub mod candidate;
+pub(crate) mod links;
+pub(crate) mod priority;
+pub(crate) mod recur;
+pub mod severity;
+pub(crate) mod violation;
 
 use std::collections::HashMap;
 
@@ -16,8 +32,8 @@ use crate::field_descriptor::Descriptor;
 use crate::fields;
 use crate::model::{Status, Task};
 use crate::numeric::{NumValue, NumericField, format_num};
-use crate::severity::Severity;
-pub use crate::violation::{Location, Violation, ViolationKind};
+use crate::validate::severity::Severity;
+pub use crate::validate::violation::{Location, Violation, ViolationKind};
 
 /// Validate every task against `config`, returning all violations.
 #[must_use]
@@ -33,7 +49,7 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
         for field in &described {
             check_field(task, config, field, &mut out);
         }
-        out.extend(crate::validate_priority::check_priority(
+        out.extend(crate::validate::priority::check_priority(
             task,
             &config.tasks.priority,
             still_required(required.priority(task, config), task, "priority"),
@@ -47,9 +63,9 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
         ));
         let must_estimate = still_required(required.estimate(task, config), task, "estimate");
         check_estimate(task, config, must_estimate, &mut out);
-        crate::validate_recur::check_all(task, config, &mut out);
+        crate::validate::recur::check_all(task, config, &mut out);
     }
-    crate::validate_links::check_all(tasks, config, &mut out);
+    crate::validate::links::check_all(tasks, config, &mut out);
     crate::rules::check_all(tasks, config, &mut out);
     out
 }
@@ -108,8 +124,8 @@ fn check_id_uniqueness(tasks: &[Task], out: &mut Vec<Violation>) {
                 ),
                 location: task.field_location("id"),
                 severity: Severity::Error,
-                kind: crate::violation::ViolationKind::Other,
-                reads: Some(crate::violation::reads_of_field("id")),
+                kind: crate::validate::violation::ViolationKind::Other,
+                reads: Some(crate::validate::violation::reads_of_field("id")),
             });
         } else {
             seen.insert(&task.id, task);
@@ -158,8 +174,8 @@ pub(crate) fn violation(task: &Task, field: &str, message: String) -> Violation 
         message,
         location: task.field_location(field),
         severity: Severity::Error,
-        kind: crate::violation::ViolationKind::Other,
-        reads: Some(crate::violation::reads_of_field(field)),
+        kind: crate::validate::violation::ViolationKind::Other,
+        reads: Some(crate::validate::violation::reads_of_field(field)),
     }
 }
 
@@ -267,7 +283,7 @@ fn check_numeric(
 /// Resolve a value and check it lands on the scale. Returns at most one violation.
 ///
 /// Shared by [`check_numeric`] (difficulty and any other plain numeric field)
-/// and [`crate::validate_priority`] (priority's manual-value path and its
+/// and [`crate::validate::priority`] (priority's manual-value path and its
 /// framework score both land on the same [`NumericField`] scale machinery).
 pub(crate) fn check_in_scale(
     task: &Task,
@@ -331,25 +347,19 @@ fn check_estimate(task: &Task, config: &Config, required: bool, out: &mut Vec<Vi
 }
 
 #[cfg(test)]
-#[path = "validate_tests.rs"]
 mod tests;
 
 #[cfg(test)]
-#[path = "validate_tests_fields.rs"]
 mod tests_fields;
 
 #[cfg(test)]
-#[path = "validate_tests_id.rs"]
 mod tests_id;
 
 #[cfg(test)]
-#[path = "validate_tests_shape.rs"]
 mod tests_shape;
 
 #[cfg(test)]
-#[path = "validate_tests_extras.rs"]
 mod tests_extras;
 
 #[cfg(test)]
-#[path = "validate_tests_when.rs"]
 mod tests_when;

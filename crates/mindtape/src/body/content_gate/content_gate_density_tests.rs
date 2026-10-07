@@ -3,7 +3,7 @@
 //! `split_sentences` and `push_trimmed`.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use crate::body_content::DensityUnit;
+use crate::body::content::DensityUnit;
 
 use super::{density_subject, push_trimmed, snippet, split_sentences};
 

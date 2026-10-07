@@ -10,7 +10,7 @@ use typst_cst::{HeadingNode, parse_headings, tree};
 use crate::config::{Config, HeaderAction, HeaderPathSegment, HeaderRuleConfig};
 use crate::filter::{Filter, FilterError};
 use crate::model::Task;
-use crate::severity::Severity;
+use crate::validate::severity::Severity;
 use crate::validate::{Location, Violation};
 
 /// A compiled, ready-to-run header rule (pre-parsed filter, pre-compiled regex,
@@ -232,8 +232,8 @@ fn diagnostic_to_violation(
         message: diag.message,
         location,
         severity: Severity::Error,
-        kind: crate::violation::ViolationKind::Other,
-        reads: crate::violation::reads_of(rule.when.iter()),
+        kind: crate::validate::violation::ViolationKind::Other,
+        reads: crate::validate::violation::reads_of(rule.when.iter()),
     }
 }
 

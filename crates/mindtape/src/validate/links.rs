@@ -1,4 +1,4 @@
-//! Validation for the typed `links:` edge field, split out of `validate.rs`
+//! Validation for the typed `links:` edge field, split out of `validate/mod.rs`
 //! (file-size gate): target resolution, per-kind cardinality, required-note
 //! enforcement, unknown-kind rejection, and cycle detection over every
 //! acyclic-flagged kind (`depends-on` and `parent` ship flagged this way; see
@@ -22,9 +22,9 @@ use crate::link::{
 };
 use crate::model::{Task, resolve_link_path};
 use crate::ready::{collect_blockers, unblocked_violation};
-use crate::severity::Severity;
 use crate::validate::Violation;
-use crate::violation::ViolationKind;
+use crate::validate::severity::Severity;
+use crate::validate::violation::ViolationKind;
 
 /// Validate every task's `links:` edges against `config`, appending violations
 /// to `out`: resolution (or target-shape validation) and per-kind
@@ -71,7 +71,7 @@ fn check_unblocked(tasks: &[Task], config: &Config, out: &mut Vec<Violation>) {
                 location: task.field_location("status"),
                 severity: Severity::Warn,
                 kind: ViolationKind::Other,
-                reads: Some(crate::violation::reads_of_field("status")),
+                reads: Some(crate::validate::violation::reads_of_field("status")),
             });
         }
     }
@@ -224,7 +224,7 @@ fn check_cycle(tasks: &[Task], kind: &str, out: &mut Vec<Violation>) {
             location,
             severity: Severity::Error,
             kind: ViolationKind::Other,
-            reads: Some(crate::violation::reads_of_field("links")),
+            reads: Some(crate::validate::violation::reads_of_field("links")),
         });
     }
 }
@@ -242,10 +242,10 @@ fn breach(task: &Task, field: String, message: String) -> Violation {
         message,
         severity: Severity::Error,
         kind: ViolationKind::Other,
-        reads: Some(crate::violation::reads_of_field("links")),
+        reads: Some(crate::validate::violation::reads_of_field("links")),
     }
 }
 
 #[cfg(test)]
-#[path = "validate_links_tests.rs"]
+#[path = "links_tests.rs"]
 mod tests;

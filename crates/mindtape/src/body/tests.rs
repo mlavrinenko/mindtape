@@ -1,14 +1,14 @@
 //! [`check_body_rules`]'s own tests: it runs both gates, in header-then-content
 //! order, and neither gate's rule set is required for the other to run —
-//! [`gate_tests`](crate::gate_tests) and
-//! [`content_gate_tests`](crate::content_gate_tests) pin each gate's own
+//! `gate_tests.rs` and
+//! `content_gate/tests.rs` pin each gate's own
 //! behaviour; this pins only that the combinator calls both.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use super::{BodyRules, check_body_rules};
+use crate::body::content_gate::compile_content_rules;
+use crate::body::gate::compile_rules;
 use crate::config::parse_config;
-use crate::content_gate::compile_content_rules;
-use crate::gate::compile_rules;
 use crate::test_support::bare_task;
 
 #[test]

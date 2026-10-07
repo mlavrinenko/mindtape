@@ -15,8 +15,8 @@ use crate::filter::{Filter, FilterError};
 use crate::model::Task;
 use crate::ready::Readiness;
 use crate::rules::typst::CompiledCheck;
-use crate::severity::Severity;
 use crate::validate::Violation;
+use crate::validate::severity::Severity;
 
 use super::RuleSpec;
 
@@ -34,9 +34,11 @@ enum RuleKind {
 /// receives. A `check` handed the whole task, or an expression reaching
 /// through a view, may be about any field.
 fn rule_reads(spec: &RuleSpec, when: Option<&Filter>, kind: &RuleKind) -> Option<BTreeSet<String>> {
-    let mut reads = crate::violation::reads_of(when)?;
+    let mut reads = crate::validate::violation::reads_of(when)?;
     match kind {
-        RuleKind::Assert { filter, .. } => reads.extend(crate::violation::reads_of([filter])?),
+        RuleKind::Assert { filter, .. } => {
+            reads.extend(crate::validate::violation::reads_of([filter])?);
+        }
         RuleKind::Check(_) => {
             reads.insert(spec.check.as_ref()?.field.clone()?);
         }
@@ -152,7 +154,7 @@ impl CompiledRule {
         let found = self.violation(task, format!("skipped: {err}"));
         Violation {
             severity: Severity::Warn,
-            kind: crate::violation::ViolationKind::SkippedRule,
+            kind: crate::validate::violation::ViolationKind::SkippedRule,
             location: config
                 .rule_sites
                 .get(&self.label)
@@ -172,7 +174,7 @@ impl CompiledRule {
             message,
             location: task.marker_location(),
             severity: self.severity,
-            kind: crate::violation::ViolationKind::Other,
+            kind: crate::validate::violation::ViolationKind::Other,
             reads: self.reads.clone(),
         }
     }

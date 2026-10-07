@@ -14,12 +14,12 @@
 //!
 //! The import path is absolute (`/`-rooted), so it resolves against the
 //! project root regardless of where the synthetic file's own virtual path
-//! sits — Typst's own import rule, the one [`crate::candidate`] leans on for
+//! sits — Typst's own import rule, the one [`crate::validate::candidate`] leans on for
 //! the opposite reason (a candidate's relative imports must resolve as if the
 //! file already lived at its destination). The synthetic file never touches
 //! disk: it is installed with
 //! [`typst_world::World::with_source_override`], the same route
-//! [`crate::candidate`] uses for a task that does not exist on disk yet, on a
+//! [`crate::validate::candidate`] uses for a task that does not exist on disk yet, on a
 //! world built with [`typst_world::DiskProvider`] rooted at the project.
 //!
 //! # Reuse across tasks

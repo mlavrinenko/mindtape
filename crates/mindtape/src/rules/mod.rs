@@ -75,7 +75,7 @@ use serde::Deserialize;
 
 use crate::config::Config;
 use crate::model::Task;
-use crate::severity::Severity;
+use crate::validate::severity::Severity;
 
 /// The project root a loaded [`Config`] was built for, resolved once by
 /// [`crate::config::layers::build_config`] and carried on the config itself —
@@ -246,8 +246,8 @@ pub(crate) fn validate_rules(config: &Config) -> Vec<String> {
 
 /// Cross-check for `[[tasks.rules]]`, folded into [`Config::validate`]: no two
 /// entries share a `name`. Mirrors
-/// [`crate::body_headers::validate_header_rules`] /
-/// [`crate::body_content::validate_content_rules`] — `RuleSpec` already had a
+/// [`crate::body::headers::validate_header_rules`] /
+/// [`crate::body::content::validate_content_rules`] — `RuleSpec` already had a
 /// `name` before either of those did, but never a check that two entries
 /// couldn't share one.
 ///
@@ -258,14 +258,14 @@ pub(crate) fn validate_rules(config: &Config) -> Vec<String> {
 /// fully merged [`Config::tasks`] — two surviving entries with the same name
 /// can only mean one file (a layer's own array, or a pack's) declared both.
 pub(crate) fn validate_rule_names(config: &Config) -> Vec<String> {
-    crate::body_headers::duplicate_rule_names(
+    crate::body::headers::duplicate_rule_names(
         config.tasks.rules.iter().map(|rule| rule.name.as_deref()),
         "tasks.rules",
     )
 }
 
 /// Every `[[tasks.rules]]` entry's report label (`rules.<name>` or
-/// `rules[<index>]`), for [`crate::candidate::elsewhere_violations`] to
+/// `rules[<index>]`), for [`crate::validate::candidate::elsewhere_violations`] to
 /// recognize a rule breach among the violations it attributes across a batch.
 ///
 /// A set-aware rule — one asserting `count(...)`, or reading the `links:`

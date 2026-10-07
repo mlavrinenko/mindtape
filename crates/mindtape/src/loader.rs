@@ -228,7 +228,7 @@ fn assemble_task(item: &LoadItem, marker: &HVal, source: &str) -> Task {
 /// Build a [`Task`] for a file at project-relative `rel` from an already
 /// harvested `marker` and the source it came from — the [`assemble_task`] path
 /// for a file that [`collect_items`] never walked, because it is not on disk
-/// yet ([`crate::candidate`]).
+/// yet ([`crate::validate::candidate`]).
 pub(crate) fn task_at(
     root: &Path,
     config: &Config,

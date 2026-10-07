@@ -1,6 +1,6 @@
 //! `[tasks.fields.x-<ns>]`: an extension slot held to its declared `values`
 //! and `required` rule, and the load-time refusal of a `[tasks.fields]` key
-//! that names nothing the table constrains. Shares `validate_tests.rs`'s
+//! that names nothing the table constrains. Shares `validate/tests.rs`'s
 //! `config()`/`task()` fixtures.
 #![allow(clippy::unwrap_used)]
 

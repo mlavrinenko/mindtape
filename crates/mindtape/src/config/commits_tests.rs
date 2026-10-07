@@ -3,7 +3,7 @@
 use super::check_commit;
 use crate::commit_msg::CommitRecord;
 use crate::config::parse_config;
-use crate::severity::Severity;
+use crate::validate::severity::Severity;
 
 fn record(refs: &[&str], tasks_only: bool) -> CommitRecord {
     CommitRecord {

@@ -6,7 +6,7 @@ use crate::link::{Link, LinkKind, NoteRule, TargetValidator};
 use crate::model::Task;
 use crate::test_support::bare_task;
 use crate::validate::Violation;
-use crate::violation::ViolationKind;
+use crate::validate::violation::ViolationKind;
 
 fn edge(target: &str, kind: &str) -> Link {
     Link {

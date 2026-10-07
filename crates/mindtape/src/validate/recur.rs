@@ -2,7 +2,7 @@
 //!
 //! A thin [`crate::validate::Violation`] adapter over
 //! [`crate::recur::check_policy`]'s pure problem strings — the same split as
-//! [`crate::validate_links`] over the link resolution/cardinality checks.
+//! [`crate::validate::links`] over the link resolution/cardinality checks.
 
 use crate::config::Config;
 use crate::model::Task;
@@ -18,5 +18,5 @@ pub(crate) fn check_all(task: &Task, config: &Config, out: &mut Vec<Violation>) 
 }
 
 #[cfg(test)]
-#[path = "validate_recur_tests.rs"]
+#[path = "recur_tests.rs"]
 mod tests;

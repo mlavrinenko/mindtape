@@ -1,7 +1,7 @@
 //! The `[tasks.id] format` check: a plain-string id under the default config,
 //! and the `uuid-v4` / `uuid-v7` formats accepting their own version and
 //! rejecting the other (and any non-UUID string). Split out of
-//! `validate_tests_fields.rs` (file-size gate).
+//! `validate/tests_fields.rs` (file-size gate).
 
 #![allow(clippy::unwrap_used)]
 

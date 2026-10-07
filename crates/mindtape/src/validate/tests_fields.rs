@@ -1,7 +1,7 @@
 //! Field-scoped validation: a single field's required/scale/enum/format
 //! constraints, in isolation from the cross-task concerns (status
 //! reachability, link resolution, id uniqueness) covered in
-//! `validate_tests.rs`. Shares that file's `config()`/`task()` fixtures.
+//! `validate/tests.rs`. Shares that file's `config()`/`task()` fixtures.
 #![allow(clippy::unwrap_used)]
 
 use std::collections::BTreeMap;

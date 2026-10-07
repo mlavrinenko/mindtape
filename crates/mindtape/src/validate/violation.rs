@@ -2,7 +2,7 @@
 //!
 //! Separate from [`crate::validate`], which is the checks themselves. Every
 //! pass that can fail a task builds one of these — the core field checks, the
-//! body-shape gates ([`crate::gate`], [`crate::content_gate`]), the comment
+//! body-shape gates ([`crate::body::gate`], [`crate::body::content_gate`]), the comment
 //! scan ([`crate::config::comments`]) and the config-declared rules
 //! ([`crate::rules`]) — and every consumer reads exactly these fields,
 //! so the report type outliving any one pass is the point.
@@ -14,7 +14,7 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use crate::filter::Filter;
-use crate::severity::Severity;
+use crate::validate::severity::Severity;
 
 /// Where a violation points: a line of a file the reader can open, or of a
 /// source that has no file.

@@ -6,10 +6,10 @@
 //! cap, per `CONTRIBUTING.md`'s `just fix-check`/ejectest convention.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use crate::body_gate::{BodyRules, check_body_rules};
+use crate::body::content_gate::compile_content_rules;
+use crate::body::gate::compile_rules;
+use crate::body::{BodyRules, check_body_rules};
 use crate::config::layers::load_config_layered_from;
-use crate::content_gate::compile_content_rules;
-use crate::gate::compile_rules;
 use crate::test_support::{bare_task, home_and_project};
 
 /// Build the typed [`crate::config::Config`] a project whose ONLY

@@ -26,7 +26,7 @@ use std::path::Path;
 use typst_harvest::{HVal, HarvestWorld, harvest};
 use typst_world::{DiskProvider, root_file_id};
 
-use crate::body_gate::{BodyRules, check_body_rules};
+use crate::body::{BodyRules, check_body_rules};
 use crate::config::Config;
 use crate::link::acyclic_kinds;
 use crate::loader::LoadError;
@@ -61,8 +61,8 @@ pub struct Checked {
 /// here — with any task already at `rel` replaced, so a rewrite is checked as a
 /// rewrite rather than as a duplicate id.
 ///
-/// `body_rules` are `mt check`'s own header ([`crate::gate`]) and content
-/// ([`crate::content_gate`]) rules, compiled once by the caller and run over
+/// `body_rules` are `mt check`'s own header ([`crate::body::gate`]) and content
+/// ([`crate::body::content_gate`]) rules, compiled once by the caller and run over
 /// `candidate.source` directly — the candidate's own text, not a loaded
 /// file's — beside [`crate::validate::validate`], so a body-rule breach
 /// `mt check` would report is refused here too, before anything is written.
@@ -109,7 +109,7 @@ pub fn check_candidate(
 /// batch of rewrites is checked as rewrites rather than as duplicate ids.
 ///
 /// `body_rules` are `mt check`'s own header and content rules
-/// ([`crate::body_gate`]), compiled once by the caller for the whole batch and
+/// ([`crate::body`]), compiled once by the caller for the whole batch and
 /// run over each candidate's own `source` — never over an existing task's, so
 /// a body-rule breach already on disk cannot leak onto an unrelated candidate.
 #[must_use]
@@ -184,8 +184,8 @@ pub fn check_candidates(
 /// skipped for lack of git, a breach of the config reported once at its entry.
 #[must_use]
 pub fn reads_set_breach(config: &Config, violation: &Violation) -> bool {
-    crate::validate_links::is_unresolved(violation)
-        || violation.kind == crate::violation::ViolationKind::SkippedRule
+    crate::validate::links::is_unresolved(violation)
+        || violation.kind == crate::validate::violation::ViolationKind::SkippedRule
         || acyclic_kinds(&config.tasks.links).contains(&violation.field.as_str())
         || crate::rules::set_labels(config).contains(&violation.field)
 }

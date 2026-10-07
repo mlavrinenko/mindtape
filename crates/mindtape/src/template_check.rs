@@ -17,9 +17,9 @@ use std::path::Path;
 use typst_edit::line_of;
 
 use crate::add_slots::RequiredSlot;
-use crate::severity::Severity;
 use crate::task_spans::TaskCallSpans;
 use crate::template::discover_slots;
+use crate::validate::severity::Severity;
 use crate::validate::{Location, Violation};
 
 /// The field a template's own breach reports under.
@@ -134,7 +134,7 @@ fn breach(home: TemplateHome<'_>, line: usize, message: String) -> Violation {
         message,
         location: home.at(line),
         severity: Severity::Error,
-        kind: crate::violation::ViolationKind::Other,
+        kind: crate::validate::violation::ViolationKind::Other,
         reads: Some(std::collections::BTreeSet::new()),
     }
 }

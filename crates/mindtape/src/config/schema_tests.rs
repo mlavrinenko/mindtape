@@ -3,8 +3,8 @@
 use schemars::JsonSchema;
 
 use super::{SCHEMA_URL, config_schema_json};
-use crate::body_content::ContentAssert;
-use crate::body_headers::{HeaderAction, HeaderPathSegment};
+use crate::body::content::ContentAssert;
+use crate::body::headers::{HeaderAction, HeaderPathSegment};
 use crate::config::{DensityUnit, IdFormat, Requirement};
 use crate::naming::DedupMode;
 
@@ -81,15 +81,15 @@ fn hand_written_schema_ids_are_correct() {
     );
     assert_eq!(
         <HeaderAction as JsonSchema>::schema_id(),
-        "mindtape::body_headers::HeaderAction"
+        "mindtape::body::headers::HeaderAction"
     );
     assert_eq!(
         <HeaderPathSegment as JsonSchema>::schema_id(),
-        "mindtape::body_headers::HeaderPathSegment"
+        "mindtape::body::headers::HeaderPathSegment"
     );
     assert_eq!(
         <ContentAssert as JsonSchema>::schema_id(),
-        "mindtape::body_content::ContentAssert"
+        "mindtape::body::content::ContentAssert"
     );
     assert_eq!(
         <DedupMode as JsonSchema>::schema_id(),
@@ -97,7 +97,7 @@ fn hand_written_schema_ids_are_correct() {
     );
     assert_eq!(
         <DensityUnit as JsonSchema>::schema_id(),
-        "mindtape::body_content::DensityUnit"
+        "mindtape::body::content::DensityUnit"
     );
 }
 

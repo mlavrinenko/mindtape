@@ -14,7 +14,7 @@ use std::path::Path;
 
 use crate::config::layers::LayerSource;
 use crate::config::packs::{PackOrigin, RuleOrigin, RuleOriginEntry};
-use crate::violation::Location;
+use crate::validate::violation::Location;
 
 /// The label prefix of the `[[tasks.rules]]` entries in a rule origin record.
 const RULES_PREFIX: &str = "tasks.";

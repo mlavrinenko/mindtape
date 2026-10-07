@@ -45,7 +45,7 @@ use crate::commit_task_expr::{TaskScope, desugar_commit_into, task_expr_problem}
 use crate::commit_tasks::CommitStates;
 use crate::config::Config;
 use crate::filter::FilterError;
-use crate::severity::Severity;
+use crate::validate::severity::Severity;
 
 /// `[commits]` — how commits name the tasks they work on, and the rules a
 /// commit is checked against.
@@ -275,7 +275,7 @@ pub(crate) fn validate_commits(config: &Config) -> Vec<String> {
             problems.push(format!("{path}.when: {problem}"));
         }
     }
-    problems.extend(crate::body_headers::duplicate_rule_names(
+    problems.extend(crate::body::headers::duplicate_rule_names(
         config.commits.rules.iter().map(|rule| rule.name.as_deref()),
         "commits.rules",
     ));
