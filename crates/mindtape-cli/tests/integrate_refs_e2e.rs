@@ -221,7 +221,7 @@ fn gated_repo() -> Option<(tempfile::TempDir, tempfile::TempDir, PathBuf, PathBu
         "scopes:\n  tasks: [\"tasks/**\"]\ncommands:\n  - name: \"true\"\n    inputs: [tasks]\n    tags: [gate]\n",
     )
     .unwrap();
-    std::fs::write(main.path().join(".gitignore"), ".mmz/cache/\n").unwrap();
+    std::fs::write(main.path().join(".gitignore"), ".mmz/cache/\ntarget/\n").unwrap();
     git_commit_all(main.path());
     let (holder, wt) = add_worktree(main.path());
     let bin = holder.path().join("bin");
@@ -283,4 +283,98 @@ fn a_carried_record_that_does_not_match_main_stays_stale() {
     let out = integrate_with(main.path(), Some(&bin));
     assert!(out.status.success(), "{}", stderr(&out));
     assert!(!main_is_fresh(main.path()));
+}
+
+const LCOV: &str = "target/coverage/lcov.info";
+
+/// The worktree's lcov: one record whose `SF:` names `src` under `root`, as
+/// `cargo llvm-cov` writes absolute paths.
+fn lcov_naming(root: &Path, src: &str) -> String {
+    format!("SF:{}/{src}\nDA:1,1\nend_of_record\n", root.display())
+}
+
+/// [`gated_repo`] whose branch adds `crates/a.rs`, with the worktree's lcov
+/// written after it, so the lcov is fresh there.
+#[cfg(unix)]
+fn covered_repo() -> Option<(tempfile::TempDir, tempfile::TempDir, PathBuf, PathBuf)> {
+    let (main, holder, wt, bin) = gated_repo()?;
+    std::fs::create_dir(wt.join("crates")).unwrap();
+    std::fs::write(wt.join("crates/a.rs"), "fn a() {}\n").unwrap();
+    git(&wt, &["add", "crates/a.rs"]);
+    commit(&wt, "feat: a");
+    std::fs::create_dir_all(wt.join("target/coverage")).unwrap();
+    std::fs::write(wt.join(LCOV), lcov_naming(&wt, "crates/a.rs")).unwrap();
+    Some((main, holder, wt, bin))
+}
+
+/// What `just crap` would say of main's lcov: empty when it is fresh.
+fn lcov_stale_reason(main: &Path) -> String {
+    let script =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.just/scripts/_lcov-stale-reason.sh");
+    let out = std::process::Command::new("bash")
+        .arg(script)
+        .current_dir(main)
+        .output()
+        .unwrap();
+    String::from_utf8_lossy(&out.stdout).into_owned()
+}
+
+/// The worktree's lcov lands in main fresh against the fast-forwarded sources,
+/// its `SF:` paths moved from the removed worktree onto main.
+#[cfg(unix)]
+#[test]
+fn integrate_carries_the_worktrees_lcov_into_main() {
+    let Some((main, _holder, _wt, bin)) = covered_repo() else {
+        return;
+    };
+    let out = integrate_with(main.path(), Some(&bin));
+    assert!(out.status.success(), "{}", stderr(&out));
+    assert_eq!(lcov_stale_reason(main.path()), "");
+    let here = main.path().canonicalize().unwrap();
+    assert_eq!(
+        std::fs::read_to_string(main.path().join(LCOV)).unwrap(),
+        lcov_naming(&here, "crates/a.rs")
+    );
+}
+
+/// An lcov already stale in the worktree is not carried: a fresh copy would
+/// hide that it predates its sources.
+#[cfg(unix)]
+#[test]
+fn a_stale_worktree_lcov_is_not_carried() {
+    let Some((main, _holder, wt, bin)) = covered_repo() else {
+        return;
+    };
+    std::fs::write(wt.join("crates/b.rs"), "fn b() {}\n").unwrap();
+    git(&wt, &["add", "crates/b.rs"]);
+    commit(&wt, "feat: b");
+    // Backdated: the kernel stamps mtimes from a coarse clock, so a lcov
+    // written in the same tick as `b.rs` would tie with it, not predate it.
+    let past = std::time::SystemTime::now() - std::time::Duration::from_secs(60);
+    std::fs::File::options()
+        .write(true)
+        .open(wt.join(LCOV))
+        .unwrap()
+        .set_modified(past)
+        .unwrap();
+    let out = integrate_with(main.path(), Some(&bin));
+    assert!(out.status.success(), "{}", stderr(&out));
+    assert!(!main.path().join(LCOV).exists());
+}
+
+/// Main's own lcov, written after the worktree's, is kept.
+#[cfg(unix)]
+#[test]
+fn a_newer_lcov_in_main_is_kept() {
+    let Some((main, _holder, _wt, bin)) = covered_repo() else {
+        return;
+    };
+    std::fs::create_dir_all(main.path().join("target/coverage")).unwrap();
+    std::fs::write(main.path().join(LCOV), "main's own\n").unwrap();
+    let out = integrate_with(main.path(), Some(&bin));
+    assert!(out.status.success(), "{}", stderr(&out));
+    assert_eq!(
+        std::fs::read_to_string(main.path().join(LCOV)).unwrap(),
+        "main's own\n"
+    );
 }

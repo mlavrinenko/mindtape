@@ -194,6 +194,24 @@ if [ -d "$wt/.mmz/cache" ]; then
     done
 fi
 
+# The same holds for the lcov `just crap` scores against: the fast-forward
+# touched every source it changed, so this checkout's lcov predates them
+# and crap refuses it until a full `just cover`. The worktree's lcov describes
+# the same tree, so it moves too, under three conditions. It must be fresh
+# there, the same `-newer` test `_lcov-stale-reason.sh` makes, because the copy
+# gets a new mtime and would hide that it predates its sources. It must be newer
+# than this checkout's. And its `SF:` lines get rewritten, because llvm-cov
+# writes absolute paths and crap scores a function whose path names the removed
+# worktree as uncovered. A failed copy is named, never fatal.
+lcov=target/coverage/lcov.info
+if [ -f "$wt/$lcov" ] && [ -z "$(find "$wt/crates" -name '*.rs' -newer "$wt/$lcov" -print -quit 2>/dev/null)" ] &&
+    { [ ! -f "$here/$lcov" ] || [ "$wt/$lcov" -nt "$here/$lcov" ]; }; then
+    mkdir -p "$here/target/coverage" &&
+        sed "s#^SF:$wt/#SF:$here/#" "$wt/$lcov" >"$here/$lcov.tmp" &&
+        mv "$here/$lcov.tmp" "$here/$lcov" ||
+        echo "integrate: could not carry $lcov into $here" >&2
+fi
+
 # The fast-forward invalidated this checkout's dev mt: the shell's PATH serves
 # `target/mt-dev/debug/mt`, built from the pre-merge tree. Rebuilding here,
 # rather than at the next `mt` call, is the whole exchange this line makes. A

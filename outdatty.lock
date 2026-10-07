@@ -345,7 +345,7 @@ groups:
   worktree-release-docs:
     source:
       .just/scripts/fork.sh: 95886251e64047c8ae2facf8c3bb1496394ea66d690b05c1f4f023cd59471970
-      .just/scripts/integrate.sh: d1d59e91e486bcb9b1db7de58607a8f0c3cab102be245d33d4e36b962043e7b4
+      .just/scripts/integrate.sh: 12015f317c64e0e7af0c38a12618c1b587c4a5db7697bafdf4b053a4d2b27c59
       .just/scripts/release.sh: f099d743923b6ab729e00d4ba93c39497cbb6cfdff7e3805341e74b756b0fbcd
     dependents:
-      docs/src/contributing.typ: 1a8b708d948735b9be452fdb62bb3cffac32bd69d8b235807bd4e21f47d67920
+      docs/src/contributing.typ: ccf6bd65e3f8f5c8485149ee3475d76fe4b401177d7ed72748da1d18fb9d4988
