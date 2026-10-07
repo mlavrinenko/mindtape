@@ -736,7 +736,7 @@ file-sizes:
 [doc("Eject inline tests from Rust files nearing the linecop cap")]
 [group("advisory")]
 eject PCT='90':
-    linecop --baseline {{ PCT }} --format paths | ejectest apply . --files-from - --lenient
+    linecop --baseline {{ PCT }} --format paths | ejectest apply . --files-from - --lenient --mod-rs-tests tests
 
 # File backlog tasks from the advisory quality signals, the ones that predict
 # mechanical work instead of blocking on it. Four arms: linecop (file size),

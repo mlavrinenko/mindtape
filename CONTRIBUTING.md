@@ -34,7 +34,7 @@ The workspace `Cargo.toml` sets its clippy lints to `deny`, so the `clippy` gate
 
 - Put unit tests in `#[cfg(test)] mod tests` beside the code, or in a sibling `_tests.rs` loaded with `#[path]`.
 - Put tests that run the `mt` binary (`assert_cmd::cargo_bin`) in `tests/`. Cargo sets `CARGO_BIN_EXE_mt` for integration tests only.
-- When a file nears its linecop cap, `just fix-check` moves its inline tests into a `_tests.rs` sibling with [ejectest](https://github.com/mlavrinenko/ejectest).
+- When a file nears its linecop cap, `just fix-check` moves its inline tests into a `_tests.rs` sibling (`tests.rs` for a `mod.rs`) with [ejectest](https://github.com/mlavrinenko/ejectest).
 - Run `just test`. Count tests with `just count-tests`.
 - Code that runs a process or joins paths also runs on the Windows CI job, described in [docs/contributing/windows.md](docs/contributing/windows.md).
 - Run `just mutants-diff` before a PR and triage every survivor, because a survivor is code the tests run but do not check. The triage classes are in [docs/contributing/mutation-testing.md](docs/contributing/mutation-testing.md).

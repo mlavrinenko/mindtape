@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 7),
+  status: done(2026, 10, 7),
   links: related(
     "organize-each-crates-source-as-one-folder-per-area-with-a-mod-rs.typ",
   )[the eject half of its test layout],

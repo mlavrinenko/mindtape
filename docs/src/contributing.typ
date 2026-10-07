@@ -67,7 +67,7 @@ gate fails on any violation. The limits that shape code most:
 - Put tests that run the `mt` binary (`assert_cmd::cargo_bin`) in `tests/`.
   Cargo sets `CARGO_BIN_EXE_mt` for integration tests only.
 - When a file nears its linecop cap, #just.fix-check() moves its inline tests
-  into a `_tests.rs` sibling with
+  into a `_tests.rs` sibling (`tests.rs` for a `mod.rs`) with
   #link("https://github.com/mlavrinenko/ejectest")[ejectest].
 - Run #just.test(). Count tests with #just.count-tests().
 - Code that runs a process or joins paths also runs on the Windows CI job,
