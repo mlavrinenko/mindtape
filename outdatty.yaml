@@ -477,6 +477,7 @@ groups:
       - .just/scripts/arg-pattern-check.sh
       - .just/scripts/positional-args-check.sh
       - .just/scripts/script-attr-check.sh
+      - .just/scripts/path-attr-check.sh
       - .just/scripts/size-fixture-check.sh
       - .just/scripts/site-pages-fixture-check.sh
     dependents:

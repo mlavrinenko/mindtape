@@ -138,11 +138,11 @@ groups:
     source:
       .config/nextest.toml: 1aa04153954c5ab8ce468d3e08225b76d6dd1f636874b9591c275c588b89f984
       .just/docs.just: e6a852da423c2ec230c1bc281ab9bb4fe0ce6598a4b4765629adaec32c3714ae
-      Justfile: 0fccf9ed7a45698949b9f7593e973e53ab4ea2a745ecda3eeafa07c6595eb2f0
+      Justfile: 6a792ff0677104731224011117740e949eb20572f3c7b26be78d8e35d1e6c26f
       flake.nix: 9da2e53a4c30d4f6d3beffcf732eebebb2bf6476cd5782b9958c8aee01b93248
     dependents:
-      docs/src/agents.typ: 48e52ec38d9086566fe2bdaaf0c8404e04988c4f636d39dfae48a8a682507d4c
-      docs/src/contributing.typ: c2e85fc319083f952de0076a79d8c60127f77bf40144b8de889cbaf44401e897
+      docs/src/agents.typ: 8096bdb2558be3d8b4b057e18ce4872252453a7a2c8af3f7e9599b22441f1652
+      docs/src/contributing.typ: f0406d7f6fff21225772ed353056a982b79ac4179b2a2dc315a7f5b8eecf97b2
       docs/src/contributing/coverage-crap.typ: bfecccfb3a6bd4c9b5ec593538ae5828842d8a45cff626922fce2edd1f47c3cc
       docs/src/contributing/crap-baseline.typ: bcbc918cf8976b8d4b560bd4190c6eb96eab3c2ca3e380108c9996bd65cae98d
       docs/src/contributing/docs-site-build.typ: ab55a155324dc7aacc60167fc5bac4bd09cd9e479dd30d71d8d15f24d942fd6a
@@ -193,6 +193,7 @@ groups:
       .just/scripts/check.sh: fac29f9633c6bde9608b623cb03eee308a9d5fd4cd2685184bdff541480846f8
       .just/scripts/fmt-fixture-check.sh: 0e99a04c675f043f84804d43f25c6ef0f3870ae219a4779088c6f5430110e5e3
       .just/scripts/mmz-arm.sh: c67a415ff478915a0fc433b857b72627dfcdc5e122ae0e430ab5b77bde590d22
+      .just/scripts/path-attr-check.sh: ec1da24e523f7c600c098b7e4923f63300fab328d749ff9e3a2fbe8e4d5382b9
       .just/scripts/positional-args-check.sh: 8372e811d5e7d95fdcab5f9ecb4efa6033cf66fcab57c86d31306cebd00b1e9d
       .just/scripts/script-attr-check.sh: fb01697288a0863da85cad64bb5ce1430508f9d56f54e013dcf41a119b64d61d
       .just/scripts/script-scope-check.sh: 472f2dce97a25ca52d15cea103644c9ad817c899f4b76731e2af2318449d15df
@@ -236,9 +237,9 @@ groups:
       www/utils/framework-notes.typ: cc48caa81c46aad9b1642052a70b23d3c91713312ab81076b8c5f52e6a97bfd8
   release-notes:
     source:
-      Cargo.toml: 2f9a72134921ea6d7b8cb5b66930d161d21ab158d4a879d6a7b63d3ba4bd0cba
+      Cargo.toml: 2fa7f3344d6f21f50967e00f179a24bf07e40d2b298c792b59c126f336191fcb
     dependents:
-      CHANGELOG.md: 06577fcd7e25ea6ea4d232e4d60fbbf08af95d70a3d5b118192bb72910d2ae29
+      CHANGELOG.md: 088dee2f59bbceabe3d927a5eefcdc0491c965641f6e0e534c75a5c5cf4aa8e2
   scripts-no-doc:
     source:
       .just/scripts/_doc-blocks-control.sh: c8a84db06366a28c52831d0ecf53db96170feb22f8cb7c1655e2b278e2c997f0

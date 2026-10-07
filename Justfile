@@ -75,7 +75,7 @@ _check-stages: _check-fast _check-build _check-cover
 [doc("The check gates that build nothing")]
 [parallel]
 [private]
-_check-fast: (mmz "fmt-check") (mmz "clippy") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-doc-recipes") (mmz "check-doc-prose") (mmz "check-doc-blocks") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "crap-baseline-check") (mmz "check-gate-drift")
+_check-fast: (mmz "fmt-check") (mmz "clippy") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-doc-recipes") (mmz "check-doc-prose") (mmz "check-doc-blocks") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "path-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "crap-baseline-check") (mmz "check-gate-drift")
 
 [doc("The check gates that build or run mt")]
 [parallel]
@@ -307,6 +307,17 @@ fmt-fixture-check:
 [group("gate")]
 arg-pattern-check:
     bash .just/scripts/arg-pattern-check.sh
+
+# Hold the folder-per-area layout: a `#[path = "..."]` may name only a test
+# sibling (`*_tests*.rs`, `tests_*.rs`, `tests.rs`) or the `rrule` feature stub.
+# `self_named_module_files` in the workspace lints holds the other half. The
+# script scans a synthesized stray first, so a scan that reaches nothing fails;
+# .just/scripts/path-attr-check.sh argues the rest.
+
+[doc("Refuse a #[path] attribute that names anything but a test sibling")]
+[group("gate")]
+path-attr-check:
+    bash .just/scripts/path-attr-check.sh
 
 # Lock the file-size gate's scan scope: an oversized shell script under
 # `.just/scripts/` must be reported by `linecop` reading this repo's

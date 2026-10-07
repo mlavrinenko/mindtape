@@ -48,6 +48,10 @@ gate fails on any violation. The limits that shape code most:
   imports.
 - A function has at most 70 lines and 5 arguments, and its cognitive
   complexity is at most 20.
+- A module's path is its file path. An area is a folder with a `mod.rs` whose
+  `//!` header lists its files, and `foo.rs` beside `foo/` fails the lint.
+  `#[path]` names only a test sibling, and #just.path-attr-check() refuses the
+  rest.
 
 = Error Handling
 

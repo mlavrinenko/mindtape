@@ -5,15 +5,14 @@
 //! tombstone pins the retired file's last-touch commit), and the compiled `mt`
 //! binary end-to-end — then proves `mt check` stays green once the survivor's
 //! inbound edges point at the tombstone. Mirrors `recur_e2e.rs`. The retire
-//! strategy's half of the suite lives in `rm/retire_e2e.rs`, pulled in below.
+//! strategy's half of the suite lives in `rm/mod.rs`, pulled in below.
 #![allow(clippy::unwrap_used)]
 
 use std::path::Path;
 
 use predicates::prelude::PredicateBooleanExt;
 
-#[path = "rm/retire_e2e.rs"]
-mod rm_retire;
+mod rm;
 mod support;
 
 use support::{git_commit_all, scaffold_config};

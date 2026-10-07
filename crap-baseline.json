@@ -10794,24 +10794,6 @@
       "crate": "mindtape"
     },
     {
-      "file": "crates/mindtape/src/import_map.rs",
-      "function": "map_canonical",
-      "line": 56,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/import_map.rs",
-      "function": "map_link",
-      "line": 105,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
       "file": "crates/mindtape/src/import_map/body.rs",
       "function": "map_body",
       "line": 18,
@@ -10872,6 +10854,24 @@
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/import_map/mod.rs",
+      "function": "map_canonical",
+      "line": 66,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/import_map/mod.rs",
+      "function": "map_link",
+      "line": 115,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
       "crate": "mindtape"
     },
     {

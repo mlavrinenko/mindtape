@@ -15,6 +15,16 @@
 //! framework, an out-of-allow-list tag, still land on the mapped [`Task`]
 //! (or, for extras violating the `x-<ns>` discipline, are dropped and
 //! reported) so the CLI can decide fail vs skip vs continue per record.
+//!
+//! # Files
+//!
+//! - `body.rs`: body synthesis and the fallback when a record has none.
+//! - `enum_fields.rs`: enum-valued fields checked against the config.
+//! - `extras.rs`: `x-<ns>` extras, kept or dropped by the namespace rule.
+//! - `priority.rs`: priority framework and score mapping.
+//! - `report.rs`: [`ReportEntry`], [`ImportReport`] and [`MapOptions`].
+//! - `status.rs`: `status:` legend membership, `--map` overrides, the default.
+//! - `stem.rs`: stems derived from titles.
 
 mod body;
 mod enum_fields;
@@ -111,9 +121,7 @@ fn map_link(link: &crate::model::canonical::CanonicalLink) -> Link {
 }
 
 #[cfg(test)]
-#[path = "import_map_tests.rs"]
 mod tests;
 
 #[cfg(test)]
-#[path = "import_map_tests_status.rs"]
 mod tests_status;

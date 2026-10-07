@@ -28,6 +28,10 @@ unsafe_code = "deny"
 unused_must_use = "deny"
 
 [workspace.lints.clippy]
+# --- Layout ---
+# `foo.rs` beside `foo/` is refused: an area is `foo/mod.rs` (path-attr-check.sh
+# holds the other half, no `#[path]` outside test siblings).
+self_named_module_files = "deny"
 # --- Correctness & Safety ---
 out_of_bounds_indexing = "deny"
 iter_out_of_bounds = "deny"

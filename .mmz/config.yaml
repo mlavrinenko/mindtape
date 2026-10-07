@@ -425,6 +425,8 @@ scopes:
   script-outdatty-lock-merge:
     - ".just/scripts/outdatty-lock-merge.sh"
     - ".gitattributes"
+  script-path-attr-check:
+    - ".just/scripts/path-attr-check.sh"
   script-positional-args-check:
     - ".just/scripts/positional-args-check.sh"
   script-release:
@@ -702,6 +704,13 @@ commands:
   - name: just script-attr-check
     tags: [gate]
     inputs: [gates-meta, script-script-attr-check]
+
+  # `#[path]` gate: every `#[path = "..."]` under `crates/` must name a test
+  # sibling or the rrule stub. `rust` is the tree it scans, `script-path-attr-check`
+  # the body, and `gates-meta` the dev-shell pin of the tools it runs.
+  - name: just path-attr-check
+    tags: [gate]
+    inputs: [rust, gates-meta, script-path-attr-check]
 
   # Scan-scope self-test: an oversized shell script at `.just/scripts/` inside
   # a replica tree must be reported by linecop reading this repo's config, and

@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 7),
+  status: done(2026, 10, 7),
   links: depends-on(
     "move-the-filter-language-into-a-filter-folder.typ",
     "move-the-config-sections-into-a-config-folder.typ",
