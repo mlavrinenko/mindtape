@@ -29,7 +29,7 @@ use crate::util::{self, Project};
 /// Arguments for `mt link`.
 #[derive(Debug, Args)]
 pub struct LinkArgs {
-    #[arg(help = crate::task_ref::HELP, required_unless_present = "apply", conflicts_with = "apply")]
+    #[arg(help = crate::cli::task_ref::HELP, required_unless_present = "apply", conflicts_with = "apply")]
     pub task: Option<String>,
 
     /// Edge kind: a built-in (`depends-on`, `parent`, `recurred-from`,
@@ -131,7 +131,7 @@ pub(crate) fn run_with(project: &Project, args: &LinkArgs) -> Result<()> {
 
     for (staged, verdict) in plan.staged.iter().zip(&verdicts) {
         for warning in verdict.warnings() {
-            eprintln!("{}", crate::breach::line(warning));
+            eprintln!("{}", crate::render::breach::line(warning));
         }
         if !verdict.accepted() {
             problems.push(format!(

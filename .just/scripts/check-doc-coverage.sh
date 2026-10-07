@@ -13,7 +13,7 @@ set -eo pipefail
 # dev-dependency features, and a build without them would relink it away
 # mid-run (docs/contributing/gates.md, "One mt binary, one feature set").
 cargo build -p mindtape-cli --tests -q
-# cli_dump.rs drops every `hide = true` command and clap's `help` before they
+# cli/tree_json.rs drops every `hide = true` command and clap's `help` before they
 # reach this JSON, so the gate needs no skip list of its own.
 visible=$(./target/debug/mt _cli --json | jq -r '.commands[].name' | sort)
 

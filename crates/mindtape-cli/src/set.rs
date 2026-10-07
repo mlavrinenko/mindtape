@@ -40,7 +40,7 @@ use crate::util;
 #[derive(Args)]
 pub struct SetArgs {
     #[command(flatten)]
-    pub task: crate::task_ref::TaskRef,
+    pub task: crate::cli::task_ref::TaskRef,
     /// `<field>=<value>`, `<field>+=<value>` to append to a list field, or
     /// `<field>@<path>` to read the value out of a file — `mt add --set`'s
     /// own token grammar. Run `mt set --help` for the writable fields.
@@ -242,7 +242,7 @@ fn parse_assignment(token: &str) -> Result<(String, Assigned)> {
 
 /// Every field this command writes, in the emitter's field order.
 ///
-/// Exposed for [`crate::completion`]: the completer for `<field>=<value>` and
+/// Exposed for [`crate::cli::completion`]: the completer for `<field>=<value>` and
 /// the refusal below read the same [`WRITABLE`] table, so a tab press can
 /// never offer a field this command would then name as unknown.
 pub(crate) fn writable_fields() -> impl Iterator<Item = &'static str> {

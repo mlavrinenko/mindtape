@@ -9,7 +9,7 @@
 //! The completion hook is the odd one out in what it CONTAINS: the other three
 //! files carry content, this one carries a call. Each is the couple of lines
 //! that ask `mt` itself for the completion on every tab press
-//! ([`crate::completion`]), never a generated completion script — a script
+//! ([`crate::cli::completion`]), never a generated completion script — a script
 //! written here would be a copy of the parser and of this project's config,
 //! stale from the next flag and wrong in every other project. It also means an
 //! `mt` upgrade needs no re-install: the hook is re-evaluated at shell start.

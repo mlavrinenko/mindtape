@@ -162,7 +162,7 @@ pub fn verify_written(root: &Path, file: &Path) -> Result<()> {
 /// a warning is a report about it, not a reason to call the write a failure.
 fn report_issues(issues: &[Violation], scope: &str) -> Result<()> {
     for violation in issues {
-        eprintln!("{}", crate::breach::line(violation));
+        eprintln!("{}", crate::render::breach::line(violation));
     }
     let fatal = issues.iter().filter(|issue| issue.is_fatal()).count();
     if fatal == 0 {
@@ -215,7 +215,7 @@ pub fn verify_candidate(project: &Project, file: &Path, source: &str) -> Result<
         bail!("{}", load_refusal(failure));
     }
     for violation in &verdict.violations {
-        eprintln!("{}", crate::breach::line(violation));
+        eprintln!("{}", crate::render::breach::line(violation));
     }
     if verdict.accepted() {
         return Ok(true);

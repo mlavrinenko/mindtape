@@ -1,6 +1,6 @@
 //! `mt add --format`: report what a run did, in the caller's chosen shape.
 //!
-//! Mirrors `mt ls`'s `--format` vocabulary (`crate::output::OutputFormat`) so
+//! Mirrors `mt ls`'s `--format` vocabulary (`crate::render::output::OutputFormat`) so
 //! a script learns one convention rather than two, but stays its own type:
 //! `add` never lists many tasks, so `table`/`csv` have nothing to reuse, and
 //! `text` — today's `wrote <path>` prose — has no `ls` equivalent, whose bare
@@ -63,7 +63,7 @@ impl Outcome {
 /// Render `outcome` in `format`. `Path0` is NUL-terminated and must reach the
 /// terminal via `print!`, never `println!`; every other format wants the
 /// caller's trailing newline (`println!`) — the same contract as
-/// `crate::output::render_path`/`render_path0`.
+/// `crate::render::output::render_path`/`render_path0`.
 #[must_use]
 pub fn render(outcome: &Outcome, format: Format) -> String {
     match format {

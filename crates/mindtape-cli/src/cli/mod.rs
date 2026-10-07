@@ -1,4 +1,18 @@
 //! Command-line surface: argument parsing and dispatch.
+//!
+//! # Files
+//!
+//! - `check_argv.rs` — `mt _cli --check-argv`, which judges one command line as `mt` would parse it.
+//! - `command_class.rs` — each command's read or write class.
+//! - `completion/` — shell completions answered by the binary.
+//! - `task_ref.rs` — the `<task>` argument every single-task command shares.
+//! - `tree_json.rs` — `mt _cli`, the command tree as JSON for the docs.
+
+pub(crate) mod check_argv;
+pub(crate) mod command_class;
+pub(crate) mod completion;
+pub(crate) mod task_ref;
+pub(crate) mod tree_json;
 
 use std::path::PathBuf;
 
@@ -9,8 +23,8 @@ use log::LevelFilter;
 use crate::render::color::ColorChoice;
 use crate::render::link::HyperlinkChoice;
 use crate::{
-    add, check, cli_dump, config_cmd, eval, find, flip, go, graph, import, init, install, link_cmd,
-    ls, mv, preset_cmd, recur, review, rm, set, views, worktrees,
+    add, check, config_cmd, eval, find, flip, go, graph, import, init, install, link_cmd, ls, mv,
+    preset_cmd, recur, review, rm, set, views, worktrees,
 };
 
 /// `MindTape`: a file-based task tracker using per-file Typst artifacts.
@@ -159,7 +173,7 @@ enum Command {
     /// Dump the command tree as JSON for the docs generator (hidden;
     /// reflects `Cli::command()`, so the rendered CLI reference cannot drift).
     #[command(name = "_cli", hide = true)]
-    CliDump(cli_dump::CliDumpArgs),
+    CliDump(tree_json::CliDumpArgs),
     /// Per-status shortcut verb (`<status> <task>...`), dispatched to `flip`.
     #[command(external_subcommand)]
     Status(Vec<String>),
@@ -202,7 +216,7 @@ impl Cli {
             Command::Flip(args) => flip::run(&args),
             Command::Recur(args) => recur::run(&args),
             Command::Link(args) => link_cmd::run(&args),
-            Command::CliDump(args) => cli_dump::run(&args),
+            Command::CliDump(args) => tree_json::run(&args),
             Command::Status(argv) => flip::run_external(&argv),
         }
     }

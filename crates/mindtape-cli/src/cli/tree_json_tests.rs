@@ -153,7 +153,7 @@ fn leaf_paths(commands: &[Value], prefix: &str, out: &mut Vec<(String, Value)>) 
 }
 
 /// The exhaustiveness gate this module exists for: the union of
-/// `command_class::CLASSIFICATION` must equal the visible leaf commands
+/// `cli::command_class::CLASSIFICATION` must equal the visible leaf commands
 /// `mt _cli --json` reflects, in both directions — mirrors
 /// `check-doc-coverage`'s set-difference shape, failing naming the
 /// offender rather than healing silently.
@@ -221,7 +221,7 @@ fn dump_json_contains_bin_name() {
     assert_eq!(parsed.get("bin").and_then(Value::as_str), Some("mt"));
 }
 
-/// `completion_json` reflects the `completion::SOURCES` table: a sourced
+/// `completion_json` reflects the `cli::completion::SOURCES` table: a sourced
 /// argument names its source, a deliberately-sourceless one carries its
 /// reason, and an unnamed argument is `null`. A stub return of
 /// `Default::default()` (always `null`) loses the first two.

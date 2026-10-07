@@ -120,7 +120,7 @@ done
 # where its values come from (truth/tasks/emit-shell-completions-from-the-
 # binary-that-answers-them.typ). Both sides come out of cli.json, which is
 # `mt _cli --json` — so the "declared" side is the live parser and the
-# "sourced" side is crates/mindtape-cli/src/completion.rs's `SOURCES` table
+# "sourced" side is crates/mindtape-cli/src/cli/completion/mod.rs's `SOURCES` table
 # reflected back through it. Reading the table through the binary rather than
 # grepping the file is what makes the two sides comparable: a mention the
 # parser never sees cannot satisfy this, and an argument renamed in one place
@@ -134,7 +134,7 @@ done
 #
 # `Source::None` counts as sourced: it is a recorded decision carrying its
 # reason (cli.json shows it as a null source with a non-null reason), and the
-# unit test beside completion.rs is what holds those reasons non-empty. What
+# unit test in cli/completion/tests.rs is what holds those reasons non-empty. What
 # fails here is the third state — an argument the table does not name at all,
 # which is exactly what a new completable argument looks like on the commit
 # that adds it.
@@ -149,7 +149,7 @@ sourced_args=$(jq -r "$completable"' | select(.completion != null) | "\(.path) \
 missing_args=$(comm -23 <(sort <<<"$declared_args") <(sort <<<"$sourced_args"))
 if [ -n "$missing_args" ]; then
     echo "check-doc-facts: arguments with no completion value source" \
-        "(no crates/mindtape-cli/src/completion.rs SOURCES entry):" >&2
+        "(no crates/mindtape-cli/src/cli/completion/mod.rs SOURCES entry):" >&2
     while IFS= read -r name; do echo "  - mt $name" >&2; done <<<"$missing_args"
     exit 1
 fi

@@ -3,7 +3,7 @@
 // docs/src/lib.typ lists the constraints).
 //
 // The command lists read `fact("cli")`, the `mt _cli --json` tree that
-// `command_class.rs` classifies.
+// `cli/command_class.rs` classifies.
 #import "../lib.typ": doc-title, fact
 
 #metadata((
@@ -15,8 +15,8 @@
 Which `mt` commands read and which write, for the rule in CONTRIBUTING.md's
 Command Semantics section.
 
-`crates/mindtape-cli/src/command_class.rs` declares each command's class.
-The tests in `cli_dump.rs` fail when a visible command in `mt _cli --json`
+`crates/mindtape-cli/src/cli/command_class.rs` declares each command's class.
+The tests in `cli/tree_json.rs` fail when a visible command in `mt _cli --json`
 has no class, and the lists below read the same data.
 
 #let cli-leaves(commands, prefix: none) = (

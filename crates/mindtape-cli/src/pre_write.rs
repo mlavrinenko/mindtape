@@ -138,7 +138,7 @@ impl Verdict {
         self.violations
             .iter()
             .filter(|violation| violation.is_fatal())
-            .map(crate::breach::at)
+            .map(crate::render::breach::at)
             .collect()
     }
 }
@@ -310,7 +310,7 @@ fn refuse_rejected(pending: &[Pending<'_>], verdicts: &[Verdict]) -> Result<()> 
             eprintln!("error: {}", failure.render(&label(entry.file)));
         }
         for violation in &verdict.violations {
-            eprintln!("{}", crate::breach::line(violation));
+            eprintln!("{}", crate::render::breach::line(violation));
         }
         if !verdict.accepted() {
             rejected += 1;

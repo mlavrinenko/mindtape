@@ -6,9 +6,9 @@ use mindtape::sort::{default_order_with, sort_by_specs};
 use mindtape::{ConditionEnv, Config, Filter, Readiness, StemHashes, Task, select};
 
 use crate::ls_rules::{self, Applied};
-use crate::output::{Envelope, OutputFormat, Truncation, render};
 use crate::render::RenderCtx;
 use crate::render::color::{Painter, is_color_active};
+use crate::render::output::{Envelope, OutputFormat, Truncation, render};
 use crate::util;
 
 /// Arguments for `ls`.

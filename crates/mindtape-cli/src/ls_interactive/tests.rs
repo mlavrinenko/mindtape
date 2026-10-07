@@ -8,7 +8,7 @@ use mindtape::{Config, Readiness, Task};
 
 use super::{Action, Intent, State, apply, classify, collect_first, footer, guard_with, run};
 use crate::ls::{LsArgs, LsFlags};
-use crate::output::{OutputFormat, Truncation};
+use crate::render::output::{OutputFormat, Truncation};
 use crate::util;
 
 fn key(code: KeyCode, modifiers: KeyModifiers) -> KeyEvent {

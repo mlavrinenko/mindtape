@@ -11,7 +11,7 @@
 //! and must not exit 141 — the report's symptom, which turned out to belong to
 //! a shell wrapper on `PATH` rather than to this binary, and is asserted here
 //! so the binary's side of it can never quietly become true. And it must not
-//! panic, which before `crate::stdout` it always did: libstd ignores `SIGPIPE`,
+//! panic, which before `crate::render::stdout` it always did: libstd ignores `SIGPIPE`,
 //! so the write returned `EPIPE` and the prelude's `println!` unwrapped it into
 //! exit 101 and a `failed printing to stdout` backtrace.
 #![allow(clippy::unwrap_used)]

@@ -197,5 +197,5 @@ fn split_words(line: &str) -> Vec<String> {
 }
 
 #[cfg(test)]
-#[path = "cli_check_tests.rs"]
+#[path = "check_argv_tests.rs"]
 mod tests;

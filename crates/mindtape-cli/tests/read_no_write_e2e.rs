@@ -10,8 +10,8 @@
 //!
 //! [`every_classified_read_command_leaves_tree_untouched`] generates one such
 //! check per command the classification in
-//! `crates/mindtape-cli/src/command_class.rs` declares `Read`, read back via
-//! `mt _cli --json` (`cli_dump.rs` rides the `class` field along on the same
+//! `crates/mindtape-cli/src/cli/command_class.rs` declares `Read`, read back via
+//! `mt _cli --json` (`cli/tree_json.rs` rides the `class` field along on the same
 //! tree `www/generated/cli.json` ships) — a bare invocation of every read
 //! command, so a newly classified one is covered with no test hand-written
 //! here. The hand-written tests below it stay: several exercise a read
@@ -19,7 +19,7 @@
 //! --origin`) the generated loop's bare invocation does not reach, and a
 //! generated test that dropped them would assert less than what is here
 //! today. This crate has no `[lib]` target, so an integration test cannot
-//! `use crate::command_class` directly — reading the classification back out
+//! `use crate::cli::command_class` directly — reading the classification back out
 //! of the CLI's own JSON dump is how a `tests/` binary sees it at all.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
@@ -224,8 +224,8 @@ fn worktrees_leaves_tree_untouched() {
 
 /// Every `Read`-classified leaf's flattened path (`"ls"`, `"config schema"`,
 /// `"preset ls"`, …), read from a fresh `mt _cli --json` rather than
-/// hand-copied — the exhaustiveness this file leans on lives in `cli_dump.rs`
-/// (`command_class::CLASSIFICATION` must equal the visible command tree), so
+/// hand-copied — the exhaustiveness this file leans on lives in `cli/tree_json.rs`
+/// (`cli::command_class::CLASSIFICATION` must equal the visible command tree), so
 /// this only has to walk the tree the same way that gate does.
 fn read_command_paths() -> Vec<String> {
     let dir = tempfile::tempdir().unwrap();
@@ -246,7 +246,7 @@ fn read_command_paths() -> Vec<String> {
 
 /// Recurse into a node with subcommands (`config`, `preset`); collect a leaf
 /// whose `class.kind` is `"read"`, flattening its path the same way
-/// `cli_dump.rs`'s `flattened_name` does.
+/// `cli/tree_json.rs`'s `flattened_name` does.
 fn collect_read_leaves(commands: &[serde_json::Value], prefix: &str, out: &mut Vec<String>) {
     for cmd in commands {
         let name = cmd.get("name").and_then(serde_json::Value::as_str).unwrap();

@@ -13,7 +13,7 @@
 //! value-taking argument `mt` declares. [`Source::None`] is an answer too,
 //! carrying the reason no project value fits. Two readers share the table:
 //! [`decorate`] hangs each entry's completer on the clap tree, and
-//! [`crate::cli_dump`] reflects it back out so `just check-doc-facts` can
+//! [`crate::cli::tree_json`] reflects it back out so `just check-doc-facts` can
 //! set-difference the arguments clap declares against the ones named here. A
 //! new completable argument therefore fails a gate until it says where its
 //! values come from.
@@ -33,7 +33,13 @@
 //!
 //! `mt done <task>` reaches an ordinary run as a clap `external_subcommand`;
 //! a completion run sees each legend verb as a real subcommand instead, see
-//! `completion_verbs.rs`.
+//! `cli/completion/verbs.rs`.
+//!
+//! # Files
+//!
+//! - `sources.rs` — the value sources a completion can draw on, and their lookups.
+//! - `verbs.rs` — the status shortcut verbs a completion run sees.
+//! - `tests.rs`, `sources_tests.rs` — the table's coverage tests.
 //!
 //! Refs: `truth/tasks/emit-shell-completions-from-the-binary-that-answers-them.typ`
 
@@ -83,7 +89,7 @@ pub enum Source {
 }
 
 /// Every value-taking argument `mt` declares, keyed by `(command path, arg
-/// id)` — the same flattened path [`crate::cli_dump`] builds, empty for a
+/// id)` — the same flattened path [`crate::cli::tree_json`] builds, empty for a
 /// global.
 ///
 /// Ordered as `mt --help` lists the commands, so a reader comparing the two
@@ -314,12 +320,9 @@ fn decorate_at(mut cmd: Command, path: &str) -> Command {
     cmd
 }
 
-#[path = "completion_sources.rs"]
 mod sources;
 
-#[path = "completion_verbs.rs"]
 mod verbs;
 
 #[cfg(test)]
-#[path = "completion_tests.rs"]
 mod tests;

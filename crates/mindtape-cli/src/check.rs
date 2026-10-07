@@ -70,7 +70,7 @@ pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> 
     );
 
     for violation in &violations {
-        println!("{}", crate::breach::line(violation));
+        println!("{}", crate::render::breach::line(violation));
     }
 
     // A `[[tasks.rules]]` breach at `severity = "warn"` has already printed;

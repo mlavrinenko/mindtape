@@ -5,13 +5,11 @@
 // build) build throwaway fixtures with the plain calls instead.
 #![cfg_attr(test, allow(clippy::disallowed_methods))]
 
-mod stdout;
-
 // Every `print!`/`println!` below this point is this crate's, not the
 // prelude's: a `macro_rules!` at crate root shadows a prelude macro for the
 // rest of the crate, nested modules included. The prelude's pair unwraps its
 // write, so `mt ls | head -3` panics out at exit 101 naming a libstd line;
-// `crate::stdout` makes a closed reader an ordinary write error instead. That
+// `crate::render::stdout` makes a closed reader an ordinary write error instead. That
 // module's docs carry the policy and why it is enforced here rather than at the
 // ~110 call sites.
 //
@@ -28,13 +26,13 @@ mod stdout;
 // test spawns is built without `cfg(test)` and gets the real thing.
 #[cfg(not(test))]
 macro_rules! print {
-    ($($arg:tt)*) => { $crate::stdout::write(::std::format_args!($($arg)*)) };
+    ($($arg:tt)*) => { $crate::render::stdout::write(::std::format_args!($($arg)*)) };
 }
 
 #[cfg(not(test))]
 macro_rules! println {
-    () => { $crate::stdout::write_line(::std::format_args!("")) };
-    ($($arg:tt)*) => { $crate::stdout::write_line(::std::format_args!($($arg)*)) };
+    () => { $crate::render::stdout::write_line(::std::format_args!("")) };
+    ($($arg:tt)*) => { $crate::render::stdout::write_line(::std::format_args!($($arg)*)) };
 }
 
 mod add;
@@ -43,16 +41,11 @@ mod add_interactive;
 mod add_output;
 mod add_tokens;
 mod add_values;
-mod breach;
 mod check;
 mod check_commit;
 mod check_range;
 mod check_templates;
 mod cli;
-mod cli_check;
-mod cli_dump;
-mod command_class;
-mod completion;
 mod config_cmd;
 mod eval;
 mod find;
@@ -79,7 +72,6 @@ mod ls_interactive;
 mod ls_rules;
 mod ls_rules_applied;
 mod mv;
-mod output;
 mod pre_write;
 mod preset;
 mod preset_cmd;
@@ -92,7 +84,6 @@ mod review;
 mod rm;
 mod set;
 mod task_edit;
-mod task_ref;
 #[cfg(test)]
 mod test_util;
 mod util;
@@ -108,7 +99,7 @@ fn main() -> Result<()> {
     // request arrives through `$COMPLETE` rather than the argv, and stdout
     // belongs to the candidate list for its duration. Returns immediately on
     // an ordinary run.
-    completion::complete();
+    cli::completion::complete();
     // Rewrite a leading `@name` into `-w <path>` before clap sees the argv, so
     // the worktree sugar reuses the existing override plumbing.
     let argv = worktrees::desugar_argv(std::env::args_os().collect())?;

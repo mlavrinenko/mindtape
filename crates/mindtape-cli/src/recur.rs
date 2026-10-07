@@ -52,7 +52,7 @@ const MAX_CHAIN_DEPTH: u32 = 10_000;
 #[derive(Args)]
 pub struct RecurArgs {
     #[command(flatten)]
-    pub task: crate::task_ref::TaskRef,
+    pub task: crate::cli::task_ref::TaskRef,
 
     /// Preview the spawn/mutate/advance/skip; write nothing.
     #[arg(long = "dry-run")]

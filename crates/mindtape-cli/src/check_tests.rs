@@ -364,7 +364,7 @@ fn breach(severity: mindtape::Severity, line: usize) -> mindtape::Violation {
 #[test]
 fn every_breach_line_starts_with_a_severity() {
     use mindtape::Severity::{Error, Warn};
-    let show = |s, l| crate::breach::line(&breach(s, l));
+    let show = |s, l| crate::render::breach::line(&breach(s, l));
     assert_eq!(show(Error, 3), "error: tasks/t.typ:3: f: m");
     assert_eq!(show(Warn, 3), "warning: tasks/t.typ:3: f: m");
 }
@@ -377,7 +377,7 @@ fn a_built_in_template_breach_names_no_path() {
         line: 3,
     };
     assert_eq!(
-        crate::breach::line(&builtin),
+        crate::render::breach::line(&builtin),
         "warning: built-in template task:3: f: m"
     );
 }

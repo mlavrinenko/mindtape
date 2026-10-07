@@ -3,7 +3,7 @@
 //! The only thing this can show that a unit test cannot is that `run` actually
 //! writes the dump to stdout — `replace run with Ok(())` is invisible in
 //! process, because the side effect is a `println!`. The dump's *contents*
-//! (the `schema` key, the `bin` name) are asserted in `cli_dump.rs` against
+//! (the `schema` key, the `bin` name) are asserted in `cli/tree_json.rs` against
 //! `dump_json()` directly, so they are deliberately not re-asserted here.
 #![allow(clippy::unwrap_used)]
 

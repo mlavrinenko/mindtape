@@ -206,5 +206,5 @@ fn help(text: &str) -> Option<StyledStr> {
 }
 
 #[cfg(test)]
-#[path = "completion_sources_tests.rs"]
+#[path = "sources_tests.rs"]
 mod tests;

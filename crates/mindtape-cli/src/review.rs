@@ -20,7 +20,7 @@ use crate::util;
 #[derive(Args)]
 pub struct ReviewArgs {
     #[command(flatten)]
-    pub task: crate::task_ref::TaskRef,
+    pub task: crate::cli::task_ref::TaskRef,
 }
 
 /// Run the `review` command.

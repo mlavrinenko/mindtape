@@ -95,6 +95,6 @@ Edit a doc’s Typst source, rewrite a touched file whole, state each fact once,
 
 ## Extending MindTape
 
-- A new CLI command is `crates/mindtape-cli/src/<name>.rs` with an `Args` struct and a `run` function, wired into `cli.rs`. `ls.rs` is a model.
+- A new CLI command is `crates/mindtape-cli/src/<name>.rs` with an `Args` struct and a `run` function, wired into `cli/mod.rs`. `ls.rs` is a model.
 - A new domain capability goes in `crates/mindtape` and is re-exported from its `lib.rs`. Keep task concepts out of `typst-harvest`, a general Typst crate other tools use.
 - An architectural or tooling decision is a task under `truth/tasks/` tagged `decision`. There are no ADRs.

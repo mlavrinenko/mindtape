@@ -44,7 +44,7 @@ pub struct FlipArgs {
     #[arg(required_unless_present = "list")]
     pub status: Option<String>,
 
-    #[arg(help = crate::task_ref::HELP)]
+    #[arg(help = crate::cli::task_ref::HELP)]
     pub tasks: Vec<String>,
 
     /// Status note (the trailing `[note]` block). Without it any existing note is

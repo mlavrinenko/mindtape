@@ -24,9 +24,9 @@ use anstyle::{Effects, Style};
 use mindtape::{ConditionEnv, Config, Readiness, StemHashes, Task};
 
 use crate::ls::{LsArgs, resolve_and_select};
-use crate::output::{OutputFormat, Truncation};
 use crate::render::RenderCtx;
 use crate::render::color::{Painter, is_color_active};
+use crate::render::output::{OutputFormat, Truncation};
 use crate::render::table::render_highlighted;
 use crate::{go, util};
 

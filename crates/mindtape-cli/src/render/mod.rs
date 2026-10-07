@@ -13,9 +13,19 @@
 //! - [`sep`] — stable separator policy for machine-readable output.
 //! - [`field`] — `Field` trait and generic cell rendering seam.
 //!
+//! # Files
+//!
+//! - `breach.rs` — one rendered line per rule breach.
+//! - `output.rs` — rendering tasks as a table, JSON or CSV.
+//! - `stdout.rs` — closed-pipe-safe `print!` and `println!` writers.
+//!
 //! The submodules expose infrastructure that will be consumed by command modules
 //! as each command is migrated; `dead_code` is not suppressed here — see
 //! the `#[allow(dead_code)]` on the `mod render` declaration in `main.rs`.
+
+pub(crate) mod breach;
+pub(crate) mod output;
+pub(crate) mod stdout;
 
 use mindtape::{ConditionEnv, Config, Readiness, StemHashes};
 

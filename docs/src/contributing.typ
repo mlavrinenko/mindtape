@@ -199,7 +199,7 @@ use checked examples and write plain prose. The rules are in
 = Extending MindTape
 
 - A new CLI command is `crates/mindtape-cli/src/<name>.rs` with an `Args`
-  struct and a `run` function, wired into `cli.rs`. `ls.rs` is a model.
+  struct and a `run` function, wired into `cli/mod.rs`. `ls.rs` is a model.
 - A new domain capability goes in `crates/mindtape` and is re-exported from
   its `lib.rs`. Keep task concepts out of `typst-harvest`, a general Typst
   crate other tools use.

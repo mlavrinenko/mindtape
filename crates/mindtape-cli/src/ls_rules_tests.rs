@@ -32,7 +32,7 @@ pub(crate) fn args(filter: Option<&str>) -> LsArgs {
     LsArgs {
         filter: filter.map(str::to_owned),
         flags: LsFlags {
-            format: crate::output::OutputFormat::Table,
+            format: crate::render::output::OutputFormat::Table,
             json: false,
             limit: None,
             skip: None,

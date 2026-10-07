@@ -6,15 +6,15 @@ use anyhow::{Context, Result, bail};
 use mindtape::{StemHashes, Task, config_path, find_root, load_config, load_project};
 use typst_harvest::{HarvestWorld, harvest};
 
-use crate::output::{OutputFormat, render, task_to_json};
 use crate::render::RenderCtx;
+use crate::render::output::{OutputFormat, render, task_to_json};
 use crate::util::Project;
 
 /// Arguments for `eval`.
 #[derive(Debug, clap::Args)]
 pub struct EvalArgs {
     #[command(flatten)]
-    pub task: crate::task_ref::TaskRef,
+    pub task: crate::cli::task_ref::TaskRef,
 
     /// Emit JSON instead of a table.
     #[arg(long)]

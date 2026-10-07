@@ -3,8 +3,8 @@
 //! Envelope-side `output` tests: the document-level wrapper `mt ls --json`
 //! puts around its records — `schema_version`, `applied`, `truncated` — and
 //! the bare array every caller without that context (`mt eval --json`) keeps.
-//! Split out of `output_tests.rs` to keep both files under the size gate;
-//! sibling of `output_tests.rs`, which covers the record and non-JSON formats.
+//! Split out of `render/output_tests.rs` to keep both files under the size gate;
+//! sibling of `render/output_tests.rs`, which covers the record and non-JSON formats.
 //!
 //! The task fixture here is deliberately bare: nothing below asserts on a
 //! field, only on where the envelope puts the records and what it says

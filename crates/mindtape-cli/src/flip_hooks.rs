@@ -26,8 +26,8 @@ use mindtape::config::hooks::{ActionKind, FlipAction, matching_flip_hooks};
 use mindtape::{ConditionEnv, Filter, Readiness, Task, select};
 
 use crate::flip_hooks_cmd::{CommandReport, RunCtx, run_command};
-use crate::output::{OutputFormat, render};
 use crate::render::RenderCtx;
+use crate::render::output::{OutputFormat, render};
 use crate::util::Project;
 
 /// Advice attached to a gate refusal the action declares no `message` for.

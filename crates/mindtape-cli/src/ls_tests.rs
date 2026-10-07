@@ -8,7 +8,7 @@ use mindtape::{Config, Readiness, Task};
 use mindtape::sort::sort_by_specs;
 
 use super::{LsArgs, next_command_hint, resolve_and_select, run_with};
-use crate::output::OutputFormat;
+use crate::render::output::OutputFormat;
 
 fn task(id: &str, priority: f64) -> Task {
     let mut t = bare_task(id);
@@ -246,7 +246,7 @@ fn limit_truncates_and_reports_what_it_cut() {
     // caller would see with a bigger `-n`, not the number printed.
     assert_eq!(
         listing.truncated,
-        Some(crate::output::Truncation {
+        Some(crate::render::output::Truncation {
             shown: 2,
             total: 3,
             skip: 0,
@@ -332,7 +332,7 @@ fn skip_and_limit_compose_into_one_page() {
     );
     assert_eq!(
         listing.truncated,
-        Some(crate::output::Truncation {
+        Some(crate::render::output::Truncation {
             shown: 2,
             total: 5,
             skip: 1,

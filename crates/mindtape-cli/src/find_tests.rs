@@ -10,7 +10,7 @@ fn args(terms: &[&str]) -> FindArgs {
     FindArgs {
         terms: terms.iter().map(|t| (*t).to_owned()).collect(),
         flags: LsFlags {
-            format: crate::output::OutputFormat::Table,
+            format: crate::render::output::OutputFormat::Table,
             json: false,
             limit: None,
             skip: None,
@@ -99,6 +99,6 @@ fn run_with_forwards_the_format_flag() {
     let dir = tempfile::tempdir().unwrap();
     let proj = project(dir.path(), &[("x.typ", mindtape::test_support::TASK_SRC)]);
     let mut find_args = args(&["task"]);
-    find_args.flags.format = crate::output::OutputFormat::Json;
+    find_args.flags.format = crate::render::output::OutputFormat::Json;
     assert!(run_with(&find_args, proj).is_ok());
 }

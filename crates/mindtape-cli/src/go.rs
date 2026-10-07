@@ -22,7 +22,7 @@ const TASK_TOKEN: &str = "{task}";
 #[derive(Args)]
 pub struct GoArgs {
     #[command(flatten)]
-    pub task: crate::task_ref::TaskRef,
+    pub task: crate::cli::task_ref::TaskRef,
 }
 
 /// Run the `go` command.

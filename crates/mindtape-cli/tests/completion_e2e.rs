@@ -1,5 +1,5 @@
 //! End-to-end tests for the completions the binary answers itself
-//! (`crates/mindtape-cli/src/completion.rs`).
+//! (`crates/mindtape-cli/src/cli/completion/mod.rs`).
 //!
 //! These drive the same protocol the installed shell hook does — `COMPLETE=`
 //! plus the word list after `--` — rather than a Rust-level call, because the

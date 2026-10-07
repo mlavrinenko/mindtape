@@ -35,7 +35,7 @@ use crate::{git, util};
 #[derive(Args)]
 pub struct MvArgs {
     #[command(flatten)]
-    pub task: crate::task_ref::TaskRef,
+    pub task: crate::cli::task_ref::TaskRef,
     /// The task's new file stem, which is its new identity. A bare stem: a
     /// trailing `.typ` is accepted and dropped, a path separator is refused.
     pub new_stem: String,

@@ -57,10 +57,10 @@ groups:
   # docs-site reference pages. README.md carries only a thin, illustrative
   # command teaser, tracked by the coarser cli-name group below.
   #
-  # `cli.rs` only wires the `Command` enum onto each module's `*Args` struct.
+  # `cli/mod.rs` only wires the `Command` enum onto each module's `*Args` struct.
   # It names the types and does not declare their fields. Every flag lives in
   # its own command module (`AddArgs` in `add.rs`, `LsArgs` in `ls.rs`, …), so a
-  # flag change there leaves `cli.rs` byte-identical and busts no group unless
+  # flag change there leaves `cli/mod.rs` byte-identical and busts no group unless
   # the module is a source. The modules below are listed explicitly and not as a
   # glob (e.g. `crates/mindtape-cli/src/*.rs`), because the command directory
   # interleaves each command's `*Args` module with its own helper, rendering
@@ -72,7 +72,7 @@ groups:
   # command module, but `just check-doc-coverage` covers that half of the gap
   # (it fails naming any visible `mt` subcommand missing from
   # `www/utils/cli-notes.typ`), so this list only has to catch the other half:
-  # a flag changing on a command the docs already know. `cli_dump.rs`
+  # a flag changing on a command the docs already know. `cli/tree_json.rs`
   # (`mt _cli`) is not one of these sources. It is hidden tooling that reflects
   # `Cli::command()` back out for the docs generator, so it can only remove
   # drift (see its own module doc).
@@ -84,7 +84,7 @@ groups:
   # arrays). A section moved to a page of its own stays under the drift gate.
   - name: cli-docs
     source:
-      - crates/mindtape-cli/src/cli.rs
+      - crates/mindtape-cli/src/cli/mod.rs
       - crates/mindtape-cli/src/add.rs
       - crates/mindtape-cli/src/check.rs
       # Not an `*Args` module: it declares which argument completes from which
@@ -92,7 +92,7 @@ groups:
       # `install` entry names the sources a tab press offers), and nothing in
       # www/generated/*.json carries it as a fact a page could render instead.
       # `cli.json` reflects the per-argument entry and not the roster.
-      - crates/mindtape-cli/src/completion.rs
+      - crates/mindtape-cli/src/cli/completion/mod.rs
       - crates/mindtape-cli/src/config_cmd.rs
       - crates/mindtape-cli/src/eval.rs
       - crates/mindtape-cli/src/find.rs
@@ -118,7 +118,7 @@ groups:
       # (`#` -> `id`, and `file` as the root-relative record path rather than
       # the table's cwd-relative display) lives here and nowhere else, while
       # www/content/cli/ls.typ and schema.typ each restate it by hand.
-      - crates/mindtape-cli/src/output.rs
+      - crates/mindtape-cli/src/render/output.rs
       - crates/mindtape-cli/src/preset_cmd.rs
       - crates/mindtape-cli/src/recur.rs
       - crates/mindtape-cli/src/review.rs
@@ -340,7 +340,7 @@ groups:
   - name: cli-name
     source:
       - crates/mindtape-cli/Cargo.toml
-      - crates/mindtape-cli/src/cli.rs
+      - crates/mindtape-cli/src/cli/mod.rs
     dependents:
       - docs/src/readme.typ
       - www/content/index.typ

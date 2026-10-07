@@ -7,7 +7,7 @@
 //! docs can never restate — or drift from — a flag fact.
 //!
 //! Every leaf command node also carries a `class` field — its read/write
-//! classification from [`crate::command_class`] — so `www/generated/cli.json`
+//! classification from [`crate::cli::command_class`] — so `www/generated/cli.json`
 //! carries the CQRS split for `docs/src/contributing.typ` and
 //! `tests/read_no_write_e2e.rs` to read, instead of either retyping it. A
 //! node with subcommands (`config`, `preset`) carries `class: null`: it is
@@ -21,8 +21,8 @@ use clap::{Arg, ArgAction, Command, CommandFactory};
 use serde_json::{Value, json};
 
 use crate::cli::Cli;
-use crate::command_class::{self, Class};
-use crate::completion::{self, Source};
+use crate::cli::command_class::{self as command_class, Class};
+use crate::cli::completion::{self as completion, Source};
 
 /// Arguments for the hidden `_cli` dump command.
 #[derive(Debug, clap::Args)]
@@ -51,7 +51,7 @@ pub struct CliDumpArgs {
 /// Propagates a JSON serialization failure (not expected for this fixed shape).
 pub fn run(args: &CliDumpArgs) -> Result<()> {
     if let Some(line) = &args.check_argv {
-        return crate::cli_check::run(line, &args.statuses);
+        return crate::cli::check_argv::run(line, &args.statuses);
     }
     println!("{}", dump_json()?);
     Ok(())
@@ -70,7 +70,7 @@ fn dump(root: &Command) -> Value {
         .get_arguments()
         .filter(|a| a.is_global_set())
         // A global belongs to the root, so its completion entry is keyed by
-        // the empty path — the same key `crate::completion` walks it under.
+        // the empty path — the same key `crate::cli::completion` walks it under.
         .map(|arg| arg_json(arg, ""))
         .collect();
     json!({
@@ -146,7 +146,7 @@ fn command_json(cmd: &Command, prefix: &str) -> Value {
 }
 
 /// A node's flattened path: its own name if `prefix` is empty, else `"<prefix>
-/// <name>"` — the same joining [`crate::command_class::CLASSIFICATION`]'s keys
+/// <name>"` — the same joining [`crate::cli::command_class::CLASSIFICATION`]'s keys
 /// use for a nested leaf like `"config show"`.
 fn flattened_name(prefix: &str, name: &str) -> String {
     if prefix.is_empty() {
@@ -158,7 +158,7 @@ fn flattened_name(prefix: &str, name: &str) -> String {
 
 /// A leaf's classification as JSON: `"read"`/`"write"`, or `{"kind":
 /// "exempt", "reason": "..."}`. `null` for a name with no
-/// [`crate::command_class`] entry — never expected to ship (the
+/// [`crate::cli::command_class`] entry — never expected to ship (the
 /// exhaustiveness tests below catch it first), but this function stays total
 /// rather than panicking the dump itself.
 fn class_json(path: &str) -> Value {
@@ -193,13 +193,13 @@ fn arg_json(arg: &Arg, path: &str) -> Value {
     })
 }
 
-/// Where the argument's values come from, as [`crate::completion::SOURCES`]
+/// Where the argument's values come from, as [`crate::cli::completion::SOURCES`]
 /// declares it: `{"source": "stems", "reason": null}` for an argument with a
 /// value source, `{"source": null, "reason": "..."}` for one deliberately
 /// without, and `null` for an argument the table does not name at all.
 ///
 /// That third state is the one `just check-doc-facts` fails on, which is why
-/// it is reflected here rather than grepped out of `completion.rs`: the gate
+/// it is reflected here rather than grepped out of `cli/completion/mod.rs`: the gate
 /// then reads the same table the completers are built from, so it cannot be
 /// satisfied by a mention the parser never sees.
 fn completion_json(path: &str, id: &str) -> Value {
@@ -258,5 +258,5 @@ fn opt_str<T: ToString>(styled: Option<&T>) -> Option<String> {
 }
 
 #[cfg(test)]
-#[path = "cli_dump_tests.rs"]
+#[path = "tree_json_tests.rs"]
 mod tests;
