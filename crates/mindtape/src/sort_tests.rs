@@ -97,7 +97,7 @@ fn default_order_breaks_priority_ties_by_due_ascending() {
 
 #[test]
 fn default_order_floats_ready_above_blocked() {
-    use crate::ready::Readiness;
+    use crate::graph::ready::Readiness;
 
     let cfg = config(); // proposed(0), wip(1), done(2)
     // A blocked task earlier in the lifecycle vs a ready task later in it: the
@@ -163,7 +163,7 @@ fn sort_by_specs_rejects_an_unknown_direction() {
         &mut tasks,
         &["priority:wtf".to_owned()],
         &config(),
-        &crate::ready::Readiness::empty(),
+        &crate::graph::ready::Readiness::empty(),
     )
     .unwrap_err();
     assert!(err.contains("asc") && err.contains("desc"), "{err}");
@@ -184,7 +184,7 @@ fn the_file_sort_field_is_an_unknown_field() {
         &mut [task("a", "wip", 5.0, None)],
         &["file:desc".to_owned()],
         &config(),
-        &crate::ready::Readiness::empty(),
+        &crate::graph::ready::Readiness::empty(),
     )
     .unwrap_err();
     assert!(applied.contains("file"), "{applied}");
@@ -201,7 +201,7 @@ fn sort_by_specs_orders_by_id_ascending() {
         &mut tasks,
         &["id".to_owned()],
         &cfg,
-        &crate::ready::Readiness::empty(),
+        &crate::graph::ready::Readiness::empty(),
     )
     .unwrap();
     assert_eq!(tasks.first().unwrap().id, "a-task");
@@ -216,7 +216,7 @@ fn sort_by_specs_rejects_unknown_field() {
             &mut tasks,
             &["bogus".to_owned()],
             &cfg,
-            &crate::ready::Readiness::empty()
+            &crate::graph::ready::Readiness::empty()
         )
         .is_err()
     );
@@ -249,13 +249,13 @@ default-sort = ["id"]
         task("z-task", "wip", 9.0, None),
         task("a-task", "wip", 1.0, None),
     ];
-    default_order_with(&mut tasks, &cfg, &crate::ready::Readiness::empty());
+    default_order_with(&mut tasks, &cfg, &crate::graph::ready::Readiness::empty());
     assert_eq!(tasks.first().unwrap().id, "a-task");
 }
 
 // --- Graph-derived sort keys (`topo`, `blocks`) ---
 
-/// A task carrying the graph ranks the loader derives (`crate::dep_rank`),
+/// A task carrying the graph ranks the loader derives (`crate::graph::dep_rank`),
 /// plus a priority — the shape the tiebreak tests need.
 fn ranked(id: &str, topo: u32, blocks: u32, priority: f64) -> Task {
     let mut t = task(id, "wip", priority, None);
@@ -274,7 +274,7 @@ fn sorted(mut tasks: Vec<Task>, specs: &[&str]) -> Vec<Task> {
         &mut tasks,
         &specs,
         &config(),
-        &crate::ready::Readiness::empty(),
+        &crate::graph::ready::Readiness::empty(),
     )
     .unwrap();
     tasks

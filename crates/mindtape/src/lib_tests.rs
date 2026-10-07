@@ -2,7 +2,7 @@
 
 use crate::config::Config;
 use crate::filter::Filter;
-use crate::ready::Readiness;
+use crate::graph::ready::Readiness;
 use crate::select;
 use crate::test_support::bare_task;
 

@@ -153,7 +153,7 @@ pub fn load_project(root: &Path, config: &Config) -> LoadOutcome {
     // never per file. Both are cheap graph walks over already-parsed `links:`,
     // so no cache entry holds them: a task served from the cache gets the same
     // ranks a freshly harvested one does.
-    crate::dep_rank::annotate(&mut outcome.tasks, config);
+    crate::graph::dep_rank::annotate(&mut outcome.tasks, config);
     outcome
 }
 

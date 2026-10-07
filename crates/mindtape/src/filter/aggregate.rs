@@ -2,7 +2,7 @@
 //!
 //! The argument ranges over the whole loaded set, never a listing's narrowed
 //! rows — the rule `ready` follows, and for the same reason: the set is fixed
-//! before any filter runs, by [`crate::ready::Readiness::compute`], which
+//! before any filter runs, by [`crate::graph::ready::Readiness::compute`], which
 //! carries a [`LoadedSet`] alongside its dependency classification.
 //!
 //! Inside `count` every field reads the task being counted, so the result
@@ -11,7 +11,7 @@
 //! per command and the number reused, so a rule asserting `count(...)` on
 //! every task stays linear in the set rather than quadratic.
 //!
-//! Where no set exists ([`crate::ready::Readiness::empty`]: `required`, a
+//! Where no set exists ([`crate::graph::ready::Readiness::empty`]: `required`, a
 //! gate, a single-file eval) `count` is an error rather than zero — zero is a
 //! real answer, and reading it where the set was never loaded would pass a cap
 //! it never measured.
@@ -27,7 +27,7 @@ use crate::model::Task;
 
 /// The loaded set `count` ranges over, and the per-command cache of its
 /// answers keyed by the argument's canonical text. Cloning shares both, so a
-/// clone of the owning [`crate::ready::Readiness`] never recomputes.
+/// clone of the owning [`crate::graph::ready::Readiness`] never recomputes.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct LoadedSet {
     /// `None` when there is no set context at all, as distinct from a set

@@ -17,7 +17,7 @@ fn ids_by(mut tasks: Vec<Task>, field: &str, cfg: &Config) -> Vec<String> {
         &mut tasks,
         &[field.to_owned()],
         cfg,
-        &crate::ready::Readiness::empty(),
+        &crate::graph::ready::Readiness::empty(),
     )
     .unwrap();
     tasks.iter().map(|t| t.id.clone()).collect()
@@ -218,7 +218,7 @@ fn sort_by_specs_orders_difficulty_labels_numerically() {
 
 #[test]
 fn sort_by_specs_orders_by_ready_band() {
-    use crate::ready::Readiness;
+    use crate::graph::ready::Readiness;
     let cfg = config();
     let mut blocked = task("r-blocked", "wip", 5.0, None);
     blocked.links = vec![dep_edge("missing.typ")];
@@ -353,7 +353,7 @@ fn sort_by_specs_sorts_missing_generic_field_last_ascending() {
         &mut tasks,
         &["kind:desc".to_owned()],
         &cfg,
-        &crate::ready::Readiness::empty(),
+        &crate::graph::ready::Readiness::empty(),
     )
     .unwrap();
     let ids: Vec<&str> = tasks.iter().map(|t| t.id.as_str()).collect();

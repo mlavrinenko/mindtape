@@ -6,8 +6,8 @@ use super::{
 };
 use crate::config::{Config, parse_config};
 use crate::filter::Filter;
+use crate::graph::ready::Readiness;
 use crate::model::{Status, Task};
-use crate::ready::Readiness;
 use crate::test_support::bare_task;
 
 /// A task at `status`, for scoping a `when` against the status being left.

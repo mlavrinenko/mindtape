@@ -1,7 +1,7 @@
 //! Graph-derived per-task ranks: where a task sits in the dependency DAG
 //! ([`Task::topo`]) and how much work waits behind it ([`Task::blocks`]) —
 //! plus how far its children have got ([`Task::children`],
-//! [`Task::children_done`]), counted over `parent` edges by [`crate::children`].
+//! [`Task::children_done`]), counted over `parent` edges by [`crate::graph::children`].
 //!
 //! `links:` already carries the true working order of a backlog, but a scoring
 //! framework ranks a task on its own properties alone — so the decision five
@@ -28,7 +28,7 @@
 //!
 //! Both read the *blocking* kinds ([`blocking_kinds`]) — `depends-on` plus any
 //! custom kind a project flags `blocking = true` — resolved through the shared
-//! [`DepIndex`], the same edge set [`crate::ready`] classifies one hop of. So
+//! [`DepIndex`], the same edge set [`crate::graph::ready`] classifies one hop of. So
 //! `ready`, `blocked`, `topo` and `blocks` never disagree about what an edge
 //! means. A target naming no loaded task is not an edge; nor is a self-edge,
 //! which constrains no order.
@@ -70,7 +70,7 @@ use crate::model::Task;
 /// Compute [`Task::topo`] and [`Task::blocks`] over `tasks` and write them back
 /// onto each task.
 ///
-/// Call once over the *full* loaded set, the way [`crate::ready::Readiness`] is
+/// Call once over the *full* loaded set, the way [`crate::graph::ready::Readiness`] is
 /// computed: both ranks are facts about the whole graph, so deriving them from
 /// a narrowed set would count a dependency a view happens to hide as absent.
 /// The loader is the single caller for exactly that reason.
@@ -86,10 +86,10 @@ pub(crate) fn annotate(tasks: &mut [Task], config: &Config) {
 }
 
 /// `(children, terminal children)` for every task, parallel to `tasks`, over
-/// the `parent` edges [`crate::children`] resolves.
+/// the `parent` edges [`crate::graph::children`] resolves.
 fn child_counts(tasks: &[Task], config: &Config) -> Vec<(u32, u32)> {
     let terminal = config.tasks.status.terminal();
-    let by_parent = crate::children::children_by_parent(tasks);
+    let by_parent = crate::graph::children::children_by_parent(tasks);
     tasks
         .iter()
         .map(|task| {
@@ -138,7 +138,7 @@ fn ranks(tasks: &[Task], config: &Config) -> Vec<Rank> {
 
 /// The blocking-edge adjacency of a task set, held both ways round, plus which
 /// tasks are terminal. Keyed by [`Task::file`], the stable per-task identity
-/// [`crate::ready`] keys on too.
+/// [`crate::graph::ready`] keys on too.
 struct Graph<'a> {
     /// Task files in the set's own order (the loader sorts by id), so every
     /// walk below is seeded deterministically.

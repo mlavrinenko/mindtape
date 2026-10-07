@@ -6,8 +6,8 @@ use std::cmp::Ordering;
 
 use crate::config::Config;
 use crate::fields::{self, FieldValue};
+use crate::graph::ready::{Readiness, ReadyState};
 use crate::model::Task;
-use crate::ready::{Readiness, ReadyState};
 
 /// Whether `name` is accepted by `--sort` and `[ls] default-sort`: every
 /// [`crate::fields::FIELDS`] entry, every `x-<ns>` extension slot (a scalar
@@ -23,7 +23,7 @@ use crate::ready::{Readiness, ReadyState};
 /// and `blocks` (how many tasks it transitively unblocks). Both are levels,
 /// not linear positions, so they tie and a following spec breaks the tie:
 /// `--sort topo --sort priority:desc` is graph order with priority inside a
-/// layer. See [`crate::dep_rank`].
+/// layer. See [`crate::graph::dep_rank`].
 #[must_use]
 pub fn is_sort_field(name: &str) -> bool {
     name == "ready" || fields::get(name).is_some() || fields::is_extra(name)

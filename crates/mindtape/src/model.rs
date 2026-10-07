@@ -68,16 +68,16 @@ pub struct Task {
     /// Ordering by it puts every dependency ahead of its dependents, and leaves
     /// independent tasks tied for a secondary key to break — unlike
     /// [`depth`](Self::depth), which is folder nesting and says nothing about
-    /// the graph. Derived over the whole loaded set by [`crate::dep_rank`];
+    /// the graph. Derived over the whole loaded set by [`crate::graph::dep_rank`];
     /// zero when constructed without a loader.
     pub topo: u32,
     /// How many non-terminal tasks transitively wait on this one — the work
     /// finishing it would unblock. Zero for a terminal task, which blocks
-    /// nothing. Derived over the whole loaded set by [`crate::dep_rank`]; zero
+    /// nothing. Derived over the whole loaded set by [`crate::graph::dep_rank`]; zero
     /// when constructed without a loader.
     pub blocks: u32,
     /// How many tasks name this one with a `parent` edge. Derived over the
-    /// whole loaded set by [`crate::dep_rank`]; zero when constructed without a
+    /// whole loaded set by [`crate::graph::dep_rank`]; zero when constructed without a
     /// loader.
     pub children: u32,
     /// How many of those [`children`](Self::children) are terminal.

@@ -23,9 +23,9 @@ use std::process::{Command, Stdio};
 use crate::commit::{CommitMsgError, changed_paths, git, task_stem};
 use crate::config::Config;
 use crate::git::state::GitStatus;
+use crate::graph::ready::Readiness;
 use crate::loader::LoadError;
 use crate::model::Task;
-use crate::ready::Readiness;
 use crate::validate::candidate::{Candidate, harvest_source};
 
 /// Where one state's versions of the files it differs at come from.
@@ -122,7 +122,7 @@ impl ProjectState {
     /// A state holding `tasks`, ranked and classified as a load would.
     pub(crate) fn new(mut tasks: Vec<Task>, config: &Config, errors: Vec<LoadError>) -> Self {
         tasks.sort_by(|left, right| left.id.cmp(&right.id));
-        crate::dep_rank::annotate(&mut tasks, config);
+        crate::graph::dep_rank::annotate(&mut tasks, config);
         let readiness = Readiness::compute(&tasks, config);
         Self {
             tasks,

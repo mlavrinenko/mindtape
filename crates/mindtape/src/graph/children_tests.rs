@@ -19,7 +19,7 @@ fn child(id: &str, status: &str, parent: &str) -> Task {
 }
 
 fn annotated(mut tasks: Vec<Task>) -> Vec<Task> {
-    crate::dep_rank::annotate(&mut tasks, &config());
+    crate::graph::dep_rank::annotate(&mut tasks, &config());
     tasks
 }
 

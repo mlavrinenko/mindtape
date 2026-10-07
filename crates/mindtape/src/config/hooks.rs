@@ -39,8 +39,8 @@ use thiserror::Error;
 
 use crate::config::Config;
 use crate::filter::{Filter, FilterError};
+use crate::graph::ready::Readiness;
 use crate::model::Task;
-use crate::ready::Readiness;
 
 /// A filter atom matching every task: `id` is a plain `String` on [`Task`] and
 /// is never absent, so `has(id)` is a tautology by construction. Used as the

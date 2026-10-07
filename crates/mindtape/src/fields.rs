@@ -50,7 +50,7 @@
 //! `depth`, `topo`, `blocks`, `children` and `progress` are *derived*
 //! entries: nothing authors them, the loader computes them (folder nesting;
 //! dependency level, transitive leverage, and the `parent`-edge child count
-//! and terminal share — see `crate::dep_rank`). `progress` alone can be
+//! and terminal share — see `crate::graph::dep_rank`). `progress` alone can be
 //! missing: a task with no children has no share to report. They enter here rather than being
 //! special-cased because they are plain numbers on `Task` by the time a filter
 //! or a sort sees one, so the generic comparator already orders them right —

@@ -4,8 +4,8 @@ use std::path::Path;
 
 use crate::config::{Config, parse_config};
 use crate::filter::{Filter, FilterError, expr_problem};
+use crate::graph::ready::Readiness;
 use crate::model::Task;
-use crate::ready::Readiness;
 use crate::test_support::{bare_task, git_as_tester as git, git_init};
 
 fn write(root: &Path, path: &str, text: &str) {

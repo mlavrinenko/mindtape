@@ -244,8 +244,8 @@ pub const TASK_SRC: &str = "#metadata((
 
 /// The minimal legend any dependency-graph fixture needs: an open `wip` and a
 /// terminal `done`, with `extra` appended for a project that also declares,
-/// say, a custom blocking link kind. Shared by `ready_tests.rs` and
-/// `dep_rank_tests.rs` — the one-hop and transitive readers of the same edges,
+/// say, a custom blocking link kind. Shared by `graph/ready_tests.rs` and
+/// `graph/dep_rank_tests.rs` — the one-hop and transitive readers of the same edges,
 /// which must be exercised against the same project shape to be comparable.
 ///
 /// # Panics

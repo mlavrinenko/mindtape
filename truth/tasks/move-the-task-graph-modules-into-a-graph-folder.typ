@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 7),
+  status: done(2026, 10, 7),
   links: depends-on("move-the-filter-language-into-a-filter-folder.typ")
     + related(
       "organize-each-crates-source-as-one-folder-per-area-with-a-mod-rs.typ",

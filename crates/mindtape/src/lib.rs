@@ -18,12 +18,10 @@ pub mod add_slots;
 pub mod app_dirs;
 pub mod body;
 pub mod canonical;
-pub mod children;
 pub mod commit;
 pub mod config;
 mod date;
 mod date_pin;
-mod dep_rank;
 pub mod derive;
 pub mod emit;
 mod field_descriptor;
@@ -45,7 +43,6 @@ pub mod marker;
 pub mod model;
 pub mod naming;
 pub mod numeric;
-pub mod ready;
 pub mod recur;
 pub mod recur_dates;
 #[cfg(feature = "rrule")]
@@ -74,7 +71,6 @@ pub use body::content_gate::{CompiledContentRule, check_content, compile_content
 pub use body::gate::{CompiledRule, GateError, check_headers, compile_rules};
 pub use body::{BodyRules, check_body_rules};
 pub use canonical::{CanonicalTask, SCHEMA_VERSION};
-pub use children::{children_violation, unfinished_children};
 pub use commit::expr::CommitExpr;
 pub use commit::range::{CommitRange, PastCommit, RangeCommit};
 pub use commit::tasks::{CommitStates, ProjectState, StatePlan, StateSource};
@@ -110,6 +106,10 @@ pub use format::format_typst;
 pub use framework::{Category, Framework, Input, InputKind};
 pub use fs_atomic::write_atomic;
 pub use git::current_branch;
+pub use graph::children::{children_violation, unfinished_children};
+pub use graph::ready::{
+    Blocker, Readiness, ReadyState, blockers_of, unblocked_violation, waits_on,
+};
 pub use graph::{Cycle, Edge, edges, find_referrer, resolve_edge, toposort};
 pub use handle::{RefError, Resolution, Resolved, StemHashes, is_path_ref, resolve_ref};
 pub use import_map::{
@@ -125,7 +125,6 @@ pub use model::{Status, Task, is_history_pointer, normalize_link};
 pub use numeric::{
     Anchor, Band, InputValue, NumCell, NumValue, NumericField, ScaleKind, format_num,
 };
-pub use ready::{Blocker, Readiness, ReadyState, blockers_of, unblocked_violation, waits_on};
 pub use rules::{CheckSpec, RuleSpec};
 pub use sort::{default_order, default_order_with, difficulty_value, sort_by_specs};
 pub use status_value::{STATUS_SHORTCUTS, escape_markup, status_value};

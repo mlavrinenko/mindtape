@@ -104,7 +104,7 @@ pub struct CanonicalTask {
     /// (read-only). Needs the whole task set, so [`Self::from_task`] leaves
     /// it empty and a listing fills it from its [`crate::Readiness`].
     #[serde(default)]
-    pub why: Vec<crate::ready::Blocker>,
+    pub why: Vec<crate::graph::ready::Blocker>,
     /// How many tasks name this one with a `parent` edge (read-only).
     #[serde(default)]
     pub children: u32,

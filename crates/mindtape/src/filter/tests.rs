@@ -237,7 +237,7 @@ fn framework_priority_compares_by_resolved_score() {
 
 #[test]
 fn ready_and_blocked_predicates() {
-    use crate::ready::Readiness;
+    use crate::graph::ready::Readiness;
 
     let cfg = parse_config(
         "[[tasks.status]]\nvalue = \"wip\"\n[[tasks.status]]\nvalue = \"done\"\nterminal = true\n",

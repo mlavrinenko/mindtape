@@ -88,11 +88,11 @@ fn assert_round_trips(task: &Task, config_text: &str, stub_ids: &[&str]) {
         .unwrap_or_else(|| panic!("task `{}` did not load\n--- source ---\n{source}", task.id));
     reloaded.file.clone_from(&task.file);
     reloaded.derived_tags.clone_from(&task.derived_tags);
-    // `topo`/`blocks` are derived from the whole loaded set (`crate::dep_rank`)
+    // `topo`/`blocks` are derived from the whole loaded set (`crate::graph::dep_rank`)
     // exactly as `derived_tags` is, and nothing about them is written to the
     // file — so the stub link targets this fixture plants give the reloaded
     // task a graph position the authored one never carried. Not a round-trip
-    // property; `dep_rank_tests.rs` is what pins their values.
+    // property; `graph/dep_rank_tests.rs` is what pins their values.
     reloaded.topo = task.topo;
     reloaded.blocks = task.blocks;
     // Likewise `spans`: the loader reads it off the source it is handed,

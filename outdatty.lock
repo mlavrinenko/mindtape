@@ -61,8 +61,8 @@ groups:
       crates/mindtape-cli/src/views.rs: a6987780b57f9651a48af4e5c559b4c3972e06f428be39799af0c9529c6f0483
       crates/mindtape-cli/src/worktrees.rs: 844afb5b116a83aec8bf858e286273242881786cb5ddf4dab4c168bff65e4508
       crates/mindtape/src/config/defaults.toml: 966e5c1993de2c5a61e3633138ed30ffb8b7836ed63f627903f58107943d6cc9
-      crates/mindtape/src/fields.rs: a51207eacb16a37f2003b12d34ee58352ec715c9f11b80bb41ddf6eecf3a6fcc
-      crates/mindtape/src/lib.rs: 5104dbe83009133ee5afd0a704cfa027028dcaf48e9f996fc82aca9322891d7d
+      crates/mindtape/src/fields.rs: 0416462649ad29456a4854898a14ad0ffd99ef8dc0c4d848f2b4feb772e28d05
+      crates/mindtape/src/lib.rs: 54cb496655c6027d1f469e2df68f22ef62f683379110542001e10590ceb727be
     dependents:
       docs/src/skill.typ: c2c1f99555057c80465e0382054300d746b69ed7fca2189f0de1f6857231b165
       skills/mindtape/evals/README.md: 096a87126b99bf1befb6a9d23f1aa3021870a0f86e13b655800725fedf762f53
@@ -169,11 +169,11 @@ groups:
       docs/src/contributing/generated-docs.typ: 62185282d7f6ab2c81b8253305598c8b02a2ca60a46dd1931d2191021a42a6ea
   filter-docs:
     source:
-      crates/mindtape/src/filter/aggregate.rs: 9d16eb96d34160fc7864ad716c0d9ca11ebefa0e7e932909cd89cd712a7c139b
+      crates/mindtape/src/filter/aggregate.rs: 51809d59de66e67043aad2e2c48c34aa7b4bcef5289202f62bf663cb35a6a1ca
       crates/mindtape/src/filter/compare.rs: 96939f5cd61f8dddc63dbfeef845a9c19cde1b98fcb6536268ab35234a0b6c38
       crates/mindtape/src/filter/eval.rs: 2197eecdbb4fadefba334fb9d67c602a98699e9c71f9fe77071904960934ad5a
       crates/mindtape/src/filter/links.rs: ddecf3d32138064c5f7a5ce92d71706eb106dd19fc1c8d34f62c87aa4b46d3c1
-      crates/mindtape/src/filter/mod.rs: 4c735be58db92d8bd4f2e4c56ea58ab28bba53f4b459a7ae1e3bff427c40a9bc
+      crates/mindtape/src/filter/mod.rs: b78fccfd98e79a0ae464d3cd912c152986a0124f7cd487f3a538edc50345cc1a
       crates/mindtape/src/filter/predicates.rs: 0a0794de6256fa2deb6b3405fd383fc452cefc91b45541225c06304fa1f4493a
       crates/mindtape/src/filter/strings.rs: a0a76cbe0ca064a3b8c329cddc9790829a6a4eeb86dec2163434f1c164f2b69b
       crates/mindtape/src/filter/views.rs: 193400a7845d0b1834f741e3fcaa2e212eb71797d26b47d838e45669688b5c6a

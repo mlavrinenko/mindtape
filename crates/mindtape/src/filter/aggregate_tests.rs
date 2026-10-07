@@ -5,8 +5,8 @@
 
 use crate::config::Config;
 use crate::filter::{Filter, FilterError, expr_problem, expr_problem_in_set};
+use crate::graph::ready::Readiness;
 use crate::model::Task;
-use crate::ready::Readiness;
 use crate::test_support::{dep_config, dep_task};
 
 /// Two tasks in flight, one finished.

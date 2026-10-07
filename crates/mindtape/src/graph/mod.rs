@@ -3,12 +3,22 @@
 //!
 //! Nodes are tasks keyed by [`Task::file`]; edges are the `depends-on` links
 //! that resolve to a loaded task. This is the graph substrate that the one-hop
-//! readiness query ([`crate::ready`]) and the transitive [`toposort`] both build
+//! readiness query ([`crate::graph::ready`]) and the transitive [`toposort`] both build
 //! on: both resolve edges through the shared [`DepIndex`], differing only in what
 //! they ask of it — readiness checks a single hop against the terminal set,
 //! toposort walks the whole graph. A `depends-on` target that names no loaded
 //! task (dangling, or escaping the root) is not an edge: it cannot join a cycle
 //! and does not constrain the order.
+//!
+//! # Files
+//!
+//! - `children.rs`: a task's children, the tasks whose `parent` edge names it.
+//! - `dep_rank.rs`: graph-derived per-task ranks, `topo`, `blocks` and `children_done`.
+//! - `ready.rs`: dependency readiness, a one-hop status-only classification.
+
+pub mod children;
+pub(crate) mod dep_rank;
+pub mod ready;
 
 use std::collections::HashMap;
 use std::fmt;
@@ -85,7 +95,7 @@ pub struct Edge<'a> {
 /// Every `links:` edge in `tasks` that resolves to another loaded task, in
 /// authored order per source. A target that names no in-set task (dangling,
 /// escaping the set, or filtered out) yields no edge — the same resolution
-/// [`toposort`] and [`crate::ready`] use, so a graph view never re-implements
+/// [`toposort`] and [`crate::graph::ready`] use, so a graph view never re-implements
 /// link resolution. Pass a filtered slice to project the induced subgraph:
 /// edges to tasks outside it vanish.
 #[must_use]
@@ -229,5 +239,4 @@ impl<'a> Walk<'a> {
 }
 
 #[cfg(test)]
-#[path = "graph_tests.rs"]
 mod tests;

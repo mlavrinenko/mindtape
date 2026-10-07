@@ -392,7 +392,7 @@ fn linked_body(status: &str, deps: &[&str]) -> String {
 #[test]
 fn stamps_graph_ranks_over_the_whole_set() {
     // The loader is the single place `topo`/`blocks` are derived (see
-    // `crate::dep_rank`), so this is what wires the graph sorts and filters to
+    // `crate::graph::dep_rank`), so this is what wires the graph sorts and filters to
     // real files: without it every task would read 0 and `--sort topo` would be
     // a no-op.
     let dir = setup();

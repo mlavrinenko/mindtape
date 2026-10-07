@@ -14,7 +14,7 @@ exclude_globs = ["**/main.rs", "**/recur_rrule_off.rs"]
 # loop. Keep each line paired with its class and the reason it cannot be killed;
 # the class leads the comment, so a recurring class is a grep away.
 exclude_re = [
-  # same-call: ready.rs empty() is literally `Self::default()`, so replacing the
+  # same-call: graph/ready.rs empty() is literally `Self::default()`, so replacing the
   # body with Default::default() is the same call — no test can tell them apart.
   #
   # Deleting `empty()` in favour of `Default::default()` would remove this entry

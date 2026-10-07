@@ -100,8 +100,8 @@ use crate::config::Config;
 use crate::fields::{self, FieldValue};
 use crate::filter::expr::{join_kebab_names, restore_name};
 use crate::filter::views::{collect_view_refs, desugar_view_refs};
+use crate::graph::ready::Readiness;
 use crate::model::Task;
-use crate::ready::Readiness;
 
 /// Maximum `in_view` nesting depth evaluated before bailing. Config load rejects
 /// cyclic view references ([`crate::config::views::validate_views`]), so this only

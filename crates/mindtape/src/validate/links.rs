@@ -16,12 +16,12 @@ use std::path::Path;
 
 use crate::config::Config;
 use crate::config::links_validate::Validators;
+use crate::graph::ready::{collect_blockers, unblocked_violation};
 use crate::graph::{DepIndex, toposort_kind};
 use crate::link::{
     Link, LinksConfig, acyclic_kinds, blocking_kinds, kind_targets_tasks, resolve_kind,
 };
 use crate::model::{Task, resolve_link_path};
-use crate::ready::{collect_blockers, unblocked_violation};
 use crate::validate::Violation;
 use crate::validate::severity::Severity;
 use crate::validate::violation::ViolationKind;
@@ -40,7 +40,7 @@ pub(crate) fn check_all(tasks: &[Task], config: &Config, out: &mut Vec<Violation
         check_cycle(tasks, kind, out);
     }
     check_unblocked(tasks, config, out);
-    crate::children::check(tasks, config, out);
+    crate::graph::children::check(tasks, config, out);
 }
 
 /// Warn about a task sitting in an `unblocked = true` status while it waits on

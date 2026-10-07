@@ -12,8 +12,8 @@ use std::collections::BTreeSet;
 
 use crate::config::Config;
 use crate::filter::{Filter, FilterError};
+use crate::graph::ready::Readiness;
 use crate::model::Task;
-use crate::ready::Readiness;
 use crate::rules::typst::CompiledCheck;
 use crate::validate::Violation;
 use crate::validate::severity::Severity;

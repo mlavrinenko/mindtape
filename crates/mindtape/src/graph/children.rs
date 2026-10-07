@@ -2,9 +2,9 @@
 //!
 //! One definition of the edge feeds three readers, so they never disagree about
 //! who a parent's children are: the derived `children`/`progress` fields
-//! ([`crate::dep_rank::annotate`]), the `mt flip` refusal to close a parent over
+//! ([`crate::graph::dep_rank::annotate`]), the `mt flip` refusal to close a parent over
 //! unfinished children, and the `mt check` warning about one already closed.
-//! "Unfinished" is non-terminal, the same line [`crate::ready`] draws for a
+//! "Unfinished" is non-terminal, the same line [`crate::graph::ready`] draws for a
 //! blocker: a cancelled child is finished, since nothing is left to wait for.
 //!
 //! A `parent` target naming no loaded task is not an edge, and a child listing
@@ -15,8 +15,8 @@ use std::path::Path;
 
 use crate::config::Config;
 use crate::graph::DepIndex;
+use crate::graph::ready::{Blocker, list_targets};
 use crate::model::Task;
-use crate::ready::{Blocker, list_targets};
 use crate::validate::Violation;
 use crate::validate::severity::Severity;
 

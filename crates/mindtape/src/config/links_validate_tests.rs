@@ -2,9 +2,9 @@
 
 use super::{TargetValidator, Validators, accepts, validate_link_kinds};
 use crate::config::{Config, parse_config};
+use crate::graph::ready::Readiness;
 use crate::link::{LinkKind, LinksConfig};
 use crate::model::Task;
-use crate::ready::Readiness;
 use crate::test_support::bare_task;
 
 /// A custom kind with `validate` set and everything else at its default.
