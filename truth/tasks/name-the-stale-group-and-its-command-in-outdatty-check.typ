@@ -2,7 +2,7 @@
 #import "../lib.typ": *
 
 #show: task.with(
-  title: "Fail outdatty-check on a dependent edited without a recorded hash",
+  title: "Name the stale group and its command in outdatty-check",
   kind: "dev",
   priority: ice(
     impact: 4,
@@ -22,22 +22,20 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the rule to record an edited dependent holds without a reviewer remembering it],
+      sound-codebase: helps[a failing drift gate says which group to review and how to record it],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 7),
+  status: done(2026, 10, 7)[the recipe prints each stale group from the JSON],
 )
 
 == Problem
 
 + Merging four parallel docs rewrites
-+ 🔴 #raw("Justfile"): just outdatty-check passes when a dependent changed and its lock hash did not, and a failing run prints only source paths, with no group and no command to run
++ 🔴 #raw("Justfile"): a failing `just outdatty-check` prints only source paths, with no group and no command to run
 
 ```
-$ echo "" >> www/content/cli.typ && just outdatty-check; echo "exit=$?"
-exit=0
 $ just outdatty-check   # after editing two api-service sources
 examples/api-service/.mindtape/config.toml
 examples/api-service/scripts/test
@@ -50,13 +48,12 @@ left in a closing report no one rereads. It belongs in
 
 == TO-BE
 
-- 🟢 `just outdatty-check` fails on a dependent whose hash differs from the lock, naming the group.
 - 🟢 A failing run names each stale group and the `just outdatty-update` command that records it.
 
 == Changes
 
-- `Justfile`: `outdatty-check` also compares dependent hashes (via `outdatty status --format json`) and prints group names with the update command.
-- The upstream fix belongs in outdatty itself: a `check` mode that covers dependents and a plain output naming groups.
+- `Justfile`: `outdatty-check` prints each stale group from `outdatty check --format json`, with what changed, what to review and the update command.
+- Upstream, outdatty's plain `check` output could list only the groups that failed, and the recipe would call it directly.
 
 == Rollback
 
@@ -65,6 +62,7 @@ left in a closing report no one rereads. It belongs in
 == Out of scope
 
 - The outdatty manifest groups themselves.
+- Gating a dependent edited on its own. `outdatty.yaml` keeps that ungated on purpose, so a doc edit doesn't turn the gate red.
 
 == Dogfood
 
