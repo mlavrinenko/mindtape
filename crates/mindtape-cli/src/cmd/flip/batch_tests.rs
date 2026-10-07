@@ -1,7 +1,7 @@
 //! Unit tests for the post-write revalidation's positive branches: a reloaded
 //! problem the landed batch owns.
 //!
-//! The batch's happy paths live in `cmd/flip/tests.rs` and `link_cmd_tests.rs`;
+//! The batch's happy paths live in `cmd/flip/tests.rs` and `cmd/link/tests.rs`;
 //! here are the two decisions `revalidate` can only make against a project
 //! built for each — a landed file that failed to reload, and a landed task
 //! that now violates a fatal rule. Both are constructed directly because

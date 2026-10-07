@@ -176,7 +176,7 @@ fn report_issues(issues: &[Violation], scope: &str) -> Result<()> {
 /// project with no tasks yet has no load outcome to derive that hint from.
 fn load_refusal(failure: &crate::pre_write::LoadFailure) -> String {
     let line = failure.render("the task as filled");
-    match crate::install_hint::failure_prelude_hint(&failure.message) {
+    match crate::cmd::install::hint::failure_prelude_hint(&failure.message) {
         Some(hint) => format!("{line}\n{hint}"),
         None => line,
     }

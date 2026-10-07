@@ -220,7 +220,7 @@ pub fn warn_errors(outcome: &LoadOutcome) {
     for error in &outcome.errors {
         eprintln!("warning: {}: {}", error.place(), error.message);
     }
-    for hint in crate::install_hint::load_hints(outcome) {
+    for hint in crate::cmd::install::hint::load_hints(outcome) {
         eprintln!("{hint}");
     }
 }
@@ -251,7 +251,7 @@ pub fn write_task(config: &Config, path: &Path, source: String) -> Result<()> {
 /// Build the `unknown view: <name>` error, extended with a nearest-match
 /// suggestion and the full view list
 /// (`truth/tasks/suggest-a-nearest-match-on-an-unknown-view-name.typ`).
-/// Shared by every CLI view lookup site (`ls_rules.rs`, `views.rs`) so the
+/// Shared by every CLI view lookup site (`cmd/ls/rules.rs`, `cmd/views.rs`) so the
 /// message and its hint composition are not duplicated across them.
 #[must_use]
 pub fn unknown_view_error(name: &str, views: &BTreeMap<String, ViewSpec>) -> anyhow::Error {

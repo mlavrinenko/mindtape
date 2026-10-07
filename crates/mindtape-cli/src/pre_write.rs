@@ -325,7 +325,7 @@ fn refuse_rejected(pending: &[Pending<'_>], verdicts: &[Verdict]) -> Result<()> 
             .as_ref()
             .map(|failure| failure.message.as_str())
     });
-    if let Some(hint) = crate::install_hint::batch_prelude_hint(failures) {
+    if let Some(hint) = crate::cmd::install::hint::batch_prelude_hint(failures) {
         eprintln!("{hint}");
     }
     bail!("{rejected} task(s) rejected; nothing was written")

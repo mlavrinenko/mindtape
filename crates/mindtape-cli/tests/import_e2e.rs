@@ -2,7 +2,7 @@
 //! only reliable way to exercise real stdin (unit tests can't fake process
 //! stdin). File-arg input is covered here too for parity; the mapping/
 //! round-trip/dry-run/failure-cleanup logic itself is unit-tested in
-//! `crates/mindtape-cli/src/import_tests.rs` via `import::import_records`.
+//! `crates/mindtape-cli/src/cmd/import/tests.rs` via `cmd::import::import_records`.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;

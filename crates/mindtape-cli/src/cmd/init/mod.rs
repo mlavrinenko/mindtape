@@ -19,7 +19,7 @@
 //! - `wizard/` — the questionnaire over the configuration axes.
 //! - `presets/` — the built-in preset directories, one folder each.
 //! - `axes/` — the axis fragments the wizard composes.
-//! - `tests.rs`, `*_tests.rs` — unit tests.
+//! - `cmd/ls/interactive/tests.rs`, `*_tests.rs` — unit tests.
 
 pub(crate) mod compose;
 pub(crate) mod preset;
@@ -264,7 +264,7 @@ fn with_schema_directive(template: &str, args: &SchemaArgs) -> Result<String> {
     }
     let value = match args.schema.as_deref() {
         Some("local") => {
-            let path = crate::install::xdg_schema_path()?;
+            let path = crate::cmd::install::xdg_schema_path()?;
             if !path.exists() {
                 println!(
                     "note: schema not installed at {} yet — run `mt install` (the \

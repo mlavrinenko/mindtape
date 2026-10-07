@@ -37,41 +37,15 @@ macro_rules! println {
 
 mod cli;
 mod cmd;
-mod config_cmd;
-mod eval;
-mod find;
 mod git;
-mod go;
-mod graph;
-mod graph_render;
-mod import;
-mod install;
-mod install_hint;
-mod link_cmd;
-mod link_edit;
-mod link_input;
-mod link_plan;
-mod ls;
-mod ls_interactive;
-mod ls_rules;
-mod ls_rules_applied;
-mod mv;
 mod pre_write;
-mod preset_cmd;
-mod recur;
-mod recur_edit;
 // Infrastructure for future command migration; not every item is wired yet.
 #[allow(dead_code)]
 mod render;
-mod review;
-mod rm;
-mod set;
 mod task_edit;
 #[cfg(test)]
 mod test_util;
 mod util;
-mod views;
-mod worktrees;
 
 use anyhow::Result;
 use clap::Parser;
@@ -84,7 +58,7 @@ fn main() -> Result<()> {
     cli::completion::complete();
     // Rewrite a leading `@name` into `-w <path>` before clap sees the argv, so
     // the worktree sugar reuses the existing override plumbing.
-    let argv = worktrees::desugar_argv(std::env::args_os().collect())?;
+    let argv = cmd::worktrees::desugar_argv(std::env::args_os().collect())?;
     let cli = cli::Cli::parse_from(argv);
     cli::init_logger(cli.verbose);
     // Resolve the worktree override once (flag over $MINDTAPE_WORKTREE) so every

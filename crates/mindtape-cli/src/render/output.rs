@@ -6,7 +6,7 @@ use mindtape::model::numeric::{NumValue, format_num};
 use mindtape::{CanonicalTask, Readiness, ReadyState, SCHEMA_VERSION, Task};
 use serde_json::{Value, json};
 
-use crate::ls_rules::Applied;
+use crate::cmd::ls::rules::Applied;
 use crate::render::RenderCtx;
 use crate::render::columns::{ColumnId, resolve_order, rows};
 
@@ -69,9 +69,9 @@ impl Truncation {
     }
 
     /// The human footer line for a truncated table, labelled like
-    /// [`crate::ls_rules::trailer`]'s `applied:` so the two read as one block
+    /// [`crate::cmd::ls::rules::trailer`]'s `applied:` so the two read as one block
     /// under the rows. Plain — no `next:` command; that needs the parsed
-    /// `LsArgs` this type does not carry, so `crate::ls::print_trailers`
+    /// `LsArgs` this type does not carry, so `crate::cmd::ls::print_trailers`
     /// composes the full line for the one caller that has them.
     #[must_use]
     pub fn footer(self) -> String {
@@ -114,7 +114,7 @@ fn status_name(task: &Task) -> String {
 ///
 /// `Table`, `CSV`, `Path` and `Path0` ignore `envelope`: the table's
 /// attribution and truncation lines are printed under it by the caller
-/// (`crate::ls`), and the three machine formats are record streams with
+/// (`crate::cmd::ls`), and the three machine formats are record streams with
 /// nowhere to put a document-level fact — no header, no colour, no
 /// hyperlinks, no envelope, so a `csv` reader and `xargs -0` get records and
 /// nothing else (`truth/tasks/emit-a-plain-path-list-from-ls.typ`).

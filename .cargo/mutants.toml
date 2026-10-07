@@ -77,7 +77,7 @@ test_workspace = true
 # Parallel load slows a mutant's suite long before it hangs it: at jobs=8 the
 # workspace suite was observed at ~58 s against a ~9 s baseline, and the auto
 # 60 s timeout recorded TIMEOUT for mutants that were merely slow — measured
-# 2026-09-29 on rm_unlink.rs:136:28, TIMEOUT at jobs=8 and MISSED in 8 s at
+# 2026-09-29 on cmd/rm/gitless/unlink.rs:136:28, TIMEOUT at jobs=8 and MISSED in 8 s at
 # jobs=1. A verdict meant to be believed runs at CARGO_MUTANTS_JOBS=2 anyway
 # (see docs/contributing/mutation-testing.md); this floor leaves that ~4x
 # headroom while still bounding a genuine hang.

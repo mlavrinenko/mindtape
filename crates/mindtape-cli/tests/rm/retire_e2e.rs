@@ -55,7 +55,7 @@ fn rm_retire_flips_to_first_terminal_status_without_git() {
 #[test]
 fn rm_retire_prints_commit_hint_inside_git_repo() {
     // The retire strategy needs no git either, but when a repository does
-    // exist the hint belongs — same emitter (`rm_gitless_report.rs`) as the
+    // exist the hint belongs — same emitter (`cmd/rm/gitless/report.rs`) as the
     // gitless case above, opposite repository state.
     let dir = tempfile::tempdir().unwrap();
     scaffold_config(

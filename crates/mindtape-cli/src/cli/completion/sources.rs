@@ -171,7 +171,7 @@ pub(super) fn assignment(current: &OsStr) -> Vec<CompletionCandidate> {
     if current.contains(['=', '@']) {
         return Vec::new();
     }
-    crate::set::writable_fields()
+    crate::cmd::set::writable_fields()
         .filter(|name| name.starts_with(current))
         .map(|name| CompletionCandidate::new(format!("{name}=")))
         .collect()

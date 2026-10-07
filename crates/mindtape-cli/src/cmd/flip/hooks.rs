@@ -105,7 +105,7 @@ impl<'a> Hooks<'a> {
             project,
             readiness,
             show,
-            env: crate::ls_rules::build_env(project, "table"),
+            env: crate::cmd::ls::rules::build_env(project, "table"),
         }
     }
 
@@ -186,7 +186,7 @@ impl<'a> Hooks<'a> {
             config,
             &self.readiness,
         )?;
-        crate::ls::sort_tasks(
+        crate::cmd::ls::sort_tasks(
             &mut tasks,
             &view_sort(self.project, spec),
             config,

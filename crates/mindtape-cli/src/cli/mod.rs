@@ -23,8 +23,10 @@ use log::LevelFilter;
 use crate::render::color::ColorChoice;
 use crate::render::link::HyperlinkChoice;
 use crate::{
-    cmd::add, cmd::check, cmd::flip, cmd::init, config_cmd, eval, find, go, graph, import, install,
-    link_cmd, ls, mv, preset_cmd, recur, review, rm, set, views, worktrees,
+    cmd::add, cmd::check, cmd::config as config_cmd, cmd::eval, cmd::find, cmd::flip, cmd::go,
+    cmd::graph, cmd::import, cmd::init, cmd::install, cmd::link as link_cmd, cmd::ls, cmd::mv,
+    cmd::preset as preset_cmd, cmd::recur, cmd::review, cmd::rm, cmd::set, cmd::views,
+    cmd::worktrees,
 };
 
 /// `MindTape`: a file-based task tracker using per-file Typst artifacts.

@@ -4,7 +4,7 @@
 # from the repo root — `$(pwd)/skills` is the link target.
 #
 # `defaults.toml` is deliberately not refreshed. It is seeded once and then
-# hand-edited as the global config layer (crates/mindtape-cli/src/install.rs),
+# hand-edited as the global config layer (crates/mindtape-cli/src/cmd/install/mod.rs),
 # so --force there would erase local settings; the schema is generated from the
 # config structs, so forcing it is always safe.
 set -eo pipefail

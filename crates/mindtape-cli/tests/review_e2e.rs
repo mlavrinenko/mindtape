@@ -1,5 +1,5 @@
 //! End-to-end tests for `mt review`'s decision branches: refusing a terminal
-//! task, the same-day idempotent no-op, and an unresolvable id. `review.rs`'s
+//! task, the same-day idempotent no-op, and an unresolvable id. `cmd/review.rs`'s
 //! own inline unit tests only exercise `build_edit` (the Typst-edit half);
 //! `date_pin_e2e.rs::mindtape_now_stamps_the_pinned_date_on_review` covers the
 //! happy-path stamp. None of those reach `run()`'s early-return branches,

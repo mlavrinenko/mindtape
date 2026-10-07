@@ -59,7 +59,7 @@ fn assignment_lists_the_writable_fields_it_prefixes() {
     // The empty token offers every writable field, no more and no less.
     assert_eq!(
         assignment(OsStr::new("")).len(),
-        crate::set::writable_fields().count()
+        crate::cmd::set::writable_fields().count()
     );
 }
 

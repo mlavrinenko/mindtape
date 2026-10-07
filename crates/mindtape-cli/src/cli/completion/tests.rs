@@ -60,7 +60,7 @@ fn every_source_entry_names_a_real_argument() {
 #[test]
 fn the_installed_hooks_cover_every_shell_the_engine_answers_for() {
     let mut engine: Vec<&str> = Shells::builtins().names().collect();
-    let mut installed: Vec<&str> = crate::install::hook_shells().collect();
+    let mut installed: Vec<&str> = crate::cmd::install::hook_shells().collect();
     engine.sort_unstable();
     installed.sort_unstable();
     assert_eq!(installed, engine);

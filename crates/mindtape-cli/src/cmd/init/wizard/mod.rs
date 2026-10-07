@@ -14,7 +14,7 @@
 //! # Files
 //!
 //! - `axes.rs` — one enum per axis, its choices and their TOML fragments.
-//! - `tests.rs` — unit tests.
+//! - `cmd/ls/interactive/tests.rs` — unit tests.
 
 use std::io::{BufRead, Write};
 

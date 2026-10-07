@@ -6,7 +6,7 @@
 //! - `commit.rs` — `--commit-msg`, the commit being written.
 //! - `range.rs` — `--commits`, a range of commits.
 //! - `templates.rs` — the template pass over every `mt add --list` template.
-//! - `tests.rs`, `tests_rules.rs`, `*_tests.rs` — unit tests.
+//! - `cmd/ls/interactive/tests.rs`, `tests_rules.rs`, `*_tests.rs` — unit tests.
 
 pub(crate) mod commit;
 pub(crate) mod range;

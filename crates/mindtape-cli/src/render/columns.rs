@@ -234,7 +234,7 @@ pub fn rows<'t>(tasks: &'t [Task], hashes: &StemHashes) -> Vec<(String, &'t Task
 /// Returns an error if a column's `when` fails to parse or evaluate (see
 /// [`ColumnId::visible`]).
 pub fn resolve_order(rows: &[(String, &Task)], ctx: RenderCtx<'_>) -> Result<Vec<ColumnId>> {
-    // Whether the render order was explicitly named — `ls.rs` assigns
+    // Whether the render order was explicitly named — `cmd/ls/mod.rs` assigns
     // `columns_order` uniformly for `--columns`, a view's `columns`, and an
     // `[[ls.rules]]` columns override, so this one check covers every explicit
     // path. It is per-column `named()` too, and not by approximation: when the

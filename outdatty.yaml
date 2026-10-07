@@ -59,12 +59,12 @@ groups:
   #
   # `cli/mod.rs` only wires the `Command` enum onto each module's `*Args` struct.
   # It names the types and does not declare their fields. Every flag lives in
-  # its own command module (`AddArgs` in `cmd/add/mod.rs`, `LsArgs` in `ls.rs`, …), so a
+  # its own command module (`AddArgs` in `cmd/add/mod.rs`, `LsArgs` in `cmd/ls/mod.rs`, …), so a
   # flag change there leaves `cli/mod.rs` byte-identical and busts no group unless
   # the module is a source. The modules below are listed explicitly and not as a
   # glob (e.g. `crates/mindtape-cli/src/*.rs`), because the command directory
   # interleaves each command's `*Args` module with its own helper, rendering
-  # and test siblings (`cmd/add/dedup.rs`, `cmd/add/interactive.rs`, `ls_rules.rs`,
+  # and test siblings (`cmd/add/dedup.rs`, `cmd/add/interactive.rs`, `cmd/ls/rules.rs`,
   # `cmd/init/wizard/mod.rs`, `*_tests*.rs`, …) under no naming convention that
   # separates the two (`add*.rs` alone matches five unrelated files). A
   # directory-wide glob would fire this group on internal refactors that touch
@@ -93,39 +93,39 @@ groups:
       # www/generated/*.json carries it as a fact a page could render instead.
       # `cli.json` reflects the per-argument entry and not the roster.
       - crates/mindtape-cli/src/cli/completion/mod.rs
-      - crates/mindtape-cli/src/config_cmd.rs
-      - crates/mindtape-cli/src/eval.rs
-      - crates/mindtape-cli/src/find.rs
+      - crates/mindtape-cli/src/cmd/config.rs
+      - crates/mindtape-cli/src/cmd/eval.rs
+      - crates/mindtape-cli/src/cmd/find.rs
       - crates/mindtape-cli/src/cmd/flip/mod.rs
-      - crates/mindtape-cli/src/go.rs
-      - crates/mindtape-cli/src/graph.rs
-      - crates/mindtape-cli/src/import.rs
+      - crates/mindtape-cli/src/cmd/go.rs
+      - crates/mindtape-cli/src/cmd/graph/mod.rs
+      - crates/mindtape-cli/src/cmd/import/mod.rs
       - crates/mindtape-cli/src/cmd/init/mod.rs
-      - crates/mindtape-cli/src/install.rs
-      # `mt link`'s flags live in `link_cmd.rs` (`LinkArgs`). Its input format,
+      - crates/mindtape-cli/src/cmd/install/mod.rs
+      # `mt link`'s flags live in `cmd/link/mod.rs` (`LinkArgs`). Its input format,
       # the adjacency map the docs restate by hand on the DSL page and in
-      # SKILL.md, lives in `link_input.rs`, so both are sources. The other two
-      # halves are not: `link_edit.rs` and `link_plan.rs` decide what gets
+      # SKILL.md, lives in `cmd/link/input.rs`, so both are sources. The other two
+      # halves are not: `cmd/link/edit.rs` and `cmd/link/plan.rs` decide what gets
       # written and what is refused, and no dependent restates either beyond
       # what those two files already declare.
-      - crates/mindtape-cli/src/link_cmd.rs
-      - crates/mindtape-cli/src/link_input.rs
-      - crates/mindtape-cli/src/ls.rs
-      - crates/mindtape-cli/src/mv.rs
+      - crates/mindtape-cli/src/cmd/link/mod.rs
+      - crates/mindtape-cli/src/cmd/link/input.rs
+      - crates/mindtape-cli/src/cmd/ls/mod.rs
+      - crates/mindtape-cli/src/cmd/mv.rs
       # `--format`'s per-surface contract: which columns each machine format
-      # carries and what each cell means. `ls.rs` decides nothing about this, as
+      # carries and what each cell means. `cmd/ls/mod.rs` decides nothing about this, as
       # it hands a resolved list to `render()`. So the CSV mapping decision
       # (`#` -> `id`, and `file` as the root-relative record path rather than
       # the table's cwd-relative display) lives here and nowhere else, while
       # www/content/cli/ls.typ and schema.typ each restate it by hand.
       - crates/mindtape-cli/src/render/output.rs
-      - crates/mindtape-cli/src/preset_cmd.rs
-      - crates/mindtape-cli/src/recur.rs
-      - crates/mindtape-cli/src/review.rs
-      - crates/mindtape-cli/src/rm.rs
-      - crates/mindtape-cli/src/set.rs
-      - crates/mindtape-cli/src/views.rs
-      - crates/mindtape-cli/src/worktrees.rs
+      - crates/mindtape-cli/src/cmd/preset.rs
+      - crates/mindtape-cli/src/cmd/recur/mod.rs
+      - crates/mindtape-cli/src/cmd/review.rs
+      - crates/mindtape-cli/src/cmd/rm/mod.rs
+      - crates/mindtape-cli/src/cmd/set.rs
+      - crates/mindtape-cli/src/cmd/views.rs
+      - crates/mindtape-cli/src/cmd/worktrees.rs
       - crates/mindtape/src/lib.rs
       # The filter/`--sort` field vocabulary. Every dependent that lists the
       # comparable fields (filters.typ, skills/mindtape/references/filters.md)

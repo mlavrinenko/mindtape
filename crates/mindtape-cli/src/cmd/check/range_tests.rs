@@ -4,7 +4,7 @@
 //! whose either state holds a task file that will not evaluate is still
 //! printed with its warnings, while one that fails only a `severity = "warn"`
 //! rule is printed but does not break the run. Driving the real binary is the
-//! only way to see the printed report, the same reason `rm_cli_tests` spawns
+//! only way to see the printed report, the same reason `cmd/rm/cli_tests.rs` spawns
 //! `mt`.
 
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]

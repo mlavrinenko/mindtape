@@ -1,6 +1,6 @@
 //! End-to-end tests for `mt link` over a real project and a real process.
 //!
-//! `link_cmd.rs`'s inline tests drive `run_with` against an in-process
+//! `cmd/link/mod.rs`'s inline tests drive `run_with` against an in-process
 //! project, which covers the merge/dedupe/replace/note/unknown-kind matrix.
 //! What they cannot reach is what needs a spawned binary: the stdin (`-`)
 //! adjacency source, the exit status a per-entry failure carries out of the

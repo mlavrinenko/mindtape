@@ -3,7 +3,7 @@
 //! The doc gate `just check-doc-spans` finds `mt ...` command lines in the
 //! docs and hands each to this check, so a doc span is accepted or refused by
 //! the parser that runs it. The line goes through the same steps as a real
-//! run: [`worktrees::desugar_argv`]'s `@name` rewrite, then clap, then the
+//! run: [`cmd::worktrees::desugar_argv`]'s `@name` rewrite, then clap, then the
 //! status-verb parser for a shortcut such as `mt done`. A line that only lacks
 //! a required argument passes, because a doc span shows part of a command.
 //!
@@ -19,7 +19,7 @@ use clap::error::{ContextKind, ContextValue, ErrorKind};
 use clap::{CommandFactory, Parser};
 
 use crate::cli::Cli;
-use crate::{cmd::flip, worktrees};
+use crate::{cmd::flip, cmd::worktrees};
 
 /// Judge `line` with `statuses` as the declared status verbs.
 ///

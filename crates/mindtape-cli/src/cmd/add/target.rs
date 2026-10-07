@@ -3,7 +3,7 @@
 //! three concerns of resolving the write target, split out of `cmd/add/mod.rs` to
 //! stay under the file-size gate. `dest_dir`/`warn_if_outside_roots` are also
 //! reused by `mt import`, which shares the same destination-resolution rules
-//! (see `crate::import`).
+//! (see `crate::cmd::import`).
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
