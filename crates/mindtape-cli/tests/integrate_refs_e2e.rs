@@ -8,7 +8,7 @@ use std::process::Output;
 
 mod support;
 
-use support::{git, git_commit_all, isolated_env, project_with_tasks};
+use support::{git, git_commit_all, isolate, project_with_tasks};
 
 /// A committed-clean `main` holding the `wip` task `parser`, and a worktree on
 /// the new branch `feature` in its own directory, which the second value owns.
@@ -55,6 +55,13 @@ fn integrate(main: &Path) -> Output {
 
 /// [`integrate`] with `first` ahead of everything else on `PATH`.
 fn integrate_with(main: &Path, first: Option<&Path>) -> Output {
+    integrate_from(main, first, &[])
+}
+
+/// [`integrate_with`] from a shell whose environment already carries `host`,
+/// set before the harness's own scrub ([`isolate`]) runs, as a developer's
+/// session would carry it into `cargo test`.
+fn integrate_from(main: &Path, first: Option<&Path>, host: &[(&str, &str)]) -> Output {
     let script = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.just/scripts/integrate.sh");
     let mt_dir = Path::new(env!("CARGO_BIN_EXE_mt")).parent().unwrap();
     let path = format!(
@@ -68,10 +75,9 @@ fn integrate_with(main: &Path, first: Option<&Path>) -> Output {
         .arg(script)
         .arg("feature")
         .current_dir(main)
-        .env("PATH", path);
-    for (key, value) in isolated_env(main) {
-        command.env(key, value);
-    }
+        .env("PATH", path)
+        .envs(host.iter().copied());
+    isolate(&mut command, main);
     command.output().unwrap()
 }
 
@@ -130,6 +136,7 @@ fn a_branch_naming_no_task_passes_the_refs_check() {
 /// tip. A stand-in `just` on `PATH` records the call, because the test host
 /// need not have the real one, and a pass-through `direnv` keeps the host's own
 /// from rewriting `PATH` out from under the stand-in.
+#[cfg(unix)]
 #[test]
 fn the_worktrees_mt_is_rebuilt_before_the_branch_is_judged() {
     use std::os::unix::fs::PermissionsExt;
@@ -154,5 +161,37 @@ fn the_worktrees_mt_is_rebuilt_before_the_branch_is_judged() {
     }
     let text = stderr(&integrate_with(main.path(), Some(&bin)));
     assert!(marker.exists(), "no rebuild: {text}");
+    past_the_refs_check(&text);
+}
+
+/// `direnv exec` rewinds `PATH` to the shell's pre-load value when it inherits
+/// `DIRENV_DIFF`/`DIRENV_WATCHES`, which swaps the `mt` under test for the
+/// host's. A `direnv` stand-in does the same rewind and a sentinel `mt` sits
+/// where the host's would: reaching it fails the run, so a pass means the
+/// script ran the binary under test whatever direnv state the host carries.
+#[cfg(unix)]
+#[test]
+fn the_script_runs_the_mt_under_test_whatever_direnv_state_the_host_carries() {
+    use std::os::unix::fs::PermissionsExt;
+    let (main, holder, wt) = repo_with_worktree();
+    commit(&wt, "task: note the parser");
+    let host_dir = holder.path().join("host-bin");
+    let bin = holder.path().join("bin");
+    std::fs::create_dir(&host_dir).unwrap();
+    std::fs::create_dir(&bin).unwrap();
+    let sentinel = host_dir.join("mt");
+    std::fs::write(&sentinel, "#!/bin/sh\necho 'host mt reached' >&2\nexit 1\n").unwrap();
+    let direnv = bin.join("direnv");
+    let restore = format!(
+        "#!/bin/sh\nshift 2\n[ -n \"$DIRENV_DIFF$DIRENV_WATCHES\" ] && PATH={}:$PATH\nexec \"$@\"\n",
+        host_dir.display()
+    );
+    std::fs::write(&direnv, restore).unwrap();
+    for script in [&sentinel, &direnv] {
+        std::fs::set_permissions(script, std::fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    let host = [("DIRENV_DIFF", "x"), ("DIRENV_WATCHES", "x")];
+    let text = stderr(&integrate_from(main.path(), Some(&bin), &host));
+    assert!(!text.contains("host mt reached"), "{text}");
     past_the_refs_check(&text);
 }

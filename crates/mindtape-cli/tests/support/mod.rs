@@ -17,8 +17,17 @@ const NO_GLOBAL_CONFIG: &str = "no-global-config";
 /// Environment variables that steer `mt` and must not reach a spawned binary
 /// from the developer's shell: `MINDTAPE_NOW` repins the clock every dated
 /// write reads, `MINDTAPE_WORKTREE` retargets the project root, and `VISUAL`
-/// would hand an accidental editor the developer's real one.
-const CLEARED_VARS: [&str; 3] = ["MINDTAPE_NOW", "MINDTAPE_WORKTREE", "VISUAL"];
+/// would hand an accidental editor the developer's real one. `DIRENV_DIFF` and
+/// `DIRENV_WATCHES` are direnv's record of what it loaded: inherited, they make
+/// a `direnv exec` inside a scratch repo rewind `PATH` to the shell's pre-load
+/// value, so a script resolves the host's `mt` instead of the one under test.
+const CLEARED_VARS: [&str; 5] = [
+    "MINDTAPE_NOW",
+    "MINDTAPE_WORKTREE",
+    "VISUAL",
+    "DIRENV_DIFF",
+    "DIRENV_WATCHES",
+];
 
 /// The editor every isolated spawn resolves instead of the developer's: a
 /// command that cannot exist, so an `add` a test did not mean to make
