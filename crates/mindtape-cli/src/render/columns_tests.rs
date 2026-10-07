@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 use mindtape::config::Config;
-use mindtape::numeric::NumValue;
+use mindtape::model::numeric::NumValue;
 use mindtape::test_support::{bare_task, floor_config};
 use mindtape::{ConditionEnv, Readiness, today_iso};
 

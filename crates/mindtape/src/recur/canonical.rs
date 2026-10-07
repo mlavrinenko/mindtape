@@ -2,7 +2,7 @@
 //! `on[i]`, …), so a hand-edited canonical record reads the same as the
 //! `every()`/`rrule()` call it came from. Split out from `recur.rs` to stay
 //! under the file-size gate (`crate::emit`'s `format`/`links` split is the
-//! same reasoning). See `crate::canonical`'s field contract.
+//! same reasoning). See `crate::model::canonical`'s field contract.
 
 use serde::{Deserialize, Serialize};
 
@@ -119,7 +119,7 @@ mod tests {
 
     #[test]
     fn period_round_trips_through_canonical() {
-        // Values deliberately differ from `canonical_tests.rs`'s
+        // Values deliberately differ from `model/canonical_tests.rs`'s
         // `every_recur_serializes_and_round_trips` (same property, one level
         // up the stack) so `check-dry` sees two fixtures, not one copy-pasted
         // twice.

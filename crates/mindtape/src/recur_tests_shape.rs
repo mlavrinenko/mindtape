@@ -12,7 +12,7 @@ use super::{HVal, Rule, parse_recur};
 /// The reports [`parse_recur`] pushes for `value`, discarding the recurrence
 /// itself — the shape-error tests below care about what the author is told,
 /// not what survived.
-fn reports(value: &HVal) -> Vec<crate::marker::ShapeError> {
+fn reports(value: &HVal) -> Vec<crate::model::marker::ShapeError> {
     let mut errors = Vec::new();
     drop(parse_recur(Some(value), &mut errors));
     errors
@@ -129,7 +129,7 @@ fn parse_recur_non_number_period_value_reports_the_authored_unit() {
 /// Parse a weekly period narrowed by `on`, returning the weekday set that
 /// survived alongside every report — the `on:` tests differ only in what they
 /// hand it, and both care about the pair.
-fn weekdays_and_reports(on: HVal) -> (Vec<Weekday>, Vec<crate::marker::ShapeError>) {
+fn weekdays_and_reports(on: HVal) -> (Vec<Weekday>, Vec<crate::model::marker::ShapeError>) {
     let val = every_val(period_rule("weeks", 1, Some(on)), vec![]);
     let mut errors = Vec::new();
     let recur = parse_recur(Some(&val), &mut errors).unwrap();

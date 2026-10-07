@@ -9,7 +9,7 @@ use std::collections::BTreeMap;
 use super::check_priority;
 use crate::config::{Config, parse_config};
 use crate::model::Task;
-use crate::numeric::{InputValue, NumValue};
+use crate::model::numeric::{InputValue, NumValue};
 use crate::test_support::{bare_task, ice_priority};
 use crate::validate::Violation;
 

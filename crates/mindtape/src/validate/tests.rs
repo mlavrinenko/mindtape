@@ -4,8 +4,8 @@ use std::collections::BTreeMap;
 
 use super::validate;
 use crate::config::{Config, parse_config};
+use crate::model::numeric::NumValue;
 use crate::model::{Status, Task};
-use crate::numeric::NumValue;
 use crate::test_support::{bare_task, dep_edge, link_edge, noted_edge};
 
 /// Status legend and priority/estimate/tags scale shared by every test in this

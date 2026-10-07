@@ -5,8 +5,8 @@
 //! [`crate::ls::run_with`] exactly as a manual `mt ls '...'` filter would be —
 //! no second matcher, no field vocabulary of its own. `find` grows no options
 //! past its terms; the moment it did, it would become a second query engine
-//! that drifts from the filter language, the failure `crate::fields`
-//! (`mindtape::fields`) was created to end (see
+//! that drifts from the filter language, the failure `crate::model::fields`
+//! (`mindtape::model::fields`) was created to end (see
 //! `truth/tasks/mt-find-as-sugar-over-contains.typ`).
 
 use anyhow::Result;

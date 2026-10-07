@@ -32,7 +32,7 @@
 //! through [`held`].
 //!
 //! A field with allowed values, a default or a requirement is one
-//! [`crate::field_descriptor::Descriptor`].
+//! [`crate::model::field_descriptor::Descriptor`].
 //!
 //! `path` is the task's project-root-relative source path
 //! ([`Task::file_key`]), and is deliberately not spelled `file`: the `file`
@@ -61,7 +61,7 @@ use typst_harvest::HVal;
 
 use crate::config::{Config, PriorityConfig};
 use crate::model::Task;
-use crate::numeric::NumValue;
+use crate::model::numeric::NumValue;
 
 /// A resolved field value. String fields compare lexicographically
 /// (ISO-correct for dates); numeric fields compare as numbers. `Missing`

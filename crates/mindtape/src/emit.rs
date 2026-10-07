@@ -18,8 +18,8 @@ mod links;
 use std::collections::BTreeMap;
 
 use crate::date::parse_ymd;
+use crate::model::numeric::{InputValue, NumValue, format_num};
 use crate::model::{Status, Task};
-use crate::numeric::{InputValue, NumValue, format_num};
 use crate::recur::{Recur, Rule};
 use crate::status_value::status_value;
 use format::{hval_to_typ, typ_array, typ_str};

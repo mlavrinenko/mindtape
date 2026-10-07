@@ -22,7 +22,7 @@ Which layer a new check on a task belongs in:
   priority and difficulty scales, the priority frameworks and their scoring,
   the edge kinds and their rules, the `required` rules (a filter expression
   per field), bounds, and link resolution. It checks types too.
-  `crates/mindtape/src/marker.rs` reports a field of the wrong shape, and a
+  `crates/mindtape/src/model/marker.rs` reports a field of the wrong shape, and a
   wrong-typed element inside a field of the right shape, with its position
   (`tags[1]`, `estimate.days`, `recur.on[1]`).
 - The card render checks nothing. Every accessor checks its value's type, and

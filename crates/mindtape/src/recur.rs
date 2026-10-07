@@ -19,7 +19,7 @@
 //! [`crate::recur_dates::advance_once`]'s concern.
 //!
 //! The canonical task-JSON shape ([`CanonicalRecur`]/[`CanonicalRule`], used
-//! by `crate::canonical`/`crate::import_map`) lives in the `canonical`
+//! by `crate::model::canonical`/`crate::import_map`) lives in the `canonical`
 //! submodule, split out to stay under the file-size gate.
 
 mod canonical;
@@ -170,7 +170,7 @@ const WEEKDAY_EXPECTED: &str = "a weekday name (mon, tue, wed, thu, fri, sat, su
 /// the dict correctly — so anything this cannot read is a value the author
 /// passed through one of those helpers (`every(weeks: "two")`, an `on:` entry
 /// that is not a weekday) or a hand-edited dict. Either way it is reported
-/// into `errors` as a [`crate::marker::ShapeError`] rather than read as no
+/// into `errors` as a [`crate::model::marker::ShapeError`] rather than read as no
 /// recurrence at all. Reports name the AUTHORED position — `recur.on[1]`,
 /// `recur.weeks` — since that is what the author can count to in their own
 /// source; only a shape no helper can produce is named by its marker path
@@ -178,45 +178,53 @@ const WEEKDAY_EXPECTED: &str = "a weekday name (mon, tue, wed, thu, fri, sat, su
 #[must_use]
 pub fn parse_recur(
     value: Option<&HVal>,
-    errors: &mut Vec<crate::marker::ShapeError>,
+    errors: &mut Vec<crate::model::marker::ShapeError>,
 ) -> Option<Recur> {
     let value = value?;
     let Some(dict) = value.as_dict() else {
-        errors.push(crate::marker::shape_error("recur", RECUR_EXPECTED, value));
+        errors.push(crate::model::marker::shape_error(
+            "recur",
+            RECUR_EXPECTED,
+            value,
+        ));
         return None;
     };
     let rule = parse_rule(dict, errors)?;
     Some(Recur {
         rule,
-        anchor: crate::marker::dict_str(dict, "recur", "anchor", errors),
-        until: crate::marker::dict_str(dict, "recur", "until", errors),
+        anchor: crate::model::marker::dict_str(dict, "recur", "anchor", errors),
+        until: crate::model::marker::dict_str(dict, "recur", "until", errors),
         count: parse_count(dict, errors),
-        materialize: crate::marker::dict_str(dict, "recur", "materialize", errors),
+        materialize: crate::model::marker::dict_str(dict, "recur", "materialize", errors),
     })
 }
 
 fn parse_rule(
     outer: &std::collections::BTreeMap<String, HVal>,
-    errors: &mut Vec<crate::marker::ShapeError>,
+    errors: &mut Vec<crate::model::marker::ShapeError>,
 ) -> Option<Rule> {
     let Some(value) = outer.get("rule").filter(|v| !v.is_null()) else {
-        errors.push(crate::marker::shape_message(
+        errors.push(crate::model::marker::shape_message(
             "recur",
             &format!("expected {RECUR_EXPECTED}, found one with no `rule`"),
         ));
         return None;
     };
     let Some(dict) = value.as_dict() else {
-        errors.push(crate::marker::shape_error("recur.rule", "a dict", value));
+        errors.push(crate::model::marker::shape_error(
+            "recur.rule",
+            "a dict",
+            value,
+        ));
         return None;
     };
-    match crate::marker::dict_str_required(dict, "recur.rule", "kind", errors)?.as_str() {
+    match crate::model::marker::dict_str_required(dict, "recur.rule", "kind", errors)?.as_str() {
         "period" => parse_period_rule(dict, errors),
         "rrule" => Some(Rule::Rrule {
-            raw: crate::marker::dict_str_required(dict, "recur.rule", "raw", errors)?,
+            raw: crate::model::marker::dict_str_required(dict, "recur.rule", "raw", errors)?,
         }),
         other => {
-            errors.push(crate::marker::shape_message(
+            errors.push(crate::model::marker::shape_message(
                 "recur.rule.kind",
                 &format!("expected `period` or `rrule`, found `{other}`"),
             ));
@@ -227,11 +235,11 @@ fn parse_rule(
 
 fn parse_period_rule(
     dict: &std::collections::BTreeMap<String, HVal>,
-    errors: &mut Vec<crate::marker::ShapeError>,
+    errors: &mut Vec<crate::model::marker::ShapeError>,
 ) -> Option<Rule> {
-    let name = crate::marker::dict_str_required(dict, "recur.rule", "unit", errors)?;
+    let name = crate::model::marker::dict_str_required(dict, "recur.rule", "unit", errors)?;
     let Some(unit) = PeriodUnit::parse(&name) else {
-        errors.push(crate::marker::shape_message(
+        errors.push(crate::model::marker::shape_message(
             "recur.rule.unit",
             &format!("expected one of days, weeks, months, years, found `{name}`"),
         ));
@@ -252,12 +260,12 @@ fn parse_period_rule(
 /// argument, `recur.start`, rather than reading as no start at all.
 fn parse_start(
     dict: &std::collections::BTreeMap<String, HVal>,
-    errors: &mut Vec<crate::marker::ShapeError>,
+    errors: &mut Vec<crate::model::marker::ShapeError>,
 ) -> Option<chrono::NaiveDate> {
-    let text = crate::marker::dict_str(dict, "recur", "start", errors)?;
+    let text = crate::model::marker::dict_str(dict, "recur", "start", errors)?;
     let date = crate::recur_dates::parse_iso(&text);
     if date.is_none() {
-        errors.push(crate::marker::shape_message(
+        errors.push(crate::model::marker::shape_message(
             "recur.start",
             &format!("expected a date like `on(2026, 6, 1)`, found `{text}`"),
         ));
@@ -270,18 +278,22 @@ fn parse_start(
 fn period_value(
     dict: &std::collections::BTreeMap<String, HVal>,
     unit_name: &str,
-    errors: &mut Vec<crate::marker::ShapeError>,
+    errors: &mut Vec<crate::model::marker::ShapeError>,
 ) -> Option<u32> {
     let path = format!("recur.{unit_name}");
     let Some(value) = dict.get("value").filter(|v| !v.is_null()) else {
-        errors.push(crate::marker::shape_message(
+        errors.push(crate::model::marker::shape_message(
             &path,
             "expected a whole number, found none",
         ));
         return None;
     };
     let Some(num) = as_u32(value) else {
-        errors.push(crate::marker::shape_error(&path, "a whole number", value));
+        errors.push(crate::model::marker::shape_error(
+            &path,
+            "a whole number",
+            value,
+        ));
         return None;
     };
     Some(num)
@@ -289,11 +301,11 @@ fn period_value(
 
 fn parse_count(
     dict: &std::collections::BTreeMap<String, HVal>,
-    errors: &mut Vec<crate::marker::ShapeError>,
+    errors: &mut Vec<crate::model::marker::ShapeError>,
 ) -> Option<u32> {
     let value = dict.get("count").filter(|v| !v.is_null())?;
     let Some(num) = as_u32(value) else {
-        errors.push(crate::marker::shape_error(
+        errors.push(crate::model::marker::shape_error(
             "recur.count",
             "a whole number",
             value,
@@ -305,30 +317,36 @@ fn parse_count(
 
 /// Parse `on:`'s weekday set. Absent/`none` is a plain unnarrowed period; a
 /// present value that isn't an array, and every entry that isn't a weekday
-/// name, report a [`crate::marker::ShapeError`] naming their position rather
+/// name, report a [`crate::model::marker::ShapeError`] naming their position rather
 /// than silently narrowing the period to fewer days than the author wrote.
 fn parse_weekdays(
     value: Option<&HVal>,
-    errors: &mut Vec<crate::marker::ShapeError>,
+    errors: &mut Vec<crate::model::marker::ShapeError>,
 ) -> Vec<chrono::Weekday> {
     let Some(value) = value.filter(|v| !v.is_null()) else {
         return Vec::new();
     };
     let Some(items) = value.as_array() else {
-        errors.push(crate::marker::shape_error("recur.on", "an array", value));
+        errors.push(crate::model::marker::shape_error(
+            "recur.on", "an array", value,
+        ));
         return Vec::new();
     };
     let mut out = Vec::new();
     for (index, item) in items.iter().enumerate() {
         let path = format!("recur.on[{index}]");
         let Some(name) = item.as_str() else {
-            errors.push(crate::marker::shape_error(&path, WEEKDAY_EXPECTED, item));
+            errors.push(crate::model::marker::shape_error(
+                &path,
+                WEEKDAY_EXPECTED,
+                item,
+            ));
             continue;
         };
         if let Some(day) = parse_weekday(name) {
             out.push(day);
         } else {
-            errors.push(crate::marker::shape_message(
+            errors.push(crate::model::marker::shape_message(
                 &path,
                 &format!("expected {WEEKDAY_EXPECTED}, found `{name}`"),
             ));

@@ -2,8 +2,8 @@
 
 use super::{default_order, default_order_with, sort_by_specs, status_index, validate_sort_spec};
 use crate::config::{Config, parse_config};
+use crate::model::numeric::NumValue;
 use crate::model::{Status, Task};
-use crate::numeric::NumValue;
 use crate::test_support::{bare_task, dep_edge};
 
 /// Status legend and priority/difficulty scales shared by every test in this
@@ -116,9 +116,9 @@ fn default_order_floats_ready_above_blocked() {
 #[test]
 fn validate_sort_spec_accepts_every_registry_field_and_ready() {
     // The registry is the one field vocabulary: a field or property wired
-    // into `crate::fields` is sortable by construction, and `ready` is the
+    // into `crate::model::fields` is sortable by construction, and `ready` is the
     // one computed rank with no registry entry behind it.
-    for def in crate::fields::FIELDS {
+    for def in crate::model::fields::FIELDS {
         assert!(
             validate_sort_spec(def.name).is_ok(),
             "expected {} to be valid",

@@ -136,7 +136,7 @@ groups:
       # (`is_sort_field`), so a field cannot enter or leave one without the
       # other, and the rest of that file is comparator internals no dependent
       # restates.
-      - crates/mindtape/src/fields.rs
+      - crates/mindtape/src/model/fields.rs
       - crates/mindtape/src/config/defaults.toml
       - crates/mindtape-cli/src/presets/todone/config.toml
       - crates/mindtape-cli/src/presets/flow/config.toml

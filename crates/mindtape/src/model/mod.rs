@@ -1,14 +1,34 @@
 //! The task item model and its projection from a harvested marker.
+//!
+//! # Files
+//!
+//! - `canonical.rs`: the canonical task-JSON schema shared by `mt ls --json` and `mt import`.
+//! - `field_descriptor.rs`: one descriptor per described field and its allowed values.
+//! - `fields.rs`: the registry of fields comparable in a filter or a `--sort` spec.
+//! - `handle.rs`: stem hashes, the short code an agent types to address a task.
+//! - `marker.rs`: the typed reads over a harvested `mindtape.task` marker.
+//! - `naming.rs`: the `[tasks.naming]` template and the shared minter.
+//! - `numeric.rs`: the numeric-field primitive: scale, classification, resolve and display.
+//! - `task_spans.rs`: where a task file's `task.with(...)` call and its arguments sit.
+
+pub mod canonical;
+pub(crate) mod field_descriptor;
+pub(crate) mod fields;
+pub mod handle;
+pub mod marker;
+pub mod naming;
+pub mod numeric;
+pub mod task_spans;
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use typst_harvest::HVal;
 
-use crate::marker::{
+use crate::model::marker::{
     ShapeError, field, field_str, parse_num_map, parse_num_value, parse_status, parse_str_array,
 };
-use crate::numeric::NumValue;
+use crate::model::numeric::NumValue;
 
 /// A task's status: a lifecycle name plus when it was set and an optional note.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -97,7 +117,7 @@ pub struct Task {
     /// wrong Typst shape: coerced to empty/absent same as an absent field, but
     /// flagged here so `check` can report it instead of staying silent. Each
     /// names the position it was found at (`tags[1]`, `estimate.days`). See
-    /// [`ShapeError`] and [`crate::marker`].
+    /// [`ShapeError`] and [`crate::model::marker`].
     pub shape_errors: Vec<ShapeError>,
     /// Raw Typst source after the `#show: task.with(…)` marker — the prose body
     /// (`== Summary`, notes), verbatim and whitespace-trimmed. Populated by the
@@ -115,7 +135,7 @@ pub struct Task {
     /// Empty when no source was seen: a task built straight from a marker
     /// ([`Task::from_marker`], `mt import`'s records) has no line to point at,
     /// and [`marker_location`](Self::marker_location) reports line 1.
-    pub spans: crate::task_spans::TaskCallSpans,
+    pub spans: crate::model::task_spans::TaskCallSpans,
 }
 
 impl Task {
@@ -142,7 +162,7 @@ impl Task {
     /// An explicit non-empty `id:` in `fields` wins; otherwise the `stem` is
     /// used as the identity.
     ///
-    /// Every field is projected through [`crate::marker`], so a value the
+    /// Every field is projected through [`crate::model::marker`], so a value the
     /// projection cannot read — the field itself or an element inside it —
     /// lands in [`shape_errors`](Self::shape_errors) instead of reading as
     /// unset.
@@ -186,7 +206,7 @@ impl Task {
             extras,
             shape_errors: errors,
             body: String::new(),
-            spans: crate::task_spans::TaskCallSpans::default(),
+            spans: crate::model::task_spans::TaskCallSpans::default(),
         }
     }
 
@@ -310,5 +330,4 @@ fn push_components<'a>(out: &mut Vec<&'a str>, path: &'a Path) -> Option<()> {
 }
 
 #[cfg(test)]
-#[path = "model_tests.rs"]
 mod tests;

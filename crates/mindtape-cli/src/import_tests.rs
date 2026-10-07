@@ -5,8 +5,8 @@
 use std::path::Path;
 
 use mindtape::link::Link;
+use mindtape::model::numeric::NumValue;
 use mindtape::model::{Status, Task};
-use mindtape::numeric::NumValue;
 use mindtape::test_support::{bare_task, dep_edge, ice_priority, noted_edge, write_lib_package};
 use mindtape::{CanonicalTask, Config, load_project, parse_config};
 use typst_harvest::HVal;

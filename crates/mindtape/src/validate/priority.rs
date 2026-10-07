@@ -11,7 +11,7 @@ use std::collections::BTreeMap;
 
 use crate::config::PriorityConfig;
 use crate::model::Task;
-use crate::numeric::{InputValue, NumValue, format_num};
+use crate::model::numeric::{InputValue, NumValue, format_num};
 use crate::validate::{Violation, check_in_scale, violation};
 
 /// Validate a task's priority: presence when `required`, then either a framework

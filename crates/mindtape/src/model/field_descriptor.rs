@@ -2,7 +2,7 @@
 //! `[tasks.assignee]` and `[tasks.tags]` each declare allowed values, a
 //! requirement and a `values-when` exemption, and validation, the `mt add`
 //! slot splice and choice inheritance all read the [`Descriptor`] built here.
-//! A task's value is read through [`crate::fields::held`].
+//! A task's value is read through [`crate::model::fields::held`].
 
 use typst_harvest::HVal;
 

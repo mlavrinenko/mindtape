@@ -1,7 +1,7 @@
 # github.jq — map `gh issue list --json
 # number,title,body,state,labels,assignees,createdAt,url` output (a JSON
 # array of issues) into the canonical task-JSON schema `mt import` consumes
-# (`crates/mindtape/src/canonical.rs`, SCHEMA_VERSION 1). Pure structural
+# (`crates/mindtape/src/model/canonical.rs`, SCHEMA_VERSION 1). Pure structural
 # transform: config-blind, like taskwarrior.jq — no `.mindtape/config.toml`
 # read here.
 #
@@ -48,7 +48,7 @@
 # - kind/difficulty/priority/estimate/links/due/reviewed have no GitHub
 #   Issues equivalent (in this field set) and are left unset (`null`/empty).
 # - `body` is spliced straight into `#show: task.with(...)`'s trailing Typst
-#   source (`crates/mindtape/src/canonical.rs`'s doc: "raw Typst source"), so
+#   source (`crates/mindtape/src/model/canonical.rs`'s doc: "raw Typst source"), so
 #   a Markdown body's `#`-headings (or any literal `#`) would open Typst
 #   code mode and fail to compile. `esc_typ` backslash-escapes `#` (and any
 #   literal `\`, so the escape itself round-trips) before it lands in `body`

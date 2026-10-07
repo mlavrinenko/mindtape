@@ -88,13 +88,13 @@ pub struct LsConfig {
     /// field, such as `contains("x", note)`, ignores this key. An unknown name
     /// is a config error.
     // `deserialize_contains_fields` checks each name against
-    // `crate::fields::is_contains_field` at config load.
+    // `crate::model::fields::is_contains_field` at config load.
     #[serde(deserialize_with = "deserialize_contains_fields")]
     pub contains_fields: Vec<String>,
 }
 
 /// Deserialize `[ls] contains-fields`, rejecting any name outside
-/// `crate::fields::is_contains_field`'s vocabulary — the same one an explicit
+/// `crate::model::fields::is_contains_field`'s vocabulary — the same one an explicit
 /// `contains("x", field)` call validates against. Runs only when the key is
 /// present (a missing key keeps the struct-level `#[serde(default)]` empty
 /// vec, silently valid since nothing was configured); a bad name surfaces as
@@ -106,10 +106,10 @@ where
 {
     let names = Vec::<String>::deserialize(deserializer)?;
     for name in &names {
-        if !crate::fields::is_contains_field(name) {
+        if !crate::model::fields::is_contains_field(name) {
             return Err(serde::de::Error::custom(format!(
                 "ls.contains-fields: unknown field `{name}`, expected one of {}",
-                crate::fields::contains_field_names().join(", ")
+                crate::model::fields::contains_field_names().join(", ")
             )));
         }
     }

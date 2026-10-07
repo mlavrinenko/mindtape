@@ -2,7 +2,7 @@
 
 use anyhow::Result;
 use mindtape::config::Config;
-use mindtape::numeric::{NumValue, format_num};
+use mindtape::model::numeric::{NumValue, format_num};
 use mindtape::{CanonicalTask, Readiness, ReadyState, SCHEMA_VERSION, Task};
 use serde_json::{Value, json};
 

@@ -15,7 +15,7 @@
 `mt ls --json` prints each task as one JSON record, and `mt import` reads the
 same records back and writes `.typ` files. A `jq` program written against this
 page works in both directions. `CanonicalTask` in
-`crates/mindtape/src/canonical.rs` is the Rust type behind it.
+`crates/mindtape/src/model/canonical.rs` is the Rust type behind it.
 
 = Fields
 

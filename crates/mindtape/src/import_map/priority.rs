@@ -8,16 +8,16 @@ use std::collections::BTreeMap;
 
 use serde_json::Value;
 
-use crate::canonical::{CanonicalNum, CanonicalPriority};
 use crate::config::{Config, PriorityConfig};
-use crate::numeric::{InputValue, NumValue, NumericField, format_num};
+use crate::model::canonical::{CanonicalNum, CanonicalPriority};
+use crate::model::numeric::{InputValue, NumValue, NumericField, format_num};
 
 use super::report::ReportEntry;
 
 /// Reverse a canonical `priority` into its authored [`NumValue`] form,
 /// reporting strict-framework and scale violations. `score` is read-side only
 /// and ignored (see the module doc's "Priority parity" section in
-/// `canonical.rs`).
+/// `model/canonical.rs`).
 pub(crate) fn map_priority(
     canonical: Option<&CanonicalPriority>,
     config: &Config,
@@ -40,7 +40,7 @@ pub(crate) fn map_priority(
 
 /// Reverse a canonical `difficulty` into its authored [`NumValue`] form
 /// (never a framework — the canonical schema never authors one, see
-/// `canonical.rs::num_to_canonical`), reporting scale violations.
+/// `model/canonical.rs::num_to_canonical`), reporting scale violations.
 pub(crate) fn map_difficulty(
     canonical: Option<&CanonicalNum>,
     config: &Config,
@@ -152,9 +152,9 @@ fn push_if_out_of_scale(point: f64, field: &str, scale: &NumericField, out: &mut
 
 #[cfg(test)]
 mod tests {
-    use crate::canonical::{CanonicalNum, CanonicalPriority};
     use crate::config::{Config, PriorityConfig, TasksConfig};
-    use crate::numeric::{InputValue, NumValue};
+    use crate::model::canonical::{CanonicalNum, CanonicalPriority};
+    use crate::model::numeric::{InputValue, NumValue};
 
     #[test]
     fn no_framework_with_disallowed_manual_is_clean() {

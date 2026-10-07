@@ -45,7 +45,7 @@ use thiserror::Error;
 
 use crate::filter::condition_env::{ColumnFacts, ConditionEnv};
 use crate::filter::expr::{compare_ordering, connective, extract_literal, unwrap_root};
-use crate::numeric::format_num;
+use crate::model::numeric::format_num;
 
 /// A parsed, reusable condition expression. `None` is the always-matching
 /// condition (an absent or empty/whitespace-only `condition`, e.g. an

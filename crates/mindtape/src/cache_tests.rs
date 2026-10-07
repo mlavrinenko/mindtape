@@ -5,8 +5,8 @@ use std::collections::BTreeMap;
 use super::{
     Cached, TaskCache, build_key, disabled, ensure_ignored, is_build_key, json_to_hval, prune_stale,
 };
-use crate::canonical::hval_to_json;
 use crate::config::Config;
+use crate::model::canonical::hval_to_json;
 use typst_harvest::HVal;
 
 fn open(root: &std::path::Path) -> TaskCache {

@@ -2,7 +2,7 @@
 //! bare array (`mt ls --json`'s default shape) or the `{ "tasks": [...] }` /
 //! `{ "tasks": ..., "applied": ... }` envelope (`mt ls --json`'s rule-applied
 //! shape). `applied` is ignored either way. A top-level `schema_version` is
-//! checked when present (`canonical.rs`'s [`SCHEMA_VERSION`]); absence is
+//! checked when present (`model/canonical.rs`'s [`SCHEMA_VERSION`]); absence is
 //! tolerated for hand-written or jq-produced records
 //! (`truth/tasks/emit-schema-version-in-the-ls-json-envelope.typ`).
 

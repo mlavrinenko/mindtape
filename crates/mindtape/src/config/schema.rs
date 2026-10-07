@@ -20,7 +20,7 @@ use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
 use crate::config::{
     ContentAssert, DensityUnit, HeaderAction, HeaderPathSegment, IdFormat, Requirement,
 };
-use crate::naming::DedupMode;
+use crate::model::naming::DedupMode;
 
 /// Canonical published location of this schema. Used as the schema `$id`, and
 /// as the `#:schema` directive `mt init` writes by default — a checked-in
@@ -80,7 +80,7 @@ impl JsonSchema for DedupMode {
     }
 
     fn schema_id() -> Cow<'static, str> {
-        "mindtape::naming::DedupMode".into()
+        "mindtape::model::naming::DedupMode".into()
     }
 
     fn json_schema(_generator: &mut SchemaGenerator) -> Schema {

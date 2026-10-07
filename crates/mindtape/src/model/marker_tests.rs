@@ -11,7 +11,7 @@ use typst_harvest::HVal;
 
 use super::shape_error;
 use crate::model::Task;
-use crate::numeric::NumValue;
+use crate::model::numeric::NumValue;
 
 fn dict(pairs: Vec<(&str, HVal)>) -> HVal {
     HVal::Dict(
@@ -36,7 +36,7 @@ fn task_with(field_name: &str, value: HVal) -> Task {
 }
 
 /// Build a task from a marker whose only field is `field_name: value`, and
-/// assert it reports exactly one [`crate::marker::ShapeError`] naming `path`
+/// assert it reports exactly one [`crate::model::marker::ShapeError`] naming `path`
 /// and `expected_message` — shared setup for the wrong-shape tests below, each
 /// of which also checks what its field degraded to.
 fn assert_reports_shape_error(

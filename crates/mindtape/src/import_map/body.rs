@@ -3,8 +3,8 @@
 //! import outright — the policy home for "every imported file passes
 //! `mt check`" (`emit.rs` stays pure and never synthesizes on its own).
 
-use crate::canonical::CanonicalTask;
 use crate::config::{Config, HeaderAction, HeaderPathSegment};
+use crate::model::canonical::CanonicalTask;
 
 use super::report::ReportEntry;
 
@@ -53,11 +53,11 @@ fn segment_names_summary(segment: &HeaderPathSegment) -> bool {
 #[cfg(test)]
 mod tests {
     use super::super::report::ReportEntry;
-    use crate::canonical::CanonicalTask;
     use crate::config::{
         Config, HeaderAction, HeaderPathSegment, HeaderRuleConfig, HeadersConfig, TaskBodyConfig,
         TasksConfig,
     };
+    use crate::model::canonical::CanonicalTask;
 
     fn ex(text: &str) -> HeaderPathSegment {
         HeaderPathSegment::Exact(text.to_owned())

@@ -7,7 +7,7 @@ use std::collections::BTreeMap;
 use serde_json::Value;
 use typst_harvest::HVal;
 
-use crate::canonical::json_to_hval;
+use crate::model::canonical::json_to_hval;
 
 use super::report::ReportEntry;
 

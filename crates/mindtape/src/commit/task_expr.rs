@@ -24,10 +24,10 @@ use crate::commit::CommitRecord;
 use crate::commit::expr::CommitExpr;
 use crate::commit::tasks::{CommitStates, ProjectState};
 use crate::config::Config;
-use crate::fields::FieldValue;
 use crate::filter::expr::call_args;
 use crate::filter::{Ctx, FilterError, eval_bool};
 use crate::model::Task;
+use crate::model::fields::FieldValue;
 
 /// The state wrappers, in the order an error lists them.
 pub(crate) const STATES: [&str; 3] = ["head", "staged", "worktree"];

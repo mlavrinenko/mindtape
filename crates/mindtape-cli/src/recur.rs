@@ -241,14 +241,14 @@ fn mint_stem(
         .as_deref()
         .unwrap_or(RECUR_FALLBACK_STEM_TEMPLATE);
     let slug_value = slug(&task.title);
-    let ctx = mindtape::naming::MintContext {
+    let ctx = mindtape::model::naming::MintContext {
         slug: &slug_value,
         date: recur_dates::date_to_ymd(anchor),
         occurrence,
     };
-    let stem =
-        mindtape::naming::mint_stem(template, &ctx).map_err(|err| anyhow!(err.to_string()))?;
-    mindtape::naming::disambiguate(&stem, |candidate| {
+    let stem = mindtape::model::naming::mint_stem(template, &ctx)
+        .map_err(|err| anyhow!(err.to_string()))?;
+    mindtape::model::naming::disambiguate(&stem, |candidate| {
         dest.claimed.contains(candidate) || dest.dir.join(format!("{candidate}.typ")).exists()
     })
     .map_err(|err| anyhow!(err.to_string()))

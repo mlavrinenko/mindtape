@@ -65,10 +65,10 @@ use serde_json::Value;
 use typst_harvest::{HVal, Harvest, HarvestWorld, SourceSnapshot, harvest};
 use typst_world::{DiskProvider, root_file_id};
 
-use crate::canonical::{CanonicalTask, json_to_hval};
 use crate::config::Config;
 use crate::emit::format::{hval_to_typ, typ_array, typ_dict_with};
 use crate::model::Task;
+use crate::model::canonical::{CanonicalTask, json_to_hval};
 use crate::rules::CheckSpec;
 
 /// One `check` rule, built once and reused across every task it is asked

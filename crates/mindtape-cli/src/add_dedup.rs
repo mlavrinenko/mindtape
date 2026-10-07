@@ -1,14 +1,14 @@
 //! `mt add --dedup`: collision policy on a destination stem that already
 //! exists.
 //!
-//! [`resolve`] is fs-free — like [`mindtape::naming::disambiguate`] itself, it
+//! [`resolve`] is fs-free — like [`mindtape::model::naming::disambiguate`] itself, it
 //! takes an injected `exists` predicate rather than touching disk, so the
 //! `add-suffix` exhaustion path (10,000 numeric-suffix attempts) is a fast
 //! unit test rather than a directory full of real files. `crate::add::run`
 //! supplies the real filesystem check; tests supply a fake.
 
 use anyhow::{Result, anyhow};
-use mindtape::{Config, naming};
+use mindtape::{Config, model::naming};
 
 /// `--dedup` on `mt add`. A CLI-owned mirror of [`naming::DedupMode`]:
 /// `mindtape` carries no clap dependency, so the flag's `clap::ValueEnum`

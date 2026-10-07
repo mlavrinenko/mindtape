@@ -6,7 +6,6 @@
 use evalexpr::{DefaultNumericTypes, Node, Operator};
 
 use crate::config::Config;
-use crate::fields::FieldValue;
 use crate::filter::expr::{
     call_args, compare_ordering, extract_identifier, resolve_now_or_literal, restore_name,
     unwrap_root,
@@ -14,7 +13,8 @@ use crate::filter::expr::{
 use crate::filter::predicates::changed_count;
 use crate::filter::{Ctx, FilterError, eval_bool, field_value};
 use crate::model::Task;
-use crate::numeric::format_num;
+use crate::model::fields::FieldValue;
+use crate::model::numeric::format_num;
 
 /// A comparison. The left side is a field or a `changed()`/`count()` count;
 /// the right side a literal, `now()`, another field, or a count.

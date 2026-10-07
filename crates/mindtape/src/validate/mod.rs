@@ -28,10 +28,10 @@ use std::collections::HashMap;
 use uuid::Uuid;
 
 use crate::config::{Config, IdFormat, Legend, RequiredRules};
-use crate::field_descriptor::Descriptor;
-use crate::fields;
+use crate::model::field_descriptor::Descriptor;
+use crate::model::fields;
+use crate::model::numeric::{NumValue, NumericField, format_num};
 use crate::model::{Status, Task};
-use crate::numeric::{NumValue, NumericField, format_num};
 use crate::validate::severity::Severity;
 pub use crate::validate::violation::{Location, Violation, ViolationKind};
 
@@ -41,7 +41,7 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
     let mut out = Vec::new();
     check_id_uniqueness(tasks, &mut out);
     let required = RequiredRules::compile(config);
-    let described = crate::field_descriptor::descriptors(config);
+    let described = crate::model::field_descriptor::descriptors(config);
     for task in tasks {
         check_shape(task, &mut out);
         check_id_format(task, config, &mut out);
@@ -80,7 +80,7 @@ fn check_shape(task: &Task, out: &mut Vec<Violation>) {
 }
 
 /// Whether the projection reported `name` ITSELF unreadable — a FIELD-level
-/// [`crate::marker::ShapeError`], whose path is the field name and nothing more.
+/// [`crate::model::marker::ShapeError`], whose path is the field name and nothing more.
 /// Exact equality is the whole test, and it is exact by that module's path
 /// convention rather than by luck: every element path EXTENDS the field name
 /// (`status.date`, `tags[1]`, `priority.inputs.ease`), so the one path equal to

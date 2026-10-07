@@ -5,7 +5,7 @@
 //!
 //! # Syntax
 //!
-//! Comparable fields: every [`crate::fields::FIELDS`] entry, including the
+//! Comparable fields: every [`crate::model::fields::FIELDS`] entry, including the
 //! dotted properties of a nested value (`status.name`, `status.date`,
 //! `status.note`, `status.index`), plus `role` (a virtual, comparison-only
 //! field with no `Task` field behind it: the literal resolves against the
@@ -33,7 +33,7 @@
 //! `contains("substr")` / `contains("substr", field, ...)` — case-insensitive
 //! substring, needle first; fields optional, defaulting to `title`, `id`,
 //! `body` (an explicit field draws from
-//! [`crate::fields::is_contains_field`]). `stale(N)`,
+//! [`crate::model::fields::is_contains_field`]). `stale(N)`,
 //! `links("kind")` (does the task carry a `links:` edge of that kind — built-in
 //! or a project's custom `[[tasks.links.kinds]]`), `in_view("name")` (also
 //! written `@name`, which desugars to it): matches when the named view's
@@ -97,11 +97,11 @@ use evalexpr::{DefaultNumericTypes, Node, build_operator_tree};
 use thiserror::Error;
 
 use crate::config::Config;
-use crate::fields::{self, FieldValue};
 use crate::filter::expr::{join_kebab_names, restore_name};
 use crate::filter::views::{collect_view_refs, desugar_view_refs};
 use crate::graph::ready::Readiness;
 use crate::model::Task;
+use crate::model::fields::{self as fields, FieldValue};
 
 /// Maximum `in_view` nesting depth evaluated before bailing. Config load rejects
 /// cyclic view references ([`crate::config::views::validate_views`]), so this only
@@ -430,7 +430,7 @@ impl<'a> Ctx<'a> {
 }
 
 /// Resolve a field name to its value on `task`, via the shared
-/// [`crate::fields`] registry — the single place every generically comparable
+/// [`crate::model::fields`] registry — the single place every generically comparable
 /// field is wired, so a field usable here is usable in `--sort` too. `pub(crate)`
 /// so [`crate::filter::predicates`]'s `present`/`contains_value` can share it.
 pub(crate) fn field_value(

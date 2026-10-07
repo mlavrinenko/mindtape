@@ -9,7 +9,7 @@ use std::borrow::Cow;
 
 use mindtape::Task;
 use mindtape::config::{Config, Legend};
-use mindtape::numeric::{NumValue, NumericField};
+use mindtape::model::numeric::{NumValue, NumericField};
 
 use super::color::parse_color;
 use super::field::{CellSpec, Field};
@@ -128,7 +128,7 @@ fn legend_cell(value: &str, legend: &Legend) -> CellSpec {
 #[allow(clippy::unwrap_used, clippy::indexing_slicing)]
 mod tests {
     use mindtape::config::parse_config;
-    use mindtape::numeric::NumValue;
+    use mindtape::model::numeric::NumValue;
     use mindtape::test_support::bare_task;
 
     use super::{Difficulty, Priority, Status};

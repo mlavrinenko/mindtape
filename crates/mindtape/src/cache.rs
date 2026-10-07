@@ -37,8 +37,8 @@ use serde_json::Value;
 use sha1::{Digest, Sha1};
 use typst_harvest::HVal;
 
-use crate::canonical::{hval_to_json, json_to_hval};
 use crate::config::Config;
+use crate::model::canonical::{hval_to_json, json_to_hval};
 
 /// On-disk entry format. Bump when the entry shape or the marker reconstruction
 /// changes; folded into the build key, so a bump busts every entry.

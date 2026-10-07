@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use mindtape::naming::DedupMode;
+use mindtape::model::naming::DedupMode;
 
 use super::{Collision, DedupArg, effective_mode, resolve};
 

@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 use std::collections::BTreeMap;
 
-use mindtape::numeric::NumValue;
+use mindtape::model::numeric::NumValue;
 use mindtape::test_support::{bare_task, floor_config};
 use mindtape::{Status, Task};
 use typst_harvest::HVal;

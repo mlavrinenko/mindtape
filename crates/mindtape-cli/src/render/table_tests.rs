@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used)]
 
 use mindtape::config::{Legend, LegendEntry};
-use mindtape::numeric::NumValue;
+use mindtape::model::numeric::NumValue;
 use mindtape::test_support::{bare_task, dep_edge, floor_config};
 use mindtape::{ColumnConfig, Config, Readiness, Status, Task};
 

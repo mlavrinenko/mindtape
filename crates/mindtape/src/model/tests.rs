@@ -6,7 +6,7 @@ use std::path::Path;
 use typst_harvest::HVal;
 
 use super::{Status, Task, is_history_pointer, normalize_link, resolve_link_path};
-use crate::numeric::{InputValue, NumValue};
+use crate::model::numeric::{InputValue, NumValue};
 use crate::test_support::bare_task;
 
 fn dict(pairs: Vec<(&str, HVal)>) -> HVal {

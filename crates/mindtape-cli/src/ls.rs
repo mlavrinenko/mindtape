@@ -27,7 +27,7 @@ pub struct LsArgs {
 /// Output-shaping flags shared verbatim between `ls` and `find`
 /// (`crate::find`, sugar over `contains()`): everything but the filter
 /// itself. Flattened into both so a flag can never exist on one and not the
-/// other — the drift `crate::fields` was created to end after `filter/mod.rs` and
+/// other — the drift `crate::model::fields` was created to end after `filter/mod.rs` and
 /// `sort.rs` disagreed about which fields exist (see
 /// `truth/tasks/mt-find-as-sugar-over-contains.typ`).
 #[derive(Debug, Clone, clap::Args)]

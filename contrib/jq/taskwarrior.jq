@@ -1,6 +1,6 @@
 # taskwarrior.jq — map Taskwarrior's `task export` JSON (an array of task
 # records) into the canonical task-JSON schema `mt import` consumes
-# (`crates/mindtape/src/canonical.rs`, SCHEMA_VERSION 1). Pure structural
+# (`crates/mindtape/src/model/canonical.rs`, SCHEMA_VERSION 1). Pure structural
 # transform: config-blind (no `.mindtape/config.toml` read here — `mt import`
 # applies the per-project policy map: status legend membership, tag
 # allow-list, priority scale, ...).
@@ -52,7 +52,7 @@
 # - kind/difficulty/estimate/links/start/reviewed have no Taskwarrior
 #   equivalent and are left unset (`null`/empty).
 # - `body` is spliced straight into `#show: task.with(...)`'s trailing Typst
-#   source (`crates/mindtape/src/canonical.rs`'s doc: "raw Typst source"), so
+#   source (`crates/mindtape/src/model/canonical.rs`'s doc: "raw Typst source"), so
 #   a `description` containing a bare `#` (e.g. "fix issue #123") would open
 #   Typst code mode and fail to compile. `esc_typ` backslash-escapes `#` (and
 #   any literal `\`, so the escape itself round-trips) before it lands in

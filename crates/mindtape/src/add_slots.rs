@@ -13,10 +13,10 @@
 use typst_edit::{Call, Edit, EditError, apply, find_calls, find_method_calls};
 
 use crate::config::{Config, Requirement};
-use crate::field_descriptor::{self, Descriptor};
-use crate::fields;
 use crate::framework::{Framework, Input, InputKind};
-use crate::numeric::{NumericField, ScaleKind, format_num};
+use crate::model::field_descriptor::{self as field_descriptor, Descriptor};
+use crate::model::fields;
+use crate::model::numeric::{NumericField, ScaleKind, format_num};
 
 /// A core field the config requires, expressed as the source to set as a
 /// `task.with(…)` argument when the chosen template omits that field.

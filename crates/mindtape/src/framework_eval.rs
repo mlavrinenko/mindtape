@@ -16,7 +16,7 @@ use evalexpr::{
 };
 
 use crate::framework::{Input, InputKind};
-use crate::numeric::InputValue;
+use crate::model::numeric::InputValue;
 
 /// A closed numeric interval `[lo, hi]`.
 #[derive(Debug, Clone, Copy, PartialEq)]

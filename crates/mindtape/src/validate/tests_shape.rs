@@ -11,9 +11,9 @@ use std::collections::BTreeMap;
 use super::tests::config;
 use super::{Violation, validate};
 use crate::config::{Config, FieldConfig, Requirement};
-use crate::marker::ShapeError;
+use crate::model::marker::ShapeError;
+use crate::model::numeric::NumValue;
 use crate::model::{Status, Task};
-use crate::numeric::NumValue;
 use crate::test_support::bare_task;
 
 /// Every core field a shape error can empty, so a mask covering only some of

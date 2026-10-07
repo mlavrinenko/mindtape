@@ -5,12 +5,12 @@
 use std::cmp::Ordering;
 
 use crate::config::Config;
-use crate::fields::{self, FieldValue};
 use crate::graph::ready::{Readiness, ReadyState};
 use crate::model::Task;
+use crate::model::fields::{self as fields, FieldValue};
 
 /// Whether `name` is accepted by `--sort` and `[ls] default-sort`: every
-/// [`crate::fields::FIELDS`] entry, every `x-<ns>` extension slot (a scalar
+/// [`crate::model::fields::FIELDS`] entry, every `x-<ns>` extension slot (a scalar
 /// value orders like a core field; a list or a dict orders as missing), plus
 /// `ready` (a computed rank, not a `Task` field — see [`ready_rank`]).
 /// Derived rather than listed, so a field
@@ -101,7 +101,7 @@ fn parse_spec(spec: &str) -> (&str, bool) {
 /// `status`/`ready`/`priority`/`difficulty` need config- or readiness-aware
 /// ordering that a raw field value can't express (legend position, readiness
 /// band, a resolved numeric scale point) so they stay special-cased; every
-/// other field — including any added to [`crate::fields::FIELDS`] later —
+/// other field — including any added to [`crate::model::fields::FIELDS`] later —
 /// falls through to the shared registry.
 fn compare_field(
     left: &Task,
@@ -125,8 +125,8 @@ fn compare_field(
     }
 }
 
-/// A field's value via the shared [`crate::fields`] registry, or an `x-<ns>`
-/// slot's through [`fields::extra`]; `Missing` when `field` is neither —
+/// A field's value via the shared [`crate::model::fields`] registry, or an `x-<ns>`
+/// slot's through [`model::fields::extra`]; `Missing` when `field` is neither —
 /// unreachable via `--sort`, since `sort_by_specs` validates every spec first
 /// and the one other sort name, `ready`, is intercepted in [`compare_field`].
 fn registry_value(task: &Task, field: &str, config: &Config) -> FieldValue {

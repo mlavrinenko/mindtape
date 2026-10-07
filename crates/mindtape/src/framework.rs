@@ -23,7 +23,7 @@ use crate::config::PriorityConfig;
 use crate::config::merge::deep_merge;
 use crate::framework_eval::{eval_predicate, eval_score};
 use crate::framework_validate::Scope;
-use crate::numeric::{InputValue, NumCell, NumValue, format_num};
+use crate::model::numeric::{InputValue, NumCell, NumValue, format_num};
 
 /// The baked-in framework definitions, parsed from the bundled TOML.
 const BUILTIN_FRAMEWORKS: &str = include_str!("frameworks.toml");

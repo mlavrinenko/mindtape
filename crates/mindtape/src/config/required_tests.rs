@@ -4,8 +4,8 @@ use std::collections::BTreeMap;
 
 use super::{Requirement, RequirementRule};
 use crate::config::{Config, parse_config};
+use crate::model::numeric::NumValue;
 use crate::model::{Status, Task};
-use crate::numeric::NumValue;
 use crate::test_support::bare_task;
 use crate::validate::validate;
 

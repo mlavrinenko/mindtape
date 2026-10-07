@@ -8,7 +8,7 @@
 
 use super::tests::{config, task};
 use super::{cmp_field_value, cmp_num_asc, priority_value};
-use crate::fields::FieldValue;
+use crate::model::fields::FieldValue;
 
 #[test]
 fn priority_value_resolves_through_config() {

@@ -6,9 +6,9 @@ use serde_json::json;
 use typst_harvest::HVal;
 
 use super::*;
-use crate::canonical::{CanonicalLink, CanonicalNum, CanonicalPriority, CanonicalTask};
 use crate::config::{Config, parse_config};
-use crate::numeric::{InputValue, NumValue};
+use crate::model::canonical::{CanonicalLink, CanonicalNum, CanonicalPriority, CanonicalTask};
+use crate::model::numeric::{InputValue, NumValue};
 use crate::recur::{CanonicalRecur, CanonicalRule};
 
 pub(super) fn canonical(title: &str) -> CanonicalTask {
@@ -294,7 +294,7 @@ fn json_to_hval_inverts_hval_to_json_for_non_date_variants() {
             HVal::Array(vec![HVal::Int(1), HVal::Int(2)]),
         ),
     ]));
-    let as_json = crate::canonical::hval_to_json(&value);
+    let as_json = crate::model::canonical::hval_to_json(&value);
     assert_eq!(json_to_hval(&as_json), value);
 }
 

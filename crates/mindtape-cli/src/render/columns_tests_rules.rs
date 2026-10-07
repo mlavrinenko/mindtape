@@ -156,7 +156,7 @@ fn nonempty_reads_this_column_s_cells() {
     let config = || when("priority", "!nonempty()");
     assert!(captured(config(), &[titled("a", "A")], ColumnId::Priority));
     let mut scored = titled("b", "B");
-    scored.priority = Some(mindtape::numeric::NumValue::Num(5.0));
+    scored.priority = Some(mindtape::model::numeric::NumValue::Num(5.0));
     assert!(!captured(config(), &[scored], ColumnId::Priority));
 }
 

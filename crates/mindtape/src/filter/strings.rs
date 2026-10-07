@@ -22,10 +22,10 @@ use evalexpr::{DefaultNumericTypes, Node, Operator};
 use regex::Regex;
 
 use crate::config::Config;
-use crate::fields::FieldValue;
 use crate::filter::expr::{call_args, extract_literal, restore_name, unwrap_root};
 use crate::filter::{FilterError, field_value};
 use crate::model::Task;
+use crate::model::fields::FieldValue;
 
 /// Resolve a node standing where a string is expected: a literal, a field
 /// identifier, or a nested string-valued call.

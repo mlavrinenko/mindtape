@@ -9,7 +9,7 @@ use typst_syntax::is_ident;
 
 use crate::framework::{Framework, InputKind};
 use crate::framework_eval::{eval_predicate, parse_check, score_interval};
-use crate::numeric::{InputValue, format_num};
+use crate::model::numeric::{InputValue, format_num};
 
 /// The framework-validation scope: the field label, framework name, and scale.
 pub(crate) struct Scope<'a> {

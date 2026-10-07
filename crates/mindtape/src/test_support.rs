@@ -18,8 +18,8 @@ use std::process::Command;
 
 use crate::config::Config;
 use crate::link::Link;
+use crate::model::numeric::{InputValue, NumValue};
 use crate::model::{Status, Task};
-use crate::numeric::{InputValue, NumValue};
 
 /// A task with the given id and every other field at its empty/`None` default.
 ///
@@ -52,7 +52,7 @@ pub fn bare_task(id: &str) -> Task {
         extras: BTreeMap::new(),
         shape_errors: Vec::new(),
         body: String::new(),
-        spans: crate::task_spans::TaskCallSpans::default(),
+        spans: crate::model::task_spans::TaskCallSpans::default(),
     }
 }
 

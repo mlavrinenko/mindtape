@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 
 use crate::config::parse_config;
-use crate::numeric::{InputValue, NumValue};
+use crate::model::numeric::{InputValue, NumValue};
 
 fn framework_value(name: &str, inputs: &[(&str, InputValue)]) -> NumValue {
     NumValue::Framework {

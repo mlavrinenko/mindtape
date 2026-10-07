@@ -1,5 +1,5 @@
 //! The config-aware middle layer between the canonical task-JSON schema
-//! (`canonical.rs`) and a project's `.mindtape/config.toml` policy —
+//! (`model/canonical.rs`) and a project's `.mindtape/config.toml` policy —
 //! `truth/tasks/canonical-json-to-task-mapping.typ`.
 //!
 //! The jq adapter upstream has already done the *structural* map (foreign
@@ -24,13 +24,13 @@ mod report;
 mod status;
 mod stem;
 
-use crate::canonical::CanonicalTask;
 use crate::config::Config;
 use crate::link::Link;
 use crate::model::Task;
+use crate::model::canonical::CanonicalTask;
 use crate::recur::CanonicalRecur;
 
-pub use crate::canonical::json_to_hval;
+pub use crate::model::canonical::json_to_hval;
 pub use report::{EntryKind, ImportReport, MapOptions, ReportEntry};
 pub use stem::{slug_from_title, stem_for_title};
 
@@ -90,7 +90,7 @@ pub fn map_canonical(canonical: &CanonicalTask, config: &Config, opts: &MapOptio
         extras,
         shape_errors: Vec::new(),
         body,
-        spans: crate::task_spans::TaskCallSpans::default(),
+        spans: crate::model::task_spans::TaskCallSpans::default(),
     };
 
     Mapped {
@@ -102,7 +102,7 @@ pub fn map_canonical(canonical: &CanonicalTask, config: &Config, opts: &MapOptio
     }
 }
 
-fn map_link(link: &crate::canonical::CanonicalLink) -> Link {
+fn map_link(link: &crate::model::canonical::CanonicalLink) -> Link {
     Link {
         task: link.task.clone(),
         kind: link.kind.clone(),

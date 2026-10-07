@@ -9,7 +9,7 @@ use super::tests::{setup, write, write_pkg};
 use super::{LoadOutcome, load_project};
 use crate::config::Config;
 use crate::model::Task;
-use crate::numeric::NumValue;
+use crate::model::numeric::NumValue;
 use crate::recur::{PeriodUnit, Rule};
 use typst::WorldExt;
 use typst::syntax::VirtualRoot;

@@ -119,7 +119,7 @@ pub struct AddArgs {
     /// the same whether the stem was minted from a `[tasks.naming] stem`
     /// template or is bare. Overrides `[tasks.naming] dedup`, whose unset
     /// default is `fail` for a bare stem and `add-suffix` for a templated one
-    /// (see `mindtape::naming::NamingConfig::effective_dedup`).
+    /// (see `mindtape::model::naming::NamingConfig::effective_dedup`).
     #[arg(long, value_enum, value_name = "MODE")]
     pub dedup: Option<DedupArg>,
 

@@ -11,13 +11,13 @@ use evalexpr::{DefaultNumericTypes, Node, Operator};
 use typst_harvest::HVal;
 
 use crate::config::Config;
-use crate::fields::{self, FieldValue};
 use crate::filter::compare::compare;
 use crate::filter::expr::{call_args, extract_identifier, extract_literal};
 use crate::filter::{Ctx, FilterError, field_value};
 use crate::git::state::{PathFilter, StateSet};
 use crate::model::Task;
-use crate::numeric::format_num;
+use crate::model::fields::{self as fields, FieldValue};
+use crate::model::numeric::format_num;
 
 pub(crate) fn present(task: &Task, name: &str, config: &Config) -> Result<bool, FilterError> {
     match name {
@@ -72,7 +72,7 @@ fn holds(task: &Task, name: &str, value: &str, config: &Config) -> Result<bool, 
     })
 }
 
-/// `x-<ns>`: an extension slot's value through [`fields::from_extra`],
+/// `x-<ns>`: an extension slot's value through [`model::fields::from_extra`],
 /// declared in `[tasks.fields]` or not. An unset slot is
 /// [`FieldValue::Missing`]; a dict has no value to compare, so reading one is
 /// an error that points at `has()`.
@@ -218,7 +218,7 @@ const DEFAULT_CONTAINS_FIELDS: [&str; 3] = ["title", "id", fields::BODY_FIELD];
 
 /// The default `contains()` haystack: the project's `[ls] contains-fields`
 /// when set, else [`DEFAULT_CONTAINS_FIELDS`] unchanged. Config load already
-/// validated a configured list against [`fields::is_contains_field`]
+/// validated a configured list against [`model::fields::is_contains_field`]
 /// ([`crate::config::ls::deserialize_contains_fields`]), so every name here is
 /// trusted.
 fn default_contains_fields(config: &Config) -> Vec<String> {
@@ -274,7 +274,7 @@ pub(crate) fn contains_call(
 /// [`Task::body`] directly (marker-free), `note` joins every `links[].note`
 /// ([`joined_notes`]), `tags` joins authored and derived tags
 /// ([`Task::all_tags`]); anything else defers to [`field_value`]. Errors
-/// outside [`fields::is_contains_field`]'s vocabulary.
+/// outside [`model::fields::is_contains_field`]'s vocabulary.
 fn contains_value(task: &Task, name: &str, config: &Config) -> Result<FieldValue, FilterError> {
     if !fields::is_contains_field(name) {
         return Err(FilterError::UnknownField(name.to_owned()));

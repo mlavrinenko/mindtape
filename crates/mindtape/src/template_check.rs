@@ -17,7 +17,7 @@ use std::path::Path;
 use typst_edit::line_of;
 
 use crate::add_slots::RequiredSlot;
-use crate::task_spans::TaskCallSpans;
+use crate::model::task_spans::TaskCallSpans;
 use crate::template::discover_slots;
 use crate::validate::severity::Severity;
 use crate::validate::{Location, Violation};

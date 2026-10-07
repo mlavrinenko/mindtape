@@ -41,12 +41,12 @@ use regex::Regex;
 use crate::commit::CommitRecord;
 use crate::commit::task_expr::{STATES, TaskScope};
 use crate::config::Config;
-use crate::fields::FieldValue;
 use crate::filter::FilterError;
 use crate::filter::expr::{
     call_args, connective, extract_identifier, extract_literal, restore_name, unwrap_root,
 };
 use crate::git::state::PathFilter;
+use crate::model::fields::FieldValue;
 
 /// The field names a commit expression reads, for the refusal message.
 const COMMIT_FIELDS: &str = "subject, refs, files, trailers, tasks_only";

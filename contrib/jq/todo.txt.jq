@@ -1,6 +1,6 @@
 # todo.txt.jq — map a todo.txt file (https://github.com/todotxt/todo.txt,
 # read as a JSON array of its non-empty lines) into the canonical task-JSON
-# schema `mt import` consumes (`crates/mindtape/src/canonical.rs`,
+# schema `mt import` consumes (`crates/mindtape/src/model/canonical.rs`,
 # SCHEMA_VERSION 1). Pure structural transform: config-blind, like
 # taskwarrior.jq and github.jq — no `.mindtape/config.toml` read here.
 #
@@ -61,7 +61,7 @@
 # - kind/difficulty/estimate/links/reviewed have no todo.txt equivalent and
 #   are left unset (`null`/empty).
 # - `body` is spliced straight into `#show: task.with(...)`'s trailing Typst
-#   source (`crates/mindtape/src/canonical.rs`'s doc: "raw Typst source"), so
+#   source (`crates/mindtape/src/model/canonical.rs`'s doc: "raw Typst source"), so
 #   a description containing a bare `#` (e.g. "fix issue #123") would open
 #   Typst code mode and fail to compile. `esc_typ` backslash-escapes `#`
 #   (and any literal `\`, so the escape itself round-trips) before it lands

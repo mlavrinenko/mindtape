@@ -20,7 +20,7 @@
 # ── signal: complexity x coverage, per function ─────────────────────────────
 #
 # A file-shaped signal is structurally unable to see an undertested function
-# inside a well-covered file. `hval_kind` (`crates/mindtape/src/model.rs`) is 40%
+# inside a well-covered file. `hval_kind` (`crates/mindtape/src/model/mod.rs`) is 40%
 # covered at cyclomatic complexity 8, in a file the coverage arm never reports,
 # under a `just cover` gate that measures the workspace total only. Nothing else
 # in the repo reports it; that is this arm's entire reason to exist.

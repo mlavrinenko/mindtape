@@ -1,10 +1,10 @@
 //! `status:` policy mapping: legend membership, `--map` overrides, and the
 //! missing-status default.
 
-use crate::canonical::CanonicalStatus;
 use crate::config::Config;
 use crate::date::today_iso;
 use crate::model::Status;
+use crate::model::canonical::CanonicalStatus;
 
 use super::report::{MapOptions, ReportEntry};
 

@@ -4,7 +4,7 @@ use std::path::Path;
 
 use super::{find_root, find_root_bounded, load_project};
 use crate::config::Config;
-use crate::numeric::NumValue;
+use crate::model::numeric::NumValue;
 use crate::parse_config;
 
 pub(super) const TASK_BODY: &str = "#metadata((

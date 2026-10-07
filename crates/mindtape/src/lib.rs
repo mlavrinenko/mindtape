@@ -17,15 +17,12 @@
 pub mod add_slots;
 pub mod app_dirs;
 pub mod body;
-pub mod canonical;
 pub mod commit;
 pub mod config;
 mod date;
 mod date_pin;
 pub mod derive;
 pub mod emit;
-mod field_descriptor;
-mod fields;
 pub mod filter;
 pub mod format;
 pub mod framework;
@@ -34,21 +31,16 @@ mod framework_validate;
 pub mod fs_atomic;
 pub mod git;
 pub mod graph;
-pub mod handle;
 pub mod import_map;
 pub mod link;
 pub mod link_scan;
 pub mod loader;
-pub mod marker;
 pub mod model;
-pub mod naming;
-pub mod numeric;
 pub mod recur;
 pub mod recur_dates;
 #[cfg(feature = "rrule")]
 mod recur_rrule;
 pub mod rules;
-pub mod task_spans;
 // Without the feature, the same module name resolves to a stub with the same
 // surface — so every caller stays one always-compiled function, with no
 // `#[cfg]` twin that a mutation sweep can only ever see as dead code.
@@ -70,7 +62,6 @@ pub use app_dirs::{CONFIG_HOME_ENV, DATA_HOME_ENV, config_home, data_home};
 pub use body::content_gate::{CompiledContentRule, check_content, compile_content_rules};
 pub use body::gate::{CompiledRule, GateError, check_headers, compile_rules};
 pub use body::{BodyRules, check_body_rules};
-pub use canonical::{CanonicalTask, SCHEMA_VERSION};
 pub use commit::expr::CommitExpr;
 pub use commit::range::{CommitRange, PastCommit, RangeCommit};
 pub use commit::tasks::{CommitStates, ProjectState, StatePlan, StateSource};
@@ -111,7 +102,6 @@ pub use graph::ready::{
     Blocker, Readiness, ReadyState, blockers_of, unblocked_violation, waits_on,
 };
 pub use graph::{Cycle, Edge, edges, find_referrer, resolve_edge, toposort};
-pub use handle::{RefError, Resolution, Resolved, StemHashes, is_path_ref, resolve_ref};
 pub use import_map::{
     EntryKind, ImportReport, MapOptions, Mapped, ReportEntry, map_canonical, slug_from_title,
     stem_for_title,
@@ -120,16 +110,18 @@ pub use link_scan::{EdgeCall, TargetSpan, link_edges, link_target_spans};
 pub use loader::{
     LoadError, LoadOutcome, find_root, load_project, package_overrides, package_root,
 };
-pub use marker::ShapeError;
-pub use model::{Status, Task, is_history_pointer, normalize_link};
-pub use numeric::{
+pub use model::canonical::{CanonicalTask, SCHEMA_VERSION};
+pub use model::handle::{RefError, Resolution, Resolved, StemHashes, is_path_ref, resolve_ref};
+pub use model::marker::ShapeError;
+pub use model::numeric::{
     Anchor, Band, InputValue, NumCell, NumValue, NumericField, ScaleKind, format_num,
 };
+pub use model::task_spans::TaskCallSpans;
+pub use model::{Status, Task, is_history_pointer, normalize_link};
 pub use rules::{CheckSpec, RuleSpec};
 pub use sort::{default_order, default_order_with, difficulty_value, sort_by_specs};
 pub use status_value::{STATUS_SHORTCUTS, escape_markup, status_value};
 pub use suggest::{hint, nearest};
-pub use task_spans::TaskCallSpans;
 pub use template::{FillError, RawValue, SlotKind, SlotSpec, discover_slots, fill, fill_examples};
 pub use template_check::{
     TemplateHome, TemplateSources, template_breaches, template_failure, unfillable_slots,

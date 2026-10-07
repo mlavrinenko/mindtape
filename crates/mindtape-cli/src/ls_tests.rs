@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used)]
 use std::path::Path;
 
-use mindtape::numeric::NumValue;
+use mindtape::model::numeric::NumValue;
 use mindtape::test_support::{TASK_SRC as TASK, bare_task};
 use mindtape::{Config, Readiness, Task};
 

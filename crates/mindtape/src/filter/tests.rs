@@ -4,8 +4,8 @@ use std::collections::BTreeMap;
 
 use super::Filter;
 use crate::config::Config;
+use crate::model::numeric::{InputValue, NumValue};
 use crate::model::{Status, Task};
-use crate::numeric::{InputValue, NumValue};
 use crate::parse_config;
 use crate::test_support::noted_edge;
 
@@ -39,7 +39,7 @@ fn sample() -> Task {
         extras: BTreeMap::new(),
         shape_errors: Vec::new(),
         body: String::new(),
-        spans: crate::task_spans::TaskCallSpans::default(),
+        spans: crate::model::task_spans::TaskCallSpans::default(),
     }
 }
 

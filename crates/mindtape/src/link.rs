@@ -40,7 +40,7 @@ pub struct Link {
 /// (SWHID tombstones minted by `cleanup` in place of a retired task) are
 /// excluded — they name no loaded task, so they are not a task↔task edge; see
 /// [`crate::model::is_history_pointer`]. A present-but-not-an-array value (a
-/// bare string, say) reports a [`crate::marker::ShapeError`] into `errors`
+/// bare string, say) reports a [`crate::model::marker::ShapeError`] into `errors`
 /// rather than silently coercing to no edges.
 ///
 /// A nested entry is flattened rather than dropped: each prelude helper returns
@@ -51,15 +51,20 @@ pub struct Link {
 /// resolving an older copy emits the nested shape to a current binary; this
 /// keeps its edges rather than losing half a dependency graph to a version
 /// skew. Anything that is neither an edge nor a nest — a number, a date —
-/// reports a [`ShapeError`](crate::marker::ShapeError) naming its position,
+/// reports a [`ShapeError`](crate::model::marker::ShapeError) naming its position,
 /// closing the last silent drop on this field.
 #[must_use]
-pub fn parse_links(value: Option<&HVal>, errors: &mut Vec<crate::marker::ShapeError>) -> Vec<Link> {
+pub fn parse_links(
+    value: Option<&HVal>,
+    errors: &mut Vec<crate::model::marker::ShapeError>,
+) -> Vec<Link> {
     let Some(value) = value else {
         return Vec::new();
     };
     let Some(items) = value.as_array() else {
-        errors.push(crate::marker::shape_error("links", "an array", value));
+        errors.push(crate::model::marker::shape_error(
+            "links", "an array", value,
+        ));
         return Vec::new();
     };
     let mut links = Vec::new();
@@ -75,7 +80,7 @@ fn collect_links(
     items: &[HVal],
     path: &mut Vec<usize>,
     out: &mut Vec<Link>,
-    errors: &mut Vec<crate::marker::ShapeError>,
+    errors: &mut Vec<crate::model::marker::ShapeError>,
 ) {
     for (index, item) in items.iter().enumerate() {
         path.push(index);
@@ -84,7 +89,7 @@ fn collect_links(
         } else if item.as_dict().is_some() || item.as_str().is_some() {
             out.extend(parse_one(item));
         } else {
-            errors.push(crate::marker::shape_error(
+            errors.push(crate::model::marker::shape_error(
                 &format!("links{}", index_path(path)),
                 "an edge like depends-on(\"other.typ\")",
                 item,

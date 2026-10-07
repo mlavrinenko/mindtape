@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 
 use crate::config::parse_config;
-use crate::numeric::InputValue;
+use crate::model::numeric::InputValue;
 
 #[test]
 fn validate_rejects_framework_exceeding_scale() {

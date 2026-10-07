@@ -24,7 +24,7 @@ use std::fmt::Write as _;
 
 use anyhow::{Context, Result, anyhow, bail};
 use clap::Args;
-use mindtape::canonical::CanonicalStatus;
+use mindtape::model::canonical::CanonicalStatus;
 use mindtape::{CanonicalTask, Config, EntryKind, MapOptions, map_canonical};
 
 use crate::util::{self, Project};
@@ -207,7 +207,7 @@ fn default_status(record: &mut CanonicalTask, status: Option<&str>) {
 /// `existing` (every loaded task's stem, the destination files and every stem
 /// already claimed within this batch). `existing` gains the chosen stem so later records in the
 /// same batch never collide with it — the collision policy is a `-2`, `-3`, ...
-/// suffix, [`mindtape::naming::disambiguate`]'s existing behaviour.
+/// suffix, [`mindtape::model::naming::disambiguate`]'s existing behaviour.
 ///
 /// # Errors
 /// Returns an error when there is no usable `id` and `title` slugifies to
@@ -228,7 +228,7 @@ fn stem_for(
         mindtape::stem_for_title(title, config, mindtape::today_ymd())
             .map_err(|err| anyhow!(err.to_string()))?
     };
-    let stem = mindtape::naming::disambiguate(&candidate, |c| existing.contains(c))
+    let stem = mindtape::model::naming::disambiguate(&candidate, |c| existing.contains(c))
         .map_err(|err| anyhow!(err.to_string()))?;
     existing.insert(stem.clone());
     Ok(stem)

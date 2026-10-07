@@ -1,12 +1,12 @@
 //! Deterministic stem minting from a title: `slug_from_title` is the one
 //! slug rule, re-exported for `mindtape-cli::add_values::slug` to call so
 //! `mt import` and `mt add` mint identical stems from an identical title.
-//! The CLI owns collision handling ([`crate::naming::disambiguate`] against
+//! The CLI owns collision handling ([`crate::model::naming::disambiguate`] against
 //! the real destination directory); this only computes the deterministic
 //! candidate.
 
 use crate::config::Config;
-use crate::naming::{MintContext, NamingError, mint_stem};
+use crate::model::naming::{MintContext, NamingError, mint_stem};
 
 /// Slugify `title` into a filename-stem-safe token: lowercase Unicode
 /// alphanumerics (Cyrillic, CJK, accented Latin all kept) survive, apostrophes

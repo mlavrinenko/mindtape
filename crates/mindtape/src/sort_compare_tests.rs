@@ -8,7 +8,7 @@ use super::sort_by_specs;
 use super::tests::{config, task};
 use crate::config::{Config, parse_config};
 use crate::model::Task;
-use crate::numeric::NumValue;
+use crate::model::numeric::NumValue;
 use crate::test_support::{bare_task, dep_edge};
 
 /// Ids after sorting `tasks` by a single `field` spec (no readiness signal).
@@ -24,7 +24,7 @@ fn ids_by(mut tasks: Vec<Task>, field: &str, cfg: &Config) -> Vec<String> {
 }
 
 // Per-field `--sort` comparators: each `compare_field` special case and each
-// `crate::fields` registry entry must route to its own key. Input order is
+// `crate::model::fields` registry entry must route to its own key. Input order is
 // the inverse of the expected sorted order, so dropping the special case (or
 // the registry entry, which would fail at `sort_by_specs'` own field check
 // first) fails the assertion.
@@ -334,7 +334,7 @@ fn sort_by_specs_orders_by_reviewed_ascending() {
 
 #[test]
 fn sort_by_specs_sorts_missing_generic_field_last_ascending() {
-    // Regression: before routing through the shared `crate::fields` registry,
+    // Regression: before routing through the shared `crate::model::fields` registry,
     // a missing optional field (e.g. `kind`) fell back to `""`, which sorts
     // *first* ascending — inconsistent with every numeric field's
     // missing-sorts-last rule. A missing `kind` must trail a present one

@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use crate::config::{Config, parse_config};
-use crate::numeric::NumValue;
+use crate::model::numeric::NumValue;
 use crate::recur::{CanonicalRule, PeriodUnit, Recur, Rule};
 use crate::test_support::{bare_task, ice_priority};
 

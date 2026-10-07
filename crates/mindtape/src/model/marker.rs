@@ -36,7 +36,7 @@ use std::collections::BTreeMap;
 use typst_harvest::HVal;
 
 use crate::model::Status;
-use crate::numeric::{InputValue, NumValue};
+use crate::model::numeric::{InputValue, NumValue};
 
 /// A core field — or an element inside one — whose marker value did not match
 /// its expected Typst shape (a string where `tags:` expects an array, a number

@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use super::{eval_predicate, eval_score, parse_check, score_interval};
 use crate::framework::{Input, InputKind};
-use crate::numeric::InputValue;
+use crate::model::numeric::InputValue;
 
 fn num(value: f64) -> InputValue {
     InputValue::Num(value)

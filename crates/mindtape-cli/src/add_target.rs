@@ -9,7 +9,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, anyhow, bail};
-use mindtape::{Config, RawValue, naming, today_ymd};
+use mindtape::{Config, RawValue, model::naming, today_ymd};
 
 use super::AddArgs;
 use crate::add_dedup;
@@ -52,7 +52,7 @@ pub(super) fn resolve_outcome(
 /// (literal, never templated — an explicit request is trusted as-is).
 /// Otherwise the title's slug feeds the configured `[tasks.naming] stem`
 /// template (today's date; the pure expander never reads a clock — see
-/// [`mindtape::naming`]); unset naming keeps today's bare behaviour
+/// [`mindtape::model::naming`]); unset naming keeps today's bare behaviour
 /// untouched.
 ///
 /// Pure minting only — this never checks `dest` or decides what to do about

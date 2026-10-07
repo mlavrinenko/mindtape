@@ -7,7 +7,7 @@
 
 use super::tests::{canonical, config};
 use super::{EntryKind, MapOptions, map_canonical};
-use crate::canonical::CanonicalStatus;
+use crate::model::canonical::CanonicalStatus;
 
 // --- status ----------------------------------------------------------
 

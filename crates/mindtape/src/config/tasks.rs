@@ -6,7 +6,7 @@
 //! Field types that already outgrew this file live in their own sibling
 //! instead and are only referenced here: roots/derive-tags (`config/roots.rs`),
 //! the status legend (`config/status.rs`), assignee (`config/assignee.rs`),
-//! estimate (`config/estimate.rs`), naming (`crate::naming`), links
+//! estimate (`config/estimate.rs`), naming (`crate::model::naming`), links
 //! (`crate::link`), recur (`crate::recur`), rules (`rules/mod.rs`), and
 //! comments (`config/comments.rs`).
 
@@ -22,7 +22,7 @@ use crate::config::required::Requirement;
 use crate::config::roots::{DeriveConfig, RootSpec};
 use crate::config::status::Legend;
 use crate::framework::Framework;
-use crate::numeric::{Anchor, Band, NumericField, ScaleKind};
+use crate::model::numeric::{Anchor, Band, NumericField, ScaleKind};
 
 /// `[tasks]` — where tasks live and how they are constrained.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
@@ -56,7 +56,7 @@ pub struct TasksConfig {
     pub id: IdConfig,
     /// The filename stem template `mt add` and `mt recur` use, and what
     /// `mt add` does when the stem is taken (`dedup`).
-    pub naming: crate::naming::NamingConfig,
+    pub naming: crate::model::naming::NamingConfig,
     /// Custom link kinds that `links:` edges may use, beside the built-in ones.
     pub links: crate::link::LinksConfig,
     /// Whether recurring tasks are enabled, and the units, anchors and limits
@@ -89,7 +89,7 @@ impl Default for TasksConfig {
             tags: TagsConfig::default(),
             body: TaskBodyConfig::default(),
             id: IdConfig::default(),
-            naming: crate::naming::NamingConfig::default(),
+            naming: crate::model::naming::NamingConfig::default(),
             links: crate::link::LinksConfig::default(),
             recur: crate::recur::RecurConfig::default(),
             rules: Vec::new(),

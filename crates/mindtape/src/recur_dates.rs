@@ -239,7 +239,7 @@ pub fn ymd_to_date(ymd: (i32, u8, u8)) -> Option<NaiveDate> {
 }
 
 /// A [`NaiveDate`] as a `(year, month, day)` tuple — the shape
-/// [`mindtape::naming::MintContext`] and `on(y, m, d)` Typst edits take.
+/// [`mindtape::model::naming::MintContext`] and `on(y, m, d)` Typst edits take.
 #[must_use]
 pub fn date_to_ymd(date: NaiveDate) -> (i32, u8, u8) {
     // `month()` is 1..=12 and `day()` 1..=31 (chrono invariants for any valid
