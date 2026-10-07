@@ -53,7 +53,7 @@
 
 #let SITE = (
   title: "MindTape",
-  tagline: "A task tracker in your repo that enforces your team's rules on every task and commit.",
+  tagline: "A task tracker in your repo that enforces your rules on every task and commit.",
 )
 
 // Grouped sidebar: group title, and its members' reading order as routes.

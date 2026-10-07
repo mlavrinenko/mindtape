@@ -3,13 +3,13 @@
 <h1 align="center"><img src="https://raw.githubusercontent.com/mlavrinenko/mindtape/main/www/assets/images/logo.svg" alt="MindTape" width="120" /><br />
  MindTape</h1>
 
-<h4 align="center">A task tracker in your repo that enforces your team's rules on every task and commit.</h4>
+<h4 align="center">A task tracker in your repo that enforces your rules on every task and commit.</h4>
 
 <h4 align="center"><a href="https://mlavrinenko.github.io/mindtape/">Documentation</a> · <a href="https://mlavrinenko.github.io/mindtape/quickstart/">Quickstart</a></h4>
 
 ---
 
-Each task is a [Typst](https://typst.app/) file in your repository. `mt` checks every task and commit against the rules your team writes in `.mindtape/config.toml`, and refuses work that breaks one. It runs offline, on the files in your checkout.
+Your tasks live in the repo, one [Typst](https://typst.app/) file each. Edit them in any editor, or let `mt` commands handle the fiddly parts, like status dates and link paths. Rules go in `.mindtape/config.toml`, like “one task in progress at a time” or “every commit names a task”, and `mt` refuses any edit or commit that breaks them. There’s no server or database. It just reads the files in your project.
 
 [`examples/api-service/tasks/throttle-failed-logins-per-ip.typ`](https://github.com/mlavrinenko/mindtape/blob/main/examples/api-service/tasks/throttle-failed-logins-per-ip.typ)
 

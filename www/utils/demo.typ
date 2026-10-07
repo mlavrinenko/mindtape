@@ -14,10 +14,12 @@
 #let tagline = SITE.tagline
 
 #let intro = [
-  Each task is a #link("https://typst.app/")[Typst] file in your repository.
-  `mt` checks every task and commit against the rules your team writes in
-  `.mindtape/config.toml`, and refuses work that breaks one. It runs offline,
-  on the files in your checkout.
+  Your tasks live in the repo, one #link("https://typst.app/")[Typst] file
+  each. Edit them in any editor, or let `mt` commands handle the fiddly parts,
+  like status dates and link paths. Rules go in `.mindtape/config.toml`, like
+  "one task in progress at a time" or "every commit names a task", and `mt`
+  refuses any edit or commit that breaks them. There's no server or database.
+  It just reads the files in your project.
 ]
 
 #let _fact = json("../generated/api-service.json")

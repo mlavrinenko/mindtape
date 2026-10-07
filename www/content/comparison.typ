@@ -34,10 +34,9 @@
   [#body],
 )
 
-MindTape is for teams that keep tasks in the repo, next to the code, and want a
-tool to check them. This page compares it with seven other trackers that run on
-your machine. Hosted trackers such as GitHub Issues, Jira and Linear keep tasks
-on a server, outside the repo, so they are not in the table.
+If you keep tasks in the repo next to the code, here's how MindTape compares
+with seven other trackers that run locally. GitHub Issues, Jira and Linear
+aren't here, because they keep your tasks on a server, not in your repo.
 
 = The tools
 

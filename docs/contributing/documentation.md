@@ -30,6 +30,20 @@ A capture is a record `www/capture.sh` writes. It holds each command the build r
 
 `just check-doc-blocks` fails on a fenced block, or a block `raw(...)`, whose text is written in the source. A block no fixture can hold, such as a grammar sketch, carries `// docs:hand-typed <reason>` on the line above it. The gate lists the sources not yet converted. A listed source with no hand-typed block left fails, so the list only shrinks.
 
+## Voice
+
+Write the way an engineer explains a tool to a peer: say “you”, use contractions, open with what the reader wants to do, show the command and what it prints, and say what a choice costs. Don’t assume a team: the reader may work alone, with agents, or both.
+
+- Bad: “Each task is a Typst file in your repository. `mt` checks every task and commit against the rules your team writes in `.mindtape/config.toml`.”
+- Good: “Your tasks live in the repo, one Typst file each. Rules go in `.mindtape/config.toml`, and `mt` refuses any edit or commit that breaks them.”
+
+Each kind of reader gets its own register:
+
+- **The site, README, `CONTRIBUTING.md` and the `docs/contributing/*.md` deep dives** use the voice above.
+- **`--help` text** says in one or two sentences what the flag does, from the user’s side. It leaves out internals such as config tables the user never sees.
+- **An error message** names what failed, quotes the value that failed, and says what to try next when there’s an obvious next step. It is one line that starts with `error:`.
+- **AGENTS.md, SKILL.md and the skill’s references** are read by agents, any agent and not one vendor’s. They’re imperative: one situation, one action, the exact command. They state the rules an agent must follow, such as making changes through `mt` commands, which a human page leaves as a choice.
+
 ## Plain prose
 
 Write for a busy engineer who reads each sentence once. The rules apply to comments in doc sources too: a comment says what the code does and why, in as few lines as it takes.
