@@ -13,10 +13,10 @@
 
 #show: page.with(..meta)
 
-`git blame` shows a line and the subject "fix(auth): reject expired sessions".
-Nothing says which task asked for the change, what problem it fixed or what it
-left out. An agent about to edit the file has the same question and no way to
-answer it.
+`git blame` shows you a line and the subject "fix(auth): reject expired
+sessions". Nothing says which task asked for the change, what problem it fixed
+or what it left out. An agent about to edit the file has the same question and
+no way to answer it.
 
 = The config
 
@@ -25,26 +25,26 @@ answer it.
 = What `mt` does
 
 A `commit-msg` hook runs `mt check --commit-msg`. git refuses the commit
-without a `Refs:` trailer and accepts it with one. `touches()` then finds the
+without a `Refs:` trailer and accepts it with one. Then `touches()` finds the
 task behind the changed file:
 
 #terminal("trace-commits-to-tasks")
 
 = How it works
 
-`[commits] trailer` names the trailer whose values are task stems, the task
-file names without `.typ`, as #link(u("/concepts/#identity"))[Concepts]
+`[commits] trailer` names the trailer that holds task stems. A stem is the
+task's file name without `.typ`, as #link(u("/concepts/#identity"))[Concepts]
 explains. The project also extends the `mindtape-tasks`
 #link(u("/rule-packs/"))[rule pack], as
 #link(u("/require-a-task-shape/"))[Tasks too vague to start] shows. The pack's
-`work-names-a-task` rule refuses a commit that names no task, unless the commit
-changes only task files.
-`mt check --commit-msg` also refuses a stem that no task has.
-#link(u("/commit-rules/"))[Commit rules] covers the rule fields, and
-#link(u("/rule-packs/"))[Rule packs] shows how to drop the rule.
+`work-names-a-task` rule refuses a commit that names no task, unless the
+commit changes only task files. `mt check --commit-msg` also refuses a stem
+that no task has. #link(u("/commit-rules/"))[Commit rules] covers the rule
+fields, and #link(u("/rule-packs/"))[Rule packs] shows how to drop the rule.
 
-A hook can be skipped with `--no-verify`, so CI runs `mt check --commits` on
-the commits a push carries. #link(u("/commit-rules/"))[Commit rules] shows it.
+Anyone can skip a hook with `--no-verify`, so run `mt check --commits` in CI
+on the commits a push carries. #link(u("/commit-rules/"))[Commit rules] shows
+how.
 
 `touches("<path>")` matches each task named in the trailer of a commit that
 changed the path. #link(u("/filters/"))[Filter language] covers it.

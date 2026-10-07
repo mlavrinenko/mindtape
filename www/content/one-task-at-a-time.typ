@@ -14,8 +14,8 @@
 #show: page.with(..meta)
 
 An agent starts three tasks and finishes none. The working tree holds parts of
-all three, and no commit can name one task. Or it starts a task whose
-dependency is still open, and writes code against a client that does not exist
+all three, and no commit can name just one. Or it starts a task whose
+dependency is still open, and writes code against a client that doesn't exist
 yet.
 
 = The config
@@ -24,25 +24,26 @@ yet.
 
 = What `mt` does
 
-One task is already in progress, so `mt wip` refuses a second. It also refuses
-a task that waits on an open dependency, and `mt ls blocked` says which one:
+One task is already in progress, so `mt wip` won't start a second. It also
+won't start a task that waits on an open dependency, and `mt ls blocked` tells
+you which one:
 
 #terminal("one-task-at-a-time")
 
 = How it works
 
-The `one-wip` rule counts the tasks in `wip` across the project with `count()`
-and fails when there is more than one. Because a write command refuses a
-change that breaks a rule, `mt wip` refuses the second start.
-#link(u("/rules/"))[Rules] covers work-in-progress caps, and
-#link(u("/filters/"))[Filter language] covers `count()`.
+The `one-wip` rule counts tasks in `wip` with `count()` and fails if there's
+more than one. Every command that writes a task checks the rules first, so
+`mt wip` won't start a second one. #link(u("/rules/"))[Rules] covers
+work-in-progress caps, and #link(u("/filters/"))[Filter language] covers
+`count()`.
 
-`tasks.status` lists the statuses a task may hold, and `terminal = true` marks
+`tasks.status` lists the statuses a task may hold. `terminal = true` marks
 `done` as the status that ends a task. `unblocked = true` on `wip` makes
-`mt wip` refuse a task while a `depends-on` edge points at a task that is not
+`mt wip` refuse a task while a `depends-on` edge points at a task that isn't
 done. `--force` overrides it. `mt ls blocked` and its `why` column list each
-waiting task and what it waits on.
-#link(u("/statuses/"))[Statuses] covers terminal and unblocked statuses, and
-#link(u("/links/"))[Links] covers the edge kinds.
+waiting task and what it waits on. #link(u("/statuses/"))[Statuses] covers
+terminal and unblocked statuses, and #link(u("/links/"))[Links] covers the
+edge kinds.
 
 This repo caps its own work in progress the same way in #own-config.

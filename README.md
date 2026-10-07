@@ -48,7 +48,7 @@ A few lines of config solve each problem below. Under each is the error `mt` pri
 
 ### [Tasks too big to finish in one change](https://mlavrinenko.github.io/mindtape/split-oversized-tasks/)
 
-Cap how many source files a task may touch, so whoever files a big task has to split it first.
+Cap how many source files a task may touch, so a big task gets split before it’s filed.
 
 ```
 error: the task as filled:2: rules.split-big-work: split it into tasks of 5 source files or fewer
@@ -56,7 +56,7 @@ error: the task as filled:2: rules.split-big-work: split it into tasks of 5 sour
 
 ### [Tasks too vague to start](https://mlavrinenko.github.io/mindtape/require-a-task-shape/)
 
-Refuse a task that does not say how to reproduce the problem, what done looks like and which files change.
+Refuse a task that doesn’t say how to reproduce the problem, what done looks like and which files change.
 
 ```
 Error: missing required slot(s): to-be, changes, out-of-scope

@@ -14,8 +14,8 @@
 #show: page.with(..meta)
 
 An agent marks its task done, and the test suite fails on the code it wrote.
-The backlog says the work is finished. The next person to pull finds it broken
-and has to work out which closed task caused it.
+The backlog says the work is finished. The next time you pull, you find it
+broken and have to work out which closed task caused it.
 
 = The config
 
@@ -23,9 +23,9 @@ and has to work out which closed task caused it.
 
 = What `mt` does
 
-`mt done` runs the test script, which fails, so `mt done` writes nothing and
-exits non-zero. `--force` closes the task anyway and writes the waiver into
-its status note:
+`mt done` runs the test script. The script fails, so `mt done` writes nothing
+and exits non-zero. `--force` closes the task anyway and writes the waiver
+into its status note:
 
 #terminal("gate-done-on-checks")
 
@@ -33,13 +33,13 @@ its status note:
 
 `[[on.flip]]` binds actions to a flip, the change of status that `mt flip` or
 a status command such as `mt done` makes. `into("done")` in `when` matches a
-flip into `done`. A `run` action with `gate = true` refuses the flip
-when its command exits non-zero, and prints what the command printed.
+flip into `done`. A `run` action with `gate = true` refuses the flip when its
+command exits non-zero, and prints what the command printed.
 #link(u("/hooks/"))[Flip hooks] lists the action kinds and the environment a
 command runs with.
 
-`--force` lets a person or an agent close a task past a failing check. The
-waiver stays in the task file, so a reviewer sees it in the diff.
+`--force` lets you or an agent close a task past a failing check. The waiver
+stays in the task file, so whoever reviews the change sees it in the diff.
 #link(u("/statuses/"))[Statuses] covers the statuses a project allows and the
 moves between them.
 

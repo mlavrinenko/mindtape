@@ -24,11 +24,11 @@ groups:
     dependents:
       skills/mindtape/evals/README.md: e530d4b6a77d8220a7f138487974a3c0797271020a575b74f51d9379a57d7769
       skills/mindtape/evals/evals.json: b25640b2d11ac263a0572ffc6679165bae4581dee1fe9938112c8e69926ad041
-      www/content/gate-done-on-checks.typ: c0917b0b12fbb71db5548a57525a4c90aaa7fb23fea78af427d515e44f69a905
-      www/content/one-task-at-a-time.typ: e69db86fb7fc32c1eda48d81c385e8bfc7f577a14016ce85c2974b112dbb37d6
-      www/content/require-a-task-shape.typ: bf10f850be4be56cddda549f3f572a81f71de899a257bb979430f51c3ffd6bdb
-      www/content/split-oversized-tasks.typ: 7dd43bfc656628ddfb32f5bfd9606458bf0c038f66ae65ebe15e0f4134a08c31
-      www/content/trace-commits-to-tasks.typ: 297dba658a324eb724ff4d3f0970b4df253b112ec5caf73ed4b7582841eef9f8
+      www/content/gate-done-on-checks.typ: e1a43a4fcddecb5b96022b4429c3f3b5012126e2f023f34cc94df4bb5ce77b54
+      www/content/one-task-at-a-time.typ: e0c06a860fc00dba0cd9e75dcf1a7b87c346656b00f8297228b2f67492a24964
+      www/content/require-a-task-shape.typ: e849411143eb2b9de56d345d6645b2b9db63f258c5e549559fb0e738725d90e0
+      www/content/split-oversized-tasks.typ: af7c079e0f6e5aca8691b4630b81374b27c9f572d1d35485602bc9445d72392a
+      www/content/trace-commits-to-tasks.typ: 2f9d44f82335582c3006aa10fa84d948f081ec4cddd5248ea9f990b0c6ff0136
   cli-docs:
     source:
       crates/mindtape-cli/src/cli/completion/mod.rs: 2b2d0f8eb41435fbc5f6bda31c25f4c64238a4d567d0824a2e3ae939d073a410
