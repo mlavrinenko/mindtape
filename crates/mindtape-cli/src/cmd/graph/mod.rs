@@ -28,17 +28,15 @@ use crate::util;
 /// Arguments for `graph`.
 #[derive(Debug, clap::Args)]
 pub struct GraphArgs {
-    /// Filter expression scoping the subgraph. Omitted graphs every task; an
-    /// empty string (`''`) is the same match-all. Edges to tasks outside the
-    /// scope are dropped, so the result is the induced subgraph.
+    /// Which tasks to draw, as a filter expression. Without it, mt draws every
+    /// task. Links to tasks the filter leaves out aren't drawn.
     pub filter: Option<String>,
 
     /// Output format.
     #[arg(long, value_enum, default_value_t)]
     pub format: GraphFormat,
 
-    /// Drop terminal tasks (done/cancelled/failed) from the graph, keeping only
-    /// the live work and its edges.
+    /// Leave out closed tasks, such as done or cancelled ones.
     #[arg(long)]
     pub no_terminal: bool,
 }

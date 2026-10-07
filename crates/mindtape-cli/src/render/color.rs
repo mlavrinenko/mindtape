@@ -9,12 +9,12 @@ use anstyle::{AnsiColor, Color, Reset, RgbColor, Style};
 /// The user's colour preference, mirroring `--color <auto|always|never>`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, clap::ValueEnum)]
 pub enum ColorChoice {
-    /// Enable colour only when stdout is a TTY and `NO_COLOR` is not set.
+    /// Colour when the output is a terminal and `NO_COLOR` isn't set.
     #[default]
     Auto,
-    /// Always emit ANSI colour sequences.
+    /// Always colour.
     Always,
-    /// Never emit colour.
+    /// Never colour.
     Never,
 }
 

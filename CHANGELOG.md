@@ -1271,6 +1271,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`--help` says what each flag does in a sentence or two.** Every command,
+  flag and value describes itself from your side and leaves out internals,
+  `mt init`'s axis flags list what each choice means, and no line shows
+  `` `MindTape` `` in backticks. `mt install --force` says it overwrites
+  the completion hooks too, and `mt rm` names its config key
+  `[rm] default-filter`.
 - **Each library area lives in one folder.** The public paths
   `mindtape::condition` and `mindtape::condition_env` are now
   `mindtape::filter::condition` and `mindtape::filter::condition_env`, and

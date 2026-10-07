@@ -50,83 +50,74 @@ use target::{output_stem, resolve_outcome};
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Args)]
 pub struct AddArgs {
-    /// Task title words, joined with spaces to seed the `title` slot.
+    /// The task's title. mt joins the words with spaces.
     #[arg(value_name = "TITLE")]
     pub title: Vec<String>,
 
-    /// Template stem (default: the configured `[templates] default`).
+    /// The template to fill. Defaults to your project's default template.
     #[arg(long = "template", short = 't', value_name = "TEMPLATE")]
     pub template: Option<String>,
 
-    /// JSON or YAML values file (repeatable, merged left-to-right; `-` reads
-    /// stdin). `.json`/`.yaml`/`.yml` pick the parser by extension; stdin and
-    /// any other extension sniff the content.
+    /// Read slot values from a JSON or YAML file, or `-` for stdin. Repeat it
+    /// to merge several files, and a later file wins on a shared key.
     #[arg(long = "values", short = 'f', value_name = "PATH")]
     pub values: Vec<String>,
 
-    /// Override a slot: `key=value` sets, `key+=value` appends to a list slot
-    /// (e.g. `--set tags+=a --set tags+=b`), `key@path` reads the value out of
-    /// a file. Applied after `--values`.
+    /// Set a slot: `key=value`, `key+=value` to add to a list, or `key@path` to
+    /// read the value from a file. It wins over `--values`.
     #[arg(long = "set", value_name = "KEY=VALUE")]
     pub set: Vec<String>,
 
-    /// Slot assignments after `--`, in the same `key=value` / `key+=value` /
-    /// `key@path` grammar as `--set` (e.g. `mt add "title" --
-    /// estimate.files=2 tags+=a summary@notes.txt`). Applied after `--set`.
+    /// Slots to set after `--`, written as for `--set`, such as
+    /// `mt add "Fix login" -- tags+=auth summary@notes.txt`. They win over `--set`.
     #[arg(last = true, value_name = "KEY=VALUE")]
     pub tokens: Vec<String>,
 
-    /// Destination directory; `.` (default) is the first configured root.
+    /// The directory to write the task in. `.` means the first root in your config.
     #[arg(long, value_name = "DIR", default_value = ".")]
     pub into: String,
 
-    /// Subfolder under the destination root to nest the task into (folder-derived
-    /// tags). Relative to `--into`; `--to shopping` → `<root>/shopping`.
+    /// A subfolder of `--into` to put the task in, such as `--to shopping`. If
+    /// your project tags tasks by folder, the task gets that folder's tags.
     #[arg(long = "to", value_name = "SUBDIR")]
     pub to: Option<String>,
 
-    /// Output filename stem; default is a slug of the title value.
+    /// The file name, without `.typ`. Defaults to a slug of the title.
     #[arg(long, value_name = "STEM")]
     pub name: Option<String>,
 
-    /// Initial status name; default is the first non-terminal legend value.
+    /// The status to file the task with. Defaults to the template's status, else
+    /// your project's first status that doesn't close a task.
     #[arg(long, value_name = "NAME")]
     pub status: Option<String>,
 
-    /// Open an editor to fill the template's slots (requires a terminal).
+    /// Fill the template's slots in your editor. Needs a terminal.
     #[arg(long)]
     pub edit: bool,
 
-    /// Print the template's slot schema instead of filing. `--describe=json` for
-    /// machine output.
+    /// Print the template's slots instead of filing a task. `--describe=json`
+    /// prints them as JSON.
     #[arg(long, value_name = "FORMAT", num_args = 0..=1, require_equals = true, default_missing_value = "text")]
     pub describe: Option<String>,
 
-    /// List available templates and exit.
+    /// List the templates and exit.
     #[arg(long)]
     pub list: bool,
 
-    /// Print the filled task to stdout instead of writing a file.
+    /// Print the filled task instead of writing it.
     #[arg(long)]
     pub print: bool,
 
-    /// Skip post-write validation of the new task.
+    /// Don't check the new task against your project's rules.
     #[arg(long = "no-verify")]
     pub no_verify: bool,
 
-    /// Collision policy when the destination stem already exists: `fail`
-    /// (bail), `skip` (exit 0, write nothing, report the existing path), or
-    /// `add-suffix` (mint `-2`, `-3`, … via `naming::disambiguate`). Applies
-    /// the same whether the stem was minted from a `[tasks.naming] stem`
-    /// template or is bare. Overrides `[tasks.naming] dedup`, whose unset
-    /// default is `fail` for a bare stem and `add-suffix` for a templated one
-    /// (see `mindtape::model::naming::NamingConfig::effective_dedup`).
+    /// What to do when a task with that file name exists. Without it, mt
+    /// follows your project's `[tasks.naming]` settings.
     #[arg(long, value_enum, value_name = "MODE")]
     pub dedup: Option<DedupArg>,
 
-    /// Output format: `text` (today's `wrote <path>` prose, the default),
-    /// `path`, `path0`, or `json` — the JSON object reports the outcome
-    /// (`wrote`, `skipped`, `suffixed`), not only the path.
+    /// How to report what `mt add` did.
     #[arg(long, value_enum, default_value_t)]
     pub format: Format,
 }

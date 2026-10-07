@@ -13,19 +13,19 @@ use crate::render::columns::{ColumnId, resolve_order, rows};
 /// Output format for `list` and `eval`.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
 pub enum OutputFormat {
-    /// Aligned text table.
+    /// An aligned table.
     #[default]
     Table,
-    /// Pretty-printed JSON array.
+    /// A JSON object with the tasks and how mt picked them.
     Json,
     /// Comma-separated values with a header row.
     Csv,
-    /// One task file path per line, nothing else — for composing with
-    /// another program (`rg TODO $(mt ls ready --format path)`).
+    /// One task file path per line, to hand to another program, as in
+    /// `rg TODO $(mt ls ready --format path)`.
     #[value(name = "path")]
     Path,
-    /// The same list as `path`, NUL-delimited instead of newline-delimited,
-    /// for `xargs -0` and paths holding whitespace.
+    /// Paths as for `path`, each ending in a NUL byte, for `xargs -0` and paths
+    /// with spaces.
     #[value(name = "path0")]
     Path0,
 }

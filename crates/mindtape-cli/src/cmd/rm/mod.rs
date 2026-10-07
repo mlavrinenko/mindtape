@@ -68,17 +68,14 @@ use crate::{git, util};
 /// Arguments for `mt rm`.
 #[derive(Args)]
 pub struct RmArgs {
-    /// Tasks to retire: each a reference (stem, relative/absolute path, or
-    /// stem hash) or a filter expression. A filter word, such as `ready` or a
-    /// status, is read as a filter before a stem hash. A reference resolves a
-    /// single task regardless of status; a filter retires every match; the
-    /// union of every entry, deduplicated, is retired in one pass. Omitted
-    /// entirely: the configured `[rm] default_filter` (built-in `terminal`).
+    /// The tasks to delete, each a task (stem, hash or path) or a filter such
+    /// as `done`. Without any, `mt rm` deletes what `[rm] default-filter`
+    /// picks, which is every closed task unless you change it.
     pub targets: Vec<String>,
-    /// Skip the interactive confirmation prompt.
+    /// Don't ask for confirmation.
     #[arg(short = 'y', long)]
     pub yes: bool,
-    /// Print the plan without deleting or rewriting anything.
+    /// Show what would be deleted and rewritten without changing anything.
     #[arg(long)]
     pub dry_run: bool,
 }

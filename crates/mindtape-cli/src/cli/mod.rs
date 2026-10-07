@@ -36,141 +36,98 @@ pub struct Cli {
     #[command(subcommand)]
     command: Command,
 
-    /// Operate on the `MindTape` project at `<PATH>` instead of discovering one
-    /// by walking up from the current directory.
-    ///
-    /// The path must contain a `.mindtape/` directory. Relative paths resolve
-    /// against the current directory. Falls back to `$MINDTAPE_WORKTREE` when
-    /// unset; the flag wins over the env var.
+    /// Use the project at PATH (the directory holding `.mindtape/`) instead of
+    /// searching up from the current directory. Defaults to `$MINDTAPE_WORKTREE`.
     #[arg(short = 'w', long, value_name = "PATH", global = true)]
     pub worktree: Option<PathBuf>,
 
-    /// Increase verbosity (-v info, -vv debug, -vvv trace).
+    /// Print more logging: `-v` for info, `-vv` for debug, `-vvv` for trace.
     #[arg(short = 'v', long, action = clap::ArgAction::Count, global = true)]
     pub verbose: u8,
 
-    /// Colour output: auto (default), always, or never.
-    ///
-    /// `auto` enables colour only when stdout is a TTY and `NO_COLOR` is
-    /// unset. `always` forces colour regardless of TTY or `NO_COLOR`.
-    /// `never` suppresses all ANSI colour sequences.
+    /// When to colour the output.
     #[arg(long, value_name = "WHEN", default_value_t, global = true)]
     pub color: ColorChoice,
 
-    /// Hyperlink output for the `#` and `file` columns: auto, always, or
-    /// never.
-    ///
-    /// `auto` emits OSC 8 hyperlink sequences only when stdout is a TTY and
-    /// `TERM` is not `dumb` — a heuristic guess, since no terminal capability
-    /// query exists for OSC 8 support. Wins over `[ls] hyperlinks` when
-    /// passed; omitted defers to that config key, which itself defaults to
-    /// `never` — unlike colour, which just degrades to nothing, an
-    /// unsupported terminal can render the OSC 8 payload as visible garbage,
-    /// so opting in stays explicit rather than automatic.
+    /// When to make the `#` and `file` columns clickable links. Defaults to
+    /// `[ls] hyperlinks`, which is `never` unless your project changes it.
     #[arg(long, value_name = "WHEN", global = true)]
     pub hyperlinks: Option<HyperlinkChoice>,
 }
 
 #[derive(Subcommand)]
 enum Command {
-    /// File a new task from a Typst slot template.
+    /// File a new task from a template.
     Add(add::AddArgs),
-    /// Import canonical task-JSON (a file arg or stdin `-`) as native `.typ`
-    /// tasks: map onto this project's config policy, emit, validate the whole
-    /// batch, and report. See `mt ls --json` for the schema this reads.
+    /// Import tasks from JSON in the format `mt ls --json` prints, checking the
+    /// whole batch against your project's rules.
     Import(import::ImportArgs),
-    /// List tasks under the configured roots, applying a filter.
+    /// List tasks, optionally filtered.
     Ls(ls::LsArgs),
-    /// Search by text — sugar over `contains()`: `mt find login bug` is
-    /// `mt ls 'contains("login") && contains("bug")'`. Every `ls` flag
-    /// forwards verbatim; no `--in`, field targeting stays in the filter
-    /// language.
+    /// Find tasks that contain every word you give. Takes the same flags as
+    /// `mt ls`.
     Find(find::FindArgs),
-    /// Emit the task dependency graph as DOT or Mermaid, scoped by a filter.
+    /// Draw tasks and the links between them, as Graphviz DOT or Mermaid.
     Graph(graph::GraphArgs),
-    /// List or inspect named views (`[views]`).
+    /// List your saved views, or show one.
     Views(views::ViewsArgs),
-    /// List worktree aliases (`@name` sugar; `mindtape/worktrees.toml` in the config directory).
+    /// List your worktree aliases, the `@name` you can pass to `-w`.
     Worktrees(worktrees::WorktreesArgs),
-    /// Validate tasks, and the task each template files, against the project
-    /// configuration.
+    /// Check every task, and the task each template would file, against your
+    /// project's rules.
     Check(check::CheckArgs),
-    /// Inspect the effective merged configuration (`show` is the default action).
+    /// Show the config mt uses.
     Config(config_cmd::ConfigArgs),
-    /// Save or list named `mt init` starter shapes: `save <name>` captures the
-    /// current project's config and templates as a reusable user preset,
-    /// `ls` lists built-in and user presets together.
+    /// Save this project's setup as a preset for `mt init`, or list presets.
     Preset(preset_cmd::PresetArgs),
-    /// Scaffold `.mindtape/config.toml` in the current directory.
+    /// Create `.mindtape/config.toml` in the current directory.
     Init(init::InitArgs),
-    /// Set up the user environment: the `@local/mindtape` Typst package, the
-    /// XDG global `defaults.toml` app-config layer, the JSON Schema for
-    /// `.mindtape/config.toml`, and the shell completion hooks.
+    /// Install what mt needs on this machine: the Typst package, your
+    /// user-wide defaults, the config's JSON Schema, and shell completions.
     ///
-    /// Performs all four by default;
-    /// `--no-lib`/`--no-defaults`/`--no-schema`/`--no-completions` skip any of
-    /// them. A hook is a couple of lines calling `mt` back, so completions
-    /// follow the binary and never need re-installing.
+    /// It installs all four unless you pass `--no-lib`, `--no-defaults`,
+    /// `--no-schema` or `--no-completions`. Completions call mt itself, so
+    /// they stay current when you upgrade.
     Install(install::InstallArgs),
-    /// Evaluate a single task file and print it; a path need not lie under a project.
+    /// Evaluate one task file and print it. The file can be outside a project.
     Eval(eval::EvalArgs),
-    /// Open a task in the configured editor (`[go] editor`).
+    /// Open a task in your editor, set by `[go] editor`.
     Go(go::GoArgs),
-    /// Retire tasks (by ref, filter, or the default), rewriting inbound links to
-    /// SWHID tombstones.
+    /// Delete tasks. Links to a deleted task become a SWHID, an ID that still
+    /// finds its file in git history.
     Rm(rm::RmArgs),
-    /// Rename a task — its file stem is its identity — and retarget every
-    /// inbound `links:` edge onto the new stem, in one validated write.
+    /// Rename a task's file and update every link that points to it.
     ///
-    /// `git mv` inside a repository, a plain rename outside one. A stem
-    /// already taken is refused before anything moves; `--dry-run` prints the
-    /// plan. The `title:` is untouched (independent of the stem by design) and
-    /// so is the folder — moving a task between roots or folders changes its
-    /// derived tags and is a decision of its own.
+    /// Inside a git repository it runs `git mv`. It keeps the task's title and
+    /// folder, and refuses a stem another task has.
     Mv(mv::MvArgs),
-    /// Write one core field of an existing task:
-    /// `mt set <task> <field>=<value>`.
+    /// Change one field of a task: `mt set <task> <field>=<value>`.
     ///
-    /// `<field>+=<value>` appends to a list field and `<field>@<path>` reads
-    /// the value out of a file — `mt add --set`'s own token grammar. Writable:
-    /// `title`, `priority` (the raw number), `difficulty`, `kind`, `assignee`,
-    /// `tags`, `due`, `start`. A field with a command of its own (`status`,
-    /// `links`, `reviewed`, `recur`, the stem) is refused naming that command,
-    /// an unknown one naming the writable fields. The value is validated
-    /// before the write, so a refused one leaves the file untouched.
+    /// You can set `title`, `priority` (as a number), `difficulty`, `kind`,
+    /// `assignee`, `tags`, `due` and `start`. Other fields have their own
+    /// commands, such as `mt flip` for `status`. mt checks the new value
+    /// before it writes, so a refused one leaves the file as it was.
     Set(set::SetArgs),
-    /// Stamp `reviewed:` with today's date on a task.
+    /// Mark a task as reviewed today.
     Review(review::ReviewArgs),
-    /// Set a task's status (`flip <status> <task>...`); each legend value is a verb.
+    /// Change the status of tasks: `mt flip done <task>...`.
     ///
-    /// Stamps `<status>` dated today onto each task; `<status>` must be a
-    /// configured legend value. Every legend value also works as a top-level
-    /// shortcut verb — `mt done 1b 2c` == `mt flip done 1b 2c` —
-    /// generated from the legend, so they do not show in `--help`; run
-    /// `mt flip --list` to see them. Built-in subcommands win on a name
-    /// clash. Targets are resolved before any write, then valid edits apply and
-    /// any resolution or validation problem is reported (the rest still land).
+    /// Each status also works as a command of its own, so `mt done 1b 2c` is
+    /// `mt flip done 1b 2c`. Those commands aren't listed here, so run
+    /// `mt flip --list` to see them. When some tasks fail, mt still changes
+    /// the rest and reports the failures.
     Flip(flip::FlipArgs),
-    /// Advance a recurring task to its next occurrence — the only command
-    /// that spawns or mutates a recurrence (see `[tasks.recur]`).
+    /// Write the next occurrence of a recurring task.
     ///
-    /// Dispatches on the task's effective `materialize`: `spawn` (the
-    /// default) writes the next instance as a new file and links it back via
-    /// `recurred-from`; `mutate` refreshes the same file in place. `--dry-run`
-    /// previews without writing; `--advance N` pre-materializes N future
-    /// spawns without closing the current instance; `--skip` advances the
-    /// anchor/`count` without materializing anything. `mt done` never
-    /// advances a recurrence — it stays a pure close.
+    /// By default it writes a new task linked back to this one. With
+    /// `materialize: "mutate"`, it resets this task in place instead.
+    /// `mt done` closes a recurring task without writing the next one.
     Recur(recur::RecurArgs),
-    /// Write typed `links:` edges: one at a time, or a whole adjacency map.
+    /// Link tasks: one link at a time, or many from a file.
     ///
-    /// `mt link <task> <kind> <target>...` upserts one edge per target;
-    /// `mt link --apply <file>` (`-` for stdin) reads a YAML/JSON mapping of
-    /// stem to kind to targets and merges every entry. Merging dedupes on
-    /// (kind, target), so re-running either form writes nothing the second
-    /// time; `--replace` makes the map the complete edge set instead.
-    /// `--dry-run` prints the plan without writing. A per-entry failure is
-    /// reported and the rest still land.
+    /// `mt link <task> <kind> <target>...` adds a link to each target, and
+    /// `mt link --apply <file>` adds every link a YAML or JSON file lists.
+    /// Running either twice adds nothing the second time.
     Link(link_cmd::LinkArgs),
     /// Dump the command tree as JSON for the docs generator (hidden;
     /// reflects `Cli::command()`, so the rendered CLI reference cannot drift).

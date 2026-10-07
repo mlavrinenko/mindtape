@@ -24,10 +24,8 @@ use crate::util;
 /// Arguments for `ls`.
 #[derive(Debug, clap::Args)]
 pub struct LsArgs {
-    /// Filter expression. Omitted applies the project's default view (`[ls]`
-    /// `default-view`, else `[views.default]`, else match-all); an empty string
-    /// (`''`) lists everything; a bare `@view` applies that view's filter, sort,
-    /// and columns.
+    /// Which tasks to list: a filter expression, or `@view` for a saved view.
+    /// Without it, you get your project's default listing. `''` lists every task.
     pub filter: Option<String>,
 
     #[command(flatten)]
@@ -46,37 +44,33 @@ pub struct LsFlags {
     #[arg(long, value_enum, default_value_t)]
     pub format: OutputFormat,
 
-    /// Shorthand for `--format json`.
+    /// Same as `--format json`.
     #[arg(long)]
     pub json: bool,
 
-    /// Limit output to N tasks. Applied after the filter and the sort, so it
-    /// composes with `--sort` and a named view; a table says what it cut,
-    /// `--json` reports it in the envelope, and the record formats (`csv`,
-    /// `path`, `path0`) stay records only.
+    /// Show at most N tasks, after filtering and sorting. A table says how many
+    /// it left out.
     #[arg(short = 'n', long)]
     pub limit: Option<usize>,
 
-    /// Drop N rows after the sort, before `-n` — page two of a `-n 20`
-    /// listing is `--skip 20`. A truncated table's footer and `--json`'s
-    /// `truncated.next_skip` already name the `--skip` that continues from
-    /// this run, advanced past what it showed; pass that value rather than
-    /// adding to this one by hand.
+    /// Skip the first N rows after sorting. For page two of `-n 20`, use
+    /// `--skip 20`. When the table is cut off, its footer shows the `--skip`
+    /// for the next page.
     #[arg(long)]
     pub skip: Option<usize>,
 
-    /// Sort spec(s), e.g. `--sort due:asc --sort priority:desc`. A `@view` spec
-    /// splices that view's sort chain.
+    /// Sort by a field, such as `--sort due:asc`. Repeat it to break ties, or
+    /// pass `@view` to sort as that view does.
     #[arg(long)]
     pub sort: Vec<String>,
 
-    /// Columns to show: a comma list of column names, or `@view` for a view's
-    /// column set. Overrides `[ls] columns-order` for this run.
+    /// The columns to show, as a comma-separated list, or `@view` for a view's
+    /// columns.
     #[arg(long, value_name = "COLS")]
     pub columns: Option<String>,
 
-    /// Hold the terminal in a key loop: type a `slug#` hash to highlight a task,
-    /// Enter opens it in the editor (`go`). Table-only; requires a TTY.
+    /// Pick a task from the table: type its hash to highlight it, and press
+    /// Enter to open it in your editor. Needs a terminal.
     #[arg(short = 'i', long, conflicts_with = "json")]
     pub interactive: bool,
 }

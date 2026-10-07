@@ -42,14 +42,13 @@ const PRELUDE: &str = include_str!("../../../../../lib/prelude.typ");
 /// makes it read like four unrelated toggles.
 #[derive(Debug, clap::Args)]
 pub struct SchemaArgs {
-    /// Value for the top `#:schema` directive: a URL, a path relative to the
-    /// config file, or `local` for a `file://` URL to the schema `mt install`
-    /// writes under the XDG config dir. Defaults to the published URL, which is
-    /// the only value that survives someone else cloning the repo.
+    /// Where the config's `#:schema` line points: a URL, a path relative to the
+    /// config, or `local` for the copy `mt install` writes. Defaults to the
+    /// published URL, which works for anyone who clones the repo.
     #[arg(long, value_name = "URL|PATH|local")]
     pub schema: Option<String>,
 
-    /// Omit the `#:schema` comment directive from the scaffold.
+    /// Leave out the `#:schema` line.
     #[arg(long)]
     pub no_schema: bool,
 }
@@ -58,12 +57,12 @@ pub struct SchemaArgs {
 #[derive(Debug, clap::Args)]
 #[allow(clippy::struct_excessive_bools)] // independent, orthogonal switches
 pub struct InitArgs {
-    /// Starter shape to write: a built-in name, a user preset under
-    /// `mindtape/presets` in the config directory, or a path to a config or preset directory.
+    /// The preset to start from: a built-in name, one you saved with
+    /// `mt preset save`, or a path to a config file or preset directory.
     #[arg(long, short = 'p', value_name = "NAME|PATH")]
     pub preset: Option<String>,
 
-    /// Keep the preset's explanatory comments in the written config.
+    /// Keep the preset's explanatory comments in the config.
     #[arg(long)]
     pub annotate: bool,
 
@@ -75,36 +74,36 @@ pub struct InitArgs {
     #[arg(long)]
     pub force: bool,
 
-    /// Never prompt: fall through to the default preset (or compose from the
-    /// axis flags below) without asking anything.
+    /// Don't ask anything. mt writes the default preset, or builds the config
+    /// from the answers you pass as flags.
     #[arg(long)]
     pub no_input: bool,
 
-    /// Workflow axis: pre-answer the status-legend question (suppresses it).
+    /// Answer the workflow question up front: which statuses tasks go through.
     #[arg(long, value_enum, conflicts_with = "preset")]
     pub workflow: Option<Workflow>,
 
-    /// Priority axis: pre-answer the ranking question (suppresses it).
+    /// Answer the priority question up front: how tasks are ranked.
     #[arg(long, value_enum, conflicts_with = "preset")]
     pub priority: Option<Priority>,
 
-    /// Organisation axis: pre-answer the folder-derived-tags question.
+    /// Answer the folders question up front: whether folders become tags.
     #[arg(long, value_enum, conflicts_with = "preset")]
     pub organisation: Option<Organisation>,
 
-    /// Estimate axis: pre-answer the units question (suppresses it).
+    /// Answer the estimate question up front: which units an estimate may use.
     #[arg(long, value_enum, conflicts_with = "preset")]
     pub estimate: Option<Estimate>,
 
-    /// Required-fields axis: pre-answer the required-fields question.
+    /// Answer the required-fields question up front: what every open task must have.
     #[arg(long, value_enum, conflicts_with = "preset")]
     pub required: Option<Required>,
 
-    /// Body-headers axis: pre-answer the required-sections question.
+    /// Answer the sections question up front: which sections a task body must have.
     #[arg(long, value_enum, conflicts_with = "preset")]
     pub headers: Option<Headers>,
 
-    /// Recurrence axis: pre-answer the recurrence-syntax question.
+    /// Answer the recurrence question up front: how you write repeating tasks.
     #[arg(long, value_enum, conflicts_with = "preset")]
     pub recurrence: Option<Recurrence>,
 

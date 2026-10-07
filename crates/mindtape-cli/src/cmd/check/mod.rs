@@ -24,21 +24,16 @@ use crate::util;
 /// Arguments for `mt check`.
 #[derive(Args, Default)]
 pub struct CheckArgs {
-    /// Suppress the `ok: N task(s) valid` summary on success; violations,
-    /// warnings, and the exit code are unaffected.
+    /// Don't print the `ok` line when everything passes. Errors and warnings
+    /// still print.
     #[arg(short = 'q', long)]
     pub quiet: bool,
-    /// Check a commit message file against `[[commits.rules]]` instead of
-    /// checking tasks: its task trailers must name live tasks by stem, and
-    /// the index must pass every rule. Made for a `commit-msg` hook:
-    /// `mt check --commit-msg "$1"`.
+    /// Check a commit message and the staged changes against your commit rules,
+    /// instead of checking tasks. For a `commit-msg` hook: `mt check --commit-msg "$1"`.
     #[arg(long, value_name = "FILE", conflicts_with = "commits")]
     pub commit_msg: Option<std::path::PathBuf>,
-    /// Check every commit of a git range against `[[commits.rules]]` instead
-    /// of checking tasks, each against its first parent: its task trailers
-    /// must name tasks it holds, and it must pass every rule. A rule reading
-    /// the working tree is skipped and reported. Made for CI:
-    /// `mt check --commits origin/main..HEAD`.
+    /// Check each commit in a git range against your commit rules, instead of
+    /// checking tasks. For CI: `mt check --commits origin/main..HEAD`.
     #[arg(long, value_name = "RANGE")]
     pub commits: Option<String>,
 }

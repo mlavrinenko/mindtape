@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 7),
+  status: done(
+    2026,
+    10,
+    7,
+  )[every command, flag and value says what it does from the user's side],
   links: depends-on("give-the-docs-a-conversational-voice.typ"),
 )
 

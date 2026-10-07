@@ -52,30 +52,27 @@ use crate::util::{self, Project};
 /// Arguments for `mt flip`.
 #[derive(Args)]
 pub struct FlipArgs {
-    /// Status to stamp: a configured legend value. Omit only with `--list`.
+    /// The new status, one of those your project defines.
     #[arg(required_unless_present = "list")]
     pub status: Option<String>,
 
-    #[arg(help = crate::cli::task_ref::HELP)]
+    /// The tasks to change, each by stem, hash or path.
     pub tasks: Vec<String>,
 
-    /// Status note (the trailing `[note]` block). Without it any existing note is
-    /// cleared, since the note describes the status being left.
+    /// A note on the new status. Without it, mt clears the old status's note.
     #[arg(short = 'm', long = "note", value_name = "NOTE")]
     pub note: Option<String>,
 
-    /// List the per-status shortcut verbs (the configured legend) and exit.
+    /// List your project's statuses, each usable as a command, and exit.
     #[arg(long)]
     pub list: bool,
 
-    /// Bypass the declared status-transition graph, and waive a failing
-    /// `[[on.flip]]` gate (corrections escape hatch). A waived gate is recorded
-    /// in the status note.
+    /// Allow a status change your project's rules forbid, and one a failing
+    /// `[[on.flip]]` check would block. The status note records a skipped check.
     #[arg(long)]
     pub force: bool,
 
-    /// Suppress `[[on.flip]]` `show` / `list` output, so a scripted flip stays
-    /// clean. Gates still run; a failing one still prints its output.
+    /// Don't print what `[[on.flip]]` hooks show. A failing check still prints.
     #[arg(short = 'q', long)]
     pub quiet: bool,
 }
@@ -133,7 +130,7 @@ pub(crate) fn shortcut_command(verb: &str) -> clap::Command {
         .name(verb.to_owned())
         .bin_name(format!("mt {verb}"))
         .about(format!(
-            "Stamp status `{verb}` onto tasks, dated today; same as `mt flip {verb} <task>...`"
+            "Set tasks' status to `{verb}`. Same as `mt flip {verb} <task>...`"
         ))
         .mut_arg("status", |arg| arg.hide(true).index(1))
         .mut_arg("tasks", |arg| arg.index(2))

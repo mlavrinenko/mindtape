@@ -2,7 +2,7 @@
 //! concept has one name and one help text.
 
 /// The help every `<task>` argument carries.
-pub const HELP: &str = "Task: stem, stem hash, relative path, or absolute path";
+pub const HELP: &str = "The task: its stem, its hash, or the path to its file";
 
 /// A task named on the command line; [`crate::util::resolve_task`] reads it.
 #[derive(Debug, Clone, clap::Args)]

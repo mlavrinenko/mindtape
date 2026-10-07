@@ -76,7 +76,7 @@ macro_rules! axis {
         $( unavailable { $( $off:ident when $cond:expr => $why:literal ),+ $(,)? } )?
     ) => {
         #[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
-        pub enum $name { $( #[value(name = $slug)] $variant ),+ }
+        pub enum $name { $( #[value(name = $slug, help = $blurb)] $variant ),+ }
 
         impl Axis for $name {
             const TITLE: &'static str = $title;

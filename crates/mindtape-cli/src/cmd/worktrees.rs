@@ -19,7 +19,7 @@ use mindtape::{WorktreeEntry, WorktreeRegistry};
 /// Arguments for `mt worktrees`.
 #[derive(Debug, clap::Args)]
 pub struct WorktreesArgs {
-    /// Emit JSON instead of the plain listing.
+    /// Print JSON instead of a list.
     #[arg(long)]
     pub json: bool,
 }

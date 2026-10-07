@@ -25,21 +25,21 @@ pub struct PresetArgs {
 /// `mt preset` sub-actions.
 #[derive(Debug, clap::Subcommand)]
 enum PresetAction {
-    /// Save the current project's `.mindtape/config.toml` and templates as a
-    /// named user preset.
+    /// Save this project's config and templates as a preset you can pass to
+    /// `mt init -p`.
     Save(SaveArgs),
-    /// List built-in and user presets together, marking shadows and the
-    /// default.
+    /// List the built-in presets and yours, marking the default and any of yours
+    /// that hides a built-in one.
     Ls,
 }
 
 /// Arguments for `mt preset save`.
 #[derive(Debug, clap::Args)]
 pub struct SaveArgs {
-    /// Name to save the preset under.
+    /// The name to save the preset under.
     pub name: String,
 
-    /// Overwrite an existing user preset with this name.
+    /// Overwrite your preset if one has this name.
     #[arg(long)]
     pub force: bool,
 }

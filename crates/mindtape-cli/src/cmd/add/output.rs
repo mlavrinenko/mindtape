@@ -16,15 +16,15 @@ use serde_json::json;
 /// `--format` on `mt add`.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
 pub enum Format {
-    /// `wrote <path>` / `skipped, ...` / `suffixed, ...` prose (the default).
+    /// A sentence such as `wrote <path>`.
     #[default]
     Text,
-    /// The resulting path, nothing else.
+    /// Just the task's path.
     Path,
-    /// The same path, NUL-terminated instead of newline-terminated.
+    /// The path, ending in a NUL byte instead of a newline.
     #[value(name = "path0")]
     Path0,
-    /// `{"outcome": "wrote"|"skipped"|"suffixed", "path": "..."}`.
+    /// A JSON object with `outcome` (`wrote`, `skipped` or `suffixed`) and `path`.
     Json,
 }
 

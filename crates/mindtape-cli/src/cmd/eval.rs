@@ -16,7 +16,7 @@ pub struct EvalArgs {
     #[command(flatten)]
     pub task: crate::cli::task_ref::TaskRef,
 
-    /// Emit JSON instead of a table.
+    /// Print JSON instead of a table.
     #[arg(long)]
     pub json: bool,
 }

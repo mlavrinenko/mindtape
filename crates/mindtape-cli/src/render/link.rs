@@ -20,14 +20,12 @@ use std::sync::OnceLock;
 /// The user's hyperlink preference, mirroring `--hyperlinks <auto|always|never>`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, clap::ValueEnum)]
 pub enum HyperlinkChoice {
-    /// Enable hyperlinks only when stdout is a TTY and `TERM` is not `dumb` —
-    /// a heuristic guess, since no capability query exists for OSC 8 support.
+    /// Links when the output is a terminal and `TERM` isn't `dumb`. Some
+    /// terminals show the link codes as garbage.
     Auto,
-    /// Always emit OSC 8 hyperlink sequences.
+    /// Always print links.
     Always,
-    /// Never emit hyperlink sequences. The default: an unsupported terminal
-    /// can render the escape payload as visible garbage, so opting in stays
-    /// explicit rather than automatic.
+    /// Never print links.
     #[default]
     Never,
 }

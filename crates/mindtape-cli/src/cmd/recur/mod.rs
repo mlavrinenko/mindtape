@@ -60,21 +60,20 @@ pub struct RecurArgs {
     #[command(flatten)]
     pub task: crate::cli::task_ref::TaskRef,
 
-    /// Preview the spawn/mutate/advance/skip; write nothing.
+    /// Show what would be written without writing it.
     #[arg(long = "dry-run")]
     pub dry_run: bool,
 
-    /// Pre-materialize N future instances (spawn only), without closing the
-    /// current instance.
+    /// Write the next N occurrences as new tasks at once. Works only for a
+    /// task that spawns a new file each time.
     #[arg(long, value_name = "N", conflicts_with = "skip")]
     pub advance: Option<u32>,
 
-    /// Advance the anchor and `count`, creating/refreshing nothing.
+    /// Move the schedule past the next occurrence without writing it.
     #[arg(long, conflicts_with = "advance")]
     pub skip: bool,
 
-    /// Spawn another successor even if one already exists (bypasses the
-    /// double-spawn guard).
+    /// Write the next occurrence even if one already exists.
     #[arg(long)]
     pub force: bool,
 }

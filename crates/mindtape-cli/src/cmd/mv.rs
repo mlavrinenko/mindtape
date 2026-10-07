@@ -36,11 +36,10 @@ use crate::{git, util};
 pub struct MvArgs {
     #[command(flatten)]
     pub task: crate::cli::task_ref::TaskRef,
-    /// The task's new file stem, which is its new identity. A bare stem: a
-    /// trailing `.typ` is accepted and dropped, a path separator is refused.
+    /// The new stem: a file name without `.typ` and without a folder.
     pub new_stem: String,
-    /// Print the plan — the move, and every file whose edges change — without
-    /// moving or rewriting anything.
+    /// Show the rename and every file whose links would change, without
+    /// changing anything.
     #[arg(long)]
     pub dry_run: bool,
 }

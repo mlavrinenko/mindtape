@@ -42,25 +42,22 @@ pub struct LinkArgs {
     #[arg(help = crate::cli::task_ref::HELP, required_unless_present = "apply", conflicts_with = "apply")]
     pub task: Option<String>,
 
-    /// Edge kind: a built-in (`depends-on`, `parent`, `recurred-from`,
-    /// `supersedes`, `duplicates`, `related`) or a configured
-    /// `[[tasks.links.kinds]]` name.
+    /// The kind of link: `depends-on`, `parent`, `recurred-from`, `supersedes`,
+    /// `duplicates`, `related`, or one your project adds.
     #[arg(required_unless_present = "apply")]
     pub kind: Option<String>,
 
-    /// Target tasks, by stem (`other`), stem with extension (`other.typ`), or
-    /// a path relative to the linking task. A stem names a task in any folder:
-    /// a sibling wins, else the one task carrying it is written as a relative
-    /// path, and a stem several folders share is refused naming each.
+    /// The tasks to link to, each by stem or by a path relative to the task. A
+    /// stem that tasks in two folders share is refused, so give a path then.
     #[arg(required_unless_present = "apply")]
     pub targets: Vec<String>,
 
-    /// Edge note (the trailing `[note]` block). Required for a kind whose
-    /// `note` rule is `required` — `related`, out of the box.
-    ///
-    /// Positional form only: a map carries a note per target (`note:` beside
-    /// `target:`), so one flag could not say which of them it meant. Refused
-    /// rather than ignored, the way an unknown `--set` key is.
+    /// A note on the link. A `related` link needs one, unless your project
+    /// changes that. With `--apply`, put notes in the file instead.
+    //
+    // Refused with `--apply` rather than ignored, the way an unknown `--set`
+    // key is: a map carries a note per target (`note:` beside `target:`), so
+    // one flag could not say which of them it meant.
     #[arg(
         short = 'm',
         long = "note",
@@ -69,25 +66,25 @@ pub struct LinkArgs {
     )]
     pub note: Option<String>,
 
-    /// Read an adjacency map instead of a positional edge, so the task is
-    /// omitted: a YAML or JSON mapping of stem to kind
-    /// to targets, or `-` for stdin.
+    /// Read many links from a YAML or JSON file, or `-` for stdin, instead of
+    /// naming one task. The file maps each task's stem to kinds, and each kind
+    /// to targets.
     #[arg(long, value_name = "FILE")]
     pub apply: Option<String>,
 
-    /// Make the map the complete edge set for each stem it names, dropping
-    /// every edge it does not. Merge (the default) only ever adds.
-    ///
-    /// `--apply` only: the positional form upserts one edge, so a `--replace`
-    /// there would silently clear every other edge on the task — a different
-    /// command wearing the same name. Both bounds are declared because
-    /// `requires` alone does not fire once `task` is present (its own
-    /// `conflicts_with = "apply"` discharges the requirement), so the conflict
-    /// is what actually rejects `mt link a depends-on b --replace`.
+    /// With `--apply`, make the file the full set of links for each task it
+    /// names, removing links it leaves out. Without `--replace`, mt only adds.
+    //
+    // `--apply` only: the positional form upserts one edge, so a `--replace`
+    // there would silently clear every other edge on the task, a different
+    // command wearing the same name. Both bounds are declared because
+    // `requires` alone does not fire once `task` is present (its own
+    // `conflicts_with = "apply"` discharges the requirement), so the conflict
+    // is what actually rejects `mt link a depends-on b --replace`.
     #[arg(long, requires = "apply", conflicts_with = "task")]
     pub replace: bool,
 
-    /// Print the plan without writing anything.
+    /// Show what would change without writing anything.
     #[arg(long)]
     pub dry_run: bool,
 }

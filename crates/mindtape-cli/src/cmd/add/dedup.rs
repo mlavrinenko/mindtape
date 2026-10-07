@@ -16,12 +16,11 @@ use mindtape::{Config, model::naming};
 /// there.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
 pub enum DedupArg {
-    /// Bail before writing (today's behaviour, the default).
+    /// Stop without writing anything.
     Fail,
-    /// Exit 0, write nothing, report the existing path.
+    /// Write nothing, print the existing task's path, and exit 0.
     Skip,
-    /// Reuse `naming::disambiguate` to append `-2`, `-3`, … until a free stem
-    /// turns up.
+    /// Add `-2`, `-3` and so on to the name until it's free.
     AddSuffix,
 }
 

@@ -40,37 +40,35 @@ use write::{StagedTask, TaskOutcome};
 /// Arguments for `mt import`.
 #[derive(Debug, Args)]
 pub struct ImportArgs {
-    /// Canonical task-JSON source: a file path, or `-` (default) for stdin.
+    /// The JSON file to import, or `-` for stdin. `mt ls --json` writes this format.
     #[arg(value_name = "FILE", default_value = "-")]
     pub input: String,
 
-    /// Destination directory for the whole batch; `.` is the first configured
-    /// root. Without `--into` and `--to`, a record lands in the folder its
-    /// `file` names when that lies under a configured root, else in the first
-    /// root.
+    /// The directory to write every task in. `.` means the first root in your
+    /// config. Without it, each task goes where its `file` field says, or to
+    /// the first root.
     #[arg(long, value_name = "DIR")]
     pub into: Option<String>,
 
-    /// Subfolder under the destination root to nest imported tasks into
-    /// (folder-derived tags). Relative to `--into`; it overrides each record's
-    /// `file`.
+    /// A subfolder of `--into` to put every task in, whatever its `file` field
+    /// says.
     #[arg(long = "to", value_name = "SUBDIR")]
     pub to: Option<String>,
 
-    /// Report and preview only; write nothing to the destination.
+    /// Show what would be imported without writing anything.
     #[arg(long)]
     pub dry_run: bool,
 
-    /// Default status name (dated today) stamped on a record missing one.
+    /// The status, dated today, for a task that has none.
     #[arg(long, value_name = "NAME")]
     pub status: Option<String>,
 
-    /// Status rename `OLD=NEW` (repeatable), applied before legend validation.
+    /// Rename a status on the way in, as `OLD=NEW`. Repeat it for each status.
     #[arg(long = "map", value_name = "OLD=NEW")]
     pub map: Vec<String>,
 
-    /// Drop a tag outside `[tasks.tags] allowed` instead of keeping it and
-    /// reporting a violation.
+    /// Drop tags your project doesn't allow, instead of keeping them and
+    /// reporting an error.
     #[arg(long)]
     pub drop_unmapped: bool,
 }

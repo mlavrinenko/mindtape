@@ -41,9 +41,9 @@ use crate::util;
 pub struct SetArgs {
     #[command(flatten)]
     pub task: crate::cli::task_ref::TaskRef,
-    /// `<field>=<value>`, `<field>+=<value>` to append to a list field, or
-    /// `<field>@<path>` to read the value out of a file — `mt add --set`'s
-    /// own token grammar. Run `mt set --help` for the writable fields.
+    /// `<field>=<value>`, `<field>+=<value>` to add to a list, or
+    /// `<field>@<path>` to read the value from a file. `mt set --help` lists
+    /// the fields you can set.
     pub assignment: String,
 }
 

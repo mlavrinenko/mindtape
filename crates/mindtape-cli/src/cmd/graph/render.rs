@@ -42,10 +42,10 @@ fn distinct_targets<'a>(external: &[ExternalTarget<'a>]) -> Vec<&'a str> {
 /// Output syntax for `mt graph`.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
 pub enum GraphFormat {
-    /// Graphviz DOT (the default).
+    /// Graphviz DOT.
     #[default]
     Dot,
-    /// Mermaid flowchart.
+    /// A Mermaid flowchart.
     Mermaid,
 }
 

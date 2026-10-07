@@ -34,7 +34,7 @@ pub struct InstallArgs {
     #[arg(long)]
     pub no_lib: bool,
 
-    /// Skip installing the XDG global `defaults.toml`.
+    /// Skip writing your user-wide `defaults.toml`.
     #[arg(long)]
     pub no_defaults: bool,
 
@@ -46,7 +46,8 @@ pub struct InstallArgs {
     #[arg(long)]
     pub no_completions: bool,
 
-    /// Overwrite an existing XDG `defaults.toml` / `config.schema.json`.
+    /// Overwrite your `defaults.toml`, the JSON Schema and the completion hooks
+    /// if they exist.
     #[arg(long)]
     pub force: bool,
 }

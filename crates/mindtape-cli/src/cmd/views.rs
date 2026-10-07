@@ -10,10 +10,10 @@ use crate::util;
 /// Arguments for `views`.
 #[derive(Debug, clap::Args)]
 pub struct ViewsArgs {
-    /// Show one view's resolved definition instead of the list.
+    /// Show this view's full definition instead of the list.
     pub name: Option<String>,
 
-    /// Emit JSON.
+    /// Print JSON.
     #[arg(long)]
     pub json: bool,
 }
