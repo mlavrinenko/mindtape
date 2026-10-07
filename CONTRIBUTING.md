@@ -58,7 +58,7 @@ In a delegated worktree, you can skip the hook’s freshness check with `MINDTAP
 
 ## Worktrees
 
-To work on something in parallel, run `just fork <slug> [base]`. You get a worktree at `../mindtape-<slug>` on a new branch from `base` (`HEAD` by default). Commit first: `git worktree add` only copies commits, so `fork` refuses a dirty tree. For the same reason, fork before you flip a task, and run `mt wip <stem>` inside the worktree.
+To work on something in parallel, run `just fork <slug> [base]`. You get a worktree at `../mindtape-<slug>` on a new branch from `base` (`HEAD` by default). Commit first: `git worktree add` only copies commits, so `fork` refuses a dirty tree. For the same reason, fork before you flip a task, and run `mt wip <stem>` inside the worktree. Don’t use `git stash` in a worktree: all worktrees share one stash list, so a `pop` can apply another fork’s work. Make a WIP commit instead.
 
 When the branch is ready, run `just integrate <branch>` from this checkout. It rebuilds the worktree’s `mt` from the branch tip, so a branch rebased over a config change is judged by its own config. It refuses the branch if it names a still-`wip` task in `Refs:`, or if any gate hasn’t passed against the worktree’s current files. Then it does four things:
 

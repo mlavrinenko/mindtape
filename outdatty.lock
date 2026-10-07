@@ -117,7 +117,7 @@ groups:
     dependents:
       CHANGELOG.md: 088dee2f59bbceabe3d927a5eefcdc0491c965641f6e0e534c75a5c5cf4aa8e2
       docs/src/agents.typ: 6078c7a3230b6f04a6ce86cdcdc4f989f45895d88ae11a68e93a82fd4fe38e22
-      docs/src/contributing.typ: 429d92419717911669e0fa1fdca9809870dbf5d06f4087550562254d07f93dde
+      docs/src/contributing.typ: 5ec254ae5960681d648c683ccd974b85823dee45dd2d9eab94bdd8576b93426c
       docs/src/contributing/command-semantics.typ: bb34aceec2040207d20e78a519a933576b3df52f941b6496b8eaa1f4c1e84ebc
       docs/src/readme.typ: 84c0bda43d327ef711df98c5c9bf9b96ac333e80906973184c045f432c89be06
       docs/src/skill.typ: 3f11892a794ac169924ffc611f4b03632bedde8ba651c557638e1c8d6bf73969
@@ -142,7 +142,7 @@ groups:
       flake.nix: 9da2e53a4c30d4f6d3beffcf732eebebb2bf6476cd5782b9958c8aee01b93248
     dependents:
       docs/src/agents.typ: 6078c7a3230b6f04a6ce86cdcdc4f989f45895d88ae11a68e93a82fd4fe38e22
-      docs/src/contributing.typ: 429d92419717911669e0fa1fdca9809870dbf5d06f4087550562254d07f93dde
+      docs/src/contributing.typ: 5ec254ae5960681d648c683ccd974b85823dee45dd2d9eab94bdd8576b93426c
       docs/src/contributing/coverage-crap.typ: a9d1342bcc89f7e565afbff8e97b512a83a4c2415297eadb81ffc00f594805a6
       docs/src/contributing/crap-baseline.typ: 766c86263be61830fc97f1b8f57bcf8f8dc91bd37088d3a9bf0b4e960ec4a51f
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
@@ -206,14 +206,14 @@ groups:
       .gitattributes: 602150ae6b4466024d4ec8b0fa0fa7cd020d79c6393a3a10e1bb01370ad4d03d
       .just/scripts/outdatty-lock-merge.sh: 9d498b3b4f7b60b692c836c3890f39b599c5d228e75f66d5f7ed7811348bc726
     dependents:
-      docs/src/contributing.typ: 429d92419717911669e0fa1fdca9809870dbf5d06f4087550562254d07f93dde
+      docs/src/contributing.typ: 5ec254ae5960681d648c683ccd974b85823dee45dd2d9eab94bdd8576b93426c
   mutation-scripts-docs:
     source:
       .just/scripts/_mutants-env.sh: 1fb771a2127a42fbb4dd3670a26615c905c6647eff22cdce89da347d2efac011
       .just/scripts/mutants-diff.sh: ab644a7194ae2d5e4d4c59a2c632b0ca2a75c9ce7860b848a90be8b5e9e69f11
       .just/scripts/mutants.sh: 73ae53fc00fd318dc72598fc218cdaa11dea0780768dc238db64ed6267bf365d
     dependents:
-      docs/src/contributing.typ: 429d92419717911669e0fa1fdca9809870dbf5d06f4087550562254d07f93dde
+      docs/src/contributing.typ: 5ec254ae5960681d648c683ccd974b85823dee45dd2d9eab94bdd8576b93426c
       docs/src/contributing/mutation-testing.typ: d1e888ef6d4d5ae63d66530cea776797625b281a3ddd5f90fcf73e96c41a4510
       docs/src/contributing/signal-sweep.typ: 9699e4af7dc29f71d8d29e7d7904f6cf97d3c0fa62679ad23b10840cb65d2ec1
   prelude-docs:
@@ -348,4 +348,4 @@ groups:
       .just/scripts/integrate.sh: 12015f317c64e0e7af0c38a12618c1b587c4a5db7697bafdf4b053a4d2b27c59
       .just/scripts/release.sh: f099d743923b6ab729e00d4ba93c39497cbb6cfdff7e3805341e74b756b0fbcd
     dependents:
-      docs/src/contributing.typ: 429d92419717911669e0fa1fdca9809870dbf5d06f4087550562254d07f93dde
+      docs/src/contributing.typ: 5ec254ae5960681d648c683ccd974b85823dee45dd2d9eab94bdd8576b93426c
