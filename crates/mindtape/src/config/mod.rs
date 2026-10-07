@@ -27,6 +27,7 @@
 //! - `links_validate.rs`: per-kind link-target validators.
 //! - `ls.rs`: `[ls]` rendering defaults.
 //! - `ls_columns.rs`: `[ls.columns.<name>]` and the column-name vocabulary.
+//! - `locate.rs`: the file line of a dotted config key.
 //! - `merge.rs`: the shared TOML deep merge.
 //! - `name_cycle.rs`: cycle detection over a name-reference graph.
 //! - `packs.rs`: `extends` and `disable`, resolving rule packs into a layer.
@@ -52,6 +53,7 @@ pub(crate) mod go;
 pub mod hooks;
 pub(crate) mod layers;
 pub(crate) mod links_validate;
+mod locate;
 pub(crate) mod ls;
 pub(crate) mod ls_columns;
 pub(crate) mod merge;
@@ -87,6 +89,8 @@ pub use crate::config::dicts::{
 };
 pub use crate::config::format::FormatConfig;
 pub use crate::config::go::GoConfig;
+pub use crate::config::locate::ConfigPlace;
+pub(crate) use crate::config::locate::quote;
 pub use crate::config::ls::{
     Facet, HyperlinkChoice, ImportView, LS_COLUMNS, LsConfig, LsRule, ReadyConfig,
     parse_import_view, validate_ls_rules,
@@ -304,8 +308,24 @@ pub enum ConfigError {
         error: toml::de::Error,
     },
     /// The config parsed but failed a semantic check (e.g. band coverage).
-    #[error("invalid config: {0}")]
-    Invalid(String),
+    #[error("invalid config: {message}")]
+    Invalid {
+        /// The problems, one per line, each led by the dotted key it is about.
+        message: String,
+        /// Where the first problem's key sits, when a config file declares it.
+        place: Option<ConfigPlace>,
+    },
+}
+
+impl ConfigError {
+    /// A semantic failure not yet tied to a file.
+    #[must_use]
+    pub fn invalid(message: impl Into<String>) -> Self {
+        Self::Invalid {
+            message: message.into(),
+            place: None,
+        }
+    }
 }
 
 impl From<toml::de::Error> for ConfigError {
@@ -324,7 +344,7 @@ impl Config {
     }
 
     /// Run semantic checks that go beyond TOML shape (numeric scale and
-    /// classification coverage). Returns one joined message per problem.
+    /// classification coverage). Returns the problems joined one per line.
     ///
     /// # Errors
     /// Returns the collected problems when the numeric fields are inconsistent.
@@ -370,7 +390,7 @@ impl Config {
         if problems.is_empty() {
             Ok(())
         } else {
-            Err(problems.join("; "))
+            Err(problems.join("\n"))
         }
     }
 

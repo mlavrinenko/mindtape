@@ -187,7 +187,7 @@ fn the_file_sort_field_fails_loudly_as_unknown() {
         .unwrap();
     assert!(!out.status.success(), "{out:?}");
     let stderr = String::from_utf8_lossy(&out.stderr);
-    assert!(stderr.contains("unknown sort field: file"), "{stderr}");
+    assert!(stderr.contains("unknown sort field: 'file'"), "{stderr}");
 }
 
 #[test]

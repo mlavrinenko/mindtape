@@ -303,7 +303,7 @@ fn apply_disable(
             .iter_mut()
             .fold(false, |found, acc| acc.remove_named(name) || found);
         if !removed {
-            return Err(ConfigError::Invalid(format!(
+            return Err(ConfigError::invalid(format!(
                 "disable: no rule named `{name}`"
             )));
         }
@@ -336,7 +336,7 @@ fn resolve_pack(
     if is_path_entry(entry) {
         let path = base_dir.join(entry);
         let text = std::fs::read_to_string(&path).map_err(|_| {
-            ConfigError::Invalid(format!("extends: pack not found: {}", path.display()))
+            ConfigError::invalid(format!("extends: pack not found: {}", path.display()))
         })?;
         let table: toml::Table = toml::from_str(&text).map_err(|error| ConfigError::ParseIn {
             origin: path.display().to_string(),
@@ -377,7 +377,7 @@ fn unknown_pack_error(entry: &str, registry: &[(&str, &str)]) -> ConfigError {
             .collect::<Vec<_>>()
             .join(", ")
     };
-    ConfigError::Invalid(format!(
+    ConfigError::invalid(format!(
         "extends: unknown pack `{entry}`; available packs: {available}"
     ))
 }
@@ -415,7 +415,7 @@ fn reject_unknown_keys(
 ) -> Result<(), ConfigError> {
     for key in table.keys() {
         if !allowed.contains(&key.as_str()) {
-            return Err(ConfigError::Invalid(format!(
+            return Err(ConfigError::invalid(format!(
                 "pack `{pack_label}` may not declare `{key}`"
             )));
         }

@@ -3,7 +3,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
-use mindtape::{StemHashes, Task, config_path, find_root, load_config, load_project};
+use mindtape::{StemHashes, Task, find_root, load_config, load_project};
 use typst_harvest::{HarvestWorld, harvest};
 
 use crate::render::RenderCtx;
@@ -159,8 +159,7 @@ pub(crate) fn build_world(file: &Path) -> Result<HarvestWorld> {
     // project at all falls back to the world's root, where the lookup finds no
     // config and no in-tree lib either.
     let root = find_root(world.root()).unwrap_or_else(|| world.root().to_path_buf());
-    let config =
-        load_config(&root).with_context(|| format!("load {}", config_path(&root).display()))?;
+    let config = load_config(&root)?;
     let mut world = world.with_package_root(mindtape::package_root());
     for (name, dir) in mindtape::package_overrides(&root, &config) {
         world = world.with_local_package(&name, dir);

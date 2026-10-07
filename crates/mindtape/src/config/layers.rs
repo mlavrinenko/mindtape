@@ -190,10 +190,10 @@ fn build_config(
         .try_into()
         .map_err(|merged| locate_in_project_layer(merged, layers))?;
     config.dict_cache = crate::config::compile_dicts(&config.dicts, root)
-        .map_err(ConfigError::Invalid)?
+        .map_err(ConfigError::invalid)?
         .into();
     crate::config::tasks::expand_dict_refs(&mut config.tasks, config.dict_cache.dicts())
-        .map_err(ConfigError::Invalid)?;
+        .map_err(ConfigError::invalid)?;
     // Stamped before `validate` reads it (transitively, through a
     // `[[tasks.rules]] check` entry's `CompiledCheck`) and before the
     // root-aware `validate_load` below, which takes `root` directly rather
@@ -202,7 +202,7 @@ fn build_config(
     config.rules_root.set(root);
     config.rule_sites = crate::rules::sites::RuleSites::from_origins(&rule_origins, root);
     config.git.set_root(root);
-    config.validate().map_err(ConfigError::Invalid)?;
+    config.validate().map_err(ConfigError::invalid)?;
     // Root-aware, so it cannot run inside `Config::validate` itself (which
     // stays callable rootless, e.g. from `mt init`'s wizard and from the many
     // unit tests that build a `Config` from a bare TOML string): a
@@ -214,7 +214,7 @@ fn build_config(
     // contributed is validated here too, against the same `root` as any
     // other — `rules_root` carries no provenance, only the one project root
     // `build_config` was ever called with.
-    crate::rules::typst::validate_load(&config, root).map_err(ConfigError::Invalid)?;
+    crate::rules::typst::validate_load(&config, root).map_err(ConfigError::invalid)?;
     Ok((config, rule_origins))
 }
 
@@ -242,7 +242,32 @@ fn locate_in_project_layer(merged: toml::de::Error, layers: &[Layer]) -> ConfigE
 /// As [`merge_doc`].
 pub fn merged_config_table(root: &Path) -> Result<toml::Table, ConfigError> {
     let layers = discover_layers(root, dirs::home_dir().as_deref());
-    merge_doc(&layers, root).map(|(table, _rule_origins)| table)
+    merge_doc(&layers, root)
+        .map(|(table, _rule_origins)| table)
+        .map_err(|err| name_file(err, &layers, root))
+}
+
+/// `err` with the file it is about: a TOML error of the project's own config
+/// names that file, and a semantic failure gets the line of its key.
+fn name_file(err: ConfigError, layers: &[Layer], root: &Path) -> ConfigError {
+    match err {
+        ConfigError::Parse(error) if error.span().is_some() => ConfigError::ParseIn {
+            origin: config_path(root)
+                .strip_prefix(root)
+                .unwrap_or(&config_path(root))
+                .display()
+                .to_string(),
+            error,
+        },
+        ConfigError::Invalid {
+            message,
+            place: None,
+        } => {
+            let place = crate::config::locate::place_of(&message, layers, root);
+            ConfigError::Invalid { message, place }
+        }
+        other => other,
+    }
 }
 
 /// Assemble the full layered config for `root`: discover every layer, merge
@@ -282,7 +307,8 @@ pub fn load_config_layered_from(
 ) -> Result<(Config, Vec<LayerSource>, Vec<RuleOriginEntry>), ConfigError> {
     let layers = discover_layers_with_xdg(root, home, xdg_config_dir);
     let sources = layers.iter().map(|layer| layer.source.clone()).collect();
-    let (config, rule_origins) = build_config(&layers, root)?;
+    let (config, rule_origins) =
+        build_config(&layers, root).map_err(|err| name_file(err, &layers, root))?;
     Ok((config, sources, rule_origins))
 }
 

@@ -136,8 +136,7 @@ pub fn open() -> Result<Project> {
     if let Ok(cwd) = std::env::current_dir() {
         crate::render::file_path::init(&root, &cwd);
     }
-    let config =
-        load_config(&root).with_context(|| format!("load {}", config_path(&root).display()))?;
+    let config = load_config(&root)?;
     warn_config(&root, &config);
     crate::render::link::init(resolve_hyperlinks(hyperlinks_flag(), config.ls.hyperlinks));
     let outcome = load_project(&root, &config);

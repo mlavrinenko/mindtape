@@ -10,10 +10,9 @@
 
 use std::path::Path;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use mindtape::{
-    LayerSource, PackOrigin, RuleOrigin, config_path, config_schema_json, embedded_defaults,
-    load_config_layered,
+    LayerSource, PackOrigin, RuleOrigin, config_schema_json, embedded_defaults, load_config_layered,
 };
 
 use crate::util;
@@ -90,8 +89,7 @@ pub fn run(args: &ConfigArgs) -> Result<()> {
 /// Returns an error if any config layer fails to load or the table fails to
 /// serialize.
 pub(crate) fn render_effective(root: &Path, json: bool) -> Result<String> {
-    let table = mindtape::merged_config_table(root)
-        .with_context(|| format!("load {}", config_path(root).display()))?;
+    let table = mindtape::merged_config_table(root)?;
     if json {
         Ok(format!("{}\n", serde_json::to_string_pretty(&table)?))
     } else {
@@ -108,8 +106,7 @@ pub(crate) fn render_effective(root: &Path, json: bool) -> Result<String> {
 /// # Errors
 /// Returns an error if the layered config fails to load.
 pub(crate) fn render_origin(root: &Path) -> Result<String> {
-    let (_config, sources, rule_origins) = load_config_layered(root)
-        .with_context(|| format!("load {}", config_path(root).display()))?;
+    let (_config, sources, rule_origins) = load_config_layered(root)?;
     let mut out = String::new();
     for source in &sources {
         out.push_str(&describe_source(source));

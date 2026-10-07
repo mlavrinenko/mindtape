@@ -1271,6 +1271,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **A config error names its file and line.** `mt ls` over a config with
+  `[views.broken] sort = ["nofield"]` prints
+  `error: .mindtape/config.toml:5: views.broken.sort: unknown sort field:
+  'nofield'` where it printed `error: load /abs/path/.mindtape/config.toml:
+  invalid config: …`, the absolute path and no line. A TOML syntax error names
+  the file the same way, a near match to an unknown name is a `hint:` line,
+  a second problem is a `note:` line, and a value is single-quoted.
+  `ConfigError::Invalid` becomes a struct variant carrying the problems and a
+  `ConfigPlace`; `git could not be run` reads `can't run git`.
+
 - **An error is one `error:` line, and a wrong command line exits 2.** `mt`
   prints its errors itself, so Rust's `Error:` and `Caused by:` lines are
   gone: a cause chain joins into the one line, and every stderr line starts

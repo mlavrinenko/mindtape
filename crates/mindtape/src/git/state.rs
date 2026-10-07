@@ -338,7 +338,7 @@ pub(crate) fn git(root: &Path, args: &[&str]) -> Result<String, String> {
         .arg(root)
         .args(args)
         .output()
-        .map_err(|err| format!("git could not be run: {err}"))?;
+        .map_err(|err| format!("can't run git: {err}"))?;
     if output.status.success() {
         return Ok(String::from_utf8_lossy(&output.stdout).into_owned());
     }

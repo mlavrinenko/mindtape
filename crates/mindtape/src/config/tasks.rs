@@ -322,7 +322,7 @@ pub struct TagsConfig {
 ///
 /// # Errors
 /// One message per unknown dictionary name referenced, each carrying a
-/// nearest-match suggestion, joined with `; `.
+/// nearest-match suggestion, joined one per line.
 pub(crate) fn expand_dict_refs(tasks: &mut TasksConfig, dicts: &Dicts) -> Result<(), String> {
     let mut problems = Vec::new();
     if let Err(msg) = expand_list(&mut tasks.tags.allowed, dicts, "tasks.tags.allowed") {
@@ -337,7 +337,7 @@ pub(crate) fn expand_dict_refs(tasks: &mut TasksConfig, dicts: &Dicts) -> Result
     if problems.is_empty() {
         Ok(())
     } else {
-        Err(problems.join("; "))
+        Err(problems.join("\n"))
     }
 }
 
@@ -375,7 +375,7 @@ fn expand_list(list: &mut Vec<String>, dicts: &Dicts, label: &str) -> Result<(),
         *list = out;
         Ok(())
     } else {
-        Err(problems.join("; "))
+        Err(problems.join("\n"))
     }
 }
 

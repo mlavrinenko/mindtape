@@ -20,10 +20,10 @@ pub(crate) fn read_string_list(table: &toml::Table, key: &str) -> Result<Vec<Str
             .map(|item| {
                 item.as_str()
                     .map(str::to_owned)
-                    .ok_or_else(|| ConfigError::Invalid(format!("{key}: entries must be strings")))
+                    .ok_or_else(|| ConfigError::invalid(format!("{key}: entries must be strings")))
             })
             .collect(),
-        Some(_) => Err(ConfigError::Invalid(format!(
+        Some(_) => Err(ConfigError::invalid(format!(
             "{key}: must be an array of strings"
         ))),
     }
@@ -104,7 +104,7 @@ pub(crate) fn write_array(
             .or_insert_with(|| toml::Value::Table(toml::Table::new()));
         current = entry
             .as_table_mut()
-            .ok_or_else(|| ConfigError::Invalid(format!("{key}: expected a table")))?;
+            .ok_or_else(|| ConfigError::invalid(format!("{key}: expected a table")))?;
     }
     current.insert(last.to_owned(), toml::Value::Array(values));
     Ok(())

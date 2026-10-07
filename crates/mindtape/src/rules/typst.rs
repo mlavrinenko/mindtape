@@ -165,7 +165,7 @@ pub(crate) fn validate_load(config: &Config, root: &Path) -> Result<(), String> 
     if problems.is_empty() {
         Ok(())
     } else {
-        Err(problems.join("; "))
+        Err(problems.join("\n"))
     }
 }
 

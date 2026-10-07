@@ -371,7 +371,8 @@ fn parse_failure(defaults: Option<&str>, project_config: &str) -> toml::de::Erro
     )
     .unwrap();
     match super::load_config_layered_from(&project, Some(&home), None).unwrap_err() {
-        crate::config::ConfigError::Parse(error) => error,
+        crate::config::ConfigError::Parse(error)
+        | crate::config::ConfigError::ParseIn { error, .. } => error,
         other => panic!("expected a parse error, got {other}"),
     }
 }

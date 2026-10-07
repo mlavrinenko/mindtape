@@ -7,7 +7,7 @@
 //! the contexts above it stay in front, word for word. The fan-out tasks
 //! convert those call sites, and the bridge goes when the last one does.
 
-use mindtape::config::ConfigError;
+use mindtape::config::{ConfigError, ConfigPlace};
 use mindtape::recur::dates::RecurError;
 use mindtape::{DateOverrideError, FilterError, Location, RefError, Severity, Violation};
 
@@ -104,8 +104,43 @@ fn config(err: &ConfigError) -> Diag {
         ConfigError::Io(source) => Diag::failed("can't read config").cause(source),
         ConfigError::Parse(error) => toml_error(error, None),
         ConfigError::ParseIn { origin, error } => toml_error(error, Some(origin)),
-        ConfigError::Invalid(reason) => Diag::failed("invalid config").reason(reason.clone()),
+        ConfigError::Invalid { message, place } => invalid(message, place.as_ref()),
     }
+}
+
+/// A config that parsed but failed a check: `<file>:<line>: <key>: <message>`.
+/// A second problem is a `note:` line. A `; did you mean: x?` clause on the
+/// first becomes a hint.
+fn invalid(message: &str, place: Option<&ConfigPlace>) -> Diag {
+    let (first, rest) = message.split_once('\n').unwrap_or((message, ""));
+    let (first, near) = split_near_match(first);
+    let mut diag = Diag::failed("");
+    if let Some(place) = place {
+        diag = diag.at(&place.file, place.line, None);
+    }
+    let text = if rest.is_empty() {
+        first
+    } else {
+        format!("{first}\n{rest}")
+    };
+    diag = diag.reason(text);
+    match near {
+        Some(name) => diag.hint(Hint::did_you_mean(name)),
+        None => diag,
+    }
+}
+
+/// `line` without its `; did you mean: <name>?` clause, and the name.
+fn split_near_match(line: &str) -> (String, Option<String>) {
+    const CLAUSE: &str = "; did you mean: ";
+    let Some(start) = line.find(CLAUSE) else {
+        return (line.to_owned(), None);
+    };
+    let after = &line[start + CLAUSE.len()..];
+    let Some((name, tail)) = after.split_once('?') else {
+        return (line.to_owned(), None);
+    };
+    (format!("{}{tail}", &line[..start]), Some(name.to_owned()))
 }
 
 /// A TOML syntax error on one line: `<origin>:<line>:<col>: can't parse

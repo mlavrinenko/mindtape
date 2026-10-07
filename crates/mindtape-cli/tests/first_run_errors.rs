@@ -70,7 +70,10 @@ fn unknown_config_table_is_reported_once_with_its_line_and_column() {
         1,
         "{stderr}"
     );
-    assert!(stderr.contains("line 4, column 2"), "{stderr}");
+    assert!(
+        stderr.starts_with("error: .mindtape/config.toml:4:2: can't parse config"),
+        "{stderr}"
+    );
 }
 
 #[test]
@@ -82,7 +85,11 @@ fn a_syntax_error_in_the_config_is_reported_once() {
     let (ok, stderr) = run_fresh(dir.path(), &["ls"]);
 
     assert!(!ok, "{stderr}");
-    assert_eq!(stderr.matches("line 1, column 7").count(), 1, "{stderr}");
+    assert!(
+        stderr.starts_with("error: .mindtape/config.toml:1:7: can't parse config"),
+        "{stderr}"
+    );
+    assert_eq!(stderr.matches("1:7").count(), 1, "{stderr}");
 }
 
 #[test]

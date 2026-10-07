@@ -45,14 +45,21 @@ pub fn validate_sort_spec(spec: &str) -> Result<(), String> {
     match direction {
         None | Some("asc" | "desc") => Ok(()),
         Some(other) => Err(format!(
-            "unknown sort direction: `{other}`; use `asc` or `desc`"
+            "unknown sort direction: {}: use asc or desc",
+            crate::config::quote(other)
         )),
     }
 }
 
 /// The `--sort` / `[ls] default-sort` error for an unrecognised field.
 fn unknown_sort_field(field: &str) -> String {
-    format!("unknown sort field: {field}")
+    let mut names: Vec<&str> = fields::FIELDS.iter().map(|def| def.name).collect();
+    names.push("ready");
+    format!(
+        "unknown sort field: {}{}",
+        crate::config::quote(field),
+        crate::suggest::suggestion(field, &names)
+    )
 }
 
 /// A task's difficulty resolved to a number on its scale, if set and resolvable.

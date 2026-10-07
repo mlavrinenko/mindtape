@@ -285,13 +285,31 @@ fn a_config_error_is_one_line_with_its_place() {
         "error: can't parse config: line 1, column 7: invalid string, expected `\"`, `'`\n"
     );
     assert_eq!(
-        plain(&Diag::from(ConfigError::Invalid("ls.sort: bad".to_owned()))),
-        "error: invalid config: ls.sort: bad\n"
+        plain(&Diag::from(ConfigError::invalid("ls.sort: bad"))),
+        "error: ls.sort: bad\n"
     );
     let io = std::io::Error::new(std::io::ErrorKind::PermissionDenied, "denied");
     assert_eq!(
         plain(&Diag::from(ConfigError::Io(io))),
         "error: can't read config: denied\n"
+    );
+}
+
+#[test]
+fn an_invalid_config_names_its_line_and_turns_a_near_match_into_a_hint() {
+    let err = ConfigError::Invalid {
+        message:
+            "extends: unknown pack: 'x'; did you mean: y?; available packs: y, z\nls.sort: bad"
+                .to_owned(),
+        place: Some(mindtape::config::ConfigPlace {
+            file: ".mindtape/config.toml".into(),
+            line: 3,
+        }),
+    };
+    assert_eq!(
+        plain(&Diag::from(err)),
+        "error: .mindtape/config.toml:3: extends: unknown pack: 'x'; available packs: y, z\n\
+         note: ls.sort: bad\nhint: did you mean y?\n"
     );
 }
 

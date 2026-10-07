@@ -352,7 +352,7 @@ fn compile_dicts_in(
 ) -> Result<Dicts, String> {
     let problems = validate_dicts(dicts);
     if !problems.is_empty() {
-        return Err(problems.join("; "));
+        return Err(problems.join("\n"));
     }
     let mut own: BTreeMap<String, Vec<String>> = BUILTIN_SOURCES
         .iter()
@@ -368,7 +368,7 @@ fn compile_dicts_in(
         includes.insert(name.clone(), spec.include.clone());
     }
     if !problems.is_empty() {
-        return Err(problems.join("; "));
+        return Err(problems.join("\n"));
     }
     let mut memo = BTreeMap::new();
     let mut compiled = BTreeMap::new();
@@ -383,7 +383,7 @@ fn compile_dicts_in(
     if problems.is_empty() {
         Ok(Dicts(compiled))
     } else {
-        Err(problems.join("; "))
+        Err(problems.join("\n"))
     }
 }
 
