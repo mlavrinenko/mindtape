@@ -24,12 +24,14 @@ const POLL_INTERVAL: Duration = Duration::from_millis(20);
 
 /// Upper bound on how long `mt` may take to exit after receiving Esc. The
 /// happy path finishes in well under a second; this only needs to be long
-/// enough to absorb slow CI machines while still failing fast (instead of
-/// hanging the whole test binary forever) if `event_loop` never returns. It is
+/// enough to absorb a machine busy with other builds while still failing
+/// (instead of hanging the whole test binary forever) if `event_loop` never
+/// returns. It is a backstop only: the tests send Esc once the TUI has shown
+/// it is reading again, so load makes the exit slower, not lost. It is
 /// what makes `event_loop`'s `!=` -> `==` mutant killable: that mutant drops
 /// every `Press` event, so the loop never sees the Esc and this test fails on
 /// the deadline instead of hanging the sweep.
-const WAIT_TIMEOUT: Duration = Duration::from_secs(5);
+const WAIT_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// Wait for `child` to exit, polling instead of blocking so a hung event loop
 /// fails this test instead of hanging the whole suite. Kills the process and
@@ -140,22 +142,23 @@ const FRAME_TIMEOUT: Duration = Duration::from_secs(15);
 /// Interval between polls in [`wait_for_frame`].
 const FRAME_POLL_INTERVAL: Duration = Duration::from_millis(20);
 
-/// Block until `frame` contains `needle`, polling instead of sleeping a fixed
-/// span so a busy machine only makes this slower, never flaky — the fix for
-/// the two tests `truth/tasks/isolate-the-interactive-pty-tests-from-concurrent-load.typ`
+/// Block until `frame` contains `needle` at or after byte offset `from`,
+/// polling instead of sleeping a fixed span so a busy machine only makes this
+/// slower, never flaky — the fix for the two tests
+/// `truth/tasks/isolate-the-interactive-pty-tests-from-concurrent-load.typ`
 /// describes, which raced a fixed wait against however long the TUI actually
-/// took to reach the state being asserted. Panics naming the last frame
-/// actually seen if [`FRAME_TIMEOUT`] elapses first, unlike the downstream
-/// `assert!` this replaces, which named only what was missing.
-fn wait_for_frame(frame: &Frame, needle: &str) {
+/// took to reach the state being asserted. Returns the offset just past the
+/// match, so a caller can wait for a later signal in order. Panics naming the
+/// last frame actually seen if [`FRAME_TIMEOUT`] elapses first.
+fn wait_for_frame_from(frame: &Frame, needle: &str, from: usize) -> usize {
     let deadline = Instant::now() + FRAME_TIMEOUT;
     loop {
         let snapshot = frame
             .lock()
             .expect("frame mutex must not be poisoned")
             .clone();
-        if snapshot.contains(needle) {
-            return;
+        if let Some(at) = snapshot.get(from..).and_then(|tail| tail.find(needle)) {
+            return from + at + needle.len();
         }
         assert!(
             Instant::now() < deadline,
@@ -165,9 +168,14 @@ fn wait_for_frame(frame: &Frame, needle: &str) {
     }
 }
 
+/// [`wait_for_frame_from`] anywhere in the transcript.
+fn wait_for_frame(frame: &Frame, needle: &str) {
+    wait_for_frame_from(frame, needle, 0);
+}
+
 /// Drive one interactive session under a pseudo-terminal: send `keys` (already
-/// shaped for raw mode), wait for the frame `expect_after_keys` names (if
-/// any) to actually appear, then Esc to quit, and assert a clean exit within
+/// shaped for raw mode), wait for the frames `expect_after_keys` names (if
+/// any), each after the previous, to actually appear, then Esc to quit, and assert a clean exit within
 /// [`WAIT_TIMEOUT`]. Returns the session's full transcript.
 ///
 /// Shared rather than inlined per test: the spawn-and-drive sequence is
@@ -186,7 +194,7 @@ fn drive_session(
     dir: &std::path::Path,
     suffix: &str,
     keys: &[u8],
-    expect_after_keys: Option<&str>,
+    expect_after_keys: &[&str],
 ) -> String {
     let mut child = spawn_interactive(dir, suffix, true);
     let stdout = child.stdout.take().expect("stdout pipe must be available");
@@ -196,9 +204,12 @@ fn drive_session(
     let mut stdin = child.stdin.take().expect("stdin pipe must be available");
     wait_for_frame(&frame, TASK_TITLE);
     stdin.write_all(keys).unwrap();
-    match expect_after_keys {
-        Some(needle) => wait_for_frame(&frame, needle),
-        None => std::thread::sleep(Duration::from_millis(400)),
+    if expect_after_keys.is_empty() {
+        std::thread::sleep(Duration::from_millis(400));
+    }
+    let mut seen = 0;
+    for needle in expect_after_keys {
+        seen = wait_for_frame_from(&frame, needle, seen);
     }
     stdin.write_all(ESC).unwrap();
     drop(stdin);
@@ -223,7 +234,7 @@ fn interactive_mode_renders_tasks_and_quits() {
 
     // Space reloads the view (the Refresh action); `drive_session` waits for
     // the drawn table before it sends the key and Esc, and asserts a clean exit.
-    let stdout = drive_session(dir.path(), "", b" ", Some(TASK_TITLE));
+    let stdout = drive_session(dir.path(), "", b" ", &[TASK_TITLE]);
 
     assert!(
         stdout.contains(TASK_TITLE),
@@ -289,7 +300,7 @@ fn quitting_restores_the_terminal() {
     let dir = support::project_with_task(TASK_TITLE);
 
     // Esc goes out only once the table is drawn, so the event loop is reading.
-    let stdout = drive_session(dir.path(), "", b"", Some(TASK_TITLE));
+    let stdout = drive_session(dir.path(), "", b"", &[TASK_TITLE]);
 
     let enter = stdout
         .find(ENTER_ALT)
@@ -338,7 +349,7 @@ fn enter_without_a_match_opens_nothing() {
     let dir = support::project_with_task(TASK_TITLE);
     // "u" is no hash digit, so it matches no row, then Enter. Nothing should
     // ever open, so there is no frame to poll for here.
-    let stdout = drive_session(dir.path(), "", b"u\r", None);
+    let stdout = drive_session(dir.path(), "", b"u\r", &[]);
     assert!(
         !stdout.contains(SUSPEND_MARKER),
         "a no-match Enter must not spawn the editor\nstdout:\n{stdout}"
@@ -363,7 +374,15 @@ fn select_first_task_and_open(suffix: &str) -> String {
         .unwrap()
         .to_owned();
     let keys = format!("{hash}\r");
-    drive_session(dir.path(), suffix, keys.as_bytes(), Some(SUSPEND_MARKER))
+    drive_session(
+        dir.path(),
+        suffix,
+        keys.as_bytes(),
+        // The marker proves the editor ran; the alternate screen entered after
+        // it proves `suspend` has re-entered the TUI, so Esc reaches a loop
+        // that is reading rather than one still switching terminal modes.
+        &[SUSPEND_MARKER, ENTER_ALT],
+    )
 }
 
 /// The risk `truth/tasks/hyperlink-the-handle-column.typ` exists to guard:
