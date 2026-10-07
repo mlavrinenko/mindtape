@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 7),
+  status: done(2026, 10, 7),
 )
 
 == Problem
@@ -49,12 +49,13 @@ left in a closing report no one rereads. It belongs in
 - 🟢 `just outdatty-check` fails and names each glob-expanded dependent that `outdatty.lock` holds no hash for.
 ```
 unrecorded: www/content/cli/new-page.typ
+  record it: just outdatty-update cli-docs www/content/cli/new-page.typ
 ```
 
 
 == Changes
 
-- `Justfile`: in `outdatty-check`, fail on a glob-expanded dependent the lock lacks, or ask upstream outdatty for the check.
+- `Justfile`: `outdatty-check` runs `.just/scripts/outdatty-check.sh`, which fails on a glob-expanded dependent the lock lacks. Upstream outdatty could own the check later.
 
 == Rollback
 

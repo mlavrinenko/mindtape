@@ -138,11 +138,11 @@ groups:
     source:
       .config/nextest.toml: a310c30b19df7fce268db1c136bdd93ff76bf2116e28e4fe799be41ba79920e5
       .just/docs.just: e6a852da423c2ec230c1bc281ab9bb4fe0ce6598a4b4765629adaec32c3714ae
-      Justfile: 5c24369408703e1f93bc62120b3bce2b3e94fe781816ffaacd822404091ee6a7
+      Justfile: 6564abbfe28fe5bb440d8213716601b6eb574277f612bc2c97dea45efbc51b0d
       flake.nix: 9da2e53a4c30d4f6d3beffcf732eebebb2bf6476cd5782b9958c8aee01b93248
     dependents:
       docs/src/agents.typ: 48e52ec38d9086566fe2bdaaf0c8404e04988c4f636d39dfae48a8a682507d4c
-      docs/src/contributing.typ: cce80082466c6b8d8030ef0875161c02edcd62e6385ada7bf3ffa4553ca70b1a
+      docs/src/contributing.typ: d4692ca91112a1e9c0b7effaa2bbca8d8491ddbb903324f8aca07116d0930048
       docs/src/contributing/coverage-crap.typ: 4cca206220b9c5494ee882c327f911b731f5194d38a4443069d6978b228cd4f2
       docs/src/contributing/crap-baseline.typ: bcbc918cf8976b8d4b560bd4190c6eb96eab3c2ca3e380108c9996bd65cae98d
       docs/src/contributing/docs-site-build.typ: ab55a155324dc7aacc60167fc5bac4bd09cd9e479dd30d71d8d15f24d942fd6a
@@ -193,6 +193,7 @@ groups:
       .just/scripts/check.sh: fac29f9633c6bde9608b623cb03eee308a9d5fd4cd2685184bdff541480846f8
       .just/scripts/fmt-fixture-check.sh: 0e99a04c675f043f84804d43f25c6ef0f3870ae219a4779088c6f5430110e5e3
       .just/scripts/mmz-arm.sh: c67a415ff478915a0fc433b857b72627dfcdc5e122ae0e430ab5b77bde590d22
+      .just/scripts/outdatty-check.sh: 4b7ad7b2ade32e04260606afd191ae84d54b9f920d63a79592a5f01699adc577
       .just/scripts/positional-args-check.sh: 8372e811d5e7d95fdcab5f9ecb4efa6033cf66fcab57c86d31306cebd00b1e9d
       .just/scripts/script-attr-check.sh: fb01697288a0863da85cad64bb5ce1430508f9d56f54e013dcf41a119b64d61d
       .just/scripts/script-scope-check.sh: 472f2dce97a25ca52d15cea103644c9ad817c899f4b76731e2af2318449d15df

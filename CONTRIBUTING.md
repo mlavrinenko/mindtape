@@ -75,7 +75,7 @@ When you notice a real problem outside your task, file it with `mt add --templat
 
 ## Dependency Drift (outdatty)
 
-[`outdatty.yaml`](outdatty.yaml) lists, for each source file, the files that restate it. After you edit a source, update its dependents, run `just outdatty-update <group>` and commit `outdatty.lock`. A recorded hash says someone reviewed the dependents, so run `just outdatty-update-all` only after reviewing every group. After you edit only a dependent, record that file alone in the same commit with `just outdatty-update <group> <path>`. A rebase or merge joins two branches’ `outdatty.lock` key by key through `.just/scripts/outdatty-lock-merge.sh`, which the dev shell registers. It stops only where both branches changed one hash and the merged file matches neither.
+[`outdatty.yaml`](outdatty.yaml) lists, for each source file, the files that restate it. After you edit a source, update its dependents, run `just outdatty-update <group>` and commit `outdatty.lock`. A recorded hash says someone reviewed the dependents, so run `just outdatty-update-all` only after reviewing every group. After you edit only a dependent, record that file alone in the same commit with `just outdatty-update <group> <path>`. A new file that a glob dependent matches needs a hash of its own, and `just outdatty-check` names each one the lock lacks, with the command that records it. A rebase or merge joins two branches’ `outdatty.lock` key by key through `.just/scripts/outdatty-lock-merge.sh`, which the dev shell registers. It stops only where both branches changed one hash and the merged file matches neither.
 
 ## Version Management
 

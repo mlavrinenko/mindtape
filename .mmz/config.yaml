@@ -422,6 +422,8 @@ scopes:
   # crates/mindtape-cli/tests/outdatty_lock_merge_e2e.rs runs it, together with
   # the `.gitattributes` line that assigns it, so `just test` and `just cover`
   # read this scope.
+  script-outdatty-check:
+    - ".just/scripts/outdatty-check.sh"
   script-outdatty-lock-merge:
     - ".just/scripts/outdatty-lock-merge.sh"
     - ".gitattributes"
@@ -538,7 +540,7 @@ commands:
   # directory, and a per-body scope would leave the rest false-fresh.
   - name: just outdatty-check
     tags: [gate]
-    inputs: [outdatty-config, rust, policy, examples, docs, gates-meta, scripts-all]
+    inputs: [outdatty-config, rust, policy, examples, docs, gates-meta, scripts-all, script-outdatty-check]
 
   # `mt -w examples/<name> check` for each example — depends on the built
   # binary (rust) plus the fixtures' task trees + project config (policy +

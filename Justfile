@@ -194,7 +194,7 @@ check-secrets:
 [doc("Fail if a source changed without its dependents reconfirmed")]
 [group("gate")]
 outdatty-check:
-    outdatty check --format paths
+    bash .just/scripts/outdatty-check.sh
 
 # Checks each fixture another tool runs `mt` against, so the fixture cannot go
 # stale: api-service feeds the docs generator and the skill's triage evals,
