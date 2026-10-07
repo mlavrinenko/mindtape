@@ -2,7 +2,7 @@
 //!
 //! Enforces the declared status lifecycle, enum field constraints, the estimate
 //! unit allow-list, the `required` rules (a filter expression per field, see
-//! [`crate::config_required`]), the tag allow-list, the priority framework
+//! [`crate::config::required`]), the tag allow-list, the priority framework
 //! scoring/manual-override policy (see [`crate::validate_priority`]), and the
 //! typed `links:` edges (resolution, cardinality, notes, cycles — see
 //! [`crate::validate_links`]).

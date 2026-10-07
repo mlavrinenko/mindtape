@@ -4,8 +4,8 @@ use std::collections::BTreeMap;
 
 use super::{Facet, LsConfig, LsRule, parse_import_view, validate_ls_rules};
 use crate::config::Config;
-use crate::config_ls_columns::{ColumnConfig, validate_ls_columns};
-use crate::config_views::ViewSpec;
+use crate::config::ls_columns::{ColumnConfig, validate_ls_columns};
+use crate::config::views::ViewSpec;
 use crate::parse_config;
 
 fn view(filter: &str) -> ViewSpec {

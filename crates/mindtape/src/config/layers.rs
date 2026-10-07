@@ -2,7 +2,7 @@
 //! [`crate::config::parse_config`]'s embedded-floor-plus-one-string core.
 //!
 //! Precedence, lowest to highest:
-//! 1. The compiled-in embedded floor (`config.rs`'s `EMBEDDED_DEFAULTS`).
+//! 1. The compiled-in embedded floor (`config/mod.rs`'s `EMBEDDED_DEFAULTS`).
 //! 2. XDG global defaults: `<config home>/mindtape/defaults.toml`, with the
 //!    config home resolved by [`crate::app_dirs::config_home`].
 //! 3. Every `.mindtape/defaults.toml` found walking up from the project root,
@@ -10,7 +10,7 @@
 //! 4. The project's own `<root>/.mindtape/config.toml`.
 //!
 //! IO (locating and reading files, [`discover_layers`]) is kept separate from
-//! the fold: [`crate::config_packs::merge_layers_with_packs`] takes the
+//! the fold: [`crate::config::packs::merge_layers_with_packs`] takes the
 //! discovered [`Layer`]s and does the rest, so the merge order is testable
 //! without touching a filesystem (see that module's own tests). Every field
 //! wholesale-replaces a later layer's over an earlier one's, except
@@ -22,8 +22,8 @@
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
+use crate::config::packs::{RuleOriginEntry, merge_layers_with_packs};
 use crate::config::{Config, ConfigError, EMBEDDED_DEFAULTS, config_path};
-use crate::config_packs::{RuleOriginEntry, merge_layers_with_packs};
 use crate::framework::merge_builtin_frameworks;
 
 /// One config text layer plus where it came from.
@@ -131,7 +131,7 @@ fn dir_layers(root: &Path, home: Option<&Path>) -> Vec<Layer> {
     found
 }
 
-/// [`crate::config_packs::merge_layers_with_packs`] (deep-merges every layer,
+/// [`crate::config::packs::merge_layers_with_packs`] (deep-merges every layer,
 /// folding in each one's own `extends` packs and `disable` names as it goes),
 /// then splice in the built-in priority frameworks — the merged document,
 /// plus every rule's provenance, shared by [`build_config`] and
@@ -171,7 +171,7 @@ fn merge_doc(
 /// [`crate::config::compile_dicts`] runs `validate_dicts` itself, so a broken
 /// `[dicts]` section is still refused, by the first pass that can see it.
 ///
-/// [`crate::config_tasks::expand_dict_refs`] runs right after, for the same
+/// [`crate::config::tasks::expand_dict_refs`] runs right after, for the same
 /// reason: a `@<dict>` reference in `[tasks.tags] allowed` or
 /// `[tasks.fields.<name>] values` needs the compiled dictionaries to resolve
 /// against, and needs to have resolved before `validate` (which does not
@@ -188,7 +188,7 @@ fn build_config(
     config.dict_cache = crate::config::compile_dicts(&config.dicts, root)
         .map_err(ConfigError::Invalid)?
         .into();
-    crate::config_tasks::expand_dict_refs(&mut config.tasks, config.dict_cache.dicts())
+    crate::config::tasks::expand_dict_refs(&mut config.tasks, config.dict_cache.dicts())
         .map_err(ConfigError::Invalid)?;
     // Stamped before `validate` reads it (transitively, through a
     // `[[tasks.rules]] check` entry's `CompiledCheck`) and before the
@@ -283,5 +283,5 @@ pub fn load_config_layered_from(
 }
 
 #[cfg(test)]
-#[path = "config_layers_tests.rs"]
+#[path = "layers_tests.rs"]
 mod tests;

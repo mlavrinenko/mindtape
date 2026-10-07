@@ -1,15 +1,15 @@
 //! `extends` resolution: a layer's `extends` list, resolved against an
 //! injected pack registry so a test never needs a real embedded pack — bare
 //! names, path entries, the reserved prefix, and the two keys a pack may not
-//! declare. Split out of `config_packs_tests.rs`, which was near the linecop
+//! declare. Split out of `config/packs_tests.rs`, which was near the linecop
 //! cap; the shared `layer` fixture stays in the parent test module and is
 //! reached through `super::tests`.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use super::tests::layer;
 use super::{PackOrigin, RuleOrigin, merge_layers_with_packs, merge_layers_with_packs_using};
-use crate::config_layers::LayerSource;
-use crate::config_packs_toml::read_array;
+use crate::config::layers::LayerSource;
+use crate::config::packs_toml::read_array;
 
 #[test]
 fn extends_bare_name_resolves_to_an_embedded_pack() {

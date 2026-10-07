@@ -311,7 +311,7 @@ fn find_imperative_title_rule(config: &mindtape::Config) -> &mindtape::RuleSpec 
 /// (`truth/tasks/ship-the-task-practice-as-the-mindtape-tasks-pack.typ`) no
 /// longer declares `imperative-title` itself — it inherits it from the
 /// embedded `mindtape-tasks` pack via `extends`. `parse_config` cannot prove
-/// that (it never resolves `extends`/`disable`; see `crate::config_packs`),
+/// that (it never resolves `extends`/`disable`; see `crate::config::packs`),
 /// so this loads the full layered config against the real repo root instead,
 /// through the real, non-fixture `EMBEDDED_PACKS` registry — proving both
 /// that the rule still lands here AND that the pack actually shipped.

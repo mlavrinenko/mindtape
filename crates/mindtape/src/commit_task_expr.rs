@@ -13,7 +13,7 @@
 //! - `named` — the commit's trailer names the task.
 //! - `into("s")` — `staged(status == "s") && !head(status == "s")`, rewritten
 //!   before the parse by the scanner `[[on.flip]]` shares
-//!   ([`crate::config_hooks::rewrite_into`]).
+//!   ([`crate::config::hooks::rewrite_into`]).
 //!
 //! A bare task field is refused: which state it would read is the one thing
 //! a reader of the rule could not tell.
@@ -125,7 +125,7 @@ impl<'a> TaskScope<'a> {
 /// means: `staged(status == "s") && !head(status == "s")`.
 #[must_use]
 pub fn desugar_commit_into(expr: &str) -> String {
-    crate::config_hooks::rewrite_into(expr, |name| {
+    crate::config::hooks::rewrite_into(expr, |name| {
         format!("(staged(status == \"{name}\") && !head(status == \"{name}\"))")
     })
 }
@@ -136,7 +136,7 @@ pub fn desugar_commit_into(expr: &str) -> String {
 #[must_use]
 pub(crate) fn task_expr_problem(source: &str, config: &Config) -> Option<String> {
     let legend = &config.tasks.status;
-    if let Some(name) = crate::config_hooks::into_targets(source)
+    if let Some(name) = crate::config::hooks::into_targets(source)
         .into_iter()
         .find(|name| !legend.is_empty() && !legend.contains(name))
     {

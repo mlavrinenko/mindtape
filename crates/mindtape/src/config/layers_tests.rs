@@ -5,8 +5,8 @@ use crate::config::parse_config;
 use crate::test_support::home_and_project;
 
 // The pure precedence-folding tests that used to live here now exercise
-// `crate::config_packs::merge_layers_with_packs_using` instead — see
-// `config_packs_tests.rs` — since that function (not this module) now owns
+// `crate::config::packs::merge_layers_with_packs_using` instead — see
+// `config/packs_tests.rs` — since that function (not this module) now owns
 // the actual fold `load_config_layered` runs.
 
 // --- discover_layers: filesystem walk-up + XDG + project, ordering ---

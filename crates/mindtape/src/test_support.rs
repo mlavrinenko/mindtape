@@ -117,7 +117,7 @@ pub fn write_lib_package(dir: &Path, prelude: &str) {
 /// `project` carrying an empty `.mindtape/` (no `config.toml`/`defaults.toml`
 /// of its own — every caller writes the layer text its scenario needs). Keep
 /// the returned `TempDir` alive for as long as the paths are used. Shared by
-/// `config_layers_tests.rs` and `config_packs_tests.rs`, which both build a
+/// `config/layers_tests.rs` and `config/packs_tests.rs`, which both build a
 /// `home`/ancestor/project chain to drive `discover_layers`/`load_config_layered`
 /// against.
 ///

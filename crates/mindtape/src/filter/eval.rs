@@ -5,7 +5,7 @@
 //! modules keep their `crate::filter::eval_bool` path.
 //!
 //! Maximum `in_view` nesting depth evaluated before bailing. Config load
-//! rejects cyclic view references ([`crate::config_views::validate_views`]),
+//! rejects cyclic view references ([`crate::config::views::validate_views`]),
 //! so this only guards an unvalidated config (a hand-built test one) against
 //! a stack overflow.
 const MAX_VIEW_DEPTH: usize = 64;

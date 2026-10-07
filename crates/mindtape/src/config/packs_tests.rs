@@ -3,8 +3,8 @@
 use std::path::{Path, PathBuf};
 
 use super::merge_layers_with_packs_using;
-use crate::config_layers::{Layer, LayerSource, load_config_layered_from};
-use crate::config_packs_toml::read_array;
+use crate::config::layers::{Layer, LayerSource, load_config_layered_from};
+use crate::config::packs_toml::read_array;
 use crate::test_support::home_and_project;
 
 fn names_of(rules: &[crate::config_rules::RuleSpec]) -> Vec<Option<String>> {
@@ -97,7 +97,7 @@ fn disable_naming_no_rule_anywhere_is_a_config_error() {
 }
 
 /// A single config layer for the merge-level tests, with its text and its
-/// [`LayerSource`] — shared with `config_packs_tests_extends.rs`, which reaches
+/// [`LayerSource`] — shared with `config/packs_tests_extends.rs`, which reaches
 /// it through `super::tests`.
 pub(crate) fn layer(source: LayerSource, text: &str) -> Layer {
     Layer {
@@ -109,7 +109,7 @@ pub(crate) fn layer(source: LayerSource, text: &str) -> Layer {
 // --- a `[[tasks.rules]] check` entry validates and resolves the same way
 // regardless of which layer or pack declared it: against the PROJECT root,
 // never the declaring layer's own directory (`crates/mindtape/src/
-// config_rules_typst.rs::validate_load`, run from `config_layers::build_config`
+// config_rules_typst.rs::validate_load`, run from `config::layers::build_config`
 // over the fully merged `config.tasks.rules`, so a pack's or an ancestor's
 // `check` entry is exactly one more entry in that array by the time it runs).
 
@@ -164,7 +164,7 @@ fn an_ancestor_layers_check_rule_still_fails_load_when_absent_at_the_project_roo
 /// Build the typed [`crate::config::Config`] `project`'s own
 /// `.mindtape/config.toml` extending `registry`'s `"mindtape-test"` pack (and
 /// nothing else) would produce — merge, then the same typed-deserialization
-/// tail [`crate::config_layers::build_config`] runs after its own merge — for
+/// tail [`crate::config::layers::build_config`] runs after its own merge — for
 /// a test that needs the pack registry injected, which
 /// `load_config_layered_from`'s real (possibly empty) [`super::EMBEDDED_PACKS`]
 /// cannot give it.
@@ -263,7 +263,7 @@ fn a_packs_dicts_merge_in_and_the_layers_own_entry_wins_on_a_shared_name() {
 fn a_same_file_duplicate_name_is_left_for_validation_not_collapsed_at_merge() {
     // Two entries sharing a name WITHIN one layer's own array are an
     // authoring mistake `validate_header_rules` catches downstream (see
-    // `config_tests_headers.rs::rejects_duplicate_header_rule_names`) — the
+    // `config/tests_headers.rs::rejects_duplicate_header_rule_names`) — the
     // merge itself must not silently keep only one, or that check could never
     // fire again.
     let root = tempfile::tempdir().unwrap();
@@ -302,7 +302,7 @@ fn a_same_file_duplicate_header_rule_name_fails_the_full_load() {
 }
 
 // --- everything else: still a plain wholesale-replace fold, unaffected by
-// packs — the tests `config_layers.rs::merge_layers` used to carry, now
+// packs — the tests `config/layers.rs::merge_layers` used to carry, now
 // against this module's own fold (`merge_layers_with_packs_using` with an
 // empty registry is exactly that fold, for any field but the three rule
 // arrays) ---

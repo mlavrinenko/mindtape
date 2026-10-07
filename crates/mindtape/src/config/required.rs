@@ -290,5 +290,5 @@ fn problem(requirement: &Requirement, probe: &Task, config: &Config) -> Option<S
 }
 
 #[cfg(test)]
-#[path = "config_required_tests.rs"]
+#[path = "required_tests.rs"]
 mod tests;

@@ -1,9 +1,9 @@
 //! Where each `[[tasks.rules]]` entry is declared, so a report that is about
 //! the rule rather than a task opens the rule.
 //!
-//! [`crate::config_packs`] already records which layer or pack each merged rule
+//! [`crate::config::packs`] already records which layer or pack each merged rule
 //! came from, for `mt config show --origin`, and the line of its table header.
-//! [`crate::config_layers::build_config`] turns that record into one
+//! [`crate::config::layers::build_config`] turns that record into one
 //! [`Location`] per rule and keeps it on the loaded [`crate::config::Config`],
 //! because the validation passes that report a skipped rule take a `Config`
 //! and nothing else. A rule from the project config, a global layer, a path
@@ -12,8 +12,8 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use crate::config_layers::LayerSource;
-use crate::config_packs::{PackOrigin, RuleOrigin, RuleOriginEntry};
+use crate::config::layers::LayerSource;
+use crate::config::packs::{PackOrigin, RuleOrigin, RuleOriginEntry};
 use crate::violation::Location;
 
 /// The label prefix of the `[[tasks.rules]]` entries in a rule origin record.

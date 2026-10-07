@@ -171,5 +171,5 @@ pub(crate) fn validate_comments(config: &Config) -> Vec<String> {
 }
 
 #[cfg(test)]
-#[path = "config_comments_tests.rs"]
+#[path = "comments_tests.rs"]
 mod tests;

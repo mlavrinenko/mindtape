@@ -30,7 +30,7 @@
 //!
 //! Rules merge by `name` across rule packs and layers exactly as
 //! `[[tasks.rules]]` does
-//! ([`crate::config_packs`]), so a project overrides a shipped rule by
+//! ([`crate::config::packs`]), so a project overrides a shipped rule by
 //! redeclaring its name or drops it with `disable`.
 //!
 //! Every expression is dry-run at config load ([`validate_commits`]), so a
@@ -283,5 +283,5 @@ pub(crate) fn validate_commits(config: &Config) -> Vec<String> {
 }
 
 #[cfg(test)]
-#[path = "config_commits_tests.rs"]
+#[path = "commits_tests.rs"]
 mod tests;

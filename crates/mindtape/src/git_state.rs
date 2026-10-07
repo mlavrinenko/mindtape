@@ -22,7 +22,7 @@ use std::sync::{Arc, OnceLock};
 
 use globset::{Glob, GlobSet, GlobSetBuilder};
 
-use crate::config_dicts::{DictCase, Dicts};
+use crate::config::dicts::{DictCase, Dicts};
 
 /// The state names `changed()` accepts, in the order an error lists them.
 const STATE_NAMES: [&str; 2] = ["staged", "worktree"];

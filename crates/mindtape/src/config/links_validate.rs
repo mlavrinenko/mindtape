@@ -233,5 +233,5 @@ fn is_git_sha(value: &str) -> bool {
 }
 
 #[cfg(test)]
-#[path = "config_links_validate_tests.rs"]
+#[path = "links_validate_tests.rs"]
 mod tests;

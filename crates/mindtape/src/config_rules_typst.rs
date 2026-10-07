@@ -147,7 +147,7 @@ impl CompiledCheck {
 /// the named Typst module must exist and must export `function`. Complements
 /// [`crate::config_rules::validate_rules`], which validates rule shape
 /// without a project root — this validates the one thing shape-checking
-/// cannot see, so it runs from [`crate::config_layers::build_config`] instead,
+/// cannot see, so it runs from [`crate::config::layers::build_config`] instead,
 /// the one caller that already has root in hand for [`crate::config::compile_dicts`].
 ///
 /// # Errors

@@ -100,7 +100,7 @@ fn role_field(task: &Task, config: &Config, literal: &str) -> FieldValue {
     match task
         .assignee
         .as_deref()
-        .and_then(|name| crate::config_actors::roles_of(name, config))
+        .and_then(|name| crate::config::actors::roles_of(name, config))
     {
         Some(roles) if roles.iter().any(|role| role == literal) => {
             FieldValue::Str(literal.to_owned())

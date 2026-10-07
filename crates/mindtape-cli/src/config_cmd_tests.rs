@@ -355,7 +355,7 @@ fn origin_labels_an_xdg_defaults_rule_as_xdg() {
 }
 
 /// A rule pulled in through a bare `extends` name resolved against the
-/// compiled-in `EMBEDDED_PACKS` registry (`crates/mindtape/src/config_packs.
+/// compiled-in `EMBEDDED_PACKS` registry (`crates/mindtape/src/config/packs.
 /// rs`) is labeled `pack <name>`.
 #[test]
 fn origin_labels_an_embedded_packs_rule_as_pack_name() {

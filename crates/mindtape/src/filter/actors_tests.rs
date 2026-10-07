@@ -3,7 +3,7 @@
 #![allow(clippy::unwrap_used)]
 
 use crate::config::Config;
-use crate::config_actors::{Actor, ActorKind, Role};
+use crate::config::actors::{Actor, ActorKind, Role};
 use crate::model::Task;
 
 use super::{Filter, sample};

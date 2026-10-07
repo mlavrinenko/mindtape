@@ -10,9 +10,9 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::config_ls::LS_COLUMNS;
+use crate::config::ls::LS_COLUMNS;
+use crate::config::name_cycle::find_cycle;
 use crate::filter::Filter;
-use crate::name_cycle::find_cycle;
 use crate::sort::validate_sort_spec;
 
 /// `[views.<name>]` — one named query bundle.
@@ -74,5 +74,5 @@ pub fn validate_views(views: &BTreeMap<String, ViewSpec>) -> Vec<String> {
 }
 
 #[cfg(test)]
-#[path = "config_views_tests.rs"]
+#[path = "views_tests.rs"]
 mod tests;

@@ -411,5 +411,5 @@ fn action_problems(index: usize, hook: &FlipHook, probe: &Task, config: &Config)
 }
 
 #[cfg(test)]
-#[path = "config_hooks_tests.rs"]
+#[path = "hooks_tests.rs"]
 mod tests;

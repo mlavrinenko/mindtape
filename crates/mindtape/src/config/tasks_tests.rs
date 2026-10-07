@@ -2,7 +2,7 @@
 use std::collections::BTreeMap;
 
 use super::{FieldConfig, TagsConfig, TasksConfig, expand_dict_refs};
-use crate::config_dicts::{DictSpec, Dicts, compile_dicts_rootless};
+use crate::config::dicts::{DictSpec, Dicts, compile_dicts_rootless};
 
 /// Compile a `Dicts` from `(name, values)` pairs — inline `values` only,
 /// which needs no project root.

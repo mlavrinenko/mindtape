@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 
 use super::{ColumnConfig, validate_ls_columns};
-use crate::config_ls::LsConfig;
+use crate::config::ls::LsConfig;
 use crate::parse_config;
 
 /// An `[ls]` config carrying one column with the given `when`.
@@ -119,7 +119,7 @@ fn a_project_when_replaces_the_floor_s() {
 #[test]
 fn the_floor_gives_every_column_a_when() {
     let config = crate::test_support::floor_config();
-    for column in crate::config_ls::LS_COLUMNS {
+    for column in crate::config::ls::LS_COLUMNS {
         let entry = config
             .ls
             .columns

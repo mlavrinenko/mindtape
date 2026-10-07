@@ -1,8 +1,8 @@
 //! `[ls.columns.<name>]` — one `mt ls` column's display settings, and the
 //! validation of the column-name vocabulary they are keyed by.
 //!
-//! Split out of [`crate::config_ls`] so that file stays under the repo's Rust
-//! line cap; the `[ls]` block itself, the [`crate::config_ls::LS_COLUMNS`]
+//! Split out of [`crate::config::ls`] so that file stays under the repo's Rust
+//! line cap; the `[ls]` block itself, the [`crate::config::ls::LS_COLUMNS`]
 //! vocabulary and the `[[ls.rules]]` listing cascade all remain there.
 //!
 //! # Why a column carries one `when`
@@ -36,7 +36,7 @@ use std::collections::BTreeSet;
 
 use serde::Deserialize;
 
-use crate::config_ls::{LS_COLUMNS, LsConfig};
+use crate::config::ls::{LS_COLUMNS, LsConfig};
 use crate::filter::condition::Condition;
 
 /// `[ls.columns.<name>]` — one column's display settings.
@@ -119,5 +119,5 @@ pub(crate) fn unknown_column(name: &str) -> String {
 }
 
 #[cfg(test)]
-#[path = "config_ls_columns_tests.rs"]
+#[path = "ls_columns_tests.rs"]
 mod tests;

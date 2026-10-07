@@ -26,7 +26,7 @@ exclude_re = [
   # deal — a provably-equivalent mutant with a written reason is exactly what
   # this list is for.
   "replace Readiness::empty -> Self with Default::default()",
-  # pure-memoisation: config_views.rs dfs DONE arm, the black-node check. A
+  # pure-memoisation: config/views.rs dfs DONE arm, the black-node check. A
   # node only reaches DONE once its whole subtree came back cycle-free, so
   # re-walking it can only return None again — deleting the arm changes the
   # running time (exponential), never the answer.

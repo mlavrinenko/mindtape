@@ -4,14 +4,14 @@
 //! order. The column-name vocabulary ([`LS_COLUMNS`]) lives here as the single
 //! validated source shared by `[ls.columns]`, `[ls] columns-order`, and any
 //! consumer renderer; one column's own settings (its `when` expression) live
-//! in [`crate::config_ls_columns`].
+//! in [`crate::config::ls_columns`].
 
 use std::collections::BTreeMap;
 
 use serde::{Deserialize, Deserializer};
 
-use crate::config_ls_columns::{ColumnConfig, unknown_column};
-use crate::config_views::ViewSpec;
+use crate::config::ls_columns::{ColumnConfig, unknown_column};
+use crate::config::views::ViewSpec;
 use crate::sort::validate_sort_spec;
 
 /// Canonical `mt ls` column names, in built-in render order. The single
@@ -28,8 +28,8 @@ use crate::sort::validate_sort_spec;
 /// would keep it off a mixed listing, which is the one place it says something.
 ///
 /// All three live as one `when` expression per column in
-/// `crates/mindtape/src/defaults.toml`, not in Rust — see
-/// [`crate::config_ls_columns`].
+/// `crates/mindtape/src/config/defaults.toml`, not in Rust — see
+/// [`crate::config::ls_columns`].
 pub const LS_COLUMNS: [&str; 11] = [
     "slug#", "status", "ready", "priority", "due", "assignee", "title", "why", "children",
     "progress", "file",
@@ -268,7 +268,7 @@ pub fn parse_import_view(entry: &str) -> Result<ImportView, String> {
 ///
 /// A rule can only ever be a *sink* in the view-reference graph (nothing can
 /// `import-views` or `@`-reference a rule back), so it cannot participate in
-/// a cycle; [`crate::config_views::validate_views`] already guarantees the
+/// a cycle; [`crate::config::views::validate_views`] already guarantees the
 /// views-only graph is acyclic, which is all the acyclicity this needs.
 #[must_use]
 pub fn validate_ls_rules(rules: &[LsRule], views: &BTreeMap<String, ViewSpec>) -> Vec<String> {
@@ -402,5 +402,5 @@ pub struct ReadyConfig {
 }
 
 #[cfg(test)]
-#[path = "config_ls_tests.rs"]
+#[path = "ls_tests.rs"]
 mod tests;

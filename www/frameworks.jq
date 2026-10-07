@@ -1,7 +1,7 @@
 # www/frameworks.jq — the jq program www/generate-facts.sh runs over
 # crates/mindtape/src/frameworks.toml (piped in as JSON by tomlq) to build
 # frameworks.json, with the two scales those frameworks score onto passed in
-# as $scales from crates/mindtape/src/defaults.toml. A sibling of
+# as $scales from crates/mindtape/src/config/defaults.toml. A sibling of
 # www/gates.jq and www/sweep-flags.jq, split out for the same two reasons:
 # a derivation with an argument to write does not belong in a shell string,
 # and www/generate-facts.sh has no linecop budget to spend on one.

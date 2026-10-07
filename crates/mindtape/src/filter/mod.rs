@@ -104,7 +104,7 @@ use crate::model::Task;
 use crate::ready::Readiness;
 
 /// Maximum `in_view` nesting depth evaluated before bailing. Config load rejects
-/// cyclic view references ([`crate::config_views::validate_views`]), so this only
+/// cyclic view references ([`crate::config::views::validate_views`]), so this only
 /// guards an unvalidated config (e.g. a hand-built test one) against a stack
 /// overflow.
 /// A parsed, reusable filter expression. `None` is the match-all filter (an

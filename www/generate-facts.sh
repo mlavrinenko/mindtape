@@ -140,7 +140,7 @@ rm -rf "$tmp"
 # already uses below, pointed at TOML instead of YAML. Argued in
 # www/frameworks.jq; the scales ride in as an argument because they live in a
 # different file from the frameworks that score onto them.
-SCALES="$(tomlq -c '.tasks | {priority, difficulty}' crates/mindtape/src/defaults.toml)"
+SCALES="$(tomlq -c '.tasks | {priority, difficulty}' crates/mindtape/src/config/defaults.toml)"
 tomlq -f "$SCRIPT_DIR/frameworks.jq" --argjson scales "$SCALES" \
   crates/mindtape/src/frameworks.toml | emit frameworks.json
 

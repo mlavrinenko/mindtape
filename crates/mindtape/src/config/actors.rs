@@ -101,5 +101,5 @@ pub(crate) fn validate_actors(config: &Config) -> Vec<String> {
 }
 
 #[cfg(test)]
-#[path = "config_actors_tests.rs"]
+#[path = "actors_tests.rs"]
 mod tests;

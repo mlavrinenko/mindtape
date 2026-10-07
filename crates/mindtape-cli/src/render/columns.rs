@@ -15,7 +15,7 @@
 //! against the [`mindtape::ColumnFacts`] built here per column.
 //!
 //! No visibility policy lives in this file. The per-column defaults are lines
-//! of `crates/mindtape/src/defaults.toml`, and a column with no `when` at all
+//! of `crates/mindtape/src/config/defaults.toml`, and a column with no `when` at all
 //! does not render.
 
 use anyhow::{Context, Result};

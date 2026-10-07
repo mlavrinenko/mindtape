@@ -6,7 +6,7 @@
 //!
 //! A kind whose `[[tasks.links.kinds]] validate` is not `local-task-path`
 //! points outside the backlog (a commit, a pull request, a build). Its targets
-//! are checked for *shape* by [`crate::config_links_validate`] instead of being
+//! are checked for *shape* by [`crate::config::links_validate`] instead of being
 //! resolved against the task set, and they take no part in cardinality or
 //! cycles — `acyclic_kinds` already drops them. The note rule still applies, so
 //! such a kind can demand a reason like any other.
@@ -15,7 +15,7 @@ use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
 use crate::config::Config;
-use crate::config_links_validate::Validators;
+use crate::config::links_validate::Validators;
 use crate::graph::{DepIndex, toposort_kind};
 use crate::link::{
     Link, LinksConfig, acyclic_kinds, blocking_kinds, kind_targets_tasks, resolve_kind,

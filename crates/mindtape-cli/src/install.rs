@@ -136,7 +136,7 @@ pub(crate) fn write_completions(dir: &Path, force: bool) -> Result<()> {
 }
 
 /// `<config home>/mindtape` — the directory holding the XDG global
-/// `defaults.toml`. Mirrors [`crate::config_layers::discover_layers`]'s XDG
+/// `defaults.toml`. Mirrors [`crate::config::layers::discover_layers`]'s XDG
 /// layer resolution (`mindtape` crate) — one `mindtape::config_home()`, so
 /// `$MINDTAPE_CONFIG_HOME` moves what `install` writes and what the loader
 /// reads together.

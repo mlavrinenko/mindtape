@@ -1,7 +1,7 @@
 //! Nested-path reads and writes over a raw `toml::Table`, shared by
-//! [`crate::config_packs`]'s pre-typed-`Config` merge: reading and stripping
+//! [`crate::config::packs`]'s pre-typed-`Config` merge: reading and stripping
 //! a layer's own rule arrays before the generic fold, and splicing the
-//! resolved ones back in afterward. Split out of `config_packs.rs` to keep
+//! resolved ones back in afterward. Split out of `config/packs.rs` to keep
 //! that module's own pack-resolution and merge logic under the file-size cap.
 
 use crate::config::ConfigError;
@@ -111,5 +111,5 @@ pub(crate) fn write_array(
 }
 
 #[cfg(test)]
-#[path = "config_packs_toml_tests.rs"]
+#[path = "packs_toml_tests.rs"]
 mod tests;

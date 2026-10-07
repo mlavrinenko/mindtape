@@ -137,7 +137,7 @@ groups:
       # other, and the rest of that file is comparator internals no dependent
       # restates.
       - crates/mindtape/src/fields.rs
-      - crates/mindtape/src/defaults.toml
+      - crates/mindtape/src/config/defaults.toml
       - crates/mindtape-cli/src/presets/todone/config.toml
       - crates/mindtape-cli/src/presets/flow/config.toml
       - crates/mindtape-cli/src/presets/personal/config.toml

@@ -1,8 +1,8 @@
 //! The facts a [`crate::Condition`] evaluates against.
 //!
 //! Split out of [`crate::filter::condition`] so that module stays the evaluator and
-//! this one the domain it reads — the same seam [`crate::config_ls_columns`]
-//! took out of [`crate::config_ls`], and for the same line-cap reason.
+//! this one the domain it reads — the same seam [`crate::config::ls_columns`]
+//! took out of [`crate::config::ls`], and for the same line-cap reason.
 //!
 //! Two groups live here, and the difference matters:
 //!

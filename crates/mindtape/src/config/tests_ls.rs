@@ -58,7 +58,7 @@ fn ls_rules_task_field_condition_errors_on_validate() {
 #[test]
 fn ls_rules_import_views_still_catch_a_view_cycle() {
     // A rule importing one side of a view cycle must not mask the existing
-    // (unextended) `config_views` cycle check: rules can only ever be a sink
+    // (unextended) `config/views.rs` cycle check: rules can only ever be a sink
     // in the reference graph (nothing can `import-views`/`@`-reference a rule
     // back), so they cannot themselves complete a cycle, but the underlying
     // views-only cycle must still surface.

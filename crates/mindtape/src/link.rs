@@ -15,7 +15,7 @@ use serde::Deserialize;
 
 use typst_harvest::HVal;
 
-pub use crate::config_links_validate::TargetValidator;
+pub use crate::config::links_validate::TargetValidator;
 
 /// One typed relation edge: a target task, its kind, and an optional note.
 ///

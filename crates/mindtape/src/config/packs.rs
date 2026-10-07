@@ -1,7 +1,7 @@
 //! `extends`/`disable`: resolving rule packs into a layer's own
 //! `[[tasks.rules]]`, `[[tasks.body.headers.rules]]`,
 //! `[[tasks.body.content.rules]]` and `[[commits.rules]]` before
-//! [`crate::config_layers`] deep-merges everything else.
+//! [`crate::config::layers`] deep-merges everything else.
 //!
 //! A pack is a config-syntax fragment carrying only the four rule arrays and
 //! `[dicts]` — a bare name resolves to one compiled into the binary
@@ -32,17 +32,19 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
 use crate::config::ConfigError;
-use crate::config_layers::{Layer, LayerSource};
-use crate::config_packs_toml::{
+use crate::config::layers::{Layer, LayerSource};
+use crate::config::merge::deep_merge_tables;
+use crate::config::packs_toml::{
     header_lines, read_array, read_string_list, remove_path, write_array,
 };
-use crate::merge::deep_merge_tables;
 
 /// Rule packs compiled into the binary, `(name, TOML text)`. A new entry is a
 /// one-line addition here plus a `crates/mindtape/src/packs/<name>.toml`
 /// file, named under the reserved `mindtape-` prefix.
-pub(crate) const EMBEDDED_PACKS: &[(&str, &str)] =
-    &[("mindtape-tasks", include_str!("packs/mindtape-tasks.toml"))];
+pub(crate) const EMBEDDED_PACKS: &[(&str, &str)] = &[(
+    "mindtape-tasks",
+    include_str!("../packs/mindtape-tasks.toml"),
+)];
 
 /// Where one resolved pack came from, for `mt config show --origin`.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -451,13 +453,13 @@ fn layer_base_dir(source: &LayerSource, root: &Path) -> PathBuf {
 }
 
 #[cfg(test)]
-#[path = "config_packs_tests.rs"]
+#[path = "packs_tests.rs"]
 mod tests;
 
 #[cfg(test)]
-#[path = "config_packs_tests_body.rs"]
+#[path = "packs_tests_body.rs"]
 mod tests_body;
 
 #[cfg(test)]
-#[path = "config_packs_tests_extends.rs"]
+#[path = "packs_tests_extends.rs"]
 mod tests_extends;

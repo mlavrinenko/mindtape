@@ -2,7 +2,7 @@
 #![allow(clippy::unwrap_used)]
 
 use crate::config::parse_config;
-use crate::config_required::Requirement;
+use crate::config::required::Requirement;
 
 use super::AssigneeConfig;
 

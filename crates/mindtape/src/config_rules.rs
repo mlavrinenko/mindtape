@@ -55,7 +55,7 @@
 //! `check` rule's Typst module is checked for existence and export the same
 //! way, but needs the project root to read it — see
 //! [`crate::config_rules_typst::validate_load`], run from
-//! [`crate::config_layers`] rather than from here, against [`RulesRoot`]
+//! [`crate::config::layers`] rather than from here, against [`RulesRoot`]
 //! rather than a `root` parameter threaded through every validation call
 //! site.
 
@@ -69,7 +69,7 @@ use crate::model::Task;
 use crate::severity::Severity;
 
 /// The project root a loaded [`Config`] was built for, resolved once by
-/// [`crate::config_layers::build_config`] and carried on the config itself —
+/// [`crate::config::layers::build_config`] and carried on the config itself —
 /// the same reason [`Config::compiled_dicts`] resolves `[dicts]` `path`
 /// entries at load rather than making every downstream filter evaluation
 /// take a `root` parameter to re-read the section with. A `[[tasks.rules]]
@@ -80,12 +80,12 @@ use crate::severity::Severity;
 /// Empty for a [`Config`] built through [`crate::config::parse_config`] alone
 /// (no project on disk, e.g. most unit tests) — a `check` rule then resolves
 /// `typst` against the process's current directory, the same "best effort,
-/// no project to root against" reading [`crate::config_dicts::compile_dicts_rootless`]
+/// no project to root against" reading [`crate::config::dicts::compile_dicts_rootless`]
 /// already takes for a dict's own `path` entries.
 ///
 /// Never equal-compared: two configs with the same declared content are the
 /// same config regardless of which directory loaded them, the reading
-/// [`crate::config_dicts::DictCache`]'s own `PartialEq` already takes for the
+/// [`crate::config::dicts::DictCache`]'s own `PartialEq` already takes for the
 /// same kind of load-derived state.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct RulesRoot(PathBuf);
@@ -98,7 +98,7 @@ impl PartialEq for RulesRoot {
 
 impl RulesRoot {
     /// Set the resolved project root. Called once, from
-    /// [`crate::config_layers::build_config`].
+    /// [`crate::config::layers::build_config`].
     pub(crate) fn set(&mut self, root: &Path) {
         self.0 = root.to_owned();
     }
@@ -203,7 +203,7 @@ pub(crate) use eval::check_all;
 /// error — instead of once per artifact at validation time. A `check` rule's
 /// Typst module needs the project root to read, which this function does not
 /// have; [`crate::config_rules_typst::validate_load`] covers it separately,
-/// from [`crate::config_layers`], the one caller with root in hand.
+/// from [`crate::config::layers`], the one caller with root in hand.
 pub(crate) fn validate_rules(config: &Config) -> Vec<String> {
     let probe = Task::default();
     let mut problems = Vec::new();
@@ -243,7 +243,7 @@ pub(crate) fn validate_rules(config: &Config) -> Vec<String> {
 /// `name` before either of those did, but never a check that two entries
 /// couldn't share one.
 ///
-/// This only ever sees a same-FILE duplicate: [`crate::config_packs`]'s merge
+/// This only ever sees a same-FILE duplicate: [`crate::config::packs`]'s merge
 /// collapses two entries sharing a name to one, in place, the moment they
 /// come from different sources (a nearer layer or an extended pack replacing
 /// a farther one's same-named rule), so by the time this runs — over the

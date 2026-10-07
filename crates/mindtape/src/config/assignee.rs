@@ -33,5 +33,5 @@ pub struct AssigneeConfig {
 }
 
 #[cfg(test)]
-#[path = "config_assignee_tests.rs"]
+#[path = "assignee_tests.rs"]
 mod tests;

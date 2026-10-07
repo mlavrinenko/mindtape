@@ -3,7 +3,7 @@
 //! The schema is derived from the config structs, and the shipped configs parse
 //! into those same structs — so agreement is expected by construction. This
 //! guards the seam that construction does not cover: the four hand-written
-//! `JsonSchema` impls (`config_schema.rs`) and any accidental over/under-strict
+//! `JsonSchema` impls (`config/schema.rs`) and any accidental over/under-strict
 //! keyword, caught end-to-end through a real draft-2020-12 validator.
 #![allow(clippy::unwrap_used)]
 

@@ -6,8 +6,8 @@
 
 use typst_harvest::HVal;
 
+use crate::config::tasks::FieldExample;
 use crate::config::{Config, Requirement, RequirementRule};
-use crate::config_tasks::FieldExample;
 use crate::filter::Filter;
 use crate::model::Task;
 

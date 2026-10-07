@@ -32,5 +32,5 @@ pub struct EstimateConfig {
 }
 
 #[cfg(test)]
-#[path = "config_estimate_tests.rs"]
+#[path = "estimate_tests.rs"]
 mod tests;

@@ -3,7 +3,7 @@
 //! Separate from [`crate::validate`], which is the checks themselves. Every
 //! pass that can fail a task builds one of these — the core field checks, the
 //! body-shape gates ([`crate::gate`], [`crate::content_gate`]), the comment
-//! scan ([`crate::config_comments`]) and the config-declared rules
+//! scan ([`crate::config::comments`]) and the config-declared rules
 //! ([`crate::config_rules`]) — and every consumer reads exactly these fields,
 //! so the report type outliving any one pass is the point.
 //!

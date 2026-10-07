@@ -272,5 +272,5 @@ impl JsonSchema for HeaderPathSegment {
 }
 
 #[cfg(test)]
-#[path = "config_schema_tests.rs"]
+#[path = "schema_tests.rs"]
 mod tests;

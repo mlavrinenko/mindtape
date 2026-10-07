@@ -221,7 +221,7 @@ const DEFAULT_CONTAINS_FIELDS: [&str; 3] = ["title", "id", fields::BODY_FIELD];
 /// The default `contains()` haystack: the project's `[ls] contains-fields`
 /// when set, else [`DEFAULT_CONTAINS_FIELDS`] unchanged. Config load already
 /// validated a configured list against [`fields::is_contains_field`]
-/// ([`crate::config_ls::deserialize_contains_fields`]), so every name here is
+/// ([`crate::config::ls::deserialize_contains_fields`]), so every name here is
 /// trusted.
 fn default_contains_fields(config: &Config) -> Vec<String> {
     if config.ls.contains_fields.is_empty() {

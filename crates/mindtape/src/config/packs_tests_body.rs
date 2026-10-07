@@ -2,12 +2,12 @@
 //! (no local rules layered over it), enforces the task practice it ships:
 //! a well-formed six-section body passes every header/content rule the pack
 //! declares, and an empty body — the task's own Problem step — is refused.
-//! Split out of `config_packs_tests.rs`, which was already at the linecop
+//! Split out of `config/packs_tests.rs`, which was already at the linecop
 //! cap, per `CONTRIBUTING.md`'s `just fix-check`/ejectest convention.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use crate::body_gate::{BodyRules, check_body_rules};
-use crate::config_layers::load_config_layered_from;
+use crate::config::layers::load_config_layered_from;
 use crate::content_gate::compile_content_rules;
 use crate::gate::compile_rules;
 use crate::test_support::{bare_task, home_and_project};

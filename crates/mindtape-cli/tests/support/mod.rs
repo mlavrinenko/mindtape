@@ -40,7 +40,7 @@ const STUB_EDITOR: &str = "mt-no-such-editor";
 ///
 /// `mt` layers a global `defaults.toml` under every project config —
 /// `dirs::config_dir()/mindtape/defaults.toml`, a supported and documented
-/// layer (`crates/mindtape/src/config_layers.rs`). A spawned binary reads
+/// layer (`crates/mindtape/src/config/layers.rs`). A spawned binary reads
 /// whatever the developer happens to keep there, so without this every e2e
 /// test is a function of their personal `mt` setup: two lines of `[ls]
 /// hyperlinks` in `~/.config/mindtape/defaults.toml` are enough to fail

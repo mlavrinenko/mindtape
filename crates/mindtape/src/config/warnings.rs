@@ -23,7 +23,7 @@ pub(crate) fn warnings(config: &Config) -> Vec<String> {
 
 /// Every stored filter in `config` with its dotted TOML path.
 fn filters(config: &Config) -> Vec<(String, String)> {
-    let mut out = crate::config_required::field_filters(config);
+    let mut out = crate::config::required::field_filters(config);
     for (index, spec) in config.tasks.rules.iter().enumerate() {
         let path = format!("tasks.rules[{index}]");
         out.extend(
@@ -46,7 +46,7 @@ fn filters(config: &Config) -> Vec<(String, String)> {
     out.extend(config.on.flip.iter().enumerate().map(|(index, hook)| {
         (
             format!("on.flip[{index}].when"),
-            crate::config_hooks::desugar_into(&hook.when, ""),
+            crate::config::hooks::desugar_into(&hook.when, ""),
         )
     }));
     out

@@ -147,7 +147,7 @@ fn label_prefers_the_name_over_the_index() {
 /// pack overriding a farther one's same-named rule) stays legal — that
 /// merge already collapses to one entry before `validate` ever sees this
 /// array, so this check only ever sees the same-file case it is for; see
-/// `crate::config_packs` for the merge and its own coverage of the
+/// `crate::config::packs` for the merge and its own coverage of the
 /// cross-file case.
 #[test]
 fn rejects_duplicate_rule_names_within_one_array() {

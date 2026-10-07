@@ -30,7 +30,7 @@ use std::sync::{Arc, LazyLock};
 
 use serde::{Deserialize, Serialize};
 
-use crate::name_cycle::find_cycle;
+use crate::config::name_cycle::find_cycle;
 
 /// The dictionary-name prefix reserved for the sets `mt` ships. A project dict
 /// carrying it is a config error.
@@ -41,8 +41,8 @@ pub const BUILTIN_PREFIX: &str = "mindtape-";
 /// under the same reader a project's `path` file goes through, so the shipped
 /// files document their own provenance without a second format.
 const BUILTIN_SOURCES: &[(&str, &str)] = &[
-    ("mindtape-verbs", include_str!("dicts/verbs.txt")),
-    ("mindtape-dev-verbs", include_str!("dicts/dev-verbs.txt")),
+    ("mindtape-verbs", include_str!("../dicts/verbs.txt")),
+    ("mindtape-dev-verbs", include_str!("../dicts/dev-verbs.txt")),
 ];
 
 /// The names of the built-in dictionaries, in declaration order.
@@ -336,7 +336,7 @@ pub fn compile_dicts(dicts: &BTreeMap<String, DictSpec>, root: &Path) -> Result<
 /// with — it is handed a string and never learns where the project lives — so a
 /// `Config` built from text alone still answers `in_dict()` for its inline and
 /// `include`-sourced dictionaries. Config load re-compiles against the real
-/// root ([`crate::config_layers`]) and that result wins.
+/// root ([`crate::config::layers`]) and that result wins.
 ///
 /// # Errors
 /// As [`compile_dicts`], minus the unreadable-`path` case — a dict sourced from
@@ -399,5 +399,5 @@ fn compile_order(dicts: &BTreeMap<String, DictSpec>) -> Vec<(String, DictCase)> 
 }
 
 #[cfg(test)]
-#[path = "config_dicts_tests.rs"]
+#[path = "dicts_tests.rs"]
 mod tests;

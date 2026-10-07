@@ -3,7 +3,7 @@
 //!
 //! That makes it the only surface where the config it renders against is a
 //! choice rather than a lookup, and since every column's visibility now lives
-//! in `crates/mindtape/src/defaults.toml` as a `when` expression, the choice
+//! in `crates/mindtape/src/config/defaults.toml` as a `when` expression, the choice
 //! decides whether anything renders: `Config::default()` bypasses the floor, so
 //! it describes no column and prints a header-less blank
 //! (`truth/tasks/collapse-column-visibility-onto-a-single-when-expression.typ`).

@@ -1,6 +1,6 @@
 //! `[[tasks.status]]` — the status legend: an ordered, displayable vocabulary.
 //!
-//! Split out of `config.rs` to keep that file under the size gate; re-exported
+//! Split out of `config/mod.rs` to keep that file under the size gate; re-exported
 //! at `crate::config::{Legend, LegendEntry}`.
 
 use std::collections::{HashSet, VecDeque};
@@ -192,5 +192,5 @@ impl Legend {
 }
 
 #[cfg(test)]
-#[path = "config_status_tests.rs"]
+#[path = "status_tests.rs"]
 mod tests;

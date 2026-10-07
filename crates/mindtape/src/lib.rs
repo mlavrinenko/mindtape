@@ -30,33 +30,9 @@ pub mod commit_refs;
 pub mod commit_task_expr;
 pub mod commit_tasks;
 pub mod config;
-mod config_actors;
-mod config_add;
-mod config_assignee;
-pub mod config_comments;
-pub mod config_commits;
-mod config_dicts;
-mod config_estimate;
-mod config_format;
-mod config_go;
-pub mod config_hooks;
-mod config_layers;
-mod config_links_validate;
-mod config_ls;
-mod config_ls_columns;
-mod config_packs;
-mod config_packs_toml;
-mod config_required;
-mod config_rm;
-mod config_roots;
 mod config_rule_sites;
 pub mod config_rules;
 mod config_rules_typst;
-mod config_schema;
-mod config_status;
-mod config_tasks;
-mod config_views;
-mod config_warnings;
 pub mod content_gate;
 mod date;
 mod date_pin;
@@ -81,9 +57,7 @@ pub mod link;
 pub mod link_scan;
 pub mod loader;
 pub mod marker;
-mod merge;
 pub mod model;
-mod name_cycle;
 pub mod naming;
 pub mod numeric;
 pub mod ready;
@@ -128,6 +102,13 @@ pub use commit_msg::{
 };
 pub use commit_range::{CommitRange, PastCommit, RangeCommit};
 pub use commit_tasks::{CommitStates, ProjectState, StatePlan, StateSource};
+pub use config::comments::{CommentsConfig, CommentsError, CommentsPolicy, check_comments};
+pub use config::commits::{CommitBreach, CommitRuleSpec, CommitScope, CommitsConfig, check_commit};
+pub use config::layers::{
+    LayerSource, load_config_layered, load_config_layered_from, merged_config_table,
+};
+pub use config::packs::{PackOrigin, RuleOrigin, RuleOriginEntry};
+pub use config::schema::{SCHEMA_URL, config_schema_json};
 pub use config::{
     Actor, ActorKind, AddConfig, AssigneeConfig, BUILTIN_PREFIX, Collector, ColumnConfig, Config,
     ConfigError, DeriveConfig, DeriveTags, Dict, DictCase, DictSpec, Dicts, EstimateConfig, Facet,
@@ -137,14 +118,7 @@ pub use config::{
     builtin_dict_names, compile_dicts, config_path, embedded_defaults, load_config, parse_config,
     parse_import_view, roles_of, validate_dicts, validate_views,
 };
-pub use config_comments::{CommentsConfig, CommentsError, CommentsPolicy, check_comments};
-pub use config_commits::{CommitBreach, CommitRuleSpec, CommitScope, CommitsConfig, check_commit};
-pub use config_layers::{
-    LayerSource, load_config_layered, load_config_layered_from, merged_config_table,
-};
-pub use config_packs::{PackOrigin, RuleOrigin, RuleOriginEntry};
 pub use config_rules::{CheckSpec, RuleSpec};
-pub use config_schema::{SCHEMA_URL, config_schema_json};
 pub use content_gate::{CompiledContentRule, check_content, compile_content_rules};
 pub use date::{days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};
 pub use date_pin::{DateOverrideError, init_pinned_today};

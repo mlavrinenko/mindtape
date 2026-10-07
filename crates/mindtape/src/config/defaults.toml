@@ -1,7 +1,7 @@
-# crates/mindtape/src/defaults.toml — the embedded config floor.
+# crates/mindtape/src/config/defaults.toml — the embedded config floor.
 #
 # Deep-merged UNDER the user's `.mindtape/config.toml` before typed
-# deserialisation (`parse_config` in `config.rs`): the user's values win
+# deserialisation (`parse_config` in `config/mod.rs`): the user's values win
 # field-by-field (tables merge key-by-key; arrays and scalars replace
 # wholesale). This generalises the built-in priority-frameworks merge
 # (`merge_builtin_frameworks` in `framework.rs`) from one sub-table to the

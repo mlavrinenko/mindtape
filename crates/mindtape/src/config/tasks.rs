@@ -4,11 +4,11 @@
 //! ad-hoc field constraints, the tag allow-list, and body-shape config.
 //!
 //! Field types that already outgrew this file live in their own sibling
-//! instead and are only referenced here: roots/derive-tags (`config_roots`),
-//! the status legend (`config_status`), assignee (`config_assignee`),
-//! estimate (`config_estimate`), naming (`crate::naming`), links
+//! instead and are only referenced here: roots/derive-tags (`config/roots.rs`),
+//! the status legend (`config/status.rs`), assignee (`config/assignee.rs`),
+//! estimate (`config/estimate.rs`), naming (`crate::naming`), links
 //! (`crate::link`), recur (`crate::recur`), rules (`config_rules`), and
-//! comments (`config_comments`).
+//! comments (`config/comments.rs`).
 
 use std::collections::{BTreeMap, HashSet};
 
@@ -16,11 +16,11 @@ use serde::{Deserialize, Deserializer};
 
 use crate::body_content::ContentConfig;
 use crate::body_headers::HeadersConfig;
-use crate::config_dicts::Dicts;
-use crate::config_estimate::EstimateConfig;
-use crate::config_required::Requirement;
-use crate::config_roots::{DeriveConfig, RootSpec};
-use crate::config_status::Legend;
+use crate::config::dicts::Dicts;
+use crate::config::estimate::EstimateConfig;
+use crate::config::required::Requirement;
+use crate::config::roots::{DeriveConfig, RootSpec};
+use crate::config::status::Legend;
 use crate::framework::Framework;
 use crate::numeric::{Anchor, Band, NumericField, ScaleKind};
 
@@ -45,7 +45,7 @@ pub struct TasksConfig {
     /// config load.
     pub fields: BTreeMap<String, FieldConfig>,
     /// Which actors `assignee:` may name, and whether it is required.
-    pub assignee: crate::config_assignee::AssigneeConfig,
+    pub assignee: crate::config::assignee::AssigneeConfig,
     /// Allowed estimate units, and whether an estimate is required.
     pub estimate: EstimateConfig,
     /// Tag allow-list, checked on open tasks only.
@@ -66,7 +66,7 @@ pub struct TasksConfig {
     /// and so does every write command before it writes.
     pub rules: Vec<crate::config_rules::RuleSpec>,
     /// Review-comment policy over a task's whole source file (`mt check`).
-    pub comments: crate::config_comments::CommentsConfig,
+    pub comments: crate::config::comments::CommentsConfig,
 }
 
 // `roots` intentionally stays the opinionated `["tasks"]` rather than collapsing
@@ -84,7 +84,7 @@ impl Default for TasksConfig {
             priority: PriorityConfig::default(),
             difficulty: NumericField::default(),
             fields: BTreeMap::new(),
-            assignee: crate::config_assignee::AssigneeConfig::default(),
+            assignee: crate::config::assignee::AssigneeConfig::default(),
             estimate: EstimateConfig::default(),
             tags: TagsConfig::default(),
             body: TaskBodyConfig::default(),
@@ -93,7 +93,7 @@ impl Default for TasksConfig {
             links: crate::link::LinksConfig::default(),
             recur: crate::recur::RecurConfig::default(),
             rules: Vec::new(),
-            comments: crate::config_comments::CommentsConfig::default(),
+            comments: crate::config::comments::CommentsConfig::default(),
         }
     }
 }
@@ -305,7 +305,7 @@ pub struct TagsConfig {
 
 /// Expand every `@<dict>` reference in `[tasks.tags] allowed` and each
 /// `[tasks.fields.<name>] values` against `dicts`, in place. Run once, at
-/// config load ([`crate::config_layers::build_config`]), after `[dicts]`
+/// config load ([`crate::config::layers::build_config`]), after `[dicts]`
 /// itself has compiled — never per task — so every downstream reader
 /// (validation, `mt add` slot completion, the generated schema) sees a plain,
 /// already-resolved list and needs no change of its own.
@@ -441,5 +441,5 @@ pub struct TaskBodyConfig {
 }
 
 #[cfg(test)]
-#[path = "config_tasks_tests.rs"]
+#[path = "tasks_tests.rs"]
 mod tests;
