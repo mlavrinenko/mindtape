@@ -38,35 +38,36 @@
   block: true,
 )
 
-A task is one Typst file. This page walks one task file, then shows each
-mistake its syntax invites and what `mt check` prints for it. A task file needs
-no Typst beyond what this page shows.
+A task is one Typst file. You can write it in any editor, and you don't need
+any Typst beyond what's on this page. Here's a whole task file. Below it, each
+part is explained, then each mistake the syntax invites and what `mt check`
+prints for it.
 
 #raw(read("../generated/task-files-source.typ"), lang: "typ", block: true)
 
 = The import
 
-The first line imports #pkg, the MindTape prelude. The `: *` makes every name
-the prelude defines usable in the file: `task`, the status functions such as
-`wip`, and the link functions such as `depends-on`.
+The first line imports #pkg, the MindTape prelude. The `: *` brings in every
+name the prelude defines: `task`, the status functions such as `wip`, and the
+link functions such as `depends-on`.
 
-`@local` names the Typst packages installed on this machine. `mt install` puts
+`@local` means the Typst packages installed on this machine. `mt install` puts
 the prelude there, as the #link(u("/quickstart/"))[Quickstart] shows, so the
-import resolves on every machine that ran it.
-#link(u("/config/"))[Configuration] shows how a project points the import at a
-prelude in its own tree instead.
+import works on any machine where you've run it. To point the import at a
+prelude in the project's own tree instead, see
+#link(u("/config/"))[Configuration].
 
 = The show rule
 
 In Typst markup, `#` starts code, and the code runs to the end of the
 expression. `#show: task.with(...)` hands the rest of the file to the function
 `task`. `task.with(...)` sets `task`'s named arguments, which are the fields,
-and Typst passes the rest of the file as the body. `task` records the fields
-for `mt` to read, and lays the task out as a card when Typst compiles the
-file.
+and Typst passes the rest of the file in as the body. `task` records the
+fields for `mt` to read, and lays the task out as a card when Typst compiles
+the file.
 
-Each field is `name: value`, and a comma separates it from the next. A value is
-a string in double quotes, a number, a function call such as `wip(...)`, an
+Each field is `name: value`, with a comma before the next one. A value is a
+string in double quotes, a number, a function call such as `wip(...)`, an
 array or a dictionary. #link(u("/dsl/"))[Task DSL] lists every field and the
 values it takes.
 
@@ -81,12 +82,12 @@ the markup.
 
 Each block below shows lines from the file above, then the same lines broken.
 `mt check` reads every task file, names each one that fails at the line at
-fault, and exits 1.
-Every other command warns about a file that fails and leaves its task out.
+fault, and exits 1. Every other command warns about a file that fails and
+leaves its task out.
 
 == Separate fields with commas
 
-Without the comma, Typst cannot tell where the title ends:
+Without the comma, Typst can't tell where the title ends:
 
 #pair("comma")
 
@@ -94,8 +95,8 @@ Without the comma, Typst cannot tell where the title ends:
 
 == Write a dictionary in parentheses
 
-A dictionary is `(key: value, ...)`, in parentheses as an array is. Braces open
-a code block, so a dictionary written in braces fails:
+A dictionary is `(key: value, ...)`, in parentheses like an array. Braces open
+a code block, so a dictionary in braces fails:
 
 #pair("dictionary")
 
@@ -104,7 +105,7 @@ a code block, so a dictionary written in braces fails:
 == End a one-item array with a comma
 
 Parentheses around one value only group it, so `("backend")` is the string
-`"backend"`. A trailing comma makes it an array of one item:
+`"backend"`. Add a trailing comma to make it an array of one item:
 
 #pair("array")
 
@@ -123,8 +124,8 @@ markup. A note passed as a string fails:
 == Join links with `+`
 
 Each link function returns an array of links, and `+` joins two arrays into
-one. A comma ends the `links` field instead, so the second call becomes an
-argument of `task` with no name:
+one. A comma ends the `links` field instead, so the second call turns into an
+unnamed argument of `task`:
 
 #pair("links")
 
@@ -133,7 +134,7 @@ argument of `task` with no name:
 == Escape `#` in the body
 
 The body is markup, where `#` starts code. So `#backend` is code, and Typst
-looks up a variable named `backend`:
+looks for a variable named `backend`:
 
 #pair("hash")
 
@@ -141,9 +142,9 @@ looks up a variable named `backend`:
 
 = The rest of Typst
 
-A task file uses only the syntax above. The Typst documentation covers the
-rest: #typst-doc("reference/scripting/")[scripting] for variables, functions
-and imports, #typst-doc("reference/foundations/array/")[arrays],
+A task file only needs the syntax above. For the rest, see the Typst docs:
+#typst-doc("reference/scripting/")[scripting] for variables, functions and
+imports, #typst-doc("reference/foundations/array/")[arrays],
 #typst-doc("reference/foundations/dictionary/")[dictionaries],
 #typst-doc("reference/foundations/content/")[content] and
 #typst-doc("reference/styling/")[show rules].

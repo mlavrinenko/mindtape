@@ -31,14 +31,14 @@
   ("custom-status", "failed-note"),
 )
 
-`[[tasks.status]]` is the status legend, the list of a project's legal
-statuses in lifecycle order. `mt check` reports a task whose status is not in
-the list. Moving a task to another status is a flip, and `mt flip` makes it.
-Each value is also a verb, so `mt wip <task>` runs `mt flip wip <task>`.
+`[[tasks.status]]` is the status legend: the statuses a task can have, in
+lifecycle order. `mt check` reports a task whose status isn't in the list.
+Moving a task to another status is a flip, and `mt flip` does it for you.
+Each status is also a command, so `mt wip <task>` runs `mt flip wip <task>`.
 
 = The default legend
 
-A project that declares no `[[tasks.status]]` gets this legend from the
+If you don't declare `[[tasks.status]]`, you get this legend from the
 #link(u("/config/"))[config floor], the defaults built into `mt`:
 
 #let floor = json("../generated/floor-legend.json")
@@ -57,16 +57,18 @@ A project that declares no `[[tasks.status]]` gets this legend from the
 
 A terminal status ends a task. A field required with `!terminal` stops being
 required there. `mt rm` with no filter retires every task in a terminal
-status. Declaring
-`[[tasks.status]]` replaces the whole list, because an array replaces the
-lower layer's value (see #link(u("/config/"))[Configuration]). An empty list,
-`[tasks] status = []`, removes the legend, and then any status is legal.
+status.
+
+Declaring `[[tasks.status]]` replaces the whole list, because an array
+replaces the lower layer's value (see #link(u("/config/"))[Configuration]).
+An empty list, `[tasks] status = []`, removes the legend, and then any status
+is legal.
 
 = Writing a status
 
 A task's `status:` holds a value, the date it was set, and an optional note.
 The prelude has a constructor for common values such as `wip` and `done`,
-which takes the note as a trailing block. Any other value is written with
+which takes the note as a trailing block. For any other value, use
 `status(...)`, which takes the note as its `note` argument:
 
 #raw(
@@ -78,15 +80,16 @@ which takes the note as a trailing block. Any other value is written with
   block: true,
 )
 
-`mt flip` writes this line, so a task file rarely needs it typed. The
-#link(u("/dsl/"))[Task DSL] covers the rest of the field.
+You can type this line yourself, but `mt flip` writes it with today's date,
+so you rarely need to. The #link(u("/dsl/"))[Task DSL] covers the rest of the
+field.
 
 = Entry keys
 
 #config-keys-table(schema, "tasks.status")
 
-The legend below sets `to`, `note` and `unblocked`, which the rest of this page
-explains:
+The legend below sets `to`, `note` and `unblocked`. The rest of this page
+explains each one:
 
 #raw(
   render-slices(
@@ -104,58 +107,58 @@ explains:
 
 = Transitions
 
-`to` lists the statuses a task may move to from this one. These are the moves
+`to` lists the statuses a task can move to from this one. Here are the moves
 the whole legend of `examples/statuses/` allows. A terminal status has a
 double border:
 
 #diagram("statuses-moves", [The moves `to` allows in `examples/statuses/`])
 
-With no `to` on any entry, a task may move from any status to any other. Once
-one entry declares `to`, `mt flip` refuses a move the list does not name, and prints the moves it
-allows:
+With no `to` on any entry, a task can move from any status to any other. Once
+one entry declares `to`, `mt flip` refuses a move the list doesn't name, and
+prints the moves it allows:
 
 #terminal("statuses-transition")
 
-`--force` overrides the refusal. Re-stamping a task with the status it already
-has is always allowed, and so is the first status of a task that has none. An
-entry with an empty `to` is a sink, which a task leaves only with `--force`:
-`cancelled` above.
+`--force` overrides the refusal. Re-stamping a task with the status it
+already has is always allowed, and so is the first status of a task that has
+none. An entry with an empty `to` is a sink, which a task leaves only with
+`--force`, like `cancelled` above.
 
-`mt check` reports a task whose status cannot be reached from the initial
-status, the first entry that is not terminal. It checks the current status
-only, because a task file keeps no history of the statuses before it.
+`mt check` reports a task whose status can't be reached from the initial
+status, the first entry that isn't terminal. It checks only the current
+status, because a task file keeps no history of earlier statuses.
 
 = Required notes
 
-`note = "required"` makes `mt flip` refuse a move into that status without
-`-m`/`--note`:
+With `note = "required"`, `mt flip` won't move a task into that status
+without `-m`/`--note`:
 
 #terminal("statuses-note")
 
 `mt check` reports a task already in that status whose note is missing or
-blank. Require a note on the statuses no other check explains, such as
-`on-hold` and `failed` above. The default is `optional`. `mt` never refuses a
-status note for being present, so `forbidden` has no effect on a status
+blank. Require a note on statuses that need a reason nothing else records,
+such as `on-hold` and `failed` above. The default is `optional`. `mt` never
+refuses a status note for being there, so `forbidden` does nothing on a status
 entry.
 
 = Unblocked statuses
 
-`unblocked = true` makes `mt flip` refuse a move into that status while the
-task waits on an unfinished target of a `depends-on` edge, or of a project
-kind declared `blocking` (see #link(u("/links/"))[Links]):
+With `unblocked = true`, `mt flip` won't move a task into that status while
+it waits on an unfinished target of a `depends-on` edge, or of a kind you
+declared `blocking` (see #link(u("/links/"))[Links]):
 
 #terminal("statuses-unblocked")
 
-`--force` overrides it. `mt check` warns about a task already in such a
-status while it is blocked. This is a warning, because `--force` puts a task
-there on purpose, and reopening a dependency puts every finished dependant
-there. Set `unblocked` on the statuses where work starts or ends, like `wip`
-and `done`. Leave it off the statuses blocked work must still reach, like
-`cancelled`.
+`--force` overrides it. `mt check` warns about a task already in such a status
+while it's blocked. It's a warning, not an error, because `--force` puts a
+task there on purpose, and reopening a dependency puts every finished
+dependant there. Set `unblocked` on the statuses where work starts or ends,
+like `wip` and `done`. Leave it off statuses that blocked work must still
+reach, like `cancelled`.
 
-On a status that is also terminal, `unblocked` also requires every child to
-be finished: every task whose `parent` edge names this one. A child in a
-terminal status counts as finished. `mt flip` names each unfinished child,
-`--force` overrides, and `mt check` warns about a parent that is already
-closed over an unfinished child. A status that is `unblocked` but not
-terminal, like `wip`, lets a parent start while its children are open.
+On a status that's also terminal, `unblocked` also requires every child to be
+finished: every task whose `parent` edge names this one. A child in a terminal
+status counts as finished. `mt flip` names each unfinished child, `--force`
+overrides, and `mt check` warns about a parent already closed over an
+unfinished child. A status that's `unblocked` but not terminal, like `wip`,
+lets a parent start while its children are open.

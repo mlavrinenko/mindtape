@@ -29,16 +29,16 @@
   ("kinds",),
 )
 
-The `links:` field holds a task's typed edges to other tasks. Each edge has a
-kind and a target. The target is the path from this file to the other task's
-file, as #link(u("/concepts/"))[Concepts] explains. `mt check` reports a
-target that names no task, a cycle, and an edge that lacks a note its kind
-requires.
+Use `links:` to say how a task relates to others: it depends on one, it's
+part of another, it replaces a third. Each edge has a kind and a target. The
+target is the path from this file to the other task's file, as
+#link(u("/concepts/"))[Concepts] explains. `mt check` reports a target that
+names no task, a cycle, and an edge missing a note its kind requires.
 
 = Writing edges by hand
 
-Each kind has a helper that takes one or more targets and an optional trailing
-note. A helper returns an array, so `+` joins several:
+Each kind has a helper that takes one or more targets and an optional
+trailing note. A helper returns an array, so you join several with `+`:
 
 #raw(
   render-slices(slices, (
@@ -52,8 +52,8 @@ note. A helper returns an array, so `+` joins several:
   block: true,
 )
 
-An array of helper calls means the same as `+`. `edge("<kind>", ...)` writes a
-kind that has no helper, such as one the project declares:
+An array of helper calls means the same as `+`. For a kind with no helper,
+such as one you declare in config, use `edge("<kind>", ...)`:
 
 #raw(
   render-slices(slices, (
@@ -72,7 +72,7 @@ kind that has no helper, such as one the project declares:
   columns: 2,
   table.header([Kind], [A `kind("target.typ")` edge means]),
   [`depends-on`],
-  [This task cannot start until the target is finished. It is the only built-in kind that makes a task blocked. `mt check` refuses a cycle of these edges.],
+  [This task can't start until the target is finished. It's the only built-in kind that makes a task blocked. `mt check` refuses a cycle of these edges.],
 
   [`parent`],
   [This task is part of the target. `mt check` refuses a cycle of these edges.],
@@ -88,11 +88,11 @@ kind that has no helper, such as one the project declares:
 
 = Parents and progress
 
-Each task has two computed fields over the `parent` edges that name it.
+Each task gets two computed fields from the `parent` edges that point at it.
 `children` counts those tasks. `progress` is the share of them in a
 #link(u("/statuses/#the-default-legend"))[terminal] status, so a cancelled
-child counts as finished. In the table, the `progress`
-column shows the counts:
+child counts as finished. In the table, the `progress` column shows the
+counts:
 
 #terminal("links-progress")
 
@@ -102,27 +102,27 @@ to close. A task without children has no `progress`. It prints as `null` in
 JSON and an empty cell in the table, and a comparison such as `progress < 1`
 never matches it.
 
-`mt flip` refuses to move a parent with unfinished children into a status
-that is both terminal and `unblocked`, as
-#link(u("/statuses/"))[The status legend] explains.
+`mt flip` won't move a parent with unfinished children into a status that's
+both terminal and `unblocked`. See #link(u("/statuses/"))[The status legend].
 
 = Writing edges with `mt link`
 
-`mt link <task> <kind> <target>` adds an edge and writes the path for you. A
-target can be a #link(u("/concepts/#identity"))[stem], a stem with `.typ`, or a
-path. A bare stem names a task
-in any folder, and `mt link` writes the path from the linking file to it. An
-edge already on the task is not written again:
+Working out a relative path by hand is fiddly. `mt link <task> <kind>
+<target>` adds the edge and writes the path for you. A target can be a
+#link(u("/concepts/#identity"))[stem], a stem with `.typ`, or a path. A bare
+stem finds the task in any folder, and `mt link` writes the path from the
+linking file to it. If the edge is already there, `mt link` leaves it alone:
 
 #terminal("links-write")
 
-`mt link --apply <file>` merges a whole map of task to kind to targets, from
-YAML or JSON. The #link(u("/cli/link/"))[`mt link` page] lists its other flags.
+To add many edges at once, `mt link --apply <file>` merges a map of task to
+kind to targets, from YAML or JSON. The #link(u("/cli/link/"))[`mt link` page]
+lists its other flags.
 
 = Project-declared kinds
 
-`[[tasks.links.kinds]]` adds kinds beside the six built-ins. A task writes
-one with `edge("<kind>", ...)`, as the `discharged-by` edge above does.
+`[[tasks.links.kinds]]` adds your own kinds next to the six built-ins. A task
+writes one with `edge("<kind>", ...)`, like the `discharged-by` edge above.
 `examples/links/` declares these:
 
 #raw(
@@ -146,20 +146,20 @@ one with `edge("<kind>", ...)`, as the `discharged-by` edge above does.
 
 #config-values-table(schema, "TargetValidator")
 
-A kind whose `validate` is not `local-task-path` points outside the backlog,
-at a URL, a commit or a ticket. `mt check` reports a target that does not fit
-the validator, naming the kind, the validator and the value. `mt` never
+A kind whose `validate` isn't `local-task-path` points outside the backlog,
+at a URL, a commit or a ticket. `mt check` reports a target that doesn't fit
+the validator, and names the kind, the validator and the value. `mt` never
 resolves such a target to a task. It leaves it out of `max`, of cycle checks
 and of readiness, even when the kind sets `blocking`. `mt graph` draws each
 such target as a leaf node.
 
 = The graph
 
-`mt graph` prints the tasks and their edges as a Graphviz DOT graph, or as a
-Mermaid flowchart with `--format mermaid`. A filter limits it to the tasks
-that match, and `--no-terminal` leaves out the finished ones. Each node shows
-a task's title and status. A ready task is green, a blocked one red and a
-finished one grey. This is the graph of `examples/links/`, the project whose
-edges this page quotes:
+To see the edges, `mt graph` prints the tasks as a Graphviz DOT graph, or as
+a Mermaid flowchart with `--format mermaid`. Pass a filter to graph only the
+tasks that match, and `--no-terminal` to leave out the finished ones. Each
+node shows a task's title and status. A ready task is green, a blocked one red
+and a finished one grey. Here's the graph of `examples/links/`, the project
+this page quotes:
 
 #diagram("links-graph", [`mt graph` on `examples/links/`, drawn by Graphviz])

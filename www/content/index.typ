@@ -1,4 +1,4 @@
-// www/content/index.typ — the site root. The hero shows the tagline, the
+// www/content/index.typ: the site root. The hero shows the tagline, the
 // intro and the showcase task. The problem list comes from www/utils/demo.typ,
 // which README.md renders too.
 #import "../utils/page.typ": page
@@ -23,32 +23,32 @@
 
 = Why Typst
 
-A task file is Typst code. Over a Markdown file, that gives you four things.
+A task file is Typst code, not Markdown. Here's what you get for that.
 
 - #strong[Field completion.] `task` declares every field as a named parameter,
   so the Typst language server completes field names in your editor.
 - #strong[Values checked on load.] `mt` evaluates every task file on every
-  command. A misspelled field, a month 13 or a text where a number belongs
-  fails with the file named.
-- #strong[Shared helpers.] A task file can `#import` your own Typst module,
-  and every task that imports it uses the same definitions.
-- #strong[Your own validator.] A rule can call a Typst function you write, as
-  #link(u("/self-validating-tasks/"))[Self-validating tasks] shows.
+  command. A misspelled field, a month 13 or text where a number belongs fails,
+  and the error names the file.
+- #strong[Shared helpers.] A task file can `#import` your own Typst module, so
+  every task that imports it uses the same definitions.
+- #strong[Your own validator.] A rule can call a Typst function you write. See
+  #link(u("/self-validating-tasks/"))[Self-validating tasks].
 
-The two blocks below are what tinymist, the Typst language server, returned
-when this site was built. On a blank line inside `task.with(...)`, it offers
-each field the file does not set yet.
+Here's what tinymist, the Typst language server, returned when this site was
+built. On a blank line inside `task.with(...)`, it offers each field the file
+doesn't set yet:
 
 #lsp-completion()
 
-On a file that writes `titel:`, tinymist reports the unknown field as it
-compiles the file, and an editor marks it under `titel`.
+Write `titel:` by mistake and tinymist reports the unknown field as it compiles
+the file. Your editor marks it under `titel`:
 
 #lsp-diagnostics()
 
-= Built for humans and agents
+= For people and for agents
 
-`mt ls` prints a table for people, and JSON, CSV or a bare path list for
-scripts. A refused command exits non-zero and prints what to fix, so an agent
-can read the error and correct its work.
-#link(u("/agents/"))[For AI agents] shows how to drive `mt` from an agent.
+`mt ls` prints a table for you to read, and JSON, CSV or a bare list of paths
+for scripts. When `mt` refuses a command, it exits non-zero and says what to
+fix, so an agent can read the error and correct its own work. See
+#link(u("/agents/"))[For AI agents] to drive `mt` from one.

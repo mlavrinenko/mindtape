@@ -21,24 +21,24 @@
 #let facts = json("../generated/dsl-fields.json")
 
 A task file imports the prelude and passes its fields to `task.with(...)`.
-This one, from `examples/dsl/`, sets most of them:
+Here's one from `examples/dsl/` that sets most of them:
 
 #raw(sketch.task.code, lang: "typ", block: true)
 
-#link(u("/task-files/"))[Task files] explains the Typst in it, line by line.
-#link(u("/concepts/"))[Concepts] explains how `mt` reads these files, names
-them and resolves their links.
+#link(u("/task-files/"))[Task files] walks through the Typst in it, line by
+line. #link(u("/concepts/"))[Concepts] covers how `mt` reads these files,
+names them and resolves their links.
 
 = Fields
 
 Each field is a named parameter of `task`, so a Typst language server such as
 #link("https://myriad-dreamin.github.io/tinymist/")[tinymist] completes the
-names and shows each default. A misspelled field such as `titel` fails the
-file with `unexpected argument: titel`, which the language server marks under
-the misspelled name.
+names and shows each default. Misspell a field as `titel` and the file fails
+with `unexpected argument: titel`, which the language server marks under the
+misspelled name.
 
-A value is data. The helpers such as `ice(...)` and `every(...)` only build a
-dictionary, and `mt` does the scoring and the date arithmetic.
+A value is plain data. Helpers like `ice(...)` and `every(...)` only build a
+dictionary. `mt` does the scoring and the date arithmetic.
 
 #table(
   columns: 2,
@@ -51,8 +51,8 @@ dictionary, and `mt` does the scoring and the date arithmetic.
 )
 
 A date field takes `on(2026, 7, 20)`, the prelude's short form of
-`datetime(year: 2026, month: 7, day: 20)`.
-The `start:` and `until:` arguments of `every(...)` take the same form.
+`datetime(year: 2026, month: 7, day: 20)`. So do the `start:` and `until:`
+arguments of `every(...)`.
 
 = Writing a status
 
@@ -60,16 +60,18 @@ The prelude has a constructor for each of these statuses:
 #facts.statuses.map(raw).join(", ").
 
 Each takes the year, month and day the status was set, then an optional note
-as a trailing content block, as `wip` does in the sketch above. A status in
-your project's #link(u("/statuses/"))[status legend], its list of allowed
-statuses, that has no constructor is written with `status(...)`. `mt flip` and
-the status commands such as `mt wip` write this field for you.
+as a trailing content block, like `wip` in the sketch above. Your project's
+#link(u("/statuses/"))[status legend], its list of allowed statuses, can name
+a status with no constructor. Write that one with `status(...)`.
+
+You can type the status and its date yourself, or let `mt flip` and the status
+commands such as `mt wip` write the field for you.
 
 = Links and recurrence
 
-`links:` holds the task's typed edges to other tasks, and
-#link(u("/links/"))[Task links] covers their kinds. `recur:` makes the task
-repeat, and #link(u("/recurring/"))[Recurring tasks] covers its rules.
+`links:` holds the task's typed edges to other tasks. See
+#link(u("/links/"))[Task links] for the kinds. `recur:` makes the task repeat.
+See #link(u("/recurring/"))[Recurring tasks] for the rules.
 
 = Task bodies
 

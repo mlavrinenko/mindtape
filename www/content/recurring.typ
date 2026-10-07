@@ -32,9 +32,10 @@
   ),
 )
 
-The `recur:` field makes a task repeat. `mt` never advances a series by
-itself, and no read command changes a file. When you finish an occurrence,
-run `mt recur <task>` to write the next one.
+For a chore that comes back, like a weekly review or a yearly renewal, set
+`recur:` on the task. `mt` never advances a series by itself, and no read
+command changes a file. When you finish an occurrence, run `mt recur <task>`
+to write the next one.
 
 = Periods
 
@@ -52,14 +53,16 @@ run `mt recur <task>` to write the next one.
 
 `on:` takes a set of weekdays, written with the prelude's names `mon` to
 `sun`, and needs a `weeks` period. Each occurrence falls on the next listed
-weekday in an on-week. Weeks run Monday to Sunday and are counted from Monday
-2001-01-01, the same epoch for every series: with `weeks: N`, every Nth week
-from it is an on-week. So `every(weeks: 2, on: (mon, thu))` falls on Monday
-and Thursday of every second week, and finishing late in an off week still
-lands the next occurrence on the following on-week.
+weekday in an on-week.
 
-`start:` takes a date and moves the epoch for one series. The week holding
-`start` is an on-week, and so is every Nth week after it, so
+Which weeks are on-weeks? Weeks run Monday to Sunday and are counted from
+Monday 2001-01-01, the same epoch for every series. With `weeks: N`, every Nth
+week from it is an on-week. So `every(weeks: 2, on: (mon, thu))` falls on
+Monday and Thursday of every second week. If you finish late in an off week,
+the next occurrence still lands on the following on-week.
+
+To pick which weeks, pass `start:` with a date. The week holding `start` is an
+on-week, and so is every Nth week after it. So
 `every(weeks: 2, on: (mon, thu), start: on(2026, 6, 1))` runs the weeks of
 June 1 and June 15, and a series with `start: on(2026, 6, 8)` runs the other
 weeks. A series without `start` keeps the 2001-01-01 epoch. `start` needs a
@@ -71,16 +74,18 @@ Four more arguments control the series:
 
 - `anchor` sets the date the next occurrence counts from. `"completion"`
   counts from the day you run `mt recur`. `"due"` counts from the task's
-  `due` date and skips any occurrence already past, so a late finish does not
+  `due` date and skips any occurrence already past, so finishing late doesn't
   shift the schedule.
 - `until` is the last date an occurrence may fall on.
 - `count` is the number of occurrences left. `mt recur` lowers it by one each
   time.
 - `materialize` sets what `mt recur` writes. `"spawn"` writes a new task file
-  for the next occurrence. `"mutate"` resets the task's own status and dates for it.
+  for the next occurrence. `"mutate"` resets the task's own status and dates
+  for it. Spawn keeps a file per occurrence as history. Mutate keeps one file,
+  and git holds the history.
 
-`[tasks.recur]` sets the `anchor` and `materialize` a task gets when it leaves
-them out, and limits the values a task may use:
+`[tasks.recur]` sets the `anchor` and `materialize` a task gets when it
+leaves them out, and limits the values a task may use:
 
 #config-keys-table(json("../generated/config-schema.json"), "tasks.recur")
 
@@ -94,8 +99,8 @@ them out, and limits the values a task may use:
 
 = Writing the next occurrence
 
-`mt recur <task>` writes the next occurrence of a task. With `"spawn"`, it
-writes a new file for it, and leaves the task you ran it on as it is:
+`mt recur <task>` writes the next occurrence. With `"spawn"`, it writes a new
+file and leaves the task you ran it on alone:
 
 #terminal("recurring-spawn")
 
@@ -112,14 +117,14 @@ series is a chain of files:
 
 `mt recur` refuses a task that already has a successor, and a series that has
 reached its `until` date or a `count` of 0. `--dry-run` prints what it would
-write, `--advance <N>` writes the next N occurrences at once, and `--skip`
-moves the series past the next occurrence without writing one. The
+write. `--advance <N>` writes the next N occurrences at once. `--skip` moves
+the series past the next occurrence without writing one. The
 #link(u("/cli/recur/"))[`mt recur` page] lists every flag.
 
 = Calendar rules with rrule
 
-`rrule(...)` takes an RFC 5545 rule, for dates `every()` cannot express, such
-as the first Monday of each month or every weekday:
+When `every()` can't say it, such as the first Monday of each month or every
+weekday, `rrule(...)` takes an RFC 5545 rule:
 
 #raw(
   render-slices(slices, (
@@ -129,8 +134,8 @@ as the first Monday of each month or every weekday:
   block: true,
 )
 
-The released builds leave out the `rrule` cargo feature, so install `mt` with
-it:
+The released builds leave out the `rrule` cargo feature, so you need to
+install `mt` with it:
 
 // docs:hand-typed the crate name comes from the release workflow, and the build does not run cargo install
 #raw(
@@ -141,11 +146,11 @@ it:
 
 Then set `[tasks.recur] rrule = true` in the project's config. Without that
 key, `mt check` reports each `rrule(...)` as disabled. Without the feature, it
-reports that this build of `mt` cannot read the rule. With both, it checks the
-rule and quotes one that does not parse. #just.check-rrule() runs that check
-on `examples/recurring/`.
+reports that this build of `mt` can't read the rule. With both, it checks the
+rule and quotes one that doesn't parse. #just.check-rrule() runs that check on
+`examples/recurring/`.
 
 An `rrule(...)` series counts from the task's `due` date, because RFC 5545
-cannot count from a completion date. `mt check` refuses
-`anchor: "completion"` on one, and a task without a `due` date counts from
+can't count from a completion date. `mt check` refuses
+`anchor: "completion"` on one. A task without a `due` date counts from
 today.

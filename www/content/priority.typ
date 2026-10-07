@@ -33,8 +33,10 @@
 )
 
 A task's `priority` is a number on a scale. `mt` labels each number with the
-band it falls in, and sorts and filters on the number. A task sets the number
-by hand, such as `priority: 7`, or a framework computes it from typed inputs.
+band it falls in, and sorts and filters on the number. You can set the number
+by hand, such as `priority: 7`, or let a framework compute it from inputs like
+impact and effort. A number is quick. A framework takes longer to fill in, but
+two tasks scored the same way compare fairly.
 
 = Scale and bands
 
@@ -44,24 +46,24 @@ The shipped scale runs from #scale-span(fw.scales.priority). Each band is a
 #bands-table(fw)
 
 `[tasks.priority]` sets the scale with `kind` (`int` or `real`), `min` and
-`max`, and `required` takes a filter naming the tasks that must have a
-priority. A project's bands replace the shipped list.
-`mt config show --defaults` prints the shipped values, and #link(u("/config/"))[Configuration]
-lists every key.
+`max`. `required` takes a filter naming the tasks that must have a priority.
+Bands you declare replace the shipped list. `mt config show --defaults`
+prints the shipped values, and #link(u("/config/"))[Configuration] lists every
+key.
 
 = Difficulty
 
 `difficulty` is a second number with the same `kind`, `min`, `max` and
 `required` keys, under `[tasks.difficulty]`. Its scale runs from
-#scale-span(fw.scales.difficulty), and it is labelled by anchors instead of
+#scale-span(fw.scales.difficulty), and it's labelled by anchors instead of
 bands. A value between two anchors takes the lower anchor's label:
 
 #anchors-table(fw)
 
 = Frameworks
 
-A framework computes the priority from inputs a task fills in. This project
-turns on ICE:
+A framework computes the priority from inputs you fill in on the task. This
+project turns on ICE:
 
 #raw(
   render-slices(
@@ -73,7 +75,7 @@ turns on ICE:
   block: true,
 )
 
-A task then calls the framework in place of a number:
+Then a task calls the framework instead of giving a number:
 
 #raw(
   render-slices(tasks, (("ice-call", "an ICE call"),)),
@@ -100,10 +102,11 @@ framework's inputs.
 
 #framework-table(fw)
 
-`[tasks.priority.frameworks.<name>]` declares a framework's inputs, with
-their types and bounds, and its score formula or categories. The built-ins
-are declared the same way in `crates/mindtape/src/framework/frameworks.toml`, and a
-project can override any of their keys. A task calls a project's own
-framework with `framework("name", input: value, ...)`. A framework with
-categories instead of a formula sorts each task into a category, and each
-category has a fixed score on the scale.
+To write your own, declare `[tasks.priority.frameworks.<name>]` with its
+inputs, their types and bounds, and a score formula or categories. The
+built-ins are declared the same way in
+`crates/mindtape/src/framework/frameworks.toml`, and you can override any of
+their keys. A task calls your framework with
+`framework("name", input: value, ...)`. A framework with categories instead of
+a formula sorts each task into a category, and each category has a fixed score
+on the scale.

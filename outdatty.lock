@@ -93,22 +93,22 @@ groups:
       www/content/cli/views.typ: 9df4c84aa9fce2b98e792ad7fbdc5fbbeda72835bdd47cd589dda25a5685f714
       www/content/cli/worktrees.typ: edd512ecff478c88e54c9c8e177d02948a80a3b37ba33d275a888a7cb87416c5
       www/content/commit-rules.typ: da3aec81507404378d3bfaa2385bd0dfe8997c7ff5b66d98edd9bfada0dd4da6
-      www/content/concepts.typ: 09a59054d0c30ca5c5369a96be60f6ee285e813bbc581b90237d587a5c02cf84
+      www/content/concepts.typ: 7f93f231f77b672dfa9e7c02fab3134a237dd893779b557978087e2c0a42c7c0
       www/content/config.typ: 1e0beebd08fb2ea13ed0b3eb0b3f06728d1fba127356f0566377be1658d61c30
-      www/content/derived-tags.typ: 8672009098bded96541cd8a3ca1162e95a4e5d56e1308d1c553d1919cf1620be
-      www/content/estimates.typ: add3c0bbcc58db99b226a1127c3c0c7669af1b2b9b345af6ab7f265cf6188078
+      www/content/derived-tags.typ: a62813a58d4b2810162a9dfe03b0a7b89ea814f6085293b83f6abfa61f253ed7
+      www/content/estimates.typ: fed310a25a6e424af34bcba7c52b132dd8693d30e5d2c3112d9b9d3ba000b03f
       www/content/filters.typ: ff1e64e6a28b9b7dcf4f41ccf2a2f84ddaaef6f2625ed25f52311cfcd8c7b003
       www/content/hooks.typ: ecde9c6bf694e8847827519cd1a233a4b4bff2a83c7577ceb116788f648843c8
       www/content/import-export.typ: c25afb70d1759ded8ee784eb6c4a04aa0a4644100a1db29518f6a4cf6c109c8c
-      www/content/links.typ: c3540c176e397d7bf08b6c6a1e8b2af60dd9edd24202ed69a80a4ead9dff06d3
-      www/content/named-sets.typ: 0a4acf9983b7e2794fb90360f710d46ba419b490702b1b05e90ceda061aa62a4
-      www/content/priority.typ: 779f72525743e430463a38baaea024e4482338e6ce152cf5920e6313bd2fe884
-      www/content/quickstart.typ: 45626cc5fdcbcead0e43d28f7be4d13a72e87f92d8cf5cd284c5834dde5c069b
-      www/content/recurring.typ: afb954dfbc258b46c66b09120c430b88de0cec274dc9191fdf14145dbe05a3c1
+      www/content/links.typ: e3a979681bb69195fddbb8d672e58842ae07b7464ebdd60720b12bd29a9240a0
+      www/content/named-sets.typ: 1f0776c85c0cd30b5624fbc134c79cdfd682a336b3760a42d989f34b666c84ba
+      www/content/priority.typ: ec937f8349b637244cd7098a21b68f43e79e65e107bfa31ac59882ec04bfdeb5
+      www/content/quickstart.typ: 3084bf191c0af22c9748c515afbd298ab66b76f117b7ea493002e78697ab6688
+      www/content/recurring.typ: 41c1583845b73cd5ed88d6d9ea2bc3206e7ab56c037a66774b33715c9cd23a43
       www/content/rules.typ: b26cb982a15d49e6d78edd67bcb518e0c0716449ebef3930d8200a1039c0a1ff
       www/content/schema.typ: 4df5cc05f00556240d7beeafb81ea4f35a3e9c9412a00d3eade7c7616f58fa21
-      www/content/statuses.typ: b632503bee31b1e10fa1e3400a6847e628c5a5720e5cd305542e82a42a4dd2c2
-      www/content/templates.typ: dc2ca89dd05f46ef1f2cc7aa8cc4b726c85d68f1a921c4604ba63820e1117eda
+      www/content/statuses.typ: 79d707f00b08f4632611f64942bee2cc673857b1667e13e9f24d16e142d42cd8
+      www/content/templates.typ: 7a020ef118065137e4a6179b263a1352e7dc25d58fe06d77abcab0b37f632df3
       www/utils/cli-notes.typ: 0054ff451cb3816db6909de1a5ae927c33a2c9f70a81c4deff2da235c17b75ba
   cli-name:
     source:
@@ -122,8 +122,8 @@ groups:
       docs/src/readme.typ: 84c0bda43d327ef711df98c5c9bf9b96ac333e80906973184c045f432c89be06
       docs/src/skill.typ: 3f11892a794ac169924ffc611f4b03632bedde8ba651c557638e1c8d6bf73969
       www/content/cli.typ: 94606c78f824a29796062798e29b7d3633c4d9c1129f11440fc0a28bd361930a
-      www/content/index.typ: b476a360a4ca66162a1547e537d9b09879b327ca01184bcc2d677b5385ee333a
-      www/content/quickstart.typ: 45626cc5fdcbcead0e43d28f7be4d13a72e87f92d8cf5cd284c5834dde5c069b
+      www/content/index.typ: 19f2a6a6a0f5716788ceaff9425a32b00a2cb469b9ceb460c0a019f322e57434
+      www/content/quickstart.typ: 3084bf191c0af22c9748c515afbd298ab66b76f117b7ea493002e78697ab6688
   crap-scripts-docs:
     source:
       .just/scripts/_lcov-stale-reason.sh: 06076f356e045204aa87302b8f0cc391250d5411d129aa024aa9fe755a61b175
@@ -223,13 +223,13 @@ groups:
       docs/src/agents.typ: 6078c7a3230b6f04a6ce86cdcdc4f989f45895d88ae11a68e93a82fd4fe38e22
       docs/src/skill.typ: 3f11892a794ac169924ffc611f4b03632bedde8ba651c557638e1c8d6bf73969
       skills/mindtape/references/add-slots.md: 98b4cb6a935a4d34727f3864de088b51faf4deaa3747cb0b177af137fbb5c71f
-      www/content/concepts.typ: 09a59054d0c30ca5c5369a96be60f6ee285e813bbc581b90237d587a5c02cf84
-      www/content/dsl.typ: 15cebaf0078befa313e9fc001ddaa52e65af72b2ce5f827c7eb6ded1df6349b1
-      www/content/index.typ: b476a360a4ca66162a1547e537d9b09879b327ca01184bcc2d677b5385ee333a
-      www/content/links.typ: c3540c176e397d7bf08b6c6a1e8b2af60dd9edd24202ed69a80a4ead9dff06d3
-      www/content/priority.typ: 5da0661bc11613b90d9410b36b79436df14ba61a671437e72b601299497f7121
-      www/content/recurring.typ: afb954dfbc258b46c66b09120c430b88de0cec274dc9191fdf14145dbe05a3c1
-      www/content/templates.typ: dc2ca89dd05f46ef1f2cc7aa8cc4b726c85d68f1a921c4604ba63820e1117eda
+      www/content/concepts.typ: 7f93f231f77b672dfa9e7c02fab3134a237dd893779b557978087e2c0a42c7c0
+      www/content/dsl.typ: b4587283dddf345de890d26e27d5cf4e19944179f8d9c02bced069b3c0d301ec
+      www/content/index.typ: 19f2a6a6a0f5716788ceaff9425a32b00a2cb469b9ceb460c0a019f322e57434
+      www/content/links.typ: e3a979681bb69195fddbb8d672e58842ae07b7464ebdd60720b12bd29a9240a0
+      www/content/priority.typ: ec937f8349b637244cd7098a21b68f43e79e65e107bfa31ac59882ec04bfdeb5
+      www/content/recurring.typ: 41c1583845b73cd5ed88d6d9ea2bc3206e7ab56c037a66774b33715c9cd23a43
+      www/content/templates.typ: 7a020ef118065137e4a6179b263a1352e7dc25d58fe06d77abcab0b37f632df3
   priority-frameworks:
     source:
       crates/mindtape/src/framework/frameworks.toml: 69a8880cc7c1682d9423865404c25cc2c0240e54824d4722573d7d1f9cf387cc

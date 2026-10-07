@@ -13,19 +13,19 @@
 
 #show: page.with(..meta)
 
-`mt` can tag each task by where its file sits: the name of its
+If your folders already say what a task is about, you don't have to repeat it
+in tags. `mt` can tag each task by where its file sits: the name of its
 #link(u("/concepts/#a-task-is-a-file"))[task root] and the folders between the
-root and the file. File a task under `api/tasks/auth/`
-and it matches `has_tag("auth")` with no tag written in it. You can filter by
-folder, and nobody has to tag a task by hand.
+root and the file. File a task under `api/tasks/auth/` and it matches
+`has_tag("auth")` with no tag written in it.
 
 The examples below come from `examples/derived-tags/`, a repo with one task
 root per service.
 
 = Turn it on
 
-Derived tags are off by default. `enabled = true` under `[tasks.derive-tags]`
-turns them on for every root:
+Derived tags are off by default. Set `enabled = true` under
+`[tasks.derive-tags]` to turn them on for every root:
 
 #raw(
   render-slices(
@@ -60,7 +60,7 @@ These are the tags `mt` derives for each task in the example:
 )
 
 Every task gets its root's tag: the root's `name`, or the last folder of its
-`path` when it has no name. `collect` picks what the folders add:
+`path` if it has no name. `collect` picks what the folders add:
 
 - `segments`, the default, adds each folder as a tag: `auth`, `sessions`.
 - `breadcrumbs` adds the path to each folder, joined with `separator` (`:` by
@@ -77,17 +77,17 @@ A filter sees derived tags as tags:
 
 #terminal("derived-tags-ls-auth")
 
-`mt ls --json` lists them under `derived_tags`, apart from the tags written in
-the file. #link(u("/filters/"))[Filters] has `has_tag` and the rest of the
-language.
+`mt ls --json` lists them under `derived_tags`, separate from the tags written
+in the file. #link(u("/filters/"))[Filters] covers `has_tag` and the rest of
+the language.
 
 = How they behave
 
-`mt` derives the tags each time it loads the tasks and never writes them to the
-file. Move a file to another folder and its tags change with it.
+`mt` derives the tags each time it loads the tasks and never writes them to
+the file. Move a file to another folder and its tags change with it.
 
-When `[tasks.tags] allowed` lists the permitted tags, `mt check` refuses an open
-task whose folders give it a tag that is not on the list. Closed tasks are not
-checked against the list, so you can drop a tag from it without editing every
-closed task that has it. That is `values-when = "!terminal"`, the default for
-tags, and a filter of your own changes which tasks the list holds.
+If `[tasks.tags] allowed` lists the permitted tags, `mt check` refuses an open
+task whose folders give it a tag that isn't on the list. Closed tasks aren't
+checked, so you can drop a tag from the list without editing every closed task
+that has it. That's `values-when = "!terminal"`, the default for tags. Set
+your own filter there to change which tasks the list applies to.

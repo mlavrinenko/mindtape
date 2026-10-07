@@ -41,10 +41,10 @@ aren't here, because they keep your tasks on a server, not in your repo.
 = The tools
 
 - #strong[#link(u("/"))[MindTape]]: one Typst file per task in your repo,
-  checked against rules the project sets.
+  checked against rules you set.
 - #strong[#link(dstask-url)[dstask]]: one YAML file per task in a git
-  repository of its own, `~/.dstask`, synced with git. It is a single Go
-  binary for personal tasks.
+  repository of its own, `~/.dstask`, synced with git. It's a single Go binary
+  for personal tasks.
 - #strong[#link(taskwarrior-url)[Taskwarrior]]: a command-line tracker with its
   own database, an urgency score, recurring tasks, user-defined attributes and
   hooks.
@@ -212,21 +212,22 @@ The table scrolls sideways on a narrow screen.
 = Where MindTape fits
 
 - #strong[Tasks change with the code.] A task is a file in your working tree,
-  so the pull request that does the work also closes the task, and a reviewer
-  sees both. Backlog.md, Org-mode and todo.txt can keep tasks in the repo too,
-  but none of them checks a hand-edited task against the project's rules.
-- #strong[The project sets the rules.] One #link(u("/config/"))[config] sets
-  the statuses, the priority and difficulty scales, the allowed tags and
-  estimate units, and #link(u("/rules/"))[rules] you write as filter
-  expressions or Typst functions. `mt check` applies them in CI, and every command that writes a
-  task applies them first.
+  so the commit or pull request that does the work also closes the task, and
+  whoever reviews it sees both. Backlog.md, Org-mode and todo.txt can keep
+  tasks in the repo too, but none of them checks a hand-edited task against
+  your rules.
+- #strong[You set the rules.] One #link(u("/config/"))[config] sets the
+  statuses, the priority and difficulty scales, the allowed tags and estimate
+  units, and #link(u("/rules/"))[rules] you write as filter expressions or
+  Typst functions. `mt check` applies them in CI, and every command that writes
+  a task applies them first.
 - #strong[Priority from inputs.] ICE, RICE, WSJF, Eisenhower and MoSCoW turn a
   task's inputs into a priority (#link(u("/priority/"))[Priority]).
   Taskwarrior's urgency is also computed, from fixed attributes such as the due
   date, tags and age, with coefficients you tune.
-- #strong[A task is Typst.] A task can import a shared module and call the
-  project's own functions, as #link(u("/self-validating-tasks/"))[Self-validating
-    tasks] shows.
+- #strong[A task is Typst.] A task can import a shared module and call your
+  own functions. See #link(u("/self-validating-tasks/"))[Self-validating
+    tasks].
 
 = Where another tool fits better
 
@@ -245,6 +246,6 @@ The table scrolls sideways on a narrow screen.
 - #strong[A board in the browser, or an MCP server.] Backlog.md has both, and
   Beads has an MCP server. MindTape has a CLI with JSON output and an
   #link(u("/agents/"))[agent skill].
-- #strong[Maturity.] MindTape is at version #mt-version, with fewer users and
+- #strong[Maturity.] MindTape is at version #mt-version. It has fewer users and
   integrations than the tools above. Taskwarrior and todo.txt have years of
   add-ons, integrations and mobile apps.
