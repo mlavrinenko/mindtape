@@ -138,11 +138,11 @@ groups:
     source:
       .config/nextest.toml: a310c30b19df7fce268db1c136bdd93ff76bf2116e28e4fe799be41ba79920e5
       .just/docs.just: e6a852da423c2ec230c1bc281ab9bb4fe0ce6598a4b4765629adaec32c3714ae
-      Justfile: 6564abbfe28fe5bb440d8213716601b6eb574277f612bc2c97dea45efbc51b0d
+      Justfile: 5c24369408703e1f93bc62120b3bce2b3e94fe781816ffaacd822404091ee6a7
       flake.nix: 9da2e53a4c30d4f6d3beffcf732eebebb2bf6476cd5782b9958c8aee01b93248
     dependents:
       docs/src/agents.typ: 48e52ec38d9086566fe2bdaaf0c8404e04988c4f636d39dfae48a8a682507d4c
-      docs/src/contributing.typ: d4692ca91112a1e9c0b7effaa2bbca8d8491ddbb903324f8aca07116d0930048
+      docs/src/contributing.typ: 7fe8cc463bbf01d66697b3d977d71837659a2c7c061ea8388b6294eca179979b
       docs/src/contributing/coverage-crap.typ: 4cca206220b9c5494ee882c327f911b731f5194d38a4443069d6978b228cd4f2
       docs/src/contributing/crap-baseline.typ: bcbc918cf8976b8d4b560bd4190c6eb96eab3c2ca3e380108c9996bd65cae98d
       docs/src/contributing/docs-site-build.typ: ab55a155324dc7aacc60167fc5bac4bd09cd9e479dd30d71d8d15f24d942fd6a
@@ -193,7 +193,6 @@ groups:
       .just/scripts/check.sh: fac29f9633c6bde9608b623cb03eee308a9d5fd4cd2685184bdff541480846f8
       .just/scripts/fmt-fixture-check.sh: 0e99a04c675f043f84804d43f25c6ef0f3870ae219a4779088c6f5430110e5e3
       .just/scripts/mmz-arm.sh: c67a415ff478915a0fc433b857b72627dfcdc5e122ae0e430ab5b77bde590d22
-      .just/scripts/outdatty-check.sh: 4b7ad7b2ade32e04260606afd191ae84d54b9f920d63a79592a5f01699adc577
       .just/scripts/positional-args-check.sh: 8372e811d5e7d95fdcab5f9ecb4efa6033cf66fcab57c86d31306cebd00b1e9d
       .just/scripts/script-attr-check.sh: fb01697288a0863da85cad64bb5ce1430508f9d56f54e013dcf41a119b64d61d
       .just/scripts/script-scope-check.sh: 472f2dce97a25ca52d15cea103644c9ad817c899f4b76731e2af2318449d15df
@@ -331,6 +330,15 @@ groups:
       examples/statuses/tasks/ship-the-csv-importer.typ: 9b8cca2eec7df6321c8728eb277f099e2eefaea4e4e27f0bf54c5af16357b455
       examples/statuses/tasks/stream-large-files.typ: 7bd50a29d47844460a07fa034e32697d9e5bb7073749386956143d5485c2e5e0
       examples/statuses/tasks/vendor-the-csv-parser.typ: 8b3473487a2d91192d47fcfde820a1d91c257addec4b1c56be6d03fec58fc14d
+      examples/task-files/invalid/dictionary-in-braces.typ: a4c80474395b6d80a4a73275b35db111d18dea3801491783da8b7c6c9573ec93
+      examples/task-files/invalid/hash-in-the-body.typ: 7898730e4343c7e4edf58bb0d89f4856f6121275849e3b806a4684e4e94440d8
+      examples/task-files/invalid/links-joined-with-a-comma.typ: 2c4bcde95c9001b8a5881768c26cf6e23c4b5d21d07f4da59b773b26c09dd498
+      examples/task-files/invalid/missing-comma.typ: 3f6260756d91ae44ecef88837542dfd4cfc92b788e04cc74b045d735ff5368c3
+      examples/task-files/invalid/note-as-a-string.typ: 80dc107e13254922f0998ff187ae092bbcafd4ef7a569e04a733427e87bbb7ed
+      examples/task-files/invalid/one-tag-without-a-comma.typ: 6f0703fb27e08d65fe8df79a054f69915e746d5fa75d6feee36d6455176d1552
+      examples/task-files/tasks/add-a-session-store.typ: dc7c1dbc2516e94ddf76098bccacf96f84c3c51b2aaa65fd4b7f7450ab1ea11a
+      examples/task-files/tasks/fix-the-login-redirect.typ: 3eacf36d7aadcb8ca2c0452a7e81e992e4727f0570df403b5ae23d452b897fe8
+      examples/task-files/tasks/log-failed-logins.typ: 9876336bcdb190efe7ae1a114254f95cfbcda78f634355b86e792e352cd3d0c8
   worktree-release-docs:
     source:
       .just/scripts/fork.sh: 95886251e64047c8ae2facf8c3bb1496394ea66d690b05c1f4f023cd59471970

@@ -478,7 +478,6 @@ groups:
       - .just/scripts/positional-args-check.sh
       - .just/scripts/script-attr-check.sh
       - .just/scripts/size-fixture-check.sh
-      - .just/scripts/outdatty-check.sh
       - .just/scripts/site-pages-fixture-check.sh
     dependents:
       - docs/src/contributing/gates.typ

@@ -159,8 +159,7 @@ says someone reviewed the dependents, so run #just.outdatty-update-all() only
 after reviewing every group. After you edit only a dependent, record that file
 alone in the same commit with #just.outdatty-update("<group> <path>"). A new file
 that a glob dependent matches needs a hash of its own, and
-#just.outdatty-check() names each one the lock lacks, with the command that
-records it. A rebase or merge joins two branches' `outdatty.lock` key by key through
+#just.outdatty-check() fails until the lock holds it. A rebase or merge joins two branches' `outdatty.lock` key by key through
 `.just/scripts/outdatty-lock-merge.sh`, which the dev shell registers. It
 stops only where both branches changed one hash and the merged file matches
 neither.
