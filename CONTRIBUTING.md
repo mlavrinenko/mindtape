@@ -105,7 +105,8 @@ A rebase or merge joins two branches’ `outdatty.lock` key by key through `.jus
 - The workspace crates take their version from `[workspace.package] version` in `Cargo.toml`.
 - The Typst library’s version is `version` in `lib/typst.toml`, independent of the crates. The `typst-pkg-version` outdatty group lists every file that repeats it.
 - `mindtape-cli` depends on `mindtape` by version as well as by path, because crates.io refuses a path-only dependency. Bump it with the workspace version.
-- `just release VERSION` refuses a `VERSION` that isn’t plain semver or differs from the workspace version. It also refuses a dirty tree, and a `CHANGELOG.md` with content under `[Unreleased]`, so move that content into a dated section first. It pushes `main` before the tag, so the docs site and CI run on the release tree.
+- `just release VERSION` tags `vVERSION` and pushes the tag, the only publish path: never run `cargo publish` by hand. It refuses, with an `error:` and a `hint:` line, a `VERSION` that isn’t plain semver or differs from the workspace version, a dirty tree, a branch other than `main`, a `main` that differs from `origin/main`, an existing tag, a version already on crates.io, a `CHANGELOG.md` with content under `[Unreleased]` or no dated section for `VERSION`, a HEAD whose `ci.yml` run is not green, and a failing `just check`, `just nix-build` or `cargo publish --dry-run`. So push `main` first: the docs site and CI then run on the release tree. `just release-dry-run VERSION` runs every check and stops before tagging.
+- A release whose workflow failed is finished on the same tag with `gh workflow run release.yml -f tag=vVERSION`, which skips each crate crates.io already has. A pushed tag never moves.
 
 ## Command Semantics
 

@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 7),
+  status: done(
+    2026,
+    10,
+    7,
+  )[release-dry-run refuses before tagging; the workflow re-runs a tag and skips published crates],
 )
 
 == Problem

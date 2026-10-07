@@ -1,11 +1,34 @@
 name: Release
 
+# A pushed `v*` tag releases that tag. A release that failed part-way is
+# finished by re-running it on the same tag, never by cutting a new version:
+#
+#   gh workflow run release.yml -f tag=v1.2.3
+#
+# Every job checks out the tag, not the dispatching branch, and every step with
+# an irreversible effect first looks for that effect: each `cargo publish` is
+# skipped when crates.io already has that crate's version, and the GitHub
+# release is updated in place when it exists. v0.2.0 is why: its crates were
+# published by hand before the tag was pushed, every tag run then failed at
+# `cargo publish`, and the GitHub release that waits on publish never happened.
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to release again, e.g. v1.2.3"
+        required: true
+        type: string
 
 permissions:
   contents: write
+
+# One run per tag: a re-run queued behind a live run waits for it instead of
+# racing it to crates.io.
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
 
 # Rustup-based jobs run cargo without the dev shell, so clear the sccache
 # rustc-wrapper. No .cargo/config.toml is committed — `just nix-build` exists to
@@ -23,17 +46,35 @@ jobs:
   version-check:
     name: Verify tag matches workspace version
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+      version: ${{ steps.meta.outputs.version }}
+      latest: ${{ steps.meta.outputs.latest }}
     steps:
+      # `refs/tags/` makes checkout fail on a dispatch input that names no tag.
       - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+          fetch-depth: 0
       - name: Check version consistency
+        id: meta
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
         run: |
-          TAG="${GITHUB_REF_NAME#v}"
           CARGO="$(grep -m1 '^version' Cargo.toml | sed 's/.*"\(.*\)"/\1/')"
-          if [ "$TAG" != "$CARGO" ]; then
-            echo "::error::Tag v${TAG} does not match workspace version ${CARGO} in Cargo.toml"
+          if [ "$TAG" != "v$CARGO" ]; then
+            echo "::error::Tag ${TAG} does not match workspace version ${CARGO} in Cargo.toml"
             exit 1
           fi
-          echo "Tag v${TAG} matches workspace version ${CARGO}"
+          echo "Tag ${TAG} matches workspace version ${CARGO}"
+          # Re-releasing an old tag must not take "Latest" from a newer one.
+          latest=false
+          [ "$TAG" = "$(git tag -l 'v*' --sort=-v:refname | head -1)" ] && latest=true
+          {
+            echo "tag=$TAG"
+            echo "version=$CARGO"
+            echo "latest=$latest"
+          } >> "$GITHUB_OUTPUT"
 
   check:
     name: Check
@@ -41,13 +82,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ needs.version-check.outputs.tag }}
       - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
       - name: Check
         run: nix develop --command just check
 
   build:
     name: Build (${{ matrix.target }})
-    needs: check
+    needs: [version-check, check]
     runs-on: ${{ matrix.os }}
     strategy:
       # `ext` is the executable suffix for the target, and it is spelled out per
@@ -73,6 +116,8 @@ jobs:
             ext: ".exe"
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ needs.version-check.outputs.tag }}
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
         with:
           targets: ${{ matrix.target }}
@@ -86,7 +131,7 @@ jobs:
           sudo apt-get install -y gcc-aarch64-linux-gnu
           echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> "$GITHUB_ENV"
       - name: Build release binary
-        run: cargo build --release --target ${{ matrix.target }} -p mindtape-cli
+        run: cargo build --release --locked --target ${{ matrix.target }} -p mindtape-cli
       # Derive the binary name from the manifest instead of hardcoding it. The
       # package is `mindtape-cli` but its [[bin]] is `mt`, and hardcoding the
       # package name here meant this step copied a file that never existed, so
@@ -117,35 +162,57 @@ jobs:
 
   publish:
     name: Publish to crates.io
-    needs: build
+    needs: [version-check, build]
     runs-on: ubuntu-latest
     environment: crates-io
+    env:
+      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      VERSION: ${{ needs.version-check.outputs.version }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ needs.version-check.outputs.tag }}
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
       - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2.9.1
-      # Publish in dependency order (mindtape-cli depends on mindtape);
-      # pause for the crates.io index to settle between publishes.
+      # Publish in dependency order (mindtape-cli depends on mindtape); cargo
+      # waits for the crates.io index to carry each crate before returning. A
+      # crate whose version crates.io already has (a re-run, or a hand
+      # `cargo publish`) is skipped rather than failed. Any answer but 200 or
+      # 404 stops the run: an unreachable crates.io is not "not published yet".
+      # www/generate-release-targets.sh reads the `cargo publish -p` lines.
       - name: Publish mindtape
-        run: cargo publish -p mindtape --locked
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-      - run: sleep 30
+        run: |
+          status=$(curl -sS -o /dev/null -w '%{http_code}' -A "$GITHUB_REPOSITORY release workflow" \
+            "https://crates.io/api/v1/crates/mindtape/$VERSION")
+          case "$status" in
+            200) echo "::notice::mindtape $VERSION is already on crates.io; skipping cargo publish" ;;
+            404) cargo publish -p mindtape --locked ;;
+            *) echo "::error::crates.io answered HTTP $status for mindtape $VERSION"; exit 1 ;;
+          esac
       - name: Publish mindtape-cli
-        run: cargo publish -p mindtape-cli --locked
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          status=$(curl -sS -o /dev/null -w '%{http_code}' -A "$GITHUB_REPOSITORY release workflow" \
+            "https://crates.io/api/v1/crates/mindtape-cli/$VERSION")
+          case "$status" in
+            200) echo "::notice::mindtape-cli $VERSION is already on crates.io; skipping cargo publish" ;;
+            404) cargo publish -p mindtape-cli --locked ;;
+            *) echo "::error::crates.io answered HTTP $status for mindtape-cli $VERSION"; exit 1 ;;
+          esac
 
   release:
     name: Create GitHub Release
-    needs: [build, publish]
+    needs: [version-check, build, publish]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
         with:
           merge-multiple: true
+      # Updates the release in place when it exists, so a re-run is safe.
       - name: Create GitHub Release
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
+          tag_name: ${{ needs.version-check.outputs.tag }}
+          make_latest: ${{ needs.version-check.outputs.latest }}
           generate_release_notes: true
+          fail_on_unmatched_files: true
           files: mindtape-*

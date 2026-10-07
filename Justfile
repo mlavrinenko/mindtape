@@ -864,10 +864,15 @@ install-hooks:
     rm -f .git/hooks/pre-commit
     echo "installed .githooks and the outdatty.lock merge driver"
 
-# Tag a release and push (usage: just release 0.3.0). Refuses to run in a
-# dirty worktree, and while CHANGELOG.md has an [Unreleased] section with
-# content; move it into a dated `[<version>]` section first. Pushes main before
-# the tag so the docs site (pages.yml) and CI run on the release tree.
+# Tag a release and push the tag (usage: just release 0.3.0). The tag push is
+# the only publish path. .just/scripts/release.sh refuses, before tagging, every
+# state a release has failed from: a dirty tree, a main that differs from
+# origin/main, an existing tag, a version already on crates.io, a CHANGELOG.md
+# with content under [Unreleased] or no dated `[<version>]` section, a HEAD
+# without green CI, and a failing check, nix-build or `cargo publish
+# --dry-run`. Push main first, so the docs site (pages.yml) and CI run on the
+# release tree. A tag whose workflow failed is re-run, never re-tagged:
+# `gh workflow run release.yml -f tag=v<version>`.
 #
 # The MINDTAPE_RELEASE_CONFIRMED prefix is how the [confirm] guard survives the
 # body living in a script — argued in full in .just/scripts/release.sh.
@@ -876,5 +881,16 @@ install-hooks:
 [confirm("Tag and push a release to origin — proceed?")]
 [doc("Tag a release and push")]
 [group("release")]
+[no-exit-message]
 release VERSION:
     MINDTAPE_RELEASE_CONFIRMED=1 bash .just/scripts/release.sh "{{ VERSION }}"
+
+# Every check `just release` makes, without the confirmation, the tag or the
+# push. Run it before `just release`.
+
+[arg('VERSION', pattern='\d+\.\d+\.\d+', help='semver, no leading v (e.g. 0.3.0)')]
+[doc("Run every release check, then stop before tagging")]
+[group("release")]
+[no-exit-message]
+release-dry-run VERSION:
+    bash .just/scripts/release.sh "{{ VERSION }}" --dry-run
