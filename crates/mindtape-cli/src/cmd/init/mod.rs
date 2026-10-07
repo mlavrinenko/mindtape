@@ -16,6 +16,7 @@
 //!
 //! - `compose.rs` — folds the wizard's axis fragments into one config body.
 //! - `preset.rs` — the named starter shapes.
+//! - `prelude.typ` — the copy of `lib/prelude.typ` that `mt install` writes.
 //! - `wizard/` — the questionnaire over the configuration axes.
 //! - `presets/` — the built-in preset directories, one folder each.
 //! - `axes/` — the axis fragments the wizard composes.
@@ -35,7 +36,9 @@ use self::wizard::{Estimate, Headers, Organisation, Priority, Recurrence, Requir
 
 /// The Typst package version `mt install` installs. Mirrors `lib/typst.toml`.
 const TYPST_PKG_VERSION: &str = "0.2.0";
-const PRELUDE: &str = include_str!("../../../../../lib/prelude.typ");
+/// A copy of `lib/prelude.typ`, inside the crate so the published tarball
+/// holds it; a test keeps the two equal.
+const PRELUDE: &str = include_str!("prelude.typ");
 
 /// The `#:schema` directive controls, grouped so they travel together — the
 /// two are one decision, and splitting them across the parent's flag list

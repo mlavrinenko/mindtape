@@ -1738,6 +1738,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mindtape-cli` builds from its published tarball.** `mt install` and `mt init` embedded `lib/prelude.typ` from outside the crate, so `cargo publish` could not compile the packaged crate. The crate now carries its own copy of the prelude, and a test fails if it differs from `lib/prelude.typ`.
 - **`git commit --amend` is judged against the parent of the commit it replaces.** `mt check --commit-msg` diffed the index against `HEAD`, so a task flip amended into its work commit looked like a task-only commit and failed `flip-with-work`. It finds the amend from the `--amend` flag of the `git commit` process running the hook, since git exports no variable for it, and reads `files`, `tasks_only` and `head(...)` against `HEAD^`.
 - **A TOML error in a config layer names its file.** A syntax error in `~/.config/mindtape/defaults.toml`, an ancestor `.mindtape/defaults.toml` or a path pack used to appear under the project's `.mindtape/config.toml`. It now reads `parse error in <path>: TOML parse error at line 1, column 7 ...`, and an embedded pack reads `parse error in pack mindtape-tasks: ...`.
 - **An editor marks a misspelled task field where it is written.** A task file that wrote `titel:` failed with `assertion failed: unknown task slot` at the prelude's check, so tinymist published the error for `prelude.typ` and drew nothing in the task file. It now fails with Typst's own `unexpected argument: titel`, placed on that argument in the task file.

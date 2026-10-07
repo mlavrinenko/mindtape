@@ -199,6 +199,19 @@ fn dogfood_config_parses_and_validates() {
     config.validate().unwrap();
 }
 
+/// `mt init` installs a copy of the prelude that lives inside the crate, since
+/// a published crate cannot reach `lib/`. Edit `lib/prelude.typ`, then copy it
+/// to `prelude.typ` beside `mod.rs`.
+#[test]
+fn the_packaged_prelude_is_the_in_tree_prelude() {
+    const IN_TREE: &str = include_str!("../../../../../lib/prelude.typ");
+    assert!(
+        super::PRELUDE == IN_TREE,
+        "crates/mindtape-cli/src/cmd/init/prelude.typ differs from lib/prelude.typ; \
+         run `cp lib/prelude.typ crates/mindtape-cli/src/cmd/init/prelude.typ`"
+    );
+}
+
 // --- both_terminals / run_interactively ---
 //
 // The terminal decision is pure here so both sides of each operator are
