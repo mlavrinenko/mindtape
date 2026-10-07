@@ -31,4 +31,5 @@ if [ -z "$has_output" ]; then
     set -- "$@" --output target/mutants-scoped
 fi
 
+mutants_budget_check --in-diff "$diff_file" "$@"
 cargo mutants --in-diff "$diff_file" "$@"

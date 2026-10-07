@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 7),
+  status: done(
+    2026,
+    10,
+    7,
+  )[both recipes count first and refuse over 100 without approval],
 )
 
 == Problem

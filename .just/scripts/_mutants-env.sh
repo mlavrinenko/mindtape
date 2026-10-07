@@ -51,3 +51,20 @@ export CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-2}"
 # 99 s vs 168 s baseline build, a one-off per job), 81 mutants 1337 s vs 1078 s
 # (+1184 entries vs 0). Steady-state build per mutant ~70 s vs ~46 s.
 export RUSTC_WRAPPER=
+
+# A sweep costs about 13 s a mutant (4240 took 15 h on 2026-09-30), so a run
+# over MUTANTS_BUDGET mutants waits for the owner. Only the owner sets
+# MINDTAPE_MUTANTS_APPROVED=1; an agent stops and asks. `cargo mutants --list`
+# takes the same selection args as the run, so the count is the run's.
+MUTANTS_BUDGET=100
+mutants_budget_check() {
+    local count
+    count=$(cargo mutants --list "$@" | wc -l)
+    if [ "$count" -le "$MUTANTS_BUDGET" ] || [ "${MINDTAPE_MUTANTS_APPROVED:-}" = 1 ]; then
+        return 0
+    fi
+    echo "error: this run would test $count mutants, about $((count * 13 / 3600)) h at 13 s each" >&2
+    echo "hint: a run over $MUTANTS_BUDGET mutants needs the owner's approval: MINDTAPE_MUTANTS_APPROVED=1 just $(basename "$0" .sh)" >&2
+    echo "hint: or narrow it, for example with -f <file>" >&2
+    exit 1
+}

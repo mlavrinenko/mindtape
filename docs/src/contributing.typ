@@ -73,7 +73,9 @@ gate fails on any violation. These limits shape the code most:
   job. See
   #link("docs/contributing/windows.md")[docs/contributing/windows.md].
 - Before a PR, run #just.mutants-diff() and triage every survivor. A survivor
-  is code the tests run but don't check. The triage classes are in
+  is code the tests run but don't check. A run over 100 mutants, about 20
+  minutes, needs the owner's approval, so an agent stops and asks instead of
+  setting `MINDTAPE_MUTANTS_APPROVED=1` itself. The triage classes are in
   #link("docs/contributing/mutation-testing.md")[docs/contributing/mutation-testing.md].
 
 = Quality Gates (run by #just.check())

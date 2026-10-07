@@ -37,7 +37,7 @@ The workspace `Cargo.toml` sets its clippy lints to `deny`, so the `clippy` gate
 - When a file nears its linecop cap, run `just fix-check`. It moves the file’s inline tests into a `_tests.rs` sibling (`tests.rs` for a `mod.rs`) with [ejectest](https://github.com/mlavrinenko/ejectest).
 - Run the suite with `just test` and count it with `just count-tests`.
 - If your code runs a process or joins paths, it also runs on the Windows CI job. See [docs/contributing/windows.md](docs/contributing/windows.md).
-- Before a PR, run `just mutants-diff` and triage every survivor. A survivor is code the tests run but don’t check. The triage classes are in [docs/contributing/mutation-testing.md](docs/contributing/mutation-testing.md).
+- Before a PR, run `just mutants-diff` and triage every survivor. A survivor is code the tests run but don’t check. A run over 100 mutants, about 20 minutes, needs the owner’s approval, so an agent stops and asks instead of setting `MINDTAPE_MUTANTS_APPROVED=1` itself. The triage classes are in [docs/contributing/mutation-testing.md](docs/contributing/mutation-testing.md).
 
 ## Quality Gates (run by `just check`)
 

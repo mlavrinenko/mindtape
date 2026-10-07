@@ -32,4 +32,5 @@ if [ -n "$has_subset" ] && [ -z "$has_output" ]; then
     set -- "$@" --output target/mutants-scoped
 fi
 
+mutants_budget_check "$@"
 cargo mutants "$@"

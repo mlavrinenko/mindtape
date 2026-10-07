@@ -11,6 +11,7 @@ Coverage shows that a line ran. Mutation testing shows that a test fails when th
 ## How to run it
 
 - Before a PR, run `just mutants-diff`. It mutates only the code your branch changed, new files included, so it takes minutes.
+- Both recipes count the mutants first, at about 13 s each. Over 100, they refuse until the owner reruns them with `MINDTAPE_MUTANTS_APPROVED=1`. A full sweep is always over, so it always needs that approval.
 - To sweep one whole file, run `just mutants -f <file>`.
 - To sweep the whole workspace, run `just mutants`. It takes hours and writes `mutants.out`.
 - A scoped run writes `target/mutants-scoped`, so it never overwrites `mutants.out`. The sweep’s mutants arm reads whichever ran last.
