@@ -147,19 +147,32 @@ fn entries(text: &str) -> BTreeSet<String> {
         .collect()
 }
 
+/// Nothing to compare with: a skip on a dev machine, a failure under `CI`,
+/// so a shallow clone can't pass the check by skipping it.
+fn nothing_to_compare(ci: bool, why: &str) {
+    assert!(
+        !ci,
+        "the shrink check has nothing to compare with in CI: {why}"
+    );
+}
+
 /// The list only shrinks: every entry was on it where this branch left
-/// `main`. Skipped where there's no `main` to compare with, as in a shallow
-/// CI clone.
+/// `main`. Skipped where there's no `main` to compare with, except in CI,
+/// where it fails.
 #[test]
 fn the_list_only_shrinks_from_the_branch_point() {
+    let ci = std::env::var_os("CI").is_some();
     let Some(base) = ["main", "origin/main"]
         .iter()
         .find_map(|main| git(&["merge-base", "HEAD", main]))
     else {
-        return;
+        return nothing_to_compare(
+            ci,
+            "no `main` or `origin/main` merge base; fetch full history",
+        );
     };
     let Some(before) = git(&["show", &format!("{}:{LIST_PATH}", base.trim())]) else {
-        return;
+        return nothing_to_compare(ci, "the list is missing at the branch point");
     };
     let before = entries(&before);
     let added: Vec<&str> = UNCONVERTED
@@ -200,4 +213,15 @@ fn an_entry_covers_its_folder_and_not_a_sibling_with_its_prefix() {
     assert_eq!(module_of("cmd/rm/mod.rs"), "cmd/rm");
     assert_eq!(module_of("main.rs"), "");
     assert_eq!(module_of("cli/check_argv.rs"), "cli/check_argv");
+}
+
+#[test]
+#[should_panic(expected = "nothing to compare with in CI")]
+fn a_missing_main_fails_in_ci() {
+    nothing_to_compare(true, "no main");
+}
+
+#[test]
+fn a_missing_main_skips_off_ci() {
+    nothing_to_compare(false, "no main");
 }

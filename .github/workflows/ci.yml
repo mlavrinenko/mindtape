@@ -106,6 +106,10 @@ jobs:
       RUSTC_WRAPPER: ""
     steps:
       - uses: actions/checkout@v4
+        with:
+          # diag/allowlist_tests.rs compares the list with `main`'s, and fails
+          # in CI where it finds no `main`.
+          fetch-depth: 0
       # Same toolchain source as release.yml's build job: the action exports
       # RUSTUP_TOOLCHAIN, which takes precedence over rust-toolchain.toml, so
       # this tests what the Windows release binary is actually compiled with.
