@@ -147,35 +147,27 @@ example = { src-files = 1 }
 # `changed(...)`. See truth/tasks/retire-the-drift-check-and-estimate-bounds-in-
 # favour-of-rules.typ.
 #
-# The caps are validation errors, not warnings: an oversized task must be split
+# The cap is a validation error, not a warning: an oversized task must be split
 # before the work starts, not after. Terminal tasks are exempt. No minimum: a
 # docs-only task touches no source, and 0 is an honest count, not a missing one.
 #
-# The ceiling is gated on `difficulty`, because the decomposition pressure a cap
-# exists to create belongs on unbounded judgment, not on size. Judgment work
-# (3 and up on the rubric above) is held to 5 source files — p75 of this
-# repo's files-per-commit over 200 commits (p50=2, p75=5, p90=11, p95=15,
-# p99=32) — since a design decision spread wider than that is two decisions.
-# Mechanical work keeps the p95 ceiling of 15: a fully specified change carries
-# one decision however many files it touches, and splitting it only copies
-# that decision into several tasks. Anything looser (30 ≈ p99) would never
-# bind, and a limit that never fires is not a limit.
+# Only judgment work is capped, because the decomposition pressure a cap exists
+# to create belongs on unbounded judgment, not on size. Judgment work (3 and up
+# on the rubric above) is held to 5 source files — p75 of this repo's
+# files-per-commit over 200 commits (p50=2, p75=5, p90=11, p95=15, p99=32) —
+# since a design decision spread wider than that is two decisions. Mechanical
+# work (0-2) has no cap: a fully specified change carries one decision however
+# many files it touches, and splitting it only copies that decision into
+# several tasks. A module move, which must edit every importer in one commit,
+# cannot be split at all without an alias. `src-budget` below still warns when
+# the work outgrows the estimate filed for it.
 #
-# These numbers are provisional: retune them as the backlog shows where they
-# pinch. Open question — should mechanical work (difficulty below 3) carry no
-# file cap at all, since its one decision does not grow with the file count?
+# The 5 is provisional: retune it as the backlog shows where it pinches.
 [[tasks.rules]]
 name = "judgment-stays-small"
 when = "!terminal && difficulty >= 3"
 assert = "estimate.src-files <= 5"
 message = "judgment work stays small; split the decision from the mechanical fan-out rather than widen the cap"
-severity = "error"
-
-[[tasks.rules]]
-name = "mechanical-stays-under-15"
-when = "!terminal && !(difficulty >= 3)"
-assert = "estimate.src-files <= 15"
-message = "even mechanical work this wide hides a second decision; split it"
 severity = "error"
 
 [[tasks.rules]]
