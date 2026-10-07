@@ -117,6 +117,17 @@ run_in_worktree() {
 # trailer key is the project's `[commits] trailer`, and a path value
 # (`truth/tasks/<stem>.typ`) counts as its stem, as `mt check --commit-msg`
 # reads it.
+# Judged by an `mt` built from the branch tip, not the one `fork.sh` built at
+# fork time. That binary is as old as the fork; a branch rebased over a config
+# change (a new filter field in `[commits]` rules, say) is rejected by it with
+# `invalid config: ... unknown field in filter`, refusing a good branch. The
+# rebuild is incremental and `build-mt` is quiet on success. A base from before
+# `just build-mt` existed has no recipe and keeps whatever `mt` it has, as in
+# fork.sh; a build that fails stops the script, since no verdict beats a stale one.
+if run_in_worktree just --show build-mt >/dev/null 2>&1; then
+    run_in_worktree just build-mt
+fi
+
 key=$(run_in_worktree mt config show --json | jq -r '.commits.trailer // "Refs"')
 named=$(git log --format="%(trailers:key=$key,valueonly)" "$head_sha..$branch_sha" \
     | sed -e '/^$/d' -e 's#.*/##' -e 's#\.typ$##' | sort -u)

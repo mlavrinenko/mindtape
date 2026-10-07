@@ -103,7 +103,8 @@ failing gate.
 #just.fork("<slug>", "<base>") creates the worktree `../mindtape-<slug>` on a
 new branch off `<base>` (default `HEAD`). It refuses when this checkout has
 uncommitted changes, because `git worktree add` copies commits only.
-#just.integrate("<branch>") refuses a branch that names a still-`wip` task in
+#just.integrate("<branch>") rebuilds the worktree's `mt` from the branch tip,
+so a branch rebased over a config change is judged by its own config. It refuses a branch that names a still-`wip` task in
 `Refs:`, and refuses unless every gate passed against the worktree's current
 files. It then fast-forwards this checkout and removes the
 worktree. `.just/scripts/fork.sh` and `.just/scripts/integrate.sh` explain

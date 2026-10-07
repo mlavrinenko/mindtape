@@ -132,13 +132,15 @@ if command -v direnv >/dev/null 2>&1; then
     echo "fork: loading the worktree's dev shell (first evaluation, once per worktree)" >&2
     direnv exec "$path" true
 
-    # Then the worktree's dev `mt` is built once, because the shell's PATH
+    # Then the worktree's dev `mt` is built, because the shell's PATH
     # serves `$path/target/mt-dev/debug/mt` and this worktree has none. Built
     # here, visibly, for the same reason the shell is loaded here: the
     # delegated agent's first `mt` works, and a cold build does not land inside
     # its first gate run. Through the worktree's own recipe, so a base from
     # before `just build-mt` existed still forks with the hint instead of a
-    # failure — its dev shell has no PATH entry for the binary either.
+    # failure — its dev shell has no PATH entry for the binary either. This
+    # build goes stale once the branch moves; integrate.sh rebuilds it before
+    # judging the branch.
     if (cd "$path" && direnv exec . just --show build-mt) >/dev/null 2>&1; then
         (cd "$path" && direnv exec . just build-mt)
     else

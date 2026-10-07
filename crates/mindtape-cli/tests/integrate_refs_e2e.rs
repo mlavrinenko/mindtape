@@ -50,10 +50,16 @@ fn commit(wt: &Path, message: &str) {
 
 /// Run the integrate script for `feature` from `main`, with `mt` on `PATH`.
 fn integrate(main: &Path) -> Output {
+    integrate_with(main, None)
+}
+
+/// [`integrate`] with `first` ahead of everything else on `PATH`.
+fn integrate_with(main: &Path, first: Option<&Path>) -> Output {
     let script = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.just/scripts/integrate.sh");
     let mt_dir = Path::new(env!("CARGO_BIN_EXE_mt")).parent().unwrap();
     let path = format!(
-        "{}:{}",
+        "{}{}:{}",
+        first.map_or(String::new(), |dir| format!("{}:", dir.display())),
         mt_dir.display(),
         std::env::var("PATH").unwrap_or_default()
     );
@@ -116,5 +122,37 @@ fn a_branch_naming_no_task_passes_the_refs_check() {
     let (main, _holder, wt) = repo_with_worktree();
     commit(&wt, "task: note the parser");
     let text = stderr(&integrate(main.path()));
+    past_the_refs_check(&text);
+}
+
+/// The script rebuilds the worktree's `mt` with `just build-mt` before its
+/// first `mt` call, so the branch is judged by a binary built from its own
+/// tip. A stand-in `just` on `PATH` records the call, because the test host
+/// need not have the real one, and a pass-through `direnv` keeps the host's own
+/// from rewriting `PATH` out from under the stand-in.
+#[test]
+fn the_worktrees_mt_is_rebuilt_before_the_branch_is_judged() {
+    use std::os::unix::fs::PermissionsExt;
+    let (main, holder, wt) = repo_with_worktree();
+    commit(&wt, "task: note the parser");
+    let bin = holder.path().join("bin");
+    std::fs::create_dir(&bin).unwrap();
+    let marker = holder.path().join("built");
+    let shim = bin.join("just");
+    std::fs::write(
+        &shim,
+        format!(
+            "#!/bin/sh\n[ \"$1\" = --show ] && exit 0\n[ \"$1\" = build-mt ] && touch {}\n",
+            marker.display()
+        ),
+    )
+    .unwrap();
+    let direnv = bin.join("direnv");
+    std::fs::write(&direnv, "#!/bin/sh\nshift 2\nexec \"$@\"\n").unwrap();
+    for script in [&shim, &direnv] {
+        std::fs::set_permissions(script, std::fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    let text = stderr(&integrate_with(main.path(), Some(&bin)));
+    assert!(marker.exists(), "no rebuild: {text}");
     past_the_refs_check(&text);
 }

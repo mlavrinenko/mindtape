@@ -332,8 +332,8 @@ groups:
       examples/statuses/tasks/vendor-the-csv-parser.typ: 8b3473487a2d91192d47fcfde820a1d91c257addec4b1c56be6d03fec58fc14d
   worktree-release-docs:
     source:
-      .just/scripts/fork.sh: 46ebd6d0b1c58bdd9027cdd9a276d6340f0a4f3baf0e5af902ae2fcf495f2e3a
-      .just/scripts/integrate.sh: 2135975f86f0dfd0e01cc158a30ba15160aeadc50489a4e64cd0cceb46285c81
+      .just/scripts/fork.sh: 95886251e64047c8ae2facf8c3bb1496394ea66d690b05c1f4f023cd59471970
+      .just/scripts/integrate.sh: 815571693481c4480833b29d61e4c6ef8c15fc7af8a408abfdb20e08c704757f
       .just/scripts/release.sh: f099d743923b6ab729e00d4ba93c39497cbb6cfdff7e3805341e74b756b0fbcd
     dependents:
-      docs/src/contributing.typ: 97c82934196ec6defa4ee0524c46f0e4dcae5352abdca02cce3fe82132bbe696
+      docs/src/contributing.typ: d2c245c12b8c4eef48ba986c349e702eaa7d4e53a600a8716db7532c3d779e28
