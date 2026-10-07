@@ -8787,285 +8787,6 @@
       "crate": "mindtape"
     },
     {
-      "file": "crates/mindtape/src/config_rule_sites.rs",
-      "function": "RuleSites::eq",
-      "line": 34,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rule_sites.rs",
-      "function": "RuleSites::from_origins",
-      "line": 42,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rule_sites.rs",
-      "function": "RuleSites::get",
-      "line": 55,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rule_sites.rs",
-      "function": "relative",
-      "line": 76,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rule_sites.rs",
-      "function": "site",
-      "line": 61,
-      "cyclomatic": 5.0,
-      "coverage": 100.0,
-      "crap": 5.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules.rs",
-      "function": "RuleSpec::advice",
-      "line": 182,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules.rs",
-      "function": "RuleSpec::label",
-      "line": 173,
-      "cyclomatic": 3.0,
-      "coverage": 100.0,
-      "crap": 3.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules.rs",
-      "function": "RulesRoot::as_path",
-      "line": 106,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules.rs",
-      "function": "RulesRoot::eq",
-      "line": 94,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules.rs",
-      "function": "RulesRoot::set",
-      "line": 102,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules.rs",
-      "function": "labels",
-      "line": 270,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules.rs",
-      "function": "set_labels",
-      "line": 286,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules.rs",
-      "function": "validate_rule_names",
-      "line": 252,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules.rs",
-      "function": "validate_rules",
-      "line": 207,
-      "cyclomatic": 9.0,
-      "coverage": 100.0,
-      "crap": 9.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules_eval.rs",
-      "function": "CompiledRule::breaches",
-      "line": 108,
-      "cyclomatic": 11.0,
-      "coverage": 96.55172413793103,
-      "crap": 11.004961253023904,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules_eval.rs",
-      "function": "CompiledRule::compile",
-      "line": 70,
-      "cyclomatic": 6.0,
-      "coverage": 95.23809523809523,
-      "crap": 6.003887269193392,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules_eval.rs",
-      "function": "CompiledRule::skipped",
-      "line": 151,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules_eval.rs",
-      "function": "CompiledRule::violation",
-      "line": 168,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules_eval.rs",
-      "function": "check_all",
-      "line": 191,
-      "cyclomatic": 7.0,
-      "coverage": 100.0,
-      "crap": 7.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules_eval.rs",
-      "function": "rule_reads",
-      "line": 36,
-      "cyclomatic": 7.0,
-      "coverage": 100.0,
-      "crap": 7.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules_typst.rs",
-      "function": "CompiledCheck::evaluate",
-      "line": 111,
-      "cyclomatic": 4.0,
-      "coverage": 93.75,
-      "crap": 4.00390625,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules_typst.rs",
-      "function": "CompiledCheck::new",
-      "line": 97,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules_typst.rs",
-      "function": "CompiledCheck::probe",
-      "line": 133,
-      "cyclomatic": 2.0,
-      "coverage": 100.0,
-      "crap": 2.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules_typst.rs",
-      "function": "breaches_from",
-      "line": 231,
-      "cyclomatic": 3.0,
-      "coverage": 85.71428571428571,
-      "crap": 3.0262390670553936,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules_typst.rs",
-      "function": "canonical_hval",
-      "line": 220,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules_typst.rs",
-      "function": "check_literal",
-      "line": 249,
-      "cyclomatic": 5.0,
-      "coverage": 100.0,
-      "crap": 5.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules_typst.rs",
-      "function": "check_module",
-      "line": 177,
-      "cyclomatic": 4.0,
-      "coverage": 100.0,
-      "crap": 4.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules_typst.rs",
-      "function": "date_literal",
-      "line": 263,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules_typst.rs",
-      "function": "field_value",
-      "line": 203,
-      "cyclomatic": 2.0,
-      "coverage": 100.0,
-      "crap": 2.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules_typst.rs",
-      "function": "string_or_literal",
-      "line": 241,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/config_rules_typst.rs",
-      "function": "validate_load",
-      "line": 156,
-      "cyclomatic": 5.0,
-      "coverage": 100.0,
-      "crap": 5.0,
-      "crate": "mindtape"
-    },
-    {
       "file": "crates/mindtape/src/content_gate.rs",
       "function": "all_descendants",
       "line": 230,
@@ -11966,7 +11687,7 @@
     {
       "file": "crates/mindtape/src/lib.rs",
       "function": "select",
-      "line": 171,
+      "line": 169,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -13185,6 +12906,285 @@
       "cyclomatic": 1.0,
       "coverage": 0.0,
       "crap": 2.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/eval.rs",
+      "function": "CompiledRule::breaches",
+      "line": 108,
+      "cyclomatic": 11.0,
+      "coverage": 96.55172413793103,
+      "crap": 11.004961253023904,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/eval.rs",
+      "function": "CompiledRule::compile",
+      "line": 70,
+      "cyclomatic": 6.0,
+      "coverage": 95.23809523809523,
+      "crap": 6.003887269193392,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/eval.rs",
+      "function": "CompiledRule::skipped",
+      "line": 151,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/eval.rs",
+      "function": "CompiledRule::violation",
+      "line": 168,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/eval.rs",
+      "function": "check_all",
+      "line": 191,
+      "cyclomatic": 7.0,
+      "coverage": 100.0,
+      "crap": 7.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/eval.rs",
+      "function": "rule_reads",
+      "line": 36,
+      "cyclomatic": 7.0,
+      "coverage": 100.0,
+      "crap": 7.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/mod.rs",
+      "function": "RuleSpec::advice",
+      "line": 191,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/mod.rs",
+      "function": "RuleSpec::label",
+      "line": 182,
+      "cyclomatic": 3.0,
+      "coverage": 100.0,
+      "crap": 3.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/mod.rs",
+      "function": "RulesRoot::as_path",
+      "line": 115,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/mod.rs",
+      "function": "RulesRoot::eq",
+      "line": 103,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/mod.rs",
+      "function": "RulesRoot::set",
+      "line": 111,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/mod.rs",
+      "function": "labels",
+      "line": 278,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/mod.rs",
+      "function": "set_labels",
+      "line": 294,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/mod.rs",
+      "function": "validate_rule_names",
+      "line": 260,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/mod.rs",
+      "function": "validate_rules",
+      "line": 215,
+      "cyclomatic": 9.0,
+      "coverage": 100.0,
+      "crap": 9.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/sites.rs",
+      "function": "RuleSites::eq",
+      "line": 34,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/sites.rs",
+      "function": "RuleSites::from_origins",
+      "line": 42,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/sites.rs",
+      "function": "RuleSites::get",
+      "line": 55,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/sites.rs",
+      "function": "relative",
+      "line": 76,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/sites.rs",
+      "function": "site",
+      "line": 61,
+      "cyclomatic": 5.0,
+      "coverage": 100.0,
+      "crap": 5.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/typst.rs",
+      "function": "CompiledCheck::evaluate",
+      "line": 111,
+      "cyclomatic": 4.0,
+      "coverage": 93.75,
+      "crap": 4.00390625,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/typst.rs",
+      "function": "CompiledCheck::new",
+      "line": 97,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/typst.rs",
+      "function": "CompiledCheck::probe",
+      "line": 133,
+      "cyclomatic": 2.0,
+      "coverage": 100.0,
+      "crap": 2.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/typst.rs",
+      "function": "breaches_from",
+      "line": 231,
+      "cyclomatic": 3.0,
+      "coverage": 85.71428571428571,
+      "crap": 3.0262390670553936,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/typst.rs",
+      "function": "canonical_hval",
+      "line": 220,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/typst.rs",
+      "function": "check_literal",
+      "line": 249,
+      "cyclomatic": 5.0,
+      "coverage": 100.0,
+      "crap": 5.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/typst.rs",
+      "function": "check_module",
+      "line": 177,
+      "cyclomatic": 4.0,
+      "coverage": 100.0,
+      "crap": 4.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/typst.rs",
+      "function": "date_literal",
+      "line": 263,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/typst.rs",
+      "function": "field_value",
+      "line": 203,
+      "cyclomatic": 2.0,
+      "coverage": 100.0,
+      "crap": 2.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/typst.rs",
+      "function": "string_or_literal",
+      "line": 241,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/rules/typst.rs",
+      "function": "validate_load",
+      "line": 156,
+      "cyclomatic": 5.0,
+      "coverage": 100.0,
+      "crap": 5.0,
       "crate": "mindtape"
     },
     {

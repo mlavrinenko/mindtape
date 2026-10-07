@@ -1276,7 +1276,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mindtape::filter::condition` and `mindtape::filter::condition_env`, and
   `mindtape::config_comments`, `mindtape::config_commits` and
   `mindtape::config_hooks` are now `mindtape::config::comments`,
-  `mindtape::config::commits` and `mindtape::config::hooks`. The root
+  `mindtape::config::commits` and `mindtape::config::hooks`, and
+  `mindtape::config_rules` is now `mindtape::rules`. The root
   re-exports (`mindtape::Condition` and the rest) are unchanged.
 - **The docs sidebar groups pages by the reader's job.** The 13-page
   Reference group splits into Fields, Checks, Reference and Integrate, and

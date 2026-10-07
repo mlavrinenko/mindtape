@@ -7,7 +7,7 @@
 //! instead and are only referenced here: roots/derive-tags (`config/roots.rs`),
 //! the status legend (`config/status.rs`), assignee (`config/assignee.rs`),
 //! estimate (`config/estimate.rs`), naming (`crate::naming`), links
-//! (`crate::link`), recur (`crate::recur`), rules (`config_rules`), and
+//! (`crate::link`), recur (`crate::recur`), rules (`rules/mod.rs`), and
 //! comments (`config/comments.rs`).
 
 use std::collections::{BTreeMap, HashSet};
@@ -64,7 +64,7 @@ pub struct TasksConfig {
     pub recur: crate::recur::RecurConfig,
     /// Assertions every selected task must satisfy. `mt check` enforces them,
     /// and so does every write command before it writes.
-    pub rules: Vec<crate::config_rules::RuleSpec>,
+    pub rules: Vec<crate::rules::RuleSpec>,
     /// Review-comment policy over a task's whole source file (`mt check`).
     pub comments: crate::config::comments::CommentsConfig,
 }

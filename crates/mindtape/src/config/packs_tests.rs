@@ -7,7 +7,7 @@ use crate::config::layers::{Layer, LayerSource, load_config_layered_from};
 use crate::config::packs_toml::read_array;
 use crate::test_support::home_and_project;
 
-fn names_of(rules: &[crate::config_rules::RuleSpec]) -> Vec<Option<String>> {
+fn names_of(rules: &[crate::rules::RuleSpec]) -> Vec<Option<String>> {
     rules.iter().map(|r| r.name.clone()).collect()
 }
 
@@ -109,7 +109,7 @@ pub(crate) fn layer(source: LayerSource, text: &str) -> Layer {
 // --- a `[[tasks.rules]] check` entry validates and resolves the same way
 // regardless of which layer or pack declared it: against the PROJECT root,
 // never the declaring layer's own directory (`crates/mindtape/src/
-// config_rules_typst.rs::validate_load`, run from `config::layers::build_config`
+// rules/typst.rs::validate_load`, run from `config::layers::build_config`
 // over the fully merged `config.tasks.rules`, so a pack's or an ancestor's
 // `check` entry is exactly one more entry in that array by the time it runs).
 
@@ -193,7 +193,7 @@ fn a_packs_check_rule_is_validated_at_load_against_the_project_root() {
     let (_tmp, _home, project) = home_and_project();
     let config = config_extending_test_pack(&project, registry);
 
-    let err = crate::config_rules_typst::validate_load(&config, &project).unwrap_err();
+    let err = crate::rules::typst::validate_load(&config, &project).unwrap_err();
     assert!(err.contains("missing.typ"), "{err}");
 }
 
@@ -283,7 +283,7 @@ fn a_same_file_duplicate_name_is_left_for_validation_not_collapsed_at_merge() {
 /// entries sharing a name within the project's own file fail
 /// `Config::validate` (`validate_header_rules`), the same treatment
 /// `rejects_duplicate_rule_names_within_one_array`
-/// (`config_rules_tests.rs`) now gives `[[tasks.rules]]`. Cross-file
+/// (`rules/tests.rs`) now gives `[[tasks.rules]]`. Cross-file
 /// replacement by name is a different scenario entirely — see
 /// `same_name_project_rule_replaces_the_ancestors_in_place` — and stays
 /// legal.

@@ -24,7 +24,7 @@ const RULES_PREFIX: &str = "tasks.";
 ///
 /// Derived at load, never declared, never equal-compared: two configs with the
 /// same declared content are the same config wherever their rules came from,
-/// the reading [`crate::config_rules::RulesRoot`] takes for the same kind of
+/// the reading [`crate::rules::RulesRoot`] takes for the same kind of
 /// load-derived state. Empty for a [`crate::config::Config`] built through
 /// [`crate::config::parse_config`] alone.
 #[derive(Debug, Clone, Default)]
@@ -78,5 +78,5 @@ fn relative(path: &Path, root: &Path) -> std::path::PathBuf {
 }
 
 #[cfg(test)]
-#[path = "config_rule_sites_tests.rs"]
+#[path = "sites_tests.rs"]
 mod tests;

@@ -9,7 +9,7 @@
 //! singleton-comma rule below, is a wrong file waiting to be written.
 //!
 //! All three are read beyond `emit` inside the crate as well:
-//! [`crate::config_rules_typst`] builds a Typst literal for a `[[tasks.rules]]
+//! [`crate::rules::typst`] builds a Typst literal for a `[[tasks.rules]]
 //! check` function's argument from the same [`HVal`] tree, but renders a
 //! [`HVal::Date`] as a real `datetime(...)` call instead of the quoted string
 //! [`hval_to_typ`] writes for round-tripping `x-<ns>` extras verbatim — a
@@ -84,7 +84,7 @@ pub(crate) fn hval_to_typ(value: &HVal) -> String {
 /// mirroring `lib/prelude.typ`'s own `"in-review": (...)` entry, so an
 /// arbitrary extras key never needs identifier validation. `render` projects
 /// one value to its literal; [`hval_to_typ`] passes itself back in for the
-/// recursive case, and [`crate::config_rules_typst`] passes its own
+/// recursive case, and [`crate::rules::typst`] passes its own
 /// datetime-aware dispatcher instead.
 #[must_use]
 pub(crate) fn typ_dict_with(

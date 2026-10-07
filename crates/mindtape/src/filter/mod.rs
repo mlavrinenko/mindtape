@@ -145,7 +145,7 @@ pub enum FilterError {
     Invalid(String),
     /// `changed()` or `touches()` asked git and git could not answer —
     /// outside a repository, or git missing. A `[[tasks.rules]]` entry
-    /// reading it is skipped rather than failed ([`crate::config_rules`]).
+    /// reading it is skipped rather than failed ([`crate::rules`]).
     #[error("{call}() cannot read git: {reason}")]
     Git {
         /// The function that asked.

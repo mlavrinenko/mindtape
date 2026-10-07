@@ -1,7 +1,7 @@
 //! The engine behind `[[tasks.rules]]`: compile each declared entry into a
 //! [`CompiledRule`] and ask it about every task, collecting the breaches.
 //!
-//! Split out of `config_rules.rs` to stay under the line budget: that file
+//! Split out of `rules/mod.rs` to stay under the line budget: that file
 //! owns the declared shape — [`RuleSpec`], [`CheckSpec`], [`RulesRoot`] — and
 //! the load-time checks over it; this one owns what a valid declaration does
 //! at validation time. Both shapes of rule meet here: an `assert` compiles to
@@ -11,10 +11,10 @@
 use std::collections::BTreeSet;
 
 use crate::config::Config;
-use crate::config_rules_typst::CompiledCheck;
 use crate::filter::{Filter, FilterError};
 use crate::model::Task;
 use crate::ready::Readiness;
+use crate::rules::typst::CompiledCheck;
 use crate::severity::Severity;
 use crate::validate::Violation;
 

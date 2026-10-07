@@ -74,7 +74,7 @@ pub enum HeaderPathSegment {
 impl HeaderRuleConfig {
     /// How this rule identifies itself in a report: `body.headers.rules.<name>`
     /// if it has one, else its position, `body.headers.rules[<index>]` — the
-    /// same name-or-position fallback [`crate::config_rules::RuleSpec::label`]
+    /// same name-or-position fallback [`crate::rules::RuleSpec::label`]
     /// uses for `[[tasks.rules]]`.
     #[must_use]
     pub fn label(&self, index: usize) -> String {

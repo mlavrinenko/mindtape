@@ -68,7 +68,7 @@ pub enum RuleOrigin {
 
 /// One rule's provenance in a merged array: its report-style label
 /// (`tasks.rules.<name>` or `tasks.rules[<index>]`, matching
-/// [`crate::config_rules::RuleSpec::label`]'s own convention) and where it
+/// [`crate::rules::RuleSpec::label`]'s own convention) and where it
 /// came from. Backs `mt config show --origin`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RuleOriginEntry {
@@ -275,7 +275,7 @@ type NamedOrigin = (Option<String>, RuleOrigin, Option<usize>);
 
 /// One `RuleOriginEntry` per entry in `named_origins`, labeled `prefix.<name>`
 /// when named, else `prefix[<index>]` — matching
-/// [`crate::config_rules::RuleSpec::label`]'s own name-or-position fallback.
+/// [`crate::rules::RuleSpec::label`]'s own name-or-position fallback.
 fn labeled_origins(prefix: &str, named_origins: Vec<NamedOrigin>) -> Vec<RuleOriginEntry> {
     named_origins
         .into_iter()

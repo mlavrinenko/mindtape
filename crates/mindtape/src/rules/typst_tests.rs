@@ -2,9 +2,9 @@
 
 use super::{CompiledCheck, validate_load};
 use crate::config::Config;
-use crate::config_rules::CheckSpec;
 use crate::model::Task;
 use crate::parse_config;
+use crate::rules::CheckSpec;
 use crate::test_support::{bare_task, write_bare_project};
 
 /// A `check` spec naming `function` in `check.typ` at the project root, with

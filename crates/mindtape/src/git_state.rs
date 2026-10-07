@@ -270,7 +270,7 @@ fn glob_set(patterns: &[&str]) -> Result<Option<GlobSet>, String> {
 /// The [`GitStatus`] of one project root, read the first time something asks
 /// and shared by every clone after. Carried on [`crate::config::Config`] so a
 /// filter reads git without a `root` parameter, like
-/// [`crate::config_rules::RulesRoot`]. Empty root (a config built without a
+/// [`crate::rules::RulesRoot`]. Empty root (a config built without a
 /// project) reads the process's current directory. Never equal-compared.
 #[derive(Debug, Clone, Default)]
 pub struct GitCache {

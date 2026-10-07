@@ -157,9 +157,9 @@ fn a_wip_cap_rule_flags_every_task_over_the_cap() {
          assert = 'count(status == \"wip\") <= 1'\nseverity = \"error\"\n",
     )
     .unwrap();
-    assert!(crate::config_rules::validate_rules(&cfg).is_empty());
+    assert!(crate::rules::validate_rules(&cfg).is_empty());
     let mut out = Vec::new();
-    crate::config_rules::check_all(&set(), &cfg, &mut out);
+    crate::rules::check_all(&set(), &cfg, &mut out);
     let ids: Vec<&str> = out.iter().map(|v| v.task_id.as_str()).collect();
     assert_eq!(ids, ["a", "b"]);
     // A breach is the cap, never an evaluation error reported as one.
@@ -170,6 +170,6 @@ fn a_wip_cap_rule_flags_every_task_over_the_cap() {
     let mut under = set();
     under.remove(1);
     let mut out = Vec::new();
-    crate::config_rules::check_all(&under, &cfg, &mut out);
+    crate::rules::check_all(&under, &cfg, &mut out);
     assert!(out.is_empty(), "{out:?}");
 }

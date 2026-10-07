@@ -50,7 +50,7 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
         crate::validate_recur::check_all(task, config, &mut out);
     }
     crate::validate_links::check_all(tasks, config, &mut out);
-    crate::config_rules::check_all(tasks, config, &mut out);
+    crate::rules::check_all(tasks, config, &mut out);
     out
 }
 

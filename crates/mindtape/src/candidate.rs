@@ -187,7 +187,7 @@ pub fn reads_set_breach(config: &Config, violation: &Violation) -> bool {
     crate::validate_links::is_unresolved(violation)
         || violation.kind == crate::violation::ViolationKind::SkippedRule
         || acyclic_kinds(&config.tasks.links).contains(&violation.field.as_str())
-        || crate::config_rules::set_labels(config).contains(&violation.field)
+        || crate::rules::set_labels(config).contains(&violation.field)
 }
 
 /// The violations the batch opens or closes elsewhere that `validate` names on
@@ -211,7 +211,7 @@ fn elsewhere_violations(
     after: &[Violation],
 ) -> Vec<Violation> {
     let acyclic = acyclic_kinds(&config.tasks.links);
-    let rule_labels = crate::config_rules::labels(config);
+    let rule_labels = crate::rules::labels(config);
     let elsewhere: Vec<&Violation> = after
         .iter()
         .filter(|violation| {

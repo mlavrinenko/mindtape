@@ -8,7 +8,7 @@
 //! Nothing here checks a quantity. A cap on a declared estimate, or a budget
 //! the git working tree is held to, is a `[[tasks.rules]]` entry reading
 //! `estimate.<unit>` and `changed(...)` in the filter language (see
-//! [`crate::config_rules`]), so no estimate check runs unless a project wrote
+//! [`crate::rules`]), so no estimate check runs unless a project wrote
 //! or inherited one.
 
 use std::collections::BTreeMap;

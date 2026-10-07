@@ -30,9 +30,6 @@ pub mod commit_refs;
 pub mod commit_task_expr;
 pub mod commit_tasks;
 pub mod config;
-mod config_rule_sites;
-pub mod config_rules;
-mod config_rules_typst;
 pub mod content_gate;
 mod date;
 mod date_pin;
@@ -65,6 +62,7 @@ pub mod recur;
 pub mod recur_dates;
 #[cfg(feature = "rrule")]
 mod recur_rrule;
+pub mod rules;
 pub mod task_spans;
 // Without the feature, the same module name resolves to a stub with the same
 // surface — so every caller stays one always-compiled function, with no
@@ -118,7 +116,6 @@ pub use config::{
     builtin_dict_names, compile_dicts, config_path, embedded_defaults, load_config, parse_config,
     parse_import_view, roles_of, validate_dicts, validate_views,
 };
-pub use config_rules::{CheckSpec, RuleSpec};
 pub use content_gate::{CompiledContentRule, check_content, compile_content_rules};
 pub use date::{days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};
 pub use date_pin::{DateOverrideError, init_pinned_today};
@@ -149,6 +146,7 @@ pub use numeric::{
     Anchor, Band, InputValue, NumCell, NumValue, NumericField, ScaleKind, format_num,
 };
 pub use ready::{Blocker, Readiness, ReadyState, blockers_of, unblocked_violation, waits_on};
+pub use rules::{CheckSpec, RuleSpec};
 pub use severity::Severity;
 pub use sort::{default_order, default_order_with, difficulty_value, sort_by_specs};
 pub use status_value::{STATUS_SHORTCUTS, escape_markup, status_value};

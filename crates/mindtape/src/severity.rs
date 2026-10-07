@@ -2,7 +2,7 @@
 //!
 //! Shared by the two sections that let a project choose — `[[tasks.limits]]`
 //! (see [`crate::config_limits`]) and `[[tasks.rules]]` (see
-//! [`crate::config_rules`]). Both spell the same two words in TOML and both
+//! [`crate::rules`]). Both spell the same two words in TOML and both
 //! mean the same two things by them, so they read one enum rather than two
 //! that would have to be kept in step by hand.
 //!

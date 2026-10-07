@@ -5,7 +5,7 @@ use std::path::Path;
 use super::RuleSites;
 use crate::config::layers::{LayerSource, load_config_layered_from};
 use crate::config::packs::{PackOrigin, RuleOrigin, RuleOriginEntry};
-use crate::config_rules::check_all;
+use crate::rules::check_all;
 use crate::severity::Severity;
 use crate::test_support::bare_task;
 use crate::validate::{Location, Violation};

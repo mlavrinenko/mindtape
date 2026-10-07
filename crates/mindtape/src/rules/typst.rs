@@ -67,9 +67,9 @@ use typst_world::{DiskProvider, root_file_id};
 
 use crate::canonical::{CanonicalTask, json_to_hval};
 use crate::config::Config;
-use crate::config_rules::CheckSpec;
 use crate::emit::format::{hval_to_typ, typ_array, typ_dict_with};
 use crate::model::Task;
+use crate::rules::CheckSpec;
 
 /// One `check` rule, built once and reused across every task it is asked
 /// about: the project root, the resolved `@local` package overrides, and the
@@ -145,7 +145,7 @@ impl CompiledCheck {
 
 /// Root-aware load-time validation for every `[[tasks.rules]] check` entry:
 /// the named Typst module must exist and must export `function`. Complements
-/// [`crate::config_rules::validate_rules`], which validates rule shape
+/// [`crate::rules::validate_rules`], which validates rule shape
 /// without a project root — this validates the one thing shape-checking
 /// cannot see, so it runs from [`crate::config::layers::build_config`] instead,
 /// the one caller that already has root in hand for [`crate::config::compile_dicts`].
@@ -268,5 +268,5 @@ fn date_literal(text: &str) -> String {
 }
 
 #[cfg(test)]
-#[path = "config_rules_typst_tests.rs"]
+#[path = "typst_tests.rs"]
 mod tests;

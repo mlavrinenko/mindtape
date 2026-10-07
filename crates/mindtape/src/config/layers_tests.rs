@@ -332,7 +332,7 @@ fn a_literal_at_prefixed_entry_with_no_matching_dict_fails_the_load() {
 /// exists only inside the fixture project, so a `RulesRoot` left unstamped
 /// when `build_config` assembles the config turns the rule into a harvest
 /// error instead of a pass. Pins the full-sweep survivor
-/// `crates/mindtape/src/config_rules.rs:103:9 replace RulesRoot::set with ()`.
+/// `crates/mindtape/src/rules/mod.rs:103:9 replace RulesRoot::set with ()`.
 #[test]
 fn a_typst_check_rule_resolves_against_the_project_root() {
     let (_tmp, home, project) = home_and_project();
@@ -349,7 +349,7 @@ fn a_typst_check_rule_resolves_against_the_project_root() {
 
     let task = crate::test_support::bare_task("task");
     let mut out = Vec::new();
-    crate::config_rules::check_all(&[task], &config, &mut out);
+    crate::rules::check_all(&[task], &config, &mut out);
     assert!(out.is_empty(), "{out:#?}");
 }
 

@@ -159,15 +159,15 @@ pub struct Config {
     /// [`crate::config::layers::build_config`]. Derived, never declared: like
     /// [`Config::dict_cache`], it carries no TOML key, no schema property, and
     /// is never equal-compared. Read by a `[[tasks.rules]] check` entry
-    /// ([`crate::config_rules_typst`]) instead of taking `root` as a parameter
+    /// ([`crate::rules::typst`]) instead of taking `root` as a parameter
     /// on every validation call site.
     #[serde(skip)]
-    pub(crate) rules_root: crate::config_rules::RulesRoot,
+    pub(crate) rules_root: crate::rules::RulesRoot,
     /// Where each `[[tasks.rules]]` entry is declared, recorded by
     /// [`crate::config::layers::build_config`]. Derived, never declared, never
-    /// equal-compared — see [`crate::config_rule_sites::RuleSites`].
+    /// equal-compared — see [`crate::rules::sites::RuleSites`].
     #[serde(skip)]
-    pub(crate) rule_sites: crate::config_rule_sites::RuleSites,
+    pub(crate) rule_sites: crate::rules::sites::RuleSites,
     /// What git says changed under the project root, read the first time a
     /// filter's `changed()` asks and shared from then on. Derived, never
     /// declared, never equal-compared — see [`crate::git_state::GitCache`].
@@ -345,8 +345,8 @@ impl Config {
         problems.extend(crate::config::required::validate_requirements(self));
         problems.extend(crate::config::required::validate_values_when(self));
         problems.extend(crate::config::links_validate::validate_link_kinds(self));
-        problems.extend(crate::config_rules::validate_rules(self));
-        problems.extend(crate::config_rules::validate_rule_names(self));
+        problems.extend(crate::rules::validate_rules(self));
+        problems.extend(crate::rules::validate_rule_names(self));
         problems.extend(crate::config::commits::validate_commits(self));
         problems.extend(crate::body_headers::validate_header_rules(self));
         problems.extend(crate::body_content::validate_content_rules(self));

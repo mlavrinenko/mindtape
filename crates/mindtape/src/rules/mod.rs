@@ -17,7 +17,7 @@
 //!   ```
 //!
 //! - `check` — a Typst function the project already has, for a structure no
-//!   filter expression can name (see [`crate::config_rules_typst`]):
+//!   filter expression can name (see [`crate::rules::typst`]):
 //!
 //!   ```toml
 //!   [[tasks.rules]]
@@ -54,10 +54,19 @@
 //! malformed one is one config error rather than one violation per artifact. A
 //! `check` rule's Typst module is checked for existence and export the same
 //! way, but needs the project root to read it — see
-//! [`crate::config_rules_typst::validate_load`], run from
+//! [`crate::rules::typst::validate_load`], run from
 //! [`crate::config::layers`] rather than from here, against [`RulesRoot`]
 //! rather than a `root` parameter threaded through every validation call
 //! site.
+//!
+//! # Files
+//!
+//! - `eval.rs`: the engine, compiling each declared entry and asking it about every task.
+//! - `sites.rs`: where each rule is declared, so a report about the rule opens it.
+//! - `typst.rs`: `check = { typst, ... }` rules, calling a project's own Typst function.
+
+pub(crate) mod sites;
+pub(crate) mod typst;
 
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -74,8 +83,8 @@ use crate::severity::Severity;
 /// entries at load rather than making every downstream filter evaluation
 /// take a `root` parameter to re-read the section with. A `[[tasks.rules]]
 /// check` entry reads it here to resolve `typst`, both at load
-/// ([`crate::config_rules_typst::validate_load`]) and per task
-/// ([`crate::config_rules_typst::CompiledCheck`]).
+/// ([`crate::rules::typst::validate_load`]) and per task
+/// ([`crate::rules::typst::CompiledCheck`]).
 ///
 /// Empty for a [`Config`] built through [`crate::config::parse_config`] alone
 /// (no project on disk, e.g. most unit tests) — a `check` rule then resolves
@@ -110,7 +119,7 @@ impl RulesRoot {
 
 /// `check = { typst, function, field }` — a `[[tasks.rules]]` entry that calls
 /// a Typst function instead of evaluating an `assert` expression.
-// `crate::config_rules_typst` evaluates the call.
+// `crate::rules::typst` evaluates the call.
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct CheckSpec {
@@ -189,7 +198,6 @@ impl RuleSpec {
 
 /// Compilation and evaluation of a declared rule; split out to keep this file
 /// under its line budget. See [`check_all`].
-#[path = "config_rules_eval.rs"]
 mod eval;
 pub(crate) use eval::check_all;
 
@@ -202,7 +210,7 @@ pub(crate) use eval::check_all;
 /// unknown field, view or dictionary is caught here — where it is one config
 /// error — instead of once per artifact at validation time. A `check` rule's
 /// Typst module needs the project root to read, which this function does not
-/// have; [`crate::config_rules_typst::validate_load`] covers it separately,
+/// have; [`crate::rules::typst::validate_load`] covers it separately,
 /// from [`crate::config::layers`], the one caller with root in hand.
 pub(crate) fn validate_rules(config: &Config) -> Vec<String> {
     let probe = Task::default();
@@ -297,5 +305,4 @@ pub(crate) fn set_labels(config: &Config) -> HashSet<String> {
 }
 
 #[cfg(test)]
-#[path = "config_rules_tests.rs"]
 mod tests;
