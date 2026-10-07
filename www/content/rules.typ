@@ -25,18 +25,20 @@
   ("required", "assert", "wip-cap", "check", "headers", "content", "comments"),
 )
 
-`mt check` and every command that writes a task file run the same validation
-pass. It checks each field against the config, such as a status against the
-#link(u("/statuses/"))[status legend]. A project adds checks of its own with the keys on this page. Rules
-from an ancestor directory's defaults and from rule packs add to the project's
-own, as #link(u("/config/"))[Configuration] describes.
-#link(u("/rule-packs/"))[Rule packs] share one set of rules between projects.
+Rules are how you tell `mt` what a good task looks like in your project.
+`mt check` and every command that writes a task file run the same checks. They
+check each field against the config, such as a status against the
+#link(u("/statuses/"))[status legend], plus any checks you add with the keys
+on this page. Rules from an ancestor directory's defaults and from rule packs
+add to your project's own, as #link(u("/config/"))[Configuration] describes.
+To share one set of rules between projects, see
+#link(u("/rule-packs/"))[Rule packs].
 
 = Required fields
 
 `required` takes `true`, `false`, or a #link(u("/filters/"))[filter
-  expression]. With an expression, the field is required on exactly the tasks it
-matches. The key exists on `[tasks.priority]`, `[tasks.difficulty]`,
+  expression]. With an expression, the field is required on exactly the tasks
+it matches. You can set it on `[tasks.priority]`, `[tasks.difficulty]`,
 `[tasks.estimate]`, `[tasks.assignee]` and each `[tasks.fields.<name>]`:
 
 #raw(
@@ -54,17 +56,17 @@ matches. The key exists on `[tasks.priority]`, `[tasks.difficulty]`,
   block: true,
 )
 
-A write that would leave a required field empty is refused:
+`mt` refuses a write that would leave a required field empty:
 
 #terminal("rules-required")
 
-`mt` parses each expression once, when it loads the config, so a malformed one
-is one error naming the field.
+`mt` parses each expression once, when it loads the config, so a broken one
+gives you one error that names the field.
 
 = Assertions
 
-A `[[tasks.rules]]` entry with `assert` holds every task it selects to a
-filter expression. Unlike `required`, it can test what a field holds:
+A `[[tasks.rules]]` entry with `assert` checks every task it selects against
+a filter expression. Unlike `required`, it can test what a field holds:
 
 #raw(
   render-slices(
@@ -78,26 +80,26 @@ filter expression. Unlike `required`, it can test what a field holds:
 
 #config-keys-table(schema, "tasks.rules")
 
-An `error` breach refuses the write, and nothing lands:
+An `error` breach refuses the write, and nothing is written:
 
 #terminal("rules-assert")
 
-A `warn` breach prints, and the write goes ahead:
+A `warn` breach prints a warning, and the write goes ahead:
 
 #terminal("rules-warn")
 
 `mt check` reports the same breach at the line of the task's `task.with(…)`
-call. A rule with no `name` reports by its position, `rules[0]`, so a report
-always leads back to its entry. `mt` runs each `assert` and `when` once
-against a sample task when it loads the config, so a rule that names an
-unknown field, #link(u("/named-sets/"))[view or dictionary] is one config error
-rather than one breach per task.
+call. A rule with no `name` reports by its position, `rules[0]`, so you can
+always find the entry. `mt` runs each `assert` and `when` once against a
+sample task when it loads the config. So a rule that names an unknown field,
+#link(u("/named-sets/"))[view or dictionary] gives you one config error, not
+one breach per task.
 
 = Work-in-progress caps
 
 `count(...)` counts the loaded tasks a filter matches (see
-#link(u("/filters/"))[Filter language]). A rule comparing it with a number caps
-how many tasks may be in a set at once:
+#link(u("/filters/"))[Filter language]). Compare it with a number to cap how
+many tasks can be in a set at once:
 
 #raw(
   render-slices(
@@ -117,17 +119,16 @@ line below is the breach on the task already in flight, reported against the
 
 #terminal("rules-wip-cap")
 
-The capped set is any filter, so the same rule caps a view
-(`when = '@stuck'`), a
-#link(u("/priority/"))[priority band] or a `kind`.
+The capped set can be any filter, so the same rule caps a view
+(`when = '@stuck'`), a #link(u("/priority/"))[priority band] or a `kind`.
 
 = Typst checks
 
 The filter language reads an `x-<ns>` field's text, number or list, but
-cannot look inside a dictionary. `[tasks.fields.x-<ns>]` holds an extension field to a list of
-strings and a `required` rule. For any other shape, a rule with `check`
-instead of `assert` calls a Typst function the project ships, with one
-field's value or the whole task:
+can't look inside a dictionary. `[tasks.fields.x-<ns>]` only covers a list of
+strings and a `required` rule. For any other shape, write a rule with `check`
+instead of `assert`. It calls a Typst function you ship in the project, with
+one field's value or the whole task:
 
 #raw(
   render-slices(
@@ -150,20 +151,21 @@ The value arrives as a Typst literal, and a content block in it as its plain
 text. A date in a `field` value arrives as a `datetime`. Without `field`, the
 task arrives in the shape `mt eval --json` prints, where a date is a
 `YYYY-MM-DD` string. A Typst error, a `panic()` in the function, or a return
-that is not an array of strings is one breach carrying the message, and the
+that isn't an array of strings counts as one breach with the message, and the
 rest of the project still loads.
 
 When `mt` loads the config, it checks that the module exists and exports the
-function, and reports each failure as its own config error. It does not call
-the function then, so a function that rejects some values cannot fail the
+function, and reports each failure as its own config error. It doesn't call
+the function then, so a function that rejects some values can't fail the
 config load. #link(u("/self-validating-tasks/"))[Self-validating tasks] walks
 through a complete example.
 
 = Body rules
 
-Two rule families check a task's body. Both pick sections by a path through
-the heading tree. A bare string matches a heading's text exactly, and only
-among the direct children of the previous step. `{ match = "regex" }` matches
+To make every task carry, say, a Summary and acceptance criteria, check its
+body. Two rule families do that. Both pick sections by a path through the
+heading tree. A bare string matches a heading's text exactly, and only among
+the direct children of the previous step. `{ match = "regex" }` matches
 heading text with a regex, and `recursive = true` lets it match at any depth.
 
 `[[tasks.body.headers.rules]]` checks which headings exist and in what order:
@@ -213,15 +215,16 @@ down to the next heading of the same or a higher level, subsections included.
   end. Fenced code is removed first, so a match inside a code sample never
   counts.
 
-A write that would break a body rule is refused like a field rule. `mt check`
-reports a body violation at the heading's line, or at the `task.with(…)` line
-when a required section is missing, named
+`mt` refuses a write that breaks a body rule, the same as a field rule.
+`mt check` reports a body violation at the heading's line, or at the
+`task.with(…)` line if a required section is missing, named
 `body.headers.rules.<name>` or `body.content.rules.<name>`.
 
 = Review comments
 
-`[tasks.comments]` sets what `mt check` does with a comment left anywhere in a
-task file, inside `task.with(…)` or in the body:
+If you or a reviewer leave comments in task files, you may want them cleared
+before work moves on. `[tasks.comments]` sets what `mt check` does with a
+comment anywhere in a task file, inside `task.with(…)` or in the body:
 
 #raw(
   render-slices(
@@ -235,9 +238,8 @@ task file, inside `task.with(…)` or in the body:
 
 #config-values-table(schema, "CommentsPolicy")
 
-`allow-pattern` is a regex matched against the comment's text, without its
-comment markers and trimmed, and exempts the comments it matches. `mt` finds
+`allow-pattern` is a regex matched against the comment's text, trimmed and
+without its comment markers. Comments it matches are let through. `mt` finds
 comments by parsing the file, so `//` inside a string or a raw block is never
-reported.
-Only `mt check` applies this policy, and a write command does not refuse a
+reported. Only `mt check` applies this policy. A write command won't refuse a
 task for a comment.

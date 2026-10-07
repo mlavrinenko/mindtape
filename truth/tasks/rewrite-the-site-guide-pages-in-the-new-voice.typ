@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 7),
+  status: done(
+    2026,
+    10,
+    7,
+  )[every guide page and the overview speak to you in the new voice],
   links: depends-on("give-the-docs-a-conversational-voice.typ"),
 )
 

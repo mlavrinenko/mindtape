@@ -20,9 +20,10 @@
   ("stale-gate",),
 )
 
-`[[on.flip]]` runs actions when `mt flip` changes a task's status. An action
-prints a message, lists tasks or runs a command. A command marked as a gate
-can refuse the flip.
+Want the tests to pass before a task can close, or a reminder when work
+starts? `[[on.flip]]` runs actions when `mt flip` changes a task's status. An
+action prints a message, lists tasks or runs a command. A command marked as a
+gate can refuse the flip.
 #link(u("/gate-done-on-checks/"))[Tasks closed while the tests fail] shows a
 gate that runs the tests before `mt done`, and `--force` closing the task past
 it.
@@ -56,19 +57,19 @@ matches every flip. `mt` checks each `into()` against the
 )
 
 `message` replaces the advice `mt` prints when a gate refuses or a command
-fails. `title` belongs to `list`, and `gate` and `message` belong to `run`.
+fails. `title` goes with `list`, and `gate` and `message` go with `run`.
 Actions run in the order written. A gate that refuses stops the actions after
 it, and `mt` writes nothing for that task.
 
-`show`, `list` and the output of a command that passes print only when stdout
-is a terminal and `--quiet` is not set, so a scripted flip prints only the
-flip. A command that fails prints its output either way.
+`show`, `list` and the output of a passing command print only when stdout is a
+terminal and `--quiet` isn't set, so a scripted flip prints only the flip. A
+failing command prints its output either way.
 
 = Gates
 
 A gate with no `run` refuses whenever `when` matches, so `when` is the whole
-check. This repo refuses to start a task nobody has reviewed or moved in 30
-days:
+check. This repo refuses to start a task that nobody has reviewed or moved in
+30 days:
 
 #raw(
   render-slices(
@@ -81,8 +82,8 @@ days:
 )
 
 `--force` takes a flip past a failing gate, with or without `run`, and
-records the waiver in the status note: the command, or the `message` of a
-gate with no `run`.
+records that in the status note: the command, or the `message` of a gate with
+no `run`. So the task file shows which check was skipped.
 
 A gate command runs from the project root with three variables set:
 
@@ -105,10 +106,10 @@ A gate command runs from the project root with three variables set:
   you run `mt flip` in it.
 ]
 
-The two shells share no syntax. A project used on both writes a command both
-accept, or calls a script.
+The two shells share no syntax. If you use the project on both, write a
+command both accept, or call a script.
 
-Only `mt flip` and its status verbs, such as `mt done`, run actions.
-`mt check`, `mt ls` and the other read commands run nothing. A hook whose `when`
-does not parse, whose `into()` names no status, or whose action sets no kind
-is a config error, so every command fails until it is fixed.
+Only `mt flip` and its status commands, such as `mt done`, run actions.
+`mt check`, `mt ls` and the other read commands run nothing. A hook whose
+`when` doesn't parse, whose `into()` names no status, or whose action sets no
+kind is a config error, so every command fails until you fix it.

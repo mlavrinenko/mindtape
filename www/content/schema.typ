@@ -12,10 +12,11 @@
 
 #show: page.with(..meta)
 
-`mt ls --json` prints each task as one JSON record, and `mt import` reads the
-same records back and writes `.typ` files. A `jq` program written against this
-page works in both directions. `CanonicalTask` in
-`crates/mindtape/src/model/canonical.rs` is the Rust type behind it.
+Writing a script or a `jq` program against your tasks? `mt ls --json` prints
+each task as one JSON record, and `mt import` reads the same records back and
+writes `.typ` files. So a program written against this page works in both
+directions. `CanonicalTask` in `crates/mindtape/src/model/canonical.rs` is the
+Rust type behind it.
 
 = Fields
 
@@ -81,35 +82,35 @@ A field is #strong[authored] when it holds a value written in the task file.
   [`recur`],
   [authored],
   [`{rule, anchor, until, count, materialize}`, or `null` for a task that
-    does not #link(u("/recurring/"))[recur].],
+    doesn't #link(u("/recurring/"))[recur].],
 
   [`extras`], [authored], [Each `x-<ns>` field, keyed by its name.],
 )
 
 A record read by `mt import` needs only `title`. A missing key reads as
-`null` or empty, so an adapter may leave out every field it has no value for.
+`null` or empty, so an adapter can leave out every field it has no value for.
 
 Every authored field survives `mt ls '' --json` followed by `mt import`. `id`
-and `file` come back the same only for a task whose file is named from its
-title, because `mt import` names the file from the title.
+and `file` come back the same only if the task's file is named from its title,
+because `mt import` names the file from the title.
 #link(u("/import-export/"))[Import & export] runs that round trip.
 
 = A record
 
-This is one task from `examples/round-trip/`:
+Here's one task from `examples/round-trip/`:
 
 #terminal("schema-record")
 
-Every key is present whether the task sets it or not, so a consumer tests the
-value and never whether the key exists.
+Every key is present whether the task sets it or not, so your program can test
+the value and skip checking whether the key exists.
 
 = Priority
 
-`priority` prints the value as the task wrote it, so `mt import` can write the
-same call back. A number or a label prints bare. A framework call such as
+`priority` prints the value as the task wrote it, so `mt import` can write
+the same call back. A number or a label prints bare. A framework call such as
 `ice(...)` prints as an object of the framework's name and inputs, plus the
 `score` the project's config computes from them. `score` is `null` when the
-config cannot compute it, and `mt import` ignores it. `examples/dsl/` has one
+config can't compute it, and `mt import` ignores it. `examples/dsl/` has one
 of each:
 
 #terminal("schema-priority")
@@ -121,8 +122,8 @@ with their count:
 
 #terminal("schema-envelope")
 
-`schema_version` changes only when the record or this object changes in a way
-that could break `mt import` or a `jq` program. `mt import` accepts input
+`schema_version` changes only when the record or this object changes in a
+way that could break `mt import` or a `jq` program. `mt import` accepts input
 without it, such as a bare array of records. It refuses a version newer than
 its own and names both.
 
@@ -131,18 +132,18 @@ its own and names both.
 listing. `rule` is the label of the matching `[[ls.rules]]` entry, or `null`.
 `facets` holds the listing's three #link(u("/cli/ls/"))[facets], `filter`,
 `sort` and `columns`, each as `{from, value}`. `value` is what the listing
-used, and `from` names where it came from. That is a view, a
-rule label, `manual` for a value given on the command line, or `match-all` for
-the built-in default. `superseded` is `true` when the matching rule set at
-least one of them and the command line overrode them all.
+used, and `from` says where it came from: a view, a rule label, `manual` for a
+value given on the command line, or `match-all` for the built-in default.
+`superseded` is `true` when the matching rule set at least one of them and the
+command line overrode them all.
 
 `truncated` is `null` when the listing shows every match. When `-n` or
 `--skip` cut it, `truncated` is `{shown, total, next_skip}`, and
 `mt ls --skip <next_skip>` with the same arguments shows the next page.
 
-`retired` lists the stems that a #link(u("/filters/"))[`touches()`] call found
-in commit trailers and that no task has, such as tasks `mt rm` removed. It is
-`[]` when no filter calls `touches()`.
+`retired` lists the stems that a #link(u("/filters/"))[`touches()`] call
+found in commit trailers and that no task has, such as tasks `mt rm` removed.
+It's `[]` when no filter calls `touches()`.
 
 #callout("tip")[
   #link(u("/import-export/"))[Import & export] has recipes that write and read

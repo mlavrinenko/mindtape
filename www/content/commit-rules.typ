@@ -13,15 +13,15 @@
 
 #show: page.with(..meta)
 
-`mt check --commit-msg <file>` checks the commit being written against the
-project's `[commits]` config. A `commit-msg` hook runs it, so git refuses a
-commit that breaks a rule. `mt check --commits <range>` runs the same checks
-over commits already made.
-#link(u("/trace-commits-to-tasks/"))[Commits nobody can trace to a task] shows
-the hook in a team's project, from a refused commit to `touches()`.
+Want every commit to say which task it works on? `mt check --commit-msg
+<file>` checks the commit you're writing against the project's `[commits]`
+config. Run it from a `commit-msg` hook and git refuses a commit that breaks a
+rule. `mt check --commits <range>` runs the same checks over commits already
+made. #link(u("/trace-commits-to-tasks/"))[Commits nobody can trace to a task]
+walks through the whole setup, from a refused commit to `touches()`.
 
-The examples run in a git copy of `examples/rules/`, whose config holds the two
-commit rules below. The rules the `mindtape-tasks` pack ships,
+The examples run in a git copy of `examples/rules/`, whose config holds the
+two commit rules below. The rules the `mindtape-tasks` pack ships,
 `work-names-a-task` and `flip-with-work`, are listed on
 #link(u("/rule-packs/"))[Rule packs].
 
@@ -41,7 +41,7 @@ commit rules below. The rules the `mindtape-tasks` pack ships,
 
 = The hook
 
-The hook is one line. git passes the message file as its first argument:
+The hook is one line. Git passes the message file as its first argument:
 
 #terminal("commit-hook")
 
@@ -51,15 +51,16 @@ Outside a git repository, `mt check --commit-msg` fails with
 = The trailer
 
 `[commits] trailer`, `Refs` by default, names the trailer whose values are
-tasks, one #link(u("/concepts/#identity"))[stem] per line. `mt` refuses a value that is a path, or a stem no
-task has, whatever the rules say. A path changes when its task moves to
-another folder, and a stem is unique in the project:
+tasks, one #link(u("/concepts/#identity"))[stem] per line. Whatever the rules
+say, `mt` refuses a value that's a path, or a stem no task has. Why stems? A
+path changes when its task moves to another folder, and a stem is unique in
+the project:
 
 #terminal("commit-refs-path")
 
 = Commit rules
 
-`[[commits.rules]]` takes the fields of `[[tasks.rules]]`: `name`, `when`,
+`[[commits.rules]]` takes the same keys as `[[tasks.rules]]`: `name`, `when`,
 `assert`, `message` and `severity`. `scope = "commit"`, the default, runs the
 rule once per commit, over these fields:
 
@@ -73,42 +74,47 @@ rule once per commit, over these fields:
     `matches(trailers, "^Changelog: none$")` finds one.],
 
   [`files`],
-  [Every staged path, relative to the repository's top level. A rename is
-    both its paths. Under `git commit --amend` the paths differ from the
-    parent of the commit being replaced, so an amend that adds a task's flip
-    to its work commit still sees the work.],
+  [Every staged path, relative to the repository's top level. A rename gives
+    both its paths. Under `git commit --amend` the paths are diffed against
+    the parent of the commit being replaced, so an amend that adds a task's
+    flip to its work commit still sees the work.],
 
   [`tasks_only`],
   [Whether the commit stages at least one file and every staged file is a
     `.typ` file under a `[tasks] roots` entry.],
 )
 
-The operators are the #link(u("/filters/"))[filter language]'s. The functions
-are `has(field)`, `miss(field)` and `matches(field, "regex")`. Over a list,
-`matches` is true when any entry matches, so `!matches(files, "^services/")`
-means the commit changes nothing under `services/`. `count(files, "glob"…)` is a number: how many of the commit's files the
-globs admit, with the `"!glob"` excludes `changed()` takes. It sits on the left
-of a comparison, so `count(files, "!docs/**") <= 1` caps the commit at one
-file outside `docs/`. A rename counts once, as `changed()` counts it, while
-`has` and `matches` still see both of its paths. `"@name"` reads a
-`[dicts.name]` path set the same way `changed()` does. `subject` also compares with a string. `mt` refuses a task field in a commit-scope rule when it loads
-the config, and lists the fields a commit rule reads.
+The operators come from the #link(u("/filters/"))[filter language]. The
+functions are `has(field)`, `miss(field)` and `matches(field, "regex")`. Over a
+list, `matches` is true if any entry matches, so
+`!matches(files, "^services/")` means the commit changes nothing under
+`services/`.
 
-A breach names the message file and the rule. Here a migration has no `Refs:`
-trailer, and then the same commit names its task:
+`count(files, "glob"…)` is a number: how many of the commit's files the globs
+admit, with the same `"!glob"` excludes as `changed()`. It sits on the left of
+a comparison, so `count(files, "!docs/**") <= 1` caps the commit at one file
+outside `docs/`. A rename counts once, as in `changed()`, while `has` and
+`matches` still see both of its paths. `"@name"` reads a `[dicts.name]` path
+set the same way `changed()` does. `subject` also compares with a string.
+
+If a commit-scope rule reads a task field, `mt` refuses it when it loads the
+config, and lists the fields a commit rule can read.
+
+A breach names the message file and the rule. Here a migration has no
+`Refs:` trailer, and then the same commit names its task:
 
 #terminal("commit-scope-breach")
 
 Rules merge by `name` across #link(u("/config/#layers"))[config layers] and
-#link(u("/rule-packs/"))[rule packs], as `[[tasks.rules]]` do. A project
-replaces a pack's rule by declaring one with its name, or drops it with
-`disable`.
+#link(u("/rule-packs/"))[rule packs], like `[[tasks.rules]]`. To replace a
+pack's rule, declare one with its name. To drop it, use `disable`.
 
 = Task scope
 
-`scope = "task"` runs the rule once for each task the commit changes or names
-in its trailer. The rule reads the commit's fields above, and the task in one
-of three states:
+To check what a commit does to a task, such as closing it without any work,
+use `scope = "task"`. It runs the rule once for each task the commit changes
+or names in its trailer. The rule reads the commit's fields above, and the
+task in one of three states:
 
 #table(
   columns: 2,
@@ -124,25 +130,26 @@ of three states:
 )
 
 A wrapper takes any #link(u("/filters/"))[filter expression] and evaluates it
-against the whole project in that state, so `ready`, `blocked` and `count(...)`
-read the tasks as they stand there. Inside a wrapper, `exists` is false when the
-state has no file for the task, so `head(exists) && !staged(exists)` is a
-deletion. As one side of a comparison, a wrapper is the field's value in that
-state, as in `worktree(status) == staged(status)`. `mt` refuses a bare task
-field, because the reader could not tell which state it reads.
+against the whole project in that state, so `ready`, `blocked` and
+`count(...)` read the tasks as they stand there. Inside a wrapper, `exists` is
+false if the state has no file for the task, so
+`head(exists) && !staged(exists)` is a deletion. As one side of a comparison,
+a wrapper is the field's value in that state, as in
+`worktree(status) == staged(status)`. `mt` refuses a bare task field, because
+nobody reading the rule could tell which state it means.
 
 `into("s")` means `staged(status == "s") && !head(status == "s")`: the commit
 moves the task into status `s`.
 
-A breach names the task after the rule. Here `mt done` changed the task file,
-but only the code is staged:
+A breach names the task after the rule. Here `mt done` changed the task
+file, but only the code is staged:
 
 #terminal("commit-task-scope")
 
 = Check a range
 
-A hook does not run under `git commit --no-verify`, so CI checks the commits a
-push carries. `mt check --commits <range>` checks every commit
+A hook doesn't run under `git commit --no-verify`, so check the commits a
+push carries in CI too. `mt check --commits <range>` checks every commit
 `git rev-list` lists for the range, oldest first, with the same trailer check
 and rules.
 
@@ -150,8 +157,9 @@ Each commit is read against its first parent, a merge included. `subject` and
 `refs` come from its message, and `files` from what it changes against that
 parent. `staged(...)` reads the commit's tree and `head(...)` the parent's. A
 trailer must name a task the commit's tree holds. A past commit has no working
-tree, so `mt` skips a rule that calls `worktree(...)` or `changed(...)` and
-says so once; `count(files, …)` reads the commit's own files and runs. Only a commit with something to report is listed, with its lines
+tree, so `mt` skips a rule that calls `worktree(...)` or `changed(...)`, and
+says so once. `count(files, …)` reads the commit's own files, so it still
+runs. Only commits with something to report are listed, each with its lines
 indented below it:
 
 #terminal("commit-range")

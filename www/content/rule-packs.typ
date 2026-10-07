@@ -13,20 +13,19 @@
 
 #show: page.with(..meta)
 
-A rule pack is a set of rules that a project adopts by name, so several
-projects can share one task practice and each can change it locally.
-#link(u("/config/"))[Configuration] lists the `extends` and `disable` keys.
-This page says how `mt` resolves and merges a pack, and lists the rules of the
-pack `mt` ships, `mindtape-tasks`.
+Running several projects the same way? Put the rules in a pack. A rule pack
+is a set of rules a project adopts by name, and each project can still change
+them locally. #link(u("/config/"))[Configuration] lists the `extends` and
+`disable` keys. This page covers how `mt` finds and merges a pack, and lists
+the rules of the pack `mt` ships, `mindtape-tasks`.
 
 = Adopt a pack
 
-`extends` in any #link(u("/config/#layers"))[config layer] names the packs that
-layer adopts. A rule the
-layer declares with the same `name` as a pack's rule replaces that rule where
-the pack put it. MindTape's own `.mindtape/config.toml` adopts
-`mindtape-tasks` and replaces `section-allowlist` to allow one more section,
-`Dogfood`:
+`extends` in any #link(u("/config/#layers"))[config layer] names the packs
+that layer adopts. If the layer declares a rule with the same `name` as a
+pack's rule, it replaces that rule where the pack put it. MindTape's own
+`.mindtape/config.toml` adopts `mindtape-tasks` and replaces
+`section-allowlist` to allow one more section, `Dogfood`:
 
 #let parts = (
   ("extends", "the adoption, at the top of the file"),
@@ -48,34 +47,33 @@ A name replaces a rule only across sources. Two rules with one name in the
 same file are a config error, as #link(u("/config/"))[Configuration]
 describes.
 
-A pack's `[dicts]` merge ahead of the layer's own, key by key, so a layer
-replaces one #link(u("/named-sets/"))[dictionary] by declaring it under the
-same name.
+A pack's `[dicts]` merge ahead of the layer's own, key by key, so to replace
+one #link(u("/named-sets/"))[dictionary], declare it under the same name.
 
 = What a pack may hold
 
 A pack is a TOML file in config syntax that holds only rule arrays and
 `[dicts]`: `[[tasks.rules]]`, `[[tasks.body.headers.rules]]`,
-`[[tasks.body.content.rules]]`, `[[commits.rules]]` and `[dicts]`. `mt` refuses
-a pack that declares anything else, `extends` included, and names the pack and
-the key. Because a pack cannot extend another pack, resolution is one level
-deep.
+`[[tasks.body.content.rules]]`, `[[commits.rules]]` and `[dicts]`. `mt`
+refuses a pack that declares anything else, `extends` included, and names the
+pack and the key. A pack can't extend another pack, so there's only ever one
+level to resolve.
 
 #terminal("rule-packs-shape")
 
 = Where a pack comes from
 
-An `extends` entry with no `/` in it is the name of a pack built into `mt`.
-Names that start with `mindtape-` are kept for these, and `mindtape-tasks` is
-the only one. `mt` refuses an unknown name and lists the packs it has:
+An `extends` entry with no `/` in it names a pack built into `mt`. Names that
+start with `mindtape-` are kept for these, and `mindtape-tasks` is the only
+one. `mt` refuses an unknown name and lists the packs it has:
 
 #terminal("rule-packs-unknown")
 
-An entry with a `/` is a path to a TOML file, as `./team.toml` is above. A
+An entry with a `/` is a path to a TOML file, like `./team.toml` above. A
 path is relative to the directory two levels above the config file that names
-it. For `.mindtape/config.toml` that is the project root, and for the user
-layer `mindtape/defaults.toml` it is your config directory, such as `~/.config`
-on Linux. `mt` refuses a missing file and prints the path it resolved.
+it. For `.mindtape/config.toml` that's the project root. For the user layer
+`mindtape/defaults.toml` it's your config directory, such as `~/.config` on
+Linux. `mt` refuses a missing file and prints the path it resolved.
 
 #callout("warn")[
   `"mindtape-tasks.toml"` has no `/`, so `mt` reads it as the name of a built-in
@@ -85,27 +83,29 @@ on Linux. `mt` refuses a missing file and prints the path it resolved.
 
 = Drop a rule
 
-`disable` lists rule names to drop. It drops a rule from any of the four
-arrays, whichever pack or layer declared it. A name that matches no rule is a
-config error, so a typo cannot leave a rule running:
+To turn off a rule you don't want, list its name in `disable`. It drops the
+rule from any of the four arrays, whichever pack or layer declared it. A name
+that matches no rule is a config error, so a typo can't leave a rule
+running:
 
 #terminal("rule-packs-disable")
 
 = Merge order
 
-`mt` merges each config layer in turn. Within a layer,
-each rule array takes the rules of the layer's `extends` packs in the order
-listed, then the layer's own rules. After every layer is merged, `mt` drops
-the rules named in any layer's `disable`. A name listed in two layers is
-dropped once.
+`mt` merges each config layer in turn. Within a layer, each rule array takes
+the rules of the layer's `extends` packs in the order listed, then the layer's
+own rules. After every layer is merged, `mt` drops the rules named in any
+layer's `disable`. A name listed in two layers is dropped once.
 
 = Read `mt config show --origin`
 
-`--origin` prints the layers that contributed, then one line per rule in merge
-order: `rule <label>: <origin>`. `<label>` is the rule's array and name, such
-as `tasks.rules.<name>`, or `tasks.rules[<index>]` for a rule with no name. `mt check` names a broken rule without the leading `tasks.`. `<origin>`
-is a layer (`embedded`, `xdg`, `dir` or `project`), or `pack <name>` for a
-pack. This is the output in the MindTape repository:
+To see where each rule came from, run `mt config show --origin`. It prints
+the layers that contributed, then one line per rule in merge order:
+`rule <label>: <origin>`. `<label>` is the rule's array and name, such as
+`tasks.rules.<name>`, or `tasks.rules[<index>]` for a rule with no name.
+`mt check` names a broken rule without the leading `tasks.`. `<origin>` is a
+layer (`embedded`, `xdg`, `dir` or `project`), or `pack <name>` for a pack.
+Here's the output in the MindTape repository:
 
 #terminal("rule-packs-origin")
 
@@ -114,18 +114,20 @@ Every rule from `mindtape-tasks` reads `pack mindtape-tasks`, except
 it. The repository's own rules, such as `goals` and the `Dogfood` rules, read
 `project` because only the project declares them.
 
-A report about a rule, rather than about a task, points at the rule's own
-`[[tasks.rules]]` header, whichever layer or pack declared it: a file and line
-for a layer or a path pack, and `pack <name>:<line>` for a built-in pack.
-`mt check` reports a rule skipped for lack of git this way.
+When `mt` reports a problem with a rule itself, not with a task, it points at
+the rule's own `[[tasks.rules]]` header, whichever layer or pack declared it.
+That's a file and line for a layer or a path pack, and `pack <name>:<line>`
+for a built-in pack. `mt check` reports a rule skipped for lack of git this
+way.
 
 = The rules in `mindtape-tasks`
 
-`extends = ["mindtape-tasks"]` gives a project the task shape MindTape's own
+`extends = ["mindtape-tasks"]` gives you the task shape MindTape's own
 backlog uses. Each open task has four sections in order: Problem, TO-BE,
 Changes and Out of scope. A `fix`, `feat`, `docs` or `dev` task adds one more
 section of its own. The tables below are read from
-#link(REPO + "/blob/main/crates/mindtape/src/packs/mindtape-tasks.toml")[the pack file], and each message is the text `mt check` prints. The
+#link(REPO + "/blob/main/crates/mindtape/src/packs/mindtape-tasks.toml")[the
+  pack file], and each message is the text `mt check` prints. The
 `imperative-title` rule reads the `verbs` dictionary, which the pack builds
 from the two word lists `mt` ships.
 
@@ -158,6 +160,6 @@ from the two word lists `mt` ships.
 == Commit rules
 
 These run on a commit from `mt check --commit-msg` and on a range from
-`mt check --commits`. #link(u("/commit-rules/"))[Commit rules] says how.
+`mt check --commits`. See #link(u("/commit-rules/"))[Commit rules].
 
 #rule-table(pack.commits.rules)

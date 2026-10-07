@@ -18,11 +18,11 @@ does the fiddly parts for you: it stamps status dates, writes link paths,
 fills template slots and checks every task. Each command prints only what you
 need, and its exit code tells you whether it did what you asked.
 
-The build generates these pages from the binary. The commands and flags come
+The build generates these pages from the binary: the commands and flags come
 from `mt`'s own argument parser (#link(u("/agents/"))[`mt _cli --json`]).
 Each example is a command the build ran in a terminal, most of them in
-`examples/api-service`, a sample backend project's backlog. The page prints
-each command as it ran:
+`examples/api-service`, a sample backend project's backlog, so what you see is
+what that run printed.
 
 #terminal("version")
 

@@ -15,10 +15,11 @@
 // Every block is a capture www/generate-reference.sh makes in
 // examples/api-service, or in a git copy of it for touches().
 
-A filter is a boolean expression over task fields. `mt ls` and `mt rm` take
-one as an argument, and #link(u("/named-sets/#views"))[views],
-`[[tasks.rules]]` and `[[on.flip]]` hooks take one in config. The examples on this page ran in `examples/api-service`, a
-backend team's backlog:
+A filter picks tasks. It's a boolean expression over task fields. You pass
+one to `mt ls` and `mt rm`, and write one in config for
+#link(u("/named-sets/#views"))[views], `[[tasks.rules]]` and `[[on.flip]]`
+hooks. The examples on this page ran in `examples/api-service`, a sample
+backend project's backlog:
 
 #terminal-ansi("filters-open")
 
@@ -48,7 +49,7 @@ backend team's backlog:
   [How many folders deep the file sits under its root: 0 in the root itself.],
 
   [`role`],
-  [Matches when the assignee holds that role in `[[actors]]`. Comparison only, so it does not sort.],
+  [Matches when the assignee holds that role in `[[actors]]`. Comparison only, so it doesn't sort.],
 
   [`topo`, `blocks`],
   [The task's place in the dependency graph, described below.],
@@ -57,7 +58,7 @@ backend team's backlog:
   [The number of #link(u("/links/"))[`parent`] children, and the finished share of them from 0 to 1. A task with no children has no `progress`.],
 
   [`estimate.<unit>`],
-  [One #link(u("/estimates/"))[estimate] unit, as a number. Filters only, so it does not sort.],
+  [One #link(u("/estimates/"))[estimate] unit, as a number. Filters only, so it doesn't sort.],
 
   [`estimate`],
   [The estimate dict. Only `has()` and `miss()` read it: `has(estimate, "days")`.],
@@ -66,15 +67,15 @@ backend team's backlog:
   [The written and derived tags. `has(tags, "frontend")` reads them, and `contains` searches them.],
 
   [`x-<ns>`],
-  [An extension field, whether or not `[tasks.fields]` declares it. Text, a number or a boolean compares like any field. A list equals nothing, so `has(field, value)` reads it. A dict takes only `has()` and `miss()`. A filter in the config that names an undeclared one, while `[tasks.fields]` declares others, prints a warning at load with the nearest declared name.],
+  [An extension field, whether or not `[tasks.fields]` declares it. Text, a number or a boolean compares like any field. A list equals nothing, so use `has(field, value)` to read it. A dict takes only `has()` and `miss()`. If a filter in the config names an undeclared one while `[tasks.fields]` declares others, `mt` warns at load and suggests the nearest declared name.],
 )
 
 A field name may contain `-` between two letters or digits, as in
-`estimate.src-files` and `x-goals`. Any other `-` is a minus sign.
-`[tasks.estimate] units`, when set, lists the only units a filter may name.
+`estimate.src-files` and `x-goals`. Any other `-` is a minus sign. If you set
+`[tasks.estimate] units`, a filter may name only those units.
 
-`mt ls` shows a `file` column, but `file` is not a field: a filter that names
-it fails. Use `path`.
+`mt ls` shows a `file` column, but `file` isn't a field, and a filter that
+names it fails. Use `path`.
 
 = Operators
 
@@ -86,11 +87,11 @@ parentheses group:
 The left side of a comparison is a field or a count. The right side is a
 literal, `now()`, another field or a count. Two numbers compare as numbers.
 
-A field the task does not have is unequal to every value and orders against
-none. So `kind != "bug"` matches a task with no `kind`, and `kind == "bug"`
-and `kind < "bug"` do not. A `field == "x"` and `field != "x"` pair splits the
-backlog in two with nothing left over. `miss(field)` selects the tasks
-without the field.
+A field the task doesn't have is unequal to every value and orders against
+none. So `kind != "bug"` matches a task with no `kind`, and `kind == "bug"` and
+`kind < "bug"` don't. So `field == "x"` and `field != "x"` split the backlog in
+two with nothing left over. `miss(field)` selects the tasks without the
+field.
 
 `now()` is today's date. `stale()`, `now()` and the overdue marker read the
 same date, which `MINDTAPE_NOW` pins (see
@@ -101,7 +102,7 @@ same date, which `MINDTAPE_NOW` pins (see
 #table(
   columns: 2,
   table.header([Function], [Matches]),
-  [`has(field)`, `miss(field)`], [The task has the field, or does not.],
+  [`has(field)`, `miss(field)`], [The task has the field, or doesn't.],
   [`has(field, value)`],
   [The field's list holds the value, its scalar equals it, or its dict has it as a key. `tags` and `estimate` read this way too.],
 
@@ -118,7 +119,7 @@ same date, which `MINDTAPE_NOW` pins (see
   [The text appears in one of the named fields. `note` (every link note) and `tags` are searchable too.],
 
   [`stale(N)`],
-  [The task was not reviewed in the last N days. With no `reviewed` date, its status date counts.],
+  [The task wasn't reviewed in the last N days. With no `reviewed` date, its status date counts.],
 
   [`links("kind")`],
   [The task has a #link(u("/links/"))[`links:`] edge of that kind.],
@@ -136,36 +137,37 @@ One field may hold `"alpha"` on one task and `("alpha", "gamma")` on
 another. `x-machine == "alpha"` matches only the first, and
 `has(x-machine, "alpha")` matches both.
 
-`into("status")` matches when a change moves the task into that status. It works
-only in an #link(u("/hooks/"))[`[[on.flip]]`] `when` and in a task-scope
-#link(u("/commit-rules/"))[`[[commits.rules]]`] entry, because only there
-does a status change exist. The other functions a task-scope commit rule
-reads are on that page.
+`into("status")` matches when a change moves the task into that status. It
+works only in an #link(u("/hooks/"))[`[[on.flip]]`] `when` and in a task-scope
+#link(u("/commit-rules/"))[`[[commits.rules]]`] entry, because those are the
+only places a status change exists. That page lists the other functions a
+task-scope commit rule reads.
 
 = Text functions
 
 Three functions read text. `word(field, n)` is the n-th word of a text field,
-counting from 1, with punctuation trimmed from both ends, so
-`"Fix: the slug"` has `Fix` as its first word. It returns text, so it only appears as an
+counting from 1, with punctuation trimmed from both ends, so `"Fix: the slug"`
+has `Fix` as its first word. It returns text, so it only appears as an
 argument. `matches(field, "regex")` matches a Rust `regex` pattern anywhere in
 the text. `in_dict("name", text)` matches when the text is in the named
-#link(u("/named-sets/"))[dictionary]. Each of `matches()` and `in_dict()`
-takes a field or `word(...)` as its text:
+#link(u("/named-sets/"))[dictionary]. Both `matches()` and `in_dict()` take a
+field or `word(...)` as their text:
 
 #commands("filters-strings")
 
 `api-service` extends the #link(u("/rule-packs/"))[`mindtape-tasks`] pack,
-which declares the `verbs` dictionary. A project without the pack uses the
-built-in `mindtape-verbs`, or declares its own `[dicts.verbs]`.
+which declares the `verbs` dictionary. Without the pack, use the built-in
+`mindtape-verbs`, or declare your own `[dicts.verbs]`.
 
 `word()` splits on whitespace and knows nothing about Typst markup. A title
 that opens with a code span, such as #raw("`mt ls` prints paths"), has `mt`
 as its first word, so the last example above lets `matches()` accept it.
 
-A value that is not there, such as a missing field or a word past the end of
-the title, does not match. Any other problem is an error, and the message
-names it: an unknown dictionary, a pattern `regex` refuses, a number where text is
-needed, or a wrong argument count. `mt ls` exits #exit-code("filters-unknown-dict"):
+A value that isn't there, such as a missing field or a word past the end of
+the title, doesn't match. Any other problem is an error, and the message
+names it: an unknown dictionary, a pattern `regex` refuses, a number where
+text is needed, or a wrong argument count. `mt ls` exits
+#exit-code("filters-unknown-dict"):
 
 #terminal("filters-unknown-dict")
 
@@ -175,21 +177,21 @@ a view or rule with a bad expression fails by name before any listing.
 = Dependencies and counts
 
 `ready` matches an open task whose dependencies are all in a
-#link(u("/statuses/#the-default-legend"))[terminal] status.
-`blocked` matches an open task with at least one dependency that is not,
-including one no loaded task answers to. A task in a terminal status is
-neither, and `terminal` matches it. `mt ls` lists ready tasks first.
+#link(u("/statuses/#the-default-legend"))[terminal] status. `blocked` matches
+an open task with at least one dependency that isn't, including one no loaded
+task answers to. A task in a terminal status is neither, and `terminal`
+matches it. `mt ls` lists ready tasks first.
 
 The `why` column lists what each blocked task waits on:
 
 #terminal("filters-blocked")
 
-`count(expr)` is how many loaded tasks match `expr`. It is a number, so it
-appears in a comparison. It counts the whole loaded set, whatever the rest
-of the filter selects, so a rule such as a
+`count(expr)` is how many loaded tasks match `expr`. It's a number, so it
+appears in a comparison. It counts the whole loaded set, whatever the rest of
+the filter selects, so a rule such as a
 #link(u("/rules/"))[work-in-progress cap] can compare it on every task.
 `count()` works where `mt` loads the whole set: `mt ls`, `mt rm`, views,
-`[[tasks.rules]]` and `[[on.flip]]`. A `required` filter cannot use it, and
+`[[tasks.rules]]` and `[[on.flip]]`. A `required` filter can't use it, and
 `mt` refuses one that does when it loads the config.
 
 `topo` is a task's level in the dependency graph. A task with no dependency
@@ -205,10 +207,10 @@ it unblocks. A finished task blocks nothing, so `blocks` falls as work
 closes.
 
 A dependency is a `depends-on` edge, or an edge of a
-#link(u("/links/"))[custom kind] the project marks `blocking = true`. `ready`,
-`blocked`, `topo` and `blocks` all read them. An edge to a task that is not
-loaded counts as unmet for `blocked` and is ignored by `topo` and `blocks`. `mt check`
-refuses a dependency cycle, and neither rank loops on one.
+#link(u("/links/"))[custom kind] marked `blocking = true`. `ready`, `blocked`,
+`topo` and `blocks` all read them. An edge to a task that isn't loaded counts
+as unmet for `blocked`, and `topo` and `blocks` ignore it. `mt check` refuses
+a dependency cycle, and neither rank loops on one.
 
 #commands("filters-graph")
 
@@ -236,37 +238,36 @@ glob admits. A renamed file counts at its new path.
 
 = Commits that touched a file
 
+Before you edit a file, you may want to know which tasks shaped it.
 `touches("path")` matches the tasks named by the
 #link(u("/commit-rules/"))[`[commits] trailer`] of any commit that changed the
-path. Ask it before you edit a file, to find the tasks that shaped it. The
-path is relative to the repository root:
+path. The path is relative to the repository root:
 
 #terminal("filters-touches")
 
 A trailer may name a task by #link(u("/concepts/#identity"))[stem]
-(`Refs: parser`) or by path
-(`Refs: tasks/parser.typ`). A task `mt mv` renamed still matches its old stem,
-through the renames git records. A stem no loaded task answers to belongs to
-a retired task. It matches nothing, and `mt ls --json` lists it under
-`retired`.
+(`Refs: parser`) or by path (`Refs: tasks/parser.typ`). A task `mt mv` renamed
+still matches its old stem, through the renames git records. A stem no loaded
+task answers to belongs to a retired task. It matches nothing, and
+`mt ls --json` lists it under `retired`.
 
-The first `touches()` in a command reads the history with one `git log`.
-`mt` caches the result in `.mindtape/cache/` until `HEAD` or the trailer key
-changes, and a command that does not call `touches()` runs no git.
+The first `touches()` in a command reads the history with one `git log`. `mt`
+caches the result in `.mindtape/cache/` until `HEAD` or the trailer key
+changes. A command that doesn't call `touches()` runs no git.
 
-`changed()` and `touches()` need a git repository. Outside one, a filter
-typed on the command line fails and prints git's reason, and a rule that
-reads git is reported once as skipped. Loading a config never runs git. Git runs read-only (`--no-optional-locks`) and at
-most once per command.
+`changed()` and `touches()` need a git repository. Outside one, a filter typed
+on the command line fails and prints git's reason, and a rule that reads git
+is reported once as skipped. Loading a config never runs git. Git runs
+read-only (`--no-optional-locks`) and at most once per command.
 
 = Sort and limit
 
-`--sort` takes `field`, `field:asc` or `field:desc`, and repeats, most
-significant first. Every field in the table sorts except `role`,
-`estimate.<unit>` and `estimate`. An `x-<ns>` list or dict sorts as a
-missing value, last. `ready` sorts too: ready, then
-blocked, then terminal. Any other direction, such as `priority:up`, is an error.
-`[ls] default-sort` takes the same specs.
+`--sort` takes `field`, `field:asc` or `field:desc`. Repeat it to add keys,
+most significant first. Every field in the table sorts except `role`,
+`estimate.<unit>` and `estimate`. An `x-<ns>` list or dict sorts as a missing
+value, last. `ready` sorts too: ready, then blocked, then terminal. Any other
+direction, such as `priority:up`, is an error. `[ls] default-sort` takes the
+same specs.
 
 `topo` and `blocks` produce ties, so a second `--sort` decides within each
 level. `-n` cuts the list after the filter and the sort, so it keeps the top
@@ -276,14 +277,15 @@ of the order you asked for:
 
 = Without a filter
 
-A bare `mt ls` tries the project's #link(u("/cli/ls/#conditional-rules"))[`[[ls.rules]]`] first.
-If none matches, it applies the default view: the view `[ls] default-view`
-names, or `[views.default]`. The shipped default view is
+A bare `mt ls` tries the project's
+#link(u("/cli/ls/#conditional-rules"))[`[[ls.rules]]`] first. If none matches,
+it applies the default view: the view `[ls] default-view` names, or
+`[views.default]`. The shipped default view is
 `!terminal && (miss(start) || start <= now())`, the open tasks whose start
 date has passed or that have none. An empty filter, `mt ls ''`, matches every
 task. A bare `mt rm` applies `[rm] default-filter`, which is `terminal`.
 
-The same language decides which tasks must have a field; see
+The same language decides which tasks must have a field. See
 #link(u("/rules/"))[Required fields].
 
 #callout("note")[

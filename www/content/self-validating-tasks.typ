@@ -13,13 +13,13 @@
 
 #show: page.with(..meta)
 
-Your project can give its tasks a field MindTape does not know, and check that
-field with a Typst function you write. `mt check` runs the function on every
-task, and every command that writes a task runs it before writing. You need no
-separate linter, and the rule is a file in the repo, next to the tasks.
+You can give your tasks a field MindTape doesn't know about, and check it
+with a Typst function you write. `mt check` runs the function on every task,
+and every command that writes a task runs it before writing. You don't need a
+separate linter, and the check lives in the repo next to the tasks.
 
-Every block below is a slice of `examples/self-validating/`, a project with two
-tasks.
+Every block below is a slice of `examples/self-validating/`, a project with
+two tasks.
 
 #let code = checked-slices(
   json("../generated/self-validating.json"),
@@ -34,9 +34,10 @@ tasks.
 
 = Write the function
 
-The project lists its goals in a Typst module. Each task says how it serves
-them in an `x-goals` field. MindTape keeps any field named `x-<name>` as it is
-and checks nothing in it.
+Say your project has goals, and you want every task to say how it serves
+each one. List the goals in a Typst module. Each task answers in an `x-goals`
+field. MindTape keeps any field named `x-<name>` as written and checks nothing
+in it on its own.
 
 #raw(
   render-slices(code, (("goals", "the goals every task must address"),)),
@@ -44,8 +45,8 @@ and checks nothing in it.
   block: true,
 )
 
-The check is an ordinary Typst function. It receives the field's value, or
-`none` when the task has no such field. It returns one string per problem, and
+The check is an ordinary Typst function. It gets the field's value, or
+`none` if the task has no such field. It returns one string per problem, and
 an empty array when the task passes.
 
 #raw(
@@ -58,8 +59,8 @@ an empty array when the task passes.
 
 = Turn it on
 
-A `[[tasks.rules]]` entry names the module, the function and the field to pass
-it. #link(u("/rules/"))[Rules] describes each key.
+Add a `[[tasks.rules]]` entry that names the module, the function and the
+field to pass it. #link(u("/rules/"))[Rules] describes each key.
 
 #raw(
   render-slices(
@@ -93,8 +94,7 @@ This one says nothing about `no-lock-in`:
 
 #terminal("self-validating-check")
 
-It exits with code
-#exit-code("self-validating-check"), so a CI job
-or a pre-commit hook that runs it fails. `mt add`, `mt flip` and the other
-write commands run the same function on the task they are about to write, and
-refuse to write a task that fails it.
+It exits with code #exit-code("self-validating-check"), so a CI job or a
+pre-commit hook that runs it fails. `mt add`, `mt flip` and the other write
+commands run the same function on the task they're about to write, and refuse
+to write a task that fails it.
