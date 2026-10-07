@@ -31,6 +31,8 @@
 # `git merge --ff-only <branch>` by hand: it is what exists today, it takes a
 # deliberate second command, and nothing about it reads as blessed.
 #
+# Last, before the worktree goes, its gate records are copied into this
+# checkout's `.mmz/cache/` (see below the fast-forward).
 # The branch ref survives the worktree that held it, deliberately. Removing it
 # is a separate judgement — a branch is cheap, and `git branch -d` after a
 # successful fast-forward would delete the only name left pointing at the work
@@ -168,6 +170,29 @@ fi
 # `-q` because a diffstat of the whole branch is not the answer to "did this
 # land". The sha below is.
 git merge --ff-only -q "$branch"
+
+# The gate was asserted in the worktree, and the fast-forward made this checkout
+# the same tree, but mmz's records live in each checkout's own gitignored
+# `.mmz/cache/`, so this one still reads stale and `.githooks/pre-commit` would
+# refuse the next commit until a full `just check` re-ran. A record is portable:
+# its `input_digest` is built from repo-relative paths and content hashes, so
+# copying the worktree's records over is all it takes, and mmz stays the judge.
+# One whose digest does not match this tree (an untracked file here, say) simply
+# reads stale. Only `*.yaml` records move, never other cache content, and a
+# record here with a later `ran_at` than the worktree's is kept. A failed copy
+# does not un-land the merge, so it is named, never fatal.
+if [ -d "$wt/.mmz/cache" ]; then
+    mkdir -p "$here/.mmz/cache"
+    ran_at() { sed -n 's/^ran_at: *//p' "$1" 2>/dev/null | head -n 1; }
+    for record in "$wt"/.mmz/cache/*.yaml; do
+        [ -e "$record" ] || continue
+        dest="$here/.mmz/cache/$(basename "$record")"
+        if [ -e "$dest" ] && [ "$(ran_at "$dest" || echo 0)" -gt "$(ran_at "$record" || echo 0)" ] 2>/dev/null; then
+            continue
+        fi
+        cp "$record" "$dest" || echo "integrate: could not carry $(basename "$record") into $here/.mmz/cache" >&2
+    done
+fi
 
 # The fast-forward invalidated this checkout's dev mt: the shell's PATH serves
 # `target/mt-dev/debug/mt`, built from the pre-merge tree. Rebuilding here,

@@ -106,7 +106,8 @@ uncommitted changes, because `git worktree add` copies commits only.
 #just.integrate("<branch>") rebuilds the worktree's `mt` from the branch tip,
 so a branch rebased over a config change is judged by its own config. It refuses a branch that names a still-`wip` task in
 `Refs:`, and refuses unless every gate passed against the worktree's current
-files. It then fast-forwards this checkout and removes the
+files. It then fast-forwards this checkout, copies the worktree's `.mmz/cache/*.yaml`
+gate records into this checkout's cache, so the next commit here is not refused for a stale gate (mmz still judges: a record whose inputs differ stays stale), and removes the
 worktree. `.just/scripts/fork.sh` and `.just/scripts/integrate.sh` explain
 both.
 

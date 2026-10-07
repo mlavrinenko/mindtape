@@ -15,10 +15,16 @@ use support::{git, git_commit_all, isolate, project_with_tasks};
 fn repo_with_worktree() -> (tempfile::TempDir, tempfile::TempDir, PathBuf) {
     let main = project_with_tasks(&[("parser.typ", "Write the parser")]);
     git_commit_all(main.path());
+    let (holder, wt) = add_worktree(main.path());
+    (main, holder, wt)
+}
+
+/// A worktree on the new branch `feature`, in a directory the first value owns.
+fn add_worktree(main: &Path) -> (tempfile::TempDir, PathBuf) {
     let holder = tempfile::tempdir().unwrap();
     let wt = holder.path().join("feature");
     git(
-        main.path(),
+        main,
         &[
             "worktree",
             "add",
@@ -28,7 +34,7 @@ fn repo_with_worktree() -> (tempfile::TempDir, tempfile::TempDir, PathBuf) {
             wt.to_str().unwrap(),
         ],
     );
-    (main, holder, wt)
+    (holder, wt)
 }
 
 /// Commit in `wt` with `message`, leaving the tree clean.
@@ -194,4 +200,87 @@ fn the_script_runs_the_mt_under_test_whatever_direnv_state_the_host_carries() {
     let text = stderr(&integrate_from(main.path(), Some(&bin), &host));
     assert!(!text.contains("host mt reached"), "{text}");
     past_the_refs_check(&text);
+}
+
+/// A scratch repo whose `.mmz/config.yaml` declares one gate-tagged rule over
+/// `tasks/**`, a worktree on `feature` where that rule has passed, and a `bin`
+/// of pass-through `direnv` and no-op `just` stand-ins. `None` when the host
+/// has no `mmz`, the one tool this fixture cannot fake.
+#[cfg(unix)]
+fn gated_repo() -> Option<(tempfile::TempDir, tempfile::TempDir, PathBuf, PathBuf)> {
+    use std::os::unix::fs::PermissionsExt;
+    let probe = std::process::Command::new("mmz").arg("--version").output();
+    if probe.is_err() {
+        eprintln!("skipped: no mmz on PATH");
+        return None;
+    }
+    let main = project_with_tasks(&[("parser.typ", "Write the parser")]);
+    std::fs::create_dir(main.path().join(".mmz")).unwrap();
+    std::fs::write(
+        main.path().join(".mmz/config.yaml"),
+        "scopes:\n  tasks: [\"tasks/**\"]\ncommands:\n  - name: \"true\"\n    inputs: [tasks]\n    tags: [gate]\n",
+    )
+    .unwrap();
+    std::fs::write(main.path().join(".gitignore"), ".mmz/cache/\n").unwrap();
+    git_commit_all(main.path());
+    let (holder, wt) = add_worktree(main.path());
+    let bin = holder.path().join("bin");
+    std::fs::create_dir(&bin).unwrap();
+    std::fs::write(bin.join("just"), "#!/bin/sh\nexit 0\n").unwrap();
+    std::fs::write(bin.join("direnv"), "#!/bin/sh\nshift 2\nexec \"$@\"\n").unwrap();
+    for name in ["just", "direnv"] {
+        std::fs::set_permissions(bin.join(name), std::fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    commit(&wt, "task: note the parser");
+    let ran = std::process::Command::new("mmz")
+        .arg("true")
+        .current_dir(&wt)
+        .status()
+        .unwrap();
+    assert!(ran.success());
+    Some((main, holder, wt, bin))
+}
+
+#[cfg(unix)]
+fn main_is_fresh(main: &Path) -> bool {
+    std::process::Command::new("mmz")
+        .args(["--is-fresh", "--tag", "gate"])
+        .current_dir(main)
+        .output()
+        .unwrap()
+        .status
+        .success()
+}
+
+/// The worktree's gate records are carried into main's cache by the
+/// fast-forward, so the next commit on main is not refused for a stale gate.
+#[cfg(unix)]
+#[test]
+fn integrate_carries_the_gate_records_into_main() {
+    let Some((main, _holder, _wt, bin)) = gated_repo() else {
+        return;
+    };
+    assert!(!main_is_fresh(main.path()), "main starts stale");
+    let out = integrate_with(main.path(), Some(&bin));
+    assert!(out.status.success(), "{}", stderr(&out));
+    assert!(main_is_fresh(main.path()), "main's gate stayed stale");
+    assert!(
+        out.stdout.iter().filter(|b| **b == b'\n').count() <= 1,
+        "integrate stays quiet: {}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+}
+
+/// mmz stays the judge: a carried record whose input digest does not match
+/// main's files is still stale.
+#[cfg(unix)]
+#[test]
+fn a_carried_record_that_does_not_match_main_stays_stale() {
+    let Some((main, _holder, _wt, bin)) = gated_repo() else {
+        return;
+    };
+    std::fs::write(main.path().join("tasks/stray.typ"), "x").unwrap();
+    let out = integrate_with(main.path(), Some(&bin));
+    assert!(out.status.success(), "{}", stderr(&out));
+    assert!(!main_is_fresh(main.path()));
 }
