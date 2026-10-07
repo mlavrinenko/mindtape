@@ -159,6 +159,38 @@ fn reports_a_source_that_does_not_evaluate() {
     assert!(verdicts[0].problems()[0].contains("no task marker"));
 }
 
+/// A load failure names the line it is at, in the file as it stands on disk, and
+/// in the task as filled when there is no file yet.
+#[test]
+fn a_load_failure_names_its_line() {
+    let dir = tempfile::tempdir().unwrap();
+    let good = marker("wip", &[]);
+    let project = setup(dir.path(), &[("a.typ", good.as_str())]);
+    let broken = "= prose\n\n#metadata(\n";
+    let on_disk = dir.path().join("tasks/a.typ");
+    let absent = dir.path().join("tasks/new.typ");
+    let pending = |file| Pending {
+        file,
+        source: broken,
+    };
+
+    let verdicts = check(
+        &project,
+        &project.outcome.tasks,
+        &[pending(&on_disk), pending(&absent)],
+    )
+    .unwrap();
+
+    let place = |at: usize| verdicts[at].problems()[0].clone();
+    assert!(place(0).starts_with("tasks/a.typ:"), "{}", place(0));
+    assert!(place(1).starts_with("the task as filled:"), "{}", place(1));
+    assert!(
+        place(1).contains(": did not load: eval error:"),
+        "{}",
+        place(1)
+    );
+}
+
 /// A destination outside the project root has no project-relative path to
 /// evaluate a candidate at. That is reported as *unchecked*, not as clean:
 /// `mt add` reads the flag to fall back to its post-write verification.

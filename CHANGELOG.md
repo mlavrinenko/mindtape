@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A refused write names the line of the source that did not load.** `mt add`
+  prints `the task as filled:7: did not load: eval error: unexpected argument:
+  titel` where it printed no line, and a batch write (`mt import`, `mt recur`,
+  `mt flip`) prints `error: tasks/a.typ:7: did not load: …`, the file and line
+  as it stands on disk.
 - **An eval error names the line of the task file.** `mt check` prints
   `tasks/missing-comma.typ:5: eval error: expected comma` where it printed the
   file alone, for a syntax error and for an error such as

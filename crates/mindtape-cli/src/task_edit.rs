@@ -174,10 +174,11 @@ fn report_issues(issues: &[Violation], scope: &str) -> Result<()> {
 /// Why a filled task was refused when it did not load, with the prelude hint
 /// when the failure is the missing `@local/mindtape` package: `mt add` in a
 /// project with no tasks yet has no load outcome to derive that hint from.
-fn load_refusal(failure: &str) -> String {
-    match crate::install_hint::failure_prelude_hint(failure) {
-        Some(hint) => format!("the task as filled did not load: {failure}\n{hint}"),
-        None => format!("the task as filled did not load: {failure}"),
+fn load_refusal(failure: &crate::pre_write::LoadFailure) -> String {
+    let line = failure.render("the task as filled");
+    match crate::install_hint::failure_prelude_hint(&failure.message) {
+        Some(hint) => format!("{line}\n{hint}"),
+        None => line,
     }
 }
 

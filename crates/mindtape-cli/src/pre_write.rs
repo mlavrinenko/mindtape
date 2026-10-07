@@ -33,7 +33,9 @@ use std::collections::BTreeSet;
 use std::path::Path;
 
 use anyhow::{Context, Result, bail};
-use mindtape::{BodyRules, Candidate, Task, Violation, compile_content_rules, compile_rules};
+use mindtape::{
+    BodyRules, Candidate, Location, Task, Violation, compile_content_rules, compile_rules,
+};
 
 use crate::util::Project;
 
@@ -46,13 +48,36 @@ pub struct Pending<'a> {
     pub source: &'a str,
 }
 
+/// A source that did not evaluate: the compiler's words and where it said they
+/// apply.
+#[derive(Debug)]
+pub struct LoadFailure {
+    /// The compiler's own message, `eval error: …` for an eval error.
+    pub message: String,
+    /// The line at fault, as a breach places one: in the file on disk, or in
+    /// the task as filled when there is no file yet. `None` when the failure
+    /// has no place at all.
+    pub location: Option<Location>,
+}
+
+impl LoadFailure {
+    /// `<location>: did not load: <message>`, with `fallback` naming the source
+    /// when the failure has no place.
+    pub(crate) fn render(&self, fallback: &str) -> String {
+        match &self.location {
+            Some(location) => format!("{location}: did not load: {}", self.message),
+            None => format!("{fallback}: did not load: {}", self.message),
+        }
+    }
+}
+
 /// What the project says about one pending write.
 #[derive(Debug)]
 pub struct Verdict {
     /// Why the source did not evaluate, when it did not. A source that never
     /// loaded has no fields to have got wrong, so this is not a
     /// [`Violation`].
-    pub load_failure: Option<String>,
+    pub load_failure: Option<LoadFailure>,
     /// Every breach of the candidate, each carrying its own severity. Only a
     /// fatal one refuses the write; a warning is said and the file lands.
     pub violations: Vec<Violation>,
@@ -105,7 +130,10 @@ impl Verdict {
     /// machine-readable half of the same distinction.
     pub(crate) fn problems(&self) -> Vec<String> {
         if let Some(failure) = &self.load_failure {
-            return vec![format!("did not load: {failure}")];
+            return vec![match &failure.location {
+                Some(at) => format!("{at}: did not load: {}", failure.message),
+                None => format!("did not load: {}", failure.message),
+            }];
         }
         self.violations
             .iter()
@@ -190,6 +218,18 @@ fn place_on_disk(verdict: &mut Verdict, file: &Path, root: &Path, candidate: &st
     };
     let authored = std::fs::read_to_string(file).ok();
     let spans = authored.as_deref().map(mindtape::TaskCallSpans::parse);
+    if let Some(failure) = &mut verdict.load_failure {
+        failure.location = failure.location.as_ref().map(|at| {
+            let line = at.line();
+            match (&authored, &spans) {
+                (Some(authored), Some(spans)) => {
+                    let placed = spans.relocate(authored, candidate, "", line);
+                    Location::at(rel, placed.unwrap_or(line))
+                }
+                _ => Location::Filled { line },
+            }
+        });
+    }
     for violation in &mut verdict.violations {
         if violation.location.file() != Some(rel) {
             continue;
@@ -198,9 +238,9 @@ fn place_on_disk(verdict: &mut Verdict, file: &Path, root: &Path, candidate: &st
         violation.location = match (&authored, &spans) {
             (Some(authored), Some(spans)) => {
                 let placed = spans.relocate(authored, candidate, &violation.field, line);
-                mindtape::Location::at(rel, placed.unwrap_or(line))
+                Location::at(rel, placed.unwrap_or(line))
             }
-            _ => mindtape::Location::Filled { line },
+            _ => Location::Filled { line },
         };
     }
 }
@@ -267,7 +307,7 @@ fn refuse_rejected(pending: &[Pending<'_>], verdicts: &[Verdict]) -> Result<()> 
     let mut rejected = 0_usize;
     for (entry, verdict) in pending.iter().zip(verdicts) {
         if let Some(failure) = &verdict.load_failure {
-            eprintln!("error: {}: did not load: {failure}", label(entry.file));
+            eprintln!("error: {}", failure.render(&label(entry.file)));
         }
         for violation in &verdict.violations {
             eprintln!("{}", crate::breach::line(violation));
@@ -279,9 +319,12 @@ fn refuse_rejected(pending: &[Pending<'_>], verdicts: &[Verdict]) -> Result<()> 
     if rejected == 0 {
         return Ok(());
     }
-    let failures = verdicts
-        .iter()
-        .filter_map(|verdict| verdict.load_failure.as_deref());
+    let failures = verdicts.iter().filter_map(|verdict| {
+        verdict
+            .load_failure
+            .as_ref()
+            .map(|failure| failure.message.as_str())
+    });
     if let Some(hint) = crate::install_hint::batch_prelude_hint(failures) {
         eprintln!("{hint}");
     }
@@ -301,7 +344,10 @@ fn refuse_rejected(pending: &[Pending<'_>], verdicts: &[Verdict]) -> Result<()> 
 fn verdict(result: Result<mindtape::Checked, mindtape::LoadError>) -> Verdict {
     match result {
         Err(error) => Verdict {
-            load_failure: Some(error.message),
+            load_failure: Some(LoadFailure {
+                location: error.line.map(|line| Location::Filled { line }),
+                message: error.message,
+            }),
             violations: Vec::new(),
             task: None,
             checked: true,
