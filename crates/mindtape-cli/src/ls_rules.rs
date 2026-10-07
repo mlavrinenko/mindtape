@@ -44,7 +44,7 @@ pub struct Bundle {
 /// active output format.
 ///
 /// This is the one place the CLI reads those ambient facts —
-/// [`mindtape::condition`] is pure by design and takes them injected. The same
+/// [`mindtape::filter::condition`] is pure by design and takes them injected. The same
 /// environment drives both `[[ls.rules]]` and the per-column
 /// `[ls.columns.<name>] when`, so a condition means the same thing wherever it
 /// is written.

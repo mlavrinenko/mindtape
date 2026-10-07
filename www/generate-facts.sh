@@ -146,7 +146,7 @@ tomlq -f "$SCRIPT_DIR/frameworks.jq" --argjson scales "$SCALES" \
 
 # --- filter-functions.json ----------------------------------------------------
 # The filter language's predicates and functions with their arities, off the
-# registry in crates/mindtape/src/filter_eval.rs that dispatches them. cli.json
+# registry in crates/mindtape/src/filter/eval.rs that dispatches them. cli.json
 # is `mt _cli --json`, which www/generate.sh writes before this script runs.
 jq '{functions: .filter_functions}' "$OUT/cli.json" | emit filter-functions.json
 

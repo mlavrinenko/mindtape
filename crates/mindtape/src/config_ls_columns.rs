@@ -36,8 +36,8 @@ use std::collections::BTreeSet;
 
 use serde::Deserialize;
 
-use crate::condition::Condition;
 use crate::config_ls::{LS_COLUMNS, LsConfig};
+use crate::filter::condition::Condition;
 
 /// `[ls.columns.<name>]` — one column's display settings.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]

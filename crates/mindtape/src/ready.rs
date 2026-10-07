@@ -19,7 +19,7 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 
 use crate::config::Config;
-use crate::filter_aggregate::LoadedSet;
+use crate::filter::aggregate::LoadedSet;
 use crate::graph::DepIndex;
 use crate::link::blocking_kinds;
 use crate::model::Task;

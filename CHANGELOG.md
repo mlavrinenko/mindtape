@@ -1271,6 +1271,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The filter language lives in `mindtape::filter`.** The public paths
+  `mindtape::condition` and `mindtape::condition_env` are now
+  `mindtape::filter::condition` and `mindtape::filter::condition_env`. The root
+  re-exports (`mindtape::Condition` and the rest) are unchanged.
 - **The docs sidebar groups pages by the reader's job.** The 13-page
   Reference group splits into Fields, Checks, Reference and Integrate, and
   every page defines a term such as `terminal`, slot or stem at its first use,

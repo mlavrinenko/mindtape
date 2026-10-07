@@ -24,8 +24,8 @@ use crate::commit_expr::CommitExpr;
 use crate::commit_msg::CommitRecord;
 use crate::commit_tasks::{CommitStates, ProjectState};
 use crate::config::Config;
-use crate::expr::call_args;
 use crate::fields::FieldValue;
+use crate::filter::expr::call_args;
 use crate::filter::{Ctx, FilterError, eval_bool};
 use crate::model::Task;
 
@@ -117,7 +117,7 @@ impl<'a> TaskScope<'a> {
         name: &str,
         children: &[Node<DefaultNumericTypes>],
     ) -> Result<FieldValue, FilterError> {
-        self.read(name, children, crate::filter_compare::left_operand)
+        self.read(name, children, crate::filter::compare::left_operand)
     }
 }
 

@@ -60,7 +60,7 @@ fn desugar(terms: &[String]) -> String {
 /// Quote `term` as a filter-language string literal: backslash escapes first
 /// (so an already-escaped sequence in the term is not double-escaped), then
 /// the closing-quote character — the only two escapes the filter language's
-/// `evalexpr`-based lexer accepts (`crates/mindtape/src/filter.rs`).
+/// `evalexpr`-based lexer accepts (`crates/mindtape/src/filter/mod.rs`).
 fn quote(term: &str) -> String {
     format!("\"{}\"", term.replace('\\', "\\\\").replace('"', "\\\""))
 }

@@ -1,4 +1,4 @@
-//! The comparison arm of the filter walk, split out of `filter.rs`
+//! The comparison arm of the filter walk, split out of `filter/mod.rs`
 //! (file-size gate): resolving each side — a field, a `changed()` or
 //! `count()` count, a literal or `now()` — and ordering the two under the
 //! missing-field rule.
@@ -6,13 +6,13 @@
 use evalexpr::{DefaultNumericTypes, Node, Operator};
 
 use crate::config::Config;
-use crate::expr::{
+use crate::fields::FieldValue;
+use crate::filter::expr::{
     call_args, compare_ordering, extract_identifier, resolve_now_or_literal, restore_name,
     unwrap_root,
 };
-use crate::fields::FieldValue;
+use crate::filter::predicates::changed_count;
 use crate::filter::{Ctx, FilterError, eval_bool, field_value};
-use crate::filter_predicates::changed_count;
 use crate::model::Task;
 use crate::numeric::format_num;
 
@@ -58,7 +58,7 @@ fn operand(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<Option<FieldVa
 }
 
 /// `count(<expr>)`: how many loaded tasks satisfy `<expr>`, each read as the
-/// task in context — see [`crate::filter_aggregate`].
+/// task in context — see [`crate::filter::aggregate`].
 fn count(children: &[Node<DefaultNumericTypes>], ctx: &Ctx) -> Result<f64, FilterError> {
     let [arg] = call_args(children)[..] else {
         return Err(FilterError::Invalid(
@@ -119,11 +119,11 @@ fn role_field(task: &Task, config: &Config, literal: &str) -> FieldValue {
 /// ([`crate::config_limits`]) rests on that: one limit over each half of such a
 /// pair caps every task by construction, including the ones leaving the field
 /// unset. Pinned by `missing_field_is_unequal_to_every_literal` in
-/// `filter_tests.rs` — do not relax it without revisiting that rule.
+/// `tests.rs` — do not relax it without revisiting that rule.
 ///
 /// A list follows the same rule: `x-machine == "alpha"` selects the tasks
 /// whose value is exactly `"alpha"`, and `has(x-machine, "alpha")` every task
-/// whose list holds it ([`crate::filter_predicates::has_call`]).
+/// whose list holds it ([`crate::filter::predicates::has_call`]).
 pub(crate) fn compare(
     op: &Operator<DefaultNumericTypes>,
     value: &FieldValue,

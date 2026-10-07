@@ -185,20 +185,20 @@ groups:
   # skills/mindtape/references/filters.md list them by hand, and
   # www/generated/*.json carries nothing about what each one means, so a
   # function that is added, renamed or redefined has no fact file to flag the
-  # two pages. Every `filter*.rs` module that holds a function or the `@name`
-  # sugar is a source. The `filter_*_tests.rs` files are not: a test changes
-  # without changing a function. The field vocabulary the same pages list is
-  # tracked by cli-docs.
+  # two pages. Each module is listed rather than globbed, because a source
+  # glob cannot exclude: `filter/**` would make every test edit and the
+  # `[[ls.rules]]` condition language re-confirm these pages. The field
+  # vocabulary the same pages list is tracked by cli-docs.
   - name: filter-docs
     source:
-      - crates/mindtape/src/filter.rs
-      - crates/mindtape/src/filter_aggregate.rs
-      - crates/mindtape/src/filter_compare.rs
-      - crates/mindtape/src/filter_eval.rs
-      - crates/mindtape/src/filter_links.rs
-      - crates/mindtape/src/filter_predicates.rs
-      - crates/mindtape/src/filter_strings.rs
-      - crates/mindtape/src/filter_views.rs
+      - crates/mindtape/src/filter/mod.rs
+      - crates/mindtape/src/filter/aggregate.rs
+      - crates/mindtape/src/filter/compare.rs
+      - crates/mindtape/src/filter/eval.rs
+      - crates/mindtape/src/filter/links.rs
+      - crates/mindtape/src/filter/predicates.rs
+      - crates/mindtape/src/filter/strings.rs
+      - crates/mindtape/src/filter/views.rs
     dependents:
       - www/content/filters.typ
       - skills/mindtape/references/filters.md

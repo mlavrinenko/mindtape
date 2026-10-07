@@ -1,7 +1,7 @@
 //! The `in_view("name")` / `@name` predicate as it evaluates: matching a named
 //! view's filter, composing with boolean operators, the `UnknownView` error,
 //! the `view_refs` collector, and the cyclic-view depth guard. Split out of
-//! `filter_tests.rs`, which was near the linecop cap; the shared `sample()` and
+//! `tests.rs`, which was near the linecop cap; the shared `sample()` and
 //! `hit_views()` fixtures stay in the parent test module and are reached
 //! through `super`.
 #![allow(clippy::unwrap_used)]

@@ -41,11 +41,11 @@ use regex::Regex;
 use crate::commit_msg::CommitRecord;
 use crate::commit_task_expr::{STATES, TaskScope};
 use crate::config::Config;
-use crate::expr::{
-    call_args, connective, extract_identifier, extract_literal, restore_name, unwrap_root,
-};
 use crate::fields::FieldValue;
 use crate::filter::FilterError;
+use crate::filter::expr::{
+    call_args, connective, extract_identifier, extract_literal, restore_name, unwrap_root,
+};
 use crate::git_state::PathFilter;
 
 /// The field names a commit expression reads, for the refusal message.
@@ -83,7 +83,7 @@ impl CommitExpr {
     /// # Errors
     /// [`FilterError::Parse`] on a syntax error.
     pub fn parse(expr: &str) -> Result<Self, FilterError> {
-        let joined = crate::expr::join_kebab_names(expr);
+        let joined = crate::filter::expr::join_kebab_names(expr);
         if joined.trim().is_empty() {
             return Ok(Self { tree: None });
         }
@@ -187,10 +187,10 @@ fn comparison(node: &Node<DefaultNumericTypes>, env: Env<'_>) -> Result<bool, Fi
     let left = side(lhs, env)?
         .ok_or_else(|| FilterError::Invalid(extract_identifier(lhs).err().unwrap_or_default()))?;
     if let Some(right) = side(rhs, env)? {
-        return Ok(crate::filter_compare::compare_values(op, &left, &right));
+        return Ok(crate::filter::compare::compare_values(op, &left, &right));
     }
     let literal = extract_literal(rhs).map_err(FilterError::Invalid)?;
-    Ok(crate::filter_compare::compare(op, &left, &literal))
+    Ok(crate::filter::compare::compare(op, &left, &literal))
 }
 
 /// A comparison side that resolves rather than being written out: `subject`,

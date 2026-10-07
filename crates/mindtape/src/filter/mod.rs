@@ -16,15 +16,15 @@
 //! numeric, so they compare numerically against a number literal (e.g.
 //! `priority >= 7`). The `estimate` dict itself supports presence only
 //! (`has(estimate)` / `miss(estimate)`); one unit of it reads as a number,
-//! `estimate.<unit>` (see [`crate::filter_predicates::estimate_unit`]). An
+//! `estimate.<unit>` (see [`crate::filter::predicates::estimate_unit`]). An
 //! `x-<ns>` extension slot reads whether or not `[tasks.fields]` declares it
-//! (see [`crate::filter_predicates::extra_value`]): a scalar compares like a
+//! (see [`crate::filter::predicates::extra_value`]): a scalar compares like a
 //! core field, a list equals and orders against nothing, and a dict supports
 //! presence only. The same vocabulary backs `--sort` — see
 //! [`crate::sort::is_sort_field`], `estimate.<unit>` aside.
 //!
 //! Names follow Typst's identifier rule: a `-` between name characters is part
-//! of the name (`x-goals`, `estimate.src-files`), see [`crate::expr::join_kebab_names`].
+//! of the name (`x-goals`, `estimate.src-files`), see [`crate::filter::expr::join_kebab_names`].
 //!
 //! Operators: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`, parentheses.
 //!
@@ -40,7 +40,7 @@
 //! filter matches.
 //!
 //! Three functions read a string rather than compare one, and may take the
-//! result of another call as an argument (see [`crate::filter_strings`]):
+//! result of another call as an argument (see [`crate::filter::strings`]):
 //! `word(field, n)` (the n-th whitespace-separated word, counting from 1,
 //! punctuation-trimmed), `matches(field, "regex")`, and `in_dict("name", <string
 //! expr>)` — membership in a `[dicts.<name>]` set or a built-in one, under that
@@ -58,7 +58,7 @@
 //!
 //! `count(<expr>)` is a count too: how many tasks of the whole loaded set
 //! match `<expr>`, each read as the task in context (see
-//! [`crate::filter_aggregate`]). `count(status == "wip") <= 1`.
+//! [`crate::filter::aggregate`]). `count(status == "wip") <= 1`.
 //!
 //! `now()` evaluates to today's ISO date string (`YYYY-MM-DD`) and may appear
 //! on the right-hand side of a comparison: `start <= now()`, `due < now()`.
@@ -69,13 +69,37 @@
 //! predicate (likewise bare or `terminal()`) matches a task whose status is
 //! flagged terminal in config.
 
+//!
+//! # Files
+//!
+//! - `eval.rs`: the tree walk and the registry of functions.
+//! - `compare.rs`: comparison of a field value against a literal.
+//! - `aggregate.rs`: `count`, `all` and `any` over the loaded set.
+//! - `links.rs`: the `links` predicate and edge-kind lookup.
+//! - `predicates.rs`: `has`, `miss`, `stale`, `changed`, `touches` and the field readers.
+//! - `strings.rs`: `contains` and the other string predicates.
+//! - `views.rs`: `in_view` and the `@name` sugar.
+//! - `expr.rs`: the parse step and the kebab-name rewrite.
+//! - `condition.rs`: a config-held filter expression, parsed once.
+//! - `condition_env.rs`: the environment a condition reads at evaluation.
+
+pub(crate) mod aggregate;
+pub(crate) mod compare;
+pub mod condition;
+pub mod condition_env;
+pub(crate) mod expr;
+pub(crate) mod links;
+pub(crate) mod predicates;
+pub(crate) mod strings;
+pub(crate) mod views;
+
 use evalexpr::{DefaultNumericTypes, Node, build_operator_tree};
 use thiserror::Error;
 
 use crate::config::Config;
-use crate::expr::{join_kebab_names, restore_name};
 use crate::fields::{self, FieldValue};
-use crate::filter_views::{collect_view_refs, desugar_view_refs};
+use crate::filter::expr::{join_kebab_names, restore_name};
+use crate::filter::views::{collect_view_refs, desugar_view_refs};
 use crate::model::Task;
 use crate::ready::Readiness;
 
@@ -408,17 +432,17 @@ impl<'a> Ctx<'a> {
 /// Resolve a field name to its value on `task`, via the shared
 /// [`crate::fields`] registry — the single place every generically comparable
 /// field is wired, so a field usable here is usable in `--sort` too. `pub(crate)`
-/// so [`crate::filter_predicates`]'s `present`/`contains_value` can share it.
+/// so [`crate::filter::predicates`]'s `present`/`contains_value` can share it.
 pub(crate) fn field_value(
     task: &Task,
     name: &str,
     config: &Config,
 ) -> Result<FieldValue, FilterError> {
-    if let Some(value) = crate::filter_predicates::estimate_unit(task, name, config) {
+    if let Some(value) = crate::filter::predicates::estimate_unit(task, name, config) {
         return value;
     }
     if fields::is_extra(name) {
-        return crate::filter_predicates::extra_value(task, name);
+        return crate::filter::predicates::extra_value(task, name);
     }
     fields::get(name)
         .map(|def| (def.get)(task, config))
@@ -427,7 +451,6 @@ pub(crate) fn field_value(
 
 /// The tree walk; split out to keep this file under its line budget. See
 /// [`eval_bool`].
-#[path = "filter_eval.rs"]
 mod eval;
 pub(crate) use eval::eval_bool;
 pub use eval::{Arity, FilterFunction};
@@ -439,5 +462,4 @@ pub const fn functions() -> &'static [FilterFunction] {
 }
 
 #[cfg(test)]
-#[path = "filter_tests.rs"]
 mod tests;

@@ -1,7 +1,7 @@
 //! `contains()`'s unified needle-first grammar: the default haystack
 //! (`title`, `id`, `body`), explicit fields (one or several), and the body
 //! haystack's marker-free guarantee. Lives in its own module so
-//! `filter_tests.rs` stays under the linecop line cap.
+//! `tests.rs` stays under the linecop line cap.
 #![allow(clippy::unwrap_used)]
 
 use super::{hit, hit_views, sample};
@@ -134,7 +134,7 @@ fn search_is_an_unknown_function_like_any_other() {
 }
 
 // --- `[ls] contains-fields`: the configurable default haystack (see
-// `filter_predicates::default_contains_fields`) ---
+// `filter::predicates::default_contains_fields`) ---
 
 fn config_with_contains_fields(fields: &str) -> Config {
     parse_config(&format!("[ls]\ncontains-fields = [{fields}]\n")).unwrap()

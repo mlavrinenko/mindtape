@@ -2,7 +2,7 @@
 //! count, commit-state existence and substring-search arms of the filter
 //! language's function dispatch
 //! (`has`/`miss`/`contains`/`stale`/`changed`/`exists`), split out of
-//! `filter.rs` (file-size gate). Each function here is pure over `Task` (plus
+//! `filter/mod.rs` (file-size gate). Each function here is pure over `Task` (plus
 //! `Config` where a field needs one to resolve, e.g. a framework priority);
 //! `exists` alone reads the `Ctx`, for the commit state it carries. The
 //! dispatcher itself (`filter::function`) stays put and calls into these.
@@ -11,10 +11,10 @@ use evalexpr::{DefaultNumericTypes, Node, Operator};
 use typst_harvest::HVal;
 
 use crate::config::Config;
-use crate::expr::{call_args, extract_identifier, extract_literal};
 use crate::fields::{self, FieldValue};
+use crate::filter::compare::compare;
+use crate::filter::expr::{call_args, extract_identifier, extract_literal};
 use crate::filter::{Ctx, FilterError, field_value};
-use crate::filter_compare::compare;
 use crate::git_state::{PathFilter, StateSet};
 use crate::model::Task;
 use crate::numeric::format_num;
@@ -304,9 +304,9 @@ fn joined_notes(task: &Task) -> String {
 }
 
 #[cfg(test)]
-#[path = "filter_changed_tests.rs"]
+#[path = "predicates_changed_tests.rs"]
 mod changed_tests;
 
 #[cfg(test)]
-#[path = "filter_touches_tests.rs"]
+#[path = "predicates_touches_tests.rs"]
 mod touches_tests;

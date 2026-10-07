@@ -1,6 +1,6 @@
 //! The facts a [`crate::Condition`] evaluates against.
 //!
-//! Split out of [`crate::condition`] so that module stays the evaluator and
+//! Split out of [`crate::filter::condition`] so that module stays the evaluator and
 //! this one the domain it reads — the same seam [`crate::config_ls_columns`]
 //! took out of [`crate::config_ls`], and for the same line-cap reason.
 //!
@@ -8,7 +8,7 @@
 //!
 //! - Ambient facts ([`ConditionEnv`]'s own fields) — the branch, the date, the
 //!   process environment, the tty, the active format. Injected, never probed:
-//!   [`crate::condition`] touches neither the clock nor the filesystem.
+//!   [`crate::filter::condition`] touches neither the clock nor the filesystem.
 //! - Listing facts ([`ColumnFacts`]) — what the selected rows and the caller's
 //!   column request say. These are not ambient at all; they only exist once a
 //!   renderer has rows in hand, which is why they arrive as a sub-struct the

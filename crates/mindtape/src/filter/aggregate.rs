@@ -104,5 +104,5 @@ impl LoadedSet {
 }
 
 #[cfg(test)]
-#[path = "filter_aggregate_tests.rs"]
+#[path = "aggregate_tests.rs"]
 mod tests;

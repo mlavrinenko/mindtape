@@ -1,5 +1,5 @@
 //! A minimal, dependency-free reader for the current git branch, used by the
-//! condition language's `on_branch(...)` predicate ([`crate::condition`]).
+//! condition language's `on_branch(...)` predicate ([`crate::filter::condition`]).
 //!
 //! Parses `.git/HEAD` directly rather than shelling out or adding a git
 //! library: `ref: refs/heads/<name>` names a branch, a raw commit sha is a

@@ -11,7 +11,7 @@
 
 use evalexpr::{DefaultNumericTypes, Node, Operator};
 
-use crate::expr::extract_literal;
+use crate::filter::expr::extract_literal;
 
 /// Rewrite `@name` to `in_view("name")`, leaving `@` inside string literals
 /// untouched. `name` is `[A-Za-z0-9_-]+`; a bare `@` (not followed by a name
@@ -79,5 +79,5 @@ pub(crate) fn collect_view_refs(node: &Node<DefaultNumericTypes>, out: &mut Vec<
 }
 
 #[cfg(test)]
-#[path = "filter_views_tests.rs"]
+#[path = "views_tests.rs"]
 mod tests;

@@ -4,7 +4,7 @@
 //! `filter::field_value` and `sort`'s generic per-field comparator both read
 //! [`FIELDS`], so wiring a field in here gives it filter *and* sort support
 //! together — there is no second match statement to remember. Before this
-//! module existed, `filter.rs` and `sort.rs` each hand-rolled their own
+//! module existed, `filter/mod.rs` and `sort.rs` each hand-rolled their own
 //! field-name match, and they drifted: `assignee` and `reviewed` were
 //! comparable in a filter but silently unsortable.
 //!

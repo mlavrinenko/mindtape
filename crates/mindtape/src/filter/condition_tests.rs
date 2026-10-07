@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use crate::condition_env::ColumnFacts;
+use crate::filter::condition_env::ColumnFacts;
 
 use super::{Condition, ConditionEnv, ConditionError};
 
@@ -83,7 +83,7 @@ fn env_unset_reads_as_empty_string() {
 #[test]
 fn value_may_appear_on_either_side_of_a_comparison() {
     // `env(...)` reading a set variable, checked with the value leading and
-    // trailing the comparison — filter.rs only ever allows a field on the
+    // trailing the comparison — filter/mod.rs only ever allows a field on the
     // left, condition.rs is symmetric.
     let reviewing = env_with_mode("review");
     let exprs = [r#"env("MODE") == "review""#, r#""review" == env("MODE")"#];

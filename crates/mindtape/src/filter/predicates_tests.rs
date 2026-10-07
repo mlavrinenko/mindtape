@@ -1,5 +1,5 @@
 //! Coverage for `has`/`miss` presence, `stale(N)`, and the `contains()`
-//! default-haystack fold — the arms that moved into `filter_predicates`
+//! default-haystack fold — the arms that moved into `filter::predicates`
 //! (file-size gate). Lives in a child module so it shares `sample()` /
 //! `hit()` with the parent without duplicating them.
 #![allow(clippy::unwrap_used)]

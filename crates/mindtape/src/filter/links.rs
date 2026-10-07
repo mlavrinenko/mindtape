@@ -1,4 +1,4 @@
-//! Predicates over a task's typed `links:` edges, split out of `filter.rs`
+//! Predicates over a task's typed `links:` edges, split out of `filter/mod.rs`
 //! (file-size gate): the `links(kind)` function.
 
 use crate::model::Task;
@@ -10,5 +10,5 @@ pub(crate) fn has_kind(task: &Task, kind: &str) -> bool {
 }
 
 #[cfg(test)]
-#[path = "filter_links_tests.rs"]
+#[path = "links_tests.rs"]
 mod tests;

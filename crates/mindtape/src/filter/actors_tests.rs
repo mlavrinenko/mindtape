@@ -1,5 +1,5 @@
 //! `assignee` / `role` filter tests, in a child module so they share
-//! `sample()` / `hit()` without pushing `filter_tests.rs` over the linecop cap.
+//! `sample()` / `hit()` without pushing `tests.rs` over the linecop cap.
 #![allow(clippy::unwrap_used)]
 
 use crate::config::Config;

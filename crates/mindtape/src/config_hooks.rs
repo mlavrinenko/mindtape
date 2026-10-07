@@ -23,7 +23,7 @@
 //! filter function: it is rewritten here, per transition, into a filter-language
 //! constant ([`desugar_into`]) before the expression is parsed — so the whole
 //! filter language composes with it and the evaluator stays unaware of it, the
-//! same trick `@view` sugar plays in [`crate::filter_views`].
+//! same trick `@view` sugar plays in [`crate::filter::views`].
 //!
 //! Only `mt flip` runs actions. `mt check`, `mt ls` and every other read command
 //! execute nothing: a read that shells out is a surprise, and `mt check` is what

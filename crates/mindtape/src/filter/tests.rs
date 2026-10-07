@@ -74,7 +74,7 @@ fn hit_with(expr: &str, task: &Task, cfg: &Config) -> bool {
 }
 
 /// [`Filter::parse`] then [`Filter::matches`] under `config` — the helper the
-/// view tests and `filter_contains_tests` share.
+/// view tests and `contains_tests` share.
 fn hit_views(expr: &str, task: &Task, config: &Config) -> bool {
     Filter::parse(expr).unwrap().matches(task, config).unwrap()
 }
@@ -383,31 +383,31 @@ fn binary_op_with_wrong_arity_is_invalid_at_match_time() {
 // The rare arms of the `function` dispatcher live in a child module so they
 // share `sample()` / `hit()` without duplicating them (and keep this file
 // under the linecop limit).
-#[path = "filter_dispatch_tests.rs"]
+#[path = "dispatch_tests.rs"]
 mod dispatch;
 
 // The `assignee` / `role` registry-backed filter tests likewise.
-#[path = "filter_actors_tests.rs"]
+#[path = "actors_tests.rs"]
 mod actors;
 
 // `contains()`'s unified needle-first grammar (default haystack, explicit
 // fields, the retired `search()` / field-first orders) likewise.
-#[path = "filter_contains_tests.rs"]
+#[path = "contains_tests.rs"]
 mod contains;
 
 // Presence (`has`/`miss`), staleness (`stale`), and the `contains()`
-// default-haystack fold — the tests for what moved into `filter_predicates`
+// default-haystack fold — the tests for what moved into `filter::predicates`
 // (file-size gate) — likewise.
-#[path = "filter_predicates_tests.rs"]
+#[path = "predicates_tests.rs"]
 mod predicates;
 
 // `in_view()`/`@name` predicate evaluation, the `view_refs` collector, and
 // the cyclic view guard likewise.
-#[path = "filter_in_view_tests.rs"]
+#[path = "in_view_tests.rs"]
 mod in_view;
 
 // Reading an `x-<ns>` extension slot's value likewise.
-#[path = "filter_extras_tests.rs"]
+#[path = "extras_tests.rs"]
 mod extras;
 
 #[test]

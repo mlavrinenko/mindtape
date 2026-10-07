@@ -260,7 +260,7 @@ pub fn parse_import_view(entry: &str) -> Result<ImportView, String> {
 
 /// Validate every `[[ls.rules]]` entry: `condition` parses in the condition
 /// grammar (which already rejects a task-field identifier or an unknown
-/// predicate — see [`crate::condition::Condition::parse`]); each
+/// predicate — see [`crate::filter::condition::Condition::parse`]); each
 /// `import-views` entry parses and names a declared view; a manual `filter`
 /// parses and its `@view` / `in_view` references resolve; a manual `sort` /
 /// `columns` entry is either a legal spec or an `@view` reference that
@@ -304,7 +304,7 @@ pub fn validate_ls_rules(rules: &[LsRule], views: &BTreeMap<String, ViewSpec>) -
 
 fn validate_condition(prefix: &str, rule: &LsRule, problems: &mut Vec<String>) {
     if let Some(condition) = &rule.condition
-        && let Err(err) = crate::condition::Condition::parse(condition)
+        && let Err(err) = crate::filter::condition::Condition::parse(condition)
     {
         problems.push(format!("{prefix}.condition: {err}"));
     }

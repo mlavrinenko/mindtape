@@ -1,7 +1,7 @@
 //! End-to-end coverage for the `role`/`assignee` filters and the actors
 //! registry, driven through the compiled `mt` binary.
 //!
-//! `crates/mindtape/src/filter_actors_tests.rs` covers the same behaviour
+//! `crates/mindtape/src/filter/actors_tests.rs` covers the same behaviour
 //! against a hand-built `Config` only — nothing exercised it through TOML
 //! parsing, project loading and `mt ls`/`mt check` until the 2026-08-07
 //! manual session that surfaced the gap
@@ -108,7 +108,7 @@ fn assignee_filter_matches_by_actor_name() {
 
 /// An assignee naming nobody in the registry claims no role at all — it must
 /// not fall through and match either side of the partition. `role != "..."`
-/// is documented (`crates/mindtape/src/filter.rs`) as the exact complement of
+/// is documented (`crates/mindtape/src/filter/mod.rs`) as the exact complement of
 /// `role == "..."` under the missing-field rule, so this only asserts `==`:
 /// the undeclared assignee resolving `role` to anything but `Missing` would
 /// be the actual regression this task exists to catch.

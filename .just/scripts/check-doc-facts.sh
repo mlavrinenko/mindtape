@@ -100,7 +100,7 @@ if [ -n "$missing_flags" ]; then
 fi
 
 # The filter-functions arm: every predicate and function in the filter
-# registry (crates/mindtape/src/filter_eval.rs, read back through
+# registry (crates/mindtape/src/filter/eval.rs, read back through
 # filter-functions.json) must open a code span on both filter pages. A span
 # opens with the name followed by a non-name character, so `has_tag("x")` does
 # not document `has`.

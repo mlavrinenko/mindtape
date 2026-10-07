@@ -100,7 +100,7 @@ fn no_glob_admits_every_path() {
 #[test]
 fn an_include_glob_admits_only_what_it_names_across_directories() {
     let filter = PathFilter::new(&["crates/*/src/**".to_owned()]).unwrap();
-    assert!(filter.admits("crates/mindtape/src/filter.rs"));
+    assert!(filter.admits("crates/mindtape/src/filter/mod.rs"));
     assert!(filter.admits("crates/mindtape/src/deep/mod.rs"));
     assert!(!filter.admits("CHANGELOG.md"));
 }
@@ -109,8 +109,8 @@ fn an_include_glob_admits_only_what_it_names_across_directories() {
 fn a_bang_glob_excludes_even_what_an_include_admits() {
     let filter =
         PathFilter::new(&["crates/*/src/**".to_owned(), "!**/*_tests*.rs".to_owned()]).unwrap();
-    assert!(filter.admits("crates/mindtape/src/filter.rs"));
-    assert!(!filter.admits("crates/mindtape/src/filter_tests.rs"));
+    assert!(filter.admits("crates/mindtape/src/filter/mod.rs"));
+    assert!(!filter.admits("crates/mindtape/src/filter/links_tests.rs"));
 }
 
 #[test]

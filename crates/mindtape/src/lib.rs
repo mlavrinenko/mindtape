@@ -29,8 +29,6 @@ pub mod commit_range;
 pub mod commit_refs;
 pub mod commit_task_expr;
 pub mod commit_tasks;
-pub mod condition;
-pub mod condition_env;
 pub mod config;
 mod config_actors;
 mod config_add;
@@ -65,16 +63,9 @@ mod date_pin;
 mod dep_rank;
 pub mod derive;
 pub mod emit;
-mod expr;
 mod field_descriptor;
 mod fields;
 pub mod filter;
-mod filter_aggregate;
-mod filter_compare;
-mod filter_links;
-mod filter_predicates;
-mod filter_strings;
-mod filter_views;
 pub mod format;
 pub mod framework;
 mod framework_eval;
@@ -137,8 +128,6 @@ pub use commit_msg::{
 };
 pub use commit_range::{CommitRange, PastCommit, RangeCommit};
 pub use commit_tasks::{CommitStates, ProjectState, StatePlan, StateSource};
-pub use condition::{Condition, ConditionError};
-pub use condition_env::{ColumnFacts, ConditionEnv};
 pub use config::{
     Actor, ActorKind, AddConfig, AssigneeConfig, BUILTIN_PREFIX, Collector, ColumnConfig, Config,
     ConfigError, DeriveConfig, DeriveTags, Dict, DictCase, DictSpec, Dicts, EstimateConfig, Facet,
@@ -162,6 +151,8 @@ pub use date_pin::{DateOverrideError, init_pinned_today};
 pub use derive::RootDeriver;
 pub use emit::emit_task;
 pub use emit::format::{typ_array, typ_str};
+pub use filter::condition::{Condition, ConditionError};
+pub use filter::condition_env::{ColumnFacts, ConditionEnv};
 pub use filter::{Filter, FilterError};
 pub use format::format_typst;
 pub use framework::{Category, Framework, Input, InputKind};

@@ -22,8 +22,8 @@ use evalexpr::{DefaultNumericTypes, Node, Operator};
 use regex::Regex;
 
 use crate::config::Config;
-use crate::expr::{call_args, extract_literal, restore_name, unwrap_root};
 use crate::fields::FieldValue;
+use crate::filter::expr::{call_args, extract_literal, restore_name, unwrap_root};
 use crate::filter::{FilterError, field_value};
 use crate::model::Task;
 
@@ -221,5 +221,5 @@ fn arity(name: &str, shape: &str) -> FilterError {
 }
 
 #[cfg(test)]
-#[path = "filter_strings_tests.rs"]
+#[path = "strings_tests.rs"]
 mod tests;

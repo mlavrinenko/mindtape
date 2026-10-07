@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 7),
+  status: done(2026, 10, 7),
   links: depends-on(
     "read-the-prelude-in-tests-through-one-shared-constant.typ",
   )

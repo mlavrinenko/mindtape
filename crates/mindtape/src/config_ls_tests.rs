@@ -193,7 +193,7 @@ fn validate_rules_prefixes_each_problem_by_index() {
 
 #[test]
 fn contains_fields_defaults_to_empty_when_unset() {
-    // Empty is the signal `filter_predicates::default_contains_fields` reads
+    // Empty is the signal `filter::predicates::default_contains_fields` reads
     // to fall back to the shipped `title`/`id`/`body` sweep.
     assert!(Config::default().ls.contains_fields.is_empty());
     assert!(parse_config("").unwrap().ls.contains_fields.is_empty());

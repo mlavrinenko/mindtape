@@ -31,7 +31,7 @@
 //!   mistake to reject rather than a case to define.
 //!
 //! A comparison accepts a value (`env(...)`, `now()`, `weekday()`,
-//! `format()`) or a literal on either side — more general than `filter.rs`,
+//! `format()`) or a literal on either side — more general than `filter/mod.rs`,
 //! which only ever compares a field (always the left side) against a literal.
 //!
 //! Purity: this module never reads the clock or the filesystem itself.
@@ -43,8 +43,8 @@
 use evalexpr::{DefaultNumericTypes, Node, Operator, Value, build_operator_tree};
 use thiserror::Error;
 
-use crate::condition_env::{ColumnFacts, ConditionEnv};
-use crate::expr::{compare_ordering, connective, extract_literal, unwrap_root};
+use crate::filter::condition_env::{ColumnFacts, ConditionEnv};
+use crate::filter::expr::{compare_ordering, connective, extract_literal, unwrap_root};
 use crate::numeric::format_num;
 
 /// A parsed, reusable condition expression. `None` is the always-matching

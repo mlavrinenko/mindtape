@@ -1,4 +1,4 @@
-//! The walk over a parsed filter's `evalexpr` tree, split out of `filter.rs`
+//! The walk over a parsed filter's `evalexpr` tree, split out of `filter/mod.rs`
 //! (file-size gate): the boolean operators, the function table, the AST
 //! helpers those read, and `in_view` recursion. [`Ctx`] and `field_value`
 //! stay in the parent; [`eval_bool`] is re-exported there so the sibling walk
@@ -12,9 +12,9 @@ const MAX_VIEW_DEPTH: usize = 64;
 
 use evalexpr::{DefaultNumericTypes, Node, Operator};
 
-use crate::expr::{extract_identifier, extract_literal, restore_name};
+use crate::filter::expr::{extract_identifier, extract_literal, restore_name};
+use crate::filter::predicates::{contains_call, is_stale, present};
 use crate::filter::{Ctx, Filter, FilterError};
-use crate::filter_predicates::{contains_call, is_stale, present};
 
 type Run = fn(&[Node<DefaultNumericTypes>], &Ctx) -> Result<bool, FilterError>;
 
@@ -61,7 +61,7 @@ pub(crate) const FUNCTIONS: [FilterFunction; 17] = [
         Ok(ctx.task.is_terminal(&ctx.config.tasks.status.terminal()))
     }),
     word("exists", exactly(0), |_, ctx| {
-        crate::filter_predicates::exists(ctx)
+        crate::filter::predicates::exists(ctx)
     }),
     word("in_view", exactly(1), |args, ctx| {
         in_view(&single_literal(args, "in_view")?, ctx)
@@ -72,7 +72,7 @@ pub(crate) const FUNCTIONS: [FilterFunction; 17] = [
             min: 1,
             max: Some(2),
         },
-        |args, ctx| crate::filter_predicates::has_call(args, ctx.task, ctx.config),
+        |args, ctx| crate::filter::predicates::has_call(args, ctx.task, ctx.config),
     ),
     word("miss", exactly(1), |args, ctx| {
         Ok(!present(
@@ -92,20 +92,20 @@ pub(crate) const FUNCTIONS: [FilterFunction; 17] = [
     }),
     word("links", exactly(1), |args, ctx| {
         let kind = single_literal(args, "links")?;
-        Ok(crate::filter_links::has_kind(ctx.task, &kind))
+        Ok(crate::filter::links::has_kind(ctx.task, &kind))
     }),
     word("contains", Arity { min: 1, max: None }, |args, ctx| {
         contains_call(args, ctx.task, ctx.config)
     }),
-    word("touches", exactly(1), crate::filter_predicates::touches),
+    word("touches", exactly(1), crate::filter::predicates::touches),
     word("matches", exactly(2), |args, ctx| {
-        crate::filter_strings::matches_call(args, ctx.task, ctx.config)
+        crate::filter::strings::matches_call(args, ctx.task, ctx.config)
     }),
     word("in_dict", exactly(2), |args, ctx| {
-        crate::filter_strings::in_dict_call(args, ctx.task, ctx.config)
+        crate::filter::strings::in_dict_call(args, ctx.task, ctx.config)
     }),
     word("word", exactly(2), |_, _| {
-        Err(crate::filter_strings::word_is_not_boolean())
+        Err(crate::filter::strings::word_is_not_boolean())
     }),
     word("changed", exactly(1), |_, _| {
         Err(FilterError::Invalid(
@@ -154,7 +154,7 @@ pub(crate) fn eval_bool(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<b
         | Operator::Lt
         | Operator::Gt
         | Operator::Leq
-        | Operator::Geq => crate::filter_compare::comparison(node, ctx),
+        | Operator::Geq => crate::filter::compare::comparison(node, ctx),
         Operator::FunctionIdentifier { identifier } => {
             function(&restore_name(identifier), node, ctx)
         }
@@ -214,7 +214,7 @@ fn in_view(name: &str, ctx: &Ctx) -> Result<bool, FilterError> {
 }
 
 // --- AST helpers (ported from the SQL translator; shared walk primitives now
-// live in `crate::expr`, consumed by both this module and `condition.rs`) ---
+// live in `crate::filter::expr`, consumed by both this module and `condition.rs`) ---
 
 fn single_identifier(
     children: &[Node<DefaultNumericTypes>],
