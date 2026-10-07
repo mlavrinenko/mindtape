@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 7),
+  status: done(2026, 10, 7)[agreed: mod.rs folders, placements A],
 )
 
 == Problem
