@@ -150,7 +150,7 @@ policy = "forbid"
 path = ["Summary"]
 action = "unique"
 when = "!terminal"
-message = "a task needs exactly one Summary: the problem, stated once"
+message = "keep exactly one Summary section, stating the problem once"
 
 # How anyone can tell it is finished. This is the single strongest predictor of
 # a task an agent completes successfully.
@@ -158,7 +158,7 @@ message = "a task needs exactly one Summary: the problem, stated once"
 path = ["Acceptance criteria"]
 action = "unique"
 when = "!terminal"
-message = "a task needs Acceptance criteria — checkable conditions, not a restatement of the summary"
+message = "add an Acceptance criteria section of checkable conditions"
 
 # What is deliberately out of scope. Agents bundle unrelated objectives into one
 # change several times more often than humans do, and oversized changes are the
@@ -167,7 +167,7 @@ message = "a task needs Acceptance criteria — checkable conditions, not a rest
 path = ["Non-goals"]
 action = "require"
 when = "!terminal"
-message = "a task needs Non-goals — say what it will not touch, or it will touch it"
+message = "add a Non-goals section naming what the task will not touch"
 
 # Which files this is expected to change. Doubles as the scope boundary you can
 # actually check: compare it against `git diff --name-only` while the work runs.
@@ -175,14 +175,14 @@ message = "a task needs Non-goals — say what it will not touch, or it will tou
 path = ["Files"]
 action = "require"
 when = "!terminal"
-message = "a task needs Files — the paths it expects to touch"
+message = "add a Files section listing the paths the task expects to touch"
 
 # The problem comes before the test for it.
 [[tasks.body.headers.rules]]
 action = "order"
 before = ["Summary"]
 after = ["Acceptance criteria"]
-message = "Summary must precede Acceptance criteria"
+message = "move Summary before Acceptance criteria"
 
 # `mt ls @wip` is the work-in-progress check. Keep this at one: a change set can
 # only be attributed to a task when one task is in flight.
@@ -241,5 +241,5 @@ actions = [{ list = "@wip", title = "Already in flight — finish these first:" 
 [[on.flip]]
 when = 'into("done")'
 actions = [
-  { run = '! grep -q "TODO:" "$MINDTAPE_TASK_FILE"', gate = true, message = "this task still carries the template's TODO placeholders — fill them in, or point this gate at the check that really proves the work" },
+  { run = '! grep -q "TODO:" "$MINDTAPE_TASK_FILE"', gate = true, message = "fill in the template's TODO placeholders, or point this gate at a check that proves the work" },
 ]

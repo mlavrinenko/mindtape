@@ -18,9 +18,10 @@
 //!   `error: tasks/x.typ:2: rules.one-wip: <message>`.
 //! - A cause chain joins into the one line with `: `. Rust's `Error:` and
 //!   `Caused by:` never print, because `main` returns an `ExitCode`.
-//! - At most two hints, each a [`Hint`]: a sentence, a command to run, or a
-//!   did-you-mean. Typst's own hints on an error ([`Diag::typst_hints`]) come
-//!   on top of that, verbatim.
+//! - At most two hints, each a [`Hint`]: a sentence, a command to run, a
+//!   did-you-mean, or the names to choose from (`use one of: a, b`).
+//!   Typst's own hints on an error ([`Diag::typst_hints`]) come on top of that,
+//!   verbatim.
 //! - Words that are not ours, such as Typst's message, are not a `&'static str`,
 //!   so [`Diag::verbatim`] takes them whole, after the place:
 //!   `error: tasks/x.typ:2:3: unexpected argument: titel`.

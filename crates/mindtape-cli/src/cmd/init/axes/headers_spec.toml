@@ -3,28 +3,28 @@
 path = ["Summary"]
 action = "unique"
 when = "!terminal"
-message = "a task needs exactly one Summary: the problem, stated once"
+message = "keep exactly one Summary section, stating the problem once"
 
 [[tasks.body.headers.rules]]
 path = ["Acceptance criteria"]
 action = "unique"
 when = "!terminal"
-message = "a task needs Acceptance criteria — checkable conditions, not a restatement"
+message = "add an Acceptance criteria section of checkable conditions"
 
 [[tasks.body.headers.rules]]
 path = ["Non-goals"]
 action = "require"
 when = "!terminal"
-message = "a task needs Non-goals — say what it will not touch, or it will touch it"
+message = "add a Non-goals section naming what the task will not touch"
 
 [[tasks.body.headers.rules]]
 path = ["Files"]
 action = "require"
 when = "!terminal"
-message = "a task needs Files — the paths it expects to touch"
+message = "add a Files section listing the paths the task expects to touch"
 
 [[tasks.body.headers.rules]]
 action = "order"
 before = ["Summary"]
 after = ["Acceptance criteria"]
-message = "Summary must precede Acceptance criteria"
+message = "move Summary before Acceptance criteria"
