@@ -76,31 +76,21 @@ fn mt(root: &Path) -> Command {
 // --- confirm ---
 
 #[test]
-fn confirm_accepts_y() {
-    // replace confirm -> Result<bool> with Ok(false)
-    // replace || with &&
-    // replace == with != (first "y")
+fn piped_stdin_without_yes_refuses_and_names_yes() {
     let (_dir, root) = scaffold(&[("tasks/gone.typ", METADATA_GONE)]);
     mt(&root)
         .args(["rm", "gone"])
         .write_stdin("y\n")
         .assert()
-        .success()
-        .stdout(predicate::str::contains("deleted").from_utf8());
-}
-
-#[test]
-fn confirm_accepts_yes() {
-    // replace confirm -> Result<bool> with Ok(false)
-    // replace || with &&
-    // replace == with != (on "yes")
-    let (_dir, root) = scaffold(&[("tasks/gone.typ", METADATA_GONE)]);
-    mt(&root)
-        .args(["rm", "gone"])
-        .write_stdin("yes\n")
-        .assert()
-        .success()
-        .stdout(predicate::str::contains("deleted").from_utf8());
+        .failure()
+        .stderr(
+            predicate::str::diff(
+                "error: can't ask for confirmation without a terminal\n\
+                 hint: pass --yes to remove without asking\n",
+            )
+            .from_utf8(),
+        );
+    assert!(root.join("tasks/gone.typ").exists());
 }
 
 // --- print_deletions ---
@@ -205,8 +195,8 @@ fn run_dry_run_skips_preflight() {
     // Mutant deletes `!` so `if args.dry_run { check... }`.
     // Real code skips the pre-flight on dry-run; mutant runs it.  With a dirty
     // eligible file the real code fails from plan() (mint_rev_path on dirty
-    // file) — error does NOT contain "uncommitted".  The mutant fails from
-    // check_eligible_files — error DOES contain "uncommitted".
+    // file) — error does NOT say "cannot remove".  The mutant fails from
+    // check_eligible_files — error DOES say "cannot remove".
     // The eligible task must be referenced: an unreferenced task is deleted
     // directly with no git, so the preflight path never runs.
     let (_dir, root) = scaffold_with_lib(
@@ -230,19 +220,5 @@ fn run_dry_run_skips_preflight() {
         .args(["rm", "--dry-run", "-y", "gone"])
         .assert()
         .failure()
-        .stderr(predicate::str::contains("uncommitted").from_utf8().not());
-}
-
-#[test]
-fn run_aborts_on_declined_confirm() {
-    // Mutant deletes `!` before `confirm(&plan)?` so
-    // `if !args.yes && confirm(&plan)?` — real code bails when confirm
-    // returns false, mutant does NOT bail (proceeds to apply).
-    let (_dir, root) = scaffold(&[("tasks/gone.typ", METADATA_GONE)]);
-    mt(&root)
-        .args(["rm", "gone"])
-        .write_stdin("n\n")
-        .assert()
-        .failure()
-        .stderr(predicate::str::contains("aborted by user").from_utf8());
+        .stderr(predicate::str::contains("cannot remove").from_utf8().not());
 }

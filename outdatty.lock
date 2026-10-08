@@ -51,11 +51,11 @@ groups:
       crates/mindtape-cli/src/cmd/link/input.rs: ce61859d7c50d22bd2e0507cfa7568fa41f0cd5d31765f449917de0386128b4d
       crates/mindtape-cli/src/cmd/link/mod.rs: 4aef1cb7e9f3bebf0e2049c2992c176b263278d51b6e67a988dc1012a01e590a
       crates/mindtape-cli/src/cmd/ls/mod.rs: 6552aae80e1c8eeff104a363625b57c37ad3a9248348bededfedef38f37b6f32
-      crates/mindtape-cli/src/cmd/mv.rs: d00b1022f21f1215eaa3300d19a8170d5003438e723dd953d8155cec8ed557d0
+      crates/mindtape-cli/src/cmd/mv.rs: 43d5dcd799fbd21945a6d535c13699ac7157170954d53e02415e460b7d9294ea
       crates/mindtape-cli/src/cmd/preset.rs: a232c3c0e47ce58823fce80a742fffbd4c4448e7f3ceaa43e525188882b61af7
       crates/mindtape-cli/src/cmd/recur/mod.rs: caa7cac29432f6e6089d5eabd179fb44e5cc81883ff19d80c7e6261f540238fe
       crates/mindtape-cli/src/cmd/review.rs: 28925f6070b62f5fdc2b4e49424797122ccd89ea35d7e66be8d62753a7d013b5
-      crates/mindtape-cli/src/cmd/rm/mod.rs: 4b8707bb3742a934af23ede8cc60cb85c9223b04f2947b33ef03a38770a69d6a
+      crates/mindtape-cli/src/cmd/rm/mod.rs: 9acac7c607586bff0679ac36136a88036ea19cdbd16a5e537f62e9c5bb36f39f
       crates/mindtape-cli/src/cmd/set.rs: d733d087428e3b022abe1d5b6e417d7dec9b3991bc9921b2a318bdf4f8f89b67
       crates/mindtape-cli/src/cmd/views.rs: c54b3dd4218778d6eeb68f9dc46e8cf2e35099c160ab92529929f8cd1dcc6559
       crates/mindtape-cli/src/cmd/worktrees.rs: 10482845d8a2dd72511e2d15cb9fad8bd0b11c7342ff0c117563143da84e0708

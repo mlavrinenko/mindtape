@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use mindtape::{RmStrategy, parse_config};
 
 use super::super::{
-    apply, plain_delete_plan, redact_git_error, referrers, reject_message, resolve_strategy,
+    apply, plain_delete_plan, redact_git_error, referrers, reject_diag, resolve_strategy,
     retire_apply, retire_plan, unlink_plan,
 };
 use super::{depends_survivor, gone_and_live, ids, survivor, task};
@@ -50,20 +50,18 @@ fn resolve_strategy_configured_value_wins_either_way() {
 // --- reject ---
 
 #[test]
-fn reject_message_lists_every_survivor_and_id() {
+fn the_reject_refusal_names_every_survivor_and_its_ids() {
     let mut referrers: BTreeMap<PathBuf, HashSet<String>> = BTreeMap::new();
     referrers.insert(PathBuf::from("tasks/live.typ"), ids(&["orphan", "gone"]));
     referrers.insert(PathBuf::from("tasks/other.typ"), ids(&["gone"]));
 
-    let message = reject_message(&referrers);
-
-    assert!(message.contains("cannot remove task(s): 3 reference(s)"));
-    assert!(message.contains("tasks/live.typ"));
-    assert!(
-        message.contains("gone, orphan"),
-        "sorted ids, got: {message}"
+    assert_eq!(
+        crate::diag::plain(&reject_diag(&referrers)),
+        "error: cannot remove tasks that other tasks link to\n\
+         hint: a gitless repository has no tombstone to rewrite onto: set [rm] strategy to \"retire\" or \"unlink\" to remove them anyway\n\
+         note: link from: tasks/live.typ to gone, orphan\n\
+         note: link from: tasks/other.typ to gone\n"
     );
-    assert!(message.contains("tasks/other.typ"));
 }
 
 #[test]

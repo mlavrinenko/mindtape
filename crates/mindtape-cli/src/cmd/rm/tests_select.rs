@@ -131,11 +131,59 @@ fn select_targets_default_filter_is_terminal() {
 }
 
 #[test]
-fn select_targets_unresolvable_token_errors() {
-    // Not a slug and not a valid boolean filter -> error, not a silent empty set.
+fn an_unknown_single_word_says_no_task_matches() {
+    // Not a stem and no field or term: the word names a task that isn't there,
+    // so the answer is about the task, not about filter syntax.
+    let project = stub_project(
+        Config::default(),
+        vec![task("alpha", "tasks/alpha.typ", Some("wip"))],
+    );
+    let err = select_targets(&project, &targets(&["alpah"]), &readiness_of(&project)).unwrap_err();
+    assert_eq!(
+        crate::diag::plain_anyhow(err),
+        "error: no task: 'alpah'\nhint: did you mean alpha?\n"
+    );
+}
+
+#[test]
+fn a_filter_that_does_not_parse_is_reported_as_a_filter() {
     let project = stub_project(
         Config::default(),
         vec![task("a", "tasks/a.typ", Some("wip"))],
     );
-    assert!(select_targets(&project, &targets(&["nope"]), &readiness_of(&project)).is_err());
+    let err =
+        select_targets(&project, &targets(&["status =="]), &readiness_of(&project)).unwrap_err();
+    let text = crate::diag::plain_anyhow(err);
+    assert!(text.starts_with("error: "), "{text}");
+    assert!(!text.contains("no task"), "{text}");
+}
+
+#[test]
+fn several_unresolved_targets_end_with_one_summary() {
+    let project = stub_project(
+        Config::default(),
+        vec![task("a", "tasks/a.typ", Some("wip"))],
+    );
+    let err = select_targets(
+        &project,
+        &targets(&["a", "nope", "nada"]),
+        &readiness_of(&project),
+    )
+    .unwrap_err();
+    assert_eq!(
+        crate::diag::plain_anyhow(err),
+        "error: resolved 1 of 3 tasks; 2 failed\n"
+    );
+}
+
+#[test]
+fn a_default_filter_that_does_not_parse_names_its_key() {
+    let config = parse_config("[rm]\ndefault-filter = \"(\"\n").unwrap();
+    let project = stub_project(config, vec![task("a", "tasks/a.typ", Some("wip"))]);
+    let err = select_targets(&project, &[], &readiness_of(&project)).unwrap_err();
+    let text = crate::diag::plain_anyhow(err);
+    assert!(
+        text.starts_with("error: rm.default-filter: can't parse filter: '('"),
+        "{text}"
+    );
 }

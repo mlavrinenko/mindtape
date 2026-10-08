@@ -35,6 +35,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   load error(s)`. A range git cannot read is `error: can't read commit range:
   'HEAD~5..HEAD': <git's reason>`. Under `--commits`, each problem leads with
   the commit's id and a `note: commit: '<subject>'` follows it.
+- **`mt mv` and `mt rm` errors read in the error format.** `mt mv a a/b` is
+  `error: the new stem has a path separator: 'a/b'` with its reasons as
+  `hint:` lines; a taken stem is `error: stem is taken: 'b'`, `hint: pick
+  another stem`, and `note: held by: tasks/b.typ`. `mt rm` says
+  `error: cannot remove: 'x'` with the file and why as a `note:` and
+  `hint: commit them first: ...`; a gitless project that refuses a removal
+  lists each survivor as `note: link from: tasks/live.typ to gone`. The
+  confirmation prompt stays a plain question on stderr, with no `error:`
+  prefix, since nothing failed.
 - **A task reference, a view name and a failed write read in the error
   format.** `mt ls '@nope'` prints `error: unknown view: 'nope'` and
   `hint: did you mean x?` (or `hint: run mt views to see the views`) where it
@@ -1809,6 +1818,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt rm` with a mistyped name says no task matches.** `mt rm nope` printed
+  `invalid filter: bare field `nope` is not boolean`; it now prints
+  `error: no task: 'nope'` with the nearest stem as `hint: did you mean x?`,
+  as `mt mv` and `mt set` do. `mt rm 'status == "done"'` still selects by
+  filter. Several targets that fail each print their own error, then
+  `error: resolved 1 of 3 tasks; 2 failed`.
+- **`mt rm` without a terminal refuses instead of reporting an abort.** With
+  stdin not a terminal it printed the plan, read nothing and said
+  `Error: aborted by user`. It now fails before the plan with
+  `error: can't ask for confirmation without a terminal` and
+  `hint: pass --yes to remove without asking`. `aborted by user` is printed
+  only when someone answers no.
 - **`mindtape-cli` builds from its published tarball.** `mt install` and `mt init` embedded `lib/prelude.typ` from outside the crate, so `cargo publish` could not compile the packaged crate. The crate now carries its own copy of the prelude, and a test fails if it differs from `lib/prelude.typ`.
 - **`git commit --amend` is judged against the parent of the commit it replaces.** `mt check --commit-msg` diffed the index against `HEAD`, so a task flip amended into its work commit looked like a task-only commit and failed `flip-with-work`. It finds the amend from the `--amend` flag of the `git commit` process running the hook, since git exports no variable for it, and reads `files`, `tasks_only` and `head(...)` against `HEAD^`.
 - **A TOML error in a config layer names its file.** A syntax error in `~/.config/mindtape/defaults.toml`, an ancestor `.mindtape/defaults.toml` or a path pack used to appear under the project's `.mindtape/config.toml`. It now reads `parse error in <path>: TOML parse error at line 1, column 7 ...`, and an embedded pack reads `parse error in pack mindtape-tasks: ...`.

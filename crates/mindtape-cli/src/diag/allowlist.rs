@@ -21,7 +21,6 @@ const UNCONVERTED: &[&str] = &[
     "cmd/init",
     "cmd/link",
     "cmd/ls",
-    "cmd/mv",
     "cmd/preset",
     "cmd/recur",
     "cmd/review",

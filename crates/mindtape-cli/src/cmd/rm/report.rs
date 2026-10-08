@@ -4,26 +4,26 @@
 
 use std::path::Path;
 
-use anyhow::Result;
 use typst_cleanup::Plan;
 
-pub(super) fn confirm(plan: &Plan) -> Result<bool> {
-    use std::io::Write;
-    let mut stderr = std::io::stderr();
+/// The lines of the delete prompt: how many tasks go and how many files'
+/// links change, then each deleted file.
+pub(super) fn prompt_lines(plan: &Plan) -> Vec<String> {
     let rewrites = if plan.rewrites.is_empty() {
         String::new()
     } else {
         format!(" and rewrite links in {} file(s)", plan.rewrites.len())
     };
-    writeln!(
-        stderr,
+    let mut lines = vec![format!(
         "rm will delete {} task(s){rewrites}:",
         plan.deletions.len()
-    )?;
-    for deletion in &plan.deletions {
-        writeln!(stderr, "  - {}", deletion.rel.display())?;
-    }
-    super::gitless::confirm_answer()
+    )];
+    lines.extend(
+        plan.deletions
+            .iter()
+            .map(|deletion| format!("  - {}", deletion.rel.display())),
+    );
+    lines
 }
 
 /// List each deletion in `plan` as an indented bullet on stdout.

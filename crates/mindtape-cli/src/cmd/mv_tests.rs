@@ -15,17 +15,28 @@ fn a_trailing_typ_is_dropped_rather_than_doubled() {
     assert_eq!(new_stem("ship-it").unwrap(), "ship-it");
 }
 
+/// `new_stem`'s refusal as stderr gets it.
+fn refusal(raw: &str) -> String {
+    crate::diag::plain_anyhow(new_stem(raw).unwrap_err())
+}
+
 #[test]
 fn an_empty_stem_is_refused() {
-    assert!(new_stem("").is_err());
+    let expected = "error: the new stem is empty\nhint: pass a stem such as new-name\n";
+    assert_eq!(refusal(""), expected);
     // `.typ` alone is a bare extension, so dropping it leaves nothing.
-    assert!(new_stem(".typ").is_err());
+    assert_eq!(refusal(".typ"), expected);
 }
 
 #[test]
 fn a_path_separator_is_refused_in_both_spellings() {
-    assert!(new_stem("sub/ship-it").is_err());
-    assert!(new_stem("sub\\ship-it").is_err());
+    assert_eq!(
+        refusal("sub/ship-it"),
+        "error: the new stem has a path separator: 'sub/ship-it'\n\
+         hint: mt mv renames a task where it stands\n\
+         hint: moving a task between roots or folders changes its derived tags, so it is a decision of its own\n"
+    );
+    assert!(refusal("sub\\ship-it").starts_with("error: the new stem has a path separator: "));
 }
 
 #[test]

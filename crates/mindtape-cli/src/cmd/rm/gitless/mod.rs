@@ -17,6 +17,7 @@ use mindtape::{Config, RmStrategy, Task, link_edges, normalize_link, today_ymd};
 use typst_cleanup::{Deletion, Plan, Rewrite, apply};
 
 use crate::cmd::flip::status_edit;
+use crate::diag::{Diag, Hint, Note};
 use crate::git;
 use crate::util;
 
@@ -33,26 +34,21 @@ pub fn resolve_strategy(config: &Config, has_git: bool) -> RmStrategy {
     })
 }
 
-/// The `reject` strategy's error text: every surviving task referencing a
-/// removed task, each with the removed ids it links to.
-#[must_use]
-pub fn reject_message(referrers: &BTreeMap<PathBuf, HashSet<String>>) -> String {
-    let references: usize = referrers.values().map(HashSet::len).sum();
-    let mut lines = vec![format!(
-        "cannot remove task(s): {references} reference(s) from surviving task(s) \
-         (a gitless repository has no SWHID tombstone to rewrite onto; set \
-         [rm] strategy to \"retire\" or \"unlink\" to remove them anyway)"
-    )];
-    for (file, ids) in referrers {
+/// The `reject` strategy's refusal: a note for every surviving task that
+/// references a removed task, naming the removed ids it links to.
+pub fn reject_diag(referrers: &BTreeMap<PathBuf, HashSet<String>>) -> Diag {
+    let refusal = Diag::refused("cannot remove tasks that other tasks link to").hint(Hint::new(
+        "a gitless repository has no tombstone to rewrite onto: set [rm] strategy to \"retire\" or \"unlink\" to remove them anyway",
+    ));
+    referrers.iter().fold(refusal, |diag, (file, ids)| {
         let mut sorted: Vec<&str> = ids.iter().map(String::as_str).collect();
         sorted.sort();
-        lines.push(format!(
-            "  {}  links to {}",
+        diag.note(Note::new("link from").name(format!(
+            "{} to {}",
             file.display(),
             sorted.join(", ")
-        ));
-    }
-    lines.join("\n")
+        )))
+    })
 }
 
 /// The gix no-repository message carries the caller's absolute task-root path;
@@ -311,4 +307,4 @@ pub fn retire_apply(plan: &RetirePlan) -> Result<()> {
 /// The retire strategy's report/confirm helpers, split out for the
 /// file-size gate.
 mod report;
-pub use report::{confirm_answer, confirm_retire, report_retire_applied, report_retire_plan};
+pub use report::{report_retire_applied, report_retire_plan, retire_prompt_lines};

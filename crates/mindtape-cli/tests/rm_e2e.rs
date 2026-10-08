@@ -250,16 +250,18 @@ fn rm_defaults_to_reject_without_git_and_lists_surviving_referrers() {
         .assert()
         .failure()
         .stderr(predicates::str::contains(
-            "cannot remove task(s): 1 reference(s) from surviving task(s)",
+            "error: cannot remove tasks that other tasks link to\n",
         ))
-        .stderr(predicates::str::contains("live.typ  links to gone"));
+        .stderr(predicates::str::contains(
+            "note: link from: tasks/live.typ to gone\n",
+        ));
 
     mt(dir.path())
         .args(["rm", "-y", "gone"])
         .assert()
         .failure()
         .stderr(predicates::str::contains(
-            "cannot remove task(s): 1 reference(s) from surviving task(s)",
+            "error: cannot remove tasks that other tasks link to\n",
         ));
 
     assert!(dir.path().join("tasks/gone.typ").exists());

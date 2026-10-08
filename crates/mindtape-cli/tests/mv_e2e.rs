@@ -161,7 +161,11 @@ fn mv_refuses_a_taken_stem_before_moving_anything() {
         .args(["mv", "old", "taken"])
         .assert()
         .failure()
-        .stderr(predicates::str::contains("taken"));
+        .stderr(predicates::str::diff(
+            "error: stem is taken: 'taken'\n\
+             hint: pick another stem\n\
+             note: held by: tasks/taken.typ\n",
+        ));
 
     assert!(dir.path().join("tasks/old.typ").exists());
     assert!(read(dir.path(), "tasks/referrer.typ").contains("\"old.typ\""));

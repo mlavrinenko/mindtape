@@ -22,11 +22,12 @@ use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use anyhow::{Context, Result, bail};
+use anyhow::Result;
 use clap::Args;
 use typst_cleanup::Rewrite;
 
 use crate::cmd::rm::{Retarget, inbound_rewrites, print_commit_hint, retarget_raw};
+use crate::diag::{Diag, Hint, Note};
 use crate::pre_write::{self, Pending};
 use crate::util::Project;
 use crate::{git, util};
@@ -63,7 +64,10 @@ pub fn run(args: &MvArgs) -> Result<()> {
     let (task, _) = util::resolve_task(&project, &args.task.task)?;
     let stem = new_stem(&args.new_stem)?;
     if stem == task.id {
-        bail!("task {:?} is already named {stem:?}", args.task.task);
+        return Err(Diag::refused("task is already named")
+            .value(stem)
+            .hint(Hint::new("pass a different stem"))
+            .into());
     }
 
     // Root-relative throughout: `resolve_task` canonicalizes a path argument,
@@ -89,7 +93,7 @@ pub fn run(args: &MvArgs) -> Result<()> {
     }
 
     let source =
-        std::fs::read_to_string(&from).with_context(|| format!("read {}", from_rel.display()))?;
+        std::fs::read_to_string(&from).map_err(|err| Diag::cannot_read(&from_rel, &err))?;
     verify(&project, &to, &source, &rewrites)?;
 
     move_file(&project.root, &from, &to)?;
@@ -109,14 +113,18 @@ pub fn run(args: &MvArgs) -> Result<()> {
 fn new_stem(raw: &str) -> Result<&str> {
     let stem = raw.strip_suffix(".typ").unwrap_or(raw);
     if stem.is_empty() {
-        bail!("the new stem is empty");
+        return Err(Diag::usage("the new stem is empty")
+            .hint(Hint::new("pass a stem such as new-name"))
+            .into());
     }
     if stem.contains('/') || stem.contains('\\') {
-        bail!(
-            "the new stem {stem:?} carries a path separator — `mt mv` renames a task where it \
-             stands; moving one between roots or folders changes its derived tags and is a \
-             decision of its own"
-        );
+        return Err(Diag::usage("the new stem has a path separator")
+            .value(stem)
+            .hint(Hint::new("mt mv renames a task where it stands"))
+            .hint(Hint::new(
+                "moving a task between roots or folders changes its derived tags, so it is a decision of its own",
+            ))
+            .into());
     }
     Ok(stem)
 }
@@ -143,13 +151,17 @@ fn renamed(file: &Path, stem: &str) -> PathBuf {
 /// Names the file already holding the stem.
 fn refuse_taken(project: &Project, stem: &str, to: &Path) -> Result<()> {
     if let Some(taken) = project.outcome.tasks.iter().find(|task| task.id == stem) {
-        bail!(
-            "the stem {stem:?} is taken by {} — pick another",
-            taken.file.display()
-        );
+        return Err(Diag::refused("stem is taken")
+            .value(stem)
+            .note(Note::new("held by").name(taken.file.display().to_string()))
+            .hint(pick_another())
+            .into());
     }
     if to.exists() {
-        bail!("{} already exists — pick another stem", to.display());
+        return Err(Diag::refused("file already exists")
+            .value(to.display().to_string())
+            .hint(pick_another())
+            .into());
     }
     Ok(())
 }
@@ -185,8 +197,17 @@ fn move_file(root: &Path, from: &Path, to: &Path) -> Result<()> {
     if git::toplevel(root).is_ok() && git_mv(root, from, to) {
         return Ok(());
     }
-    std::fs::rename(from, to)
-        .with_context(|| format!("move {} to {}", from.display(), to.display()))
+    std::fs::rename(from, to).map_err(|err| {
+        Diag::failed("can't move")
+            .value(from.display().to_string())
+            .context("to", to.display().to_string())
+            .io(&err)
+            .into()
+    })
+}
+
+fn pick_another() -> Hint {
+    Hint::new("pick another stem")
 }
 
 /// `git mv` in `root`, reporting only whether git took the rename. Output is

@@ -45,8 +45,10 @@
 //! - `summary.rs`, `summary_tests.rs` — the closing count of a command that found several
 //!   problems, and the exit status of a command it ran.
 //! - `io.rs` — the failed read or write and the OS's reason for it.
+//! - `prompt.rs` — the confirmation question, the one line stderr gets that
+//!   isn't a `Diag`: a prompt is not a diagnostic, so it has no prefix.
 //! - `from_lib.rs` — library errors into a `Diag`, one exhaustive match each.
-//! - `from_lib_tests.rs` — unit tests for the condition conversion.
+//! - `from_lib_tests.rs` — unit tests for the condition and cleanup conversions.
 //! - `tests.rs` — unit tests.
 
 #[cfg(test)]
@@ -54,6 +56,7 @@ mod allowlist;
 mod from_lib;
 mod hint;
 mod io;
+mod prompt;
 mod render;
 mod summary;
 
@@ -62,6 +65,7 @@ use std::path::Path;
 
 pub(crate) use from_lib::filter;
 pub(crate) use hint::{Command, Hint, Note};
+pub(crate) use prompt::confirm;
 pub(crate) use render::{emit, line, report, stderr_is_terminal};
 pub(crate) use summary::dedupe_notes;
 

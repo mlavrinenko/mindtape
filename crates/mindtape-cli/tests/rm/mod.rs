@@ -118,11 +118,9 @@ fn rm_retire_moves_the_file_into_the_archive_folder() {
 }
 
 #[test]
-fn rm_retire_prompt_lists_the_plan_and_an_empty_answer_aborts() {
-    // Every other retire test passes `-y`, which skips `confirm_retire`
-    // outright — so the prompt the retire path prints was never executed by the
-    // suite while the delete path's was. Omitting `-y` reaches it: the empty
-    // stdin reads as "no", the way the delete-path tests already rely on.
+fn rm_retire_without_a_terminal_or_yes_refuses_and_writes_nothing() {
+    // A prompt nobody can answer is a refusal that names `--yes`. The prompt's
+    // own text is pinned by `retire_prompt_lines` in the gitless unit tests.
     let dir = tempfile::tempdir().unwrap();
     scaffold_config(
         dir.path(),
@@ -134,45 +132,17 @@ fn rm_retire_prompt_lists_the_plan_and_an_empty_answer_aborts() {
         .args(["rm", "gone"])
         .assert()
         .failure()
-        .stderr(predicates::str::contains("rm will retire 1 task(s) to done:"))
-        .stderr(predicates::str::contains("gone.typ"))
-        .stderr(predicates::str::contains("aborted by user"))
-        // Retiring in place leaves the path alone, so no inbound edge moves and
-        // the retarget line stays off. `…archive…` below is the opposite case.
-        .stderr(predicates::str::contains("and retarget").not());
+        .stderr(predicates::str::contains(
+            "error: can't ask for confirmation without a terminal\n",
+        ))
+        .stderr(predicates::str::contains("hint: pass --yes"))
+        .stderr(predicates::str::contains("Continue?").not());
 
-    // Declined means nothing was written: the task keeps its non-terminal status.
     let untouched = std::fs::read_to_string(dir.path().join("tasks/gone.typ")).unwrap();
     assert!(
         untouched.contains("wip("),
-        "flipped despite abort:\n{untouched}"
+        "flipped despite refusal:\n{untouched}"
     );
-}
-
-#[test]
-fn rm_retire_prompt_names_the_archive_move_and_a_piped_yes_applies_it() {
-    // The `rename` branch of the prompt, plus the accepting answer — the two
-    // paths the aborting test above leaves unexecuted.
-    let dir = tempfile::tempdir().unwrap();
-    scaffold_config(
-        dir.path(),
-        RETIRE_ARCHIVE_CONFIG,
-        &[("gone.typ", REMOVED), ("live.typ", LIVE)],
-    );
-
-    mt(dir.path())
-        .args(["rm", "gone"])
-        .write_stdin("y\n")
-        .assert()
-        .success()
-        .stderr(predicates::str::contains("and move 1 task(s) into"))
-        // Moving the file does retarget the three inbound edges of `live`.
-        .stderr(predicates::str::contains(
-            "and retarget 3 link(s) in 1 file(s)",
-        ));
-
-    assert!(dir.path().join("tasks/.archive/gone.typ").exists());
-    mt(dir.path()).arg("check").assert().success();
 }
 
 #[test]

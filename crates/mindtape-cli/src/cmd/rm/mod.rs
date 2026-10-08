@@ -39,9 +39,10 @@
 //! - `select.rs` — resolves the `target` argument into task ids.
 
 use std::collections::{BTreeMap, HashSet};
+use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result, bail};
+use anyhow::Result;
 use clap::Args;
 use mindtape::{
     Readiness, RmStrategy, Task, is_history_pointer, link_target_spans, normalize_link,
@@ -52,17 +53,18 @@ pub use typst_cleanup::{Plan, apply};
 
 mod gitless;
 pub(crate) use gitless::{
-    Retarget, RetirePlan, confirm_retire, inbound_rewrites, plain_delete_plan, print_commit_hint,
-    redact_git_error, reject_message, report_retire_applied, report_retire_plan, resolve_strategy,
-    retarget_raw, retire_apply, retire_plan, unlink_plan,
+    Retarget, RetirePlan, inbound_rewrites, plain_delete_plan, print_commit_hint, redact_git_error,
+    reject_diag, report_retire_applied, report_retire_plan, resolve_strategy, retarget_raw,
+    retire_apply, retire_plan, retire_prompt_lines, unlink_plan,
 };
 
 mod select;
 use select::select_targets;
 
 mod report;
-use report::{confirm, report_applied, report_plan};
+use report::{prompt_lines, report_applied, report_plan};
 
+use crate::diag::{Diag, Hint, Note};
 use crate::{git, util};
 
 /// Arguments for `mt rm`.
@@ -72,7 +74,8 @@ pub struct RmArgs {
     /// as `done`. Without any, `mt rm` deletes what `[rm] default-filter`
     /// picks, which is every closed task unless you change it.
     pub targets: Vec<String>,
-    /// Don't ask for confirmation.
+    /// Don't ask for confirmation. Without a terminal on stdin `mt rm` can't
+    /// ask, so it refuses unless you pass this.
     #[arg(short = 'y', long)]
     pub yes: bool,
     /// Show what would be deleted and rewritten without changing anything.
@@ -140,10 +143,7 @@ pub fn run(args: &RmArgs) -> Result<()> {
         return Ok(());
     }
 
-    let root = project
-        .root
-        .canonicalize()
-        .with_context(|| format!("resolve {}", project.root.display()))?;
+    let root = canonical(&project.root)?;
 
     // A task nothing references needs no tombstone, so no git at all. Only when
     // a survivor points at an eligible task is the strategy consulted.
@@ -158,21 +158,13 @@ pub fn run(args: &RmArgs) -> Result<()> {
     }
 
     let (git_root, git_error) = match git::toplevel(&root) {
-        Ok(dir) => (
-            Some(dir.canonicalize().context("resolve git toplevel")?),
-            None,
-        ),
+        Ok(dir) => (Some(canonical(&dir)?), None),
         Err(err) => (None, Some(err)),
     };
     match resolve_strategy(&project.config, git_root.is_some()) {
         RmStrategy::GitTombstone => {
             let Some(git_root) = git_root else {
-                let detail = git_error.map_or_else(String::new, |err| {
-                    format!(": {}", redact_git_error(&err, &root))
-                });
-                bail!(
-                    "cannot rewrite inbound links without a git repository{detail} — set [rm] strategy to \"retire\" or \"unlink\" for gitless repositories"
-                );
+                return Err(no_repository(git_error.as_ref(), &root).into());
             };
             if !args.dry_run {
                 check_eligible_files(&project.outcome.tasks, &eligible, &root, &git_root)?;
@@ -180,7 +172,7 @@ pub fn run(args: &RmArgs) -> Result<()> {
             let plan = plan(&project.outcome.tasks, &eligible, &root, &git_root)?;
             finalize(&Removal::Delete(plan), args, Some("git-tombstone"), &root)
         }
-        RmStrategy::Reject => bail!("{}", reject_message(&referrers)),
+        RmStrategy::Reject => Err(reject_diag(&referrers).into()),
         RmStrategy::Unlink => {
             let plan = unlink_plan(&project.outcome.tasks, &eligible, &root)?;
             finalize(&Removal::Delete(plan), args, Some("unlink"), &root)
@@ -200,14 +192,52 @@ enum Removal {
     Retire(RetirePlan),
 }
 
+/// Refuse to ask when nobody can answer: with stdin not a terminal the prompt
+/// would read nothing, and `--yes` is the way to confirm without one.
+///
+/// Takes the terminal answer rather than reading it, so a test reaches both
+/// arms whatever the suite's stdin is.
+fn ensure_can_ask(stdin_is_terminal: bool) -> Result<()> {
+    if stdin_is_terminal {
+        return Ok(());
+    }
+    Err(
+        Diag::refused("can't ask for confirmation without a terminal")
+            .hint(Hint::new("pass --yes to remove without asking"))
+            .into(),
+    )
+}
+
+/// Ask the person at the terminal whether to go on with `removal`.
+///
+/// # Errors
+/// Refuses without a terminal to ask on; `aborted by user` when the answer is
+/// no.
+fn ask_to_proceed(removal: &Removal) -> Result<()> {
+    ensure_can_ask(std::io::stdin().is_terminal())?;
+    let lines = match removal {
+        Removal::Delete(plan) => prompt_lines(plan),
+        Removal::Retire(plan) => retire_prompt_lines(plan),
+    };
+    ensure_confirmed(crate::diag::confirm(&lines)?)
+}
+
+/// `Ok` for a yes; a no is the user stopping the run.
+fn ensure_confirmed(answered_yes: bool) -> Result<()> {
+    if answered_yes {
+        return Ok(());
+    }
+    Err(Diag::failed("aborted by user").into())
+}
+
 /// The tail shared by every removal path: strategy dry-run reporting,
 /// confirmation, and the atomic apply + summary. Writes nothing on
 /// `--dry-run`. `root` gates the applied report's commit hint — printed only
 /// inside a git repository.
 ///
 /// # Errors
-/// A declined prompt aborts with `aborted by user`; the apply propagates its
-/// write failures.
+/// Without a terminal and without `--yes` it refuses; a declined prompt aborts
+/// with `aborted by user`; the apply propagates its write failures.
 fn finalize(removal: &Removal, args: &RmArgs, strategy: Option<&str>, root: &Path) -> Result<()> {
     if args.dry_run {
         if let Some(name) = strategy {
@@ -222,13 +252,7 @@ fn finalize(removal: &Removal, args: &RmArgs, strategy: Option<&str>, root: &Pat
     }
 
     if !args.yes {
-        let confirmed = match removal {
-            Removal::Delete(plan) => confirm(plan)?,
-            Removal::Retire(plan) => confirm_retire(plan)?,
-        };
-        if !confirmed {
-            bail!("aborted by user");
-        }
+        ask_to_proceed(removal)?;
     }
 
     match removal {
@@ -296,7 +320,7 @@ fn referrers(
             continue;
         }
         let source = std::fs::read_to_string(root.join(&task.file))
-            .with_context(|| format!("read {}", task.file.display()))?;
+            .map_err(|err| Diag::cannot_read(&task.file, &err))?;
         let mut hits = HashSet::new();
         for target in policy.scan(&source) {
             let Some(id) = policy.identity(&target.raw) else {
@@ -341,50 +365,104 @@ fn check_eligible_files(
     root: &Path,
     git_root: &Path,
 ) -> Result<()> {
-    let mut problems: Vec<(String, PathBuf, String)> = Vec::new();
-    for task in tasks {
-        if !eligible.contains(&task.id) {
-            continue;
-        }
+    let mut problems: Vec<Offender> = Vec::new();
+    for task in tasks.iter().filter(|task| eligible.contains(&task.id)) {
         let abs = root.join(&task.file);
-        let git_rel = if let Ok(rel) = abs.strip_prefix(git_root) {
-            rel.to_string_lossy().into_owned()
-        } else {
-            problems.push((
-                task.id.clone(),
-                task.file.clone(),
-                "outside git repository".into(),
-            ));
-            continue;
+        let reason = match abs.strip_prefix(git_root) {
+            Err(_) => Reason::Outside,
+            Ok(rel) => match swhid_mint::git::mint_rev_path(git_root, &rel.to_string_lossy()) {
+                Ok(_) => continue,
+                Err(swhid_mint::git::Error::NotTracked(_)) => Reason::Untracked,
+                Err(swhid_mint::git::Error::Dirty(_)) => Reason::Dirty,
+                Err(swhid_mint::git::Error::Git(msg)) => Reason::Git(msg),
+            },
         };
-        let reason = match swhid_mint::git::mint_rev_path(git_root, &git_rel) {
-            Ok(_) => continue,
-            Err(swhid_mint::git::Error::NotTracked(_)) => "not tracked by git".into(),
-            Err(swhid_mint::git::Error::Dirty(_)) => "has uncommitted changes".into(),
-            Err(swhid_mint::git::Error::Git(msg)) => format!("git error: {msg}"),
-        };
-        problems.push((task.id.clone(), task.file.clone(), reason));
+        problems.push(Offender {
+            id: task.id.clone(),
+            file: task.file.clone(),
+            reason,
+        });
     }
-    if problems.is_empty() {
-        return Ok(());
+    match problems.as_slice() {
+        [] => Ok(()),
+        [only] => Err(only.refusal().into()),
+        many => Err(many_refusal(many).into()),
     }
-    if let Some((id, file, reason)) = (problems.len() == 1).then(|| problems.first()).flatten() {
-        bail!(
-            "cannot remove {id}: {} {reason}\ncommit the file first (tombstone pins the last-touch commit)",
-            file.display()
-        );
+}
+
+/// Why a task file can't carry a tombstone.
+enum Reason {
+    Outside,
+    Untracked,
+    Dirty,
+    Git(String),
+}
+
+impl Reason {
+    fn words(&self) -> String {
+        match self {
+            Self::Outside => "is outside the git repository".to_owned(),
+            Self::Untracked => "is not tracked by git".to_owned(),
+            Self::Dirty => "has uncommitted changes".to_owned(),
+            Self::Git(msg) => format!("failed in git: {msg}"),
+        }
     }
-    let lines: Vec<String> = problems
-        .iter()
-        .map(|(id, file, reason): &(String, PathBuf, String)| {
-            format!("  {id}  {}  {reason}", file.display())
-        })
-        .collect();
-    bail!(
-        "cannot remove {} tasks — commit their files first (tombstones pin last-touch commits):\n{}",
-        problems.len(),
-        lines.join("\n")
+}
+
+/// One eligible task whose file can't carry a tombstone.
+struct Offender {
+    id: String,
+    file: PathBuf,
+    reason: Reason,
+}
+
+impl Offender {
+    /// The refusal for a lone offender: the task, then its file and why.
+    fn refusal(&self) -> Diag {
+        Diag::refused("cannot remove")
+            .value(&self.id)
+            .note(self.note())
+            .hint(commit_first())
+    }
+
+    fn note(&self) -> Note {
+        Note::new("file").name(format!("{} {}", self.file.display(), self.reason.words()))
+    }
+}
+
+/// The refusal for several offenders, each a note, so the user fixes them in
+/// one pass.
+fn many_refusal(offenders: &[Offender]) -> Diag {
+    offenders.iter().fold(
+        Diag::refused("cannot remove several tasks").hint(commit_first()),
+        |diag, offender| diag.note(offender.note()),
+    )
+}
+
+/// What to do about a file git can't pin.
+fn commit_first() -> Hint {
+    Hint::new("commit them first: a tombstone pins the last-touch commit")
+}
+
+/// `path` made absolute and symlink-free.
+fn canonical(path: &Path) -> Result<PathBuf, Diag> {
+    path.canonicalize().map_err(|err| {
+        Diag::failed("can't resolve path")
+            .value(path.display().to_string())
+            .io(&err)
+    })
+}
+
+/// The refusal for a link rewrite that needs a git repository when there is
+/// none: what git said, with the tasks root redacted, then the way out.
+fn no_repository(git_error: Option<&typst_cleanup::Error>, root: &Path) -> Diag {
+    let diag = Diag::refused("cannot rewrite inbound links without a git repository").hint(
+        Hint::new("set [rm] strategy to \"retire\" or \"unlink\" for gitless repositories"),
     );
+    match git_error {
+        Some(err) => diag.note(Note::new("git said").name(redact_git_error(err, root))),
+        None => diag,
+    }
 }
 
 #[cfg(test)]

@@ -37,7 +37,6 @@ pub(crate) mod install;
 pub(crate) mod link;
 #[allow(clippy::disallowed_macros)]
 pub(crate) mod ls;
-#[allow(clippy::disallowed_macros)]
 pub(crate) mod mv;
 #[allow(clippy::disallowed_macros)]
 pub(crate) mod preset;
