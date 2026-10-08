@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A link kind's validator problem quotes in single quotes.** `'ticket' edge
+  target 'JIRA-x' is not a valid 'regex'`, as every other message does.
 - **A refused flip and a failed gate read in the error format.** A failing
   `[[on.flip]]` gate prints `error: gate failed: 'scripts/test': exit 1`, the
   config's `message` as a `hint:`, and `hint: or pass --force to skip the gate;

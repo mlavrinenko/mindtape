@@ -169,7 +169,7 @@ impl<'a> Validators<'a> {
             return None;
         }
         Some(format!(
-            "`{kind}` edge target `{target}` is not a valid `{}`",
+            "'{kind}' edge target '{target}' is not a valid '{}'",
             compiled.validator.name()
         ))
     }

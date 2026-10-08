@@ -100,6 +100,10 @@ fn regex_validator_uses_the_sibling_pattern() {
     assert_eq!(validators.problem("ticket", "JIRA-42"), None);
     let problem = validators.problem("ticket", "JIRA-x").unwrap();
     assert!(problem.contains("regex"), "names the validator: {problem}");
+    assert_eq!(
+        problem,
+        "'ticket' edge target 'JIRA-x' is not a valid 'regex'"
+    );
 }
 
 /// `validate = "regex"` with no sibling `regex` key is a CONFIG error, not a
