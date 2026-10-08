@@ -16,7 +16,6 @@
 // An `allow` below lets a module whose errors don't go through `crate::diag`
 // yet use `clippy.toml`'s disallowed macros. Each one is an entry on the one
 // list in `diag/allowlist.rs`, whose test refuses a new entry.
-#[allow(clippy::disallowed_macros)]
 pub(crate) mod add;
 #[allow(clippy::disallowed_macros)]
 pub(crate) mod check;
@@ -33,7 +32,6 @@ pub(crate) mod import;
 #[allow(clippy::disallowed_macros)]
 pub(crate) mod init;
 pub(crate) mod install;
-#[allow(clippy::disallowed_macros)]
 pub(crate) mod link;
 #[allow(clippy::disallowed_macros)]
 pub(crate) mod ls;
@@ -44,7 +42,6 @@ pub(crate) mod recur;
 #[allow(clippy::disallowed_macros)]
 pub(crate) mod review;
 pub(crate) mod rm;
-#[allow(clippy::disallowed_macros)]
 pub(crate) mod set;
 pub(crate) mod views;
 #[allow(clippy::disallowed_macros)]

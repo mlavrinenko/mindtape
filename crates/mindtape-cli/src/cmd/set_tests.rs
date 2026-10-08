@@ -9,7 +9,7 @@ use mindtape::test_support::bare_task;
 use super::{Assigned, parse_assignment, render, writable};
 
 /// Render one assignment against a task carrying `tags`, the way `run` does.
-fn rendered(token: &str, tags: &[&str]) -> anyhow::Result<Option<String>> {
+fn rendered(token: &str, tags: &[&str]) -> Result<Option<String>, crate::diag::Diag> {
     let mut task = bare_task("subject");
     task.tags = tags.iter().map(|tag| (*tag).to_owned()).collect();
     let (name, assigned) = parse_assignment(token)?;
@@ -103,13 +103,12 @@ fn a_non_date_value_is_refused_naming_the_format() {
 }
 
 #[test]
-fn an_unknown_field_is_refused_with_a_suggestion_and_the_writable_list() {
-    let err = writable("titel").unwrap_err().to_string();
-    assert!(err.contains("titel"), "{err}");
-    assert!(err.contains("title"), "{err}");
-    assert!(
-        err.contains("tags"),
-        "the writable fields are listed: {err}"
+fn an_unknown_field_is_refused_with_a_suggestion_and_where_to_list_the_fields() {
+    let err = crate::diag::plain(&writable("titel").unwrap_err());
+    assert_eq!(
+        err,
+        "error: unknown field: 'titel'\nhint: did you mean title?\n\
+         hint: run mt set --help to see the fields you can set\n"
     );
 }
 
@@ -124,10 +123,15 @@ fn a_field_written_elsewhere_names_its_own_command() {
         ("recur", "mt recur"),
         ("id", "mt mv"),
     ] {
-        let err = writable(field).unwrap_err().to_string();
-        assert!(err.contains(verb), "{field}: {err}");
+        let err = crate::diag::plain(&writable(field).unwrap_err());
+        assert!(
+            err.starts_with(&format!(
+                "error: mt set does not write this field: '{field}'\nhint: use {verb} "
+            )),
+            "{field}: {err}"
+        );
     }
-    let err = writable("estimate").unwrap_err().to_string();
+    let err = crate::diag::plain(&writable("estimate").unwrap_err());
     assert!(err.contains("unit dict"), "{err}");
 }
 

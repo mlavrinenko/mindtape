@@ -8,58 +8,95 @@
 //! templates' own `task.with(…)` arguments, so it holds for any project.
 
 use std::collections::BTreeSet;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use mindtape::{Config, discover_slots};
 
 use crate::cmd::add::values::{list_templates, resolve_template};
+use crate::diag::{Command, Diag, Hint, Note};
 use crate::task_edit::{Refused, task_with};
 
 /// A field the chosen template left to a slot and the caller passed: its name,
 /// the source text it was filled with, and that value unquoted.
 type Slotted = (String, String, String);
 
-/// The task fields the breaches that refused the write read
-/// ([`mindtape::Violation::reads`]): `Some(None)` when one may be about any
-/// field, and `None` when `err` is no such refusal — a source that did not
-/// load, or a write refused for its destination, is not fixed by another
-/// template's literal.
-pub(super) fn refused_fields(err: &anyhow::Error) -> Option<Option<BTreeSet<String>>> {
-    err.downcast_ref::<Refused>()
-        .map(|refused| refused.reads.clone())
+/// The `--edit` buffer's rescue: whether the values came from the editor, and
+/// where a rejected task was parked.
+pub(super) struct Rescue {
+    pub interactive: bool,
+    pub parked: std::cell::Cell<Option<std::path::PathBuf>>,
 }
 
-/// One `hint:` line per other template pinning a slot-filled field to the
-/// value the caller passed for it, or `None` when no template does. `sources`
-/// is the chosen template's source (config slots spliced in) before and after
-/// the fill; `explicit` holds the slot names the caller passed and `fields`
-/// the task fields the refusal is about ([`refused_fields`]).
-pub(super) fn template_hint(
-    config: &Config,
-    root: &Path,
-    chosen_name: &str,
-    sources: (&str, &str),
-    (explicit, fields): (&BTreeSet<String>, Option<&BTreeSet<String>>),
-) -> Option<String> {
-    let slotted =
-        slotted_fields(sources, explicit, fields).filter(|slotted| !slotted.is_empty())?;
-    let mut lines = Vec::new();
-    for name in list_templates(config, root) {
-        if name == chosen_name {
-            continue;
-        }
-        let Ok(source) = resolve_template(config, root, &name) else {
-            continue;
-        };
-        let pins = pins_in(&source, &slotted);
-        if !pins.is_empty() {
-            lines.push(format!(
-                "hint: template `{name}` files {}: mt add -t {name} ...",
-                pins.join(", ")
-            ));
+impl Rescue {
+    pub(super) fn new(interactive: bool) -> Self {
+        Self {
+            interactive,
+            parked: std::cell::Cell::new(None),
         }
     }
-    (!lines.is_empty()).then(|| lines.join("\n"))
+}
+
+/// What the refusal of a filled task is judged against: the chosen template,
+/// its source before and after the fill, and the slot names the caller passed.
+pub(super) struct RefusalContext<'a> {
+    pub config: &'a Config,
+    pub root: &'a Path,
+    pub template: &'a str,
+    /// The chosen template's source (config slots spliced in) before and after
+    /// the fill.
+    pub sources: (&'a str, &'a str),
+    pub explicit: &'a BTreeSet<String>,
+}
+
+impl RefusalContext<'_> {
+    /// `err` as a [`Diag`] with what the caller can act on: a note naming where
+    /// the rejected `--edit` buffer was `parked`, and, when the refusal is
+    /// about a field another template files as the value the caller passed, a
+    /// hint to use that template.
+    pub(super) fn decorate(&self, err: anyhow::Error, parked: Option<PathBuf>) -> anyhow::Error {
+        // A refusal carries the fields its breaches read, for the template hint.
+        let (mut diag, refused) = match err.downcast::<Refused>() {
+            Ok(refused) => (refused.diag, Some(refused.reads)),
+            Err(err) => (Diag::from(err), None),
+        };
+        if let Some(parked) = parked {
+            diag = diag.note(
+                Note::new("the filled task was parked at").value(parked.display().to_string()),
+            );
+        }
+        if let Some(fields) = refused {
+            for hint in self.template_hints(fields.as_ref()) {
+                if diag.has_hint_room() {
+                    diag = diag.hint(hint);
+                }
+            }
+        }
+        diag.into()
+    }
+
+    /// One hint per other template pinning a slot-filled field to the value
+    /// the caller passed for it. `fields` holds the task fields the refusal is
+    /// about ([`Refused::reads`]).
+    fn template_hints(&self, fields: Option<&BTreeSet<String>>) -> Vec<Hint> {
+        let Some(slotted) = slotted_fields(self.sources, self.explicit, fields)
+            .filter(|slotted| !slotted.is_empty())
+        else {
+            return Vec::new();
+        };
+        list_templates(self.config, self.root)
+            .into_iter()
+            .filter(|name| name != self.template)
+            .filter_map(|name| {
+                let source = resolve_template(self.config, self.root, &name).ok()?;
+                pins_any(&source, &slotted).then(|| {
+                    Hint::command(
+                        "file it with the template that sets that field itself",
+                        Command::mt().word("add").word("-t").arg(&name),
+                    )
+                })
+            })
+            .collect()
+    }
 }
 
 /// The fields the refusal is about that `chosen` leaves to a slot the caller
@@ -94,19 +131,15 @@ fn slotted_fields(
     )
 }
 
-/// `field=value` for each slotted field `source` writes as that same literal.
-fn pins_in(source: &str, slotted: &[Slotted]) -> Vec<String> {
+/// Whether `source` writes any slotted field as that same literal.
+fn pins_any(source: &str, slotted: &[Slotted]) -> bool {
     let Ok(call) = task_with(source) else {
-        return Vec::new();
+        return false;
     };
-    slotted
-        .iter()
-        .filter(|(field, text, _)| {
-            call.named(field)
-                .is_some_and(|arg| source[arg.value_range.clone()] == *text)
-        })
-        .map(|(field, _, value)| format!("{field}={value}"))
-        .collect()
+    slotted.iter().any(|(field, text, _)| {
+        call.named(field)
+            .is_some_and(|arg| source[arg.value_range.clone()] == *text)
+    })
 }
 
 /// `--describe` takes its format after `=`, so a word beside it parses as the
@@ -116,13 +149,21 @@ pub(super) fn refuse_title_beside_describe(
     title: &[String],
     config: &Config,
     root: &Path,
-) -> anyhow::Result<()> {
+) -> Result<(), Diag> {
     if title.is_empty() {
         return Ok(());
     }
     let word = title.join(" ");
+    let diag = Diag::usage("--describe takes no title").value(word.as_str());
     if list_templates(config, root).contains(&word) {
-        anyhow::bail!("--describe takes no title; did you mean -t {word}?");
+        return Err(diag.hint(Hint::command(
+            "to describe that template, name it with -t",
+            Command::mt()
+                .word("add")
+                .word("-t")
+                .arg(&word)
+                .word("--describe"),
+        )));
     }
-    anyhow::bail!("--describe takes no title");
+    Err(diag.hint(Hint::new("to describe a template, name it with -t")))
 }

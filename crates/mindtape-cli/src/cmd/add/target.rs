@@ -8,13 +8,14 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::Result;
 use mindtape::{Config, RawValue, model::naming, today_ymd};
 
 use super::AddArgs;
 use crate::cmd::add::dedup;
 use crate::cmd::add::output::{self, Outcome};
 use crate::cmd::add::values::slug;
+use crate::diag::{Diag, Hint, emit};
 use crate::util;
 
 /// Resolve the destination collision against `--dedup`/`[tasks.naming]
@@ -84,7 +85,12 @@ pub(crate) fn minted_stem(values: &BTreeMap<String, RawValue>, config: &Config) 
         date: today_ymd(),
         occurrence: 0,
     };
-    naming::mint_stem(template, &ctx).map_err(|err| anyhow!(err.to_string()))
+    naming::mint_stem(template, &ctx).map_err(|err| {
+        Diag::failed("can't mint the file stem")
+            .cause(&err)
+            .hint(Hint::new("check stem under [tasks.naming]"))
+            .into()
+    })
 }
 
 /// The title's slug, or an error when there is nothing to name the file from.
@@ -95,7 +101,9 @@ fn title_slug(values: &BTreeMap<String, RawValue>) -> Result<String> {
             return Ok(stem);
         }
     }
-    bail!("need --name or a 'title' value to name the task file")
+    Err(Diag::usage("no title to name the task file from")
+        .hint(Hint::new("pass a title, or --name"))
+        .into())
 }
 
 pub(crate) fn dest_dir(into: &str, to: Option<&str>, project: &util::Project) -> Result<PathBuf> {
@@ -105,7 +113,12 @@ pub(crate) fn dest_dir(into: &str, to: Option<&str>, project: &util::Project) ->
     };
     let sub = Path::new(sub);
     if sub.is_absolute() {
-        bail!("--to expects a subfolder relative to the destination root, got absolute {sub:?}");
+        return Err(
+            Diag::usage("--to expects a subfolder, not an absolute path")
+                .value(sub.display().to_string())
+                .hint(Hint::new("give it relative to the destination root"))
+                .into(),
+        );
     }
     Ok(base.join(sub))
 }
@@ -127,9 +140,9 @@ fn base_dir(into: &str, project: &util::Project) -> Result<PathBuf> {
     if path.is_absolute() {
         return Ok(path.to_path_buf());
     }
-    Ok(std::env::current_dir()
-        .context("determine current directory")?
-        .join(path))
+    let cwd = std::env::current_dir()
+        .map_err(|err| Diag::failed("can't determine the current directory").io(&err))?;
+    Ok(cwd.join(path))
 }
 
 /// Warn when `dest` lands outside every configured root, since recursive loading
@@ -146,9 +159,12 @@ pub(crate) fn warn_if_outside_roots(project: &util::Project, dest: &Path) {
             .is_ok_and(|abs| dest_abs.starts_with(abs))
     });
     if !inside {
-        eprintln!(
-            "warning: {} is outside the configured roots; the task will not be tracked",
-            dest.display()
+        emit(
+            &Diag::warning("the task directory is outside the configured roots")
+                .value(dest.display().to_string())
+                .hint(Hint::new(
+                    "add it to tasks.roots, or mt won't track the task",
+                )),
         );
     }
 }

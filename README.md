@@ -59,7 +59,7 @@ error: the task as filled:2: rules.split-big-work: split it into tasks of 5 sour
 Refuse a task that doesn’t say how to reproduce the problem, what done looks like and which files change.
 
 ```
-error: missing required slot(s): to-be, changes, out-of-scope
+error: missing required slots: 'to-be, changes, out-of-scope'
 ```
 
 ### [Tasks closed while the tests fail](https://mlavrinenko.github.io/mindtape/gate-done-on-checks/)

@@ -43,7 +43,7 @@ YAML
 A `--set` or `-f` key must name a slot of the active template. `mt add`
 refuses an unknown key and writes nothing:
 `mt add fix bug --set priority=3` fails with
-`unknown --set/-f key(s): priority; known slots: title, ...`.
+`error: unknown slot: 'priority'` and a `hint:` to run `mt add --describe`.
 
 - Run `mt add --describe`, with `-t <template>` for a non-default template,
   to list the slot names.

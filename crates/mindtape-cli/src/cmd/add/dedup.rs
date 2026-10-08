@@ -7,8 +7,9 @@
 //! unit test rather than a directory full of real files. `crate::cmd::add::run`
 //! supplies the real filesystem check; tests supply a fake.
 
-use anyhow::{Result, anyhow};
 use mindtape::{Config, model::naming};
+
+use crate::diag::{Diag, Hint};
 
 /// `--dedup` on `mt add`. A CLI-owned mirror of [`naming::DedupMode`]:
 /// `mindtape` carries no clap dependency, so the flag's `clap::ValueEnum`
@@ -69,16 +70,25 @@ pub fn resolve(
     stem: &str,
     label: &str,
     exists: impl Fn(&str) -> bool,
-) -> Result<Collision> {
+) -> Result<Collision, Diag> {
     if !exists(stem) {
         return Ok(Collision::None);
     }
     match dedup {
-        naming::DedupMode::Fail => Err(anyhow!("task {stem:?} already exists at {label}")),
+        naming::DedupMode::Fail => Err(Diag::refused("task already exists")
+            .value(label)
+            .hint(Hint::new(
+                "pass --dedup add-suffix to file it under a free name, or --dedup skip to keep the old one",
+            ))),
         naming::DedupMode::Skip => Ok(Collision::Skipped),
         naming::DedupMode::AddSuffix => naming::disambiguate(stem, exists)
             .map(Collision::Suffixed)
-            .map_err(|err| anyhow!(err.to_string())),
+            .map_err(|err| {
+                Diag::failed("no free file name")
+                    .value(stem)
+                    .cause(&err)
+                    .hint(Hint::new("pass --name"))
+            }),
     }
 }
 

@@ -8,6 +8,7 @@ use std::collections::BTreeSet;
 use anyhow::Result;
 use mindtape::{RequiredSlot, discover_slots};
 
+use crate::diag::{Note, emit_note};
 use crate::task_edit::task_with;
 
 /// Print one note per config-spliced core field the caller did not set, naming
@@ -42,10 +43,10 @@ pub(super) fn report_injected(
         } else {
             format!("{} spliced slot", slot.config_path)
         };
-        eprintln!(
-            "note: {} \"{value}\" came from {origin} — override with --set {}=<value>",
+        emit_note(&Note::new("filled in from config").name(format!(
+            "{} = {value} ({origin}); override it with --set {}=<value>",
             slot.field, slot.field
-        );
+        )));
     }
     Ok(())
 }

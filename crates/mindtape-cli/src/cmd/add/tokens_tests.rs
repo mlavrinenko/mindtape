@@ -21,7 +21,7 @@ fn applied(token: &str) -> BTreeMap<String, RawValue> {
 /// Apply one token to a fresh map and render its error.
 fn rejected(token: &str) -> String {
     let mut out = BTreeMap::new();
-    apply_token(&mut out, token).unwrap_err().to_string()
+    crate::diag::plain(&apply_token(&mut out, token).unwrap_err())
 }
 
 /// A file whose contents are `body`, in `dir`, named `name`.
@@ -101,8 +101,11 @@ fn an_equals_after_the_at_is_part_of_the_path() {
 #[test]
 fn appending_a_file_is_rejected_naming_the_structured_channel() {
     let err = rejected("tags+@notes.txt");
-    assert!(err.contains("tags+@"), "{err}");
-    assert!(err.contains("-f/--values"), "{err}");
+    assert!(
+        err.starts_with("error: +@ is not an operator: 'tags+@notes.txt'\n"),
+        "{err}"
+    );
+    assert!(err.contains("through -f as a YAML or JSON array"), "{err}");
 }
 
 /// `-f -` is the one stdin channel, and it takes a whole mapping. A second
@@ -112,8 +115,14 @@ fn appending_a_file_is_rejected_naming_the_structured_channel() {
 #[test]
 fn the_file_operator_refuses_stdin_naming_the_values_flag() {
     let err = rejected("summary@-");
-    assert!(err.contains("summary@-"), "{err}");
-    assert!(err.contains("-f -"), "{err}");
+    assert!(
+        err.starts_with("error: @- does not read stdin: 'summary@-'\n"),
+        "{err}"
+    );
+    assert!(
+        err.contains("pass a whole values mapping with -f -"),
+        "{err}"
+    );
 }
 
 /// An unreadable file names the slot as well as the path: the token is one
@@ -121,8 +130,10 @@ fn the_file_operator_refuses_stdin_naming_the_values_flag() {
 #[test]
 fn an_unreadable_file_errors_naming_the_slot_and_the_path() {
     let err = rejected("summary@no/such/notes.txt");
-    assert!(err.contains("\"summary\""), "{err}");
-    assert!(err.contains("no/such/notes.txt"), "{err}");
+    assert_eq!(
+        err,
+        "error: can't read slot file: 'no/such/notes.txt' for slot 'summary': no such file or directory\n"
+    );
 }
 
 /// The no-operator error is the grammar's only summary of itself, so it has
@@ -131,9 +142,10 @@ fn an_unreadable_file_errors_naming_the_slot_and_the_path() {
 #[test]
 fn a_token_without_an_operator_names_all_three_forms() {
     let err = rejected("notes.txt");
-    assert!(err.contains("key=value"), "{err}");
-    assert!(err.contains("key+=value"), "{err}");
-    assert!(err.contains("key@path"), "{err}");
+    assert!(
+        err.starts_with("error: not a key=value, key+=value or key@path assignment: 'notes.txt'\n"),
+        "{err}"
+    );
 }
 
 /// The `[]` suffix from the pre-release `key[]=value` append spelling is not

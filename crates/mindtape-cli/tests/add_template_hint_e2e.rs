@@ -37,7 +37,8 @@ fn refusal_names_the_template_that_pins_the_value() {
     let out = add(dir.path(), "kind=dev", &[]).failure();
     let stderr = String::from_utf8_lossy(&out.get_output().stderr).into_owned();
     assert!(
-        stderr.contains("hint: template `dev` files kind=dev: mt add -t dev"),
+        stderr
+            .contains("hint: file it with the template that sets that field itself: mt add -t dev"),
         "{stderr}"
     );
 }
@@ -97,7 +98,8 @@ fn a_body_header_rule_is_about_the_field_its_when_reads() {
     let stderr = String::from_utf8_lossy(&out.get_output().stderr).into_owned();
     assert!(stderr.contains("rollback-for-dev"), "{stderr}");
     assert!(
-        stderr.contains("hint: template `dev` files kind=dev: mt add -t dev"),
+        stderr
+            .contains("hint: file it with the template that sets that field itself: mt add -t dev"),
         "{stderr}"
     );
 }
@@ -122,7 +124,8 @@ fn a_field_filled_by_a_differently_named_slot_still_hints() {
     let stderr = String::from_utf8_lossy(&out.get_output().stderr).into_owned();
     assert!(stderr.contains("rules.dev-sets-difficulty"), "{stderr}");
     assert!(
-        stderr.contains("hint: template `dev` files kind=dev: mt add -t dev"),
+        stderr
+            .contains("hint: file it with the template that sets that field itself: mt add -t dev"),
         "{stderr}"
     );
 }

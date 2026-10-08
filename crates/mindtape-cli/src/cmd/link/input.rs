@@ -23,10 +23,12 @@
 
 use std::io::Read as _;
 
-use anyhow::{Context, Result, bail};
 use serde_yaml_ng::Value;
 
 use crate::cmd::link::edit::EdgeSpec;
+use crate::diag::{Diag, Hint, Note};
+
+type Result<T> = std::result::Result<T, Diag>;
 
 /// One task's requested edges, as read from the map.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -46,10 +48,14 @@ pub fn read_source(source: &str) -> Result<String> {
         let mut text = String::new();
         std::io::stdin()
             .read_to_string(&mut text)
-            .context("read the adjacency map from stdin")?;
+            .map_err(|err| Diag::failed("can't read the adjacency map from stdin").io(&err))?;
         return Ok(text);
     }
-    std::fs::read_to_string(source).with_context(|| format!("read the adjacency map from {source}"))
+    std::fs::read_to_string(source).map_err(|err| {
+        Diag::failed("can't read the adjacency map")
+            .value(source)
+            .io(&err)
+    })
 }
 
 /// Parse an adjacency map into one [`Entry`] per stem, in document order.
@@ -58,17 +64,20 @@ pub fn read_source(source: &str) -> Result<String> {
 /// Returns an error when `text` is not a YAML/JSON mapping of stem to kind to
 /// targets, naming the offending stem and kind.
 pub fn parse_adjacency(text: &str) -> Result<Vec<Entry>> {
-    let value: Value = serde_yaml_ng::from_str(text).context("parse the adjacency map")?;
+    let value: Value = serde_yaml_ng::from_str(text)
+        .map_err(|err| Diag::usage("can't parse the adjacency map").cause(&err))?;
     let mapping = match value {
         Value::Mapping(mapping) => mapping,
         // An empty file is an empty map, not a malformed one: `mt link --apply`
         // over a filtered pipeline that matched nothing has nothing to do, and
         // "nothing to do" is not an error.
         Value::Null => return Ok(Vec::new()),
-        other => bail!(
-            "the adjacency map must be a mapping of stem -> kind -> targets, got {}",
-            shape_of(&other)
-        ),
+        other => {
+            return Err(Diag::usage(
+                "the adjacency map must be a mapping of stem to kind to targets",
+            )
+            .note(Note::new("got").name(shape_of(&other))));
+        }
     };
     mapping
         .iter()
@@ -80,33 +89,38 @@ pub fn parse_adjacency(text: &str) -> Result<Vec<Entry>> {
 fn entry(key: &Value, value: &Value) -> Result<Entry> {
     let stem = key
         .as_str()
-        .context("adjacency map keys must be task stems (strings)")?
+        .ok_or_else(|| Diag::usage("adjacency map keys must be task stems (strings)"))?
         .to_owned();
     let kinds = value
         .as_mapping()
-        .with_context(|| format!("{stem}: expected a mapping of kind -> targets"))?;
+        .ok_or_else(|| Diag::usage("expected a mapping of kind to targets").value(stem.as_str()))?;
     let mut edges = Vec::new();
     for (kind, targets) in kinds {
         let kind = kind
             .as_str()
-            .with_context(|| format!("{stem}: link kinds must be strings"))?;
-        edges.extend(kind_edges(kind, targets).with_context(|| format!("{stem}: under `{kind}`"))?);
+            .ok_or_else(|| Diag::usage("link kinds must be strings").value(stem.as_str()))?;
+        edges.extend(kind_edges(&stem, kind, targets)?);
     }
     Ok(Entry { stem, edges })
 }
 
 /// Every edge one `kind:` key declares. A bare string is a single target, so
 /// `parent: umbrella-task` needs no list.
-fn kind_edges(kind: &str, targets: &Value) -> Result<Vec<EdgeSpec>> {
+fn kind_edges(stem: &str, kind: &str, targets: &Value) -> Result<Vec<EdgeSpec>> {
     let items = match targets {
         Value::Sequence(items) => items.as_slice(),
-        single => return Ok(vec![target_edge(kind, single)?]),
+        single => return Ok(vec![target_edge(stem, kind, single)?]),
     };
-    items.iter().map(|item| target_edge(kind, item)).collect()
+    items
+        .iter()
+        .map(|item| target_edge(stem, kind, item))
+        .collect()
 }
 
 /// One target entry: a bare string, or a mapping carrying `target` and `note`.
-fn target_edge(kind: &str, item: &Value) -> Result<EdgeSpec> {
+fn target_edge(stem: &str, kind: &str, item: &Value) -> Result<EdgeSpec> {
+    // Every rejection names the task and the kind it came from.
+    let refuse = |what: &'static str| Diag::usage(what).rule(stem).context("under", kind);
     if let Some(target) = item.as_str() {
         return Ok(EdgeSpec {
             kind: kind.to_owned(),
@@ -114,28 +128,28 @@ fn target_edge(kind: &str, item: &Value) -> Result<EdgeSpec> {
             note: None,
         });
     }
-    let mapping = item.as_mapping().with_context(|| {
-        format!(
-            "a target must be a stem string or a {{target, note}} mapping, got {}",
-            shape_of(item)
-        )
+    let mapping = item.as_mapping().ok_or_else(|| {
+        refuse("a target must be a stem string or a {target, note} mapping")
+            .note(Note::new("got").name(shape_of(item)))
     })?;
     for key in mapping.keys() {
         let name = key.as_str().unwrap_or_default();
         if !matches!(name, "target" | "note") {
-            bail!("unknown target key `{name}`; a target mapping takes `target` and `note`");
+            return Err(refuse("unknown target key")
+                .value(name)
+                .hint(Hint::new("a target mapping takes target and note")));
         }
     }
     let target = mapping
         .get(Value::from("target"))
         .and_then(Value::as_str)
-        .context("a target mapping needs a `target` key naming the task stem")?;
+        .ok_or_else(|| refuse("a target mapping needs a target key naming the task stem"))?;
     let note = mapping
         .get(Value::from("note"))
         .map(|note| {
             note.as_str()
                 .map(ToOwned::to_owned)
-                .context("`note` must be a string")
+                .ok_or_else(|| refuse("note must be a string"))
         })
         .transpose()?;
     Ok(EdgeSpec {

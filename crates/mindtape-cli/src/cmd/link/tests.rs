@@ -137,7 +137,15 @@ fn an_unknown_kind_fails_the_run_and_writes_nothing() {
     let project = setup(dir.path());
     let before = source(dir.path(), "alpha");
     let err = run_with(&project, &parse(&["alpha", "depends-onn", "beta"])).unwrap_err();
-    assert!(err.to_string().contains("had problems"), "{err}");
+    let err = crate::diag::plain_anyhow(err);
+    assert!(
+        err.starts_with("error: tasks/alpha.typ: unknown link kind: 'depends-onn'\n"),
+        "{err}"
+    );
+    assert!(
+        !err.contains("had problems"),
+        "a single target gets no summary: {err}"
+    );
     assert_eq!(source(dir.path(), "alpha"), before);
 }
 
@@ -193,7 +201,10 @@ fn a_failing_entry_does_not_hold_back_the_rest() {
     )
     .unwrap();
     let err = run_with(&project, &parse(&["--apply", map.to_str().unwrap()])).unwrap_err();
-    assert!(err.to_string().contains("1 task(s) had problems"), "{err}");
+    assert_eq!(
+        crate::diag::plain_anyhow(err),
+        "error: linked 1 of 2 tasks; 1 failed\n"
+    );
     assert!(!source(dir.path(), "alpha").contains("links:"));
     assert!(source(dir.path(), "beta").contains(r#"depends-on("gamma.typ")"#));
 }
@@ -329,5 +340,5 @@ fn a_cycle_created_by_the_batch_is_reported() {
     )
     .unwrap();
     let err = run_with(&project, &parse(&["--apply", map.to_str().unwrap()])).unwrap_err();
-    assert!(err.to_string().contains("had problems"), "{err}");
+    assert_eq!(err.to_string(), "linked 1 of 2 tasks; 1 failed");
 }

@@ -56,7 +56,7 @@ run api-service-add-print.typ "$API" add -f "$OUT/api-service-values.yaml" --pri
 # /agents/: a listing cut to one task, and an add that names no slot values.
 # Stdin is not a terminal, so mt opens no editor and refuses instead.
 run api-service-ls-ready.json "$API" ls ready -n 1 --json
-capture --exit 1 --expect 'missing required slot' api-service-add-refused "$API" 'mt add "Log slow database queries" --print </dev/null'
+capture --exit 2 --expect 'missing required slot' api-service-add-refused "$API" 'mt add "Log slow database queries" --print </dev/null'
 
 # /derived-tags/: every task with the tags mt derives for it, and a filter on
 # one derived tag.

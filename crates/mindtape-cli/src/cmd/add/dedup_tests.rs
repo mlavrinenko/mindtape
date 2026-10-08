@@ -67,8 +67,9 @@ fn resolve_reports_no_collision_when_stem_is_free() {
 fn resolve_fail_errors_naming_the_stem_and_label() {
     let err = resolve(DedupMode::Fail, "foo", "tasks/foo.typ", |_| true).unwrap_err();
     assert_eq!(
-        err.to_string(),
-        "task \"foo\" already exists at tasks/foo.typ"
+        crate::diag::plain(&err),
+        "error: task already exists: 'tasks/foo.typ'\n\
+         hint: pass --dedup add-suffix to file it under a free name, or --dedup skip to keep the old one\n"
     );
 }
 

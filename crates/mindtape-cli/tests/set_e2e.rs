@@ -139,9 +139,12 @@ fn an_unknown_field_is_refused_by_name() {
     let before = read(dir.path());
 
     let stderr = set_err(dir.path(), "titel=nope");
-    assert!(stderr.contains("titel"), "{stderr}");
-    assert!(stderr.contains("title"), "{stderr}");
-    assert!(stderr.contains("tags"), "writable fields listed: {stderr}");
+    assert!(
+        stderr.starts_with("error: unknown field: 'titel'\n"),
+        "{stderr}"
+    );
+    assert!(stderr.contains("hint: did you mean title?\n"), "{stderr}");
+    assert!(stderr.contains("hint: run mt set --help"), "{stderr}");
     assert_eq!(read(dir.path()), before);
 }
 

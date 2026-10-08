@@ -383,7 +383,7 @@ fn park_writes_the_rejected_source_to_a_readable_file() {
 }
 
 /// The fallback arm named the file it left behind, so "wrote X" followed by an
-/// error cannot read as if `add` had cleaned up. Pins `kept_note`'s composed
+/// error cannot read as if `add` had cleaned up. Pins `kept`'s composed
 /// message (a `String::new()` or placeholder body leaves the error mute about
 /// the kept file).
 #[test]
@@ -399,13 +399,20 @@ fn outside_root_failure_names_the_file_kept_on_disk() {
         &project,
         &outcome,
         "#show: task.with(title: \"kept\")\n",
-        false,
+        &super::Rescue::new(false),
     )
-    .unwrap_err()
-    .to_string();
+    .unwrap_err();
+    let err = crate::diag::plain_anyhow(err);
 
-    assert!(err.contains("kept.typ"), "{err}");
-    assert!(err.contains("kept on disk exactly as written"), "{err}");
+    assert!(
+        err.contains("note: the task was kept on disk exactly as written: '")
+            && err.contains("kept.typ'"),
+        "{err}"
+    );
+    assert!(
+        err.contains("hint: fix or delete it before the next command\n"),
+        "{err}"
+    );
 }
 
 #[path = "tests_subprocess.rs"]

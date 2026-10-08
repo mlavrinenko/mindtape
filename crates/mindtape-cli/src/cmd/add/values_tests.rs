@@ -176,7 +176,7 @@ fn malformed_sniffed_input_reports_the_json_error() {
     let err = parse_sniffed_source("-", "{not valid anything")
         .unwrap_err()
         .to_string();
-    assert!(err.contains("parse JSON from -"), "{err}");
+    assert!(err.starts_with("can't parse JSON: '-': "), "{err}");
 }
 
 #[test]
@@ -226,10 +226,7 @@ fn yaml_non_mapping_root_is_rejected_with_json_shaped_wording() {
     let err = collect_values(std::slice::from_ref(&path), &[], &[])
         .unwrap_err()
         .to_string();
-    assert!(
-        err.contains(&format!("values from {path} must be a mapping")),
-        "{err}"
-    );
+    assert_eq!(err, format!("values must be a YAML mapping: '{path}'"));
 }
 
 #[test]
@@ -253,7 +250,10 @@ fn yaml_extension_dispatch_matches_parse_source() {
 #[test]
 fn json_extension_forces_the_json_parser() {
     let err = parse_source("v.json", "title: not json\n").unwrap_err();
-    assert!(err.to_string().contains("parse JSON from v.json"), "{err}");
+    assert!(
+        err.to_string().starts_with("can't parse JSON: 'v.json': "),
+        "{err}"
+    );
 }
 
 /// Symmetrically, `.yaml`/`.yml` picks the YAML parser, so the reported error
@@ -262,7 +262,10 @@ fn json_extension_forces_the_json_parser() {
 #[test]
 fn yaml_extension_forces_the_yaml_parser() {
     let err = parse_source("v.yaml", "{oops\n").unwrap_err();
-    assert!(err.to_string().contains("parse YAML from v.yaml"), "{err}");
+    assert!(
+        err.to_string().starts_with("can't parse YAML: 'v.yaml': "),
+        "{err}"
+    );
 }
 
 /// A non-brace body goes straight to YAML, so a malformed one reports the YAML
@@ -274,7 +277,7 @@ fn sniffed_non_brace_malformed_input_reports_the_yaml_error() {
     let err = parse_sniffed_source("-", "title: [unterminated\n")
         .unwrap_err()
         .to_string();
-    assert!(err.contains("parse YAML from -"), "{err}");
+    assert!(err.starts_with("can't parse YAML: '-': "), "{err}");
 }
 
 #[test]
@@ -307,11 +310,11 @@ fn reject_unknown_keys_errors_naming_the_key_and_known_slots() {
     let mut values = BTreeMap::new();
     values.insert("title".to_owned(), RawValue::Str("Fine".to_owned()));
     values.insert("priority".to_owned(), RawValue::Str("3".to_owned()));
-    let err = reject_unknown_keys(&values, &specs)
-        .unwrap_err()
-        .to_string();
-    assert!(err.contains("priority"), "{err}");
-    assert!(err.contains("title"), "{err}");
+    let err = crate::diag::plain(&reject_unknown_keys(&values, &specs).unwrap_err());
+    assert_eq!(
+        err,
+        "error: unknown slot: 'priority'\nhint: run mt add --describe to see the slots\n"
+    );
 }
 
 // --- suggest wiring for an unknown `--set`/`-f` key
@@ -322,10 +325,8 @@ fn reject_unknown_keys_near_miss_offers_a_suggestion() {
     let specs = discover_slots(BUILTIN_TASK); // one `title` slot
     let mut values = BTreeMap::new();
     values.insert("titel".to_owned(), RawValue::Str("Typo".to_owned()));
-    let err = reject_unknown_keys(&values, &specs)
-        .unwrap_err()
-        .to_string();
-    assert!(err.contains("did you mean: title?"), "{err}");
+    let err = crate::diag::plain(&reject_unknown_keys(&values, &specs).unwrap_err());
+    assert!(err.contains("hint: did you mean title?\n"), "{err}");
 }
 
 #[test]
@@ -333,9 +334,7 @@ fn reject_unknown_keys_far_miss_omits_the_suggestion() {
     let specs = discover_slots(BUILTIN_TASK); // one `title` slot
     let mut values = BTreeMap::new();
     values.insert("zzzzzzzz".to_owned(), RawValue::Str("Nope".to_owned()));
-    let err = reject_unknown_keys(&values, &specs)
-        .unwrap_err()
-        .to_string();
+    let err = crate::diag::plain(&reject_unknown_keys(&values, &specs).unwrap_err());
     assert!(!err.contains("did you mean"), "{err}");
 }
 
@@ -344,11 +343,9 @@ fn reject_unknown_keys_with_no_slots_omits_the_suggestion() {
     let specs: Vec<mindtape::SlotSpec> = Vec::new();
     let mut values = BTreeMap::new();
     values.insert("anything".to_owned(), RawValue::Str("x".to_owned()));
-    let err = reject_unknown_keys(&values, &specs)
-        .unwrap_err()
-        .to_string();
+    let err = crate::diag::plain(&reject_unknown_keys(&values, &specs).unwrap_err());
     assert!(!err.contains("did you mean"), "{err}");
-    assert!(err.contains("known slots: "), "{err}");
+    assert!(err.contains("hint: run mt add --describe"), "{err}");
 }
 
 /// The `--` tokens and `--set` reach the same parser, so both operators have
@@ -400,7 +397,7 @@ fn append_operator_accumulates_across_both_carriers() {
 /// The pre-release `key[]=value` append spelling carries no diagnostic of its
 /// own any more: `collect_values` accepts the bracketed text as an ordinary
 /// key, and it fails downstream exactly as any other unknown key does — an
-/// `unknown --set/-f key(s)` error naming it, with no pointer back to `+=`.
+/// `unknown slot` error naming it, with no pointer back to `+=`.
 #[test]
 fn bracket_append_spelling_is_an_unknown_key_like_any_other() {
     let values = collect_values(&[], &["tags[]=docs".to_owned()], &[]).unwrap();
@@ -422,6 +419,19 @@ fn token_without_an_equals_errors_naming_the_token() {
         .to_string();
     assert!(err.contains("tags"), "{err}");
     assert!(err.contains("key+=value"), "{err}");
+}
+
+/// Several unknown keys come out as one error: the first is the value, the
+/// rest are notes, so none is lost to the first re-run.
+#[test]
+fn reject_unknown_keys_names_every_unknown_key() {
+    let specs = discover_slots(BUILTIN_TASK);
+    let mut values = BTreeMap::new();
+    values.insert("alpha".to_owned(), RawValue::Str("1".to_owned()));
+    values.insert("beta".to_owned(), RawValue::Str("2".to_owned()));
+    let err = crate::diag::plain(&reject_unknown_keys(&values, &specs).unwrap_err());
+    assert!(err.starts_with("error: unknown slot: 'alpha'\n"), "{err}");
+    assert!(err.contains("note: also unknown: 'beta'\n"), "{err}");
 }
 
 /// A value may hold `=`; only the FIRST one separates. Splitting on the last

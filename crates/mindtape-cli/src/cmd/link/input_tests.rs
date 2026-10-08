@@ -16,10 +16,7 @@ fn parse(text: &str) -> Vec<Entry> {
 }
 
 fn error(text: &str) -> String {
-    format!(
-        "{:#}",
-        parse_adjacency(text).expect_err("the map must be rejected")
-    )
+    crate::diag::plain(&parse_adjacency(text).expect_err("the map must be rejected"))
 }
 
 #[test]
@@ -89,48 +86,63 @@ fn an_empty_document_is_an_empty_run() {
 #[test]
 fn a_non_mapping_root_is_rejected_by_shape() {
     let err = error("- a\n- b\n");
-    assert!(err.contains("stem -> kind -> targets"), "{err}");
-    assert!(err.contains("a list"), "{err}");
+    assert_eq!(
+        err,
+        "error: the adjacency map must be a mapping of stem to kind to targets\nnote: got: a list\n"
+    );
 }
 
 #[test]
 fn a_non_mapping_stem_body_names_the_stem() {
     let err = error("alpha: b\n");
-    assert!(err.contains("alpha"), "{err}");
-    assert!(err.contains("kind -> targets"), "{err}");
+    assert_eq!(
+        err,
+        "error: expected a mapping of kind to targets: 'alpha'\n"
+    );
 }
 
 #[test]
 fn a_malformed_target_names_the_stem_and_the_kind() {
     let err = error("alpha:\n  depends-on: [3]\n");
-    assert!(err.contains("alpha"), "{err}");
-    assert!(err.contains("depends-on"), "{err}");
-    assert!(err.contains("a number"), "{err}");
+    assert_eq!(
+        err,
+        "error: alpha: a target must be a stem string or a {target, note} mapping under 'depends-on'\n\
+         note: got: a number\n"
+    );
 }
 
 #[test]
 fn a_target_mapping_without_a_target_key_is_rejected() {
     let err = error("alpha:\n  related:\n    - note: why\n");
-    assert!(err.contains("`target` key"), "{err}");
+    assert_eq!(
+        err,
+        "error: alpha: a target mapping needs a target key naming the task stem under 'related'\n"
+    );
 }
 
 #[test]
 fn an_unknown_target_key_is_rejected_rather_than_ignored() {
     let err = error("alpha:\n  related:\n    - target: b\n      reason: why\n");
-    assert!(err.contains("reason"), "{err}");
-    assert!(err.contains("`target` and `note`"), "{err}");
+    assert_eq!(
+        err,
+        "error: alpha: unknown target key: 'reason' under 'related'\n\
+         hint: a target mapping takes target and note\n"
+    );
 }
 
 #[test]
 fn a_non_string_note_is_rejected() {
     let err = error("alpha:\n  related:\n    - target: b\n      note: 7\n");
-    assert!(err.contains("`note` must be a string"), "{err}");
+    assert_eq!(err, "error: alpha: note must be a string under 'related'\n");
 }
 
 #[test]
 fn malformed_yaml_is_reported_as_such() {
     let err = error("alpha:\n  - [\n");
-    assert!(err.contains("parse the adjacency map"), "{err}");
+    assert!(
+        err.starts_with("error: can't parse the adjacency map: "),
+        "{err}"
+    );
 }
 
 /// `shape_of` labels what arrived instead of what was asked for; one test per
@@ -139,23 +151,23 @@ fn malformed_yaml_is_reported_as_such() {
 #[test]
 fn a_null_target_is_named_null() {
     let err = error("alpha:\n  parent: ~\n");
-    assert!(err.contains("got null"), "{err}");
+    assert!(err.contains("note: got: null\n"), "{err}");
 }
 
 #[test]
 fn a_boolean_target_is_named_a_boolean() {
     let err = error("alpha:\n  parent: true\n");
-    assert!(err.contains("got a boolean"), "{err}");
+    assert!(err.contains("note: got: a boolean\n"), "{err}");
 }
 
 #[test]
 fn a_string_root_is_named_a_string() {
     let err = error("just-a-stem\n");
-    assert!(err.contains("got a string"), "{err}");
+    assert!(err.contains("note: got: a string\n"), "{err}");
 }
 
 #[test]
 fn a_tagged_root_is_named_a_tagged_value() {
     let err = error("!custom [a, b]\n");
-    assert!(err.contains("got a tagged value"), "{err}");
+    assert!(err.contains("note: got: a tagged value\n"), "{err}");
 }

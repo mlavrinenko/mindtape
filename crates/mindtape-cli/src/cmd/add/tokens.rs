@@ -13,8 +13,9 @@
 
 use std::collections::BTreeMap;
 
-use anyhow::{Context, Result, bail};
 use mindtape::RawValue;
+
+use crate::diag::{Diag, Hint};
 
 /// Which operator a token carries.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -30,19 +31,20 @@ enum Op {
 /// # Errors
 /// Returns an error when the token carries no operator, tries to append a
 /// file, or names a file that cannot be read.
-pub fn apply_token(out: &mut BTreeMap<String, RawValue>, token: &str) -> Result<()> {
+pub fn apply_token(out: &mut BTreeMap<String, RawValue>, token: &str) -> Result<(), Diag> {
     let (key, op, rest) = split_token(token)?;
     let append = key.ends_with('+');
     let name = key.strip_suffix('+').unwrap_or(key);
     if append && op == Op::File {
-        bail!(
-            "`{name}+@` is not an operator: `@` reads one file into one value. \
-             Pass a list through -f/--values as a YAML or JSON array."
-        );
+        return Err(Diag::usage("+@ is not an operator")
+            .value(token)
+            .hint(Hint::new(
+                "@ reads one file into one value; pass a list through -f as a YAML or JSON array",
+            )));
     }
     let value = match op {
         Op::Set => rest.to_owned(),
-        Op::File => read_slot_file(name, rest)?,
+        Op::File => read_slot_file(name, rest, token)?,
     };
     if append {
         append_list_value(out, name, value);
@@ -63,7 +65,7 @@ pub fn apply_token(out: &mut BTreeMap<String, RawValue>, token: &str) -> Result<
 /// comparison would be deriving "first" from two answers, and `at < eq` has
 /// no `<=` case to distinguish (a byte is not both characters), so the
 /// comparison is untestable where the scan is self-evident.
-fn split_token(token: &str) -> Result<(&str, Op, &str)> {
+fn split_token(token: &str) -> Result<(&str, Op, &str), Diag> {
     let (index, op) = token
         .char_indices()
         .find_map(|(index, ch)| match ch {
@@ -71,7 +73,11 @@ fn split_token(token: &str) -> Result<(&str, Op, &str)> {
             '@' => Some((index, Op::File)),
             _ => None,
         })
-        .with_context(|| format!("expected key=value, key+=value or key@path, got {token:?}"))?;
+        .ok_or_else(|| {
+            Diag::usage("not a key=value, key+=value or key@path assignment")
+                .value(token)
+                .hint(Hint::new("write it as --set name=value"))
+        })?;
     let (key, rest) = token.split_at(index);
     Ok((key, op, rest.get(1..).unwrap_or_default()))
 }
@@ -93,15 +99,18 @@ fn split_token(token: &str) -> Result<(&str, Op, &str)> {
 /// coerces it and fails naming itself. Nothing here converts anything —
 /// notably, nothing turns Markdown into Typst, so a `.md` file fills a `text`
 /// slot as the prose it literally is.
-fn read_slot_file(name: &str, path: &str) -> Result<String> {
+fn read_slot_file(name: &str, path: &str, token: &str) -> Result<String, Diag> {
     if path == "-" {
-        bail!(
-            "`{name}@-` does not read stdin; pass a whole values mapping with `-f -`, \
-             where a YAML block scalar carries a prose slot verbatim"
-        );
+        return Err(Diag::usage("@- does not read stdin").value(token).hint(Hint::new(
+            "pass a whole values mapping with -f -, where a YAML block scalar carries prose verbatim",
+        )));
     }
-    let text =
-        std::fs::read_to_string(path).with_context(|| format!("read slot {name:?} from {path}"))?;
+    let text = std::fs::read_to_string(path).map_err(|err| {
+        Diag::failed("can't read slot file")
+            .value(path)
+            .context("for slot", name)
+            .io(&err)
+    })?;
     Ok(text.trim_end_matches(['\r', '\n']).to_owned())
 }
 

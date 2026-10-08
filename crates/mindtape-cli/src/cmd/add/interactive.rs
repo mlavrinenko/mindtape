@@ -8,10 +8,12 @@ use std::collections::BTreeMap;
 use std::io::Write;
 use std::process::Command;
 
-use anyhow::{Context, Result, bail};
 use mindtape::{AddConfig, InteractiveMode, RawValue, SlotKind, SlotSpec};
 
 use crate::cmd::add::yaml_values::parse_mapping;
+use crate::diag::{Diag, Hint};
+
+type Result<T> = std::result::Result<T, Diag>;
 
 const DEFAULT_HEADER: &str = "\
 # mt add — fill the values below, then save and quit.
@@ -41,7 +43,8 @@ pub fn should_open(
     }
     if force || config.interactive == InteractiveMode::Always {
         if !tty {
-            bail!("interactive add needs a terminal; pass values with -f/--set instead");
+            return Err(Diag::usage("interactive add needs a terminal")
+                .hint(Hint::new("pass the values with -f or --set instead")));
         }
         return Ok(true);
     }
@@ -105,25 +108,31 @@ fn open_in_editor(command: &str, initial: &str) -> Result<String> {
         .prefix("mindtape-add-")
         .suffix(".yaml")
         .tempfile()
-        .context("create scratch buffer")?;
+        .map_err(|err| Diag::failed("can't create the scratch buffer").io(&err))?;
     file.write_all(initial.as_bytes())
-        .context("write scratch buffer")?;
-    file.flush().context("flush scratch buffer")?;
+        .and_then(|()| file.flush())
+        .map_err(|err| Diag::failed("can't write the scratch buffer").io(&err))?;
     let path = file.into_temp_path();
 
     let mut parts = command.split_whitespace();
     let Some(program) = parts.next() else {
-        bail!("empty editor command");
+        return Err(Diag::failed("the editor command is empty")
+            .hint(Hint::new("set [add] editor, $VISUAL or $EDITOR")));
     };
     let status = Command::new(program)
         .args(parts)
         .arg(&*path)
         .status()
-        .with_context(|| format!("spawn editor {command:?}"))?;
+        .map_err(|err| {
+            Diag::failed("can't start the editor")
+                .value(command)
+                .io(&err)
+        })?;
     if !status.success() {
-        bail!("editor {command:?} exited without saving");
+        return Err(Diag::failed("editor exited without saving").value(command));
     }
-    std::fs::read_to_string(&path).context("read edited buffer")
+    std::fs::read_to_string(&path)
+        .map_err(|err| Diag::failed("can't read the edited buffer").io(&err))
 }
 
 /// Render the YAML scaffold: the (optional) header plus one entry per slot,
@@ -343,11 +352,7 @@ fn quote(text: &str) -> String {
 /// Returns an error when the buffer is not a YAML mapping, a key is non-string,
 /// or a value has an unsupported shape (nested mapping, non-string list item).
 fn parse_buffer(text: &str) -> Result<BTreeMap<String, RawValue>> {
-    let values = parse_mapping(
-        text,
-        || "parse the YAML buffer".to_owned(),
-        || "the buffer must be a YAML mapping of slot names to values".to_owned(),
-    )?;
+    let values = parse_mapping(text, None)?;
     Ok(drop_blank(values))
 }
 

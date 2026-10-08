@@ -49,7 +49,7 @@
 //!   isn't a `Diag`: a prompt is not a diagnostic, so it has no prefix.
 //! - `from_lib.rs` — library errors into a `Diag`, one exhaustive match each.
 //! - `from_lib_tests.rs` — unit tests for the condition and cleanup conversions.
-//! - `tests.rs` — unit tests.
+//! - `tests.rs`, `tests_fill.rs` — unit tests.
 
 #[cfg(test)]
 mod allowlist;
@@ -66,7 +66,7 @@ use std::path::Path;
 pub(crate) use from_lib::filter;
 pub(crate) use hint::{Command, Hint, Note};
 pub(crate) use prompt::confirm;
-pub(crate) use render::{emit, line, report, stderr_is_terminal};
+pub(crate) use render::{emit, emit_note, line, report, stderr_is_terminal};
 pub(crate) use summary::dedupe_notes;
 
 /// What kind of problem a [`Diag`] reports, which decides the exit code.
@@ -268,6 +268,12 @@ impl Diag {
         self
     }
 
+    /// Whether [`Self::hint`] can take another hint, for a caller that adds
+    /// to a message it didn't build.
+    pub(crate) fn has_hint_room(&self) -> bool {
+        self.0.hints.len() < 2
+    }
+
     /// Context the reader may need, with no action.
     pub(crate) fn note(mut self, note: Note) -> Self {
         self.0.notes.push(note);
@@ -309,3 +315,6 @@ mod from_lib_tests;
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests;
+
+#[cfg(test)]
+mod tests_fill;

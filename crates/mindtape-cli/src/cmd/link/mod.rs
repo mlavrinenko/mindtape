@@ -26,13 +26,14 @@ pub(crate) mod edit;
 pub(crate) mod input;
 pub(crate) mod plan;
 
-use anyhow::{Result, bail};
+use anyhow::Result;
 use clap::Args;
 
 use self::input::Entry;
 use self::plan::{Plan, Staged};
-use crate::cmd::flip::batch::{Landed, after_batch};
+use crate::cmd::flip::batch::{Landed, after_batch_diags};
 use crate::cmd::link::edit::{EdgeSpec, Mode};
+use crate::diag::{Command, Diag, Hint, emit};
 use crate::pre_write::{self, Pending};
 use crate::util::{self, Project};
 
@@ -104,6 +105,7 @@ pub fn run(args: &LinkArgs) -> Result<()> {
 /// Plan, write and report one run against an already-loaded `project`.
 pub(crate) fn run_with(project: &Project, args: &LinkArgs) -> Result<()> {
     let entries = entries(args)?;
+    let total = entries.len();
     if entries.is_empty() {
         println!("nothing to link");
         return Ok(());
@@ -118,10 +120,11 @@ pub(crate) fn run_with(project: &Project, args: &LinkArgs) -> Result<()> {
     if args.dry_run {
         report_plan(&plan);
         println!("dry run: nothing written");
-        return finish(&plan.problems);
+        return finish(plan.problems, plan.failed, total);
     }
 
     let mut problems = plan.problems;
+    let mut failed = plan.failed;
     let mut landed = Landed::default();
     // The batch goes to the pre-write check as one set: `--apply` routinely
     // adds edges in both directions at once, and an edge whose other end is
@@ -137,15 +140,13 @@ pub(crate) fn run_with(project: &Project, args: &LinkArgs) -> Result<()> {
     let verdicts = pre_write::check(project, &project.outcome.tasks, &pending)?;
 
     for (staged, verdict) in plan.staged.iter().zip(&verdicts) {
-        for warning in verdict.warnings() {
-            eprintln!("{}", crate::render::breach::line(warning));
-        }
-        if !verdict.accepted() {
-            problems.push(format!(
-                "{}: not linked: {}",
-                staged.stem,
-                verdict.problems().join("; ")
-            ));
+        // Prints this entry's warnings and breaches, and returns its refusal.
+        if let Some(refusal) = pre_write::settle(
+            std::slice::from_ref(&staged.stem),
+            std::slice::from_ref(verdict),
+        ) {
+            problems.push(refusal);
+            failed += 1;
             continue;
         }
         match util::write_task(&project.config, &staged.abs, staged.updated.clone()) {
@@ -153,16 +154,19 @@ pub(crate) fn run_with(project: &Project, args: &LinkArgs) -> Result<()> {
                 report_written(staged);
                 landed.record(&staged.task);
             }
-            Err(err) => problems.push(format!("{}: {err:#}", staged.stem)),
+            Err(err) => {
+                problems.push(err.into());
+                failed += 1;
+            }
         }
     }
     for stem in &plan.unchanged {
         println!("unchanged {stem}: every edge was already there");
     }
     if !landed.is_empty() {
-        after_batch(&project.root, &landed, &mut problems)?;
+        after_batch_diags(&project.root, &landed, &mut problems)?;
     }
-    finish(&problems)
+    finish(problems, failed, total)
 }
 
 /// The entries one invocation asks for: the whole adjacency map under
@@ -175,13 +179,28 @@ pub(crate) fn run_with(project: &Project, args: &LinkArgs) -> Result<()> {
 /// drifted apart).
 fn entries(args: &LinkArgs) -> Result<Vec<Entry>> {
     if let Some(source) = &args.apply {
-        return input::parse_adjacency(&input::read_source(source)?);
+        return Ok(input::parse_adjacency(&input::read_source(source)?)?);
     }
     let (Some(task), Some(kind)) = (args.task.as_deref(), args.kind.as_deref()) else {
-        bail!("usage: mt link <task> <kind> <target>... | mt link --apply <file>");
+        return Err(
+            Diag::usage("mt link needs a task, a kind and targets, or --apply")
+                .hint(Hint::new(
+                    "usage: mt link <task> <kind> <target>... | mt link --apply <file>",
+                ))
+                .into(),
+        );
     };
     if args.targets.is_empty() {
-        bail!("no targets given; usage: mt link {task} {kind} <target>...");
+        return Err(Diag::usage("no link targets given")
+            .hint(Hint::command(
+                "name at least one",
+                Command::mt()
+                    .word("link")
+                    .arg(task)
+                    .arg(kind)
+                    .arg("<target>"),
+            ))
+            .into());
     }
     let edges = args
         .targets
@@ -233,17 +252,23 @@ fn change_summary(staged: &Staged) -> String {
     format!("+{}{dropped}", added.join(", +"))
 }
 
-/// Report `problems` and set the exit status, or succeed on none. Same shape
-/// as `mt flip`'s tail: every failure named on stderr, one summary line, and a
-/// non-zero exit that does not undo what landed.
-fn finish(problems: &[String]) -> Result<()> {
-    if problems.is_empty() {
-        return Ok(());
+/// Report a batch's `problems` and set the exit status, or succeed on none.
+/// Same shape as `mt flip`'s tail: a single target's last problem is the
+/// command's error and gets no summary; several targets end with one. The
+/// exit status does not undo what landed.
+fn finish(mut problems: Vec<Diag>, failed: usize, total: usize) -> Result<()> {
+    let last = match problems.pop() {
+        None => return Ok(()),
+        Some(last) if total <= 1 => last,
+        Some(last) => {
+            problems.push(last);
+            Diag::batch("linked", total.saturating_sub(failed), total)
+        }
+    };
+    for problem in &problems {
+        emit(problem);
     }
-    for problem in problems {
-        eprintln!("error: {problem}");
-    }
-    bail!("{} task(s) had problems", problems.len())
+    Err(last.into())
 }
 
 #[cfg(test)]

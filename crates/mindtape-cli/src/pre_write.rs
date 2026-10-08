@@ -112,13 +112,6 @@ impl Verdict {
         self.violations.iter().chain(&self.elsewhere)
     }
 
-    /// The breaches that do not refuse the write.
-    pub(crate) fn warnings(&self) -> impl Iterator<Item = &Violation> {
-        self.violations
-            .iter()
-            .filter(|violation| !violation.is_fatal())
-    }
-
     /// The task fields the fatal breaches read together
     /// ([`Violation::reads`]), or `None` when one may be about any field.
     pub(crate) fn reads(&self) -> Option<BTreeSet<String>> {

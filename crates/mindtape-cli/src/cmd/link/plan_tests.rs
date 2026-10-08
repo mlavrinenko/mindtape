@@ -62,7 +62,7 @@ fn entry(stem: &str, kind: &str, target: &str, note: Option<&str>) -> Entry {
 
 /// The single problem a one-entry plan reported, or a panic naming what it did
 /// instead.
-fn only_problem(plan: &super::Plan) -> &str {
+fn only_problem(plan: &super::Plan) -> String {
     assert_eq!(
         plan.problems.len(),
         1,
@@ -70,7 +70,7 @@ fn only_problem(plan: &super::Plan) -> &str {
         plan.staged.len(),
         plan.unchanged.len()
     );
-    plan.problems.first().unwrap().as_str()
+    crate::diag::plain(plan.problems.first().unwrap())
 }
 
 #[test]
@@ -118,9 +118,18 @@ fn an_unknown_kind_is_refused_with_the_configured_list_and_a_suggestion() {
         Mode::Merge,
     );
     let problem = only_problem(&plan);
-    assert!(problem.contains("not a configured link kind"), "{problem}");
-    assert!(problem.contains("configured: depends-on"), "{problem}");
-    assert!(problem.contains("did you mean: depends-on?"), "{problem}");
+    assert!(
+        problem.starts_with("error: tasks/alpha.typ: unknown link kind: 'depends-onn'\n"),
+        "{problem}"
+    );
+    assert!(
+        problem.contains("hint: did you mean depends-on?\n"),
+        "{problem}"
+    );
+    assert!(
+        problem.contains("note: configured kinds: depends-on"),
+        "{problem}"
+    );
 }
 
 #[test]
@@ -160,10 +169,9 @@ fn related_without_a_note_is_refused_naming_the_edge() {
     );
     let problem = only_problem(&plan);
     assert!(
-        problem.contains("`related` edge to `beta.typ`"),
+        problem.contains("edge requires a note: 'beta' of kind 'related'\n"),
         "{problem}"
     );
-    assert!(problem.contains("requires a note"), "{problem}");
 }
 
 #[test]
@@ -202,8 +210,11 @@ fn a_missing_target_is_refused_with_the_nearest_task() {
         Mode::Merge,
     );
     let problem = only_problem(&plan);
-    assert!(problem.contains("names no task"), "{problem}");
-    assert!(problem.contains("did you mean: beta?"), "{problem}");
+    assert!(
+        problem.contains("edge target names no task: 'betta' of kind 'depends-on'\n"),
+        "{problem}"
+    );
+    assert!(problem.contains("hint: did you mean beta?\n"), "{problem}");
 }
 
 #[test]
@@ -215,7 +226,10 @@ fn a_missing_source_task_is_refused() {
         &[entry("nope", "depends-on", "beta", None)],
         Mode::Merge,
     );
-    assert!(only_problem(&plan).starts_with("nope: "));
+    assert_eq!(
+        only_problem(&plan),
+        "error: no task: 'nope'\nhint: run mt ls to see your tasks\n"
+    );
 }
 
 /// A per-entry failure is not a batch failure: the other entries still stage.
@@ -294,8 +308,13 @@ fn a_forbidden_edge_with_a_note_is_refused() {
         target: "beta.typ".to_owned(),
         note: Some("why".to_owned()),
     };
-    let problem = note_problem(&spec, NoteRule::Forbidden).expect("a note is forbidden here");
-    assert!(problem.contains("must not carry a note"), "{problem}");
+    let problem =
+        note_problem(&spec, &spec, NoteRule::Forbidden).expect("a note is forbidden here");
+    let problem = crate::diag::plain(&problem);
+    assert!(
+        problem.contains("edge must not carry a note: 'beta.typ' of kind 'blocks'"),
+        "{problem}"
+    );
 }
 
 #[test]
@@ -305,7 +324,7 @@ fn a_forbidden_edge_without_a_note_is_accepted() {
         target: "beta.typ".to_owned(),
         note: None,
     };
-    assert!(note_problem(&spec, NoteRule::Forbidden).is_none());
+    assert!(note_problem(&spec, &spec, NoteRule::Forbidden).is_none());
 }
 
 /// Plan `alpha depends-on gamma` in a [`setup`] project whose top-level
@@ -367,7 +386,16 @@ fn a_stem_two_folders_share_is_refused_naming_both() {
         ("web/gamma.typ", BETA),
     ]);
     let problem = only_problem(&plan);
-    assert!(problem.contains("is ambiguous"), "{problem}");
-    assert!(problem.contains("../cli/gamma.typ"), "{problem}");
-    assert!(problem.contains("../web/gamma.typ"), "{problem}");
+    assert!(
+        problem.contains("edge target is ambiguous: 'gamma'"),
+        "{problem}"
+    );
+    assert!(
+        problem.contains("note: candidate: ../cli/gamma.typ\n"),
+        "{problem}"
+    );
+    assert!(
+        problem.contains("note: candidate: ../web/gamma.typ\n"),
+        "{problem}"
+    );
 }

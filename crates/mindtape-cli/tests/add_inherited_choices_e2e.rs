@@ -31,7 +31,7 @@ fn a_templates_own_slot_refuses_a_value_outside_config_naming_the_choices() {
         .clone();
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stderr.contains(r#"slot "kind" value "chore" is not one of: feat, test"#),
+        stderr.contains("error: not one of the slot's choices: 'chore' for slot 'kind': expected one of feat, test"),
         "{stderr}"
     );
     assert!(!dir.path().join("tasks/x.typ").exists());

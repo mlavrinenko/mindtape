@@ -26,12 +26,13 @@
 
 use std::collections::BTreeMap;
 
-use anyhow::{Context, Result, bail};
+use anyhow::Result;
 use clap::Args;
 use mindtape::{RawValue, Task, format_num, parse_ymd, suggest, typ_array, typ_str};
 use typst_edit::apply;
 
 use crate::cmd::add::tokens::apply_token;
+use crate::diag::{Command, Diag, Hint};
 use crate::pre_write::{self, Pending};
 use crate::task_edit::{task_with, upsert_named_arg};
 use crate::util;
@@ -113,32 +114,33 @@ const WRITABLE: &[Writable] = &[
     },
 ];
 
-/// Core fields `mt set` does not write, and what writes them instead. Refused
-/// by name rather than as an unknown field: `status` is not a typo for
+/// Core fields `mt set` does not write, and the hint that says what to do
+/// instead. Refused by name rather than as an unknown field: `status` is not a typo for
 /// `start`, and a message that suggested so would teach the wrong CLI.
 const ELSEWHERE: &[(&str, &str)] = &[
     (
         "status",
-        "`mt flip <status> <task>` stamps it dated, against the legend's own transitions",
+        "use mt flip <status> <task>, which dates it and follows the legend's transitions",
     ),
     (
         "links",
-        "`mt link <task> <kind> <target>` writes typed edges, checking each target",
+        "use mt link <task> <kind> <target>, which writes typed edges and checks each target",
     ),
-    ("reviewed", "`mt review <task>` stamps today's date"),
+    (
+        "reviewed",
+        "use mt review <task>, which stamps today's date",
+    ),
     (
         "recur",
-        "`mt recur <task>` is the only command that advances a recurrence",
+        "use mt recur <task>, the only command that advances a recurrence",
     ),
     (
         "estimate",
-        "an estimate is a unit dict (`(days: 1, hours: 2)`), not a scalar, so it has no \
-         unambiguous `<field>=<value>` spelling",
+        "an estimate is a unit dict, not a scalar, so edit it by hand and run mt check",
     ),
     (
         "id",
-        "a task's identity is its file stem — `mt mv <task> <new-stem>` renames it and \
-         retargets every inbound edge",
+        "use mt mv <task> <new-stem>, which renames it and retargets every inbound edge",
     ),
 ];
 
@@ -185,13 +187,18 @@ pub fn run(args: &SetArgs) -> Result<()> {
         return Ok(());
     };
 
-    let source =
-        std::fs::read_to_string(&abs).with_context(|| format!("read {}", abs.display()))?;
-    let call =
-        task_with(&source).with_context(|| format!("locate task.with(…) in {}", abs.display()))?;
+    let source = std::fs::read_to_string(&abs).map_err(|err| Diag::cannot_read(&abs, &err))?;
+    let call = task_with(&source).map_err(|err| {
+        Diag::failed("can't locate task.with(...)")
+            .at_file(&abs)
+            .cause(err.as_ref())
+    })?;
     let edit = upsert_named_arg(&source, &call, field.name, &value_text)?;
-    let updated =
-        apply(&source, vec![edit]).with_context(|| format!("apply edit to {}", abs.display()))?;
+    let updated = apply(&source, vec![edit]).map_err(|err| {
+        Diag::failed("can't apply the edit")
+            .at_file(&abs)
+            .cause(&err)
+    })?;
 
     // At the file's own path, before the write: a refused value leaves the
     // task exactly as it was — nothing written, nothing to restore.
@@ -221,21 +228,19 @@ pub fn run(args: &SetArgs) -> Result<()> {
 /// # Errors
 /// A token carrying no operator, an unreadable `@` file, or a value shape no
 /// command line produces.
-fn parse_assignment(token: &str) -> Result<(String, Assigned)> {
+fn parse_assignment(token: &str) -> Result<(String, Assigned), Diag> {
     let mut values = BTreeMap::new();
     apply_token(&mut values, token)?;
-    let (name, value) = values
-        .into_iter()
-        .next()
-        .context("no field assignment parsed")?;
+    let not_an_assignment = || Diag::usage("not a <field>=<value> assignment").value(token);
+    let (name, value) = values.into_iter().next().ok_or_else(not_an_assignment)?;
     let assigned = match value {
         RawValue::Str(text) => Assigned::Set(text),
         RawValue::List(items) => items
             .into_iter()
             .next_back()
             .map(Assigned::Append)
-            .context("no value to append")?,
-        _ => bail!("{token:?} is not a <field>=<value> assignment"),
+            .ok_or_else(not_an_assignment)?,
+        _ => return Err(not_an_assignment()),
     };
     Ok((name, assigned))
 }
@@ -252,22 +257,28 @@ pub(crate) fn writable_fields() -> impl Iterator<Item = &'static str> {
 /// The writable field `name` names.
 ///
 /// # Errors
-/// A field written by another command (named, with that command), or an
-/// unknown one (named, with a nearest-match suggestion and the writable
-/// fields listed — the way an unknown `--set` key already is).
-fn writable(name: &str) -> Result<&'static Writable> {
+/// A field written by another command (named, with a hint to that command), or
+/// an unknown one (named, with a nearest-match hint and a pointer to the
+/// writable fields).
+fn writable(name: &str) -> Result<&'static Writable, Diag> {
     if let Some(field) = WRITABLE.iter().find(|field| field.name == name) {
         return Ok(field);
     }
     if let Some((_, owner)) = ELSEWHERE.iter().find(|(field, _)| *field == name) {
-        bail!("`mt set` does not write `{name}`: {owner}");
+        return Err(Diag::usage("mt set does not write this field")
+            .value(name)
+            .hint(Hint::new(owner)));
     }
     let known: Vec<&str> = WRITABLE.iter().map(|field| field.name).collect();
-    bail!(
-        "unknown field: {name}{}; writable fields: {}",
-        suggest::suggestion(name, &known),
-        known.join(", ")
-    )
+    let diag = Diag::usage("unknown field").value(name);
+    let diag = match suggest::nearest(name, &known) {
+        Some(near) => diag.hint(Hint::did_you_mean(near)),
+        None => diag,
+    };
+    Err(diag.hint(Hint::run(
+        Command::mt().word("set").word("--help"),
+        "to see the fields you can set",
+    )))
 }
 
 /// The Typst literal to write, or `None` when the task already says it — a
@@ -278,14 +289,13 @@ fn writable(name: &str) -> Result<&'static Writable> {
 /// A `+=` on a field that holds no list, or a value the field's shape cannot
 /// be made from — refused here, before the file is even read, so the error
 /// names the field rather than arriving as a Typst type error later.
-fn render(field: &Writable, assigned: &Assigned, task: &Task) -> Result<Option<String>> {
+fn render(field: &Writable, assigned: &Assigned, task: &Task) -> Result<Option<String>, Diag> {
     match (field.shape, assigned) {
         (Shape::List(current), Assigned::Append(item)) => Ok(append(current(task), item)),
         (Shape::List(_), Assigned::Set(text)) => Ok(Some(typ_array(&[typ_str(text)]))),
-        (_, Assigned::Append(_)) => bail!(
-            "`+=` appends to a list field, and `{name}` is not one — write `{name}=<value>`",
-            name = field.name
-        ),
+        (_, Assigned::Append(_)) => Err(Diag::usage("+= appends to a list field")
+            .value(field.name)
+            .hint(Hint::new("replace the value with <field>=<value>"))),
         (Shape::Text, Assigned::Set(text)) => Ok(Some(typ_str(text))),
         (Shape::Num, Assigned::Set(text)) => number(field.name, text).map(Some),
         (Shape::Date, Assigned::Set(text)) => date(field.name, text).map(Some),
@@ -311,12 +321,16 @@ fn append(current: &[String], item: &str) -> Option<String> {
 /// A value that is not a finite number — which no scale could accept either,
 /// and is the only numeric mistake this layer can name better than the
 /// validator can.
-fn number(name: &str, text: &str) -> Result<String> {
+fn number(name: &str, text: &str) -> Result<String, Diag> {
     let value: f64 = text
         .parse()
         .ok()
         .filter(|num: &f64| num.is_finite())
-        .with_context(|| format!("`{name}` takes a number, got {text:?}"))?;
+        .ok_or_else(|| {
+            Diag::usage("a number is expected")
+                .value(text)
+                .context("for field", name)
+        })?;
     Ok(format_num(value))
 }
 
@@ -324,9 +338,12 @@ fn number(name: &str, text: &str) -> Result<String> {
 ///
 /// # Errors
 /// A value that is not a `YYYY-MM-DD` date.
-fn date(name: &str, text: &str) -> Result<String> {
-    let (year, month, day) = parse_ymd(text)
-        .with_context(|| format!("`{name}` takes a YYYY-MM-DD date, got {text:?}"))?;
+fn date(name: &str, text: &str) -> Result<String, Diag> {
+    let (year, month, day) = parse_ymd(text).ok_or_else(|| {
+        Diag::usage("a YYYY-MM-DD date is expected")
+            .value(text)
+            .context("for field", name)
+    })?;
     Ok(format!("on({year}, {month}, {day})"))
 }
 

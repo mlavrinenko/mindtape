@@ -13,54 +13,58 @@
 
 use std::collections::BTreeMap;
 
-use anyhow::{Context, Result, bail};
 use mindtape::RawValue;
+
+use crate::diag::Diag;
 
 /// Parse `text` as a single YAML document whose root is a mapping, converting
 /// each value to a [`RawValue`] (a `null` value keeps its key, mapped to
 /// `None`). A `null` root is an empty mapping (nothing to fill).
 ///
-/// `syntax_context` labels a parse failure (a malformed document, or more
-/// than one — the underlying parser already rejects a multi-document
-/// stream); `non_mapping` supplies the error for any other root shape. The
-/// two callers word both differently, so both are supplied by the caller
-/// rather than hard-coded here.
+/// `source` names where the text came from, a `-f` source, and is quoted in
+/// the error. The editor buffer passes `None`, because the user just typed it.
 ///
 /// # Errors
-/// Returns an error when `text` fails to parse as YAML, the root is not a
-/// mapping, a key is non-string, or a value has an unsupported shape (nested
-/// mapping, non-string list item).
+/// Returns a [`Diag`] when `text` fails to parse as YAML (a malformed
+/// document, or more than one), the root is not a mapping, a key is
+/// non-string, or a value has an unsupported shape (nested mapping,
+/// non-string list item).
 pub fn parse_mapping(
     text: &str,
-    syntax_context: impl FnOnce() -> String,
-    non_mapping: impl FnOnce() -> String,
-) -> Result<BTreeMap<String, Option<RawValue>>> {
-    let value: serde_yaml_ng::Value = serde_yaml_ng::from_str(text).with_context(syntax_context)?;
+    source: Option<&str>,
+) -> Result<BTreeMap<String, Option<RawValue>>, Diag> {
+    let at = |diag: Diag| match source {
+        Some(source) => diag.value(source),
+        None => diag,
+    };
+    let value: serde_yaml_ng::Value = serde_yaml_ng::from_str(text)
+        .map_err(|err| at(Diag::failed("can't parse YAML")).cause(&err))?;
     let mapping = match value {
         serde_yaml_ng::Value::Mapping(mapping) => mapping,
         serde_yaml_ng::Value::Null => return Ok(BTreeMap::new()),
-        _ => bail!(non_mapping()),
+        _ => return Err(at(Diag::usage("values must be a YAML mapping"))),
     };
     let mut out = BTreeMap::new();
     for (key, raw) in &mapping {
         let Some(name) = key.as_str() else {
-            bail!("YAML keys must be strings");
+            return Err(at(Diag::usage("YAML keys must be strings")));
         };
-        let value = yaml_to_raw(raw).with_context(|| format!("value for {name:?}"))?;
-        out.insert(name.to_owned(), value);
+        out.insert(name.to_owned(), yaml_to_raw(name, raw)?);
     }
     Ok(out)
 }
 
-fn yaml_to_raw(value: &serde_yaml_ng::Value) -> Result<Option<RawValue>> {
+fn yaml_to_raw(name: &str, value: &serde_yaml_ng::Value) -> Result<Option<RawValue>, Diag> {
     use serde_yaml_ng::Value;
     let raw = match value {
         Value::Null => return Ok(None),
         Value::Bool(flag) => RawValue::Bool(*flag),
         Value::Number(num) => number_to_raw(num),
         Value::String(text) => RawValue::Str(text.clone()),
-        Value::Sequence(items) => RawValue::List(sequence_strings(items)?),
-        Value::Mapping(_) | Value::Tagged(_) => bail!("nested mapping values are unsupported"),
+        Value::Sequence(items) => RawValue::List(sequence_strings(name, items)?),
+        Value::Mapping(_) | Value::Tagged(_) => {
+            return Err(Diag::usage("nested mappings are unsupported").value(name));
+        }
     };
     Ok(Some(raw))
 }
@@ -72,11 +76,11 @@ fn number_to_raw(num: &serde_yaml_ng::Number) -> RawValue {
     )
 }
 
-fn sequence_strings(items: &[serde_yaml_ng::Value]) -> Result<Vec<String>> {
+fn sequence_strings(name: &str, items: &[serde_yaml_ng::Value]) -> Result<Vec<String>, Diag> {
     let mut out = Vec::with_capacity(items.len());
     for item in items {
         let Some(text) = item.as_str() else {
-            bail!("list items must be strings");
+            return Err(Diag::usage("list items must be strings").value(name));
         };
         out.push(text.to_owned());
     }

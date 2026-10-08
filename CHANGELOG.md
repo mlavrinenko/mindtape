@@ -54,6 +54,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   lists each survivor as `note: link from: tasks/live.typ to gone`. The
   confirmation prompt stays a plain question on stderr, with no `error:`
   prefix, since nothing failed.
+- **`mt add`, `mt set` and `mt link` errors read in the error format.** A
+  values file that cannot be read is `error: can't read values:
+  '/nonexistent': no such file or directory`; an unknown template, slot, field
+  or link kind quotes the name and hints the nearest one
+  (`hint: did you mean title?`); a missing required slot names `--set
+  name=value` and `mt add --describe`; an editor that quits without saving, a
+  `--to` path and a name clash each get one line and a next step. `mt link`
+  names the target as typed and ends a batch with `error: linked 1 of 2 tasks;
+  1 failed`, as `mt flip` does, and a single target gets no summary. The note
+  about a parked `--edit` buffer and the notes about config-filled fields are
+  `note:` lines.
 - **A task reference, a view name and a failed write read in the error
   format.** `mt ls '@nope'` prints `error: unknown view: 'nope'` and
   `hint: did you mean x?` (or `hint: run mt views to see the views`) where it

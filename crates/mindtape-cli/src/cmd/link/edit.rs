@@ -14,6 +14,7 @@ use mindtape::link::{Link, is_builtin_kind};
 use mindtape::{escape_markup, is_history_pointer, normalize_link};
 use typst_edit::Edit;
 
+use crate::diag::{Diag, Hint};
 use crate::task_edit::{task_with, upsert_named_arg};
 
 /// One edge to write: its kind, its target as the caller authored it, and an
@@ -251,11 +252,12 @@ fn refuse_tombstones(source: &str) -> Result<()> {
     for call in mindtape::link_edges(source) {
         for target in &call.targets {
             if is_history_pointer(&target.raw) {
-                anyhow::bail!(
-                    "`links:` carries the history pointer `{}`; --replace would drop it. \
-                     Merge instead (omit --replace), or edit the file by hand",
-                    target.raw
-                );
+                return Err(Diag::refused("--replace would drop a history pointer")
+                    .value(target.raw.as_str())
+                    .hint(Hint::new(
+                        "merge instead by omitting --replace, or edit the file by hand",
+                    ))
+                    .into());
             }
         }
     }

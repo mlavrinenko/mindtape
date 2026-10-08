@@ -14,8 +14,8 @@
 #     that reaches for `mt flip blocked` has invented a status.
 #   - No `[templates]`, so `mt add` falls back to the built-in task template
 #     whose only slot is `title`. `mt add … --set priority=8` is therefore
-#     refused by name: non-zero exit, `unknown --set/-f key(s): priority;
-#     known slots: title`. A skill that does not warn about that ships agents
+#     refused by name: non-zero exit, `error: unknown slot:
+#     'priority'`. A skill that does not warn about that ships agents
 #     into a dead end they read as a tool bug rather than a missing slot.
 #
 # Keep both absences. Fixing them here would quietly delete the eval coverage

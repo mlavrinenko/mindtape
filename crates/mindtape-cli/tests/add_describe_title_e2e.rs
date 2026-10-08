@@ -11,7 +11,7 @@ fn refusal(dir: &std::path::Path, args: &[&str]) -> String {
         .args(args)
         .assert()
         .failure()
-        .code(1);
+        .code(2);
     String::from_utf8_lossy(&out.get_output().stderr).into_owned()
 }
 
@@ -26,9 +26,10 @@ fn a_template_name_beside_describe_suggests_dash_t() {
     )
     .unwrap();
     let stderr = refusal(dir.path(), &["--describe", "finding"]);
-    assert!(
-        stderr.contains("--describe takes no title; did you mean -t finding?"),
-        "{stderr}"
+    assert_eq!(
+        stderr,
+        "error: --describe takes no title: 'finding'\n\
+         hint: to describe that template, name it with -t: mt add -t finding --describe\n"
     );
 }
 
@@ -37,8 +38,11 @@ fn any_other_title_beside_describe_is_refused() {
     let dir = tempfile::tempdir().unwrap();
     support::scaffold(dir.path());
     let stderr = refusal(dir.path(), &["--describe", "Fix", "the", "bug"]);
-    assert!(stderr.contains("--describe takes no title"), "{stderr}");
-    assert!(!stderr.contains("did you mean"), "{stderr}");
+    assert_eq!(
+        stderr,
+        "error: --describe takes no title: 'Fix the bug'\n\
+         hint: to describe a template, name it with -t\n"
+    );
 }
 
 #[test]

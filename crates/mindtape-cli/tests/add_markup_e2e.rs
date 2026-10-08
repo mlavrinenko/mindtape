@@ -95,7 +95,7 @@ fn raw_slot_unparseable_markup_fails_naming_the_slot_before_writing() {
 
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stderr.contains("\"summary\""),
+        stderr.contains("'summary'"),
         "the error must name the slot: {stderr}"
     );
     assert!(

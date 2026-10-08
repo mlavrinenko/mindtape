@@ -19,7 +19,7 @@ use std::fs::File;
 use std::io::{IsTerminal, Read, Write as _};
 use std::path::Path;
 
-use anyhow::{Context, Result, anyhow};
+use anyhow::Result;
 use clap::Args;
 use mindtape::{
     Config, RawValue, RequiredSlot, SlotKind, SlotSpec, discover_slots, escape_markup, fill,
@@ -34,10 +34,12 @@ use crate::cmd::add::values::{
     DescribeFormat, collect_values, describe, layer_env, list_templates, reject_unknown_keys,
     resolve_template, stdin_title,
 };
+use crate::diag::{Diag, Hint, Note};
 use crate::task_edit::{filing_status, initial_status, task_with, upsert_named_arg};
 use crate::util;
 
 mod hint;
+use hint::Rescue;
 mod notes;
 mod target;
 use notes::report_injected;
@@ -171,8 +173,7 @@ pub fn run(args: &AddArgs) -> Result<()> {
     if interactive {
         values = interactive::run(&config.add, &specs, &values)?;
     }
-    let filled =
-        fill(&source, &markup_safe(&values, &specs)).map_err(|err| anyhow!(err.to_string()))?;
+    let filled = fill(&source, &markup_safe(&values, &specs)).map_err(Diag::from)?;
     let filled = inject_header(&filled, config, status.as_deref())?;
     let filled = util::canonical_source(config, filled);
     report_injected(&filled, &injected, &explicit, &env_keys)?;
@@ -184,26 +185,20 @@ pub fn run(args: &AddArgs) -> Result<()> {
     let stem = output_stem(args, &values, config)?;
     let file = dest.join(format!("{stem}.typ"));
 
+    let rescue = Rescue::new(interactive);
     let written = if args.print {
-        print_preview(args, &project, &file, &filled, interactive)
+        print_preview(args, &project, &file, &filled, &rescue)
     } else {
-        write_task(args, &project, (&stem, &dest, file), &filled, interactive)
+        write_task(args, &project, (&stem, &dest, file), &filled, &rescue)
     };
-    written.map_err(|err| {
-        let Some(refused) = hint::refused_fields(&err) else {
-            return err;
-        };
-        match hint::template_hint(
-            config,
-            &project.root,
-            &template_name,
-            (&source, &filled),
-            (&explicit, refused.as_ref()),
-        ) {
-            Some(hint) => anyhow!("{err:#}\n{hint}"),
-            None => err,
-        }
-    })
+    let context = hint::RefusalContext {
+        config,
+        root: &project.root,
+        template: &template_name,
+        sources: (&source, &filled),
+        explicit: &explicit,
+    };
+    written.map_err(|err| context.decorate(err, rescue.parked.take()))
 }
 
 /// Resolve the dedup outcome, then [`commit`] the task.
@@ -212,14 +207,14 @@ fn write_task(
     project: &util::Project,
     (stem, dest, file): (&str, &Path, std::path::PathBuf),
     filled: &str,
-    interactive: bool,
+    rescue: &Rescue,
 ) -> Result<()> {
     let outcome = resolve_outcome(args, &project.config, stem, dest, file)?;
     let Some(outcome) = outcome else {
         // `--dedup skip` already reported the existing path; nothing to write.
         return Ok(());
     };
-    commit(args, project, &outcome, filled, interactive)
+    commit(args, project, &outcome, filled, rescue)
 }
 
 /// Print the preview — but only after the same pre-write check a write runs.
@@ -231,10 +226,10 @@ fn print_preview(
     project: &util::Project,
     file: &Path,
     filled: &str,
-    interactive: bool,
+    rescue: &Rescue,
 ) -> Result<()> {
     if !args.no_verify {
-        pre_verify(project, file, filled, interactive)?;
+        pre_verify(project, file, filled, rescue)?;
     }
     print!("{filled}");
     Ok(())
@@ -254,24 +249,24 @@ fn commit(
     project: &util::Project,
     outcome: &output::Outcome,
     filled: &str,
-    interactive: bool,
+    rescue: &Rescue,
 ) -> Result<()> {
     let file = outcome.path();
-    let checked = args.no_verify || pre_verify(project, file, filled, interactive)?;
+    let checked = args.no_verify || pre_verify(project, file, filled, rescue)?;
 
     let dest = file.parent().unwrap_or(Path::new("."));
-    std::fs::create_dir_all(dest).with_context(|| format!("create {}", dest.display()))?;
+    std::fs::create_dir_all(dest).map_err(|err| Diag::cannot_write(dest, &err))?;
     // `create_new`, not `write_atomic`: the dedup check above only proves no
     // file was here a moment ago, and a plain create-or-truncate write would
     // silently clobber one that appeared since. `create_new` fails instead.
     File::create_new(file)
         .and_then(|mut handle| handle.write_all(filled.as_bytes()))
-        .with_context(|| format!("write {}", file.display()))?;
+        .map_err(|err| Diag::cannot_write(file, &err))?;
     warn_if_outside_roots(project, dest);
     output::emit(outcome, args.format);
 
     if !checked {
-        crate::task_edit::verify_written(&project.root, file).with_context(|| kept_note(file))?;
+        crate::task_edit::verify_written(&project.root, file).map_err(|err| kept(err, file))?;
     }
     Ok(())
 }
@@ -286,18 +281,10 @@ fn commit(
 /// outside every root keeps the recovery without the cost: no later `mt`
 /// command ever loads it. A `-f`/`--set` rejection parks nothing; the values
 /// are still in the shell history that produced them.
-fn pre_verify(
-    project: &util::Project,
-    file: &Path,
-    source: &str,
-    interactive: bool,
-) -> Result<bool> {
+fn pre_verify(project: &util::Project, file: &Path, source: &str, rescue: &Rescue) -> Result<bool> {
     let result = crate::task_edit::verify_candidate(project, file, source);
-    if result.is_err()
-        && interactive
-        && let Some(parked) = park(source)
-    {
-        eprintln!("note: the filled task was parked at {}", parked.display());
+    if result.is_err() && rescue.interactive {
+        rescue.parked.set(park(source));
     }
     result
 }
@@ -359,11 +346,15 @@ fn markup_safe(
 ///
 /// Under a root the order is the other way round ([`pre_verify`]) and no such
 /// file exists, so this note is never printed there.
-fn kept_note(file: &Path) -> String {
-    format!(
-        "{} was kept on disk exactly as written; fix or delete it before the next command",
-        file.display()
-    )
+fn kept(err: anyhow::Error, file: &Path) -> Diag {
+    let diag = Diag::from(err).note(
+        Note::new("the task was kept on disk exactly as written").value(file.display().to_string()),
+    );
+    if diag.has_hint_room() {
+        diag.hint(Hint::new("fix or delete it before the next command"))
+    } else {
+        diag
+    }
 }
 
 /// Splice slot-bearing values for config-required core fields the template
@@ -382,7 +373,7 @@ pub(crate) fn splice_config_slots(
     status: Option<&str>,
 ) -> Result<(String, Vec<RequiredSlot>)> {
     let source =
-        mindtape::inherit_field_choices(source, config).map_err(|err| anyhow!(err.to_string()))?;
+        mindtape::inherit_field_choices(source, config).map_err(|err| edit_failed(&err))?;
     let call = task_with(&source)?;
     let mut edits = Vec::new();
     let mut injected = Vec::new();
@@ -392,7 +383,7 @@ pub(crate) fn splice_config_slots(
             injected.push(slot);
         }
     }
-    let spliced = apply(&source, edits).map_err(|err| anyhow!(err.to_string()))?;
+    let spliced = apply(&source, edits).map_err(|err| edit_failed(&err))?;
     Ok((spliced, injected))
 }
 
@@ -418,7 +409,12 @@ pub(crate) fn inject_header(
         edits.push(upsert_named_arg(source, &call, "id", &format!("\"{id}\""))?);
     }
 
-    apply(source, edits).map_err(|err| anyhow!(err.to_string()))
+    apply(source, edits).map_err(|err| edit_failed(&err).into())
+}
+
+/// The template's edits overlapped or ran out of bounds.
+fn edit_failed(err: &typst_edit::EditError) -> Diag {
+    Diag::failed("can't rewrite the template").cause(err)
 }
 
 /// Seed the `title` slot from the positional `TITLE` words, joined with spaces.
@@ -480,7 +476,7 @@ fn fill_title_from_stdin(values: &mut BTreeMap<String, RawValue>, args: &AddArgs
     let mut raw = String::new();
     std::io::stdin()
         .read_to_string(&mut raw)
-        .context("read title from stdin")?;
+        .map_err(|err| Diag::failed("can't read the title from stdin").io(&err))?;
     if let Some(title) = stdin_title(&raw) {
         values.insert("title".to_owned(), RawValue::Str(title));
     }

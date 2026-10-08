@@ -257,17 +257,72 @@ fn an_unknown_status_is_a_usage_error() {
 /// An error no call site has converted yet still comes out as one prefixed
 /// line, its causes joined with `: `.
 #[test]
-fn an_unconverted_error_chain_is_one_line_without_caused_by() {
+fn a_values_file_that_cannot_be_read_is_one_error_without_caused_by() {
     let dir = two_tasks();
 
     let (code, stderr) = run(dir.path(), &["add", "-f", "/nonexistent", "Gamma"]);
 
     assert_eq!(code, Some(1), "{stderr}");
-    assert_prefixed(&stderr);
     assert!(!stderr.contains("Caused by"), "{stderr}");
-    assert!(
-        stderr.starts_with("error: read values from /nonexistent: "),
-        "{stderr}"
+    assert_eq!(
+        stderr,
+        "error: can't read values: '/nonexistent': no such file or directory\n"
+    );
+}
+
+#[test]
+fn a_missing_slot_names_the_flags_that_fill_it() {
+    let dir = two_tasks();
+
+    let (code, stderr) = run(dir.path(), &["add", "--name", "gamma"]);
+
+    assert_eq!(code, Some(2), "{stderr}");
+    assert_eq!(
+        stderr,
+        "error: missing a required slot: 'title'\n\
+         hint: pass each with --set name=value, or with -f\n\
+         hint: run mt add --describe to see the slots\n"
+    );
+}
+
+#[test]
+fn an_unknown_template_is_a_usage_error_with_a_hint() {
+    let dir = two_tasks();
+
+    let (code, stderr) = run(dir.path(), &["add", "-t", "nope", "Gamma"]);
+
+    assert_eq!(code, Some(2), "{stderr}");
+    assert_eq!(
+        stderr,
+        "error: unknown template: 'nope'\nhint: run mt add --list to see the templates\n"
+    );
+}
+
+#[test]
+fn a_link_to_a_missing_task_is_one_error_and_no_summary() {
+    let dir = two_tasks();
+
+    let (code, stderr) = run(dir.path(), &["link", "alpha", "depends-on", "nope"]);
+
+    assert_eq!(code, Some(1), "{stderr}");
+    assert_eq!(
+        stderr,
+        "error: tasks/alpha.typ: edge target names no task: 'nope' of kind 'depends-on'\n\
+         hint: run mt ls to see your tasks\n"
+    );
+}
+
+#[test]
+fn an_unknown_field_for_set_is_a_usage_error() {
+    let dir = two_tasks();
+
+    let (code, stderr) = run(dir.path(), &["set", "alpha", "titel=x"]);
+
+    assert_eq!(code, Some(2), "{stderr}");
+    assert_eq!(
+        stderr,
+        "error: unknown field: 'titel'\nhint: did you mean title?\n\
+         hint: run mt set --help to see the fields you can set\n"
     );
 }
 

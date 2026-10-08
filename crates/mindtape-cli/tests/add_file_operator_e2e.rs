@@ -124,7 +124,7 @@ fn a_file_that_does_not_fit_the_kind_fails_naming_the_slot() {
         .clone();
 
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("\"weight\""), "{stderr}");
+    assert!(stderr.contains("'weight'"), "{stderr}");
     assert!(
         !dir.path().join("tasks/bad-typed.typ").exists(),
         "nothing may be written when a slot rejects its value"
@@ -165,8 +165,10 @@ fn an_unreadable_file_fails_before_writing() {
         .clone();
 
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("\"summary\""), "{stderr}");
-    assert!(stderr.contains("no/such/notes.txt"), "{stderr}");
+    assert!(
+        stderr.contains("error: can't read slot file: 'no/such/notes.txt' for slot 'summary'"),
+        "{stderr}"
+    );
     assert!(
         !dir.path().join("tasks/missing.typ").exists(),
         "a bad token may not leave a file behind"

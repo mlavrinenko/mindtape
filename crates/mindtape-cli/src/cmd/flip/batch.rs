@@ -53,18 +53,6 @@ pub(crate) fn after_batch_diags(
     Ok(())
 }
 
-/// [`after_batch_diags`], each problem as its message line, for a writer that
-/// still reports its problems as strings (`mt link`).
-///
-/// # Errors
-/// Returns an error if the config no longer loads after the batch's writes.
-pub(crate) fn after_batch(root: &Path, landed: &Landed, problems: &mut Vec<String>) -> Result<()> {
-    let mut found = Vec::new();
-    after_batch_diags(root, landed, &mut found)?;
-    problems.extend(found.iter().map(ToString::to_string));
-    Ok(())
-}
-
 /// Append any load error or fatal validation violation in the reloaded
 /// `project` that touches a flipped file to `problems` (tolerant batch: writes
 /// are kept).

@@ -13,17 +13,14 @@
 /// its `.rs`. Sorted.
 const UNCONVERTED: &[&str] = &[
     "cli/check_argv",
-    "cmd/add",
     "cmd/check",
     "cmd/eval",
     "cmd/go",
     "cmd/import",
     "cmd/init",
-    "cmd/link",
     "cmd/ls",
     "cmd/preset",
     "cmd/review",
-    "cmd/set",
     "cmd/worktrees",
 ];
 

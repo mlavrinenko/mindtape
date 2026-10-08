@@ -5,12 +5,15 @@ use mindtape::RawValue;
 
 use super::parse_mapping;
 
-fn parse(text: &str) -> anyhow::Result<std::collections::BTreeMap<String, Option<RawValue>>> {
-    parse_mapping(
-        text,
-        || "syntax context".to_owned(),
-        || "non-mapping root".to_owned(),
-    )
+fn parse(
+    text: &str,
+) -> Result<std::collections::BTreeMap<String, Option<RawValue>>, crate::diag::Diag> {
+    parse_mapping(text, Some("v.yaml"))
+}
+
+/// The refusal as stderr prints it.
+fn refusal(text: &str) -> String {
+    crate::diag::plain(&parse(text).unwrap_err())
 }
 
 #[test]
@@ -53,39 +56,60 @@ fn null_root_is_an_empty_mapping() {
 }
 
 #[test]
-fn non_mapping_root_uses_the_callers_message() {
-    let err = parse("- a\n- b\n").unwrap_err().to_string();
-    assert_eq!(err, "non-mapping root");
+fn non_mapping_root_names_the_source() {
+    assert_eq!(
+        refusal("- a\n- b\n"),
+        "error: values must be a YAML mapping: 'v.yaml'\n"
+    );
 }
 
 #[test]
-fn malformed_yaml_uses_the_callers_syntax_context() {
-    let err = parse("key: [unterminated\n").unwrap_err().to_string();
-    assert_eq!(err, "syntax context");
+fn malformed_yaml_names_the_source() {
+    let err = refusal("key: [unterminated\n");
+    assert!(
+        err.starts_with("error: can't parse YAML: 'v.yaml': "),
+        "{err}"
+    );
+}
+
+#[test]
+fn the_editor_buffer_has_no_source_to_name() {
+    let err = parse_mapping("- a\n", None).unwrap_err();
+    assert_eq!(
+        crate::diag::plain(&err),
+        "error: values must be a YAML mapping\n"
+    );
 }
 
 #[test]
 fn multi_document_stream_is_rejected() {
-    // The underlying parser already refuses more than one document; the
-    // caller's syntax context wraps that failure.
-    let err = parse("---\na: 1\n---\nb: 2\n").unwrap_err().to_string();
-    assert_eq!(err, "syntax context");
+    let err = refusal("---\na: 1\n---\nb: 2\n");
+    assert!(
+        err.starts_with("error: can't parse YAML: 'v.yaml': "),
+        "{err}"
+    );
 }
 
 #[test]
 fn non_string_key_errors() {
-    let err = parse("1: a\n").unwrap_err().to_string();
-    assert!(err.contains("keys must be strings"), "{err}");
+    assert_eq!(
+        refusal("1: a\n"),
+        "error: YAML keys must be strings: 'v.yaml'\n"
+    );
 }
 
 #[test]
 fn nested_mapping_value_errors() {
-    let err = parse("nested:\n  a: 1\n").unwrap_err().to_string();
-    assert!(err.contains("value for \"nested\""), "{err}");
+    assert_eq!(
+        refusal("nested:\n  a: 1\n"),
+        "error: nested mappings are unsupported: 'nested'\n"
+    );
 }
 
 #[test]
 fn non_string_list_item_errors() {
-    let err = parse("tags:\n  - 1\n").unwrap_err().to_string();
-    assert!(err.contains("value for \"tags\""), "{err}");
+    assert_eq!(
+        refusal("tags:\n  - 1\n"),
+        "error: list items must be strings: 'tags'\n"
+    );
 }

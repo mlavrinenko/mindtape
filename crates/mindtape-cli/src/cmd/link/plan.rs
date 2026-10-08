@@ -22,6 +22,7 @@ use mindtape::{Task, suggest};
 
 use crate::cmd::link::edit::{EdgeSpec, Mode, links_edit};
 use crate::cmd::link::input::Entry;
+use crate::diag::{Command, Diag, Hint, Note};
 use crate::util::{self, Project};
 
 /// One task's staged rewrite, ready to write or to report.
@@ -47,8 +48,11 @@ pub struct Plan {
     pub staged: Vec<Staged>,
     /// Entries whose task already says exactly this — reported, not written.
     pub unchanged: Vec<String>,
-    /// Per-entry failures, already prefixed with the entry they belong to.
-    pub problems: Vec<String>,
+    /// Per-entry failures, each naming the entry it belongs to.
+    pub problems: Vec<Diag>,
+    /// How many entries failed, which can be fewer than `problems` when one
+    /// entry has several.
+    pub failed: usize,
 }
 
 /// Stage every entry against `project`. Never fails as a whole: an entry that
@@ -75,19 +79,23 @@ fn stage(project: &Project, files: &HashSet<&Path>, entry: &Entry, mode: Mode, p
     let (task, abs) = match util::resolve_task(project, stem) {
         Ok(resolved) => resolved,
         Err(err) => {
-            plan.problems.push(format!("{stem}: {err:#}"));
+            plan.problems.push(err.into());
+            plan.failed += 1;
             return;
         }
     };
     let edges = settle_targets(project, &task, files, &entry.edges);
-    let refusals = check_edges(project, &task, files, &edges);
+    let refusals = check_edges(project, &task, files, (&edges, &entry.edges));
     if !refusals.is_empty() {
-        plan.problems
-            .extend(refusals.into_iter().map(|why| format!("{stem}: {why}")));
+        plan.problems.extend(refusals);
+        plan.failed += 1;
         return;
     }
     match rewrite(&abs, &task, &edges, mode) {
-        Err(err) => plan.problems.push(format!("{stem}: {err:#}")),
+        Err(err) => {
+            plan.problems.push(err);
+            plan.failed += 1;
+        }
         Ok(None) => plan.unchanged.push(task.id.clone()),
         Ok(Some(rewritten)) => plan.staged.push(Staged {
             stem: task.id.clone(),
@@ -192,14 +200,18 @@ fn rewrite(
     task: &Task,
     edges: &[EdgeSpec],
     mode: Mode,
-) -> anyhow::Result<Option<Rewritten>> {
-    use anyhow::Context as _;
-    let source = std::fs::read_to_string(abs).with_context(|| format!("read {}", abs.display()))?;
-    let Some(edit) = links_edit(&source, &task.links, edges, mode)? else {
+) -> Result<Option<Rewritten>, Diag> {
+    let source = std::fs::read_to_string(abs).map_err(|err| Diag::cannot_read(abs, &err))?;
+    let Some(edit) = links_edit(&source, &task.links, edges, mode)
+        .map_err(|err| Diag::from(err).at_file(abs))?
+    else {
         return Ok(None);
     };
-    let updated = typst_edit::apply(&source, vec![edit.edit])
-        .map_err(|err| anyhow::anyhow!("rewrite `links:`: {err}"))?;
+    let updated = typst_edit::apply(&source, vec![edit.edit]).map_err(|err| {
+        Diag::failed("can't rewrite links:")
+            .at_file(abs)
+            .cause(&err)
+    })?;
     Ok(Some(Rewritten {
         updated,
         added: edit.added,
@@ -209,24 +221,26 @@ fn rewrite(
 
 /// Every reason `edges` cannot be written onto `task`, collected rather than
 /// short-circuited so one run reports all of them instead of one per re-run.
+/// `edges` is the settled and the typed edge list, in step: a message names the
+/// target as the user typed it.
 fn check_edges(
     project: &Project,
     task: &Task,
     files: &HashSet<&Path>,
-    edges: &[EdgeSpec],
-) -> Vec<String> {
+    (edges, typed): (&[EdgeSpec], &[EdgeSpec]),
+) -> Vec<Diag> {
     let links = &project.config.tasks.links;
     let mut refusals = Vec::new();
-    for edge in edges {
+    for (edge, typed) in edges.iter().zip(typed) {
         let Some(rule) = resolve_kind(&edge.kind, links) else {
-            refusals.push(unknown_kind(&edge.kind, links));
+            refusals.push(unknown_kind(&edge.kind, links, task));
             continue;
         };
-        if let Some(why) = note_problem(edge, rule.note) {
-            refusals.push(why);
+        if let Some(why) = note_problem(edge, typed, rule.note) {
+            refusals.push(why.at_file(&task.file));
         }
         if kind_targets_tasks(&edge.kind, links)
-            && let Some(why) = target_problem(project, task, edge, files)
+            && let Some(why) = target_problem(project, task, (edge, typed), files)
         {
             refusals.push(why);
         }
@@ -234,37 +248,43 @@ fn check_edges(
     refusals
 }
 
-/// The unknown-kind refusal: what was written, what is configured, and the
-/// nearest configured name when one clears the similarity floor — the same
-/// enumerate-then-suggest shape `mt flip`'s unknown-status error carries.
-fn unknown_kind(kind: &str, links: &mindtape::link::LinksConfig) -> String {
+/// The unknown-kind refusal: what was written, the nearest configured name
+/// when one clears the similarity floor, and what is configured.
+fn unknown_kind(kind: &str, links: &mindtape::link::LinksConfig, task: &Task) -> Diag {
     let names = kind_names(links);
-    format!(
-        "`{kind}` is not a configured link kind; configured: {}{}",
-        names.join(", "),
-        suggest::suggestion(kind, &names)
-    )
+    let diag = Diag::usage("unknown link kind")
+        .at_file(&task.file)
+        .value(kind);
+    let diag = match suggest::nearest(kind, &names) {
+        Some(near) => diag.hint(Hint::did_you_mean(near)),
+        None => diag,
+    };
+    diag.note(Note::new("configured kinds").name(names.join(", ")))
 }
 
 /// The note-rule refusal for one edge, or `None` when it satisfies the kind's
 /// rule. Named per edge, not per task: a bulk map declaring twenty `related`
 /// edges has to say which ones are missing a reason.
-fn note_problem(edge: &EdgeSpec, rule: NoteRule) -> Option<String> {
+fn note_problem(edge: &EdgeSpec, typed: &EdgeSpec, rule: NoteRule) -> Option<Diag> {
     let note = edge
         .note
         .as_deref()
         .map(str::trim)
         .filter(|n| !n.is_empty());
     match rule {
-        NoteRule::Required if note.is_none() => Some(format!(
-            "`{}` edge to `{}` requires a note; supply one with -m/--note, \
-             or a `note:` field on the target in the map",
-            edge.kind, edge.target
-        )),
-        NoteRule::Forbidden if note.is_some() => Some(format!(
-            "`{}` edge to `{}` must not carry a note",
-            edge.kind, edge.target
-        )),
+        NoteRule::Required if note.is_none() => Some(
+            Diag::refused("edge requires a note")
+                .value(typed.target.as_str())
+                .context("of kind", edge.kind.as_str())
+                .hint(Hint::new(
+                    "pass one with -m, or a note: field on the target in the map",
+                )),
+        ),
+        NoteRule::Forbidden if note.is_some() => Some(
+            Diag::refused("edge must not carry a note")
+                .value(typed.target.as_str())
+                .context("of kind", edge.kind.as_str()),
+        ),
         NoteRule::Required | NoteRule::Optional | NoteRule::Forbidden => None,
     }
 }
@@ -278,21 +298,25 @@ fn note_problem(edge: &EdgeSpec, rule: NoteRule) -> Option<String> {
 fn target_problem(
     project: &Project,
     task: &Task,
-    edge: &EdgeSpec,
+    (edge, typed): (&EdgeSpec, &EdgeSpec),
     files: &HashSet<&Path>,
-) -> Option<String> {
+) -> Option<Diag> {
     let resolved = resolve_link_path(&task.file, &edge.target);
     if resolved.as_deref().is_some_and(|path| files.contains(path)) {
         return None;
     }
     let candidates = stem_candidates(project, task, &edge.target);
     if !edge.target.contains('/') && candidates.len() > 1 {
-        return Some(format!(
-            "`{}` edge target `{}` is ambiguous: {} carry that stem; pass one of them",
-            edge.kind,
-            edge.target,
-            candidates.join(", ")
-        ));
+        return Some(
+            candidates.iter().fold(
+                Diag::failed("edge target is ambiguous")
+                    .at_file(&task.file)
+                    .value(typed.target.as_str())
+                    .context("of kind", edge.kind.as_str())
+                    .hint(Hint::new("pass the path of the one you mean")),
+                |diag, candidate| diag.note(Note::new("candidate").name(candidate.clone())),
+            ),
+        );
     }
     let ids: Vec<&str> = project
         .outcome
@@ -300,12 +324,16 @@ fn target_problem(
         .iter()
         .map(|task| task.id.as_str())
         .collect();
-    Some(format!(
-        "`{}` edge target `{}` names no task{}",
-        edge.kind,
-        edge.target,
-        suggest::suggestion(&mindtape::normalize_link(&edge.target), &ids)
-    ))
+    let diag = Diag::failed("edge target names no task")
+        .at_file(&task.file)
+        .value(typed.target.as_str())
+        .context("of kind", edge.kind.as_str());
+    Some(
+        match suggest::nearest(&mindtape::normalize_link(&edge.target), &ids) {
+            Some(near) => diag.hint(Hint::did_you_mean(near)),
+            None => diag.hint(Hint::run(Command::mt().word("ls"), "to see your tasks")),
+        },
+    )
 }
 
 #[cfg(test)]

@@ -428,8 +428,9 @@ fn notes_the_env_filled_assignee() {
     let dir = tempfile::tempdir().unwrap();
     let stderr = add_capture_stderr(dir.path(), ASSIGNEE_REQUIRED_CONFIG, "noted", "ada", &[]);
     assert!(
-        stderr
-            .contains(r#"note: assignee "ada" came from [tasks.assignee] env MINDTAPE_PRINCIPAL"#),
+        stderr.contains(
+            "note: filled in from config: assignee = ada ([tasks.assignee] env MINDTAPE_PRINCIPAL)"
+        ),
         "the env origin must be named: {stderr}"
     );
     assert!(
@@ -447,7 +448,8 @@ fn notes_the_default_filled_kind() {
     let dir = tempfile::tempdir().unwrap();
     let stderr = add_capture_stderr(dir.path(), KIND_DEFAULT_CONFIG, "defaulted", "ada", &[]);
     assert!(
-        stderr.contains(r#"note: kind "feature" came from [tasks.fields.kind] default"#),
+        stderr
+            .contains("note: filled in from config: kind = feature ([tasks.fields.kind] default)"),
         "the config default must be named: {stderr}"
     );
     let written = std::fs::read_to_string(dir.path().join("tasks/defaulted.typ")).unwrap();
@@ -464,7 +466,9 @@ fn splices_a_required_extension_field() {
     let dir = tempfile::tempdir().unwrap();
     let stderr = add_capture_stderr(dir.path(), CONFIG, "filled", "ada", &[]);
     assert!(
-        stderr.contains(r#"note: x-machine "alpha" came from [tasks.fields.x-machine] default"#),
+        stderr.contains(
+            "note: filled in from config: x-machine = alpha ([tasks.fields.x-machine] default)"
+        ),
         "{stderr}"
     );
     support::mt(dir.path())

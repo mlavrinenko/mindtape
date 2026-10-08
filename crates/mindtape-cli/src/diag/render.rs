@@ -131,6 +131,15 @@ pub(crate) fn emit(diag: &Diag) {
     let _ = std::io::stderr().lock().write_all(text.as_bytes());
 }
 
+/// Write one `note:` line to stderr, for context that stands alone because
+/// nothing failed or the failure is reported elsewhere.
+pub(crate) fn emit_note(note: &Note) {
+    let painter = Painter::new(color::is_stderr_color_active());
+    let mut out = String::new();
+    push(&mut out, painter, "note", &note.to_string());
+    let _ = std::io::stderr().lock().write_all(out.as_bytes());
+}
+
 /// Whether stderr is a terminal, for the colour decision. Asked here, so
 /// stderr has one owner.
 pub(crate) fn stderr_is_terminal() -> bool {

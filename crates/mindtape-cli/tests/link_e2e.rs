@@ -56,7 +56,7 @@ fn a_rejected_edge_leaves_the_file_untouched() {
     assert!(!output.status.success(), "a rejected edge must fail");
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stderr.contains("error: wire-oauth: not linked:"),
+        stderr.starts_with("error: ") && stderr.contains("depends-on cycle"),
         "a blocking problem reports as an error: {stderr}"
     );
 
@@ -190,8 +190,14 @@ fn an_unknown_kind_exits_non_zero_naming_the_configured_kinds() {
         .assert()
         .failure();
     let stderr = String::from_utf8_lossy(&output.get_output().stderr).into_owned();
-    assert!(stderr.contains("not a configured link kind"), "{stderr}");
-    assert!(stderr.contains("did you mean: depends-on?"), "{stderr}");
+    assert!(
+        stderr.contains("unknown link kind: 'depends-onn'"),
+        "{stderr}"
+    );
+    assert!(
+        stderr.contains("hint: did you mean depends-on?"),
+        "{stderr}"
+    );
     assert!(!source(dir.path(), "wire-oauth").contains("links:"));
 }
 

@@ -108,7 +108,7 @@
       "name": "add-with-priority-slot-trap",
       "fixture": "examples/minimal",
       "prompt": "File a task to upgrade the Postgres driver, and give it priority 8.",
-      "expected_output": "examples/minimal declares no template, so `mt add` uses the built-in fallback whose only slot is `title`. `--set priority=8` names a slot the template does not have, and the binary refuses it loudly — non-zero exit, `error: unknown --set/-f key(s): priority; known slots: title` — rather than dropping it silently. The agent recovers: drop `--set priority=8`, run `mt add \"Upgrade the Postgres driver\"` alone to file the task, then `mt set upgrade-the-postgres-driver priority=8` to write the field `mt add` had no slot for, and confirm with `mt check`.",
+      "expected_output": "examples/minimal declares no template, so `mt add` uses the built-in fallback whose only slot is `title`. `--set priority=8` names a slot the template does not have, and the binary refuses it loudly — non-zero exit, `error: unknown slot: 'priority'` with a hint to run `mt add --describe` — rather than dropping it silently. The agent recovers: drop `--set priority=8`, run `mt add \"Upgrade the Postgres driver\"` alone to file the task, then `mt set upgrade-the-postgres-driver priority=8` to write the field `mt add` had no slot for, and confirm with `mt check`.",
       "files": [],
       "assertions": [
         {
@@ -118,7 +118,7 @@
           "text": "A new task file exists about upgrading the Postgres driver"
         },
         {
-          "text": "Recognized the `--set priority=8` refusal as an error to recover from, not a silent no-op — the command exits non-zero naming the unknown key and the known slots"
+          "text": "Recognized the `--set priority=8` refusal as an error to recover from, not a silent no-op — the command exits non-zero naming the unknown slot"
         },
         {
           "text": "The new task carries `priority: 8`, written by `mt set upgrade-the-postgres-driver priority=8` after filing — not passed via `mt add --set` (which the built-in template refuses)"

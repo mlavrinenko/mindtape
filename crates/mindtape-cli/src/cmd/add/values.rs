@@ -4,11 +4,13 @@ use std::collections::BTreeMap;
 use std::io::Read;
 use std::path::Path;
 
-use anyhow::{Context, Result, bail};
 use mindtape::{Config, RawValue, SlotSpec};
 
 use crate::cmd::add::tokens::apply_token;
 use crate::cmd::add::yaml_values;
+use crate::diag::{Command, Diag, Hint, Note};
+
+type Result<T> = std::result::Result<T, Diag>;
 
 /// Built-in default task template, used when no `task.typ` is found under the
 /// configured template dirs.
@@ -32,7 +34,9 @@ impl DescribeFormat {
         match text {
             "text" => Ok(Self::Text),
             "json" => Ok(Self::Json),
-            other => bail!("unknown describe format {other:?}; expected text or json"),
+            other => Err(Diag::usage("unknown describe format")
+                .value(other)
+                .hint(Hint::new("use text or json"))),
         }
     }
 }
@@ -44,15 +48,27 @@ impl DescribeFormat {
 /// Returns an error when a named template is absent and is not the built-in.
 pub fn resolve_template(config: &Config, root: &Path, name: &str) -> Result<String> {
     if let Some(path) = template_path(config, root, name) {
-        return std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()));
+        return std::fs::read_to_string(&path).map_err(|err| Diag::cannot_read(&path, &err));
     }
     if name == "task" {
         return Ok(BUILTIN_TASK.to_owned());
     }
-    bail!(
-        "template {name:?} not found under {:?}",
-        config.templates.dirs
-    )
+    Err(unknown_template(config, root, name))
+}
+
+/// The refusal for a template no configured dir holds: the nearest template
+/// when one is close, else where to list them.
+fn unknown_template(config: &Config, root: &Path, name: &str) -> Diag {
+    let names = list_templates(config, root);
+    let known: Vec<&str> = names.iter().map(String::as_str).collect();
+    let diag = Diag::usage("unknown template").value(name);
+    match mindtape::suggest::nearest(name, &known) {
+        Some(near) => diag.hint(Hint::did_you_mean(near)),
+        None => diag.hint(Hint::run(
+            Command::mt().word("add").word("--list"),
+            "to see the templates",
+        )),
+    }
 }
 
 /// The file template `name` resolves to: the first configured dir holding
@@ -146,15 +162,20 @@ pub fn reject_unknown_keys(values: &BTreeMap<String, RawValue>, specs: &[SlotSpe
     if unknown.is_empty() {
         return Ok(());
     }
-    let named: Vec<String> = unknown
-        .iter()
-        .map(|key| format!("{key}{}", mindtape::suggest::suggestion(key, &known)))
-        .collect();
-    bail!(
-        "unknown --set/-f key(s): {}; known slots: {}",
-        named.join(", "),
-        known.join(", ")
-    );
+    let mut keys = unknown.into_iter();
+    let first = keys.next().unwrap_or_default();
+    let diag = Diag::usage("unknown slot").value(first);
+    let diag = match mindtape::suggest::nearest(first, &known) {
+        Some(near) => diag.hint(Hint::did_you_mean(near)),
+        None => diag,
+    };
+    let diag = keys.fold(diag, |diag, key| {
+        diag.note(Note::new("also unknown").value(key))
+    });
+    Err(diag.hint(Hint::run(
+        Command::mt().word("add").word("--describe"),
+        "to see the slots",
+    )))
 }
 
 fn read_source(source: &str) -> Result<String> {
@@ -162,10 +183,11 @@ fn read_source(source: &str) -> Result<String> {
         let mut text = String::new();
         std::io::stdin()
             .read_to_string(&mut text)
-            .context("read values from stdin")?;
+            .map_err(|err| Diag::failed("can't read values from stdin").io(&err))?;
         return Ok(text);
     }
-    std::fs::read_to_string(source).with_context(|| format!("read values from {source}"))
+    std::fs::read_to_string(source)
+        .map_err(|err| Diag::failed("can't read values").value(source).io(&err))
 }
 
 /// Parse one `-f/--values` source into a key -> (value or explicit unset)
@@ -204,25 +226,20 @@ fn looks_like_json(text: &str) -> bool {
 }
 
 fn parse_json_source(source: &str, text: &str) -> Result<BTreeMap<String, Option<RawValue>>> {
-    let parsed: serde_json::Value =
-        serde_json::from_str(text).with_context(|| format!("parse JSON from {source}"))?;
+    let parsed: serde_json::Value = serde_json::from_str(text)
+        .map_err(|err| Diag::failed("can't parse JSON").value(source).cause(&err))?;
     let object = parsed
         .as_object()
-        .with_context(|| format!("values from {source} must be a JSON object"))?;
+        .ok_or_else(|| Diag::usage("values must be a JSON object").value(source))?;
     let mut out = BTreeMap::new();
     for (key, value) in object {
-        let raw = json_to_raw(value).with_context(|| format!("value for {key:?}"))?;
-        out.insert(key.clone(), raw);
+        out.insert(key.clone(), json_to_raw(key, value)?);
     }
     Ok(out)
 }
 
 fn parse_yaml_source(source: &str, text: &str) -> Result<BTreeMap<String, Option<RawValue>>> {
-    yaml_values::parse_mapping(
-        text,
-        || format!("parse YAML from {source}"),
-        || format!("values from {source} must be a mapping"),
-    )
+    yaml_values::parse_mapping(text, Some(source))
 }
 
 /// Extract a task title from raw stdin text: the first non-blank line, trimmed.
@@ -270,7 +287,7 @@ pub fn layer_env(
     }
 }
 
-fn json_to_raw(value: &serde_json::Value) -> Result<Option<RawValue>> {
+fn json_to_raw(key: &str, value: &serde_json::Value) -> Result<Option<RawValue>> {
     let raw = match value {
         serde_json::Value::Null => return Ok(None),
         serde_json::Value::String(text) => RawValue::Str(text.clone()),
@@ -284,13 +301,14 @@ fn json_to_raw(value: &serde_json::Value) -> Result<Option<RawValue>> {
             for item in items {
                 let text = item
                     .as_str()
-                    .context("array values must be strings")?
-                    .to_owned();
-                list.push(text);
+                    .ok_or_else(|| Diag::usage("list items must be strings").value(key))?;
+                list.push(text.to_owned());
             }
             RawValue::List(list)
         }
-        serde_json::Value::Object(_) => bail!("nested object values are unsupported"),
+        serde_json::Value::Object(_) => {
+            return Err(Diag::usage("nested objects are unsupported").value(key));
+        }
     };
     Ok(Some(raw))
 }
@@ -360,7 +378,8 @@ fn describe_json(specs: &[SlotSpec]) -> Result<String> {
             })
         })
         .collect();
-    serde_json::to_string_pretty(&rows).context("serialize slot description")
+    serde_json::to_string_pretty(&rows)
+        .map_err(|err| Diag::failed("can't serialize the slot description").cause(&err))
 }
 
 /// Slugify `text` into a filename stem: `mindtape::slug_from_title`'s rule,

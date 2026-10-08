@@ -72,7 +72,7 @@ CMD
 # Require a task shape: the template refuses a task with sections left out,
 # and the rule pack refuses a Problem written as prose.
 api_copy P
-capture --exit 1 --expect 'missing required slot' require-a-task-shape "$P" "$(
+capture --exit 2 --expect 'missing required slot' require-a-task-shape "$P" "$(
     cat <<'CMD'
 mt add -f - <<'EOF'
 title: Paginate the audit log endpoint

@@ -10,7 +10,8 @@
 use mindtape::config::{ConfigError, ConfigPlace};
 use mindtape::recur::dates::RecurError;
 use mindtape::{
-    ConditionError, DateOverrideError, FilterError, Location, RefError, Severity, Violation,
+    ConditionError, DateOverrideError, FillError, FilterError, Location, RefError, Severity,
+    SlotKind, Violation,
 };
 
 use super::{Command, Diag, Hint, Kind, Note};
@@ -332,5 +333,71 @@ fn reference(err: &RefError) -> Diag {
 impl From<RefError> for Diag {
     fn from(err: RefError) -> Self {
         reference(&err)
+    }
+}
+
+/// A slot fill that was rejected. A missing, mistyped or out-of-choice value is
+/// the command line's; a bad kind in the template or a failed rewrite is not.
+impl From<FillError> for Diag {
+    fn from(err: FillError) -> Self {
+        match err {
+            FillError::Missing(names) => Diag::usage(if names.len() == 1 {
+                "missing a required slot"
+            } else {
+                "missing required slots"
+            })
+            .value(names.join(", "))
+            .hint(Hint::new("pass each with --set name=value, or with -f"))
+            .hint(Hint::run(
+                Command::mt().word("add").word("--describe"),
+                "to see the slots",
+            )),
+            FillError::Type {
+                slot,
+                want: SlotKind::List | SlotKind::MultiChoice,
+                got,
+            } => Diag::usage("slot expects a list")
+                .value(slot.clone())
+                .reason(format!("got {got}"))
+                .hint(Hint::command(
+                    "add items one at a time",
+                    Command::mt()
+                        .word("add")
+                        .word("--set")
+                        .arg(format!("{slot}+=value")),
+                ))
+                .hint(Hint::new("or pass a JSON or YAML array with -f")),
+            FillError::Type { slot, want, got } => Diag::usage("slot has the wrong type")
+                .value(slot)
+                .reason(format!("expects {}, got {got}", want.as_str())),
+            FillError::BadChoice {
+                slot,
+                value,
+                choices,
+            } => {
+                let known: Vec<&str> = choices.iter().map(String::as_str).collect();
+                let diag = Diag::usage("not one of the slot's choices")
+                    .value(value.clone())
+                    .context("for slot", slot)
+                    .reason(format!("expected one of {}", choices.join(", ")));
+                match mindtape::suggest::nearest(&value, &known) {
+                    Some(near) => diag.hint(Hint::did_you_mean(near)),
+                    None => diag,
+                }
+            }
+            FillError::BadDate { slot, value } => Diag::usage("not a YYYY-MM-DD date")
+                .value(value)
+                .context("for slot", slot),
+            FillError::UnknownKind { slot, kind } => Diag::failed("slot declares an unknown kind")
+                .value(kind)
+                .context("in slot", slot)
+                .reason(
+                    "expected one of string, int, float, real, bool, date, list, text, raw, choice",
+                ),
+            FillError::BadMarkup { slot, message } => Diag::usage("slot is not valid Typst markup")
+                .value(slot)
+                .reason(message),
+            FillError::Edit(message) => Diag::failed("can't rewrite the template").reason(message),
+        }
     }
 }
