@@ -39,3 +39,16 @@ fn an_unknown_pack_is_quoted_and_names_the_near_match() {
         "{stderr}"
     );
 }
+
+#[test]
+fn a_hook_title_on_a_run_action_says_which_kind_takes_it() {
+    let stderr = ls_stderr(
+        "[tasks]\nroots = [\"tasks\"]\n\n[[on.flip]]\nwhen = \"\"\n\
+         actions = [{ run = \"true\", title = \"x\" }]\n",
+    );
+
+    assert_eq!(
+        stderr,
+        "error: .mindtape/config.toml:6: on.flip[0].actions[0]: 'title' applies only to list actions\n"
+    );
+}

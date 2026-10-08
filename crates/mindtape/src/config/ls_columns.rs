@@ -68,7 +68,7 @@ pub fn validate_ls_columns(ls: &LsConfig) -> Vec<String> {
         if LS_COLUMNS.contains(&name.as_str()) {
             validate_column_when(name, column, &mut problems);
         } else {
-            problems.push(format!("ls.columns: {}", unknown_column(name)));
+            problems.push(format!("ls.columns.{name}: {}", unknown_column(name)));
         }
     }
     let mut seen = BTreeSet::new();
@@ -76,7 +76,10 @@ pub fn validate_ls_columns(ls: &LsConfig) -> Vec<String> {
         if !LS_COLUMNS.contains(&name.as_str()) {
             problems.push(format!("ls.columns-order: {}", unknown_column(name)));
         } else if !seen.insert(name.as_str()) {
-            problems.push(format!("ls.columns-order: duplicate column `{name}`"));
+            problems.push(format!(
+                "ls.columns-order: duplicate column: {}",
+                crate::config::quote(name)
+            ));
         }
     }
     problems
@@ -96,7 +99,7 @@ fn validate_column_when(name: &str, column: &ColumnConfig, problems: &mut Vec<St
     };
     if expr.trim().is_empty() {
         problems.push(format!(
-            "ls.columns.{name}.when: empty expression; write `true` or `false`"
+            "ls.columns.{name}.when: empty expression: use true or false"
         ));
     } else if let Err(err) = Condition::parse(expr) {
         problems.push(format!("ls.columns.{name}.when: {err}"));
@@ -112,9 +115,10 @@ fn validate_column_when(name: &str, column: &ColumnConfig, problems: &mut Vec<St
 #[must_use]
 pub(crate) fn unknown_column(name: &str) -> String {
     format!(
-        "unknown column `{name}`, expected one of {}{}",
-        LS_COLUMNS.join(", "),
-        crate::suggest::suggestion(name, &LS_COLUMNS)
+        "unknown column: {}{}; columns: {}",
+        crate::config::quote(name),
+        crate::suggest::suggestion(name, &LS_COLUMNS),
+        LS_COLUMNS.join(", ")
     )
 }
 

@@ -47,7 +47,14 @@ pub fn validate_views(views: &BTreeMap<String, ViewSpec>) -> Vec<String> {
                 let named = filter.view_refs();
                 for target in &named {
                     if !views.contains_key(target) {
-                        problems.push(format!("views.{name}: unknown view reference @{target}"));
+                        problems.push(format!(
+                            "views.{name}: unknown view: {}{}",
+                            super::quote(target),
+                            crate::suggest::suggestion(
+                                target,
+                                &views.keys().map(String::as_str).collect::<Vec<_>>()
+                            )
+                        ));
                     }
                 }
                 refs.insert(name.as_str(), named);
@@ -62,13 +69,15 @@ pub fn validate_views(views: &BTreeMap<String, ViewSpec>) -> Vec<String> {
         for col in &spec.columns {
             if !LS_COLUMNS.contains(&col.as_str()) {
                 problems.push(format!(
-                    "views.{name}.columns: unknown column `{col}`, expected one of {legal_cols}"
+                    "views.{name}.columns: unknown column: {}{}; columns: {legal_cols}",
+                    super::quote(col),
+                    crate::suggest::suggestion(col, &LS_COLUMNS)
                 ));
             }
         }
     }
     if let Some(cycle) = find_cycle(&refs) {
-        problems.push(format!("views: reference cycle {}", cycle.join(" → ")));
+        problems.push(format!("views: reference cycle: {}", cycle.join(" -> ")));
     }
     problems
 }

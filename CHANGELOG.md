@@ -1280,6 +1280,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a second problem is a `note:` line, and a value is single-quoted.
   `ConfigError::Invalid` becomes a struct variant carrying the problems and a
   `ConfigPlace`; `git could not be run` reads `can't run git`.
+  The task, pack, actor, status, link, view, `[ls]`, hook and dict messages
+  keep their key path first and quote the value: a hook's `title` on a `run`
+  action reads `'title' applies only to list actions`.
 
 - **An error is one `error:` line, and a wrong command line exits 2.** `mt`
   prints its errors itself, so Rust's `Error:` and `Caused by:` lines are

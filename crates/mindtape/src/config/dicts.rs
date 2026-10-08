@@ -257,18 +257,20 @@ pub fn validate_dicts(dicts: &BTreeMap<String, DictSpec>) -> Vec<String> {
     for (name, spec) in dicts {
         if name.starts_with(BUILTIN_PREFIX) {
             problems.push(format!(
-                "dicts.{name}: the `{BUILTIN_PREFIX}` prefix is reserved for built-in dictionaries"
+                "dicts.{name}: reserved prefix: {}",
+                super::quote(BUILTIN_PREFIX)
             ));
         }
         if spec.values.is_empty() && spec.include.is_empty() && spec.path.is_none() {
             problems.push(format!(
-                "dicts.{name}: no source — set at least one of `values`, `path` or `include`"
+                "dicts.{name}: no source: set values, path or include"
             ));
         }
         for target in &spec.include {
             if !known.contains(target) {
                 problems.push(format!(
-                    "dicts.{name}: unknown include `{target}`{}",
+                    "dicts.{name}.include: unknown dict: {}{}",
+                    super::quote(target),
                     crate::suggest::hint("dict", target, &known)
                 ));
             }
@@ -276,7 +278,7 @@ pub fn validate_dicts(dicts: &BTreeMap<String, DictSpec>) -> Vec<String> {
         refs.insert(name.as_str(), spec.include.clone());
     }
     if let Some(cycle) = find_cycle(&refs) {
-        problems.push(format!("dicts: include cycle {}", cycle.join(" → ")));
+        problems.push(format!("dicts: include cycle: {}", cycle.join(" -> ")));
     }
     problems
 }
@@ -287,8 +289,12 @@ fn own_entries(name: &str, spec: &DictSpec, root: Option<&Path>) -> Result<Vec<S
     let mut entries = spec.values.clone();
     if let (Some(rel), Some(root)) = (&spec.path, root) {
         let full = root.join(rel);
-        let text = std::fs::read_to_string(&full)
-            .map_err(|err| format!("dicts.{name}.path: cannot read `{}`: {err}", full.display()))?;
+        let text = std::fs::read_to_string(&full).map_err(|err| {
+            format!(
+                "dicts.{name}.path: can't read: {}: {err}",
+                super::quote(&full.display().to_string())
+            )
+        })?;
         entries.extend(parse_entries(&text));
     }
     Ok(entries)
@@ -375,7 +381,7 @@ fn compile_dicts_in(
     for (name, case) in compile_order(dicts) {
         let entries = resolve(&name, &own, &includes, &mut memo);
         if entries.is_empty() {
-            problems.push(format!("dicts.{name}: resolves to no entries"));
+            problems.push(format!("dicts.{name}: no entries"));
             continue;
         }
         compiled.insert(name, Dict::new(entries, case));

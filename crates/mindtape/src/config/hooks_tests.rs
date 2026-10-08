@@ -236,7 +236,7 @@ fn modifiers_belonging_to_another_kind_are_rejected() {
         "gate = true\ntitle = \"t\"",
     ] {
         let err = action(toml).kind().unwrap_err();
-        assert!(err.contains("does not apply"), "{toml}: {err}");
+        assert!(err.contains("applies only to"), "{toml}: {err}");
     }
 }
 
@@ -322,7 +322,7 @@ fn validation_reports_each_problem() {
     let cases = [
         (
             "[[on.flip]]\nwhen = 'into(\"shipped\")'\nactions = [{ show = \"x\" }]\n",
-            "names no configured status",
+            "unknown status: 'shipped'",
         ),
         (
             "[[on.flip]]\nwhen = 'no_such_field == 1'\nactions = [{ show = \"x\" }]\n",

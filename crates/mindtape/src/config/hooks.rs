@@ -140,14 +140,17 @@ impl FlipAction {
         ) {
             (Some(text), None, None) => {
                 reject(&[
-                    ("title", self.title.is_some()),
-                    ("gate", self.gate),
-                    ("message", self.message.is_some()),
+                    ("title", self.title.is_some(), "list"),
+                    ("gate", self.gate, "run"),
+                    ("message", self.message.is_some(), "run"),
                 ])?;
                 Ok(ActionKind::Show(text))
             }
             (None, Some(filter), None) => {
-                reject(&[("gate", self.gate), ("message", self.message.is_some())])?;
+                reject(&[
+                    ("gate", self.gate, "run"),
+                    ("message", self.message.is_some(), "run"),
+                ])?;
                 Ok(ActionKind::List {
                     filter,
                     title: self.title.as_deref(),
@@ -156,30 +159,29 @@ impl FlipAction {
             // A command runs it; `gate = true` alone (no command) still
             // resolves — a run-less gate that refuses unconditionally.
             (None, None, command) if command.is_some() || self.gate => {
-                reject(&[("title", self.title.is_some())])?;
+                reject(&[("title", self.title.is_some(), "list")])?;
                 Ok(ActionKind::Run {
                     command,
                     gate: self.gate,
                     message: self.message.as_deref(),
                 })
             }
-            (None, None, None) => Err(
-                "action declares no kind; set one of `show`, `list`, `run`, or `gate = true`"
-                    .to_owned(),
-            ),
-            _ => Err("action declares more than one of `show`, `list`, `run`".to_owned()),
+            (None, None, None) => {
+                Err("action declares no kind: set show, list, run or gate = true".to_owned())
+            }
+            _ => Err("action declares more than one of show, list and run".to_owned()),
         }
     }
 }
 
 /// Reject any modifier in `set` that is present but belongs to another action
-/// kind, naming which kind owns it.
-fn reject(set: &[(&str, bool)]) -> Result<(), String> {
-    for (name, present) in set {
+/// kind, naming the kind that owns it.
+fn reject(set: &[(&str, bool, &str)]) -> Result<(), String> {
+    for (name, present, owner) in set {
         if *present {
             return Err(format!(
-                "`{name}` does not apply to this action kind (title: list, \
-                 gate/message: run)"
+                "{} applies only to {owner} actions",
+                crate::config::quote(name)
             ));
         }
     }
@@ -188,7 +190,7 @@ fn reject(set: &[(&str, bool)]) -> Result<(), String> {
 
 /// A `[[on.flip]]` entry whose `when` expression could not be evaluated.
 #[derive(Debug, Error)]
-#[error("on.flip[{index}].when `{when}`: {source}")]
+#[error("on.flip[{index}].when: {source}: {}", crate::config::quote(.when))]
 pub struct HookError {
     /// Position of the offending hook in `[[on.flip]]`.
     pub index: usize,
@@ -373,8 +375,11 @@ pub(crate) fn validate_flip_hooks(config: &Config) -> Vec<String> {
         for name in into_targets(&hook.when) {
             let legend = &config.tasks.status;
             if !legend.is_empty() && !legend.contains(&name) {
+                let known = legend.values();
                 problems.push(format!(
-                    "on.flip[{index}].when: into({name:?}) names no configured status"
+                    "on.flip[{index}].when: unknown status: {} in into(){}",
+                    crate::config::quote(&name),
+                    crate::suggest::suggestion(&name, &known)
                 ));
             }
         }

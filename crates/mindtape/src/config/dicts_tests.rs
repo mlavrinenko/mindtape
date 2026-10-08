@@ -182,7 +182,7 @@ fn an_unknown_include_suggests_the_nearest_name() {
     )
     .unwrap_err();
     assert!(err.contains("dicts.nouns"), "{err}");
-    assert!(err.contains("unknown include `verb`"), "{err}");
+    assert!(err.contains("unknown dict: 'verb'"), "{err}");
     assert!(err.contains("did you mean: verbs?"), "{err}");
 }
 

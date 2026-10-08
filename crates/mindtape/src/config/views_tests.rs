@@ -87,9 +87,7 @@ fn unknown_view_reference_reported() {
     let views = map(vec![("x", view("@ghost"))]);
     let problems = validate_views(&views);
     assert!(
-        problems
-            .iter()
-            .any(|p| p.contains("unknown view reference")),
+        problems.iter().any(|p| p.contains("unknown view: 'ghost'")),
         "{problems:?}"
     );
 }
@@ -126,7 +124,7 @@ fn cycle_exact_message_distinguishes_position_predicate() {
     let views = map(vec![("a", view("@b")), ("b", view("@a"))]);
     let problems = validate_views(&views);
     let msg = problems.iter().find(|p| p.contains("cycle")).unwrap();
-    assert_eq!(msg, "views: reference cycle a → b → a");
+    assert_eq!(msg, "views: reference cycle: a -> b -> a");
 }
 
 #[test]
@@ -139,5 +137,5 @@ fn three_node_cycle_exact_message() {
     ]);
     let problems = validate_views(&views);
     let msg = problems.iter().find(|p| p.contains("cycle")).unwrap();
-    assert_eq!(msg, "views: reference cycle a → b → c → a");
+    assert_eq!(msg, "views: reference cycle: a -> b -> c -> a");
 }

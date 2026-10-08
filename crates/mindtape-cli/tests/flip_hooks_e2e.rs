@@ -217,5 +217,5 @@ fn a_malformed_hook_fails_at_load() {
     cmd(dir.path(), &["check"])
         .assert()
         .failure()
-        .stderr(predicates::str::contains("names no configured status"));
+        .stderr(predicates::str::contains("unknown status: 'shipped'"));
 }

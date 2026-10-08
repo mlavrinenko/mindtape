@@ -108,7 +108,8 @@ where
     for name in &names {
         if !crate::model::fields::is_contains_field(name) {
             return Err(serde::de::Error::custom(format!(
-                "ls.contains-fields: unknown field `{name}`, expected one of {}",
+                "ls.contains-fields: unknown field: {}; use one of {}",
+                crate::config::quote(name),
                 crate::model::fields::contains_field_names().join(", ")
             )));
         }
@@ -223,18 +224,21 @@ pub fn parse_import_view(entry: &str) -> Result<ImportView, String> {
     let view = view.trim();
     if view.is_empty() {
         return Err(format!(
-            "malformed import-views entry `{entry}`: missing view name"
+            "malformed import-views entry: {}: missing view name",
+            crate::config::quote(entry)
         ));
     }
     let Some(inner) = rest.strip_suffix(')') else {
         return Err(format!(
-            "malformed import-views entry `{entry}`: missing closing `)`"
+            "malformed import-views entry: {}: missing closing parenthesis",
+            crate::config::quote(entry)
         ));
     };
     let inner = inner.trim();
     if inner.is_empty() {
         return Err(format!(
-            "import-views entry `{entry}`: empty facet list; drop the parens for all facets"
+            "malformed import-views entry: {}: empty facet list, drop the parentheses to take all facets",
+            crate::config::quote(entry)
         ));
     }
     let mut facets = Vec::new();
@@ -246,7 +250,9 @@ pub fn parse_import_view(entry: &str) -> Result<ImportView, String> {
             "columns" => Facet::Columns,
             other => {
                 return Err(format!(
-                    "import-views entry `{entry}`: unknown facet `{other}`, expected filter, sort, or columns"
+                    "unknown import-views facet: {} in {}: use filter, sort or columns",
+                    crate::config::quote(other),
+                    crate::config::quote(entry)
                 ));
             }
         };
@@ -319,8 +325,8 @@ fn validate_import_views(
     for entry in &rule.import_views {
         match parse_import_view(entry) {
             Ok(parsed) if !views.contains_key(&parsed.view) => problems.push(format!(
-                "{prefix}.import-views: unknown view `{}`{}",
-                parsed.view,
+                "{prefix}.import-views: unknown view: {}{}",
+                crate::config::quote(&parsed.view),
                 crate::suggest::hint("view", &parsed.view, views.keys())
             )),
             Ok(_) => {}
@@ -343,7 +349,8 @@ fn validate_manual_filter(
             for target in parsed.view_refs() {
                 if !views.contains_key(&target) {
                     problems.push(format!(
-                        "{prefix}.filter: unknown view reference @{target}{}",
+                        "{prefix}.filter: unknown view: {}{}",
+                        crate::config::quote(&target),
                         crate::suggest::hint("view", &target, views.keys())
                     ));
                 }
@@ -368,7 +375,8 @@ fn validate_view_spliced(
         if let Some(name) = entry.strip_prefix('@') {
             if !views.contains_key(name) {
                 problems.push(format!(
-                    "{prefix}.{facet}: unknown view reference @{name}{}",
+                    "{prefix}.{facet}: unknown view: {}{}",
+                    crate::config::quote(name),
                     crate::suggest::hint("view", name, views.keys())
                 ));
             }

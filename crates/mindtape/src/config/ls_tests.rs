@@ -164,11 +164,11 @@ fn validate_rules_reports_one_problem_per_bad_field() {
         (rule_condition("priority > 5"), "ls.rules[0].condition"),
         (
             rule_with_list(&["ghost"], import_views),
-            "unknown view `ghost`",
+            "unknown view: 'ghost'",
         ),
         (rule_with_list(&["broken("], import_views), "import-views"),
         (rule_filter("!!bad!!"), ".filter:"),
-        (rule_filter("@ghost"), "unknown view reference @ghost"),
+        (rule_filter("@ghost"), "unknown view: 'ghost'"),
         (rule_with_list(&["@ghost"], sort), ".sort:"),
         (rule_with_list(&["no_such_field"], sort), ".sort:"),
         (rule_with_list(&["bogus"], columns), ".columns:"),
@@ -253,7 +253,7 @@ fn unknown_import_view_with_no_declared_views_leaves_the_message_unchanged() {
     let problems = problems(&rule);
     assert_eq!(
         problems,
-        vec!["ls.rules[0].import-views: unknown view `ghost`".to_owned()]
+        vec!["ls.rules[0].import-views: unknown view: 'ghost'".to_owned()]
     );
 }
 
@@ -269,7 +269,7 @@ fn unknown_view_filter_reference_near_miss_offers_a_suggestion() {
 fn unknown_contains_field_is_rejected_at_load() {
     let err = parse_config("[ls]\ncontains-fields = [\"bogus\"]\n").unwrap_err();
     let msg = err.to_string();
-    assert!(msg.contains("unknown field `bogus`"), "{msg}");
+    assert!(msg.contains("unknown field: 'bogus'"), "{msg}");
     // The valid set is listed, not just named as invalid.
     assert!(msg.contains("title"), "{msg}");
     assert!(msg.contains("note"), "{msg}");
@@ -292,14 +292,14 @@ fn problems_for_rule_column(entry: &str) -> Vec<String> {
 #[test]
 fn unknown_rule_column_near_miss_offers_a_suggestion() {
     let problems = problems_for_rule_column("staatus");
-    assert_has(&problems, "expected one of");
+    assert_has(&problems, "columns: ");
     assert_suggests(&problems, "status");
 }
 
 #[test]
 fn unknown_rule_column_far_miss_omits_the_suggestion() {
     let problems = problems_for_rule_column("zzzzzzzz");
-    assert_has(&problems, "expected one of");
+    assert_has(&problems, "columns: ");
     assert_no_suggestion(&problems);
 }
 
@@ -310,7 +310,7 @@ fn unknown_ls_columns_key_near_miss_offers_a_suggestion() {
         ..LsConfig::default()
     };
     let problems = validate_ls_columns(&ls);
-    assert_has(&problems, "ls.columns: unknown column `staatus`");
+    assert_has(&problems, "ls.columns.staatus: unknown column: 'staatus'");
     assert_suggests(&problems, "status");
 }
 
@@ -321,6 +321,6 @@ fn unknown_ls_columns_order_far_miss_omits_the_suggestion() {
         ..LsConfig::default()
     };
     let problems = validate_ls_columns(&ls);
-    assert_has(&problems, "ls.columns-order: unknown column `zzzzzzzz`");
+    assert_has(&problems, "ls.columns-order: unknown column: 'zzzzzzzz'");
     assert_no_suggestion(&problems);
 }

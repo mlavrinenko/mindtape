@@ -88,7 +88,7 @@ fn an_unknown_column_with_a_when_reports_only_the_unknown_name() {
     let ls = ls_with_when("fiel", "ttty()");
     let problems = validate_ls_columns(&ls);
     let msg = only(&problems);
-    assert!(msg.contains("unknown column `fiel`"), "{msg}");
+    assert!(msg.contains("unknown column: 'fiel'"), "{msg}");
 }
 
 #[test]
