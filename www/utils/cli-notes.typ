@@ -160,8 +160,10 @@
       its startup file. The hook asks `mt` for completions on each tab press,
       so it offers this project's #link(u("/concepts/#identity"))[stems],
       statuses, #link(u("/named-sets/#views"))[views], templates and link
-      kinds, and the presets for `mt init --preset`. When you upgrade `mt`,
-      you don't need to run `mt install` again.],
+      kinds, and the presets for `mt init --preset`. `mt install` copies the
+      prelude into the data directory, so run it again after you upgrade `mt`.
+      That rewrites the prelude to match the binary. The completion hooks ask
+      `mt` on each tab press, so they stay current without it.],
   ),
   "worktrees": (
     examples: "worktrees-examples",

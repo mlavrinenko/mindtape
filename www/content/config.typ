@@ -66,7 +66,7 @@ what is wrong.
   columns: 2,
   table.header([Variable], [Effect]),
   [`MINDTAPE_CONFIG_HOME`],
-  [Replaces the config directory: where `mt` reads the second layer, and where `mt install` writes `config.schema.json`, `presets/` and `worktrees.toml`.],
+  [Replaces the config directory: where `mt` reads the second layer and where `mt install` writes `config.schema.json`. You write `presets/` and `worktrees.toml` there yourself, and `mt` reads them.],
 
   [`MINDTAPE_DATA_HOME`],
   [Replaces the data directory: where `mt install` writes the `@local/mindtape` package, and where task files resolve it from.],
@@ -254,10 +254,23 @@ new task file, such as `stem = "{slug}.task-{yy}{mm}{dd}"`. If it's unset,
   [`{date}`],
   [Today's date, or the occurrence's date for `mt recur`, as `YYYY-MM-DD`.],
 
-  [`{date:FMT}`], [The same date in another format.],
+  [`{date:FMT}`],
+  [The same date in the format `FMT`, built from the tokens below. Other characters pass through, so `{date:YYYY}` expands to `2026` and `{date:%Y}` to `%Y`.],
+
   [`{yy}`, `{mm}`, `{dd}`], [Two-digit year, month and day.],
   [`{n}`, `{n:0N}`],
   [The occurrence number, bare or zero-padded to `N` digits.],
+)
+
+A `{date:FMT}` format reads these tokens, longest first:
+
+#table(
+  columns: 2,
+  table.header([Token], [Expands to]),
+  [`YYYY`, `YY`], [Four-digit year, or its last two digits.],
+  [`MMMM`, `MMM`], [Full month name, or its three-letter form.],
+  [`MM`, `M`], [Month, zero-padded or bare.],
+  [`DD`, `D`], [Day, zero-padded or bare.],
 )
 
 `[tasks.naming] dedup` decides what `mt add` does if the file already exists.
