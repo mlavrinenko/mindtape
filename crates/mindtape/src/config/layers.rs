@@ -262,9 +262,14 @@ fn name_file(err: ConfigError, layers: &[Layer], root: &Path) -> ConfigError {
         ConfigError::Invalid {
             message,
             place: None,
+            unknown,
         } => {
             let place = crate::config::locate::place_of(&message, layers, root);
-            ConfigError::Invalid { message, place }
+            ConfigError::Invalid {
+                message,
+                place,
+                unknown,
+            }
         }
         other => other,
     }

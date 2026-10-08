@@ -37,6 +37,8 @@ use crate::config::merge::deep_merge_tables;
 use crate::config::packs_toml::{
     header_lines, read_array, read_string_list, remove_path, write_array,
 };
+use crate::problem::Problem;
+use crate::suggest::Unknown;
 
 /// Rule packs compiled into the binary, `(name, TOML text)`. A new entry is a
 /// one-line addition here plus a `crates/mindtape/src/packs/<name>.toml`
@@ -373,16 +375,10 @@ fn resolve_pack(
 
 fn unknown_pack_error(entry: &str, registry: &[(&str, &str)]) -> ConfigError {
     let names: Vec<&str> = registry.iter().map(|(name, _)| *name).collect();
-    let available = if names.is_empty() {
-        "none".to_owned()
-    } else {
-        names.join(", ")
-    };
-    ConfigError::invalid(format!(
-        "extends: unknown pack: {}{}; available packs: {available}",
-        super::quote(entry),
-        crate::suggest::suggestion(entry, &names)
-    ))
+    ConfigError::invalid(
+        Problem::new(format!("extends: unknown pack: {}", super::quote(entry)))
+            .with(Unknown::among(entry, names)),
+    )
 }
 
 /// A pack may declare only `[[tasks.rules]]`, `[[tasks.body.headers.rules]]`,

@@ -47,7 +47,11 @@ fn extends_unknown_bare_name_lists_available_packs() {
     let err = merge_layers_with_packs_using(&layers, root.path(), registry).unwrap_err();
     let rendered = err.to_string();
     assert!(rendered.contains("mindtape-nope"), "{rendered}");
-    assert!(rendered.contains("mindtape-test"), "{rendered}");
+    assert!(
+        matches!(&err, crate::config::ConfigError::Invalid { unknown: Some(unknown), .. }
+            if unknown.names == ["mindtape-test"]),
+        "{err:?}"
+    );
 }
 
 #[test]

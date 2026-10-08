@@ -4,7 +4,7 @@ use anyhow::Context;
 use mindtape::config::ConfigError;
 use mindtape::recur::dates::RecurError;
 use mindtape::{
-    DateOverrideError, FilterError, Location, RefError, Severity, Violation, ViolationKind,
+    DateOverrideError, FilterError, Location, RefError, Severity, Unknown, Violation, ViolationKind,
 };
 
 use super::render::{quote, render, shell_word};
@@ -298,12 +298,14 @@ fn a_config_error_is_one_line_with_its_place() {
 #[test]
 fn an_invalid_config_names_its_line_and_turns_a_near_match_into_a_hint() {
     let err = ConfigError::Invalid {
-        message:
-            "extends: unknown pack: 'x'; did you mean: y?; available packs: y, z\nls.sort: bad"
-                .to_owned(),
+        message: "extends: unknown pack: 'x'\nls.sort: bad".to_owned(),
         place: Some(mindtape::config::ConfigPlace {
             file: ".mindtape/config.toml".into(),
             line: 3,
+        }),
+        unknown: Some(Unknown {
+            nearest: Some("y".to_owned()),
+            names: vec!["y".to_owned(), "z".to_owned()],
         }),
     };
     assert_eq!(
@@ -386,6 +388,7 @@ fn a_breach_renders_its_place_rule_and_message() {
         severity: Severity::Error,
         kind: ViolationKind::default(),
         reads: None,
+        unknown: None,
     };
     let refused = Diag::from(&violation);
     assert_eq!(refused.kind(), Kind::Refused);
@@ -425,7 +428,7 @@ fn the_other_filter_errors_keep_their_reason_and_kind() {
         (
             FilterError::UnknownDict {
                 name: "d".to_owned(),
-                hint: "; known dicts: a".to_owned(),
+                unknown: Unknown::among("d", ["a"]),
             },
             "error: unknown dict: 'd' in filter 'x'\nhint: use one of: a\n",
         ),

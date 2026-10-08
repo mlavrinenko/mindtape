@@ -195,6 +195,7 @@ pub fn check_content(
                 severity: Severity::Error,
                 kind: crate::validate::violation::ViolationKind::Other,
                 reads: crate::validate::violation::reads_of(rule.when.iter()),
+                unknown: None,
             });
         }
     }

@@ -31,6 +31,8 @@ use std::sync::{Arc, LazyLock};
 use serde::{Deserialize, Serialize};
 
 use crate::config::name_cycle::find_cycle;
+use crate::problem::Problem;
+use crate::suggest::Unknown;
 
 /// The dictionary-name prefix reserved for the sets `mt` ships. A project dict
 /// carrying it is a config error.
@@ -246,7 +248,7 @@ fn parse_entries(text: &str) -> Vec<String> {
 /// config catches them, and again from [`compile_dicts`], which additionally
 /// needs the graph proven acyclic before it walks it.
 #[must_use]
-pub fn validate_dicts(dicts: &BTreeMap<String, DictSpec>) -> Vec<String> {
+pub fn validate_dicts(dicts: &BTreeMap<String, DictSpec>) -> Vec<Problem> {
     let mut problems = Vec::new();
     let known: Vec<String> = builtin_dict_names()
         .into_iter()
@@ -256,29 +258,34 @@ pub fn validate_dicts(dicts: &BTreeMap<String, DictSpec>) -> Vec<String> {
     let mut refs: BTreeMap<&str, Vec<String>> = BTreeMap::new();
     for (name, spec) in dicts {
         if name.starts_with(BUILTIN_PREFIX) {
-            problems.push(format!(
+            problems.push(Problem::new(format!(
                 "dicts.{name}: reserved prefix: {}",
                 super::quote(BUILTIN_PREFIX)
-            ));
+            )));
         }
         if spec.values.is_empty() && spec.include.is_empty() && spec.path.is_none() {
-            problems.push(format!(
+            problems.push(Problem::new(format!(
                 "dicts.{name}: no source: set values, path or include"
-            ));
+            )));
         }
         for target in &spec.include {
             if !known.contains(target) {
-                problems.push(format!(
-                    "dicts.{name}.include: unknown dict: {}{}",
-                    super::quote(target),
-                    crate::suggest::hint("dict", target, &known)
-                ));
+                problems.push(
+                    Problem::new(format!(
+                        "dicts.{name}.include: unknown dict: {}",
+                        super::quote(target)
+                    ))
+                    .with(Unknown::among(target, known.iter().map(String::as_str))),
+                );
             }
         }
         refs.insert(name.as_str(), spec.include.clone());
     }
     if let Some(cycle) = find_cycle(&refs) {
-        problems.push(format!("dicts: include cycle: {}", cycle.join(" -> ")));
+        problems.push(Problem::new(format!(
+            "dicts: include cycle: {}",
+            cycle.join(" -> ")
+        )));
     }
     problems
 }
@@ -330,7 +337,7 @@ fn resolve(
 /// Returns every problem found, joined with `; ` — a reserved name, an unknown
 /// or cyclic `include`, an unreadable `path`, a dict with no source, or one
 /// that resolves empty.
-pub fn compile_dicts(dicts: &BTreeMap<String, DictSpec>, root: &Path) -> Result<Dicts, String> {
+pub fn compile_dicts(dicts: &BTreeMap<String, DictSpec>, root: &Path) -> Result<Dicts, Problem> {
     compile_dicts_in(dicts, Some(root))
 }
 
@@ -347,7 +354,7 @@ pub fn compile_dicts(dicts: &BTreeMap<String, DictSpec>, root: &Path) -> Result<
 /// # Errors
 /// As [`compile_dicts`], minus the unreadable-`path` case — a dict sourced from
 /// a `path` alone resolves to no entries here and fails on that instead.
-pub(crate) fn compile_dicts_rootless(dicts: &BTreeMap<String, DictSpec>) -> Result<Dicts, String> {
+pub(crate) fn compile_dicts_rootless(dicts: &BTreeMap<String, DictSpec>) -> Result<Dicts, Problem> {
     compile_dicts_in(dicts, None)
 }
 
@@ -355,10 +362,10 @@ pub(crate) fn compile_dicts_rootless(dicts: &BTreeMap<String, DictSpec>) -> Resu
 fn compile_dicts_in(
     dicts: &BTreeMap<String, DictSpec>,
     root: Option<&Path>,
-) -> Result<Dicts, String> {
+) -> Result<Dicts, Problem> {
     let problems = validate_dicts(dicts);
     if !problems.is_empty() {
-        return Err(problems.join("\n"));
+        return Err(Problem::join(problems));
     }
     let mut own: BTreeMap<String, Vec<String>> = BUILTIN_SOURCES
         .iter()
@@ -369,19 +376,19 @@ fn compile_dicts_in(
     for (name, spec) in dicts {
         match own_entries(name, spec, root) {
             Ok(entries) => drop(own.insert(name.clone(), entries)),
-            Err(msg) => problems.push(msg),
+            Err(msg) => problems.push(Problem::new(msg)),
         }
         includes.insert(name.clone(), spec.include.clone());
     }
     if !problems.is_empty() {
-        return Err(problems.join("\n"));
+        return Err(Problem::join(problems));
     }
     let mut memo = BTreeMap::new();
     let mut compiled = BTreeMap::new();
     for (name, case) in compile_order(dicts) {
         let entries = resolve(&name, &own, &includes, &mut memo);
         if entries.is_empty() {
-            problems.push(format!("dicts.{name}: no entries"));
+            problems.push(Problem::new(format!("dicts.{name}: no entries")));
             continue;
         }
         compiled.insert(name, Dict::new(entries, case));
@@ -389,7 +396,7 @@ fn compile_dicts_in(
     if problems.is_empty() {
         Ok(Dicts(compiled))
     } else {
-        Err(problems.join("\n"))
+        Err(Problem::join(problems))
     }
 }
 

@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A near-miss name reads as a `hint:` on a warning and a rule breach too.** A
+  filter naming an undeclared `x-` field warns with `hint: did you mean
+  x-machine?` and `hint: use one of: x-machine`; a tag outside `allowed`, an
+  `@set` no `[dicts]` entry answers to, and a commit trailer naming no task get
+  the same lines, where the words ran into the message. Library errors carry the
+  nearest name and the choices as data (`Unknown`), not as a clause.
 - **A link kind's validator problem quotes in single quotes.** `'ticket' edge
   target 'JIRA-x' is not a valid 'regex'`, as every other message does.
 - **A refused flip and a failed gate read in the error format.** A failing

@@ -23,8 +23,9 @@ fn ls_default_view_unknown_errors_on_validate() {
     let config = parse_config("[ls]\ndefault-view = \"ghost\"\n").unwrap();
     let err = config.validate().unwrap_err();
     assert!(err.contains("ls.default-view"), "{err}");
-    assert!(err.contains("known views: default"), "{err}");
-    assert!(!err.contains("did you mean"), "{err}");
+    let unknown = err.unknown.unwrap();
+    assert_eq!(unknown.names, ["default"]);
+    assert_eq!(unknown.nearest, None);
 }
 
 #[test]
@@ -32,7 +33,7 @@ fn ls_default_view_near_miss_suggests_the_close_name() {
     // The floor's own `[views.default]` name is one transposition away.
     let config = parse_config("[ls]\ndefault-view = \"defualt\"\n").unwrap();
     let err = config.validate().unwrap_err();
-    assert!(err.contains("did you mean: default?"), "{err}");
+    assert_eq!(err.unknown.unwrap().nearest.as_deref(), Some("default"));
 }
 
 #[test]

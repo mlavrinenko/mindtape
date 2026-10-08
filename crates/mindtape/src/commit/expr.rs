@@ -45,6 +45,7 @@ use crate::filter::FilterError;
 use crate::filter::expr::{
     call_args, connective, extract_identifier, extract_literal, restore_name, unwrap_root,
 };
+use crate::filter::predicates::path_set_error;
 use crate::git::state::PathFilter;
 use crate::model::fields::FieldValue;
 
@@ -242,7 +243,8 @@ fn count_files(
         .iter()
         .map(|node| extract_literal(node).map_err(invalid))
         .collect::<Result<Vec<_>, _>>()?;
-    let admitted = PathFilter::resolve(&globs, env.config.compiled_dicts()).map_err(invalid)?;
+    let admitted = PathFilter::resolve(&globs, env.config.compiled_dicts())
+        .map_err(|err| path_set_error(err, "count()"))?;
     let files = env.commit.files.iter().map(String::as_str);
     Ok(FieldValue::Num(
         admitted.count(files, &env.commit.renamed_from) as f64,

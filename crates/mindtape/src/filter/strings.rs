@@ -199,12 +199,9 @@ pub(crate) fn in_dict_call(
         )
     })?;
     let dicts = config.compiled_dicts();
-    let dict = dicts.get(&name).ok_or_else(|| {
-        let known: Vec<String> = dicts.names().map(ToOwned::to_owned).collect();
-        FilterError::UnknownDict {
-            hint: crate::suggest::hint("dict", &name, &known),
-            name: name.clone(),
-        }
+    let dict = dicts.get(&name).ok_or_else(|| FilterError::UnknownDict {
+        unknown: crate::suggest::Unknown::among(&name, dicts.names()),
+        name: name.clone(),
     })?;
     Ok(string_value(value, task, config)?.is_some_and(|text| dict.contains(&text)))
 }

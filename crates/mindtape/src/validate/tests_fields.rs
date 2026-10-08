@@ -110,8 +110,9 @@ fn disallowed_tag_near_miss_offers_a_suggestion() {
         .iter()
         .find(|v| v.field == "tags")
         .expect("disallowed tag must be flagged");
-    assert!(hit.message.contains("did you mean: backend?"), "{hit:?}");
-    assert!(hit.message.contains("known tags: backend"), "{hit:?}");
+    let unknown = hit.unknown.as_ref().unwrap();
+    assert_eq!(unknown.nearest.as_deref(), Some("backend"));
+    assert_eq!(unknown.names, ["backend"]);
 }
 
 #[test]
@@ -123,8 +124,9 @@ fn disallowed_tag_far_miss_omits_the_suggestion() {
         .iter()
         .find(|v| v.field == "tags")
         .expect("disallowed tag must be flagged");
-    assert!(!hit.message.contains("did you mean"), "{hit:?}");
-    assert!(hit.message.contains("known tags: backend"), "{hit:?}");
+    let unknown = hit.unknown.as_ref().unwrap();
+    assert_eq!(unknown.nearest, None);
+    assert_eq!(unknown.names, ["backend"]);
 }
 
 #[test]
@@ -137,7 +139,7 @@ fn flags_disallowed_derived_tag() {
         .find(|v| v.field == "tags")
         .expect("derived tag outside the allow-list must be flagged");
     assert!(hit.message.contains("derived from folder"));
-    assert!(hit.message.contains("known tags: backend"), "{hit:?}");
+    assert_eq!(hit.unknown.as_ref().unwrap().names, ["backend"]);
 }
 
 #[test]
@@ -149,7 +151,8 @@ fn disallowed_derived_tag_near_miss_suggests_the_allowed_tag() {
         .iter()
         .find(|v| v.field == "tags")
         .expect("derived tag outside the allow-list must be flagged");
-    assert!(hit.message.contains("did you mean: backend?"), "{hit:?}");
+    let unknown = hit.unknown.as_ref().unwrap();
+    assert_eq!(unknown.nearest.as_deref(), Some("backend"));
 }
 
 #[test]

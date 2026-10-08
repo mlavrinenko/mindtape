@@ -144,6 +144,9 @@ pub struct Violation {
     /// a remedy (the `mt add` template hint) matches these names, never the
     /// text of [`Violation::field`].
     pub reads: Option<BTreeSet<String>>,
+    /// What an unknown name in the message could have been: the nearest known
+    /// name and the names to choose from.
+    pub unknown: Option<crate::suggest::Unknown>,
 }
 
 /// What a check about `field` (a name or a path into one, such as

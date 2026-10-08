@@ -38,6 +38,8 @@ use serde::Deserialize;
 
 use crate::config::ls::{LS_COLUMNS, LsConfig};
 use crate::filter::condition::Condition;
+use crate::problem::Problem;
+use crate::suggest::Unknown;
 
 /// `[ls.columns.<name>]` — one column's display settings.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
@@ -62,24 +64,24 @@ pub struct ColumnConfig {
 /// silently never matching at render time — where a column that does not
 /// appear looks exactly like a column that was not meant to.
 #[must_use]
-pub fn validate_ls_columns(ls: &LsConfig) -> Vec<String> {
+pub fn validate_ls_columns(ls: &LsConfig) -> Vec<Problem> {
     let mut problems = Vec::new();
     for (name, column) in &ls.columns {
         if LS_COLUMNS.contains(&name.as_str()) {
             validate_column_when(name, column, &mut problems);
         } else {
-            problems.push(format!("ls.columns.{name}: {}", unknown_column(name)));
+            problems.push(unknown_column(name).under(&format!("ls.columns.{name}")));
         }
     }
     let mut seen = BTreeSet::new();
     for name in &ls.columns_order {
         if !LS_COLUMNS.contains(&name.as_str()) {
-            problems.push(format!("ls.columns-order: {}", unknown_column(name)));
+            problems.push(unknown_column(name).under("ls.columns-order"));
         } else if !seen.insert(name.as_str()) {
-            problems.push(format!(
+            problems.push(Problem::new(format!(
                 "ls.columns-order: duplicate column: {}",
                 crate::config::quote(name)
-            ));
+            )));
         }
     }
     problems
@@ -93,16 +95,16 @@ pub fn validate_ls_columns(ls: &LsConfig) -> Vec<String> {
 /// column always while an absent `when` renders it never — two spellings of
 /// "nothing written here" with opposite answers. Writing the answer out
 /// (`true` / `false`) is what the key is for.
-fn validate_column_when(name: &str, column: &ColumnConfig, problems: &mut Vec<String>) {
+fn validate_column_when(name: &str, column: &ColumnConfig, problems: &mut Vec<Problem>) {
     let Some(expr) = &column.when else {
         return;
     };
     if expr.trim().is_empty() {
-        problems.push(format!(
+        problems.push(Problem::new(format!(
             "ls.columns.{name}.when: empty expression: use true or false"
-        ));
+        )));
     } else if let Err(err) = Condition::parse(expr) {
-        problems.push(format!("ls.columns.{name}.when: {err}"));
+        problems.push(Problem::new(format!("ls.columns.{name}.when: {err}")));
     }
 }
 
@@ -113,13 +115,9 @@ fn validate_column_when(name: &str, column: &ColumnConfig, problems: &mut Vec<St
 /// wording and the suggestion wiring live once
 /// (`truth/tasks/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`).
 #[must_use]
-pub(crate) fn unknown_column(name: &str) -> String {
-    format!(
-        "unknown column: {}{}; columns: {}",
-        crate::config::quote(name),
-        crate::suggest::suggestion(name, &LS_COLUMNS),
-        LS_COLUMNS.join(", ")
-    )
+pub(crate) fn unknown_column(name: &str) -> Problem {
+    Problem::new(format!("unknown column: {}", crate::config::quote(name)))
+        .with(Unknown::among(name, LS_COLUMNS.iter().copied()))
 }
 
 #[cfg(test)]

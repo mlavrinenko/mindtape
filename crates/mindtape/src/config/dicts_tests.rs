@@ -7,15 +7,16 @@ use super::{
     BUILTIN_PREFIX, Dict, DictCache, DictCase, DictSpec, Dicts, builtin_dict_names, compile_dicts,
 };
 use crate::config::parse_config;
+use crate::problem::Problem;
 
 /// Compile the `[dicts]` section of a config text against `root`.
-fn compile(text: &str, root: &Path) -> Result<Dicts, String> {
+fn compile(text: &str, root: &Path) -> Result<Dicts, Problem> {
     let config = parse_config(text).expect("config parses");
     compile_dicts(&config.dicts, root)
 }
 
 /// Compile against a root no dict reads (every source is inline).
-fn compile_inline(text: &str) -> Result<Dicts, String> {
+fn compile_inline(text: &str) -> Result<Dicts, Problem> {
     compile(text, Path::new("/nonexistent-root"))
 }
 
@@ -183,7 +184,7 @@ fn an_unknown_include_suggests_the_nearest_name() {
     .unwrap_err();
     assert!(err.contains("dicts.nouns"), "{err}");
     assert!(err.contains("unknown dict: 'verb'"), "{err}");
-    assert!(err.contains("did you mean: verbs?"), "{err}");
+    assert_eq!(err.unknown.unwrap().nearest.as_deref(), Some("verbs"));
 }
 
 #[test]

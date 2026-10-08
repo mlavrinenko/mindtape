@@ -136,6 +136,7 @@ fn breach(home: TemplateHome<'_>, line: usize, message: String) -> Violation {
         severity: Severity::Error,
         kind: crate::validate::violation::ViolationKind::Other,
         reads: Some(std::collections::BTreeSet::new()),
+        unknown: None,
     }
 }
 

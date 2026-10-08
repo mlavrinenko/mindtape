@@ -19,6 +19,7 @@ use serde::{Deserialize, Deserializer};
 use crate::config::Config;
 use crate::filter::Filter;
 use crate::model::{Status, Task};
+use crate::problem::Problem;
 
 /// Whether a field is required: `false`, `true`, or a filter expression.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -188,12 +189,12 @@ impl RequiredRules {
 /// Each expression is parsed and dry-run against a probe task, so an unknown
 /// field, unknown view or unsupported operator is caught here — where it is one
 /// config error — instead of at evaluation time, where it would repeat per task.
-pub(crate) fn validate_requirements(config: &Config) -> Vec<String> {
+pub(crate) fn validate_requirements(config: &Config) -> Vec<Problem> {
     let probe = Task::default();
     requirements(config)
         .into_iter()
         .filter_map(|(path, requirement)| {
-            problem(requirement, &probe, config).map(|problem| format!("{path}: {problem}"))
+            problem(requirement, &probe, config).map(|problem| problem.under(&path))
         })
         .collect()
 }
@@ -224,13 +225,13 @@ fn values_whens(config: &Config) -> Vec<(String, &str)> {
 }
 
 /// Load-time check of every `values-when` filter, like [`validate_requirements`].
-pub(crate) fn validate_values_when(config: &Config) -> Vec<String> {
+pub(crate) fn validate_values_when(config: &Config) -> Vec<Problem> {
     let probe = Task::default();
     values_whens(config)
         .into_iter()
         .filter_map(|(path, source)| {
             let problem = crate::filter::expr_problem(source, &probe, config)?;
-            Some(format!("{path}: {problem}"))
+            Some(problem.under(&path))
         })
         .collect()
 }
@@ -282,7 +283,7 @@ fn requirements(config: &Config) -> Vec<(String, &Requirement)> {
 
 /// What makes `requirement` unusable, if anything: a syntax error, or a
 /// structural problem the probe dry-run surfaces.
-fn problem(requirement: &Requirement, probe: &Task, config: &Config) -> Option<String> {
+fn problem(requirement: &Requirement, probe: &Task, config: &Config) -> Option<Problem> {
     let Requirement::Expr(source) = requirement else {
         return None;
     };

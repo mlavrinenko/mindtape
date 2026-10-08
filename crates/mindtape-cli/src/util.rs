@@ -177,7 +177,11 @@ fn config_warnings(root: &Path, config: &Config) -> Vec<Diag> {
     config
         .warnings()
         .into_iter()
-        .map(|warning| Diag::verbatim(Kind::Warning, warning).at_file(shown))
+        .map(|warning| {
+            Diag::verbatim(Kind::Warning, warning.text)
+                .at_file(shown)
+                .unknown(warning.unknown.as_ref())
+        })
         .collect()
 }
 

@@ -8,6 +8,8 @@ use crate::config::Config;
 use crate::graph::ready::{Readiness, ReadyState};
 use crate::model::Task;
 use crate::model::fields::{self as fields, FieldValue};
+use crate::problem::Problem;
+use crate::suggest::Unknown;
 
 /// Whether `name` is accepted by `--sort` and `[ls] default-sort`: every
 /// [`crate::model::fields::FIELDS`] entry, every `x-<ns>` extension slot (a scalar
@@ -35,7 +37,7 @@ pub fn is_sort_field(name: &str) -> bool {
 /// Returns a message string if [`is_sort_field`] rejects the field, or if a
 /// `:` suffix is anything but `asc`/`desc`. A misspelled direction used to
 /// mean ascending, silently.
-pub fn validate_sort_spec(spec: &str) -> Result<(), String> {
+pub fn validate_sort_spec(spec: &str) -> Result<(), Problem> {
     let (field, direction) = spec
         .split_once(':')
         .map_or((spec, None), |(field, direction)| (field, Some(direction)));
@@ -44,10 +46,10 @@ pub fn validate_sort_spec(spec: &str) -> Result<(), String> {
     }
     match direction {
         None | Some("asc" | "desc") => Ok(()),
-        Some(other) => Err(format!(
+        Some(other) => Err(Problem::new(format!(
             "unknown sort direction: {}: use asc or desc",
             crate::config::quote(other)
-        )),
+        ))),
     }
 }
 
@@ -62,13 +64,12 @@ pub fn sort_fields() -> Vec<&'static str> {
 }
 
 /// The `--sort` / `[ls] default-sort` error for an unrecognised field.
-fn unknown_sort_field(field: &str) -> String {
-    let names = sort_fields();
-    format!(
-        "unknown sort field: {}{}",
-        crate::config::quote(field),
-        crate::suggest::suggestion(field, &names)
-    )
+fn unknown_sort_field(field: &str) -> Problem {
+    Problem::new(format!(
+        "unknown sort field: {}",
+        crate::config::quote(field)
+    ))
+    .with(Unknown::near(field, &sort_fields()))
 }
 
 /// A task's difficulty resolved to a number on its scale, if set and resolvable.
@@ -91,7 +92,7 @@ pub fn sort_by_specs(
     readiness: &Readiness,
 ) -> Result<(), String> {
     for spec in specs.iter().rev() {
-        validate_sort_spec(spec)?;
+        validate_sort_spec(spec).map_err(|problem| problem.text)?;
         let (field, descending) = parse_spec(spec);
         tasks.sort_by(|l, r| {
             let ord = compare_field(l, r, field, config, readiness);

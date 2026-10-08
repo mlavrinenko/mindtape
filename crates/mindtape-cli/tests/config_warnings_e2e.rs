@@ -21,5 +21,5 @@ fn a_command_warns_about_an_undeclared_extra_in_a_rule() {
         stderr.contains("warning: .mindtape/config.toml: tasks.rules[0].assert: `x-machnie`"),
         "{stderr}"
     );
-    assert!(stderr.contains("did you mean: x-machine?"), "{stderr}");
+    assert!(stderr.contains("did you mean x-machine?"), "{stderr}");
 }

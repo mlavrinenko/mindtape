@@ -359,6 +359,7 @@ fn breach(severity: mindtape::Severity, line: usize) -> mindtape::Violation {
         severity,
         kind: mindtape::ViolationKind::Other,
         reads: None,
+        unknown: None,
     }
 }
 

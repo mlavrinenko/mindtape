@@ -126,6 +126,7 @@ fn check_id_uniqueness(tasks: &[Task], out: &mut Vec<Violation>) {
                 severity: Severity::Error,
                 kind: crate::validate::violation::ViolationKind::Other,
                 reads: Some(crate::validate::violation::reads_of_field("id")),
+                unknown: None,
             });
         } else {
             seen.insert(&task.id, task);
@@ -176,6 +177,7 @@ pub(crate) fn violation(task: &Task, field: &str, message: String) -> Violation 
         severity: Severity::Error,
         kind: crate::validate::violation::ViolationKind::Other,
         reads: Some(crate::validate::violation::reads_of_field(field)),
+        unknown: None,
     }
 }
 
@@ -259,8 +261,10 @@ fn check_field(task: &Task, config: &Config, field: &Descriptor, out: &mut Vec<V
         return;
     };
     if field.holds(task, config) {
-        for message in field.breaches(task, &value) {
-            push(out, task, name, message);
+        for problem in field.breaches(task, &value) {
+            let mut breach = violation(task, name, problem.text);
+            breach.unknown = problem.unknown;
+            out.push(breach);
         }
     }
 }

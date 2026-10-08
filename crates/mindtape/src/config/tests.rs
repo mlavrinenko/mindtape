@@ -282,10 +282,8 @@ fn a_filter_naming_an_undeclared_extra_warns_with_the_nearest_declared_name() {
         warnings[0].starts_with("tasks.rules[0].assert: `x-machnie`"),
         "{warnings:?}"
     );
-    assert!(
-        warnings[0].contains("did you mean: x-machine?"),
-        "{warnings:?}"
-    );
+    let unknown = warnings[0].unknown.as_ref().unwrap();
+    assert_eq!(unknown.nearest.as_deref(), Some("x-machine"));
     assert!(
         warnings[1].starts_with("tasks.rules[0].when:"),
         "{warnings:?}"

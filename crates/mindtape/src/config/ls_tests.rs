@@ -3,6 +3,7 @@
 use std::collections::BTreeMap;
 
 use super::{Facet, LsConfig, LsRule, parse_import_view, validate_ls_rules};
+use crate::Problem;
 use crate::config::Config;
 use crate::config::ls_columns::{ColumnConfig, validate_ls_columns};
 use crate::config::views::ViewSpec;
@@ -16,33 +17,54 @@ fn view(filter: &str) -> ViewSpec {
 }
 
 /// Validate a single rule against `views`, for a compact per-field test.
-fn problems_with_views(rule: &LsRule, views: &BTreeMap<String, ViewSpec>) -> Vec<String> {
+fn problems_with_views(rule: &LsRule, views: &BTreeMap<String, ViewSpec>) -> Vec<Problem> {
     validate_ls_rules(std::slice::from_ref(rule), views)
 }
 
 /// Validate a single rule with no declared views.
-fn problems(rule: &LsRule) -> Vec<String> {
+fn problems(rule: &LsRule) -> Vec<Problem> {
     problems_with_views(rule, &BTreeMap::new())
 }
 
-fn assert_has(problems: &[String], needle: &str) {
+fn assert_has(problems: &[Problem], needle: &str) {
     assert!(problems.iter().any(|p| p.contains(needle)), "{problems:?}");
 }
 
-/// No problem carries a `did you mean` clause: the far-miss shared assertion
-/// for every unknown-name suggestion test below (view / column), so the
-/// negative check lives once rather than once per site.
-fn assert_no_suggestion(problems: &[String]) {
+/// No problem carries a nearest name: the far-miss shared assertion for every
+/// unknown-name suggestion test below (view / column), so the negative check
+/// lives once rather than once per site.
+fn assert_no_suggestion(problems: &[Problem]) {
     assert!(
-        !problems.iter().any(|p| p.contains("did you mean")),
+        !problems
+            .iter()
+            .any(|p| p.unknown.as_ref().is_some_and(|u| u.nearest.is_some())),
         "{problems:?}"
     );
 }
 
-/// Some problem carries a `did you mean: <name>?` clause: the near-miss
-/// counterpart to [`assert_no_suggestion`].
-fn assert_suggests(problems: &[String], name: &str) {
-    assert_has(problems, &format!("did you mean: {name}?"));
+/// Some problem carries `name` as its nearest name: the near-miss counterpart
+/// to [`assert_no_suggestion`].
+fn assert_suggests(problems: &[Problem], name: &str) {
+    assert!(
+        problems.iter().any(|p| {
+            p.unknown
+                .as_ref()
+                .is_some_and(|u| u.nearest.as_deref() == Some(name))
+        }),
+        "{problems:?}"
+    );
+}
+
+/// Some problem lists `name` among the names to choose from.
+fn assert_lists(problems: &[Problem], name: &str) {
+    assert!(
+        problems.iter().any(|p| {
+            p.unknown
+                .as_ref()
+                .is_some_and(|u| u.names.iter().any(|known| known == name))
+        }),
+        "{problems:?}"
+    );
 }
 
 #[test]
@@ -221,7 +243,7 @@ fn contains_fields_accepts_a_narrowed_list() {
 
 /// Validate a single `import-views` entry against the one declared view
 /// `release`, for the near-miss / far-miss pair below.
-fn problems_for_import(entry: &str) -> Vec<String> {
+fn problems_for_import(entry: &str) -> Vec<Problem> {
     let views = BTreeMap::from([("release".to_owned(), view(""))]);
     let rule = rule_with_list(&[entry], |v| LsRule {
         import_views: v,
@@ -233,14 +255,14 @@ fn problems_for_import(entry: &str) -> Vec<String> {
 #[test]
 fn unknown_import_view_near_miss_offers_a_suggestion() {
     let problems = problems_for_import("releasee");
-    assert_has(&problems, "did you mean: release?");
-    assert_has(&problems, "known views: release");
+    assert_suggests(&problems, "release");
+    assert_lists(&problems, "release");
 }
 
 #[test]
 fn unknown_import_view_far_miss_lists_known_views_without_a_suggestion() {
     let problems = problems_for_import("zzz");
-    assert_has(&problems, "known views: release");
+    assert_lists(&problems, "release");
     assert_no_suggestion(&problems);
 }
 
@@ -253,7 +275,9 @@ fn unknown_import_view_with_no_declared_views_leaves_the_message_unchanged() {
     let problems = problems(&rule);
     assert_eq!(
         problems,
-        vec!["ls.rules[0].import-views: unknown view: 'ghost'".to_owned()]
+        vec![Problem::new(
+            "ls.rules[0].import-views: unknown view: 'ghost'"
+        )]
     );
 }
 
@@ -262,7 +286,7 @@ fn unknown_view_filter_reference_near_miss_offers_a_suggestion() {
     let views = BTreeMap::from([("release".to_owned(), view(""))]);
     let rule = rule_filter("@releasee");
     let problems = problems_with_views(&rule, &views);
-    assert_has(&problems, "did you mean: release?");
+    assert_suggests(&problems, "release");
 }
 
 #[test]
@@ -281,7 +305,7 @@ fn unknown_contains_field_is_rejected_at_load() {
 
 /// Validate a single `[[ls.rules]]` `columns` entry, for the near-miss /
 /// far-miss pair below.
-fn problems_for_rule_column(entry: &str) -> Vec<String> {
+fn problems_for_rule_column(entry: &str) -> Vec<Problem> {
     let rule = rule_with_list(&[entry], |v| LsRule {
         columns: v,
         ..LsRule::default()
@@ -292,14 +316,14 @@ fn problems_for_rule_column(entry: &str) -> Vec<String> {
 #[test]
 fn unknown_rule_column_near_miss_offers_a_suggestion() {
     let problems = problems_for_rule_column("staatus");
-    assert_has(&problems, "columns: ");
+    assert_lists(&problems, "status");
     assert_suggests(&problems, "status");
 }
 
 #[test]
 fn unknown_rule_column_far_miss_omits_the_suggestion() {
     let problems = problems_for_rule_column("zzzzzzzz");
-    assert_has(&problems, "columns: ");
+    assert_lists(&problems, "status");
     assert_no_suggestion(&problems);
 }
 

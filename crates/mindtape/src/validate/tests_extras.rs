@@ -119,7 +119,11 @@ fn list_extra_without_values_takes_any_shape() {
 }
 
 fn load_problem(toml: &str) -> Option<String> {
-    parse_config(toml).unwrap().validate().err()
+    parse_config(toml)
+        .unwrap()
+        .validate()
+        .err()
+        .map(|problem| problem.text)
 }
 
 #[test]

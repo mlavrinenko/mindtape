@@ -1,7 +1,7 @@
 //! Library errors as `Diag`s: a `ConditionError`, a `typst_cleanup::Error`.
 
 use mindtape::config::ConfigError;
-use mindtape::{ConditionError, FilterError};
+use mindtape::{ConditionError, FilterError, Unknown};
 
 use super::render::render;
 use super::{Diag, Kind};
@@ -64,10 +64,9 @@ fn a_condition_error_in_an_anyhow_chain_keeps_its_words() {
 #[test]
 fn a_config_error_lists_its_known_names_on_a_hint() {
     let err = ConfigError::Invalid {
-        message:
-            "views.a.columns: unknown column: 'fiel'; did you mean: file?; columns: file, title"
-                .to_owned(),
+        message: "views.a.columns: unknown column: 'fiel'".to_owned(),
         place: None,
+        unknown: Some(Unknown::among("fiel", ["file", "title"])),
     };
     assert_eq!(
         plain(&super::from_lib::config(&err)),
@@ -78,14 +77,15 @@ fn a_config_error_lists_its_known_names_on_a_hint() {
 }
 
 #[test]
-fn a_list_alone_is_one_hint_and_other_clauses_stay() {
+fn a_list_alone_is_one_hint() {
     let err = ConfigError::Invalid {
-        message: "extends: unknown pack: 'x'; available packs: a, b; see docs".to_owned(),
+        message: "extends: unknown pack: 'x'".to_owned(),
         place: None,
+        unknown: Some(Unknown::among("x", ["a", "b"])),
     };
     assert_eq!(
         plain(&super::from_lib::config(&err)),
-        "error: extends: unknown pack: 'x'; see docs\nhint: use one of: a, b\n"
+        "error: extends: unknown pack: 'x'\nhint: use one of: a, b\n"
     );
 }
 
@@ -93,7 +93,7 @@ fn a_list_alone_is_one_hint_and_other_clauses_stay() {
 fn an_unknown_dict_lists_the_dicts_on_a_hint() {
     let err = FilterError::UnknownDict {
         name: "verb".to_owned(),
-        hint: "; did you mean: verbs?; known dicts: verbs, tags".to_owned(),
+        unknown: Unknown::among("verb", ["verbs", "tags"]),
     };
     assert_eq!(
         plain(&Diag::from(err)),

@@ -44,6 +44,8 @@ use thiserror::Error;
 
 use crate::config::Config;
 use crate::model::Task;
+use crate::problem::Problem;
+use crate::suggest::Unknown;
 
 /// Why a commit could not be read.
 #[derive(Debug, Error)]
@@ -290,6 +292,8 @@ pub struct RefProblem {
     pub value: TrailerValue,
     /// What to write instead.
     pub message: String,
+    /// The nearest task, when the value names none.
+    pub unknown: Option<crate::suggest::Unknown>,
 }
 
 /// The commit a `scope = "commit"` rule reads — the fields its expressions
@@ -333,12 +337,12 @@ impl CommitRecord {
         let mut refs = Vec::new();
         for trailer in &message.trailers {
             let stem = value_stem(&trailer.value);
-            if let Some(message) =
-                ref_problem(&trailer.value, &stem, &stems, &config.commits.trailer)
+            if let Some(found) = ref_problem(&trailer.value, &stem, &stems, &config.commits.trailer)
             {
                 problems.push(RefProblem {
                     value: trailer.clone(),
-                    message,
+                    message: found.text,
+                    unknown: found.unknown,
                 });
             }
             refs.push(stem);
@@ -392,7 +396,7 @@ pub(crate) fn value_stem(value: &str) -> String {
 }
 
 /// What is wrong with one trailer value, if anything.
-fn ref_problem(value: &str, stem: &str, stems: &[String], key: &str) -> Option<String> {
+fn ref_problem(value: &str, stem: &str, stems: &[String], key: &str) -> Option<Problem> {
     let known = stems.iter().any(|known| known == stem);
     if value.contains(['/', '\\']) || value.ends_with(".typ") {
         let fix = if known {
@@ -400,16 +404,13 @@ fn ref_problem(value: &str, stem: &str, stems: &[String], key: &str) -> Option<S
         } else {
             format!("write a stem, and `{stem}` names no task")
         };
-        return Some(format!("`{value}` is a path; {fix}"));
+        return Some(format!("`{value}` is a path; {fix}").into());
     }
     (!known).then(|| {
-        format!(
-            "`{value}` names no task{}",
-            crate::suggest::suggestion(
-                value,
-                &stems.iter().map(String::as_str).collect::<Vec<_>>()
-            )
-        )
+        Problem::new(format!("`{value}` names no task")).with(Unknown::near(
+            value,
+            &stems.iter().map(String::as_str).collect::<Vec<_>>(),
+        ))
     })
 }
 

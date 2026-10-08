@@ -12,7 +12,9 @@ use serde::{Deserialize, Deserializer};
 
 use crate::config::ls_columns::{ColumnConfig, unknown_column};
 use crate::config::views::ViewSpec;
+use crate::problem::Problem;
 use crate::sort::validate_sort_spec;
+use crate::suggest::Unknown;
 
 /// Canonical `mt ls` column names, in built-in render order. The single
 /// validated vocabulary shared by `[ls.columns]` and `[ls] columns-order` (and
@@ -277,7 +279,7 @@ pub fn parse_import_view(entry: &str) -> Result<ImportView, String> {
 /// a cycle; [`crate::config::views::validate_views`] already guarantees the
 /// views-only graph is acyclic, which is all the acyclicity this needs.
 #[must_use]
-pub fn validate_ls_rules(rules: &[LsRule], views: &BTreeMap<String, ViewSpec>) -> Vec<String> {
+pub fn validate_ls_rules(rules: &[LsRule], views: &BTreeMap<String, ViewSpec>) -> Vec<Problem> {
     let mut problems = Vec::new();
     for (index, rule) in rules.iter().enumerate() {
         let prefix = format!("ls.rules[{index}]");
@@ -308,11 +310,17 @@ pub fn validate_ls_rules(rules: &[LsRule], views: &BTreeMap<String, ViewSpec>) -
     problems
 }
 
-fn validate_condition(prefix: &str, rule: &LsRule, problems: &mut Vec<String>) {
+/// An `unknown view` problem for `name`, with the declared views to choose from.
+fn unknown_view(name: &str, views: &BTreeMap<String, ViewSpec>) -> Problem {
+    Problem::new(format!("unknown view: {}", crate::config::quote(name)))
+        .with(Unknown::among(name, views.keys().map(String::as_str)))
+}
+
+fn validate_condition(prefix: &str, rule: &LsRule, problems: &mut Vec<Problem>) {
     if let Some(condition) = &rule.condition
         && let Err(err) = crate::filter::condition::Condition::parse(condition)
     {
-        problems.push(format!("{prefix}.condition: {err}"));
+        problems.push(Problem::new(format!("{prefix}.condition: {err}")));
     }
 }
 
@@ -320,17 +328,17 @@ fn validate_import_views(
     prefix: &str,
     rule: &LsRule,
     views: &BTreeMap<String, ViewSpec>,
-    problems: &mut Vec<String>,
+    problems: &mut Vec<Problem>,
 ) {
     for entry in &rule.import_views {
         match parse_import_view(entry) {
-            Ok(parsed) if !views.contains_key(&parsed.view) => problems.push(format!(
-                "{prefix}.import-views: unknown view: {}{}",
-                crate::config::quote(&parsed.view),
-                crate::suggest::hint("view", &parsed.view, views.keys())
-            )),
+            Ok(parsed) if !views.contains_key(&parsed.view) => {
+                problems.push(
+                    unknown_view(&parsed.view, views).under(&format!("{prefix}.import-views")),
+                );
+            }
             Ok(_) => {}
-            Err(msg) => problems.push(format!("{prefix}.import-views: {msg}")),
+            Err(msg) => problems.push(Problem::new(format!("{prefix}.import-views: {msg}"))),
         }
     }
 }
@@ -339,7 +347,7 @@ fn validate_manual_filter(
     prefix: &str,
     rule: &LsRule,
     views: &BTreeMap<String, ViewSpec>,
-    problems: &mut Vec<String>,
+    problems: &mut Vec<Problem>,
 ) {
     let Some(filter) = &rule.filter else {
         return;
@@ -348,15 +356,11 @@ fn validate_manual_filter(
         Ok(parsed) => {
             for target in parsed.view_refs() {
                 if !views.contains_key(&target) {
-                    problems.push(format!(
-                        "{prefix}.filter: unknown view: {}{}",
-                        crate::config::quote(&target),
-                        crate::suggest::hint("view", &target, views.keys())
-                    ));
+                    problems.push(unknown_view(&target, views).under(&format!("{prefix}.filter")));
                 }
             }
         }
-        Err(err) => problems.push(format!("{prefix}.filter: {err}")),
+        Err(err) => problems.push(Problem::new(format!("{prefix}.filter: {err}"))),
     }
 }
 
@@ -368,20 +372,16 @@ fn validate_view_spliced(
     facet: &str,
     entries: &[String],
     views: &BTreeMap<String, ViewSpec>,
-    check_spec: impl Fn(&str) -> Result<(), String>,
-) -> Vec<String> {
+    check_spec: impl Fn(&str) -> Result<(), Problem>,
+) -> Vec<Problem> {
     let mut problems = Vec::new();
     for entry in entries {
         if let Some(name) = entry.strip_prefix('@') {
             if !views.contains_key(name) {
-                problems.push(format!(
-                    "{prefix}.{facet}: unknown view: {}{}",
-                    crate::config::quote(name),
-                    crate::suggest::hint("view", name, views.keys())
-                ));
+                problems.push(unknown_view(name, views).under(&format!("{prefix}.{facet}")));
             }
         } else if let Err(msg) = check_spec(entry) {
-            problems.push(format!("{prefix}.{facet}: {msg}"));
+            problems.push(msg.under(&format!("{prefix}.{facet}")));
         }
     }
     problems

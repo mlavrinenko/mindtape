@@ -202,13 +202,12 @@ fn an_unknown_dict_name_errors_and_names_the_known_ones() {
         &titled("Add auth"),
         &cased_config(),
     );
-    assert!(
-        matches!(&got, FilterError::UnknownDict { name, .. } if name == "verb"),
-        "{got:?}"
-    );
-    let rendered = got.to_string();
-    assert!(rendered.contains("did you mean: verbs?"), "{rendered}");
-    assert!(rendered.contains("mindtape-verbs"), "{rendered}");
+    let FilterError::UnknownDict { name, unknown } = &got else {
+        panic!("{got:?}");
+    };
+    assert_eq!(name, "verb");
+    assert_eq!(unknown.nearest.as_deref(), Some("verbs"));
+    assert!(unknown.names.iter().any(|known| known == "mindtape-verbs"));
 }
 
 // --- matches() -------------------------------------------------------------

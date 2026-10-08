@@ -10,6 +10,8 @@ use crate::config::tasks::FieldExample;
 use crate::config::{Config, Requirement, RequirementRule};
 use crate::filter::Filter;
 use crate::model::Task;
+use crate::problem::Problem;
+use crate::suggest::Unknown;
 
 /// How many values a described field takes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -166,38 +168,41 @@ impl Descriptor<'_> {
     /// entry or a non-string entry. A single-valued field without allowed
     /// values takes any shape.
     #[must_use]
-    pub fn breaches(&self, task: &Task, value: &HVal) -> Vec<String> {
+    pub fn breaches(&self, task: &Task, value: &HVal) -> Vec<Problem> {
         let refused = |text: &str| self.refusal(task, text);
         match (self.cardinality, value) {
             (Cardinality::One, _) if self.allowed.is_empty() => Vec::new(),
             (Cardinality::One, HVal::Str(text)) if !self.allows(text) => vec![refused(text)],
             (Cardinality::One, HVal::Str(_)) => Vec::new(),
             (Cardinality::One, HVal::Array(_)) => {
-                vec!["takes one string, not a list; `multiple = true` declares a list".to_owned()]
+                vec!["takes one string, not a list; `multiple = true` declares a list".into()]
             }
-            (Cardinality::One, _) => vec!["takes one string".to_owned()],
+            (Cardinality::One, _) => vec!["takes one string".into()],
             (_, HVal::Array(items)) => self.list_breaches(items, refused),
-            (_, HVal::Str(_)) => vec!["takes a list of strings, not one string".to_owned()],
-            _ => vec!["takes a list of strings".to_owned()],
+            (_, HVal::Str(_)) => vec!["takes a list of strings, not one string".into()],
+            _ => vec!["takes a list of strings".into()],
         }
     }
 
-    fn refusal(&self, task: &Task, text: &str) -> String {
+    fn refusal(&self, task: &Task, text: &str) -> Problem {
         let derived =
             if self.cardinality == Cardinality::Many && !task.tags.iter().any(|tag| tag == text) {
                 " derived from folder"
             } else {
                 ""
             };
-        let hint = if self.hint {
-            crate::suggest::hint(self.noun, text, self.allowed)
+        let problem = Problem::new(format!("`{text}`{derived} is not an allowed {}", self.noun));
+        if self.hint {
+            problem.with(Unknown::among(
+                text,
+                self.allowed.iter().map(String::as_str),
+            ))
         } else {
-            String::new()
-        };
-        format!("`{text}`{derived} is not an allowed {}{hint}", self.noun)
+            problem
+        }
     }
 
-    fn list_breaches(&self, items: &[HVal], refused: impl Fn(&str) -> String) -> Vec<String> {
+    fn list_breaches(&self, items: &[HVal], refused: impl Fn(&str) -> Problem) -> Vec<Problem> {
         const SHAPE: &str = "takes a list of strings";
         if self.allowed.is_empty() {
             return Vec::new();
@@ -205,7 +210,7 @@ impl Descriptor<'_> {
         if items.is_empty() {
             return match self.cardinality {
                 Cardinality::Many => Vec::new(),
-                _ => vec!["an empty list names no allowed value".to_owned()],
+                _ => vec!["an empty list names no allowed value".into()],
             };
         }
         let mut out = Vec::new();
@@ -216,10 +221,10 @@ impl Descriptor<'_> {
                 HVal::Str(text)
                     if self.cardinality != Cardinality::Many && seen.contains(&text.as_str()) =>
                 {
-                    out.push(format!("`{text}` is listed twice"));
+                    out.push(format!("`{text}` is listed twice").into());
                 }
                 HVal::Str(text) => seen.push(text),
-                _ if !out.iter().any(|message| message == SHAPE) => out.push(SHAPE.to_owned()),
+                _ if !out.iter().any(|message| message == SHAPE) => out.push(SHAPE.into()),
                 _ => {}
             }
         }

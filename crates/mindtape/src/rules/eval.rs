@@ -176,6 +176,7 @@ impl CompiledRule {
             severity: self.severity,
             kind: crate::validate::violation::ViolationKind::Other,
             reads: self.reads.clone(),
+            unknown: None,
         }
     }
 }

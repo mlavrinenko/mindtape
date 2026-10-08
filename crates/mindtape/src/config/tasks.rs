@@ -23,6 +23,8 @@ use crate::config::roots::{DeriveConfig, RootSpec};
 use crate::config::status::Legend;
 use crate::framework::Framework;
 use crate::model::numeric::{Anchor, Band, NumericField, ScaleKind};
+use crate::problem::Problem;
+use crate::suggest::Unknown;
 
 /// `[tasks]` — where tasks live and how they are constrained.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
@@ -324,7 +326,7 @@ pub struct TagsConfig {
 /// # Errors
 /// One message per unknown dictionary name referenced, each carrying a
 /// nearest-match suggestion, joined one per line.
-pub(crate) fn expand_dict_refs(tasks: &mut TasksConfig, dicts: &Dicts) -> Result<(), String> {
+pub(crate) fn expand_dict_refs(tasks: &mut TasksConfig, dicts: &Dicts) -> Result<(), Problem> {
     let mut problems = Vec::new();
     if let Err(msg) = expand_list(&mut tasks.tags.allowed, dicts, "tasks.tags.allowed") {
         problems.push(msg);
@@ -338,7 +340,7 @@ pub(crate) fn expand_dict_refs(tasks: &mut TasksConfig, dicts: &Dicts) -> Result
     if problems.is_empty() {
         Ok(())
     } else {
-        Err(problems.join("\n"))
+        Err(Problem::join(problems))
     }
 }
 
@@ -347,7 +349,7 @@ pub(crate) fn expand_dict_refs(tasks: &mut TasksConfig, dicts: &Dicts) -> Result
 /// as-is, and the whole result is deduplicated (first occurrence wins).
 /// `label` names the list in an error message (`tasks.tags.allowed`,
 /// `tasks.fields.kind.values`).
-fn expand_list(list: &mut Vec<String>, dicts: &Dicts, label: &str) -> Result<(), String> {
+fn expand_list(list: &mut Vec<String>, dicts: &Dicts, label: &str) -> Result<(), Problem> {
     let mut out = Vec::with_capacity(list.len());
     let mut seen: HashSet<String> = HashSet::new();
     let mut problems = Vec::new();
@@ -360,11 +362,13 @@ fn expand_list(list: &mut Vec<String>, dicts: &Dicts, label: &str) -> Result<(),
         };
         let Some(dict) = dicts.get(name) else {
             let known: Vec<String> = dicts.names().map(ToOwned::to_owned).collect();
-            problems.push(format!(
-                "{label}: unknown dict: {}{}",
-                crate::config::quote(name),
-                crate::suggest::hint("dict", name, &known)
-            ));
+            problems.push(
+                Problem::new(format!(
+                    "{label}: unknown dict: {}",
+                    crate::config::quote(name)
+                ))
+                .with(Unknown::among(name, known.iter().map(String::as_str))),
+            );
             continue;
         };
         for value in dict.entries() {
@@ -377,7 +381,7 @@ fn expand_list(list: &mut Vec<String>, dicts: &Dicts, label: &str) -> Result<(),
         *list = out;
         Ok(())
     } else {
-        Err(problems.join("\n"))
+        Err(Problem::join(problems))
     }
 }
 

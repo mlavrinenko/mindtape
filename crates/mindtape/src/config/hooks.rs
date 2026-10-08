@@ -41,6 +41,8 @@ use crate::config::Config;
 use crate::filter::{Filter, FilterError};
 use crate::graph::ready::Readiness;
 use crate::model::Task;
+use crate::problem::Problem;
+use crate::suggest::Unknown;
 
 /// A filter atom matching every task: `id` is a plain `String` on [`Task`] and
 /// is never absent, so `has(id)` is a tautology by construction. Used as the
@@ -368,7 +370,7 @@ fn is_ident_char(ch: char) -> bool {
 /// legend; each action must resolve to exactly one kind, and a `list` filter
 /// must parse. A malformed hook is one config error at load — not a surprise
 /// halfway through a batch flip, with some tasks already written.
-pub(crate) fn validate_flip_hooks(config: &Config) -> Vec<String> {
+pub(crate) fn validate_flip_hooks(config: &Config) -> Vec<Problem> {
     let probe = Task::default();
     let mut problems = Vec::new();
     for (index, hook) in config.on.flip.iter().enumerate() {
@@ -376,20 +378,24 @@ pub(crate) fn validate_flip_hooks(config: &Config) -> Vec<String> {
             let legend = &config.tasks.status;
             if !legend.is_empty() && !legend.contains(&name) {
                 let known = legend.values();
-                problems.push(format!(
-                    "on.flip[{index}].when: unknown status: {} in into(){}",
-                    crate::config::quote(&name),
-                    crate::suggest::suggestion(&name, &known)
-                ));
+                problems.push(
+                    Problem::new(format!(
+                        "on.flip[{index}].when: unknown status: {} in into()",
+                        crate::config::quote(&name)
+                    ))
+                    .with(Unknown::near(&name, &known)),
+                );
             }
         }
         if let Some(problem) =
             crate::filter::expr_problem_in_set(&desugar_into(&hook.when, ""), &probe, config)
         {
-            problems.push(format!("on.flip[{index}].when: {problem}"));
+            problems.push(problem.under(&format!("on.flip[{index}].when")));
         }
         if hook.actions.is_empty() {
-            problems.push(format!("on.flip[{index}]: no actions declared"));
+            problems.push(Problem::new(format!(
+                "on.flip[{index}]: no actions declared"
+            )));
         }
         problems.extend(action_problems(index, hook, &probe, config));
     }
@@ -398,15 +404,15 @@ pub(crate) fn validate_flip_hooks(config: &Config) -> Vec<String> {
 
 /// Load-time problems in one hook's actions: an unresolvable kind, or a `list`
 /// filter that does not parse or evaluate.
-fn action_problems(index: usize, hook: &FlipHook, probe: &Task, config: &Config) -> Vec<String> {
+fn action_problems(index: usize, hook: &FlipHook, probe: &Task, config: &Config) -> Vec<Problem> {
     let mut problems = Vec::new();
     for (slot, action) in hook.actions.iter().enumerate() {
         let at = format!("on.flip[{index}].actions[{slot}]");
         match action.kind() {
-            Err(message) => problems.push(format!("{at}: {message}")),
+            Err(message) => problems.push(Problem::new(format!("{at}: {message}"))),
             Ok(ActionKind::List { filter, .. }) => {
                 if let Some(problem) = crate::filter::expr_problem_in_set(filter, probe, config) {
-                    problems.push(format!("{at}.list: {problem}"));
+                    problems.push(problem.under(&format!("{at}.list")));
                 }
             }
             Ok(_) => {}

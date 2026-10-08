@@ -316,7 +316,8 @@ pub fn assemble(answers: Answers) -> Result<Outcome> {
         Diag::from(err).note(Note::new("this is the config composed from your answers"))
     })?;
     parsed.validate().map_err(|msg| {
-        Diag::verbatim(Kind::Failed, msg)
+        Diag::verbatim(Kind::Failed, msg.text)
+            .unknown(msg.unknown.as_ref())
             .note(Note::new("this is the config composed from your answers"))
     })?;
     Ok(Outcome {

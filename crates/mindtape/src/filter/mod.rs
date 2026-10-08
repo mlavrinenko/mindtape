@@ -153,15 +153,24 @@ pub enum FilterError {
     #[error("unknown view in filter: {0}")]
     UnknownView(String),
     /// An `in_dict` reference naming no compiled dictionary — neither a
-    /// `[dicts.<name>]` section nor a built-in. `hint` carries the nearest
-    /// match and the full enumeration ([`crate::suggest::hint`]), because a
-    /// dictionary name is invisible in the listing a wrong one produces.
-    #[error("unknown dict in filter: {name}{hint}")]
+    /// `[dicts.<name>]` section nor a built-in. `unknown` carries the nearest
+    /// match and every dictionary name, because a dictionary name is invisible
+    /// in the listing a wrong one produces.
+    #[error("unknown dict in filter: {name}")]
     UnknownDict {
         /// The name as written in the expression.
         name: String,
-        /// The trailing suggestion clause, or empty.
-        hint: String,
+        /// The nearest dictionary and the dictionaries to choose from.
+        unknown: crate::suggest::Unknown,
+    },
+    /// A `@name` path set in `changed()` or `count(files, ...)` that no
+    /// dictionary answers to.
+    #[error("unknown path set '@{name}'; declare it as [dicts.{name}]")]
+    UnknownPathSet {
+        /// The set as written, without its `@`.
+        name: String,
+        /// The nearest dictionary and the dictionaries to choose from.
+        unknown: crate::suggest::Unknown,
     },
     /// A function the filter language does not have. `nearest` is the closest
     /// real one, when any is close.

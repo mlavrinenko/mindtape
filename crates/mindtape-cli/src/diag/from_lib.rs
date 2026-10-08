@@ -11,7 +11,7 @@ use mindtape::config::{ConfigError, ConfigPlace};
 use mindtape::recur::dates::RecurError;
 use mindtape::{
     ConditionError, DateOverrideError, FillError, FilterError, Location, RefError, Severity,
-    SlotKind, Violation,
+    SlotKind, Unknown, Violation,
 };
 
 use super::{Command, Diag, Hint, Kind, Note};
@@ -151,10 +151,17 @@ pub(crate) fn filter(err: FilterError, expr: Option<&str>) -> Diag {
             }
         }
         FilterError::UnknownView(name) => in_filter(Diag::usage("unknown view").value(name)),
-        FilterError::UnknownDict { name, hint } => {
-            let (_, hints) = split_clauses(&hint);
-            with_hints(in_filter(Diag::usage("unknown dict").value(name)), hints)
-        }
+        FilterError::UnknownDict { name, unknown } => in_filter(
+            Diag::usage("unknown dict")
+                .value(name)
+                .unknown(Some(&unknown)),
+        ),
+        FilterError::UnknownPathSet { name, unknown } => in_filter(
+            Diag::usage("unknown path set")
+                .value(format!("@{name}"))
+                .reason(format!("declare it as [dicts.{name}]"))
+                .unknown(Some(&unknown)),
+        ),
         FilterError::Git { call, reason } => {
             Diag::failed("can't read git").reason(format!("{call}(): {reason}"))
         }
@@ -196,68 +203,36 @@ pub(super) fn config(err: &ConfigError) -> Diag {
         ConfigError::Io(source) => Diag::failed("can't read config").cause(source),
         ConfigError::Parse(error) => toml_error(error, None),
         ConfigError::ParseIn { origin, error } => toml_error(error, Some(origin)),
-        ConfigError::Invalid { message, place } => invalid(message, place.as_ref()),
+        ConfigError::Invalid {
+            message,
+            place,
+            unknown,
+        } => invalid(message, place.as_ref(), unknown.as_ref()),
     }
 }
 
 /// A config that parsed but failed a check: `<file>:<line>: <key>: <message>`.
-/// A second problem is a `note:` line. A `; did you mean: x?` clause on the
-/// first becomes a hint, and so does a `; known views: a, b` list.
-fn invalid(message: &str, place: Option<&ConfigPlace>) -> Diag {
-    let (first, rest) = message.split_once('\n').unwrap_or((message, ""));
-    let (first, hints) = split_clauses(first);
+/// A second problem is a `note:` line. What the first problem's unknown name
+/// could have been becomes hints.
+fn invalid(message: &str, place: Option<&ConfigPlace>, unknown: Option<&Unknown>) -> Diag {
     let mut diag = Diag::failed("");
     if let Some(place) = place {
         diag = diag.at(&place.file, place.line, None);
     }
-    let text = if rest.is_empty() {
-        first
-    } else {
-        format!("{first}\n{rest}")
-    };
-    with_hints(diag.reason(text), hints)
+    diag.reason(message).unknown(unknown)
 }
 
-fn with_hints(diag: Diag, hints: Vec<Hint>) -> Diag {
-    hints.into_iter().fold(diag, Diag::hint)
-}
-
-/// The labels that open a `; <label>: a, b, c` clause listing the names a
-/// value could have been.
-const LIST_LABELS: [&str; 4] = ["known ", "columns: ", "available packs: ", "use one of "];
-
-/// `line` without the clauses the library appended to it, and those clauses as
-/// hints: `; did you mean: <name>?` and the first `; known <kind>s: a, b` list.
-/// Any other clause stays in the line.
-fn split_clauses(line: &str) -> (String, Vec<Hint>) {
-    let mut parts = line.split("; ");
-    let mut head = parts.next().unwrap_or_default().to_owned();
-    let (mut near, mut names) = (None, None);
-    for part in parts {
-        let did_you_mean = part
-            .strip_prefix("did you mean: ")
-            .and_then(|tail| tail.strip_suffix('?'));
-        if let (Some(name), None) = (did_you_mean, &near) {
-            near = Some(Hint::did_you_mean(name));
-        } else if let (Some(list), None) = (listed_names(part), &names) {
-            names = Some(Hint::one_of(list));
-        } else {
-            head.push_str("; ");
-            head.push_str(part);
-        }
+impl Diag {
+    /// The nearest known name as `hint: did you mean x?` and the names to
+    /// choose from as `hint: use one of: a, b`.
+    pub(crate) fn unknown(self, unknown: Option<&Unknown>) -> Self {
+        let Some(unknown) = unknown else {
+            return self;
+        };
+        let near = unknown.nearest.iter().cloned().map(Hint::did_you_mean);
+        let names = (!unknown.names.is_empty()).then(|| Hint::one_of(unknown.names.clone()));
+        near.chain(names).fold(self, Self::hint)
     }
-    (head, near.into_iter().chain(names).collect())
-}
-
-/// The names in a `known views: a, b` style clause, or `None` for any other.
-fn listed_names(clause: &str) -> Option<Vec<String>> {
-    LIST_LABELS
-        .iter()
-        .find(|label| clause.starts_with(**label))?;
-    let (_, list) = clause
-        .split_once(": ")
-        .or_else(|| clause.split_once("one of "))?;
-    Some(list.split(", ").map(ToOwned::to_owned).collect())
 }
 
 /// A TOML syntax error on one line: `<origin>:<line>:<col>: can't parse
@@ -320,6 +295,7 @@ impl From<&Violation> for Diag {
         diag.at_location(&violation.location)
             .rule(violation.field.clone())
             .reason(violation.message.clone())
+            .unknown(violation.unknown.as_ref())
     }
 }
 

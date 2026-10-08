@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 8),
+  status: accepted(2026, 10, 8),
   links: depends-on(
     "build-an-error-dsl-that-fixes-the-message-format-and-the-exit-code.typ",
   )

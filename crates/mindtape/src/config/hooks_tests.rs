@@ -341,7 +341,11 @@ fn validation_reports_each_problem() {
     for (toml, expected) in cases {
         // parse_config, not a bare deserialize: the shipped legend has to be in
         // place for the `into(...)` name check to have anything to check against.
-        let problems = validate_flip_hooks(&config_with(toml)).join("; ");
+        let problems = validate_flip_hooks(&config_with(toml))
+            .iter()
+            .map(|problem| problem.text.as_str())
+            .collect::<Vec<_>>()
+            .join("; ");
         assert!(problems.contains(expected), "{toml} -> {problems}");
     }
 }

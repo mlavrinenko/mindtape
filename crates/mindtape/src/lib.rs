@@ -29,6 +29,7 @@ pub mod import_map;
 pub mod link;
 pub mod loader;
 pub mod model;
+pub mod problem;
 pub mod recur;
 pub mod rules;
 pub mod sort;
@@ -100,9 +101,10 @@ pub use model::numeric::{
 };
 pub use model::task_spans::TaskCallSpans;
 pub use model::{Status, Task, is_history_pointer, normalize_link};
+pub use problem::Problem;
 pub use rules::{CheckSpec, RuleSpec};
 pub use sort::{default_order, default_order_with, difficulty_value, sort_by_specs};
-pub use suggest::{hint, nearest};
+pub use suggest::{Unknown, nearest};
 pub use template::add_slots::{RequiredSlot, inherit_field_choices, required_core_slots};
 pub use template::check::{
     TemplateHome, TemplateSources, template_breaches, template_failure, unfillable_slots,

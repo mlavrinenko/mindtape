@@ -11,9 +11,12 @@ use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
 
 use crate::config::ls::LS_COLUMNS;
+use crate::config::ls_columns::unknown_column;
 use crate::config::name_cycle::find_cycle;
 use crate::filter::Filter;
+use crate::problem::Problem;
 use crate::sort::validate_sort_spec;
+use crate::suggest::Unknown;
 
 /// `[views.<name>]` — one named query bundle.
 #[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
@@ -37,9 +40,8 @@ pub struct ViewSpec {
 /// legal, each `in_view` / `@` reference resolves, and the reference graph has
 /// no cycle. Returns one message per problem.
 #[must_use]
-pub fn validate_views(views: &BTreeMap<String, ViewSpec>) -> Vec<String> {
+pub fn validate_views(views: &BTreeMap<String, ViewSpec>) -> Vec<Problem> {
     let mut problems = Vec::new();
-    let legal_cols = LS_COLUMNS.join(", ");
     let mut refs: BTreeMap<&str, Vec<String>> = BTreeMap::new();
     for (name, spec) in views {
         match Filter::parse(&spec.filter) {
@@ -47,37 +49,35 @@ pub fn validate_views(views: &BTreeMap<String, ViewSpec>) -> Vec<String> {
                 let named = filter.view_refs();
                 for target in &named {
                     if !views.contains_key(target) {
-                        problems.push(format!(
-                            "views.{name}: unknown view: {}{}",
-                            super::quote(target),
-                            crate::suggest::suggestion(
+                        problems.push(
+                            Problem::new(format!(
+                                "views.{name}: unknown view: {}",
+                                super::quote(target)
+                            ))
+                            .with(Unknown::near(
                                 target,
-                                &views.keys().map(String::as_str).collect::<Vec<_>>()
-                            )
-                        ));
+                                &views.keys().map(String::as_str).collect::<Vec<_>>(),
+                            )),
+                        );
                     }
                 }
                 refs.insert(name.as_str(), named);
             }
-            Err(err) => problems.push(format!("views.{name}.filter: {err}")),
+            Err(err) => problems.push(format!("views.{name}.filter: {err}").into()),
         }
         for spec_str in &spec.sort {
             if let Err(msg) = validate_sort_spec(spec_str) {
-                problems.push(format!("views.{name}.sort: {msg}"));
+                problems.push(msg.under(&format!("views.{name}.sort")));
             }
         }
         for col in &spec.columns {
             if !LS_COLUMNS.contains(&col.as_str()) {
-                problems.push(format!(
-                    "views.{name}.columns: unknown column: {}{}; columns: {legal_cols}",
-                    super::quote(col),
-                    crate::suggest::suggestion(col, &LS_COLUMNS)
-                ));
+                problems.push(unknown_column(col).under(&format!("views.{name}.columns")));
             }
         }
     }
     if let Some(cycle) = find_cycle(&refs) {
-        problems.push(format!("views: reference cycle: {}", cycle.join(" -> ")));
+        problems.push(format!("views: reference cycle: {}", cycle.join(" -> ")).into());
     }
     problems
 }

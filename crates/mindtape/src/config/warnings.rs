@@ -7,16 +7,17 @@
 //! misspelling `x-machnie` matches nothing without a word.
 
 use crate::config::Config;
+use crate::problem::Problem;
 
 /// Every warning for `config`, each prefixed by the dotted TOML path of the
 /// filter it is about.
-pub(crate) fn warnings(config: &Config) -> Vec<String> {
+pub(crate) fn warnings(config: &Config) -> Vec<Problem> {
     filters(config)
         .into_iter()
         .flat_map(|(path, source)| {
             crate::filter::undeclared_extras(&source, config)
                 .into_iter()
-                .map(move |message| format!("{path}: {message}"))
+                .map(move |problem| problem.under(&path))
         })
         .collect()
 }

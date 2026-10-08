@@ -23,6 +23,7 @@ use std::sync::{Arc, OnceLock};
 use globset::{Glob, GlobSet, GlobSetBuilder};
 
 use crate::config::dicts::{DictCase, Dicts};
+use crate::suggest::Unknown;
 
 /// The state names `changed()` accepts, in the order an error lists them.
 const STATE_NAMES: [&str; 2] = ["staged", "worktree"];
@@ -170,6 +171,20 @@ impl GitStatus {
     }
 }
 
+/// Why a `@name` path set could not be resolved into a [`PathFilter`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PathSetError {
+    /// No `[dicts.<name>]` set, and no built-in, has this name.
+    Unknown {
+        /// The set as written, without its `@`.
+        name: String,
+        /// The nearest dictionary and the dictionaries to choose from.
+        unknown: Unknown,
+    },
+    /// The set folds case, or a glob fails to compile.
+    Invalid(String),
+}
+
 /// Which paths count: include globs, and `!`-prefixed exclude globs. No
 /// include admits every path; an exclude wins over an include.
 #[derive(Debug, Clone)]
@@ -203,30 +218,28 @@ impl PathFilter {
     /// every `changed()` and `count(files, …)` call reads it.
     ///
     /// # Errors
-    /// A message naming an unknown set, a set that folds case (which would
-    /// lowercase its globs), or the first glob that fails to compile.
-    pub fn resolve(globs: &[String], dicts: &Dicts) -> Result<Self, String> {
+    /// [`PathSetError::Unknown`] for an unknown set, [`PathSetError::Invalid`]
+    /// for a set that folds case (which would lowercase its globs) or the
+    /// first glob that fails to compile.
+    pub fn resolve(globs: &[String], dicts: &Dicts) -> Result<Self, PathSetError> {
         let mut expanded = Vec::new();
         for glob in globs {
             let Some(name) = glob.strip_prefix('@') else {
                 expanded.push(glob.clone());
                 continue;
             };
-            let dict = dicts.get(name).ok_or_else(|| {
-                let known: Vec<String> = dicts.names().map(ToOwned::to_owned).collect();
-                format!(
-                    "unknown path set '@{name}'; declare it as [dicts.{name}]{}",
-                    crate::suggest::hint("dict", name, &known)
-                )
+            let dict = dicts.get(name).ok_or_else(|| PathSetError::Unknown {
+                name: name.to_owned(),
+                unknown: Unknown::among(name, dicts.names()),
             })?;
             if dict.case() != DictCase::Exact {
-                return Err(format!(
+                return Err(PathSetError::Invalid(format!(
                     "path set '@{name}' folds case; declare it with case = \"exact\""
-                ));
+                )));
             }
             expanded.extend(dict.entries().map(ToOwned::to_owned));
         }
-        Self::new(&expanded)
+        Self::new(&expanded).map_err(PathSetError::Invalid)
     }
 
     /// Whether `path` counts.

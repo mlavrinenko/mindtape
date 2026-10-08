@@ -1,14 +1,10 @@
 //! Nearest-name suggestion for an unknown identifier against a known set
 //! (`truth/tasks/suggest-a-nearest-match-on-an-unknown-view-name.typ`).
 //!
-//! Every other unknown-name error in the CLI enumerates the legal values
-//! (`unknown column ...expected one of`, `unknown status ...configured
-//! legend`, `unknown --set/-f key(s) ...known slots`) — an unknown view name
-//! used to be the outlier, a bare `unknown view: <name>` with neither a
-//! nearest match nor the list of views that do exist. [`nearest`] finds the
-//! closest known name by edit distance above a similarity floor; [`hint`]
-//! renders it plus the full enumeration as the trailing clause every
-//! unknown-view error now appends.
+//! [`nearest`] finds the closest known name by edit distance above a
+//! similarity floor. [`Unknown`] holds it with the names to choose from, so an
+//! error carries what the name could have been as data and the CLI words it
+//! as `hint:` lines.
 
 use strsim::normalized_damerau_levenshtein;
 
@@ -42,42 +38,38 @@ pub fn nearest<'a>(name: &str, known: &[&'a str]) -> Option<&'a str> {
     best.map(|(candidate, _)| candidate)
 }
 
-/// Render the trailing hint clause for an unknown `name` not found among
-/// `known`: `; did you mean: <name>?; known <kind>s: a, b, c` when a near
-/// match clears [`SIMILARITY_FLOOR`], `; known <kind>s: a, b, c` alone
-/// otherwise. Returns an empty string when `known` is empty — nothing to
-/// suggest and nothing to enumerate, so the caller's own message is left
-/// unchanged. `kind` names what is being enumerated (`"view"` today; the
-/// column / status / slot / tag / worktree sites are a follow-up), pluralized
-/// with a trailing `s`.
-#[must_use]
-pub fn hint<'a, I>(kind: &str, name: &str, known: I) -> String
-where
-    I: IntoIterator<Item = &'a String>,
-{
-    let known: Vec<&str> = known.into_iter().map(String::as_str).collect();
-    if known.is_empty() {
-        return String::new();
-    }
-    let suggestion = nearest(name, &known)
-        .map(|m| format!("did you mean: {m}?; "))
-        .unwrap_or_default();
-    format!("; {suggestion}known {kind}s: {}", known.join(", "))
+/// What an unknown name could have been: the nearest known name, when one
+/// clears [`SIMILARITY_FLOOR`], and the names to choose from. A library error
+/// carries it as data; the CLI words it as `hint:` lines.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct Unknown {
+    /// The known name closest to the unknown one.
+    pub nearest: Option<String>,
+    /// Every known name, in listing order. Empty when the caller names none.
+    pub names: Vec<String>,
 }
 
-/// Render just the nearest-match fragment as a trailing clause: `; did you
-/// mean: <name>?` when a candidate clears [`SIMILARITY_FLOOR`], empty
-/// otherwise (including when `known` is empty — nothing to suggest).
-///
-/// [`hint`] folds a suggestion together with a full enumeration for a caller
-/// that has neither; a caller that already enumerates the legal values
-/// (column / status / slot sites) appends this instead, so the enumeration is
-/// never printed twice.
-#[must_use]
-pub fn suggestion(name: &str, known: &[&str]) -> String {
-    nearest(name, known)
-        .map(|m| format!("; did you mean: {m}?"))
-        .unwrap_or_default()
+impl Unknown {
+    /// The nearest of `known` to `name`, and all of `known` as the names to
+    /// choose from.
+    #[must_use]
+    pub fn among<'a>(name: &str, known: impl IntoIterator<Item = &'a str>) -> Self {
+        let names: Vec<&str> = known.into_iter().collect();
+        Self {
+            nearest: nearest(name, &names).map(str::to_owned),
+            names: names.into_iter().map(str::to_owned).collect(),
+        }
+    }
+
+    /// The nearest of `known` to `name` alone, for a caller whose message
+    /// already lists the legal values.
+    #[must_use]
+    pub fn near(name: &str, known: &[&str]) -> Self {
+        Self {
+            nearest: nearest(name, known).map(str::to_owned),
+            names: Vec::new(),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -113,42 +105,23 @@ mod tests {
     }
 
     #[test]
-    fn hint_near_miss_offers_a_suggestion_and_the_full_list() {
-        let known = vec!["backlog".to_owned(), "blocked".to_owned()];
-        let rendered = hint("view", "backlgo", &known);
-        assert_eq!(
-            rendered,
-            "; did you mean: backlog?; known views: backlog, blocked"
-        );
+    fn among_carries_the_nearest_and_every_name() {
+        let unknown = Unknown::among("backlgo", ["backlog", "blocked"]);
+        assert_eq!(unknown.nearest.as_deref(), Some("backlog"));
+        assert_eq!(unknown.names, ["backlog", "blocked"]);
     }
 
     #[test]
-    fn hint_far_miss_omits_the_suggestion() {
-        let known = vec!["backlog".to_owned(), "blocked".to_owned()];
-        let rendered = hint("view", "zzz", &known);
-        assert_eq!(rendered, "; known views: backlog, blocked");
+    fn among_far_miss_has_no_nearest() {
+        let unknown = Unknown::among("zzz", ["backlog", "blocked"]);
+        assert_eq!(unknown.nearest, None);
+        assert_eq!(unknown.names, ["backlog", "blocked"]);
     }
 
     #[test]
-    fn hint_empty_known_set_is_silent() {
-        let known: Vec<String> = Vec::new();
-        assert_eq!(hint("view", "anything", &known), "");
-    }
-
-    #[test]
-    fn suggestion_near_miss_renders_the_clause_alone() {
-        let known = ["backlog", "blocked", "default"];
-        assert_eq!(suggestion("backlgo", &known), "; did you mean: backlog?");
-    }
-
-    #[test]
-    fn suggestion_far_miss_is_empty() {
-        let known = ["backlog", "blocked", "default"];
-        assert_eq!(suggestion("zzz", &known), "");
-    }
-
-    #[test]
-    fn suggestion_empty_known_set_is_empty() {
-        assert_eq!(suggestion("anything", &[]), "");
+    fn near_carries_no_names() {
+        let unknown = Unknown::near("backlgo", &["backlog", "blocked"]);
+        assert_eq!(unknown.nearest.as_deref(), Some("backlog"));
+        assert!(unknown.names.is_empty());
     }
 }

@@ -7,6 +7,8 @@ use super::{Filter, Readiness};
 use crate::config::Config;
 use crate::model::Task;
 use crate::model::fields;
+use crate::problem::Problem;
+use crate::suggest::Unknown;
 
 /// What makes one saved filter expression unusable, if anything: a syntax
 /// error, or a structural problem a dry-run against `probe` surfaces — an
@@ -23,13 +25,23 @@ use crate::model::fields;
 /// checked and counts zero, so loading a config outside a repository is not
 /// an error and loading one inside it costs no `git status`.
 #[must_use]
-pub(crate) fn expr_problem(source: &str, probe: &Task, config: &Config) -> Option<String> {
+pub(crate) fn expr_problem(source: &str, probe: &Task, config: &Config) -> Option<Problem> {
     match Filter::parse(source) {
-        Err(err) => Some(err.to_string()),
+        Err(err) => Some(problem_of(&err)),
         Ok(filter) => filter
             .eval(probe, config, &Readiness::empty(), true)
             .err()
-            .map(|err| err.to_string()),
+            .map(|err| problem_of(&err)),
+    }
+}
+
+/// `err` as a problem, carrying the dictionary names an unknown `in_dict`
+/// could have meant.
+fn problem_of(err: &super::FilterError) -> Problem {
+    let problem = Problem::new(err.to_string());
+    match err {
+        super::FilterError::UnknownDict { unknown, .. } => problem.with(unknown.clone()),
+        _ => problem,
     }
 }
 
@@ -39,7 +51,7 @@ pub(crate) fn expr_problem(source: &str, probe: &Task, config: &Config) -> Optio
 /// name is a likely typo only beside declared ones, and reading an undeclared
 /// name stays legal.
 #[must_use]
-pub(crate) fn undeclared_extras(source: &str, config: &Config) -> Vec<String> {
+pub(crate) fn undeclared_extras(source: &str, config: &Config) -> Vec<Problem> {
     let declared: Vec<String> = config
         .tasks
         .fields
@@ -58,10 +70,8 @@ pub(crate) fn undeclared_extras(source: &str, config: &Config) -> Vec<String> {
         .into_iter()
         .filter(|name| fields::is_extra(name) && !declared.contains(name))
         .map(|name| {
-            format!(
-                "`{name}` is not declared in [tasks.fields]{}",
-                crate::suggest::hint("field", &name, &declared)
-            )
+            Problem::new(format!("`{name}` is not declared in [tasks.fields]"))
+                .with(Unknown::among(&name, declared.iter().map(String::as_str)))
         })
         .collect()
 }
@@ -71,13 +81,13 @@ pub(crate) fn undeclared_extras(source: &str, config: &Config) -> Vec<String> {
 /// dry run: the probe is its own one-task set. The run is dry, so loading
 /// never reads git for `changed()` or `touches()`.
 #[must_use]
-pub(crate) fn expr_problem_in_set(source: &str, probe: &Task, config: &Config) -> Option<String> {
+pub(crate) fn expr_problem_in_set(source: &str, probe: &Task, config: &Config) -> Option<Problem> {
     let set = Readiness::compute(std::slice::from_ref(probe), config);
     match Filter::parse(source) {
-        Err(err) => Some(err.to_string()),
+        Err(err) => Some(problem_of(&err)),
         Ok(filter) => filter
             .eval(probe, config, &set, true)
             .err()
-            .map(|err| err.to_string()),
+            .map(|err| problem_of(&err)),
     }
 }

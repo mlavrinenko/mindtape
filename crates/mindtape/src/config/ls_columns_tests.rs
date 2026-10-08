@@ -3,6 +3,7 @@
 use std::collections::BTreeMap;
 
 use super::{ColumnConfig, validate_ls_columns};
+use crate::Problem;
 use crate::config::ls::LsConfig;
 use crate::parse_config;
 
@@ -22,9 +23,9 @@ fn ls_with_when(column: &str, when: &str) -> LsConfig {
 /// The single problem `problems` must carry — every case below asserts the
 /// count as part of the claim, so a second, unrelated message is a failure
 /// rather than something the assertion reads past.
-fn only(problems: &[String]) -> &str {
+fn only(problems: &[Problem]) -> &str {
     assert_eq!(problems.len(), 1, "{problems:?}");
-    problems.first().unwrap()
+    &problems.first().unwrap().text
 }
 
 #[test]

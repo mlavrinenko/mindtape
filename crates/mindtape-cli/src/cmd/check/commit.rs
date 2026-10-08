@@ -106,7 +106,8 @@ pub(crate) fn run(project: &util::Project, file: &Path, quiet: bool) -> Result<(
     for problem in &ref_problems {
         let diag = Diag::verbatim(Kind::Refused, &problem.message)
             .at(file, problem.value.line, None)
-            .rule(project.config.commits.trailer.clone());
+            .rule(project.config.commits.trailer.clone())
+            .unknown(problem.unknown.as_ref());
         crate::diag::emit(&diag);
     }
     let states = task_states(project)?;

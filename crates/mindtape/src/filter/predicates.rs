@@ -14,7 +14,7 @@ use crate::config::Config;
 use crate::filter::compare::compare;
 use crate::filter::expr::{call_args, extract_identifier, extract_literal};
 use crate::filter::{Ctx, FilterError, field_value};
-use crate::git::state::{PathFilter, StateSet};
+use crate::git::state::{PathFilter, PathSetError, StateSet};
 use crate::model::Task;
 use crate::model::fields::{self as fields, FieldValue};
 use crate::model::numeric::format_num;
@@ -131,7 +131,8 @@ pub(crate) fn changed_count(
         .iter()
         .map(|node| extract_literal(node).map_err(invalid))
         .collect::<Result<Vec<_>, _>>()?;
-    let admitted = PathFilter::resolve(&globs, config.compiled_dicts()).map_err(invalid)?;
+    let admitted = PathFilter::resolve(&globs, config.compiled_dicts())
+        .map_err(|err| path_set_error(err, "changed():"))?;
     if dry {
         return Ok(0.0);
     }
@@ -299,6 +300,14 @@ fn joined_notes(task: &Task) -> String {
         .filter_map(|link| link.note.as_deref())
         .collect::<Vec<_>>()
         .join(" ")
+}
+
+/// A path-set failure as the filter error of the call `prefix` names.
+pub(crate) fn path_set_error(err: PathSetError, prefix: &str) -> FilterError {
+    match err {
+        PathSetError::Unknown { name, unknown } => FilterError::UnknownPathSet { name, unknown },
+        PathSetError::Invalid(message) => FilterError::Invalid(format!("{prefix} {message}")),
+    }
 }
 
 #[cfg(test)]

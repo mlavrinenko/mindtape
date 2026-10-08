@@ -305,7 +305,11 @@ fn an_unknown_dict_ref_fails_the_load_with_a_suggestion() {
     let rendered = err.to_string();
     assert!(rendered.contains("tasks.tags.allowed"), "{rendered}");
     assert!(rendered.contains("unknown dict: 'ares'"), "{rendered}");
-    assert!(rendered.contains("did you mean: areas?"), "{rendered}");
+    assert!(
+        matches!(&err, crate::config::ConfigError::Invalid { unknown: Some(unknown), .. }
+            if unknown.nearest.as_deref() == Some("areas")),
+        "{err:?}"
+    );
 }
 
 /// A literal entry that itself starts with `@` is never a plain string: the

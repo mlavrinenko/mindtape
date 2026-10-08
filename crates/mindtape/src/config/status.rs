@@ -8,6 +8,8 @@ use std::collections::{HashSet, VecDeque};
 use serde::Deserialize;
 
 use crate::link::NoteRule;
+use crate::problem::Problem;
+use crate::suggest::Unknown;
 
 /// The status legend: the legal status values, in lifecycle order.
 ///
@@ -180,17 +182,19 @@ impl Legend {
     /// not itself a legend value. One message per bad edge; empty when the graph
     /// is sound (or absent).
     #[must_use]
-    pub fn transition_problems(&self) -> Vec<String> {
+    pub fn transition_problems(&self) -> Vec<Problem> {
         let mut problems = Vec::new();
         let known = self.values();
         for (index, entry) in self.entries.iter().enumerate() {
             for next in &entry.to {
                 if !self.contains(next) {
-                    problems.push(format!(
-                        "tasks.status[{index}].to: unknown status: {}{}",
-                        super::quote(next),
-                        crate::suggest::suggestion(next, &known)
-                    ));
+                    problems.push(
+                        Problem::new(format!(
+                            "tasks.status[{index}].to: unknown status: {}",
+                            super::quote(next)
+                        ))
+                        .with(Unknown::near(next, &known)),
+                    );
                 }
             }
         }

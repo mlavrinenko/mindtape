@@ -72,6 +72,7 @@ fn check_unblocked(tasks: &[Task], config: &Config, out: &mut Vec<Violation>) {
                 severity: Severity::Warn,
                 kind: ViolationKind::Other,
                 reads: Some(crate::validate::violation::reads_of_field("status")),
+                unknown: None,
             });
         }
     }
@@ -225,6 +226,7 @@ fn check_cycle(tasks: &[Task], kind: &str, out: &mut Vec<Violation>) {
             severity: Severity::Error,
             kind: ViolationKind::Other,
             reads: Some(crate::validate::violation::reads_of_field("links")),
+            unknown: None,
         });
     }
 }
@@ -243,6 +245,7 @@ fn breach(task: &Task, field: String, message: String) -> Violation {
         severity: Severity::Error,
         kind: ViolationKind::Other,
         reads: Some(crate::validate::violation::reads_of_field("links")),
+        unknown: None,
     }
 }
 

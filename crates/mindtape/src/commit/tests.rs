@@ -96,10 +96,13 @@ fn a_record_resolves_stems_and_refuses_paths_and_unknown_values() {
         "{messages:?}"
     );
     assert!(messages[1].contains("names no task"), "{messages:?}");
-    assert!(
-        messages[1].ends_with("; did you mean: parser?"),
-        "suggests the near stem, never the whole backlog: {messages:?}"
+    let near = problems[1].unknown.as_ref().unwrap();
+    assert_eq!(
+        near.nearest.as_deref(),
+        Some("parser"),
+        "suggests the near stem"
     );
+    assert!(near.names.is_empty(), "never the whole backlog: {near:?}");
     assert!(messages[2].contains("`old` names no task"), "{messages:?}");
 }
 

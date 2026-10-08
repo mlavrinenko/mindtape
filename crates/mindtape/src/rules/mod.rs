@@ -75,6 +75,7 @@ use serde::Deserialize;
 
 use crate::config::Config;
 use crate::model::Task;
+use crate::problem::Problem;
 use crate::validate::severity::Severity;
 
 /// The project root a loaded [`Config`] was built for, resolved once by
@@ -212,33 +213,33 @@ pub(crate) use eval::check_all;
 /// Typst module needs the project root to read, which this function does not
 /// have; [`crate::rules::typst::validate_load`] covers it separately,
 /// from [`crate::config::layers`], the one caller with root in hand.
-pub(crate) fn validate_rules(config: &Config) -> Vec<String> {
+pub(crate) fn validate_rules(config: &Config) -> Vec<Problem> {
     let probe = Task::default();
     let mut problems = Vec::new();
     for (index, spec) in config.tasks.rules.iter().enumerate() {
         let path = format!("tasks.rules[{index}]");
         match (&spec.assertion, &spec.check) {
             (Some(_), Some(_)) => {
-                problems.push(format!(
+                problems.push(Problem::new(format!(
                     "{path}: exactly one of `assert`/`check` is allowed, not both"
-                ));
+                )));
             }
             (None, None) => {
-                problems.push(format!(
+                problems.push(Problem::new(format!(
                     "{path}: exactly one of `assert`/`check` is required"
-                ));
+                )));
             }
             _ => {}
         }
         if let Some(assertion) = &spec.assertion
             && let Some(problem) = crate::filter::expr_problem_in_set(assertion, &probe, config)
         {
-            problems.push(format!("{path}.assert: {problem}"));
+            problems.push(problem.under(&format!("{path}.assert")));
         }
         if let Some(when) = &spec.when
             && let Some(problem) = crate::filter::expr_problem_in_set(when, &probe, config)
         {
-            problems.push(format!("{path}.when: {problem}"));
+            problems.push(problem.under(&format!("{path}.when")));
         }
     }
     problems

@@ -14,6 +14,8 @@ use std::collections::HashSet;
 use serde::Deserialize;
 
 use crate::config::Config;
+use crate::problem::Problem;
+use crate::suggest::Unknown;
 
 /// `[[actors]]` — one named worker in the project.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, schemars::JsonSchema)]
@@ -64,49 +66,57 @@ pub fn roles_of<'a>(name: &str, config: &'a Config) -> Option<&'a [String]> {
 /// non-empty and unique, every actor role referencing a declared `[[roles]]`
 /// entry, and every `[tasks.assignee] allowed` value naming a declared actor.
 /// The `kind` closed set is enforced at parse time by the enum itself.
-pub(crate) fn validate_actors(config: &Config) -> Vec<String> {
+pub(crate) fn validate_actors(config: &Config) -> Vec<Problem> {
     let mut problems = Vec::new();
     let mut role_names: HashSet<&str> = HashSet::new();
     for role in &config.roles {
         if role.name.trim().is_empty() {
-            problems.push("roles: a role name must not be empty".to_owned());
+            problems.push(Problem::new(
+                "roles: a role name must not be empty".to_owned(),
+            ));
         } else if !role_names.insert(role.name.as_str()) {
-            problems.push(format!(
+            problems.push(Problem::new(format!(
                 "roles: duplicate role: {}",
                 super::quote(&role.name)
-            ));
+            )));
         }
     }
     let mut actor_names: HashSet<&str> = HashSet::new();
     for actor in &config.actors {
         if actor.name.trim().is_empty() {
-            problems.push("actors: an actor name must not be empty".to_owned());
+            problems.push(Problem::new(
+                "actors: an actor name must not be empty".to_owned(),
+            ));
         } else if !actor_names.insert(actor.name.as_str()) {
-            problems.push(format!(
+            problems.push(Problem::new(format!(
                 "actors: duplicate actor: {}",
                 super::quote(&actor.name)
-            ));
+            )));
         }
         for role in &actor.roles {
             if !config.roles.iter().any(|declared| declared.name == *role) {
                 let declared: Vec<&str> = config.roles.iter().map(|r| r.name.as_str()).collect();
-                problems.push(format!(
-                    "actors.{}.roles: unknown role: {}{}",
-                    actor.name,
-                    super::quote(role),
-                    crate::suggest::suggestion(role, &declared)
-                ));
+                problems.push(
+                    Problem::new(format!(
+                        "actors.{}.roles: unknown role: {}",
+                        actor.name,
+                        super::quote(role)
+                    ))
+                    .with(Unknown::near(role, &declared)),
+                );
             }
         }
     }
     for allowed in &config.tasks.assignee.allowed {
         if !config.actors.iter().any(|actor| actor.name == *allowed) {
             let declared: Vec<&str> = config.actors.iter().map(|a| a.name.as_str()).collect();
-            problems.push(format!(
-                "tasks.assignee.allowed: unknown actor: {}{}",
-                super::quote(allowed),
-                crate::suggest::suggestion(allowed, &declared)
-            ));
+            problems.push(
+                Problem::new(format!(
+                    "tasks.assignee.allowed: unknown actor: {}",
+                    super::quote(allowed)
+                ))
+                .with(Unknown::near(allowed, &declared)),
+            );
         }
     }
     problems
