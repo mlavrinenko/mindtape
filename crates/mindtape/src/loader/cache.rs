@@ -19,6 +19,14 @@
 //! directory, so the whole cache busts at once and the stale directories are
 //! pruned.
 //!
+//! # Imports
+//!
+//! The file's bytes are not the whole input: a task that imports a module
+//! evaluates that module too. Each entry therefore records the content hash of
+//! every project-local file the eval read ([`typst_harvest::Harvest::dependencies`]).
+//! A read re-hashes them and treats any mismatch, or a file gone missing, as a
+//! miss. An unreadable dependency at write time leaves the entry unwritten.
+//!
 //! # Correctness
 //!
 //! A cache read never surfaces a wrong task: an unreadable, truncated,
@@ -45,7 +53,7 @@ use crate::model::canonical::{hval_to_json, json_to_hval};
 
 /// On-disk entry format. Bump when the entry shape or the marker reconstruction
 /// changes; folded into the build key, so a bump busts every entry.
-const FORMAT_VERSION: u32 = 2;
+const FORMAT_VERSION: u32 = 3;
 
 /// Set this env var to a non-empty value to bypass the cache entirely (always
 /// eval). For benchmarking the cold path and as an escape hatch.
@@ -71,6 +79,8 @@ pub(crate) enum CachedOutcome {
 
 /// The resolved cache directory for one project load.
 pub(crate) struct TaskCache {
+    /// The project root the entries' dependency paths are relative to.
+    root: PathBuf,
     /// `<root>/.mindtape/cache/<build_key>`, or `None` when disabled or the
     /// directory could not be created (the cache degrades to a no-op).
     dir: Option<PathBuf>,
@@ -82,7 +92,10 @@ impl TaskCache {
     /// cache rather than failing the load.
     pub(crate) fn open(root: &Path, config: &Config, overrides: &[(String, PathBuf)]) -> Self {
         if disabled() {
-            return Self { dir: None };
+            return Self {
+                root: root.to_path_buf(),
+                dir: None,
+            };
         }
         let cache_root = root.join(".mindtape").join("cache");
         let key = build_key(config, overrides);
@@ -92,7 +105,10 @@ impl TaskCache {
             ensure_ignored(&cache_root);
             dir
         });
-        Self { dir }
+        Self {
+            root: root.to_path_buf(),
+            dir,
+        }
     }
 
     /// The content hash addressing a file's cache entry: the SHA-1 of its bytes.
@@ -108,7 +124,7 @@ impl TaskCache {
         let path = self.entry_path(content_hash)?;
         let text = std::fs::read_to_string(path).ok()?;
         let entry: Entry = serde_json::from_str(&text).ok()?;
-        if entry.format != FORMAT_VERSION {
+        if entry.format != FORMAT_VERSION || !self.deps_unchanged(&entry.deps) {
             return None;
         }
         let outcome = match entry.marker {
@@ -121,18 +137,47 @@ impl TaskCache {
         })
     }
 
+    /// Whether every recorded dependency still hashes to what the entry saw.
+    fn deps_unchanged(&self, deps: &[Dep]) -> bool {
+        deps.iter().all(|dep| {
+            std::fs::read(self.root.join(&dep.path))
+                .is_ok_and(|bytes| Self::content_hash(&bytes) == dep.hash)
+        })
+    }
+
     /// Record a clean harvest outcome for `content_hash`: `Some(marker)` for a
     /// task, `None` for a file that produced no marker, with the `warnings` its
-    /// evaluation raised. Best-effort and atomic (write-temp-then-rename); a
-    /// write failure just leaves the entry a miss.
-    pub(crate) fn put(&self, content_hash: &str, marker: Option<&HVal>, warnings: &[LoadWarning]) {
+    /// evaluation raised and the project-local `deps` (relative to the root) it
+    /// imported. Best-effort and atomic (write-temp-then-rename); a write
+    /// failure, or a dependency that cannot be read, leaves the entry a miss.
+    pub(crate) fn put(
+        &self,
+        content_hash: &str,
+        marker: Option<&HVal>,
+        warnings: &[LoadWarning],
+        deps: &[PathBuf],
+    ) {
         let Some(path) = self.entry_path(content_hash) else {
+            return;
+        };
+        let Some(deps) = deps
+            .iter()
+            .map(|rel| {
+                let bytes = std::fs::read(self.root.join(rel)).ok()?;
+                Some(Dep {
+                    path: rel.clone(),
+                    hash: Self::content_hash(&bytes),
+                })
+            })
+            .collect::<Option<Vec<_>>>()
+        else {
             return;
         };
         let entry = Entry {
             format: FORMAT_VERSION,
             marker: marker.map(hval_to_json),
             warnings: warnings.to_vec(),
+            deps,
         };
         let Ok(json) = serde_json::to_string(&entry) else {
             return;
@@ -156,6 +201,18 @@ struct Entry {
     marker: Option<Value>,
     #[serde(default)]
     warnings: Vec<LoadWarning>,
+    /// Imported project files and their hashes when the entry was written.
+    #[serde(default)]
+    deps: Vec<Dep>,
+}
+
+/// One imported file an entry depends on.
+#[derive(Serialize, Deserialize)]
+struct Dep {
+    /// Relative to the project root.
+    path: PathBuf,
+    /// [`TaskCache::content_hash`] of its bytes.
+    hash: String,
 }
 
 /// Whether the cache is switched off via [`DISABLE_ENV`].

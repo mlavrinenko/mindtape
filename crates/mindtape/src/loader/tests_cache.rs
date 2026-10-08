@@ -142,3 +142,42 @@ fn a_cache_hit_replays_the_files_typst_warnings() {
     assert_eq!(second.tasks.first().unwrap().title, "FROM-CACHE");
     assert_eq!(second.warnings, first.warnings);
 }
+
+/// A task whose title comes from an imported module.
+const IMPORTING_TASK: &str = "#import \"../shared.typ\": t\n#metadata((marker: \"mindtape.task\", fields: (title: t, status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none), priority: 8), extras: (:)))\n";
+
+#[test]
+fn edited_imported_module_busts_the_entry() {
+    let dir = setup();
+    write(dir.path(), "shared.typ", "#let t = \"Title one\"\n");
+    write(dir.path(), "tasks/imp.typ", IMPORTING_TASK);
+    let first = load_project(dir.path(), &Config::default());
+    assert_eq!(first.tasks.first().unwrap().title, "Title one");
+
+    write(dir.path(), "shared.typ", "#let t = \"Title TWO\"\n");
+    let second = load_project(dir.path(), &Config::default());
+    assert_eq!(second.tasks.first().unwrap().title, "Title TWO");
+}
+
+#[test]
+fn unchanged_imported_module_still_hits_the_cache() {
+    let dir = setup();
+    write(dir.path(), "shared.typ", "#let t = \"Title one\"\n");
+    write(dir.path(), "tasks/imp.typ", IMPORTING_TASK);
+    let _ = load_project(dir.path(), &Config::default());
+    doctor_cache_title(&sole_cache_entry(dir.path()), "FROM-CACHE");
+    let second = load_project(dir.path(), &Config::default());
+    assert_eq!(second.tasks.first().unwrap().title, "FROM-CACHE");
+}
+
+#[test]
+fn deleted_imported_module_misses() {
+    let dir = setup();
+    write(dir.path(), "shared.typ", "#let t = \"Title one\"\n");
+    write(dir.path(), "tasks/imp.typ", IMPORTING_TASK);
+    let _ = load_project(dir.path(), &Config::default());
+    std::fs::remove_file(dir.path().join("shared.typ")).unwrap();
+    let second = load_project(dir.path(), &Config::default());
+    assert!(second.tasks.is_empty());
+    assert_eq!(second.errors.len(), 1);
+}

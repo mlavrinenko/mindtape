@@ -287,7 +287,7 @@ fn record_miss(
                 .next()
                 .map(|found| &found.value);
             if let Some(hash) = &miss.hash {
-                cache.put(hash, marker, &warnings);
+                cache.put(hash, marker, &warnings, &harvested.dependencies);
             }
             if let Some(marker) = marker {
                 outcome

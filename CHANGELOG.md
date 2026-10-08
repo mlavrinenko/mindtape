@@ -1866,6 +1866,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Editing a module a task imports updates the task.** A cached task is
+  re-read whenever a file it imports changed or vanished, where `mt ls` kept
+  showing the old value until the cache was cleared.
+
 - **A Typst warning shows on every run.** A file served from the task cache
   prints the same `warning:` line the run that evaluated it did.
 - **`mt rm` with a mistyped name says no task matches.** `mt rm nope` printed

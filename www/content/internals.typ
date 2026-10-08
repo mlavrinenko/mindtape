@@ -45,7 +45,8 @@ reads Typst files as data can use them without the task model.
 `mt` evaluates task files with the Typst compiler, which takes time on a large
 backlog. So each project keeps one cache in `.mindtape/cache/`, keyed by each
 file's content hash, and `mt` evaluates only the files whose bytes changed
-since the last run. `mt` writes a `.gitignore` into that directory, so git
+since the last run. A file that imports a module also counts as changed when
+that module's bytes did. `mt` writes a `.gitignore` into that directory, so git
 never sees the cache. On a generated backlog of 2000 tasks:
 
 #table(

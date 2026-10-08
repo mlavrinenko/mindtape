@@ -53,7 +53,7 @@ fn put_get_roundtrips_a_marker() {
     ]));
 
     let hash = TaskCache::content_hash(b"source");
-    cache.put(&hash, Some(&marker), &[]);
+    cache.put(&hash, Some(&marker), &[], &[]);
 
     match cache.get(&hash) {
         Some(Cached {
@@ -69,7 +69,7 @@ fn nomarker_outcome_roundtrips() {
     let root = tempfile::tempdir().unwrap();
     let cache = open(root.path());
     let hash = TaskCache::content_hash(b"no-marker");
-    cache.put(&hash, None, &[]);
+    cache.put(&hash, None, &[], &[]);
     assert!(matches!(
         cache.get(&hash),
         Some(Cached {
@@ -95,7 +95,7 @@ fn corrupt_or_wrong_format_entry_is_a_miss() {
     let root = tempfile::tempdir().unwrap();
     let cache = open(root.path());
     let hash = TaskCache::content_hash(b"entry");
-    cache.put(&hash, None, &[]);
+    cache.put(&hash, None, &[], &[]);
     let path = cache.entry_path(&hash).unwrap();
 
     std::fs::write(&path, "{ not json").unwrap();
