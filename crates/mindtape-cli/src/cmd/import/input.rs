@@ -178,4 +178,23 @@ mod tests {
         };
         assert!(err.contains("schema_version"), "{err}");
     }
+
+    #[test]
+    fn a_json_value_that_is_neither_array_nor_object_names_its_kind() {
+        for (raw, kind) in [
+            ("null", "null"),
+            ("true", "boolean"),
+            ("5", "number"),
+            (r#""x""#, "string"),
+        ] {
+            let err = match parse_records("t.json", raw) {
+                Ok(records) => panic!("expected rejection, got {} records", records.len()),
+                Err(err) => crate::diag::plain_anyhow(err),
+            };
+            assert_eq!(
+                err,
+                format!("error: t.json: expected a JSON array or object: '{kind}'\n")
+            );
+        }
+    }
 }
