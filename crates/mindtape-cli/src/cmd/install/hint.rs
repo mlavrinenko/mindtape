@@ -16,17 +16,8 @@
 //!   the first such error.
 //!
 //! [`prelude_hints`] puts the same advice on a refused write's own error.
-//! [`failure_prelude_hint`] and [`batch_prelude_hint`] are it as one `note:`
-//! line for the writers that still print their own.
 
 use crate::diag::{Command, Diag, Hint, Kind, Note};
-
-/// Printed when the prelude cannot be resolved. Names the command, says it is
-/// per-machine so nobody re-runs it per project, and names the per-project
-/// alternative for a checkout that carries its own prelude.
-const HINT: &str = "note: `@local/mindtape` is not installed — run `mt install` \
-                    (once per machine) or pin the prelude under \
-                    `[[typst.local-packages]]`, then try again";
 
 /// The path segment Typst searched: the local-package directory for the
 /// prelude. Matched instead of the diagnostic's wording, which is Typst's to
@@ -36,23 +27,6 @@ const PRELUDE_PKG_PATH: &str = "packages/local/mindtape/";
 /// What Typst searched when no data directory resolves at all (an empty
 /// `$MINDTAPE_DATA_HOME`): the package spec itself, with no path.
 const PRELUDE_SPEC: &str = "searched at @local/mindtape:";
-
-/// The hint for one load failure, or `None` when the prelude resolved.
-///
-/// For a single candidate that failed on its own — `mt add` in a project with
-/// no tasks yet, whose load outcome holds no error to derive the hint from.
-#[must_use]
-pub fn failure_prelude_hint(message: &str) -> Option<&'static str> {
-    names_prelude_package(message).then_some(HINT)
-}
-
-/// The hint for a batch of failures, once: `Some` when any message names the
-/// prelude. For a writer that refuses several entries at once (`mt import`,
-/// `mt recur`, `mt mv`) and prints the note after their lines.
-#[must_use]
-pub fn batch_prelude_hint<'a>(messages: impl IntoIterator<Item = &'a str>) -> Option<&'static str> {
-    messages.into_iter().find_map(failure_prelude_hint)
-}
 
 /// Whether `message` is a load error about the unresolved prelude package.
 ///
@@ -123,10 +97,7 @@ pub(crate) fn escaped_hash_hint() -> Hint {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use super::{
-        HINT, batch_prelude_hint, failure_prelude_hint, is_unknown_variable, names_prelude_package,
-        prelude_diag,
-    };
+    use super::{is_unknown_variable, names_prelude_package, prelude_diag};
     use crate::diag::{Kind, plain};
 
     /// Verbatim from `mt ls` against a project whose prelude is not installed.
@@ -157,24 +128,6 @@ mod tests {
         assert!(!names_prelude_package(
             "file not found (searched at /tmp/p/packages/local/other/1.0.0/typst.toml)"
         ));
-    }
-
-    /// One candidate's own failure earns the hint only when it names the
-    /// prelude, as `mt add` in a project with no tasks to derive it from.
-    #[test]
-    fn a_single_failure_hints_only_when_it_names_the_prelude() {
-        assert_eq!(failure_prelude_hint(REAL), Some(HINT));
-        assert_eq!(failure_prelude_hint("unexpected argument: foo"), None);
-    }
-
-    #[test]
-    fn a_batch_hints_once_when_any_failure_names_the_prelude() {
-        assert_eq!(
-            batch_prelude_hint(["unexpected argument: foo", REAL, REAL]),
-            Some(HINT)
-        );
-        assert_eq!(batch_prelude_hint(["unexpected argument: foo"]), None);
-        assert_eq!(batch_prelude_hint([]), None);
     }
 
     #[test]
