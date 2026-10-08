@@ -4,18 +4,9 @@
 //! command line was wrong (2) or the work failed (1).
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
-use std::path::Path;
-
 mod support;
 
-/// `mt <args>` in `dir`: the exit code and stderr.
-fn run(dir: &Path, args: &[&str]) -> (Option<i32>, String) {
-    let output = support::mt(dir).args(args).output().unwrap();
-    (
-        output.status.code(),
-        String::from_utf8(output.stderr).unwrap(),
-    )
-}
+use support::run_stderr as run;
 
 fn two_tasks() -> tempfile::TempDir {
     support::project_with_tasks(&[("alpha.typ", "Alpha"), ("beta.typ", "Beta")])

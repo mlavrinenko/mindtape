@@ -34,16 +34,17 @@ fn read_source_reads_a_real_file() {
 
 #[test]
 fn parse_records_accepts_bare_array_and_envelope() {
-    let array = super::input::parse_records("[]").unwrap();
+    let array = super::input::parse_records("t.json", "[]").unwrap();
     assert!(array.is_empty());
 
-    let envelope = super::input::parse_records(r#"{"tasks": [], "applied": null}"#).unwrap();
+    let envelope =
+        super::input::parse_records("t.json", r#"{"tasks": [], "applied": null}"#).unwrap();
     assert!(envelope.is_empty());
 }
 
 #[test]
 fn parse_records_rejects_neither_shape() {
-    let err = super::input::parse_records(r#"{"nope": []}"#).unwrap_err();
+    let err = super::input::parse_records("t.json", r#"{"nope": []}"#).unwrap_err();
     assert!(err.to_string().contains("tasks"), "{err}");
 }
 

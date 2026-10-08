@@ -13,7 +13,8 @@
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result, anyhow};
+use crate::diag::{Diag, Hint, Note};
+use anyhow::Result;
 use mindtape::{WorktreeEntry, WorktreeRegistry};
 
 /// Arguments for `mt worktrees`.
@@ -115,9 +116,16 @@ where
 /// registry, erroring with the known aliases and config path on a miss.
 fn resolve_token(token: &str) -> Result<PathBuf> {
     let (registry, path) = load_registry()?;
-    match registry.resolve(token, dirs::home_dir().as_deref(), is_project)? {
+    let resolved = registry
+        .resolve(token, dirs::home_dir().as_deref(), is_project)
+        .map_err(|err| {
+            Diag::usage("can't resolve worktree")
+                .value(format!("@{token}"))
+                .cause(&err)
+        })?;
+    match resolved {
         Some(resolved) => Ok(resolved),
-        None => Err(unknown_worktree(token, &registry, path.as_deref())),
+        None => Err(unknown_worktree(token, &registry, path.as_deref()).into()),
     }
 }
 
@@ -126,33 +134,28 @@ fn is_project(path: &Path) -> bool {
     path.join(".mindtape").is_dir()
 }
 
-/// Build a helpful "unknown worktree" error: a nearest-match suggestion plus
-/// the known aliases, in the same shape `util::unknown_view_error` renders for
-/// an unknown view (`; did you mean: X?; known worktrees: a, b`), then where
-/// worktrees are configured. A leading `@token` is this worktree-alias sugar,
+/// Build a helpful "unknown worktree" error: a nearest-match hint, the known
+/// aliases and where worktrees are configured, as notes. A leading `@token` is this worktree-alias sugar,
 /// rewritten before clap ever sees it — a bare `[views.<name>]` reference only
 /// ever appears in argument position (`mt ls @view`) — so the two error
 /// messages never fire for the same input and stay distinguishable by their
 /// leading word (`unknown worktree` vs. `unknown view`) alone.
-fn unknown_worktree(
-    token: &str,
-    registry: &WorktreeRegistry,
-    path: Option<&Path>,
-) -> anyhow::Error {
-    let aliases: Vec<String> = registry
-        .alias_names()
-        .into_iter()
-        .map(str::to_owned)
-        .collect();
-    let mut msg = format!(
-        "unknown worktree @{token}{}",
-        mindtape::suggest::hint("worktree", token, &aliases)
-    );
-    match path {
-        Some(p) => msg.push_str(&format!("\n  configure worktrees in {}", p.display())),
-        None => msg.push_str("\n  could not resolve the app config directory"),
+fn unknown_worktree(token: &str, registry: &WorktreeRegistry, path: Option<&Path>) -> Diag {
+    let aliases = registry.alias_names();
+    let diag = Diag::usage("unknown worktree").value(format!("@{token}"));
+    let mut diag = match mindtape::suggest::nearest(token, &aliases) {
+        Some(near) => diag.hint(Hint::did_you_mean(format!("@{near}"))),
+        None => diag.hint(Hint::new("add it to worktrees.toml")),
+    };
+    if !aliases.is_empty() {
+        diag = diag.note(Note::new("known worktrees").name(aliases.join(", ")));
     }
-    anyhow!(msg)
+    match path {
+        Some(p) => {
+            diag.note(Note::new("worktrees are configured in").value(p.display().to_string()))
+        }
+        None => diag.note(Note::new("no app config directory resolves")),
+    }
 }
 
 /// The app-scoped worktrees config path: `<config home>/mindtape/worktrees.toml`.
@@ -170,14 +173,17 @@ fn load_registry() -> Result<(WorktreeRegistry, Option<PathBuf>)> {
     };
     match std::fs::read_to_string(&path) {
         Ok(text) => {
-            let registry = WorktreeRegistry::parse(&text)
-                .with_context(|| format!("parse {}", path.display()))?;
+            let registry = WorktreeRegistry::parse(&text).map_err(|err| {
+                Diag::failed("can't parse the worktrees config")
+                    .at_file(&path)
+                    .cause(&err)
+            })?;
             Ok((registry, Some(path)))
         }
         Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
             Ok((WorktreeRegistry::default(), Some(path)))
         }
-        Err(err) => Err(err).with_context(|| format!("read {}", path.display())),
+        Err(err) => Err(Diag::cannot_read(&path, &err).into()),
     }
 }
 

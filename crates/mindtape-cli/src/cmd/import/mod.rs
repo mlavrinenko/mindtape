@@ -28,11 +28,13 @@ mod write;
 use std::collections::{BTreeMap, HashSet};
 use std::fmt::Write as _;
 
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::Result;
 use clap::Args;
 use mindtape::model::canonical::CanonicalStatus;
 use mindtape::{CanonicalTask, Config, EntryKind, MapOptions, map_canonical};
 
+use crate::cmd::install::hint::{names_prelude_package, prelude_diag};
+use crate::diag::{Diag, Hint, Kind};
 use crate::util::{self, Project};
 use place::Placement;
 use write::{StagedTask, TaskOutcome};
@@ -97,12 +99,11 @@ fn fail_on_skips(outcomes: &[TaskOutcome]) -> Result<()> {
     if skipped == 0 {
         return Ok(());
     }
-    let problems = outcomes.iter().flat_map(|outcome| &outcome.problems);
-    if let Some(hint) = crate::cmd::install::hint::batch_prelude_hint(problems.map(String::as_str))
-    {
-        eprintln!("{hint}");
+    let mut problems = outcomes.iter().flat_map(|outcome| &outcome.problems);
+    if let Some(message) = problems.find(|message| names_prelude_package(message)) {
+        crate::diag::emit(&prelude_diag(Kind::Failed, message));
     }
-    bail!("{skipped} record(s) skipped");
+    Err(Diag::batch("filed", outcomes.len() - skipped, outcomes.len()).into())
 }
 
 /// The core pipeline: parse `raw` canonical JSON, map/stem/emit each record,
@@ -114,7 +115,7 @@ fn fail_on_skips(outcomes: &[TaskOutcome]) -> Result<()> {
 /// or the destination cannot be created/written.
 fn import_records(project: &Project, args: &ImportArgs, raw: &str) -> Result<Vec<TaskOutcome>> {
     let config = &project.config;
-    let records = input::parse_records(raw)?;
+    let records = input::parse_records(&args.input, raw)?;
     let mut placement = Placement::new(project, args)?;
     let opts = map_options(args)?;
 
@@ -162,12 +163,15 @@ fn import_records(project: &Project, args: &ImportArgs, raw: &str) -> Result<Vec
 fn map_options(args: &ImportArgs) -> Result<MapOptions> {
     let mut status_map = BTreeMap::new();
     for entry in &args.map {
-        let (old, new) = entry
+        let Some((old, new)) = entry
             .split_once('=')
-            .with_context(|| format!("--map expects OLD=NEW, got {entry:?}"))?;
-        if old.is_empty() || new.is_empty() {
-            bail!("--map expects OLD=NEW, got {entry:?}");
-        }
+            .filter(|(old, new)| !old.is_empty() && !new.is_empty())
+        else {
+            return Err(Diag::usage("--map expects OLD=NEW")
+                .value(entry)
+                .hint(Hint::example("--map todo=proposed"))
+                .into());
+        };
         status_map.insert(old.to_owned(), new.to_owned());
     }
     Ok(MapOptions {
@@ -228,13 +232,13 @@ fn stem_for(
         id.to_owned()
     } else {
         if mindtape::slug_from_title(title).is_empty() {
-            bail!("empty title; nothing to name the task file from");
+            return Err(Diag::failed("can't name the task file from an empty title").into());
         }
         mindtape::stem_for_title(title, config, mindtape::today_ymd())
-            .map_err(|err| anyhow!(err.to_string()))?
+            .map_err(|err| Diag::verbatim(Kind::Failed, err.to_string()))?
     };
     let stem = mindtape::model::naming::disambiguate(&candidate, |c| existing.contains(c))
-        .map_err(|err| anyhow!(err.to_string()))?;
+        .map_err(|err| Diag::verbatim(Kind::Failed, err.to_string()))?;
     existing.insert(stem.clone());
     Ok(stem)
 }
@@ -250,7 +254,7 @@ fn usable_stem(id: &str) -> bool {
 /// warnings-to-stderr convention. Under `--dry-run` the wording is `would
 /// file` and the report ends with `dry run: nothing written`, as `mt mv` does.
 fn report(outcomes: &[TaskOutcome], dry_run: bool) {
-    eprint!("{}", render_report(outcomes, dry_run));
+    crate::diag::emit_text(&render_report(outcomes, dry_run));
 }
 
 fn render_report(outcomes: &[TaskOutcome], dry_run: bool) -> String {

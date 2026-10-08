@@ -7,11 +7,12 @@
 //! The rewrite goes through [`crate::pre_write`] first, so a stamp that would
 //! leave the task invalid is refused rather than landed and reported.
 
-use anyhow::{Context, Result, bail};
+use anyhow::Result;
 use clap::Args;
 use mindtape::{parse_ymd, today_iso};
 use typst_edit::{Edit, apply};
 
+use crate::diag::{Diag, Hint};
 use crate::pre_write::{self, Pending};
 use crate::task_edit::{task_with, upsert_named_arg};
 use crate::util;
@@ -35,11 +36,10 @@ pub fn run(args: &ReviewArgs) -> Result<()> {
     let (task, abs) = util::resolve_task(&project, &args.task.task)?;
 
     if task.is_terminal(&project.config.tasks.status.terminal()) {
-        bail!(
-            "task {:?} ({}) has a terminal status; cannot review",
-            args.task.task,
-            task.title
-        );
+        return Err(Diag::refused("can't review a task with a terminal status")
+            .value(&args.task.task)
+            .hint(Hint::new("a finished task needs no review"))
+            .into());
     }
 
     let today = today_iso();
@@ -51,14 +51,19 @@ pub fn run(args: &ReviewArgs) -> Result<()> {
         return Ok(());
     }
 
-    let source =
-        std::fs::read_to_string(&abs).with_context(|| format!("read {}", abs.display()))?;
+    let source = std::fs::read_to_string(&abs).map_err(|err| Diag::cannot_read(&abs, &err))?;
 
-    let edit = build_edit(&source, &today)
-        .with_context(|| format!("locate task.with(…) in {}", abs.display()))?;
+    let edit = build_edit(&source, &today).map_err(|err| {
+        Diag::failed("can't find the task.with(…) call")
+            .at_file(&abs)
+            .cause(&*err)
+    })?;
 
-    let updated =
-        apply(&source, vec![edit]).with_context(|| format!("apply edit to {}", abs.display()))?;
+    let updated = apply(&source, vec![edit]).map_err(|err| {
+        Diag::failed("can't stamp reviewed")
+            .at_file(&abs)
+            .cause(&err)
+    })?;
 
     // Checked at the file's own path before the write, so a rejected stamp
     // leaves the task exactly as it was — nothing written, nothing to restore.
@@ -82,7 +87,8 @@ pub fn run(args: &ReviewArgs) -> Result<()> {
 /// `today` must be a `YYYY-MM-DD` string; it is parsed to produce the `on(…)` call.
 fn build_edit(source: &str, today: &str) -> Result<Edit> {
     let call = task_with(source)?;
-    let (year, month, day) = parse_ymd(today).with_context(|| format!("invalid date {today:?}"))?;
+    let (year, month, day) = parse_ymd(today)
+        .ok_or_else(|| Diag::failed("not a date in YYYY-MM-DD form").value(today))?;
     let value_text = format!("on({year}, {month}, {day})");
     upsert_named_arg(source, &call, "reviewed", &value_text)
 }

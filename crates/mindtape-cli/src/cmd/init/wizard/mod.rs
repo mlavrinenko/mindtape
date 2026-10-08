@@ -18,7 +18,9 @@
 
 use std::io::{BufRead, Write};
 
-use anyhow::{Result, anyhow};
+use anyhow::Result;
+
+use crate::diag::{Diag, Kind, Note};
 
 /// One configuration axis: a menu of choices, each carrying its config fragment.
 ///
@@ -204,7 +206,10 @@ fn choose<A: Axis, R: BufRead, W: Write>(
 ) -> Result<A> {
     if let Some(value) = flag {
         return match value.unavailable() {
-            Some(why) => Err(anyhow!("`{}` is unavailable: {why}", value.slug())),
+            Some(why) => Err(Diag::refused("this choice is unavailable in this build")
+                .value(value.slug())
+                .note(Note::new(why))
+                .into()),
             None => Ok(value),
         };
     }
@@ -307,11 +312,13 @@ pub fn assemble(answers: Answers) -> Result<Outcome> {
         ("recurrence", answers.recurrence.fragment().to_owned()),
     ];
     let config = crate::cmd::init::compose::compose(&fragments)?;
-    let parsed = mindtape::parse_config(&config)
-        .map_err(|err| anyhow!("the composed config is not valid: {err}"))?;
-    parsed
-        .validate()
-        .map_err(|msg| anyhow!("the composed config fails validation: {msg}"))?;
+    let parsed = mindtape::parse_config(&config).map_err(|err| {
+        Diag::from(err).note(Note::new("this is the config composed from your answers"))
+    })?;
+    parsed.validate().map_err(|msg| {
+        Diag::verbatim(Kind::Failed, msg)
+            .note(Note::new("this is the config composed from your answers"))
+    })?;
     Ok(Outcome {
         config,
         templates: answers.headers.templates(),

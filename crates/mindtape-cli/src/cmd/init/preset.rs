@@ -17,7 +17,9 @@
 
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::Result;
+
+use crate::diag::{Command, Diag, Hint};
 
 /// The preset `mt init` writes when none is named.
 pub const DEFAULT_PRESET: &str = "flow";
@@ -95,16 +97,18 @@ impl Preset {
 /// Returns an error when the config is not valid TOML, when `[overlay]` is
 /// present but is not a table, or when either half cannot be re-serialised.
 pub fn split_overlay(config: &str) -> Result<Option<(String, String)>> {
-    let mut base: toml::Table =
-        toml::from_str(config).context("parse preset config for an [overlay]")?;
+    let mut base: toml::Table = toml::from_str(config)
+        .map_err(|err| Diag::failed("the preset config is not valid TOML").cause(&err))?;
     let Some(value) = base.remove("overlay") else {
         return Ok(None);
     };
     let toml::Value::Table(overlay) = value else {
-        bail!("preset [overlay] must be a table");
+        return Err(Diag::failed("the preset's [overlay] must be a table").into());
     };
-    let base = toml::to_string(&base).context("serialise the preset base")?;
-    let overlay = toml::to_string(&overlay).context("serialise the preset overlay")?;
+    let base = toml::to_string(&base)
+        .map_err(|err| Diag::failed("can't write the preset base").cause(&err))?;
+    let overlay = toml::to_string(&overlay)
+        .map_err(|err| Diag::failed("can't write the preset overlay").cause(&err))?;
     Ok(Some((base, overlay)))
 }
 
@@ -146,14 +150,16 @@ pub fn resolve(name: &str, user_dir: Option<&Path>) -> Result<Preset> {
     if looks_like_path(name) {
         return path_preset(Path::new(name));
     }
-    bail!(
-        "unknown preset {name:?}; built-in presets: {}",
-        BUILTINS
-            .iter()
-            .map(|builtin| builtin.name)
-            .collect::<Vec<_>>()
-            .join(", ")
-    )
+    let names: Vec<&str> = BUILTINS.iter().map(|builtin| builtin.name).collect();
+    let diag = Diag::usage("unknown preset").value(name);
+    Err(match mindtape::suggest::nearest(name, &names) {
+        Some(near) => diag.hint(Hint::did_you_mean(near)),
+        None => diag.hint(Hint::run(
+            Command::mt().word("preset").word("ls"),
+            "to see the presets",
+        )),
+    }
+    .into())
 }
 
 /// Whether an argument should be treated as a filesystem path rather than a
@@ -182,8 +188,8 @@ fn user_preset(dir: &Path, name: &str) -> Result<Option<Preset>> {
         return Ok(None);
     };
     if path.is_file() {
-        let config = std::fs::read_to_string(&path)
-            .with_context(|| format!("read preset {}", path.display()))?;
+        let config =
+            std::fs::read_to_string(&path).map_err(|err| Diag::cannot_read(&path, &err))?;
         return Ok(Some(Preset {
             name: name.to_owned(),
             config,
@@ -222,11 +228,9 @@ pub fn list_user_presets(dir: &Path) -> Result<Vec<String>> {
         return Ok(Vec::new());
     }
     let mut names = Vec::new();
-    let entries = std::fs::read_dir(dir).with_context(|| format!("read {}", dir.display()))?;
+    let entries = std::fs::read_dir(dir).map_err(|err| Diag::cannot_read(dir, &err))?;
     for entry in entries {
-        let path = entry
-            .with_context(|| format!("read {}", dir.display()))?
-            .path();
+        let path = entry.map_err(|err| Diag::cannot_read(dir, &err))?.path();
         let name = if path.is_file() && path.extension().is_some_and(|ext| ext == "toml") {
             path.file_stem()
                 .map(|stem| stem.to_string_lossy().into_owned())
@@ -253,8 +257,7 @@ fn path_preset(path: &Path) -> Result<Preset> {
     if path.is_dir() {
         return read_preset_dir(&name, path);
     }
-    let config =
-        std::fs::read_to_string(path).with_context(|| format!("read preset {}", path.display()))?;
+    let config = std::fs::read_to_string(path).map_err(|err| Diag::cannot_read(path, &err))?;
     Ok(Preset {
         name,
         config,
@@ -266,7 +269,7 @@ fn path_preset(path: &Path) -> Result<Preset> {
 fn read_preset_dir(name: &str, dir: &Path) -> Result<Preset> {
     let config_path = dir.join("config.toml");
     let config = std::fs::read_to_string(&config_path)
-        .with_context(|| format!("read preset {}", config_path.display()))?;
+        .map_err(|err| Diag::cannot_read(&config_path, &err))?;
     Ok(Preset {
         name: name.to_owned(),
         config,
@@ -281,20 +284,19 @@ pub(crate) fn read_templates(dir: &Path) -> Result<Vec<(String, String)>> {
         return Ok(Vec::new());
     }
     let mut found = Vec::new();
-    let entries =
-        std::fs::read_dir(dir).with_context(|| format!("read templates {}", dir.display()))?;
+    let entries = std::fs::read_dir(dir).map_err(|err| Diag::cannot_read(dir, &err))?;
     for entry in entries {
-        let path = entry
-            .with_context(|| format!("read templates {}", dir.display()))?
-            .path();
+        let path = entry.map_err(|err| Diag::cannot_read(dir, &err))?.path();
         if path.extension().is_some_and(|ext| ext == "typ") {
             let file = path
                 .file_name()
-                .ok_or_else(|| anyhow!("template has no file name: {}", path.display()))?
+                .ok_or_else(|| {
+                    Diag::failed("template has no file name").value(path.display().to_string())
+                })?
                 .to_string_lossy()
                 .into_owned();
-            let body = std::fs::read_to_string(&path)
-                .with_context(|| format!("read template {}", path.display()))?;
+            let body =
+                std::fs::read_to_string(&path).map_err(|err| Diag::cannot_read(&path, &err))?;
             found.push((file, body));
         }
     }

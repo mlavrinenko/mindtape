@@ -2,10 +2,11 @@
 
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result, bail};
+use anyhow::Result;
 use mindtape::{StemHashes, Task, find_root, load_config, load_project};
 use typst_harvest::{HarvestWorld, harvest};
 
+use crate::diag::{Diag, Hint};
 use crate::render::RenderCtx;
 use crate::render::output::{OutputFormat, render, task_to_json};
 use crate::util::Project;
@@ -28,11 +29,13 @@ pub struct EvalArgs {
 pub fn run(args: &EvalArgs) -> Result<()> {
     let (file, project) = locate(&args.task.task)?;
     let world = build_world(&file)?;
-    let result = harvest(&world)?;
-    let marker = result
-        .with_marker("mindtape.task")
-        .next()
-        .with_context(|| format!("no mindtape.task marker in {}", file.display()))?;
+    let result =
+        harvest(&world).map_err(|err| Diag::failed("can't evaluate").at_file(&file).cause(&err))?;
+    let marker = result.with_marker("mindtape.task").next().ok_or_else(|| {
+        Diag::failed("not a task file: it holds no task.with(…) call")
+            .at_file(&file)
+            .hint(Hint::new("start the file with #show: task.with(...)"))
+    })?;
 
     let id = file
         .file_stem()
@@ -62,7 +65,7 @@ fn locate(reference: &str) -> Result<(PathBuf, Option<Project>)> {
         return Ok((path.to_path_buf(), None));
     }
     if mindtape::is_path_ref(reference) {
-        bail!("no such file: {reference}");
+        return Err(Diag::failed("no such file").value(reference).into());
     }
     let project = crate::util::open()?;
     let (_, abs) = crate::util::resolve_task(&project, reference)?;
@@ -151,7 +154,9 @@ fn hashes_for(file: &Path, task: &Task, resolved: Option<Project>) -> StemHashes
 /// the project's config does not parse.
 pub(crate) fn build_world(file: &Path) -> Result<HarvestWorld> {
     if !file.is_file() {
-        bail!("no such file: {}", file.display());
+        return Err(Diag::failed("no such file")
+            .value(file.display().to_string())
+            .into());
     }
     let world = HarvestWorld::new(file).map_err(anyhow::Error::from)?;
     // `find_root` looks for `.mindtape`, which the Typst root markers

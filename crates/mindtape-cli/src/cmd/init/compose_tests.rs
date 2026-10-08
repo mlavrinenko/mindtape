@@ -178,10 +178,13 @@ fn two_status_fragments_error_naming_both() {
             "[[tasks.status]]\nvalue = \"open\"\n".to_owned(),
         ),
     ];
-    let err = compose(&fragments).unwrap_err().to_string();
-    assert!(err.contains("workflow"), "{err}");
-    assert!(err.contains("imported"), "{err}");
-    assert!(err.contains("tasks.status"), "{err}");
+    let err = crate::diag::plain_anyhow(compose(&fragments).unwrap_err());
+    assert_eq!(
+        err,
+        "error: two fragments declare the same array section: '[tasks.status]'\n\
+         hint: pick one, or move the difference into [overlay]\n\
+         note: declared by: workflow and imported\n"
+    );
 }
 
 /// The array-conflict rule reaches a nested array too: priority bands declared

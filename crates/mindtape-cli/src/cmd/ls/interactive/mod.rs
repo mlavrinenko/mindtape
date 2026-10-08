@@ -19,7 +19,7 @@
 use std::io::{self, IsTerminal, Write};
 use std::path::PathBuf;
 
-use anyhow::{Result, bail};
+use anyhow::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use crossterm::terminal::{Clear, ClearType};
 use crossterm::{cursor, execute};
@@ -28,6 +28,7 @@ use anstyle::{Effects, Style};
 use mindtape::{ConditionEnv, Config, Readiness, StemHashes, Task};
 
 use crate::cmd::ls::{LsArgs, resolve_and_select};
+use crate::diag::{Diag, Hint};
 use crate::render::RenderCtx;
 use crate::render::color::{Painter, is_color_active};
 use crate::render::output::{OutputFormat, Truncation};
@@ -75,10 +76,18 @@ fn guard(args: &LsArgs) -> Result<()> {
 /// failed. A test whose verdict flips with the caller's stdout is not a test.
 fn guard_with(args: &LsArgs, tty: bool) -> Result<()> {
     if !matches!(args.flags.format, OutputFormat::Table) {
-        bail!("--interactive is table-only; drop --format json/csv/path/path0");
+        return Err(
+            Diag::usage("--interactive works only with the table format")
+                .hint(Hint::new("drop --format, or drop --interactive"))
+                .into(),
+        );
     }
     if !tty {
-        bail!("--interactive needs a TTY on stdin and stdout (not available when piped)");
+        return Err(
+            Diag::usage("--interactive needs a terminal on stdin and stdout")
+                .hint(Hint::new("drop --interactive when piping"))
+                .into(),
+        );
     }
     Ok(())
 }

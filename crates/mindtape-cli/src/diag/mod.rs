@@ -66,7 +66,7 @@ use std::path::Path;
 pub(crate) use from_lib::filter;
 pub(crate) use hint::{Command, Hint, Note};
 pub(crate) use prompt::confirm;
-pub(crate) use render::{emit, emit_note, line, report, stderr_is_terminal};
+pub(crate) use render::{emit, emit_note, emit_text, line, report, stderr_is_terminal};
 pub(crate) use summary::dedupe_notes;
 
 /// What kind of problem a [`Diag`] reports, which decides the exit code.

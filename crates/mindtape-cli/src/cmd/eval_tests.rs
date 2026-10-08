@@ -132,17 +132,17 @@ fn eval_does_not_hijack_a_foreign_lib_package() {
 #[test]
 fn locate_refuses_a_missing_path_with_a_separator() {
     let err = locate("sub/nope").unwrap_err();
-    assert!(
-        err.to_string().contains("no such file: sub/nope"),
-        "{err:#}"
+    assert_eq!(
+        crate::diag::plain_anyhow(err),
+        "error: no such file: 'sub/nope'\n"
     );
 }
 
 #[test]
 fn locate_refuses_a_missing_typ_path() {
     let err = locate("nope.typ").unwrap_err();
-    assert!(
-        err.to_string().contains("no such file: nope.typ"),
-        "{err:#}"
+    assert_eq!(
+        crate::diag::plain_anyhow(err),
+        "error: no such file: 'nope.typ'\n"
     );
 }

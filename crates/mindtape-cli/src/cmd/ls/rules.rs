@@ -18,13 +18,14 @@
 
 use std::io::IsTerminal;
 
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use mindtape::{Condition, ConditionEnv, Config, Facet, LsRule, ViewSpec, parse_import_view};
 
 pub use crate::cmd::ls::rules_applied::{Applied, trailer};
 use crate::cmd::ls::rules_applied::{MANUAL, MATCH_ALL};
 
 use crate::cmd::ls::LsArgs;
+use crate::diag::{Diag, Hint, Kind};
 use crate::util;
 
 /// A fully composed listing bundle: the three `mt ls` facets as plain owned
@@ -213,7 +214,11 @@ fn condition_holds(rule: &LsRule, env: &ConditionEnv) -> Result<bool> {
     };
     Condition::parse(expr)
         .and_then(|condition| condition.matches(env))
-        .map_err(|err| anyhow!("ls.rules condition {expr:?}: {err}"))
+        .map_err(|err| {
+            Diag::from(err)
+                .context("in ls.rules condition", expr)
+                .into()
+        })
 }
 
 /// A rule's display identity: its `name`, else its `condition` text, else
@@ -246,7 +251,7 @@ fn compose_rule(config: &Config, rule: &LsRule) -> Result<(Bundle, Applied)> {
         ..Applied::match_all()
     };
     for entry in &rule.import_views {
-        let parsed = parse_import_view(entry).map_err(|msg| anyhow!("{msg}"))?;
+        let parsed = parse_import_view(entry).map_err(|msg| Diag::verbatim(Kind::Failed, msg))?;
         let view = config
             .views
             .get(&parsed.view)
@@ -340,6 +345,9 @@ fn apply_cli_overrides(
     Ok((bundle, applied))
 }
 
+/// The hint for a column name that is nothing like a real one.
+const COLUMN_NAMES: &str = "columns are slug#, status, ready, priority, due, assignee, title, why, children, progress, file";
+
 /// Resolve a `--columns` spec (a comma list of column names, or `@view`) to a
 /// validated list of `[ls]` column names.
 fn resolve_columns(spec: &str, config: &Config) -> Result<Vec<String>> {
@@ -358,11 +366,14 @@ fn resolve_columns(spec: &str, config: &Config) -> Result<Vec<String>> {
     };
     for name in &names {
         if !mindtape::LS_COLUMNS.contains(&name.as_str()) {
-            return Err(anyhow!(
-                "unknown column `{name}`, expected one of {}{}",
-                mindtape::LS_COLUMNS.join(", "),
-                mindtape::suggest::suggestion(name, &mindtape::LS_COLUMNS)
-            ));
+            let diag = Diag::usage("unknown column").value(name);
+            return Err(
+                match mindtape::suggest::nearest(name, &mindtape::LS_COLUMNS) {
+                    Some(near) => diag.hint(Hint::did_you_mean(near)),
+                    None => diag.hint(Hint::new(COLUMN_NAMES)),
+                }
+                .into(),
+            );
         }
     }
     Ok(names)

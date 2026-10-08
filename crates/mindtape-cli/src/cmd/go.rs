@@ -9,10 +9,11 @@
 use std::path::Path;
 use std::process::Command;
 
-use anyhow::{Context, Result, bail};
+use anyhow::Result;
 use clap::Args;
 use mindtape::Config;
 
+use crate::diag::{Diag, Hint};
 use crate::util;
 
 /// Token in a `[go] editor` command replaced with the resolved task path.
@@ -63,14 +64,17 @@ pub(crate) fn resolve_editor(config: &Config) -> Result<String> {
 pub(crate) fn spawn_editor(template: &str, path: &Path) -> Result<()> {
     let path = path.to_string_lossy();
     let parts = build_argv(template, &path)?;
-    let (program, rest) = parts.split_first().context("empty editor command")?;
+    let (program, rest) = parts.split_first().ok_or_else(empty_editor)?;
 
-    let status = Command::new(program)
-        .args(rest)
-        .status()
-        .with_context(|| format!("spawn editor {template:?}"))?;
+    let status = Command::new(program).args(rest).status().map_err(|err| {
+        Diag::failed("can't start the editor")
+            .value(template)
+            .io(&err)
+    })?;
     if !status.success() {
-        bail!("editor {template:?} exited without success");
+        return Err(Diag::failed("the editor exited with an error")
+            .value(template)
+            .into());
     }
     Ok(())
 }
@@ -102,9 +106,16 @@ fn editor_from(
             return Ok(value);
         }
     }
-    bail!(
-        "no editor configured: set `[go] editor` in .mindtape/config.toml (or $VISUAL / $EDITOR)"
-    );
+    Err(Diag::refused("no editor configured")
+        .hint(Hint::new(
+            "set [go] editor in .mindtape/config.toml, or $VISUAL or $EDITOR",
+        ))
+        .into())
+}
+
+/// The refusal for an editor command with no program word in it.
+fn empty_editor() -> Diag {
+    Diag::refused("empty editor command").hint(Hint::example("vim {task}"))
 }
 
 /// Split `template` into an argv, substituting `{task}` with `path`. When no
@@ -124,7 +135,7 @@ fn build_argv(template: &str, path: &str) -> Result<Vec<String>> {
         }
     }
     if argv.is_empty() {
-        bail!("empty editor command");
+        return Err(empty_editor().into());
     }
     if !substituted {
         argv.push(path.to_owned());
@@ -195,9 +206,9 @@ mod tests {
     #[test]
     fn blank_config_and_empty_env_is_an_error() {
         for blank in ["", "  "] {
-            let err = editor_from(Some(blank), no_env).unwrap_err().to_string();
+            let err = crate::diag::plain_anyhow(editor_from(Some(blank), no_env).unwrap_err());
             assert!(
-                err.contains("[go] editor"),
+                err.starts_with("error: no editor configured\nhint: set [go] editor"),
                 "the error must name the setting to fix: {err}"
             );
         }

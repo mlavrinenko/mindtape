@@ -65,6 +65,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   1 failed`, as `mt flip` does, and a single target gets no summary. The note
   about a parked `--edit` buffer and the notes about config-filled fields are
   `note:` lines.
+- **`mt ls`, `mt review`, `mt go`, `mt eval`, `mt preset`, `mt import`,
+  `mt init` and `@worktree` problems read in the error format.** `mt ls --sort
+  priorty` prints `error: unknown sort field: 'priorty'` and `hint: did you mean
+  priority?`, and exits 2; `--sort priority:up` and `--columns titel` do the
+  same; `mt ls -i` on a pipe says `--interactive needs a terminal on stdin and
+  stdout` with a hint. `mt go` with no editor puts the fix on a `hint:` line;
+  `mt @nope ls` prints `error: unknown worktree: '@nope'` with `hint: did you
+  mean @x?` and the known worktrees and config path as notes. `mt import
+  bad.json` prints `error: bad.json:1:2: not JSON: expected ident`, a batch
+  with skipped records ends in `error: filed 1 of 3 tasks; 2 failed`, and a
+  missing prelude is the one `can't find the prelude package` error. The
+  wizard's and presets' composition errors are shorter. `mindtape` gains
+  `sort::sort_fields`.
 - **A task reference, a view name and a failed write read in the error
   format.** `mt ls '@nope'` prints `error: unknown view: 'nope'` and
   `hint: did you mean x?` (or `hint: run mt views to see the views`) where it

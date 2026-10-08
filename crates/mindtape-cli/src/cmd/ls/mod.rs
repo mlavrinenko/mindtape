@@ -11,7 +11,9 @@ pub(crate) mod rules;
 pub(crate) mod rules_applied;
 
 use anstyle::{Effects, Style};
-use anyhow::{Result, anyhow};
+use anyhow::Result;
+
+use crate::diag::{Diag, Hint, Kind};
 use mindtape::sort::{default_order_with, sort_by_specs};
 use mindtape::{ConditionEnv, Config, Filter, Readiness, StemHashes, Task, select};
 
@@ -305,7 +307,33 @@ pub(crate) fn sort_tasks(
         default_order_with(tasks, config, readiness);
         return Ok(());
     }
-    sort_by_specs(tasks, specs, config, readiness).map_err(|e| anyhow!("{e}"))
+    for spec in specs {
+        check_sort_spec(spec)?;
+    }
+    sort_by_specs(tasks, specs, config, readiness)
+        .map_err(|msg| Diag::verbatim(Kind::Usage, msg).into())
+}
+
+/// `spec` (`field`, `field:asc` or `field:desc`) as a usage error naming the
+/// part that is wrong, with the nearest field for a misspelt one.
+fn check_sort_spec(spec: &str) -> std::result::Result<(), Diag> {
+    let (field, direction) = spec
+        .split_once(':')
+        .map_or((spec, None), |(field, direction)| (field, Some(direction)));
+    if !mindtape::sort::is_sort_field(field) {
+        let diag = Diag::usage("unknown sort field").value(field);
+        let known = mindtape::sort::sort_fields();
+        return Err(match mindtape::suggest::nearest(field, &known) {
+            Some(near) => diag.hint(Hint::did_you_mean(near)),
+            None => diag.hint(Hint::new("sort by a task field such as priority or due")),
+        });
+    }
+    match direction {
+        None | Some("asc" | "desc") => Ok(()),
+        Some(other) => Err(Diag::usage("unknown sort direction")
+            .value(other)
+            .hint(Hint::new("use asc or desc"))),
+    }
 }
 
 #[cfg(test)]

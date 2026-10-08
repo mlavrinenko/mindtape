@@ -20,29 +20,21 @@ pub(crate) mod add;
 #[allow(clippy::disallowed_macros)]
 pub(crate) mod check;
 pub(crate) mod config;
-#[allow(clippy::disallowed_macros)]
 pub(crate) mod eval;
 pub(crate) mod find;
 pub(crate) mod flip;
-#[allow(clippy::disallowed_macros)]
 pub(crate) mod go;
 pub(crate) mod graph;
-#[allow(clippy::disallowed_macros)]
 pub(crate) mod import;
-#[allow(clippy::disallowed_macros)]
 pub(crate) mod init;
 pub(crate) mod install;
 pub(crate) mod link;
-#[allow(clippy::disallowed_macros)]
 pub(crate) mod ls;
 pub(crate) mod mv;
-#[allow(clippy::disallowed_macros)]
 pub(crate) mod preset;
 pub(crate) mod recur;
-#[allow(clippy::disallowed_macros)]
 pub(crate) mod review;
 pub(crate) mod rm;
 pub(crate) mod set;
 pub(crate) mod views;
-#[allow(clippy::disallowed_macros)]
 pub(crate) mod worktrees;

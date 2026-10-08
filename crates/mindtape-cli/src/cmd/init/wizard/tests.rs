@@ -35,9 +35,7 @@ fn walk(flags: &Flags, interactive: bool, script: &str) -> (Answers, String) {
 fn walk_err(flags: &Flags) -> String {
     let mut reader = Cursor::new(Vec::new());
     let mut writer = Vec::<u8>::new();
-    resolve(flags, true, &mut reader, &mut writer)
-        .unwrap_err()
-        .to_string()
+    crate::diag::plain_anyhow(resolve(flags, true, &mut reader, &mut writer).unwrap_err())
 }
 
 fn all_default() -> Answers {

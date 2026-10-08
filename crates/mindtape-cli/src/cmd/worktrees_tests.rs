@@ -3,7 +3,7 @@
 #![allow(clippy::unwrap_used)]
 
 use std::ffi::OsString;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use super::desugar_with;
 
@@ -92,41 +92,45 @@ fn worktrees_path_is_some_with_correct_suffix() {
 
 // --- unknown_worktree (delete !) ---
 
+fn registry_with_sn() -> mindtape::WorktreeRegistry {
+    mindtape::WorktreeRegistry::parse("[[worktrees]]\nname = \"sn\"\npath = \"/wt/sn\"\n").unwrap()
+}
+
 #[test]
 fn unknown_worktree_shows_aliases_when_nonempty() {
-    let registry =
-        mindtape::WorktreeRegistry::parse("[[worktrees]]\nname = \"sn\"\npath = \"/wt/sn\"\n")
-            .unwrap();
-    let err = super::unknown_worktree("bad", &registry, None);
-    let msg = err.to_string();
-    assert!(msg.contains("known worktrees: sn"), "{msg}");
+    let err = super::unknown_worktree("bad", &registry_with_sn(), None);
+    assert_eq!(
+        crate::diag::plain(&err),
+        "error: unknown worktree: '@bad'\n\
+         hint: add it to worktrees.toml\n\
+         note: known worktrees: sn\n\
+         note: no app config directory resolves\n"
+    );
 }
 
 #[test]
 fn unknown_worktree_omits_aliases_when_empty() {
     let registry = mindtape::WorktreeRegistry::default();
-    let err = super::unknown_worktree("bad", &registry, None);
-    let msg = err.to_string();
-    assert!(!msg.contains("known worktrees"), "{msg}");
+    let err = super::unknown_worktree("bad", &registry, Some(Path::new("/c/worktrees.toml")));
+    assert_eq!(
+        crate::diag::plain(&err),
+        "error: unknown worktree: '@bad'\n\
+         hint: add it to worktrees.toml\n\
+         note: worktrees are configured in: '/c/worktrees.toml'\n"
+    );
 }
 
 #[test]
 fn unknown_worktree_suggests_a_near_miss() {
-    let registry =
-        mindtape::WorktreeRegistry::parse("[[worktrees]]\nname = \"sn\"\npath = \"/wt/sn\"\n")
-            .unwrap();
-    let err = super::unknown_worktree("sm", &registry, None);
-    let msg = err.to_string();
-    assert!(msg.contains("did you mean: sn?"), "{msg}");
+    let err = super::unknown_worktree("sm", &registry_with_sn(), None);
+    let msg = crate::diag::plain(&err);
+    assert!(msg.contains("hint: did you mean @sn?"), "{msg}");
 }
 
 #[test]
 fn unknown_worktree_omits_suggestion_on_a_far_miss() {
-    let registry =
-        mindtape::WorktreeRegistry::parse("[[worktrees]]\nname = \"sn\"\npath = \"/wt/sn\"\n")
-            .unwrap();
-    let err = super::unknown_worktree("zzzzzzzz", &registry, None);
-    let msg = err.to_string();
+    let err = super::unknown_worktree("zzzzzzzz", &registry_with_sn(), None);
+    let msg = crate::diag::plain(&err);
     assert!(!msg.contains("did you mean"), "{msg}");
 }
 

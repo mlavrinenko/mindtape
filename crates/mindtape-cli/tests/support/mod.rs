@@ -62,6 +62,15 @@ pub fn isolated_env(dir: &Path) -> [(&'static str, PathBuf); 3] {
     ]
 }
 
+/// `mt <args>` in `dir`: the exit code and stderr.
+pub fn run_stderr(dir: &Path, args: &[&str]) -> (Option<i32>, String) {
+    let output = mt(dir).args(args).output().unwrap();
+    (
+        output.status.code(),
+        String::from_utf8(output.stderr).unwrap(),
+    )
+}
+
 /// `mt`, ready to run in `dir` with the developer's global config out of reach
 /// ([`isolated_env`]). The spawn every e2e test goes through; a bare
 /// `cargo_bin("mt")` is the un-isolated one and only `install_e2e` (which

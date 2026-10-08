@@ -26,7 +26,8 @@ use crate::{cmd::flip, cmd::worktrees};
 /// # Errors
 /// Returns the refusal message when `mt` would not parse the line.
 pub fn run(line: &str, statuses: &[String]) -> Result<()> {
-    check(line, statuses).map_err(|msg| crate::diag::Diag::legacy(msg).into())
+    check(line, statuses)
+        .map_err(|msg| crate::diag::Diag::verbatim(crate::diag::Kind::Refused, msg).into())
 }
 
 fn check(line: &str, statuses: &[String]) -> Result<(), String> {

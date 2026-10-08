@@ -264,11 +264,15 @@ fn guard_rejects_non_table() {
     assert!(guard_with(&ls_args(OutputFormat::Json), true).is_err());
 }
 
-/// Table format with no TTY refuses, and names the TTY rather than the format.
+/// Table format with no TTY refuses, and names the terminal rather than the format.
 #[test]
 fn guard_table_fails_on_tty_not_format() {
     let err = guard_with(&ls_args(OutputFormat::Table), false).unwrap_err();
-    assert!(err.to_string().contains("TTY"), "got: {err}");
+    assert_eq!(
+        crate::diag::plain_anyhow(err),
+        "error: --interactive needs a terminal on stdin and stdout\n\
+         hint: drop --interactive when piping\n"
+    );
 }
 
 /// Table format with a TTY is the one combination interactive can serve.

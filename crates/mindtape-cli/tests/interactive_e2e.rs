@@ -268,7 +268,7 @@ fn interactive_refuses_piped_stdin_when_stdout_is_a_tty() {
         "mt should refuse immediately\nstdout:\n{stdout}"
     );
     assert!(
-        stdout.contains("needs a TTY on stdin and stdout"),
+        stdout.contains("needs a terminal on stdin and stdout"),
         "piped stdin must be rejected by name\nstdout:\n{stdout}"
     );
     assert!(

@@ -10,9 +10,10 @@
 
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result, bail};
+use anyhow::Result;
 
 use crate::cmd::init::preset;
+use crate::diag::{Command, Diag, Hint, Note};
 use crate::util;
 
 /// Arguments for `preset`.
@@ -54,8 +55,10 @@ pub fn run(args: &PresetArgs) -> Result<()> {
     match &args.action {
         PresetAction::Save(save_args) => {
             let root = util::resolve_root()?;
-            let user_dir = preset::user_preset_dir()
-                .context("could not determine the user config directory")?;
+            let user_dir = preset::user_preset_dir().ok_or_else(|| {
+                Diag::failed("can't find the user config directory")
+                    .hint(Hint::new("set the directory in MINDTAPE_CONFIG_HOME"))
+            })?;
             let dest = save(&root, &user_dir, &save_args.name, save_args.force)?;
             println!("saved preset {:?} -> {}", save_args.name, dest.display());
             Ok(())
@@ -84,38 +87,58 @@ pub fn run(args: &PresetArgs) -> Result<()> {
 pub(crate) fn save(root: &Path, user_dir: &Path, name: &str, force: bool) -> Result<PathBuf> {
     let config_path = root.join(".mindtape").join("config.toml");
     let config = std::fs::read_to_string(&config_path)
-        .with_context(|| format!("read {}", config_path.display()))?;
+        .map_err(|err| Diag::cannot_read(&config_path, &err))?;
     let templates = preset::read_templates(&root.join(".mindtape").join("templates"))?;
 
     if let Some(existing) = preset::existing_user_preset(user_dir, name) {
         if !force {
-            bail!(
-                "user preset {name:?} already exists at {} (use --force to overwrite)",
-                existing.display()
-            );
+            return Err(Diag::refused("user preset already exists")
+                .value(name)
+                .note(Note::new("it is at").value(existing.display().to_string()))
+                .hint(Hint::command(
+                    "overwrite it",
+                    Command::mt()
+                        .word("preset")
+                        .word("save")
+                        .arg(name)
+                        .word("--force"),
+                ))
+                .into());
         }
         if existing.is_file() {
-            std::fs::remove_file(&existing)
-                .with_context(|| format!("remove {}", existing.display()))?;
+            std::fs::remove_file(&existing).map_err(|err| {
+                Diag::failed("can't remove")
+                    .value(existing.display().to_string())
+                    .io(&err)
+            })?;
         }
     }
 
     let dest = user_dir.join(name);
-    std::fs::create_dir_all(&dest).with_context(|| format!("create {}", dest.display()))?;
+    create_dir(&dest)?;
     let dest_config = dest.join("config.toml");
     mindtape::write_atomic(&dest_config, config.as_bytes())
-        .with_context(|| format!("write {}", dest_config.display()))?;
+        .map_err(|err| Diag::cannot_write(&dest_config, &err))?;
     if !templates.is_empty() {
         let templates_dir = dest.join("templates");
-        std::fs::create_dir_all(&templates_dir)
-            .with_context(|| format!("create {}", templates_dir.display()))?;
+        create_dir(&templates_dir)?;
         for (file, body) in &templates {
             let path = templates_dir.join(file);
             mindtape::write_atomic(&path, body.as_bytes())
-                .with_context(|| format!("write {}", path.display()))?;
+                .map_err(|err| Diag::cannot_write(&path, &err))?;
         }
     }
     Ok(dest)
+}
+
+/// Create `dir` and its parents, or say which directory could not be made.
+fn create_dir(dir: &Path) -> Result<()> {
+    std::fs::create_dir_all(dir).map_err(|err| {
+        Diag::failed("can't create")
+            .value(dir.display().to_string())
+            .io(&err)
+            .into()
+    })
 }
 
 /// Render `mt preset ls`: every built-in, then every user preset (if the

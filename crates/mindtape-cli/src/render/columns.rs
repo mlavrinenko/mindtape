@@ -18,7 +18,7 @@
 //! of `crates/mindtape/src/config/defaults.toml`, and a column with no `when` at all
 //! does not render.
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use mindtape::{
     ColumnFacts, Condition, ConditionEnv, Config, Readiness, ReadyState, StemHashes, Task,
     format_iso, today_iso, waits_on,
@@ -29,6 +29,7 @@ use super::color::parse_color;
 use super::field::{CellSpec, Field};
 use super::fields::{Status as StatusField, priority_cell_spec};
 use super::file_path;
+use crate::diag::Diag;
 
 /// The fixed set of `ls` columns. Slice order is the built-in render order and
 /// matches [`mindtape::LS_COLUMNS`].
@@ -201,7 +202,12 @@ impl ColumnId {
         };
         Condition::parse(expr)
             .and_then(|condition| condition.matches(env))
-            .with_context(|| format!("ls.columns.{key}.when {expr:?}"))
+            .map_err(|err| {
+                Diag::from(err)
+                    .rule(format!("ls.columns.{key}.when"))
+                    .value(expr)
+                    .into()
+            })
     }
 }
 

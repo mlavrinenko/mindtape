@@ -135,18 +135,32 @@ fn explicit_filter_keeps_the_default_views_columns_value() {
 fn resolve_columns_near_miss_offers_a_suggestion() {
     let config = parse_config("").unwrap();
     let err = super::resolve_columns("staatus", &config).unwrap_err();
-    let msg = err.to_string();
-    assert!(msg.contains("expected one of"), "{msg}");
-    assert!(msg.contains("did you mean: status?"), "{msg}");
+    let msg = crate::diag::plain_anyhow(err);
+    assert_eq!(
+        msg,
+        "error: unknown column: 'staatus'\nhint: did you mean status?\n"
+    );
 }
 
 #[test]
 fn resolve_columns_far_miss_omits_the_suggestion() {
     let config = parse_config("").unwrap();
     let err = super::resolve_columns("zzzzzzzz", &config).unwrap_err();
-    let msg = err.to_string();
-    assert!(msg.contains("expected one of"), "{msg}");
+    let msg = crate::diag::plain_anyhow(err);
+    assert!(
+        msg.starts_with("error: unknown column: 'zzzzzzzz'\nhint: columns are "),
+        "{msg}"
+    );
     assert!(!msg.contains("did you mean"), "{msg}");
+}
+
+/// The far-miss hint lists the same columns `--columns` accepts.
+#[test]
+fn the_column_hint_lists_every_column() {
+    assert_eq!(
+        super::COLUMN_NAMES,
+        format!("columns are {}", mindtape::LS_COLUMNS.join(", "))
+    );
 }
 
 // --- the escape hatch the CLI docs promise

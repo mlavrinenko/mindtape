@@ -111,13 +111,26 @@ fn work_presets_require_unblocked_wip_and_done() {
     }
 }
 
-/// An unknown name errors and names the built-ins, rather than falling through
-/// to a path or a fetch.
+/// An unknown name errors and says where to see the presets, rather than
+/// falling through to a path or a fetch.
 #[test]
-fn unknown_preset_errors_and_lists_builtins() {
-    let err = resolve("nope", None).unwrap_err().to_string();
-    assert!(err.contains("unknown preset"), "{err}");
-    assert!(err.contains(DEFAULT_PRESET), "{err}");
+fn unknown_preset_errors_and_says_where_to_list_them() {
+    let err = crate::diag::plain_anyhow(resolve("nope", None).unwrap_err());
+    assert_eq!(
+        err,
+        "error: unknown preset: 'nope'\nhint: run mt preset ls to see the presets\n"
+    );
+}
+
+/// A near miss names the built-in it meant.
+#[test]
+fn a_misspelt_preset_names_the_nearest_builtin() {
+    let err =
+        crate::diag::plain_anyhow(resolve(&DEFAULT_PRESET.replace('o', "0"), None).unwrap_err());
+    assert!(
+        err.contains(&format!("hint: did you mean {DEFAULT_PRESET}?")),
+        "{err}"
+    );
 }
 
 /// A user preset shadows a built-in of the same name.

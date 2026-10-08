@@ -106,13 +106,12 @@ fn outside_a_project_the_error_names_mt_init_and_the_worktree_flag() {
     );
 }
 
-const NOTE: &str = "note: `@local/mindtape` is not installed — run `mt install` (once per \
-                    machine) or pin the prelude under `[[typst.local-packages]]`, then try again";
+const PRELUDE_ERROR: &str = "error: can't find the prelude package: '@local/mindtape'";
 
 const ONE_RECORD: &str = r#"[{"id":"","file":"","title":"Fix login","status":{"name":"proposed","date":"2026-06-01","note":null},"priority":null,"difficulty":null,"kind":null,"estimate":{},"links":[],"tags":[],"derived_tags":[],"due":null,"start":null,"reviewed":null,"body":"","extras":{}}]"#;
 
 #[test]
-fn import_without_the_prelude_prints_the_install_note_once_before_the_skip_count() {
+fn import_without_the_prelude_prints_the_install_error_once_before_the_skip_count() {
     let (_home, project) = fresh_project();
     let record = &ONE_RECORD[1..ONE_RECORD.len() - 1];
     let two = format!("[{},{}]", record, record.replace("Fix login", "Fix logout"));
@@ -121,10 +120,10 @@ fn import_without_the_prelude_prints_the_install_note_once_before_the_skip_count
     let (ok, stderr) = run_fresh(&project, &["import", "in.json"]);
 
     assert!(!ok, "{stderr}");
-    assert_eq!(stderr.matches(NOTE).count(), 1, "{stderr}");
-    let note_at = stderr.find(NOTE).unwrap();
-    assert!(stderr.rfind("skipped").unwrap() > note_at, "{stderr}");
-    assert!(stderr.rfind("did not load").unwrap() < note_at, "{stderr}");
+    assert_eq!(stderr.matches(PRELUDE_ERROR).count(), 1, "{stderr}");
+    let error_at = stderr.find(PRELUDE_ERROR).unwrap();
+    assert!(stderr.rfind("did not load").unwrap() < error_at, "{stderr}");
+    assert!(stderr.ends_with("error: filed 0 of 2 tasks\n"), "{stderr}");
 }
 
 #[test]
@@ -135,7 +134,7 @@ fn import_skipped_for_another_reason_prints_no_install_note() {
 
     let (_, stderr) = run_fresh(&project, &["import", "in.json"]);
 
-    assert!(!stderr.contains(NOTE), "{stderr}");
+    assert!(!stderr.contains(PRELUDE_ERROR), "{stderr}");
 }
 
 /// A project at `dir/p` with its own valid config, ready for a broken layer.

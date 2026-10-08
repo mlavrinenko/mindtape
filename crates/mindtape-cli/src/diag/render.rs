@@ -140,6 +140,12 @@ pub(crate) fn emit_note(note: &Note) {
     let _ = std::io::stderr().lock().write_all(out.as_bytes());
 }
 
+/// Write `text` to stderr as it is: a report that is not a message, such as
+/// the per-record lines of `mt import`. A failed write is dropped.
+pub(crate) fn emit_text(text: &str) {
+    let _ = std::io::stderr().lock().write_all(text.as_bytes());
+}
+
 /// Whether stderr is a terminal, for the colour decision. Asked here, so
 /// stderr has one owner.
 pub(crate) fn stderr_is_terminal() -> bool {

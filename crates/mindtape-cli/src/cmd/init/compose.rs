@@ -13,7 +13,9 @@
 //! status legend, priority bands, difficulty anchors, roots — the fold hard-errors
 //! naming both, because an array replaces wholesale and one would silently win.
 
-use anyhow::{Context, Result, bail};
+use anyhow::Result;
+
+use crate::diag::{Diag, Hint, Note};
 
 /// The reserved fragment name: its body is deep-merged over the composed base
 /// last, and it alone is exempt from the array-conflict rule. The `--preset`
@@ -44,24 +46,29 @@ pub(crate) const OVERLAY_AXIS: &str = "overlay";
 pub fn compose(fragments: &[(&str, String)]) -> Result<String> {
     reject_array_conflicts(fragments)?;
     let base = concat_base(fragments);
-    let mut merged: toml::Table = toml::from_str(&base).context(
-        "composed axis fragments do not form one valid TOML document \
-         (two fragments may define the same table)",
-    )?;
+    let mut merged: toml::Table = toml::from_str(&base).map_err(|err| {
+        Diag::failed("the axis fragments are not one TOML document")
+            .cause(&err)
+            .hint(Hint::new("two fragments may define the same table"))
+    })?;
     let mut overlaid = false;
     for (axis, text) in fragments {
         if *axis != OVERLAY_AXIS {
             continue;
         }
-        let overlay: toml::Table =
-            toml::from_str(text).context("the [overlay] fragment is not valid TOML")?;
+        let overlay: toml::Table = toml::from_str(text)
+            .map_err(|err| Diag::failed("the [overlay] fragment is not valid TOML").cause(&err))?;
         merge_overlay(&mut merged, overlay);
         overlaid = true;
     }
     if !overlaid {
         return Ok(base);
     }
-    toml::to_string(&merged).context("serialise the config with its overlay applied")
+    toml::to_string(&merged).map_err(|err| {
+        Diag::failed("can't write the config with its overlay applied")
+            .cause(&err)
+            .into()
+    })
 }
 
 /// Concatenate the ordinary fragments in order, dropping empties and the overlay.
@@ -106,11 +113,15 @@ fn reject_array_conflicts(fragments: &[(&str, String)]) -> Result<()> {
         collect_array_paths(&table, "", &mut paths);
         for path in paths {
             match owner.get(path.as_str()) {
-                Some(prev) if *prev != *axis => bail!(
-                    "fragments {prev:?} and {axis:?} both declare the array section \
-                     [{path}] — an array replaces wholesale, so one would silently \
-                     win. Pick one, or move the difference into [overlay].",
-                ),
+                Some(prev) if *prev != *axis => {
+                    return Err(
+                        Diag::refused("two fragments declare the same array section")
+                            .value(format!("[{path}]"))
+                            .note(Note::new("declared by").name(format!("{prev} and {axis}")))
+                            .hint(Hint::new("pick one, or move the difference into [overlay]"))
+                            .into(),
+                    );
+                }
                 Some(_) => {}
                 None => {
                     owner.insert(path, axis);

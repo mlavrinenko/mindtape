@@ -21,9 +21,10 @@
 use std::collections::HashSet;
 use std::path::PathBuf;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use mindtape::ImportReport;
 
+use crate::diag::Diag;
 use crate::pre_write::{self, Pending};
 use crate::util::Project;
 
@@ -71,8 +72,11 @@ pub(crate) fn land(project: &Project, staged: Vec<StagedTask>) -> Result<Vec<Tas
         if !problems.is_empty() {
             continue;
         }
-        std::fs::create_dir_all(&task.dest)
-            .with_context(|| format!("create {}", task.dest.display()))?;
+        std::fs::create_dir_all(&task.dest).map_err(|err| {
+            Diag::failed("can't create")
+                .value(task.dest.display().to_string())
+                .io(&err)
+        })?;
         let path = task.dest.join(format!("{}.typ", task.stem));
         crate::util::write_task(&project.config, &path, task.source.clone())?;
     }

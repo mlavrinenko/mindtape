@@ -51,10 +51,19 @@ pub fn validate_sort_spec(spec: &str) -> Result<(), String> {
     }
 }
 
-/// The `--sort` / `[ls] default-sort` error for an unrecognised field.
-fn unknown_sort_field(field: &str) -> String {
+/// The core field names `--sort` accepts besides the `x-<ns>` slots: every
+/// registry field, then `ready`. What a did-you-mean for a misspelt field
+/// searches.
+#[must_use]
+pub fn sort_fields() -> Vec<&'static str> {
     let mut names: Vec<&str> = fields::FIELDS.iter().map(|def| def.name).collect();
     names.push("ready");
+    names
+}
+
+/// The `--sort` / `[ls] default-sort` error for an unrecognised field.
+fn unknown_sort_field(field: &str) -> String {
+    let names = sort_fields();
     format!(
         "unknown sort field: {}{}",
         crate::config::quote(field),
