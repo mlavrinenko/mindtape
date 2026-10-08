@@ -30,12 +30,10 @@ fn an_unknown_pack_is_quoted_and_names_the_near_match() {
 
     assert!(
         stderr.starts_with(
-            "error: .mindtape/config.toml:1: extends: unknown pack: 'mindtape-task'; available packs: "
+            "error: .mindtape/config.toml:1: extends: unknown pack: 'mindtape-task'\n\
+             hint: did you mean mindtape-tasks?\n\
+             hint: use one of: "
         ),
-        "{stderr}"
-    );
-    assert!(
-        stderr.ends_with("\nhint: did you mean mindtape-tasks?\n"),
         "{stderr}"
     );
 }

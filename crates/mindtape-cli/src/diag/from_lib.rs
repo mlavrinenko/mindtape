@@ -152,8 +152,8 @@ pub(crate) fn filter(err: FilterError, expr: Option<&str>) -> Diag {
         }
         FilterError::UnknownView(name) => in_filter(Diag::usage("unknown view").value(name)),
         FilterError::UnknownDict { name, hint } => {
-            in_filter(Diag::usage("unknown dict").value(name))
-                .reason(hint.trim_start_matches("; ").to_owned())
+            let (_, hints) = split_clauses(&hint);
+            with_hints(in_filter(Diag::usage("unknown dict").value(name)), hints)
         }
         FilterError::Git { call, reason } => {
             Diag::failed("can't read git").reason(format!("{call}(): {reason}"))
@@ -191,7 +191,7 @@ impl From<ConditionError> for Diag {
     }
 }
 
-fn config(err: &ConfigError) -> Diag {
+pub(super) fn config(err: &ConfigError) -> Diag {
     match err {
         ConfigError::Io(source) => Diag::failed("can't read config").cause(source),
         ConfigError::Parse(error) => toml_error(error, None),
@@ -202,10 +202,10 @@ fn config(err: &ConfigError) -> Diag {
 
 /// A config that parsed but failed a check: `<file>:<line>: <key>: <message>`.
 /// A second problem is a `note:` line. A `; did you mean: x?` clause on the
-/// first becomes a hint.
+/// first becomes a hint, and so does a `; known views: a, b` list.
 fn invalid(message: &str, place: Option<&ConfigPlace>) -> Diag {
     let (first, rest) = message.split_once('\n').unwrap_or((message, ""));
-    let (first, near) = split_near_match(first);
+    let (first, hints) = split_clauses(first);
     let mut diag = Diag::failed("");
     if let Some(place) = place {
         diag = diag.at(&place.file, place.line, None);
@@ -215,24 +215,49 @@ fn invalid(message: &str, place: Option<&ConfigPlace>) -> Diag {
     } else {
         format!("{first}\n{rest}")
     };
-    diag = diag.reason(text);
-    match near {
-        Some(name) => diag.hint(Hint::did_you_mean(name)),
-        None => diag,
-    }
+    with_hints(diag.reason(text), hints)
 }
 
-/// `line` without its `; did you mean: <name>?` clause, and the name.
-fn split_near_match(line: &str) -> (String, Option<String>) {
-    const CLAUSE: &str = "; did you mean: ";
-    let Some(start) = line.find(CLAUSE) else {
-        return (line.to_owned(), None);
-    };
-    let after = &line[start + CLAUSE.len()..];
-    let Some((name, tail)) = after.split_once('?') else {
-        return (line.to_owned(), None);
-    };
-    (format!("{}{tail}", &line[..start]), Some(name.to_owned()))
+fn with_hints(diag: Diag, hints: Vec<Hint>) -> Diag {
+    hints.into_iter().fold(diag, Diag::hint)
+}
+
+/// The labels that open a `; <label>: a, b, c` clause listing the names a
+/// value could have been.
+const LIST_LABELS: [&str; 4] = ["known ", "columns: ", "available packs: ", "use one of "];
+
+/// `line` without the clauses the library appended to it, and those clauses as
+/// hints: `; did you mean: <name>?` and the first `; known <kind>s: a, b` list.
+/// Any other clause stays in the line.
+fn split_clauses(line: &str) -> (String, Vec<Hint>) {
+    let mut parts = line.split("; ");
+    let mut head = parts.next().unwrap_or_default().to_owned();
+    let (mut near, mut names) = (None, None);
+    for part in parts {
+        let did_you_mean = part
+            .strip_prefix("did you mean: ")
+            .and_then(|tail| tail.strip_suffix('?'));
+        if let (Some(name), None) = (did_you_mean, &near) {
+            near = Some(Hint::did_you_mean(name));
+        } else if let (Some(list), None) = (listed_names(part), &names) {
+            names = Some(Hint::one_of(list));
+        } else {
+            head.push_str("; ");
+            head.push_str(part);
+        }
+    }
+    (head, near.into_iter().chain(names).collect())
+}
+
+/// The names in a `known views: a, b` style clause, or `None` for any other.
+fn listed_names(clause: &str) -> Option<Vec<String>> {
+    LIST_LABELS
+        .iter()
+        .find(|label| clause.starts_with(**label))?;
+    let (_, list) = clause
+        .split_once(": ")
+        .or_else(|| clause.split_once("one of "))?;
+    Some(list.split(", ").map(ToOwned::to_owned).collect())
 }
 
 /// A TOML syntax error on one line: `<origin>:<line>:<col>: can't parse

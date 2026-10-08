@@ -308,8 +308,8 @@ fn an_invalid_config_names_its_line_and_turns_a_near_match_into_a_hint() {
     };
     assert_eq!(
         plain(&Diag::from(err)),
-        "error: .mindtape/config.toml:3: extends: unknown pack: 'x'; available packs: y, z\n\
-         note: ls.sort: bad\nhint: did you mean y?\n"
+        "error: .mindtape/config.toml:3: extends: unknown pack: 'x'\n\
+         note: ls.sort: bad\nhint: did you mean y?\nhint: use one of: y, z\n"
     );
 }
 
@@ -427,7 +427,7 @@ fn the_other_filter_errors_keep_their_reason_and_kind() {
                 name: "d".to_owned(),
                 hint: "; known dicts: a".to_owned(),
             },
-            "error: unknown dict: 'd' in filter 'x': known dicts: a\n",
+            "error: unknown dict: 'd' in filter 'x'\nhint: use one of: a\n",
         ),
         (
             FilterError::Call {

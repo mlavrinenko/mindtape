@@ -1361,6 +1361,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **A config error lists the names you could have meant on a hint line.**
+  `error: views.a.columns: unknown column: 'fiel'` is followed by
+  `hint: did you mean file?` and `hint: use one of: file, title`, where the
+  list sat at the end of the error line.
 - **A config error names its file and line.** `mt ls` over a config with
   `[views.broken] sort = ["nofield"]` prints
   `error: .mindtape/config.toml:5: views.broken.sort: unknown sort field:

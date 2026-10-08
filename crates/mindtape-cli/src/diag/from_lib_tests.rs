@@ -1,6 +1,7 @@
 //! Library errors as `Diag`s: a `ConditionError`, a `typst_cleanup::Error`.
 
-use mindtape::ConditionError;
+use mindtape::config::ConfigError;
+use mindtape::{ConditionError, FilterError};
 
 use super::render::render;
 use super::{Diag, Kind};
@@ -57,6 +58,46 @@ fn a_condition_error_in_an_anyhow_chain_keeps_its_words() {
         plain(&Diag::from(err)).starts_with(
             "error: ls.rules[0].condition: a condition can't read a task field: 'due'"
         )
+    );
+}
+
+#[test]
+fn a_config_error_lists_its_known_names_on_a_hint() {
+    let err = ConfigError::Invalid {
+        message:
+            "views.a.columns: unknown column: 'fiel'; did you mean: file?; columns: file, title"
+                .to_owned(),
+        place: None,
+    };
+    assert_eq!(
+        plain(&super::from_lib::config(&err)),
+        "error: views.a.columns: unknown column: 'fiel'\n\
+         hint: did you mean file?\n\
+         hint: use one of: file, title\n"
+    );
+}
+
+#[test]
+fn a_list_alone_is_one_hint_and_other_clauses_stay() {
+    let err = ConfigError::Invalid {
+        message: "extends: unknown pack: 'x'; available packs: a, b; see docs".to_owned(),
+        place: None,
+    };
+    assert_eq!(
+        plain(&super::from_lib::config(&err)),
+        "error: extends: unknown pack: 'x'; see docs\nhint: use one of: a, b\n"
+    );
+}
+
+#[test]
+fn an_unknown_dict_lists_the_dicts_on_a_hint() {
+    let err = FilterError::UnknownDict {
+        name: "verb".to_owned(),
+        hint: "; did you mean: verbs?; known dicts: verbs, tags".to_owned(),
+    };
+    assert_eq!(
+        plain(&Diag::from(err)),
+        "error: unknown dict: 'verb'\nhint: did you mean verbs?\nhint: use one of: verbs, tags\n"
     );
 }
 

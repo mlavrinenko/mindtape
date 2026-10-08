@@ -17,6 +17,7 @@ enum Shape {
     Command(&'static str, Command),
     Run(Command, &'static str),
     DidYouMean(String),
+    OneOf(Vec<String>),
     Typst(String),
     Example(&'static str),
     Project(String),
@@ -51,6 +52,12 @@ impl Hint {
         Self(Shape::DidYouMean(name.into()))
     }
 
+    /// The names the user may pick from, as the library listed them:
+    /// `hint: use one of: file, title`. Names are bare.
+    pub(crate) fn one_of(names: Vec<String>) -> Self {
+        Self(Shape::OneOf(names))
+    }
+
     /// One of Typst's own hints on an error, in Typst's words. Typst's text
     /// is not ours to fix as a `&'static str`, so only [`Diag::typst_hints`]
     /// builds one.
@@ -69,6 +76,7 @@ impl fmt::Display for Hint {
             Shape::Run(command, purpose) => write!(formatter, "run {command} {purpose}"),
             Shape::DidYouMean(name) => write!(formatter, "did you mean {name}?"),
             Shape::Typst(text) | Shape::Project(text) => formatter.write_str(text),
+            Shape::OneOf(names) => write!(formatter, "use one of: {}", names.join(", ")),
             Shape::Example(example) => write!(formatter, "for example: {example}"),
         }
     }
