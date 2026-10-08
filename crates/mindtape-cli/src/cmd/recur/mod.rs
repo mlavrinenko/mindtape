@@ -18,7 +18,7 @@ pub(crate) mod edit;
 use std::collections::HashSet;
 use std::path::Path;
 
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::Result;
 use chrono::NaiveDate;
 use clap::Args;
 use mindtape::recur::dates::{
@@ -32,6 +32,7 @@ use crate::cmd::recur::edit::{
     OccurrenceDates, apply_edits, decrement_count_edit, due_start_edits, set_recurred_from,
     status_due_start_edits,
 };
+use crate::diag::{Diag, Hint, Kind, Note};
 use crate::pre_write::{self, Pending};
 use crate::task_edit::task_with;
 use crate::util::{self, Project};
@@ -92,17 +93,19 @@ pub fn run(args: &RecurArgs) -> Result<()> {
 
 fn run_with(project: &Project, args: &RecurArgs) -> Result<()> {
     let (task, abs) = util::resolve_task(project, &args.task.task)?;
-    let recur = task.recur.clone().with_context(|| {
-        format!(
-            "{:?} has no `recur` field; nothing to advance",
-            args.task.task
-        )
-    })?;
+    let Some(recur) = task.recur.clone() else {
+        return Err(Diag::refused("task has no recur field")
+            .value(&args.task.task)
+            .hint(Hint::new(
+                "add a recur: field to the task, or pick one that has it",
+            ))
+            .into());
+    };
 
     let recur_config = &project.config.tasks.recur;
     let problems = mindtape::recur::check_policy(&recur, recur_config);
-    if !problems.is_empty() {
-        bail!("{}", problems.join("; "));
+    if let Some(policy) = policy_refusal(&problems) {
+        return Err(policy.into());
     }
 
     if args.skip {
@@ -117,9 +120,22 @@ fn run_with(project: &Project, args: &RecurArgs) -> Result<()> {
     }
 }
 
+/// The refusal for a `recur` the `[tasks.recur]` policy rejects: the first
+/// problem in the policy's words, every other one a note. `None` when the
+/// policy has no complaint.
+fn policy_refusal(problems: &[String]) -> Option<Diag> {
+    let (first, rest) = problems.split_first()?;
+    let refusal = Diag::verbatim(Kind::Refused, first.as_str());
+    Some(rest.iter().fold(refusal, |diag, problem| {
+        diag.note(Note::new("also").name(problem.as_str()))
+    }))
+}
+
 /// Today, and the task's current `due`/`start`, as [`NaiveDate`]s.
 fn dates(task: &Task) -> Result<(NaiveDate, Option<NaiveDate>, Option<NaiveDate>)> {
-    let today = recur_dates::ymd_to_date(today_ymd()).context("today's date is out of range")?;
+    let Some(today) = recur_dates::ymd_to_date(today_ymd()) else {
+        return Err(Diag::failed("today's date is out of range").into());
+    };
     let due = task.due.as_deref().and_then(recur_dates::parse_iso);
     let start = task.start.as_deref().and_then(recur_dates::parse_iso);
     Ok((today, due, start))
@@ -129,7 +145,7 @@ fn dates(task: &Task) -> Result<(NaiveDate, Option<NaiveDate>, Option<NaiveDate>
 /// computed, since an exhausted series has no next occurrence to compute.
 fn guard_budget(recur: &Recur) -> Result<()> {
     if exhausted(recur) {
-        bail!("series exhausted: `count` has reached 0");
+        return Err(Diag::refused("series exhausted: count has reached 0").into());
     }
     Ok(())
 }
@@ -137,9 +153,10 @@ fn guard_budget(recur: &Recur) -> Result<()> {
 /// Bail if `next` overshoots the series' `until` bound; hand it back otherwise.
 fn guard_until(recur: &Recur, next: NaiveDate) -> Result<NaiveDate> {
     if past_until(recur, next) {
-        bail!(
-            "series ended: next occurrence {} is past `until`",
-            recur_dates::format_iso(next)
+        return Err(
+            Diag::refused("series ended: the next occurrence is past until")
+                .value(recur_dates::format_iso(next))
+                .into(),
         );
     }
     Ok(next)
@@ -154,7 +171,7 @@ fn plan_next(
     due: Option<NaiveDate>,
 ) -> Result<NaiveDate> {
     guard_budget(recur)?;
-    let next = next_date(recur, config, today, due).map_err(|err| anyhow!(err.to_string()))?;
+    let next = next_date(recur, config, today, due)?;
     guard_until(recur, next)
 }
 
@@ -171,7 +188,7 @@ fn plan_next(
 /// a non-`due` anchor outright would not.
 pub(crate) fn plan_step(recur: &Recur, from: NaiveDate) -> Result<NaiveDate> {
     guard_budget(recur)?;
-    let next = advance_once(&recur.rule, from).map_err(|err| anyhow!(err.to_string()))?;
+    let next = advance_once(&recur.rule, from)?;
     guard_until(recur, next)
 }
 
@@ -186,7 +203,7 @@ fn plan_and_read(
 ) -> Result<(NaiveDate, Option<NaiveDate>, Option<NaiveDate>, String)> {
     let (today, due, start) = dates(task)?;
     let next = plan_next(recur, &project.config.tasks.recur, today, due)?;
-    let source = std::fs::read_to_string(abs).with_context(|| format!("read {}", abs.display()))?;
+    let source = std::fs::read_to_string(abs).map_err(|err| Diag::cannot_read(abs, &err))?;
     Ok((next, due, start, source))
 }
 
@@ -252,11 +269,11 @@ fn mint_stem(
         occurrence,
     };
     let stem = mindtape::model::naming::mint_stem(template, &ctx)
-        .map_err(|err| anyhow!(err.to_string()))?;
+        .map_err(|err| Diag::failed("can't mint a stem").cause(&err))?;
     mindtape::model::naming::disambiguate(&stem, |candidate| {
         dest.claimed.contains(candidate) || dest.dir.join(format!("{candidate}.typ")).exists()
     })
-    .map_err(|err| anyhow!(err.to_string()))
+    .map_err(|err| Diag::failed("can't mint a stem").cause(&err).into())
 }
 
 /// The pre-write seam every single-step `recur` path funnels through: check the
@@ -277,6 +294,15 @@ fn commit(project: &Project, file: &Path, source: String) -> Result<()> {
     util::write_task(&project.config, file, source)
 }
 
+/// The folder `abs` sits in, where its occurrences are written.
+pub(super) fn parent_dir(abs: &Path) -> Result<&Path> {
+    abs.parent().ok_or_else(|| {
+        Diag::failed("task file has no parent directory")
+            .value(abs.display().to_string())
+            .into()
+    })
+}
+
 fn stem_of(path: &Path) -> String {
     path.file_stem()
         .map_or_else(String::new, |s| s.to_string_lossy().into_owned())
@@ -294,7 +320,7 @@ fn do_spawn(
     guard_double_spawn(project, task, args.force)?;
     let (next, due, start, source) = plan_and_read(project, task, abs, recur)?;
     let occurrence = occurrence_index(&project.outcome.tasks, task);
-    let dir = abs.parent().context("task file has no parent directory")?;
+    let dir = parent_dir(abs)?;
     // A single-step spawn is a batch of one: nothing else is in flight to
     // collide with, so the claimed set is empty and disk decides alone.
     let claimed = HashSet::new();
@@ -347,11 +373,11 @@ fn guard_double_spawn(project: &Project, task: &Task, force: bool) -> Result<()>
         return Ok(());
     }
     if let Some(successor) = successor_of(&project.outcome.tasks, task) {
-        bail!(
-            "{:?} already has a successor ({}); use --force to spawn another",
-            task.id,
-            successor.id
-        );
+        return Err(Diag::refused("task already has a successor")
+            .value(&task.id)
+            .note(Note::new("successor").name(&successor.id))
+            .hint(Hint::new("pass --force to spawn another"))
+            .into());
     }
     Ok(())
 }

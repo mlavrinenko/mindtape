@@ -10,7 +10,7 @@
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result, bail};
+use anyhow::Result;
 use chrono::NaiveDate;
 use mindtape::Task;
 use mindtape::recur::Recur;
@@ -18,10 +18,11 @@ use mindtape::recur::dates::{self as recur_dates, effective_materialize};
 use mindtape::today_ymd;
 
 use super::{
-    RecurArgs, StemDest, dates, guard_double_spawn, mint_stem, occurrence_index, plan_next,
-    plan_step, spawn_source, stem_of,
+    RecurArgs, StemDest, dates, guard_double_spawn, mint_stem, occurrence_index, parent_dir,
+    plan_next, plan_step, spawn_source, stem_of,
 };
 use crate::cmd::recur::edit::OccurrenceDates;
+use crate::diag::{self, Diag, Hint, Kind, Note};
 use crate::pre_write::{self, Pending};
 use crate::util::{self, Project};
 
@@ -32,7 +33,9 @@ pub(super) fn do_advance(
     recur: &Recur,
     args: &RecurArgs,
 ) -> Result<()> {
-    let count = args.advance.context("--advance requires a count")?;
+    let Some(count) = args.advance else {
+        return Err(Diag::usage("--advance needs a count").into());
+    };
     check_advance_preconditions(project, task, recur, args, count)?;
     let spawned = build_advance_chain(project, task, abs, recur, count)?;
     write_advance_chain(project, &spawned, args.dry_run)
@@ -50,15 +53,18 @@ pub(super) fn check_advance_preconditions(
     let recur_config = &project.config.tasks.recur;
     let materialize = effective_materialize(recur, recur_config);
     if materialize != "spawn" {
-        bail!(
-            "--advance only supports spawn materialization (this task's materialize is `{materialize}`)"
+        return Err(
+            Diag::refused("--advance needs a task that spawns, but its materialize is")
+                .value(materialize)
+                .hint(Hint::new("run mt recur without --advance"))
+                .into(),
         );
     }
     if count > recur_config.max_advance {
-        bail!(
-            "--advance {count} exceeds [tasks.recur] max-advance ({})",
-            recur_config.max_advance
-        );
+        return Err(Diag::refused("--advance is over [tasks.recur] max-advance")
+            .value(count.to_string())
+            .note(Note::new("max-advance").name(recur_config.max_advance.to_string()))
+            .into());
     }
     guard_double_spawn(project, task, args.force)
 }
@@ -83,13 +89,13 @@ pub(super) fn build_advance_chain(
     count: u32,
 ) -> Result<Vec<(PathBuf, NaiveDate, String)>> {
     let recur_config = &project.config.tasks.recur;
-    let dir = abs.parent().context("task file has no parent directory")?;
+    let dir = parent_dir(abs)?;
     let (today, mut due_cursor, mut start_cursor) = dates(task)?;
     let mut current = recur.clone();
     let mut occurrence = occurrence_index(&project.outcome.tasks, task);
     let mut predecessor_stem = stem_of(&task.file);
     let mut predecessor_source =
-        std::fs::read_to_string(abs).with_context(|| format!("read {}", abs.display()))?;
+        std::fs::read_to_string(abs).map_err(|err| Diag::cannot_read(abs, &err))?;
     let mut claimed: HashSet<String> = HashSet::new();
     let mut chain_cursor: Option<NaiveDate> = None;
     let mut spawned: Vec<(PathBuf, NaiveDate, String)> = Vec::new();
@@ -102,7 +108,10 @@ pub(super) fn build_advance_chain(
         let next = match planned {
             Ok(next) => next,
             Err(err) if !spawned.is_empty() => {
-                eprintln!("warning: stopping early: {err:#}");
+                diag::emit(&Diag::verbatim(
+                    Kind::Warning,
+                    format!("stopping early: {}", Diag::from(err)),
+                ));
                 break;
             }
             Err(err) => return Err(err),

@@ -22,9 +22,7 @@ const UNCONVERTED: &[&str] = &[
     "cmd/link",
     "cmd/ls",
     "cmd/preset",
-    "cmd/recur",
     "cmd/review",
-    "cmd/rm",
     "cmd/set",
     "cmd/worktrees",
 ];

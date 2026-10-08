@@ -15,10 +15,11 @@ use std::collections::HashSet;
 use std::ops::Range;
 use std::path::Path;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use mindtape::{Task, normalize_link};
 use typst_cleanup::{Plan, Rewrite};
 
+use crate::diag::Diag;
 use crate::task_edit::task_with;
 
 use super::plain_delete_plan;
@@ -57,15 +58,17 @@ pub fn inbound_rewrites(
             continue;
         }
         let abs = root.join(&task.file);
-        let source = std::fs::read_to_string(&abs)
-            .with_context(|| format!("read {}", task.file.display()))?;
+        let source =
+            std::fs::read_to_string(&abs).map_err(|err| Diag::cannot_read(&task.file, &err))?;
         let (edits, links) = inbound_edits(&source, matched, to);
         if links == 0 {
             continue;
         }
-        let contents = typst_edit::apply(&source, edits)
-            .map_err(|err| anyhow::anyhow!(err.to_string()))
-            .with_context(|| format!("rewrite links in {}", task.file.display()))?;
+        let contents = typst_edit::apply(&source, edits).map_err(|err| {
+            Diag::failed("can't rewrite links")
+                .value(task.file.display().to_string())
+                .cause(&err)
+        })?;
         rewrites.push(Rewrite {
             abs,
             rel: task.file.clone(),

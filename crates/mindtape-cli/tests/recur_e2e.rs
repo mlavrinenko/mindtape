@@ -350,3 +350,39 @@ fn no_recur_field_is_a_hard_error() {
 
     mt(dir.path()).args(["recur", "plain"]).assert().failure();
 }
+
+#[test]
+fn a_task_without_recur_says_so_and_what_to_do() {
+    let dir = tempfile::tempdir().unwrap();
+    let body = WEEKLY_SPAWN.replace("  recur: every(weeks: 1),\n", "");
+    scaffold(dir.path(), &[("water-plants.typ", &body)]);
+
+    mt(dir.path())
+        .args(["recur", "water-plants"])
+        .assert()
+        .failure()
+        .stderr(predicates::str::diff(
+            "error: task has no recur field: 'water-plants'\n\
+                 hint: add a recur: field to the task, or pick one that has it\n",
+        ));
+}
+
+#[test]
+fn advance_that_runs_out_of_series_warns_and_keeps_the_spawns_it_planned() {
+    let dir = tempfile::tempdir().unwrap();
+    let body = WEEKLY_SPAWN.replace(
+        "recur: every(weeks: 1),",
+        "recur: every(weeks: 1, until: on(2026, 6, 30)),",
+    );
+    scaffold(dir.path(), &[("water-plants.typ", &body)]);
+
+    mt(dir.path())
+        .env("MINDTAPE_NOW", "2026-06-18")
+        .args(["recur", "water-plants", "--advance", "3"])
+        .assert()
+        .success()
+        .stderr(predicates::str::diff(
+            "warning: stopping early: series ended: the next occurrence is past until: '2026-07-02'\n",
+        ));
+    assert_eq!(tasks_dir_entries(dir.path()).len(), 2);
+}

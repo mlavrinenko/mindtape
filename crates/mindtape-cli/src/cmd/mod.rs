@@ -40,11 +40,9 @@ pub(crate) mod ls;
 pub(crate) mod mv;
 #[allow(clippy::disallowed_macros)]
 pub(crate) mod preset;
-#[allow(clippy::disallowed_macros)]
 pub(crate) mod recur;
 #[allow(clippy::disallowed_macros)]
 pub(crate) mod review;
-#[allow(clippy::disallowed_macros)]
 pub(crate) mod rm;
 #[allow(clippy::disallowed_macros)]
 pub(crate) mod set;

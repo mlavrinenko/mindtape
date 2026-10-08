@@ -35,6 +35,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   load error(s)`. A range git cannot read is `error: can't read commit range:
   'HEAD~5..HEAD': <git's reason>`. Under `--commits`, each problem leads with
   the commit's id and a `note: commit: '<subject>'` follows it.
+- **`mt recur` and the gitless `mt rm` strategies report errors in the error
+  format.** `mt recur` on a task with no `recur` field is
+  `error: task has no recur field: 'x'` with a `hint:`; a spent series is
+  `error: series exhausted: count has reached 0`; a task that already has a
+  successor lists it as a `note:` and names `--force`. `--advance` over the
+  limit, or on a task that doesn't spawn, says so with the value quoted. A
+  series that ends part way through `--advance` prints
+  `warning: stopping early: ...` and keeps the spawns it planned. A failed
+  read in `mt rm --strategy retire` or `unlink` reads
+  `error: can't read: 'tasks/x.typ': no such file or directory`.
 - **`mt mv` and `mt rm` errors read in the error format.** `mt mv a a/b` is
   `error: the new stem has a path separator: 'a/b'` with its reasons as
   `hint:` lines; a taken stem is `error: stem is taken: 'b'`, `hint: pick

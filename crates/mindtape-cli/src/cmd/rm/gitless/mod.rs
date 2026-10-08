@@ -12,7 +12,7 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use mindtape::{Config, RmStrategy, Task, link_edges, normalize_link, today_ymd};
 use typst_cleanup::{Deletion, Plan, Rewrite, apply};
 
@@ -128,13 +128,15 @@ pub fn retire_plan(
             .as_ref()
             .is_some_and(|status| terminal.contains(&status.name));
         let contents = if already {
-            std::fs::read_to_string(&abs)
-                .with_context(|| format!("read {}", task.file.display()))?
+            std::fs::read_to_string(&abs).map_err(|err| Diag::cannot_read(&task.file, &err))?
         } else {
-            let source = std::fs::read_to_string(&abs)
-                .with_context(|| format!("read {}", task.file.display()))?;
-            status_edit(&source, &status, ymd, None)
-                .with_context(|| format!("rewrite status in {}", abs.display()))?
+            let source =
+                std::fs::read_to_string(&abs).map_err(|err| Diag::cannot_read(&task.file, &err))?;
+            status_edit(&source, &status, ymd, None).map_err(|err| {
+                Diag::failed("can't rewrite the status")
+                    .value(task.file.display().to_string())
+                    .cause(&*err)
+            })?
         };
         let dest = match &rename {
             Some(dir) => match abs.file_name() {
@@ -196,7 +198,11 @@ fn retire_status(config: &Config) -> Result<String> {
         .terminal()
         .into_iter()
         .next()
-        .context("the status legend declares no terminal status — set [retire] status")
+        .ok_or_else(|| {
+            Diag::failed("the status legend declares no terminal status")
+                .hint(Hint::new("set [retire] status, or mark a status terminal"))
+                .into()
+        })
 }
 
 /// A move breaks path-based link resolution (`tasks/gone.typ` no longer
@@ -240,9 +246,11 @@ fn retarget_inbound_edges(
         if links == 0 {
             continue;
         }
-        let contents = typst_edit::apply(&source, edits)
-            .map_err(|err| anyhow::anyhow!(err.to_string()))
-            .with_context(|| format!("retarget links in {}", task.file.display()))?;
+        let contents = typst_edit::apply(&source, edits).map_err(|err| {
+            Diag::failed("can't retarget links")
+                .value(task.file.display().to_string())
+                .cause(&err)
+        })?;
         link_rewrites.push(Rewrite {
             abs,
             rel: task.file.clone(),
@@ -291,8 +299,11 @@ pub struct RetirePlan {
 pub fn retire_apply(plan: &RetirePlan) -> Result<()> {
     for rewrite in plan.rewrites.iter().chain(&plan.link_rewrites) {
         if let Some(parent) = rewrite.abs.parent() {
-            std::fs::create_dir_all(parent)
-                .with_context(|| format!("create {}", parent.display()))?;
+            std::fs::create_dir_all(parent).map_err(|err| {
+                Diag::failed("can't create folder")
+                    .value(parent.display().to_string())
+                    .io(&err)
+            })?;
         }
     }
     let mut all = plan.rewrites.clone();

@@ -244,3 +244,41 @@ fn decrement_count_edit_saturates_at_zero() {
     let result = apply_edits(SOURCE, vec![edit]).unwrap();
     assert!(result.contains("every(weeks: 1, count: 0)"));
 }
+
+#[test]
+fn a_project_with_no_statuses_cannot_stamp_a_fresh_occurrence() {
+    let dates = OccurrenceDates {
+        today: (2026, 6, 18),
+        old_due: None,
+        old_start: None,
+        next_due: NaiveDate::from_ymd_opt(2026, 6, 25).unwrap(),
+    };
+    let err = status_due_start_edits(SOURCE, &mindtape::Config::default(), &dates).unwrap_err();
+    assert_eq!(
+        crate::diag::plain_anyhow(err),
+        "error: can't stamp a fresh occurrence: [tasks.status] is empty\n\
+         hint: declare the statuses in [tasks.status]\n"
+    );
+}
+
+#[test]
+fn a_count_without_a_recur_call_to_update_says_what_is_missing() {
+    let err = decrement_count_edit(SOURCE_WITH_LINKS_NO_CALL, Some(3)).unwrap_err();
+    assert_eq!(
+        crate::diag::plain_anyhow(err),
+        "error: can't find the every() or rrule() call to update its count\n"
+    );
+}
+
+#[test]
+fn overlapping_edits_are_reported_as_a_failed_apply() {
+    let call = task_with(SOURCE).unwrap();
+    let edit = |text: &str| typst_edit::Edit::new(call.range.clone(), text.to_owned());
+    let err = apply_edits(SOURCE, vec![edit("a"), edit("b")]).unwrap_err();
+    assert!(crate::diag::plain_anyhow(err).starts_with("error: can't apply the edits: "));
+}
+
+const SOURCE_WITH_LINKS_NO_CALL: &str = r#"#import "@local/mindtape:0.2.0": *
+
+#show: task.with(title: "Water plants")
+"#;

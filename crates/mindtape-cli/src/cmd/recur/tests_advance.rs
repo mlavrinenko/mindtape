@@ -72,9 +72,10 @@ fn check_advance_preconditions_rejects_non_spawn() {
     };
     let task = bare_task("chore");
     let err = check_advance_preconditions(&project, &task, &recur, &args, 1).unwrap_err();
-    assert!(
-        err.to_string().contains("spawn"),
-        "expected spawn-materialize error, got: {err}"
+    assert_eq!(
+        crate::diag::plain_anyhow(err),
+        "error: --advance needs a task that spawns, but its materialize is: 'mutate'\n\
+         hint: run mt recur without --advance\n"
     );
 }
 
@@ -89,9 +90,10 @@ fn check_advance_preconditions_rejects_excessive_count() {
     let task = bare_task("chore");
     let recur = weekly(None, None);
     let err = check_advance_preconditions(&project, &task, &recur, &args, 10).unwrap_err();
-    assert!(
-        err.to_string().contains("max-advance"),
-        "expected max-advance error, got: {err}"
+    assert_eq!(
+        crate::diag::plain_anyhow(err),
+        "error: --advance is over [tasks.recur] max-advance: '10'\n\
+         note: max-advance: 5\n"
     );
 }
 

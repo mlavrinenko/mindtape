@@ -8,11 +8,12 @@
 
 use std::ops::Range;
 
-use anyhow::{Context, Result, anyhow};
+use anyhow::Result;
 use chrono::{Datelike, NaiveDate};
 use mindtape::Config;
 use typst_edit::{Call, Edit, apply, find_calls};
 
+use crate::diag::{Diag, Hint};
 use crate::task_edit::{initial_status, task_with, upsert_named_arg};
 
 /// Render a Typst `on(y, m, d)` call for `date` — the same literal shape
@@ -83,9 +84,13 @@ pub fn status_due_start_edits(
     dates: &OccurrenceDates,
 ) -> Result<Vec<Edit>> {
     let call = task_with(source)?;
-    let status = initial_status(config).context(
-        "no initial status configured; cannot stamp a fresh occurrence ([tasks.status] is empty)",
-    )?;
+    let Some(status) = initial_status(config) else {
+        return Err(
+            Diag::failed("can't stamp a fresh occurrence: [tasks.status] is empty")
+                .hint(Hint::new("declare the statuses in [tasks.status]"))
+                .into(),
+        );
+    };
     let mut edits = vec![upsert_named_arg(
         source,
         &call,
@@ -185,7 +190,9 @@ fn recur_call(source: &str) -> Result<Call> {
         .into_iter()
         .chain(find_calls(source, "rrule"))
         .next()
-        .context("could not locate the every()/rrule() call to update its `count:`")
+        .ok_or_else(|| {
+            Diag::failed("can't find the every() or rrule() call to update its count").into()
+        })
 }
 
 /// Apply `edits` to `source` in one atomic splice.
@@ -193,7 +200,7 @@ fn recur_call(source: &str) -> Result<Call> {
 /// # Errors
 /// Returns an error when the edits overlap or fall out of bounds.
 pub fn apply_edits(source: &str, edits: Vec<Edit>) -> Result<String> {
-    apply(source, edits).map_err(|err| anyhow!(err.to_string()))
+    apply(source, edits).map_err(|err| Diag::failed("can't apply the edits").cause(&err).into())
 }
 
 #[cfg(test)]
