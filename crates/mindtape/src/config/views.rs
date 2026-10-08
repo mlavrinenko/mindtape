@@ -89,7 +89,7 @@ pub fn validate_views(views: &BTreeMap<String, ViewSpec>) -> Vec<Problem> {
 pub fn validate_view_statuses(
     views: &BTreeMap<String, ViewSpec>,
     legend: &crate::config::Legend,
-) -> Vec<String> {
+) -> Vec<Problem> {
     views
         .iter()
         .filter_map(|(name, spec)| {
@@ -97,7 +97,7 @@ pub fn validate_view_statuses(
                 .ok()?
                 .check_statuses(legend)
                 .err()?;
-            Some(format!("views.{name}.filter: {err}"))
+            Some(crate::filter::problem_of(&err).under(&format!("views.{name}.filter")))
         })
         .collect()
 }

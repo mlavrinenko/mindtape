@@ -201,7 +201,8 @@ fn an_unknown_status_in_a_filter_is_refused_with_the_nearest() {
     assert_eq!(
         stderr,
         "error: unknown status: 'wpi' in filter 'status == \"wpi\"'\n\
-         hint: did you mean wip?\n"
+         hint: did you mean wip?\n\
+         hint: use one of: proposed, accepted, wip, done, cancelled, failed\n"
     );
 }
 
@@ -216,6 +217,8 @@ fn a_view_naming_an_undeclared_status_fails_at_load() {
     assert_eq!(code, Some(1), "{stderr}");
     assert!(stderr.contains("views.broken"), "{stderr}");
     assert!(stderr.contains("'wpi'"), "{stderr}");
+    assert!(stderr.contains("hint: did you mean wip?\n"), "{stderr}");
+    assert!(stderr.contains("hint: use one of: "), "{stderr}");
 }
 
 #[test]

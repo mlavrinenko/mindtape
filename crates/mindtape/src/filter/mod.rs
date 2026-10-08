@@ -146,8 +146,8 @@ pub enum FilterError {
     UnknownStatus {
         /// The status as written in the expression.
         value: String,
-        /// The closest declared status, if one is near.
-        nearest: Option<String>,
+        /// The closest declared status and every declared status.
+        unknown: crate::suggest::Unknown,
     },
     /// An `in_view` / `@` reference naming no declared view.
     #[error("unknown view in filter: {0}")]

@@ -57,7 +57,7 @@ fn check_status(
         .collect();
     Err(FilterError::UnknownStatus {
         value: literal.to_owned(),
-        nearest: crate::suggest::nearest(literal, &known).map(str::to_owned),
+        unknown: crate::suggest::Unknown::among(literal, known),
     })
 }
 

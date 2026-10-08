@@ -32,10 +32,7 @@ impl Config {
         }
         problems.extend(validate_ls_columns(&self.ls));
         problems.extend(validate_views(&self.views));
-        problems.extend(plain(validate_view_statuses(
-            &self.views,
-            &self.tasks.status,
-        )));
+        problems.extend(validate_view_statuses(&self.views, &self.tasks.status));
         problems.extend(validate_dicts(&self.dicts));
         problems.extend(plain(crate::config::tasks::validate_field_names(
             &self.tasks,

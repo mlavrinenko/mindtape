@@ -25,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the message. An unknown `@set` in `changed()` or `count(files, ...)` reads
   `error: unknown path set: '@x': declare it as [dicts.x]`, and an I/O failure
   no command words itself reads `error: i/o failed: <reason>`.
+- **An unknown status in a saved filter suggests the nearest one.** A view
+  with `status == "wpi"` fails the load with `hint: did you mean wip?` and
+  `hint: use one of: ...` listing the legend, as an unknown field does. A
+  filter given to `mt ls` also lists the statuses, where a far miss pointed at
+  `mt flip --list`.
 - **A link kind's validator problem quotes in single quotes.** `'ticket' edge
   target 'JIRA-x' is not a valid 'regex'`, as every other message does.
 - **A refused flip and a failed gate read in the error format.** A failing

@@ -41,6 +41,7 @@ pub(crate) fn problem_of(err: &super::FilterError) -> Problem {
     let problem = Problem::new(err.to_string());
     match err {
         super::FilterError::UnknownDict { unknown, .. }
+        | super::FilterError::UnknownStatus { unknown, .. }
         | super::FilterError::UnknownPathSet { unknown, .. } => problem.with(unknown.clone()),
         _ => problem,
     }

@@ -393,16 +393,16 @@ fn the_other_filter_errors_keep_their_reason_and_kind() {
         (
             FilterError::UnknownStatus {
                 value: "wpi".to_owned(),
-                nearest: Some("wip".to_owned()),
+                unknown: Unknown::among("wpi", ["todo", "wip"]),
             },
-            "error: unknown status: 'wpi' in filter 'x'\nhint: did you mean wip?\n",
+            "error: unknown status: 'wpi' in filter 'x'\nhint: did you mean wip?\nhint: use one of: todo, wip\n",
         ),
         (
             FilterError::UnknownStatus {
                 value: "zzz".to_owned(),
-                nearest: None,
+                unknown: Unknown::among("zzz", ["todo", "wip"]),
             },
-            "error: unknown status: 'zzz' in filter 'x'\nhint: run mt flip --list to see the statuses\n",
+            "error: unknown status: 'zzz' in filter 'x'\nhint: use one of: todo, wip\n",
         ),
     ];
     for (err, expected) in cases {

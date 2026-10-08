@@ -126,16 +126,11 @@ pub(crate) fn filter(err: FilterError, expr: Option<&str>) -> Diag {
             }
         }
         FilterError::UnknownField(name) => in_filter(Diag::usage("unknown field").value(name)),
-        FilterError::UnknownStatus { value, nearest } => {
-            let diag = in_filter(Diag::usage("unknown status").value(value));
-            match nearest {
-                Some(nearest) => diag.hint(Hint::did_you_mean(nearest)),
-                None => diag.hint(Hint::run(
-                    Command::mt().word("flip").word("--list"),
-                    "to see the statuses",
-                )),
-            }
-        }
+        FilterError::UnknownStatus { value, unknown } => in_filter(
+            Diag::usage("unknown status")
+                .value(value)
+                .unknown(Some(&unknown)),
+        ),
         FilterError::UnknownView(name) => in_filter(Diag::usage("unknown view").value(name)),
         FilterError::UnknownDict { name, unknown } => in_filter(
             Diag::usage("unknown dict")
