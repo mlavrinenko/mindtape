@@ -83,7 +83,7 @@ error: tasks/add-redis-client.typ:2: rules.one-wip: finish the task in progress 
 Refuse a commit that names no task, then ask which tasks changed a file before you edit it.
 
 ```
-error: .git/COMMIT_EDITMSG: commits.rules.work-names-a-task: name the task this commit works on: `Refs: <stem>`
+error: .git/COMMIT_EDITMSG: commits.rules.work-names-a-task: name the task this commit works on in a `Refs: <stem>` footer
 ```
 
 ## Install

@@ -85,8 +85,70 @@ pub(crate) fn unwrap_root(node: &Node<DefaultNumericTypes>) -> &Node<DefaultNume
 pub(crate) fn extract_identifier(node: &Node<DefaultNumericTypes>) -> Result<String, String> {
     match unwrap_root(node).operator() {
         Operator::VariableIdentifierRead { identifier } => Ok(restore_name(identifier)),
-        other => Err(format!("expected a field, got {other:?}")),
+        _ => Err(format!("expected a field, got {}", describe(node))),
     }
+}
+
+/// A node as the user wrote it, for an error that names what it found: a
+/// literal with its quotes, a call as `name(...)`, an operator by its symbol.
+/// Never a Rust type.
+pub(crate) fn describe(node: &Node<DefaultNumericTypes>) -> String {
+    let node = unwrap_root(node);
+    match node.operator() {
+        Operator::Const { value } => match value {
+            Value::String(text) => format!("'\"{text}\"'"),
+            other => format!("'{other}'"),
+        },
+        Operator::VariableIdentifierRead { identifier } => {
+            format!("'{}'", restore_name(identifier))
+        }
+        Operator::FunctionIdentifier { identifier } => {
+            format!("'{}(...)'", restore_name(identifier))
+        }
+        other => operator_symbol(other).map_or_else(
+            || "an operator the filter language doesn't have".to_owned(),
+            |symbol| format!("'{symbol}'"),
+        ),
+    }
+}
+
+/// The symbol each operator is written with.
+static SYMBOLS: [(Operator<DefaultNumericTypes>, &str); 27] = [
+    (Operator::Add, "+"),
+    (Operator::Sub, "-"),
+    (Operator::Neg, "-"),
+    (Operator::Mul, "*"),
+    (Operator::Div, "/"),
+    (Operator::Mod, "%"),
+    (Operator::Exp, "^"),
+    (Operator::Eq, "=="),
+    (Operator::Neq, "!="),
+    (Operator::Gt, ">"),
+    (Operator::Lt, "<"),
+    (Operator::Geq, ">="),
+    (Operator::Leq, "<="),
+    (Operator::And, "&&"),
+    (Operator::Or, "||"),
+    (Operator::Not, "!"),
+    (Operator::Assign, "="),
+    (Operator::AddAssign, "+="),
+    (Operator::SubAssign, "-="),
+    (Operator::MulAssign, "*="),
+    (Operator::DivAssign, "/="),
+    (Operator::ModAssign, "%="),
+    (Operator::ExpAssign, "^="),
+    (Operator::AndAssign, "&&="),
+    (Operator::OrAssign, "||="),
+    (Operator::Tuple, ","),
+    (Operator::Chain, ";"),
+];
+
+/// The symbol an operator is written with, or `None` for a node that is not
+/// one (a value, a name, a call, the root) or one this table leaves out.
+pub(crate) fn operator_symbol(op: &Operator<DefaultNumericTypes>) -> Option<&'static str> {
+    SYMBOLS
+        .iter()
+        .find_map(|(known, symbol)| (known == op).then_some(*symbol))
 }
 
 /// Extract a literal value (string / int / float / bool, or a negated
@@ -100,9 +162,9 @@ pub(crate) fn extract_literal(node: &Node<DefaultNumericTypes>) -> Result<String
         Operator::Const { value } => literal_to_string(value),
         Operator::Neg => match node.children() {
             [child] => Ok(format!("-{}", extract_literal(child)?)),
-            _ => Err("malformed negation".to_owned()),
+            _ => Err("'-' has nothing to negate".to_owned()),
         },
-        other => Err(format!("expected a literal, got {other:?}")),
+        _ => Err(format!("expected a literal, got {}", describe(node))),
     }
 }
 
@@ -112,7 +174,7 @@ fn literal_to_string(value: &Value<DefaultNumericTypes>) -> Result<String, Strin
         Value::Int(num) => Ok(num.to_string()),
         Value::Float(num) => Ok(num.to_string()),
         Value::Boolean(flag) => Ok(if *flag { "true" } else { "false" }.to_owned()),
-        _ => Err("unsupported literal".to_owned()),
+        _ => Err("only a string, a number, true or false can stand here".to_owned()),
     }
 }
 
@@ -145,8 +207,6 @@ pub(crate) fn connective<E>(
             let negate = matches!(node.operator(), Operator::Not);
             eval(child).map(|value| value != negate)
         }
-        (Operator::RootNode, _) => Err(invalid("root needs one child".to_owned())),
-        (Operator::Not, _) => Err(invalid("`!` needs one operand".to_owned())),
         (Operator::And | Operator::Or, [left, right]) => {
             let is_and = matches!(node.operator(), Operator::And);
             eval(left).and_then(|left| {
@@ -154,8 +214,8 @@ pub(crate) fn connective<E>(
                 Ok(if is_and { left && right } else { left || right })
             })
         }
-        (Operator::And | Operator::Or, _) => {
-            Err(invalid("binary op needs two operands".to_owned()))
+        (Operator::RootNode | Operator::Not | Operator::And | Operator::Or, _) => {
+            Err(invalid("the expression is incomplete".to_owned()))
         }
         _ => return None,
     };
@@ -198,7 +258,7 @@ pub(crate) fn resolve_now_or_literal(node: &Node<DefaultNumericTypes>) -> Result
         return match identifier.as_str() {
             "now" => Ok(crate::date::today_iso()),
             other => Err(format!(
-                "function `{other}` cannot be used as a comparison value; only `now()` is allowed here"
+                "'{other}(...)' can't be a comparison value; only 'now()' can"
             )),
         };
     }

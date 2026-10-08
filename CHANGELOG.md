@@ -1304,7 +1304,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The task, pack, actor, status, link, view, `[ls]`, hook and dict messages
   keep their key path first and quote the value: a hook's `title` on a `run`
   action reads `'title' applies only to list actions`.
-
+- **Filter errors say what to do.** `mt ls 'foo('` prints `a '(' is never
+  closed`, `title ~ "x"` says `'~' isn't an operator` and hints `matches()`,
+  and a call used wrongly shows a correct one on a `hint:` line. An unknown
+  function suggests the nearest, and no message shows a Rust type. A score
+  formula, a body rule and a band report their values in single quotes.
+- **A filter or view that names an undeclared status fails.**
+  `mt ls 'status == "wpi"'` names `wpi` and suggests `wip`, and a view with
+  such a filter fails at config load, instead of matching nothing. The
+  did-you-mean now counts a swapped pair of letters as one edit.
+- **Every rule message in the shipped pack and this repo is the next step**,
+  such as `move Environment after Problem`. The config page states the rule
+  for authors.
 - **An error is one `error:` line, and a wrong command line exits 2.** `mt`
   prints its errors itself, so Rust's `Error:` and `Caused by:` lines are
   gone: a cause chain joins into the one line, and every stderr line starts

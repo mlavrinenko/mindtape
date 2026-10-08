@@ -179,7 +179,7 @@ fn score_interval_rejects_non_arithmetic_operator() {
         ("b".to_owned(), number(1.0, 10.0)),
     ]);
     let err = score_interval("a == b", &inputs).unwrap_err();
-    assert!(err.contains("unsupported operator"), "{err}");
+    assert!(err.contains("can't use '=='"), "{err}");
 }
 
 #[test]
@@ -197,7 +197,7 @@ fn score_interval_rejects_wrong_function_arity() {
     // relies on for the zero-arg case, but unwanted here.
     let inputs = BTreeMap::from([("a".to_owned(), number(1.0, 10.0))]);
     let err = score_interval("round()", &inputs).unwrap_err();
-    assert!(err.contains("malformed score expression"), "{err}");
+    assert!(err.contains("incomplete"), "{err}");
 }
 
 #[test]
@@ -215,5 +215,5 @@ fn score_interval_handles_floor_and_ceil() {
 fn score_interval_rejects_unsupported_function() {
     let inputs = BTreeMap::from([("a".to_owned(), number(1.0, 10.0))]);
     let err = score_interval("sqrt(a)", &inputs).unwrap_err();
-    assert!(err.contains("unsupported function"), "{err}");
+    assert!(err.contains("can't call 'sqrt'"), "{err}");
 }

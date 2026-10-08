@@ -95,7 +95,7 @@ fn outside_a_repository_changed_fails_naming_the_reason() {
 fn changed_is_a_count_not_a_predicate() {
     let dir = repo();
     let err = eval(r#"changed("worktree")"#, &config_at(dir.path())).unwrap_err();
-    assert!(err.to_string().contains("compare"), "{err}");
+    assert!(err.to_string().contains("not a condition"), "{err}");
 }
 
 #[test]

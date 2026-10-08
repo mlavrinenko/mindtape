@@ -71,7 +71,7 @@ impl<'a> Env<'a> {
     fn task(&self, what: &str) -> Result<&'a TaskScope<'a>, FilterError> {
         self.task.ok_or_else(|| {
             FilterError::Invalid(format!(
-                "{what} reads a task; only a scope = \"task\" commit rule has one"
+                "{what} reads a task, and only a commit rule with scope = \"task\" has one"
             ))
         })
     }
@@ -87,8 +87,10 @@ impl CommitExpr {
         if joined.trim().is_empty() {
             return Ok(Self { tree: None });
         }
-        let tree = build_operator_tree::<DefaultNumericTypes>(&joined)
-            .map_err(|err| FilterError::Parse(restore_name(&err.to_string())))?;
+        crate::filter::parse_error::refuse_stray_symbol(&joined)?;
+        let tree = build_operator_tree::<DefaultNumericTypes>(&joined).map_err(|err| {
+            FilterError::Parse(crate::filter::parse_error::plain_parse_error(&err))
+        })?;
         Ok(Self { tree: Some(tree) })
     }
 
@@ -171,7 +173,10 @@ fn eval_bool(node: &Node<DefaultNumericTypes>, env: Env<'_>) -> Result<bool, Fil
                 other => Err(not_boolean(other, env)),
             }
         }
-        other => Err(FilterError::Unsupported(format!("{other:?}"))),
+        _ => Err(FilterError::Unsupported(format!(
+            "{} isn't an operator a commit rule has",
+            crate::filter::expr::describe(node)
+        ))),
     }
 }
 
@@ -179,9 +184,7 @@ fn eval_bool(node: &Node<DefaultNumericTypes>, env: Env<'_>) -> Result<bool, Fil
 /// another wrapper: `worktree(status) != staged(status)`.
 fn comparison(node: &Node<DefaultNumericTypes>, env: Env<'_>) -> Result<bool, FilterError> {
     let [lhs, rhs] = node.children() else {
-        return Err(FilterError::Invalid(
-            "comparison needs two operands".to_owned(),
-        ));
+        return Err(FilterError::Invalid("the filter is incomplete".to_owned()));
     };
     let op = node.operator();
     let left = side(lhs, env)?
@@ -209,7 +212,7 @@ fn side(node: &Node<DefaultNumericTypes>, env: Env<'_>) -> Result<Option<FieldVa
             match restore_name(identifier).as_str() {
                 "subject" => Ok(Some(FieldValue::Str(env.commit.subject.clone()))),
                 field @ ("refs" | "files" | "trailers") => Err(FilterError::Invalid(format!(
-                    "`{field}` is a list; test it with has({field}) or matches({field}, \"regex\")"
+                    "'{field}' is a list; test it with has({field}) or matches({field}, \"regex\")"
                 ))),
                 other => Err(unknown_field(other, env)),
             }
@@ -223,16 +226,17 @@ fn count_files(
     children: &[Node<DefaultNumericTypes>],
     env: Env<'_>,
 ) -> Result<FieldValue, FilterError> {
-    let invalid = |err: String| FilterError::Invalid(format!("count(): {err}"));
+    let invalid = |err: String| FilterError::Invalid(format!("count() {err}"));
     let args = call_args(children);
     let Some((field, glob_nodes)) = args.split_first() else {
-        return Err(invalid(
-            "takes files and globs: count(files, \"!docs/**\")".to_owned(),
+        return Err(FilterError::call(
+            "count() takes files and then globs",
+            "count(files, \"!docs/**\")",
         ));
     };
     let field = extract_identifier(unwrap_root(field)).map_err(invalid)?;
     if field != "files" {
-        return Err(invalid(format!("counts `files`, not `{field}`")));
+        return Err(invalid(format!("counts 'files', not '{field}'")));
     }
     let globs = glob_nodes
         .iter()
@@ -257,9 +261,23 @@ fn function(
         "has" => present(&single_field(children, "has")?, env),
         "miss" => Ok(!present(&single_field(children, "miss")?, env)?),
         "matches" => matches_call(children, env),
-        other => Err(FilterError::Invalid(format!(
-            "unknown function in a commit rule: {other}"
-        ))),
+        other => Err(FilterError::UnknownFunction {
+            name: other.to_owned(),
+            nearest: crate::suggest::nearest(
+                other,
+                &[
+                    "tasks_only",
+                    "named",
+                    "head",
+                    "staged",
+                    "worktree",
+                    "has",
+                    "miss",
+                    "matches",
+                ],
+            )
+            .map(str::to_owned),
+        }),
     }
 }
 
@@ -284,14 +302,17 @@ fn present(field: &str, env: Env<'_>) -> Result<bool, FilterError> {
 fn matches_call(children: &[Node<DefaultNumericTypes>], env: Env<'_>) -> Result<bool, FilterError> {
     let args = call_args(children);
     let [field, pattern] = args.as_slice() else {
-        return Err(FilterError::Invalid(
-            "matches() takes two arguments: matches(files, \"^docs/\")".to_owned(),
+        return Err(FilterError::call(
+            "matches() takes two arguments",
+            "matches(files, \"^docs/\")",
         ));
     };
     let field = extract_identifier(field).map_err(FilterError::Invalid)?;
     let pattern = extract_literal(pattern).map_err(FilterError::Invalid)?;
     let regex = Regex::new(&pattern).map_err(|err| {
-        FilterError::Invalid(format!("matches(): invalid regex {pattern:?}: {err}"))
+        FilterError::Invalid(format!(
+            "matches() was given a bad regex '{pattern}': {err}"
+        ))
     })?;
     Ok(values(&field, env)?
         .iter()
@@ -301,7 +322,7 @@ fn matches_call(children: &[Node<DefaultNumericTypes>], env: Env<'_>) -> Result<
 fn single_field(children: &[Node<DefaultNumericTypes>], name: &str) -> Result<String, FilterError> {
     match call_args(children).as_slice() {
         [arg] => extract_identifier(unwrap_root(arg)).map_err(FilterError::Invalid),
-        _ => Err(FilterError::Invalid(format!("{name}() needs one argument"))),
+        _ => Err(FilterError::Invalid(format!("{name}() takes one argument"))),
     }
 }
 
@@ -316,15 +337,15 @@ fn unknown_field(name: &str, env: Env<'_>) -> FilterError {
         "a task field needs scope = \"task\" and a state: staged(...), head(...) or worktree(...)"
             .to_owned()
     };
-    FilterError::UnknownField(format!(
-        "{name} (a commit rule reads {COMMIT_FIELDS}; {task_field})"
+    FilterError::Invalid(format!(
+        "'{name}' isn't a commit field; a commit rule reads {COMMIT_FIELDS}; {task_field}"
     ))
 }
 
 fn not_boolean(name: &str, env: Env<'_>) -> FilterError {
     if matches!(name, "subject" | "refs" | "files" | "trailers") {
         FilterError::Invalid(format!(
-            "bare field `{name}` is not boolean; use has({name}) or a comparison"
+            "'{name}' is a field, not a condition; use has({name}) or a comparison"
         ))
     } else {
         unknown_field(name, env)

@@ -298,7 +298,7 @@ fn validate_rejects_input_name_with_space() {
     .unwrap();
     let problems = config.validate().unwrap_err();
     assert!(
-        problems.contains("input `has space` is not a valid typst identifier"),
+        problems.contains("input 'has space' is not a valid typst identifier"),
         "got: {problems}"
     );
 }
@@ -315,8 +315,8 @@ fn validate_rejects_keyword_and_underscore_input_names() {
     )
     .unwrap();
     let problems = config.validate().unwrap_err();
-    assert!(problems.contains("input `none`"), "got: {problems}");
-    assert!(problems.contains("input `_`"), "got: {problems}");
+    assert!(problems.contains("input 'none'"), "got: {problems}");
+    assert!(problems.contains("input '_'"), "got: {problems}");
 }
 
 #[test]
@@ -345,7 +345,7 @@ fn validate_checks_inactive_framework_input_names() {
     .unwrap();
     let problems = config.validate().unwrap_err();
     assert!(
-        problems.contains("framework `f` input `bad name`"),
+        problems.contains("framework 'f' input 'bad name'"),
         "got: {problems}"
     );
 }

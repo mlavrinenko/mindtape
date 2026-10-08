@@ -124,6 +124,112 @@ fn a_filter_that_does_not_parse_is_a_usage_error_on_one_line() {
 }
 
 #[test]
+fn an_unclosed_parenthesis_is_said_in_plain_words() {
+    let dir = two_tasks();
+
+    let (code, stderr) = run(dir.path(), &["ls", "foo("]);
+
+    assert_eq!(code, Some(2), "{stderr}");
+    assert_eq!(
+        stderr,
+        "error: can't parse filter: 'foo(': a '(' is never closed\n"
+    );
+}
+
+#[test]
+fn a_tilde_points_at_matches() {
+    let dir = two_tasks();
+
+    let (code, stderr) = run(dir.path(), &["ls", "title ~ \"x\""]);
+
+    assert_eq!(code, Some(2), "{stderr}");
+    assert_eq!(
+        stderr,
+        "error: invalid filter: 'title ~ \"x\"': '~' isn't an operator\n\
+         hint: for example: matches(title, \"x\")\n"
+    );
+}
+
+#[test]
+fn a_bare_value_shows_no_rust_type() {
+    let dir = two_tasks();
+
+    let (code, stderr) = run(dir.path(), &["ls", "\"wip\""]);
+
+    assert_eq!(code, Some(2), "{stderr}");
+    assert!(!stderr.contains("Const"), "{stderr}");
+    assert!(!stderr.contains("String("), "{stderr}");
+}
+
+#[test]
+fn a_call_with_the_wrong_arguments_hints_a_correct_one() {
+    let dir = two_tasks();
+
+    let (code, stderr) = run(dir.path(), &["ls", "matches(title)"]);
+
+    assert_eq!(code, Some(2), "{stderr}");
+    assert_eq!(
+        stderr,
+        "error: invalid filter: 'matches(title)': matches() takes two arguments\n\
+         hint: for example: matches(title, \"^Add \")\n"
+    );
+}
+
+#[test]
+fn a_call_in_place_of_a_field_is_named_as_written() {
+    let dir = two_tasks();
+
+    let (code, stderr) = run(dir.path(), &["ls", "word(title, 0) == \"a\""]);
+
+    assert_eq!(code, Some(2), "{stderr}");
+    assert!(
+        stderr.ends_with(": expected a field, got 'word(...)'\n"),
+        "{stderr}"
+    );
+}
+
+#[test]
+fn an_unknown_function_suggests_the_nearest() {
+    let dir = two_tasks();
+
+    let (code, stderr) = run(dir.path(), &["ls", "matchs(title, \"a\")"]);
+
+    assert_eq!(code, Some(2), "{stderr}");
+    assert_eq!(
+        stderr,
+        "error: unknown function: 'matchs' in filter 'matchs(title, \"a\")'\n\
+         hint: did you mean matches()?\n"
+    );
+}
+
+#[test]
+fn an_unknown_status_in_a_filter_is_refused_with_the_nearest() {
+    let dir = two_tasks();
+
+    let (code, stderr) = run(dir.path(), &["ls", "status == \"wpi\""]);
+
+    assert_eq!(code, Some(2), "{stderr}");
+    assert_eq!(
+        stderr,
+        "error: unknown status: 'wpi' in filter 'status == \"wpi\"'\n\
+         hint: did you mean wip?\n"
+    );
+}
+
+#[test]
+fn a_view_naming_an_undeclared_status_fails_at_load() {
+    let dir = support::scaffold_project(
+        "[tasks]\nroots = [\"tasks\"]\n\n[views.broken]\nfilter = 'status == \"wpi\"'\n",
+    );
+
+    let (code, stderr) = run(dir.path(), &["ls"]);
+
+    assert_eq!(code, Some(1), "{stderr}");
+    assert!(stderr.contains("views.broken"), "{stderr}");
+    assert!(stderr.contains("'wpi'"), "{stderr}");
+}
+
+#[test]
 fn an_unknown_command_is_a_usage_error() {
     let dir = two_tasks();
 

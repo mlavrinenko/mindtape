@@ -5,10 +5,10 @@
 
 use evalexpr::{DefaultNumericTypes, Node, Operator};
 
-use crate::config::Config;
+use crate::config::{Config, Legend};
 use crate::filter::expr::{
-    call_args, compare_ordering, extract_identifier, resolve_now_or_literal, restore_name,
-    unwrap_root,
+    call_args, compare_ordering, extract_identifier, extract_literal, resolve_now_or_literal,
+    restore_name, unwrap_root,
 };
 use crate::filter::predicates::changed_count;
 use crate::filter::{Ctx, FilterError, eval_bool, field_value};
@@ -20,21 +20,70 @@ use crate::model::numeric::format_num;
 /// the right side a literal, `now()`, another field, or a count.
 pub(crate) fn comparison(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<bool, FilterError> {
     let [lhs, rhs] = node.children() else {
-        return Err(FilterError::Invalid(
-            "comparison needs two operands".to_owned(),
-        ));
+        return Err(FilterError::Invalid("the filter is incomplete".to_owned()));
     };
     let op = node.operator();
     if let Some(right) = operand(rhs, ctx)? {
         return Ok(compare_values(op, &left_operand(lhs, ctx)?, &right));
     }
     let literal = resolve_now_or_literal(rhs).map_err(FilterError::Invalid)?;
+    check_status(lhs, &literal, &ctx.config.tasks.status)?;
     let value = if extract_identifier(lhs).is_ok_and(|field| field == "role") {
         role_field(ctx.task, ctx.config, &literal)
     } else {
         left_operand(lhs, ctx)?
     };
     Ok(compare(op, &value, &literal))
+}
+
+/// Refuse `literal` when `lhs` reads the status and the legend does not
+/// declare it: such a comparison matches nothing, so a typo would pass for an
+/// empty answer. An empty legend accepts any status.
+fn check_status(
+    lhs: &Node<DefaultNumericTypes>,
+    literal: &str,
+    legend: &Legend,
+) -> Result<(), FilterError> {
+    let reads_status =
+        extract_identifier(lhs).is_ok_and(|name| name == "status" || name == "status.name");
+    let declared = |value: &str| legend.entries.iter().any(|entry| entry.value == value);
+    if !reads_status || legend.entries.is_empty() || declared(literal) {
+        return Ok(());
+    }
+    let known: Vec<&str> = legend
+        .entries
+        .iter()
+        .map(|entry| entry.value.as_str())
+        .collect();
+    Err(FilterError::UnknownStatus {
+        value: literal.to_owned(),
+        nearest: crate::suggest::nearest(literal, &known).map(str::to_owned),
+    })
+}
+
+/// [`check_status`] over every comparison under `node`.
+pub(crate) fn check_statuses(
+    node: &Node<DefaultNumericTypes>,
+    legend: &Legend,
+) -> Result<(), FilterError> {
+    if let ([lhs, rhs], true) = (
+        node.children(),
+        matches!(
+            node.operator(),
+            Operator::Eq
+                | Operator::Neq
+                | Operator::Lt
+                | Operator::Gt
+                | Operator::Leq
+                | Operator::Geq
+        ),
+    ) && let Ok(literal) = extract_literal(rhs)
+    {
+        check_status(lhs, &literal, legend)?;
+    }
+    node.children()
+        .iter()
+        .try_for_each(|child| check_statuses(child, legend))
 }
 
 /// A comparison side that resolves on the task rather than being written out:
@@ -61,8 +110,9 @@ fn operand(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<Option<FieldVa
 /// task in context — see [`crate::filter::aggregate`].
 fn count(children: &[Node<DefaultNumericTypes>], ctx: &Ctx) -> Result<f64, FilterError> {
     let [arg] = call_args(children)[..] else {
-        return Err(FilterError::Invalid(
-            "count() needs one argument".to_owned(),
+        return Err(FilterError::call(
+            "count() takes one condition",
+            "count(status == \"wip\") <= 1",
         ));
     };
     let total = ctx

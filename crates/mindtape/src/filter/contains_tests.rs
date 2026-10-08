@@ -128,7 +128,7 @@ fn search_is_an_unknown_function_like_any_other() {
     // function" error any unrecognised name gets.
     let got = err("search(\"bug\")", &sample());
     assert!(
-        matches!(&got, FilterError::Invalid(msg) if msg.contains("unknown function: search")),
+        matches!(&got, FilterError::UnknownFunction { name, .. } if name == "search"),
         "{got:?}"
     );
 }

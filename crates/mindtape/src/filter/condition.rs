@@ -44,7 +44,8 @@ use evalexpr::{DefaultNumericTypes, Node, Operator, Value, build_operator_tree};
 use thiserror::Error;
 
 use crate::filter::condition_env::{ColumnFacts, ConditionEnv};
-use crate::filter::expr::{compare_ordering, connective, extract_literal, unwrap_root};
+use crate::filter::expr::{compare_ordering, connective, describe, extract_literal, unwrap_root};
+use crate::filter::parse_error;
 use crate::model::numeric::format_num;
 
 /// A parsed, reusable condition expression. `None` is the always-matching
@@ -56,7 +57,7 @@ pub struct Condition {
 }
 
 /// Errors from parsing or evaluating a condition expression.
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Error)]
 pub enum ConditionError {
     /// The expression failed to parse.
     #[error("failed to parse condition: {0}")]
@@ -67,7 +68,7 @@ pub enum ConditionError {
     /// A bare identifier — the condition grammar has no fields, only calls,
     /// so this is almost always a task field name carried over from filter
     /// syntax by mistake.
-    #[error("field `{0}` not available in a condition")]
+    #[error("a condition can't read the task field '{0}'")]
     TaskField(String),
     /// A function name outside `on_branch` / `tty` / `env` / `weekday` /
     /// `now` / `format` / `nonempty` / `contested` / `named` / `blocked`.
@@ -95,7 +96,7 @@ impl Condition {
             return Ok(Self { tree: None });
         }
         let tree = build_operator_tree::<DefaultNumericTypes>(trimmed)
-            .map_err(|err| ConditionError::Parse(err.to_string()))?;
+            .map_err(|err| ConditionError::Parse(parse_error::plain_parse_error(&err)))?;
         let condition = Self { tree: Some(tree) };
         condition.matches(&ConditionEnv::probe())?;
         Ok(condition)
@@ -138,7 +139,10 @@ fn eval_bool(node: &Node<DefaultNumericTypes>, env: &ConditionEnv) -> Result<boo
         Operator::Const {
             value: Value::Boolean(flag),
         } => Ok(*flag),
-        other => Err(ConditionError::Unsupported(format!("{other:?}"))),
+        _ => Err(ConditionError::Unsupported(format!(
+            "{} isn't an operator a condition has",
+            describe(node)
+        ))),
     }
 }
 
@@ -164,7 +168,7 @@ fn predicate(
             Ok(column_fact(name, env.column))
         }
         "env" | "weekday" | "now" | "format" => Err(ConditionError::Invalid(format!(
-            "`{name}(...)` is not boolean; use it in a comparison"
+            "'{name}(...)' gives a value, not a yes or no; compare it to something"
         ))),
         other => Err(ConditionError::UnknownPredicate(other.to_owned())),
     }
@@ -189,7 +193,9 @@ fn column_fact(name: &str, facts: ColumnFacts) -> bool {
 fn on_branch(env: &ConditionEnv, pattern: &str) -> Result<bool, ConditionError> {
     let matcher = globset::Glob::new(pattern)
         .map_err(|err| {
-            ConditionError::Invalid(format!("on_branch: invalid glob {pattern:?}: {err}"))
+            ConditionError::Invalid(format!(
+                "on_branch() was given a bad glob '{pattern}': {err}"
+            ))
         })?
         .compile_matcher();
     Ok(env
@@ -204,7 +210,7 @@ fn comparison(
 ) -> Result<bool, ConditionError> {
     let [lhs, rhs] = node.children() else {
         return Err(ConditionError::Invalid(
-            "comparison needs two operands".to_owned(),
+            "the condition is incomplete".to_owned(),
         ));
     };
     let left = resolve_value(lhs, env)?;
@@ -261,11 +267,12 @@ fn resolve_value(
         Operator::Const {
             value: Value::Boolean(_),
         } => Err(ConditionError::Invalid(
-            "a boolean literal cannot appear in a comparison".to_owned(),
+            "true and false can't be compared".to_owned(),
         )),
         Operator::Const { .. } | Operator::Neg => literal_value(node),
-        other => Err(ConditionError::Invalid(format!(
-            "expected a value, got {other:?}"
+        _ => Err(ConditionError::Invalid(format!(
+            "expected a value, got {}",
+            describe(node)
         ))),
     }
 }
@@ -297,7 +304,7 @@ fn resolve_function(
         "weekday" => {
             no_args(node.children(), "weekday")?;
             let day = weekday_number(&env.today).ok_or_else(|| {
-                ConditionError::Invalid(format!("weekday(): malformed date {:?}", env.today))
+                ConditionError::Invalid(format!("weekday() can't read the date '{}'", env.today))
             })?;
             Ok(ConditionValue::Num(f64::from(day)))
         }
@@ -307,7 +314,7 @@ fn resolve_function(
         }
         "on_branch" | "tty" | "nonempty" | "contested" | "named" | "blocked" => {
             Err(ConditionError::Invalid(format!(
-                "{name}(...) is boolean; it cannot appear in a comparison"
+                "'{name}(...)' is a yes or no; it can't be compared"
             )))
         }
         other => Err(ConditionError::UnknownPredicate(other.to_owned())),
@@ -329,7 +336,7 @@ fn single_literal(
     match children {
         [arg] => extract_literal(arg).map_err(ConditionError::Invalid),
         _ => Err(ConditionError::Invalid(format!(
-            "{name}() needs one argument"
+            "{name}() takes one argument"
         ))),
     }
 }

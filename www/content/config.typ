@@ -55,6 +55,11 @@ layer's array are a config error that names both. `extends` and `disable`,
 which adopt a rule pack and drop a rule, are on
 #link(u("/rule-packs/"))[Rule packs].
 
+Write a rule's `message` as the next step: an imperative in lower case, with no
+trailing period or em dash, such as `move Environment after Problem`. `mt check`
+prints it after the rule's name, so it should tell the author what to do, not
+what is wrong.
+
 = Environment variables
 
 #table(

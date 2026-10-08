@@ -324,7 +324,7 @@ impl NumericField {
         }
         for band in &bands {
             if band.min > band.max {
-                out.push(format!("{field}: band `{}` has min above max", band.label));
+                out.push(format!("{field}: band '{}' has min above max", band.label));
             }
         }
         let step = if self.kind == ScaleKind::Int {
@@ -337,7 +337,7 @@ impl NumericField {
                 && upper.min != lower.max + step
             {
                 let mut message = format!(
-                    "{field}: bands `{}` and `{}` are not contiguous",
+                    "{field}: bands '{}' and '{}' are not contiguous",
                     lower.label, upper.label
                 );
                 // Classic integer tiling (`prev.max + 1 == next.min`) under a
@@ -367,7 +367,7 @@ impl NumericField {
         for anchor in &self.anchors {
             if anchor.value < self.min || anchor.value > self.max {
                 out.push(format!(
-                    "{field}: anchor `{}` at {} is out of range",
+                    "{field}: anchor '{}' at {} is out of range",
                     anchor.label,
                     format_num(anchor.value)
                 ));

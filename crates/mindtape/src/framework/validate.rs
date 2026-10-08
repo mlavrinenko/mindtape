@@ -44,7 +44,7 @@ impl Framework {
         for input in self.inputs.keys() {
             if !is_typst_ident(input) {
                 out.push(format!(
-                    "{field}: framework `{name}` input `{input}` is not a valid typst identifier"
+                    "{field}: framework '{name}' input '{input}' is not a valid typst identifier"
                 ));
             }
         }
@@ -55,11 +55,11 @@ impl Framework {
         self.validate_inputs(scope, out);
         match (self.score.as_deref(), self.categories.is_empty()) {
             (Some(_), false) => out.push(format!(
-                "{}: framework `{}` declares both a score and categories",
+                "{}: framework '{}' declares both a score and categories",
                 scope.field, scope.name
             )),
             (None, true) => out.push(format!(
-                "{}: framework `{}` declares neither a score nor categories",
+                "{}: framework '{}' declares neither a score nor categories",
                 scope.field, scope.name
             )),
             (Some(formula), true) => self.validate_scalar(scope, formula, out),
@@ -73,7 +73,7 @@ impl Framework {
                 InputKind::Number => {
                     if !matches!((input.min, input.max), (Some(lo), Some(hi)) if lo < hi) {
                         out.push(format!(
-                            "{}: framework `{}` input `{name}` needs min < max",
+                            "{}: framework '{}' input '{name}' needs min < max",
                             scope.field, scope.name
                         ));
                     }
@@ -81,7 +81,7 @@ impl Framework {
                 InputKind::Enum => {
                     if input.values.is_empty() {
                         out.push(format!(
-                            "{}: framework `{}` enum input `{name}` needs values",
+                            "{}: framework '{}' enum input '{name}' needs values",
                             scope.field, scope.name
                         ));
                     }
@@ -93,12 +93,12 @@ impl Framework {
 
     fn validate_scalar(&self, scope: &Scope, formula: &str, out: &mut Vec<String>) {
         match score_interval(formula, &self.inputs) {
-            Err(err) => out.push(format!("{}: framework `{}` {err}", scope.field, scope.name)),
+            Err(err) => out.push(format!("{}: framework '{}' {err}", scope.field, scope.name)),
             Ok(interval) => {
                 const EPS: f64 = 1e-9;
                 if interval.lo < scope.min - EPS || interval.hi > scope.max + EPS {
                     out.push(format!(
-                        "{}: framework `{}` score range {}..{} exceeds the scale {}..{}",
+                        "{}: framework '{}' score range {}..{} exceeds the scale {}..{}",
                         scope.field,
                         scope.name,
                         format_num(interval.lo),
@@ -115,7 +115,7 @@ impl Framework {
         for category in &self.categories {
             if category.score < scope.min || category.score > scope.max {
                 out.push(format!(
-                    "{}: framework `{}` category `{}` score {} is outside the scale {}..{}",
+                    "{}: framework '{}' category '{}' score {} is outside the scale {}..{}",
                     scope.field,
                     scope.name,
                     category.label.as_deref().unwrap_or(""),
@@ -125,7 +125,7 @@ impl Framework {
                 ));
             }
             if let Err(err) = parse_check(&category.when) {
-                out.push(format!("{}: framework `{}` {err}", scope.field, scope.name));
+                out.push(format!("{}: framework '{}' {err}", scope.field, scope.name));
             }
         }
         self.check_coverage(scope, out);
@@ -150,7 +150,7 @@ impl Framework {
                 .count();
             if matched != 1 {
                 out.push(format!(
-                    "{}: framework `{}` categories are not exhaustive+disjoint for {} ({matched} match)",
+                    "{}: framework '{}' categories are not exhaustive+disjoint for {} ({matched} match)",
                     scope.field,
                     scope.name,
                     describe(&combo),

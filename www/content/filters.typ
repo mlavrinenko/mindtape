@@ -172,7 +172,9 @@ text is needed, or a wrong argument count. `mt ls` exits
 #terminal("filters-unknown-dict")
 
 `mt` also runs each filter saved in config once when it loads the config, so
-a view or rule with a bad expression fails by name before any listing.
+a view or rule with a bad expression fails by name before any listing. A
+status that no `[[tasks.status]]` entry declares is a bad expression too:
+`status == "wpi"` fails and suggests `wip`, rather than matching nothing.
 
 = Dependencies and counts
 

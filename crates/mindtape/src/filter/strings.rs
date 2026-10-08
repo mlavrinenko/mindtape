@@ -22,7 +22,7 @@ use evalexpr::{DefaultNumericTypes, Node, Operator};
 use regex::Regex;
 
 use crate::config::Config;
-use crate::filter::expr::{call_args, extract_literal, restore_name, unwrap_root};
+use crate::filter::expr::{call_args, describe, extract_literal, restore_name, unwrap_root};
 use crate::filter::{FilterError, field_value};
 use crate::model::Task;
 use crate::model::fields::FieldValue;
@@ -53,8 +53,9 @@ pub(crate) fn string_value(
         Operator::FunctionIdentifier { identifier } => {
             string_call(&restore_name(identifier), node.children(), task, config)
         }
-        other => Err(FilterError::Invalid(format!(
-            "expected a string — a literal, a field, or word(...) — got {other:?}"
+        _ => Err(FilterError::Invalid(format!(
+            "expected a string, a field or word(...), got {}",
+            describe(node)
         ))),
     }
 }
@@ -69,7 +70,7 @@ fn string_field(task: &Task, name: &str, config: &Config) -> Result<Option<Strin
         FieldValue::Str(text) => Ok(Some(text)),
         FieldValue::Missing | FieldValue::List(_) => Ok(None),
         FieldValue::Num(_) => Err(FilterError::Invalid(format!(
-            "field `{name}` is numeric; word(), matches() and in_dict() read string fields"
+            "'{name}' is a number; word(), matches() and in_dict() read text fields"
         ))),
     }
 }
@@ -85,10 +86,10 @@ fn string_call(
 ) -> Result<Option<String>, FilterError> {
     match name {
         "word" => word_call(children, task, config),
-        other => Err(FilterError::Invalid(format!(
-            "`{other}()` yields a boolean, not a string; only word(...) may stand where a string \
-             is expected"
-        ))),
+        other => Err(FilterError::call(
+            format!("'{other}(...)' is a condition, not text; only word(...) gives text"),
+            "in_dict(\"verbs\", word(title, 1))",
+        )),
     }
 }
 
@@ -107,7 +108,7 @@ fn word_call(
 ) -> Result<Option<String>, FilterError> {
     let args = call_args(children);
     let [value, index] = args.as_slice() else {
-        return Err(arity("word", "word(field, n)"));
+        return Err(arity("word", "word(title, 1)"));
     };
     let position = word_index(index)?;
     let Some(text) = string_value(value, task, config)? else {
@@ -133,9 +134,10 @@ fn word_index(node: &Node<DefaultNumericTypes>) -> Result<usize, FilterError> {
     let literal = extract_literal(node).map_err(FilterError::Invalid)?;
     match literal.parse::<usize>() {
         Ok(position) if position >= 1 => Ok(position),
-        _ => Err(FilterError::Invalid(format!(
-            "word() counts from 1 — word(title, 1) is the first word; got {literal:?}"
-        ))),
+        _ => Err(FilterError::call(
+            format!("word() counts from 1, not '{literal}'"),
+            "word(title, 1)",
+        )),
     }
 }
 
@@ -154,16 +156,18 @@ pub(crate) fn matches_call(
 ) -> Result<bool, FilterError> {
     let args = call_args(children);
     let [value, pattern] = args.as_slice() else {
-        return Err(arity("matches", "matches(field, \"regex\")"));
+        return Err(arity("matches", "matches(title, \"^Add \")"));
     };
     let pattern = extract_literal(pattern).map_err(|_| {
-        FilterError::Invalid(
-            "matches() takes the pattern second, as a string literal: matches(title, \"^Add \")"
-                .to_owned(),
+        FilterError::call(
+            "matches() takes its pattern second, as a quoted string",
+            "matches(title, \"^Add \")",
         )
     })?;
     let regex = Regex::new(&pattern).map_err(|err| {
-        FilterError::Invalid(format!("matches(): invalid regex {pattern:?}: {err}"))
+        FilterError::Invalid(format!(
+            "matches() was given a bad regex '{pattern}': {err}"
+        ))
     })?;
     Ok(string_value(value, task, config)?.is_some_and(|text| regex.is_match(&text)))
 }
@@ -186,13 +190,12 @@ pub(crate) fn in_dict_call(
 ) -> Result<bool, FilterError> {
     let args = call_args(children);
     let [name, value] = args.as_slice() else {
-        return Err(arity("in_dict", "in_dict(\"name\", word(title, 1))"));
+        return Err(arity("in_dict", "in_dict(\"verbs\", word(title, 1))"));
     };
     let name = extract_literal(name).map_err(|_| {
-        FilterError::Invalid(
-            "in_dict() takes the dictionary name first, as a string literal: \
-             in_dict(\"verbs\", word(title, 1))"
-                .to_owned(),
+        FilterError::call(
+            "in_dict() takes the dictionary name first, as a quoted string",
+            "in_dict(\"verbs\", word(title, 1))",
         )
     })?;
     let dicts = config.compiled_dicts();
@@ -209,15 +212,14 @@ pub(crate) fn in_dict_call(
 /// `word(...)` reached boolean position. Named rather than left to the unknown
 /// function arm, because the name IS known — it is in the wrong place.
 pub(crate) fn word_is_not_boolean() -> FilterError {
-    FilterError::Invalid(
-        "word() yields a string, not a boolean; use it as an argument, e.g. \
-         in_dict(\"verbs\", word(title, 1))"
-            .to_owned(),
+    FilterError::call(
+        "word() gives text, not a condition",
+        "in_dict(\"verbs\", word(title, 1))",
     )
 }
 
-fn arity(name: &str, shape: &str) -> FilterError {
-    FilterError::Invalid(format!("{name}() takes two arguments: {shape}"))
+fn arity(name: &str, example: &'static str) -> FilterError {
+    FilterError::call(format!("{name}() takes two arguments"), example)
 }
 
 #[cfg(test)]

@@ -103,7 +103,7 @@ pub use crate::config::status::{Legend, LegendEntry};
 pub use crate::config::tasks::{
     FieldConfig, IdConfig, IdFormat, PriorityConfig, TagsConfig, TaskBodyConfig, TasksConfig,
 };
-pub use crate::config::views::{ViewSpec, validate_views};
+pub use crate::config::views::{ViewSpec, validate_view_statuses, validate_views};
 
 /// The embedded config floor: canonical default values for the sections that
 /// carry an opinionated shipped default (status legend, priority/difficulty
@@ -360,6 +360,7 @@ impl Config {
         }
         problems.extend(validate_ls_columns(&self.ls));
         problems.extend(validate_views(&self.views));
+        problems.extend(validate_view_statuses(&self.views, &self.tasks.status));
         problems.extend(validate_dicts(&self.dicts));
         problems.extend(crate::config::tasks::validate_field_names(&self.tasks));
         problems.extend(crate::config::required::validate_requirements(self));

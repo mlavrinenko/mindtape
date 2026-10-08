@@ -69,10 +69,7 @@ fn count_compares_numerically_inside_boolean_expressions() {
         ["a", "b"]
     );
     // An empty match counts zero, not missing.
-    assert_eq!(
-        kept(r#"count(status == "gone") == 0"#, &tasks, &cfg).len(),
-        3
-    );
+    assert_eq!(kept(r#"count(id == "gone") == 0"#, &tasks, &cfg).len(), 3);
 }
 
 #[test]
@@ -117,7 +114,7 @@ fn count_without_a_loaded_set_is_an_error() {
     let (tasks, cfg) = (set(), config());
     let filter = Filter::parse(r#"count(status == "wip") <= 1"#).unwrap();
     let err = filter.matches(tasks.first().unwrap(), &cfg).unwrap_err();
-    assert!(err.to_string().contains("loaded set"), "{err}");
+    assert!(err.to_string().contains("reads every task"), "{err}");
 }
 
 #[test]
@@ -133,7 +130,10 @@ fn count_is_a_number_not_a_predicate() {
             .unwrap()
             .matches_with(tasks.first().unwrap(), &cfg, &readiness)
             .unwrap_err();
-        assert!(matches!(err, FilterError::Invalid(_)), "{expr}: {err:?}");
+        assert!(
+            matches!(err, FilterError::Invalid(_) | FilterError::Call { .. }),
+            "{expr}: {err:?}"
+        );
     }
 }
 

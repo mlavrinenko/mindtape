@@ -77,8 +77,7 @@ impl LoadedSet {
     ) -> Result<usize, FilterError> {
         let Some(tasks) = &self.tasks else {
             return Err(FilterError::Invalid(
-                "count() needs the loaded set, which this expression is not evaluated over"
-                    .to_owned(),
+                "count() reads every task, and this expression sees only one".to_owned(),
             ));
         };
         let key = arg.to_string();

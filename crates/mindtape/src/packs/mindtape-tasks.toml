@@ -49,63 +49,63 @@ allowed = [
   { match = "^(Problem|Environment|TO-BE|Source of truth|Changes|Alternatives|Rollback|Out of scope)$" },
 ]
 when = "!terminal"
-message = "an open task's sections are Problem, TO-BE, Changes and Out of scope, plus its kind's own section"
+message = "limit an open task to Problem, TO-BE, Changes and Out of scope, plus its kind's own section"
 
 [[tasks.body.headers.rules]]
 name = "environment-for-fix"
 path = ["Environment"]
 action = "unique"
 when = '!terminal && kind == "fix"'
-message = "a fix says where its Problem reproduces, in one Environment section"
+message = "add one Environment section saying where the Problem reproduces"
 
 [[tasks.body.headers.rules]]
 name = "alternatives-for-feat"
 path = ["Alternatives"]
 action = "unique"
 when = '!terminal && kind == "feat"'
-message = "a feat names the designs it rejected, in one Alternatives section"
+message = "add one Alternatives section naming the designs you rejected"
 
 [[tasks.body.headers.rules]]
 name = "source-of-truth-for-docs"
 path = ["Source of truth"]
 action = "unique"
 when = '!terminal && kind == "docs"'
-message = "a docs change names what its prose must match, in one Source of truth section"
+message = "add one Source of truth section naming what the prose must match"
 
 [[tasks.body.headers.rules]]
 name = "rollback-for-dev"
 path = ["Rollback"]
 action = "unique"
 when = '!terminal && kind == "dev"'
-message = "a dev chore says how to undo it, in one Rollback section"
+message = "add one Rollback section saying how to undo the change"
 
 [[tasks.body.headers.rules]]
 name = "environment-only-for-fix"
 action = "forbid"
 path = ["Environment"]
 when = '!terminal && kind != "fix"'
-message = "Environment belongs to fix tasks"
+message = "remove the Environment section; only fix tasks have one"
 
 [[tasks.body.headers.rules]]
 name = "alternatives-only-for-feat"
 action = "forbid"
 path = ["Alternatives"]
 when = '!terminal && kind != "feat"'
-message = "Alternatives belongs to feat tasks"
+message = "remove the Alternatives section; only feat tasks have one"
 
 [[tasks.body.headers.rules]]
 name = "source-of-truth-only-for-docs"
 action = "forbid"
 path = ["Source of truth"]
 when = '!terminal && kind != "docs"'
-message = "Source of truth belongs to docs tasks"
+message = "remove the Source of truth section; only docs tasks have one"
 
 [[tasks.body.headers.rules]]
 name = "rollback-only-for-dev"
 action = "forbid"
 path = ["Rollback"]
 when = '!terminal && kind != "dev"'
-message = "Rollback belongs to dev tasks"
+message = "remove the Rollback section; only dev tasks have one"
 
 # Order rules. Each passes while either side is absent, so a pair binds only
 # the kinds that carry both sections.
@@ -115,7 +115,7 @@ action = "order"
 before = ["Problem"]
 after = ["Environment"]
 when = "!terminal"
-message = "Environment follows Problem"
+message = "move Environment after Problem"
 
 [[tasks.body.headers.rules]]
 name = "to-be-after-problem"
@@ -123,7 +123,7 @@ action = "order"
 before = ["Problem"]
 after = ["TO-BE"]
 when = "!terminal"
-message = "TO-BE follows Problem"
+message = "move TO-BE after Problem"
 
 [[tasks.body.headers.rules]]
 name = "source-of-truth-after-to-be"
@@ -131,7 +131,7 @@ action = "order"
 before = ["TO-BE"]
 after = ["Source of truth"]
 when = "!terminal"
-message = "Source of truth follows TO-BE"
+message = "move Source of truth after TO-BE"
 
 [[tasks.body.headers.rules]]
 name = "changes-after-to-be"
@@ -139,7 +139,7 @@ action = "order"
 before = ["TO-BE"]
 after = ["Changes"]
 when = "!terminal"
-message = "Changes follows TO-BE"
+message = "move Changes after TO-BE"
 
 [[tasks.body.headers.rules]]
 name = "changes-after-source-of-truth"
@@ -147,7 +147,7 @@ action = "order"
 before = ["Source of truth"]
 after = ["Changes"]
 when = "!terminal"
-message = "Changes follows Source of truth"
+message = "move Changes after Source of truth"
 
 [[tasks.body.headers.rules]]
 name = "alternatives-after-changes"
@@ -155,7 +155,7 @@ action = "order"
 before = ["Changes"]
 after = ["Alternatives"]
 when = "!terminal"
-message = "Alternatives follows Changes"
+message = "move Alternatives after Changes"
 
 [[tasks.body.headers.rules]]
 name = "rollback-after-changes"
@@ -163,7 +163,7 @@ action = "order"
 before = ["Changes"]
 after = ["Rollback"]
 when = "!terminal"
-message = "Rollback follows Changes"
+message = "move Rollback after Changes"
 
 [[tasks.body.headers.rules]]
 name = "out-of-scope-after-changes"
@@ -171,7 +171,7 @@ action = "order"
 before = ["Changes"]
 after = ["Out of scope"]
 when = "!terminal"
-message = "Out of scope follows Changes"
+message = "move Out of scope after Changes"
 
 [[tasks.body.headers.rules]]
 name = "out-of-scope-after-alternatives"
@@ -179,7 +179,7 @@ action = "order"
 before = ["Alternatives"]
 after = ["Out of scope"]
 when = "!terminal"
-message = "Out of scope follows Alternatives"
+message = "move Out of scope after Alternatives"
 
 [[tasks.body.headers.rules]]
 name = "out-of-scope-after-rollback"
@@ -187,35 +187,35 @@ action = "order"
 before = ["Rollback"]
 after = ["Out of scope"]
 when = "!terminal"
-message = "Out of scope follows Rollback"
+message = "move Out of scope after Rollback"
 
 [[tasks.body.headers.rules]]
 name = "one-problem-section"
 path = ["Problem"]
 action = "unique"
 when = "!terminal"
-message = "every open task has one Problem section"
+message = "keep exactly one Problem section"
 
 [[tasks.body.headers.rules]]
 name = "one-to-be-section"
 path = ["TO-BE"]
 action = "unique"
 when = "!terminal"
-message = "every open task has one TO-BE section"
+message = "keep exactly one TO-BE section"
 
 [[tasks.body.headers.rules]]
 name = "one-changes-section"
 path = ["Changes"]
 action = "unique"
 when = "!terminal"
-message = "every open task has one Changes section"
+message = "keep exactly one Changes section"
 
 [[tasks.body.headers.rules]]
 name = "one-out-of-scope-section"
 path = ["Out of scope"]
 action = "unique"
 when = "!terminal"
-message = "every open task has one Out of scope section"
+message = "keep exactly one Out of scope section"
 
 # No section takes a subsection. The wildcard pair matches any heading nested
 # under any heading, so one rule closes the whole depth axis rather than
@@ -226,7 +226,7 @@ name = "no-subsections"
 action = "forbid"
 path = [{ match = ".*" }, { match = ".*" }]
 when = "!terminal"
-message = "sections take no subsections; if a section needs one, the task is too big"
+message = "remove the subsections, or split the task; a section takes none"
 
 # Section-content rules: the heading rules above prove the sections exist;
 # these prove each one says what its heading promises. Regexes run over the
@@ -273,7 +273,7 @@ path = [
 ]
 assert = "non-empty"
 when = "!terminal"
-message = "a heading over nothing decides nothing; say what belongs here, or why nothing does"
+message = "write what belongs under the heading, or why nothing does, or remove it"
 
 # Word caps, provisional: set on 2026-09-15 with headroom over the rewritten
 # open tasks in MindTape's own backlog. A section over its cap is a task that
@@ -285,14 +285,14 @@ path = [
 ]
 assert = { max-words = 120 }
 when = "!terminal"
-message = "keep this section under 120 words; a longer one is a task that should have been two"
+message = "cut this section to under 120 words, or split the task in two"
 
 [[tasks.body.content.rules]]
 name = "changes-word-cap"
 path = ["Changes"]
 assert = { max-words = 220 }
 when = "!terminal"
-message = "keep this section under 220 words; a longer one is a task that should have been two"
+message = "cut this section to under 220 words, or split the task in two"
 
 # A task proposing config or API surface pays for a translation step when it
 # only describes the shape in prose. Only fires on a task tagged `gating`, a
@@ -303,14 +303,14 @@ name = "show-shape-when-gating"
 path = ["TO-BE"]
 assert = { must-match = "[`]{3}" }
 when = 'has_tag("gating") && !terminal'
-message = "this task proposes config surface; show the shape in a block"
+message = "show the proposed config shape in a block"
 
 [[tasks.body.content.rules]]
 name = "no-em-dash-pileup"
 path = [{ match = ".*" }]
 assert = { density = { pattern = "—", max = 1, per = "paragraph" } }
 when = "!terminal"
-message = "more than one em-dash in a paragraph reads as generated prose; use a comma, a colon or a second sentence"
+message = "keep one em dash per paragraph at most; use a comma, a colon or a second sentence for the rest"
 
 # A title's grammatical shape is a convention `mt check` can hold once there
 # is a vocabulary to ask against: `verbs` unions both dictionaries `mt` ships
@@ -337,7 +337,7 @@ name = "work-names-a-task"
 scope = "commit"
 when = "!tasks_only"
 assert = "has(refs)"
-message = "name the task this commit works on: `Refs: <stem>`"
+message = "name the task this commit works on in a `Refs: <stem>` footer"
 severity = "error"
 
 # A status flip rides with the work it claims, checked per task rather than

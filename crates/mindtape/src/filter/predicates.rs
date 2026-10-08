@@ -45,10 +45,9 @@ pub(crate) fn has_call(
             let value = extract_literal(value).map_err(FilterError::Invalid)?;
             holds(task, &name(field)?, &value, config)
         }
-        _ => Err(FilterError::Invalid(
-            "has() takes a field and an optional value: has(x-machine) or \
-             has(x-machine, \"alpha\")"
-                .to_owned(),
+        _ => Err(FilterError::call(
+            "has() takes a field and an optional value",
+            "has(x-machine, \"alpha\")",
         )),
     }
 }
@@ -82,7 +81,7 @@ pub(crate) fn extra_value(task: &Task, name: &str) -> Result<FieldValue, FilterE
     };
     fields::from_extra(value).ok_or_else(|| {
         FilterError::Invalid(format!(
-            "`{name}` holds a dict; test it with has({name}) or has({name}, \"key\")"
+            "'{name}' holds a dict; test it with has(), as in has({name}, \"key\")"
         ))
     })
 }
@@ -120,8 +119,9 @@ pub(crate) fn changed_count(
 ) -> Result<f64, FilterError> {
     let args = call_args(children);
     let Some((states_node, glob_nodes)) = args.split_first() else {
-        return Err(FilterError::Invalid(
-            "changed() needs its git states: changed(\"staged+worktree\", \"<glob>\"…)".to_owned(),
+        return Err(FilterError::call(
+            "changed() needs the git states to read",
+            "changed(\"staged+worktree\", \"src/**\")",
         ));
     };
     let invalid = |err: String| FilterError::Invalid(format!("changed(): {err}"));
@@ -152,12 +152,13 @@ pub(crate) fn touches(
 ) -> Result<bool, FilterError> {
     let args = call_args(children);
     let [path] = args.as_slice() else {
-        return Err(FilterError::Invalid(
-            "touches() needs one path: touches(\"src/lib.rs\")".to_owned(),
+        return Err(FilterError::call(
+            "touches() takes one path",
+            "touches(\"src/lib.rs\")",
         ));
     };
     let path =
-        extract_literal(path).map_err(|err| FilterError::Invalid(format!("touches(): {err}")))?;
+        extract_literal(path).map_err(|err| FilterError::Invalid(format!("touches() {err}")))?;
     if ctx.dry {
         return Ok(false);
     }
@@ -178,10 +179,9 @@ pub(crate) fn touches(
 /// refuses the predicate rather than answer a constant.
 pub(crate) fn exists(ctx: &Ctx) -> Result<bool, FilterError> {
     ctx.exists.ok_or_else(|| {
-        FilterError::Invalid(
-            "`exists` reads a commit state: write head(exists), staged(exists) or \
-             worktree(exists) in a scope = \"task\" commit rule"
-                .to_owned(),
+        FilterError::call(
+            "'exists' reads a commit state, and only a task-scope commit rule has one",
+            "head(exists)",
         )
     })
 }
@@ -248,9 +248,9 @@ pub(crate) fn contains_call(
 ) -> Result<bool, FilterError> {
     let args = call_args(children);
     let Some((needle_node, field_nodes)) = args.split_first() else {
-        return Err(FilterError::Invalid(
-            "contains() needs a needle: contains(\"substr\") or contains(\"substr\", field, ...)"
-                .to_owned(),
+        return Err(FilterError::call(
+            "contains() needs the text to look for",
+            "contains(\"login\", title)",
         ));
     };
     let needle = extract_literal(needle_node).map_err(FilterError::Invalid)?;

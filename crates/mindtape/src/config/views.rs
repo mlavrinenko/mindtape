@@ -82,6 +82,26 @@ pub fn validate_views(views: &BTreeMap<String, ViewSpec>) -> Vec<String> {
     problems
 }
 
+/// Refuse a view whose filter compares `status` with a value the legend does
+/// not declare, one message per view. A filter that does not parse is
+/// [`validate_views`]'s to report.
+#[must_use]
+pub fn validate_view_statuses(
+    views: &BTreeMap<String, ViewSpec>,
+    legend: &crate::config::Legend,
+) -> Vec<String> {
+    views
+        .iter()
+        .filter_map(|(name, spec)| {
+            let err = Filter::parse(&spec.filter)
+                .ok()?
+                .check_statuses(legend)
+                .err()?;
+            Some(format!("views.{name}.filter: {err}"))
+        })
+        .collect()
+}
+
 #[cfg(test)]
 #[path = "views_tests.rs"]
 mod tests;

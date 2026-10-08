@@ -45,7 +45,7 @@ fn stale_with_a_non_integer_literal_errors() {
     // `single_literal` rejects first.
     let got = err("stale(\"soon\")", &sample());
     assert!(
-        matches!(&got, FilterError::Invalid(msg) if msg.contains("non-negative integer")),
+        matches!(&got, FilterError::Call { problem, .. } if problem.contains("whole number")),
         "{got:?}"
     );
 }
@@ -54,7 +54,7 @@ fn stale_with_a_non_integer_literal_errors() {
 fn unknown_function_errors() {
     let got = err("bogus()", &sample());
     assert!(
-        matches!(&got, FilterError::Invalid(msg) if msg.contains("unknown function: bogus")),
+        matches!(&got, FilterError::UnknownFunction { name, .. } if name == "bogus"),
         "{got:?}"
     );
 }
@@ -191,7 +191,7 @@ fn bare_words_follow_the_registry_arity() {
         let bare_predicate = entry.arity.max == Some(0);
         let refused = result
             .as_ref()
-            .is_err_and(|got| got.to_string().contains("not boolean"));
+            .is_err_and(|got| got.to_string().contains("not a condition"));
         assert_eq!(refused, !bare_predicate, "{}: {result:?}", entry.name);
     }
     let unknown = Filter::parse("nope()")

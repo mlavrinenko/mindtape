@@ -233,7 +233,7 @@ fn weekday_with_malformed_today_is_invalid_at_match_time() {
     let condition = Condition::parse("weekday() == 1").unwrap();
     let err = condition.matches(&env(None, "not-a-date")).unwrap_err();
     assert!(
-        matches!(&err, ConditionError::Invalid(msg) if msg.contains("malformed date")),
+        matches!(&err, ConditionError::Invalid(msg) if msg.contains("can't read the date")),
         "{err}"
     );
 }
@@ -264,7 +264,7 @@ fn binary_op_with_wrong_arity_is_invalid_at_match_time() {
     let condition = Condition { tree: Some(and) };
     let err = condition.matches(&env(None, "2026-07-12")).unwrap_err();
     assert!(
-        matches!(&err, ConditionError::Invalid(msg) if msg.contains("binary op needs two operands")),
+        matches!(&err, ConditionError::Invalid(msg) if msg.contains("incomplete")),
         "{err}"
     );
 }

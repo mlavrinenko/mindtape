@@ -229,8 +229,8 @@ fn an_invalid_regex_errors_naming_the_pattern() {
         &Config::default(),
     );
     let rendered = got.to_string();
-    assert!(rendered.contains("invalid regex"), "{rendered}");
-    assert!(rendered.contains("\"[\""), "{rendered}");
+    assert!(rendered.contains("bad regex"), "{rendered}");
+    assert!(rendered.contains("'['"), "{rendered}");
 }
 
 // --- error discipline ------------------------------------------------------
@@ -247,7 +247,7 @@ fn a_numeric_field_in_string_position_errors() {
     ] {
         let got = err(expr, &task, &cfg);
         assert!(
-            matches!(&got, FilterError::Invalid(msg) if msg.contains("numeric")),
+            matches!(&got, FilterError::Invalid(msg) if msg.contains("is a number")),
             "{expr}: {got:?}"
         );
     }
@@ -275,7 +275,7 @@ fn a_wrong_argument_count_errors_per_function() {
     ] {
         let got = err(expr, &task, &cfg);
         assert!(
-            matches!(&got, FilterError::Invalid(msg) if msg.contains(needle)),
+            matches!(&got, FilterError::Call { problem, .. } if problem.contains(needle)),
             "{expr}: {got:?}"
         );
     }
@@ -289,7 +289,7 @@ fn a_word_index_below_one_errors() {
         &Config::default(),
     );
     assert!(
-        matches!(&got, FilterError::Invalid(msg) if msg.contains("counts from 1")),
+        matches!(&got, FilterError::Call { problem, .. } if problem.contains("counts from 1")),
         "{got:?}"
     );
 }
@@ -302,7 +302,7 @@ fn a_non_literal_dict_name_errors() {
         &Config::default(),
     );
     assert!(
-        matches!(&got, FilterError::Invalid(msg) if msg.contains("string literal")),
+        matches!(&got, FilterError::Call { problem, .. } if problem.contains("quoted string")),
         "{got:?}"
     );
 }
@@ -311,7 +311,7 @@ fn a_non_literal_dict_name_errors() {
 fn word_in_boolean_position_errors_naming_where_it_belongs() {
     let got = err("word(title, 1)", &titled("Add auth"), &Config::default());
     assert!(
-        matches!(&got, FilterError::Invalid(msg) if msg.contains("in_dict")),
+        matches!(&got, FilterError::Call { example, .. } if example.contains("in_dict")),
         "{got:?}"
     );
 }
@@ -324,7 +324,7 @@ fn a_boolean_call_in_string_position_errors() {
         &Config::default(),
     );
     assert!(
-        matches!(&got, FilterError::Invalid(msg) if msg.contains("has_tag")),
+        matches!(&got, FilterError::Call { problem, .. } if problem.contains("has_tag")),
         "{got:?}"
     );
 }

@@ -110,7 +110,7 @@ pub(crate) fn duplicate_rule_names<'a>(
         let Some(name) = name else { continue };
         if let Some(&first) = seen.get(name) {
             problems.push(format!(
-                "{prefix}[{index}]: duplicate name `{name}`, already used by {prefix}[{first}]"
+                "{prefix}[{index}]: duplicate name '{name}', already used by {prefix}[{first}]"
             ));
         } else {
             seen.insert(name, index);
@@ -145,7 +145,7 @@ impl<'de> Deserialize<'de> for HeaderPathSegment {
             type Value = HeaderPathSegment;
 
             fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                f.write_str("a string or `{ match = \"...\", recursive = bool }`")
+                f.write_str("a string or '{ match = \"...\", recursive = bool }'")
             }
 
             fn visit_str<E: serde::de::Error>(self, value: &str) -> Result<Self::Value, E> {
@@ -192,7 +192,7 @@ impl<'de> Deserialize<'de> for HeaderAction {
             "order" => Ok(Self::Order),
             "allowlist" => Ok(Self::Allowlist),
             other => Err(serde::de::Error::custom(format!(
-                "invalid action `{other}`; expected `require`, `forbid`, `unique`, \
+                "invalid action '{other}'; expected `require`, `forbid`, `unique`, \
                  `order`, or `allowlist`"
             ))),
         }

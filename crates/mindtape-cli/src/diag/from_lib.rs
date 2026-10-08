@@ -9,7 +9,9 @@
 
 use mindtape::config::{ConfigError, ConfigPlace};
 use mindtape::recur::dates::RecurError;
-use mindtape::{DateOverrideError, FilterError, Location, RefError, Severity, Violation};
+use mindtape::{
+    ConditionError, DateOverrideError, FilterError, Location, RefError, Severity, Violation,
+};
 
 use super::{Command, Diag, Hint, Note};
 
@@ -46,6 +48,9 @@ fn known(cause: &(dyn std::error::Error + 'static)) -> Option<Diag> {
     if let Some(err) = cause.downcast_ref::<RefError>() {
         return Some(reference(err));
     }
+    if let Some(err) = cause.downcast_ref::<ConditionError>() {
+        return Some(err.clone().into());
+    }
     cause
         .downcast_ref::<DateOverrideError>()
         .map(|err| err.clone().into())
@@ -81,7 +86,27 @@ pub(crate) fn filter(err: FilterError, expr: Option<&str>) -> Diag {
             of_filter(Diag::usage("unsupported in filter")).reason(reason)
         }
         FilterError::Invalid(reason) => of_filter(Diag::usage("invalid filter")).reason(reason),
+        FilterError::Call { problem, example } => of_filter(Diag::usage("invalid filter"))
+            .reason(problem)
+            .hint(Hint::example(example)),
+        FilterError::UnknownFunction { name, nearest } => {
+            let diag = in_filter(Diag::usage("unknown function").value(name));
+            match nearest {
+                Some(nearest) => diag.hint(Hint::did_you_mean(format!("{nearest}()"))),
+                None => diag,
+            }
+        }
         FilterError::UnknownField(name) => in_filter(Diag::usage("unknown field").value(name)),
+        FilterError::UnknownStatus { value, nearest } => {
+            let diag = in_filter(Diag::usage("unknown status").value(value));
+            match nearest {
+                Some(nearest) => diag.hint(Hint::did_you_mean(nearest)),
+                None => diag.hint(Hint::run(
+                    Command::mt().word("flip").word("--list"),
+                    "to see the statuses",
+                )),
+            }
+        }
         FilterError::UnknownView(name) => in_filter(Diag::usage("unknown view").value(name)),
         FilterError::UnknownDict { name, hint } => {
             in_filter(Diag::usage("unknown dict").value(name))
@@ -96,6 +121,30 @@ pub(crate) fn filter(err: FilterError, expr: Option<&str>) -> Diag {
 impl From<FilterError> for Diag {
     fn from(err: FilterError) -> Self {
         filter(err, None)
+    }
+}
+
+impl From<ConditionError> for Diag {
+    fn from(err: ConditionError) -> Self {
+        match err {
+            ConditionError::Parse(reason) => Diag::failed("can't parse condition").reason(reason),
+            ConditionError::Unsupported(reason) => {
+                Diag::failed("unsupported in condition").reason(reason)
+            }
+            ConditionError::TaskField(name) => Diag::failed("a condition can't read a task field")
+                .value(name)
+                .hint(Hint::new(
+                    "use on_branch(), tty(), env(), weekday(), now() or format()",
+                )),
+            ConditionError::UnknownPredicate(name) => {
+                Diag::failed("unknown predicate in condition")
+                    .value(name)
+                    .hint(Hint::new(
+                        "use on_branch, tty, env, weekday, now, format, nonempty, contested, named or blocked",
+                    ))
+            }
+            ConditionError::Invalid(reason) => Diag::failed("invalid condition").reason(reason),
+        }
     }
 }
 

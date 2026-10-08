@@ -12,7 +12,7 @@ const MAX_VIEW_DEPTH: usize = 64;
 
 use evalexpr::{DefaultNumericTypes, Node, Operator};
 
-use crate::filter::expr::{extract_identifier, extract_literal, restore_name};
+use crate::filter::expr::{describe, extract_identifier, extract_literal, restore_name};
 use crate::filter::predicates::{contains_call, is_stale, present};
 use crate::filter::{Ctx, Filter, FilterError};
 
@@ -108,25 +108,43 @@ pub(crate) const FUNCTIONS: [FilterFunction; 17] = [
         Err(crate::filter::strings::word_is_not_boolean())
     }),
     word("changed", exactly(1), |_, _| {
-        Err(FilterError::Invalid(
-            "changed() is a count; compare it: changed(\"worktree\") <= estimate.files".to_owned(),
+        Err(FilterError::call(
+            "changed() is a count, not a condition",
+            "changed(\"worktree\") <= estimate.files",
         ))
     }),
     word("count", Arity { min: 1, max: None }, |_, _| {
-        Err(FilterError::Invalid(
-            "count() is a number, not a predicate; compare it: `count(...) <= 1`".to_owned(),
+        Err(FilterError::call(
+            "count() is a number, not a condition",
+            "count(status == \"wip\") <= 1",
         ))
     }),
     word("stale", exactly(1), |args, ctx| {
         let count_str = single_literal(args, "stale")?;
         let count: u64 = count_str.parse().map_err(|_| {
-            FilterError::Invalid(format!(
-                "stale() expects a non-negative integer, got {count_str:?}"
-            ))
+            FilterError::call(
+                format!("stale() takes a whole number of days, not '{count_str}'"),
+                "stale(30)",
+            )
         })?;
         Ok(is_stale(ctx.task, count))
     }),
 ];
+
+/// An operator with a side missing: `status ==`, `&& wip`, `!`.
+fn incomplete() -> FilterError {
+    FilterError::Invalid("the filter is incomplete".to_owned())
+}
+
+/// A call to a name that is no function of the language, with the nearest
+/// function when one is close.
+fn unknown_function(name: &str) -> FilterError {
+    let known: Vec<&str> = FUNCTIONS.iter().map(|entry| entry.name).collect();
+    FilterError::UnknownFunction {
+        name: name.to_owned(),
+        nearest: crate::suggest::nearest(name, &known).map(str::to_owned),
+    }
+}
 
 fn lookup(name: &str) -> Option<&'static FilterFunction> {
     FUNCTIONS.iter().find(|entry| entry.name == name)
@@ -141,13 +159,13 @@ pub(crate) fn eval_bool(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<b
     match node.operator() {
         Operator::RootNode => match node.children() {
             [child] => eval_bool(child, ctx),
-            _ => Err(FilterError::Invalid("root needs one child".to_owned())),
+            _ => Err(incomplete()),
         },
         Operator::And => binary(node, ctx, |left, right| left && right),
         Operator::Or => binary(node, ctx, |left, right| left || right),
         Operator::Not => match node.children() {
             [child] => Ok(!eval_bool(child, ctx)?),
-            _ => Err(FilterError::Invalid("`!` needs one operand".to_owned())),
+            _ => Err(incomplete()),
         },
         Operator::Eq
         | Operator::Neq
@@ -159,7 +177,14 @@ pub(crate) fn eval_bool(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<b
             function(&restore_name(identifier), node, ctx)
         }
         Operator::VariableIdentifierRead { identifier } => nullary(&restore_name(identifier), ctx),
-        other => Err(FilterError::Unsupported(format!("{other:?}"))),
+        Operator::Const { .. } => Err(FilterError::Unsupported(format!(
+            "{} on its own isn't a condition",
+            describe(node)
+        ))),
+        _ => Err(FilterError::Unsupported(format!(
+            "{} isn't an operator the filter language has",
+            describe(node)
+        ))),
     }
 }
 
@@ -168,9 +193,13 @@ pub(crate) fn eval_bool(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<b
 fn nullary(identifier: &str, ctx: &Ctx) -> Result<bool, FilterError> {
     match lookup(identifier) {
         Some(entry) if entry.arity.max == Some(0) => (entry.run)(&[], ctx),
-        _ => Err(FilterError::Invalid(format!(
-            "bare field `{identifier}` is not boolean; use a comparison or function"
+        Some(_) => Err(FilterError::Invalid(format!(
+            "'{identifier}' is a function that needs arguments, not a condition on its own"
         ))),
+        None => Err(FilterError::call(
+            format!("'{identifier}' is a field, not a condition"),
+            "status == \"wip\"",
+        )),
     }
 }
 
@@ -181,15 +210,12 @@ fn binary(
 ) -> Result<bool, FilterError> {
     match node.children() {
         [left, right] => Ok(combine(eval_bool(left, ctx)?, eval_bool(right, ctx)?)),
-        _ => Err(FilterError::Invalid(
-            "binary op needs two operands".to_owned(),
-        )),
+        _ => Err(incomplete()),
     }
 }
 
 fn function(name: &str, node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<bool, FilterError> {
-    let entry =
-        lookup(name).ok_or_else(|| FilterError::Invalid(format!("unknown function: {name}")))?;
+    let entry = lookup(name).ok_or_else(|| unknown_function(name))?;
     (entry.run)(node.children(), ctx)
 }
 
@@ -199,7 +225,7 @@ fn function(name: &str, node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<b
 fn in_view(name: &str, ctx: &Ctx) -> Result<bool, FilterError> {
     if ctx.depth >= MAX_VIEW_DEPTH {
         return Err(FilterError::Invalid(format!(
-            "view reference nested too deep at {name:?} (cycle?)"
+            "view '{name}' is nested too deep; check the views for a cycle"
         )));
     }
     let spec = ctx

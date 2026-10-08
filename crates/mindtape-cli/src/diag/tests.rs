@@ -429,6 +429,34 @@ fn the_other_filter_errors_keep_their_reason_and_kind() {
             },
             "error: unknown dict: 'd' in filter 'x': known dicts: a\n",
         ),
+        (
+            FilterError::Call {
+                problem: "has() takes a field".to_owned(),
+                example: "has(due)",
+            },
+            "error: invalid filter: 'x': has() takes a field\nhint: for example: has(due)\n",
+        ),
+        (
+            FilterError::UnknownFunction {
+                name: "hass".to_owned(),
+                nearest: Some("has".to_owned()),
+            },
+            "error: unknown function: 'hass' in filter 'x'\nhint: did you mean has()?\n",
+        ),
+        (
+            FilterError::UnknownStatus {
+                value: "wpi".to_owned(),
+                nearest: Some("wip".to_owned()),
+            },
+            "error: unknown status: 'wpi' in filter 'x'\nhint: did you mean wip?\n",
+        ),
+        (
+            FilterError::UnknownStatus {
+                value: "zzz".to_owned(),
+                nearest: None,
+            },
+            "error: unknown status: 'zzz' in filter 'x'\nhint: run mt flip --list to see the statuses\n",
+        ),
     ];
     for (err, expected) in cases {
         let diag = filter(err, expr);

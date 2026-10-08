@@ -44,6 +44,7 @@
 //! - `render.rs` — the renderer and the one writer to stderr.
 //! - `io.rs` — the failed read or write and the OS's reason for it.
 //! - `from_lib.rs` — library errors into a `Diag`, one exhaustive match each.
+//! - `from_lib_tests.rs` — unit tests for the condition conversion.
 //! - `tests.rs` — unit tests.
 
 #[cfg(test)]
@@ -294,6 +295,9 @@ pub(crate) fn plain_anyhow(err: anyhow::Error) -> String {
     plain(&Diag::from(err))
 }
 
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod from_lib_tests;
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests;

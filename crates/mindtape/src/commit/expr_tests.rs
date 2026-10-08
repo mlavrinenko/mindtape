@@ -193,9 +193,6 @@ fn a_non_state_function_side_is_a_literal_not_a_state_wrapper() {
 fn a_comparison_without_two_operands_is_refused() {
     for bad in ["== 1", "1 ==", "subject ==", "(==)"] {
         let problem = problem_of(bad).unwrap();
-        assert!(
-            problem.contains("comparison needs two operands"),
-            "{bad}: {problem}"
-        );
+        assert!(problem.contains("incomplete"), "{bad}: {problem}");
     }
 }

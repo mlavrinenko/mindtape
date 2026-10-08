@@ -167,7 +167,7 @@ example = { src-files = 1 }
 name = "judgment-stays-small"
 when = "!terminal && difficulty >= 3"
 assert = "estimate.src-files <= 5"
-message = "judgment work stays small; split the decision from the mechanical fan-out rather than widen the cap"
+message = "split the decision from the mechanical fan-out instead of widening the cap"
 severity = "error"
 
 [[tasks.rules]]
@@ -350,7 +350,7 @@ allowed = [
   { match = "^(Problem|Environment|TO-BE|Source of truth|Changes|Alternatives|Rollback|Out of scope|Dogfood)$" },
 ]
 when = "!terminal"
-message = "an open task's sections are Problem, TO-BE, Changes, Out of scope and Dogfood, plus its kind's own section"
+message = "limit an open task to Problem, TO-BE, Changes, Out of scope and Dogfood, plus its kind's own section"
 # docs:end
 
 [[tasks.body.headers.rules]]
@@ -358,7 +358,7 @@ name = "one-dogfood-section"
 path = ["Dogfood"]
 action = "unique"
 when = "!terminal"
-message = "every open task says how this repo will dogfood it, in one Dogfood section (\"Not applicable\" with a reason opts out)"
+message = "add one Dogfood section saying how this repo will dogfood the task (\"Not applicable\" with a reason opts out)"
 
 [[tasks.body.headers.rules]]
 name = "dogfood-after-out-of-scope"
@@ -366,14 +366,14 @@ action = "order"
 before = ["Out of scope"]
 after = ["Dogfood"]
 when = "!terminal"
-message = "Dogfood follows Out of scope"
+message = "move Dogfood after Out of scope"
 
 [[tasks.body.content.rules]]
 name = "dogfood-non-empty"
 path = ["Dogfood"]
 assert = "non-empty"
 when = "!terminal"
-message = "a Dogfood heading over nothing decides nothing; say how this repo uses the change, or \"Not applicable\" and why"
+message = "write how this repo uses the change under Dogfood, or \"Not applicable\" and why"
 
 # The pack's own word cap (`section-word-cap`) does not reach `Dogfood`,
 # since that section is only ever this repo's own — so it gets a cap of its
@@ -383,7 +383,7 @@ name = "dogfood-word-cap"
 path = ["Dogfood"]
 assert = { max-words = 120 }
 when = "!terminal"
-message = "keep this section under 120 words; a longer one is a task that should have been two"
+message = "cut this section to under 120 words, or split the task in two"
 
 # The default `mt ls` listing is inherited from the embedded floor's
 # `[views.default]` view. Redeclare `[views.default]` here to add a
@@ -462,7 +462,7 @@ name = "tweak-stays-one-file"
 scope = "task"
 when = 'into("done") && staged(has_tag("tweak"))'
 assert = 'count(files, "@source") <= 1'
-message = "a tweak changes one source file; file a planned task for the rest"
+message = "file a planned task for the rest, since a tweak changes one source file"
 severity = "error"
 
 # Work names a task only once the committed tree holds it started or finished.
@@ -560,14 +560,14 @@ description = "Blocked tasks and what each waits on"
 [[on.flip]]
 when = 'into("wip") && stale(30)'
 actions = [
-  { gate = true, message = "untouched for 30 days: re-read the scope against today's code, fix what went stale, `mt review` it, then start again" },
+  { gate = true, message = "re-read the scope against today's code, fix what went stale, run `mt review`, then start again" },
 ]
 # docs:end
 
 [[on.flip]]
 when = 'into("done") || into("cancelled") || into("failed")'
 actions = [
-  { run = "mmz --is-fresh --tag gate", gate = true, message = "the checks have not passed against this worktree — run `just check`, then flip again (`--force` waives it and records the waiver in the note)" },
+  { run = "mmz --is-fresh --tag gate", gate = true, message = "run `just check`, then flip again" },
 ]
 
 [add]

@@ -10,9 +10,10 @@
 //! renders it plus the full enumeration as the trailing clause every
 //! unknown-view error now appends.
 
-use strsim::normalized_levenshtein;
+use strsim::normalized_damerau_levenshtein;
 
-/// Below this normalized similarity (0.0 identical strings share nothing,
+/// Below this normalized Damerau-Levenshtein similarity, in which a swap of
+/// two letters is one edit (0.0 identical strings share nothing,
 /// 1.0 identical), a candidate is not close enough to name — the far-miss
 /// case falls back to the enumeration alone rather than pointing at an
 /// unrelated name. 0.5 clears a single-character typo or transposition on a
@@ -29,7 +30,7 @@ const SIMILARITY_FLOOR: f64 = 0.5;
 pub fn nearest<'a>(name: &str, known: &[&'a str]) -> Option<&'a str> {
     let mut best: Option<(&str, f64)> = None;
     for &candidate in known {
-        let score = normalized_levenshtein(name, candidate);
+        let score = normalized_damerau_levenshtein(name, candidate);
         if score < SIMILARITY_FLOOR {
             continue;
         }

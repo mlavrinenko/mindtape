@@ -59,10 +59,10 @@ fn context_of(inputs: &BTreeMap<String, InputValue>) -> HashMapContext {
 /// Returns a message if the formula fails to parse or evaluate.
 pub fn eval_score(formula: &str, inputs: &BTreeMap<String, InputValue>) -> Result<f64, String> {
     let tree = build_operator_tree::<DefaultNumericTypes>(formula)
-        .map_err(|err| format!("invalid score formula `{formula}`: {err}"))?;
+        .map_err(|err| format!("invalid score formula '{formula}': {err}"))?;
     let ctx = context_of(inputs);
     tree.eval_number_with_context(&ctx)
-        .map_err(|err| format!("score `{formula}` failed: {err}"))
+        .map_err(|err| format!("score '{formula}' failed: {err}"))
 }
 
 /// Evaluate a category `when` predicate against `inputs`.
@@ -71,10 +71,10 @@ pub fn eval_score(formula: &str, inputs: &BTreeMap<String, InputValue>) -> Resul
 /// Returns a message if the predicate fails to parse or evaluate to a boolean.
 pub fn eval_predicate(when: &str, inputs: &BTreeMap<String, InputValue>) -> Result<bool, String> {
     let tree = build_operator_tree::<DefaultNumericTypes>(when)
-        .map_err(|err| format!("invalid predicate `{when}`: {err}"))?;
+        .map_err(|err| format!("invalid predicate '{when}': {err}"))?;
     let ctx = context_of(inputs);
     tree.eval_boolean_with_context(&ctx)
-        .map_err(|err| format!("predicate `{when}` failed: {err}"))
+        .map_err(|err| format!("predicate '{when}' failed: {err}"))
 }
 
 /// Parse-check a formula or predicate without evaluating it.
@@ -84,7 +84,7 @@ pub fn eval_predicate(when: &str, inputs: &BTreeMap<String, InputValue>) -> Resu
 pub fn parse_check(expr: &str) -> Result<(), String> {
     build_operator_tree::<DefaultNumericTypes>(expr)
         .map(|_| ())
-        .map_err(|err| format!("invalid expression `{expr}`: {err}"))
+        .map_err(|err| format!("invalid expression '{expr}': {err}"))
 }
 
 /// Interval-evaluate a `score` formula over the declared input bounds.
@@ -94,7 +94,7 @@ pub fn parse_check(expr: &str) -> Result<(), String> {
 /// uses an operator interval arithmetic does not support (a safe over-rejection).
 pub fn score_interval(formula: &str, inputs: &BTreeMap<String, Input>) -> Result<Interval, String> {
     let tree = build_operator_tree::<DefaultNumericTypes>(formula)
-        .map_err(|err| format!("invalid score formula `{formula}`: {err}"))?;
+        .map_err(|err| format!("invalid score formula '{formula}': {err}"))?;
     let vars = input_intervals(inputs);
     interval_of(&tree, &vars)
 }
@@ -124,13 +124,13 @@ fn interval_of(node: &Tree, vars: &BTreeMap<String, Interval>) -> Result<Interva
     match node.operator() {
         Operator::RootNode => match node.children() {
             [child] => interval_of(child, vars),
-            _ => Err("malformed score expression".to_owned()),
+            _ => Err("the score formula is incomplete".to_owned()),
         },
         Operator::Const { value } => const_interval(value),
         Operator::VariableIdentifierRead { identifier } => vars
             .get(identifier)
             .copied()
-            .ok_or_else(|| format!("score references unbounded input `{identifier}`")),
+            .ok_or_else(|| format!("score references unbounded input '{identifier}'")),
         Operator::Neg => {
             let inner = unary(node, vars)?;
             Ok(Interval {
@@ -140,7 +140,12 @@ fn interval_of(node: &Tree, vars: &BTreeMap<String, Interval>) -> Result<Interva
         }
         Operator::Add | Operator::Sub | Operator::Mul | Operator::Div => arithmetic(node, vars),
         Operator::FunctionIdentifier { identifier } => function_interval(identifier, node, vars),
-        other => Err(format!("score uses unsupported operator {other:?}")),
+        other => Err(crate::filter::expr::operator_symbol(other).map_or_else(
+            || "the score formula has a part a score can't use".to_owned(),
+            |symbol| {
+                format!("a score can't use '{symbol}'; it takes + - * / and round, floor or ceil")
+            },
+        )),
     }
 }
 
@@ -148,21 +153,21 @@ fn const_interval(value: &Value<DefaultNumericTypes>) -> Result<Interval, String
     match value {
         Value::Int(int) => Ok(Interval::point(*int as f64)),
         Value::Float(float) => Ok(Interval::point(*float)),
-        other => Err(format!("score uses a non-numeric constant {other:?}")),
+        other => Err(format!("score uses the non-numeric constant '{other}'")),
     }
 }
 
 fn unary(node: &Tree, vars: &BTreeMap<String, Interval>) -> Result<Interval, String> {
     match node.children() {
         [child] => interval_of(child, vars),
-        _ => Err("unary operator needs one operand".to_owned()),
+        _ => Err("the score formula is incomplete".to_owned()),
     }
 }
 
 fn binary(node: &Tree, vars: &BTreeMap<String, Interval>) -> Result<(Interval, Interval), String> {
     match node.children() {
         [left, right] => Ok((interval_of(left, vars)?, interval_of(right, vars)?)),
-        _ => Err("binary operator needs two operands".to_owned()),
+        _ => Err("the score formula is incomplete".to_owned()),
     }
 }
 
@@ -224,7 +229,9 @@ fn function_interval(
             lo: inner.lo.ceil(),
             hi: inner.hi.ceil(),
         }),
-        other => Err(format!("score uses unsupported function `{other}`")),
+        other => Err(format!(
+            "a score can't call '{other}'; it takes round, floor or ceil"
+        )),
     }
 }
 

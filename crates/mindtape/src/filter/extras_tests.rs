@@ -78,7 +78,10 @@ fn a_dict_extra_stays_presence_only() {
         .unwrap()
         .matches(&task, &Config::default())
         .unwrap_err();
-    assert!(err.to_string().contains("has(x-goals)"), "{err}");
+    assert!(
+        err.to_string().contains("has(), as in has(x-goals"),
+        "{err}"
+    );
 }
 
 #[test]

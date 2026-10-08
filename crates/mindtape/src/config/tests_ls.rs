@@ -52,7 +52,7 @@ fn ls_rules_task_field_condition_errors_on_validate() {
     let config = parse_config("[[ls.rules]]\ncondition = \"priority > 5\"\n").unwrap();
     let err = config.validate().unwrap_err();
     assert!(err.contains("ls.rules[0].condition"), "{err}");
-    assert!(err.contains("not available in a condition"), "{err}");
+    assert!(err.contains("can't read the task field"), "{err}");
 }
 
 #[test]

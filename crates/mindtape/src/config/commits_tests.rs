@@ -81,7 +81,7 @@ fn validation_names_each_unusable_expression() {
     assert!(problems.contains("commits.rules[0].assert"), "{problems}");
     assert!(problems.contains("commits.rules[0].when"), "{problems}");
     assert!(
-        problems.contains("commits.rules[1]: duplicate name `a`"),
+        problems.contains("commits.rules[1]: duplicate name 'a'"),
         "{problems}"
     );
 }

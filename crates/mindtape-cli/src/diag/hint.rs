@@ -17,6 +17,7 @@ enum Shape {
     Run(Command, &'static str),
     DidYouMean(String),
     Typst(String),
+    Example(&'static str),
 }
 
 impl Hint {
@@ -34,6 +35,12 @@ impl Hint {
     /// A command and what it's for: `hint: run mt ls to see your tasks`.
     pub(crate) fn run(command: Command, purpose: &'static str) -> Self {
         Self(Shape::Run(command, purpose))
+    }
+
+    /// A correct use of what the user got wrong:
+    /// `hint: for example: matches(title, "x")`.
+    pub(crate) fn example(example: &'static str) -> Self {
+        Self(Shape::Example(example))
     }
 
     /// The known name nearest to what the user typed:
@@ -60,6 +67,7 @@ impl fmt::Display for Hint {
             Shape::Run(command, purpose) => write!(formatter, "run {command} {purpose}"),
             Shape::DidYouMean(name) => write!(formatter, "did you mean {name}?"),
             Shape::Typst(text) => formatter.write_str(text),
+            Shape::Example(example) => write!(formatter, "for example: {example}"),
         }
     }
 }

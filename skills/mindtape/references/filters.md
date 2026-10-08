@@ -6,7 +6,8 @@ save it in config, because `mt ls` shows what it selects.
 
 ## Fields
 
-- `status`, `kind`, `title`, `id` and `assignee` are strings.
+- `status`, `kind`, `title`, `id` and `assignee` are strings. A `status`
+  value the legend does not declare is an error, with the nearest status named.
 - `priority` and `difficulty` are numbers. A framework priority such as
   `ice(...)` compares as its score.
 - `due`, `start`, `reviewed` and `status.date` are ISO dates and compare as

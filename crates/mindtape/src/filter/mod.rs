@@ -79,7 +79,9 @@
 //! - `predicates.rs`: `has`, `miss`, `stale`, `changed`, `touches` and the field readers.
 //! - `strings.rs`: `contains` and the other string predicates.
 //! - `views.rs`: `in_view` and the `@name` sugar.
-//! - `expr.rs`: the parse step and the kebab-name rewrite.
+//! - `expr.rs`: the AST helpers and the kebab-name rewrite.
+//! - `parse_error.rs`: a syntax error in plain words.
+//! - `problems.rs`: what makes a saved expression unusable at config load.
 //! - `condition.rs`: a config-held filter expression, parsed once.
 //! - `condition_env.rs`: the environment a condition reads at evaluation.
 
@@ -89,6 +91,9 @@ pub mod condition;
 pub mod condition_env;
 pub(crate) mod expr;
 pub(crate) mod links;
+pub(crate) mod parse_error;
+mod problems;
+pub(crate) use problems::{expr_problem, expr_problem_in_set, undeclared_extras};
 pub(crate) mod predicates;
 pub(crate) mod strings;
 pub(crate) mod views;
@@ -123,9 +128,27 @@ pub enum FilterError {
     /// An operator that the filter language does not support.
     #[error("unsupported in filter: {0}")]
     Unsupported(String),
+    /// A call or operator used wrongly, with a correct example for the
+    /// `hint:` line under the message.
+    #[error("{problem} (for example {example})")]
+    Call {
+        /// What is wrong, in plain words.
+        problem: String,
+        /// A correct use, as the user would write it.
+        example: &'static str,
+    },
     /// A field name the filter language does not know.
     #[error("unknown field in filter: {0}")]
     UnknownField(String),
+    /// A status compared with `status` that no `[[tasks.status]]` entry
+    /// declares, so the comparison could never match.
+    #[error("unknown status in filter: '{value}'")]
+    UnknownStatus {
+        /// The status as written in the expression.
+        value: String,
+        /// The closest declared status, if one is near.
+        nearest: Option<String>,
+    },
     /// An `in_view` / `@` reference naming no declared view.
     #[error("unknown view in filter: {0}")]
     UnknownView(String),
@@ -139,6 +162,15 @@ pub enum FilterError {
         name: String,
         /// The trailing suggestion clause, or empty.
         hint: String,
+    },
+    /// A function the filter language does not have. `nearest` is the closest
+    /// real one, when any is close.
+    #[error("unknown function in filter: {name}")]
+    UnknownFunction {
+        /// The name as written in the expression.
+        name: String,
+        /// The closest function of the language, if one is near.
+        nearest: Option<String>,
     },
     /// A structurally invalid expression.
     #[error("invalid filter: {0}")]
@@ -155,6 +187,16 @@ pub enum FilterError {
     },
 }
 
+impl FilterError {
+    /// A call used wrongly: `problem` in plain words, `example` a correct use.
+    pub(crate) fn call(problem: impl Into<String>, example: &'static str) -> Self {
+        Self::Call {
+            problem: problem.into(),
+            example,
+        }
+    }
+}
+
 impl Filter {
     /// Parse a filter expression. `@name` view sugar is desugared to
     /// `in_view("name")` first; an empty or whitespace-only expression is the
@@ -167,8 +209,9 @@ impl Filter {
         if desugared.trim().is_empty() {
             return Ok(Self { tree: None });
         }
+        parse_error::refuse_stray_symbol(&desugared)?;
         let tree = build_operator_tree::<DefaultNumericTypes>(&desugared)
-            .map_err(|err| FilterError::Parse(restore_name(&err.to_string())))?;
+            .map_err(|err| FilterError::Parse(parse_error::plain_parse_error(&err)))?;
         Ok(Self { tree: Some(tree) })
     }
 
@@ -190,6 +233,17 @@ impl Filter {
                 .entries
                 .iter()
                 .any(|entry| entry.value == word)
+    }
+
+    /// Refuse a string compared with `status` that the legend does not
+    /// declare. An empty legend accepts any status.
+    ///
+    /// # Errors
+    /// [`FilterError::UnknownStatus`] for the first such comparison.
+    pub(crate) fn check_statuses(&self, legend: &crate::config::Legend) -> Result<(), FilterError> {
+        self.tree
+            .as_ref()
+            .map_or(Ok(()), |tree| compare::check_statuses(tree, legend))
     }
 
     /// The view names this filter references through `in_view` / `@`, in
@@ -286,80 +340,6 @@ const SET_FIELDS: [&str; 6] = ["ready", "blocked", "blocks", "topo", "children",
 fn calls_count(node: &Node<DefaultNumericTypes>) -> bool {
     matches!(node.operator(), evalexpr::Operator::FunctionIdentifier { identifier } if identifier == "count")
         || node.children().iter().any(calls_count)
-}
-
-/// What makes one saved filter expression unusable, if anything: a syntax
-/// error, or a structural problem a dry-run against `probe` surfaces — an
-/// unknown field, an unknown view, an unknown dictionary, an invalid regex.
-///
-/// The load-time half of every config section that stores an expression
-/// (`required`, `[[tasks.limits]]`, `[[tasks.rules]]`). Each of those calls it
-/// once per expression from [`crate::config::Config::validate`] and prefixes
-/// the answer with its own dotted TOML path, so a malformed expression is one
-/// config error at load rather than a surprise per artifact — or, for a rule,
-/// one violation per artifact.
-///
-/// The dry run never reads git: a `changed()` call has its states and globs
-/// checked and counts zero, so loading a config outside a repository is not
-/// an error and loading one inside it costs no `git status`.
-#[must_use]
-pub(crate) fn expr_problem(source: &str, probe: &Task, config: &Config) -> Option<String> {
-    match Filter::parse(source) {
-        Err(err) => Some(err.to_string()),
-        Ok(filter) => filter
-            .eval(probe, config, &Readiness::empty(), true)
-            .err()
-            .map(|err| err.to_string()),
-    }
-}
-
-/// The `x-` names `source` reads that `[tasks.fields]` does not declare, each
-/// as a warning with the nearest declared name. Empty while the config declares
-/// no `x-` field at all, and for an expression that does not parse: a misspelt
-/// name is a likely typo only beside declared ones, and reading an undeclared
-/// name stays legal.
-#[must_use]
-pub(crate) fn undeclared_extras(source: &str, config: &Config) -> Vec<String> {
-    let declared: Vec<String> = config
-        .tasks
-        .fields
-        .keys()
-        .filter(|name| fields::is_extra(name))
-        .cloned()
-        .collect();
-    let Ok(filter) = Filter::parse(source) else {
-        return Vec::new();
-    };
-    if declared.is_empty() {
-        return Vec::new();
-    }
-    filter
-        .names()
-        .into_iter()
-        .filter(|name| fields::is_extra(name) && !declared.contains(name))
-        .map(|name| {
-            format!(
-                "`{name}` is not declared in [tasks.fields]{}",
-                crate::suggest::hint("field", &name, &declared)
-            )
-        })
-        .collect()
-}
-
-/// [`expr_problem`] for an expression evaluated over the loaded set — a
-/// `[[tasks.rules]]` entry, an `[[on.flip]]` hook — so `count(...)` passes the
-/// dry run: the probe is its own one-task set. The run is dry, so loading
-/// never reads git for `changed()` or `touches()`.
-#[must_use]
-pub(crate) fn expr_problem_in_set(source: &str, probe: &Task, config: &Config) -> Option<String> {
-    let set = Readiness::compute(std::slice::from_ref(probe), config);
-    match Filter::parse(source) {
-        Err(err) => Some(err.to_string()),
-        Ok(filter) => filter
-            .eval(probe, config, &set, true)
-            .err()
-            .map(|err| err.to_string()),
-    }
 }
 
 /// Shared context threaded through the filter walk: the task under test, the

@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use super::Filter;
+use super::{Filter, FilterError};
 use crate::config::Config;
 use crate::model::numeric::{InputValue, NumValue};
 use crate::model::{Status, Task};
@@ -375,7 +375,7 @@ fn binary_op_with_wrong_arity_is_invalid_at_match_time() {
     let filter = Filter { tree: Some(and) };
     let err = filter.matches(&sample(), &Config::default()).unwrap_err();
     assert!(
-        matches!(&err, super::FilterError::Invalid(msg) if msg.contains("binary op needs two operands")),
+        matches!(&err, super::FilterError::Invalid(msg) if msg.contains("incomplete")),
         "{err:?}"
     );
 }
@@ -432,4 +432,22 @@ fn reads_set_for_a_count_call_or_a_set_field_only() {
     }
     assert!(!reads("kind != \"fix\" && priority > 2"));
     assert!(!reads(""));
+}
+
+#[test]
+fn an_operator_or_value_the_language_lacks_is_named_as_written() {
+    for (expr, expected) in [
+        ("\"wip\"", "'\"wip\"' on its own isn't a condition"),
+        ("title + 1", "'+' isn't an operator the filter language has"),
+        ("title = 1", "'=' isn't an operator the filter language has"),
+    ] {
+        let err = Filter::parse(expr)
+            .unwrap()
+            .matches(&sample(), &Config::default())
+            .unwrap_err();
+        assert!(
+            matches!(&err, FilterError::Unsupported(reason) if reason == expected),
+            "{expr}: {err:?}"
+        );
+    }
 }

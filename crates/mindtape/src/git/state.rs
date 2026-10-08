@@ -59,7 +59,7 @@ impl StateSet {
                 "worktree" => set.worktree = true,
                 other => {
                     return Err(format!(
-                        "unknown git state {other:?} in {spec:?}; expected {} or both joined with `+`",
+                        "'{other}' isn't a git state in '{spec}'; use {} or both joined with '+'",
                         STATE_NAMES.join(" or ")
                     ));
                 }
@@ -215,13 +215,13 @@ impl PathFilter {
             let dict = dicts.get(name).ok_or_else(|| {
                 let known: Vec<String> = dicts.names().map(ToOwned::to_owned).collect();
                 format!(
-                    "unknown path set `@{name}`; declare it as [dicts.{name}]{}",
+                    "unknown path set '@{name}'; declare it as [dicts.{name}]{}",
                     crate::suggest::hint("dict", name, &known)
                 )
             })?;
             if dict.case() != DictCase::Exact {
                 return Err(format!(
-                    "path set `@{name}` folds case; declare it with case = \"exact\""
+                    "path set '@{name}' folds case; declare it with case = \"exact\""
                 ));
             }
             expanded.extend(dict.entries().map(ToOwned::to_owned));
@@ -258,7 +258,7 @@ fn glob_set(patterns: &[&str]) -> Result<Option<GlobSet>, String> {
     }
     let mut builder = GlobSetBuilder::new();
     for pattern in patterns {
-        let glob = Glob::new(pattern).map_err(|err| format!("invalid glob {pattern:?}: {err}"))?;
+        let glob = Glob::new(pattern).map_err(|err| format!("'{pattern}' isn't a glob: {err}"))?;
         builder.add(glob);
     }
     builder
