@@ -57,7 +57,9 @@ config. They emit the status names of the legend `mt init` writes by default:
 #terminal("import-taskwarrior")
 
 A `pending` task becomes `proposed`, `completed` becomes `done` and `deleted`
-becomes `cancelled`. Priority `H`, `M` and `L` become 8, 5 and 2. The
+becomes `cancelled`. Any other status, such as `recurring` or `waiting`, passes
+through unchanged. If your legend lacks it, `mt import` skips that task and says
+so, unless you add `--map`, such as `--map waiting=proposed`. Priority `H`, `M` and `L` become 8, 5 and 2. The
 `project` and the tags become tags. The description becomes the title, and
 also the body under a `Summary` heading. The UUID, urgency, annotations and
 dependencies go into the `x-tw` field.
@@ -93,7 +95,7 @@ your file uses.
 
 An export imports back whole. `mt import` names each file from the record's
 `id`, so a link to a task still resolves. A record with no `id`, like the ones
-the jq adapters emit, is named from its title, the way `mt add` names it. With
+the jq adapters emit, or an `id` holding a `/` or a `.`, is named from its title, the way `mt add` names it. With
 neither `--into` nor `--to`, a record lands in the folder its `file` names if
 that folder is under a task root, so an export of several folders imports back
 as the same folders. If a name is taken anywhere in the project, it gets a

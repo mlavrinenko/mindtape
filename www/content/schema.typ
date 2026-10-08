@@ -30,7 +30,7 @@ A field is #strong[authored] when it holds a value written in the task file.
   table.header([Field], [Kind], [Notes]),
   [`id`],
   [computed],
-  [The file #link(u("/concepts/#identity"))[stem]. `mt import` names each file from the title instead.],
+  [The file #link(u("/concepts/#identity"))[stem], unless the task sets `id:`. `mt import` names the file as #link(u("/import-export/#round-trip"))[Import & export] says.],
 
   [`file`],
   [computed],
@@ -91,9 +91,9 @@ A record read by `mt import` needs only `title`. A missing key reads as
 `null` or empty, so an adapter can leave out every field it has no value for.
 
 Every authored field survives `mt ls '' --json` followed by `mt import`. `id`
-and `file` come back the same only if the task's file is named from its title,
-because `mt import` names the file from the title.
-#link(u("/import-export/"))[Import & export] runs that round trip.
+and `file` come back the same too, unless the import renames the file.
+#link(u("/import-export/#round-trip"))[Import & export] runs that round trip
+and says when a name changes.
 
 = A record
 

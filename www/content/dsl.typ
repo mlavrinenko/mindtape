@@ -47,7 +47,7 @@ dictionary. `mt` does the scoring and the date arithmetic.
   // `x-<ns>` is the sink for extra fields, not a parameter, so the fact
   // cannot list it.
   [`x-<ns>`],
-  [Data for a tool built on MindTape, which `mt` passes through unchecked. See #link(u("/concepts/"))[Concepts].],
+  [Data for a tool built on MindTape, which `mt` passes through, and checks only if the config declares it. See #link(u("/concepts/"))[Concepts].],
 )
 
 A date field takes `on(2026, 7, 20)`, the prelude's short form of

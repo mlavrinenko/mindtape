@@ -103,7 +103,9 @@ framework's inputs.
 #framework-table(fw)
 
 To write your own, declare `[tasks.priority.frameworks.<name>]` with its
-inputs, their types and bounds, and a score formula or categories. The
+inputs, their types and bounds, and a score formula or categories. Then name it
+in `[tasks.priority] framework = "<name>"`, or `mt check` refuses a task that
+calls it with `no priority framework is configured`. The
 built-ins are declared the same way in
 `crates/mindtape/src/framework/frameworks.toml`, and you can override any of
 their keys. A task calls your framework with

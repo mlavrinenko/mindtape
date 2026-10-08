@@ -84,7 +84,7 @@ Four more arguments control the series:
   for it. Spawn keeps a file per occurrence as history. Mutate keeps one file,
   and git holds the history.
 
-`[tasks.recur]` sets the `anchor` and `materialize` a task gets when it
+`[tasks.recur]` sets the `default-anchor` and `materialize` a task gets when it
 leaves them out, and limits the values a task may use:
 
 #config-keys-table(json("../generated/config-schema.json"), "tasks.recur")
