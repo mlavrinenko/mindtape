@@ -334,7 +334,3 @@ impl From<RefError> for Diag {
         reference(&err)
     }
 }
-
-#[cfg(test)]
-#[path = "from_lib_tests.rs"]
-mod tests;

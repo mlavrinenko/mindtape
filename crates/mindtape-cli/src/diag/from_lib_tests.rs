@@ -57,6 +57,8 @@ fn a_condition_error_in_an_anyhow_chain_keeps_its_words() {
         plain(&Diag::from(err)).starts_with(
             "error: ls.rules[0].condition: a condition can't read a task field: 'due'"
         )
+    );
+}
 
 fn cleanup_text(err: typst_cleanup::Error) -> String {
     crate::diag::plain_anyhow(anyhow::Error::new(err))
