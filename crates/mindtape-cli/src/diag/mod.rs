@@ -19,7 +19,10 @@
 //! - A cause chain joins into the one line with `: `. Rust's `Error:` and
 //!   `Caused by:` never print, because `main` returns an `ExitCode`.
 //! - At most two hints, each a [`Hint`]: a sentence, a command to run, or a
-//!   did-you-mean.
+//!   did-you-mean. Typst's own hints on an error ([`Diag::typst_hints`]) come
+//!   on top of that, verbatim.
+//! - Typst's own message is not a `&'static str`, so [`Diag::typst`] takes it
+//!   whole, after the place: `error: tasks/x.typ:2:3: unexpected argument: titel`.
 //! - The [`Kind`] decides the exit code: 2 when the command line was wrong
 //!   ([`Diag::usage`]), 1 when the project refused the work or it failed
 //!   ([`Diag::refused`], [`Diag::failed`]). No command picks a number.
@@ -153,6 +156,24 @@ impl Diag {
         Self::new(Kind::Warning, what)
     }
 
+    /// A problem of `kind` with no text of ours, whose whole message is
+    /// Typst's `message`, kept verbatim. Give it a place with [`Self::at`].
+    pub(crate) fn typst(kind: Kind, message: impl Into<String>) -> Self {
+        Self::new(kind, "").reason(message)
+    }
+
+    /// A problem of `kind` with `what` as its text.
+    pub(crate) fn of(kind: Kind, what: &'static str) -> Self {
+        Self::new(kind, what)
+    }
+
+    /// Typst's hints on the error, each a `hint:` line in Typst's words. They
+    /// are not held to the two-hint limit, which is for hints we write.
+    pub(crate) fn typst_hints(mut self, hints: impl IntoIterator<Item = String>) -> Self {
+        self.0.hints.extend(hints.into_iter().map(Hint::typst));
+        self
+    }
+
     /// The last line of a batch with a failure: `verb` `done` of `total`
     /// tasks, and how many failed when some landed.
     pub(crate) fn batch(verb: &'static str, done: usize, total: usize) -> Self {
@@ -188,6 +209,12 @@ impl Diag {
             Some(col) => format!("{}:{line}:{col}", path.display()),
             None => format!("{}:{line}", path.display()),
         });
+        self
+    }
+
+    /// The file the problem is tied to, when no line of it is known.
+    pub(crate) fn at_file(mut self, path: &Path) -> Self {
+        self.0.place = Some(path.display().to_string());
         self
     }
 

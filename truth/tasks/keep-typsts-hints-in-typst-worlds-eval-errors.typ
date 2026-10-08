@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 7),
+  status: done(
+    2026,
+    10,
+    8,
+  )[typst-world 0.5.0 carries the hints; LoadError keeps them],
 )
 
 == Problem

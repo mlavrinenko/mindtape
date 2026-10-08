@@ -228,6 +228,7 @@ fn chain_project(dir: &Path, stem_template: &str) -> (Project, Task, PathBuf, Re
         outcome: LoadOutcome {
             tasks: vec![task.clone()],
             errors: vec![],
+            ..LoadOutcome::default()
         },
     };
     let abs = dir.join("tasks/chore.typ");

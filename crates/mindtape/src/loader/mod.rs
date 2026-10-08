@@ -5,9 +5,13 @@
 //! - `app_dirs.rs`: where `mt` keeps its per-user state.
 //! - `cache.rs`: the persistent content-hash task cache.
 //! - `derive.rs`: folder-derived virtual tags.
+//! - `errors.rs`: the per-file failures and Typst warnings a load reports.
 
 pub mod app_dirs;
 pub mod derive;
+mod errors;
+
+pub use errors::{LoadError, LoadWarning};
 
 use std::path::{Path, PathBuf};
 
@@ -25,57 +29,6 @@ pub(crate) mod cache;
 
 use cache::{Cached, TaskCache};
 
-/// A per-file failure encountered while loading the project.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct LoadError {
-    /// File that failed, relative to the project root when possible.
-    pub file: PathBuf,
-    /// One-based line of `file` an eval error points at: the first point of a
-    /// diagnostic inside the file, its trace walked when Typst raised it in
-    /// the prelude, else the file's `task.with(…)` call. Never a prelude line.
-    /// `None` when the failure is not an eval error or has no place at all.
-    pub line: Option<usize>,
-    /// Human-readable cause.
-    pub message: String,
-}
-
-impl LoadError {
-    /// The failure of the file at `file`, whose text is `source`, to harvest.
-    ///
-    /// The line is the first point of an eval diagnostic inside the file
-    /// itself, its trace walked when Typst raised it in the prelude. Typst
-    /// leaves a show-everything rule out of that trace, so an error raised
-    /// elsewhere that reaches no line of the file falls back to the line of
-    /// the file's `task.with(…)` call, which applied the rule.
-    #[must_use]
-    pub(crate) fn harvest(file: PathBuf, err: &HarvestError, source: &str) -> Self {
-        let line = match err {
-            HarvestError::Eval(eval) => eval.main_location().map(|at| at.line).or_else(|| {
-                let raised_elsewhere = eval.diagnostics.iter().any(|diag| diag.location.is_some());
-                raised_elsewhere
-                    .then(|| TaskCallSpans::parse(source).call_line())
-                    .flatten()
-            }),
-            HarvestError::File(_) | HarvestError::World(_) => None,
-        };
-        Self {
-            file,
-            line,
-            message: err.to_string(),
-        }
-    }
-
-    /// Where the failure is, as a reader opens it: `file:line`, or the file
-    /// alone when no line is known.
-    #[must_use]
-    pub fn place(&self) -> String {
-        match self.line {
-            Some(line) => format!("{}:{line}", self.file.display()),
-            None => self.file.display().to_string(),
-        }
-    }
-}
-
 /// The outcome of loading a project: the tasks found and any per-file errors.
 #[derive(Debug, Clone, Default)]
 pub struct LoadOutcome {
@@ -83,6 +36,9 @@ pub struct LoadOutcome {
     pub tasks: Vec<Task>,
     /// Files that could not be evaluated or harvested.
     pub errors: Vec<LoadError>,
+    /// Typst warnings raised while evaluating files this run, in file order.
+    /// A file served from the cache raises none.
+    pub warnings: Vec<LoadWarning>,
 }
 
 /// Walk up from `start` for the project root (the dir containing `.mindtape/`).
@@ -307,6 +263,11 @@ fn record_miss(
 ) {
     match result {
         Ok(harvested) => {
+            outcome.warnings.extend(LoadWarning::from_diagnostics(
+                &miss.item.rel,
+                &typst_path(&miss.item.rel),
+                &harvested.warnings,
+            ));
             let marker = harvested
                 .with_marker("mindtape.task")
                 .next()
@@ -320,12 +281,26 @@ fn record_miss(
                     .push(assemble_task(miss.item, marker, &miss.source));
             }
         }
-        Err(err) => outcome.errors.push(LoadError::harvest(
-            miss.item.rel.clone(),
-            &err,
-            &miss.source,
-        )),
+        Err(err) => {
+            if let HarvestError::Eval { error, warnings } = &err {
+                outcome.warnings.extend(LoadWarning::from_diagnostics(
+                    &miss.item.rel,
+                    &error.main,
+                    warnings,
+                ));
+            }
+            outcome.errors.push(LoadError::harvest(
+                miss.item.rel.clone(),
+                &err,
+                &miss.source,
+            ));
+        }
     }
+}
+
+/// `rel` in Typst's path form: `/`-separated on every platform.
+fn typst_path(rel: &Path) -> String {
+    rel.to_string_lossy().replace('\\', "/")
 }
 
 fn build_world(

@@ -59,7 +59,7 @@ fn a_syntax_error_is_reported_at_its_line() {
          title: \"Set up CI\"\n  assignee: \"ada\",\n)\n",
     );
     assert!(
-        text.contains("warning: tasks/setup-ci.typ:5: eval error: expected comma"),
+        text.contains("error: tasks/setup-ci.typ:5:21: expected comma"),
         "{text}"
     );
 }
@@ -72,7 +72,58 @@ fn a_misspelled_field_is_reported_at_its_line() {
          titel: \"typo\",\n)\n",
     );
     assert!(
-        text.contains("warning: tasks/setup-ci.typ:6: eval error: unexpected argument: titel"),
+        text.contains("error: tasks/setup-ci.typ:6:3: unexpected argument: titel"),
+        "{text}"
+    );
+}
+
+/// The stderr of `mt ls` over a task file, which loads or does not.
+fn ls_stderr(source: &str) -> String {
+    let dir = support::scaffold_project(CONFIG);
+    std::fs::write(dir.path().join("tasks/setup-ci.typ"), source).unwrap();
+    let out = support::mt(dir.path()).arg("ls").output().unwrap();
+    String::from_utf8_lossy(&out.stderr).into_owned()
+}
+
+#[test]
+fn a_load_error_in_a_listing_is_a_warning_with_typsts_hint() {
+    let text = ls_stderr(
+        "#import \"@local/mindtape:0.2.0\": *\n\
+         #show: task.with(title: \"Set up CI\")\n\
+         #let a = 1\n#a-b\n",
+    );
+    assert!(
+        text.contains("warning: tasks/setup-ci.typ:4:2: unknown variable: a-b\nhint: "),
+        "{text}"
+    );
+}
+
+#[test]
+fn a_hash_in_a_body_gets_the_escape_hint_once() {
+    let text = ls_stderr(
+        "#import \"@local/mindtape:0.2.0\": *\n\
+         #show: task.with(title: \"Set up CI\")\n\
+         Channel #N carries it.\n",
+    );
+    assert!(text.contains("unknown variable: N"), "{text}");
+    assert_eq!(
+        text.matches("a literal # in a task body").count(),
+        1,
+        "{text}"
+    );
+}
+
+#[test]
+fn a_typst_warning_on_a_file_that_loads_is_its_own_warning_line() {
+    let text = ls_stderr(
+        "<orphan>\n\
+         #import \"@local/mindtape:0.2.0\": *\n\
+         #show: task.with(title: \"Set up CI\")\n",
+    );
+    assert!(
+        text.contains(
+            "warning: tasks/setup-ci.typ:1:1: label `<orphan>` is not attached to anything"
+        ),
         "{text}"
     );
 }

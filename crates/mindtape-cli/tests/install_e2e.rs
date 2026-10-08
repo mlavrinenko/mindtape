@@ -275,3 +275,29 @@ fn an_empty_data_home_resolves_no_global_package() {
         "the failure must name the unresolved package:\n{stderr}"
     );
 }
+
+/// A prelude that does not resolve fails every task file the same way. The
+/// listing says so once, naming the command and the config key, not once per
+/// file.
+#[test]
+fn a_missing_prelude_is_one_error_however_many_tasks_fail() {
+    let project = project_without_a_lib();
+    std::fs::write(
+        project.path().join("tasks/second.typ"),
+        "#import \"@local/mindtape:0.2.0\": *\n#show: task.with(title: \"Second task\")\n",
+    )
+    .unwrap();
+
+    let assert = ls_with_data_home(project.path(), std::ffi::OsStr::new(""));
+    let stderr = String::from_utf8(assert.get_output().stderr.clone()).unwrap();
+    assert_eq!(
+        stderr.matches("can't find the prelude package").count(),
+        1,
+        "{stderr}"
+    );
+    assert!(
+        stderr.contains("hint: install it once per machine: mt install"),
+        "{stderr}"
+    );
+    assert!(stderr.contains("[[typst.local-packages]]"), "{stderr}");
+}

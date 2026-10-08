@@ -184,11 +184,7 @@ fn a_load_failure_names_its_line() {
     let place = |at: usize| verdicts[at].problems()[0].clone();
     assert!(place(0).starts_with("tasks/a.typ:"), "{}", place(0));
     assert!(place(1).starts_with("the task as filled:"), "{}", place(1));
-    assert!(
-        place(1).contains(": did not load: eval error:"),
-        "{}",
-        place(1)
-    );
+    assert!(place(1).contains(": did not load:"), "{}", place(1));
 }
 
 /// A destination outside the project root has no project-relative path to

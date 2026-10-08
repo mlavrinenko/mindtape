@@ -24,6 +24,7 @@ fn stub_project(config: Config, tasks: Vec<Task>) -> Project {
         outcome: LoadOutcome {
             tasks,
             errors: vec![],
+            ..LoadOutcome::default()
         },
     }
 }

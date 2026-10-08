@@ -53,7 +53,7 @@ pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> 
     if let Some(range) = &args.commits {
         return crate::cmd::check::range::run(project, range, args.quiet);
     }
-    util::warn_errors(&project.outcome);
+    util::report_load_problems(&project.outcome, crate::diag::Kind::Failed);
 
     let header_rules = compile_rules(&project.config.tasks.body.headers.rules)
         .context("invalid tasks.body.headers.rules in config")?;

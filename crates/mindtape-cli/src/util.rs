@@ -7,11 +7,14 @@ use std::sync::OnceLock;
 
 use anyhow::{Context, Result, anyhow, bail};
 use mindtape::{
-    Config, Filter, LoadOutcome, RefError, StemHashes, Task, ViewSpec, config_path, find_root,
-    load_config, load_project, write_atomic,
+    Config, Filter, LoadError, LoadOutcome, LoadWarning, RefError, StemHashes, Task, ViewSpec,
+    config_path, find_root, load_config, load_project, write_atomic,
 };
 
-use crate::diag::{Command, Diag, Hint, Note};
+use crate::cmd::install::hint::{
+    escaped_hash_hint, is_unknown_variable, names_prelude_package, prelude_diag,
+};
+use crate::diag::{Command, Diag, Hint, Kind, Note, emit};
 use crate::render::link::HyperlinkChoice;
 
 /// A discovered, loaded project: its root, config and load outcome.
@@ -220,15 +223,72 @@ fn ambiguous(hashes: &StemHashes, id: &str, stems: &[String]) -> Diag {
     )
 }
 
-/// Print per-file load errors to stderr as warnings, then whichever remedies
-/// those errors earn — `mt install` for an unresolved prelude, `\#` for a
-/// literal hash read as markup — each once for the whole run.
+/// Print the load problems of `outcome` to stderr as warnings: the command
+/// goes on without the files that failed. See [`report_load_problems`].
 pub fn warn_errors(outcome: &LoadOutcome) {
+    report_load_problems(outcome, Kind::Warning);
+}
+
+/// Print each load problem of `outcome` to stderr, then each Typst warning.
+///
+/// `kind` is how a file that failed to load reads: [`Kind::Warning`] for a
+/// command that lists what did load, [`Kind::Failed`] for one that fails on it
+/// (`mt check`). Typst's message, its place and its hints come through as
+/// Typst words them. Two project-wide failures are said once, not per file: a
+/// prelude that does not resolve is one error naming the install command and
+/// the config key, and the escaped-hash advice rides on the first body that
+/// needs it.
+pub fn report_load_problems(outcome: &LoadOutcome, kind: Kind) {
+    let mut prelude_missing = false;
+    let mut hash_hinted = false;
     for error in &outcome.errors {
-        eprintln!("warning: {}: {}", error.place(), error.message);
+        if names_prelude_package(&error.message) {
+            if !prelude_missing {
+                emit(&prelude_diag(kind, &error.message));
+            }
+            prelude_missing = true;
+            continue;
+        }
+        let mut diag = load_diag(kind, error);
+        if !hash_hinted && is_unknown_variable(&error.message) {
+            hash_hinted = true;
+            diag = diag.hint(escaped_hash_hint());
+        }
+        emit(&diag);
     }
-    for hint in crate::cmd::install::hint::load_hints(outcome) {
-        eprintln!("{hint}");
+    for warning in &outcome.warnings {
+        emit(&warning_diag(warning));
+    }
+}
+
+/// The line for a file that failed to load: its place as `file:line:col`
+/// (less when Typst gave less), Typst's message, Typst's hints.
+fn load_diag(kind: Kind, error: &LoadError) -> Diag {
+    at_place(
+        Diag::typst(kind, &error.message),
+        &error.file,
+        error.line,
+        error.column,
+    )
+    .typst_hints(error.hints.iter().cloned())
+}
+
+/// The line for a Typst warning on a file that loaded.
+fn warning_diag(warning: &LoadWarning) -> Diag {
+    at_place(
+        Diag::typst(Kind::Warning, &warning.message),
+        &warning.file,
+        warning.line,
+        warning.column,
+    )
+    .typst_hints(warning.hints.iter().cloned())
+}
+
+/// `diag` placed at `file:line:col`, or at the bare file when no line is known.
+fn at_place(diag: Diag, file: &Path, line: Option<usize>, column: Option<usize>) -> Diag {
+    match line {
+        Some(line) => diag.at(file, line, column),
+        None => diag.at_file(file),
     }
 }
 

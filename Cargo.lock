@@ -4216,9 +4216,9 @@ dependencies = [
 
 [[package]]
 name = "typst-harvest"
-version = "0.4.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c4ab22bb245956d2e155af230f8541a9590e28a7de51b849eada04cb1bcd68fd"
+checksum = "b02d39cca3cb262ce930e9b83fdbb12446bffedb4a192747ac82782fd1c0746c"
 dependencies = [
  "comemo",
  "rayon",
@@ -4463,9 +4463,9 @@ dependencies = [
 
 [[package]]
 name = "typst-world"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c50618ae22eb36b60206e11fbf684b87d7216da79dc532bdc4ca7135ef29eef"
+checksum = "f186ccf4c44989e924e59fa8007805ad3629590d5ffbb6ab8f7da2bc02a732d3"
 dependencies = [
  "chrono",
  "dirs",

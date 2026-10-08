@@ -22,9 +22,10 @@ fn warn_errors_does_not_panic_with_errors() {
         tasks: vec![],
         errors: vec![LoadError {
             file: "broken.typ".into(),
-            line: None,
             message: "eval failed".to_owned(),
+            ..LoadError::default()
         }],
+        ..LoadOutcome::default()
     };
     warn_errors(&outcome);
 }
@@ -55,6 +56,7 @@ fn stub_project(tasks: Vec<Task>) -> Project {
     let outcome = LoadOutcome {
         tasks,
         errors: vec![],
+        ..LoadOutcome::default()
     };
     Project {
         root: ".".into(),
@@ -231,9 +233,10 @@ fn warn_errors_prints_to_stderr() {
         tasks: vec![],
         errors: vec![LoadError {
             file: "broken.typ".into(),
-            line: None,
             message: "eval failed".to_owned(),
+            ..LoadError::default()
         }],
+        ..LoadOutcome::default()
     };
     warn_errors(&outcome);
 }

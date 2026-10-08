@@ -123,13 +123,13 @@ fn warn_state_errors_reports_each_state() {
     let mut states = mindtape::CommitStates::default();
     states.head.errors.push(mindtape::LoadError {
         file: "tasks/head.typ".into(),
-        line: None,
         message: "boom".to_owned(),
+        ..mindtape::LoadError::default()
     });
     states.staged.errors.push(mindtape::LoadError {
         file: "tasks/staged.typ".into(),
-        line: None,
         message: "broken".to_owned(),
+        ..mindtape::LoadError::default()
     });
     warn_state_errors(&states, "");
 }

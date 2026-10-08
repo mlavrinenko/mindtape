@@ -52,4 +52,4 @@ Rules:
 - After any hand edit, run `mt check`. It reports a wrong-typed value as a
   violation naming its position (`tags[1]`, `estimate.days`, `recur.on[1]`),
   never as an unset field. It names a file that fails to evaluate with its
-  line: `tasks/x.typ:5: eval error: expected comma`.
+  line and column: `error: tasks/x.typ:5:21: expected comma`.

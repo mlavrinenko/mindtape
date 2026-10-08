@@ -205,10 +205,7 @@ fn real_prelude_collects_extensions_and_rejects_unknown_slots() {
          #show: task.with(title: \"T\", titel: \"typo\")\n",
     );
     assert!(bad.tasks.is_empty());
-    assert_eq!(
-        bad.errors[0].message,
-        "eval error: unexpected argument: titel"
-    );
+    assert_eq!(bad.errors[0].message, "unexpected argument: titel");
 }
 
 /// Where an editor draws the misspelled-field error: on the misspelled name in
@@ -270,7 +267,7 @@ fn real_prelude_still_refuses_what_the_sink_refused() {
         ),
     ];
     for (field, message) in cases {
-        assert_eq!(prelude_eval_error(field), format!("eval error: {message}"));
+        assert_eq!(prelude_eval_error(field), message.to_owned());
     }
     let (_dir, outcome) = load_real_prelude(
         "#import \"@local/mindtape:0.2.0\": *\n\
@@ -278,7 +275,7 @@ fn real_prelude_still_refuses_what_the_sink_refused() {
     );
     assert_eq!(
         outcome.errors[0].message,
-        "eval error: assertion failed: task takes no positional args besides its body"
+        "assertion failed: task takes no positional args besides its body"
     );
 }
 

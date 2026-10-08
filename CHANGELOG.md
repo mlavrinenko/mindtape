@@ -9,18 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A Typst error comes with its column and Typst's hints.** `mt check` prints
+  `error: tasks/broken.typ:2:3: unexpected argument: titel`, then each hint
+  Typst gave as a `hint:` line; `mt ls` prints the same line as `warning:`. A
+  Typst warning on a file that loads prints as its own `warning:` line. A
+  prelude that is not installed is one error naming `mt install` and
+  `[[typst.local-packages]]`, not one line per task. `LoadError` gains `column`
+  and `hints`, `LoadOutcome` gains `warnings`, and the `eval error:` prefix is
+  gone from every message that carried it.
 - **A refused write names the line of the source that did not load.** `mt add`
   prints `the task as filled:7: did not load: eval error: unexpected argument:
   titel` where it printed no line, and a batch write (`mt import`, `mt recur`,
   `mt flip`) prints `error: tasks/a.typ:7: did not load: …`, the file and line
   as it stands on disk.
 - **An eval error names the line of the task file.** `mt check` prints
-  `tasks/missing-comma.typ:5: eval error: expected comma` where it printed the
+  `error: tasks/missing-comma.typ:5:21: expected comma` where it printed the
   file alone, for a syntax error and for an error such as
   `unexpected argument: titel` alike. An error Typst raises inside the prelude
   names the task file's line that led into it, or its `task.with(…)` call, and
   never a prelude line. `LoadError` gains `line` and `place()`, and MindTape
-  requires typst-harvest and typst-world 0.4.
+  requires typst-harvest 0.6 and typst-world 0.5.
 - **A commit that changes product code must add a changelog entry.** A commit
   touching `crates/` or `lib/` source outside tests and not `CHANGELOG.md` is
   refused by the `changelog-with-product-change` rule, locally and in CI, unless

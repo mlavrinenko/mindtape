@@ -143,6 +143,7 @@ fn multiple_valid_tasks_reports_count() {
     let outcome = LoadOutcome {
         tasks: project.outcome.tasks.clone(),
         errors: vec![],
+        ..LoadOutcome::default()
     };
     // Confirm two tasks loaded successfully before asserting Ok.
     assert_eq!(outcome.tasks.len(), 2);

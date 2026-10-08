@@ -30,6 +30,7 @@ fn project_with(tasks: Vec<Task>, config_toml: &str) -> Project {
         outcome: LoadOutcome {
             tasks,
             errors: vec![],
+            ..LoadOutcome::default()
         },
     }
 }

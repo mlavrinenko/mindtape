@@ -235,7 +235,7 @@ fn a_task_that_fails_verification_is_never_written() {
         "the underlying cause must still be reported: {stderr}"
     );
     assert!(
-        stderr.contains("the task as filled:5: did not load: eval error:"),
+        stderr.contains("the task as filled:5: did not load:"),
         "the refusal must name the line of the task as filled: {stderr}"
     );
     assert!(

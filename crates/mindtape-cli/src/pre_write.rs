@@ -52,7 +52,7 @@ pub struct Pending<'a> {
 /// apply.
 #[derive(Debug)]
 pub struct LoadFailure {
-    /// The compiler's own message, `eval error: …` for an eval error.
+    /// The compiler's own message, Typst's own words for an eval error.
     pub message: String,
     /// The line at fault, as a breach places one: in the file on disk, or in
     /// the task as filled when there is no file yet. `None` when the failure

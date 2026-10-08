@@ -1,26 +1,24 @@
 //! Load failures whose diagnostic names a symptom but never the remedy, and
-//! the one-line hints that name it.
+//! the hints that name it.
 //!
 //! Two of them today:
 //!
 //! - Task files import `@local/mindtape`, but the machine has never run
 //!   `mt install`. Typst reports it per file as `file not found (searched at
 //!   <data dir>/typst/packages/local/mindtape/<version>/typst.toml)` — a path,
-//!   not a remedy. Every task in the project fails the same way, so `mt ls`
-//!   prints a wall of warnings above an empty table and still exits 0, and
-//!   nothing names the command that fixes it. A collaborator cloning a
-//!   `MindTape` repo hits this before anything else.
+//!   not a remedy. Every task in the project fails the same way, so
+//!   [`crate::util::report_load_problems`] folds them into the one
+//!   [`prelude_diag`] that names the command and the config key.
 //! - A task body is Typst markup, so a literal `#` in prose (`Channel #N
 //!   carries it`) opens an inline expression and the file fails with `unknown
 //!   variable: N`. The message names the variable the reader never wrote and
-//!   never mentions `\#`, so the remedy has to be discovered rather than read.
+//!   never mentions `\#`, so [`escaped_hash_hint`] says it, once per run, on
+//!   the first such error.
 //!
-//! Every hint is derived once from the whole [`LoadOutcome`] rather than per
-//! error, so a 2000-task backlog reports each once — both failures are
-//! project-wide by construction, and repeating one per file buries the tasks
-//! that failed for some other reason.
+//! [`failure_prelude_hint`] and [`batch_prelude_hint`] are the same advice as
+//! one `note:` line for the writers that still print their own.
 
-use mindtape::LoadOutcome;
+use crate::diag::{Command, Diag, Hint, Kind, Note};
 
 /// Printed when the prelude cannot be resolved. Names the command, says it is
 /// per-machine so nobody re-runs it per project, and names the per-project
@@ -34,19 +32,9 @@ const HINT: &str = "note: `@local/mindtape` is not installed — run `mt install
 /// change; separators are normalised so this holds on Windows too.
 const PRELUDE_PKG_PATH: &str = "packages/local/mindtape/";
 
-/// The hint to print for this load outcome, or `None` when the prelude
-/// resolved.
-///
-/// Returning a single value rather than one per error is what makes
-/// "once per run" structural.
-#[must_use]
-pub fn missing_prelude_hint(outcome: &LoadOutcome) -> Option<&'static str> {
-    outcome
-        .errors
-        .iter()
-        .any(|error| names_prelude_package(&error.message))
-        .then_some(HINT)
-}
+/// What Typst searched when no data directory resolves at all (an empty
+/// `$MINDTAPE_DATA_HOME`): the package spec itself, with no path.
+const PRELUDE_SPEC: &str = "searched at @local/mindtape:";
 
 /// The hint for one load failure, or `None` when the prelude resolved.
 ///
@@ -70,38 +58,13 @@ pub fn batch_prelude_hint<'a>(messages: impl IntoIterator<Item = &'a str>) -> Op
 /// Deliberately not narrowed to "file not found": a partially written or
 /// version-mismatched package directory produces a different diagnostic naming
 /// the same path, and `mt install` is the answer to those too.
-fn names_prelude_package(message: &str) -> bool {
-    message.replace('\\', "/").contains(PRELUDE_PKG_PATH)
+pub(crate) fn names_prelude_package(message: &str) -> bool {
+    message.replace('\\', "/").contains(PRELUDE_PKG_PATH) || message.contains(PRELUDE_SPEC)
 }
-
-/// Printed when a body's prose was read as markup. Names both remedies,
-/// because a run of `#`-heavy prose is better off in a code block than
-/// escaped hash by hash.
-const HASH_HINT: &str = "note: a literal `#` in a task body opens a Typst expression — write it \
-                         `\\#`, or put the prose in a code block";
-
-/// The prefix `Candidate` puts on every Typst diagnostic it turns into a
-/// [`mindtape::LoadError`]; stripped before matching so the hint keys off the
-/// diagnostic's own opening words, not that framing.
-const EVAL_PREFIX: &str = "eval error: ";
 
 /// The diagnostic Typst emits for an identifier that resolves to nothing —
 /// which is what `#N` in prose is.
 const UNKNOWN_VARIABLE: &str = "unknown variable";
-
-/// The hint to print for this load outcome, or `None` when nothing failed on
-/// an unbound identifier.
-///
-/// Sibling of [`missing_prelude_hint`] and derived the same way: one value for
-/// the whole outcome, so the hint appears once however many bodies tripped.
-#[must_use]
-pub fn escaped_hash_hint(outcome: &LoadOutcome) -> Option<&'static str> {
-    outcome
-        .errors
-        .iter()
-        .any(|error| is_unknown_variable(&error.message))
-        .then_some(HASH_HINT)
-}
 
 /// Whether `message` is the unknown-variable diagnostic itself.
 ///
@@ -109,57 +72,69 @@ pub fn escaped_hash_hint(outcome: &LoadOutcome) -> Option<&'static str> {
 /// the phrase — a task titled `unknown variable`, a nested diagnostic naming
 /// another failure's text — is a different failure, and pointing its author at
 /// `\#` sends them after a `#` that is not there.
-fn is_unknown_variable(message: &str) -> bool {
-    message
-        .strip_prefix(EVAL_PREFIX)
-        .unwrap_or(message)
-        .starts_with(UNKNOWN_VARIABLE)
+pub(crate) fn is_unknown_variable(message: &str) -> bool {
+    message.starts_with(UNKNOWN_VARIABLE)
 }
 
-/// Every hint this outcome earns, in the order they are printed.
-///
-/// The two are independent — a project can have both an uninstalled prelude
-/// and an unescaped `#` — so this is a list, not a first-match.
-pub fn load_hints(outcome: &LoadOutcome) -> impl Iterator<Item = &'static str> {
-    [missing_prelude_hint(outcome), escaped_hash_hint(outcome)]
-        .into_iter()
-        .flatten()
+/// The path Typst says it searched, from a message like `file not found
+/// (searched at <path>)`, so the one prelude error can still say where.
+fn searched_path(message: &str) -> Option<&str> {
+    let (_, tail) = message.split_once("searched at ")?;
+    let path = tail.strip_suffix(')').unwrap_or(tail);
+    (!path.starts_with('@')).then_some(path)
+}
+
+/// The one error for a prelude that did not resolve, however many task files
+/// failed on it: the package, where Typst looked (from the first failure's
+/// `message`), the command that installs it, and the config key that pins a
+/// copy instead.
+pub(crate) fn prelude_diag(kind: Kind, message: &str) -> Diag {
+    let diag = Diag::of(kind, "can't find the prelude package").value("@local/mindtape");
+    let diag = match searched_path(message) {
+        Some(path) => diag.note(Note::new("searched at").value(path)),
+        None => diag,
+    };
+    diag.hint(Hint::command(
+        "install it once per machine",
+        Command::mt().word("install"),
+    ))
+    .hint(Hint::new(
+        "or pin a copy under [[typst.local-packages]] in the config",
+    ))
+}
+
+/// The hint for a body whose prose was read as markup. Names both remedies,
+/// because a run of `#`-heavy prose is better off in a code block than
+/// escaped hash by hash.
+pub(crate) fn escaped_hash_hint() -> Hint {
+    Hint::new(
+        "a literal # in a task body opens a Typst expression: write \\# or put the prose in a code block",
+    )
 }
 
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use std::path::PathBuf;
-
-    use mindtape::{LoadError, LoadOutcome};
-
     use super::{
-        HINT, batch_prelude_hint, escaped_hash_hint, failure_prelude_hint, is_unknown_variable,
-        load_hints, missing_prelude_hint, names_prelude_package,
+        HINT, batch_prelude_hint, failure_prelude_hint, is_unknown_variable, names_prelude_package,
+        prelude_diag,
     };
+    use crate::diag::{Kind, plain};
 
     /// Verbatim from `mt ls` against a project whose prelude is not installed.
-    const REAL: &str = "eval error: file not found (searched at \
+    const REAL: &str = "file not found (searched at \
                         /home/u/.local/share/typst/packages/local/mindtape/0.2.0/typst.toml)";
-
-    fn outcome(messages: &[&str]) -> LoadOutcome {
-        LoadOutcome {
-            errors: messages
-                .iter()
-                .enumerate()
-                .map(|(i, message)| LoadError {
-                    file: PathBuf::from(format!("tasks/t{i}.typ")),
-                    line: None,
-                    message: (*message).to_owned(),
-                })
-                .collect(),
-            ..LoadOutcome::default()
-        }
-    }
 
     #[test]
     fn detects_the_real_diagnostic() {
         assert!(names_prelude_package(REAL));
+    }
+
+    #[test]
+    fn detects_the_diagnostic_when_no_data_home_resolves() {
+        let bare = "file not found (searched at @local/mindtape:0.2.0)";
+        assert!(names_prelude_package(bare));
+        assert_eq!(super::searched_path(bare), None);
     }
 
     #[test]
@@ -170,81 +145,32 @@ mod tests {
 
     #[test]
     fn ignores_unrelated_load_errors() {
+        assert!(!names_prelude_package("unexpected argument: foo"));
         assert!(!names_prelude_package(
-            "eval error: unexpected argument: foo"
-        ));
-        assert!(!names_prelude_package(
-            "eval error: file not found (searched at /tmp/p/packages/local/other/1.0.0/typst.toml)"
+            "file not found (searched at /tmp/p/packages/local/other/1.0.0/typst.toml)"
         ));
     }
 
     /// One candidate's own failure earns the hint only when it names the
-    /// prelude — `mt add` in a project with no tasks to derive it from.
+    /// prelude, as `mt add` in a project with no tasks to derive it from.
     #[test]
     fn a_single_failure_hints_only_when_it_names_the_prelude() {
         assert_eq!(failure_prelude_hint(REAL), Some(HINT));
-        assert_eq!(
-            failure_prelude_hint("eval error: unexpected argument: foo"),
-            None
-        );
+        assert_eq!(failure_prelude_hint("unexpected argument: foo"), None);
     }
 
     #[test]
     fn a_batch_hints_once_when_any_failure_names_the_prelude() {
         assert_eq!(
-            batch_prelude_hint(["eval error: unexpected argument: foo", REAL, REAL]),
+            batch_prelude_hint(["unexpected argument: foo", REAL, REAL]),
             Some(HINT)
         );
-        assert_eq!(
-            batch_prelude_hint(["eval error: unexpected argument: foo"]),
-            None
-        );
+        assert_eq!(batch_prelude_hint(["unexpected argument: foo"]), None);
         assert_eq!(batch_prelude_hint([]), None);
     }
 
     #[test]
-    fn no_hint_when_nothing_failed() {
-        assert_eq!(missing_prelude_hint(&LoadOutcome::default()), None);
-    }
-
-    #[test]
-    fn no_hint_for_other_failures() {
-        assert_eq!(
-            missing_prelude_hint(&outcome(&["eval error: unexpected argument: foo"])),
-            None
-        );
-    }
-
-    /// The whole point: a backlog where every file failed yields one hint.
-    #[test]
-    fn one_hint_however_many_files_failed() {
-        let many = vec![REAL; 2000];
-        assert!(missing_prelude_hint(&outcome(&many)).is_some());
-    }
-
-    /// A mixed outcome still hints — the unrelated failure may well be a
-    /// consequence of the missing prelude.
-    #[test]
-    fn hints_when_only_some_errors_name_the_package() {
-        assert!(
-            missing_prelude_hint(&outcome(&["eval error: unexpected argument: foo", REAL]))
-                .is_some()
-        );
-    }
-
-    /// Verbatim from `mt ls` over a body reading `Channel #N carries it.`
-    const UNBOUND: &str = "eval error: unknown variable: N";
-
-    #[test]
     fn detects_the_real_unknown_variable_diagnostic() {
-        assert!(is_unknown_variable(UNBOUND));
-        assert!(escaped_hash_hint(&outcome(&[UNBOUND])).is_some());
-    }
-
-    /// The prefix is `Candidate`'s framing, not Typst's; a diagnostic reaching
-    /// the outcome without it is the same failure.
-    #[test]
-    fn detects_the_bare_diagnostic() {
         assert!(is_unknown_variable("unknown variable: N"));
     }
 
@@ -252,46 +178,20 @@ mod tests {
     /// mid-text is some other failure, and `\#` is not its remedy.
     #[test]
     fn ignores_the_phrase_mid_text() {
+        assert!(!is_unknown_variable("cannot resolve unknown variable: N"));
         assert!(!is_unknown_variable(
-            "eval error: cannot resolve unknown variable: N"
+            "unexpected argument: unknown variable"
         ));
-        assert_eq!(
-            escaped_hash_hint(&outcome(&[
-                "eval error: unexpected argument: unknown variable"
-            ])),
-            None
-        );
     }
 
     #[test]
-    fn no_hash_hint_when_nothing_failed() {
-        assert_eq!(escaped_hash_hint(&LoadOutcome::default()), None);
-    }
-
-    /// Same once-per-run property the prelude hint has.
-    #[test]
-    fn one_hash_hint_however_many_bodies_failed() {
-        let many = vec![UNBOUND; 2000];
+    fn the_prelude_error_names_the_package_the_command_and_the_key() {
         assert_eq!(
-            load_hints(&outcome(&many)).collect::<Vec<_>>(),
-            vec![super::HASH_HINT]
-        );
-    }
-
-    /// Both failures at once yield both hints — neither suppresses the other.
-    #[test]
-    fn both_hints_coexist() {
-        assert_eq!(
-            load_hints(&outcome(&[REAL, UNBOUND])).collect::<Vec<_>>(),
-            vec![super::HINT, super::HASH_HINT]
-        );
-    }
-
-    #[test]
-    fn no_hints_for_an_unrelated_failure() {
-        assert_eq!(
-            load_hints(&outcome(&["eval error: unexpected argument: foo"])).count(),
-            0
+            plain(&prelude_diag(Kind::Warning, REAL)),
+            "warning: can't find the prelude package: '@local/mindtape'\n\
+             hint: install it once per machine: mt install\n\
+             hint: or pin a copy under [[typst.local-packages]] in the config\n\
+             note: searched at: '/home/u/.local/share/typst/packages/local/mindtape/0.2.0/typst.toml'\n"
         );
     }
 }

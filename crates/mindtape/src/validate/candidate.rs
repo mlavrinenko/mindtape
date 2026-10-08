@@ -256,8 +256,8 @@ pub fn harvest_candidate(
 ) -> Result<Task, LoadError> {
     harvest_source(root, config, candidate)?.ok_or_else(|| LoadError {
         file: candidate.rel.to_path_buf(),
-        line: None,
         message: "source harvested no task marker".to_owned(),
+        ..LoadError::default()
     })
 }
 
@@ -283,8 +283,8 @@ fn eval_marker(
 ) -> Result<Option<HVal>, LoadError> {
     let fail = |message: String| LoadError {
         file: candidate.rel.to_path_buf(),
-        line: None,
         message,
+        ..LoadError::default()
     };
     // Typst virtual paths are `/`-separated on every platform, so a Windows
     // `tasks\foo.typ` has to be spelled the way the loader's own ids are.

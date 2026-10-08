@@ -16,6 +16,7 @@ enum Shape {
     Command(&'static str, Command),
     Run(Command, &'static str),
     DidYouMean(String),
+    Typst(String),
 }
 
 impl Hint {
@@ -40,6 +41,15 @@ impl Hint {
     pub(crate) fn did_you_mean(name: impl Into<String>) -> Self {
         Self(Shape::DidYouMean(name.into()))
     }
+
+    /// One of Typst's own hints on an error, in Typst's words. Typst's text
+    /// is not ours to fix as a `&'static str`, so only [`Diag::typst_hints`]
+    /// builds one.
+    ///
+    /// [`Diag::typst_hints`]: super::Diag::typst_hints
+    pub(super) fn typst(text: String) -> Self {
+        Self(Shape::Typst(text))
+    }
 }
 
 impl fmt::Display for Hint {
@@ -49,6 +59,7 @@ impl fmt::Display for Hint {
             Shape::Command(text, command) => write!(formatter, "{text}: {command}"),
             Shape::Run(command, purpose) => write!(formatter, "run {command} {purpose}"),
             Shape::DidYouMean(name) => write!(formatter, "did you mean {name}?"),
+            Shape::Typst(text) => formatter.write_str(text),
         }
     }
 }
@@ -74,10 +85,6 @@ impl Note {
     }
 
     /// The value the note is about, rendered single-quoted after the text.
-    #[cfg_attr(
-        not(test),
-        expect(dead_code, reason = "the first fan-out task to print a note calls it")
-    )]
     pub(crate) fn value(mut self, value: impl AsRef<str>) -> Self {
         self.tail = Some(quote(value.as_ref()));
         self

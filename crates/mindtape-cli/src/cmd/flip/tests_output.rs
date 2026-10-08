@@ -256,7 +256,7 @@ fn refuses_a_rewrite_that_would_not_load() {
         let o = child_output("refuses_a_rewrite_that_would_not_load");
         let err = String::from_utf8_lossy(&o.stderr);
         assert!(
-            err.contains("error: tasks/alpha.typ:2: did not load: eval error:"),
+            err.contains("error: tasks/alpha.typ:2: did not load:"),
             "expected the pre-write refusal prefixed as an error: {err}"
         );
         assert!(

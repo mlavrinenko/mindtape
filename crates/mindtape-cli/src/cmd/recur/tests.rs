@@ -126,6 +126,7 @@ fn guard_double_spawn_refuses_an_existing_successor_unless_forced() {
         outcome: mindtape::LoadOutcome {
             tasks: vec![original.clone(), spawn1],
             errors: vec![],
+            ..mindtape::LoadOutcome::default()
         },
     };
     assert!(guard_double_spawn(&project, &original, false).is_err());
