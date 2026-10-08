@@ -88,6 +88,9 @@ check() {
         --slurpfile files "$tmp/files.json"
 }
 
+# The finding for a span that quotes `mt` output by hand.
+QUOTED='quotes `mt` output by hand; render the line with capture-line(<slug>, <regex>) from www/utils/ui.typ'
+
 control() {
     local page=$tmp/control.typ
     cat >"$page" <<'EOF'
@@ -102,6 +105,7 @@ Bad: `mt lss`, `mt ls --jsn`, `mt ls --no-such-flag`, `mt config shw`, `mt @name
 Bad: `cd x && mt lsj`, `MINDTAPE_NOW=2026-01-01 mt ls --jsn`, `$ mt lsq`, `mt ls | mt lsp`.
 Bad: `[tasks.priorty]`, `tasks.estimate.unit`, `[tasks.roots]`, `[[tasks.priority]]`,
 `[ls] hyperlinkz`, `[tasks.estimate.units]`. #raw("mt lsr")
+Good: `error:`, `hint:`, `error codes`. Bad: `hint: file it with mt add -t dev`, #raw("error: x: y is bad")
 // `mt lsc` in a comment line
 ```
 mt lsf in a fenced block
@@ -116,6 +120,8 @@ EOF
     want=$(sort <<'EOF'
 `[[tasks.priority]]`: [[tasks.priority]] names a table; write [tasks.priority]
 `[ls] hyperlinkz`: ls has no key hyperlinkz; closest: hyperlinks
+`error: x: y is bad`: QUOTED
+`hint: file it with mt add -t dev`: QUOTED
 `[tasks.estimate.units]`: [tasks.estimate.units] names a value, not a table
 `[tasks.priorty]`: tasks has no key priorty; closest: priority
 `[tasks.roots]`: [tasks.roots] names an array of tables; write [[tasks.roots]]
@@ -134,6 +140,7 @@ EOF
 `tasks.estimate.unit`: tasks.estimate has no key unit; closest: units
 EOF
     )
+    want=${want//QUOTED/$QUOTED}
     got=$(check "$page" | sed "s|^check-doc-spans: $page:[0-9]*: ||" | sort)
     if [ "$got" != "$want" ]; then
         echo "check-doc-spans: control failed; findings differ from the expected set:" >&2

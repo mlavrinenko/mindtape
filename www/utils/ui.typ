@@ -113,6 +113,23 @@
   json("../generated/" + slug + ".json").steps.last().code,
 ))
 
+// One line of what a capture printed, as inline code: the first line, colour
+// stripped, that matches the regex `pattern`. The build fails when no line
+// matches, so a quoted diagnostic cannot outlive its text.
+#let capture-line(slug, pattern) = {
+  let record = json("../generated/" + slug + ".json")
+  let lines = record
+    .steps
+    .map(step => _ansi-strip(step.out).split("\n"))
+    .flatten()
+  let hit = lines.find(line => line.contains(regex(pattern)))
+  assert(
+    hit != none,
+    message: "capture " + slug + " has no line matching " + pattern,
+  )
+  raw(hit.trim())
+}
+
 // The commands of a capture alone, as a block a reader can copy.
 #let commands(slug) = raw(
   json("../generated/" + slug + ".json").steps.map(step => step.cmd).join("\n"),

@@ -94,8 +94,14 @@ def keypath_findings:
   | select($segs | rooted)
   | resolve($schema; $segs; []) | .err | values;
 
+# A span that quotes a line of `mt` output by hand: a diagnostic prefix, then
+# its text. A bare prefix such as `hint:` names the prefix and quotes nothing.
+def quoted_output: test("^(error|warning|hint|note): \\S");
+
 split("\t") as [$file, $line, $span]
 | ($span | gsub("^\\s+|\\s+$"; "")) as $s
-| ($s | if startswith("[") then header_findings
-        else keypath_findings end)
+| (if ($s | quoted_output)
+   then "quotes `mt` output by hand; render the line with capture-line(<slug>, <regex>) from www/utils/ui.typ"
+   else ($s | if startswith("[") then header_findings
+              else keypath_findings end) end)
 | "check-doc-spans: \($file):\($line): `\($s)`: \(.)"

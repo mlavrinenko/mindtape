@@ -161,11 +161,11 @@ groups:
       .just/scripts/check-doc-prose.awk: ee24e35c98ff1a243bc423cfeda62e2a53ffb0d4618a00aa4b9d5c41d1344db4
       .just/scripts/check-doc-prose.sh: ceee9489c0dfc85a7bfea6516ad141d0194bc71bd721396011eac094991f8157
       .just/scripts/check-doc-recipes.sh: fd397519691e5efe66e3d03a8a8f7bf62b2faaa77d694e8262d998590611909c
-      .just/scripts/check-doc-spans.jq: 6289fc7f4c92d03fd925093791c4152cfa29852ece93148efa88343cd1b97888
-      .just/scripts/check-doc-spans.sh: 56f372bacab3fdf8029e26093aecc22d2a81cddb27052b5544d62437e84bb690
+      .just/scripts/check-doc-spans.jq: 11b90c9ae919665a1be67bbd7e28274f08bb7d8b5e53a13e04045fb635fd607e
+      .just/scripts/check-doc-spans.sh: 0e623a952826346ea43d55d25711cecb944a8e8aba3fd9be1e49aa6eebc0205d
       .just/scripts/docs-md-check.sh: 06b5b942d9a14fa00134ec4de64b4f2e706ae49bf1b55206b2afd54c2d87791f
     dependents:
-      docs/src/contributing/documentation.typ: 10e8f21d26558aae35b1db9ff1533d7b95c53cfb4d85ae424a8019635bde30b4
+      docs/src/contributing/documentation.typ: 1964773f825eb60d59d13e22c79c9e225c4f57c6b641c89a50c8dc1d775ff496
       docs/src/contributing/generated-docs.typ: 6a981d7c8fd1b98a7ef3ea7916fc8f83bdca254e5d86ba53f300a52902236189
   filter-docs:
     source:

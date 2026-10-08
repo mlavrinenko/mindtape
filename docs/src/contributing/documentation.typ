@@ -103,6 +103,13 @@ so a refusal capture also names its reason with `--expect <regex>`. The build fa
 output, without its colour, matches the regex. It also fails on a non-zero
 `--exit` that has no `--expect`.
 
+To quote one line of what a capture printed, such as an `error:` or `hint:`
+line, write `capture-line(<slug>, <regex>)`. It renders the first line of the
+capture that matches the regex, and the build fails when none does. The span
+gate fails on an inline span that starts with `error:`, `warning:`, `hint:` or
+`note:` followed by text, because a hand-typed copy goes stale when the
+message changes.
+
 #just.check-doc-blocks() fails on a fenced block, or a block `raw(...)`,
 whose text is written in the source. If no fixture can hold a block, such as
 a grammar sketch, put `// docs:hand-typed <reason>` on the line above it. The

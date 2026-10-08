@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": terminal
+#import "../utils/ui.typ": capture-line, terminal
 #import "../utils/site.typ": u
 
 #let meta = (
@@ -33,7 +33,7 @@ slot is `title`. `mt add --list` lists the templates it finds.
 Sometimes `mt add` refuses a task because of one field, and another template
 would have set that field the way you wanted. In that case the error suggests
 that template:
-#raw("hint: template `dev` files kind=dev: mt add -t dev ..."). Each matching
+#capture-line("add-template-hint", "^hint: "). Each matching
 template gets its own line.
 
 Here's the template in `examples/api-service/.mindtape/templates/task.typ`:
@@ -85,7 +85,7 @@ It fills each template as `mt add` would, with every slot holding its
 and against an empty backlog, under the file name `mt add` would give it. A
 problem the template can fix counts, and the error names the template file and
 the line of the field:
-#raw("error: .mindtape/templates/bug.typ:4: kind: `bug` is not an allowed value").
+#capture-line("check-template-stale", "^error: .*bug.typ").
 A problem about the backlog doesn't count: a `count()` cap, a rule on `ready`
 or `blocked`, a link cycle, or a link to a task that isn't there.
 

@@ -58,6 +58,56 @@ run api-service-add-print.typ "$API" add -f "$OUT/api-service-values.yaml" --pri
 run api-service-ls-ready.json "$API" ls ready -n 1 --json
 capture --exit 2 --expect 'missing required slot' api-service-add-refused "$API" 'mt add "Log slow database queries" --print </dev/null'
 
+# /templates/: the refusal that names another template, and `mt check` on a
+# template whose literal is not an allowed value. Each is a scratch
+# project the capture writes.
+capture_scratch T
+mkdir -p "$T/.mindtape/templates"
+cat >"$T/.mindtape/config.toml" <<'TOML'
+[tasks]
+roots = ["tasks"]
+
+[tasks.fields.kind]
+values = ["feat", "dev"]
+required = true
+
+[[tasks.rules]]
+name = "dev-sets-difficulty"
+when = 'kind == "dev"'
+assert = 'kind != "dev" || difficulty == 3'
+message = "a dev chore carries difficulty 3"
+severity = "error"
+TOML
+cat >"$T/.mindtape/templates/dev.typ" <<'TYP'
+#import "@local/mindtape:0.2.0": *
+#show: task.with(
+  title: slot("title"),
+  kind: "dev",
+  difficulty: 3,
+)
+TYP
+capture --exit 1 --expect 'hint: ' add-template-hint "$T" 'mt add --name t --set title=T --set kind=dev'
+
+capture_scratch B
+mkdir -p "$B/.mindtape/templates"
+cat >"$B/.mindtape/config.toml" <<'TOML'
+[tasks]
+roots = ["tasks"]
+
+[tasks.fields.kind]
+values = ["fix"]
+TOML
+for name in bug task; do
+  cat >"$B/.mindtape/templates/$name.typ" <<'TYP'
+#import "@local/mindtape:0.2.0": *
+#show: task.with(
+  title: slot("title", example: "Fix the crash on save"),
+  kind: "bug",
+)
+TYP
+done
+capture --exit 1 --expect 'is not an allowed value' check-template-stale "$B" 'mt check'
+
 # /derived-tags/: every task with the tags mt derives for it, and a filter on
 # one derived tag.
 run derived-tags-ls.json "$TAGS" ls '' --json
