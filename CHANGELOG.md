@@ -1879,6 +1879,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt --help` says where a worktree alias goes.** It read "the `@name` you
+  can pass to `-w`", but `mt -w @main ls` fails; the alias goes right after
+  `mt`, as `mt @main ls`.
 - **Editing a module a task imports updates the task.** A cached task is
   re-read whenever a file it imports changed or vanished, where `mt ls` kept
   showing the old value until the cache was cleared.

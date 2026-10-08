@@ -71,7 +71,7 @@ enum Command {
     Graph(graph::GraphArgs),
     /// List your saved views, or show one.
     Views(views::ViewsArgs),
-    /// List your worktree aliases, the `@name` you can pass to `-w`.
+    /// List your worktree aliases, the `@name` you put right after `mt`.
     Worktrees(worktrees::WorktreesArgs),
     /// Check every task, and the task each template would file, against your
     /// project's rules.

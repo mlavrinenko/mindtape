@@ -32,7 +32,7 @@ groups:
   cli-docs:
     source:
       crates/mindtape-cli/src/cli/completion/mod.rs: 2b2d0f8eb41435fbc5f6bda31c25f4c64238a4d567d0824a2e3ae939d073a410
-      crates/mindtape-cli/src/cli/mod.rs: 0ef22ed64b685e065a9fe84a7eee2134a07816f0eaa87e813415ab3aa1b0cc1b
+      crates/mindtape-cli/src/cli/mod.rs: b211689308b803639e789b4160c68fe84e7f3b24b70c93d9da4e7f508c317f8c
       crates/mindtape-cli/src/cmd/add/mod.rs: b4ea64ce88d233e859d665fd8ec85e03300e3d1e40fbe7e21e2a76b5c2bf8700
       crates/mindtape-cli/src/cmd/check/mod.rs: c994482eb3ed6c27005e3a0fd03264d40af769bd545bf4f4069e03417e19b3ef
       crates/mindtape-cli/src/cmd/config.rs: a2b4efac733829e7561f40b974e873e6d79629845259fafe3af706186a7715c7
@@ -94,28 +94,28 @@ groups:
       www/content/cli/worktrees.typ: edd512ecff478c88e54c9c8e177d02948a80a3b37ba33d275a888a7cb87416c5
       www/content/commit-rules.typ: 49af1176ab2066c05ff3104301df1c1e8b85eb2c159511f9fa0a7bd64a347791
       www/content/concepts.typ: 7f93f231f77b672dfa9e7c02fab3134a237dd893779b557978087e2c0a42c7c0
-      www/content/config.typ: 091320e0b8230019d829f0a93d167a97c0fde2a2df87370a4261f09535d974c9
+      www/content/config.typ: ee53e55858855a8789d78b11a0317ac4841324e91264dd4e17b6d9bb755cf23f
       www/content/derived-tags.typ: a62813a58d4b2810162a9dfe03b0a7b89ea814f6085293b83f6abfa61f253ed7
       www/content/estimates.typ: fed310a25a6e424af34bcba7c52b132dd8693d30e5d2c3112d9b9d3ba000b03f
       www/content/filters.typ: 5afa9fd8f0f267a16ec92b8266b3f6b0013319bc19781d72d7d679368ddac32e
       www/content/hooks.typ: dc78c4f67a7d0af74c0383f8a14d6e3a8bca9ddd6134c1bd05a01618f501fd46
-      www/content/import-export.typ: d3fca14854b393e4522e44894f5f1f80eaeb53b2d4f9085d0f7b6c2e70b0940d
+      www/content/import-export.typ: 21da077af3865d4449176940db50674755bb53cbd0c01db00f78eeb37a688e0f
       www/content/links.typ: e3a979681bb69195fddbb8d672e58842ae07b7464ebdd60720b12bd29a9240a0
       www/content/named-sets.typ: 1f0776c85c0cd30b5624fbc134c79cdfd682a336b3760a42d989f34b666c84ba
-      www/content/priority.typ: ec937f8349b637244cd7098a21b68f43e79e65e107bfa31ac59882ec04bfdeb5
+      www/content/priority.typ: 3ce099d671a74c81abda7c1d7b0c77ca97dd21ffbdaf9e6d9884adffe22ac4ee
       www/content/quickstart.typ: 3084bf191c0af22c9748c515afbd298ab66b76f117b7ea493002e78697ab6688
-      www/content/recurring.typ: 41c1583845b73cd5ed88d6d9ea2bc3206e7ab56c037a66774b33715c9cd23a43
+      www/content/recurring.typ: 627af18b68cd0334c7e5a623b4f53aa3d1b75806e2830f95a0472f0a133e9b61
       www/content/rules.typ: cf795f92b9a393923357e379c8e5ea059355f6d7c8aa4b8b596e3bd12091ea49
-      www/content/schema.typ: e6c4046069551924bace93dd9903af1ee9a300f869d93e3b01e852c6bc2199a5
+      www/content/schema.typ: f1c69aa79471a96e3bbd631c8951e6e9002b8f803274830be38c1fb1c86d17ab
       www/content/statuses.typ: 79d707f00b08f4632611f64942bee2cc673857b1667e13e9f24d16e142d42cd8
-      www/content/templates.typ: 7a020ef118065137e4a6179b263a1352e7dc25d58fe06d77abcab0b37f632df3
-      www/utils/cli-notes.typ: 0054ff451cb3816db6909de1a5ae927c33a2c9f70a81c4deff2da235c17b75ba
+      www/content/templates.typ: 6ecb2922d784716018ae73dab986d50cddbd6bc9a8ec5b7a054fbf135ce7e939
+      www/utils/cli-notes.typ: c364a3d5cbc1c34bdb8e05fe0b29dbbd8e425d315de06337db4e5f5a0bb80e87
   cli-name:
     source:
       crates/mindtape-cli/Cargo.toml: c5f9fc9f3bb812449698f0e0a9555d449d2ab4b4b0208de68bb77d35f53ca9af
-      crates/mindtape-cli/src/cli/mod.rs: 0ef22ed64b685e065a9fe84a7eee2134a07816f0eaa87e813415ab3aa1b0cc1b
+      crates/mindtape-cli/src/cli/mod.rs: b211689308b803639e789b4160c68fe84e7f3b24b70c93d9da4e7f508c317f8c
     dependents:
-      CHANGELOG.md: da4bc448e47c0432ebf5490799d8c5f1b0ed17e6150c41df50430ad20b60dcd6
+      CHANGELOG.md: e9c6de95599363d06cece5e841c0d4ef8d6d3b2b2e9290f9124a7b92964d624d
       docs/src/agents.typ: 6a226def19f29097c3d4141891a5bdc80dd4b03c2ab7847e07233350e2dbbf7f
       docs/src/contributing.typ: 0fcf56a1143b4f0c0395620b50af3c9474aeb1c591003724bc4c20f34973edd3
       docs/src/contributing/command-semantics.typ: bb34aceec2040207d20e78a519a933576b3df52f941b6496b8eaa1f4c1e84ebc
