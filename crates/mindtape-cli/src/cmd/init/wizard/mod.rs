@@ -18,7 +18,7 @@
 
 use std::io::{BufRead, Write};
 
-use anyhow::Result;
+use crate::diag::Result;
 
 use crate::diag::{Diag, Kind, Note};
 
@@ -208,8 +208,7 @@ fn choose<A: Axis, R: BufRead, W: Write>(
         return match value.unavailable() {
             Some(why) => Err(Diag::refused("this choice is unavailable in this build")
                 .value(value.slug())
-                .note(Note::new(why))
-                .into()),
+                .note(Note::new(why))),
             None => Ok(value),
         };
     }

@@ -5,11 +5,10 @@
 
 use std::path::Path;
 
-use anyhow::{Context, Result};
 use mindtape::{Config, Violation, load_config, load_project, validate};
 use typst_edit::{Call, Edit, find_method_calls};
 
-use crate::diag::{Diag, Kind};
+use crate::diag::{Diag, Kind, Result};
 use crate::pre_write::Pending;
 use crate::util::Project;
 
@@ -21,7 +20,7 @@ pub fn task_with(source: &str) -> Result<Call> {
     find_method_calls(source, "task", "with")
         .into_iter()
         .next()
-        .context("no task.with(…) call found in source")
+        .ok_or_else(|| Diag::failed("no task.with(…) call found in source"))
 }
 
 /// Build an edit setting `name: value_text` in `call`: replace an existing
@@ -52,7 +51,7 @@ pub fn upsert_named_arg(source: &str, call: &Call, name: &str, value_text: &str)
         .range
         .end
         .checked_sub(1)
-        .context("call range is empty")?;
+        .ok_or_else(|| Diag::failed("call range is empty"))?;
     let Some(last) = call.args.last() else {
         let indent = detect_indent(source, call);
         return Ok(Edit::new(
@@ -138,13 +137,12 @@ pub fn verify_written(root: &Path, file: &Path) -> Result<()> {
         return Err(match error.line {
             Some(line) => diag.at(&error.file, line, error.column),
             None => diag.at_file(&error.file),
-        }
-        .into());
+        });
     }
     let Some(task) = outcome.tasks.iter().find(|task| task.file == rel) else {
-        return Err(Diag::failed("written task harvested no task marker")
-            .value(rel.display().to_string())
-            .into());
+        return Err(
+            Diag::failed("written task harvested no task marker").value(rel.display().to_string())
+        );
     };
 
     let issues: Vec<_> = validate(&outcome.tasks, &config)
@@ -170,7 +168,7 @@ fn report_issues(issues: &[Violation]) -> Result<()> {
     };
     let refusal = lines.remove(last);
     lines.iter().for_each(crate::diag::emit);
-    Err(refusal.into())
+    Err(refusal)
 }
 
 /// Validate a rendered task *before* it is written, so a rejected write leaves
@@ -207,33 +205,10 @@ pub fn verify_candidate(project: &Project, file: &Path, source: &str) -> Result<
         return Ok(true);
     };
     if verdict.load_failure.is_some() {
-        return Err(diag.into());
+        return Err(diag);
     }
-    Err(Refused {
-        diag,
-        reads: verdict.reads(),
-    }
-    .into())
+    Err(diag.reading(verdict.reads()))
 }
-
-/// [`verify_candidate`]'s refusal of a source that loaded, carrying the task
-/// fields its breaches read, so a caller can tell what they are about.
-#[derive(Debug)]
-pub struct Refused {
-    /// The last problem, which is the command's error.
-    pub diag: Diag,
-    /// The fields the fatal breaches read ([`mindtape::Violation::reads`]),
-    /// or `None` when one may be about any field.
-    pub reads: Option<std::collections::BTreeSet<String>>,
-}
-
-impl std::fmt::Display for Refused {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.diag.fmt(f)
-    }
-}
-
-impl std::error::Error for Refused {}
 
 /// Unreachable placeholder: [`crate::pre_write::check`] answers one verdict per
 /// pending write, so the single-entry slice above always yields one.

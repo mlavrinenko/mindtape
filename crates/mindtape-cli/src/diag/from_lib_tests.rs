@@ -51,17 +51,6 @@ fn every_condition_error_is_a_failure_in_one_shape() {
 }
 
 #[test]
-fn a_condition_error_in_an_anyhow_chain_keeps_its_words() {
-    let err = anyhow::Error::from(ConditionError::TaskField("due".to_owned()))
-        .context("ls.rules[0].condition");
-    assert!(
-        plain(&Diag::from(err)).starts_with(
-            "error: ls.rules[0].condition: a condition can't read a task field: 'due'"
-        )
-    );
-}
-
-#[test]
 fn a_config_error_lists_its_known_names_on_a_hint() {
     let err = ConfigError::Invalid {
         message: "views.a.columns: unknown column: 'fiel'".to_owned(),
@@ -102,7 +91,7 @@ fn an_unknown_dict_lists_the_dicts_on_a_hint() {
 }
 
 fn cleanup_text(err: typst_cleanup::Error) -> String {
-    crate::diag::plain_anyhow(anyhow::Error::new(err))
+    crate::diag::plain(&Diag::from(err))
 }
 
 #[test]

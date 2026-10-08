@@ -41,8 +41,8 @@ why and how they work, and `AGENTS.md` says what MindTape is.
 The workspace `Cargo.toml` sets its clippy lints to `deny`, so the `clippy`
 gate fails on any violation. These limits shape the code most:
 
-- No `unwrap()` or `expect()` outside tests. Use `?` with `anyhow` or
-  `thiserror`.
+- No `unwrap()` or `expect()` outside tests. Use `?` with a `Diag` in the
+  `mt` binary and `thiserror` in the library.
 - No `todo!()`, `unimplemented!()`, `unreachable!()`, `unsafe` or wildcard
   imports.
 - A function gets at most 70 lines, 5 arguments and a cognitive complexity
@@ -61,10 +61,9 @@ gate fails on any violation. These limits shape the code most:
   which quotes it.
 - Pick the kind, not the exit code: `Diag::usage` exits 2, `Diag::refused`
   and `Diag::failed` exit 1. `main` prints the error and exits with its code.
-- clippy refuses `eprintln!`, `bail!` and `anyhow!`. A module that still
-  prints or builds an error outside `diag/` is an entry on the one list in
-  `diag/allowlist.rs`, with an `allow` on its `mod` line. The list's test
-  refuses a new entry and a stale one, so the list only shrinks.
+- Every command returns `Result<_, Diag>`, and the `mt` binary has no
+  `anyhow`. clippy refuses `eprintln!`, `eprint!` and `std::io::stderr`
+  outside `diag/`, so no line reaches stderr unrendered.
 - If callers match on a library error type, derive `thiserror::Error` for it,
   as `RecurError`, `ConfigError` and `FilterError` do, and convert it in
   `diag/from_lib.rs` with a match on every variant.

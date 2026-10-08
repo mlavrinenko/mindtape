@@ -4,7 +4,7 @@
 
 use std::io;
 
-use anyhow::Result;
+use crate::diag::Result;
 use crossterm::event::{
     KeyboardEnhancementFlags, PopKeyboardEnhancementFlags, PushKeyboardEnhancementFlags,
 };

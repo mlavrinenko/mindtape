@@ -3,7 +3,7 @@
 
 use std::collections::HashSet;
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::{Filter, Readiness, Task, select};
 
 use crate::diag::{self, Diag};
@@ -33,7 +33,7 @@ pub(super) fn select_targets(
     for spec in targets {
         match resolve_one(project, spec, readiness) {
             Ok(found) => ids.extend(found),
-            Err(err) => problems.push(Diag::from(err)),
+            Err(err) => problems.push(err),
         }
     }
     unresolved(problems, targets.len())?;
@@ -103,7 +103,7 @@ fn ids_of(tasks: Vec<Task>) -> HashSet<String> {
 
 /// `spec` as a filter, its failure worded for the command line.
 fn parse(spec: &str) -> Result<Filter> {
-    Filter::parse(spec).map_err(|err| diag::filter(err, Some(spec)).into())
+    Filter::parse(spec).map_err(|err| diag::filter(err, Some(spec)))
 }
 
 /// Fail when any of the `total` entries did not resolve: the one problem as it
@@ -111,12 +111,12 @@ fn parse(spec: &str) -> Result<Filter> {
 fn unresolved(mut problems: Vec<Diag>, total: usize) -> Result<()> {
     match problems.len() {
         0 => Ok(()),
-        1 => problems.pop().map_or(Ok(()), |only| Err(only.into())),
+        1 => problems.pop().map_or(Ok(()), Err),
         failed => {
             for problem in &problems {
                 diag::emit(problem);
             }
-            Err(Diag::batch("resolved", total.saturating_sub(failed), total).into())
+            Err(Diag::batch("resolved", total.saturating_sub(failed), total))
         }
     }
 }
@@ -134,5 +134,5 @@ fn filter_tasks(
         &project.config,
         readiness,
     )
-    .map_err(|err| diag::filter(err, Some(expr)).into())
+    .map_err(|err| diag::filter(err, Some(expr)))
 }

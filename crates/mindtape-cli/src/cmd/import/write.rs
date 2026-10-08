@@ -21,7 +21,7 @@
 use std::collections::HashSet;
 use std::path::PathBuf;
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::ImportReport;
 
 use crate::diag::Diag;

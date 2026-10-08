@@ -19,12 +19,12 @@ use crate::util::Project;
 /// facet composition, not the environment; the environment's own predicates
 /// are covered in `mindtape`'s `condition_tests.rs` and the per-column
 /// resolution in `render/columns_tests.rs`.
-pub(crate) fn resolve_bare(project: &Project) -> anyhow::Result<(Bundle, Applied)> {
+pub(crate) fn resolve_bare(project: &Project) -> crate::diag::Result<(Bundle, Applied)> {
     super::resolve_bare(project, &build_env(project, "table"))
 }
 
 /// [`super::resolve`], same pinning as [`resolve_bare`].
-pub(crate) fn resolve(project: &Project, args: &LsArgs) -> anyhow::Result<(Bundle, Applied)> {
+pub(crate) fn resolve(project: &Project, args: &LsArgs) -> crate::diag::Result<(Bundle, Applied)> {
     super::resolve(project, args, &build_env(project, "table"))
 }
 
@@ -385,7 +385,7 @@ import-views = ["ghost"]
     // ("default"), so the hint says where to list views instead of guessing
     // (`truth/tasks/suggest-a-nearest-match-on-an-unknown-view-name.typ`).
     let err = resolve_bare(&project).unwrap_err();
-    let msg = crate::diag::plain_anyhow(err);
+    let msg = crate::diag::plain(&err);
     assert_eq!(
         msg,
         "error: unknown view: 'ghost'\nhint: run mt views to see the views\n"
@@ -405,7 +405,7 @@ import-views = ["releasee"]
 "#,
     );
     let err = resolve_bare(&project).unwrap_err();
-    let msg = crate::diag::plain_anyhow(err);
+    let msg = crate::diag::plain(&err);
     assert!(msg.contains("hint: did you mean release?"), "{msg}");
 }
 

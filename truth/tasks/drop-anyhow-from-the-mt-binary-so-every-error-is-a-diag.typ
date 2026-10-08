@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: accepted(2026, 10, 8),
+  status: done(
+    2026,
+    10,
+    8,
+  )[run returns Result\<(), Diag>; anyhow, Diag::legacy and the allowlist are gone; clippy refuses std::io::stderr outside diag/.],
   links: depends-on(
     "build-an-error-dsl-that-fixes-the-message-format-and-the-exit-code.typ",
   )

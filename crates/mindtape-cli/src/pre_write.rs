@@ -32,13 +32,12 @@
 use std::collections::BTreeSet;
 use std::path::Path;
 
-use anyhow::{Context, Result};
 use mindtape::{
     BodyRules, Candidate, Location, Task, Violation, compile_content_rules, compile_rules,
 };
 
 use crate::cmd::install::hint::{names_prelude_package, prelude_hints};
-use crate::diag::{Diag, Kind, Note};
+use crate::diag::{Diag, Kind, Note, Result};
 use crate::util::Project;
 
 /// One write a command is about to make.
@@ -162,15 +161,35 @@ impl Verdict {
 /// Returns an error if those body rules do not compile — the same compile
 /// step `mt check` runs, surfaced here before any candidate is evaluated.
 pub fn check(project: &Project, world: &[Task], pending: &[Pending<'_>]) -> Result<Vec<Verdict>> {
-    let header_rules = compile_rules(&project.config.tasks.body.headers.rules)
-        .context("invalid tasks.body.headers.rules in config")?;
-    let content_rules = compile_content_rules(&project.config.tasks.body.content.rules)
-        .context("invalid tasks.body.content.rules in config")?;
-    let body_rules = BodyRules {
-        headers: &header_rules,
-        content: &content_rules,
-    };
+    with_body_rules(&project.config, |body_rules| {
+        Ok(check_with(project, world, pending, body_rules))
+    })
+}
 
+/// Compile `config`'s header and content body rules and hand them to `run`.
+///
+/// # Errors
+/// Returns an error if either set does not compile, or whatever `run` returns.
+pub(crate) fn with_body_rules<T>(
+    config: &mindtape::Config,
+    run: impl FnOnce(BodyRules<'_>) -> Result<T>,
+) -> Result<T> {
+    let headers = compile_rules(&config.tasks.body.headers.rules)
+        .map_err(|err| Diag::failed("invalid tasks.body.headers.rules in config").cause(&err))?;
+    let content = compile_content_rules(&config.tasks.body.content.rules)
+        .map_err(|err| Diag::failed("invalid tasks.body.content.rules in config").cause(&err))?;
+    run(BodyRules {
+        headers: &headers,
+        content: &content,
+    })
+}
+
+fn check_with(
+    project: &Project,
+    world: &[Task],
+    pending: &[Pending<'_>],
+    body_rules: BodyRules<'_>,
+) -> Vec<Verdict> {
     // Canonicalized here rather than at each call site: `write_task` runs the
     // same pass on the way to disk, and typstyle is idempotent, so these are
     // the bytes the file will hold.
@@ -182,7 +201,7 @@ pub fn check(project: &Project, world: &[Task], pending: &[Pending<'_>]) -> Resu
     let mut candidates = Vec::with_capacity(pending.len());
     for (entry, source) in pending.iter().zip(&sources) {
         let Ok(rel) = entry.file.strip_prefix(&project.root) else {
-            return Ok(pending.iter().map(|_| unchecked()).collect());
+            return pending.iter().map(|_| unchecked()).collect();
         };
         candidates.push(Candidate { rel, source });
     }
@@ -194,7 +213,7 @@ pub fn check(project: &Project, world: &[Task], pending: &[Pending<'_>]) -> Resu
         &candidates,
         body_rules,
     );
-    Ok(answers
+    answers
         .into_iter()
         .zip(pending.iter().zip(&sources))
         .map(|(answer, (entry, source))| {
@@ -202,7 +221,7 @@ pub fn check(project: &Project, world: &[Task], pending: &[Pending<'_>]) -> Resu
             place_on_disk(&mut found, entry.file, &project.root, source);
             found
         })
-        .collect())
+        .collect()
 }
 
 /// Move each breach of the candidate onto the file as it stands on disk.
@@ -307,7 +326,7 @@ pub fn absorb(world: &mut Vec<Task>, task: Task) {
 fn refuse_rejected(pending: &[Pending<'_>], verdicts: &[Verdict]) -> Result<()> {
     let labels: Vec<String> = pending.iter().map(|entry| label(entry.file)).collect();
     match settle(&labels, verdicts) {
-        Some(refusal) => Err(refusal.into()),
+        Some(refusal) => Err(refusal),
         None => Ok(()),
     }
 }

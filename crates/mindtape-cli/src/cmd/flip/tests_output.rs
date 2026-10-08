@@ -243,7 +243,7 @@ fn revalidate_prints_the_unreachable_violation() {
     let dir = tempfile::tempdir().unwrap();
     let project = setup(dir.path(), &[("s.typ", STATELESS)], REACHABLE_CONFIG);
     let err = run_with(&project, &flip_args("blocked", &["s"])).unwrap_err();
-    crate::diag::emit(&crate::diag::Diag::from(err));
+    crate::diag::emit(&err);
 }
 
 /// A rewrite that would not evaluate is refused *before* the write, so the
@@ -269,7 +269,7 @@ fn refuses_a_rewrite_that_would_not_load() {
     let dir = tempfile::tempdir().unwrap();
     let project = setup(dir.path(), &[("alpha.typ", ALPHA)], BROKEN_RELOAD_CONFIG);
     let err = run_with(&project, &flip_args("broken\"done", &["alpha"])).unwrap_err();
-    crate::diag::emit(&crate::diag::Diag::from(err));
+    crate::diag::emit(&err);
     assert_eq!(
         std::fs::read_to_string(dir.path().join("tasks/alpha.typ")).unwrap(),
         ALPHA,

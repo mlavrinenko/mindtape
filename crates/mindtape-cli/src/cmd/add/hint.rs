@@ -14,7 +14,7 @@ use mindtape::{Config, discover_slots};
 
 use crate::cmd::add::values::{list_templates, resolve_template};
 use crate::diag::{Command, Diag, Hint, Note};
-use crate::task_edit::{Refused, task_with};
+use crate::task_edit::task_with;
 
 /// A field the chosen template left to a slot and the caller passed: its name,
 /// the source text it was filled with, and that value unquoted.
@@ -53,12 +53,10 @@ impl RefusalContext<'_> {
     /// the rejected `--edit` buffer was `parked`, and, when the refusal is
     /// about a field another template files as the value the caller passed, a
     /// hint to use that template.
-    pub(super) fn decorate(&self, err: anyhow::Error, parked: Option<PathBuf>) -> anyhow::Error {
+    pub(super) fn decorate(&self, err: Diag, parked: Option<PathBuf>) -> Diag {
         // A refusal carries the fields its breaches read, for the template hint.
-        let (mut diag, refused) = match err.downcast::<Refused>() {
-            Ok(refused) => (refused.diag, Some(refused.reads)),
-            Err(err) => (Diag::from(err), None),
-        };
+        let refused = err.reads().cloned();
+        let mut diag = err;
         if let Some(parked) = parked {
             diag = diag.note(
                 Note::new("the filled task was parked at").value(parked.display().to_string()),
@@ -71,7 +69,7 @@ impl RefusalContext<'_> {
                 }
             }
         }
-        diag.into()
+        diag
     }
 
     /// One hint per other template pinning a slot-filled field to the value

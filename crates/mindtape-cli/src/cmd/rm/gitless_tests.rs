@@ -293,7 +293,7 @@ fn retire_plan_errors_without_terminal_status() {
     let err = retire_plan(&tasks, &ids(&["gone"]), root, &config).unwrap_err();
 
     assert_eq!(
-        crate::diag::plain_anyhow(err),
+        crate::diag::plain(&err),
         "error: the status legend declares no terminal status\n\
          hint: set [retire] status, or mark a status terminal\n"
     );
@@ -308,7 +308,7 @@ fn retire_plan_names_a_task_file_it_cannot_read() {
     let err = retire_plan(&tasks, &ids(&["gone"]), dir.path(), &config).unwrap_err();
 
     assert_eq!(
-        crate::diag::plain_anyhow(err),
+        crate::diag::plain(&err),
         "error: can't read: 'gone.typ': no such file or directory\n"
     );
 }

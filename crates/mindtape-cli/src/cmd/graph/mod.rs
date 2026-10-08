@@ -18,7 +18,7 @@
 
 pub(crate) mod render;
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::link::kind_targets_tasks;
 use mindtape::{Config, Filter, Readiness, Task, edges, select};
 

@@ -7,7 +7,7 @@
 //! The rewrite goes through [`crate::pre_write`] first, so a stamp that would
 //! leave the task invalid is refused rather than landed and reported.
 
-use anyhow::Result;
+use crate::diag::Result;
 use clap::Args;
 use mindtape::{parse_ymd, today_iso};
 use typst_edit::{Edit, apply};
@@ -38,8 +38,7 @@ pub fn run(args: &ReviewArgs) -> Result<()> {
     if task.is_terminal(&project.config.tasks.status.terminal()) {
         return Err(Diag::refused("can't review a task with a terminal status")
             .value(&args.task.task)
-            .hint(Hint::new("a finished task needs no review"))
-            .into());
+            .hint(Hint::new("a finished task needs no review")));
     }
 
     let today = today_iso();
@@ -56,7 +55,7 @@ pub fn run(args: &ReviewArgs) -> Result<()> {
     let edit = build_edit(&source, &today).map_err(|err| {
         Diag::failed("can't find the task.with(…) call")
             .at_file(&abs)
-            .cause(&*err)
+            .cause(&err)
     })?;
 
     let updated = apply(&source, vec![edit]).map_err(|err| {

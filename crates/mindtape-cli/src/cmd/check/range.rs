@@ -4,7 +4,7 @@
 
 use std::path::Path;
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::{
     CommitBreach, CommitRange, CommitRecord, CommitStates, RangeCommit, RefProblem, check_commit,
     parse_message,
@@ -68,7 +68,7 @@ pub(crate) fn run(project: &util::Project, range: &str, quiet: bool) -> Result<(
         }
     }
     if broke > 0 {
-        return Err(Diag::commits_broke_rules(broke).into());
+        return Err(Diag::commits_broke_rules(broke));
     }
     if !quiet {
         println!("ok: {} commit(s) pass commit rules", commits.commits.len());

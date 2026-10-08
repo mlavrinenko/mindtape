@@ -11,7 +11,7 @@
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::{load_config, load_project, validate};
 
 use crate::cmd::flip::{FlipArgs, Via};
@@ -96,7 +96,7 @@ pub(crate) fn finish(mut problems: Vec<Diag>, landed: usize, total: usize) -> Re
     for problem in &problems {
         crate::diag::emit(problem);
     }
-    Err(last.into())
+    Err(last)
 }
 
 /// A target with a space in it that names no task is most likely a note given

@@ -1,7 +1,7 @@
 //! How `mt` reports a problem. A line for stderr is built here as a [`Diag`]
-//! and printed by [`render`], so a message can't leave the format. The modules
-//! on the one list in `allowlist.rs` still print some lines of their own until
-//! their fan-out task converts them.
+//! and printed by [`render`], so a message can't leave the format. Every
+//! command returns `Result<_, Diag>`, and clippy refuses `std::io::stderr`
+//! outside this folder, so no line reaches stderr unrendered.
 //!
 //! ```text
 //! error: <what failed>: '<value>'[: <why>]
@@ -39,8 +39,6 @@
 //!
 //! # Files
 //!
-//! - `allowlist.rs` — the modules that still bypass the renderer, and the
-//!   test that holds the source to the list.
 //! - `hint.rs` — [`Hint`], [`Note`] and [`Command`], the lines under an error.
 //! - `render.rs` — the renderer and the one writer to stderr.
 //! - `summary.rs`, `summary_tests.rs` — the closing count of a command that found several
@@ -52,12 +50,18 @@
 //! - `from_lib_tests.rs` — unit tests for the condition and cleanup conversions.
 //! - `tests.rs`, `tests_fill.rs` — unit tests.
 
-#[cfg(test)]
-mod allowlist;
 mod from_lib;
 mod hint;
 mod io;
+#[allow(
+    clippy::disallowed_methods,
+    reason = "the confirmation prompt is the one stderr line that is not a Diag"
+)]
 mod prompt;
+#[allow(
+    clippy::disallowed_methods,
+    reason = "the renderer, and emit_text for a report, own stderr"
+)]
 mod render;
 mod summary;
 
@@ -69,6 +73,9 @@ pub(crate) use hint::{Command, Hint, Note};
 pub(crate) use prompt::confirm;
 pub(crate) use render::{emit, emit_note, emit_text, line, report, stderr_is_terminal};
 pub(crate) use summary::dedupe_notes;
+
+/// What a command returns: its result, or the [`Diag`] `main` prints.
+pub(crate) type Result<T, E = Diag> = std::result::Result<T, E>;
 
 /// What kind of problem a [`Diag`] reports, which decides the exit code.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -120,9 +127,6 @@ pub(crate) struct Diag(Box<Parts>);
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct Parts {
     kind: Kind,
-    /// What an unconverted `anyhow` chain said above this message. Goes away
-    /// with the bridge in `from_lib.rs`.
-    legacy: Vec<String>,
     /// `path:line[:col]`, or a place with no file such as `pack <name>:3`.
     place: Option<String>,
     rule: Option<String>,
@@ -133,13 +137,16 @@ struct Parts {
     reason: Option<String>,
     hints: Vec<Hint>,
     notes: Vec<Note>,
+    /// The task fields the breaches behind a refused candidate read, or `None`
+    /// when one may be about any field. The outer option is `None` for any
+    /// other problem.
+    reads: Option<Option<std::collections::BTreeSet<String>>>,
 }
 
 impl Diag {
     fn new(kind: Kind, what: &'static str) -> Self {
         Self(Box::new(Parts {
             kind,
-            legacy: Vec::new(),
             place: None,
             rule: None,
             what,
@@ -149,6 +156,7 @@ impl Diag {
             reason: None,
             hints: Vec::new(),
             notes: Vec::new(),
+            reads: None,
         }))
     }
 
@@ -196,14 +204,6 @@ impl Diag {
     pub(crate) fn batch(verb: &'static str, done: usize, total: usize) -> Self {
         let mut diag = Self::new(Kind::Failed, verb);
         diag.0.tally = Some(Tally { done, total });
-        diag
-    }
-
-    /// A message from code not yet converted to this builder, kept word for
-    /// word. Transitional: the fan-out tasks remove every caller.
-    pub(crate) fn legacy(message: impl fmt::Display) -> Self {
-        let mut diag = Self::new(Kind::Failed, "");
-        diag.0.legacy = vec![message.to_string()];
         diag
     }
 
@@ -281,6 +281,20 @@ impl Diag {
         self
     }
 
+    /// Marks the problem as a candidate task's refusal, whose breaches read
+    /// `reads` ([`mindtape::Violation::reads`]), so a caller can tell what they
+    /// are about.
+    pub(crate) fn reading(mut self, reads: Option<std::collections::BTreeSet<String>>) -> Self {
+        self.0.reads = Some(reads);
+        self
+    }
+
+    /// The fields a refused candidate's breaches read, if this is one: `Some(None)`
+    /// when a breach may be about any field.
+    pub(crate) fn reads(&self) -> Option<&Option<std::collections::BTreeSet<String>>> {
+        self.0.reads.as_ref()
+    }
+
     /// The kind, which decides the exit code.
     pub(crate) fn kind(&self) -> Kind {
         self.0.kind
@@ -302,12 +316,6 @@ impl std::error::Error for Diag {}
 #[cfg(test)]
 pub(crate) fn plain(diag: &Diag) -> String {
     render::render(diag, false)
-}
-
-/// An `anyhow` error as stderr gets it, without colour.
-#[cfg(test)]
-pub(crate) fn plain_anyhow(err: anyhow::Error) -> String {
-    plain(&Diag::from(err))
 }
 
 #[cfg(test)]

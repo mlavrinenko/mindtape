@@ -402,7 +402,7 @@ fn outside_root_failure_names_the_file_kept_on_disk() {
         &super::Rescue::new(false),
     )
     .unwrap_err();
-    let err = crate::diag::plain_anyhow(err);
+    let err = crate::diag::plain(&err);
 
     assert!(
         err.contains("note: the task was kept on disk exactly as written: '")

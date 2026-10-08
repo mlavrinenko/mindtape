@@ -135,7 +135,7 @@ fn explicit_filter_keeps_the_default_views_columns_value() {
 fn resolve_columns_near_miss_offers_a_suggestion() {
     let config = parse_config("").unwrap();
     let err = super::resolve_columns("staatus", &config).unwrap_err();
-    let msg = crate::diag::plain_anyhow(err);
+    let msg = crate::diag::plain(&err);
     assert_eq!(
         msg,
         "error: unknown column: 'staatus'\nhint: did you mean status?\n"
@@ -146,7 +146,7 @@ fn resolve_columns_near_miss_offers_a_suggestion() {
 fn resolve_columns_far_miss_omits_the_suggestion() {
     let config = parse_config("").unwrap();
     let err = super::resolve_columns("zzzzzzzz", &config).unwrap_err();
-    let msg = crate::diag::plain_anyhow(err);
+    let msg = crate::diag::plain(&err);
     assert!(
         msg.starts_with("error: unknown column: 'zzzzzzzz'\nhint: columns are "),
         "{msg}"

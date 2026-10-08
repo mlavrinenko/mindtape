@@ -20,7 +20,7 @@ fn strs(argv: &[OsString]) -> Vec<String> {
 /// Stub resolver: any token maps to `/wt/<token>`. Mirrors the injected
 /// `resolve` signature, so the `Result` wrapper is deliberate.
 #[allow(clippy::unnecessary_wraps)]
-fn stub(token: &str) -> anyhow::Result<PathBuf> {
+fn stub(token: &str) -> crate::diag::Result<PathBuf> {
     Ok(PathBuf::from(format!("/wt/{token}")))
 }
 
@@ -56,9 +56,11 @@ fn empty_argv_stays_empty() {
 
 #[test]
 fn resolution_failure_propagates() {
-    let fail = |t: &str| -> anyhow::Result<PathBuf> { Err(anyhow::anyhow!("nope: {t}")) };
+    let fail = |t: &str| -> crate::diag::Result<PathBuf> {
+        Err(crate::diag::Diag::failed("nope").value(t))
+    };
     let err = desugar_with(argv(&["mt", "@bad", "ls"]), fail).unwrap_err();
-    assert!(err.to_string().contains("nope: bad"));
+    assert!(err.to_string().contains("nope: 'bad'"));
 }
 
 // ===== Regression tests for surviving cargo-mutants =====

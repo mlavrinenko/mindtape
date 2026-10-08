@@ -26,7 +26,7 @@
 
 use std::collections::BTreeMap;
 
-use anyhow::Result;
+use crate::diag::Result;
 use clap::Args;
 use mindtape::{RawValue, Task, format_num, parse_ymd, suggest, typ_array, typ_str};
 use typst_edit::apply;
@@ -191,7 +191,7 @@ pub fn run(args: &SetArgs) -> Result<()> {
     let call = task_with(&source).map_err(|err| {
         Diag::failed("can't locate task.with(...)")
             .at_file(&abs)
-            .cause(err.as_ref())
+            .cause(&err)
     })?;
     let edit = upsert_named_arg(&source, &call, field.name, &value_text)?;
     let updated = apply(&source, vec![edit]).map_err(|err| {

@@ -5,7 +5,7 @@
 
 use std::collections::BTreeSet;
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::{RequiredSlot, discover_slots};
 
 use crate::diag::{Note, emit_note};

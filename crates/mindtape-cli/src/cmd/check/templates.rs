@@ -13,7 +13,7 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::{
     BodyRules, Candidate, FallbackSeverity, LoadError, RawValue, Severity, TaskCallSpans,
     TemplateHome, TemplateSources, Violation, template_failure,

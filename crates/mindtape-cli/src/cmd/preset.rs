@@ -10,7 +10,7 @@
 
 use std::path::{Path, PathBuf};
 
-use anyhow::Result;
+use crate::diag::Result;
 
 use crate::cmd::init::preset;
 use crate::diag::{Command, Diag, Hint, Note};
@@ -102,8 +102,7 @@ pub(crate) fn save(root: &Path, user_dir: &Path, name: &str, force: bool) -> Res
                         .word("save")
                         .arg(name)
                         .word("--force"),
-                ))
-                .into());
+                )));
         }
         if existing.is_file() {
             std::fs::remove_file(&existing).map_err(|err| {
@@ -137,7 +136,6 @@ fn create_dir(dir: &Path) -> Result<()> {
         Diag::failed("can't create")
             .value(dir.display().to_string())
             .io(&err)
-            .into()
     })
 }
 

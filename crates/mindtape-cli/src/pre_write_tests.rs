@@ -44,7 +44,7 @@ fn refuses_a_rewrite_without_touching_the_file() {
 
     let err = verify_one(&project, &project.outcome.tasks, &file, &bad).unwrap_err();
 
-    let text = crate::diag::plain_anyhow(err);
+    let text = crate::diag::plain(&err);
     assert!(text.starts_with("error: tasks/a.typ:"), "{text}");
     assert!(!text.contains("rejected"), "no summary of its own: {text}");
     assert_eq!(std::fs::read_to_string(&file).unwrap(), good);
@@ -133,7 +133,7 @@ fn ensure_refuses_the_whole_batch_on_one_bad_entry() {
     )
     .unwrap_err();
 
-    let text = crate::diag::plain_anyhow(err);
+    let text = crate::diag::plain(&err);
     assert!(
         text.starts_with("error: the task as filled:") && text.contains("`bogus`"),
         "{text}"

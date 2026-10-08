@@ -53,3 +53,10 @@ fn reason(err: &io::Error) -> String {
         None => String::new(),
     }
 }
+
+impl From<io::Error> for Diag {
+    /// An I/O failure no command words itself: a terminal, a pipe or a buffer.
+    fn from(err: io::Error) -> Self {
+        Self::failed("i/o failed").io(&err)
+    }
+}

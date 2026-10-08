@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 8),
+  status: done(
+    2026,
+    10,
+    8,
+  )[suggest.rs holds nearest and the Unknown carrier; no caller builds a did-you-mean string.],
 )
 
 == Problem

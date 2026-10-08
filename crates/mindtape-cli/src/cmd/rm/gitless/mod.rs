@@ -12,7 +12,7 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::{Config, RmStrategy, Task, link_edges, normalize_link, today_ymd};
 use typst_cleanup::{Deletion, Plan, Rewrite, apply};
 
@@ -135,7 +135,7 @@ pub fn retire_plan(
             status_edit(&source, &status, ymd, None).map_err(|err| {
                 Diag::failed("can't rewrite the status")
                     .value(task.file.display().to_string())
-                    .cause(&*err)
+                    .cause(&err)
             })?
         };
         let dest = match &rename {
@@ -201,7 +201,6 @@ fn retire_status(config: &Config) -> Result<String> {
         .ok_or_else(|| {
             Diag::failed("the status legend declares no terminal status")
                 .hint(Hint::new("set [retire] status, or mark a status terminal"))
-                .into()
         })
 }
 

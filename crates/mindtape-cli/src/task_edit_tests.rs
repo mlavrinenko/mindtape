@@ -220,7 +220,7 @@ fn verify_written_prefixes_each_issue_by_its_severity() {
     let (dir, file) = rules_project("error");
     // The refusal is the command's error, printed by `main`.
     let err = verify_written(dir.path(), &file).unwrap_err();
-    crate::diag::emit(&crate::diag::Diag::from(err));
+    crate::diag::emit(&err);
     let (dir, file) = rules_project("warn");
     verify_written(dir.path(), &file).unwrap();
 }

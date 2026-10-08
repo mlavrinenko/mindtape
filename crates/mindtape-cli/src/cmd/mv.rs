@@ -22,7 +22,7 @@ use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use anyhow::Result;
+use crate::diag::Result;
 use clap::Args;
 use typst_cleanup::Rewrite;
 
@@ -66,8 +66,7 @@ pub fn run(args: &MvArgs) -> Result<()> {
     if stem == task.id {
         return Err(Diag::refused("task is already named")
             .value(stem)
-            .hint(Hint::new("pass a different stem"))
-            .into());
+            .hint(Hint::new("pass a different stem")));
     }
 
     // Root-relative throughout: `resolve_task` canonicalizes a path argument,
@@ -113,9 +112,9 @@ pub fn run(args: &MvArgs) -> Result<()> {
 fn new_stem(raw: &str) -> Result<&str> {
     let stem = raw.strip_suffix(".typ").unwrap_or(raw);
     if stem.is_empty() {
-        return Err(Diag::usage("the new stem is empty")
-            .hint(Hint::new("pass a stem such as new-name"))
-            .into());
+        return Err(
+            Diag::usage("the new stem is empty").hint(Hint::new("pass a stem such as new-name"))
+        );
     }
     if stem.contains('/') || stem.contains('\\') {
         return Err(Diag::usage("the new stem has a path separator")
@@ -123,8 +122,7 @@ fn new_stem(raw: &str) -> Result<&str> {
             .hint(Hint::new("mt mv renames a task where it stands"))
             .hint(Hint::new(
                 "moving a task between roots or folders changes its derived tags, so it is a decision of its own",
-            ))
-            .into());
+            )));
     }
     Ok(stem)
 }
@@ -154,14 +152,12 @@ fn refuse_taken(project: &Project, stem: &str, to: &Path) -> Result<()> {
         return Err(Diag::refused("stem is taken")
             .value(stem)
             .note(Note::new("held by").name(taken.file.display().to_string()))
-            .hint(pick_another())
-            .into());
+            .hint(pick_another()));
     }
     if to.exists() {
         return Err(Diag::refused("file already exists")
             .value(to.display().to_string())
-            .hint(pick_another())
-            .into());
+            .hint(pick_another()));
     }
     Ok(())
 }
@@ -202,7 +198,6 @@ fn move_file(root: &Path, from: &Path, to: &Path) -> Result<()> {
             .value(from.display().to_string())
             .context("to", to.display().to_string())
             .io(&err)
-            .into()
     })
 }
 

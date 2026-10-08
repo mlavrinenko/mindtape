@@ -19,7 +19,7 @@ This file holds the rules. The `docs/contributing/*.md` deep dives explain why a
 
 The workspace `Cargo.toml` sets its clippy lints to `deny`, so the `clippy` gate fails on any violation. These limits shape the code most:
 
-- No `unwrap()` or `expect()` outside tests. Use `?` with `anyhow` or `thiserror`.
+- No `unwrap()` or `expect()` outside tests. Use `?` with a `Diag` in the `mt` binary and `thiserror` in the library.
 - No `todo!()`, `unimplemented!()`, `unreachable!()`, `unsafe` or wildcard imports.
 - A function gets at most 70 lines, 5 arguments and a cognitive complexity of 20.
 - A module’s path is its file path. An area is a folder with a `mod.rs` whose `//!` header lists its files, and the lint fails on `foo.rs` beside `foo/`. Use `#[path]` only for a test sibling. `just path-attr-check` refuses any other use.
@@ -28,7 +28,7 @@ The workspace `Cargo.toml` sets its clippy lints to `deny`, so the `clippy` gate
 
 - Build every error the user sees as a `Diag` from `crates/mindtape-cli/src/diag/`, such as `Diag::usage("unknown field").value(name).hint(..)`. Its module docs hold the format. The text is a `&'static str`, so a value goes through `.value()`, which quotes it.
 - Pick the kind, not the exit code: `Diag::usage` exits 2, `Diag::refused` and `Diag::failed` exit 1. `main` prints the error and exits with its code.
-- clippy refuses `eprintln!`, `bail!` and `anyhow!`. A module that still prints or builds an error outside `diag/` is an entry on the one list in `diag/allowlist.rs`, with an `allow` on its `mod` line. The list’s test refuses a new entry and a stale one, so the list only shrinks.
+- Every command returns `Result<_, Diag>`, and the `mt` binary has no `anyhow`. clippy refuses `eprintln!`, `eprint!` and `std::io::stderr` outside `diag/`, so no line reaches stderr unrendered.
 - If callers match on a library error type, derive `thiserror::Error` for it, as `RecurError`, `ConfigError` and `FilterError` do, and convert it in `diag/from_lib.rs` with a match on every variant.
 - Keep `main.rs` a thin entry point and put the logic in library modules.
 

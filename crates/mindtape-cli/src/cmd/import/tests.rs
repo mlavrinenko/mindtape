@@ -199,7 +199,7 @@ fn envelope_with_a_newer_schema_version_is_rejected() {
     // `TaskOutcome` (the `Ok` payload) has no `Debug` impl, so match instead
     // of `unwrap_err` (which requires `T: Debug` for its own panic message).
     let err = match import_records(&project, &bare_args(), &envelope.to_string()) {
-        Err(err) => crate::diag::plain_anyhow(err),
+        Err(err) => crate::diag::plain(&err),
         Ok(_) => panic!("expected the newer schema_version to be rejected"),
     };
     assert!(err.contains(&too_new.to_string()), "{err}");

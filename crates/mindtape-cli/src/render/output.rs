@@ -1,6 +1,6 @@
 //! Rendering tasks as a table, JSON, or CSV.
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::config::Config;
 use mindtape::model::numeric::{NumValue, format_num};
 use mindtape::{CanonicalTask, Readiness, ReadyState, SCHEMA_VERSION, Task};

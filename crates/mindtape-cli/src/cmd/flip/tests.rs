@@ -12,7 +12,7 @@ use mindtape::parse_config;
 use super::{
     FlipArgs, Shortcut, check_note_required, check_transition, hooks_enabled, run_with, status_edit,
 };
-use crate::diag::{plain, plain_anyhow};
+use crate::diag::plain;
 use crate::util::Project;
 
 use mindtape::test_support::PRELUDE;
@@ -360,7 +360,7 @@ fn unknown_status_does_not_touch_file() {
 fn unknown_status_near_miss_offers_a_suggestion() {
     let dir = tempfile::tempdir().unwrap();
     let project = setup(dir.path(), &[("a.typ", ALPHA)], LEGEND_CONFIG);
-    let msg = plain_anyhow(run_with(&project, &flip_args("donee", &["a"])).unwrap_err());
+    let msg = plain(&run_with(&project, &flip_args("donee", &["a"])).unwrap_err());
     assert_eq!(
         msg,
         "error: unknown status: 'donee'\nhint: did you mean done?\n"
@@ -371,7 +371,7 @@ fn unknown_status_near_miss_offers_a_suggestion() {
 fn unknown_status_far_miss_omits_the_suggestion() {
     let dir = tempfile::tempdir().unwrap();
     let project = setup(dir.path(), &[("a.typ", ALPHA)], LEGEND_CONFIG);
-    let msg = plain_anyhow(run_with(&project, &flip_args("zzzzzzzz", &["a"])).unwrap_err());
+    let msg = plain(&run_with(&project, &flip_args("zzzzzzzz", &["a"])).unwrap_err());
     assert_eq!(
         msg,
         "error: unknown status: 'zzzzzzzz'\nhint: run mt flip --list to see the statuses\n"

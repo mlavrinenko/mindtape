@@ -266,7 +266,7 @@ fn preflight_blocks_dirty_eligible_task() {
     let tasks = vec![task("gone", "gone.typ", Some("done"))];
     let err = check_eligible_files(&tasks, &ids(&["gone"]), &root, &root).unwrap_err();
     assert_eq!(
-        crate::diag::plain_anyhow(err),
+        crate::diag::plain(&err),
         "error: cannot remove: 'gone'\n\
          hint: commit them first: a tombstone pins the last-touch commit\n\
          note: file: gone.typ has uncommitted changes\n"
@@ -280,7 +280,7 @@ fn preflight_blocks_untracked_eligible_task() {
     std::fs::write(root.join("orphan.typ"), "orphan\n").unwrap();
     let tasks = vec![task("orphan", "orphan.typ", Some("done"))];
     let err = check_eligible_files(&tasks, &ids(&["orphan"]), &root, &root).unwrap_err();
-    let text = crate::diag::plain_anyhow(err);
+    let text = crate::diag::plain(&err);
     assert!(
         text.starts_with("error: cannot remove: 'orphan'\n"),
         "{text}"
@@ -302,7 +302,7 @@ fn preflight_reports_all_offenders_at_once() {
         task("b", "b.typ", Some("done")),
     ];
     let err = check_eligible_files(&tasks, &ids(&["a", "b"]), &root, &root).unwrap_err();
-    let text = crate::diag::plain_anyhow(err);
+    let text = crate::diag::plain(&err);
     assert!(
         text.starts_with("error: cannot remove several tasks\n"),
         "{text}"
@@ -321,7 +321,7 @@ fn preflight_reports_all_offenders_at_once() {
 fn a_no_answer_aborts_and_a_yes_goes_on() {
     assert!(super::ensure_confirmed(true).is_ok());
     assert_eq!(
-        crate::diag::plain_anyhow(super::ensure_confirmed(false).unwrap_err()),
+        crate::diag::plain(&super::ensure_confirmed(false).unwrap_err()),
         "error: aborted by user\n"
     );
 }
@@ -333,8 +333,7 @@ fn a_task_file_outside_the_repository_is_refused_as_one() {
     let tasks = vec![task("gone", "gone.typ", Some("done"))];
     let err = check_eligible_files(&tasks, &ids(&["gone"]), &root, elsewhere.path()).unwrap_err();
     assert!(
-        crate::diag::plain_anyhow(err)
-            .contains("note: file: gone.typ is outside the git repository\n")
+        crate::diag::plain(&err).contains("note: file: gone.typ is outside the git repository\n")
     );
 }
 
@@ -342,7 +341,7 @@ fn a_task_file_outside_the_repository_is_refused_as_one() {
 fn rm_without_a_terminal_refuses_and_names_yes() {
     assert!(super::ensure_can_ask(true).is_ok());
     assert_eq!(
-        crate::diag::plain_anyhow(super::ensure_can_ask(false).unwrap_err()),
+        crate::diag::plain(&super::ensure_can_ask(false).unwrap_err()),
         "error: can't ask for confirmation without a terminal\n\
          hint: pass --yes to remove without asking\n"
     );

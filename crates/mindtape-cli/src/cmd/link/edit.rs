@@ -9,7 +9,7 @@
 
 use std::collections::{HashMap, HashSet};
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::link::{Link, is_builtin_kind};
 use mindtape::{escape_markup, is_history_pointer, normalize_link};
 use typst_edit::Edit;
@@ -256,8 +256,7 @@ fn refuse_tombstones(source: &str) -> Result<()> {
                     .value(target.raw.as_str())
                     .hint(Hint::new(
                         "merge instead by omitting --replace, or edit the file by hand",
-                    ))
-                    .into());
+                    )));
             }
         }
     }

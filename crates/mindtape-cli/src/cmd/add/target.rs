@@ -8,7 +8,7 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::{Config, RawValue, model::naming, today_ymd};
 
 use super::AddArgs;
@@ -89,7 +89,6 @@ pub(crate) fn minted_stem(values: &BTreeMap<String, RawValue>, config: &Config) 
         Diag::failed("can't mint the file stem")
             .cause(&err)
             .hint(Hint::new("check stem under [tasks.naming]"))
-            .into()
     })
 }
 
@@ -102,8 +101,7 @@ fn title_slug(values: &BTreeMap<String, RawValue>) -> Result<String> {
         }
     }
     Err(Diag::usage("no title to name the task file from")
-        .hint(Hint::new("pass a title, or --name"))
-        .into())
+        .hint(Hint::new("pass a title, or --name")))
 }
 
 pub(crate) fn dest_dir(into: &str, to: Option<&str>, project: &util::Project) -> Result<PathBuf> {
@@ -116,8 +114,7 @@ pub(crate) fn dest_dir(into: &str, to: Option<&str>, project: &util::Project) ->
         return Err(
             Diag::usage("--to expects a subfolder, not an absolute path")
                 .value(sub.display().to_string())
-                .hint(Hint::new("give it relative to the destination root"))
-                .into(),
+                .hint(Hint::new("give it relative to the destination root")),
         );
     }
     Ok(base.join(sub))

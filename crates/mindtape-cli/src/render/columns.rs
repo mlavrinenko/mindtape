@@ -18,7 +18,7 @@
 //! of `crates/mindtape/src/config/defaults.toml`, and a column with no `when` at all
 //! does not render.
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::{
     ColumnFacts, Condition, ConditionEnv, Config, Readiness, ReadyState, StemHashes, Task,
     format_iso, today_iso, waits_on,
@@ -206,7 +206,6 @@ impl ColumnId {
                 Diag::from(err)
                     .rule(format!("ls.columns.{key}.when"))
                     .value(expr)
-                    .into()
             })
     }
 }

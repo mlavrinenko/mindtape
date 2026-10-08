@@ -10,8 +10,8 @@ pub(crate) mod interactive;
 pub(crate) mod rules;
 pub(crate) mod rules_applied;
 
+use crate::diag::Result;
 use anstyle::{Effects, Style};
-use anyhow::Result;
 
 use crate::diag::{Diag, Hint, Kind};
 use mindtape::sort::{default_order_with, sort_by_specs};
@@ -258,8 +258,8 @@ pub(crate) fn resolve_and_select(args: &LsArgs, project: util::Project) -> Resul
     // The command line's filter is a usage error when it fails; a view's or
     // a rule's stays as the config reports it.
     let typed = |err| match &args.filter {
-        Some(_) => anyhow::Error::from(crate::diag::filter(err, Some(&bundle.filter))),
-        None => err.into(),
+        Some(_) => crate::diag::filter(err, Some(&bundle.filter)),
+        None => Diag::from(err),
     };
     let filter = Filter::parse(&bundle.filter).map_err(typed)?;
     let tasks = select(
@@ -310,8 +310,7 @@ pub(crate) fn sort_tasks(
     for spec in specs {
         check_sort_spec(spec)?;
     }
-    sort_by_specs(tasks, specs, config, readiness)
-        .map_err(|msg| Diag::verbatim(Kind::Usage, msg).into())
+    sort_by_specs(tasks, specs, config, readiness).map_err(|msg| Diag::verbatim(Kind::Usage, msg))
 }
 
 /// `spec` (`field`, `field:asc` or `field:desc`) as a usage error naming the

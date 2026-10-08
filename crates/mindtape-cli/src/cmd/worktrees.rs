@@ -13,8 +13,8 @@
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
+use crate::diag::Result;
 use crate::diag::{Diag, Hint, Note};
-use anyhow::Result;
 use mindtape::{WorktreeEntry, WorktreeRegistry};
 
 /// Arguments for `mt worktrees`.
@@ -125,7 +125,7 @@ fn resolve_token(token: &str) -> Result<PathBuf> {
         })?;
     match resolved {
         Some(resolved) => Ok(resolved),
-        None => Err(unknown_worktree(token, &registry, path.as_deref()).into()),
+        None => Err(unknown_worktree(token, &registry, path.as_deref())),
     }
 }
 
@@ -183,7 +183,7 @@ fn load_registry() -> Result<(WorktreeRegistry, Option<PathBuf>)> {
         Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
             Ok((WorktreeRegistry::default(), Some(path)))
         }
-        Err(err) => Err(Diag::cannot_read(&path, &err).into()),
+        Err(err) => Err(Diag::cannot_read(&path, &err)),
     }
 }
 

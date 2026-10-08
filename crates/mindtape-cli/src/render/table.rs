@@ -6,8 +6,8 @@
 
 use std::io::IsTerminal;
 
+use crate::diag::Result;
 use anstyle::{Effects, Style};
-use anyhow::Result;
 use mindtape::Task;
 
 use super::RenderCtx;

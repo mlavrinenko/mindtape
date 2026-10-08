@@ -13,7 +13,7 @@
 use std::collections::HashSet;
 use std::path::{Component, Path, PathBuf};
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::CanonicalTask;
 
 use super::ImportArgs;

@@ -140,7 +140,7 @@ fn an_unknown_single_word_says_no_task_matches() {
     );
     let err = select_targets(&project, &targets(&["alpah"]), &readiness_of(&project)).unwrap_err();
     assert_eq!(
-        crate::diag::plain_anyhow(err),
+        crate::diag::plain(&err),
         "error: no task: 'alpah'\nhint: did you mean alpha?\n"
     );
 }
@@ -153,7 +153,7 @@ fn a_filter_that_does_not_parse_is_reported_as_a_filter() {
     );
     let err =
         select_targets(&project, &targets(&["status =="]), &readiness_of(&project)).unwrap_err();
-    let text = crate::diag::plain_anyhow(err);
+    let text = crate::diag::plain(&err);
     assert!(text.starts_with("error: "), "{text}");
     assert!(!text.contains("no task"), "{text}");
 }
@@ -171,7 +171,7 @@ fn several_unresolved_targets_end_with_one_summary() {
     )
     .unwrap_err();
     assert_eq!(
-        crate::diag::plain_anyhow(err),
+        crate::diag::plain(&err),
         "error: resolved 1 of 3 tasks; 2 failed\n"
     );
 }
@@ -181,7 +181,7 @@ fn a_default_filter_that_does_not_parse_names_its_key() {
     let config = parse_config("[rm]\ndefault-filter = \"(\"\n").unwrap();
     let project = stub_project(config, vec![task("a", "tasks/a.typ", Some("wip"))]);
     let err = select_targets(&project, &[], &readiness_of(&project)).unwrap_err();
-    let text = crate::diag::plain_anyhow(err);
+    let text = crate::diag::plain(&err);
     assert!(
         text.starts_with("error: rm.default-filter: can't parse filter: '('"),
         "{text}"

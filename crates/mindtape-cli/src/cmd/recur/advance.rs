@@ -10,7 +10,7 @@
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
-use anyhow::Result;
+use crate::diag::Result;
 use chrono::NaiveDate;
 use mindtape::Task;
 use mindtape::recur::Recur;
@@ -34,7 +34,7 @@ pub(super) fn do_advance(
     args: &RecurArgs,
 ) -> Result<()> {
     let Some(count) = args.advance else {
-        return Err(Diag::usage("--advance needs a count").into());
+        return Err(Diag::usage("--advance needs a count"));
     };
     check_advance_preconditions(project, task, recur, args, count)?;
     let spawned = build_advance_chain(project, task, abs, recur, count)?;
@@ -56,15 +56,13 @@ pub(super) fn check_advance_preconditions(
         return Err(
             Diag::refused("--advance needs a task that spawns, but its materialize is")
                 .value(materialize)
-                .hint(Hint::new("run mt recur without --advance"))
-                .into(),
+                .hint(Hint::new("run mt recur without --advance")),
         );
     }
     if count > recur_config.max_advance {
         return Err(Diag::refused("--advance is over [tasks.recur] max-advance")
             .value(count.to_string())
-            .note(Note::new("max-advance").name(recur_config.max_advance.to_string()))
-            .into());
+            .note(Note::new("max-advance").name(recur_config.max_advance.to_string())));
     }
     guard_double_spawn(project, task, args.force)
 }
@@ -110,7 +108,7 @@ pub(super) fn build_advance_chain(
             Err(err) if !spawned.is_empty() => {
                 diag::emit(&Diag::verbatim(
                     Kind::Warning,
-                    format!("stopping early: {}", Diag::from(err)),
+                    format!("stopping early: {err}"),
                 ));
                 break;
             }

@@ -10,7 +10,7 @@ use std::io::Read as _;
 
 use std::path::Path;
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::{CanonicalTask, SCHEMA_VERSION};
 use serde_json::Value;
 
@@ -28,7 +28,7 @@ pub(super) fn read_source(source: &str) -> Result<String> {
             .map_err(|err| Diag::failed("can't read stdin").io(&err))?;
         return Ok(buf);
     }
-    std::fs::read_to_string(source).map_err(|err| Diag::cannot_read(Path::new(source), &err).into())
+    std::fs::read_to_string(source).map_err(|err| Diag::cannot_read(Path::new(source), &err))
 }
 
 /// How `source` reads in a message: the file, or `stdin` for `-`.
@@ -63,9 +63,7 @@ pub(super) fn parse_records(source: &str, raw: &str) -> Result<Vec<CanonicalTask
         .enumerate()
         .map(|(idx, item)| {
             serde_json::from_value(item).map_err(|err| {
-                Diag::verbatim(Kind::Failed, format!("record #{}: {err}", idx + 1))
-                    .at_file(place)
-                    .into()
+                Diag::verbatim(Kind::Failed, format!("record #{}: {err}", idx + 1)).at_file(place)
             })
         })
         .collect()
@@ -164,7 +162,7 @@ mod tests {
         let raw = format!(r#"{{"schema_version": {too_new}, "tasks": []}}"#);
         let err = match parse_records("t.json", &raw) {
             Ok(records) => panic!("expected rejection, got {} records", records.len()),
-            Err(err) => crate::diag::plain_anyhow(err),
+            Err(err) => crate::diag::plain(&err),
         };
         assert!(err.contains(&too_new.to_string()), "{err}");
         assert!(err.contains(&super::SCHEMA_VERSION.to_string()), "{err}");
@@ -189,7 +187,7 @@ mod tests {
         ] {
             let err = match parse_records("t.json", raw) {
                 Ok(records) => panic!("expected rejection, got {} records", records.len()),
-                Err(err) => crate::diag::plain_anyhow(err),
+                Err(err) => crate::diag::plain(&err),
             };
             assert_eq!(
                 err,

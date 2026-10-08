@@ -22,9 +22,8 @@ pub(crate) mod hint;
 
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
-
 use crate::cmd::init::install_lib;
+use crate::diag::{Diag, Result};
 
 /// Arguments for `install`.
 #[derive(Debug, clap::Args)]
@@ -148,7 +147,8 @@ pub(crate) fn write_completions(dir: &Path, force: bool) -> Result<()> {
 /// `$MINDTAPE_CONFIG_HOME` moves what `install` writes and what the loader
 /// reads together.
 fn xdg_defaults_dir() -> Result<PathBuf> {
-    let mut path = mindtape::config_home().context("determine the global config directory")?;
+    let mut path = mindtape::config_home()
+        .ok_or_else(|| Diag::failed("can't find the global config directory"))?;
     path.push("mindtape");
     Ok(path)
 }
@@ -165,9 +165,9 @@ fn write_seed(dir: &Path, name: &str, content: &str, force: bool) -> Result<()> 
         );
         return Ok(());
     }
-    std::fs::create_dir_all(dir).with_context(|| format!("create {}", dir.display()))?;
+    std::fs::create_dir_all(dir).map_err(|err| Diag::cannot_write(dir, &err))?;
     mindtape::write_atomic(&path, content.as_bytes())
-        .with_context(|| format!("write {}", path.display()))?;
+        .map_err(|err| Diag::cannot_write(&path, &err))?;
     println!("wrote {}", path.display());
     Ok(())
 }

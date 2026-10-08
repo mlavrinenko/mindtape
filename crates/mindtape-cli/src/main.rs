@@ -3,8 +3,8 @@
 // `disallowed-methods` in `clippy.toml` bans `std::fs::write`/`File::create`
 // outside `mindtape::write_atomic`; unit tests (this crate's own `cfg(test)`
 // build) build throwaway fixtures with the plain calls instead.
-// The same goes for `disallowed-macros`: a test may print or build an
-// `anyhow` error of its own.
+// The same goes for `disallowed-macros` and the stderr ban: a test may print
+// to stderr itself.
 #![cfg_attr(test, allow(clippy::disallowed_methods, clippy::disallowed_macros))]
 
 // Every `print!`/`println!` below this point is this crate's, not the
@@ -41,9 +41,6 @@ mod cli;
 mod cmd;
 mod diag;
 mod git;
-// An `allow` below lets a module whose errors don't go through `crate::diag`
-// yet use `clippy.toml`'s disallowed macros. Each one is an entry on the one
-// list in `diag/allowlist.rs`, whose test refuses a new entry.
 mod pre_write;
 // Infrastructure for future command migration; not every item is wired yet.
 #[allow(dead_code)]
@@ -97,7 +94,7 @@ fn run() -> Result<(), Diag> {
     // value. A malformed override fails fast here rather than silently
     // falling back to the system clock.
     mindtape::init_pinned_today()?;
-    Ok(cli.run()?)
+    cli.run()
 }
 
 fn init_color(choice: crate::render::color::ColorChoice) {

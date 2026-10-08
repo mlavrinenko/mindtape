@@ -9,7 +9,7 @@
 use std::path::Path;
 use std::process::Command;
 
-use anyhow::Result;
+use crate::diag::Result;
 use clap::Args;
 use mindtape::Config;
 
@@ -72,9 +72,7 @@ pub(crate) fn spawn_editor(template: &str, path: &Path) -> Result<()> {
             .io(&err)
     })?;
     if !status.success() {
-        return Err(Diag::failed("the editor exited with an error")
-            .value(template)
-            .into());
+        return Err(Diag::failed("the editor exited with an error").value(template));
     }
     Ok(())
 }
@@ -106,11 +104,9 @@ fn editor_from(
             return Ok(value);
         }
     }
-    Err(Diag::refused("no editor configured")
-        .hint(Hint::new(
-            "set [go] editor in .mindtape/config.toml, or $VISUAL or $EDITOR",
-        ))
-        .into())
+    Err(Diag::refused("no editor configured").hint(Hint::new(
+        "set [go] editor in .mindtape/config.toml, or $VISUAL or $EDITOR",
+    )))
 }
 
 /// The refusal for an editor command with no program word in it.
@@ -135,7 +131,7 @@ fn build_argv(template: &str, path: &str) -> Result<Vec<String>> {
         }
     }
     if argv.is_empty() {
-        return Err(empty_editor().into());
+        return Err(empty_editor());
     }
     if !substituted {
         argv.push(path.to_owned());
@@ -206,7 +202,7 @@ mod tests {
     #[test]
     fn blank_config_and_empty_env_is_an_error() {
         for blank in ["", "  "] {
-            let err = crate::diag::plain_anyhow(editor_from(Some(blank), no_env).unwrap_err());
+            let err = crate::diag::plain(&editor_from(Some(blank), no_env).unwrap_err());
             assert!(
                 err.starts_with("error: no editor configured\nhint: set [go] editor"),
                 "the error must name the setting to fix: {err}"

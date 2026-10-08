@@ -26,7 +26,7 @@ pub(crate) mod edit;
 pub(crate) mod input;
 pub(crate) mod plan;
 
-use anyhow::Result;
+use crate::diag::Result;
 use clap::Args;
 
 use self::input::Entry;
@@ -155,7 +155,7 @@ pub(crate) fn run_with(project: &Project, args: &LinkArgs) -> Result<()> {
                 landed.record(&staged.task);
             }
             Err(err) => {
-                problems.push(err.into());
+                problems.push(err);
                 failed += 1;
             }
         }
@@ -179,28 +179,24 @@ pub(crate) fn run_with(project: &Project, args: &LinkArgs) -> Result<()> {
 /// drifted apart).
 fn entries(args: &LinkArgs) -> Result<Vec<Entry>> {
     if let Some(source) = &args.apply {
-        return Ok(input::parse_adjacency(&input::read_source(source)?)?);
+        return input::parse_adjacency(&input::read_source(source)?);
     }
     let (Some(task), Some(kind)) = (args.task.as_deref(), args.kind.as_deref()) else {
         return Err(
-            Diag::usage("mt link needs a task, a kind and targets, or --apply")
-                .hint(Hint::new(
-                    "usage: mt link <task> <kind> <target>... | mt link --apply <file>",
-                ))
-                .into(),
+            Diag::usage("mt link needs a task, a kind and targets, or --apply").hint(Hint::new(
+                "usage: mt link <task> <kind> <target>... | mt link --apply <file>",
+            )),
         );
     };
     if args.targets.is_empty() {
-        return Err(Diag::usage("no link targets given")
-            .hint(Hint::command(
-                "name at least one",
-                Command::mt()
-                    .word("link")
-                    .arg(task)
-                    .arg(kind)
-                    .arg("<target>"),
-            ))
-            .into());
+        return Err(Diag::usage("no link targets given").hint(Hint::command(
+            "name at least one",
+            Command::mt()
+                .word("link")
+                .arg(task)
+                .arg(kind)
+                .arg("<target>"),
+        )));
     }
     let edges = args
         .targets
@@ -268,7 +264,7 @@ fn finish(mut problems: Vec<Diag>, failed: usize, total: usize) -> Result<()> {
     for problem in &problems {
         emit(problem);
     }
-    Err(last.into())
+    Err(last)
 }
 
 #[cfg(test)]

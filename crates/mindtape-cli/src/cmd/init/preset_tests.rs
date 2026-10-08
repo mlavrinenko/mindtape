@@ -115,7 +115,7 @@ fn work_presets_require_unblocked_wip_and_done() {
 /// falling through to a path or a fetch.
 #[test]
 fn unknown_preset_errors_and_says_where_to_list_them() {
-    let err = crate::diag::plain_anyhow(resolve("nope", None).unwrap_err());
+    let err = crate::diag::plain(&resolve("nope", None).unwrap_err());
     assert_eq!(
         err,
         "error: unknown preset: 'nope'\nhint: run mt preset ls to see the presets\n"
@@ -125,8 +125,7 @@ fn unknown_preset_errors_and_says_where_to_list_them() {
 /// A near miss names the built-in it meant.
 #[test]
 fn a_misspelt_preset_names_the_nearest_builtin() {
-    let err =
-        crate::diag::plain_anyhow(resolve(&DEFAULT_PRESET.replace('o', "0"), None).unwrap_err());
+    let err = crate::diag::plain(&resolve(&DEFAULT_PRESET.replace('o', "0"), None).unwrap_err());
     assert!(
         err.contains(&format!("hint: did you mean {DEFAULT_PRESET}?")),
         "{err}"

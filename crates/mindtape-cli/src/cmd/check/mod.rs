@@ -14,14 +14,10 @@ pub(crate) mod templates;
 
 use std::collections::BTreeSet;
 
-use anyhow::{Context, Result};
 use clap::Args;
-use mindtape::{
-    BodyRules, Violation, check_body_rules, check_comments, compile_content_rules, compile_rules,
-    validate,
-};
+use mindtape::{BodyRules, Violation, check_body_rules, check_comments, validate};
 
-use crate::diag::Diag;
+use crate::diag::{Diag, Result};
 use crate::util;
 
 /// Arguments for `mt check`.
@@ -58,16 +54,16 @@ pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> 
     }
     util::report_load_problems(&project.outcome, crate::diag::Kind::Failed);
 
-    let header_rules = compile_rules(&project.config.tasks.body.headers.rules)
-        .context("invalid tasks.body.headers.rules in config")?;
-    let content_rules = compile_content_rules(&project.config.tasks.body.content.rules)
-        .context("invalid tasks.body.content.rules in config")?;
+    crate::pre_write::with_body_rules(&project.config, |body_rules| {
+        check_project(project, args, body_rules)
+    })
+}
 
-    let body_rules = BodyRules {
-        headers: &header_rules,
-        content: &content_rules,
-    };
-
+fn check_project(
+    project: &util::Project,
+    args: &CheckArgs,
+    body_rules: BodyRules<'_>,
+) -> Result<()> {
     let mut violations = validate(&project.outcome.tasks, &project.config);
     violations.extend(body_violations(project, body_rules)?);
     let templates = crate::cmd::check::templates::breaches(project, body_rules)?;
@@ -83,7 +79,7 @@ pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> 
     // `[tasks.comments]` breaches carry the severity of their policy.
     violations.extend(
         check_comments(&project.outcome.tasks, &project.config, &project.root)
-            .context("scan tasks.comments")?,
+            .map_err(|err| Diag::failed("can't scan tasks.comments").cause(&err))?,
     );
 
     for violation in &violations {
@@ -117,7 +113,7 @@ pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> 
         .collect::<BTreeSet<_>>()
         .len()
         + templates.load_failures.len();
-    Err(Diag::problems(failures + load_errors, tasks).into())
+    Err(Diag::problems(failures + load_errors, tasks))
 }
 
 /// The header and content body rules over every loaded task's source.
@@ -128,8 +124,7 @@ fn body_violations(project: &util::Project, body_rules: BodyRules<'_>) -> Result
     }
     for task in &project.outcome.tasks {
         let abs = project.root.join(&task.file);
-        let source =
-            std::fs::read_to_string(&abs).with_context(|| format!("read {}", abs.display()))?;
+        let source = std::fs::read_to_string(&abs).map_err(|err| Diag::cannot_read(&abs, &err))?;
         out.extend(check_body_rules(task, &source, body_rules, &project.config));
     }
     Ok(out)

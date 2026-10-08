@@ -13,7 +13,7 @@
 //! status legend, priority bands, difficulty anchors, roots — the fold hard-errors
 //! naming both, because an array replaces wholesale and one would silently win.
 
-use anyhow::Result;
+use crate::diag::Result;
 
 use crate::diag::{Diag, Hint, Note};
 
@@ -64,11 +64,8 @@ pub fn compose(fragments: &[(&str, String)]) -> Result<String> {
     if !overlaid {
         return Ok(base);
     }
-    toml::to_string(&merged).map_err(|err| {
-        Diag::failed("can't write the config with its overlay applied")
-            .cause(&err)
-            .into()
-    })
+    toml::to_string(&merged)
+        .map_err(|err| Diag::failed("can't write the config with its overlay applied").cause(&err))
 }
 
 /// Concatenate the ordinary fragments in order, dropping empties and the overlay.
@@ -118,8 +115,7 @@ fn reject_array_conflicts(fragments: &[(&str, String)]) -> Result<()> {
                         Diag::refused("two fragments declare the same array section")
                             .value(format!("[{path}]"))
                             .note(Note::new("declared by").name(format!("{prev} and {axis}")))
-                            .hint(Hint::new("pick one, or move the difference into [overlay]"))
-                            .into(),
+                            .hint(Hint::new("pick one, or move the difference into [overlay]")),
                     );
                 }
                 Some(_) => {}

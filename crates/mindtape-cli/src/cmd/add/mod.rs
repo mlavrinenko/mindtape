@@ -19,7 +19,7 @@ use std::fs::File;
 use std::io::{IsTerminal, Read, Write as _};
 use std::path::Path;
 
-use anyhow::Result;
+use crate::diag::Result;
 use clap::Args;
 use mindtape::{
     Config, RawValue, RequiredSlot, SlotKind, SlotSpec, discover_slots, escape_markup, fill,
@@ -346,8 +346,8 @@ fn markup_safe(
 ///
 /// Under a root the order is the other way round ([`pre_verify`]) and no such
 /// file exists, so this note is never printed there.
-fn kept(err: anyhow::Error, file: &Path) -> Diag {
-    let diag = Diag::from(err).note(
+fn kept(err: Diag, file: &Path) -> Diag {
+    let diag = err.note(
         Note::new("the task was kept on disk exactly as written").value(file.display().to_string()),
     );
     if diag.has_hint_room() {
@@ -409,7 +409,7 @@ pub(crate) fn inject_header(
         edits.push(upsert_named_arg(source, &call, "id", &format!("\"{id}\""))?);
     }
 
-    apply(source, edits).map_err(|err| edit_failed(&err).into())
+    apply(source, edits).map_err(|err| edit_failed(&err))
 }
 
 /// The template's edits overlapped or ran out of bounds.

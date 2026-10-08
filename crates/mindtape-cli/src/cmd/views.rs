@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::ViewSpec;
 
 use crate::util;

@@ -42,7 +42,7 @@ use std::collections::{BTreeMap, HashSet};
 use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 
-use anyhow::Result;
+use crate::diag::Result;
 use clap::Args;
 use mindtape::{
     Readiness, RmStrategy, Task, is_history_pointer, link_target_spans, normalize_link,
@@ -164,7 +164,7 @@ pub fn run(args: &RmArgs) -> Result<()> {
     match resolve_strategy(&project.config, git_root.is_some()) {
         RmStrategy::GitTombstone => {
             let Some(git_root) = git_root else {
-                return Err(no_repository(git_error.as_ref(), &root).into());
+                return Err(no_repository(git_error.as_ref(), &root));
             };
             if !args.dry_run {
                 check_eligible_files(&project.outcome.tasks, &eligible, &root, &git_root)?;
@@ -172,7 +172,7 @@ pub fn run(args: &RmArgs) -> Result<()> {
             let plan = plan(&project.outcome.tasks, &eligible, &root, &git_root)?;
             finalize(&Removal::Delete(plan), args, Some("git-tombstone"), &root)
         }
-        RmStrategy::Reject => Err(reject_diag(&referrers).into()),
+        RmStrategy::Reject => Err(reject_diag(&referrers)),
         RmStrategy::Unlink => {
             let plan = unlink_plan(&project.outcome.tasks, &eligible, &root)?;
             finalize(&Removal::Delete(plan), args, Some("unlink"), &root)
@@ -203,8 +203,7 @@ fn ensure_can_ask(stdin_is_terminal: bool) -> Result<()> {
     }
     Err(
         Diag::refused("can't ask for confirmation without a terminal")
-            .hint(Hint::new("pass --yes to remove without asking"))
-            .into(),
+            .hint(Hint::new("pass --yes to remove without asking")),
     )
 }
 
@@ -227,7 +226,7 @@ fn ensure_confirmed(answered_yes: bool) -> Result<()> {
     if answered_yes {
         return Ok(());
     }
-    Err(Diag::failed("aborted by user").into())
+    Err(Diag::failed("aborted by user"))
 }
 
 /// The tail shared by every removal path: strategy dry-run reporting,
@@ -385,8 +384,8 @@ fn check_eligible_files(
     }
     match problems.as_slice() {
         [] => Ok(()),
-        [only] => Err(only.refusal().into()),
-        many => Err(many_refusal(many).into()),
+        [only] => Err(only.refusal()),
+        many => Err(many_refusal(many)),
     }
 }
 

@@ -92,7 +92,7 @@ fn resolve_by_stem_hash_succeeds() {
 fn an_unknown_reference_is_refused_with_a_suggestion() {
     let project = stub_project(vec![stub_task("alpha", "Alpha Task")]);
 
-    let err = crate::diag::plain_anyhow(resolve_task(&project, "alpah").unwrap_err());
+    let err = crate::diag::plain(&resolve_task(&project, "alpah").unwrap_err());
     assert_eq!(err, "error: no task: 'alpah'\nhint: did you mean alpha?\n");
 }
 
@@ -160,7 +160,7 @@ fn resolve_root_override_without_marker_errors() {
     let err = resolve_root_with(dir.path(), Some(dir.path())).unwrap_err();
     let base = dir.path().display().to_string();
     assert_eq!(
-        crate::diag::plain_anyhow(err),
+        crate::diag::plain(&err),
         format!(
             "error: no .mindtape/ directory in worktree: '{base}'\n\
              hint: run mt init there, or pass another path to -w\n"
@@ -269,7 +269,7 @@ fn views(names: &[&str]) -> std::collections::BTreeMap<String, mindtape::ViewSpe
 #[test]
 fn unknown_view_error_near_miss_hints_the_nearest_view() {
     let known = views(&["backlog", "blocked"]);
-    let msg = crate::diag::plain_anyhow(unknown_view_error("backlgo", &known));
+    let msg = crate::diag::plain(&unknown_view_error("backlgo", &known));
     assert_eq!(
         msg,
         "error: unknown view: 'backlgo'\nhint: did you mean backlog?\n"
@@ -279,7 +279,7 @@ fn unknown_view_error_near_miss_hints_the_nearest_view() {
 #[test]
 fn unknown_view_error_far_miss_says_where_to_list_views() {
     let known = views(&["backlog", "blocked"]);
-    let msg = crate::diag::plain_anyhow(unknown_view_error("zzz", &known));
+    let msg = crate::diag::plain(&unknown_view_error("zzz", &known));
     assert_eq!(
         msg,
         "error: unknown view: 'zzz'\nhint: run mt views to see the views\n"

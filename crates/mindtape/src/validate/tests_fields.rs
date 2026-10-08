@@ -100,31 +100,31 @@ fn flags_disallowed_tag() {
     assert!(violations.iter().any(|v| v.field == "tags"));
 }
 
-#[test]
-fn disallowed_tag_near_miss_offers_a_suggestion() {
-    // `config()`'s `[tasks.tags] allowed` is `["backend"]`.
+/// What the one violation on `tags` says an unknown tag could have been, for a
+/// task holding `tags` against `config()`'s `["backend"]`.
+fn unknown_tag(tags: &[&str]) -> crate::Unknown {
     let mut item = task("a", "wip");
-    item.tags = vec!["backendd".to_owned()];
+    item.tags = tags.iter().map(|tag| (*tag).to_owned()).collect();
     let violations = validate(&[item], &config());
     let hit = violations
         .iter()
         .find(|v| v.field == "tags")
         .expect("disallowed tag must be flagged");
-    let unknown = hit.unknown.as_ref().unwrap();
+    hit.unknown
+        .clone()
+        .expect("the violation carries the choices")
+}
+
+#[test]
+fn disallowed_tag_near_miss_offers_a_suggestion() {
+    let unknown = unknown_tag(&["backendd"]);
     assert_eq!(unknown.nearest.as_deref(), Some("backend"));
     assert_eq!(unknown.names, ["backend"]);
 }
 
 #[test]
 fn disallowed_tag_far_miss_omits_the_suggestion() {
-    let mut item = task("a", "wip");
-    item.tags = vec!["frontend".to_owned()];
-    let violations = validate(&[item], &config());
-    let hit = violations
-        .iter()
-        .find(|v| v.field == "tags")
-        .expect("disallowed tag must be flagged");
-    let unknown = hit.unknown.as_ref().unwrap();
+    let unknown = unknown_tag(&["frontend"]);
     assert_eq!(unknown.nearest, None);
     assert_eq!(unknown.names, ["backend"]);
 }

@@ -4,7 +4,7 @@
 
 use std::path::Path;
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::{
     CommitBreach, CommitMsgError, CommitRecord, CommitStates, StatePlan, check_commit,
     parse_message, staged_files,
@@ -117,7 +117,7 @@ pub(crate) fn run(project: &util::Project, file: &Path, quiet: bool) -> Result<(
     }
     let failures = ref_problems.len() + failing(&breaches);
     if failures > 0 {
-        return Err(Diag::commit_message_problems(failures).into());
+        return Err(Diag::commit_message_problems(failures));
     }
     if !quiet {
         println!("ok: commit message valid");

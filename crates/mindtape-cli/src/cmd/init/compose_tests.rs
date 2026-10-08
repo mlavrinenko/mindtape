@@ -178,7 +178,7 @@ fn two_status_fragments_error_naming_both() {
             "[[tasks.status]]\nvalue = \"open\"\n".to_owned(),
         ),
     ];
-    let err = crate::diag::plain_anyhow(compose(&fragments).unwrap_err());
+    let err = crate::diag::plain(&compose(&fragments).unwrap_err());
     assert_eq!(
         err,
         "error: two fragments declare the same array section: '[tasks.status]'\n\

@@ -79,7 +79,7 @@ fn stage(project: &Project, files: &HashSet<&Path>, entry: &Entry, mode: Mode, p
     let (task, abs) = match util::resolve_task(project, stem) {
         Ok(resolved) => resolved,
         Err(err) => {
-            plan.problems.push(err.into());
+            plan.problems.push(err);
             plan.failed += 1;
             return;
         }
@@ -202,8 +202,8 @@ fn rewrite(
     mode: Mode,
 ) -> Result<Option<Rewritten>, Diag> {
     let source = std::fs::read_to_string(abs).map_err(|err| Diag::cannot_read(abs, &err))?;
-    let Some(edit) = links_edit(&source, &task.links, edges, mode)
-        .map_err(|err| Diag::from(err).at_file(abs))?
+    let Some(edit) =
+        links_edit(&source, &task.links, edges, mode).map_err(|err| err.at_file(abs))?
     else {
         return Ok(None);
     };

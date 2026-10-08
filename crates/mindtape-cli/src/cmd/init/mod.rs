@@ -29,10 +29,9 @@ pub(crate) mod wizard;
 use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
-
 use self::preset::Preset;
 use self::wizard::{Estimate, Headers, Organisation, Priority, Recurrence, Required, Workflow};
+use crate::diag::{Diag, Result};
 
 /// The Typst package version `mt install` installs. Mirrors `lib/typst.toml`.
 const TYPST_PKG_VERSION: &str = "0.2.0";
@@ -284,14 +283,15 @@ fn with_schema_directive(template: &str, args: &SchemaArgs) -> Result<String> {
 
 pub(crate) fn install_lib() -> Result<()> {
     let dir = package_dir()?;
-    std::fs::create_dir_all(&dir).with_context(|| format!("create {}", dir.display()))?;
+    std::fs::create_dir_all(&dir).map_err(|err| Diag::cannot_write(&dir, &err))?;
     let manifest = format!(
         "[package]\nname = \"mindtape\"\nversion = \"{TYPST_PKG_VERSION}\"\nentrypoint = \"prelude.typ\"\n"
     );
-    mindtape::write_atomic(&dir.join("typst.toml"), manifest.as_bytes())
-        .context("write typst.toml")?;
-    mindtape::write_atomic(&dir.join("prelude.typ"), PRELUDE.as_bytes())
-        .context("write prelude.typ")?;
+    for (name, text) in [("typst.toml", manifest.as_str()), ("prelude.typ", PRELUDE)] {
+        let path = dir.join(name);
+        mindtape::write_atomic(&path, text.as_bytes())
+            .map_err(|err| Diag::cannot_write(&path, &err))?;
+    }
     println!(
         "installed @local/mindtape:{TYPST_PKG_VERSION} -> {}",
         dir.display()
@@ -300,7 +300,8 @@ pub(crate) fn install_lib() -> Result<()> {
 }
 
 pub(crate) fn package_dir() -> Result<PathBuf> {
-    let mut path = mindtape::data_home().context("determine local data directory")?;
+    let mut path =
+        mindtape::data_home().ok_or_else(|| Diag::failed("can't find the local data directory"))?;
     path.push("typst");
     path.push("packages");
     path.push("local");
@@ -322,9 +323,9 @@ pub(crate) fn scaffold_config(root: &Path, force: bool, template: &str) -> Resul
         );
         return Ok(false);
     }
-    std::fs::create_dir_all(&dir).with_context(|| format!("create {}", dir.display()))?;
+    std::fs::create_dir_all(&dir).map_err(|err| Diag::cannot_write(&dir, &err))?;
     mindtape::write_atomic(&config, template.as_bytes())
-        .with_context(|| format!("write {}", config.display()))?;
+        .map_err(|err| Diag::cannot_write(&config, &err))?;
     println!("wrote {}", config.display());
     Ok(true)
 }
@@ -339,11 +340,11 @@ pub(crate) fn write_templates(root: &Path, preset: &Preset) -> Result<()> {
         return Ok(());
     }
     let dir = root.join(".mindtape").join("templates");
-    std::fs::create_dir_all(&dir).with_context(|| format!("create {}", dir.display()))?;
+    std::fs::create_dir_all(&dir).map_err(|err| Diag::cannot_write(&dir, &err))?;
     for (file, body) in &preset.templates {
         let path = dir.join(file);
         mindtape::write_atomic(&path, body.as_bytes())
-            .with_context(|| format!("write {}", path.display()))?;
+            .map_err(|err| Diag::cannot_write(&path, &err))?;
         println!("wrote {}", path.display());
     }
     Ok(())

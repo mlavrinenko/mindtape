@@ -18,7 +18,7 @@
 
 use std::io::IsTerminal;
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::{Condition, ConditionEnv, Config, Facet, LsRule, ViewSpec, parse_import_view};
 
 pub use crate::cmd::ls::rules_applied::{Applied, trailer};
@@ -214,11 +214,7 @@ fn condition_holds(rule: &LsRule, env: &ConditionEnv) -> Result<bool> {
     };
     Condition::parse(expr)
         .and_then(|condition| condition.matches(env))
-        .map_err(|err| {
-            Diag::from(err)
-                .context("in ls.rules condition", expr)
-                .into()
-        })
+        .map_err(|err| Diag::from(err).context("in ls.rules condition", expr))
 }
 
 /// A rule's display identity: its `name`, else its `condition` text, else
@@ -371,8 +367,7 @@ fn resolve_columns(spec: &str, config: &Config) -> Result<Vec<String>> {
                 match mindtape::suggest::nearest(name, &mindtape::LS_COLUMNS) {
                     Some(near) => diag.hint(Hint::did_you_mean(near)),
                     None => diag.hint(Hint::new(COLUMN_NAMES)),
-                }
-                .into(),
+                },
             );
         }
     }

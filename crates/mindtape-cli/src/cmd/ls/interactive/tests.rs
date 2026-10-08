@@ -269,7 +269,7 @@ fn guard_rejects_non_table() {
 fn guard_table_fails_on_tty_not_format() {
     let err = guard_with(&ls_args(OutputFormat::Table), false).unwrap_err();
     assert_eq!(
-        crate::diag::plain_anyhow(err),
+        crate::diag::plain(&err),
         "error: --interactive needs a terminal on stdin and stdout\n\
          hint: drop --interactive when piping\n"
     );

@@ -11,7 +11,7 @@
 use std::path::Path;
 use std::process::Command;
 
-use anyhow::{Context, Result};
+use crate::diag::{Diag, Result};
 
 /// The shell a `run` command goes through, as `(program, command-flag)`.
 ///
@@ -86,7 +86,11 @@ pub(crate) fn run_command(command: &str, ctx: &RunCtx<'_>) -> Result<CommandRepo
         .env(ENV_STEM, ctx.stem)
         .env(ENV_STATUS, ctx.target)
         .output()
-        .with_context(|| format!("run on.flip command {command:?}"))?;
+        .map_err(|err| {
+            Diag::failed("can't run on.flip command")
+                .value(command)
+                .io(&err)
+        })?;
     let mut text = String::from_utf8_lossy(&output.stdout).into_owned();
     text.push_str(&String::from_utf8_lossy(&output.stderr));
     Ok(CommandReport {

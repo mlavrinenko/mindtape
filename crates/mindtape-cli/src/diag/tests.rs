@@ -1,6 +1,5 @@
 use std::path::Path;
 
-use anyhow::Context;
 use mindtape::config::ConfigError;
 use mindtape::recur::dates::RecurError;
 use mindtape::{
@@ -166,49 +165,17 @@ fn display_is_the_message_line_alone() {
 }
 
 #[test]
-fn an_anyhow_chain_joins_its_contexts_and_its_extra_lines_become_notes() {
-    let err = anyhow::Error::msg("first\n  second\n\n")
-        .context("outer")
-        .context("outermost");
-    let diag = Diag::from(err);
-    assert_eq!(diag.kind(), Kind::Failed);
-    assert_eq!(
-        plain(&diag),
-        "error: outermost: outer: first\nnote: second\n"
-    );
-}
-
-#[test]
-fn a_diag_inside_an_anyhow_chain_keeps_its_kind_and_hints() {
-    let inner = Diag::usage("unknown status")
-        .value("nope")
-        .hint(Hint::new("look"));
-    let err = Err::<(), _>(anyhow::Error::from(inner))
-        .context("flip")
-        .unwrap_err();
-    let diag = Diag::from(err);
-    assert_eq!(diag.kind(), Kind::Usage);
-    assert_eq!(
-        plain(&diag),
-        "error: flip: unknown status: 'nope'\nhint: look\n"
-    );
-}
-
-#[test]
-fn a_legacy_message_is_kept_word_for_word() {
-    assert_eq!(plain(&Diag::legacy("a: b")), "error: a: b\n");
-}
-
-#[test]
-fn a_library_error_in_an_anyhow_chain_is_converted() {
-    let err = anyhow::Error::from(DateOverrideError::InvalidNow("garbage".to_owned()));
+fn a_library_error_is_converted_with_its_own_words() {
+    let err = DateOverrideError::InvalidNow("garbage".to_owned());
     assert_eq!(
         plain(&Diag::from(err)),
         "error: MINDTAPE_NOW is not a date: 'garbage'\n\
          hint: set it to YYYY-MM-DD or an RFC 3339 timestamp, or unset it\n"
     );
-    let missing = anyhow::Error::from(RefError::NoMatch("x".to_owned())).context("rm");
-    assert_eq!(plain(&Diag::from(missing)), "error: rm: no task: 'x'\n");
+    assert_eq!(
+        plain(&Diag::from(RefError::NoMatch("x".to_owned()))),
+        "error: no task: 'x'\n"
+    );
 }
 
 #[test]
@@ -241,29 +208,6 @@ fn a_filter_error_is_a_usage_error_naming_the_filter() {
     assert_eq!(plain(&bare), "error: unknown field: 'wip'\n");
     assert_eq!(git.kind(), Kind::Failed);
     assert_eq!(plain(&git), "error: can't read git: changed(): no repo\n");
-}
-
-/// A filter error is never guessed out of an `anyhow` chain: its kind depends
-/// on where the filter came from.
-#[test]
-fn a_filter_error_in_an_anyhow_chain_stays_legacy() {
-    let err = anyhow::Error::from(FilterError::UnknownField("wip".to_owned()));
-    let diag = Diag::from(err);
-    assert_eq!(diag.kind(), Kind::Failed);
-    assert_eq!(plain(&diag), "error: unknown field in filter: wip\n");
-}
-
-#[test]
-fn a_context_on_a_plain_result_keeps_its_words() {
-    let err = std::fs::read_to_string("/nonexistent/mt-diag")
-        .context("read /nonexistent/mt-diag")
-        .unwrap_err();
-    let rendered = plain(&Diag::from(err));
-    assert!(
-        rendered.starts_with("error: read /nonexistent/mt-diag: "),
-        "{rendered}"
-    );
-    assert_eq!(rendered.lines().count(), 1, "{rendered}");
 }
 
 fn toml_error(source: &str) -> toml::de::Error {

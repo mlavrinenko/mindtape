@@ -17,7 +17,7 @@ fn a_trailing_typ_is_dropped_rather_than_doubled() {
 
 /// `new_stem`'s refusal as stderr gets it.
 fn refusal(raw: &str) -> String {
-    crate::diag::plain_anyhow(new_stem(raw).unwrap_err())
+    crate::diag::plain(&new_stem(raw).unwrap_err())
 }
 
 #[test]

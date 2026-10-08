@@ -15,7 +15,7 @@ use std::collections::HashSet;
 use std::ops::Range;
 use std::path::Path;
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::{Task, normalize_link};
 use typst_cleanup::{Plan, Rewrite};
 

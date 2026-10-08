@@ -16,7 +16,7 @@ pub(crate) mod tree_json;
 
 use std::path::PathBuf;
 
-use anyhow::Result;
+use crate::diag::Result;
 use clap::{CommandFactory, Parser, Subcommand};
 use log::LevelFilter;
 

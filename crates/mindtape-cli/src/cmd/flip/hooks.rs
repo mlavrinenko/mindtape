@@ -21,7 +21,7 @@
 use std::io::Write;
 use std::path::Path;
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::config::hooks::{ActionKind, FlipAction, matching_flip_hooks};
 use mindtape::{ConditionEnv, Filter, Readiness, Task, select};
 

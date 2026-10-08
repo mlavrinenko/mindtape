@@ -2,7 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::{StemHashes, Task, find_root, load_config, load_project};
 use typst_harvest::{HarvestWorld, harvest};
 
@@ -65,7 +65,7 @@ fn locate(reference: &str) -> Result<(PathBuf, Option<Project>)> {
         return Ok((path.to_path_buf(), None));
     }
     if mindtape::is_path_ref(reference) {
-        return Err(Diag::failed("no such file").value(reference).into());
+        return Err(Diag::failed("no such file").value(reference));
     }
     let project = crate::util::open()?;
     let (_, abs) = crate::util::resolve_task(&project, reference)?;
@@ -154,11 +154,10 @@ fn hashes_for(file: &Path, task: &Task, resolved: Option<Project>) -> StemHashes
 /// the project's config does not parse.
 pub(crate) fn build_world(file: &Path) -> Result<HarvestWorld> {
     if !file.is_file() {
-        return Err(Diag::failed("no such file")
-            .value(file.display().to_string())
-            .into());
+        return Err(Diag::failed("no such file").value(file.display().to_string()));
     }
-    let world = HarvestWorld::new(file).map_err(anyhow::Error::from)?;
+    let world = HarvestWorld::new(file)
+        .map_err(|err| Diag::failed("can't set up the Typst world").cause(&err))?;
     // `find_root` looks for `.mindtape`, which the Typst root markers
     // (`Cargo.toml`, `lib/`, `.git`) need not agree with; a file under no
     // project at all falls back to the world's root, where the lookup finds no

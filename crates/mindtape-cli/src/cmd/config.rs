@@ -10,7 +10,7 @@
 
 use std::path::Path;
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::{
     LayerSource, PackOrigin, RuleOrigin, config_schema_json, embedded_defaults, load_config_layered,
 };

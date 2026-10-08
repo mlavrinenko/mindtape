@@ -13,9 +13,6 @@
 //! - `config.rs`, `eval.rs`, `find.rs`, `go.rs`, `mv.rs`, `preset.rs`,
 //!   `review.rs`, `set.rs`, `views.rs`, `worktrees.rs` — one file each.
 
-// An `allow` below lets a module whose errors don't go through `crate::diag`
-// yet use `clippy.toml`'s disallowed macros. Each one is an entry on the one
-// list in `diag/allowlist.rs`, whose test refuses a new entry.
 pub(crate) mod add;
 pub(crate) mod check;
 pub(crate) mod config;

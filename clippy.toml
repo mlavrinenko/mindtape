@@ -14,16 +14,14 @@ lint-commented-code = false
 disallowed-methods = [
   { path = "std::process::exit", reason = "return the error from main; its crate::diag::Kind picks the exit code" },
   { path = "std::fs::write", reason = "torn write on kill/crash; use mindtape::write_atomic" },
+  { path = "std::io::stderr", reason = "build a crate::diag::Diag and emit it; only diag/render.rs and diag/prompt.rs own stderr" },
   { path = "std::fs::File::create", reason = "truncates with no fsync; use mindtape::write_atomic, or File::create_new to require a fresh path" },
 ]
 
 # Every stderr line goes through `crates/mindtape-cli/src/diag/`: a typed
-# `Diag`, one renderer, an exit code from the error's kind. These macros print
-# or build free-text errors that skip it. `diag/` itself needs none of them.
+# `Diag`, one renderer, an exit code from the error's kind. These macros
+# print free-text lines that skip it. `diag/` itself needs none of them.
 disallowed-macros = [
   { path = "std::eprintln", reason = "build a crate::diag::Diag and emit it" },
   { path = "std::eprint", reason = "build a crate::diag::Diag and emit it" },
-  { path = "anyhow::bail", reason = "return a crate::diag::Diag, whose kind picks the exit code" },
-  { path = "anyhow::anyhow", reason = "return a crate::diag::Diag, whose kind picks the exit code" },
-  { path = "anyhow::ensure", reason = "return a crate::diag::Diag, whose kind picks the exit code" },
 ]

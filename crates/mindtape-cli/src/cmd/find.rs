@@ -9,7 +9,7 @@
 //! (`mindtape::model::fields`) was created to end (see
 //! `truth/tasks/mt-find-as-sugar-over-contains.typ`).
 
-use anyhow::Result;
+use crate::diag::Result;
 
 use crate::cmd::ls::{LsArgs, LsFlags};
 use crate::util;

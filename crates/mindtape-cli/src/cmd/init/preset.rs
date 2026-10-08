@@ -17,7 +17,7 @@
 
 use std::path::{Path, PathBuf};
 
-use anyhow::Result;
+use crate::diag::Result;
 
 use crate::diag::{Command, Diag, Hint};
 
@@ -103,7 +103,7 @@ pub fn split_overlay(config: &str) -> Result<Option<(String, String)>> {
         return Ok(None);
     };
     let toml::Value::Table(overlay) = value else {
-        return Err(Diag::failed("the preset's [overlay] must be a table").into());
+        return Err(Diag::failed("the preset's [overlay] must be a table"));
     };
     let base = toml::to_string(&base)
         .map_err(|err| Diag::failed("can't write the preset base").cause(&err))?;
@@ -158,8 +158,7 @@ pub fn resolve(name: &str, user_dir: Option<&Path>) -> Result<Preset> {
             Command::mt().word("preset").word("ls"),
             "to see the presets",
         )),
-    }
-    .into())
+    })
 }
 
 /// Whether an argument should be treated as a filesystem path rather than a

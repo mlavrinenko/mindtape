@@ -28,7 +28,7 @@ mod write;
 use std::collections::{BTreeMap, HashSet};
 use std::fmt::Write as _;
 
-use anyhow::Result;
+use crate::diag::Result;
 use clap::Args;
 use mindtape::model::canonical::CanonicalStatus;
 use mindtape::{CanonicalTask, Config, EntryKind, MapOptions, map_canonical};
@@ -103,7 +103,11 @@ fn fail_on_skips(outcomes: &[TaskOutcome]) -> Result<()> {
     if let Some(message) = problems.find(|message| names_prelude_package(message)) {
         crate::diag::emit(&prelude_diag(Kind::Failed, message));
     }
-    Err(Diag::batch("filed", outcomes.len() - skipped, outcomes.len()).into())
+    Err(Diag::batch(
+        "filed",
+        outcomes.len() - skipped,
+        outcomes.len(),
+    ))
 }
 
 /// The core pipeline: parse `raw` canonical JSON, map/stem/emit each record,
@@ -169,8 +173,7 @@ fn map_options(args: &ImportArgs) -> Result<MapOptions> {
         else {
             return Err(Diag::usage("--map expects OLD=NEW")
                 .value(entry)
-                .hint(Hint::example("--map todo=proposed"))
-                .into());
+                .hint(Hint::example("--map todo=proposed")));
         };
         status_map.insert(old.to_owned(), new.to_owned());
     }
@@ -232,7 +235,7 @@ fn stem_for(
         id.to_owned()
     } else {
         if mindtape::slug_from_title(title).is_empty() {
-            return Err(Diag::failed("can't name the task file from an empty title").into());
+            return Err(Diag::failed("can't name the task file from an empty title"));
         }
         mindtape::stem_for_title(title, config, mindtape::today_ymd())
             .map_err(|err| Diag::verbatim(Kind::Failed, err.to_string()))?

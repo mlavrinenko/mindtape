@@ -2,10 +2,6 @@
 //! variant added to a library error doesn't compile until it picks its kind
 //! and words here.
 //!
-//! `From<anyhow::Error>` is the bridge for code that still returns `anyhow`:
-//! a `Diag` or a library error anywhere in the chain becomes the message, and
-//! the contexts above it stay in front, word for word. The fan-out tasks
-//! convert those call sites, and the bridge goes when the last one does.
 
 use mindtape::config::{ConfigError, ConfigPlace};
 use mindtape::recur::dates::RecurError;
@@ -16,56 +12,46 @@ use mindtape::{
 
 use super::{Command, Diag, Hint, Kind, Note};
 
-impl From<anyhow::Error> for Diag {
-    fn from(err: anyhow::Error) -> Self {
-        let mut legacy = Vec::new();
-        for cause in err.chain() {
-            if let Some(mut diag) = known(cause) {
-                legacy.append(&mut diag.0.legacy);
-                diag.0.legacy = legacy;
-                return diag;
-            }
-            legacy.push(cause.to_string());
-        }
-        let mut diag = Self::legacy("");
-        diag.0.legacy = legacy;
-        diag
-    }
-}
-
-/// `cause` as a `Diag` when it is one or a library error converted here. A
-/// [`FilterError`] isn't, because its kind depends on where the filter came
-/// from: the command line's is a usage error, a config's isn't.
-fn known(cause: &(dyn std::error::Error + 'static)) -> Option<Diag> {
-    if let Some(diag) = cause.downcast_ref::<Diag>() {
-        return Some(diag.clone());
-    }
-    if let Some(refused) = cause.downcast_ref::<crate::task_edit::Refused>() {
-        return Some(refused.diag.clone());
-    }
-    if let Some(err) = cause.downcast_ref::<ConfigError>() {
-        return Some(config(err));
-    }
-    if let Some(err) = cause.downcast_ref::<RecurError>() {
-        return Some(err.clone().into());
-    }
-    if let Some(err) = cause.downcast_ref::<RefError>() {
-        return Some(reference(err));
-    }
-    if let Some(err) = cause.downcast_ref::<ConditionError>() {
-        return Some(err.clone().into());
-    }
-    if let Some(err) = cause.downcast_ref::<typst_cleanup::Error>() {
-        return Some(cleanup(err));
-    }
-    cause
-        .downcast_ref::<DateOverrideError>()
-        .map(|err| err.clone().into())
-}
-
 /// A retire or rewrite that [`typst_cleanup`] could not plan or apply. A
 /// file that git can't pin a tombstone to is the project's rule refusing the
 /// work; a failed read, write or splice is the work failing.
+impl From<mindtape::config::hooks::HookError> for Diag {
+    fn from(err: mindtape::config::hooks::HookError) -> Self {
+        filter(err.source, Some(&err.when)).rule(format!("on.flip[{}].when", err.index))
+    }
+}
+
+/// Serialising a result for output failed, in the format named.
+macro_rules! output_error {
+    ($($err:ty => $what:literal),+ $(,)?) => {$(
+        impl From<$err> for Diag {
+            fn from(err: $err) -> Self {
+                Self::failed($what).cause(&err)
+            }
+        }
+    )+};
+}
+
+output_error! {
+    serde_json::Error => "can't write JSON",
+    csv::Error => "can't write CSV",
+    toml::ser::Error => "can't write TOML",
+    typst_edit::EditError => "can't apply the edit",
+    clap::Error => "can't read the arguments",
+}
+
+impl From<csv::IntoInnerError<csv::Writer<Vec<u8>>>> for Diag {
+    fn from(err: csv::IntoInnerError<csv::Writer<Vec<u8>>>) -> Self {
+        Self::failed("can't write CSV").cause(&err)
+    }
+}
+
+impl From<typst_cleanup::Error> for Diag {
+    fn from(err: typst_cleanup::Error) -> Self {
+        cleanup(&err)
+    }
+}
+
 fn cleanup(err: &typst_cleanup::Error) -> Diag {
     use typst_cleanup::Error;
     match err {

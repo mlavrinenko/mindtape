@@ -7,7 +7,7 @@ use super::{
 };
 
 /// A file installer under test: `(dir, force) -> Result`.
-type Writer = fn(&Path, bool) -> anyhow::Result<()>;
+type Writer = fn(&Path, bool) -> crate::diag::Result<()>;
 
 /// `writer` creates `dir/name` with exactly `expected` when absent.
 fn assert_writes_content(name: &str, writer: Writer, expected: &str) {

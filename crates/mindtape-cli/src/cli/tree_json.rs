@@ -16,7 +16,7 @@
 //! Refs: `truth/tasks/structured-cli-reference-from-command-dump.typ`,
 //! `truth/tasks/gate-the-cqrs-split-against-the-command-tree.typ`.
 
-use anyhow::Result;
+use crate::diag::Result;
 use clap::{Arg, ArgAction, Command, CommandFactory};
 use serde_json::{Value, json};
 

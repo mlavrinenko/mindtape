@@ -25,12 +25,11 @@ pub(super) fn shell_word(word: &str) -> String {
     }
 }
 
-/// The message line without its prefix: the legacy chain, the place, the
-/// rule, the text with its value and context, then the reason, joined with
-/// `: `. A trailing period on the reason is dropped.
+/// The message line without its prefix: the place, the rule, the text with
+/// its value and context, then the reason, joined with `: `. A trailing period
+/// on the reason is dropped.
 pub(super) fn message(diag: &Diag) -> String {
-    let mut parts: Vec<String> = diag.0.legacy.clone();
-    parts.extend(diag.0.place.clone());
+    let mut parts: Vec<String> = diag.0.place.clone().into_iter().collect();
     parts.extend(diag.0.rule.clone());
     parts.push(head(diag));
     if let Some(reason) = &diag.0.reason {

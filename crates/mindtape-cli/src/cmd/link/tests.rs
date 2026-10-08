@@ -137,7 +137,7 @@ fn an_unknown_kind_fails_the_run_and_writes_nothing() {
     let project = setup(dir.path());
     let before = source(dir.path(), "alpha");
     let err = run_with(&project, &parse(&["alpha", "depends-onn", "beta"])).unwrap_err();
-    let err = crate::diag::plain_anyhow(err);
+    let err = crate::diag::plain(&err);
     assert!(
         err.starts_with("error: tasks/alpha.typ: unknown link kind: 'depends-onn'\n"),
         "{err}"
@@ -202,7 +202,7 @@ fn a_failing_entry_does_not_hold_back_the_rest() {
     .unwrap();
     let err = run_with(&project, &parse(&["--apply", map.to_str().unwrap()])).unwrap_err();
     assert_eq!(
-        crate::diag::plain_anyhow(err),
+        crate::diag::plain(&err),
         "error: linked 1 of 2 tasks; 1 failed\n"
     );
     assert!(!source(dir.path(), "alpha").contains("links:"));

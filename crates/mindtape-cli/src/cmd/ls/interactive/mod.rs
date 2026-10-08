@@ -19,7 +19,7 @@
 use std::io::{self, IsTerminal, Write};
 use std::path::PathBuf;
 
-use anyhow::Result;
+use crate::diag::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use crossterm::terminal::{Clear, ClearType};
 use crossterm::{cursor, execute};
@@ -78,15 +78,13 @@ fn guard_with(args: &LsArgs, tty: bool) -> Result<()> {
     if !matches!(args.flags.format, OutputFormat::Table) {
         return Err(
             Diag::usage("--interactive works only with the table format")
-                .hint(Hint::new("drop --format, or drop --interactive"))
-                .into(),
+                .hint(Hint::new("drop --format, or drop --interactive")),
         );
     }
     if !tty {
         return Err(
             Diag::usage("--interactive needs a terminal on stdin and stdout")
-                .hint(Hint::new("drop --interactive when piping"))
-                .into(),
+                .hint(Hint::new("drop --interactive when piping")),
         );
     }
     Ok(())

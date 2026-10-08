@@ -5,7 +5,7 @@ use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
-use anyhow::Result;
+use crate::diag::Result;
 use mindtape::{
     Config, Filter, LoadError, LoadOutcome, LoadWarning, RefError, StemHashes, Task, ViewSpec,
     config_path, find_root, load_config, load_project, write_atomic,
@@ -82,11 +82,8 @@ fn worktree_override() -> Option<PathBuf> {
 
 /// The working directory, or the refusal when the OS will not say.
 fn current_dir() -> Result<PathBuf> {
-    std::env::current_dir().map_err(|err| {
-        Diag::failed("can't determine the current directory")
-            .io(&err)
-            .into()
-    })
+    std::env::current_dir()
+        .map_err(|err| Diag::failed("can't determine the current directory").io(&err))
 }
 
 /// Resolve the project root, honouring the worktree override when set.
@@ -108,11 +105,9 @@ pub fn resolve_root() -> Result<PathBuf> {
 fn resolve_root_with(cwd: &Path, override_path: Option<&Path>) -> Result<PathBuf> {
     let Some(path) = override_path else {
         return find_root(cwd).ok_or_else(|| {
-            Diag::failed("no .mindtape/ directory here or above")
-                .hint(Hint::new(
-                    "run mt init to make one here, or pass -w <path> to use another project",
-                ))
-                .into()
+            Diag::failed("no .mindtape/ directory here or above").hint(Hint::new(
+                "run mt init to make one here, or pass -w <path> to use another project",
+            ))
         });
     };
     let base = if path.is_absolute() {
@@ -123,14 +118,12 @@ fn resolve_root_with(cwd: &Path, override_path: Option<&Path>) -> Result<PathBuf
     if !base.join(".mindtape").is_dir() {
         return Err(Diag::failed("no .mindtape/ directory in worktree")
             .value(base.display().to_string())
-            .hint(Hint::new("run mt init there, or pass another path to -w"))
-            .into());
+            .hint(Hint::new("run mt init there, or pass another path to -w")));
     }
     base.canonicalize().map_err(|err| {
         Diag::failed("can't resolve worktree")
             .value(base.display().to_string())
             .io(&err)
-            .into()
     })
 }
 
@@ -212,9 +205,9 @@ pub fn resolve_task(project: &Project, id: &str) -> Result<(Task, PathBuf)> {
     let hashes = stem_hashes(tasks, &project.config);
     match mindtape::resolve_ref(tasks, &project.root, &cwd, &hashes, id) {
         Ok(found) => Ok((found.task.clone(), found.path)),
-        Err(RefError::Ambiguous { stems, .. }) => Err(ambiguous(&hashes, id, &stems).into()),
-        Err(RefError::NoMatch(_)) => Err(no_task(project, id).into()),
-        Err(other) => Err(Diag::from(other).into()),
+        Err(RefError::Ambiguous { stems, .. }) => Err(ambiguous(&hashes, id, &stems)),
+        Err(RefError::NoMatch(_)) => Err(no_task(project, id)),
+        Err(other) => Err(Diag::from(other)),
     }
 }
 
@@ -338,20 +331,19 @@ pub fn canonical_source(config: &Config, source: String) -> String {
 /// Returns an error when the file cannot be written.
 pub fn write_task(config: &Config, path: &Path, source: String) -> Result<()> {
     write_atomic(path, canonical_source(config, source).as_bytes())
-        .map_err(|err| Diag::cannot_write(path, &err).into())
+        .map_err(|err| Diag::cannot_write(path, &err))
 }
 
 /// The refusal for a view name the config does not declare: the nearest view
 /// when one is close, else where to list them. Shared by every CLI view lookup
 /// site (`cmd/ls/rules.rs`, `cmd/views.rs`).
-pub fn unknown_view_error(name: &str, views: &BTreeMap<String, ViewSpec>) -> anyhow::Error {
+pub fn unknown_view_error(name: &str, views: &BTreeMap<String, ViewSpec>) -> Diag {
     let known: Vec<&str> = views.keys().map(String::as_str).collect();
     let diag = Diag::usage("unknown view").value(name);
     match mindtape::suggest::nearest(name, &known) {
         Some(near) => diag.hint(Hint::did_you_mean(near)),
         None => diag.hint(Hint::run(Command::mt().word("views"), "to see the views")),
     }
-    .into()
 }
 
 /// The path of `to` (root-relative) seen from `from_dir` (root-relative), for

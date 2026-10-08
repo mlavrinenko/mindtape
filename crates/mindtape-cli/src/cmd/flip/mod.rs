@@ -39,7 +39,6 @@ use std::collections::HashSet;
 use std::io::IsTerminal;
 use std::path::Path;
 
-use anyhow::{Context, Result};
 use clap::{Args, CommandFactory, FromArgMatches, Parser};
 use mindtape::config::Legend;
 use mindtape::{Config, status_value, today_ymd};
@@ -47,7 +46,7 @@ use typst_edit::apply;
 
 use crate::cmd::flip::batch::{Landed, after_batch_diags, finish, note_hint};
 use crate::cmd::flip::hooks::{Hooks, Transition, note_with_overrides};
-use crate::diag::{Command, Diag, Hint, Note};
+use crate::diag::{Command, Diag, Hint, Note, Result};
 use crate::task_edit::{task_with, upsert_named_arg};
 use crate::util::{self, Project};
 
@@ -118,11 +117,11 @@ pub fn run_external(external: &[String]) -> Result<()> {
     let project = util::open()?;
     let verb = external
         .first()
-        .context("empty shortcut invocation")?
+        .ok_or_else(|| Diag::usage("empty shortcut invocation"))?
         .as_str();
     let legend = &project.config.tasks.status;
     if !legend.contains(verb) {
-        return Err(unknown_command(verb, legend).into());
+        return Err(unknown_command(verb, legend));
     }
     // clap prints a help request to stdout and exits 0, a usage error to
     // stderr and exits 2, as `mt flip` does.
@@ -195,15 +194,17 @@ fn run_as(project: &Project, args: &FlipArgs, via: Via) -> Result<()> {
         return Ok(());
     }
 
-    let status = args.status.as_deref().context("status is required")?;
+    let status = args
+        .status
+        .as_deref()
+        .ok_or_else(|| Diag::usage("status is required"))?;
     if args.tasks.is_empty() {
         return Err(Diag::usage("no tasks given")
-            .hint(Hint::new("name at least one task after the status"))
-            .into());
+            .hint(Hint::new("name at least one task after the status")));
     }
     let legend = &project.config.tasks.status;
     if !legend.is_empty() && !legend.contains(status) {
-        return Err(unknown_status(status, legend).into());
+        return Err(unknown_status(status, legend));
     }
 
     // Resolve every target before mutating, so each reference reads the project
@@ -213,7 +214,7 @@ fn run_as(project: &Project, args: &FlipArgs, via: Via) -> Result<()> {
     for spec in &args.tasks {
         match util::resolve_task(project, spec) {
             Ok((task, abs)) => resolved.push((spec.clone(), task, abs)),
-            Err(err) => problems.push(note_hint(Diag::from(err), spec, args, via)),
+            Err(err) => problems.push(note_hint(err, spec, args, via)),
         }
     }
 
@@ -299,24 +300,21 @@ fn flip_target(
         check_children(world, task, status, &batch.project.config)?;
     }
     check_note_required(legend, status, args.note.as_deref())?;
-    let outcome = batch
-        .hooks
-        .run(
-            &Transition {
-                task,
-                path: abs,
-                target: status,
-                force: args.force,
-            },
-            &mut std::io::stdout(),
-        )
-        .map_err(Diag::from)?;
+    let outcome = batch.hooks.run(
+        &Transition {
+            task,
+            path: abs,
+            target: status,
+            force: args.force,
+        },
+        &mut std::io::stdout(),
+    )?;
     if let Some(refusal) = outcome.refusal {
         return Err(refusal);
     }
     let note = note_with_overrides(args.note.as_deref(), &outcome.forced);
     let restamp = task.status.as_ref().is_some_and(|s| s.name == status);
-    flip_one(batch, world, abs, note.as_deref()).map_err(Diag::from)?;
+    flip_one(batch, world, abs, note.as_deref())?;
     report_flip(spec, &task.title, task.status.as_ref(), status, restamp);
     notice_recur(task, status, legend, &batch.project.config.tasks.recur);
     Ok(())
@@ -338,9 +336,12 @@ fn flip_one(
     note: Option<&str>,
 ) -> Result<()> {
     let project = batch.project;
-    let source = std::fs::read_to_string(abs).with_context(|| format!("read {}", abs.display()))?;
-    let updated = status_edit(&source, batch.status, batch.ymd, note)
-        .with_context(|| format!("rewrite status in {}", abs.display()))?;
+    let source = std::fs::read_to_string(abs).map_err(|err| Diag::cannot_read(abs, &err))?;
+    let updated = status_edit(&source, batch.status, batch.ymd, note).map_err(|err| {
+        Diag::failed("can't rewrite the status")
+            .value(abs.display().to_string())
+            .cause(&err)
+    })?;
     let landed = crate::pre_write::verify_one(project, world, abs, &updated)?;
     util::write_task(&project.config, abs, updated)?;
     if let Some(task) = landed {

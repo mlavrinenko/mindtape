@@ -14,7 +14,7 @@ const TASK: &str = "#metadata((
 ";
 
 /// `mt eval <file>` with the path spelled as the task reference.
-fn eval(file: &std::path::Path, json: bool) -> anyhow::Result<()> {
+fn eval(file: &std::path::Path, json: bool) -> crate::diag::Result<()> {
     run(&EvalArgs {
         task: file.to_string_lossy().into_owned().into(),
         json,
@@ -133,7 +133,7 @@ fn eval_does_not_hijack_a_foreign_lib_package() {
 fn locate_refuses_a_missing_path_with_a_separator() {
     let err = locate("sub/nope").unwrap_err();
     assert_eq!(
-        crate::diag::plain_anyhow(err),
+        crate::diag::plain(&err),
         "error: no such file: 'sub/nope'\n"
     );
 }
@@ -142,7 +142,7 @@ fn locate_refuses_a_missing_path_with_a_separator() {
 fn locate_refuses_a_missing_typ_path() {
     let err = locate("nope.typ").unwrap_err();
     assert_eq!(
-        crate::diag::plain_anyhow(err),
+        crate::diag::plain(&err),
         "error: no such file: 'nope.typ'\n"
     );
 }

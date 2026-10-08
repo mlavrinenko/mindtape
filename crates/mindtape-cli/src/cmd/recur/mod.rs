@@ -18,7 +18,7 @@ pub(crate) mod edit;
 use std::collections::HashSet;
 use std::path::Path;
 
-use anyhow::Result;
+use crate::diag::Result;
 use chrono::NaiveDate;
 use clap::Args;
 use mindtape::recur::dates::{
@@ -98,14 +98,13 @@ fn run_with(project: &Project, args: &RecurArgs) -> Result<()> {
             .value(&args.task.task)
             .hint(Hint::new(
                 "add a recur: field to the task, or pick one that has it",
-            ))
-            .into());
+            )));
     };
 
     let recur_config = &project.config.tasks.recur;
     let problems = mindtape::recur::check_policy(&recur, recur_config);
     if let Some(policy) = policy_refusal(&problems) {
-        return Err(policy.into());
+        return Err(policy);
     }
 
     if args.skip {
@@ -134,7 +133,7 @@ fn policy_refusal(problems: &[String]) -> Option<Diag> {
 /// Today, and the task's current `due`/`start`, as [`NaiveDate`]s.
 fn dates(task: &Task) -> Result<(NaiveDate, Option<NaiveDate>, Option<NaiveDate>)> {
     let Some(today) = recur_dates::ymd_to_date(today_ymd()) else {
-        return Err(Diag::failed("today's date is out of range").into());
+        return Err(Diag::failed("today's date is out of range"));
     };
     let due = task.due.as_deref().and_then(recur_dates::parse_iso);
     let start = task.start.as_deref().and_then(recur_dates::parse_iso);
@@ -145,7 +144,7 @@ fn dates(task: &Task) -> Result<(NaiveDate, Option<NaiveDate>, Option<NaiveDate>
 /// computed, since an exhausted series has no next occurrence to compute.
 fn guard_budget(recur: &Recur) -> Result<()> {
     if exhausted(recur) {
-        return Err(Diag::refused("series exhausted: count has reached 0").into());
+        return Err(Diag::refused("series exhausted: count has reached 0"));
     }
     Ok(())
 }
@@ -155,8 +154,7 @@ fn guard_until(recur: &Recur, next: NaiveDate) -> Result<NaiveDate> {
     if past_until(recur, next) {
         return Err(
             Diag::refused("series ended: the next occurrence is past until")
-                .value(recur_dates::format_iso(next))
-                .into(),
+                .value(recur_dates::format_iso(next)),
         );
     }
     Ok(next)
@@ -273,7 +271,7 @@ fn mint_stem(
     mindtape::model::naming::disambiguate(&stem, |candidate| {
         dest.claimed.contains(candidate) || dest.dir.join(format!("{candidate}.typ")).exists()
     })
-    .map_err(|err| Diag::failed("can't mint a stem").cause(&err).into())
+    .map_err(|err| Diag::failed("can't mint a stem").cause(&err))
 }
 
 /// The pre-write seam every single-step `recur` path funnels through: check the
@@ -297,9 +295,7 @@ fn commit(project: &Project, file: &Path, source: String) -> Result<()> {
 /// The folder `abs` sits in, where its occurrences are written.
 pub(super) fn parent_dir(abs: &Path) -> Result<&Path> {
     abs.parent().ok_or_else(|| {
-        Diag::failed("task file has no parent directory")
-            .value(abs.display().to_string())
-            .into()
+        Diag::failed("task file has no parent directory").value(abs.display().to_string())
     })
 }
 
@@ -376,8 +372,7 @@ fn guard_double_spawn(project: &Project, task: &Task, force: bool) -> Result<()>
         return Err(Diag::refused("task already has a successor")
             .value(&task.id)
             .note(Note::new("successor").name(&successor.id))
-            .hint(Hint::new("pass --force to spawn another"))
-            .into());
+            .hint(Hint::new("pass --force to spawn another")));
     }
     Ok(())
 }
