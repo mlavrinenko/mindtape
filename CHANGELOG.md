@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt check --json` prints the problems as JSON.** One `problems` array in
+  the `schema_version` envelope, each entry with `severity`, `file`, `line`,
+  `place`, `rule`, `message` and `hints`; a clean project prints `[]`. The text
+  report stays off stderr, and the exit code is the plain command's.
 - **A near-miss name reads as a `hint:` on a warning, a rule breach and a
   commit trailer.** A filter naming an undeclared `x-` field warns with `hint:
   did you mean x-machine?` and `hint: use one of: x-machine`; a tag outside

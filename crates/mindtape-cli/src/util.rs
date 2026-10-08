@@ -258,12 +258,20 @@ pub fn warn_errors(outcome: &LoadOutcome) {
 /// the config key, and the escaped-hash advice rides on the first body that
 /// needs it.
 pub fn report_load_problems(outcome: &LoadOutcome, kind: Kind) {
+    for diag in load_problems(outcome, kind) {
+        emit(&diag);
+    }
+}
+
+/// The problems [`report_load_problems`] prints, in its order, unprinted.
+pub(crate) fn load_problems(outcome: &LoadOutcome, kind: Kind) -> Vec<Diag> {
+    let mut out = Vec::new();
     let mut prelude_missing = false;
     let mut hash_hinted = false;
     for error in &outcome.errors {
         if names_prelude_package(&error.message) {
             if !prelude_missing {
-                emit(&prelude_diag(kind, &error.message));
+                out.push(prelude_diag(kind, &error.message));
             }
             prelude_missing = true;
             continue;
@@ -273,11 +281,10 @@ pub fn report_load_problems(outcome: &LoadOutcome, kind: Kind) {
             hash_hinted = true;
             diag = diag.hint(escaped_hash_hint());
         }
-        emit(&diag);
+        out.push(diag);
     }
-    for warning in &outcome.warnings {
-        emit(&warning_diag(warning));
-    }
+    out.extend(outcome.warnings.iter().map(warning_diag));
+    out
 }
 
 /// The line for a file that failed to load: its place as `file:line:col`

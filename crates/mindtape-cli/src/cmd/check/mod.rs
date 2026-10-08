@@ -35,6 +35,10 @@ pub struct CheckArgs {
     /// checking tasks. For CI: `mt check --commits origin/main..HEAD`.
     #[arg(long, value_name = "RANGE")]
     pub commits: Option<String>,
+    /// Print the problems as JSON on stdout instead of text on stderr. The
+    /// exit code is the same.
+    #[arg(long, conflicts_with_all = ["commit_msg", "commits"])]
+    pub json: bool,
 }
 
 /// Run the `check` command.
@@ -52,29 +56,73 @@ pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> 
     if let Some(range) = &args.commits {
         return crate::cmd::check::range::run(project, range, args.quiet);
     }
-    util::report_load_problems(&project.outcome, crate::diag::Kind::Failed);
+    let mut report = Report::new(args.json);
+    report.extend(util::load_problems(
+        &project.outcome,
+        crate::diag::Kind::Failed,
+    ));
 
     crate::pre_write::with_body_rules(&project.config, |body_rules| {
-        check_project(project, args, body_rules)
+        check_project(project, args, body_rules, &mut report)
     })
+}
+
+/// The problems of one `mt check`, printed as they come on stderr, or held
+/// for the JSON document.
+struct Report {
+    json: bool,
+    held: Vec<Diag>,
+}
+
+impl Report {
+    fn new(json: bool) -> Self {
+        Self {
+            json,
+            held: Vec::new(),
+        }
+    }
+
+    fn extend(&mut self, diags: impl IntoIterator<Item = Diag>) {
+        for diag in diags {
+            if self.json {
+                self.held.push(diag);
+            } else {
+                crate::diag::emit(&diag);
+            }
+        }
+    }
+
+    /// The JSON document on stdout, when asked for.
+    fn finish(&self) -> Result<()> {
+        if self.json {
+            let problems: Vec<_> = self.held.iter().map(Diag::to_json).collect();
+            let document = serde_json::json!({
+                "schema_version": mindtape::SCHEMA_VERSION,
+                "problems": problems,
+            });
+            println!("{}", serde_json::to_string_pretty(&document)?);
+        }
+        Ok(())
+    }
 }
 
 fn check_project(
     project: &util::Project,
     args: &CheckArgs,
     body_rules: BodyRules<'_>,
+    report: &mut Report,
 ) -> Result<()> {
     let mut violations = validate(&project.outcome.tasks, &project.config);
     violations.extend(body_violations(project, body_rules)?);
     let templates = crate::cmd::check::templates::breaches(project, body_rules)?;
     violations.extend(templates.violations);
-    for failure in templates
-        .load_warnings
-        .iter()
-        .chain(&templates.load_failures)
-    {
-        crate::diag::emit(failure);
-    }
+    report.extend(
+        templates
+            .load_warnings
+            .iter()
+            .chain(&templates.load_failures)
+            .cloned(),
+    );
 
     // `[tasks.comments]` breaches carry the severity of their policy.
     violations.extend(
@@ -82,9 +130,8 @@ fn check_project(
             .map_err(|err| Diag::failed("can't scan tasks.comments").cause(&err))?,
     );
 
-    for violation in &violations {
-        crate::diag::emit(&Diag::from(violation));
-    }
+    report.extend(violations.iter().map(Diag::from));
+    report.finish()?;
 
     // A `[[tasks.rules]]` breach at `severity = "warn"` has already printed;
     // it is a report, not a failure, so it is not counted here.
@@ -95,7 +142,7 @@ fn check_project(
     let failures = fatal.len();
     let load_errors = project.outcome.errors.len() + templates.load_failures.len();
     if failures == 0 && load_errors == 0 {
-        if !args.quiet {
+        if !args.quiet && !args.json {
             println!("ok: {} task(s) valid", project.outcome.tasks.len());
         }
         return Ok(());

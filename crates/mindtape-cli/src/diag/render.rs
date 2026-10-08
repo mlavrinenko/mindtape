@@ -31,7 +31,15 @@ pub(super) fn shell_word(word: &str) -> String {
 pub(super) fn message(diag: &Diag) -> String {
     let mut parts: Vec<String> = diag.0.place.clone().into_iter().collect();
     parts.extend(diag.0.rule.clone());
-    parts.push(head(diag));
+    parts.push(text(diag));
+    parts.retain(|part| !part.is_empty());
+    parts.join(": ")
+}
+
+/// What the problem says, without its place or rule: the text with its value
+/// and context, then the reason. A trailing period on the reason is dropped.
+pub(super) fn text(diag: &Diag) -> String {
+    let mut parts = vec![head(diag)];
     if let Some(reason) = &diag.0.reason {
         parts.push(reason.strip_suffix('.').unwrap_or(reason).to_owned());
     }

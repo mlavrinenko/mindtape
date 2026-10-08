@@ -34,7 +34,7 @@ groups:
       crates/mindtape-cli/src/cli/completion/mod.rs: 2b2d0f8eb41435fbc5f6bda31c25f4c64238a4d567d0824a2e3ae939d073a410
       crates/mindtape-cli/src/cli/mod.rs: 0ef22ed64b685e065a9fe84a7eee2134a07816f0eaa87e813415ab3aa1b0cc1b
       crates/mindtape-cli/src/cmd/add/mod.rs: b4ea64ce88d233e859d665fd8ec85e03300e3d1e40fbe7e21e2a76b5c2bf8700
-      crates/mindtape-cli/src/cmd/check/mod.rs: cea84fb281c22b0398ddd06faafe4641daf7fb796df2938659aed37fe2b1b998
+      crates/mindtape-cli/src/cmd/check/mod.rs: c994482eb3ed6c27005e3a0fd03264d40af769bd545bf4f4069e03417e19b3ef
       crates/mindtape-cli/src/cmd/config.rs: a2b4efac733829e7561f40b974e873e6d79629845259fafe3af706186a7715c7
       crates/mindtape-cli/src/cmd/eval.rs: d1a8a8d2410c902eba4d9d443e0fe23bc669705d4ea94cd20ab194e06b576544
       crates/mindtape-cli/src/cmd/find.rs: 5b259aac55bd497d97587704fad65e39cd9355cfa358b39dc94ce28d77621dec
@@ -69,7 +69,7 @@ groups:
       skills/mindtape/evals/evals.json: d6d2c0a466dc0d35212de245045445f31935c8aa50c95a3be7c82d8327eed7aa
       skills/mindtape/references/add-slots.md: b3c097dd407841f7b98a8036b02e381fb35d559d316858cc5a49472738d40a9c
       skills/mindtape/references/filters.md: 6dfab396bfe9c3c6719d6a7835d8cd06e86a17320d2a9870b8ed8b4f7f75a500
-      www/content/agents.typ: 9eb2d63351cc8348e914141742b2213312552244e51108a7245440b93f713d95
+      www/content/agents.typ: 075768e38335e5f7e30bf5a2195337d82498a24f0473f16c3ab3b346746203fa
       www/content/cli.typ: 43dd4cab296dd606bb0cf040ad50baa42d1623876bdec0704c6d075e51f53e2a
       www/content/cli/add.typ: 2b9d93757ee3aa04546bb4a2ff975dde6049e8bcd7e9e9ce7e01417bab898a93
       www/content/cli/check.typ: 51365c05069ccbed558249b027b20f8aad011d82746ce69aa830b31e3bd825a3

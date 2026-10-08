@@ -40,6 +40,7 @@
 //! # Files
 //!
 //! - `hint.rs` — [`Hint`], [`Note`] and [`Command`], the lines under an error.
+//! - `json.rs` — a [`Diag`] as a JSON object, for `--json` reports.
 //! - `render.rs` — the renderer and the one writer to stderr.
 //! - `summary.rs`, `summary_tests.rs` — the closing count of a command that found several
 //!   problems, and the exit status of a command it ran.
@@ -53,6 +54,7 @@
 mod from_lib;
 mod hint;
 mod io;
+mod json;
 #[allow(
     clippy::disallowed_methods,
     reason = "the confirmation prompt is the one stderr line that is not a Diag"
@@ -129,6 +131,8 @@ struct Parts {
     kind: Kind,
     /// `path:line[:col]`, or a place with no file such as `pack <name>:3`.
     place: Option<String>,
+    /// The file and line behind `place`, when it names a file.
+    site: Option<(String, Option<usize>)>,
     rule: Option<String>,
     what: &'static str,
     tally: Option<Tally>,
@@ -148,6 +152,7 @@ impl Diag {
         Self(Box::new(Parts {
             kind,
             place: None,
+            site: None,
             rule: None,
             what,
             tally: None,
@@ -226,12 +231,14 @@ impl Diag {
             Some(col) => format!("{}:{line}:{col}", path.display()),
             None => format!("{}:{line}", path.display()),
         });
+        self.0.site = Some((path.display().to_string(), Some(line)));
         self
     }
 
     /// The file the problem is tied to, when no line of it is known.
     pub(crate) fn at_file(mut self, path: &Path) -> Self {
         self.0.place = Some(path.display().to_string());
+        self.0.site = Some((path.display().to_string(), None));
         self
     }
 
