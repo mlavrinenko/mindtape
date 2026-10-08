@@ -109,5 +109,11 @@ fi
 # the absolute score, only the delta, so the degeneracy that killed the band
 # — CRAP collapsing to cyclomatic complexity above ~90% coverage — does not
 # apply: a rise still means complexity went up or coverage went down.
-cargo crap --lcov "$lcov" --workspace "$@" \
-    --baseline crap-baseline.json --fail-regression --format markdown
+#
+# The arm lives in _crap-ratchet-lib.sh, which argues why the baseline is
+# aligned to the scan before cargo-crap pairs them; its control runs first.
+# shellcheck source=.just/scripts/_crap-ratchet-lib.sh
+source .just/scripts/_crap-ratchet-lib.sh
+bash .just/scripts/_crap-ratchet-control.sh
+root=$(cargo metadata --format-version 1 --no-deps | jq -r '.workspace_root')
+crap_ratchet "$root" crap-baseline.json --lcov "$lcov" --workspace "$@"

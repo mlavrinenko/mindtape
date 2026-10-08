@@ -404,6 +404,8 @@ groups:
     source:
       - .just/scripts/cover.sh
       - .just/scripts/crap.sh
+      - .just/scripts/_crap-ratchet-lib.sh
+      - .just/scripts/_crap-ratchet-control.sh
       - .just/scripts/crap-baseline.sh
       - .just/scripts/crap-baseline-check.sh
       - .just/scripts/_lcov-stale-reason.sh

@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 8),
+  status: done(2026, 10, 8),
 )
 
 == Problem
@@ -39,12 +39,7 @@
 cache-imports: regression on Diag::from in crates/mindtape-cli/src/diag/from_lib.rs; re-minted, 119-line baseline diff
 check-json:    regression on Diag::from in from_lib.rs; re-minted, 310-line baseline diff
 ```
-`from_lib.rs` has 11 `Diag::from` entries in the baseline, told apart only by `line` (19, 44, 50, 89, 158, 164, 249, 255, 276, 321, 329). Unconfirmed: how cargo-crap 0.3.1 pairs same-named entries when lines shift.
-
-
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
-#raw(".just/scripts/crap.sh").
+Replayed, cache-imports regressed `TaskCache::get` and `TaskCache::open`; `Diag::from` was the table's first row, `NEW`. The scan's paths are absolute and the baseline's relative, so cargo-crap's exact `(file, function, line)` pass never fires, and its suffix pass ties on the 17 functions sharing a name within a file. They report `NEW` plus removed on every run, are never compared, and sort above real regressions.
 
 == TO-BE
 
@@ -58,8 +53,9 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- First, reproduce: on a scratch branch insert a blank line above `from_lib.rs`'s first `impl From`, run `just crap`, and record what it pairs. Read cargo-crap 0.3.1's baseline matching.
-- `.just/scripts/crap.sh`: if pairing is the cause, compare with a key that survives line shifts, or report upstream to cargo-crap with the repro and pin the fix.
+- `.just/scripts/_crap-ratchet-lib.sh`: before the ratchet, give the baseline the scan's root and, per `(file, function)` group in line order, the current line at the same position, so the exact pass keys on the ordinal.
+- `.just/scripts/_crap-ratchet-control.sh`: a one-file tree with two same-named functions; a shift alone pairs both, a rise in the second fails naming it. `crap.sh` runs it first.
+- Upstream: an issue for cargo-crap to pair a tied suffix group by position.
 
 
 == Rollback

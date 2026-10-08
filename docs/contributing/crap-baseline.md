@@ -8,7 +8,7 @@ What `just crap-baseline` writes to `crap-baseline.json`, and what it checks fir
 
 `cargo crap --workspace` reports absolute paths, and cargo-crap 0.3.1 has no flag to shorten them. So `just crap-baseline` strips the workspace root before it writes, and the tracked file holds no machine’s layout.
 
-Relative paths lose no matching. cargo-crap first matches an entry on file, function and line. Any checkout at another root, CI’s included, misses that pass and pairs entries by path suffix instead. With relative paths, every machine uses the suffix pass. Measured on a relative mint, 1056 of 1058 entries paired as unchanged. The other two are one file’s two functions named `fake_editor`, which no suffix can tell apart on any machine.
+Relative paths cost the gate nothing. cargo-crap pairs a function with its baseline entry on file, function and line first, and the live scan’s paths are absolute on every machine, so that pass never matches. Its next pass pairs by name and path suffix, which can’t tell apart two functions of one name in one file, such as the eleven `Diag::from` in `from_lib.rs`. So `just crap` first gives the baseline the scan’s root, and gives each such function the line of the one at the same position in the scan. A line shift then changes no pairing, and a rise in any of them fails. `.just/scripts/_crap-ratchet-lib.sh` says how cargo-crap pairs and why.
 
 `just crap-baseline-check` fails on an absolute path in the baseline. A mint by hand writes them back, and nobody reviews a thousand-entry JSON diff line by line. It also fails on a baseline that scores no function, which would pass the ratchet by treating every function as new. It runs a positive control first, because a filter that matches nothing reports a clean file.
 

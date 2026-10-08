@@ -388,6 +388,10 @@ scopes:
     - ".just/scripts/cover.sh"
   script-crap:
     - ".just/scripts/crap.sh"
+  script-crap-ratchet-lib:
+    - ".just/scripts/_crap-ratchet-lib.sh"
+  script-crap-ratchet-control:
+    - ".just/scripts/_crap-ratchet-control.sh"
   script-crap-baseline:
     - ".just/scripts/crap-baseline.sh"
   script-crap-baseline-check:
@@ -731,10 +735,11 @@ commands:
   # scores and whose mtimes _lcov-stale-reason.sh compares against it,
   # `crap-baseline` the ratchet's baseline, and `gates-meta` the CRAP_EXCLUDES
   # list and the cargo-crap pin. crap.sh shells out to `just
-  # _lcov-stale-reason`, so both bodies are inputs.
+  # _lcov-stale-reason` and sources the ratchet arm, whose control it runs
+  # first, so all four bodies are inputs.
   - name: just crap
     tags: [gate]
-    inputs: [rust, crap-baseline, lcov, gates-meta, script-crap, script-lcov-stale-reason]
+    inputs: [rust, crap-baseline, lcov, gates-meta, script-crap, script-lcov-stale-reason, script-crap-ratchet-lib, script-crap-ratchet-control]
 
   # The other half of the CRAP pair, and the half that is always correct: a
   # static read of the committed baseline, refusing a machine-local path or an
