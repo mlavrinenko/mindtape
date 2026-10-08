@@ -1,9 +1,11 @@
 name: Deploy Pages
 
 on:
+  # No path filter: the build captures the `mt` it compiles from crates/ and
+  # lib/ and reads examples/, so a change outside www/ can change a page. Only
+  # `just release` pushes main, so this runs once per release.
   push:
     branches: [main]
-    paths: [www/**, .github/workflows/pages.yml]
   workflow_dispatch: ~
 
 permissions:
