@@ -18,7 +18,7 @@ set -eo pipefail
 msg_file="$1"
 root="$(git rev-parse --show-toplevel)"
 
-direnv exec "$root" cargo run -q -- check --commit-msg "$msg_file"
+direnv exec "$root" cargo run -q -p mindtape-cli --bin mt --target-dir target/mt-dev -- check --commit-msg "$msg_file"
 
 scope="${MINDTAPE_GATE_SCOPE:-}"
 [[ -z "$scope" ]] && exit 0
