@@ -15,7 +15,7 @@ use anyhow::Result;
 use mindtape::{load_config, load_project, validate};
 
 use crate::cmd::flip::{FlipArgs, Via};
-use crate::diag::{Command, Diag, Hint};
+use crate::diag::{Command, Diag, Hint, Kind, Note};
 use crate::util::Project;
 
 /// What a batch actually wrote: the two sets answer "did this problem touch
@@ -37,7 +37,11 @@ impl Landed {
 ///
 /// # Errors
 /// Returns an error if the config no longer loads after the batch's writes.
-pub(crate) fn after_batch(root: &Path, landed: &Landed, problems: &mut Vec<String>) -> Result<()> {
+pub(crate) fn after_batch_diags(
+    root: &Path,
+    landed: &Landed,
+    problems: &mut Vec<Diag>,
+) -> Result<()> {
     let config = load_config(root)?;
     let outcome = load_project(root, &config);
     let after = Project {
@@ -46,6 +50,18 @@ pub(crate) fn after_batch(root: &Path, landed: &Landed, problems: &mut Vec<Strin
         outcome,
     };
     revalidate(&after, landed, problems);
+    Ok(())
+}
+
+/// [`after_batch_diags`], each problem as its message line, for a writer that
+/// still reports its problems as strings (`mt link`).
+///
+/// # Errors
+/// Returns an error if the config no longer loads after the batch's writes.
+pub(crate) fn after_batch(root: &Path, landed: &Landed, problems: &mut Vec<String>) -> Result<()> {
+    let mut found = Vec::new();
+    after_batch_diags(root, landed, &mut found)?;
+    problems.extend(found.iter().map(ToString::to_string));
     Ok(())
 }
 
@@ -58,19 +74,21 @@ pub(crate) fn after_batch(root: &Path, landed: &Landed, problems: &mut Vec<Strin
 /// batch is meant to carry on. Pushing it here would make a warning fail the
 /// command at the summary line, which is exactly the confusion the `error:` /
 /// `warning:` prefixes exist to end.
-fn revalidate(project: &Project, landed: &Landed, problems: &mut Vec<String>) {
+fn revalidate(project: &Project, landed: &Landed, problems: &mut Vec<Diag>) {
     for error in &project.outcome.errors {
         if landed.files.contains(&error.file) {
-            problems.push(format!(
-                "{}: failed to load after flip: {}",
-                error.place(),
-                error.message
-            ));
+            let diag = match error.line {
+                Some(line) => {
+                    Diag::verbatim(Kind::Failed, &error.message).at(&error.file, line, error.column)
+                }
+                None => Diag::verbatim(Kind::Failed, &error.message).at_file(&error.file),
+            };
+            problems.push(diag.note(Note::new("it was written, and no longer loads")));
         }
     }
     for violation in validate(&project.outcome.tasks, &project.config) {
         if landed.ids.contains(&violation.task_id) && violation.is_fatal() {
-            problems.push(crate::render::breach::at(&violation));
+            problems.push(Diag::from(&violation));
         }
     }
 }
@@ -78,6 +96,7 @@ fn revalidate(project: &Project, landed: &Landed, problems: &mut Vec<String>) {
 /// Report a batch's problems: a single target's last problem is the command's
 /// error, so it gets no summary; several targets end with one.
 pub(crate) fn finish(mut problems: Vec<Diag>, landed: usize, total: usize) -> Result<()> {
+    crate::diag::dedupe_notes(&mut problems);
     let last = match problems.pop() {
         None => return Ok(()),
         Some(last) if total == 1 => last,
@@ -110,7 +129,7 @@ pub(crate) fn note_hint(diag: Diag, spec: &str, args: &FlipArgs, via: Via) -> Di
         .fold(command, Command::arg)
         .word("-m")
         .arg(spec);
-    diag.hint(Hint::command("to add a note, pass it with -m", command))
+    diag.only_hint(Hint::command("to add a note, pass it with -m", command))
 }
 
 impl Landed {

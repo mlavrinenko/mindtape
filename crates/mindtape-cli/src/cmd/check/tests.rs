@@ -111,10 +111,10 @@ fn quiet_still_reports_violations_on_failing_run() {
             QUIET_VIOLATION_CHILD,
         );
         crate::test_util::assert_child_ok(&out);
-        let stdout = String::from_utf8_lossy(&out.stdout);
+        let stderr = String::from_utf8_lossy(&out.stderr);
         assert!(
-            stdout.contains("priority"),
-            "quiet should still print violation details, got: {stdout}"
+            stderr.contains("priority"),
+            "quiet should still print violation details, got: {stderr}"
         );
         return;
     }
@@ -199,12 +199,12 @@ fn run_with_prints_violation_and_fails() {
             .output()
             .unwrap();
         // Child exits 0 because its assertion passes (violation is detected).
-        // What matters: stdout must contain violation details. A print_violation
+        // What matters: stderr must contain violation details. A print_violation
         // replaced with () would print nothing, so the assertion fails.
         assert!(output.status.success(), "child should pass its assertion");
-        let stdout = String::from_utf8_lossy(&output.stdout);
+        let stderr = String::from_utf8_lossy(&output.stderr);
         assert!(
-            stdout.contains("priority"),
+            stderr.contains("priority"),
             "run_with should print violation details"
         );
         return;
@@ -248,13 +248,13 @@ fn run_validates_from_disk() {
             .unwrap();
         // run() should fail on an invalid project. If replaced with Ok(()),
         // it would exit 0.
-        let stdout = String::from_utf8_lossy(&output.stdout);
+        let stderr = String::from_utf8_lossy(&output.stderr);
         assert!(
             output.status.success(),
             "child should pass its assertion (violation detected)"
         );
         assert!(
-            stdout.contains("priority"),
+            stderr.contains("priority"),
             "run() should report priority violation"
         );
         return;
@@ -336,11 +336,11 @@ fn forbid_policy_fails_and_reports_file_line_and_text() {
             COMMENTS_CHILD,
         );
         crate::test_util::assert_child_ok(&out);
-        let stdout = String::from_utf8_lossy(&out.stdout);
+        let stderr = String::from_utf8_lossy(&out.stderr);
         for expected in ["a.typ:10", "comments", "no, use in_view() instead"] {
             assert!(
-                stdout.contains(expected),
-                "missing {expected:?} in: {stdout}"
+                stderr.contains(expected),
+                "missing {expected:?} in: {stderr}"
             );
         }
         return;

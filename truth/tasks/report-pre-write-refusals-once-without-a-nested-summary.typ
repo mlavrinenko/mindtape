@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 7),
+  status: done(
+    2026,
+    10,
+    8,
+  )[A refusal is its last breach with no summary; a breach on another task is one note per batch.],
   links: depends-on(
     "build-an-error-dsl-that-fixes-the-message-format-and-the-exit-code.typ",
   ),

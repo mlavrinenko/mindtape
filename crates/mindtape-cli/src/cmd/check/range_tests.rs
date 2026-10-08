@@ -92,7 +92,7 @@ fn one_sided_state_error_still_reports_the_commit() {
         "a state load error alone does not break the range: {text}"
     );
     assert!(
-        text.contains("warn:") && text.contains("break: staged"),
+        text.contains("warning:") && text.contains("break: staged"),
         "the commit holding an unevaluable task must be reported: {text}"
     );
 }
@@ -110,7 +110,7 @@ fn errors_in_both_states_still_report_the_commit() {
 
     assert!(ok, "{text}");
     assert!(
-        text.contains("warn:") && text.contains("break: commit"),
+        text.contains("warning:") && text.contains("break: commit"),
         "both states error; the commit must still be reported: {text}"
     );
 }

@@ -102,7 +102,10 @@ fn a_rejected_stamp_leaves_the_file_untouched() {
         .assert()
         .failure();
     let stderr = String::from_utf8_lossy(&output.get_output().stderr).into_owned();
-    assert!(stderr.contains("nothing was written"), "{stderr}");
+    assert!(
+        stderr.starts_with("error: tasks/wire-oauth.typ:6: tags:"),
+        "{stderr}"
+    );
     assert_eq!(
         std::fs::read_to_string(&file).unwrap(),
         body,

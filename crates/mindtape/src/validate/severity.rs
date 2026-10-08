@@ -31,13 +31,4 @@ impl Severity {
     pub const fn is_error(self) -> bool {
         matches!(self, Self::Error)
     }
-
-    /// Line prefix for reporting a breach at this severity.
-    #[must_use]
-    pub const fn label(self) -> &'static str {
-        match self {
-            Self::Warn => "warning",
-            Self::Error => "error",
-        }
-    }
 }

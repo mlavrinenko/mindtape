@@ -43,8 +43,8 @@ fn add_without_the_prelude_names_mt_install_and_the_local_package_pin() {
     assert_eq!(
         stderr
             .matches(
-                "note: `@local/mindtape` is not installed — run `mt install` (once per \
-                 machine) or pin the prelude under `[[typst.local-packages]]`, then try again"
+                "hint: install it once per machine: mt install\n\
+                 hint: or pin a copy under [[typst.local-packages]] in the config\n"
             )
             .count(),
         1,

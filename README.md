@@ -67,7 +67,7 @@ error: missing required slot(s): to-be, changes, out-of-scope
 Run your test command when a task closes, and refuse to close it while that command fails.
 
 ```
-error: reject-expired-sessions-on-token-refresh: gate "scripts/test" failed (exit 1); nothing written — fix it, or re-run with --force (the override is recorded in the status note)
+error: gate failed: 'scripts/test': exit 1
 ```
 
 ### [Work started before the last task is done](https://mlavrinenko.github.io/mindtape/one-task-at-a-time/)

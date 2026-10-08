@@ -307,8 +307,8 @@ fn a_wrong_shaped_slot_value_is_refused_before_the_write() {
         "the error must name the task and the offending field: {stderr}"
     );
     assert!(
-        stderr.contains("nothing was written"),
-        "the error must say the write did not happen: {stderr}"
+        !stderr.contains("validation issue"),
+        "the error is the breach, with no summary of its own: {stderr}"
     );
     support::mt(dir.path()).arg("check").assert().success();
 }

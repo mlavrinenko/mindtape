@@ -37,8 +37,8 @@ fn refuses_a_flip_into_an_unreachable_status() {
         .unwrap_err()
         .to_string();
     assert!(
-        err.contains("rejected; nothing was written") && !err.contains("had problems"),
-        "expected the target's refusal and no summary: {err}"
+        err.contains("status: `blocked` is unreachable") && !err.contains("rejected"),
+        "expected the target's breach and no summary: {err}"
     );
     assert_eq!(
         read(dir.path(), "s.typ"),
@@ -59,7 +59,7 @@ fn refuses_a_rewrite_that_would_not_load() {
         .unwrap_err()
         .to_string();
     assert!(
-        err.contains("rejected; nothing was written") && !err.contains("had problems"),
+        err.contains("did not load:") && !err.contains("rejected"),
         "expected the target's refusal and no summary: {err}"
     );
     assert_eq!(

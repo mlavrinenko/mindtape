@@ -44,12 +44,10 @@ mod git;
 // An `allow` below lets a module whose errors don't go through `crate::diag`
 // yet use `clippy.toml`'s disallowed macros. Each one is an entry on the one
 // list in `diag/allowlist.rs`, whose test refuses a new entry.
-#[allow(clippy::disallowed_macros)]
 mod pre_write;
 // Infrastructure for future command migration; not every item is wired yet.
 #[allow(dead_code)]
 mod render;
-#[allow(clippy::disallowed_macros)]
 mod task_edit;
 #[cfg(test)]
 mod test_util;

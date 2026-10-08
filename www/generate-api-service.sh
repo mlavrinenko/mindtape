@@ -102,7 +102,7 @@ CMD
 # fails. `--force` closes the task anyway and writes the waiver into the
 # status note.
 api_copy P
-capture --exit 1 --expect 'gate "scripts/test" failed' gate-done-on-checks "$P" 'mt done reject-expired-sessions-on-token-refresh'
+capture --exit 1 --expect 'gate failed' gate-done-on-checks "$P" 'mt done reject-expired-sessions-on-token-refresh'
 capture_lines gate-done-on-checks "$P" <<'EOF'
 mt done reject-expired-sessions-on-token-refresh --force
 grep status: tasks/reject-expired-sessions-on-token-refresh.typ

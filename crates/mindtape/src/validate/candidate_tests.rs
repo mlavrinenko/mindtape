@@ -354,13 +354,13 @@ fn candidate_at_b(root: &Path, config: &Config, existing: &[Task], source: &str)
     .unwrap()
 }
 
-/// A batch edge that closes a cycle with a task already on disk is attributed
-/// to the candidate that closed it. The cycle itself is reported on the
-/// existing member, which the batch never writes, so dropping it as "not the
-/// candidate's" would let the write land a graph `mt check` rejects on a
-/// neighbour.
+/// A batch edge that closes a cycle with a task already on disk is returned as
+/// the candidate's `elsewhere` breach, on the task it is reported on. The cycle
+/// is reported on the existing member, which the batch never writes, so
+/// dropping it as "not the candidate's" would let the write land a graph
+/// `mt check` rejects on a neighbour. Its message is `mt check`'s own.
 #[test]
-fn a_batch_edge_that_closes_a_cycle_reports_on_the_candidate() {
+fn a_batch_edge_that_closes_a_cycle_comes_back_as_elsewhere() {
     let dir = setup();
     std::fs::write(dir.path().join("tasks/a.typ"), linked(&["b.typ"])).unwrap();
     let config = floor();
@@ -368,16 +368,32 @@ fn a_batch_edge_that_closes_a_cycle_reports_on_the_candidate() {
     assert_eq!(existing.len(), 1);
 
     let b = linked(&["a.typ"]);
-    let violations = candidate_at_b(dir.path(), &config, &existing, &b);
+    let candidate = Candidate {
+        rel: Path::new("tasks/b.typ"),
+        source: &b,
+    };
+    let answer = check_candidates(
+        dir.path(),
+        &config,
+        &existing,
+        &[candidate],
+        BodyRules::default(),
+    )
+    .remove(0)
+    .unwrap();
 
-    assert_eq!(violations.len(), 1, "{violations:?}");
-    assert_eq!(violations[0].task_id, "b");
-    assert_eq!(violations[0].field, "depends-on");
+    assert!(answer.violations.is_empty(), "{:?}", answer.violations);
+    assert_eq!(answer.elsewhere.len(), 1, "{:?}", answer.elsewhere);
+    assert_eq!(answer.elsewhere[0].task_id, "a");
+    assert_eq!(answer.elsewhere[0].field, "depends-on");
     assert!(
-        violations[0].message.ends_with("(reported on a)"),
+        !answer.elsewhere[0].message.contains("(reported on"),
         "{}",
-        violations[0].message
+        answer.elsewhere[0].message
     );
+    // The single-candidate door still refuses on it.
+    let violations = candidate_at_b(dir.path(), &config, &existing, &b);
+    assert_eq!(violations.len(), 1, "{violations:?}");
 }
 
 /// The mirror case, where the cycle is attributed to the candidate itself: the

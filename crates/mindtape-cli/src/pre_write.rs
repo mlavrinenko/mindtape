@@ -32,11 +32,13 @@
 use std::collections::BTreeSet;
 use std::path::Path;
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result};
 use mindtape::{
     BodyRules, Candidate, Location, Task, Violation, compile_content_rules, compile_rules,
 };
 
+use crate::cmd::install::hint::{names_prelude_package, prelude_hints};
+use crate::diag::{Diag, Kind, Note};
 use crate::util::Project;
 
 /// One write a command is about to make.
@@ -63,10 +65,11 @@ pub struct LoadFailure {
 impl LoadFailure {
     /// `<location>: did not load: <message>`, with `fallback` naming the source
     /// when the failure has no place.
-    pub(crate) fn render(&self, fallback: &str) -> String {
+    pub(crate) fn diag(&self, fallback: &str) -> Diag {
+        let diag = Diag::verbatim(Kind::Refused, format!("did not load: {}", self.message));
         match &self.location {
-            Some(location) => format!("{location}: did not load: {}", self.message),
-            None => format!("{fallback}: did not load: {}", self.message),
+            Some(location) => diag.at_location(location),
+            None => diag.at_file(Path::new(fallback)),
         }
     }
 }
@@ -81,6 +84,10 @@ pub struct Verdict {
     /// Every breach of the candidate, each carrying its own severity. Only a
     /// fatal one refuses the write; a warning is said and the file lands.
     pub violations: Vec<Violation>,
+    /// The breaches the write raises on a task it does not write, the same for
+    /// every entry of a batch ([`mindtape::Checked::elsewhere`]). Each refuses
+    /// the write as one of `violations` does.
+    pub elsewhere: Vec<Violation>,
     /// The task the source would load as, when it evaluated at all — what a
     /// batch that writes one file at a time folds back into its working set,
     /// so the next write is checked against a project already carrying this
@@ -96,7 +103,13 @@ impl Verdict {
     /// Whether the write may land: it passed, or there was nothing to check it
     /// against.
     pub(crate) fn accepted(&self) -> bool {
-        self.load_failure.is_none() && !self.violations.iter().any(Violation::is_fatal)
+        self.load_failure.is_none() && !self.breaches().any(Violation::is_fatal)
+    }
+
+    /// Every breach of the write: the entry's own, then those it raises
+    /// elsewhere.
+    fn breaches(&self) -> impl Iterator<Item = &Violation> {
+        self.violations.iter().chain(&self.elsewhere)
     }
 
     /// The breaches that do not refuse the write.
@@ -110,11 +123,7 @@ impl Verdict {
     /// ([`Violation::reads`]), or `None` when one may be about any field.
     pub(crate) fn reads(&self) -> Option<BTreeSet<String>> {
         let mut fields = BTreeSet::new();
-        for violation in self
-            .violations
-            .iter()
-            .filter(|violation| violation.is_fatal())
-        {
+        for violation in self.breaches().filter(|violation| violation.is_fatal()) {
             fields.extend(violation.reads.clone()?);
         }
         Some(fields)
@@ -135,8 +144,7 @@ impl Verdict {
                 None => format!("did not load: {}", failure.message),
             }];
         }
-        self.violations
-            .iter()
+        self.breaches()
             .filter(|violation| violation.is_fatal())
             .map(crate::render::breach::at)
             .collect()
@@ -254,8 +262,8 @@ fn place_on_disk(verdict: &mut Verdict, file: &Path, root: &Path, candidate: &st
 /// it too.
 ///
 /// # Errors
-/// Returns an error naming how many entries were rejected, after printing each
-/// problem. Nothing has been written when it does.
+/// Returns the last problem, after printing the others. Nothing has been
+/// written when it does.
 pub fn ensure(project: &Project, pending: &[Pending<'_>]) -> Result<()> {
     let verdicts = check(project, &project.outcome.tasks, pending)?;
     refuse_rejected(pending, &verdicts)
@@ -269,7 +277,7 @@ pub fn ensure(project: &Project, pending: &[Pending<'_>]) -> Result<()> {
 /// checked; there is then no task to fold in either.
 ///
 /// # Errors
-/// Returns an error naming the problems, after printing each. Nothing has been
+/// Returns the last problem, after printing the others. Nothing has been
 /// written when it does.
 pub fn verify_one(
     project: &Project,
@@ -293,42 +301,83 @@ pub fn absorb(world: &mut Vec<Task>, task: Task) {
 }
 
 /// Print every entry's warnings and every rejected entry's problems, then fail
-/// naming how many were rejected, or succeed when none was.
+/// with the last problem, or succeed when none was rejected. The refusal has
+/// no summary line of its own: the problems are the report.
 ///
 /// A warning prints as `warning:` and a problem as `error:`, so the prefix
-/// carries each line's outcome and a reader scanning them learns what happened
-/// before the trailing refusal or success.
+/// carries each line's outcome.
 ///
 /// Warnings print for accepted entries too — that is the whole of what a
 /// `severity = "warn"` rule does at a write: say it, and let the file land.
 /// Printing them only on refusal would make the warn level invisible exactly
 /// when it is the only thing the rule has to say.
 fn refuse_rejected(pending: &[Pending<'_>], verdicts: &[Verdict]) -> Result<()> {
-    let mut rejected = 0_usize;
-    for (entry, verdict) in pending.iter().zip(verdicts) {
+    let labels: Vec<String> = pending.iter().map(|entry| label(entry.file)).collect();
+    match settle(&labels, verdicts) {
+        Some(refusal) => Err(refusal.into()),
+        None => Ok(()),
+    }
+}
+
+/// Print what `verdicts` say, one per entry named by `labels`, and return the
+/// refusal when any entry was rejected: the last problem, not yet printed, for
+/// the caller to fail with.
+///
+/// A load failure that names the missing prelude carries the install hints,
+/// once per batch. A breach the write raises on another task is a `note:` on
+/// the refusal, once per batch however many entries raise it; when it is the
+/// only reason, the refusal says so.
+pub(crate) fn settle(labels: &[String], verdicts: &[Verdict]) -> Option<Diag> {
+    let mut lines = entry_lines(labels, verdicts);
+    let notes = elsewhere_lines(verdicts, &mut lines);
+    let rejected = verdicts.iter().any(|verdict| !verdict.accepted());
+    let last = lines.iter().rposition(|line| line.kind() != Kind::Warning);
+    let refusal = match (rejected, last) {
+        (false, _) => None,
+        (true, Some(at)) => Some(lines.remove(at)),
+        (true, None) => Some(Diag::refused("the write breaks a rule on another task")),
+    };
+    lines.iter().for_each(crate::diag::emit);
+    refusal.map(|refusal| notes.into_iter().fold(refusal, Diag::note))
+}
+
+/// Each entry's load failure and breaches as messages, in entry order. The
+/// first load failure that names the missing prelude carries the install hints.
+fn entry_lines(labels: &[String], verdicts: &[Verdict]) -> Vec<Diag> {
+    let mut lines: Vec<Diag> = Vec::new();
+    let mut hinted = false;
+    for (name, verdict) in labels.iter().zip(verdicts) {
         if let Some(failure) = &verdict.load_failure {
-            eprintln!("error: {}", failure.render(&label(entry.file)));
+            let mut diag = failure.diag(name);
+            if !hinted && names_prelude_package(&failure.message) {
+                hinted = true;
+                diag = prelude_hints(diag);
+            }
+            lines.push(diag);
         }
-        for violation in &verdict.violations {
-            eprintln!("{}", crate::render::breach::line(violation));
+        lines.extend(verdict.violations.iter().map(Diag::from));
+    }
+    lines
+}
+
+/// The breaches the batch raises on other tasks, each once however many
+/// entries raise it: a fatal one as a note for the refusal, a warning as a
+/// message of its own in `lines`.
+fn elsewhere_lines(verdicts: &[Verdict], lines: &mut Vec<Diag>) -> Vec<Note> {
+    let mut notes = Vec::new();
+    let mut seen = BTreeSet::new();
+    for breach in verdicts.iter().flat_map(|verdict| &verdict.elsewhere) {
+        let diag = Diag::from(breach);
+        if !seen.insert(diag.to_string()) {
+            continue;
         }
-        if !verdict.accepted() {
-            rejected += 1;
+        if breach.is_fatal() {
+            notes.push(Note::line(diag.to_string()));
+        } else {
+            lines.push(diag);
         }
     }
-    if rejected == 0 {
-        return Ok(());
-    }
-    let failures = verdicts.iter().filter_map(|verdict| {
-        verdict
-            .load_failure
-            .as_ref()
-            .map(|failure| failure.message.as_str())
-    });
-    if let Some(hint) = crate::cmd::install::hint::batch_prelude_hint(failures) {
-        eprintln!("{hint}");
-    }
-    bail!("{rejected} task(s) rejected; nothing was written")
+    notes
 }
 
 /// Turn one candidate's answer into a verdict: a load failure is the single
@@ -349,12 +398,14 @@ fn verdict(result: Result<mindtape::Checked, mindtape::LoadError>) -> Verdict {
                 message: error.message,
             }),
             violations: Vec::new(),
+            elsewhere: Vec::new(),
             task: None,
             checked: true,
         },
         Ok(checked) => Verdict {
             load_failure: None,
             violations: checked.violations,
+            elsewhere: checked.elsewhere,
             task: Some(checked.task),
             checked: true,
         },
@@ -373,6 +424,7 @@ fn unchecked() -> Verdict {
     Verdict {
         load_failure: None,
         violations: Vec::new(),
+        elsewhere: Vec::new(),
         task: None,
         checked: false,
     }

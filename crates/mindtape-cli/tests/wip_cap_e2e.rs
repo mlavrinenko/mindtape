@@ -6,7 +6,7 @@
 //! A breach still refuses `mt flip` at `severity = "error"`, exactly as the
 //! limit did, and still names every task in the capped set: the candidate
 //! being flipped reports its own breach, and the already-`wip` task elsewhere
-//! in the set is attributed to it too
+//! in the set comes back as a note on the refusal
 //! ([`crate::validate::candidate::elsewhere_violations`], generalized from the link-cycle
 //! case to cover any `[[tasks.rules]]` breach a batch opens or closes on a task
 //! it never touches).
@@ -56,17 +56,11 @@ fn a_second_wip_task_is_refused_and_names_the_one_already_in_flight() {
     let output = flip(dir.path(), "wip", "bar");
     assert!(!output.status.success(), "a cap breach fails the flip");
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(
-        stderr.contains(
-            "tasks/bar.typ:3: rules.wip-cap: must satisfy `count(status == \"wip\") <= 1`"
-        ),
-        "the candidate's own breach is reported: {stderr}"
-    );
-    assert!(
-        stderr.contains(
-            "tasks/foo.typ:3: rules.wip-cap: must satisfy `count(status == \"wip\") <= 1` (reported on foo)"
-        ),
-        "the other task already occupying the cap is named too: {stderr}"
+    assert_eq!(
+        stderr,
+        "error: tasks/bar.typ:3: rules.wip-cap: must satisfy `count(status == \"wip\") <= 1`\n\
+         note: tasks/foo.typ:3: rules.wip-cap: must satisfy `count(status == \"wip\") <= 1`\n",
+        "the candidate's own breach is the error; the task already occupying the cap is one note"
     );
     assert_eq!(
         std::fs::read_to_string(dir.path().join("tasks/bar.typ")).unwrap(),

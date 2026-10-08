@@ -3,6 +3,7 @@
 
 use std::fmt;
 
+use super::Diag;
 use super::render::{quote, shell_word};
 
 /// A `hint:` line. Its text is a `&'static str`; anything the user typed
@@ -18,6 +19,7 @@ enum Shape {
     DidYouMean(String),
     Typst(String),
     Example(&'static str),
+    Project(String),
 }
 
 impl Hint {
@@ -66,9 +68,27 @@ impl fmt::Display for Hint {
             Shape::Command(text, command) => write!(formatter, "{text}: {command}"),
             Shape::Run(command, purpose) => write!(formatter, "run {command} {purpose}"),
             Shape::DidYouMean(name) => write!(formatter, "did you mean {name}?"),
-            Shape::Typst(text) => formatter.write_str(text),
+            Shape::Typst(text) | Shape::Project(text) => formatter.write_str(text),
             Shape::Example(example) => write!(formatter, "for example: {example}"),
         }
+    }
+}
+
+impl Diag {
+    /// `hint` as the only hint, in place of the ones the message came with,
+    /// when the caller knows better what the user should do.
+    pub(crate) fn only_hint(mut self, hint: Hint) -> Self {
+        self.0.hints = vec![hint];
+        self
+    }
+
+    /// The project's own advice, worded in its config (a gate's `message`),
+    /// as a hint. Counts toward the two-hint limit.
+    ///
+    /// # Panics
+    /// In a debug build, on a third hint.
+    pub(crate) fn project_hint(self, text: impl Into<String>) -> Self {
+        self.hint(Hint(Shape::Project(text.into())))
     }
 }
 
@@ -102,6 +122,15 @@ impl Note {
     pub(crate) fn name(mut self, name: impl Into<String>) -> Self {
         self.tail = Some(name.into());
         self
+    }
+
+    /// A line already worded elsewhere, such as another task's breach, kept as
+    /// it is.
+    pub(crate) fn line(text: impl Into<String>) -> Self {
+        Self {
+            legacy: Some(text.into()),
+            ..Self::new("")
+        }
     }
 
     /// A line of an unconverted message past its first, kept word for word.

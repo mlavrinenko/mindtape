@@ -42,6 +42,8 @@
 //!   test that holds the source to the list.
 //! - `hint.rs` — [`Hint`], [`Note`] and [`Command`], the lines under an error.
 //! - `render.rs` — the renderer and the one writer to stderr.
+//! - `summary.rs`, `summary_tests.rs` — the closing count of a command that found several
+//!   problems, and the exit status of a command it ran.
 //! - `io.rs` — the failed read or write and the OS's reason for it.
 //! - `from_lib.rs` — library errors into a `Diag`, one exhaustive match each.
 //! - `from_lib_tests.rs` — unit tests for the condition conversion.
@@ -53,6 +55,7 @@ mod from_lib;
 mod hint;
 mod io;
 mod render;
+mod summary;
 
 use std::fmt;
 use std::path::Path;
@@ -60,6 +63,7 @@ use std::path::Path;
 pub(crate) use from_lib::filter;
 pub(crate) use hint::{Command, Hint, Note};
 pub(crate) use render::{emit, line, report, stderr_is_terminal};
+pub(crate) use summary::dedupe_notes;
 
 /// What kind of problem a [`Diag`] reports, which decides the exit code.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

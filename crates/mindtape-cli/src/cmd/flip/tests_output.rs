@@ -242,7 +242,8 @@ fn revalidate_prints_the_unreachable_violation() {
     }
     let dir = tempfile::tempdir().unwrap();
     let project = setup(dir.path(), &[("s.typ", STATELESS)], REACHABLE_CONFIG);
-    assert!(run_with(&project, &flip_args("blocked", &["s"])).is_err());
+    let err = run_with(&project, &flip_args("blocked", &["s"])).unwrap_err();
+    crate::diag::emit(&crate::diag::Diag::from(err));
 }
 
 /// A rewrite that would not evaluate is refused *before* the write, so the
@@ -260,8 +261,8 @@ fn refuses_a_rewrite_that_would_not_load() {
             "expected the pre-write refusal prefixed as an error: {err}"
         );
         assert!(
-            err.contains("nothing was written"),
-            "the refusal must say the file was left alone: {err}"
+            !err.contains("rejected"),
+            "the refusal is the problem, with no summary of its own: {err}"
         );
         return;
     }

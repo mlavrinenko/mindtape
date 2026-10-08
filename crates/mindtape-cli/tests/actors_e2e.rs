@@ -133,8 +133,8 @@ fn check_rejects_undeclared_assignee_once_allowed_is_set() {
         .arg("check")
         .assert()
         .failure()
-        .stdout(predicates::str::contains("not an allowed assignee"))
-        .stdout(predicates::str::contains("eve-mystery"));
+        .stderr(predicates::str::contains("not an allowed assignee"))
+        .stderr(predicates::str::contains("eve-mystery"));
 }
 
 /// A registry violation fails the whole command at config load — before any

@@ -16,7 +16,6 @@ const UNCONVERTED: &[&str] = &[
     "cmd/add",
     "cmd/check",
     "cmd/eval",
-    "cmd/flip",
     "cmd/go",
     "cmd/import",
     "cmd/init",
@@ -29,8 +28,6 @@ const UNCONVERTED: &[&str] = &[
     "cmd/rm",
     "cmd/set",
     "cmd/worktrees",
-    "pre_write",
-    "task_edit",
 ];
 
 #[path = "allowlist_tests.rs"]

@@ -218,7 +218,9 @@ fn verify_written_prefixes_each_issue_by_its_severity() {
     }
 
     let (dir, file) = rules_project("error");
-    assert!(verify_written(dir.path(), &file).is_err());
+    // The refusal is the command's error, printed by `main`.
+    let err = verify_written(dir.path(), &file).unwrap_err();
+    crate::diag::emit(&crate::diag::Diag::from(err));
     let (dir, file) = rules_project("warn");
     verify_written(dir.path(), &file).unwrap();
 }
@@ -236,8 +238,8 @@ fn verify_written_reports_a_validation_violation_on_the_file() {
     );
     let err = verify_written(dir.path(), &file).unwrap_err();
     assert!(
-        err.to_string().contains("validation issue"),
-        "expected a validation-issue message, got: {err}"
+        err.to_string().contains("priority") && !err.to_string().contains("validation issue"),
+        "expected the breach itself, with no summary, got: {err}"
     );
 }
 

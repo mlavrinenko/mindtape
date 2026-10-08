@@ -5,10 +5,11 @@
 
 use std::path::Path;
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result};
 use mindtape::{Config, Violation, load_config, load_project, validate};
 use typst_edit::{Call, Edit, find_method_calls};
 
+use crate::diag::{Diag, Kind};
 use crate::pre_write::Pending;
 use crate::util::Project;
 
@@ -130,56 +131,46 @@ pub fn verify_written(root: &Path, file: &Path) -> Result<()> {
     let rel = file.strip_prefix(root).unwrap_or(file);
 
     if let Some(error) = outcome.errors.iter().find(|err| err.file == rel) {
-        bail!(
-            "written task failed to load: {}: {}",
-            error.place(),
-            error.message
+        let diag = Diag::verbatim(
+            Kind::Failed,
+            format!("written task failed to load: {}", error.message),
         );
+        return Err(match error.line {
+            Some(line) => diag.at(&error.file, line, error.column),
+            None => diag.at_file(&error.file),
+        }
+        .into());
     }
     let Some(task) = outcome.tasks.iter().find(|task| task.file == rel) else {
-        bail!(
-            "written task at {} did not harvest a task marker",
-            rel.display()
-        );
+        return Err(Diag::failed("written task harvested no task marker")
+            .value(rel.display().to_string())
+            .into());
     };
 
     let issues: Vec<_> = validate(&outcome.tasks, &config)
         .into_iter()
         .filter(|violation| violation.task_id == task.id)
         .collect();
-    report_issues(&issues, &format!("in {}", rel.display()))
+    report_issues(&issues)
 }
 
-/// Print every violation and fail naming how many were fatal, or succeed when
-/// none was. `scope` completes the sentence "N validation issue(s) …", naming
-/// the file a post-write check found the problem in. Each line carries its
-/// outcome in the prefix — `error:` for a fatal violation, `warning:` for a
-/// breach the project declared at that severity — so the per-issue lines match
-/// the refusal or the landing that follows them.
+/// Print every violation, and fail with the last fatal one, or succeed when
+/// none was. Each line carries its outcome in the prefix — `error:` for a fatal
+/// violation, `warning:` for a breach the project declared at that severity —
+/// and the refusal is the last `error:` line, with no summary after it.
 ///
 /// A `[[tasks.rules]]` breach at `severity = "warn"` prints alongside the rest
 /// and is then not counted: the file already exists by the time this runs, and
 /// a warning is a report about it, not a reason to call the write a failure.
-fn report_issues(issues: &[Violation], scope: &str) -> Result<()> {
-    for violation in issues {
-        eprintln!("{}", crate::render::breach::line(violation));
-    }
-    let fatal = issues.iter().filter(|issue| issue.is_fatal()).count();
-    if fatal == 0 {
+fn report_issues(issues: &[Violation]) -> Result<()> {
+    let mut lines: Vec<Diag> = issues.iter().map(Diag::from).collect();
+    let Some(last) = lines.iter().rposition(|line| line.kind() != Kind::Warning) else {
+        lines.iter().for_each(crate::diag::emit);
         return Ok(());
-    }
-    bail!("{fatal} validation issue(s) {scope}")
-}
-
-/// Why a filled task was refused when it did not load, with the prelude hint
-/// when the failure is the missing `@local/mindtape` package: `mt add` in a
-/// project with no tasks yet has no load outcome to derive that hint from.
-fn load_refusal(failure: &crate::pre_write::LoadFailure) -> String {
-    let line = failure.render("the task as filled");
-    match crate::cmd::install::hint::failure_prelude_hint(&failure.message) {
-        Some(hint) => format!("{line}\n{hint}"),
-        None => line,
-    }
+    };
+    let refusal = lines.remove(last);
+    lines.iter().for_each(crate::diag::emit);
+    Err(refusal.into())
 }
 
 /// Validate a rendered task *before* it is written, so a rejected write leaves
@@ -211,17 +202,15 @@ pub fn verify_candidate(project: &Project, file: &Path, source: &str) -> Result<
     }
     // A warning says its piece whether or not the write is refused, and never
     // decides that it is.
-    if let Some(failure) = &verdict.load_failure {
-        bail!("{}", load_refusal(failure));
-    }
-    for violation in &verdict.violations {
-        eprintln!("{}", crate::render::breach::line(violation));
-    }
-    if verdict.accepted() {
+    let labels = ["the task as filled".to_owned()];
+    let Some(diag) = crate::pre_write::settle(&labels, std::slice::from_ref(&verdict)) else {
         return Ok(true);
+    };
+    if verdict.load_failure.is_some() {
+        return Err(diag.into());
     }
     Err(Refused {
-        count: verdict.problems().len(),
+        diag,
         reads: verdict.reads(),
     }
     .into())
@@ -231,8 +220,8 @@ pub fn verify_candidate(project: &Project, file: &Path, source: &str) -> Result<
 /// fields its breaches read, so a caller can tell what they are about.
 #[derive(Debug)]
 pub struct Refused {
-    /// How many breaches refused the write.
-    pub count: usize,
+    /// The last problem, which is the command's error.
+    pub diag: Diag,
     /// The fields the fatal breaches read ([`mindtape::Violation::reads`]),
     /// or `None` when one may be about any field.
     pub reads: Option<std::collections::BTreeSet<String>>,
@@ -240,11 +229,7 @@ pub struct Refused {
 
 impl std::fmt::Display for Refused {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let count = self.count;
-        write!(
-            f,
-            "{count} validation issue(s) as filled; nothing was written"
-        )
+        self.diag.fmt(f)
     }
 }
 
@@ -256,6 +241,7 @@ fn unchecked_fallback() -> crate::pre_write::Verdict {
     crate::pre_write::Verdict {
         load_failure: None,
         violations: Vec::new(),
+        elsewhere: Vec::new(),
         task: None,
         checked: false,
     }

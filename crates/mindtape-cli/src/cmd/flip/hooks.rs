@@ -26,6 +26,7 @@ use mindtape::config::hooks::{ActionKind, FlipAction, matching_flip_hooks};
 use mindtape::{ConditionEnv, Filter, Readiness, Task, select};
 
 use crate::cmd::flip::hooks_cmd::{CommandReport, RunCtx, run_command};
+use crate::diag::{Diag, Hint, Kind};
 use crate::render::RenderCtx;
 use crate::render::output::{OutputFormat, render};
 use crate::util::Project;
@@ -52,7 +53,7 @@ pub(crate) struct HookOutcome {
     /// Gate commands that failed and `--force` waived, in run order.
     pub forced: Vec<String>,
     /// Set when a gate failed and was not waived: why the flip is refused.
-    pub refusal: Option<String>,
+    pub refusal: Option<Diag>,
 }
 
 /// A gate that refused the flip: a `run` command that exited non-zero, or a
@@ -61,8 +62,8 @@ struct Gate {
     /// The command line, for the status note — or, for a run-less gate with no
     /// command to name, its `message` (falling back to [`DEFAULT_ADVICE`]).
     command: String,
-    /// The refusal message, for the caller's problem report.
-    refusal: String,
+    /// The refusal, for the caller's problem report.
+    refusal: Diag,
 }
 
 /// The `run` action's fields, grouped so the executor stays inside the
@@ -144,7 +145,7 @@ impl<'a> Hooks<'a> {
     ) -> Result<Option<Gate>> {
         match action
             .kind()
-            .map_err(|message| crate::diag::Diag::legacy(format!("on.flip action: {message}")))?
+            .map_err(|message| Diag::verbatim(Kind::Failed, format!("on.flip action: {message}")))?
         {
             ActionKind::Show(text) => {
                 if self.show {
@@ -243,15 +244,17 @@ impl<'a> Hooks<'a> {
         // A failure always surfaces, quiet or not: it is either the evidence a
         // refusal rests on, or a command the project asked to be told about.
         write_output(out, command, &report)?;
-        let advice = run.message.unwrap_or(DEFAULT_ADVICE);
-        let verdict = report.verdict();
         if !run.gate {
-            writeln!(out, "warning: {command} ({verdict}) — {advice}")?;
+            let advice = run.message.unwrap_or(DEFAULT_ADVICE);
+            writeln!(out, "warning: {command} ({}) — {advice}", report.verdict())?;
             return Ok(None);
         }
+        let refusal = Diag::refused("gate failed")
+            .value(command)
+            .exit(report.code);
         Ok(Some(Gate {
             command: command.to_owned(),
-            refusal: format!("gate {command:?} failed ({verdict}); nothing written — {advice}"),
+            refusal: with_override_hint(refusal, run.message),
         }))
     }
 }
@@ -273,7 +276,20 @@ fn runless_gate(message: Option<&str>) -> Gate {
     let advice = message.unwrap_or(DEFAULT_ADVICE);
     Gate {
         command: advice.to_owned(),
-        refusal: format!("gate refused; nothing written — {advice}"),
+        refusal: with_override_hint(Diag::refused("gate refused"), message),
+    }
+}
+
+/// `refusal` with the config's `message` as its first hint, when there is one,
+/// and the way past the gate as the last.
+fn with_override_hint(refusal: Diag, message: Option<&str>) -> Diag {
+    match message {
+        Some(message) => refusal.project_hint(message).hint(Hint::new(
+            "or pass --force to skip the gate; the status note records it",
+        )),
+        None => refusal.hint(Hint::new(
+            "pass --force to skip the gate; the status note records it",
+        )),
     }
 }
 

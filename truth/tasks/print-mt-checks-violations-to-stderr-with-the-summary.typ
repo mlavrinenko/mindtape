@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 7),
+  status: cancelled(
+    2026,
+    10,
+    8,
+  )[Duplicate of report-check-problems-on-stderr-in-the-error-format, which moves every mt check line to stderr and adds the count.],
 )
 
 == Problem

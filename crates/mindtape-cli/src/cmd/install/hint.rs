@@ -15,8 +15,9 @@
 //!   never mentions `\#`, so [`escaped_hash_hint`] says it, once per run, on
 //!   the first such error.
 //!
-//! [`failure_prelude_hint`] and [`batch_prelude_hint`] are the same advice as
-//! one `note:` line for the writers that still print their own.
+//! [`prelude_hints`] puts the same advice on a refused write's own error.
+//! [`failure_prelude_hint`] and [`batch_prelude_hint`] are it as one `note:`
+//! line for the writers that still print their own.
 
 use crate::diag::{Command, Diag, Hint, Kind, Note};
 
@@ -94,6 +95,13 @@ pub(crate) fn prelude_diag(kind: Kind, message: &str) -> Diag {
         Some(path) => diag.note(Note::new("searched at").value(path)),
         None => diag,
     };
+    prelude_hints(diag)
+}
+
+/// `diag` with the remedy for a prelude that does not resolve: the install
+/// command, and the config key that pins a copy instead. For a writer that
+/// refused a source because its import failed.
+pub(crate) fn prelude_hints(diag: Diag) -> Diag {
     diag.hint(Hint::command(
         "install it once per machine",
         Command::mt().word("install"),

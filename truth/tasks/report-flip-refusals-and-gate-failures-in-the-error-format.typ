@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 7),
+  status: done(
+    2026,
+    10,
+    8,
+  )[Gate, guard and revalidation refusals are Diags; a note given without -m suggests -m alone.],
   links: depends-on(
     "build-an-error-dsl-that-fixes-the-message-format-and-the-exit-code.typ",
   ),

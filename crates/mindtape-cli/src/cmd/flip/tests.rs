@@ -263,8 +263,12 @@ fn transition_illegal_edge_err() {
     let legend = parse_config(TRANSITION_CONFIG).unwrap().tasks.status;
     // blocked → done is not an edge (blocked only reopens to wip).
     let err = check_transition(&legend, Some(&status("blocked")), "done").unwrap_err();
-    assert!(err.contains("illegal transition"), "{err}");
-    assert!(err.contains("allowed from `blocked`: wip"), "{err}");
+    assert_eq!(
+        plain(&err),
+        "error: illegal transition: 'blocked → done'\n\
+         hint: or pass --force to override\n\
+         note: allowed next: blocked → wip\n"
+    );
 }
 
 #[test]
@@ -287,7 +291,12 @@ fn transition_sink_message_names_terminal() {
         [[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
     let legend = parse_config(cfg).unwrap().tasks.status;
     let err = check_transition(&legend, Some(&status("done")), "wip").unwrap_err();
-    assert!(err.contains("terminal here"), "{err}");
+    assert_eq!(
+        plain(&err),
+        "error: illegal transition: 'done → wip'\n\
+         hint: or pass --force to override\n\
+         note: no transitions are declared from: 'done'\n"
+    );
 }
 
 #[test]
@@ -415,8 +424,11 @@ fn note_required_ok_when_target_has_no_requirement() {
 fn note_required_err_without_a_note() {
     let legend = parse_config(NOTE_REQUIRED_CONFIG).unwrap().tasks.status;
     let err = check_note_required(&legend, "blocked", None).unwrap_err();
-    assert!(err.contains("`blocked` requires a note"), "{err}");
-    assert!(err.contains("-m/--note"), "{err}");
+    assert_eq!(
+        plain(&err),
+        "error: status requires a note: 'blocked'\n\
+         hint: pass one with -m/--note\n"
+    );
 }
 
 #[test]

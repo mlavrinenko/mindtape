@@ -12,13 +12,16 @@ pub(crate) mod commit;
 pub(crate) mod range;
 pub(crate) mod templates;
 
-use anyhow::{Context, Result, bail};
+use std::collections::BTreeSet;
+
+use anyhow::{Context, Result};
 use clap::Args;
 use mindtape::{
     BodyRules, Violation, check_body_rules, check_comments, compile_content_rules, compile_rules,
     validate,
 };
 
+use crate::diag::Diag;
 use crate::util;
 
 /// Arguments for `mt check`.
@@ -84,15 +87,16 @@ pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> 
     );
 
     for violation in &violations {
-        println!("{}", crate::render::breach::line(violation));
+        crate::diag::emit(&Diag::from(violation));
     }
 
     // A `[[tasks.rules]]` breach at `severity = "warn"` has already printed;
     // it is a report, not a failure, so it is not counted here.
-    let failures = violations
+    let fatal: Vec<&Violation> = violations
         .iter()
         .filter(|violation| violation.is_fatal())
-        .count();
+        .collect();
+    let failures = fatal.len();
     let load_errors = project.outcome.errors.len() + templates.load_failures.len();
     if failures == 0 && load_errors == 0 {
         if !args.quiet {
@@ -100,7 +104,20 @@ pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> 
         }
         return Ok(());
     }
-    bail!("{failures} violation(s), {load_errors} load error(s)")
+    let tasks = fatal
+        .iter()
+        .map(|violation| violation.task_id.as_str())
+        .chain(
+            project
+                .outcome
+                .errors
+                .iter()
+                .filter_map(|error| error.file.to_str()),
+        )
+        .collect::<BTreeSet<_>>()
+        .len()
+        + templates.load_failures.len();
+    Err(Diag::problems(failures + load_errors, tasks).into())
 }
 
 /// The header and content body rules over every loaded task's source.

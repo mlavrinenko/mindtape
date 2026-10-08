@@ -13,7 +13,7 @@ fn check_text(source: &str) -> String {
     std::fs::write(dir.path().join("tasks/setup-ci.typ"), source).unwrap();
     let out = support::mt(dir.path()).arg("check").output().unwrap();
     assert!(!out.status.success(), "the breach must fail the check");
-    String::from_utf8_lossy(&out.stdout).into_owned()
+    String::from_utf8_lossy(&out.stderr).into_owned()
 }
 
 #[test]

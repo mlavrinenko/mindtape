@@ -20,7 +20,7 @@ groups:
       examples/api-service/tasks/send-a-welcome-email-after-signup.typ: 37902439e0514d5b3c1148290b3c7b5997dc7e23a35599b07e3f7e4dc6c9b959
       examples/api-service/tasks/throttle-failed-logins-per-ip.typ: 663b5c80f73d08dad4217483f83f700cf9b0312a7b886652ca78f5ef6fae80c1
       examples/api-service/tasks/upgrade-the-axum-web-framework.typ: 098f9d43ac19b8e59ddd3691f9f4f56f03cfc48a305aca5d84e15c6a93808a36
-      www/generate-api-service.sh: bf3a04f364d6aff62a8a7312cf62b37b286d28e0ad3517f342299e19de9054e1
+      www/generate-api-service.sh: f8d91b3f829e65d9772f09ff007130d494c022d6e66bc63f9b8fa98490c1dcc3
     dependents:
       skills/mindtape/evals/README.md: 096a87126b99bf1befb6a9d23f1aa3021870a0f86e13b655800725fedf762f53
       skills/mindtape/evals/evals.json: 1b7c49844fb5ad72ea3fdfd9a444e4a976d122f48be89c81fa002f43dea50d71
@@ -34,11 +34,11 @@ groups:
       crates/mindtape-cli/src/cli/completion/mod.rs: 2b2d0f8eb41435fbc5f6bda31c25f4c64238a4d567d0824a2e3ae939d073a410
       crates/mindtape-cli/src/cli/mod.rs: 42028a606e598d78e003bc6b32266123b71599e33b8fa86871ffbec52acbe7b4
       crates/mindtape-cli/src/cmd/add/mod.rs: 9e88f09981d71e90637d83cb7122bc08fa2d5e00c80ab5d983a879db401eb11a
-      crates/mindtape-cli/src/cmd/check/mod.rs: 351bbfc6d32d46094eb4b78c13ca255b61ea4ca478e047ed9ee3e2bd9c2d5e3d
+      crates/mindtape-cli/src/cmd/check/mod.rs: f28ee6389b3fe7f1cabfd6c6efa110c892bf10e6ea7d2518fb3d2ac64ffc4574
       crates/mindtape-cli/src/cmd/config.rs: befb8239f5a6c8c2539cc9e6f2b048369b31d4ac6b684153b68a279e0b1b0f8f
       crates/mindtape-cli/src/cmd/eval.rs: 0a3e26c3112c01b4ea5c5922d4baadf630018f458de2dd4d2dc6daa5b57f74da
       crates/mindtape-cli/src/cmd/find.rs: c1dcd113f378659f501f12497f99549ca2fae4bf466b867b2d27dee20b763e07
-      crates/mindtape-cli/src/cmd/flip/mod.rs: 4ac53092622e241d1310e78ef3df75c2d4efd226a48a42a5ef46688e0abc5cf8
+      crates/mindtape-cli/src/cmd/flip/mod.rs: a02bf49180e24a2b86d915485f41259bd0506165d939b5d41113942be9db2c51
       crates/mindtape-cli/src/cmd/go.rs: d443bcb2184ad142c63affa9c2f5ddbe0e5f0fc8c0a7f8f2f1dab53e29ac794e
       crates/mindtape-cli/src/cmd/graph/mod.rs: 15e57424c137c209e805f022b54d0fbd785df4768eb0f58231fe26399ff764f7
       crates/mindtape-cli/src/cmd/import/mod.rs: a66da03daeb7e2ca95d8d6edd0376d6d8ed5101c8b4488f5fb75536758d8e098

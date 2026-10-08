@@ -42,9 +42,10 @@ fn refusal_names_the_status_and_every_blocker() {
     let legend = mindtape::parse_config(CONFIG).unwrap().tasks.status;
     let err = super::check_unblocked(&legend, "done", &blockers).unwrap_err();
     assert_eq!(
-        err,
-        "`done` requires an unblocked task; waits on: write-atomic (proposed), \
-         link-cycle (wip) (use --force to override)"
+        crate::diag::plain(&err),
+        "error: status requires an unblocked task: 'done'\n\
+         hint: or pass --force to override\n\
+         note: waits on: write-atomic (proposed), link-cycle (wip)\n"
     );
     assert!(super::check_unblocked(&legend, "cancelled", &blockers).is_ok());
     assert!(super::check_unblocked(&legend, "done", &[]).is_ok());

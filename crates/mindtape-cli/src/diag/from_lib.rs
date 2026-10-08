@@ -39,6 +39,9 @@ fn known(cause: &(dyn std::error::Error + 'static)) -> Option<Diag> {
     if let Some(diag) = cause.downcast_ref::<Diag>() {
         return Some(diag.clone());
     }
+    if let Some(refused) = cause.downcast_ref::<crate::task_edit::Refused>() {
+        return Some(refused.diag.clone());
+    }
     if let Some(err) = cause.downcast_ref::<ConfigError>() {
         return Some(config(err));
     }
@@ -249,16 +252,23 @@ impl From<&Violation> for Diag {
             Severity::Error => Self::refused(""),
             Severity::Warn => Self::warning(""),
         };
-        let diag = match &violation.location {
-            Location::File { file, line } => diag.at(file, *line, None),
-            Location::Builtin { .. } | Location::Pack { .. } | Location::Filled { .. } => {
-                let mut diag = diag;
-                diag.0.place = Some(violation.location.to_string());
-                diag
-            }
-        };
-        diag.rule(violation.field.clone())
+        diag.at_location(&violation.location)
+            .rule(violation.field.clone())
             .reason(violation.message.clone())
+    }
+}
+
+impl Diag {
+    /// The place a breach or a load failure sits at: a file and line, or the
+    /// words for one that has no file (`the task as filled:7`).
+    pub(crate) fn at_location(mut self, location: &Location) -> Self {
+        match location {
+            Location::File { file, line } => self.at(file, *line, None),
+            Location::Builtin { .. } | Location::Pack { .. } | Location::Filled { .. } => {
+                self.0.place = Some(location.to_string());
+                self
+            }
+        }
     }
 }
 

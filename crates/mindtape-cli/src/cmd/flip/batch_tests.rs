@@ -64,11 +64,12 @@ fn a_landed_file_that_fails_to_reload_is_reported() {
     );
 
     assert_eq!(problems.len(), 1, "{problems:?}");
+    let text = crate::diag::plain(&problems[0]);
+    assert!(text.starts_with("error: tasks/broken.typ"), "{text}");
     assert!(
-        problems[0].contains("failed to load after flip"),
-        "{problems:?}"
+        text.contains("note: it was written, and no longer loads"),
+        "{text}"
     );
-    assert!(problems[0].contains("broken.typ"), "{problems:?}");
 }
 
 #[test]
@@ -80,7 +81,10 @@ fn a_landed_task_with_a_fatal_violation_is_reported() {
     revalidate(&project, &landed(&["blocked"], &[]), &mut problems);
 
     assert_eq!(problems.len(), 1, "{problems:?}");
-    assert!(problems[0].contains("blocked"), "{problems:?}");
+    assert!(
+        crate::diag::plain(&problems[0]).contains("blocked"),
+        "{problems:?}"
+    );
 }
 
 /// Whether the batch wrote nothing decides whether the reload is paid for at

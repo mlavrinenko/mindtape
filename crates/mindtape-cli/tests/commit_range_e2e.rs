@@ -87,10 +87,13 @@ fn a_range_with_one_offending_commit_fails_naming_it() {
 
     let (ok, text) = check_range(dir, "HEAD~2..HEAD");
     assert!(!ok, "the close-only commit must fail the range: {text}");
-    let offender = format!("{} task: close the parser\n", short(dir, "HEAD"));
+    let offender = format!(
+        "error: {}: commits.rules.flip-with-work: parser: start or close",
+        short(dir, "HEAD")
+    );
     assert!(text.contains(&offender), "names the commit: {text}");
     assert!(
-        text.contains("  error: commits.rules.flip-with-work: parser: start or close"),
+        text.contains("note: commit: 'task: close the parser'"),
         "the breach names the rule and the task: {text}"
     );
     assert!(
@@ -98,7 +101,7 @@ fn a_range_with_one_offending_commit_fails_naming_it() {
         "the commit carrying its work passes: {text}"
     );
     assert!(
-        text.contains("1 commit(s) broke commit rules"),
+        text.contains("1 commit broke commit rules"),
         "counts commits: {text}"
     );
 
@@ -171,7 +174,7 @@ fn a_trailer_naming_no_task_fails_the_commit() {
     let (ok, text) = check_range(dir, "HEAD~1..HEAD");
     assert!(!ok, "a path trailer is refused in a range too: {text}");
     assert!(
-        text.contains("  error: Refs: `tasks/parser.typ` is a path"),
+        text.contains(": Refs: `tasks/parser.typ` is a path"),
         "{text}"
     );
 }
@@ -181,7 +184,10 @@ fn a_range_git_cannot_read_fails() {
     let dir = commit_repo("");
     let (ok, text) = check_range(dir.path(), "no-such-rev..HEAD");
     assert!(!ok, "{text}");
-    assert!(text.contains("--commits"), "names the flag: {text}");
+    assert!(
+        text.starts_with("error: can't read commit range: 'no-such-rev..HEAD': "),
+        "names the range: {text}"
+    );
 }
 
 #[test]
@@ -191,7 +197,8 @@ fn a_root_commit_is_read_against_the_empty_tree() {
     let (ok, text) = check_range(dir.path(), "HEAD");
     assert!(!ok, "{text}");
     assert!(
-        text.contains("seed\n  error: commits.rules.flip-with-work: parser:"),
+        text.contains(": commits.rules.flip-with-work: parser:")
+            && text.contains("note: commit: 'seed'"),
         "{text}"
     );
 }

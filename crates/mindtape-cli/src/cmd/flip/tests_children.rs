@@ -33,9 +33,10 @@ fn refusal_names_the_status_and_every_unfinished_child() {
     let legend = &project.config.tasks.status;
     let err = super::check_children(&world, epic, "done", &project.config).unwrap_err();
     assert_eq!(
-        err,
-        "`done` requires finished children; unfinished: child (proposed) \
-         (use --force to override)"
+        crate::diag::plain(&err),
+        "error: status requires finished children: 'done'\n\
+         hint: or pass --force to override\n\
+         note: unfinished: child (proposed)\n"
     );
     assert!(legend.requires_finished_children("done"));
     for status in ["wip", "cancelled"] {

@@ -84,14 +84,12 @@ fn a_note_passed_as_a_task_gets_a_hint_to_use_m() {
     let (code, stderr) = run(dir.path(), &["done", "alpha", "it's fixed"]);
 
     assert_eq!(code, Some(1), "{stderr}");
-    assert!(
-        stderr.contains("error: no task: 'it'\\''s fixed'\n"),
-        "{stderr}"
-    );
-    assert!(
-        stderr
-            .contains("hint: to add a note, pass it with -m: mt done alpha -m 'it'\\''s fixed'\n"),
-        "{stderr}"
+    assert_eq!(
+        stderr,
+        "error: no task: 'it'\\''s fixed'\n\
+         hint: to add a note, pass it with -m: mt done alpha -m 'it'\\''s fixed'\n\
+         error: flipped 1 of 2 tasks; 1 failed\n",
+        "the -m hint replaces the mt ls hint"
     );
 }
 

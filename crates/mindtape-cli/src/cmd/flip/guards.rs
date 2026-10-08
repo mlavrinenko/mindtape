@@ -1,13 +1,30 @@
 //! The guards one `flip` clears before its write, split out of `cmd/flip/mod.rs`
 //! (file-size gate): the declared transition graph, `unblocked` blockers,
 //! unfinished children, and the target's note requirement. Each returns
-//! `Err(message)` naming what refused the move; every caller shares the
+//! `Err(Diag)` naming what refused the move; every caller shares the
 //! `--force` escape hatch.
 
 use mindtape::config::Legend;
 
+use crate::diag::{Diag, Hint, Note};
+
+/// The way past a guard.
+fn force_hint() -> Hint {
+    Hint::new("or pass --force to override")
+}
+
+/// `a (proposed), b (wip)`: the tasks a guard names; one with no known status
+/// reads `unknown`.
+fn targets(blockers: &[mindtape::Blocker]) -> String {
+    let list: Vec<String> = blockers
+        .iter()
+        .map(|b| format!("{} ({})", b.stem, b.status.as_deref().unwrap_or("unknown")))
+        .collect();
+    list.join(", ")
+}
+
 /// Guard one flip against the declared transition graph. `Ok(())` when the move
-/// is legal or unconstrained; `Err(message)` names the illegal edge and the
+/// is legal or unconstrained; `Err(Diag)` names the illegal edge and the
 /// allowed next states.
 ///
 /// Semantics (all opt-in behind [`Legend::transitions_declared`]):
@@ -19,7 +36,7 @@ pub(super) fn check_transition(
     legend: &Legend,
     from: Option<&mindtape::Status>,
     to: &str,
-) -> std::result::Result<(), String> {
+) -> Result<(), Diag> {
     if !legend.transitions_declared() {
         return Ok(());
     }
@@ -30,15 +47,13 @@ pub(super) fn check_transition(
         return Ok(());
     }
     let allowed = legend.allowed_next(&from.name);
-    let listing = if allowed.is_empty() {
-        format!("`{}` is terminal here (no declared transitions)", from.name)
+    let diag = Diag::refused("illegal transition").value(format!("{} → {to}", from.name));
+    let diag = if allowed.is_empty() {
+        diag.note(Note::new("no transitions are declared from").value(&from.name))
     } else {
-        format!("allowed from `{}`: {}", from.name, allowed.join(", "))
+        diag.note(Note::new("allowed next").name(format!("{} → {}", from.name, allowed.join(", "))))
     };
-    Err(format!(
-        "illegal transition `{}` → `{to}`; {listing} (use --force to override)",
-        from.name
-    ))
+    Err(diag.hint(force_hint()))
 }
 
 /// Guard one flip against the target status's `unblocked = true`: refused
@@ -48,14 +63,14 @@ pub(super) fn check_unblocked(
     legend: &Legend,
     to: &str,
     blockers: &[mindtape::Blocker],
-) -> std::result::Result<(), String> {
+) -> Result<(), Diag> {
     if blockers.is_empty() || !legend.requires_unblocked(to) {
         return Ok(());
     }
-    Err(format!(
-        "{} (use --force to override)",
-        mindtape::unblocked_violation(to, blockers)
-    ))
+    Err(Diag::refused("status requires an unblocked task")
+        .value(to)
+        .note(Note::new("waits on").name(targets(blockers)))
+        .hint(force_hint()))
 }
 
 /// Guard one flip against a status that requires finished children (both
@@ -67,7 +82,7 @@ pub(super) fn check_children(
     task: &mindtape::Task,
     to: &str,
     config: &mindtape::Config,
-) -> std::result::Result<(), String> {
+) -> Result<(), Diag> {
     if !config.tasks.status.requires_finished_children(to) {
         return Ok(());
     }
@@ -75,10 +90,10 @@ pub(super) fn check_children(
     if open.is_empty() {
         return Ok(());
     }
-    Err(format!(
-        "{} (use --force to override)",
-        mindtape::children_violation(to, &open)
-    ))
+    Err(Diag::refused("status requires finished children")
+        .value(to)
+        .note(Note::new("unfinished").name(targets(&open)))
+        .hint(force_hint()))
 }
 
 /// Guard one flip against the target status's note requirement (`note =
@@ -91,12 +106,14 @@ pub(super) fn check_note_required(
     legend: &Legend,
     to: &str,
     note: Option<&str>,
-) -> std::result::Result<(), String> {
+) -> Result<(), Diag> {
     let required = legend
         .entry(to)
         .is_some_and(mindtape::config::LegendEntry::note_required);
     if !required || note.map(str::trim).is_some_and(|n| !n.is_empty()) {
         return Ok(());
     }
-    Err(format!("`{to}` requires a note; supply one with -m/--note"))
+    Err(Diag::refused("status requires a note")
+        .value(to)
+        .hint(Hint::new("pass one with -m/--note")))
 }

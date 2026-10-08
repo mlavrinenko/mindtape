@@ -51,11 +51,16 @@ pub struct Checked {
     /// The violations naming that task, with every candidate in the same batch
     /// already standing beside the rest of the project.
     pub violations: Vec<Violation>,
+    /// The breaches the batch opens or closes on a task it never writes, a
+    /// link cycle or a rule reading the whole set. They name the other task,
+    /// are the same for every candidate of the batch, and refuse the write as
+    /// a candidate's own do, so a caller prints them once per batch.
+    pub elsewhere: Vec<Violation>,
 }
 
 /// Validate `candidate` against `existing` as if it had already been written to
-/// [`Candidate::rel`], returning only the violations that name the candidate
-/// itself.
+/// [`Candidate::rel`], returning the violations that name the candidate itself,
+/// then those the write raises on another task ([`Checked::elsewhere`]).
 ///
 /// `existing` is the project's already-loaded tasks — no second load happens
 /// here — with any task already at `rel` replaced, so a rewrite is checked as a
@@ -88,7 +93,15 @@ pub fn check_candidate(
     .next()
     // One answer per candidate, and exactly one candidate was asked about;
     // the fallback is unreachable rather than a policy.
-    .map_or_else(|| Ok(Vec::new()), |result| result.map(|ok| ok.violations))
+    .map_or_else(
+        || Ok(Vec::new()),
+        |result| {
+            result.map(|mut ok| {
+                ok.violations.append(&mut ok.elsewhere);
+                ok.violations
+            })
+        },
+    )
 }
 
 /// Validate a whole batch of candidates as if every one of them had been
@@ -157,10 +170,6 @@ pub fn check_candidates(
                     .filter(|violation| violation.task_id == task.id)
                     .cloned()
                     .collect();
-                task_violations.extend(closed.iter().map(|violation| Violation {
-                    task_id: task.id.clone(),
-                    ..violation.clone()
-                }));
                 task_violations.extend(check_body_rules(
                     &task,
                     candidate.source,
@@ -169,6 +178,7 @@ pub fn check_candidates(
                 ));
                 Checked {
                     violations: task_violations,
+                    elsewhere: closed.clone(),
                     task,
                 }
             })
@@ -196,14 +206,14 @@ pub fn reads_set_breach(config: &Config, violation: &Violation) -> bool {
 /// `ready`/`blocked`/`blocks`/`topo`).
 ///
 /// Both share the same shape — a fact about a task outside the batch that only
-/// changed because a candidate did — so both are attributed to every
-/// candidate, reworded to say where `mt check` will report them. A cycle is
-/// attributed to its first member, which need not be a task the batch writes,
-/// so filtering by candidate id alone drops it and the write lands a graph
-/// `mt check` then rejects on a neighbour; a WIP-cap rule the batch pushes over
-/// its cap similarly reports on the task(s) already occupying it, which the
-/// batch never touched. Either kind the project already carried before the
-/// batch is not the batch's doing and never counts.
+/// changed because a candidate did — so both go to every candidate's
+/// [`Checked::elsewhere`], worded as `mt check` words them and naming the task
+/// they are on. A cycle is reported on its first member, which need not be a
+/// task the batch writes, so filtering by candidate id alone drops it and the
+/// write lands a graph `mt check` then rejects on a neighbour; a WIP-cap rule
+/// the batch pushes over its cap similarly reports on the task(s) already
+/// occupying it, which the batch never touched. Either kind the project
+/// already carried before the batch is not the batch's doing and never counts.
 fn elsewhere_violations(
     existing: &[Task],
     config: &Config,
@@ -235,10 +245,7 @@ fn elsewhere_violations(
                     && old.message == violation.message
             })
         })
-        .map(|violation| Violation {
-            message: format!("{} (reported on {})", violation.message, violation.task_id),
-            ..violation.clone()
-        })
+        .cloned()
         .collect()
 }
 

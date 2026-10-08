@@ -101,22 +101,22 @@ fn quiet_suppresses_the_ok_line() {
 
 const WARN_CHILD: &str = "_MT_CHECK_COMMIT_WARN_CHILD";
 
-/// Every state that holds a task file it cannot evaluate is reported, led by
-/// the caller's indent. Replacing the body with `()` would print nothing.
+/// Every state that holds a task file it cannot evaluate is reported as a
+/// warning on stderr. Replacing the body with `()` would print nothing.
 #[test]
 fn warn_state_errors_reports_each_state() {
     if std::env::var(WARN_CHILD).is_err() {
         let out =
             crate::test_util::run_self_test("warn_state_errors_reports_each_state", WARN_CHILD);
         crate::test_util::assert_child_ok(&out);
-        let stdout = String::from_utf8_lossy(&out.stdout);
+        let stderr = String::from_utf8_lossy(&out.stderr);
         assert!(
-            stdout.contains("warn: tasks/head.typ as HEAD: boom"),
-            "the HEAD state's error must be reported: {stdout}"
+            stderr.contains("warning: tasks/head.typ as HEAD: boom"),
+            "the HEAD state's error must be reported: {stderr}"
         );
         assert!(
-            stdout.contains("warn: tasks/staged.typ as staged: broken"),
-            "the staged state's error must be reported: {stdout}"
+            stderr.contains("warning: tasks/staged.typ as staged: broken"),
+            "the staged state's error must be reported: {stderr}"
         );
         return;
     }
@@ -131,5 +131,5 @@ fn warn_state_errors_reports_each_state() {
         message: "broken".to_owned(),
         ..mindtape::LoadError::default()
     });
-    warn_state_errors(&states, "");
+    warn_state_errors(&states, None);
 }

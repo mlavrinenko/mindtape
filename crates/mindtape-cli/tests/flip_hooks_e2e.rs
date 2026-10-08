@@ -103,9 +103,12 @@ fn a_failing_gate_refuses_the_flip_and_writes_nothing() {
         stdout.contains("needs-review"),
         "output must surface: {stdout}"
     );
-    assert!(
-        stderr.contains("a human has to look first"),
-        "the refusal must carry the message: {stderr}"
+    assert_eq!(
+        stderr,
+        "error: gate failed: 'echo needs-review >&2; exit 2': exit 2\n\
+         hint: a human has to look first\n\
+         hint: or pass --force to skip the gate; the status note records it\n",
+        "one error, the config's message, the way past"
     );
     assert_eq!(before, task_source(dir.path()), "nothing may be written");
 }

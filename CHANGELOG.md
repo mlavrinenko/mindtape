@@ -9,6 +9,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A refused flip and a failed gate read in the error format.** A failing
+  `[[on.flip]]` gate prints `error: gate failed: 'scripts/test': exit 1`, the
+  config's `message` as a `hint:`, and `hint: or pass --force to skip the gate;
+  the status note records it`, where it printed one long line naming the task
+  twice. An illegal transition, an unblocked or finished-children requirement
+  and a missing note are each an `error:` with the way past as a `hint:`; the
+  tasks they wait on are a `note:`. A batch names the task a problem is about
+  in a `note:`. `mt done a 'a note'` suggests `-m` alone, not `mt ls` as well.
+- **A refused write is reported once, without a summary of its own.** `mt wip
+  a b`, `mt set`, `mt link` and the other writers print each breach as an
+  `error:` line and stop, where they added `error: a: 1 task(s) rejected;
+  nothing was written` or `N validation issue(s) as filled`. A breach the write
+  raises on another task, such as the `wip` task a cap rule counts, is one
+  `note:` however many targets raise it, and no longer ends in `(reported on
+  <task>)`. A missing prelude adds `hint:` lines to the refusal rather than a
+  `note:` after it. `mindtape::Checked` gains `elsewhere`, the breaches the
+  batch raises on tasks it does not write.
+- **`mt check` reports every problem on stderr and ends with a count.** A
+  breach, a commit-message problem and a failed `--commits` range are
+  `error:` lines on stderr, so `mt check >/dev/null` still shows what failed
+  and `mt check 2>/dev/null` shows only `ok:`. The last line is `error: 3
+  problems in 2 tasks` (or `error: 1 commit message problem`, `error: 2
+  commits broke commit rules`) where Rust printed `Error: 1 violation(s), 0
+  load error(s)`. A range git cannot read is `error: can't read commit range:
+  'HEAD~5..HEAD': <git's reason>`. Under `--commits`, each problem leads with
+  the commit's id and a `note: commit: '<subject>'` follows it.
 - **A task reference, a view name and a failed write read in the error
   format.** `mt ls '@nope'` prints `error: unknown view: 'nope'` and
   `hint: did you mean x?` (or `hint: run mt views to see the views`) where it

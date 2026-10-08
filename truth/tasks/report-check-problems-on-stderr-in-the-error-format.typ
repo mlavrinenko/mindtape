@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 7),
+  status: done(
+    2026,
+    10,
+    8,
+  )[Breaches, commit-message problems and the range error go to stderr through Diag; the last line counts the problems.],
   links: depends-on(
     "build-an-error-dsl-that-fixes-the-message-format-and-the-exit-code.typ",
   ),

@@ -45,9 +45,9 @@ use mindtape::config::Legend;
 use mindtape::{Config, status_value, today_ymd};
 use typst_edit::apply;
 
-use crate::cmd::flip::batch::{Landed, after_batch, finish, note_hint};
+use crate::cmd::flip::batch::{Landed, after_batch_diags, finish, note_hint};
 use crate::cmd::flip::hooks::{Hooks, Transition, note_with_overrides};
-use crate::diag::{Command, Diag, Hint};
+use crate::diag::{Command, Diag, Hint, Note};
 use crate::task_edit::{task_with, upsert_named_arg};
 use crate::util::{self, Project};
 
@@ -241,16 +241,23 @@ fn run_as(project: &Project, args: &FlipArgs, via: Via) -> Result<()> {
                 landed.record(task);
                 flipped += 1;
             }
-            Err(problem) => problems.push(Diag::legacy(format!("{spec}: {problem}"))),
+            Err(problem) => problems.push(name_target(problem, spec, args.tasks.len())),
         }
     }
 
     if !landed.is_empty() {
-        let mut after = Vec::new();
-        after_batch(&project.root, &landed, &mut after)?;
-        problems.extend(after.into_iter().map(Diag::legacy));
+        after_batch_diags(&project.root, &landed, &mut problems)?;
     }
     finish(problems, flipped, args.tasks.len())
+}
+
+/// `problem` with the task it is about named, when the batch has several.
+fn name_target(problem: Diag, spec: &str, targets: usize) -> Diag {
+    if targets > 1 {
+        problem.note(Note::new("task").name(spec))
+    } else {
+        problem
+    }
 }
 
 /// The pre-write guards; split out to keep this file under its line budget.
@@ -271,7 +278,7 @@ struct Batch<'a> {
 }
 
 /// Guard, hook and write one target. `Ok(())` when the flip landed;
-/// `Err(message)` says why it did not — the batch reports it and moves on, so a
+/// `Err(diag)` says why it did not — the batch reports it and moves on, so a
 /// refused target leaves its own file untouched without rolling back the rest.
 ///
 /// Order matters: the transition graph and the note requirement are cheap,
@@ -282,7 +289,7 @@ fn flip_target(
     spec: &str,
     task: &mindtape::Task,
     abs: &Path,
-) -> std::result::Result<(), String> {
+) -> std::result::Result<(), Diag> {
     let (args, status) = (batch.args, batch.status);
     let legend = &batch.project.config.tasks.status;
     if !args.force {
@@ -303,13 +310,13 @@ fn flip_target(
             },
             &mut std::io::stdout(),
         )
-        .map_err(|err| format!("{err:#}"))?;
+        .map_err(Diag::from)?;
     if let Some(refusal) = outcome.refusal {
         return Err(refusal);
     }
     let note = note_with_overrides(args.note.as_deref(), &outcome.forced);
     let restamp = task.status.as_ref().is_some_and(|s| s.name == status);
-    flip_one(batch, world, abs, note.as_deref()).map_err(|err| format!("{err:#}"))?;
+    flip_one(batch, world, abs, note.as_deref()).map_err(Diag::from)?;
     report_flip(spec, &task.title, task.status.as_ref(), status, restamp);
     notice_recur(task, status, legend, &batch.project.config.tasks.recur);
     Ok(())

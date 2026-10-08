@@ -294,7 +294,6 @@ recur: every(weeks: 1),\n\
         .failure();
 
     let stderr = String::from_utf8_lossy(&output.get_output().stderr).into_owned();
-    assert!(stderr.contains("nothing was written"), "{stderr}");
     assert!(
         stderr.contains("error: the task as filled:"),
         "a blocking pre-write problem reports as an error: {stderr}"

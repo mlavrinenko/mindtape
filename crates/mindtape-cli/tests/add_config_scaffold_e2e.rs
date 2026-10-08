@@ -346,8 +346,8 @@ fn print_refuses_the_fill_a_write_would_refuse() {
         "the preview must report the rule a write would report: {stderr}"
     );
     assert!(
-        stderr.contains("nothing was written"),
-        "the refusal keeps the write's own words: {stderr}"
+        !stderr.contains("validation issue"),
+        "the refusal is the breach, with no summary of its own: {stderr}"
     );
     assert!(
         String::from_utf8_lossy(&output.stdout).is_empty(),
