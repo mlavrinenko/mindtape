@@ -28,6 +28,7 @@ use crate::filter::expr::call_args;
 use crate::filter::{Ctx, FilterError, eval_bool};
 use crate::model::Task;
 use crate::model::fields::FieldValue;
+use crate::problem::Problem;
 
 /// The state wrappers, in the order an error lists them.
 pub(crate) const STATES: [&str; 3] = ["head", "staged", "worktree"];
@@ -134,13 +135,13 @@ pub fn desugar_commit_into(expr: &str) -> String {
 /// naming no configured status, a syntax error, or what a dry run over a
 /// probe task present in every state surfaces — a bare task field above all.
 #[must_use]
-pub(crate) fn task_expr_problem(source: &str, config: &Config) -> Option<String> {
+pub(crate) fn task_expr_problem(source: &str, config: &Config) -> Option<Problem> {
     let legend = &config.tasks.status;
     if let Some(name) = crate::config::hooks::into_targets(source)
         .into_iter()
         .find(|name| !legend.is_empty() && !legend.contains(name))
     {
-        return Some(format!("into({name:?}) names no configured status"));
+        return Some(format!("into({name:?}) names no configured status").into());
     }
     let probe = ProjectState::probe(config);
     let states = CommitStates {
@@ -155,7 +156,7 @@ pub(crate) fn task_expr_problem(source: &str, config: &Config) -> Option<String>
     CommitExpr::parse(&desugar_commit_into(source))
         .and_then(|expr| expr.matches_task(&CommitRecord::default(), &scope))
         .err()
-        .map(|err| err.to_string())
+        .map(|err| crate::filter::problem_of(&err))
 }
 
 #[cfg(test)]

@@ -108,3 +108,18 @@ fn a_rule_calling_worktree_or_changed_reads_the_working_tree() {
         .collect();
     assert_eq!(reads, [true, true, false]);
 }
+
+#[test]
+fn an_unknown_path_set_in_a_commit_rule_carries_the_nearest_dict() {
+    let config = parse_config(
+        "[dicts.verbs]\nvalues = [\"add\"]\n\n\
+         [[commits.rules]]\nassert = 'count(files, \"@verb\") > 0'\n",
+    )
+    .unwrap();
+    let problems = config.validate().unwrap_err();
+    let unknown = problems
+        .unknown
+        .clone()
+        .expect("the problem carries the dicts");
+    assert_eq!(unknown.nearest.as_deref(), Some("verbs"));
+}

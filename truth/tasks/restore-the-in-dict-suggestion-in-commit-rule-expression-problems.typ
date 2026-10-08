@@ -2,7 +2,7 @@
 #import "../lib.typ": *
 
 #show: task.with(
-  title: "Restore the in_dict suggestion in commit-rule expression problems",
+  title: "Restore the suggestion in commit-rule expression problems",
   kind: "dev",
   priority: ice(
     impact: 4,
@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 8),
+  status: done(
+    2026,
+    10,
+    8,
+  )[commit\_expr\_problem and task\_expr\_problem return Problem; an unknown path set carries its nearest name.],
 )
 
 == Problem
@@ -46,7 +50,7 @@ left in a closing report no one rereads. It belongs in
 
 == TO-BE
 
-- 🟢 An unknown dict in a commit rule prints hint lines with the nearest dict and the dicts to choose from.
+- 🟢 An unknown path set in a commit rule prints hint lines with the nearest dict and the dicts to choose from.
 
 == Changes
 
@@ -63,4 +67,4 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-Not applicable: no commit rule here uses in_dict.
+Not applicable: no commit rule here names a path set.

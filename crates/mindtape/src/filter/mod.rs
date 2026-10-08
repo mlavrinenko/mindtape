@@ -93,7 +93,7 @@ pub(crate) mod expr;
 pub(crate) mod links;
 pub(crate) mod parse_error;
 mod problems;
-pub(crate) use problems::{expr_problem, expr_problem_in_set, undeclared_extras};
+pub(crate) use problems::{expr_problem, expr_problem_in_set, problem_of, undeclared_extras};
 pub(crate) mod predicates;
 pub(crate) mod strings;
 pub(crate) mod views;

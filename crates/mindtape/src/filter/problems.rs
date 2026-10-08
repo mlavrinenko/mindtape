@@ -37,10 +37,11 @@ pub(crate) fn expr_problem(source: &str, probe: &Task, config: &Config) -> Optio
 
 /// `err` as a problem, carrying the dictionary names an unknown `in_dict`
 /// could have meant.
-fn problem_of(err: &super::FilterError) -> Problem {
+pub(crate) fn problem_of(err: &super::FilterError) -> Problem {
     let problem = Problem::new(err.to_string());
     match err {
-        super::FilterError::UnknownDict { unknown, .. } => problem.with(unknown.clone()),
+        super::FilterError::UnknownDict { unknown, .. }
+        | super::FilterError::UnknownPathSet { unknown, .. } => problem.with(unknown.clone()),
         _ => problem,
     }
 }

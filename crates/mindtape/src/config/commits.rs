@@ -45,6 +45,7 @@ use crate::commit::task_expr::{TaskScope, desugar_commit_into, task_expr_problem
 use crate::commit::tasks::CommitStates;
 use crate::config::Config;
 use crate::filter::FilterError;
+use crate::problem::Problem;
 use crate::validate::severity::Severity;
 
 /// `[commits]` — how commits name the tasks they work on, and the rules a
@@ -257,10 +258,10 @@ impl Rule {
 /// Config-load checks for `[commits]`: a non-empty trailer key, every rule's
 /// expressions dry-run, and no two rules sharing a name within one file (the
 /// pack merge has already collapsed cross-source ones).
-pub(crate) fn validate_commits(config: &Config) -> Vec<String> {
+pub(crate) fn validate_commits(config: &Config) -> Vec<Problem> {
     let mut problems = Vec::new();
     if config.commits.trailer.trim().is_empty() {
-        problems.push("commits.trailer: must name a trailer key".to_owned());
+        problems.push("commits.trailer: must name a trailer key".into());
     }
     for (index, spec) in config.commits.rules.iter().enumerate() {
         let path = format!("commits.rules[{index}]");
@@ -269,16 +270,20 @@ pub(crate) fn validate_commits(config: &Config) -> Vec<String> {
             CommitScope::Task => task_expr_problem(source, config),
         };
         if let Some(problem) = problem(&spec.assertion) {
-            problems.push(format!("{path}.assert: {problem}"));
+            problems.push(problem.under(&format!("{path}.assert")));
         }
         if let Some(problem) = spec.when.as_deref().and_then(problem) {
-            problems.push(format!("{path}.when: {problem}"));
+            problems.push(problem.under(&format!("{path}.when")));
         }
     }
-    problems.extend(crate::body::headers::duplicate_rule_names(
-        config.commits.rules.iter().map(|rule| rule.name.as_deref()),
-        "commits.rules",
-    ));
+    problems.extend(
+        crate::body::headers::duplicate_rule_names(
+            config.commits.rules.iter().map(|rule| rule.name.as_deref()),
+            "commits.rules",
+        )
+        .into_iter()
+        .map(Problem::from),
+    );
     problems
 }
 

@@ -47,7 +47,7 @@ impl Config {
         )));
         problems.extend(crate::rules::validate_rules(self));
         problems.extend(plain(crate::rules::validate_rule_names(self)));
-        problems.extend(plain(crate::config::commits::validate_commits(self)));
+        problems.extend(crate::config::commits::validate_commits(self));
         problems.extend(plain(crate::body::headers::validate_header_rules(self)));
         problems.extend(plain(crate::body::content::validate_content_rules(self)));
         problems.extend(plain(crate::config::comments::validate_comments(self)));

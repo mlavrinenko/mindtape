@@ -41,13 +41,14 @@ use regex::Regex;
 use crate::commit::CommitRecord;
 use crate::commit::task_expr::{STATES, TaskScope};
 use crate::config::Config;
-use crate::filter::FilterError;
 use crate::filter::expr::{
     call_args, connective, extract_identifier, extract_literal, restore_name, unwrap_root,
 };
 use crate::filter::predicates::path_set_error;
+use crate::filter::{FilterError, problem_of};
 use crate::git::state::PathFilter;
 use crate::model::fields::FieldValue;
+use crate::problem::Problem;
 
 /// The field names a commit expression reads, for the refusal message.
 const COMMIT_FIELDS: &str = "subject, refs, files, trailers, tasks_only";
@@ -146,11 +147,11 @@ impl CommitExpr {
 /// What makes one saved commit expression unusable, if anything: a syntax
 /// error or a problem a dry run against an empty commit surfaces.
 #[must_use]
-pub(crate) fn commit_expr_problem(source: &str, config: &Config) -> Option<String> {
+pub(crate) fn commit_expr_problem(source: &str, config: &Config) -> Option<Problem> {
     CommitExpr::parse(source)
         .and_then(|expr| expr.matches(&CommitRecord::default(), config))
         .err()
-        .map(|err| err.to_string())
+        .map(|err| problem_of(&err))
 }
 
 fn eval_bool(node: &Node<DefaultNumericTypes>, env: Env<'_>) -> Result<bool, FilterError> {

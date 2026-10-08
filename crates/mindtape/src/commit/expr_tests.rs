@@ -25,7 +25,7 @@ fn eval(expr: &str) -> bool {
 }
 
 fn problem_of(expr: &str) -> Option<String> {
-    commit_expr_problem(expr, &Config::default())
+    commit_expr_problem(expr, &Config::default()).map(|problem| problem.text)
 }
 
 /// `src/old.rs` renamed to `src/new.rs`, beside an edit to `docs/a.md`.
