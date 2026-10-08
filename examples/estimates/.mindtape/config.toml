@@ -41,7 +41,7 @@ units = ["files"]
 name = "judgment-stays-small"
 when = "!terminal && difficulty >= 3"
 assert = "estimate.files <= 5"
-message = "judgment work stays small; split it rather than widen the cap"
+message = "split the task into 5 files or fewer, or lower its difficulty"
 severity = "error"
 
 [[tasks.rules]]
@@ -62,7 +62,7 @@ severity = "error"
 name = "budget"
 when = 'status == "wip" && has(estimate.files)'
 assert = 'changed("staged+worktree", "!docs/generated/**", "!*.lock") <= estimate.files'
-message = "rescope before going further"
+message = "rescope the task or raise its estimate before changing more files"
 severity = "warn"
 # docs:end
 

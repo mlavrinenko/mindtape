@@ -62,7 +62,7 @@ required = "!terminal"
 name = "bugs-outrank-the-low-band"
 when = 'kind == "bug" && !terminal'
 assert = "priority >= 3"
-message = "a known bug is never low priority; raise it or close it"
+message = "raise the bug's priority or close it"
 severity = "error"
 
 [[tasks.rules]]
@@ -93,7 +93,7 @@ severity = "error"
 name = "one-summary"
 path = ["Summary"]
 action = "unique"
-message = "every task has exactly one Summary section"
+message = "keep exactly one Summary section"
 
 [[tasks.body.headers.rules]]
 name = "known-sections"
@@ -106,7 +106,7 @@ allowed = [{ match = "^(Summary|Steps to reproduce|Notes)$" }]
 name = "summary-non-empty"
 path = ["Summary"]
 assert = "non-empty"
-message = "write the Summary; a heading over nothing tells the reader nothing"
+message = "write text under the Summary heading or remove the heading"
 
 [[tasks.body.content.rules]]
 name = "repro-has-detail"
@@ -118,7 +118,7 @@ when = 'kind == "bug"'
 name = "one-dash-per-paragraph"
 path = [{ match = ".*", recursive = true }]
 assert = { density = { pattern = "—", max = 1, per = "paragraph" } }
-message = "more than one em-dash in a paragraph reads as generated prose"
+message = "cut the paragraph to one em-dash at most"
 # docs:end
 
 # docs:slice rules/comments
@@ -137,7 +137,7 @@ trailer = "Refs"
 name = "migration-names-a-task"
 when = 'matches(files, "^migrations/")'
 assert = "has(refs)"
-message = "name the task a migration belongs to: `Refs: <stem>`"
+message = "add a Refs: <stem> trailer naming the task the migration belongs to"
 severity = "error"
 # docs:end
 
