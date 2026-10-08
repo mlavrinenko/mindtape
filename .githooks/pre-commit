@@ -27,4 +27,4 @@ else
     direnv exec "$root" mmz --is-fresh --tag gate
 fi
 direnv exec "$root" typstyle --check truth
-exec direnv exec "$root" cargo run -q -- check -q
+exec direnv exec "$root" cargo run -q -p mindtape-cli --bin mt --target-dir target/mt-dev -- check -q
