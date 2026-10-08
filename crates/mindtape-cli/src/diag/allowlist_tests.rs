@@ -139,12 +139,28 @@ fn git(args: &[&str]) -> Option<String> {
         .then(|| String::from_utf8_lossy(&out.stdout).into_owned())
 }
 
-/// The entries of the list as `text` writes them.
+/// The entries of the list as `text` writes them, whatever layout rustfmt
+/// gave it: the quoted strings between `= &[` and the closing `];`.
 fn entries(text: &str) -> BTreeSet<String> {
-    text.lines()
-        .filter_map(|line| line.trim().strip_prefix('"')?.strip_suffix("\","))
+    let Some((_, list)) = text.split_once("= &[") else {
+        return BTreeSet::new();
+    };
+    let list = list.split_once("];").map_or(list, |(list, _)| list);
+    list.split('"')
+        .skip(1)
+        .step_by(2)
         .map(str::to_owned)
         .collect()
+}
+
+#[test]
+fn entries_read_the_list_in_any_layout() {
+    let one = |body: &str| BTreeSet::from([body.to_owned()]);
+    let single = "const UNCONVERTED: &[&str] = &[\"cmd/check\"];\n";
+    assert_eq!(entries(single), one("cmd/check"));
+    let multi = "const UNCONVERTED: &[&str] = &[\n    \"cmd/a\",\n    \"cmd/b\",\n];\n";
+    assert_eq!(entries(multi).len(), 2);
+    assert!(entries("const UNCONVERTED: &[&str] = &[];\n").is_empty());
 }
 
 /// Nothing to compare with: a skip on a dev machine, a failure under `CI`,
