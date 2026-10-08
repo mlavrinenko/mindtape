@@ -28,7 +28,7 @@ pub struct LoadError {
 
 /// A Typst warning raised while evaluating a task file, whether or not the
 /// file went on to load.
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct LoadWarning {
     /// File the warning was raised for, relative to the project root.
     pub file: PathBuf,

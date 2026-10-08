@@ -27,7 +27,7 @@ use crate::model::task_spans::TaskCallSpans;
 // documented `lib.rs` surface.
 pub(crate) mod cache;
 
-use cache::{Cached, TaskCache};
+use cache::{Cached, CachedOutcome, TaskCache};
 
 /// The outcome of loading a project: the tasks found and any per-file errors.
 #[derive(Debug, Clone, Default)]
@@ -37,7 +37,7 @@ pub struct LoadOutcome {
     /// Files that could not be evaluated or harvested.
     pub errors: Vec<LoadError>,
     /// Typst warnings raised while evaluating files this run, in file order.
-    /// A file served from the cache raises none.
+    /// A file served from the cache replays the ones stored with it.
     pub warnings: Vec<LoadWarning>,
 }
 
@@ -111,6 +111,9 @@ pub fn load_project(root: &Path, config: &Config) -> LoadOutcome {
     harvest_misses(&misses, root, &overrides, &cache, &mut outcome);
 
     outcome.tasks.sort_by(|left, right| left.id.cmp(&right.id));
+    outcome
+        .warnings
+        .sort_by(|left, right| left.file.cmp(&right.file));
     // Graph-derived ranks (`topo`, `blocks`) are facts about the whole set, so
     // they are stamped on here — after every task is in and in id order — and
     // never per file. Both are cheap graph walks over already-parsed `links:`,
@@ -135,11 +138,7 @@ fn split_hits<'a>(
             .as_deref()
             .map(|src| TaskCache::content_hash(src.as_bytes()));
         match hash.as_deref().and_then(|key| cache.get(key)) {
-            Some(Cached::Marker(marker)) => {
-                let body = source.as_deref().unwrap_or_default();
-                outcome.tasks.push(assemble_task(item, &marker, body));
-            }
-            Some(Cached::NoMarker) => {}
+            Some(hit) => replay(item, source.as_deref(), hit, outcome),
             None => misses.push(Miss {
                 item,
                 source: source.unwrap_or_default(),
@@ -148,6 +147,21 @@ fn split_hits<'a>(
         }
     }
     misses
+}
+
+/// Serve one cache hit: replay its warnings against this file, and assemble
+/// its task when it holds a marker.
+fn replay(item: &LoadItem, source: Option<&str>, hit: Cached, outcome: &mut LoadOutcome) {
+    outcome
+        .warnings
+        .extend(hit.warnings.into_iter().map(|warning| LoadWarning {
+            file: item.rel.clone(),
+            ..warning
+        }));
+    if let CachedOutcome::Marker(marker) = hit.outcome {
+        let body = source.unwrap_or_default();
+        outcome.tasks.push(assemble_task(item, &marker, body));
+    }
 }
 
 /// Harvest the cache misses in parallel over one shared snapshot, record each
@@ -263,23 +277,24 @@ fn record_miss(
 ) {
     match result {
         Ok(harvested) => {
-            outcome.warnings.extend(LoadWarning::from_diagnostics(
+            let warnings = LoadWarning::from_diagnostics(
                 &miss.item.rel,
                 &typst_path(&miss.item.rel),
                 &harvested.warnings,
-            ));
+            );
             let marker = harvested
                 .with_marker("mindtape.task")
                 .next()
                 .map(|found| &found.value);
             if let Some(hash) = &miss.hash {
-                cache.put(hash, marker);
+                cache.put(hash, marker, &warnings);
             }
             if let Some(marker) = marker {
                 outcome
                     .tasks
                     .push(assemble_task(miss.item, marker, &miss.source));
             }
+            outcome.warnings.extend(warnings);
         }
         Err(err) => {
             if let HarvestError::Eval { error, warnings } = &err {

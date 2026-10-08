@@ -3,7 +3,8 @@
 use std::collections::BTreeMap;
 
 use super::{
-    Cached, TaskCache, build_key, disabled, ensure_ignored, is_build_key, json_to_hval, prune_stale,
+    Cached, CachedOutcome, TaskCache, build_key, disabled, ensure_ignored, is_build_key,
+    json_to_hval, prune_stale,
 };
 use crate::config::Config;
 use crate::model::canonical::hval_to_json;
@@ -52,10 +53,13 @@ fn put_get_roundtrips_a_marker() {
     ]));
 
     let hash = TaskCache::content_hash(b"source");
-    cache.put(&hash, Some(&marker));
+    cache.put(&hash, Some(&marker), &[]);
 
     match cache.get(&hash) {
-        Some(Cached::Marker(got)) => assert_eq!(got, marker),
+        Some(Cached {
+            outcome: CachedOutcome::Marker(got),
+            ..
+        }) => assert_eq!(got, marker),
         _ => panic!("expected a marker hit"),
     }
 }
@@ -65,8 +69,14 @@ fn nomarker_outcome_roundtrips() {
     let root = tempfile::tempdir().unwrap();
     let cache = open(root.path());
     let hash = TaskCache::content_hash(b"no-marker");
-    cache.put(&hash, None);
-    assert!(matches!(cache.get(&hash), Some(Cached::NoMarker)));
+    cache.put(&hash, None, &[]);
+    assert!(matches!(
+        cache.get(&hash),
+        Some(Cached {
+            outcome: CachedOutcome::NoMarker,
+            ..
+        })
+    ));
 }
 
 #[test]
@@ -85,7 +95,7 @@ fn corrupt_or_wrong_format_entry_is_a_miss() {
     let root = tempfile::tempdir().unwrap();
     let cache = open(root.path());
     let hash = TaskCache::content_hash(b"entry");
-    cache.put(&hash, None);
+    cache.put(&hash, None, &[]);
     let path = cache.entry_path(&hash).unwrap();
 
     std::fs::write(&path, "{ not json").unwrap();

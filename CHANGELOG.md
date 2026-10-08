@@ -1852,6 +1852,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A Typst warning shows on every run.** A file served from the task cache
+  prints the same `warning:` line the run that evaluated it did.
 - **`mt rm` with a mistyped name says no task matches.** `mt rm nope` printed
   `invalid filter: bare field `nope` is not boolean`; it now prints
   `error: no task: 'nope'` with the nearest stem as `hint: did you mean x?`,

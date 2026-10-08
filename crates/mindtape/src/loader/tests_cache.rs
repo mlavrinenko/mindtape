@@ -116,3 +116,29 @@ fn corrupt_entry_falls_back_to_eval() {
     assert_eq!(out.errors, Vec::new());
     assert_eq!(out.tasks.first().unwrap().title, "Build");
 }
+
+#[test]
+fn a_cache_hit_replays_the_files_typst_warnings() {
+    let dir = setup();
+    write_pkg(
+        dir.path(),
+        "lib",
+        "mindtape",
+        "0.2.0",
+        crate::test_support::PRELUDE,
+    );
+    write(
+        dir.path(),
+        "tasks/t.typ",
+        "<orphan>\n\
+         #import \"@local/mindtape:0.2.0\": *\n\
+         #show: task.with(title: \"T\")\n",
+    );
+    let first = load_project(dir.path(), &Config::default());
+    assert_eq!(first.warnings.len(), 1, "{:?}", first.warnings);
+
+    doctor_cache_title(&sole_cache_entry(dir.path()), "FROM-CACHE");
+    let second = load_project(dir.path(), &Config::default());
+    assert_eq!(second.tasks.first().unwrap().title, "FROM-CACHE");
+    assert_eq!(second.warnings, first.warnings);
+}

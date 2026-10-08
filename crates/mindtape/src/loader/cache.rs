@@ -27,7 +27,9 @@
 //! outcome (a task marker, or a confirmed absence of one) is stored — so a file
 //! that failed to evaluate is re-tried every run. The reconstructed marker is
 //! projected through the exact same `Task::from_marker` path as a cold harvest,
-//! so the warm and cold results cannot drift.
+//! so the warm and cold results cannot drift. The Typst warnings of a clean
+//! evaluation are stored beside the marker and replayed on every hit, so a
+//! warning shows on each run, not only the first.
 
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
@@ -37,12 +39,13 @@ use serde_json::Value;
 use sha1::{Digest, Sha1};
 use typst_harvest::HVal;
 
+use super::LoadWarning;
 use crate::config::Config;
 use crate::model::canonical::{hval_to_json, json_to_hval};
 
 /// On-disk entry format. Bump when the entry shape or the marker reconstruction
 /// changes; folded into the build key, so a bump busts every entry.
-const FORMAT_VERSION: u32 = 1;
+const FORMAT_VERSION: u32 = 2;
 
 /// Set this env var to a non-empty value to bypass the cache entirely (always
 /// eval). For benchmarking the cold path and as an escape hatch.
@@ -50,7 +53,15 @@ const DISABLE_ENV: &str = "MINDTAPE_NO_CACHE";
 
 /// A cache hit's payload: the file harvested to a task marker, or evaluated
 /// cleanly to no `mindtape.task` marker at all.
-pub(crate) enum Cached {
+pub(crate) struct Cached {
+    /// The marker, or its confirmed absence.
+    pub(crate) outcome: CachedOutcome,
+    /// The Typst warnings the evaluation raised, replayed on every hit.
+    pub(crate) warnings: Vec<LoadWarning>,
+}
+
+/// What a cached evaluation yielded.
+pub(crate) enum CachedOutcome {
     /// The reconstructed `mindtape.task` marker value; feed to
     /// `Task::from_marker`.
     Marker(HVal),
@@ -100,22 +111,28 @@ impl TaskCache {
         if entry.format != FORMAT_VERSION {
             return None;
         }
-        Some(match entry.marker {
-            Some(value) => Cached::Marker(json_to_hval(&value)),
-            None => Cached::NoMarker,
+        let outcome = match entry.marker {
+            Some(value) => CachedOutcome::Marker(json_to_hval(&value)),
+            None => CachedOutcome::NoMarker,
+        };
+        Some(Cached {
+            outcome,
+            warnings: entry.warnings,
         })
     }
 
     /// Record a clean harvest outcome for `content_hash`: `Some(marker)` for a
-    /// task, `None` for a file that produced no marker. Best-effort and atomic
-    /// (write-temp-then-rename); a write failure just leaves the entry a miss.
-    pub(crate) fn put(&self, content_hash: &str, marker: Option<&HVal>) {
+    /// task, `None` for a file that produced no marker, with the `warnings` its
+    /// evaluation raised. Best-effort and atomic (write-temp-then-rename); a
+    /// write failure just leaves the entry a miss.
+    pub(crate) fn put(&self, content_hash: &str, marker: Option<&HVal>, warnings: &[LoadWarning]) {
         let Some(path) = self.entry_path(content_hash) else {
             return;
         };
         let entry = Entry {
             format: FORMAT_VERSION,
             marker: marker.map(hval_to_json),
+            warnings: warnings.to_vec(),
         };
         let Ok(json) = serde_json::to_string(&entry) else {
             return;
@@ -130,12 +147,15 @@ impl TaskCache {
     }
 }
 
-/// One on-disk cache entry: the format tag plus the harvested marker as JSON
-/// (`null` when the file yielded no task marker).
+/// One on-disk cache entry: the format tag, the harvested marker as JSON
+/// (`null` when the file yielded no task marker), and the Typst warnings the
+/// evaluation raised.
 #[derive(Serialize, Deserialize)]
 struct Entry {
     format: u32,
     marker: Option<Value>,
+    #[serde(default)]
+    warnings: Vec<LoadWarning>,
 }
 
 /// Whether the cache is switched off via [`DISABLE_ENV`].
