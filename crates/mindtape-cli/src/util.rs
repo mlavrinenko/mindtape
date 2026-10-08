@@ -5,7 +5,7 @@ use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::{Context, Result};
 use mindtape::{
     Config, Filter, LoadError, LoadOutcome, LoadWarning, RefError, StemHashes, Task, ViewSpec,
     config_path, find_root, load_config, load_project, write_atomic,
@@ -80,6 +80,15 @@ fn worktree_override() -> Option<PathBuf> {
     WORKTREE.get().cloned().flatten()
 }
 
+/// The working directory, or the refusal when the OS will not say.
+fn current_dir() -> Result<PathBuf> {
+    std::env::current_dir().map_err(|err| {
+        Diag::failed("can't determine the current directory")
+            .io(&err)
+            .into()
+    })
+}
+
 /// Resolve the project root, honouring the worktree override when set.
 ///
 /// With no override, walks up from the current directory for a `.mindtape/`
@@ -90,7 +99,7 @@ fn worktree_override() -> Option<PathBuf> {
 /// Returns an error if the current directory is unreadable, no project is
 /// found, or the override path lacks a `.mindtape/` directory.
 pub fn resolve_root() -> Result<PathBuf> {
-    let cwd = std::env::current_dir().context("determine current directory")?;
+    let cwd = current_dir()?;
     resolve_root_with(&cwd, worktree_override().as_deref())
 }
 
@@ -112,13 +121,17 @@ fn resolve_root_with(cwd: &Path, override_path: Option<&Path>) -> Result<PathBuf
         cwd.join(path)
     };
     if !base.join(".mindtape").is_dir() {
-        bail!(
-            "worktree {} is not a MindTape project (no .mindtape/ directory)",
-            base.display()
-        );
+        return Err(Diag::failed("no .mindtape/ directory in worktree")
+            .value(base.display().to_string())
+            .hint(Hint::new("run mt init there, or pass another path to -w"))
+            .into());
     }
-    base.canonicalize()
-        .with_context(|| format!("resolve worktree {}", base.display()))
+    base.canonicalize().map_err(|err| {
+        Diag::failed("can't resolve worktree")
+            .value(base.display().to_string())
+            .io(&err)
+            .into()
+    })
 }
 
 /// Find the project from the current directory (or the worktree override) and
@@ -152,11 +165,20 @@ pub fn open() -> Result<Project> {
 
 /// Print each load warning of `config` to stderr, naming its config file.
 fn warn_config(root: &Path, config: &Config) {
-    let file = config_path(root);
-    let shown = file.strip_prefix(root).unwrap_or(&file).display();
-    for warning in config.warnings() {
-        eprintln!("warning: {shown}: {warning}");
+    for diag in config_warnings(root, config) {
+        emit(&diag);
     }
+}
+
+/// One `warning:` per load warning of `config`, placed at its config file.
+fn config_warnings(root: &Path, config: &Config) -> Vec<Diag> {
+    let file = config_path(root);
+    let shown = file.strip_prefix(root).unwrap_or(&file);
+    config
+        .warnings()
+        .into_iter()
+        .map(|warning| Diag::verbatim(Kind::Warning, warning).at_file(shown))
+        .collect()
 }
 
 /// The stem hash of every task the project loaded, closed ones included, so a
@@ -179,7 +201,7 @@ pub fn stem_hashes(tasks: &[Task], config: &Config) -> StemHashes {
 pub fn resolve_task(project: &Project, id: &str) -> Result<(Task, PathBuf)> {
     let tasks = &project.outcome.tasks;
     let cwd = if mindtape::is_path_ref(id) {
-        std::env::current_dir().context("determine current directory")?
+        current_dir()?
     } else {
         PathBuf::new()
     };
@@ -265,7 +287,7 @@ pub fn report_load_problems(outcome: &LoadOutcome, kind: Kind) {
 /// (less when Typst gave less), Typst's message, Typst's hints.
 fn load_diag(kind: Kind, error: &LoadError) -> Diag {
     at_place(
-        Diag::typst(kind, &error.message),
+        Diag::verbatim(kind, &error.message),
         &error.file,
         error.line,
         error.column,
@@ -276,7 +298,7 @@ fn load_diag(kind: Kind, error: &LoadError) -> Diag {
 /// The line for a Typst warning on a file that loaded.
 fn warning_diag(warning: &LoadWarning) -> Diag {
     at_place(
-        Diag::typst(Kind::Warning, &warning.message),
+        Diag::verbatim(Kind::Warning, &warning.message),
         &warning.file,
         warning.line,
         warning.column,
@@ -312,20 +334,20 @@ pub fn canonical_source(config: &Config, source: String) -> String {
 /// Returns an error when the file cannot be written.
 pub fn write_task(config: &Config, path: &Path, source: String) -> Result<()> {
     write_atomic(path, canonical_source(config, source).as_bytes())
-        .with_context(|| format!("write {}", path.display()))
+        .map_err(|err| Diag::cannot_write(path, &err).into())
 }
 
-/// Build the `unknown view: <name>` error, extended with a nearest-match
-/// suggestion and the full view list
-/// (`truth/tasks/suggest-a-nearest-match-on-an-unknown-view-name.typ`).
-/// Shared by every CLI view lookup site (`cmd/ls/rules.rs`, `cmd/views.rs`) so the
-/// message and its hint composition are not duplicated across them.
-#[must_use]
+/// The refusal for a view name the config does not declare: the nearest view
+/// when one is close, else where to list them. Shared by every CLI view lookup
+/// site (`cmd/ls/rules.rs`, `cmd/views.rs`).
 pub fn unknown_view_error(name: &str, views: &BTreeMap<String, ViewSpec>) -> anyhow::Error {
-    anyhow!(
-        "unknown view: {name}{}",
-        mindtape::suggest::hint("view", name, views.keys())
-    )
+    let known: Vec<&str> = views.keys().map(String::as_str).collect();
+    let diag = Diag::usage("unknown view").value(name);
+    match mindtape::suggest::nearest(name, &known) {
+        Some(near) => diag.hint(Hint::did_you_mean(near)),
+        None => diag.hint(Hint::run(Command::mt().word("views"), "to see the views")),
+    }
+    .into()
 }
 
 /// The path of `to` (root-relative) seen from `from_dir` (root-relative), for

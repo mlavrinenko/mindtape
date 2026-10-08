@@ -53,7 +53,6 @@ mod render;
 mod task_edit;
 #[cfg(test)]
 mod test_util;
-#[allow(clippy::disallowed_macros)]
 mod util;
 
 use std::process::ExitCode;

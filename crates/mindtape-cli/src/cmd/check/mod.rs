@@ -67,7 +67,15 @@ pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> 
 
     let mut violations = validate(&project.outcome.tasks, &project.config);
     violations.extend(body_violations(project, body_rules)?);
-    violations.extend(crate::cmd::check::templates::breaches(project, body_rules)?);
+    let templates = crate::cmd::check::templates::breaches(project, body_rules)?;
+    violations.extend(templates.violations);
+    for failure in templates
+        .load_warnings
+        .iter()
+        .chain(&templates.load_failures)
+    {
+        crate::diag::emit(failure);
+    }
 
     // `[tasks.comments]` breaches carry the severity of their policy.
     violations.extend(
@@ -85,7 +93,7 @@ pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> 
         .iter()
         .filter(|violation| violation.is_fatal())
         .count();
-    let load_errors = project.outcome.errors.len();
+    let load_errors = project.outcome.errors.len() + templates.load_failures.len();
     if failures == 0 && load_errors == 0 {
         if !args.quiet {
             println!("ok: {} task(s) valid", project.outcome.tasks.len());

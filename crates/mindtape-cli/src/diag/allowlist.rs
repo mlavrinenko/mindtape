@@ -31,7 +31,6 @@ const UNCONVERTED: &[&str] = &[
     "cmd/worktrees",
     "pre_write",
     "task_edit",
-    "util",
 ];
 
 #[path = "allowlist_tests.rs"]

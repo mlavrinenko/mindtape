@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A task reference, a view name and a failed write read in the error
+  format.** `mt ls '@nope'` prints `error: unknown view: 'nope'` and
+  `hint: did you mean x?` (or `hint: run mt views to see the views`) where it
+  folded the suggestion and the view list into one line; an empty task
+  reference is `error: empty task reference`; a worktree without `.mindtape/`,
+  an unreadable working directory and a failed write are one `error:` line
+  each, the OS's reason lowercase after the quoted path (`can't write:
+  'tasks/a.typ': permission denied`). Config warnings print as
+  `warning: .mindtape/config.toml: …`.
+- **A template that fails to load reads as a task file does.** `mt check`
+  prints `error: .mindtape/templates/bug.typ:4:9: unknown variable: x` with
+  Typst's hints as `hint:` lines, in place of `<template>: did not load: …`. A
+  missing prelude is the same one error as for task files.
 - **A Typst error comes with its column and Typst's hints.** `mt check` prints
   `error: tasks/broken.typ:2:3: unexpected argument: titel`, then each hint
   Typst gave as a `hint:` line; `mt ls` prints the same line as `warning:`. A

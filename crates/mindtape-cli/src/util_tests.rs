@@ -5,7 +5,7 @@ use mindtape::test_support::{TASK_SRC, bare_task};
 use mindtape::{Config, LoadError, LoadOutcome, Task, load_project};
 
 use super::{
-    Project, hyperlinks_flag, init_hyperlinks_flag, init_worktree, pick_override,
+    Project, config_warnings, hyperlinks_flag, init_hyperlinks_flag, init_worktree, pick_override,
     resolve_hyperlinks, resolve_root_with, resolve_task, stem_hashes, unknown_view_error,
     warn_errors, worktree_override,
 };
@@ -158,10 +158,13 @@ fn resolve_root_override_relative_resolves_against_cwd() {
 fn resolve_root_override_without_marker_errors() {
     let dir = tempfile::tempdir().unwrap();
     let err = resolve_root_with(dir.path(), Some(dir.path())).unwrap_err();
-    let msg = err.to_string();
-    assert!(
-        msg.contains("no .mindtape/ directory"),
-        "error should name the missing marker: {msg}"
+    let base = dir.path().display().to_string();
+    assert_eq!(
+        crate::diag::plain_anyhow(err),
+        format!(
+            "error: no .mindtape/ directory in worktree: '{base}'\n\
+             hint: run mt init there, or pass another path to -w\n"
+        )
     );
 }
 
@@ -264,27 +267,39 @@ fn views(names: &[&str]) -> std::collections::BTreeMap<String, mindtape::ViewSpe
 }
 
 #[test]
-fn unknown_view_error_near_miss_offers_a_suggestion() {
+fn unknown_view_error_near_miss_hints_the_nearest_view() {
     let known = views(&["backlog", "blocked"]);
-    let msg = unknown_view_error("backlgo", &known).to_string();
+    let msg = crate::diag::plain_anyhow(unknown_view_error("backlgo", &known));
     assert_eq!(
         msg,
-        "unknown view: backlgo; did you mean: backlog?; known views: backlog, blocked"
+        "error: unknown view: 'backlgo'\nhint: did you mean backlog?\n"
     );
 }
 
 #[test]
-fn unknown_view_error_far_miss_lists_known_views_without_a_suggestion() {
+fn unknown_view_error_far_miss_says_where_to_list_views() {
     let known = views(&["backlog", "blocked"]);
-    let msg = unknown_view_error("zzz", &known).to_string();
-    assert_eq!(msg, "unknown view: zzz; known views: backlog, blocked");
+    let msg = crate::diag::plain_anyhow(unknown_view_error("zzz", &known));
+    assert_eq!(
+        msg,
+        "error: unknown view: 'zzz'\nhint: run mt views to see the views\n"
+    );
 }
 
 #[test]
-fn unknown_view_error_with_no_declared_views_is_unchanged() {
-    let known = views(&[]);
-    let msg = unknown_view_error("anything", &known).to_string();
-    assert_eq!(msg, "unknown view: anything");
+fn a_config_warning_is_a_warning_at_the_config_file() {
+    let config: Config = mindtape::parse_config(
+        "[tasks.fields.x-machine]\nvalues = [\"alpha\"]\n\
+         [[tasks.rules]]\nname = \"r\"\nassert = 'x-machnie == \"alpha\"'\n",
+    )
+    .unwrap();
+    let diags = config_warnings(Path::new("/p"), &config);
+    assert!(!diags.is_empty(), "the fixture must earn a warning");
+    let text = crate::diag::plain(diags.first().unwrap());
+    assert!(
+        text.starts_with("warning: .mindtape/config.toml: tasks.rules[0]"),
+        "{text}"
+    );
 }
 
 #[test]

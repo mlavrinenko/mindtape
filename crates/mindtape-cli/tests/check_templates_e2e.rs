@@ -167,6 +167,22 @@ fn a_template_that_fails_to_evaluate_is_one_breach() {
         breaches.first().unwrap().contains("no-such-helper"),
         "{text}"
     );
+    assert!(
+        text.contains("error: .mindtape/templates/bug.typ:4:9: unknown variable: no-such-helper"),
+        "the load failure reads as a task file's does: {text}"
+    );
+}
+
+/// Typst's hints follow a template's load failure as `hint:` lines.
+#[test]
+fn a_template_load_failure_keeps_typsts_hints() {
+    let dir = scaffold(&template("some-name-here"));
+    let (ok, text) = check(dir.path());
+    assert!(!ok, "{text}");
+    assert!(
+        text.contains("unknown variable: some-name-here\nhint: "),
+        "{text}"
+    );
 }
 
 /// A body slot's raw-block example is checked by the body rules like a

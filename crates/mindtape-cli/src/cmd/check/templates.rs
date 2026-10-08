@@ -11,16 +11,18 @@
 //! it is dropped.
 
 use std::collections::BTreeMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Result, anyhow};
 use mindtape::{
-    BodyRules, Candidate, FallbackSeverity, RawValue, Severity, TemplateHome, TemplateSources,
-    Violation, template_failure,
+    BodyRules, Candidate, FallbackSeverity, LoadError, RawValue, Severity, TaskCallSpans,
+    TemplateHome, TemplateSources, Violation, template_failure,
 };
 
 use crate::cmd::add::values::{list_templates, resolve_template, template_path};
 use crate::cmd::add::{inject_header, minted_stem, splice_config_slots};
+use crate::cmd::install::hint::{names_prelude_package, prelude_diag};
+use crate::diag::{Diag, Kind};
 use crate::task_edit::filing_status;
 use crate::util::{self, Project};
 
@@ -49,17 +51,38 @@ impl Filed {
     }
 }
 
+/// A template's load failure, with the failing message when it names the
+/// missing prelude.
+type Failure = (Option<String>, Diag);
+
+/// What the template pass found: the breaches of every listed template, in
+/// template order, and the templates that did not load at all, each already a
+/// [`Diag`] placed as a task file's load error is.
+pub(crate) struct Found {
+    /// Breaches of templates that loaded or could not be filed.
+    pub violations: Vec<Violation>,
+    /// One failure per project template that did not evaluate.
+    pub load_failures: Vec<Diag>,
+    /// The same for a built-in template at a `[templates] fallback-severity`
+    /// below `error`: reported, but not a failure.
+    pub load_warnings: Vec<Diag>,
+}
+
 /// The breaches of every listed template, in template order.
 ///
 /// # Errors
 /// Returns an error when a listed template cannot be read, or the destination
 /// `mt add` would write to cannot be resolved.
-pub(crate) fn breaches(project: &Project, body_rules: BodyRules<'_>) -> Result<Vec<Violation>> {
+pub(crate) fn breaches(project: &Project, body_rules: BodyRules<'_>) -> Result<Found> {
     let dest = crate::cmd::add::dest_dir(".", None, project)?;
     let Ok(dest) = dest.strip_prefix(&project.root) else {
         // The first root lies outside the project: there is no
         // project-relative path to evaluate a candidate at, as for `mt add`.
-        return Ok(Vec::new());
+        return Ok(Found {
+            violations: Vec::new(),
+            load_failures: Vec::new(),
+            load_warnings: Vec::new(),
+        });
     };
     let mut templates = Vec::new();
     for name in list_templates(&project.config, &project.root) {
@@ -84,11 +107,36 @@ pub(crate) fn breaches(project: &Project, body_rules: BodyRules<'_>) -> Result<V
         templates.push(template);
     }
     let fallback = project.config.templates.fallback_severity;
-    Ok(judge(project, &templates, body_rules)
+    let (judged, load_failures) = judge(project, &templates, body_rules);
+    let (load_warnings, load_failures) = load_failures
         .into_iter()
-        .zip(&templates)
-        .flat_map(|(found, template)| at_severity(found, template.file.is_none(), fallback))
-        .collect())
+        .partition(|(_, diag)| diag.kind() == Kind::Warning);
+    Ok(Found {
+        violations: judged
+            .into_iter()
+            .zip(&templates)
+            .flat_map(|(found, template)| at_severity(found, template.file.is_none(), fallback))
+            .collect(),
+        load_failures: one_prelude_failure(load_failures),
+        load_warnings: one_prelude_failure(load_warnings),
+    })
+}
+
+/// `failures` with the unresolved-prelude error said once: every template
+/// fails the same way when the package is missing.
+fn one_prelude_failure(failures: Vec<Failure>) -> Vec<Diag> {
+    let mut said = false;
+    failures
+        .into_iter()
+        .filter_map(|(prelude, diag)| match prelude {
+            None => Some(diag),
+            Some(_) if said => None,
+            Some(message) => {
+                said = true;
+                Some(prelude_diag(diag.kind(), &message))
+            }
+        })
+        .collect()
 }
 
 /// The stem `mt add` mints for `name` from its title slot's example, else its
@@ -106,23 +154,76 @@ fn candidate_stem(project: &Project, name: &str, authored: &str) -> Result<Strin
 }
 
 /// Each template's breaches: its own, or its filed task's checked alone against
-/// no other task, less the breaches that read the whole task set.
-fn judge(project: &Project, templates: &[Filed], body_rules: BodyRules<'_>) -> Vec<Vec<Violation>> {
-    (templates.iter())
+/// no other task, less the breaches that read the whole task set. A template
+/// that did not evaluate is a load failure instead, tagged with the message
+/// when it names the missing prelude.
+fn judge(
+    project: &Project,
+    templates: &[Filed],
+    body_rules: BodyRules<'_>,
+) -> (Vec<Vec<Violation>>, Vec<Failure>) {
+    let mut failures = Vec::new();
+    let judged = (templates.iter())
         .map(|template| match &template.filed {
             Err(own) => own.clone(),
-            Ok(checked) => check_alone(project, template, checked, body_rules),
+            Ok(checked) => match check_alone(project, template, checked, body_rules) {
+                Ok(found) => found,
+                Err(err) => {
+                    let prelude = names_prelude_package(&err.message).then(|| err.message.clone());
+                    let kind = failure_kind(template, project.config.templates.fallback_severity);
+                    failures.push((prelude, load_failure(template, checked, &err, kind)));
+                    Vec::new()
+                }
+            },
         })
-        .collect()
+        .collect();
+    (judged, failures)
 }
 
-/// The breaches of one filed template, checked with no other task around it.
+/// How a template that did not evaluate counts: a failure, but a warning for a
+/// built-in template while `[templates] fallback-severity` is below `error`.
+fn failure_kind(template: &Filed, fallback: FallbackSeverity) -> Kind {
+    if template.file.is_none() && fallback != FallbackSeverity::Error {
+        Kind::Warning
+    } else {
+        Kind::Failed
+    }
+}
+
+/// The error for a template that did not evaluate, placed in the template's
+/// own file: at the filled source's line and column when the template holds
+/// that very line, else at its `task.with(…)` call.
+fn load_failure(template: &Filed, checked: &str, err: &LoadError, kind: Kind) -> Diag {
+    let diag = Diag::verbatim(kind, &err.message).typst_hints(err.hints.iter().cloned());
+    let label = template.file.as_ref().map_or_else(
+        || format!("built-in template {}", template.name),
+        |file| file.display().to_string(),
+    );
+    let spans = TaskCallSpans::parse(&template.authored);
+    let line = err
+        .line
+        .and_then(|line| spans.relocate(&template.authored, checked, "", line));
+    let Some(line) = line else {
+        return diag.at_file(Path::new(&label));
+    };
+    let same_line = err.line.is_some_and(|checked_line| {
+        let wanted = checked.lines().nth(checked_line.saturating_sub(1));
+        let found = template.authored.lines().nth(line.saturating_sub(1));
+        wanted
+            .zip(found)
+            .is_some_and(|(wanted, found)| wanted == found)
+    });
+    diag.at(Path::new(&label), line, err.column.filter(|_| same_line))
+}
+
+/// The breaches of one filed template, checked with no other task around it,
+/// or why it did not load.
 fn check_alone(
     project: &Project,
     template: &Filed,
     checked: &str,
     body_rules: BodyRules<'_>,
-) -> Vec<Violation> {
+) -> Result<Vec<Violation>, LoadError> {
     let candidate = Candidate {
         rel: &template.rel,
         source: checked,
@@ -146,14 +247,10 @@ fn check_alone(
             let own = (answer.violations.into_iter())
                 .filter(|violation| !mindtape::reads_set_breach(&project.config, violation))
                 .collect();
-            mindtape::template_breaches(sources, own)
+            Ok(mindtape::template_breaches(sources, own))
         }
-        Some(Err(err)) => vec![template_failure(
-            template.home(),
-            &template.authored,
-            format!("did not load: {}", err.message),
-        )],
-        None => Vec::new(),
+        Some(Err(err)) => Err(err),
+        None => Ok(Vec::new()),
     }
 }
 

@@ -361,6 +361,11 @@ fn a_reference_error_names_the_reference() {
         plain(&Diag::from(RefError::NoTaskAt("tasks/x.typ".into()))),
         "error: no task at: 'tasks/x.typ'\n"
     );
+    assert_eq!(
+        plain(&Diag::from(RefError::Empty)),
+        "error: empty task reference\n\
+         hint: run mt ls to see your tasks\n"
+    );
     let path = RefError::Path {
         path: "nope/x.typ".into(),
         source: std::io::Error::new(std::io::ErrorKind::NotFound, "not found"),
@@ -430,4 +435,29 @@ fn the_other_filter_errors_keep_their_reason_and_kind() {
         assert_eq!(diag.kind(), Kind::Usage);
         assert_eq!(plain(&diag), expected);
     }
+}
+
+#[test]
+fn a_failed_read_names_the_path_and_the_os_reason() {
+    let err = std::fs::read("/nonexistent/nope.typ").unwrap_err();
+    let diag = Diag::cannot_read(Path::new("nope.typ"), &err);
+    assert_eq!(
+        plain(&diag),
+        "error: can't read: 'nope.typ': no such file or directory\n"
+    );
+    assert_eq!(diag.kind(), Kind::Failed);
+}
+
+#[test]
+fn a_failed_write_says_so_and_a_custom_error_keeps_its_words() {
+    let denied = std::io::Error::from(std::io::ErrorKind::PermissionDenied);
+    assert_eq!(
+        plain(&Diag::cannot_write(Path::new("tasks/a.typ"), &denied)),
+        "error: can't write: 'tasks/a.typ': permission denied\n"
+    );
+    let custom = std::io::Error::other("Disk is full");
+    assert_eq!(
+        plain(&Diag::failed("can't resolve path").io(&custom)),
+        "error: can't resolve path: disk is full\n"
+    );
 }

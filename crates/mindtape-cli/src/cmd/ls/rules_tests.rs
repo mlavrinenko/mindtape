@@ -382,12 +382,14 @@ import-views = ["ghost"]
 "#,
     );
     // "ghost" is far from the only view the embedded floor supplies
-    // ("default"), so the message enumerates without a suggestion
+    // ("default"), so the hint says where to list views instead of guessing
     // (`truth/tasks/suggest-a-nearest-match-on-an-unknown-view-name.typ`).
     let err = resolve_bare(&project).unwrap_err();
-    let msg = err.to_string();
-    assert!(msg.contains("known views: default"), "{msg}");
-    assert!(!msg.contains("did you mean"), "{msg}");
+    let msg = crate::diag::plain_anyhow(err);
+    assert_eq!(
+        msg,
+        "error: unknown view: 'ghost'\nhint: run mt views to see the views\n"
+    );
 }
 
 #[test]
@@ -403,8 +405,8 @@ import-views = ["releasee"]
 "#,
     );
     let err = resolve_bare(&project).unwrap_err();
-    let msg = err.to_string();
-    assert!(msg.contains("did you mean: release?"), "{msg}");
+    let msg = crate::diag::plain_anyhow(err);
+    assert!(msg.contains("hint: did you mean release?"), "{msg}");
 }
 
 #[test]

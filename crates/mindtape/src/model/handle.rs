@@ -42,6 +42,9 @@ pub enum RefError {
         /// The stems it names, sorted.
         stems: Vec<String>,
     },
+    /// The reference is empty, so it names nothing to look for.
+    #[error("empty task reference")]
+    Empty,
     /// Neither a stem nor a stem hash matches.
     #[error("no task with id {0:?}")]
     NoMatch(String),
@@ -70,8 +73,8 @@ pub fn is_path_ref(reference: &str) -> bool {
 /// matches. Task files are `root`-relative.
 ///
 /// # Errors
-/// Returns a [`RefError`] when a path does not resolve or owns no task, a hash
-/// is ambiguous, or nothing matches.
+/// Returns a [`RefError`] when the reference is empty, a path does not resolve
+/// or owns no task, a hash is ambiguous, or nothing matches.
 pub fn resolve_ref<'a>(
     tasks: &'a [Task],
     root: &Path,
@@ -79,6 +82,9 @@ pub fn resolve_ref<'a>(
     hashes: &StemHashes,
     reference: &str,
 ) -> Result<Resolved<'a>, RefError> {
+    if reference.is_empty() {
+        return Err(RefError::Empty);
+    }
     if is_path_ref(reference) {
         return resolve_path(tasks, root, cwd, reference);
     }

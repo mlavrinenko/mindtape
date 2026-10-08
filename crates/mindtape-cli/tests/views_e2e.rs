@@ -43,7 +43,7 @@ fn views_detail_shows_view_definition() {
 fn views_detail_unknown_name_suggests_the_near_miss() {
     // `truth/tasks/suggest-a-nearest-match-on-an-unknown-view-name.typ`: a
     // typo close to a declared view gets a "did you mean" alongside the
-    // enumeration; a bare "unknown view: <name>" would leave both to guesswork.
+    // hint; a bare "unknown view: <name>" would leave both to guesswork.
     let dir = tempfile::tempdir().unwrap();
     scaffold_with_views(dir.path());
 
@@ -54,9 +54,8 @@ fn views_detail_unknown_name_suggests_the_near_miss() {
     assert!(!output.status.success());
     let stderr = String::from_utf8_lossy(&output.stderr);
     // The embedded floor's own `[views.default]` is in the mix too.
-    assert!(stderr.contains("did you mean: hot?"), "{stderr}");
     assert!(
-        stderr.contains("known views: default, hot, simple"),
+        stderr.contains("error: unknown view: 'hott'\nhint: did you mean hot?\n"),
         "{stderr}"
     );
 }

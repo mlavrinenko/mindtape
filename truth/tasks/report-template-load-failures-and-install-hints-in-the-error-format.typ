@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 7),
+  status: done(2026, 10, 8),
   links: depends-on(
     "build-an-error-dsl-that-fixes-the-message-format-and-the-exit-code.typ",
     "report-typst-errors-at-their-line-with-typsts-hints.typ",

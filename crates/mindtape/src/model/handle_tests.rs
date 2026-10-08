@@ -254,6 +254,13 @@ mod reference {
     }
 
     #[test]
+    fn an_empty_reference_is_its_own_error() {
+        let tasks = tasks(&["alpha"]);
+        let got = resolve(&tasks, Path::new("/p"), "");
+        assert!(matches!(got, Err(RefError::Empty)), "{got:?}");
+    }
+
+    #[test]
     fn a_shared_hash_is_ambiguous_naming_each_stem() {
         let tasks = tasks(&["a-1", "a-2"]);
         let hashes = StemHashes::with_hasher(["a-1", "a-2"], by_first_byte);

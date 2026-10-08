@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 7),
+  status: done(
+    2026,
+    10,
+    8,
+  )[suggest::hint and suggestion keep callers outside this task; filed as a finding],
   links: depends-on(
     "build-an-error-dsl-that-fixes-the-message-format-and-the-exit-code.typ",
   ),

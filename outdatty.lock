@@ -34,7 +34,7 @@ groups:
       crates/mindtape-cli/src/cli/completion/mod.rs: 2b2d0f8eb41435fbc5f6bda31c25f4c64238a4d567d0824a2e3ae939d073a410
       crates/mindtape-cli/src/cli/mod.rs: 42028a606e598d78e003bc6b32266123b71599e33b8fa86871ffbec52acbe7b4
       crates/mindtape-cli/src/cmd/add/mod.rs: 9e88f09981d71e90637d83cb7122bc08fa2d5e00c80ab5d983a879db401eb11a
-      crates/mindtape-cli/src/cmd/check/mod.rs: c0151fdf84280a4045dc429252f119d5e0ca765932e9e0c0d827c4585da3c8d1
+      crates/mindtape-cli/src/cmd/check/mod.rs: 351bbfc6d32d46094eb4b78c13ca255b61ea4ca478e047ed9ee3e2bd9c2d5e3d
       crates/mindtape-cli/src/cmd/config.rs: befb8239f5a6c8c2539cc9e6f2b048369b31d4ac6b684153b68a279e0b1b0f8f
       crates/mindtape-cli/src/cmd/eval.rs: 0a3e26c3112c01b4ea5c5922d4baadf630018f458de2dd4d2dc6daa5b57f74da
       crates/mindtape-cli/src/cmd/find.rs: c1dcd113f378659f501f12497f99549ca2fae4bf466b867b2d27dee20b763e07

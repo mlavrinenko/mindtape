@@ -21,8 +21,12 @@
 //! - At most two hints, each a [`Hint`]: a sentence, a command to run, or a
 //!   did-you-mean. Typst's own hints on an error ([`Diag::typst_hints`]) come
 //!   on top of that, verbatim.
-//! - Typst's own message is not a `&'static str`, so [`Diag::typst`] takes it
-//!   whole, after the place: `error: tasks/x.typ:2:3: unexpected argument: titel`.
+//! - Words that are not ours, such as Typst's message, are not a `&'static str`,
+//!   so [`Diag::verbatim`] takes them whole, after the place:
+//!   `error: tasks/x.typ:2:3: unexpected argument: titel`.
+//! - A read or write that failed is [`Diag::cannot_read`] or
+//!   [`Diag::cannot_write`]: `error: can't read: 'nope.typ': no such file or
+//!   directory`. [`Diag::io`] adds the OS reason to any other message.
 //! - The [`Kind`] decides the exit code: 2 when the command line was wrong
 //!   ([`Diag::usage`]), 1 when the project refused the work or it failed
 //!   ([`Diag::refused`], [`Diag::failed`]). No command picks a number.
@@ -38,6 +42,7 @@
 //!   test that holds the source to the list.
 //! - `hint.rs` — [`Hint`], [`Note`] and [`Command`], the lines under an error.
 //! - `render.rs` — the renderer and the one writer to stderr.
+//! - `io.rs` — the failed read or write and the OS's reason for it.
 //! - `from_lib.rs` — library errors into a `Diag`, one exhaustive match each.
 //! - `tests.rs` — unit tests.
 
@@ -45,6 +50,7 @@
 mod allowlist;
 mod from_lib;
 mod hint;
+mod io;
 mod render;
 
 use std::fmt;
@@ -157,8 +163,9 @@ impl Diag {
     }
 
     /// A problem of `kind` with no text of ours, whose whole message is
-    /// Typst's `message`, kept verbatim. Give it a place with [`Self::at`].
-    pub(crate) fn typst(kind: Kind, message: impl Into<String>) -> Self {
+    /// `message` as another program worded it (Typst, a library), kept as is.
+    /// Give it a place with [`Self::at`].
+    pub(crate) fn verbatim(kind: Kind, message: impl Into<String>) -> Self {
         Self::new(kind, "").reason(message)
     }
 
@@ -259,7 +266,6 @@ impl Diag {
     }
 
     /// The kind, which decides the exit code.
-    #[cfg(test)]
     pub(crate) fn kind(&self) -> Kind {
         self.0.kind
     }

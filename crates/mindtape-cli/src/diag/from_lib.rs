@@ -11,7 +11,7 @@ use mindtape::config::{ConfigError, ConfigPlace};
 use mindtape::recur::dates::RecurError;
 use mindtape::{DateOverrideError, FilterError, Location, RefError, Severity, Violation};
 
-use super::{Diag, Hint, Note};
+use super::{Command, Diag, Hint, Note};
 
 impl From<anyhow::Error> for Diag {
     fn from(err: anyhow::Error) -> Self {
@@ -217,7 +217,9 @@ fn reference(err: &RefError) -> Diag {
     match err {
         RefError::Path { path, source } => Diag::failed("can't resolve path")
             .value(path.display().to_string())
-            .cause(source),
+            .io(source),
+        RefError::Empty => Diag::usage("empty task reference")
+            .hint(Hint::run(Command::mt().word("ls"), "to see your tasks")),
         RefError::NoTaskAt(path) => Diag::failed("no task at").value(path.display().to_string()),
         RefError::Ambiguous { reference, stems } => stems.iter().fold(
             Diag::failed("stem hash names several tasks")
