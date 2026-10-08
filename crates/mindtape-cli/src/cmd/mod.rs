@@ -17,7 +17,6 @@
 // yet use `clippy.toml`'s disallowed macros. Each one is an entry on the one
 // list in `diag/allowlist.rs`, whose test refuses a new entry.
 pub(crate) mod add;
-#[allow(clippy::disallowed_macros)]
 pub(crate) mod check;
 pub(crate) mod config;
 pub(crate) mod eval;

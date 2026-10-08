@@ -13,7 +13,7 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use mindtape::{
     BodyRules, Candidate, FallbackSeverity, LoadError, RawValue, Severity, TaskCallSpans,
     TemplateHome, TemplateSources, Violation, template_failure,
@@ -277,16 +277,17 @@ fn file_examples(
     home: TemplateHome<'_>,
     authored: &str,
 ) -> Result<String, Vec<Violation>> {
-    let fail = |err: anyhow::Error| vec![template_failure(home, authored, format!("{err:#}"))];
+    let fail = |err: String| vec![template_failure(home, authored, err)];
     let config = &project.config;
     let status = filing_status(config, authored, None);
-    let (spliced, injected) =
-        splice_config_slots(authored, config, status.as_deref()).map_err(fail)?;
+    let (spliced, injected) = splice_config_slots(authored, config, status.as_deref())
+        .map_err(|err| fail(format!("{err:#}")))?;
     let unfillable = mindtape::unfillable_slots(home, authored, &spliced, &injected);
     if !unfillable.is_empty() {
         return Err(unfillable);
     }
-    let filled = mindtape::fill_examples(&spliced).map_err(|err| fail(anyhow!(err.to_string())))?;
-    let filled = inject_header(&filled, config, status.as_deref()).map_err(fail)?;
+    let filled = mindtape::fill_examples(&spliced).map_err(|err| fail(err.to_string()))?;
+    let filled = inject_header(&filled, config, status.as_deref())
+        .map_err(|err| fail(format!("{err:#}")))?;
     Ok(util::canonical_source(config, filled))
 }

@@ -11,7 +11,7 @@
 
 /// Paths under `crates/mindtape-cli/src/`: a module folder, or a file without
 /// its `.rs`. Sorted.
-const UNCONVERTED: &[&str] = &["cmd/check"];
+const UNCONVERTED: &[&str] = &[];
 
 #[path = "allowlist_tests.rs"]
 #[allow(clippy::unwrap_used)]
