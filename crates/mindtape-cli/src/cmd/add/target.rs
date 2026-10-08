@@ -27,12 +27,12 @@ use crate::util;
 /// Propagates [`cmd::add::dedup::resolve`]'s `fail`/exhausted-`add-suffix` errors.
 pub(super) fn resolve_outcome(
     args: &AddArgs,
-    config: &Config,
+    project: &util::Project,
     stem: &str,
     dest: &Path,
     file: PathBuf,
 ) -> Result<Option<Outcome>> {
-    let dedup = dedup::effective_mode(args.dedup, config);
+    let dedup = dedup::effective_mode(args.dedup, &project.config);
     let label = file.display().to_string();
     let collision = dedup::resolve(dedup, stem, &label, |candidate| {
         dest.join(format!("{candidate}.typ")).exists()
@@ -40,7 +40,8 @@ pub(super) fn resolve_outcome(
     Ok(match collision {
         dedup::Collision::None => Some(Outcome::Wrote(file)),
         dedup::Collision::Skipped => {
-            output::emit(&Outcome::Skipped(file), args.format);
+            let outcome = Outcome::Skipped(file);
+            output::emit(&outcome, &output::handle(project, &outcome), args.format);
             None
         }
         dedup::Collision::Suffixed(suffixed_stem) => {

@@ -110,7 +110,8 @@ empty fails the add, and the error names every missing slot:
 
 It exits with code #exit-code("api-service-add-refused") and writes nothing.
 With `--format json`, a successful add prints an object whose `outcome` is
-`wrote`, `skipped` or `suffixed`, and whose `path` is the task file.
+`wrote`, `skipped` or `suffixed`, whose `path` is the task file and whose `slug`
+is its stem hash, the short name every command accepts.
 
 = Trust the exit code
 

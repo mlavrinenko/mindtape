@@ -183,9 +183,15 @@ fn config_warnings(root: &Path, config: &Config) -> Vec<Diag> {
 /// stem or a word [`Filter::names_term`] accepts, so neither captures it.
 #[must_use]
 pub fn stem_hashes(tasks: &[Task], config: &Config) -> StemHashes {
-    StemHashes::reserving(tasks.iter().map(|task| task.id.as_str()), |word| {
-        Filter::names_term(word, config)
-    })
+    stem_hashes_with(tasks, config, None)
+}
+
+/// [`stem_hashes`] for the loaded tasks plus one `extra` stem not loaded yet:
+/// the hash `mt ls` will show for a task just written.
+#[must_use]
+pub fn stem_hashes_with(tasks: &[Task], config: &Config, extra: Option<&str>) -> StemHashes {
+    let stems = tasks.iter().map(|task| task.id.as_str()).chain(extra);
+    StemHashes::reserving(stems, |word| Filter::names_term(word, config))
 }
 
 /// Resolve a task reference to a loaded `Task` and its absolute path, with

@@ -3,7 +3,7 @@
 //! Mirrors `mt ls`'s `--format` vocabulary (`crate::render::output::OutputFormat`) so
 //! a script learns one convention rather than two, but stays its own type:
 //! `add` never lists many tasks, so `table`/`csv` have nothing to reuse, and
-//! `text` — today's `wrote <path>` prose — has no `ls` equivalent, whose bare
+//! `text` — the `wrote <path> (<hash>)` prose — has no `ls` equivalent, whose bare
 //! default is the table. `--print` stays orthogonal: it previews the task
 //! source before any write is attempted; this reports what a write (or a
 //! `--dedup skip`/`add-suffix` decision) actually did — `wrote`, `skipped`,
@@ -13,10 +13,13 @@ use std::path::{Path, PathBuf};
 
 use serde_json::json;
 
+use crate::render::file_path;
+use crate::util;
+
 /// `--format` on `mt add`.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
 pub enum Format {
-    /// A sentence such as `wrote <path>`.
+    /// A sentence such as `wrote <path> (<slug hash>)`.
     #[default]
     Text,
     /// Just the task's path.
@@ -24,7 +27,7 @@ pub enum Format {
     /// The path, ending in a NUL byte instead of a newline.
     #[value(name = "path0")]
     Path0,
-    /// A JSON object with `outcome` (`wrote`, `skipped` or `suffixed`) and `path`.
+    /// A JSON object with `outcome` (`wrote`, `skipped` or `suffixed`), `path` and `slug`.
     Json,
 }
 
@@ -60,40 +63,72 @@ impl Outcome {
     }
 }
 
+/// How the task is named to a reader: its slug hash, which every command
+/// accepts as a reference, and its path as the prose report shows it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Handle {
+    /// The task's stem hash, as `mt ls` shows it in the `slug#` column.
+    pub hash: String,
+    /// The path the text report prints: relative to the working directory.
+    pub shown: String,
+}
+
+/// The [`Handle`] of the task `outcome` is about, hashed among the project's
+/// loaded stems with [`util::stem_hashes_with`], the function `mt ls` uses.
+#[must_use]
+pub fn handle(project: &util::Project, outcome: &Outcome) -> Handle {
+    let path = outcome.path();
+    let stem = path.file_stem().and_then(|stem| stem.to_str());
+    let hashes = util::stem_hashes_with(&project.outcome.tasks, &project.config, stem);
+    let shown = match path.strip_prefix(&project.root) {
+        Ok(rel) => file_path::cell_text(rel),
+        Err(_) => path.display().to_string(),
+    };
+    Handle {
+        hash: stem
+            .and_then(|stem| hashes.hash_of(stem))
+            .unwrap_or_default()
+            .to_owned(),
+        shown,
+    }
+}
+
 /// Render `outcome` in `format`. `Path0` is NUL-terminated and must reach the
 /// terminal via `print!`, never `println!`; every other format wants the
 /// caller's trailing newline (`println!`) — the same contract as
 /// `crate::render::output::render_path`/`render_path0`.
 #[must_use]
-pub fn render(outcome: &Outcome, format: Format) -> String {
+pub fn render(outcome: &Outcome, handle: &Handle, format: Format) -> String {
     match format {
-        Format::Text => render_text(outcome),
+        Format::Text => render_text(outcome, handle),
         Format::Path => outcome.path().display().to_string(),
         Format::Path0 => format!("{}\0", outcome.path().display()),
-        Format::Json => render_json(outcome),
+        Format::Json => render_json(outcome, handle),
     }
 }
 
-fn render_text(outcome: &Outcome) -> String {
+fn render_text(outcome: &Outcome, handle: &Handle) -> String {
+    let Handle { hash, shown } = handle;
     match outcome {
-        Outcome::Wrote(path) => format!("wrote {}", path.display()),
-        Outcome::Skipped(path) => format!("skipped, already exists at {}", path.display()),
-        Outcome::Suffixed(path) => format!("suffixed, wrote {}", path.display()),
+        Outcome::Wrote(_) => format!("wrote {shown} ({hash})"),
+        Outcome::Skipped(_) => format!("skipped, already exists at {shown} ({hash})"),
+        Outcome::Suffixed(_) => format!("suffixed, wrote {shown} ({hash})"),
     }
 }
 
-fn render_json(outcome: &Outcome) -> String {
+fn render_json(outcome: &Outcome, handle: &Handle) -> String {
     let value = json!({
         "outcome": outcome.label(),
         "path": outcome.path().display().to_string(),
+        "slug": handle.hash,
     });
     serde_json::to_string_pretty(&value).unwrap_or_default()
 }
 
 /// Print `outcome` in `format` to stdout, honouring `Path0`'s no-trailing-
 /// newline contract.
-pub fn emit(outcome: &Outcome, format: Format) {
-    let rendered = render(outcome, format);
+pub fn emit(outcome: &Outcome, handle: &Handle, format: Format) {
+    let rendered = render(outcome, handle, format);
     if format == Format::Path0 {
         print!("{rendered}");
     } else {

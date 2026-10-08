@@ -4,7 +4,14 @@ use std::path::PathBuf;
 
 use serde_json::json;
 
-use super::{Format, Outcome, render};
+use super::{Format, Handle, Outcome, render};
+
+fn handle() -> Handle {
+    Handle {
+        hash: "ksr".to_owned(),
+        shown: "tasks/foo.typ".to_owned(),
+    }
+}
 
 fn path() -> PathBuf {
     PathBuf::from("tasks/foo.typ")
@@ -13,24 +20,24 @@ fn path() -> PathBuf {
 #[test]
 fn text_format_wrote() {
     assert_eq!(
-        render(&Outcome::Wrote(path()), Format::Text),
-        "wrote tasks/foo.typ"
+        render(&Outcome::Wrote(path()), &handle(), Format::Text),
+        "wrote tasks/foo.typ (ksr)"
     );
 }
 
 #[test]
 fn text_format_skipped() {
     assert_eq!(
-        render(&Outcome::Skipped(path()), Format::Text),
-        "skipped, already exists at tasks/foo.typ"
+        render(&Outcome::Skipped(path()), &handle(), Format::Text),
+        "skipped, already exists at tasks/foo.typ (ksr)"
     );
 }
 
 #[test]
 fn text_format_suffixed() {
     assert_eq!(
-        render(&Outcome::Suffixed(path()), Format::Text),
-        "suffixed, wrote tasks/foo.typ"
+        render(&Outcome::Suffixed(path()), &handle(), Format::Text),
+        "suffixed, wrote tasks/foo.typ (ksr)"
     );
 }
 
@@ -41,13 +48,13 @@ fn path_format_is_the_bare_path_for_every_outcome() {
         Outcome::Skipped(path()),
         Outcome::Suffixed(path()),
     ] {
-        assert_eq!(render(&outcome, Format::Path), "tasks/foo.typ");
+        assert_eq!(render(&outcome, &handle(), Format::Path), "tasks/foo.typ");
     }
 }
 
 #[test]
 fn path0_format_is_nul_terminated_not_newline_terminated() {
-    let out = render(&Outcome::Wrote(path()), Format::Path0);
+    let out = render(&Outcome::Wrote(path()), &handle(), Format::Path0);
     assert_eq!(out, "tasks/foo.typ\0");
     assert!(!out.ends_with('\n'));
 }
@@ -60,7 +67,7 @@ fn json_format_reports_outcome_and_path_for_each_kind() {
         (Outcome::Suffixed(path()), "suffixed"),
     ];
     for (outcome, expected_label) in cases {
-        let rendered = render(&outcome, Format::Json);
+        let rendered = render(&outcome, &handle(), Format::Json);
         let value: serde_json::Value = serde_json::from_str(&rendered).unwrap();
         assert_eq!(
             value.get("outcome"),

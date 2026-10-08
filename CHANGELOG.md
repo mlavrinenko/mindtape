@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The config page's `{date:FMT}` token table is generated.** `format_iso`
   matches the `DATE_TOKENS` table and `mt _cli` exports it, so a new or renamed
   token reaches the page with no hand edit.
+- **`mt add` prints the new task's slug hash.** The report reads `wrote
+  tasks/x.typ (ksr)`, the path relative to the working directory, and `--format
+  json` carries a `slug` field. `mt eval ksr` resolves it at once.
 - **`mt graph --json` and `mt preset ls --json`.** `graph` prints `nodes` (id,
   title, status, readiness `state`), typed `edges` and `external` leaves; `preset
   ls` prints each preset's name, origin and description. A test now fails when a

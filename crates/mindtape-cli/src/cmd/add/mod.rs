@@ -209,7 +209,7 @@ fn write_task(
     filled: &str,
     rescue: &Rescue,
 ) -> Result<()> {
-    let outcome = resolve_outcome(args, &project.config, stem, dest, file)?;
+    let outcome = resolve_outcome(args, project, stem, dest, file)?;
     let Some(outcome) = outcome else {
         // `--dedup skip` already reported the existing path; nothing to write.
         return Ok(());
@@ -263,7 +263,7 @@ fn commit(
         .and_then(|mut handle| handle.write_all(filled.as_bytes()))
         .map_err(|err| Diag::cannot_write(file, &err))?;
     warn_if_outside_roots(project, dest);
-    output::emit(outcome, args.format);
+    output::emit(outcome, &output::handle(project, outcome), args.format);
 
     if !checked {
         crate::task_edit::verify_written(&project.root, file).map_err(|err| kept(err, file))?;

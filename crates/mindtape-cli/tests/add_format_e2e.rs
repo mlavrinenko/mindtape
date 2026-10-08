@@ -210,3 +210,51 @@ fn print_ignores_format_and_previews_source_instead() {
     assert!(stdout.contains("title: \"T\""), "{stdout}");
     assert!(!dir.path().join("tasks/preview.typ").exists());
 }
+
+/// The slug hash the text report ends with, so the task can be named at once.
+fn reported_hash(stdout: &str) -> String {
+    let inner = stdout.trim().rsplit_once(" (").map(|(_, tail)| tail);
+    inner
+        .and_then(|tail| tail.strip_suffix(')'))
+        .unwrap_or_default()
+        .to_owned()
+}
+
+#[test]
+fn text_report_names_the_slug_hash_that_mt_eval_resolves() {
+    let dir = tempfile::tempdir().unwrap();
+    support::scaffold(dir.path());
+
+    let stdout = support::stdout(
+        dir.path(),
+        &["add", "--name", "wired", "--set", "title=Wired up"],
+    );
+    let hash = reported_hash(&stdout);
+    assert!(!hash.is_empty(), "no hash in {stdout}");
+    assert!(
+        stdout.starts_with("wrote tasks/wired.typ ("),
+        "path is cwd-relative: {stdout}"
+    );
+    let evaluated = support::stdout(dir.path(), &["eval", &hash]);
+    assert!(evaluated.contains("Wired up"), "{hash}: {evaluated}");
+}
+
+#[test]
+fn json_report_carries_the_slug_hash() {
+    let dir = tempfile::tempdir().unwrap();
+    support::scaffold(dir.path());
+
+    let stdout = support::stdout(
+        dir.path(),
+        &[
+            "add", "--name", "wired", "--set", "title=T", "--format", "json",
+        ],
+    );
+    let value: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    let hash = value.get("slug").and_then(|slug| slug.as_str()).unwrap();
+    let evaluated = support::stdout(dir.path(), &["eval", hash]);
+    assert!(
+        evaluated.contains("wired") || evaluated.contains('T'),
+        "{evaluated}"
+    );
+}
