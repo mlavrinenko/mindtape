@@ -15,7 +15,9 @@
 //! # Files
 //!
 //! - `render.rs` — DOT and Mermaid rendering.
+//! - `json.rs` — the nodes and edges as JSON.
 
+mod json;
 pub(crate) mod render;
 
 use crate::diag::Result;
@@ -35,6 +37,10 @@ pub struct GraphArgs {
     /// Output format.
     #[arg(long, value_enum, default_value_t)]
     pub format: GraphFormat,
+
+    /// Print the nodes and typed edges as JSON, instead of drawing them.
+    #[arg(long, conflicts_with = "format")]
+    pub json: bool,
 
     /// Leave out closed tasks, such as done or cancelled ones.
     #[arg(long)]
@@ -83,6 +89,10 @@ fn build(args: &GraphArgs, project: util::Project) -> Result<String> {
     let mut graph_edges = edges(&tasks);
     graph_edges.retain(|edge| kind_targets_tasks(edge.kind, &config.tasks.links));
     let external = external_targets(&tasks, config);
+    if args.json {
+        let document = json::render_json(&tasks, &graph_edges, &external, &readiness);
+        return Ok(serde_json::to_string_pretty(&document)?);
+    }
     Ok(match args.format {
         GraphFormat::Dot => render_dot(&tasks, &graph_edges, &external, &readiness),
         GraphFormat::Mermaid => render_mermaid(&tasks, &graph_edges, &external, &readiness),

@@ -69,8 +69,9 @@ fn fill(state: ReadyState) -> &'static str {
     }
 }
 
-/// Mermaid `classDef` name for each readiness state.
-fn class_name(state: ReadyState) -> &'static str {
+/// Mermaid `classDef` name for each readiness state, also the `state` of a
+/// node in `--json`.
+pub(super) fn ready_name(state: ReadyState) -> &'static str {
     match state {
         ReadyState::Ready => "ready",
         ReadyState::Blocked => "blocked",
@@ -213,7 +214,7 @@ pub fn render_mermaid(
             out,
             "  n{i}[\"{label}\"]:::{cls}",
             label = mermaid_escape(&node_label(task)),
-            cls = class_name(readiness.state(task)),
+            cls = ready_name(readiness.state(task)),
         );
     }
     for (i, target) in targets.iter().enumerate() {

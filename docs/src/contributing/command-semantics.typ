@@ -40,7 +40,10 @@ class, and the lists below read the same data.
 
 - Read: #names("read").join(", "). Each leaves the tree byte-identical, and
   `crates/mindtape-cli/tests/read_no_write_e2e.rs` checks each one. When you
-  add a read command, add its test there.
+  add a read command, add its test there. Each also takes `--json`, and
+  `every_read_command_takes_json` in `cli/tree_json_tests.rs` fails naming a
+  read command without it. `config schema` is exempt, since it prints JSON
+  already.
 - Write: #names("write").join(", "). Every status in the legend is also a
   top-level verb for `flip`, so `mt done` runs `mt flip done`. `mt` builds
   those verbs from the legend.

@@ -244,3 +244,37 @@ fn completion_json_reflects_the_source_table() {
 
     assert!(completion_json("nope", "nope").is_null());
 }
+
+/// Every visible read command prints JSON with `--json`; `config schema`
+/// already prints JSON and is the one exemption.
+#[test]
+fn every_read_command_takes_json() {
+    fn walk(node: &Value, prefix: &str, missing: &mut Vec<String>) {
+        let name = field(node, "name");
+        let path = flattened_name(prefix, name);
+        let subs = arr(node, "subcommands");
+        let is_read = node
+            .get("class")
+            .and_then(|class| class.get("kind"))
+            .and_then(Value::as_str)
+            == Some("read");
+        if subs.is_empty()
+            && is_read
+            && path != "config schema"
+            && !longs(arr(node, "args")).contains(&"json")
+        {
+            missing.push(path.clone());
+        }
+        for sub in subs {
+            walk(sub, &path, missing);
+        }
+    }
+    let mut missing = Vec::new();
+    for top in arr(&tree(), "commands") {
+        walk(top, "", &mut missing);
+    }
+    assert!(
+        missing.is_empty(),
+        "read commands without --json: {missing:?}"
+    );
+}

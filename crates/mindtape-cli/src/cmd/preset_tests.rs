@@ -225,7 +225,7 @@ fn run_ls_prints_builtin_presets() {
         return;
     }
     let args = PresetArgs {
-        action: PresetAction::Ls,
+        action: PresetAction::Ls { json: false },
     };
     super::run(&args).unwrap();
 }

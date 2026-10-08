@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt graph --json` and `mt preset ls --json`.** `graph` prints `nodes` (id,
+  title, status, readiness `state`), typed `edges` and `external` leaves; `preset
+  ls` prints each preset's name, origin and description. A test now fails when a
+  read command has no `--json`.
 - **`mt check --json` prints the problems as JSON.** One `problems` array in
   the `schema_version` envelope, each entry with `severity`, `file`, `line`,
   `place`, `rule`, `message` and `hints`; a clean project prints `[]`. The text

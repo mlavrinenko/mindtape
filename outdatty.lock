@@ -40,7 +40,7 @@ groups:
       crates/mindtape-cli/src/cmd/find.rs: 5b259aac55bd497d97587704fad65e39cd9355cfa358b39dc94ce28d77621dec
       crates/mindtape-cli/src/cmd/flip/mod.rs: fa59b00eb6b66a12254988aa9b3681cd11e2cf8bde439cd5e3dae95beb5d0e74
       crates/mindtape-cli/src/cmd/go.rs: ec0e8746a9587e48c0d7845fcd0184cfcc5e1fdd67c3c05eda5c8dfae76af5d3
-      crates/mindtape-cli/src/cmd/graph/mod.rs: 0c9fe2f2d401819d6333c9835b348478d961525544f2a545b0b394fdc0568afb
+      crates/mindtape-cli/src/cmd/graph/mod.rs: f63a3a4632947ea966e4de75efee44a53cec92c0d7934c36685349d8067ba202
       crates/mindtape-cli/src/cmd/import/mod.rs: 9612bb332474bc41e255add8ffc28d16edb36a70b27756aa411196aba5665daa
       crates/mindtape-cli/src/cmd/init/mod.rs: 23c438508874b2b49451e5a4b9edd29668dcb033c1bd0fc62ea003a2d19932d6
       crates/mindtape-cli/src/cmd/init/presets/flow/config.toml: 1a77ed26065cfd4053e8946af8ba2747002196693798ceca76e477cf4bd5cada
@@ -52,7 +52,7 @@ groups:
       crates/mindtape-cli/src/cmd/link/mod.rs: 169f49338bdfd87e74b8da6e9071d0b21a246e7f5249843ffa50ce495efb7735
       crates/mindtape-cli/src/cmd/ls/mod.rs: 006b69519d6debfe46181bb83e2800f1563a413d54f4f8fa9abe7bec7a0dc77a
       crates/mindtape-cli/src/cmd/mv.rs: 8f600c7f082dd7c3f306e36033eede2137d47a64943d854a6800fac3297d0170
-      crates/mindtape-cli/src/cmd/preset.rs: 90ca037be5b5951bc64b029212798694dbe54f4d0678d22451cd54562ac47dc6
+      crates/mindtape-cli/src/cmd/preset.rs: 3a15d94e5ae2e7604d09e7ab2f3aaf4070505dfd18442071d4e6ae8f2b11c20f
       crates/mindtape-cli/src/cmd/recur/mod.rs: 14bd868c94d85871ebae0a3035e9aeb0418acc69afd47e4578f744b4f62b163d
       crates/mindtape-cli/src/cmd/review.rs: a031b2277c248db3f1ac3fb84d5c8f5a098bb84b05883585372db61c2c1820ce
       crates/mindtape-cli/src/cmd/rm/mod.rs: 54f16f02a8118322d4f4f304028cbc39413ab511de2334bd3988e1b6216a111e
@@ -69,7 +69,7 @@ groups:
       skills/mindtape/evals/evals.json: d6d2c0a466dc0d35212de245045445f31935c8aa50c95a3be7c82d8327eed7aa
       skills/mindtape/references/add-slots.md: b3c097dd407841f7b98a8036b02e381fb35d559d316858cc5a49472738d40a9c
       skills/mindtape/references/filters.md: 6dfab396bfe9c3c6719d6a7835d8cd06e86a17320d2a9870b8ed8b4f7f75a500
-      www/content/agents.typ: 075768e38335e5f7e30bf5a2195337d82498a24f0473f16c3ab3b346746203fa
+      www/content/agents.typ: 4f1c732491066bf182d8e9124d989de274f706444751a6c7e4f17e8659947214
       www/content/cli.typ: 43dd4cab296dd606bb0cf040ad50baa42d1623876bdec0704c6d075e51f53e2a
       www/content/cli/add.typ: 2b9d93757ee3aa04546bb4a2ff975dde6049e8bcd7e9e9ce7e01417bab898a93
       www/content/cli/check.typ: 51365c05069ccbed558249b027b20f8aad011d82746ce69aa830b31e3bd825a3

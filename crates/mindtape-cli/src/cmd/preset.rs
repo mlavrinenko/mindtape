@@ -31,7 +31,11 @@ enum PresetAction {
     Save(SaveArgs),
     /// List the built-in presets and yours, marking the default and any of yours
     /// that hides a built-in one.
-    Ls,
+    Ls {
+        /// Print JSON: each preset's name, origin and description.
+        #[arg(long)]
+        json: bool,
+    },
 }
 
 /// Arguments for `mt preset save`.
@@ -63,8 +67,14 @@ pub fn run(args: &PresetArgs) -> Result<()> {
             println!("saved preset {:?} -> {}", save_args.name, dest.display());
             Ok(())
         }
-        PresetAction::Ls => {
-            print!("{}", render_ls(preset::user_preset_dir().as_deref())?);
+        PresetAction::Ls { json } => {
+            let user_dir = preset::user_preset_dir();
+            if *json {
+                let document = ls_json(user_dir.as_deref())?;
+                println!("{}", serde_json::to_string_pretty(&document)?);
+            } else {
+                print!("{}", render_ls(user_dir.as_deref())?);
+            }
             Ok(())
         }
     }
@@ -189,6 +199,39 @@ pub(crate) fn render_ls(user_dir: Option<&Path>) -> Result<String> {
         out.push_str(&format!("  {name}{}\n", marker_suffix(&markers)));
     }
     Ok(out)
+}
+
+/// `mt preset ls --json`: a `schema_version` envelope with one `presets` entry
+/// per built-in then per user preset: `name`, `origin` (`built-in` or `user`),
+/// `description` (`null` for a user preset), `default`, and `shadows` (a user
+/// preset hiding a built-in) or `shadowed` (a built-in a user preset hides).
+///
+/// # Errors
+/// Returns an error if the user preset directory exists but cannot be read.
+pub(crate) fn ls_json(user_dir: Option<&Path>) -> Result<serde_json::Value> {
+    let builtins = preset::list_builtins();
+    let user_names = match user_dir {
+        Some(dir) => preset::list_user_presets(dir)?,
+        None => Vec::new(),
+    };
+    let built_in = builtins.iter().map(|(name, description)| {
+        serde_json::json!({
+            "name": name, "origin": "built-in", "description": description,
+            "default": *name == preset::DEFAULT_PRESET,
+            "shadowed": user_names.iter().any(|user| user == name),
+        })
+    });
+    let user = user_names.iter().map(|name| {
+        serde_json::json!({
+            "name": name, "origin": "user", "description": null,
+            "default": name == preset::DEFAULT_PRESET,
+            "shadows": builtins.iter().any(|(builtin, _)| builtin == name),
+        })
+    });
+    Ok(serde_json::json!({
+        "schema_version": mindtape::SCHEMA_VERSION,
+        "presets": built_in.chain(user).collect::<Vec<_>>(),
+    }))
 }
 
 /// `" (a, b)"` for non-empty markers, else `""`.

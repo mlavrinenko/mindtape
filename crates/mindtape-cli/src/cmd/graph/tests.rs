@@ -48,6 +48,7 @@ fn args(format: GraphFormat, filter: Option<&str>, no_terminal: bool) -> GraphAr
     GraphArgs {
         filter: filter.map(ToOwned::to_owned),
         format,
+        json: false,
         no_terminal,
     }
 }
@@ -378,6 +379,7 @@ fn run_prints_graph_from_disk() {
     let args = GraphArgs {
         filter: None,
         format: GraphFormat::Dot,
+        json: false,
         no_terminal: false,
     };
     assert!(super::run(&args).is_ok());

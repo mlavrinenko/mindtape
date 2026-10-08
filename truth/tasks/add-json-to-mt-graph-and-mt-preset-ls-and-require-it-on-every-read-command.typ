@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 8),
+  status: done(2026, 10, 8),
   links: depends-on("print-mt-checks-problems-as-json-with-json.typ"),
 )
 
