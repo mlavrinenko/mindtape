@@ -23,3 +23,19 @@ fn a_bad_view_sort_is_reported_at_its_line() {
         "error: .mindtape/config.toml:5: views.broken.sort: unknown sort field: 'nofield'\n"
     );
 }
+
+#[test]
+fn an_unknown_pack_is_quoted_and_names_the_near_match() {
+    let stderr = ls_stderr("extends = [\"mindtape-task\"]\n");
+
+    assert!(
+        stderr.starts_with(
+            "error: .mindtape/config.toml:1: extends: unknown pack: 'mindtape-task'; available packs: "
+        ),
+        "{stderr}"
+    );
+    assert!(
+        stderr.ends_with("\nhint: did you mean mindtape-tasks?\n"),
+        "{stderr}"
+    );
+}

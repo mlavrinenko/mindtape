@@ -177,7 +177,7 @@ fn a_pack_may_declare_only_rules_under_commits() {
     )];
 
     let err = merge_layers_with_packs_using(&layers, root.path(), registry).unwrap_err();
-    assert!(err.to_string().contains("`trailer`"), "{err}");
+    assert!(err.to_string().contains("'trailer'"), "{err}");
 }
 
 #[test]

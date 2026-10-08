@@ -147,7 +147,7 @@ fn transition_problems_flags_an_unknown_endpoint() {
     };
     let problems = legend.transition_problems();
     assert_eq!(problems.len(), 1);
-    assert!(problems.first().is_some_and(|p| p.contains("`typo`")));
+    assert!(problems.first().is_some_and(|p| p.contains("'typo'")));
 }
 
 #[test]

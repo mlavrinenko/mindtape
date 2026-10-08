@@ -70,11 +70,11 @@ fn unknown_refs_in_both_lists_are_joined_into_one_error() {
     );
     let err = expand_dict_refs(&mut tasks, &dicts(&[])).unwrap_err();
     assert!(
-        err.contains("tasks.tags.allowed: unknown dict `ghost`"),
+        err.contains("tasks.tags.allowed: unknown dict: 'ghost'"),
         "{err}"
     );
     assert!(
-        err.contains("tasks.fields.kind.values: unknown dict `phantom`"),
+        err.contains("tasks.fields.kind.values: unknown dict: 'phantom'"),
         "{err}"
     );
 }

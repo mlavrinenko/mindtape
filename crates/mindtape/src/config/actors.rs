@@ -71,7 +71,10 @@ pub(crate) fn validate_actors(config: &Config) -> Vec<String> {
         if role.name.trim().is_empty() {
             problems.push("roles: a role name must not be empty".to_owned());
         } else if !role_names.insert(role.name.as_str()) {
-            problems.push(format!("roles: duplicate role `{}`", role.name));
+            problems.push(format!(
+                "roles: duplicate role: {}",
+                super::quote(&role.name)
+            ));
         }
     }
     let mut actor_names: HashSet<&str> = HashSet::new();
@@ -79,21 +82,30 @@ pub(crate) fn validate_actors(config: &Config) -> Vec<String> {
         if actor.name.trim().is_empty() {
             problems.push("actors: an actor name must not be empty".to_owned());
         } else if !actor_names.insert(actor.name.as_str()) {
-            problems.push(format!("actors: duplicate actor `{}`", actor.name));
+            problems.push(format!(
+                "actors: duplicate actor: {}",
+                super::quote(&actor.name)
+            ));
         }
         for role in &actor.roles {
             if !config.roles.iter().any(|declared| declared.name == *role) {
+                let declared: Vec<&str> = config.roles.iter().map(|r| r.name.as_str()).collect();
                 problems.push(format!(
-                    "actors.{}: role `{role}` is not a declared role",
-                    actor.name
+                    "actors.{}.roles: unknown role: {}{}",
+                    actor.name,
+                    super::quote(role),
+                    crate::suggest::suggestion(role, &declared)
                 ));
             }
         }
     }
     for allowed in &config.tasks.assignee.allowed {
         if !config.actors.iter().any(|actor| actor.name == *allowed) {
+            let declared: Vec<&str> = config.actors.iter().map(|a| a.name.as_str()).collect();
             problems.push(format!(
-                "tasks.assignee.allowed: `{allowed}` is not a declared actor"
+                "tasks.assignee.allowed: unknown actor: {}{}",
+                super::quote(allowed),
+                crate::suggest::suggestion(allowed, &declared)
             ));
         }
     }

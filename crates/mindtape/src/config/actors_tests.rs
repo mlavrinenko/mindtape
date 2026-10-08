@@ -92,7 +92,7 @@ fn actor_referencing_undeclared_role_is_rejected() {
         parse_config("[[actors]]\nname = \"ada\"\nkind = \"human\"\nroles = [\"reviewer\"]\n")
             .unwrap();
     let err = config.validate().unwrap_err();
-    assert!(err.contains("`reviewer` is not a declared role"), "{err}");
+    assert!(err.contains("unknown role: 'reviewer'"), "{err}");
 }
 
 #[test]
@@ -103,7 +103,7 @@ fn assignee_allowed_must_name_a_declared_actor() {
     )
     .unwrap();
     let err = config.validate().unwrap_err();
-    assert!(err.contains("`eve` is not a declared actor"), "{err}");
+    assert!(err.contains("unknown actor: 'eve'"), "{err}");
 }
 
 #[test]

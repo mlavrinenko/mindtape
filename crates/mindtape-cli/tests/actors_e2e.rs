@@ -146,13 +146,13 @@ fn registry_violations_surface_as_config_load_errors() {
             "[tasks]\nroots = [\"tasks\"]\n\n\
              [[roles]]\nname = \"reviewer\"\n\n\
              [[actors]]\nname = \"ada\"\nkind = \"human\"\nroles = [\"ghost\"]\n",
-            "is not a declared role",
+            "unknown role: 'ghost'",
         ),
         (
             "[tasks]\nroots = [\"tasks\"]\n\n\
              [[actors]]\nname = \"ada\"\nkind = \"human\"\n\n\
              [tasks.assignee]\nallowed = [\"ada\", \"eve\"]\n",
-            "is not a declared actor",
+            "unknown actor: 'eve'",
         ),
     ];
     for (config, expected) in cases {

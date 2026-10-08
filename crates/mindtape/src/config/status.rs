@@ -73,6 +73,11 @@ impl Legend {
         self.entries.is_empty()
     }
 
+    /// Every entry's value, in legend order.
+    pub(crate) fn values(&self) -> Vec<&str> {
+        self.entries.iter().map(|e| e.value.as_str()).collect()
+    }
+
     /// Whether `value` is a legal entry.
     #[must_use]
     pub fn contains(&self, value: &str) -> bool {
@@ -177,12 +182,14 @@ impl Legend {
     #[must_use]
     pub fn transition_problems(&self) -> Vec<String> {
         let mut problems = Vec::new();
-        for entry in &self.entries {
+        let known = self.values();
+        for (index, entry) in self.entries.iter().enumerate() {
             for next in &entry.to {
                 if !self.contains(next) {
                     problems.push(format!(
-                        "status.transitions: `{}` -> `{next}`: `{next}` is not a configured status",
-                        entry.value
+                        "tasks.status[{index}].to: unknown status: {}{}",
+                        super::quote(next),
+                        crate::suggest::suggestion(next, &known)
                     ));
                 }
             }

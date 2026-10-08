@@ -304,7 +304,8 @@ fn apply_disable(
             .fold(false, |found, acc| acc.remove_named(name) || found);
         if !removed {
             return Err(ConfigError::invalid(format!(
-                "disable: no rule named `{name}`"
+                "disable: no rule named: {}",
+                super::quote(name)
             )));
         }
     }
@@ -336,7 +337,10 @@ fn resolve_pack(
     if is_path_entry(entry) {
         let path = base_dir.join(entry);
         let text = std::fs::read_to_string(&path).map_err(|_| {
-            ConfigError::invalid(format!("extends: pack not found: {}", path.display()))
+            ConfigError::invalid(format!(
+                "extends: pack not found: {}",
+                super::quote(&path.display().to_string())
+            ))
         })?;
         let table: toml::Table = toml::from_str(&text).map_err(|error| ConfigError::ParseIn {
             origin: path.display().to_string(),
@@ -368,17 +372,16 @@ fn resolve_pack(
 }
 
 fn unknown_pack_error(entry: &str, registry: &[(&str, &str)]) -> ConfigError {
-    let available = if registry.is_empty() {
-        "(none)".to_owned()
+    let names: Vec<&str> = registry.iter().map(|(name, _)| *name).collect();
+    let available = if names.is_empty() {
+        "none".to_owned()
     } else {
-        registry
-            .iter()
-            .map(|(name, _)| *name)
-            .collect::<Vec<_>>()
-            .join(", ")
+        names.join(", ")
     };
     ConfigError::invalid(format!(
-        "extends: unknown pack `{entry}`; available packs: {available}"
+        "extends: unknown pack: {}{}; available packs: {available}",
+        super::quote(entry),
+        crate::suggest::suggestion(entry, &names)
     ))
 }
 
@@ -416,7 +419,9 @@ fn reject_unknown_keys(
     for key in table.keys() {
         if !allowed.contains(&key.as_str()) {
             return Err(ConfigError::invalid(format!(
-                "pack `{pack_label}` may not declare `{key}`"
+                "extends: pack {} may not declare: {}",
+                super::quote(pack_label),
+                super::quote(key)
             )));
         }
     }

@@ -304,7 +304,7 @@ fn an_unknown_dict_ref_fails_the_load_with_a_suggestion() {
     let err = super::load_config_layered_from(&project, Some(&home), None).unwrap_err();
     let rendered = err.to_string();
     assert!(rendered.contains("tasks.tags.allowed"), "{rendered}");
-    assert!(rendered.contains("unknown dict `ares`"), "{rendered}");
+    assert!(rendered.contains("unknown dict: 'ares'"), "{rendered}");
     assert!(rendered.contains("did you mean: areas?"), "{rendered}");
 }
 
@@ -322,7 +322,7 @@ fn a_literal_at_prefixed_entry_with_no_matching_dict_fails_the_load() {
     .unwrap();
 
     let err = super::load_config_layered_from(&project, Some(&home), None).unwrap_err();
-    assert!(err.to_string().contains("unknown dict `urgent`"), "{err}");
+    assert!(err.to_string().contains("unknown dict: 'urgent'"), "{err}");
 }
 
 // --- `[[tasks.rules]] check`: the root a rule resolves against ---

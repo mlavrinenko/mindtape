@@ -95,17 +95,29 @@ fn kind_problem(kind: &LinkKind) -> Option<String> {
     let label = format!("tasks.links.kinds.{}", kind.name);
     match (kind.validate, kind.regex.as_deref()) {
         (TargetValidator::Regex, None) => Some(format!(
-            "{label}: `validate = \"regex\"` needs a sibling `regex = \"...\"` pattern"
+            "{label}: validate 'regex' needs a regex pattern beside it"
         )),
-        (TargetValidator::Regex, Some(pattern)) => Regex::new(pattern)
-            .err()
-            .map(|err| format!("{label}: invalid `regex` pattern `{pattern}`: {err}")),
+        (TargetValidator::Regex, Some(pattern)) => Regex::new(pattern).err().map(|err| {
+            format!(
+                "{label}.regex: invalid pattern: {}: {}",
+                super::quote(pattern),
+                regex_reason(&err)
+            )
+        }),
         (other, Some(_)) => Some(format!(
-            "{label}: `regex = \"...\"` applies only to `validate = \"regex\"`, not `{}`",
-            other.name()
+            "{label}.regex: applies only to validate 'regex', not {}",
+            super::quote(other.name())
         )),
         (_, None) => None,
     }
+}
+
+/// The last line of a regex error, which holds the reason; the lines above it
+/// draw the pattern.
+fn regex_reason(err: &regex::Error) -> String {
+    let text = err.to_string();
+    let last = text.lines().last().unwrap_or_default();
+    last.strip_prefix("error: ").unwrap_or(last).to_owned()
 }
 
 /// One kind's compiled validator: the validator itself plus its pattern, when

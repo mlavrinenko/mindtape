@@ -242,7 +242,8 @@ impl<'de> Deserialize<'de> for IdFormat {
             "uuid-v4" => Ok(Self::UuidV4),
             "uuid-v7" => Ok(Self::UuidV7),
             other => Err(serde::de::Error::custom(format!(
-                "invalid id format `{other}`; expected `string`, `uuid-v4`, or `uuid-v7`"
+                "invalid id format: {}; use string, uuid-v4 or uuid-v7",
+                crate::config::quote(other)
             ))),
         }
     }
@@ -360,7 +361,8 @@ fn expand_list(list: &mut Vec<String>, dicts: &Dicts, label: &str) -> Result<(),
         let Some(dict) = dicts.get(name) else {
             let known: Vec<String> = dicts.names().map(ToOwned::to_owned).collect();
             problems.push(format!(
-                "{label}: unknown dict `{name}`{}",
+                "{label}: unknown dict: {}{}",
+                crate::config::quote(name),
                 crate::suggest::hint("dict", name, &known)
             ));
             continue;
@@ -404,9 +406,12 @@ pub(crate) fn validate_field_names(tasks: &TasksConfig) -> Vec<String> {
         .filter(|name| *name != "kind" && !name.starts_with("x-"))
         .map(|name| {
             if OWN_TABLE_FIELDS.contains(&name.as_str()) {
-                format!("tasks.fields.{name}: `{name}` is configured in [tasks.{name}]")
+                format!("tasks.fields.{name}: configured in [tasks.{name}], not here")
             } else {
-                format!("tasks.fields.{name}: unknown field; [tasks.fields] takes `kind` and `x-<ns>` names")
+                format!(
+                    "tasks.fields.{name}: unknown field: {}; use kind or an x-<ns> name",
+                    crate::config::quote(name)
+                )
             }
         })
         .collect();
@@ -415,7 +420,7 @@ pub(crate) fn validate_field_names(tasks: &TasksConfig) -> Vec<String> {
         let one = matches!(field.example, Some(FieldExample::One(_)));
         ((many && !field.multiple) || (one && field.multiple)).then(|| {
             let want = if field.multiple { "a list" } else { "a string" };
-            format!("tasks.fields.{name}.example: the field takes {want}")
+            format!("tasks.fields.{name}.example: must be {want}")
         })
     }));
     out.extend(
@@ -424,7 +429,7 @@ pub(crate) fn validate_field_names(tasks: &TasksConfig) -> Vec<String> {
             .iter()
             .filter(|(name, field)| field.multiple && !name.starts_with("x-"))
             .map(|(name, _)| {
-                format!("tasks.fields.{name}.multiple: only an `x-<ns>` field holds a list")
+                format!("tasks.fields.{name}.multiple: only an x-<ns> field can hold a list")
             }),
     );
     out

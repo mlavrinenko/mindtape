@@ -128,7 +128,7 @@ fn uncompilable_regex_is_a_config_error() {
     };
     let problems = validate_link_kinds(&config);
     assert_eq!(problems.len(), 1, "{problems:?}");
-    assert!(problems.first().unwrap().contains("invalid `regex`"));
+    assert!(problems.first().unwrap().contains("invalid pattern"));
 }
 
 /// A `regex` key on any other validator is dead config — flagged rather than
