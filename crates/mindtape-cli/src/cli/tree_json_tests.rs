@@ -27,6 +27,16 @@ fn longs(args: &[Value]) -> Vec<&str> {
 }
 
 #[test]
+fn date_tokens_carry_the_format_table() {
+    let t = tree();
+    let rows = arr(&t, "date_tokens");
+    assert_eq!(rows.len(), mindtape::DATE_TOKENS.len());
+    let first = rows.first().expect("a token");
+    assert_eq!(field(first, "token"), "YYYY");
+    assert!(!field(first, "expands_to").is_empty());
+}
+
+#[test]
 fn filter_functions_carry_the_registry() {
     let t = tree();
     let names: Vec<_> = arr(&t, "filter_functions")

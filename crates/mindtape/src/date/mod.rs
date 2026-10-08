@@ -83,23 +83,76 @@ pub fn parse_ymd(date: &str) -> Option<(i32, u8, u8)> {
     Some((year, month, day))
 }
 
+/// One `{date:FMT}` token: what it is written as, what the docs say it
+/// expands to, and how it expands a `(year, month, day)`.
+#[derive(Debug, Clone, Copy)]
+pub struct DateToken {
+    /// The token as written in a format string, such as `YYYY`.
+    pub token: &'static str,
+    /// A short description for the docs, such as `four-digit year`.
+    pub expands_to: &'static str,
+    expand: fn(i32, u8, u8) -> String,
+}
+
+impl DateToken {
+    /// The token's text for `(year, month, day)`.
+    #[must_use]
+    pub fn render(&self, year: i32, month: u8, day: u8) -> String {
+        (self.expand)(year, month, day)
+    }
+}
+
+/// The tokens `format_iso` reads, longest first so that `MMMM` is not
+/// consumed by `MM`. `format_iso` matches against this table and the docs
+/// render it, so a token and its description cannot disagree.
+pub const DATE_TOKENS: [DateToken; 8] = [
+    DateToken {
+        token: "YYYY",
+        expands_to: "four-digit year",
+        expand: |y, _, _| format!("{y:04}"),
+    },
+    DateToken {
+        token: "YY",
+        expands_to: "two-digit year (last two digits)",
+        expand: |y, _, _| format!("{:02}", y.unsigned_abs() % 100),
+    },
+    DateToken {
+        token: "MMMM",
+        expands_to: "full month name (January to December)",
+        expand: |_, m, _| month_name_full(m).to_owned(),
+    },
+    DateToken {
+        token: "MMM",
+        expands_to: "abbreviated month name (Jan to Dec)",
+        expand: |_, m, _| month_name_abbr(m).to_owned(),
+    },
+    DateToken {
+        token: "MM",
+        expands_to: "zero-padded month (01 to 12)",
+        expand: |_, m, _| format!("{m:02}"),
+    },
+    DateToken {
+        token: "M",
+        expands_to: "bare month (1 to 12)",
+        expand: |_, m, _| m.to_string(),
+    },
+    DateToken {
+        token: "DD",
+        expands_to: "zero-padded day (01 to 31)",
+        expand: |_, _, d| format!("{d:02}"),
+    },
+    DateToken {
+        token: "D",
+        expands_to: "bare day (1 to 31)",
+        expand: |_, _, d| d.to_string(),
+    },
+];
+
 /// Format a `YYYY-MM-DD` ISO date string using a display format template.
 ///
-/// Tokens are substituted longest-first so that e.g. `MMMM` is not consumed
-/// by `MM`. Unrecognised characters pass through literally.
-///
-/// | Token | Output |
-/// |-------|--------|
-/// | `YYYY` | 4-digit year |
-/// | `YY`   | 2-digit year (last two digits) |
-/// | `MMMM` | full month name (January … December) |
-/// | `MMM`  | abbreviated month (Jan … Dec) |
-/// | `MM`   | zero-padded month (01 … 12) |
-/// | `M`    | bare month (1 … 12) |
-/// | `DD`   | zero-padded day (01 … 31) |
-/// | `D`    | bare day (1 … 31) |
-///
-/// Returns the input string unchanged when it cannot be parsed as `YYYY-MM-DD`.
+/// Tokens are the entries of [`DATE_TOKENS`], matched in table order.
+/// Unrecognised characters pass through literally. Returns the input string
+/// unchanged when it cannot be parsed as `YYYY-MM-DD`.
 #[must_use]
 pub fn format_iso(iso: &str, fmt: &str) -> String {
     let Some((year, month, day)) = parse_ymd(iso) else {
@@ -107,37 +160,16 @@ pub fn format_iso(iso: &str, fmt: &str) -> String {
     };
     let mut out = String::with_capacity(fmt.len());
     let mut rest = fmt;
-    while !rest.is_empty() {
-        if let Some(tail) = rest.strip_prefix("YYYY") {
-            out.push_str(&format!("{year:04}"));
-            rest = tail;
-        } else if let Some(tail) = rest.strip_prefix("YY") {
-            out.push_str(&format!("{:02}", year.unsigned_abs() % 100));
-            rest = tail;
-        } else if let Some(tail) = rest.strip_prefix("MMMM") {
-            out.push_str(month_name_full(month));
-            rest = tail;
-        } else if let Some(tail) = rest.strip_prefix("MMM") {
-            out.push_str(month_name_abbr(month));
-            rest = tail;
-        } else if let Some(tail) = rest.strip_prefix("MM") {
-            out.push_str(&format!("{month:02}"));
-            rest = tail;
-        } else if let Some(tail) = rest.strip_prefix('M') {
-            out.push_str(&format!("{month}"));
-            rest = tail;
-        } else if let Some(tail) = rest.strip_prefix("DD") {
-            out.push_str(&format!("{day:02}"));
-            rest = tail;
-        } else if let Some(tail) = rest.strip_prefix('D') {
-            out.push_str(&format!("{day}"));
+    while let Some(ch) = rest.chars().next() {
+        if let Some((tok, tail)) = DATE_TOKENS
+            .iter()
+            .find_map(|t| rest.strip_prefix(t.token).map(|tail| (t, tail)))
+        {
+            out.push_str(&tok.render(year, month, day));
             rest = tail;
         } else {
-            let mut chars = rest.chars();
-            if let Some(ch) = chars.next() {
-                out.push(ch);
-                rest = chars.as_str();
-            }
+            out.push(ch);
+            rest = &rest[ch.len_utf8()..];
         }
     }
     out
@@ -225,6 +257,8 @@ pub(crate) fn days_from_civil(year: i32, month: u8, day: u8) -> i64 {
 #[cfg(test)]
 mod tests {
     use chrono::TimeZone as _;
+
+    use super::DATE_TOKENS;
 
     use super::{
         days_ago_iso, days_from_civil, epoch_days_to_ymd, format_iso, local_epoch_days,
@@ -339,6 +373,29 @@ mod tests {
     fn days_ago_saturates_at_epoch() {
         // Far in the past: should not panic
         let _ = days_ago_iso(u64::MAX);
+    }
+
+    #[test]
+    fn every_token_in_the_table_is_read_by_format_iso() {
+        for t in DATE_TOKENS {
+            let out = format_iso("2026-03-07", t.token);
+            assert_ne!(out, t.token, "{} passed through literally", t.token);
+            assert_eq!(out, t.render(2026, 3, 7));
+        }
+    }
+
+    #[test]
+    fn tokens_are_ordered_longest_first() {
+        for (i, a) in DATE_TOKENS.iter().enumerate() {
+            for b in DATE_TOKENS.iter().skip(i + 1) {
+                assert!(
+                    !b.token.starts_with(a.token) || a.token == b.token,
+                    "{} shadows {}",
+                    a.token,
+                    b.token
+                );
+            }
+        }
     }
 
     #[test]

@@ -267,10 +267,13 @@ A `{date:FMT}` format reads these tokens, longest first:
 #table(
   columns: 2,
   table.header([Token], [Expands to]),
-  [`YYYY`, `YY`], [Four-digit year, or its last two digits.],
-  [`MMMM`, `MMM`], [Full month name, or its three-letter form.],
-  [`MM`, `M`], [Month, zero-padded or bare.],
-  [`DD`, `D`], [Day, zero-padded or bare.],
+  ..json("../generated/date-tokens.json")
+    .tokens
+    .map(t => (
+      raw(t.token),
+      [#upper(t.expands_to.first())#t.expands_to.slice(1).],
+    ))
+    .flatten(),
 )
 
 `[tasks.naming] dedup` decides what `mt add` does if the file already exists.

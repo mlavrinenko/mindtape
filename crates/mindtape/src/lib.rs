@@ -67,7 +67,7 @@ pub use config::{
     parse_import_view, roles_of, validate_dicts, validate_views,
 };
 pub use date::pin::{DateOverrideError, init_pinned_today};
-pub use date::{days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};
+pub use date::{DATE_TOKENS, DateToken, days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};
 pub use emit::emit_task;
 pub use emit::format::{typ_array, typ_str};
 pub use emit::status_value::{STATUS_SHORTCUTS, escape_markup, status_value};

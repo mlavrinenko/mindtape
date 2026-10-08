@@ -81,6 +81,7 @@ fn dump(root: &Command) -> Value {
         "globals": globals,
         "commands": subcommands(root, ""),
         "filter_functions": filter_functions(),
+        "date_tokens": date_tokens(),
     })
 }
 
@@ -97,6 +98,15 @@ fn filter_functions() -> Vec<Value> {
                 "max_args": entry.arity.max,
             })
         })
+        .collect()
+}
+
+/// The `{date:FMT}` tokens `format_iso` reads, in match order, so the docs
+/// render the table the code runs.
+fn date_tokens() -> Vec<Value> {
+    mindtape::DATE_TOKENS
+        .iter()
+        .map(|t| json!({"token": t.token, "expands_to": t.expands_to}))
         .collect()
 }
 

@@ -28,6 +28,8 @@
 #                          status constructors
 #   - frameworks.json   <- crates/mindtape/src/framework/frameworks.toml plus the two
 #                          scales in defaults.toml (see www/frameworks.jq)
+#   - date-tokens.json <- the `{date:FMT}` token table, read back from the
+#                          `date_tokens` key of cli.json (`mt _cli`)
 #   - filter-functions.json <- the filter registry, read back from the
 #                          `filter_functions` key of cli.json (`mt _cli`)
 #   - gates.json        <- `just --dump --dump-format json` for the
@@ -149,6 +151,12 @@ tomlq -f "$SCRIPT_DIR/frameworks.jq" --argjson scales "$SCALES" \
 # registry in crates/mindtape/src/filter/eval.rs that dispatches them. cli.json
 # is `mt _cli --json`, which www/generate.sh writes before this script runs.
 jq '{functions: .filter_functions}' "$OUT/cli.json" | emit filter-functions.json
+
+# --- date-tokens.json ---------------------------------------------------------
+# The `{date:FMT}` tokens with their descriptions, off the DATE_TOKENS table in
+# crates/mindtape/src/date/mod.rs that `format_iso` matches against, so the
+# config page holds no token by hand.
+jq '{tokens: .date_tokens}' "$OUT/cli.json" | emit date-tokens.json
 
 # site-pages.json — the docs site's page manifest — is derived in its own
 # script, www/generate-site-pages.sh. Each page carries its own `<page-meta>`
