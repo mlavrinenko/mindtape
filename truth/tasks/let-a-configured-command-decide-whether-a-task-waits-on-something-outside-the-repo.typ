@@ -32,7 +32,7 @@
 
 == Problem
 
-+ Open ~/.nix: `apps/llama-cpp-16gb.nix` carries a patch until ggml-org/llama.cpp#26487 lands, and `~/.nix/canibump.toml` tracks it (`canibump` exits 10 once it is bumpable, `canibump status` reads only its cache).
++ Open ~/.nix: `apps/llama-cpp-16gb.nix` carries a patch until ggml-org/llama.cpp#26487 lands, and `~/.nix/canibump.toml` tracks it (`canibump` exits non-zero once it is bumpable, `canibump status <id>` answers that one blocker from its cache by exit code).
 + 🔴 A MindTape task "drop the patch" can only say so in prose or in a `blocked` status note. `mt ls ready` lists it or hides it by hand, and nothing re-checks when upstream moves.
 + The only blockers MindTape resolves are `depends-on` links to other task files (`crates/mindtape/src/graph/ready.rs`, `Readiness`).
 
