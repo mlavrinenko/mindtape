@@ -63,7 +63,7 @@ Revert the commit; the ~/.nix user hooks still cover the maintainer's machine un
 
 - Removing the ~/.nix user hooks: ~/.nix's own task, after this lands, so no hook runs twice.
 - canibump and cratemplate, which follow this repo's result.
-- Shipping the wip check as an `mt` subcommand and the carry in mmz, which would drop the per-repo scripts. Worth a follow-up once a second repo carries them.
+- The wip check as an `mt` rule (task `refuse-a-commit-range-that-leaves-a-task-it-names-in-progress-at-its-tip`) and the carry as `mmz --import` (~/projects/home/mmz, task `import-gate-records-from-another-checkout-of-the-same-repo`). If either has landed, call it from `.config/wt.toml` and drop that script.
 
 
 == Dogfood
