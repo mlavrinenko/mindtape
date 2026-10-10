@@ -471,7 +471,7 @@ severity = "error"
 # rewrite of commits. `named` limits it to tasks the trailer names, and
 # `staged(exists)` leaves a stem with no file to the trailer check. A decision
 # closing in a task-only commit passes, since its staged status is `done`.
-# `just integrate` asks the other half: a branch may not leave a named task wip.
+# `wt merge` asks the other half: a branch may not leave a named task wip.
 [[commits.rules]]
 name = "refs-task-is-started"
 scope = "task"

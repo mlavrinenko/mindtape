@@ -72,6 +72,7 @@ scopes:
     - "tombi.toml"
     - ".cargo/mutants.toml"
     - ".config/nextest.toml"
+    - ".config/wt.toml"
     - ".gitleaks.toml"
     - ".mindtape/config.toml"
     - "clippy.toml"
@@ -139,6 +140,7 @@ scopes:
   secrets-tree:
     - "*"
     - ".cargo/**"
+    - ".config/**"
     - ".githooks/**"
     - ".github/**"
     - ".just/**"
@@ -343,8 +345,8 @@ scopes:
   # matches on the path and does not read the name, so the convention is only a
   # convention.
   #
-  # Eleven scripts are named by no rule: crap-baseline.sh, release.sh, fork.sh,
-  # the four install scripts (install.sh, install-bin.sh, install-lib.sh,
+  # Ten scripts are named by no rule: crap-baseline.sh, release.sh, the four
+  # install scripts (install.sh, install-bin.sh, install-lib.sh,
   # uninstall-lib.sh), the two sourced preambles (_mutants-env.sh,
   # _typst-package.sh) and the two that run the gates (check.sh, mmz-arm.sh).
   # They are bodies of recipes that no rule in `commands` wraps, and installs
@@ -400,16 +402,12 @@ scopes:
     - ".just/scripts/docs-md-check.sh"
   script-fmt-fixture-check:
     - ".just/scripts/fmt-fixture-check.sh"
-  script-fork:
-    - ".just/scripts/fork.sh"
   script-install:
     - ".just/scripts/install.sh"
   script-install-bin:
     - ".just/scripts/install-bin.sh"
   script-install-lib:
     - ".just/scripts/install-lib.sh"
-  script-integrate:
-    - ".just/scripts/integrate.sh"
   script-lcov-stale-reason:
     - ".just/scripts/_lcov-stale-reason.sh"
   script-mmz-arm:
@@ -480,7 +478,7 @@ commands:
 
   - name: just test
     tags: [gate]
-    inputs: [rust, policy, examples, gates-meta, script-integrate, script-outdatty-lock-merge]
+    inputs: [rust, policy, examples, gates-meta, script-outdatty-lock-merge]
 
   # cargo-llvm-cov instruments and runs the same suite as `just test` (same
   # scope), then writes target/coverage/lcov.info, the artifact `just crap`
@@ -489,7 +487,7 @@ commands:
   # behind a fresh `cover`.
   - name: just cover
     tags: [gate]
-    inputs: [rust, policy, examples, gates-meta, script-cover, script-integrate, script-outdatty-lock-merge]
+    inputs: [rust, policy, examples, gates-meta, script-cover, script-outdatty-lock-merge]
     outputs: [target/coverage/lcov.info]
 
   - name: just machete

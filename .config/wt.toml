@@ -1,0 +1,14 @@
+# Worktrunk (`wt`) project hooks. Everything generic (sibling worktree, direnv
+# allow, the `just check` gate, the no-wip-task check, carrying gate records to
+# the primary checkout) is a user-level hook, so only the dev `mt` build lives
+# here. Docs: https://worktrunk.dev/hook/
+
+# `mt` on the dev shell's PATH is `target/mt-dev/debug/mt`, and nothing builds
+# it per call (see `build-mt` in the Justfile). A fresh worktree has none yet.
+# Blocking, so `wt switch --create` returns with a working `mt`; the user's
+# pre-start runs first and has loaded the dev shell.
+pre-start = "direnv exec . just build-mt"
+
+# A merge can change the config or the code `mt` is built from. Rebuild the
+# target's copy so the next `mt` call there is not judged by a stale binary.
+post-merge = "direnv exec . just build-mt"

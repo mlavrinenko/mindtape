@@ -26,7 +26,7 @@
 # Why it regenerates first. www/generated/ is gitignored (www/.gitignore) and
 # written by the docs-gen arm, which `just check` runs in parallel with this
 # one. On a warm checkout it is already on disk and rides along in the same
-# `cp -r`. On a cold tree — a fresh clone, or a `just fork` worktree, which
+# `cp -r`. On a cold tree — a fresh clone, or a `wt switch --create` worktree, which
 # warms no cache by design — the producer's very first page query dies on
 # `file not found` for generated/crate-map.json (site.typ's PKG_VERSION), the
 # positive control fails, and cases 1 and 2 report "failed, but never named"

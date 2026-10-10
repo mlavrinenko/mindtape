@@ -531,8 +531,8 @@ build *args:
 # dir keeps the build off the lock `just check` holds on `target/` for minutes,
 # and off `target/debug/mt`, which the rrule arm builds with a feature this
 # default build would silently relink away. Called at the events that
-# invalidate the binary (this recipe, `just fork`, `just integrate`), never
-# per `mt` call.
+# invalidate the binary (this recipe, and the worktrunk hooks in
+# .config/wt.toml: worktree creation, a landed merge), never per `mt` call.
 
 [doc("Build the dev shell's mt")]
 [group("dev")]
@@ -680,7 +680,7 @@ mutants-status +DIR='mutants.out':
 # formatted by one recipe and skipped by the other. A single list cannot omit a
 # path from the check while applying it in the fix.
 
-TOML_FMT_PATHS := ".cargo/mutants.toml .config/nextest.toml .gitleaks.toml .mindtape/config.toml Cargo.toml clippy.toml crates/mindtape-cli/Cargo.toml crates/mindtape-cli/src/cmd/init/axes/headers_spec.toml crates/mindtape-cli/src/cmd/init/axes/workflow_flow.toml crates/mindtape-cli/src/cmd/init/axes/workflow_gated.toml crates/mindtape-cli/src/cmd/init/axes/workflow_personal.toml crates/mindtape-cli/src/cmd/init/axes/workflow_todo_done.toml crates/mindtape-cli/src/cmd/init/presets/flow/config.toml crates/mindtape-cli/src/cmd/init/presets/gated/config.toml crates/mindtape-cli/src/cmd/init/presets/personal/config.toml crates/mindtape-cli/src/cmd/init/presets/todone/config.toml crates/mindtape/Cargo.toml crates/mindtape/src/config/defaults.toml crates/mindtape/src/framework/frameworks.toml crates/mindtape/src/packs/mindtape-tasks.toml examples/api-service/.mindtape/config.toml examples/derived-tags/.mindtape/config.toml examples/dsl/.mindtape/config.toml examples/estimates/.mindtape/config.toml examples/large/.mindtape/config.toml examples/links/.mindtape/config.toml examples/lsp/.mindtape/config.toml examples/minimal/.mindtape/config.toml examples/named-sets/.mindtape/config.toml examples/priority/.mindtape/config.toml examples/recurring/.mindtape/config.toml examples/round-trip/.mindtape/config.toml examples/rules/.mindtape/config.toml examples/self-validating/.mindtape/config.toml examples/statuses/.mindtape/config.toml examples/task-files/.mindtape/config.toml lib/typst.toml rust-toolchain.toml rustfmt.toml tombi.toml www/tola.toml"
+TOML_FMT_PATHS := ".cargo/mutants.toml .config/nextest.toml .config/wt.toml .gitleaks.toml .mindtape/config.toml Cargo.toml clippy.toml crates/mindtape-cli/Cargo.toml crates/mindtape-cli/src/cmd/init/axes/headers_spec.toml crates/mindtape-cli/src/cmd/init/axes/workflow_flow.toml crates/mindtape-cli/src/cmd/init/axes/workflow_gated.toml crates/mindtape-cli/src/cmd/init/axes/workflow_personal.toml crates/mindtape-cli/src/cmd/init/axes/workflow_todo_done.toml crates/mindtape-cli/src/cmd/init/presets/flow/config.toml crates/mindtape-cli/src/cmd/init/presets/gated/config.toml crates/mindtape-cli/src/cmd/init/presets/personal/config.toml crates/mindtape-cli/src/cmd/init/presets/todone/config.toml crates/mindtape/Cargo.toml crates/mindtape/src/config/defaults.toml crates/mindtape/src/framework/frameworks.toml crates/mindtape/src/packs/mindtape-tasks.toml examples/api-service/.mindtape/config.toml examples/derived-tags/.mindtape/config.toml examples/dsl/.mindtape/config.toml examples/estimates/.mindtape/config.toml examples/large/.mindtape/config.toml examples/links/.mindtape/config.toml examples/lsp/.mindtape/config.toml examples/minimal/.mindtape/config.toml examples/named-sets/.mindtape/config.toml examples/priority/.mindtape/config.toml examples/recurring/.mindtape/config.toml examples/round-trip/.mindtape/config.toml examples/rules/.mindtape/config.toml examples/self-validating/.mindtape/config.toml examples/statuses/.mindtape/config.toml examples/task-files/.mindtape/config.toml lib/typst.toml rust-toolchain.toml rustfmt.toml tombi.toml www/tola.toml"
 TYPST_FMT_PATHS := "lib truth .mindtape/templates examples/api-service/tasks examples/api-service/.mindtape/templates examples/estimates/.mindtape/templates examples/self-validating/.mindtape/templates examples/named-sets/.mindtape/templates examples/derived-tags/api examples/derived-tags/web examples/links/tasks examples/named-sets/tasks examples/priority/tasks examples/recurring/tasks examples/round-trip/tasks examples/dsl/tasks examples/task-files/tasks examples/lsp examples/rules examples/statuses/tasks www/content www/templates www/utils docs/src"
 
 # The same one-list rule for the justfiles themselves. A bare `just --fmt`
@@ -787,45 +787,6 @@ DOC_PROSE_PATHS := "www/content/*.typ www/content/cli/*.typ www/utils/*.typ docs
 [group("advisory")]
 dup-prose:
     @for f in {{ DOC_PROSE_PATHS }}; do jq -n --arg f "$f" --rawfile t "$f" '{file:$f,text:$t}'; done | jq -s -r -f contrib/dup-prose.jq
-
-# Stand up a worktree for a delegated agent: a new branch off `BASE`, which
-# defaults to `HEAD`, at `../<repo>-<slug>`, `direnv allow`-ed, with the base
-# read back out of the created worktree and compared to the sha it was created
-# from. Refuses a dirty `HEAD` (`git worktree add` copies commits, never the
-# working tree), and reports, without refusing, a base behind or diverged from
-# this checkout.
-#
-# It warms nothing. What was measured about `kache`, `target/` and the
-# cold `.mmz/cache/`, what the assertion can and cannot prove, and why the
-# worktree is a sibling rather than a child are argued in place in
-# .just/scripts/fork.sh.
-
-[arg('SLUG', pattern='[a-z0-9][a-z0-9-]*', help='branch name, and the `../<repo>-<slug>` directory suffix')]
-[arg('BASE', pattern='[A-Za-z0-9._/~^{}-]+', help='commit-ish to fork from — a branch, tag, sha or HEAD~n (default HEAD)')]
-[doc("Stand up a ready worktree on a new branch off BASE")]
-[group("dev")]
-[no-exit-message]
-fork SLUG BASE='HEAD':
-    bash .just/scripts/fork.sh '{{ SLUG }}' '{{ BASE }}'
-
-# Take a delegated worktree back down, the inverse of `fork`. It refuses unless
-# the worktree of `BRANCH` reports `mmz --is-fresh --tag gate`, then
-# fast-forwards this checkout onto it and removes the worktree. That assertion
-# is the whole recipe: a fast-forward writes no commit, so the pre-commit hook
-# never fires on the merge, and a branch that scoped its gate per-commit has
-# nowhere else to pay the full aggregate.
-#
-# Also refuses a dirty worktree and a branch that is not a fast-forward; it
-# never runs the gate, and there is deliberately no waiver flag. Why the
-# assertion is read from the worktree rather than here, and what the missing
-# flag buys, are argued in place in .just/scripts/integrate.sh.
-
-[arg('BRANCH', pattern='[A-Za-z0-9._/-]+', help='branch to fast-forward onto — the one `just fork` created')]
-[doc("Assert a branch's gate, fast-forward onto it, drop its worktree")]
-[group("dev")]
-[no-exit-message]
-integrate BRANCH:
-    bash .just/scripts/integrate.sh '{{ BRANCH }}'
 
 [doc("Build mt in release mode and install it into $CARGO_HOME/bin")]
 [group("dev")]

@@ -425,11 +425,9 @@ groups:
       - docs/src/contributing/signal-sweep.typ
       - docs/src/contributing.typ
 
-  # The worktree and release recipes, which contributing.typ describes.
-  - name: worktree-release-docs
+  # The release recipe, which contributing.typ describes.
+  - name: release-docs
     source:
-      - .just/scripts/fork.sh
-      - .just/scripts/integrate.sh
       - .just/scripts/release.sh
     dependents:
       - docs/src/contributing.typ

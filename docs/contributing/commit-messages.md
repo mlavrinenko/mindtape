@@ -23,7 +23,7 @@ Refs: <stem>
 
 - `refs-task-is-started` refuses a commit whose `Refs:` task is neither `wip` nor terminal in the staged tree. A task still `proposed` fails it, and so does a flip you left unstaged. The rule refuses early because the repair afterwards means rewriting commits. A decision that closes in a task-only commit passes, since its staged status is `done`.
 
-`just integrate <branch>` checks the other half before it reads the gate record. `.just/scripts/integrate.sh` refuses a branch whose commits name a task that’s still `wip` at the branch tip, and prints the stems. So you put the `done` flip in the task’s last commit.
+`wt merge` should check the other half in a `pre-merge` hook: refuse a branch whose commits name a task that’s still `wip` at the branch tip, and print the stems. So you put the `done` flip in the task’s last commit.
 
 `mt check --commit-msg` also refuses a `Refs:` value that’s a path or names no task.
 

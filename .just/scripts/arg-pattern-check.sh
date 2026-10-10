@@ -130,26 +130,6 @@ if out=$(just --dry-run --yes outdatty-update </dev/null 2>&1); then
     fail=1
 fi
 
-# `fork`'s two parameters are both interpolated into the body, and each pattern
-# is guarding a different thing. `slug` becomes a branch name and a directory name,
-# so `feat/x` has to be refused: git would take the branch happily and the
-# directory would land a level down from where the printed path says it is.
-# `base` is a commit-ish and therefore has to admit far more shape (`HEAD~2`,
-# `origin/main`, `v0.3.0^{commit}`, a bare sha) — what it exists to refuse is a
-# value that a shell could split or re-read, which is why the space case is the
-# one asserted rather than a malformed revision. A revision that is merely wrong
-# is git's to reject at `rev-parse`, by name, and the script leaves it there.
-#
-# `base` defaults to `HEAD` and `slug` is required, so assert_default_accepted would
-# be asserting a bare `just fork` — which just refuses for the missing `slug`, not
-# on a pattern. The default is exercised by the one-argument accept below.
-assert_rejected fork 'feat/x'
-assert_rejected fork 'Slug'
-assert_rejected fork agent-one 'a b'
-assert_accepted fork agent-one
-assert_accepted fork agent-one 'HEAD~2'
-assert_accepted fork agent-one origin/main
-
 assert_rejected eject 120
 assert_rejected eject abc
 assert_accepted eject 50

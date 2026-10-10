@@ -29,9 +29,10 @@ just check           # run before every commit
 
 Run `just` recipes, not raw `cargo`: the recipes carry the right flags and
 environment. Run `just` alone to list them. In the dev shell, `mt` is
-`target/mt-dev/debug/mt`. #just.build-mt() builds it, #just.fork() builds a
-new worktree's, and #just.integrate() rebuilds this checkout's. Between those
-builds, `mt` can be older than the code beside it.
+`target/mt-dev/debug/mt`. #just.build-mt() builds it, and the worktrunk hooks in
+`.config/wt.toml` run it when `wt switch --create` makes a worktree and after
+`wt merge` lands in a checkout. Between those builds, `mt` can be older than
+the code beside it.
 
 This file holds the rules. The `docs/contributing/*.md` deep dives explain
 why and how they work, and `AGENTS.md` says what MindTape is.
@@ -114,35 +115,31 @@ builds the flake in a clean sandbox, and #just.release() runs it too.
 
 In a delegated worktree, you can skip the hook's freshness check with
 `MINDTAPE_GATE_SCOPE=<reason> git commit`. That's safe there because
-#just.integrate() refuses the branch until every gate passes on its final
-tree. Your message then needs a matching `Gate-Scope: <reason>` trailer.
+`wt merge` runs #just.check() on the branch's final tree before it
+fast-forwards. Your message then needs a matching `Gate-Scope: <reason>` trailer.
 Never scope a commit to get past a failing gate.
 
 = Worktrees
 
-To work on something in parallel, run #just.fork("<slug>", "[base]"). You get
-a worktree at `../mindtape-<slug>` on a new branch from `base` (`HEAD` by
-default). Commit first: `git worktree add` only copies commits, so `fork`
-refuses a dirty tree. For the same reason, fork before you flip a task, and
-run `mt wip <stem>` inside the worktree. Don't use `git stash` in a worktree:
-all worktrees share one stash list, so a `pop` can apply another fork's
-work. Make a WIP commit instead.
+To work on something in parallel, use #link("https://worktrunk.dev")[worktrunk]
+(`wt`): `wt switch --create <slug> --base=@`. You get a worktree at
+`../mindtape-<slug>` on a new branch from your current commit. Without
+`--base=@` the branch starts from the default branch. Commit first: a worktree
+only gets commits, never your working tree. For the same reason, branch before
+you flip a task, and run `mt wip <stem>` inside the worktree. Don't use
+`git stash` in a worktree: all worktrees share one stash list, so a `pop` can
+apply another worktree's work. Make a WIP commit instead.
 
-When the branch is ready, run #just.integrate("<branch>") from this checkout.
-It rebuilds the worktree's `mt` from the branch tip, so a branch rebased over
-a config change is judged by its own config. It refuses the branch if it
-names a still-`wip` task in `Refs:`, or if any gate hasn't passed against the
-worktree's current files. Then it does four things:
+Creating the worktree runs the `pre-start` hook in `.config/wt.toml`, which
+builds the worktree's `mt` with #just.build-mt().
 
-- Fast-forwards this checkout.
-- Copies the worktree's `.mmz/cache/*.yaml` gate records here, so your next
-  commit isn't refused for a stale gate (mmz still judges each record, and
-  one whose inputs differ stays stale).
-- Carries `target/coverage/lcov.info` over when it's fresh and newer than
-  this checkout's, so #just.crap() doesn't wait on a #just.cover().
-- Removes the worktree.
-
-`.just/scripts/fork.sh` and `.just/scripts/integrate.sh` explain both.
+When the branch is ready, run `wt merge [target]` from inside the worktree.
+It refuses a dirty tree, rebases the branch onto the target, fast-forwards
+the target and removes the worktree. Before the fast-forward, a `pre-merge`
+hook should run #just.check() and refuse a branch that names a still-`wip`
+task in `Refs:`. That hook belongs in your own worktrunk user config, so it
+covers every repo, and this repo doesn't carry it. After the merge, the
+`post-merge` hook in `.config/wt.toml` rebuilds the target's `mt`.
 
 = Commit Messages
 

@@ -164,9 +164,9 @@
             ]);
           buildInputs = with pkgs; [ openssl ];
           # The dev `mt` is a binary on PATH, not a wrapper: `just build-mt`
-          # writes `target/mt-dev/debug/mt`, `just fork` and `just integrate`
-          # call that recipe at the events that invalidate the binary, and
-          # nothing rebuilds it per call. Its own target dir keeps it off the
+          # writes `target/mt-dev/debug/mt`, and the worktrunk hooks in
+          # .config/wt.toml call that recipe at the events that invalidate
+          # the binary, and nothing rebuilds it per call. Its own target dir keeps it off the
           # lock `just check` holds on `target/`, and off `target/debug/mt`,
           # which the rrule arm builds with a feature this default build would
           # relink away.
