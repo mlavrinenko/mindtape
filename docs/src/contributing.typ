@@ -211,13 +211,16 @@ neither.
 - `mindtape-cli` depends on `mindtape` by version and path, since crates.io
   refuses a path-only dependency. Bump it with the workspace version.
 - #just.release("VERSION") is the whole release, and its tag push the only
-  publish path: don't run `cargo publish` or push `main` by hand. Move
-  `[Unreleased]` into a dated section first. It refuses that and every other
-  state a release has failed from, listed above `release` in the `Justfile`.
-  Then it pushes `main`, so the docs site and CI run on the release tree, and
-  tags only once that commit's `ci.yml` run is green.
-  #just.release-dry-run("VERSION") runs the checks and says what it would
-  push.
+  publish path: don't run `cargo publish` or push `main` by hand. Keep the
+  release's entries under `[Unreleased]`; the recipe dates them. It runs
+  #link("https://github.com/crate-ci/cargo-release")[cargo-release]
+  (`release.toml`), which refuses a dirty tree or a branch other than `main`,
+  bumps the version, dates the entries, runs `.just/scripts/release-hook.sh`
+  and commits. The hook refuses every other state a release has failed from.
+  Then the recipe pushes `main`, so CI runs on the release
+  tree, and tags only once that commit's `ci.yml` run is green. `--dry-run`
+  checks and pushes nothing. After a red CI, fix `main` and re-run: the bump
+  and the dating stay done.
 - A release whose workflow failed is finished on the same tag with
   `gh workflow run release.yml -f tag=vVERSION`, which skips each crate
   crates.io already has. A pushed tag never moves.

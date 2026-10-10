@@ -1,0 +1,17 @@
+# cargo-release config for `just release VERSION`, which releases mindtape-cli
+# alone (-p): the workspace version is shared, and the one v<version> tag and
+# changelog dating belong to the binary. Paths are relative to that crate.
+allow-branch = ["main"]
+# release.yml publishes on the tag push, never this machine.
+publish = false
+tag-prefix = ""
+tag-name = "v{{version}}"
+tag-message = "v{{version}}"
+pre-release-commit-message = "chore(release): {{version}}"
+# Idempotent: once [Unreleased] is dated, nothing matches and a re-run changes
+# nothing. One pattern, because the heading and the new link sit far apart.
+pre-release-replacements = [
+  { file = "../../CHANGELOG.md", search = '(?s)\n## \[Unreleased\]\n\n(### .*?\n)\n(\[\d+\.\d+\.\d+\]: (\S+)/releases/tag/v)', replace = "\n## [Unreleased]\n\n## [{{version}}] - {{date}}\n\n${1}\n[{{version}}]: ${3}/releases/tag/v{{version}}\n${2}", min = 0, exactly = 1 },
+]
+# The checks cargo-release lacks, run once per release (and in a dry run).
+pre-release-hook = ["bash", "../../.just/scripts/release-hook.sh"]

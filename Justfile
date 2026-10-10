@@ -680,7 +680,7 @@ mutants-status +DIR='mutants.out':
 # formatted by one recipe and skipped by the other. A single list cannot omit a
 # path from the check while applying it in the fix.
 
-TOML_FMT_PATHS := ".cargo/mutants.toml .config/nextest.toml .config/wt.toml .gitleaks.toml .mindtape/config.toml Cargo.toml clippy.toml crates/mindtape-cli/Cargo.toml crates/mindtape-cli/src/cmd/init/axes/headers_spec.toml crates/mindtape-cli/src/cmd/init/axes/workflow_flow.toml crates/mindtape-cli/src/cmd/init/axes/workflow_gated.toml crates/mindtape-cli/src/cmd/init/axes/workflow_personal.toml crates/mindtape-cli/src/cmd/init/axes/workflow_todo_done.toml crates/mindtape-cli/src/cmd/init/presets/flow/config.toml crates/mindtape-cli/src/cmd/init/presets/gated/config.toml crates/mindtape-cli/src/cmd/init/presets/personal/config.toml crates/mindtape-cli/src/cmd/init/presets/todone/config.toml crates/mindtape/Cargo.toml crates/mindtape/src/config/defaults.toml crates/mindtape/src/framework/frameworks.toml crates/mindtape/src/packs/mindtape-tasks.toml examples/api-service/.mindtape/config.toml examples/derived-tags/.mindtape/config.toml examples/dsl/.mindtape/config.toml examples/estimates/.mindtape/config.toml examples/large/.mindtape/config.toml examples/links/.mindtape/config.toml examples/lsp/.mindtape/config.toml examples/minimal/.mindtape/config.toml examples/named-sets/.mindtape/config.toml examples/priority/.mindtape/config.toml examples/recurring/.mindtape/config.toml examples/round-trip/.mindtape/config.toml examples/rules/.mindtape/config.toml examples/self-validating/.mindtape/config.toml examples/statuses/.mindtape/config.toml examples/task-files/.mindtape/config.toml lib/typst.toml rust-toolchain.toml rustfmt.toml tombi.toml www/tola.toml"
+TOML_FMT_PATHS := ".cargo/mutants.toml .config/nextest.toml .config/wt.toml .gitleaks.toml .mindtape/config.toml Cargo.toml clippy.toml crates/mindtape-cli/Cargo.toml crates/mindtape-cli/src/cmd/init/axes/headers_spec.toml crates/mindtape-cli/src/cmd/init/axes/workflow_flow.toml crates/mindtape-cli/src/cmd/init/axes/workflow_gated.toml crates/mindtape-cli/src/cmd/init/axes/workflow_personal.toml crates/mindtape-cli/src/cmd/init/axes/workflow_todo_done.toml crates/mindtape-cli/src/cmd/init/presets/flow/config.toml crates/mindtape-cli/src/cmd/init/presets/gated/config.toml crates/mindtape-cli/src/cmd/init/presets/personal/config.toml crates/mindtape-cli/src/cmd/init/presets/todone/config.toml crates/mindtape/Cargo.toml crates/mindtape/src/config/defaults.toml crates/mindtape/src/framework/frameworks.toml crates/mindtape/src/packs/mindtape-tasks.toml examples/api-service/.mindtape/config.toml examples/derived-tags/.mindtape/config.toml examples/dsl/.mindtape/config.toml examples/estimates/.mindtape/config.toml examples/large/.mindtape/config.toml examples/links/.mindtape/config.toml examples/lsp/.mindtape/config.toml examples/minimal/.mindtape/config.toml examples/named-sets/.mindtape/config.toml examples/priority/.mindtape/config.toml examples/recurring/.mindtape/config.toml examples/round-trip/.mindtape/config.toml examples/rules/.mindtape/config.toml examples/self-validating/.mindtape/config.toml examples/statuses/.mindtape/config.toml examples/task-files/.mindtape/config.toml lib/typst.toml release.toml rust-toolchain.toml rustfmt.toml tombi.toml www/tola.toml"
 TYPST_FMT_PATHS := "lib truth .mindtape/templates examples/api-service/tasks examples/api-service/.mindtape/templates examples/estimates/.mindtape/templates examples/self-validating/.mindtape/templates examples/named-sets/.mindtape/templates examples/derived-tags/api examples/derived-tags/web examples/links/tasks examples/named-sets/tasks examples/priority/tasks examples/recurring/tasks examples/round-trip/tasks examples/dsl/tasks examples/task-files/tasks examples/lsp examples/rules examples/statuses/tasks www/content www/templates www/utils docs/src"
 
 # The same one-list rule for the justfiles themselves. A bare `just --fmt`
@@ -826,33 +826,63 @@ install-hooks:
     echo "installed .githooks and the outdatty.lock merge driver"
 
 # Push main, wait for its CI, then tag (usage: just release 0.3.0). The tag
-# push is the only publish path. .just/scripts/release.sh first refuses every
-# state a release has failed from: a dirty tree, an origin/main with commits
-# main lacks, an existing tag, a version already on crates.io, a CHANGELOG.md
-# with content under [Unreleased] or no dated `[<version>]` section, and a
-# failing check, nix-build or `cargo publish --dry-run`. Then it pushes main,
-# so the docs site (pages.yml) and CI run on the release tree, waits for the
-# ci.yml run on that exact commit, and tags only if it is green. A tag whose
-# workflow failed is re-run, never re-tagged:
-# `gh workflow run release.yml -f tag=v<version>`.
-#
-# The MINDTAPE_RELEASE_CONFIRMED prefix is how the [confirm] guard survives the
-# body living in a script — argued in full in .just/scripts/release.sh.
+# push is the only publish path. cargo-release (release.toml) refuses a dirty
+# tree and a branch other than main, then bumps the version, dates
+# CHANGELOG.md's [Unreleased] section, runs .just/scripts/release-hook.sh and
+# commits. The hook refuses an origin/main with commits main lacks, an
+# existing tag, a version already on crates.io, a CHANGELOG.md with nothing to
+# release, a failing check, nix-build or `cargo publish --dry-run`, and a gh
+# that is not logged in. Then main is pushed, so the docs site (pages.yml) and
+# CI run on the release tree, and the ci.yml run on that exact commit is
+# awaited; the tag is made and pushed only if it is green. A red run leaves
+# main pushed and no tag: fix main and re-run, which changes nothing the first
+# run already did. A tag whose workflow failed is re-run, never re-tagged:
+# `gh workflow run release.yml -f tag=v<version>`. `--dry-run` runs every
+# check and pushes nothing; run it before the real release.
 
+[arg('DRY_RUN', long='dry-run', value='true', help='run every check, then say what would be pushed')]
 [arg('VERSION', pattern='\d+\.\d+\.\d+', help='semver, no leading v (e.g. 0.3.0)')]
-[confirm("Push main and a release tag to origin — proceed?")]
 [doc("Push main, wait for its CI, then tag and push the tag")]
+[extension('.sh')]
 [group("release")]
 [no-exit-message]
-release VERSION:
-    MINDTAPE_RELEASE_CONFIRMED=1 bash .just/scripts/release.sh "{{ VERSION }}"
-
-# Every check `just release` makes, without the confirmation or any push; it
-# says what it would push. Run it before `just release`.
-
-[arg('VERSION', pattern='\d+\.\d+\.\d+', help='semver, no leading v (e.g. 0.3.0)')]
-[doc("Run every release check, then say what just release would push")]
-[group("release")]
-[no-exit-message]
-release-dry-run VERSION:
-    bash .just/scripts/release.sh "{{ VERSION }}" --dry-run
+[script]
+release VERSION $DRY_RUN='':
+    refuse() { echo "error: $1" >&2; shift; for h in "$@"; do echo "hint: $h" >&2; done; exit 1; }
+    tag=v{{ VERSION }}
+    args=(-p mindtape-cli --no-confirm)
+    if [ -z "$DRY_RUN" ]; then
+        read -r -p "Push main and $tag to origin — proceed? [y/N] " answer
+        [ "$answer" = y ] || exit 1
+        args+=(--execute)
+    fi
+    cargo release {{ VERSION }} "${args[@]}" --no-tag
+    if [ -n "$DRY_RUN" ]; then
+        echo "dry run: every check passed"
+        echo "would push main, wait for ci.yml on it, then tag and push '$tag'"
+        exit 0
+    fi
+    head=$(git rev-parse HEAD)
+    short=$(git rev-parse --short HEAD)
+    run=""
+    deadline=$((SECONDS + 300))
+    while :; do
+        run=$(gh run list --commit "$head" --workflow ci.yml --limit 1 \
+            --json databaseId --jq '.[0].databaseId // empty') \
+            || refuse "can't list ci.yml runs for '$short'" "check gh auth status"
+        [ -n "$run" ] && break
+        [ "$SECONDS" -lt "$deadline" ] \
+            || refuse "no ci.yml run showed up for '$short' in 5 minutes, so '$tag' was not made" "main is pushed; once ci.yml is green on it, re-run just release {{ VERSION }}"
+        sleep 5
+    done
+    echo "waiting for ci.yml run '$run' on '$short'"
+    if ! gh run watch "$run" --exit-status --compact --interval 15 >/dev/null; then
+        conclusion=$(gh run view "$run" --json conclusion --jq .conclusion 2>/dev/null || true)
+        refuse "ci.yml ended '${conclusion:-unknown}' on '$short', so '$tag' was not made" \
+            "see why: gh run view $run --log-failed" \
+            "fix main and re-run just release {{ VERSION }}, or retry a flake with: gh run rerun $run --failed"
+    fi
+    cargo release tag "${args[@]}"
+    cargo release push "${args[@]}" \
+        || { git tag -d "$tag" >/dev/null; refuse "origin rejected the push of '$tag'" "re-run just release {{ VERSION }}"; }
+    echo "pushed '$tag'; follow it with: gh run list --workflow release.yml --limit 1"

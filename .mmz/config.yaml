@@ -345,7 +345,7 @@ scopes:
   # matches on the path and does not read the name, so the convention is only a
   # convention.
   #
-  # Ten scripts are named by no rule: crap-baseline.sh, release.sh, the four
+  # Ten scripts are named by no rule: crap-baseline.sh, release-hook.sh, the four
   # install scripts (install.sh, install-bin.sh, install-lib.sh,
   # uninstall-lib.sh), the two sourced preambles (_mutants-env.sh,
   # _typst-package.sh) and the two that run the gates (check.sh, mmz-arm.sh).
@@ -431,8 +431,8 @@ scopes:
     - ".just/scripts/path-attr-check.sh"
   script-positional-args-check:
     - ".just/scripts/positional-args-check.sh"
-  script-release:
-    - ".just/scripts/release.sh"
+  script-release-hook:
+    - ".just/scripts/release-hook.sh"
   script-script-attr-check:
     - ".just/scripts/script-attr-check.sh"
   script-script-graph:

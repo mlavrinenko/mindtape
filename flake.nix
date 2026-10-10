@@ -103,6 +103,9 @@
               cargo
               cargo-machete
               cargo-llvm-cov
+              # The release bump, CHANGELOG dating, commit and tag behind
+              # `just release`; release.toml configures it.
+              cargo-release
               cargo-mutants
               # cargo-nextest is a GATE dependency, not a dev aid: `just test`,
               # `just check-rrule` and `just cover` all run through it, so a

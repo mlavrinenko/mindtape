@@ -428,7 +428,8 @@ groups:
   # The release recipe, which contributing.typ describes.
   - name: release-docs
     source:
-      - .just/scripts/release.sh
+      - .just/scripts/release-hook.sh
+      - release.toml
     dependents:
       - docs/src/contributing.typ
 
