@@ -140,11 +140,11 @@ groups:
     source:
       .config/nextest.toml: 1aa04153954c5ab8ce468d3e08225b76d6dd1f636874b9591c275c588b89f984
       .just/docs.just: e6a852da423c2ec230c1bc281ab9bb4fe0ce6598a4b4765629adaec32c3714ae
-      Justfile: 6baf785b06b7bb456e369fd3f7cb263e3a925fd731f9b42e4cc9997009d5ace9
-      flake.nix: a156cb5d6d8fb56b3c032fc6270ea7dd4ac539e70dc329098f14ec9c89ee155b
+      Justfile: 034f57080ff097fd6a0ad1dacd89212242d162a31b2f1b80777cfa361021ea4e
+      flake.nix: e5567107273c34cf30aa84b848f721623c9630fa3e241d05fb8a6c33550dcf7d
     dependents:
       docs/src/agents.typ: 6a226def19f29097c3d4141891a5bdc80dd4b03c2ab7847e07233350e2dbbf7f
-      docs/src/contributing.typ: 24df3f741a52c2158d09c05bc3c60f1cd9fd32198ab546ec0dcaf0e28f67698b
+      docs/src/contributing.typ: 4ccb453ce0b876de3beea14d378e3697c3719537154ce3fc3bc2a655e2349db7
       docs/src/contributing/coverage-crap.typ: a9d1342bcc89f7e565afbff8e97b512a83a4c2415297eadb81ffc00f594805a6
       docs/src/contributing/crap-baseline.typ: 551aab6a955a9d4345e73e1c171fe860663887e8b3c56f611f2f2551356eb301
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
@@ -239,9 +239,10 @@ groups:
       www/utils/framework-notes.typ: cc48caa81c46aad9b1642052a70b23d3c91713312ab81076b8c5f52e6a97bfd8
   release-docs:
     source:
-      .just/scripts/release.sh: f8e6a8dcd43af5ec09be97e648ee22469436ec8f246ad42cc1bc46ea0a86b959
+      .just/scripts/release-hook.sh: b2ffb65f6ccc24aa21475b431e5efcaff7f9fcd64a8f50c3fcf0a8aeddf8a183
+      release.toml: df72343747c303c3246bf302016d27869a1a51e9667dd6bea6c25c4cc8632cea
     dependents:
-      docs/src/contributing.typ: 24df3f741a52c2158d09c05bc3c60f1cd9fd32198ab546ec0dcaf0e28f67698b
+      docs/src/contributing.typ: 4ccb453ce0b876de3beea14d378e3697c3719537154ce3fc3bc2a655e2349db7
   release-notes:
     source:
       Cargo.toml: 2fa7f3344d6f21f50967e00f179a24bf07e40d2b298c792b59c126f336191fcb
