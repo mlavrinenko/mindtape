@@ -22,7 +22,7 @@ fn state(config: &Config, tasks: &[(&str, &str)]) -> ProjectState {
             task
         })
         .collect();
-    ProjectState::new(tasks, config, Vec::new())
+    ProjectState::new(tasks, config, std::path::Path::new(""), Vec::new())
 }
 
 #[test]

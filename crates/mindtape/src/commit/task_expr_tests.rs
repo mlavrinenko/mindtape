@@ -26,9 +26,24 @@ fn at(status: &str) -> Task {
 /// tree.
 fn states(config: &Config) -> CommitStates {
     CommitStates {
-        head: ProjectState::new(vec![at("wip")], config, Vec::new()),
-        staged: ProjectState::new(vec![at("done")], config, Vec::new()),
-        worktree: Some(ProjectState::new(Vec::new(), config, Vec::new())),
+        head: ProjectState::new(
+            vec![at("wip")],
+            config,
+            std::path::Path::new(""),
+            Vec::new(),
+        ),
+        staged: ProjectState::new(
+            vec![at("done")],
+            config,
+            std::path::Path::new(""),
+            Vec::new(),
+        ),
+        worktree: Some(ProjectState::new(
+            Vec::new(),
+            config,
+            std::path::Path::new(""),
+            Vec::new(),
+        )),
     }
 }
 

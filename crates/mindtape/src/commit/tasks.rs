@@ -119,9 +119,16 @@ pub struct ProjectState {
 }
 
 impl ProjectState {
-    /// A state holding `tasks`, ranked and classified as a load would.
-    pub(crate) fn new(mut tasks: Vec<Task>, config: &Config, errors: Vec<LoadError>) -> Self {
+    /// A state holding `tasks`, ranked and classified as a load would, with
+    /// each open task's `waits-on` checkers asked from `root`.
+    pub(crate) fn new(
+        mut tasks: Vec<Task>,
+        config: &Config,
+        root: &Path,
+        errors: Vec<LoadError>,
+    ) -> Self {
         tasks.sort_by(|left, right| left.id.cmp(&right.id));
+        crate::waits::annotate(&mut tasks, config, root);
         crate::graph::dep_rank::annotate(&mut tasks, config);
         let readiness = Readiness::compute(&tasks, config);
         Self {
@@ -134,7 +141,7 @@ impl ProjectState {
     /// A one-task state holding [`Task::default`], whose stem is empty — the
     /// load-time dry run's.
     pub(crate) fn probe(config: &Config) -> Self {
-        Self::new(vec![Task::default()], config, Vec::new())
+        Self::new(vec![Task::default()], config, Path::new(""), Vec::new())
     }
 
     /// The task whose file stem is `stem`, if this state holds one.
@@ -173,7 +180,7 @@ impl CommitStates {
             staged: overlay(&plan.staged)?,
             worktree: plan
                 .worktree
-                .then(|| ProjectState::new(base.to_vec(), config, Vec::new())),
+                .then(|| ProjectState::new(base.to_vec(), config, root, Vec::new())),
         })
     }
 }
@@ -215,7 +222,7 @@ fn overlay(
             Err(err) => errors.push(err),
         }
     }
-    Ok(ProjectState::new(tasks, config, errors))
+    Ok(ProjectState::new(tasks, config, root, errors))
 }
 
 /// Each object `specs` names, in order, through one `git cat-file --batch`:

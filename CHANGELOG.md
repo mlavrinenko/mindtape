@@ -1903,6 +1903,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt check --commits` reads a waiting task as `blocked`.** A commit rule such
+  as `staged(!blocked)` fired under `--commit-msg` but stayed silent over a
+  range, because a range never asked the `[[tasks.waits]]` checkers. It asks
+  each once per run, with today's answer.
+
 - **`mt --help` says where a worktree alias goes.** It read "the `@name` you
   can pass to `-w`", but `mt -w @main ls` fails; the alias goes right after
   `mt`, as `mt @main ls`.

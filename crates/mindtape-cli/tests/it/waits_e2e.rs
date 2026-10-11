@@ -200,3 +200,79 @@ fn reopening_a_finished_task_asks_its_checker_before_the_guard() {
     assert_eq!(code, Some(1), "{stderr}");
     assert!(stderr.contains("waits on: up:pr-7 (PR open)"), "{stderr}");
 }
+
+/// A committed repository whose `start-only-ready-work` rule refuses a flip
+/// into `wip` while the task is blocked, holding `drop-the-patch` as
+/// `proposed` and waiting on `up:pr-7`.
+fn waiting_repo(run: &str) -> tempfile::TempDir {
+    let rule = "\n[[commits.rules]]\nname = \"start-only-ready-work\"\nscope = \"task\"\n\
+                when = 'into(\"wip\")'\nassert = 'staged(!blocked)'\n\
+                message = \"don't start a task that still waits\"\nseverity = \"error\"\n";
+    let dir = support::scaffold_project(&format!("{}{rule}", config(run)));
+    write_task_in(
+        dir.path(),
+        "drop-the-patch",
+        "Drop the patch",
+        "proposed",
+        r#"("up:pr-7",)"#,
+    );
+    support::git_commit_all(dir.path());
+    write_task_in(
+        dir.path(),
+        "drop-the-patch",
+        "Drop the patch",
+        "wip",
+        r#"("up:pr-7",)"#,
+    );
+    support::git(dir.path(), &["add", "-A"]);
+    support::git(
+        dir.path(),
+        &["-c", "commit.gpgsign=false", "commit", "-q", "-m", "start"],
+    );
+    dir
+}
+
+fn check_range(dir: &Path) -> (bool, String) {
+    let out = support::mt(dir)
+        .args(["check", "--commits", "HEAD~1..HEAD"])
+        .output()
+        .unwrap();
+    let text = format!(
+        "{}{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    (out.status.success(), text)
+}
+
+#[test]
+fn a_commit_range_reads_a_waiting_task_as_blocked() {
+    let dir = waiting_repo("echo PR open&& exit 1");
+
+    let (ok, text) = check_range(dir.path());
+
+    assert!(!ok, "{text}");
+    assert!(
+        text.contains("start-only-ready-work: drop-the-patch"),
+        "{text}"
+    );
+}
+
+#[test]
+fn a_commit_range_passes_once_the_checker_says_the_wait_is_over() {
+    let dir = waiting_repo("exit 0");
+
+    let (ok, text) = check_range(dir.path());
+
+    assert!(ok, "{text}");
+}
+
+#[test]
+fn a_commit_range_asks_a_checker_once_however_many_commits_it_holds() {
+    let dir = waiting_repo("echo run>> runs.txt&& exit 1");
+
+    check_range(dir.path());
+
+    let runs = std::fs::read_to_string(dir.path().join("runs.txt")).unwrap();
+    assert_eq!(runs.lines().count(), 1, "{runs}");
+}
