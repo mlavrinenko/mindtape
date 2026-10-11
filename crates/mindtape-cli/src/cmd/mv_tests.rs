@@ -1,6 +1,6 @@
 //! Unit tests for `mt mv`'s argument shaping: what counts as a new stem, and
 //! where the renamed file lands. The end-to-end behaviour — the move, the
-//! inbound rewrite, the refused collision — is in `tests/mv_e2e.rs`, which
+//! inbound rewrite, the refused collision — is in `tests/it/mv_e2e.rs`, which
 //! drives the real binary against a real repository.
 #![allow(clippy::unwrap_used)]
 

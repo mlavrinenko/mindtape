@@ -1,7 +1,7 @@
 //! Unit tests for `cmd/set.rs`'s decision table: which field is writable, what
 //! literal a value renders to, and what is refused before a file is read.
 //! The write itself — and the property that a refusal leaves the file
-//! byte-identical — is `tests/set_e2e.rs`'s.
+//! byte-identical — is `tests/it/set_e2e.rs`'s.
 #![allow(clippy::unwrap_used)]
 
 use mindtape::test_support::bare_task;

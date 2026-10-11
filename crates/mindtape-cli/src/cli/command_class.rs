@@ -3,7 +3,7 @@
 //! `cli/tree_json.rs` annotates each reflected leaf with its `class`, so it rides
 //! along into `www/generated/cli.json` for free; `docs/src/contributing.typ`
 //! renders the "Command Semantics" bullets from that JSON instead of
-//! retyping them, and `tests/read_no_write_e2e.rs` generates a per-command
+//! retyping them, and `tests/it/read_no_write_e2e.rs` generates a per-command
 //! read test from the same JSON.
 //!
 //! A command's key is its bare top-level name (`"ls"`), or — for a command

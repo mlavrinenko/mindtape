@@ -39,7 +39,7 @@ class, and the lists below read the same data.
 #let exempt = cli-classes.filter(l => l.class.kind == "exempt")
 
 - Read: #names("read").join(", "). Each leaves the tree byte-identical, and
-  `crates/mindtape-cli/tests/read_no_write_e2e.rs` checks each one. When you
+  `crates/mindtape-cli/tests/it/read_no_write_e2e.rs` checks each one. When you
   add a read command, add its test there. Each also takes `--json`, and
   `every_read_command_takes_json` in `cli/tree_json_tests.rs` fails naming a
   read command without it. `config schema` is exempt, since it prints JSON

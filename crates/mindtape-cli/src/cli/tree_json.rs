@@ -9,7 +9,7 @@
 //! Every leaf command node also carries a `class` field — its read/write
 //! classification from [`crate::cli::command_class`] — so `www/generated/cli.json`
 //! carries the CQRS split for `docs/src/contributing.typ` and
-//! `tests/read_no_write_e2e.rs` to read, instead of either retyping it. A
+//! `tests/it/read_no_write_e2e.rs` to read, instead of either retyping it. A
 //! node with subcommands (`config`, `preset`) carries `class: null`: it is
 //! not a leaf, only its children are classified.
 //!

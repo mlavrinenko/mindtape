@@ -178,7 +178,7 @@ fn csv_file_column_hidden_unless_named() {
 fn csv_file_column_shown_and_root_relative_when_named() {
     // CSV reads `task.file` directly rather than the table's cwd-relative
     // cell, so this holds for any working directory — what a subdirectory run
-    // proves, and this binary cannot, is in `tests/ls_path_e2e.rs`
+    // proves, and this binary cannot, is in `tests/it/ls_path_e2e.rs`
     // (`csv_and_json_report_the_same_root_relative_file_from_a_subdirectory`).
     let mut config = floor_config();
     config.ls.columns_order = vec!["title".to_owned(), "file".to_owned()];

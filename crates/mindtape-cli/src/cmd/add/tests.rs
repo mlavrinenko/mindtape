@@ -2,7 +2,7 @@
 //! title and tag construction, per-kind markup escaping, output-stem naming,
 //! dest-dir resolution, and the outside-roots warning.
 //!
-//! Binary-invoking end-to-end tests live in `tests/add_e2e.rs` (integration
+//! Binary-invoking end-to-end tests live in `tests/it/add_e2e.rs` (integration
 //! tests), where Cargo guarantees the `mt` binary is built first. Every test
 //! that needs its own process — a controllable stdin, cwd, or captured
 //! stderr — lives in the sibling `add_tests_subprocess` module; nothing in

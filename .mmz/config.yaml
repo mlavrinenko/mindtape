@@ -170,7 +170,7 @@ scopes:
   # the recipe does not check, and its 2000 task files would churn this rule
   # for nothing.
   # www/capture.sh joins because it declares the api-service clock, which
-  # crates/mindtape-cli/tests/eval_fixture_e2e.rs reads, so a clock edit re-runs
+  # crates/mindtape-cli/tests/it/eval_fixture_e2e.rs reads, so a clock edit re-runs
   # the test.
   examples:
     - "www/capture.sh"
@@ -421,14 +421,14 @@ scopes:
   script-nav-diff:
     - ".just/scripts/_nav-diff.sh"
   # The merge driver is no recipe's body. The e2e test in
-  # crates/mindtape-cli/tests/outdatty_lock_merge_e2e.rs runs it, together with
+  # crates/mindtape-cli/tests/it/outdatty_lock_merge_e2e.rs runs it, together with
   # the `.gitattributes` line that assigns it, so `just test` and `just cover`
   # read this scope.
   script-outdatty-lock-merge:
     - ".just/scripts/outdatty-lock-merge.sh"
     - ".gitattributes"
   # The worktrunk `pre-remove` hook runs this one (.config/wt.toml), no recipe.
-  # The e2e test in crates/mindtape-cli/tests/wt_carry_lcov_e2e.rs runs it, so
+  # The e2e test in crates/mindtape-cli/tests/it/wt_carry_lcov_e2e.rs runs it, so
   # `just test` and `just cover` read this scope.
   script-wt-carry-lcov:
     - ".just/scripts/wt-carry-lcov.sh"

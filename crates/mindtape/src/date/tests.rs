@@ -47,7 +47,7 @@ fn local_epoch_days_at_utc_is_the_utc_date() {
 
 /// The clock fallback: no `MINDTAPE_NOW` pin is set in this process (the
 /// pin is exercised out-of-process — see `date/pin_tests.rs` and
-/// `crates/mindtape-cli/tests/date_pin_e2e.rs`), so `today_epoch_days`
+/// `crates/mindtape-cli/tests/it/date_pin_e2e.rs`), so `today_epoch_days`
 /// must report the system clock. Bracketing it between two samples taken
 /// around the call is rollover-safe: if midnight falls inside the window,
 /// the answer is still one of the two ends.

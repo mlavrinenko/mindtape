@@ -36,7 +36,7 @@
 # The clock of every capture that runs examples/api-service: its tasks are
 # dated in the last week of September 2026, so "today" is just after them.
 # The generators that run it export this as MINDTAPE_NOW, and
-# crates/mindtape-cli/tests/eval_fixture_e2e.rs reads it from here, so the
+# crates/mindtape-cli/tests/it/eval_fixture_e2e.rs reads it from here, so the
 # fixture has one clock.
 API_SERVICE_NOW=2026-10-01
 

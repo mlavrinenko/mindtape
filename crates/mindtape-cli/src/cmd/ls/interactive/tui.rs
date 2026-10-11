@@ -68,5 +68,5 @@ pub(super) fn suspend<F: FnOnce() -> Result<()>>(tui: &Tui, f: F) -> Result<()> 
 // No in-process tests here on purpose: every function in this module drives the
 // terminal, so an in-process test either hijacks the developer's own screen or
 // asserts nothing on a machine without a TTY. They are pinned end-to-end under
-// a pseudo-terminal instead — see `tests/interactive_e2e.rs`
+// a pseudo-terminal instead — see `tests/it/interactive_e2e.rs`
 // (`quitting_restores_the_terminal`, `opening_a_task_suspends_the_tui_and_runs_the_editor`).

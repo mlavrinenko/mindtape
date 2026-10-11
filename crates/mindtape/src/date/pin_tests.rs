@@ -52,7 +52,7 @@ fn mindtape_now_extra_date_segments_are_malformed() {
 // reading in the parent process (which never calls `init_pinned_today`), the
 // second re-execs the binary for its own name so the child owns a fresh lock.
 //
-// `crates/mindtape-cli/tests/date_pin_e2e.rs` covers the same ground over the
+// `crates/mindtape-cli/tests/it/date_pin_e2e.rs` covers the same ground over the
 // real `mt` binary, but it cannot stand in for this one: cargo-mutants tests
 // only the package holding the mutant (no `--test-workspace`), so a mutant in
 // `date/pin.rs` is never run against the CLI crate's e2e suite.

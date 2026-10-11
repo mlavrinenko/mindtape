@@ -61,7 +61,7 @@ fn scaffold_with_lib(gone_src: &str, live_src: Option<&str>) -> (tempfile::TempD
 
 fn mt(root: &Path) -> Command {
     let mut cmd = Command::cargo_bin("mt").unwrap();
-    // The same isolation `tests/support/mod.rs` gives every e2e spawn, spelled
+    // The same isolation `tests/it/support/mod.rs` gives every e2e spawn, spelled
     // out because a unit test cannot reach that module: `mt` layers
     // `<config home>/mindtape/defaults.toml` under the project config, so
     // an un-isolated child reads the config of whoever runs the suite.

@@ -40,7 +40,7 @@
 #     mode, the alternate screen, keyboard-enhancement negotiation — so an
 #     in-process test would either hijack the developer's own screen or assert
 #     nothing without a TTY. It is pinned end-to-end under a pseudo-terminal
-#     instead (tests/interactive_e2e.rs: quitting_restores_the_terminal pins
+#     instead (tests/it/interactive_e2e.rs: quitting_restores_the_terminal pins
 #     the enter/leave byte sequences;
 #     opening_a_task_suspends_the_tui_and_runs_the_editor pins the suspend
 #     path). The one uncovered branch left (the `enhanced`

@@ -27,15 +27,15 @@ config and data paths from `dirs`, and path separators.
 On Windows, `dirs` reads the data path from a system API that no environment
 variable moves. A test that sets `XDG_DATA_HOME` would test a path `mt` never
 reads there. That's why `MINDTAPE_CONFIG_HOME` and `MINDTAPE_DATA_HOME`
-exist. `tests/install_e2e.rs` sets them to check both where `mt install`
+exist. `tests/it/install_e2e.rs` sets them to check both where `mt install`
 writes the `@local/mindtape` package and where loading a project finds it.
 
 = The pty tests are Unix-only
 
-`tests/interactive_e2e.rs` drives `mt ls --interactive` under a real terminal
+`tests/it/interactive_e2e.rs` drives `mt ls --interactive` under a real terminal
 through `script(1)`, which the dev shell provides. It needs a terminal to
 exercise the `guard` checks, `event_loop` and `draw`. It and
-`tests/tty_e2e.rs` are `#![cfg(unix)]`, because `script(1)` has no Windows
+`tests/it/tty_e2e.rs` are `#![cfg(unix)]`, because `script(1)` has no Windows
 equivalent, so on Windows they compile to nothing. The behaviour is the same
 on every platform, and `crossterm` implements it over ConPTY on Windows.
 
@@ -45,7 +45,7 @@ machine and fails while other worktrees build beside it. So
 `opening_a_task_still_works_with_hyperlinks_active` poll the transcript for
 the frame they check.
 
-`tests/outdatty_lock_merge_e2e.rs` is `#![cfg(unix)]` too. It runs the
+`tests/it/outdatty_lock_merge_e2e.rs` is `#![cfg(unix)]` too. It runs the
 `outdatty.lock` merge driver, a bash script that needs `yq`, `jq` and `b3sum`
 from the dev shell, and the Windows job has no dev shell.
 

@@ -94,8 +94,8 @@ jobs:
   # derived tags and link resolution. So this job builds and runs the suite,
   # nothing more.
   #
-  # The pty-driven tests (`tests/tty_e2e.rs`, `tests/interactive_e2e.rs`) and
-  # the lock merge driver's (`tests/outdatty_lock_merge_e2e.rs`) are
+  # The pty-driven tests (`tests/it/tty_e2e.rs`, `tests/it/interactive_e2e.rs`) and
+  # the lock merge driver's (`tests/it/outdatty_lock_merge_e2e.rs`) are
   # `#![cfg(unix)]` and compile to nothing here; see their module docs.
   windows:
     name: Test (Windows)

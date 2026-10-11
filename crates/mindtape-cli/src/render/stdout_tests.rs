@@ -1,7 +1,7 @@
 //! Unit tests for the stdout writer's error classification.
 //!
 //! The behaviour that matters end to end — a pipeline whose reader exits does
-//! not panic `mt` — is `tests/broken_pipe_e2e.rs`: it takes a real closed pipe,
+//! not panic `mt` — is `tests/it/broken_pipe_e2e.rs`: it takes a real closed pipe,
 //! which no in-process test can stage. What is pinned here is the one decision
 //! that test cannot distinguish from luck, namely *which* write errors are
 //! swallowed and which stay as loud as libstd left them.
