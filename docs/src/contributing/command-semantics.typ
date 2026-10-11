@@ -62,6 +62,6 @@ the git-ignored `.mindtape/cache/`, which holds derived state the way
 A read runs no `[[on.flip]]` action. The one config command a read runs is a
 `[[tasks.waits]]` checker, for an open task that names it in `waits-on`,
 because `ready` and `blocked` depend on its answer. A checker must answer from
-local state and write nothing in the authored tree. It runs only once
-`mt allow` has recorded the config's commands for the repository, so a fresh
-clone runs nothing it ships.
+local state and write nothing in the authored tree. It runs, as a flip's `run`
+action does, only once `mt allow` has recorded the config's commands for the
+repository, so a fresh clone runs nothing it ships.

@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   common directory so every worktree shares it. Until then a wait reads
   `unknown: not allowed`, each command warns once and lists the commands, and
   `mt wip --force` still starts the task. A changed `run` line asks again.
+- **`mt allow` covers `[[on.flip]]` `run` commands too.** A fresh clone's
+  `mt done` ran the config's gate command before anyone read it. Now every
+  `run` action joins the checkers in the one approval. Until `mt allow`, a gate
+  refuses the flip with `gate not allowed` and `--force` waives it as it waives
+  a failing gate, and a `run` without `gate` is skipped with a line saying so.
 - **`waits-on` and `[[tasks.waits]]`: a task can wait on something outside the
   repo.** A `[[tasks.waits]]` entry names a command, and a task lists
   `checker:id` entries in `waits-on`. `mt` runs the command with `{id}` filled

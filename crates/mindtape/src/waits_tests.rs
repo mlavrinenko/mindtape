@@ -2,7 +2,8 @@
 
 use std::path::Path;
 
-use super::{Answer, Checker, annotate_with, command_line, held_back, stamp, validate_checkers};
+use super::{Answer, Checker, annotate_with, command_line, stamp, validate_checkers};
+use crate::allow::held_back;
 use crate::config::{Config, LegendEntry};
 use crate::test_support::bare_task;
 

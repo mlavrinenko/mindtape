@@ -17,7 +17,14 @@
 //! `message`. `--force` waives a failing gate — run or run-less — and records
 //! the waiver in the status note ([`note_with_overrides`]), because an override
 //! nobody can see afterwards is not an override, it is a hole.
+//!
+//! No `run` command runs until the user allows the config's commands with
+//! `mt allow` ([`mindtape::allow`]). Until then a gate refuses the flip as if
+//! it had failed, so `--force` waives it the same way, and a non-gating `run`
+//! is skipped with a line saying so. Either way the command joins the held-back
+//! list that `main` warns about once.
 
+use std::cell::OnceCell;
 use std::io::Write;
 use std::path::Path;
 
@@ -87,6 +94,9 @@ pub(crate) struct Hooks<'a> {
     /// built exactly as `mt ls` builds it, so a `[ls.columns.<name>] when`
     /// expression means the same thing in both surfaces.
     env: ConditionEnv,
+    /// Whether the user allowed the config's commands, asked on the first
+    /// `run` only, since the answer costs a `git` call.
+    allowed: OnceCell<bool>,
 }
 
 impl<'a> Hooks<'a> {
@@ -107,7 +117,16 @@ impl<'a> Hooks<'a> {
             readiness,
             show,
             env: crate::cmd::ls::rules::build_env(project, "table"),
+            allowed: OnceCell::new(),
         }
+    }
+
+    /// Whether the user allowed the commands the project's config runs.
+    fn allowed(&self) -> bool {
+        *self.allowed.get_or_init(|| {
+            let commands = mindtape::allow::commands(&self.project.config);
+            mindtape::allow::is_allowed(&self.project.root, &commands)
+        })
     }
 
     /// Run every action of every hook matching `at`, in declaration order,
@@ -224,6 +243,10 @@ impl<'a> Hooks<'a> {
         let Some(command) = run.command else {
             return Ok(Some(runless_gate(run.message)));
         };
+        if !self.allowed() {
+            mindtape::allow::hold(&mindtape::allow::commands(&self.project.config));
+            return held_back(command, run.gate, out);
+        }
         let report = run_command(
             command,
             &RunCtx {
@@ -257,6 +280,26 @@ impl<'a> Hooks<'a> {
             refusal: with_override_hint(refusal, run.message),
         }))
     }
+}
+
+/// The verdict on a `run` the user has not allowed: say it was skipped, and
+/// refuse the flip when it is a gate, since a check that never ran proves
+/// nothing.
+fn held_back(command: &str, gate: bool, out: &mut dyn Write) -> Result<Option<Gate>> {
+    writeln!(out, "skipped: {command} (not allowed)")?;
+    if !gate {
+        return Ok(None);
+    }
+    let refusal = Diag::refused("gate not allowed")
+        .value(command)
+        .hint(Hint::new("read the config's commands, then run mt allow"))
+        .hint(Hint::new(
+            "or pass --force to skip the gate; the status note records it",
+        ));
+    Ok(Some(Gate {
+        command: command.to_owned(),
+        refusal,
+    }))
 }
 
 /// The sort chain a `list` spec inherits: a bare `@view` reference brings its

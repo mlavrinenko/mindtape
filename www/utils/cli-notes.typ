@@ -167,9 +167,10 @@
   ),
   "allow": (
     prose: [Until you allow them, each command that would run one warns once
-      and lists them, and a task that waits on a checker stays blocked, its
-      `why` reading `unknown: not allowed`. `mt wip --force` still starts it.
-      `mt allow` prints each command and records a hash of them all in
+      and lists them. A task that waits on a checker stays blocked, its `why`
+      reading `unknown: not allowed`, and `mt wip --force` still starts it. A
+      flip gate refuses the flip, and `--force` takes it past. A flip `run`
+      without `gate` is skipped. `mt allow` prints each command and records a hash of them all in
       `allowed/` under `mt`'s data directory, outside the repo, so no clone
       can approve its own commands. The record belongs to the repo's git
       directory, so every worktree of it shares one approval. Change a command

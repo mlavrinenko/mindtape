@@ -4,7 +4,9 @@
 //! the only command that runs an action, and a read that ran one would be a
 //! surprise in every editor and commit hook `mt check` runs inside. A read may
 //! run a `[[tasks.waits]]` checker, which `waits_e2e` covers.
-//! Every other test here pins a gate's effect on the write.
+//! Every other test here pins a gate's effect on the write, and the last
+//! battery what a `run` does before `mt allow` records the config's commands.
+//! Its stub commands run the same under `sh -c` and `cmd /C`.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
@@ -19,8 +21,16 @@ const LEGEND: &str = "[tasks]\nroots = [\"tasks\"]\n\
      [[tasks.status]]\nvalue = \"wip\"\n\
      [[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
 
-/// A project holding one `wip` task and `hooks` appended to its config.
+/// A project holding one `wip` task and `hooks` appended to its config, with
+/// the config's commands allowed.
 fn project(hooks: &str) -> tempfile::TempDir {
+    let dir = unallowed(hooks);
+    support::run_ok(dir.path(), &["allow"]);
+    dir
+}
+
+/// [`project`] before anyone ran `mt allow`.
+fn unallowed(hooks: &str) -> tempfile::TempDir {
     let dir = support::scaffold_project(&format!("{LEGEND}{hooks}"));
     std::fs::write(dir.path().join("tasks/alpha.typ"), TASK).unwrap();
     dir
@@ -217,9 +227,83 @@ fn show_and_list_are_silent_when_piped_but_gates_still_run() {
 /// equally rather than surprising the first flip that reaches it.
 #[test]
 fn a_malformed_hook_fails_at_load() {
-    let dir = project("[[on.flip]]\nwhen = 'into(\"shipped\")'\nactions = [{ show = \"x\" }]\n");
+    let dir = unallowed("[[on.flip]]\nwhen = 'into(\"shipped\")'\nactions = [{ show = \"x\" }]\n");
     cmd(dir.path(), &["check"])
         .assert()
         .failure()
         .stderr(predicates::str::contains("unknown status: 'shipped'"));
+}
+
+/// A command that leaves a mark, the same under `sh -c` and `cmd /C`.
+const MARK: &str = "echo run>> runs.txt";
+
+fn ran(dir: &Path) -> bool {
+    dir.join("runs.txt").exists()
+}
+
+fn gate_hook(gate: bool) -> String {
+    format!(
+        "[[on.flip]]\nwhen = 'into(\"done\")'\nactions = [{{ run = {MARK:?}, gate = {gate} }}]\n"
+    )
+}
+
+#[test]
+fn an_unallowed_gate_refuses_the_flip_without_running_it() {
+    let dir = unallowed(&gate_hook(true));
+    let before = task_source(dir.path());
+
+    let (code, stderr) = support::run_stderr(dir.path(), &["flip", "done", "alpha"]);
+
+    assert_eq!(code, Some(1), "{stderr}");
+    assert!(!ran(dir.path()), "an unallowed gate must not run");
+    assert!(
+        stderr.contains(&format!("error: gate not allowed: '{MARK}'")),
+        "{stderr}"
+    );
+    assert!(stderr.contains("then run mt allow"), "{stderr}");
+    assert!(stderr.contains("or pass --force"), "{stderr}");
+    assert_eq!(stderr.matches("warning:").count(), 1, "{stderr}");
+    assert_eq!(before, task_source(dir.path()), "nothing may be written");
+}
+
+#[test]
+fn force_waives_an_unallowed_gate_without_running_it() {
+    let dir = unallowed(&gate_hook(true));
+
+    support::run_ok(dir.path(), &["flip", "done", "alpha", "--force"]);
+
+    assert!(!ran(dir.path()), "--force must not run an unallowed gate");
+    let note = support::status_note(dir.path());
+    assert!(note.contains("forced past failing gate"), "{note}");
+    assert!(note.contains(MARK), "{note}");
+}
+
+#[test]
+fn an_unallowed_run_without_gate_is_skipped_and_says_so() {
+    let dir = unallowed(&gate_hook(false));
+
+    let assertion = cmd(dir.path(), &["flip", "done", "alpha"])
+        .assert()
+        .success();
+    let stdout = String::from_utf8_lossy(&assertion.get_output().stdout).into_owned();
+
+    assert!(!ran(dir.path()), "an unallowed run must not run");
+    assert!(
+        stdout.contains(&format!("skipped: {MARK} (not allowed)")),
+        "{stdout}"
+    );
+    assert!(task_source(dir.path()).contains("done("));
+}
+
+#[test]
+fn mt_allow_lists_a_flip_command_and_it_runs_after() {
+    let dir = unallowed(&gate_hook(true));
+
+    let allowed = support::stdout(dir.path(), &["allow"]);
+    let (code, stderr) = support::run_stderr(dir.path(), &["flip", "done", "alpha"]);
+
+    assert!(allowed.contains(MARK), "{allowed}");
+    assert_eq!(code, Some(0), "{stderr}");
+    assert!(!stderr.contains("warning:"), "{stderr}");
+    assert!(ran(dir.path()), "an allowed gate runs");
 }

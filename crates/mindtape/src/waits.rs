@@ -25,10 +25,10 @@
 //!
 //! No checker runs until the user allows the config's commands with `mt allow`
 //! ([`crate::allow`]). Until then every entry answers [`Answer::NotAllowed`],
-//! which blocks like an unknown answer, and [`held_back`] names the commands
-//! for the one warning the caller prints.
+//! which blocks like an unknown answer, and [`crate::allow::held_back`] names
+//! the commands for the one warning the caller prints.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, PoisonError};
 
@@ -92,17 +92,6 @@ pub const ID_PUNCT: &str = "._@/#:+-";
 /// so a checker that several tasks or several loads ask about runs once.
 static ANSWERS: Mutex<BTreeMap<(PathBuf, String), Answer>> = Mutex::new(BTreeMap::new());
 
-/// Every command this process held back because the user has not allowed it.
-static HELD: Mutex<BTreeSet<String>> = Mutex::new(BTreeSet::new());
-
-/// The commands this process would have run but held back, sorted: what the
-/// warning that asks for `mt allow` lists. Empty when every checker ran.
-#[must_use]
-pub fn held_back() -> Vec<String> {
-    let held = HELD.lock().unwrap_or_else(PoisonError::into_inner);
-    held.iter().cloned().collect()
-}
-
 /// Stamp each open task's [`Task::answers`] with what its checkers say, running
 /// each command line at most once per process. A terminal task runs nothing,
 /// and no checker runs while the config's commands are not allowed.
@@ -156,8 +145,7 @@ fn answer(entry: &str, config: &Config, root: &Path, allowed: bool) -> Answer {
         Err(problem) => return Answer::Unknown(problem.message),
     };
     if !allowed {
-        let mut held = HELD.lock().unwrap_or_else(PoisonError::into_inner);
-        held.extend(crate::allow::commands(config));
+        crate::allow::hold(&crate::allow::commands(config));
         return Answer::NotAllowed;
     }
     let mut answers = ANSWERS.lock().unwrap_or_else(PoisonError::into_inner);

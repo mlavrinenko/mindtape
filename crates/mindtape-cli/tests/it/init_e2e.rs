@@ -49,7 +49,8 @@ const GATED_FILLS: [&str; 8] = [
 
 /// The gate that makes a first run trustworthy: for every built-in preset,
 /// scaffold, file a task with nothing but a title, and walk it to a terminal
-/// status — validating at each step.
+/// status — validating at each step. It allows the preset's commands first, so
+/// `gated`'s own gate runs.
 ///
 /// This is what catches a preset that requires something its own template does
 /// not produce. Such a project scaffolds cleanly and then fails on the user's
@@ -58,6 +59,7 @@ const GATED_FILLS: [&str; 8] = [
 fn every_preset_supports_add_check_and_a_full_walk() {
     for (preset, path, fills) in PRESET_PATHS {
         let dir = support::init_preset(preset);
+        support::run_ok(dir.path(), &["allow"]);
         support::add_then_ls_and_check(dir.path(), "wire-preset", fills);
         for status in *path {
             support::run_ok(dir.path(), &["flip", status, "wire-preset"]);
@@ -235,6 +237,7 @@ fn gated_preset_blocks_done_straight_from_wip() {
 #[test]
 fn gated_preset_gates_done_on_an_unfilled_task() {
     let dir = support::init_preset("gated");
+    support::run_ok(dir.path(), &["allow"]);
     support::run_ok(dir.path(), &["add", "--name", "hollow", "--set", "title=T"]);
     for status in ["accepted", "wip", "needs-review"] {
         support::run_ok(dir.path(), &["flip", status, "hollow"]);

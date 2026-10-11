@@ -110,9 +110,8 @@ status with today's date, and `-m "…"` sets the status note. A refused flip
 names its reason: the legend does not allow the transition, the task has an
 unfinished dependency, or it is a parent with an unfinished child. Fix the
 reason. `--force` overrides the refusal and waives a failing `[[on.flip]]`
-gate. Use it only to correct a mistake. A gate runs its command with `sh -c`
-in `mt`'s environment, so exit 127 means `mt` ran outside the project's dev
-shell. Run the flip inside that shell.
+gate. Use it only to correct a mistake. Exit 127 from a gate means `mt` ran
+outside the project's dev shell, so flip from inside it.
 
 To see what each blocked task waits on, run
 `mt ls blocked --columns title,why`. A legend may have no `blocked` status, so
@@ -125,11 +124,11 @@ with the reason as its note. Do not mark a blocked task
 `wip`: that counts against any work-in-progress cap and tells readers someone
 is working on it.
 
-`mt` runs no checker until the user allows the config's commands. Until then a
-wait reads `unknown: not allowed`, and each command warns once and lists the
-commands. Never run `mt allow` yourself: the commands run with the user's
-rights. Pass the warning and its command list to the user, who reads them and
-decides.
+`mt` runs no command from the config, neither a `[[tasks.waits]]` checker nor
+an `[[on.flip]]` `run`, until the user allows them. Until then a wait reads `unknown: not allowed`, a
+flip gate refuses with `gate not allowed`, and `mt` warns once with the command
+list. Never run `mt allow`, or `--force` past that refusal: the commands run
+with the user's rights. Pass the warning on to the user, who decides.
 
 = Commits and checks
 

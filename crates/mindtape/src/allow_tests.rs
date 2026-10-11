@@ -2,7 +2,9 @@
 
 use std::path::Path;
 
-use super::{AllowError, allowed_in, commands, digest, record_in, record_path, repo_key};
+use super::{
+    AllowError, allowed_in, commands, digest, held_back, hold, record_in, record_path, repo_key,
+};
 use crate::config::Config;
 use crate::waits::Checker;
 
@@ -27,6 +29,33 @@ fn lines(runs: &[&str]) -> Vec<String> {
 fn the_commands_are_every_run_line_sorted_once() {
     assert_eq!(commands(&config(&["b", "a", "b"])), lines(&["a", "b"]));
     assert!(commands(&Config::default()).is_empty());
+}
+
+#[test]
+fn the_commands_take_each_flip_run_line_beside_the_checkers() {
+    let config = crate::parse_config(
+        "[[tasks.waits]]\nname = \"up\"\nrun = \"b\"\n\
+         [[on.flip]]\nwhen = ''\nactions = [{ run = \"c\", gate = true }, { show = \"x\" }]\n\
+         [[on.flip]]\nwhen = ''\nactions = [{ run = \"b\" }, { gate = true }, { run = \"a\" }]\n",
+    )
+    .unwrap();
+
+    assert_eq!(commands(&config), lines(&["a", "b", "c"]));
+}
+
+#[test]
+fn a_held_command_is_listed_once() {
+    hold(&lines(&["held-once-z", "held-once-y"]));
+    hold(&lines(&["held-once-z"]));
+
+    let held = held_back();
+
+    assert_eq!(
+        held.iter()
+            .filter(|line| line.starts_with("held-once-"))
+            .collect::<Vec<_>>(),
+        ["held-once-y", "held-once-z"]
+    );
 }
 
 #[test]

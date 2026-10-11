@@ -1,5 +1,6 @@
-//! `mt allow`: let the commands the project's config runs, such as a
-//! `[[tasks.waits]]` checker, run in this repository. See [`mindtape::allow`].
+//! `mt allow`: let the commands the project's config runs, its
+//! `[[tasks.waits]]` checkers and `[[on.flip]]` `run` actions, run in this
+//! repository. See [`mindtape::allow`].
 
 use crate::diag::Result;
 

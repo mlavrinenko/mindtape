@@ -35,6 +35,8 @@ into its status note:
 a status command such as `mt done` makes. `into("done")` in `when` matches a
 flip into `done`. A `run` action with `gate = true` refuses the flip when its
 command exits non-zero, and prints what the command printed.
+`mt` runs the command only once you have run `mt allow` in the clone. Before
+that, the gate refuses the flip and asks for it.
 #link(u("/hooks/"))[Flip hooks] lists the action kinds and the environment a
 command runs with.
 

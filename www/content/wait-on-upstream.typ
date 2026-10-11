@@ -29,7 +29,7 @@ version an id names or a later one, and 1 while it pins an older one.
 
 The task names what it waits on in `waits-on`. In a fresh clone `mt` runs no
 checker, so the task is blocked as unknown and `mt` asks you to allow the
-script. Once you do, `why` quotes the script while the lockfile pins 2.3.2,
+config's commands. Once you do, `why` quotes the script while the lockfile pins 2.3.2,
 and `mt wip` won't start the task. Merge the dependency bot's branch, and the
 same listing lets it go:
 

@@ -157,11 +157,11 @@ pub fn open() -> Result<Project> {
 }
 
 /// Print one warning listing the config commands this process held back, if
-/// any: a `[[tasks.waits]]` checker runs only once `mt allow` records it.
-/// `main` calls it once, after the command, so however many loads a command
-/// makes, the user reads the list once.
+/// any: a `[[tasks.waits]]` checker or an `[[on.flip]]` `run` runs only once
+/// `mt allow` records it. `main` calls it once, after the command, so however
+/// many loads a command makes, the user reads the list once.
 pub fn warn_held_back() {
-    if let Some(diag) = held_back_warning(&mindtape::waits::held_back()) {
+    if let Some(diag) = held_back_warning(&mindtape::allow::held_back()) {
         emit(&diag);
     }
 }

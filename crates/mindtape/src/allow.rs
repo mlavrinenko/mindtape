@@ -1,10 +1,12 @@
 //! Which config commands the user has allowed to run in a repository.
 //!
-//! A clone's `.mindtape/config.toml` can name shell lines that read commands
-//! run, such as a `[[tasks.waits]]` checker. None of them runs until the user
-//! reads them and runs `mt allow`, which records a digest of every such line
+//! A clone's `.mindtape/config.toml` can name shell lines that `mt` runs: a
+//! `[[tasks.waits]]` checker, which read commands run, and an `[[on.flip]]`
+//! `run` action, which `mt flip` runs. None of them runs until the user reads
+//! them and runs `mt allow`, which records a digest of every such line
 //! ([`commands`]) for the repository. A changed line changes the digest, so it
-//! asks again.
+//! asks again. A caller that skips a command for want of approval records it
+//! with [`hold`], and [`held_back`] lists them for the one warning per process.
 //!
 //! The record lives outside the clone, under
 //! `<data home>/mindtape/allowed/` ([`crate::data_home`]), so no file a repo
@@ -15,7 +17,9 @@
 //! A record file holds the digest on its first line, then the key and each
 //! command as `#` comments for a person who opens it.
 
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
+use std::sync::{Mutex, PoisonError};
 
 use sha1::{Digest, Sha1};
 
@@ -23,20 +27,41 @@ use crate::config::Config;
 use crate::fs_atomic::write_atomic;
 
 /// Every command line the config asks `mt` to run, sorted and deduplicated:
-/// what [`digest`] covers and what `mt allow` lists. Today that is each
-/// `[[tasks.waits]]` `run` line. Another kind of config command joins by
-/// adding its lines here, and every approval then asks again.
+/// what [`digest`] covers and what `mt allow` lists. That is each
+/// `[[tasks.waits]]` `run` line and each `[[on.flip]]` action's `run` line.
+/// Another kind of config command joins by adding its lines here, and every
+/// approval then asks again.
 #[must_use]
 pub fn commands(config: &Config) -> Vec<String> {
-    let mut commands: Vec<String> = config
-        .tasks
-        .waits
+    let checkers = config.tasks.waits.iter().map(|checker| checker.run.clone());
+    let actions = config
+        .on
+        .flip
         .iter()
-        .map(|checker| checker.run.clone())
-        .collect();
+        .flat_map(|hook| &hook.actions)
+        .filter_map(|action| action.run.clone());
+    let mut commands: Vec<String> = checkers.chain(actions).collect();
     commands.sort();
     commands.dedup();
     commands
+}
+
+/// Every command this process held back because the user has not allowed it.
+static HELD: Mutex<BTreeSet<String>> = Mutex::new(BTreeSet::new());
+
+/// Record `commands` as held back: a caller found them not allowed and ran
+/// none of them.
+pub fn hold(commands: &[String]) {
+    let mut held = HELD.lock().unwrap_or_else(PoisonError::into_inner);
+    held.extend(commands.iter().cloned());
+}
+
+/// The commands this process would have run but held back, sorted: what the
+/// warning that asks for `mt allow` lists. Empty when nothing was held back.
+#[must_use]
+pub fn held_back() -> Vec<String> {
+    let held = HELD.lock().unwrap_or_else(PoisonError::into_inner);
+    held.iter().cloned().collect()
 }
 
 /// The digest an approval records for `commands`: each line, NUL-terminated,

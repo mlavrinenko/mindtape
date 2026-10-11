@@ -76,8 +76,8 @@ enum Command {
     /// Check every task, and the task each template would file, against your
     /// project's rules.
     Check(check::CheckArgs),
-    /// Let the commands your config runs, such as `[[tasks.waits]]` checkers,
-    /// run in this repository.
+    /// Let the commands your config runs, its `[[tasks.waits]]` checkers and
+    /// `[[on.flip]]` `run` actions, run in this repository.
     ///
     /// It prints each command and records them for this repository and every
     /// worktree of it. Until you do, mt runs none of them, and a changed
