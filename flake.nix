@@ -138,6 +138,9 @@
               # diagraph would make the docs build depend on packages.typst.org.
               graphviz
               hyperfine
+              # `ps`: commit/amend.rs falls back to it where /proc is absent,
+              # and its test calls it on Linux too. A bare host may lack it.
+              procps
               jq
               just
               librsvg
