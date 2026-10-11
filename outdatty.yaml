@@ -497,6 +497,17 @@ groups:
     dependents:
       - docs/src/contributing/gates.typ
 
+  # The git hooks: gates.typ says what pre-commit asserts, commit-messages.typ
+  # what commit-msg checks.
+  - name: githooks-docs
+    source:
+      - .githooks/pre-commit
+      - .githooks/commit-msg
+      - .githooks/local-paths
+    dependents:
+      - docs/src/contributing/gates.typ
+      - docs/src/contributing/commit-messages.typ
+
   # The scripts no doc restates: editing one flags nothing. Each entry says why.
   - name: scripts-no-doc
     source:

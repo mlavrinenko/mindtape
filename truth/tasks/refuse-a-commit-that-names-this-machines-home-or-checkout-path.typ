@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 12),
+  status: done(
+    2026,
+    10,
+    12,
+  )[the pre-commit and commit-msg hooks refuse \$HOME and the checkout's paths],
 )
 
 == Problem

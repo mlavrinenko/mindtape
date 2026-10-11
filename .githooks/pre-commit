@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pre-commit: three cheap assertions, no heavy work.
+# Pre-commit: four cheap assertions, no heavy work.
 #
 # 1. The memoized close gate already passed against this worktree. `just
 #    check` records every sub-gate through mmz; `mmz --is-fresh --tag gate`
@@ -9,16 +9,18 @@
 #    MINDTAPE_GATE_SCOPE=<reason> skips only this one assertion — the escape
 #    hatch for a delegated worktree whose full aggregate (cold Rust build +
 #    Typst docs site + Pagefind index) runs at integration, not per commit
-#    (see CONTRIBUTING.md, Quality Gates). It never touches assertions 2/3
+#    (see CONTRIBUTING.md, Quality Gates). It never touches assertions 2-4
 #    below, and `.githooks/commit-msg` refuses the commit unless the message
 #    carries a matching `Gate-Scope: <reason>` trailer, so a scoped commit
 #    can never look identical to a fully gated one in `git log`.
-# 2. Typst formatting under `truth/`. `truth/tasks/**` is deliberately outside
+# 2. No staged file names this machine's $HOME or checkout
+#    (.githooks/local-paths says why only a hook can catch it).
+# 3. Typst formatting under `truth/`. `truth/tasks/**` is deliberately outside
 #    every mmz scope (.mmz/config.yaml: NOTE ON SCOPE — the close gate must
 #    survive `mt flip`'s own writes), so a mis-formatted task file busts
 #    nothing. The shared `truth/*.typ` files every task imports sit beside it.
 #    The tree is small, so check all of it directly.
-# 3. Task structure — the close gate delegates this here by policy.
+# 4. Task structure — the close gate delegates this here by policy.
 set -eo pipefail
 root="$(git rev-parse --show-toplevel)"
 if [[ -n "${MINDTAPE_GATE_SCOPE:-}" ]]; then
@@ -26,5 +28,6 @@ if [[ -n "${MINDTAPE_GATE_SCOPE:-}" ]]; then
 else
     direnv exec "$root" mmz --is-fresh --tag gate
 fi
+"$root/.githooks/local-paths"
 direnv exec "$root" typstyle --check truth
 exec direnv exec "$root" cargo run -q -p mindtape-cli --bin mt --target-dir target/mt-dev -- check -q

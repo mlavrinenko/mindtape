@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Refuse a path that exists only on this machine: one under $HOME, the
+# checkout, or the primary checkout every `just fork` worktree sits beside.
+# A pasted error or log line carries one, it reads as plain evidence in
+# review, and once pushed it stays in history. No other check can see it:
+# CI does not know this machine's paths, no gate reads truth/tasks/
+# (.mmz/config.yaml, "Note on scope"), and gitleaks drops a `/home/<user>/`
+# rule (.just/scripts/crap-baseline-check.sh says why).
+#
+#   local-paths          scan every file in the index (.githooks/pre-commit)
+#   local-paths <file>   scan a commit message (.githooks/commit-msg), up to
+#                        the scissors line `git commit -v` adds
+#
+# An empty or `/` needle would match every line, so it is skipped.
+set -eo pipefail
+common="$(git rev-parse --path-format=absolute --git-common-dir)"
+needles=()
+for dir in "$HOME" "$(git rev-parse --show-toplevel)" "$(dirname "$common")"; do
+    case "$dir" in "" | /) ;; *) needles+=(-e "$dir") ;; esac
+done
+[[ ${#needles[@]} -gt 0 ]] || exit 0
+
+if [[ $# -eq 0 ]]; then
+    where="a staged file"
+    hits="$(git grep --cached -nIF "${needles[@]}")" || exit 0
+else
+    where="the commit message"
+    hits="$(sed '/^# -* >8 -*$/,$d' "$1" | grep -v '^#' | grep -nF "${needles[@]}")" || exit 0
+fi
+printf '%s\n' "$hits" >&2
+echo "local-paths: $where names this machine's \$HOME or checkout above; write <repo>, <worktree> or ~ instead" >&2
+exit 1

@@ -26,7 +26,9 @@ Refs: <stem>
 
 = What checks them
 
-`.githooks/commit-msg` runs `mt check --commit-msg`, which applies the
+`.githooks/commit-msg` refuses a message that names your `$HOME` or the
+checkout, as the pre-commit hook refuses such a file
+(#link("docs/contributing/gates.md")[docs/contributing/gates.md] says why). Then it runs `mt check --commit-msg`, which applies the
 per-commit `[[commits.rules]]` of the `mindtape-tasks` pack
 (`crates/mindtape/src/packs/mindtape-tasks.toml`).
 

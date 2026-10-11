@@ -152,10 +152,16 @@ out of both recipes.
 = What the pre-commit hook asserts
 
 `.githooks/pre-commit` runs `mmz --is-fresh --tag gate`, then
-`typstyle --check truth` and `mt check`. It refuses the commit when any of
-them fails.
+`.githooks/local-paths`, `typstyle --check truth` and `mt check`. It refuses
+the commit when any of them fails.
 
-`MINDTAPE_GATE_SCOPE=<reason>` skips the first assertion only. The other two
+`.githooks/local-paths` refuses a staged file that names your `$HOME`, the
+checkout or the primary checkout. Such a path rides in on a pasted error or
+log, and only your machine knows it's local, so no gate in CI can catch it.
+Write `<repo>`, `<worktree>` or `~` in its place. `.githooks/commit-msg` runs
+the same scan over the message.
+
+`MINDTAPE_GATE_SCOPE=<reason>` skips the first assertion only. The other three
 still run, and `.githooks/commit-msg` refuses the commit unless its message
 carries a matching `Gate-Scope: <reason>` trailer. So `git log` shows which
 commits skipped the gate. CONTRIBUTING.md says when you may use it.
