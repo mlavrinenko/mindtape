@@ -11,10 +11,11 @@
     # running any of them again.
     mmz.url = "github:mlavrinenko/mmz";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    # A second nixpkgs, read for `tombi` alone. The main pin stays where the
-    # tinymist/Typst note below wants it; tombi >= 1.5 is the first with
-    # per-schema `format.rules` that switch key and array-value sorting off
-    # (see tombi.toml). Move it on its own: `nix flake update nixpkgs-tombi`.
+    # A second nixpkgs, read for `tombi` and `worktrunk`. The main pin stays
+    # where the tinymist/Typst note below wants it; it predates worktrunk's
+    # package, and tombi >= 1.5 is the first with per-schema `format.rules` that
+    # switch key and array-value sorting off (see tombi.toml). Move it on its
+    # own: `nix flake update nixpkgs-tombi`.
     nixpkgs-tombi.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     qahq.url = "github:mlavrinenko/qahq";
     # Typst-native static site generator that builds the docs under www/.
@@ -36,7 +37,8 @@
       system:
       let
         pkgs = (import nixpkgs) { inherit system; };
-        # Only `tombi` is read from this one; see the input's comment.
+        # Only `tombi` and `worktrunk` are read from this one; see the input's
+        # comment.
         pkgs-tombi = (import nixpkgs-tombi) { inherit system; };
 
         naersk' = pkgs.callPackage naersk { };
@@ -93,6 +95,11 @@
               qahq.packages.${system}.outdatty
               tola.packages.${system}.default
               pkgs-tombi.tombi
+              # `wt` forks and lands worktrees: `just fork` and `just land` run
+              # it, and .config/wt.toml holds the hooks it fires. The main pin
+              # predates worktrunk's nixpkgs package, so it comes from the
+              # second nixpkgs too.
+              pkgs-tombi.worktrunk
             ]
             ++ (with pkgs; [
               # outdatty.lock records blake3 hashes, and the lock's merge

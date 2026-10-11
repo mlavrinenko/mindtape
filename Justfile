@@ -99,6 +99,29 @@ _check-cover: (mmz "cover") (mmz "crap")
 mmz *ARGS:
     bash .just/scripts/mmz-arm.sh {{ ARGS }}
 
+# Delegated work lives in a sibling worktree on its own branch. Project config
+# cannot set worktrunk's merge defaults, so the flags that keep them sane live
+# in `fork` and `land`, and a bare `wt switch` or `wt merge` is not how work
+# starts or ends here. Extra arguments reach `wt`: `just fork x --base=@` branches
+# from the current commit instead of the default branch. The hooks that make the
+# worktree work (`mt` built, gate, wip check, record carry) are .config/wt.toml.
+
+[doc("Fork a sibling worktree on a new branch, with its dev mt built")]
+[group("workflow")]
+[positional-arguments]
+fork slug *args:
+    wt switch --create --yes "$@"
+
+# Run in the worktree. `--no-squash --no-commit` keeps each commit's `Refs:`
+# footer and refuses a dirty tree instead of committing it; the `pre-merge`
+# hooks run the gate and the wip check before the fast-forward.
+
+[doc("Gate, fast-forward the branch onto main and remove its worktree")]
+[group("workflow")]
+[positional-arguments]
+land *args:
+    wt merge --no-squash --no-commit --yes "$@"
+
 [doc("Check formatting without writing changes (CI-friendly)")]
 [group("gate")]
 fmt-check:

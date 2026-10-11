@@ -373,7 +373,9 @@ groups:
       - flake.nix
       - Justfile
       - .config/nextest.toml
+      - .config/wt.toml
       - .just/docs.just
+      - .just/scripts/wt-carry-lcov.sh
     dependents:
       - docs/src/contributing.typ
       - docs/src/agents.typ

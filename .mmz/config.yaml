@@ -427,6 +427,11 @@ scopes:
   script-outdatty-lock-merge:
     - ".just/scripts/outdatty-lock-merge.sh"
     - ".gitattributes"
+  # The worktrunk `pre-remove` hook runs this one (.config/wt.toml), no recipe.
+  # The e2e test in crates/mindtape-cli/tests/wt_carry_lcov_e2e.rs runs it, so
+  # `just test` and `just cover` read this scope.
+  script-wt-carry-lcov:
+    - ".just/scripts/wt-carry-lcov.sh"
   script-path-attr-check:
     - ".just/scripts/path-attr-check.sh"
   script-positional-args-check:
@@ -478,7 +483,7 @@ commands:
 
   - name: just test
     tags: [gate]
-    inputs: [rust, policy, examples, gates-meta, script-outdatty-lock-merge]
+    inputs: [rust, policy, examples, gates-meta, script-outdatty-lock-merge, script-wt-carry-lcov]
 
   # cargo-llvm-cov instruments and runs the same suite as `just test` (same
   # scope), then writes target/coverage/lcov.info, the artifact `just crap`
@@ -487,7 +492,7 @@ commands:
   # behind a fresh `cover`.
   - name: just cover
     tags: [gate]
-    inputs: [rust, policy, examples, gates-meta, script-cover, script-outdatty-lock-merge]
+    inputs: [rust, policy, examples, gates-meta, script-cover, script-outdatty-lock-merge, script-wt-carry-lcov]
     outputs: [target/coverage/lcov.info]
 
   - name: just machete
