@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # www/generate-commit-rules.sh — record the commit checks /commit-rules/ shows,
-# in a git copy of examples/rules/, whose config holds two commit rules.
+# in a git copy of examples/rules/, whose config holds three commit rules.
 # www/generate.sh calls it inside the lock it holds, so this script takes no
 # lock of its own.
 #
@@ -48,3 +48,7 @@ capture commit-task-scope "$P" 'git add -A && git commit -qm "fix: expire idle s
 # The range check: a commit that skipped the hook.
 capture_prep "$P" 'echo "DROP TABLE legacy;" >migrations/002-drop-legacy.sql && git add -A && git commit -q --no-verify -m "chore: drop the legacy table"'
 capture --exit 1 --expect 'broke commit rules' commit-range "$P" 'mt check --commits main~3..main'
+
+# A tip rule: a branch starts a task and lands without finishing it.
+capture_prep "$P" 'mt wip add-csv-export >/dev/null && echo "pub fn export() {}" >src/export.rs && git add -A && git commit -qm "feat: start the CSV export" -m "Refs: add-csv-export"'
+capture --exit 1 --expect 'finish-named-tasks' commit-tip "$P" 'mt check --commits main~1..main'

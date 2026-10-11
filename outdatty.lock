@@ -3,7 +3,7 @@ algorithm: blake3
 groups:
   api-service-problems:
     source:
-      crates/mindtape/src/packs/mindtape-tasks.toml: 8eaf42605d9a210d42a9aff76f3a74035eac410bb0f05ba93bda47fa2d281c32
+      crates/mindtape/src/packs/mindtape-tasks.toml: 425bfbf36d12c747ebac05f80416e744a5dedd20f8654edf8ad2332cba742b78
       examples/api-service/.mindtape/config.toml: 34ecc6bcc67aec9aca6e9307a0ff2601bdd40701d5d67047af0d38a6173ba26b
       examples/api-service/.mindtape/templates/task.typ: 41157e812de4eb373b1791bf47197f01c74e78db76b9971a478c38d5f3ecc9a8
       examples/api-service/dicts/services.txt: 25d2e5ae4c8231bfd16b9d15dfa934c5fcac55a1bd176572f20466164163c39a
@@ -61,7 +61,7 @@ groups:
       crates/mindtape-cli/src/cmd/worktrees.rs: 86744a8121cb08556f777eb93ad527a7717e8005084bae8ade1e3a5dd6b8a53e
       crates/mindtape-cli/src/render/output.rs: 761095f0314459c6a6c04edd5f4ada07ab8b18c4db7d95975fdd4025e9d80319
       crates/mindtape/src/config/defaults.toml: 8cbd613de92f18e4d5165b55e482bfc9e170c96348e3062dae5ce5d17491f864
-      crates/mindtape/src/lib.rs: 55f1d531f0172bcad4e01f92f968c0e90134dcdf2da829724bb6269f1e6040b0
+      crates/mindtape/src/lib.rs: da09ad62b26883d6ae396d128edc1dddc218f3cb3668191a6ef0498210c4f4ac
       crates/mindtape/src/model/fields.rs: eb8c665bb379a8ade21b59c34d32c6edc9b9513fd2761ca6df09df1557340068
     dependents:
       docs/src/skill.typ: 3f11892a794ac169924ffc611f4b03632bedde8ba651c557638e1c8d6bf73969
@@ -92,7 +92,7 @@ groups:
       www/content/cli/set.typ: 24b76bb77e2e3c4b0e7a265702758ada5d054e67a705b5f81c778c244cf93c59
       www/content/cli/views.typ: 9df4c84aa9fce2b98e792ad7fbdc5fbbeda72835bdd47cd589dda25a5685f714
       www/content/cli/worktrees.typ: edd512ecff478c88e54c9c8e177d02948a80a3b37ba33d275a888a7cb87416c5
-      www/content/commit-rules.typ: 49af1176ab2066c05ff3104301df1c1e8b85eb2c159511f9fa0a7bd64a347791
+      www/content/commit-rules.typ: be03558abfd42526610b280ac557c81a71c3aa790c3417170e5b2c4219480726
       www/content/concepts.typ: 7f93f231f77b672dfa9e7c02fab3134a237dd893779b557978087e2c0a42c7c0
       www/content/config.typ: b12713291fec488522857ecd75455bd374a2e56c48d8142e2f5095fe963db579
       www/content/derived-tags.typ: a62813a58d4b2810162a9dfe03b0a7b89ea814f6085293b83f6abfa61f253ed7

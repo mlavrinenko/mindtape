@@ -21,14 +21,16 @@ made. #link(u("/trace-commits-to-tasks/"))[Commits nobody can trace to a task]
 walks through the whole setup, from a refused commit to `touches()`.
 
 The examples run in a git copy of `examples/rules/`, whose config holds the
-two commit rules below. The rules the `mindtape-tasks` pack ships,
-`work-names-a-task` and `flip-with-work`, are listed on
+three commit rules below. The rules the `mindtape-tasks` pack ships,
+`work-names-a-task`, `flip-with-work` and `named-tasks-finish-at-the-tip`, are
+listed on
 #link(u("/rule-packs/"))[Rule packs].
 
 #let parts = (
   ("trailer", "the trailer that names tasks"),
   ("commit-scope", "a rule that runs once per commit"),
   ("task-scope", "a rule that runs once per task the commit touches"),
+  ("tip-scope", "a rule that runs once per task a range names"),
 )
 
 #let slices = checked-slices(
@@ -145,6 +147,29 @@ A breach names the task after the rule. Here `mt done` changed the task
 file, but only the code is staged:
 
 #terminal("commit-task-scope")
+
+= Tip scope
+
+A branch that works on a task should finish it. `scope = "tip"` runs the rule
+once for each task any commit of a range names in its trailer, over the task as
+the range's newest commit, the tip, holds it. Only `mt check --commits` runs
+it, since `mt check --commit-msg` checks one commit with no range. A tip rule
+is an ordinary #link(u("/filters/"))[filter expression], like a
+`[[tasks.rules]]` one: `status`, `ready` and `count(...)` read the tip's tasks,
+and there are no commit fields or state wrappers. The `mindtape-tasks` pack
+ships `named-tasks-finish-at-the-tip`, which asserts `!(status == "wip")`, and
+the config above has the same rule as `finish-named-tasks`. A task named in several commits is checked once, and a
+breach leads with the tip's id and names the task. Here a branch starts a task
+and never finishes it:
+
+#terminal("commit-tip")
+
+A task missing from the tip, because the range deleted or retired it, is
+skipped: it has no state to be wrong in. A tip rule that calls `changed(...)`
+is skipped like any rule that reads the working tree.
+
+To refuse a branch at merge time, run `mt check --commits main..HEAD` in the
+`pre-merge` hook of `wt merge`, or in CI.
 
 = Check a range
 

@@ -151,6 +151,15 @@ message = "stage the task's status change with the work it names"
 severity = "error"
 # docs:end
 
+# docs:slice commit-rules/tip-scope
+[[commits.rules]]
+name = "finish-named-tasks"
+scope = "tip"
+assert = '!(status == "wip")'
+message = "run `mt done <stem>` and commit it with the task's last work"
+severity = "error"
+# docs:end
+
 # The registry `[tasks.assignee] allowed` names. /config/ quotes it.
 # docs:slice config/actors
 [[roles]]

@@ -360,3 +360,17 @@ when = 'into("wip") || into("done")'
 assert = 'named && (!tasks_only || staged(has_tag("decision")))'
 message = "start or close a task in a commit that carries its work"
 severity = "error"
+
+# A branch that works on a task finishes it: `scope = "tip"` runs once per task
+# any commit of `mt check --commits <range>` names, over that task as the
+# range's newest commit holds it (a task the tip lacks is skipped).
+# `status` is a plain task field here, since a tip has one task state. Hang
+# the check on the merge: a `wt merge` pre-merge hook running `mt check
+# --commits {{ target }}..HEAD` refuses a branch that left a named task
+# `wip`.
+[[commits.rules]]
+name = "named-tasks-finish-at-the-tip"
+scope = "tip"
+assert = '!(status == "wip")'
+message = "run `mt done <stem>` and commit it with the task's last work"
+severity = "error"

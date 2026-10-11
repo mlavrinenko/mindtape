@@ -27,7 +27,7 @@ Refs: <stem>
 = What checks them
 
 `.githooks/commit-msg` runs `mt check --commit-msg`, which applies the
-`[[commits.rules]]` of the `mindtape-tasks` pack
+per-commit `[[commits.rules]]` of the `mindtape-tasks` pack
 (`crates/mindtape/src/packs/mindtape-tasks.toml`).
 
 - `work-names-a-task` refuses a commit with no `Refs:` trailer, unless every
@@ -38,6 +38,11 @@ Refs: <stem>
   commit's `Refs:` must name the task, and the commit must change a file
   outside the task root. A task tagged `decision` is exempt from the second
   half, because a decision has no code to commit with it.
+- `named-tasks-finish-at-the-tip` is a `scope = "tip"` rule, which runs only
+  under `mt check --commits <range>`. It refuses a range whose commits name a
+  task that's still `wip` in the newest commit, and prints the stems. So you put
+  the `done` flip in the task's last commit. A `wt merge` `pre-merge` hook runs
+  `mt check --commits main..HEAD` to hold a branch to it.
 
 `.mindtape/config.toml` adds one rule of its own:
 
@@ -46,10 +51,6 @@ Refs: <stem>
   does a flip you left unstaged. The rule refuses early because the repair
   afterwards means rewriting commits. A decision that closes in a task-only
   commit passes, since its staged status is `done`.
-
-`wt merge` should check the other half in a `pre-merge` hook: refuse a branch
-whose commits name a task that's still `wip` at the branch tip, and print the
-stems. So you put the `done` flip in the task's last commit.
 
 `mt check --commit-msg` also refuses a `Refs:` value that's a path or names
 no task.
