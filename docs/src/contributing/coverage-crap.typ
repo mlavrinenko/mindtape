@@ -69,10 +69,14 @@ So the threshold isn't the whole gate. #just.crap() also compares every
 function against `crap-baseline.json`, a committed score per function, and
 fails any function whose score rose. A rise means complexity went up or
 coverage went down, at any score. That catches a complex, undertested
-function that scores well under 30.
+function that scores well under 30. It also fails a function the baseline
+doesn't list, and names it. Otherwise a new function stays unheld until
+someone re-mints, and that mint buries one real rise among every function
+added since.
 
-When you add complexity on purpose, run #just.crap-baseline() in the same
-commit, so the new score lands beside the reason for it.
+When you add a function or add complexity on purpose, run
+#just.crap-baseline() in the same commit, so the new score lands beside the
+reason for it.
 #link("docs/contributing/crap-baseline.md")[docs/contributing/crap-baseline.md]
 covers the baseline file.
 

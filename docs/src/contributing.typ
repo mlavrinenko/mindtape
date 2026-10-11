@@ -27,9 +27,8 @@ nix develop          # dev shell with the toolchain and the git hooks
 just check           # run before every commit
 ```
 
-Run `just` recipes, not raw `cargo`: the recipes carry the right flags and
-environment. In the dev shell, `mt` is
-`target/mt-dev/debug/mt`. #just.build-mt() builds it, and the worktrunk hooks in
+Run `just` recipes, not raw `cargo`: they carry the right flags and
+environment. In the dev shell, `mt` is `target/mt-dev/debug/mt`. #just.build-mt() builds it, and the worktrunk hooks in
 `.config/wt.toml` run it when #just.fork() makes a worktree and after
 #just.land() lands in a checkout. Between those builds, `mt` can be older than
 the code beside it.
@@ -68,7 +67,7 @@ gate fails on any violation. These limits shape the code most:
 - If callers match on a library error type, derive `thiserror::Error` for it,
   as `RecurError`, `ConfigError` and `FilterError` do, and convert it in
   `diag/from_lib.rs` with a match on every variant.
-- Keep `main.rs` a thin entry point and put the logic in library modules.
+- Keep `main.rs` thin and put the logic in library modules.
 
 = Testing
 
@@ -81,9 +80,8 @@ gate fails on any violation. These limits shape the code most:
   file's inline tests into a `_tests.rs` sibling (`tests.rs` for a `mod.rs`)
   with #link("https://github.com/mlavrinenko/ejectest")[ejectest].
 - Run the suite with #just.test() and count it with #just.count-tests().
-- If your code runs a process or joins paths, it also runs on the Windows CI
-  job. See
-  #link("docs/contributing/windows.md")[docs/contributing/windows.md].
+- If your code runs a process or joins paths, the Windows CI job runs it too.
+  See #link("docs/contributing/windows.md")[docs/contributing/windows.md].
 - Before a PR, run #just.mutants-diff() and triage every survivor. A survivor
   is code the tests run but don't check. A run over 100 mutants, about 20
   minutes, needs the owner's approval, so an agent stops and asks instead of
@@ -107,7 +105,7 @@ formatter path lists. When you add a TOML file, a Typst directory or a
 justfile module, add it to its `*_FMT_PATHS` list in the `Justfile`.
 #just.fmt() and #just.fmt-check() both read those lists.
 
-If you add complexity on purpose, run #just.crap-baseline() in the same
+If you add a function or complexity, run #just.crap-baseline() in the same
 commit. The thresholds and their reasons are in
 #link("docs/contributing/coverage-crap.md")[docs/contributing/coverage-crap.md].
 
@@ -174,7 +172,7 @@ says what checks these rules, and why `Refs:` names a stem.
 
 = Findings and the Signal Sweep
 
-When you notice a real problem outside your task, file it with
+When you see a real problem outside your task, file it with
 `mt add --template finding` (tag `found`) before you report, and don't fix it
 in passing. A report reaches one reader once, and a task stays in the
 backlog.
@@ -208,8 +206,8 @@ neither.
 - There's no backward compatibility before the first public release. A
   rename lands whole, callers and configs included, with no alias or
   migration.
-- The workspace crates take their version from `[workspace.package] version`
-  in `Cargo.toml`.
+- The workspace crates take their version from `[workspace.package]` in
+  `Cargo.toml`.
 - The Typst library's version is `version` in `lib/typst.toml`, independent of
   the crates. The `typst-pkg-version` outdatty group lists every file that
   repeats it.
@@ -224,8 +222,8 @@ neither.
   and commits. The hook refuses every other state a release has failed from.
   Then the recipe pushes `main`, so CI runs on the release tree, and tags only
   once that commit's `ci.yml` run is green. `--dry-run` checks and pushes
-  nothing. After a red CI, fix `main` and re-run: the bump
-  and the dating stay done.
+  nothing. After a red CI, fix `main` and re-run: the bump and the dating
+  stay done.
 - A release whose workflow failed is finished on the same tag with
   `gh workflow run release.yml -f tag=vVERSION`, which skips each crate
   crates.io already has. A pushed tag never moves.

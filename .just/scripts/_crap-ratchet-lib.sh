@@ -24,13 +24,20 @@
 # so it can only pair through the name passes, never with a stranger's line.
 # Inserting a same-named function above another in the same file still
 # re-pairs the ones below; that file was touched, and the failure names it.
+#
+# A scored function with no baseline entry fails too
+# (truth/tasks/hold-a-new-function-to-the-crap-ratchet-from-the-commit-that-adds-it.typ).
+# cargo-crap reports it as new and compares it with nothing, so until the next
+# re-mint nothing held it, and that re-mint then carried every function added
+# since, burying the one real rise among them.
 
 # crap_ratchet <root> <baseline> <cargo-crap scan args>...
 crap_ratchet() {
-    local root=$1 baseline=$2 cur aligned rc=0
+    local root=$1 baseline=$2 cur aligned delta new rc=0
     shift 2
     cur=$(mktemp)
     aligned=$(mktemp)
+    delta=$(mktemp)
     cargo crap "$@" --format json --output "$cur"
     jq --arg root "$root/" --slurpfile cur "$cur" '
         def key: [.file, .function] | tojson;
@@ -48,6 +55,15 @@ crap_ratchet() {
             | add // [])
     ' "$baseline" > "$aligned"
     cargo crap "$@" --baseline "$aligned" --fail-regression --format markdown || rc=$?
-    rm -f "$cur" "$aligned"
+    cargo crap "$@" --baseline "$aligned" --format json --output "$delta"
+    new=$(jq -r --arg root "$root/" '.entries[] | select(.status == "new")
+        | "  \(.file | ltrimstr($root)):\(.line) \(.function)"' "$delta")
+    if [ -n "$new" ]; then
+        echo "crap: these functions have no baseline entry, so nothing holds them:"
+        echo "$new"
+        echo "  run \`just crap-baseline\` in the same commit as the code that adds them"
+        rc=1
+    fi
+    rm -f "$cur" "$aligned" "$delta"
     return "$rc"
 }

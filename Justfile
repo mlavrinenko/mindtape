@@ -610,9 +610,9 @@ _crap-excludes:
 crap:
     bash .just/scripts/crap.sh all {{ CRAP_EXCLUDES }}
 
-# Re-mint crap-baseline.json after a deliberate complexity increase. Run it in
-# the same commit as the change that justifies it, so the diff shows the new
-# number next to the reason for it. A ratchet with no documented release valve
+# Re-mint crap-baseline.json after adding a function or a deliberate complexity
+# increase. Run it in the same commit as the change that justifies it, so the
+# diff shows the new number next to the reason for it. A ratchet with no documented release valve
 # gets bypassed instead of refreshed.
 #
 # The pre-mint guard is the threshold arm only. Nothing above 30 may be minted
@@ -621,7 +621,7 @@ crap:
 # gate would refuse this recipe's own use. .just/scripts/crap.sh argues the
 # split, and crap-baseline.sh runs the arm.
 
-[doc("Re-mint crap-baseline.json after a deliberate complexity increase")]
+[doc("Re-mint crap-baseline.json after a new function or complexity rise")]
 [group("advisory")]
 crap-baseline:
     bash .just/scripts/crap-baseline.sh {{ CRAP_EXCLUDES }}

@@ -83,3 +83,8 @@ expect "shifted, unchanged" 0 "$tmp/out" "$rc" "0 regressed" "0 new" "0 removed"
 jq '.entries |= map(if .line == 8 then .crap = 2 else . end)' "$tmp/base.json" > "$tmp/c.json"
 rc=$(ratchet "$tmp/b" "$tmp/c.json" "$tmp/out")
 expect "shifted, second regressed" 1 "$tmp/out" "$rc" "1 regressed" "src/lib.rs:11"
+
+# A function the baseline does not list fails, naming it and the re-mint.
+jq '.entries |= map(select(.line != 8))' "$tmp/base.json" > "$tmp/d.json"
+rc=$(ratchet "$tmp/b" "$tmp/d.json" "$tmp/out")
+expect "shifted, second unlisted" 1 "$tmp/out" "$rc" "no baseline entry" "src/lib.rs:11 D::from" "just crap-baseline"

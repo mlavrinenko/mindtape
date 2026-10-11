@@ -11,7 +11,7 @@ nix develop          # dev shell with the toolchain and the git hooks
 just check           # run before every commit
 ```
 
-Run `just` recipes, not raw `cargo`: the recipes carry the right flags and environment. In the dev shell, `mt` is `target/mt-dev/debug/mt`. `just build-mt` builds it, and the worktrunk hooks in `.config/wt.toml` run it when `just fork` makes a worktree and after `just land` lands in a checkout. Between those builds, `mt` can be older than the code beside it.
+Run `just` recipes, not raw `cargo`: they carry the right flags and environment. In the dev shell, `mt` is `target/mt-dev/debug/mt`. `just build-mt` builds it, and the worktrunk hooks in `.config/wt.toml` run it when `just fork` makes a worktree and after `just land` lands in a checkout. Between those builds, `mt` can be older than the code beside it.
 
 This file holds the rules. The `docs/contributing/*.md` deep dives explain why and how they work, and `AGENTS.md` says what MindTape is.
 
@@ -30,7 +30,7 @@ The workspace `Cargo.toml` sets its clippy lints to `deny`, so the `clippy` gate
 - Pick the kind, not the exit code: `Diag::usage` exits 2, `Diag::refused` and `Diag::failed` exit 1. `main` prints the error and exits with its code.
 - Every command returns `Result<_, Diag>`, and the `mt` binary has no `anyhow`. clippy refuses `eprintln!`, `eprint!` and `std::io::stderr` outside `diag/`, so no line reaches stderr unrendered.
 - If callers match on a library error type, derive `thiserror::Error` for it, as `RecurError`, `ConfigError` and `FilterError` do, and convert it in `diag/from_lib.rs` with a match on every variant.
-- Keep `main.rs` a thin entry point and put the logic in library modules.
+- Keep `main.rs` thin and put the logic in library modules.
 
 ## Testing
 
@@ -38,7 +38,7 @@ The workspace `Cargo.toml` sets its clippy lints to `deny`, so the `clippy` gate
 - Put tests that run the `mt` binary (`assert_cmd::cargo_bin`) in `tests/it/`, which each crate links as one binary: declare a new file in `tests/it/main.rs`. Only integration tests get `CARGO_BIN_EXE_mt`.
 - When a file nears its linecop cap, run `just fix-check`. It moves the file’s inline tests into a `_tests.rs` sibling (`tests.rs` for a `mod.rs`) with [ejectest](https://github.com/mlavrinenko/ejectest).
 - Run the suite with `just test` and count it with `just count-tests`.
-- If your code runs a process or joins paths, it also runs on the Windows CI job. See [docs/contributing/windows.md](docs/contributing/windows.md).
+- If your code runs a process or joins paths, the Windows CI job runs it too. See [docs/contributing/windows.md](docs/contributing/windows.md).
 - Before a PR, run `just mutants-diff` and triage every survivor. A survivor is code the tests run but don’t check. A run over 100 mutants, about 20 minutes, needs the owner’s approval, so an agent stops and asks instead of setting `MINDTAPE_MUTANTS_APPROVED=1` itself. The triage classes are in [docs/contributing/mutation-testing.md](docs/contributing/mutation-testing.md).
 
 ## Quality Gates (run by `just check`)
@@ -52,7 +52,7 @@ mmz --status --tag gate        # which gates are fresh, stale or failed
 
 [docs/contributing/gates.md](docs/contributing/gates.md) covers how `just check` orders the gates, how it skips unchanged work, and the formatter path lists. When you add a TOML file, a Typst directory or a justfile module, add it to its `*_FMT_PATHS` list in the `Justfile`. `just fmt` and `just fmt-check` both read those lists.
 
-If you add complexity on purpose, run `just crap-baseline` in the same commit. The thresholds and their reasons are in [docs/contributing/coverage-crap.md](docs/contributing/coverage-crap.md).
+If you add a function or complexity, run `just crap-baseline` in the same commit. The thresholds and their reasons are in [docs/contributing/coverage-crap.md](docs/contributing/coverage-crap.md).
 
 If you touch `flake.nix` or `.cargo/config.toml`, run `just nix-build`. It builds the flake in a clean sandbox, and `just release` runs it too.
 
@@ -85,7 +85,7 @@ A worktree only gets commits, never your working tree, so commit first and branc
 
 ## Findings and the Signal Sweep
 
-When you notice a real problem outside your task, file it with `mt add --template finding` (tag `found`) before you report, and don’t fix it in passing. A report reaches one reader once, and a task stays in the backlog.
+When you see a real problem outside your task, file it with `mt add --template finding` (tag `found`) before you report, and don’t fix it in passing. A report reaches one reader once, and a task stays in the backlog.
 
 `just ask-refactoring` reads the quality signals that no gate enforces and prints one task per finding. Add `--write` to file them. The arms and their scoring are in [docs/contributing/signal-sweep.md](docs/contributing/signal-sweep.md).
 
@@ -103,7 +103,7 @@ A rebase or merge joins two branches’ `outdatty.lock` key by key through `.jus
 ## Version Management
 
 - There’s no backward compatibility before the first public release. A rename lands whole, callers and configs included, with no alias or migration.
-- The workspace crates take their version from `[workspace.package] version` in `Cargo.toml`.
+- The workspace crates take their version from `[workspace.package]` in `Cargo.toml`.
 - The Typst library’s version is `version` in `lib/typst.toml`, independent of the crates. The `typst-pkg-version` outdatty group lists every file that repeats it.
 - `mindtape-cli` depends on `mindtape` by version and path, since crates.io refuses a path-only dependency. Bump it with the workspace version.
 - `just release VERSION` is the whole release, and its tag push the only publish path: don’t run `cargo publish` or push `main` by hand. Keep the release’s entries under `[Unreleased]`; the recipe dates them. It runs [cargo-release](https://github.com/crate-ci/cargo-release) (`release.toml`), which refuses a dirty tree or a branch other than `main`, bumps the version, dates the entries, runs `.just/scripts/release-hook.sh` and commits. The hook refuses every other state a release has failed from. Then the recipe pushes `main`, so CI runs on the release tree, and tags only once that commit’s `ci.yml` run is green. `--dry-run` checks and pushes nothing. After a red CI, fix `main` and re-run: the bump and the dating stay done.
