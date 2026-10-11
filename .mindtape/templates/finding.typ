@@ -81,13 +81,13 @@
 
 + #slot(
     "context",
-    kind: "text",
+    kind: "raw",
     prompt: "what you were doing when you noticed this, one line",
     example: "Running `just check` while fixing the sort order",
   )
 + 🔴 #raw(slot("path", prompt: "repo-relative path the finding is about", example: "Justfile")): #slot(
     "observation",
-    kind: "text",
+    kind: "raw",
     prompt: "what is wrong, stated as one fact",
     example: "the `machete` recipe prints two banner lines on every clean run",
   )

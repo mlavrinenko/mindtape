@@ -92,7 +92,9 @@ escaping because it looks like markup: the same value fills a `text` slot
 escaped and a `raw` slot verbatim.
 
 The value is pasted, not read. Declare `raw` for a slot that holds formatted
-body content, such as `summary` or `body`.
+body content, such as `summary` or `body`. `mt check` refuses a `text` slot
+whose example shows a code span, because a filler who copies that example
+gets backslashes.
 
 - `mt add` parses a `raw` value as Typst markup and fails before writing
   anything, naming the slot, when it does not parse. That check covers a

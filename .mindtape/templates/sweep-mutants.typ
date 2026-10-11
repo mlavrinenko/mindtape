@@ -75,7 +75,7 @@ every run, so the task is worth only as much as that measurement still is.
   "scope",
   kind: "text",
   prompt: "one sentence naming what that sweep covered",
-  example: "The sweep ran `cargo mutants` over the files changed since `main`.",
+  example: "That sweep ran 40 mutants across 1 file(s) (crates/mindtape/src/sort.rs) and left 1 unpinned.",
 )
 
 == TO-BE

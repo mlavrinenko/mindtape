@@ -5,7 +5,9 @@
 //! `example`, else its `default` ([`crate::fill_examples`]), and every breach
 //! of that task is the template's. A slot with neither cannot be filled, so it
 //! is a breach of its own ([`unfillable_slots`]) and the template goes
-//! unchecked until it has one.
+//! unchecked until it has one. A `text` slot whose example shows markup is a
+//! breach too ([`code_span_examples`]): `mt add` escapes what a caller types
+//! there, so the example would teach input that files as backslashes.
 //!
 //! The candidate validation itself is [`crate::check_candidate`]; the CLI
 //! splices the config-required slots and the add-owned header in between,
@@ -18,7 +20,7 @@ use typst_edit::line_of;
 
 use crate::model::task_spans::TaskCallSpans;
 use crate::template::add_slots::RequiredSlot;
-use crate::template::discover_slots;
+use crate::template::{SlotKind, discover_slots};
 use crate::validate::severity::Severity;
 use crate::validate::{Location, Violation};
 
@@ -104,6 +106,31 @@ pub fn unfillable_slots(
         .collect();
     found.sort_by_key(|violation| violation.location.line());
     found
+}
+
+/// One breach per `text` slot of `authored` whose example shows a code span.
+/// `mt add` escapes a `text` slot's value, so the span files as literal
+/// backticks, and a caller who copies the example's style gets backslashes in
+/// the task. Only the backtick counts: in prose it marks code and nothing
+/// else, while `_`, `#` and the other escaped characters also spell paths,
+/// issue numbers and identifiers that the slot rightly files as written.
+#[must_use]
+pub fn code_span_examples(home: TemplateHome<'_>, authored: &str) -> Vec<Violation> {
+    discover_slots(authored)
+        .into_iter()
+        .filter(|spec| spec.kind == SlotKind::Text)
+        .filter(|spec| {
+            (spec.example_string.as_deref()).is_some_and(|example| example.contains('`'))
+        })
+        .map(|spec| {
+            let message = format!(
+                "slot `{}` is `text`, so `mt add` files the code span in its example as \
+                 literal backticks; make it `kind: \"raw\"` or drop the backticks",
+                spec.name
+            );
+            breach(home, line_of(authored, spec.range.start), message)
+        })
+        .collect()
 }
 
 /// `violations` of a template's filled task, each moved onto the template's

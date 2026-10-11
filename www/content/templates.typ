@@ -100,6 +100,10 @@ takes a list, and an estimate takes a table such as `{ days = 1 }`. A
 framework input keeps the example its range gives. A template that doesn't
 evaluate is reported once, with the Typst error.
 
+A `text` slot's example can't show a code span. `mt add` escapes the
+backticks, so anyone who copies the example's style files literal backslashes.
+`mt check` names the slot, and you either make it `raw` or drop the backticks.
+
 The built-in template is reported as `built-in template task`, at the severity
 `[templates] fallback-severity` sets: `"warning"` by default, or `"error"`.
 Any #link(u("/config/#layers"))[config layer] can set it, the global

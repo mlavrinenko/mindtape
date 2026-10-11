@@ -111,7 +111,8 @@ pub use sort::{default_order, default_order_with, difficulty_value, sort_by_spec
 pub use suggest::{Unknown, nearest};
 pub use template::add_slots::{RequiredSlot, inherit_field_choices, required_core_slots};
 pub use template::check::{
-    TemplateHome, TemplateSources, template_breaches, template_failure, unfillable_slots,
+    TemplateHome, TemplateSources, code_span_examples, template_breaches, template_failure,
+    unfillable_slots,
 };
 pub use template::{FillError, RawValue, SlotKind, SlotSpec, discover_slots, fill, fill_examples};
 pub use validate::candidate::{

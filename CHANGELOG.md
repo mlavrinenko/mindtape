@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt check` refuses a `text` slot whose example shows a code span.** `mt add`
+  escapes a `text` slot's value, so anyone who copied such an example's style
+  filed literal backslashes. The error names the slot and its line, and asks
+  for `kind: "raw"` or an example without backticks.
 - **`mt allow`: no `[[tasks.waits]]` checker runs until you allow it.** A clone's
   config could make `mt ls` run its commands before anyone read them. Now `mt`
   runs none until `mt allow` records a hash of every `run` line for the

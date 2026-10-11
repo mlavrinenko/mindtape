@@ -1508,7 +1508,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/check/templates.rs",
       "function": "at_severity",
-      "line": 259,
+      "line": 265,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -1519,14 +1519,14 @@
       "function": "breaches",
       "line": 76,
       "cyclomatic": 4.0,
-      "coverage": 87.5,
-      "crap": 4.03125,
+      "coverage": 88.88888888888889,
+      "crap": 4.021947873799726,
       "crate": "mindtape-cli"
     },
     {
       "file": "crates/mindtape-cli/src/cmd/check/templates.rs",
       "function": "candidate_stem",
-      "line": 144,
+      "line": 150,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -1535,7 +1535,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/check/templates.rs",
       "function": "check_alone",
-      "line": 221,
+      "line": 227,
       "cyclomatic": 4.0,
       "coverage": 96.96969696969697,
       "crap": 4.00044522358572,
@@ -1544,7 +1544,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/check/templates.rs",
       "function": "failure_kind",
-      "line": 185,
+      "line": 191,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -1553,7 +1553,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/check/templates.rs",
       "function": "file_examples",
-      "line": 275,
+      "line": 281,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -1562,7 +1562,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/check/templates.rs",
       "function": "judge",
-      "line": 160,
+      "line": 166,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -1571,7 +1571,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/check/templates.rs",
       "function": "load_failure",
-      "line": 196,
+      "line": 202,
       "cyclomatic": 1.0,
       "coverage": 95.0,
       "crap": 1.000125,
@@ -1580,7 +1580,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/check/templates.rs",
       "function": "one_prelude_failure",
-      "line": 127,
+      "line": 133,
       "cyclomatic": 1.0,
       "coverage": 92.3076923076923,
       "crap": 1.0004551661356396,
@@ -7882,8 +7882,8 @@
       "function": "amending",
       "line": 45,
       "cyclomatic": 2.0,
-      "coverage": 100.0,
-      "crap": 2.0,
+      "coverage": 90.0,
+      "crap": 2.004,
       "crate": "mindtape"
     },
     {
@@ -12911,7 +12911,7 @@
     {
       "file": "crates/mindtape/src/lib.rs",
       "function": "select",
-      "line": 131,
+      "line": 132,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -15458,7 +15458,7 @@
     {
       "file": "crates/mindtape/src/template/check.rs",
       "function": "TemplateHome::at",
-      "line": 39,
+      "line": 41,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -15467,7 +15467,7 @@
     {
       "file": "crates/mindtape/src/template/check.rs",
       "function": "TemplateHome::label",
-      "line": 50,
+      "line": 52,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -15476,7 +15476,7 @@
     {
       "file": "crates/mindtape/src/template/check.rs",
       "function": "breach",
-      "line": 130,
+      "line": 157,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -15485,7 +15485,16 @@
     {
       "file": "crates/mindtape/src/template/check.rs",
       "function": "call_line",
-      "line": 163,
+      "line": 190,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/template/check.rs",
+      "function": "code_span_examples",
+      "line": 118,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -15494,7 +15503,7 @@
     {
       "file": "crates/mindtape/src/template/check.rs",
       "function": "relocate",
-      "line": 145,
+      "line": 172,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -15503,7 +15512,7 @@
     {
       "file": "crates/mindtape/src/template/check.rs",
       "function": "template_breaches",
-      "line": 112,
+      "line": 139,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -15512,7 +15521,7 @@
     {
       "file": "crates/mindtape/src/template/check.rs",
       "function": "template_failure",
-      "line": 126,
+      "line": 153,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -15521,7 +15530,7 @@
     {
       "file": "crates/mindtape/src/template/check.rs",
       "function": "unfillable_slots",
-      "line": 75,
+      "line": 77,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,

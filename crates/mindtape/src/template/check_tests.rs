@@ -96,3 +96,26 @@ fn a_built_in_template_breach_names_the_template_not_a_path() {
         }
     );
 }
+
+/// A `text` slot escapes what a caller fills it with, so an example showing a
+/// code span teaches input that files as backslashes. A `string` title and a
+/// `raw` slot keep their markup, and a path's `_` files as written.
+#[test]
+fn a_text_slot_whose_example_shows_a_code_span_is_a_breach_at_its_line() {
+    let template = "#show: task.with(title: slot(\"title\", example: \"Fix `x`\"))\n\n\
+         #slot(\"plain\", kind: \"text\", example: \"ran over sort_tests.rs\")\n\
+         #slot(\"why\", kind: \"text\", example: \"the `retire` verb\")\n\
+         #slot(\"body\", kind: \"raw\", example: \"the `retire` verb\")\n";
+    let found = code_span_examples(TemplateHome::File(Path::new("t.typ")), template);
+    let at: Vec<(usize, &str)> = (found.iter())
+        .map(|v| (v.location.line(), v.message.as_str()))
+        .collect();
+    assert_eq!(
+        at,
+        vec![(
+            4,
+            "slot `why` is `text`, so `mt add` files the code span in its example as \
+             literal backticks; make it `kind: \"raw\"` or drop the backticks"
+        )]
+    );
+}

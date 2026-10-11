@@ -99,6 +99,22 @@ fn a_slot_with_neither_example_nor_default_names_the_slot() {
     );
 }
 
+/// A `text` slot's example that shows a code span files as backslashes once
+/// `mt add` escapes it, so the check names the slot at its line.
+#[test]
+fn a_text_slot_example_with_markup_names_the_slot() {
+    let body = "\n#slot(\"why\", kind: \"text\", example: \"the `retire` verb\")\n";
+    let dir = scaffold(&format!("{}{body}", template("\"fix\"")));
+    let (ok, text) = check(dir.path());
+    assert!(!ok, "{text}");
+    assert!(
+        text.contains(
+            ".mindtape/templates/bug.typ:7: template: slot `why` is `text`, so `mt add` files the code span"
+        ),
+        "{text}"
+    );
+}
+
 /// A slot `mt add` adds for a config-required field the template omits takes
 /// its example from config, and that example passes the config's own checks.
 #[test]

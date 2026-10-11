@@ -32,8 +32,8 @@
 
 == Problem
 
-+ Running \`just check\` in the allow worktree, after the docs captures changed
-+ 🔴 #raw("www/capture.sh"): \`capture\_copy\` runs \`cp -r\` over \`examples/api-service\`, cache included, and the copy fails when another process removes a cache temp file mid-copy, which failed \`check-doc-facts\` once and passed on the rerun.
++ Running `just check` in the allow worktree, after the docs captures changed
++ 🔴 #raw("www/capture.sh"): `capture_copy` runs `cp -r` over `examples/api-service`, cache included, and the copy fails when another process removes a cache temp file mid-copy, which failed `check-doc-facts` once and passed on the rerun.
 
 
 ```

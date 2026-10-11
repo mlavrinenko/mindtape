@@ -65,13 +65,13 @@ groups:
       crates/mindtape-cli/src/cmd/worktrees.rs: 86744a8121cb08556f777eb93ad527a7717e8005084bae8ade1e3a5dd6b8a53e
       crates/mindtape-cli/src/render/output.rs: 761095f0314459c6a6c04edd5f4ada07ab8b18c4db7d95975fdd4025e9d80319
       crates/mindtape/src/config/defaults.toml: 8cbd613de92f18e4d5165b55e482bfc9e170c96348e3062dae5ce5d17491f864
-      crates/mindtape/src/lib.rs: f8b577ee0b2bb6bc31bf5225beb59e04be14936253afabec4cf276da53a0ede4
+      crates/mindtape/src/lib.rs: 5ea5de0f2755ef972afa859f28050285d30afcf3bb7c9030ace5faf35265e8bb
       crates/mindtape/src/model/fields.rs: eb8c665bb379a8ade21b59c34d32c6edc9b9513fd2761ca6df09df1557340068
     dependents:
       docs/src/skill.typ: 253a9a6abb2410ce8c4aec4a3ec8cddb07a18c902248902134198aa083502e49
       skills/mindtape/evals/README.md: 40e834b8a4281bc4c7d2b4f4f57ae5c8272da73a80df919c95bc18b69f58c31c
       skills/mindtape/evals/evals.json: 64330633a8201a68c28ac0b760b941df6ff32fb99c2b7beb679b79814a8ba503
-      skills/mindtape/references/add-slots.md: b3c097dd407841f7b98a8036b02e381fb35d559d316858cc5a49472738d40a9c
+      skills/mindtape/references/add-slots.md: 1b732bf6c8ebb635b829da95731b6bf98ed984dad636a95561fbecaec12ada46
       skills/mindtape/references/filters.md: d85f9ac9650c8018f367d71b02694878ecc6348da7c9f627534fdaefe1380993
       www/content/agents.typ: 4c377c9a599467382bd3c2ba843b3083a2102006b82b07f1b8e521cf0db7504d
       www/content/cli.typ: 43dd4cab296dd606bb0cf040ad50baa42d1623876bdec0704c6d075e51f53e2a
@@ -113,7 +113,7 @@ groups:
       www/content/rules.typ: cf795f92b9a393923357e379c8e5ea059355f6d7c8aa4b8b596e3bd12091ea49
       www/content/schema.typ: 0cf69c7ec4bd1d42ae7796ebb7b3bd89e25bab9a98382798a3687ad263455514
       www/content/statuses.typ: 79d707f00b08f4632611f64942bee2cc673857b1667e13e9f24d16e142d42cd8
-      www/content/templates.typ: 6ecb2922d784716018ae73dab986d50cddbd6bc9a8ec5b7a054fbf135ce7e939
+      www/content/templates.typ: 1d5e426de0e63a9c95ba7783ad6899d6377dc731ee4c4d986c46b3306c4848be
       www/utils/cli-notes.typ: 8c8347d1f796f03e2f605cc11362a4e97f5e51928f76c54c4f95eca90b64ae17
   cli-name:
     source:
@@ -239,14 +239,14 @@ groups:
     dependents:
       docs/src/agents.typ: efeab2fa403ba1018347e39f347a65766c4e02060bcf4ef7f4c380ce34f78848
       docs/src/skill.typ: 76fe9491e24228c4e5ae35b9d4c410b2c3d54dea6874f5d10f2d026de24c5414
-      skills/mindtape/references/add-slots.md: b3c097dd407841f7b98a8036b02e381fb35d559d316858cc5a49472738d40a9c
+      skills/mindtape/references/add-slots.md: 1b732bf6c8ebb635b829da95731b6bf98ed984dad636a95561fbecaec12ada46
       www/content/concepts.typ: 7f93f231f77b672dfa9e7c02fab3134a237dd893779b557978087e2c0a42c7c0
       www/content/dsl.typ: 367d7eba658e15f7dda0d967e162e2eacc7d44c01361d74709030b3ddfe20950
       www/content/index.typ: 19f2a6a6a0f5716788ceaff9425a32b00a2cb469b9ceb460c0a019f322e57434
       www/content/links.typ: e3a979681bb69195fddbb8d672e58842ae07b7464ebdd60720b12bd29a9240a0
       www/content/priority.typ: 3ce099d671a74c81abda7c1d7b0c77ca97dd21ffbdaf9e6d9884adffe22ac4ee
       www/content/recurring.typ: 627af18b68cd0334c7e5a623b4f53aa3d1b75806e2830f95a0472f0a133e9b61
-      www/content/templates.typ: 6ecb2922d784716018ae73dab986d50cddbd6bc9a8ec5b7a054fbf135ce7e939
+      www/content/templates.typ: 1d5e426de0e63a9c95ba7783ad6899d6377dc731ee4c4d986c46b3306c4848be
   priority-frameworks:
     source:
       crates/mindtape/src/framework/frameworks.toml: 69a8880cc7c1682d9423865404c25cc2c0240e54824d4722573d7d1f9cf387cc
@@ -292,7 +292,7 @@ groups:
       .mindtape/templates/sweep-size.typ: a4a63ed8a6f8a331a4e744335f88b7a3fe84238b13c287ab28a059d470332b07
     dependents:
       .mindtape/templates/sweep-coverage.typ: 69b85dc70aab8ba25127e52d13cb34d9f42a8be973ec93e8b28a86a636cf5d5c
-      .mindtape/templates/sweep-mutants.typ: ac0b440aac6d93b178ec46b714a6ac3dee36358fec432358b553cb87751c1191
+      .mindtape/templates/sweep-mutants.typ: 2183fdd7812da4264fb0707a2accf49e49824d89ca72bc74d4d70475b1d043b8
       .mindtape/templates/sweep-undertested.typ: 73e12fd227ecc67d3f3310376f498c5a0559c6ce14202bee3dc185de3e768918
       contrib/ask-refactoring/coverage.sh: bd32655226ab0cd1d391028cfc6c1670499cbd42a2cda77cbfd3a00575207d9c
       contrib/ask-refactoring/mutants.sh: 1583427a46ea48571c0712b97b1dd684778b1010e48122dc63339d4c6d06fc22

@@ -115,7 +115,13 @@ pub(crate) fn breaches(project: &Project, body_rules: BodyRules<'_>) -> Result<F
         violations: judged
             .into_iter()
             .zip(&templates)
-            .flat_map(|(found, template)| at_severity(found, template.file.is_none(), fallback))
+            .flat_map(|(mut found, template)| {
+                found.extend(mindtape::code_span_examples(
+                    template.home(),
+                    &template.authored,
+                ));
+                at_severity(found, template.file.is_none(), fallback)
+            })
             .collect(),
         load_failures: one_prelude_failure(load_failures),
         load_warnings: one_prelude_failure(load_warnings),
