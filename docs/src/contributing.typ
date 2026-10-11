@@ -28,7 +28,7 @@ just check           # run before every commit
 ```
 
 Run `just` recipes, not raw `cargo`: the recipes carry the right flags and
-environment. Run `just` alone to list them. In the dev shell, `mt` is
+environment. In the dev shell, `mt` is
 `target/mt-dev/debug/mt`. #just.build-mt() builds it, and the worktrunk hooks in
 `.config/wt.toml` run it when #just.fork() makes a worktree and after
 #just.land() lands in a checkout. Between those builds, `mt` can be older than
@@ -74,8 +74,9 @@ gate fails on any violation. These limits shape the code most:
 
 - Put unit tests in `#[cfg(test)] mod tests` beside the code, or in a sibling
   `_tests.rs` loaded with `#[path]`.
-- Put tests that run the `mt` binary (`assert_cmd::cargo_bin`) in `tests/`.
-  Cargo sets `CARGO_BIN_EXE_mt` only for integration tests.
+- Put tests that run the `mt` binary (`assert_cmd::cargo_bin`) in `tests/it/`,
+  which each crate links as one binary: declare a new file in
+  `tests/it/main.rs`. Only integration tests get `CARGO_BIN_EXE_mt`.
 - When a file nears its linecop cap, run #just.fix-check(). It moves the
   file's inline tests into a `_tests.rs` sibling (`tests.rs` for a `mod.rs`)
   with #link("https://github.com/mlavrinenko/ejectest")[ejectest].

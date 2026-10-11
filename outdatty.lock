@@ -112,13 +112,13 @@ groups:
       www/utils/cli-notes.typ: c364a3d5cbc1c34bdb8e05fe0b29dbbd8e425d315de06337db4e5f5a0bb80e87
   cli-name:
     source:
-      crates/mindtape-cli/Cargo.toml: c5f9fc9f3bb812449698f0e0a9555d449d2ab4b4b0208de68bb77d35f53ca9af
+      crates/mindtape-cli/Cargo.toml: da32995f983964032ee91cc5534080f21ce47608475bf8c554b727a15bcd2f15
       crates/mindtape-cli/src/cli/mod.rs: b211689308b803639e789b4160c68fe84e7f3b24b70c93d9da4e7f508c317f8c
     dependents:
-      CHANGELOG.md: e9c6de95599363d06cece5e841c0d4ef8d6d3b2b2e9290f9124a7b92964d624d
-      docs/src/agents.typ: 6a226def19f29097c3d4141891a5bdc80dd4b03c2ab7847e07233350e2dbbf7f
-      docs/src/contributing.typ: 0fcf56a1143b4f0c0395620b50af3c9474aeb1c591003724bc4c20f34973edd3
-      docs/src/contributing/command-semantics.typ: bb34aceec2040207d20e78a519a933576b3df52f941b6496b8eaa1f4c1e84ebc
+      CHANGELOG.md: 23213db77a2a5ab8149698e38282e78a392bdf1a1b7c22f249c21634b312c019
+      docs/src/agents.typ: efeab2fa403ba1018347e39f347a65766c4e02060bcf4ef7f4c380ce34f78848
+      docs/src/contributing.typ: b17212f602bd77f41fed99aa7436ccd1ddb892d950a4c1528848a2168f947ef1
+      docs/src/contributing/command-semantics.typ: d9193a6e6a87d97c9bb2ea4d87c68765c74fd27b14c6bda3e54203ee8520a0e5
       docs/src/readme.typ: 84c0bda43d327ef711df98c5c9bf9b96ac333e80906973184c045f432c89be06
       docs/src/skill.typ: 3f11892a794ac169924ffc611f4b03632bedde8ba651c557638e1c8d6bf73969
       www/content/cli.typ: 43dd4cab296dd606bb0cf040ad50baa42d1623876bdec0704c6d075e51f53e2a
@@ -132,7 +132,7 @@ groups:
       .just/scripts/cover.sh: b319f75064ea55c2a7600ff1af7127b41817c68409e70613de2eafa4ae71b85f
       .just/scripts/crap-baseline-check.sh: c44c998700a5e14ae944829bc42ef6005e30041525aba2725cfe2fddd005f5e9
       .just/scripts/crap-baseline.sh: 9557082bf19d408a02ab75cc5386d1c0667391cd24c07fa62ed595ef521cce87
-      .just/scripts/crap.sh: c7a9f549cd817cce4926ee1401eda6a16f2f09b71b4095d7a3bf58c54f1b4411
+      .just/scripts/crap.sh: 2e2bd26d1066e3664753a8036a0f107d46d754f688266a5591d4313e9dca9802
     dependents:
       docs/src/contributing/coverage-crap.typ: a9d1342bcc89f7e565afbff8e97b512a83a4c2415297eadb81ffc00f594805a6
       docs/src/contributing/crap-baseline.typ: 551aab6a955a9d4345e73e1c171fe860663887e8b3c56f611f2f2551356eb301
