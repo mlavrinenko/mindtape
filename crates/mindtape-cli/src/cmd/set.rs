@@ -101,6 +101,10 @@ const WRITABLE: &[Writable] = &[
         shape: Shape::Text,
     },
     Writable {
+        name: "waits-on",
+        shape: Shape::List(|task| &task.waits_on),
+    },
+    Writable {
         name: "tags",
         shape: Shape::List(|task| &task.tags),
     },

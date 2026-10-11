@@ -26,10 +26,10 @@
 //! same trick `@view` sugar plays in [`crate::filter::views`].
 //!
 //! Only `mt flip` runs actions. `mt check`, `mt ls` and every other read command
-//! execute nothing: a read that shells out is a surprise, and `mt check` is what
-//! runs inside editors and commit hooks. The trust boundary is a `Justfile`'s or
-//! a git hook's — the command comes from the in-repo config and runs with the
-//! caller's full authority. Nothing here is sandboxed.
+//! run none, because `mt check` runs inside editors and commit hooks, where a
+//! test suite firing would be a surprise. The one config command a read runs is
+//! a `[[tasks.waits]]` checker ([`crate::waits`]), which must answer from local
+//! state. [`crate::shell`] runs both and states the trust boundary.
 //!
 //! This module holds the shape and the selection (which hooks fire for a given
 //! transition); running the actions is the CLI's job.

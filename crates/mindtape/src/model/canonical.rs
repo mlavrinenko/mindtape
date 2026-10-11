@@ -21,6 +21,7 @@
 //! | `assignee`      | authored |                                                      |
 //! | `estimate`      | authored | opaque `unit -> quantity` map                        |
 //! | `links`         | authored | `[{task, kind, note}]`                              |
+//! | `waits_on`      | authored | `checker:id` entries                                |
 //! | `tags`          | authored | authored tags only                                  |
 //! | `derived_tags`  | computed | folder-derived virtual tags; import reads `tags` only |
 //! | `why`           | computed | unfinished blocking targets `[{stem, status, kind}]`; empty unless blocked |
@@ -94,6 +95,9 @@ pub struct CanonicalTask {
     /// Typed `links:` edges.
     #[serde(default)]
     pub links: Vec<CanonicalLink>,
+    /// What the task waits on outside the repo, as `checker:id` entries.
+    #[serde(default)]
+    pub waits_on: Vec<String>,
     /// Authored tags, exactly as written in the file.
     #[serde(default)]
     pub tags: Vec<String>,
@@ -210,6 +214,7 @@ impl CanonicalTask {
             assignee: task.assignee.clone(),
             estimate: task.estimate.clone(),
             links: task.links.iter().map(canonical_link).collect(),
+            waits_on: task.waits_on.clone(),
             tags: task.tags.clone(),
             derived_tags: task.derived_tags.clone(),
             why: Vec::new(),

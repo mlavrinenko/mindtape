@@ -86,6 +86,8 @@ pub fn map_canonical(canonical: &CanonicalTask, config: &Config, opts: &MapOptio
         assignee: canonical.assignee.clone(),
         estimate: canonical.estimate.clone(),
         links,
+        waits_on: canonical.waits_on.clone(),
+        answers: std::collections::BTreeMap::new(),
         tags,
         derived_tags: Vec::new(),
         depth: 0,

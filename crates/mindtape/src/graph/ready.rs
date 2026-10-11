@@ -12,6 +12,9 @@
 //!
 //! History-pointer targets (SWHID tombstones) are already absent from
 //! [`Task::links`], so a dependency retired by `cleanup` stops blocking.
+//!
+//! A `waits-on` entry blocks too, while its checker's stamped answer
+//! ([`Task::answers`]) is waiting or unknown. See [`crate::waits`].
 
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -35,16 +38,17 @@ pub enum ReadyState {
     Settled,
 }
 
-/// One unfinished direct blocking-kind target: what a blocked task waits on.
+/// What a blocked task waits on: one unfinished direct blocking-kind target,
+/// or one `waits-on` entry whose checker did not say the wait is over.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Blocker {
     /// The target's stem, or the edge's own target stem when it names no
-    /// loaded task.
+    /// loaded task. For a `waits-on` entry, the entry itself.
     pub stem: String,
     /// The target's status name; `None` when the target is not loaded or
-    /// carries no status.
+    /// carries no status. For a `waits-on` entry, the checker's reason.
     pub status: Option<String>,
-    /// The blocking edge kind.
+    /// The blocking edge kind, or `waits-on`.
     pub kind: String,
 }
 
@@ -169,7 +173,22 @@ pub(crate) fn collect_blockers(
             });
         }
     }
+    blockers.extend(wait_blockers(task));
     blockers
+}
+
+/// The `waits-on` entries of `task` whose checker said waiting or unknown, in
+/// entry order, each with the checker's reason. An entry nobody asked about
+/// blocks nothing (see [`Task::answers`]).
+fn wait_blockers(task: &Task) -> impl Iterator<Item = Blocker> + '_ {
+    task.waits_on.iter().filter_map(|entry| {
+        let reason = task.answers.get(entry)?.reason()?;
+        Some(Blocker {
+            stem: entry.clone(),
+            status: Some(reason),
+            kind: crate::waits::FIELD.to_owned(),
+        })
+    })
 }
 
 /// Why entering `status` is refused while `task` waits on `blockers`:

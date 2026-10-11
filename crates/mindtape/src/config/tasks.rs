@@ -67,6 +67,9 @@ pub struct TasksConfig {
     /// Assertions every selected task must satisfy. `mt check` enforces them,
     /// and so does every write command before it writes.
     pub rules: Vec<crate::rules::RuleSpec>,
+    /// Commands a `waits-on` entry names: each answers by exit code whether a
+    /// task still waits on something outside the repo.
+    pub waits: Vec<crate::waits::Checker>,
     /// Review-comment policy over a task's whole source file (`mt check`).
     pub comments: crate::config::comments::CommentsConfig,
 }
@@ -95,6 +98,7 @@ impl Default for TasksConfig {
             links: crate::link::LinksConfig::default(),
             recur: crate::recur::RecurConfig::default(),
             rules: Vec::new(),
+            waits: Vec::new(),
             comments: crate::config::comments::CommentsConfig::default(),
         }
     }

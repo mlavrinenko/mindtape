@@ -152,6 +152,7 @@ pub fn check_candidates(
     );
     tasks.sort_by(|left, right| left.id.cmp(&right.id));
     crate::graph::dep_rank::annotate(&mut tasks, config);
+    crate::waits::annotate(&mut tasks, config, root);
     let violations = crate::validate::validate(&tasks, config);
     let ids: HashSet<&str> = harvested
         .iter()

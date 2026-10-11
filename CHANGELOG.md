@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`waits-on` and `[[tasks.waits]]`: a task can wait on something outside the
+  repo.** A `[[tasks.waits]]` entry names a command, and a task lists
+  `checker:id` entries in `waits-on`. `mt` runs the command with `{id}` filled
+  in, once per distinct line per call and only for open tasks. Exit 0 frees the
+  task, 1 keeps it `blocked`, and anything else blocks it as unknown. `why`
+  shows the command's first line, `mt check` refuses an undeclared checker or an
+  id a shell could misread, and `mt set` writes the field. The `sh -c`/`cmd /C`
+  runner behind `[[on.flip]]` moved into the library as `mindtape::shell`, which
+  both share.
 - **`scope = "tip"` commit rules, and `named-tasks-finish-at-the-tip`.** A
   `[[commits.rules]]` entry with `scope = "tip"` runs once per task any commit
   of an `mt check --commits` range names, over that task as the range's newest

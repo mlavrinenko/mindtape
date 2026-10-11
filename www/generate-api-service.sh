@@ -115,6 +115,24 @@ capture --exit 1 --expect 'rules\.one-wip' one-task-at-a-time "$P" 'mt wip add-r
 capture --exit 1 --expect 'requires an unblocked task' one-task-at-a-time "$P" 'mt wip throttle-failed-logins-per-ip'
 capture one-task-at-a-time "$P" 'mt ls blocked --columns title,why'
 
+# Wait on upstream: a task waits until Cargo.lock pins the release it needs.
+# The dependency bot's branch bumps the lockfile, and merging it frees the task.
+api_copy P
+capture_prep "$P" "$(
+    cat <<'CMD'
+git switch -q -c renovate/acme-pay-2.x
+sed 's/^version = "2.3.2"$/version = "2.4.0"/' Cargo.lock >Cargo.lock.new && mv Cargo.lock.new Cargo.lock
+git commit -qam "fix(deps): update rust crate acme-pay to v2.4.0"
+git switch -q main
+CMD
+)"
+capture wait-on-upstream "$P" 'grep waits-on: tasks/verify-webhooks-with-the-acme-pay-sdk.typ'
+capture wait-on-upstream "$P" 'mt ls blocked --columns title,why'
+capture --exit 1 --expect 'requires an unblocked task' wait-on-upstream "$P" \
+    'mt wip verify-webhooks-with-the-acme-pay-sdk'
+capture wait-on-upstream "$P" 'git merge -q renovate/acme-pay-2.x'
+capture wait-on-upstream "$P" 'mt ls blocked --columns title,why'
+
 # Trace commits to tasks: a commit-msg hook runs `mt check --commit-msg`, which
 # refuses a commit without a `Refs:` trailer. touches() then finds the task
 # behind a file. The project's first commit holds the file, and the reader's

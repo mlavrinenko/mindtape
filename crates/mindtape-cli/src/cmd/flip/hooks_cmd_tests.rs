@@ -1,7 +1,7 @@
 //! Tests for the `[[on.flip]]` command executor: capture, verdict, context.
 //!
 //! A `run` command is shell text, so the cases below are written in the shell
-//! `super::SHELL` names and split by platform: the POSIX set carries the full
+//! `mindtape::shell::SHELL` names and split by platform: the POSIX set carries the full
 //! contract (including the signal verdict, which Windows has no analogue for),
 //! and a smaller `cmd` set pins the same capture-and-context behaviour there.
 #![allow(clippy::unwrap_used)]

@@ -203,6 +203,17 @@ groups:
       - www/content/filters.typ
       - skills/mindtape/references/filters.md
 
+  # What `ready` and `blocked` mean once a `waits-on` checker can block a task.
+  - name: waits-docs
+    source:
+      - crates/mindtape/src/waits.rs
+      - crates/mindtape/src/graph/ready.rs
+    dependents:
+      - www/content/wait-on-upstream.typ
+      - www/content/filters.typ
+      - skills/mindtape/references/filters.md
+      - docs/src/skill.typ
+
   # A package change (version, dependencies, metadata) should land in the changelog.
   - name: release-notes
     source:
@@ -584,6 +595,7 @@ groups:
       - www/content/require-a-task-shape.typ
       - www/content/gate-done-on-checks.typ
       - www/content/one-task-at-a-time.typ
+      - www/content/wait-on-upstream.typ
       - www/content/trace-commits-to-tasks.typ
       - skills/mindtape/evals/evals.json
       - skills/mindtape/evals/README.md

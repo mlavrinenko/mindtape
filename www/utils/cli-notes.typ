@@ -56,8 +56,8 @@
     prose: [`mt set` changes one field per call, in the same syntax as
       `mt add --set`: `field=value`, `field+=value` to add to a list, or
       `field@path` to read the value from a file. It writes `title`,
-      `priority` as a number, `difficulty`, `kind`, `assignee`, `tags`, `due`
-      and `start`. It refuses a field that has its own command, and the error
+      `priority` as a number, `difficulty`, `kind`, `assignee`, `waits-on`,
+      `tags`, `due` and `start`. It refuses a field that has its own command, and the error
       names that command: `status` (`flip`), `links` (`link`), `reviewed`
       (`review`), `recur` (`recur`) and the id (`mv`). A
       #link(u("/priority/"))[framework priority] such as `ice(...)` and an

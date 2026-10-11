@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 10),
+  status: done(2026, 10, 11),
 )
 
 == Problem
@@ -42,7 +42,7 @@
 - 🟢 Config names a checker, e.g. `[[tasks.waits]] name = "canibump"`, `run = "canibump status {id}"`; exit 0 means resolved, 1 means still waiting, anything else means unknown.
 - 🟢 A task declares `waits-on: ("canibump:llama-blocking-sync",)`; while the checker says waiting or unknown, the task is `blocked`, and `why` prints the checker's first stdout line.
 - 🟢 `mt` stays fast and offline: it runs each distinct `(checker, id)` once per invocation and documents that a checker must answer from local state; network refreshes are the tool's own job (`canibump --refresh` in a timer or a `just` recipe).
-- 🟢 Nothing in MindTape names canibump: the same entry works for any tool, e.g. `gh pr view {id} --json state -q '.state=="MERGED"'` for a user who accepts the network cost.
+- 🟢 Nothing in MindTape names canibump: the same entry works for any tool, e.g. `test "$(gh pr view {id} --json state -q .state)" = MERGED` for a user who accepts the network cost.
 
 
 == Changes
@@ -70,4 +70,4 @@
 
 == Dogfood
 
-Not applicable here until MindTape itself waits on something upstream; ~/.nix dogfoods it first with its canibump entry.
+Not applicable here: no open MindTape task waits on something upstream. The past ones (typst-cleanup 0.2, artifact-gate 0.1.1) waited on a crates.io publish, which only the network answers. `examples/api-service` carries the offline pattern instead: `scripts/locked` reads `Cargo.lock`, and `/wait-on-upstream/` captures a task leaving `blocked` when the dependency bot's branch merges. ~/.nix dogfoods it with its canibump entry.

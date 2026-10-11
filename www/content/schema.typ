@@ -53,14 +53,20 @@ A field is #strong[authored] when it holds a value written in the task file.
   [`[{task, kind, note}]`. `task` is the target's file name as the task
     wrote it, and `note` is `null` when the edge has no note.],
 
+  [`waits_on`],
+  [authored],
+  [The `checker:id` entries the task waits on outside the repo.],
+
   [`tags`], [authored], [The tags written in the file.],
   [`derived_tags`], [computed], [The tags the task's folders give it.],
 
   [`why`],
   [computed],
   [`[{stem, status, kind}]`: the unfinished tasks a blocked task waits on.
-    Empty unless the task is blocked, and always empty from `mt eval`, which
-    reads one file.],
+    A `waits-on` entry the checker hasn't cleared shows up as
+    `{stem: entry, status: the checker's line, kind: "waits-on"}`. Empty
+    unless the task is blocked, and always empty from `mt eval`, which reads
+    one file.],
 
   [`children`],
   [computed],

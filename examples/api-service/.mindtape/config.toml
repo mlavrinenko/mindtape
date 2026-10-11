@@ -70,6 +70,13 @@ color = "red"
 [tasks.tags]
 allowed = ["@services", "security", "docs"]
 
+# Wait on upstream: a task waits until Cargo.lock pins the release it needs.
+# docs:slice api-service/wait-on-upstream
+[[tasks.waits]]
+name = "locked"
+run = "scripts/locked {id}"
+# docs:end
+
 # Gate done on your checks: `mt done` refuses while `scripts/test` fails.
 # docs:slice api-service/gate-done-on-checks
 [[on.flip]]

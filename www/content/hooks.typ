@@ -110,6 +110,7 @@ The two shells share no syntax. If you use the project on both, write a
 command both accept, or call a script.
 
 Only `mt flip` and its status commands, such as `mt done`, run actions.
-`mt check`, `mt ls` and the other read commands run nothing. A hook whose
+`mt check`, `mt ls` and the other read commands run none. The one command a
+read runs is a #link(u("/wait-on-upstream/"))[`waits-on` checker]. A hook whose
 `when` doesn't parse, whose `into()` names no status, or whose action sets no
 kind is a config error, so every command fails until you fix it.

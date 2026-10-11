@@ -252,6 +252,23 @@
       ],
       "type": "object"
     },
+    "Checker": {
+      "additionalProperties": false,
+      "description": "One `[[tasks.waits]]` entry: a named command that answers whether a task\nstill waits.",
+      "properties": {
+        "name": {
+          "default": "",
+          "description": "The name a `waits-on` entry writes before its colon.",
+          "type": "string"
+        },
+        "run": {
+          "default": "",
+          "description": "The command line, with `{id}` standing for the entry's id. It runs\nthrough `sh -c`, or `cmd /C` on Windows, from the project root. Exit 0\nmeans the wait is over, 1 means it goes on, anything else is unknown.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "Collector": {
       "description": "A folder-derived-tag collector strategy.",
       "oneOf": [
@@ -2135,6 +2152,13 @@
         "tags": {
           "$ref": "#/$defs/TagsConfig",
           "description": "Tag allow-list, checked on open tasks only."
+        },
+        "waits": {
+          "description": "Commands a `waits-on` entry names: each answers by exit code whether a\ntask still waits on something outside the repo.",
+          "items": {
+            "$ref": "#/$defs/Checker"
+          },
+          "type": "array"
         }
       },
       "type": "object"

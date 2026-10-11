@@ -32,12 +32,14 @@ pub mod model;
 pub mod problem;
 pub mod recur;
 pub mod rules;
+pub mod shell;
 pub mod sort;
 pub mod suggest;
 pub mod template;
 #[cfg(any(test, feature = "test-support"))]
 pub mod test_support;
 pub mod validate;
+pub mod waits;
 pub mod worktrees;
 
 pub use body::content_gate::{CompiledContentRule, check_content, compile_content_rules};

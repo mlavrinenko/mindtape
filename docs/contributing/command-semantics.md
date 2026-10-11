@@ -13,3 +13,5 @@ Each command declares its class in `crates/mindtape-cli/src/cli/command_class.rs
 A read never creates a recurring instance. Only `mt recur` creates or refreshes one, and `mt done` closes a task without creating or advancing anything.
 
 The authored tree is the task files and the config. A read can still write the git-ignored `.mindtape/cache/`, which holds derived state the way `target/` does.
+
+A read runs no `[[on.flip]]` action. The one config command a read runs is a `[[tasks.waits]]` checker, for an open task that names it in `waits-on`, because `ready` and `blocked` depend on its answer. A checker must answer from local state and write nothing in the authored tree.

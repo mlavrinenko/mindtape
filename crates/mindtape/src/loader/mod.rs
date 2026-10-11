@@ -120,6 +120,9 @@ pub fn load_project(root: &Path, config: &Config) -> LoadOutcome {
     // so no cache entry holds them: a task served from the cache gets the same
     // ranks a freshly harvested one does.
     crate::graph::dep_rank::annotate(&mut outcome.tasks, config);
+    // A checker's answer is about now, not about the file, so it is asked on
+    // every load and never cached.
+    crate::waits::annotate(&mut outcome.tasks, config, root);
     outcome
 }
 

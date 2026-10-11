@@ -8,7 +8,7 @@ what `mt` stamps, slugs, injects, resolves and validates.
 | To change | Run |
 |-----------|-----|
 | `links:` | `mt link`, one typed edge at a time or from an adjacency map. It checks the kind, the target and the note rule before it writes. |
-| `title`, `priority` (the raw number), `difficulty`, `kind`, `assignee`, `tags`, `due`, `start` | `mt set <task> <field>=<value>`. It validates before it writes. |
+| `title`, `priority` (the raw number), `difficulty`, `kind`, `assignee`, `waits-on`, `tags`, `due`, `start` | `mt set <task> <field>=<value>`. It validates before it writes. |
 | Status | `mt <status> <task>` |
 
 A task file is Typst. Edit the fields inside `task.with(...)`:

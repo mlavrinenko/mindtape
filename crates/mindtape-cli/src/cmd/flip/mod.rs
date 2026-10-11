@@ -295,7 +295,8 @@ fn flip_target(
     let legend = &batch.project.config.tasks.status;
     if !args.force {
         check_transition(legend, task.status.as_ref(), status)?;
-        let blockers = mindtape::blockers_of(world, task, &batch.project.config);
+        let blockers =
+            mindtape::blockers_of(world, &asked(task, batch.project), &batch.project.config);
         check_unblocked(legend, status, &blockers)?;
         check_children(world, task, status, &batch.project.config)?;
     }
@@ -318,6 +319,15 @@ fn flip_target(
     report_flip(spec, &task.title, task.status.as_ref(), status, restamp);
     notice_recur(task, status, legend, &batch.project.config.tasks.recur);
     Ok(())
+}
+
+/// `task` with every `waits-on` entry answered. The loader asks only for open
+/// tasks, so a flip out of a terminal status asks here before its guard reads
+/// the answers.
+fn asked(task: &mindtape::Task, project: &Project) -> mindtape::Task {
+    let mut task = task.clone();
+    mindtape::waits::ask(&mut task, &project.config, &project.root);
+    task
 }
 
 /// Rewrite the task at `abs`: stamp the batch's status dated its `ymd` (with

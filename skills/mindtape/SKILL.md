@@ -44,7 +44,7 @@ A `<task>` is a stem, a path, or the stem hash `mt ls` prints in its `slug#` col
 
 Bare `mt ls` applies the first `[[ls.rules]]` entry whose condition holds, else the project’s default view, and its `applied:` footer names which. A filter argument replaces only the filter. The sort and columns of that rule or view still apply. `-n N` keeps the first N rows after the sort.
 
-Common filters are `ready` (open, with every `depends-on` target finished), `blocked`, `status == "wip"`, `has_tag("t")`, `contains("text")` and `due < now()`. `mt ls @<view>` applies a view that `mt views` lists. Before you edit a file, run `mt ls 'touches("<path>")'` to read the tasks named in the `Refs:` trailers of commits that changed it. For every field and function, read `references/filters.md`.
+Common filters are `ready` (open, with every `depends-on` target finished and every `waits-on` checker answering that the wait is over), `blocked`, `status == "wip"`, `has_tag("t")`, `contains("text")` and `due < now()`. `mt ls @<view>` applies a view that `mt views` lists. Before you edit a file, run `mt ls 'touches("<path>")'` to read the tasks named in the `Refs:` trailers of commits that changed it. For every field and function, read `references/filters.md`.
 
 ## Filing tasks
 
@@ -58,7 +58,7 @@ A key names a template slot, which need not be a field. A framework priority, fo
 
 `mt <status> <task…>` is short for `mt flip <status> <task…>`. It stamps the status with today’s date, and `-m "…"` sets the status note. A refused flip names its reason: the legend does not allow the transition, the task has an unfinished dependency, or it is a parent with an unfinished child. Fix the reason. `--force` overrides the refusal and waives a failing `[[on.flip]]` gate. Use it only to correct a mistake. A gate runs its command with `sh -c` in `mt`’s environment, so exit 127 means `mt` ran outside the project’s dev shell. Run the flip inside that shell.
 
-To see what each blocked task waits on, run `mt ls blocked --columns title,why`. A legend may have no `blocked` status, so check `mt flip --list` before you use one. To record an external blocker, file a task for it and link to it with `depends-on`, or leave the task in a status before work starts with the reason as its note. Do not mark a blocked task `wip`: that counts against any work-in-progress cap and tells readers someone is working on it.
+To see what each blocked task waits on, run `mt ls blocked --columns title,why`. A legend may have no `blocked` status, so check `mt flip --list` before you use one. To record an external blocker, run `mt config show` and look for `[[tasks.waits]]` checkers. If one fits, add the condition with `mt set <task> waits-on+=<checker>:<id>`, and the task stays blocked until that checker exits 0. Otherwise, file a task for the blocker and link to it with `depends-on`, or leave the task in a status before work starts with the reason as its note. Do not mark a blocked task `wip`: that counts against any work-in-progress cap and tells readers someone is working on it.
 
 ## Commits and checks
 

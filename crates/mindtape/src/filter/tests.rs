@@ -25,6 +25,8 @@ fn sample() -> Task {
         assignee: None,
         estimate: BTreeMap::from([("hours".to_owned(), 8.0)]),
         links: vec![noted_edge("other.typ", "related", "context")],
+        waits_on: vec![],
+        answers: std::collections::BTreeMap::new(),
         tags: vec!["backend".to_owned()],
         derived_tags: Vec::new(),
         depth: 0,

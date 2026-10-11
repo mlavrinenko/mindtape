@@ -11,7 +11,7 @@
       "name": "ready-priority-triage",
       "fixture": "examples/api-service",
       "prompt": "I've got some time this afternoon — what should I work on next? Show me what's actually ready to start, most important first.",
-      "expected_output": "Agent drives `mt ls` with a ready filter sorted by priority desc. Seven tasks are ready; the top is 'Index the orders by customer' (ICE score 7, the only one in the red band). The blocked task must not be recommended: 'Throttle failed logins per IP' has status proposed, but it depends on 'Add a Redis client to the app state', which is unfinished, so status alone does not reveal it. No files mutated.",
+      "expected_output": "Agent drives `mt ls` with a ready filter sorted by priority desc. Seven tasks are ready; the top is 'Index the orders by customer' (ICE score 7, the only one in the red band). The two blocked tasks must not be recommended, and status alone reveals neither, since both are proposed: 'Throttle failed logins per IP' depends on 'Add a Redis client to the app state', which is unfinished, and 'Verify webhooks with the acme-pay SDK' waits on `locked:acme-pay@2.4.0` while Cargo.lock pins 2.3.2. No files mutated.",
       "files": [],
       "assertions": [
         {
@@ -19,6 +19,9 @@
         },
         {
           "text": "Excluded the blocked task 'Throttle failed logins per IP' — it is only discoverable via the `blocked`/`ready` filter or its depends-on edge, not from its `proposed` status"
+        },
+        {
+          "text": "Excluded 'Verify webhooks with the acme-pay SDK', whose `waits-on` checker still says waiting"
         },
         {
           "text": "Led with 'Index the orders by customer', the highest-priority ready task"
@@ -36,7 +39,7 @@
       "name": "file-new-task",
       "fixture": "examples/api-service",
       "prompt": "Password reset emails link to /reset/{token}, and in production that link returns 404. Add a task to fix it.",
-      "expected_output": "Agent runs `mt add` to file a new task about the 404 on the password reset link. api-service declares a template, so `mt add --describe` lists its slots (title, src-files, problem, to-be, changes, out-of-scope) and the agent supplies every one, with a numbered Problem whose defect step opens with 🔴, a TO-BE of 🟢 bullets and a `path` in each Changes bullet. `src-files` stays at 5 or fewer, because the `split-big-work` rule refuses a bigger task. `mt check` still passes and the 12 existing tasks are untouched.",
+      "expected_output": "Agent runs `mt add` to file a new task about the 404 on the password reset link. api-service declares a template, so `mt add --describe` lists its slots (title, src-files, problem, to-be, changes, out-of-scope) and the agent supplies every one, with a numbered Problem whose defect step opens with 🔴, a TO-BE of 🟢 bullets and a `path` in each Changes bullet. `src-files` stays at 5 or fewer, because the `split-big-work` rule refuses a bigger task. `mt check` still passes and the 13 existing tasks are untouched.",
       "files": [],
       "assertions": [
         {
@@ -86,11 +89,11 @@
       "name": "list-everything-no-all-flag",
       "fixture": "examples/api-service",
       "prompt": "Show me the whole backlog — every task, including the ones already finished or dropped.",
-      "expected_output": "Agent lists all 12 tasks, including the 4 terminal ones (all done), using an empty filter (`mt ls ''`). A bare `mt ls` applies the default view, which hides terminal tasks, and there is no `--all` flag; if the agent tries one it must recover rather than report the clap error as the answer. No files mutated.",
+      "expected_output": "Agent lists all 13 tasks, including the 4 terminal ones (all done), using an empty filter (`mt ls ''`). A bare `mt ls` applies the default view, which hides terminal tasks, and there is no `--all` flag; if the agent tries one it must recover rather than report the clap error as the answer. No files mutated.",
       "files": [],
       "assertions": [
         {
-          "text": "All 12 tasks are reported, including the terminal ones (add-request-ids-to-log-lines, fix-the-404-page-typo, pin-the-rust-toolchain-in-ci, upgrade-the-axum-web-framework)"
+          "text": "All 13 tasks are reported, including the terminal ones (add-request-ids-to-log-lines, fix-the-404-page-typo, pin-the-rust-toolchain-in-ci, upgrade-the-axum-web-framework)"
         },
         {
           "text": "Used an empty filter (`mt ls ''`) or an equivalent match-all filter, not a `--all` flag"

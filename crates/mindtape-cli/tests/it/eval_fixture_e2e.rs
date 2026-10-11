@@ -57,8 +57,8 @@ const UPDATE: &str =
 fn the_fixture_has_the_task_counts_the_evals_state() {
     assert_eq!(
         ids("").len(),
-        12,
-        "evals 1 and 3 say api-service has 12 tasks; {UPDATE}"
+        13,
+        "evals 1 and 3 say api-service has 13 tasks; {UPDATE}"
     );
     assert_eq!(
         ids("terminal").len(),
@@ -80,8 +80,13 @@ fn the_fixture_ready_list_matches_eval_zero() {
         Some("index-the-orders-by-customer"),
         "eval 0 says this task leads the ready list by priority; {UPDATE}"
     );
-    assert!(
-        !ready.iter().any(|id| id == "throttle-failed-logins-per-ip"),
-        "eval 0 says throttle-failed-logins-per-ip is blocked, so not ready; {UPDATE}"
-    );
+    for blocked in [
+        "throttle-failed-logins-per-ip",
+        "verify-webhooks-with-the-acme-pay-sdk",
+    ] {
+        assert!(
+            !ready.iter().any(|id| id == blocked),
+            "eval 0 says {blocked} is blocked, so not ready; {UPDATE}"
+        );
+    }
 }

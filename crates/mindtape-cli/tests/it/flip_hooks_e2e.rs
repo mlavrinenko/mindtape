@@ -1,8 +1,9 @@
 //! End-to-end tests for `[[on.flip]]` hooks, driven through the `mt` binary.
 //!
-//! The load-bearing one is [`read_commands_execute_nothing`]: `mt flip` is the
-//! only command allowed to run a configured command, and a read that shells out
-//! would be a surprise in every editor and commit hook `mt check` runs inside.
+//! The load-bearing one is [`read_commands_run_no_flip_action`]: `mt flip` is
+//! the only command that runs an action, and a read that ran one would be a
+//! surprise in every editor and commit hook `mt check` runs inside. A read may
+//! run a `[[tasks.waits]]` checker, which `waits_e2e` covers.
 //! Every other test here pins a gate's effect on the write.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
@@ -46,7 +47,7 @@ const SENTINEL_HOOK: &str = "[[on.flip]]\nwhen = ''\n\
 /// sentinel mechanism works at all — without it this test would pass on a
 /// hook that never ran for anyone.
 #[test]
-fn read_commands_execute_nothing() {
+fn read_commands_run_no_flip_action() {
     let dir = project(SENTINEL_HOOK);
     let sentinel = dir.path().join("fired");
     for args in [

@@ -73,6 +73,14 @@ pub struct Task {
     /// `"../sub/task.typ"`), resolved to file paths at validation time;
     /// history-pointer entries are excluded. See [`crate::link::parse_links`].
     pub links: Vec<crate::link::Link>,
+    /// What the task waits on outside the repo, as `checker:id` entries from
+    /// `waits-on:`, in authored order. See [`crate::waits`].
+    pub waits_on: Vec<String>,
+    /// What the checkers answered for [`waits_on`](Self::waits_on), keyed by
+    /// entry. Stamped at load by [`crate::waits::annotate`] for an open task,
+    /// never authored and never cached. An entry with no answer blocks
+    /// nothing: a closed task's wait is history, and nothing asks for it.
+    pub answers: BTreeMap<String, crate::waits::Answer>,
     /// Authored tags, exactly as written in the file.
     pub tags: Vec<String>,
     /// Folder-derived virtual tags, injected at load by [`crate::loader::derive`]. Never
@@ -178,6 +186,7 @@ impl Task {
         let explicit_id = field_str(fields, "id", &mut errors).filter(|s| !s.is_empty());
         let id = explicit_id.unwrap_or(stem);
         let tags = parse_str_array(field(fields, "tags"), "tags", &mut errors);
+        let waits_on = parse_str_array(field(fields, "waits-on"), "waits-on", &mut errors);
         let estimate = parse_num_map(field(fields, "estimate"), "estimate", &mut errors);
         let links = crate::link::parse_links(field(fields, "links"), &mut errors);
         let recur = crate::recur::parse_recur(field(fields, "recur"), &mut errors);
@@ -192,6 +201,8 @@ impl Task {
             assignee: field_str(fields, "assignee", &mut errors).filter(|s| !s.is_empty()),
             estimate,
             links,
+            waits_on,
+            answers: BTreeMap::new(),
             tags,
             derived_tags: Vec::new(),
             depth: 0,

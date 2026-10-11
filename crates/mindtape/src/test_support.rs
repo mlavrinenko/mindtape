@@ -38,6 +38,8 @@ pub fn bare_task(id: &str) -> Task {
         assignee: None,
         estimate: BTreeMap::new(),
         links: Vec::new(),
+        waits_on: Vec::new(),
+        answers: BTreeMap::new(),
         tags: Vec::new(),
         derived_tags: Vec::new(),
         depth: 0,

@@ -50,6 +50,7 @@ impl Config {
         problems.extend(plain(crate::config::comments::validate_comments(self)));
         problems.extend(crate::config::actors::validate_actors(self));
         problems.extend(crate::config::hooks::validate_flip_hooks(self));
+        problems.extend(plain(crate::waits::validate_checkers(self)));
         problems.extend(validate_ls_rules(&self.ls.rules, &self.views));
         if let Some(status) = &self.retire.status
             && !self.tasks.status.contains(status)

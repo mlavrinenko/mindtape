@@ -50,9 +50,10 @@ Bare `status` sorts by legend position.
 
 ## Predicates
 
-- `ready` matches an open task whose `depends-on` targets are all finished.
-  `blocked` matches an open task with an unfinished target. A link kind the
-  config marks `blocking` counts as `depends-on` does.
+- `ready` matches an open task whose `depends-on` targets are all finished and
+  whose `waits-on` checkers all exit 0. `blocked` matches an open task with an
+  unfinished target, or with a checker that exits anything else. A link kind
+  the config marks `blocking` counts as `depends-on` does.
 - `terminal` matches a task whose status the legend marks terminal.
 - `has(f)` and `miss(f)` test whether the task carries field `f`.
   `has(f, "v")` matches when `f`'s list holds `v`, its scalar equals `v`, or

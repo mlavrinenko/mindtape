@@ -85,6 +85,7 @@
       "/require-a-task-shape/",
       "/gate-done-on-checks/",
       "/one-task-at-a-time/",
+      "/wait-on-upstream/",
       "/trace-commits-to-tasks/",
     ),
   ),

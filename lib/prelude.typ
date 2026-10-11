@@ -539,6 +539,13 @@
   tags.map(_tag-chip).join(h(0.35em))
 }
 
+// The `waits-on` entries as code spans, comma-separated; none when empty. A
+// checker's answer is Rust's to fetch, so the card shows only what is awaited.
+#let _waits-row(entries) = {
+  if type(entries) != array or entries.len() == 0 { return none }
+  entries.map(entry => raw(str(entry))).join(", ")
+}
+
 // A label→value metadata grid from the set rows (none-valued rows already dropped).
 #let _meta(rows) = {
   if rows.len() == 0 { return none }
@@ -617,6 +624,7 @@
     )
       + link-rows
       + (
+        ("waits on", _waits-row(m.at("waits-on", default: ()))),
         (
           "id",
           if type(m.at("id", default: none)) == str
@@ -680,6 +688,7 @@
   assignee: none,
   estimate: (:),
   links: (),
+  waits-on: (),
   tags: (),
   due: none,
   start: none,
@@ -703,6 +712,7 @@
     assignee: assignee,
     estimate: estimate,
     links: _flat-links(links),
+    waits-on: waits-on,
     tags: tags,
     due: due,
     start: start,

@@ -100,6 +100,9 @@ fn assert_round_trips(task: &Task, config_text: &str, stub_ids: &[&str]) {
     // a round trip owes is the fields the emitter writes — a line number is a
     // property of the file, not of the task.
     reloaded.spans = task.spans.clone();
+    // And `answers`: the loader asks each `waits-on` checker now, which says
+    // nothing about what the file holds.
+    reloaded.answers.clone_from(&task.answers);
     reloaded.links.sort_by_key(link_sort_key);
 
     let mut expected = task.clone();
@@ -201,6 +204,21 @@ fn round_trips_estimate_and_dates() {
     task.reviewed = Some("2026-06-20".to_owned());
     task.tags = vec!["backend".to_owned()];
     assert_round_trips(&task, CONFIG, &[]);
+}
+
+#[test]
+fn round_trips_waits_on_beside_tags() {
+    let mut task = bare_task("waits-on");
+    task.status = Some(status("wip", "2026-06-01"));
+    task.waits_on = vec!["up:pr-7".to_owned(), "up:a/b#9".to_owned()];
+    task.tags = vec!["backend".to_owned()];
+    let config = format!("{CONFIG}\n[[tasks.waits]]\nname = \"up\"\nrun = \"exit 0\"\n");
+    assert_round_trips(&task, &config, &[]);
+    assert!(
+        emit_task(&task).contains("waits-on: (\"up:pr-7\", \"up:a/b#9\"),"),
+        "{}",
+        emit_task(&task)
+    );
 }
 
 #[test]

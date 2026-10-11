@@ -163,6 +163,7 @@ leaves out.
   ("tasks.derive-tags", "[tasks.derive-tags]"),
   ("tasks.tags", "[tasks.tags]"),
   ("tasks.rules", "[[tasks.rules]]"),
+  ("tasks.waits", "[[tasks.waits]]"),
   ("commits", "[commits]"),
   ("extends", "extends"),
   ("disable", "disable"),
@@ -201,6 +202,7 @@ These sections have a page of their own:
 - `[views.<name>]` and `[dicts.<name>]`:
   #link(u("/named-sets/"))[Views & dictionaries].
 - `[[on.flip]]`: #link(u("/hooks/"))[Flip hooks].
+- `[[tasks.waits]]`: #link(u("/wait-on-upstream/"))[Wait on upstream].
 - `[templates]` and `[add]`: #link(u("/templates/"))[Templates & slots].
 - `extends` and `disable`: #link(u("/rule-packs/"))[Rule packs].
 - `[commits]`: #link(u("/commit-rules/"))[Commit rules].

@@ -25,6 +25,9 @@
   "links": [Typed edges to other tasks, joined with `+`:
     `depends-on("a.typ") + related("b.typ")[why]`. See
     #link(u("/links/"))[Task links].],
+  "waits-on": [What the task waits on outside the repo, as `checker:id`
+    strings: `("locked:acme-pay@2.4.0",)`. A configured command answers each
+    one. See #link(u("/wait-on-upstream/"))[Wait on upstream].],
   "tags": [An array of strings: `("backend", "auth")`. One tag needs a
     trailing comma, `("backend",)`, because `("backend")` is a string.],
   "due": [The task's deadline, a date.],

@@ -78,6 +78,14 @@ Allow one task in progress, and refuse to start a task before the tasks it depen
 error: tasks/add-redis-client.typ:2: rules.one-wip: finish the task in progress before you start another
 ```
 
+### [Work started before upstream ships the fix](https://mlavrinenko.github.io/mindtape/wait-on-upstream/)
+
+Hold a task until a command says the release it needs has landed, and free it the moment it has.
+
+```
+error: status requires an unblocked task: 'wip'
+```
+
 ### [Commits nobody can trace to a task](https://mlavrinenko.github.io/mindtape/trace-commits-to-tasks/)
 
 Refuse a commit that names no task, then ask which tasks changed a file before you edit it.

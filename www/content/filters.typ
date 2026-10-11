@@ -179,9 +179,11 @@ status that no `[[tasks.status]]` entry declares is a bad expression too:
 = Dependencies and counts
 
 `ready` matches an open task whose dependencies are all in a
-#link(u("/statuses/#the-default-legend"))[terminal] status. `blocked` matches
-an open task with at least one dependency that isn't, including one no loaded
-task answers to. A task in a terminal status is neither, and `terminal`
+#link(u("/statuses/#the-default-legend"))[terminal] status, and whose
+#link(u("/wait-on-upstream/"))[`waits-on` checkers] all say the wait is over.
+`blocked` matches an open task with at least one dependency that isn't,
+including one no loaded task answers to, or with a checker that says it still
+waits or can't tell. A task in a terminal status is neither, and `terminal`
 matches it. `mt ls` lists ready tasks first.
 
 The `why` column lists what each blocked task waits on:

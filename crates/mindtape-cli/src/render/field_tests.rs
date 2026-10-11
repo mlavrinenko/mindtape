@@ -303,6 +303,8 @@ fn stub_task() -> Task {
         assignee: None,
         estimate: Default::default(),
         links: vec![],
+        waits_on: vec![],
+        answers: std::collections::BTreeMap::new(),
         tags: vec![],
         derived_tags: vec![],
         depth: 0,

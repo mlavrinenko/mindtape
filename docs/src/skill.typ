@@ -75,7 +75,8 @@ else the project's default view, and its `applied:` footer names which. A
 filter argument replaces only the filter. The sort and columns of that rule or
 view still apply. `-n N` keeps the first N rows after the sort.
 
-Common filters are `ready` (open, with every `depends-on` target finished),
+Common filters are `ready` (open, with every `depends-on` target finished and
+every `waits-on` checker answering that the wait is over),
 `blocked`, `status == "wip"`, `has_tag("t")`, `contains("text")` and
 `due < now()`. `mt ls @<view>` applies a view that `mt views` lists. Before you
 edit a file, run `mt ls 'touches("<path>")'` to read the tasks named in the
@@ -115,9 +116,12 @@ shell. Run the flip inside that shell.
 
 To see what each blocked task waits on, run
 `mt ls blocked --columns title,why`. A legend may have no `blocked` status, so
-check `mt flip --list` before you use one. To record an external blocker, file
-a task for it and link to it with `depends-on`, or leave the task in a status
-before work starts with the reason as its note. Do not mark a blocked task
+check `mt flip --list` before you use one. To record an external blocker, run
+`mt config show` and look for `[[tasks.waits]]` checkers. If one fits, add the
+condition with `mt set <task> waits-on+=<checker>:<id>`, and the task stays
+blocked until that checker exits 0. Otherwise, file a task for the blocker and
+link to it with `depends-on`, or leave the task in a status before work starts
+with the reason as its note. Do not mark a blocked task
 `wip`: that counts against any work-in-progress cap and tells readers someone
 is working on it.
 

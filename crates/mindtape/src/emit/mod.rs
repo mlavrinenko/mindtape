@@ -54,8 +54,17 @@ pub fn emit_task(task: &Task) -> String {
     out
 }
 
+/// `name: ("a", "b")` for a list of strings, or `None` for an empty one, which
+/// the task omits.
+fn emit_list(name: &str, items: &[String]) -> Option<String> {
+    (!items.is_empty()).then(|| {
+        let items: Vec<String> = items.iter().map(|item| typ_str(item)).collect();
+        format!("{name}: {}", typ_array(&items))
+    })
+}
+
 /// Every set field, in the fixed emission order: title, status, priority,
-/// difficulty, kind, assignee, estimate, links, tags, due/start/reviewed,
+/// difficulty, kind, assignee, estimate, links, waits-on, tags, due/start/reviewed,
 /// recur, then the `x-<ns>` extras in their `BTreeMap` key order.
 fn emit_fields(task: &Task) -> Vec<String> {
     let mut fields = vec![format!("title: {}", typ_str(&task.title))];
@@ -80,10 +89,8 @@ fn emit_fields(task: &Task) -> Vec<String> {
     if let Some(links) = links::emit_links(&task.links) {
         fields.push(links);
     }
-    if !task.tags.is_empty() {
-        let tags: Vec<String> = task.tags.iter().map(|tag| typ_str(tag)).collect();
-        fields.push(format!("tags: {}", typ_array(&tags)));
-    }
+    fields.extend(emit_list(crate::waits::FIELD, &task.waits_on));
+    fields.extend(emit_list("tags", &task.tags));
     for (name, value) in [
         ("due", task.due.as_deref()),
         ("start", task.start.as_deref()),

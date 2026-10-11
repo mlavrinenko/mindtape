@@ -73,5 +73,6 @@ mod stem_hash_e2e;
 mod support;
 mod tty_e2e;
 mod views_e2e;
+mod waits_e2e;
 mod wip_cap_e2e;
 mod wt_carry_lcov_e2e;

@@ -1,29 +1,12 @@
 //! Executing a `[[on.flip]]` `run` action's command.
 //!
-//! The trust boundary is a `Justfile`'s or a git hook's: the command comes from
-//! the project's own `.mindtape/config.toml`, and it runs through the platform
-//! shell ([`SHELL`]) with the caller's full authority, in the project root.
-//! Nothing here is sandboxed, and nothing pretends to be — a config you would
-//! not run is a config you should not have checked out.
-//!
-//! Only `mt flip` reaches this module. No read command does.
+//! The command runs through [`mindtape::shell`], the executor `[[tasks.waits]]`
+//! checkers share, from the project root with the transition in its
+//! environment. That module states the trust boundary.
 
 use std::path::Path;
-use std::process::Command;
 
 use crate::diag::{Diag, Result};
-
-/// The shell a `run` command goes through, as `(program, command-flag)`.
-///
-/// A `run` command is a shell line, not an argv, so there has to be a shell —
-/// and there is no portable one. `.mindtape/config.toml` is a checked-in file
-/// whose commands are written for the platform the project builds on, exactly
-/// like the `Justfile` recipes or git hooks they stand in for; a project that
-/// wants both writes a command both shells accept, or invokes a script.
-#[cfg(not(windows))]
-pub(crate) const SHELL: (&str, &str) = ("sh", "-c");
-#[cfg(windows)]
-pub(crate) const SHELL: (&str, &str) = ("cmd", "/C");
 
 /// Absolute path of the task being flipped.
 pub(crate) const ENV_FILE: &str = "MINDTAPE_TASK_FILE";
@@ -64,7 +47,7 @@ impl CommandReport {
     }
 }
 
-/// Run `command` through the platform [`SHELL`], from the project root, with
+/// Run `command` through the platform shell, from the project root, with
 /// the transition in the environment ([`ENV_FILE`], [`ENV_STEM`],
 /// [`ENV_STATUS`]).
 ///
@@ -77,26 +60,20 @@ impl CommandReport {
 /// runs and fails is not an error here — it is a [`CommandReport`] the caller
 /// decides about.
 pub(crate) fn run_command(command: &str, ctx: &RunCtx<'_>) -> Result<CommandReport> {
-    let (shell, flag) = SHELL;
-    let output = Command::new(shell)
-        .arg(flag)
-        .arg(command)
-        .current_dir(ctx.root)
-        .env(ENV_FILE, ctx.path)
-        .env(ENV_STEM, ctx.stem)
-        .env(ENV_STATUS, ctx.target)
-        .output()
-        .map_err(|err| {
-            Diag::failed("can't run on.flip command")
-                .value(command)
-                .io(&err)
-        })?;
-    let mut text = String::from_utf8_lossy(&output.stdout).into_owned();
-    text.push_str(&String::from_utf8_lossy(&output.stderr));
+    let env = [
+        (ENV_FILE, ctx.path.as_os_str()),
+        (ENV_STEM, ctx.stem.as_ref()),
+        (ENV_STATUS, ctx.target.as_ref()),
+    ];
+    let output = mindtape::shell::run(command, ctx.root, &env).map_err(|err| {
+        Diag::failed("can't run on.flip command")
+            .value(command)
+            .io(&err)
+    })?;
     Ok(CommandReport {
-        success: output.status.success(),
-        code: output.status.code(),
-        output: text,
+        success: output.code == Some(0),
+        code: output.code,
+        output: output.stdout + &output.stderr,
     })
 }
 

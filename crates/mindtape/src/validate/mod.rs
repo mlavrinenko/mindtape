@@ -5,7 +5,8 @@
 //! [`crate::config::required`]), the tag allow-list, the priority framework
 //! scoring/manual-override policy (see [`crate::validate::priority`]), and the
 //! typed `links:` edges (resolution, cardinality, notes, cycles — see
-//! [`crate::validate::links`]).
+//! [`crate::validate::links`]), and that each `waits-on` entry names a declared
+//! checker with a shell-safe id.
 //!
 //! # Files
 //!
@@ -15,6 +16,7 @@
 //! - `recur/mod.rs`: the task-level `recur` policy check.
 //! - `severity.rs`: how loudly a config-declared breach reports.
 //! - `violation.rs`: what a check reports and where in the source it points.
+//! - `waits.rs`: the `waits-on` entry check.
 
 pub mod candidate;
 pub(crate) mod links;
@@ -22,6 +24,7 @@ pub(crate) mod priority;
 pub(crate) mod recur;
 pub mod severity;
 pub(crate) mod violation;
+pub(crate) mod waits;
 
 use std::collections::HashMap;
 
@@ -64,6 +67,7 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
         let must_estimate = still_required(required.estimate(task, config), task, "estimate");
         check_estimate(task, config, must_estimate, &mut out);
         crate::validate::recur::check_all(task, config, &mut out);
+        crate::validate::waits::check_all(task, config, &mut out);
     }
     crate::validate::links::check_all(tasks, config, &mut out);
     crate::rules::check_all(tasks, config, &mut out);
