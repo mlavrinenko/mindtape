@@ -30,8 +30,8 @@ just check           # run before every commit
 Run `just` recipes, not raw `cargo`: the recipes carry the right flags and
 environment. Run `just` alone to list them. In the dev shell, `mt` is
 `target/mt-dev/debug/mt`. #just.build-mt() builds it, and the worktrunk hooks in
-`.config/wt.toml` run it when `wt switch --create` makes a worktree and after
-`wt merge` lands in a checkout. Between those builds, `mt` can be older than
+`.config/wt.toml` run it when #just.fork() makes a worktree and after
+#just.land() lands in a checkout. Between those builds, `mt` can be older than
 the code beside it.
 
 This file holds the rules. The `docs/contributing/*.md` deep dives explain
@@ -115,31 +115,35 @@ builds the flake in a clean sandbox, and #just.release() runs it too.
 
 In a delegated worktree, you can skip the hook's freshness check with
 `MINDTAPE_GATE_SCOPE=<reason> git commit`. That's safe there because
-`wt merge` runs #just.check() on the branch's final tree before it
-fast-forwards. Your message then needs a matching `Gate-Scope: <reason>` trailer.
-Never scope a commit to get past a failing gate.
+#just.land() runs #just.check() on the branch's final tree before it
+fast-forwards. Your message then needs a matching `Gate-Scope: <reason>`
+trailer. Never scope a commit to get past a failing gate.
 
 = Worktrees
 
-To work on something in parallel, use #link("https://worktrunk.dev")[worktrunk]
-(`wt`): `wt switch --create <slug> --base=@`. You get a worktree at
-`../mindtape-<slug>` on a new branch from your current commit. Without
-`--base=@` the branch starts from the default branch. Commit first: a worktree
-only gets commits, never your working tree. For the same reason, branch before
-you flip a task, and run `mt wip <stem>` inside the worktree. Don't use
-`git stash` in a worktree: all worktrees share one stash list, so a `pop` can
-apply another worktree's work. Make a WIP commit instead.
+Work in parallel in a sibling worktree: #just.fork() makes one and #just.land()
+merges it back. Both wrap #link("https://worktrunk.dev")[worktrunk] (`wt`, from
+the dev shell) with the flags this repo needs, because a bare `wt merge`
+squashes away each commit's `Refs:` footer and commits a dirty tree.
 
-Creating the worktree runs the `pre-start` hook in `.config/wt.toml`, which
-builds the worktree's `mt` with #just.build-mt().
+// docs:hand-typed a worktree session that no fixture can run
+```bash
+just fork <slug>           # ../mindtape.<slug> on a new branch, its mt built
+just fork <slug> --base=@  # the same, from the current commit, not main
+just land                  # in the worktree: gate, wip check, fast-forward, remove
+```
 
-When the branch is ready, run `wt merge [target]` from inside the worktree.
-It refuses a dirty tree, rebases the branch onto the target, fast-forwards
-the target and removes the worktree. Before the fast-forward, a `pre-merge`
-hook should run #just.check() and refuse a branch that names a still-`wip`
-task in `Refs:`. That hook belongs in your own worktrunk user config, so it
-covers every repo, and this repo doesn't carry it. After the merge, the
-`post-merge` hook in `.config/wt.toml` rebuilds the target's `mt`.
+A worktree only gets commits, never your working tree, so commit first and
+branch before you flip a task: run `mt wip <stem>` inside the worktree. Don't
+use `git stash` in a worktree: all worktrees share one stash list, so a `pop`
+can apply another worktree's work. Make a WIP commit instead.
+
+`.config/wt.toml` holds the hooks, so a clone with nix and direnv needs no
+worktrunk config of its own. They build the new worktree's `mt`, run
+#just.check() and `mt check --commits main..HEAD` before the fast-forward, which
+refuses a branch that names a still-`wip` task in `Refs:`, carry the gate
+records and the coverage lcov to the primary checkout, and rebuild the target's
+`mt`.
 
 = Commit Messages
 
@@ -217,9 +221,9 @@ neither.
   (`release.toml`), which refuses a dirty tree or a branch other than `main`,
   bumps the version, dates the entries, runs `.just/scripts/release-hook.sh`
   and commits. The hook refuses every other state a release has failed from.
-  Then the recipe pushes `main`, so CI runs on the release
-  tree, and tags only once that commit's `ci.yml` run is green. `--dry-run`
-  checks and pushes nothing. After a red CI, fix `main` and re-run: the bump
+  Then the recipe pushes `main`, so CI runs on the release tree, and tags only
+  once that commit's `ci.yml` run is green. `--dry-run` checks and pushes
+  nothing. After a red CI, fix `main` and re-run: the bump
   and the dating stay done.
 - A release whose workflow failed is finished on the same tag with
   `gh workflow run release.yml -f tag=vVERSION`, which skips each crate

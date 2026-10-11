@@ -41,7 +41,7 @@ per-commit `[[commits.rules]]` of the `mindtape-tasks` pack
 - `named-tasks-finish-at-the-tip` is a `scope = "tip"` rule, which runs only
   under `mt check --commits <range>`. It refuses a range whose commits name a
   task that's still `wip` in the newest commit, and prints the stems. So you put
-  the `done` flip in the task's last commit. A `wt merge` `pre-merge` hook runs
+  the `done` flip in the task's last commit. The `pre-merge` hook of #just.land() runs
   `mt check --commits main..HEAD` to hold a branch to it.
 
 `.mindtape/config.toml` adds one rule of its own:

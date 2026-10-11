@@ -36,7 +36,8 @@
 #doc-title[MindTape — AI Agent Context]
 
 \@CONTRIBUTING.md says how work is done here. This file says what MindTape is
-and where its parts live.
+and where its parts live. Fork parallel work with #just.fork() and land it with
+#just.land(); a bare `wt merge` squashes away the `Refs:` footers.
 
 = What is this?
 

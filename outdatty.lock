@@ -139,12 +139,14 @@ groups:
   dev-shell-docs:
     source:
       .config/nextest.toml: 1aa04153954c5ab8ce468d3e08225b76d6dd1f636874b9591c275c588b89f984
+      .config/wt.toml: bc7d39daebc51462d6e569170005a3628e6f5206c8d3e6ea3a09d1d40ff73439
       .just/docs.just: e6a852da423c2ec230c1bc281ab9bb4fe0ce6598a4b4765629adaec32c3714ae
-      Justfile: 034f57080ff097fd6a0ad1dacd89212242d162a31b2f1b80777cfa361021ea4e
-      flake.nix: e5567107273c34cf30aa84b848f721623c9630fa3e241d05fb8a6c33550dcf7d
+      .just/scripts/wt-carry-lcov.sh: 0352be6580d280c7eb253ded48c275eba1cba390d500454483b938903146fae3
+      Justfile: 84f34c46cc16ae9f7ef1999d53c202d2052e0c8751114656989a202b8c99da8d
+      flake.nix: d5a750960ddb12b7e1580233b50980465fb0e2234b8777a19192c6557930dd33
     dependents:
-      docs/src/agents.typ: 6a226def19f29097c3d4141891a5bdc80dd4b03c2ab7847e07233350e2dbbf7f
-      docs/src/contributing.typ: 4ccb453ce0b876de3beea14d378e3697c3719537154ce3fc3bc2a655e2349db7
+      docs/src/agents.typ: efeab2fa403ba1018347e39f347a65766c4e02060bcf4ef7f4c380ce34f78848
+      docs/src/contributing.typ: 4d030398178ab8a5816eada997b2a40015c7b1fd2f169833e9eef44a503bb324
       docs/src/contributing/coverage-crap.typ: a9d1342bcc89f7e565afbff8e97b512a83a4c2415297eadb81ffc00f594805a6
       docs/src/contributing/crap-baseline.typ: 551aab6a955a9d4345e73e1c171fe860663887e8b3c56f611f2f2551356eb301
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
