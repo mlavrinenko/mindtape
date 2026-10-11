@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 11),
+  status: done(
+    2026,
+    10,
+    12,
+  )[capture\_copy copies a fixture through tar without its .mindtape/cache/],
 )
 
 == Problem

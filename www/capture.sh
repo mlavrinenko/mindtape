@@ -66,13 +66,15 @@ capture_init() {
 # examples/links, for commands that write, and store the copy's path in <var>.
 # The copy keeps the fixture's depth below a symlinked lib/, so a
 # `[[typst.local-packages]]` path such as ../../lib reaches this checkout's
-# prelude.
+# prelude. It leaves out the fixture's .mindtape/cache/: another gate's `mt`
+# renames temp files in and out of it, and `cp -r` fails on one that vanished
+# mid-copy. The capture then evaluates its tasks cold, which prints the same.
 capture_copy() {
     local root
     root=$(mktemp -d "$CAPTURE_TMP/copy.XXXX")
-    mkdir -p "$root/$(dirname "$2")"
+    mkdir -p "$root/$2"
     ln -s "$REPO/lib" "$root/lib"
-    cp -r "$REPO/$2" "$root/$2"
+    tar -C "$REPO/$2" --exclude=./.mindtape/cache -cf - . | tar -C "$root/$2" -xf -
     printf -v "$1" '%s' "$root/$2"
 }
 
