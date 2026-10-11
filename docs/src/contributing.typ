@@ -127,7 +127,7 @@ squashes away each commit's `Refs:` footer and commits a dirty tree.
 
 // docs:hand-typed a worktree session that no fixture can run
 ```bash
-just fork <slug>           # ../mindtape.<slug> on a new branch, its mt built
+just fork <slug>           # ../mindtape-<slug> on a new branch, its mt built
 just fork <slug> --base=@  # the same, from the current commit, not main
 just land                  # in the worktree: gate, wip check, fast-forward, remove
 ```

@@ -63,7 +63,7 @@ In a delegated worktree, you can skip the hook’s freshness check with `MINDTAP
 Work in parallel in a sibling worktree: `just fork` makes one and `just land` merges it back. Both wrap [worktrunk](https://worktrunk.dev) (`wt`, from the dev shell) with the flags this repo needs, because a bare `wt merge` squashes away each commit’s `Refs:` footer and commits a dirty tree.
 
 ```bash
-just fork <slug>           # ../mindtape.<slug> on a new branch, its mt built
+just fork <slug>           # ../mindtape-<slug> on a new branch, its mt built
 just fork <slug> --base=@  # the same, from the current commit, not main
 just land                  # in the worktree: gate, wip check, fast-forward, remove
 ```
