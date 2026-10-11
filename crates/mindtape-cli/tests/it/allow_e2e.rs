@@ -1,5 +1,7 @@
 //! End-to-end tests for `mt allow`: no `[[tasks.waits]]` checker runs until
 //! the user records the config's commands, and a changed `run` line asks again.
+//! What an un-allowed `[[on.flip]]` `run` does is `flip_hooks_e2e`'s; here only
+//! that `mt allow` records one.
 //!
 //! Every stub checker is a line that `sh -c` and `cmd /C` both run the same
 //! way, so the battery holds on the Windows job too. Each spawn gets its own
@@ -152,4 +154,17 @@ fn a_sibling_worktree_shares_the_approval() {
     in_dir(&sibling, &["ls", "ready"]);
 
     assert!(ran(&sibling));
+}
+
+#[test]
+fn a_config_whose_only_command_is_a_flip_run_has_something_to_allow() {
+    let dir = support::scaffold_project(
+        "[tasks]\nroots = [\"tasks\"]\n\n[[on.flip]]\nwhen = ''\n\
+         actions = [{ run = \"exit 0\", gate = true }]\n",
+    );
+
+    let allowed = support::stdout(dir.path(), &["allow"]);
+
+    assert!(!allowed.contains("nothing to allow"), "{allowed}");
+    assert!(allowed.contains("  exit 0"), "{allowed}");
 }

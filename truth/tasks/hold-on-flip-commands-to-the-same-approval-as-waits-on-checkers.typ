@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 11),
+  status: done(2026, 10, 12),
   links: depends-on(
     "run-no-waits-on-checker-until-the-user-allows-the-commands-the-config-runs.typ",
   ),
