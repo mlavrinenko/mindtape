@@ -174,7 +174,7 @@ severity = "error"
 name = "src-budget"
 when = 'status == "wip" && has(estimate.src-files)'
 assert = 'changed("staged+worktree", "@source") <= estimate.src-files'
-message = "split the remaining work into a new task and finish the part in hand; keep estimate.src-files as filed, since it records the decomposition"
+message = "move work not yet written into a new task; what is already written ships with this one, so closing it needs no split, and estimate.src-files stays as filed"
 severity = "warn"
 
 # Goal verdicts moved out of the body into `x-goals:`, beside status and
