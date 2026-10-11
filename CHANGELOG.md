@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt allow`: no `[[tasks.waits]]` checker runs until you allow it.** A clone's
+  config could make `mt ls` run its commands before anyone read them. Now `mt`
+  runs none until `mt allow` records a hash of every `run` line for the
+  repository, under `allowed/` in `mt`'s data directory, keyed by the git
+  common directory so every worktree shares it. Until then a wait reads
+  `unknown: not allowed`, each command warns once and lists the commands, and
+  `mt wip --force` still starts the task. A changed `run` line asks again.
 - **`waits-on` and `[[tasks.waits]]`: a task can wait on something outside the
   repo.** A `[[tasks.waits]]` entry names a command, and a task lists
   `checker:id` entries in `waits-on`. `mt` runs the command with `{id}` filled

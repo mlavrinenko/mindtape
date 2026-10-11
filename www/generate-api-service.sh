@@ -116,7 +116,10 @@ capture --exit 1 --expect 'requires an unblocked task' one-task-at-a-time "$P" '
 capture one-task-at-a-time "$P" 'mt ls blocked --columns title,why'
 
 # Wait on upstream: a task waits until Cargo.lock pins the release it needs.
-# The dependency bot's branch bumps the lockfile, and merging it frees the task.
+# No checker runs before `mt allow`, so the session allows first. The
+# dependency bot's branch bumps the lockfile, and merging it frees the task.
+(
+CAPTURE_ALLOW=
 api_copy P
 capture_prep "$P" "$(
     cat <<'CMD'
@@ -128,10 +131,13 @@ CMD
 )"
 capture wait-on-upstream "$P" 'grep waits-on: tasks/verify-webhooks-with-the-acme-pay-sdk.typ'
 capture wait-on-upstream "$P" 'mt ls blocked --columns title,why'
+capture wait-on-upstream "$P" 'mt allow'
+capture wait-on-upstream "$P" 'mt ls blocked --columns title,why'
 capture --exit 1 --expect 'requires an unblocked task' wait-on-upstream "$P" \
     'mt wip verify-webhooks-with-the-acme-pay-sdk'
 capture wait-on-upstream "$P" 'git merge -q renovate/acme-pay-2.x'
 capture wait-on-upstream "$P" 'mt ls blocked --columns title,why'
+)
 
 # Trace commits to tasks: a commit-msg hook runs `mt check --commit-msg`, which
 # refuses a commit without a `Refs:` trailer. touches() then finds the task

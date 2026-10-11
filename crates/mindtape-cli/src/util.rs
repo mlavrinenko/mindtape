@@ -156,6 +156,28 @@ pub fn open() -> Result<Project> {
     })
 }
 
+/// Print one warning listing the config commands this process held back, if
+/// any: a `[[tasks.waits]]` checker runs only once `mt allow` records it.
+/// `main` calls it once, after the command, so however many loads a command
+/// makes, the user reads the list once.
+pub fn warn_held_back() {
+    if let Some(diag) = held_back_warning(&mindtape::waits::held_back()) {
+        emit(&diag);
+    }
+}
+
+/// The warning [`warn_held_back`] prints for `commands`, or `None` for none.
+fn held_back_warning(commands: &[String]) -> Option<Diag> {
+    if commands.is_empty() {
+        return None;
+    }
+    let diag = Diag::warning("not running the commands your config declares until you allow them");
+    let diag = commands.iter().fold(diag, |diag, command| {
+        diag.note(Note::new("command").value(command))
+    });
+    Some(diag.hint(Hint::new("read them, then run mt allow")))
+}
+
 /// Print each load warning of `config` to stderr, naming its config file.
 fn warn_config(root: &Path, config: &Config) {
     for diag in config_warnings(root, config) {

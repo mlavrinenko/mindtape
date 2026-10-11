@@ -11,7 +11,7 @@
       "name": "ready-priority-triage",
       "fixture": "examples/api-service",
       "prompt": "I've got some time this afternoon — what should I work on next? Show me what's actually ready to start, most important first.",
-      "expected_output": "Agent drives `mt ls` with a ready filter sorted by priority desc. Seven tasks are ready; the top is 'Index the orders by customer' (ICE score 7, the only one in the red band). The two blocked tasks must not be recommended, and status alone reveals neither, since both are proposed: 'Throttle failed logins per IP' depends on 'Add a Redis client to the app state', which is unfinished, and 'Verify webhooks with the acme-pay SDK' waits on `locked:acme-pay@2.4.0` while Cargo.lock pins 2.3.2. No files mutated.",
+      "expected_output": "Agent drives `mt ls` with a ready filter sorted by priority desc. Seven tasks are ready; the top is 'Index the orders by customer' (ICE score 7, the only one in the red band). The two blocked tasks must not be recommended, and status alone reveals neither, since both are proposed: 'Throttle failed logins per IP' depends on 'Add a Redis client to the app state', which is unfinished, and 'Verify webhooks with the acme-pay SDK' waits on `locked:acme-pay@2.4.0`, whose checker `mt` has not run because nobody has run `mt allow` in this clone. The agent passes the warning that lists `scripts/locked {id}` on to the user rather than running `mt allow` itself. No files mutated.",
       "files": [],
       "assertions": [
         {
@@ -21,7 +21,10 @@
           "text": "Excluded the blocked task 'Throttle failed logins per IP' — it is only discoverable via the `blocked`/`ready` filter or its depends-on edge, not from its `proposed` status"
         },
         {
-          "text": "Excluded 'Verify webhooks with the acme-pay SDK', whose `waits-on` checker still says waiting"
+          "text": "Excluded 'Verify webhooks with the acme-pay SDK', whose `waits-on` checker is not allowed to run"
+        },
+        {
+          "text": "Did not run `mt allow`, and told the user that the config's `scripts/locked {id}` waits for their approval"
         },
         {
           "text": "Led with 'Index the orders by customer', the highest-priority ready task"

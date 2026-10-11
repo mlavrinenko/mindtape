@@ -125,6 +125,12 @@ with the reason as its note. Do not mark a blocked task
 `wip`: that counts against any work-in-progress cap and tells readers someone
 is working on it.
 
+`mt` runs no checker until the user allows the config's commands. Until then a
+wait reads `unknown: not allowed`, and each command warns once and lists the
+commands. Never run `mt allow` yourself: the commands run with the user's
+rights. Pass the warning and its command list to the user, who reads them and
+decides.
+
 = Commits and checks
 
 A project with the `flip-with-work` commit rule refuses a commit that holds

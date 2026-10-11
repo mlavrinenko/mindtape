@@ -65,7 +65,11 @@ fn main() -> ExitCode {
     // belongs to the candidate list for its duration. Returns immediately on
     // an ordinary run.
     cli::completion::complete();
-    match run() {
+    let result = run();
+    // Before the error, if any: a refusal often follows from a held-back
+    // checker, so the reason reads first.
+    util::warn_held_back();
+    match result {
         Ok(()) => ExitCode::SUCCESS,
         Err(diag) => diag::report(&diag),
     }

@@ -106,18 +106,34 @@ _capture_project() {
     esac
 }
 
+# Every capture runs `mt allow` in its project first, so a fixture's
+# `[[tasks.waits]]` checker answers and no capture carries the warning that
+# asks for it. A session that shows `mt allow` clears this, in a subshell.
+CAPTURE_ALLOW=1
+
 # Run <command> in <dir> the way every capture runs one, printing what the
 # terminal showed and exiting with the command's status. BASH_ENV is cleared
 # because a startup file it names can rewrite PATH, and then `mt` resolves to
 # whatever binary the builder has installed.
 _capture_run() { # <dir> <command>
-    cd "$1" && env -u BASH_ENV -u NO_COLOR -u COLUMNS -u LINES -u EDITOR -u VISUAL \
+    if [ -n "$CAPTURE_ALLOW" ] && [ -d "$1/.mindtape" ]; then
+        _capture_env "$1" mt allow >/dev/null 2>&1 || true
+    fi
+    CAPTURE_CMD=$2 _capture_env "$1" script -qec 'stty cols 100 rows 50 -onlcr; exec bash -c "$CAPTURE_CMD"' /dev/null \
+        </dev/null
+}
+
+# _capture_env <dir> <program> <args>: run <program> in <dir> with the
+# environment every capture gets, and <command> as $CAPTURE_CMD.
+_capture_env() {
+    local dir=$1
+    shift
+    (cd "$dir" && env -u BASH_ENV -u NO_COLOR -u COLUMNS -u LINES -u EDITOR -u VISUAL \
         -u MINDTAPE_WORKTREE -u MINDTAPE_PRINCIPAL -u MINDTAPE_NO_CACHE \
         TERM=xterm-256color SHELL="$(command -v bash)" PATH="$CAPTURE_TMP/bin:$PATH" \
         MINDTAPE_CONFIG_HOME="$CAPTURE_CONFIG_HOME" MINDTAPE_DATA_HOME="$CAPTURE_DATA_HOME" \
-        CAPTURE_CMD="$2" \
-        script -qec 'stty cols 100 rows 50 -onlcr; exec bash -c "$CAPTURE_CMD"' /dev/null \
-        </dev/null
+        CAPTURE_CMD="${CAPTURE_CMD:-}" \
+        "$@")
 }
 
 # capture_prep <dir> <command>: set a project up for the captures, recording

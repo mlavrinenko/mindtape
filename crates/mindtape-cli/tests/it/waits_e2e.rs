@@ -2,7 +2,9 @@
 //! decides whether a task waits on something outside the repo.
 //!
 //! Every stub checker is a line that `sh -c` and `cmd /C` both run the same
-//! way, so the battery holds on the Windows job too.
+//! way, so the battery holds on the Windows job too. Each project runs
+//! `mt allow` first, into the test's own data home, since no checker runs
+//! before it: `allow_e2e` covers that.
 #![allow(
     clippy::unwrap_used,
     clippy::disallowed_methods,
@@ -26,6 +28,7 @@ fn project(run: &str) -> tempfile::TempDir {
         r#"("up:pr-7",)"#,
     );
     write_task(dir.path(), "free", "Free", "()");
+    support::run_ok(dir.path(), &["allow"]);
     dir
 }
 
@@ -171,6 +174,7 @@ fn guarded_project(status: &str) -> tempfile::TempDir {
         status,
         r#"("up:pr-7",)"#,
     );
+    support::run_ok(dir.path(), &["allow"]);
     dir
 }
 
@@ -229,6 +233,8 @@ fn waiting_repo(run: &str) -> tempfile::TempDir {
         dir.path(),
         &["-c", "commit.gpgsign=false", "commit", "-q", "-m", "start"],
     );
+    // After git init: the approval is keyed by the repository's git directory.
+    support::run_ok(dir.path(), &["allow"]);
     dir
 }
 

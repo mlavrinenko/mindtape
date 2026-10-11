@@ -25,11 +25,16 @@ export MINDTAPE_NOW=$API_SERVICE_NOW
 capture_init
 
 # run <file> <project> <mt args...>: write one run's stdout to `OUT`/<file>,
-# from the project's own directory, so every path mt prints is relative.
+# from the project's own directory, so every path mt prints is relative. It
+# reads the capture area's data home and allows the project's commands there,
+# as a capture does, so no approval of the builder's changes a run.
 run() {
   local file="$1" dir="$2"
   shift 2
-  (cd "$dir" && "$MT" --color never "$@") >"$OUT/$file"
+  (
+    cd "$dir" && export MINDTAPE_DATA_HOME="$CAPTURE_DATA_HOME"
+    "$MT" allow >/dev/null && "$MT" --color never "$@"
+  ) >"$OUT/$file"
 }
 
 # /templates/: the template, the slots mt finds in it, and the task that one

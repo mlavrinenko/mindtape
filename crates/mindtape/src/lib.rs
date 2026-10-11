@@ -14,6 +14,7 @@
 // primitive they exist to pin.
 #![cfg_attr(test, allow(clippy::disallowed_methods))]
 
+pub mod allow;
 pub mod body;
 pub mod commit;
 pub mod config;

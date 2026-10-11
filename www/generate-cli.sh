@@ -99,6 +99,17 @@ mt import < export.json           # canonical JSON from stdin
 jq -f contrib/jq/taskwarrior.jq task-export.json | mt import   # a Taskwarrior export
 EOF
 
+# `mt allow` records the fixture's checker. The session clears the harness's
+# own allow, so the listing before it shows what an unallowed repo prints.
+(
+    CAPTURE_ALLOW=
+    capture_copy P examples/api-service
+    capture_lines allow "$P" <<'EOF'
+mt ls blocked --columns title,why
+mt allow
+EOF
+)
+
 capture_copy P examples/api-service
 capture_lines mv "$P" <<'EOF'
 mt mv add-redis-client add-redis --dry-run
@@ -180,6 +191,7 @@ EOF
     mkdir -p "$CAPTURE_CONFIG_HOME/mindtape"
     printf '[[worktrees]]\nname = "api"\npath = "%s"\n' "$P" >"$CAPTURE_CONFIG_HOME/mindtape/worktrees.toml"
     CAPTURE_PATHS+=("$P=~/api-service")
+    capture_prep "$P" 'mt allow'
     capture_scratch Q
     capture_lines worktrees-examples "$Q" <<'EOF'
 mt worktrees      # the configured @name aliases

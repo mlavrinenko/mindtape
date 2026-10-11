@@ -40,6 +40,18 @@ output_error! {
     clap::Error => "can't read the arguments",
 }
 
+/// An approval `mt allow` could not record.
+impl From<mindtape::allow::AllowError> for Diag {
+    fn from(err: mindtape::allow::AllowError) -> Self {
+        use mindtape::allow::AllowError;
+        match err {
+            AllowError::NoDataHome => Self::failed("can't find the local data directory")
+                .hint(Hint::new("set MINDTAPE_DATA_HOME to a directory")),
+            AllowError::Write { path, source } => Self::cannot_write(&path, &source),
+        }
+    }
+}
+
 impl From<csv::IntoInnerError<csv::Writer<Vec<u8>>>> for Diag {
     fn from(err: csv::IntoInnerError<csv::Writer<Vec<u8>>>) -> Self {
         Self::failed("can't write CSV").cause(&err)

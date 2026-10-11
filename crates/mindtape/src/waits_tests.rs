@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use super::{Answer, Checker, annotate, ask, command_line, validate_checkers};
+use super::{Answer, Checker, annotate_with, command_line, held_back, stamp, validate_checkers};
 use crate::config::{Config, LegendEntry};
 use crate::test_support::bare_task;
 
@@ -78,6 +78,10 @@ fn a_reason_marks_an_unknown_answer_and_none_for_a_resolved_one() {
         Answer::Unknown("exit 3".to_owned()).reason().as_deref(),
         Some("unknown: exit 3")
     );
+    assert_eq!(
+        Answer::NotAllowed.reason().as_deref(),
+        Some("unknown: not allowed")
+    );
 }
 
 /// The answer `run` gives for one entry, asked from a fresh directory so no
@@ -87,7 +91,12 @@ fn answer_of(run: &str) -> Answer {
     let dir = tempfile::tempdir().unwrap();
     let mut task = bare_task("t");
     task.waits_on = vec!["up:x".to_owned()];
-    ask(&mut task, &config(vec![checker("up", run)]), dir.path());
+    stamp(
+        &mut task,
+        &config(vec![checker("up", run)]),
+        dir.path(),
+        true,
+    );
     task.answers["up:x"].clone()
 }
 
@@ -121,8 +130,8 @@ fn a_command_line_runs_once_per_root_however_often_it_is_asked() {
         task.waits_on = vec!["up:x".to_owned()];
     }
 
-    annotate(&mut tasks, &config, dir.path());
-    annotate(&mut tasks, &config, dir.path());
+    annotate_with(&mut tasks, &config, dir.path(), || true);
+    annotate_with(&mut tasks, &config, dir.path(), || true);
 
     let runs = std::fs::read_to_string(dir.path().join("runs")).unwrap();
     assert_eq!(runs.lines().count(), 1);
@@ -151,7 +160,7 @@ fn a_terminal_task_is_not_asked_and_a_bad_entry_never_runs() {
     open.waits_on = vec!["nope:x".to_owned()];
     let mut tasks = vec![done, open];
 
-    annotate(&mut tasks, &config, Path::new("/no/such/root"));
+    annotate_with(&mut tasks, &config, Path::new("/no/such/root"), || true);
 
     assert!(tasks[0].answers.is_empty());
     assert_eq!(
@@ -165,10 +174,11 @@ fn a_shell_that_cannot_start_is_an_unknown_answer() {
     let mut task = bare_task("t");
     task.waits_on = vec!["up:x".to_owned()];
 
-    ask(
+    stamp(
         &mut task,
         &config(vec![checker("up", "exit 0")]),
         Path::new("/no/such/root"),
+        true,
     );
 
     let Answer::Unknown(reason) = &task.answers["up:x"] else {
@@ -196,4 +206,56 @@ fn checker_names_must_be_spellable_unique_and_run_something() {
             "tasks.waits[3].name: '' must be letters, digits, - and _",
         ]
     );
+}
+
+#[test]
+fn a_checker_the_user_has_not_allowed_answers_without_running() {
+    let dir = tempfile::tempdir().unwrap();
+    let run = "echo held >> runs";
+    let mut task = bare_task("t");
+    task.waits_on = vec!["up:x".to_owned(), "nope:x".to_owned()];
+
+    stamp(
+        &mut task,
+        &config(vec![checker("up", run)]),
+        dir.path(),
+        false,
+    );
+
+    assert_eq!(task.answers["up:x"], Answer::NotAllowed);
+    assert_eq!(
+        task.answers["nope:x"],
+        Answer::Unknown("unknown checker: 'nope'".to_owned())
+    );
+    assert!(!dir.path().join("runs").exists());
+    assert!(held_back().contains(&run.to_owned()));
+}
+
+#[test]
+fn annotate_asks_about_the_approval_only_when_an_open_task_waits() {
+    let config = config(vec![checker("up", "exit 0")]);
+    let mut tasks = vec![bare_task("free")];
+    let asked = std::cell::Cell::new(false);
+
+    annotate_with(&mut tasks, &config, Path::new("/no/such/root"), || {
+        asked.set(true);
+        false
+    });
+
+    assert!(!asked.get());
+    assert!(tasks[0].answers.is_empty());
+}
+
+#[test]
+fn annotate_holds_every_open_task_back_when_not_allowed() {
+    let config = config(vec![checker("up", "exit 0")]);
+    let mut tasks = vec![bare_task("a"), bare_task("b")];
+    for task in &mut tasks {
+        task.waits_on = vec!["up:x".to_owned()];
+    }
+
+    annotate_with(&mut tasks, &config, Path::new("/no/such/root"), || false);
+
+    assert_eq!(tasks[0].answers["up:x"], Answer::NotAllowed);
+    assert_eq!(tasks[1].answers["up:x"], Answer::NotAllowed);
 }

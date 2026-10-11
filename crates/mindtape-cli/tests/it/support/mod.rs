@@ -13,6 +13,10 @@ const PRELUDE: &str = include_str!("../../../../../lib/prelude.typ");
 /// test's own project directory that nothing ever creates.
 const NO_GLOBAL_CONFIG: &str = "no-global-config";
 
+/// Where [`isolated_env`] points the data directory: a path under the test's
+/// own project directory, which `mt allow` creates when a test runs it.
+const DATA_HOME: &str = "data-home";
+
 /// Environment variables that steer `mt` and must not reach a spawned binary
 /// from the developer's shell: `MINDTAPE_NOW` repins the clock every dated
 /// write reads, `MINDTAPE_WORKTREE` retargets the project root, and `VISUAL`
@@ -53,9 +57,14 @@ const STUB_EDITOR: &str = "mt-no-such-editor";
 /// pair stays set anyway, since `HOME` also caps the ancestor
 /// `.mindtape/defaults.toml` walk at `dir`, so a stray one above the tempdir
 /// cannot leak in either.
-pub fn isolated_env(dir: &Path) -> [(&'static str, PathBuf); 3] {
+///
+/// `MINDTAPE_DATA_HOME` gets a fresh directory under `dir` for the same reason:
+/// it holds the `mt allow` approvals, and a test must neither read the
+/// developer's nor leave its own behind.
+pub fn isolated_env(dir: &Path) -> [(&'static str, PathBuf); 4] {
     [
         (mindtape::CONFIG_HOME_ENV, dir.join(NO_GLOBAL_CONFIG)),
+        (mindtape::DATA_HOME_ENV, dir.join(DATA_HOME)),
         ("XDG_CONFIG_HOME", dir.join(NO_GLOBAL_CONFIG)),
         ("HOME", dir.to_path_buf()),
     ]

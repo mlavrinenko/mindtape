@@ -5,9 +5,9 @@ use mindtape::test_support::{TASK_SRC, bare_task};
 use mindtape::{Config, LoadError, LoadOutcome, Task, load_project};
 
 use super::{
-    Project, config_warnings, hyperlinks_flag, init_hyperlinks_flag, init_worktree, pick_override,
-    resolve_hyperlinks, resolve_root_with, resolve_task, stem_hashes, unknown_view_error,
-    warn_errors, worktree_override,
+    Project, config_warnings, held_back_warning, hyperlinks_flag, init_hyperlinks_flag,
+    init_worktree, pick_override, resolve_hyperlinks, resolve_root_with, resolve_task, stem_hashes,
+    unknown_view_error, warn_errors, worktree_override,
 };
 use crate::render::link::HyperlinkChoice;
 
@@ -312,4 +312,22 @@ fn resolve_absolute_path_eq_not_neq() {
     let (task, path) = resolve_task(&project, abs.to_str().unwrap()).unwrap();
     assert_eq!(task.id, "alpha");
     assert_eq!(path, abs);
+}
+
+#[test]
+fn no_held_back_command_means_no_warning() {
+    assert!(held_back_warning(&[]).is_none());
+}
+
+#[test]
+fn the_held_back_warning_lists_each_command_and_asks_for_mt_allow() {
+    let commands = vec!["a {id}".to_owned(), "b".to_owned()];
+
+    let msg = crate::diag::plain(&held_back_warning(&commands).unwrap());
+
+    assert_eq!(
+        msg,
+        "warning: not running the commands your config declares until you allow them\n\
+         hint: read them, then run mt allow\nnote: command: 'a {id}'\nnote: command: 'b'\n"
+    );
 }

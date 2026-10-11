@@ -23,9 +23,9 @@ use log::LevelFilter;
 use crate::render::color::ColorChoice;
 use crate::render::link::HyperlinkChoice;
 use crate::{
-    cmd::add, cmd::check, cmd::config as config_cmd, cmd::eval, cmd::find, cmd::flip, cmd::go,
-    cmd::graph, cmd::import, cmd::init, cmd::install, cmd::link as link_cmd, cmd::ls, cmd::mv,
-    cmd::preset as preset_cmd, cmd::recur, cmd::review, cmd::rm, cmd::set, cmd::views,
+    cmd::add, cmd::allow, cmd::check, cmd::config as config_cmd, cmd::eval, cmd::find, cmd::flip,
+    cmd::go, cmd::graph, cmd::import, cmd::init, cmd::install, cmd::link as link_cmd, cmd::ls,
+    cmd::mv, cmd::preset as preset_cmd, cmd::recur, cmd::review, cmd::rm, cmd::set, cmd::views,
     cmd::worktrees,
 };
 
@@ -76,6 +76,13 @@ enum Command {
     /// Check every task, and the task each template would file, against your
     /// project's rules.
     Check(check::CheckArgs),
+    /// Let the commands your config runs, such as `[[tasks.waits]]` checkers,
+    /// run in this repository.
+    ///
+    /// It prints each command and records them for this repository and every
+    /// worktree of it. Until you do, mt runs none of them, and a changed
+    /// command asks again. Read them first: they run with your rights.
+    Allow(allow::AllowArgs),
     /// Show the config mt uses.
     Config(config_cmd::ConfigArgs),
     /// Save this project's setup as a preset for `mt init`, or list presets.
@@ -162,6 +169,7 @@ impl Cli {
             Command::Views(args) => views::run(&args),
             Command::Worktrees(args) => worktrees::run(&args),
             Command::Check(args) => check::run(&args),
+            Command::Allow(args) => allow::run(&args),
             Command::Config(args) => config_cmd::run(&args),
             Command::Preset(args) => preset_cmd::run(&args),
             Command::Init(args) => init::run(&args),

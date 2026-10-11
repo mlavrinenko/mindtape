@@ -60,6 +60,8 @@ A key names a template slot, which need not be a field. A framework priority, fo
 
 To see what each blocked task waits on, run `mt ls blocked --columns title,why`. A legend may have no `blocked` status, so check `mt flip --list` before you use one. To record an external blocker, run `mt config show` and look for `[[tasks.waits]]` checkers. If one fits, add the condition with `mt set <task> waits-on+=<checker>:<id>`, and the task stays blocked until that checker exits 0. Otherwise, file a task for the blocker and link to it with `depends-on`, or leave the task in a status before work starts with the reason as its note. Do not mark a blocked task `wip`: that counts against any work-in-progress cap and tells readers someone is working on it.
 
+`mt` runs no checker until the user allows the config’s commands. Until then a wait reads `unknown: not allowed`, and each command warns once and lists the commands. Never run `mt allow` yourself: the commands run with the user’s rights. Pass the warning and its command list to the user, who reads them and decides.
+
 ## Commits and checks
 
 A project with the `flip-with-work` commit rule refuses a commit that holds only a `wip` or `done` flip. Leave `mt wip <stem>` uncommitted and commit it with the first change of the work. Commit `mt done <stem>` with the last change, whose `Refs:` trailer names the task. A commit that files a task holds no flip and no `Refs:` trailer.

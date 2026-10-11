@@ -10,10 +10,11 @@
 //!   the status shortcut verbs) and `mt init` (with its wizard, presets, axes).
 //! - `graph/`, `import/`, `install/`, `link/`, `ls/`, `recur/`, `rm/` — the
 //!   commands split over helper files.
-//! - `config.rs`, `eval.rs`, `find.rs`, `go.rs`, `mv.rs`, `preset.rs`,
+//! - `allow.rs`, `config.rs`, `eval.rs`, `find.rs`, `go.rs`, `mv.rs`, `preset.rs`,
 //!   `review.rs`, `set.rs`, `views.rs`, `worktrees.rs` — one file each.
 
 pub(crate) mod add;
+pub(crate) mod allow;
 pub(crate) mod check;
 pub(crate) mod config;
 pub(crate) mod eval;

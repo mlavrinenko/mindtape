@@ -9,7 +9,7 @@ Evals run against the tracked example projects, not a fixture of their own:
 
 | Fixture | Evals | Why this one |
 |---------|-------|--------------|
-| `examples/api-service` | 0-3 | 13 tasks, 4 of them done, ICE priority with bands, a template with required slots, a one-task-in-`wip` rule, a `proposed` task blocked by a dependency, another whose `waits-on` checker (`scripts/locked`) says `Cargo.lock` pins too old a release, and a `scripts/test` gate that fails on every `mt done` |
+| `examples/api-service` | 0-3 | 13 tasks, 4 of them done, ICE priority with bands, a template with required slots, a one-task-in-`wip` rule, a `proposed` task blocked by a dependency, another whose `waits-on` checker (`scripts/locked`) `mt` runs only after `mt allow`, which the agent must leave to the user, and a `scripts/test` gate that fails on every `mt done` |
 | `examples/minimal` | 4-5 | The floor config. Its two absences are the test: no `blocked` in the legend, and no template — so `--set priority=8` is refused by name |
 
 Both are validated by `just check-examples`, which is what makes them safe to

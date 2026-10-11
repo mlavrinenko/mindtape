@@ -22,8 +22,13 @@
 //!
 //! `{id}` is pasted into a shell line, so [`command_line`] refuses an id with a
 //! character outside [`ID_PUNCT`] and [`annotate`] never runs one.
+//!
+//! No checker runs until the user allows the config's commands with `mt allow`
+//! ([`crate::allow`]). Until then every entry answers [`Answer::NotAllowed`],
+//! which blocks like an unknown answer, and [`held_back`] names the commands
+//! for the one warning the caller prints.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, PoisonError};
 
@@ -56,6 +61,9 @@ pub enum Answer {
     /// Anything else: the checker could not tell, for the reason the line
     /// gives. Blocks like [`Answer::Waiting`].
     Unknown(String),
+    /// The checker did not run, since the user has not allowed the config's
+    /// commands. Blocks like [`Answer::Unknown`].
+    NotAllowed,
 }
 
 impl Answer {
@@ -66,6 +74,7 @@ impl Answer {
             Self::Resolved => None,
             Self::Waiting(line) => Some(line.clone()),
             Self::Unknown(line) => Some(format!("unknown: {line}")),
+            Self::NotAllowed => Some("unknown: not allowed".to_owned()),
         }
     }
 }
@@ -83,31 +92,74 @@ pub const ID_PUNCT: &str = "._@/#:+-";
 /// so a checker that several tasks or several loads ask about runs once.
 static ANSWERS: Mutex<BTreeMap<(PathBuf, String), Answer>> = Mutex::new(BTreeMap::new());
 
+/// Every command this process held back because the user has not allowed it.
+static HELD: Mutex<BTreeSet<String>> = Mutex::new(BTreeSet::new());
+
+/// The commands this process would have run but held back, sorted: what the
+/// warning that asks for `mt allow` lists. Empty when every checker ran.
+#[must_use]
+pub fn held_back() -> Vec<String> {
+    let held = HELD.lock().unwrap_or_else(PoisonError::into_inner);
+    held.iter().cloned().collect()
+}
+
 /// Stamp each open task's [`Task::answers`] with what its checkers say, running
-/// each command line at most once per process. A terminal task runs nothing.
+/// each command line at most once per process. A terminal task runs nothing,
+/// and no checker runs while the config's commands are not allowed.
 pub fn annotate(tasks: &mut [Task], config: &Config, root: &Path) {
+    annotate_with(tasks, config, root, || allowed(config, root));
+}
+
+/// [`annotate`], with `allowed` saying whether checkers may run. It is asked
+/// only when some open task waits on something.
+fn annotate_with(tasks: &mut [Task], config: &Config, root: &Path, allowed: impl FnOnce() -> bool) {
     let terminal = config.tasks.status.terminal();
-    for task in tasks.iter_mut().filter(|task| !task.is_terminal(&terminal)) {
-        ask(task, config, root);
+    let asked: Vec<&mut Task> = tasks
+        .iter_mut()
+        .filter(|task| !task.waits_on.is_empty() && !task.is_terminal(&terminal))
+        .collect();
+    if asked.is_empty() {
+        return;
+    }
+    let allowed = allowed();
+    for task in asked {
+        stamp(task, config, root, allowed);
     }
 }
 
 /// Stamp `task`'s [`Task::answers`] whatever its status: what a flip out of a
 /// terminal status needs, since [`annotate`] asks nothing for that task.
 pub fn ask(task: &mut Task, config: &Config, root: &Path) {
+    let allowed = task.waits_on.is_empty() || allowed(config, root);
+    stamp(task, config, root, allowed);
+}
+
+/// Whether the user allowed the commands `config` runs for `root`'s repository.
+fn allowed(config: &Config, root: &Path) -> bool {
+    crate::allow::is_allowed(root, &crate::allow::commands(config))
+}
+
+/// Stamp `task`'s [`Task::answers`], running its checkers only when `allowed`.
+fn stamp(task: &mut Task, config: &Config, root: &Path, allowed: bool) {
     task.answers = task
         .waits_on
         .iter()
-        .map(|entry| (entry.clone(), answer(entry, config, root)))
+        .map(|entry| (entry.clone(), answer(entry, config, root, allowed)))
         .collect();
 }
 
-/// What `entry`'s checker says, from the process-wide memo or a fresh run.
-fn answer(entry: &str, config: &Config, root: &Path) -> Answer {
+/// What `entry`'s checker says, from the process-wide memo or a fresh run, or
+/// [`Answer::NotAllowed`] without a run when the commands are not `allowed`.
+fn answer(entry: &str, config: &Config, root: &Path, allowed: bool) -> Answer {
     let command = match command_line(entry, config) {
         Ok(command) => command,
         Err(problem) => return Answer::Unknown(problem.message),
     };
+    if !allowed {
+        let mut held = HELD.lock().unwrap_or_else(PoisonError::into_inner);
+        held.extend(crate::allow::commands(config));
+        return Answer::NotAllowed;
+    }
     let mut answers = ANSWERS.lock().unwrap_or_else(PoisonError::into_inner);
     answers
         .entry((root.to_path_buf(), command))

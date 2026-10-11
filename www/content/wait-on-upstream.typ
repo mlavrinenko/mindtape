@@ -27,9 +27,11 @@ version an id names or a later one, and 1 while it pins an older one.
 
 = What `mt` does
 
-The task names what it waits on in `waits-on`. While the lockfile pins 2.3.2,
-the task is blocked, `why` quotes the script, and `mt wip` won't start it.
-Merge the dependency bot's branch, and the same listing lets it go:
+The task names what it waits on in `waits-on`. In a fresh clone `mt` runs no
+checker, so the task is blocked as unknown and `mt` asks you to allow the
+script. Once you do, `why` quotes the script while the lockfile pins 2.3.2,
+and `mt wip` won't start the task. Merge the dependency bot's branch, and the
+same listing lets it go:
 
 #terminal("wait-on-upstream")
 
@@ -50,9 +52,15 @@ that bumps your lockfile.
 
 `{id}` lands in a shell line as is, so `mt check` refuses an id that a shell
 could read as more than a word. An id starts with a letter or digit and holds
-letters, digits and `._@/#:+-`. A checker runs with your full authority, like
-a `Justfile` recipe, so read a cloned repo's `.mindtape/config.toml` before
-you run `mt` in it.
+letters, digits and `._@/#:+-`.
+
+A checker runs with your full rights, like a `Justfile` recipe, and `mt ls`
+would run it the moment you clone. So `mt` runs none until
+#link(u("/cli/allow/"))[`mt allow`] records the config's commands for the
+repo. Until then each command warns once and lists them, every wait reads
+`unknown: not allowed`, and `mt wip --force` still starts a task. The approval
+lives outside the repo and covers each of its worktrees. Change a `run` line
+and `mt` asks again.
 
 #link(u("/links/"))[Links] covers `depends-on`, the blocker that waits on
 another task instead.
