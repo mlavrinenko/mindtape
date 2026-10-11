@@ -4615,11 +4615,11 @@
         "tola": "tola"
       },
       "locked": {
-        "lastModified": 1787430638,
-        "narHash": "sha256-dCPQlNu5HsRkbC8iY8IbYZgqRqdpLKjNlPNMCdv/KyI=",
+        "lastModified": 1791716023,
+        "narHash": "sha256-aYo0eXazbLCOAB1RBuUnIuzkyjywmvYA/SnwdF3DYu8=",
         "owner": "mlavrinenko",
         "repo": "mmz",
-        "rev": "1b4593cf21b84a57b3a06e01f47684b6ef1d320f",
+        "rev": "80625202e9adb757f7f9708911348a43eaddef0c",
         "type": "github"
       },
       "original": {
