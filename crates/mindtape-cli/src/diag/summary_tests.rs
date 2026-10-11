@@ -13,8 +13,16 @@ fn a_count_line_pluralises_its_nouns() {
         "error: 1 commit message problem\n"
     );
     assert_eq!(
-        plain(&Diag::commits_broke_rules(2)),
+        plain(&Diag::commits_broke_rules(2, 0)),
         "error: 2 commits broke commit rules\n"
+    );
+    assert_eq!(
+        plain(&Diag::commits_broke_rules(0, 1)),
+        "error: 1 task broke commit rules\n"
+    );
+    assert_eq!(
+        plain(&Diag::commits_broke_rules(1, 2)),
+        "error: 1 commit and 2 tasks broke commit rules\n"
     );
 }
 

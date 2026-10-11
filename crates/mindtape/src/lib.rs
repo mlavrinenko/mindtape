@@ -46,6 +46,7 @@ pub use body::{BodyRules, check_body_rules};
 pub use commit::expr::CommitExpr;
 pub use commit::range::{CommitRange, PastCommit, RangeCommit};
 pub use commit::tasks::{CommitStates, ProjectState, StatePlan, StateSource};
+pub use commit::tip::check_tip;
 pub use commit::{
     ChangedFiles, CommitMessage, CommitMsgError, CommitRecord, RefProblem, TrailerValue,
     parse_message, staged_files,

@@ -90,6 +90,19 @@ fn an_unknown_dict_lists_the_dicts_on_a_hint() {
     );
 }
 
+#[test]
+fn an_unknown_path_set_says_how_to_declare_it() {
+    let err = FilterError::UnknownPathSet {
+        name: "verb".to_owned(),
+        unknown: Unknown::among("verb", ["verbs"]),
+    };
+    assert_eq!(
+        plain(&Diag::from(err)),
+        "error: unknown path set: '@verb': declare it as [dicts.verb]\n\
+         hint: did you mean verbs?\nhint: use one of: verbs\n"
+    );
+}
+
 fn cleanup_text(err: typst_cleanup::Error) -> String {
     crate::diag::plain(&Diag::from(err))
 }

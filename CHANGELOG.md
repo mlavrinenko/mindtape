@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`scope = "tip"` commit rules, and `named-tasks-finish-at-the-tip`.** A
+  `[[commits.rules]]` entry with `scope = "tip"` runs once per task any commit
+  of an `mt check --commits` range names, over that task as the range's newest
+  commit holds it, in the `[[tasks.rules]]` filter language. A stem named in
+  several commits is reported once, and a task the tip lacks is
+  skipped. The `mindtape-tasks` pack ships `named-tasks-finish-at-the-tip`,
+  `assert = '!(status == "wip")'`, so a range that leaves a task it names `wip`
+  fails with `mt done <stem>` advice; the summary reads `1 task broke commit
+  rules`.
 - **The config page's `{date:FMT}` token table is generated.** `format_iso`
   matches the `DATE_TOKENS` table and `mt _cli` exports it, so a new or renamed
   token reaches the page with no hand edit.

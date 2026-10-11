@@ -29,6 +29,7 @@
 //! - `refs.rs`: which tasks shaped a file, from the trailers of its commits.
 //! - `task_expr.rs`: the task half of a `scope = "task"` rule's expression.
 //! - `tasks.rs`: the project as `HEAD`, the index and the working tree see it.
+//! - `tip.rs`: the `scope = "tip"` rules of a range, run over its newest commit's tasks.
 
 pub(crate) mod amend;
 pub mod expr;
@@ -36,6 +37,7 @@ pub mod range;
 pub mod refs;
 pub mod task_expr;
 pub mod tasks;
+pub mod tip;
 
 use std::path::Path;
 use std::process::Command;

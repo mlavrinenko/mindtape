@@ -123,3 +123,25 @@ fn an_unknown_path_set_in_a_commit_rule_carries_the_nearest_dict() {
         .expect("the problem carries the dicts");
     assert_eq!(unknown.nearest.as_deref(), Some("verbs"));
 }
+
+#[test]
+fn a_tip_rule_is_not_a_task_rule_and_is_skipped_per_commit() {
+    let config =
+        parse_config("[[commits.rules]]\nscope = \"tip\"\nassert = '!(status == \"wip\")'\n")
+            .unwrap();
+    assert!(!config.commits.has_task_rules());
+    assert!(check_commit(&record(&["parser"], false), None, &config).is_empty());
+}
+
+#[test]
+fn a_tip_rule_reads_task_fields_and_is_dry_run_at_load() {
+    parse_config("[[commits.rules]]\nscope = \"tip\"\nassert = 'status == \"wip\"'\n")
+        .unwrap()
+        .validate()
+        .unwrap();
+    let problems = parse_config("[[commits.rules]]\nscope = \"tip\"\nassert = 'has(refs)'\n")
+        .unwrap()
+        .validate()
+        .unwrap_err();
+    assert!(problems.contains("commits.rules[0].assert"), "{problems}");
+}

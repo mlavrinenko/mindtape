@@ -31,9 +31,17 @@ impl Diag {
         Self::refused("").reason(counted(problems, "commit message problem"))
     }
 
-    /// What `mt check --commits` ends with: `2 commits broke commit rules`.
-    pub(crate) fn commits_broke_rules(commits: usize) -> Self {
-        Self::refused("").reason(format!("{} broke commit rules", counted(commits, "commit")))
+    /// What `mt check --commits` ends with: `2 commits broke commit rules`,
+    /// or `1 commit and 1 task broke commit rules` when a `scope = "tip"` rule
+    /// also fired.
+    pub(crate) fn commits_broke_rules(commits: usize, tasks: usize) -> Self {
+        let broke = [(commits, "commit"), (tasks, "task")]
+            .into_iter()
+            .filter(|(count, _)| *count > 0)
+            .map(|(count, noun)| counted(count, noun))
+            .collect::<Vec<_>>()
+            .join(" and ");
+        Self::refused("").reason(format!("{broke} broke commit rules"))
     }
 
     /// How a command we ran ended: `exit 1`, or `terminated by signal` when

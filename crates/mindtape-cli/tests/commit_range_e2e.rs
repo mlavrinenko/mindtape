@@ -223,3 +223,97 @@ fn each_state_holds_a_task_once() {
     let (ok, text) = check_range(dir, "HEAD~2..HEAD");
     assert!(ok, "{text}");
 }
+
+/// The rule `mindtape-tasks` ships for the tip of a range.
+const FINISH_AT_THE_TIP: &str = "[[commits.rules]]\n\
+     name = \"named-tasks-finish-at-the-tip\"\n\
+     scope = \"tip\"\n\
+     assert = '!(status == \"wip\")'\n\
+     message = \"run `mt done` and commit it with the task's last work\"\n\
+     severity = \"error\"\n";
+
+#[test]
+fn a_range_naming_a_task_left_wip_fails_with_its_stem() {
+    let dir = commit_repo(FINISH_AT_THE_TIP);
+    let dir = dir.path();
+    write_parser(dir, "wip(2026, 6, 1)");
+    git(dir, &["add", "tasks/parser.typ"]);
+    stage_file(dir, "src/lib.rs");
+    commit(dir, "feat: start parsing\n\nRefs: parser");
+
+    let (ok, text) = check_range(dir, "HEAD~1..HEAD");
+    assert!(!ok, "a task still wip at the tip refuses the range: {text}");
+    assert!(
+        text.contains(&format!(
+            "error: {}: commits.rules.named-tasks-finish-at-the-tip: parser: run `mt done`",
+            short(dir, "HEAD")
+        )),
+        "names the tip, the rule, the stem and the advice: {text}"
+    );
+}
+
+#[test]
+fn a_range_naming_a_task_that_is_done_passes() {
+    let dir = commit_repo(FINISH_AT_THE_TIP);
+    let dir = dir.path();
+    write_parser(dir, "done(2026, 6, 1)");
+    git(dir, &["add", "tasks/parser.typ"]);
+    stage_file(dir, "src/lib.rs");
+    commit(dir, "feat: parse\n\nRefs: parser");
+
+    let (ok, text) = check_range(dir, "HEAD~1..HEAD");
+    assert!(ok, "{text}");
+}
+
+#[test]
+fn a_task_wip_in_the_middle_but_done_at_the_tip_passes() {
+    let dir = commit_repo(FINISH_AT_THE_TIP);
+    let dir = dir.path();
+    write_parser(dir, "wip(2026, 6, 1)");
+    git(dir, &["add", "tasks/parser.typ"]);
+    stage_file(dir, "src/a.rs");
+    commit(dir, "feat: start\n\nRefs: parser");
+    write_parser(dir, "done(2026, 6, 2)");
+    git(dir, &["add", "tasks/parser.typ"]);
+    stage_file(dir, "src/b.rs");
+    commit(dir, "feat: finish\n\nRefs: parser");
+
+    let (ok, text) = check_range(dir, "HEAD~2..HEAD");
+    assert!(ok, "only the tip's state counts: {text}");
+}
+
+#[test]
+fn a_stem_named_in_two_commits_is_reported_once() {
+    let dir = commit_repo(FINISH_AT_THE_TIP);
+    let dir = dir.path();
+    write_parser(dir, "wip(2026, 6, 1)");
+    git(dir, &["add", "tasks/parser.typ"]);
+    stage_file(dir, "src/a.rs");
+    commit(dir, "feat: start\n\nRefs: parser");
+    stage_file(dir, "src/b.rs");
+    commit(dir, "feat: go on\n\nRefs: parser");
+
+    let (ok, text) = check_range(dir, "HEAD~2..HEAD");
+    assert!(!ok, "{text}");
+    assert_eq!(
+        text.matches("named-tasks-finish-at-the-tip: parser:")
+            .count(),
+        1,
+        "{text}"
+    );
+}
+
+#[test]
+fn a_task_the_tip_deleted_is_not_left_wip() {
+    let dir = commit_repo(FINISH_AT_THE_TIP);
+    let dir = dir.path();
+    write_parser(dir, "wip(2026, 6, 1)");
+    git(dir, &["add", "tasks/parser.typ"]);
+    stage_file(dir, "src/a.rs");
+    commit(dir, "feat: start\n\nRefs: parser");
+    git(dir, &["rm", "-q", "tasks/parser.typ"]);
+    commit(dir, "task: drop the parser");
+
+    let (ok, text) = check_range(dir, "HEAD~2..HEAD");
+    assert!(ok, "a task the tip lacks cannot be wip there: {text}");
+}

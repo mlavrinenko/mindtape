@@ -379,6 +379,11 @@
           "const": "task",
           "description": "Once per task the commit changes or names, over the commit's fields\nplus `named` and the task as of `head(...)`, `staged(...)` and\n`worktree(...)`.",
           "type": "string"
+        },
+        {
+          "const": "tip",
+          "description": "Once per task any commit of a range names, over the task as the\nrange's newest commit holds it, in the filter language of\n`[[tasks.rules]]`. Only `mt check --commits` runs it; a task the tip\nlacks is skipped.",
+          "type": "string"
         }
       ]
     },

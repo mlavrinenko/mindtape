@@ -28,6 +28,20 @@
 //! message = "start or close a task in a commit that carries its work"
 //! ```
 //!
+//! A `scope = "tip"` rule is the other end of a range: `mt check --commits`
+//! runs it once per task any commit of the range names, over that task as the
+//! range's newest commit holds it ([`crate::commit::tip`]). It is a plain
+//! `[[tasks.rules]]` expression, since a tip has one task state and no commit
+//! fields:
+//!
+//! ```toml
+//! [[commits.rules]]
+//! name    = "named-tasks-finish-at-the-tip"
+//! scope   = "tip"
+//! assert  = '!(status == "wip")'
+//! message = "run `mt done <stem>` and commit it with the task's last work"
+//! ```
+//!
 //! Rules merge by `name` across rule packs and layers exactly as
 //! `[[tasks.rules]]` does
 //! ([`crate::config::packs`]), so a project overrides a shipped rule by
@@ -45,6 +59,7 @@ use crate::commit::task_expr::{TaskScope, desugar_commit_into, task_expr_problem
 use crate::commit::tasks::CommitStates;
 use crate::config::Config;
 use crate::filter::FilterError;
+use crate::model::Task;
 use crate::problem::Problem;
 use crate::validate::severity::Severity;
 
@@ -91,6 +106,11 @@ pub enum CommitScope {
     /// plus `named` and the task as of `head(...)`, `staged(...)` and
     /// `worktree(...)`.
     Task,
+    /// Once per task any commit of a range names, over the task as the
+    /// range's newest commit holds it, in the filter language of
+    /// `[[tasks.rules]]`. Only `mt check --commits` runs it; a task the tip
+    /// lacks is skipped.
+    Tip,
 }
 
 /// `[[commits.rules]]` — one assertion a checked commit must satisfy.
@@ -145,6 +165,33 @@ impl CommitRuleSpec {
     }
 }
 
+impl CommitRuleSpec {
+    /// The breach this rule reports for `held`, the result of reading its
+    /// assertion: none when it held, else the rule's message, or the failure
+    /// when the assertion did not evaluate.
+    pub(crate) fn breach(
+        &self,
+        index: usize,
+        task: Option<&str>,
+        held: Result<bool, String>,
+    ) -> Option<CommitBreach> {
+        let message = match held {
+            Ok(true) => return None,
+            Ok(false) => self
+                .message
+                .clone()
+                .unwrap_or_else(|| format!("must satisfy `{}`", self.assertion)),
+            Err(err) => err,
+        };
+        Some(CommitBreach {
+            label: self.label(index),
+            task: task.map(ToOwned::to_owned),
+            message,
+            severity: self.severity,
+        })
+    }
+}
+
 /// One breached commit rule.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CommitBreach {
@@ -194,6 +241,7 @@ pub fn check_commit(
                     }));
                 }
             }
+            CommitScope::Tip => {}
         }
     }
     breaches
@@ -208,7 +256,7 @@ struct Rule {
 impl Rule {
     fn parse(spec: &CommitRuleSpec) -> Self {
         let source = |expr: &str| match spec.scope {
-            CommitScope::Commit => expr.to_owned(),
+            CommitScope::Commit | CommitScope::Tip => expr.to_owned(),
             CommitScope::Task => desugar_commit_into(expr),
         };
         let parse = |expr: &str| CommitExpr::parse(&source(expr)).map_err(|err| err.to_string());
@@ -238,20 +286,7 @@ impl Rule {
         {
             return None;
         }
-        let failure = match run(&self.assertion) {
-            Ok(true) => return None,
-            Ok(false) => spec
-                .message
-                .clone()
-                .unwrap_or_else(|| format!("must satisfy `{}`", spec.assertion)),
-            Err(err) => err,
-        };
-        Some(CommitBreach {
-            label: spec.label(index),
-            task: task.map(ToOwned::to_owned),
-            message: failure,
-            severity: spec.severity,
-        })
+        spec.breach(index, task, run(&self.assertion))
     }
 }
 
@@ -268,6 +303,9 @@ pub(crate) fn validate_commits(config: &Config) -> Vec<Problem> {
         let problem = |source: &str| match spec.scope {
             CommitScope::Commit => commit_expr_problem(source, config),
             CommitScope::Task => task_expr_problem(source, config),
+            CommitScope::Tip => {
+                crate::filter::expr_problem_in_set(source, &Task::default(), config)
+            }
         };
         if let Some(problem) = problem(&spec.assertion) {
             problems.push(problem.under(&format!("{path}.assert")));
