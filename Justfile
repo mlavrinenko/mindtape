@@ -150,8 +150,10 @@ clippy:
 # `rust` fenced block. A doctest added later needs a `cargo test --doc` pass of
 # its own.
 #
-# `--cargo-quiet` twice drops cargo's own `Compiling …`/`Finished …` build
-# output (nextest spells "no Cargo output at all" as the flag given twice).
+# `--cargo-quiet` drops cargo's own `Compiling …`/`Finished …` build output
+# and keeps rustc's diagnostics, so a red test that does not compile says why.
+# Given twice it drops all Cargo output, errors included, and a build failure
+# prints only the cargo command line.
 # nextest's run banner and summary line have no such flag, so they print even
 # on an all-pass run (verified: `--status-level none` and
 # `--final-status-level none` do not touch them). `just check` captures them
@@ -162,7 +164,7 @@ clippy:
 [group("gate")]
 [positional-arguments]
 test *ARGS:
-    cargo nextest run --workspace --status-level fail --cargo-quiet --cargo-quiet "$@"
+    cargo nextest run --workspace --status-level fail --cargo-quiet "$@"
 
 # cargo-machete has no quiet flag (verified: `cargo machete --help` lists
 # none), so "Analyzing dependencies…" and "…Good job!" print on every clean
