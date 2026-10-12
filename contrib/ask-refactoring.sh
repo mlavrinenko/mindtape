@@ -177,8 +177,8 @@ stem_for() {
 
 # File one finding, or print what would be filed. `$1` is the arm, `$2` the
 # stem, `$3` a one-line summary for the dry run, and the rest the `mt` args
-# (`add` and on). Shared, so an arm's emit only builds its args. The repeats arm
-# uses it; the four older arms still carry their own copy of this block.
+# (`add` and on). Shared, so an arm's emit only builds its args. Every arm
+# uses it.
 file_finding() {
     local arm="$1" stem="$2" summary="$3"
     shift 3

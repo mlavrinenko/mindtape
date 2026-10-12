@@ -210,24 +210,5 @@ emit_coverage() {
         --set 'tags+=swept' --set 'tags+=coverage'
     )
 
-    if [ "$WRITE" -eq 1 ]; then
-        local out outcome dest
-        out="$("$MT" "${args[@]}" --dedup skip --format json)"
-        outcome="$(printf '%s' "$out" | jq -r '.outcome')"
-        dest="$(printf '%s' "$out" | jq -r '.path')"
-        case "$outcome" in
-            wrote) echo "filed   $dest" ;;
-            skipped)
-                echo "skipped $dest" >&2
-                echo "        the stem is taken, so this finding was filed before and closed" >&2
-                echo "        without the file's coverage rising — reopen it, or exclude it in" >&2
-                echo "        \`just cover\` with a written reason" >&2
-                ;;
-            *) echo "$outcome $dest" ;;
-        esac
-    else
-        echo "── would file: $(stem_for coverage "$path")  [ice($impact, $confidence, $ease)]"
-        "$MT" "${args[@]}" --print
-        echo
-    fi
+    file_finding coverage "$(stem_for coverage "$path")" "[ice($impact, $confidence, $ease)]" "${args[@]}"
 }

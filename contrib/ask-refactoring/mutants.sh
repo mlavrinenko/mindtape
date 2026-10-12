@@ -195,24 +195,5 @@ emit_mutants() {
         --set 'tags+=swept' --set 'tags+=mutants'
     )
 
-    if [ "$WRITE" -eq 1 ]; then
-        local out outcome dest
-        out="$("$MT" "${args[@]}" --dedup skip --format json)"
-        outcome="$(printf '%s' "$out" | jq -r '.outcome')"
-        dest="$(printf '%s' "$out" | jq -r '.path')"
-        case "$outcome" in
-            wrote) echo "filed   $dest" ;;
-            skipped)
-                echo "skipped $dest" >&2
-                echo "        the stem is taken, so this mutant was filed before and closed" >&2
-                echo "        without being killed — reopen it, or add it to" >&2
-                echo "        \`.cargo/mutants.toml\` \`exclude_re\` with its reason" >&2
-                ;;
-            *) echo "$outcome $dest" ;;
-        esac
-    else
-        echo "── would file: $stem  [ice($impact, $confidence, $ease)]"
-        "$MT" "${args[@]}" --print
-        echo
-    fi
+    file_finding mutants "$stem" "[ice($impact, $confidence, $ease)]" "${args[@]}"
 }

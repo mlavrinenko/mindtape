@@ -220,23 +220,5 @@ emit_size() {
         "${tags[@]}"
     )
 
-    if [ "$WRITE" -eq 1 ]; then
-        local out outcome dest
-        out="$("$MT" "${args[@]}" --dedup skip --format json)"
-        outcome="$(printf '%s' "$out" | jq -r '.outcome')"
-        dest="$(printf '%s' "$out" | jq -r '.path')"
-        case "$outcome" in
-            wrote) echo "filed   $dest" ;;
-            skipped)
-                echo "skipped $dest" >&2
-                echo "        the stem is taken, so this finding was filed before and closed" >&2
-                echo "        without the file shrinking — reopen it, or write the override" >&2
-                ;;
-            *) echo "$outcome $dest" ;;
-        esac
-    else
-        echo "── would file: $(stem_for size "$path")  [$kind $flavour, ice($impact, $confidence, $ease)]"
-        "$MT" "${args[@]}" --print
-        echo
-    fi
+    file_finding size "$(stem_for size "$path")" "[$kind $flavour, ice($impact, $confidence, $ease)]" "${args[@]}"
 }
