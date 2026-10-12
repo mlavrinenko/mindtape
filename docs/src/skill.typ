@@ -26,7 +26,8 @@
 
 Each task is one Typst file, named by its filename stem. A `links:` target is
 the path to the other task's file from the linking file, such as
-`"../auth/login.typ"`. `mt link` takes a stem and writes that path.
+`"../auth/login.typ"`. `mt link` takes a stem or a stem hash and writes that
+path.
 
 Change tasks with `mt` commands, not by editing files. `mt` fills in the slug,
 the status date and the injected fields, resolves links, and writes nothing if

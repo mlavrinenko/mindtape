@@ -4,10 +4,10 @@
 use std::collections::HashSet;
 
 use crate::diag::Result;
-use mindtape::{Filter, Readiness, Task, select};
+use mindtape::{Filter, Readiness, RefError, Resolved, Task, Via, select};
 
 use crate::diag::{self, Diag};
-use crate::util;
+use crate::util::{self, Refs};
 
 /// Resolve the variadic `targets` into the set of task ids to retire.
 ///
@@ -28,10 +28,11 @@ pub(super) fn select_targets(
     if targets.is_empty() {
         return default_targets(project, readiness);
     }
+    let refs = Refs::new(project)?;
     let mut ids = HashSet::new();
     let mut problems = Vec::new();
     for spec in targets {
-        match resolve_one(project, spec, readiness) {
+        match resolve_one(project, &refs, spec, readiness) {
             Ok(found) => ids.extend(found),
             Err(err) => problems.push(err),
         }
@@ -66,24 +67,35 @@ fn default_targets(project: &util::Project, readiness: &Readiness) -> Result<Has
 /// `done` or `has` must stay a filter even where a task's stem hash spells it.
 fn resolve_one(
     project: &util::Project,
+    refs: &Refs<'_>,
     spec: &str,
     readiness: &Readiness,
 ) -> Result<HashSet<String>> {
-    let is_stem = project.outcome.tasks.iter().any(|task| task.id == spec);
-    if !is_stem && Filter::names_term(spec, &project.config) {
+    let found = refs.task(spec);
+    if Filter::names_term(spec, &project.config) && !names_by_name(&found) {
         let filter = parse(spec)?;
         return Ok(ids_of(filter_tasks(project, &filter, readiness, spec)?));
     }
-    match util::resolve_task(project, spec) {
-        Ok((task, _)) => Ok(std::iter::once(task.id).collect()),
+    match found {
+        Ok(found) => Ok(std::iter::once(found.task.id.clone()).collect()),
         // A lone word that is no stem, hash or term can't be a filter: filters
         // that name a field or term were routed above, and any other bare word
         // is a field that doesn't exist. It names a task that isn't there.
-        Err(ref_err) if is_bare_word(spec) => Err(ref_err),
+        Err(ref_err) if is_bare_word(spec) => Err(ref_err.into()),
         Err(ref_err) => {
-            let filter = Filter::parse(spec).map_err(|_| ref_err)?;
+            let filter = Filter::parse(spec).map_err(|_| Diag::from(ref_err))?;
             Ok(ids_of(filter_tasks(project, &filter, readiness, spec)?))
         }
+    }
+}
+
+/// Whether a reference named its task by path or stem rather than by stem
+/// hash. A stem several tasks share counts: it is refused, never read as a
+/// filter that could retire more than the one task meant.
+fn names_by_name(found: &std::result::Result<Resolved<'_>, RefError>) -> bool {
+    match found {
+        Ok(found) => found.via != Via::Hash,
+        Err(err) => matches!(err, RefError::SharedStem { .. }),
     }
 }
 

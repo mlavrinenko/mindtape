@@ -331,3 +331,34 @@ fn the_held_back_warning_lists_each_command_and_asks_for_mt_allow() {
          hint: read them, then run mt allow\nnote: command: 'a {id}'\nnote: command: 'b'\n"
     );
 }
+
+/// A stem tasks in two folders share names neither: the refusal lists the path
+/// of each, never the first one loaded.
+#[test]
+fn a_stem_two_folders_share_is_refused_naming_each_path() {
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
+    for folder in ["cli", "web"] {
+        let path = dir.path().join("tasks").join(folder);
+        std::fs::create_dir_all(&path).unwrap();
+        std::fs::write(path.join("gamma.typ"), TASK_SRC).unwrap();
+    }
+    let config = Config::default();
+    let outcome = load_project(dir.path(), &config);
+    let project = Project {
+        root: dir.path().to_path_buf(),
+        config,
+        outcome,
+    };
+
+    let msg = crate::diag::plain(&resolve_task(&project, "gamma").unwrap_err());
+
+    assert!(
+        msg.starts_with("error: stem names several tasks: 'gamma'\n"),
+        "{msg}"
+    );
+    for folder in ["cli", "web"] {
+        let file = Path::new("tasks").join(folder).join("gamma.typ");
+        assert!(msg.contains(&file.display().to_string()), "{msg}");
+    }
+}

@@ -301,7 +301,7 @@ fn a_link_to_a_missing_task_is_one_error_and_no_summary() {
     assert_eq!(code, Some(1), "{stderr}");
     assert_eq!(
         stderr,
-        "error: tasks/alpha.typ: edge target names no task: 'nope' of kind 'depends-on'\n\
+        "error: tasks/alpha.typ: no task: 'nope' of kind 'depends-on'\n\
          hint: run mt ls to see your tasks\n"
     );
 }

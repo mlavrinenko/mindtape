@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **An `mt link` target takes a stem hash.** `mt link we8 depends-on sde` links
+  to the task `mt ls` prints as `sde` and writes its path, as a stem does, and
+  an `--apply` map's targets take one too. A hash several tasks share is
+  refused naming each.
 - **`mt check` refuses a `text` slot whose example shows a code span.** `mt add`
   escapes a `text` slot's value, so anyone who copied such an example's style
   filed literal backslashes. The error names the slot and its line, and asks
@@ -1424,6 +1428,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Every task reference goes through one resolver.** `mindtape::resolve_ref`
+  takes a `Base`, `Cwd` for a `<task>` argument and `Linker` for a `links:`
+  target, and reads both as a path, then a stem, then a stem hash. `Resolved`
+  says which by `via`, `RefError::Ambiguous` carries each candidate's hash and
+  `NoMatch` the nearest stem, and `relative_target` moved into the library. A
+  stem that tasks in two folders share names the one in the base's folder and
+  is refused otherwise, where a `<task>` took whichever loaded first. A link
+  target refusal now reads `no task: 'x' of kind 'depends-on'`, and a target
+  spelled `name.typ` is a path from the linking file only.
 - **Every `mt` build expands `rrule(...)` calendar rules.** The binary
   `cargo install mindtape-cli` builds and the release binaries carry the
   RFC 5545 engine, so a project with `[tasks.recur] rrule = true` checks and

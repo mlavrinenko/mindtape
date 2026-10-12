@@ -211,7 +211,7 @@ fn a_missing_target_is_refused_with_the_nearest_task() {
     );
     let problem = only_problem(&plan);
     assert!(
-        problem.contains("edge target names no task: 'betta' of kind 'depends-on'\n"),
+        problem.contains("no task: 'betta' of kind 'depends-on'\n"),
         "{problem}"
     );
     assert!(problem.contains("hint: did you mean beta?\n"), "{problem}");
@@ -308,8 +308,7 @@ fn a_forbidden_edge_with_a_note_is_refused() {
         target: "beta.typ".to_owned(),
         note: Some("why".to_owned()),
     };
-    let problem =
-        note_problem(&spec, &spec, NoteRule::Forbidden).expect("a note is forbidden here");
+    let problem = note_problem(&spec, NoteRule::Forbidden).expect("a note is forbidden here");
     let problem = crate::diag::plain(&problem);
     assert!(
         problem.contains("edge must not carry a note: 'beta.typ' of kind 'blocks'"),
@@ -324,13 +323,19 @@ fn a_forbidden_edge_without_a_note_is_accepted() {
         target: "beta.typ".to_owned(),
         note: None,
     };
-    assert!(note_problem(&spec, &spec, NoteRule::Forbidden).is_none());
+    assert!(note_problem(&spec, NoteRule::Forbidden).is_none());
 }
 
 /// Plan `alpha depends-on gamma` in a [`setup`] project whose top-level
 /// `alpha` is replaced by `files` (paths under `tasks/`), so the link crosses
 /// whatever folders they name.
 fn plan_nested(files: &[(&str, &str)]) -> super::Plan {
+    plan_nested_to(files, |_| "gamma".to_owned())
+}
+
+/// Plan `alpha depends-on <target>` over [`plan_nested`]'s `files`, with
+/// `target` computed from the reloaded project.
+fn plan_nested_to(files: &[(&str, &str)], target: impl Fn(&Project) -> String) -> super::Plan {
     let dir = tempfile::tempdir().unwrap();
     setup(dir.path(), BASE_CONFIG);
     for (rel, body) in files {
@@ -340,9 +345,10 @@ fn plan_nested(files: &[(&str, &str)]) -> super::Plan {
     }
     std::fs::remove_file(dir.path().join("tasks/alpha.typ")).unwrap();
     let project = reload(dir.path(), BASE_CONFIG);
+    let target = target(&project);
     build(
         &project,
-        &[entry("alpha", "depends-on", "gamma", None)],
+        &[entry("alpha", "depends-on", &target, None)],
         Mode::Merge,
     )
 }
@@ -387,7 +393,7 @@ fn a_stem_two_folders_share_is_refused_naming_both() {
     ]);
     let problem = only_problem(&plan);
     assert!(
-        problem.contains("edge target is ambiguous: 'gamma'"),
+        problem.contains("stem names several tasks: 'gamma' of kind 'depends-on'"),
         "{problem}"
     );
     assert!(
@@ -398,4 +404,20 @@ fn a_stem_two_folders_share_is_refused_naming_both() {
         problem.contains("note: candidate: ../web/gamma.typ\n"),
         "{problem}"
     );
+}
+
+/// A target takes the stem hash `mt ls` prints, read by the resolver every
+/// `<task>` goes through, and the file gets the task's path from the linker.
+#[test]
+fn a_stem_hash_target_is_written_as_its_tasks_path() {
+    let plan = plan_nested_to(
+        &[("docs/alpha.typ", ALPHA), ("cli/gamma.typ", BETA)],
+        |project| {
+            crate::util::stem_hashes(&project.outcome.tasks, &project.config)
+                .hash_of("gamma")
+                .unwrap()
+                .to_owned()
+        },
+    );
+    assert_writes(&plan, "../cli/gamma.typ");
 }

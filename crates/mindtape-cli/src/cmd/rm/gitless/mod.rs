@@ -19,7 +19,6 @@ use typst_cleanup::{Deletion, Plan, Rewrite, apply};
 use crate::cmd::flip::status_edit;
 use crate::diag::{Diag, Hint, Note};
 use crate::git;
-use crate::util;
 
 /// The strategy for a run, resolved before anything is planned: the configured
 /// `[rm] strategy` wins; unset, a detected git repository defaults to
@@ -234,7 +233,7 @@ fn retarget_inbound_edges(
                     continue;
                 };
                 let from = task.file.parent().unwrap_or(Path::new(""));
-                let rel = util::relative_target(from, dest);
+                let rel = mindtape::relative_target(from, dest);
                 edits.push(typst_edit::Edit::new(
                     target.range.clone(),
                     format!("\"{}\"", rel.display()),

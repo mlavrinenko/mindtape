@@ -67,8 +67,8 @@ new task's hash shares its prefix, so `mt` refuses an old hash rather than
 pick another task. A hash also grows past any stem or filter word it would
 spell, so neither can capture it.
 
-Every command that takes a `<task>` accepts a stem hash. A path or an exact
-stem wins, and `mt` tries the input as a stem hash only when no stem matches.
+Every command that takes a `<task>` accepts a stem hash, and so does each
+`mt link` target. A path or an exact stem wins, and `mt` tries the input as a stem hash only when no stem matches.
 `mt rm` also takes filters, so it reads a filter word such as `ready`, a
 field, a view or a status as a filter before it tries a stem hash. `mt`
 refuses a stem hash that more than one task shares, and the refusal names

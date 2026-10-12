@@ -303,21 +303,38 @@ impl Diag {
     }
 }
 
+/// The one refusal for a task reference that named no task, wherever it was
+/// typed: a `<task>` argument or a `links:` target.
 fn reference(err: &RefError) -> Diag {
+    let list = || Hint::run(Command::mt().word("ls"), "to see your tasks");
     match err {
         RefError::Path { path, source } => Diag::failed("can't resolve path")
             .value(path.display().to_string())
             .io(source),
-        RefError::Empty => Diag::usage("empty task reference")
-            .hint(Hint::run(Command::mt().word("ls"), "to see your tasks")),
+        RefError::Empty => Diag::usage("empty task reference").hint(list()),
         RefError::NoTaskAt(path) => Diag::failed("no task at").value(path.display().to_string()),
-        RefError::Ambiguous { reference, stems } => stems.iter().fold(
+        RefError::SharedStem { reference, paths } => paths.iter().fold(
+            Diag::failed("stem names several tasks")
+                .value(reference.clone())
+                .hint(Hint::new("pass the path of the one you mean")),
+            |diag, path| diag.note(Note::new("candidate").name(path.display().to_string())),
+        ),
+        RefError::Ambiguous {
+            reference,
+            candidates,
+        } => candidates.iter().fold(
             Diag::failed("stem hash names several tasks")
                 .value(reference.clone())
                 .hint(Hint::new("pass a longer hash or the stem")),
-            |diag, stem| diag.note(Note::new("candidate").name(stem.clone())),
+            |diag, (hash, stem)| diag.note(Note::new("candidate").name(format!("{hash} {stem}"))),
         ),
-        RefError::NoMatch(reference) => Diag::failed("no task").value(reference.clone()),
+        RefError::NoMatch { reference, nearest } => {
+            let diag = Diag::failed("no task").value(reference.clone());
+            match nearest {
+                Some(near) => diag.hint(Hint::did_you_mean(near)),
+                None => diag.hint(list()),
+            }
+        }
     }
 }
 

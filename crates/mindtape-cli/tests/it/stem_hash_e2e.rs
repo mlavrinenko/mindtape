@@ -199,3 +199,53 @@ fn a_hash_never_spells_a_filter_word() {
     assert!(hash.starts_with("has"), "{hash}");
     assert_eq!(eval_id(dir.path(), &hash), SPELLS_HAS);
 }
+
+/// The `links:` line `mt link` wrote into `stem`'s file.
+fn links_of(dir: &Path, stem: &str) -> String {
+    let text = std::fs::read_to_string(dir.join("tasks").join(format!("{stem}.typ"))).unwrap();
+    text.lines()
+        .find(|line| line.contains("links:"))
+        .unwrap_or_else(|| panic!("no links: in {stem}:\n{text}"))
+        .trim()
+        .to_owned()
+}
+
+/// A link target takes the hash `mt ls` prints, as a `<task>` does, in an
+/// adjacency map as on the command line, and the file gets the target's path.
+#[test]
+fn a_link_target_takes_a_stem_hash() {
+    for apply in [false, true] {
+        let dir = project(&[("alpha", &[]), ("bravo", &[])]);
+        let hash = listed_hash(dir.path(), &[], "bravo");
+        let map = dir.path().join("map.yaml");
+        std::fs::write(&map, format!("alpha:\n  depends-on: [{hash}]\n")).unwrap();
+        let map = map.to_string_lossy();
+        let args: Vec<&str> = if apply {
+            vec!["link", "--apply", &map]
+        } else {
+            vec!["link", "alpha", "depends-on", &hash]
+        };
+
+        support::run_ok(dir.path(), &args);
+
+        assert_eq!(
+            links_of(dir.path(), "alpha"),
+            "links: depends-on(\"bravo.typ\"),",
+            "--apply: {apply}"
+        );
+    }
+}
+
+#[test]
+fn an_ambiguous_hash_target_is_refused_naming_each_candidate() {
+    let (first, second, prefix) = colliding_pair();
+    let dir = project(&[("alpha", &[]), (&first, &[]), (&second, &[])]);
+
+    let (code, err) = support::run_stderr(dir.path(), &["link", "alpha", "depends-on", &prefix]);
+
+    assert_eq!(code, Some(1), "{err}");
+    assert!(err.contains("stem hash names several tasks"), "{err}");
+    for expected in [&first, &second] {
+        assert!(err.contains(expected.as_str()), "{expected} missing: {err}");
+    }
+}

@@ -48,8 +48,9 @@ pub struct LinkArgs {
     #[arg(required_unless_present = "apply")]
     pub kind: Option<String>,
 
-    /// The tasks to link to, each by stem or by a path relative to the task. A
-    /// stem that tasks in two folders share is refused, so give a path then.
+    /// The tasks to link to, each by stem, by hash, or by a path relative to
+    /// the task. A stem that tasks in two folders share is refused, so give a
+    /// path then.
     #[arg(required_unless_present = "apply")]
     pub targets: Vec<String>,
 

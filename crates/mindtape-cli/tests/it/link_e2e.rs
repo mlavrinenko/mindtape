@@ -211,7 +211,10 @@ fn a_missing_target_exits_non_zero() {
         .assert()
         .failure();
     let stderr = String::from_utf8_lossy(&output.get_output().stderr).into_owned();
-    assert!(stderr.contains("names no task"), "{stderr}");
+    assert!(
+        stderr.contains("no task: 'no-such-task' of kind 'depends-on'"),
+        "{stderr}"
+    );
     assert!(!source(dir.path(), "wire-oauth").contains("links:"));
 }
 

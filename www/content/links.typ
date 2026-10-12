@@ -108,10 +108,12 @@ both terminal and `unblocked`. See #link(u("/statuses/"))[Statuses].
 = Writing edges with `mt link`
 
 Working out a relative path by hand is fiddly. `mt link <task> <kind>
-<target>` adds the edge and writes the path for you. A target can be a
-#link(u("/concepts/#identity"))[stem], a stem with `.typ`, or a path. A bare
-stem finds the task in any folder, and `mt link` writes the path from the
-linking file to it. If the edge is already there, `mt link` leaves it alone:
+<target>` adds the edge and writes the path for you. You name a target the way
+you name any task, by its #link(u("/concepts/#identity"))[stem], the
+#link(u("/cli/ls/"))[stem hash] `mt ls` prints, or a path, and a path starts
+at the linking file. A stem or a hash finds the task in any folder, and
+`mt link` writes the path from the linking file to it. If the edge is already
+there, `mt link` leaves it alone:
 
 #terminal("links-write")
 

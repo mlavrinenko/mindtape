@@ -3,6 +3,7 @@
 //! plan/apply, preflight and gitless clusters live in `cmd/rm/tests.rs`.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+use std::collections::HashSet;
 use std::path::PathBuf;
 
 use mindtape::{Config, LoadOutcome, Readiness, Task, parse_config};
@@ -33,18 +34,26 @@ fn readiness_of(project: &Project) -> Readiness {
     Readiness::compute(&project.outcome.tasks, &project.config)
 }
 
+/// The legend `wip`, then the terminal `done`.
+const WIP_DONE: &str =
+    "[[tasks.status]]\nvalue = \"wip\"\n[[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
+
+/// The ids `select_targets` picks for `values` among `tasks`, each an id at
+/// `tasks/<id>.typ` and its status.
+fn select(config: Config, tasks: &[(&str, &str)], values: &[&str]) -> HashSet<String> {
+    let tasks = tasks
+        .iter()
+        .map(|(id, status)| task(id, &format!("tasks/{id}.typ"), Some(status)))
+        .collect();
+    let project = stub_project(config, tasks);
+    select_targets(&project, &targets(values), &readiness_of(&project)).unwrap()
+}
+
 #[test]
 fn select_targets_ref_bypasses_status() {
     // A slug reference selects exactly that task, even though it is non-terminal.
-    let project = stub_project(
-        Config::default(),
-        vec![
-            task("gone", "tasks/gone.typ", Some("wip")),
-            task("live", "tasks/live.typ", Some("wip")),
-        ],
-    );
-    let got = select_targets(&project, &targets(&["gone"]), &readiness_of(&project)).unwrap();
-    assert_eq!(got, ids(&["gone"]));
+    let tasks = [("gone", "wip"), ("live", "wip")];
+    assert_eq!(select(Config::default(), &tasks, &["gone"]), ids(&["gone"]));
 }
 
 #[test]
@@ -115,19 +124,11 @@ fn select_targets_same_task_named_twice_retires_once() {
 #[test]
 fn select_targets_default_filter_is_terminal() {
     // No target -> the built-in `terminal` default filter sweeps terminal tasks.
-    let config = parse_config(
-        "[[tasks.status]]\nvalue = \"wip\"\n[[tasks.status]]\nvalue = \"done\"\nterminal = true\n",
-    )
-    .unwrap();
-    let project = stub_project(
-        config,
-        vec![
-            task("a", "tasks/a.typ", Some("done")),
-            task("b", "tasks/b.typ", Some("wip")),
-        ],
+    let tasks = [("a", "done"), ("b", "wip")];
+    assert_eq!(
+        select(parse_config(WIP_DONE).unwrap(), &tasks, &[]),
+        ids(&["a"])
     );
-    let got = select_targets(&project, &[], &readiness_of(&project)).unwrap();
-    assert_eq!(got, ids(&["a"]));
 }
 
 #[test]
@@ -185,5 +186,16 @@ fn a_default_filter_that_does_not_parse_names_its_key() {
     assert!(
         text.starts_with("error: rm.default-filter: can't parse filter: '('"),
         "{text}"
+    );
+}
+
+/// A task's exact stem wins over the filter word it spells: `mt rm done`
+/// retires the task named `done`, not every task in the `done` status.
+#[test]
+fn a_stem_spelling_a_filter_word_retires_that_task() {
+    let tasks = [("done", "wip"), ("shipped", "done")];
+    assert_eq!(
+        select(parse_config(WIP_DONE).unwrap(), &tasks, &["done"]),
+        ids(&["done"])
     );
 }

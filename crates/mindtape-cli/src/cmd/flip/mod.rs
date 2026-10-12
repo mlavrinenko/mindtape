@@ -209,12 +209,13 @@ fn run_as(project: &Project, args: &FlipArgs, via: Via) -> Result<()> {
 
     // Resolve every target before mutating, so each reference reads the project
     // the caller listed.
+    let refs = util::Refs::new(project)?;
     let mut resolved = Vec::new();
     let mut problems: Vec<Diag> = Vec::new();
     for spec in &args.tasks {
-        match util::resolve_task(project, spec) {
-            Ok((task, abs)) => resolved.push((spec.clone(), task, abs)),
-            Err(err) => problems.push(note_hint(err, spec, args, via)),
+        match refs.task(spec) {
+            Ok(found) => resolved.push((spec.clone(), found.task.clone(), found.path)),
+            Err(err) => problems.push(note_hint(err.into(), spec, args, via)),
         }
     }
 

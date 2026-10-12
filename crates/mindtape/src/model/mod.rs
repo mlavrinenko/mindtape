@@ -9,6 +9,7 @@
 //! - `marker.rs`: the typed reads over a harvested `mindtape.task` marker.
 //! - `naming.rs`: the `[tasks.naming]` template and the shared minter.
 //! - `numeric.rs`: the numeric-field primitive: scale, classification, resolve and display.
+//! - `reference.rs`: task references, and the one resolver that reads them.
 //! - `task_spans.rs`: where a task file's `task.with(...)` call and its arguments sit.
 
 pub mod canonical;
@@ -18,6 +19,7 @@ pub mod handle;
 pub mod marker;
 pub mod naming;
 pub mod numeric;
+pub mod reference;
 pub mod task_spans;
 
 use std::collections::BTreeMap;
@@ -319,6 +321,25 @@ pub fn resolve_link_path(task_file: &Path, target: &str) -> Option<PathBuf> {
     push_components(&mut components, base)?;
     push_components(&mut components, Path::new(target))?;
     Some(components.iter().collect())
+}
+
+/// The path of `to` (root-relative) seen from `from_dir` (root-relative), for
+/// writing a link target: `tasks/live.typ` pointing at
+/// `tasks/.archive/gone.typ` becomes `.archive/gone.typ`. The inverse of
+/// [`resolve_link_path`].
+#[must_use]
+pub fn relative_target(from_dir: &Path, to: &Path) -> PathBuf {
+    let from: Vec<_> = from_dir.components().collect();
+    let to: Vec<_> = to.components().collect();
+    let common = from.iter().zip(&to).take_while(|(a, b)| a == b).count();
+    let mut out = PathBuf::new();
+    for _ in 0..(from.len() - common) {
+        out.push("..");
+    }
+    for component in to.iter().skip(common) {
+        out.push(component.as_os_str());
+    }
+    out
 }
 
 /// Append `path`'s components to `out`, collapsing `.` and `..` against the

@@ -173,8 +173,11 @@ fn a_library_error_is_converted_with_its_own_words() {
          hint: set it to YYYY-MM-DD or an RFC 3339 timestamp, or unset it\n"
     );
     assert_eq!(
-        plain(&Diag::from(RefError::NoMatch("x".to_owned()))),
-        "error: no task: 'x'\n"
+        plain(&Diag::from(RefError::NoMatch {
+            reference: "x".to_owned(),
+            nearest: None,
+        })),
+        "error: no task: 'x'\nhint: run mt ls to see your tasks\n"
     );
 }
 
@@ -290,14 +293,36 @@ fn a_recurrence_error_fails_with_its_own_words() {
 fn a_reference_error_names_the_reference() {
     let ambiguous = RefError::Ambiguous {
         reference: "ab".to_owned(),
-        stems: vec!["alpha".to_owned(), "abacus".to_owned()],
+        candidates: vec![
+            ("abc".to_owned(), "abacus".to_owned()),
+            ("abd".to_owned(), "alpha".to_owned()),
+        ],
     };
     assert_eq!(
         plain(&Diag::from(ambiguous)),
         "error: stem hash names several tasks: 'ab'\n\
          hint: pass a longer hash or the stem\n\
-         note: candidate: alpha\n\
-         note: candidate: abacus\n"
+         note: candidate: abc abacus\n\
+         note: candidate: abd alpha\n"
+    );
+    let shared = RefError::SharedStem {
+        reference: "gamma".to_owned(),
+        paths: vec!["../cli/gamma.typ".into(), "../web/gamma.typ".into()],
+    };
+    assert_eq!(
+        plain(&Diag::from(shared)),
+        "error: stem names several tasks: 'gamma'\n\
+         hint: pass the path of the one you mean\n\
+         note: candidate: ../cli/gamma.typ\n\
+         note: candidate: ../web/gamma.typ\n"
+    );
+    let near = RefError::NoMatch {
+        reference: "alpah".to_owned(),
+        nearest: Some("alpha".to_owned()),
+    };
+    assert_eq!(
+        plain(&Diag::from(near)),
+        "error: no task: 'alpah'\nhint: did you mean alpha?\n"
     );
     assert_eq!(
         plain(&Diag::from(RefError::NoTaskAt("tasks/x.typ".into()))),

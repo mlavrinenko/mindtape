@@ -7,8 +7,8 @@ use std::sync::OnceLock;
 
 use crate::diag::Result;
 use mindtape::{
-    Config, Filter, LoadError, LoadOutcome, LoadWarning, RefError, StemHashes, Task, ViewSpec,
-    config_path, find_root, load_config, load_project, write_atomic,
+    Base, Config, Filter, LoadError, LoadOutcome, LoadWarning, RefError, Resolved, StemHashes,
+    Task, ViewSpec, config_path, find_root, load_config, load_project, write_atomic,
 };
 
 use crate::cmd::install::hint::{
@@ -216,58 +216,78 @@ pub fn stem_hashes_with(tasks: &[Task], config: &Config, extra: Option<&str>) ->
     StemHashes::reserving(stems, |word| Filter::names_term(word, config))
 }
 
-/// Resolve a task reference to a loaded `Task` and its absolute path, with
-/// [`mindtape::resolve_ref`]: a path from the working directory, else an exact
-/// stem, and a stem hash only when no stem matches.
+/// Reads task references against one loaded project, as every command does:
+/// the `<task>` arguments and the `links:` targets alike go through
+/// [`mindtape::resolve_ref`], and a refusal through `From<RefError> for Diag`.
+/// It hashes the stems once, so a batch of references costs one hashing.
+pub struct Refs<'p> {
+    project: &'p Project,
+    hashes: StemHashes,
+    cwd: PathBuf,
+}
+
+impl<'p> Refs<'p> {
+    /// A reader over `project`, from the working directory.
+    ///
+    /// # Errors
+    /// Returns an error when the OS will not name the working directory.
+    pub fn new(project: &'p Project) -> Result<Self> {
+        Ok(Self {
+            project,
+            hashes: stem_hashes(&project.outcome.tasks, &project.config),
+            cwd: current_dir()?,
+        })
+    }
+
+    /// The task a `<task>` argument names: a path from the working directory,
+    /// else an exact stem, else a stem hash.
+    ///
+    /// # Errors
+    /// Returns why the reference names no task or several; `?` words it.
+    pub fn task(&self, reference: &str) -> std::result::Result<Resolved<'p>, RefError> {
+        self.resolve(Base::Cwd(&self.cwd), reference)
+    }
+
+    /// The literal a `links:` edge in `linker`'s file writes for `reference`:
+    /// the path from that file to the task it names, `/`-separated on every
+    /// platform. A path reads from the file, as `mt check` reads the edge.
+    ///
+    /// # Errors
+    /// Returns why the reference names no task or several; `?` words it.
+    pub fn target(&self, linker: &Task, reference: &str) -> std::result::Result<String, RefError> {
+        let base = Base::Linker(&linker.file);
+        let found = self.resolve(base, reference)?;
+        Ok(base
+            .path_to(&self.project.root, &found.task.file)
+            .components()
+            .map(|part| part.as_os_str().to_string_lossy())
+            .collect::<Vec<_>>()
+            .join("/"))
+    }
+
+    fn resolve(
+        &self,
+        base: Base<'_>,
+        reference: &str,
+    ) -> std::result::Result<Resolved<'p>, RefError> {
+        let project = self.project;
+        mindtape::resolve_ref(
+            &project.outcome.tasks,
+            &project.root,
+            base,
+            &self.hashes,
+            reference,
+        )
+    }
+}
+
+/// The task a `<task>` argument names, and its file, read by [`Refs::task`].
 ///
 /// # Errors
-/// Returns an error if the path cannot be resolved, a stem hash names several
-/// tasks, or no task matches.
-pub fn resolve_task(project: &Project, id: &str) -> Result<(Task, PathBuf)> {
-    let tasks = &project.outcome.tasks;
-    let cwd = if mindtape::is_path_ref(id) {
-        current_dir()?
-    } else {
-        PathBuf::new()
-    };
-    let hashes = stem_hashes(tasks, &project.config);
-    match mindtape::resolve_ref(tasks, &project.root, &cwd, &hashes, id) {
-        Ok(found) => Ok((found.task.clone(), found.path)),
-        Err(RefError::Ambiguous { stems, .. }) => Err(ambiguous(&hashes, id, &stems)),
-        Err(RefError::NoMatch(_)) => Err(no_task(project, id)),
-        Err(other) => Err(Diag::from(other)),
-    }
-}
-
-/// The refusal for a reference no stem or stem hash matches: the nearest stem
-/// when one is close, else where to list them.
-fn no_task(project: &Project, id: &str) -> Diag {
-    let ids: Vec<&str> = project
-        .outcome
-        .tasks
-        .iter()
-        .map(|t| t.id.as_str())
-        .collect();
-    let diag = Diag::failed("no task").value(id);
-    match mindtape::suggest::nearest(id, &ids) {
-        Some(near) => diag.hint(Hint::did_you_mean(near)),
-        None => diag.hint(Hint::run(Command::mt().word("ls"), "to see your tasks")),
-    }
-}
-
-/// The refusal for a stem hash several tasks share, naming each by stem and hash.
-fn ambiguous(hashes: &StemHashes, id: &str, stems: &[String]) -> Diag {
-    stems.iter().fold(
-        Diag::failed("stem hash names several tasks")
-            .value(id)
-            .hint(Hint::new("pass a longer hash or the stem")),
-        |diag, stem| {
-            diag.note(Note::new("candidate").name(format!(
-                "{} {stem}",
-                hashes.hash_of(stem).unwrap_or_default()
-            )))
-        },
-    )
+/// Returns the refusal when the reference names no task or several.
+pub fn resolve_task(project: &Project, reference: &str) -> Result<(Task, PathBuf)> {
+    let found = Refs::new(project)?.task(reference)?;
+    Ok((found.task.clone(), found.path))
 }
 
 /// Print the load problems of `outcome` to stderr as warnings: the command
@@ -379,24 +399,6 @@ pub fn unknown_view_error(name: &str, views: &BTreeMap<String, ViewSpec>) -> Dia
         Some(near) => diag.hint(Hint::did_you_mean(near)),
         None => diag.hint(Hint::run(Command::mt().word("views"), "to see the views")),
     }
-}
-
-/// The path of `to` (root-relative) seen from `from_dir` (root-relative), for
-/// writing a link target: `tasks/live.typ` pointing at
-/// `tasks/.archive/gone.typ` becomes `.archive/gone.typ`. Shared by `retire`
-/// moving a file and `mt link` naming a task in another folder.
-pub fn relative_target(from_dir: &Path, to: &Path) -> PathBuf {
-    let from: Vec<_> = from_dir.components().collect();
-    let to: Vec<_> = to.components().collect();
-    let common = from.iter().zip(&to).take_while(|(a, b)| a == b).count();
-    let mut out = PathBuf::new();
-    for _ in 0..(from.len() - common) {
-        out.push("..");
-    }
-    for component in to.iter().skip(common) {
-        out.push(component.as_os_str());
-    }
-    out
 }
 
 #[cfg(test)]
