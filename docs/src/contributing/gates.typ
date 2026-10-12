@@ -143,9 +143,9 @@ fails when `TOML_FMT_PATHS` misses a TOML file git lists.
 
 just's `--fmt` flag alone formats the root `Justfile` and skips every `mod`
 file (verified on just 1.46). So each file in `JUST_FMT_PATHS` gets its own
-`--justfile <file> --fmt` pass, and each needs its own
-`set unstable := true`. If a module file moves without its entry, it drops
-out of both recipes.
+`--justfile <file>` pass, `--fmt` in #just.fmt() and `--dump` diffed against
+the file in #just.fmt-check(), and each needs its own `set unstable := true`.
+If a module file moves without its entry, it drops out of both recipes.
 
 = What the pre-commit hook asserts
 

@@ -122,14 +122,18 @@ fork slug *args:
 land *args:
     wt merge --no-squash --no-commit --yes "$@"
 
+# `just --fmt --check` prints its diff with the whole file as context, about 900
+# lines for one misplaced blank line. `just --dump` prints what `--fmt` would
+# write, so diffing it gives the same verdict with three lines of context.
+
 [doc("Check formatting without writing changes (CI-friendly)")]
 [group("gate")]
 fmt-check:
     cargo fmt --all -- --check
     tombi format --check --quiet {{ TOML_FMT_PATHS }}
     typstyle --check {{ TYPST_FMT_PATHS }}
-    just --fmt --check
-    for f in {{ JUST_FMT_PATHS }}; do just --justfile "$f" --fmt --check; done
+    just --dump | diff -u Justfile -
+    for f in {{ JUST_FMT_PATHS }}; do just --justfile "$f" --dump | diff -u "$f" -; done
 
 [doc("Run clippy only")]
 [group("dev")]
