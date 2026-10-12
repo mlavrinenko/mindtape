@@ -1941,6 +1941,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt rm` writes a retargeted link with `/` on Windows too.** The inbound
+  link it rewrites to a retired task read `..\.archive\gone.typ` there, and now
+  reads `../.archive/gone.typ`, as `mt link` writes it.
 - **`mt check --commits` reads a waiting task as `blocked`.** A commit rule such
   as `staged(!blocked)` fired under `--commit-msg` but stayed silent over a
   range, because a range never asked the `[[tasks.waits]]` checkers. It asks

@@ -354,3 +354,14 @@ fn file_key_joins_components_with_forward_slash() {
     task.file = Path::new("tasks").join("sub").join("nested.typ");
     assert_eq!(task.file_key(), "tasks/sub/nested.typ");
 }
+
+/// A retargeted link is written with `/` between components, never the
+/// OS-native separator.
+#[test]
+fn slash_path_joins_a_relative_target_with_forward_slashes() {
+    let rel = crate::relative_target(
+        Path::new("tasks"),
+        &Path::new("tasks").join(".archive").join("gone.typ"),
+    );
+    assert_eq!(crate::slash_path(&rel), ".archive/gone.typ");
+}

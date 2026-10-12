@@ -236,7 +236,7 @@ fn retarget_inbound_edges(
                 let rel = mindtape::relative_target(from, dest);
                 edits.push(typst_edit::Edit::new(
                     target.range.clone(),
-                    format!("\"{}\"", rel.display()),
+                    format!("\"{}\"", mindtape::slash_path(&rel)),
                 ));
             }
         }
