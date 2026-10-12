@@ -214,19 +214,12 @@ main td code { font-size: 0.82em; }
 
 /* Capability heatmap cells ---------------------------------------------
    Typst's HTML export bakes `text(fill:)`/`table.cell(fill:)` as one static
-   colour (the HTML export bakes it as one static colour) that cannot react to
-   `[data-theme="dark"]`, so `cap()` instead wraps the cell body in a classed
-   <span> and this stylesheet paints it: negative margin equal to the cell's
-   own padding lets the span's background bleed flush to the `<td>`'s border
-   on every side, so the whole cell reads as a filled heatmap tile. */
-.matrix td .cap {
-  display: block;
-  margin: -0.38rem -0.55rem;
-  padding: 0.38rem 0.55rem;
-}
-.matrix td .cap-green { background: var(--cap-green-bg); color: var(--cap-green-fg); }
-.matrix td .cap-amber { background: var(--cap-amber-bg); color: var(--cap-amber-fg); }
-.matrix td .cap-grey { background: var(--cap-grey-bg); color: var(--cap-grey-fg); }
+   colour that cannot react to `[data-theme="dark"]`, so `cap()` instead wraps
+   the cell body in a classed <span>, and this stylesheet paints the `<td>`
+   that holds it, so the tile fills the cell however tall its row. */
+.matrix td:has(> .cap-green) { background: var(--cap-green-bg); color: var(--cap-green-fg); }
+.matrix td:has(> .cap-amber) { background: var(--cap-amber-bg); color: var(--cap-amber-fg); }
+.matrix td:has(> .cap-grey) { background: var(--cap-grey-bg); color: var(--cap-grey-fg); }
 
 /* Floating header clone for the comparison matrix -------------------------
    `.matrix` is a horizontal scroll container, which stops a plain CSS
