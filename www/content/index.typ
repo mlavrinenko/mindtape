@@ -1,9 +1,9 @@
-// www/content/index.typ: the site root. The hero shows the tagline, the
-// intro and the showcase task. The recipe table comes from www/utils/demo.typ,
-// which README.md renders too.
+// www/content/index.typ: the site root. The hero shows the name, the lede and
+// the showcase task. The recipe table and the Typst section come from
+// www/utils/demo.typ, which README.md renders too.
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": hero, lsp-demo
-#import "../utils/demo.typ": recipe-table, tagline
+#import "../utils/demo.typ": recipe-table, tagline, typst-section
 #import "../utils/site.typ": mindtape, u
 
 #let meta = (
@@ -19,20 +19,11 @@
 
 #hero()
 
-#recipe-table((route, body) => link(u(route), body))
+#let site-link = (route, body) => link(u(route), body)
 
-= The elephant in the room: Typst vs Markdown + frontmatter
+#recipe-table(site-link)
 
-You may ask why Typst and not Markdown. It's a Turing-complete programming
-language, which gives us:
-
-+ #strong[Language server autocompletion.] `task` declares every field as a
-  named parameter, so your editor completes field names and flags a misspelled
-  one.
-+ #strong[Shared helpers.] `#import` your own Typst module to fill tasks the
-  way you like.
-+ #strong[Custom validators.] Bring your own checks by writing a Typst
-  function. See #link(u("/self-validating-tasks/"))[Self-validating tasks].
+#typst-section(site-link)
 
 Here's how #link("https://myriad-dreamin.github.io/tinymist/")[tinymist] helps
 with autocompletion and highlights issues:

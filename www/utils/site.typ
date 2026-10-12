@@ -58,7 +58,8 @@
 
 #let SITE = (
   title: mindtape,
-  tagline: "A task tracker in your repo that enforces your rules on every task and commit.",
+  tagline: "File-based task tracker with one Typst file per task.",
+  pitch: "It's flexible enough to bring your own rules and check every task and commit against them.",
 )
 
 // Grouped sidebar: group title, and its members' reading order as routes.

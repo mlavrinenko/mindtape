@@ -1,7 +1,7 @@
 // Rendering helpers shared across content pages.
 
-#import "site.typ": MARKDOWN, PKG, u
-#import "demo.typ": intro, tagline
+#import "site.typ": MARKDOWN, PKG, mindtape, u
+#import "demo.typ": lede
 
 // Inline package name, e.g. `@local/mindtape:0.2.0` — always version-synced.
 #let pkg = raw(PKG)
@@ -181,9 +181,7 @@
 
 // typlite joins two `par` calls into one line, so the paragraphs are markup.
 #let _md-hero() = [
-  #tagline
-
-  #intro
+  #lede
 
   #link(u("/quickstart/"))[Get started] · #link(u("/concepts/"))[How it works]
 
@@ -192,8 +190,8 @@
 
 #let _html-hero() = html.elem("section", attrs: (class: "hero"), {
   html.elem("div", attrs: (class: "hero-lede"), {
-    html.elem("h1", tagline)
-    html.elem("p", attrs: (class: "hero-sub"), intro)
+    html.elem("h1", mindtape)
+    html.elem("p", attrs: (class: "hero-sub"), lede)
     html.elem("div", attrs: (class: "hero-cta"), {
       html.elem(
         "a",

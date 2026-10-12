@@ -338,7 +338,7 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
 
   html.elem("footer", attrs: (class: "site-footer"), {
     html.elem("p")[
-      #SITE.title — #SITE.tagline · #link(REPO)[GitHub] · MIT
+      #SITE.title · #link(REPO)[GitHub] · MIT
     ]
   })
 }

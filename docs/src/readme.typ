@@ -1,13 +1,14 @@
 // docs/src/readme.typ — the source of README.md, rendered by typlite.
 //
-// The opening comes from www/utils/demo.typ, which the site root renders too.
+// The opening and the Typst section come from www/utils/demo.typ, which the
+// site root renders too.
 // Every site link goes through `www-link`, which fails the render on a route
 // the page manifest lacks. The header uses `<h1 align>` and `<h4 align>`,
 // because typlite drops `<p>` and GitHub strips `<center>`. The index groups
 // the pages as the site nav does, minus the pages the opening already links.
 #import "lib.typ": mindtape, www-groups, www-link
 #import "/www/utils/demo.typ": (
-  intro, recipe-routes, recipe-table, showcase, tagline,
+  lede, recipe-routes, recipe-table, showcase, typst-section,
 )
 #import "/www/utils/release.typ": cli-crate
 
@@ -34,7 +35,7 @@
   #mindtape
 ]
 
-#html.elem("h4", attrs: (align: "center"))[#tagline]
+#html.elem("h4", attrs: (align: "center"))[#lede]
 
 #html.elem("h4", attrs: (align: "center"))[
   #www-link("/")[Documentation] · #www-link("/quickstart/")
@@ -42,11 +43,11 @@
 
 \-\-\-
 
-#intro
-
 #showcase
 
-#recipe-table((route, body) => www-link(route, body))
+#recipe-table(www-link)
+
+#typst-section(www-link)
 
 = Install
 

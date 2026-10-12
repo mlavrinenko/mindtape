@@ -3,13 +3,11 @@
 <h1 align="center"><img src="https://raw.githubusercontent.com/mlavrinenko/mindtape/main/www/assets/images/logo.svg" alt="Mindtape" width="120" /><br />
  Mindtape</h1>
 
-<h4 align="center">A task tracker in your repo that enforces your rules on every task and commit.</h4>
+<h4 align="center">File-based task tracker with one Typst file per task. It’s flexible enough to bring your own rules and check every task and commit against them.</h4>
 
 <h4 align="center"><a href="https://mlavrinenko.github.io/mindtape/">Documentation</a> · <a href="https://mlavrinenko.github.io/mindtape/quickstart/">Quickstart</a></h4>
 
 ---
-
-Your tasks live in the repo, one [Typst](https://typst.app/) file each. Edit them in any editor, or let `mt` commands handle the fiddly parts, like status dates and link paths. Rules go in `.mindtape/config.toml`, like “one task in progress at a time” or “every commit names a task”, and `mt` refuses any edit or commit that breaks them. There’s no server or database. It just reads the files in your project.
 
 [`examples/api-service/tasks/throttle-failed-logins-per-ip.typ`](https://github.com/mlavrinenko/mindtape/blob/main/examples/api-service/tasks/throttle-failed-logins-per-ip.typ)
 
@@ -54,6 +52,15 @@ Here are some examples of what a few lines of config can do. These checks aren�
 | [Limit work in progress](https://mlavrinenko.github.io/mindtape/limit-work-in-progress/) | Allow one milestone and one task in progress, and refuse to start a task before the tasks it depends on are done. | `error: tasks/add-redis-client.typ:2: rules.one-task: finish the task in progress before you start another` |
 | [Wait on upstream](https://mlavrinenko.github.io/mindtape/wait-on-upstream/) | Hold a task until a command says the release it needs has landed, and free it the moment it has. | `error: status requires an unblocked task: 'wip'` |
 | [Trace commits to tasks](https://mlavrinenko.github.io/mindtape/trace-commits-to-tasks/) | Refuse a commit that names no task, then ask which tasks changed a file before you edit it. | `error: .git/COMMIT_EDITMSG: commits.rules.work-names-a-task: name the task this commit works on in a` `Refs: <stem>` `footer` |
+
+## The elephant in the room: Typst vs Markdown + frontmatter
+
+You may ask why [Typst](https://typst.app/) and not Markdown. It’s a Turing-complete programming language, which gives us:
+
+1. **Language server autocompletion.** `task` declares every field as a named parameter, so your editor completes field names and flags a misspelled one.
+2. **Shared helpers.** `#import` your own Typst module to fill tasks the way you like.
+3. **Computed fields.** Fill a field with an expression, like `due: release - duration(days: 14)`. Change `release` in your shared module, and every deadline moves.
+4. **Custom validators.** Bring your own checks by writing a Typst function. See [Self-validating tasks](https://mlavrinenko.github.io/mindtape/self-validating-tasks/).
 
 ## Install
 

@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 12),
+  status: done(
+    2026,
+    10,
+    12,
+  )[README and the site root open with the name and the lede, and render the Typst section from demo.typ],
 )
 
 == Problem
