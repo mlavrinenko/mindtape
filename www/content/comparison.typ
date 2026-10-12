@@ -23,8 +23,8 @@
 #let beads-url = "https://github.com/gastownhall/beads"
 #let backlog-url = "https://github.com/MrLesk/Backlog.md"
 
-// The version `mt --version` printed when the docs were built.
-#let mt-version = read("../generated/version.txt").trim().split(" ").last()
+// The date of the first release, from CHANGELOG.md.
+#let first-release = read("../generated/first-release.txt").trim()
 
 // A table cell coloured by how fully a tool has the feature: green for yes,
 // amber for partly, grey for no. Rows that describe rather than rate use no
@@ -234,8 +234,6 @@
 - #strong[Your own tasks across every project.] Taskwarrior and dstask keep one
   list outside any repo. dstask syncs it between machines through git with no
   server.
-- #strong[The least tooling.] todo.txt is one text file that any editor opens
-  and many apps read.
 - #strong[You work in Emacs.] Org-mode gives you an agenda across all your
   files and exports outlines to HTML, LaTeX and PDF.
 - #strong[Issues that sync with a hosted tracker.] git-bug imports from and
@@ -245,6 +243,6 @@
   `assignee` field and WIP rules, but no claim.
 - #strong[You need a browser board, or an MCP server.] Backlog.md has both,
   and Beads has an MCP server.
-- #strong[Maturity.] #mindtape is at version #mt-version. It has fewer users and
-  integrations than the tools above. Taskwarrior and todo.txt have years of
-  add-ons, integrations and mobile apps.
+- #strong[Maturity.] #mindtape's first release came out on #first-release.
+  Taskwarrior and todo.txt have years of add-ons, integrations and mobile
+  apps.

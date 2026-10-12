@@ -107,6 +107,14 @@ mkdir -p "$OUT"
 
 # --- version + structured command tree ------------------------------------
 "$MT" --version >"$OUT/version.txt"
+# The date of the oldest release CHANGELOG.md dates, which the comparison
+# page's maturity item states.
+first_release=$(sed -n 's/^## \[[^]]*\] - \([0-9-]*\)$/\1/p' "$REPO/CHANGELOG.md" | tail -n 1)
+if [ -z "$first_release" ]; then
+  echo "generate.sh: CHANGELOG.md dates no release" >&2
+  exit 1
+fi
+printf '%s\n' "$first_release" >"$OUT/first-release.txt"
 # The command tree as JSON (clap reflection via the hidden `_cli`). cli.typ
 # renders it into the styled CLI reference — grouped commands and flag tables,
 # not a verbatim `--help` dump. The `#[derive(Parser)]` structs are the single

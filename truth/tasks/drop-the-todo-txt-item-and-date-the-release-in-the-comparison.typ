@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 12),
+  status: done(
+    2026,
+    10,
+    12,
+  )[the todo.txt item is gone, and the maturity item states the first release date from CHANGELOG.md],
 )
 
 == Problem
@@ -51,7 +55,7 @@
 == Changes
 
 - `www/content/comparison.typ`: the two items.
-- `www/generate-api-service.sh` or a sibling generator: the release date as a generated fact, if the page can't read `CHANGELOG.md` itself.
+- `www/generate.sh`: the first release date as a generated fact, because the page can't read `CHANGELOG.md` from under `www/`.
 
 
 == Out of scope
