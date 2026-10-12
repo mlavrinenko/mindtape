@@ -36,5 +36,8 @@ lcov = "bash .just/scripts/wt-carry-lcov.sh {{ primary_worktree_path }} || true"
 
 # A merge can change the config or the code `mt` is built from. Rebuild the
 # target's copy so the next `mt` call there is not judged by a stale binary.
+# With the worktree removed, worktrunk runs it in the target checkout, so it
+# needs no git of its own. A `fatal: not a git repository` after a land comes
+# from worktrunk's runner or the caller's shell, not from this hook.
 [[post-merge]]
 build = "direnv exec . just build-mt"
