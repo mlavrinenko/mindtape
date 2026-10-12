@@ -43,7 +43,7 @@ work-in-progress caps, and #link(u("/filters/"))[Filter language] covers
 
 A task names its milestone with a `parent` link, and `mt ls` counts a
 milestone's tasks in its `children` and `progress` columns.
-#link(u("/links/"))[Links] covers the edge kinds.
+#link(u("/links/"))[Task links] covers the edge kinds.
 
 `tasks.status` lists the statuses a task may hold. `terminal = true` marks
 `done` as the status that ends a task. `unblocked = true` on `wip` makes

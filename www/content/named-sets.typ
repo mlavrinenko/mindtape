@@ -6,7 +6,7 @@
 #let meta = (
   route: "/named-sets/",
   label: "Views & dictionaries",
-  title: "Named views and dictionaries",
+  title: "Views & dictionaries",
   summary: "How views name a filter with its sort and columns, and dictionaries name a set of strings, for rules to share.",
 )
 #metadata(meta) <page-meta>

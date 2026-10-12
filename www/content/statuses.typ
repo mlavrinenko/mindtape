@@ -7,7 +7,7 @@
 #let meta = (
   route: "/statuses/",
   label: "Statuses",
-  title: "The status legend",
+  title: "Statuses",
   summary: "The `[[tasks.status]]` legend: legal statuses, the moves between them, required notes and the `unblocked` guard.",
 )
 #metadata(meta) <page-meta>
@@ -145,7 +145,7 @@ entry.
 
 With `unblocked = true`, `mt flip` won't move a task into that status while
 it waits on an unfinished target of a `depends-on` edge, or of a kind you
-declared `blocking` (see #link(u("/links/"))[Links]):
+declared `blocking` (see #link(u("/links/"))[Task links]):
 
 #terminal("statuses-unblocked")
 

@@ -6,7 +6,7 @@
 #let meta = (
   route: "/task-files/",
   label: "Task files",
-  title: "Read and write a task file",
+  title: "Task files",
   summary: "The Typst a task file uses, line by line, and what `mt check` prints for each mistake that syntax invites.",
 )
 #metadata(meta) <page-meta>

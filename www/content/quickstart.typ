@@ -126,7 +126,7 @@ Start the task, then finish it:
 #terminal("qs-flip")
 
 `mt done x` is short for `mt flip done x`.
-#link(u("/statuses/"))[The status legend] covers the moves and the notes a
+#link(u("/statuses/"))[Statuses] covers the moves and the notes a
 status can require. The #link(u("/cli/"))[CLI reference] lists every command.
 
 = Validate

@@ -192,7 +192,7 @@ These sections have a page of their own:
 - `[[tasks.status]]`: #link(u("/statuses/"))[Statuses].
 - `[[tasks.rules]]`, `[tasks.body.headers]`, `[tasks.body.content]`,
   `[tasks.comments]` and every `required` key: #link(u("/rules/"))[Rules].
-- `[[tasks.links.kinds]]`: #link(u("/links/"))[Links].
+- `[[tasks.links.kinds]]`: #link(u("/links/"))[Task links].
 - `[tasks] roots` and `[tasks.derive-tags]`:
   #link(u("/derived-tags/"))[Derived tags].
 - `[tasks.priority]` and `[tasks.difficulty]`:

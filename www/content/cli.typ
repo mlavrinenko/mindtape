@@ -5,7 +5,7 @@
 
 #let meta = (
   route: "/cli/",
-  label: "CLI",
+  label: "CLI reference",
   title: "CLI reference",
   summary: "Every `mt` command by group, each linking to its page of flags, notes and generated transcripts.",
 )

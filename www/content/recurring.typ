@@ -8,7 +8,7 @@
 
 #let meta = (
   route: "/recurring/",
-  label: "Recurring",
+  label: "Recurring tasks",
   title: "Recurring tasks",
   summary: "How a task repeats with `every()` or `rrule()`, and how `mt recur` writes the next occurrence.",
 )

@@ -62,5 +62,5 @@ repo. Until then each command warns once and lists them, every wait reads
 lives outside the repo and covers each of its worktrees. Change a `run` line
 and `mt` asks again.
 
-#link(u("/links/"))[Links] covers `depends-on`, the blocker that waits on
+#link(u("/links/"))[Task links] covers `depends-on`, the blocker that waits on
 another task instead.

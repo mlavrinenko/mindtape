@@ -6,7 +6,7 @@
 #let meta = (
   route: "/estimates/",
   label: "Estimates",
-  title: "Estimate caps and working-tree budgets",
+  title: "Estimates",
   summary: "The estimate units `[tasks.estimate]` allows, and the rules that cap an estimate and compare it with the git tree.",
 )
 #metadata(meta) <page-meta>

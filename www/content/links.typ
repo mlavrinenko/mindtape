@@ -6,7 +6,7 @@
 
 #let meta = (
   route: "/links/",
-  label: "Links",
+  label: "Task links",
   title: "Task links",
   summary: "Typed links between tasks, the built-in and custom link kinds, and what `mt check` refuses.",
 )
@@ -103,7 +103,7 @@ JSON and an empty cell in the table, and a comparison such as `progress < 1`
 never matches it.
 
 `mt flip` won't move a parent with unfinished children into a status that's
-both terminal and `unblocked`. See #link(u("/statuses/"))[The status legend].
+both terminal and `unblocked`. See #link(u("/statuses/"))[Statuses].
 
 = Writing edges with `mt link`
 
