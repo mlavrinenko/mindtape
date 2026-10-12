@@ -30,7 +30,8 @@
   status: proposed(2026, 10, 12),
   links: depends-on(
     "gate-on-new-jscpd-clones-renamed-and-near-miss-copies-included.typ",
-  ),
+  )
+    + depends-on("track-the-sweeps-repeats-arm-with-canibump.typ"),
 )
 
 == Problem
@@ -41,15 +42,13 @@
 
 == TO-BE
 
-- 🟢 `canibump.toml` at the repo root holds a blocker on the upstream jscpd issue for new-only reports, and `just canibump` says when the filter can go.
-- 🟢 canibump's `[scan]` reads the `Justfile` and `flake.nix`, so an upstream link with no blocker shows up as unlisted.
+- 🟢 `canibump.toml` holds a blocker on the upstream jscpd issue for new-only reports, and `just canibump` says when the filter can go.
 
 
 == Changes
 
-- `canibump.toml`: the blocker and the scan, with the schema line on top.
-- `flake.nix`: canibump from qahq in the dev shell.
-- `Justfile`: a `canibump` recipe, and `canibump.toml` in `TOML_FMT_PATHS`.
+- `canibump.toml`: the blocker, beside the one the repeats arm waits on.
+- `Justfile`: a link to the issue in `check-dry`'s comment, which canibump's scan then finds listed.
 
 
 == Rollback
