@@ -17,15 +17,13 @@ Coverage shows that a line ran. Mutation testing shows that a test fails when th
 - A scoped run writes `target/mutants-scoped`, so it never overwrites `mutants.out`. The sweep’s mutants arm reads whichever ran last.
 - To see a running sweep’s progress and ETA, run `just mutants-status`. It reads `mutants.out` unless you name another directory.
 
-`.cargo/mutants.toml` sets the file set, the excludes, the `rrule` feature and the `mutants` build profile without debug info.
+`.cargo/mutants.toml` sets the file set, the excludes and the `mutants` build profile without debug info.
 
 ## When to trust a verdict
 
 A `TIMEOUT` is no verdict either way. Under parallel load it can hide a real pass or a real survivor. For a verdict you mean to trust, run with `CARGO_MUTANTS_JOBS=2` or lower and a longer timeout. The default speed settings (three mutant jobs, two build jobs and the mold linker, about 3.5 times faster) are for the pre-PR pass. The sweep runs with no `RUSTC_WRAPPER`, because every mutant changes the source, so a build cache such as kache only misses and fills its store.
 
 A timeout that repeats is a finding: a mutant reached an unbounded loop. Bound such a loop with a `for` over a fixed range. A `while n <= CEILING` loop still hangs once the mutant stops incrementing `n`. See `MAX_CATCH_UP_STEPS` in `recur/dates.rs` for an example.
-
-The sweep’s feature set can’t reach a survivor inside `#[cfg(not(feature = …))]` code. Move that code into its own file and add the file to `exclude_globs`, as `recur/rrule_off.rs` is.
 
 ## Why CI doesn’t run it
 
@@ -47,7 +45,6 @@ The classes:
 - same-call: the mutant replaces a body with the call it already is, such as `Default::default()` for `Self::default()`. Exclude it, or delete the function when it isn’t public API.
 - no-public-constructor: the branch needs a value the dependency gives no way to build. Exclude it.
 - platform-specific: the difference exists on another OS only. Exclude it, or gate a test to that platform.
-- cfg-unreachable: code the sweep’s feature set compiles out. Move it into its own file and add the file to `exclude_globs`.
 - entry-point: a thin `main.rs` with no logic to check. Exclude the file.
 
 Leave no survivor untriaged. The sweep is worth running because every name left on its list has a stated reason.

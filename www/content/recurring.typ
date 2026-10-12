@@ -3,8 +3,6 @@
 #import "../utils/site.typ": u
 #import "../utils/slices.typ": checked-slices, render-slices
 #import "../utils/config-ref.typ": config-keys-table
-#import "../utils/release.typ": cli-crate
-#import "../generated/just.typ" as just
 
 #let meta = (
   route: "/recurring/",
@@ -16,9 +14,9 @@
 
 #show: page.with(..meta)
 
-// The blocks are slices of examples/recurring/, which `just check-rrule`
-// validates with the rrule feature built in. The transcript is a run against
-// a copy of it, made by www/generate-model.sh.
+// The blocks are slices of examples/recurring/, which `just check-examples`
+// validates. The transcript is a run against a copy of it, made by
+// www/generate-model.sh.
 #let slices = checked-slices(
   json("../generated/recurring.json"),
   "recurring",
@@ -134,21 +132,9 @@ weekday, `rrule(...)` takes an RFC 5545 rule:
   block: true,
 )
 
-The released builds leave out the `rrule` cargo feature, so you need to
-install `mt` with it:
-
-// docs:hand-typed the crate name comes from the release workflow, and the build does not run cargo install
-#raw(
-  "cargo install " + cli-crate + " --features rrule",
-  lang: "sh",
-  block: true,
-)
-
-Then set `[tasks.recur] rrule = true` in the project's config. Without that
-key, `mt check` reports each `rrule(...)` as disabled. Without the feature, it
-reports that this build of `mt` can't read the rule. With both, it checks the
-rule and quotes one that doesn't parse. #just.check-rrule() runs that check on
-`examples/recurring/`.
+To allow it, set `[tasks.recur] rrule = true` in the project's config.
+Without that key, `mt check` reports each `rrule(...)` as disabled. With it,
+`mt check` checks the rule and quotes one that doesn't parse.
 
 An `rrule(...)` series counts from the task's `due` date, because RFC 5545
 can't count from a completion date. `mt check` refuses

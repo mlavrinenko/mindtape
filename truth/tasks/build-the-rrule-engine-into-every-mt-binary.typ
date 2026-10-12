@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 12),
+  status: done(
+    2026,
+    10,
+    12,
+  )[rrule is a plain dependency; the feature, its stub, check-rrule and the CI step are gone],
 )
 
 == Problem

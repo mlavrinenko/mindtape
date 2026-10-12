@@ -1,5 +1,4 @@
-//! The `rrule(...)` escape hatch's expansion engine, behind the `rrule`
-//! cargo feature.
+//! The `rrule(...)` escape hatch's expansion engine.
 //!
 //! Wraps the `rrule` crate (RFC 5545 recurrence rules): [`validate_rule`]
 //! grammar-checks a raw rule string at `mt check`/`mt recur` parse time (see

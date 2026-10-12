@@ -261,9 +261,6 @@ impl From<ConfigError> for Diag {
 impl From<RecurError> for Diag {
     fn from(err: RecurError) -> Self {
         match err {
-            RecurError::RruleNotImplemented => {
-                Diag::failed("rrule(...) needs mt built with the rrule feature")
-            }
             RecurError::DateOverflow => Diag::failed("date arithmetic overflowed"),
             RecurError::NoMatchingWeekday => {
                 Diag::failed("no weekday in the on: set was reachable within a period")

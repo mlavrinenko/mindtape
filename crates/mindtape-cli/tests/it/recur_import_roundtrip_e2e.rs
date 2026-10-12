@@ -3,15 +3,8 @@
 //! `examples/recurring` is both the fixture and the dogfood: `mt ls --json`
 //! reads it directly (a pure command; the export needs no scratch copy), and
 //! the export is piped into a scratch project sharing its `[tasks.recur]`
-//! policy and status legend.
-//!
-//! The fixture's one `rrule(...)` task needs both `[tasks.recur] rrule =
-//! true` (carried into the scratch config below, matching the fixture) AND
-//! the `rrule` cargo feature to import cleanly — `just check-rrule` is the
-//! only recipe that builds with it (see `Justfile`), so a default build
-//! skips writing that one record (`check_policy`'s cargo-feature gate, an
-//! existing, orthogonal limitation this task does not touch) and the
-//! assertion below excludes it rather than asserting it too.
+//! policy and status legend. The fixture's one `rrule(...)` task needs
+//! `[tasks.recur] rrule = true`, which the scratch config carries too.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::{Path, PathBuf};
@@ -95,7 +88,7 @@ fn recur_survives_ls_json_piped_into_import() {
         .arg("import")
         .write_stdin(exported.clone())
         .assert()
-        .code(i32::from(!cfg!(feature = "rrule")));
+        .success();
 
     let reimported = support::mt(dir.path())
         .args(["ls", "", "--json"])
@@ -106,14 +99,13 @@ fn recur_survives_ls_json_piped_into_import() {
         .clone();
     let reimported = String::from_utf8(reimported).unwrap();
 
-    let excluded = |title: &str| title == "Send the cost report" && !cfg!(feature = "rrule");
-    let mut before = recur_pairs(&exported);
-    before.retain(|(title, _)| !excluded(title));
-    let mut after = recur_pairs(&reimported);
-    after.retain(|(title, _)| !excluded(title));
+    let before = recur_pairs(&exported);
+    let after = recur_pairs(&reimported);
     assert!(
-        !before.is_empty(),
-        "nothing left to compare after exclusions"
+        before
+            .iter()
+            .any(|(title, _)| title == "Send the cost report"),
+        "the export lacks the fixture's rrule(...) task:\n{exported}"
     );
     assert_eq!(
         before, after,

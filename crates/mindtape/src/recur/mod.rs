@@ -8,26 +8,18 @@
 //! acts on a [`Recur`]; see `truth/tasks/recurring-tasks.typ`.
 //!
 //! `rrule(...)` shares the dict shape (a [`Rule::Rrule`] variant carrying the
-//! raw rule string), gated by `[tasks.recur] rrule` and the `rrule` cargo
-//! feature; see `truth/tasks/rrule-escape-hatch.typ`. `check_policy`
-//! grammar-checks the raw string at parse time (feature on) and rejects
-//! `anchor: "completion"` on it, since it is date-anchored only.
+//! raw rule string), gated by `[tasks.recur] rrule`; see
+//! `truth/tasks/rrule-escape-hatch.typ`. `check_policy` grammar-checks the raw
+//! string at parse time and rejects `anchor: "completion"` on it, since it is
+//! date-anchored only.
 //!
 //! # Files
 //!
 //! - `canonical.rs`: the canonical task-JSON shape, [`CanonicalRecur`] and [`CanonicalRule`].
 //! - `dates.rs`: pure next-occurrence date arithmetic.
-//! - `rrule.rs`: the `rrule(...)` expansion engine, behind the `rrule` feature.
-//! - `rrule_off.rs`: the stand-in compiled when that feature is off.
+//! - `rrule.rs`: the `rrule(...)` expansion engine.
 
 pub mod dates;
-#[cfg(feature = "rrule")]
-pub(crate) mod rrule;
-// Without the feature, the same module name resolves to a stub with the same
-// surface — so every caller stays one always-compiled function, with no
-// `#[cfg]` twin that a mutation sweep can only ever see as dead code.
-#[cfg(not(feature = "rrule"))]
-#[path = "rrule_off.rs"]
 pub(crate) mod rrule;
 
 mod canonical;
@@ -140,9 +132,8 @@ pub struct RecurConfig {
     pub default_anchor: String,
     /// Materialize model used when a task's `recur` omits one.
     pub materialize: String,
-    /// Whether a `recur` field may use `rrule(...)`. Off by default. `mt` must
-    /// also be built with the `rrule` cargo feature; without both, `mt`
-    /// rejects an `rrule(...)` with an error.
+    /// Whether a `recur` field may use `rrule(...)`. Off by default. Without
+    /// it, `mt` rejects an `rrule(...)` with an error.
     pub rrule: bool,
     /// Largest `N` that `mt recur --advance N` accepts.
     pub max_advance: u32,
@@ -406,7 +397,7 @@ pub(crate) fn weekday_name(day: chrono::Weekday) -> &'static str {
 
 /// Policy problems for `recur` against `config`: the feature gate, the
 /// unit/anchor allow-lists, materialize's fixed vocabulary, the
-/// weekday-set/period-unit pairing, and the `rrule` feature flag.
+/// weekday-set/period-unit pairing, and the `rrule` gate and grammar.
 ///
 /// Pure and [`crate::model::Task`]-free — [`crate::validate::recur`] wraps each
 /// string into a [`crate::validate::Violation`] for `mt check`; `mt recur`
@@ -445,21 +436,13 @@ fn check_rule(rule: &Rule, anchor: Option<&str>, config: &RecurConfig, out: &mut
     }
 }
 
-/// The `rrule(...)` gates, in order: the config flag, the compiled-in cargo
-/// feature, the date-anchored-only restriction (RFC 5545 has no
-/// completion-relative primitive — `truth/tasks/rrule-escape-hatch.typ`),
-/// then the rule's own grammar (parse-time, behind the feature).
+/// The `rrule(...)` gates, in order: the config flag, the date-anchored-only
+/// restriction (RFC 5545 has no completion-relative primitive —
+/// `truth/tasks/rrule-escape-hatch.typ`), then the rule's own grammar
+/// (parse-time).
 fn check_rrule_rule(raw: &str, anchor: Option<&str>, config: &RecurConfig, out: &mut Vec<String>) {
     if !config.rrule {
         out.push("rrule(...) is disabled ([tasks.recur] rrule = false)".to_owned());
-        return;
-    }
-    if !cfg!(feature = "rrule") {
-        out.push(
-            "rrule(...) requires mindtape to be built with the `rrule` cargo feature (not \
-             compiled into this binary)"
-                .to_owned(),
-        );
         return;
     }
     if anchor == Some("completion") {
@@ -469,13 +452,6 @@ fn check_rrule_rule(raw: &str, anchor: Option<&str>, config: &RecurConfig, out: 
                 .to_owned(),
         );
     }
-    check_rrule_syntax(raw, out);
-}
-
-/// Grammar-check the raw rule. `crate::recur::rrule` is the real engine with
-/// the `rrule` feature on and an always-`Ok` stub without it, so this stays
-/// one always-compiled function either way.
-fn check_rrule_syntax(raw: &str, out: &mut Vec<String>) {
     if let Err(message) = crate::recur::rrule::validate_rule(raw) {
         out.push(message);
     }

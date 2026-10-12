@@ -79,12 +79,6 @@ jobs:
           fi
           nix develop --command cargo run -q -- check --commits "$BEFORE..$AFTER"
 
-      # `rrule` is off by default, so the step above never compiles
-      # `crates/mindtape/src/recur/rrule.rs` — without this one nothing does,
-      # and the escape hatch rots unnoticed until someone enables the feature.
-      - name: Check (rrule feature)
-        run: nix develop --command just check-rrule
-
   # Windows has no Nix, so this job cannot run `just check` and deliberately
   # does not try: fmt, clippy, machete, linecop, jscpd and the docs gates are
   # platform-independent and stay on the Linux job above. What only a Windows

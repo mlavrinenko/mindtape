@@ -1424,6 +1424,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Every `mt` build expands `rrule(...)` calendar rules.** The binary
+  `cargo install mindtape-cli` builds and the release binaries carry the
+  RFC 5545 engine, so a project with `[tasks.recur] rrule = true` checks and
+  advances `recur: rrule("FREQ=MONTHLY;BYDAY=1MO")` with no rebuild, and
+  `mt init --recurrence rrule` always composes. The `rrule` cargo feature of
+  both crates is gone, and so is `RecurError::RruleNotImplemented`.
 - **The name is spelled Mindtape.** `mt --help`, the config schema's title
   and the crate descriptions say Mindtape, and the docs render the name from
   the site title in `www/tola.toml`.

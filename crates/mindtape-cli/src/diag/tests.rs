@@ -263,10 +263,6 @@ fn an_invalid_config_names_its_line_and_turns_a_near_match_into_a_hint() {
 fn a_recurrence_error_fails_with_its_own_words() {
     let cases = [
         (
-            RecurError::RruleNotImplemented,
-            "error: rrule(...) needs mt built with the rrule feature\n",
-        ),
-        (
             RecurError::DateOverflow,
             "error: date arithmetic overflowed\n",
         ),

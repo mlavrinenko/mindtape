@@ -111,8 +111,8 @@ groups:
       www/content/links.typ: e3a979681bb69195fddbb8d672e58842ae07b7464ebdd60720b12bd29a9240a0
       www/content/named-sets.typ: 1f0776c85c0cd30b5624fbc134c79cdfd682a336b3760a42d989f34b666c84ba
       www/content/priority.typ: 3ce099d671a74c81abda7c1d7b0c77ca97dd21ffbdaf9e6d9884adffe22ac4ee
-      www/content/quickstart.typ: babbecdd0719481f1438301be28ff5868430b09156438fdfd2aea593817d0a5f
-      www/content/recurring.typ: 627af18b68cd0334c7e5a623b4f53aa3d1b75806e2830f95a0472f0a133e9b61
+      www/content/quickstart.typ: f4bba79af7e78c6650ce4d89428d288a32c60b2afb87f9107d363f0a0b9b1ddb
+      www/content/recurring.typ: 01e57bdb51ca6d2f618e6365f8eebb809f45a277a513d6cf1f8854756217c787
       www/content/rules.typ: cf795f92b9a393923357e379c8e5ea059355f6d7c8aa4b8b596e3bd12091ea49
       www/content/schema.typ: 0cf69c7ec4bd1d42ae7796ebb7b3bd89e25bab9a98382798a3687ad263455514
       www/content/statuses.typ: 79d707f00b08f4632611f64942bee2cc673857b1667e13e9f24d16e142d42cd8
@@ -120,10 +120,10 @@ groups:
       www/utils/cli-notes.typ: 8c8347d1f796f03e2f605cc11362a4e97f5e51928f76c54c4f95eca90b64ae17
   cli-name:
     source:
-      crates/mindtape-cli/Cargo.toml: 145829d3e7c07fd0638feda2d4a582d840d8829eeada05e67679e80df574f9cd
+      crates/mindtape-cli/Cargo.toml: 2cc63de218be3f4bf26c532fc23f2a5e91493104779d0316778d5314f8a10aee
       crates/mindtape-cli/src/cli/mod.rs: d345ef86027962c2ccd09e2b817d0384cd423a4203c38ef89977251fbc316e05
     dependents:
-      CHANGELOG.md: e6f44eb08dd21b381234610b0ed15b707a92d266d556b23f7548b620ef55cf2d
+      CHANGELOG.md: cb0981d29d9418e7f80cf91312c0ebf5c51bc5dd20554234ac1fd883e3683be4
       docs/src/agents.typ: 738581f65453037d2e7e4df57dffa2aa1993a582d8e7ead92a3a02d059a97e03
       docs/src/contributing.typ: cea064e8b4e4f8ff4e575895802515ab9c1ecf3b5b92cf607d191ac59161f5d0
       docs/src/contributing/command-semantics.typ: 828cda1b535315b5f06ae76fb9831a50899f1ddc12521d44a1cb953814bd7c65
@@ -131,7 +131,7 @@ groups:
       docs/src/skill.typ: 426082de33db6a4475fe4ea64130c5351ab64be95789d6d148bc59a30c9736a4
       www/content/cli.typ: 43dd4cab296dd606bb0cf040ad50baa42d1623876bdec0704c6d075e51f53e2a
       www/content/index.typ: 07e7cde3440f5e93c04619c4dc420d43013b15f84e32b48ef3deb9bdad805c56
-      www/content/quickstart.typ: babbecdd0719481f1438301be28ff5868430b09156438fdfd2aea593817d0a5f
+      www/content/quickstart.typ: f4bba79af7e78c6650ce4d89428d288a32c60b2afb87f9107d363f0a0b9b1ddb
   crap-scripts-docs:
     source:
       .just/scripts/_crap-ratchet-control.sh: 4475050ae573823bc2aeb493ee9bd8385004920ad618cfcd2d2e1767a0dcd801
@@ -140,9 +140,9 @@ groups:
       .just/scripts/cover.sh: b319f75064ea55c2a7600ff1af7127b41817c68409e70613de2eafa4ae71b85f
       .just/scripts/crap-baseline-check.sh: c44c998700a5e14ae944829bc42ef6005e30041525aba2725cfe2fddd005f5e9
       .just/scripts/crap-baseline.sh: 9557082bf19d408a02ab75cc5386d1c0667391cd24c07fa62ed595ef521cce87
-      .just/scripts/crap.sh: 2e2bd26d1066e3664753a8036a0f107d46d754f688266a5591d4313e9dca9802
+      .just/scripts/crap.sh: 0fe34355ac5e66c110063232fcbb7634b3f82c224308a5dd57b58efc1763b7b8
     dependents:
-      docs/src/contributing/coverage-crap.typ: 3c0d85d6153f819d8a1f9c15f6220179eab8d7bd8838e247890bb0e81345a050
+      docs/src/contributing/coverage-crap.typ: 9de39592b5a97e7bd4a8ca05919708db02b8afd5ad5f2bdb7b7a97979741f8a9
       docs/src/contributing/crap-baseline.typ: 551aab6a955a9d4345e73e1c171fe860663887e8b3c56f611f2f2551356eb301
   dev-shell-docs:
     source:
@@ -150,18 +150,18 @@ groups:
       .config/wt.toml: bc7d39daebc51462d6e569170005a3628e6f5206c8d3e6ea3a09d1d40ff73439
       .just/docs.just: 300226a86d551abc287d058efd9cbc2143fa7f15e3c6b53131699f27f35847fc
       .just/scripts/wt-carry-lcov.sh: 0352be6580d280c7eb253ded48c275eba1cba390d500454483b938903146fae3
-      Justfile: 98b2b2fcf272a6a0a117d97da247e26afc491481970fd7d78d6280c064b7247c
-      flake.nix: 5a0381ee36a54695ab03fb6b67e77ee3a0ae7bfdd0ccfff0a45c377ce32d3941
+      Justfile: 94f128589ac118866fa02d726a16be6bbe936d4dd95d6cc5fe8a5b5c13675eaf
+      flake.nix: ef7d5ca41ccd2797a37dc68438a9ae8eef072414270d4e26f323847bce121639
     dependents:
       docs/src/agents.typ: 738581f65453037d2e7e4df57dffa2aa1993a582d8e7ead92a3a02d059a97e03
       docs/src/contributing.typ: cea064e8b4e4f8ff4e575895802515ab9c1ecf3b5b92cf607d191ac59161f5d0
-      docs/src/contributing/coverage-crap.typ: 3c0d85d6153f819d8a1f9c15f6220179eab8d7bd8838e247890bb0e81345a050
+      docs/src/contributing/coverage-crap.typ: 9de39592b5a97e7bd4a8ca05919708db02b8afd5ad5f2bdb7b7a97979741f8a9
       docs/src/contributing/crap-baseline.typ: 551aab6a955a9d4345e73e1c171fe860663887e8b3c56f611f2f2551356eb301
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
       docs/src/contributing/documentation.typ: f512ca981a60ae7fd241d9947eb6919973dc50d3e8155f2dba61b65565a81da4
       docs/src/contributing/example-projects.typ: 4f9a0c52894b9c2ab665e42bb728814b3d18badf3e8def57737d695d29912f63
-      docs/src/contributing/gates.typ: bc321cc3b38b469bab9ca998c0390abbd170707466d6638c27cae4f1ca8e8b7e
-      docs/src/contributing/mutation-testing.typ: 57ddeb7cde502a5753126e4edf5e33cf31ff68f4d2c365214fc58b56d3d50798
+      docs/src/contributing/gates.typ: 54b9c4208a7a4cee23b810b89183fa032ff0e3c166bc5867d7f2d43228736245
+      docs/src/contributing/mutation-testing.typ: 96f2e41b03e5bb524e1c49dd08e9435690f37ba566cf81cc0f6dbc843e01981a
       docs/src/contributing/signal-sweep.typ: 9699e4af7dc29f71d8d29e7d7904f6cf97d3c0fa62679ad23b10840cb65d2ec1
       docs/src/contributing/windows.typ: 093ebafaf04b07d4abd611b33a346695a61e811b51f79e13a29df34903e96786
   doc-gate-scripts-docs:
@@ -199,20 +199,20 @@ groups:
       .just/scripts/_script-graph.sh: 3956d990fd68bbd6bc943507f730650991cd662e7c04274a330e5fe3c51ef9e9
       .just/scripts/_script-reach.sh: 667647246522252c3b13ce000dadb39f7fda7bee663a9db54497b3919d1a1e85
       .just/scripts/arg-pattern-check.sh: 6f48064008d1451b533c9e5525fa81d57e42c7041e89979c664fecc782392b93
-      .just/scripts/check-gate-drift.sh: 3e3fa19fb1ff803d1527ae68f7266d1a8af5eff45ac03688d782ccf2ae5c743e
+      .just/scripts/check-gate-drift.sh: 521511d6f97ad1ec7a1f994bafe187cb1547773f217a655214ebc22c595b6f98
       .just/scripts/check-secrets-manifest.sh: 1e7d72a016934f2b7776b15f0863189851fa295ca5d12c4bcd07cd3611704ea0
       .just/scripts/check-secrets.sh: cd27c536db3202c7b9ef8439dcae9e674951465c69afed3d5dde126eb39049fe
       .just/scripts/check.sh: fac29f9633c6bde9608b623cb03eee308a9d5fd4cd2685184bdff541480846f8
       .just/scripts/fmt-fixture-check.sh: 0e99a04c675f043f84804d43f25c6ef0f3870ae219a4779088c6f5430110e5e3
       .just/scripts/mmz-arm.sh: c67a415ff478915a0fc433b857b72627dfcdc5e122ae0e430ab5b77bde590d22
-      .just/scripts/path-attr-check.sh: ec1da24e523f7c600c098b7e4923f63300fab328d749ff9e3a2fbe8e4d5382b9
+      .just/scripts/path-attr-check.sh: 0f3004e8f86fbacad47ad04a3056d3850c397957c7696f6c95d1d47cb51c558d
       .just/scripts/positional-args-check.sh: 8372e811d5e7d95fdcab5f9ecb4efa6033cf66fcab57c86d31306cebd00b1e9d
       .just/scripts/script-attr-check.sh: fb01697288a0863da85cad64bb5ce1430508f9d56f54e013dcf41a119b64d61d
       .just/scripts/script-scope-check.sh: 472f2dce97a25ca52d15cea103644c9ad817c899f4b76731e2af2318449d15df
       .just/scripts/site-pages-fixture-check.sh: 9892296f9090c0f8b7cc2f3627bc04d9ef985aa227c80531c5b00934bf33dea1
       .just/scripts/size-fixture-check.sh: 2809f969a7cfef976ccbf1cf1006b46e34f2c21f0d484f36dcbd44ff104481a7
     dependents:
-      docs/src/contributing/gates.typ: f02e5d42d53076a4863a79c748bd521c4cbd2f3cd82827d3c296392dbde3bf87
+      docs/src/contributing/gates.typ: 54b9c4208a7a4cee23b810b89183fa032ff0e3c166bc5867d7f2d43228736245
   githooks-docs:
     source:
       .githooks/commit-msg: b12bd38a025b39fd48a7575a687ef13187c153d6e5520b62eb16d07cac82be73
@@ -220,7 +220,7 @@ groups:
       .githooks/pre-commit: 7bde9d388be0b209ec99e719f801743d5116389c225fb08c080b20dbcd8874fc
     dependents:
       docs/src/contributing/commit-messages.typ: 78d4463fe3208de8493262cae102e2e3e1ceea9dd170f6d9838c495b0a0ba0fd
-      docs/src/contributing/gates.typ: bc321cc3b38b469bab9ca998c0390abbd170707466d6638c27cae4f1ca8e8b7e
+      docs/src/contributing/gates.typ: 54b9c4208a7a4cee23b810b89183fa032ff0e3c166bc5867d7f2d43228736245
   lock-merge-docs:
     source:
       .gitattributes: 602150ae6b4466024d4ec8b0fa0fa7cd020d79c6393a3a10e1bb01370ad4d03d
@@ -234,7 +234,7 @@ groups:
       .just/scripts/mutants.sh: 6ea849c25087550c75ef64280d7211c20f74391630ebdc09e6fb773b68d19186
     dependents:
       docs/src/contributing.typ: ffc942404ad9adfb18049811b2fe5954d3da6431348ccd001620a84b31185aab
-      docs/src/contributing/mutation-testing.typ: 57ddeb7cde502a5753126e4edf5e33cf31ff68f4d2c365214fc58b56d3d50798
+      docs/src/contributing/mutation-testing.typ: 96f2e41b03e5bb524e1c49dd08e9435690f37ba566cf81cc0f6dbc843e01981a
       docs/src/contributing/signal-sweep.typ: 9699e4af7dc29f71d8d29e7d7904f6cf97d3c0fa62679ad23b10840cb65d2ec1
   prelude-docs:
     source:
@@ -248,7 +248,7 @@ groups:
       www/content/index.typ: 07e7cde3440f5e93c04619c4dc420d43013b15f84e32b48ef3deb9bdad805c56
       www/content/links.typ: e3a979681bb69195fddbb8d672e58842ae07b7464ebdd60720b12bd29a9240a0
       www/content/priority.typ: 3ce099d671a74c81abda7c1d7b0c77ca97dd21ffbdaf9e6d9884adffe22ac4ee
-      www/content/recurring.typ: 627af18b68cd0334c7e5a623b4f53aa3d1b75806e2830f95a0472f0a133e9b61
+      www/content/recurring.typ: 01e57bdb51ca6d2f618e6365f8eebb809f45a277a513d6cf1f8854756217c787
       www/content/templates.typ: 1d5e426de0e63a9c95ba7783ad6899d6377dc731ee4c4d986c46b3306c4848be
   priority-frameworks:
     source:
@@ -269,7 +269,7 @@ groups:
   scripts-no-doc:
     source:
       .just/scripts/_doc-blocks-control.sh: c8a84db06366a28c52831d0ecf53db96170feb22f8cb7c1655e2b278e2c997f0
-      .just/scripts/_gate-drift-control.sh: 451ef81d0b2ae27ca77f6a2c5264cbe1acfb26fea589216c4e5a069f36e50e7e
+      .just/scripts/_gate-drift-control.sh: bcb8b099fc8792642b9d64270201591c13fe9d0a15c7bfeb00186d47ae9e9952
       .just/scripts/_nav-diff.sh: 83bdc7d3fcec16a2f3bdffeee918477c5e4687393671c338e2a18382a7d855c9
       .just/scripts/_script-graph-control.sh: fac88cd58ce473688f83638aff7b29d580f9f3a701908be6464ba5c1028a7a95
       .just/scripts/_typst-package.sh: b194f920b447f3fdc163f833274191a540d4cdc1164dce40c83a436cf24bd051
@@ -287,20 +287,20 @@ groups:
       www/content/agents.typ: fcc92fa6498c29f9a2f44a8136aee30b2b41f2bec20101d93e5457f19c4d0b07
   sweep-dedup:
     source:
-      contrib/ask-refactoring/coverage.sh: bd32655226ab0cd1d391028cfc6c1670499cbd42a2cda77cbfd3a00575207d9c
+      contrib/ask-refactoring/coverage.sh: 242fcb955472cebfb7d952748d11c28a43ca3de07175c4d10a8b0c404abb3046
     dependents:
-      contrib/ask-refactoring/undertested.sh: 7c6919e9fc11b8c15cdd0e261bc717cc6b80ef7241423d76092dba0a56591b14
+      contrib/ask-refactoring/undertested.sh: 5cf4349191eae383f417c3326b5cdcc1ddd782d3ddeae4f8755cf18bf1d1a7bb
   sweep-templates:
     source:
       .mindtape/templates/sweep-size.typ: a4a63ed8a6f8a331a4e744335f88b7a3fe84238b13c287ab28a059d470332b07
     dependents:
-      .mindtape/templates/sweep-coverage.typ: 69b85dc70aab8ba25127e52d13cb34d9f42a8be973ec93e8b28a86a636cf5d5c
+      .mindtape/templates/sweep-coverage.typ: 6d4f8d17389f8d34f71d829813a685d149aeefe9eda6cb5f7e5293b590a1cdac
       .mindtape/templates/sweep-mutants.typ: 2183fdd7812da4264fb0707a2accf49e49824d89ca72bc74d4d70475b1d043b8
       .mindtape/templates/sweep-undertested.typ: 73e12fd227ecc67d3f3310376f498c5a0559c6ce14202bee3dc185de3e768918
-      contrib/ask-refactoring/coverage.sh: bd32655226ab0cd1d391028cfc6c1670499cbd42a2cda77cbfd3a00575207d9c
+      contrib/ask-refactoring/coverage.sh: 242fcb955472cebfb7d952748d11c28a43ca3de07175c4d10a8b0c404abb3046
       contrib/ask-refactoring/mutants.sh: 1583427a46ea48571c0712b97b1dd684778b1010e48122dc63339d4c6d06fc22
       contrib/ask-refactoring/size.sh: 64b271d734801919441af62bafb997409bf96330e3f0509c86bba4c259d928a8
-      contrib/ask-refactoring/undertested.sh: 7c4117a2e331b8bf10c1f3eb001b6d78db952ae496bf79bff13bd95b2d9be599
+      contrib/ask-refactoring/undertested.sh: 5cf4349191eae383f417c3326b5cdcc1ddd782d3ddeae4f8755cf18bf1d1a7bb
   task-templates:
     source:
       .mindtape/templates/task.typ: b952f55d4abf2eccfc0301f0255fe57e81c4690e26d6ce27bceae9a4adafa04e

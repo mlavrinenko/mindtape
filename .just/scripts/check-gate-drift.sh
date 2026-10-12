@@ -29,15 +29,11 @@
 # nothing is listed here, and a script that arrives is read by arriving. It
 # reads a script named as much as one run, so it errs toward scanning more.
 #
-# `just check-rrule` is outside the scope, and by that rule rather than by name: it
-# is not a `just check` arm, so nothing here reaches it. It builds with
-# `cargo run --features rrule` into the shared target/debug on purpose (the
-# feature set is the point, and `cargo run` takes no `--tests`), and CI runs it
-# as its own step after `just check` has finished, serially, after its own
-# nextest has stopped using the binary. The race this arm guards needs a test
-# run in flight beside the build; `check-rrule` has none. If it ever becomes an
-# arm of `check`, it becomes reachable and fails here until it gets another
-# `--target-dir`, which is the right outcome.
+# A recipe that is not a `just check` arm is outside the scope by that rule,
+# never by name. The race this arm guards needs a test run in flight beside the
+# build, and only `just check` runs its arms beside the test arm. Once a recipe
+# becomes an arm of `check`, it becomes reachable and fails here until it gets
+# `--tests` or another `--target-dir`.
 #
 # Exempt by flag, never by file: `--release` (`-r`) and `--target-dir` (or a
 # `CARGO_TARGET_DIR=` prefix) write somewhere else, `--tests` resolves the test

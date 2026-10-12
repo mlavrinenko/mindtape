@@ -185,6 +185,7 @@ scopes:
     - "examples/round-trip/**"
     - "examples/named-sets/**"
     - "examples/priority/**"
+    - "examples/recurring/**"
     - "examples/task-files/**"
 
   # Every example project's config, for `just check-doc-spans`: their status
@@ -712,8 +713,8 @@ commands:
     inputs: [gates-meta, script-script-attr-check]
 
   # `#[path]` gate: every `#[path = "..."]` under `crates/` must name a test
-  # sibling or the rrule stub. `rust` is the tree it scans, `script-path-attr-check`
-  # the body, and `gates-meta` the dev-shell pin of the tools it runs.
+  # sibling. `rust` is the tree it scans, `script-path-attr-check` the body,
+  # and `gates-meta` the dev-shell pin of the tools it runs.
   - name: just path-attr-check
     tags: [gate]
     inputs: [rust, gates-meta, script-path-attr-check]

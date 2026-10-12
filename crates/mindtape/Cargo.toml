@@ -12,12 +12,6 @@ categories = ["development-tools"]
 [features]
 # Expose shared task fixtures (`test_support`) to dependent crates' tests.
 test-support = []
-# The `rrule(...)` escape hatch's expansion engine (RFC 5545 recurrence rules
-# via the `rrule` crate). Off by default: `every()` covers the common
-# cadences with plain chrono arithmetic, and only a project that actually
-# authors an `rrule(...)` pulls in chrono-tz + regex. See
-# `truth/tasks/rrule-escape-hatch.typ`.
-rrule = ["dep:rrule"]
 
 [dependencies]
 # `default-features = false` + `std` for NaiveDate/Months/Days arithmetic
@@ -31,10 +25,10 @@ chrono = { version = "0.4", default-features = false, features = [
   "std",
   "clock",
 ] }
-# The `rrule(...)` escape hatch's expander, behind the `rrule` feature (see
-# `crates/mindtape/src/recur/rrule.rs`). Pulls in chrono-tz + regex, so it
-# stays optional rather than a plain dependency.
-rrule = { version = "0.14", optional = true }
+# The `rrule(...)` escape hatch's expander (`crates/mindtape/src/recur/rrule.rs`).
+# Every build carries it, so a calendar rule works in the binary a user
+# installs. It adds chrono-tz to the build.
+rrule = "0.14"
 typst-harvest = "0.6.0"
 # Already in the tree at this exact version, transitively under `typst-harvest`
 # (which re-exports its `World` as `HarvestWorld`), so this edge adds no crate

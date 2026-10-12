@@ -1757,7 +1757,7 @@
         },
         "rrule": {
           "default": false,
-          "description": "Whether a `recur` field may use `rrule(...)`. Off by default. `mt` must\nalso be built with the `rrule` cargo feature; without both, `mt`\nrejects an `rrule(...)` with an error.",
+          "description": "Whether a `recur` field may use `rrule(...)`. Off by default. Without\nit, `mt` rejects an `rrule(...)` with an error.",
           "type": "boolean"
         },
         "units": {

@@ -37,8 +37,8 @@ doesn't check.
 - To see a running sweep's progress and ETA, run #just.mutants-status(). It
   reads `mutants.out` unless you name another directory.
 
-`.cargo/mutants.toml` sets the file set, the excludes, the `rrule` feature and
-the `mutants` build profile without debug info.
+`.cargo/mutants.toml` sets the file set, the excludes and the `mutants` build
+profile without debug info.
 
 = When to trust a verdict
 
@@ -54,10 +54,6 @@ A timeout that repeats is a finding: a mutant reached an unbounded loop. Bound
 such a loop with a `for` over a fixed range. A `while n <= CEILING` loop still
 hangs once the mutant stops incrementing `n`. See `MAX_CATCH_UP_STEPS` in
 `recur/dates.rs` for an example.
-
-The sweep's feature set can't reach a survivor inside
-`#[cfg(not(feature = …))]` code. Move that code into its own file and add the
-file to `exclude_globs`, as `recur/rrule_off.rs` is.
 
 = Why CI doesn't run it
 
@@ -98,8 +94,6 @@ The classes:
   to build. Exclude it.
 - platform-specific: the difference exists on another OS only. Exclude it, or
   gate a test to that platform.
-- cfg-unreachable: code the sweep's feature set compiles out. Move it into its
-  own file and add the file to `exclude_globs`.
 - entry-point: a thin `main.rs` with no logic to check. Exclude the file.
 
 Leave no survivor untriaged. The sweep is worth running because every name

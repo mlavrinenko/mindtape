@@ -8,14 +8,10 @@
 # expressions out of these files, so the recurrence reference cannot describe
 # a shape `mt check` would refuse.
 #
-# `rrule = true` sits at its default `false` in every other example and is the
-# one line that matters here: the hatch needs this key AND the cargo feature,
-# and `just check-rrule` builds with the feature so both gates are exercised.
-# That recipe validates this fixture, not check-examples: the two cargo
-# feature sets write the same target/debug/mt, and the default-feature test
-# arm runs in parallel with the gate. See [tasks.recur] in the configuration
-# reference for the rest of the floor, which this fixture leaves at its
-# defaults on purpose.
+# `rrule = true` is the one line that matters here, because `mt check` refuses
+# an `rrule(...)` without it. Every other example leaves it at its default
+# `false`. See [tasks.recur] in the configuration reference for the rest of
+# the floor, which this fixture leaves at its defaults on purpose.
 
 # Resolve @local/mindtape from lib/ two levels up — the prelude under test —
 # rather than the machine-global symlink; same entry and reasoning as the other

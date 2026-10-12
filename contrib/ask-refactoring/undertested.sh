@@ -7,8 +7,8 @@
 # `cargo crap --format json` over the lcov `just cover` writes.
 #
 # It also reads three things from `coverage.sh` rather than reimplementing them:
-# `ensure_lcov_fresh`, `coverage_arm_files`, and the `COVERAGE_TEST_RE` /
-# `COVERAGE_STUB` production-file constants. The dedup below is sound only if the
+# `ensure_lcov_fresh`, `coverage_arm_files`, and the `COVERAGE_TEST_RE`
+# production-file constant. The dedup below is sound only if the
 # two arms agree on what production code is and on which files the file-shaped arm
 # already reports, and agreement between two copies of a predicate decays. `ARMS`
 # lists this arm after `coverage` for that reason; the `sweep-dedup` outdatty group
@@ -44,14 +44,12 @@
 # Exclusions come from `just _crap-excludes` — the Justfile's `CRAP_EXCLUDES`,
 # whose comment there gives the reason a second hand-maintained copy is not
 # acceptable; a third in a shell script is the same mistake. Those globs drop
-# `main.rs` (absent from the lcov, so every function in it would score 0%),
-# `recur/rrule.rs` (feature-gated, uncompiled under the default build) and the
-# `*_tests.rs` / `tests.rs` modules. On top of them this arm applies the coverage
-# arm's two production filters, which catch what the globs miss: ejectest's
-# infix-split siblings (`cmd/add/tests_subprocess.rs`) and the `recur/rrule_off.rs`
-# stub. A file the coverage arm calls non-production has to be non-production
-# here too, or the dedup would pass a test helper through on the grounds that the
-# other arm never reports it.
+# `main.rs` (absent from the lcov, so every function in it would score 0%) and
+# the `*_tests.rs` / `tests.rs` modules. On top of them this arm applies the
+# coverage arm's production filter, which catches what the globs miss: ejectest's
+# infix-split siblings (`cmd/add/tests_subprocess.rs`). A file the coverage arm
+# calls non-production has to be non-production here too, or the dedup would pass
+# a test helper through on the grounds that the other arm never reports it.
 undertested_report_json() {
     local excludes
     # `read -r -a` rather than an unquoted expansion: the list is globs, and a
@@ -129,7 +127,6 @@ score_undertested() {
     jq -r \
         --arg repo "$repo/" \
         --arg re "$COVERAGE_TEST_RE" \
-        --arg stub "$COVERAGE_STUB" \
         --arg reported "$reported" \
         --argjson cc_floor "$CC_FLOOR" \
         --argjson cov_floor "$FN_COVERAGE_FLOOR" '
@@ -138,7 +135,6 @@ score_undertested() {
       | .entries[]
       | (.file | ltrimstr($repo))                          as $path
       | select(($path | test($re)) | not)
-      | select($path != $stub)
       | select(($filed | index($path)) == null)
       | select(.cyclomatic >= $cc_floor and .coverage < $cov_floor)
       | (.cyclomatic * (1 - .coverage / 100))              as $paths

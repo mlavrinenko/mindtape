@@ -9,11 +9,6 @@
 
 use super::Axis;
 
-/// Whether this build carries the `rrule` expansion engine. Read through a
-/// const rather than `cfg!` at the use site so the generated condition stays an
-/// expression rather than folding to a literal in the feature-on build.
-const HAS_RRULE_ENGINE: bool = cfg!(feature = "rrule");
-
 axis!(Workflow ("Workflow — status legend and transitions:", default = Flow) {
     TodoDone = "todo-done": "todo then done, nothing enforced"
         => include_str!("../axes/workflow_todo_done.toml"),
@@ -76,15 +71,6 @@ axis!(Recurrence ("Recurrence — how recurring rules are written:", default = O
     Rrule = "rrule": "also accept rrule(\"FREQ=...\") strings"
         => "# recurrence: also accept RFC-5545 rrule(\"FREQ=...\") strings.\n\
             [tasks.recur]\nrrule = true\n",
-}
-unavailable {
-    // `[tasks.recur] rrule = true` only opens the config gate; expanding a rule
-    // needs the engine behind the `rrule` cargo feature, which is off by default
-    // (`crates/mindtape/src/recur/rrule.rs`). Without it the composed config is
-    // accepted and the first `rrule(...)` task fails `mt check` instead.
-    Rrule when !HAS_RRULE_ENGINE => "this mt was built without the `rrule` \
-        cargo feature, so a task using rrule(...) would fail `mt check` — rebuild \
-        with `--features rrule` to write this config",
 });
 
 /// The `spec` body-headers choice needs a template that produces its sections,

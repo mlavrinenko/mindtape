@@ -42,7 +42,7 @@ The arms share one working tree. If an arm reads files another arm writes, it ha
 
 The `just test` arm runs `target/debug/mt` (`CARGO_BIN_EXE_mt`), and every arm that needs `mt` builds it. `mindtape-cli`’s dev-dependencies turn on the `test-support` features of `mindtape` and `swhid-mint`. So `cargo test --no-run` and a plain `cargo build -p mindtape-cli` build two different binaries for the same path. Cargo hard-links the newest build to `target/debug/mt`, and the swap deletes the file for about 85 ms. A test that spawns `mt` in that window fails with `No such file or directory`.
 
-So every arm that builds `mt` runs `cargo build -p mindtape-cli --tests`, which builds the same binary as the test arm. `just check-examples` builds that way and runs `./target/debug/mt`, because `cargo run` takes no `--tests`. A build with other features writes to another target directory, as `just build-mt` does with `target/mt-dev`. `just check-rrule` builds the `rrule` features into `target/debug`. That’s safe only because it isn’t a `just check` arm, and CI runs it alone.
+So every arm that builds `mt` runs `cargo build -p mindtape-cli --tests`, which builds the same binary as the test arm. `just check-examples` builds that way and runs `./target/debug/mt`, because `cargo run` takes no `--tests`. A build with other features writes to another target directory, as `just build-mt` does with `target/mt-dev`.
 
 `just check-gate-drift` fails naming file and line on any build of `mindtape-cli` that a `just check` arm reaches without `--tests` or a flag that writes elsewhere.
 

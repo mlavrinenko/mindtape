@@ -4,11 +4,8 @@
 # Classes are named in docs/contributing/mutation-testing.md (Triage).
 #
 # main.rs: entry-point — a thin entry point, excluded like the CRAP gate
-# (`just crap`) excludes it. recur/rrule_off.rs: cfg-unreachable — the whole file
-# is the `#[cfg(not(feature = "rrule"))]` stub, compiled out by the sweep's own
-# feature set (see additional_cargo_args), so every mutant in it is dead code no
-# test can reach.
-exclude_globs = ["**/main.rs", "**/rrule_off.rs"]
+# (`just crap`) excludes it.
+exclude_globs = ["**/main.rs"]
 # Provably-equivalent mutants: unkillable by construction, excluded so a swept
 # file can reach a clean (zero-survivor) result and stop re-appearing in the
 # loop. Keep each line paired with its class and the reason it cannot be killed;
@@ -56,9 +53,6 @@ exclude_re = [
   # Unix.
   "replace .. with && in looks_like_path",
 ]
-# Match `just check`: the mindtape suite runs with the rrule feature on, so
-# rrule-gated code is actually exercised (and the baseline matches CI).
-additional_cargo_args = ["--features", "rrule"]
 # nextest, not cargo test — the suite is written for one process per test.
 # `cargo test` runs every test in a binary in one process, so process-global
 # `OnceLock`s (`file_path::CONTEXT`, `util::WORKTREE`) leak between tests and

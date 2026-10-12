@@ -46,10 +46,6 @@ git clone https://github.com/mlavrinenko/mindtape.git
 cd mindtape && cargo build --release
 ```
 
-These builds leave out the `rrule` cargo feature. You only need it for
-calendar rules like "the first Monday of each month". See
-#link(u("/recurring/"))[Recurring tasks].
-
 = Set up the environment
 
 Task files import a Typst prelude, and `mt install` puts it where Typst looks

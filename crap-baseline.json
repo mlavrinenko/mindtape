@@ -2867,7 +2867,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/init/wizard/axes.rs",
       "function": "Headers::templates",
-      "line": 97,
+      "line": 83,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -5009,7 +5009,7 @@
     {
       "file": "crates/mindtape-cli/src/diag/from_lib.rs",
       "function": "Diag::at_location",
-      "line": 298,
+      "line": 295,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -5091,15 +5091,15 @@
       "file": "crates/mindtape-cli/src/diag/from_lib.rs",
       "function": "Diag::from",
       "line": 262,
-      "cyclomatic": 6.0,
+      "cyclomatic": 5.0,
       "coverage": 100.0,
-      "crap": 6.0,
+      "crap": 5.0,
       "crate": "mindtape-cli"
     },
     {
       "file": "crates/mindtape-cli/src/diag/from_lib.rs",
       "function": "Diag::from",
-      "line": 283,
+      "line": 280,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -5108,7 +5108,7 @@
     {
       "file": "crates/mindtape-cli/src/diag/from_lib.rs",
       "function": "Diag::from",
-      "line": 328,
+      "line": 325,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -5117,7 +5117,7 @@
     {
       "file": "crates/mindtape-cli/src/diag/from_lib.rs",
       "function": "Diag::from",
-      "line": 336,
+      "line": 333,
       "cyclomatic": 12.0,
       "coverage": 100.0,
       "crap": 12.0,
@@ -5180,7 +5180,7 @@
     {
       "file": "crates/mindtape-cli/src/diag/from_lib.rs",
       "function": "reference",
-      "line": 309,
+      "line": 306,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -7882,8 +7882,8 @@
       "function": "amending",
       "line": 45,
       "cyclomatic": 2.0,
-      "coverage": 90.0,
-      "crap": 2.004,
+      "coverage": 100.0,
+      "crap": 2.0,
       "crate": "mindtape"
     },
     {
@@ -14531,7 +14531,7 @@
     {
       "file": "crates/mindtape/src/recur/dates.rs",
       "function": "add_period",
-      "line": 144,
+      "line": 130,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -14540,7 +14540,7 @@
     {
       "file": "crates/mindtape/src/recur/dates.rs",
       "function": "advance_once",
-      "line": 121,
+      "line": 115,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -14548,17 +14548,8 @@
     },
     {
       "file": "crates/mindtape/src/recur/dates.rs",
-      "function": "advance_rrule",
-      "line": 138,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/recur/dates.rs",
       "function": "carry_count",
-      "line": 216,
+      "line": 202,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -14567,42 +14558,6 @@
     {
       "file": "crates/mindtape/src/recur/dates.rs",
       "function": "date_to_ymd",
-      "line": 244,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/recur/dates.rs",
-      "function": "effective_anchor",
-      "line": 55,
-      "cyclomatic": 2.0,
-      "coverage": 88.88888888888889,
-      "crap": 2.0054869684499312,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/recur/dates.rs",
-      "function": "effective_materialize",
-      "line": 68,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/recur/dates.rs",
-      "function": "exhausted",
-      "line": 209,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/recur/dates.rs",
-      "function": "format_iso",
       "line": 230,
       "cyclomatic": 1.0,
       "coverage": 100.0,
@@ -14611,8 +14566,44 @@
     },
     {
       "file": "crates/mindtape/src/recur/dates.rs",
+      "function": "effective_anchor",
+      "line": 49,
+      "cyclomatic": 2.0,
+      "coverage": 100.0,
+      "crap": 2.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/recur/dates.rs",
+      "function": "effective_materialize",
+      "line": 62,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/recur/dates.rs",
+      "function": "exhausted",
+      "line": 195,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/recur/dates.rs",
+      "function": "format_iso",
+      "line": 216,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/recur/dates.rs",
       "function": "is_on_week",
-      "line": 167,
+      "line": 153,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -14621,7 +14612,7 @@
     {
       "file": "crates/mindtape/src/recur/dates.rs",
       "function": "next_date",
-      "line": 93,
+      "line": 87,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -14630,7 +14621,7 @@
     {
       "file": "crates/mindtape/src/recur/dates.rs",
       "function": "next_weekday_after",
-      "line": 179,
+      "line": 165,
       "cyclomatic": 5.0,
       "coverage": 92.85714285714286,
       "crap": 5.009110787172012,
@@ -14639,7 +14630,7 @@
     {
       "file": "crates/mindtape/src/recur/dates.rs",
       "function": "parse_iso",
-      "line": 223,
+      "line": 209,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -14648,7 +14639,7 @@
     {
       "file": "crates/mindtape/src/recur/dates.rs",
       "function": "past_until",
-      "line": 199,
+      "line": 185,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -14657,7 +14648,7 @@
     {
       "file": "crates/mindtape/src/recur/dates.rs",
       "function": "ymd_to_date",
-      "line": 237,
+      "line": 223,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -14666,7 +14657,7 @@
     {
       "file": "crates/mindtape/src/recur/mod.rs",
       "function": "PeriodUnit::as_str",
-      "line": 117,
+      "line": 109,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -14675,7 +14666,7 @@
     {
       "file": "crates/mindtape/src/recur/mod.rs",
       "function": "PeriodUnit::parse",
-      "line": 104,
+      "line": 96,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -14684,7 +14675,7 @@
     {
       "file": "crates/mindtape/src/recur/mod.rs",
       "function": "RecurConfig::default",
-      "line": 152,
+      "line": 143,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -14693,7 +14684,7 @@
     {
       "file": "crates/mindtape/src/recur/mod.rs",
       "function": "as_u32",
-      "line": 366,
+      "line": 357,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -14702,7 +14693,7 @@
     {
       "file": "crates/mindtape/src/recur/mod.rs",
       "function": "check_choice",
-      "line": 484,
+      "line": 460,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -14711,7 +14702,7 @@
     {
       "file": "crates/mindtape/src/recur/mod.rs",
       "function": "check_materialize",
-      "line": 491,
+      "line": 467,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -14720,7 +14711,7 @@
     {
       "file": "crates/mindtape/src/recur/mod.rs",
       "function": "check_policy",
-      "line": 416,
+      "line": 407,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -14729,25 +14720,16 @@
     {
       "file": "crates/mindtape/src/recur/mod.rs",
       "function": "check_rrule_rule",
-      "line": 452,
+      "line": 443,
       "cyclomatic": 4.0,
-      "coverage": 57.14285714285714,
-      "crap": 5.259475218658892,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/recur/mod.rs",
-      "function": "check_rrule_syntax",
-      "line": 478,
-      "cyclomatic": 2.0,
-      "coverage": 0.0,
-      "crap": 6.0,
+      "coverage": 100.0,
+      "crap": 4.0,
       "crate": "mindtape"
     },
     {
       "file": "crates/mindtape/src/recur/mod.rs",
       "function": "check_rule",
-      "line": 428,
+      "line": 419,
       "cyclomatic": 7.0,
       "coverage": 100.0,
       "crap": 7.0,
@@ -14756,7 +14738,7 @@
     {
       "file": "crates/mindtape/src/recur/mod.rs",
       "function": "parse_count",
-      "line": 310,
+      "line": 301,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -14765,7 +14747,7 @@
     {
       "file": "crates/mindtape/src/recur/mod.rs",
       "function": "parse_period_rule",
-      "line": 244,
+      "line": 235,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -14774,7 +14756,7 @@
     {
       "file": "crates/mindtape/src/recur/mod.rs",
       "function": "parse_recur",
-      "line": 187,
+      "line": 178,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -14783,7 +14765,7 @@
     {
       "file": "crates/mindtape/src/recur/mod.rs",
       "function": "parse_rule",
-      "line": 210,
+      "line": 201,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -14792,7 +14774,7 @@
     {
       "file": "crates/mindtape/src/recur/mod.rs",
       "function": "parse_start",
-      "line": 269,
+      "line": 260,
       "cyclomatic": 3.0,
       "coverage": 71.42857142857143,
       "crap": 3.2099125364431487,
@@ -14801,7 +14783,7 @@
     {
       "file": "crates/mindtape/src/recur/mod.rs",
       "function": "parse_weekday",
-      "line": 378,
+      "line": 369,
       "cyclomatic": 9.0,
       "coverage": 100.0,
       "crap": 9.0,
@@ -14810,7 +14792,7 @@
     {
       "file": "crates/mindtape/src/recur/mod.rs",
       "function": "parse_weekdays",
-      "line": 330,
+      "line": 321,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -14819,7 +14801,7 @@
     {
       "file": "crates/mindtape/src/recur/mod.rs",
       "function": "period_value",
-      "line": 286,
+      "line": 277,
       "cyclomatic": 1.0,
       "coverage": 78.94736842105263,
       "crap": 1.0093308062399766,
@@ -14828,28 +14810,46 @@
     {
       "file": "crates/mindtape/src/recur/mod.rs",
       "function": "weekday_name",
-      "line": 394,
+      "line": 385,
       "cyclomatic": 8.0,
       "coverage": 100.0,
       "crap": 8.0,
       "crate": "mindtape"
     },
     {
-      "file": "crates/mindtape/src/recur/rrule_off.rs",
-      "function": "next_after",
-      "line": 26,
+      "file": "crates/mindtape/src/recur/rrule.rs",
+      "function": "build_set",
+      "line": 64,
+      "cyclomatic": 2.0,
+      "coverage": 100.0,
+      "crap": 2.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/recur/rrule.rs",
+      "function": "midnight_utc",
+      "line": 72,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
       "crate": "mindtape"
     },
     {
-      "file": "crates/mindtape/src/recur/rrule_off.rs",
+      "file": "crates/mindtape/src/recur/rrule.rs",
+      "function": "next_after",
+      "line": 42,
+      "cyclomatic": 4.0,
+      "coverage": 93.75,
+      "crap": 4.00390625,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/recur/rrule.rs",
       "function": "validate_rule",
-      "line": 21,
+      "line": 23,
       "cyclomatic": 1.0,
-      "coverage": 0.0,
-      "crap": 2.0,
+      "coverage": 100.0,
+      "crap": 1.0,
       "crate": "mindtape"
     },
     {

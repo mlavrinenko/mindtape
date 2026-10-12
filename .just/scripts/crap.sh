@@ -31,11 +31,6 @@
 #     llvm-cov emits no records for, so scoring them meant 71 of the 73 "no
 #     matching entry in the LCOV report" warnings and a complexity budget
 #     spent on test helpers. Excluding them changes no verdict.
-#   - `recur/rrule.rs` is real production code, but `just cover` builds with
-#     default features only, so nothing ever compiles it and it would otherwise
-#     score every function inside as phantom 0%-covered (see `just
-#     check-rrule`, which covers it under the `rrule` feature — CI runs it as a
-#     separate job, per truth/tasks/run-the-rrule-feature-gate-in-ci.typ).
 #   - `ls/interactive/tui.rs` drives the real terminal in every function — raw
 #     mode, the alternate screen, keyboard-enhancement negotiation — so an
 #     in-process test would either hijack the developer's own screen or assert

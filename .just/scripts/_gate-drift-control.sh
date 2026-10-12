@@ -83,11 +83,11 @@ control_build() {
         "www/inner.sh:2" \
         ".just/scripts/bad-cont.sh:2" \
         "NOT:bad-recipe body line 5" \
-        "NOT:ok-script" "NOT:unreached" "NOT:clean-arm" "NOT:rrule-like"
+        "NOT:ok-script" "NOT:unreached" "NOT:clean-arm" "NOT:orphan-run"
 }
 
-# Every shape that must not be a finding. `unreached` and `rrule-like` are the
-# check-rrule shape: a plain feature build in a recipe `check` never reaches.
+# Every shape that must not be a finding. `unreached` and `orphan-run` are a
+# plain build and a plain run in recipes `check` never reaches.
 write_clean() {
     cat >"$1/Justfile" <<'EOF'
 check: (mmz "clean-arm") (mmz "ok-script")
@@ -112,8 +112,8 @@ ok-script:
 unreached:
     cargo build -p mindtape-cli -q
 
-rrule-like:
-    cargo run -p mindtape-cli -q --features rrule -- check
+orphan-run:
+    cargo run -p mindtape-cli -q -- check
 EOF
     cat >"$1/.just/scripts/ok-script.sh" <<'EOF'
 #!/usr/bin/env bash

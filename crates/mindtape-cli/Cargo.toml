@@ -13,11 +13,6 @@ categories = ["command-line-utilities"]
 name = "mt"
 path = "src/main.rs"
 
-[features]
-# Passthrough so `mt` can be built with `rrule(...)` support; see
-# `crates/mindtape/Cargo.toml`.
-rrule = ["mindtape/rrule"]
-
 [dependencies]
 mindtape = { version = "0.3.0", path = "../mindtape" }
 # Same minimal shape as mindtape's own dependency: `recur.rs`/`recur_edit.rs`

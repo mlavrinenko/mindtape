@@ -14,12 +14,6 @@ use crate::recur::{PeriodUnit, Recur, RecurConfig, Rule};
 /// Why next-date computation could not produce a date.
 #[derive(Debug, Clone, PartialEq, Eq, Error)]
 pub enum RecurError {
-    /// `rrule(...)` expansion requires the crate to be built with the
-    /// `rrule` cargo feature; this build was not (the config/feature gate in
-    /// [`crate::recur::check_policy`] should have already rejected the task
-    /// before this is ever reached).
-    #[error("rrule(...) expansion requires mindtape to be built with the `rrule` cargo feature")]
-    RruleNotImplemented,
     /// Chrono arithmetic ran out of range (a date past `NaiveDate::MAX`).
     #[error("date arithmetic overflowed")]
     DateOverflow,
@@ -37,7 +31,7 @@ pub enum RecurError {
     /// rule (should already be caught by `mt check`'s parse-time gate), a
     /// pathological rule that hits the crate's iteration bound, or the
     /// rule's own embedded `COUNT=`/`UNTIL=` ending the series. Carries the
-    /// crate's own message; only constructed behind the `rrule` feature.
+    /// crate's own message.
     #[error("{0}")]
     RruleExpansion(String),
 }
@@ -127,16 +121,8 @@ pub fn advance_once(rule: &Rule, from: NaiveDate) -> Result<NaiveDate, RecurErro
             ..
         } if !weekdays.is_empty() => next_weekday_after(from, weekdays, *value, *start),
         Rule::Period { unit, value, .. } => add_period(from, *unit, *value),
-        Rule::Rrule { raw } => advance_rrule(raw, from),
+        Rule::Rrule { raw } => crate::recur::rrule::next_after(raw, from),
     }
-}
-
-/// The `rrule(...)` step: the rule's first occurrence strictly after `from`.
-/// `crate::recur::rrule` is the real engine with the `rrule` feature on and a
-/// fixed-error stub without it (`recur/rrule_off.rs`), so this stays one
-/// always-compiled function either way.
-fn advance_rrule(raw: &str, from: NaiveDate) -> Result<NaiveDate, RecurError> {
-    crate::recur::rrule::next_after(raw, from)
 }
 
 /// Add one `unit`-`value` period to `from`, clamping month/year-end overflow

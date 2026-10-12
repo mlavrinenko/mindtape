@@ -114,13 +114,13 @@
               # `just release`; release.toml configures it.
               cargo-release
               cargo-mutants
-              # cargo-nextest is a GATE dependency, not a dev aid: `just test`,
-              # `just check-rrule` and `just cover` all run through it, so a
-              # second runner is dead config. nextest runs no doctests, and
-              # the separate `cargo test --doc` pass cratemplate keeps for
-# them is absent here deliberately: the tree has zero doctests
-      # (see the `test *ARGS` recipe's comment for the verification),
-              # so a doctest added later must come with its own gate.
+              # cargo-nextest is a GATE dependency, not a dev aid: `just test`
+              # and `just cover` both run through it, so a second runner is
+              # dead config. nextest runs no doctests, and the separate
+              # `cargo test --doc` pass cratemplate keeps for them is absent
+              # here deliberately: the tree has zero doctests (see the
+              # `test *ARGS` recipe's comment for the verification), so a
+              # doctest added later must come with its own gate.
               cargo-nextest
               clippy
               rustfmt
@@ -179,10 +179,10 @@
           # The dev `mt` is a binary on PATH, not a wrapper: `just build-mt`
           # writes `target/mt-dev/debug/mt`, and the worktrunk hooks in
           # .config/wt.toml call that recipe at the events that invalidate
-          # the binary, and nothing rebuilds it per call. Its own target dir keeps it off the
-          # lock `just check` holds on `target/`, and off `target/debug/mt`,
-          # which the rrule arm builds with a feature this default build would
-          # relink away.
+          # the binary, and nothing rebuilds it per call. Its own target dir
+          # keeps it off the lock `just check` holds on `target/`, and off
+          # `target/debug/mt`, which the test arm links with test features
+          # this plain build would relink away.
           shellHook = ''
             export LLVM_COV=${llvm}/bin/llvm-cov
             export LLVM_PROFDATA=${llvm}/bin/llvm-profdata

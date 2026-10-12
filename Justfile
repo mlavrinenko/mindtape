@@ -255,7 +255,7 @@ outdatty-check:
 [group("gate")]
 check-examples:
     cargo build -p mindtape-cli --tests -q
-    for ex in minimal links estimates dsl statuses rules api-service derived-tags round-trip named-sets priority task-files; do MINDTAPE_DATA_HOME= ./target/debug/mt -w "examples/$ex" check -q || exit 1; done
+    for ex in minimal links estimates dsl statuses rules api-service derived-tags round-trip named-sets priority recurring task-files; do MINDTAPE_DATA_HOME= ./target/debug/mt -w "examples/$ex" check -q || exit 1; done
 
 # Every visible top-level `mt` subcommand must have a www/utils/cli-notes.typ
 # entry and a www/content/cli/<command>.typ page. How the set-difference is
@@ -337,7 +337,7 @@ arg-pattern-check:
     bash .just/scripts/arg-pattern-check.sh
 
 # Hold the folder-per-area layout: a `#[path = "..."]` may name only a test
-# sibling (`*_tests*.rs`, `tests_*.rs`, `tests.rs`) or the `rrule` feature stub.
+# sibling (`*_tests*.rs`, `tests_*.rs`, `tests.rs`).
 # `self_named_module_files` in the workspace lints holds the other half. The
 # script scans a synthesized stray first, so a scan that reaches nothing fails;
 # .just/scripts/path-attr-check.sh argues the rest.
@@ -432,9 +432,9 @@ crap-baseline-check:
 # Two hand-kept facts, read from their source: TOML_FMT_PATHS against the TOML
 # files git lists, tracked or not yet added, and every gate-reachable
 # `cargo build`/`cargo run` of mindtape-cli against `--tests`, the flag that
-# keeps target/debug/mt one build for the test arm. Why `check-rrule` is out
-# of scope, how the reach is derived rather than listed, and the control that
-# runs first are argued in place in .just/scripts/check-gate-drift.sh.
+# keeps target/debug/mt one build for the test arm. How the reach is derived
+# rather than listed, and the control that runs first, are argued in place in
+# .just/scripts/check-gate-drift.sh.
 
 [doc("Fail if TOML_FMT_PATHS drifts from git, or a gate builds mt without --tests")]
 [group("gate")]
@@ -464,32 +464,6 @@ bench N='2000':
         --warmup 1 --runs 3 \
         --command-name "mt ls ({{ N }} tasks)" "./target/release/mt -w examples/large ls" \
         --command-name "mt check ({{ N }} tasks)" "./target/release/mt -w examples/large check"
-
-# Check the `rrule(...)` escape hatch's expansion engine: `just check` builds
-# with default features, so it never compiles or runs this code (see
-# crates/mindtape/src/recur/rrule.rs). Reproduces what CI runs for it. Runs
-# through nextest, the same runner `just test` gates on.
-#
-# Both crates, not only `mindtape`: `mt init`'s recurrence axis hides its
-# `rrule` choice from a build without the engine, so mindtape-cli carries
-# `cfg(feature = "rrule")` arms of its own. Linting and running one crate here
-# would leave the other's feature-on arms uncompiled.
-#
-# examples/recurring/'s `rrule(...)` task is checked here and not in
-# check-examples, because that recipe runs in parallel with `just test`, and a
-# feature build and the default-feature test arm both write target/debug/mt. A
-# feature-on binary would make `mt init --recurrence rrule` succeed in a test
-# that expects the refusal (measured with init_e2e's
-# init_refuses_the_rrule_answer_without_the_engine). The engine's example
-# shares the engine's recipe.
-
-[doc("Check the rrule feature build, lint, and tests")]
-[group("dev")]
-check-rrule:
-    cargo fmt --all -- --check
-    cargo clippy --workspace --features mindtape/rrule,mindtape-cli/rrule --all-targets -q -- -D warnings
-    cargo nextest run --workspace --features mindtape/rrule,mindtape-cli/rrule --status-level fail
-    MINDTAPE_DATA_HOME= cargo run -p mindtape-cli -q --features rrule -- -w examples/recurring check -q
 
 # Cross-check the workspace, tests included, against Windows without leaving
 # Linux — the compile half of what the CI windows job proves at runtime, minutes
@@ -555,8 +529,8 @@ build *args:
 
 # The dev shell's `mt`, at the path the shell hook puts on `PATH`. Its own target
 # dir keeps the build off the lock `just check` holds on `target/` for minutes,
-# and off `target/debug/mt`, which the rrule arm builds with a feature this
-# default build would silently relink away. Called at the events that
+# and off `target/debug/mt`, which the test arm links with test features this
+# plain build would relink away. Called at the events that
 # invalidate the binary (this recipe, and the worktrunk hooks in
 # .config/wt.toml: worktree creation, a landed merge), never per `mt` call.
 
@@ -588,13 +562,13 @@ _lcov-stale-reason:
 # minted over a different file set than the gate scores would report every
 # difference between the two lists as a regression.
 
-CRAP_EXCLUDES := "--exclude **/main.rs --exclude **/recur/rrule.rs --exclude **/ls/interactive/tui.rs --exclude **/*_tests.rs --exclude **/tests.rs --exclude **/*_tests_*.rs --exclude **/tests_*.rs"
+CRAP_EXCLUDES := "--exclude **/main.rs --exclude **/ls/interactive/tui.rs --exclude **/*_tests.rs --exclude **/tests.rs --exclude **/*_tests_*.rs --exclude **/tests_*.rs"
 
 # Same list for a third consumer that is not a `just` recipe: the sweep's
 # undertested arm (contrib/ask-refactoring/undertested.sh) runs `cargo crap` for
 # its per-function complexity and coverage, and must score the same file set the
-# gate does or it files findings about `main.rs` and a feature-gated stub. A
-# recipe rather than a copy, for the reason above.
+# gate does or it files findings about `main.rs`. A recipe rather than a copy,
+# for the reason above.
 
 [doc("Print the CRAP exclude flags shared across consumers")]
 [private]
@@ -648,14 +622,13 @@ mutants-diff *ARGS:
 # Deliberate full-file sweep — a dev aid, never a `just check` gate (see
 # CONTRIBUTING.md "Testing"). `-f <file>` forces one file; any other args pass
 # through to cargo-mutants untouched. File set, excludes (main.rs + equivalent
-# mutants), the rrule feature and the debuginfo-free `mutants` profile come
-# from .cargo/mutants.toml. Same speed knobs as `mutants-diff`. Results go to
+# mutants) and the debuginfo-free `mutants` profile come from
+# .cargo/mutants.toml. Same speed knobs as `mutants-diff`. Results go to
 # `mutants.out` for a full sweep (the `--iterate` cache) and to
 # `target/mutants-scoped` for a subset run, so a scoped sweep cannot clobber
 # the cache; `-o` overrides either default.
 #
-# The timeout caveat, what a reproducible timeout means, what to do with a
-# survivor inside `#[cfg(not(feature = …))]` code, and why there is
+# The timeout caveat, what a reproducible timeout means, and why there is
 # deliberately no CI mutation job are in docs/contributing/mutation-testing.md.
 
 [doc("Run a full-file mutation testing sweep")]

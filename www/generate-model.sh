@@ -45,8 +45,6 @@ mt link write-docs depends-on pick-a-provider
 mt link write-docs depends-on pick-a-provider.typ
 EOF
 
-# /recurring/: `mt recur` writes the next occurrence of a daily task. The
-# default build lacks the rrule feature, so `mt check` on this fixture fails
-# on its rrule(...) task, but `mt recur` on another task still writes.
+# /recurring/: `mt recur` writes the next occurrence of a daily task.
 capture_copy R examples/recurring
 capture recurring-spawn "$R" 'mt recur nightly-dependency-audit'
