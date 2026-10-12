@@ -112,9 +112,10 @@ formats for other programs. To search by text, use
 = Change status
 
 The project's legend lists the statuses a task can have, in order, and the
-moves each status allows. Each status is also a command that sets the status
-and stamps today's date. `flow` allows `proposed` to `wip` and `wip` to `done`,
-so `mt` won't jump straight to `done`:
+moves each status allows. Both are yours to change in `.mindtape/config.toml`.
+Each status is also a command that sets the status and stamps today's date.
+The `flow` preset allows `proposed` to `wip` and `wip` to `done`, so `mt`
+won't jump straight to `done`:
 
 #terminal("qs-refused")
 
@@ -132,8 +133,8 @@ status can require. The #link(u("/cli/"))[CLI reference] lists every command.
 
 #terminal("qs-check")
 
-On a violation it names the problem and exits non-zero, so you can run it from
-a pre-commit hook or CI. The #link(u("/cli/check/"))[`mt check` page] lists
+It names any violation and exits non-zero, so you can run it from a
+pre-commit hook or CI. The #link(u("/cli/check/"))[`mt check` page] lists
 what it checks, and #link(u("/rules/"))[Rules] covers the checks you add
 yourself.
 

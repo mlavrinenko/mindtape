@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 12),
+  status: done(
+    2026,
+    10,
+    12,
+  )[the comparison opens on its lede, the matrix shades its scroll edges, and the quickstart says the legend is config],
 )
 
 == Problem

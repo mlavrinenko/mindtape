@@ -33,14 +33,30 @@
     + "};if(document.readyState!=='loading'){init();}else{document.addEventListener('DOMContentLoaded',init);}};document.head.appendChild(s);}());"
 )
 
-// Floating <thead> clone for wide tables like the comparison matrix. Plain
-// CSS `position: sticky` on `thead th` can't work there: the `.matrix`
-// wrapper is a horizontal scroll container (`overflow-x: auto`), and that
-// clips block-axis sticky positioning for its descendants. No-op on pages
-// without a `.matrix table thead` (guarded up front). This script tag sits
-// in <head> (before <body> is parsed), so the setup runs on DOMContentLoaded
-// rather than immediately.
-#let _matrix-float-head-script = "document.addEventListener('DOMContentLoaded',function(){
+// Two aids for wide tables like the comparison matrix, set up on
+// DOMContentLoaded because this script tag sits in <head>.
+//
+// Each `.matrix` scroll container marks its `.matrix-frame` with
+// `matrix-more-left` and `matrix-more-right` while it can scroll that way,
+// and components.css draws a shadow on each marked edge. The marks follow
+// every scroll and resize.
+//
+// A floating <thead> clone. Plain CSS `position: sticky` on `thead th` can't
+// work there: the `.matrix` wrapper is a horizontal scroll container
+// (`overflow-x: auto`), and that clips block-axis sticky positioning for its
+// descendants. No-op on pages without a `.matrix table thead`.
+#let _matrix-script = "document.addEventListener('DOMContentLoaded',function(){
+document.querySelectorAll('.matrix').forEach(function(box){
+var frame=box.parentNode;
+function edges(){
+var max=box.scrollWidth-box.clientWidth;
+frame.classList.toggle('matrix-more-left',box.scrollLeft>1);
+frame.classList.toggle('matrix-more-right',box.scrollLeft<max-1);
+}
+box.addEventListener('scroll',edges,{passive:true});
+window.addEventListener('resize',edges);
+edges();
+});
 var thead=document.querySelector('.matrix table thead');
 if(!thead)return;
 var wrapper=document.querySelector('.matrix');
@@ -192,7 +208,7 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
     href: "/assets/styles/components.css",
   ))
   html.script(_theme-script)
-  html.script(_matrix-float-head-script)
+  html.script(_matrix-script)
   html.script(_toc-script)
   html.script(_search-init)
 }

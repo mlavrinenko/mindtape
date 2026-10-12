@@ -153,8 +153,31 @@ main thead th { background: var(--bg-soft); font-family: var(--font-mono); font-
 main td code { font-size: 0.82em; }
 
 /* Wide comparison matrix: too many columns for the 46rem text column, so it
-   scrolls sideways instead of squishing, and the row-label column sticks. */
-.matrix { overflow-x: auto; margin: 0 0 1.3rem; }
+   scrolls sideways instead of squishing, and the row-label column sticks.
+   The frame shades each edge the table can scroll past: the right edge of the
+   frame, and the right side of the sticky column once the table has scrolled.
+   layout.typ's _matrix-script sets the two classes. */
+:root { --matrix-shadow: rgba(31, 35, 40, 0.16); }
+[data-theme="dark"] { --matrix-shadow: rgba(0, 0, 0, 0.5); }
+.matrix-frame { position: relative; margin: 0 0 1.3rem; }
+.matrix-frame::after,
+.matrix tbody th::after,
+.matrix tbody td:first-child::after,
+.matrix thead th:first-child::after {
+  content: ""; position: absolute; top: 0; bottom: 0; width: 1.1rem;
+  pointer-events: none; opacity: 0; transition: opacity 0.15s;
+}
+.matrix-frame::after { right: 0; background: linear-gradient(to left, var(--matrix-shadow), transparent); }
+.matrix tbody th::after,
+.matrix tbody td:first-child::after,
+.matrix thead th:first-child::after {
+  right: -1.1rem; background: linear-gradient(to right, var(--matrix-shadow), transparent);
+}
+.matrix-frame.matrix-more-right::after,
+.matrix-more-left .matrix tbody th::after,
+.matrix-more-left .matrix tbody td:first-child::after,
+.matrix-more-left .matrix thead th:first-child::after { opacity: 1; }
+.matrix { overflow-x: auto; }
 .matrix table { min-width: 46rem; margin: 0; font-size: 0.82rem; }
 .matrix th, .matrix td { padding: 0.38rem 0.55rem; }
 .matrix tbody th, .matrix tbody td:first-child {
@@ -209,7 +232,7 @@ main td code { font-size: 0.82em; }
    `.matrix` is a horizontal scroll container, which stops a plain CSS
    `position: sticky` on `thead th` from working for vertical scroll (a
    scroll-container ancestor clips block-axis sticky). A small script in
-   layout.typ (_matrix-float-head-script) clones the <thead> into this
+   layout.typ (_matrix-script) clones the <thead> into this
    fixed-position element once the table has scrolled past the site header,
    sizing its cells to match the live header and re-syncing horizontal
    offset with the wrapper's scrollLeft. Hidden by default; toggled via
