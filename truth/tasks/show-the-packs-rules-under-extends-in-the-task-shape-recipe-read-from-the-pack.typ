@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 12),
+  status: done(
+    2026,
+    10,
+    12,
+  )[the recipe's config block shows three pack rules as comments, cut from the pack copy the Rule packs page reads],
 )
 
 == Problem
@@ -39,7 +43,7 @@
 == TO-BE
 
 - 🟢 Under the `extends` line, commented out, the config block shows three of the pack's rules and how many more it holds.
-- 🟢 The build cuts those rules from `crates/mindtape/src/packs/mindtape-tasks.toml`, so the page can't drift from the pack.
+- 🟢 The page cuts those rules from the copy of `crates/mindtape/src/packs/mindtape-tasks.toml` that the Rule packs page reads, so it can't drift from the pack.
 
 
 == Source of truth
@@ -49,8 +53,6 @@
 
 == Changes
 
-- `crates/mindtape/src/packs/mindtape-tasks.toml`: slice markers around three rules.
-- `www/generate-examples.sh`: cut the pack's slices.
 - `www/utils/recipes.typ`: render the excerpt as comments under the slice.
 - `www/content/require-a-task-shape.typ`: the prose.
 

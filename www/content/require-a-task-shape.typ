@@ -1,7 +1,7 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": exit-code, terminal
 #import "../utils/site.typ": u
-#import "../utils/recipes.typ": own-config, recipe-config
+#import "../utils/recipes.typ": own-config, pack-excerpt, recipe-config
 
 #let meta = (
   route: "/require-a-task-shape/",
@@ -20,7 +20,11 @@ success.
 
 = Config
 
-#recipe-config("require-a-task-shape")
+#recipe-config("require-a-task-shape", after: pack-excerpt((
+  "problem-is-numbered-steps",
+  "to-be-has-green-bullets",
+  "changes-name-files",
+)))
 
 = Behaviour
 
