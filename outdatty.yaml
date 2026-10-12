@@ -605,7 +605,7 @@ groups:
       - www/content/split-oversized-tasks.typ
       - www/content/require-a-task-shape.typ
       - www/content/gate-done-on-checks.typ
-      - www/content/one-task-at-a-time.typ
+      - www/content/limit-work-in-progress.typ
       - www/content/wait-on-upstream.typ
       - www/content/trace-commits-to-tasks.typ
       - skills/mindtape/evals/evals.json

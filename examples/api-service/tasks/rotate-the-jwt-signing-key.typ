@@ -10,7 +10,8 @@
   recur: every(days: 90),
   links: related(
     "throttle-failed-logins-per-ip.typ",
-  )[both change how login tokens are checked],
+  )[both change how login tokens are checked]
+    + parent("harden-session-tokens.typ"),
 )
 
 == Problem

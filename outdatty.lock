@@ -4,7 +4,7 @@ groups:
   api-service-recipes:
     source:
       crates/mindtape/src/packs/mindtape-tasks.toml: 4385734b69ba4054cde906f29c0277b4508f2294abe91a2e7bc1e8fb720059d2
-      examples/api-service/.mindtape/config.toml: 4332ad79f85106a1e952a07c021648d82f76ad1f8b2863384ac5d2355fa81578
+      examples/api-service/.mindtape/config.toml: 6c6a166064946caff92f800294ffc4c46aa550116bc3e83ea19190b93f162a03
       examples/api-service/.mindtape/templates/task.typ: 41157e812de4eb373b1791bf47197f01c74e78db76b9971a478c38d5f3ecc9a8
       examples/api-service/Cargo.lock: fb82d06c279532ad92269838be453a3ed883dcd8cf12daaad8fdd0e26f854805
       examples/api-service/dicts/services.txt: 25d2e5ae4c8231bfd16b9d15dfa934c5fcac55a1bd176572f20466164163c39a
@@ -14,21 +14,22 @@ groups:
       examples/api-service/tasks/add-request-ids-to-log-lines.typ: e8d57e31af6d3a3c28d7b8d04380b9efbfa2ab44314771a7a10be57d010d9d5c
       examples/api-service/tasks/document-the-webhook-retry-policy.typ: 2097c9b120d669fad5af21e505c38e743ea61cd493b1b2adc0da12fff146f5a1
       examples/api-service/tasks/fix-the-404-page-typo.typ: 2d314728f94c7a39798197c550d89e20914e26ac4cf69208626a03e2209161d6
+      examples/api-service/tasks/harden-session-tokens.typ: 500a4e1b2324b3800ac4fe708226f875416021a2f48cc19939bc715e60469abd
       examples/api-service/tasks/index-the-orders-by-customer.typ: 5f4b700a45e8a22efa318ea5fd883eb508d55d13ea80a163787192d0bf213f63
       examples/api-service/tasks/pin-the-rust-toolchain-in-ci.typ: f4eb97deea4f097d5b44314b4db755b4aa4fdde3ecae83de72d666b07656c493
-      examples/api-service/tasks/reject-expired-sessions-on-token-refresh.typ: 4555a42b89b47f2e5af765b56ef7c3430fbead87857a8c7e72727d7dfdd43057
+      examples/api-service/tasks/reject-expired-sessions-on-token-refresh.typ: 8de15b530d4403cdcc8332e96f512cbf2ab5f59918b77154bc2e889d95ccdc1e
       examples/api-service/tasks/replace-the-deprecated-search-client.typ: 22fc755d172e2e81cf3e8d8f1719a83bf7e0585094ad53708c08e90ebf7cedf9
-      examples/api-service/tasks/rotate-the-jwt-signing-key.typ: d2006d43bf37936664d543e2ae8f9a248d5cc2105cdb9b77500bdab58423bd7d
+      examples/api-service/tasks/rotate-the-jwt-signing-key.typ: e669615f9e0341e3530594c5527e1ba4e97c4ddc75b197095ab482110081148b
       examples/api-service/tasks/send-a-welcome-email-after-signup.typ: 37902439e0514d5b3c1148290b3c7b5997dc7e23a35599b07e3f7e4dc6c9b959
       examples/api-service/tasks/throttle-failed-logins-per-ip.typ: 663b5c80f73d08dad4217483f83f700cf9b0312a7b886652ca78f5ef6fae80c1
       examples/api-service/tasks/upgrade-the-axum-web-framework.typ: 098f9d43ac19b8e59ddd3691f9f4f56f03cfc48a305aca5d84e15c6a93808a36
       examples/api-service/tasks/verify-webhooks-with-the-acme-pay-sdk.typ: dc6dce15d763d29cffa99082ce8dbf6a24bf30798d40b362eb8ae2972414835c
-      www/generate-api-service.sh: aa8a3416ae372f339332ad668123b67b821ed1a6b855efacd0e139c8a8eac219
+      www/generate-api-service.sh: 87764f303bbd578318d5664054b7ae32a81e078e95853cb8ec2a46702a551c3b
     dependents:
-      skills/mindtape/evals/README.md: 40e834b8a4281bc4c7d2b4f4f57ae5c8272da73a80df919c95bc18b69f58c31c
-      skills/mindtape/evals/evals.json: 64330633a8201a68c28ac0b760b941df6ff32fb99c2b7beb679b79814a8ba503
+      skills/mindtape/evals/README.md: 1d47d346c38f94f6b05bd4971c722dd10c453d150299ba3e2eb0a216f53be710
+      skills/mindtape/evals/evals.json: 199ca714b66ec0304217ef49dec93262873c5787926df1605b2e039e6cc9ec58
       www/content/gate-done-on-checks.typ: 6938ba5f0a6e466a1fa73bc1e2f136ddd03360de55fbd60d80cd3d0c259d3dc2
-      www/content/one-task-at-a-time.typ: 7dfe70a79c823d272980075fbd82a11b29be28798e067deeb439253104b8f9ee
+      www/content/limit-work-in-progress.typ: 8a49a2a71122935c85223539f454d1301377464fa7cef61eea80ea275b855879
       www/content/require-a-task-shape.typ: 196b2f68633ade19f7c3bcab288dd4c8342780982732e9f4794c44ab0957500a
       www/content/split-oversized-tasks.typ: 8ca9b7a1a6ff5788d405feaaa0b54eb266d2fe2fd29a12c4dbc53219c2ea02e2
       www/content/trace-commits-to-tasks.typ: 389d0c471b1408a64721763a83ece2aa61294a4630a2aa2d03418ebde750b51e

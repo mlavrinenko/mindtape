@@ -6,8 +6,9 @@
 extends = ["mindtape-tasks"]
 # docs:end
 
-# One task at a time, in order: one task in wip, started after its dependencies.
-# docs:slice api-service/one-task-at-a-time
+# Limit work in progress: one milestone and one task in wip, each started
+# after its dependencies.
+# docs:slice api-service/limit-work-in-progress
 tasks.status = [
   { value = "proposed" },
   { value = "wip", unblocked = true },
@@ -15,9 +16,16 @@ tasks.status = [
 ]
 
 [[tasks.rules]]
-name = "one-wip"
-when = 'status == "wip"'
-assert = 'count(status == "wip") <= 1'
+name = "one-milestone"
+when = 'status == "wip" && kind == "milestone"'
+assert = 'count(status == "wip" && kind == "milestone") <= 1'
+message = "close the open milestone before you open another"
+severity = "error"
+
+[[tasks.rules]]
+name = "one-task"
+when = 'status == "wip" && kind != "milestone"'
+assert = 'count(status == "wip" && kind != "milestone") <= 1'
 message = "finish the task in progress before you start another"
 severity = "error"
 # docs:end

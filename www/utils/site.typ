@@ -90,7 +90,7 @@
       "/split-oversized-tasks/",
       "/require-a-task-shape/",
       "/gate-done-on-checks/",
-      "/one-task-at-a-time/",
+      "/limit-work-in-progress/",
       "/wait-on-upstream/",
       "/trace-commits-to-tasks/",
     ),

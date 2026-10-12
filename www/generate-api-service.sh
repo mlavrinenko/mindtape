@@ -108,12 +108,14 @@ mt done reject-expired-sessions-on-token-refresh --force
 grep status: tasks/reject-expired-sessions-on-token-refresh.typ
 EOF
 
-# One task at a time: a second task cannot start while one is in progress,
-# and a task cannot start before its dependencies are done.
+# Limit work in progress: a milestone and one task under it are in progress,
+# so a second task cannot start, and a task cannot start before its
+# dependencies are done.
 api_copy P
-capture --exit 1 --expect 'rules\.one-wip' one-task-at-a-time "$P" 'mt wip add-redis-client'
-capture --exit 1 --expect 'requires an unblocked task' one-task-at-a-time "$P" 'mt wip throttle-failed-logins-per-ip'
-capture one-task-at-a-time "$P" 'mt ls blocked --columns title,why'
+capture limit-work-in-progress "$P" "mt ls 'status == \"wip\"' --columns title,children,progress"
+capture --exit 1 --expect 'rules\.one-task' limit-work-in-progress "$P" 'mt wip add-redis-client'
+capture --exit 1 --expect 'requires an unblocked task' limit-work-in-progress "$P" 'mt wip throttle-failed-logins-per-ip'
+capture limit-work-in-progress "$P" 'mt ls blocked --columns title,why'
 
 # Wait on upstream: a task waits until Cargo.lock pins the release it needs.
 # No checker runs before `mt allow`, so the session allows first. The

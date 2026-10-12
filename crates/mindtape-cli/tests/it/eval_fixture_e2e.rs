@@ -57,8 +57,8 @@ const UPDATE: &str =
 fn the_fixture_has_the_task_counts_the_evals_state() {
     assert_eq!(
         ids("").len(),
-        13,
-        "evals 1 and 3 say api-service has 13 tasks; {UPDATE}"
+        14,
+        "evals 1 and 3 say api-service has 14 tasks; {UPDATE}"
     );
     assert_eq!(
         ids("terminal").len(),
@@ -72,8 +72,8 @@ fn the_fixture_ready_list_matches_eval_zero() {
     let ready = ids("ready");
     assert_eq!(
         ready.len(),
-        7,
-        "eval 0 says seven tasks are ready; {UPDATE}"
+        8,
+        "eval 0 says eight tasks are ready; {UPDATE}"
     );
     assert_eq!(
         ready.first().map(String::as_str),

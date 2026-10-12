@@ -5,6 +5,7 @@
   priority: ice(impact: 8, confidence: 0.9, ease: 9),
   status: wip(2026, 9, 30),
   estimate: (src-files: 1),
+  links: parent("harden-session-tokens.typ"),
 )
 
 == Problem

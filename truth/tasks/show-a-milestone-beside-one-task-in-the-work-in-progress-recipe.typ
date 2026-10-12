@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 12),
+  status: done(
+    2026,
+    10,
+    12,
+  )[the recipe caps one milestone and one task, and its session shows both in progress],
 )
 
 == Problem
