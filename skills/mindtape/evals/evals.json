@@ -42,7 +42,7 @@
       "name": "file-new-task",
       "fixture": "examples/api-service",
       "prompt": "Password reset emails link to /reset/{token}, and in production that link returns 404. Add a task to fix it.",
-      "expected_output": "Agent runs `mt add` to file a new task about the 404 on the password reset link. api-service declares a template, so `mt add --describe` lists its slots (title, src-files, problem, to-be, changes, out-of-scope) and the agent supplies every one, with a numbered Problem whose defect step opens with 🔴, a TO-BE of 🟢 bullets and a `path` in each Changes bullet. `src-files` stays at 5 or fewer, because the `split-big-work` rule refuses a bigger task. `mt check` still passes and the 13 existing tasks are untouched.",
+      "expected_output": "Agent runs `mt add` to file a new task about the 404 on the password reset link. api-service's default template is `task`, so `mt add --describe` lists its slots (title, src-files, problem, to-be, changes, out-of-scope) and the agent supplies every one, with a numbered Problem whose defect step opens with 🔴, a TO-BE of 🟢 bullets and a `path` in each Changes bullet. `src-files` stays at 5 or fewer, because the `split-big-work` rule refuses a bigger task. `mt check` still passes and the 14 existing tasks are untouched.",
       "files": [],
       "assertions": [
         {

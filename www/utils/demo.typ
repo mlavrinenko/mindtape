@@ -1,13 +1,13 @@
 // www/utils/demo.typ — the opening README.md and the site root share.
 //
-// `showcase` quotes a task from examples/api-service. `recipe-table` lists the
-// Recipes nav group, one row per page: its title and summary from the page
-// manifest, and the first error line its capture printed, so no row quotes a
-// refusal that did not happen. `typst-section` says why tasks are Typst files.
-// Paths are relative to this file, so they resolve under tola's `--root www`
-// and typlite's `--root .`. The caller passes its link function,
-// `(route, body) => content`, because the two render paths build site links
-// differently.
+// `showcase` quotes a task from examples/api-service, through
+// `fixture-slice`. `recipe-table` lists the Recipes nav group, one row per
+// page: its title and summary from the page manifest, and the first error
+// line its capture printed, so no row quotes a refusal that did not happen.
+// `typst-section` says why tasks are Typst files. Paths are relative to this
+// file, so they resolve under tola's `--root www` and typlite's `--root .`.
+// The caller passes its link function, `(route, body) => content`, because
+// the two render paths build site links differently.
 
 #import "site.typ": NAV, REPO, SITE, mindtape, page-meta, render-summary
 #import "slices.typ": checked-slices
@@ -17,14 +17,19 @@
 // The tagline and the pitch, which open README and the site root.
 #let lede = render-summary(SITE.tagline + " " + SITE.pitch)
 
+// The fixture's Typst slices: the task README opens with, and the goals
+// module the tie-work-to-goals recipe quotes.
 #let _fact = json("../generated/api-service.json")
-#let _task = checked-slices(_fact, "api-service", ("showcase",)).showcase
+#let _slices = checked-slices(_fact, "api-service", ("showcase", "goals"))
 
-#let showcase = {
-  let path = _fact.root + "/" + _task.file
+// Slice `id` under a link to the file it comes from.
+#let fixture-slice(id) = {
+  let path = _fact.root + "/" + _slices.at(id).file
   par(link(REPO + "/blob/main/" + path, raw(path)))
-  raw(_task.code, lang: "typ", block: true)
+  raw(_slices.at(id).code, lang: "typ", block: true)
 }
+
+#let showcase = fixture-slice("showcase")
 
 // The first error line of the first command that failed in capture `id`.
 #let _refusal(id) = {

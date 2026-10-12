@@ -4,17 +4,19 @@ groups:
   api-service-recipes:
     source:
       crates/mindtape/src/packs/mindtape-tasks.toml: 4385734b69ba4054cde906f29c0277b4508f2294abe91a2e7bc1e8fb720059d2
-      examples/api-service/.mindtape/config.toml: 6c6a166064946caff92f800294ffc4c46aa550116bc3e83ea19190b93f162a03
+      examples/api-service/.mindtape/config.toml: fff32c3fc86fd5bd22fbc089eb400dccf98f1ba71214cafbd171656cd582bdb6
+      examples/api-service/.mindtape/templates/milestone.typ: 737fc2788932ee1d2863e4041849ed4e6fe6d191952d432369d36a5343446afc
       examples/api-service/.mindtape/templates/task.typ: 41157e812de4eb373b1791bf47197f01c74e78db76b9971a478c38d5f3ecc9a8
       examples/api-service/Cargo.lock: fb82d06c279532ad92269838be453a3ed883dcd8cf12daaad8fdd0e26f854805
       examples/api-service/dicts/services.txt: 25d2e5ae4c8231bfd16b9d15dfa934c5fcac55a1bd176572f20466164163c39a
+      examples/api-service/goals.typ: 645a69203fe3daf01800cb37b89facf831b0965422bb6bc07e15e2854079a614
       examples/api-service/scripts/locked: b3e770216763ddae63d751d7e5fafcab424a8a32628689f6b3cc859e8e7c49d5
       examples/api-service/scripts/test: 490e2b2adafd0151a29e903fbd21a77229c0f94ea7724a1ddf7aabc5561f79cc
       examples/api-service/tasks/add-redis-client.typ: f90c6b02e6baa8655a554ed4560581c3a57ecac22ae2a073f4d207998f5613a1
       examples/api-service/tasks/add-request-ids-to-log-lines.typ: e8d57e31af6d3a3c28d7b8d04380b9efbfa2ab44314771a7a10be57d010d9d5c
       examples/api-service/tasks/document-the-webhook-retry-policy.typ: 2097c9b120d669fad5af21e505c38e743ea61cd493b1b2adc0da12fff146f5a1
       examples/api-service/tasks/fix-the-404-page-typo.typ: 2d314728f94c7a39798197c550d89e20914e26ac4cf69208626a03e2209161d6
-      examples/api-service/tasks/harden-session-tokens.typ: 500a4e1b2324b3800ac4fe708226f875416021a2f48cc19939bc715e60469abd
+      examples/api-service/tasks/harden-session-tokens.typ: 61a5dfcc190ae443f63aef67663ab16dd0619d120f00f1cb75a7bd2b1efe0f30
       examples/api-service/tasks/index-the-orders-by-customer.typ: 5f4b700a45e8a22efa318ea5fd883eb508d55d13ea80a163787192d0bf213f63
       examples/api-service/tasks/pin-the-rust-toolchain-in-ci.typ: f4eb97deea4f097d5b44314b4db755b4aa4fdde3ecae83de72d666b07656c493
       examples/api-service/tasks/reject-expired-sessions-on-token-refresh.typ: 8de15b530d4403cdcc8332e96f512cbf2ab5f59918b77154bc2e889d95ccdc1e
@@ -24,14 +26,14 @@ groups:
       examples/api-service/tasks/throttle-failed-logins-per-ip.typ: 663b5c80f73d08dad4217483f83f700cf9b0312a7b886652ca78f5ef6fae80c1
       examples/api-service/tasks/upgrade-the-axum-web-framework.typ: 098f9d43ac19b8e59ddd3691f9f4f56f03cfc48a305aca5d84e15c6a93808a36
       examples/api-service/tasks/verify-webhooks-with-the-acme-pay-sdk.typ: dc6dce15d763d29cffa99082ce8dbf6a24bf30798d40b362eb8ae2972414835c
-      www/generate-api-service.sh: 87764f303bbd578318d5664054b7ae32a81e078e95853cb8ec2a46702a551c3b
+      www/generate-api-service.sh: 560bab72c6ccf494fb2b37fc87a984387146d10e3510f8a74d9ca25cc0969ab0
     dependents:
-      skills/mindtape/evals/README.md: 1d47d346c38f94f6b05bd4971c722dd10c453d150299ba3e2eb0a216f53be710
-      skills/mindtape/evals/evals.json: 199ca714b66ec0304217ef49dec93262873c5787926df1605b2e039e6cc9ec58
-      www/content/gate-done-on-checks.typ: 6938ba5f0a6e466a1fa73bc1e2f136ddd03360de55fbd60d80cd3d0c259d3dc2
+      skills/mindtape/evals/README.md: 998e2cfcf60142db3101c1ddd849ef3a244acd18eb7ca3568a3195d12eb2bf6b
+      skills/mindtape/evals/evals.json: 375320750ea8e96ee1af9836efde0542d1176a4edd9bbf76695fc626cf187469
       www/content/limit-work-in-progress.typ: 8a49a2a71122935c85223539f454d1301377464fa7cef61eea80ea275b855879
-      www/content/require-a-task-shape.typ: 196b2f68633ade19f7c3bcab288dd4c8342780982732e9f4794c44ab0957500a
+      www/content/require-a-task-shape.typ: 6c968672b533cd340b665c946f84fb5003fee320b539e9bdd4ef16b65f11f85c
       www/content/split-oversized-tasks.typ: 8ca9b7a1a6ff5788d405feaaa0b54eb266d2fe2fd29a12c4dbc53219c2ea02e2
+      www/content/tie-work-to-goals.typ: 0f996a8509b04b420a7adefd045997582b512d5a4cab3d089f105588e2a5b5aa
       www/content/trace-commits-to-tasks.typ: 389d0c471b1408a64721763a83ece2aa61294a4630a2aa2d03418ebde750b51e
       www/content/wait-on-upstream.typ: 50bcc3ffe1c81b4429bd4567b1a237e61bb0f4ef47d3194f0d07ea15e4dfd946
   cli-docs:

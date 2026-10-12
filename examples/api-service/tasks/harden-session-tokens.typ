@@ -1,4 +1,5 @@
 #import "@local/mindtape:0.2.0": *
+#import "../goals.typ": helps, neutral
 #show: task.with(
   title: "Harden session tokens",
   kind: "milestone",
@@ -6,6 +7,10 @@
   status: wip(2026, 9, 29),
   estimate: (src-files: 0),
   tags: ("auth", "security"),
+  x-goals: (
+    secure: helps[an expired session can't mint a new token],
+    fast: neutral,
+  ),
 )
 
 == Problem

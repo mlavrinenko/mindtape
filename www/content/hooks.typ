@@ -24,9 +24,6 @@ Want the tests to pass before a task can close, or a reminder when work
 starts? `[[on.flip]]` runs actions when `mt flip` changes a task's status. An
 action prints a message, lists tasks or runs a command. A command marked as a
 gate can refuse the flip.
-#link(u("/gate-done-on-checks/"))[Gate done on your checks] shows a
-gate that runs the tests before `mt done`, and `--force` closing the task past
-it.
 
 = When a hook fires
 

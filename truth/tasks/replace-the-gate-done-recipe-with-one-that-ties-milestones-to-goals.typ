@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 12),
+  status: done(
+    2026,
+    10,
+    12,
+  )[the Recipes group ties milestones to goals in place of the gate-done recipe],
 )
 
 == Problem
@@ -54,9 +58,9 @@
 == Changes
 
 - `examples/api-service/goals.typ`: the goals and `check-goals`.
-- `examples/api-service/.mindtape/config.toml`: the goals slice replaces the flip gate.
+- `examples/api-service/.mindtape/config.toml`: the goals slice replaces the gate-done slice. The flip gate stays as plain config, because the skill's evals test `mt done` against it.
 - `examples/api-service/tasks/harden-session-tokens.typ`: rate the goals.
-- `examples/api-service/scripts/test`: delete it, as no rule runs it.
+- `examples/api-service/.mindtape/templates/milestone.typ`: a milestone template that asks for each goal's rating.
 - `www/content/tie-work-to-goals.typ`: the recipe page, in place of `gate-done-on-checks.typ`.
 - `www/utils/site.typ`: the nav entry.
 - `www/generate-api-service.sh`: the capture.

@@ -33,7 +33,7 @@ Problem as one sentence instead of steps, and `mt add` refuses it again:
 
 = Deep dive
 
-The project's template asks for each section as a slot, a value that `mt add`
+The project's templates ask for each section as a slot, a value that `mt add`
 fills in. `mt add` refuses a fill that leaves a slot empty.
 `mt add --describe` lists the slots, so an agent can learn the shape before it
 writes a task. #link(u("/templates/"))[Templates & slots] covers both.

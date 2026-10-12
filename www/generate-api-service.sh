@@ -98,14 +98,29 @@ EOF
 CMD
 )"
 
-# Gate done on your checks: `mt done` runs scripts/test and refuses while it
-# fails. `--force` closes the task anyway and writes the waiver into the
-# status note.
+# Tie work to your goals: the milestone template rates each goal `neutral`
+# unless the answers say otherwise, so the goals rule refuses a milestone that
+# helps none of them, and files it once one goal says how it helps.
 api_copy P
-capture --exit 1 --expect 'gate failed' gate-done-on-checks "$P" 'mt done reject-expired-sessions-on-token-refresh'
-capture_lines gate-done-on-checks "$P" <<'EOF'
-mt done reject-expired-sessions-on-token-refresh --force
-grep status: tasks/reject-expired-sessions-on-token-refresh.typ
+capture_prep "$P" "$(
+    cat <<'CMD'
+cat >checkout.yaml <<'EOF'
+title: Speed up checkout
+problem: |
+  + Run `curl -w '%{time_total}\n' localhost:8080/checkout`.
+  + 🔴 It prints `1.8`, and shoppers leave before checkout answers.
+to-be: |
+  - 🟢 Checkout answers within 100 ms.
+out-of-scope: |
+  - The payment provider's own latency.
+EOF
+CMD
+)"
+capture tie-work-to-goals "$P" 'cat checkout.yaml'
+capture --exit 1 --expect 'rules\.goals' tie-work-to-goals "$P" 'mt add -t milestone -f checkout.yaml'
+capture_lines tie-work-to-goals "$P" <<'EOF'
+echo 'fast: helps[checkout answers within 100 ms]' >>checkout.yaml
+mt add -t milestone -f checkout.yaml
 EOF
 
 # Limit work in progress: a milestone and one task under it are in progress,

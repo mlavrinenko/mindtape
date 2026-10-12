@@ -90,7 +90,7 @@
     items: (
       "/split-oversized-tasks/",
       "/require-a-task-shape/",
-      "/gate-done-on-checks/",
+      "/tie-work-to-goals/",
       "/limit-work-in-progress/",
       "/wait-on-upstream/",
       "/trace-commits-to-tasks/",
