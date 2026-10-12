@@ -89,6 +89,7 @@
             [
               cargo-crap
               mmz.packages.${system}.default
+              qahq.packages.${system}.canibump
               qahq.packages.${system}.jscpd
               qahq.packages.${system}.ejectest
               qahq.packages.${system}.linecop

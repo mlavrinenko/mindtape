@@ -611,6 +611,15 @@ crap:
 crap-baseline:
     bash .just/scripts/crap-baseline.sh {{ CRAP_EXCLUDES }}
 
+# A non-zero exit is the answer (9: a workaround can go), not a failure, so it
+# prints no error line. canibump.toml lists what each workaround waits on.
+
+[doc("Say which upstream change in canibump.toml landed, so its workaround can go")]
+[group("advisory")]
+[no-exit-message]
+canibump *ARGS:
+    canibump --refresh {{ ARGS }}
+
 [doc("Re-mint .jscpd-baseline.json after extracting a clone or accepting one")]
 [group("advisory")]
 dry-baseline:
@@ -692,7 +701,7 @@ mutants-status +DIR='mutants.out':
 # formatted by one recipe and skipped by the other. A single list cannot omit a
 # path from the check while applying it in the fix.
 
-TOML_FMT_PATHS := ".cargo/mutants.toml .config/nextest.toml .config/wt.toml .gitleaks.toml .mindtape/config.toml Cargo.toml clippy.toml crates/mindtape-cli/Cargo.toml crates/mindtape-cli/src/cmd/init/axes/headers_spec.toml crates/mindtape-cli/src/cmd/init/axes/workflow_flow.toml crates/mindtape-cli/src/cmd/init/axes/workflow_gated.toml crates/mindtape-cli/src/cmd/init/axes/workflow_personal.toml crates/mindtape-cli/src/cmd/init/axes/workflow_todo_done.toml crates/mindtape-cli/src/cmd/init/presets/flow/config.toml crates/mindtape-cli/src/cmd/init/presets/gated/config.toml crates/mindtape-cli/src/cmd/init/presets/personal/config.toml crates/mindtape-cli/src/cmd/init/presets/todone/config.toml crates/mindtape/Cargo.toml crates/mindtape/src/config/defaults.toml crates/mindtape/src/framework/frameworks.toml crates/mindtape/src/packs/mindtape-tasks.toml examples/api-service/.mindtape/config.toml examples/derived-tags/.mindtape/config.toml examples/dsl/.mindtape/config.toml examples/estimates/.mindtape/config.toml examples/large/.mindtape/config.toml examples/links/.mindtape/config.toml examples/minimal/.mindtape/config.toml examples/named-sets/.mindtape/config.toml examples/priority/.mindtape/config.toml examples/recurring/.mindtape/config.toml examples/round-trip/.mindtape/config.toml examples/rules/.mindtape/config.toml examples/self-validating/.mindtape/config.toml examples/statuses/.mindtape/config.toml examples/task-files/.mindtape/config.toml lib/typst.toml release.toml rust-toolchain.toml rustfmt.toml tombi.toml www/tola.toml"
+TOML_FMT_PATHS := ".cargo/mutants.toml canibump.toml .config/nextest.toml .config/wt.toml .gitleaks.toml .mindtape/config.toml Cargo.toml clippy.toml crates/mindtape-cli/Cargo.toml crates/mindtape-cli/src/cmd/init/axes/headers_spec.toml crates/mindtape-cli/src/cmd/init/axes/workflow_flow.toml crates/mindtape-cli/src/cmd/init/axes/workflow_gated.toml crates/mindtape-cli/src/cmd/init/axes/workflow_personal.toml crates/mindtape-cli/src/cmd/init/axes/workflow_todo_done.toml crates/mindtape-cli/src/cmd/init/presets/flow/config.toml crates/mindtape-cli/src/cmd/init/presets/gated/config.toml crates/mindtape-cli/src/cmd/init/presets/personal/config.toml crates/mindtape-cli/src/cmd/init/presets/todone/config.toml crates/mindtape/Cargo.toml crates/mindtape/src/config/defaults.toml crates/mindtape/src/framework/frameworks.toml crates/mindtape/src/packs/mindtape-tasks.toml examples/api-service/.mindtape/config.toml examples/derived-tags/.mindtape/config.toml examples/dsl/.mindtape/config.toml examples/estimates/.mindtape/config.toml examples/large/.mindtape/config.toml examples/links/.mindtape/config.toml examples/minimal/.mindtape/config.toml examples/named-sets/.mindtape/config.toml examples/priority/.mindtape/config.toml examples/recurring/.mindtape/config.toml examples/round-trip/.mindtape/config.toml examples/rules/.mindtape/config.toml examples/self-validating/.mindtape/config.toml examples/statuses/.mindtape/config.toml examples/task-files/.mindtape/config.toml lib/typst.toml release.toml rust-toolchain.toml rustfmt.toml tombi.toml www/tola.toml"
 TYPST_FMT_PATHS := "lib truth .mindtape/templates examples/api-service/tasks examples/api-service/.mindtape/templates examples/estimates/.mindtape/templates examples/self-validating/.mindtape/templates examples/named-sets/.mindtape/templates examples/derived-tags/api examples/derived-tags/web examples/links/tasks examples/named-sets/tasks examples/priority/tasks examples/recurring/tasks examples/round-trip/tasks examples/dsl/tasks examples/task-files/tasks examples/lsp examples/rules examples/statuses/tasks www/content www/templates www/utils docs/src"
 
 # The same one-list rule for the justfiles themselves. A bare `just --fmt`

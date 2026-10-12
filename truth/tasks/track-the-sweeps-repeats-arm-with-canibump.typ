@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 13),
+  status: done(
+    2026,
+    10,
+    13,
+  )[canibump.toml waits on jscpd\#1000 for the repeats arm],
   links: depends-on(
     "rank-short-repeated-snippets-by-extraction-gain-in-a-sweep-arm.typ",
   ),
@@ -42,12 +46,11 @@
 == TO-BE
 
 - 🟢 `canibump.toml` at the repo root holds a blocker on jscpd issue 1000, and `just canibump` says when the arm can go.
-- 🟢 canibump's `[scan]` reads the `Justfile`, `flake.nix` and `contrib/`, so an upstream link no blocker names shows up as unlisted.
 
 
 == Changes
 
-- `canibump.toml`: the blocker and the scan, with the schema line on top.
+- `canibump.toml`: the blocker, with the schema line on top.
 - `flake.nix`: canibump from qahq in the dev shell.
 - `Justfile`: a `canibump` recipe, and `canibump.toml` in `TOML_FMT_PATHS`.
 
@@ -59,6 +62,7 @@
 
 == Out of scope
 
+- canibump's `[scan]`, which flags an upstream link no blocker names. It ships in canibump 0.2.0, and qahq still pins 0.1.0.
 - The blocker for the jscpd gate's new-clones filter, which waits on an issue not yet posted.
 
 
