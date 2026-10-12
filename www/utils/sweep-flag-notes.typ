@@ -69,4 +69,11 @@
     undertested arm defers to the coverage arm on any file that one already
     reports, so the overlap files nothing twice.
   ],
+  "repeat-gain": [
+    Tokens an extraction removes, net of the helper and its calls, so one bar
+    weighs copies against size: a big block clears it with two copies, a
+    one-liner only once it is everywhere. A count or a size alone would file
+    the common short call and miss the pasted setup. The number is set so a
+    batch stays small enough to empty before the next sweep.
+  ],
 )

@@ -52,6 +52,11 @@ arm takes two, because a function must be both complex and undertested to be
 worth a task. Each number's argument sits beside its constant in the arm
 script that applies it.
 
+The repeats arm is a stopgap. It groups jscpd's clone pairs by hand into
+snippets pasted many times, and files the ones whose extraction saves the most
+code. Once jscpd groups clones itself, its blocker in `canibump.toml` reads
+`bumpable` and the arm goes.
+
 The mutants arm has no threshold. It reads `outcomes.json` from whichever
 sweep ran last: `mutants.out` after a full #just.mutants(), or
 `target/mutants-scoped` after a scoped run. When neither exists, or the one
@@ -75,8 +80,9 @@ file to a path outside the tasks root.
 
 = The design rules
 
-- Only signals that no gate enforces qualify. jscpd, outdatty, machete and
-  clippy already fail a commit, so a task from one would repeat that failure.
+- Only signals that no gate enforces qualify. outdatty, machete and clippy
+  already fail a commit, so a task from one would repeat that failure. jscpd
+  fails one only from 50 tokens up, so the repeats arm reads it below that.
 - An arm never reports a measurement it doesn't have. An arm that can
   refresh its input refuses a stale one. An arm that can't, such as the
   hours-long mutation sweep, skips with a message naming the refresh command.

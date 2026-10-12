@@ -150,7 +150,7 @@ groups:
       .config/wt.toml: bc7d39daebc51462d6e569170005a3628e6f5206c8d3e6ea3a09d1d40ff73439
       .just/docs.just: 300226a86d551abc287d058efd9cbc2143fa7f15e3c6b53131699f27f35847fc
       .just/scripts/wt-carry-lcov.sh: 0352be6580d280c7eb253ded48c275eba1cba390d500454483b938903146fae3
-      Justfile: 75d178f2cf6b9ba2b582fef262ef64eda6c0fe82f31650cf5c25c661c537a4b0
+      Justfile: c756f1501904030607754331b01abaef9a090b46e8f73ae05b243884c73294c3
       flake.nix: ef7d5ca41ccd2797a37dc68438a9ae8eef072414270d4e26f323847bce121639
     dependents:
       docs/src/agents.typ: 738581f65453037d2e7e4df57dffa2aa1993a582d8e7ead92a3a02d059a97e03
@@ -162,7 +162,7 @@ groups:
       docs/src/contributing/example-projects.typ: 4f9a0c52894b9c2ab665e42bb728814b3d18badf3e8def57737d695d29912f63
       docs/src/contributing/gates.typ: f10ff4ff4e412476696b9e065c2b2b9de79abb29f0a8addf70348178216e46f9
       docs/src/contributing/mutation-testing.typ: 96f2e41b03e5bb524e1c49dd08e9435690f37ba566cf81cc0f6dbc843e01981a
-      docs/src/contributing/signal-sweep.typ: 9699e4af7dc29f71d8d29e7d7904f6cf97d3c0fa62679ad23b10840cb65d2ec1
+      docs/src/contributing/signal-sweep.typ: c39011fdce52c1577ed17bf4392512588c9387f0b9336547243999a16944725d
       docs/src/contributing/windows.typ: 093ebafaf04b07d4abd611b33a346695a61e811b51f79e13a29df34903e96786
   doc-gate-scripts-docs:
     source:
@@ -296,9 +296,11 @@ groups:
     dependents:
       .mindtape/templates/sweep-coverage.typ: 6d4f8d17389f8d34f71d829813a685d149aeefe9eda6cb5f7e5293b590a1cdac
       .mindtape/templates/sweep-mutants.typ: 2183fdd7812da4264fb0707a2accf49e49824d89ca72bc74d4d70475b1d043b8
+      .mindtape/templates/sweep-repeats.typ: bb966a546beaa9e27e429613b84fba4317060fe6a89740e714d1d8e2da5a2507
       .mindtape/templates/sweep-undertested.typ: 73e12fd227ecc67d3f3310376f498c5a0559c6ce14202bee3dc185de3e768918
       contrib/ask-refactoring/coverage.sh: 242fcb955472cebfb7d952748d11c28a43ca3de07175c4d10a8b0c404abb3046
       contrib/ask-refactoring/mutants.sh: 1583427a46ea48571c0712b97b1dd684778b1010e48122dc63339d4c6d06fc22
+      contrib/ask-refactoring/repeats.sh: 33c88dd125c0c94df3113364be0f8ab0eb0f217bd67e0cc3848687a8eeb07f09
       contrib/ask-refactoring/size.sh: 64b271d734801919441af62bafb997409bf96330e3f0509c86bba4c259d928a8
       contrib/ask-refactoring/undertested.sh: 5cf4349191eae383f417c3326b5cdcc1ddd782d3ddeae4f8755cf18bf1d1a7bb
   task-templates:

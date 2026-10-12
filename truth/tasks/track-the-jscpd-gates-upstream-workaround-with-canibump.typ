@@ -11,7 +11,7 @@
   ),
   difficulty: 2,
   tags: ("tooling",),
-  estimate: (src-files: 1),
+  estimate: (src-files: 2),
   x-goals: (
     product: (
       readable-tasks: neutral,

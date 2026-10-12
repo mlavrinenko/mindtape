@@ -56,11 +56,11 @@ cd "$repo"
 # attributes.typ): that is what `just --usage ask-refactoring` renders, what
 # `just --dump` carries into www/generated/sweep-flags.json, and what
 # docs/contributing/signal-sweep.md's table is generated from. A fallback here
-# would be a second copy of four numbers with nothing to keep it in step — the
+# would be a second copy of five numbers with nothing to keep it in step — the
 # arrangement this whole change exists to end — and it would fail silently, at
 # a threshold nobody chose, on the day the recipe stopped passing one.
 #
-# Initialised empty rather than left unset, because these five names are also
+# Initialised empty rather than left unset, because these six names are also
 # the recipe's exported parameters: `$BASELINE` and friends are in this
 # script's environment already, so an inherited value would satisfy the
 # required-check below without the flag ever having been passed.
@@ -68,16 +68,18 @@ BASELINE=""
 COVERAGE_FLOOR=""
 CC_FLOOR=""
 FN_COVERAGE_FLOOR=""
+REPEAT_GAIN=""
 WRITE=""
 
 usage() {
     cat <<'EOF'
 usage: bash contrib/ask-refactoring.sh --write 0|1 --baseline PCT
            --coverage-floor PCT --cc-floor N --fn-coverage-floor PCT
+           --repeat-gain N
 
 Run it as `just ask-refactoring` — the recipe owns every default and forwards
-all five flags; `just --usage ask-refactoring` prints them with their values.
-All five are required here; there are no defaults at this layer.
+all six flags; `just --usage ask-refactoring` prints them with their values.
+All six are required here; there are no defaults at this layer.
 
 env:
   MT   path to the `mt` binary (default: build and use ./target/debug/mt)
@@ -96,6 +98,8 @@ while [ $# -gt 0 ]; do
         --cc-floor=*) CC_FLOOR="${1#*=}"; shift ;;
         --fn-coverage-floor) FN_COVERAGE_FLOOR="$2"; shift 2 ;;
         --fn-coverage-floor=*) FN_COVERAGE_FLOOR="${1#*=}"; shift ;;
+        --repeat-gain) REPEAT_GAIN="$2"; shift 2 ;;
+        --repeat-gain=*) REPEAT_GAIN="${1#*=}"; shift ;;
         -h | --help) usage; exit 0 ;;
         *) echo "ask-refactoring: unknown argument: $1" >&2; usage >&2; exit 2 ;;
     esac
@@ -105,7 +109,7 @@ done
 # chose. The recipe's patterns already reject a non-numeric value at dispatch,
 # so this fires only for a direct `bash contrib/ask-refactoring.sh` call —
 # which is exactly the caller the recipe's defaults cannot reach.
-for var in WRITE BASELINE COVERAGE_FLOOR CC_FLOOR FN_COVERAGE_FLOOR; do
+for var in WRITE BASELINE COVERAGE_FLOOR CC_FLOOR FN_COVERAGE_FLOOR REPEAT_GAIN; do
     flag="--$(printf '%s' "$var" | tr 'A-Z_' 'a-z-')"
     value="${!var}"
     if [ -z "$value" ]; then
@@ -171,6 +175,34 @@ stem_for() {
     printf '%s-%s\n' "$1" "$(printf '%s' "$encoded" | tr -c 'A-Za-z0-9' '-' | tr -s '-' | sed 's/^-//; s/-$//')"
 }
 
+# File one finding, or print what would be filed. `$1` is the arm, `$2` the
+# stem, `$3` a one-line summary for the dry run, and the rest the `mt` args
+# (`add` and on). Shared, so an arm's emit only builds its args. The repeats arm
+# uses it; the four older arms still carry their own copy of this block.
+file_finding() {
+    local arm="$1" stem="$2" summary="$3"
+    shift 3
+    if [ "$WRITE" -eq 1 ]; then
+        local out outcome dest
+        out="$("$MT" "$@" --dedup skip --format json)"
+        outcome="$(printf '%s' "$out" | jq -r '.outcome')"
+        dest="$(printf '%s' "$out" | jq -r '.path')"
+        case "$outcome" in
+            wrote) echo "filed   $dest" ;;
+            skipped)
+                echo "skipped $dest" >&2
+                echo "        the stem is taken, so this $arm finding was filed before and closed" >&2
+                echo "        without the signal clearing. Reopen it, or write the override." >&2
+                ;;
+            *) echo "$outcome $dest" ;;
+        esac
+    else
+        echo "── would file: $stem  $summary"
+        "$MT" "$@" --print
+        echo
+    fi
+}
+
 # ── the arms ────────────────────────────────────────────────────────────────
 #
 # One file per signal, each defining `score_<arm>`, `signal_<arm>` and
@@ -187,7 +219,7 @@ stem_for() {
 # freshness check and production-file predicate, so the pair reads in the order
 # the deferral runs. Sourcing is a separate loop, so nothing here depends on the
 # order for definitions — only the output does.
-ARMS=(size coverage undertested mutants)
+ARMS=(size coverage undertested mutants repeats)
 
 for arm in "${ARMS[@]}"; do
     # shellcheck source=/dev/null
@@ -215,7 +247,7 @@ done
 
 if [ "$findings" -eq 0 ]; then
     echo "ask-refactoring: no findings at --baseline $BASELINE / --coverage-floor $COVERAGE_FLOOR" \
-        "/ --cc-floor $CC_FLOOR --fn-coverage-floor $FN_COVERAGE_FLOOR"
+        "/ --cc-floor $CC_FLOOR --fn-coverage-floor $FN_COVERAGE_FLOOR / --repeat-gain $REPEAT_GAIN"
 elif [ "$WRITE" -eq 0 ]; then
     echo "ask-refactoring: $findings finding(s); re-run with --write to file them"
 else

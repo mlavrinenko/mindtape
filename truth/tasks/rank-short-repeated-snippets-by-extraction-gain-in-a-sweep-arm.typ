@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 13),
+  status: done(
+    2026,
+    10,
+    13,
+  )[just ask-refactoring's repeats arm files short snippets by extraction gain],
 )
 
 == Problem
