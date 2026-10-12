@@ -87,11 +87,11 @@
 .diagram figcaption { text-align: center; color: var(--muted); font-size: 0.9rem; margin-top: 0.4rem; }
 
 /* Language server --------------------------------------------------------- */
-/* What tinymist returned on a task file (lsp-completion and lsp-diagnostics in
-   ui.typ). The listings keep the light code paper in both themes, because
-   Typst bakes the highlight colours. The frame, the menu and the problems take
-   the theme. --lsp-column is the cursor's column, in characters, so the caret
-   and the menu use the listing's monospace font and size. */
+/* What tinymist returned on a task file (lsp-demo in ui.typ). The listings
+   keep the light code paper in both themes, because Typst bakes the highlight
+   colours. The frame, the menu and the problems take the theme. --lsp-column
+   is the cursor's column, in characters, so the caret and the menu use the
+   listing's monospace font and size. */
 :root { --lsp-error: #c0362c; --lsp-warning: #9a6700; }
 [data-theme="dark"] { --lsp-error: #ff8278; --lsp-warning: #e5b03f; }
 .lsp {

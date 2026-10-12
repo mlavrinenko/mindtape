@@ -199,7 +199,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The Overview shows the language server on a task file.** The build asks
   `tinymist lsp` for the field completions inside `task.with(...)` and the
   diagnostic on a misspelled field, against `examples/lsp/`, and draws both
-  as editor-neutral blocks.
+  in one editor-neutral block.
 - **`outdatty.lock` merges key by key.** A merge driver registered by
   `just install-hooks` merges the lock per group and path, so two branches
   that record different groups rebase without a conflict. A key both sides

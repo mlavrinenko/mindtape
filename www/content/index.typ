@@ -2,7 +2,7 @@
 // intro and the showcase task. The recipe table comes from www/utils/demo.typ,
 // which README.md renders too.
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": hero, lsp-completion, lsp-diagnostics
+#import "../utils/ui.typ": hero, lsp-demo
 #import "../utils/demo.typ": recipe-table, tagline
 #import "../utils/site.typ": u
 
@@ -21,30 +21,23 @@
 
 #recipe-table((route, body) => link(u(route), body))
 
-= Why Typst
+= The elephant in the room: Typst vs Markdown + frontmatter
 
-A task file is Typst code, not Markdown. Here's what you get for that.
+You may ask why Typst and not Markdown. It's a Turing-complete programming
+language, which gives us:
 
-- #strong[Field completion.] `task` declares every field as a named parameter,
-  so the Typst language server completes field names in your editor.
-- #strong[Values checked on load.] `mt` evaluates every task file on every
-  command. A misspelled field, a month 13 or text where a number belongs fails,
-  and the error names the file.
-- #strong[Shared helpers.] A task file can `#import` your own Typst module, so
-  every task that imports it uses the same definitions.
-- #strong[Your own validator.] A rule can call a Typst function you write. See
-  #link(u("/self-validating-tasks/"))[Self-validating tasks].
++ #strong[Language server autocompletion.] `task` declares every field as a
+  named parameter, so your editor completes field names and flags a misspelled
+  one.
++ #strong[Shared helpers.] `#import` your own Typst module to fill tasks the
+  way you like.
++ #strong[Custom validators.] Bring your own checks by writing a Typst
+  function. See #link(u("/self-validating-tasks/"))[Self-validating tasks].
 
-Here's what tinymist, the Typst language server, returned when this site was
-built. On a blank line inside `task.with(...)`, it offers each field the file
-doesn't set yet:
+Here's how #link("https://myriad-dreamin.github.io/tinymist/")[tinymist] helps
+with autocompletion and highlights issues:
 
-#lsp-completion()
-
-Write `titel:` by mistake and tinymist reports the unknown field as it compiles
-the file. Your editor marks it under `titel`:
-
-#lsp-diagnostics()
+#lsp-demo()
 
 = For people and for agents
 

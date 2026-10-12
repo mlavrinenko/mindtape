@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 12),
+  status: done(
+    2026,
+    10,
+    12,
+  )[the section names three gains, and one editor capture shows the menu and the squiggle together],
 )
 
 == Problem

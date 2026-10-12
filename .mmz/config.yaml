@@ -186,7 +186,6 @@ scopes:
     - "examples/named-sets/**"
     - "examples/priority/**"
     - "examples/task-files/**"
-    - "examples/lsp/**"
 
   # Every example project's config, for `just check-doc-spans`: their status
   # legends are the status verbs a doc may write as `mt <status>`. The

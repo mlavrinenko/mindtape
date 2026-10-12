@@ -147,17 +147,17 @@ groups:
       .config/wt.toml: bc7d39daebc51462d6e569170005a3628e6f5206c8d3e6ea3a09d1d40ff73439
       .just/docs.just: e6a852da423c2ec230c1bc281ab9bb4fe0ce6598a4b4765629adaec32c3714ae
       .just/scripts/wt-carry-lcov.sh: 0352be6580d280c7eb253ded48c275eba1cba390d500454483b938903146fae3
-      Justfile: 9c65428df9b058f477c43cc8684129c9e94a583653fd200b8445864c9a280280
+      Justfile: 855b7947878942d0bb6918535030d758d24dd965272550be6c651b26638e3562
       flake.nix: 5a0381ee36a54695ab03fb6b67e77ee3a0ae7bfdd0ccfff0a45c377ce32d3941
     dependents:
       docs/src/agents.typ: efeab2fa403ba1018347e39f347a65766c4e02060bcf4ef7f4c380ce34f78848
-      docs/src/contributing.typ: 70b70481fef7a73c1319863fa743d70048ac2319956054ef2e212a61d79d836e
+      docs/src/contributing.typ: 0a6a2e60008e13f5c93b4a971da45039ceb93656c673b2a821859961a1940e6f
       docs/src/contributing/coverage-crap.typ: 3c0d85d6153f819d8a1f9c15f6220179eab8d7bd8838e247890bb0e81345a050
       docs/src/contributing/crap-baseline.typ: 551aab6a955a9d4345e73e1c171fe860663887e8b3c56f611f2f2551356eb301
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
-      docs/src/contributing/documentation.typ: 1964773f825eb60d59d13e22c79c9e225c4f57c6b641c89a50c8dc1d775ff496
+      docs/src/contributing/documentation.typ: b7780baf176960c4ec589b16a195c5d470148219e4f0971d15713507f7627ef9
       docs/src/contributing/example-projects.typ: 4f9a0c52894b9c2ab665e42bb728814b3d18badf3e8def57737d695d29912f63
-      docs/src/contributing/gates.typ: f02e5d42d53076a4863a79c748bd521c4cbd2f3cd82827d3c296392dbde3bf87
+      docs/src/contributing/gates.typ: bc321cc3b38b469bab9ca998c0390abbd170707466d6638c27cae4f1ca8e8b7e
       docs/src/contributing/mutation-testing.typ: 57ddeb7cde502a5753126e4edf5e33cf31ff68f4d2c365214fc58b56d3d50798
       docs/src/contributing/signal-sweep.typ: 9699e4af7dc29f71d8d29e7d7904f6cf97d3c0fa62679ad23b10840cb65d2ec1
       docs/src/contributing/windows.typ: 093ebafaf04b07d4abd611b33a346695a61e811b51f79e13a29df34903e96786

@@ -2,15 +2,13 @@
 
 www/generate.sh runs `python3 www/lsp-capture.py <repo> <out>`. The script
 starts `tinymist lsp` from the dev shell, speaks the Language Server Protocol
-to it over stdio, and writes two records under <out> for the Overview:
+to it over stdio, and writes one record, <out>/lsp.json, for the Overview: the
+fields tinymist offers inside `task.with(...)`, and what it reports on the
+same file, which writes `titel:`, and where.
 
-  lsp-completion.json   the fields tinymist offers inside `task.with(...)`
-  lsp-diagnostics.json  what tinymist reports on a file that writes `titel:`,
-                        and where
-
-The fixture is examples/lsp. Its task file marks the cursor with a
-`// docs:cursor` line, which this script removes before it opens the file. The
-misspelled file sits in invalid/, outside the project's roots.
+The fixture is examples/lsp, one task file and no project, so `mt` never
+reads the misspelled file. The file marks the cursor with a `// docs:cursor`
+line, which this script removes before it opens the file.
 
 tinymist finds `@local/mindtape` where a reader's tinymist finds it: in the
 data home `mt install` writes to. The install goes to a temporary data home,
@@ -19,7 +17,7 @@ Fonts and caches are pinned too, so the records depend on the prelude and the
 tinymist version alone.
 
 The build fails when tinymist offers no field, does not answer within the
-timeout, or reports a problem anywhere but the misspelled file, or none there.
+timeout, or reports a problem anywhere but the task file, or none there.
 """
 
 import json
@@ -35,8 +33,7 @@ from pathlib import Path
 from urllib.parse import unquote, urlparse
 
 FIXTURE = "examples/lsp"
-COMPLETE = "tasks/fix-the-login-redirect.typ"
-DIAGNOSE = "invalid/misspelled-field.typ"
+TASK = "tasks/fix-the-login-redirect.typ"
 CURSOR = "// docs:cursor"
 TIMEOUT = 60
 SEVERITY = {1: "error", 2: "warning", 3: "info", 4: "hint"}
@@ -166,7 +163,7 @@ def cursor_source(text):
     lines = text.split("\n")
     hits = [n for n, line in enumerate(lines) if line.strip() == CURSOR]
     if len(hits) != 1:
-        fail(f"{COMPLETE} needs one `{CURSOR}` line, found {len(hits)}")
+        fail(f"{TASK} needs one `{CURSOR}` line, found {len(hits)}")
     line = hits[0]
     column = lines[line].index(CURSOR)
     lines[line] = lines[line][:column]
@@ -185,19 +182,19 @@ def fields(result):
 
 
 def diagnostics(published, project):
-    """The problems tinymist published for the misspelled file, where it put
-    them. A problem published for any other file is one an editor would not
-    draw in the file the reader wrote, so the build fails on it."""
+    """The problems tinymist published for the task file, where it put them.
+    A problem published for any other file is one an editor would not draw in
+    the file the reader wrote, so the build fails on it."""
     out = []
     for uri, entries in published.items():
         path = Path(unquote(urlparse(uri).path))
-        if entries and path != project / DIAGNOSE:
-            fail(f"tinymist reported {entries[0]['message']!r} on {uri}, not on {DIAGNOSE}")
+        if entries and path != project / TASK:
+            fail(f"tinymist reported {entries[0]['message']!r} on {uri}, not on {TASK}")
         for entry in entries:
             start, end = entry["range"]["start"], entry["range"]["end"]
             out.append(
                 {
-                    "file": DIAGNOSE,
+                    "file": TASK,
                     "line": start["line"] + 1,
                     "column": start["character"] + 1,
                     "end_line": end["line"] + 1,
@@ -207,7 +204,7 @@ def diagnostics(published, project):
                 }
             )
     if not out:
-        fail(f"tinymist reported nothing on {DIAGNOSE}")
+        fail(f"tinymist reported nothing on {TASK}")
     return sorted(out, key=lambda d: (d["line"], d["column"], d["message"]))
 
 
@@ -229,49 +226,40 @@ def capture(repo, tmp):
         server.notify("initialized", {})
         name = f"{info.get('name', 'tinymist')} {info.get('version', '')}".strip()
 
-        source, line, column = cursor_source((project / COMPLETE).read_text())
-        server.open((project / COMPLETE).as_uri(), source)
+        uri = (project / TASK).as_uri()
+        source, line, column = cursor_source((project / TASK).read_text())
+        server.open(uri, source)
         offered = fields(
             server.request(
                 "textDocument/completion",
                 {
-                    "textDocument": {"uri": (project / COMPLETE).as_uri()},
+                    "textDocument": {"uri": uri},
                     "position": {"line": line, "character": column},
                 },
             )
         )
         if not offered:
-            fail(f"tinymist offered no field at the cursor in {COMPLETE}")
-        completion = {
-            "server": name,
-            "file": COMPLETE,
-            "source": source,
-            "line": line + 1,
-            "column": column + 1,
-            "items": offered,
-        }
-
-        bad = (project / DIAGNOSE).read_text()
-        server.diagnostics.clear()
-        server.open((project / DIAGNOSE).as_uri(), bad)
+            fail(f"tinymist offered no field at the cursor in {TASK}")
         server.wait_for_diagnostics()
         server.request("shutdown", None)
         server.notify("exit", None)
         server.proc.wait(timeout=TIMEOUT)
-        reported = {
-            "server": name,
-            "file": DIAGNOSE,
-            "source": bad,
-            "diagnostics": diagnostics(server.diagnostics, project),
-        }
-    return completion, reported
+    return {
+        "server": name,
+        "file": TASK,
+        "source": source,
+        "line": line + 1,
+        "column": column + 1,
+        "items": offered,
+        "diagnostics": diagnostics(server.diagnostics, project),
+    }
 
 
 def main():
     repo, out = (Path(arg).resolve() for arg in sys.argv[1:3])
     tmp = Path(tempfile.mkdtemp())
     try:
-        completion, reported = capture(repo, tmp)
+        record = capture(repo, tmp)
     except CaptureError as error:
         # The end of tinymist's log first, then the reason, so the reason is
         # the last line the builder reads.
@@ -281,8 +269,7 @@ def main():
         sys.exit(f"lsp-capture: {error}")
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
-    for slug, record in (("lsp-completion", completion), ("lsp-diagnostics", reported)):
-        (out / f"{slug}.json").write_text(json.dumps(record, indent=2) + "\n")
+    (out / "lsp.json").write_text(json.dumps(record, indent=2) + "\n")
 
 
 main()

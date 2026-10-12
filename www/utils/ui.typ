@@ -290,11 +290,9 @@
 
 // ── Language server ──────────────────────────────────────────────────────────
 // www/lsp-capture.py runs tinymist on examples/lsp and writes what it returned
-// to www/generated/lsp-completion.json and lsp-diagnostics.json. The blocks
-// below draw a record the way any editor shows it, without naming one: the
-// source, the menu under the cursor, and the list of problems.
-
-#let _lsp-record(slug) = json("../generated/" + slug + ".json")
+// to www/generated/lsp.json. The block below draws that record the way any
+// editor shows it, without naming one: the source with a wavy line under each
+// problem, the menu under the cursor, and the list of problems.
 
 // The source lines as a Typst listing. The HTML block joins several listings
 // into one surface, so a listing with no lines draws nothing.
@@ -302,58 +300,20 @@
   raw(lines.join("\n"), lang: "typ", block: true)
 }
 
-// The task file with the cursor on its blank line, and the fields tinymist
-// offered there, as a menu under the cursor.
-#let lsp-completion() = {
-  let record = _lsp-record("lsp-completion")
-  let lines = record.source.trim("\n", at: end, repeat: true).split("\n")
-  let caption = [#record.server · completion · #raw(record.file), line #record.line]
-  if MARKDOWN {
-    return [
-      #caption
-
-      #_lsp-listing(lines)
-
-      #list(..record.items.map(raw))
-    ]
-  }
-  let column = "--lsp-column: " + str(record.column - 1)
-  html.elem("figure", attrs: (class: "lsp"), {
-    html.elem("figcaption", caption)
-    html.elem("div", attrs: (class: "lsp-code"), {
-      _lsp-listing(lines.slice(0, record.line - 1))
-      html.elem("div", attrs: (class: "lsp-cursor", style: column), html.elem(
-        "span",
-        attrs: (class: "lsp-caret"),
-      ))
-      html.elem(
-        "ul",
-        attrs: (class: "lsp-menu", style: column),
-        record
-          .items
-          .map(name => html.elem("li", {
-            html.elem("span", attrs: (class: "lsp-kind"), "field")
-            html.elem("span", name)
-          }))
-          .join(),
-      )
-      _lsp-listing(lines.slice(record.line))
-    })
-  })
-}
-
 // A problem as an editor lists it: where, then what.
 #let _lsp-where(problem) = (
   problem.file + ":" + str(problem.line) + ":" + str(problem.column)
 )
 
-// The source with a wavy line under each problem's range, the way an editor
-// marks it. A range that runs past its first line is marked to that line's end.
-// The marked text repeats the source in a transparent colour, so the line sits
-// under the same characters in the listing's monospace font.
-#let _lsp-marked(lines, problems) = {
-  let shown = 0
-  for p in problems.sorted(key: p => p.line) {
+// Source lines `from` to `to` (0-based, end excluded), with a wavy line under
+// each problem's range on them, the way an editor marks it. A range that runs
+// past its first line is marked to that line's end. The marked text repeats
+// the source in a transparent colour, so the line sits under the same
+// characters in the listing's monospace font.
+#let _lsp-marked(lines, problems, from, to) = {
+  let shown = from
+  let here = problems.filter(p => p.line > from and p.line <= to)
+  for p in here.sorted(key: p => p.line) {
     _lsp-listing(lines.slice(shown, p.line))
     shown = p.line
     let chars = lines.at(p.line - 1).codepoints()
@@ -367,32 +327,58 @@
       chars.slice(p.column - 1, end).join(),
     ))
   }
-  _lsp-listing(lines.slice(shown))
+  _lsp-listing(lines.slice(shown, to))
 }
 
-// The misspelled task file, marked where tinymist placed each diagnostic it
-// published while it compiled that file, and the list of those problems.
-#let lsp-diagnostics() = {
-  let record = _lsp-record("lsp-diagnostics")
+// The cursor on its blank line and the fields tinymist offered there, as a
+// menu under the cursor.
+#let _lsp-menu(record) = {
+  let column = "--lsp-column: " + str(record.column - 1)
+  html.elem("div", attrs: (class: "lsp-cursor", style: column), html.elem(
+    "span",
+    attrs: (class: "lsp-caret"),
+  ))
+  html.elem(
+    "ul",
+    attrs: (class: "lsp-menu", style: column),
+    record
+      .items
+      .map(name => html.elem("li", {
+        html.elem("span", attrs: (class: "lsp-kind"), "field")
+        html.elem("span", name)
+      }))
+      .join(),
+  )
+}
+
+// The task file as tinymist saw it: the problems it published while it
+// compiled the file, and the fields it offered at the cursor.
+#let lsp-demo() = {
+  let record = json("../generated/lsp.json")
   let lines = record.source.trim("\n", at: end, repeat: true).split("\n")
-  let caption = [#record.server · diagnostics · #raw(record.file)]
+  let caption = [#record.server · #raw(record.file)]
+  let problems = record.diagnostics.map(p => [
+    #p.severity at #raw(_lsp-where(p)): #p.message
+  ])
   if MARKDOWN {
     return [
       #caption
 
       #_lsp-listing(lines)
 
-      #list(..record.diagnostics.map(p => [
-        #p.severity at #raw(_lsp-where(p)): #p.message
-      ]))
+      Fields offered at line #record.line: #record.items.map(raw).join[, ].
+
+      #list(..problems)
     ]
   }
+  let cursor = record.line - 1
   html.elem("figure", attrs: (class: "lsp"), {
     html.elem("figcaption", caption)
-    html.elem("div", attrs: (class: "lsp-code"), _lsp-marked(
-      lines,
-      record.diagnostics,
-    ))
+    html.elem("div", attrs: (class: "lsp-code"), {
+      _lsp-marked(lines, record.diagnostics, 0, cursor)
+      _lsp-menu(record)
+      _lsp-marked(lines, record.diagnostics, cursor + 1, lines.len())
+    })
     html.elem(
       "ul",
       attrs: (class: "lsp-problems"),
