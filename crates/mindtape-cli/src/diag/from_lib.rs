@@ -388,10 +388,7 @@ impl From<FillError> for Diag {
                     .value(value.clone())
                     .context("for slot", slot)
                     .reason(format!("expected one of {}", choices.join(", ")));
-                match mindtape::suggest::nearest(&value, &known) {
-                    Some(near) => diag.hint(Hint::did_you_mean(near)),
-                    None => diag,
-                }
+                diag.did_you_mean(&value, &known)
             }
             FillError::BadDate { slot, value } => Diag::usage("not a YYYY-MM-DD date")
                 .value(value)

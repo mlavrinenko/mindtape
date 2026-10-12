@@ -143,10 +143,12 @@ fn is_project(path: &Path) -> bool {
 fn unknown_worktree(token: &str, registry: &WorktreeRegistry, path: Option<&Path>) -> Diag {
     let aliases = registry.alias_names();
     let diag = Diag::usage("unknown worktree").value(format!("@{token}"));
-    let mut diag = match mindtape::suggest::nearest(token, &aliases) {
-        Some(near) => diag.hint(Hint::did_you_mean(format!("@{near}"))),
-        None => diag.hint(Hint::new("add it to worktrees.toml")),
-    };
+    let mut diag = diag.did_you_mean_or_with(
+        token,
+        &aliases,
+        |near| format!("@{near}"),
+        Hint::new("add it to worktrees.toml"),
+    );
     if !aliases.is_empty() {
         diag = diag.note(Note::new("known worktrees").name(aliases.join(", ")));
     }

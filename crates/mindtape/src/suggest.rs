@@ -38,6 +38,14 @@ pub fn nearest<'a>(name: &str, known: &[&'a str]) -> Option<&'a str> {
     best.map(|(candidate, _)| candidate)
 }
 
+/// [`nearest`], owned: the shape a library error carries. The one library
+/// caller of [`nearest`]: clippy refuses every other.
+#[must_use]
+#[allow(clippy::disallowed_methods, reason = "the one sanctioned caller")]
+pub fn nearest_owned(name: &str, known: &[&str]) -> Option<String> {
+    nearest(name, known).map(str::to_owned)
+}
+
 /// What an unknown name could have been: the nearest known name, when one
 /// clears [`SIMILARITY_FLOOR`], and the names to choose from. A library error
 /// carries it as data; the CLI words it as `hint:` lines.
@@ -56,7 +64,7 @@ impl Unknown {
     pub fn among<'a>(name: &str, known: impl IntoIterator<Item = &'a str>) -> Self {
         let names: Vec<&str> = known.into_iter().collect();
         Self {
-            nearest: nearest(name, &names).map(str::to_owned),
+            nearest: nearest_owned(name, &names),
             names: names.into_iter().map(str::to_owned).collect(),
         }
     }
@@ -66,7 +74,7 @@ impl Unknown {
     #[must_use]
     pub fn near(name: &str, known: &[&str]) -> Self {
         Self {
-            nearest: nearest(name, known).map(str::to_owned),
+            nearest: nearest_owned(name, known),
             names: Vec::new(),
         }
     }

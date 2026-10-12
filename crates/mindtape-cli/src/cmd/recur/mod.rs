@@ -86,8 +86,7 @@ pub struct RecurArgs {
 /// fails the `[tasks.recur]` policy check, hits a series stop condition, or
 /// the write/revalidate fails.
 pub fn run(args: &RecurArgs) -> Result<()> {
-    let project = util::open()?;
-    util::warn_errors(&project.outcome);
+    let project = util::open_warned()?;
     run_with(&project, args)
 }
 

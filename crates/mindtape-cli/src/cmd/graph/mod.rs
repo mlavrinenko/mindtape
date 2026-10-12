@@ -52,11 +52,10 @@ pub struct GraphArgs {
 /// # Errors
 /// Returns an error if the project cannot be opened or the filter is invalid.
 pub fn run(args: &GraphArgs) -> Result<()> {
-    run_with(args, util::open()?)
+    run_with(args, util::open_warned()?)
 }
 
 pub(crate) fn run_with(args: &GraphArgs, project: util::Project) -> Result<()> {
-    util::warn_errors(&project.outcome);
     println!("{}", build(args, project)?);
     Ok(())
 }

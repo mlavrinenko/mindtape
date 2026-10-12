@@ -70,7 +70,7 @@ fn check_status(external: &[String], statuses: &[String]) -> Result<(), String> 
     known.extend(statuses.iter().map(String::as_str));
     Err(format!(
         "no subcommand {verb}{}",
-        closest(mindtape::suggest::nearest(verb, &known))
+        closest(mindtape::suggest::nearest_owned(verb, &known))
     ))
 }
 

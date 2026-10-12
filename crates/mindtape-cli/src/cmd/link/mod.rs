@@ -98,8 +98,7 @@ pub struct LinkArgs {
 /// be read or parsed, or any entry failed to resolve, check, write or
 /// revalidate — the last of which still leaves the entries that did land.
 pub fn run(args: &LinkArgs) -> Result<()> {
-    let project = util::open()?;
-    util::warn_errors(&project.outcome);
+    let project = util::open_warned()?;
     run_with(&project, args)
 }
 

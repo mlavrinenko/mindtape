@@ -152,13 +152,14 @@ pub fn resolve(name: &str, user_dir: Option<&Path>) -> Result<Preset> {
     }
     let names: Vec<&str> = BUILTINS.iter().map(|builtin| builtin.name).collect();
     let diag = Diag::usage("unknown preset").value(name);
-    Err(match mindtape::suggest::nearest(name, &names) {
-        Some(near) => diag.hint(Hint::did_you_mean(near)),
-        None => diag.hint(Hint::run(
+    Err(diag.did_you_mean_or(
+        name,
+        &names,
+        Hint::run(
             Command::mt().word("preset").word("ls"),
             "to see the presets",
-        )),
-    })
+        ),
+    ))
 }
 
 /// Whether an argument should be treated as a filesystem path rather than a

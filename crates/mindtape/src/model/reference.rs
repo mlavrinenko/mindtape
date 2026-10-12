@@ -245,7 +245,7 @@ impl<'a> Lookup<'a, '_> {
         let stems: Vec<&str> = self.tasks.iter().map(|task| task.id.as_str()).collect();
         RefError::NoMatch {
             reference: reference.to_owned(),
-            nearest: crate::suggest::nearest(reference, &stems).map(ToOwned::to_owned),
+            nearest: crate::suggest::nearest_owned(reference, &stems),
         }
     }
 }

@@ -363,12 +363,7 @@ fn resolve_columns(spec: &str, config: &Config) -> Result<Vec<String>> {
     for name in &names {
         if !mindtape::LS_COLUMNS.contains(&name.as_str()) {
             let diag = Diag::usage("unknown column").value(name);
-            return Err(
-                match mindtape::suggest::nearest(name, &mindtape::LS_COLUMNS) {
-                    Some(near) => diag.hint(Hint::did_you_mean(near)),
-                    None => diag.hint(Hint::new(COLUMN_NAMES)),
-                },
-            );
+            return Err(diag.did_you_mean_or(name, &mindtape::LS_COLUMNS, Hint::new(COLUMN_NAMES)));
         }
     }
     Ok(names)

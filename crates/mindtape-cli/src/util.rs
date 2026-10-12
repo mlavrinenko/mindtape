@@ -156,6 +156,18 @@ pub fn open() -> Result<Project> {
     })
 }
 
+/// [`open`], then print each load problem as a warning: the start of a command
+/// that lists what did load.
+///
+/// # Errors
+/// As [`open`].
+pub fn open_warned() -> Result<Project> {
+    let project = open()?;
+    #[allow(clippy::disallowed_methods, reason = "the one sanctioned caller")]
+    warn_errors(&project.outcome);
+    Ok(project)
+}
+
 /// Print one warning listing the config commands this process held back, if
 /// any: a `[[tasks.waits]]` checker or an `[[on.flip]]` `run` runs only once
 /// `mt allow` records it. `main` calls it once, after the command, so however
@@ -395,10 +407,11 @@ pub fn write_task(config: &Config, path: &Path, source: String) -> Result<()> {
 pub fn unknown_view_error(name: &str, views: &BTreeMap<String, ViewSpec>) -> Diag {
     let known: Vec<&str> = views.keys().map(String::as_str).collect();
     let diag = Diag::usage("unknown view").value(name);
-    match mindtape::suggest::nearest(name, &known) {
-        Some(near) => diag.hint(Hint::did_you_mean(near)),
-        None => diag.hint(Hint::run(Command::mt().word("views"), "to see the views")),
-    }
+    diag.did_you_mean_or(
+        name,
+        &known,
+        Hint::run(Command::mt().word("views"), "to see the views"),
+    )
 }
 
 #[cfg(test)]

@@ -16,8 +16,8 @@
 
 use std::path::{Path, PathBuf};
 
+use mindtape::Task;
 use mindtape::link::{NoteRule, kind_names, kind_targets_tasks, resolve_kind};
-use mindtape::{Task, suggest};
 
 use crate::cmd::link::edit::{EdgeSpec, Mode, links_edit};
 use crate::cmd::link::input::Entry;
@@ -191,10 +191,7 @@ fn unknown_kind(kind: &str, links: &mindtape::link::LinksConfig, task: &Task) ->
     let diag = Diag::usage("unknown link kind")
         .at_file(&task.file)
         .value(kind);
-    let diag = match suggest::nearest(kind, &names) {
-        Some(near) => diag.hint(Hint::did_you_mean(near)),
-        None => diag,
-    };
+    let diag = diag.did_you_mean(kind, &names);
     diag.note(Note::new("configured kinds").name(names.join(", ")))
 }
 

@@ -30,8 +30,7 @@ pub struct ReviewArgs {
 /// Returns an error if the task cannot be resolved, is terminal, or the file
 /// is wrong-shaped (no `task.with(…)` call found).
 pub fn run(args: &ReviewArgs) -> Result<()> {
-    let project = util::open()?;
-    util::warn_errors(&project.outcome);
+    let project = util::open_warned()?;
 
     let (task, abs) = util::resolve_task(&project, &args.task.task)?;
 

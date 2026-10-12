@@ -82,7 +82,49 @@ impl fmt::Display for Hint {
     }
 }
 
+/// The one CLI caller of `suggest::nearest`: clippy refuses every other.
+#[allow(clippy::disallowed_methods, reason = "the one sanctioned caller")]
+fn nearest_hint(name: &str, known: &[&str], show: impl FnOnce(&str) -> String) -> Option<Hint> {
+    mindtape::suggest::nearest(name, known).map(|near| Hint::did_you_mean(show(near)))
+}
+
 impl Diag {
+    /// The known name nearest to `name` as a did-you-mean hint, or the
+    /// diagnostic unchanged when none is close.
+    pub(crate) fn did_you_mean(self, name: &str, known: &[&str]) -> Self {
+        self.did_you_mean_with(name, known, str::to_owned)
+    }
+
+    /// [`Self::did_you_mean`], or `fallback` when no name is close.
+    pub(crate) fn did_you_mean_or(self, name: &str, known: &[&str], fallback: Hint) -> Self {
+        self.did_you_mean_or_with(name, known, str::to_owned, fallback)
+    }
+
+    /// [`Self::did_you_mean`], with the nearest name worded by `show`, such
+    /// as `@alias` for a worktree alias.
+    pub(crate) fn did_you_mean_with(
+        self,
+        name: &str,
+        known: &[&str],
+        show: impl FnOnce(&str) -> String,
+    ) -> Self {
+        match nearest_hint(name, known, show) {
+            Some(hint) => self.hint(hint),
+            None => self,
+        }
+    }
+
+    /// [`Self::did_you_mean_with`], or `fallback` when no name is close.
+    pub(crate) fn did_you_mean_or_with(
+        self,
+        name: &str,
+        known: &[&str],
+        show: impl FnOnce(&str) -> String,
+        fallback: Hint,
+    ) -> Self {
+        self.hint(nearest_hint(name, known, show).unwrap_or(fallback))
+    }
+
     /// `hint` as the only hint, in place of the ones the message came with,
     /// when the caller knows better what the user should do.
     pub(crate) fn only_hint(mut self, hint: Hint) -> Self {

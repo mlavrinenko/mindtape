@@ -94,7 +94,7 @@ struct Shortcut {
 /// Returns an error if the project cannot be opened, the status is not a legend
 /// value, or any target fails to resolve or validate after the edit.
 pub fn run(args: &FlipArgs) -> Result<()> {
-    run_as(&util::open()?, args, Via::Flip)
+    run_as(&util::open_warned()?, args, Via::Flip)
 }
 
 /// How the user spelled the command, so a hint can repeat it.
@@ -114,7 +114,7 @@ pub(crate) enum Via {
 /// command) or the underlying flip fails. Args that do not parse exit through
 /// clap with its usage error.
 pub fn run_external(external: &[String]) -> Result<()> {
-    let project = util::open()?;
+    let project = util::open_warned()?;
     let verb = external
         .first()
         .ok_or_else(|| Diag::usage("empty shortcut invocation"))?
@@ -159,24 +159,24 @@ fn legend_values(legend: &Legend) -> Vec<&str> {
 /// changes here: `verb` still dispatches solely on `legend.contains`.
 fn unknown_command(verb: &str, legend: &Legend) -> Diag {
     let diag = Diag::usage("unknown command").value(verb);
-    match mindtape::suggest::nearest(verb, &legend_values(legend)) {
-        Some(near) => diag.hint(Hint::did_you_mean(near)),
-        None => diag.hint(Hint::new(
-            "run mt --help for commands, or mt flip --list for status verbs",
-        )),
-    }
+    diag.did_you_mean_or(
+        verb,
+        &legend_values(legend),
+        Hint::new("run mt --help for commands, or mt flip --list for status verbs"),
+    )
 }
 
 /// The usage error for a status the legend doesn't declare.
 fn unknown_status(status: &str, legend: &Legend) -> Diag {
     let diag = Diag::usage("unknown status").value(status);
-    match mindtape::suggest::nearest(status, &legend_values(legend)) {
-        Some(near) => diag.hint(Hint::did_you_mean(near)),
-        None => diag.hint(Hint::run(
+    diag.did_you_mean_or(
+        status,
+        &legend_values(legend),
+        Hint::run(
             Command::mt().word("flip").word("--list"),
             "to see the statuses",
-        )),
-    }
+        ),
+    )
 }
 
 /// Flip `args.status` onto every resolved task in `project`.
@@ -186,7 +186,6 @@ pub(crate) fn run_with(project: &Project, args: &FlipArgs) -> Result<()> {
 }
 
 fn run_as(project: &Project, args: &FlipArgs, via: Via) -> Result<()> {
-    util::warn_errors(&project.outcome);
     warn_shadowed_verbs(&project.config);
 
     if args.list {

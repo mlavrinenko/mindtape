@@ -16,6 +16,8 @@ disallowed-methods = [
   { path = "std::fs::write", reason = "torn write on kill/crash; use mindtape::write_atomic" },
   { path = "std::io::stderr", reason = "build a crate::diag::Diag and emit it; only diag/render.rs and diag/prompt.rs own stderr" },
   { path = "std::fs::File::create", reason = "truncates with no fsync; use mindtape::write_atomic, or File::create_new to require a fresh path" },
+  { path = "mt::util::warn_errors", reason = "use util::open_warned, which opens the project and warns once" },
+  { path = "mindtape::suggest::nearest", reason = "use Diag::did_you_mean or did_you_mean_or in the CLI, suggest::nearest_owned in the library" },
 ]
 
 # Every stderr line goes through `crates/mindtape-cli/src/diag/`: a typed

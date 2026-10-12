@@ -142,7 +142,7 @@ fn unknown_function(name: &str) -> FilterError {
     let known: Vec<&str> = FUNCTIONS.iter().map(|entry| entry.name).collect();
     FilterError::UnknownFunction {
         name: name.to_owned(),
-        nearest: crate::suggest::nearest(name, &known).map(str::to_owned),
+        nearest: crate::suggest::nearest_owned(name, &known),
     }
 }
 

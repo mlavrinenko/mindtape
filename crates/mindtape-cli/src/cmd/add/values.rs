@@ -62,13 +62,14 @@ fn unknown_template(config: &Config, root: &Path, name: &str) -> Diag {
     let names = list_templates(config, root);
     let known: Vec<&str> = names.iter().map(String::as_str).collect();
     let diag = Diag::usage("unknown template").value(name);
-    match mindtape::suggest::nearest(name, &known) {
-        Some(near) => diag.hint(Hint::did_you_mean(near)),
-        None => diag.hint(Hint::run(
+    diag.did_you_mean_or(
+        name,
+        &known,
+        Hint::run(
             Command::mt().word("add").word("--list"),
             "to see the templates",
-        )),
-    }
+        ),
+    )
 }
 
 /// The file template `name` resolves to: the first configured dir holding
@@ -165,10 +166,7 @@ pub fn reject_unknown_keys(values: &BTreeMap<String, RawValue>, specs: &[SlotSpe
     let mut keys = unknown.into_iter();
     let first = keys.next().unwrap_or_default();
     let diag = Diag::usage("unknown slot").value(first);
-    let diag = match mindtape::suggest::nearest(first, &known) {
-        Some(near) => diag.hint(Hint::did_you_mean(near)),
-        None => diag,
-    };
+    let diag = diag.did_you_mean(first, &known);
     let diag = keys.fold(diag, |diag, key| {
         diag.note(Note::new("also unknown").value(key))
     });

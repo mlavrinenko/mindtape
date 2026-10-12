@@ -82,11 +82,10 @@ pub struct LsFlags {
 /// # Errors
 /// Returns an error if the project cannot be opened or the filter/sort is invalid.
 pub fn run(args: &LsArgs) -> Result<()> {
-    run_with(args, util::open()?)
+    run_with(args, util::open_warned()?)
 }
 
 pub(crate) fn run_with(args: &LsArgs, project: util::Project) -> Result<()> {
-    util::warn_errors(&project.outcome);
     if args.flags.interactive {
         return crate::cmd::ls::interactive::run(args, project);
     }
@@ -322,10 +321,11 @@ fn check_sort_spec(spec: &str) -> std::result::Result<(), Diag> {
     if !mindtape::sort::is_sort_field(field) {
         let diag = Diag::usage("unknown sort field").value(field);
         let known = mindtape::sort::sort_fields();
-        return Err(match mindtape::suggest::nearest(field, &known) {
-            Some(near) => diag.hint(Hint::did_you_mean(near)),
-            None => diag.hint(Hint::new("sort by a task field such as priority or due")),
-        });
+        return Err(diag.did_you_mean_or(
+            field,
+            &known,
+            Hint::new("sort by a task field such as priority or due"),
+        ));
     }
     match direction {
         None | Some("asc" | "desc") => Ok(()),

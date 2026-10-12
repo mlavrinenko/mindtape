@@ -130,8 +130,7 @@ impl Policy for TaskLinks {
 /// uncommitted task file, a task file that is not recoverable from git, a
 /// wrong-shaped surviving file, or any git failure.
 pub fn run(args: &RmArgs) -> Result<()> {
-    let project = util::open()?;
-    util::warn_errors(&project.outcome);
+    let project = util::open_warned()?;
 
     // Readiness over the full set, before any narrowing, so `ready`/`blocked`/
     // `terminal` predicates resolve the same as `list`.

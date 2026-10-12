@@ -266,7 +266,7 @@ fn function(
         "matches" => matches_call(children, env),
         other => Err(FilterError::UnknownFunction {
             name: other.to_owned(),
-            nearest: crate::suggest::nearest(
+            nearest: crate::suggest::nearest_owned(
                 other,
                 &[
                     "tasks_only",
@@ -278,8 +278,7 @@ fn function(
                     "miss",
                     "matches",
                 ],
-            )
-            .map(str::to_owned),
+            ),
         }),
     }
 }

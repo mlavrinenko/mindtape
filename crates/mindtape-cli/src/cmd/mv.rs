@@ -58,8 +58,7 @@ pub struct MvArgs {
 /// referring file that cannot be read or spliced; a rewrite the project would
 /// refuse; or a failed move or write.
 pub fn run(args: &MvArgs) -> Result<()> {
-    let project = util::open()?;
-    util::warn_errors(&project.outcome);
+    let project = util::open_warned()?;
 
     let (task, _) = util::resolve_task(&project, &args.task.task)?;
     let stem = new_stem(&args.new_stem)?;

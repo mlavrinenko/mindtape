@@ -32,8 +32,7 @@ pub struct GoArgs {
 /// Returns an error if the task cannot be resolved, no editor is configured, the
 /// editor command is empty, or the editor exits without success.
 pub fn run(args: &GoArgs) -> Result<()> {
-    let project = util::open()?;
-    util::warn_errors(&project.outcome);
+    let project = util::open_warned()?;
 
     let (task, abs) = util::resolve_task(&project, &args.task.task)?;
 

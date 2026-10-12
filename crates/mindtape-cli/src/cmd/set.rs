@@ -28,7 +28,7 @@ use std::collections::BTreeMap;
 
 use crate::diag::Result;
 use clap::Args;
-use mindtape::{RawValue, Task, format_num, parse_ymd, suggest, typ_array, typ_str};
+use mindtape::{RawValue, Task, format_num, parse_ymd, typ_array, typ_str};
 use typst_edit::apply;
 
 use crate::cmd::add::tokens::apply_token;
@@ -175,8 +175,7 @@ impl Assigned {
 /// wrong-shaped file (no `task.with(…)` call), a value the project refuses, or
 /// a failed write.
 pub fn run(args: &SetArgs) -> Result<()> {
-    let project = util::open()?;
-    util::warn_errors(&project.outcome);
+    let project = util::open_warned()?;
 
     let (task, abs) = util::resolve_task(&project, &args.task.task)?;
     let (name, assigned) = parse_assignment(&args.assignment)?;
@@ -275,10 +274,7 @@ fn writable(name: &str) -> Result<&'static Writable, Diag> {
     }
     let known: Vec<&str> = WRITABLE.iter().map(|field| field.name).collect();
     let diag = Diag::usage("unknown field").value(name);
-    let diag = match suggest::nearest(name, &known) {
-        Some(near) => diag.hint(Hint::did_you_mean(near)),
-        None => diag,
-    };
+    let diag = diag.did_you_mean(name, &known);
     Err(diag.hint(Hint::run(
         Command::mt().word("set").word("--help"),
         "to see the fields you can set",
