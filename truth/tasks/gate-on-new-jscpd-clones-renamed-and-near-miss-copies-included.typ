@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 12),
+  status: done(
+    2026,
+    10,
+    13,
+  )[check-dry fails on clones .jscpd-baseline.json lacks, renamed and near-miss ones included],
 )
 
 == Problem

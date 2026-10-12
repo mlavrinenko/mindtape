@@ -282,6 +282,11 @@ scopes:
     - "flake.nix"
     - "flake.lock"
 
+  # The clones `just check-dry` tolerates. Re-minting it changes what the gate
+  # lets through, so it is that gate's input.
+  dry-baseline:
+    - ".jscpd-baseline.json"
+
   # The manifest itself, for the one rule that reads it as data
   # (`just script-scope-check`, below). No other rule names it: mmz already
   # keys a record on a rule's own declared inputs, so an input-list edit
@@ -514,11 +519,11 @@ commands:
     tags: [gate]
     inputs: [rust, policy, examples, file-size-config, docs, gates-meta, scripts-all]
 
-  # jscpd scans `crates/` Rust only; the `-k 70` token threshold is Justfile-
-  # defined, so a Justfile edit re-runs this gate.
+  # jscpd scans `crates/` Rust only; its flags are Justfile-defined, so a
+  # Justfile edit re-runs this gate, and so does a re-minted baseline.
   - name: just check-dry
     tags: [gate]
-    inputs: [rust, gates-meta]
+    inputs: [rust, gates-meta, dry-baseline]
 
   # gitleaks over the whole tracked tree. `secrets-tree` is that tree (minus
   # the one directory a gate-tagged rule may not name, argued on the scope

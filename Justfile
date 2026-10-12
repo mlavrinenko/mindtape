@@ -184,30 +184,34 @@ machete:
 check-file-size:
     linecop
 
-[doc("Copy-paste gate: fail on any duplicated Rust block")]
+# What jscpd counts as a clone, for check-dry and dry-baseline alike: blocks of
+# >=50 tokens that match with their names and literals blanked, plus functions
+# whose normalized syntax trees share 80% of their subtrees. Tests included.
+
+DRY_FLAGS := "--no-tips -f rust -k 50 --ignore-identifiers --ignore-literals --similarity=0.8 --baseline .jscpd-baseline.json"
+
+[doc("Copy-paste gate: fail on a duplicated Rust block the baseline lacks")]
 [extension('.sh')]
 [group("gate")]
 [script]
 check-dry:
-    # jscpd (the Rust port, packaged in flake.nix) fails on any duplicated
-    # block of >=70 tokens, naming both spans. Scans all Rust under crates/.
-    # Fix a finding by extracting a shared helper, not by shuffling tokens
-    # until the detector stops matching.
+    # jscpd (from qahq) fails on any clone .jscpd-baseline.json does not list,
+    # naming both spans. The baseline holds the clones that predate the gate,
+    # by a fingerprint of their raw tokens, so an edit inside one makes it
+    # new. Fix a finding by extracting a shared helper, not by shuffling
+    # tokens until the detector stops matching. `just dry-baseline` re-mints
+    # the baseline, in plain sight in the diff.
     #
-    # `--exit-code 1` is spelled with its value because bare `--exit-code`
-    # would swallow the following path argument as its optional code.
-    #
-    # `-r xcode` swaps the default console reporter (a table plus tips even
-    # on a clean run) for one compiler-warning line per clone, naming the
-    # file and span. jscpd has no flag that stays silent on a clean run
-    # only: `-s`/`--silent` replaces the whole report with one unconditional
-    # summary line on every run, success or failure, and drops the location
-    # a real finding needs. `-r xcode` still prints "Found 0 clones." and a
-    # timing line on a clean run (verified: no reporter or flag combination
-    # removes those two, jscpd 1.x), so the output is captured and replayed
-    # only on failure. A clean run prints nothing, and a finding keeps its
-    # file:line intact.
-    out=$(jscpd --no-tips -k 70 -f rust --exit-code 1 -r xcode crates 2>&1) || { printf '%s\n' "$out"; exit 1; }
+    # Under a baseline every jscpd reporter prints all clones, old ones
+    # included. So the gate reads the json report and prints only the new
+    # ones, as file:line pairs. A clean run prints nothing.
+    out=$(mktemp -d)
+    trap 'rm -rf "$out"' EXIT
+    log=$(jscpd {{ DRY_FLAGS }} -r json -o "$out" crates 2>&1) || { printf '%s\n' "$log"; exit 1; }
+    new=$(jq -r '.duplicates[] | select(.isNew)
+        | "crates/\(.firstFile.name):\(.firstFile.start): \(.kind) clone of crates/\(.secondFile.name):\(.secondFile.start)"' \
+        "$out/jscpd-report.json")
+    [ -z "$new" ] || { printf '%s\n' "$new"; exit 1; }
 
 # Scan the working tree for a committed credential with gitleaks, under
 # `.gitleaks.toml` (the default ruleset plus this repo's allowlist, argued in
@@ -606,6 +610,11 @@ crap:
 [group("advisory")]
 crap-baseline:
     bash .just/scripts/crap-baseline.sh {{ CRAP_EXCLUDES }}
+
+[doc("Re-mint .jscpd-baseline.json after extracting a clone or accepting one")]
+[group("advisory")]
+dry-baseline:
+    jscpd {{ DRY_FLAGS }} --update-baseline -r silent crates
 
 # Pre-PR mutation check — the daily driver (see CONTRIBUTING.md "Testing").
 # Sweeps only mutants touched by this branch's diff against main, so it needs

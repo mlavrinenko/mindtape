@@ -150,7 +150,7 @@ groups:
       .config/wt.toml: bc7d39daebc51462d6e569170005a3628e6f5206c8d3e6ea3a09d1d40ff73439
       .just/docs.just: 300226a86d551abc287d058efd9cbc2143fa7f15e3c6b53131699f27f35847fc
       .just/scripts/wt-carry-lcov.sh: 0352be6580d280c7eb253ded48c275eba1cba390d500454483b938903146fae3
-      Justfile: 94f128589ac118866fa02d726a16be6bbe936d4dd95d6cc5fe8a5b5c13675eaf
+      Justfile: 75d178f2cf6b9ba2b582fef262ef64eda6c0fe82f31650cf5c25c661c537a4b0
       flake.nix: ef7d5ca41ccd2797a37dc68438a9ae8eef072414270d4e26f323847bce121639
     dependents:
       docs/src/agents.typ: 738581f65453037d2e7e4df57dffa2aa1993a582d8e7ead92a3a02d059a97e03
@@ -158,9 +158,9 @@ groups:
       docs/src/contributing/coverage-crap.typ: 9de39592b5a97e7bd4a8ca05919708db02b8afd5ad5f2bdb7b7a97979741f8a9
       docs/src/contributing/crap-baseline.typ: 551aab6a955a9d4345e73e1c171fe860663887e8b3c56f611f2f2551356eb301
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
-      docs/src/contributing/documentation.typ: f512ca981a60ae7fd241d9947eb6919973dc50d3e8155f2dba61b65565a81da4
+      docs/src/contributing/documentation.typ: 451e7a8b3a3579410d721855fd9343f93dcbb772ec464b06ceb75c2a7ce9b1e1
       docs/src/contributing/example-projects.typ: 4f9a0c52894b9c2ab665e42bb728814b3d18badf3e8def57737d695d29912f63
-      docs/src/contributing/gates.typ: 54b9c4208a7a4cee23b810b89183fa032ff0e3c166bc5867d7f2d43228736245
+      docs/src/contributing/gates.typ: f10ff4ff4e412476696b9e065c2b2b9de79abb29f0a8addf70348178216e46f9
       docs/src/contributing/mutation-testing.typ: 96f2e41b03e5bb524e1c49dd08e9435690f37ba566cf81cc0f6dbc843e01981a
       docs/src/contributing/signal-sweep.typ: 9699e4af7dc29f71d8d29e7d7904f6cf97d3c0fa62679ad23b10840cb65d2ec1
       docs/src/contributing/windows.typ: 093ebafaf04b07d4abd611b33a346695a61e811b51f79e13a29df34903e96786
