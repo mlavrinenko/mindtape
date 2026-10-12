@@ -150,7 +150,7 @@ groups:
       .config/wt.toml: bc7d39daebc51462d6e569170005a3628e6f5206c8d3e6ea3a09d1d40ff73439
       .just/docs.just: 300226a86d551abc287d058efd9cbc2143fa7f15e3c6b53131699f27f35847fc
       .just/scripts/wt-carry-lcov.sh: 0352be6580d280c7eb253ded48c275eba1cba390d500454483b938903146fae3
-      Justfile: 8d668ad4680ece8ee33ac311355238761370ac4608e697abf89b7f3fa85ed980
+      Justfile: ef689ff86cdb49858589cb8f4b3511e5b60540553458d2b20f66c53a4ce6d92c
       flake.nix: ef91529881401b7bfffd564c53a0ff62d9d24b8b9adaa6c52f510119a9004305
     dependents:
       docs/src/agents.typ: 738581f65453037d2e7e4df57dffa2aa1993a582d8e7ead92a3a02d059a97e03

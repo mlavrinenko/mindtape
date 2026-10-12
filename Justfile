@@ -105,12 +105,14 @@ mmz *ARGS:
 # starts or ends here. Extra arguments reach `wt`: `just fork x --base=@` branches
 # from the current commit instead of the default branch. The hooks that make the
 # worktree work (`mt` built, gate, wip check, record carry) are .config/wt.toml.
+# `--no-cd` because a recipe cannot move its caller's shell anyway, and wt
+# warns three lines about missing shell integration every time it tries.
 
 [doc("Fork a sibling worktree on a new branch, with its dev mt built")]
 [group("workflow")]
 [positional-arguments]
 fork slug *args:
-    wt switch --create --yes "$@"
+    wt switch --create --yes --no-cd "$@"
 
 # Run in the worktree. `--no-squash --no-commit` keeps each commit's `Refs:`
 # footer and refuses a dirty tree instead of committing it; the `pre-merge`
