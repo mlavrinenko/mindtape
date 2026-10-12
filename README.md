@@ -42,57 +42,18 @@ Your tasks live in the repo, one [Typst](https://typst.app/) file each. Edit the
 - Locking accounts by username, which needs its own unlock flow.
 ```
 
-## What it solves
+## Flexible remedy
 
-A few lines of config solve each problem below. Under each is the error `mt` prints when work breaks the rule, and the link shows the config and the whole session.
+Here are some examples of what a few lines of config can do. These checks aren’t built in. Mindtape is flexible enough to allow them, and it can do much, much more.
 
-### [Tasks too big to finish in one change](https://mlavrinenko.github.io/mindtape/split-oversized-tasks/)
-
-Cap how many source files a task may touch, so a big task gets split before it’s filed.
-
-```
-error: the task as filled:2: rules.split-big-work: split it into tasks of 5 source files or fewer
-```
-
-### [Tasks too vague to start](https://mlavrinenko.github.io/mindtape/require-a-task-shape/)
-
-Refuse a task that doesn’t say how to reproduce the problem, what done looks like and which files change.
-
-```
-error: missing required slots: 'to-be, changes, out-of-scope'
-```
-
-### [Tasks closed while the tests fail](https://mlavrinenko.github.io/mindtape/gate-done-on-checks/)
-
-Run your test command when a task closes, and refuse to close it while that command fails.
-
-```
-error: gate failed: 'scripts/test': exit 1
-```
-
-### [Work started before the last task is done](https://mlavrinenko.github.io/mindtape/one-task-at-a-time/)
-
-Allow one task in progress, and refuse to start a task before the tasks it depends on are done.
-
-```
-error: tasks/add-redis-client.typ:2: rules.one-wip: finish the task in progress before you start another
-```
-
-### [Work started before upstream ships the fix](https://mlavrinenko.github.io/mindtape/wait-on-upstream/)
-
-Hold a task until a command says the release it needs has landed, and free it the moment it has.
-
-```
-error: status requires an unblocked task: 'wip'
-```
-
-### [Commits nobody can trace to a task](https://mlavrinenko.github.io/mindtape/trace-commits-to-tasks/)
-
-Refuse a commit that names no task, then ask which tasks changed a file before you edit it.
-
-```
-error: .git/COMMIT_EDITMSG: commits.rules.work-names-a-task: name the task this commit works on in a `Refs: <stem>` footer
-```
+| Recipe | What it does | What `mt` prints |
+| --- | --- | --- |
+| [Split oversized tasks](https://mlavrinenko.github.io/mindtape/split-oversized-tasks/) | Cap how many source files a task may touch, so a big task gets split before it’s filed. | `error: the task as filled:2: rules.split-big-work: split it into tasks of 5 source files or fewer` |
+| [Require a task shape](https://mlavrinenko.github.io/mindtape/require-a-task-shape/) | Refuse a task that doesn’t say how to reproduce the problem, what done looks like and which files change. | `error: missing required slots: 'to-be, changes, out-of-scope'` |
+| [Gate done on your checks](https://mlavrinenko.github.io/mindtape/gate-done-on-checks/) | Run your test command when a task closes, and refuse to close it while that command fails. | `error: gate failed: 'scripts/test': exit 1` |
+| [One task at a time](https://mlavrinenko.github.io/mindtape/one-task-at-a-time/) | Allow one task in progress, and refuse to start a task before the tasks it depends on are done. | `error: tasks/add-redis-client.typ:2: rules.one-wip: finish the task in progress before you start another` |
+| [Wait on upstream](https://mlavrinenko.github.io/mindtape/wait-on-upstream/) | Hold a task until a command says the release it needs has landed, and free it the moment it has. | `error: status requires an unblocked task: 'wip'` |
+| [Trace commits to tasks](https://mlavrinenko.github.io/mindtape/trace-commits-to-tasks/) | Refuse a commit that names no task, then ask which tasks changed a file before you edit it. | `error: .git/COMMIT_EDITMSG: commits.rules.work-names-a-task: name the task this commit works on in a` `Refs: <stem>` `footer` |
 
 ## Install
 

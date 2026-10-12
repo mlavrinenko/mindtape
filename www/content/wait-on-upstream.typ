@@ -1,31 +1,31 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": terminal
 #import "../utils/site.typ": u
-#import "../utils/problems.typ": problem-config
+#import "../utils/recipes.typ": recipe-config
 
 #let meta = (
   route: "/wait-on-upstream/",
   label: "Wait on upstream",
-  title: "Work started before upstream ships the fix",
+  title: "Wait on upstream",
   summary: "Hold a task until a command says the release it needs has landed, and free it the moment it has.",
 )
 #metadata(meta) <page-meta>
 
 #show: page.with(..meta)
 
-Your code works around a bug in a library, and the fix ships in the next
-release. The task that drops the workaround looks ready, so an agent picks it
+Imagine you have a workaround for a bug in an external library, and the fix
+ships in the next release. The task that drops the workaround looks ready, so an agent picks it
 up, finds the old version still locked and burns an hour proving it. Or nobody
 looks again, and the workaround outlives the bug by a year.
 
-= The config
+= Config
 
-#problem-config("wait-on-upstream")
+#recipe-config("wait-on-upstream")
 
 `scripts/locked` reads `Cargo.lock`. It exits 0 once the lockfile pins the
 version an id names or a later one, and 1 while it pins an older one.
 
-= What `mt` does
+= Behaviour
 
 The task names what it waits on in `waits-on`. In a fresh clone `mt` runs no
 checker, so the task is blocked as unknown and `mt` asks you to allow the
@@ -35,7 +35,7 @@ same listing lets it go:
 
 #terminal("wait-on-upstream")
 
-= How it works
+= Deep dive
 
 Each `[[tasks.waits]]` entry names a checker command. A task lists
 `checker:id` entries in `waits-on`, and `mt` runs the checker's `run` line from

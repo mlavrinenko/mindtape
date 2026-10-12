@@ -1,12 +1,12 @@
 // www/utils/demo.typ — the opening README.md and the site root share.
 //
-// `showcase` quotes a task from examples/api-service. `solves` lists the
-// Problems nav group: each page's title and summary from the page manifest,
-// and the first error line its capture printed, so no item quotes a refusal
-// that did not happen. Paths are relative to this file, so they resolve under
-// tola's `--root www` and typlite's `--root .`. The caller passes its link
-// function, `(route, body) => content`, because the two render paths build
-// site links differently.
+// `showcase` quotes a task from examples/api-service. `recipe-table` lists the
+// Recipes nav group, one row per page: its title and summary from the page
+// manifest, and the first error line its capture printed, so no row quotes a
+// refusal that did not happen. Paths are relative to this file, so they
+// resolve under tola's `--root www` and typlite's `--root .`. The caller
+// passes its link function, `(route, body) => content`, because the two
+// render paths build site links differently.
 
 #import "site.typ": NAV, REPO, SITE, page-meta, render-summary
 #import "slices.typ": checked-slices
@@ -45,22 +45,35 @@
   line
 }
 
-// The Problems nav group's routes, in nav order.
-#let problem-routes = NAV.find(group => group.title == "Problems").items
+// A line as code spans split at its backticks, a space apart. typlite writes a
+// raw span that holds a backtick between single backticks, which breaks the
+// span, and it glues two spans that touch into one.
+#let _code(line) = (
+  line.split("`").map(str.trim).filter(part => part != "").map(raw).join[ ]
+)
 
-#let solves(link) = {
-  heading(level: 1)[What it solves]
+// The Recipes nav group's routes, in nav order.
+#let recipe-routes = NAV.find(group => group.title == "Recipes").items
+
+#let recipe-table(link) = {
+  heading(level: 1)[Flexible remedy]
   [
-    A few lines of config solve each problem below. Under each is the error
-    `mt` prints when work breaks the rule, and the link shows the config and
-    the whole session.
+    Here are some examples of what a few lines of config can do. These checks
+    aren't built in. Mindtape is flexible enough to allow them, and it can do
+    much, much more.
   ]
-  for route in problem-routes {
+  let rows = ()
+  for route in recipe-routes {
     // The manifest is empty while www/generate-site-pages.sh builds it.
     let meta = page-meta(route)
     if meta == none { continue }
-    heading(level: 2, link(route, meta.title))
-    par(render-summary(meta.summary))
-    raw(_refusal(route.trim("/")), block: true)
+    rows.push(link(route, meta.title))
+    rows.push(render-summary(meta.summary))
+    rows.push(_code(_refusal(route.trim("/"))))
   }
+  table(
+    columns: 3,
+    table.header([Recipe], [What it does], [What `mt` prints]),
+    ..rows,
+  )
 }

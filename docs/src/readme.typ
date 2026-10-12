@@ -6,7 +6,9 @@
 // because typlite drops `<p>` and GitHub strips `<center>`. The index groups
 // the pages as the site nav does, minus the pages the opening already links.
 #import "lib.typ": www-groups, www-link
-#import "/www/utils/demo.typ": intro, problem-routes, showcase, solves, tagline
+#import "/www/utils/demo.typ": (
+  intro, recipe-routes, recipe-table, showcase, tagline,
+)
 #import "/www/utils/release.typ": cli-crate
 
 #metadata((
@@ -14,7 +16,7 @@
 )) <mindtape-md>
 
 #let doc-groups = {
-  let linked = ("/", ..problem-routes)
+  let linked = ("/", ..recipe-routes)
   let unlinked = group => (
     title: group.title,
     routes: group.routes.filter(route => route not in linked),
@@ -44,7 +46,7 @@
 
 #showcase
 
-#solves((route, body) => www-link(route, body))
+#recipe-table((route, body) => www-link(route, body))
 
 = Install
 

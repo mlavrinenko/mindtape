@@ -160,7 +160,7 @@ typst compile --package-path "$PKGS" \
 rm -rf "$PKGS"
 
 # The records: the quickstart's session, the CLI reference's captures, and a
-# session for each problem examples/api-service solves.
+# session for each recipe examples/api-service holds.
 bash "$SCRIPT_DIR/generate-quickstart.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-cli.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-api-service.sh" "$REPO" "$OUT"

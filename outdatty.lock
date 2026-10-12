@@ -1,10 +1,10 @@
 version: 1
 algorithm: blake3
 groups:
-  api-service-problems:
+  api-service-recipes:
     source:
       crates/mindtape/src/packs/mindtape-tasks.toml: 425bfbf36d12c747ebac05f80416e744a5dedd20f8654edf8ad2332cba742b78
-      examples/api-service/.mindtape/config.toml: 13b0ed63ebb03dc3fde5d80988c711aa0be88bd9dbada98a4621bece048dd858
+      examples/api-service/.mindtape/config.toml: 4332ad79f85106a1e952a07c021648d82f76ad1f8b2863384ac5d2355fa81578
       examples/api-service/.mindtape/templates/task.typ: 41157e812de4eb373b1791bf47197f01c74e78db76b9971a478c38d5f3ecc9a8
       examples/api-service/Cargo.lock: fb82d06c279532ad92269838be453a3ed883dcd8cf12daaad8fdd0e26f854805
       examples/api-service/dicts/services.txt: 25d2e5ae4c8231bfd16b9d15dfa934c5fcac55a1bd176572f20466164163c39a
@@ -23,16 +23,16 @@ groups:
       examples/api-service/tasks/throttle-failed-logins-per-ip.typ: 663b5c80f73d08dad4217483f83f700cf9b0312a7b886652ca78f5ef6fae80c1
       examples/api-service/tasks/upgrade-the-axum-web-framework.typ: 098f9d43ac19b8e59ddd3691f9f4f56f03cfc48a305aca5d84e15c6a93808a36
       examples/api-service/tasks/verify-webhooks-with-the-acme-pay-sdk.typ: dc6dce15d763d29cffa99082ce8dbf6a24bf30798d40b362eb8ae2972414835c
-      www/generate-api-service.sh: f532739149f56248557a0141c5c3e875ff0597855b218aa20797952c6a0136e1
+      www/generate-api-service.sh: aa8a3416ae372f339332ad668123b67b821ed1a6b855efacd0e139c8a8eac219
     dependents:
-      skills/mindtape/evals/README.md: 90d7d47c6f2818609492e61dc3977769af0d014eb3b836a99a0e98c1775d0bcd
-      skills/mindtape/evals/evals.json: 07935ce0c006277402fc45c1e0602605cf7ab8362e52f70ff39dd512d0813823
-      www/content/gate-done-on-checks.typ: e1a43a4fcddecb5b96022b4429c3f3b5012126e2f023f34cc94df4bb5ce77b54
-      www/content/one-task-at-a-time.typ: e0c06a860fc00dba0cd9e75dcf1a7b87c346656b00f8297228b2f67492a24964
-      www/content/require-a-task-shape.typ: e849411143eb2b9de56d345d6645b2b9db63f258c5e549559fb0e738725d90e0
-      www/content/split-oversized-tasks.typ: af7c079e0f6e5aca8691b4630b81374b27c9f572d1d35485602bc9445d72392a
-      www/content/trace-commits-to-tasks.typ: 2f9d44f82335582c3006aa10fa84d948f081ec4cddd5248ea9f990b0c6ff0136
-      www/content/wait-on-upstream.typ: 25ab1c3f6bc8d27afd54ea977d355eb3e96df7c02de97387bb6cd8e58eec7ef8
+      skills/mindtape/evals/README.md: 40e834b8a4281bc4c7d2b4f4f57ae5c8272da73a80df919c95bc18b69f58c31c
+      skills/mindtape/evals/evals.json: 64330633a8201a68c28ac0b760b941df6ff32fb99c2b7beb679b79814a8ba503
+      www/content/gate-done-on-checks.typ: 6938ba5f0a6e466a1fa73bc1e2f136ddd03360de55fbd60d80cd3d0c259d3dc2
+      www/content/one-task-at-a-time.typ: 7dfe70a79c823d272980075fbd82a11b29be28798e067deeb439253104b8f9ee
+      www/content/require-a-task-shape.typ: 196b2f68633ade19f7c3bcab288dd4c8342780982732e9f4794c44ab0957500a
+      www/content/split-oversized-tasks.typ: 8ca9b7a1a6ff5788d405feaaa0b54eb266d2fe2fd29a12c4dbc53219c2ea02e2
+      www/content/trace-commits-to-tasks.typ: 389d0c471b1408a64721763a83ece2aa61294a4630a2aa2d03418ebde750b51e
+      www/content/wait-on-upstream.typ: 50bcc3ffe1c81b4429bd4567b1a237e61bb0f4ef47d3194f0d07ea15e4dfd946
   cli-docs:
     source:
       crates/mindtape-cli/src/cli/completion/mod.rs: 2b2d0f8eb41435fbc5f6bda31c25f4c64238a4d567d0824a2e3ae939d073a410

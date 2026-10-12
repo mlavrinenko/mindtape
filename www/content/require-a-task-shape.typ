@@ -1,12 +1,12 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": exit-code, terminal
 #import "../utils/site.typ": u
-#import "../utils/problems.typ": own-config, problem-config
+#import "../utils/recipes.typ": own-config, recipe-config
 
 #let meta = (
   route: "/require-a-task-shape/",
   label: "Require a task shape",
-  title: "Tasks too vague to start",
+  title: "Require a task shape",
   summary: "Refuse a task that doesn't say how to reproduce the problem, what done looks like and which files change.",
 )
 #metadata(meta) <page-meta>
@@ -18,11 +18,11 @@ you or an agent, has to find the bug again, guess what done means and hunt for
 the files. An agent that guesses wrong builds the wrong thing and reports
 success.
 
-= The config
+= Config
 
-#problem-config("require-a-task-shape")
+#recipe-config("require-a-task-shape")
 
-= What `mt` does
+= Behaviour
 
 `mt add` refuses a task with sections left empty. Fill them in, write the
 Problem as one sentence instead of steps, and `mt add` refuses it again:
@@ -31,7 +31,7 @@ Problem as one sentence instead of steps, and `mt add` refuses it again:
 
 `mt add` exits #exit-code("require-a-task-shape") and writes no file.
 
-= How it works
+= Deep dive
 
 The project's template asks for each section as a slot, a value that `mt add`
 fills in. `mt add` refuses a fill that leaves a slot empty.

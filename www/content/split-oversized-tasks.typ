@@ -1,12 +1,12 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": exit-code, terminal
 #import "../utils/site.typ": u
-#import "../utils/problems.typ": own-config, problem-config
+#import "../utils/recipes.typ": own-config, recipe-config
 
 #let meta = (
   route: "/split-oversized-tasks/",
   label: "Split oversized tasks",
-  title: "Tasks too big to finish in one change",
+  title: "Split oversized tasks",
   summary: "Cap how many source files a task may touch, so a big task gets split before it's filed.",
 )
 #metadata(meta) <page-meta>
@@ -19,11 +19,11 @@ review, and when a test fails, you can't tell which part broke it. A task that
 touches a few files gives you a diff you can read, and a failing test points at
 that diff.
 
-= The config
+= Config
 
-#problem-config("split-oversized-tasks")
+#recipe-config("split-oversized-tasks")
 
-= What `mt` does
+= Behaviour
 
 This task needs 7 source files, so `mt add` refuses it:
 
@@ -32,7 +32,7 @@ This task needs 7 source files, so `mt add` refuses it:
 `mt add` exits #exit-code("split-oversized-tasks") and writes no file. An agent
 reads the rule's message and files two smaller tasks instead.
 
-= How it works
+= Deep dive
 
 `[tasks.estimate]` allows one unit, `src-files`, and requires an estimate on
 every open task. `!terminal` picks the open tasks. A terminal status, such as

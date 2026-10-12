@@ -60,7 +60,7 @@ work, and the judgment cap of 5 refuses it. `mt` writes nothing and exits
 #terminal("estimates-cap")
 
 For `mt add` refusing a task over a cap, see
-#link(u("/split-oversized-tasks/"))[Tasks too big to finish in one change].
+#link(u("/split-oversized-tasks/"))[Split oversized tasks].
 
 = Working-tree budget
 

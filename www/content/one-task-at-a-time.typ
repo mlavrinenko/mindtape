@@ -1,12 +1,12 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": terminal
 #import "../utils/site.typ": u
-#import "../utils/problems.typ": own-config, problem-config
+#import "../utils/recipes.typ": own-config, recipe-config
 
 #let meta = (
   route: "/one-task-at-a-time/",
   label: "One task at a time",
-  title: "Work started before the last task is done",
+  title: "One task at a time",
   summary: "Allow one task in progress, and refuse to start a task before the tasks it depends on are done.",
 )
 #metadata(meta) <page-meta>
@@ -18,11 +18,11 @@ all three, and no commit can name just one. Or it starts a task whose
 dependency is still open, and writes code against a client that doesn't exist
 yet.
 
-= The config
+= Config
 
-#problem-config("one-task-at-a-time")
+#recipe-config("one-task-at-a-time")
 
-= What `mt` does
+= Behaviour
 
 One task is already in progress, so `mt wip` won't start a second. It also
 won't start a task that waits on an open dependency, and `mt ls blocked` tells
@@ -30,7 +30,7 @@ you which one:
 
 #terminal("one-task-at-a-time")
 
-= How it works
+= Deep dive
 
 The `one-wip` rule counts tasks in `wip` with `count()` and fails if there's
 more than one. Every command that writes a task checks the rules first, so

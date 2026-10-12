@@ -1,12 +1,12 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": terminal
 #import "../utils/site.typ": u
-#import "../utils/problems.typ": own-config, problem-config
+#import "../utils/recipes.typ": own-config, recipe-config
 
 #let meta = (
   route: "/trace-commits-to-tasks/",
   label: "Trace commits to tasks",
-  title: "Commits nobody can trace to a task",
+  title: "Trace commits to tasks",
   summary: "Refuse a commit that names no task, then ask which tasks changed a file before you edit it.",
 )
 #metadata(meta) <page-meta>
@@ -18,25 +18,25 @@ sessions". Nothing says which task asked for the change, what problem it fixed
 or what it left out. An agent about to edit the file has the same question and
 no way to answer it.
 
-= The config
+= Config
 
-#problem-config("trace-commits-to-tasks")
+#recipe-config("trace-commits-to-tasks")
 
-= What `mt` does
+= Behaviour
 
-A `commit-msg` hook runs `mt check --commit-msg`. git refuses the commit
-without a `Refs:` trailer and accepts it with one. Then `touches()` finds the
-task behind the changed file:
+Add a `commit-msg` hook that runs `mt check --commit-msg`. From then on git
+refuses a commit without a `Refs:` trailer and accepts it with one, and
+`touches()` finds the task behind the changed file:
 
 #terminal("trace-commits-to-tasks")
 
-= How it works
+= Deep dive
 
 `[commits] trailer` names the trailer that holds task stems. A stem is the
 task's file name without `.typ`, as #link(u("/concepts/#identity"))[Concepts]
 explains. The project also extends the `mindtape-tasks`
 #link(u("/rule-packs/"))[rule pack], as
-#link(u("/require-a-task-shape/"))[Tasks too vague to start] shows. The pack's
+#link(u("/require-a-task-shape/"))[Require a task shape] shows. The pack's
 `work-names-a-task` rule refuses a commit that names no task, unless the
 commit changes only task files. `mt check --commit-msg` also refuses a stem
 that no task has. #link(u("/commit-rules/"))[Commit rules] covers the rule

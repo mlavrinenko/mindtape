@@ -1,5 +1,5 @@
 #:schema ../../../schema/config.schema.json
-# A sample backend project's backlog. Each block below solves one problem.
+# A sample backend project's backlog. Each block below is one recipe.
 
 # Require a task shape: Problem, TO-BE, Changes and Out of scope in every task.
 # docs:slice api-service/require-a-task-shape

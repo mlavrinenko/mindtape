@@ -60,8 +60,8 @@
 // A group is named for the reader's job, not for the page's origin, so a
 // reader scans one short group instead of every page:
 //
-//   - Problems: an engineer with a problem wants the config that solves it.
 //   - Start: a first look.
+//   - Recipes: an engineer with a problem wants the config that solves it.
 //   - Model: the one idea the rest rests on.
 //   - Tasks: authoring a task file.
 //   - Fields: setting the values a task's fields may take, such as the
@@ -78,8 +78,9 @@
 // (label, title, summary, home) is declared on the page itself and resolved
 // from `PAGES` below by route.
 #let NAV = (
+  (title: "Start", items: ("/", "/quickstart/", "/comparison/")),
   (
-    title: "Problems",
+    title: "Recipes",
     items: (
       "/split-oversized-tasks/",
       "/require-a-task-shape/",
@@ -89,7 +90,6 @@
       "/trace-commits-to-tasks/",
     ),
   ),
-  (title: "Start", items: ("/", "/quickstart/", "/comparison/")),
   (title: "Model", items: ("/concepts/",)),
   (
     title: "Tasks",

@@ -1,12 +1,12 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": terminal
 #import "../utils/site.typ": u
-#import "../utils/problems.typ": own-config, problem-config
+#import "../utils/recipes.typ": own-config, recipe-config
 
 #let meta = (
   route: "/gate-done-on-checks/",
   label: "Gate done on your checks",
-  title: "Tasks closed while the tests fail",
+  title: "Gate done on your checks",
   summary: "Run your test command when a task closes, and refuse to close it while that command fails.",
 )
 #metadata(meta) <page-meta>
@@ -17,11 +17,11 @@ An agent marks its task done, and the test suite fails on the code it wrote.
 The backlog says the work is finished. The next time you pull, you find it
 broken and have to work out which closed task caused it.
 
-= The config
+= Config
 
-#problem-config("gate-done-on-checks")
+#recipe-config("gate-done-on-checks")
 
-= What `mt` does
+= Behaviour
 
 `mt done` runs the test script. The script fails, so `mt done` writes nothing
 and exits non-zero. `--force` closes the task anyway and writes the waiver
@@ -29,7 +29,7 @@ into its status note:
 
 #terminal("gate-done-on-checks")
 
-= How it works
+= Deep dive
 
 `[[on.flip]]` binds actions to a flip, the change of status that `mt flip` or
 a status command such as `mt done` makes. `into("done")` in `when` matches a

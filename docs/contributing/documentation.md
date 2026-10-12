@@ -33,7 +33,7 @@ A file at its line cap covers too much, and trimming words to fit doesn’t fix 
 
 ## State each fact once
 
-A generated fact (`www/generated/*.json`, read by both render paths) can’t drift. A hand-written sentence can. Two pages state the same fact in different words, one of them changes, and no gate fails. So state a fact on one page and link to it from the others. Content that both render paths show, like the tagline and problem list that open README and the site root, lives once in a module both call (`www/utils/demo.typ`).
+A generated fact (`www/generated/*.json`, read by both render paths) can’t drift. A hand-written sentence can. Two pages state the same fact in different words, one of them changes, and no gate fails. So state a fact on one page and link to it from the others. Content that both render paths show, like the tagline and recipe table that open README and the site root, lives once in a module both call (`www/utils/demo.typ`).
 
 The `just dup-prose` audit reports two kinds of repeat that are deliberate:
 

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# www/generate-api-service.sh — capture, for each problem examples/api-service
-# solves, a short session in which mt refuses the work that problem allows.
+# www/generate-api-service.sh — capture, for each recipe examples/api-service
+# holds, a short session in which mt refuses the work that recipe forbids.
 # Called by www/generate.sh with the repo root and the generated/ directory,
 # inside the lock that script holds.
 #
-# Each `# docs:slice api-service/<id>` block in the project's config solves one
-# problem, and the session for it is the record <id>. The script fails when a
-# slice has no record, so a problem added to the config cannot ship without
-# its demo.
+# Each `# docs:slice api-service/<id>` block in the project's config is one
+# recipe, and the session for it is the record <id>. The script fails when a
+# slice has no record, so a recipe added to the config cannot ship without its
+# demo.
 #
 # Each session runs in its own copy of the project, so no session sees what
 # another wrote. Each copy is a git repository with the project at its root,
@@ -174,12 +174,12 @@ capture trace-commits-to-tasks "$P" \
     'git commit -am "fix(auth): reject expired sessions on token refresh" -m "Refs: reject-expired-sessions-on-token-refresh"'
 capture trace-commits-to-tasks "$P" "mt ls 'touches(\"src/auth/session.rs\")'"
 
-problems=$(sed -n 's|^# docs:slice api-service/||p' "$API/.mindtape/config.toml")
-if [ -z "$problems" ]; then
+recipes=$(sed -n 's|^# docs:slice api-service/||p' "$API/.mindtape/config.toml")
+if [ -z "$recipes" ]; then
     echo "generate-api-service.sh: $API/.mindtape/config.toml has no api-service slice" >&2
     exit 1
 fi
-for id in $problems; do
+for id in $recipes; do
     if [ ! -f "$OUT/$id.json" ]; then
         echo "generate-api-service.sh: the slice api-service/$id has no session; capture one as $id" >&2
         exit 1

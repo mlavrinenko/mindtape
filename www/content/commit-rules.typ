@@ -17,7 +17,7 @@ Want every commit to say which task it works on? `mt check --commit-msg
 <file>` checks the commit you're writing against the project's `[commits]`
 config. Run it from a `commit-msg` hook and git refuses a commit that breaks a
 rule. `mt check --commits <range>` runs the same checks over commits already
-made. #link(u("/trace-commits-to-tasks/"))[Commits nobody can trace to a task]
+made. #link(u("/trace-commits-to-tasks/"))[Trace commits to tasks]
 walks through the whole setup, from a refused commit to `touches()`.
 
 The examples run in a git copy of `examples/rules/`, whose config holds the

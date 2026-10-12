@@ -1,9 +1,9 @@
 // www/content/index.typ: the site root. The hero shows the tagline, the
-// intro and the showcase task. The problem list comes from www/utils/demo.typ,
+// intro and the showcase task. The recipe table comes from www/utils/demo.typ,
 // which README.md renders too.
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": hero, lsp-completion, lsp-diagnostics
-#import "../utils/demo.typ": solves, tagline
+#import "../utils/demo.typ": recipe-table, tagline
 #import "../utils/site.typ": u
 
 #let meta = (
@@ -19,7 +19,7 @@
 
 #hero()
 
-#solves((route, body) => link(u(route), body))
+#recipe-table((route, body) => link(u(route), body))
 
 = Why Typst
 
