@@ -176,12 +176,13 @@ stem_for() {
 }
 
 # File one finding, or print what would be filed. `$1` is the arm, `$2` the
-# stem, `$3` a one-line summary for the dry run, and the rest the `mt` args
-# (`add` and on). Shared, so an arm's emit only builds its args. Every arm
-# uses it.
+# stem, `$3` a one-line summary for the dry run, `$4` the arm's advice for a
+# skipped finding (one line per newline: why the stem is taken and which
+# override clears it), and the rest the `mt` args (`add` and on). Shared, so an
+# arm's emit only builds its args and words its own advice. Every arm uses it.
 file_finding() {
-    local arm="$1" stem="$2" summary="$3"
-    shift 3
+    local arm="$1" stem="$2" summary="$3" advice="$4"
+    shift 4
     if [ "$WRITE" -eq 1 ]; then
         local out outcome dest
         out="$("$MT" "$@" --dedup skip --format json)"
@@ -191,8 +192,7 @@ file_finding() {
             wrote) echo "filed   $dest" ;;
             skipped)
                 echo "skipped $dest" >&2
-                echo "        the stem is taken, so this $arm finding was filed before and closed" >&2
-                echo "        without the signal clearing. Reopen it, or write the override." >&2
+                printf '%s\n' "$advice" | sed 's/^/        /' >&2
                 ;;
             *) echo "$outcome $dest" ;;
         esac

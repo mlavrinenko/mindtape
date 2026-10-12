@@ -195,5 +195,6 @@ emit_mutants() {
         --set 'tags+=swept' --set 'tags+=mutants'
     )
 
-    file_finding mutants "$stem" "[ice($impact, $confidence, $ease)]" "${args[@]}"
+    local advice; advice=$(printf '%s\n' 'the stem is taken, so this mutant was filed before and closed' 'without being killed — reopen it, or add it to' '`.cargo/mutants.toml` `exclude_re` with its reason')
+    file_finding mutants "$stem" "[ice($impact, $confidence, $ease)]" "$advice" "${args[@]}"
 }

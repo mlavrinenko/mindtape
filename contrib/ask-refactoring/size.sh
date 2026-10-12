@@ -220,5 +220,6 @@ emit_size() {
         "${tags[@]}"
     )
 
-    file_finding size "$(stem_for size "$path")" "[$kind $flavour, ice($impact, $confidence, $ease)]" "${args[@]}"
+    local advice; advice=$(printf '%s\n' 'the stem is taken, so this finding was filed before and closed' 'without the file shrinking — reopen it, or write the override')
+    file_finding size "$(stem_for size "$path")" "[$kind $flavour, ice($impact, $confidence, $ease)]" "$advice" "${args[@]}"
 }

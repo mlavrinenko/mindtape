@@ -237,5 +237,6 @@ emit_undertested() {
         --set 'tags+=swept' --set 'tags+=coverage'
     )
 
-    file_finding undertested "$stem" "[ice($impact, $confidence, $ease)]" "${args[@]}"
+    local advice; advice=$(printf '%s\n' 'the stem is taken, so this function was filed before and closed' 'without its coverage rising — reopen it, or exclude the file in' 'the Justfile'\''s `CRAP_EXCLUDES` with a written reason')
+    file_finding undertested "$stem" "[ice($impact, $confidence, $ease)]" "$advice" "${args[@]}"
 }

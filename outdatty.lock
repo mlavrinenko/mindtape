@@ -287,9 +287,9 @@ groups:
       www/content/agents.typ: fcc92fa6498c29f9a2f44a8136aee30b2b41f2bec20101d93e5457f19c4d0b07
   sweep-dedup:
     source:
-      contrib/ask-refactoring/coverage.sh: 91c4d714fcb79c6ed3a264060a8c6e72e01e7b0052649de681b190b93084547c
+      contrib/ask-refactoring/coverage.sh: 8d066e27256364089586a34d2425061bed1fc70681dfcc2c4ef7cb9441eb0433
     dependents:
-      contrib/ask-refactoring/undertested.sh: 7bb874784d4feb7d6d062842e562966eb37a23ba48f6c1991ecc5b748884a3bf
+      contrib/ask-refactoring/undertested.sh: 2fa018fe20abf9efbe170166f83f7838552cdac5951ac7b30f6643505743a5da
   sweep-templates:
     source:
       .mindtape/templates/sweep-size.typ: a4a63ed8a6f8a331a4e744335f88b7a3fe84238b13c287ab28a059d470332b07
@@ -298,11 +298,11 @@ groups:
       .mindtape/templates/sweep-mutants.typ: 2183fdd7812da4264fb0707a2accf49e49824d89ca72bc74d4d70475b1d043b8
       .mindtape/templates/sweep-repeats.typ: bb966a546beaa9e27e429613b84fba4317060fe6a89740e714d1d8e2da5a2507
       .mindtape/templates/sweep-undertested.typ: 73e12fd227ecc67d3f3310376f498c5a0559c6ce14202bee3dc185de3e768918
-      contrib/ask-refactoring/coverage.sh: 91c4d714fcb79c6ed3a264060a8c6e72e01e7b0052649de681b190b93084547c
-      contrib/ask-refactoring/mutants.sh: 67407d7a71ab1dbe37a36119643b678812842c5bc2b73bd08d26e74d1476f8a3
-      contrib/ask-refactoring/repeats.sh: 33c88dd125c0c94df3113364be0f8ab0eb0f217bd67e0cc3848687a8eeb07f09
-      contrib/ask-refactoring/size.sh: 542255289590cbab557365f88f4d1d747003686c56c61f94bb024a0493884ae2
-      contrib/ask-refactoring/undertested.sh: 7bb874784d4feb7d6d062842e562966eb37a23ba48f6c1991ecc5b748884a3bf
+      contrib/ask-refactoring/coverage.sh: 8d066e27256364089586a34d2425061bed1fc70681dfcc2c4ef7cb9441eb0433
+      contrib/ask-refactoring/mutants.sh: dfa32785e75ce0065d866f73dfb85519eb9f76da481b18125ede17cf34b3166c
+      contrib/ask-refactoring/repeats.sh: fd406215cd01e8e681226b76494e6727e412f92cda0b853b4542d46384e7a811
+      contrib/ask-refactoring/size.sh: 86c2c219e3479c50fe7af2635346e4c151f5fa2da632395279b4f5b411f5a69d
+      contrib/ask-refactoring/undertested.sh: 2fa018fe20abf9efbe170166f83f7838552cdac5951ac7b30f6643505743a5da
   task-templates:
     source:
       .mindtape/templates/task.typ: b952f55d4abf2eccfc0301f0255fe57e81c4690e26d6ce27bceae9a4adafa04e

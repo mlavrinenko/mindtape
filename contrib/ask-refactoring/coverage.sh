@@ -210,5 +210,6 @@ emit_coverage() {
         --set 'tags+=swept' --set 'tags+=coverage'
     )
 
-    file_finding coverage "$(stem_for coverage "$path")" "[ice($impact, $confidence, $ease)]" "${args[@]}"
+    local advice; advice=$(printf '%s\n' 'the stem is taken, so this finding was filed before and closed' 'without the file'\''s coverage rising — reopen it, or exclude it in' '`just cover` with a written reason')
+    file_finding coverage "$(stem_for coverage "$path")" "[ice($impact, $confidence, $ease)]" "$advice" "${args[@]}"
 }

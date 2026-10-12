@@ -170,5 +170,6 @@ $listed"
         --set "estimate=(src-files: $((files + 1)))"
         --set 'tags+=swept' --set 'tags+=repeats'
     )
-    file_finding repeats "$stem" "[$copies copies, gain $gain]" "${args[@]}"
+    local advice; advice=$(printf '%s\n' 'the stem is taken, so this snippet was filed before and closed' 'without the repetition going — reopen it, or mark the copies with' '`jscpd:ignore-start` and a comment saying why')
+    file_finding repeats "$stem" "[$copies copies, gain $gain]" "$advice" "${args[@]}"
 }
