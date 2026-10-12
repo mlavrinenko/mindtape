@@ -23,6 +23,10 @@
 // docs/contributing/generated-docs.md. The `docs::md-check` gate fails on the
 // ones it can detect in the rendered Markdown.
 
+// The product's name, which a source writes as `#mindtape` and never types.
+// www/utils/site.typ reads it from the site title in www/tola.toml.
+#import "/www/utils/site.typ": mindtape
+
 // The one `#` (ATX h1) a document needs. typlite maps `=`/`==` down a level
 // and has no working `offset: -1` escape hatch, so the document
 // title goes through the one HTML element typlite preserves verbatim at any

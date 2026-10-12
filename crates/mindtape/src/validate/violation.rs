@@ -127,7 +127,7 @@ pub struct Violation {
     pub location: Location,
     /// How loudly this violation reports, and whether it fails the command.
     ///
-    /// Every check `MindTape` makes on its own is [`Severity::Error`]: a
+    /// Every check Mindtape makes on its own is [`Severity::Error`]: a
     /// malformed artifact is not a matter of degree. A breach a project chose
     /// the level of — a `[[tasks.rules]]` entry, a `[tasks.comments]` policy of
     /// `warn`, a built-in template under `fallback-severity` — carries that

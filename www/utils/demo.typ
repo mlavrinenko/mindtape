@@ -8,7 +8,7 @@
 // passes its link function, `(route, body) => content`, because the two
 // render paths build site links differently.
 
-#import "site.typ": NAV, REPO, SITE, page-meta, render-summary
+#import "site.typ": NAV, REPO, SITE, mindtape, page-meta, render-summary
 #import "slices.typ": checked-slices
 
 #let tagline = SITE.tagline
@@ -59,7 +59,7 @@
   heading(level: 1)[Flexible remedy]
   [
     Here are some examples of what a few lines of config can do. These checks
-    aren't built in. Mindtape is flexible enough to allow them, and it can do
+    aren't built in. #mindtape is flexible enough to allow them, and it can do
     much, much more.
   ]
   let rows = ()

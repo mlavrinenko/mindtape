@@ -17,7 +17,7 @@ The doc gates catch mechanical errors:
 - #just.docs-check() finds a dead link.
 - #just.check-doc-facts() finds a derived fact with no entry.
 - #just.check-doc-recipes() finds a hand-typed recipe name.
-- #just.check-doc-prose() finds history words and shouting.
+- #just.check-doc-prose() finds history words, shouting and a typed name.
 - #just.check-doc-blocks() finds a hand-typed code block.
 
 No gate finds duplicated prose or a page that doesn't help its reader. The
@@ -25,10 +25,10 @@ rules below cover what the gates can't.
 
 The span, recipe, prose and block gates read the Typst sources through one
 extractor in `.just/scripts/_doc-blocks-lib.sh`. It parses each file with
-`typstyle --ast` and prints every inline raw, block raw line, comment line and
-line of prose with its file and line, so a fence written inside a string
-hides nothing. The same file lists the sources the gates read, and fails when
-a list entry matches no file.
+`typstyle --ast` and prints each inline raw, block raw line, comment line and
+prose line with its file and line, so a fence inside a string hides nothing.
+The same file lists the sources the gates read, and fails when an entry
+matches no file.
 
 The span gate hands each `mt` command line it finds in a span to
 `mt _cli --check-argv`. It finds them after a `$ ` prompt, `VAR=value` words
@@ -97,11 +97,10 @@ tell.
   can't show a command that didn't run.
 
 `exit-code(<slug>)` prints the exit code of a refusal the page shows. A step
-that exits with an unexpected code fails the build, so a refusal the page
-shows can't pass unnoticed. Every refusal exits 1, and every usage error 2,
-so a refusal capture also names its reason with `--expect <regex>`. The build fails unless the
-output, without its colour, matches the regex. It also fails on a non-zero
-`--exit` that has no `--expect`.
+that exits with an unexpected code fails the build. Every refusal exits 1 and
+every usage error 2, so a refusal capture also names its reason with
+`--expect <regex>`, and the build fails unless the output, without its
+colour, matches it. It also fails on a non-zero `--exit` with no `--expect`.
 
 To quote one line of what a capture printed, such as an `error:` or `hint:`
 line, write `capture-line(<slug>, <regex>)`. It renders the first line of the
@@ -120,8 +119,8 @@ block left fails, so the list only shrinks.
 
 Write the way an engineer explains a tool to a peer: say "you", use
 contractions, open with what the reader wants to do, show the command and what
-it prints, and say what a choice costs. Don't assume a team: the reader may
-work alone, with agents, or both.
+it prints, and say what a choice costs. Don't assume a team, because the
+reader may work alone, with agents, or both.
 
 - Bad: "Each task is a Typst file in your repository. `mt` checks every task
   and commit against the rules your team writes in `.mindtape/config.toml`."
@@ -188,10 +187,15 @@ few lines as it takes.
   - Bad: "An unknown bare name is refused naming what IS available"
   - Good: "An unknown bare name is refused with a list of the available packs"
 
-#just.check-doc-prose() enforces two of these rules. It fails on the history
-words `now`, `used to`, `no longer`, `anymore` and `formerly`, and on an
-all-caps word outside its acronym list.
+#just.check-doc-prose() enforces two of these rules and one of its own. It
+fails on the history words `now`, `used to`, `no longer`, `anymore` and
+`formerly`, on an all-caps word outside its acronym list, and on the product's
+name typed out.
 
+- A Typst source writes the name as `#mindtape`, which `www/utils/site.typ`
+  reads from the site title in `www/tola.toml`, so a typed name fails
+  anywhere in the file, raw spans and comments included. A Markdown source
+  can't reach the constant, so there only the old CamelCase spelling fails.
 - A shell constant passes only as `$NAME`, `${NAME}` or `NAME=`. A lone
   capital beside an all-caps word counts as shouting, so wrap a constant's
   bare name in backticks.
@@ -208,7 +212,7 @@ The word lists are in `.just/scripts/check-doc-prose.sh`.
 = The duplicate-prose audit
 
 #just.dup-prose() reads the doc sources, strips markup and code, and reports
-sentences that two files share, worst pair first. It's advisory: the
-threshold is a judgement call, and you decide where each fact lives. Run it
+sentences that two files share, worst pair first. It's advisory, because the
+threshold is a judgement call and you decide where each fact lives. Run it
 before and after a refactor. The algorithm, its settings and why it's
 written in jq are in `contrib/dup-prose.jq`.

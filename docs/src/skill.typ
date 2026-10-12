@@ -8,17 +8,21 @@
 // generator writes it with `yq`. The title's backticks are interpolated from a
 // string, never written as a raw span, so the rendered h1 stays plain text and
 // the generator turns it into a `#` heading.
-#import "lib.typ": doc-title, www-llms
+#import "lib.typ": doc-title, mindtape, www-llms
 
 #metadata((
   output: "skills/mindtape/SKILL.md",
   frontmatter: (
     name: "mindtape",
-    description: "Drive MindTape, a file-based task tracker, through its `mt` CLI; each task is one Typst file. Use it in any repo with `.mindtape/config.toml` for any work on tasks, even when the user does not name the tool: listing, finding, filing, blocking, closing, validating or retiring tasks, or \"what should I work on\". There MindTape is the tracker, in place of GitHub issues or TODO lists. In a repo with no tracker, offer `mt init` first.",
+    description: "Drive "
+      + mindtape
+      + ", a file-based task tracker, through its `mt` CLI; each task is one Typst file. Use it in any repo with `.mindtape/config.toml` for any work on tasks, even when the user does not name the tool: listing, finding, filing, blocking, closing, validating or retiring tasks, or \"what should I work on\". There "
+      + mindtape
+      + " is the tracker, in place of GitHub issues or TODO lists. In a repo with no tracker, offer `mt init` first.",
   ),
 )) <mindtape-md>
 
-#doc-title[MindTape (#"`"mt#"`")]
+#doc-title[#mindtape (#"`"mt#"`")]
 
 Each task is one Typst file, named by its filename stem. A `links:` target is
 the path to the other task's file from the linking file, such as
@@ -31,7 +35,7 @@ the body, a framework priority like `ice(...)`, `estimate`, and an `x-<ns>`
 slot. Follow
 `references/hand-editing.md`, then run `mt check`.
 
-= Is this a MindTape project?
+= Is this a #mindtape project?
 
 It is when `.mindtape/config.toml` exists. Run `mt` in the directory that
 holds `.mindtape/` or below it. For another project, pass `-w <path>`, or put

@@ -42,10 +42,10 @@ pub fn config_schema_json() -> String {
         .expect("Config JSON schema serialises to a value");
     if let serde_json::Value::Object(map) = &mut root {
         map.insert("$id".to_owned(), SCHEMA_URL.into());
-        map.insert("title".to_owned(), "MindTape project configuration".into());
+        map.insert("title".to_owned(), "Mindtape project configuration".into());
         map.insert(
             "description".to_owned(),
-            "Schema for `.mindtape/config.toml`, the per-project MindTape \
+            "Schema for `.mindtape/config.toml`, the per-project Mindtape \
              configuration. Every section is optional; an omitted section takes \
              the shipped defaults."
                 .into(),

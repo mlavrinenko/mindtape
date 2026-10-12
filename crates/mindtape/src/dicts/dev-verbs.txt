@@ -2,7 +2,7 @@
 # lists rank too low to carry. Hand-curated, disjoint from mindtape-verbs by
 # construction: every entry here is absent from that list.
 #
-# Seeded from the first word of every task title in MindTape's own backlog that no
+# Seeded from the first word of every task title in Mindtape's own backlog that no
 # top-500 entry covered, then rounded out with the neighbouring verbs the same work
 # reaches for (deprecate, refactor, vendor, …).
 #

@@ -1,6 +1,6 @@
 #:schema ../schema/config.schema.json
-# .mindtape/config.toml — MindTape tracking itself (dogfood).
-# White-listed: MindTape constrains only what is declared here. Omit a section
+# .mindtape/config.toml — Mindtape tracking itself (dogfood).
+# White-listed: Mindtape constrains only what is declared here. Omit a section
 # to accept the defaults and the prelude's full status shortcut set.
 
 # The flagship task practice — the six-section shape, its markers and word
@@ -15,7 +15,7 @@ extends = ["mindtape-tasks"]
 
 [tasks]
 
-# MindTape's own backlog lives here, one task per file. The `mt` root name is
+# Mindtape's own backlog lives here, one task per file. The `mt` root name is
 # emitted as a derived tag on every task (the tree is flat today, so no folder
 # tags yet); nest tasks into folders and the folder names join in.
 [[tasks.roots]]
@@ -243,7 +243,7 @@ allowed = [
   "gating",
   # A task the ADR process retired into: an architectural or tooling call
   # settled in the body, with no code deliverable of its own — see
-  # Extending MindTape in CONTRIBUTING.md. `flip-with-work`
+  # Extending Mindtape in CONTRIBUTING.md. `flip-with-work`
   # (mindtape-tasks) reads it to let one close in a task-only commit,
   # `staged(has_tag("decision"))`, the sole exemption from riding its
   # close in the work it names.

@@ -52,7 +52,7 @@ pub struct SaveArgs {
 /// Run the `preset` command.
 ///
 /// # Errors
-/// Returns an error if the current directory is not inside a `MindTape`
+/// Returns an error if the current directory is not inside a Mindtape
 /// project, the user config directory cannot be determined, or the write (for
 /// `save`) or read (for `ls`) fails.
 pub fn run(args: &PresetArgs) -> Result<()> {

@@ -1,12 +1,14 @@
 #import "../utils/page.typ": page
-#import "../utils/site.typ": REPO, u
+#import "../utils/site.typ": REPO, mindtape, u
 #import "../utils/ui.typ": el
 
 #let meta = (
   route: "/comparison/",
   label: "Comparison",
   title: "Comparison",
-  summary: "Let's see how Mindtape compares to other local task trackers and which one may fit you better.",
+  summary: "Let's see how "
+    + mindtape
+    + " compares to other local task trackers and which one may fit you better.",
 )
 #metadata(meta) <page-meta>
 
@@ -36,7 +38,7 @@
 
 = The tools
 
-- #strong[#link(u("/"))[MindTape]]: one Typst file per task in your repo,
+- #strong[#link(u("/"))[#mindtape]]: one Typst file per task in your repo,
   checked against rules you set.
 - #strong[#link(dstask-url)[dstask]]: one YAML file per task in a git
   repository of its own, `~/.dstask`, synced with git. It's a single Go binary
@@ -65,7 +67,7 @@
     align: left,
     table.header(
       [Feature],
-      [#link(u("/"))[MindTape]],
+      [#link(u("/"))[#mindtape]],
       [#link(dstask-url)[dstask]],
       [#link(taskwarrior-url)[Taskwarrior]],
       [#link(todotxt-url)[todo.txt]],
@@ -207,7 +209,7 @@
   ),
 ))
 
-= Where MindTape fits
+= Where #mindtape fits
 
 - #strong[Tasks change with the code.] A task is a file in your working tree,
   so the commit or pull request that does the work also closes the task, and
@@ -239,10 +241,10 @@
 - #strong[Issues that sync with a hosted tracker.] git-bug imports from and
   exports to GitHub, GitLab, Jira and Launchpad.
 - #strong[Many agents taking work from one queue.] Beads lets an agent claim a
-  task atomically, so two agents never take the same one. MindTape has an
+  task atomically, so two agents never take the same one. #mindtape has an
   `assignee` field and WIP rules, but no claim.
 - #strong[You need a browser board, or an MCP server.] Backlog.md has both,
   and Beads has an MCP server.
-- #strong[Maturity.] MindTape is at version #mt-version. It has fewer users and
+- #strong[Maturity.] #mindtape is at version #mt-version. It has fewer users and
   integrations than the tools above. Taskwarrior and todo.txt have years of
   add-ons, integrations and mobile apps.

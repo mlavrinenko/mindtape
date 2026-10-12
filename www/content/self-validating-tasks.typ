@@ -1,6 +1,6 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": exit-code, terminal
-#import "../utils/site.typ": u
+#import "../utils/site.typ": mindtape, u
 #import "../utils/slices.typ": checked-slices, render-slices
 
 #let meta = (
@@ -13,7 +13,7 @@
 
 #show: page.with(..meta)
 
-You can give your tasks a field MindTape doesn't know about, and check it
+You can give your tasks a field #mindtape doesn't know about, and check it
 with a Typst function you write. `mt check` runs the function on every task,
 and every command that writes a task runs it before writing. You don't need a
 separate linter, and the check lives in the repo next to the tasks.
@@ -36,7 +36,7 @@ two tasks.
 
 Say your project has goals, and you want every task to say how it serves
 each one. List the goals in a Typst module. Each task answers in an `x-goals`
-field. MindTape keeps any field named `x-<name>` as written and checks nothing
+field. #mindtape keeps any field named `x-<name>` as written and checks nothing
 in it on its own.
 
 #raw(

@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/site.typ": u
+#import "../utils/site.typ": mindtape, u
 #import "../utils/slices.typ": checked-slices
 #import "../utils/dsl-field-notes.typ": dsl-field-notes
 
@@ -47,7 +47,7 @@ dictionary. `mt` does the scoring and the date arithmetic.
   // `x-<ns>` is the sink for extra fields, not a parameter, so the fact
   // cannot list it.
   [`x-<ns>`],
-  [Data for a tool built on MindTape, which `mt` passes through, and checks only if the config declares it. See #link(u("/concepts/"))[Concepts].],
+  [Data for a tool built on #mindtape, which `mt` passes through, and checks only if the config declares it. See #link(u("/concepts/"))[Concepts].],
 )
 
 A date field takes `on(2026, 7, 20)`, the prelude's short form of

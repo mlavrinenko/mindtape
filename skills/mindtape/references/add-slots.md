@@ -17,7 +17,7 @@ mt add "Practice arpeggios" -- summary@notes.txt
 
 - A bare positional is title text, never a token: `mt add "fix a=b parsing"`
   sets no slot.
-- A dot in a key is part of the slot's name, not a path MindTape parses.
+- A dot in a key is part of the slot's name, not a path Mindtape parses.
   `--set estimate.files=2` works only because the template wrote
   `slot("estimate.files")`.
 - The first operator, `=` or `@`, separates key from value. So

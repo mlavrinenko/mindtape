@@ -1,4 +1,4 @@
-//! `MindTape` CLI entry point: parse arguments, init logging, dispatch.
+//! Mindtape CLI entry point: parse arguments, init logging, dispatch.
 
 // `disallowed-methods` in `clippy.toml` bans `std::fs::write`/`File::create`
 // outside `mindtape::write_atomic`; unit tests (this crate's own `cfg(test)`

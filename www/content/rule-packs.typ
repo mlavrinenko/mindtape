@@ -1,6 +1,6 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": callout, terminal
-#import "../utils/site.typ": REPO, u
+#import "../utils/site.typ": REPO, mindtape, u
 #import "../utils/slices.typ": checked-slices, render-slices
 
 #let meta = (
@@ -23,7 +23,7 @@ the rules of the pack `mt` ships, `mindtape-tasks`.
 
 `extends` in any #link(u("/config/#layers"))[config layer] names the packs
 that layer adopts. If the layer declares a rule with the same `name` as a
-pack's rule, it replaces that rule where the pack put it. MindTape's own
+pack's rule, it replaces that rule where the pack put it. #mindtape's own
 `.mindtape/config.toml` adopts `mindtape-tasks` and replaces
 `section-allowlist` to allow one more section, `Dogfood`:
 
@@ -105,7 +105,7 @@ the layers that contributed, then one line per rule in merge order:
 `tasks.rules.<name>`, or `tasks.rules[<index>]` for a rule with no name.
 `mt check` names a broken rule without the leading `tasks.`. `<origin>` is a
 layer (`embedded`, `xdg`, `dir` or `project`), or `pack <name>` for a pack.
-Here's the output in the MindTape repository:
+Here's the output in the #mindtape repository:
 
 #terminal("rule-packs-origin")
 
@@ -122,7 +122,7 @@ way.
 
 = The rules in `mindtape-tasks`
 
-`extends = ["mindtape-tasks"]` gives you the task shape MindTape's own
+`extends = ["mindtape-tasks"]` gives you the task shape #mindtape's own
 backlog uses. Each open task has four sections in order: Problem, TO-BE,
 Changes and Out of scope. A `fix`, `feat`, `docs` or `dev` task adds one more
 section of its own. The tables below are read from

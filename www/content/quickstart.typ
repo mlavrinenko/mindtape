@@ -1,13 +1,15 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": callout, pkg, terminal
-#import "../utils/site.typ": REPO, u
+#import "../utils/site.typ": REPO, mindtape, u
 #import "../utils/release.typ": cli-crate, release-targets
 
 #let meta = (
   route: "/quickstart/",
   label: "Quickstart",
   title: "Quickstart",
-  summary: "Install MindTape, make a project, and file, list and finish your first tasks.",
+  summary: "Install "
+    + mindtape
+    + ", make a project, and file, list and finish your first tasks.",
 )
 #metadata(meta) <page-meta>
 

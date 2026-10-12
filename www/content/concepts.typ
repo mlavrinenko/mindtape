@@ -1,12 +1,14 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": callout, terminal
-#import "../utils/site.typ": u
+#import "../utils/site.typ": mindtape, u
 
 #let meta = (
   route: "/concepts/",
   label: "Concepts",
   title: "Concepts",
-  summary: "How MindTape stores each task as a Typst file, reads the files on every command, and names and links tasks.",
+  summary: "How "
+    + mindtape
+    + " stores each task as a Typst file, reads the files on every command, and names and links tasks.",
 )
 #metadata(meta) <page-meta>
 
@@ -18,7 +20,7 @@
 
 = A task is a file
 
-Each task is one `.typ` file. The file imports the MindTape prelude and passes
+Each task is one `.typ` file. The file imports the #mindtape prelude and passes
 the task's fields to `task.with(...)` in a show rule. Everything below that
 line is the task's body, in Typst markup. Here's a task from
 `examples/api-service/`:
@@ -69,7 +71,7 @@ writes the path for you.
 = Extension fields
 
 A field named `x-<ns>` holds a field of your own, such as `x-team`, or data
-for a tool built on MindTape, such as `x-speconaut`. `mt ls --json` passes it
+for a tool built on #mindtape, such as `x-speconaut`. `mt ls --json` passes it
 through unchanged under `extras`.
 
 `mt` checks an `x-` field only if you declare it in `[tasks.fields.x-<ns>]`.

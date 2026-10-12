@@ -4,7 +4,7 @@
 //! something". Printing the open set on the way into work and running a
 //! machine-checkable command before a task may close are the same idea seen
 //! twice: both are actions on a flip. Shipping them as separate tables would
-//! give `MindTape` two mechanisms for one concept, so there is one table,
+//! give Mindtape two mechanisms for one concept, so there is one table,
 //! several action kinds, and the project decides what fires where.
 //!
 //! ```toml

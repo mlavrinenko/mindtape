@@ -1,6 +1,6 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": callout
-#import "../utils/site.typ": REPO, u
+#import "../utils/site.typ": REPO, mindtape, u
 #import "../utils/crate-notes.typ": crate-notes
 #import "../generated/just.typ" as just
 
@@ -8,13 +8,15 @@
   route: "/internals/",
   label: "Internals",
   title: "Internals",
-  summary: "How MindTape is built, from its crate layout and evaluation cache to what differs per platform.",
+  summary: "How "
+    + mindtape
+    + " is built, from its crate layout and evaluation cache to what differs per platform.",
 )
 #metadata(meta) <page-meta>
 
 #show: page.with(..meta)
 
-You don't need anything on this page to use MindTape. It's for you if you
+You don't need anything on this page to use #mindtape. It's for you if you
 audit, package or build on the implementation.
 
 = Workspace
@@ -86,6 +88,6 @@ directories, the Typst local-package path, editor lookup, and the path
 separators in derived tags and links. The Windows CI job tests it.
 
 #callout("note")[
-  Building on MindTape? #link(u("/agents/"))[For AI agents] covers the JSON
+  Building on #mindtape? #link(u("/agents/"))[For AI agents] covers the JSON
   output and the schemas a tool reads.
 ]

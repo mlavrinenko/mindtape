@@ -9,13 +9,13 @@
 // No list of the gates lives here. The reader asks `just` for them, so the
 // list can't drift from the Justfile. What a gate runs is in its recipe or
 // script.
-#import "lib.typ": doc-title, just
+#import "lib.typ": doc-title, just, mindtape
 
 #metadata((
   output: "CONTRIBUTING.md",
 )) <mindtape-md>
 
-#doc-title[Contributing to MindTape]
+#doc-title[Contributing to #mindtape]
 
 = Quick Start
 
@@ -34,7 +34,7 @@ environment. In the dev shell, `mt` is `target/mt-dev/debug/mt`. #just.build-mt(
 the code beside it.
 
 This file holds the rules. The `docs/contributing/*.md` deep dives explain
-why and how they work, and `AGENTS.md` says what MindTape is.
+why and how they work, and `AGENTS.md` says what #mindtape is.
 
 = Code Style
 
@@ -243,7 +243,7 @@ fact once, use checked examples, and write plain prose in the project's
 voice. The rules are in
 #link("docs/contributing/documentation.md")[docs/contributing/documentation.md].
 
-= Extending MindTape
+= Extending #mindtape
 
 - A new CLI command is a module under `crates/mindtape-cli/src/cmd/` with an
   `Args` struct and a `run` function, wired into `cli/mod.rs`. Use `cmd/add/`

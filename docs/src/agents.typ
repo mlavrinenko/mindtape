@@ -1,12 +1,12 @@
 // Source for the repo-root AGENTS.md, rendered by docs/generate-md.sh with
 // typlite. CLAUDE.md is a symlink to AGENTS.md. Every agent session in this
-// repo loads it, so it says what MindTape is and where its parts live, and
+// repo loads it, so it says what the project is and where its parts live, and
 // leaves how work is done to CONTRIBUTING.md.
 //
 // Crate names come from www/generated/crate-map.json, and the DSL block is a
 // slice of examples/dsl/, which `just check-examples` validates. The render
 // fails on a crate with no role, an unknown dependency or a missing page.
-#import "lib.typ": doc-title, fact, just, num-word
+#import "lib.typ": doc-title, fact, just, mindtape, num-word
 #import "/www/utils/slices.typ": checked-slices
 
 #metadata((
@@ -33,15 +33,15 @@
   raw(name)
 }
 
-#doc-title[MindTape — AI Agent Context]
+#doc-title[#mindtape — AI Agent Context]
 
-\@CONTRIBUTING.md says how work is done here. This file says what MindTape is
+\@CONTRIBUTING.md says how work is done here. This file says what #mindtape is
 and where its parts live. Fork parallel work with #just.fork() and land it with
 #just.land(); a bare `wt merge` squashes away the `Refs:` footers.
 
 = What is this?
 
-MindTape is a file-based task tracker. Each task is one Typst file
+#mindtape is a file-based task tracker. Each task is one Typst file
 (`#show: task.with(...)`), named by its filename stem. Every `mt` command
 evaluates the task files under the configured roots through the Typst compiler
 crates, with no daemon or database. A content-hash cache in `.mindtape/cache/`
@@ -51,7 +51,7 @@ skips a file whose bytes are unchanged.
 
 - `lib/prelude.typ` — the `@local/mindtape` package, which defines the task
   DSL.
-- `truth/tasks/` — MindTape's own backlog, read with the in-tree `lib/`.
+- `truth/tasks/` — #mindtape's own backlog, read with the in-tree `lib/`.
   Change a task with `mt` commands, as `skills/mindtape/SKILL.md` says. Edit
   the file by hand only for the body, a framework priority, `estimate` and
   `x-goals`, then run `mt check`.
@@ -116,9 +116,9 @@ dependencies, whose source sits under `~/.cargo/registry/src/` at the versions
 = Architecture
 
 - Rust, with the toolchain pinned in `rust-toolchain.toml`.
-- Typst runs eval-only through #dep("typst-eval"): MindTape never lays out a
+- Typst runs eval-only through #dep("typst-eval"): #mindtape never lays out a
   document.
-- #dep("evalexpr") parses the filter language, and MindTape evaluates the
+- #dep("evalexpr") parses the filter language, and #mindtape evaluates the
   parsed tree itself.
 - #dep("clap") for the CLI, #dep("serde") and #dep("toml") for config,
   #dep("serde_json") and #dep("csv") for output, and a hand-rolled table

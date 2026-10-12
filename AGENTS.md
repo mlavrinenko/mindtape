@@ -1,17 +1,17 @@
 <!-- Generated from docs/src/agents.typ by `just docs md`. Do not edit; edit the source. -->
 
-# MindTape — AI Agent Context
+# Mindtape — AI Agent Context
 
-@CONTRIBUTING.md says how work is done here. This file says what MindTape is and where its parts live. Fork parallel work with `just fork` and land it with `just land` a bare `wt merge` squashes away the `Refs:` footers.
+@CONTRIBUTING.md says how work is done here. This file says what Mindtape is and where its parts live. Fork parallel work with `just fork` and land it with `just land` a bare `wt merge` squashes away the `Refs:` footers.
 
 ## What is this?
 
-MindTape is a file-based task tracker. Each task is one Typst file (`#show: task.with(...)`), named by its filename stem. Every `mt` command evaluates the task files under the configured roots through the Typst compiler crates, with no daemon or database. A content-hash cache in `.mindtape/cache/` skips a file whose bytes are unchanged.
+Mindtape is a file-based task tracker. Each task is one Typst file (`#show: task.with(...)`), named by its filename stem. Every `mt` command evaluates the task files under the configured roots through the Typst compiler crates, with no daemon or database. A content-hash cache in `.mindtape/cache/` skips a file whose bytes are unchanged.
 
 ## Repo map
 
 - `lib/prelude.typ` — the `@local/mindtape` package, which defines the task DSL.
-- `truth/tasks/` — MindTape’s own backlog, read with the in-tree `lib/`. Change a task with `mt` commands, as `skills/mindtape/SKILL.md` says. Edit the file by hand only for the body, a framework priority, `estimate` and `x-goals`, then run `mt check`.
+- `truth/tasks/` — Mindtape’s own backlog, read with the in-tree `lib/`. Change a task with `mt` commands, as `skills/mindtape/SKILL.md` says. Edit the file by hand only for the body, a framework priority, `estimate` and `x-goals`, then run `mt check`.
 - `truth/goals.typ` and `truth/process-goals.typ` — the product and process goals. Each open task rates every goal in `x-goals`, and the `goals` rule checks the ratings with `check-goals` from `truth/lib.typ`.
 - `www/content/*.typ` — the docs site, built with tola.
 - `docs/src/*.typ` — the sources of README.md, AGENTS.md, CONTRIBUTING.md, SKILL.md and the `docs/contributing/*.md` deep dives.
@@ -40,8 +40,8 @@ The Typst plumbing comes from seven crates.io dependencies, whose source sits un
 ## Architecture
 
 - Rust, with the toolchain pinned in `rust-toolchain.toml`.
-- Typst runs eval-only through `typst-eval`: MindTape never lays out a document.
-- `evalexpr` parses the filter language, and MindTape evaluates the parsed tree itself.
+- Typst runs eval-only through `typst-eval`: Mindtape never lays out a document.
+- `evalexpr` parses the filter language, and Mindtape evaluates the parsed tree itself.
 - `clap` for the CLI, `serde` and `toml` for config, `serde_json` and `csv` for output, and a hand-rolled table renderer in `crates/mindtape-cli/src/render/`.
 
 ## Task DSL (lib/prelude.typ)

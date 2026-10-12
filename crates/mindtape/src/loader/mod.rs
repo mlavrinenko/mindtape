@@ -354,14 +354,14 @@ pub fn package_root() -> Option<PathBuf> {
     crate::data_home().map(|dir| dir.join("typst").join("packages"))
 }
 
-/// The `@local/<name>` → in-tree lib overrides for this project: `MindTape`'s own
+/// The `@local/<name>` → in-tree lib overrides for this project: Mindtape's own
 /// package when `<root>/lib` is the `mindtape` package, plus every configured
 /// `[[typst.local-packages]]` entry (which wins on a name clash). Resolving by
 /// the `lib/` manifest name — not its mere presence — keeps `mindtape` from
 /// hijacking a foreign worktree whose `lib/` is some other package.
 ///
 /// Public because it is the project's single answer to "which `@local`
-/// packages resolve here", and every world `MindTape` builds has to give the
+/// packages resolve here", and every world Mindtape builds has to give the
 /// same one. `mt eval` builds its own world outside this loader and used to
 /// decide for itself, off the mere existence of `lib/typst.toml`; the two
 /// drifted, and `mt eval` alone failed in any worktree whose `lib/` was a

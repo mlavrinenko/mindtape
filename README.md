@@ -1,7 +1,7 @@
 <!-- Generated from docs/src/readme.typ by `just docs md`. Do not edit; edit the source. -->
 
-<h1 align="center"><img src="https://raw.githubusercontent.com/mlavrinenko/mindtape/main/www/assets/images/logo.svg" alt="MindTape" width="120" /><br />
- MindTape</h1>
+<h1 align="center"><img src="https://raw.githubusercontent.com/mlavrinenko/mindtape/main/www/assets/images/logo.svg" alt="Mindtape" width="120" /><br />
+ Mindtape</h1>
 
 <h4 align="center">A task tracker in your repo that enforces your rules on every task and commit.</h4>
 

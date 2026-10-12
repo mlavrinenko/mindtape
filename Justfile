@@ -1,4 +1,4 @@
-# MindTape's root justfile. `just` with no arguments lists every recipe.
+# Mindtape's root justfile. `just` with no arguments lists every recipe.
 #
 # A comment about a recipe goes in one of three places:
 #
@@ -285,10 +285,11 @@ check-doc-recipes:
     bash .just/scripts/check-doc-recipes.sh
 
 # Fails when a doc source, a Justfile or YAML config comment, or a description
-# in schema/config.schema.json tells history or shouts in all-caps words. The
+# in schema/config.schema.json tells history or shouts in all-caps words, or
+# when a Typst doc source types the product's name instead of `#mindtape`. The
 # word lists, and what the scan skips, are in .just/scripts/check-doc-prose.sh.
 
-[doc("Fail on history words or all-caps emphasis in doc prose, config comments and schema descriptions")]
+[doc("Fail on history words, all-caps emphasis or a typed product name in doc prose, config comments and schema descriptions")]
 [group("gate")]
 check-doc-prose:
     bash .just/scripts/check-doc-prose.sh

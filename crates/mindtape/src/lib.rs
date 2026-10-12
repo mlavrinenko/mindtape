@@ -1,6 +1,6 @@
-//! `MindTape` domain library: a per-file, daemon-free task tracker over Typst.
+//! Mindtape domain library: a per-file, daemon-free task tracker over Typst.
 //!
-//! Tasks are one-per-file Typst artifacts (`#show: task.with(...)`). `MindTape`
+//! Tasks are one-per-file Typst artifacts (`#show: task.with(...)`). Mindtape
 //! discovers them under the configured roots, live-evaluates each via
 //! [`typst_harvest`], projects the harvested marker into a [`Task`], and offers
 //! a filter-expression query language and config-driven validation.

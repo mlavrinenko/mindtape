@@ -1,4 +1,4 @@
-// MindTape prelude — per-file task model.
+// Mindtape prelude — per-file task model.
 // See docs/decisions/002-per-file-rewrite-and-speconaut-convergence.md.
 //
 // THIS layer (Typst) is config-agnostic and consumer-blind. It only:

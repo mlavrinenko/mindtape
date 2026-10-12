@@ -29,7 +29,7 @@ use crate::{
     cmd::worktrees,
 };
 
-/// `MindTape`: a file-based task tracker using per-file Typst artifacts.
+/// Mindtape: a file-based task tracker using per-file Typst artifacts.
 #[derive(Parser)]
 #[command(name = "mt", version, about)]
 pub struct Cli {

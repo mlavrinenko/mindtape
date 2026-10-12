@@ -1,9 +1,9 @@
-// Site-wide constants for the MindTape docs: the site URL and its path
-// prefix, and the nav tree's group names and reading order. The site URL and
-// the Typst package version are read from the files that declare them. The
-// page manifest (route -> label, title, summary) is `PAGES`, read back off
-// every page's own `<page-meta>` block by www/generate-site-pages.sh, so this
-// file never restates a label, a title or a summary.
+// Site-wide constants for the docs: the product name, the site URL and its
+// path prefix, and the nav tree's group names and reading order. The name, the
+// site URL and the Typst package version are read from the files that declare
+// them. The page manifest (route -> label, title, summary) is `PAGES`, read
+// back off every page's own `<page-meta>` block by www/generate-site-pages.sh,
+// so this file never restates a label, a title or a summary.
 
 #import "mode.typ": MARKDOWN
 
@@ -30,6 +30,11 @@
 #let TOLA = toml("../tola.toml")
 #let SITE_URL = TOLA.site.info.url.trim("/", at: end)
 
+// The product's name, read from the site title in tola.toml, so a doc source
+// writes `#mindtape` and never types the name. `just check-doc-prose` fails on
+// a typed one.
+#let mindtape = TOLA.site.info.title
+
 // GitHub Pages serves the site under the URL's path ("/mindtape"). u()
 // prefixes internal page links with it. Assets stay source-relative
 // (/assets/...), because tola prefixes those on build.
@@ -52,7 +57,7 @@
 #let u(path) = if MARKDOWN { SITE_URL + md-path(path) } else { PREFIX + path }
 
 #let SITE = (
-  title: "MindTape",
+  title: mindtape,
   tagline: "A task tracker in your repo that enforces your rules on every task and commit.",
 )
 
@@ -69,7 +74,7 @@
 //   - Checks: setting what `mt` refuses, in tasks, commits and flips.
 //   - Reference: looking one thing up in a page that lists every command,
 //     operator, config key or JSON field.
-//   - Integrate: wiring MindTape into a repo, a tool or another tracker.
+//   - Integrate: wiring `mt` into a repo, a tool or another tracker.
 //
 // No group holds more than six pages, because a longer run makes the reader
 // read every label again. No single page can declare this fact. Spreading it
@@ -196,6 +201,6 @@
 }
 #let render-summary(text, plain: false) = {
   if text == none { return none }
-  let body = eval(text, mode: "markup")
+  let body = eval(text, mode: "markup", scope: (mindtape: mindtape))
   if plain { _plain-text(body) } else { body }
 }

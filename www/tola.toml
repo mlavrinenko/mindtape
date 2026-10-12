@@ -1,8 +1,9 @@
-# Tola configuration (v0.7.1) — MindTape documentation site.
-# Authored in Typst; dogfoods the medium MindTape tasks are written in.
+# Tola configuration (v0.7.1) — the documentation site. `title` is the
+# product's name, which every doc page renders from www/utils/site.typ.
+# Authored in Typst; dogfoods the medium the tasks are written in.
 
 [site.info]
-title = "MindTape"
+title = "Mindtape"
 author = "Maxim Lavrinenko"
 description = "A daemon-free, file-based task tracker powered by Typst. One task per .typ file, live-evaluated on every command."
 # GitHub Pages project page: the URL path ("/mindtape") is the build prefix.

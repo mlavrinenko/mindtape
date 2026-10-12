@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="img" aria-label="MindTape">
-  <!-- MindTape mark: a tape strip laid over a cassette.
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="img" aria-label="Mindtape">
+  <!-- Mindtape mark: a tape strip laid over a cassette.
        Monochrome-first and a single evenodd path, on purpose. The site header
        renders this file as a flat CSS mask tinted with the accent token (see
        .brand-mark in www/assets/styles/main.css), so only the SILHOUETTE

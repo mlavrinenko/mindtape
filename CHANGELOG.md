@@ -172,7 +172,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   file alone, for a syntax error and for an error such as
   `unexpected argument: titel` alike. An error Typst raises inside the prelude
   names the task file's line that led into it, or its `task.with(…)` call, and
-  never a prelude line. `LoadError` gains `line` and `place()`, and MindTape
+  never a prelude line. `LoadError` gains `line` and `place()`, and Mindtape
   requires typst-harvest 0.6 and typst-world 0.5.
 - **A commit that changes product code must add a changelog entry.** A commit
   touching `crates/` or `lib/` source outside tests and not `CHANGELOG.md` is
@@ -649,7 +649,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   unless one by that name exists, in which case it expands to that
   dictionary's entries rather than surviving as the literal string.
 
-- **`[[tasks.rules]]` holds a convention MindTape does not know by name.**
+- **`[[tasks.rules]]` holds a convention Mindtape does not know by name.**
   Every constraint the tool enforced was one it had a field for — a status
   legend, a numeric scale, a tag allow-list, a heading path — so a project
   wanting to hold any other convention had nowhere to put it. A rule is the
@@ -681,7 +681,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   Carrying `warn` through a pass that used to be all-fatal is the one shape
   change. `Violation` gained an optional `severity`: `None` for every check
-  MindTape makes on its own — a malformed artifact is not a matter of degree —
+  Mindtape makes on its own — a malformed artifact is not a matter of degree —
   and `Some` only for a rule, where the project chose the level. `mt check`
   counts the fatal ones for its exit status and the pre-write seam splits its
   verdict in two, so a warned write prints its line and still lands while an
@@ -1233,7 +1233,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Rust and no `config.toml` read (`mt import` owns the per-project policy
   map): status maps onto neutral names shared by both sources (`pending`/
   `open` -> `todo`, `completed`/`closed` -> `done`, `deleted` -> `cancelled`),
-  Taskwarrior's H/M/L priority maps onto MindTape's default 0..9 scale
+  Taskwarrior's H/M/L priority maps onto Mindtape's default 0..9 scale
   (8/5/2), tags come from `project`+`tags` or issue `labels`, and
   uuid/urgency/annotations/issue-number/url/assignees carry through
   losslessly as `x-tw`/`x-gh` extras. Both escape a literal `#` (and `\`)
@@ -1424,6 +1424,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The name is spelled Mindtape.** `mt --help`, the config schema's title
+  and the crate descriptions say Mindtape, and the docs render the name from
+  the site title in `www/tola.toml`.
 - **A config error lists the names you could have meant on a hint line.**
   `error: views.a.columns: unknown column: 'fiel'` is followed by
   `hint: did you mean file?` and `hint: use one of: file, title`, where the
@@ -1524,7 +1527,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   only when `mt mv` renames the stem, and an ambiguous one is refused with
   each candidate named. An exact stem wins over a hash, and in `mt rm` a
   filter word does too. `mt ls -i` quits on Esc, since `q` can start a hash.
-- **The docs open on the problems MindTape solves.** README and the site home
+- **The docs open on the problems Mindtape solves.** README and the site home
   show one task from `examples/api-service`, a backend team's backlog, and
   five problems with the error `mt` prints for each: oversized tasks, vague
   tasks, tasks closed while tests fail, work started out of order, and
@@ -1720,7 +1723,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Nesting a slot needs no new syntax.** A slot's name is an arbitrary
   string and values are looked up flat, so a template that writes
   `slot("estimate.files")` already accepts `--set estimate.files=2`. The dot
-  is a naming convention for template authors; MindTape never parses it.
+  is a naming convention for template authors; Mindtape never parses it.
 - **The docs lead with YAML for `-f`.** `-f` always accepted YAML (stdin and
   unknown extensions sniff the content, and YAML is a JSON superset), but
   every example was JSON — the shape that makes an author escape exactly the

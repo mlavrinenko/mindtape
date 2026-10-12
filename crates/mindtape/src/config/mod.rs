@@ -1,6 +1,6 @@
 //! `.mindtape/config.toml` loading and the configurable task schema.
 //!
-//! The config is a white-list: `MindTape` constrains only what is declared here
+//! The config is a white-list: Mindtape constrains only what is declared here
 //! (directly or through the embedded floor, `defaults.toml`). A handful of
 //! sections carry an opinionated shipped default — the status legend, the
 //! priority/difficulty scale and classification, `roots`, `[templates]`,

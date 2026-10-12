@@ -1,6 +1,6 @@
 <!-- Generated from docs/src/contributing.typ by `just docs md`. Do not edit; edit the source. -->
 
-# Contributing to MindTape
+# Contributing to Mindtape
 
 ## Quick Start
 
@@ -13,7 +13,7 @@ just check           # run before every commit
 
 Run `just` recipes, not raw `cargo`: they carry the right flags and environment. In the dev shell, `mt` is `target/mt-dev/debug/mt`. `just build-mt` builds it, and the worktrunk hooks in `.config/wt.toml` run it when `just fork` makes a worktree and after `just land` lands in a checkout. Between those builds, `mt` can be older than the code beside it.
 
-This file holds the rules. The `docs/contributing/*.md` deep dives explain why and how they work, and `AGENTS.md` says what MindTape is.
+This file holds the rules. The `docs/contributing/*.md` deep dives explain why and how they work, and `AGENTS.md` says what Mindtape is.
 
 ## Code Style
 
@@ -117,7 +117,7 @@ Read commands never change the authored tree. Only write commands do. [docs/cont
 
 Edit a doc’s Typst source, rewrite a file whole when you touch it, state each fact once, use checked examples, and write plain prose in the project’s voice. The rules are in [docs/contributing/documentation.md](docs/contributing/documentation.md).
 
-## Extending MindTape
+## Extending Mindtape
 
 - A new CLI command is a module under `crates/mindtape-cli/src/cmd/` with an `Args` struct and a `run` function, wired into `cli/mod.rs`. Use `cmd/add/` as a model.
 - A new domain capability goes in `crates/mindtape`, re-exported from its `lib.rs`. Keep task concepts out of `typst-harvest`, which is a general Typst crate other tools use.

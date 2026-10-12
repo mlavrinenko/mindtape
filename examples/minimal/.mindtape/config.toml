@@ -23,7 +23,7 @@
 
 # The one section here that is NOT part of the floor, and not a line to copy. A
 # real minimal project installs the prelude once per machine (`mt install`) and
-# declares nothing; this fixture lives INSIDE the MindTape checkout, so it must
+# declares nothing; this fixture lives INSIDE the Mindtape checkout, so it must
 # resolve `@local/mindtape` from the `lib/` two levels up — the prelude under
 # test — rather than through the machine-global local-package symlink, which
 # points at whichever checkout last ran `just install-lib`. Without it

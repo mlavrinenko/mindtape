@@ -53,7 +53,7 @@ pub struct ShowArgs {
 /// Run the `config` command.
 ///
 /// # Errors
-/// Returns an error if the current directory is not inside a `MindTape`
+/// Returns an error if the current directory is not inside a Mindtape
 /// project (not required for `--defaults`, which is project-independent), or
 /// the layered config fails to load.
 pub fn run(args: &ConfigArgs) -> Result<()> {

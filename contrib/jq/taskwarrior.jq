@@ -28,7 +28,7 @@
 # - status date: Taskwarrior has no single "status changed" timestamp, so we
 #   pick the best available proxy — `end` (the close timestamp) for a
 #   completed/deleted task, else `modified`, else `entry`.
-# - priority: Taskwarrior's H/M/L maps onto MindTape's default 0..9 priority
+# - priority: Taskwarrior's H/M/L maps onto Mindtape's default 0..9 priority
 #   scale — H -> 8, M -> 5, L -> 2 (roughly the high/mid/low band of the
 #   project's own default 3-band split). A task with no `priority` set emits
 #   `"priority": null` rather than guessing a default.
@@ -40,7 +40,7 @@
 #   `crates/mindtape/src/import_map/body.rs`'s own synthesis fallback
 #   produces, just filled with the real description instead of the title.
 # - tags: `project` (if set) becomes one tag, verbatim — Taskwarrior's dotted
-#   project hierarchy (e.g. "work.backend") has no clean 1:1 with MindTape's
+#   project hierarchy (e.g. "work.backend") has no clean 1:1 with Mindtape's
 #   flat tag set, so it is kept as a single tag string rather than split —
 #   unioned with Taskwarrior's own `tags` array.
 # - due: Taskwarrior's ISO-8601 basic UTC timestamp (`YYYYMMDDTHHMMSSZ`)

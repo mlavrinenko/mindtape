@@ -1,6 +1,6 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": pkg, terminal
-#import "../utils/site.typ": u
+#import "../utils/site.typ": mindtape, u
 #import "../utils/slices.typ": checked-slices, render-slices
 
 #let meta = (
@@ -47,7 +47,7 @@ prints for it.
 
 = The import
 
-The first line imports #pkg, the MindTape prelude. The `: *` brings in every
+The first line imports #pkg, the #mindtape prelude. The `: *` brings in every
 name the prelude defines: `task`, the status functions such as `wip`, and the
 link functions such as `depends-on`.
 

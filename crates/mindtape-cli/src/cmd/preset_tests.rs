@@ -264,7 +264,7 @@ fn run_save_writes_preset_and_prints_destination() {
     super::run(&args).unwrap();
 }
 
-/// `run` with the `Save` action outside a `MindTape` project surfaces
+/// `run` with the `Save` action outside a Mindtape project surfaces
 /// `resolve_root`'s error rather than panicking or silently doing nothing.
 #[test]
 fn run_save_outside_project_fails() {
@@ -280,7 +280,7 @@ fn run_save_outside_project_fails() {
             .unwrap();
         assert!(
             !out.status.success(),
-            "run() must fail outside a MindTape project"
+            "run() must fail outside a Mindtape project"
         );
         return;
     }

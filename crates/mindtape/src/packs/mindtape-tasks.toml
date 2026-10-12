@@ -1,7 +1,7 @@
 # mindtape-tasks — the flagship task practice as a rule pack.
 #
 # `extends = ["mindtape-tasks"]` in any config layer gives a repo the shape
-# MindTape's own backlog is written in: every open task is one spec in a
+# Mindtape's own backlog is written in: every open task is one spec in a
 # closed set of sections, in a fixed order, each with markers and caps that
 # make it skimmable and reproducible without a template a human has to copy
 # by hand. Adopt it, then layer this repo's OWN policy over it with `disable
@@ -276,7 +276,7 @@ when = "!terminal"
 message = "write what belongs under the heading, or why nothing does, or remove it"
 
 # Word caps, provisional: set on 2026-09-15 with headroom over the rewritten
-# open tasks in MindTape's own backlog. A section over its cap is a task that
+# open tasks in Mindtape's own backlog. A section over its cap is a task that
 # should have been two.
 [[tasks.body.content.rules]]
 name = "section-word-cap"

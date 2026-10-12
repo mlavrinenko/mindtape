@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 12),
+  status: done(
+    2026,
+    10,
+    12,
+  )[the docs render the name from the site title, and check-doc-prose refuses a typed one],
 )
 
 == Problem

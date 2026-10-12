@@ -1,4 +1,4 @@
-/* MindTape docs — components: hero, three faces, terminal, language server, cards, pills. */
+/* Mindtape docs — components: hero, three faces, terminal, language server, cards, pills. */
 
 /* Hero -------------------------------------------------------------------- */
 .hero { padding: 1.2rem 0 0.5rem; }
@@ -190,7 +190,7 @@ main td code { font-size: 0.82em; }
    Pastel, low-saturation fills for the comparison matrix's objectively-
    scoreable rows (comparison.typ's `cap()`): green = has the capability /
    strong, amber = partial or indirect, grey = none — the SAME rubric for
-   every column, including MindTape. Kept next to the site-wide tokens in
+   every column, including Mindtape. Kept next to the site-wide tokens in
    main.css but scoped to this file (its `:root` / `[data-theme="dark"]`
    merge with main.css's, loaded first) since components.css is the only
    stylesheet this feature touches. Both fg/bg pairs hold >= 4.5:1 contrast in

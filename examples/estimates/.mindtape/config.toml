@@ -13,7 +13,7 @@
 #
 # No task here sits in `wip`, so the budget rule never evaluates `changed()`:
 # it reads the working tree of whatever repo it runs inside, and this fixture
-# lives inside MindTape's own, where `just check-examples` would then report a
+# lives inside Mindtape's own, where `just check-examples` would then report a
 # warning that tracks the checkout's diff rather than anything about the
 # fixture. What IS exercised on every run is the load: a `when` or `assert`
 # that does not parse, an unknown git state, a malformed glob or a unit outside

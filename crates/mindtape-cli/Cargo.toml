@@ -1,6 +1,6 @@
 [package]
 name = "mindtape-cli"
-description = "Command-line interface for MindTape, a file-based task tracker over Typst"
+description = "Command-line interface for Mindtape, a file-based task tracker over Typst"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

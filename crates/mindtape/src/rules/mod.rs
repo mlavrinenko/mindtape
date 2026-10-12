@@ -1,6 +1,6 @@
 //! `[[tasks.rules]]` — project-declared assertions over every task.
 //!
-//! Every other constraint `MindTape` enforces is one it knows by name: a
+//! Every other constraint Mindtape enforces is one it knows by name: a
 //! status legend, a numeric scale, a tag allow-list, a heading path. A rule
 //! constrains no field in particular, because it names the field itself, in
 //! one of two shapes:
@@ -47,7 +47,7 @@
 //! and on a write refuses it before anything lands. That distinction is the
 //! [`Severity`] `[[tasks.limits]]` already uses, and it travels out of the pass
 //! on [`Violation::severity`] — the one place a violation's fatality is a
-//! project's choice rather than `MindTape`'s.
+//! project's choice rather than Mindtape's.
 //!
 //! An `assert` rule's expression is dry-run once at config load
 //! ([`validate_rules`]), the way `required` and `[[tasks.limits]]` are, so a

@@ -1,6 +1,6 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": exit-code, terminal
-#import "../utils/site.typ": REPO, SITE_URL, u
+#import "../utils/site.typ": REPO, SITE_URL, mindtape, u
 
 #let meta = (
   route: "/agents/",
@@ -23,7 +23,7 @@ sample backend project.
 
 = Give your agent the skill
 
-The MindTape repository ships an agent skill in
+The #mindtape repository ships an agent skill in
 #link(REPO + "/tree/main/skills/mindtape")[`skills/mindtape/`]. Its `SKILL.md`
 tells an agent which `mt` command does what and when to use it, and the agent
 reads the files in `references/` when a task needs them. The skill uses the
@@ -143,7 +143,7 @@ To run `mt` on a worktree from another directory, pass `-w <path>` or set
 in your #link(u("/config/"))[config directory]. A `[[worktrees]]` entry with
 `name` and `path` makes a leading `@name` argument stand for `-w <path>`. An
 entry with `base` makes `@<dir>` stand for `-w <base>/<dir>` when that
-directory holds a MindTape project. `mt worktrees` lists the entries.
+directory holds a #mindtape project. `mt worktrees` lists the entries.
 
 = Pin today's date
 
@@ -154,7 +154,7 @@ accepts.
 
 = Keep your own data in a task
 
-If you build a tool on MindTape, store its data in a task field named
+If you build a tool on #mindtape, store its data in a task field named
 `x-<name>`. `mt` keeps the field as written and returns it under `extras` in
 JSON. #link(u("/concepts/"))[Concepts] describes these fields, and
 #link(u("/self-validating-tasks/"))[Self-validating tasks] shows how to check

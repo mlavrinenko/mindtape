@@ -2243,7 +2243,7 @@
   "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/config.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Schema for `.mindtape/config.toml`, the per-project MindTape configuration. Every section is optional; an omitted section takes the shipped defaults.",
+  "description": "Schema for `.mindtape/config.toml`, the per-project Mindtape configuration. Every section is optional; an omitted section takes the shipped defaults.",
   "properties": {
     "actors": {
       "description": "The project's actor registry (`[[actors]]`): named workers (people and\nlanguage models) that `assignee:` values may reference.",
@@ -2340,6 +2340,6 @@
       "type": "object"
     }
   },
-  "title": "MindTape project configuration",
+  "title": "Mindtape project configuration",
   "type": "object"
 }

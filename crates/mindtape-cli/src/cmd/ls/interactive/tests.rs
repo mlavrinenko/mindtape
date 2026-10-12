@@ -380,7 +380,7 @@ const TASK_METADATA: &str = r#"#metadata((
 /// can only be exercised against a fixture by changing the cwd — which is
 /// process-global. It therefore runs in a child: the previous version of this
 /// test resolved the root from wherever the suite happened to be running,
-/// Typst-evaluated `MindTape`'s own `truth/tasks/` backlog, and asserted only
+/// Typst-evaluated Mindtape's own `truth/tasks/` backlog, and asserted only
 /// that the result was non-empty. That passed for the wrong reason (any
 /// backlog anywhere) and broke the moment the suite ran from another directory.
 #[test]

@@ -4,12 +4,12 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": hero, lsp-demo
 #import "../utils/demo.typ": recipe-table, tagline
-#import "../utils/site.typ": u
+#import "../utils/site.typ": mindtape, u
 
 #let meta = (
   route: "/",
   label: "Overview",
-  title: "MindTape",
+  title: mindtape,
   summary: tagline,
   home: true,
 )

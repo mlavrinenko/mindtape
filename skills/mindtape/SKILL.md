@@ -1,21 +1,21 @@
 ---
 name: mindtape
-description: 'Drive MindTape, a file-based task tracker, through its `mt` CLI; each
+description: 'Drive Mindtape, a file-based task tracker, through its `mt` CLI; each
   task is one Typst file. Use it in any repo with `.mindtape/config.toml` for any
   work on tasks, even when the user does not name the tool: listing, finding, filing,
   blocking, closing, validating or retiring tasks, or "what should I work on". There
-  MindTape is the tracker, in place of GitHub issues or TODO lists. In a repo with
+  Mindtape is the tracker, in place of GitHub issues or TODO lists. In a repo with
   no tracker, offer `mt init` first.'
 ---
 <!-- Generated from docs/src/skill.typ by `just docs md`. Do not edit; edit the source. -->
 
-# MindTape (`mt`)
+# Mindtape (`mt`)
 
 Each task is one Typst file, named by its filename stem. A `links:` target is the path to the other task’s file from the linking file, such as `"../auth/login.typ"`. `mt link` takes a stem and writes that path.
 
 Change tasks with `mt` commands, not by editing files. `mt` fills in the slug, the status date and the injected fields, resolves links, and writes nothing if the result breaks a rule. Edit a file by hand only for what no command writes: the body, a framework priority like `ice(...)`, `estimate`, and an `x-<ns>` slot. Follow `references/hand-editing.md`, then run `mt check`.
 
-## Is this a MindTape project?
+## Is this a Mindtape project?
 
 It is when `.mindtape/config.toml` exists. Run `mt` in the directory that holds `.mindtape/` or below it. For another project, pass `-w <path>`, or put an alias that `mt worktrees` lists, such as `@name`, right after `mt`. In a repo with no tracker, offer `mt init`.
 

@@ -5,7 +5,7 @@
 // the page manifest lacks. The header uses `<h1 align>` and `<h4 align>`,
 // because typlite drops `<p>` and GitHub strips `<center>`. The index groups
 // the pages as the site nav does, minus the pages the opening already links.
-#import "lib.typ": www-groups, www-link
+#import "lib.typ": mindtape, www-groups, www-link
 #import "/www/utils/demo.typ": (
   intro, recipe-routes, recipe-table, showcase, tagline,
 )
@@ -27,11 +27,11 @@
 #html.elem("h1", attrs: (align: "center"))[
   #html.elem("img", attrs: (
     src: "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/www/assets/images/logo.svg",
-    alt: "MindTape",
+    alt: mindtape,
     width: "120",
   ))
   #html.elem("br")
-  MindTape
+  #mindtape
 ]
 
 #html.elem("h4", attrs: (align: "center"))[#tagline]

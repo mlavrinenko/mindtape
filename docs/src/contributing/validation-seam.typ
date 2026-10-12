@@ -4,7 +4,7 @@
 //
 // AGENTS.md links here from its Task DSL section, for a reader adding a
 // validation.
-#import "../lib.typ": doc-title
+#import "../lib.typ": doc-title, mindtape
 
 #metadata((
   output: "docs/contributing/validation-seam.md",
@@ -29,7 +29,7 @@ You're adding a check on a task. Here's which layer it belongs in:
   and `_scalar` falls back to `repr`, so a wrong-typed value reaches the
   marker and Rust reports it. An eval error in the render would name neither
   the field nor the task.
-- A consumer validates its own `x-<ns>` fields. MindTape passes them through
+- A consumer validates its own `x-<ns>` fields. #mindtape passes them through
   unchanged.
 
 So a check on a value goes in Rust and config, and a check on the call's

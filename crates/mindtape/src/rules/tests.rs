@@ -83,7 +83,7 @@ fn a_warn_breach_is_not_fatal() {
     assert!(!breach.is_fatal(), "warn prints, it does not fail");
 }
 
-/// Every check `MindTape` makes on its own is fatal and labelled `error`: severity
+/// Every check Mindtape makes on its own is fatal and labelled `error`: severity
 /// is the one thing only a config-declared rule gets to choose.
 #[test]
 fn a_built_in_violation_carries_no_severity() {

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # .just/scripts/check-doc-prose.sh — the body of the `check-doc-prose` recipe.
 # It stops doc prose, config comments and config schema descriptions from
-# telling history or shouting in all-caps words.
+# telling history or shouting in all-caps words, and a Typst doc source from
+# typing the product's name (`name_scan` below).
 #
 # It scans the hand-written doc sources, prose and comments alike, and prints
 # file, line and word for each hit. The Typst sources come through the shared
@@ -131,6 +132,25 @@ schema_text() {
         | .text | split("\n")[] | [$file, "-", "prose", gsub("\t"; " ")] | join("\t")' "$1"
 }
 
+# The product's name. A Typst source renders it as `#mindtape`, from the
+# constant www/utils/site.typ reads out of the site title in www/tola.toml, so
+# a typed name in either spelling is a hit wherever it sits: prose, a string or
+# a comment. A Markdown source can't reach the constant, so there only the
+# old spelling is a hit. Prints "file:line: message" per hit.
+name_scan() { # <typst file>... -- <markdown file>...
+    local typ=() md=()
+    while [ "$#" -gt 0 ] && [ "$1" != "--" ]; do typ+=("$1"); shift; done
+    [ "$#" -gt 0 ] && shift
+    md=("$@")
+    if [ "${#typ[@]}" -gt 0 ]; then
+        grep -nHoE 'Mind[Tt]ape' "${typ[@]}" | sed -E 's/^([^:]+:[0-9]+):(.*)$/\1: typed name "\2", write #mindtape/'
+    fi
+    if [ "${#md[@]}" -gt 0 ]; then
+        grep -nHoE 'MindTape' "${md[@]}" | sed -E 's/^([^:]+:[0-9]+):.*$/\1: spelling "MindTape", write Mindtape/'
+    fi
+    return 0
+}
+
 # Control: a scanner that matches nothing passes a dirty tree, so it first has
 # to report exactly the hits planted in this fixture.
 control() {
@@ -174,10 +194,18 @@ EOF
  "$defs": {"A": {"description": "Fine.", "oneOf": [
    {"description": "It used to be SHOUTED."}]}}}
 EOF
+    cat >"$dir/n.typ" <<'EOF'
+#let x = "Mindtape" // MindTape
+Use #mindtape, not mindtape-tasks.
+EOF
+    cat >"$dir/m.md" <<'EOF'
+Mindtape passes here, MindTape does not.
+EOF
     out=$({
         rows_for "$dir/f.typ" "$dir/g.yaml" "$dir/h.sh"
         schema_text "$dir/s.json" s.json
     } | scan "$(consts_of "$dir/h.sh")" | sed "s|^$dir/||")
+    out+=$'\n'$(name_scan "$dir/n.typ" -- "$dir/m.md" | sed "s|^$dir/||")
     rm -rf "$dir"
     want='f.typ:2: history word "used to"
 f.typ:3: history word "now"
@@ -198,7 +226,10 @@ h.sh:5: all-caps "RULE"
 h.sh:11: history word "no longer"
 s.json:(root): history word "now"
 s.json:$defs.A.oneOf.0: history word "used to"
-s.json:$defs.A.oneOf.0: all-caps "SHOUTED"'
+s.json:$defs.A.oneOf.0: all-caps "SHOUTED"
+n.typ:1: typed name "Mindtape", write #mindtape
+n.typ:1: typed name "MindTape", write #mindtape
+m.md:1: spelling "MindTape", write Mindtape'
     if [ "$out" != "$want" ]; then
         printf 'check-doc-prose: the control fixture gave\n%s\nexpected\n%s\n' \
             "$out" "$want" >&2
@@ -235,6 +266,8 @@ hits=$({
     rows_for "${typst_sources[@]}" "${md_sources[@]}" "${comment_sources[@]}"
     schema_text schema/config.schema.json schema/config.schema.json
 } | scan "$(consts_of "${typst_sources[@]}" "${comment_sources[@]}")")
+names=$(name_scan "${typst_sources[@]}" -- "${md_sources[@]}")
+hits=$(printf '%s\n%s' "$hits" "$names" | sed '/^$/d')
 if [ -n "$hits" ]; then
     sed 's/^/check-doc-prose: /' <<<"$hits" >&2
     echo "check-doc-prose: rewrite each line plainly; the rules are in docs/contributing/documentation.md" >&2

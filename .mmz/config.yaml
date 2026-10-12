@@ -1,4 +1,4 @@
-# .mmz/config.yaml — per-sub-gate memoized freshness for MindTape's close gate.
+# .mmz/config.yaml — per-sub-gate memoized freshness for Mindtape's close gate.
 #
 # `mt flip` into a terminal status runs `mmz --is-fresh --tag gate`, which
 # asserts every gate-tagged rule already passed against this worktree rather

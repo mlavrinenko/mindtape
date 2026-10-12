@@ -1,8 +1,8 @@
 // Page chrome: <head>, header, docs sidebar, main, footer.
 
 #import "../utils/site.typ": (
-  NAV, NAV_CHILDREN, REPO, SITE, SITE_URL, md-path, page-meta, render-summary,
-  u,
+  NAV, NAV_CHILDREN, REPO, SITE, SITE_URL, md-path, mindtape, page-meta,
+  render-summary, u,
 )
 
 // Set data-theme before first paint (no flash), then a global toggle.
@@ -221,9 +221,9 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
   html.elem("span", attrs: (
     class: "brand-mark",
     role: "img",
-    "aria-label": "MindTape",
+    "aria-label": mindtape,
   ))
-    + html.elem("span", attrs: (class: "brand-name"), [MindTape]),
+    + html.elem("span", attrs: (class: "brand-name"), [#mindtape]),
 )
 
 #let _toggle = html.elem(

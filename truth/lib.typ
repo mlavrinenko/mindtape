@@ -1,5 +1,5 @@
 // Helpers every open task imports. `check-goals(value)` checks a task's
-// `x-goals` field against both goal sets, goals.typ (what MindTape is for)
+// `x-goals` field against both goal sets, goals.typ (what Mindtape is for)
 // and process-goals.typ (how this repo builds it), returning one message per
 // problem instead of panicking: a `[[tasks.rules]] check` rule collects every
 // string it returns as a breach, so several omissions surface together

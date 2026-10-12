@@ -44,7 +44,7 @@
 # justification cannot police the thing that writes it, because a model asked to
 # justify a claim predicts a plausible ending rather than checking reality. An
 # external predicate can. The `[[on.flip]]` gate at the bottom of this file is
-# where you point MindTape at yours.
+# where you point Mindtape at yours.
 
 [tasks]
 [[tasks.roots]]
