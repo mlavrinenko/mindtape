@@ -149,7 +149,7 @@ groups:
       .config/nextest.toml: 1aa04153954c5ab8ce468d3e08225b76d6dd1f636874b9591c275c588b89f984
       .config/wt.toml: bc7d39daebc51462d6e569170005a3628e6f5206c8d3e6ea3a09d1d40ff73439
       .just/docs.just: 300226a86d551abc287d058efd9cbc2143fa7f15e3c6b53131699f27f35847fc
-      .just/scripts/wt-carry-lcov.sh: 0352be6580d280c7eb253ded48c275eba1cba390d500454483b938903146fae3
+      .just/scripts/wt-carry-lcov.sh: da29d756c94da7817fef3d1248e1cc049d9eef715400b6d0dff7908a3488bf67
       Justfile: cd10244c1f93b3f11c3d53c9cceecf158a1abbb1f2bec22a882749bb65ae2166
       flake.nix: ef91529881401b7bfffd564c53a0ff62d9d24b8b9adaa6c52f510119a9004305
     dependents:

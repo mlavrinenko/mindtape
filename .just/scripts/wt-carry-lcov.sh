@@ -9,7 +9,7 @@
 # a second instrumented build for numbers the worktree already has.
 #
 # Never fatal: the merge has landed, and a failed copy does not un-land it. Every
-# way out exits 0, and a copy that fails says so on stderr.
+# way out exits 0, and a skip for staleness or a failed copy says so on stderr.
 set -eo pipefail
 
 primary=${1:?usage: wt-carry-lcov.sh <primary-checkout>}
@@ -28,9 +28,18 @@ if [ -f "$primary/$lcov" ] && [ ! "$here/$lcov" -nt "$primary/$lcov" ]; then
 fi
 
 # The copy gets a new mtime, so staleness is judged here, against the sources
-# the lcov was written from, by the same script `just crap` asks.
+# the lcov was written from, by the same script `just crap` asks. A rebase
+# rewrites the files it replays, so their mtimes pass the lcov's though their
+# bytes did not change; mmz hashes content, so a `just cover` it calls fresh
+# keeps the lcov valid whatever the mtimes say.
 stale=$(cd "$here" && bash .just/scripts/_lcov-stale-reason.sh 2>/dev/null) || stale=unanswered
-[ -z "$stale" ] || exit 0
+if [ -n "$stale" ] && (cd "$here" && mmz --is-fresh -- just cover) >/dev/null 2>&1; then
+    stale=
+fi
+if [ -n "$stale" ]; then
+    echo "wt-carry-lcov: skipped, $stale and \`just cover\` is not fresh" >&2
+    exit 0
+fi
 
 # llvm-cov writes absolute `SF:` paths, so they are rewritten to the primary
 # checkout. The paths go in through the environment: awk -v would read a

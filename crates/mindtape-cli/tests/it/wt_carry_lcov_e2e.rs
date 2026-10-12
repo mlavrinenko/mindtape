@@ -94,6 +94,39 @@ impl Pair {
             .unwrap()
     }
 
+    /// Run the script with an `mmz` first on `PATH` that answers
+    /// `--is-fresh -- just cover` with `exit_code`.
+    fn carry_with_mmz(&self, exit_code: i32) -> Output {
+        let bin = self.dir.path().join("bin");
+        write(&bin.join("mmz"), &format!("#!/bin/sh\nexit {exit_code}\n"));
+        std::fs::set_permissions(
+            bin.join("mmz"),
+            std::os::unix::fs::PermissionsExt::from_mode(0o755),
+        )
+        .unwrap();
+        let path = format!(
+            "{}:{}",
+            bin.display(),
+            std::env::var("PATH").unwrap_or_default()
+        );
+        Command::new("bash")
+            .arg(SCRIPT)
+            .arg(self.primary())
+            .current_dir(self.worktree())
+            .env_remove("BASH_ENV")
+            .env("PATH", path)
+            .output()
+            .unwrap()
+    }
+
+    /// A worktree whose lcov is older than its source by mtime, as after a
+    /// rebase, and the `mmz` verdict on `just cover`, run through the hook.
+    fn rebased_carry(&self, mmz_exit: i32) -> Output {
+        self.instrument();
+        age(&self.worktree().join(LCOV), 7200);
+        self.carry_with_mmz(mmz_exit)
+    }
+
     fn carried(&self) -> Option<String> {
         std::fs::read_to_string(self.primary().join(LCOV)).ok()
     }
@@ -165,13 +198,30 @@ fn a_branch_that_did_not_land_carries_nothing() {
 }
 
 #[test]
-fn an_lcov_older_than_a_source_is_not_carried() {
+fn a_rebased_branch_whose_cover_record_is_fresh_still_carries() {
+    // A rebase rewrites the files it replays, so the lcov is older than a
+    // source by mtime while mmz, which hashes content, calls `just cover` fresh.
     let pair = Pair::new();
-    pair.instrument();
-    age(&pair.worktree().join(LCOV), 7200);
-    let out = pair.carry(&pair.primary());
+    let out = pair.rebased_carry(0);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(pair.carried().is_some(), "a content-fresh lcov was skipped");
+}
+
+#[test]
+fn a_skipped_carry_says_why() {
+    let pair = Pair::new();
+    let out = pair.rebased_carry(1);
     assert!(out.status.success());
-    assert!(pair.carried().is_none(), "a stale lcov was carried");
+    assert!(pair.carried().is_none());
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        err.contains("wt-carry-lcov: skipped") && err.contains("predates"),
+        "{err}"
+    );
 }
 
 #[test]
