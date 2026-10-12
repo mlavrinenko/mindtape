@@ -39,14 +39,6 @@ trait Axis: Copy + Sized + PartialEq + 'static {
     fn fragment(self) -> &'static str;
     /// The choice used when the question is skipped.
     fn default_value() -> Self;
-    /// `Some(reason)` when THIS build cannot act on the choice's config. Such a
-    /// choice is neither listed in the menu nor accepted from a flag: a wizard
-    /// is a promise that the composed config runs, and a config the binary
-    /// cannot honour fails later and elsewhere, where the user cannot connect
-    /// it back to the answer that caused it.
-    fn unavailable(self) -> Option<&'static str> {
-        None
-    }
     /// Resolve a slug back to its choice.
     fn from_slug(slug: &str) -> Option<Self> {
         Self::VARIANTS
@@ -54,28 +46,14 @@ trait Axis: Copy + Sized + PartialEq + 'static {
             .copied()
             .find(|value| value.slug() == slug)
     }
-    /// The choices this build offers, in menu order.
-    fn offered() -> Vec<Self> {
-        Self::VARIANTS
-            .iter()
-            .copied()
-            .filter(|value| value.unavailable().is_none())
-            .collect()
-    }
 }
 
 /// Define an axis enum, its [`Axis`] impl, and its `clap::ValueEnum` derivation.
-///
-/// The optional trailing `unavailable { … }` block declares, per choice, a
-/// condition under which this build cannot honour it and the reason to report.
-/// The variant stays compiled either way, so `--<axis> <slug>` keeps parsing and
-/// keeps showing in `--help`; only the answer is refused, with the reason.
 macro_rules! axis {
     (
         $name:ident ($title:literal, default = $default:ident) {
             $( $variant:ident = $slug:literal : $blurb:literal => $frag:expr ),+ $(,)?
         }
-        $( unavailable { $( $off:ident when $cond:expr => $why:literal ),+ $(,)? } )?
     ) => {
         #[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
         pub enum $name { $( #[value(name = $slug, help = $blurb)] $variant ),+ }
@@ -87,10 +65,6 @@ macro_rules! axis {
             fn blurb(self) -> &'static str { match self { $( Self::$variant => $blurb ),+ } }
             fn fragment(self) -> &'static str { match self { $( Self::$variant => $frag ),+ } }
             fn default_value() -> Self { Self::$default }
-            $( fn unavailable(self) -> Option<&'static str> {
-                $( if self == Self::$off && ($cond) { return Some($why); } )+
-                None
-            } )?
         }
     };
 }
@@ -153,13 +127,10 @@ pub struct Outcome {
 /// (workflow, priority, organisation) are asked first; the four extras hide
 /// behind one "accept defaults for the rest?" gate so the walk is never a wall
 /// of seven prompts. `interactive` is false for a non-terminal or `--no-input`
-/// run, where every un-flagged axis takes its default without a prompt. An axis
-/// this build has reduced to one honourable choice ([`Axis::unavailable`]) is
-/// not a question either, and is never prompted.
+/// run, where every un-flagged axis takes its default without a prompt.
 ///
 /// # Errors
-/// Propagates IO errors from reading the answers or writing the prompts, and
-/// refuses a flag naming a choice this build cannot honour.
+/// Propagates IO errors from reading the answers or writing the prompts.
 pub fn resolve<R: BufRead, W: Write>(
     flags: &Flags,
     interactive: bool,
@@ -192,12 +163,11 @@ pub fn resolve<R: BufRead, W: Write>(
     })
 }
 
-/// A flag wins outright (suppressing the question) unless this build cannot
-/// honour it, which fails the run rather than composing a config that breaks
-/// later; otherwise ask when `ask`, else take the default.
+/// A flag wins outright, suppressing the question; otherwise ask when `ask`,
+/// else take the default.
 ///
 /// # Errors
-/// Returns an error when the flagged choice is [`Axis::unavailable`].
+/// Propagates IO errors from reading the answer or writing the prompt.
 fn choose<A: Axis, R: BufRead, W: Write>(
     flag: Option<A>,
     ask: bool,
@@ -205,12 +175,7 @@ fn choose<A: Axis, R: BufRead, W: Write>(
     writer: &mut W,
 ) -> Result<A> {
     if let Some(value) = flag {
-        return match value.unavailable() {
-            Some(why) => Err(Diag::refused("this choice is unavailable in this build")
-                .value(value.slug())
-                .note(Note::new(why))),
-            None => Ok(value),
-        };
+        return Ok(value);
     }
     if ask {
         return ask_axis(reader, writer);
@@ -221,18 +186,10 @@ fn choose<A: Axis, R: BufRead, W: Write>(
 /// Render one axis's menu, read a choice (number, slug, or empty for the
 /// default), and re-prompt on anything unrecognised. EOF resolves to the
 /// default rather than looping.
-///
-/// Only the choices this build can honour are listed, and they are numbered as
-/// listed — a hidden choice leaves no gap in the menu. An axis left with one
-/// choice is not a question, so it resolves to the default unasked.
 fn ask_axis<A: Axis, R: BufRead, W: Write>(reader: &mut R, writer: &mut W) -> Result<A> {
-    let offered = A::offered();
-    if offered.len() < 2 {
-        return Ok(A::default_value());
-    }
     loop {
         writeln!(writer, "\n{}", A::TITLE)?;
-        for (index, variant) in offered.iter().enumerate() {
+        for (index, variant) in A::VARIANTS.iter().enumerate() {
             let marker = if *variant == A::default_value() {
                 " [default]"
             } else {
@@ -258,15 +215,11 @@ fn ask_axis<A: Axis, R: BufRead, W: Write>(reader: &mut R, writer: &mut W) -> Re
             return Ok(A::default_value());
         }
         if let Ok(index) = choice.parse::<usize>()
-            && let Some(variant) = index.checked_sub(1).and_then(|i| offered.get(i))
+            && let Some(variant) = index.checked_sub(1).and_then(|i| A::VARIANTS.get(i))
         {
             return Ok(*variant);
         }
-        // Filtered, not matched separately: an axis whose only unavailable
-        // choice is hidden is left with one choice and never reaches this loop,
-        // so a dedicated "unavailable" message here would be unreachable. The
-        // reason is reported where a user can actually ask for it — the flag.
-        if let Some(variant) = A::from_slug(choice).filter(|v| v.unavailable().is_none()) {
+        if let Some(variant) = A::from_slug(choice) {
             return Ok(variant);
         }
         writeln!(

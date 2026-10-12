@@ -145,16 +145,6 @@ fn declining_the_gate_walks_the_extras() {
     assert_eq!(answers.recurrence, Recurrence::Rrule);
 }
 
-/// Every build carries the `rrule` expansion engine, so the recurrence axis
-/// offers each of its choices.
-#[test]
-fn the_recurrence_axis_offers_rrule() {
-    assert_eq!(Recurrence::Rrule.unavailable(), None);
-    assert_eq!(Recurrence::offered(), Recurrence::VARIANTS);
-    assert_eq!(Workflow::offered().len(), Workflow::VARIANTS.len());
-    assert_eq!(Priority::offered().len(), Priority::VARIANTS.len());
-}
-
 /// Declining the extras gate asks the recurrence question, with `rrule` listed
 /// on its menu and picked by its number.
 #[test]
@@ -167,92 +157,6 @@ fn declining_the_gate_lists_the_rrule_menu_entry() {
     assert!(prompts.contains(Recurrence::TITLE), "{prompts}");
     assert!(prompts.contains("2) rrule"), "{prompts}");
     assert_eq!(answers.recurrence, Recurrence::Rrule);
-}
-
-/// Always true, as a call rather than a literal so the generated condition is
-/// an expression clippy has no simplification for.
-fn always() -> bool {
-    true
-}
-
-// A three-choice axis with the middle one hidden. No real axis hides a choice,
-// so this probe is where the menu and the flag meet one: a hidden choice
-// between offered ones.
-// The title and blurbs deliberately avoid the word `hidden`, so the assertions
-// below can look for it in the rendered menu and mean the slug alone.
-axis!(Probe ("Probe — a middle choice this build cannot honour:", default = First) {
-    First = "first": "offered" => "",
-    Hidden = "hidden": "unavailable" => "",
-    Last = "last": "offered" => "",
-}
-unavailable {
-    Hidden when always() => "the probe axis hides this one unconditionally",
-});
-
-/// Drive one axis's menu with a scripted answer, returning the choice and the
-/// prompt text.
-fn ask<A: Axis>(script: &str) -> (A, String) {
-    let mut reader = Cursor::new(script.as_bytes().to_vec());
-    let mut writer = Vec::<u8>::new();
-    let chosen = super::ask_axis(&mut reader, &mut writer).unwrap();
-    (chosen, String::from_utf8(writer).unwrap())
-}
-
-/// A hidden choice is absent from the menu and the numbering closes over it,
-/// so `2` is the second choice SHOWN, not the second variant declared.
-#[test]
-fn the_menu_numbers_the_offered_choices_not_the_declared_ones() {
-    let (chosen, prompts) = ask::<Probe>("2\n");
-    assert!(!prompts.contains("hidden"), "{prompts}");
-    assert!(prompts.contains("1) first"), "{prompts}");
-    assert!(prompts.contains("2) last"), "{prompts}");
-    assert_eq!(chosen, Probe::Last);
-}
-
-/// The slug of a hidden choice is refused like any unrecognised word — hiding
-/// it from the menu but honouring it when typed would be the same bug wearing
-/// a different hat.
-#[test]
-fn a_hidden_slug_typed_at_the_prompt_re_prompts() {
-    let (chosen, prompts) = ask::<Probe>("hidden\nlast\n");
-    assert!(prompts.contains("not one of the choices"), "{prompts}");
-    assert_eq!(chosen, Probe::Last);
-}
-
-/// A flag naming a choice this build cannot honour fails the run, naming the
-/// slug and the reason. Composing it instead would defer the failure to
-/// `mt check` in a later session, where nothing connects it back to the answer.
-#[test]
-fn an_unavailable_flag_is_refused_by_name_and_reason() {
-    let mut reader = Cursor::new(Vec::new());
-    let mut writer = Vec::<u8>::new();
-    let refusal = super::choose(Some(Probe::Hidden), true, &mut reader, &mut writer).unwrap_err();
-    let message = crate::diag::plain(&refusal);
-    assert!(message.contains("'hidden'"), "{message}");
-    assert!(
-        message.contains("hides this one unconditionally"),
-        "{message}"
-    );
-    assert!(writer.is_empty(), "a refused flag prompts nothing");
-}
-
-// A two-choice axis with one hidden: the shape an axis takes when this build
-// can honour only its default.
-axis!(Lone ("Lone — one choice this build can honour:", default = Kept) {
-    Kept = "kept": "offered" => "",
-    Gone = "gone": "unavailable" => "",
-}
-unavailable {
-    Gone when always() => "the lone axis hides this one unconditionally",
-});
-
-/// An axis left with one offered choice is no question: it resolves to the
-/// default and prompts nothing.
-#[test]
-fn an_axis_with_one_offered_choice_is_not_asked() {
-    let (chosen, prompts) = ask::<Lone>("gone\n");
-    assert_eq!(chosen, Lone::Kept);
-    assert!(prompts.is_empty(), "{prompts}");
 }
 
 /// Input that ends at the first prompt takes every default: each axis and the
@@ -417,18 +321,27 @@ fn a_lone_recurrence_flag_still_offers_the_gate() {
     assert!(prompts.contains("Accept defaults"), "{prompts}");
 }
 
+/// Drive one axis's menu with a scripted answer, returning the choice and the
+/// prompt text.
+fn ask<A: Axis>(script: &str) -> (A, String) {
+    let mut reader = Cursor::new(script.as_bytes().to_vec());
+    let mut writer = Vec::<u8>::new();
+    let chosen = super::ask_axis(&mut reader, &mut writer).unwrap();
+    (chosen, String::from_utf8(writer).unwrap())
+}
+
 /// The default choice is the one the menu marks; the marker is not on every
-/// other choice instead. Inverting the equality would mark `last`.
+/// other choice instead. Inverting the equality would mark the others.
 #[test]
 fn the_menu_marks_the_default_choice() {
-    let (_chosen, prompts) = ask::<Probe>("1\n");
-    let marked: Vec<&str> = prompts
-        .lines()
-        .filter(|line| line.contains("[default]"))
-        .collect();
-    assert_eq!(marked.len(), 1, "exactly one default marker: {prompts}");
-    assert!(
-        marked.iter().any(|line| line.contains("first")),
-        "the default choice must carry the marker: {prompts}"
-    );
+    let (_chosen, prompts) = ask::<Workflow>("\n");
+    let default_line = format!("{:<11} ", Workflow::default_value().slug());
+    for line in prompts.lines().filter(|l| l.contains(") ")) {
+        assert_eq!(
+            line.contains("[default]"),
+            line.contains(&default_line),
+            "{prompts}"
+        );
+    }
+    assert_eq!(prompts.matches("[default]").count(), 1, "{prompts}");
 }
