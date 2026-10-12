@@ -42,13 +42,15 @@ api_copy() {
     capture_prep "${!1}" 'git init -q -b main && git add -A && git commit -qm "Start the backlog"'
 }
 
-# Split oversized tasks: a task estimated at 7 source files is refused at
-# `mt add`, and nothing is written.
+# Split oversized tasks: a task that takes judgment and touches 7 source
+# files is refused at `mt add`, and nothing is written. A rename touches 12
+# and is filed, because mechanical work has no cap.
 api_copy P
-capture --exit 1 --expect 'rules\.split-big-work' split-oversized-tasks "$P" "$(
+capture --exit 1 --expect 'rules\.judgment-stays-small' split-oversized-tasks "$P" "$(
     cat <<'CMD'
 mt add -f - <<'EOF'
 title: Sign in with Google and GitHub
+difficulty: 6
 src-files: 7
 problem: |
   + Open `/login`.
@@ -65,6 +67,24 @@ changes: |
   - `migrations/0007_identities.sql`, new: link each provider account to a user.
 out-of-scope: |
   - Sign in with Apple.
+EOF
+CMD
+)"
+capture split-oversized-tasks "$P" "$(
+    cat <<'CMD'
+mt add -f - <<'EOF'
+title: Rename the User type to Account
+difficulty: 1
+src-files: 12
+problem: |
+  + Grep `src/` for `User`.
+  + 🔴 The type is `User`, while the API, the database and the UI say account.
+to-be: |
+  - 🟢 The type is `Account` everywhere, and no behaviour changes.
+changes: |
+  - `src/**/*.rs`: rename `User` to `Account` in each of the 12 files that name it.
+out-of-scope: |
+  - The `users` table, which keeps its name.
 EOF
 CMD
 )"

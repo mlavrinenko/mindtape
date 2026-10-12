@@ -39,13 +39,14 @@ check = { typst = "goals.typ", function = "check-goals", field = "x-goals" }
 severity = "error"
 # docs:end
 
-# Split oversized tasks: a task estimated over 5 source files is refused.
+# Split oversized tasks: a task that takes judgment, difficulty 3 and up, is
+# refused over 5 source files. Mechanical work has no cap.
 # docs:slice api-service/split-oversized-tasks
 [[tasks.rules]]
-name = "split-big-work"
-when = "!terminal"
+name = "judgment-stays-small"
+when = "!terminal && difficulty >= 3"
 assert = "estimate.src-files <= 5"
-message = "split it into tasks of 5 source files or fewer"
+message = "split the decision from the mechanical edits, so each task touches 5 source files or fewer"
 severity = "error"
 
 [tasks.estimate]

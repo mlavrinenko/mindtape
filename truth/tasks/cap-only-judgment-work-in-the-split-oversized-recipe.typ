@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 12),
+  status: done(
+    2026,
+    10,
+    12,
+  )[the recipe caps difficulty 3 and up at 5 source files and files a 12-file rename],
 )
 
 == Problem

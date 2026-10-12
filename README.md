@@ -46,7 +46,7 @@ Here are some examples of what a few lines of config can do. These checks aren�
 
 | Recipe | What it does | What `mt` prints |
 | --- | --- | --- |
-| [Split oversized tasks](https://mlavrinenko.github.io/mindtape/split-oversized-tasks/) | Cap how many source files a task may touch, so a big task gets split before it’s filed. | `error: the task as filled:2: rules.split-big-work: split it into tasks of 5 source files or fewer` |
+| [Split oversized tasks](https://mlavrinenko.github.io/mindtape/split-oversized-tasks/) | Cap how many source files a task may touch when it takes judgment, so a big design gets split before it’s filed. | `error: the task as filled:2: rules.judgment-stays-small: split the decision from the mechanical edits, so each task touches 5 source files or fewer` |
 | [Require a task shape](https://mlavrinenko.github.io/mindtape/require-a-task-shape/) | Refuse a task that doesn’t say how to reproduce the problem, what done looks like and which files change. | `error: missing required slots: 'to-be, changes, out-of-scope'` |
 | [Tie work to your goals](https://mlavrinenko.github.io/mindtape/tie-work-to-goals/) | Make each milestone say how it serves your goals, and refuse one that helps none of them. | `error: the task as filled:3: rules.goals: it helps no goal, so name one it helps or drop it` |
 | [Limit work in progress](https://mlavrinenko.github.io/mindtape/limit-work-in-progress/) | Allow one milestone and one task in progress, and refuse to start a task before the tasks it depends on are done. | `error: tasks/add-redis-client.typ:2: rules.one-task: finish the task in progress before you start another` |

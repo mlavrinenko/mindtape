@@ -5,6 +5,12 @@
     prompt: "Starts with a verb: Throttle failed logins per IP",
     example: "Throttle failed logins per IP",
   ),
+  difficulty: slot(
+    "difficulty",
+    kind: "int",
+    default: 3,
+    prompt: "How much judgment it takes, 0 to 9. A rename is 1, a design call 3 and up",
+  ),
   estimate: (
     src-files: slot(
       "src-files",
