@@ -1,6 +1,6 @@
 // Rendering helpers shared across content pages.
 
-#import "site.typ": MARKDOWN, PKG, mindtape, u
+#import "site.typ": MARKDOWN, PKG, md-copy-button, mindtape, u
 #import "demo.typ": lede
 
 // Inline package name, e.g. `@local/mindtape:0.2.0` — always version-synced.
@@ -190,7 +190,11 @@
 
 #let _html-hero() = html.elem("section", attrs: (class: "hero"), {
   html.elem("div", attrs: (class: "hero-lede"), {
-    html.elem("h1", mindtape)
+    html.elem(
+      "div",
+      attrs: (class: "page-title"),
+      html.elem("h1", mindtape) + md-copy-button("/"),
+    )
     html.elem("p", attrs: (class: "hero-sub"), lede)
     html.elem("div", attrs: (class: "hero-cta"), {
       html.elem(

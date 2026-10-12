@@ -1,8 +1,8 @@
 // Page chrome: <head>, header, docs sidebar, main, footer.
 
 #import "../utils/site.typ": (
-  NAV, NAV_CHILDREN, REPO, SITE, SITE_URL, md-path, mindtape, page-meta,
-  render-summary, u,
+  NAV, NAV_CHILDREN, REPO, SITE, SITE_URL, md-copy-button, md-path, mindtape,
+  page-meta, render-summary, u,
 )
 
 // Set data-theme before first paint (no flash), then a global toggle.
@@ -117,6 +117,23 @@ update();
 // viewports, collapsed (a `<details>` toggle) on narrow ones so it never
 // shoves the content down. `data-pagefind-ignore` keeps this nav out of the
 // search index, matching the header/sidebar/footer it sits alongside.
+// Copy as Markdown: fetch the page's Markdown copy and put it on the
+// clipboard. ClipboardItem takes the fetch as a promise, so Safari keeps the
+// click's permission while the fetch runs. If the copy fails, the copy opens
+// in a new tab instead.
+#let _md-copy-script = "document.addEventListener('click',function(e){
+var b=e.target.closest('.md-copy');if(!b)return;
+var url=b.getAttribute('data-md'),tip=b.getAttribute('data-tip');
+var text=fetch(url).then(function(r){if(!r.ok)throw new Error(r.status);return r.text()});
+var done=window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write
+?navigator.clipboard.write([new ClipboardItem({'text/plain':text.then(function(t){return new Blob([t],{type:'text/plain'})})})])
+:text.then(function(t){return navigator.clipboard.writeText(t)});
+done.then(function(){
+b.setAttribute('data-tip','Copied');b.classList.add('md-copy-said');
+setTimeout(function(){b.setAttribute('data-tip',tip);b.classList.remove('md-copy-said')},1500);
+},function(){window.open(url,'_blank')});
+});"
+
 #let _toc-script = "document.addEventListener('DOMContentLoaded',function(){
 var main=document.querySelector('main[data-pagefind-body]');
 if(!main)return;
@@ -210,6 +227,7 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
   html.script(_theme-script)
   html.script(_matrix-script)
   html.script(_toc-script)
+  html.script(_md-copy-script)
   html.script(_search-init)
 }
 
@@ -306,11 +324,6 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
       // Pagefind mounts its input here; the results drawer floats as a popup.
       html.elem("div", attrs: (class: "search", id: "search"))
       html.elem("div", attrs: (class: "header-right"), {
-        html.elem(
-          "a",
-          attrs: (href: _md-url(active), class: "header-link"),
-          [Markdown],
-        )
         html.elem("a", attrs: (href: REPO, class: "header-link"), [GitHub])
         _toggle
       })
@@ -325,7 +338,13 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
       "main",
       attrs: (class: if home { "home" } else { "" }, "data-pagefind-body": ""),
       {
-        if title != none and not home { html.elem("h1")[#title] }
+        if title != none and not home {
+          html.elem(
+            "div",
+            attrs: (class: "page-title"),
+            html.elem("h1")[#title] + md-copy-button(active),
+          )
+        }
         // The home page carries its own hero lede (see hero() in ui.typ); skip
         // here so it never doubles up.
         if summary != none and not home {

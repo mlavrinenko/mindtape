@@ -56,6 +56,17 @@
 
 #let u(path) = if MARKDOWN { SITE_URL + md-path(path) } else { PREFIX + path }
 
+// A button beside a page's title that copies the page at `route` as Markdown,
+// the copy www/generate-md.sh writes beside its HTML. The script in
+// www/templates/layout.typ copies it, and CSS shows `data-tip` on hover.
+#let md-copy-button(route) = html.elem("button", attrs: (
+  class: "md-copy",
+  type: "button",
+  "aria-label": "Copy as Markdown",
+  "data-tip": "Copy as Markdown",
+  "data-md": PREFIX + md-path(route),
+))
+
 #let SITE = (
   title: mindtape,
   tagline: "File-based task tracker with one Typst file per task.",

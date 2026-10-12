@@ -304,3 +304,29 @@ main td code { font-size: 0.82em; }
 
 /* Lede paragraph under an h1 --------------------------------------------- */
 .lede { font-size: 1.12rem; color: var(--muted); margin-bottom: 1.6rem; }
+
+/* Copy as Markdown: an icon button beside the page title, its tooltip drawn
+   from data-tip, which the script in layout.typ sets to "Copied" for a moment
+   after a copy. */
+.page-title { display: flex; align-items: center; gap: 0.75rem; margin: 0 0 1.6rem; }
+.page-title h1 { margin: 0; }
+.hero .page-title { margin: 0 0 0.8rem; }
+.md-copy {
+  position: relative; flex: none; width: 34px; height: 28px; padding: 0;
+  border: 1px solid var(--border); border-radius: 7px; background: var(--bg-soft);
+  color: var(--muted); cursor: pointer; display: inline-grid; place-items: center;
+}
+.md-copy::before {
+  content: ""; width: 20px; height: 13px; background: currentColor;
+  -webkit-mask: url("../images/markdown.svg") center / contain no-repeat;
+  mask: url("../images/markdown.svg") center / contain no-repeat;
+}
+.md-copy:hover, .md-copy:focus-visible { color: var(--accent); border-color: var(--accent); }
+.md-copy::after {
+  content: attr(data-tip); position: absolute; top: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%); white-space: nowrap; pointer-events: none;
+  font: 500 0.72rem/1 var(--font-mono); padding: 0.35rem 0.5rem; border-radius: 6px;
+  background: var(--fg); color: var(--bg); opacity: 0; transition: opacity 0.12s;
+  z-index: 5;
+}
+.md-copy:hover::after, .md-copy:focus-visible::after, .md-copy.md-copy-said::after { opacity: 1; }

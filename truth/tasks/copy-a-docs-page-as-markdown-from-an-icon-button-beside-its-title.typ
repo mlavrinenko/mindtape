@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 12),
+  status: done(
+    2026,
+    10,
+    12,
+  )[an M↓ button beside each page title copies its Markdown, and the header link is gone],
 )
 
 == Problem
@@ -51,7 +55,8 @@
 
 - `www/templates/layout.typ`: the button and its script, the header link gone.
 - `www/assets/styles/components.css`: the button and its tooltip.
-- `www/assets/images/markdown.svg`: the icon, if no inline one fits.
+- `www/assets/images/markdown.svg`: the Markdown mark, which the CSS draws as a mask.
+- `www/utils/site.typ` and `www/utils/ui.typ`: the button, beside the layout's titles and the hero's.
 
 
 == Out of scope
