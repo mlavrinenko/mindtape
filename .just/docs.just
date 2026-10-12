@@ -98,12 +98,17 @@ gen:
 # `--clean` forces every page to re-render on every `build` and `check`, so a
 # build never validates HTML that the current facts did not produce.
 # docs/src/contributing/generated-docs.typ states what that costs.
+#
+# tola's progress bar is captured and replayed only on failure, as in `check`
+# below, which says why no flag silences it.
 
 [doc("Build the docs site, its Markdown copies and llms.txt")]
 [group("docs")]
 [working-directory("www")]
 build: gen
-    tola build --clean && pagefind --site public/mindtape --silent && bash generate-md.sh
+    out=$(tola build --clean 2>&1) || { printf '%s\n' "$out"; exit 1; }
+    pagefind --site public/mindtape --silent
+    bash generate-md.sh
 
 [doc("Serve the docs locally with hot reload (no search index)")]
 [group("docs")]
