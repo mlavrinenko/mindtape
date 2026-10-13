@@ -439,13 +439,14 @@ groups:
       - docs/src/contributing/signal-sweep.typ
       - docs/src/contributing.typ
 
-  # The release recipe, which contributing.typ describes.
+  # The release recipe, which contributing.typ and the release deep dive describe.
   - name: release-docs
     source:
       - .just/scripts/release-hook.sh
       - release.toml
     dependents:
       - docs/src/contributing.typ
+      - docs/src/contributing/release.typ
 
   # The outdatty.lock merge driver and the attribute that assigns it, which
   # contributing.typ names under Dependency Drift.

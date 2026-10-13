@@ -1,14 +1,10 @@
 // docs/src/contributing.typ renders the repo-root CONTRIBUTING.md through
 // docs/generate-md.sh (typlite; docs/src/lib.typ lists the constraints).
 //
-// Every agent session in this repo loads CONTRIBUTING.md, so it holds the
-// rules and nothing else. A rule's reasons and mechanics go in a
-// docs/contributing/*.md deep dive, and how a gate works goes in its recipe
-// comment or script header. .linecop.yaml caps the rendered file.
-//
-// No list of the gates lives here. The reader asks `just` for them, so the
-// list can't drift from the Justfile. What a gate runs is in its recipe or
-// script.
+// Every agent session loads CONTRIBUTING.md, so it holds the rules and nothing
+// else. A rule's reasons and mechanics go in a docs/contributing/*.md deep
+// dive or in a recipe comment or script header. No list of the gates lives
+// here: the reader asks `just`, so the list can't drift from the Justfile.
 #import "lib.typ": doc-title, just, mindtape
 
 #metadata((
@@ -82,8 +78,7 @@ gate fails on any violation. These limits shape the code most:
 - Run the suite with #just.test() and count it with #just.count-tests().
 - If your code runs a process or joins paths, the Windows CI job runs it too.
   See #link("docs/contributing/windows.md")[docs/contributing/windows.md].
-- Before a PR, run #just.mutants-diff() and triage every survivor. A survivor
-  is code the tests run but don't check. A run over 100 mutants, about 20
+- Before a PR, run #just.mutants-diff() and triage every survivor. A run over 100 mutants, about 20
   minutes, needs the owner's approval, so an agent stops and asks instead of
   setting `MINDTAPE_MUTANTS_APPROVED=1` itself. The triage classes are in
   #link("docs/contributing/mutation-testing.md")[docs/contributing/mutation-testing.md].
@@ -109,14 +104,12 @@ If you add a function or complexity, run #just.crap-baseline() in the same
 commit. The thresholds and their reasons are in
 #link("docs/contributing/coverage-crap.md")[docs/contributing/coverage-crap.md].
 
-If you touch `flake.nix` or `.cargo/config.toml`, run #just.nix-build(). It
-builds the flake in a clean sandbox, and #just.release() runs it too.
+If you touch `flake.nix` or `.cargo/config.toml`, run #just.nix-build().
 
 In a delegated worktree, you can skip the hook's freshness check with
 `MINDTAPE_GATE_SCOPE=<reason> git commit`. That's safe there because
 #just.land() runs #just.check() on the branch's final tree before it
-fast-forwards. Your message then needs a matching `Gate-Scope: <reason>`
-trailer. Never scope a commit to get past a failing gate.
+fast-forwards. Never scope a commit to get past a failing gate.
 
 = Worktrees
 
@@ -138,11 +131,9 @@ use `git stash` in a worktree: all worktrees share one stash list, so a `pop`
 can apply another worktree's work. Make a WIP commit instead.
 
 `.config/wt.toml` holds the hooks, so a clone with nix and direnv needs no
-worktrunk config of its own. They build the new worktree's `mt`, run
-#just.check() and `mt check --commits main..HEAD` before the fast-forward, which
-refuses a branch that names a still-`wip` task in `Refs:`, carry the gate
-records and the coverage lcov to the primary checkout, and rebuild the target's
-`mt`.
+worktrunk config of its own. Before the fast-forward they run #just.check() and
+`mt check --commits main..HEAD`, which refuses a branch that names a
+still-`wip` task in `Refs:`.
 
 = Commit Messages
 
@@ -174,8 +165,7 @@ says what checks these rules, and why `Refs:` names a stem.
 
 When you see a real problem outside your task, file it with
 `mt add --template finding` (tag `found`) before you report, and don't fix it
-in passing. A report reaches one reader once, and a task stays in the
-backlog.
+in passing.
 
 #just.ask-refactoring() reads the quality signals that no gate enforces and
 prints one task per finding. Add `--write` to file them. The arms and their
@@ -197,36 +187,24 @@ files that restate it.
   #just.outdatty-check() fails until the lock holds it.
 
 A rebase or merge joins two branches' `outdatty.lock` key by key through
-`.just/scripts/outdatty-lock-merge.sh`, which the dev shell registers. It
-stops only where both branches changed one hash and the merged file matches
-neither.
+`.just/scripts/outdatty-lock-merge.sh`, which the dev shell registers.
 
 = Version Management
 
 - There's no backward compatibility before the first public release. A
   rename lands whole, callers and configs included, with no alias or
   migration.
-- The workspace crates take their version from `[workspace.package]` in
-  `Cargo.toml`.
 - The Typst library's version is `version` in `lib/typst.toml`, independent of
   the crates. The `typst-pkg-version` outdatty group lists every file that
   repeats it.
 - `mindtape-cli` depends on `mindtape` by version and path, since crates.io
-  refuses a path-only dependency. Bump it with the workspace version.
+  refuses a path-only dependency. Bump it with the workspace version in
+  `[workspace.package]`.
 - #just.release("VERSION") is the whole release, and its tag push the only
   publish path: don't run `cargo publish` or push `main` by hand. Keep the
-  release's entries under `[Unreleased]`; the recipe dates them. It runs
-  #link("https://github.com/crate-ci/cargo-release")[cargo-release]
-  (`release.toml`), which refuses a dirty tree or a branch other than `main`,
-  bumps the version, dates the entries, runs `.just/scripts/release-hook.sh`
-  and commits. The hook refuses every other state a release has failed from.
-  Then the recipe pushes `main`, so CI runs on the release tree, and tags only
-  once that commit's `ci.yml` run is green. `--dry-run` checks and pushes
-  nothing. After a red CI, fix `main` and re-run: the bump and the dating
-  stay done.
-- A release whose workflow failed is finished on the same tag with
-  `gh workflow run release.yml -f tag=vVERSION`, which skips each crate
-  crates.io already has. A pushed tag never moves.
+  release's entries under `[Unreleased]`; the recipe dates them.
+  #link("docs/contributing/release.md")[docs/contributing/release.md] says what
+  it runs and how to finish a failed release.
 
 = Command Semantics
 

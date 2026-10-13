@@ -261,6 +261,7 @@ groups:
       release.toml: df72343747c303c3246bf302016d27869a1a51e9667dd6bea6c25c4cc8632cea
     dependents:
       docs/src/contributing.typ: 4ccb453ce0b876de3beea14d378e3697c3719537154ce3fc3bc2a655e2349db7
+      docs/src/contributing/release.typ: a75c667745bd2c13ff376475cec4f8afe42da21978972a87668e98ad5fe70553
   release-notes:
     source:
       Cargo.toml: 2fa7f3344d6f21f50967e00f179a24bf07e40d2b298c792b59c126f336191fcb

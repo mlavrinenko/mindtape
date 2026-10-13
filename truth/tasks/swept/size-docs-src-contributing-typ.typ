@@ -28,11 +28,7 @@
       docs-match-code: neutral,
     ),
   ),
-  status: done(
-    2026,
-    9,
-    28,
-  )[moved Commit Messages to docs/contributing/commit-messages.md; contributing.typ 254->220, linecop clear],
+  status: done(2026, 10, 13),
 )
 
 == Problem
