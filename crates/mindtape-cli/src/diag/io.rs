@@ -60,3 +60,26 @@ impl From<io::Error> for Diag {
         Self::failed("i/o failed").io(&err)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::diag::render::render;
+
+    #[test]
+    fn a_bare_io_error_says_i_o_failed_with_the_reason() {
+        let diag = Diag::from(io::Error::other("Broken pipe"));
+        assert_eq!(render(&diag, false), "error: i/o failed: broken pipe\n");
+    }
+
+    #[test]
+    fn an_error_with_no_text_gives_an_empty_reason() {
+        assert_eq!(reason(&io::Error::other("")), "");
+    }
+
+    #[test]
+    fn the_os_error_suffix_is_dropped_and_the_first_letter_lowercased() {
+        let err = io::Error::from_raw_os_error(2);
+        assert_eq!(reason(&err), "no such file or directory");
+    }
+}
