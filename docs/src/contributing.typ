@@ -187,7 +187,9 @@ files that restate it.
   #just.outdatty-check() fails until the lock holds it.
 
 A rebase or merge joins two branches' `outdatty.lock` key by key through
-`.just/scripts/outdatty-lock-merge.sh`, which the dev shell registers.
+`.just/scripts/outdatty-lock-merge.sh`, and their `.jscpd-baseline.json` as the
+union of both fingerprint maps through `.just/scripts/jscpd-baseline-merge.sh`.
+The dev shell registers both.
 
 = Version Management
 

@@ -843,11 +843,12 @@ uninstall-lib:
 
 # Point git at the tracked hook dir (pre-commit asserts the memoized gate via
 # `mmz --is-fresh --tag gate`, then checks task-file formatting and structure)
-# and register the `outdatty-lock` merge driver `.gitattributes` assigns to
-# outdatty.lock. The dev shell runs this on entry, and git config is shared by
-# every worktree of a clone, so neither needs a manual step.
+# and register the `outdatty-lock` and `jscpd-baseline` merge drivers
+# `.gitattributes` assigns to outdatty.lock and .jscpd-baseline.json. The dev
+# shell runs this on entry, and git config is shared by every worktree of a
+# clone, so neither needs a manual step.
 
-[doc("Point git at the tracked hooks and register the outdatty.lock merge driver")]
+[doc("Point git at the tracked hooks and register the merge drivers")]
 [extension('.sh')]
 [group("dev")]
 [script]
@@ -855,8 +856,10 @@ install-hooks:
     git config core.hooksPath .githooks
     git config merge.outdatty-lock.name "outdatty.lock, merged key by key"
     git config merge.outdatty-lock.driver 'bash .just/scripts/outdatty-lock-merge.sh %O %A %B %P %S %X %Y'
+    git config merge.jscpd-baseline.name ".jscpd-baseline.json, merged as a fingerprint union"
+    git config merge.jscpd-baseline.driver 'bash .just/scripts/jscpd-baseline-merge.sh %O %A %B %P'
     rm -f .git/hooks/pre-commit
-    echo "installed .githooks and the outdatty.lock merge driver"
+    echo "installed .githooks and the outdatty.lock and .jscpd-baseline.json merge drivers"
 
 # Push main, wait for its CI, then tag (usage: just release 0.3.0). The tag
 # push is the only publish path. cargo-release (release.toml) refuses a dirty
