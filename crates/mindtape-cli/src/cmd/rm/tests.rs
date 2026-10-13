@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing, unsafe_code)]
 
+use mindtape::test_support::tempdir;
 use std::collections::HashSet;
 use std::path::PathBuf;
 
@@ -160,7 +161,7 @@ fn plan_aborts_when_a_removed_task_is_untracked() {
 #[test]
 fn inbound_references_finds_survivor_edges() {
     // The parse-plane scan sees the `links:` helper edges, not just `link()`.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     std::fs::write(root.join("live.typ"), depends_survivor()).unwrap();
     let tasks = gone_and_live("done");
@@ -172,7 +173,7 @@ fn inbound_references_finds_survivor_edges() {
 
 #[test]
 fn inbound_references_empty_when_nothing_points_at_eligible() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     std::fs::write(root.join("live.typ"), "no links here\n").unwrap();
     let tasks = gone_and_live("done");
@@ -186,7 +187,7 @@ fn inbound_references_empty_when_nothing_points_at_eligible() {
 fn inbound_references_ignores_eligible_tasks_own_edges() {
     // `a` (also being removed) links to `gone` — both go away in the same run,
     // so the edge is not waiting for attention and must not force a tombstone.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     std::fs::write(root.join("a.typ"), depends_survivor()).unwrap();
     let tasks = vec![
@@ -203,7 +204,7 @@ fn inbound_references_ignores_eligible_tasks_own_edges() {
 fn plain_delete_plan_deletes_without_git() {
     // No repository anywhere: the eligible task is removed by direct deletion,
     // the survivor is left untouched — not even read.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     std::fs::write(root.join("gone.typ"), "gone\n").unwrap();
     std::fs::write(root.join("live.typ"), depends_survivor()).unwrap();
@@ -221,7 +222,7 @@ fn plain_delete_plan_deletes_without_git() {
 
 #[test]
 fn plain_delete_plan_sorts_like_tombstone_path() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     let tasks = vec![
         task("b", "b.typ", Some("done")),
@@ -329,7 +330,7 @@ fn a_no_answer_aborts_and_a_yes_goes_on() {
 #[test]
 fn a_task_file_outside_the_repository_is_refused_as_one() {
     let (_dir, root) = repo_with(&[("seed.txt", "seed\n")]);
-    let elsewhere = tempfile::tempdir().unwrap();
+    let elsewhere = tempdir();
     let tasks = vec![task("gone", "gone.typ", Some("done"))];
     let err = check_eligible_files(&tasks, &ids(&["gone"]), &root, elsewhere.path()).unwrap_err();
     assert!(
@@ -401,7 +402,7 @@ mod gitless_tests;
 
 #[test]
 fn no_repository_names_the_way_out_and_redacts_the_root() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     let git_error = git::toplevel(root).unwrap_err();
 

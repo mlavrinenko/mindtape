@@ -3,6 +3,7 @@
 //! and a command run outside any project.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use crate::support;
@@ -24,7 +25,7 @@ fn run_fresh(dir: &Path, args: &[&str]) -> (bool, String) {
 
 /// A freshly `mt init`ed project in a temp dir, on a machine with no prelude.
 fn fresh_project() -> (tempfile::TempDir, std::path::PathBuf) {
-    let home = tempfile::tempdir().unwrap();
+    let home = tempdir();
     let project = home.path().join("p");
     std::fs::create_dir_all(&project).unwrap();
     let (ok, _) = run_fresh(&project, &["init", "--no-input"]);
@@ -54,7 +55,7 @@ fn add_without_the_prelude_names_mt_install_and_the_local_package_pin() {
 
 #[test]
 fn unknown_config_table_is_reported_once_with_its_line_and_column() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
     std::fs::write(
         dir.path().join(".mindtape/config.toml"),
@@ -78,7 +79,7 @@ fn unknown_config_table_is_reported_once_with_its_line_and_column() {
 
 #[test]
 fn a_syntax_error_in_the_config_is_reported_once() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
     std::fs::write(dir.path().join(".mindtape/config.toml"), "oops =\n").unwrap();
 
@@ -94,7 +95,7 @@ fn a_syntax_error_in_the_config_is_reported_once() {
 
 #[test]
 fn outside_a_project_the_error_names_mt_init_and_the_worktree_flag() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
 
     let (ok, stderr) = run_fresh(dir.path(), &["ls"]);
 
@@ -151,7 +152,7 @@ fn project_with_config(dir: &Path) -> std::path::PathBuf {
 
 #[test]
 fn a_syntax_error_in_the_global_defaults_names_that_file() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project_with_config(dir.path());
     let config_home = dir.path().join("cfg");
     std::fs::create_dir_all(config_home.join("mindtape")).unwrap();
@@ -179,7 +180,7 @@ fn a_syntax_error_in_the_global_defaults_names_that_file() {
 
 #[test]
 fn a_syntax_error_in_a_path_pack_names_the_pack_file() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project_with_config(dir.path());
     std::fs::write(
         project.join(".mindtape/config.toml"),

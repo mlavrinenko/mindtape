@@ -15,6 +15,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
+use mindtape::test_support::tempdir;
 
 /// Every built-in preset: the walk from the status `mt add` stamps through to a
 /// terminal one, plus the `--set` fills that walk needs. The path is spelled out
@@ -137,7 +138,7 @@ const ANSWER_SETS: &[(&[&str], &[&str], &[&str])] = &[
 #[test]
 fn composed_answer_sets_support_add_check_and_a_full_walk() {
     for (flags, fills, walk) in ANSWER_SETS {
-        let dir = tempfile::tempdir().unwrap();
+        let dir = tempdir();
         support::install_lib(dir.path());
         let mut init_args = vec!["init", "--no-input"];
         init_args.extend_from_slice(flags);
@@ -155,7 +156,7 @@ fn composed_answer_sets_support_add_check_and_a_full_walk() {
 /// the engine that checks the rule.
 #[test]
 fn init_accepts_the_rrule_answer_and_checks_an_rrule_task() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::install_lib(dir.path());
     support::run_ok(dir.path(), &["init", "--no-input", "--recurrence", "rrule"]);
     std::fs::write(
@@ -175,7 +176,7 @@ fn init_accepts_the_rrule_answer_and_checks_an_rrule_task() {
 /// config instead of refusing the set.
 #[test]
 fn strict_framework_priority_answer_set_scaffolds() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::install_lib(dir.path());
     support::run_ok(
         dir.path(),
@@ -242,7 +243,7 @@ fn gated_preset_gates_done_on_an_unfilled_task() {
 /// `--list-presets` names every built-in and writes nothing.
 #[test]
 fn list_presets_writes_nothing() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let output = support::mt(dir.path())
         .args(["init", "--list-presets"])
         .assert()
@@ -261,7 +262,7 @@ fn list_presets_writes_nothing() {
 /// directory when none resolves.
 #[test]
 fn list_presets_names_the_resolved_user_preset_dir() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let config_home = dir.path().join("config");
     let output = support::mt(dir.path())
         .env(mindtape::CONFIG_HOME_ENV, &config_home)

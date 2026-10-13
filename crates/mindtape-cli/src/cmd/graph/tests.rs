@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
+use mindtape::test_support::tempdir;
 use mindtape::test_support::{TASK_SRC, bare_task, link_edge, noted_edge};
 use mindtape::{LoadOutcome, Status, Task};
 
@@ -344,7 +345,7 @@ fn invalid_filter_errors() {
 #[test]
 fn run_prints_graph_from_disk() {
     if std::env::var("_MT_GRAPH_RUN").is_err() {
-        let dir = tempfile::tempdir().unwrap();
+        let dir = tempdir();
         // Scaffold project manually (must exist before run() calls open()).
         mindtape::test_support::write_bare_project(dir.path());
         std::fs::write(dir.path().join("tasks/a.typ"), TASK_SRC).unwrap();

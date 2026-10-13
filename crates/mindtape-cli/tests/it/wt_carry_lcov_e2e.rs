@@ -9,6 +9,7 @@
 #![cfg(unix)]
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::tempdir;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 use std::time::{Duration, SystemTime};
@@ -30,9 +31,7 @@ impl Pair {
     /// A primary checkout on `main` and a worktree on `feature` at the same
     /// commit, both holding the two scripts and one source file.
     fn new() -> Self {
-        let pair = Self {
-            dir: tempfile::tempdir().unwrap(),
-        };
+        let pair = Self { dir: tempdir() };
         let primary = pair.primary();
         std::fs::create_dir_all(&primary).unwrap();
         git(&primary, &["init", "-q", "-b", "main"]);

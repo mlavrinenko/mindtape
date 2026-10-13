@@ -1,10 +1,11 @@
 #![allow(clippy::unwrap_used)]
 
 use super::write_atomic;
+use crate::test_support::tempdir;
 
 #[test]
 fn writes_new_bytes_and_overwrites_existing_ones() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = dir.path().join("task.typ");
 
     write_atomic(&path, b"first").unwrap();
@@ -18,7 +19,7 @@ fn writes_new_bytes_and_overwrites_existing_ones() {
 /// survives a successful write for the next `mt ls` to trip over.
 #[test]
 fn no_temp_file_survives_a_successful_write() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = dir.path().join("task.typ");
 
     write_atomic(&path, b"content").unwrap();
@@ -38,7 +39,7 @@ fn no_temp_file_survives_a_successful_write() {
 fn a_failed_write_leaves_the_target_unchanged() {
     use std::os::unix::fs::PermissionsExt;
 
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = dir.path().join("task.typ");
     std::fs::write(&path, b"original").unwrap();
 
@@ -62,10 +63,10 @@ fn a_failed_write_leaves_the_target_unchanged() {
 fn the_temp_file_is_a_sibling_of_the_target_not_of_the_cwd() {
     use std::os::unix::fs::PermissionsExt;
 
-    let target_dir = tempfile::tempdir().unwrap();
+    let target_dir = tempdir();
     let path = target_dir.path().join("task.typ");
 
-    let cwd = tempfile::tempdir().unwrap();
+    let cwd = tempdir();
     std::fs::set_permissions(cwd.path(), std::fs::Permissions::from_mode(0o555)).unwrap();
 
     let original = std::env::current_dir().unwrap();
@@ -87,7 +88,7 @@ fn the_temp_file_is_a_sibling_of_the_target_not_of_the_cwd() {
 #[test]
 #[cfg(unix)]
 fn a_failed_rename_removes_the_temp_file_and_leaves_the_target_untouched() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = dir.path().join("task.typ");
     std::fs::create_dir(&path).unwrap();
     std::fs::write(path.join("inner.txt"), b"keep me").unwrap();

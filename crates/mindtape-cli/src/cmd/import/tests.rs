@@ -2,6 +2,7 @@
 //! and the leave-no-stray-file guarantee on a failed record.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use mindtape::link::Link;
@@ -100,7 +101,7 @@ pub(super) fn to_canonical(tasks: &[Task], config: &Config) -> String {
 
 #[test]
 fn round_trips_the_batch_field_for_field_including_body() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup_dest(dir.path());
     let fixtures = fixture_tasks();
     let raw = to_canonical(&fixtures, &project.config);
@@ -147,7 +148,7 @@ fn round_trips_the_batch_field_for_field_including_body() {
 
 #[test]
 fn bare_array_and_envelope_both_parse() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup_dest(dir.path());
     let mut task = bare_task("solo");
     task.title = "Solo Task".to_owned();
@@ -159,7 +160,7 @@ fn bare_array_and_envelope_both_parse() {
     assert!(outcomes[0].filed, "{:?}", outcomes[0].problems);
 
     // Re-run against the envelope shape into a second, independent project.
-    let dir2 = tempfile::tempdir().unwrap();
+    let dir2 = tempdir();
     let project2 = setup_dest(dir2.path());
     let canonical = mindtape::CanonicalTask::from_task(&task, &project2.config);
     let envelope = serde_json::json!({ "tasks": [canonical], "applied": {"rule": null} });
@@ -170,7 +171,7 @@ fn bare_array_and_envelope_both_parse() {
 
 #[test]
 fn envelope_with_current_schema_version_imports() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup_dest(dir.path());
     let mut task = bare_task("solo");
     task.title = "Solo Task".to_owned();
@@ -188,7 +189,7 @@ fn envelope_with_current_schema_version_imports() {
 
 #[test]
 fn envelope_with_a_newer_schema_version_is_rejected() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup_dest(dir.path());
     let too_new = mindtape::SCHEMA_VERSION + 1;
     let envelope = serde_json::json!({
@@ -208,7 +209,7 @@ fn envelope_with_a_newer_schema_version_is_rejected() {
 
 #[test]
 fn dry_run_writes_nothing_to_the_destination() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup_dest(dir.path());
     let mut task = bare_task("preview-me");
     task.title = "Preview Me".to_owned();
@@ -234,7 +235,7 @@ fn dry_run_writes_nothing_to_the_destination() {
 
 #[test]
 fn a_record_failing_validation_is_reported_and_leaves_no_file() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup_dest(dir.path());
     let mut bad = bare_task("bad-status");
     bad.title = "Bad Status".to_owned();
@@ -262,7 +263,7 @@ fn a_record_failing_validation_is_reported_and_leaves_no_file() {
 
 #[test]
 fn status_default_flag_fills_a_missing_status() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup_dest(dir.path());
     let mut task = bare_task("needs-default");
     task.title = "Needs Default".to_owned();
@@ -280,7 +281,7 @@ fn status_default_flag_fills_a_missing_status() {
 
 #[test]
 fn map_renames_a_foreign_status_before_legend_validation() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup_dest(dir.path());
     let mut task = bare_task("todo-task");
     task.title = "Todo Task".to_owned();
@@ -298,7 +299,7 @@ fn map_renames_a_foreign_status_before_legend_validation() {
 
 #[test]
 fn colliding_titles_disambiguate_with_a_numeric_suffix() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup_dest(dir.path());
     let mut one = bare_task("dup-a");
     one.title = "Duplicate".to_owned();
@@ -323,7 +324,7 @@ fn colliding_titles_disambiguate_with_a_numeric_suffix() {
 
 #[test]
 fn a_record_with_an_id_keeps_it_as_its_stem_so_links_to_it_resolve() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup_dest(dir.path());
     let mut target = bare_task("add-redis-client");
     target.title = "Add a Redis client to the app state".to_owned();
@@ -346,7 +347,7 @@ fn a_record_with_an_id_keeps_it_as_its_stem_so_links_to_it_resolve() {
 
 #[test]
 fn an_id_that_clashes_with_an_existing_file_is_disambiguated() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup_dest(dir.path());
     std::fs::create_dir_all(dir.path().join("tasks")).unwrap();
     std::fs::write(dir.path().join("tasks/taken.typ"), "").unwrap();
@@ -362,7 +363,7 @@ fn an_id_that_clashes_with_an_existing_file_is_disambiguated() {
 
 #[test]
 fn a_title_that_slugifies_to_nothing_is_reported_and_leaves_no_file() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup_dest(dir.path());
     let mut punctuation_only = bare_task("");
     // Every character here is filtered by `slug_from_title`, so the record has
@@ -395,7 +396,7 @@ fn a_title_that_slugifies_to_nothing_is_reported_and_leaves_no_file() {
 
 #[test]
 fn a_malformed_map_entry_fails_the_batch_before_any_record_is_written() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup_dest(dir.path());
     let mut task = bare_task("solo");
     task.title = "Solo Task".to_owned();

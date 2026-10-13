@@ -14,6 +14,7 @@
 //! would hit.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use crate::support;
@@ -107,7 +108,7 @@ fn num(part: &str) -> u32 {
 #[cfg(unix)]
 #[test]
 fn today_is_the_local_calendar_date_not_utc() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
 
     let east = stamped_add_date(dir.path(), "east", &[("TZ", "MTE-14")]);
@@ -123,7 +124,7 @@ fn today_is_the_local_calendar_date_not_utc() {
 #[cfg(unix)]
 #[test]
 fn mindtape_now_outranks_the_local_timezone() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
 
     let pin = [("MINDTAPE_NOW", "2026-09-05")];
@@ -135,7 +136,7 @@ fn mindtape_now_outranks_the_local_timezone() {
 
 #[test]
 fn mindtape_now_drives_the_now_filter() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
 
     // Pinned before the due date: not yet overdue.
@@ -149,7 +150,7 @@ fn mindtape_now_drives_the_now_filter() {
 
 #[test]
 fn mindtape_now_rfc3339_timestamp_truncates_to_its_date() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
     let ids = ls_ids(
         dir.path(),
@@ -161,7 +162,7 @@ fn mindtape_now_rfc3339_timestamp_truncates_to_its_date() {
 
 #[test]
 fn mindtape_now_drives_the_stale_filter() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
 
     // Status dated 2026-06-01, no `reviewed:`: `stale(30)` trips once "today"
@@ -175,7 +176,7 @@ fn mindtape_now_drives_the_stale_filter() {
 
 #[test]
 fn malformed_mindtape_now_is_a_hard_error_naming_the_variable() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
 
     let output = mt(dir.path())
@@ -190,7 +191,7 @@ fn malformed_mindtape_now_is_a_hard_error_naming_the_variable() {
 
 #[test]
 fn unset_falls_back_to_the_system_clock() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
 
     mt(dir.path())
@@ -202,7 +203,7 @@ fn unset_falls_back_to_the_system_clock() {
 
 #[test]
 fn mindtape_now_stamps_the_pinned_date_on_done() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
 
     mt(dir.path())
@@ -217,7 +218,7 @@ fn mindtape_now_stamps_the_pinned_date_on_done() {
 
 #[test]
 fn mindtape_now_stamps_the_pinned_date_on_review() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
 
     mt(dir.path())
@@ -232,7 +233,7 @@ fn mindtape_now_stamps_the_pinned_date_on_review() {
 
 #[test]
 fn mindtape_now_stamps_the_pinned_date_on_add() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
 
     mt(dir.path())
@@ -250,7 +251,7 @@ fn mindtape_now_stamps_the_pinned_date_on_add() {
 
 #[test]
 fn mindtape_now_stamps_the_pinned_date_on_recur_spawn() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
     std::fs::write(dir.path().join(".mindtape/config.toml"), CONFIG).unwrap();
     support::install_lib(dir.path());

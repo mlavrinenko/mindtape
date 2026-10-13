@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+use crate::test_support::tempdir;
 use std::path::{Path, PathBuf};
 
 use super::merge_layers_with_packs_using;
@@ -217,7 +218,7 @@ fn pack_rules_come_before_the_layers_own_in_the_merged_array() {
         "mindtape-test",
         "[[tasks.rules]]\nassert = 'kind == \"bug\"'\nmessage = \"from-pack\"\n",
     )];
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let layers = [layer(
         LayerSource::Embedded,
         "extends = [\"mindtape-test\"]\n\n[[tasks.rules]]\nassert = 'kind == \"bug\"'\nmessage = \"from-layer\"\n",
@@ -241,7 +242,7 @@ fn a_packs_dicts_merge_in_and_the_layers_own_entry_wins_on_a_shared_name() {
         "mindtape-test",
         "[dicts.verbs]\nvalues = [\"ship\"]\n\n[dicts.nouns]\nvalues = [\"task\"]\n",
     )];
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let layers = [layer(
         LayerSource::Embedded,
         "extends = [\"mindtape-test\"]\n\n[dicts.verbs]\nvalues = [\"ride\"]\n",
@@ -266,7 +267,7 @@ fn a_same_file_duplicate_name_is_left_for_validation_not_collapsed_at_merge() {
     // `config/tests_headers.rs::rejects_duplicate_header_rule_names`) — the
     // merge itself must not silently keep only one, or that check could never
     // fire again.
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let layers = [layer(
         LayerSource::Embedded,
         "[[tasks.body.headers.rules]]\nname = \"dup\"\npath = [\"A\"]\naction = \"require\"\n\n\
@@ -309,7 +310,7 @@ fn a_same_file_duplicate_header_rule_name_fails_the_full_load() {
 
 #[test]
 fn a_scalar_field_wholesale_replaces_nearest_dir_over_farther_dir() {
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let layers = [
         layer(LayerSource::Embedded, "[a]\nx = 1\n"),
         layer(LayerSource::Dir(PathBuf::from("/far")), "[a]\nx = 2\n"),
@@ -321,7 +322,7 @@ fn a_scalar_field_wholesale_replaces_nearest_dir_over_farther_dir() {
 
 #[test]
 fn a_scalar_field_wholesale_replaces_project_over_every_other_layer() {
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let layers = [
         layer(LayerSource::Embedded, "[a]\nx = 1\n"),
         layer(LayerSource::Xdg(PathBuf::from("/xdg")), "[a]\nx = 2\n"),
@@ -334,7 +335,7 @@ fn a_scalar_field_wholesale_replaces_project_over_every_other_layer() {
 
 #[test]
 fn a_scalar_field_wholesale_replaces_xdg_over_embedded_but_loses_to_dir() {
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let embedded_and_xdg = vec![
         layer(LayerSource::Embedded, "[a]\nx = 1\n"),
         layer(LayerSource::Xdg(PathBuf::from("/xdg")), "[a]\nx = 2\n"),
@@ -355,7 +356,7 @@ fn a_scalar_field_wholesale_replaces_xdg_over_embedded_but_loses_to_dir() {
 
 #[test]
 fn merging_rejects_invalid_toml_in_any_layer() {
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let layers = [layer(LayerSource::Embedded, "not = valid = toml")];
     assert!(merge_layers_with_packs_using(&layers, root.path(), &[]).is_err());
 }

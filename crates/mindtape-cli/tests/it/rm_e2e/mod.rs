@@ -8,6 +8,7 @@
 //! strategy's half of the suite lives in `retire.rs`, pulled in below.
 #![allow(clippy::unwrap_used)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use predicates::prelude::PredicateBooleanExt;
@@ -105,7 +106,7 @@ fn mt(dir: &Path) -> assert_cmd::Command {
 
 #[test]
 fn rm_retargets_every_links_edge_and_check_stays_green() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
 
     // Retire `gone`; `-y` skips the confirmation prompt.
@@ -136,7 +137,7 @@ fn rm_takes_two_refs_in_one_invocation_and_rewrites_each_inbound_link() {
     // TARGET is variadic: two refs in one call retire both, with one
     // confirmation prompt and one tombstone/rewrite pass covering the set —
     // not two separate `mt rm` invocations.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_files(
         dir.path(),
         &[
@@ -186,7 +187,7 @@ fn rm_takes_two_refs_in_one_invocation_and_rewrites_each_inbound_link() {
 fn rm_deletes_unreferenced_task_outside_git_repo() {
     // No repository anywhere: a task nothing references must be removable
     // anyway — no toplevel discovery, no tombstone, no committed-clean guard.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_files(
         dir.path(),
         &[("gone.typ", GONE), ("unrelated.typ", UNRELATED)],
@@ -218,7 +219,7 @@ fn rm_deletes_unreferenced_task_outside_git_repo() {
 fn rm_deletes_unreferenced_task_inside_git_repo() {
     // The fast path also applies when git exists: nothing references `gone`,
     // so deletion still skips the repository entirely.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_files(
         dir.path(),
         &[("gone.typ", GONE), ("unrelated.typ", UNRELATED)],
@@ -242,7 +243,7 @@ fn rm_defaults_to_reject_without_git_and_lists_surviving_referrers() {
     // No repository, no configured strategy: the default is `reject`, which
     // refuses and names every surviving task that points at `gone` — dry-run
     // included, since reject has no plan to preview.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_files(dir.path(), &[("gone.typ", GONE), ("live.typ", LIVE)]);
 
     mt(dir.path())
@@ -270,7 +271,7 @@ fn rm_defaults_to_reject_without_git_and_lists_surviving_referrers() {
 
 #[test]
 fn rm_unlink_strips_inbound_edges_and_deletes_without_git() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_config(
         dir.path(),
         UNLINK_CONFIG,
@@ -303,7 +304,7 @@ fn rm_unlink_strips_inbound_edges_and_deletes_without_git() {
 fn rm_batch_removing_every_referrer_needs_no_strategy_without_git() {
     // The only referrer of `gone` is `live`, and both are being removed — the
     // batch must not reject or trim its own edges, so deletion is plain.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_config(
         dir.path(),
         BATCH_CONFIG,

@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use super::{
@@ -135,7 +136,7 @@ fn a_misspelt_preset_names_the_nearest_builtin() {
 /// A user preset shadows a built-in of the same name.
 #[test]
 fn user_preset_shadows_builtin() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::write(
         dir.path().join(format!("{DEFAULT_PRESET}.toml")),
         "[tasks]\nroots = [\"mine\"]\n",
@@ -148,7 +149,7 @@ fn user_preset_shadows_builtin() {
 /// A user preset directory contributes its templates too.
 #[test]
 fn user_preset_directory_carries_templates() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     write_nested_preset(
         dir.path(),
         "mine",
@@ -170,7 +171,7 @@ fn user_preset_directory_carries_templates() {
 /// A user directory without the named preset falls through to the built-in.
 #[test]
 fn missing_user_preset_falls_through_to_builtin() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let preset = resolve(DEFAULT_PRESET, Some(dir.path())).unwrap();
     assert_eq!(preset.name, DEFAULT_PRESET);
 }
@@ -178,7 +179,7 @@ fn missing_user_preset_falls_through_to_builtin() {
 /// An explicit `.toml` path resolves even though it is no preset name.
 #[test]
 fn explicit_toml_path_resolves() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = dir.path().join("custom.toml");
     std::fs::write(&path, "[tasks]\nroots = [\"x\"]\n").unwrap();
     let preset = resolve(path.to_str().unwrap(), None).unwrap();
@@ -189,7 +190,7 @@ fn explicit_toml_path_resolves() {
 /// An explicit directory path resolves through the nested layout.
 #[test]
 fn explicit_directory_path_resolves() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     write_nested_preset(
         dir.path(),
         "shape",
@@ -203,7 +204,7 @@ fn explicit_directory_path_resolves() {
 /// A missing explicit path errors rather than silently writing a built-in.
 #[test]
 fn missing_explicit_path_errors() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let missing = dir.path().join("absent.toml");
     assert!(resolve(missing.to_str().unwrap(), None).is_err());
 }
@@ -241,7 +242,7 @@ fn strip_comments_is_idempotent() {
 /// directory guard as `||` would admit a directory with no config.
 #[test]
 fn list_user_presets_keeps_only_preset_shapes() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::write(dir.path().join("flat.toml"), "[tasks]\n").unwrap();
     write_nested_preset(dir.path(), "nested", "[tasks]\n", &[]);
     std::fs::write(dir.path().join("notes.txt"), "not a preset").unwrap();

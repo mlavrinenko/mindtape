@@ -3,6 +3,7 @@
 use super::{LayerSource, build_config, discover_layers_with_xdg, merged_config_table};
 use crate::config::parse_config;
 use crate::test_support::home_and_project;
+use crate::test_support::tempdir;
 
 // The pure precedence-folding tests that used to live here now exercise
 // `crate::config::packs::merge_layers_with_packs_using` instead — see
@@ -13,7 +14,7 @@ use crate::test_support::home_and_project;
 
 #[test]
 fn discover_layers_orders_farthest_ancestor_first_and_respects_home_boundary() {
-    let tmp = tempfile::tempdir().unwrap();
+    let tmp = tempdir();
     let above_home = tmp.path().join("above-home");
     let home = tmp.path().join("home");
     let parent = home.join("parent");
@@ -125,7 +126,7 @@ fn discover_layers_reads_xdg_defaults_when_present() {
 #[cfg(unix)]
 #[test]
 fn dir_layers_dedupes_via_canonicalized_symlinked_home() {
-    let tmp = tempfile::tempdir().unwrap();
+    let tmp = tempdir();
     let home_real = tmp.path().join("home-real");
     let project = home_real.join("project");
     std::fs::create_dir_all(home_real.join(".mindtape")).unwrap();
@@ -169,7 +170,7 @@ fn no_files_anywhere_matches_parse_config_empty() {
 
 #[test]
 fn merged_config_table_returns_content_from_project_layer() {
-    let tmp = tempfile::tempdir().unwrap();
+    let tmp = tempdir();
     let project = tmp.path().join("project");
     std::fs::create_dir_all(project.join(".mindtape")).unwrap();
     std::fs::write(

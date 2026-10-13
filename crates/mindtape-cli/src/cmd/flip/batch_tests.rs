@@ -10,6 +10,7 @@
 //! backstop for a reload that disagrees with it.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+use mindtape::test_support::tempdir;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
@@ -53,7 +54,7 @@ fn landed(ids: &[&str], files: &[&str]) -> Landed {
 
 #[test]
 fn a_landed_file_that_fails_to_reload_is_reported() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(dir.path(), &[("broken.typ", BROKEN)], LEGEND);
 
     let mut problems = Vec::new();
@@ -74,7 +75,7 @@ fn a_landed_file_that_fails_to_reload_is_reported() {
 
 #[test]
 fn a_landed_task_with_a_fatal_violation_is_reported() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(dir.path(), &[("blocked.typ", BLOCKED)], UNREACHABLE_LEGEND);
 
     let mut problems = Vec::new();

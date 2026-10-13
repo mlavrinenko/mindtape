@@ -3,6 +3,7 @@
 #![allow(clippy::unwrap_used)]
 
 use mindtape::Blocker;
+use mindtape::test_support::tempdir;
 
 use super::run_with;
 use super::tests::{flip_args, read, setup};
@@ -53,7 +54,7 @@ fn refusal_names_the_status_and_every_blocker() {
 
 #[test]
 fn flip_refuses_entering_an_unblocked_status_while_blocked() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(dir.path());
     for status in ["wip", "done"] {
         assert!(run_with(&project, &flip_args(status, &["waiter"])).is_err());
@@ -63,7 +64,7 @@ fn flip_refuses_entering_an_unblocked_status_while_blocked() {
 
 #[test]
 fn flip_allows_a_status_without_the_flag_while_blocked() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(dir.path());
     run_with(&project, &flip_args("cancelled", &["waiter"])).unwrap();
     assert!(read(dir.path(), "waiter.typ").contains("status: cancelled("));
@@ -71,7 +72,7 @@ fn flip_allows_a_status_without_the_flag_while_blocked() {
 
 #[test]
 fn force_overrides_the_refusal() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(dir.path());
     let mut args = flip_args("done", &["waiter"]);
     args.force = true;
@@ -81,7 +82,7 @@ fn force_overrides_the_refusal() {
 
 #[test]
 fn an_earlier_flip_in_the_batch_unblocks_a_later_target() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(dir.path());
     run_with(&project, &flip_args("done", &["dep", "waiter"])).unwrap();
     assert!(read(dir.path(), "waiter.typ").contains("status: done("));

@@ -2,6 +2,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
+use mindtape::test_support::tempdir;
 
 fn scaffold_with_views(dir: &std::path::Path) {
     support::install_lib(dir);
@@ -15,7 +16,7 @@ fn scaffold_with_views(dir: &std::path::Path) {
 
 #[test]
 fn views_lists_known_views() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_with_views(dir.path());
 
     let output = support::mt(dir.path()).args(["views"]).output().unwrap();
@@ -26,7 +27,7 @@ fn views_lists_known_views() {
 
 #[test]
 fn views_detail_shows_view_definition() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_with_views(dir.path());
 
     let output = support::mt(dir.path())
@@ -44,7 +45,7 @@ fn views_detail_unknown_name_suggests_the_near_miss() {
     // `truth/tasks/suggest-a-nearest-match-on-an-unknown-view-name.typ`: a
     // typo close to a declared view gets a "did you mean" alongside the
     // hint; a bare "unknown view: <name>" would leave both to guesswork.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_with_views(dir.path());
 
     let output = support::mt(dir.path())
@@ -62,7 +63,7 @@ fn views_detail_unknown_name_suggests_the_near_miss() {
 
 #[test]
 fn views_detail_omits_empty_sort_and_columns() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_with_views(dir.path());
 
     let output = support::mt(dir.path())

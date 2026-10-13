@@ -4,6 +4,7 @@
 //! `cmd/add/values_tests.rs`.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+use mindtape::test_support::tempdir;
 use mindtape::{Config, discover_slots};
 
 use super::{
@@ -134,14 +135,14 @@ fn describe_surfaces_declared_env() {
 
 #[test]
 fn resolve_falls_back_to_builtin_task() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let source = resolve_template(&Config::default(), dir.path(), "task").unwrap();
     assert!(source.contains("task.with"));
 }
 
 #[test]
 fn resolve_unknown_template_errors() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     assert!(resolve_template(&Config::default(), dir.path(), "bug").is_err());
 }
 
@@ -149,7 +150,7 @@ fn resolve_unknown_template_errors() {
 /// list the templates, or the nearest one when a name is close.
 #[test]
 fn an_unknown_template_hints_where_to_list_them() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let err = resolve_template(&Config::default(), dir.path(), "bug").unwrap_err();
     assert_eq!(
         crate::diag::plain(&err),
@@ -173,7 +174,7 @@ fn an_unknown_describe_format_says_what_it_takes() {
 
 #[test]
 fn list_includes_builtin_and_local() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let templates = dir.path().join(".mindtape/templates");
     std::fs::create_dir_all(&templates).unwrap();
     std::fs::write(templates.join("bug.typ"), "x").unwrap();

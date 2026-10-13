@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
+use crate::test_support::tempdir;
 use std::collections::BTreeMap;
 
 use super::{Filter, FilterError};
@@ -414,7 +415,7 @@ mod extras;
 
 #[test]
 fn a_rule_reading_changed_loads_outside_a_repository() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let mut config = parse_config(
         "[tasks.estimate]\nunits = [\"files\"]\n\n\
          [[tasks.rules]]\nname = \"budget\"\nassert = 'changed(\"worktree\") <= estimate.files'\n",

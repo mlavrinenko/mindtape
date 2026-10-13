@@ -7,6 +7,7 @@ use crate::commit::tasks::{CommitStates, ProjectState};
 use crate::config::{Config, parse_config};
 use crate::model::{Status, Task};
 use crate::test_support::bare_task;
+use crate::test_support::tempdir;
 
 fn config() -> Config {
     parse_config("[tasks]\nroots = [\"tasks\"]\n").unwrap()
@@ -170,7 +171,7 @@ fn an_absent_task_stand_in_carries_its_stem_as_id() {
 #[test]
 fn changed_passes_the_dry_run_even_where_git_cannot_answer() {
     let mut config = config();
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     config.git.set_root(dir.path());
     assert_eq!(
         task_expr_problem("staged(changed(\"staged\", \"src/**\") <= 3)", &config),

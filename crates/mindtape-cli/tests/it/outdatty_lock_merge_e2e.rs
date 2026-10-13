@@ -10,6 +10,7 @@
 #![cfg(unix)]
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::tempdir;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
@@ -43,9 +44,7 @@ impl Repo {
     /// its four files and a lock that records them all, committed as `base`,
     /// with the driver registered by `just install-hooks`.
     fn new() -> Self {
-        let repo = Self {
-            dir: tempfile::tempdir().unwrap(),
-        };
+        let repo = Self { dir: tempdir() };
         repo.git(&["init", "-q", "-b", "main"]);
         repo.git(&["config", "user.email", "t@example.com"]);
         repo.git(&["config", "user.name", "t"]);

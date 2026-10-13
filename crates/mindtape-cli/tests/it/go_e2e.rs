@@ -2,10 +2,11 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
+use mindtape::test_support::tempdir;
 
 #[test]
 fn go_prints_opened_message() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::install_lib(dir.path());
 
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();

@@ -3,6 +3,7 @@
 //! question, and that a refusal touches nothing.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use mindtape::parse_config;
@@ -36,7 +37,7 @@ fn setup(dir: &Path, files: &[(&str, &str)]) -> Project {
 /// refused, and the file it would have replaced is byte-identical afterwards.
 #[test]
 fn refuses_a_rewrite_without_touching_the_file() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let good = marker("wip", &[]);
     let project = setup(dir.path(), &[("a.typ", good.as_str())]);
     let file = dir.path().join("tasks/a.typ");
@@ -54,7 +55,7 @@ fn refuses_a_rewrite_without_touching_the_file() {
 /// file by file can fold it into the world the next entry is checked against.
 #[test]
 fn accepts_a_rewrite_and_returns_its_task() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup(dir.path(), &[("a.typ", marker("wip", &[]).as_str())]);
     let file = dir.path().join("tasks/a.typ");
 
@@ -77,7 +78,7 @@ fn accepts_a_rewrite_and_returns_its_task() {
 /// each rely on.
 #[test]
 fn resolves_an_edge_between_two_candidates_in_one_batch() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup(dir.path(), &[]);
     let a_file = dir.path().join("tasks/a.typ");
     let b_file = dir.path().join("tasks/b.typ");
@@ -111,7 +112,7 @@ fn resolves_an_edge_between_two_candidates_in_one_batch() {
 /// error counts the rejections rather than naming only the first.
 #[test]
 fn ensure_refuses_the_whole_batch_on_one_bad_entry() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup(dir.path(), &[]);
     let good_file = dir.path().join("tasks/good.typ");
     let bad_file = dir.path().join("tasks/bad.typ");
@@ -146,7 +147,7 @@ fn ensure_refuses_the_whole_batch_on_one_bad_entry() {
 /// costing the batch its answer.
 #[test]
 fn reports_a_source_that_does_not_evaluate() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup(dir.path(), &[]);
     let file = dir.path().join("tasks/a.typ");
 
@@ -170,7 +171,7 @@ fn reports_a_source_that_does_not_evaluate() {
 /// in the task as filled when there is no file yet.
 #[test]
 fn a_load_failure_names_its_line() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let good = marker("wip", &[]);
     let project = setup(dir.path(), &[("a.typ", good.as_str())]);
     let broken = "= prose\n\n#metadata(\n";
@@ -199,8 +200,8 @@ fn a_load_failure_names_its_line() {
 /// `mt add` reads the flag to fall back to its post-write verification.
 #[test]
 fn marks_a_destination_outside_the_root_unchecked() {
-    let dir = tempfile::tempdir().unwrap();
-    let elsewhere = tempfile::tempdir().unwrap();
+    let dir = tempdir();
+    let elsewhere = tempdir();
     let project = setup(dir.path(), &[]);
     let file = elsewhere.path().join("a.typ");
     let source = marker("bogus", &[]);
@@ -224,7 +225,7 @@ fn marks_a_destination_outside_the_root_unchecked() {
 /// or letting a candidate land unchecked against it.
 #[test]
 fn refuses_to_check_against_an_unparseable_header_rule() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let config = parse_config(
         "[[tasks.body.headers.rules]]\npath = [{ match = \"(\" }]\naction = \"require\"\n",
     )

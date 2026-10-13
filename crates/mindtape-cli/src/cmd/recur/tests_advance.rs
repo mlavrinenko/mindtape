@@ -10,6 +10,7 @@
     clippy::indexing_slicing
 )]
 
+use mindtape::test_support::tempdir;
 use std::path::{Path, PathBuf};
 
 use mindtape::test_support::bare_task;
@@ -43,7 +44,7 @@ fn advance_precondition_fixture(
     max_advance: u32,
     advance: u32,
 ) -> (tempfile::TempDir, Project, RecurArgs) {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let config_text =
         format!("[[tasks.status]]\nvalue = \"wip\"\n[tasks.recur]\nmax-advance = {max_advance}\n");
     let project = setup(dir.path(), &[], &config_text);
@@ -113,7 +114,7 @@ fn check_advance_preconditions_passes_at_max_advance_boundary() {
 /// Shared setup for the `do_skip`/`do_advance`/`build_advance_chain`/
 /// `write_advance_chain` regression tests below.
 fn advance_fixture() -> (tempfile::TempDir, Project, Task, PathBuf, Recur) {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let config_text = "[[tasks.status]]\nvalue = \"wip\"\n\
                        [[tasks.status]]\nvalue = \"done\"\nterminal = true\n\
                        [tasks.recur]\nmax-advance = 52\n";
@@ -242,7 +243,7 @@ fn chain_project(dir: &Path, stem_template: &str) -> (Project, Task, PathBuf, Re
 fn build_advance_chain_returns_correct_count() {
     // Kills all three Ok(…) replacements.
     // Real: returns `count` entries.  Mutants return 0 or 1 entry.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let (project, task, abs, recur) = chain_project(dir.path(), "{n}");
     let result = build_advance_chain(&project, &task, &abs, &recur, 2).unwrap();
     assert_eq!(result.len(), 2, "expected 2 entries, got {}", result.len());
@@ -257,7 +258,7 @@ fn build_advance_chain_rejects_exhausted_with_empty_spawned() {
     //       → !spawned.is_empty() is false → return Err(err).
     // →true mutant:  true → early stop → Ok(vec![]).
     // delete !:      spawned.is_empty() is true → early stop → Ok(vec![]).
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let (project, task, abs, mut recur) = chain_project(dir.path(), "{n}");
     recur.count = Some(0); // first plan_next call sees exhausted
 
@@ -274,7 +275,7 @@ fn build_advance_chain_stops_early_with_partial() {
     // Real: spawn 1 entry, then plan_next errors (exhausted).
     //       spawned is NOT empty → early stop → Ok(vec![1 entry]).
     // →false mutant: → return Err.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let (project, task, abs, mut recur) = chain_project(dir.path(), "{n}");
     recur.count = Some(1); // one successful iteration, then exhausted
 
@@ -289,7 +290,7 @@ fn build_advance_chain_increments_occurrence() {
     // Real: occurrence 1 → 2 (stems "1", "2").
     // -= mutant: 1 → 0 (stems "1", "0").
     // *= mutant: 1 → 1 (duplicate stems "1", "1").
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let (project, task, abs, recur) = chain_project(dir.path(), "{n}");
     let result = build_advance_chain(&project, &task, &abs, &recur, 2).unwrap();
     assert_eq!(result.len(), 2);
@@ -322,7 +323,7 @@ fn build_advance_chain_steps_the_date_off_the_cursor() {
     // The fixture's anchor is unset and the config sets no `default-anchor`,
     // so it resolves to `completion`: every hop asking the anchor again would
     // plan today + 1 week three times over. Only the first hop may ask.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let (project, task, abs, recur) = chain_project(dir.path(), "{n}");
     let result = build_advance_chain(&project, &task, &abs, &recur, 3).unwrap();
     assert_eq!(result.len(), 3);
@@ -346,7 +347,7 @@ fn build_advance_chain_disambiguates_against_stems_claimed_in_flight() {
     // the chain is on disk while it is being planned — so disk alone answers
     // "taken?" with `no` after the first hop. `chore.typ` IS on disk, which is
     // why the first hop already lands on `chore-2`.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let (project, task, abs, recur) = chain_project(dir.path(), "{slug}");
     let result = build_advance_chain(&project, &task, &abs, &recur, 3).unwrap();
 

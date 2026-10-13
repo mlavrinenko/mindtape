@@ -7,6 +7,7 @@
 
 use mindtape::parse_config;
 use mindtape::test_support::TASK_SRC as TASK;
+use mindtape::test_support::tempdir;
 
 use super::tests::make_project_with_config;
 
@@ -27,7 +28,7 @@ Some content here.
 
 #[test]
 fn header_require_rule_passes_when_heading_present() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let config =
         parse_config("[[tasks.body.headers.rules]]\npath = [\"Summary\"]\naction = \"require\"\n")
             .unwrap();
@@ -37,7 +38,7 @@ fn header_require_rule_passes_when_heading_present() {
 
 #[test]
 fn header_require_rule_fails_when_heading_absent() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let config =
         parse_config("[[tasks.body.headers.rules]]\npath = [\"Summary\"]\naction = \"require\"\n")
             .unwrap();
@@ -71,7 +72,7 @@ No question asked
 
 #[test]
 fn content_non_empty_rule_passes_with_prose() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let config = parse_config(
         "[[tasks.body.content.rules]]\npath = [\"Summary\"]\nassert = \"non-empty\"\n",
     )
@@ -82,7 +83,7 @@ fn content_non_empty_rule_passes_with_prose() {
 
 #[test]
 fn content_non_empty_rule_fails_on_empty_section() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let config = parse_config(
         "[[tasks.body.content.rules]]\npath = [\"Summary\"]\nassert = \"non-empty\"\n",
     )
@@ -94,7 +95,7 @@ fn content_non_empty_rule_fails_on_empty_section() {
 
 #[test]
 fn content_min_words_rule_fails_when_short() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let config = parse_config(
         "[[tasks.body.content.rules]]\npath = [\"Scope\"]\nassert = { min-words = 100 }\n",
     )
@@ -106,7 +107,7 @@ fn content_min_words_rule_fails_when_short() {
 
 #[test]
 fn content_must_match_rule_fails_without_question() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let config = parse_config(
         "[[tasks.body.content.rules]]\npath = [\"Watch for\"]\nassert = { must-match = \"\\\\?\" }\n",
     )
@@ -118,7 +119,7 @@ fn content_must_match_rule_fails_without_question() {
 
 #[test]
 fn invalid_content_rule_regex_fails_with_config_error() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let config = parse_config(
         "[[tasks.body.content.rules]]\npath = [\"Summary\"]\nassert = { must-match = \"[bad\" }\n",
     )

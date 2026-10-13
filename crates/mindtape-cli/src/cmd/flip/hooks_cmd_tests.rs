@@ -6,6 +6,7 @@
 //! and a smaller `cmd` set pins the same capture-and-context behaviour there.
 #![allow(clippy::unwrap_used)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use super::{ENV_FILE, ENV_STATUS, ENV_STEM, RunCtx, run_command};
@@ -22,7 +23,7 @@ fn ctx<'a>(root: &'a Path, path: &'a Path) -> RunCtx<'a> {
 #[cfg(not(windows))]
 #[test]
 fn a_passing_command_reports_success_and_its_output() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = dir.path().join("tasks/alpha.typ");
     let report = run_command("echo hello", &ctx(dir.path(), &path)).unwrap();
     assert!(report.success);
@@ -34,7 +35,7 @@ fn a_passing_command_reports_success_and_its_output() {
 #[cfg(not(windows))]
 #[test]
 fn stdout_and_stderr_are_both_captured() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = dir.path().join("tasks/alpha.typ");
     let report = run_command("echo out; echo err >&2; exit 4", &ctx(dir.path(), &path)).unwrap();
     assert!(!report.success);
@@ -51,7 +52,7 @@ fn stdout_and_stderr_are_both_captured() {
 #[cfg(unix)]
 #[test]
 fn a_signalled_command_has_no_code() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = dir.path().join("tasks/alpha.typ");
     let report = run_command("kill -9 $$", &ctx(dir.path(), &path)).unwrap();
     assert!(!report.success);
@@ -64,7 +65,7 @@ fn a_signalled_command_has_no_code() {
 #[cfg(not(windows))]
 #[test]
 fn the_command_sees_the_root_and_the_transition() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::write(dir.path().join("marker"), "x").unwrap();
     let path = dir.path().join("tasks/alpha.typ");
     let script = format!("test -f marker && echo \"${ENV_STEM}|${ENV_STATUS}|${ENV_FILE}\"");
@@ -83,10 +84,11 @@ fn the_command_sees_the_root_and_the_transition() {
 #[cfg(windows)]
 mod windows {
     use super::{ENV_FILE, ENV_STATUS, ENV_STEM, ctx, run_command};
+    use mindtape::test_support::tempdir;
 
     #[test]
     fn a_passing_command_reports_success_and_its_output() {
-        let dir = tempfile::tempdir().unwrap();
+        let dir = tempdir();
         let path = dir.path().join("tasks/alpha.typ");
         let report = run_command("echo hello", &ctx(dir.path(), &path)).unwrap();
         assert!(report.success, "{}", report.output);
@@ -97,7 +99,7 @@ mod windows {
     /// A non-zero exit is reported, not raised — the caller decides about it.
     #[test]
     fn a_failing_command_reports_its_code() {
-        let dir = tempfile::tempdir().unwrap();
+        let dir = tempdir();
         let path = dir.path().join("tasks/alpha.typ");
         let report = run_command("exit /b 4", &ctx(dir.path(), &path)).unwrap();
         assert!(!report.success);
@@ -108,7 +110,7 @@ mod windows {
     /// Both streams are captured: a gate's evidence is usually on stderr.
     #[test]
     fn stdout_and_stderr_are_both_captured() {
-        let dir = tempfile::tempdir().unwrap();
+        let dir = tempdir();
         let path = dir.path().join("tasks/alpha.typ");
         let report = run_command("echo out& echo err 1>&2", &ctx(dir.path(), &path)).unwrap();
         assert!(report.output.contains("out"), "{}", report.output);
@@ -119,7 +121,7 @@ mod windows {
     /// environment.
     #[test]
     fn the_command_sees_the_root_and_the_transition() {
-        let dir = tempfile::tempdir().unwrap();
+        let dir = tempdir();
         std::fs::write(dir.path().join("marker"), "x").unwrap();
         let path = dir.path().join("tasks/alpha.typ");
         let script = format!("if exist marker echo %{ENV_STEM}% %{ENV_STATUS}% %{ENV_FILE}%");

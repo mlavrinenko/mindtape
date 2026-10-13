@@ -4,6 +4,7 @@
 //! `cmd/ls/rules_applied_ls_rules_tests_applied.rs`.
 #![allow(clippy::unwrap_used)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use mindtape::parse_config;
@@ -64,7 +65,7 @@ fn checkout(dir: &Path, branch: &str) {
 
 #[test]
 fn first_matching_rule_wins_over_later_ones() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(
         dir.path(),
         r#"
@@ -86,7 +87,7 @@ filter = "priority > 2"
 
 #[test]
 fn rule_composes_import_views_left_to_right_last_wins() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(
         dir.path(),
         r#"
@@ -117,7 +118,7 @@ import-views = ["inbox", "release(sort)"]
 
 #[test]
 fn manual_override_beats_import_views() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(
         dir.path(),
         r#"
@@ -143,7 +144,7 @@ sort = ["priority:desc"]
 
 #[test]
 fn manual_sort_splices_view_reference() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(
         dir.path(),
         r#"
@@ -163,7 +164,7 @@ sort = ["@release"]
 
 #[test]
 fn on_branch_condition_selects_matching_rule() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     checkout(dir.path(), "release/1.0");
     let project = project(
         dir.path(),
@@ -184,7 +185,7 @@ filter = "priority > 2"
 
 #[test]
 fn on_branch_condition_skips_when_branch_differs() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     checkout(dir.path(), "main");
     let project = project(
         dir.path(),
@@ -203,7 +204,7 @@ filter = "priority > 2"
 
 #[test]
 fn default_view_fallback_when_no_rule_matches() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(
         dir.path(),
         r#"
@@ -225,7 +226,7 @@ filter = "terminal"
 fn match_all_fallback_when_nothing_resolves() {
     // A bare `Config::default()` (bypassing `parse_config`, so no embedded
     // floor `[views.default]` applies): no rules, no default view at all.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project_with_config(dir.path(), mindtape::Config::default());
     let (bundle, applied) = resolve_bare(&project).unwrap();
     assert_eq!(bundle.filter, "");
@@ -237,7 +238,7 @@ fn match_all_fallback_when_nothing_resolves() {
 fn explicit_filter_narrows_the_rows_and_keeps_the_rules_presentation() {
     // The whole point of the split: a filter answers "which tasks", so the
     // matched rule goes on answering "how do I read them".
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(
         dir.path(),
         r#"
@@ -263,7 +264,7 @@ columns = ["due", "title"]
 fn explicit_filter_keeps_the_default_views_presentation() {
     // No rule involved: the default view is the same kind of standing
     // presentation choice and survives a filter the same way.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(
         dir.path(),
         r#"
@@ -282,7 +283,7 @@ sort = ["due:asc"]
 
 #[test]
 fn a_rule_contributing_only_a_filter_is_reported_superseded() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(
         dir.path(),
         r#"
@@ -301,7 +302,7 @@ filter = "priority > 1"
 fn explicit_view_ref_overrides_the_rule_per_facet() {
     // A named view is the caller choosing a whole reading, so it takes every
     // facet it sets — and leaves the ones it does not to the rule.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(
         dir.path(),
         r#"
@@ -332,7 +333,7 @@ columns = ["status", "title"]
 fn cli_sort_flag_leaves_the_rules_columns_alone_under_a_filter() {
     // Every layer is per facet: taking over the sort says nothing about the
     // columns, even with a filter argument on the same command line.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(
         dir.path(),
         r#"
@@ -356,7 +357,7 @@ columns = ["status", "title"]
 
 #[test]
 fn cli_sort_flag_overrides_a_matched_rule() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(
         dir.path(),
         r#"
@@ -373,7 +374,7 @@ sort = ["priority:desc"]
 
 #[test]
 fn unknown_import_view_errors() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(
         dir.path(),
         r#"
@@ -394,7 +395,7 @@ import-views = ["ghost"]
 
 #[test]
 fn unknown_import_view_near_miss_suggests_the_declared_view() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(
         dir.path(),
         r#"
@@ -414,7 +415,7 @@ fn an_empty_filter_widens_to_every_task_and_keeps_the_presentation() {
     // `mt ls ''` is the documented "show me everything" — an explicit
     // match-all filter, not an absent argument, so it still overrides the
     // filter facet while the rule's sort and columns stand.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(
         dir.path(),
         r#"

@@ -4,6 +4,7 @@
 //! sibling.
 #![allow(clippy::unwrap_used)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use mindtape::test_support::TASK_SRC as TASK;
@@ -25,21 +26,21 @@ pub(super) fn make_project_with_config(
 
 #[test]
 fn valid_project_returns_ok() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = make_project(dir.path(), &[("x.typ", TASK)]);
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
 #[test]
 fn empty_project_returns_ok() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = make_project(dir.path(), &[]);
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
 #[test]
 fn load_error_returns_err() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = make_project(
         dir.path(),
         &[("broken.typ", "#import \"@local/nope:9.9.9\": *\n")],
@@ -49,7 +50,7 @@ fn load_error_returns_err() {
 
 #[test]
 fn validation_violation_returns_err() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let config = parse_config(
         "[[tasks.status]]\nvalue = \"wip\"\n[[tasks.status]]\nvalue = \"done\"\nterminal = true\n[tasks.priority]\nrequired = true",
     )
@@ -85,7 +86,7 @@ fn quiet_suppresses_ok_summary_on_clean_run() {
         );
         return;
     }
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = make_project(dir.path(), &[("x.typ", TASK)]);
     assert!(
         super::run_with(
@@ -118,7 +119,7 @@ fn quiet_still_reports_violations_on_failing_run() {
         );
         return;
     }
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = make_project_with_config(
         dir.path(),
         &[("y.typ", BODY_NO_PRIORITY)],
@@ -138,7 +139,7 @@ fn quiet_still_reports_violations_on_failing_run() {
 
 #[test]
 fn multiple_valid_tasks_reports_count() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = make_project(dir.path(), &[("a.typ", TASK), ("b.typ", TASK)]);
     let outcome = LoadOutcome {
         tasks: project.outcome.tasks.clone(),
@@ -210,7 +211,7 @@ fn run_with_prints_violation_and_fails() {
         return;
     }
     // Child: recreate the violation project and call run_with.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = make_project_with_config(
         dir.path(),
         &[("y.typ", BODY_NO_PRIORITY)],
@@ -237,7 +238,7 @@ required = true
 #[test]
 fn run_validates_from_disk() {
     if std::env::var("_MT_CHECK_RUN_FROM_DISK").is_err() {
-        let dir = tempfile::tempdir().unwrap();
+        let dir = tempdir();
         scaffold_violation_project(dir.path(), VIOLATION_TOML);
 
         let output = std::process::Command::new(std::env::current_exe().unwrap())
@@ -266,7 +267,7 @@ fn run_validates_from_disk() {
 
 #[test]
 fn invalid_header_rule_regex_fails_with_config_error() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let config = parse_config(
         "[[tasks.body.headers.rules]]\npath = [{ match = \"[bad\" }]\naction = \"forbid\"\n",
     )
@@ -304,21 +305,21 @@ fn comments_project(dir: &Path, files: &[(&str, &str)], policy: &str) -> util::P
 
 #[test]
 fn default_policy_allow_ignores_a_comment() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = make_project(dir.path(), &[("a.typ", TASK_WITH_COMMENT)]);
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
 #[test]
 fn forbid_policy_passes_a_file_with_no_comments() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = comments_project(dir.path(), &[("a.typ", TASK)], "forbid");
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
 #[test]
 fn warn_policy_does_not_fail_the_command() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = comments_project(dir.path(), &[("a.typ", TASK_WITH_COMMENT)], "warn");
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
@@ -345,7 +346,7 @@ fn forbid_policy_fails_and_reports_file_line_and_text() {
         }
         return;
     }
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = comments_project(dir.path(), &[("a.typ", TASK_WITH_COMMENT)], "forbid");
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }

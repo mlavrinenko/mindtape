@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
+use crate::test_support::tempdir;
 use std::collections::BTreeMap;
 use std::path::Path;
 
@@ -38,7 +39,7 @@ fn inline_values_are_the_whole_set() {
 /// `values`, `path` and `include` all feed one set — the union, de-duplicated.
 #[test]
 fn values_path_and_include_union_into_one_set() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::create_dir_all(dir.path().join("dicts")).unwrap();
     std::fs::write(
         dir.path().join("dicts/extra.txt"),
@@ -59,7 +60,7 @@ fn values_path_and_include_union_into_one_set() {
 /// files carry is exactly this shape.
 #[test]
 fn a_path_skips_comments_and_blank_lines() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::write(
         dir.path().join("words.txt"),
         "# header\n#\n\n  add  \n\nfix\n",
@@ -72,7 +73,7 @@ fn a_path_skips_comments_and_blank_lines() {
 /// `path` may leave the project root, same rule as `[[typst.local-packages]]`.
 #[test]
 fn a_path_may_leave_the_project_root() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::create_dir_all(dir.path().join("project")).unwrap();
     std::fs::write(dir.path().join("outside.txt"), "add\n").unwrap();
     let dicts = compile(
@@ -200,7 +201,7 @@ fn an_include_cycle_is_refused() {
 
 #[test]
 fn a_path_that_does_not_resolve_is_refused() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let err = compile("[dicts.verbs]\npath = \"missing.txt\"\n", dir.path()).unwrap_err();
     assert!(err.contains("dicts.verbs.path"), "{err}");
     assert!(err.contains("missing.txt"), "{err}");
@@ -218,7 +219,7 @@ fn a_dict_with_no_source_is_refused() {
 /// Distinct from "no source": the dict names a source, and the source is empty.
 #[test]
 fn a_dict_that_resolves_empty_is_refused() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::write(dir.path().join("words.txt"), "# only a comment\n").unwrap();
     let err = compile("[dicts.verbs]\npath = \"words.txt\"\n", dir.path()).unwrap_err();
     assert!(err.contains("dicts.verbs"), "{err}");

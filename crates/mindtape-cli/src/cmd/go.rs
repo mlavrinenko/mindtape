@@ -141,6 +141,7 @@ fn build_argv(template: &str, path: &str) -> Result<Vec<String>> {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
+    use mindtape::test_support::tempdir;
 
     use super::{build_argv, editor_command, editor_from};
 
@@ -261,7 +262,7 @@ mod tests {
     /// A body replaced with `Ok(())` would succeed silently.
     #[test]
     fn spawn_editor_errors_on_empty_template() {
-        let dir = tempfile::tempdir().unwrap();
+        let dir = tempdir();
         assert!(super::spawn_editor("   ", &task_path(&dir)).is_err());
     }
 
@@ -279,7 +280,7 @@ mod tests {
     #[test]
     fn spawn_editor_succeeds_with_true() {
         // The `delete !` mutant would check `if true` and bail.
-        let dir = tempfile::tempdir().unwrap();
+        let dir = tempdir();
         super::spawn_editor(ALWAYS_OK, &task_path(&dir)).unwrap();
     }
 }

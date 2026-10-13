@@ -5,6 +5,7 @@
 #![allow(clippy::unwrap_used)]
 
 use crate::cmd::ls::rules::tests::{args, project, project_with_config, resolve};
+use mindtape::test_support::tempdir;
 
 use super::{Applied, MATCH_ALL, trailer};
 
@@ -165,7 +166,7 @@ fn bare_at_sign_is_manual_filter_not_view_ref() {
     // Kills mutant at && → || in bare_view_ref.
     // "@" has empty name after @, so bare_view_ref returns None in real code.
     // Mutant makes it return Some(""), which then errors looking up view "".
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project_with_config(dir.path(), mindtape::Config::default());
     let (bundle, applied) = resolve(&project, &args(Some("@"))).unwrap();
     assert_eq!(bundle.filter, "@");
@@ -177,7 +178,7 @@ fn view_ref_with_underscore_is_valid() {
     // Kills mutant at second || → && in bare_view_ref.
     // "_" is a valid view-name character. Mutant: c.is_ascii_alphanumeric() || (c=='_' && c=='-')
     // → only alphanumeric passes, so "@foo_bar" is misrecognised as manual.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(
         dir.path(),
         r#"
@@ -193,7 +194,7 @@ filter = "priority > 5"
 fn view_ref_with_hyphen_is_valid() {
     // Kills mutant at == → != in bare_view_ref.
     // "-" is a valid view-name char under ==; under != it is rejected.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(
         dir.path(),
         r#"

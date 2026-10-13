@@ -1,4 +1,5 @@
 #![allow(clippy::unwrap_used)]
+use mindtape::test_support::tempdir;
 use std::path::{Path, PathBuf};
 
 use mindtape::test_support::{TASK_SRC, bare_task};
@@ -67,7 +68,7 @@ fn stub_project(tasks: Vec<Task>) -> Project {
 
 #[test]
 fn resolve_by_slug_succeeds() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = make_project_with_tasks(dir.path(), &["alpha"]);
     let (task, _) = resolve_task(&project, "alpha").unwrap();
     assert_eq!(task.id, "alpha");
@@ -138,17 +139,17 @@ fn resolve_hyperlinks_defaults_to_never_when_both_absent() {
 
 #[test]
 fn resolve_root_override_targets_named_worktree() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
     // cwd is elsewhere; the absolute override still selects the worktree.
-    let cwd = tempfile::tempdir().unwrap();
+    let cwd = tempdir();
     let root = resolve_root_with(cwd.path(), Some(dir.path())).unwrap();
     assert_eq!(root, dir.path().canonicalize().unwrap());
 }
 
 #[test]
 fn resolve_root_override_relative_resolves_against_cwd() {
-    let cwd = tempfile::tempdir().unwrap();
+    let cwd = tempdir();
     std::fs::create_dir_all(cwd.path().join("wt").join(".mindtape")).unwrap();
     let root = resolve_root_with(cwd.path(), Some(Path::new("wt"))).unwrap();
     assert_eq!(root, cwd.path().join("wt").canonicalize().unwrap());
@@ -156,7 +157,7 @@ fn resolve_root_override_relative_resolves_against_cwd() {
 
 #[test]
 fn resolve_root_override_without_marker_errors() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let err = resolve_root_with(dir.path(), Some(dir.path())).unwrap_err();
     let base = dir.path().display().to_string();
     assert_eq!(
@@ -170,7 +171,7 @@ fn resolve_root_override_without_marker_errors() {
 
 #[test]
 fn resolve_root_no_override_walks_up() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
     let child = dir.path().join("a").join("b");
     std::fs::create_dir_all(&child).unwrap();
@@ -304,7 +305,7 @@ fn a_config_warning_is_a_warning_at_the_config_file() {
 
 #[test]
 fn resolve_absolute_path_eq_not_neq() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = make_project_with_tasks(dir.path(), &["alpha"]);
     let abs = dir.path().join("tasks/alpha.typ");
     std::fs::write(&abs, mindtape::test_support::TASK_SRC).unwrap();
@@ -336,7 +337,7 @@ fn the_held_back_warning_lists_each_command_and_asks_for_mt_allow() {
 /// of each, never the first one loaded.
 #[test]
 fn a_stem_two_folders_share_is_refused_naming_each_path() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
     for folder in ["cli", "web"] {
         let path = dir.path().join("tasks").join(folder);

@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing, unsafe_code)]
 
+use mindtape::test_support::tempdir;
 use std::collections::{BTreeMap, HashSet};
 use std::path::PathBuf;
 
@@ -68,7 +69,7 @@ fn the_reject_refusal_names_every_survivor_and_its_ids() {
 fn referrers_maps_files_to_hits_and_skips_eligible() {
     // `live` references `gone`; `unrelated` does not; `a` (also being removed)
     // does but its edge is not waiting for attention.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     std::fs::write(root.join("live.typ"), survivor("depends-on(\"gone.typ\")")).unwrap();
     std::fs::write(root.join("unrelated.typ"), "no links\n").unwrap();
@@ -88,7 +89,7 @@ fn referrers_maps_files_to_hits_and_skips_eligible() {
 
 #[test]
 fn redact_git_error_hides_the_tasks_root() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     let err = git::toplevel(root).unwrap_err();
 
@@ -105,7 +106,7 @@ fn redact_git_error_hides_the_tasks_root() {
 
 #[test]
 fn unlink_plan_strips_edges_and_deletes() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     std::fs::write(root.join("gone.typ"), "gone\n").unwrap();
     std::fs::write(
@@ -131,7 +132,7 @@ fn unlink_plan_drops_whole_links_arg_when_value_fully_stripped() {
     // The only edge is the removed task's: the whole `links:` named argument
     // goes, separator comma included, leaving a bare task.with(...) — never a
     // dangling `links: ` key.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     std::fs::write(root.join("gone.typ"), "gone\n").unwrap();
     std::fs::write(root.join("live.typ"), survivor("depends-on(\"gone.typ\")")).unwrap();
@@ -147,7 +148,7 @@ fn unlink_plan_drops_whole_links_arg_when_value_fully_stripped() {
 
 #[test]
 fn unlink_plan_sweeps_plus_but_keeps_other_edges() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     std::fs::write(root.join("gone.typ"), "gone\n").unwrap();
     std::fs::write(
@@ -174,7 +175,7 @@ fn unlink_plan_sweeps_plus_but_keeps_other_edges() {
 
 #[test]
 fn unlink_plan_skips_survivors_without_edges() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     std::fs::write(root.join("gone.typ"), "gone\n").unwrap();
     std::fs::write(root.join("live.typ"), "no links here\n").unwrap();
@@ -193,7 +194,7 @@ fn unlink_plan_strips_legacy_link_calls() {
     // `link(...)` pass. With no `links:` field there is no named argument to
     // drop afterwards, either. A non-literal argument (`#link(gone.typ)`) is
     // not a target: only quoted strings name a task.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     std::fs::write(root.join("gone.typ"), "gone\n").unwrap();
     std::fs::write(
@@ -224,7 +225,7 @@ fn unlink_plan_drops_whole_links_arg_across_whitespace() {
     // The stripped call is followed by whitespace before the separator comma:
     // the whole-value drop must skip the gap, not stop at the call's end and
     // leave a dangling `links: ` key.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     std::fs::write(root.join("gone.typ"), "gone\n").unwrap();
     std::fs::write(root.join("live.typ"), survivor("depends-on(\"gone.typ\") ")).unwrap();
@@ -245,7 +246,7 @@ fn unlink_plan_drops_whole_links_arg_across_whitespace() {
 
 #[test]
 fn retire_plan_defaults_to_first_terminal_status() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     std::fs::write(root.join("gone.typ"), artifact()).unwrap();
     std::fs::write(root.join("live.typ"), survivor("depends-on(\"gone.typ\")")).unwrap();
@@ -267,7 +268,7 @@ fn retire_plan_defaults_to_first_terminal_status() {
 
 #[test]
 fn retire_plan_uses_configured_status() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     std::fs::write(root.join("gone.typ"), artifact()).unwrap();
     let config = parse_config(
@@ -284,7 +285,7 @@ fn retire_plan_uses_configured_status() {
 
 #[test]
 fn retire_plan_errors_without_terminal_status() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     std::fs::write(root.join("gone.typ"), "gone\n").unwrap();
     let config = parse_config("[[tasks.status]]\nvalue = \"wip\"\n").unwrap();
@@ -301,7 +302,7 @@ fn retire_plan_errors_without_terminal_status() {
 
 #[test]
 fn retire_plan_names_a_task_file_it_cannot_read() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let config = parse_config(&legend()).unwrap();
     let tasks = gone_and_live("wip");
 
@@ -315,7 +316,7 @@ fn retire_plan_names_a_task_file_it_cannot_read() {
 
 #[test]
 fn retire_plan_rename_moves_file_into_archive_folder() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     std::fs::write(root.join("gone.typ"), artifact()).unwrap();
     let config = parse_config(&format!("{}\n[retire]\nrename = \".archive\"\n", legend())).unwrap();
@@ -338,7 +339,7 @@ fn retire_plan_rename_retargets_inbound_edges() {
     // A move breaks path-based resolution, so the survivor's edge to `gone`
     // must be rewritten onto the new relative path — the tombstone leaves no
     // dangling edge.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     std::fs::write(root.join("gone.typ"), artifact()).unwrap();
     std::fs::write(root.join("live.typ"), depends_survivor()).unwrap();
@@ -372,7 +373,7 @@ fn retire_plan_rename_retargets_inbound_edges() {
 fn retire_plan_leaves_already_terminal_task_untouched() {
     // A tombstone already: the default status matches the current one, and
     // without a rename there is nothing to write at all.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     std::fs::write(root.join("gone.typ"), "gone\n").unwrap();
     let config = parse_config(&legend()).unwrap();
@@ -386,7 +387,7 @@ fn retire_plan_leaves_already_terminal_task_untouched() {
 
 #[test]
 fn retire_plan_applies_without_git() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     std::fs::write(root.join("gone.typ"), artifact()).unwrap();
     let config = parse_config(&legend()).unwrap();
@@ -406,7 +407,7 @@ fn gitless_strategies_share_the_plain_delete_shape() {
     // The batch case: a removed task's only referrer is also being removed, so
     // no survivor references anything — the plain-delete plan applies and no
     // strategy (and no git) is needed.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     std::fs::write(root.join("gone.typ"), "gone\n").unwrap();
     std::fs::write(root.join("a.typ"), survivor("depends-on(\"gone.typ\")")).unwrap();
@@ -465,7 +466,7 @@ fn dbg_whole_links_probe() {
 
 #[test]
 fn retire_rename_retargets_across_folders_with_a_climb() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     std::fs::create_dir_all(root.join("gone")).unwrap();
     std::fs::create_dir_all(root.join("live")).unwrap();

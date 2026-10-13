@@ -7,6 +7,7 @@
 //! outgrows the task.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use mindtape::test_support::git_init;
@@ -55,7 +56,7 @@ fn task_src(files: u32) -> String {
 /// task budgets `files` files, plus `extra` untracked files on top of the two
 /// the scaffold itself writes and one under the excluded `gen/`.
 fn fixture(rules: &str, files: u32, extra: usize) -> tempfile::TempDir {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     git_init(root);
     for sub in [".mindtape", "tasks", "gen"] {
@@ -127,7 +128,7 @@ fn the_retired_estimate_tables_are_unknown_keys() {
         "[tasks.estimate.drift]\nunit = \"src-files\"\n",
         "[[tasks.estimate.max]]\nsrc-files = 5\n",
     ] {
-        let dir = tempfile::tempdir().unwrap();
+        let dir = tempdir();
         let root = dir.path();
         std::fs::create_dir_all(root.join(".mindtape")).unwrap();
         std::fs::create_dir_all(root.join("tasks")).unwrap();

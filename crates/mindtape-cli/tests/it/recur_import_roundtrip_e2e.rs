@@ -7,6 +7,7 @@
 //! `[tasks.recur] rrule = true`, which the scratch config carries too.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::tempdir;
 use std::path::{Path, PathBuf};
 
 use crate::support;
@@ -82,7 +83,7 @@ fn recur_survives_ls_json_piped_into_import() {
         .clone();
     let exported = String::from_utf8(exported).unwrap();
 
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
     support::mt(dir.path())
         .arg("import")

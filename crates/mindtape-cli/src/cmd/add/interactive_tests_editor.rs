@@ -4,6 +4,7 @@
 //! `cmd/add/interactive_tests.rs`; shares its `specs()`/`TEMPLATE` fixture.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+use mindtape::test_support::tempdir;
 use std::collections::BTreeMap;
 
 use mindtape::{AddConfig, InteractiveMode, RawValue, discover_slots};
@@ -92,7 +93,7 @@ fn fake_editor(dir: &std::path::Path) -> String {
 
 #[test]
 fn open_in_editor_runs_command_and_reads_back() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let command = fake_editor(dir.path());
     let edited = open_in_editor(&command, "title:\n").unwrap();
     assert!(edited.contains("title: \"Edited\""), "{edited}");
@@ -179,7 +180,7 @@ fn non_required_slot_not_unfilled() {
 
 #[test]
 fn run_parses_editor_output() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let script = dir.path().join("editor.sh");
     std::fs::write(&script, "cat > \"$1\" << 'EOF'\nx: \"ParsedTitle\"\nEOF\n").unwrap();
     let config = AddConfig {

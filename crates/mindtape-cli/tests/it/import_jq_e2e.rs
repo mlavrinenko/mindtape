@@ -11,6 +11,7 @@
 //! under-provisioned environment.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::tempdir;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -90,7 +91,7 @@ fn scaffold(dir: &Path) {
 /// run `mt check`. The count below stays as a guard that every adapter record
 /// became a file.
 fn assert_e2e_import(source: &str) {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
 
     let jq_dir = repo_root().join("contrib/jq");

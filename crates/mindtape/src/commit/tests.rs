@@ -3,6 +3,7 @@
 use super::{ChangedFiles, CommitRecord, parse_message, staged_files};
 use crate::config::parse_config;
 use crate::test_support::bare_task;
+use crate::test_support::tempdir;
 
 fn values(text: &str) -> Vec<String> {
     parse_message(text, "Refs")
@@ -141,7 +142,7 @@ fn tasks_only_needs_every_changed_file_under_a_task_root() {
 
 #[test]
 fn outside_a_repository_staged_files_says_so() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let err = staged_files(dir.path()).unwrap_err();
     assert!(err.to_string().contains("not a git repository"), "{err}");
 }

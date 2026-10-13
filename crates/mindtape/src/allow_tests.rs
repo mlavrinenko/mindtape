@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
+use crate::test_support::tempdir;
 use std::path::Path;
 
 use super::{
@@ -69,14 +70,14 @@ fn the_digest_changes_with_any_line_and_cannot_be_forged_by_joining_two() {
 
 #[test]
 fn outside_git_the_key_is_the_root() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
 
     assert_eq!(repo_key(dir.path()), dir.path().canonicalize().unwrap());
 }
 
 #[test]
 fn inside_git_every_worktree_shares_the_common_dir_as_key() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let main = dir.path().join("main");
     std::fs::create_dir_all(main.join("sub")).unwrap();
     crate::test_support::git_init(&main);
@@ -96,7 +97,7 @@ fn inside_git_every_worktree_shares_the_common_dir_as_key() {
 
 #[test]
 fn a_recorded_set_is_allowed_and_a_changed_one_is_not() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let home = dir.path().join("home");
     let root = dir.path().join("root");
     std::fs::create_dir_all(&root).unwrap();
@@ -131,7 +132,7 @@ fn no_commands_need_no_approval_and_no_data_home_allows_nothing() {
 
 #[test]
 fn record_names_the_file_it_could_not_write() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let home = dir.path().join("file");
     std::fs::write(&home, "").unwrap();
 

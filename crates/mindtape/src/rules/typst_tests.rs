@@ -5,6 +5,7 @@ use crate::config::Config;
 use crate::model::Task;
 use crate::parse_config;
 use crate::rules::CheckSpec;
+use crate::test_support::tempdir;
 use crate::test_support::{bare_task, write_bare_project};
 
 /// A `check` spec naming `function` in `check.typ` at the project root, with
@@ -29,7 +30,7 @@ fn field_spec(function: &str, field: &str) -> CheckSpec {
 /// A bare project with `check.typ` at its root holding `source` — the fixture
 /// every test here evaluates a rule against.
 fn project(source: &str) -> tempfile::TempDir {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     write_bare_project(dir.path());
     std::fs::write(dir.path().join("check.typ"), source).unwrap();
     dir
@@ -199,7 +200,7 @@ fn an_unknown_function_is_one_config_error_at_load() {
 
 #[test]
 fn a_missing_typst_file_is_one_config_error_at_load() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     write_bare_project(dir.path());
     let toml = "[tasks]\nroots = [\"tasks\"]\n\n[[tasks.rules]]\ncheck = { typst = \"ghost.typ\", function = \"anything\" }\n";
     let config = parse_config(toml).unwrap();
@@ -212,7 +213,7 @@ fn a_missing_typst_file_is_one_config_error_at_load() {
 
 #[test]
 fn a_project_with_no_check_rule_passes_load_validation_untouched() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     write_bare_project(dir.path());
     let config = config();
     assert!(validate_load(&config, dir.path()).is_ok());

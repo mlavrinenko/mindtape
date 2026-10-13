@@ -5,6 +5,7 @@
 //! `@` operator and the splitting rule all three share.
 #![allow(clippy::unwrap_used)]
 
+use mindtape::test_support::tempdir;
 use std::collections::BTreeMap;
 
 use mindtape::RawValue;
@@ -33,7 +34,7 @@ fn file(dir: &tempfile::TempDir, name: &str, body: &str) -> String {
 
 #[test]
 fn file_operator_reads_the_value_from_the_file() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = file(&dir, "notes.txt", "Work the 7th chords hands-separate.\n");
     let values = applied(&format!("summary@{path}"));
     assert_eq!(
@@ -50,7 +51,7 @@ fn file_operator_reads_the_value_from_the_file() {
 /// line's own indentation.
 #[test]
 fn file_operator_strips_trailing_newlines_and_nothing_else() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = file(&dir, "body.txt", "  first\n\nlast  \n\r\n\n");
     let values = applied(&format!("summary@{path}"));
     assert_eq!(
@@ -63,7 +64,7 @@ fn file_operator_strips_trailing_newlines_and_nothing_else() {
 /// operator reports what the file holds and lets the slot's kind judge it.
 #[test]
 fn file_operator_reads_an_empty_file_as_an_empty_value() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = file(&dir, "blank.txt", "\n\n");
     let values = applied(&format!("summary@{path}"));
     assert_eq!(values.get("summary"), Some(&RawValue::Str(String::new())));
@@ -86,7 +87,7 @@ fn an_at_after_the_equals_is_part_of_the_value() {
 /// to reach it.
 #[test]
 fn an_equals_after_the_at_is_part_of_the_path() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = file(&dir, "v=1.txt", "from a path holding an equals");
     assert!(path.contains('='), "fixture must exercise the rule: {path}");
     let values = applied(&format!("summary@{path}"));

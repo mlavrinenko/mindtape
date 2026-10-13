@@ -2,6 +2,7 @@
 //! falls silent, and what a gate does to the flip.
 #![allow(clippy::unwrap_used)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use mindtape::parse_config;
@@ -94,7 +95,7 @@ fn run_visible(dir: &Path, config_text: &str, target: &str) -> (HookOutcome, Str
 }
 
 fn temp() -> tempfile::TempDir {
-    tempfile::tempdir().unwrap()
+    tempdir()
 }
 
 // --- show --------------------------------------------------------------

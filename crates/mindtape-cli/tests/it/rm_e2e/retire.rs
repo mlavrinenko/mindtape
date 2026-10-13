@@ -5,6 +5,7 @@
 #![allow(clippy::unwrap_used)]
 
 use super::*;
+use mindtape::test_support::tempdir;
 
 const RETIRE_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n[[tasks.links.kinds]]\nname = \"blocks\"\n\n[rm]\nstrategy = \"retire\"\n";
 
@@ -27,7 +28,7 @@ fn retire_dry_run(dir: &Path, config: &str) -> assert_cmd::assert::Assert {
 
 #[test]
 fn rm_retire_flips_to_first_terminal_status_without_git() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     retire_dry_run(dir.path(), RETIRE_CONFIG).stdout(predicates::str::contains(
         "would retire 1 task(s) (status → done)",
     ));
@@ -57,7 +58,7 @@ fn rm_retire_prints_commit_hint_inside_git_repo() {
     // The retire strategy needs no git either, but when a repository does
     // exist the hint belongs — same emitter (`cmd/rm/gitless/report.rs`) as the
     // gitless case above, opposite repository state.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_config(
         dir.path(),
         RETIRE_CONFIG,
@@ -74,7 +75,7 @@ fn rm_retire_prints_commit_hint_inside_git_repo() {
 
 #[test]
 fn rm_retire_uses_configured_status_without_git() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_config(
         dir.path(),
         RETIRE_STATUS_CONFIG,
@@ -90,7 +91,7 @@ fn rm_retire_uses_configured_status_without_git() {
 
 #[test]
 fn rm_retire_moves_the_file_into_the_archive_folder() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_config(
         dir.path(),
         RETIRE_ARCHIVE_CONFIG,
@@ -121,7 +122,7 @@ fn rm_retire_moves_the_file_into_the_archive_folder() {
 fn rm_retire_without_a_terminal_or_yes_refuses_and_writes_nothing() {
     // A prompt nobody can answer is a refusal that names `--yes`. The prompt's
     // own text is pinned by `retire_prompt_lines` in the gitless unit tests.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_config(
         dir.path(),
         RETIRE_CONFIG,
@@ -154,7 +155,7 @@ fn rm_retire_dry_run_previews_the_archive_move_and_writes_nothing() {
     // `rm_retire_flips_to_first_terminal_status_without_git` (no rename) nor
     // `rm_retire_moves_the_file_into_the_archive_folder` (rename, but applied)
     // exercises it.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     retire_dry_run(dir.path(), RETIRE_ARCHIVE_CONFIG)
         .stdout(predicates::str::contains(
             "would retire 1 task(s) (status → done):",

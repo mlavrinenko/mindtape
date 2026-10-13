@@ -9,6 +9,7 @@
 //! this file spawns a child.
 #![allow(clippy::unwrap_used)]
 
+use mindtape::test_support::tempdir;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
@@ -285,7 +286,7 @@ fn project_with_root(dir: &Path, root: &str) -> Project {
 
 #[test]
 fn dest_default_is_first_root() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project_with_root(dir.path(), "truth/tasks");
     assert_eq!(
         dest_dir(".", None, &project).unwrap(),
@@ -295,7 +296,7 @@ fn dest_default_is_first_root() {
 
 #[test]
 fn dest_to_nests_subfolder_under_root() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project_with_root(dir.path(), "truth/tasks");
     assert_eq!(
         dest_dir(".", Some("shopping"), &project).unwrap(),
@@ -310,7 +311,7 @@ fn dest_to_nests_subfolder_under_root() {
 
 #[test]
 fn dest_to_rejects_absolute_subfolder() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project_with_root(dir.path(), "tasks");
     assert!(dest_dir(".", Some("/etc"), &project).is_err());
 }
@@ -388,8 +389,8 @@ fn park_writes_the_rejected_source_to_a_readable_file() {
 /// the kept file).
 #[test]
 fn outside_root_failure_names_the_file_kept_on_disk() {
-    let root = tempfile::tempdir().unwrap();
-    let outside = tempfile::tempdir().unwrap();
+    let root = tempdir();
+    let outside = tempdir();
     let file = outside.path().join("kept.typ");
     let project = project_with_root(root.path(), "tasks");
     let outcome = crate::cmd::add::output::Outcome::Wrote(file.clone());

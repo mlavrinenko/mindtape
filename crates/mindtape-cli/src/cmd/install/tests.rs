@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use super::{
@@ -11,7 +12,7 @@ type Writer = fn(&Path, bool) -> crate::diag::Result<()>;
 
 /// `writer` creates `dir/name` with exactly `expected` when absent.
 fn assert_writes_content(name: &str, writer: Writer, expected: &str) {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let target = dir.path().join("mindtape");
     writer(&target, false).unwrap();
     assert_eq!(
@@ -22,7 +23,7 @@ fn assert_writes_content(name: &str, writer: Writer, expected: &str) {
 
 /// An existing `dir/name` survives `writer` without `force`.
 fn assert_skips_existing(name: &str, writer: Writer) {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let target = dir.path().join("mindtape");
     std::fs::create_dir_all(&target).unwrap();
     std::fs::write(target.join(name), "# existing").unwrap();
@@ -35,7 +36,7 @@ fn assert_skips_existing(name: &str, writer: Writer) {
 
 /// `force` overwrites an existing `dir/name` with exactly `expected`.
 fn assert_overwrites(name: &str, writer: Writer, expected: &str) {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let target = dir.path().join("mindtape");
     std::fs::create_dir_all(&target).unwrap();
     std::fs::write(target.join(name), "# old").unwrap();
@@ -48,7 +49,7 @@ fn assert_overwrites(name: &str, writer: Writer, expected: &str) {
 
 #[test]
 fn write_defaults_creates_file_when_absent() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let target = dir.path().join("mindtape");
     write_defaults(&target, false).unwrap();
     assert!(target.join("defaults.toml").exists());
@@ -133,7 +134,7 @@ fn completions_dir_ends_with_the_completions_folder() {
 /// leaves a shell that installed completions pointing at nothing.
 #[test]
 fn write_completions_writes_a_hook_per_shell() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     write_completions(dir.path(), false).unwrap();
     for (shell, hook) in HOOKS {
         assert_eq!(
@@ -181,7 +182,7 @@ fn run_writes_completion_hooks_by_default() {
         .unwrap();
         return;
     }
-    let home = tempfile::tempdir().unwrap();
+    let home = tempdir();
     run_install_inner("run_writes_completion_hooks_by_default", home.path());
     assert!(
         home.path()
@@ -204,7 +205,7 @@ fn run_with_no_completions_writes_no_hooks() {
         .unwrap();
         return;
     }
-    let home = tempfile::tempdir().unwrap();
+    let home = tempdir();
     run_install_inner("run_with_no_completions_writes_no_hooks", home.path());
     assert!(
         !home

@@ -5,6 +5,7 @@ use crate::config::Config;
 use crate::model::{Status, Task};
 use crate::parse_config;
 use crate::test_support::bare_task;
+use crate::test_support::tempdir;
 use crate::validate::Violation;
 use crate::validate::severity::Severity;
 
@@ -306,7 +307,7 @@ fn the_whole_config_refuses_an_undeclared_estimate_unit() {
 /// warning, whatever its own severity and however many tasks it covers.
 #[test]
 fn a_rule_reading_changed_outside_git_is_skipped_once_never_an_error() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let mut config = config(
         "\
 [[tasks.rules]]
@@ -331,7 +332,7 @@ severity = \"error\"
 /// The same holds when `changed()` sits in the rule's `when`.
 #[test]
 fn a_when_reading_changed_outside_git_skips_the_rule_too() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let mut config = config(
         "\
 [[tasks.rules]]

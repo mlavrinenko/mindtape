@@ -1,6 +1,7 @@
 #![allow(clippy::unwrap_used)]
 
 use mindtape::test_support::bare_task;
+use mindtape::test_support::tempdir;
 use mindtape::{Config, Filter, Readiness, select};
 
 use super::{FindArgs, desugar, quote, run_with};
@@ -82,21 +83,21 @@ fn project(dir: &std::path::Path, files: &[(&str, &str)]) -> crate::util::Projec
 
 #[test]
 fn run_with_a_single_term_succeeds() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let proj = project(dir.path(), &[("x.typ", mindtape::test_support::TASK_SRC)]);
     assert!(run_with(&args(&["task"]), proj).is_ok());
 }
 
 #[test]
 fn run_with_several_terms_succeeds() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let proj = project(dir.path(), &[("x.typ", mindtape::test_support::TASK_SRC)]);
     assert!(run_with(&args(&["task", "x"]), proj).is_ok());
 }
 
 #[test]
 fn run_with_forwards_the_format_flag() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let proj = project(dir.path(), &[("x.typ", mindtape::test_support::TASK_SRC)]);
     let mut find_args = args(&["task"]);
     find_args.flags.format = crate::render::output::OutputFormat::Json;

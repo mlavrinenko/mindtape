@@ -1,6 +1,7 @@
 #![allow(clippy::unwrap_used)]
 
 use super::{StatePlan, parse_batch, read_blobs};
+use crate::test_support::tempdir;
 use crate::test_support::{git_as_tester as git, git_init};
 
 #[test]
@@ -22,7 +23,7 @@ fn a_short_batch_pads_with_misses() {
 /// edited and staged, `moved.typ` renamed and staged, and `loose.typ` left
 /// untracked.
 fn repo() -> tempfile::TempDir {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     git_init(root);
     std::fs::write(root.join("kept.typ"), "old\n").unwrap();

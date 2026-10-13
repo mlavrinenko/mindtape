@@ -7,6 +7,7 @@
 //! that task's id.
 #![allow(clippy::unwrap_used)]
 
+use crate::test_support::tempdir;
 use std::collections::BTreeMap;
 use std::path::Path;
 
@@ -69,7 +70,7 @@ fn link_sort_key(link: &Link) -> (String, String, Option<String>) {
 /// `blocks` and link order), and it passes validation with no violation
 /// attributed to `task.id`.
 fn assert_round_trips(task: &Task, config_text: &str, stub_ids: &[&str]) {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let source = emit_task(task);
     let mut files = vec![(format!("{}.typ", task.id), source.clone())];
     for id in stub_ids {
@@ -390,7 +391,7 @@ fn emit_recur_rrule_escape_hatch_round_trips_through_reload() {
     // without the feature — so this reloads without calling `validate` (the
     // way `assert_round_trips` does), proving the marker-parse round trip on
     // its own rather than the policy check this build cannot honour.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let mut task = bare_task("rrule-recur");
     task.status = Some(status("wip", "2026-06-01"));
     task.recur = Some(Recur {

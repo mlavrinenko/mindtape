@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use super::{
@@ -33,7 +34,7 @@ fn init_args(schema: Option<&str>, no_schema: bool) -> SchemaArgs {
 
 #[test]
 fn scaffold_creates_config_when_absent() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     assert!(scaffold_config(dir.path(), false, SAMPLE).unwrap());
     assert!(dir.path().join(".mindtape").join("config.toml").exists());
 }
@@ -42,7 +43,7 @@ fn scaffold_creates_config_when_absent() {
 /// not having landed so the caller skips the templates too.
 #[test]
 fn scaffold_skips_existing_without_force() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
     let config = dir.path().join(".mindtape").join("config.toml");
     std::fs::write(&config, "# existing").unwrap();
@@ -52,7 +53,7 @@ fn scaffold_skips_existing_without_force() {
 
 #[test]
 fn scaffold_overwrites_with_force() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
     let config = dir.path().join(".mindtape").join("config.toml");
     std::fs::write(&config, "# old").unwrap();
@@ -64,7 +65,7 @@ fn scaffold_overwrites_with_force() {
 /// looks for them.
 #[test]
 fn templates_are_written_beside_the_config() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let gated = preset::resolve("gated", None).unwrap();
     write_templates(dir.path(), &gated).unwrap();
     let written = dir
@@ -82,7 +83,7 @@ fn templates_are_written_beside_the_config() {
 /// A preset with no templates creates no template directory.
 #[test]
 fn no_templates_writes_no_directory() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let plain = preset::resolve("todone", None).unwrap();
     write_templates(dir.path(), &plain).unwrap();
     assert!(!dir.path().join(".mindtape").join("templates").exists());
@@ -167,7 +168,7 @@ fn schema_directive_defaults_to_published_url() {
 fn with_schema_directive_prints_note_when_schema_missing() {
     if std::env::var("_MT_INIT_DELEGATE").is_err() {
         // Parent: spawn self, capture stdout, verify note is present.
-        let xdg = tempfile::tempdir().unwrap();
+        let xdg = tempdir();
         let output = std::process::Command::new(std::env::current_exe().unwrap())
             .env("_MT_INIT_DELEGATE", "1")
             .env(mindtape::CONFIG_HOME_ENV, xdg.path())
@@ -241,7 +242,7 @@ fn run_interactively_is_suppressed_by_no_input_and_by_a_pipe() {
 
 #[test]
 fn explicit_preset_omits_the_other_shapes_hint() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let out = mt(dir.path())
         .args(["init", "--preset", "todone"])
         .output()
@@ -256,7 +257,7 @@ fn explicit_preset_omits_the_other_shapes_hint() {
 
 #[test]
 fn default_fallthrough_prints_the_other_shapes_hint() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let out = mt(dir.path())
         .args(["init", "--no-input"])
         .output()
@@ -271,7 +272,7 @@ fn default_fallthrough_prints_the_other_shapes_hint() {
 
 #[test]
 fn preset_list_marks_only_the_default() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let out = mt(dir.path())
         .args(["init", "--list-presets"])
         .output()

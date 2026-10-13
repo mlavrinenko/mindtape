@@ -11,7 +11,7 @@ categories = ["development-tools"]
 
 [features]
 # Expose shared task fixtures (`test_support`) to dependent crates' tests.
-test-support = []
+test-support = ["dep:tempfile"]
 
 [dependencies]
 # `default-features = false` + `std` for NaiveDate/Months/Days arithmetic
@@ -78,6 +78,9 @@ dirs = "5"
 # suggestion feature, at the same 0.11 line this pins, so promoting it to a
 # direct dependency here adds no new crate to the build.
 strsim = "0.11"
+# The `test-support` fixtures hand out tempdirs. Already a dependency of the
+# CLI, so enabling the feature adds no crate to its build.
+tempfile = { version = "3", optional = true }
 
 [dev-dependencies]
 tempfile = "3"

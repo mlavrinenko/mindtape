@@ -8,6 +8,7 @@
 //! rename that missed an inbound edge leaves a dangling one.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use crate::support;
@@ -74,7 +75,7 @@ fn read(dir: &Path, rel: &str) -> String {
 
 #[test]
 fn mv_renames_the_file_and_retargets_every_inbound_edge() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
     support::git_commit_all(dir.path());
 
@@ -118,7 +119,7 @@ fn mv_renames_the_file_and_retargets_every_inbound_edge() {
 
 #[test]
 fn mv_stages_the_rename_through_git_when_the_tree_is_a_repository() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
     support::git_commit_all(dir.path());
 
@@ -141,7 +142,7 @@ fn mv_falls_back_to_a_plain_rename_without_a_repository() {
     // No `git init`: the move is an ordinary filesystem rename and the inbound
     // rewrite is unchanged — the same split `mt rm` makes between its git and
     // gitless paths.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
 
     mt(dir.path()).args(["mv", "old", "new"]).assert().success();
@@ -154,7 +155,7 @@ fn mv_falls_back_to_a_plain_rename_without_a_repository() {
 
 #[test]
 fn mv_refuses_a_taken_stem_before_moving_anything() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
 
     mt(dir.path())
@@ -173,7 +174,7 @@ fn mv_refuses_a_taken_stem_before_moving_anything() {
 
 #[test]
 fn mv_dry_run_prints_the_plan_and_leaves_the_tree_untouched() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
     let before = read(dir.path(), "tasks/referrer.typ");
 
@@ -193,7 +194,7 @@ fn mv_dry_run_prints_the_plan_and_leaves_the_tree_untouched() {
 fn mv_refuses_a_stem_carrying_a_path_separator() {
     // Moving a task between folders changes its derived tags and is a decision
     // of its own; `mv` renames in place and says so rather than guessing.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
 
     mt(dir.path())

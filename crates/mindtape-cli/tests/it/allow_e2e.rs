@@ -13,6 +13,7 @@
     clippy::indexing_slicing
 )]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use crate::support;
@@ -134,7 +135,7 @@ fn wip_force_still_starts_a_task_whose_checker_is_not_allowed() {
 fn a_sibling_worktree_shares_the_approval() {
     let dir = project(RUN);
     support::git_commit_all(dir.path());
-    let outside = tempfile::tempdir().unwrap();
+    let outside = tempdir();
     let sibling = outside.path().join("sibling");
     support::git(
         dir.path(),

@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+use crate::test_support::tempdir;
 use std::path::Path;
 
 use super::{find_root, find_root_bounded, load_project};
@@ -59,7 +60,7 @@ fn first_task_marker_returns_none_without_mindtape_task() {
 }
 
 pub(super) fn setup() -> tempfile::TempDir {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::create_dir(dir.path().join(".mindtape")).unwrap();
     std::fs::create_dir(dir.path().join("tasks")).unwrap();
     dir
@@ -306,7 +307,7 @@ fn find_root_returns_none_without_marker() {
     // asserted that nothing above `$TMPDIR` holds a `.mindtape`, which any
     // developer with a `~/.mindtape` project and a `$HOME`-rooted `$TMPDIR`
     // would fail. Planting `/tmp/.mindtape` reproduces it.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let nested = dir.path().join("a/b");
     std::fs::create_dir_all(&nested).unwrap();
     assert!(find_root_bounded(&nested, Some(dir.path())).is_none());

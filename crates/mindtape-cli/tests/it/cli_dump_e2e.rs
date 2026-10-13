@@ -8,12 +8,13 @@
 #![allow(clippy::unwrap_used)]
 
 use crate::support;
+use mindtape::test_support::tempdir;
 
 #[test]
 fn cli_dump_prints_the_json_to_stdout() {
     // `_cli` reads no config, but it still runs through `support::mt` (in a
     // throwaway directory) so no e2e spawn anywhere is the un-isolated one.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let output = support::mt(dir.path())
         .arg("_cli")
         .arg("--json")
@@ -28,7 +29,7 @@ fn cli_dump_prints_the_json_to_stdout() {
 /// Run `mt _cli --check-argv <line>` with the status verbs `done` and `wip`
 /// declared, returning whether `mt` accepted the line and what it said.
 fn check_argv(line: &str) -> (bool, String) {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let output = support::mt(dir.path())
         .args(["_cli", "--statuses", "done,wip", "--check-argv", line])
         .output()

@@ -14,12 +14,13 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
+use mindtape::test_support::tempdir;
 
 /// A batch-composed config records its axis answers as a comment block, and the
 /// `spec` headers answer ships the template that produces its sections.
 #[test]
 fn composed_config_records_answers_and_ships_templates() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::install_lib(dir.path());
     support::run_ok(
         dir.path(),
@@ -44,7 +45,7 @@ fn composed_config_records_answers_and_ships_templates() {
 /// and no prompt.
 #[test]
 fn no_input_without_flags_writes_the_default_preset() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::install_lib(dir.path());
     support::run_ok(dir.path(), &["init", "--no-input"]);
     let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
@@ -57,7 +58,7 @@ fn no_input_without_flags_writes_the_default_preset() {
 /// carries the schema directive and a real status legend.
 #[test]
 fn init_default_preset_supports_add_ls_check() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::install_lib(dir.path());
     support::run_ok(dir.path(), &["init"]);
 
@@ -93,7 +94,7 @@ fn default_rendering_carries_no_commentary() {
 /// two flags are independent: one picks the shape, the other the commentary.
 #[test]
 fn annotate_keeps_commentary_and_still_works() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::install_lib(dir.path());
     support::run_ok(dir.path(), &["init", "--preset", "todone", "--annotate"]);
 
@@ -151,7 +152,7 @@ terminal = true
 
 /// Scaffold from a path preset written to `<dir>/preset.toml`, returning the dir.
 fn init_from_preset_file(body: &str) -> tempfile::TempDir {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::install_lib(dir.path());
     std::fs::write(dir.path().join("preset.toml"), body).unwrap();
     support::run_ok(dir.path(), &["init", "--preset", "preset.toml"]);
@@ -196,7 +197,7 @@ fn overlay_only_preset_composes_to_the_overlay() {
 /// a path or the network.
 #[test]
 fn unknown_preset_fails_without_writing() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::mt(dir.path())
         .args(["init", "--preset", "nope"])
         .assert()
@@ -208,7 +209,7 @@ fn unknown_preset_fails_without_writing() {
 /// directive, and the scaffold still supports the add/ls/check cycle.
 #[test]
 fn init_schema_override_writes_directive() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::install_lib(dir.path());
     support::run_ok(
         dir.path(),
@@ -226,7 +227,7 @@ fn init_schema_override_writes_directive() {
 /// `--no-schema` omits the directive entirely.
 #[test]
 fn init_no_schema_omits_directive() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::install_lib(dir.path());
     support::run_ok(dir.path(), &["init", "--no-schema"]);
 

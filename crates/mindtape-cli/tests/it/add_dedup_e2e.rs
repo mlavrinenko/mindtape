@@ -19,6 +19,7 @@
 //! this bug needed and the existing suites (one per path) didn't have.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use crate::support;
@@ -63,7 +64,7 @@ fn scaffold_with_templated_stem_and_existing_dup(dir: &Path) {
 
 #[test]
 fn dedup_fail_is_the_default_and_errors_on_collision() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_with_existing_dup(dir.path());
 
     support::mt(dir.path())
@@ -79,7 +80,7 @@ fn dedup_fail_is_the_default_and_errors_on_collision() {
 
 #[test]
 fn dedup_fail_flag_is_explicit_too() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_with_existing_dup(dir.path());
 
     support::mt(dir.path())
@@ -129,7 +130,7 @@ fn assert_original_untouched_and_suffixed_title(dir: &Path, title: &str) {
 
 #[test]
 fn dedup_skip_exits_zero_writes_nothing_and_reports_existing_path() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_with_existing_dup(dir.path());
 
     let output = support::mt(dir.path())
@@ -152,7 +153,7 @@ fn dedup_skip_exits_zero_writes_nothing_and_reports_existing_path() {
 
 #[test]
 fn dedup_add_suffix_writes_under_a_disambiguated_stem() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_with_existing_dup(dir.path());
 
     support::mt(dir.path())
@@ -176,7 +177,7 @@ fn dedup_add_suffix_writes_under_a_disambiguated_stem() {
 /// slug case is exactly what this task makes newly reachable.
 #[test]
 fn dedup_add_suffix_works_without_a_naming_template() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::scaffold(dir.path());
     std::fs::write(dir.path().join("tasks/ship-it.typ"), "original").unwrap();
 
@@ -189,7 +190,7 @@ fn dedup_add_suffix_works_without_a_naming_template() {
 
 #[test]
 fn config_dedup_default_is_honoured_without_the_flag() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_with_dedup_skip_default(dir.path());
 
     support::mt(dir.path())
@@ -204,7 +205,7 @@ fn config_dedup_default_is_honoured_without_the_flag() {
 
 #[test]
 fn dedup_flag_overrides_the_config_default() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_with_dedup_skip_default(dir.path());
 
     // The project default is `skip`; `--dedup fail` on the CLI wins outright.
@@ -230,7 +231,7 @@ fn dedup_flag_overrides_the_config_default() {
 /// collision, so `fail` could never fire under a template.
 #[test]
 fn dedup_fail_errors_on_collision_under_a_templated_stem() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_with_templated_stem_and_existing_dup(dir.path());
 
     support::mt(dir.path())
@@ -254,7 +255,7 @@ fn dedup_fail_errors_on_collision_under_a_templated_stem() {
 /// templates `stem`.
 #[test]
 fn dedup_skip_exits_zero_writes_nothing_and_reports_existing_path_under_a_templated_stem() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_with_templated_stem_and_existing_dup(dir.path());
 
     let output = support::mt(dir.path())
@@ -276,7 +277,7 @@ fn dedup_skip_exits_zero_writes_nothing_and_reports_existing_path_under_a_templa
 /// it did before this fix.
 #[test]
 fn dedup_add_suffix_writes_under_a_disambiguated_stem_with_a_templated_stem() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_with_templated_stem_and_existing_dup(dir.path());
 
     support::mt(dir.path())
@@ -294,7 +295,7 @@ fn dedup_add_suffix_writes_under_a_disambiguated_stem_with_a_templated_stem() {
 /// pre-disambiguation special case in `output_stem`.
 #[test]
 fn templated_stem_dedup_defaults_to_add_suffix_without_the_flag() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold_with_templated_stem_and_existing_dup(dir.path());
 
     support::mt(dir.path())

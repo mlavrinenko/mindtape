@@ -5,6 +5,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
+use mindtape::test_support::tempdir;
 
 const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
      [tasks.fields.kind]\nvalues = [\"fix\"]\n";
@@ -16,7 +17,7 @@ fn scaffold(template: &str) -> tempfile::TempDir {
 }
 
 fn scaffold_with(config: &str, template: &str) -> tempfile::TempDir {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let templates = dir.path().join(".mindtape/templates");
     std::fs::create_dir_all(&templates).unwrap();
     std::fs::write(dir.path().join(".mindtape/config.toml"), config).unwrap();
@@ -260,7 +261,7 @@ fn a_template_status_is_the_status_it_is_filed_at() {
 /// A project with no `task.typ` gets the built-in template, whose breaches
 /// warn unless `[templates] fallback-severity` says `error`.
 fn fallback_project(extra: &str) -> tempfile::TempDir {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
     let config = format!("{}{extra}", rule("dated", "has(due)"));
     std::fs::write(dir.path().join(".mindtape/config.toml"), config).unwrap();

@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
+use mindtape::test_support::tempdir;
 use std::path::PathBuf;
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyEventState, KeyModifiers};
@@ -287,7 +288,7 @@ fn from_project_honours_a_views_columns() {
     // have to reach it. They did not: the state kept the raw project config
     // and dropped the one the resolved listing folds them into, so `mt ls
     // @cols -i` drew columns `mt ls @cols` would not.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let config =
         mindtape::parse_config("[views.cols]\nfilter = ''\ncolumns = ['status', 'title']\n")
             .unwrap();
@@ -306,7 +307,7 @@ fn from_project_honours_a_views_columns() {
 
 #[test]
 fn from_project_carries_the_truncation_into_the_state() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = crate::test_util::make_project(
         dir.path(),
         &[
@@ -390,7 +391,7 @@ fn refresh_loads_tasks_from_project() {
         crate::test_util::assert_child_ok(&out);
         return;
     }
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
     std::fs::create_dir_all(dir.path().join("tasks")).unwrap();
     std::fs::write(

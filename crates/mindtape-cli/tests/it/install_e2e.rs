@@ -8,6 +8,7 @@
 //! below would be about a path nothing touched.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::tempdir;
 use std::path::{Path, PathBuf};
 
 /// Point the config and data homes at fresh tempdirs under `home` and run
@@ -50,7 +51,7 @@ fn seed_existing_defaults(home: &Path) -> PathBuf {
 /// `defaults.toml`, and the JSON Schema.
 #[test]
 fn install_writes_lib_defaults_and_schema() {
-    let home = tempfile::tempdir().unwrap();
+    let home = tempdir();
     run_install(home.path(), &["install"]).success();
 
     assert!(lib_typst_toml(home.path()).exists());
@@ -67,7 +68,7 @@ fn install_writes_lib_defaults_and_schema() {
 /// `--no-lib` writes the XDG defaults and schema, skipping the Typst package.
 #[test]
 fn no_lib_skips_only_the_package() {
-    let home = tempfile::tempdir().unwrap();
+    let home = tempdir();
     run_install(home.path(), &["install", "--no-lib"]).success();
 
     assert!(defaults_path(home.path()).exists());
@@ -78,7 +79,7 @@ fn no_lib_skips_only_the_package() {
 /// `--no-defaults` writes the Typst package and schema, skipping the defaults.
 #[test]
 fn no_defaults_skips_only_the_defaults() {
-    let home = tempfile::tempdir().unwrap();
+    let home = tempdir();
     run_install(home.path(), &["install", "--no-defaults"]).success();
 
     assert!(lib_typst_toml(home.path()).exists());
@@ -89,7 +90,7 @@ fn no_defaults_skips_only_the_defaults() {
 /// `--no-schema` writes the lib and defaults but skips the JSON Schema.
 #[test]
 fn no_schema_skips_only_the_schema() {
-    let home = tempfile::tempdir().unwrap();
+    let home = tempdir();
     run_install(home.path(), &["install", "--no-schema"]).success();
 
     assert!(lib_typst_toml(home.path()).exists());
@@ -101,7 +102,7 @@ fn no_schema_skips_only_the_schema() {
 /// rewrites it.
 #[test]
 fn schema_force_interplay() {
-    let home = tempfile::tempdir().unwrap();
+    let home = tempdir();
     let path = schema_path(home.path());
     std::fs::create_dir_all(path.parent().unwrap()).unwrap();
     std::fs::write(&path, "{}").unwrap();
@@ -123,7 +124,7 @@ fn schema_force_interplay() {
 /// An existing XDG `defaults.toml` survives a bare `mt install`.
 #[test]
 fn existing_defaults_preserved_without_force() {
-    let home = tempfile::tempdir().unwrap();
+    let home = tempdir();
     let path = seed_existing_defaults(home.path());
 
     run_install(home.path(), &["install"]).success();
@@ -133,7 +134,7 @@ fn existing_defaults_preserved_without_force() {
 /// `--force` overwrites an existing XDG `defaults.toml`.
 #[test]
 fn existing_defaults_overwritten_with_force() {
-    let home = tempfile::tempdir().unwrap();
+    let home = tempdir();
     let path = seed_existing_defaults(home.path());
 
     run_install(home.path(), &["install", "--force"]).success();
@@ -147,7 +148,7 @@ fn existing_defaults_overwritten_with_force() {
 /// it is the floor text verbatim, which always merges cleanly with itself.
 #[test]
 fn seeded_defaults_parses_through_parse_config() {
-    let home = tempfile::tempdir().unwrap();
+    let home = tempdir();
     run_install(home.path(), &["install"]).success();
 
     let content = std::fs::read_to_string(defaults_path(home.path())).unwrap();
@@ -161,7 +162,7 @@ fn seeded_defaults_parses_through_parse_config() {
 /// particular to replace it with.
 #[test]
 fn install_lib_is_an_unknown_command() {
-    let home = tempfile::tempdir().unwrap();
+    let home = tempdir();
     let assert = run_install(home.path(), &["install-lib"]).failure();
     let stderr = String::from_utf8(assert.get_output().stderr.clone()).unwrap();
     assert!(
@@ -179,7 +180,7 @@ fn install_lib_is_an_unknown_command() {
 /// the doc comment, where nothing was watching; this is the thing watching.
 #[test]
 fn install_long_help_names_every_skip_flag() {
-    let home = tempfile::tempdir().unwrap();
+    let home = tempdir();
     let assert = run_install(home.path(), &["install", "--help"]).success();
     let output = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
     // The flag list under Options: is clap's own render of the struct, so
@@ -197,7 +198,7 @@ fn install_long_help_names_every_skip_flag() {
 /// data home's installed package. Returned so the caller keeps the tempdir
 /// alive.
 fn project_without_a_lib() -> tempfile::TempDir {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     mindtape::test_support::write_bare_project(dir.path());
     std::fs::write(
         dir.path().join("tasks/only.typ"),
@@ -232,7 +233,7 @@ fn ls_with_data_home(project: &Path, data: &std::ffi::OsStr) -> assert_cmd::asse
 /// they were identical whichever way the variable pointed.
 #[test]
 fn ls_resolves_the_prelude_from_the_configured_data_home() {
-    let home = tempfile::tempdir().unwrap();
+    let home = tempdir();
     run_install(home.path(), &["install", "--no-defaults", "--no-schema"]).success();
     let project = project_without_a_lib();
 
@@ -243,13 +244,13 @@ fn ls_resolves_the_prelude_from_the_configured_data_home() {
 
 #[test]
 fn ls_fails_against_a_data_home_the_package_was_not_installed_into() {
-    let installed = tempfile::tempdir().unwrap();
+    let installed = tempdir();
     run_install(
         installed.path(),
         &["install", "--no-defaults", "--no-schema"],
     )
     .success();
-    let elsewhere = tempfile::tempdir().unwrap();
+    let elsewhere = tempdir();
     let project = project_without_a_lib();
 
     let assert = ls_with_data_home(project.path(), elsewhere.path().as_os_str());

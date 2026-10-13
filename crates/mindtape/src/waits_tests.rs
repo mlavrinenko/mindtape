@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+use crate::test_support::tempdir;
 use std::path::Path;
 
 use super::{Answer, Checker, annotate_with, command_line, stamp, validate_checkers};
@@ -89,7 +90,7 @@ fn a_reason_marks_an_unknown_answer_and_none_for_a_resolved_one() {
 /// other test's memo answers instead.
 #[cfg(not(windows))]
 fn answer_of(run: &str) -> Answer {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let mut task = bare_task("t");
     task.waits_on = vec!["up:x".to_owned()];
     stamp(
@@ -124,7 +125,7 @@ fn the_exit_code_decides_the_answer_and_the_first_printed_line_its_reason() {
 #[cfg(not(windows))]
 #[test]
 fn a_command_line_runs_once_per_root_however_often_it_is_asked() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let config = config(vec![checker("up", "echo run >> runs; exit 1")]);
     let mut tasks = vec![bare_task("a"), bare_task("b")];
     for task in &mut tasks {
@@ -211,7 +212,7 @@ fn checker_names_must_be_spellable_unique_and_run_something() {
 
 #[test]
 fn a_checker_the_user_has_not_allowed_answers_without_running() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let run = "echo held >> runs";
     let mut task = bare_task("t");
     task.waits_on = vec!["up:x".to_owned(), "nope:x".to_owned()];

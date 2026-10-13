@@ -4,6 +4,7 @@
 //! and describe/slug output in `cmd/add/values_tests_templates.rs`.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+use mindtape::test_support::tempdir;
 use std::collections::BTreeMap;
 
 use mindtape::{RawValue, discover_slots};
@@ -23,7 +24,7 @@ pub(super) fn values_file(dir: &std::path::Path, name: &str, text: &str) -> Stri
 
 #[test]
 fn collect_set_overrides_json() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = dir.path().join("v.json");
     std::fs::write(&path, r#"{"title":"From JSON","impact":8,"flag":true}"#).unwrap();
     let values = collect_values(
@@ -64,7 +65,7 @@ fn collect_append_operator_accumulates_into_list() {
 
 #[test]
 fn collect_append_operator_appends_to_json_list() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = dir.path().join("v.json");
     std::fs::write(&path, r#"{"tags":["a"]}"#).unwrap();
     let values = collect_values(
@@ -81,7 +82,7 @@ fn collect_append_operator_appends_to_json_list() {
 
 #[test]
 fn collect_reads_json_array_as_list() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = dir.path().join("v.json");
     std::fs::write(&path, r#"{"tags":["a","b"]}"#).unwrap();
     let values = collect_values(&[path.to_string_lossy().into_owned()], &[], &[]).unwrap();
@@ -93,7 +94,7 @@ fn collect_reads_json_array_as_list() {
 
 #[test]
 fn collect_rejects_non_object_json() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = dir.path().join("v.json");
     std::fs::write(&path, "[1,2,3]").unwrap();
     assert!(collect_values(&[path.to_string_lossy().into_owned()], &[], &[]).is_err());
@@ -103,7 +104,7 @@ fn collect_rejects_non_object_json() {
 
 #[test]
 fn dot_yaml_extension_parses_as_yaml() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = values_file(dir.path(), "v.yaml", "title: From YAML\nimpact: 8\n");
     let values = collect_values(&[path], &[], &[]).unwrap();
     assert_eq!(
@@ -115,7 +116,7 @@ fn dot_yaml_extension_parses_as_yaml() {
 
 #[test]
 fn dot_yml_extension_parses_as_yaml() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = values_file(dir.path(), "v.yml", "title: From Yml\n");
     let values = collect_values(&[path], &[], &[]).unwrap();
     assert_eq!(
@@ -150,7 +151,7 @@ fn sniff_picks_json_for_brace_content() {
 
 #[test]
 fn unknown_extension_sniffs_like_stdin() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = values_file(dir.path(), "v.values", "title: Unknown Extension\n");
     let values = collect_values(&[path], &[], &[]).unwrap();
     assert_eq!(
@@ -161,7 +162,7 @@ fn unknown_extension_sniffs_like_stdin() {
 
 #[test]
 fn malformed_yaml_extension_reports_a_useful_error() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = values_file(dir.path(), "v.yaml", "title: [unterminated\n");
     let err = collect_values(std::slice::from_ref(&path), &[], &[])
         .unwrap_err()
@@ -183,7 +184,7 @@ fn malformed_sniffed_input_reports_the_json_error() {
 fn tab_indented_json_still_parses() {
     // libyaml rejects tab indentation; a `.json`-dispatched source must keep
     // using serde_json, which accepts it.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = values_file(dir.path(), "v.json", "{\n\t\"title\": \"Tabbed\"\n}\n");
     let values = collect_values(&[path], &[], &[]).unwrap();
     assert_eq!(
@@ -205,7 +206,7 @@ fn tab_indented_json_still_parses_when_sniffed() {
 fn empty_string_survives_a_yaml_values_file() {
     // Unlike the `--edit` scaffold (blank means "use the default"), a `-f`
     // file's `""` is a real value that must reach the fill map unchanged.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = values_file(dir.path(), "v.yaml", "note: \"\"\n");
     let values = collect_values(&[path], &[], &[]).unwrap();
     assert_eq!(values.get("note"), Some(&RawValue::Str(String::new())));
@@ -213,7 +214,7 @@ fn empty_string_survives_a_yaml_values_file() {
 
 #[test]
 fn empty_string_survives_a_json_values_file() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = values_file(dir.path(), "v.json", r#"{"note":""}"#);
     let values = collect_values(&[path], &[], &[]).unwrap();
     assert_eq!(values.get("note"), Some(&RawValue::Str(String::new())));
@@ -221,7 +222,7 @@ fn empty_string_survives_a_json_values_file() {
 
 #[test]
 fn yaml_non_mapping_root_is_rejected_with_json_shaped_wording() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = values_file(dir.path(), "v.yaml", "- a\n- b\n");
     let err = collect_values(std::slice::from_ref(&path), &[], &[])
         .unwrap_err()
@@ -231,7 +232,7 @@ fn yaml_non_mapping_root_is_rejected_with_json_shaped_wording() {
 
 #[test]
 fn yaml_multi_document_stream_is_rejected() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = values_file(dir.path(), "v.yaml", "---\na: 1\n---\nb: 2\n");
     assert!(collect_values(&[path], &[], &[]).is_err());
 }
@@ -282,7 +283,7 @@ fn sniffed_non_brace_malformed_input_reports_the_yaml_error() {
 
 #[test]
 fn later_yaml_null_unsets_an_earlier_set_key() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let first = values_file(dir.path(), "a.json", r#"{"title":"First","impact":8}"#);
     let second = values_file(dir.path(), "b.yaml", "impact: ~\n");
     let values = collect_values(&[first, second], &[], &[]).unwrap();

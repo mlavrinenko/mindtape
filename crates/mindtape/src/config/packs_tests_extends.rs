@@ -10,6 +10,7 @@ use super::tests::layer;
 use super::{PackOrigin, RuleOrigin, merge_layers_with_packs, merge_layers_with_packs_using};
 use crate::config::layers::LayerSource;
 use crate::config::packs_toml::read_array;
+use crate::test_support::tempdir;
 
 #[test]
 fn extends_bare_name_resolves_to_an_embedded_pack() {
@@ -17,7 +18,7 @@ fn extends_bare_name_resolves_to_an_embedded_pack() {
         "mindtape-test",
         "[[tasks.rules]]\nname = \"from-pack\"\nassert = 'kind == \"bug\"'\n",
     )];
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let layers = [layer(
         LayerSource::Embedded,
         "extends = [\"mindtape-test\"]\n",
@@ -38,7 +39,7 @@ fn extends_bare_name_resolves_to_an_embedded_pack() {
 #[test]
 fn extends_unknown_bare_name_lists_available_packs() {
     let registry: &[(&str, &str)] = &[("mindtape-test", "")];
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let layers = [layer(
         LayerSource::Embedded,
         "extends = [\"mindtape-nope\"]\n",
@@ -56,7 +57,7 @@ fn extends_unknown_bare_name_lists_available_packs() {
 
 #[test]
 fn extends_a_path_with_no_file_there_is_a_config_error() {
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let layers = [layer(
         LayerSource::Embedded,
         "extends = [\"nested/missing-pack.toml\"]\n",
@@ -71,7 +72,7 @@ fn a_mindtape_prefixed_name_with_no_separator_is_still_a_bare_name() {
     // No path separator, so this is a bare-name lookup — and fails as an
     // unknown pack, never as a missing file, even though it carries the
     // reserved prefix and looks like a filename.
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let layers = [layer(
         LayerSource::Embedded,
         "extends = [\"mindtape-tasks.toml\"]\n",
@@ -85,7 +86,7 @@ fn a_mindtape_prefixed_name_with_no_separator_is_still_a_bare_name() {
 
 #[test]
 fn a_path_entry_in_the_project_layer_resolves_against_the_project_root() {
-    let tmp = tempfile::tempdir().unwrap();
+    let tmp = tempdir();
     let project = tmp.path().join("project");
     std::fs::create_dir_all(project.join(".mindtape")).unwrap();
     let shared = tmp.path().join("shared");
@@ -111,7 +112,7 @@ fn a_path_entry_in_the_project_layer_resolves_against_the_project_root() {
 #[test]
 fn a_pack_declaring_extends_is_a_config_error() {
     let registry: &[(&str, &str)] = &[("mindtape-nested", "extends = [\"mindtape-test\"]\n")];
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let layers = [layer(
         LayerSource::Embedded,
         "extends = [\"mindtape-nested\"]\n",
@@ -126,7 +127,7 @@ fn a_pack_declaring_extends_is_a_config_error() {
 #[test]
 fn a_pack_declaring_a_disallowed_key_is_a_config_error() {
     let registry: &[(&str, &str)] = &[("mindtape-bad", "[project]\ncode = \"x\"\n")];
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let layers = [layer(
         LayerSource::Embedded,
         "extends = [\"mindtape-bad\"]\n",
@@ -148,7 +149,7 @@ fn commit_rules_merge_by_name_across_packs() {
         "[[commits.rules]]\nname = \"names-a-task\"\nassert = 'has(refs)'\n\n\
          [[commits.rules]]\nname = \"subject-set\"\nassert = 'has(subject)'\n",
     )];
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let layers = [layer(
         LayerSource::Embedded,
         "extends = [\"mindtape-test\"]\ndisable = [\"subject-set\"]\n\n\
@@ -174,7 +175,7 @@ fn commit_rules_merge_by_name_across_packs() {
 #[test]
 fn a_pack_may_declare_only_rules_under_commits() {
     let registry: &[(&str, &str)] = &[("mindtape-test", "[commits]\ntrailer = \"Refs\"\n")];
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let layers = [layer(
         LayerSource::Embedded,
         "extends = [\"mindtape-test\"]\n",
@@ -187,7 +188,7 @@ fn a_pack_may_declare_only_rules_under_commits() {
 #[test]
 fn a_syntax_error_in_an_embedded_pack_names_the_pack() {
     let registry: &[(&str, &str)] = &[("mindtape-broken", "oops =\n")];
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let layers = [layer(
         LayerSource::Embedded,
         "extends = [\"mindtape-broken\"]\n",
@@ -204,7 +205,7 @@ fn a_syntax_error_in_an_embedded_pack_names_the_pack() {
 
 #[test]
 fn a_syntax_error_in_a_global_layer_names_its_file() {
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let path = root
         .path()
         .join("cfg")

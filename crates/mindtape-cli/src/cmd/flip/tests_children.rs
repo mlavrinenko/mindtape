@@ -5,6 +5,7 @@
 
 use super::run_with;
 use super::tests::{flip_args, read, setup};
+use mindtape::test_support::tempdir;
 
 const CONFIG: &str = "[[tasks.status]]\nvalue = \"proposed\"\n\
      [[tasks.status]]\nvalue = \"wip\"\nunblocked = true\n\
@@ -26,7 +27,7 @@ fn project(dir: &std::path::Path) -> crate::util::Project {
 
 #[test]
 fn refusal_names_the_status_and_every_unfinished_child() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(dir.path());
     let world = project.outcome.tasks.clone();
     let epic = world.iter().find(|task| task.id == "epic").unwrap();
@@ -46,7 +47,7 @@ fn refusal_names_the_status_and_every_unfinished_child() {
 
 #[test]
 fn flip_refuses_closing_a_parent_over_an_unfinished_child() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(dir.path());
     assert!(run_with(&project, &flip_args("done", &["epic"])).is_err());
     assert!(read(dir.path(), "epic.typ").contains("status: proposed("));
@@ -54,7 +55,7 @@ fn flip_refuses_closing_a_parent_over_an_unfinished_child() {
 
 #[test]
 fn a_parent_starts_and_cancels_over_open_children() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(dir.path());
     run_with(&project, &flip_args("wip", &["epic"])).unwrap();
     assert!(read(dir.path(), "epic.typ").contains("status: wip("));
@@ -64,7 +65,7 @@ fn a_parent_starts_and_cancels_over_open_children() {
 
 #[test]
 fn force_overrides_the_refusal() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(dir.path());
     let mut args = flip_args("done", &["epic"]);
     args.force = true;
@@ -74,7 +75,7 @@ fn force_overrides_the_refusal() {
 
 #[test]
 fn closing_the_children_first_in_the_batch_lets_the_parent_close() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = project(dir.path());
     run_with(&project, &flip_args("done", &["child", "epic"])).unwrap();
     assert!(read(dir.path(), "epic.typ").contains("status: done("));

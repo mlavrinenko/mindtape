@@ -1,6 +1,7 @@
 #![allow(clippy::unwrap_used)]
 
 use super::{GitCache, GitStatus, PathFilter, StateSet};
+use crate::test_support::tempdir;
 use crate::test_support::{git_as_tester as git, git_init};
 
 /// `git status --porcelain -z` output, NUL-separated as git writes it.
@@ -138,7 +139,7 @@ fn a_rename_source_is_not_counted_beside_its_destination() {
 
 #[test]
 fn reading_a_real_repository_separates_staged_from_worktree() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     git_init(root);
     std::fs::write(root.join("staged.rs"), "a\n").unwrap();
@@ -152,14 +153,14 @@ fn reading_a_real_repository_separates_staged_from_worktree() {
 
 #[test]
 fn outside_a_repository_the_read_fails_naming_gits_reason() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let err = GitStatus::read(dir.path()).unwrap_err();
     assert!(err.contains("not a git repository"), "{err}");
 }
 
 #[test]
 fn the_cache_reads_git_once_and_shares_it_across_clones() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     git_init(root);
     std::fs::write(root.join("one.rs"), "a\n").unwrap();

@@ -5,6 +5,7 @@
 #![allow(clippy::unwrap_used)]
 
 use mindtape::test_support::bare_task;
+use mindtape::test_support::tempdir;
 
 use super::{Assigned, parse_assignment, render, writable};
 
@@ -139,7 +140,7 @@ fn a_field_written_elsewhere_names_its_own_command() {
 /// second spelling to maintain here.
 #[test]
 fn a_file_operator_token_reads_the_value_out_of_the_file() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = dir.path().join("title.txt");
     std::fs::write(&path, "From a file\n").unwrap();
     let token = format!("title@{}", path.display());

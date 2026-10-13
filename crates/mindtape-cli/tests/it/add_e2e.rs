@@ -14,10 +14,11 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
+use mindtape::test_support::tempdir;
 
 #[test]
 fn end_to_end_files_and_validates_a_task() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::scaffold(dir.path());
 
     support::mt(dir.path())
@@ -36,7 +37,7 @@ fn end_to_end_files_and_validates_a_task() {
 
 #[test]
 fn end_to_end_files_from_positional_title() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::scaffold(dir.path());
 
     support::mt(dir.path())
@@ -51,7 +52,7 @@ fn end_to_end_files_from_positional_title() {
 
 #[test]
 fn end_to_end_nests_into_subfolder() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::scaffold(dir.path());
 
     support::mt(dir.path())
@@ -65,7 +66,7 @@ fn end_to_end_nests_into_subfolder() {
 
 #[test]
 fn describe_json_emits_slot_schema() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::scaffold(dir.path());
     assert!(
         support::describe_slot_names(dir.path())
@@ -78,7 +79,7 @@ fn describe_json_emits_slot_schema() {
 /// resolved, no slot is filled, nothing is written.
 #[test]
 fn list_prints_template_stems_and_stops() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::scaffold(dir.path());
 
     let output = support::mt(dir.path())
@@ -99,7 +100,7 @@ fn list_prints_template_stems_and_stops() {
 
 #[test]
 fn collision_is_a_hard_error() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::scaffold(dir.path());
     std::fs::write(dir.path().join("tasks/dup.typ"), "existing").unwrap();
     support::mt(dir.path())
@@ -112,7 +113,7 @@ fn collision_is_a_hard_error() {
 /// key, rather than silently filing a task with the wrong (default) value.
 #[test]
 fn unknown_set_key_is_a_hard_error() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::scaffold(dir.path());
 
     let output = support::mt(dir.path())
@@ -137,7 +138,7 @@ fn unknown_set_key_is_a_hard_error() {
 /// `cmd/add/values_tests.rs`).
 #[test]
 fn end_to_end_files_from_yaml_on_stdin() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::scaffold(dir.path());
 
     support::mt(dir.path())
@@ -154,7 +155,7 @@ fn end_to_end_files_from_yaml_on_stdin() {
 /// Same treatment for the `-f`/`--values` JSON entry point.
 #[test]
 fn unknown_values_json_key_is_a_hard_error() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     support::scaffold(dir.path());
     let values = dir.path().join("v.json");
     std::fs::write(&values, r#"{"title":"T","priorty":3}"#).unwrap();
@@ -397,7 +398,7 @@ fn refuses_a_task_whose_to_be_bullet_breaks_a_content_rule() {
 /// not on `add`'s callers.
 #[test]
 fn isolated_spawns_never_inherit_the_developers_editor() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let mut command = std::process::Command::new("mt");
     support::isolate(&mut command, dir.path());
 

@@ -5,6 +5,7 @@
 //! `crates/mindtape-cli/src/cmd/import/tests.rs` via `cmd::import::import_records`.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use crate::support;
@@ -25,7 +26,7 @@ const ONE_TASK_JSON: &str = r#"[{"id":"","file":"","title":"Wire import","status
 
 #[test]
 fn imports_from_stdin() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
 
     support::mt(dir.path())
@@ -41,7 +42,7 @@ fn imports_from_stdin() {
 
 #[test]
 fn imports_from_a_file_argument() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
     let input = dir.path().join("in.json");
     std::fs::write(&input, ONE_TASK_JSON).unwrap();
@@ -63,7 +64,7 @@ fn imports_from_a_file_argument() {
 /// second record's status is outside the legend.
 #[test]
 fn a_rejected_record_is_never_written_and_the_rest_still_land() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
     let bad = ONE_TASK_JSON
         .replace("Wire import", "Bad record")
@@ -96,7 +97,7 @@ fn a_rejected_record_is_never_written_and_the_rest_still_land() {
 /// `--dry-run` names what it would file and says it wrote nothing.
 #[test]
 fn dry_run_says_would_file_and_writes_nothing() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
 
     support::mt(dir.path())
@@ -124,7 +125,7 @@ fn record(stem: &str, file: &str, dep: Option<&str>) -> String {
 
 #[test]
 fn a_two_folder_export_imports_back_whole() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
     let batch = format!(
         "[{},{}]",
@@ -145,7 +146,7 @@ fn a_two_folder_export_imports_back_whole() {
 
 #[test]
 fn an_explicit_destination_overrides_the_record_file() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
     let batch = format!("[{}]", record("alpha", "tasks/a/alpha.typ", None));
 
@@ -161,7 +162,7 @@ fn an_explicit_destination_overrides_the_record_file() {
 
 #[test]
 fn a_stem_taken_in_another_folder_gets_a_suffix_and_the_report_says_so() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
     let first = format!("[{}]", record("alpha", "tasks/a/alpha.typ", None));
     support::mt(dir.path())
@@ -183,7 +184,7 @@ fn a_stem_taken_in_another_folder_gets_a_suffix_and_the_report_says_so() {
 
 #[test]
 fn a_file_outside_every_root_or_climbing_out_lands_in_the_first_root() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
     let batch = format!(
         "[{},{},{}]",

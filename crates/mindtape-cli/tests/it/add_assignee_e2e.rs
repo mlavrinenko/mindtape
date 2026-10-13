@@ -4,6 +4,7 @@
 //! principal fails loudly instead of writing an empty or wrong worker.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use crate::support;
@@ -43,7 +44,7 @@ fn describe_slot_names(dir: &Path) -> Vec<String> {
 
 #[test]
 fn injects_config_required_assignee_slot() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path(), ASSIGNEE_REQUIRED_CONFIG);
 
     // `--describe` surfaces the spliced-in assignee slot as a choice.
@@ -73,7 +74,7 @@ fn injects_config_required_assignee_slot() {
 /// `$MINDTAPE_PRINCIPAL` files silently, with no `--set` and no prompt.
 #[test]
 fn principal_env_fills_required_assignee_silently() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path(), ASSIGNEE_REQUIRED_CONFIG);
 
     support::mt(dir.path())
@@ -93,7 +94,7 @@ fn principal_env_fills_required_assignee_silently() {
 /// write an empty worker.
 #[test]
 fn unset_principal_with_required_assignee_is_a_hard_error() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path(), ASSIGNEE_REQUIRED_CONFIG);
 
     support::mt(dir.path())
@@ -109,7 +110,7 @@ fn unset_principal_with_required_assignee_is_a_hard_error() {
 /// lands on a task.
 #[test]
 fn principal_outside_allowed_is_a_hard_error() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path(), ASSIGNEE_REQUIRED_CONFIG);
 
     let output = support::mt(dir.path())

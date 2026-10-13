@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
+use mindtape::test_support::tempdir;
 use tempfile::TempDir;
 use typst_edit::apply;
 
@@ -12,7 +13,7 @@ const IMPORT: &str = "#import \"@local/mindtape:0.2.0\": *\n";
 /// Scaffold a project holding a single `tasks/<name>` file and return the temp
 /// dir plus the absolute path of that file, ready for [`verify_written`].
 fn project_with(name: &str, body: &str) -> (TempDir, std::path::PathBuf) {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     crate::test_util::make_project_with_lib(dir.path(), PRELUDE, &[(name, body)], CONFIG);
     let file = dir.path().join("tasks").join(name);
     (dir, file)
@@ -171,7 +172,7 @@ fn verify_written_reports_a_load_error_on_the_file() {
 /// A project whose config carries an `imperative-title` rule at `severity`
 /// plus one task that breaches it, under the in-tree prelude.
 fn rules_project(severity: &str) -> (TempDir, std::path::PathBuf) {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let config = format!(
         "{CONFIG}\n[[tasks.rules]]\n\
          name = \"imperative-title\"\n\

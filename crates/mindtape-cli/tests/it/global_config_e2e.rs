@@ -15,6 +15,7 @@
 //! Windows, which no environment variable can move.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use crate::support;
@@ -40,7 +41,7 @@ fn origin(dir: &Path, config_home: Option<&Path>) -> String {
 /// A `mindtape/defaults.toml` under a fresh config-home directory, standing in
 /// for the one a developer keeps on their own machine.
 fn config_home_with_defaults(body: &str) -> tempfile::TempDir {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let mindtape = dir.path().join("mindtape");
     std::fs::create_dir_all(&mindtape).unwrap();
     std::fs::write(mindtape.join("defaults.toml"), body).unwrap();
@@ -84,7 +85,7 @@ fn a_global_defaults_file_does_reach_the_loader_when_present() {
 fn the_override_outranks_the_platform_config_lookup() {
     let project = support::scaffold_project("[tasks]\nroots = [\"tasks\"]\n");
     let xdg = config_home_with_defaults("[ls]\nhyperlinks = \"always\"\n");
-    let empty = tempfile::tempdir().unwrap();
+    let empty = tempdir();
 
     let mut cmd = support::mt(project.path());
     cmd.env("XDG_CONFIG_HOME", xdg.path())

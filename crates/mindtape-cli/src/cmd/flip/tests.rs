@@ -4,6 +4,7 @@
 //! child-process tests.
 #![allow(clippy::unwrap_used)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use clap::Parser;
@@ -88,7 +89,7 @@ pub(super) fn read(dir: &Path, name: &str) -> String {
 
 #[test]
 fn flips_status_by_slug() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup(dir.path(), &[("alpha.typ", ALPHA)], LEGEND_CONFIG);
     assert_eq!(project.outcome.tasks.len(), 1, "fixture must load");
 
@@ -100,7 +101,7 @@ fn flips_status_by_slug() {
 /// drift) is canonicalized on flip when `[format]` is enabled (the default).
 #[test]
 fn flip_formats_body_drift_by_default() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let drift = format!(
         "#import \"@local/mindtape:0.2.0\": *\n#show: task.with(\n  \
          title: \"Drifty\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\n{}drift line\n",
@@ -125,7 +126,7 @@ fn flip_formats_body_drift_by_default() {
 /// changes but the body's drift is left exactly as authored.
 #[test]
 fn flip_preserves_drift_when_format_disabled() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let indent = " ".repeat(40);
     let drift = format!(
         "#import \"@local/mindtape:0.2.0\": *\n#show: task.with(\n  \
@@ -149,14 +150,14 @@ fn flip_preserves_drift_when_format_disabled() {
 
 #[test]
 fn unknown_status_errors() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup(dir.path(), &[("alpha.typ", ALPHA)], LEGEND_CONFIG);
     assert!(run_with(&project, &flip_args("nope", &["alpha"])).is_err());
 }
 
 #[test]
 fn batch_applies_valid_and_reports_unresolved() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup(
         dir.path(),
         &[("alpha.typ", ALPHA), ("beta.typ", BETA)],
@@ -170,7 +171,7 @@ fn batch_applies_valid_and_reports_unresolved() {
 
 #[test]
 fn restamp_keeps_same_status() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup(dir.path(), &[("alpha.typ", ALPHA)], LEGEND_CONFIG);
     run_with(&project, &flip_args("wip", &["alpha"])).unwrap();
     assert!(read(dir.path(), "alpha.typ").contains("status: wip("));
@@ -178,7 +179,7 @@ fn restamp_keeps_same_status() {
 
 #[test]
 fn list_verbs_succeeds() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup(dir.path(), &[], LEGEND_CONFIG);
     let mut args = flip_args("done", &[]);
     args.status = None;
@@ -188,7 +189,7 @@ fn list_verbs_succeeds() {
 
 #[test]
 fn note_flag_writes_content_block() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup(dir.path(), &[("alpha.typ", ALPHA)], LEGEND_CONFIG);
     let mut args = flip_args("blocked", &["alpha"]);
     args.note = Some("waiting on review".to_owned());
@@ -301,7 +302,7 @@ fn transition_sink_message_names_terminal() {
 
 #[test]
 fn flip_rejects_illegal_transition_and_keeps_file() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     // BETA is `blocked`; blocked → done is not a declared edge.
     let project = setup(dir.path(), &[("beta.typ", BETA)], TRANSITION_CONFIG);
     assert_eq!(project.outcome.tasks.len(), 1, "fixture must load");
@@ -315,7 +316,7 @@ fn flip_rejects_illegal_transition_and_keeps_file() {
 
 #[test]
 fn flip_allows_legal_transition() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     // BETA is `blocked`; blocked → wip is a declared reopen edge.
     let project = setup(dir.path(), &[("beta.typ", BETA)], TRANSITION_CONFIG);
     run_with(&project, &flip_args("wip", &["beta"])).unwrap();
@@ -326,7 +327,7 @@ fn flip_allows_legal_transition() {
 fn flip_to_terminal_preserves_recur_field() {
     // `mt done` on a recurring task stays a pure close: it never strips
     // `recur`, so `mt recur` stays callable on the now-done task.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup(dir.path(), &[("gamma.typ", GAMMA)], LEGEND_CONFIG);
     run_with(&project, &flip_args("done", &["gamma"])).unwrap();
     let out = read(dir.path(), "gamma.typ");
@@ -336,7 +337,7 @@ fn flip_to_terminal_preserves_recur_field() {
 
 #[test]
 fn flip_force_bypasses_the_graph() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup(dir.path(), &[("beta.typ", BETA)], TRANSITION_CONFIG);
     let mut args = flip_args("done", &["beta"]);
     args.force = true;
@@ -346,7 +347,7 @@ fn flip_force_bypasses_the_graph() {
 
 #[test]
 fn unknown_status_does_not_touch_file() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let before = ALPHA.to_owned();
     let project = setup(dir.path(), &[("a.typ", ALPHA)], LEGEND_CONFIG);
     assert!(run_with(&project, &flip_args("nope", &["a"])).is_err());
@@ -358,7 +359,7 @@ fn unknown_status_does_not_touch_file() {
 
 #[test]
 fn unknown_status_near_miss_offers_a_suggestion() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup(dir.path(), &[("a.typ", ALPHA)], LEGEND_CONFIG);
     let msg = plain(&run_with(&project, &flip_args("donee", &["a"])).unwrap_err());
     assert_eq!(
@@ -369,7 +370,7 @@ fn unknown_status_near_miss_offers_a_suggestion() {
 
 #[test]
 fn unknown_status_far_miss_omits_the_suggestion() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup(dir.path(), &[("a.typ", ALPHA)], LEGEND_CONFIG);
     let msg = plain(&run_with(&project, &flip_args("zzzzzzzz", &["a"])).unwrap_err());
     assert_eq!(
@@ -445,7 +446,7 @@ fn note_required_ok_with_a_filled_note() {
 
 #[test]
 fn flip_refuses_note_required_status_without_a_note() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup(dir.path(), &[("alpha.typ", ALPHA)], NOTE_REQUIRED_CONFIG);
     let result = run_with(&project, &flip_args("blocked", &["alpha"]));
     assert!(
@@ -460,7 +461,7 @@ fn flip_refuses_note_required_status_without_a_note() {
 
 #[test]
 fn flip_accepts_note_required_status_with_a_note() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup(dir.path(), &[("alpha.typ", ALPHA)], NOTE_REQUIRED_CONFIG);
     let mut args = flip_args("blocked", &["alpha"]);
     args.note = Some("waiting on upstream".to_owned());

@@ -7,6 +7,7 @@
 
 use super::super::{fill_title_from_stdin, run, warn_if_outside_roots};
 use super::*;
+use mindtape::test_support::tempdir;
 
 // ── fill_title_from_stdin tests (survivors: body→Ok(||), ||→&&, ==→!=) ──
 
@@ -217,7 +218,7 @@ fn run_with_no_verify_skips_validation() {
         return;
     }
 
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     // Custom template that produces a task with an unresolvable depends-on.
     run_scenario_project(dir.path(), BAD_TEMPLATE);
 
@@ -286,7 +287,7 @@ fn run_fills_slot_from_declared_env() {
         return;
     }
 
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     run_scenario_project(dir.path(), ENV_TEMPLATE);
 
     let path = dir.path().to_str().unwrap().to_owned();
@@ -320,7 +321,7 @@ fn warn_scenario_project(dir: &Path) -> (PathBuf, Project) {
 #[test]
 fn warn_if_outside_roots_outside_prints_warning() {
     if std::env::var(WARN_INNER).is_ok() {
-        let dir = tempfile::tempdir().unwrap();
+        let dir = tempdir();
         let (_root, project) = warn_scenario_project(dir.path());
         let dest = dir.path().join("outside");
         std::fs::create_dir_all(&dest).unwrap();
@@ -350,7 +351,7 @@ fn warn_if_outside_roots_outside_prints_warning() {
 #[test]
 fn warn_if_outside_roots_inside_no_warning() {
     if std::env::var(WARN_INNER).is_ok() {
-        let dir = tempfile::tempdir().unwrap();
+        let dir = tempdir();
         let (root, project) = warn_scenario_project(dir.path());
         let dest = root.join("sub");
         std::fs::create_dir_all(&dest).unwrap();

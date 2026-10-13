@@ -11,9 +11,7 @@
 #![allow(clippy::disallowed_methods)]
 
 use std::collections::BTreeMap;
-use std::path::Path;
-#[cfg(test)]
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use crate::config::Config;
@@ -115,6 +113,17 @@ pub fn write_lib_package(dir: &Path, prelude: &str) {
     std::fs::write(lib.join("prelude.typ"), prelude).unwrap();
 }
 
+/// A fresh tempdir, removed when the returned guard drops. The setup line
+/// nearly every test that touches the disk opens with.
+///
+/// # Panics
+/// Panics if the OS refuses a temp directory, a test-harness bug.
+#[allow(clippy::unwrap_used)]
+#[must_use]
+pub fn tempdir() -> tempfile::TempDir {
+    tempfile::tempdir().unwrap()
+}
+
 /// A fresh tempdir with an (empty) `home/project` tree already created,
 /// `project` carrying an empty `.mindtape/` (no `config.toml`/`defaults.toml`
 /// of its own — every caller writes the layer text its scenario needs). Keep
@@ -127,16 +136,10 @@ pub fn write_lib_package(dir: &Path, prelude: &str) {
 /// Panics if creating either directory fails — a test-harness bug against a
 /// fresh tempdir, not a case to recover from.
 ///
-/// `#[cfg(test)]` rather than plain `pub`, unlike this module's other
-/// builders: `tempfile` is a dev-dependency, so a signature naming its type
-/// would fail to compile under the bare `test-support` feature the CLI
-/// enables to reuse the rest of this module without pulling `mindtape`'s own
-/// dev-dependencies along — no CLI test needs a layer-discovery fixture today.
-#[cfg(test)]
 #[allow(clippy::unwrap_used)]
 #[must_use]
 pub fn home_and_project() -> (tempfile::TempDir, PathBuf, PathBuf) {
-    let tmp = tempfile::tempdir().unwrap();
+    let tmp = tempdir();
     let home = tmp.path().join("home");
     let project = home.join("project");
     std::fs::create_dir_all(project.join(".mindtape")).unwrap();
@@ -297,7 +300,7 @@ mod tests {
     /// a test helper's exact formatting is not a behaviour worth pinning.
     #[test]
     fn write_lib_package_writes_a_resolvable_package() {
-        let dir = tempfile::tempdir().expect("tempdir creation must succeed");
+        let dir = tempdir();
         let prelude = "#let task(body, ..meta) = body\n";
         write_lib_package(dir.path(), prelude);
 

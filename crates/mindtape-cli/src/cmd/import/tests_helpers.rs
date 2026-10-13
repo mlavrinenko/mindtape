@@ -13,6 +13,7 @@
 //! `cmd/import/tests.rs`; everything here calls one helper directly.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+use mindtape::test_support::tempdir;
 use std::collections::HashSet;
 use std::process::Command;
 
@@ -25,7 +26,7 @@ use super::write::TaskOutcome;
 
 #[test]
 fn read_source_reads_a_real_file() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let path = dir.path().join("in.json");
     std::fs::write(&path, "[]").unwrap();
     let raw = super::input::read_source(path.to_str().unwrap()).unwrap();
@@ -94,7 +95,7 @@ fn record_label_falls_back_to_position_when_both_empty() {
 
 #[test]
 fn default_status_flag_outside_legend_fails_import() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = setup_dest(dir.path());
     let mut task = bare_task("needs-flag");
     task.title = "Needs Flag".to_owned();
@@ -109,7 +110,7 @@ fn default_status_flag_outside_legend_fails_import() {
 
 #[test]
 fn existing_stems_returns_only_typ_stems() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::write(dir.path().join("alpha.typ"), "").unwrap();
     std::fs::write(dir.path().join("beta.typ"), "").unwrap();
     std::fs::write(dir.path().join("notes.md"), "").unwrap();

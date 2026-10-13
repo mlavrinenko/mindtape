@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
+use crate::test_support::tempdir;
 use std::collections::BTreeMap;
 use std::path::Path;
 use std::process::Command;
@@ -31,7 +32,7 @@ fn eval(expr: &str, config: &Config) -> Result<bool, FilterError> {
 /// A repository with `src/lib.rs` staged and `src/lib_tests.rs` and
 /// `README.md` loose in the working tree.
 fn repo() -> tempfile::TempDir {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     git_init(root);
     std::fs::create_dir_all(root.join("src")).unwrap();
@@ -85,7 +86,7 @@ fn a_field_compared_to_an_absent_field_follows_the_missing_field_rule() {
 
 #[test]
 fn outside_a_repository_changed_fails_naming_the_reason() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let err = eval(r#"changed("worktree") == 0"#, &config_at(dir.path())).unwrap_err();
     assert!(matches!(err, FilterError::Git { .. }), "{err:?}");
     assert!(err.to_string().contains("not a git repository"), "{err}");
@@ -100,7 +101,7 @@ fn changed_is_a_count_not_a_predicate() {
 
 #[test]
 fn the_load_time_dry_run_checks_arguments_without_reading_git() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let config = config_at(dir.path());
     let probe = Task::default();
     assert_eq!(

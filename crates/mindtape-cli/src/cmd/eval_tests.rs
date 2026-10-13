@@ -1,6 +1,7 @@
 #![allow(clippy::unwrap_used)]
 
 use super::{EvalArgs, locate, run};
+use mindtape::test_support::tempdir;
 
 const TASK: &str = "#metadata((
   marker: \"mindtape.task\",
@@ -23,7 +24,7 @@ fn eval(file: &std::path::Path, json: bool) -> crate::diag::Result<()> {
 
 #[test]
 fn eval_valid_file_table_succeeds() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let file = dir.path().join("task.typ");
     std::fs::write(&file, TASK).unwrap();
     assert!(eval(&file, false).is_ok());
@@ -31,7 +32,7 @@ fn eval_valid_file_table_succeeds() {
 
 #[test]
 fn eval_valid_file_json_succeeds() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let file = dir.path().join("task.typ");
     std::fs::write(&file, TASK).unwrap();
     assert!(eval(&file, true).is_ok());
@@ -41,14 +42,14 @@ fn eval_valid_file_json_succeeds() {
 fn eval_missing_file_returns_err() {
     // A path under a fresh tempdir that was never written: nonexistent by
     // construction on every platform, unlike a hardcoded `/tmp/...`.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let file = dir.path().join("no_such_file.typ");
     assert!(eval(&file, false).is_err());
 }
 
 #[test]
 fn eval_file_without_marker_returns_err() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let file = dir.path().join("notes.typ");
     std::fs::write(&file, "= Just notes\n\nNo marker here.\n").unwrap();
     assert!(eval(&file, false).is_err());
@@ -56,7 +57,7 @@ fn eval_file_without_marker_returns_err() {
 
 #[test]
 fn build_world_missing_file_returns_err() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let file = dir.path().join("no_such_file.typ");
     assert!(super::build_world(&file).is_err());
 }
@@ -95,7 +96,7 @@ fn write_importing_task(root: &std::path::Path) -> std::path::PathBuf {
 
 #[test]
 fn eval_registers_an_in_tree_lib_named_mindtape() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     write_pkg(dir.path(), "lib", "mindtape");
     let file = write_importing_task(dir.path());
     assert!(eval(&file, true).is_ok());
@@ -107,7 +108,7 @@ fn eval_does_not_hijack_a_foreign_lib_package() {
     // points `@local/mindtape` elsewhere. Keying the override off the mere
     // existence of `lib/typst.toml` resolved the import to `lib/` and failed
     // on its declared name; the manifest name is what decides.
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     write_pkg(dir.path(), "lib", "other");
     write_pkg(dir.path(), "vendor/mindtape", "mindtape");
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();

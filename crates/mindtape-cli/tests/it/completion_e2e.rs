@@ -14,6 +14,7 @@
 //! Refs: `truth/tasks/emit-shell-completions-from-the-binary-that-answers-them.typ`
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::tempdir;
 use std::path::{Path, PathBuf};
 
 use crate::support;
@@ -178,7 +179,7 @@ fn project_values(candidates: &[String]) -> Vec<&String> {
 /// to know and do not depend on a project loading.
 #[test]
 fn a_project_that_does_not_load_yields_no_project_values_and_no_error() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let candidates = complete(dir.path(), &["mt", "flip", ""]);
     assert!(
         project_values(&candidates).is_empty(),
@@ -190,7 +191,7 @@ fn a_project_that_does_not_load_yields_no_project_values_and_no_error() {
 /// itself exits non-zero naming the TOML error; the completer must not.
 #[test]
 fn an_unparseable_config_yields_no_project_values_and_no_error() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
     std::fs::write(dir.path().join(".mindtape/config.toml"), "[tasks\n").unwrap();
     let candidates = complete(dir.path(), &["mt", "flip", ""]);
@@ -293,7 +294,7 @@ fn add_set_offers_the_tags_its_tasks_carry() {
 /// quiet failure every source shares — no diagnostic, no candidates.
 #[test]
 fn a_tag_token_outside_a_project_yields_nothing() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let candidates = complete(dir.path(), &["mt", "set", "x", "tags="]);
     assert!(project_values(&candidates).is_empty(), "{candidates:?}");
 }

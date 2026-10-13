@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+use crate::test_support::tempdir;
 use std::collections::BTreeMap;
 
 use super::{
@@ -32,7 +33,7 @@ fn content_hash_is_stable_and_content_sensitive() {
 
 #[test]
 fn put_get_roundtrips_a_marker() {
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let cache = open(root.path());
     let marker = HVal::Dict(BTreeMap::from([
         ("marker".to_owned(), HVal::Str("mindtape.task".to_owned())),
@@ -66,7 +67,7 @@ fn put_get_roundtrips_a_marker() {
 
 #[test]
 fn nomarker_outcome_roundtrips() {
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let cache = open(root.path());
     let hash = TaskCache::content_hash(b"no-marker");
     cache.put(&hash, None, &[], &[]);
@@ -81,7 +82,7 @@ fn nomarker_outcome_roundtrips() {
 
 #[test]
 fn missing_entry_is_a_miss() {
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let cache = open(root.path());
     assert!(
         cache
@@ -92,7 +93,7 @@ fn missing_entry_is_a_miss() {
 
 #[test]
 fn corrupt_or_wrong_format_entry_is_a_miss() {
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let cache = open(root.path());
     let hash = TaskCache::content_hash(b"entry");
     cache.put(&hash, None, &[], &[]);
@@ -116,7 +117,7 @@ fn build_key_reacts_to_config_and_prelude() {
         "a config change must bust the key"
     );
 
-    let lib = tempfile::tempdir().unwrap();
+    let lib = tempdir();
     std::fs::write(lib.path().join("prelude.typ"), "a").unwrap();
     let overrides = vec![("mindtape".to_owned(), lib.path().to_path_buf())];
     let before = build_key(&base, &overrides);
@@ -127,7 +128,7 @@ fn build_key_reacts_to_config_and_prelude() {
 
 #[test]
 fn prune_stale_removes_other_build_keys_only() {
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let cache_root = root.path().join("cache");
     let keep = "a".repeat(40);
     let stale = "b".repeat(40);
@@ -155,7 +156,7 @@ fn is_build_key_matches_sha1_hex_only() {
 
 #[test]
 fn ensure_ignored_writes_self_ignoring_gitignore() {
-    let root = tempfile::tempdir().unwrap();
+    let root = tempdir();
     let cache_root = root.path().join("cache");
     std::fs::create_dir_all(&cache_root).unwrap();
     ensure_ignored(&cache_root);

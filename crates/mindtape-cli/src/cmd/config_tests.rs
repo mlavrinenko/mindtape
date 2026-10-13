@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
+use mindtape::test_support::tempdir;
 use std::path::PathBuf;
 
 use mindtape::{Config, LayerSource, RuleOrigin, load_config, load_config_layered, parse_config};
@@ -9,7 +10,7 @@ use super::{render_effective, render_origin, render_schema};
 /// A fresh tempdir with `.mindtape/` already created (so `find_root` and the
 /// layer discovery walk see a project), optionally holding a `config.toml`.
 fn bare_project() -> tempfile::TempDir {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
     dir
 }
@@ -265,7 +266,7 @@ fn origin_labels_the_projects_own_rule_as_project() {
 /// tempdir is on that path regardless of where the real `$HOME` points.
 #[test]
 fn origin_labels_an_ancestor_defaults_rule_as_dir() {
-    let base = tempfile::tempdir().unwrap();
+    let base = tempdir();
     std::fs::create_dir_all(base.path().join(".mindtape")).unwrap();
     std::fs::write(
         base.path().join(".mindtape").join("defaults.toml"),
@@ -322,7 +323,7 @@ fn origin_labels_an_xdg_defaults_rule_as_xdg() {
         // Parent: scaffold a bare project and an XDG config home holding a
         // rule, then spawn a child with `$MINDTAPE_CONFIG_HOME` pointed at it.
         let project = bare_project();
-        let xdg = tempfile::tempdir().unwrap();
+        let xdg = tempdir();
         std::fs::create_dir_all(xdg.path().join("mindtape")).unwrap();
         std::fs::write(
             xdg.path().join("mindtape").join("defaults.toml"),

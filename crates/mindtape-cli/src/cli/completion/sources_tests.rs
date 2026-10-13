@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
+use mindtape::test_support::tempdir;
 use std::ffi::OsStr;
 
 use super::{assignment, help, presets_in, tag_token, tag_values};
@@ -8,7 +9,7 @@ use super::{assignment, help, presets_in, tag_token, tag_values};
 /// helped by its description, then the user presets — a shadowing one once.
 #[test]
 fn presets_offer_the_builtins_and_the_user_presets() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     std::fs::write(dir.path().join("mine.toml"), "").unwrap();
     std::fs::write(dir.path().join("flow.toml"), "").unwrap();
     let offered = presets_in(Some(dir.path()));
@@ -29,7 +30,7 @@ fn presets_offer_the_builtins_and_the_user_presets() {
 /// an error.
 #[test]
 fn presets_without_a_user_directory_are_the_builtins() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let missing = dir.path().join("absent");
     let builtins = crate::cmd::init::preset::list_builtins().len();
     assert_eq!(presets_in(Some(&missing)).len(), builtins);

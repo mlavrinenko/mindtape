@@ -5,6 +5,7 @@
 //! calls is dead code, hence the module-wide allow.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods, dead_code)]
 
+use mindtape::test_support::tempdir;
 use std::path::{Path, PathBuf};
 
 const PRELUDE: &str = include_str!("../../../../../lib/prelude.typ");
@@ -155,7 +156,7 @@ pub fn project_with_template(source: &str) -> tempfile::TempDir {
 /// project's own config declares (`[[tasks.body.headers.rules]]`,
 /// `[[tasks.body.content.rules]]`).
 pub fn project_with_template_and_config(config: &str, source: &str) -> tempfile::TempDir {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     install_lib(dir.path());
     std::fs::create_dir_all(dir.path().join(".mindtape/templates")).unwrap();
     std::fs::write(dir.path().join(".mindtape/config.toml"), config).unwrap();
@@ -276,7 +277,7 @@ pub fn add_then_ls_and_check(dir: &Path, name: &str, extra_set: &[&str]) {
 
 /// A scaffolded project for `preset`, with the Typst package installed.
 pub fn init_preset(preset: &str) -> tempfile::TempDir {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     install_lib(dir.path());
     run_ok(dir.path(), &["init", "--preset", preset]);
     dir
@@ -382,7 +383,7 @@ pub fn scaffold(dir: &Path) {
 /// to `.mindtape/config.toml`. The shared prologue for every e2e test that
 /// needs a real project with a config of its own.
 pub fn scaffold_project(config: &str) -> tempfile::TempDir {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     install_lib(dir.path());
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
     std::fs::write(dir.path().join(".mindtape/config.toml"), config).unwrap();

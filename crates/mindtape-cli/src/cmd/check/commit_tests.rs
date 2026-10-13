@@ -3,6 +3,7 @@
 //! line, and `warn_state_errors` printing each state that failed to evaluate.
 #![allow(clippy::unwrap_used)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use super::{run, warn_state_errors};
@@ -61,7 +62,7 @@ fn stage(dir: &Path, rel: &str) {
 /// `+` with `-` would cancel them to zero and report success.
 #[test]
 fn the_failure_count_sums_trailer_problems_and_rule_breaches() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = make_project_with_lib(dir.path(), PRELUDE, &[("parser.typ", TASK)], RULE_CONFIG);
     commit_all(dir.path());
     stage(dir.path(), "src/lib.rs");
@@ -91,7 +92,7 @@ fn quiet_suppresses_the_ok_line() {
         );
         return;
     }
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let project = make_project_with_lib(dir.path(), PRELUDE, &[("parser.typ", TASK)], PASS_CONFIG);
     commit_all(dir.path());
     let message = dir.path().join("COMMIT_MSG");

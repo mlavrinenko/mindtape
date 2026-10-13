@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
+use crate::test_support::tempdir;
 use std::path::Path;
 
 use typst_cst::CommentKind;
@@ -24,7 +25,7 @@ fn config_with_policy(policy: CommentsPolicy) -> Config {
 
 #[test]
 fn allow_policy_never_scans_even_with_a_comment() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let task = bare_task("a");
     write(
         dir.path(),
@@ -39,7 +40,7 @@ fn allow_policy_never_scans_even_with_a_comment() {
 
 #[test]
 fn forbid_catches_a_line_comment_with_file_line_and_text() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let task = bare_task("a");
     write(
         dir.path(),
@@ -60,7 +61,7 @@ fn forbid_catches_a_line_comment_with_file_line_and_text() {
 
 #[test]
 fn forbid_catches_a_block_comment() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let task = bare_task("a");
     write(
         dir.path(),
@@ -77,7 +78,7 @@ fn forbid_catches_a_block_comment() {
 
 #[test]
 fn forbid_ignores_double_slash_inside_a_string_literal() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let task = bare_task("a");
     write(
         dir.path(),
@@ -93,7 +94,7 @@ fn forbid_ignores_double_slash_inside_a_string_literal() {
 
 #[test]
 fn forbid_ignores_double_slash_inside_a_raw_block() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let task = bare_task("a");
     write(
         dir.path(),
@@ -109,7 +110,7 @@ fn forbid_ignores_double_slash_inside_a_raw_block() {
 
 #[test]
 fn allow_pattern_permits_a_matching_comment_and_still_rejects_others() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let task = bare_task("a");
     write(
         dir.path(),
@@ -130,7 +131,7 @@ fn allow_pattern_permits_a_matching_comment_and_still_rejects_others() {
 
 #[test]
 fn a_file_with_no_comments_passes() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let task = bare_task("a");
     write(dir.path(), &task.file.to_string_lossy(), "#let x = 1\n");
     let config = config_with_policy(CommentsPolicy::Forbid);
@@ -142,7 +143,7 @@ fn a_file_with_no_comments_passes() {
 
 #[test]
 fn warn_policy_still_reports_but_does_not_itself_block() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let task = bare_task("a");
     write(dir.path(), &task.file.to_string_lossy(), "// stray note\n");
     let config = config_with_policy(CommentsPolicy::Warn);

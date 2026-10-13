@@ -23,6 +23,7 @@
 //! of the CLI's own JSON dump is how a `tests/` binary sees it at all.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::tempdir;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::path::Path;
@@ -47,7 +48,7 @@ fn scaffold(dir: &Path) {
 /// field: a parallel task is reworking the link DSL on the same base commit,
 /// so these fixtures stay decoupled from it.
 fn build_fixture() -> tempfile::TempDir {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
 
     for (name, title) in [("alpha", "Alpha task"), ("beta", "Beta task")] {
@@ -66,7 +67,7 @@ fn build_fixture() -> tempfile::TempDir {
 /// is the only recurrence writer, so `mt ls`/`mt check` must leave a
 /// recurring task's tree exactly as untouched as any other.
 fn build_recurring_fixture() -> tempfile::TempDir {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path());
     std::fs::write(
         dir.path().join("tasks/water-plants.typ"),
@@ -228,7 +229,7 @@ fn worktrees_leaves_tree_untouched() {
 /// (`cli::command_class::CLASSIFICATION` must equal the visible command tree), so
 /// this only has to walk the tree the same way that gate does.
 fn read_command_paths() -> Vec<String> {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let output = support::mt(dir.path())
         .args(["_cli", "--json"])
         .output()

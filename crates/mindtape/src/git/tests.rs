@@ -1,12 +1,13 @@
 #![allow(clippy::unwrap_used)]
 
+use crate::test_support::tempdir;
 use std::fs;
 
 use super::current_branch;
 
 #[test]
 fn branch_head_resolves_name() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     fs::create_dir_all(dir.path().join(".git")).unwrap();
     fs::write(
         dir.path().join(".git").join("HEAD"),
@@ -18,7 +19,7 @@ fn branch_head_resolves_name() {
 
 #[test]
 fn branch_head_resolves_nested_name() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     fs::create_dir_all(dir.path().join(".git")).unwrap();
     fs::write(
         dir.path().join(".git").join("HEAD"),
@@ -30,7 +31,7 @@ fn branch_head_resolves_nested_name() {
 
 #[test]
 fn detached_head_is_none() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     fs::create_dir_all(dir.path().join(".git")).unwrap();
     fs::write(
         dir.path().join(".git").join("HEAD"),
@@ -42,7 +43,7 @@ fn detached_head_is_none() {
 
 #[test]
 fn worktree_gitdir_file_resolves() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let real_git = dir.path().join("real-git-dir");
     fs::create_dir_all(&real_git).unwrap();
     fs::write(real_git.join("HEAD"), "ref: refs/heads/feature/x\n").unwrap();
@@ -56,7 +57,7 @@ fn worktree_gitdir_file_resolves() {
 
 #[test]
 fn worktree_gitdir_file_relative_path_resolves() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     fs::create_dir_all(dir.path().join("real-git-dir")).unwrap();
     fs::write(
         dir.path().join("real-git-dir").join("HEAD"),
@@ -69,20 +70,20 @@ fn worktree_gitdir_file_relative_path_resolves() {
 
 #[test]
 fn no_git_directory_is_none() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     assert_eq!(current_branch(dir.path()), None);
 }
 
 #[test]
 fn missing_head_file_is_none() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     fs::create_dir_all(dir.path().join(".git")).unwrap();
     assert_eq!(current_branch(dir.path()), None);
 }
 
 #[test]
 fn malformed_head_is_none() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     fs::create_dir_all(dir.path().join(".git")).unwrap();
     fs::write(dir.path().join(".git").join("HEAD"), "not a valid head\n").unwrap();
     assert_eq!(current_branch(dir.path()), None);
@@ -90,7 +91,7 @@ fn malformed_head_is_none() {
 
 #[test]
 fn ref_to_non_branch_namespace_is_none() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     fs::create_dir_all(dir.path().join(".git")).unwrap();
     fs::write(
         dir.path().join(".git").join("HEAD"),

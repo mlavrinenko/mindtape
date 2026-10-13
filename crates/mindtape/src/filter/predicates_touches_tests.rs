@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
+use crate::test_support::tempdir;
 use std::path::Path;
 
 use crate::config::{Config, parse_config};
@@ -28,7 +29,7 @@ fn commit(root: &Path, message: &str) {
 /// - `src/b.rs` is changed under a trailer naming `gone`, a task that was
 ///   deleted.
 fn repo() -> tempfile::TempDir {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let root = dir.path();
     git_init(root);
     write(root, "tasks/old.typ", "old task\n");
@@ -99,7 +100,7 @@ fn a_retired_stem_matches_nothing_and_is_reported() {
 
 #[test]
 fn outside_a_repository_touches_fails_naming_the_reason() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let err = matching(r#"touches("src/a.rs")"#, &config_at(dir.path())).unwrap_err();
     assert!(matches!(err, FilterError::Git { .. }), "{err:?}");
     let text = err.to_string();
@@ -109,7 +110,7 @@ fn outside_a_repository_touches_fails_naming_the_reason() {
 
 #[test]
 fn the_dry_run_checks_touches_arguments_without_reading_git() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let config = config_at(dir.path());
     let probe = Task::default();
     assert_eq!(

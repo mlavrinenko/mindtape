@@ -5,6 +5,7 @@
 //! end-to-end, mirroring `add_e2e.rs`/`read_no_write_e2e.rs`.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use crate::support;
@@ -77,7 +78,7 @@ fn due_of(source: &str) -> String {
 
 #[test]
 fn spawn_writes_a_new_file_linked_back_to_the_predecessor() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path(), &[("water-plants.typ", WEEKLY_SPAWN)]);
 
     mt(dir.path())
@@ -108,7 +109,7 @@ fn spawn_writes_a_new_file_linked_back_to_the_predecessor() {
 
 #[test]
 fn dry_run_writes_nothing() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path(), &[("water-plants.typ", WEEKLY_SPAWN)]);
 
     mt(dir.path())
@@ -124,7 +125,7 @@ fn dry_run_writes_nothing() {
 
 #[test]
 fn double_spawn_guard_refuses_a_second_spawn_without_force() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path(), &[("water-plants.typ", WEEKLY_SPAWN)]);
 
     mt(dir.path())
@@ -147,7 +148,7 @@ fn double_spawn_guard_refuses_a_second_spawn_without_force() {
 
 #[test]
 fn mutate_refreshes_the_same_file_in_place() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path(), &[("standup.typ", WEEKLY_MUTATE)]);
 
     mt(dir.path()).args(["recur", "standup"]).assert().success();
@@ -167,7 +168,7 @@ fn mutate_refreshes_the_same_file_in_place() {
 /// `recur_override`, run `mt recur`, and assert it refuses with a stderr
 /// message containing `expect` — writing nothing.
 fn assert_recur_refused(recur_override: &str, expect: &str) {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let body = WEEKLY_SPAWN.replace("recur: every(weeks: 1),", recur_override);
     scaffold(dir.path(), &[("water-plants.typ", &body)]);
 
@@ -199,7 +200,7 @@ fn until_in_the_past_ends_the_series() {
 
 #[test]
 fn done_notice_points_at_mt_recur_for_a_spawn_series() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path(), &[("water-plants.typ", WEEKLY_SPAWN)]);
 
     let output = mt(dir.path())
@@ -218,7 +219,7 @@ fn done_notice_points_at_mt_recur_for_a_spawn_series() {
 
 #[test]
 fn done_notice_says_mutate_series_ends() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path(), &[("standup.typ", WEEKLY_MUTATE)]);
 
     let output = mt(dir.path()).args(["done", "standup"]).assert().success();
@@ -232,7 +233,7 @@ fn done_notice_says_mutate_series_ends() {
 /// carrying the older hop forward as well wrote a file `mt check` refuses.
 #[test]
 fn a_second_hop_names_only_its_immediate_predecessor() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     scaffold(dir.path(), &[("water-plants.typ", WEEKLY_SPAWN)]);
 
     mt(dir.path())
@@ -274,7 +275,7 @@ fn a_second_hop_names_only_its_immediate_predecessor() {
 /// not.
 #[test]
 fn a_rejected_spawn_creates_no_file() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let config = "[tasks]\nroots = [\"tasks\"]\n\n[tasks.tags]\nallowed = [\"ok\"]\n";
     let body = "#import \"@local/mindtape:0.2.0\": *\n\n\
 #show: task.with(\n  \
@@ -312,7 +313,7 @@ recur: every(weeks: 1),\n\
 /// minter disambiguated against disk alone, so all N claimed one filename.
 #[test]
 fn advance_lays_out_a_chain_of_distinct_occurrences() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let body = WEEKLY_SPAWN.replace("recur: every(weeks: 1),", "recur: every(days: 1),");
     scaffold(dir.path(), &[("water-plants.typ", &body)]);
 
@@ -344,7 +345,7 @@ fn advance_lays_out_a_chain_of_distinct_occurrences() {
 
 #[test]
 fn no_recur_field_is_a_hard_error() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let plain = "#import \"@local/mindtape:0.2.0\": *\n\n#show: task.with(\n  title: \"Plain\",\n  status: wip(2026, 6, 1),\n)\n";
     scaffold(dir.path(), &[("plain.typ", plain)]);
 
@@ -353,7 +354,7 @@ fn no_recur_field_is_a_hard_error() {
 
 #[test]
 fn a_task_without_recur_says_so_and_what_to_do() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let body = WEEKLY_SPAWN.replace("  recur: every(weeks: 1),\n", "");
     scaffold(dir.path(), &[("water-plants.typ", &body)]);
 
@@ -369,7 +370,7 @@ fn a_task_without_recur_says_so_and_what_to_do() {
 
 #[test]
 fn advance_that_runs_out_of_series_warns_and_keeps_the_spawns_it_planned() {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     let body = WEEKLY_SPAWN.replace(
         "recur: every(weeks: 1),",
         "recur: every(weeks: 1, until: on(2026, 6, 30)),",

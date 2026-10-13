@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+use crate::test_support::tempdir;
 use std::collections::HashSet;
 use std::path::Path;
 
@@ -38,7 +39,7 @@ pub(crate) fn marker(status: &str) -> String {
 }
 
 pub(crate) fn setup() -> tempfile::TempDir {
-    let dir = tempfile::tempdir().unwrap();
+    let dir = tempdir();
     crate::test_support::write_bare_project(dir.path());
     dir
 }
