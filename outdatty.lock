@@ -287,7 +287,7 @@ groups:
       www/content/agents.typ: fcc92fa6498c29f9a2f44a8136aee30b2b41f2bec20101d93e5457f19c4d0b07
   sweep-dedup:
     source:
-      contrib/ask-refactoring/coverage.sh: 832c7153e0a6b86713be4bfab1d5f963fa83026e2961de9f903ccb0e768a7144
+      contrib/ask-refactoring/coverage.sh: d0681c176ae2d718afdb8542e97cb7632c86d913bf469979f9b8e9da1163d225
     dependents:
       contrib/ask-refactoring/undertested.sh: 2fa018fe20abf9efbe170166f83f7838552cdac5951ac7b30f6643505743a5da
   sweep-templates:

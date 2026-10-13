@@ -76,6 +76,10 @@ ensure_lcov_fresh() {
 #   oversized files above — not the forty-plus files sitting in the 88-95% band
 #   that would make this arm noise instead of signal.
 #
+# A file with fewer than 5 uncovered lines is not reported, whatever its
+# percentage: in a small file 3 lines of tty or stdio wiring sink it below the
+# floor, and the first sweep filed `diag/prompt.rs` for exactly that.
+#
 # Excluded before the band is even applied:
 #
 #   Test files. `*_tests.rs` / `tests.rs` (and ejectest's infix-split
@@ -107,7 +111,7 @@ score_coverage() {
       | $l.percent                                          as $percent
       | $l.count                                            as $lines
       | ($lines - $l.covered)                                as $uncovered
-      | select($percent < $floor)
+      | select($percent < $floor and $uncovered >= 5)
       | (100 - $percent)                                    as $dark
       | (($dark / 5 | round) | clamp(1; 10))                as $impact
       | ((9 - ($uncovered / 5 | round)) | clamp(1; 10))     as $ease

@@ -20,6 +20,11 @@
 # mostly (half or more) fall on lines a kept family already holds is dropped.
 # A clone that slides by one line would otherwise file a task per window.
 #
+# Families anchored in one file make one task: jscpd reports a pattern's
+# sliding windows as separate families, and the first sweep filed the same
+# assert helper as five tasks. Their gains add up; each family clears the bar
+# on its own first.
+#
 # The bar is `--dry-gain`, 300 by default, the repeats arm's number. With no
 # bar the arm reported 639 families at a median gain of 50 tokens, 510 of them
 # in tests: a batch nobody empties. 100 still left 147; 300 leaves 25, each a
@@ -86,8 +91,11 @@ score_dry() {
           | if $hit * 2 >= $g.copies then .
             else .kept += [$g] | .claimed += ([$g.frags[] | lines_of(.)[] | {(.): true}] | add)
             end)
-      | .kept[]
-      | select(.gain >= $min_gain)
+      | [.kept[] | select(.gain >= $min_gain)]
+      | group_by(.anchor.name)[]
+      | sort_by(-.gain)
+      | (.[0] + {gain: (map(.gain) | add), copies: (map(.copies) | add),
+                 families: length, frags: (map(.frags[]) | unique)})
       | ([.frags[].name] | unique | length) as $files
       | ((3 + (([.gain, 1] | max / 100 | log2) | round)) | clamp(1; 10)) as $impact
       | ((9 - (($files / 10) | round)) | clamp(1; 10)) as $ease
@@ -101,7 +109,8 @@ score_dry() {
           .fragment,
           ([.frags[] | "crates/\(.name):\(.start)"] | join("\n")),
           ($impact | tostring),
-          ($ease | tostring)
+          ($ease | tostring),
+          (.families | tostring)
         ]
       | @tsv
     '
@@ -129,7 +138,7 @@ signal_dry() {
 
 emit_dry() {
     local path="$1" line="$2" copies="$3" tokens="$4" gain="$5" files="$6"
-    local fragment="$7" locations="$8" impact="$9" ease="${10}"
+    local fragment="$7" locations="$8" impact="$9" ease="${10}" families="${11}"
 
     # @tsv escaped the newlines.
     fragment="$(printf '%b' "$fragment" | head -n 8)"
@@ -147,7 +156,9 @@ emit_dry() {
     [ "$more" -gt 0 ] && listed="$shown
   - and $more more, which \`just ask-refactoring\` lists again on its next run"
 
-    local measured="+ 🔴 This clone appears $copies times across $files $([ "$files" -eq 1 ] && echo file || echo files), $tokens jscpd tokens at most. Extracting it saves about $gain tokens net of the helper and its calls.
+    local shape="This clone appears"
+    [ "$families" -gt 1 ] && shape="$families clones anchored in this file appear"
+    local measured="+ 🔴 $shape $copies times across $files $([ "$files" -eq 1 ] && echo file || echo files), $tokens jscpd tokens at most. Extracting it saves about $gain tokens net of the helper and its calls.
 $listed"
 
     local remedy="- \`$path\` and every other file the Problem lists: extract a helper and call it from each copy, or mark the copies as intended with \`// jscpd:ignore-start\` and \`// jscpd:ignore-end\` and a comment saying why the match is a coincidence. Either way, re-mint the baseline with \`just dry-baseline\` in the same commit."

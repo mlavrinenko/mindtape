@@ -41,6 +41,10 @@
 #   third file, because nothing declares a page the way a `mod` line declares
 #   a module, and a render is regenerated, not written.
 #
+# A test module is reported only from 97% of its cap. The first sweep's lanes
+# split six test files at 90..95% and called it busywork: a test file grows by
+# whole cases, its seams are arbitrary, and nothing reads it end to end.
+#
 # The result is monotone in headroom (5,5,4,4,3,3,3 on today's tree) and sits in
 # the `normal` band. That is honest: mechanical refactoring is real work and is
 # never the most important thing on the board.
@@ -90,6 +94,7 @@ score_size() {
       | (if any($members[]; .prose) then "prose" else $top.language end) as $kind
       | ($kind == "Rust"
          and ($path | test("_tests\\.rs$|(^|/)tests\\.rs$|(^|/)tests_[^/]*\\.rs$|(^|/)tests/"))) as $is_test
+      | select(($is_test | not) or ($top | pct) >= 97)
       | (100 - ($top | pct))                                as $free
       | ([$top.lines - $top["baseline-limit"], 0] | max)    as $move
       | ((10 - (($free / 1.5) | round)) | clamp(1; 10))     as $impact
