@@ -97,3 +97,7 @@ impl Problem {
         Self { text, unknown }
     }
 }
+
+#[cfg(test)]
+#[path = "problem_tests.rs"]
+mod tests;
