@@ -285,3 +285,6 @@ mod tests;
 
 #[cfg(test)]
 mod tests_fill;
+
+#[cfg(test)]
+mod tests_fill_errors;
