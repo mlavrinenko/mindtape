@@ -109,3 +109,24 @@ fn reviewing_an_unresolvable_id_fails() {
     let stderr = support::stderr_of(&output);
     assert!(stderr.contains("does-not-exist"), "{stderr}");
 }
+
+/// A task that reaches `mt review` through an aliased import has no literal
+/// `task.with(…)` call for the stamp to edit. `run()` must refuse with the
+/// "can't find the task.with" diagnostic and leave the file byte-identical.
+#[test]
+fn an_aliased_task_call_is_refused_and_left_untouched() {
+    let dir = scaffold();
+    let body = "#import \"@local/mindtape:0.2.0\": *\n#let t = task\n\
+                #show: t.with(\n  title: \"Wire OAuth\",\n  status: wip(2026, 6, 1),\n)\n";
+    let file = dir.path().join("tasks/wire-oauth.typ");
+    std::fs::write(&file, body).unwrap();
+
+    let stderr = support::stderr_of(
+        &support::mt(dir.path())
+            .args(["review", "wire-oauth"])
+            .assert()
+            .failure(),
+    );
+    assert!(stderr.contains("can't find the task.with"), "{stderr}");
+    assert_eq!(std::fs::read_to_string(&file).unwrap(), body);
+}
