@@ -2,7 +2,7 @@
 
 # Mindtape — AI Agent Context
 
-@CONTRIBUTING.md says how work is done here. This file says what Mindtape is and where its parts live. Fork parallel work with `just fork` and land it with `just land` a bare `wt merge` squashes away the `Refs:` footers.
+@CONTRIBUTING.md says how work is done here. This file says what Mindtape is and where its parts live. Fork parallel work with `just fork` and land it with `just land`.
 
 ## What is this?
 
@@ -12,11 +12,11 @@ Mindtape is a file-based task tracker. Each task is one Typst file (`#show: task
 
 - `lib/prelude.typ` — the `@local/mindtape` package, which defines the task DSL.
 - `truth/tasks/` — Mindtape’s own backlog, read with the in-tree `lib/`. Change a task with `mt` commands, as `skills/mindtape/SKILL.md` says. Edit the file by hand only for the body, a framework priority, `estimate` and `x-goals`, then run `mt check`.
-- `truth/goals.typ` and `truth/process-goals.typ` — the product and process goals. Each open task rates every goal in `x-goals`, and the `goals` rule checks the ratings with `check-goals` from `truth/lib.typ`.
+- `truth/goals.typ` and `truth/process-goals.typ` — the product and process goals. Each open task rates every goal in `x-goals`, which the `goals` rule checks.
 - `www/content/*.typ` — the docs site, built with tola.
 - `docs/src/*.typ` — the sources of README.md, AGENTS.md, CONTRIBUTING.md, SKILL.md and the `docs/contributing/*.md` deep dives.
 - `skills/mindtape/` — the agent skill for driving `mt`, with its references and evals.
-- `examples/` — fixture projects: `api-service`, a sample backend project’s backlog that feeds the docs and the skill’s evals; `minimal`, the smallest config; `dsl`, the task quoted below; `large`, a 2000-task benchmark whose gitignored tasks `just gen-bench` writes. Each other one backs one docs page.
+- `examples/` — fixture projects: `api-service`, a sample backend backlog that feeds the docs and the skill’s evals; `minimal`, the smallest config; `dsl`, the task quoted below; `large`, a 2000-task benchmark whose gitignored tasks `just gen-bench` writes. Each other one backs one docs page.
 
 Before you write about a feature, read the `www/content/` page that covers it: `dsl.typ` for task fields, edge kinds and `recur`, `templates.typ` for `mt add` and slots, `derived-tags.typ`, `priority.typ`, `filters.typ`, and `config.typ` for every config key.
 
@@ -39,7 +39,6 @@ The Typst plumbing comes from seven crates.io dependencies, whose source sits un
 
 ## Architecture
 
-- Rust, with the toolchain pinned in `rust-toolchain.toml`.
 - Typst runs eval-only through `typst-eval`: Mindtape never lays out a document.
 - `evalexpr` parses the filter language, and Mindtape evaluates the parsed tree itself.
 - `clap` for the CLI, `serde` and `toml` for config, `serde_json` and `csv` for output, and a hand-rolled table renderer in `crates/mindtape-cli/src/render/`.
@@ -60,10 +59,10 @@ The Typst plumbing comes from seven crates.io dependencies, whose source sits un
 )
 ```
 
-`task` declares each core field as a named parameter, so tinymist completes field names, and its `..meta` sink takes only `x-<ns>` slots. A misspelled field such as `titel` fails with `unexpected argument: titel`, marked under `titel`.
+`task` declares each core field as a named parameter, and its `..meta` sink takes only `x-<ns>` slots, so a misspelled field fails.
 
 A field value is a plain shape that Rust interprets. `ice(...)` and the other framework helpers build a `(framework, inputs)` dict, `every(...)` and `rrule(...)` build a recurrence dict, and `depends-on("a.typ") + related("b.typ")[why]` builds typed edges. Rust does all math and date arithmetic.
 
 ### Mechanism, not policy
 
-Rust ships mechanisms, and projects write policy as config expressions. Name no estimate unit, status, tag, path or threshold in Rust code. Write a new check as a `[[tasks.rules]]` entry. When the filter language cannot express it, extend the language with a field, predicate, aggregate or git state, never a config table or checker of its own. Put shipped defaults in the rule packs under `crates/mindtape/src/packs/`, where a project overrides a rule by name. `docs/contributing/validation-seam.md` says which layer a new check belongs in: the prelude, Rust and config, or the card render.
+Rust ships mechanisms, and projects write policy as config expressions. Name no estimate unit, status, tag, path or threshold in Rust code. Write a new check as a `[[tasks.rules]]` entry. When the filter language cannot express it, extend the language with a field, predicate, aggregate or git state, never a config table or checker of its own. Put shipped defaults in the rule packs under `crates/mindtape/src/packs/`, where a project overrides a rule by name. `docs/contributing/validation-seam.md` says which layer a new check belongs in.

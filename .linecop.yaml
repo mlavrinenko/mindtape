@@ -64,7 +64,7 @@ overrides:
     limit: 76
     max_bytes: 6600
 
-  # The sources of the four rendered files. agents.typ (151 lines) and
+  # The sources of the four rendered files. agents.typ (147 lines) and
   # skill.typ (129) are capped at their size after a whole rewrite plus about
   # 10%. An agent loads each whole, so the rule above holds for them too.
   # readme.typ and contributing.typ keep the Markdown cap plus room for the
