@@ -7,17 +7,24 @@
 use std::collections::BTreeMap;
 
 use super::tests::{config, flags, on_field, task};
-use super::validate;
+use super::{Violation, validate};
 use crate::config::{Config, FieldConfig, Requirement, parse_config};
+use crate::model::Task;
 use crate::model::marker::ShapeError;
 use crate::model::numeric::NumValue;
 use crate::test_support::ice_priority;
 
+/// Validates one task of `status`, built by `task()` then edited by `edit`,
+/// against `config()`.
+fn violations_after(status: &str, edit: impl FnOnce(&mut Task)) -> Vec<Violation> {
+    let mut item = task("a", status);
+    edit(&mut item);
+    validate(&[item], &config())
+}
+
 #[test]
 fn flags_missing_required_priority_when_active() {
-    let mut item = task("a", "wip");
-    item.priority = None;
-    let violations = validate(&[item], &config());
+    let violations = violations_after("wip", |item| item.priority = None);
     assert!(on_field(&violations, "priority"));
 }
 
@@ -30,9 +37,7 @@ fn terminal_task_skips_required() {
 
 #[test]
 fn flags_priority_out_of_scale() {
-    let mut item = task("a", "wip");
-    item.priority = Some(NumValue::Num(42.0));
-    let violations = validate(&[item], &config());
+    let violations = violations_after("wip", |item| item.priority = Some(NumValue::Num(42.0)));
     assert!(
         flags(&violations, "priority", "outside"),
         "out-of-scale priority should be flagged, got: {violations:?}"
@@ -41,9 +46,9 @@ fn flags_priority_out_of_scale() {
 
 #[test]
 fn flags_unknown_priority_label() {
-    let mut item = task("a", "wip");
-    item.priority = Some(NumValue::Label("epic".to_owned()));
-    let violations = validate(&[item], &config());
+    let violations = violations_after("wip", |item| {
+        item.priority = Some(NumValue::Label("epic".to_owned()));
+    });
     assert!(
         flags(&violations, "priority", "not a known priority value"),
         "a label outside the configured bands should be flagged, got: {violations:?}"
@@ -52,17 +57,17 @@ fn flags_unknown_priority_label() {
 
 #[test]
 fn flags_unknown_estimate_unit() {
-    let mut item = task("a", "wip");
-    item.estimate = BTreeMap::from([("fortnights".to_owned(), 2.0)]);
-    let violations = validate(&[item], &config());
+    let violations = violations_after("wip", |item| {
+        item.estimate = BTreeMap::from([("fortnights".to_owned(), 2.0)]);
+    });
     assert!(flags(&violations, "estimate", "fortnights"));
 }
 
 #[test]
 fn terminal_task_keeps_a_retired_estimate_unit() {
-    let mut item = task("a", "done");
-    item.estimate = BTreeMap::from([("fortnights".to_owned(), 2.0)]);
-    let violations = validate(&[item], &config());
+    let violations = violations_after("done", |item| {
+        item.estimate = BTreeMap::from([("fortnights".to_owned(), 2.0)]);
+    });
     assert!(
         !on_field(&violations, "estimate"),
         "a terminal task should keep whatever unit it was estimated in, got: {violations:?}"
@@ -82,18 +87,16 @@ fn flags_marker_shape_error_regardless_of_config() {
 
 #[test]
 fn flags_disallowed_tag() {
-    let mut item = task("a", "wip");
-    item.tags = vec!["frontend".to_owned()];
-    let violations = validate(&[item], &config());
+    let violations = violations_after("wip", |item| item.tags = vec!["frontend".to_owned()]);
     assert!(on_field(&violations, "tags"));
 }
 
 /// What the one violation on `tags` says an unknown tag could have been, for a
 /// task holding `tags` against `config()`'s `["backend"]`.
 fn unknown_tag(tags: &[&str]) -> crate::Unknown {
-    let mut item = task("a", "wip");
-    item.tags = tags.iter().map(|tag| (*tag).to_owned()).collect();
-    let violations = validate(&[item], &config());
+    let violations = violations_after("wip", |item| {
+        item.tags = tags.iter().map(|tag| (*tag).to_owned()).collect();
+    });
     let hit = violations
         .iter()
         .find(|v| v.field == "tags")
@@ -119,9 +122,9 @@ fn disallowed_tag_far_miss_omits_the_suggestion() {
 
 #[test]
 fn flags_disallowed_derived_tag() {
-    let mut item = task("a", "wip");
-    item.derived_tags = vec!["marketing".to_owned()];
-    let violations = validate(&[item], &config());
+    let violations = violations_after("wip", |item| {
+        item.derived_tags = vec!["marketing".to_owned()];
+    });
     let hit = violations
         .iter()
         .find(|v| v.field == "tags")
@@ -132,9 +135,7 @@ fn flags_disallowed_derived_tag() {
 
 #[test]
 fn disallowed_derived_tag_near_miss_suggests_the_allowed_tag() {
-    let mut item = task("a", "wip");
-    item.derived_tags = vec!["backedn".to_owned()];
-    let violations = validate(&[item], &config());
+    let violations = violations_after("wip", |item| item.derived_tags = vec!["backedn".to_owned()]);
     let hit = violations
         .iter()
         .find(|v| v.field == "tags")
@@ -145,9 +146,7 @@ fn disallowed_derived_tag_near_miss_suggests_the_allowed_tag() {
 
 #[test]
 fn terminal_task_keeps_a_dropped_tag() {
-    let mut item = task("a", "done");
-    item.tags = vec!["frontend".to_owned()];
-    let violations = validate(&[item], &config());
+    let violations = violations_after("done", |item| item.tags = vec!["frontend".to_owned()]);
     assert!(
         !on_field(&violations, "tags"),
         "a terminal task should keep whatever tag it was filed with, got: {violations:?}"
@@ -156,9 +155,9 @@ fn terminal_task_keeps_a_dropped_tag() {
 
 #[test]
 fn terminal_task_keeps_a_dropped_derived_tag() {
-    let mut item = task("a", "done");
-    item.derived_tags = vec!["marketing".to_owned()];
-    let violations = validate(&[item], &config());
+    let violations = violations_after("done", |item| {
+        item.derived_tags = vec!["marketing".to_owned()];
+    });
     assert!(
         !on_field(&violations, "tags"),
         "a terminal task should keep whatever tag its folder derived, got: {violations:?}"
