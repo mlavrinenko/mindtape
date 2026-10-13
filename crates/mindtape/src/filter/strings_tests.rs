@@ -328,6 +328,21 @@ fn a_boolean_call_in_string_position_errors() {
     );
 }
 
+/// An operator or a negated field where a string belongs is an error, not a
+/// value: `title + id` is named in the message, and `-title` is no literal.
+#[test]
+fn an_operator_in_string_position_errors() {
+    let cfg = Config::default();
+    let plus = err("matches(title + id, \"x\")", &titled("Add auth"), &cfg);
+    assert!(
+        matches!(&plus, FilterError::Invalid(text)
+            if text.contains("expected a string, a field or word(...)") && text.contains("'+'")),
+        "{plus:?}"
+    );
+    let neg = err("matches(-title, \"x\")", &titled("Add auth"), &cfg);
+    assert!(matches!(neg, FilterError::Invalid(_)), "{neg:?}");
+}
+
 /// The whole point of the seam: these compose with everything else in the
 /// language, including a view reference.
 #[test]
