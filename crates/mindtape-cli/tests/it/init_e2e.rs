@@ -65,7 +65,7 @@ fn every_preset_supports_add_check_and_a_full_walk() {
         support::add_then_ls_and_check(dir.path(), "wire-preset", fills);
         for status in *path {
             support::run_ok(dir.path(), &["flip", status, "wire-preset"]);
-            support::run_ok(dir.path(), &["check"]);
+            support::check_ok(dir.path());
         }
     }
 }
@@ -147,7 +147,7 @@ fn composed_answer_sets_support_add_check_and_a_full_walk() {
         support::add_then_ls_and_check(dir.path(), "wire-set", fills);
         for status in *walk {
             support::run_ok(dir.path(), &["flip", status, "wire-set"]);
-            support::run_ok(dir.path(), &["check"]);
+            support::check_ok(dir.path());
         }
     }
 }
@@ -169,7 +169,7 @@ fn init_accepts_the_rrule_answer_and_checks_an_rrule_task() {
          recur: rrule(\"FREQ=MONTHLY;BYDAY=1MO\"),\n)\n"
         ),
     );
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// A strict-framework answer set scaffolds like any other: the fallback
@@ -200,7 +200,7 @@ fn gated_preset_installs_its_template() {
     for heading in ["Summary", "Acceptance criteria", "Non-goals", "Files"] {
         assert!(task.contains(heading), "missing {heading}:\n{task}");
     }
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// The `gated` review gate is real: `done` is unreachable directly from `wip`,

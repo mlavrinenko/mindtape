@@ -68,7 +68,7 @@ fn injects_real_scale_priority_slot_and_round_trips_a_decimal() {
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
     // The filed task with a real priority value passes `check`.
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// A config whose priority is a required strict framework (`allow-manual =
@@ -110,7 +110,7 @@ fn injects_framework_leaf_slots_for_a_strict_framework_priority() {
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
     // The filed task passes `check` (the framework score lands in the scale).
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 
     // Omitting a leaf is the existing missing-slot hard error, before any write.
     support::mt(dir.path())
@@ -146,7 +146,7 @@ fn derives_initial_status_from_a_custom_legend() {
     assert!(!written.contains("proposed"), "{written}");
 
     // The filed task passes `check` even though the legend has no `proposed`.
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// A template's own `status:` names the status `add` files at: the name is
@@ -232,7 +232,7 @@ fn add_with_no_explicit_estimate_defaults_to_a_valid_task() {
     assert!(written.contains("estimate: (src-files: 2)"), "{written}");
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// A config whose declared estimate unit is `src-files` and whose one rule

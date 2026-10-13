@@ -52,7 +52,7 @@ fn a_text_slot_escapes_the_files_bytes_like_any_other_value() {
         written.contains(r"create-\*star\* \_u\_ \$x\$ \#h \[b\] \<a> >g \@at"),
         "a text slot must escape a file's bytes: {written}"
     );
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// A `raw` slot splices the file verbatim — the case the operator exists for.
@@ -78,7 +78,7 @@ fn a_raw_slot_splices_the_file_verbatim() {
         !written.contains(r"\`"),
         "a raw slot must not escape the file: {written}"
     );
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// The operator reads the file for EVERY kind, not only the two the design

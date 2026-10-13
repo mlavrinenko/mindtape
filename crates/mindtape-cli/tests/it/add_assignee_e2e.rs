@@ -52,7 +52,7 @@ fn injects_config_required_assignee_slot() {
     assert!(written.contains("assignee: \"ada\""), "{written}");
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 
     // Omitting a config-required field is the existing missing-slot hard error.
     support::mt(dir.path())
@@ -76,7 +76,7 @@ fn principal_env_fills_required_assignee_silently() {
     assert!(written.contains("assignee: \"ada\""), "{written}");
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// An unset `$MINDTAPE_PRINCIPAL` is an unknown actor, not a default: a

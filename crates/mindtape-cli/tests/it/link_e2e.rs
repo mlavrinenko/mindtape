@@ -67,7 +67,7 @@ fn a_rejected_edge_leaves_the_file_untouched() {
         before,
         "a refused edge must leave the file byte-identical"
     );
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 #[test]
@@ -86,7 +86,7 @@ fn a_written_edge_leaves_the_project_valid() {
     );
     // The point of serializing through the prelude's own helpers: the file
     // parses, evaluates, and satisfies every rule `mt check` enforces.
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 #[test]
@@ -111,7 +111,7 @@ fn an_adjacency_map_arrives_on_stdin() {
         written.contains(r#"related("write-docs.typ")[same release]"#),
         "{written}"
     );
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 #[test]
@@ -257,7 +257,7 @@ fn replace_drops_the_edges_the_map_omits() {
         "{written}"
     );
     assert!(!written.contains("pick-a-provider"), "{written}");
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// Closing a cycle is refused whichever end the validator attributes it to:
@@ -285,7 +285,7 @@ fn closing_a_dependency_cycle_is_refused_from_either_end() {
             before,
             "a refused cycle must leave both files byte-identical"
         );
-        support::run_ok(dir.path(), &["check"]);
+        support::check_ok(dir.path());
     }
 }
 

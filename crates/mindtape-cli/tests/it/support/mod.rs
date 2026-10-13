@@ -213,6 +213,11 @@ pub fn run_ok(dir: &Path, args: &[&str]) {
     mt(dir).args(args).assert().success();
 }
 
+/// Assert `mt check` passes in `dir`: what a command wrote still validates.
+pub fn check_ok(dir: &Path) {
+    run_ok(dir, &["check"]);
+}
+
 /// Run `mt add --name <name> <args…>` in `dir`, assert it succeeds, and
 /// return the task file it wrote, `tasks/<name>.typ`.
 pub fn add_and_read(dir: &Path, name: &str, args: &[&str]) -> String {
@@ -239,7 +244,7 @@ pub fn add_then_ls_and_check(dir: &Path, name: &str, extra_set: &[&str]) {
     args.extend_from_slice(extra_set);
     run_ok(dir, &args);
     run_ok(dir, &["ls"]);
-    run_ok(dir, &["check"]);
+    check_ok(dir);
 }
 
 /// Parsed `add --describe=json` schema rows run in `dir`.

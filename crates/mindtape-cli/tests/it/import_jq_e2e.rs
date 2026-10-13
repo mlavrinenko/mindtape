@@ -106,7 +106,7 @@ fn assert_e2e_import(source: &str) {
         .assert()
         .success();
 
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 
     let filed = std::fs::read_dir(dir.path().join("tasks"))
         .unwrap()

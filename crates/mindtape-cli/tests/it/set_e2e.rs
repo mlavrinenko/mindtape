@@ -69,7 +69,7 @@ fn writes_a_scalar_field_of_each_shape() {
     assert!(written.contains("assignee: \"ada\""), "{written}");
 
     // The whole point of writing through `mt`: what lands still validates.
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// A field already present is replaced, not doubled.

@@ -27,7 +27,7 @@ fn end_to_end_files_and_validates_a_task() {
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
     // The filed task passes `check`.
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 #[test]
@@ -177,7 +177,7 @@ fn single_line_template_files_a_task_that_loads() {
     let written = support::add_and_read(dir.path(), "one-line", &["--set", "title=One line"]);
     assert!(written.contains("title: \"One line\""), "{written}");
     assert!(written.contains("status: proposed("), "{written}");
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// A template that cannot evaluate no matter how its slots are filled, so the
@@ -287,7 +287,7 @@ fn a_wrong_shaped_slot_value_is_refused_before_the_write() {
         !stderr.contains("validation issue"),
         "the error is the breach, with no summary of its own: {stderr}"
     );
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// `--no-verify` still writes whatever it was handed: the flag skips the check

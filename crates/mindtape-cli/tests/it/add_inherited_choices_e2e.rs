@@ -62,7 +62,7 @@ fn an_inherited_choice_files_a_listed_value() {
     let written = support::add_and_read(dir.path(), "x", &["--set", "title=x", "--", "kind=chore"]);
     assert!(written.contains("kind: \"chore\""), "{written}");
     assert!(!written.contains("choices"), "{written}");
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// The template check fills the template's own example, not the config's
@@ -74,7 +74,7 @@ fn the_template_check_files_the_slots_own_example() {
          [[tasks.rules]]\nname = \"no-feat\"\nassert = \"kind != \\\"feat\\\"\"\n\
          severity = \"error\"\n";
     let dir = support::project_with_template_and_config(DOCS_ONLY_TEST, OWN_KIND_TEMPLATE);
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// A list-valued field: `x-machine` takes any of the listed machines.
@@ -107,7 +107,7 @@ fn file_machines(template: &str, slot: &str) -> String {
             &format!("{slot}+=beta"),
         ],
     );
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
     std::fs::read_to_string(dir.path().join("tasks/x.typ")).unwrap()
 }
 

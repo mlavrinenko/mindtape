@@ -136,7 +136,7 @@ fn rm_retargets_every_links_edge_and_check_stays_green() {
 
     // The dangling-edge regression: with every inbound edge tombstoned, no
     // survivor edge resolves to a missing task, so validation stays green.
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 #[test]
@@ -183,7 +183,7 @@ fn rm_takes_two_refs_in_one_invocation_and_rewrites_each_inbound_link() {
         "raw edge survived:\n{live_b}"
     );
 
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 #[test]
@@ -208,7 +208,7 @@ fn rm_deletes_unreferenced_task_outside_git_repo() {
     // The survivor is untouched — no tombstone, no rewrite.
     let unrelated = std::fs::read_to_string(dir.path().join("tasks/unrelated.typ")).unwrap();
     assert!(!unrelated.contains("swh:1:rev:"), "survivor was rewritten");
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 #[test]
@@ -227,7 +227,7 @@ fn rm_deletes_unreferenced_task_inside_git_repo() {
 
     assert!(!dir.path().join("tasks/gone.typ").exists());
     assert!(dir.path().join("tasks/unrelated.typ").exists());
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 #[test]
@@ -283,7 +283,7 @@ fn rm_unlink_strips_inbound_edges_and_deletes_without_git() {
     assert!(!live.contains("gone.typ"), "edge survived:\n{live}");
     assert!(!live.contains("+"), "separator survived:\n{live}");
     assert!(!live.contains("swh:1:rev:"), "tombstone written:\n{live}");
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 #[test]

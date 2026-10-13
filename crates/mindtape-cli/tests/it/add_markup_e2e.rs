@@ -81,7 +81,7 @@ fn raw_slot_splices_markup_without_escaping() {
 
     // Reading back proves it landed as live markup, not inert text: `mt eval`
     // sees the same code span in the harvested body.
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// A `raw` slot's filler is trusted to be markup, not guaranteed to be

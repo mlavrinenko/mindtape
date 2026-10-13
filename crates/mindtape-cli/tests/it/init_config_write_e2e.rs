@@ -177,7 +177,7 @@ fn preset_overlay_composes_a_flattened_valid_config() {
 
     support::add_then_ls_and_check(dir.path(), "wire-overlay", &[]);
     support::run_ok(dir.path(), &["flip", "done", "wire-overlay"]);
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// A preset whose whole body is under `[overlay]` composes to just that overlay:
@@ -191,7 +191,7 @@ fn overlay_only_preset_composes_to_the_overlay() {
 
     support::add_then_ls_and_check(dir.path(), "wire-overlay-only", &[]);
     support::run_ok(dir.path(), &["flip", "done", "wire-overlay-only"]);
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// An unknown preset name fails and lists what exists, rather than reaching for

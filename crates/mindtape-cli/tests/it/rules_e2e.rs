@@ -14,7 +14,7 @@ use std::path::{Path, PathBuf};
 
 use crate::support;
 
-use support::{mt, run_ok, scaffold_project};
+use support::{mt, scaffold_project};
 
 /// The repo root, derived from this crate's manifest dir
 /// (`crates/mindtape-cli` -> `../..`), so a test finds the root's own
@@ -253,7 +253,7 @@ fn mt_flip_refuses_a_write_that_breaches_an_error_rule() {
                 assert = '!terminal || assignee == \"ada\"'\n\
                 severity = \"error\"\n";
     let dir = project(rule, "Refactor the loader");
-    run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
     let out = mt(dir.path()).args(["done", "subject"]).output().unwrap();
     assert!(!out.status.success(), "an error rule must refuse the flip");
     let stderr = String::from_utf8_lossy(&out.stderr);

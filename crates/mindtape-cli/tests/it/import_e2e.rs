@@ -44,7 +44,7 @@ fn imports_from_a_file_argument() {
     assert!(written.contains("title: \"Wire import\""), "{written}");
 
     // The filed task passes `check`.
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// One bad record does not refuse the batch — the good one still lands, and the
@@ -78,7 +78,7 @@ fn a_rejected_record_is_never_written_and_the_rest_still_land() {
         !dir.path().join("tasks/bad-record.typ").exists(),
         "a rejected record must never reach the disk"
     );
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// `--dry-run` names what it would file and says it wrote nothing.
@@ -126,7 +126,7 @@ fn a_two_folder_export_imports_back_whole() {
 
     assert!(dir.path().join("tasks/a/alpha.typ").exists());
     assert!(dir.path().join("tasks/b/beta.typ").exists());
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 #[test]

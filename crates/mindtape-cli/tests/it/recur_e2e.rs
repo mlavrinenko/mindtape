@@ -98,7 +98,7 @@ fn spawn_writes_a_new_file_linked_back_to_the_predecessor() {
     let original = std::fs::read_to_string(dir.path().join("tasks/water-plants.typ")).unwrap();
     assert!(original.contains("status: wip("), "{original}");
 
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 #[test]
@@ -143,7 +143,7 @@ fn mutate_refreshes_the_same_file_in_place() {
     assert!(refreshed.contains("status: proposed("), "{refreshed}");
     assert!(!refreshed.contains("recurred-from"), "{refreshed}");
 
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// Scaffold a weekly-spawn task with its `recur:` replaced by
@@ -237,7 +237,7 @@ fn a_second_hop_names_only_its_immediate_predecessor() {
         "the older hop must not be carried forward: {source}"
     );
 
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 /// The defect this seam closes for `recur`: a spawn whose occurrence would not
@@ -309,7 +309,7 @@ fn advance_lays_out_a_chain_of_distinct_occurrences() {
     distinct.dedup();
     assert_eq!(distinct.len(), 3, "occurrence dates must differ: {dues:?}");
 
-    support::run_ok(dir.path(), &["check"]);
+    support::check_ok(dir.path());
 }
 
 #[test]
