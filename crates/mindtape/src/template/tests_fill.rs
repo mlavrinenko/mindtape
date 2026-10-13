@@ -378,6 +378,53 @@ fn edit_failure_displays_rewrite_message() {
     assert_eq!(err.to_string(), "rewrite failed: boom");
 }
 
+/// The text a user reads for every `FillError`: each names the slot and, where
+/// one exists, the way out.
+#[test]
+fn every_error_displays_its_slot_and_remedy() {
+    let type_err = |want| FillError::Type {
+        slot: "n".to_owned(),
+        want,
+        got: "string",
+    };
+    let cases = [
+        (
+            FillError::Missing(vec!["a".to_owned(), "b".to_owned()]),
+            "missing required slot(s): a, b",
+        ),
+        (
+            type_err(SlotKind::Int),
+            "slot \"n\" expects int, got string",
+        ),
+        (type_err(SlotKind::MultiChoice), "--set n+=value"),
+        (
+            FillError::BadChoice {
+                slot: "k".to_owned(),
+                value: "x".to_owned(),
+                choices: vec!["bug".to_owned(), "feature".to_owned()],
+            },
+            "slot \"k\" value \"x\" is not one of: bug, feature",
+        ),
+        (
+            FillError::BadDate {
+                slot: "d".to_owned(),
+                value: "soon".to_owned(),
+            },
+            "slot \"d\" value \"soon\" is not a YYYY-MM-DD date",
+        ),
+        (
+            FillError::BadMarkup {
+                slot: "m".to_owned(),
+                message: "unclosed".to_owned(),
+            },
+            "slot \"m\" is not valid Typst markup: unclosed",
+        ),
+    ];
+    for (err, expected) in cases {
+        assert!(err.to_string().contains(expected), "{err} lacks {expected}");
+    }
+}
+
 /// The migration path off the retired `typst` spelling. Before `unknown_kind`
 /// existed this filled as a `string` — the value quoted and escaped, a wrong
 /// task written with exit 0 and no diagnostic anywhere.
