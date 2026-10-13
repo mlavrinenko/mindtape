@@ -43,6 +43,23 @@ fn doctor_cache_title(entry: &Path, title: &str) {
     std::fs::write(entry, serde_json::to_string(&value).unwrap()).unwrap();
 }
 
+/// The first task's title from a fresh default-config load of `root`.
+fn load_title(root: &Path) -> String {
+    load_project(root, &Config::default())
+        .tasks
+        .first()
+        .unwrap()
+        .title
+        .clone()
+}
+
+/// Doctor the cached entry, reload, and assert the doctored title came back:
+/// the load read the cache and did not re-evaluate the untouched file.
+fn assert_served_from_cache(root: &Path) {
+    doctor_cache_title(&sole_cache_entry(root), "FROM-CACHE");
+    assert_eq!(load_title(root), "FROM-CACHE");
+}
+
 #[test]
 fn warm_load_serves_cache_and_skips_eval() {
     let dir = setup();
@@ -52,9 +69,7 @@ fn warm_load_serves_cache_and_skips_eval() {
 
     // An unchanged file must be served from its cached marker, not re-evaluated
     // (a re-eval would recover the file's real "Build" title).
-    doctor_cache_title(&sole_cache_entry(dir.path()), "FROM-CACHE");
-    let second = load_project(dir.path(), &Config::default());
-    assert_eq!(second.tasks.first().unwrap().title, "FROM-CACHE");
+    assert_served_from_cache(dir.path());
 }
 
 #[test]
@@ -69,8 +84,7 @@ fn edited_file_misses_and_reevals() {
         "tasks/build.typ",
         TASK_BODY.replace("Build", "Rebuilt"),
     );
-    let out = load_project(dir.path(), &Config::default());
-    assert_eq!(out.tasks.first().unwrap().title, "Rebuilt");
+    assert_eq!(load_title(dir.path()), "Rebuilt");
 }
 
 #[test]
@@ -102,8 +116,7 @@ fn prelude_change_busts_the_cache() {
     // Editing the prelude changes the lib hash -> build key -> re-eval.
     let bumped = format!("{PRELUDE_STUB}\n// bump\n");
     write_pkg(dir.path(), "lib", "mindtape", "0.2.0", &bumped);
-    let out = load_project(dir.path(), &Config::default());
-    assert_eq!(out.tasks.first().unwrap().title, "Hi");
+    assert_eq!(load_title(dir.path()), "Hi");
 }
 
 #[test]
@@ -156,8 +169,7 @@ fn edited_imported_module_busts_the_entry() {
     assert_eq!(first.tasks.first().unwrap().title, "Title one");
 
     write_file(dir.path(), "shared.typ", "#let t = \"Title TWO\"\n");
-    let second = load_project(dir.path(), &Config::default());
-    assert_eq!(second.tasks.first().unwrap().title, "Title TWO");
+    assert_eq!(load_title(dir.path()), "Title TWO");
 }
 
 #[test]
@@ -166,9 +178,7 @@ fn unchanged_imported_module_still_hits_the_cache() {
     write_file(dir.path(), "shared.typ", "#let t = \"Title one\"\n");
     write_file(dir.path(), "tasks/imp.typ", IMPORTING_TASK);
     let _ = load_project(dir.path(), &Config::default());
-    doctor_cache_title(&sole_cache_entry(dir.path()), "FROM-CACHE");
-    let second = load_project(dir.path(), &Config::default());
-    assert_eq!(second.tasks.first().unwrap().title, "FROM-CACHE");
+    assert_served_from_cache(dir.path());
 }
 
 #[test]
