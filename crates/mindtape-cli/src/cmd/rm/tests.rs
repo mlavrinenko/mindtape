@@ -396,6 +396,9 @@ mod cli_tests;
 #[path = "gitless_tests.rs"]
 mod gitless_tests;
 
+#[path = "gitless_retire_tests.rs"]
+mod gitless_retire_tests;
+
 #[test]
 fn no_repository_names_the_way_out_and_redacts_the_root() {
     let dir = tempdir();
