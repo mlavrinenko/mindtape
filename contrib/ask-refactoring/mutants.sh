@@ -2,7 +2,7 @@
 #
 # Sourced by `contrib/ask-refactoring.sh`; not executable on its own. It reads
 # that script's globals (`$repo`, `$MT`, `$WRITE`, the thresholds) and calls its
-# `stem_for`. It owns three functions the driver looks up by name —
+# `stem_for` and `skip_arm`. It owns three functions the driver looks up by name —
 # `score_mutants`, `signal_mutants`, `emit_mutants` — reading the last sweep's
 # outcomes.json.
 #
@@ -159,7 +159,7 @@ score_mutants() {
 }
 
 signal_mutants() {
-    mutants_available || return 0
+    mutants_available || { skip_arm mutants; return 0; }
     score_mutants
 }
 

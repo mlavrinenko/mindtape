@@ -20,7 +20,9 @@ To turn the quality signals no gate enforces into backlog tasks, run
 task per finding. A gate fails a commit. The sweep files tasks for signals
 that fail nothing yet, such as a file at 90% of its size cap.
 
-By default it prints the tasks it would file. Add `--write` to file them. A
+By default it prints each arm's finding count and its three findings with the
+highest ICE score, and writes those tasks' bodies to `target/ask-refactoring/`,
+so you can read them before you file. Add `--write` to file every finding. A
 threshold flag, such as `--coverage-floor 92`, changes that arm for one run.
 
 #let sweep-flags = fact("sweep-flags").at("flags")

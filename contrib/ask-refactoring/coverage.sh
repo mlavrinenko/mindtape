@@ -36,14 +36,18 @@
 # would make the coverage arm the slowest thing about `just ask-refactoring`
 # for no benefit: the measurement does not change unless the sources do.
 ensure_lcov_fresh() {
-    # Onto stderr, never stdout. This runs inside `signal_coverage`, whose whole
-    # stdout is the TSV row stream, so on an mmz cache miss the instrumented test
-    # run prints straight into the rows — "running 939 tests" then parses as a
-    # finding with an empty score and fails the fill. A cache hit hides it, which
-    # is why it survives casual testing: the arm only misbehaves on the runs
-    # where it is doing the work it exists to do. Progress still reaches the
-    # terminal, because a silent multi-minute pause reads like a hang.
-    just mmz cover >&2
+    # Never onto stdout, which is the TSV row stream: on an mmz cache miss the
+    # test run would parse as findings. Its output goes to a log shown only on
+    # failure, and one stderr line says why a cache miss pauses for minutes.
+    echo "ask-refactoring: just mmz cover (a cache miss reruns the suite)" >&2
+    local log
+    log="$(mktemp)"
+    if ! just mmz cover >"$log" 2>&1; then
+        cat "$log" >&2
+        rm -f "$log"
+        exit 1
+    fi
+    rm -f "$log"
     local lcov="target/coverage/lcov.info"
     if [ ! -f "$lcov" ]; then
         echo "ask-refactoring: $lcov is missing — run \`just cover\` first" >&2

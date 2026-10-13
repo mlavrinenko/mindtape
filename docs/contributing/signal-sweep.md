@@ -4,7 +4,7 @@
 
 To turn the quality signals no gate enforces into backlog tasks, run `just ask-refactoring`. It runs `contrib/ask-refactoring.sh`, which files one task per finding. A gate fails a commit. The sweep files tasks for signals that fail nothing yet, such as a file at 90% of its size cap.
 
-By default it prints the tasks it would file. Add `--write` to file them. A threshold flag, such as `--coverage-floor 92`, changes that arm for one run.
+By default it prints each arm’s finding count and its three findings with the highest ICE score, and writes those tasks’ bodies to `target/ask-refactoring/`, so you can read them before you file. Add `--write` to file every finding. A threshold flag, such as `--coverage-floor 92`, changes that arm for one run.
 
 | Flag | Default | Bounds | Notes |
 | --- | --- | --- | --- |

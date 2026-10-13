@@ -150,7 +150,7 @@ groups:
       .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
       .just/docs.just: 300226a86d551abc287d058efd9cbc2143fa7f15e3c6b53131699f27f35847fc
       .just/scripts/wt-carry-lcov.sh: da29d756c94da7817fef3d1248e1cc049d9eef715400b6d0dff7908a3488bf67
-      Justfile: cd10244c1f93b3f11c3d53c9cceecf158a1abbb1f2bec22a882749bb65ae2166
+      Justfile: a4e9a093bedb1f9e2ba9c9a15c4b946308ea971b8bff2afc18f5762fe43125df
       flake.nix: ef91529881401b7bfffd564c53a0ff62d9d24b8b9adaa6c52f510119a9004305
     dependents:
       docs/src/agents.typ: 738581f65453037d2e7e4df57dffa2aa1993a582d8e7ead92a3a02d059a97e03
@@ -160,9 +160,9 @@ groups:
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
       docs/src/contributing/documentation.typ: 451e7a8b3a3579410d721855fd9343f93dcbb772ec464b06ceb75c2a7ce9b1e1
       docs/src/contributing/example-projects.typ: 4f9a0c52894b9c2ab665e42bb728814b3d18badf3e8def57737d695d29912f63
-      docs/src/contributing/gates.typ: f10ff4ff4e412476696b9e065c2b2b9de79abb29f0a8addf70348178216e46f9
+      docs/src/contributing/gates.typ: 98dff9d1a2b84a1388d515a521dda0db6fa222378568d2bc95b7cfc4ca0fba3f
       docs/src/contributing/mutation-testing.typ: 96f2e41b03e5bb524e1c49dd08e9435690f37ba566cf81cc0f6dbc843e01981a
-      docs/src/contributing/signal-sweep.typ: c39011fdce52c1577ed17bf4392512588c9387f0b9336547243999a16944725d
+      docs/src/contributing/signal-sweep.typ: 124ee14e2e1418b9dabe6aa27b9c2ce20e60c82cbf75c8447a75bbde7c5acc53
       docs/src/contributing/windows.typ: 093ebafaf04b07d4abd611b33a346695a61e811b51f79e13a29df34903e96786
   doc-gate-scripts-docs:
     source:
@@ -287,7 +287,7 @@ groups:
       www/content/agents.typ: fcc92fa6498c29f9a2f44a8136aee30b2b41f2bec20101d93e5457f19c4d0b07
   sweep-dedup:
     source:
-      contrib/ask-refactoring/coverage.sh: 8d066e27256364089586a34d2425061bed1fc70681dfcc2c4ef7cb9441eb0433
+      contrib/ask-refactoring/coverage.sh: 832c7153e0a6b86713be4bfab1d5f963fa83026e2961de9f903ccb0e768a7144
     dependents:
       contrib/ask-refactoring/undertested.sh: 2fa018fe20abf9efbe170166f83f7838552cdac5951ac7b30f6643505743a5da
   sweep-templates:

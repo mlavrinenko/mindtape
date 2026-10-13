@@ -774,16 +774,15 @@ eject PCT='90':
     linecop --baseline {{ PCT }} --format paths | ejectest apply . --files-from - --lenient --mod-rs-tests tests
 
 # File backlog tasks from the advisory quality signals, the ones that predict
-# mechanical work instead of blocking on it. Four arms: linecop (file size),
-# per-file line coverage (which nothing gates, since `just cover` fails on the
-# workspace total only), per-function complexity against coverage, and surviving
-# mutants. Each arm is a scoring function plus a `.mindtape/templates/sweep-*.typ`
-# template, not a config change.
+# mechanical work instead of blocking on it. Each arm, listed in `ARMS` in
+# contrib/ask-refactoring.sh, is a scoring script plus a
+# `.mindtape/templates/sweep-*.typ` template, not a config change.
 #
-# Dry by default: it prints, via `mt add --print`, the exact tasks it would
-# file; `--write` files them. It refuses to run while `mt ls @ask-refactoring`
-# is non-empty, so one sprint of mechanical work is emptied before the next is
-# filed. The five parameters below are the only copy of their defaults, and the
+# Dry by default: it prints each arm's finding count and its top findings, and
+# writes those findings' task bodies under target/ask-refactoring/; `--write`
+# files every finding. It refuses to run while `mt ls @ask-refactoring` is
+# non-empty, so one sprint of mechanical work is emptied before the next is
+# filed. The parameters below are the only copy of their defaults, and the
 # reason each arm carries its own threshold is in
 # docs/contributing/signal-sweep.md.
 #

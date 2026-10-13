@@ -3,49 +3,35 @@
 #
 # Run it as `just ask-refactoring` (dry) or `just ask-refactoring --write`.
 #
-# Mechanical refactoring work recurs, and today a human notices it at the moment
-# it blocks something else. The tools that predict it are already
-# machine-readable; nothing reads them into the backlog. This does.
+# Mechanical refactoring work recurs, and a human notices it only when it
+# blocks something else. The tools that predict it are machine-readable; this
+# reads them into the backlog. Three rules the design turns on:
 #
-# Three rules the design turns on:
+#   Only advisory signals qualify. A signal that already blocks a commit, such
+#   as jscpd's new clones, outdatty, machete or clippy, never files a task. The
+#   part of jscpd no gate enforces is the baseline `just check-dry` tolerates,
+#   which the dry arm files, and the snippets under its 50-token floor, which
+#   the repeats arm files.
 #
-#   Only advisory signals qualify. A signal that already blocks a commit —
-#   jscpd's new clones, outdatty, machete, clippy — must never file a task,
-#   because the wall is already in front of you and the task would be a note
-#   about the wall. The part of jscpd no gate enforces is the baseline: the
-#   clones `just check-dry` tolerates because they predate it, which the dry arm
-#   files, and the snippets under its 50-token floor, which the repeats arm does.
+#   One task per finding, never one per sweep: each goes to its own agent.
 #
-#   One task per finding, never one per sweep. Each is dispatched to its own
-#   agent and has to carry its own scope.
+#   Idempotency comes from the signal, not a ledger. A closed task whose
+#   condition still holds is noticed again, because the work did not happen.
+#   The one suppression is an override with a written reason in the signal's
+#   own config: .linecop.yaml for sizes, an `--exclude` in the `just cover` or
+#   `just crap` recipe for coverage.
 #
-#   Idempotency comes from the signal, not from a ledger. Nothing here records
-#   what was filed. A closed task whose condition still holds should be noticed
-#   again — the work did not happen. The one deliberate suppression is an
-#   override with a written reason in the signal's own config (.linecop.yaml for
-#   sizes; an `--exclude` entry in the `just cover`/`just crap` recipes, with the
-#   reason in the comment beside it, for coverage), which is the mechanism those
-#   files already use.
+# The re-run guard is [views.ask-refactoring] in .mindtape/config.toml: while a
+# task the sweep filed is open, the sweep refuses.
 #
-# The re-run guard is the [views.ask-refactoring] view in .mindtape/config.toml:
-# while any task the sweep filed is still open, the sweep refuses. One sprint of
-# mechanical work is emptied before the next is filed.
+# Each signal is one file under `contrib/ask-refactoring/`, named in `ARMS`.
+# `signal_<arm>` prints TSV rows on stdout and `emit_<arm>` turns a row into a
+# task, so a signal that shells out to a producer sends that output to stderr
+# (see `ensure_lcov_fresh`). The tags and the guard need no change for a new arm.
 #
-# Adding a signal is a scoring function plus a template, not a config change:
-# the `swept` / `size` / `mutants` / `coverage` tags are all declared already,
-# and the guard selects on `swept` alone. Each signal is one file under
-# `contrib/ask-refactoring/`, named in `ARMS` below and sourced from there;
-# `signal_<name>` prints TSV rows on stdout and `emit_<name>` turns a row into a
-# task. Nothing else may reach that stdout — a signal that shells out to a
-# producer has to send its output to stderr, or it lands in the rows (see
-# `ensure_lcov_fresh`).
-#
-# Not memoized with mmz, deliberately: the whole point is to re-observe the
-# tree on every run. The one exception is `just cover` itself, inside the
-# coverage signal: `just mmz cover` (see below) skips re-running the whole test
-# suite when nothing under its scope changed, but the lcov it reads is still
-# re-checked for freshness on every sweep — memoizing the expensive rebuild is
-# not the same as memoizing the observation.
+# Not memoized with mmz: the point is to re-observe the tree every run. Only
+# `just mmz cover` inside the coverage arm is cached, and the lcov it reads is
+# still checked for freshness every sweep.
 set -eo pipefail
 
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -53,20 +39,13 @@ cd "$repo"
 
 # ── the thresholds ──────────────────────────────────────────────────────────
 #
-# Every one of them is required and none is defaulted here, deliberately. The
-# defaults live in the `ask-refactoring` recipe's `[arg(...)]` parameters and
-# nowhere else (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-
-# attributes.typ): that is what `just --usage ask-refactoring` renders, what
-# `just --dump` carries into www/generated/sweep-flags.json, and what
-# docs/contributing/signal-sweep.md's table is generated from. A fallback here
-# would be a second copy of five numbers with nothing to keep it in step — the
-# arrangement this whole change exists to end — and it would fail silently, at
-# a threshold nobody chose, on the day the recipe stopped passing one.
+# All six are required and none is defaulted here. The defaults live only in
+# the recipe's `[arg(...)]` attributes, which `just --usage`, the generated
+# sweep-flags.json and docs/contributing/signal-sweep.md all read. A fallback
+# here would be a second copy that fails silently at a threshold nobody chose.
 #
-# Initialised empty rather than left unset, because these six names are also
-# the recipe's exported parameters: `$BASELINE` and friends are in this
-# script's environment already, so an inherited value would satisfy the
-# required-check below without the flag ever having been passed.
+# Initialised empty because the recipe exports the same names, so an inherited
+# value would otherwise pass the required-check without the flag.
 BASELINE=""
 COVERAGE_FLOOR=""
 CC_FLOOR=""
@@ -108,10 +87,8 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-# Missing, or not a number: refuse rather than sweep at a threshold nobody
-# chose. The recipe's patterns already reject a non-numeric value at dispatch,
-# so this fires only for a direct `bash contrib/ask-refactoring.sh` call —
-# which is exactly the caller the recipe's defaults cannot reach.
+# Refuse a missing or non-numeric flag. The recipe's patterns catch these at
+# dispatch, so this guards a direct `bash contrib/ask-refactoring.sh` call.
 for var in WRITE BASELINE COVERAGE_FLOOR CC_FLOOR FN_COVERAGE_FLOOR REPEAT_GAIN; do
     flag="--$(printf '%s' "$var" | tr 'A-Z_' 'a-z-')"
     value="${!var}"
@@ -128,10 +105,8 @@ for var in WRITE BASELINE COVERAGE_FLOOR CC_FLOOR FN_COVERAGE_FLOOR REPEAT_GAIN;
     esac
 done
 
-# Use the worktree's own `mt`, never whatever is on PATH: the sweep depends on
-# `--dedup` and `--format json`, which a system-wide install may predate, and a
-# tracker that files tasks with a stale binary is worse than one that does not
-# run. Same convention as `just check-doc-coverage`.
+# Use the worktree's own `mt`, never the one on PATH, which may predate the
+# `--dedup` and `--format json` the sweep needs.
 MT="${MT:-}"
 if [ -z "$MT" ]; then
     cargo build -p mindtape-cli -q
@@ -155,17 +130,11 @@ EOF
     exit 1
 fi
 
-# A stem derived from the finding, not from the title: stable across runs, so
-# `--dedup skip` recognises the same finding twice, and namespaced by signal so
-# the arms cannot collide. `$1` is the signal name (`size`, `coverage`,
-# ...), `$2` the finding's path. Shared, so it stays here rather than in an arm.
-#
-# Operator characters are spelled out before the general substitution. Without
-# it `replace > with >=` and `replace > with <` sanitize to the same run of
-# hyphens, and `--dedup skip` then drops the second as "already filed" — the
-# mutants arm folded thirteen stems over thirty-one survivors that way. Paths
-# and function names carry none of these characters, so the size, coverage and
-# undertested stems are unchanged.
+# A stem from the finding, not the title: stable across runs, so `--dedup
+# skip` knows a finding again, and prefixed by the arm (`$1`) so arms cannot
+# collide. `$2` is the finding. Operators are spelled out first, or
+# `replace > with >=` and `replace > with <` fold to one stem and the second
+# is dropped as already filed.
 stem_for() {
     local encoded
     encoded="$(printf '%s' "$2" \
@@ -200,28 +169,50 @@ file_finding() {
             *) echo "$outcome $dest" ;;
         esac
     else
-        echo "── would file: $stem  $summary"
-        "$MT" "$@" --print
-        echo
+        # Dry: queue the finding under its ICE score; `report_arm` renders
+        # only the top ones, since `mt add --print` costs a second apiece.
+        local score
+        score="$(printf '%s\n' "$@" | awk -F= '
+            /^(impact|confidence|ease)=/ { v[$1] = $2 }
+            END { printf "%.2f", v["impact"] * v["confidence"] * v["ease"] }')"
+        queued=$((queued + 1))
+        printf '%s\0' "$@" >"$queue/$queued.args"
+        printf '%s\t%s\t%s\t%s\n' "$score" "$queued" "$stem" "$summary" >>"$queue/$arm.tsv"
     fi
+}
+
+# Dry run: print an arm's count and its top findings by ICE score, and write
+# those findings' bodies under `$preview`, where they are read before
+# `--write` files them. `$1` is the arm, `$2` its finding count.
+report_arm() {
+    local arm="$1" count="$2" score n stem summary
+    if [ -e "$queue/$arm.skipped" ]; then
+        printf '%-12s skipped, see above\n' "$arm"
+        return 0
+    fi
+    printf '%-12s %4d finding(s)\n' "$arm" "$count"
+    [ "$count" -gt 0 ] || return 0
+    while IFS=$'\t' read -r score n stem summary; do
+        local args=()
+        mapfile -d '' -t args <"$queue/$n.args"
+        "$MT" "${args[@]}" --print >"$preview/$stem.typ"
+        printf '  %s  %s\n' "$stem" "$summary"
+    done < <(sort -t$'\t' -k1,1nr -k3,3 "$queue/$arm.tsv" | head -n "$TOP")
+}
+
+# An arm that cannot measure calls this after saying why on stderr, so the
+# dry run reports it skipped rather than clean.
+skip_arm() {
+    : >"$queue/$1.skipped"
 }
 
 # ── the arms ────────────────────────────────────────────────────────────────
 #
-# One file per signal, each defining `score_<arm>`, `signal_<arm>` and
-# `emit_<arm>` plus the block of reasoning that justifies its numbers. Splitting
-# on this seam is what keeps every file under the `Shell` cap in `.linecop.yaml`
-# — the sweep files tasks about oversized files and was, until that cap existed,
-# the largest source file in the repo and structurally unable to see itself.
-#
-# Adding an arm is: a new file here, its name in `ARMS`, and a template. Still
-# no config change.
-#
-# `undertested` follows `coverage`: it defers to that arm (it stays quiet about a
-# function whose file the file-shaped arm already reports) and borrows its
-# freshness check and production-file predicate, so the pair reads in the order
-# the deferral runs. Sourcing is a separate loop, so nothing here depends on the
-# order for definitions — only the output does.
+# Each file defines `score_<arm>`, `signal_<arm>` and `emit_<arm>`, with the
+# reasoning behind its numbers. To add an arm, add a file, its name in `ARMS`
+# and a template. `undertested` follows `coverage` because it defers to it and
+# borrows its freshness check, so the output reads in the order the deferral
+# runs.
 ARMS=(size coverage undertested mutants repeats dry)
 
 for arm in "${ARMS[@]}"; do
@@ -229,30 +220,39 @@ for arm in "${ARMS[@]}"; do
     . "$repo/contrib/ask-refactoring/$arm.sh"
 done
 
-# Each signal's rows are captured with `$(...)` first, not read straight off a
-# `< <(...)` process substitution: a signal that hits its own `exit 1` (a
-# malformed linecop report, a stale lcov) is running in a subshell either way,
-# but only the command-substitution form propagates that exit through `set -e`
-# to this script. Piped directly into a `read` loop via process substitution,
-# the same `exit 1` would kill only the substitution's subshell — the loop
-# would just see end-of-input, "0 rows from this signal" would look identical
-# to "this signal is refusing to run", and the sweep would report a clean,
-# wrong result. Verified with a minimal repro before relying on it here.
+# Each signal's rows are captured with `$(...)`, not read off `< <(...)`:
+# only the command substitution carries a signal's `exit 1` through `set -e`.
+# Through a process substitution a refusing signal would read as zero rows.
+#
+# How many findings a dry run shows per arm; it counts the rest.
+TOP=3
+queue="$(mktemp -d)"
+trap 'rm -rf "$queue"' EXIT
+queued=0
+preview="$repo/target/ask-refactoring"
+if [ "$WRITE" -eq 0 ]; then
+    rm -rf "$preview"
+    mkdir -p "$preview"
+fi
+
 findings=0
 for arm in "${ARMS[@]}"; do
     rows="$("signal_$arm")"
+    before="$findings"
     while IFS=$'\t' read -r -a row; do
         [ "${#row[@]}" -gt 0 ] || continue
         "emit_$arm" "${row[@]}"
         findings=$((findings + 1))
     done <<<"$rows"
+    [ "$WRITE" -eq 1 ] || report_arm "$arm" "$((findings - before))"
 done
 
 if [ "$findings" -eq 0 ]; then
     echo "ask-refactoring: no findings at --baseline $BASELINE / --coverage-floor $COVERAGE_FLOOR" \
         "/ --cc-floor $CC_FLOOR --fn-coverage-floor $FN_COVERAGE_FLOOR / --repeat-gain $REPEAT_GAIN"
 elif [ "$WRITE" -eq 0 ]; then
-    echo "ask-refactoring: $findings finding(s); re-run with --write to file them"
+    echo "ask-refactoring: $findings finding(s); the bodies shown are in ${preview#"$repo"/}/;" \
+        "re-run with --write to file them all"
 else
     echo "ask-refactoring: $findings finding(s) swept"
 fi
