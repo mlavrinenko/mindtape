@@ -16,6 +16,14 @@ use super::{run, run_with};
 
 const FLIP_CHILD_ENV: &str = "_MT_FLIP_CHILD";
 
+/// `mt flip --list` in `project`, for the child half of a `--list` test.
+fn list_verbs(project: &crate::util::Project) {
+    let mut args = flip_args("done", &[]);
+    args.status = None;
+    args.list = true;
+    run_with(project, &args).unwrap();
+}
+
 /// `run` is the thin wrapper that discovers the project from the cwd and hands
 /// off to `run_with`. Asserting only `is_err()` on an unknown status would pass
 /// for any failure at all, so this drives a successful flip and checks the file
@@ -118,10 +126,7 @@ fn list_prints_glyph_verbs() {
     let glyph_cfg = "[[tasks.status]]\nvalue = \"wip\"\nglyph = \"🔨\"\n\
         [[tasks.status]]\nvalue = \"done\"\nglyph = \"✅\"\nterminal = true\n";
     let (_dir, project) = setup(&[], glyph_cfg);
-    let mut args = flip_args("done", &[]);
-    args.status = None;
-    args.list = true;
-    run_with(&project, &args).unwrap();
+    list_verbs(&project);
 }
 
 /// An explicitly emptied legend (`status = []`, which unconstrains the floored
@@ -139,10 +144,7 @@ fn list_empty_legend_prints_hint() {
     }
     let empty_cfg = "[tasks]\nstatus = []\n";
     let (_dir, project) = setup(&[], empty_cfg);
-    let mut args = flip_args("done", &[]);
-    args.status = None;
-    args.list = true;
-    run_with(&project, &args).unwrap();
+    list_verbs(&project);
 }
 
 #[test]
@@ -156,10 +158,7 @@ fn list_prints_verbs() {
         return;
     }
     let (_dir, project) = setup(&[], LEGEND_CONFIG);
-    let mut args = flip_args("done", &[]);
-    args.status = None;
-    args.list = true;
-    run_with(&project, &args).unwrap();
+    list_verbs(&project);
 }
 
 /// The revalidation violation itself is printed, not returned: `run_with`'s

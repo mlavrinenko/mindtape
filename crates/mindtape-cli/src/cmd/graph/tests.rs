@@ -55,6 +55,13 @@ fn args(format: GraphFormat, filter: Option<&str>, no_terminal: bool) -> GraphAr
     }
 }
 
+/// The graph of an open `a` with one `kind` edge to a done `b`, in `format`.
+fn graph_of_one_edge(format: GraphFormat, kind: &str) -> String {
+    let a = linked_task("a", vec![link_edge("b.typ", kind)]);
+    let tasks = vec![with_status(a, "wip"), with_status(bare_task("b"), "done")];
+    build(&args(format, None, false), stub_project(tasks)).unwrap()
+}
+
 #[test]
 fn dot_renders_an_edge_per_relation_kind() {
     let mut a = bare_task("a");
@@ -149,15 +156,7 @@ fn mermaid_renders_nodes_edges_and_classes() {
 
 #[test]
 fn dot_renders_recurred_from_edge() {
-    let a = linked_task("a", vec![link_edge("b.typ", "recurred-from")]);
-    let out = build(
-        &args(GraphFormat::Dot, None, false),
-        stub_project(vec![
-            with_status(a, "wip"),
-            with_status(bare_task("b"), "done"),
-        ]),
-    )
-    .unwrap();
+    let out = graph_of_one_edge(GraphFormat::Dot, "recurred-from");
     assert!(out.contains("recurred-from"));
     assert!(out.contains("dotted"));
     assert!(out.contains("#7d3c98"));
@@ -165,15 +164,7 @@ fn dot_renders_recurred_from_edge() {
 
 #[test]
 fn dot_renders_supersedes_edge() {
-    let a = linked_task("a", vec![link_edge("b.typ", "supersedes")]);
-    let out = build(
-        &args(GraphFormat::Dot, None, false),
-        stub_project(vec![
-            with_status(a, "wip"),
-            with_status(bare_task("b"), "done"),
-        ]),
-    )
-    .unwrap();
+    let out = graph_of_one_edge(GraphFormat::Dot, "supersedes");
     assert!(out.contains("supersedes"));
     assert!(out.contains("dashed"));
     assert!(out.contains("#b9770e"));
@@ -181,15 +172,7 @@ fn dot_renders_supersedes_edge() {
 
 #[test]
 fn dot_renders_duplicates_edge() {
-    let a = linked_task("a", vec![link_edge("b.typ", "duplicates")]);
-    let out = build(
-        &args(GraphFormat::Dot, None, false),
-        stub_project(vec![
-            with_status(a, "wip"),
-            with_status(bare_task("b"), "done"),
-        ]),
-    )
-    .unwrap();
+    let out = graph_of_one_edge(GraphFormat::Dot, "duplicates");
     assert!(out.contains("duplicates"));
     assert!(out.contains("dashed"));
     assert!(out.contains("#7f8c8d"));
@@ -197,43 +180,19 @@ fn dot_renders_duplicates_edge() {
 
 #[test]
 fn mermaid_renders_recurred_edge() {
-    let a = linked_task("a", vec![link_edge("b.typ", "recurred-from")]);
-    let out = build(
-        &args(GraphFormat::Mermaid, None, false),
-        stub_project(vec![
-            with_status(a, "wip"),
-            with_status(bare_task("b"), "done"),
-        ]),
-    )
-    .unwrap();
+    let out = graph_of_one_edge(GraphFormat::Mermaid, "recurred-from");
     assert!(out.contains("-.->"));
 }
 
 #[test]
 fn mermaid_renders_parent_edge() {
-    let a = linked_task("a", vec![link_edge("b.typ", "parent")]);
-    let out = build(
-        &args(GraphFormat::Mermaid, None, false),
-        stub_project(vec![
-            with_status(a, "wip"),
-            with_status(bare_task("b"), "done"),
-        ]),
-    )
-    .unwrap();
+    let out = graph_of_one_edge(GraphFormat::Mermaid, "parent");
     assert!(out.contains("==>"));
 }
 
 #[test]
 fn mermaid_renders_related_edge() {
-    let a = linked_task("a", vec![link_edge("b.typ", "related")]);
-    let out = build(
-        &args(GraphFormat::Mermaid, None, false),
-        stub_project(vec![
-            with_status(a, "wip"),
-            with_status(bare_task("b"), "done"),
-        ]),
-    )
-    .unwrap();
+    let out = graph_of_one_edge(GraphFormat::Mermaid, "related");
     assert!(out.contains("-.->"));
 }
 

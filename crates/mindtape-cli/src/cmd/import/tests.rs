@@ -50,13 +50,27 @@ fn status(name: &str, date: &str) -> Status {
     }
 }
 
+/// A task with `id`, `title` and a `status` stamped 2026-06-01.
+fn titled(id: &str, title: &str, status_name: &str) -> Task {
+    let mut task = bare_task(id);
+    task.title = title.to_owned();
+    task.status = Some(status(status_name, "2026-06-01"));
+    task
+}
+
+/// Everything under the destination's `tasks/`, to assert nothing strayed there.
+fn task_files(dir: &std::path::Path) -> Vec<std::fs::DirEntry> {
+    std::fs::read_dir(dir.join("tasks"))
+        .unwrap()
+        .flatten()
+        .collect()
+}
+
 /// A few tasks with framework priority, cross-links, tags, extras, and a
 /// body — titles are chosen so their slug equals the id/filename exactly, so
 /// re-importing mints the same stem and inbound `links:` targets resolve.
 fn fixture_tasks() -> Vec<Task> {
-    let mut alpha = bare_task("task-alpha");
-    alpha.title = "Task Alpha".to_owned();
-    alpha.status = Some(status("wip", "2026-06-01"));
+    let mut alpha = titled("task-alpha", "Task Alpha", "wip");
     alpha.priority = Some(ice_priority(8.0, 0.75, 4.0));
     alpha.tags = vec!["backend".to_owned(), "cli".to_owned()];
     alpha.links = vec![dep_edge("task-beta.typ")];
@@ -142,10 +156,8 @@ fn round_trips_the_batch_field_for_field_including_body() {
 #[test]
 fn bare_array_and_envelope_both_parse() {
     let (_dir, project) = setup_dest();
-    let mut task = bare_task("solo");
-    task.title = "Solo Task".to_owned();
-    task.status = Some(status("wip", "2026-06-01"));
-    let raw_array = to_canonical(&[task.clone()], &project.config);
+    let task = titled("solo", "Solo Task", "wip");
+    let raw_array = to_canonical(std::slice::from_ref(&task), &project.config);
 
     let outcomes = import_records(&project, &bare_args(), &raw_array).unwrap();
     assert_eq!(outcomes.len(), 1);
@@ -163,9 +175,7 @@ fn bare_array_and_envelope_both_parse() {
 #[test]
 fn envelope_with_current_schema_version_imports() {
     let (_dir, project) = setup_dest();
-    let mut task = bare_task("solo");
-    task.title = "Solo Task".to_owned();
-    task.status = Some(status("wip", "2026-06-01"));
+    let task = titled("solo", "Solo Task", "wip");
     let canonical = mindtape::CanonicalTask::from_task(&task, &project.config);
     let envelope = serde_json::json!({
         "schema_version": mindtape::SCHEMA_VERSION,
@@ -199,9 +209,7 @@ fn envelope_with_a_newer_schema_version_is_rejected() {
 #[test]
 fn dry_run_writes_nothing_to_the_destination() {
     let (dir, project) = setup_dest();
-    let mut task = bare_task("preview-me");
-    task.title = "Preview Me".to_owned();
-    task.status = Some(status("wip", "2026-06-01"));
+    let task = titled("preview-me", "Preview Me", "wip");
     let raw = to_canonical(&[task], &project.config);
 
     let mut args = bare_args();
@@ -214,22 +222,17 @@ fn dry_run_writes_nothing_to_the_destination() {
         !dir.path().join("tasks/preview-me.typ").exists(),
         "dry-run must not write to the real destination"
     );
-    let entries: Vec<_> = std::fs::read_dir(dir.path().join("tasks"))
-        .unwrap()
-        .flatten()
-        .collect();
+    let entries = task_files(dir.path());
     assert!(entries.is_empty(), "dry-run left files: {entries:?}");
 }
 
 #[test]
 fn a_record_failing_validation_is_reported_and_leaves_no_file() {
     let (dir, project) = setup_dest();
-    let mut bad = bare_task("bad-status");
-    bad.title = "Bad Status".to_owned();
     // `blocked` is outside CONFIG_TEXT's `wip`/`done` legend and no
     // `--map`/`--status` fix is supplied, so this must fail post-write
     // validation and leave no file behind.
-    bad.status = Some(status("blocked", "2026-06-01"));
+    let bad = titled("bad-status", "Bad Status", "blocked");
     let raw = to_canonical(&[bad], &project.config);
 
     let outcomes = import_records(&project, &bare_args(), &raw).unwrap();
@@ -238,10 +241,7 @@ fn a_record_failing_validation_is_reported_and_leaves_no_file() {
     assert!(!outcomes[0].problems.is_empty());
 
     assert!(!dir.path().join("tasks/bad-status.typ").exists());
-    let entries: Vec<_> = std::fs::read_dir(dir.path().join("tasks"))
-        .unwrap()
-        .flatten()
-        .collect();
+    let entries = task_files(dir.path());
     assert!(
         entries.is_empty(),
         "a failed record must not leave a stray file: {entries:?}"
@@ -268,9 +268,7 @@ fn status_default_flag_fills_a_missing_status() {
 #[test]
 fn map_renames_a_foreign_status_before_legend_validation() {
     let (dir, project) = setup_dest();
-    let mut task = bare_task("todo-task");
-    task.title = "Todo Task".to_owned();
-    task.status = Some(status("todo", "2026-06-01"));
+    let task = titled("todo-task", "Todo Task", "todo");
     let raw = to_canonical(&[task], &project.config);
 
     let mut args = bare_args();
@@ -285,12 +283,8 @@ fn map_renames_a_foreign_status_before_legend_validation() {
 #[test]
 fn colliding_titles_disambiguate_with_a_numeric_suffix() {
     let (dir, project) = setup_dest();
-    let mut one = bare_task("dup-a");
-    one.title = "Duplicate".to_owned();
-    one.status = Some(status("wip", "2026-06-01"));
-    let mut two = bare_task("dup-b");
-    two.title = "Duplicate".to_owned();
-    two.status = Some(status("wip", "2026-06-01"));
+    let one = titled("dup-a", "Duplicate", "wip");
+    let two = titled("dup-b", "Duplicate", "wip");
     // Records from a jq adapter carry no `id`, so the title names the file.
     let mut records: Vec<CanonicalTask> =
         serde_json::from_str(&to_canonical(&[one, two], &project.config)).unwrap();
@@ -309,12 +303,12 @@ fn colliding_titles_disambiguate_with_a_numeric_suffix() {
 #[test]
 fn a_record_with_an_id_keeps_it_as_its_stem_so_links_to_it_resolve() {
     let (dir, project) = setup_dest();
-    let mut target = bare_task("add-redis-client");
-    target.title = "Add a Redis client to the app state".to_owned();
-    target.status = Some(status("wip", "2026-06-01"));
-    let mut linker = bare_task("throttle-logins");
-    linker.title = "Throttle failed logins".to_owned();
-    linker.status = Some(status("wip", "2026-06-01"));
+    let target = titled(
+        "add-redis-client",
+        "Add a Redis client to the app state",
+        "wip",
+    );
+    let mut linker = titled("throttle-logins", "Throttle failed logins", "wip");
     linker.links = vec![dep_edge("add-redis-client.typ")];
     let raw = to_canonical(&[linker, target], &project.config);
 
@@ -333,9 +327,7 @@ fn an_id_that_clashes_with_an_existing_file_is_disambiguated() {
     let (dir, project) = setup_dest();
     std::fs::create_dir_all(dir.path().join("tasks")).unwrap();
     write_file(dir.path(), "tasks/taken.typ", "");
-    let mut task = bare_task("taken");
-    task.title = "Something else".to_owned();
-    task.status = Some(status("wip", "2026-06-01"));
+    let task = titled("taken", "Something else", "wip");
     let raw = to_canonical(&[task], &project.config);
 
     let outcomes = import_records(&project, &bare_args(), &raw).unwrap();
@@ -346,12 +338,7 @@ fn an_id_that_clashes_with_an_existing_file_is_disambiguated() {
 #[test]
 fn a_title_that_slugifies_to_nothing_is_reported_and_leaves_no_file() {
     let (dir, project) = setup_dest();
-    let mut punctuation_only = bare_task("");
-    // Every character here is filtered by `slug_from_title`, so the record has
-    // a non-empty title yet mints an empty stem candidate — `stem_for`'s own
-    // guard, distinct from a record missing a title outright.
-    punctuation_only.title = "!!! ---".to_owned();
-    punctuation_only.status = Some(status("wip", "2026-06-01"));
+    let punctuation_only = titled("", "!!! ---", "wip");
     let raw = to_canonical(&[punctuation_only], &project.config);
 
     let outcomes = import_records(&project, &bare_args(), &raw).unwrap();
@@ -368,19 +355,14 @@ fn a_title_that_slugifies_to_nothing_is_reported_and_leaves_no_file() {
         "{:?}",
         outcomes[0].problems
     );
-    let entries: Vec<_> = std::fs::read_dir(dir.path().join("tasks"))
-        .unwrap()
-        .flatten()
-        .collect();
+    let entries = task_files(dir.path());
     assert!(entries.is_empty(), "no file must land: {entries:?}");
 }
 
 #[test]
 fn a_malformed_map_entry_fails_the_batch_before_any_record_is_written() {
     let (dir, project) = setup_dest();
-    let mut task = bare_task("solo");
-    task.title = "Solo Task".to_owned();
-    task.status = Some(status("wip", "2026-06-01"));
+    let task = titled("solo", "Solo Task", "wip");
     let raw = to_canonical(&[task], &project.config);
 
     let mut args = bare_args();
