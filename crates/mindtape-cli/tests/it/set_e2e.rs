@@ -231,3 +231,19 @@ fn a_refused_replace_points_at_the_field_on_disk() {
     let expected = format!("error: tasks/wire-oauth.typ:{}: priority:", line + 2);
     assert!(stderr.contains(&expected), "{stderr}\n{padded}");
 }
+
+/// A task whose show rule is aliased has no literal `task.with(...)` call for
+/// the field write to land in. `mt set` refuses it by name, the file's own
+/// path in the message, and leaves the task byte-identical.
+#[test]
+fn a_task_with_an_aliased_call_is_refused_and_left_untouched() {
+    let dir = scaffold();
+    let body = support::write_aliased_task(dir.path(), "wire-oauth");
+
+    let stderr = set_err(dir.path(), "title=Renamed");
+    assert!(
+        stderr.contains("can't locate task.with") && stderr.contains("wire-oauth.typ"),
+        "{stderr}"
+    );
+    assert_eq!(read(dir.path()), body, "a refused write must not land");
+}
