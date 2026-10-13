@@ -14,7 +14,6 @@
 //! would hit.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
-use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use crate::support;
@@ -238,10 +237,7 @@ fn mindtape_now_stamps_the_pinned_date_on_add() {
 
 #[test]
 fn mindtape_now_stamps_the_pinned_date_on_recur_spawn() {
-    let dir = tempdir();
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
-    std::fs::write(dir.path().join(".mindtape/config.toml"), CONFIG).unwrap();
-    support::install_lib(dir.path());
+    let dir = support::scaffold_project(CONFIG);
     std::fs::write(
         dir.path().join("tasks/water-plants.typ"),
         "#import \"@local/mindtape:0.2.0\": *\n\n\

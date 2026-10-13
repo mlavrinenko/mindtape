@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use crate::test_support::tempdir;
+use crate::test_support::tempdir_with_dirs;
 use std::path::{Path, PathBuf};
 
 use super::*;
@@ -51,8 +51,7 @@ fn names_of_gamma(tasks: &[Task]) -> [String; 2] {
 }
 
 fn root_with(stems: &[&str]) -> tempfile::TempDir {
-    let dir = tempdir();
-    std::fs::create_dir_all(dir.path().join("tasks")).unwrap();
+    let dir = tempdir_with_dirs(&["tasks"]);
     for stem in stems {
         std::fs::write(dir.path().join(format!("tasks/{stem}.typ")), "").unwrap();
     }

@@ -261,12 +261,7 @@ fn a_template_status_is_the_status_it_is_filed_at() {
 /// A project with no `task.typ` gets the built-in template, whose breaches
 /// warn unless `[templates] fallback-severity` says `error`.
 fn fallback_project(extra: &str) -> tempfile::TempDir {
-    let dir = tempdir();
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
-    let config = format!("{}{extra}", rule("dated", "has(due)"));
-    std::fs::write(dir.path().join(".mindtape/config.toml"), config).unwrap();
-    support::install_lib(dir.path());
-    dir
+    support::scaffold_project(&format!("{}{extra}", rule("dated", "has(due)")))
 }
 
 #[test]

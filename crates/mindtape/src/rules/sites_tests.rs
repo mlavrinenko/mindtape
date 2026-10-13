@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use crate::test_support::tempdir;
+use crate::test_support::{tempdir, tempdir_with_config};
 use std::path::Path;
 
 use super::RuleSites;
@@ -33,16 +33,9 @@ fn skip_report(root: &Path, xdg: Option<&Path>) -> Violation {
     out.remove(0)
 }
 
-fn project(config: &str) -> tempfile::TempDir {
-    let dir = tempdir();
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
-    std::fs::write(dir.path().join(".mindtape/config.toml"), config).unwrap();
-    dir
-}
-
 #[test]
 fn a_skipped_project_rule_is_located_at_its_header() {
-    let dir = project(&format!(
+    let dir = tempdir_with_config(&format!(
         "[tasks]\nroots = [\"tasks\"]\n\n{}",
         skipping_rule("src-budget")
     ));
@@ -53,7 +46,7 @@ fn a_skipped_project_rule_is_located_at_its_header() {
 
 #[test]
 fn a_skipped_path_pack_rule_is_located_in_the_pack_file() {
-    let dir = project("extends = [\"./pack.toml\"]\n");
+    let dir = tempdir_with_config("extends = [\"./pack.toml\"]\n");
     let pack = format!("# a pack\n\n{}", skipping_rule("src-budget"));
     std::fs::write(dir.path().join("pack.toml"), pack).unwrap();
     let skip = skip_report(dir.path(), None);
@@ -62,7 +55,7 @@ fn a_skipped_path_pack_rule_is_located_in_the_pack_file() {
 
 #[test]
 fn a_skipped_global_layer_rule_is_located_in_that_layer() {
-    let dir = project("[tasks]\nroots = [\"tasks\"]\n");
+    let dir = tempdir_with_config("[tasks]\nroots = [\"tasks\"]\n");
     let xdg = tempdir();
     let defaults = xdg.path().join("mindtape/defaults.toml");
     std::fs::create_dir_all(defaults.parent().unwrap()).unwrap();
@@ -73,7 +66,7 @@ fn a_skipped_global_layer_rule_is_located_in_that_layer() {
 
 #[test]
 fn a_rule_the_project_overrides_by_name_is_located_where_it_won() {
-    let dir = project(&format!(
+    let dir = tempdir_with_config(&format!(
         "extends = [\"./pack.toml\"]\n\n{}",
         skipping_rule("src-budget")
     ));

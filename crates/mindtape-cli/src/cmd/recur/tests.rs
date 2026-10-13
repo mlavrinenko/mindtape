@@ -9,7 +9,7 @@
     clippy::indexing_slicing
 )]
 
-use mindtape::test_support::tempdir;
+use mindtape::test_support::tempdir_with_dirs;
 use std::path::Path;
 
 use mindtape::recur::{PeriodUnit, Recur, RecurConfig, Rule};
@@ -106,8 +106,7 @@ fn plan_next_returns_the_next_date_when_in_bounds() {
 
 #[test]
 fn guard_double_spawn_bypassed_by_force() {
-    let dir = tempdir();
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
+    let dir = tempdir_with_dirs(&[".mindtape"]);
     let project = Project {
         root: dir.path().to_path_buf(),
         config: mindtape::Config::default(),
@@ -122,8 +121,7 @@ fn guard_double_spawn_bypassed_by_force() {
 
 #[test]
 fn guard_double_spawn_refuses_an_existing_successor_unless_forced() {
-    let dir = tempdir();
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
+    let dir = tempdir_with_dirs(&[".mindtape"]);
     let original = bare_task("chore");
     let mut spawn1 = bare_task("chore-2026-06-08");
     spawn1.links = vec![link_edge("chore.typ", "recurred-from")];

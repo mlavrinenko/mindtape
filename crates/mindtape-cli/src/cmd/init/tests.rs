@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use mindtape::test_support::tempdir;
+use mindtape::test_support::{tempdir, tempdir_with_dirs};
 use std::path::Path;
 
 use super::{
@@ -43,8 +43,7 @@ fn scaffold_creates_config_when_absent() {
 /// not having landed so the caller skips the templates too.
 #[test]
 fn scaffold_skips_existing_without_force() {
-    let dir = tempdir();
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
+    let dir = tempdir_with_dirs(&[".mindtape"]);
     let config = dir.path().join(".mindtape").join("config.toml");
     std::fs::write(&config, "# existing").unwrap();
     assert!(!scaffold_config(dir.path(), false, SAMPLE).unwrap());
@@ -53,8 +52,7 @@ fn scaffold_skips_existing_without_force() {
 
 #[test]
 fn scaffold_overwrites_with_force() {
-    let dir = tempdir();
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
+    let dir = tempdir_with_dirs(&[".mindtape"]);
     let config = dir.path().join(".mindtape").join("config.toml");
     std::fs::write(&config, "# old").unwrap();
     assert!(scaffold_config(dir.path(), true, SAMPLE).unwrap());

@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use crate::test_support::tempdir;
+use crate::test_support::{tempdir, tempdir_with_dirs};
 use std::path::Path;
 
 use super::{find_root, find_root_bounded, load_project};
@@ -60,10 +60,7 @@ fn first_task_marker_returns_none_without_mindtape_task() {
 }
 
 pub(super) fn setup() -> tempfile::TempDir {
-    let dir = tempdir();
-    std::fs::create_dir(dir.path().join(".mindtape")).unwrap();
-    std::fs::create_dir(dir.path().join("tasks")).unwrap();
-    dir
+    tempdir_with_dirs(&[".mindtape", "tasks"])
 }
 
 pub(super) fn write(root: &Path, rel: &str, body: &str) {

@@ -1,5 +1,5 @@
 #![allow(clippy::unwrap_used)]
-use mindtape::test_support::tempdir;
+use mindtape::test_support::{tempdir, tempdir_with_dirs};
 use std::path::{Path, PathBuf};
 
 use mindtape::test_support::{TASK_SRC, bare_task};
@@ -139,8 +139,7 @@ fn resolve_hyperlinks_defaults_to_never_when_both_absent() {
 
 #[test]
 fn resolve_root_override_targets_named_worktree() {
-    let dir = tempdir();
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
+    let dir = tempdir_with_dirs(&[".mindtape"]);
     // cwd is elsewhere; the absolute override still selects the worktree.
     let cwd = tempdir();
     let root = resolve_root_with(cwd.path(), Some(dir.path())).unwrap();
@@ -171,8 +170,7 @@ fn resolve_root_override_without_marker_errors() {
 
 #[test]
 fn resolve_root_no_override_walks_up() {
-    let dir = tempdir();
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
+    let dir = tempdir_with_dirs(&[".mindtape"]);
     let child = dir.path().join("a").join("b");
     std::fs::create_dir_all(&child).unwrap();
     let root = resolve_root_with(&child, None).unwrap();
@@ -337,8 +335,7 @@ fn the_held_back_warning_lists_each_command_and_asks_for_mt_allow() {
 /// of each, never the first one loaded.
 #[test]
 fn a_stem_two_folders_share_is_refused_naming_each_path() {
-    let dir = tempdir();
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
+    let dir = tempdir_with_dirs(&[".mindtape"]);
     for folder in ["cli", "web"] {
         let path = dir.path().join("tasks").join(folder);
         std::fs::create_dir_all(&path).unwrap();

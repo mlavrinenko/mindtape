@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use mindtape::test_support::tempdir;
+use mindtape::test_support::tempdir_with_dirs;
 use std::path::PathBuf;
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyEventState, KeyModifiers};
@@ -385,9 +385,7 @@ fn refresh_loads_tasks_from_project() {
         crate::test_util::assert_child_ok(&out);
         return;
     }
-    let dir = tempdir();
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
-    std::fs::create_dir_all(dir.path().join("tasks")).unwrap();
+    let dir = tempdir_with_dirs(&[".mindtape", "tasks"]);
     std::fs::write(
         dir.path().join(".mindtape/config.toml"),
         "[tasks]\nroots = [\"tasks\"]\n",

@@ -124,6 +124,33 @@ pub fn tempdir() -> tempfile::TempDir {
     tempfile::tempdir().unwrap()
 }
 
+/// A fresh [`tempdir`] with each of `dirs` (relative paths) created in it.
+///
+/// # Panics
+/// Panics if creating a directory fails, a test-harness bug.
+#[allow(clippy::unwrap_used)]
+#[must_use]
+pub fn tempdir_with_dirs(dirs: &[&str]) -> tempfile::TempDir {
+    let dir = tempdir();
+    for rel in dirs {
+        std::fs::create_dir_all(dir.path().join(rel)).unwrap();
+    }
+    dir
+}
+
+/// A fresh [`tempdir`] holding `.mindtape/config.toml` with `config` and
+/// nothing else: no lib, no task root.
+///
+/// # Panics
+/// Panics if writing the file fails, a test-harness bug.
+#[allow(clippy::unwrap_used)]
+#[must_use]
+pub fn tempdir_with_config(config: &str) -> tempfile::TempDir {
+    let dir = tempdir_with_dirs(&[".mindtape"]);
+    std::fs::write(dir.path().join(".mindtape/config.toml"), config).unwrap();
+    dir
+}
+
 /// A fresh tempdir with an (empty) `home/project` tree already created,
 /// `project` carrying an empty `.mindtape/` (no `config.toml`/`defaults.toml`
 /// of its own — every caller writes the layer text its scenario needs). Keep

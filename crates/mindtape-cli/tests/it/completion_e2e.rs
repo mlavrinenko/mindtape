@@ -14,7 +14,7 @@
 //! Refs: `truth/tasks/emit-shell-completions-from-the-binary-that-answers-them.typ`
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
-use mindtape::test_support::tempdir;
+use mindtape::test_support::{tempdir, tempdir_with_config};
 use std::path::{Path, PathBuf};
 
 use crate::support;
@@ -191,9 +191,7 @@ fn a_project_that_does_not_load_yields_no_project_values_and_no_error() {
 /// itself exits non-zero naming the TOML error; the completer must not.
 #[test]
 fn an_unparseable_config_yields_no_project_values_and_no_error() {
-    let dir = tempdir();
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
-    std::fs::write(dir.path().join(".mindtape/config.toml"), "[tasks\n").unwrap();
+    let dir = tempdir_with_config("[tasks\n");
     let candidates = complete(dir.path(), &["mt", "flip", ""]);
     assert!(
         project_values(&candidates).is_empty(),

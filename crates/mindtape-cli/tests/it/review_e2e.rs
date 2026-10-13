@@ -6,8 +6,6 @@
 //! which need a real project on disk and a real `cwd`.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
-use mindtape::test_support::tempdir;
-
 use crate::support;
 
 const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
@@ -80,14 +78,7 @@ fn reviewing_twice_the_same_day_is_a_no_op_after_the_first() {
 /// pre-existing one the stamp does not create but does have to carry.
 #[test]
 fn a_rejected_stamp_leaves_the_file_untouched() {
-    let dir = tempdir();
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
-    std::fs::write(
-        dir.path().join(".mindtape/config.toml"),
-        format!("{CONFIG}\n[tasks.tags]\nallowed = [\"ok\"]\n"),
-    )
-    .unwrap();
-    support::install_lib(dir.path());
+    let dir = support::scaffold_project(&format!("{CONFIG}\n[tasks.tags]\nallowed = [\"ok\"]\n"));
     let body = "#import \"@local/mindtape:0.2.0\": *\n\n\
          #show: task.with(\n  title: \"Wire OAuth\",\n  status: wip(2026, 6, 1),\n  \
          tags: (\"nope\",),\n)\n";

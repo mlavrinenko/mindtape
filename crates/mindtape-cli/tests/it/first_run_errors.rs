@@ -3,7 +3,7 @@
 //! and a command run outside any project.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
-use mindtape::test_support::tempdir;
+use mindtape::test_support::{tempdir, tempdir_with_config};
 use std::path::Path;
 
 use crate::support;
@@ -55,13 +55,7 @@ fn add_without_the_prelude_names_mt_install_and_the_local_package_pin() {
 
 #[test]
 fn unknown_config_table_is_reported_once_with_its_line_and_column() {
-    let dir = tempdir();
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
-    std::fs::write(
-        dir.path().join(".mindtape/config.toml"),
-        "[tasks]\nroots = [\"tasks\"]\n\n[taks]\nx = 1\n",
-    )
-    .unwrap();
+    let dir = tempdir_with_config("[tasks]\nroots = [\"tasks\"]\n\n[taks]\nx = 1\n");
 
     let (ok, stderr) = run_fresh(dir.path(), &["ls"]);
 
@@ -79,9 +73,7 @@ fn unknown_config_table_is_reported_once_with_its_line_and_column() {
 
 #[test]
 fn a_syntax_error_in_the_config_is_reported_once() {
-    let dir = tempdir();
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
-    std::fs::write(dir.path().join(".mindtape/config.toml"), "oops =\n").unwrap();
+    let dir = tempdir_with_config("oops =\n");
 
     let (ok, stderr) = run_fresh(dir.path(), &["ls"]);
 

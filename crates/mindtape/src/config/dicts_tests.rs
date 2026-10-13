@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use crate::test_support::tempdir;
+use crate::test_support::{tempdir, tempdir_with_dirs};
 use std::collections::BTreeMap;
 use std::path::Path;
 
@@ -39,8 +39,7 @@ fn inline_values_are_the_whole_set() {
 /// `values`, `path` and `include` all feed one set — the union, de-duplicated.
 #[test]
 fn values_path_and_include_union_into_one_set() {
-    let dir = tempdir();
-    std::fs::create_dir_all(dir.path().join("dicts")).unwrap();
+    let dir = tempdir_with_dirs(&["dicts"]);
     std::fs::write(
         dir.path().join("dicts/extra.txt"),
         "# a comment\n\nfix\nwire\n",
@@ -73,8 +72,7 @@ fn a_path_skips_comments_and_blank_lines() {
 /// `path` may leave the project root, same rule as `[[typst.local-packages]]`.
 #[test]
 fn a_path_may_leave_the_project_root() {
-    let dir = tempdir();
-    std::fs::create_dir_all(dir.path().join("project")).unwrap();
+    let dir = tempdir_with_dirs(&["project"]);
     std::fs::write(dir.path().join("outside.txt"), "add\n").unwrap();
     let dicts = compile(
         "[dicts.verbs]\npath = \"../outside.txt\"\n",

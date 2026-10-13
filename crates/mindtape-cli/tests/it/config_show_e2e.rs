@@ -6,20 +6,13 @@
 //! need a real `cwd` and a real (or missing/broken) project on disk.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
-use mindtape::test_support::tempdir;
+use mindtape::test_support::{tempdir, tempdir_with_config};
 
 use crate::support;
 
-fn scaffold(config_toml: &str) -> tempfile::TempDir {
-    let dir = tempdir();
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
-    std::fs::write(dir.path().join(".mindtape/config.toml"), config_toml).unwrap();
-    dir
-}
-
 #[test]
 fn bare_config_defaults_to_show() {
-    let dir = scaffold("[project]\ncode = \"demo\"\n");
+    let dir = tempdir_with_config("[project]\ncode = \"demo\"\n");
 
     let bare = support::mt(dir.path())
         .arg("config")
@@ -61,7 +54,7 @@ fn config_show_outside_a_project_fails_naming_the_reason() {
 
 #[test]
 fn malformed_config_toml_fails_show_with_context() {
-    let dir = scaffold("[project\nbroken toml");
+    let dir = tempdir_with_config("[project\nbroken toml");
 
     let output = support::mt(dir.path())
         .args(["config", "show"])
@@ -73,7 +66,7 @@ fn malformed_config_toml_fails_show_with_context() {
 
 #[test]
 fn malformed_config_toml_fails_origin_with_context() {
-    let dir = scaffold("[project\nbroken toml");
+    let dir = tempdir_with_config("[project\nbroken toml");
 
     let output = support::mt(dir.path())
         .args(["config", "show", "--origin"])
