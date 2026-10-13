@@ -358,12 +358,13 @@ fn run_prints_graph_from_disk() {
             mindtape::test_support::PRELUDE,
         );
 
-        let output = std::process::Command::new(std::env::current_exe().unwrap())
-            .current_dir(dir.path())
-            .env("_MT_GRAPH_RUN", "1")
-            .args(["run_prints_graph_from_disk", "--nocapture"])
-            .output()
-            .unwrap();
+        let output = mindtape::test_support::run_self_test(
+            &mindtape::test_support::current_test_name(),
+            "_MT_GRAPH_RUN",
+            |child| {
+                child.current_dir(dir.path());
+            },
+        );
         assert!(output.status.success());
         let stdout = String::from_utf8_lossy(&output.stdout);
         assert!(

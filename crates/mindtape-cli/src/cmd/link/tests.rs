@@ -286,10 +286,7 @@ const WRITTEN_CHILD: &str = "_MT_LINK_WRITTEN_CHILD";
 /// with `()` would write the file silently.
 #[test]
 fn run_with_reports_each_written_task() {
-    if std::env::var(WRITTEN_CHILD).is_err() {
-        let out =
-            crate::test_util::run_self_test("run_with_reports_each_written_task", WRITTEN_CHILD);
-        crate::test_util::assert_child_ok(&out);
+    if let Some(out) = mindtape::test_support::rerun_isolated(WRITTEN_CHILD) {
         let stdout = String::from_utf8_lossy(&out.stdout);
         assert!(
             stdout.contains("linked alpha"),

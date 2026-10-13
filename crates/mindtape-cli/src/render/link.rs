@@ -190,9 +190,7 @@ mod tests {
 
     #[test]
     fn init_then_is_hyperlinks_active() {
-        if std::env::var(CHILD).is_err() {
-            let out = crate::test_util::run_self_test("init_then_is_hyperlinks_active", CHILD);
-            crate::test_util::assert_child_ok(&out);
+        if mindtape::test_support::rerun_isolated(CHILD).is_some() {
             return;
         }
         assert!(!is_hyperlinks_active(), "must be false before init");

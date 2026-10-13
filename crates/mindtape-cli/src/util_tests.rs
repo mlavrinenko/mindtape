@@ -190,9 +190,7 @@ const CHILD: &str = "_MT_UTIL_CHILD";
 
 #[test]
 fn init_worktree_sets_override_once() {
-    if std::env::var(CHILD).is_err() {
-        let out = crate::test_util::run_self_test("init_worktree_sets_override_once", CHILD);
-        crate::test_util::assert_child_ok(&out);
+    if mindtape::test_support::rerun_isolated(CHILD).is_some() {
         return;
     }
     assert_eq!(worktree_override(), None, "must be None before init");
@@ -206,9 +204,7 @@ fn init_worktree_sets_override_once() {
 
 #[test]
 fn init_hyperlinks_flag_sets_override_once() {
-    if std::env::var(CHILD).is_err() {
-        let out = crate::test_util::run_self_test("init_hyperlinks_flag_sets_override_once", CHILD);
-        crate::test_util::assert_child_ok(&out);
+    if mindtape::test_support::rerun_isolated(CHILD).is_some() {
         return;
     }
     assert_eq!(hyperlinks_flag(), None, "must be None before init");
@@ -222,9 +218,7 @@ fn init_hyperlinks_flag_sets_override_once() {
 
 #[test]
 fn warn_errors_prints_to_stderr() {
-    if std::env::var(CHILD).is_err() {
-        let out = crate::test_util::run_self_test("warn_errors_prints_to_stderr", CHILD);
-        crate::test_util::assert_child_ok(&out);
+    if let Some(out) = mindtape::test_support::rerun_isolated(CHILD) {
         let stderr = String::from_utf8_lossy(&out.stderr);
         assert!(
             stderr.contains("warning: broken.typ: eval failed"),

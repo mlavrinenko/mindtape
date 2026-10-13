@@ -146,28 +146,16 @@ fn source_labels_are_the_reflected_names() {
 /// variable staged rather than mutating this process's environment.
 const REQUESTED_INNER: &str = "_MT_COMPLETION_REQUESTED";
 
-/// Spawn the test binary with `COMPLETE` set to `complete` (removed for
-/// `None`), running only the named inner test.
-fn run_requested_inner(name: &str, complete: Option<&str>) {
-    let mut cmd = std::process::Command::new(std::env::current_exe().unwrap());
-    cmd.env(REQUESTED_INNER, "1")
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .args([name, "--nocapture"]);
-    match complete {
-        Some(value) => {
-            cmd.env("COMPLETE", value);
-        }
-        None => {
-            cmd.env_remove("COMPLETE");
-        }
-    }
-    let out = cmd.output().unwrap();
-    assert!(
-        out.status.success(),
-        "inner test '{name}' failed:\n{}",
-        String::from_utf8_lossy(&out.stderr),
-    );
+/// Re-run the calling test in a child with `COMPLETE` set to `complete`
+/// (removed for `None`).
+fn run_requested_inner(complete: Option<&str>) {
+    let out = mindtape::test_support::rerun_isolated_with(REQUESTED_INNER, |child| {
+        match complete {
+            Some(value) => child.env("COMPLETE", value),
+            None => child.env_remove("COMPLETE"),
+        };
+    });
+    assert!(out.is_some(), "only the parent runs the child");
 }
 
 /// An ordinary run carries no `$COMPLETE`, so [`super::complete`] must return
@@ -178,7 +166,7 @@ fn requested_is_false_without_the_complete_variable() {
         assert!(!super::requested());
         return;
     }
-    run_requested_inner("requested_is_false_without_the_complete_variable", None);
+    run_requested_inner(None);
 }
 
 /// A real shell name is a completion run. Pins the positive direction of the
@@ -189,7 +177,7 @@ fn requested_is_true_for_a_shell_name() {
         assert!(super::requested());
         return;
     }
-    run_requested_inner("requested_is_true_for_a_shell_name", Some("bash"));
+    run_requested_inner(Some("bash"));
 }
 
 /// `$COMPLETE=0` (and the empty string) is explicitly not a completion, so the
@@ -201,6 +189,6 @@ fn requested_is_false_for_the_disabled_spellings() {
         assert!(!super::requested());
         return;
     }
-    run_requested_inner("requested_is_false_for_the_disabled_spellings", Some("0"));
-    run_requested_inner("requested_is_false_for_the_disabled_spellings", Some(""));
+    run_requested_inner(Some("0"));
+    run_requested_inner(Some(""));
 }

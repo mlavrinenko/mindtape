@@ -320,16 +320,11 @@ fn glyph_mode_reads_a_piped_stdout_as_glyphless() {
         assert_eq!(super::glyph_mode(), GlyphMode::None);
         return;
     }
-    let out = std::process::Command::new(std::env::current_exe().unwrap())
-        .env(GLYPH_MODE_INNER, "1")
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .args([
-            "glyph_mode_reads_a_piped_stdout_as_glyphless",
-            "--nocapture",
-        ])
-        .output()
-        .unwrap();
+    let out = mindtape::test_support::run_self_test(
+        &mindtape::test_support::current_test_name(),
+        GLYPH_MODE_INNER,
+        |_| {},
+    );
     assert!(
         out.status.success(),
         "inner test failed:\n{}",

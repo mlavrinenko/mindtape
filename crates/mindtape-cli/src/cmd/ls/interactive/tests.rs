@@ -381,9 +381,7 @@ const TASK_METADATA: &str = r#"#metadata((
 /// backlog anywhere) and broke the moment the suite ran from another directory.
 #[test]
 fn refresh_loads_tasks_from_project() {
-    if std::env::var(CHILD).is_err() {
-        let out = crate::test_util::run_self_test("refresh_loads_tasks_from_project", CHILD);
-        crate::test_util::assert_child_ok(&out);
+    if mindtape::test_support::rerun_isolated(CHILD).is_some() {
         return;
     }
     let dir = tempdir_with_dirs(&[".mindtape", "tasks"]);

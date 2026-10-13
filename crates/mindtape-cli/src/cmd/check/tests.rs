@@ -66,12 +66,7 @@ const QUIET_CLEAN_CHILD: &str = "_MT_CHECK_QUIET_CLEAN_CHILD";
 /// parent's test harness owns stdout.
 #[test]
 fn quiet_suppresses_ok_summary_on_clean_run() {
-    if std::env::var(QUIET_CLEAN_CHILD).is_err() {
-        let out = crate::test_util::run_self_test(
-            "quiet_suppresses_ok_summary_on_clean_run",
-            QUIET_CLEAN_CHILD,
-        );
-        crate::test_util::assert_child_ok(&out);
+    if let Some(out) = mindtape::test_support::rerun_isolated(QUIET_CLEAN_CHILD) {
         let stdout = String::from_utf8_lossy(&out.stdout);
         assert!(
             !stdout.contains("ok:"),
@@ -98,12 +93,7 @@ const QUIET_VIOLATION_CHILD: &str = "_MT_CHECK_QUIET_VIOLATION_CHILD";
 /// only the success summary is suppressed.
 #[test]
 fn quiet_still_reports_violations_on_failing_run() {
-    if std::env::var(QUIET_VIOLATION_CHILD).is_err() {
-        let out = crate::test_util::run_self_test(
-            "quiet_still_reports_violations_on_failing_run",
-            QUIET_VIOLATION_CHILD,
-        );
-        crate::test_util::assert_child_ok(&out);
+    if let Some(out) = mindtape::test_support::rerun_isolated(QUIET_VIOLATION_CHILD) {
         let stderr = String::from_utf8_lossy(&out.stderr);
         assert!(
             stderr.contains("priority"),
@@ -181,11 +171,11 @@ required = true
 #[test]
 fn run_with_prints_violation_and_fails() {
     if std::env::var("_MT_CHECK_RUN").is_err() {
-        let output = std::process::Command::new(std::env::current_exe().unwrap())
-            .env("_MT_CHECK_RUN", "1")
-            .args(["run_with_prints_violation_and_fails", "--nocapture"])
-            .output()
-            .unwrap();
+        let output = mindtape::test_support::run_self_test(
+            &mindtape::test_support::current_test_name(),
+            "_MT_CHECK_RUN",
+            |_| {},
+        );
         // Child exits 0 because its assertion passes (violation is detected).
         // What matters: stderr must contain violation details. A print_violation
         // replaced with () would print nothing, so the assertion fails.
@@ -224,12 +214,13 @@ fn run_validates_from_disk() {
         let dir = tempdir();
         scaffold_violation_project(dir.path(), VIOLATION_TOML);
 
-        let output = std::process::Command::new(std::env::current_exe().unwrap())
-            .current_dir(dir.path())
-            .env("_MT_CHECK_RUN_FROM_DISK", "1")
-            .args(["run_validates_from_disk", "--nocapture"])
-            .output()
-            .unwrap();
+        let output = mindtape::test_support::run_self_test(
+            &mindtape::test_support::current_test_name(),
+            "_MT_CHECK_RUN_FROM_DISK",
+            |child| {
+                child.current_dir(dir.path());
+            },
+        );
         // run() should fail on an invalid project. If replaced with Ok(()),
         // it would exit 0.
         let stderr = String::from_utf8_lossy(&output.stderr);
@@ -310,12 +301,7 @@ const COMMENTS_CHILD: &str = "_MT_CHECK_COMMENTS_CHILD";
 /// parent's test harness owns stdout.
 #[test]
 fn forbid_policy_fails_and_reports_file_line_and_text() {
-    if std::env::var(COMMENTS_CHILD).is_err() {
-        let out = crate::test_util::run_self_test(
-            "forbid_policy_fails_and_reports_file_line_and_text",
-            COMMENTS_CHILD,
-        );
-        crate::test_util::assert_child_ok(&out);
+    if let Some(out) = mindtape::test_support::rerun_isolated(COMMENTS_CHILD) {
         let stderr = String::from_utf8_lossy(&out.stderr);
         for expected in ["a.typ:10", "comments", "no, use in_view() instead"] {
             assert!(

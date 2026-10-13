@@ -82,9 +82,7 @@ const QUIET_CHILD: &str = "_MT_CHECK_COMMIT_QUIET_CHILD";
 /// nothing. Dropping the `!` would print it exactly when quiet was asked for.
 #[test]
 fn quiet_suppresses_the_ok_line() {
-    if std::env::var(QUIET_CHILD).is_err() {
-        let out = crate::test_util::run_self_test("quiet_suppresses_the_ok_line", QUIET_CHILD);
-        crate::test_util::assert_child_ok(&out);
+    if let Some(out) = mindtape::test_support::rerun_isolated(QUIET_CHILD) {
         let stdout = String::from_utf8_lossy(&out.stdout);
         assert!(
             !stdout.contains("ok: commit message valid"),
@@ -105,10 +103,7 @@ const WARN_CHILD: &str = "_MT_CHECK_COMMIT_WARN_CHILD";
 /// warning on stderr. Replacing the body with `()` would print nothing.
 #[test]
 fn warn_state_errors_reports_each_state() {
-    if std::env::var(WARN_CHILD).is_err() {
-        let out =
-            crate::test_util::run_self_test("warn_state_errors_reports_each_state", WARN_CHILD);
-        crate::test_util::assert_child_ok(&out);
+    if let Some(out) = mindtape::test_support::rerun_isolated(WARN_CHILD) {
         let stderr = String::from_utf8_lossy(&out.stderr);
         assert!(
             stderr.contains("warning: tasks/head.typ as HEAD: boom"),

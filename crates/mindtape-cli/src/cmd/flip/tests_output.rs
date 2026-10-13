@@ -16,14 +16,6 @@ use super::{run, run_with};
 
 const FLIP_CHILD_ENV: &str = "_MT_FLIP_CHILD";
 
-fn child_output(name: &str) -> std::process::Output {
-    std::process::Command::new(std::env::current_exe().unwrap())
-        .env(FLIP_CHILD_ENV, "1")
-        .args([name, "--nocapture"])
-        .output()
-        .unwrap()
-}
-
 /// `run` is the thin wrapper that discovers the project from the cwd and hands
 /// off to `run_with`. Asserting only `is_err()` on an unknown status would pass
 /// for any failure at all, so this drives a successful flip and checks the file
@@ -33,13 +25,7 @@ fn child_output(name: &str) -> std::process::Output {
 /// the shared test process would race every sibling test that resolves paths.
 #[test]
 fn run_delegates_to_run_with() {
-    if std::env::var(FLIP_CHILD_ENV).is_err() {
-        let o = child_output("run_delegates_to_run_with");
-        assert!(
-            o.status.success(),
-            "child: {}",
-            String::from_utf8_lossy(&o.stderr)
-        );
+    if mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV).is_some() {
         return;
     }
     let (dir, _) = setup(&[("alpha.typ", ALPHA)], LEGEND_CONFIG);
@@ -56,13 +42,7 @@ fn run_delegates_to_run_with() {
 /// succeeds; the warning is the whole observable effect, and it goes to stderr.
 #[test]
 fn shadowed_verb_warns_on_stderr() {
-    if std::env::var(FLIP_CHILD_ENV).is_err() {
-        let o = child_output("shadowed_verb_warns_on_stderr");
-        assert!(
-            o.status.success(),
-            "child: {}",
-            String::from_utf8_lossy(&o.stderr)
-        );
+    if let Some(o) = mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV) {
         let err = String::from_utf8_lossy(&o.stderr);
         assert!(
             err.contains("shadows") && err.contains("add"),
@@ -78,13 +58,7 @@ fn shadowed_verb_warns_on_stderr() {
 
 #[test]
 fn restamp_prints_re_stamped() {
-    if std::env::var(FLIP_CHILD_ENV).is_err() {
-        let o = child_output("restamp_prints_re_stamped");
-        assert!(
-            o.status.success(),
-            "child: {}",
-            String::from_utf8_lossy(&o.stderr)
-        );
+    if let Some(o) = mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV) {
         let out = String::from_utf8_lossy(&o.stdout);
         assert!(
             out.contains("re-stamped"),
@@ -98,13 +72,7 @@ fn restamp_prints_re_stamped() {
 
 #[test]
 fn flip_prints_flipped_not_re_stamped() {
-    if std::env::var(FLIP_CHILD_ENV).is_err() {
-        let o = child_output("flip_prints_flipped_not_re_stamped");
-        assert!(
-            o.status.success(),
-            "child: {}",
-            String::from_utf8_lossy(&o.stderr)
-        );
+    if let Some(o) = mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV) {
         let out = String::from_utf8_lossy(&o.stdout);
         assert!(
             out.contains("flipped"),
@@ -122,13 +90,7 @@ fn flip_prints_flipped_not_re_stamped() {
 
 #[test]
 fn terminal_flip_prints_recur_notice() {
-    if std::env::var(FLIP_CHILD_ENV).is_err() {
-        let o = child_output("terminal_flip_prints_recur_notice");
-        assert!(
-            o.status.success(),
-            "child: {}",
-            String::from_utf8_lossy(&o.stderr)
-        );
+    if let Some(o) = mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV) {
         let out = String::from_utf8_lossy(&o.stdout);
         assert!(
             out.contains("recurring"),
@@ -145,13 +107,7 @@ fn terminal_flip_prints_recur_notice() {
 /// `LEGEND_CONFIG` never reaches.
 #[test]
 fn list_prints_glyph_verbs() {
-    if std::env::var(FLIP_CHILD_ENV).is_err() {
-        let o = child_output("list_prints_glyph_verbs");
-        assert!(
-            o.status.success(),
-            "child: {}",
-            String::from_utf8_lossy(&o.stderr)
-        );
+    if let Some(o) = mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV) {
         let out = String::from_utf8_lossy(&o.stdout);
         assert!(
             out.contains("🔨 wip") && out.contains("✅ done"),
@@ -172,13 +128,7 @@ fn list_prints_glyph_verbs() {
 /// section) hits `list_verbs`' no-legend branch: the hint, not a verb listing.
 #[test]
 fn list_empty_legend_prints_hint() {
-    if std::env::var(FLIP_CHILD_ENV).is_err() {
-        let o = child_output("list_empty_legend_prints_hint");
-        assert!(
-            o.status.success(),
-            "child: {}",
-            String::from_utf8_lossy(&o.stderr)
-        );
+    if let Some(o) = mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV) {
         let out = String::from_utf8_lossy(&o.stdout);
         assert!(
             out.contains("no status legend configured")
@@ -197,13 +147,7 @@ fn list_empty_legend_prints_hint() {
 
 #[test]
 fn list_prints_verbs() {
-    if std::env::var(FLIP_CHILD_ENV).is_err() {
-        let o = child_output("list_prints_verbs");
-        assert!(
-            o.status.success(),
-            "child: {}",
-            String::from_utf8_lossy(&o.stderr)
-        );
+    if let Some(o) = mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV) {
         let out = String::from_utf8_lossy(&o.stdout);
         assert!(
             out.contains("wip"),
@@ -223,8 +167,7 @@ fn list_prints_verbs() {
 /// the reason is only observable on stderr.
 #[test]
 fn revalidate_prints_the_unreachable_violation() {
-    if std::env::var(FLIP_CHILD_ENV).is_err() {
-        let o = child_output("revalidate_prints_the_unreachable_violation");
+    if let Some(o) = mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV) {
         let err = String::from_utf8_lossy(&o.stderr);
         assert!(
             err.contains("s.typ:") && err.contains(": status: `blocked` is unreachable"),
@@ -244,8 +187,7 @@ fn revalidate_prints_the_unreachable_violation() {
 /// rather than a summary, and the child prints it as `main` would.
 #[test]
 fn refuses_a_rewrite_that_would_not_load() {
-    if std::env::var(FLIP_CHILD_ENV).is_err() {
-        let o = child_output("refuses_a_rewrite_that_would_not_load");
+    if let Some(o) = mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV) {
         let err = String::from_utf8_lossy(&o.stderr);
         assert!(
             err.contains("error: tasks/alpha.typ:2: did not load:"),

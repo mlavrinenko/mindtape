@@ -65,17 +65,14 @@ fn pinned_epoch_days_is_none_before_init_runs() {
 #[test]
 fn init_pinned_today_caches_env_value() {
     let Ok(pin) = std::env::var("MINDTAPE_NOW") else {
-        let out = std::process::Command::new(std::env::current_exe().unwrap())
-            .env("MINDTAPE_NOW", "2026-06-18")
-            .args(["init_pinned_today_caches_env_value", "--nocapture"])
-            .output()
-            .expect("failed to spawn child test process");
-        assert!(
-            out.status.success(),
-            "child failed:\nstdout:\n{}\nstderr:\n{}",
-            String::from_utf8_lossy(&out.stdout),
-            String::from_utf8_lossy(&out.stderr),
+        let out = crate::test_support::run_self_test(
+            &crate::test_support::current_test_name(),
+            "MINDTAPE_NOW",
+            |child| {
+                child.env("MINDTAPE_NOW", "2026-06-18");
+            },
         );
+        crate::test_support::assert_child_ok(&out);
         return;
     };
     assert_eq!(pin, "2026-06-18");

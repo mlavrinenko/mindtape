@@ -2,7 +2,6 @@
 //! and the subprocess-verified stdout/env-isolation paths.
 #![allow(clippy::unwrap_used)]
 
-use mindtape::test_support::write_file;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
@@ -146,30 +145,22 @@ fn unknown_worktree_omits_suggestion_on_a_far_miss() {
 
 const CHILD: &str = "_MT_WT_CHILD";
 
-/// Spawn `test_name` as a child, optionally writing `config` to
-/// `mindtape/worktrees.toml` under a temp `$MINDTAPE_CONFIG_HOME`.
-fn run_child(test_name: &str, config: Option<&str>) -> (tempfile::TempDir, std::process::Output) {
-    let dir = tempfile::TempDir::new().unwrap();
-    if let Some(body) = config {
-        let wt_dir = dir.path().join("mindtape");
-        std::fs::create_dir_all(&wt_dir).unwrap();
-        write_file(&wt_dir, "worktrees.toml", body);
+/// [`mindtape::test_support::rerun_isolated_with`] under a temp
+/// `$MINDTAPE_CONFIG_HOME` holding `files` (`rel`, `contents`).
+fn run_child(files: &[(&str, &str)]) -> Option<(tempfile::TempDir, std::process::Output)> {
+    if std::env::var(CHILD).is_ok() {
+        return None;
     }
-    let out = std::process::Command::new(std::env::current_exe().unwrap())
-        .env(mindtape::CONFIG_HOME_ENV, dir.path())
-        .env(CHILD, "1")
-        .args([test_name, "--nocapture"])
-        .output()
-        .unwrap();
-    (dir, out)
+    let dir = mindtape::test_support::tempdir_with_files(files);
+    let out = mindtape::test_support::rerun_isolated_with(CHILD, |child| {
+        child.env(mindtape::CONFIG_HOME_ENV, dir.path());
+    })?;
+    Some((dir, out))
 }
 
-fn assert_child_ok(out: &std::process::Output) {
-    assert!(
-        out.status.success(),
-        "child failed: {}",
-        String::from_utf8_lossy(&out.stderr)
-    );
+/// `config` as the worktree registry, `mindtape/worktrees.toml`.
+fn registry(config: &str) -> [(&str, &str); 1] {
+    [("mindtape/worktrees.toml", config)]
 }
 
 const ALIAS_CFG: &str = "[[worktrees]]\nname = \"sn\"\npath = \"/wt/sn\"\n";
@@ -178,9 +169,7 @@ const ALIAS_CFG: &str = "[[worktrees]]\nname = \"sn\"\npath = \"/wt/sn\"\n";
 
 #[test]
 fn load_registry_missing_file_returns_empty_and_path() {
-    if std::env::var(CHILD).is_err() {
-        let (_dir, out) = run_child("load_registry_missing_file_returns_empty_and_path", None);
-        assert_child_ok(&out);
+    if run_child(&[]).is_some() {
         return;
     }
     let (registry, path) = super::load_registry().unwrap();
@@ -191,9 +180,7 @@ fn load_registry_missing_file_returns_empty_and_path() {
 
 #[test]
 fn load_registry_valid_file_returns_entries() {
-    if std::env::var(CHILD).is_err() {
-        let (_dir, out) = run_child("load_registry_valid_file_returns_entries", Some(ALIAS_CFG));
-        assert_child_ok(&out);
+    if run_child(&registry(ALIAS_CFG)).is_some() {
         return;
     }
     let (registry, path) = super::load_registry().unwrap();
@@ -204,16 +191,7 @@ fn load_registry_valid_file_returns_entries() {
 
 #[test]
 fn load_registry_non_notfound_error_propagates() {
-    if std::env::var(CHILD).is_err() {
-        let dir = tempfile::TempDir::new().unwrap();
-        write_file(dir.path(), "mindtape", "i am a file not a dir");
-        let out = std::process::Command::new(std::env::current_exe().unwrap())
-            .env(mindtape::CONFIG_HOME_ENV, dir.path())
-            .env(CHILD, "1")
-            .args(["load_registry_non_notfound_error_propagates", "--nocapture"])
-            .output()
-            .unwrap();
-        assert_child_ok(&out);
+    if run_child(&[("mindtape", "i am a file not a dir")]).is_some() {
         return;
     }
     let result = super::load_registry();
@@ -227,9 +205,7 @@ fn load_registry_non_notfound_error_propagates() {
 
 #[test]
 fn resolve_token_resolves_alias_correctly() {
-    if std::env::var(CHILD).is_err() {
-        let (_dir, out) = run_child("resolve_token_resolves_alias_correctly", Some(ALIAS_CFG));
-        assert_child_ok(&out);
+    if run_child(&registry(ALIAS_CFG)).is_some() {
         return;
     }
     let path = super::resolve_token("sn").unwrap();
@@ -240,9 +216,7 @@ fn resolve_token_resolves_alias_correctly() {
 
 #[test]
 fn run_with_json_prints_output() {
-    if std::env::var(CHILD).is_err() {
-        let (_dir, out) = run_child("run_with_json_prints_output", Some(ALIAS_CFG));
-        assert_child_ok(&out);
+    if let Some((_dir, out)) = run_child(&registry(ALIAS_CFG)) {
         let stdout = String::from_utf8_lossy(&out.stdout);
         assert!(
             stdout.contains("\"kind\": \"alias\""),
@@ -260,12 +234,7 @@ fn run_with_json_prints_output() {
 
 #[test]
 fn run_with_malformed_config_errors() {
-    if std::env::var(CHILD).is_err() {
-        let (_dir, out) = run_child(
-            "run_with_malformed_config_errors",
-            Some("not valid toml {{{"),
-        );
-        assert_child_ok(&out);
+    if run_child(&registry("not valid toml {{{")).is_some() {
         return;
     }
     let result = super::run(&super::WorktreesArgs { json: false });
@@ -274,9 +243,7 @@ fn run_with_malformed_config_errors() {
 
 #[test]
 fn run_without_config_names_the_config_dir() {
-    if std::env::var(CHILD).is_err() {
-        let (_dir, out) = run_child("run_without_config_names_the_config_dir", None);
-        assert_child_ok(&out);
+    if let Some((_dir, out)) = run_child(&[]) {
         let stdout = String::from_utf8_lossy(&out.stdout);
         assert!(
             stdout.contains("no worktrees configured"),
@@ -293,17 +260,9 @@ fn run_without_config_names_the_config_dir() {
 
 #[test]
 fn run_without_resolvable_config_home_prints_fallback() {
-    if std::env::var(CHILD).is_err() {
-        let out = std::process::Command::new(std::env::current_exe().unwrap())
-            .env(mindtape::CONFIG_HOME_ENV, "")
-            .env(CHILD, "1")
-            .args([
-                "run_without_resolvable_config_home_prints_fallback",
-                "--nocapture",
-            ])
-            .output()
-            .unwrap();
-        assert_child_ok(&out);
+    if let Some(out) = mindtape::test_support::rerun_isolated_with(CHILD, |child| {
+        child.env(mindtape::CONFIG_HOME_ENV, "");
+    }) {
         let stdout = String::from_utf8_lossy(&out.stdout);
         assert!(
             stdout.contains("could not resolve the app config directory"),
@@ -316,11 +275,9 @@ fn run_without_resolvable_config_home_prints_fallback() {
 
 #[test]
 fn run_lists_aliases_and_bases() {
-    if std::env::var(CHILD).is_err() {
-        let cfg = "[[worktrees]]\nname = \"sn\"\npath = \"/wt/sn\"\n\
+    let cfg = "[[worktrees]]\nname = \"sn\"\npath = \"/wt/sn\"\n\
                    [[worktrees]]\nbase = \"/wt\"\n";
-        let (_dir, out) = run_child("run_lists_aliases_and_bases", Some(cfg));
-        assert_child_ok(&out);
+    if let Some((_dir, out)) = run_child(&registry(cfg)) {
         let stdout = String::from_utf8_lossy(&out.stdout);
         assert!(
             stdout.contains("@sn → /wt/sn"),

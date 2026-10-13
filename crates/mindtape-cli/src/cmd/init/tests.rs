@@ -167,15 +167,13 @@ fn with_schema_directive_prints_note_when_schema_missing() {
     if std::env::var("_MT_INIT_DELEGATE").is_err() {
         // Parent: spawn self, capture stdout, verify note is present.
         let xdg = tempdir();
-        let output = std::process::Command::new(std::env::current_exe().unwrap())
-            .env("_MT_INIT_DELEGATE", "1")
-            .env(mindtape::CONFIG_HOME_ENV, xdg.path())
-            .args([
-                "with_schema_directive_prints_note_when_schema_missing",
-                "--nocapture",
-            ])
-            .output()
-            .unwrap();
+        let output = mindtape::test_support::run_self_test(
+            &mindtape::test_support::current_test_name(),
+            "_MT_INIT_DELEGATE",
+            |child| {
+                child.env(mindtape::CONFIG_HOME_ENV, xdg.path());
+            },
+        );
         assert!(output.status.success());
         let stdout = String::from_utf8_lossy(&output.stdout);
         assert!(

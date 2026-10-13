@@ -15,7 +15,6 @@
 
 use mindtape::test_support::{tempdir, tempdir_with_files};
 use std::collections::HashSet;
-use std::process::Command;
 
 use mindtape::test_support::bare_task;
 use mindtape::{CanonicalTask, EntryKind, ImportReport, ReportEntry};
@@ -127,12 +126,11 @@ fn entry_kind_label_returns_expected_values() {
 #[test]
 fn report_emits_per_task_detail_and_extras() {
     if std::env::var("_MT_IMP").is_err() {
-        let o = Command::new(std::env::current_exe().unwrap())
-            .env("_MT_IMP", "1")
-            .args(["report_emits_per_task_detail_and_extras", "--nocapture"])
-            .stderr(std::process::Stdio::piped())
-            .output()
-            .unwrap();
+        let o = mindtape::test_support::run_self_test(
+            &mindtape::test_support::current_test_name(),
+            "_MT_IMP",
+            |_| {},
+        );
         let s = String::from_utf8_lossy(&o.stderr);
         assert!(s.contains("fail-task: skipped"), "{s}");
         assert!(s.contains("[mapped] status: renamed todo -> wip"), "{s}");

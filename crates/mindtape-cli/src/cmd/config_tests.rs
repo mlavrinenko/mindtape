@@ -129,11 +129,11 @@ fn origin_marks_the_project_layer_as_existing() {
 fn run_defaults_prints_embedded_floor() {
     if std::env::var("_MT_CONFIG_DELEGATE").is_err() {
         // Parent: spawn self, capture output, verify it's non-empty.
-        let output = std::process::Command::new(std::env::current_exe().unwrap())
-            .env("_MT_CONFIG_DELEGATE", "1")
-            .args(["run_defaults_prints_embedded_floor", "--nocapture"])
-            .output()
-            .unwrap();
+        let output = mindtape::test_support::run_self_test(
+            &mindtape::test_support::current_test_name(),
+            "_MT_CONFIG_DELEGATE",
+            |_| {},
+        );
         assert!(output.status.success());
         let stdout = String::from_utf8_lossy(&output.stdout);
         assert!(
@@ -179,11 +179,11 @@ fn render_schema_matches_the_install_generator() {
 fn run_schema_prints_json_schema_to_stdout() {
     if std::env::var("_MT_CONFIG_DELEGATE").is_err() {
         // Parent: spawn self, capture output, verify it carries the schema.
-        let output = std::process::Command::new(std::env::current_exe().unwrap())
-            .env("_MT_CONFIG_DELEGATE", "1")
-            .args(["run_schema_prints_json_schema_to_stdout", "--nocapture"])
-            .output()
-            .unwrap();
+        let output = mindtape::test_support::run_self_test(
+            &mindtape::test_support::current_test_name(),
+            "_MT_CONFIG_DELEGATE",
+            |_| {},
+        );
         assert!(output.status.success());
         let stdout = String::from_utf8_lossy(&output.stdout);
         assert!(
@@ -306,17 +306,16 @@ fn origin_labels_an_xdg_defaults_rule_as_xdg() {
         )
         .unwrap();
 
-        let output = std::process::Command::new(std::env::current_exe().unwrap())
-            .env(PROJECT_ENV, project.path())
-            .env(mindtape::CONFIG_HOME_ENV, xdg.path())
-            .args(["origin_labels_an_xdg_defaults_rule_as_xdg", "--nocapture"])
-            .output()
-            .unwrap();
-        assert!(
-            output.status.success(),
-            "{}",
-            String::from_utf8_lossy(&output.stderr)
+        let output = mindtape::test_support::run_self_test(
+            &mindtape::test_support::current_test_name(),
+            PROJECT_ENV,
+            |child| {
+                child
+                    .env(PROJECT_ENV, project.path())
+                    .env(mindtape::CONFIG_HOME_ENV, xdg.path());
+            },
         );
+        mindtape::test_support::assert_child_ok(&output);
         let stdout = String::from_utf8_lossy(&output.stdout);
         assert!(
             stdout.contains("rule tasks.rules.xdg-rule: xdg"),

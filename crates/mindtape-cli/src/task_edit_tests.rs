@@ -195,12 +195,7 @@ fn rules_project(severity: &str) -> (TempDir, std::path::PathBuf) {
 #[test]
 fn verify_written_prefixes_each_issue_by_its_severity() {
     const CHILD: &str = "_MT_VERIFY_WRITTEN_SEVERITY";
-    if std::env::var(CHILD).is_err() {
-        let out = crate::test_util::run_self_test(
-            "verify_written_prefixes_each_issue_by_its_severity",
-            CHILD,
-        );
-        crate::test_util::assert_child_ok(&out);
+    if let Some(out) = mindtape::test_support::rerun_isolated(CHILD) {
         let stderr = String::from_utf8_lossy(&out.stderr);
         assert!(
             stderr.contains("error: ")

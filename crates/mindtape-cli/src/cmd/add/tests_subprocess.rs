@@ -225,18 +225,14 @@ fn run_with_no_verify_skips_validation() {
     run_scenario_project(dir.path(), BAD_TEMPLATE);
 
     let path = dir.path().to_str().unwrap().to_owned();
-    let out = std::process::Command::new(std::env::current_exe().unwrap())
-        .env(RUN_NO_VERIFY_INNER, &path)
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .args(["run_with_no_verify_skips_validation", "--nocapture"])
-        .output()
-        .unwrap();
-    assert!(
-        out.status.success(),
-        "inner test failed:\nstderr: {}",
-        String::from_utf8_lossy(&out.stderr),
+    let out = mindtape::test_support::run_self_test(
+        &mindtape::test_support::current_test_name(),
+        RUN_NO_VERIFY_INNER,
+        |child| {
+            child.env(RUN_NO_VERIFY_INNER, &path);
+        },
     );
+    mindtape::test_support::assert_child_ok(&out);
 }
 
 // ── declared-env fill through run() ──
@@ -294,19 +290,16 @@ fn run_fills_slot_from_declared_env() {
     run_scenario_project(dir.path(), ENV_TEMPLATE);
 
     let path = dir.path().to_str().unwrap().to_owned();
-    let out = std::process::Command::new(std::env::current_exe().unwrap())
-        .env(ENV_FILL_INNER, &path)
-        .env("MT_ADD_E2E_TITLE", "Env Filled Title")
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .args(["run_fills_slot_from_declared_env", "--nocapture"])
-        .output()
-        .unwrap();
-    assert!(
-        out.status.success(),
-        "inner test failed:\nstderr: {}",
-        String::from_utf8_lossy(&out.stderr),
+    let out = mindtape::test_support::run_self_test(
+        &mindtape::test_support::current_test_name(),
+        ENV_FILL_INNER,
+        |child| {
+            child
+                .env(ENV_FILL_INNER, &path)
+                .env("MT_ADD_E2E_TITLE", "Env Filled Title");
+        },
     );
+    mindtape::test_support::assert_child_ok(&out);
 }
 
 // ── warn_if_outside_roots tests ──
@@ -331,14 +324,11 @@ fn warn_if_outside_roots_outside_prints_warning() {
         warn_if_outside_roots(&project, &dest);
         return;
     }
-    let out = std::process::Command::new(std::env::current_exe().unwrap())
-        .env(WARN_INNER, "1")
-        .args([
-            "warn_if_outside_roots_outside_prints_warning",
-            "--nocapture",
-        ])
-        .output()
-        .unwrap();
+    let out = mindtape::test_support::run_self_test(
+        &mindtape::test_support::current_test_name(),
+        WARN_INNER,
+        |_| {},
+    );
     assert!(
         out.status.success(),
         "inner test failed: {}",
@@ -361,11 +351,11 @@ fn warn_if_outside_roots_inside_no_warning() {
         warn_if_outside_roots(&project, &dest);
         return;
     }
-    let out = std::process::Command::new(std::env::current_exe().unwrap())
-        .env(WARN_INNER, "1")
-        .args(["warn_if_outside_roots_inside_no_warning", "--nocapture"])
-        .output()
-        .unwrap();
+    let out = mindtape::test_support::run_self_test(
+        &mindtape::test_support::current_test_name(),
+        WARN_INNER,
+        |_| {},
+    );
     assert!(
         out.status.success(),
         "inner test failed: {}",

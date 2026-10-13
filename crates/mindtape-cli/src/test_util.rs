@@ -3,40 +3,12 @@
 #![allow(clippy::unwrap_used)]
 
 use std::path::Path;
-use std::process::{Command, Output};
 
 use mindtape::test_support::tempdir;
 use mindtape::{Config, load_project, parse_config};
 use tempfile::TempDir;
 
 use crate::util::Project;
-
-/// Re-exec this test binary for the single test named `test_name`, with
-/// `sentinel` set in the child's environment.
-///
-/// Process-global state (a `OnceLock`, the `log` global logger) can only be
-/// asserted "unset before init" in a fresh process: sharing the test binary's
-/// process would race on init order and poison the state for every other test.
-/// Callers branch on `std::env::var(sentinel)` — parent side spawns, child side
-/// runs the real assertions. `RUST_LOG` is cleared so the child's logging is
-/// independent of the developer's environment.
-pub fn run_self_test(test_name: &str, sentinel: &str) -> Output {
-    Command::new(std::env::current_exe().unwrap())
-        .env(sentinel, "1")
-        .env_remove("RUST_LOG")
-        .args([test_name, "--nocapture"])
-        .output()
-        .unwrap()
-}
-
-/// Assert a [`run_self_test`] child exited successfully, surfacing its stderr.
-pub fn assert_child_ok(out: &Output) {
-    assert!(
-        out.status.success(),
-        "child failed: {}",
-        String::from_utf8_lossy(&out.stderr)
-    );
-}
 
 /// [`make_project_in`] a fresh tempdir, which the caller keeps alive.
 pub fn make_project(files: &[(&str, &str)], config: Config) -> (TempDir, Project) {

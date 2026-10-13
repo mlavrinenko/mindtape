@@ -185,19 +185,13 @@ fn ls_leaves_a_novel_user_preset_unmarked() {
 /// process's cwd/env.
 const RUN_CHILD_ENV: &str = "_MT_PRESET_RUN_CHILD";
 
-fn run_child_output(name: &str, cwd: &std::path::Path, config_home: &std::path::Path) -> String {
-    let out = std::process::Command::new(std::env::current_exe().unwrap())
-        .env(RUN_CHILD_ENV, "1")
-        .env(mindtape::CONFIG_HOME_ENV, config_home)
-        .current_dir(cwd)
-        .args([name, "--nocapture"])
-        .output()
-        .unwrap();
-    assert!(
-        out.status.success(),
-        "child failed: {}",
-        String::from_utf8_lossy(&out.stderr)
-    );
+fn run_child_output(cwd: &std::path::Path, config_home: &std::path::Path) -> String {
+    let out = mindtape::test_support::rerun_isolated_with(RUN_CHILD_ENV, |child| {
+        child
+            .env(mindtape::CONFIG_HOME_ENV, config_home)
+            .current_dir(cwd);
+    })
+    .unwrap();
     String::from_utf8_lossy(&out.stdout).into_owned()
 }
 
@@ -207,11 +201,7 @@ fn run_ls_prints_builtin_presets() {
     if std::env::var(RUN_CHILD_ENV).is_err() {
         let empty_home = tempdir();
         let cwd = tempdir();
-        let stdout = run_child_output(
-            "run_ls_prints_builtin_presets",
-            cwd.path(),
-            empty_home.path(),
-        );
+        let stdout = run_child_output(cwd.path(), empty_home.path());
         assert!(stdout.contains("built-in presets:"), "{stdout}");
         return;
     }
@@ -231,11 +221,7 @@ fn run_save_writes_preset_and_prints_destination() {
         let project = tempdir();
         write_project(project.path(), "[tasks]\nroots = [\"mine\"]\n", &[]);
 
-        let stdout = run_child_output(
-            "run_save_writes_preset_and_prints_destination",
-            project.path(),
-            config_home.path(),
-        );
+        let stdout = run_child_output(project.path(), config_home.path());
         assert!(stdout.contains("saved preset"), "{stdout}");
         let written = config_home
             .path()
@@ -262,13 +248,15 @@ fn run_save_outside_project_fails() {
     if std::env::var(RUN_CHILD_ENV).is_err() {
         let config_home = tempdir();
         let cwd = tempdir();
-        let out = std::process::Command::new(std::env::current_exe().unwrap())
-            .env(RUN_CHILD_ENV, "1")
-            .env(mindtape::CONFIG_HOME_ENV, config_home.path())
-            .current_dir(cwd.path())
-            .args(["run_save_outside_project_fails", "--nocapture"])
-            .output()
-            .unwrap();
+        let out = mindtape::test_support::run_self_test(
+            &mindtape::test_support::current_test_name(),
+            RUN_CHILD_ENV,
+            |child| {
+                child
+                    .env(mindtape::CONFIG_HOME_ENV, config_home.path())
+                    .current_dir(cwd.path());
+            },
+        );
         assert!(
             !out.status.success(),
             "run() must fail outside a Mindtape project"

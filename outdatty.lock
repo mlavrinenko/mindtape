@@ -39,7 +39,7 @@ groups:
   cli-docs:
     source:
       crates/mindtape-cli/src/cli/completion/mod.rs: 2b2d0f8eb41435fbc5f6bda31c25f4c64238a4d567d0824a2e3ae939d073a410
-      crates/mindtape-cli/src/cli/mod.rs: d345ef86027962c2ccd09e2b817d0384cd423a4203c38ef89977251fbc316e05
+      crates/mindtape-cli/src/cli/mod.rs: 0bdc5ec47efe5fdead1b26b53b1282daa903c199d874d5d3d2f9d132a838f067
       crates/mindtape-cli/src/cmd/add/mod.rs: 13c699b1c2a051a0b96bfd626d6465cec8e424cf7eb0ebda517a5224a976adf2
       crates/mindtape-cli/src/cmd/check/mod.rs: c994482eb3ed6c27005e3a0fd03264d40af769bd545bf4f4069e03417e19b3ef
       crates/mindtape-cli/src/cmd/config.rs: dd027e7d8ed3b5ebdd2347ee010558a6186b6dafbd5ce0051192f981050f2b8d
@@ -121,17 +121,17 @@ groups:
   cli-name:
     source:
       crates/mindtape-cli/Cargo.toml: 2cc63de218be3f4bf26c532fc23f2a5e91493104779d0316778d5314f8a10aee
-      crates/mindtape-cli/src/cli/mod.rs: d345ef86027962c2ccd09e2b817d0384cd423a4203c38ef89977251fbc316e05
+      crates/mindtape-cli/src/cli/mod.rs: 0bdc5ec47efe5fdead1b26b53b1282daa903c199d874d5d3d2f9d132a838f067
     dependents:
-      CHANGELOG.md: cb0981d29d9418e7f80cf91312c0ebf5c51bc5dd20554234ac1fd883e3683be4
+      CHANGELOG.md: cb253161bb9a7627887b79f03dec3e5d9f7c436a9dddbd55e705c084902dbb82
       docs/src/agents.typ: 738581f65453037d2e7e4df57dffa2aa1993a582d8e7ead92a3a02d059a97e03
       docs/src/contributing.typ: cea064e8b4e4f8ff4e575895802515ab9c1ecf3b5b92cf607d191ac59161f5d0
       docs/src/contributing/command-semantics.typ: 828cda1b535315b5f06ae76fb9831a50899f1ddc12521d44a1cb953814bd7c65
-      docs/src/readme.typ: b1456208f07b5c8f87e8f93ec624c72cc4e62dbebb23a21be304b86b18f1922c
-      docs/src/skill.typ: 426082de33db6a4475fe4ea64130c5351ab64be95789d6d148bc59a30c9736a4
-      www/content/cli.typ: 43dd4cab296dd606bb0cf040ad50baa42d1623876bdec0704c6d075e51f53e2a
-      www/content/index.typ: 07e7cde3440f5e93c04619c4dc420d43013b15f84e32b48ef3deb9bdad805c56
-      www/content/quickstart.typ: f4bba79af7e78c6650ce4d89428d288a32c60b2afb87f9107d363f0a0b9b1ddb
+      docs/src/readme.typ: d0e61e5595a6dd4446906f41e01c6c76197a0a926cfcf2412b16ef8894d1aa01
+      docs/src/skill.typ: 3d8d8c7baf2ca96ec4b0b5d59736378ca07b4473751e0337d12f787982b92558
+      www/content/cli.typ: 231bb7f932d58336241d134cf32ef3201b2abe3cde0c989d5f2967a134a27ccf
+      www/content/index.typ: 33ee423dc6d613edfaea770cfc3ab11eb29a3614f57b2ec1ba5af0d999b27211
+      www/content/quickstart.typ: c1b55d2fdb7988796a2a488827448e3c4bd459bdff82d1695d31190fe28ebf18
   crap-scripts-docs:
     source:
       .just/scripts/_crap-ratchet-control.sh: 4475050ae573823bc2aeb493ee9bd8385004920ad618cfcd2d2e1767a0dcd801

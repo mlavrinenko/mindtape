@@ -297,9 +297,7 @@ mod tests {
 
     #[test]
     fn init_logger_raises_global_max_level() {
-        if std::env::var(CHILD).is_err() {
-            let out = crate::test_util::run_self_test("init_logger_raises_global_max_level", CHILD);
-            crate::test_util::assert_child_ok(&out);
+        if mindtape::test_support::rerun_isolated(CHILD).is_some() {
             return;
         }
         assert_eq!(

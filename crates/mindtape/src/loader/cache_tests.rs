@@ -208,31 +208,14 @@ fn disabled_checks_env_var_semantics() {
         return;
     }
 
-    let binary = std::env::current_exe().unwrap();
-
-    let out = std::process::Command::new(&binary)
-        .env("MINDTAPE_NO_CACHE", "1")
-        .env("MINDTAPE_DISABLED_CHILD", "1")
-        .arg("disabled_checks_env_var_semantics")
-        .output()
-        .unwrap();
-    assert!(
-        out.status.success(),
-        "nonempty child:\nstdout:\n{}\nstderr:\n{}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr),
-    );
-
-    let out = std::process::Command::new(&binary)
-        .env("MINDTAPE_NO_CACHE", "")
-        .env("MINDTAPE_DISABLED_CHILD", "1")
-        .arg("disabled_checks_env_var_semantics")
-        .output()
-        .unwrap();
-    assert!(
-        out.status.success(),
-        "empty child:\nstdout:\n{}\nstderr:\n{}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr),
-    );
+    for value in ["1", ""] {
+        let out = crate::test_support::run_self_test(
+            &crate::test_support::current_test_name(),
+            "MINDTAPE_DISABLED_CHILD",
+            |child| {
+                child.env("MINDTAPE_NO_CACHE", value);
+            },
+        );
+        crate::test_support::assert_child_ok(&out);
+    }
 }

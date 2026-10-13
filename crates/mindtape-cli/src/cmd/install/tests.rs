@@ -149,23 +149,15 @@ fn write_completions_writes_a_hook_per_shell() {
 /// Env marker gating the inner side of the `run` completion tests below.
 const RUN_COMPLETIONS_INNER: &str = "_MT_INSTALL_RUN_COMPLETIONS";
 
-/// Spawn the test binary with the config/data homes pointed at `home`, running
-/// only the named inner test.
-fn run_install_inner(name: &str, home: &Path) {
-    let out = std::process::Command::new(std::env::current_exe().unwrap())
-        .env(RUN_COMPLETIONS_INNER, "1")
-        .env(mindtape::CONFIG_HOME_ENV, home.join("config"))
-        .env(mindtape::DATA_HOME_ENV, home.join("data"))
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .args([name, "--nocapture"])
-        .output()
-        .unwrap();
-    assert!(
-        out.status.success(),
-        "inner test '{name}' failed:\n{}",
-        String::from_utf8_lossy(&out.stderr),
-    );
+/// Re-run the calling test in a child with the config/data homes pointed at
+/// `home`.
+fn run_install_inner(home: &Path) {
+    let out = mindtape::test_support::rerun_isolated_with(RUN_COMPLETIONS_INNER, |child| {
+        child
+            .env(mindtape::CONFIG_HOME_ENV, home.join("config"))
+            .env(mindtape::DATA_HOME_ENV, home.join("data"));
+    });
+    assert!(out.is_some(), "only the parent runs the child");
 }
 
 /// A bare `install` writes the completion hooks. Pins the `!` in
@@ -184,7 +176,7 @@ fn run_writes_completion_hooks_by_default() {
         return;
     }
     let home = tempdir();
-    run_install_inner("run_writes_completion_hooks_by_default", home.path());
+    run_install_inner(home.path());
     assert!(
         home.path()
             .join("config/mindtape/completions/bash")
@@ -207,7 +199,7 @@ fn run_with_no_completions_writes_no_hooks() {
         return;
     }
     let home = tempdir();
-    run_install_inner("run_with_no_completions_writes_no_hooks", home.path());
+    run_install_inner(home.path());
     assert!(
         !home
             .path()
