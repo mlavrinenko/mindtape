@@ -135,12 +135,12 @@ assert_rejected eject abc
 assert_accepted eject 50
 assert_default_accepted eject
 
-# The sweep's six thresholds. One rejection per distinct pattern rather than
-# per flag: `--baseline`, `--coverage-floor` and `--fn-coverage-floor` share
-# the 0-100 percentage pattern, `--cc-floor` is unbounded digits, `--write` is
+# The sweep's five thresholds. One rejection per distinct pattern rather than
+# per flag: `--baseline` and `--fn-coverage-floor` share the 0-100
+# percentage pattern, `--cc-floor` is unbounded digits, `--write` is
 # a single bit. The out-of-range case (`101`) is checked once for the shared
 # percentage pattern and the non-numeric case (`abc`) once for each of the
-# three, since those are three different regexes' business.
+# remaining three, since those are three different regexes' business.
 #
 # `a b` is the assertion that earns the paragraph at the top of this file.
 # Every other rejection here is about a value being wrong; that one is about a
@@ -162,12 +162,11 @@ assert_default_accepted eject
 # `just ask-refactoring` run and there is no fallback to hide it.
 assert_rejected ask-refactoring --baseline 101
 assert_rejected ask-refactoring --baseline 'a b'
-assert_rejected ask-refactoring --coverage-floor abc
 assert_rejected ask-refactoring --cc-floor abc
 assert_rejected ask-refactoring --fn-coverage-floor 101
 assert_rejected ask-refactoring --dry-gain abc
 assert_accepted ask-refactoring --baseline 85
-assert_accepted ask-refactoring --coverage-floor 92 --cc-floor 12
+assert_accepted ask-refactoring --fn-coverage-floor 92 --cc-floor 12
 assert_accepted ask-refactoring --dry-gain 100
 assert_accepted ask-refactoring --write
 assert_default_accepted ask-refactoring

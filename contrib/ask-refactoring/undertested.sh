@@ -6,24 +6,64 @@
 # `score_undertested`, `signal_undertested`, `emit_undertested` — reading
 # `cargo crap --format json` over the lcov `just cover` writes.
 #
-# It also reads three things from `coverage.sh` rather than reimplementing them:
-# `ensure_lcov_fresh`, `coverage_arm_files`, and the `COVERAGE_TEST_RE`
-# production-file constant. The dedup below is sound only if the
-# two arms agree on what production code is and on which files the file-shaped arm
-# already reports, and agreement between two copies of a predicate decays. `ARMS`
-# lists this arm after `coverage` for that reason; the `sweep-dedup` outdatty group
-# is the gate on it.
+# `just cover` gates every production file at 88% line coverage (with 5 or more
+# uncovered lines), so this arm owns the finer grain alone: no file it reads is
+# under that floor, and there is no other arm to dedupe against.
 #
 # The reasoning behind this arm's numbers lives here with the code that applies
 # them, deliberately: a doc it lived in instead would drift from the constants.
+
+# ── the lcov, and what counts as production ─────────────────────────────────
+#
+# The lcov `just cover` writes is a build artifact nothing re-derives for free.
+# `just crap`'s own comment (see the Justfile) documents what a stale one does:
+# a source the lcov never saw has no coverage record at all, so it reads as 0%
+# covered rather than as unknown — a phantom failure, not a missing measurement.
+# `ensure_lcov_fresh` runs the same two checks `just crap` runs (missing file,
+# then a source newer than it) after asking mmz to refresh the lcov, so a stale
+# one is refused here for the same reason. `just mmz cover` skips the whole
+# instrumented test run when nothing changed since the last `just cover`.
+ensure_lcov_fresh() {
+    # Never onto stdout, which is the TSV row stream: on an mmz cache miss the
+    # test run would parse as findings. Its output goes to a log shown only on
+    # failure, and one stderr line says why a cache miss pauses for minutes.
+    echo "ask-refactoring: just mmz cover (a cache miss reruns the suite)" >&2
+    local log
+    log="$(mktemp)"
+    if ! just mmz cover >"$log" 2>&1; then
+        cat "$log" >&2
+        rm -f "$log"
+        exit 1
+    fi
+    rm -f "$log"
+    local lcov="target/coverage/lcov.info"
+    if [ ! -f "$lcov" ]; then
+        echo "ask-refactoring: $lcov is missing — run \`just cover\` first" >&2
+        exit 1
+    fi
+    local newer
+    newer=$(find crates -name '*.rs' -newer "$lcov" -print -quit)
+    if [ -n "$newer" ]; then
+        echo "ask-refactoring: $lcov predates $newer — run \`just cover\` first" >&2
+        echo "  (a source the lcov never saw scores as 0% covered, not as unknown)" >&2
+        exit 1
+    fi
+}
+
+# Test files are not production code. `*_tests.rs` / `tests.rs` (and ejectest's
+# infix-split `foo_tests_bar.rs` siblings) are instrumented, and `just crap`
+# excludes the same files from CRAP scoring (`CRAP_EXCLUDES` in the Justfile).
+# The regex is jq's equivalent of those globs, as one pattern because jq has no
+# glob matcher. `.just/scripts/cover.sh` holds a copy for its per-file gate.
+COVERAGE_TEST_RE='(^|/)([^/]*_)?tests(_[^/]*)?\.rs$'
 
 # ── signal: complexity x coverage, per function ─────────────────────────────
 #
 # A file-shaped signal is structurally unable to see an undertested function
 # inside a well-covered file. `hval_kind` (`crates/mindtape/src/model/mod.rs`) is 40%
-# covered at cyclomatic complexity 8, in a file the coverage arm never reports,
-# under a `just cover` gate that measures the workspace total only. Nothing else
-# in the repo reports it; that is this arm's entire reason to exist.
+# covered at cyclomatic complexity 8, in a file `just cover`'s per-file floor
+# passes. Nothing else in the repo reports it; that is this arm's entire reason
+# to exist.
 #
 # The band is the conjunction — complexity at or above a floor and coverage below
 # one — never the CRAP score that combines them. CRAP is CC^2*(1-cov)^3 + CC,
@@ -35,21 +75,18 @@
 # function — and reading those two fields is not banding on the score printed
 # beside them. That is the difference between this arm and the cancelled one.
 #
-# Freshness is `ensure_lcov_fresh`, called again rather than duplicated: a source
-# the lcov never saw has no record, so `cargo crap` reads it as 0% covered rather
-# than as unknown, and a sweep that files phantoms is worse than one that refuses.
-# Arms run in separate command substitutions, so this second call cannot see that
-# the first happened; it costs an `mmz` cache hit, not a second test run.
+# Freshness is `ensure_lcov_fresh`, defined below: a source the lcov never saw
+# has no record, so `cargo crap` reads it as 0% covered rather than as unknown,
+# and a sweep that files phantoms is worse than one that refuses.
 #
 # Exclusions come from `just _crap-excludes` — the Justfile's `CRAP_EXCLUDES`,
 # whose comment there gives the reason a second hand-maintained copy is not
 # acceptable; a third in a shell script is the same mistake. Those globs drop
 # `main.rs` (absent from the lcov, so every function in it would score 0%) and
-# the `*_tests.rs` / `tests.rs` modules. On top of them this arm applies the
-# coverage arm's production filter, which catches what the globs miss: ejectest's
-# infix-split siblings (`cmd/add/tests_subprocess.rs`). A file the coverage arm
-# calls non-production has to be non-production here too, or the dedup would pass
-# a test helper through on the grounds that the other arm never reports it.
+# the `*_tests.rs` / `tests.rs` modules. On top of them this arm applies `COVERAGE_TEST_RE`, which catches what
+# the globs miss: ejectest's infix-split siblings (`cmd/add/tests_subprocess.rs`).
+# `.just/scripts/cover.sh` carries the same regex, so both agree on what
+# production code is.
 undertested_report_json() {
     local excludes
     # `read -r -a` rather than an unquoted expansion: the list is globs, and a
@@ -68,36 +105,16 @@ undertested_report_json() {
     printf '%s' "$json"
 }
 
-# ── the dedup, decided before the thresholds ────────────────────────────────
-#
-# Two arms reading one lcov at two granularities report the same gap twice unless
-# one defers, and the re-run guard makes that expensive: a duplicate pair blocks
-# the next sweep until both halves close. So this arm skips any function whose
-# file the coverage arm reports. Not a heuristic — `coverage_arm_files` is that
-# arm's predicate, over the same report in the same sweep.
-#
-# The remedies nest, which is why the split is clean rather than a compromise: a
-# file below the coverage floor gets one task whose work is covering the functions
-# inside it, so a function task beside it would be that task's first bullet with a
-# stem of its own. Nothing is dropped — above the floor, this arm is the only
-# reporter.
-#
-# The measurement that made it worth building, and the merged-arm alternative it
-# rules out, are recorded in
-# `truth/tasks/sweep-undertested-functions-in-covered-files.typ`. The short of it:
-# at this band 6 of today's 10 findings are in files the coverage arm never
-# reports, and 4 are duplicates this skip removes.
-
 # ── the band edges, from the real distribution ──────────────────────────────
 #
 # On today's tree, 1025 production functions are scored (1052 from cargo crap,
 # less the 27 the two filters above drop).
 #
-# coverage < 80, and why not the 88 the file arm uses:
+# coverage < 80, and why not the 88 `just cover` gates per file:
 #
 #   Per-function coverage has mean 97.61, sd 7.97, with 868 of the 1025 functions
-#   at exactly 100%. 80 is ~2.2 sd below the mean — stricter than the coverage
-#   arm's 88 (~1.5 sd on the per-file distribution), on purpose. A function is
+#   at exactly 100%. 80 is ~2.2 sd below the mean — stricter than the
+#   per-file gate's 88 (~1.5 sd on the per-file distribution), on purpose. A function is
 #   small enough that one unreached line moves its percentage by tens of points,
 #   so at this scale the number is exact but grainy: the 80..89 band holds 63
 #   functions, and reading them is the argument — `confirm_retire` (88.9%) was
@@ -123,19 +140,15 @@ undertested_report_json() {
 #   (`json_to_input_value` at 57%, `Framework::validate` at 60%, two at 72.7%) and
 #   takes the yield from 6 unique findings to 2 — not enough to carry an arm.
 score_undertested() {
-    local reported="$1"
     jq -r \
         --arg repo "$repo/" \
         --arg re "$COVERAGE_TEST_RE" \
-        --arg reported "$reported" \
         --argjson cc_floor "$CC_FLOOR" \
         --argjson cov_floor "$FN_COVERAGE_FLOOR" '
       def clamp($lo; $hi): [[., $lo] | max, $hi] | min;
-      ($reported | split("\n") | map(select(length > 0)))  as $filed
-      | .entries[]
+      .entries[]
       | (.file | ltrimstr($repo))                          as $path
       | select(($path | test($re)) | not)
-      | select(($filed | index($path)) == null)
       | select(.cyclomatic >= $cc_floor and .coverage < $cov_floor)
       | (.cyclomatic * (1 - .coverage / 100))              as $paths
       | ((1.5 * $paths) | round | clamp(1; 10))            as $impact
@@ -172,14 +185,14 @@ score_undertested() {
 #
 # confidence = 0.85, constant
 #   llvm-cov counted the lines and cargo-crap the branches; neither is a forecast.
-#   Below the coverage arm's 0.9 for the graininess the band edges discuss — "40%
+#   Below 0.9 for the graininess the band edges discuss — "40%
 #   covered" is an exact number about a coarse measurement — plus the same
 #   remaining judgment every arm carries, since the remedy can be an exclusion.
 #
 # ease = clamp(9 - round(paths), 1, 10)
 #   Falls with the number of paths a test author must construct, the literal
-#   amount of new test material, same shape the coverage arm gets from its
-#   uncovered-line count. Deliberately impact's quantity inverted: what makes the
+#   amount of new test material, the number of
+#   uncovered lines in a file would measure the wrong grain. Deliberately impact's quantity inverted: what makes the
 #   gap matter is what makes it work.
 #
 # difficulty: 2 for <=2 unexercised paths, 4 for <=4, else 6, on the 0-9 judgment
@@ -191,12 +204,7 @@ score_undertested() {
 #   would be invented rather than measured.
 signal_undertested() {
     ensure_lcov_fresh
-    # Captured before the report is scored, not while: `coverage_arm_files`
-    # re-reads the lcov in its own command substitution, and reading it into a
-    # variable first keeps any failure out of the jq pipeline.
-    local reported
-    reported="$(coverage_arm_files)"
-    undertested_report_json | score_undertested "$reported"
+    undertested_report_json | score_undertested
 }
 
 emit_undertested() {
@@ -227,12 +235,9 @@ emit_undertested() {
         --set "ease=$ease"
         --set "difficulty=$difficulty"
         --set "estimate=(src-files: 1)"
-        # `coverage`, not a fourth signal tag. The tag says which advisory tool
-        # noticed the finding (see the `[tasks.tags]` comment in the config), and
-        # that is llvm-cov for both coverage arms — this one is a granularity of
-        # the same signal, not a new one. So the config claim holds unchanged:
-        # adding an arm is a script and a template. The stem namespace
-        # (`undertested-…` vs `coverage-…`) is what tells the two apart.
+        # `coverage`, not a further signal tag: the tag says which advisory tool
+        # noticed the finding (see the `[tasks.tags]` comment in the config),
+        # and that is llvm-cov.
         --set 'tags+=swept' --set 'tags+=coverage'
     )
 

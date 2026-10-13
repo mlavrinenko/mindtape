@@ -508,7 +508,7 @@ commands:
 
   # cargo-llvm-cov instruments and runs the same suite as `just test` (same
   # scope), then writes target/coverage/lcov.info, the artifact `just crap`
-  # and `just ask-refactoring`'s coverage arm both read. The output voids the
+  # and `just ask-refactoring`'s undertested arm both read. The output voids the
   # record when the lcov is deleted, so `just crap` never scores a missing one
   # behind a fresh `cover`.
   - name: just cover

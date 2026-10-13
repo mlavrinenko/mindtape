@@ -538,12 +538,12 @@ groups:
   # instead.
   #
   # sweep-size.typ is the source because it is the arm that exists and is
-  # exercised, and the other five are its dependents. The arm scripts under
+  # exercised, and the other four are its dependents. The arm scripts under
   # contrib/ask-refactoring/ are dependents too. Each fills its template's slots
   # by name, so a renamed or retyped slot breaks the sweep silently. They are
   # tracked per arm and not through the entry script, because
   # contrib/ask-refactoring.sh holds the driver and fills no slot, so tracking
-  # it would watch a file that cannot break this way while missing the six that
+  # it would watch a file that cannot break this way while missing the five that
   # can.
   #
   # One shape difference is intended and is not drift: sweep-size.typ carries
@@ -560,12 +560,10 @@ groups:
       - .mindtape/templates/sweep-size.typ
     dependents:
       - .mindtape/templates/sweep-mutants.typ
-      - .mindtape/templates/sweep-coverage.typ
       - .mindtape/templates/sweep-undertested.typ
       - .mindtape/templates/sweep-repeats.typ
       - .mindtape/templates/sweep-dry.typ
       - contrib/ask-refactoring/size.sh
-      - contrib/ask-refactoring/coverage.sh
       - contrib/ask-refactoring/mutants.sh
       - contrib/ask-refactoring/undertested.sh
       - contrib/ask-refactoring/repeats.sh
@@ -581,22 +579,6 @@ groups:
       - .mindtape/templates/feat.typ
       - .mindtape/templates/docs.typ
       - .mindtape/templates/dev.typ
-
-  # The one arm-to-arm dependency, and the only silent one in the sweep. The
-  # undertested arm defers to the coverage arm (it skips a function whose file
-  # the file-shaped arm reports), and to keep that sound it calls three of
-  # coverage.sh's definitions instead of copying them: `ensure_lcov_fresh`,
-  # `coverage_arm_files`, and the COVERAGE_TEST_RE / COVERAGE_STUB pair. The
-  # sweep-templates group above watches slot names and sees none of that.
-  # Renaming `coverage_arm_files`, or changing which column of `score_coverage`'s
-  # TSV holds the path, would leave the dedup filing duplicates with no error
-  # anywhere. So coverage.sh is a source here, in the direction the deferral
-  # runs.
-  - name: sweep-dedup
-    source:
-      - contrib/ask-refactoring/coverage.sh
-    dependents:
-      - contrib/ask-refactoring/undertested.sh
 
   # Each page in the docs site's Recipes group explains, in prose, one block
   # of examples/api-service's config, the session generate-api-service.sh

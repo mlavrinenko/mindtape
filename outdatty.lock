@@ -137,12 +137,12 @@ groups:
       .just/scripts/_crap-ratchet-control.sh: 4475050ae573823bc2aeb493ee9bd8385004920ad618cfcd2d2e1767a0dcd801
       .just/scripts/_crap-ratchet-lib.sh: b090720ea70902bf7dd5177eedb9837b351ad54932d92da45632efeeb2ccd7ca
       .just/scripts/_lcov-stale-reason.sh: 06076f356e045204aa87302b8f0cc391250d5411d129aa024aa9fe755a61b175
-      .just/scripts/cover.sh: b319f75064ea55c2a7600ff1af7127b41817c68409e70613de2eafa4ae71b85f
+      .just/scripts/cover.sh: 05fc0a034ad4e695e577a11b765d0c1958c24fea51ed03509121f7211707622e
       .just/scripts/crap-baseline-check.sh: c44c998700a5e14ae944829bc42ef6005e30041525aba2725cfe2fddd005f5e9
       .just/scripts/crap-baseline.sh: 9557082bf19d408a02ab75cc5386d1c0667391cd24c07fa62ed595ef521cce87
       .just/scripts/crap.sh: 0fe34355ac5e66c110063232fcbb7634b3f82c224308a5dd57b58efc1763b7b8
     dependents:
-      docs/src/contributing/coverage-crap.typ: 9de39592b5a97e7bd4a8ca05919708db02b8afd5ad5f2bdb7b7a97979741f8a9
+      docs/src/contributing/coverage-crap.typ: 51492d47d51867908652ede8016e3a74110b4efcdc2711785ba8f9b9839793c7
       docs/src/contributing/crap-baseline.typ: 551aab6a955a9d4345e73e1c171fe860663887e8b3c56f611f2f2551356eb301
   dev-shell-docs:
     source:
@@ -150,19 +150,19 @@ groups:
       .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
       .just/docs.just: 300226a86d551abc287d058efd9cbc2143fa7f15e3c6b53131699f27f35847fc
       .just/scripts/wt-carry-lcov.sh: da29d756c94da7817fef3d1248e1cc049d9eef715400b6d0dff7908a3488bf67
-      Justfile: eed965491979b72da755d2c7676fbee027561c9021e97e2f1b28f3136c525bff
+      Justfile: de0831d17be5d98f884f18cb6bedc011d8609d0f6eef25799084584fa540b694
       flake.nix: ef91529881401b7bfffd564c53a0ff62d9d24b8b9adaa6c52f510119a9004305
     dependents:
-      docs/src/agents.typ: 738581f65453037d2e7e4df57dffa2aa1993a582d8e7ead92a3a02d059a97e03
-      docs/src/contributing.typ: cea064e8b4e4f8ff4e575895802515ab9c1ecf3b5b92cf607d191ac59161f5d0
-      docs/src/contributing/coverage-crap.typ: 9de39592b5a97e7bd4a8ca05919708db02b8afd5ad5f2bdb7b7a97979741f8a9
+      docs/src/agents.typ: fc0515f88c029ba8b787b979dd9c47184243c76ed7378983b0be712bddfbf2c4
+      docs/src/contributing.typ: 873fef8ede143825539d0dbad5a640b39b0536fbbcd536c1aa390ddb0a9005d0
+      docs/src/contributing/coverage-crap.typ: 51492d47d51867908652ede8016e3a74110b4efcdc2711785ba8f9b9839793c7
       docs/src/contributing/crap-baseline.typ: 551aab6a955a9d4345e73e1c171fe860663887e8b3c56f611f2f2551356eb301
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
       docs/src/contributing/documentation.typ: 451e7a8b3a3579410d721855fd9343f93dcbb772ec464b06ceb75c2a7ce9b1e1
       docs/src/contributing/example-projects.typ: 4f9a0c52894b9c2ab665e42bb728814b3d18badf3e8def57737d695d29912f63
       docs/src/contributing/gates.typ: 98dff9d1a2b84a1388d515a521dda0db6fa222378568d2bc95b7cfc4ca0fba3f
       docs/src/contributing/mutation-testing.typ: 96f2e41b03e5bb524e1c49dd08e9435690f37ba566cf81cc0f6dbc843e01981a
-      docs/src/contributing/signal-sweep.typ: 1dae6759ecc7ea0a9272d85b1054063b55588591f9d28ecbe0027b1262b594e3
+      docs/src/contributing/signal-sweep.typ: 9e428e0ff42e4d9c4224143b4c1230d0aeb887391355ecd47df2bd869b6b693c
       docs/src/contributing/windows.typ: 093ebafaf04b07d4abd611b33a346695a61e811b51f79e13a29df34903e96786
   doc-gate-scripts-docs:
     source:
@@ -198,7 +198,7 @@ groups:
       .just/scripts/_script-graph-lib.sh: ecc9f2eb1fdc764804c9d3dac61cd94f9e5288d41ac32a2e91bd4613fa0814c8
       .just/scripts/_script-graph.sh: 3956d990fd68bbd6bc943507f730650991cd662e7c04274a330e5fe3c51ef9e9
       .just/scripts/_script-reach.sh: 667647246522252c3b13ce000dadb39f7fda7bee663a9db54497b3919d1a1e85
-      .just/scripts/arg-pattern-check.sh: 3c1de492cdcf7bd39442d59cb846cd767ba5be92fceb05fe9325e9af41c24f24
+      .just/scripts/arg-pattern-check.sh: acdea75a8c590bfd160b7d3de2557293ff2aac20168828f5efe5d5c086febd83
       .just/scripts/check-gate-drift.sh: 521511d6f97ad1ec7a1f994bafe187cb1547773f217a655214ebc22c595b6f98
       .just/scripts/check-secrets-manifest.sh: 1e7d72a016934f2b7776b15f0863189851fa295ca5d12c4bcd07cd3611704ea0
       .just/scripts/check-secrets.sh: cd27c536db3202c7b9ef8439dcae9e674951465c69afed3d5dde126eb39049fe

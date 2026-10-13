@@ -10,6 +10,9 @@ set -eo pipefail
 # registry checkout, which llvm-cov's own dep filter misses when CARGO_HOME is
 # relocated (a local kache), so local and CI report the same set.
 ignore='crates/mindtape-cli/src/main\.rs|/registry/src/'
+# Test files are not production code: the same regex as COVERAGE_TEST_RE in
+# contrib/ask-refactoring/undertested.sh, jq's equivalent of `just crap`'s globs.
+test_re='(^|/)([^/]*_)?tests(_[^/]*)?\.rs$'
 mkdir -p target/coverage
 # Instrument once (--no-report), then render both reports from that profdata.
 # The clean is cargo-llvm-cov's own documented precondition for that split
@@ -33,3 +36,41 @@ cargo llvm-cov report --ignore-filename-regex "$ignore" \
 # drops nothing in text mode. pipefail keeps --fail-under-lines' exit status.
 cargo llvm-cov report --ignore-filename-regex "$ignore" --fail-under-lines 90 |
     sed -n '1p;$p'
+
+# The per-file floor: a production file fails below 88% line coverage when it
+# also has 5 or more uncovered lines. Read from each lcov record's line totals,
+# not from `cargo llvm-cov report --json`, whose summary counts a line once per
+# compiled copy of the `mt` crate, so a file the suite covers whole reads as 75%.
+#
+# Why 88, and not the workspace total's 90: the workspace total can stay green
+# while one file sinks, and 88 is ~1.5 standard deviations under the per-file
+# mean (95.97%, sd 5.32 over 125 files when measured). That reports a real tail
+# rather than the scatter of files a point or two under the average. Why the
+# 5-line minimum: in a small file 3 lines of tty or stdio wiring sink it below
+# the floor, and a test for them is not worth writing.
+#
+# The fix is a test. If the lines cannot be tested, add the file to `ignore`
+# above with the reason beside it.
+floor=88
+min_uncovered=5
+# The patterns go in through the environment: awk -v would eat their backslashes.
+below="$(ignore="$ignore" test_re="$test_re" awk -v root="$PWD/" \
+    -v floor="$floor" -v min="$min_uncovered" '
+    BEGIN { ignore = ENVIRON["ignore"]; test_re = ENVIRON["test_re"] }
+    /^SF:/ { f = substr($0, 4); sub("^" root, "", f) }
+    /^LF:/ { lf = substr($0, 4) + 0 }
+    /^LH:/ { lh = substr($0, 4) + 0 }
+    /^end_of_record/ {
+        if (f !~ ignore && f !~ test_re && lf > 0 && lf - lh >= min \
+            && lh * 100 / lf < floor)
+            printf "  %s  %.1f%%  %d of %d lines unreached\n", \
+                f, lh * 100 / lf, lf - lh, lf
+        f = ""; lf = 0; lh = 0
+    }
+' target/coverage/lcov.info | sort)"
+if [ -n "$below" ]; then
+    echo "cover: $(printf '%s\n' "$below" | wc -l | tr -d ' ') file(s) below the per-file floor of ${floor}% (${min_uncovered}+ uncovered lines):"
+    printf '%s\n' "$below"
+    echo "fix: add a test, or add the file to \`ignore\` in .just/scripts/cover.sh with the reason beside it"
+    exit 1
+fi

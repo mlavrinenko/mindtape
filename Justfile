@@ -786,11 +786,10 @@ eject PCT='90':
 # reason each arm carries its own threshold is in
 # docs/contributing/signal-sweep.md.
 #
-# It is not a passthrough recipe: its seven parameters are pattern-checked
+# It is not a passthrough recipe: its six parameters are pattern-checked
 # scalars, so `just arg-pattern-check` names it and `just positional-args-check`
 # does not. .just/scripts/positional-args-check.sh argues why.
 
-[arg('COVERAGE_FLOOR', long='coverage-floor', pattern='(100|[1-9]?[0-9])', help='coverage arm: report files below PCT% line coverage')]
 [arg('DRY_GAIN', long='dry-gain', pattern='\d+', help='dry arm: report baselined clones whose extraction saves N tokens or more')]
 [arg('WRITE', long='write', pattern='[01]', value='1', help='file the tasks instead of printing what would be filed')]
 [arg('REPEAT_GAIN', long='repeat-gain', pattern='\d+', help='repeats arm: report snippets whose extraction saves N tokens or more')]
@@ -799,11 +798,10 @@ eject PCT='90':
 [arg('FN_COVERAGE_FLOOR', long='fn-coverage-floor', pattern='(100|[1-9]?[0-9])', help='undertested arm: report functions below PCT% line coverage')]
 [doc("File backlog tasks from advisory quality signals")]
 [group("advisory")]
-ask-refactoring $WRITE='0' $BASELINE='90' $COVERAGE_FLOOR='88' $CC_FLOOR='5' $FN_COVERAGE_FLOOR='80' $REPEAT_GAIN='300' $DRY_GAIN='300':
+ask-refactoring $WRITE='0' $BASELINE='90' $CC_FLOOR='5' $FN_COVERAGE_FLOOR='80' $REPEAT_GAIN='300' $DRY_GAIN='300':
     bash contrib/ask-refactoring.sh --write "$WRITE" --baseline "$BASELINE" \
-        --coverage-floor "$COVERAGE_FLOOR" --cc-floor "$CC_FLOOR" \
-        --fn-coverage-floor "$FN_COVERAGE_FLOOR" --repeat-gain "$REPEAT_GAIN" \
-        --dry-gain "$DRY_GAIN"
+        --cc-floor "$CC_FLOOR" --fn-coverage-floor "$FN_COVERAGE_FLOOR" \
+        --repeat-gain "$REPEAT_GAIN" --dry-gain "$DRY_GAIN"
 
 # The doc sources the audit scans: site prose, the hand-written notes behind
 # its generated refs, and the Markdown sources. Never the renders — README.md,

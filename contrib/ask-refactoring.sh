@@ -18,8 +18,8 @@
 #   Idempotency comes from the signal, not a ledger. A closed task whose
 #   condition still holds is noticed again, because the work did not happen.
 #   The one suppression is an override with a written reason in the signal's
-#   own config: .linecop.yaml for sizes, an `--exclude` in the `just cover` or
-#   `just crap` recipe for coverage.
+#   own config: .linecop.yaml for sizes, an `--exclude` in the `just crap`
+#   recipe for coverage.
 #
 # The re-run guard is [views.ask-refactoring] in .mindtape/config.toml: while a
 # task the sweep filed is open, the sweep refuses.
@@ -30,8 +30,8 @@
 # (see `ensure_lcov_fresh`). The tags and the guard need no change for a new arm.
 #
 # Not memoized with mmz: the point is to re-observe the tree every run. Only
-# `just mmz cover` inside the coverage arm is cached, and the lcov it reads is
-# still checked for freshness every sweep.
+# `just mmz cover` inside the undertested arm is cached, and the lcov it reads
+# is still checked for freshness every sweep.
 set -eo pipefail
 
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -39,7 +39,7 @@ cd "$repo"
 
 # ── the thresholds ──────────────────────────────────────────────────────────
 #
-# All seven are required and none is defaulted here. The defaults live only in
+# All six are required and none is defaulted here. The defaults live only in
 # the recipe's `[arg(...)]` attributes, which `just --usage`, the generated
 # sweep-flags.json and docs/contributing/signal-sweep.md all read. A fallback
 # here would be a second copy that fails silently at a threshold nobody chose.
@@ -47,22 +47,19 @@ cd "$repo"
 # Initialised empty because the recipe exports the same names, so an inherited
 # value would otherwise pass the required-check without the flag.
 BASELINE=""
-COVERAGE_FLOOR=""
 CC_FLOOR=""
-FN_COVERAGE_FLOOR=""
-REPEAT_GAIN=""
+FN_REPEAT_GAIN=""
 DRY_GAIN=""
 WRITE=""
 
 usage() {
     cat <<'EOF'
 usage: bash contrib/ask-refactoring.sh --write 0|1 --baseline PCT
-           --coverage-floor PCT --cc-floor N --fn-coverage-floor PCT
-           --repeat-gain N --dry-gain N
+           --cc-floor N --fn-coverage-floor PCT --repeat-gain N --dry-gain N
 
 Run it as `just ask-refactoring` — the recipe owns every default and forwards
-all seven flags; `just --usage ask-refactoring` prints them with their values.
-All seven are required here; there are no defaults at this layer.
+all six flags; `just --usage ask-refactoring` prints them with their values.
+All six are required here; there are no defaults at this layer.
 
 env:
   MT   path to the `mt` binary (default: build and use ./target/debug/mt)
@@ -75,8 +72,6 @@ while [ $# -gt 0 ]; do
         --write=*) WRITE="${1#*=}"; shift ;;
         --baseline) BASELINE="$2"; shift 2 ;;
         --baseline=*) BASELINE="${1#*=}"; shift ;;
-        --coverage-floor) COVERAGE_FLOOR="$2"; shift 2 ;;
-        --coverage-floor=*) COVERAGE_FLOOR="${1#*=}"; shift ;;
         --cc-floor) CC_FLOOR="$2"; shift 2 ;;
         --cc-floor=*) CC_FLOOR="${1#*=}"; shift ;;
         --fn-coverage-floor) FN_COVERAGE_FLOOR="$2"; shift 2 ;;
@@ -92,7 +87,7 @@ done
 
 # Refuse a missing or non-numeric flag. The recipe's patterns catch these at
 # dispatch, so this guards a direct `bash contrib/ask-refactoring.sh` call.
-for var in WRITE BASELINE COVERAGE_FLOOR CC_FLOOR FN_COVERAGE_FLOOR REPEAT_GAIN DRY_GAIN; do
+for var in WRITE BASELINE CC_FLOOR FN_COVERAGE_FLOOR REPEAT_GAIN DRY_GAIN; do
     flag="--$(printf '%s' "$var" | tr 'A-Z_' 'a-z-')"
     value="${!var}"
     if [ -z "$value" ]; then
@@ -215,10 +210,8 @@ skip_arm() {
 #
 # Each file defines `score_<arm>`, `signal_<arm>` and `emit_<arm>`, with the
 # reasoning behind its numbers. To add an arm, add a file, its name in `ARMS`
-# and a template. `undertested` follows `coverage` because it defers to it and
-# borrows its freshness check, so the output reads in the order the deferral
-# runs.
-ARMS=(size coverage undertested mutants repeats dry)
+# and a template.
+ARMS=(size undertested mutants repeats dry)
 
 for arm in "${ARMS[@]}"; do
     # shellcheck source=/dev/null
@@ -253,7 +246,7 @@ for arm in "${ARMS[@]}"; do
 done
 
 if [ "$findings" -eq 0 ]; then
-    echo "ask-refactoring: no findings at --baseline $BASELINE / --coverage-floor $COVERAGE_FLOOR" \
+    echo "ask-refactoring: no findings at --baseline $BASELINE" \
         "/ --cc-floor $CC_FLOOR --fn-coverage-floor $FN_COVERAGE_FLOOR / --repeat-gain $REPEAT_GAIN / --dry-gain $DRY_GAIN"
 elif [ "$WRITE" -eq 0 ]; then
     echo "ask-refactoring: $findings finding(s); the bodies shown are in ${preview#"$repo"/}/;" \

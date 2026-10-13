@@ -23,7 +23,7 @@ that fail nothing yet, such as a file at 90% of its size cap.
 By default it prints each arm's finding count and its three findings with the
 highest ICE score, and writes those tasks' bodies to `target/ask-refactoring/`,
 so you can read them before you file. Add `--write` to file every finding. A
-threshold flag, such as `--coverage-floor 92`, changes that arm for one run.
+threshold flag, such as `--cc-floor 12`, changes that arm for one run.
 
 #let sweep-flags = fact("sweep-flags").at("flags")
 #table(
@@ -99,10 +99,8 @@ file to a path outside the tasks root.
   A missing measurement never reads as a clean one.
 - One task per finding. Each task goes to its own agent and carries its own
   scope and remedy.
-- No two arms file the same finding. When two arms read the same data, the
-  finer arm calls the coarser arm's own predicate (`coverage_arm_files`, kept
-  in step by the `sweep-dedup` outdatty group). A duplicate pair would block
-  the next sweep until both close.
+- No two arms file the same finding, because a duplicate pair would block the
+  next sweep until both close.
 - The signal decides what gets filed again, and no ledger records past
   findings. To silence a finding for good, write an override with its reason
   in the signal's own config.

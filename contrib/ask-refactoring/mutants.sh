@@ -18,10 +18,10 @@
 # arm.
 #
 # `just cover` re-runs in minutes and `just mmz cover` makes an unchanged tree
-# free, so the coverage arm refreshes its own input and refuses a stale one. A
+# free, so the undertested arm refreshes its own input and refuses a stale one. A
 # full `cargo mutants` sweep is hours — it rebuilds and re-runs the suite once
 # per mutant — so refreshing here is not an option and refusing would be worse:
-# it would block the size and coverage arms behind an hours-long prerequisite
+# it would block the size arm behind an hours-long prerequisite
 # for a signal that is deliberately not a gate. So this arm skips instead, and
 # says on stderr that it skipped and which recipe produces the data. What it
 # must never do is stay quiet, because "no surviving mutants" and "nobody has
@@ -38,7 +38,7 @@
 # because a finding must never read as covering more than it does, and it means
 # the honest answer needs no recorded last-sweep marker: a ledger would go
 # stale, conflict between contributors, and be absent on a fresh clone, which is
-# exactly the reasoning that kept the coverage arm off a stored baseline.
+# exactly the reasoning that kept the undertested arm off a stored baseline.
 #
 # Where to read it: `just mutants` (full) writes `mutants.out`, while a scoped
 # run (`-f`, `--in-diff`) writes `target/mutants-scoped` so it cannot clobber
@@ -107,7 +107,7 @@ non-verdict, not a pass" else "" end)
 #
 #   confidence = 0.8, constant
 #     cargo-mutants ran the suite, so survival is measured, not forecast. Lower
-#     than the 0.9 the size and coverage arms carry because a survivor can be
+#     than the 0.9 the size arm carries because a survivor can be
 #     provably unkillable — `.cargo/mutants.toml` documents two such equivalent
 #     mutants today — so unlike a line count, the finding itself can turn out to
 #     be a non-problem. That is a different uncertainty from "the remedy is a

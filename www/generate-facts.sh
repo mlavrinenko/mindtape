@@ -241,7 +241,7 @@ jq -r --arg header "$JUST_TYP_HEADER" '
 ' <<<"$JUST_DUMP" | emit_raw just.typ
 
 # --- sweep-flags.json ---------------------------------------------------------
-# `ask-refactoring`'s seven `[arg(...)]` parameters, off the same $JUST_DUMP —
+# `ask-refactoring`'s six `[arg(...)]` parameters, off the same $JUST_DUMP —
 # the signal sweep's thresholds and their defaults, in one place, rendered by
 # docs/contributing/signal-sweep.md. Argued in www/sweep-flags.jq.
 jq -f "$SCRIPT_DIR/sweep-flags.jq" <<<"$JUST_DUMP" | emit sweep-flags.json

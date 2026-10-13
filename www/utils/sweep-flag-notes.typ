@@ -46,13 +46,6 @@
     linecop's own `--baseline 85` reporting band, so the sweep files a task
     strictly later than the number a contributor is told to watch.
   ],
-  "coverage-floor": [
-    Per-file line coverage, and the only arm measuring something no gate
-    measures: #just.cover() fails on the workspace total alone, so a file can
-    sink without any gate noticing. Its own band, and deliberately not the
-    workspace gate's number — reusing that would imply the two mean the same
-    thing.
-  ],
   "cc-floor": [
     Half of a conjunction with `--fn-coverage-floor`, and the half that is not
     a complexity judgement — #just.crap() gates complexity, at its own
@@ -62,12 +55,10 @@
   ],
   "fn-coverage-floor": [
     The other half, per function rather than per file, and stricter than
-    `--coverage-floor` on purpose: a function is small enough that one unreached
-    line moves its percentage by tens of points, so the tail starts further out.
-    Two edges rather than one shared number is the point of the pair — a
-    function has to be both complex enough and undertested enough — and the
-    undertested arm defers to the coverage arm on any file that one already
-    reports, so the overlap files nothing twice.
+    #just.cover()'s 88% per-file floor on purpose: a function is small enough
+    that one unreached line moves its percentage by tens of points, so the tail
+    starts further out. Two edges rather than one shared number is the point of
+    the pair — a function has to be both complex enough and undertested enough.
   ],
   "repeat-gain": [
     Tokens an extraction removes, net of the helper and its calls, so one bar

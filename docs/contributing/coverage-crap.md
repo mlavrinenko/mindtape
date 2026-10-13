@@ -8,13 +8,17 @@ Why `just cover` and `just crap` work the way they do. Read this before you chan
 
 `just cover` runs the suite under `cargo-llvm-cov` in the last stage of `just check`, after every other gate passed. llvm-cov merges the profile of every process, so the end-to-end tests that spawn `mt` count toward the command code they run. The recipe writes `target/coverage/lcov.info` for `just crap` and fails below 90% of lines. `main.rs` is excluded, so keep it thin.
 
+The workspace total can stay green while one file sinks, so the recipe also gates each production file. It fails a file below 88% line coverage that has 5 or more uncovered lines, and names it with its percentage and its unreached line count. Test files don’t count as production. The recipe reads each record’s `LF` and `LH` from the lcov, not `cargo llvm-cov report --json`, whose summary counts a line once per compiled copy of the `mt` crate and shows a fully covered file at 75%.
+
+88% sits about 1.5 standard deviations under the per-file mean (95.97%, sd 5.32 over 125 files when measured). That flags a real tail, not the scatter of files a point or two under the average. The 5-line minimum keeps a small file out of the gate when 3 lines of tty or stdio wiring sink its percentage. The fix is a test. If the lines can’t be tested, add the file to `ignore` in `.just/scripts/cover.sh` with the reason beside it.
+
 The output level lives in `.config/nextest.toml`, because `cargo llvm-cov nextest` accepts `--status-level fail` and ignores it. With the flag alone, a green run prints one `PASS` line per test, over 2000 lines. `just test` and `just cover` both read the profile, so they print the same way.
 
 ## Why cover starts clean
 
 `just cover` starts with `cargo llvm-cov clean --workspace`, so every run pays for a full instrumented rebuild of about a minute. Without the clean, `report` merges every profile left since the last `cargo clean`, from other feature sets and other commits. It then reports coverage the current source can’t produce. cargo-llvm-cov documents the clean as the precondition for merging runs.
 
-Inflated coverage hides exactly what `just crap` and the sweep’s coverage arms exist to find. Measured here, a session’s leftover profiles put a function that no test can call at 84% covered. A baseline minted from such an lcov fails dozens of functions on the next clean run. Don’t remove the clean to save time.
+Inflated coverage hides exactly what `just crap` and the sweep’s undertested arm exist to find. Measured here, a session’s leftover profiles put a function that no test can call at 84% covered. A baseline minted from such an lcov fails dozens of functions on the next clean run. Don’t remove the clean to save time.
 
 ## The CRAP threshold
 
