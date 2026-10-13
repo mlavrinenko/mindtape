@@ -129,6 +129,10 @@ task in one of three states:
 
   [`worktree(<expr>)`], [The task as the file on disk holds it.],
   [`named`], [Whether the trailer names the task.],
+  [`retires_other`],
+  [Whether the commit retires a task other than this one: `HEAD` holds it and
+    the index doesn't, as after `mt rm`. Edits to other tasks' files don't
+    count.],
 )
 
 A wrapper takes any #link(u("/filters/"))[filter expression] and evaluates it
@@ -142,6 +146,10 @@ nobody reading the rule could tell which state it means.
 
 `into("s")` means `staged(status == "s") && !head(status == "s")`: the commit
 moves the task into status `s`.
+
+The `mindtape-tasks` pack's `flip-with-work` uses `retires_other` so that a
+cleanup task closes in the commit that runs `mt rm` on other tasks, though
+that commit stages nothing but task files.
 
 A breach names the task after the rule. Here `mt done` changed the task
 file, but only the code is staged:

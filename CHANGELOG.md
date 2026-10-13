@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A close that retires other tasks counts as work.** The `mindtape-tasks`
+  pack's `flip-with-work` accepts a commit that flips a task to `wip` or `done`
+  beside an `mt rm` of other tasks, though it stages only task files. A new
+  commit predicate, `retires_other`, is true for a task rule when the commit
+  deletes a task other than the one checked. A bare flip, or a flip beside
+  edits to other tasks, is still refused.
+
 - **`mt rm` takes a folder.** `mt rm tasks/sw1` deletes every task under that
   folder, however deep, as naming each file would, and `--dry-run` lists them.
   A folder outside every task root is refused.

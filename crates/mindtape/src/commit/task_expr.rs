@@ -11,6 +11,8 @@
 //!   a comparison side, `staged(status)` is the field's value in that state.
 //! - `exists`, inside a wrapper — whether the state holds the task's file.
 //! - `named` — the commit's trailer names the task.
+//! - `retires_other` — the staged state lacks a task other than this one that
+//!   `HEAD` holds: the commit deletes (or moves away) another task's file.
 //! - `into("s")` — `staged(status == "s") && !head(status == "s")`, rewritten
 //!   before the parse by the scanner `[[on.flip]]` shares
 //!   ([`crate::config::hooks::rewrite_into`]).
@@ -20,9 +22,9 @@
 
 use evalexpr::{DefaultNumericTypes, Node};
 
-use crate::commit::CommitRecord;
 use crate::commit::expr::CommitExpr;
 use crate::commit::tasks::{CommitStates, ProjectState};
+use crate::commit::{CommitRecord, task_stem};
 use crate::config::Config;
 use crate::filter::expr::call_args;
 use crate::filter::{Ctx, FilterError, eval_bool};
@@ -61,6 +63,15 @@ impl<'a> TaskScope<'a> {
     /// `named`: the trailer names this task.
     pub(crate) fn named(&self, commit: &CommitRecord) -> bool {
         commit.refs.iter().any(|stem| stem == self.stem)
+    }
+
+    /// `retires_other`: `HEAD` holds a task, not this one, that the staged
+    /// state does not.
+    pub(crate) fn retires_other(&self) -> bool {
+        self.states.head.tasks.iter().any(|task| {
+            let stem = task_stem(task);
+            stem != self.stem && self.states.staged.task(&stem).is_none()
+        })
     }
 
     fn state(&self, name: &str) -> Result<&'a ProjectState, FilterError> {

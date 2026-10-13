@@ -99,6 +99,70 @@ fn named_reads_the_trailer() {
     assert!(!holds("named()", &commit(&["lexer"])));
 }
 
+fn named_task(stem: &str) -> Task {
+    bare_task(stem)
+}
+
+/// `parser` closed in the index, while `HEAD` also held `lexer`, which the
+/// index keeps or drops.
+fn with_lexer(config: &Config, keep: bool) -> CommitStates {
+    let at_root = std::path::Path::new("");
+    let mut staged = vec![at("done")];
+    if keep {
+        staged.push(named_task("lexer"));
+    }
+    CommitStates {
+        head: ProjectState::new(
+            vec![at("wip"), named_task("lexer")],
+            config,
+            at_root,
+            Vec::new(),
+        ),
+        staged: ProjectState::new(staged, config, at_root, Vec::new()),
+        worktree: None,
+    }
+}
+
+fn retires_other(states: &CommitStates, stem: &str) -> bool {
+    let config = config();
+    let scope = TaskScope::new(stem, states, &config);
+    CommitExpr::parse("retires_other")
+        .unwrap()
+        .matches_task(&commit(&[]), &scope)
+        .unwrap()
+}
+
+#[test]
+fn retires_other_sees_a_task_the_index_drops() {
+    let config = config();
+    assert!(retires_other(&with_lexer(&config, false), "parser"));
+    assert!(!retires_other(&with_lexer(&config, true), "parser"));
+}
+
+#[test]
+fn retires_other_ignores_the_task_itself() {
+    let config = config();
+    // `lexer` is the one the index drops, so for `lexer` there is no other.
+    assert!(!retires_other(&with_lexer(&config, false), "lexer"));
+    // Nothing leaves: the one-task fixture retires nothing.
+    assert!(!retires_other(&states(&config), "parser"));
+}
+
+#[test]
+fn retires_other_reads_as_a_call_too_and_needs_a_task_rule() {
+    let config = config();
+    let states = with_lexer(&config, false);
+    let scope = TaskScope::new("parser", &states, &config);
+    assert!(
+        CommitExpr::parse("retires_other()")
+            .unwrap()
+            .matches_task(&commit(&[]), &scope)
+            .unwrap()
+    );
+    let problem = crate::commit::expr::commit_expr_problem("retires_other", &config).unwrap();
+    assert!(problem.contains("scope = \"task\""), "{problem}");
+}
+
 #[test]
 fn a_missing_working_tree_is_an_error_not_a_guess() {
     let config = config();
@@ -128,7 +192,7 @@ fn a_well_formed_task_expression_passes_the_dry_run() {
     let config = config();
     for good in [
         "into(\"done\") || into(\"wip\")",
-        "named && (!tasks_only || staged(has_tag(\"decision\")))",
+        "named && (!tasks_only || staged(has_tag(\"decision\")) || retires_other)",
         "worktree(status) != staged(status)",
         "staged(changed(\"staged\", \"src/**\") <= 3)",
         "head(ready) || head(blocked)",

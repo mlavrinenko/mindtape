@@ -4651,8 +4651,8 @@
       "function": "run",
       "line": 138,
       "cyclomatic": 19.0,
-      "coverage": 91.17647058823529,
-      "crap": 19.24799002646041,
+      "coverage": 97.05882352941177,
+      "crap": 19.00918481579483,
       "crate": "mindtape-cli"
     },
     {
@@ -8087,7 +8087,7 @@
     {
       "file": "crates/mindtape/src/commit/expr.rs",
       "function": "comparison",
-      "line": 187,
+      "line": 188,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -8096,7 +8096,7 @@
     {
       "file": "crates/mindtape/src/commit/expr.rs",
       "function": "count_files",
-      "line": 227,
+      "line": 228,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -8106,24 +8106,24 @@
       "file": "crates/mindtape/src/commit/expr.rs",
       "function": "eval_bool",
       "line": 157,
-      "cyclomatic": 10.0,
+      "cyclomatic": 12.0,
       "coverage": 100.0,
-      "crap": 10.0,
+      "crap": 12.0,
       "crate": "mindtape"
     },
     {
       "file": "crates/mindtape/src/commit/expr.rs",
       "function": "function",
-      "line": 255,
-      "cyclomatic": 13.0,
+      "line": 256,
+      "cyclomatic": 15.0,
       "coverage": 100.0,
-      "crap": 13.0,
+      "crap": 15.0,
       "crate": "mindtape"
     },
     {
       "file": "crates/mindtape/src/commit/expr.rs",
       "function": "matches_call",
-      "line": 304,
+      "line": 307,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -8132,7 +8132,7 @@
     {
       "file": "crates/mindtape/src/commit/expr.rs",
       "function": "not_boolean",
-      "line": 347,
+      "line": 350,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -8141,7 +8141,7 @@
     {
       "file": "crates/mindtape/src/commit/expr.rs",
       "function": "present",
-      "line": 299,
+      "line": 302,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -8150,7 +8150,7 @@
     {
       "file": "crates/mindtape/src/commit/expr.rs",
       "function": "side",
-      "line": 203,
+      "line": 204,
       "cyclomatic": 9.0,
       "coverage": 100.0,
       "crap": 9.0,
@@ -8159,7 +8159,7 @@
     {
       "file": "crates/mindtape/src/commit/expr.rs",
       "function": "single_field",
-      "line": 324,
+      "line": 327,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -8168,7 +8168,7 @@
     {
       "file": "crates/mindtape/src/commit/expr.rs",
       "function": "unknown_field",
-      "line": 333,
+      "line": 336,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -8177,7 +8177,7 @@
     {
       "file": "crates/mindtape/src/commit/expr.rs",
       "function": "values",
-      "line": 288,
+      "line": 291,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -8447,7 +8447,7 @@
     {
       "file": "crates/mindtape/src/commit/task_expr.rs",
       "function": "TaskScope::holds",
-      "line": 107,
+      "line": 118,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -8456,7 +8456,7 @@
     {
       "file": "crates/mindtape/src/commit/task_expr.rs",
       "function": "TaskScope::named",
-      "line": 62,
+      "line": 64,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -8465,7 +8465,7 @@
     {
       "file": "crates/mindtape/src/commit/task_expr.rs",
       "function": "TaskScope::new",
-      "line": 52,
+      "line": 54,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -8474,7 +8474,7 @@
     {
       "file": "crates/mindtape/src/commit/task_expr.rs",
       "function": "TaskScope::read",
-      "line": 78,
+      "line": 89,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -8482,8 +8482,17 @@
     },
     {
       "file": "crates/mindtape/src/commit/task_expr.rs",
+      "function": "TaskScope::retires_other",
+      "line": 70,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/commit/task_expr.rs",
       "function": "TaskScope::state",
-      "line": 66,
+      "line": 77,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -8492,7 +8501,7 @@
     {
       "file": "crates/mindtape/src/commit/task_expr.rs",
       "function": "TaskScope::value",
-      "line": 116,
+      "line": 127,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -8501,7 +8510,7 @@
     {
       "file": "crates/mindtape/src/commit/task_expr.rs",
       "function": "desugar_commit_into",
-      "line": 128,
+      "line": 139,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -8510,7 +8519,7 @@
     {
       "file": "crates/mindtape/src/commit/task_expr.rs",
       "function": "task_expr_problem",
-      "line": 138,
+      "line": 149,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,

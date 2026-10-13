@@ -3,7 +3,7 @@ algorithm: blake3
 groups:
   api-service-recipes:
     source:
-      crates/mindtape/src/packs/mindtape-tasks.toml: 4385734b69ba4054cde906f29c0277b4508f2294abe91a2e7bc1e8fb720059d2
+      crates/mindtape/src/packs/mindtape-tasks.toml: aa00c5a2f7bb0fbee5846a3fe169849b6d7b1d06bcaff7448969e74a32fc606a
       examples/api-service/.mindtape/config.toml: 40f7c43899a88b914db417ff351788748d74ce08491cdb7e24a11de04dfe1339
       examples/api-service/.mindtape/templates/milestone.typ: 737fc2788932ee1d2863e4041849ed4e6fe6d191952d432369d36a5343446afc
       examples/api-service/.mindtape/templates/task.typ: c139fe1c0f9cbda3786811d6abcd0a832a0ea527227008ff636b4a7b03cec03a
@@ -30,12 +30,12 @@ groups:
     dependents:
       skills/mindtape/evals/README.md: 998e2cfcf60142db3101c1ddd849ef3a244acd18eb7ca3568a3195d12eb2bf6b
       skills/mindtape/evals/evals.json: 08d2bcbac3b37823d5f274379147384f10f5afa13e04b59f990a188373920474
-      www/content/limit-work-in-progress.typ: 8a49a2a71122935c85223539f454d1301377464fa7cef61eea80ea275b855879
-      www/content/require-a-task-shape.typ: 6c968672b533cd340b665c946f84fb5003fee320b539e9bdd4ef16b65f11f85c
+      www/content/limit-work-in-progress.typ: 236b1f413488fd258f039d314e2f8492665c166834eb41575cf71de58d4d8ce9
+      www/content/require-a-task-shape.typ: f0f4c7377899abf7731d0c05f19afdbab222b9787009af10d9108638638bc48c
       www/content/split-oversized-tasks.typ: 948770c3383fd13e9cc7814fe33a638947796ee22b539c4c765fe85f4fa58f7f
       www/content/tie-work-to-goals.typ: 0f996a8509b04b420a7adefd045997582b512d5a4cab3d089f105588e2a5b5aa
       www/content/trace-commits-to-tasks.typ: 389d0c471b1408a64721763a83ece2aa61294a4630a2aa2d03418ebde750b51e
-      www/content/wait-on-upstream.typ: 50bcc3ffe1c81b4429bd4567b1a237e61bb0f4ef47d3194f0d07ea15e4dfd946
+      www/content/wait-on-upstream.typ: 5369f0ef4f512b1803e64631c497a87713c39c76b37f340bf119272ecdc121db
   cli-docs:
     source:
       crates/mindtape-cli/src/cli/completion/mod.rs: 2287be9f6a9a2fb501803a49f9f40aa4c29a5025448033a380daaf6780dd3187

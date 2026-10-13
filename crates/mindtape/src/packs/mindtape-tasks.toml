@@ -353,11 +353,14 @@ severity = "error"
 # decides whether `"decision"` is ever a legal tag at all; where it is not, no
 # task-only close can ever satisfy this half, which is a stricter policy, not
 # a broken one — see `.mindtape/config.toml` for this repo's own call.
+# `retires_other` is the second escape hatch: a close whose work is retiring
+# other tasks (`mt rm`) touches nothing but task files, yet it is work. A
+# flip beside mere edits to other tasks' files still counts as none.
 [[commits.rules]]
 name = "flip-with-work"
 scope = "task"
 when = 'into("wip") || into("done")'
-assert = 'named && (!tasks_only || staged(has_tag("decision")))'
+assert = 'named && (!tasks_only || retires_other || staged(has_tag("decision")))'
 message = "start or close a task in a commit that carries its work"
 severity = "error"
 

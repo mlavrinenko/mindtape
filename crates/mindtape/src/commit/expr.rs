@@ -27,7 +27,7 @@
 //! also works under `mt check --commits`, where `changed()` is skipped.
 //!
 //! A `scope = "task"` rule reads the same fields, plus the task's states:
-//! `head(...)`, `staged(...)`, `worktree(...)` and `named`, evaluated by
+//! `head(...)`, `staged(...)`, `worktree(...)`, `named` and `retires_other`, evaluated by
 //! [`crate::commit::task_expr`] against the [`TaskScope`] it runs under.
 //!
 //! A task field is refused by name: a commit rule sees the commit, not a
@@ -172,6 +172,7 @@ fn eval_bool(node: &Node<DefaultNumericTypes>, env: Env<'_>) -> Result<bool, Fil
             match restore_name(identifier).as_str() {
                 "tasks_only" => Ok(env.commit.tasks_only),
                 "named" => Ok(env.task("`named`")?.named(env.commit)),
+                "retires_other" => Ok(env.task("`retires_other`")?.retires_other()),
                 other => Err(not_boolean(other, env)),
             }
         }
@@ -260,6 +261,7 @@ fn function(
     match name {
         "tasks_only" => Ok(env.commit.tasks_only),
         "named" => Ok(env.task("named()")?.named(env.commit)),
+        "retires_other" => Ok(env.task("retires_other()")?.retires_other()),
         "head" | "staged" | "worktree" => env.task(&format!("{name}()"))?.holds(name, children),
         "has" => present(&single_field(children, "has")?, env),
         "miss" => Ok(!present(&single_field(children, "miss")?, env)?),
@@ -271,6 +273,7 @@ fn function(
                 &[
                     "tasks_only",
                     "named",
+                    "retires_other",
                     "head",
                     "staged",
                     "worktree",
