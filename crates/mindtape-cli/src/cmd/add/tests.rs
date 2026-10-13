@@ -315,6 +315,36 @@ fn dest_to_rejects_absolute_subfolder() {
     assert!(dest_dir(".", Some("/etc"), &project).is_err());
 }
 
+#[test]
+fn dest_into_an_absolute_path_is_taken_as_is() {
+    let dir = tempdir();
+    let project = project_with_root(dir.path(), "tasks");
+    let elsewhere = dir.path().join("elsewhere");
+    let into = elsewhere.to_str().unwrap();
+    assert_eq!(dest_dir(into, None, &project).unwrap(), elsewhere);
+}
+
+#[test]
+fn dest_into_a_relative_path_resolves_against_the_working_directory() {
+    let dir = tempdir();
+    let project = project_with_root(dir.path(), "tasks");
+    let expected = std::env::current_dir().unwrap().join("sub/dir");
+    assert_eq!(dest_dir("sub/dir", None, &project).unwrap(), expected);
+}
+
+#[test]
+fn a_bad_stem_template_is_a_failure_that_points_at_the_config() {
+    let config = mindtape::parse_config("[tasks.naming]\nstem = \"{nope}-{slug}\"\n").unwrap();
+    let mut values = BTreeMap::new();
+    values.insert("title".to_owned(), RawValue::Str("A task".to_owned()));
+    let err = output_stem(&bare_args(), &values, &config).unwrap_err();
+    assert_eq!(
+        crate::diag::plain(&err),
+        "error: can't mint the file stem: unknown stem template macro {nope}\n\
+         hint: check stem under [tasks.naming]\n"
+    );
+}
+
 /// A project rooted at `dir` with its `tasks` root created on disk — the
 /// One slot per kind that can carry caller text, discovered the way a real
 /// template's would be.
