@@ -132,6 +132,11 @@ groups:
       www/content/cli.typ: 231bb7f932d58336241d134cf32ef3201b2abe3cde0c989d5f2967a134a27ccf
       www/content/index.typ: 33ee423dc6d613edfaea770cfc3ab11eb29a3614f57b2ec1ba5af0d999b27211
       www/content/quickstart.typ: c1b55d2fdb7988796a2a488827448e3c4bd459bdff82d1695d31190fe28ebf18
+  coverage-test-re:
+    source:
+      .just/scripts/cover.sh: 05fc0a034ad4e695e577a11b765d0c1958c24fea51ed03509121f7211707622e
+    dependents:
+      contrib/ask-refactoring/undertested.sh: 47722cc9c646a7957d455077bec31dda71c69d46d2521d33e77d47fe39ca4af0
   crap-scripts-docs:
     source:
       .just/scripts/_crap-ratchet-control.sh: 4475050ae573823bc2aeb493ee9bd8385004920ad618cfcd2d2e1767a0dcd801

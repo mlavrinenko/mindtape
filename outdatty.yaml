@@ -569,6 +569,15 @@ groups:
       - contrib/ask-refactoring/repeats.sh
       - contrib/ask-refactoring/dry.sh
 
+  # The per-file coverage gate and the undertested arm each carry the regex
+  # that tells a test file from production code. They must agree: a file the
+  # gate exempts as a test is one the arm must skip too.
+  - name: coverage-test-re
+    source:
+      - .just/scripts/cover.sh
+    dependents:
+      - contrib/ask-refactoring/undertested.sh
+
   # The per-kind task templates copy task.typ and add one section each (fix,
   # feat, docs, dev), so a change to the common sections lands in all five.
   - name: task-templates
