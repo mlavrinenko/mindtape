@@ -3,7 +3,7 @@
 
 #![allow(clippy::unwrap_used)]
 
-use super::tests::{check, config_with_custom_kind, edge, noted};
+use super::tests::{check, config_with_custom_kind, edge, flags, noted};
 use crate::config::Config;
 use crate::link::{LinkKind, NoteRule, TargetValidator};
 use crate::test_support::{bare_task, linked_task};
@@ -79,9 +79,7 @@ fn external_target_spelling_a_stem_is_still_shape_checked() {
     let b = bare_task("b");
     let violations = check(&[a, b], &config);
     assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "discharged-by" && v.message.contains("url")),
+        flags(&violations, "discharged-by", "url"),
         "got {violations:?}"
     );
 }
@@ -98,9 +96,7 @@ fn note_rule_still_applies_to_an_external_kind() {
     let a = linked_task("a", vec![edge("https://example.com/pr/7", "discharged-by")]);
     let violations = check(&[a], &config);
     assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "discharged-by" && v.message.contains("requires a note")),
+        flags(&violations, "discharged-by", "requires a note"),
         "got {violations:?}"
     );
 

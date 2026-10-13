@@ -23,6 +23,13 @@ pub(super) fn noted(target: &str, kind: &str, note: &str) -> Link {
     }
 }
 
+/// Whether some violation is on `field` and its message holds `needle`.
+pub(super) fn flags(violations: &[Violation], field: &str, needle: &str) -> bool {
+    violations
+        .iter()
+        .any(|v| v.field == field && v.message.contains(needle))
+}
+
 pub(super) fn check(tasks: &[Task], config: &Config) -> Vec<Violation> {
     let mut out = Vec::new();
     check_all(tasks, config, &mut out);
@@ -42,9 +49,8 @@ fn flags_unresolved_edge_target() {
     let a = linked_task("a", vec![edge("missing.typ", "depends-on")]);
     let violations = check(&[a], &Config::default());
     assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "depends-on" && v.message.contains("not found"))
+        flags(&violations, "depends-on", "not found"),
+        "got {violations:?}"
     );
 }
 
@@ -92,9 +98,8 @@ fn flags_bare_string_edge_as_unknown_kind() {
     let b = bare_task("b");
     let violations = check(&[a, b], &Config::default());
     assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "links" && v.message.contains("has no kind"))
+        flags(&violations, "links", "has no kind"),
+        "got {violations:?}"
     );
 }
 
@@ -104,9 +109,8 @@ fn flags_unknown_kind_name() {
     let b = bare_task("b");
     let violations = check(&[a, b], &Config::default());
     assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "blocks" && v.message.contains("not a configured link kind"))
+        flags(&violations, "blocks", "not a configured link kind"),
+        "got {violations:?}"
     );
 }
 
@@ -120,9 +124,7 @@ fn parent_cardinality_one_rejects_two_parents() {
     let extra = bare_task("extra");
     let violations = check(&[a, b, extra], &Config::default());
     assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "parent" && v.message.contains("at most 1")),
+        flags(&violations, "parent", "at most 1"),
         "got {violations:?}"
     );
 }
@@ -153,9 +155,8 @@ fn related_requires_a_note() {
     let b = bare_task("b");
     let violations = check(&[a, b], &Config::default());
     assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "related" && v.message.contains("requires a note"))
+        flags(&violations, "related", "requires a note"),
+        "got {violations:?}"
     );
 }
 
@@ -173,9 +174,8 @@ fn related_with_blank_note_still_fails() {
     let b = bare_task("b");
     let violations = check(&[a, b], &Config::default());
     assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "related" && v.message.contains("requires a note"))
+        flags(&violations, "related", "requires a note"),
+        "got {violations:?}"
     );
 }
 
@@ -222,9 +222,8 @@ fn flags_depends_on_cycle() {
     let b = linked_task("b", vec![edge("a.typ", "depends-on")]);
     let violations = check(&[a, b], &Config::default());
     assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "depends-on" && v.message.contains("cycle"))
+        flags(&violations, "depends-on", "cycle"),
+        "got {violations:?}"
     );
 }
 
@@ -233,12 +232,7 @@ fn flags_parent_cycle_separately_from_depends_on() {
     let a = linked_task("a", vec![edge("b.typ", "parent")]);
     let b = linked_task("b", vec![edge("a.typ", "parent")]);
     let violations = check(&[a, b], &Config::default());
-    assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "parent" && v.message.contains("cycle")),
-        "got {violations:?}"
-    );
+    assert!(flags(&violations, "parent", "cycle"), "got {violations:?}");
 }
 
 #[test]
@@ -268,9 +262,8 @@ fn recurred_from_cardinality_one_rejects_two() {
     let extra = bare_task("extra");
     let violations = check(&[a, b, extra], &Config::default());
     assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "recurred-from" && v.message.contains("at most 1"))
+        flags(&violations, "recurred-from", "at most 1"),
+        "got {violations:?}"
     );
 }
 
@@ -309,9 +302,8 @@ fn forbidden_kind_with_note_is_flagged() {
     let b = bare_task("b");
     let violations = check(&[a, b], &config);
     assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "no-notes-allowed" && v.message.contains("must not carry a note"))
+        flags(&violations, "no-notes-allowed", "must not carry a note"),
+        "got {violations:?}"
     );
 }
 
