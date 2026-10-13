@@ -5,7 +5,7 @@
 
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use super::tests::{canonical, config};
+use super::tests::{assert_violated, canonical, config};
 use super::{EntryKind, MapOptions, map_canonical};
 use crate::model::canonical::CanonicalStatus;
 
@@ -61,13 +61,7 @@ fn out_of_legend_status_is_reported_not_silently_accepted() {
         mapped.task.status.as_ref().map(|s| s.name.as_str()),
         Some("bogus")
     );
-    assert!(
-        mapped
-            .report
-            .entries
-            .iter()
-            .any(|e| e.field == "status" && e.kind == EntryKind::Violated)
-    );
+    assert_violated(&mapped, "status");
 }
 
 #[test]

@@ -45,6 +45,23 @@ action = "unique"
     .unwrap()
 }
 
+/// Asserts the report carries a `Violated` entry for `field`.
+pub(super) fn assert_violated(mapped: &Mapped, field: &str) {
+    assert_violated_with(mapped, field, "");
+}
+
+/// Asserts the report carries a `Violated` entry for `field` whose message
+/// contains `needle`.
+pub(super) fn assert_violated_with(mapped: &Mapped, field: &str, needle: &str) {
+    assert!(
+        mapped.report.entries.iter().any(|e| e.field == field
+            && e.kind == EntryKind::Violated
+            && e.message.contains(needle)),
+        "no violated `{field}` entry containing {needle:?}: {:?}",
+        mapped.report.entries
+    );
+}
+
 fn strict_ice_config() -> Config {
     parse_config("[tasks.priority]\nmin = 0\nmax = 9\nframework = \"ice\"\nallow-manual = false\n")
         .unwrap()
@@ -94,9 +111,7 @@ fn unknown_priority_framework_is_reported() {
         score: None,
     });
     let mapped = map_canonical(&c, &config(), &MapOptions::default());
-    assert!(mapped.report.entries.iter().any(|e| e.field == "priority"
-        && e.kind == EntryKind::Violated
-        && e.message.contains("unknown")));
+    assert_violated_with(&mapped, "priority", "unknown");
 }
 
 #[test]
@@ -108,13 +123,7 @@ fn priority_input_out_of_bounds_is_reported() {
         score: None,
     });
     let mapped = map_canonical(&c, &config(), &MapOptions::default());
-    assert!(
-        mapped
-            .report
-            .entries
-            .iter()
-            .any(|e| e.field == "priority" && e.kind == EntryKind::Violated)
-    );
+    assert_violated(&mapped, "priority");
 }
 
 #[test]
@@ -123,9 +132,7 @@ fn strict_framework_project_rejects_scalar_priority() {
     c.priority = Some(CanonicalPriority::Num(5.0));
     let mapped = map_canonical(&c, &strict_ice_config(), &MapOptions::default());
     assert_eq!(mapped.task.priority, Some(NumValue::Num(5.0)));
-    assert!(mapped.report.entries.iter().any(|e| e.field == "priority"
-        && e.kind == EntryKind::Violated
-        && e.message.contains("manual")));
+    assert_violated_with(&mapped, "priority", "manual");
 }
 
 // --- difficulty ----------------------------------------------------------
@@ -136,13 +143,7 @@ fn difficulty_out_of_scale_is_reported_but_kept() {
     c.difficulty = Some(CanonicalNum::Num(999.0));
     let mapped = map_canonical(&c, &config(), &MapOptions::default());
     assert_eq!(mapped.task.difficulty, Some(NumValue::Num(999.0)));
-    assert!(
-        mapped
-            .report
-            .entries
-            .iter()
-            .any(|e| e.field == "difficulty" && e.kind == EntryKind::Violated)
-    );
+    assert_violated(&mapped, "difficulty");
 }
 
 #[test]
@@ -164,9 +165,7 @@ fn out_of_allowlist_tag_is_reported_and_kept_by_default() {
         mapped.task.tags,
         vec!["backend".to_owned(), "frontend".to_owned()]
     );
-    assert!(mapped.report.entries.iter().any(|e| e.field == "tags"
-        && e.kind == EntryKind::Violated
-        && e.message.contains("frontend")));
+    assert_violated_with(&mapped, "tags", "frontend");
 }
 
 #[test]
@@ -196,13 +195,7 @@ fn kind_out_of_enum_is_reported_but_kept() {
     c.kind = Some("chore".to_owned());
     let mapped = map_canonical(&c, &config(), &MapOptions::default());
     assert_eq!(mapped.task.kind.as_deref(), Some("chore"));
-    assert!(
-        mapped
-            .report
-            .entries
-            .iter()
-            .any(|e| e.field == "kind" && e.kind == EntryKind::Violated)
-    );
+    assert_violated(&mapped, "kind");
 }
 
 #[test]
@@ -272,13 +265,7 @@ fn extras_reject_keys_missing_the_x_prefix() {
     c.extras.insert("foo".to_owned(), json!(1));
     let mapped = map_canonical(&c, &config(), &MapOptions::default());
     assert!(!mapped.task.extras.contains_key("foo"));
-    assert!(
-        mapped
-            .report
-            .entries
-            .iter()
-            .any(|e| e.field == "extras" && e.kind == EntryKind::Violated)
-    );
+    assert_violated(&mapped, "extras");
 }
 
 #[test]
