@@ -10,7 +10,7 @@ use std::path::Path;
 
 use crate::support;
 
-use support::{commit_repo, git, mt};
+use support::{commit_repo, git};
 
 /// The flip-with-work rule `commit_msg_task_e2e.rs` pins for the hook.
 const FLIP_WITH_WORK: &str = "[[commits.rules]]\n\
@@ -62,16 +62,7 @@ fn short(dir: &Path, rev: &str) -> String {
 
 /// `mt check --commits <range>`: whether it exited zero, and its output.
 fn check_range(dir: &Path, range: &str) -> (bool, String) {
-    let out = mt(dir)
-        .args(["check", "--commits", range])
-        .output()
-        .unwrap();
-    let text = format!(
-        "{}{}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr)
-    );
-    (out.status.success(), text)
+    support::run_text(dir, &["check", "--commits", range])
 }
 
 #[test]
