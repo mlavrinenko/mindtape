@@ -94,6 +94,10 @@ overrides:
   - pattern: "./docs/contributing/*.md"
     exclude: true
 
+  # Sourced by five doc gates, so a split would add a third file every one of them must load. The scanner and the extractor already read as two sections of one parse of the Typst tree.
+  - pattern: "**/.just/scripts/_doc-blocks-lib.sh"
+    limit: 360
+
 count_mode: total
 
 exclude_dirs:
