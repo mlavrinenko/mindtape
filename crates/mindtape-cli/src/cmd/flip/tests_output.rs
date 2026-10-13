@@ -190,7 +190,7 @@ fn refuses_a_rewrite_that_would_not_load() {
     if let Some(o) = mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV) {
         let err = String::from_utf8_lossy(&o.stderr);
         assert!(
-            err.contains("error: tasks/alpha.typ:2: did not load:"),
+            err.contains("error: tasks/alpha.typ:3: did not load:"),
             "expected the pre-write refusal prefixed as an error: {err}"
         );
         assert!(

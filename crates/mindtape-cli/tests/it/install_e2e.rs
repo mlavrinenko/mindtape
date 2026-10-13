@@ -204,7 +204,7 @@ fn project_without_a_lib() -> tempfile::TempDir {
     write_file(
         dir.path(),
         "tasks/only.typ",
-        mindtape::typst_task!("#show: task.with(title: \"Only task\")\n"),
+        mindtape::typst_task!("(title: \"Only task\")\n"),
     );
     dir
 }
@@ -287,7 +287,7 @@ fn a_missing_prelude_is_one_error_however_many_tasks_fail() {
     write_file(
         project.path(),
         "tasks/second.typ",
-        mindtape::typst_task!("#show: task.with(title: \"Second task\")\n"),
+        mindtape::typst_task!("(title: \"Second task\")\n"),
     );
 
     let assert = ls_with_data_home(project.path(), std::ffi::OsStr::new(""));

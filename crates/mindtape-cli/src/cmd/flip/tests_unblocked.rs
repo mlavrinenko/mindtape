@@ -12,14 +12,11 @@ const CONFIG: &str = "[[tasks.status]]\nvalue = \"proposed\"\n\
      [[tasks.status]]\nvalue = \"done\"\nterminal = true\nunblocked = true\n\
      [[tasks.status]]\nvalue = \"cancelled\"\nterminal = true\n";
 
-const DEP: &str = mindtape::typst_task!(
-    "\
-#show: task.with(\n  title: \"Dep\",\n  status: proposed(2026, 6, 1),\n)\n"
-);
+const DEP: &str =
+    mindtape::typst_task!("(\n  title: \"Dep\",\n  status: proposed(2026, 6, 1),\n)\n");
 
 const WAITER: &str = mindtape::typst_task!(
-    "\
-#show: task.with(\n  title: \"Waiter\",\n  status: proposed(2026, 6, 1),\n  \
+    "(\n  title: \"Waiter\",\n  status: proposed(2026, 6, 1),\n  \
 links: depends-on(\"dep.typ\"),\n)\n"
 );
 

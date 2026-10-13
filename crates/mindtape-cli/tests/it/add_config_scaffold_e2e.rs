@@ -159,10 +159,7 @@ fn files_at_the_status_the_template_names() {
     write_file(
         &templates,
         "task.typ",
-        mindtape::typst_task!(
-            "\
-         #show: task.with(title: slot(\"title\"), status: done(2020, 1, 1))\n"
-        ),
+        mindtape::typst_task!("(title: slot(\"title\"), status: done(2020, 1, 1))\n"),
     );
 
     let add = |name: &str, extra: &[&str]| {
@@ -256,8 +253,7 @@ severity = "error"
 /// A template filling an estimate of two source files — one over
 /// [`ESTIMATE_UNIT_CONFIG`]'s cap.
 const TWO_SOURCE_FILES_TEMPLATE: &str = mindtape::typst_task!(
-    r#"
-#show: task.with(
+    r#"(
   title: slot("title"),
   estimate: slot("estimate", kind: "text", default: "(src-files: 2)"),
 )

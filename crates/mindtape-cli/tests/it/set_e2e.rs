@@ -22,8 +22,7 @@ const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n\
 /// The subject every arm writes to: a title, a status, and one tag already in
 /// place, so both the insert and the replace path have something to act on.
 const SUBJECT: &str = mindtape::typst_task!(
-    "\n\
-#show: task.with(\n  \
+    "(\n  \
 title: \"Wire OAuth\",\n  \
 status: wip(2026, 6, 1),\n  \
 tags: (\"backend\",),\n\

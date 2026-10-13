@@ -14,16 +14,24 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
-/// A task file's source: the `@local/mindtape` import line, then `$body`, a
-/// string literal. It expands to one literal, so a `const` can hold it, and
-/// a test names the package version only here.
+/// Typst source opening with the `@local/mindtape` import line, then
+/// `$part`s, string literals. It expands to one literal, so a `const` can hold
+/// it, and a test names the package version only here.
 #[macro_export]
-macro_rules! typst_task {
-    ($body:literal) => {
-        concat!("#import \"@local/mindtape:0.2.0\": *\n", $body)
+macro_rules! typst_import {
+    ($($part:literal),+) => {
+        concat!("#import \"@local/mindtape:0.2.0\": *\n", $($part),+)
     };
 }
 
+/// A task file's source: [`typst_import!`], a blank line, then
+/// `#show: task.with` applied to `$args`, the literal that opens with `(`.
+#[macro_export]
+macro_rules! typst_task {
+    ($args:literal) => {
+        $crate::typst_import!("\n#show: task.with", $args)
+    };
+}
 use crate::config::Config;
 use crate::link::Link;
 use crate::model::numeric::{InputValue, NumValue};

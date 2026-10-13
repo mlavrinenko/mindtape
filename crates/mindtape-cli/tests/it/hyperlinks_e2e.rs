@@ -25,10 +25,7 @@ fn project_with_config(config: &str) -> tempfile::TempDir {
     write_file(
         dir.path(),
         "tasks/test.typ",
-        mindtape::typst_task!(
-            "\
-         #show: task.with(title: \"Rewrite auth\", status: wip(2026, 6, 1))\n"
-        ),
+        mindtape::typst_task!("(title: \"Rewrite auth\", status: wip(2026, 6, 1))\n"),
     );
     dir
 }

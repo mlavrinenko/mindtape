@@ -25,8 +25,7 @@ use crate::util::Project;
 use mindtape::test_support::PRELUDE;
 
 const RECUR_TASK_SRC: &str = mindtape::typst_task!(
-    "\
-     #show: task.with(\n  title: \"Chore\",\n  status: wip(2026, 6, 1),\n  \
+    "(\n  title: \"Chore\",\n  status: wip(2026, 6, 1),\n  \
      due: on(2026, 6, 15),\n  start: on(2026, 6, 10),\n  \
      recur: every(weeks: 1, anchor: \"due\", count: 3),\n)\n\n== Summary\n\nBody.\n"
 );

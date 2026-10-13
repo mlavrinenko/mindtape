@@ -98,8 +98,7 @@ mod tests {
     use typst_edit::apply;
 
     const TASK_SOURCE: &str = mindtape::typst_task!(
-        r#"
-#show: task.with(
+        r#"(
   title: "Do thing",
   status: proposed(2026, 6, 1),
   priority: "low",
@@ -110,8 +109,7 @@ mod tests {
     );
 
     const TASK_WITH_REVIEWED: &str = mindtape::typst_task!(
-        r#"
-#show: task.with(
+        r#"(
   title: "Do thing",
   status: proposed(2026, 6, 1),
   priority: "low",

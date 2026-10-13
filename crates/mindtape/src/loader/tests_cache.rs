@@ -94,7 +94,7 @@ fn prelude_change_busts_the_cache() {
     write_file(
         dir.path(),
         "tasks/t.typ",
-        crate::typst_task!("#show: task.with(title: \"Hi\")\n"),
+        crate::typst_task!("(title: \"Hi\")\n"),
     );
     let _ = load_project(dir.path(), &Config::default());
     doctor_cache_title(&sole_cache_entry(dir.path()), "STALE");

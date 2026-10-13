@@ -64,6 +64,6 @@ fn span_covers_the_quoted_literal() {
 
 #[test]
 fn no_links_yields_no_spans() {
-    let source = crate::typst_task!("#show: task.with(title: \"x\")\n");
+    let source = crate::typst_task!("(title: \"x\")\n");
     assert!(link_target_spans(source).is_empty());
 }

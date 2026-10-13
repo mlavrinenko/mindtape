@@ -23,8 +23,7 @@ use crate::cmd::add::output::Format;
 use crate::util::Project;
 
 const HEADER: &str = mindtape::typst_task!(
-    r#"
-#show: task.with(
+    r#"(
   title: "Do thing",
 )
 
@@ -70,10 +69,7 @@ fn injects_default_status_proposed() {
 /// the template's shape is the header's business and not the injection's.
 #[test]
 fn injects_status_into_a_single_line_header() {
-    const ONE_LINE: &str = mindtape::typst_task!(
-        "\
-                            #show: task.with(title: \"Do thing\")\n"
-    );
+    const ONE_LINE: &str = mindtape::typst_task!("(title: \"Do thing\")\n");
     let out = inject_header(ONE_LINE, &Config::default(), Some("wip")).unwrap();
     assert!(
         out.contains("title: \"Do thing\", status: wip("),

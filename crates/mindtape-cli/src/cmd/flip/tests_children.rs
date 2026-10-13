@@ -11,14 +11,11 @@ const CONFIG: &str = "[[tasks.status]]\nvalue = \"proposed\"\n\
      [[tasks.status]]\nvalue = \"done\"\nterminal = true\nunblocked = true\n\
      [[tasks.status]]\nvalue = \"cancelled\"\nterminal = true\n";
 
-const EPIC: &str = mindtape::typst_task!(
-    "\
-#show: task.with(\n  title: \"Epic\",\n  status: proposed(2026, 6, 1),\n)\n"
-);
+const EPIC: &str =
+    mindtape::typst_task!("(\n  title: \"Epic\",\n  status: proposed(2026, 6, 1),\n)\n");
 
 const CHILD: &str = mindtape::typst_task!(
-    "\
-#show: task.with(\n  title: \"Child\",\n  status: proposed(2026, 6, 1),\n  \
+    "(\n  title: \"Child\",\n  status: proposed(2026, 6, 1),\n  \
 links: parent(\"epic.typ\"),\n)\n"
 );
 

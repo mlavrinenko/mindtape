@@ -18,24 +18,19 @@ use crate::util::Project;
 use mindtape::test_support::PRELUDE;
 
 pub(super) const ALPHA: &str = mindtape::typst_task!(
-    "\
-#show: task.with(\n  title: \"Alpha\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n"
+    "(\n  title: \"Alpha\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n"
 );
 
 pub(super) const BETA: &str = mindtape::typst_task!(
-    "\
-#show: task.with(\n  title: \"Beta\",\n  status: blocked(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n"
+    "(\n  title: \"Beta\",\n  status: blocked(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n"
 );
 
 pub(super) const GAMMA: &str = mindtape::typst_task!(
-    "\
-#show: task.with(\n  title: \"Water plants\",\n  status: wip(2026, 6, 1),\n  recur: every(weeks: 1),\n)\n\n== Summary\n\nBody.\n"
+    "(\n  title: \"Water plants\",\n  status: wip(2026, 6, 1),\n  recur: every(weeks: 1),\n)\n\n== Summary\n\nBody.\n"
 );
 
-pub(super) const STATELESS: &str = mindtape::typst_task!(
-    "\
-#show: task.with(\n  title: \"Stateless\",\n)\n\n== Summary\n\nBody.\n"
-);
+pub(super) const STATELESS: &str =
+    mindtape::typst_task!("(\n  title: \"Stateless\",\n)\n\n== Summary\n\nBody.\n");
 
 /// A legend declaring `blocked` (not part of the embedded floor's status
 /// legend), so it must be written to disk, not just held in memory: `run_with`

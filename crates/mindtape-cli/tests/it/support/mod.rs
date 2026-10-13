@@ -129,8 +129,7 @@ pub const MARKUP_HAZARDS: &str = "create-*star* _u_ $x$ #h [b] <a> >g @at";
 /// note, the one markup position the harvest reads back as a value, so a test can
 /// assert what a filled `text` slot actually means rather than only how it looks.
 const SLOT_TEMPLATE: &str = mindtape::typst_task!(
-    r#"
-#show: task.with(
+    r#"(
   title: slot("title", prompt: "Task title", example: "Fix the login redirect"),
   priority: slot("weight", kind: "int", default: 5),
   links: related("anchor.typ")[#slot("why", kind: "text", example: "same session store")],
@@ -173,10 +172,7 @@ pub fn project_with_slot_template() -> tempfile::TempDir {
     write_file(
         dir.path(),
         "tasks/anchor.typ",
-        mindtape::typst_task!(
-            "\
-         #show: task.with(title: \"anchor\", status: proposed(2026, 7, 22))\n"
-        ),
+        mindtape::typst_task!("(title: \"anchor\", status: proposed(2026, 7, 22))\n"),
     );
     dir
 }
@@ -185,8 +181,7 @@ pub fn project_with_slot_template() -> tempfile::TempDir {
 /// [`SLOT_TEMPLATE`]'s `text` slots — proves the escaping decision is a
 /// per-slot choice the template author makes, not a per-command one.
 const TYPST_SLOT_TEMPLATE: &str = mindtape::typst_task!(
-    r#"
-#show: task.with(
+    r#"(
   title: slot("title", prompt: "Task title", example: "Fix the login redirect"),
 )
 

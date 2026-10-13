@@ -19,8 +19,7 @@ const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n[[tasks.links.kinds]]\nnam
 
 /// The task being renamed.
 const SUBJECT: &str = mindtape::typst_task!(
-    "\n\
-#show: task.with(\n  \
+    "(\n  \
 title: \"Subject\",\n  \
 status: wip(2026, 6, 1),\n\
 )\n\n== Summary\n\nBody.\n"
@@ -28,8 +27,7 @@ status: wip(2026, 6, 1),\n\
 
 /// The stem `mv` must refuse to land on.
 const TAKEN: &str = mindtape::typst_task!(
-    "\n\
-#show: task.with(\n  \
+    "(\n  \
 title: \"Taken\",\n  \
 status: wip(2026, 6, 1),\n\
 )\n\n== Summary\n\nBody.\n"
@@ -38,8 +36,7 @@ status: wip(2026, 6, 1),\n\
 /// Three inbound edges to `old`, one per shape the retarget must reach: a plain
 /// `depends-on`, the note-bearing `related`, and a custom kind through `edge`.
 const REFERRER: &str = mindtape::typst_task!(
-    "\n\
-#show: task.with(\n  \
+    "(\n  \
 title: \"Referrer\",\n  \
 status: wip(2026, 6, 1),\n  \
 links: depends-on(\"old.typ\") + related(\"old.typ\")[why] + edge(\"blocks\", \"old.typ\"),\n\
@@ -49,8 +46,7 @@ links: depends-on(\"old.typ\") + related(\"old.typ\")[why] + edge(\"blocks\", \"
 /// An inbound edge from a sub-folder, authored as a relative path. Only the
 /// last component names the task, so the `../` prefix must survive the rewrite.
 const NESTED: &str = mindtape::typst_task!(
-    "\n\
-#show: task.with(\n  \
+    "(\n  \
 title: \"Nested\",\n  \
 status: wip(2026, 6, 1),\n  \
 links: depends-on(\"../old.typ\"),\n\

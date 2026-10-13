@@ -23,7 +23,7 @@ fn a_template_name_beside_describe_suggests_dash_t() {
     write_file(
         dir.path(),
         ".mindtape/templates/finding.typ",
-        mindtape::typst_task!("#show: task.with(title: slot(\"title\"))\n"),
+        mindtape::typst_task!("(title: slot(\"title\"))\n"),
     );
     let stderr = refusal(dir.path(), &["--describe", "finding"]);
     assert_eq!(

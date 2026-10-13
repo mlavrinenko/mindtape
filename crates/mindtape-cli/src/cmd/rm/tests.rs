@@ -43,7 +43,7 @@ fn gone_and_live(gone_status: &str) -> Vec<Task> {
 /// expression), wrapped in the task marker shape `mt rm` scans.
 fn survivor(edges: &str) -> String {
     format!(
-        "#import \"@local/mindtape:0.2.0\": *\n\
+        "#import \"@local/mindtape:0.2.0\": *\n\n\
 #show: task.with(\n  title: \"Live\",\n  links: {edges},\n)\n\n== Summary\n\nBody.\n"
     )
 }

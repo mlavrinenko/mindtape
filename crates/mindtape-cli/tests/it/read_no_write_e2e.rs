@@ -60,8 +60,7 @@ fn build_recurring_fixture() -> tempfile::TempDir {
         dir.path(),
         "tasks/water-plants.typ",
         mindtape::typst_task!(
-            "\n\
-         #show: task.with(\n  \
+            "(\n  \
          title: \"Water plants\",\n  \
          status: wip(2026, 6, 1),\n  \
          recur: every(weeks: 1),\n\

@@ -10,8 +10,7 @@ use mindtape::link::Link;
 use super::{EdgeSpec, Mode, links_edit, quote, render_edges};
 
 const NO_LINKS: &str = mindtape::typst_task!(
-    r#"
-#show: task.with(
+    r#"(
   title: "Do thing",
   status: proposed(2026, 6, 1),
 )
@@ -21,8 +20,7 @@ const NO_LINKS: &str = mindtape::typst_task!(
 );
 
 const WITH_LINKS: &str = mindtape::typst_task!(
-    r#"
-#show: task.with(
+    r#"(
   title: "Do thing",
   status: proposed(2026, 6, 1),
   links: depends-on("alpha.typ"),
@@ -35,8 +33,7 @@ const WITH_LINKS: &str = mindtape::typst_task!(
 /// A file whose only edge is a SWHID tombstone — what `mt rm` leaves behind
 /// when the task it pointed at was retired.
 const WITH_TOMBSTONE: &str = mindtape::typst_task!(
-    r#"
-#show: task.with(
+    r#"(
   title: "Do thing",
   links: supersedes("swh:1:cnt:0000000000000000000000000000000000000000"),
 )

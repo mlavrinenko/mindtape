@@ -24,9 +24,7 @@ fn load_error(source: &str) -> LoadError {
 #[test]
 fn a_syntax_error_names_its_line() {
     let error = load_error(crate::typst_task!(
-        "\
-         \n\
-         #show: task.with(\n  \
+        "(\n  \
            // a comment\n  \
            title: \"Fix the login redirect\"\n  \
            assignee: \"ada\",\n\
@@ -41,19 +39,17 @@ fn a_syntax_error_names_its_line() {
 #[test]
 fn an_unexpected_argument_names_the_argument_line() {
     let error = load_error(crate::typst_task!(
-        "\
-         #show: task.with(\n  title: \"T\",\n  titel: \"typo\",\n)\n"
+        "(\n  title: \"T\",\n  titel: \"typo\",\n)\n"
     ));
     assert_eq!(error.message, "unexpected argument: titel");
-    assert_eq!(error.line, Some(4));
+    assert_eq!(error.line, Some(5));
     assert_eq!(error.column, Some(3));
 }
 
 #[test]
 fn an_assert_inside_the_prelude_names_the_task_files_call() {
     let error = load_error(crate::typst_task!(
-        "\
-         #show: task.with(\n  title: \"T\",\n  \
+        "(\n  title: \"T\",\n  \
            links: depends-on(link(\"a.typ\")),\n)\n"
     ));
     assert!(
@@ -61,7 +57,7 @@ fn an_assert_inside_the_prelude_names_the_task_files_call() {
         "{}",
         error.message
     );
-    assert_eq!(error.line, Some(4));
+    assert_eq!(error.line, Some(5));
 }
 
 #[test]
@@ -80,9 +76,7 @@ fn an_error_with_no_line_names_the_file_alone() {
 #[test]
 fn an_assert_inside_the_show_rule_names_the_task_call() {
     let error = load_error(crate::typst_task!(
-        "\
-         \n\
-         #show: task.with(\n  \
+        "(\n  \
            title: \"T\",\n  \
            links: depends-on(\"a.typ\"),\n    \
            related(\"b.typ\")[why],\n\
@@ -151,13 +145,12 @@ fn an_error_raised_elsewhere_in_a_file_with_no_task_call_names_no_line() {
 #[test]
 fn an_error_keeps_typsts_hints() {
     let error = load_error(crate::typst_task!(
-        "\
-         #show: task.with(title: \"T\")\n\
+        "(title: \"T\")\n\
          #let a = 1\n\
          #a-b\n"
     ));
     assert_eq!(error.message, "unknown variable: a-b");
-    assert_eq!((error.line, error.column), (Some(4), Some(2)));
+    assert_eq!((error.line, error.column), (Some(5), Some(2)));
     assert_eq!(error.hints.len(), 1, "{:?}", error.hints);
     assert!(error.hints[0].contains("subtraction"), "{:?}", error.hints);
 }

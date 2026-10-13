@@ -18,8 +18,7 @@ const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n";
 /// callers overwrite `due:`/`recur:` inline when a test needs a specific
 /// stop-condition shape.
 const WEEKLY_SPAWN: &str = mindtape::typst_task!(
-    "\n\
-#show: task.with(\n  \
+    "(\n  \
 title: \"Water plants\",\n  \
 status: wip(2026, 6, 1),\n  \
 priority: 3,\n  \
@@ -28,8 +27,7 @@ recur: every(weeks: 1),\n\
 );
 
 const WEEKLY_MUTATE: &str = mindtape::typst_task!(
-    "\n\
-#show: task.with(\n  \
+    "(\n  \
 title: \"Standup\",\n  \
 status: wip(2026, 6, 1),\n  \
 priority: 3,\n  \
@@ -252,8 +250,7 @@ fn a_rejected_spawn_creates_no_file() {
     let dir = tempdir();
     let config = "[tasks]\nroots = [\"tasks\"]\n\n[tasks.tags]\nallowed = [\"ok\"]\n";
     let body = mindtape::typst_task!(
-        "\n\
-#show: task.with(\n  \
+        "(\n  \
 title: \"Water plants\",\n  \
 status: wip(2026, 6, 1),\n  \
 tags: (\"nope\",),\n  \
@@ -317,9 +314,7 @@ fn advance_lays_out_a_chain_of_distinct_occurrences() {
 
 #[test]
 fn no_recur_field_is_a_hard_error() {
-    let plain = mindtape::typst_task!(
-        "\n#show: task.with(\n  title: \"Plain\",\n  status: wip(2026, 6, 1),\n)\n"
-    );
+    let plain = mindtape::typst_task!("(\n  title: \"Plain\",\n  status: wip(2026, 6, 1),\n)\n");
     let dir = scaffold(&[("plain.typ", plain)]);
 
     mt(dir.path()).args(["recur", "plain"]).assert().failure();

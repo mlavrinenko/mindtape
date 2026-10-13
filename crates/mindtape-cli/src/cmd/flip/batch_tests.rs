@@ -29,12 +29,11 @@ const UNREACHABLE_LEGEND: &str = "[[tasks.status]]\nvalue = \"wip\"\nto = [\"don
      [[tasks.status]]\nvalue = \"blocked\"\n";
 
 const BLOCKED: &str = mindtape::typst_task!(
-    "\
-#show: task.with(\n  title: \"Blocked\",\n  status: blocked(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n"
+    "(\n  title: \"Blocked\",\n  status: blocked(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n"
 );
 
 /// A file that fails to evaluate, so the reload reports it as a load error.
-const BROKEN: &str = mindtape::typst_task!("#panic(\"broken\")\n");
+const BROKEN: &str = mindtape::typst_import!("#panic(\"broken\")\n");
 
 fn project(files: &[(&str, &str)], config: &str) -> (tempfile::TempDir, Project) {
     make_project_with_lib(PRELUDE, files, config)

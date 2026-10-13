@@ -173,7 +173,7 @@ fn run_scenario_project(dir: &Path, template: &str) {
 /// the original `run()` skips validation, but the `delete !` mutant would run
 /// it and error.
 const BAD_TEMPLATE: &str = mindtape::typst_task!(
-    r#"#show: task.with(
+    r#"(
   title: slot("title"),
   links: depends-on("nonexistent.typ"),
 )
@@ -243,7 +243,7 @@ const ENV_FILL_INNER: &str = "_MT_ADD_ENV_FILL";
 /// A template whose `title` slot declares `env:` — deliberately NOT the
 /// implicit `MINDTAPE_ADD_TITLE` name, so only the declared lookup can fill it.
 const ENV_TEMPLATE: &str = mindtape::typst_task!(
-    r#"#show: task.with(
+    r#"(
   title: slot("title", env: "MT_ADD_E2E_TITLE", default: "untitled"),
 )
 "#

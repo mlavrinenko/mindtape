@@ -13,10 +13,8 @@ const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
      when = 'kind == \"dev\"'\nassert = 'kind != \"dev\" || difficulty == 3'\n\
      message = \"a dev chore carries difficulty 3\"\nseverity = \"error\"\n";
 
-const PINNED: &str = mindtape::typst_task!(
-    "\
-     #show: task.with(\n  title: slot(\"title\"),\n  kind: \"dev\",\n  difficulty: 3,\n)\n"
-);
+const PINNED: &str =
+    mindtape::typst_task!("(\n  title: slot(\"title\"),\n  kind: \"dev\",\n  difficulty: 3,\n)\n");
 
 fn scaffold() -> tempfile::TempDir {
     let dir = support::scaffold_project(CONFIG);
@@ -111,10 +109,7 @@ fn a_field_filled_by_a_differently_named_slot_still_hints() {
     write_file(
         dir.path(),
         ".mindtape/templates/typed.typ",
-        mindtape::typst_task!(
-            "\
-         #show: task.with(\n  title: slot(\"title\"),\n  kind: slot(\"type\"),\n)\n"
-        ),
+        mindtape::typst_task!("(\n  title: slot(\"title\"),\n  kind: slot(\"type\"),\n)\n"),
     );
     let out = support::mt(dir.path())
         .args(["add", "-t", "typed", "--name", "t", "--set", "title=T"])

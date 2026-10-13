@@ -25,8 +25,7 @@ const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n";
 /// for `now()`/`due`/`stale()` filters and the today-stamping commands to bite
 /// on once "today" is pinned around those dates.
 const WIRE_OAUTH: &str = mindtape::typst_task!(
-    "\n\
-#show: task.with(\n  \
+    "(\n  \
 title: \"Wire OAuth\",\n  \
 status: wip(2026, 6, 1),\n  \
 priority: 5,\n  \
@@ -245,8 +244,7 @@ fn mindtape_now_stamps_the_pinned_date_on_recur_spawn() {
         dir.path(),
         "tasks/water-plants.typ",
         mindtape::typst_task!(
-            "\n\
-         #show: task.with(\n  \
+            "(\n  \
          title: \"Water plants\",\n  \
          status: wip(2026, 6, 1),\n  \
          priority: 3,\n  \

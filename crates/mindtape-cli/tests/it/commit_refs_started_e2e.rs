@@ -61,8 +61,7 @@ fn work_naming_a_task_whose_flip_stayed_unstaged_is_refused() {
         dir.path(),
         "tasks/parser.typ",
         mindtape::typst_task!(
-            "\n\
-         #show: task.with(\n  title: \"Write the parser\",\n  status: wip(2026, 6, 2),\n  \
+            "(\n  title: \"Write the parser\",\n  status: wip(2026, 6, 2),\n  \
          priority: 3,\n)\n"
         ),
     );

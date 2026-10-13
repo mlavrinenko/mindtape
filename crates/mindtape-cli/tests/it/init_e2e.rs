@@ -164,8 +164,7 @@ fn init_accepts_the_rrule_answer_and_checks_an_rrule_task() {
         dir.path(),
         "tasks/cost-report.typ",
         mindtape::typst_task!(
-            "\n\
-         #show: task.with(\n  title: \"Send the cost report\",\n  \
+            "(\n  title: \"Send the cost report\",\n  \
          status: proposed(2026, 9, 14),\n  due: on(2026, 10, 5),\n  \
          recur: rrule(\"FREQ=MONTHLY;BYDAY=1MO\"),\n)\n"
         ),

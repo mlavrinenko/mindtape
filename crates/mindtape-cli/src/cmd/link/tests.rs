@@ -16,18 +16,15 @@ use mindtape::test_support::bare_task;
 use mindtape::test_support::PRELUDE;
 
 const ALPHA: &str = mindtape::typst_task!(
-    "\
-#show: task.with(\n  title: \"Alpha\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n"
+    "(\n  title: \"Alpha\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n"
 );
 
 const BETA: &str = mindtape::typst_task!(
-    "\
-#show: task.with(\n  title: \"Beta\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n"
+    "(\n  title: \"Beta\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n"
 );
 
 const GAMMA: &str = mindtape::typst_task!(
-    "\
-#show: task.with(\n  title: \"Gamma\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n"
+    "(\n  title: \"Gamma\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n"
 );
 
 const CONFIG: &str = "[[tasks.status]]\nvalue = \"wip\"\n\

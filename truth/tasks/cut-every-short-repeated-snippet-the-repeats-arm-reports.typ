@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 13),
+  status: done(2026, 10, 13),
 )
 
 == Problem
@@ -38,17 +38,19 @@
 == TO-BE
 
 - 🟢 The repeats arm reports no group at its default `--repeat-gain 300`.
-- 🟢 Each extracted snippet is one test helper, and where a raw call has a single sanctioned door, `clippy.toml` bans it outside the helper.
+- 🟢 Each extracted snippet is one test helper. No clippy lock: both crate roots exempt test code from `disallowed-methods`, so the repeats arm is what catches a new copy.
 
 == Changes
 
-- `crates/mindtape/src/test_util.rs`, `crates/mindtape-cli/src/test_util.rs`, `crates/mindtape-cli/tests/it/support/mod.rs`: the shared helpers.
+- `crates/mindtape/src/test_support.rs`: `tempdir` and its `_with_dirs`, `_with_files` and `_with_config` forms, `write_file`, `linked_task`, the `typst_import!` and `typst_task!` macros, and `rerun_isolated`, which re-runs a test in a child by its thread's name.
+- `crates/mindtape/Cargo.toml`: `test-support` pulls `tempfile` as an optional dependency.
+- `crates/mindtape-cli/src/test_util.rs`, `crates/mindtape-cli/tests/it/support/mod.rs`: project fixtures own their tempdir; `add_and_read`.
 - `crates/**/*_tests.rs`, `crates/**/tests.rs`, `crates/mindtape-cli/tests/it/*.rs`: the copies call the helpers.
-- `clippy.toml`: a `disallowed-methods` entry per locked helper.
+- `outdatty.yaml`: `test_support.rs` joins `typst-pkg-version`.
 
 == Rollback
 
-- Revert the commits. Only test code and lint config change.
+- Revert the commits. Only test code and the `test-support` feature change.
 
 == Out of scope
 

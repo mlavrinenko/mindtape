@@ -31,8 +31,7 @@ fn project(run: &str) -> tempfile::TempDir {
         dir.path(),
         "tasks/drop-the-patch.typ",
         mindtape::typst_task!(
-            "\n\
-         #show: task.with(\n  title: \"Drop the patch\",\n  status: proposed(2026, 6, 1),\n  \
+            "(\n  title: \"Drop the patch\",\n  status: proposed(2026, 6, 1),\n  \
          waits-on: (\"up:pr-7\",),\n)\n"
         ),
     );

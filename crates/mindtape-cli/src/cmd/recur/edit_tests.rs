@@ -9,8 +9,7 @@ use super::{
 use crate::task_edit::task_with;
 
 const SOURCE: &str = mindtape::typst_task!(
-    r#"
-#show: task.with(
+    r#"(
   title: "Water plants",
   status: done(2026, 6, 1),
   priority: 3,
@@ -24,8 +23,7 @@ const SOURCE: &str = mindtape::typst_task!(
 );
 
 const SOURCE_NO_RECUR_LINKS: &str = mindtape::typst_task!(
-    r#"
-#show: task.with(
+    r#"(
   title: "Water plants",
   status: done(2026, 6, 1),
   priority: 3,
@@ -35,8 +33,7 @@ const SOURCE_NO_RECUR_LINKS: &str = mindtape::typst_task!(
 );
 
 const SOURCE_WITH_LINKS: &str = mindtape::typst_task!(
-    r#"
-#show: task.with(
+    r#"(
   title: "Water plants",
   status: done(2026, 6, 1),
   priority: 3,
@@ -49,8 +46,7 @@ const SOURCE_WITH_LINKS: &str = mindtape::typst_task!(
 /// An occurrence that is itself a spawn: it already carries the
 /// `recurred-from` edge pointing at the hop before it.
 const SOURCE_ALREADY_SPAWNED: &str = mindtape::typst_task!(
-    r#"
-#show: task.with(
+    r#"(
   title: "Water plants",
   status: done(2026, 6, 1),
   priority: 3,
@@ -62,8 +58,7 @@ const SOURCE_ALREADY_SPAWNED: &str = mindtape::typst_task!(
 
 /// The same, with a noted edge — the case a re-render would flatten.
 const SOURCE_NOTED_LINKS: &str = mindtape::typst_task!(
-    r#"
-#show: task.with(
+    r#"(
   title: "Water plants",
   status: done(2026, 6, 1),
   links: related("other.typ")[same _room_] + recurred-from("chore.typ"),
@@ -75,8 +70,7 @@ const SOURCE_NOTED_LINKS: &str = mindtape::typst_task!(
 /// The already-spawned links argument plus an edge helper call elsewhere in
 /// the document (a body `related`), i.e. outside the `links:` value range.
 const SOURCE_BODY_EDGE_CALL: &str = mindtape::typst_task!(
-    r#"
-#show: task.with(
+    r#"(
   title: "Water plants",
   status: done(2026, 6, 1),
   priority: 3,
@@ -285,7 +279,6 @@ fn overlapping_edits_are_reported_as_a_failed_apply() {
 }
 
 const SOURCE_WITH_LINKS_NO_CALL: &str = mindtape::typst_task!(
-    r#"
-#show: task.with(title: "Water plants")
+    r#"(title: "Water plants")
 "#
 );

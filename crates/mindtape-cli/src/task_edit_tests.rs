@@ -7,7 +7,7 @@ use super::{task_with, upsert_named_arg, verify_written};
 
 use mindtape::test_support::PRELUDE;
 const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n";
-const IMPORT: &str = mindtape::typst_task!("");
+const IMPORT: &str = mindtape::typst_import!("");
 
 /// Scaffold a project holding a single `tasks/<name>` file and return the temp
 /// dir plus the absolute path of that file, ready for [`verify_written`].
@@ -147,10 +147,7 @@ fn replaces_an_existing_argument_in_place() {
 fn verify_written_accepts_a_valid_task() {
     let (dir, file) = project_with(
         "good.typ",
-        mindtape::typst_task!(
-            "\
-         #show: task.with(title: \"Good\", status: wip(2026, 1, 1), priority: 3)\n"
-        ),
+        mindtape::typst_task!("(title: \"Good\", status: wip(2026, 1, 1), priority: 3)\n"),
     );
     verify_written(dir.path(), &file).unwrap();
 }
@@ -228,10 +225,7 @@ fn verify_written_prefixes_each_issue_by_its_severity() {
 fn verify_written_reports_a_validation_violation_on_the_file() {
     let (dir, file) = project_with(
         "outofscale.typ",
-        mindtape::typst_task!(
-            "\
-         #show: task.with(title: \"Out of scale\", status: wip(2026, 1, 1), priority: 99)\n"
-        ),
+        mindtape::typst_task!("(title: \"Out of scale\", status: wip(2026, 1, 1), priority: 99)\n"),
     );
     let err = verify_written(dir.path(), &file).unwrap_err();
     assert!(

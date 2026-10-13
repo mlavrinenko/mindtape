@@ -15,8 +15,7 @@ use std::path::Path;
 use crate::support;
 
 const TASK: &str = mindtape::typst_task!(
-    "\n\
-     #show: task.with(\n  title: \"Alpha\",\n  status: wip(2026, 6, 1),\n)\n\n\
+    "(\n  title: \"Alpha\",\n  status: wip(2026, 6, 1),\n)\n\n\
      == Summary\n\nBody.\n"
 );
 

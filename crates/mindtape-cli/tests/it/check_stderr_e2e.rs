@@ -19,8 +19,7 @@ fn broken_project() -> tempfile::TempDir {
         dir.path(),
         "tasks/subject.typ",
         mindtape::typst_task!(
-            "\n\
-         #show: task.with(\n  title: \"Loader refactoring\",\n  status: wip(2026, 6, 1),\n)\n"
+            "(\n  title: \"Loader refactoring\",\n  status: wip(2026, 6, 1),\n)\n"
         ),
     );
     dir

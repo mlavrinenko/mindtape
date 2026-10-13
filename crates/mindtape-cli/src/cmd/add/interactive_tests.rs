@@ -11,8 +11,7 @@ use mindtape::{AddConfig, RawValue, discover_slots};
 use super::{parse_buffer, scaffold};
 
 pub(super) const TEMPLATE: &str = mindtape::typst_task!(
-    r#"
-#show: task.with(
+    r#"(
   title: slot("title", prompt: "Task title"),
   priority: slot("priority", kind: "int", default: 5),
   tags: slot("tags", kind: "list", default: ()),

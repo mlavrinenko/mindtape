@@ -158,8 +158,7 @@ fn unknown_values_json_key_is_a_hard_error() {
 /// trailing comma for `add`'s own `status:` to be separated by. Legal Typst,
 /// and the one shape no in-tree template happens to be written in.
 const SINGLE_LINE_TEMPLATE: &str = mindtape::typst_task!(
-    r#"
-#show: task.with(title: slot("title", example: "Fix the login redirect"))
+    r#"(title: slot("title", example: "Fix the login redirect"))
 
 == Summary
 "#
@@ -184,8 +183,7 @@ fn single_line_template_files_a_task_that_loads() {
 /// A template that cannot evaluate no matter how its slots are filled, so the
 /// verification always fails.
 const BROKEN_TEMPLATE: &str = mindtape::typst_task!(
-    r#"
-#show: task.with(title: slot("title"))
+    r#"(title: slot("title"))
 
 #no-such-function()
 "#
@@ -249,8 +247,7 @@ fn assert_only_the_template_breaches(dir: &std::path::Path) {
 /// the field wants a dict. Distinct from [`BROKEN_TEMPLATE`], which fails at
 /// eval; this one reaches the marker and is refused by the Rust layer.
 const ESTIMATE_TEMPLATE: &str = mindtape::typst_task!(
-    r#"
-#show: task.with(
+    r#"(
   title: slot("title", example: "Fix the login redirect"),
   estimate: slot("estimate", kind: "raw", default: "(days: 1)"),
 )
@@ -332,8 +329,7 @@ message = "open every TO-BE bullet with 🟢"
 /// A template whose `TO-BE` bullet does not open with 🟢 — breaks
 /// [`TO_BE_CONTENT_RULE_CONFIG`]'s rule on every fill.
 const TO_BE_TEMPLATE: &str = mindtape::typst_task!(
-    r#"
-#show: task.with(
+    r#"(
   title: slot("title", prompt: "Task title"),
   status: proposed(2026, 6, 14),
 )
