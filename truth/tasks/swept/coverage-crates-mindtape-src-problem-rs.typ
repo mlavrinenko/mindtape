@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 10, 13),
+  status: cancelled(
+    2026,
+    10,
+    13,
+  )[uncovered lines are Display::fmt and PartialEq\<&str>, which only format or compare text; a test would pin a string, not a behaviour],
 )
 
 == Problem
