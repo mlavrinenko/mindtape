@@ -107,6 +107,7 @@ mmz *ARGS:
 # worktree work (`mt` built, gate, wip check, record carry) are .config/wt.toml.
 # `--no-cd` because a recipe cannot move its caller's shell anyway, and wt
 # warns three lines about missing shell integration every time it tries.
+# `wt merge` has no `--no-cd`, so `land` sends its cd directive to /dev/null.
 
 [doc("Fork a sibling worktree on a new branch, with its dev mt built")]
 [group("workflow")]
@@ -122,7 +123,7 @@ fork slug *args:
 [group("workflow")]
 [positional-arguments]
 land *args:
-    wt merge --no-squash --no-commit --yes "$@"
+    WORKTRUNK_DIRECTIVE_CD_FILE=/dev/null wt merge --no-squash --no-commit --yes "$@"
 
 # `just --fmt --check` prints its diff with the whole file as context, about 900
 # lines for one misplaced blank line. `just --dump` prints what `--fmt` would

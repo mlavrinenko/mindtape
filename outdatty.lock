@@ -155,7 +155,7 @@ groups:
       .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
       .just/docs.just: 300226a86d551abc287d058efd9cbc2143fa7f15e3c6b53131699f27f35847fc
       .just/scripts/wt-carry-lcov.sh: 0d4513fdd21068f5897a015bbc4cd02bc3644ca139d8c39053140fba491e1e76
-      Justfile: 8f3684dbab71f52c4d600de150631c36d74cce5a042970cdc87f7a08df20d722
+      Justfile: 4cc3c3b536e1eef80d2a4050c7b4bc4240f785b4da50f7ab36e0e1873798386a
       flake.nix: ef91529881401b7bfffd564c53a0ff62d9d24b8b9adaa6c52f510119a9004305
     dependents:
       docs/src/agents.typ: fc0515f88c029ba8b787b979dd9c47184243c76ed7378983b0be712bddfbf2c4
@@ -167,7 +167,7 @@ groups:
       docs/src/contributing/example-projects.typ: 4f9a0c52894b9c2ab665e42bb728814b3d18badf3e8def57737d695d29912f63
       docs/src/contributing/gates.typ: 98dff9d1a2b84a1388d515a521dda0db6fa222378568d2bc95b7cfc4ca0fba3f
       docs/src/contributing/mutation-testing.typ: 96f2e41b03e5bb524e1c49dd08e9435690f37ba566cf81cc0f6dbc843e01981a
-      docs/src/contributing/signal-sweep.typ: 9e428e0ff42e4d9c4224143b4c1230d0aeb887391355ecd47df2bd869b6b693c
+      docs/src/contributing/signal-sweep.typ: e7e1432428d88b329685c2bb3f486716cd6d6ed9309ae071c6c76cc0686fb8eb
       docs/src/contributing/windows.typ: 093ebafaf04b07d4abd611b33a346695a61e811b51f79e13a29df34903e96786
   doc-gate-scripts-docs:
     source:
