@@ -123,7 +123,7 @@ fn undeclared_assignee_resolves_no_role_rather_than_falling_through() {
 #[test]
 fn check_accepts_undeclared_assignee_as_free_text_when_allowed_is_unset() {
     let dir = scaffold("");
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 #[test]

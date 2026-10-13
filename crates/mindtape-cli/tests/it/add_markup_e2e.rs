@@ -17,16 +17,20 @@ fn markup_hazards_in_slot_values_round_trip_literally() {
     let dir = support::project_with_slot_template();
     let hazards = support::MARKUP_HAZARDS;
 
-    support::mt(dir.path())
-        .args(["add", "--name", "hazards"])
-        .args(["--set", &format!("title={hazards}")])
-        .args(["--set", &format!("why={hazards}")])
-        .args(["--set", &format!("summary={hazards}")])
-        .args(["--set", "weight=7"])
-        .assert()
-        .success();
-
-    let written = std::fs::read_to_string(dir.path().join("tasks/hazards.typ")).unwrap();
+    let written = support::add_and_read(
+        dir.path(),
+        "hazards",
+        &[
+            "--set",
+            &format!("title={hazards}"),
+            "--set",
+            &format!("why={hazards}"),
+            "--set",
+            &format!("summary={hazards}"),
+            "--set",
+            "weight=7",
+        ],
+    );
     // The two literal kinds keep the caller's bytes: an unquoted integer, and a
     // string literal with no escaping beyond what a Typst string already needs.
     assert!(written.contains("priority: 7,"), "{written}");
@@ -56,13 +60,16 @@ fn markup_hazards_in_slot_values_round_trip_literally() {
 fn raw_slot_splices_markup_without_escaping() {
     let dir = support::project_with_raw_slot_template();
 
-    support::mt(dir.path())
-        .args(["add", "--name", "raw-body", "--set", "title=Raw body"])
-        .args(["--set", "summary=See `mt add` for details."])
-        .assert()
-        .success();
-
-    let written = std::fs::read_to_string(dir.path().join("tasks/raw-body.typ")).unwrap();
+    let written = support::add_and_read(
+        dir.path(),
+        "raw-body",
+        &[
+            "--set",
+            "title=Raw body",
+            "--set",
+            "summary=See `mt add` for details.",
+        ],
+    );
     assert!(
         written.contains("See `mt add` for details."),
         "the code span must survive verbatim: {written}"
@@ -74,7 +81,7 @@ fn raw_slot_splices_markup_without_escaping() {
 
     // Reading back proves it landed as live markup, not inert text: `mt eval`
     // sees the same code span in the harvested body.
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 /// A `raw` slot's filler is trusted to be markup, not guaranteed to be

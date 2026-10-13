@@ -38,16 +38,13 @@ fn imports_from_a_file_argument() {
     let input = dir.path().join("in.json");
     std::fs::write(&input, ONE_TASK_JSON).unwrap();
 
-    support::mt(dir.path())
-        .args(["import", input.to_str().unwrap()])
-        .assert()
-        .success();
+    support::run_ok(dir.path(), &["import", input.to_str().unwrap()]);
 
     let written = std::fs::read_to_string(dir.path().join("tasks/wire-import.typ")).unwrap();
     assert!(written.contains("title: \"Wire import\""), "{written}");
 
     // The filed task passes `check`.
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 /// One bad record does not refuse the batch — the good one still lands, and the
@@ -81,7 +78,7 @@ fn a_rejected_record_is_never_written_and_the_rest_still_land() {
         !dir.path().join("tasks/bad-record.typ").exists(),
         "a rejected record must never reach the disk"
     );
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 /// `--dry-run` names what it would file and says it wrote nothing.
@@ -129,7 +126,7 @@ fn a_two_folder_export_imports_back_whole() {
 
     assert!(dir.path().join("tasks/a/alpha.typ").exists());
     assert!(dir.path().join("tasks/b/beta.typ").exists());
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 #[test]

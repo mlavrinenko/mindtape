@@ -194,8 +194,7 @@ fn gated_preset_installs_its_template() {
     let template = dir.path().join(".mindtape/templates/task.typ");
     assert!(template.exists(), "gated must ship its task template");
 
-    support::run_ok(dir.path(), &["add", "--name", "spec", "--set", "title=T"]);
-    let task = std::fs::read_to_string(dir.path().join("tasks/spec.typ")).unwrap();
+    let task = support::add_and_read(dir.path(), "spec", &["--set", "title=T"]);
     for heading in ["Summary", "Acceptance criteria", "Non-goals", "Files"] {
         assert!(task.contains(heading), "missing {heading}:\n{task}");
     }

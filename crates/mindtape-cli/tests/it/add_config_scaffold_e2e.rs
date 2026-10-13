@@ -30,19 +30,11 @@ fn injects_config_required_priority_slot() {
     assert!(names.iter().any(|n| n == "priority"), "{names:?}");
 
     // Filling it writes a valid task.
-    support::mt(dir.path())
-        .args([
-            "add",
-            "--name",
-            "with-pri",
-            "--set",
-            "title=T",
-            "--set",
-            "priority=7",
-        ])
-        .assert()
-        .success();
-    let written = std::fs::read_to_string(dir.path().join("tasks/with-pri.typ")).unwrap();
+    let written = support::add_and_read(
+        dir.path(),
+        "with-pri",
+        &["--set", "title=T", "--set", "priority=7"],
+    );
     assert!(written.contains("priority: 7"), "{written}");
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
@@ -76,24 +68,16 @@ fn injects_real_scale_priority_slot_and_round_trips_a_decimal() {
     assert_eq!(support::describe_slot_kind(dir.path(), "priority"), "real");
 
     // Filling it with a decimal writes a float literal without truncation.
-    support::mt(dir.path())
-        .args([
-            "add",
-            "--name",
-            "with-real-pri",
-            "--set",
-            "title=T",
-            "--set",
-            "priority=2.5",
-        ])
-        .assert()
-        .success();
-    let written = std::fs::read_to_string(dir.path().join("tasks/with-real-pri.typ")).unwrap();
+    let written = support::add_and_read(
+        dir.path(),
+        "with-real-pri",
+        &["--set", "title=T", "--set", "priority=2.5"],
+    );
     assert!(written.contains("priority: 2.5"), "{written}");
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
     // The filed task with a real priority value passes `check`.
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 /// A config whose priority is a required strict framework (`allow-manual =
@@ -117,11 +101,10 @@ fn injects_framework_leaf_slots_for_a_strict_framework_priority() {
     assert!(!names.iter().any(|n| n == "priority"), "{names:?}");
 
     // Filling the leaves writes a valid framework priority.
-    support::mt(dir.path())
-        .args([
-            "add",
-            "--name",
-            "with-ice",
+    let written = support::add_and_read(
+        dir.path(),
+        "with-ice",
+        &[
             "--set",
             "title=T",
             "--set",
@@ -130,16 +113,14 @@ fn injects_framework_leaf_slots_for_a_strict_framework_priority() {
             "confidence=0.9",
             "--set",
             "ease=6",
-        ])
-        .assert()
-        .success();
-    let written = std::fs::read_to_string(dir.path().join("tasks/with-ice.typ")).unwrap();
+        ],
+    );
     assert!(written.contains("priority: framework(\"ice\""), "{written}");
     assert!(written.contains("impact: 9.0"), "{written}");
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
     // The filed task passes `check` (the framework score lands in the scale).
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 
     // Omitting a leaf is the existing missing-slot hard error, before any write.
     support::mt(dir.path())
@@ -175,17 +156,12 @@ fn derives_initial_status_from_a_custom_legend() {
     )
     .unwrap();
 
-    support::mt(dir.path())
-        .args(["add", "--name", "custom-legend", "--set", "title=T"])
-        .assert()
-        .success();
-
-    let written = std::fs::read_to_string(dir.path().join("tasks/custom-legend.typ")).unwrap();
+    let written = support::add_and_read(dir.path(), "custom-legend", &["--set", "title=T"]);
     assert!(written.contains("status: todo("), "{written}");
     assert!(!written.contains("proposed"), "{written}");
 
     // The filed task passes `check` even though the legend has no `proposed`.
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 /// A template's own `status:` names the status `add` files at: the name is
@@ -259,22 +235,30 @@ fn add_with_no_explicit_estimate_defaults_to_a_valid_task() {
     .unwrap();
     std::fs::write(dir.path().join("lib.typ"), GOALS_STUB).unwrap();
 
-    support::mt(dir.path())
-        .args(["add", "--name", "no-estimate", "--set", "title=No estimate"])
-        .args(["--set", "problem=+ A step."])
-        .args(["--set", "to-be=- An end state."])
-        .args(["--set", "changes=- `a.rs`: a change."])
-        .args(["--set", "out-of-scope=- Nothing."])
-        .args(["--set", "dogfood=Not applicable."])
-        .args(["--set", "kind=test"])
-        .assert()
-        .success();
-
-    let written = std::fs::read_to_string(dir.path().join("tasks/no-estimate.typ")).unwrap();
+    let written = support::add_and_read(
+        dir.path(),
+        "no-estimate",
+        &[
+            "--set",
+            "title=No estimate",
+            "--set",
+            "problem=+ A step.",
+            "--set",
+            "to-be=- An end state.",
+            "--set",
+            "changes=- `a.rs`: a change.",
+            "--set",
+            "out-of-scope=- Nothing.",
+            "--set",
+            "dogfood=Not applicable.",
+            "--set",
+            "kind=test",
+        ],
+    );
     assert!(written.contains("estimate: (src-files: 2)"), "{written}");
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 /// A config whose declared estimate unit is `src-files` and whose one rule
@@ -458,12 +442,11 @@ fn splices_a_required_extension_field() {
         ),
         "{stderr}"
     );
-    support::mt(dir.path())
-        .args(["add", "--name", "chosen", "--set", "title=T"])
-        .args(["--set", "x-machine=desk"])
-        .assert()
-        .success();
-    let written = std::fs::read_to_string(dir.path().join("tasks/chosen.typ")).unwrap();
+    let written = support::add_and_read(
+        dir.path(),
+        "chosen",
+        &["--set", "title=T", "--set", "x-machine=desk"],
+    );
     assert!(written.contains("x-machine: \"desk\""), "{written}");
 }
 

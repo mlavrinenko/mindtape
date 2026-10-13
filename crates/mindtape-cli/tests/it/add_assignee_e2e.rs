@@ -44,16 +44,15 @@ fn injects_config_required_assignee_slot() {
     assert!(names.iter().any(|n| n == "assignee"), "{names:?}");
 
     // Filling it writes a valid task.
-    support::mt(dir.path())
-        .args(["add", "--name", "with-assignee", "--set", "title=T"])
-        .args(["--set", "assignee=ada"])
-        .assert()
-        .success();
-    let written = std::fs::read_to_string(dir.path().join("tasks/with-assignee.typ")).unwrap();
+    let written = support::add_and_read(
+        dir.path(),
+        "with-assignee",
+        &["--set", "title=T", "--set", "assignee=ada"],
+    );
     assert!(written.contains("assignee: \"ada\""), "{written}");
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 
     // Omitting a config-required field is the existing missing-slot hard error.
     support::mt(dir.path())
@@ -77,7 +76,7 @@ fn principal_env_fills_required_assignee_silently() {
     assert!(written.contains("assignee: \"ada\""), "{written}");
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 /// An unset `$MINDTAPE_PRINCIPAL` is an unknown actor, not a default: a

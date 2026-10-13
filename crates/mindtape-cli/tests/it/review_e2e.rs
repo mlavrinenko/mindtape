@@ -26,10 +26,7 @@ fn scaffold() -> tempfile::TempDir {
 #[test]
 fn refuses_to_review_a_terminal_task() {
     let dir = scaffold();
-    support::mt(dir.path())
-        .args(["done", "wire-oauth"])
-        .assert()
-        .success();
+    support::run_ok(dir.path(), &["done", "wire-oauth"]);
 
     let output = support::mt(dir.path())
         .args(["review", "wire-oauth"])

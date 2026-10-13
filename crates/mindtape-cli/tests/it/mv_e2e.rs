@@ -112,7 +112,7 @@ fn mv_renames_the_file_and_retargets_every_inbound_edge() {
     );
 
     // The dangling-edge regression: no inbound edge points at a missing task.
-    mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 #[test]
@@ -120,7 +120,7 @@ fn mv_stages_the_rename_through_git_when_the_tree_is_a_repository() {
     let dir = scaffold();
     support::git_commit_all(dir.path());
 
-    mt(dir.path()).args(["mv", "old", "new"]).assert().success();
+    support::run_ok(dir.path(), &["mv", "old", "new"]);
 
     let staged = std::process::Command::new("git")
         .current_dir(dir.path())
@@ -141,12 +141,12 @@ fn mv_falls_back_to_a_plain_rename_without_a_repository() {
     // gitless paths.
     let dir = scaffold();
 
-    mt(dir.path()).args(["mv", "old", "new"]).assert().success();
+    support::run_ok(dir.path(), &["mv", "old", "new"]);
 
     assert!(dir.path().join("tasks/new.typ").exists());
     assert!(!dir.path().join("tasks/old.typ").exists());
     assert!(read(dir.path(), "tasks/referrer.typ").contains("\"new.typ\""));
-    mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 #[test]

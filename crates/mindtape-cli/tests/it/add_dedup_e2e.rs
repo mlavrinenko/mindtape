@@ -142,8 +142,9 @@ fn dedup_skip_exits_zero_writes_nothing_and_reports_existing_path() {
 fn dedup_add_suffix_writes_under_a_disambiguated_stem() {
     let dir = scaffold_with_existing_dup();
 
-    support::mt(dir.path())
-        .args([
+    support::run_ok(
+        dir.path(),
+        &[
             "add",
             "--name",
             "dup",
@@ -151,9 +152,8 @@ fn dedup_add_suffix_writes_under_a_disambiguated_stem() {
             "title=Dup Two",
             "--dedup",
             "add-suffix",
-        ])
-        .assert()
-        .success();
+        ],
+    );
 
     assert_original_untouched_and_suffixed_title(dir.path(), "Dup Two");
 }
@@ -166,10 +166,7 @@ fn dedup_add_suffix_works_without_a_naming_template() {
     let dir = support::scaffold();
     std::fs::write(dir.path().join("tasks/ship-it.typ"), "original").unwrap();
 
-    support::mt(dir.path())
-        .args(["add", "Ship It", "--dedup", "add-suffix"])
-        .assert()
-        .success();
+    support::run_ok(dir.path(), &["add", "Ship It", "--dedup", "add-suffix"]);
     assert!(dir.path().join("tasks/ship-it-2.typ").exists());
 }
 
@@ -177,10 +174,7 @@ fn dedup_add_suffix_works_without_a_naming_template() {
 fn config_dedup_default_is_honoured_without_the_flag() {
     let dir = scaffold_with_dedup_skip_default();
 
-    support::mt(dir.path())
-        .args(["add", "--name", "dup", "--set", "title=Dup"])
-        .assert()
-        .success();
+    support::run_ok(dir.path(), &["add", "--name", "dup", "--set", "title=Dup"]);
     assert_eq!(
         std::fs::read_to_string(dir.path().join("tasks/dup.typ")).unwrap(),
         "original content"
@@ -260,10 +254,7 @@ fn dedup_skip_exits_zero_writes_nothing_and_reports_existing_path_under_a_templa
 fn dedup_add_suffix_writes_under_a_disambiguated_stem_with_a_templated_stem() {
     let dir = scaffold_with_templated_stem_and_existing_dup();
 
-    support::mt(dir.path())
-        .args(["add", "Dup", "--dedup", "add-suffix"])
-        .assert()
-        .success();
+    support::run_ok(dir.path(), &["add", "Dup", "--dedup", "add-suffix"]);
 
     assert_original_untouched_and_suffixed_title(dir.path(), "Dup");
 }
@@ -277,10 +268,7 @@ fn dedup_add_suffix_writes_under_a_disambiguated_stem_with_a_templated_stem() {
 fn templated_stem_dedup_defaults_to_add_suffix_without_the_flag() {
     let dir = scaffold_with_templated_stem_and_existing_dup();
 
-    support::mt(dir.path())
-        .args(["add", "Dup"])
-        .assert()
-        .success();
+    support::run_ok(dir.path(), &["add", "Dup"]);
 
     assert_original_untouched_and_suffixed_title(dir.path(), "Dup");
 }

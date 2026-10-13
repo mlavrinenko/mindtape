@@ -255,6 +255,15 @@ pub fn run_ok(dir: &Path, args: &[&str]) {
     mt(dir).args(args).assert().success();
 }
 
+/// Run `mt add --name <name> <args…>` in `dir`, assert it succeeds, and
+/// return the task file it wrote, `tasks/<name>.typ`.
+pub fn add_and_read(dir: &Path, name: &str, args: &[&str]) -> String {
+    let mut command = vec!["add", "--name", name];
+    command.extend_from_slice(args);
+    run_ok(dir, &command);
+    std::fs::read_to_string(dir.join("tasks").join(format!("{name}.typ"))).unwrap()
+}
+
 /// Run `mt` in `dir`, assert it succeeds, and return its stdout — [`run_ok`]
 /// for the tests that assert on what was printed rather than only that it was.
 pub fn stdout(dir: &Path, args: &[&str]) -> String {

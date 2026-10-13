@@ -19,10 +19,7 @@ fn go_prints_opened_message() {
     .unwrap();
 
     // File a task via `mt add` so it has the right format.
-    support::mt(dir.path())
-        .args(["add", "--name", "x", "--set", "title=Test"])
-        .assert()
-        .success();
+    support::run_ok(dir.path(), &["add", "--name", "x", "--set", "title=Test"]);
 
     let output = support::mt(dir.path()).args(["go", "x"]).output().unwrap();
     let stdout = String::from_utf8_lossy(&output.stdout);

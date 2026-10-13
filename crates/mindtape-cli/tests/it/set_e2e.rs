@@ -38,10 +38,7 @@ fn read(dir: &Path) -> String {
 
 /// `mt set <task> <token>`, asserting success and returning the file after it.
 fn set_ok(dir: &Path, token: &str) -> String {
-    support::mt(dir)
-        .args(["set", "wire-oauth", token])
-        .assert()
-        .success();
+    support::run_ok(dir, &["set", "wire-oauth", token]);
     read(dir)
 }
 
@@ -71,7 +68,7 @@ fn writes_a_scalar_field_of_each_shape() {
     assert!(written.contains("assignee: \"ada\""), "{written}");
 
     // The whole point of writing through `mt`: what lands still validates.
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 /// A field already present is replaced, not doubled.
@@ -178,14 +175,14 @@ fn a_wrong_shaped_value_is_refused_naming_the_field() {
 fn a_hazardous_string_value_survives_the_round_trip() {
     let dir = scaffold();
 
-    support::mt(dir.path())
-        .args([
+    support::run_ok(
+        dir.path(),
+        &[
             "set",
             "wire-oauth",
             &format!("kind={}", support::MARKUP_HAZARDS),
-        ])
-        .assert()
-        .success();
+        ],
+    );
 
     let listed = support::mt(dir.path())
         .args(["ls", "", "--json"])

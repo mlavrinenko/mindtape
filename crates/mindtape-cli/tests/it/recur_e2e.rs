@@ -75,10 +75,7 @@ fn due_of(source: &str) -> String {
 fn spawn_writes_a_new_file_linked_back_to_the_predecessor() {
     let dir = scaffold(&[("water-plants.typ", WEEKLY_SPAWN)]);
 
-    mt(dir.path())
-        .args(["recur", "water-plants"])
-        .assert()
-        .success();
+    support::run_ok(dir.path(), &["recur", "water-plants"]);
 
     let entries = tasks_dir_entries(dir.path());
     assert_eq!(entries.len(), 2, "{entries:?}");
@@ -98,17 +95,14 @@ fn spawn_writes_a_new_file_linked_back_to_the_predecessor() {
     let original = std::fs::read_to_string(dir.path().join("tasks/water-plants.typ")).unwrap();
     assert!(original.contains("status: wip("), "{original}");
 
-    mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 #[test]
 fn dry_run_writes_nothing() {
     let dir = scaffold(&[("water-plants.typ", WEEKLY_SPAWN)]);
 
-    mt(dir.path())
-        .args(["recur", "water-plants", "--dry-run"])
-        .assert()
-        .success();
+    support::run_ok(dir.path(), &["recur", "water-plants", "--dry-run"]);
 
     assert_eq!(
         tasks_dir_entries(dir.path()),
@@ -120,10 +114,7 @@ fn dry_run_writes_nothing() {
 fn double_spawn_guard_refuses_a_second_spawn_without_force() {
     let dir = scaffold(&[("water-plants.typ", WEEKLY_SPAWN)]);
 
-    mt(dir.path())
-        .args(["recur", "water-plants"])
-        .assert()
-        .success();
+    support::run_ok(dir.path(), &["recur", "water-plants"]);
     mt(dir.path())
         .args(["recur", "water-plants"])
         .assert()
@@ -131,10 +122,7 @@ fn double_spawn_guard_refuses_a_second_spawn_without_force() {
     assert_eq!(tasks_dir_entries(dir.path()).len(), 2);
 
     // --force bypasses the guard and spawns a third file.
-    mt(dir.path())
-        .args(["recur", "water-plants", "--force"])
-        .assert()
-        .success();
+    support::run_ok(dir.path(), &["recur", "water-plants", "--force"]);
     assert_eq!(tasks_dir_entries(dir.path()).len(), 3);
 }
 
@@ -142,7 +130,7 @@ fn double_spawn_guard_refuses_a_second_spawn_without_force() {
 fn mutate_refreshes_the_same_file_in_place() {
     let dir = scaffold(&[("standup.typ", WEEKLY_MUTATE)]);
 
-    mt(dir.path()).args(["recur", "standup"]).assert().success();
+    support::run_ok(dir.path(), &["recur", "standup"]);
 
     assert_eq!(
         tasks_dir_entries(dir.path()),
@@ -152,7 +140,7 @@ fn mutate_refreshes_the_same_file_in_place() {
     assert!(refreshed.contains("status: proposed("), "{refreshed}");
     assert!(!refreshed.contains("recurred-from"), "{refreshed}");
 
-    mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 /// Scaffold a weekly-spawn task with its `recur:` replaced by
@@ -223,20 +211,14 @@ fn done_notice_says_mutate_series_ends() {
 fn a_second_hop_names_only_its_immediate_predecessor() {
     let dir = scaffold(&[("water-plants.typ", WEEKLY_SPAWN)]);
 
-    mt(dir.path())
-        .args(["recur", "water-plants"])
-        .assert()
-        .success();
+    support::run_ok(dir.path(), &["recur", "water-plants"]);
     let first = tasks_dir_entries(dir.path())
         .into_iter()
         .find(|n| n != "water-plants.typ")
         .unwrap();
     let first_stem = first.trim_end_matches(".typ").to_owned();
 
-    mt(dir.path())
-        .args(["recur", &first_stem])
-        .assert()
-        .success();
+    support::run_ok(dir.path(), &["recur", &first_stem]);
 
     let second = tasks_dir_entries(dir.path())
         .into_iter()
@@ -252,7 +234,7 @@ fn a_second_hop_names_only_its_immediate_predecessor() {
         "the older hop must not be carried forward: {source}"
     );
 
-    mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 /// The defect this seam closes for `recur`: a spawn whose occurrence would not
@@ -303,10 +285,7 @@ fn advance_lays_out_a_chain_of_distinct_occurrences() {
     let body = WEEKLY_SPAWN.replace("recur: every(weeks: 1),", "recur: every(days: 1),");
     let dir = scaffold(&[("water-plants.typ", &body)]);
 
-    mt(dir.path())
-        .args(["recur", "water-plants", "--advance", "3"])
-        .assert()
-        .success();
+    support::run_ok(dir.path(), &["recur", "water-plants", "--advance", "3"]);
 
     let entries = tasks_dir_entries(dir.path());
     assert_eq!(entries.len(), 4, "{entries:?}");
@@ -326,7 +305,7 @@ fn advance_lays_out_a_chain_of_distinct_occurrences() {
     distinct.dedup();
     assert_eq!(distinct.len(), 3, "occurrence dates must differ: {dues:?}");
 
-    mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 #[test]

@@ -20,28 +20,20 @@ use mindtape::test_support::tempdir;
 fn end_to_end_files_and_validates_a_task() {
     let dir = support::scaffold();
 
-    support::mt(dir.path())
-        .args(["add", "--name", "wire-add", "--set", "title=Wire add"])
-        .assert()
-        .success();
-
-    let written = std::fs::read_to_string(dir.path().join("tasks/wire-add.typ")).unwrap();
+    let written = support::add_and_read(dir.path(), "wire-add", &["--set", "title=Wire add"]);
     assert!(written.contains("title: \"Wire add\""), "{written}");
     assert!(written.contains("status: proposed("), "{written}");
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
     // The filed task passes `check`.
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 #[test]
 fn end_to_end_files_from_positional_title() {
     let dir = support::scaffold();
 
-    support::mt(dir.path())
-        .args(["add", "cleanup", "kitchen"])
-        .assert()
-        .success();
+    support::run_ok(dir.path(), &["add", "cleanup", "kitchen"]);
 
     let written = std::fs::read_to_string(dir.path().join("tasks/cleanup-kitchen.typ")).unwrap();
     assert!(written.contains("title: \"cleanup kitchen\""), "{written}");
@@ -52,10 +44,7 @@ fn end_to_end_files_from_positional_title() {
 fn end_to_end_nests_into_subfolder() {
     let dir = support::scaffold();
 
-    support::mt(dir.path())
-        .args(["add", "--to", "shopping", "Potatoes"])
-        .assert()
-        .success();
+    support::run_ok(dir.path(), &["add", "--to", "shopping", "Potatoes"]);
 
     let written = std::fs::read_to_string(dir.path().join("tasks/shopping/potatoes.typ")).unwrap();
     assert!(written.contains("title: \"Potatoes\""), "{written}");
@@ -184,15 +173,10 @@ const SINGLE_LINE_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
 fn single_line_template_files_a_task_that_loads() {
     let dir = support::project_with_template(SINGLE_LINE_TEMPLATE);
 
-    support::mt(dir.path())
-        .args(["add", "--name", "one-line", "--set", "title=One line"])
-        .assert()
-        .success();
-
-    let written = std::fs::read_to_string(dir.path().join("tasks/one-line.typ")).unwrap();
+    let written = support::add_and_read(dir.path(), "one-line", &["--set", "title=One line"]);
     assert!(written.contains("title: \"One line\""), "{written}");
     assert!(written.contains("status: proposed("), "{written}");
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 /// A template that cannot evaluate no matter how its slots are filled, so the
@@ -302,7 +286,7 @@ fn a_wrong_shaped_slot_value_is_refused_before_the_write() {
         !stderr.contains("validation issue"),
         "the error is the breach, with no summary of its own: {stderr}"
     );
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 /// `--no-verify` still writes whatever it was handed: the flag skips the check
@@ -312,17 +296,17 @@ fn a_wrong_shaped_slot_value_is_refused_before_the_write() {
 fn no_verify_writes_a_task_that_would_be_refused() {
     let dir = support::project_with_template(BROKEN_TEMPLATE);
 
-    support::mt(dir.path())
-        .args([
+    support::run_ok(
+        dir.path(),
+        &[
             "add",
             "--no-verify",
             "--name",
             "broken",
             "--set",
             "title=Broken",
-        ])
-        .assert()
-        .success();
+        ],
+    );
 
     assert!(dir.path().join("tasks/broken.typ").exists());
 }

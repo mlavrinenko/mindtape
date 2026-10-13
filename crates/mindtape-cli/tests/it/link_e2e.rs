@@ -67,17 +67,17 @@ fn a_rejected_edge_leaves_the_file_untouched() {
         before,
         "a refused edge must leave the file byte-identical"
     );
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 #[test]
 fn a_written_edge_leaves_the_project_valid() {
     let dir = scaffold();
 
-    support::mt(dir.path())
-        .args(["link", "wire-oauth", "depends-on", "pick-a-provider"])
-        .assert()
-        .success();
+    support::run_ok(
+        dir.path(),
+        &["link", "wire-oauth", "depends-on", "pick-a-provider"],
+    );
 
     let written = source(dir.path(), "wire-oauth");
     assert!(
@@ -86,7 +86,7 @@ fn a_written_edge_leaves_the_project_valid() {
     );
     // The point of serializing through the prelude's own helpers: the file
     // parses, evaluates, and satisfies every rule `mt check` enforces.
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 #[test]
@@ -111,7 +111,7 @@ fn an_adjacency_map_arrives_on_stdin() {
         written.contains(r#"related("write-docs.typ")[same release]"#),
         "{written}"
     );
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 #[test]
@@ -241,10 +241,10 @@ fn a_failing_entry_still_lets_the_rest_land() {
 fn replace_drops_the_edges_the_map_omits() {
     let dir = scaffold();
 
-    support::mt(dir.path())
-        .args(["link", "wire-oauth", "depends-on", "pick-a-provider"])
-        .assert()
-        .success();
+    support::run_ok(
+        dir.path(),
+        &["link", "wire-oauth", "depends-on", "pick-a-provider"],
+    );
     support::mt(dir.path())
         .args(["link", "--apply", "-", "--replace"])
         .write_stdin("wire-oauth:\n  depends-on: [write-docs]\n")
@@ -257,7 +257,7 @@ fn replace_drops_the_edges_the_map_omits() {
         "{written}"
     );
     assert!(!written.contains("pick-a-provider"), "{written}");
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 /// Closing a cycle is refused whichever end the validator attributes it to:
@@ -285,7 +285,7 @@ fn closing_a_dependency_cycle_is_refused_from_either_end() {
             before,
             "a refused cycle must leave both files byte-identical"
         );
-        support::mt(dir.path()).arg("check").assert().success();
+        support::run_ok(dir.path(), &["check"]);
     }
 }
 

@@ -81,10 +81,7 @@ fn assert_golden(source: &str) {
 /// legend holds: a reader's first import lands in exactly this project.
 fn scaffold() -> tempfile::TempDir {
     let dir = tempdir();
-    support::mt(dir.path())
-        .args(["init", "--no-input"])
-        .assert()
-        .success();
+    support::run_ok(dir.path(), &["init", "--no-input"]);
     support::install_lib(dir.path());
     dir
 }
@@ -109,7 +106,7 @@ fn assert_e2e_import(source: &str) {
         .assert()
         .success();
 
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 
     let filed = std::fs::read_dir(dir.path().join("tasks"))
         .unwrap()

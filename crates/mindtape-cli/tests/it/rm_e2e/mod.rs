@@ -109,7 +109,7 @@ fn rm_retargets_every_links_edge_and_check_stays_green() {
     let dir = scaffold();
 
     // Retire `gone`; `-y` skips the confirmation prompt.
-    mt(dir.path()).args(["rm", "-y", "gone"]).assert().success();
+    support::run_ok(dir.path(), &["rm", "-y", "gone"]);
 
     // The retired file is gone; the survivor's edges now point at the tombstone.
     assert!(!dir.path().join("tasks/gone.typ").exists());
@@ -128,7 +128,7 @@ fn rm_retargets_every_links_edge_and_check_stays_green() {
 
     // The dangling-edge regression: with every inbound edge tombstoned, no
     // survivor edge resolves to a missing task, so validation stays green.
-    mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 #[test]
@@ -175,7 +175,7 @@ fn rm_takes_two_refs_in_one_invocation_and_rewrites_each_inbound_link() {
         "raw edge survived:\n{live_b}"
     );
 
-    mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 #[test]
@@ -185,10 +185,7 @@ fn rm_deletes_unreferenced_task_outside_git_repo() {
     let dir = scaffold_files(&[("gone.typ", GONE), ("unrelated.typ", UNRELATED)]);
 
     // --dry-run reports the plan without git and writes nothing.
-    mt(dir.path())
-        .args(["rm", "--dry-run", "-y", "gone"])
-        .assert()
-        .success();
+    support::run_ok(dir.path(), &["rm", "--dry-run", "-y", "gone"]);
     assert!(dir.path().join("tasks/gone.typ").exists());
 
     // No git anywhere: the hint would point at a tool the user deliberately
@@ -203,7 +200,7 @@ fn rm_deletes_unreferenced_task_outside_git_repo() {
     // The survivor is untouched — no tombstone, no rewrite.
     let unrelated = std::fs::read_to_string(dir.path().join("tasks/unrelated.typ")).unwrap();
     assert!(!unrelated.contains("swh:1:rev:"), "survivor was rewritten");
-    mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 #[test]
@@ -222,7 +219,7 @@ fn rm_deletes_unreferenced_task_inside_git_repo() {
 
     assert!(!dir.path().join("tasks/gone.typ").exists());
     assert!(dir.path().join("tasks/unrelated.typ").exists());
-    mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 #[test]
@@ -271,14 +268,14 @@ fn rm_unlink_strips_inbound_edges_and_deletes_without_git() {
         ));
     assert!(dir.path().join("tasks/gone.typ").exists());
 
-    mt(dir.path()).args(["rm", "-y", "gone"]).assert().success();
+    support::run_ok(dir.path(), &["rm", "-y", "gone"]);
 
     assert!(!dir.path().join("tasks/gone.typ").exists());
     let live = std::fs::read_to_string(dir.path().join("tasks/live.typ")).unwrap();
     assert!(!live.contains("gone.typ"), "edge survived:\n{live}");
     assert!(!live.contains("+"), "separator survived:\n{live}");
     assert!(!live.contains("swh:1:rev:"), "tombstone written:\n{live}");
-    mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 #[test]
@@ -287,7 +284,7 @@ fn rm_batch_removing_every_referrer_needs_no_strategy_without_git() {
     // batch must not reject or trim its own edges, so deletion is plain.
     let dir = scaffold_config(BATCH_CONFIG, &[("gone.typ", REMOVED), ("live.typ", LIVE)]);
 
-    mt(dir.path()).args(["rm", "-y"]).assert().success();
+    support::run_ok(dir.path(), &["rm", "-y"]);
 
     assert!(!dir.path().join("tasks/gone.typ").exists());
     assert!(!dir.path().join("tasks/live.typ").exists());

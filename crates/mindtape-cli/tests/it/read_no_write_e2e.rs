@@ -39,10 +39,10 @@ fn build_fixture() -> tempfile::TempDir {
     let dir = support::scaffold();
 
     for (name, title) in [("alpha", "Alpha task"), ("beta", "Beta task")] {
-        support::mt(dir.path())
-            .args(["add", "--name", name, "--set", &format!("title={title}")])
-            .assert()
-            .success();
+        support::run_ok(
+            dir.path(),
+            &["add", "--name", name, "--set", &format!("title={title}")],
+        );
     }
 
     dir

@@ -58,14 +58,10 @@ fn describe_lists_the_inherited_choices() {
 #[test]
 fn an_inherited_choice_files_a_listed_value() {
     let dir = support::project_with_template_and_config(KIND_CONFIG, OWN_KIND_TEMPLATE);
-    support::mt(dir.path())
-        .args(["add", "--name", "x", "--set", "title=x", "--", "kind=chore"])
-        .assert()
-        .success();
-    let written = std::fs::read_to_string(dir.path().join("tasks/x.typ")).unwrap();
+    let written = support::add_and_read(dir.path(), "x", &["--set", "title=x", "--", "kind=chore"]);
     assert!(written.contains("kind: \"chore\""), "{written}");
     assert!(!written.contains("choices"), "{written}");
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 /// The template check fills the template's own example, not the config's
@@ -77,7 +73,7 @@ fn the_template_check_files_the_slots_own_example() {
          [[tasks.rules]]\nname = \"no-feat\"\nassert = \"kind != \\\"feat\\\"\"\n\
          severity = \"error\"\n";
     let dir = support::project_with_template_and_config(DOCS_ONLY_TEST, OWN_KIND_TEMPLATE);
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 /// A list-valued field: `x-machine` takes any of the listed machines.
@@ -96,12 +92,20 @@ const PLAIN_TEMPLATE: &str = "#import \"@local/mindtape:0.2.0\": *\n\
 
 fn file_machines(template: &str, slot: &str) -> String {
     let dir = support::project_with_template_and_config(MACHINE_CONFIG, template);
-    support::mt(dir.path())
-        .args(["add", "--name", "x", "--set", "title=x", "--"])
-        .args([format!("{slot}+=alpha"), format!("{slot}+=beta")])
-        .assert()
-        .success();
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(
+        dir.path(),
+        &[
+            "add",
+            "--name",
+            "x",
+            "--set",
+            "title=x",
+            "--",
+            &format!("{slot}+=alpha"),
+            &format!("{slot}+=beta"),
+        ],
+    );
+    support::run_ok(dir.path(), &["check"]);
     std::fs::read_to_string(dir.path().join("tasks/x.typ")).unwrap()
 }
 

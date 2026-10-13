@@ -36,19 +36,23 @@ fn a_text_slot_escapes_the_files_bytes_like_any_other_value() {
     let hazards = support::MARKUP_HAZARDS;
     let path = fixture(dir.path(), "notes.txt", &format!("{hazards}\n"));
 
-    support::mt(dir.path())
-        .args(["add", "--name", "from-file", "--set", "title=From file"])
-        .args(["--set", "why=a note"])
-        .args(["--", &format!("summary@{path}")])
-        .assert()
-        .success();
-
-    let written = std::fs::read_to_string(dir.path().join("tasks/from-file.typ")).unwrap();
+    let written = support::add_and_read(
+        dir.path(),
+        "from-file",
+        &[
+            "--set",
+            "title=From file",
+            "--set",
+            "why=a note",
+            "--",
+            &format!("summary@{path}"),
+        ],
+    );
     assert!(
         written.contains(r"create-\*star\* \_u\_ \$x\$ \#h \[b\] \<a> >g \@at"),
         "a text slot must escape a file's bytes: {written}"
     );
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 /// A `raw` slot splices the file verbatim — the case the operator exists for.
@@ -61,13 +65,11 @@ fn a_raw_slot_splices_the_file_verbatim() {
                 - Or raise its cap in `.linecop.yaml`, with a reason.\n";
     let path = fixture(dir.path(), "remedy.typ", body);
 
-    support::mt(dir.path())
-        .args(["add", "--name", "from-typ", "--set", "title=From typ"])
-        .args(["--", &format!("summary@{path}")])
-        .assert()
-        .success();
-
-    let written = std::fs::read_to_string(dir.path().join("tasks/from-typ.typ")).unwrap();
+    let written = support::add_and_read(
+        dir.path(),
+        "from-typ",
+        &["--set", "title=From typ", "--", &format!("summary@{path}")],
+    );
     assert!(
         written.contains("- Or raise its cap in `.linecop.yaml`, with a reason."),
         "a raw slot must splice the file verbatim: {written}"
@@ -76,7 +78,7 @@ fn a_raw_slot_splices_the_file_verbatim() {
         !written.contains(r"\`"),
         "a raw slot must not escape the file: {written}"
     );
-    support::mt(dir.path()).arg("check").assert().success();
+    support::run_ok(dir.path(), &["check"]);
 }
 
 /// The operator reads the file for EVERY kind, not only the two the design
@@ -91,14 +93,18 @@ fn a_typed_slot_reads_the_file_too() {
     let dir = support::project_with_slot_template();
     let path = fixture(dir.path(), "weight.txt", "7\n");
 
-    support::mt(dir.path())
-        .args(["add", "--name", "typed", "--set", "title=Typed"])
-        .args(["--set", "why=a note"])
-        .args(["--", &format!("weight@{path}")])
-        .assert()
-        .success();
-
-    let written = std::fs::read_to_string(dir.path().join("tasks/typed.typ")).unwrap();
+    let written = support::add_and_read(
+        dir.path(),
+        "typed",
+        &[
+            "--set",
+            "title=Typed",
+            "--set",
+            "why=a note",
+            "--",
+            &format!("weight@{path}"),
+        ],
+    );
     assert!(written.contains("priority: 7,"), "{written}");
     assert_eq!(
         support::at(&support::task_json(dir.path(), "typed"), "/priority").as_f64(),
@@ -138,11 +144,18 @@ fn the_set_flag_carries_the_file_operator_too() {
     let dir = support::project_with_slot_template();
     let path = fixture(dir.path(), "why.txt", "because the file says so");
 
-    support::mt(dir.path())
-        .args(["add", "--name", "via-set", "--set", "title=Via set"])
-        .args(["--set", &format!("why@{path}")])
-        .assert()
-        .success();
+    support::run_ok(
+        dir.path(),
+        &[
+            "add",
+            "--name",
+            "via-set",
+            "--set",
+            "title=Via set",
+            "--set",
+            &format!("why@{path}"),
+        ],
+    );
 
     assert_eq!(
         support::at(&support::task_json(dir.path(), "via-set"), "/links/0/note").as_str(),
