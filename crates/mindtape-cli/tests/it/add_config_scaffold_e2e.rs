@@ -9,9 +9,6 @@
 //! and exports `CARGO_BIN_EXE_mt`, a guarantee `--lib` unit tests don't get.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
-use mindtape::test_support::tempdir;
-use std::path::Path;
-
 use crate::support;
 
 /// A config whose `[tasks.priority]` is required: the barebones template omits
@@ -21,8 +18,7 @@ const PRIORITY_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
 
 #[test]
 fn injects_config_required_priority_slot() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
     std::fs::write(
         dir.path().join(".mindtape/config.toml"),
         PRIORITY_REQUIRED_CONFIG,
@@ -69,8 +65,7 @@ const REAL_PRIORITY_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
 
 #[test]
 fn injects_real_scale_priority_slot_and_round_trips_a_decimal() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
     std::fs::write(
         dir.path().join(".mindtape/config.toml"),
         REAL_PRIORITY_REQUIRED_CONFIG,
@@ -111,8 +106,7 @@ const STRICT_ICE_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
 
 #[test]
 fn injects_framework_leaf_slots_for_a_strict_framework_priority() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
     std::fs::write(dir.path().join(".mindtape/config.toml"), STRICT_ICE_CONFIG).unwrap();
 
     // `--describe` surfaces the framework leaves, not a scalar priority.
@@ -174,8 +168,7 @@ const CUSTOM_LEGEND_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
 
 #[test]
 fn derives_initial_status_from_a_custom_legend() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
     std::fs::write(
         dir.path().join(".mindtape/config.toml"),
         CUSTOM_LEGEND_CONFIG,
@@ -199,8 +192,7 @@ fn derives_initial_status_from_a_custom_legend() {
 /// kept, the date restamped, and `--status` still overrides it.
 #[test]
 fn files_at_the_status_the_template_names() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
     std::fs::write(
         dir.path().join(".mindtape/config.toml"),
         CUSTOM_LEGEND_CONFIG,
@@ -253,8 +245,7 @@ const ESTIMATE_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
 /// not leave a task that fails `check` the moment it lands.
 #[test]
 fn add_with_no_explicit_estimate_defaults_to_a_valid_task() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
     std::fs::write(
         dir.path().join(".mindtape/config.toml"),
         ESTIMATE_REQUIRED_CONFIG,
@@ -402,15 +393,13 @@ const KIND_DEFAULT_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
 /// Scaffold `config`, run `add --name <name> --set title=T` with `principal` in
 /// `$MINDTAPE_PRINCIPAL` plus `extra` args, and return the child's stderr.
 fn add_capture_stderr(
-    dir: &Path,
     config: &str,
     name: &str,
     principal: &str,
     extra: &[&str],
-) -> String {
-    support::scaffold(dir);
-    std::fs::write(dir.join(".mindtape/config.toml"), config).unwrap();
-    let output = support::mt(dir)
+) -> (tempfile::TempDir, String) {
+    let dir = support::scaffold_project(config);
+    let output = support::mt(dir.path())
         .env("MINDTAPE_PRINCIPAL", principal)
         .args(["add", "--name", name, "--set", "title=T"])
         .args(extra)
@@ -418,7 +407,7 @@ fn add_capture_stderr(
         .success()
         .get_output()
         .clone();
-    String::from_utf8_lossy(&output.stderr).into_owned()
+    (dir, String::from_utf8_lossy(&output.stderr).into_owned())
 }
 
 /// The env-filled assignee gets a note naming the value, the config path and
@@ -426,8 +415,7 @@ fn add_capture_stderr(
 /// see the default happened and how to override it.
 #[test]
 fn notes_the_env_filled_assignee() {
-    let dir = tempdir();
-    let stderr = add_capture_stderr(dir.path(), ASSIGNEE_REQUIRED_CONFIG, "noted", "ada", &[]);
+    let (dir, stderr) = add_capture_stderr(ASSIGNEE_REQUIRED_CONFIG, "noted", "ada", &[]);
     assert!(
         stderr.contains(
             "note: filled in from config: assignee = ada ([tasks.assignee] env MINDTAPE_PRINCIPAL)"
@@ -446,8 +434,7 @@ fn notes_the_env_filled_assignee() {
 /// the value is a config default rather than something the caller typed.
 #[test]
 fn notes_the_default_filled_kind() {
-    let dir = tempdir();
-    let stderr = add_capture_stderr(dir.path(), KIND_DEFAULT_CONFIG, "defaulted", "ada", &[]);
+    let (dir, stderr) = add_capture_stderr(KIND_DEFAULT_CONFIG, "defaulted", "ada", &[]);
     assert!(
         stderr
             .contains("note: filled in from config: kind = feature ([tasks.fields.kind] default)"),
@@ -464,8 +451,7 @@ fn splices_a_required_extension_field() {
     const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
          [dicts.machines]\nvalues = [\"alpha\", \"desk\"]\n\
          [tasks.fields.x-machine]\nvalues = [\"@machines\"]\nrequired = true\ndefault = \"alpha\"\n";
-    let dir = tempdir();
-    let stderr = add_capture_stderr(dir.path(), CONFIG, "filled", "ada", &[]);
+    let (dir, stderr) = add_capture_stderr(CONFIG, "filled", "ada", &[]);
     assert!(
         stderr.contains(
             "note: filled in from config: x-machine = alpha ([tasks.fields.x-machine] default)"
@@ -485,9 +471,7 @@ fn splices_a_required_extension_field() {
 /// backs it with an environment.
 #[test]
 fn an_explicitly_set_field_draws_no_note() {
-    let dir = tempdir();
-    let stderr = add_capture_stderr(
-        dir.path(),
+    let (dir, stderr) = add_capture_stderr(
         ASSIGNEE_REQUIRED_CONFIG,
         "chosen",
         "ada",

@@ -6,7 +6,6 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
-use mindtape::test_support::tempdir;
 
 /// `mt add`'s reported path is the exact `dest.join(...)` it wrote to — under
 /// the default `--into .`, that is `<project root>/tasks/<rel>` in full,
@@ -18,15 +17,15 @@ fn expected_path(dir: &std::path::Path, rel: &str) -> String {
 
 /// A scaffolded project with a pre-existing `tasks/dup.typ`, the shared
 /// fixture every skipped/suffixed outcome test collides against.
-fn scaffold_with_existing_dup(dir: &std::path::Path) {
-    support::scaffold(dir);
-    std::fs::write(dir.join("tasks/dup.typ"), "original").unwrap();
+fn scaffold_with_existing_dup() -> tempfile::TempDir {
+    let dir = support::scaffold();
+    std::fs::write(dir.path().join("tasks/dup.typ"), "original").unwrap();
+    dir
 }
 
 #[test]
 fn text_format_is_the_default_wrote_prose() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
 
     let output = support::mt(dir.path())
         .args(["add", "--name", "wired", "--set", "title=T"])
@@ -42,8 +41,7 @@ fn text_format_is_the_default_wrote_prose() {
 
 #[test]
 fn path_format_prints_only_the_written_path() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
 
     let output = support::mt(dir.path())
         .args([
@@ -63,8 +61,7 @@ fn path_format_prints_only_the_written_path() {
 
 #[test]
 fn path0_format_is_nul_terminated() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
 
     let output = support::mt(dir.path())
         .args([
@@ -81,8 +78,7 @@ fn path0_format_is_nul_terminated() {
 
 #[test]
 fn json_format_reports_the_wrote_outcome() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
 
     let output = support::mt(dir.path())
         .args([
@@ -103,8 +99,7 @@ fn json_format_reports_the_wrote_outcome() {
 
 #[test]
 fn json_format_reports_the_skipped_outcome() {
-    let dir = tempdir();
-    scaffold_with_existing_dup(dir.path());
+    let dir = scaffold_with_existing_dup();
 
     let output = support::mt(dir.path())
         .args([
@@ -125,8 +120,7 @@ fn json_format_reports_the_skipped_outcome() {
 
 #[test]
 fn json_format_reports_the_suffixed_outcome_with_the_minted_path() {
-    let dir = tempdir();
-    scaffold_with_existing_dup(dir.path());
+    let dir = scaffold_with_existing_dup();
 
     let output = support::mt(dir.path())
         .args([
@@ -155,8 +149,7 @@ fn json_format_reports_the_suffixed_outcome_with_the_minted_path() {
 
 #[test]
 fn text_format_names_the_skipped_and_suffixed_outcomes_too() {
-    let dir = tempdir();
-    scaffold_with_existing_dup(dir.path());
+    let dir = scaffold_with_existing_dup();
 
     let skipped = support::mt(dir.path())
         .args([
@@ -195,8 +188,7 @@ fn text_format_names_the_skipped_and_suffixed_outcomes_too() {
 /// returns before any dedup decision or write, regardless of `--format`.
 #[test]
 fn print_ignores_format_and_previews_source_instead() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
 
     let output = support::mt(dir.path())
         .args([
@@ -223,8 +215,7 @@ fn reported_hash(stdout: &str) -> String {
 
 #[test]
 fn text_report_names_the_slug_hash_that_mt_eval_resolves() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
 
     let stdout = support::stdout(
         dir.path(),
@@ -242,8 +233,7 @@ fn text_report_names_the_slug_hash_that_mt_eval_resolves() {
 
 #[test]
 fn json_report_carries_the_slug_hash() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
 
     let stdout = support::stdout(
         dir.path(),

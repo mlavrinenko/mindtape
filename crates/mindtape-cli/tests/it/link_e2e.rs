@@ -7,7 +7,6 @@
 //! process, and the fact that a written file still passes `mt check`.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
-use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use crate::support;
@@ -23,17 +22,20 @@ fn task(title: &str) -> String {
     )
 }
 
-fn scaffold(dir: &Path) {
-    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::write(dir.join(".mindtape/config.toml"), CONFIG).unwrap();
-    support::install_lib(dir);
+fn scaffold() -> tempfile::TempDir {
+    let dir = support::scaffold_project(CONFIG);
     for (stem, title) in [
         ("wire-oauth", "Wire OAuth"),
         ("pick-a-provider", "Pick a provider"),
         ("write-docs", "Write docs"),
     ] {
-        std::fs::write(dir.join("tasks").join(format!("{stem}.typ")), task(title)).unwrap();
+        std::fs::write(
+            dir.path().join("tasks").join(format!("{stem}.typ")),
+            task(title),
+        )
+        .unwrap();
     }
+    dir
 }
 
 fn source(dir: &Path, stem: &str) -> String {
@@ -46,8 +48,7 @@ fn source(dir: &Path, stem: &str) -> String {
 /// check and only the whole-project validator can answer.
 #[test]
 fn a_rejected_edge_leaves_the_file_untouched() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     let before = source(dir.path(), "wire-oauth");
 
     let output = support::mt(dir.path())
@@ -71,8 +72,7 @@ fn a_rejected_edge_leaves_the_file_untouched() {
 
 #[test]
 fn a_written_edge_leaves_the_project_valid() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     support::mt(dir.path())
         .args(["link", "wire-oauth", "depends-on", "pick-a-provider"])
@@ -91,8 +91,7 @@ fn a_written_edge_leaves_the_project_valid() {
 
 #[test]
 fn an_adjacency_map_arrives_on_stdin() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     support::mt(dir.path())
         .args(["link", "--apply", "-"])
@@ -117,8 +116,7 @@ fn an_adjacency_map_arrives_on_stdin() {
 
 #[test]
 fn a_json_adjacency_map_reads_the_same_way() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     support::mt(dir.path())
         .args(["link", "--apply", "-"])
@@ -134,8 +132,7 @@ fn a_json_adjacency_map_reads_the_same_way() {
 
 #[test]
 fn re_applying_the_same_map_writes_nothing() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     let map = "wire-oauth:\n  depends-on: [pick-a-provider, write-docs]\n";
 
     support::mt(dir.path())
@@ -157,8 +154,7 @@ fn re_applying_the_same_map_writes_nothing() {
 
 #[test]
 fn dry_run_prints_the_plan_and_writes_nothing() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     let before = source(dir.path(), "wire-oauth");
 
     let output = support::mt(dir.path())
@@ -183,8 +179,7 @@ fn dry_run_prints_the_plan_and_writes_nothing() {
 
 #[test]
 fn an_unknown_kind_exits_non_zero_naming_the_configured_kinds() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     let output = support::mt(dir.path())
         .args(["link", "wire-oauth", "depends-onn", "write-docs"])
@@ -204,8 +199,7 @@ fn an_unknown_kind_exits_non_zero_naming_the_configured_kinds() {
 
 #[test]
 fn a_missing_target_exits_non_zero() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     let output = support::mt(dir.path())
         .args(["link", "wire-oauth", "depends-on", "no-such-task"])
@@ -223,8 +217,7 @@ fn a_missing_target_exits_non_zero() {
 /// non-zero for the entry it refused, and the entries it accepted are on disk.
 #[test]
 fn a_failing_entry_still_lets_the_rest_land() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     support::mt(dir.path())
         .args(["link", "--apply", "-"])
@@ -246,8 +239,7 @@ fn a_failing_entry_still_lets_the_rest_land() {
 
 #[test]
 fn replace_drops_the_edges_the_map_omits() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     support::mt(dir.path())
         .args(["link", "wire-oauth", "depends-on", "pick-a-provider"])
@@ -277,8 +269,7 @@ fn closing_a_dependency_cycle_is_refused_from_either_end() {
         ("wire-oauth", "pick-a-provider"),
         ("pick-a-provider", "wire-oauth"),
     ] {
-        let dir = tempdir();
-        scaffold(dir.path());
+        let dir = scaffold();
         support::run_ok(dir.path(), &["link", first, "depends-on", second]);
         let before = (source(dir.path(), first), source(dir.path(), second));
 
@@ -302,8 +293,7 @@ fn closing_a_dependency_cycle_is_refused_from_either_end() {
 /// edge elsewhere.
 #[test]
 fn a_cycle_already_on_disk_does_not_block_an_unrelated_edge() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     for (stem, target) in [
         ("wire-oauth", "pick-a-provider"),
         ("pick-a-provider", "wire-oauth"),

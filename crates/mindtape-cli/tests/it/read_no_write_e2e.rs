@@ -30,26 +30,13 @@ use std::path::Path;
 
 use crate::support;
 
-/// Scaffold a temp project's `.mindtape/config.toml` + the in-tree lib
-/// override — the shared prologue every fixture below starts from.
-fn scaffold(dir: &Path) {
-    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::write(
-        dir.join(".mindtape/config.toml"),
-        "[tasks]\nroots = [\"tasks\"]\n",
-    )
-    .unwrap();
-    support::install_lib(dir);
-}
-
 /// File two link-free tasks into a scaffolded project via `mt add`.
 ///
 /// No task holds a `depends-on`/`relates-to`/`supersedes`/`duplicates`/`links`
 /// field: a parallel task is reworking the link DSL on the same base commit,
 /// so these fixtures stay decoupled from it.
 fn build_fixture() -> tempfile::TempDir {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = support::scaffold();
 
     for (name, title) in [("alpha", "Alpha task"), ("beta", "Beta task")] {
         support::mt(dir.path())
@@ -67,8 +54,7 @@ fn build_fixture() -> tempfile::TempDir {
 /// is the only recurrence writer, so `mt ls`/`mt check` must leave a
 /// recurring task's tree exactly as untouched as any other.
 fn build_recurring_fixture() -> tempfile::TempDir {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = support::scaffold();
     std::fs::write(
         dir.path().join("tasks/water-plants.typ"),
         "#import \"@local/mindtape:0.2.0\": *\n\n\

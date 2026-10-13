@@ -4,7 +4,6 @@
 //! principal fails loudly instead of writing an empty or wrong worker.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
-use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use crate::support;
@@ -17,12 +16,6 @@ const ASSIGNEE_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
      [tasks.assignee]\nallowed = [\"ada\", \"lin\"]\nrequired = true\n\
      [[actors]]\nname = \"ada\"\nkind = \"human\"\n\
      [[actors]]\nname = \"lin\"\nkind = \"human\"\n";
-
-fn scaffold(dir: &Path, config: &str) {
-    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::write(dir.join(".mindtape/config.toml"), config).unwrap();
-    support::install_lib(dir);
-}
 
 fn describe_slot_names(dir: &Path) -> Vec<String> {
     let output = support::mt(dir)
@@ -44,8 +37,7 @@ fn describe_slot_names(dir: &Path) -> Vec<String> {
 
 #[test]
 fn injects_config_required_assignee_slot() {
-    let dir = tempdir();
-    scaffold(dir.path(), ASSIGNEE_REQUIRED_CONFIG);
+    let dir = support::scaffold_project(ASSIGNEE_REQUIRED_CONFIG);
 
     // `--describe` surfaces the spliced-in assignee slot as a choice.
     let names = describe_slot_names(dir.path());
@@ -74,8 +66,7 @@ fn injects_config_required_assignee_slot() {
 /// `$MINDTAPE_PRINCIPAL` files silently, with no `--set` and no prompt.
 #[test]
 fn principal_env_fills_required_assignee_silently() {
-    let dir = tempdir();
-    scaffold(dir.path(), ASSIGNEE_REQUIRED_CONFIG);
+    let dir = support::scaffold_project(ASSIGNEE_REQUIRED_CONFIG);
 
     support::mt(dir.path())
         .env("MINDTAPE_PRINCIPAL", "ada")
@@ -94,8 +85,7 @@ fn principal_env_fills_required_assignee_silently() {
 /// write an empty worker.
 #[test]
 fn unset_principal_with_required_assignee_is_a_hard_error() {
-    let dir = tempdir();
-    scaffold(dir.path(), ASSIGNEE_REQUIRED_CONFIG);
+    let dir = support::scaffold_project(ASSIGNEE_REQUIRED_CONFIG);
 
     support::mt(dir.path())
         .env_remove("MINDTAPE_PRINCIPAL")
@@ -110,8 +100,7 @@ fn unset_principal_with_required_assignee_is_a_hard_error() {
 /// lands on a task.
 #[test]
 fn principal_outside_allowed_is_a_hard_error() {
-    let dir = tempdir();
-    scaffold(dir.path(), ASSIGNEE_REQUIRED_CONFIG);
+    let dir = support::scaffold_project(ASSIGNEE_REQUIRED_CONFIG);
 
     let output = support::mt(dir.path())
         .env("MINDTAPE_PRINCIPAL", "eve")

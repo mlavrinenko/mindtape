@@ -8,7 +8,6 @@
 //! file byte-identical — are only observable end to end.
 #![allow(clippy::unwrap_used)]
 
-use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use crate::support;
@@ -29,8 +28,8 @@ status: wip(2026, 6, 1),\n  \
 tags: (\"backend\",),\n\
 )\n\n== Summary\n\nBody.\n";
 
-fn scaffold(dir: &Path) {
-    support::scaffold_config(dir, CONFIG, &[("wire-oauth.typ", SUBJECT)]);
+fn scaffold() -> tempfile::TempDir {
+    support::scaffold_config(CONFIG, &[("wire-oauth.typ", SUBJECT)])
 }
 
 fn read(dir: &Path) -> String {
@@ -60,8 +59,7 @@ fn set_err(dir: &Path, token: &str) -> String {
 /// repeated writes compose rather than clobbering each other.
 #[test]
 fn writes_a_scalar_field_of_each_shape() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     let written = set_ok(dir.path(), "priority=8");
     assert!(written.contains("priority: 8"), "{written}");
@@ -79,8 +77,7 @@ fn writes_a_scalar_field_of_each_shape() {
 /// A field already present is replaced, not doubled.
 #[test]
 fn replaces_an_existing_value() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     let written = set_ok(dir.path(), "title=Wire OAuth properly");
     assert!(
@@ -94,8 +91,7 @@ fn replaces_an_existing_value() {
 /// the same append writes nothing at all.
 #[test]
 fn appends_to_a_list_field_and_is_idempotent() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     let written = set_ok(dir.path(), "tags+=auth");
     assert!(
@@ -110,8 +106,7 @@ fn appends_to_a_list_field_and_is_idempotent() {
 /// `=` on a list field replaces the whole list rather than appending to it.
 #[test]
 fn plain_assignment_replaces_a_list_field() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     let written = set_ok(dir.path(), "tags=frontend");
     assert!(written.contains("tags: (\"frontend\",)"), "{written}");
@@ -122,8 +117,7 @@ fn plain_assignment_replaces_a_list_field() {
 /// leaves the file exactly as it was, so there is nothing to repair.
 #[test]
 fn a_refused_value_leaves_the_file_byte_identical() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     let before = read(dir.path());
 
     let stderr = set_err(dir.path(), "priority=99");
@@ -135,8 +129,7 @@ fn a_refused_value_leaves_the_file_byte_identical() {
 /// fields listed — the way an unknown `--set` key already is.
 #[test]
 fn an_unknown_field_is_refused_by_name() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     let before = read(dir.path());
 
     let stderr = set_err(dir.path(), "titel=nope");
@@ -153,8 +146,7 @@ fn an_unknown_field_is_refused_by_name() {
 /// rather than reporting it as a typo.
 #[test]
 fn a_field_with_its_own_command_names_that_command() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     let stderr = set_err(dir.path(), "status=done");
     assert!(stderr.contains("mt flip"), "{stderr}");
@@ -167,8 +159,7 @@ fn a_field_with_its_own_command_names_that_command() {
 /// evaluated, naming the field and what it takes.
 #[test]
 fn a_wrong_shaped_value_is_refused_naming_the_field() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     let stderr = set_err(dir.path(), "priority=high");
     assert!(stderr.contains("priority"), "{stderr}");
@@ -185,8 +176,7 @@ fn a_wrong_shaped_value_is_refused_naming_the_field() {
 /// literal, so nothing in it is evaluated on the way back in.
 #[test]
 fn a_hazardous_string_value_survives_the_round_trip() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     support::mt(dir.path())
         .args([
@@ -208,8 +198,7 @@ fn a_hazardous_string_value_survives_the_round_trip() {
 /// A refused write opens at the offending field's line, like `mt check`.
 #[test]
 fn a_refused_set_reports_the_file_and_line_of_the_breach() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     let stderr = set_err(dir.path(), "priority=99");
     assert!(stderr.contains("error: tasks/wire-oauth.typ:"), "{stderr}");
 }
@@ -219,8 +208,7 @@ fn a_refused_set_reports_the_file_and_line_of_the_breach() {
 /// unwritten candidate.
 #[test]
 fn a_refused_insert_points_at_the_call_on_disk() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     let stderr = set_err(dir.path(), "priority=99");
     assert!(
         stderr.contains("error: tasks/wire-oauth.typ:3: priority:"),
@@ -231,8 +219,7 @@ fn a_refused_insert_points_at_the_call_on_disk() {
 /// A refused write that replaces a field opens at that field's line on disk.
 #[test]
 fn a_refused_replace_points_at_the_field_on_disk() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     let written = set_ok(dir.path(), "priority=5");
     let line = written
         .lines()

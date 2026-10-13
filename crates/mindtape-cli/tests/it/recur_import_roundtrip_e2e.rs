@@ -7,7 +7,6 @@
 //! `[tasks.recur] rrule = true`, which the scratch config carries too.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
-use mindtape::test_support::tempdir;
 use std::path::{Path, PathBuf};
 
 use crate::support;
@@ -23,10 +22,8 @@ fn repo_root() -> PathBuf {
 /// `[tasks.recur]` policy — not its `[[typst.local-packages]]` override,
 /// which `support::install_lib` substitutes with the in-tree prelude
 /// directly regardless of project location.
-fn scaffold(dir: &Path) {
-    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::write(
-        dir.join(".mindtape/config.toml"),
+fn scaffold() -> tempfile::TempDir {
+    support::scaffold_project(
         "[tasks]\nroots = [\"tasks\"]\n\
          [tasks.recur]\nrrule = true\n\
          [[tasks.status]]\nvalue = \"todo\"\n\
@@ -34,8 +31,6 @@ fn scaffold(dir: &Path) {
          [[tasks.status]]\nvalue = \"done\"\nterminal = true\n\
          [[tasks.status]]\nvalue = \"cancelled\"\nterminal = true\n",
     )
-    .unwrap();
-    support::install_lib(dir);
 }
 
 /// `(title, recur)` pairs from `mt ls --json`'s envelope (`{"tasks": [...],
@@ -83,8 +78,7 @@ fn recur_survives_ls_json_piped_into_import() {
         .clone();
     let exported = String::from_utf8(exported).unwrap();
 
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     support::mt(dir.path())
         .arg("import")
         .write_stdin(exported.clone())

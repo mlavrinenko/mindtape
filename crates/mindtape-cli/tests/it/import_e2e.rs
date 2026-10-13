@@ -5,29 +5,21 @@
 //! `crates/mindtape-cli/src/cmd/import/tests.rs` via `cmd::import::import_records`.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
-use mindtape::test_support::tempdir;
-use std::path::Path;
-
 use crate::support;
 
-fn scaffold(dir: &Path) {
-    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::write(
-        dir.join(".mindtape/config.toml"),
+fn scaffold() -> tempfile::TempDir {
+    support::scaffold_project(
         "[tasks]\nroots = [\"tasks\"]\n\
          [[tasks.status]]\nvalue = \"wip\"\n\
          [[tasks.status]]\nvalue = \"done\"\nterminal = true\n",
     )
-    .unwrap();
-    support::install_lib(dir);
 }
 
 const ONE_TASK_JSON: &str = r#"[{"id":"","file":"","title":"Wire import","status":{"name":"wip","date":"2026-06-01","note":null},"priority":null,"difficulty":null,"kind":null,"estimate":{},"links":[],"tags":[],"derived_tags":[],"due":null,"start":null,"reviewed":null,"body":"","extras":{}}]"#;
 
 #[test]
 fn imports_from_stdin() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     support::mt(dir.path())
         .arg("import")
@@ -42,8 +34,7 @@ fn imports_from_stdin() {
 
 #[test]
 fn imports_from_a_file_argument() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     let input = dir.path().join("in.json");
     std::fs::write(&input, ONE_TASK_JSON).unwrap();
 
@@ -64,8 +55,7 @@ fn imports_from_a_file_argument() {
 /// second record's status is outside the legend.
 #[test]
 fn a_rejected_record_is_never_written_and_the_rest_still_land() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     let bad = ONE_TASK_JSON
         .replace("Wire import", "Bad record")
         .replace(r#""name":"wip""#, r#""name":"nonesuch""#);
@@ -97,8 +87,7 @@ fn a_rejected_record_is_never_written_and_the_rest_still_land() {
 /// `--dry-run` names what it would file and says it wrote nothing.
 #[test]
 fn dry_run_says_would_file_and_writes_nothing() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     support::mt(dir.path())
         .args(["import", "--dry-run"])
@@ -125,8 +114,7 @@ fn record(stem: &str, file: &str, dep: Option<&str>) -> String {
 
 #[test]
 fn a_two_folder_export_imports_back_whole() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     let batch = format!(
         "[{},{}]",
         record("alpha", "tasks/a/alpha.typ", Some("../b/beta.typ")),
@@ -146,8 +134,7 @@ fn a_two_folder_export_imports_back_whole() {
 
 #[test]
 fn an_explicit_destination_overrides_the_record_file() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     let batch = format!("[{}]", record("alpha", "tasks/a/alpha.typ", None));
 
     support::mt(dir.path())
@@ -162,8 +149,7 @@ fn an_explicit_destination_overrides_the_record_file() {
 
 #[test]
 fn a_stem_taken_in_another_folder_gets_a_suffix_and_the_report_says_so() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     let first = format!("[{}]", record("alpha", "tasks/a/alpha.typ", None));
     support::mt(dir.path())
         .arg("import")
@@ -184,8 +170,7 @@ fn a_stem_taken_in_another_folder_gets_a_suffix_and_the_report_says_so() {
 
 #[test]
 fn a_file_outside_every_root_or_climbing_out_lands_in_the_first_root() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     let batch = format!(
         "[{},{},{}]",
         record("alpha", "elsewhere/alpha.typ", None),

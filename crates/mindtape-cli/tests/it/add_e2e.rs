@@ -18,8 +18,7 @@ use mindtape::test_support::tempdir;
 
 #[test]
 fn end_to_end_files_and_validates_a_task() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
 
     support::mt(dir.path())
         .args(["add", "--name", "wire-add", "--set", "title=Wire add"])
@@ -37,8 +36,7 @@ fn end_to_end_files_and_validates_a_task() {
 
 #[test]
 fn end_to_end_files_from_positional_title() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
 
     support::mt(dir.path())
         .args(["add", "cleanup", "kitchen"])
@@ -52,8 +50,7 @@ fn end_to_end_files_from_positional_title() {
 
 #[test]
 fn end_to_end_nests_into_subfolder() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
 
     support::mt(dir.path())
         .args(["add", "--to", "shopping", "Potatoes"])
@@ -66,8 +63,7 @@ fn end_to_end_nests_into_subfolder() {
 
 #[test]
 fn describe_json_emits_slot_schema() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
     assert!(
         support::describe_slot_names(dir.path())
             .iter()
@@ -79,8 +75,7 @@ fn describe_json_emits_slot_schema() {
 /// resolved, no slot is filled, nothing is written.
 #[test]
 fn list_prints_template_stems_and_stops() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
 
     let output = support::mt(dir.path())
         .args(["add", "--list"])
@@ -100,8 +95,7 @@ fn list_prints_template_stems_and_stops() {
 
 #[test]
 fn collision_is_a_hard_error() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
     std::fs::write(dir.path().join("tasks/dup.typ"), "existing").unwrap();
     support::mt(dir.path())
         .args(["add", "--name", "dup", "--set", "title=Dup"])
@@ -113,8 +107,7 @@ fn collision_is_a_hard_error() {
 /// key, rather than silently filing a task with the wrong (default) value.
 #[test]
 fn unknown_set_key_is_a_hard_error() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
 
     let output = support::mt(dir.path())
         .args(["add", "--name", "typo", "--set", "title=T"])
@@ -138,8 +131,7 @@ fn unknown_set_key_is_a_hard_error() {
 /// `cmd/add/values_tests.rs`).
 #[test]
 fn end_to_end_files_from_yaml_on_stdin() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
 
     support::mt(dir.path())
         .args(["add", "--name", "wire-yaml", "-f", "-"])
@@ -155,8 +147,7 @@ fn end_to_end_files_from_yaml_on_stdin() {
 /// Same treatment for the `-f`/`--values` JSON entry point.
 #[test]
 fn unknown_values_json_key_is_a_hard_error() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
     let values = dir.path().join("v.json");
     std::fs::write(&values, r#"{"title":"T","priorty":3}"#).unwrap();
 

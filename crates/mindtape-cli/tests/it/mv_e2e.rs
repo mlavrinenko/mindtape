@@ -8,7 +8,6 @@
 //! rename that missed an inbound edge leaves a dangling one.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
-use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use crate::support;
@@ -55,9 +54,8 @@ fn mt(dir: &Path) -> assert_cmd::Command {
 
 /// The project every arm starts from: the subject, its three referrers (one of
 /// them in a sub-folder), and a task already holding the `taken` stem.
-fn scaffold(dir: &Path) {
-    support::scaffold_config(
-        dir,
+fn scaffold() -> tempfile::TempDir {
+    let dir = support::scaffold_config(
         CONFIG,
         &[
             ("old.typ", SUBJECT),
@@ -65,8 +63,9 @@ fn scaffold(dir: &Path) {
             ("referrer.typ", REFERRER),
         ],
     );
-    std::fs::create_dir_all(dir.join("tasks/sub")).unwrap();
-    std::fs::write(dir.join("tasks/sub/nested.typ"), NESTED).unwrap();
+    std::fs::create_dir_all(dir.path().join("tasks/sub")).unwrap();
+    std::fs::write(dir.path().join("tasks/sub/nested.typ"), NESTED).unwrap();
+    dir
 }
 
 fn read(dir: &Path, rel: &str) -> String {
@@ -75,8 +74,7 @@ fn read(dir: &Path, rel: &str) -> String {
 
 #[test]
 fn mv_renames_the_file_and_retargets_every_inbound_edge() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     support::git_commit_all(dir.path());
 
     mt(dir.path())
@@ -119,8 +117,7 @@ fn mv_renames_the_file_and_retargets_every_inbound_edge() {
 
 #[test]
 fn mv_stages_the_rename_through_git_when_the_tree_is_a_repository() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     support::git_commit_all(dir.path());
 
     mt(dir.path()).args(["mv", "old", "new"]).assert().success();
@@ -142,8 +139,7 @@ fn mv_falls_back_to_a_plain_rename_without_a_repository() {
     // No `git init`: the move is an ordinary filesystem rename and the inbound
     // rewrite is unchanged — the same split `mt rm` makes between its git and
     // gitless paths.
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     mt(dir.path()).args(["mv", "old", "new"]).assert().success();
 
@@ -155,8 +151,7 @@ fn mv_falls_back_to_a_plain_rename_without_a_repository() {
 
 #[test]
 fn mv_refuses_a_taken_stem_before_moving_anything() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     mt(dir.path())
         .args(["mv", "old", "taken"])
@@ -174,8 +169,7 @@ fn mv_refuses_a_taken_stem_before_moving_anything() {
 
 #[test]
 fn mv_dry_run_prints_the_plan_and_leaves_the_tree_untouched() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     let before = read(dir.path(), "tasks/referrer.typ");
 
     mt(dir.path())
@@ -194,8 +188,7 @@ fn mv_dry_run_prints_the_plan_and_leaves_the_tree_untouched() {
 fn mv_refuses_a_stem_carrying_a_path_separator() {
     // Moving a task between folders changes its derived tags and is a decision
     // of its own; `mv` renames in place and says so rather than guessing.
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     mt(dir.path())
         .args(["mv", "old", "sub/new"])

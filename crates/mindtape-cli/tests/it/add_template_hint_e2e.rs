@@ -5,7 +5,6 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
-use mindtape::test_support::tempdir;
 
 const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
      [tasks.fields.kind]\nvalues = [\"feat\", \"dev\"]\nrequired = true\n\
@@ -16,11 +15,11 @@ const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
 const PINNED: &str = "#import \"@local/mindtape:0.2.0\": *\n\
      #show: task.with(\n  title: slot(\"title\"),\n  kind: \"dev\",\n  difficulty: 3,\n)\n";
 
-fn scaffold(dir: &std::path::Path) {
-    std::fs::create_dir_all(dir.join(".mindtape/templates")).unwrap();
-    std::fs::write(dir.join(".mindtape/config.toml"), CONFIG).unwrap();
-    std::fs::write(dir.join(".mindtape/templates/dev.typ"), PINNED).unwrap();
-    support::install_lib(dir);
+fn scaffold() -> tempfile::TempDir {
+    let dir = support::scaffold_project(CONFIG);
+    std::fs::create_dir_all(dir.path().join(".mindtape/templates")).unwrap();
+    std::fs::write(dir.path().join(".mindtape/templates/dev.typ"), PINNED).unwrap();
+    dir
 }
 
 fn add(dir: &std::path::Path, kind: &str, extra: &[&str]) -> assert_cmd::assert::Assert {
@@ -33,8 +32,7 @@ fn add(dir: &std::path::Path, kind: &str, extra: &[&str]) -> assert_cmd::assert:
 
 #[test]
 fn refusal_names_the_template_that_pins_the_value() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     let out = add(dir.path(), "kind=dev", &[]).failure();
     let stderr = String::from_utf8_lossy(&out.get_output().stderr).into_owned();
     assert!(
@@ -46,8 +44,7 @@ fn refusal_names_the_template_that_pins_the_value() {
 
 #[test]
 fn no_hint_when_no_template_pins_the_value() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     let out = add(dir.path(), "kind=feat", &["--set", "kind=bogus"]).failure();
     let stderr = String::from_utf8_lossy(&out.get_output().stderr).into_owned();
     assert!(!stderr.contains("hint:"), "{stderr}");
@@ -57,8 +54,7 @@ fn no_hint_when_no_template_pins_the_value() {
 /// pins `kind`, so the refusal names no template.
 #[test]
 fn no_hint_when_the_breach_names_another_field() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     let config = format!(
         "{CONFIG}[[tasks.rules]]\nname = \"no-bare-t\"\nassert = 'title != \"T\"'\n\
          severity = \"error\"\n"
@@ -80,8 +76,7 @@ fn no_hint_when_the_breach_names_another_field() {
 /// template that writes the Rollback section is the fix.
 #[test]
 fn a_body_header_rule_is_about_the_field_its_when_reads() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     // Only the body rule can refuse here, so the hint cannot come from another
     // breach's field.
     let config = "[tasks]\nroots = [\"tasks\"]\n\
@@ -109,8 +104,7 @@ fn a_body_header_rule_is_about_the_field_its_when_reads() {
 /// is filled by `--set type=dev`, and the hint still names the field.
 #[test]
 fn a_field_filled_by_a_differently_named_slot_still_hints() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     std::fs::write(
         dir.path().join(".mindtape/templates/typed.typ"),
         "#import \"@local/mindtape:0.2.0\": *\n\

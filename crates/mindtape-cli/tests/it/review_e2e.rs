@@ -7,7 +7,6 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use mindtape::test_support::tempdir;
-use std::path::Path;
 
 use crate::support;
 
@@ -15,22 +14,20 @@ const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
      [[tasks.status]]\nvalue = \"wip\"\n\
      [[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
 
-fn scaffold(dir: &Path) {
-    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::write(dir.join(".mindtape/config.toml"), CONFIG).unwrap();
-    support::install_lib(dir);
-    std::fs::write(
-        dir.join("tasks/wire-oauth.typ"),
-        "#import \"@local/mindtape:0.2.0\": *\n\n\
-         #show: task.with(\n  title: \"Wire OAuth\",\n  status: wip(2026, 6, 1),\n)\n",
+fn scaffold() -> tempfile::TempDir {
+    support::scaffold_config(
+        CONFIG,
+        &[(
+            "wire-oauth.typ",
+            "#import \"@local/mindtape:0.2.0\": *\n\n\
+             #show: task.with(\n  title: \"Wire OAuth\",\n  status: wip(2026, 6, 1),\n)\n",
+        )],
     )
-    .unwrap();
 }
 
 #[test]
 fn refuses_to_review_a_terminal_task() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     support::mt(dir.path())
         .args(["done", "wire-oauth"])
         .assert()
@@ -50,8 +47,7 @@ fn refuses_to_review_a_terminal_task() {
 
 #[test]
 fn reviewing_twice_the_same_day_is_a_no_op_after_the_first() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     support::mt(dir.path())
         .env("MINDTAPE_NOW", "2026-09-05")
@@ -116,8 +112,7 @@ fn a_rejected_stamp_leaves_the_file_untouched() {
 
 #[test]
 fn reviewing_an_unresolvable_id_fails() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     let output = support::mt(dir.path())
         .args(["review", "does-not-exist"])

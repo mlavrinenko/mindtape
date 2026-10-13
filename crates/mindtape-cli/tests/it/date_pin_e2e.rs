@@ -32,11 +32,8 @@ priority: 5,\n  \
 due: on(2026, 7, 10),\n\
 )\n\n== Body\n";
 
-fn scaffold(dir: &Path) {
-    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::write(dir.join(".mindtape/config.toml"), CONFIG).unwrap();
-    support::install_lib(dir);
-    std::fs::write(dir.join("tasks/wire-oauth.typ"), WIRE_OAUTH).unwrap();
+fn scaffold() -> tempfile::TempDir {
+    support::scaffold_config(CONFIG, &[("wire-oauth.typ", WIRE_OAUTH)])
 }
 
 fn mt(dir: &Path) -> assert_cmd::Command {
@@ -108,8 +105,7 @@ fn num(part: &str) -> u32 {
 #[cfg(unix)]
 #[test]
 fn today_is_the_local_calendar_date_not_utc() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     let east = stamped_add_date(dir.path(), "east", &[("TZ", "MTE-14")]);
     let west = stamped_add_date(dir.path(), "west", &[("TZ", "MTW+12")]);
@@ -124,8 +120,7 @@ fn today_is_the_local_calendar_date_not_utc() {
 #[cfg(unix)]
 #[test]
 fn mindtape_now_outranks_the_local_timezone() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     let pin = [("MINDTAPE_NOW", "2026-09-05")];
     let east = stamped_add_date(dir.path(), "east", &[("TZ", "MTE-14"), pin[0]]);
@@ -136,8 +131,7 @@ fn mindtape_now_outranks_the_local_timezone() {
 
 #[test]
 fn mindtape_now_drives_the_now_filter() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     // Pinned before the due date: not yet overdue.
     let before = ls_ids(dir.path(), "due < now()", &[("MINDTAPE_NOW", "2026-07-01")]);
@@ -150,8 +144,7 @@ fn mindtape_now_drives_the_now_filter() {
 
 #[test]
 fn mindtape_now_rfc3339_timestamp_truncates_to_its_date() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
     let ids = ls_ids(
         dir.path(),
         "due < now()",
@@ -162,8 +155,7 @@ fn mindtape_now_rfc3339_timestamp_truncates_to_its_date() {
 
 #[test]
 fn mindtape_now_drives_the_stale_filter() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     // Status dated 2026-06-01, no `reviewed:`: `stale(30)` trips once "today"
     // is more than 30 days past that.
@@ -176,8 +168,7 @@ fn mindtape_now_drives_the_stale_filter() {
 
 #[test]
 fn malformed_mindtape_now_is_a_hard_error_naming_the_variable() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     let output = mt(dir.path())
         .env("MINDTAPE_NOW", "not-a-date")
@@ -191,8 +182,7 @@ fn malformed_mindtape_now_is_a_hard_error_naming_the_variable() {
 
 #[test]
 fn unset_falls_back_to_the_system_clock() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     mt(dir.path())
         .env_remove("MINDTAPE_NOW")
@@ -203,8 +193,7 @@ fn unset_falls_back_to_the_system_clock() {
 
 #[test]
 fn mindtape_now_stamps_the_pinned_date_on_done() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     mt(dir.path())
         .env("MINDTAPE_NOW", "2026-09-01")
@@ -218,8 +207,7 @@ fn mindtape_now_stamps_the_pinned_date_on_done() {
 
 #[test]
 fn mindtape_now_stamps_the_pinned_date_on_review() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     mt(dir.path())
         .env("MINDTAPE_NOW", "2026-09-02")
@@ -233,8 +221,7 @@ fn mindtape_now_stamps_the_pinned_date_on_review() {
 
 #[test]
 fn mindtape_now_stamps_the_pinned_date_on_add() {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     mt(dir.path())
         .env("MINDTAPE_NOW", "2026-09-03")

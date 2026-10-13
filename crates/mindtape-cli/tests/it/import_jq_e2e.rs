@@ -79,20 +79,21 @@ fn assert_golden(source: &str) {
 /// The project `mt init --no-input` writes, with this checkout's prelude. The
 /// adapters are config-blind, so they must emit status names the default
 /// legend holds: a reader's first import lands in exactly this project.
-fn scaffold(dir: &Path) {
-    support::mt(dir)
+fn scaffold() -> tempfile::TempDir {
+    let dir = tempdir();
+    support::mt(dir.path())
         .args(["init", "--no-input"])
         .assert()
         .success();
-    support::install_lib(dir);
+    support::install_lib(dir.path());
+    dir
 }
 
 /// Pipe `jq -f <source>.jq <source>.in.json`'s stdout into `mt import`, then
 /// run `mt check`. The count below stays as a guard that every adapter record
 /// became a file.
 fn assert_e2e_import(source: &str) {
-    let dir = tempdir();
-    scaffold(dir.path());
+    let dir = scaffold();
 
     let jq_dir = repo_root().join("contrib/jq");
     let script = jq_dir.join(format!("{source}.jq"));

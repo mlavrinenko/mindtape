@@ -319,18 +319,14 @@ pub fn describe_slot_kind(dir: &Path, name: &str) -> String {
         .to_owned()
 }
 
-/// Write `config` to `.mindtape/config.toml` under an existing `dir`, install
-/// the in-tree lib, and drop one task file per `(name, source)` pair into
-/// `tasks/`. The `dir`-taking counterpart of [`scaffold_project`], for the
-/// link-rewriting batteries (`rm_e2e`, `mv_e2e`) that need the temp directory
-/// in hand before the project exists — a git repository is initialized over it.
-pub fn scaffold_config(dir: &Path, config: &str, files: &[(&str, &str)]) {
-    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::write(dir.join(".mindtape/config.toml"), config).unwrap();
-    install_lib(dir);
+/// [`scaffold_project`] with one task file per `(name, source)` pair dropped
+/// into `tasks/`.
+pub fn scaffold_config(config: &str, files: &[(&str, &str)]) -> tempfile::TempDir {
+    let dir = scaffold_project(config);
     for (name, contents) in files {
-        std::fs::write(dir.join("tasks").join(name), contents).unwrap();
+        std::fs::write(dir.path().join("tasks").join(name), contents).unwrap();
     }
+    dir
 }
 
 /// Run `git` in `dir` and assert it succeeded.
@@ -364,18 +360,12 @@ pub fn install_lib(dir: &Path) {
     std::fs::create_dir_all(dir.join("tasks")).unwrap();
 }
 
-/// Scaffold a temp project that can evaluate `@local/mindtape` via the
+/// A temp project that can evaluate `@local/mindtape` via the
 /// in-tree lib override the loader honours, with the barebones `[tasks]
 /// roots = ["tasks"]` config the `add` e2e batteries build on before
 /// overriding it with a scenario-specific one.
-pub fn scaffold(dir: &Path) {
-    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::write(
-        dir.join(".mindtape/config.toml"),
-        "[tasks]\nroots = [\"tasks\"]\n",
-    )
-    .unwrap();
-    install_lib(dir);
+pub fn scaffold() -> tempfile::TempDir {
+    scaffold_project(TASKS_ROOT_CONFIG)
 }
 
 /// A throwaway project directory: the in-tree `@local/mindtape` package

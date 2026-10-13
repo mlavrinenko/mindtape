@@ -4,7 +4,6 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
-use mindtape::test_support::tempdir;
 
 fn refusal(dir: &std::path::Path, args: &[&str]) -> String {
     let out = support::mt(dir)
@@ -18,8 +17,7 @@ fn refusal(dir: &std::path::Path, args: &[&str]) -> String {
 
 #[test]
 fn a_template_name_beside_describe_suggests_dash_t() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
     std::fs::create_dir_all(dir.path().join(".mindtape/templates")).unwrap();
     std::fs::write(
         dir.path().join(".mindtape/templates/finding.typ"),
@@ -36,8 +34,7 @@ fn a_template_name_beside_describe_suggests_dash_t() {
 
 #[test]
 fn any_other_title_beside_describe_is_refused() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
     let stderr = refusal(dir.path(), &["--describe", "Fix", "the", "bug"]);
     assert_eq!(
         stderr,
@@ -48,8 +45,7 @@ fn any_other_title_beside_describe_is_refused() {
 
 #[test]
 fn describe_alone_and_with_a_template_still_describes() {
-    let dir = tempdir();
-    support::scaffold(dir.path());
+    let dir = support::scaffold();
     support::mt(dir.path())
         .args(["add", "--describe", "-t", "task"])
         .assert()
