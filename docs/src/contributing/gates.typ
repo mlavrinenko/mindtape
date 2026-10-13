@@ -64,7 +64,9 @@ records a pass for the full suite.
 Every rule reads the `gates-meta` scope, which includes the `Justfile`, so a
 `Justfile` edit re-runs every arm. Each script under `.just/scripts/` has a
 scope of its own, so editing one re-runs the arms that reach it and the few
-that read the whole directory.
+that read the whole directory. The same goes for outdatty: `outdatty-check`
+reads every file `outdatty.yaml` lists, and #just.script-scope-check() fails
+naming a listed file that its scopes miss.
 
 == Inputs a glob can't name
 

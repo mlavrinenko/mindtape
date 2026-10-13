@@ -287,6 +287,20 @@ scopes:
   dry-baseline:
     - ".jscpd-baseline.json"
 
+  # The outdatty.yaml sources and dependents that no other scope holds, for
+  # `just outdatty-check`. The rule compares every listed file to outdatty.lock,
+  # so a listed file outside its inputs goes false-fresh when it changes.
+  # `just script-scope-check` (arm four) fails by name on a listed file that
+  # the rule's scopes miss, so a new outdatty source is added here or to a scope
+  # the rule already takes.
+  outdatty-sources:
+    - ".config/wt.toml"
+    - ".gitattributes"
+    - ".githooks/commit-msg"
+    - ".githooks/local-paths"
+    - ".githooks/pre-commit"
+    - "release.toml"
+
   # The manifest itself, for the one rule that reads it as data
   # (`just script-scope-check`, below). No other rule names it: mmz already
   # keys a record on a rule's own declared inputs, so an input-list edit
@@ -550,9 +564,11 @@ commands:
   # script's scope: every file in .just/scripts/ is a source of some group
   # (outdatty.yaml lists them one by one), so this rule reads the whole
   # directory, and a per-body scope would leave the rest false-fresh.
+  # `outdatty-sources` holds the listed files no other scope does; arm four of
+  # `just script-scope-check` fails by name on one the inputs miss.
   - name: just outdatty-check
     tags: [gate]
-    inputs: [outdatty-config, rust, policy, examples, docs, gates-meta, scripts-all]
+    inputs: [outdatty-config, outdatty-sources, rust, policy, examples, docs, gates-meta, scripts-all]
 
   # `mt -w examples/<name> check` for each example — depends on the built
   # binary (rust) plus the fixtures' task trees + project config (policy +

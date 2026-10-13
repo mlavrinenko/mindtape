@@ -208,11 +208,11 @@ groups:
       .just/scripts/path-attr-check.sh: 0f3004e8f86fbacad47ad04a3056d3850c397957c7696f6c95d1d47cb51c558d
       .just/scripts/positional-args-check.sh: 8372e811d5e7d95fdcab5f9ecb4efa6033cf66fcab57c86d31306cebd00b1e9d
       .just/scripts/script-attr-check.sh: fb01697288a0863da85cad64bb5ce1430508f9d56f54e013dcf41a119b64d61d
-      .just/scripts/script-scope-check.sh: 472f2dce97a25ca52d15cea103644c9ad817c899f4b76731e2af2318449d15df
+      .just/scripts/script-scope-check.sh: 1957fb4aa6c64190bf1d78c2064226bdd28b2ef20282ea618a85a79ecfcb44ae
       .just/scripts/site-pages-fixture-check.sh: 9892296f9090c0f8b7cc2f3627bc04d9ef985aa227c80531c5b00934bf33dea1
       .just/scripts/size-fixture-check.sh: 2809f969a7cfef976ccbf1cf1006b46e34f2c21f0d484f36dcbd44ff104481a7
     dependents:
-      docs/src/contributing/gates.typ: 54b9c4208a7a4cee23b810b89183fa032ff0e3c166bc5867d7f2d43228736245
+      docs/src/contributing/gates.typ: 98dff9d1a2b84a1388d515a521dda0db6fa222378568d2bc95b7cfc4ca0fba3f
   githooks-docs:
     source:
       .githooks/commit-msg: b12bd38a025b39fd48a7575a687ef13187c153d6e5520b62eb16d07cac82be73

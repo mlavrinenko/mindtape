@@ -12,7 +12,7 @@
 # is that something: both halves of what the glob guarantees, asserted instead
 # of assumed.
 #
-# The three arms answer three different questions, and none implies another:
+# The four arms answer four different questions, and none implies another:
 #
 #   1. Is every script named at all? A set difference between the files on disk
 #      and the literal paths the scopes list. A script no scope names is
@@ -33,6 +33,11 @@
 #      missing.typ). Membership is all this arm claims: which dependents a
 #      script owes is outdatty's own subject, and it answers that well once the
 #      file is listed at all.
+#   4. Does the `just outdatty-check` rule hash every file outdatty.yaml
+#      lists, source or dependent? outdatty compares them to the lock, but mmz
+#      serves the rule from cache unless a declared input changed, so a listed
+#      file outside the rule's scopes (06a0492f's .config/wt.toml) goes
+#      false-fresh. Arm three covers scripts only; this covers every path.
 #
 # Arm three demands a decision, not a particular group, and the difference is
 # the whole design. A script belongs to the group of the doc that restates it,
@@ -175,6 +180,51 @@ for script in "${scripts[@]}"; do
         fail=1
     fi
 done
+
+# Arm four: every file outdatty.yaml lists, as a source or a dependent, is
+# hashed by the `just outdatty-check` rule. outdatty-check compares each listed
+# file to outdatty.lock, so a listed file that none of the rule's input scopes
+# holds can change and leave the gate recorded fresh, which let a .config/wt.toml
+# edit land on a red main. A glob entry is expanded over the files git lists, so
+# a dependent glob is judged file by file. Patterns match as in arm two, and
+# the rule's own scopes are the only thing read: no scope is named here.
+outdatty_rule="just outdatty-check"
+rule_patterns=$(awk -F'\t' -v r="$outdatty_rule" '$1 == r { print $2 }' <<<"$rule_inputs" |
+    while IFS= read -r scope; do
+        awk -F'\t' -v s="$scope" '$1 == s { print $2 }' <<<"$entries"
+    done)
+if [ -z "$rule_patterns" ]; then
+    echo "script-scope-check: rule \`$outdatty_rule\` has no input scopes in $manifest" >&2
+    echo "  the rule was renamed or lost its inputs; retarget the arm, do not delete it" >&2
+    exit 1
+fi
+files=$(git ls-files --cached --others --exclude-standard)
+listed=$(yq -r '.groups // [] | .[] | ((.source // []) + (.dependents // []))[]' outdatty.yaml | sort -u)
+while IFS= read -r entry; do
+    [ -n "$entry" ] || continue
+    if [[ "$entry" == *[][*?]* ]]; then
+        # shellcheck disable=SC2053  # pattern match, not string equality
+        matched=$(while IFS= read -r f; do if [[ "$f" == $entry ]]; then echo "$f"; fi; done <<<"$files")
+    else
+        matched=$entry
+    fi
+    while IFS= read -r f; do
+        [ -n "$f" ] || continue
+        covered=0
+        while IFS= read -r pattern; do
+            # shellcheck disable=SC2053  # pattern match, not string equality
+            if [[ "$f" == $pattern ]]; then
+                covered=1
+                break
+            fi
+        done <<<"$rule_patterns"
+        if [ "$covered" -eq 0 ]; then
+            echo "script-scope-check: $f is listed in outdatty.yaml but no scope of \`$outdatty_rule\` holds it" >&2
+            echo "  add it to the \`outdatty-sources\` scope in $manifest, so editing it busts the rule" >&2
+            fail=1
+        fi
+    done <<<"$matched"
+done <<<"$listed"
 
 if [ "$fail" -ne 0 ]; then
     echo "script-scope-check: the manifests that enumerate .just/scripts/ no longer cover it" >&2

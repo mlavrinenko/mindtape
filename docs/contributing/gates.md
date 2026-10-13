@@ -21,7 +21,7 @@ A passing `just check` prints one line, such as `check: 28 gates passed (3 run, 
 
 `.just/scripts/mmz-arm.sh` does the capture once for every arm, so no tool needs a quiet flag. It writes each arm’s output to `target/check/<gate>.log`, and the log stays there after a pass. It asks `mmz --is-fresh` first, to count the arm as run or cached, because a cache hit prints nothing (`on_hit: ""` in `.mmz/config.yaml`). Outside `just check`, `just mmz <gate>` streams its output. `just test <filter>` runs outside mmz, so a filtered run never records a pass for the full suite.
 
-Every rule reads the `gates-meta` scope, which includes the `Justfile`, so a `Justfile` edit re-runs every arm. Each script under `.just/scripts/` has a scope of its own, so editing one re-runs the arms that reach it and the few that read the whole directory.
+Every rule reads the `gates-meta` scope, which includes the `Justfile`, so a `Justfile` edit re-runs every arm. Each script under `.just/scripts/` has a scope of its own, so editing one re-runs the arms that reach it and the few that read the whole directory. The same goes for outdatty: `outdatty-check` reads every file `outdatty.yaml` lists, and `just script-scope-check` fails naming a listed file that its scopes miss.
 
 ### Inputs a glob can’t name
 
