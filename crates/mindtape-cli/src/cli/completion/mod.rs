@@ -94,6 +94,9 @@ pub enum Source {
 ///
 /// Ordered as `mt --help` lists the commands, so a reader comparing the two
 /// walks them together.
+// jscpd:ignore-start
+// A table of `(command, argument, source)` rows: rows of one shape are the data,
+// not copied logic, and a builder would only restate each row.
 pub const SOURCES: &[(&str, &str, Source)] = &[
     ("", "worktree", Source::DirPath),
     (
@@ -205,6 +208,7 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
         Source::None("the new preset's name, which no existing value predicts"),
     ),
 ];
+// jscpd:ignore-end
 
 /// The source declared for `(path, id)`, or `None` when the table does not
 /// name the argument at all — the state `just check-doc-facts` fails on.

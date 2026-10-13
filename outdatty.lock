@@ -38,7 +38,7 @@ groups:
       www/content/wait-on-upstream.typ: 50bcc3ffe1c81b4429bd4567b1a237e61bb0f4ef47d3194f0d07ea15e4dfd946
   cli-docs:
     source:
-      crates/mindtape-cli/src/cli/completion/mod.rs: 2b2d0f8eb41435fbc5f6bda31c25f4c64238a4d567d0824a2e3ae939d073a410
+      crates/mindtape-cli/src/cli/completion/mod.rs: 2287be9f6a9a2fb501803a49f9f40aa4c29a5025448033a380daaf6780dd3187
       crates/mindtape-cli/src/cli/mod.rs: 0bdc5ec47efe5fdead1b26b53b1282daa903c199d874d5d3d2f9d132a838f067
       crates/mindtape-cli/src/cmd/add/mod.rs: 530027485af19bb391c076861583ee8c636a4a179a4d146ad874e2661fb6cd71
       crates/mindtape-cli/src/cmd/check/mod.rs: c994482eb3ed6c27005e3a0fd03264d40af769bd545bf4f4069e03417e19b3ef
