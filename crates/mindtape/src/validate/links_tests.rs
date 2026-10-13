@@ -6,6 +6,7 @@ use crate::link::{Link, LinkKind, NoteRule};
 use crate::model::Task;
 use crate::test_support::{bare_task, linked_task};
 use crate::validate::Violation;
+use crate::validate::tests::flags;
 use crate::validate::violation::ViolationKind;
 
 pub(super) fn edge(target: &str, kind: &str) -> Link {
@@ -21,13 +22,6 @@ pub(super) fn noted(target: &str, kind: &str, note: &str) -> Link {
         note: Some(note.to_owned()),
         ..edge(target, kind)
     }
-}
-
-/// Whether some violation is on `field` and its message holds `needle`.
-pub(super) fn flags(violations: &[Violation], field: &str, needle: &str) -> bool {
-    violations
-        .iter()
-        .any(|v| v.field == field && v.message.contains(needle))
 }
 
 pub(super) fn check(tasks: &[Task], config: &Config) -> Vec<Violation> {

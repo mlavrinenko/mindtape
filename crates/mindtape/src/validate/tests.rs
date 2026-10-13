@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use super::validate;
+use super::{Violation, validate};
 use crate::config::{Config, parse_config};
 use crate::model::numeric::NumValue;
 use crate::model::{Status, Task};
@@ -45,6 +45,13 @@ allowed = ["backend"]
 "#,
     )
     .unwrap()
+}
+
+/// Whether some violation is on `field` and its message holds `needle`.
+pub(super) fn flags(violations: &[Violation], field: &str, needle: &str) -> bool {
+    violations
+        .iter()
+        .any(|v| v.field == field && v.message.contains(needle))
 }
 
 pub(super) fn task(id: &str, status: &str) -> Task {
@@ -111,9 +118,7 @@ fn flags_unreachable_status_under_transitions() {
     let tasks = vec![task("a", "blocked")];
     let violations = validate(&tasks, &transition_config());
     assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "status" && v.message.contains("unreachable")),
+        flags(&violations, "status", "unreachable"),
         "orphan status should be flagged, got: {violations:?}"
     );
 }
@@ -159,9 +164,7 @@ fn required_note_status_rejects_a_blank_note() {
     item.status.as_mut().unwrap().note = None;
     let violations = validate(&[item], &note_required_config());
     assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "status" && v.message.contains("requires a note")),
+        flags(&violations, "status", "requires a note"),
         "expected a required-note violation, got: {violations:?}"
     );
 }
@@ -171,11 +174,7 @@ fn required_note_status_rejects_a_whitespace_only_note() {
     let mut item = task("a", "blocked");
     item.status.as_mut().unwrap().note = Some("   ".to_owned());
     let violations = validate(&[item], &note_required_config());
-    assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "status" && v.message.contains("requires a note"))
-    );
+    assert!(flags(&violations, "status", "requires a note"));
 }
 
 #[test]
@@ -221,11 +220,7 @@ fn flags_dependency_cycle() {
     a.links = vec![dep_edge("b.typ")];
     b.links = vec![dep_edge("a.typ")];
     let violations = validate(&[a, b], &config());
-    assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "depends-on" && v.message.contains("cycle"))
-    );
+    assert!(flags(&violations, "depends-on", "cycle"));
 }
 
 #[test]

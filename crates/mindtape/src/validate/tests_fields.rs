@@ -6,7 +6,7 @@
 
 use std::collections::BTreeMap;
 
-use super::tests::{config, task};
+use super::tests::{config, flags, task};
 use super::validate;
 use crate::config::{Config, FieldConfig, Requirement, parse_config};
 use crate::model::marker::ShapeError;
@@ -34,9 +34,7 @@ fn flags_priority_out_of_scale() {
     item.priority = Some(NumValue::Num(42.0));
     let violations = validate(&[item], &config());
     assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "priority" && v.message.contains("outside")),
+        flags(&violations, "priority", "outside"),
         "out-of-scale priority should be flagged, got: {violations:?}"
     );
 }
@@ -47,9 +45,7 @@ fn flags_unknown_priority_label() {
     item.priority = Some(NumValue::Label("epic".to_owned()));
     let violations = validate(&[item], &config());
     assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "priority" && v.message.contains("not a known priority value")),
+        flags(&violations, "priority", "not a known priority value"),
         "a label outside the configured bands should be flagged, got: {violations:?}"
     );
 }
@@ -59,11 +55,7 @@ fn flags_unknown_estimate_unit() {
     let mut item = task("a", "wip");
     item.estimate = BTreeMap::from([("fortnights".to_owned(), 2.0)]);
     let violations = validate(&[item], &config());
-    assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "estimate" && v.message.contains("fortnights"))
-    );
+    assert!(flags(&violations, "estimate", "fortnights"));
 }
 
 #[test]
@@ -85,11 +77,7 @@ fn flags_marker_shape_error_regardless_of_config() {
         message: "expected an array, found a string".to_owned(),
     }];
     let violations = validate(&[item], &Config::default());
-    assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "tags" && v.message.contains("expected an array"))
-    );
+    assert!(flags(&violations, "tags", "expected an array"));
 }
 
 #[test]
@@ -203,9 +191,7 @@ fn strict_mode_rejects_manual_integer() {
     item.priority = Some(NumValue::Num(7.0));
     let violations = validate(&[item], &strict_ice_config());
     assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "priority" && v.message.contains("strict")),
+        flags(&violations, "priority", "strict"),
         "strict mode should reject a manual int, got: {violations:?}"
     );
 }
@@ -219,9 +205,7 @@ fn rejects_inactive_framework() {
     });
     let violations = validate(&[item], &strict_ice_config());
     assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "priority" && v.message.contains("not the active framework")),
+        flags(&violations, "priority", "not the active framework"),
         "a non-active framework should be flagged, got: {violations:?}"
     );
 }
@@ -233,9 +217,7 @@ fn flags_out_of_bounds_framework_input() {
     item.priority = Some(ice_priority(99.0, 0.5, 5.0));
     let violations = validate(&[item], &strict_ice_config());
     assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "priority" && v.message.contains("impact")),
+        flags(&violations, "priority", "impact"),
         "out-of-bounds input should be flagged, got: {violations:?}"
     );
 }
@@ -325,12 +307,7 @@ fn assignee_missing_required_flags_on_non_terminal() {
     let mut t = task("a", "wip");
     t.assignee = None;
     let violations = validate(&[t], &assignee_config());
-    assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "assignee" && v.message.contains("missing")),
-        "{violations:?}"
-    );
+    assert!(flags(&violations, "assignee", "missing"), "{violations:?}");
 }
 
 #[test]
@@ -360,12 +337,7 @@ fn assignee_disallowed_value_flags() {
     let mut t = task("a", "wip");
     t.assignee = Some("eve".into());
     let violations = validate(&[t], &assignee_config());
-    assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "assignee" && v.message.contains("eve")),
-        "{violations:?}"
-    );
+    assert!(flags(&violations, "assignee", "eve"), "{violations:?}");
 }
 
 #[test]
@@ -407,9 +379,7 @@ fn flags_unknown_difficulty_label() {
     t.difficulty = Some(NumValue::Label("expert".to_owned()));
     let violations = validate(&[t], &config());
     assert!(
-        violations.iter().any(|v| {
-            v.field == "difficulty" && v.message.contains("not a known difficulty value")
-        }),
+        flags(&violations, "difficulty", "not a known difficulty value"),
         "an unresolvable difficulty label should be flagged, got: {violations:?}"
     );
 }
@@ -421,11 +391,7 @@ fn priority_framework_score_outside_custom_scale_flags() {
     let mut cfg = strict_ice_config();
     cfg.tasks.priority.field.min = 0.0;
     cfg.tasks.priority.field.max = 1.0;
-    assert!(
-        validate(&[t], &cfg)
-            .iter()
-            .any(|v| v.field == "priority" && v.message.contains("outside"))
-    );
+    assert!(flags(&validate(&[t], &cfg), "priority", "outside"));
 }
 
 #[test]

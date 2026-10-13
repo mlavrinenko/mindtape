@@ -3,10 +3,11 @@
 
 #![allow(clippy::unwrap_used)]
 
-use super::tests::{check, config_with_custom_kind, edge, flags, noted};
+use super::tests::{check, config_with_custom_kind, edge, noted};
 use crate::config::Config;
 use crate::link::{LinkKind, NoteRule, TargetValidator};
 use crate::test_support::{bare_task, linked_task};
+use crate::validate::tests::flags;
 
 /// A config with one kind pointing outside the backlog, validated by `url`.
 fn config_with_external_kind(kind: LinkKind) -> Config {
