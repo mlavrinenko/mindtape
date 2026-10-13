@@ -2,13 +2,13 @@
 
 use super::check_all;
 use crate::config::{Config, parse_config};
-use crate::link::{Link, LinkKind, NoteRule, TargetValidator};
+use crate::link::{Link, LinkKind, NoteRule};
 use crate::model::Task;
 use crate::test_support::{bare_task, linked_task};
 use crate::validate::Violation;
 use crate::validate::violation::ViolationKind;
 
-fn edge(target: &str, kind: &str) -> Link {
+pub(super) fn edge(target: &str, kind: &str) -> Link {
     Link {
         task: target.to_owned(),
         kind: kind.to_owned(),
@@ -16,14 +16,14 @@ fn edge(target: &str, kind: &str) -> Link {
     }
 }
 
-fn noted(target: &str, kind: &str, note: &str) -> Link {
+pub(super) fn noted(target: &str, kind: &str, note: &str) -> Link {
     Link {
         note: Some(note.to_owned()),
         ..edge(target, kind)
     }
 }
 
-fn check(tasks: &[Task], config: &Config) -> Vec<Violation> {
+pub(super) fn check(tasks: &[Task], config: &Config) -> Vec<Violation> {
     let mut out = Vec::new();
     check_all(tasks, config, &mut out);
     out
@@ -179,137 +179,10 @@ fn related_with_blank_note_still_fails() {
     );
 }
 
-fn config_with_custom_kind(kind: LinkKind) -> Config {
+pub(super) fn config_with_custom_kind(kind: LinkKind) -> Config {
     let mut config = Config::default();
     config.tasks.links.kinds = vec![kind];
     config
-}
-
-/// A config with one kind pointing outside the backlog, validated by `url`.
-fn config_with_external_kind(kind: LinkKind) -> Config {
-    config_with_custom_kind(LinkKind {
-        validate: TargetValidator::Url,
-        ..kind
-    })
-}
-
-/// A well-formed external target does not go through stem resolution: it names
-/// no task file, and that is not an error.
-#[test]
-fn external_target_is_not_resolved_against_tasks() {
-    let config = config_with_external_kind(LinkKind {
-        name: "discharged-by".to_owned(),
-        ..LinkKind::default()
-    });
-    let a = linked_task("a", vec![edge("https://example.com/pr/7", "discharged-by")]);
-    let violations = check(&[a], &config);
-    assert!(violations.is_empty(), "got {violations:?}");
-}
-
-/// A malformed external target IS an error, and the message names the kind,
-/// the validator, and the offending value.
-#[test]
-fn malformed_external_target_names_kind_validator_and_value() {
-    let config = config_with_external_kind(LinkKind {
-        name: "discharged-by".to_owned(),
-        ..LinkKind::default()
-    });
-    let a = linked_task("a", vec![edge("not a url", "discharged-by")]);
-    let violations = check(&[a], &config);
-    let hit = violations
-        .iter()
-        .find(|v| v.field == "discharged-by")
-        .unwrap_or_else(|| panic!("expected a violation, got {violations:?}"));
-    assert!(hit.message.contains("discharged-by"), "{}", hit.message);
-    assert!(hit.message.contains("url"), "{}", hit.message);
-    assert!(hit.message.contains("not a url"), "{}", hit.message);
-}
-
-/// Cycle detection never sees an external kind, even one flagged `acyclic`:
-/// two tasks naming each other through it are not a loop, because neither edge
-/// is a task-graph edge.
-#[test]
-fn external_kind_participates_in_no_cycle() {
-    let config = config_with_external_kind(LinkKind {
-        name: "mirrors".to_owned(),
-        acyclic: true,
-        ..LinkKind::default()
-    });
-    let a = linked_task("a", vec![edge("https://example.com/a", "mirrors")]);
-    let b = linked_task("b", vec![edge("https://example.com/b", "mirrors")]);
-    let violations = check(&[a, b], &config);
-    assert!(
-        !violations.iter().any(|v| v.message.contains("cycle")),
-        "got {violations:?}"
-    );
-}
-
-/// Even a target that happens to spell a loaded task's stem stays external: it
-/// is validated for shape, never resolved into the graph.
-#[test]
-fn external_target_spelling_a_stem_is_still_shape_checked() {
-    let config = config_with_external_kind(LinkKind {
-        name: "discharged-by".to_owned(),
-        ..LinkKind::default()
-    });
-    let a = linked_task("a", vec![edge("b.typ", "discharged-by")]);
-    let b = bare_task("b");
-    let violations = check(&[a, b], &config);
-    assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "discharged-by" && v.message.contains("url")),
-        "got {violations:?}"
-    );
-}
-
-/// A note rule still binds on an external kind — the escape hatch that lets a
-/// project demand a reason for the artifact it points at.
-#[test]
-fn note_rule_still_applies_to_an_external_kind() {
-    let config = config_with_external_kind(LinkKind {
-        name: "discharged-by".to_owned(),
-        note: NoteRule::Required,
-        ..LinkKind::default()
-    });
-    let a = linked_task("a", vec![edge("https://example.com/pr/7", "discharged-by")]);
-    let violations = check(&[a], &config);
-    assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "discharged-by" && v.message.contains("requires a note")),
-        "got {violations:?}"
-    );
-
-    let ok = linked_task(
-        "a",
-        vec![noted(
-            "https://example.com/pr/7",
-            "discharged-by",
-            "the PR that closed it",
-        )],
-    );
-    assert!(check(&[ok], &config).is_empty());
-}
-
-/// Cardinality counts task-graph edges, so an external kind's cap does not
-/// fire — the axis excludes it along with resolution and cycles.
-#[test]
-fn external_kind_is_excluded_from_cardinality() {
-    let config = config_with_external_kind(LinkKind {
-        name: "discharged-by".to_owned(),
-        max: Some(1),
-        ..LinkKind::default()
-    });
-    let a = linked_task(
-        "a",
-        vec![
-            edge("https://example.com/pr/7", "discharged-by"),
-            edge("https://example.com/pr/8", "discharged-by"),
-        ],
-    );
-    let violations = check(&[a], &config);
-    assert!(violations.is_empty(), "got {violations:?}");
 }
 
 #[test]

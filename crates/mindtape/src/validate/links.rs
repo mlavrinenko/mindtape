@@ -252,3 +252,7 @@ fn breach(task: &Task, field: String, message: String) -> Violation {
 #[cfg(test)]
 #[path = "links_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "links_external_tests.rs"]
+mod external_tests;
