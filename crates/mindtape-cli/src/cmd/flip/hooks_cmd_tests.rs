@@ -20,6 +20,24 @@ fn ctx<'a>(root: &'a Path, path: &'a Path) -> RunCtx<'a> {
     }
 }
 
+/// A shell that cannot start is an error, not a failed command: a missing
+/// project root leaves the spawn nothing to run in, so the caller must not read
+/// the absence of a verdict as a pass.
+#[test]
+fn a_command_that_cannot_spawn_is_an_error_naming_it() {
+    let dir = tempdir();
+    let root = dir.path().join("no-such-root");
+    let path = root.join("tasks/alpha.typ");
+    let err = match run_command("echo hi", &ctx(&root, &path)) {
+        Err(err) => crate::diag::plain(&err),
+        Ok(report) => panic!("expected a spawn error, got {}", report.output),
+    };
+    assert!(
+        err.starts_with("error: can't run on.flip command: 'echo hi'"),
+        "{err}"
+    );
+}
+
 #[cfg(not(windows))]
 #[test]
 fn a_passing_command_reports_success_and_its_output() {
