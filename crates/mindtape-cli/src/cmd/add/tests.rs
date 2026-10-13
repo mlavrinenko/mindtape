@@ -338,10 +338,10 @@ fn a_bad_stem_template_is_a_failure_that_points_at_the_config() {
     let mut values = BTreeMap::new();
     values.insert("title".to_owned(), RawValue::Str("A task".to_owned()));
     let err = output_stem(&bare_args(), &values, &config).unwrap_err();
-    assert_eq!(
-        crate::diag::plain(&err),
+    crate::diag::assert_plain(
+        &err,
         "error: can't mint the file stem: unknown stem template macro {nope}\n\
-         hint: check stem under [tasks.naming]\n"
+         hint: check stem under [tasks.naming]\n",
     );
 }
 

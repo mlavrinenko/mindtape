@@ -83,10 +83,7 @@ fn successor_of_none_without_a_successor() {
 fn plan_next_errors_when_count_is_zero() {
     let recur = weekly(Some(0), None);
     let err = plan_next(&recur, &RecurConfig::default(), date(2026, 6, 18), None).unwrap_err();
-    assert_eq!(
-        crate::diag::plain(&err),
-        "error: series exhausted: count has reached 0\n"
-    );
+    crate::diag::assert_plain(&err, "error: series exhausted: count has reached 0\n");
 }
 
 #[test]
@@ -95,9 +92,9 @@ fn plan_next_errors_past_until() {
     // Completion anchor: today 2026-06-18 + 1 week = 2026-06-25, past the
     // 2026-06-20 series bound.
     let err = plan_next(&recur, &RecurConfig::default(), date(2026, 6, 18), None).unwrap_err();
-    assert_eq!(
-        crate::diag::plain(&err),
-        "error: series ended: the next occurrence is past until: '2026-06-25'\n"
+    crate::diag::assert_plain(
+        &err,
+        "error: series ended: the next occurrence is past until: '2026-06-25'\n",
     );
 }
 
@@ -141,11 +138,11 @@ fn guard_double_spawn_refuses_an_existing_successor_unless_forced() {
         },
     };
     let err = guard_double_spawn(&project, &original, false).unwrap_err();
-    assert_eq!(
-        crate::diag::plain(&err),
+    crate::diag::assert_plain(
+        &err,
         "error: task already has a successor: 'chore'\n\
          hint: pass --force to spawn another\n\
-         note: successor: chore-2026-06-08\n"
+         note: successor: chore-2026-06-08\n",
     );
     assert!(guard_double_spawn(&project, &original, true).is_ok());
 }
@@ -182,9 +179,6 @@ fn a_policy_that_rejects_a_recur_reports_the_first_problem_and_notes_the_rest() 
 #[test]
 fn a_file_with_no_parent_names_itself() {
     let err = parent_dir(Path::new("/")).unwrap_err();
-    assert_eq!(
-        crate::diag::plain(&err),
-        "error: task file has no parent directory: '/'\n"
-    );
+    crate::diag::assert_plain(&err, "error: task file has no parent directory: '/'\n");
     assert_eq!(parent_dir(Path::new("a/b.typ")).unwrap(), Path::new("a"));
 }

@@ -254,19 +254,19 @@ fn a_project_with_no_statuses_cannot_stamp_a_fresh_occurrence() {
         next_due: NaiveDate::from_ymd_opt(2026, 6, 25).unwrap(),
     };
     let err = status_due_start_edits(SOURCE, &mindtape::Config::default(), &dates).unwrap_err();
-    assert_eq!(
-        crate::diag::plain(&err),
+    crate::diag::assert_plain(
+        &err,
         "error: can't stamp a fresh occurrence: [tasks.status] is empty\n\
-         hint: declare the statuses in [tasks.status]\n"
+         hint: declare the statuses in [tasks.status]\n",
     );
 }
 
 #[test]
 fn a_count_without_a_recur_call_to_update_says_what_is_missing() {
     let err = decrement_count_edit(SOURCE_WITH_LINKS_NO_CALL, Some(3)).unwrap_err();
-    assert_eq!(
-        crate::diag::plain(&err),
-        "error: can't find the every() or rrule() call to update its count\n"
+    crate::diag::assert_plain(
+        &err,
+        "error: can't find the every() or rrule() call to update its count\n",
     );
 }
 

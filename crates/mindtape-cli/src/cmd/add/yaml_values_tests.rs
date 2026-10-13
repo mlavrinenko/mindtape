@@ -75,10 +75,7 @@ fn malformed_yaml_names_the_source() {
 #[test]
 fn the_editor_buffer_has_no_source_to_name() {
     let err = parse_mapping("- a\n", None).unwrap_err();
-    assert_eq!(
-        crate::diag::plain(&err),
-        "error: values must be a YAML mapping\n"
-    );
+    crate::diag::assert_plain(&err, "error: values must be a YAML mapping\n");
 }
 
 #[test]

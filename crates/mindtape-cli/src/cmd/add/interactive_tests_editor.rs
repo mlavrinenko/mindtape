@@ -102,9 +102,9 @@ fn open_in_editor_runs_command_and_reads_back() {
 #[test]
 fn a_blank_editor_command_is_refused_with_where_to_set_one() {
     let err = open_in_editor("   ", "title:\n").unwrap_err();
-    assert_eq!(
-        crate::diag::plain(&err),
-        "error: the editor command is empty\nhint: set [add] editor, $VISUAL or $EDITOR\n"
+    crate::diag::assert_plain(
+        &err,
+        "error: the editor command is empty\nhint: set [add] editor, $VISUAL or $EDITOR\n",
     );
 }
 
@@ -136,9 +136,9 @@ fn failing_editor() -> &'static str {
 fn an_editor_that_exits_non_zero_discards_the_buffer() {
     let command = failing_editor();
     let err = open_in_editor(command, "title:\n").unwrap_err();
-    assert_eq!(
-        crate::diag::plain(&err),
-        format!("error: editor exited without saving: '{command}'\n")
+    crate::diag::assert_plain(
+        &err,
+        &format!("error: editor exited without saving: '{command}'\n"),
     );
 }
 

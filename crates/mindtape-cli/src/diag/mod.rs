@@ -325,6 +325,12 @@ pub(crate) fn plain(diag: &Diag) -> String {
     render::render(diag, false)
 }
 
+/// Assert `diag` renders, uncoloured, as exactly `expected`.
+#[cfg(test)]
+pub(crate) fn assert_plain(diag: &Diag, expected: &str) {
+    assert_eq!(plain(diag), expected);
+}
+
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod from_lib_tests;

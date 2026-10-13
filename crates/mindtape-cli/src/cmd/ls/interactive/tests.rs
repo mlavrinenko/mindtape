@@ -270,10 +270,10 @@ fn guard_rejects_non_table() {
 #[test]
 fn guard_table_fails_on_tty_not_format() {
     let err = guard_with(&ls_args(OutputFormat::Table), false).unwrap_err();
-    assert_eq!(
-        crate::diag::plain(&err),
+    crate::diag::assert_plain(
+        &err,
         "error: --interactive needs a terminal on stdin and stdout\n\
-         hint: drop --interactive when piping\n"
+         hint: drop --interactive when piping\n",
     );
 }
 

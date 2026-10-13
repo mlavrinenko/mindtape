@@ -153,9 +153,9 @@ fn resolve_unknown_template_errors() {
 fn an_unknown_template_hints_where_to_list_them() {
     let dir = tempdir();
     let err = resolve_template(&Config::default(), dir.path(), "bug").unwrap_err();
-    assert_eq!(
-        crate::diag::plain(&err),
-        "error: unknown template: 'bug'\nhint: run mt add --list to see the templates\n"
+    crate::diag::assert_plain(
+        &err,
+        "error: unknown template: 'bug'\nhint: run mt add --list to see the templates\n",
     );
     let near = resolve_template(&Config::default(), dir.path(), "tsk").unwrap_err();
     assert_eq!(
@@ -167,9 +167,9 @@ fn an_unknown_template_hints_where_to_list_them() {
 #[test]
 fn an_unknown_describe_format_says_what_it_takes() {
     let err = DescribeFormat::parse("yaml").unwrap_err();
-    assert_eq!(
-        crate::diag::plain(&err),
-        "error: unknown describe format: 'yaml'\nhint: use text or json\n"
+    crate::diag::assert_plain(
+        &err,
+        "error: unknown describe format: 'yaml'\nhint: use text or json\n",
     );
 }
 

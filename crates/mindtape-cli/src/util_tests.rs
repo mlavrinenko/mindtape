@@ -160,12 +160,12 @@ fn resolve_root_override_without_marker_errors() {
     let dir = tempdir();
     let err = resolve_root_with(dir.path(), Some(dir.path())).unwrap_err();
     let base = dir.path().display().to_string();
-    assert_eq!(
-        crate::diag::plain(&err),
-        format!(
+    crate::diag::assert_plain(
+        &err,
+        &format!(
             "error: no .mindtape/ directory in worktree: '{base}'\n\
              hint: run mt init there, or pass another path to -w\n"
-        )
+        ),
     );
 }
 

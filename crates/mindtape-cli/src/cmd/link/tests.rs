@@ -194,10 +194,7 @@ fn a_failing_entry_does_not_hold_back_the_rest() {
     )
     .unwrap();
     let err = run_with(&project, &parse(&["--apply", map.to_str().unwrap()])).unwrap_err();
-    assert_eq!(
-        crate::diag::plain(&err),
-        "error: linked 1 of 2 tasks; 1 failed\n"
-    );
+    crate::diag::assert_plain(&err, "error: linked 1 of 2 tasks; 1 failed\n");
     assert!(!source(dir.path(), "alpha").contains("links:"));
     assert!(source(dir.path(), "beta").contains(r#"depends-on("gamma.typ")"#));
 }

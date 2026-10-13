@@ -101,12 +101,12 @@ fn registry_with_sn() -> mindtape::WorktreeRegistry {
 #[test]
 fn unknown_worktree_shows_aliases_when_nonempty() {
     let err = super::unknown_worktree("bad", &registry_with_sn(), None);
-    assert_eq!(
-        crate::diag::plain(&err),
+    crate::diag::assert_plain(
+        &err,
         "error: unknown worktree: '@bad'\n\
          hint: add it to worktrees.toml\n\
          note: known worktrees: sn\n\
-         note: no app config directory resolves\n"
+         note: no app config directory resolves\n",
     );
 }
 
@@ -114,11 +114,11 @@ fn unknown_worktree_shows_aliases_when_nonempty() {
 fn unknown_worktree_omits_aliases_when_empty() {
     let registry = mindtape::WorktreeRegistry::default();
     let err = super::unknown_worktree("bad", &registry, Some(Path::new("/c/worktrees.toml")));
-    assert_eq!(
-        crate::diag::plain(&err),
+    crate::diag::assert_plain(
+        &err,
         "error: unknown worktree: '@bad'\n\
          hint: add it to worktrees.toml\n\
-         note: worktrees are configured in: '/c/worktrees.toml'\n"
+         note: worktrees are configured in: '/c/worktrees.toml'\n",
     );
 }
 

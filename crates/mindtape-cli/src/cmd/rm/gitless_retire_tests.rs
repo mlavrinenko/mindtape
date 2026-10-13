@@ -96,10 +96,10 @@ fn retire_plan_errors_without_terminal_status() {
 
     let err = retire_plan(&tasks, &ids(&["gone"]), root, &config).unwrap_err();
 
-    assert_eq!(
-        crate::diag::plain(&err),
+    crate::diag::assert_plain(
+        &err,
         "error: the status legend declares no terminal status\n\
-         hint: set [retire] status, or mark a status terminal\n"
+         hint: set [retire] status, or mark a status terminal\n",
     );
 }
 

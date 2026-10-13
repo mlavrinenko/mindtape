@@ -140,10 +140,7 @@ fn an_unknown_single_word_says_no_task_matches() {
         vec![task("alpha", "tasks/alpha.typ", Some("wip"))],
     );
     let err = select_targets(&project, &targets(&["alpah"]), &readiness_of(&project)).unwrap_err();
-    assert_eq!(
-        crate::diag::plain(&err),
-        "error: no task: 'alpah'\nhint: did you mean alpha?\n"
-    );
+    crate::diag::assert_plain(&err, "error: no task: 'alpah'\nhint: did you mean alpha?\n");
 }
 
 #[test]
@@ -171,10 +168,7 @@ fn several_unresolved_targets_end_with_one_summary() {
         &readiness_of(&project),
     )
     .unwrap_err();
-    assert_eq!(
-        crate::diag::plain(&err),
-        "error: resolved 1 of 3 tasks; 2 failed\n"
-    );
+    crate::diag::assert_plain(&err, "error: resolved 1 of 3 tasks; 2 failed\n");
 }
 
 #[test]

@@ -262,11 +262,11 @@ fn preflight_blocks_dirty_eligible_task() {
     write_file(&root, "gone.typ", "changed\n");
     let tasks = vec![task("gone", "gone.typ", Some("done"))];
     let err = check_eligible_files(&tasks, &ids(&["gone"]), &root, &root).unwrap_err();
-    assert_eq!(
-        crate::diag::plain(&err),
+    crate::diag::assert_plain(
+        &err,
         "error: cannot remove: 'gone'\n\
          hint: commit them first: a tombstone pins the last-touch commit\n\
-         note: file: gone.typ has uncommitted changes\n"
+         note: file: gone.typ has uncommitted changes\n",
     );
 }
 
