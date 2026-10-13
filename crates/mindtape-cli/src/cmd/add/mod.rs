@@ -5,7 +5,8 @@
 //!
 //! - `dedup.rs`, `target.rs`, `output.rs` — `--dedup`, destination and stem, `--format`.
 //! - `values.rs`, `tokens.rs`, `yaml_values.rs`, `templates/` — value sources, `--set`, YAML.
-//! - `interactive.rs`, `hint.rs`, `notes.rs` — editor fill, refusal hint, fill note.
+//! - `interactive.rs`, `hint.rs`, `notes.rs`, `title.rs` — editor fill, refusal hint, fill note,
+//!   title from words or stdin.
 
 pub(crate) mod dedup;
 pub(crate) mod interactive;
@@ -16,7 +17,7 @@ pub(crate) mod yaml_values;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::File;
-use std::io::{IsTerminal, Read, Write as _};
+use std::io::{IsTerminal, Write as _};
 use std::path::Path;
 
 use crate::diag::Result;
@@ -29,10 +30,9 @@ use typst_edit::apply;
 
 use self::output::Format;
 use crate::cmd::add::dedup::DedupArg;
-use crate::cmd::add::tokens::append_list_value;
 use crate::cmd::add::values::{
     DescribeFormat, collect_values, describe, layer_env, list_templates, reject_unknown_keys,
-    resolve_template, stdin_title,
+    resolve_template,
 };
 use crate::diag::{Diag, Hint, Note};
 use crate::task_edit::{filing_status, initial_status, task_with, upsert_named_arg};
@@ -42,10 +42,12 @@ mod hint;
 use hint::Rescue;
 mod notes;
 mod target;
+mod title;
 use notes::report_injected;
 pub(crate) use target::minted_stem;
 pub(crate) use target::{dest_dir, warn_if_outside_roots};
 use target::{output_stem, resolve_outcome};
+use title::{fill_title_from_args, fill_title_from_stdin};
 
 /// Arguments for `mt add`.
 // A clap flag struct: each `--flag` is an independent boolean toggle.
@@ -416,72 +418,5 @@ pub(crate) fn inject_header(
 fn edit_failed(err: &typst_edit::EditError) -> Diag {
     Diag::failed("can't rewrite the template").cause(err)
 }
-
-/// Seed the `title` slot from the positional `TITLE` words, joined with spaces.
-/// A higher-precedence `title` (`-f`/`--set`) wins; blank input sets nothing.
-///
-/// When the template declares a `tags` slot, a leading `+word` token (the
-/// Taskwarrior/todo.txt tag sigil) is peeled out of the title into `tags`
-/// instead — `mt add fix login +backend` sets `title: "fix login"`,
-/// `tags: ("backend",)`. Without a `tags` slot the words are left untouched, so
-/// a `+`-prefixed word never silently vanishes.
-fn fill_title_from_args(
-    values: &mut BTreeMap<String, RawValue>,
-    args: &AddArgs,
-    specs: &[SlotSpec],
-) {
-    let has_tags_slot = specs.iter().any(|spec| spec.name == "tags");
-    let (title_words, tags) = if has_tags_slot {
-        split_tag_sugar(&args.title)
-    } else {
-        (args.title.clone(), Vec::new())
-    };
-    for tag in tags {
-        append_list_value(values, "tags", tag);
-    }
-
-    if values.contains_key("title") || title_words.is_empty() {
-        return;
-    }
-    let title = title_words.join(" ");
-    if !title.trim().is_empty() {
-        values.insert("title".to_owned(), RawValue::Str(title));
-    }
-}
-
-/// Split `+tag` words out of the positional title, in order. A bare `+` (no
-/// tag text) is kept as a title word rather than treated as an empty tag.
-fn split_tag_sugar(words: &[String]) -> (Vec<String>, Vec<String>) {
-    let mut title_words = Vec::new();
-    let mut tags = Vec::new();
-    for word in words {
-        match word.strip_prefix('+') {
-            Some(tag) if !tag.is_empty() => tags.push(tag.to_owned()),
-            _ => title_words.push(word.clone()),
-        }
-    }
-    (title_words, tags)
-}
-
-/// Read a piped title from stdin into the `title` slot. Gated to the
-/// non-interactive pipe case: a TTY (no pipe) would block, and `-f -` already
-/// claims stdin as JSON. A higher-precedence `title` (`--set`/`-f`/env) wins.
-fn fill_title_from_stdin(values: &mut BTreeMap<String, RawValue>, args: &AddArgs) -> Result<()> {
-    if values.contains_key("title")
-        || std::io::stdin().is_terminal()
-        || args.values.iter().any(|source| source == "-")
-    {
-        return Ok(());
-    }
-    let mut raw = String::new();
-    std::io::stdin()
-        .read_to_string(&mut raw)
-        .map_err(|err| Diag::failed("can't read the title from stdin").io(&err))?;
-    if let Some(title) = stdin_title(&raw) {
-        values.insert("title".to_owned(), RawValue::Str(title));
-    }
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests;
