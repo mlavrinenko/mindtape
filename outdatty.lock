@@ -210,7 +210,7 @@ groups:
       .just/scripts/script-attr-check.sh: fb01697288a0863da85cad64bb5ce1430508f9d56f54e013dcf41a119b64d61d
       .just/scripts/script-scope-check.sh: 1957fb4aa6c64190bf1d78c2064226bdd28b2ef20282ea618a85a79ecfcb44ae
       .just/scripts/site-pages-fixture-check.sh: 9892296f9090c0f8b7cc2f3627bc04d9ef985aa227c80531c5b00934bf33dea1
-      .just/scripts/size-fixture-check.sh: 2809f969a7cfef976ccbf1cf1006b46e34f2c21f0d484f36dcbd44ff104481a7
+      .just/scripts/size-fixture-check.sh: cfe1bfdde9a308535127ad68b23e8d8443958fb3109f375e56e843614bdc27ce
     dependents:
       docs/src/contributing/gates.typ: 98dff9d1a2b84a1388d515a521dda0db6fa222378568d2bc95b7cfc4ca0fba3f
   githooks-docs:

@@ -41,6 +41,8 @@
 //! - `semantic.rs`: `Config::validate`, the checks that go beyond TOML shape.
 //! - `status.rs`: `[[tasks.status]]`, the status legend.
 //! - `tasks.rs`: the `[tasks]` section struct and its small field types.
+//! - `templates.rs`: `[templates]`, where `mt add` finds task templates.
+//! - `typst.rs`: `[typst]` and its project-local packages.
 //! - `views.rs`: `[views]`, named query bundles.
 //! - `warnings.rs`: load-time warnings about a config that loads but looks wrong.
 
@@ -72,6 +74,8 @@ pub(crate) mod schema;
 mod semantic;
 pub(crate) mod status;
 pub(crate) mod tasks;
+pub(crate) mod templates;
+pub(crate) mod typst;
 pub(crate) mod views;
 pub(crate) mod warnings;
 
@@ -112,6 +116,8 @@ pub use crate::config::status::{Legend, LegendEntry};
 pub use crate::config::tasks::{
     FieldConfig, IdConfig, IdFormat, TagsConfig, TaskBodyConfig, TasksConfig,
 };
+pub use crate::config::templates::{FallbackSeverity, TemplatesConfig};
+pub use crate::config::typst::{LocalPackage, TypstConfig};
 pub use crate::config::views::{ViewSpec, validate_view_statuses, validate_views};
 
 /// The embedded config floor: canonical default values for the sections that
@@ -212,68 +218,6 @@ pub struct Config {
     /// name that matches no rule is a config error.
     pub disable: Vec<String>,
 }
-
-/// `[typst]` — Typst evaluation settings.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
-#[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
-pub struct TypstConfig {
-    /// `@local/<name>` packages to load from a directory in the project, so a
-    /// task can import a package that is not installed globally. `mt`
-    /// registers `@local/mindtape` itself when `<root>/lib` holds the
-    /// `mindtape` package; list any other package here.
-    pub local_packages: Vec<LocalPackage>,
-}
-
-/// `[[typst.local-packages]]` — one `@local/<name>` package loaded from a project directory.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
-#[serde(default, deny_unknown_fields)]
-pub struct LocalPackage {
-    /// The `@local/<name>` package name.
-    pub name: String,
-    /// Directory holding the package's `typst.toml`, relative to the project root.
-    pub path: String,
-}
-
-/// `[templates]` — where `mt add` finds task templates.
-#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
-#[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
-pub struct TemplatesConfig {
-    /// Directories, relative to the project root, holding `*.typ` task templates.
-    pub dirs: Vec<String>,
-    /// Template stem `mt add` uses when none is named.
-    pub default: String,
-    /// How `mt check` reports a breach of the built-in template, which `mt add`
-    /// falls back to when no template dir holds `task.typ`. A project's own
-    /// templates always report errors.
-    pub fallback_severity: FallbackSeverity,
-}
-
-/// `[templates] fallback-severity` — how a breach of the built-in template
-/// reports.
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
-#[serde(rename_all = "lowercase")]
-pub enum FallbackSeverity {
-    /// Print the breach; `mt check` still succeeds. The default.
-    #[default]
-    Warning,
-    /// Print the breach and fail `mt check`.
-    Error,
-}
-
-// Left opinionated rather than collapsed to empty, for the same reason as
-// `TasksConfig::default`'s `roots`: widely relied on by direct `Config::default()`
-// test fixtures (e.g. template resolution/listing tests), and its value already
-// agrees with the embedded floor (`defaults.toml`).
-impl Default for TemplatesConfig {
-    fn default() -> Self {
-        Self {
-            dirs: vec![".mindtape/templates".to_owned()],
-            default: "task".to_owned(),
-            fallback_severity: FallbackSeverity::Warning,
-        }
-    }
-}
-
 /// `[project]` — project-level settings.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
