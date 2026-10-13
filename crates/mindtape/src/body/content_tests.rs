@@ -4,8 +4,19 @@
 //! malformed-shape error message.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use super::{ContentAssert, DensitySpec, DensityUnit};
+use super::{ContentAssert, ContentRuleConfig, DensitySpec, DensityUnit};
 use crate::config::{Config, HeaderPathSegment, parse_config};
+
+/// The first `[[tasks.body.content.rules]]` entry `text` declares.
+fn first_rule(text: &str) -> ContentRuleConfig {
+    parse_config(text)
+        .unwrap()
+        .tasks
+        .body
+        .content
+        .rules
+        .remove(0)
+}
 
 #[test]
 fn parses_non_empty_assertion() {
@@ -25,29 +36,23 @@ fn parses_non_empty_assertion() {
 #[test]
 fn parses_min_words_assertion() {
     let text = "[[tasks.body.content.rules]]\npath = [\"Scope\"]\nassert = { min-words = 20 }\n";
-    let config = parse_config(text).unwrap();
-    assert_eq!(
-        config.tasks.body.content.rules[0].assert,
-        ContentAssert::MinWords(20)
-    );
+    let rule = first_rule(text);
+    assert_eq!(rule.assert, ContentAssert::MinWords(20));
 }
 
 #[test]
 fn parses_max_words_assertion() {
     let text = "[[tasks.body.content.rules]]\npath = [\"Scope\"]\nassert = { max-words = 200 }\n";
-    let config = parse_config(text).unwrap();
-    assert_eq!(
-        config.tasks.body.content.rules[0].assert,
-        ContentAssert::MaxWords(200)
-    );
+    let rule = first_rule(text);
+    assert_eq!(rule.assert, ContentAssert::MaxWords(200));
 }
 
 #[test]
 fn parses_density_assertion() {
     let text = "[[tasks.body.content.rules]]\npath = [\"Scope\"]\nassert = { density = { pattern = \"—\", max = 1, per = \"paragraph\" } }\n";
-    let config = parse_config(text).unwrap();
+    let rule = first_rule(text);
     assert_eq!(
-        config.tasks.body.content.rules[0].assert,
+        rule.assert,
         ContentAssert::Density(DensitySpec {
             pattern: "—".to_owned(),
             max: 1,
@@ -59,9 +64,9 @@ fn parses_density_assertion() {
 #[test]
 fn density_per_defaults_to_section() {
     let text = "[[tasks.body.content.rules]]\npath = [\"Scope\"]\nassert = { density = { pattern = \"—\", max = 1 } }\n";
-    let config = parse_config(text).unwrap();
+    let rule = first_rule(text);
     assert_eq!(
-        config.tasks.body.content.rules[0].assert,
+        rule.assert,
         ContentAssert::Density(DensitySpec {
             pattern: "—".to_owned(),
             max: 1,
@@ -111,9 +116,9 @@ when   = 'has_tag("bug")'
 fn parses_regex_path_segment_in_content_rule() {
     let text =
         "[[tasks.body.content.rules]]\npath = [{ match = \"^Watch\" }]\nassert = \"non-empty\"\n";
-    let config = parse_config(text).unwrap();
+    let rule = first_rule(text);
     assert_eq!(
-        config.tasks.body.content.rules[0].path[0],
+        rule.path[0],
         HeaderPathSegment::Pattern {
             pattern: "^Watch".to_owned(),
             recursive: false,
@@ -172,28 +177,22 @@ fn rejects_unknown_content_rule_field() {
 #[test]
 fn parses_content_rule_name() {
     let text = "[[tasks.body.content.rules]]\nname = \"problem-steps\"\npath = [\"Problem\"]\nassert = \"non-empty\"\n";
-    let config = parse_config(text).unwrap();
-    assert_eq!(
-        config.tasks.body.content.rules[0].name.as_deref(),
-        Some("problem-steps")
-    );
+    let rule = first_rule(text);
+    assert_eq!(rule.name.as_deref(), Some("problem-steps"));
 }
 
 #[test]
 fn content_rule_name_defaults_to_none() {
     let text = "[[tasks.body.content.rules]]\npath = [\"Problem\"]\nassert = \"non-empty\"\n";
-    let config = parse_config(text).unwrap();
-    assert!(config.tasks.body.content.rules[0].name.is_none());
+    let rule = first_rule(text);
+    assert!(rule.name.is_none());
 }
 
 #[test]
 fn content_rule_label_prefers_name_over_position() {
     let text = "[[tasks.body.content.rules]]\nname = \"problem-steps\"\npath = [\"Problem\"]\nassert = \"non-empty\"\n";
-    let config = parse_config(text).unwrap();
-    assert_eq!(
-        config.tasks.body.content.rules[0].label(3),
-        "body.content.rules.problem-steps"
-    );
+    let rule = first_rule(text);
+    assert_eq!(rule.label(3), "body.content.rules.problem-steps");
 }
 
 #[test]
