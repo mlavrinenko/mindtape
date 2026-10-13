@@ -390,6 +390,9 @@ fn rewrite_link_count_sums_all_rewrites() {
     assert_eq!(rewrite_link_count(&plan), 8);
 }
 
+#[path = "ask_tests.rs"]
+mod ask_tests;
+
 #[path = "cli_tests.rs"]
 mod cli_tests;
 

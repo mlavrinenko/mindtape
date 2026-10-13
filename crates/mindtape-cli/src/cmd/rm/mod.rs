@@ -216,12 +216,26 @@ fn ensure_can_ask(stdin_is_terminal: bool) -> Result<()> {
 /// Refuses without a terminal to ask on; `aborted by user` when the answer is
 /// no.
 fn ask_to_proceed(removal: &Removal) -> Result<()> {
-    ensure_can_ask(std::io::stdin().is_terminal())?;
+    ask_with(
+        removal,
+        std::io::stdin().is_terminal(),
+        crate::diag::confirm,
+    )
+}
+
+/// [`ask_to_proceed`] with the terminal answer and the question given, so a
+/// test reaches the prompt whatever the suite's stdin is.
+fn ask_with(
+    removal: &Removal,
+    stdin_is_terminal: bool,
+    confirm: impl FnOnce(&[String]) -> Result<bool>,
+) -> Result<()> {
+    ensure_can_ask(stdin_is_terminal)?;
     let lines = match removal {
         Removal::Delete(plan) => prompt_lines(plan),
         Removal::Retire(plan) => retire_prompt_lines(plan),
     };
-    ensure_confirmed(crate::diag::confirm(&lines)?)
+    ensure_confirmed(confirm(&lines)?)
 }
 
 /// `Ok` for a yes; a no is the user stopping the run.
