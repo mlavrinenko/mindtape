@@ -100,6 +100,49 @@ fn open_in_editor_runs_command_and_reads_back() {
 }
 
 #[test]
+fn a_blank_editor_command_is_refused_with_where_to_set_one() {
+    let err = open_in_editor("   ", "title:\n").unwrap_err();
+    assert_eq!(
+        crate::diag::plain(&err),
+        "error: the editor command is empty\nhint: set [add] editor, $VISUAL or $EDITOR\n"
+    );
+}
+
+#[test]
+fn an_editor_that_cannot_start_names_the_command() {
+    let err = open_in_editor("mt-no-such-editor-xyz", "title:\n").unwrap_err();
+    let text = crate::diag::plain(&err);
+    assert!(
+        text.starts_with("error: can't start the editor: 'mt-no-such-editor-xyz': "),
+        "{text}"
+    );
+}
+
+/// A command that starts and exits non-zero, whatever the buffer path it is
+/// given. One function with two body-level `#[cfg]`s, for the reason
+/// [`fake_editor`] gives.
+fn failing_editor() -> &'static str {
+    #[cfg(not(windows))]
+    {
+        "false"
+    }
+    #[cfg(windows)]
+    {
+        "cmd /C exit 1"
+    }
+}
+
+#[test]
+fn an_editor_that_exits_non_zero_discards_the_buffer() {
+    let command = failing_editor();
+    let err = open_in_editor(command, "title:\n").unwrap_err();
+    assert_eq!(
+        crate::diag::plain(&err),
+        format!("error: editor exited without saving: '{command}'\n")
+    );
+}
+
+#[test]
 fn never_mode_without_force_stays_closed() {
     let config = AddConfig {
         interactive: InteractiveMode::Never,
