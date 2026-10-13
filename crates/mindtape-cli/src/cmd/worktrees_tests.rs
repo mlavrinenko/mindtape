@@ -201,6 +201,19 @@ fn load_registry_non_notfound_error_propagates() {
     );
 }
 
+/// A token that is not one path segment is refused, and the message names the
+/// `@token` the user typed and says the resolution failed, not that the name is
+/// unknown. Pins the `InvalidToken` arm of `resolve_token`.
+#[test]
+fn resolve_token_refuses_a_token_that_is_not_one_path_segment() {
+    if run_child(&registry(ALIAS_CFG)).is_some() {
+        return;
+    }
+    let err = crate::diag::plain(&super::resolve_token("..").unwrap_err());
+    assert!(err.contains("can't resolve worktree"), "{err}");
+    assert!(err.contains("'@..'"), "{err}");
+}
+
 // --- resolve_token (Ok(Default::default())) ---
 
 #[test]
@@ -216,7 +229,8 @@ fn resolve_token_resolves_alias_correctly() {
 
 #[test]
 fn run_with_json_prints_output() {
-    if let Some((_dir, out)) = run_child(&registry(ALIAS_CFG)) {
+    let cfg = format!("{ALIAS_CFG}[[worktrees]]\nbase = \"/wt\"\n");
+    if let Some((_dir, out)) = run_child(&registry(&cfg)) {
         let stdout = String::from_utf8_lossy(&out.stdout);
         assert!(
             stdout.contains("\"kind\": \"alias\""),
@@ -225,6 +239,10 @@ fn run_with_json_prints_output() {
         assert!(
             stdout.contains("\"name\": \"sn\""),
             "missing 'sn' in JSON output: {stdout}"
+        );
+        assert!(
+            stdout.contains("\"kind\": \"base\"") && stdout.contains("\"base\": \"/wt\""),
+            "missing base entry in JSON output: {stdout}"
         );
         return;
     }
