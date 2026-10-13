@@ -29,24 +29,26 @@
 //! - `guards.rs` — the transition and note guards cleared before a write.
 //! - `hooks.rs` — the `[[on.flip]]` action runner.
 //! - `hooks_cmd.rs` — executing a `run` action's command.
+//! - `verbs.rs` — the shortcut-verb errors, shadow warning and `--list`.
 //! - `tests*.rs`, `*_tests.rs` — unit tests.
 
 pub(crate) mod batch;
 pub(crate) mod hooks;
 pub(crate) mod hooks_cmd;
+mod verbs;
+use verbs::{list_verbs, unknown_command, unknown_status, warn_shadowed_verbs};
 
-use std::collections::HashSet;
 use std::io::IsTerminal;
 use std::path::Path;
 
 use clap::{Args, CommandFactory, FromArgMatches, Parser};
 use mindtape::config::Legend;
-use mindtape::{Config, status_value, today_ymd};
+use mindtape::{status_value, today_ymd};
 use typst_edit::apply;
 
 use crate::cmd::flip::batch::{Landed, after_batch_diags, finish, note_hint};
 use crate::cmd::flip::hooks::{Hooks, Transition, note_with_overrides};
-use crate::diag::{Command, Diag, Hint, Note, Result};
+use crate::diag::{Diag, Hint, Note, Result};
 use crate::task_edit::{task_with, upsert_named_arg};
 use crate::util::{self, Project};
 
@@ -144,39 +146,6 @@ pub(crate) fn shortcut_command(verb: &str) -> clap::Command {
         ))
         .mut_arg("status", |arg| arg.hide(true).index(1))
         .mut_arg("tasks", |arg| arg.index(2))
-}
-
-/// Configured legend values as `&str`, for a nearest-match suggestion shared
-/// by the unknown-status and shortcut-verb-miss sites — both reject against
-/// this same set
-/// (`truth/tasks/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`).
-fn legend_values(legend: &Legend) -> Vec<&str> {
-    legend.entries.iter().map(|e| e.value.as_str()).collect()
-}
-
-/// The usage error for a shortcut-verb miss (`mt <typo> <task>`), naming a
-/// near legend value when one clears the similarity floor. Only the message
-/// changes here: `verb` still dispatches solely on `legend.contains`.
-fn unknown_command(verb: &str, legend: &Legend) -> Diag {
-    let diag = Diag::usage("unknown command").value(verb);
-    diag.did_you_mean_or(
-        verb,
-        &legend_values(legend),
-        Hint::new("run mt --help for commands, or mt flip --list for status verbs"),
-    )
-}
-
-/// The usage error for a status the legend doesn't declare.
-fn unknown_status(status: &str, legend: &Legend) -> Diag {
-    let diag = Diag::usage("unknown status").value(status);
-    diag.did_you_mean_or(
-        status,
-        &legend_values(legend),
-        Hint::run(
-            Command::mt().word("flip").word("--list"),
-            "to see the statuses",
-        ),
-    )
 }
 
 /// Flip `args.status` onto every resolved task in `project`.
@@ -419,43 +388,6 @@ fn notice_recur(
     }
 }
 
-/// Warn when a legend value collides with a built-in subcommand name: the
-/// built-in wins, so that value never reaches `flip` as a shortcut verb.
-fn warn_shadowed_verbs(config: &Config) {
-    let builtins: HashSet<String> = crate::cli::builtin_subcommand_names().into_iter().collect();
-    for entry in &config.tasks.status.entries {
-        if builtins.contains(&entry.value) {
-            crate::diag::emit(
-                &Diag::warning("a status shadows the subcommand of its name")
-                    .value(&entry.value)
-                    .hint(Hint::command(
-                        "its shortcut verb won't run; use",
-                        Command::mt().word("flip").arg(&entry.value),
-                    )),
-            );
-        }
-    }
-}
-
-/// Print the per-status shortcut verbs (the configured legend) to stdout.
-fn list_verbs(config: &Config) {
-    let legend = &config.tasks.status;
-    if legend.is_empty() {
-        println!("no status legend configured; per-status shortcut verbs are unavailable");
-        println!("(add [[tasks.status]] entries to enable `mt <status> <task>...`)");
-        return;
-    }
-    println!(
-        "per-status shortcut verbs (`mt <status> <task>...` == `mt flip <status> <task>...`):"
-    );
-    for entry in &legend.entries {
-        match &entry.glyph {
-            Some(glyph) => println!("  {glyph} {}", entry.value),
-            None => println!("  {}", entry.value),
-        }
-    }
-}
-
 /// Whether the post-write hooks should run: a non-quiet run attached to a
 /// terminal. Split out so both operands are stageable without a pty.
 fn hooks_enabled(quiet: bool, stdout_tty: bool) -> bool {
@@ -476,3 +408,9 @@ mod tests_unblocked;
 
 #[cfg(test)]
 mod tests_children;
+
+#[cfg(test)]
+mod tests_verbs;
+
+#[cfg(test)]
+mod tests_note_required;

@@ -366,3 +366,7 @@ pub(crate) fn note_with_overrides(note: Option<&str>, forced: &[String]) -> Opti
 #[cfg(test)]
 #[path = "hooks_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "hooks_approval_tests.rs"]
+mod approval_tests;
