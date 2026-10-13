@@ -1,13 +1,10 @@
 // Source for skills/mindtape/SKILL.md, rendered by docs/generate-md.sh with
-// typlite. An agent loads SKILL.md whole every time the skill triggers, so it
-// keeps only what changes what the agent does and what no `--help` output
-// says. Detail an agent needs only for some tasks goes in
-// skills/mindtape/references/, which this file links.
-//
+// typlite. An agent loads SKILL.md whole whenever the skill triggers, so it
+// keeps only what changes what the agent does and no `--help` says. Detail
+// for some tasks goes in skills/mindtape/references/, which this file links.
 // `frontmatter` stays a plain string, because typlite cannot emit YAML and the
-// generator writes it with `yq`. The title's backticks are interpolated from a
-// string, never written as a raw span, so the rendered h1 stays plain text and
-// the generator turns it into a `#` heading.
+// generator writes it with `yq`. The title's backticks come from a string, not
+// a raw span, so the rendered h1 stays plain text.
 #import "lib.typ": doc-title, mindtape, www-llms
 
 #metadata((
@@ -33,15 +30,13 @@ Change tasks with `mt` commands, not by editing files. `mt` fills in the slug,
 the status date and the injected fields, resolves links, and writes nothing if
 the result breaks a rule. Edit a file by hand only for what no command writes:
 the body, a framework priority like `ice(...)`, `estimate`, and an `x-<ns>`
-slot. Follow
-`references/hand-editing.md`, then run `mt check`.
+slot. Follow `references/hand-editing.md`, then run `mt check`.
 
 = Is this a #mindtape project?
 
-It is when `.mindtape/config.toml` exists. Run `mt` in the directory that
-holds `.mindtape/` or below it. For another project, pass `-w <path>`, or put
-an alias that `mt worktrees` lists, such as `@name`, right after `mt`. In a
-repo with no tracker, offer `mt init`.
+It is when `.mindtape/config.toml` exists. Run `mt` in the directory that holds
+`.mindtape/` or below it. For another project, pass `-w <path>`, or put an alias
+that `mt worktrees` lists, such as `@name`, right after `mt`.
 
 = Commands
 
@@ -62,83 +57,71 @@ repo with no tracker, offer `mt init`.
   [Validate], [`mt check`],
 )
 
-Run `mt <cmd> --help` for every flag. Read the project's statuses, link kinds,
-priority scale and tags from `mt config show`, which prints the merged config
-(`--origin` names the pack or file each rule comes from), or the statuses
-alone from `mt flip --list`. Never guess them. For what no `--help` covers,
-read #www-llms, which lists every docs page as Markdown.
+Run `mt <cmd> --help` for every flag. Never guess the project's statuses, link
+kinds, priority scale or tags: read them from `mt config show`, which prints
+the merged config (`--origin` names where each rule comes from), or the
+statuses alone from `mt flip --list`. For what no `--help` covers, read
+#www-llms, which lists every docs page as Markdown.
 
 A `<task>` is a stem, a path, or the stem hash `mt ls` prints in its `slug#`
-column. A stem hash is the same in every listing and changes only when
-`mt mv` renames the stem. `mt` refuses a hash that several tasks share. When
-you mention a task to a person, link its file path.
+column. A hash changes only when `mt mv` renames the stem, and `mt` refuses one
+that several tasks share. Link a task's file path when you name it to a person.
 
 = Finding tasks
 
 Bare `mt ls` applies the first `[[ls.rules]]` entry whose condition holds,
 else the project's default view, and its `applied:` footer names which. A
-filter argument replaces only the filter. The sort and columns of that rule or
-view still apply. `-n N` keeps the first N rows after the sort.
+filter argument replaces only the filter; that rule's or view's sort and
+columns still apply. `-n N` keeps the first N rows after the sort.
 
 Common filters are `ready` (open, with every `depends-on` target finished and
-every `waits-on` checker answering that the wait is over),
-`blocked`, `status == "wip"`, `has_tag("t")`, `contains("text")` and
-`due < now()`. `mt ls @<view>` applies a view that `mt views` lists. Before you
+every `waits-on` checker answering that the wait is over), `blocked`,
+`status == "wip"`, `has_tag("t")`, `contains("text")` and `due < now()`. `mt ls @<view>` applies a view that `mt views` lists. Before you
 edit a file, run `mt ls 'touches("<path>")'` to read the tasks named in the
 `Refs:` trailers of commits that changed it. For every field and function,
 read `references/filters.md`.
 
 = Filing tasks
 
-`mt add <title…>` makes the filename from the title, writes the task under the
-first root, and checks it before writing. `mt add --list` lists the templates,
-and `mt add --describe` lists a template's slots. Pass a value you type as
-`--set key=value`. Pass values you generate as YAML on stdin with `-f -`,
-which needs no shell quoting. Add `--print` to see the task without writing
-it.
+`mt add <title…>` names the file from the title, checks the task, and writes
+it under the first root. `mt add --list` lists the templates, and
+`mt add --describe` lists a template's slots. Pass a value you type as
+`--set key=value`, and values you generate as YAML on stdin with `-f -`, which
+needs no shell quoting. `--print` shows the task without writing it.
 
-A key names a template slot, which need not be a field. A framework priority,
-for example, takes its inputs (`--set impact=8`). `mt add` refuses an unknown
-slot and lists the known ones. When the template has no slot for a field, file
-the task first, then write the field with `mt set`. A `text` slot escapes
-Typst markup, so a code span in it lands as literal backticks. Before you fill
-an unfamiliar template, read `references/add-slots.md`.
+A key names a template slot, which need not be a field: a framework priority
+takes its inputs (`--set impact=8`). `mt add` refuses an unknown slot and lists
+the known ones. When the template has no slot for a field, file the task
+first, then write the field with `mt set`. A `text` slot escapes Typst markup,
+so a code span in it lands as literal backticks. Read `references/add-slots.md`
+before you fill an unfamiliar template.
 
-`mt import` files a batch from `mt ls --json`'s schema. It takes each stem from
-the record's `id`, else from its title. Read `references/import.md` before you
-run it.
+Read `references/import.md` before `mt import` files a batch.
 
 = Changing status
 
 `mt <status> <task…>` is short for `mt flip <status> <task…>`. It stamps the
-status with today's date, and `-m "…"` sets the status note. A refused flip
-names its reason: the legend does not allow the transition, the task has an
-unfinished dependency, or it is a parent with an unfinished child. Fix the
-reason. `--force` overrides the refusal and waives a failing `[[on.flip]]`
-gate. Use it only to correct a mistake. Exit 127 from a gate means `mt` ran
-outside the project's dev shell, so flip from inside it.
+status with today's date, and `-m "…"` sets the note. A refused flip names its
+reason: the legend forbids the transition, the task has an unfinished
+dependency, or it is a parent with an unfinished child. Fix the reason.
+`--force` overrides the refusal and waives a failing `[[on.flip]]` gate; use it
+only to fix a mistake. Exit 127 from a gate means `mt` ran outside the
+project's dev shell, so flip from inside it.
 
-To see what each blocked task waits on, run
-`mt ls blocked --columns title,why`. A legend may have no `blocked` status, so
-check `mt flip --list` before you use one. To record an external blocker, run
-`mt config show` and look for `[[tasks.waits]]` checkers. If one fits, add the
-condition with `mt set <task> waits-on+=<checker>:<id>`, and the task stays
-blocked until that checker exits 0. Otherwise, file a task for the blocker and
-link to it with `depends-on`, or leave the task in a status before work starts
-with the reason as its note. Do not mark a blocked task
-`wip`: that counts against any work-in-progress cap and tells readers someone
-is working on it.
+`mt ls blocked --columns title,why` shows what each blocked task waits on. A
+legend may have no `blocked` status, so check `mt flip --list` first. For an
+external blocker, read `references/blocking.md`. Never mark a blocked task
+`wip`: that counts against any work-in-progress cap and says someone is on it.
 
 `mt` runs no command from the config, neither a `[[tasks.waits]]` checker nor
 an `[[on.flip]]` `run`, until the user allows them. Until then a wait reads `unknown: not allowed`, a
-flip gate refuses with `gate not allowed`, and `mt` warns once with the command
-list. Never run `mt allow`, or `--force` past that refusal: the commands run
-with the user's rights. Pass the warning on to the user, who decides.
+flip gate refuses with `gate not allowed`, and `mt` warns once with the
+command list. Never run `mt allow`, or `--force` past that refusal: the
+commands run with the user's rights. Pass the warning to the user.
 
 = Commits and checks
 
 A project with the `flip-with-work` commit rule refuses a commit that holds
-only a `wip` or `done` flip. Leave `mt wip <stem>` uncommitted and commit it
-with the first change of the work. Commit `mt done <stem>` with the last
-change, whose `Refs:` trailer names the task. A commit that files a task holds
-no flip and no `Refs:` trailer.
+only a `wip` or `done` flip. Commit `mt wip <stem>` with the first change of
+the work and `mt done <stem>` with the last, whose `Refs:` trailer names the
+task. A commit that files a task holds no flip and no `Refs:` trailer.
