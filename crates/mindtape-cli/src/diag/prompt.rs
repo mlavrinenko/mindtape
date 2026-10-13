@@ -80,4 +80,42 @@ mod tests {
             assert!(!run(answer).0, "{answer:?}");
         }
     }
+
+    /// A stream that fails every call, to reach the two error arms of `ask`.
+    struct Broken;
+
+    impl Write for Broken {
+        fn write(&mut self, _: &[u8]) -> io::Result<usize> {
+            Err(io::Error::other("pipe closed"))
+        }
+
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
+
+    impl io::Read for Broken {
+        fn read(&mut self, _: &mut [u8]) -> io::Result<usize> {
+            Err(io::Error::other("terminal gone"))
+        }
+    }
+
+    #[test]
+    fn a_closed_stderr_fails_the_prompt_instead_of_declining() {
+        let err = ask(&mut Broken, &mut "y\n".as_bytes(), &[]).unwrap_err();
+        assert_eq!(
+            super::super::render::render(&err, false),
+            "error: can't write the prompt: pipe closed\n"
+        );
+    }
+
+    #[test]
+    fn an_unreadable_stdin_fails_the_prompt_instead_of_declining() {
+        let mut input = io::BufReader::new(Broken);
+        let err = ask(&mut Vec::new(), &mut input, &[]).unwrap_err();
+        assert_eq!(
+            super::super::render::render(&err, false),
+            "error: can't read the answer: terminal gone\n"
+        );
+    }
 }
