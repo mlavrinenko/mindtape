@@ -210,3 +210,13 @@ pub fn commit_repo(rules: &str) -> tempfile::TempDir {
     git_commit_all(dir.path());
     dir
 }
+
+/// Write `tasks/<stem>.typ` with its show rule reached through a `let` alias,
+/// so no literal `task.with(…)` call exists for an edit to hold. Returns the
+/// bytes written, for a test that checks the file was left alone.
+pub fn write_aliased_task(dir: &Path, stem: &str) -> String {
+    let body = "#import \"@local/mindtape:0.2.0\": *\n#let t = task\n\
+                #show: t.with(\n  title: \"Wire OAuth\",\n  status: wip(2026, 6, 1),\n)\n";
+    write_file(dir, format!("tasks/{stem}.typ"), body);
+    body.to_owned()
+}

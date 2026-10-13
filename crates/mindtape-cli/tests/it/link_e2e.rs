@@ -357,3 +357,21 @@ fn a_refused_write_is_reported_and_leaves_the_task_as_it_was() {
     assert!(stderr.contains("can't write"), "{stderr}");
     assert_eq!(source(dir.path(), "wire-oauth"), before);
 }
+
+/// An edge cannot be written into a task whose show rule is aliased: there is
+/// no literal `task.with(…)` call to hold the `links:` slot. The entry is
+/// refused as a whole, the diagnostic names the file, and the file stays put.
+#[test]
+fn an_edge_into_an_aliased_task_is_refused_and_leaves_it_untouched() {
+    let dir = scaffold();
+    let body = support::write_aliased_task(dir.path(), "wire-oauth");
+
+    let (code, stderr) = support::run_stderr(
+        dir.path(),
+        &["link", "wire-oauth", "depends-on", "pick-a-provider"],
+    );
+    assert_eq!(code, Some(1), "{stderr}");
+    assert!(stderr.contains("no task.with(…) call found"), "{stderr}");
+    assert!(stderr.contains("wire-oauth.typ"), "{stderr}");
+    assert_eq!(source(dir.path(), "wire-oauth"), body);
+}

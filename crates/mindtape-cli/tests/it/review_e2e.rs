@@ -116,10 +116,8 @@ fn reviewing_an_unresolvable_id_fails() {
 #[test]
 fn an_aliased_task_call_is_refused_and_left_untouched() {
     let dir = scaffold();
-    let body = "#import \"@local/mindtape:0.2.0\": *\n#let t = task\n\
-                #show: t.with(\n  title: \"Wire OAuth\",\n  status: wip(2026, 6, 1),\n)\n";
+    let body = support::write_aliased_task(dir.path(), "wire-oauth");
     let file = dir.path().join("tasks/wire-oauth.typ");
-    std::fs::write(&file, body).unwrap();
 
     let stderr = support::stderr_of(
         &support::mt(dir.path())
