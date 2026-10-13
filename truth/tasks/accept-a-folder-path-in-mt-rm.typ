@@ -56,6 +56,7 @@ left in a closing report no one rereads. It belongs in
 
 - `crates/mindtape-cli/src/cmd/rm/mod.rs`: resolve a target that names a directory under a root to the tasks inside it.
 - `crates/mindtape-cli/tests/it/`: the red e2e test first, a folder of two tasks removed by its path.
+- `truth/tasks/swept/`: removed whole by the new command, as Dogfood says.
 
 == Rollback
 
@@ -67,4 +68,6 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-This repo clears a finished sweep batch with `mt rm truth/tasks/swept`.
+The closing commit runs `mt rm truth/tasks/swept --dry-run`, checks it lists only
+the closed sweep tasks (250 when filed), then runs it for real and commits the
+removal with this task. From then on a finished sweep batch goes the same way.
