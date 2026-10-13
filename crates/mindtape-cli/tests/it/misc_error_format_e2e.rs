@@ -37,10 +37,12 @@ fn go_without_an_editor_puts_the_fix_on_a_hint() {
 
 #[test]
 fn eval_of_a_missing_path_quotes_it() {
-    let (code, stderr) = run(project().path(), &["eval", "nope/missing.typ"]);
-
-    assert_eq!(code, Some(1), "{stderr}");
-    assert_eq!(stderr, "error: no such file: 'nope/missing.typ'\n");
+    support::assert_stderr(
+        project().path(),
+        &["eval", "nope/missing.typ"],
+        1,
+        "error: no such file: 'nope/missing.typ'\n",
+    );
 }
 
 #[test]

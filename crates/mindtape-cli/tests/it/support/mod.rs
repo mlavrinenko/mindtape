@@ -103,6 +103,14 @@ pub fn run_text(dir: &Path, args: &[&str]) -> (bool, String) {
     text_of(&mt(dir).args(args).output().unwrap())
 }
 
+/// `mt <args>` in `dir` must exit with `code` and print exactly `expected` on
+/// stderr: the shape of every error-format test.
+pub fn assert_stderr(dir: &Path, args: &[&str], code: i32, expected: &str) {
+    let (got, stderr) = run_stderr(dir, args);
+    assert_eq!(got, Some(code), "{stderr}");
+    assert_eq!(stderr, expected);
+}
+
 /// `mt`, ready to run in `dir` with the developer's global config out of reach
 /// ([`isolated_env`]). The spawn every e2e test goes through; a bare
 /// `cargo_bin("mt")` is the un-isolated one and only `install_e2e` (which
