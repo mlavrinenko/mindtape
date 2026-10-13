@@ -9,6 +9,7 @@ fn scaffold_folder() -> tempfile::TempDir {
     let dir = scaffold_files(&[("keep.typ", UNRELATED)]);
     let batch = dir.path().join("tasks/batch");
     std::fs::create_dir_all(batch.join("deeper")).unwrap();
+    std::fs::create_dir_all(dir.path().join("tasks/empty")).unwrap();
     for (path, body) in [("gone-a.typ", GONE_A), ("deeper/gone-b.typ", GONE_B)] {
         mindtape::write_atomic(&batch.join(path), body.as_bytes()).unwrap();
     }
@@ -65,5 +66,14 @@ fn rm_refuses_a_folder_outside_every_root() {
             .failure()
             .stderr(predicates::str::contains("outside every task root"));
     }
+    assert!(batch_left(&dir));
+}
+
+#[test]
+fn rm_of_a_folder_holding_no_task_removes_nothing() {
+    let (dir, out) = rm_in("", &["-y", "tasks/empty"]);
+
+    out.success()
+        .stdout(predicates::str::contains("nothing to remove"));
     assert!(batch_left(&dir));
 }
