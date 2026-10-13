@@ -12,7 +12,6 @@
 
 use mindtape::test_support::tempdir;
 use std::path::Path;
-use std::process::Command;
 
 /// A baseline in the shape jscpd writes: `version`, then sorted fingerprints.
 fn baseline(fingerprints: &[(&str, u32)]) -> String {
@@ -43,7 +42,6 @@ fn two_branches_that_each_added_a_clone_merge_to_their_union() {
     }
     // Both branches change the line after `9cc`, so git's text merge conflicts.
     let script = r#"set -e
-        export HOME=$PWD/no-home GIT_CONFIG_NOSYSTEM=1 BASH_ENV=
         git init -q -b main
         git config user.email t@example.com; git config user.name t
         git config commit.gpgsign false
@@ -56,10 +54,9 @@ fn two_branches_that_each_added_a_clone_merge_to_their_union() {
         git checkout -qb side; cp theirs.json .jscpd-baseline.json; git commit -qam side
         git checkout -q main; cp ours.json .jscpd-baseline.json; git commit -qam main
         git merge -q --no-edit side"#;
-    let out = Command::new("bash")
+    let out = crate::support::shell("bash", dir.path())
         .args(["-c", script])
         .env("ROOT", &root)
-        .current_dir(dir.path())
         .output()
         .unwrap();
     assert!(

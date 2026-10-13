@@ -9,12 +9,14 @@
 use std::path::{Path, PathBuf};
 
 mod fixtures;
+mod shell;
 pub use fixtures::{
     commit_repo, git, git_commit_all, init_preset, install_lib, project_with_raw_slot_template,
     project_with_slot_template, project_with_task, project_with_tasks, project_with_template,
     project_with_template_and_config, scaffold, scaffold_config, scaffold_project,
     write_aliased_task,
 };
+pub use shell::{checkout, shell};
 
 const PRELUDE: &str = include_str!("../../../../../lib/prelude.typ");
 

@@ -9,6 +9,7 @@
 #![cfg(unix)]
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use crate::support::checkout;
 use mindtape::test_support::tempdir;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
@@ -17,11 +18,6 @@ use std::time::{Duration, SystemTime};
 const SCRIPT: &str = ".just/scripts/wt-carry-lcov.sh";
 const STALE_SCRIPT: &str = ".just/scripts/_lcov-stale-reason.sh";
 const LCOV: &str = "target/coverage/lcov.info";
-
-/// The checkout this test binary was built from.
-fn checkout() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
-}
 
 struct Pair {
     dir: tempfile::TempDir,
@@ -84,11 +80,9 @@ impl Pair {
     /// Run the script as the `pre-remove` hook does: from the worktree root,
     /// with the primary checkout as its argument.
     fn carry(&self, primary: &Path) -> Output {
-        Command::new("bash")
+        crate::support::shell("bash", &self.worktree())
             .arg(SCRIPT)
             .arg(primary)
-            .current_dir(self.worktree())
-            .env_remove("BASH_ENV")
             .output()
             .unwrap()
     }
@@ -108,11 +102,9 @@ impl Pair {
             bin.display(),
             std::env::var("PATH").unwrap_or_default()
         );
-        Command::new("bash")
+        crate::support::shell("bash", &self.worktree())
             .arg(SCRIPT)
             .arg(self.primary())
-            .current_dir(self.worktree())
-            .env_remove("BASH_ENV")
             .env("PATH", path)
             .output()
             .unwrap()

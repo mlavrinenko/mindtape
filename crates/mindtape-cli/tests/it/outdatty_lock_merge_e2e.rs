@@ -10,14 +10,9 @@
 #![cfg(unix)]
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use crate::support::checkout;
 use mindtape::test_support::tempdir;
-use std::path::{Path, PathBuf};
-use std::process::{Command, Output};
-
-/// The checkout this test binary was built from.
-fn checkout() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
-}
+use std::process::Output;
 
 const DRIVER: &str = ".just/scripts/outdatty-lock-merge.sh";
 
@@ -82,14 +77,8 @@ impl Repo {
     /// host hook there may re-derive `PATH` from the `.envrc` this throwaway
     /// repo lacks, dropping the dev-shell tools the driver needs.
     fn command(&self, program: &str, args: &[&str]) -> Output {
-        let home = self.dir.path().join("no-home");
-        Command::new(program)
-            .env_remove("BASH_ENV")
+        crate::support::shell(program, self.dir.path())
             .args(args)
-            .current_dir(self.dir.path())
-            .env("HOME", &home)
-            .env("XDG_CONFIG_HOME", &home)
-            .env("GIT_CONFIG_NOSYSTEM", "1")
             .output()
             .unwrap()
     }
