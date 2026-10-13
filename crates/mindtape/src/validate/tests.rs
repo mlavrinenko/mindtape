@@ -47,6 +47,11 @@ allowed = ["backend"]
     .unwrap()
 }
 
+/// Whether some violation is on `field`.
+pub(super) fn on_field(violations: &[Violation], field: &str) -> bool {
+    violations.iter().any(|v| v.field == field)
+}
+
 /// Whether some violation is on `field` and its message holds `needle`.
 pub(super) fn flags(violations: &[Violation], field: &str, needle: &str) -> bool {
     violations
@@ -76,7 +81,7 @@ fn clean_task_has_no_violations() {
 fn flags_unknown_status() {
     let tasks = vec![task("a", "bogus")];
     let violations = validate(&tasks, &config());
-    assert!(violations.iter().any(|v| v.field == "status"));
+    assert!(on_field(&violations, "status"));
 }
 
 /// Config with a transition graph: proposed → wip → done, plus `blocked` as an
@@ -228,7 +233,7 @@ fn flags_unresolved_link() {
     let mut item = task("a", "wip");
     item.links = vec![dep_edge("missing.typ")];
     let violations = validate(&[item], &config());
-    assert!(violations.iter().any(|v| v.field == "depends-on"));
+    assert!(on_field(&violations, "depends-on"));
 }
 
 #[test]
@@ -236,7 +241,7 @@ fn flags_unresolved_supersedes() {
     let mut item = task("a", "wip");
     item.links = vec![link_edge("gone.typ", "supersedes")];
     let violations = validate(&[item], &config());
-    assert!(violations.iter().any(|v| v.field == "supersedes"));
+    assert!(on_field(&violations, "supersedes"));
 }
 
 #[test]
@@ -244,7 +249,7 @@ fn flags_unresolved_duplicates() {
     let mut item = task("a", "wip");
     item.links = vec![link_edge("ghost.typ", "duplicates")];
     let violations = validate(&[item], &config());
-    assert!(violations.iter().any(|v| v.field == "duplicates"));
+    assert!(on_field(&violations, "duplicates"));
 }
 
 #[test]
@@ -257,8 +262,8 @@ fn resolves_supersedes_and_duplicates() {
     ];
     let tasks = vec![first, task("b", "wip")];
     let violations = validate(&tasks, &config());
-    assert!(!violations.iter().any(|v| v.field == "supersedes"));
-    assert!(!violations.iter().any(|v| v.field == "duplicates"));
+    assert!(!on_field(&violations, "supersedes"));
+    assert!(!on_field(&violations, "duplicates"));
 }
 
 #[test]
@@ -267,11 +272,7 @@ fn resolves_existing_link() {
     // sibling file: tasks/b.typ — resolvable from tasks/a.typ as "b.typ"
     first.links = vec![noted_edge("b.typ", "related", "why")];
     let tasks = vec![first, task("b", "wip")];
-    assert!(
-        !validate(&tasks, &config())
-            .iter()
-            .any(|v| v.field == "related")
-    );
+    assert!(!on_field(&validate(&tasks, &config()), "related"));
 }
 
 #[test]
@@ -304,7 +305,7 @@ fn link_across_nested_directories_resolves() {
     let tasks = vec![a, b];
     let violations = validate(&tasks, &config());
     assert!(
-        !violations.iter().any(|v| v.field == "depends-on"),
+        !on_field(&violations, "depends-on"),
         "cross-directory link should resolve, got: {violations:?}"
     );
 }
@@ -324,7 +325,7 @@ fn explicit_id_task_still_reachable_by_path() {
     let tasks = vec![linker, target];
     let violations = validate(&tasks, &config());
     assert!(
-        !violations.iter().any(|v| v.field == "depends-on"),
+        !on_field(&violations, "depends-on"),
         "task with explicit id should still resolve by file path, got: {violations:?}"
     );
 }
@@ -336,7 +337,7 @@ fn broken_link_across_nested_directories_flagged() {
     item.links = vec![dep_edge("../missing/nowhere.typ")];
     let violations = validate(&[item], &config());
     assert!(
-        violations.iter().any(|v| v.field == "depends-on"),
+        on_field(&violations, "depends-on"),
         "non-existent cross-directory link should be flagged"
     );
 }
@@ -347,18 +348,11 @@ fn flags_duplicate_ids() {
     second.file = "tasks/a2.typ".into();
     let tasks = vec![task("a", "wip"), second];
     let violations = validate(&tasks, &Config::default());
-    assert!(
-        violations.iter().any(|v| v.field == "id"),
-        "expected uniqueness violation"
-    );
+    assert!(on_field(&violations, "id"), "expected uniqueness violation");
 }
 
 #[test]
 fn no_uniqueness_violation_for_distinct_ids() {
     let tasks = vec![task("a", "wip"), task("b", "wip")];
-    assert!(
-        !validate(&tasks, &Config::default())
-            .iter()
-            .any(|v| v.field == "id")
-    );
+    assert!(!on_field(&validate(&tasks, &Config::default()), "id"));
 }

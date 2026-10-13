@@ -6,7 +6,7 @@ use crate::link::{Link, LinkKind, NoteRule};
 use crate::model::Task;
 use crate::test_support::{bare_task, linked_task};
 use crate::validate::Violation;
-use crate::validate::tests::flags;
+use crate::validate::tests::{flags, on_field};
 use crate::validate::violation::ViolationKind;
 
 pub(super) fn edge(target: &str, kind: &str) -> Link {
@@ -128,7 +128,7 @@ fn single_parent_is_clean() {
     let a = linked_task("a", vec![edge("b.typ", "parent")]);
     let b = bare_task("b");
     let violations = check(&[a, b], &Config::default());
-    assert!(!violations.iter().any(|v| v.field == "parent"));
+    assert!(!on_field(&violations, "parent"));
 }
 
 #[test]
@@ -140,7 +140,7 @@ fn depends_on_has_no_cardinality_cap() {
     let b = bare_task("b");
     let extra = bare_task("extra");
     let violations = check(&[a, b, extra], &Config::default());
-    assert!(!violations.iter().any(|v| v.field == "depends-on"));
+    assert!(!on_field(&violations, "depends-on"));
 }
 
 #[test]
@@ -159,7 +159,7 @@ fn related_with_note_is_clean() {
     let a = linked_task("a", vec![noted("b.typ", "related", "why it matters")]);
     let b = bare_task("b");
     let violations = check(&[a, b], &Config::default());
-    assert!(!violations.iter().any(|v| v.field == "related"));
+    assert!(!on_field(&violations, "related"));
 }
 
 #[test]
@@ -207,7 +207,7 @@ fn custom_kind_cannot_override_builtin_cardinality() {
     let b = bare_task("b");
     let extra = bare_task("extra");
     let violations = check(&[a, b, extra], &config);
-    assert!(violations.iter().any(|v| v.field == "parent"));
+    assert!(on_field(&violations, "parent"));
 }
 
 #[test]
@@ -239,8 +239,8 @@ fn parent_and_depends_on_cycles_are_independent() {
     );
     let b = linked_task("b", vec![edge("a.typ", "parent")]);
     let violations = check(&[a, b], &Config::default());
-    assert!(!violations.iter().any(|v| v.field == "depends-on"));
-    assert!(violations.iter().any(|v| v.field == "parent"));
+    assert!(!on_field(&violations, "depends-on"));
+    assert!(on_field(&violations, "parent"));
 }
 
 #[test]
@@ -269,7 +269,7 @@ fn strict_config_still_declares_all_builtins() {
     let a = linked_task("a", vec![edge("b.typ", "related")]); // no note -> still required
     let b = bare_task("b");
     let violations = check(&[a, b], &config);
-    assert!(violations.iter().any(|v| v.field == "related"));
+    assert!(on_field(&violations, "related"));
 }
 
 #[test]
@@ -282,7 +282,7 @@ fn forbidden_kind_without_note_is_clean() {
     let a = linked_task("a", vec![edge("b.typ", "no-notes-allowed")]);
     let b = bare_task("b");
     let violations = check(&[a, b], &config);
-    assert!(!violations.iter().any(|v| v.field == "no-notes-allowed"));
+    assert!(!on_field(&violations, "no-notes-allowed"));
 }
 
 #[test]

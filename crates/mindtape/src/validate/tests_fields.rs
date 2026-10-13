@@ -6,7 +6,7 @@
 
 use std::collections::BTreeMap;
 
-use super::tests::{config, flags, task};
+use super::tests::{config, flags, on_field, task};
 use super::validate;
 use crate::config::{Config, FieldConfig, Requirement, parse_config};
 use crate::model::marker::ShapeError;
@@ -18,7 +18,7 @@ fn flags_missing_required_priority_when_active() {
     let mut item = task("a", "wip");
     item.priority = None;
     let violations = validate(&[item], &config());
-    assert!(violations.iter().any(|v| v.field == "priority"));
+    assert!(on_field(&violations, "priority"));
 }
 
 #[test]
@@ -64,7 +64,7 @@ fn terminal_task_keeps_a_retired_estimate_unit() {
     item.estimate = BTreeMap::from([("fortnights".to_owned(), 2.0)]);
     let violations = validate(&[item], &config());
     assert!(
-        !violations.iter().any(|v| v.field == "estimate"),
+        !on_field(&violations, "estimate"),
         "a terminal task should keep whatever unit it was estimated in, got: {violations:?}"
     );
 }
@@ -85,7 +85,7 @@ fn flags_disallowed_tag() {
     let mut item = task("a", "wip");
     item.tags = vec!["frontend".to_owned()];
     let violations = validate(&[item], &config());
-    assert!(violations.iter().any(|v| v.field == "tags"));
+    assert!(on_field(&violations, "tags"));
 }
 
 /// What the one violation on `tags` says an unknown tag could have been, for a
@@ -149,7 +149,7 @@ fn terminal_task_keeps_a_dropped_tag() {
     item.tags = vec!["frontend".to_owned()];
     let violations = validate(&[item], &config());
     assert!(
-        !violations.iter().any(|v| v.field == "tags"),
+        !on_field(&violations, "tags"),
         "a terminal task should keep whatever tag it was filed with, got: {violations:?}"
     );
 }
@@ -160,7 +160,7 @@ fn terminal_task_keeps_a_dropped_derived_tag() {
     item.derived_tags = vec!["marketing".to_owned()];
     let violations = validate(&[item], &config());
     assert!(
-        !violations.iter().any(|v| v.field == "tags"),
+        !on_field(&violations, "tags"),
         "a terminal task should keep whatever tag its folder derived, got: {violations:?}"
     );
 }
@@ -180,7 +180,7 @@ fn framework_priority_validates_clean() {
     item.priority = Some(ice_priority(10.0, 0.9, 10.0));
     let violations = validate(&[item], &strict_ice_config());
     assert!(
-        !violations.iter().any(|v| v.field == "priority"),
+        !on_field(&violations, "priority"),
         "valid ICE inputs should pass, got: {violations:?}"
     );
 }
@@ -233,7 +233,7 @@ fn lenient_mode_accepts_manual_integer() {
     item.priority = Some(NumValue::Num(7.0));
     let violations = validate(&[item], &cfg);
     assert!(
-        !violations.iter().any(|v| v.field == "priority"),
+        !on_field(&violations, "priority"),
         "lenient mode should accept a manual int, got: {violations:?}"
     );
 }
@@ -255,44 +255,28 @@ fn kind_config() -> Config {
 fn kind_missing_required_flags_on_non_terminal() {
     let mut t = task("a", "wip");
     t.kind = None;
-    assert!(
-        validate(&[t], &kind_config())
-            .iter()
-            .any(|v| v.field == "kind")
-    );
+    assert!(on_field(&validate(&[t], &kind_config()), "kind"));
 }
 
 #[test]
 fn kind_missing_required_skips_on_terminal() {
     let mut t = task("a", "done");
     t.kind = None;
-    assert!(
-        !validate(&[t], &kind_config())
-            .iter()
-            .any(|v| v.field == "kind")
-    );
+    assert!(!on_field(&validate(&[t], &kind_config()), "kind"));
 }
 
 #[test]
 fn kind_allowed_value_passes() {
     let mut t = task("a", "wip");
     t.kind = Some("feature".into());
-    assert!(
-        !validate(&[t], &kind_config())
-            .iter()
-            .any(|v| v.field == "kind")
-    );
+    assert!(!on_field(&validate(&[t], &kind_config()), "kind"));
 }
 
 #[test]
 fn kind_disallowed_value_flags() {
     let mut t = task("a", "wip");
     t.kind = Some("chore".into());
-    assert!(
-        validate(&[t], &kind_config())
-            .iter()
-            .any(|v| v.field == "kind")
-    );
+    assert!(on_field(&validate(&[t], &kind_config()), "kind"));
 }
 
 fn assignee_config() -> Config {
@@ -314,22 +298,14 @@ fn assignee_missing_required_flags_on_non_terminal() {
 fn assignee_missing_required_skips_on_terminal() {
     let mut t = task("a", "done");
     t.assignee = None;
-    assert!(
-        !validate(&[t], &assignee_config())
-            .iter()
-            .any(|v| v.field == "assignee")
-    );
+    assert!(!on_field(&validate(&[t], &assignee_config()), "assignee"));
 }
 
 #[test]
 fn assignee_allowed_value_passes() {
     let mut t = task("a", "wip");
     t.assignee = Some("ada".into());
-    assert!(
-        !validate(&[t], &assignee_config())
-            .iter()
-            .any(|v| v.field == "assignee")
-    );
+    assert!(!on_field(&validate(&[t], &assignee_config()), "assignee"));
 }
 
 #[test]
@@ -344,33 +320,21 @@ fn assignee_disallowed_value_flags() {
 fn difficulty_out_of_scale_flags() {
     let mut t = task("a", "wip");
     t.difficulty = Some(NumValue::Num(42.0));
-    assert!(
-        validate(&[t], &config())
-            .iter()
-            .any(|v| v.field == "difficulty")
-    );
+    assert!(on_field(&validate(&[t], &config()), "difficulty"));
 }
 
 #[test]
 fn difficulty_min_boundary_passes() {
     let mut t = task("a", "wip");
     t.difficulty = Some(NumValue::Num(0.0));
-    assert!(
-        !validate(&[t], &config())
-            .iter()
-            .any(|v| v.field == "difficulty")
-    );
+    assert!(!on_field(&validate(&[t], &config()), "difficulty"));
 }
 
 #[test]
 fn difficulty_max_boundary_passes() {
     let mut t = task("a", "wip");
     t.difficulty = Some(NumValue::Num(9.0));
-    assert!(
-        !validate(&[t], &config())
-            .iter()
-            .any(|v| v.field == "difficulty")
-    );
+    assert!(!on_field(&validate(&[t], &config()), "difficulty"));
 }
 
 #[test]
@@ -398,20 +362,12 @@ fn priority_framework_score_outside_custom_scale_flags() {
 fn priority_framework_min_boundary_passes() {
     let mut t = task("a", "wip");
     t.priority = Some(ice_priority(1.0, 0.0, 1.0));
-    assert!(
-        !validate(&[t], &strict_ice_config())
-            .iter()
-            .any(|v| v.field == "priority")
-    );
+    assert!(!on_field(&validate(&[t], &strict_ice_config()), "priority"));
 }
 
 #[test]
 fn priority_framework_max_boundary_passes() {
     let mut t = task("a", "wip");
     t.priority = Some(ice_priority(10.0, 1.0, 10.0));
-    assert!(
-        !validate(&[t], &strict_ice_config())
-            .iter()
-            .any(|v| v.field == "priority")
-    );
+    assert!(!on_field(&validate(&[t], &strict_ice_config()), "priority"));
 }
