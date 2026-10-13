@@ -190,6 +190,25 @@ fn merged_config_table_returns_content_from_project_layer() {
     );
 }
 
+/// A fresh home and project whose `.mindtape/config.toml` holds `config`.
+fn project_with_config(
+    config: &str,
+) -> (tempfile::TempDir, std::path::PathBuf, std::path::PathBuf) {
+    let (tmp, home, project) = home_and_project();
+    std::fs::create_dir_all(project.join(".mindtape")).unwrap();
+    std::fs::write(project.join(".mindtape").join("config.toml"), config).unwrap();
+    (tmp, home, project)
+}
+
+/// The config a layered load builds from a project whose config file holds
+/// `config`.
+fn loaded(config: &str) -> crate::config::Config {
+    let (_tmp, home, project) = project_with_config(config);
+    let (config, _sources, _rule_origins) =
+        super::load_config_layered_from(&project, Some(&home), None).unwrap();
+    config
+}
+
 // --- `[dicts]`: the root-relative half, which only the layered load can see ---
 
 /// A `[dicts.<name>] path` resolves against the project root, so the file is
@@ -197,13 +216,7 @@ fn merged_config_table_returns_content_from_project_layer() {
 /// no root to resolve against.
 #[test]
 fn a_dict_path_resolves_against_the_project_root() {
-    let (_tmp, home, project) = home_and_project();
-    std::fs::create_dir_all(project.join(".mindtape")).unwrap();
-    std::fs::write(
-        project.join(".mindtape").join("config.toml"),
-        "[dicts.verbs]\npath = \"dicts/verbs.txt\"\n",
-    )
-    .unwrap();
+    let (_tmp, home, project) = project_with_config("[dicts.verbs]\npath = \"dicts/verbs.txt\"\n");
     std::fs::create_dir_all(project.join("dicts")).unwrap();
     std::fs::write(project.join("dicts").join("verbs.txt"), "# head\nadd\n").unwrap();
 
@@ -217,13 +230,8 @@ fn a_dict_path_resolves_against_the_project_root() {
 /// the dict, rather than once per task that reads it.
 #[test]
 fn an_unreadable_dict_path_fails_the_load() {
-    let (_tmp, home, project) = home_and_project();
-    std::fs::create_dir_all(project.join(".mindtape")).unwrap();
-    std::fs::write(
-        project.join(".mindtape").join("config.toml"),
-        "[dicts.verbs]\npath = \"dicts/missing.txt\"\n",
-    )
-    .unwrap();
+    let (_tmp, home, project) =
+        project_with_config("[dicts.verbs]\npath = \"dicts/missing.txt\"\n");
 
     let err = super::load_config_layered_from(&project, Some(&home), None).unwrap_err();
     let rendered = err.to_string();
@@ -239,34 +247,20 @@ fn an_unreadable_dict_path_fails_the_load() {
 /// downstream reader of `tasks.tags.allowed` never sees the sigil.
 #[test]
 fn a_dict_ref_in_tags_allowed_expands_to_the_dict_s_entries() {
-    let (_tmp, home, project) = home_and_project();
-    std::fs::create_dir_all(project.join(".mindtape")).unwrap();
-    std::fs::write(
-        project.join(".mindtape").join("config.toml"),
+    let config = loaded(
         "[dicts.areas]\nvalues = [\"frontend\", \"backend\"]\n\n\
          [tasks.tags]\nallowed = [\"@areas\", \"swept\"]\n",
-    )
-    .unwrap();
-
-    let (config, _sources, _rule_origins) =
-        super::load_config_layered_from(&project, Some(&home), None).unwrap();
+    );
     assert_eq!(config.tasks.tags.allowed, ["backend", "frontend", "swept"]);
 }
 
 /// The same expansion applies to `[tasks.fields.<name>] values`.
 #[test]
 fn a_dict_ref_in_field_values_expands_to_the_dict_s_entries() {
-    let (_tmp, home, project) = home_and_project();
-    std::fs::create_dir_all(project.join(".mindtape")).unwrap();
-    std::fs::write(
-        project.join(".mindtape").join("config.toml"),
+    let config = loaded(
         "[dicts.kinds]\nvalues = [\"chore\", \"bug\"]\n\n\
          [tasks.fields.kind]\nvalues = [\"@kinds\"]\n",
-    )
-    .unwrap();
-
-    let (config, _sources, _rule_origins) =
-        super::load_config_layered_from(&project, Some(&home), None).unwrap();
+    );
     assert_eq!(config.tasks.fields["kind"].values, ["bug", "chore"]);
 }
 
@@ -275,17 +269,10 @@ fn a_dict_ref_in_field_values_expands_to_the_dict_s_entries() {
 /// the literal `"backend"` here is already contributed by `@areas`.
 #[test]
 fn a_mixed_list_unions_literals_and_dict_refs_in_order_deduped() {
-    let (_tmp, home, project) = home_and_project();
-    std::fs::create_dir_all(project.join(".mindtape")).unwrap();
-    std::fs::write(
-        project.join(".mindtape").join("config.toml"),
+    let config = loaded(
         "[dicts.areas]\nvalues = [\"frontend\", \"backend\"]\n\n\
          [tasks.tags]\nallowed = [\"swept\", \"@areas\", \"backend\"]\n",
-    )
-    .unwrap();
-
-    let (config, _sources, _rule_origins) =
-        super::load_config_layered_from(&project, Some(&home), None).unwrap();
+    );
     assert_eq!(config.tasks.tags.allowed, ["swept", "backend", "frontend"]);
 }
 
@@ -294,14 +281,10 @@ fn a_mixed_list_unions_literals_and_dict_refs_in_order_deduped() {
 /// `include` target gets.
 #[test]
 fn an_unknown_dict_ref_fails_the_load_with_a_suggestion() {
-    let (_tmp, home, project) = home_and_project();
-    std::fs::create_dir_all(project.join(".mindtape")).unwrap();
-    std::fs::write(
-        project.join(".mindtape").join("config.toml"),
+    let (_tmp, home, project) = project_with_config(
         "[dicts.areas]\nvalues = [\"backend\"]\n\n\
          [tasks.tags]\nallowed = [\"@ares\"]\n",
-    )
-    .unwrap();
+    );
 
     let err = super::load_config_layered_from(&project, Some(&home), None).unwrap_err();
     let rendered = err.to_string();
@@ -319,13 +302,7 @@ fn an_unknown_dict_ref_fails_the_load_with_a_suggestion() {
 /// the load exactly like a typo'd dict name — there is no escape.
 #[test]
 fn a_literal_at_prefixed_entry_with_no_matching_dict_fails_the_load() {
-    let (_tmp, home, project) = home_and_project();
-    std::fs::create_dir_all(project.join(".mindtape")).unwrap();
-    std::fs::write(
-        project.join(".mindtape").join("config.toml"),
-        "[tasks.tags]\nallowed = [\"@urgent\"]\n",
-    )
-    .unwrap();
+    let (_tmp, home, project) = project_with_config("[tasks.tags]\nallowed = [\"@urgent\"]\n");
 
     let err = super::load_config_layered_from(&project, Some(&home), None).unwrap_err();
     assert!(err.to_string().contains("unknown dict: 'urgent'"), "{err}");
