@@ -98,6 +98,10 @@ overrides:
   - pattern: "**/.just/scripts/_doc-blocks-lib.sh"
     limit: 360
 
+  # One gate with one job, stopping history and shouting in prose. Its name scan, comment scan and schema scan share the awk rules, so a split would copy them.
+  - pattern: "**/.just/scripts/check-doc-prose.sh"
+    limit: 360
+
 count_mode: total
 
 exclude_dirs:
