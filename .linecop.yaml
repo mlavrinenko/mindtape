@@ -79,6 +79,11 @@ overrides:
     limit: 260
   - pattern: "**/docs/src/skill.typ"
     limit: 144
+  # The documentation rules are the one deep dive that grows with every new
+  # docs rule, and only a writer of docs opens it, so it gets room above the
+  # shared ceiling below (the first match wins) instead of a rewrite that would cut a rule.
+  - pattern: "**/docs/src/contributing/documentation.typ"
+    limit: 260
   # One cap for every deep-dive source. No deep dive is loaded into every
   # session, so one ceiling serves them all.
   - pattern: "**/docs/src/contributing/**"
