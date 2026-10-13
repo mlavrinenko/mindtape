@@ -1,10 +1,15 @@
-//! Library errors as `Diag`s: a `ConditionError`, a `typst_cleanup::Error`.
+//! Library errors as `Diag`s: a `ConditionError`, a `typst_cleanup::Error`, and the
+//! config, filter, recurrence, reference and breach errors.
 
 use mindtape::config::ConfigError;
-use mindtape::{ConditionError, FilterError, Unknown};
+use mindtape::recur::dates::RecurError;
+use mindtape::{
+    ConditionError, DateOverrideError, FilterError, Location, RefError, Severity, Unknown,
+    Violation, ViolationKind,
+};
 
 use super::render::render;
-use super::{Diag, Kind};
+use super::{Diag, Kind, filter, line};
 
 fn plain(diag: &Diag) -> String {
     render(diag, false)
@@ -148,4 +153,273 @@ fn a_cleanup_failure_is_worded_by_what_went_wrong() {
         cleanup_text(Error::Rewrite(path(), splice))
             .starts_with("error: can't rewrite links: 'tasks/a.typ': ")
     );
+}
+
+#[test]
+fn a_library_error_is_converted_with_its_own_words() {
+    let err = DateOverrideError::InvalidNow("garbage".to_owned());
+    assert_eq!(
+        plain(&Diag::from(err)),
+        "error: MINDTAPE_NOW is not a date: 'garbage'\n\
+         hint: set it to YYYY-MM-DD or an RFC 3339 timestamp, or unset it\n"
+    );
+    assert_eq!(
+        plain(&Diag::from(RefError::NoMatch {
+            reference: "x".to_owned(),
+            nearest: None,
+        })),
+        "error: no task: 'x'\nhint: run mt ls to see your tasks\n"
+    );
+}
+
+#[test]
+fn a_filter_error_is_a_usage_error_naming_the_filter() {
+    let parse = filter(
+        FilterError::Parse("Unmatched '('.".to_owned()),
+        Some("foo("),
+    );
+    let field = filter(
+        FilterError::UnknownField("wip".to_owned()),
+        Some("status == wip"),
+    );
+    let bare = Diag::from(FilterError::UnknownField("wip".to_owned()));
+    let git = filter(
+        FilterError::Git {
+            call: "changed",
+            reason: "no repo".to_owned(),
+        },
+        Some("changed()"),
+    );
+    assert_eq!(parse.kind(), Kind::Usage);
+    assert_eq!(
+        plain(&parse),
+        "error: can't parse filter: 'foo(': Unmatched '('\n"
+    );
+    assert_eq!(
+        plain(&field),
+        "error: unknown field: 'wip' in filter 'status == wip'\n"
+    );
+    assert_eq!(plain(&bare), "error: unknown field: 'wip'\n");
+    assert_eq!(git.kind(), Kind::Failed);
+    assert_eq!(plain(&git), "error: can't read git: changed(): no repo\n");
+}
+
+fn toml_error(source: &str) -> toml::de::Error {
+    toml::from_str::<toml::Value>(source).unwrap_err()
+}
+
+#[test]
+fn a_config_error_is_one_line_with_its_place() {
+    let parse_in = ConfigError::ParseIn {
+        origin: "pack.toml".to_owned(),
+        error: toml_error("oops =\n"),
+    };
+    assert_eq!(
+        plain(&Diag::from(parse_in)),
+        "error: pack.toml:1:7: can't parse config: invalid string, expected `\"`, `'`\n"
+    );
+    assert_eq!(
+        plain(&Diag::from(ConfigError::Parse(toml_error("oops =\n")))),
+        "error: can't parse config: line 1, column 7: invalid string, expected `\"`, `'`\n"
+    );
+    assert_eq!(
+        plain(&Diag::from(ConfigError::invalid("ls.sort: bad"))),
+        "error: ls.sort: bad\n"
+    );
+    let io = std::io::Error::new(std::io::ErrorKind::PermissionDenied, "denied");
+    assert_eq!(
+        plain(&Diag::from(ConfigError::Io(io))),
+        "error: can't read config: denied\n"
+    );
+}
+
+#[test]
+fn an_invalid_config_names_its_line_and_turns_a_near_match_into_a_hint() {
+    let err = ConfigError::Invalid {
+        message: "extends: unknown pack: 'x'\nls.sort: bad".to_owned(),
+        place: Some(mindtape::config::ConfigPlace {
+            file: ".mindtape/config.toml".into(),
+            line: 3,
+        }),
+        unknown: Some(Unknown {
+            nearest: Some("y".to_owned()),
+            names: vec!["y".to_owned(), "z".to_owned()],
+        }),
+    };
+    assert_eq!(
+        plain(&Diag::from(err)),
+        "error: .mindtape/config.toml:3: extends: unknown pack: 'x'\n\
+         note: ls.sort: bad\nhint: did you mean y?\nhint: use one of: y, z\n"
+    );
+}
+
+#[test]
+fn a_recurrence_error_fails_with_its_own_words() {
+    let cases = [
+        (
+            RecurError::DateOverflow,
+            "error: date arithmetic overflowed\n",
+        ),
+        (
+            RecurError::NoMatchingWeekday,
+            "error: no weekday in the on: set was reachable within a period\n",
+        ),
+        (
+            RecurError::CatchUpExhausted("2020-01-01".to_owned()),
+            "error: recurrence did not reach today from: '2020-01-01'\n",
+        ),
+        (
+            RecurError::RruleExpansion("bad rule".to_owned()),
+            "error: can't expand rrule: bad rule\n",
+        ),
+    ];
+    for (err, expected) in cases {
+        let diag = Diag::from(err);
+        assert_eq!(diag.kind(), Kind::Failed);
+        assert_eq!(plain(&diag), expected);
+    }
+}
+
+#[test]
+fn a_reference_error_names_the_reference() {
+    let ambiguous = RefError::Ambiguous {
+        reference: "ab".to_owned(),
+        candidates: vec![
+            ("abc".to_owned(), "abacus".to_owned()),
+            ("abd".to_owned(), "alpha".to_owned()),
+        ],
+    };
+    assert_eq!(
+        plain(&Diag::from(ambiguous)),
+        "error: stem hash names several tasks: 'ab'\n\
+         hint: pass a longer hash or the stem\n\
+         note: candidate: abc abacus\n\
+         note: candidate: abd alpha\n"
+    );
+    let shared = RefError::SharedStem {
+        reference: "gamma".to_owned(),
+        paths: vec!["../cli/gamma.typ".into(), "../web/gamma.typ".into()],
+    };
+    assert_eq!(
+        plain(&Diag::from(shared)),
+        "error: stem names several tasks: 'gamma'\n\
+         hint: pass the path of the one you mean\n\
+         note: candidate: ../cli/gamma.typ\n\
+         note: candidate: ../web/gamma.typ\n"
+    );
+    let near = RefError::NoMatch {
+        reference: "alpah".to_owned(),
+        nearest: Some("alpha".to_owned()),
+    };
+    assert_eq!(
+        plain(&Diag::from(near)),
+        "error: no task: 'alpah'\nhint: did you mean alpha?\n"
+    );
+    assert_eq!(
+        plain(&Diag::from(RefError::NoTaskAt("tasks/x.typ".into()))),
+        "error: no task at: 'tasks/x.typ'\n"
+    );
+    assert_eq!(
+        plain(&Diag::from(RefError::Empty)),
+        "error: empty task reference\n\
+         hint: run mt ls to see your tasks\n"
+    );
+    let path = RefError::Path {
+        path: "nope/x.typ".into(),
+        source: std::io::Error::new(std::io::ErrorKind::NotFound, "not found"),
+    };
+    assert_eq!(
+        plain(&Diag::from(path)),
+        "error: can't resolve path: 'nope/x.typ': not found\n"
+    );
+}
+
+#[test]
+fn a_breach_renders_its_place_rule_and_message() {
+    let mut violation = Violation {
+        task_id: "x".to_owned(),
+        field: "rules.one-wip".to_owned(),
+        message: "finish the task in progress".to_owned(),
+        location: Location::at("tasks/x.typ", 2),
+        severity: Severity::Error,
+        kind: ViolationKind::default(),
+        reads: None,
+        unknown: None,
+    };
+    let refused = Diag::from(&violation);
+    assert_eq!(refused.kind(), Kind::Refused);
+    assert_eq!(
+        line(&refused),
+        "error: tasks/x.typ:2: rules.one-wip: finish the task in progress"
+    );
+    violation.severity = Severity::Warn;
+    violation.location = Location::Pack {
+        pack: "mindtape-tasks".to_owned(),
+        line: 3,
+    };
+    let warned = Diag::from(&violation);
+    assert_eq!(warned.kind(), Kind::Warning);
+    assert_eq!(
+        line(&warned),
+        "warning: pack mindtape-tasks:3: rules.one-wip: finish the task in progress"
+    );
+}
+
+#[test]
+fn the_other_filter_errors_keep_their_reason_and_kind() {
+    let expr = Some("x");
+    let cases = [
+        (
+            FilterError::Unsupported("Const".to_owned()),
+            "error: unsupported in filter: 'x': Const\n",
+        ),
+        (
+            FilterError::Invalid("bare field".to_owned()),
+            "error: invalid filter: 'x': bare field\n",
+        ),
+        (
+            FilterError::UnknownView("v".to_owned()),
+            "error: unknown view: 'v' in filter 'x'\n",
+        ),
+        (
+            FilterError::UnknownDict {
+                name: "d".to_owned(),
+                unknown: Unknown::among("d", ["a"]),
+            },
+            "error: unknown dict: 'd' in filter 'x'\nhint: use one of: a\n",
+        ),
+        (
+            FilterError::Call {
+                problem: "has() takes a field".to_owned(),
+                example: "has(due)",
+            },
+            "error: invalid filter: 'x': has() takes a field\nhint: for example: has(due)\n",
+        ),
+        (
+            FilterError::UnknownFunction {
+                name: "hass".to_owned(),
+                nearest: Some("has".to_owned()),
+            },
+            "error: unknown function: 'hass' in filter 'x'\nhint: did you mean has()?\n",
+        ),
+        (
+            FilterError::UnknownStatus {
+                value: "wpi".to_owned(),
+                unknown: Unknown::among("wpi", ["todo", "wip"]),
+            },
+            "error: unknown status: 'wpi' in filter 'x'\nhint: did you mean wip?\nhint: use one of: todo, wip\n",
+        ),
+        (
+            FilterError::UnknownStatus {
+                value: "zzz".to_owned(),
+                unknown: Unknown::among("zzz", ["todo", "wip"]),
+            },
+            "error: unknown status: 'zzz' in filter 'x'\nhint: use one of: todo, wip\n",
+        ),
+    ];
+    for (err, expected) in cases {
+        let diag = filter(err, expr);
+        assert_eq!(diag.kind(), Kind::Usage);
+        assert_eq!(plain(&diag), expected);
+    }
 }

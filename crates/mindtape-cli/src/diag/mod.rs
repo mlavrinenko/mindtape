@@ -48,7 +48,7 @@
 //! - `prompt.rs` — the confirmation question, the one line stderr gets that
 //!   isn't a `Diag`: a prompt is not a diagnostic, so it has no prefix.
 //! - `from_lib.rs` — library errors into a `Diag`, one exhaustive match each.
-//! - `from_lib_tests.rs` — unit tests for the condition and cleanup conversions.
+//! - `from_lib_tests.rs` — unit tests for the library-error conversions.
 //! - `tests.rs`, `tests_fill.rs` — unit tests.
 
 mod from_lib;
