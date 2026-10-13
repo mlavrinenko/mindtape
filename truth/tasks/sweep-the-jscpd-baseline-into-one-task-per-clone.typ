@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 12),
+  status: done(2026, 10, 13),
   links: depends-on(
     "gate-on-new-jscpd-clones-renamed-and-near-miss-copies-included.typ",
   ),

@@ -295,10 +295,12 @@ groups:
       .mindtape/templates/sweep-size.typ: a4a63ed8a6f8a331a4e744335f88b7a3fe84238b13c287ab28a059d470332b07
     dependents:
       .mindtape/templates/sweep-coverage.typ: 6d4f8d17389f8d34f71d829813a685d149aeefe9eda6cb5f7e5293b590a1cdac
+      .mindtape/templates/sweep-dry.typ: 68335bee3a44e9470880b5bb7a06083195680fcd7f11b530ab8ce1ab582ce4dd
       .mindtape/templates/sweep-mutants.typ: 2183fdd7812da4264fb0707a2accf49e49824d89ca72bc74d4d70475b1d043b8
       .mindtape/templates/sweep-repeats.typ: bb966a546beaa9e27e429613b84fba4317060fe6a89740e714d1d8e2da5a2507
       .mindtape/templates/sweep-undertested.typ: 73e12fd227ecc67d3f3310376f498c5a0559c6ce14202bee3dc185de3e768918
       contrib/ask-refactoring/coverage.sh: 8d066e27256364089586a34d2425061bed1fc70681dfcc2c4ef7cb9441eb0433
+      contrib/ask-refactoring/dry.sh: cae303a9b54a70c73590b2a165bc2b818f4ee206d47d4422e987cbd422167fda
       contrib/ask-refactoring/mutants.sh: dfa32785e75ce0065d866f73dfb85519eb9f76da481b18125ede17cf34b3166c
       contrib/ask-refactoring/repeats.sh: fd406215cd01e8e681226b76494e6727e412f92cda0b853b4542d46384e7a811
       contrib/ask-refactoring/size.sh: 86c2c219e3479c50fe7af2635346e4c151f5fa2da632395279b4f5b411f5a69d

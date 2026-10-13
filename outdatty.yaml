@@ -527,7 +527,7 @@ groups:
       - .just/scripts/_gate-drift-control.sh
       - .just/scripts/_doc-blocks-control.sh
 
-  # The five `just ask-refactoring` templates share one shape: the same
+  # The six `just ask-refactoring` templates share one shape: the same
   # task.with header, the same "filed from a signal, nothing recorded that it
   # did" paragraph, and the same remedy-is-your-call Scope. A Typst `#import`
   # would share it, but the import survives into every task the sweep writes
@@ -536,12 +536,12 @@ groups:
   # instead.
   #
   # sweep-size.typ is the source because it is the arm that exists and is
-  # exercised, and the other four are its dependents. The arm scripts under
+  # exercised, and the other five are its dependents. The arm scripts under
   # contrib/ask-refactoring/ are dependents too. Each fills its template's slots
   # by name, so a renamed or retyped slot breaks the sweep silently. They are
   # tracked per arm and not through the entry script, because
   # contrib/ask-refactoring.sh holds the driver and fills no slot, so tracking
-  # it would watch a file that cannot break this way while missing the five that
+  # it would watch a file that cannot break this way while missing the six that
   # can.
   #
   # One shape difference is intended and is not drift: sweep-size.typ carries
@@ -561,11 +561,13 @@ groups:
       - .mindtape/templates/sweep-coverage.typ
       - .mindtape/templates/sweep-undertested.typ
       - .mindtape/templates/sweep-repeats.typ
+      - .mindtape/templates/sweep-dry.typ
       - contrib/ask-refactoring/size.sh
       - contrib/ask-refactoring/coverage.sh
       - contrib/ask-refactoring/mutants.sh
       - contrib/ask-refactoring/undertested.sh
       - contrib/ask-refactoring/repeats.sh
+      - contrib/ask-refactoring/dry.sh
 
   # The per-kind task templates copy task.typ and add one section each (fix,
   # feat, docs, dev), so a change to the common sections lands in all five.

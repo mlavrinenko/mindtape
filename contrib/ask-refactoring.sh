@@ -10,8 +10,11 @@
 # Three rules the design turns on:
 #
 #   Only advisory signals qualify. A signal that already blocks a commit —
-#   jscpd, outdatty, machete, clippy — must never file a task, because the wall
-#   is already in front of you and the task would be a note about the wall.
+#   jscpd's new clones, outdatty, machete, clippy — must never file a task,
+#   because the wall is already in front of you and the task would be a note
+#   about the wall. The part of jscpd no gate enforces is the baseline: the
+#   clones `just check-dry` tolerates because they predate it, which the dry arm
+#   files, and the snippets under its 50-token floor, which the repeats arm does.
 #
 #   One task per finding, never one per sweep. Each is dispatched to its own
 #   agent and has to carry its own scope.
@@ -219,7 +222,7 @@ file_finding() {
 # freshness check and production-file predicate, so the pair reads in the order
 # the deferral runs. Sourcing is a separate loop, so nothing here depends on the
 # order for definitions — only the output does.
-ARMS=(size coverage undertested mutants repeats)
+ARMS=(size coverage undertested mutants repeats dry)
 
 for arm in "${ARMS[@]}"; do
     # shellcheck source=/dev/null

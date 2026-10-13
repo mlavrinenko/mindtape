@@ -21,6 +21,8 @@ The sweep has five thresholds, one per measurement, because a flag shared by two
 
 The repeats arm is a stopgap. It groups jscpd’s clone pairs by hand into snippets pasted many times, and files the ones whose extraction saves the most code. Once jscpd groups clones itself, its blocker in `canibump.toml` reads `bumpable` and the arm goes.
 
+The dry arm files the clones `just check-dry` tolerates. It runs jscpd with the gate’s flags, keeps the pairs the baseline already holds, and joins them into one family per shared location. It files every family, since the baseline is its bar. A task closes by extracting the clone, or by a `jscpd:ignore` marker whose comment says why the match is a coincidence. Either way the commit re-mints the baseline with `just dry-baseline`.
+
 The mutants arm has no threshold. It reads `outcomes.json` from whichever sweep ran last: `mutants.out` after a full `just mutants`, or `target/mutants-scoped` after a scoped run. When neither exists, or the one it picked is stale, it skips with a message naming the command that refreshes it. `just mutants-status` reports a running sweep’s progress and ETA.
 
 ## How it’s built
@@ -31,7 +33,7 @@ The templates share one shape, and the `sweep-templates` outdatty group keeps th
 
 ## The design rules
 
-- Only signals that no gate enforces qualify. outdatty, machete and clippy already fail a commit, so a task from one would repeat that failure. jscpd fails one only from 50 tokens up, so the repeats arm reads it below that.
+- Only signals that no gate enforces qualify. outdatty, machete and clippy already fail a commit, so a task from one would repeat that failure. jscpd fails a new clone only from 50 tokens up, so the repeats arm reads it below that and the dry arm reads the old clones its baseline tolerates.
 - An arm never reports a measurement it doesn’t have. An arm that can refresh its input refuses a stale one. An arm that can’t, such as the hours-long mutation sweep, skips with a message naming the refresh command. A missing measurement never reads as a clean one.
 - One task per finding. Each task goes to its own agent and carries its own scope and remedy.
 - No two arms file the same finding. When two arms read the same data, the finer arm calls the coarser arm’s own predicate (`coverage_arm_files`, kept in step by the `sweep-dedup` outdatty group). A duplicate pair would block the next sweep until both close.

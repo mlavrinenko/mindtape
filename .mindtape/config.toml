@@ -252,12 +252,14 @@ allowed = [
   # and by nothing else. `swept` marks a task the sweep filed rather than a
   # human; the signal tags say which advisory tool noticed it: linecop
   # (`size`), cargo-mutants, llvm-cov (`coverage`), and jscpd under the
-  # clone gate's floor (`repeats`). A new arm adds its tag here.
+  # clone gate's floor (`repeats`) and over it in the gate's baseline (`dry`).
+  # A new arm adds its tag here.
   "swept",
   "size",
   "mutants",
   "coverage",
   "repeats",
+  "dry",
   # Provenance for the human/agent channel: `found` marks a task filed with
   # `mt add --template finding` — an out-of-scope observation, not a signal
   # a script emitted. `mt ls 'has_tag("found")'` is the whole outstanding list.
