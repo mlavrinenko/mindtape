@@ -7097,7 +7097,7 @@
     {
       "file": "crates/mindtape-cli/src/test_util.rs",
       "function": "assert_child_ok",
-      "line": 31,
+      "line": 33,
       "cyclomatic": 1.0,
       "coverage": 66.66666666666666,
       "crap": 1.0370370370370372,
@@ -7106,7 +7106,16 @@
     {
       "file": "crates/mindtape-cli/src/test_util.rs",
       "function": "make_project",
-      "line": 41,
+      "line": 42,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape-cli"
+    },
+    {
+      "file": "crates/mindtape-cli/src/test_util.rs",
+      "function": "make_project_in",
+      "line": 50,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -7115,7 +7124,16 @@
     {
       "file": "crates/mindtape-cli/src/test_util.rs",
       "function": "make_project_with_lib",
-      "line": 60,
+      "line": 65,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape-cli"
+    },
+    {
+      "file": "crates/mindtape-cli/src/test_util.rs",
+      "function": "make_project_with_lib_in",
+      "line": 80,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -7124,7 +7142,7 @@
     {
       "file": "crates/mindtape-cli/src/test_util.rs",
       "function": "run_self_test",
-      "line": 21,
+      "line": 23,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,

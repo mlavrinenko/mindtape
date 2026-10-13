@@ -6,7 +6,6 @@
 use mindtape::ImportReport;
 use mindtape::model::Status;
 use mindtape::test_support::bare_task;
-use mindtape::test_support::tempdir;
 
 use super::{StagedTask, land};
 use crate::cmd::import::tests::setup_dest;
@@ -15,8 +14,7 @@ use crate::cmd::import::tests::setup_dest;
 /// it — the import destination need not pre-exist.
 #[test]
 fn land_creates_a_destination_that_did_not_exist_yet() {
-    let dir = tempdir();
-    let project = setup_dest(dir.path());
+    let (dir, project) = setup_dest();
 
     let mut task = bare_task("solo");
     task.title = "Solo Task".to_owned();

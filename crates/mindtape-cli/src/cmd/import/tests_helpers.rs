@@ -95,8 +95,7 @@ fn record_label_falls_back_to_position_when_both_empty() {
 
 #[test]
 fn default_status_flag_outside_legend_fails_import() {
-    let dir = tempdir();
-    let project = setup_dest(dir.path());
+    let (_dir, project) = setup_dest();
     let mut task = bare_task("needs-flag");
     task.title = "Needs Flag".to_owned();
     task.status = None;

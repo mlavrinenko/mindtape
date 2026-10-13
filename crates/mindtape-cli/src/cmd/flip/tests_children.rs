@@ -5,7 +5,6 @@
 
 use super::run_with;
 use super::tests::{flip_args, read, setup};
-use mindtape::test_support::tempdir;
 
 const CONFIG: &str = "[[tasks.status]]\nvalue = \"proposed\"\n\
      [[tasks.status]]\nvalue = \"wip\"\nunblocked = true\n\
@@ -19,16 +18,15 @@ const CHILD: &str = "#import \"@local/mindtape:0.2.0\": *\n\
 #show: task.with(\n  title: \"Child\",\n  status: proposed(2026, 6, 1),\n  \
 links: parent(\"epic.typ\"),\n)\n";
 
-fn project(dir: &std::path::Path) -> crate::util::Project {
-    let project = setup(dir, &[("epic.typ", EPIC), ("child.typ", CHILD)], CONFIG);
+fn project() -> (tempfile::TempDir, crate::util::Project) {
+    let (dir, project) = setup(&[("epic.typ", EPIC), ("child.typ", CHILD)], CONFIG);
     assert_eq!(project.outcome.tasks.len(), 2, "fixture must load");
-    project
+    (dir, project)
 }
 
 #[test]
 fn refusal_names_the_status_and_every_unfinished_child() {
-    let dir = tempdir();
-    let project = project(dir.path());
+    let (_dir, project) = project();
     let world = project.outcome.tasks.clone();
     let epic = world.iter().find(|task| task.id == "epic").unwrap();
     let legend = &project.config.tasks.status;
@@ -47,16 +45,14 @@ fn refusal_names_the_status_and_every_unfinished_child() {
 
 #[test]
 fn flip_refuses_closing_a_parent_over_an_unfinished_child() {
-    let dir = tempdir();
-    let project = project(dir.path());
+    let (dir, project) = project();
     assert!(run_with(&project, &flip_args("done", &["epic"])).is_err());
     assert!(read(dir.path(), "epic.typ").contains("status: proposed("));
 }
 
 #[test]
 fn a_parent_starts_and_cancels_over_open_children() {
-    let dir = tempdir();
-    let project = project(dir.path());
+    let (dir, project) = project();
     run_with(&project, &flip_args("wip", &["epic"])).unwrap();
     assert!(read(dir.path(), "epic.typ").contains("status: wip("));
     run_with(&project, &flip_args("cancelled", &["epic"])).unwrap();
@@ -65,8 +61,7 @@ fn a_parent_starts_and_cancels_over_open_children() {
 
 #[test]
 fn force_overrides_the_refusal() {
-    let dir = tempdir();
-    let project = project(dir.path());
+    let (dir, project) = project();
     let mut args = flip_args("done", &["epic"]);
     args.force = true;
     run_with(&project, &args).unwrap();
@@ -75,8 +70,7 @@ fn force_overrides_the_refusal() {
 
 #[test]
 fn closing_the_children_first_in_the_batch_lets_the_parent_close() {
-    let dir = tempdir();
-    let project = project(dir.path());
+    let (dir, project) = project();
     run_with(&project, &flip_args("done", &["child", "epic"])).unwrap();
     assert!(read(dir.path(), "epic.typ").contains("status: done("));
 }

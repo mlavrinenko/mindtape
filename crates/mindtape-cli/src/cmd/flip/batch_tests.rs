@@ -10,9 +10,8 @@
 //! backstop for a reload that disagrees with it.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use mindtape::test_support::tempdir;
 use std::collections::HashSet;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use super::{Landed, revalidate};
 use crate::test_util::make_project_with_lib;
@@ -35,8 +34,8 @@ const BLOCKED: &str = "#import \"@local/mindtape:0.2.0\": *\n\
 /// A file that fails to evaluate, so the reload reports it as a load error.
 const BROKEN: &str = "#import \"@local/mindtape:0.2.0\": *\n#panic(\"broken\")\n";
 
-fn project(dir: &Path, files: &[(&str, &str)], config: &str) -> Project {
-    make_project_with_lib(dir, PRELUDE, files, config)
+fn project(files: &[(&str, &str)], config: &str) -> (tempfile::TempDir, Project) {
+    make_project_with_lib(PRELUDE, files, config)
 }
 
 /// A batch that landed `ids` at `files`. Built directly rather than through
@@ -54,8 +53,7 @@ fn landed(ids: &[&str], files: &[&str]) -> Landed {
 
 #[test]
 fn a_landed_file_that_fails_to_reload_is_reported() {
-    let dir = tempdir();
-    let project = project(dir.path(), &[("broken.typ", BROKEN)], LEGEND);
+    let (_dir, project) = project(&[("broken.typ", BROKEN)], LEGEND);
 
     let mut problems = Vec::new();
     revalidate(
@@ -75,8 +73,7 @@ fn a_landed_file_that_fails_to_reload_is_reported() {
 
 #[test]
 fn a_landed_task_with_a_fatal_violation_is_reported() {
-    let dir = tempdir();
-    let project = project(dir.path(), &[("blocked.typ", BLOCKED)], UNREACHABLE_LEGEND);
+    let (_dir, project) = project(&[("blocked.typ", BLOCKED)], UNREACHABLE_LEGEND);
 
     let mut problems = Vec::new();
     revalidate(&project, &landed(&["blocked"], &[]), &mut problems);

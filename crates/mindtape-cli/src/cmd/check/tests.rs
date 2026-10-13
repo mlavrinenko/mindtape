@@ -12,45 +12,37 @@ use mindtape::{Config, LoadOutcome, parse_config};
 
 use crate::util;
 
-pub(super) fn make_project(dir: &Path, files: &[(&str, &str)]) -> util::Project {
-    crate::test_util::make_project(dir, files, Config::default())
+pub(super) fn make_project(files: &[(&str, &str)]) -> (tempfile::TempDir, util::Project) {
+    crate::test_util::make_project(files, Config::default())
 }
 
 pub(super) fn make_project_with_config(
-    dir: &Path,
     files: &[(&str, &str)],
     config: Config,
-) -> util::Project {
-    crate::test_util::make_project(dir, files, config)
+) -> (tempfile::TempDir, util::Project) {
+    crate::test_util::make_project(files, config)
 }
 
 #[test]
 fn valid_project_returns_ok() {
-    let dir = tempdir();
-    let project = make_project(dir.path(), &[("x.typ", TASK)]);
+    let (_dir, project) = make_project(&[("x.typ", TASK)]);
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
 #[test]
 fn empty_project_returns_ok() {
-    let dir = tempdir();
-    let project = make_project(dir.path(), &[]);
+    let (_dir, project) = make_project(&[]);
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
 #[test]
 fn load_error_returns_err() {
-    let dir = tempdir();
-    let project = make_project(
-        dir.path(),
-        &[("broken.typ", "#import \"@local/nope:9.9.9\": *\n")],
-    );
+    let (_dir, project) = make_project(&[("broken.typ", "#import \"@local/nope:9.9.9\": *\n")]);
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }
 
 #[test]
 fn validation_violation_returns_err() {
-    let dir = tempdir();
     let config = parse_config(
         "[[tasks.status]]\nvalue = \"wip\"\n[[tasks.status]]\nvalue = \"done\"\nterminal = true\n[tasks.priority]\nrequired = true",
     )
@@ -62,7 +54,7 @@ fn validation_violation_returns_err() {
       extras: (:),
     ))
     ";
-    let project = make_project_with_config(dir.path(), &[("y.typ", body)], config);
+    let (_dir, project) = make_project_with_config(&[("y.typ", body)], config);
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }
 
@@ -86,8 +78,7 @@ fn quiet_suppresses_ok_summary_on_clean_run() {
         );
         return;
     }
-    let dir = tempdir();
-    let project = make_project(dir.path(), &[("x.typ", TASK)]);
+    let (_dir, project) = make_project(&[("x.typ", TASK)]);
     assert!(
         super::run_with(
             &project,
@@ -119,12 +110,8 @@ fn quiet_still_reports_violations_on_failing_run() {
         );
         return;
     }
-    let dir = tempdir();
-    let project = make_project_with_config(
-        dir.path(),
-        &[("y.typ", BODY_NO_PRIORITY)],
-        violation_config(),
-    );
+    let (_dir, project) =
+        make_project_with_config(&[("y.typ", BODY_NO_PRIORITY)], violation_config());
     assert!(
         super::run_with(
             &project,
@@ -139,8 +126,7 @@ fn quiet_still_reports_violations_on_failing_run() {
 
 #[test]
 fn multiple_valid_tasks_reports_count() {
-    let dir = tempdir();
-    let project = make_project(dir.path(), &[("a.typ", TASK), ("b.typ", TASK)]);
+    let (_dir, project) = make_project(&[("a.typ", TASK), ("b.typ", TASK)]);
     let outcome = LoadOutcome {
         tasks: project.outcome.tasks.clone(),
         errors: vec![],
@@ -211,12 +197,8 @@ fn run_with_prints_violation_and_fails() {
         return;
     }
     // Child: recreate the violation project and call run_with.
-    let dir = tempdir();
-    let project = make_project_with_config(
-        dir.path(),
-        &[("y.typ", BODY_NO_PRIORITY)],
-        violation_config(),
-    );
+    let (_dir, project) =
+        make_project_with_config(&[("y.typ", BODY_NO_PRIORITY)], violation_config());
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }
 
@@ -267,12 +249,11 @@ fn run_validates_from_disk() {
 
 #[test]
 fn invalid_header_rule_regex_fails_with_config_error() {
-    let dir = tempdir();
     let config = parse_config(
         "[[tasks.body.headers.rules]]\npath = [{ match = \"[bad\" }]\naction = \"forbid\"\n",
     )
     .unwrap();
-    let project = make_project_with_config(dir.path(), &[("a.typ", TASK)], config);
+    let (_dir, project) = make_project_with_config(&[("a.typ", TASK)], config);
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }
 
@@ -298,29 +279,26 @@ const TASK_WITH_COMMENT: &str = "#metadata((
 // no, use in_view() instead
 ";
 
-fn comments_project(dir: &Path, files: &[(&str, &str)], policy: &str) -> util::Project {
+fn comments_project(files: &[(&str, &str)], policy: &str) -> (tempfile::TempDir, util::Project) {
     let toml = format!("[tasks.comments]\npolicy = \"{policy}\"\n");
-    make_project_with_config(dir, files, parse_config(&toml).unwrap())
+    make_project_with_config(files, parse_config(&toml).unwrap())
 }
 
 #[test]
 fn default_policy_allow_ignores_a_comment() {
-    let dir = tempdir();
-    let project = make_project(dir.path(), &[("a.typ", TASK_WITH_COMMENT)]);
+    let (_dir, project) = make_project(&[("a.typ", TASK_WITH_COMMENT)]);
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
 #[test]
 fn forbid_policy_passes_a_file_with_no_comments() {
-    let dir = tempdir();
-    let project = comments_project(dir.path(), &[("a.typ", TASK)], "forbid");
+    let (_dir, project) = comments_project(&[("a.typ", TASK)], "forbid");
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
 #[test]
 fn warn_policy_does_not_fail_the_command() {
-    let dir = tempdir();
-    let project = comments_project(dir.path(), &[("a.typ", TASK_WITH_COMMENT)], "warn");
+    let (_dir, project) = comments_project(&[("a.typ", TASK_WITH_COMMENT)], "warn");
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
@@ -346,8 +324,7 @@ fn forbid_policy_fails_and_reports_file_line_and_text() {
         }
         return;
     }
-    let dir = tempdir();
-    let project = comments_project(dir.path(), &[("a.typ", TASK_WITH_COMMENT)], "forbid");
+    let (_dir, project) = comments_project(&[("a.typ", TASK_WITH_COMMENT)], "forbid");
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }
 

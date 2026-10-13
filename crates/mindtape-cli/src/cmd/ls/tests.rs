@@ -1,6 +1,4 @@
 #![allow(clippy::unwrap_used)]
-use mindtape::test_support::tempdir;
-use std::path::Path;
 
 use mindtape::model::numeric::NumValue;
 use mindtape::test_support::{TASK_SRC as TASK, bare_task};
@@ -46,8 +44,8 @@ fn sort_by_specs_rejects_unknown_field() {
     );
 }
 
-fn make_project(dir: &Path, files: &[(&str, &str)]) -> crate::util::Project {
-    crate::test_util::make_project(dir, files, Config::default())
+fn make_project(files: &[(&str, &str)]) -> (tempfile::TempDir, crate::util::Project) {
+    crate::test_util::make_project(files, Config::default())
 }
 
 fn default_args() -> LsArgs {
@@ -74,21 +72,19 @@ fn config_with_views() -> Config {
     .unwrap()
 }
 
-fn view_project(dir: &Path) -> crate::util::Project {
-    crate::test_util::make_project(dir, &[("x.typ", TASK)], config_with_views())
+fn view_project() -> (tempfile::TempDir, crate::util::Project) {
+    crate::test_util::make_project(&[("x.typ", TASK)], config_with_views())
 }
 
 #[test]
 fn run_with_table_format_succeeds() {
-    let dir = tempdir();
-    let project = make_project(dir.path(), &[("x.typ", TASK)]);
+    let (_dir, project) = make_project(&[("x.typ", TASK)]);
     assert!(run_with(&default_args(), project).is_ok());
 }
 
 #[test]
 fn run_with_json_flag_succeeds() {
-    let dir = tempdir();
-    let project = make_project(dir.path(), &[("x.typ", TASK)]);
+    let (_dir, project) = make_project(&[("x.typ", TASK)]);
     let mut args = default_args();
     args.flags.json = true;
     assert!(run_with(&args, project).is_ok());
@@ -96,8 +92,7 @@ fn run_with_json_flag_succeeds() {
 
 #[test]
 fn run_with_csv_format_succeeds() {
-    let dir = tempdir();
-    let project = make_project(dir.path(), &[("x.typ", TASK)]);
+    let (_dir, project) = make_project(&[("x.typ", TASK)]);
     let mut args = default_args();
     args.flags.format = OutputFormat::Csv;
     assert!(run_with(&args, project).is_ok());
@@ -105,8 +100,7 @@ fn run_with_csv_format_succeeds() {
 
 #[test]
 fn run_with_limit_truncates() {
-    let dir = tempdir();
-    let project = make_project(dir.path(), &[("a.typ", TASK), ("b.typ", TASK)]);
+    let (_dir, project) = make_project(&[("a.typ", TASK), ("b.typ", TASK)]);
     let mut args = default_args();
     args.flags.limit = Some(1);
     assert!(run_with(&args, project).is_ok());
@@ -114,8 +108,7 @@ fn run_with_limit_truncates() {
 
 #[test]
 fn run_with_invalid_filter_returns_err() {
-    let dir = tempdir();
-    let project = make_project(dir.path(), &[("x.typ", TASK)]);
+    let (_dir, project) = make_project(&[("x.typ", TASK)]);
     let args = LsArgs {
         filter: Some("!!bad!!".to_owned()),
         ..default_args()
@@ -125,8 +118,7 @@ fn run_with_invalid_filter_returns_err() {
 
 #[test]
 fn run_with_invalid_sort_returns_err() {
-    let dir = tempdir();
-    let project = make_project(dir.path(), &[("x.typ", TASK)]);
+    let (_dir, project) = make_project(&[("x.typ", TASK)]);
     let mut args = default_args();
     args.flags.sort = vec!["no_such_field".to_owned()];
     assert!(run_with(&args, project).is_err());
@@ -134,8 +126,7 @@ fn run_with_invalid_sort_returns_err() {
 
 #[test]
 fn empty_filter_lists_everything() {
-    let dir = tempdir();
-    let project = make_project(dir.path(), &[("x.typ", TASK)]);
+    let (_dir, project) = make_project(&[("x.typ", TASK)]);
     let args = LsArgs {
         filter: Some(String::new()),
         ..default_args()
@@ -145,71 +136,69 @@ fn empty_filter_lists_everything() {
 
 #[test]
 fn bundle_view_reference_runs() {
-    let dir = tempdir();
+    let (_dir, project) = view_project();
     let args = LsArgs {
         filter: Some("@hot".to_owned()),
         ..default_args()
     };
-    assert!(run_with(&args, view_project(dir.path())).is_ok());
+    assert!(run_with(&args, project).is_ok());
 }
 
 #[test]
 fn unknown_bundle_view_errors() {
-    let dir = tempdir();
+    let (_dir, project) = view_project();
     let args = LsArgs {
         filter: Some("@ghost".to_owned()),
         ..default_args()
     };
-    assert!(run_with(&args, view_project(dir.path())).is_err());
+    assert!(run_with(&args, project).is_err());
 }
 
 #[test]
 fn columns_flag_selects_named_columns() {
-    let dir = tempdir();
+    let (_dir, project) = view_project();
     let mut args = default_args();
     args.flags.columns = Some("status,title".to_owned());
-    assert!(run_with(&args, view_project(dir.path())).is_ok());
+    assert!(run_with(&args, project).is_ok());
 }
 
 #[test]
 fn columns_at_view_runs() {
-    let dir = tempdir();
+    let (_dir, project) = view_project();
     let mut args = default_args();
     args.flags.columns = Some("@hot".to_owned());
-    assert!(run_with(&args, view_project(dir.path())).is_ok());
+    assert!(run_with(&args, project).is_ok());
 }
 
 #[test]
 fn unknown_column_errors() {
-    let dir = tempdir();
+    let (_dir, project) = view_project();
     let mut args = default_args();
     args.flags.columns = Some("bogus".to_owned());
-    assert!(run_with(&args, view_project(dir.path())).is_err());
+    assert!(run_with(&args, project).is_err());
 }
 
 #[test]
 fn sort_at_view_expands() {
-    let dir = tempdir();
+    let (_dir, project) = view_project();
     let mut args = default_args();
     args.flags.sort = vec!["@hot".to_owned()];
-    assert!(run_with(&args, view_project(dir.path())).is_ok());
+    assert!(run_with(&args, project).is_ok());
 }
 
 #[test]
 fn default_view_drives_bare_listing() {
     // A `[views.default]` view supplies the filter for a bare `mt ls`.
     // TASK is `wip` (non-terminal), so a `terminal` default view hides it.
-    let dir = tempdir();
     let config = mindtape::parse_config("[views.default]\nfilter = 'terminal'\n").unwrap();
-    let project = crate::test_util::make_project(dir.path(), &[("x.typ", TASK)], config);
+    let (_dir, project) = crate::test_util::make_project(&[("x.typ", TASK)], config);
     let listing = resolve_and_select(&default_args(), project).unwrap();
     assert!(listing.tasks.is_empty());
 }
 
 #[test]
 fn resolve_and_select_applies_view_columns() {
-    let dir = tempdir();
-    let project = view_project(dir.path());
+    let (_dir, project) = view_project();
     let args = LsArgs {
         filter: Some("@hot".to_owned()),
         ..default_args()
@@ -221,9 +210,8 @@ fn resolve_and_select_applies_view_columns() {
 #[test]
 fn explicit_empty_filter_bypasses_default_view() {
     // `mt ls ''` is match-all: the default view is ignored entirely.
-    let dir = tempdir();
     let config = mindtape::parse_config("[views.default]\nfilter = 'terminal'\n").unwrap();
-    let project = crate::test_util::make_project(dir.path(), &[("x.typ", TASK)], config);
+    let (_dir, project) = crate::test_util::make_project(&[("x.typ", TASK)], config);
     let args = LsArgs {
         filter: Some(String::new()),
         ..default_args()
@@ -234,11 +222,7 @@ fn explicit_empty_filter_bypasses_default_view() {
 
 #[test]
 fn limit_truncates_and_reports_what_it_cut() {
-    let dir = tempdir();
-    let project = make_project(
-        dir.path(),
-        &[("a.typ", TASK), ("b.typ", TASK), ("c.typ", TASK)],
-    );
+    let (_dir, project) = make_project(&[("a.typ", TASK), ("b.typ", TASK), ("c.typ", TASK)]);
     let mut args = default_args();
     args.flags.limit = Some(2);
     let listing = resolve_and_select(&args, project).unwrap();
@@ -257,8 +241,7 @@ fn limit_truncates_and_reports_what_it_cut() {
 
 #[test]
 fn a_limit_that_hides_nothing_reports_no_truncation() {
-    let dir = tempdir();
-    let project = make_project(dir.path(), &[("a.typ", TASK), ("b.typ", TASK)]);
+    let (_dir, project) = make_project(&[("a.typ", TASK), ("b.typ", TASK)]);
     let mut args = default_args();
     args.flags.limit = Some(5);
     assert!(
@@ -271,8 +254,7 @@ fn a_limit_that_hides_nothing_reports_no_truncation() {
 
 #[test]
 fn no_limit_reports_no_truncation() {
-    let dir = tempdir();
-    let project = make_project(dir.path(), &[("a.typ", TASK), ("b.typ", TASK)]);
+    let (_dir, project) = make_project(&[("a.typ", TASK), ("b.typ", TASK)]);
     assert!(
         resolve_and_select(&default_args(), project)
             .unwrap()
@@ -285,11 +267,7 @@ fn no_limit_reports_no_truncation() {
 
 #[test]
 fn skip_drops_rows_after_the_sort() {
-    let dir = tempdir();
-    let project = make_project(
-        dir.path(),
-        &[("a.typ", TASK), ("b.typ", TASK), ("c.typ", TASK)],
-    );
+    let (_dir, project) = make_project(&[("a.typ", TASK), ("b.typ", TASK), ("c.typ", TASK)]);
     let mut args = default_args();
     args.flags.skip = Some(1);
     let listing = resolve_and_select(&args, project).unwrap();
@@ -308,17 +286,13 @@ fn skip_drops_rows_after_the_sort() {
 
 #[test]
 fn skip_and_limit_compose_into_one_page() {
-    let dir = tempdir();
-    let project = make_project(
-        dir.path(),
-        &[
-            ("a.typ", TASK),
-            ("b.typ", TASK),
-            ("c.typ", TASK),
-            ("d.typ", TASK),
-            ("e.typ", TASK),
-        ],
-    );
+    let (_dir, project) = make_project(&[
+        ("a.typ", TASK),
+        ("b.typ", TASK),
+        ("c.typ", TASK),
+        ("d.typ", TASK),
+        ("e.typ", TASK),
+    ]);
     let mut args = default_args();
     args.flags.skip = Some(1);
     args.flags.limit = Some(2);
@@ -343,8 +317,7 @@ fn skip_and_limit_compose_into_one_page() {
 
 #[test]
 fn skip_beyond_the_match_count_yields_an_empty_page() {
-    let dir = tempdir();
-    let project = make_project(dir.path(), &[("a.typ", TASK), ("b.typ", TASK)]);
+    let (_dir, project) = make_project(&[("a.typ", TASK), ("b.typ", TASK)]);
     let mut args = default_args();
     args.flags.skip = Some(50);
     let listing = resolve_and_select(&args, project).unwrap();

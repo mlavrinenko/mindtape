@@ -1,7 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
 use mindtape::test_support::bare_task;
-use mindtape::test_support::tempdir;
 use mindtape::{Config, Filter, Readiness, select};
 
 use super::{FindArgs, desugar, quote, run_with};
@@ -77,28 +76,25 @@ fn desugared_expression_parses_and_matches_via_contains() {
     assert_eq!(ids, vec!["c"], "only the task matching both terms survives");
 }
 
-fn project(dir: &std::path::Path, files: &[(&str, &str)]) -> crate::util::Project {
-    crate::test_util::make_project(dir, files, Config::default())
+fn project(files: &[(&str, &str)]) -> (tempfile::TempDir, crate::util::Project) {
+    crate::test_util::make_project(files, Config::default())
 }
 
 #[test]
 fn run_with_a_single_term_succeeds() {
-    let dir = tempdir();
-    let proj = project(dir.path(), &[("x.typ", mindtape::test_support::TASK_SRC)]);
+    let (_dir, proj) = project(&[("x.typ", mindtape::test_support::TASK_SRC)]);
     assert!(run_with(&args(&["task"]), proj).is_ok());
 }
 
 #[test]
 fn run_with_several_terms_succeeds() {
-    let dir = tempdir();
-    let proj = project(dir.path(), &[("x.typ", mindtape::test_support::TASK_SRC)]);
+    let (_dir, proj) = project(&[("x.typ", mindtape::test_support::TASK_SRC)]);
     assert!(run_with(&args(&["task", "x"]), proj).is_ok());
 }
 
 #[test]
 fn run_with_forwards_the_format_flag() {
-    let dir = tempdir();
-    let proj = project(dir.path(), &[("x.typ", mindtape::test_support::TASK_SRC)]);
+    let (_dir, proj) = project(&[("x.typ", mindtape::test_support::TASK_SRC)]);
     let mut find_args = args(&["task"]);
     find_args.flags.format = crate::render::output::OutputFormat::Json;
     assert!(run_with(&find_args, proj).is_ok());

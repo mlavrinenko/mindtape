@@ -288,15 +288,11 @@ fn from_project_honours_a_views_columns() {
     // have to reach it. They did not: the state kept the raw project config
     // and dropped the one the resolved listing folds them into, so `mt ls
     // @cols -i` drew columns `mt ls @cols` would not.
-    let dir = tempdir();
     let config =
         mindtape::parse_config("[views.cols]\nfilter = ''\ncolumns = ['status', 'title']\n")
             .unwrap();
-    let project = crate::test_util::make_project(
-        dir.path(),
-        &[("x.typ", mindtape::test_support::TASK_SRC)],
-        config,
-    );
+    let (_dir, project) =
+        crate::test_util::make_project(&[("x.typ", mindtape::test_support::TASK_SRC)], config);
     let args = LsArgs {
         filter: Some("@cols".to_owned()),
         ..ls_args(OutputFormat::Table)
@@ -307,9 +303,7 @@ fn from_project_honours_a_views_columns() {
 
 #[test]
 fn from_project_carries_the_truncation_into_the_state() {
-    let dir = tempdir();
-    let project = crate::test_util::make_project(
-        dir.path(),
+    let (_dir, project) = crate::test_util::make_project(
         &[
             ("a.typ", mindtape::test_support::TASK_SRC),
             ("b.typ", mindtape::test_support::TASK_SRC),

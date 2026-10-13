@@ -26,7 +26,7 @@ fn project(dir: &Path, config_text: &str) -> Project {
     let config = parse_config(config_text).unwrap();
     let alpha = task_src("Alpha", "wip");
     let beta = task_src("Beta", "proposed");
-    crate::test_util::make_project(dir, &[("alpha.typ", &alpha), ("beta.typ", &beta)], config)
+    crate::test_util::make_project_in(dir, &[("alpha.typ", &alpha), ("beta.typ", &beta)], config)
 }
 
 /// How a test runs the hooks: whether `show`/`list` print, whether `--force`
@@ -94,10 +94,6 @@ fn run_visible(dir: &Path, config_text: &str, target: &str) -> (HookOutcome, Str
     run(dir, config_text, target, true, false)
 }
 
-fn temp() -> tempfile::TempDir {
-    tempdir()
-}
-
 // --- show --------------------------------------------------------------
 
 const SHOW_HOOK: &str = "[[on.flip]]\nwhen = 'into(\"wip\")'\n\
@@ -105,7 +101,7 @@ const SHOW_HOOK: &str = "[[on.flip]]\nwhen = 'into(\"wip\")'\n\
 
 #[test]
 fn show_prints_its_text() {
-    let dir = temp();
+    let dir = tempdir();
     let (outcome, out) = run_visible(dir.path(), SHOW_HOOK, "wip");
     assert!(out.contains("pick one thing"), "{out}");
     assert!(outcome.refusal.is_none());
@@ -114,7 +110,7 @@ fn show_prints_its_text() {
 /// Presentation is suppressed under `--quiet` or a piped stdout.
 #[test]
 fn show_is_silent_when_suppressed() {
-    let dir = temp();
+    let dir = tempdir();
     let (_, out) = run(dir.path(), SHOW_HOOK, "wip", false, false);
     assert_eq!(out, "");
 }
@@ -123,7 +119,7 @@ fn show_is_silent_when_suppressed() {
 /// target status fires nothing at all.
 #[test]
 fn a_non_matching_transition_runs_nothing() {
-    let dir = temp();
+    let dir = tempdir();
     let (_, out) = run_visible(dir.path(), SHOW_HOOK, "done");
     assert_eq!(out, "");
 }
@@ -135,7 +131,7 @@ const LIST_HOOK: &str = "[[on.flip]]\nwhen = 'into(\"wip\")'\n\
 
 #[test]
 fn list_prints_the_matching_tasks_under_its_title() {
-    let dir = temp();
+    let dir = tempdir();
     let (_, out) = run_visible(dir.path(), LIST_HOOK, "wip");
     assert!(out.contains("Already in flight"), "{out}");
     assert!(out.contains("Alpha"), "{out}");
@@ -147,7 +143,7 @@ fn list_prints_the_matching_tasks_under_its_title() {
 
 #[test]
 fn list_says_so_when_nothing_matches() {
-    let dir = temp();
+    let dir = tempdir();
     let config = "[[on.flip]]\nwhen = 'into(\"wip\")'\n\
                   actions = [{ list = 'status == \"cancelled\"' }]\n";
     let (_, out) = run_visible(dir.path(), config, "wip");
@@ -156,14 +152,14 @@ fn list_says_so_when_nothing_matches() {
 
 #[test]
 fn list_is_silent_when_suppressed() {
-    let dir = temp();
+    let dir = tempdir();
     let (_, out) = run(dir.path(), LIST_HOOK, "wip", false, false);
     assert_eq!(out, "");
 }
 
 #[test]
 fn view_sort_follows_a_bare_view_reference() {
-    let dir = temp();
+    let dir = tempdir();
     let config = "[views.hot]\nfilter = ''\nsort = [\"priority:desc\"]\n";
     let project = project(dir.path(), config);
     assert_eq!(view_sort(&project, "@hot"), vec!["priority:desc"]);
@@ -179,7 +175,7 @@ const FAILING_GATE: &str = "[[on.flip]]\nwhen = 'into(\"done\")'\n\
 
 #[test]
 fn a_passing_gate_allows_the_flip_and_stays_quiet() {
-    let dir = temp();
+    let dir = tempdir();
     let config =
         "[[on.flip]]\nwhen = 'into(\"done\")'\nactions = [{ run = \"true\", gate = true }]\n";
     let (outcome, out) = run_visible(dir.path(), config, "done");
@@ -190,7 +186,7 @@ fn a_passing_gate_allows_the_flip_and_stays_quiet() {
 
 #[test]
 fn a_failing_gate_refuses_and_surfaces_the_output() {
-    let dir = temp();
+    let dir = tempdir();
     let (outcome, out) = run_visible(dir.path(), FAILING_GATE, "done");
     assert_eq!(
         plain(&outcome.refusal.unwrap()),
@@ -208,7 +204,7 @@ fn a_failing_gate_refuses_and_surfaces_the_output() {
 /// otherwise a scripted flip fails with no reason on screen.
 #[test]
 fn a_failing_gate_prints_its_output_even_when_suppressed() {
-    let dir = temp();
+    let dir = tempdir();
     let (outcome, out) = run(dir.path(), FAILING_GATE, "done", false, false);
     assert!(outcome.refusal.is_some());
     assert!(out.contains("boom"), "{out}");
@@ -216,7 +212,7 @@ fn a_failing_gate_prints_its_output_even_when_suppressed() {
 
 #[test]
 fn force_waives_a_failing_gate_and_records_it() {
-    let dir = temp();
+    let dir = tempdir();
     let (outcome, out) = run(dir.path(), FAILING_GATE, "done", true, true);
     assert!(
         outcome.refusal.is_none(),
@@ -229,7 +225,7 @@ fn force_waives_a_failing_gate_and_records_it() {
 /// Actions run in declaration order, and the first failing gate stops the walk.
 #[test]
 fn a_failed_gate_skips_the_actions_after_it() {
-    let dir = temp();
+    let dir = tempdir();
     let config = "[[on.flip]]\nwhen = 'into(\"done\")'\nactions = [\
          { show = \"before\" }, \
          { run = \"false\", gate = true }, \
@@ -246,7 +242,7 @@ fn a_failed_gate_skips_the_actions_after_it() {
 /// Without `gate`, a non-zero exit is informational: it warns and allows.
 #[test]
 fn a_failing_run_without_gate_warns_but_allows() {
-    let dir = temp();
+    let dir = tempdir();
     let config = "[[on.flip]]\nwhen = 'into(\"done\")'\n\
                   actions = [{ run = 'echo hmm; exit 1' }]\n";
     let (outcome, out) = run_visible(dir.path(), config, "done");
@@ -258,7 +254,7 @@ fn a_failing_run_without_gate_warns_but_allows() {
 /// A successful non-gate run's output is presentation, so it follows `show`.
 #[test]
 fn a_passing_run_without_gate_prints_only_when_visible() {
-    let dir = temp();
+    let dir = tempdir();
     let config = "[[on.flip]]\nwhen = 'into(\"done\")'\nactions = [{ run = 'echo hello' }]\n";
     let (_, shown) = run_visible(dir.path(), config, "done");
     assert!(shown.contains("hello"), "{shown}");
@@ -269,7 +265,7 @@ fn a_passing_run_without_gate_prints_only_when_visible() {
 /// The command sees the task it is gating.
 #[test]
 fn a_command_receives_the_task_path_and_stem() {
-    let dir = temp();
+    let dir = tempdir();
     let config = "[[on.flip]]\nwhen = ''\n\
          actions = [{ run = 'echo \"$MINDTAPE_TASK_STEM $MINDTAPE_TASK_STATUS\"; \
          test -f \"$MINDTAPE_TASK_FILE\"', gate = true }]\n";
@@ -291,7 +287,7 @@ const RUNLESS_GATE: &str = "[[on.flip]]\nwhen = 'into(\"done\")'\n\
 
 #[test]
 fn a_runless_gate_refuses_a_matching_flip_and_prints_its_message() {
-    let dir = temp();
+    let dir = tempdir();
     let (outcome, out) = run_visible(dir.path(), RUNLESS_GATE, "done");
     assert_eq!(
         plain(&outcome.refusal.unwrap()),
@@ -309,7 +305,7 @@ fn a_runless_gate_refuses_a_matching_flip_and_prints_its_message() {
 /// or no run.
 #[test]
 fn a_runless_gate_lets_a_non_matching_transition_through() {
-    let dir = temp();
+    let dir = tempdir();
     let (outcome, out) = run_visible(dir.path(), RUNLESS_GATE, "wip");
     assert!(outcome.refusal.is_none());
     assert_eq!(out, "");
@@ -319,7 +315,7 @@ fn a_runless_gate_lets_a_non_matching_transition_through() {
 /// a `run` gate does.
 #[test]
 fn a_runless_gate_without_a_message_uses_the_default_advice() {
-    let dir = temp();
+    let dir = tempdir();
     let config = "[[on.flip]]\nwhen = 'into(\"done\")'\nactions = [{ gate = true }]\n";
     let (outcome, _) = run_visible(dir.path(), config, "done");
     assert_eq!(
@@ -334,7 +330,7 @@ fn a_runless_gate_without_a_message_uses_the_default_advice() {
 /// command there is none of.
 #[test]
 fn force_waives_a_runless_gate_and_records_its_message() {
-    let dir = temp();
+    let dir = tempdir();
     let (outcome, out) = run(dir.path(), RUNLESS_GATE, "done", true, true);
     assert!(
         outcome.refusal.is_none(),
@@ -346,7 +342,7 @@ fn force_waives_a_runless_gate_and_records_its_message() {
 
 #[test]
 fn no_hooks_means_no_output_and_no_refusal() {
-    let dir = temp();
+    let dir = tempdir();
     let (outcome, out) = run_visible(dir.path(), "[tasks]\nroots = [\"tasks\"]\n", "done");
     assert!(outcome.refusal.is_none());
     assert_eq!(out, "");
@@ -356,10 +352,9 @@ fn no_hooks_means_no_output_and_no_refusal() {
 /// skip. Config load rejects it too; this pins the runner's own guard.
 #[test]
 fn an_unresolvable_action_errors() {
-    let dir = temp();
     let config = parse_config("[[on.flip]]\nwhen = ''\nactions = [{ title = \"x\" }]\n").unwrap();
     let alpha = task_src("Alpha", "wip");
-    let project = crate::test_util::make_project(dir.path(), &[("alpha.typ", &alpha)], config);
+    let (dir, project) = crate::test_util::make_project(&[("alpha.typ", &alpha)], config);
     let hooks = Hooks::new(&project, true);
     let task = project.outcome.tasks.first().unwrap().clone();
     let path = dir.path().join("tasks/alpha.typ");
@@ -429,7 +424,7 @@ fn run_unallowed(dir: &Path, config_text: &str, force: bool) -> (HookOutcome, St
 
 #[test]
 fn an_unallowed_gate_refuses_without_running() {
-    let dir = temp();
+    let dir = tempdir();
     let (outcome, out) = run_unallowed(dir.path(), MARK_GATE, false);
     assert_eq!(
         plain(&outcome.refusal.unwrap()),
@@ -444,7 +439,7 @@ fn an_unallowed_gate_refuses_without_running() {
 
 #[test]
 fn force_waives_an_unallowed_gate_and_records_it() {
-    let dir = temp();
+    let dir = tempdir();
     let (outcome, _) = run_unallowed(dir.path(), MARK_GATE, true);
     assert!(outcome.refusal.is_none());
     assert_eq!(outcome.forced, vec!["touch mark".to_owned()]);
@@ -453,7 +448,7 @@ fn force_waives_an_unallowed_gate_and_records_it() {
 
 #[test]
 fn an_unallowed_run_without_gate_is_skipped_and_the_walk_goes_on() {
-    let dir = temp();
+    let dir = tempdir();
     let config = "[[on.flip]]\nwhen = 'into(\"done\")'\n\
                   actions = [{ run = 'touch mark' }, { run = 'touch other', gate = true }]\n";
     let (outcome, out) = run_unallowed(dir.path(), config, false);
@@ -468,7 +463,7 @@ fn an_unallowed_run_without_gate_is_skipped_and_the_walk_goes_on() {
 
 #[test]
 fn a_runless_gate_needs_no_approval() {
-    let dir = temp();
+    let dir = tempdir();
     let config = "[[on.flip]]\nwhen = 'into(\"done\")'\n\
                   actions = [{ gate = true, message = \"no\" }]\n";
     let (outcome, out) = run_unallowed(dir.path(), config, false);

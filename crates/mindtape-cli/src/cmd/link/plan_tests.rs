@@ -2,7 +2,6 @@
 //! resolution — the three refusals that keep an invalid edge off disk.
 #![allow(clippy::unwrap_used)]
 
-use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use mindtape::link::NoteRule;
@@ -28,9 +27,8 @@ const BASE_CONFIG: &str = "[[tasks.status]]\nvalue = \"wip\"\n\
 const EXTERNAL_KIND_CONFIG: &str = "[[tasks.status]]\nvalue = \"wip\"\n\
      [[tasks.links.kinds]]\nname = \"discharged-by\"\nvalidate = \"url\"\n";
 
-fn setup(dir: &Path, config_text: &str) -> Project {
+fn setup(config_text: &str) -> (tempfile::TempDir, Project) {
     crate::test_util::make_project_with_lib(
-        dir,
         PRELUDE,
         &[("alpha.typ", ALPHA), ("beta.typ", BETA)],
         config_text,
@@ -76,8 +74,7 @@ fn only_problem(plan: &super::Plan) -> String {
 
 #[test]
 fn a_valid_edge_stages_a_rewrite() {
-    let dir = tempdir();
-    let project = setup(dir.path(), BASE_CONFIG);
+    let (_dir, project) = setup(BASE_CONFIG);
     let plan = build(
         &project,
         &[entry("alpha", "depends-on", "beta", None)],
@@ -97,8 +94,7 @@ fn a_valid_edge_stages_a_rewrite() {
 /// command decides to land it, which is what makes `--dry-run` exact.
 #[test]
 fn planning_writes_nothing() {
-    let dir = tempdir();
-    let project = setup(dir.path(), BASE_CONFIG);
+    let (dir, project) = setup(BASE_CONFIG);
     let path = dir.path().join("tasks/alpha.typ");
     let before = std::fs::read_to_string(&path).unwrap();
     let _ = build(
@@ -111,8 +107,7 @@ fn planning_writes_nothing() {
 
 #[test]
 fn an_unknown_kind_is_refused_with_the_configured_list_and_a_suggestion() {
-    let dir = tempdir();
-    let project = setup(dir.path(), BASE_CONFIG);
+    let (_dir, project) = setup(BASE_CONFIG);
     let plan = build(
         &project,
         &[entry("alpha", "depends-onn", "beta", None)],
@@ -135,8 +130,7 @@ fn an_unknown_kind_is_refused_with_the_configured_list_and_a_suggestion() {
 
 #[test]
 fn a_custom_kind_from_config_is_accepted() {
-    let dir = tempdir();
-    let project = setup(dir.path(), EXTERNAL_KIND_CONFIG);
+    let (_dir, project) = setup(EXTERNAL_KIND_CONFIG);
     let plan = build(
         &project,
         &[entry(
@@ -161,8 +155,7 @@ fn a_custom_kind_from_config_is_accepted() {
 
 #[test]
 fn related_without_a_note_is_refused_naming_the_edge() {
-    let dir = tempdir();
-    let project = setup(dir.path(), BASE_CONFIG);
+    let (_dir, project) = setup(BASE_CONFIG);
     let plan = build(
         &project,
         &[entry("alpha", "related", "beta", None)],
@@ -177,8 +170,7 @@ fn related_without_a_note_is_refused_naming_the_edge() {
 
 #[test]
 fn related_with_a_note_is_accepted() {
-    let dir = tempdir();
-    let project = setup(dir.path(), BASE_CONFIG);
+    let (_dir, project) = setup(BASE_CONFIG);
     let plan = build(
         &project,
         &[entry("alpha", "related", "beta", Some("same recital"))],
@@ -191,8 +183,7 @@ fn related_with_a_note_is_accepted() {
 /// here would write exactly the file the note rule exists to reject.
 #[test]
 fn a_blank_note_does_not_satisfy_a_required_one() {
-    let dir = tempdir();
-    let project = setup(dir.path(), BASE_CONFIG);
+    let (_dir, project) = setup(BASE_CONFIG);
     let plan = build(
         &project,
         &[entry("alpha", "related", "beta", Some("   "))],
@@ -203,8 +194,7 @@ fn a_blank_note_does_not_satisfy_a_required_one() {
 
 #[test]
 fn a_missing_target_is_refused_with_the_nearest_task() {
-    let dir = tempdir();
-    let project = setup(dir.path(), BASE_CONFIG);
+    let (_dir, project) = setup(BASE_CONFIG);
     let plan = build(
         &project,
         &[entry("alpha", "depends-on", "betta", None)],
@@ -220,8 +210,7 @@ fn a_missing_target_is_refused_with_the_nearest_task() {
 
 #[test]
 fn a_missing_source_task_is_refused() {
-    let dir = tempdir();
-    let project = setup(dir.path(), BASE_CONFIG);
+    let (_dir, project) = setup(BASE_CONFIG);
     let plan = build(
         &project,
         &[entry("nope", "depends-on", "beta", None)],
@@ -236,8 +225,7 @@ fn a_missing_source_task_is_refused() {
 /// A per-entry failure is not a batch failure: the other entries still stage.
 #[test]
 fn one_bad_entry_does_not_stop_the_rest() {
-    let dir = tempdir();
-    let project = setup(dir.path(), BASE_CONFIG);
+    let (_dir, project) = setup(BASE_CONFIG);
     let plan = build(
         &project,
         &[
@@ -255,8 +243,7 @@ fn one_bad_entry_does_not_stop_the_rest() {
 /// pass rather than one re-run per problem.
 #[test]
 fn every_refusal_for_one_entry_is_reported_at_once() {
-    let dir = tempdir();
-    let project = setup(dir.path(), BASE_CONFIG);
+    let (_dir, project) = setup(BASE_CONFIG);
     let plan = build(
         &project,
         &[Entry {
@@ -281,8 +268,7 @@ fn every_refusal_for_one_entry_is_reported_at_once() {
 
 #[test]
 fn an_edge_already_there_reports_unchanged_rather_than_staging() {
-    let dir = tempdir();
-    let project = setup(dir.path(), BASE_CONFIG);
+    let (dir, project) = setup(BASE_CONFIG);
     let entries = [entry("alpha", "depends-on", "beta", None)];
     let plan = build(&project, &entries, Mode::Merge);
     let staged = plan.staged.first().unwrap();
@@ -337,8 +323,7 @@ fn plan_nested(files: &[(&str, &str)]) -> super::Plan {
 /// Plan `alpha depends-on <target>` over [`plan_nested`]'s `files`, with
 /// `target` computed from the reloaded project.
 fn plan_nested_to(files: &[(&str, &str)], target: impl Fn(&Project) -> String) -> super::Plan {
-    let dir = tempdir();
-    setup(dir.path(), BASE_CONFIG);
+    let (dir, _) = setup(BASE_CONFIG);
     for (rel, body) in files {
         let path = dir.path().join("tasks").join(rel);
         std::fs::create_dir_all(path.parent().unwrap()).unwrap();

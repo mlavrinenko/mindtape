@@ -29,8 +29,8 @@ const RECUR_TASK_SRC: &str = "#import \"@local/mindtape:0.2.0\": *\n\
      due: on(2026, 6, 15),\n  start: on(2026, 6, 10),\n  \
      recur: every(weeks: 1, anchor: \"due\", count: 3),\n)\n\n== Summary\n\nBody.\n";
 
-fn setup(dir: &Path, files: &[(&str, &str)], config_text: &str) -> Project {
-    crate::test_util::make_project_with_lib(dir, PRELUDE, files, config_text)
+fn setup(files: &[(&str, &str)], config_text: &str) -> (tempfile::TempDir, Project) {
+    crate::test_util::make_project_with_lib(PRELUDE, files, config_text)
 }
 
 // === check_advance_preconditions ============================================
@@ -44,10 +44,9 @@ fn advance_precondition_fixture(
     max_advance: u32,
     advance: u32,
 ) -> (tempfile::TempDir, Project, RecurArgs) {
-    let dir = tempdir();
     let config_text =
         format!("[[tasks.status]]\nvalue = \"wip\"\n[tasks.recur]\nmax-advance = {max_advance}\n");
-    let project = setup(dir.path(), &[], &config_text);
+    let (dir, project) = setup(&[], &config_text);
     let args = RecurArgs {
         task: "chore".into(),
         dry_run: false,
@@ -114,11 +113,10 @@ fn check_advance_preconditions_passes_at_max_advance_boundary() {
 /// Shared setup for the `do_skip`/`do_advance`/`build_advance_chain`/
 /// `write_advance_chain` regression tests below.
 fn advance_fixture() -> (tempfile::TempDir, Project, Task, PathBuf, Recur) {
-    let dir = tempdir();
     let config_text = "[[tasks.status]]\nvalue = \"wip\"\n\
                        [[tasks.status]]\nvalue = \"done\"\nterminal = true\n\
                        [tasks.recur]\nmax-advance = 52\n";
-    let project = setup(dir.path(), &[("chore.typ", RECUR_TASK_SRC)], config_text);
+    let (dir, project) = setup(&[("chore.typ", RECUR_TASK_SRC)], config_text);
     assert_eq!(project.outcome.tasks.len(), 1, "fixture must load");
 
     let task = project.outcome.tasks[0].clone();

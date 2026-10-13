@@ -13,7 +13,6 @@ use super::tests::{
     read, setup,
 };
 use super::{run, run_with};
-use mindtape::test_support::tempdir;
 
 const FLIP_CHILD_ENV: &str = "_MT_FLIP_CHILD";
 
@@ -43,8 +42,7 @@ fn run_delegates_to_run_with() {
         );
         return;
     }
-    let dir = tempdir();
-    setup(dir.path(), &[("alpha.typ", ALPHA)], LEGEND_CONFIG);
+    let (dir, _) = setup(&[("alpha.typ", ALPHA)], LEGEND_CONFIG);
     std::env::set_current_dir(dir.path()).unwrap();
     run(&flip_args("done", &["alpha"])).unwrap();
     assert!(
@@ -74,8 +72,7 @@ fn shadowed_verb_warns_on_stderr() {
     }
     let shadow_cfg =
         "[[tasks.status]]\nvalue = \"add\"\n[[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
-    let dir = tempdir();
-    let project = setup(dir.path(), &[("a.typ", ALPHA)], shadow_cfg);
+    let (_dir, project) = setup(&[("a.typ", ALPHA)], shadow_cfg);
     run_with(&project, &flip_args("done", &["a"])).unwrap();
 }
 
@@ -95,8 +92,7 @@ fn restamp_prints_re_stamped() {
         );
         return;
     }
-    let dir = tempdir();
-    let project = setup(dir.path(), &[("a.typ", ALPHA)], LEGEND_CONFIG);
+    let (_dir, project) = setup(&[("a.typ", ALPHA)], LEGEND_CONFIG);
     run_with(&project, &flip_args("wip", &["a"])).unwrap();
 }
 
@@ -120,8 +116,7 @@ fn flip_prints_flipped_not_re_stamped() {
         );
         return;
     }
-    let dir = tempdir();
-    let project = setup(dir.path(), &[("a.typ", ALPHA)], LEGEND_CONFIG);
+    let (_dir, project) = setup(&[("a.typ", ALPHA)], LEGEND_CONFIG);
     run_with(&project, &flip_args("done", &["a"])).unwrap();
 }
 
@@ -141,8 +136,7 @@ fn terminal_flip_prints_recur_notice() {
         );
         return;
     }
-    let dir = tempdir();
-    let project = setup(dir.path(), &[("g.typ", GAMMA)], LEGEND_CONFIG);
+    let (_dir, project) = setup(&[("g.typ", GAMMA)], LEGEND_CONFIG);
     run_with(&project, &flip_args("done", &["g"])).unwrap();
 }
 
@@ -167,8 +161,7 @@ fn list_prints_glyph_verbs() {
     }
     let glyph_cfg = "[[tasks.status]]\nvalue = \"wip\"\nglyph = \"🔨\"\n\
         [[tasks.status]]\nvalue = \"done\"\nglyph = \"✅\"\nterminal = true\n";
-    let dir = tempdir();
-    let project = setup(dir.path(), &[], glyph_cfg);
+    let (_dir, project) = setup(&[], glyph_cfg);
     let mut args = flip_args("done", &[]);
     args.status = None;
     args.list = true;
@@ -195,8 +188,7 @@ fn list_empty_legend_prints_hint() {
         return;
     }
     let empty_cfg = "[tasks]\nstatus = []\n";
-    let dir = tempdir();
-    let project = setup(dir.path(), &[], empty_cfg);
+    let (_dir, project) = setup(&[], empty_cfg);
     let mut args = flip_args("done", &[]);
     args.status = None;
     args.list = true;
@@ -219,8 +211,7 @@ fn list_prints_verbs() {
         );
         return;
     }
-    let dir = tempdir();
-    let project = setup(dir.path(), &[], LEGEND_CONFIG);
+    let (_dir, project) = setup(&[], LEGEND_CONFIG);
     let mut args = flip_args("done", &[]);
     args.status = None;
     args.list = true;
@@ -241,8 +232,7 @@ fn revalidate_prints_the_unreachable_violation() {
         );
         return;
     }
-    let dir = tempdir();
-    let project = setup(dir.path(), &[("s.typ", STATELESS)], REACHABLE_CONFIG);
+    let (_dir, project) = setup(&[("s.typ", STATELESS)], REACHABLE_CONFIG);
     let err = run_with(&project, &flip_args("blocked", &["s"])).unwrap_err();
     crate::diag::emit(&err);
 }
@@ -267,8 +257,7 @@ fn refuses_a_rewrite_that_would_not_load() {
         );
         return;
     }
-    let dir = tempdir();
-    let project = setup(dir.path(), &[("alpha.typ", ALPHA)], BROKEN_RELOAD_CONFIG);
+    let (dir, project) = setup(&[("alpha.typ", ALPHA)], BROKEN_RELOAD_CONFIG);
     let err = run_with(&project, &flip_args("broken\"done", &["alpha"])).unwrap_err();
     crate::diag::emit(&err);
     assert_eq!(

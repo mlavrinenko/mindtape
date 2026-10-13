@@ -18,7 +18,6 @@ use super::tests::{
     ALPHA, BETA, BROKEN_RELOAD_CONFIG, LEGEND_CONFIG, REACHABLE_CONFIG, STATELESS, flip_args, read,
     setup,
 };
-use mindtape::test_support::tempdir;
 
 /// A file that fails to evaluate (an unclosed content block), used as a
 /// pre-existing broken task that no flip touches.
@@ -32,8 +31,7 @@ const BROKEN_FILE: &str = "#import \"@local/mindtape:0.2.0\": *\n\
 /// half.
 #[test]
 fn refuses_a_flip_into_an_unreachable_status() {
-    let dir = tempdir();
-    let project = setup(dir.path(), &[("s.typ", STATELESS)], REACHABLE_CONFIG);
+    let (dir, project) = setup(&[("s.typ", STATELESS)], REACHABLE_CONFIG);
     let err = run_with(&project, &flip_args("blocked", &["s"]))
         .unwrap_err()
         .to_string();
@@ -54,8 +52,7 @@ fn refuses_a_flip_into_an_unreachable_status() {
 /// to stderr (see `cmd/flip/tests_output.rs`).
 #[test]
 fn refuses_a_rewrite_that_would_not_load() {
-    let dir = tempdir();
-    let project = setup(dir.path(), &[("alpha.typ", ALPHA)], BROKEN_RELOAD_CONFIG);
+    let (dir, project) = setup(&[("alpha.typ", ALPHA)], BROKEN_RELOAD_CONFIG);
     let err = run_with(&project, &flip_args("broken\"done", &["alpha"]))
         .unwrap_err()
         .to_string();
@@ -75,9 +72,7 @@ fn refuses_a_rewrite_that_would_not_load() {
 /// touched file are appended to the problem list, and the batch stays Ok.
 #[test]
 fn revalidate_ignores_load_errors_on_untouched_files() {
-    let dir = tempdir();
-    let project = setup(
-        dir.path(),
+    let (dir, project) = setup(
         &[("alpha.typ", ALPHA), ("broken.typ", BROKEN_FILE)],
         LEGEND_CONFIG,
     );
@@ -90,11 +85,9 @@ fn revalidate_ignores_load_errors_on_untouched_files() {
 /// revalidation violation must not fail the flip of an unrelated task.
 #[test]
 fn revalidate_ignores_violations_on_untouched_tasks() {
-    let dir = tempdir();
     // BETA's authored `blocked` is unreachable under REACHABLE_CONFIG; only
     // alpha is flipped, so the violation must stay out of the problem list.
-    let project = setup(
-        dir.path(),
+    let (dir, project) = setup(
         &[("alpha.typ", ALPHA), ("beta.typ", BETA)],
         REACHABLE_CONFIG,
     );

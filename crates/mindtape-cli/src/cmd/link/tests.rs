@@ -3,7 +3,6 @@
 //! a per-entry failure carries.
 #![allow(clippy::unwrap_used)]
 
-use mindtape::test_support::tempdir;
 use std::path::Path;
 
 use clap::Parser;
@@ -39,9 +38,8 @@ fn parse(argv: &[&str]) -> LinkArgs {
     Harness::try_parse_from(argv).unwrap().args
 }
 
-fn setup(dir: &Path) -> Project {
+fn setup() -> (tempfile::TempDir, Project) {
     crate::test_util::make_project_with_lib(
-        dir,
         PRELUDE,
         &[
             ("alpha.typ", ALPHA),
@@ -68,8 +66,7 @@ fn source(dir: &Path, stem: &str) -> String {
 
 #[test]
 fn a_single_edge_lands() {
-    let dir = tempdir();
-    let project = setup(dir.path());
+    let (dir, project) = setup();
     run_with(&project, &parse(&["alpha", "depends-on", "beta"])).unwrap();
     assert!(
         source(dir.path(), "alpha").contains(r#"depends-on("beta.typ")"#),
@@ -80,8 +77,7 @@ fn a_single_edge_lands() {
 
 #[test]
 fn several_targets_land_in_one_call() {
-    let dir = tempdir();
-    let project = setup(dir.path());
+    let (dir, project) = setup();
     run_with(&project, &parse(&["alpha", "depends-on", "beta", "gamma"])).unwrap();
     assert!(
         source(dir.path(), "alpha").contains(r#"depends-on("beta.typ", "gamma.typ")"#),
@@ -94,8 +90,7 @@ fn several_targets_land_in_one_call() {
 /// re-apply as it grows, so a second run over the same input writes nothing.
 #[test]
 fn a_second_identical_run_writes_nothing() {
-    let dir = tempdir();
-    let project = setup(dir.path());
+    let (dir, project) = setup();
     let args = parse(&["alpha", "depends-on", "beta"]);
     run_with(&project, &args).unwrap();
     let after_first = source(dir.path(), "alpha");
@@ -106,8 +101,7 @@ fn a_second_identical_run_writes_nothing() {
 
 #[test]
 fn merging_keeps_the_edges_already_there() {
-    let dir = tempdir();
-    let project = setup(dir.path());
+    let (dir, project) = setup();
     run_with(&project, &parse(&["alpha", "depends-on", "beta"])).unwrap();
     run_with(
         &reload(dir.path()),
@@ -121,8 +115,7 @@ fn merging_keeps_the_edges_already_there() {
 
 #[test]
 fn dry_run_writes_nothing() {
-    let dir = tempdir();
-    let project = setup(dir.path());
+    let (dir, project) = setup();
     let before = source(dir.path(), "alpha");
     run_with(
         &project,
@@ -134,8 +127,7 @@ fn dry_run_writes_nothing() {
 
 #[test]
 fn an_unknown_kind_fails_the_run_and_writes_nothing() {
-    let dir = tempdir();
-    let project = setup(dir.path());
+    let (dir, project) = setup();
     let before = source(dir.path(), "alpha");
     let err = run_with(&project, &parse(&["alpha", "depends-onn", "beta"])).unwrap_err();
     let err = crate::diag::plain(&err);
@@ -152,8 +144,7 @@ fn an_unknown_kind_fails_the_run_and_writes_nothing() {
 
 #[test]
 fn a_missing_target_fails_the_run_and_writes_nothing() {
-    let dir = tempdir();
-    let project = setup(dir.path());
+    let (dir, project) = setup();
     let before = source(dir.path(), "alpha");
     assert!(run_with(&project, &parse(&["alpha", "depends-on", "nope"])).is_err());
     assert_eq!(source(dir.path(), "alpha"), before);
@@ -161,15 +152,13 @@ fn a_missing_target_fails_the_run_and_writes_nothing() {
 
 #[test]
 fn related_without_a_note_fails_the_run() {
-    let dir = tempdir();
-    let project = setup(dir.path());
+    let (_dir, project) = setup();
     assert!(run_with(&project, &parse(&["alpha", "related", "beta"])).is_err());
 }
 
 #[test]
 fn apply_reads_an_adjacency_map_from_a_file() {
-    let dir = tempdir();
-    let project = setup(dir.path());
+    let (dir, project) = setup();
     let map = dir.path().join("links.yaml");
     std::fs::write(
         &map,
@@ -193,8 +182,7 @@ fn apply_reads_an_adjacency_map_from_a_file() {
 /// non-zero, but every other entry still lands.
 #[test]
 fn a_failing_entry_does_not_hold_back_the_rest() {
-    let dir = tempdir();
-    let project = setup(dir.path());
+    let (dir, project) = setup();
     let map = dir.path().join("links.yaml");
     std::fs::write(
         &map,
@@ -212,8 +200,7 @@ fn a_failing_entry_does_not_hold_back_the_rest() {
 
 #[test]
 fn replace_makes_the_map_the_complete_edge_set() {
-    let dir = tempdir();
-    let project = setup(dir.path());
+    let (dir, project) = setup();
     run_with(&project, &parse(&["alpha", "depends-on", "beta"])).unwrap();
 
     let map = dir.path().join("links.yaml");
@@ -256,8 +243,7 @@ fn a_note_flag_and_apply_are_mutually_exclusive() {
 
 #[test]
 fn an_empty_map_is_not_an_error() {
-    let dir = tempdir();
-    let project = setup(dir.path());
+    let (dir, project) = setup();
     let map = dir.path().join("links.yaml");
     std::fs::write(&map, "").unwrap();
     run_with(&project, &parse(&["--apply", map.to_str().unwrap()])).unwrap();
@@ -304,8 +290,7 @@ fn run_with_reports_each_written_task() {
         );
         return;
     }
-    let dir = tempdir();
-    let project = setup(dir.path());
+    let (_dir, project) = setup();
     run_with(&project, &parse(&["alpha", "depends-on", "beta"])).unwrap();
 }
 
@@ -315,8 +300,7 @@ fn run_with_reports_each_written_task() {
 /// something.
 #[test]
 fn a_landed_batch_runs_the_post_write_reload() {
-    let dir = tempdir();
-    let project = setup(dir.path());
+    let (dir, project) = setup();
     // Break the on-disk config after the project was loaded, so only the
     // post-write reload can notice.
     std::fs::write(dir.path().join(".mindtape/config.toml"), "[[[not toml\n").unwrap();
@@ -332,8 +316,7 @@ fn a_landed_batch_runs_the_post_write_reload() {
 /// reported rather than left for the next `mt check`.
 #[test]
 fn a_cycle_created_by_the_batch_is_reported() {
-    let dir = tempdir();
-    let project = setup(dir.path());
+    let (dir, project) = setup();
     let map = dir.path().join("links.yaml");
     std::fs::write(
         &map,

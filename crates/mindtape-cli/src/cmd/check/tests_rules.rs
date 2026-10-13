@@ -7,7 +7,6 @@
 
 use mindtape::parse_config;
 use mindtape::test_support::TASK_SRC as TASK;
-use mindtape::test_support::tempdir;
 
 use super::tests::make_project_with_config;
 
@@ -28,22 +27,20 @@ Some content here.
 
 #[test]
 fn header_require_rule_passes_when_heading_present() {
-    let dir = tempdir();
     let config =
         parse_config("[[tasks.body.headers.rules]]\npath = [\"Summary\"]\naction = \"require\"\n")
             .unwrap();
-    let project = make_project_with_config(dir.path(), &[("a.typ", TASK_WITH_SUMMARY)], config);
+    let (_dir, project) = make_project_with_config(&[("a.typ", TASK_WITH_SUMMARY)], config);
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
 #[test]
 fn header_require_rule_fails_when_heading_absent() {
-    let dir = tempdir();
     let config =
         parse_config("[[tasks.body.headers.rules]]\npath = [\"Summary\"]\naction = \"require\"\n")
             .unwrap();
     // TASK has no headings at all
-    let project = make_project_with_config(dir.path(), &[("a.typ", TASK)], config);
+    let (_dir, project) = make_project_with_config(&[("a.typ", TASK)], config);
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }
 
@@ -72,58 +69,50 @@ No question asked
 
 #[test]
 fn content_non_empty_rule_passes_with_prose() {
-    let dir = tempdir();
     let config = parse_config(
         "[[tasks.body.content.rules]]\npath = [\"Summary\"]\nassert = \"non-empty\"\n",
     )
     .unwrap();
-    let project = make_project_with_config(dir.path(), &[("a.typ", TASK_WITH_SUMMARY)], config);
+    let (_dir, project) = make_project_with_config(&[("a.typ", TASK_WITH_SUMMARY)], config);
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
 #[test]
 fn content_non_empty_rule_fails_on_empty_section() {
-    let dir = tempdir();
     let config = parse_config(
         "[[tasks.body.content.rules]]\npath = [\"Summary\"]\nassert = \"non-empty\"\n",
     )
     .unwrap();
-    let project =
-        make_project_with_config(dir.path(), &[("a.typ", TASK_WITH_EMPTY_SUMMARY)], config);
+    let (_dir, project) = make_project_with_config(&[("a.typ", TASK_WITH_EMPTY_SUMMARY)], config);
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }
 
 #[test]
 fn content_min_words_rule_fails_when_short() {
-    let dir = tempdir();
     let config = parse_config(
         "[[tasks.body.content.rules]]\npath = [\"Scope\"]\nassert = { min-words = 100 }\n",
     )
     .unwrap();
-    let project =
-        make_project_with_config(dir.path(), &[("a.typ", TASK_WITH_EMPTY_SUMMARY)], config);
+    let (_dir, project) = make_project_with_config(&[("a.typ", TASK_WITH_EMPTY_SUMMARY)], config);
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }
 
 #[test]
 fn content_must_match_rule_fails_without_question() {
-    let dir = tempdir();
     let config = parse_config(
         "[[tasks.body.content.rules]]\npath = [\"Watch for\"]\nassert = { must-match = \"\\\\?\" }\n",
     )
     .unwrap();
-    let project =
-        make_project_with_config(dir.path(), &[("a.typ", TASK_WITH_EMPTY_SUMMARY)], config);
+    let (_dir, project) = make_project_with_config(&[("a.typ", TASK_WITH_EMPTY_SUMMARY)], config);
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }
 
 #[test]
 fn invalid_content_rule_regex_fails_with_config_error() {
-    let dir = tempdir();
     let config = parse_config(
         "[[tasks.body.content.rules]]\npath = [\"Summary\"]\nassert = { must-match = \"[bad\" }\n",
     )
     .unwrap();
-    let project = make_project_with_config(dir.path(), &[("a.typ", TASK)], config);
+    let (_dir, project) = make_project_with_config(&[("a.typ", TASK)], config);
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }

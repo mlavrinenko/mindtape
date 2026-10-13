@@ -29,17 +29,16 @@ fn marker(status: &str, deps: &[&str]) -> String {
 /// A project under `dir` with `files` already on disk, loaded under the floor
 /// config — whose status legend is non-empty, so a bogus status name is
 /// actually out of bounds.
-fn setup(dir: &Path, files: &[(&str, &str)]) -> Project {
-    make_project(dir, files, parse_config("").unwrap())
+fn setup(files: &[(&str, &str)]) -> (tempfile::TempDir, Project) {
+    make_project(files, parse_config("").unwrap())
 }
 
 /// The whole point, in one assertion: a rewrite that would not validate is
 /// refused, and the file it would have replaced is byte-identical afterwards.
 #[test]
 fn refuses_a_rewrite_without_touching_the_file() {
-    let dir = tempdir();
     let good = marker("wip", &[]);
-    let project = setup(dir.path(), &[("a.typ", good.as_str())]);
+    let (dir, project) = setup(&[("a.typ", good.as_str())]);
     let file = dir.path().join("tasks/a.typ");
     let bad = marker("bogus", &[]);
 
@@ -55,8 +54,7 @@ fn refuses_a_rewrite_without_touching_the_file() {
 /// file by file can fold it into the world the next entry is checked against.
 #[test]
 fn accepts_a_rewrite_and_returns_its_task() {
-    let dir = tempdir();
-    let project = setup(dir.path(), &[("a.typ", marker("wip", &[]).as_str())]);
+    let (dir, project) = setup(&[("a.typ", marker("wip", &[]).as_str())]);
     let file = dir.path().join("tasks/a.typ");
 
     let landed = verify_one(
@@ -78,8 +76,7 @@ fn accepts_a_rewrite_and_returns_its_task() {
 /// each rely on.
 #[test]
 fn resolves_an_edge_between_two_candidates_in_one_batch() {
-    let dir = tempdir();
-    let project = setup(dir.path(), &[]);
+    let (dir, project) = setup(&[]);
     let a_file = dir.path().join("tasks/a.typ");
     let b_file = dir.path().join("tasks/b.typ");
     let a_source = marker("wip", &["b.typ"]);
@@ -112,8 +109,7 @@ fn resolves_an_edge_between_two_candidates_in_one_batch() {
 /// error counts the rejections rather than naming only the first.
 #[test]
 fn ensure_refuses_the_whole_batch_on_one_bad_entry() {
-    let dir = tempdir();
-    let project = setup(dir.path(), &[]);
+    let (dir, project) = setup(&[]);
     let good_file = dir.path().join("tasks/good.typ");
     let bad_file = dir.path().join("tasks/bad.typ");
     let good = marker("wip", &[]);
@@ -147,8 +143,7 @@ fn ensure_refuses_the_whole_batch_on_one_bad_entry() {
 /// costing the batch its answer.
 #[test]
 fn reports_a_source_that_does_not_evaluate() {
-    let dir = tempdir();
-    let project = setup(dir.path(), &[]);
+    let (dir, project) = setup(&[]);
     let file = dir.path().join("tasks/a.typ");
 
     let verdicts = check(
@@ -171,9 +166,8 @@ fn reports_a_source_that_does_not_evaluate() {
 /// in the task as filled when there is no file yet.
 #[test]
 fn a_load_failure_names_its_line() {
-    let dir = tempdir();
     let good = marker("wip", &[]);
-    let project = setup(dir.path(), &[("a.typ", good.as_str())]);
+    let (dir, project) = setup(&[("a.typ", good.as_str())]);
     let broken = "= prose\n\n#metadata(\n";
     let on_disk = dir.path().join("tasks/a.typ");
     let absent = dir.path().join("tasks/new.typ");
@@ -200,9 +194,8 @@ fn a_load_failure_names_its_line() {
 /// `mt add` reads the flag to fall back to its post-write verification.
 #[test]
 fn marks_a_destination_outside_the_root_unchecked() {
-    let dir = tempdir();
     let elsewhere = tempdir();
-    let project = setup(dir.path(), &[]);
+    let (_dir, project) = setup(&[]);
     let file = elsewhere.path().join("a.typ");
     let source = marker("bogus", &[]);
 
@@ -225,12 +218,11 @@ fn marks_a_destination_outside_the_root_unchecked() {
 /// or letting a candidate land unchecked against it.
 #[test]
 fn refuses_to_check_against_an_unparseable_header_rule() {
-    let dir = tempdir();
     let config = parse_config(
         "[[tasks.body.headers.rules]]\npath = [{ match = \"(\" }]\naction = \"require\"\n",
     )
     .unwrap();
-    let project = make_project(dir.path(), &[], config);
+    let (dir, project) = make_project(&[], config);
     let file = dir.path().join("tasks/a.typ");
     let source = marker("wip", &[]);
 

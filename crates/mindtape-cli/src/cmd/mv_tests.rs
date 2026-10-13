@@ -4,7 +4,6 @@
 //! drives the real binary against a real repository.
 #![allow(clippy::unwrap_used)]
 
-use mindtape::test_support::tempdir;
 use std::path::{Path, PathBuf};
 
 use super::{new_stem, renamed, verify};
@@ -69,13 +68,12 @@ fn renaming_a_dotted_stem_does_not_eat_its_own_dots() {
 
 #[test]
 fn verify_refuses_a_rename_the_project_would_reject() {
-    let dir = tempdir();
     let config = mindtape::parse_config(
         "[[tasks.status]]\nvalue = \"wip\"\n\
          [[tasks.status]]\nvalue = \"done\"\nterminal = true\n",
     )
     .unwrap();
-    let project = make_project(dir.path(), &[], config);
+    let (dir, project) = make_project(&[], config);
     let to = dir.path().join("tasks/new.typ");
     let bad = "#metadata((\n  marker: \"mindtape.task\",\n  fields: (\n    title: \"T\",\n    \
                status: (name: \"bogus\", date: none, note: none),\n  ),\n  extras: (:),\n))\n";

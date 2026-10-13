@@ -7,7 +7,6 @@
 #![allow(clippy::unwrap_used)]
 
 use mindtape::parse_config;
-use mindtape::test_support::tempdir;
 
 use crate::cmd::ls::rules::tests::{args, project, resolve, resolve_bare};
 
@@ -21,9 +20,7 @@ fn explicit_filter_sets_filter_value_in_applied() {
     // apply_explicit_filter.
     // Real:   applied.filter_value == expr
     // Mutant: applied.filter_value == "priority > 1"  (the rule's, untouched)
-    let dir = tempdir();
-    let project = project(
-        dir.path(),
+    let (_dir, project) = project(
         r#"
 [[ls.rules]]
 filter = "priority > 1"
@@ -38,9 +35,7 @@ fn import_sort_from_empty_sort_view_preserves_earlier_sort() {
     // Kills mutant at !view.sort.is_empty() → true.
     // Real: guard fails → no overwrite → sort stays ["due:asc"].
     // Mutant: guard always true → overwrites with [] → sort empty.
-    let dir = tempdir();
-    let project = project(
-        dir.path(),
+    let (_dir, project) = project(
         r#"
 [views.a]
 sort = ["due:asc"]
@@ -61,9 +56,7 @@ fn import_columns_from_empty_columns_view_preserves_earlier_columns() {
     // Kills mutant at !view.columns.is_empty() → true.
     // Real: guard fails → no overwrite → columns stay ["status", "title"].
     // Mutant: guard always true → overwrites with [] → columns empty.
-    let dir = tempdir();
-    let project = project(
-        dir.path(),
+    let (_dir, project) = project(
         r#"
 [views.a]
 columns = ["status", "title"]
@@ -91,8 +84,7 @@ fn default_view_bundle_carries_the_views_filter_value() {
     // Real:   applied.filter_value == the view's filter.
     // Mutant: Applied::default()'s empty value — the JSON envelope's
     //         filter.value comes back blank.
-    let dir = tempdir();
-    let project = project(dir.path(), "[views.default]\nfilter = \"terminal\"\n");
+    let (_dir, project) = project("[views.default]\nfilter = \"terminal\"\n");
     let (_bundle, applied) = resolve_bare(&project).unwrap();
     assert_eq!(applied.filter_value, "terminal");
 }
@@ -102,11 +94,7 @@ fn default_view_bundle_attributes_columns_to_the_view() {
     // Kills mutant at delete columns_from from Applied in view_bundle.
     // Real:   columns_from names the view that set the columns.
     // Mutant: the empty default, losing the attribution.
-    let dir = tempdir();
-    let project = project(
-        dir.path(),
-        "[views.default]\ncolumns = [\"status\", \"title\"]\n",
-    );
+    let (_dir, project) = project("[views.default]\ncolumns = [\"status\", \"title\"]\n");
     let (_bundle, applied) = resolve_bare(&project).unwrap();
     assert_eq!(applied.columns_from, "default");
 }
@@ -116,11 +104,7 @@ fn explicit_filter_keeps_the_default_views_columns_value() {
     // Kills mutant at delete columns_value from Applied in view_bundle.
     // Real:   bundle_of re-reads the view's columns, so they survive the filter.
     // Mutant: the empty default, so narrowing drops the presentation.
-    let dir = tempdir();
-    let project = project(
-        dir.path(),
-        "[views.default]\ncolumns = [\"status\", \"title\"]\n",
-    );
+    let (_dir, project) = project("[views.default]\ncolumns = [\"status\", \"title\"]\n");
     let (bundle, applied) = resolve(&project, &args(Some("priority > 9"))).unwrap();
     assert_eq!(
         bundle.columns,
@@ -175,9 +159,7 @@ fn splicing_the_default_view_over_both_facets_drops_a_rules_presentation() {
     // neither facet and an empty facet IS the built-in — so a default view
     // that grows a `sort` or `columns` would quietly change what the
     // documented command means.
-    let dir = tempdir();
-    let project = project(
-        dir.path(),
+    let (_dir, project) = project(
         r#"
 [[ls.rules]]
 name = "release"
