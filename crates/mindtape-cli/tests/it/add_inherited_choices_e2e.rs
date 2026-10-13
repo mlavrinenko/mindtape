@@ -16,9 +16,11 @@ const NO_CHORE_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
 
 /// A template that declares its own `kind` slot with an example and no
 /// `choices`.
-const OWN_KIND_TEMPLATE: &str = "#import \"@local/mindtape:0.2.0\": *\n\
+const OWN_KIND_TEMPLATE: &str = mindtape::typst_task!(
+    "\
      #show: task.with(\n  title: slot(\"title\", example: \"T\"),\n  \
-     kind: slot(\"kind\", example: \"test\"),\n)\n";
+     kind: slot(\"kind\", example: \"test\"),\n)\n"
+);
 
 #[test]
 fn a_templates_own_slot_refuses_a_value_outside_config_naming_the_choices() {
@@ -82,13 +84,17 @@ const MACHINE_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
      required = true\nexample = [\"alpha\"]\n";
 
 /// A template that declares its own `x-machine` slot, with no `choices`.
-const OWN_MACHINE_TEMPLATE: &str = "#import \"@local/mindtape:0.2.0\": *\n\
+const OWN_MACHINE_TEMPLATE: &str = mindtape::typst_task!(
+    "\
      #show: task.with(\n  title: slot(\"title\", example: \"T\"),\n  \
-     x-machine: slot(\"machine\", example: (\"alpha\",)),\n)\n";
+     x-machine: slot(\"machine\", example: (\"alpha\",)),\n)\n"
+);
 
 /// A template that never mentions the field, so `mt add` splices its slot.
-const PLAIN_TEMPLATE: &str = "#import \"@local/mindtape:0.2.0\": *\n\
-     #show: task.with(\n  title: slot(\"title\", example: \"T\"),\n)\n";
+const PLAIN_TEMPLATE: &str = mindtape::typst_task!(
+    "\
+     #show: task.with(\n  title: slot(\"title\", example: \"T\"),\n)\n"
+);
 
 fn file_machines(template: &str, slot: &str) -> String {
     let dir = support::project_with_template_and_config(MACHINE_CONFIG, template);

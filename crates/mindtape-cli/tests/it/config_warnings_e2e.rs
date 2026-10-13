@@ -12,7 +12,7 @@ const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
 fn a_command_warns_about_an_undeclared_extra_in_a_rule() {
     let dir = support::project_with_template_and_config(
         CONFIG,
-        "#import \"@local/mindtape:0.2.0\": *\n#show: task.with(title: slot(\"title\", example: \"T\"))\n",
+        mindtape::typst_task!("#show: task.with(title: slot(\"title\", example: \"T\"))\n"),
     );
     let out = support::mt(dir.path()).arg("ls").output().unwrap();
     assert!(out.status.success());

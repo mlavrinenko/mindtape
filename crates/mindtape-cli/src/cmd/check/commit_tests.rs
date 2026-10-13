@@ -10,8 +10,10 @@ use crate::test_util::make_project_with_lib;
 
 use mindtape::test_support::PRELUDE;
 
-const TASK: &str = "#import \"@local/mindtape:0.2.0\": *\n\
-#show: task.with(\n  title: \"Write the parser\",\n  status: wip(2026, 6, 1),\n)\n";
+const TASK: &str = mindtape::typst_task!(
+    "\
+#show: task.with(\n  title: \"Write the parser\",\n  status: wip(2026, 6, 1),\n)\n"
+);
 
 /// A trailer that names no task is a ref problem, and an error-severity rule
 /// the message breaks is a breach — this config makes one of each fire.

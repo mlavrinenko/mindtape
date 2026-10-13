@@ -21,7 +21,7 @@ fn a_template_name_beside_describe_suggests_dash_t() {
     std::fs::create_dir_all(dir.path().join(".mindtape/templates")).unwrap();
     std::fs::write(
         dir.path().join(".mindtape/templates/finding.typ"),
-        "#import \"@local/mindtape:0.2.0\": *\n#show: task.with(title: slot(\"title\"))\n",
+        mindtape::typst_task!("#show: task.with(title: slot(\"title\"))\n"),
     )
     .unwrap();
     let stderr = refusal(dir.path(), &["--describe", "finding"]);

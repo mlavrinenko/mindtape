@@ -13,11 +13,15 @@ use crate::util::Project;
 
 use mindtape::test_support::PRELUDE;
 
-const ALPHA: &str = "#import \"@local/mindtape:0.2.0\": *\n\
-#show: task.with(\n  title: \"Alpha\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n";
+const ALPHA: &str = mindtape::typst_task!(
+    "\
+#show: task.with(\n  title: \"Alpha\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n"
+);
 
-const BETA: &str = "#import \"@local/mindtape:0.2.0\": *\n\
-#show: task.with(\n  title: \"Beta\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n";
+const BETA: &str = mindtape::typst_task!(
+    "\
+#show: task.with(\n  title: \"Beta\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n"
+);
 
 const BASE_CONFIG: &str = "[[tasks.status]]\nvalue = \"wip\"\n\
      [[tasks.status]]\nvalue = \"done\"\nterminal = true\n";

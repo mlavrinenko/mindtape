@@ -22,9 +22,11 @@ fn legend() -> String {
 /// A real task artifact for the file being retired — the status rewrite needs
 /// a `task.with(…)` call to target.
 fn artifact() -> String {
-    "#import \"@local/mindtape:0.2.0\": *\n\
+    mindtape::typst_task!(
+        "\
 #show: task.with(\n  title: \"Gone\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n"
-        .to_owned()
+    )
+    .to_owned()
 }
 
 // --- resolve_strategy ---
@@ -199,10 +201,12 @@ fn unlink_plan_strips_legacy_link_calls() {
     std::fs::write(root.join("gone.typ"), "gone\n").unwrap();
     std::fs::write(
         root.join("live.typ"),
-        "#import \"@local/mindtape:0.2.0\": *\n\
+        mindtape::typst_task!(
+            "\
 #show: task.with(\n  title: \"Live\",\n)\n\n== Summary\n\n\
 #link(\"gone.typ\")[Depends on gone]\n\
-#link(gone.typ)[Unquoted]\n",
+#link(gone.typ)[Unquoted]\n"
+        ),
     )
     .unwrap();
     let tasks = gone_and_live("done");
@@ -237,8 +241,10 @@ fn unlink_plan_drops_whole_links_arg_across_whitespace() {
     apply(&plan).unwrap();
     let contents = std::fs::read_to_string(root.join("live.typ")).unwrap();
 
-    let expected = "#import \"@local/mindtape:0.2.0\": *\n\
-#show: task.with(\n  title: \"Live\",\n)\n\n== Summary\n\nBody.\n";
+    let expected = mindtape::typst_task!(
+        "\
+#show: task.with(\n  title: \"Live\",\n)\n\n== Summary\n\nBody.\n"
+    );
     assert_eq!(contents, expected, "the whole links: argument is dropped");
 }
 
@@ -430,7 +436,9 @@ fn gitless_strategies_share_the_plain_delete_shape() {
 
 #[test]
 fn dbg_whole_links_probe() {
-    let source = "#import \"@local/mindtape:0.2.0\": *\n#show: task.with(\n  title: \"Live\",\n  links: depends-on(\"gone.typ\") ,\n)\n";
+    let source = mindtape::typst_task!(
+        "#show: task.with(\n  title: \"Live\",\n  links: depends-on(\"gone.typ\") ,\n)\n"
+    );
     let call = crate::task_edit::task_with(source).unwrap();
     let value = call.named("links").unwrap();
     eprintln!(

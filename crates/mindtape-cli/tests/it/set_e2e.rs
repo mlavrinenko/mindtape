@@ -21,12 +21,14 @@ const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n\
 
 /// The subject every arm writes to: a title, a status, and one tag already in
 /// place, so both the insert and the replace path have something to act on.
-const SUBJECT: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
+const SUBJECT: &str = mindtape::typst_task!(
+    "\n\
 #show: task.with(\n  \
 title: \"Wire OAuth\",\n  \
 status: wip(2026, 6, 1),\n  \
 tags: (\"backend\",),\n\
-)\n\n== Summary\n\nBody.\n";
+)\n\n== Summary\n\nBody.\n"
+);
 
 fn scaffold() -> tempfile::TempDir {
     support::scaffold_config(CONFIG, &[("wire-oauth.typ", SUBJECT)])

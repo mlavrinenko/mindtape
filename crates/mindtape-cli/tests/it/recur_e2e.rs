@@ -16,21 +16,25 @@ const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n";
 /// `spawn`), due today plus a week from whenever the fixture is written —
 /// callers overwrite `due:`/`recur:` inline when a test needs a specific
 /// stop-condition shape.
-const WEEKLY_SPAWN: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
+const WEEKLY_SPAWN: &str = mindtape::typst_task!(
+    "\n\
 #show: task.with(\n  \
 title: \"Water plants\",\n  \
 status: wip(2026, 6, 1),\n  \
 priority: 3,\n  \
 recur: every(weeks: 1),\n\
-)\n\n== Body\n";
+)\n\n== Body\n"
+);
 
-const WEEKLY_MUTATE: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
+const WEEKLY_MUTATE: &str = mindtape::typst_task!(
+    "\n\
 #show: task.with(\n  \
 title: \"Standup\",\n  \
 status: wip(2026, 6, 1),\n  \
 priority: 3,\n  \
 recur: every(weeks: 1, materialize: \"mutate\"),\n\
-)\n\n== Body\n";
+)\n\n== Body\n"
+);
 
 fn scaffold(files: &[(&str, &str)]) -> tempfile::TempDir {
     support::scaffold_config(CONFIG, files)
@@ -246,13 +250,15 @@ fn a_second_hop_names_only_its_immediate_predecessor() {
 fn a_rejected_spawn_creates_no_file() {
     let dir = tempdir();
     let config = "[tasks]\nroots = [\"tasks\"]\n\n[tasks.tags]\nallowed = [\"ok\"]\n";
-    let body = "#import \"@local/mindtape:0.2.0\": *\n\n\
+    let body = mindtape::typst_task!(
+        "\n\
 #show: task.with(\n  \
 title: \"Water plants\",\n  \
 status: wip(2026, 6, 1),\n  \
 tags: (\"nope\",),\n  \
 recur: every(weeks: 1),\n\
-)\n\n== Body\n";
+)\n\n== Body\n"
+    );
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
     std::fs::write(dir.path().join(".mindtape/config.toml"), config).unwrap();
     support::install_lib(dir.path());
@@ -310,7 +316,9 @@ fn advance_lays_out_a_chain_of_distinct_occurrences() {
 
 #[test]
 fn no_recur_field_is_a_hard_error() {
-    let plain = "#import \"@local/mindtape:0.2.0\": *\n\n#show: task.with(\n  title: \"Plain\",\n  status: wip(2026, 6, 1),\n)\n";
+    let plain = mindtape::typst_task!(
+        "\n#show: task.with(\n  title: \"Plain\",\n  status: wip(2026, 6, 1),\n)\n"
+    );
     let dir = scaffold(&[("plain.typ", plain)]);
 
     mt(dir.path()).args(["recur", "plain"]).assert().failure();

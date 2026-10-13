@@ -16,8 +16,10 @@ fn broken_project() -> tempfile::TempDir {
     );
     std::fs::write(
         dir.path().join("tasks/subject.typ"),
-        "#import \"@local/mindtape:0.2.0\": *\n\n\
-         #show: task.with(\n  title: \"Loader refactoring\",\n  status: wip(2026, 6, 1),\n)\n",
+        mindtape::typst_task!(
+            "\n\
+         #show: task.with(\n  title: \"Loader refactoring\",\n  status: wip(2026, 6, 1),\n)\n"
+        ),
     )
     .unwrap();
     dir

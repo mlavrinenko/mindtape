@@ -1,7 +1,9 @@
 use super::TaskCallSpans;
 
-const SRC: &str = "#import \"@local/mindtape:0.2.0\": *\n#show: task.with(\n  title: \"T\",\n  \
-                   links: depends-on(\"a.typ\"),\n)\n\n== Body\n";
+const SRC: &str = crate::typst_task!(
+    "#show: task.with(\n  title: \"T\",\n  \
+                   links: depends-on(\"a.typ\"),\n)\n\n== Body\n"
+);
 
 #[test]
 fn names_the_call_and_each_argument_line() {
@@ -53,9 +55,11 @@ fn relocate_prefers_the_field_then_the_same_text_then_the_call() {
 
 #[test]
 fn the_body_is_the_trimmed_prose_after_the_call() {
-    let src = "#import \"@local/mindtape:0.2.0\": *\n\n\
+    let src = crate::typst_task!(
+        "\n\
         #show: task.with(\n  title: \"T\",\n)\n\n\
-        == Summary\n\nFirst line.\n\nSecond line.\n";
+        == Summary\n\nFirst line.\n\nSecond line.\n"
+    );
     let spans = TaskCallSpans::parse(src);
     assert_eq!(spans.call_line(), Some(3));
     assert_eq!(spans.body(src), "== Summary\n\nFirst line.\n\nSecond line.");

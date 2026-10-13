@@ -39,7 +39,8 @@ const LINKS_CONFIG: &str = "[tasks.priority]\nframework = \"ice\"\n\
 /// A minimal, self-valid stub task written at a link target's path so
 /// resolution succeeds; its own violations (if any) are irrelevant — tests
 /// only assert the fixture-under-test's violations are empty.
-const STUB: &str = "#import \"@local/mindtape:0.2.0\": *\n\n#show: task.with(\n  title: \"Stub\",\n  status: wip(2026, 1, 1),\n)\n";
+const STUB: &str =
+    crate::typst_task!("\n#show: task.with(\n  title: \"Stub\",\n  status: wip(2026, 1, 1),\n)\n");
 
 /// Write the in-tree `lib/` package override, `config_text` to
 /// `.mindtape/config.toml`, and every `(name, source)` under `tasks/`, then

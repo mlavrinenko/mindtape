@@ -22,14 +22,15 @@ use super::{
 use crate::cmd::add::output::Format;
 use crate::util::Project;
 
-const HEADER: &str = r#"#import "@local/mindtape:0.2.0": *
-
+const HEADER: &str = mindtape::typst_task!(
+    r#"
 #show: task.with(
   title: "Do thing",
 )
 
 == Summary
-"#;
+"#
+);
 
 fn bare_args() -> AddArgs {
     AddArgs {
@@ -69,8 +70,10 @@ fn injects_default_status_proposed() {
 /// the template's shape is the header's business and not the injection's.
 #[test]
 fn injects_status_into_a_single_line_header() {
-    const ONE_LINE: &str = "#import \"@local/mindtape:0.2.0\": *\n\
-                            #show: task.with(title: \"Do thing\")\n";
+    const ONE_LINE: &str = mindtape::typst_task!(
+        "\
+                            #show: task.with(title: \"Do thing\")\n"
+    );
     let out = inject_header(ONE_LINE, &Config::default(), Some("wip")).unwrap();
     assert!(
         out.contains("title: \"Do thing\", status: wip("),

@@ -17,8 +17,10 @@ fn scaffold() -> tempfile::TempDir {
         CONFIG,
         &[(
             "wire-oauth.typ",
-            "#import \"@local/mindtape:0.2.0\": *\n\n\
-             #show: task.with(\n  title: \"Wire OAuth\",\n  status: wip(2026, 6, 1),\n)\n",
+            mindtape::typst_task!(
+                "\n\
+             #show: task.with(\n  title: \"Wire OAuth\",\n  status: wip(2026, 6, 1),\n)\n"
+            ),
         )],
     )
 }
@@ -76,9 +78,11 @@ fn reviewing_twice_the_same_day_is_a_no_op_after_the_first() {
 #[test]
 fn a_rejected_stamp_leaves_the_file_untouched() {
     let dir = support::scaffold_project(&format!("{CONFIG}\n[tasks.tags]\nallowed = [\"ok\"]\n"));
-    let body = "#import \"@local/mindtape:0.2.0\": *\n\n\
+    let body = mindtape::typst_task!(
+        "\n\
          #show: task.with(\n  title: \"Wire OAuth\",\n  status: wip(2026, 6, 1),\n  \
-         tags: (\"nope\",),\n)\n";
+         tags: (\"nope\",),\n)\n"
+    );
     let file = dir.path().join("tasks/wire-oauth.typ");
     std::fs::write(&file, body).unwrap();
 

@@ -286,6 +286,7 @@ groups:
     source:
       - lib/typst.toml
     dependents:
+      - crates/mindtape/src/test_support.rs
       - crates/mindtape-cli/src/cmd/init/mod.rs
       - crates/mindtape-cli/src/cmd/init/presets/gated/templates/task.typ
       - examples/minimal/tasks/fix-login-bug.typ

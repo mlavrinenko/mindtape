@@ -178,8 +178,10 @@ fn files_at_the_status_the_template_names() {
     std::fs::create_dir_all(&templates).unwrap();
     std::fs::write(
         templates.join("task.typ"),
-        "#import \"@local/mindtape:0.2.0\": *\n\
-         #show: task.with(title: slot(\"title\"), status: done(2020, 1, 1))\n",
+        mindtape::typst_task!(
+            "\
+         #show: task.with(title: slot(\"title\"), status: done(2020, 1, 1))\n"
+        ),
     )
     .unwrap();
 
@@ -278,15 +280,16 @@ severity = "error"
 
 /// A template filling an estimate of two source files — one over
 /// [`ESTIMATE_UNIT_CONFIG`]'s cap.
-const TWO_SOURCE_FILES_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
-
+const TWO_SOURCE_FILES_TEMPLATE: &str = mindtape::typst_task!(
+    r#"
 #show: task.with(
   title: slot("title"),
   estimate: slot("estimate", kind: "text", default: "(src-files: 2)"),
 )
 
 == Summary
-"#;
+"#
+);
 
 /// `--print` promises the task a write would produce, so it must run the same
 /// pre-write check: a fill the config refuses fails the preview with the

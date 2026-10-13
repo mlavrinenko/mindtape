@@ -10,8 +10,8 @@ use mindtape::{AddConfig, RawValue, discover_slots};
 
 use super::{parse_buffer, scaffold};
 
-pub(super) const TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
-
+pub(super) const TEMPLATE: &str = mindtape::typst_task!(
+    r#"
 #show: task.with(
   title: slot("title", prompt: "Task title"),
   priority: slot("priority", kind: "int", default: 5),
@@ -21,7 +21,8 @@ pub(super) const TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
 == Summary
 
 #slot("summary", kind: "text", prompt: "One-paragraph summary")
-"#;
+"#
+);
 
 pub(super) fn specs() -> Vec<mindtape::SlotSpec> {
     discover_slots(TEMPLATE)

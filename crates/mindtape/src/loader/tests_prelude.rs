@@ -115,10 +115,10 @@ fn real_prelude_reads_links_mixing_concatenation_and_the_array_form() {
 /// eval on a method a string does not have.
 #[test]
 fn real_prelude_leaves_a_non_array_links_to_the_rust_shape_error() {
-    let (_dir, outcome) = load_real_prelude(
-        "#import \"@local/mindtape:0.2.0\": *\n\
-         #show: task.with(title: \"T\", links: \"a.typ\")\n",
-    );
+    let (_dir, outcome) = load_real_prelude(crate::typst_task!(
+        "\
+         #show: task.with(title: \"T\", links: \"a.typ\")\n"
+    ));
 
     assert_eq!(outcome.errors, Vec::new());
     let task = outcome.tasks.first().unwrap();
@@ -138,8 +138,8 @@ fn real_prelude_leaves_a_non_array_links_to_the_rust_shape_error() {
 /// nothing failing; this authors all thirteen at once and reads them back.
 #[test]
 fn real_prelude_carries_every_core_field_to_the_marker() {
-    let (_dir, outcome) = load_real_prelude(
-        "#import \"@local/mindtape:0.2.0\": *\n\
+    let (_dir, outcome) = load_real_prelude(crate::typst_task!(
+        "\
          #show: task.with(\n  \
            title: \"T\",\n  \
            status: wip(2026, 6, 14)[note],\n  \
@@ -154,8 +154,8 @@ fn real_prelude_carries_every_core_field_to_the_marker() {
            reviewed: on(2026, 6, 25),\n  \
            recur: every(weeks: 1),\n  \
            id: \"explicit\",\n\
-         )\n",
-    );
+         )\n"
+    ));
 
     assert_eq!(outcome.errors, Vec::new());
     let task = outcome.tasks.first().unwrap();
@@ -193,17 +193,17 @@ fn real_prelude_carries_every_core_field_to_the_marker() {
 /// refusal of an argument the callee does not declare.
 #[test]
 fn real_prelude_collects_extensions_and_rejects_unknown_slots() {
-    let (_dir, ok) = load_real_prelude(
-        "#import \"@local/mindtape:0.2.0\": *\n\
-         #show: task.with(title: \"T\", x-speconaut: (spec: \"s.typ\"))\n",
-    );
+    let (_dir, ok) = load_real_prelude(crate::typst_task!(
+        "\
+         #show: task.with(title: \"T\", x-speconaut: (spec: \"s.typ\"))\n"
+    ));
     assert_eq!(ok.errors, Vec::new());
     assert!(ok.tasks.first().unwrap().extras.contains_key("x-speconaut"));
 
-    let (_dir, bad) = load_real_prelude(
-        "#import \"@local/mindtape:0.2.0\": *\n\
-         #show: task.with(title: \"T\", titel: \"typo\")\n",
-    );
+    let (_dir, bad) = load_real_prelude(crate::typst_task!(
+        "\
+         #show: task.with(title: \"T\", titel: \"typo\")\n"
+    ));
     assert!(bad.tasks.is_empty());
     assert_eq!(bad.errors[0].message, "unexpected argument: titel");
 }
@@ -213,8 +213,10 @@ fn real_prelude_collects_extensions_and_rejects_unknown_slots() {
 /// span, and tinymist would publish it for the package file instead.
 #[test]
 fn real_prelude_places_the_unknown_slot_error_on_the_name_in_the_task_file() {
-    let source = "#import \"@local/mindtape:0.2.0\": *\n\
-                  #show: task.with(\n  titel: \"typo\",\n  x-speconaut: (spec: \"s.typ\"),\n)\n";
+    let source = crate::typst_task!(
+        "\
+                  #show: task.with(\n  titel: \"typo\",\n  x-speconaut: (spec: \"s.typ\"),\n)\n"
+    );
     let dir = setup();
     write_pkg(dir.path(), "lib", "mindtape", "0.2.0", PRELUDE);
     write(dir.path(), "tasks/t.typ", source);
@@ -269,10 +271,10 @@ fn real_prelude_still_refuses_what_the_sink_refused() {
     for (field, message) in cases {
         assert_eq!(prelude_eval_error(field), message.to_owned());
     }
-    let (_dir, outcome) = load_real_prelude(
-        "#import \"@local/mindtape:0.2.0\": *\n\
-         #show: task.with(\"stray\", title: \"T\")\n",
-    );
+    let (_dir, outcome) = load_real_prelude(crate::typst_task!(
+        "\
+         #show: task.with(\"stray\", title: \"T\")\n"
+    ));
     assert_eq!(
         outcome.errors[0].message,
         "assertion failed: task takes no positional args besides its body"
@@ -409,10 +411,10 @@ fn real_prelude_carries_a_wrong_typed_element_to_the_rust_shape_error() {
 /// an `example` it ignores.
 #[test]
 fn a_slot_evaluates_to_its_default_and_ignores_its_example() {
-    let (_dir, outcome) = load_real_prelude(
-        "#import \"@local/mindtape:0.2.0\": *\n\
-         #show: task.with(title: slot(\"title\", default: \"T\", example: \"E\"))\n",
-    );
+    let (_dir, outcome) = load_real_prelude(crate::typst_task!(
+        "\
+         #show: task.with(title: slot(\"title\", default: \"T\", example: \"E\"))\n"
+    ));
     assert_eq!(outcome.errors, Vec::new());
     assert_eq!(outcome.tasks.first().unwrap().title, "T");
 }

@@ -11,12 +11,16 @@ const CONFIG: &str = "[[tasks.status]]\nvalue = \"proposed\"\n\
      [[tasks.status]]\nvalue = \"done\"\nterminal = true\nunblocked = true\n\
      [[tasks.status]]\nvalue = \"cancelled\"\nterminal = true\n";
 
-const EPIC: &str = "#import \"@local/mindtape:0.2.0\": *\n\
-#show: task.with(\n  title: \"Epic\",\n  status: proposed(2026, 6, 1),\n)\n";
+const EPIC: &str = mindtape::typst_task!(
+    "\
+#show: task.with(\n  title: \"Epic\",\n  status: proposed(2026, 6, 1),\n)\n"
+);
 
-const CHILD: &str = "#import \"@local/mindtape:0.2.0\": *\n\
+const CHILD: &str = mindtape::typst_task!(
+    "\
 #show: task.with(\n  title: \"Child\",\n  status: proposed(2026, 6, 1),\n  \
-links: parent(\"epic.typ\"),\n)\n";
+links: parent(\"epic.typ\"),\n)\n"
+);
 
 fn project() -> (tempfile::TempDir, crate::util::Project) {
     let (dir, project) = setup(&[("epic.typ", EPIC), ("child.typ", CHILD)], CONFIG);

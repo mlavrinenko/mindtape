@@ -21,8 +21,10 @@ use super::tests::{
 
 /// A file that fails to evaluate (an unclosed content block), used as a
 /// pre-existing broken task that no flip touches.
-const BROKEN_FILE: &str = "#import \"@local/mindtape:0.2.0\": *\n\
-#show: task.with(\n  title: \"Broken\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody [\n";
+const BROKEN_FILE: &str = mindtape::typst_task!(
+    "\
+#show: task.with(\n  title: \"Broken\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody [\n"
+);
 
 /// A flip into a status the declared graph cannot reach is refused before the
 /// write, and the file is left exactly as it was. With one target, the

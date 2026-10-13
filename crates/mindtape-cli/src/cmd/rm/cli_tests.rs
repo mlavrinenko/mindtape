@@ -113,13 +113,15 @@ fn report_plan_with_rewrites_includes_rewrite_section() {
     // replace report_plan with ()
     // delete ! in report_plan
     let (_dir, root) = scaffold_with_lib(
-        "#import \"@local/mindtape:0.2.0\": *\n\n\
-         #show: task.with(\n  title: \"Gone\",\n  status: done(2026, 6, 1),\n)\n\nBody.\n",
-        Some(
-            "#import \"@local/mindtape:0.2.0\": *\n\n\
-             #show: task.with(\n  title: \"Live\",\n  status: wip(2026, 6, 1),\n  \
-             links: depends-on(\"gone.typ\"),\n)\n\nBody.\n",
+        mindtape::typst_task!(
+            "\n\
+         #show: task.with(\n  title: \"Gone\",\n  status: done(2026, 6, 1),\n)\n\nBody.\n"
         ),
+        Some(mindtape::typst_task!(
+            "\n\
+             #show: task.with(\n  title: \"Live\",\n  status: wip(2026, 6, 1),\n  \
+             links: depends-on(\"gone.typ\"),\n)\n\nBody.\n"
+        )),
     );
     mt(&root)
         .args(["rm", "--dry-run", "-y", "gone"])
@@ -154,13 +156,15 @@ fn report_applied_with_rewrites_includes_rewrite_section() {
     // replace report_applied with ()
     // delete ! in report_applied
     let (_dir, root) = scaffold_with_lib(
-        "#import \"@local/mindtape:0.2.0\": *\n\n\
-         #show: task.with(\n  title: \"Gone\",\n  status: done(2026, 6, 1),\n)\n\nBody.\n",
-        Some(
-            "#import \"@local/mindtape:0.2.0\": *\n\n\
-             #show: task.with(\n  title: \"Live\",\n  status: wip(2026, 6, 1),\n  \
-             links: depends-on(\"gone.typ\"),\n)\n\nBody.\n",
+        mindtape::typst_task!(
+            "\n\
+         #show: task.with(\n  title: \"Gone\",\n  status: done(2026, 6, 1),\n)\n\nBody.\n"
         ),
+        Some(mindtape::typst_task!(
+            "\n\
+             #show: task.with(\n  title: \"Live\",\n  status: wip(2026, 6, 1),\n  \
+             links: depends-on(\"gone.typ\"),\n)\n\nBody.\n"
+        )),
     );
     mt(&root)
         .args(["rm", "-y", "gone"])
@@ -200,19 +204,23 @@ fn run_dry_run_skips_preflight() {
     // The eligible task must be referenced: an unreferenced task is deleted
     // directly with no git, so the preflight path never runs.
     let (_dir, root) = scaffold_with_lib(
-        "#import \"@local/mindtape:0.2.0\": *\n\n\
-         #show: task.with(\n  title: \"Gone\",\n  status: done(2026, 6, 1),\n)\n\nBody.\n",
-        Some(
-            "#import \"@local/mindtape:0.2.0\": *\n\n\
-             #show: task.with(\n  title: \"Live\",\n  status: wip(2026, 6, 1),\n  \
-             links: depends-on(\"gone.typ\"),\n)\n\nBody.\n",
+        mindtape::typst_task!(
+            "\n\
+         #show: task.with(\n  title: \"Gone\",\n  status: done(2026, 6, 1),\n)\n\nBody.\n"
         ),
+        Some(mindtape::typst_task!(
+            "\n\
+             #show: task.with(\n  title: \"Live\",\n  status: wip(2026, 6, 1),\n  \
+             links: depends-on(\"gone.typ\"),\n)\n\nBody.\n"
+        )),
     );
     // Dirty the eligible file.
     std::fs::write(
         root.join("tasks/gone.typ"),
-        "#import \"@local/mindtape:0.2.0\": *\n\n\
-         #show: task.with(\n  title: \"Gone\",\n  status: done(2026, 6, 1),\n)\n\nBody. // dirty\n",
+        mindtape::typst_task!(
+            "\n\
+         #show: task.with(\n  title: \"Gone\",\n  status: done(2026, 6, 1),\n)\n\nBody. // dirty\n"
+        ),
     )
     .unwrap();
 

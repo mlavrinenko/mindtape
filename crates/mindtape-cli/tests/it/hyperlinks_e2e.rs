@@ -23,8 +23,10 @@ fn project_with_config(config: &str) -> tempfile::TempDir {
     let dir = support::scaffold_project(config);
     std::fs::write(
         dir.path().join("tasks/test.typ"),
-        "#import \"@local/mindtape:0.2.0\": *\n\
-         #show: task.with(title: \"Rewrite auth\", status: wip(2026, 6, 1))\n",
+        mindtape::typst_task!(
+            "\
+         #show: task.with(title: \"Rewrite auth\", status: wip(2026, 6, 1))\n"
+        ),
     )
     .unwrap();
     dir

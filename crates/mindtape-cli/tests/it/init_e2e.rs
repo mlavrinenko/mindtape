@@ -161,10 +161,12 @@ fn init_accepts_the_rrule_answer_and_checks_an_rrule_task() {
     support::run_ok(dir.path(), &["init", "--no-input", "--recurrence", "rrule"]);
     std::fs::write(
         dir.path().join("tasks/cost-report.typ"),
-        "#import \"@local/mindtape:0.2.0\": *\n\n\
+        mindtape::typst_task!(
+            "\n\
          #show: task.with(\n  title: \"Send the cost report\",\n  \
          status: proposed(2026, 9, 14),\n  due: on(2026, 10, 5),\n  \
-         recur: rrule(\"FREQ=MONTHLY;BYDAY=1MO\"),\n)\n",
+         recur: rrule(\"FREQ=MONTHLY;BYDAY=1MO\"),\n)\n"
+        ),
     )
     .unwrap();
     support::run_ok(dir.path(), &["check"]);

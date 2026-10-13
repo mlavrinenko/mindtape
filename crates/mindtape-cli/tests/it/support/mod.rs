@@ -127,8 +127,8 @@ pub const MARKUP_HAZARDS: &str = "create-*star* _u_ $x$ #h [b] <a> >g @at";
 /// the `text` slots land in markup and must be escaped. `why` sits inside a link
 /// note, the one markup position the harvest reads back as a value, so a test can
 /// assert what a filled `text` slot actually means rather than only how it looks.
-const SLOT_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
-
+const SLOT_TEMPLATE: &str = mindtape::typst_task!(
+    r#"
 #show: task.with(
   title: slot("title", prompt: "Task title", example: "Fix the login redirect"),
   priority: slot("weight", kind: "int", default: 5),
@@ -138,7 +138,8 @@ const SLOT_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
 == Summary
 
 #slot("summary", kind: "text", default: "- TODO")
-"#;
+"#
+);
 
 /// A throwaway project scaffolded with `source` as its default template
 /// (`.mindtape/templates/task.typ`) — the shared prologue
@@ -170,8 +171,10 @@ pub fn project_with_slot_template() -> tempfile::TempDir {
     let dir = project_with_template(SLOT_TEMPLATE);
     std::fs::write(
         dir.path().join("tasks/anchor.typ"),
-        "#import \"@local/mindtape:0.2.0\": *\n\
-         #show: task.with(title: \"anchor\", status: proposed(2026, 7, 22))\n",
+        mindtape::typst_task!(
+            "\
+         #show: task.with(title: \"anchor\", status: proposed(2026, 7, 22))\n"
+        ),
     )
     .unwrap();
     dir
@@ -180,8 +183,8 @@ pub fn project_with_slot_template() -> tempfile::TempDir {
 /// A template with one `raw`-kind slot, the unescaped counterpart to
 /// [`SLOT_TEMPLATE`]'s `text` slots — proves the escaping decision is a
 /// per-slot choice the template author makes, not a per-command one.
-const TYPST_SLOT_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
-
+const TYPST_SLOT_TEMPLATE: &str = mindtape::typst_task!(
+    r#"
 #show: task.with(
   title: slot("title", prompt: "Task title", example: "Fix the login redirect"),
 )
@@ -189,7 +192,8 @@ const TYPST_SLOT_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
 == Summary
 
 #slot("summary", kind: "raw", default: "- `TODO`")
-"#;
+"#
+);
 
 /// A throwaway project whose default template is [`TYPST_SLOT_TEMPLATE`].
 pub fn project_with_raw_slot_template() -> tempfile::TempDir {

@@ -10,9 +10,11 @@ const LEGEND: &str = "[tasks]\nroots = [\"tasks\"]\n\
      [[tasks.status]]\nvalue = \"wip\"\n\
      [[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
 
-const TASK: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
+const TASK: &str = mindtape::typst_task!(
+    "\n\
      #show: task.with(\n  title: \"Alpha\",\n  status: wip(2026, 6, 1),\n)\n\n\
-     == Summary\n\nBody.\n";
+     == Summary\n\nBody.\n"
+);
 
 const NOTE: &str = "First line of the outcome.\n\n\
      Second paragraph explaining the decision.\n\n\

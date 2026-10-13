@@ -57,12 +57,14 @@ fn build_recurring_fixture() -> tempfile::TempDir {
     let dir = support::scaffold();
     std::fs::write(
         dir.path().join("tasks/water-plants.typ"),
-        "#import \"@local/mindtape:0.2.0\": *\n\n\
+        mindtape::typst_task!(
+            "\n\
          #show: task.with(\n  \
          title: \"Water plants\",\n  \
          status: wip(2026, 6, 1),\n  \
          recur: every(weeks: 1),\n\
-         )\n",
+         )\n"
+        ),
     )
     .unwrap();
     dir

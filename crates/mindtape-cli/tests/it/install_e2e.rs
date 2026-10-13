@@ -202,7 +202,7 @@ fn project_without_a_lib() -> tempfile::TempDir {
     mindtape::test_support::write_bare_project(dir.path());
     std::fs::write(
         dir.path().join("tasks/only.typ"),
-        "#import \"@local/mindtape:0.2.0\": *\n#show: task.with(title: \"Only task\")\n",
+        mindtape::typst_task!("#show: task.with(title: \"Only task\")\n"),
     )
     .unwrap();
     dir
@@ -285,7 +285,7 @@ fn a_missing_prelude_is_one_error_however_many_tasks_fail() {
     let project = project_without_a_lib();
     std::fs::write(
         project.path().join("tasks/second.typ"),
-        "#import \"@local/mindtape:0.2.0\": *\n#show: task.with(title: \"Second task\")\n",
+        mindtape::typst_task!("#show: task.with(title: \"Second task\")\n"),
     )
     .unwrap();
 

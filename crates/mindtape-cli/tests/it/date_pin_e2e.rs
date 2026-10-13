@@ -23,13 +23,15 @@ const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n";
 /// A non-terminal task, status-dated 2026-06-01, due 2026-07-10 — something
 /// for `now()`/`due`/`stale()` filters and the today-stamping commands to bite
 /// on once "today" is pinned around those dates.
-const WIRE_OAUTH: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
+const WIRE_OAUTH: &str = mindtape::typst_task!(
+    "\n\
 #show: task.with(\n  \
 title: \"Wire OAuth\",\n  \
 status: wip(2026, 6, 1),\n  \
 priority: 5,\n  \
 due: on(2026, 7, 10),\n\
-)\n\n== Body\n";
+)\n\n== Body\n"
+);
 
 fn scaffold() -> tempfile::TempDir {
     support::scaffold_config(CONFIG, &[("wire-oauth.typ", WIRE_OAUTH)])
@@ -240,13 +242,15 @@ fn mindtape_now_stamps_the_pinned_date_on_recur_spawn() {
     let dir = support::scaffold_project(CONFIG);
     std::fs::write(
         dir.path().join("tasks/water-plants.typ"),
-        "#import \"@local/mindtape:0.2.0\": *\n\n\
+        mindtape::typst_task!(
+            "\n\
          #show: task.with(\n  \
          title: \"Water plants\",\n  \
          status: wip(2026, 6, 1),\n  \
          priority: 3,\n  \
          recur: every(weeks: 1),\n\
-         )\n\n== Body\n",
+         )\n\n== Body\n"
+        ),
     )
     .unwrap();
 

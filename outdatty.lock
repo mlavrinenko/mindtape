@@ -61,7 +61,7 @@ groups:
       crates/mindtape-cli/src/cmd/mv.rs: fb8a3d89fdd2f7e40d7a34b22e5b72919aaf834465bded5f6106a562478d8213
       crates/mindtape-cli/src/cmd/preset.rs: c97c181df35d3ab18ca7e136d3612796ebcab91ce33e118f76a5977150fe818c
       crates/mindtape-cli/src/cmd/recur/mod.rs: 60df6bac3c8adcbf11e36d00672bb2d46fd031c468bbb922f9654b51c197630e
-      crates/mindtape-cli/src/cmd/review.rs: 124bc12c2974250647fbdb3343bbfc58e5ff302716b83f38ac5de63b5e73b03d
+      crates/mindtape-cli/src/cmd/review.rs: 7e335d72bc74b56c513be94ab1b83137f47e4668ba1945e84f3ffe4269de6439
       crates/mindtape-cli/src/cmd/rm/mod.rs: 013594d984dd5d719e30f4815968c358b2453590252e3f3019498a40d5a40705
       crates/mindtape-cli/src/cmd/set.rs: bc9a0a71f52c25ce3ad7a0f5bd79e4d2e18d8358b1b7c254cc81d2d8f9c3ac79
       crates/mindtape-cli/src/cmd/views.rs: 4c8f8ca6a778b2759f59f0a7705a1137da3529d00c743a627f6aac6a53ffe928
@@ -321,6 +321,7 @@ groups:
       crates/mindtape-cli/src/cmd/init/presets/gated/templates/task.typ: b31a40c89bcc9c44ba9388206b1f4a84b901ba7005836dc62ebba6bdbe54fd85
       crates/mindtape-cli/src/init.rs: 413f762faf5aedeba0780bb94e872825232fdafbd7692f5974083c5fa36f6cc9
       crates/mindtape-cli/src/presets/gated/templates/task.typ: 936d9906c5a3b946035b33084957378715e13cf4b3664feab9bbc5f51bb59898
+      crates/mindtape/src/test_support.rs: 380fbc2e694dcdd2e5a47eb0cd1c23ea2755c1cfdb07b54c871abb24095d0826
       examples/dsl/tasks/add-a-session-store.typ: 32b3c7516924ec9a5b26f771f35c8943ab97d0b0fb07cdb055b92252b74b8d4e
       examples/dsl/tasks/fix-the-login-redirect.typ: 08f426bb828ab02b78122c80003934739000042a16b949f534214331c7b59853
       examples/estimates/tasks/rename-the-status-glyphs.typ: 601357e17a4de3c0d124c76344a00cc4374f22043d629306470551063780dcbd

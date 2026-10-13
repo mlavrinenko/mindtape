@@ -8,8 +8,8 @@ use super::{
 };
 use crate::task_edit::task_with;
 
-const SOURCE: &str = r#"#import "@local/mindtape:0.2.0": *
-
+const SOURCE: &str = mindtape::typst_task!(
+    r#"
 #show: task.with(
   title: "Water plants",
   status: done(2026, 6, 1),
@@ -20,20 +20,22 @@ const SOURCE: &str = r#"#import "@local/mindtape:0.2.0": *
 )
 
 == Body
-"#;
+"#
+);
 
-const SOURCE_NO_RECUR_LINKS: &str = r#"#import "@local/mindtape:0.2.0": *
-
+const SOURCE_NO_RECUR_LINKS: &str = mindtape::typst_task!(
+    r#"
 #show: task.with(
   title: "Water plants",
   status: done(2026, 6, 1),
   priority: 3,
   recur: every(weeks: 1),
 )
-"#;
+"#
+);
 
-const SOURCE_WITH_LINKS: &str = r#"#import "@local/mindtape:0.2.0": *
-
+const SOURCE_WITH_LINKS: &str = mindtape::typst_task!(
+    r#"
 #show: task.with(
   title: "Water plants",
   status: done(2026, 6, 1),
@@ -41,12 +43,13 @@ const SOURCE_WITH_LINKS: &str = r#"#import "@local/mindtape:0.2.0": *
   links: depends-on("other.typ"),
   recur: every(weeks: 1),
 )
-"#;
+"#
+);
 
 /// An occurrence that is itself a spawn: it already carries the
 /// `recurred-from` edge pointing at the hop before it.
-const SOURCE_ALREADY_SPAWNED: &str = r#"#import "@local/mindtape:0.2.0": *
-
+const SOURCE_ALREADY_SPAWNED: &str = mindtape::typst_task!(
+    r#"
 #show: task.with(
   title: "Water plants",
   status: done(2026, 6, 1),
@@ -54,23 +57,25 @@ const SOURCE_ALREADY_SPAWNED: &str = r#"#import "@local/mindtape:0.2.0": *
   links: depends-on("other.typ") + recurred-from("chore.typ"),
   recur: every(weeks: 1),
 )
-"#;
+"#
+);
 
 /// The same, with a noted edge — the case a re-render would flatten.
-const SOURCE_NOTED_LINKS: &str = r#"#import "@local/mindtape:0.2.0": *
-
+const SOURCE_NOTED_LINKS: &str = mindtape::typst_task!(
+    r#"
 #show: task.with(
   title: "Water plants",
   status: done(2026, 6, 1),
   links: related("other.typ")[same _room_] + recurred-from("chore.typ"),
   recur: every(weeks: 1),
 )
-"#;
+"#
+);
 
 /// The already-spawned links argument plus an edge helper call elsewhere in
 /// the document (a body `related`), i.e. outside the `links:` value range.
-const SOURCE_BODY_EDGE_CALL: &str = r#"#import "@local/mindtape:0.2.0": *
-
+const SOURCE_BODY_EDGE_CALL: &str = mindtape::typst_task!(
+    r#"
 #show: task.with(
   title: "Water plants",
   status: done(2026, 6, 1),
@@ -81,7 +86,8 @@ const SOURCE_BODY_EDGE_CALL: &str = r#"#import "@local/mindtape:0.2.0": *
 
 == Body
 #related("body.typ")
-"#;
+"#
+);
 
 fn date(y: i32, m: u32, d: u32) -> NaiveDate {
     NaiveDate::from_ymd_opt(y, m, d).unwrap()
@@ -278,7 +284,8 @@ fn overlapping_edits_are_reported_as_a_failed_apply() {
     assert!(crate::diag::plain(&err).starts_with("error: can't apply the edits: "));
 }
 
-const SOURCE_WITH_LINKS_NO_CALL: &str = r#"#import "@local/mindtape:0.2.0": *
-
+const SOURCE_WITH_LINKS_NO_CALL: &str = mindtape::typst_task!(
+    r#"
 #show: task.with(title: "Water plants")
-"#;
+"#
+);

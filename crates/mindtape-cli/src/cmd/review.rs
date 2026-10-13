@@ -97,8 +97,8 @@ mod tests {
     use super::build_edit;
     use typst_edit::apply;
 
-    const TASK_SOURCE: &str = r#"#import "@local/mindtape:0.2.0": *
-
+    const TASK_SOURCE: &str = mindtape::typst_task!(
+        r#"
 #show: task.with(
   title: "Do thing",
   status: proposed(2026, 6, 1),
@@ -106,10 +106,11 @@ mod tests {
 )
 
 == Body
-"#;
+"#
+    );
 
-    const TASK_WITH_REVIEWED: &str = r#"#import "@local/mindtape:0.2.0": *
-
+    const TASK_WITH_REVIEWED: &str = mindtape::typst_task!(
+        r#"
 #show: task.with(
   title: "Do thing",
   status: proposed(2026, 6, 1),
@@ -118,7 +119,8 @@ mod tests {
 )
 
 == Body
-"#;
+"#
+    );
 
     #[test]
     fn inserts_reviewed_when_absent() {

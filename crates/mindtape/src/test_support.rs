@@ -12,6 +12,16 @@
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
+
+/// A task file's source: the `@local/mindtape` import line, then `$body`, a
+/// string literal. It expands to one literal, so a `const` can hold it, and
+/// a test names the package version only here.
+#[macro_export]
+macro_rules! typst_task {
+    ($body:literal) => {
+        concat!("#import \"@local/mindtape:0.2.0\": *\n", $body)
+    };
+}
 use std::process::Command;
 
 use crate::config::Config;

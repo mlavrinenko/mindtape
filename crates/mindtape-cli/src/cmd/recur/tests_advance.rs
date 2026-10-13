@@ -24,10 +24,12 @@ use crate::util::Project;
 
 use mindtape::test_support::PRELUDE;
 
-const RECUR_TASK_SRC: &str = "#import \"@local/mindtape:0.2.0\": *\n\
+const RECUR_TASK_SRC: &str = mindtape::typst_task!(
+    "\
      #show: task.with(\n  title: \"Chore\",\n  status: wip(2026, 6, 1),\n  \
      due: on(2026, 6, 15),\n  start: on(2026, 6, 10),\n  \
-     recur: every(weeks: 1, anchor: \"due\", count: 3),\n)\n\n== Summary\n\nBody.\n";
+     recur: every(weeks: 1, anchor: \"due\", count: 3),\n)\n\n== Summary\n\nBody.\n"
+);
 
 fn setup(files: &[(&str, &str)], config_text: &str) -> (tempfile::TempDir, Project) {
     crate::test_util::make_project_with_lib(PRELUDE, files, config_text)

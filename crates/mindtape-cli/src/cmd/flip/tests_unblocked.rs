@@ -12,12 +12,16 @@ const CONFIG: &str = "[[tasks.status]]\nvalue = \"proposed\"\n\
      [[tasks.status]]\nvalue = \"done\"\nterminal = true\nunblocked = true\n\
      [[tasks.status]]\nvalue = \"cancelled\"\nterminal = true\n";
 
-const DEP: &str = "#import \"@local/mindtape:0.2.0\": *\n\
-#show: task.with(\n  title: \"Dep\",\n  status: proposed(2026, 6, 1),\n)\n";
+const DEP: &str = mindtape::typst_task!(
+    "\
+#show: task.with(\n  title: \"Dep\",\n  status: proposed(2026, 6, 1),\n)\n"
+);
 
-const WAITER: &str = "#import \"@local/mindtape:0.2.0\": *\n\
+const WAITER: &str = mindtape::typst_task!(
+    "\
 #show: task.with(\n  title: \"Waiter\",\n  status: proposed(2026, 6, 1),\n  \
-links: depends-on(\"dep.typ\"),\n)\n";
+links: depends-on(\"dep.typ\"),\n)\n"
+);
 
 fn project() -> (tempfile::TempDir, crate::util::Project) {
     let (dir, project) = setup(&[("dep.typ", DEP), ("waiter.typ", WAITER)], CONFIG);

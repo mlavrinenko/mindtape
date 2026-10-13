@@ -26,65 +26,81 @@ const UNLINK_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n[[tasks.links.kinds
 const BATCH_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n[[tasks.links.kinds]]\nname = \"blocks\"\n\n[rm]\ndefault-filter = \"status == \\\"wip\\\"\"\n";
 
 /// The retired task: terminal, so `mt rm` sweeps it without a target override.
-const GONE: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
+const GONE: &str = mindtape::typst_task!(
+    "\n\
 #show: task.with(\n  \
 title: \"Gone\",\n  \
 status: done(2026, 6, 1),\n\
-)\n\n== Summary\n\nBody.\n";
+)\n\n== Summary\n\nBody.\n"
+);
 
 /// A non-terminal removed task: `retire` must flip it, and the strategy must
 /// kick in on its inbound edge even though the file itself is not terminal.
-const REMOVED: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
+const REMOVED: &str = mindtape::typst_task!(
+    "\n\
 #show: task.with(\n  \
 title: \"Gone\",\n  \
 status: wip(2026, 6, 1),\n\
-)\n\n== Summary\n\nBody.\n";
+)\n\n== Summary\n\nBody.\n"
+);
 
 /// The survivor: three inbound edges to `gone`, one per kind the fix must
 /// retarget — plain `depends-on`, the note-bearing `related` escape hatch, and a
 /// custom kind via `edge(...)`. None uses `link(...)`.
-const LIVE: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
+const LIVE: &str = mindtape::typst_task!(
+    "\n\
 #show: task.with(\n  \
 title: \"Live\",\n  \
 status: wip(2026, 6, 1),\n  \
 links: depends-on(\"gone.typ\") + related(\"gone.typ\")[why] + edge(\"blocks\", \"gone.typ\"),\n\
-)\n\n== Summary\n\nBody.\n";
+)\n\n== Summary\n\nBody.\n"
+);
 
 /// A survivor that never references `gone` — the unreferenced-removal case,
 /// where deletion needs no tombstone and no git.
-const UNRELATED: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
+const UNRELATED: &str = mindtape::typst_task!(
+    "\n\
 #show: task.with(\n  \
 title: \"Unrelated\",\n  \
 status: wip(2026, 6, 1),\n\
-)\n\n== Summary\n\nBody.\n";
+)\n\n== Summary\n\nBody.\n"
+);
 
 /// Two independently-removed tasks (`gone-a`, `gone-b`), each with its own
 /// survivor, for the multi-target `mt rm` batch below.
-const GONE_A: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
+const GONE_A: &str = mindtape::typst_task!(
+    "\n\
 #show: task.with(\n  \
 title: \"Gone A\",\n  \
 status: done(2026, 6, 1),\n\
-)\n\n== Summary\n\nBody.\n";
+)\n\n== Summary\n\nBody.\n"
+);
 
-const GONE_B: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
+const GONE_B: &str = mindtape::typst_task!(
+    "\n\
 #show: task.with(\n  \
 title: \"Gone B\",\n  \
 status: done(2026, 6, 1),\n\
-)\n\n== Summary\n\nBody.\n";
+)\n\n== Summary\n\nBody.\n"
+);
 
-const LIVE_A: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
+const LIVE_A: &str = mindtape::typst_task!(
+    "\n\
 #show: task.with(\n  \
 title: \"Live A\",\n  \
 status: wip(2026, 6, 1),\n  \
 links: depends-on(\"gone-a.typ\"),\n\
-)\n\n== Summary\n\nBody.\n";
+)\n\n== Summary\n\nBody.\n"
+);
 
-const LIVE_B: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
+const LIVE_B: &str = mindtape::typst_task!(
+    "\n\
 #show: task.with(\n  \
 title: \"Live B\",\n  \
 status: wip(2026, 6, 1),\n  \
 links: depends-on(\"gone-b.typ\"),\n\
-)\n\n== Summary\n\nBody.\n";
+)\n\n== Summary\n\nBody.\n"
+);
 
 /// Scaffold the project files — config, in-tree lib, and the given task
 /// sources — without initializing git.

@@ -58,9 +58,11 @@ fn work_naming_a_task_whose_flip_stayed_unstaged_is_refused() {
     // The flip exists in the working tree only.
     std::fs::write(
         dir.path().join("tasks/parser.typ"),
-        "#import \"@local/mindtape:0.2.0\": *\n\n\
+        mindtape::typst_task!(
+            "\n\
          #show: task.with(\n  title: \"Write the parser\",\n  status: wip(2026, 6, 2),\n  \
-         priority: 3,\n)\n",
+         priority: 3,\n)\n"
+        ),
     )
     .unwrap();
     let (ok, text) = check_commit_msg(dir.path(), "feat: parse\n\nRefs: parser\n");

@@ -156,12 +156,13 @@ fn unknown_values_json_key_is_a_hard_error() {
 /// A template whose whole `task.with(…)` call sits on one line, with no
 /// trailing comma for `add`'s own `status:` to be separated by. Legal Typst,
 /// and the one shape no in-tree template happens to be written in.
-const SINGLE_LINE_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
-
+const SINGLE_LINE_TEMPLATE: &str = mindtape::typst_task!(
+    r#"
 #show: task.with(title: slot("title", example: "Fix the login redirect"))
 
 == Summary
-"#;
+"#
+);
 
 /// `add` injects `status:` into whatever `task.with(…)` the template declares.
 /// Against a single-line call it used to write `title: "…"status: proposed(…)`
@@ -181,12 +182,13 @@ fn single_line_template_files_a_task_that_loads() {
 
 /// A template that cannot evaluate no matter how its slots are filled, so the
 /// verification always fails.
-const BROKEN_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
-
+const BROKEN_TEMPLATE: &str = mindtape::typst_task!(
+    r#"
 #show: task.with(title: slot("title"))
 
 #no-such-function()
-"#;
+"#
+);
 
 /// `add` validates the render before it commits it, so a rejection creates no
 /// file at all. The board is readable straight afterwards — one mistyped slot
@@ -245,15 +247,16 @@ fn assert_only_the_template_breaches(dir: &std::path::Path) {
 /// shape actually observed: an `estimate` slot filled with a bare number where
 /// the field wants a dict. Distinct from [`BROKEN_TEMPLATE`], which fails at
 /// eval; this one reaches the marker and is refused by the Rust layer.
-const ESTIMATE_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
-
+const ESTIMATE_TEMPLATE: &str = mindtape::typst_task!(
+    r#"
 #show: task.with(
   title: slot("title", example: "Fix the login redirect"),
   estimate: slot("estimate", kind: "raw", default: "(days: 1)"),
 )
 
 == Summary
-"#;
+"#
+);
 
 /// The reported case, end to end: a slot filled with the wrong shape is caught
 /// before the write, so no repair is needed before the next command.
@@ -327,8 +330,8 @@ message = "open every TO-BE bullet with 🟢"
 
 /// A template whose `TO-BE` bullet does not open with 🟢 — breaks
 /// [`TO_BE_CONTENT_RULE_CONFIG`]'s rule on every fill.
-const TO_BE_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
-
+const TO_BE_TEMPLATE: &str = mindtape::typst_task!(
+    r#"
 #show: task.with(
   title: slot("title", prompt: "Task title"),
   status: proposed(2026, 6, 14),
@@ -337,7 +340,8 @@ const TO_BE_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
 == TO-BE
 
 - ships the feature
-"#;
+"#
+);
 
 /// The Problem this task exists to fix, end to end: `mt add` now runs the same
 /// content gate `mt check` does, refuses the task before writing it, and

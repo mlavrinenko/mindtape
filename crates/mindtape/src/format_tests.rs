@@ -2,8 +2,7 @@
 
 use super::format_typst;
 
-const HEADER: &str =
-    "#import \"@local/mindtape:0.2.0\": *\n\n#show: task.with(\n  title: \"x\",\n)\n";
+const HEADER: &str = crate::typst_task!("\n#show: task.with(\n  title: \"x\",\n)\n");
 
 /// A body paragraph carrying hundreds of leading spaces — the exact drift
 /// `mt add` left behind — is flattened to column zero.

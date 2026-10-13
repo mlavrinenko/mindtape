@@ -9,18 +9,19 @@ use mindtape::link::Link;
 
 use super::{EdgeSpec, Mode, links_edit, quote, render_edges};
 
-const NO_LINKS: &str = r#"#import "@local/mindtape:0.2.0": *
-
+const NO_LINKS: &str = mindtape::typst_task!(
+    r#"
 #show: task.with(
   title: "Do thing",
   status: proposed(2026, 6, 1),
 )
 
 == Body
-"#;
+"#
+);
 
-const WITH_LINKS: &str = r#"#import "@local/mindtape:0.2.0": *
-
+const WITH_LINKS: &str = mindtape::typst_task!(
+    r#"
 #show: task.with(
   title: "Do thing",
   status: proposed(2026, 6, 1),
@@ -28,17 +29,19 @@ const WITH_LINKS: &str = r#"#import "@local/mindtape:0.2.0": *
 )
 
 == Body
-"#;
+"#
+);
 
 /// A file whose only edge is a SWHID tombstone — what `mt rm` leaves behind
 /// when the task it pointed at was retired.
-const WITH_TOMBSTONE: &str = r#"#import "@local/mindtape:0.2.0": *
-
+const WITH_TOMBSTONE: &str = mindtape::typst_task!(
+    r#"
 #show: task.with(
   title: "Do thing",
   links: supersedes("swh:1:cnt:0000000000000000000000000000000000000000"),
 )
-"#;
+"#
+);
 
 fn edge(kind: &str, target: &str, note: Option<&str>) -> EdgeSpec {
     EdgeSpec {

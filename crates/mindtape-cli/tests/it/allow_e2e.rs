@@ -28,9 +28,11 @@ fn project(run: &str) -> tempfile::TempDir {
     let dir = support::scaffold_project(&config(run));
     std::fs::write(
         dir.path().join("tasks/drop-the-patch.typ"),
-        "#import \"@local/mindtape:0.2.0\": *\n\n\
+        mindtape::typst_task!(
+            "\n\
          #show: task.with(\n  title: \"Drop the patch\",\n  status: proposed(2026, 6, 1),\n  \
-         waits-on: (\"up:pr-7\",),\n)\n",
+         waits-on: (\"up:pr-7\",),\n)\n"
+        ),
     )
     .unwrap();
     dir
