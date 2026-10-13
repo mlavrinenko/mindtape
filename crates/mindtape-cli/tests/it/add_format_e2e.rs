@@ -24,6 +24,12 @@ fn scaffold_with_existing_dup() -> tempfile::TempDir {
     dir
 }
 
+/// `mt <args>` in `dir`, which must succeed, with its stdout parsed as JSON.
+fn add_json(dir: &std::path::Path, args: &[&str]) -> serde_json::Value {
+    let output = support::mt(dir).args(args).assert().success();
+    serde_json::from_slice(&output.get_output().stdout).unwrap()
+}
+
 #[test]
 fn text_format_is_the_default_wrote_prose() {
     let dir = support::scaffold();
@@ -81,16 +87,12 @@ fn path0_format_is_nul_terminated() {
 fn json_format_reports_the_wrote_outcome() {
     let dir = support::scaffold();
 
-    let output = support::mt(dir.path())
-        .args([
+    let value = add_json(
+        dir.path(),
+        &[
             "add", "--name", "wired", "--set", "title=T", "--format", "json",
-        ])
-        .assert()
-        .success()
-        .get_output()
-        .stdout
-        .clone();
-    let value: serde_json::Value = serde_json::from_slice(&output).unwrap();
+        ],
+    );
     assert_eq!(support::at(&value, "/outcome").as_str(), Some("wrote"));
     assert_eq!(
         support::at(&value, "/path").as_str(),
@@ -102,16 +104,12 @@ fn json_format_reports_the_wrote_outcome() {
 fn json_format_reports_the_skipped_outcome() {
     let dir = scaffold_with_existing_dup();
 
-    let output = support::mt(dir.path())
-        .args([
+    let value = add_json(
+        dir.path(),
+        &[
             "add", "--name", "dup", "--set", "title=T", "--dedup", "skip", "--format", "json",
-        ])
-        .assert()
-        .success()
-        .get_output()
-        .stdout
-        .clone();
-    let value: serde_json::Value = serde_json::from_slice(&output).unwrap();
+        ],
+    );
     assert_eq!(support::at(&value, "/outcome").as_str(), Some("skipped"));
     assert_eq!(
         support::at(&value, "/path").as_str(),
@@ -123,8 +121,9 @@ fn json_format_reports_the_skipped_outcome() {
 fn json_format_reports_the_suffixed_outcome_with_the_minted_path() {
     let dir = scaffold_with_existing_dup();
 
-    let output = support::mt(dir.path())
-        .args([
+    let value = add_json(
+        dir.path(),
+        &[
             "add",
             "--name",
             "dup",
@@ -134,13 +133,8 @@ fn json_format_reports_the_suffixed_outcome_with_the_minted_path() {
             "add-suffix",
             "--format",
             "json",
-        ])
-        .assert()
-        .success()
-        .get_output()
-        .stdout
-        .clone();
-    let value: serde_json::Value = serde_json::from_slice(&output).unwrap();
+        ],
+    );
     assert_eq!(support::at(&value, "/outcome").as_str(), Some("suffixed"));
     assert_eq!(
         support::at(&value, "/path").as_str(),
