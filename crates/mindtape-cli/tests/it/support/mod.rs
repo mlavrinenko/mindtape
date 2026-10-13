@@ -276,3 +276,11 @@ pub fn check_commit_msg(dir: &Path, message: &str) -> (bool, String) {
     std::fs::write(&file, message).unwrap();
     run_text(dir, &["check", "--commit-msg", file.to_str().unwrap()])
 }
+
+/// [`check_commit_msg`] for a message the check must refuse: asserts the
+/// refusal and returns the output for the caller to match on.
+pub fn commit_msg_refusal(dir: &Path, message: &str) -> String {
+    let (ok, text) = check_commit_msg(dir, message);
+    assert!(!ok, "the check must refuse {message:?}: {text}");
+    text
+}

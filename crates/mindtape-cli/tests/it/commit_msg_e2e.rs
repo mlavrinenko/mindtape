@@ -41,8 +41,7 @@ fn a_work_commit_naming_its_task_by_stem_passes() {
 fn a_work_commit_with_no_trailer_breaks_the_rule() {
     let dir = commit_repo(WORK_NAMES_A_TASK);
     stage(dir.path(), "src/lib.rs");
-    let (ok, text) = check_commit_msg(dir.path(), "feat: parse\n\nNo trailer here.\n");
-    assert!(!ok, "a missing trailer must fail an error rule: {text}");
+    let text = support::commit_msg_refusal(dir.path(), "feat: parse\n\nNo trailer here.\n");
     assert!(
         text.contains("commits.rules.work-names-a-task"),
         "the breach names its rule: {text}"
@@ -57,8 +56,7 @@ fn a_work_commit_with_no_trailer_breaks_the_rule() {
 fn a_path_shaped_trailer_is_refused_naming_the_stem() {
     let dir = commit_repo(WORK_NAMES_A_TASK);
     stage(dir.path(), "src/lib.rs");
-    let (ok, text) = check_commit_msg(dir.path(), "feat: parse\n\nRefs: tasks/parser.typ\n");
-    assert!(!ok, "a path in the trailer must be refused: {text}");
+    let text = support::commit_msg_refusal(dir.path(), "feat: parse\n\nRefs: tasks/parser.typ\n");
     assert!(
         text.contains("Refs: parser"),
         "the refusal names the stem to write: {text}"
@@ -69,8 +67,7 @@ fn a_path_shaped_trailer_is_refused_naming_the_stem() {
 fn a_trailer_naming_no_task_is_refused() {
     let dir = commit_repo(WORK_NAMES_A_TASK);
     stage(dir.path(), "src/lib.rs");
-    let (ok, text) = check_commit_msg(dir.path(), "feat: parse\n\nRefs: parsr\n");
-    assert!(!ok, "an unknown stem must be refused: {text}");
+    let text = support::commit_msg_refusal(dir.path(), "feat: parse\n\nRefs: parsr\n");
     assert!(
         text.contains("parsr") && text.contains("names no task"),
         "the refusal names the value: {text}"
@@ -81,11 +78,7 @@ fn a_trailer_naming_no_task_is_refused() {
 fn a_bad_trailer_is_refused_even_with_no_rule_declared() {
     let dir = commit_repo("");
     stage(dir.path(), "src/lib.rs");
-    let (ok, text) = check_commit_msg(dir.path(), "feat: parse\n\nRefs: parsr\n");
-    assert!(
-        !ok,
-        "trailer resolution is not a rule a project opts into: {text}"
-    );
+    support::commit_msg_refusal(dir.path(), "feat: parse\n\nRefs: parsr\n");
 }
 
 #[test]
@@ -108,8 +101,7 @@ fn a_rule_reads_the_subject_and_the_staged_files() {
          severity = \"error\"\n";
     let dir = commit_repo(rules);
     stage(dir.path(), "docs/guide.md");
-    let (ok, text) = check_commit_msg(dir.path(), "feat: guide\n");
-    assert!(!ok, "a docs change under a feat subject breaks it: {text}");
+    support::commit_msg_refusal(dir.path(), "feat: guide\n");
     let (ok, text) = check_commit_msg(dir.path(), "docs: guide\n");
     assert!(ok, "a docs subject satisfies it: {text}");
 }
@@ -126,8 +118,7 @@ fn a_rule_counts_the_staged_files_a_glob_list_admits() {
     let (ok, text) = check_commit_msg(dir.path(), "feat: a\n");
     assert!(ok, "one source file and a doc pass: {text}");
     stage(dir.path(), "src/b.rs");
-    let (ok, text) = check_commit_msg(dir.path(), "feat: a\n");
-    assert!(!ok, "two source files break it: {text}");
+    support::commit_msg_refusal(dir.path(), "feat: a\n");
 }
 
 #[test]
@@ -149,8 +140,7 @@ fn a_rename_counts_as_one_file_in_count() {
     let (ok, text) = check_commit_msg(dir.path(), "refactor: rename\n");
     assert!(ok, "a pure rename is one file: {text}");
     stage(dir.path(), "src/extra.rs");
-    let (ok, text) = check_commit_msg(dir.path(), "refactor: rename\n");
-    assert!(!ok, "a rename plus a new file is two: {text}");
+    support::commit_msg_refusal(dir.path(), "refactor: rename\n");
 }
 
 #[test]
@@ -159,15 +149,13 @@ fn a_task_field_in_a_commit_rule_is_refused_at_load() {
          name = \"bad\"\n\
          assert = 'status == \"wip\"'\n";
     let dir = commit_repo(rules);
-    let (ok, text) = check_commit_msg(dir.path(), "feat: x\n");
-    assert!(!ok, "a task field cannot be read by a commit rule: {text}");
+    let text = support::commit_msg_refusal(dir.path(), "feat: x\n");
     assert!(text.contains("commits.rules[0].assert"), "got: {text}");
 }
 
 #[test]
 fn outside_a_git_repository_the_check_fails_naming_why() {
     let dir = project_with_tasks(&[("parser.typ", "Write the parser")]);
-    let (ok, text) = check_commit_msg(dir.path(), "feat: parse\n\nRefs: parser\n");
-    assert!(!ok, "no index means nothing to check: {text}");
+    let text = support::commit_msg_refusal(dir.path(), "feat: parse\n\nRefs: parser\n");
     assert!(text.contains("not a git repository"), "got: {text}");
 }

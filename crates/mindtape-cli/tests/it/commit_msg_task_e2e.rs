@@ -51,8 +51,7 @@ fn stage_work(dir: &Path) {
 fn a_close_only_commit_is_refused_naming_the_task() {
     let dir = commit_repo(FLIP_WITH_WORK);
     stage_close(dir.path(), "");
-    let (ok, text) = check_commit_msg(dir.path(), "task: close the parser\n");
-    assert!(!ok, "a close with no work must be refused: {text}");
+    let text = support::commit_msg_refusal(dir.path(), "task: close the parser\n");
     assert!(
         text.contains("commits.rules.flip-with-work: parser: start or close"),
         "the breach names the rule, the task and the message: {text}"
@@ -93,8 +92,7 @@ fn an_estimate_added_in_the_closing_commit_is_read_through_staged() {
     // The same estimate only in the working tree: the index lacks it.
     stage_close(dir.path(), "");
     write_parser(dir.path(), "done(2026, 6, 2)", "  estimate: (days: 1),\n");
-    let (ok, text) = check_commit_msg(dir.path(), "task: close the parser\n");
-    assert!(!ok, "an unstaged estimate is not the commit's: {text}");
+    let text = support::commit_msg_refusal(dir.path(), "task: close the parser\n");
     assert!(
         text.contains("commits.rules.closed-with-estimate"),
         "{text}"
@@ -130,8 +128,7 @@ fn a_deleted_task_does_not_exist_in_the_staged_state() {
          severity = \"error\"\n";
     let dir = commit_repo(rules);
     git(dir.path(), &["rm", "-q", "tasks/parser.typ"]);
-    let (ok, text) = check_commit_msg(dir.path(), "task: drop the parser\n");
-    assert!(!ok, "an open task deleted breaks it: {text}");
+    let text = support::commit_msg_refusal(dir.path(), "task: drop the parser\n");
     assert!(text.contains("no-deleting-open-tasks: parser"), "{text}");
 }
 
@@ -142,8 +139,7 @@ fn a_bare_task_field_in_a_task_rule_is_refused_at_load() {
          scope = \"task\"\n\
          assert = 'status == \"done\"'\n";
     let dir = commit_repo(rules);
-    let (ok, text) = check_commit_msg(dir.path(), "feat: x\n");
-    assert!(!ok, "a bare field names no state: {text}");
+    let text = support::commit_msg_refusal(dir.path(), "feat: x\n");
     assert!(
         text.contains("commits.rules[0].assert") && text.contains("staged("),
         "the refusal names the state wrappers: {text}"
@@ -156,8 +152,7 @@ fn a_state_wrapper_in_a_commit_rule_is_refused_at_load() {
          name = \"wrapped\"\n\
          assert = 'staged(status == \"done\")'\n";
     let dir = commit_repo(rules);
-    let (ok, text) = check_commit_msg(dir.path(), "feat: x\n");
-    assert!(!ok, "a commit rule has no task: {text}");
+    let text = support::commit_msg_refusal(dir.path(), "feat: x\n");
     assert!(text.contains("scope = \"task\""), "{text}");
 }
 
@@ -168,7 +163,6 @@ fn into_naming_no_status_is_refused_at_load() {
          when = 'into(\"dnoe\")'\n\
          assert = 'named'\n";
     let dir = commit_repo(rules);
-    let (ok, text) = check_commit_msg(dir.path(), "feat: x\n");
-    assert!(!ok, "a typo'd status must fail load: {text}");
+    let text = support::commit_msg_refusal(dir.path(), "feat: x\n");
     assert!(text.contains("dnoe"), "{text}");
 }
