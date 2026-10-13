@@ -19,10 +19,11 @@
 # `just crap`'s own comment (see the Justfile) documents what a stale one does:
 # a source the lcov never saw has no coverage record at all, so it reads as 0%
 # covered rather than as unknown — a phantom failure, not a missing measurement.
-# `ensure_lcov_fresh` runs the same two checks `just crap` runs (missing file,
-# then a source newer than it) after asking mmz to refresh the lcov, so a stale
-# one is refused here for the same reason. `just mmz cover` skips the whole
-# instrumented test run when nothing changed since the last `just cover`.
+# `ensure_lcov_fresh` asks mmz to refresh the lcov, then refuses a missing file
+# or one whose cover record differs from the sources, so a stale one is
+# refused here for the same reason. `just mmz cover` skips the whole
+# instrumented test run when no source's content changed since the last
+# `just cover`, whatever a checkout did to the mtimes.
 ensure_lcov_fresh() {
     # Never onto stdout, which is the TSV row stream: on an mmz cache miss the
     # test run would parse as findings. Its output goes to a log shown only on
@@ -41,10 +42,12 @@ ensure_lcov_fresh() {
         echo "ask-refactoring: $lcov is missing — run \`just cover\` first" >&2
         exit 1
     fi
-    local newer
-    newer=$(find crates -name '*.rs' -newer "$lcov" -print -quit)
-    if [ -n "$newer" ]; then
-        echo "ask-refactoring: $lcov predates $newer — run \`just cover\` first" >&2
+    # Freshness is mmz's content key, not mtime: a checkout or rebase bumps a
+    # source's mtime without changing its bytes, and mmz then hits and leaves
+    # the lcov alone. A passing `just mmz cover` recorded the sources as they
+    # are, so this asks mmz that the record still holds for them.
+    if ! mmz --is-fresh -- just cover >/dev/null 2>&1; then
+        echo "ask-refactoring: $lcov was not measured on the current sources — run \`just cover\` first" >&2
         echo "  (a source the lcov never saw scores as 0% covered, not as unknown)" >&2
         exit 1
     fi
