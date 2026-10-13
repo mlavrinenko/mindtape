@@ -192,8 +192,7 @@ fn rules_project(severity: &str) -> (TempDir, std::path::PathBuf) {
 #[test]
 fn verify_written_prefixes_each_issue_by_its_severity() {
     const CHILD: &str = "_MT_VERIFY_WRITTEN_SEVERITY";
-    if let Some(out) = mindtape::test_support::rerun_isolated(CHILD) {
-        let stderr = String::from_utf8_lossy(&out.stderr);
+    if let Some(stderr) = mindtape::test_support::rerun_isolated_stderr(CHILD) {
         assert!(
             stderr.contains("error: ")
                 && stderr.contains("bad.typ:")

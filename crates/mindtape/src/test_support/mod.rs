@@ -21,7 +21,8 @@ pub use fs::{
     tempdir_with_dirs, tempdir_with_files, write_bare_project, write_file, write_lib_package,
 };
 pub use process::{
-    assert_child_ok, current_test_name, rerun_isolated, rerun_isolated_with, run_self_test,
+    assert_child_ok, current_test_name, rerun_isolated, rerun_isolated_stderr,
+    rerun_isolated_stdout, rerun_isolated_with, run_self_test,
 };
 
 use std::collections::BTreeMap;

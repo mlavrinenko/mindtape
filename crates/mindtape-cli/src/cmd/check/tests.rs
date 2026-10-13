@@ -66,8 +66,7 @@ const QUIET_CLEAN_CHILD: &str = "_MT_CHECK_QUIET_CLEAN_CHILD";
 /// parent's test harness owns stdout.
 #[test]
 fn quiet_suppresses_ok_summary_on_clean_run() {
-    if let Some(out) = mindtape::test_support::rerun_isolated(QUIET_CLEAN_CHILD) {
-        let stdout = String::from_utf8_lossy(&out.stdout);
+    if let Some(stdout) = mindtape::test_support::rerun_isolated_stdout(QUIET_CLEAN_CHILD) {
         assert!(
             !stdout.contains("ok:"),
             "quiet clean run should suppress the ok summary, got: {stdout}"
@@ -93,8 +92,7 @@ const QUIET_VIOLATION_CHILD: &str = "_MT_CHECK_QUIET_VIOLATION_CHILD";
 /// only the success summary is suppressed.
 #[test]
 fn quiet_still_reports_violations_on_failing_run() {
-    if let Some(out) = mindtape::test_support::rerun_isolated(QUIET_VIOLATION_CHILD) {
-        let stderr = String::from_utf8_lossy(&out.stderr);
+    if let Some(stderr) = mindtape::test_support::rerun_isolated_stderr(QUIET_VIOLATION_CHILD) {
         assert!(
             stderr.contains("priority"),
             "quiet should still print violation details, got: {stderr}"
@@ -301,8 +299,7 @@ const COMMENTS_CHILD: &str = "_MT_CHECK_COMMENTS_CHILD";
 /// parent's test harness owns stdout.
 #[test]
 fn forbid_policy_fails_and_reports_file_line_and_text() {
-    if let Some(out) = mindtape::test_support::rerun_isolated(COMMENTS_CHILD) {
-        let stderr = String::from_utf8_lossy(&out.stderr);
+    if let Some(stderr) = mindtape::test_support::rerun_isolated_stderr(COMMENTS_CHILD) {
         for expected in ["a.typ:10", "comments", "no, use in_view() instead"] {
             assert!(
                 stderr.contains(expected),

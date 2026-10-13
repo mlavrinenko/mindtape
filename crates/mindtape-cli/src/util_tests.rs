@@ -218,8 +218,7 @@ fn init_hyperlinks_flag_sets_override_once() {
 
 #[test]
 fn warn_errors_prints_to_stderr() {
-    if let Some(out) = mindtape::test_support::rerun_isolated(CHILD) {
-        let stderr = String::from_utf8_lossy(&out.stderr);
+    if let Some(stderr) = mindtape::test_support::rerun_isolated_stderr(CHILD) {
         assert!(
             stderr.contains("warning: broken.typ: eval failed"),
             "missing warning line: {stderr}"

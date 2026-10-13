@@ -50,8 +50,7 @@ fn run_delegates_to_run_with() {
 /// succeeds; the warning is the whole observable effect, and it goes to stderr.
 #[test]
 fn shadowed_verb_warns_on_stderr() {
-    if let Some(o) = mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV) {
-        let err = String::from_utf8_lossy(&o.stderr);
+    if let Some(err) = mindtape::test_support::rerun_isolated_stderr(FLIP_CHILD_ENV) {
         assert!(
             err.contains("shadows") && err.contains("add"),
             "expected a shadowed-verb warning naming `add`: {err}"
@@ -66,8 +65,7 @@ fn shadowed_verb_warns_on_stderr() {
 
 #[test]
 fn restamp_prints_re_stamped() {
-    if let Some(o) = mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV) {
-        let out = String::from_utf8_lossy(&o.stdout);
+    if let Some(out) = mindtape::test_support::rerun_isolated_stdout(FLIP_CHILD_ENV) {
         assert!(
             out.contains("re-stamped"),
             "expected 're-stamped' for same-status flip: {out}"
@@ -80,8 +78,7 @@ fn restamp_prints_re_stamped() {
 
 #[test]
 fn flip_prints_flipped_not_re_stamped() {
-    if let Some(o) = mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV) {
-        let out = String::from_utf8_lossy(&o.stdout);
+    if let Some(out) = mindtape::test_support::rerun_isolated_stdout(FLIP_CHILD_ENV) {
         assert!(
             out.contains("flipped"),
             "expected 'flipped' for diff-status flip: {out}"
@@ -98,8 +95,7 @@ fn flip_prints_flipped_not_re_stamped() {
 
 #[test]
 fn terminal_flip_prints_recur_notice() {
-    if let Some(o) = mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV) {
-        let out = String::from_utf8_lossy(&o.stdout);
+    if let Some(out) = mindtape::test_support::rerun_isolated_stdout(FLIP_CHILD_ENV) {
         assert!(
             out.contains("recurring"),
             "expected recurring notice: {out}"
@@ -115,8 +111,7 @@ fn terminal_flip_prints_recur_notice() {
 /// `LEGEND_CONFIG` never reaches.
 #[test]
 fn list_prints_glyph_verbs() {
-    if let Some(o) = mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV) {
-        let out = String::from_utf8_lossy(&o.stdout);
+    if let Some(out) = mindtape::test_support::rerun_isolated_stdout(FLIP_CHILD_ENV) {
         assert!(
             out.contains("🔨 wip") && out.contains("✅ done"),
             "expected glyph-prefixed legend verbs in --list output: {out}"
@@ -133,8 +128,7 @@ fn list_prints_glyph_verbs() {
 /// section) hits `list_verbs`' no-legend branch: the hint, not a verb listing.
 #[test]
 fn list_empty_legend_prints_hint() {
-    if let Some(o) = mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV) {
-        let out = String::from_utf8_lossy(&o.stdout);
+    if let Some(out) = mindtape::test_support::rerun_isolated_stdout(FLIP_CHILD_ENV) {
         assert!(
             out.contains("no status legend configured")
                 && out.contains("shortcut verbs are unavailable"),
@@ -149,8 +143,7 @@ fn list_empty_legend_prints_hint() {
 
 #[test]
 fn list_prints_verbs() {
-    if let Some(o) = mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV) {
-        let out = String::from_utf8_lossy(&o.stdout);
+    if let Some(out) = mindtape::test_support::rerun_isolated_stdout(FLIP_CHILD_ENV) {
         assert!(
             out.contains("wip"),
             "expected legend verbs in --list output: {out}"
@@ -166,8 +159,7 @@ fn list_prints_verbs() {
 /// the reason is only observable on stderr.
 #[test]
 fn revalidate_prints_the_unreachable_violation() {
-    if let Some(o) = mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV) {
-        let err = String::from_utf8_lossy(&o.stderr);
+    if let Some(err) = mindtape::test_support::rerun_isolated_stderr(FLIP_CHILD_ENV) {
         assert!(
             err.contains("s.typ:") && err.contains(": status: `blocked` is unreachable"),
             "expected the reachability violation prefixed as an error: {err}"
@@ -186,8 +178,7 @@ fn revalidate_prints_the_unreachable_violation() {
 /// rather than a summary, and the child prints it as `main` would.
 #[test]
 fn refuses_a_rewrite_that_would_not_load() {
-    if let Some(o) = mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV) {
-        let err = String::from_utf8_lossy(&o.stderr);
+    if let Some(err) = mindtape::test_support::rerun_isolated_stderr(FLIP_CHILD_ENV) {
         assert!(
             err.contains("error: tasks/alpha.typ:3: did not load:"),
             "expected the pre-write refusal prefixed as an error: {err}"

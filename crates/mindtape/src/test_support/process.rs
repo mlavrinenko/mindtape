@@ -69,6 +69,23 @@ pub fn rerun_isolated_with(sentinel: &str, configure: impl FnOnce(&mut Command))
     Some(out)
 }
 
+/// [`rerun_isolated`] for a test that asserts on the child's stdout: the
+/// parent half gets the text, the child half gets `None`.
+///
+/// # Panics
+/// Panics if the child failed or ran no test.
+pub fn rerun_isolated_stdout(sentinel: &str) -> Option<String> {
+    rerun_isolated(sentinel).map(|out| String::from_utf8_lossy(&out.stdout).into_owned())
+}
+
+/// [`rerun_isolated_stdout`] for the child's stderr.
+///
+/// # Panics
+/// Panics if the child failed or ran no test.
+pub fn rerun_isolated_stderr(sentinel: &str) -> Option<String> {
+    rerun_isolated(sentinel).map(|out| String::from_utf8_lossy(&out.stderr).into_owned())
+}
+
 /// Assert a [`run_self_test`] child exited successfully, surfacing its stderr,
 /// and that it ran one test: a name that matches none exits 0 too.
 ///

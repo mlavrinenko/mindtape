@@ -80,8 +80,7 @@ const QUIET_CHILD: &str = "_MT_CHECK_COMMIT_QUIET_CHILD";
 /// nothing. Dropping the `!` would print it exactly when quiet was asked for.
 #[test]
 fn quiet_suppresses_the_ok_line() {
-    if let Some(out) = mindtape::test_support::rerun_isolated(QUIET_CHILD) {
-        let stdout = String::from_utf8_lossy(&out.stdout);
+    if let Some(stdout) = mindtape::test_support::rerun_isolated_stdout(QUIET_CHILD) {
         assert!(
             !stdout.contains("ok: commit message valid"),
             "quiet must print no success line: {stdout}"
@@ -101,8 +100,7 @@ const WARN_CHILD: &str = "_MT_CHECK_COMMIT_WARN_CHILD";
 /// warning on stderr. Replacing the body with `()` would print nothing.
 #[test]
 fn warn_state_errors_reports_each_state() {
-    if let Some(out) = mindtape::test_support::rerun_isolated(WARN_CHILD) {
-        let stderr = String::from_utf8_lossy(&out.stderr);
+    if let Some(stderr) = mindtape::test_support::rerun_isolated_stderr(WARN_CHILD) {
         assert!(
             stderr.contains("warning: tasks/head.typ as HEAD: boom"),
             "the HEAD state's error must be reported: {stderr}"

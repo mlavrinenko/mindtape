@@ -280,8 +280,7 @@ const WRITTEN_CHILD: &str = "_MT_LINK_WRITTEN_CHILD";
 /// with `()` would write the file silently.
 #[test]
 fn run_with_reports_each_written_task() {
-    if let Some(out) = mindtape::test_support::rerun_isolated(WRITTEN_CHILD) {
-        let stdout = String::from_utf8_lossy(&out.stdout);
+    if let Some(stdout) = mindtape::test_support::rerun_isolated_stdout(WRITTEN_CHILD) {
         assert!(
             stdout.contains("linked alpha"),
             "a landed write must be reported: {stdout}"
