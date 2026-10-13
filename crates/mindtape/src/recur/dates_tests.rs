@@ -18,6 +18,17 @@ fn period(unit: PeriodUnit, value: u32) -> Rule {
     }
 }
 
+fn rrule(raw: &str) -> Rule {
+    Rule::Rrule {
+        raw: raw.to_owned(),
+    }
+}
+
+/// Asserts one [`advance_once`] step from `from` lands on `to`.
+fn assert_advances(rule: &Rule, from: NaiveDate, to: NaiveDate) {
+    assert_eq!(advance_once(rule, from).unwrap(), to);
+}
+
 fn recur(rule: Rule, anchor: Option<&str>, until: Option<&str>, count: Option<u32>) -> Recur {
     Recur {
         rule,
@@ -30,34 +41,49 @@ fn recur(rule: Rule, anchor: Option<&str>, until: Option<&str>, count: Option<u3
 
 #[test]
 fn weekly_period_advances_seven_days() {
-    let next = advance_once(&period(PeriodUnit::Weeks, 1), date(2026, 6, 1)).unwrap();
-    assert_eq!(next, date(2026, 6, 8));
+    assert_advances(
+        &period(PeriodUnit::Weeks, 1),
+        date(2026, 6, 1),
+        date(2026, 6, 8),
+    );
 }
 
 #[test]
 fn monthly_period_advances_one_month() {
-    let next = advance_once(&period(PeriodUnit::Months, 1), date(2026, 6, 15)).unwrap();
-    assert_eq!(next, date(2026, 7, 15));
+    assert_advances(
+        &period(PeriodUnit::Months, 1),
+        date(2026, 6, 15),
+        date(2026, 7, 15),
+    );
 }
 
 #[test]
 fn monthly_period_clamps_end_of_month() {
     // Jan 31 + 1 month has no Feb 31 — clamp to the last valid day.
-    let next = advance_once(&period(PeriodUnit::Months, 1), date(2026, 1, 31)).unwrap();
-    assert_eq!(next, date(2026, 2, 28));
+    assert_advances(
+        &period(PeriodUnit::Months, 1),
+        date(2026, 1, 31),
+        date(2026, 2, 28),
+    );
 }
 
 #[test]
 fn yearly_period_clamps_leap_day() {
     // 2024-02-29 + 1 year: 2025 is not a leap year.
-    let next = advance_once(&period(PeriodUnit::Years, 1), date(2024, 2, 29)).unwrap();
-    assert_eq!(next, date(2025, 2, 28));
+    assert_advances(
+        &period(PeriodUnit::Years, 1),
+        date(2024, 2, 29),
+        date(2025, 2, 28),
+    );
 }
 
 #[test]
 fn daily_period_advances_by_value() {
-    let next = advance_once(&period(PeriodUnit::Days, 3), date(2026, 6, 1)).unwrap();
-    assert_eq!(next, date(2026, 6, 4));
+    assert_advances(
+        &period(PeriodUnit::Days, 3),
+        date(2026, 6, 1),
+        date(2026, 6, 4),
+    );
 }
 
 #[test]
@@ -199,11 +225,7 @@ fn every_week_with_weekdays_is_unchanged() {
 
 #[test]
 fn rrule_rule_advances_via_the_expansion_engine() {
-    let rule = Rule::Rrule {
-        raw: "FREQ=DAILY".to_owned(),
-    };
-    let next = advance_once(&rule, date(2026, 6, 1)).unwrap();
-    assert_eq!(next, date(2026, 6, 2));
+    assert_advances(&rrule("FREQ=DAILY"), date(2026, 6, 1), date(2026, 6, 2));
 }
 
 #[test]
@@ -219,30 +241,30 @@ fn rrule_effective_anchor_is_always_due_even_with_completion_default() {
 
 #[test]
 fn rrule_first_monday_of_the_month() {
-    let rule = Rule::Rrule {
-        raw: "FREQ=MONTHLY;BYDAY=1MO".to_owned(),
-    };
-    let next = advance_once(&rule, date(2026, 6, 15)).unwrap();
-    assert_eq!(next, date(2026, 7, 6));
+    assert_advances(
+        &rrule("FREQ=MONTHLY;BYDAY=1MO"),
+        date(2026, 6, 15),
+        date(2026, 7, 6),
+    );
 }
 
 #[test]
 fn rrule_last_day_of_the_month() {
-    let rule = Rule::Rrule {
-        raw: "FREQ=MONTHLY;BYMONTHDAY=-1".to_owned(),
-    };
-    let next = advance_once(&rule, date(2026, 1, 31)).unwrap();
-    assert_eq!(next, date(2026, 2, 28));
+    assert_advances(
+        &rrule("FREQ=MONTHLY;BYMONTHDAY=-1"),
+        date(2026, 1, 31),
+        date(2026, 2, 28),
+    );
 }
 
 #[test]
 fn rrule_every_weekday_skips_the_weekend() {
-    let rule = Rule::Rrule {
-        raw: "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR".to_owned(),
-    };
     // 2026-06-05 is a Friday.
-    let next = advance_once(&rule, date(2026, 6, 5)).unwrap();
-    assert_eq!(next, date(2026, 6, 8));
+    assert_advances(
+        &rrule("FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR"),
+        date(2026, 6, 5),
+        date(2026, 6, 8),
+    );
 }
 
 #[test]
