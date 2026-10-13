@@ -96,7 +96,9 @@ A function in a file written after the lcov has no coverage record. With
 `--missing` at its default, `pessimistic`, it scores as 0% covered. On a
 10-day-old lcov that gave 28 failures, 27 of them false. A gate that reports
 false failures is worse than none, so #just.crap() refuses a stale lcov and
-names the recipe that refreshes it.
+names the recipe that refreshes it. Stale means a source is newer than the
+lcov and #just.cover() is not fresh for its content, so a checkout or rebase
+that leaves the bytes alone does not refuse.
 
 = Why the sweep has no CRAP arm
 

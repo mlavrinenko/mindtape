@@ -28,16 +28,12 @@ if [ -f "$primary/$lcov" ] && [ ! "$here/$lcov" -nt "$primary/$lcov" ]; then
 fi
 
 # The copy gets a new mtime, so staleness is judged here, against the sources
-# the lcov was written from, by the same script `just crap` asks. A rebase
-# rewrites the files it replays, so their mtimes pass the lcov's though their
-# bytes did not change; mmz hashes content, so a `just cover` it calls fresh
-# keeps the lcov valid whatever the mtimes say.
+# the lcov was written from, by the same script `just crap` asks. That script
+# judges by content through mmz, so a rebase that rewrites mtimes but not bytes
+# still carries.
 stale=$(cd "$here" && bash .just/scripts/_lcov-stale-reason.sh 2>/dev/null) || stale=unanswered
-if [ -n "$stale" ] && (cd "$here" && mmz --is-fresh -- just cover) >/dev/null 2>&1; then
-    stale=
-fi
 if [ -n "$stale" ]; then
-    echo "wt-carry-lcov: skipped, $stale and \`just cover\` is not fresh" >&2
+    echo "wt-carry-lcov: skipped, $stale" >&2
     exit 0
 fi
 

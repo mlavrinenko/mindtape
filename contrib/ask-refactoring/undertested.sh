@@ -37,17 +37,13 @@ ensure_lcov_fresh() {
         exit 1
     fi
     rm -f "$log"
-    local lcov="target/coverage/lcov.info"
-    if [ ! -f "$lcov" ]; then
-        echo "ask-refactoring: $lcov is missing — run \`just cover\` first" >&2
-        exit 1
-    fi
-    # Freshness is mmz's content key, not mtime: a checkout or rebase bumps a
-    # source's mtime without changing its bytes, and mmz then hits and leaves
-    # the lcov alone. A passing `just mmz cover` recorded the sources as they
-    # are, so this asks mmz that the record still holds for them.
-    if ! mmz --is-fresh -- just cover >/dev/null 2>&1; then
-        echo "ask-refactoring: $lcov was not measured on the current sources — run \`just cover\` first" >&2
+    # The same script `just crap` asks. It judges by content through mmz, not
+    # mtime: a checkout or rebase touches a source without changing its bytes,
+    # and mmz then hits and leaves the lcov alone.
+    local reason
+    reason="$(bash .just/scripts/_lcov-stale-reason.sh)"
+    if [ -n "$reason" ]; then
+        echo "ask-refactoring: $reason — run \`just cover\` first" >&2
         echo "  (a source the lcov never saw scores as 0% covered, not as unknown)" >&2
         exit 1
     fi

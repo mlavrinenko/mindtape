@@ -17,6 +17,10 @@ if [ ! -f "$lcov" ]; then
     exit 0
 fi
 newer=$(find crates -name '*.rs' -newer "$lcov" -print -quit)
-if [ -n "$newer" ]; then
+# An mtime proves nothing about content: a checkout or rebase touches files
+# without changing their bytes, and mmz, which keys `just cover` by content,
+# then hits and leaves the lcov alone. So a newer source is stale only when
+# mmz does not call `just cover` fresh.
+if [ -n "$newer" ] && ! mmz --is-fresh -- just cover >/dev/null 2>&1; then
     echo "$lcov predates $newer"
 fi

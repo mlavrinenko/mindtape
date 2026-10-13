@@ -141,26 +141,26 @@ groups:
     source:
       .just/scripts/_crap-ratchet-control.sh: 4475050ae573823bc2aeb493ee9bd8385004920ad618cfcd2d2e1767a0dcd801
       .just/scripts/_crap-ratchet-lib.sh: b090720ea70902bf7dd5177eedb9837b351ad54932d92da45632efeeb2ccd7ca
-      .just/scripts/_lcov-stale-reason.sh: 06076f356e045204aa87302b8f0cc391250d5411d129aa024aa9fe755a61b175
+      .just/scripts/_lcov-stale-reason.sh: 69e665278f407f05d71e949a062a988a4e901731e08780e40c9e32f4ce16d335
       .just/scripts/cover.sh: 05fc0a034ad4e695e577a11b765d0c1958c24fea51ed03509121f7211707622e
       .just/scripts/crap-baseline-check.sh: c44c998700a5e14ae944829bc42ef6005e30041525aba2725cfe2fddd005f5e9
       .just/scripts/crap-baseline.sh: 9557082bf19d408a02ab75cc5386d1c0667391cd24c07fa62ed595ef521cce87
       .just/scripts/crap.sh: 0fe34355ac5e66c110063232fcbb7634b3f82c224308a5dd57b58efc1763b7b8
     dependents:
-      docs/src/contributing/coverage-crap.typ: 51492d47d51867908652ede8016e3a74110b4efcdc2711785ba8f9b9839793c7
+      docs/src/contributing/coverage-crap.typ: a77b331ac56839e52cced5ae8aa87823c440d6c2fac3c4dbf9a0d54b01039150
       docs/src/contributing/crap-baseline.typ: 551aab6a955a9d4345e73e1c171fe860663887e8b3c56f611f2f2551356eb301
   dev-shell-docs:
     source:
       .config/nextest.toml: 1aa04153954c5ab8ce468d3e08225b76d6dd1f636874b9591c275c588b89f984
       .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
       .just/docs.just: 300226a86d551abc287d058efd9cbc2143fa7f15e3c6b53131699f27f35847fc
-      .just/scripts/wt-carry-lcov.sh: da29d756c94da7817fef3d1248e1cc049d9eef715400b6d0dff7908a3488bf67
+      .just/scripts/wt-carry-lcov.sh: 0d4513fdd21068f5897a015bbc4cd02bc3644ca139d8c39053140fba491e1e76
       Justfile: 8f3684dbab71f52c4d600de150631c36d74cce5a042970cdc87f7a08df20d722
       flake.nix: ef91529881401b7bfffd564c53a0ff62d9d24b8b9adaa6c52f510119a9004305
     dependents:
       docs/src/agents.typ: fc0515f88c029ba8b787b979dd9c47184243c76ed7378983b0be712bddfbf2c4
       docs/src/contributing.typ: 712b8defced50e555cd6e7a3970d0ce9e9c48bc67f667034b1c63d9668012d06
-      docs/src/contributing/coverage-crap.typ: 51492d47d51867908652ede8016e3a74110b4efcdc2711785ba8f9b9839793c7
+      docs/src/contributing/coverage-crap.typ: a77b331ac56839e52cced5ae8aa87823c440d6c2fac3c4dbf9a0d54b01039150
       docs/src/contributing/crap-baseline.typ: 551aab6a955a9d4345e73e1c171fe860663887e8b3c56f611f2f2551356eb301
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
       docs/src/contributing/documentation.typ: 451e7a8b3a3579410d721855fd9343f93dcbb772ec464b06ceb75c2a7ce9b1e1
