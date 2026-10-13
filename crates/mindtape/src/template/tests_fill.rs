@@ -22,6 +22,12 @@ fn fill_wrapped(inner: &str, pairs: &[(&str, RawValue)]) -> Result<String, FillE
     fill(&wrap(inner), &values(pairs))
 }
 
+/// Asserts filling the wrapped `inner` with `pairs` yields the wrapped
+/// `expected`.
+fn assert_fills(inner: &str, pairs: &[(&str, RawValue)], expected: &str) {
+    assert_eq!(fill_wrapped(inner, pairs).unwrap(), wrap(expected));
+}
+
 #[test]
 fn fills_string_with_quoting_and_escape() {
     let out = fill_wrapped(
@@ -34,64 +40,58 @@ fn fills_string_with_quoting_and_escape() {
 
 #[test]
 fn fills_int_and_float() {
-    let out = fill_wrapped(
+    assert_fills(
         r#"a: slot("a", kind: "int"), b: slot("b", kind: "float")"#,
         &[("a", RawValue::Int(8)), ("b", RawValue::Float(0.7))],
-    )
-    .unwrap();
-    assert_eq!(out, wrap(r"a: 8, b: 0.7"));
+        r"a: 8, b: 0.7",
+    );
 }
 
 #[test]
 fn float_keeps_decimal_for_integral() {
-    let out = fill_wrapped(
+    assert_fills(
         r#"b: slot("b", kind: "float")"#,
         &[("b", RawValue::Float(8.0))],
-    )
-    .unwrap();
-    assert_eq!(out, wrap("b: 8.0"));
+        "b: 8.0",
+    );
 }
 
 #[test]
 fn fills_real_without_truncation() {
-    let out = fill_wrapped(
+    assert_fills(
         r#"priority: slot("priority", kind: "real")"#,
         &[("priority", RawValue::Float(2.5))],
-    )
-    .unwrap();
-    assert_eq!(out, wrap("priority: 2.5"));
+        "priority: 2.5",
+    );
 }
 
 #[test]
 fn fills_real_from_string_value_without_truncation() {
     // `--set priority=2.5` always arrives as a string; a real-kind slot must
     // coerce it to a float, not fail the way an `int`-kind slot would.
-    let out = fill_wrapped(
+    assert_fills(
         r#"priority: slot("priority", kind: "real")"#,
         &[("priority", RawValue::Str("2.5".to_owned()))],
-    )
-    .unwrap();
-    assert_eq!(out, wrap("priority: 2.5"));
+        "priority: 2.5",
+    );
 }
 
 #[test]
 fn real_keeps_decimal_for_integral() {
-    let out = fill_wrapped(
+    assert_fills(
         r#"priority: slot("priority", kind: "real")"#,
         &[("priority", RawValue::Float(8.0))],
-    )
-    .unwrap();
-    assert_eq!(out, wrap("priority: 8.0"));
+        "priority: 8.0",
+    );
 }
 
 #[test]
 fn fills_date_as_on_call() {
-    let out = fill_wrapped(
+    assert_fills(
         r#"due: slot("due", kind: "date")"#,
         &[("due", RawValue::Str("2026-07-01".to_owned()))],
-    )
-    .unwrap();
-    assert_eq!(out, wrap("due: on(2026, 7, 1)"));
+        "due: on(2026, 7, 1)",
+    );
 }
 
 #[test]
@@ -117,12 +117,11 @@ fn fills_list_with_trailing_comma() {
 
 #[test]
 fn empty_list_renders_unit() {
-    let out = fill_wrapped(
+    assert_fills(
         r#"tags: slot("tags", kind: "list")"#,
         &[("tags", RawValue::List(vec![]))],
-    )
-    .unwrap();
-    assert_eq!(out, wrap("tags: ()"));
+        "tags: ()",
+    );
 }
 
 #[test]
@@ -154,8 +153,7 @@ fn choice_outside_set_errors() {
 
 #[test]
 fn unfilled_uses_default_source() {
-    let out = fill_wrapped(r#"a: slot("a", kind: "int", default: 5)"#, &[]).unwrap();
-    assert_eq!(out, wrap("a: 5"));
+    assert_fills(r#"a: slot("a", kind: "int", default: 5)"#, &[], "a: 5");
 }
 
 #[test]
@@ -169,8 +167,7 @@ fn unfilled_required_without_default_errors() {
 
 #[test]
 fn optional_unfilled_renders_none() {
-    let out = fill_wrapped(r#"a: slot("a", required: false)"#, &[]).unwrap();
-    assert_eq!(out, wrap("a: none"));
+    assert_fills(r#"a: slot("a", required: false)"#, &[], "a: none");
 }
 
 #[test]
@@ -246,64 +243,62 @@ fn raw_slot_unparseable_markup_names_the_slot() {
 
 #[test]
 fn multiple_slots_in_nested_calls() {
-    let out = fill_wrapped(
+    assert_fills(
         r#"priority: ice(impact: slot("i", kind: "int"), ease: slot("e", kind: "int"))"#,
         &[("i", RawValue::Int(8)), ("e", RawValue::Int(6))],
-    )
-    .unwrap();
-    assert_eq!(out, wrap("priority: ice(impact: 8, ease: 6)"));
+        "priority: ice(impact: 8, ease: 6)",
+    );
 }
 
 #[test]
 fn fills_int_from_string_value() {
     // Catches deletion of the RawValue::Str arm in coerce_int.
-    let out = fill_wrapped(
+    assert_fills(
         r#"a: slot("a", kind: "int")"#,
         &[("a", RawValue::Str("42".to_owned()))],
-    )
-    .unwrap();
-    assert_eq!(out, wrap("a: 42"));
+        "a: 42",
+    );
 }
 
 #[test]
 fn fills_float_from_int_value() {
     // Catches deletion of the RawValue::Int arm in coerce_float.
-    let out = fill_wrapped(r#"b: slot("b", kind: "float")"#, &[("b", RawValue::Int(7))]).unwrap();
-    assert_eq!(out, wrap("b: 7.0"));
+    assert_fills(
+        r#"b: slot("b", kind: "float")"#,
+        &[("b", RawValue::Int(7))],
+        "b: 7.0",
+    );
 }
 
 #[test]
 fn fills_bool_false_from_string_false() {
     // Catches mutant replacing coerce_bool body with Ok(true).
-    let out = fill_wrapped(
+    assert_fills(
         r#"flag: slot("flag", kind: "bool")"#,
         &[("flag", RawValue::Str("false".to_owned()))],
-    )
-    .unwrap();
-    assert_eq!(out, wrap("flag: false"));
+        "flag: false",
+    );
 }
 
 #[test]
 fn fills_bool_true_from_string_true() {
     // Catches mutant replacing coerce_bool body with Ok(false) AND deletion of
     // the RawValue::Str arm (both cause the test to fail).
-    let out = fill_wrapped(
+    assert_fills(
         r#"flag: slot("flag", kind: "bool")"#,
         &[("flag", RawValue::Str("true".to_owned()))],
-    )
-    .unwrap();
-    assert_eq!(out, wrap("flag: true"));
+        "flag: true",
+    );
 }
 
 #[test]
 fn fills_bool_from_bool_value() {
     // Catches deletion of the RawValue::Bool(flag) arm in coerce_bool.
-    let out = fill_wrapped(
+    assert_fills(
         r#"flag: slot("flag", kind: "bool")"#,
         &[("flag", RawValue::Bool(true))],
-    )
-    .unwrap();
-    assert_eq!(out, wrap("flag: true"));
+        "flag: true",
+    );
 }
 
 #[test]
