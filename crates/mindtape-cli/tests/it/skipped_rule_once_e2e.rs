@@ -4,6 +4,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
+use mindtape::test_support::write_file;
 
 use support::{mt, project_with_tasks};
 
@@ -13,11 +14,11 @@ fn a_pack_rule_skipped_outside_git_is_reported_once() {
     let config = dir.path().join(".mindtape/config.toml");
     let base = std::fs::read_to_string(&config).unwrap();
     std::fs::write(&config, format!("extends = [\"./pack.toml\"]\n{base}")).unwrap();
-    std::fs::write(
-        dir.path().join("pack.toml"),
+    write_file(
+        dir.path(),
+        "pack.toml",
         "[[tasks.rules]]\nname = \"src-budget\"\nassert = 'changed(\"worktree\") <= 3'\n",
-    )
-    .unwrap();
+    );
     let out = mt(dir.path()).arg("check").output().unwrap();
     let text = format!(
         "{}{}",

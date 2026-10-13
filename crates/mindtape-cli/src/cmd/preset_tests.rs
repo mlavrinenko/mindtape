@@ -2,21 +2,22 @@
 
 use super::{PresetAction, PresetArgs, SaveArgs, render_ls, save};
 use crate::cmd::init::preset::{self, DEFAULT_PRESET};
-use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
+use mindtape::test_support::{tempdir, tempdir_with_files};
 
 /// A project fixture: `.mindtape/config.toml`, optionally with
 /// `.mindtape/templates/*.typ`.
 fn write_project(root: &std::path::Path, config: &str, templates: &[(&str, &str)]) {
     let dir = root.join(".mindtape");
     std::fs::create_dir_all(&dir).unwrap();
-    std::fs::write(dir.join("config.toml"), config).unwrap();
+    write_file(&dir, "config.toml", config);
     if templates.is_empty() {
         return;
     }
     let template_dir = dir.join("templates");
     std::fs::create_dir_all(&template_dir).unwrap();
     for (file, body) in templates {
-        std::fs::write(template_dir.join(file), body).unwrap();
+        write_file(&template_dir, file, body);
     }
 }
 
@@ -109,12 +110,7 @@ fn save_with_force_overwrites() {
 #[test]
 fn save_with_force_replaces_a_flat_layout() {
     let project = tempdir();
-    let user_dir = tempdir();
-    std::fs::write(
-        user_dir.path().join("flat.toml"),
-        "[tasks]\nroots = [\"old\"]\n",
-    )
-    .unwrap();
+    let user_dir = tempdir_with_files(&[("flat.toml", "[tasks]\nroots = [\"old\"]\n")]);
     write_project(project.path(), "[tasks]\nroots = [\"new\"]\n", &[]);
 
     save(project.path(), user_dir.path(), "flat", true).unwrap();
@@ -128,12 +124,10 @@ fn save_with_force_replaces_a_flat_layout() {
 /// default built-in.
 #[test]
 fn ls_marks_a_shadowed_builtin_and_the_default() {
-    let user_dir = tempdir();
-    std::fs::write(
-        user_dir.path().join(format!("{DEFAULT_PRESET}.toml")),
+    let user_dir = tempdir_with_files(&[(
+        &format!("{DEFAULT_PRESET}.toml"),
         "[tasks]\nroots = [\"mine\"]\n",
-    )
-    .unwrap();
+    )]);
 
     let out = render_ls(Some(user_dir.path())).unwrap();
     let builtin_line = out
@@ -171,12 +165,8 @@ fn ls_with_empty_user_preset_dir_lists_only_builtins() {
 /// either spuriously annotates a novel name.
 #[test]
 fn ls_leaves_a_novel_user_preset_unmarked() {
-    let user_dir = tempdir();
-    std::fs::write(
-        user_dir.path().join("zzz-not-a-builtin.toml"),
-        "[tasks]\nroots = [\"mine\"]\n",
-    )
-    .unwrap();
+    let user_dir =
+        tempdir_with_files(&[("zzz-not-a-builtin.toml", "[tasks]\nroots = [\"mine\"]\n")]);
 
     let out = render_ls(Some(user_dir.path())).unwrap();
     let line = out

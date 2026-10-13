@@ -2,6 +2,7 @@
 
 use super::write_atomic;
 use crate::test_support::tempdir;
+use crate::test_support::write_file;
 
 #[test]
 fn writes_new_bytes_and_overwrites_existing_ones() {
@@ -91,7 +92,7 @@ fn a_failed_rename_removes_the_temp_file_and_leaves_the_target_untouched() {
     let dir = tempdir();
     let path = dir.path().join("task.typ");
     std::fs::create_dir(&path).unwrap();
-    std::fs::write(path.join("inner.txt"), b"keep me").unwrap();
+    write_file(&path, "inner.txt", b"keep me");
 
     let result = write_atomic(&path, b"replacement");
 

@@ -6,6 +6,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 #![cfg(unix)]
 
+use mindtape::test_support::write_file;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::process::Command;
@@ -56,16 +57,12 @@ fn commit(dir: &Path, args: &[&str]) -> (bool, String) {
 fn work_commit_repo() -> tempfile::TempDir {
     let dir = commit_repo(FLIP_WITH_WORK);
     let path = dir.path();
-    std::fs::write(
-        path.join("tasks/parser.typ"),
-        parser("proposed(2026, 6, 1)"),
-    )
-    .unwrap();
+    write_file(path, "tasks/parser.typ", parser("proposed(2026, 6, 1)"));
     git(path, &["add", "-A"]);
     let (ok, text) = commit(path, &["-m", "task: file the parser"]);
     assert!(ok, "{text}");
     std::fs::create_dir_all(path.join("src")).unwrap();
-    std::fs::write(path.join("src/lib.rs"), "work\n").unwrap();
+    write_file(path, "src/lib.rs", "work\n");
     git(path, &["add", "-A"]);
     let (ok, text) = commit(path, &["-m", "feat: parse\n\nRefs: parser"]);
     assert!(ok, "{text}");
@@ -89,7 +86,7 @@ fn install_hook(path: &Path) {
 
 /// Stage the close of `parser` in `path` and commit it with `args`.
 fn close_parser(path: &Path, args: &[&str]) -> (bool, String) {
-    std::fs::write(path.join("tasks/parser.typ"), parser("done(2026, 6, 2)")).unwrap();
+    write_file(path, "tasks/parser.typ", parser("done(2026, 6, 2)"));
     git(path, &["add", "tasks/parser.typ"]);
     commit(path, args)
 }
@@ -137,7 +134,7 @@ fn amending_a_root_commit_is_judged_against_the_empty_tree() {
     let path = dir.path();
     install_hook(path);
     std::fs::create_dir_all(path.join("src")).unwrap();
-    std::fs::write(path.join("src/lib.rs"), "work\n").unwrap();
+    write_file(path, "src/lib.rs", "work\n");
     git(path, &["add", "src/lib.rs"]);
     let (ok, text) = close_parser(path, &["--amend", "-m", "feat: parse\n\nRefs: parser"]);
     assert!(ok, "the root commit holds the work and the task: {text}");
@@ -148,7 +145,7 @@ fn an_amend_of_a_flip_only_commit_still_refuses_that_flip() {
     let dir = work_commit_repo();
     let path = dir.path();
     git(path, &["reset", "-q", "--hard", "HEAD^"]);
-    std::fs::write(path.join("tasks/parser.typ"), parser("wip(2026, 6, 2)")).unwrap();
+    write_file(path, "tasks/parser.typ", parser("wip(2026, 6, 2)"));
     git(path, &["add", "tasks/parser.typ"]);
     let (ok, text) = commit(path, &["--no-verify", "-m", "task: start\n\nRefs: parser"]);
     assert!(ok, "{text}");

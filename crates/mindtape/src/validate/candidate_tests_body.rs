@@ -6,6 +6,7 @@
 //! parent test module and are reached through `super::tests`.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+use crate::test_support::write_file;
 use std::path::Path;
 
 use super::tests::{marker, setup};
@@ -129,11 +130,11 @@ assert = "non-empty"
 "#,
     )
     .unwrap();
-    std::fs::write(
-        dir.path().join("tasks/old.typ"),
+    write_file(
+        dir.path(),
+        "tasks/old.typ",
         marker_with_body("wip", "\n== Summary\n\n"),
-    )
-    .unwrap();
+    );
     let existing = load_project(dir.path(), &config).tasks;
     assert_eq!(existing.len(), 1);
 

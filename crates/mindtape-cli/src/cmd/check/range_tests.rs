@@ -9,6 +9,7 @@
 
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::write_file;
 use std::path::Path;
 
 use assert_cmd::Command;
@@ -29,13 +30,13 @@ fn broken(tag: &str) -> String {
 fn scaffold(files: &[(&str, &str)], config: &str) -> (tempfile::TempDir, std::path::PathBuf) {
     let (dir, root) = repo_with(files);
     std::fs::create_dir_all(root.join(".mindtape")).unwrap();
-    std::fs::write(root.join(".mindtape/config.toml"), config).unwrap();
+    write_file(&root, ".mindtape/config.toml", config);
     (dir, root)
 }
 
 /// Commit the working tree's `tasks/bad.typ` change.
 fn commit_bad(root: &Path, contents: &str, message: &str) {
-    std::fs::write(root.join("tasks/bad.typ"), contents).unwrap();
+    write_file(root, "tasks/bad.typ", contents);
     git(root, &["add", "tasks/bad.typ"]);
     git(
         root,

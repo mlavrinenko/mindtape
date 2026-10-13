@@ -3,6 +3,7 @@
 //! and a command run outside any project.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::write_file;
 use mindtape::test_support::{tempdir, tempdir_with_config};
 use std::path::Path;
 
@@ -108,7 +109,7 @@ fn import_without_the_prelude_prints_the_install_error_once_before_the_skip_coun
     let (_home, project) = fresh_project();
     let record = &ONE_RECORD[1..ONE_RECORD.len() - 1];
     let two = format!("[{},{}]", record, record.replace("Fix login", "Fix logout"));
-    std::fs::write(project.join("in.json"), two).unwrap();
+    write_file(&project, "in.json", &two);
 
     let (ok, stderr) = run_fresh(&project, &["import", "in.json"]);
 
@@ -122,7 +123,7 @@ fn import_without_the_prelude_prints_the_install_error_once_before_the_skip_coun
 #[test]
 fn import_skipped_for_another_reason_prints_no_install_note() {
     let (_home, project) = fresh_project();
-    std::fs::write(project.join("in.json"), ONE_RECORD).unwrap();
+    write_file(&project, "in.json", ONE_RECORD);
     support::install_lib(&project);
 
     let (_, stderr) = run_fresh(&project, &["import", "in.json"]);
@@ -134,11 +135,11 @@ fn import_skipped_for_another_reason_prints_no_install_note() {
 fn project_with_config(dir: &Path) -> std::path::PathBuf {
     let project = dir.join("p");
     std::fs::create_dir_all(project.join(".mindtape")).unwrap();
-    std::fs::write(
-        project.join(".mindtape/config.toml"),
+    write_file(
+        &project,
+        ".mindtape/config.toml",
         "[tasks]\nroots = [\"tasks\"]\n",
-    )
-    .unwrap();
+    );
     project
 }
 
@@ -174,11 +175,11 @@ fn a_syntax_error_in_the_global_defaults_names_that_file() {
 fn a_syntax_error_in_a_path_pack_names_the_pack_file() {
     let dir = tempdir();
     let project = project_with_config(dir.path());
-    std::fs::write(
-        project.join(".mindtape/config.toml"),
+    write_file(
+        &project,
+        ".mindtape/config.toml",
         "extends = [\"./pack.toml\"]\n[tasks]\nroots = [\"tasks\"]\n",
-    )
-    .unwrap();
+    );
     let pack = project.join("./pack.toml");
     std::fs::write(&pack, "oops =\n").unwrap();
 

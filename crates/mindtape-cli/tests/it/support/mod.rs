@@ -6,6 +6,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods, dead_code)]
 
 use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
 use std::path::{Path, PathBuf};
 
 const PRELUDE: &str = include_str!("../../../../../lib/prelude.typ");
@@ -160,8 +161,8 @@ pub fn project_with_template_and_config(config: &str, source: &str) -> tempfile:
     let dir = tempdir();
     install_lib(dir.path());
     std::fs::create_dir_all(dir.path().join(".mindtape/templates")).unwrap();
-    std::fs::write(dir.path().join(".mindtape/config.toml"), config).unwrap();
-    std::fs::write(dir.path().join(".mindtape/templates/task.typ"), source).unwrap();
+    write_file(dir.path(), ".mindtape/config.toml", config);
+    write_file(dir.path(), ".mindtape/templates/task.typ", source);
     dir
 }
 
@@ -169,14 +170,14 @@ pub fn project_with_template_and_config(config: &str, source: &str) -> tempfile:
 /// `anchor` task the template's `related` edge points at already filed.
 pub fn project_with_slot_template() -> tempfile::TempDir {
     let dir = project_with_template(SLOT_TEMPLATE);
-    std::fs::write(
-        dir.path().join("tasks/anchor.typ"),
+    write_file(
+        dir.path(),
+        "tasks/anchor.typ",
         mindtape::typst_task!(
             "\
          #show: task.with(title: \"anchor\", status: proposed(2026, 7, 22))\n"
         ),
-    )
-    .unwrap();
+    );
     dir
 }
 
@@ -389,7 +390,7 @@ pub fn scaffold_project(config: &str) -> tempfile::TempDir {
     let dir = tempdir();
     install_lib(dir.path());
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
-    std::fs::write(dir.path().join(".mindtape/config.toml"), config).unwrap();
+    write_file(dir.path(), ".mindtape/config.toml", config);
     dir
 }
 
@@ -424,8 +425,9 @@ pub fn project_with_tasks(tasks: &[(&str, &str)]) -> tempfile::TempDir {
 /// one `wip` task titled `title` — for tests that only need something to list.
 pub fn project_with_task(title: &str) -> tempfile::TempDir {
     let dir = scaffold_project(TASKS_ROOT_CONFIG);
-    std::fs::write(
-        dir.path().join("tasks/test.typ"),
+    write_file(
+        dir.path(),
+        "tasks/test.typ",
         format!(
             r#"#metadata((
   marker: "mindtape.task",
@@ -438,8 +440,7 @@ pub fn project_with_task(title: &str) -> tempfile::TempDir {
 ))
 "#
         ),
-    )
-    .unwrap();
+    );
     dir
 }
 

@@ -11,6 +11,7 @@ use super::{PackOrigin, RuleOrigin, merge_layers_with_packs, merge_layers_with_p
 use crate::config::layers::LayerSource;
 use crate::config::packs_toml::read_array;
 use crate::test_support::tempdir;
+use crate::test_support::write_file;
 
 #[test]
 fn extends_bare_name_resolves_to_an_embedded_pack() {
@@ -91,11 +92,11 @@ fn a_path_entry_in_the_project_layer_resolves_against_the_project_root() {
     std::fs::create_dir_all(project.join(".mindtape")).unwrap();
     let shared = tmp.path().join("shared");
     std::fs::create_dir_all(&shared).unwrap();
-    std::fs::write(
-        shared.join("team-pack.toml"),
+    write_file(
+        &shared,
+        "team-pack.toml",
         "[[tasks.rules]]\nname = \"team-rule\"\nassert = 'kind == \"bug\"'\n",
-    )
-    .unwrap();
+    );
 
     let layers = [layer(
         LayerSource::Project(project.join(".mindtape").join("config.toml")),

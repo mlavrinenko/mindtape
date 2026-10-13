@@ -6,6 +6,7 @@ use crate::model::Task;
 use crate::parse_config;
 use crate::rules::CheckSpec;
 use crate::test_support::tempdir;
+use crate::test_support::write_file;
 use crate::test_support::{bare_task, write_bare_project};
 
 /// A `check` spec naming `function` in `check.typ` at the project root, with
@@ -32,7 +33,7 @@ fn field_spec(function: &str, field: &str) -> CheckSpec {
 fn project(source: &str) -> tempfile::TempDir {
     let dir = tempdir();
     write_bare_project(dir.path());
-    std::fs::write(dir.path().join("check.typ"), source).unwrap();
+    write_file(dir.path(), "check.typ", source);
     dir
 }
 

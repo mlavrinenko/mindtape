@@ -5,6 +5,7 @@
 //! parent.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::write_file;
 use std::path::Path;
 
 use crate::support;
@@ -22,15 +23,15 @@ const FLIP_WITH_WORK: &str = "[[commits.rules]]\n\
 
 /// Rewrite `tasks/parser.typ` with `status`.
 fn write_parser(dir: &Path, status: &str) {
-    std::fs::write(
-        dir.join("tasks/parser.typ"),
+    write_file(
+        dir,
+        "tasks/parser.typ",
         format!(
             "#import \"@local/mindtape:0.2.0\": *\n\n\
              #show: task.with(\n  title: \"Write the parser\",\n  status: {status},\n  \
              priority: 3,\n)\n"
         ),
-    )
-    .unwrap();
+    );
 }
 
 /// Write `path` under `dir` and stage it.

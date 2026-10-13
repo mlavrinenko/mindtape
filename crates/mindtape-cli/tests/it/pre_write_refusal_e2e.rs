@@ -3,6 +3,7 @@
 //! summary of its own.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::write_file;
 use std::path::Path;
 
 use crate::support;
@@ -27,11 +28,7 @@ fn task(title: &str, status: &str) -> String {
 fn project() -> tempfile::TempDir {
     let dir = support::scaffold_project(CONFIG);
     for (stem, status) in [("foo", "wip"), ("bar", "todo"), ("baz", "todo")] {
-        std::fs::write(
-            dir.path().join(format!("tasks/{stem}.typ")),
-            task(stem, status),
-        )
-        .unwrap();
+        write_file(dir.path(), format!("tasks/{stem}.typ"), task(stem, status));
     }
     dir
 }

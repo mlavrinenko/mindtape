@@ -3,6 +3,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
+use mindtape::test_support::write_file;
 
 use support::run_stderr as run;
 
@@ -13,7 +14,7 @@ fn project() -> tempfile::TempDir {
 #[test]
 fn import_of_a_file_that_is_not_json_names_the_place() {
     let dir = project();
-    std::fs::write(dir.path().join("bad.json"), "not json").unwrap();
+    write_file(dir.path(), "bad.json", "not json");
 
     let (code, stderr) = run(dir.path(), &["import", "bad.json"]);
 
@@ -35,7 +36,7 @@ fn import_of_a_missing_file_is_a_failed_read() {
 #[test]
 fn import_with_a_malformed_map_is_a_usage_error() {
     let dir = project();
-    std::fs::write(dir.path().join("in.json"), "[]").unwrap();
+    write_file(dir.path(), "in.json", "[]");
 
     let (code, stderr) = run(dir.path(), &["import", "in.json", "--map", "todo"]);
 

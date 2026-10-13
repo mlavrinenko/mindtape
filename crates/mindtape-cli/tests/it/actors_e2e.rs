@@ -9,6 +9,7 @@
 //! it.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::write_file;
 use std::path::Path;
 
 use crate::support;
@@ -46,11 +47,11 @@ fn scaffold(config_tail: &str) -> tempfile::TempDir {
     let config = format!("[tasks]\nroots = [\"tasks\"]\n\n{REGISTRY}{config_tail}");
     let dir = support::scaffold_project(&config);
     for (stem, assignee) in TASKS {
-        std::fs::write(
-            dir.path().join(format!("tasks/{stem}.typ")),
+        write_file(
+            dir.path(),
+            format!("tasks/{stem}.typ"),
             task_typ(stem, assignee),
-        )
-        .unwrap();
+        );
     }
     dir
 }

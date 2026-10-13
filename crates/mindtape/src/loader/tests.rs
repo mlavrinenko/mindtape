@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+use crate::test_support::write_file;
 use crate::test_support::{tempdir, tempdir_with_dirs};
 use std::path::Path;
 
@@ -63,15 +64,11 @@ pub(super) fn setup() -> tempfile::TempDir {
     tempdir_with_dirs(&[".mindtape", "tasks"])
 }
 
-pub(super) fn write(root: &Path, rel: &str, body: &str) {
-    std::fs::write(root.join(rel), body).unwrap();
-}
-
 #[test]
 fn loads_tasks_and_skips_non_tasks() {
     let dir = setup();
-    write(dir.path(), "tasks/build.typ", TASK_BODY);
-    write(
+    write_file(dir.path(), "tasks/build.typ", TASK_BODY);
+    write_file(
         dir.path(),
         "tasks/notes.typ",
         "= Just notes\n\nNo marker here.\n",
@@ -90,7 +87,7 @@ fn loads_tasks_and_skips_non_tasks() {
 #[test]
 fn loads_multi_unit_estimate_verbatim() {
     let dir = setup();
-    write(
+    write_file(
         dir.path(),
         "tasks/est.typ",
         "#metadata((
@@ -111,7 +108,7 @@ fn loads_multi_unit_estimate_verbatim() {
 #[test]
 fn records_eval_errors() {
     let dir = setup();
-    write(
+    write_file(
         dir.path(),
         "tasks/broken.typ",
         "#import \"@local/nope:9.9.9\": *\n",
@@ -130,8 +127,8 @@ fn records_eval_errors() {
 fn injects_folder_derived_tags() {
     let dir = setup();
     std::fs::create_dir_all(dir.path().join("tasks/backend/auth")).unwrap();
-    write(dir.path(), "tasks/backend/auth/login.typ", TASK_BODY);
-    write(dir.path(), "tasks/top.typ", TASK_BODY);
+    write_file(dir.path(), "tasks/backend/auth/login.typ", TASK_BODY);
+    write_file(dir.path(), "tasks/top.typ", TASK_BODY);
 
     let config = parse_config(
         r#"
@@ -168,9 +165,9 @@ collect = ["segments", "breadcrumbs"]
 fn injects_nesting_depth() {
     let dir = setup();
     std::fs::create_dir_all(dir.path().join("tasks/backend/auth")).unwrap();
-    write(dir.path(), "tasks/backend/auth/login.typ", TASK_BODY);
-    write(dir.path(), "tasks/backend/util.typ", TASK_BODY);
-    write(dir.path(), "tasks/top.typ", TASK_BODY);
+    write_file(dir.path(), "tasks/backend/auth/login.typ", TASK_BODY);
+    write_file(dir.path(), "tasks/backend/util.typ", TASK_BODY);
+    write_file(dir.path(), "tasks/top.typ", TASK_BODY);
 
     let outcome = load_project(dir.path(), &Config::default());
 
@@ -187,8 +184,8 @@ fn glob_gates_which_files_derive() {
     let dir = setup();
     std::fs::create_dir_all(dir.path().join("tasks/backend")).unwrap();
     std::fs::create_dir_all(dir.path().join("tasks/frontend")).unwrap();
-    write(dir.path(), "tasks/backend/a.typ", TASK_BODY);
-    write(dir.path(), "tasks/frontend/b.typ", TASK_BODY);
+    write_file(dir.path(), "tasks/backend/a.typ", TASK_BODY);
+    write_file(dir.path(), "tasks/frontend/b.typ", TASK_BODY);
 
     let config = parse_config(
         r#"
@@ -217,14 +214,14 @@ pub(super) const PRELUDE_STUB: &str = "#let task(body, ..meta) = {\n  [#metadata
 pub(super) fn write_pkg(root: &Path, dir_rel: &str, name: &str, version: &str, entry: &str) {
     let pkg = root.join(dir_rel);
     std::fs::create_dir_all(&pkg).unwrap();
-    std::fs::write(
-        pkg.join("typst.toml"),
+    write_file(
+        &pkg,
+        "typst.toml",
         format!(
             "[package]\nname = \"{name}\"\nversion = \"{version}\"\nentrypoint = \"lib.typ\"\n"
         ),
-    )
-    .unwrap();
-    std::fs::write(pkg.join("lib.typ"), entry).unwrap();
+    );
+    write_file(&pkg, "lib.typ", entry);
 }
 
 // A bogus version no install would ship, so resolution depends only on the
@@ -233,7 +230,7 @@ pub(super) fn write_pkg(root: &Path, dir_rel: &str, name: &str, version: &str, e
 fn in_tree_lib_registered_when_named_mindtape() {
     let dir = setup();
     write_pkg(dir.path(), "lib", "mindtape", "99.99.99", PRELUDE_STUB);
-    write(
+    write_file(
         dir.path(),
         "tasks/t.typ",
         "#import \"@local/mindtape:99.99.99\": *\n#show: task.with(title: \"Hi\")\n= Body\n",
@@ -251,7 +248,7 @@ fn foreign_lib_not_hijacked_as_mindtape() {
     // rather than silently loading against the foreign lib.
     let dir = setup();
     write_pkg(dir.path(), "lib", "other", "99.99.99", PRELUDE_STUB);
-    write(
+    write_file(
         dir.path(),
         "tasks/t.typ",
         "#import \"@local/mindtape:99.99.99\": *\n#show: task.with(title: \"Hi\")\n= Body\n",
@@ -276,7 +273,7 @@ fn config_registers_extra_local_package() {
         "0.1.0",
         "#let mk(t) = [#metadata((marker: \"mindtape.task\", fields: (title: t), extras: (:))) <mindtape>]\n",
     );
-    write(
+    write_file(
         dir.path(),
         "tasks/t.typ",
         "#import \"@local/helper:0.1.0\": *\n#mk(\"Hi\")\n",
@@ -313,7 +310,7 @@ fn find_root_returns_none_without_marker() {
 #[test]
 fn explicit_id_wins_over_stem() {
     let dir = setup();
-    write(
+    write_file(
         dir.path(),
         "tasks/build.typ",
         "#metadata((
@@ -333,7 +330,7 @@ fn explicit_id_wins_over_stem() {
 #[test]
 fn stem_used_when_id_absent() {
     let dir = setup();
-    write(dir.path(), "tasks/my-task.typ", TASK_BODY);
+    write_file(dir.path(), "tasks/my-task.typ", TASK_BODY);
 
     let outcome = load_project(dir.path(), &Config::default());
     let task = outcome.tasks.first().unwrap();
@@ -344,7 +341,7 @@ fn stem_used_when_id_absent() {
 fn duplicate_ids_produce_uniqueness_violation() {
     let dir = setup();
     // Two files, one with explicit id matching the other's stem.
-    write(
+    write_file(
         dir.path(),
         "tasks/alpha.typ",
         "#metadata((
@@ -354,7 +351,7 @@ fn duplicate_ids_produce_uniqueness_violation() {
 ))
 ",
     );
-    write(
+    write_file(
         dir.path(),
         "tasks/shared.typ",
         "#metadata((
@@ -394,16 +391,16 @@ fn stamps_graph_ranks_over_the_whole_set() {
     // real files: without it every task would read 0 and `--sort topo` would be
     // a no-op.
     let dir = setup();
-    write(dir.path(), "tasks/root.typ", &linked_body("wip", &[]));
-    write(
+    write_file(dir.path(), "tasks/root.typ", linked_body("wip", &[]));
+    write_file(
         dir.path(),
         "tasks/mid.typ",
-        &linked_body("wip", &["root.typ"]),
+        linked_body("wip", &["root.typ"]),
     );
-    write(
+    write_file(
         dir.path(),
         "tasks/leaf.typ",
-        &linked_body("wip", &["mid.typ"]),
+        linked_body("wip", &["mid.typ"]),
     );
 
     let outcome = load_project(dir.path(), &Config::default());

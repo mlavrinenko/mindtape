@@ -1,6 +1,7 @@
 #![allow(clippy::unwrap_used)]
 
 use crate::test_support::tempdir;
+use crate::test_support::write_file;
 use std::path::Path;
 
 use crate::config::{Config, parse_config};
@@ -8,12 +9,6 @@ use crate::filter::{Filter, FilterError, expr_problem};
 use crate::graph::ready::Readiness;
 use crate::model::Task;
 use crate::test_support::{bare_task, git_as_tester as git, git_init};
-
-fn write(root: &Path, path: &str, text: &str) {
-    let path = root.join(path);
-    std::fs::create_dir_all(path.parent().unwrap()).unwrap();
-    std::fs::write(path, text).unwrap();
-}
 
 /// Commit everything in the tree with `message`.
 fn commit(root: &Path, message: &str) {
@@ -32,15 +27,15 @@ fn repo() -> tempfile::TempDir {
     let dir = tempdir();
     let root = dir.path();
     git_init(root);
-    write(root, "tasks/old.typ", "old task\n");
-    write(root, "tasks/gone.typ", "gone task\n");
-    write(root, "src/a.rs", "one\n");
+    write_file(root, "tasks/old.typ", "old task\n");
+    write_file(root, "tasks/gone.typ", "gone task\n");
+    write_file(root, "src/a.rs", "one\n");
     commit(root, "feat: a\n\nRefs: tasks/old.typ");
-    write(root, "src/a.rs", "two\n");
+    write_file(root, "src/a.rs", "two\n");
     commit(root, "fix: a\n\nRefs: kept");
     git(root, &["mv", "tasks/old.typ", "tasks/new.typ"]);
     commit(root, "task: rename old to new");
-    write(root, "src/b.rs", "b\n");
+    write_file(root, "src/b.rs", "b\n");
     std::fs::remove_file(root.join("tasks/gone.typ")).unwrap();
     commit(root, "feat: b\n\nRefs: gone");
     dir
@@ -137,7 +132,7 @@ fn the_index_is_cached_by_head() {
         ["other"],
         "an unchanged HEAD must read the cached index"
     );
-    write(root, "src/c.rs", "c\n");
+    write_file(root, "src/c.rs", "c\n");
     commit(root, "feat: c\n\nRefs: other");
     assert!(
         matching(r#"touches("src/forged.rs")"#, &config_at(root))

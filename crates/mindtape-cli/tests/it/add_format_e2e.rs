@@ -6,6 +6,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
+use mindtape::test_support::write_file;
 
 /// `mt add`'s reported path is the exact `dest.join(...)` it wrote to — under
 /// the default `--into .`, that is `<project root>/tasks/<rel>` in full,
@@ -19,7 +20,7 @@ fn expected_path(dir: &std::path::Path, rel: &str) -> String {
 /// fixture every skipped/suffixed outcome test collides against.
 fn scaffold_with_existing_dup() -> tempfile::TempDir {
     let dir = support::scaffold();
-    std::fs::write(dir.path().join("tasks/dup.typ"), "original").unwrap();
+    write_file(dir.path(), "tasks/dup.typ", "original");
     dir
 }
 

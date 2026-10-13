@@ -5,6 +5,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
+use mindtape::test_support::write_file;
 
 const LEGEND: &str = "[tasks]\nroots = [\"tasks\"]\n\
      [[tasks.status]]\nvalue = \"wip\"\n\
@@ -23,7 +24,7 @@ const NOTE: &str = "First line of the outcome.\n\n\
 #[test]
 fn multi_paragraph_bulleted_note_survives_flip_then_ls_json() {
     let dir = support::scaffold_project(LEGEND);
-    std::fs::write(dir.path().join("tasks/alpha.typ"), TASK).unwrap();
+    write_file(dir.path(), "tasks/alpha.typ", TASK);
 
     support::run_ok(dir.path(), &["flip", "done", "alpha", "-m", NOTE]);
 

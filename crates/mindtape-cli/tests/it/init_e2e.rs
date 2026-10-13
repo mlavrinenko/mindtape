@@ -16,6 +16,7 @@
 
 use crate::support;
 use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
 
 /// Every built-in preset: the walk from the status `mt add` stamps through to a
 /// terminal one, plus the `--set` fills that walk needs. The path is spelled out
@@ -159,16 +160,16 @@ fn init_accepts_the_rrule_answer_and_checks_an_rrule_task() {
     let dir = tempdir();
     support::install_lib(dir.path());
     support::run_ok(dir.path(), &["init", "--no-input", "--recurrence", "rrule"]);
-    std::fs::write(
-        dir.path().join("tasks/cost-report.typ"),
+    write_file(
+        dir.path(),
+        "tasks/cost-report.typ",
         mindtape::typst_task!(
             "\n\
          #show: task.with(\n  title: \"Send the cost report\",\n  \
          status: proposed(2026, 9, 14),\n  due: on(2026, 10, 5),\n  \
          recur: rrule(\"FREQ=MONTHLY;BYDAY=1MO\"),\n)\n"
         ),
-    )
-    .unwrap();
+    );
     support::run_ok(dir.path(), &["check"]);
 }
 

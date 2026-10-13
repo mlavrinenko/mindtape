@@ -8,6 +8,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
 use std::path::Path;
 
 use mindtape::test_support::git_init;
@@ -62,11 +63,11 @@ fn fixture(rules: &str, files: u32, extra: usize) -> tempfile::TempDir {
     for sub in [".mindtape", "tasks", "gen"] {
         std::fs::create_dir_all(root.join(sub)).unwrap();
     }
-    std::fs::write(root.join(".mindtape/config.toml"), config(rules)).unwrap();
-    std::fs::write(root.join("tasks/budgeted.typ"), task_src(files)).unwrap();
-    std::fs::write(root.join("gen/OUTPUT.md"), "generated\n").unwrap();
+    write_file(root, ".mindtape/config.toml", config(rules));
+    write_file(root, "tasks/budgeted.typ", task_src(files));
+    write_file(root, "gen/OUTPUT.md", "generated\n");
     for n in 0..extra {
-        std::fs::write(root.join(format!("scratch-{n}.txt")), "x\n").unwrap();
+        write_file(root, format!("scratch-{n}.txt"), "x\n");
     }
     dir
 }
@@ -132,7 +133,7 @@ fn the_retired_estimate_tables_are_unknown_keys() {
         let root = dir.path();
         std::fs::create_dir_all(root.join(".mindtape")).unwrap();
         std::fs::create_dir_all(root.join("tasks")).unwrap();
-        std::fs::write(root.join(".mindtape/config.toml"), config(table)).unwrap();
+        write_file(root, ".mindtape/config.toml", config(table));
         let (ok, stdout) = check(root);
         assert!(!ok, "`{table}` must be refused: {stdout}");
     }

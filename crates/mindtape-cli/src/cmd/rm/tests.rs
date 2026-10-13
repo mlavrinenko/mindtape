@@ -1,6 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing, unsafe_code)]
 
-use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
+use mindtape::test_support::{tempdir, tempdir_with_files};
 use std::collections::HashSet;
 use std::path::PathBuf;
 
@@ -144,7 +145,7 @@ fn plan_aborts_when_a_removed_task_is_untracked() {
     // so it has no last-touch commit to pin a tombstone to. The whole plan must
     // fail — all-or-nothing, before any deletion.
     let (_dir, root) = repo_with(&[("gone.typ", "gone\n")]);
-    std::fs::write(root.join("orphan.typ"), "orphan\n").unwrap();
+    write_file(&root, "orphan.typ", "orphan\n");
     let tasks = vec![
         task("gone", "gone.typ", Some("done")),
         task("orphan", "orphan.typ", Some("done")),
@@ -161,9 +162,8 @@ fn plan_aborts_when_a_removed_task_is_untracked() {
 #[test]
 fn inbound_references_finds_survivor_edges() {
     // The parse-plane scan sees the `links:` helper edges, not just `link()`.
-    let dir = tempdir();
+    let dir = tempdir_with_files(&[("live.typ", &depends_survivor())]);
     let root = dir.path();
-    std::fs::write(root.join("live.typ"), depends_survivor()).unwrap();
     let tasks = gone_and_live("done");
 
     let referenced = inbound_references(&tasks, &ids(&["gone"]), root).unwrap();
@@ -173,9 +173,8 @@ fn inbound_references_finds_survivor_edges() {
 
 #[test]
 fn inbound_references_empty_when_nothing_points_at_eligible() {
-    let dir = tempdir();
+    let dir = tempdir_with_files(&[("live.typ", "no links here\n")]);
     let root = dir.path();
-    std::fs::write(root.join("live.typ"), "no links here\n").unwrap();
     let tasks = gone_and_live("done");
 
     let referenced = inbound_references(&tasks, &ids(&["gone"]), root).unwrap();
@@ -187,9 +186,8 @@ fn inbound_references_empty_when_nothing_points_at_eligible() {
 fn inbound_references_ignores_eligible_tasks_own_edges() {
     // `a` (also being removed) links to `gone` — both go away in the same run,
     // so the edge is not waiting for attention and must not force a tombstone.
-    let dir = tempdir();
+    let dir = tempdir_with_files(&[("a.typ", &depends_survivor())]);
     let root = dir.path();
-    std::fs::write(root.join("a.typ"), depends_survivor()).unwrap();
     let tasks = vec![
         task("gone", "gone.typ", Some("done")),
         task("a", "a.typ", Some("done")),
@@ -204,10 +202,8 @@ fn inbound_references_ignores_eligible_tasks_own_edges() {
 fn plain_delete_plan_deletes_without_git() {
     // No repository anywhere: the eligible task is removed by direct deletion,
     // the survivor is left untouched — not even read.
-    let dir = tempdir();
+    let dir = tempdir_with_files(&[("gone.typ", "gone\n"), ("live.typ", &depends_survivor())]);
     let root = dir.path();
-    std::fs::write(root.join("gone.typ"), "gone\n").unwrap();
-    std::fs::write(root.join("live.typ"), depends_survivor()).unwrap();
     let tasks = gone_and_live("done");
 
     let plan = plain_delete_plan(&tasks, &ids(&["gone"]), root);
@@ -254,7 +250,7 @@ fn preflight_passes_with_unrelated_dirty_file() {
     // The pre-flight must not block: only the task files themselves matter.
     let (_dir, root) = repo_with(&[("gone.typ", "gone\n"), ("notes.txt", "draft\n")]);
     // Dirty an unrelated file.
-    std::fs::write(root.join("notes.txt"), "changed draft\n").unwrap();
+    write_file(&root, "notes.txt", "changed draft\n");
     let tasks = vec![task("gone", "gone.typ", Some("done"))];
     let result = check_eligible_files(&tasks, &ids(&["gone"]), &root, &root);
     assert!(result.is_ok());
@@ -263,7 +259,7 @@ fn preflight_passes_with_unrelated_dirty_file() {
 #[test]
 fn preflight_blocks_dirty_eligible_task() {
     let (_dir, root) = repo_with(&[("gone.typ", "gone\n")]);
-    std::fs::write(root.join("gone.typ"), "changed\n").unwrap();
+    write_file(&root, "gone.typ", "changed\n");
     let tasks = vec![task("gone", "gone.typ", Some("done"))];
     let err = check_eligible_files(&tasks, &ids(&["gone"]), &root, &root).unwrap_err();
     assert_eq!(
@@ -278,7 +274,7 @@ fn preflight_blocks_dirty_eligible_task() {
 fn preflight_blocks_untracked_eligible_task() {
     // Seed with a dummy committed file so git has at least one commit.
     let (_dir, root) = repo_with(&[("seed.txt", "seed\n")]);
-    std::fs::write(root.join("orphan.typ"), "orphan\n").unwrap();
+    write_file(&root, "orphan.typ", "orphan\n");
     let tasks = vec![task("orphan", "orphan.typ", Some("done"))];
     let err = check_eligible_files(&tasks, &ids(&["orphan"]), &root, &root).unwrap_err();
     let text = crate::diag::plain(&err);
@@ -296,8 +292,8 @@ fn preflight_blocks_untracked_eligible_task() {
 fn preflight_reports_all_offenders_at_once() {
     // Two tasks with problems: both must appear in the single error, not just the first.
     let (_dir, root) = repo_with(&[("a.typ", "a\n")]);
-    std::fs::write(root.join("a.typ"), "changed\n").unwrap();
-    std::fs::write(root.join("b.typ"), "b\n").unwrap(); // untracked
+    write_file(&root, "a.typ", "changed\n");
+    write_file(&root, "b.typ", "b\n"); // untracked
     let tasks = vec![
         task("a", "a.typ", Some("done")),
         task("b", "b.typ", Some("done")),

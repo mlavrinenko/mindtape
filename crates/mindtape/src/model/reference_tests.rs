@@ -1,6 +1,7 @@
 #![allow(clippy::unwrap_used)]
 
 use crate::test_support::tempdir_with_dirs;
+use crate::test_support::write_file;
 use std::path::{Path, PathBuf};
 
 use super::*;
@@ -53,7 +54,7 @@ fn names_of_gamma(tasks: &[Task]) -> [String; 2] {
 fn root_with(stems: &[&str]) -> tempfile::TempDir {
     let dir = tempdir_with_dirs(&["tasks"]);
     for stem in stems {
-        std::fs::write(dir.path().join(format!("tasks/{stem}.typ")), "").unwrap();
+        write_file(dir.path(), format!("tasks/{stem}.typ"), "");
     }
     dir
 }
@@ -166,7 +167,7 @@ fn a_backslash_reads_as_a_path_not_a_stem_hash() {
 #[test]
 fn a_path_naming_no_task_says_where() {
     let dir = root_with(&["alpha"]);
-    std::fs::write(dir.path().join("tasks/stray.typ"), "").unwrap();
+    write_file(dir.path(), "tasks/stray.typ", "");
     let got = resolve(&tasks(&["alpha"]), dir.path(), "tasks/stray.typ");
     assert!(matches!(got, Err(RefError::NoTaskAt(_))), "{got:?}");
 }

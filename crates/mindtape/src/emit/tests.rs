@@ -8,6 +8,7 @@
 #![allow(clippy::unwrap_used)]
 
 use crate::test_support::tempdir;
+use crate::test_support::write_file;
 use std::collections::BTreeMap;
 use std::path::Path;
 
@@ -49,7 +50,7 @@ const STUB: &str =
 fn setup(dir: &Path, config_text: &str, files: &[(String, String)]) -> LoadOutcome {
     crate::test_support::write_lib_package(dir, PRELUDE);
     std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::write(dir.join(".mindtape/config.toml"), config_text).unwrap();
+    write_file(dir, ".mindtape/config.toml", config_text);
     std::fs::create_dir_all(dir.join("tasks")).unwrap();
     for (name, source) in files {
         std::fs::write(dir.join("tasks").join(name), source).unwrap();

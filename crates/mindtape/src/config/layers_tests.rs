@@ -4,6 +4,7 @@ use super::{LayerSource, build_config, discover_layers_with_xdg, merged_config_t
 use crate::config::parse_config;
 use crate::test_support::home_and_project;
 use crate::test_support::tempdir;
+use crate::test_support::write_file;
 
 // The pure precedence-folding tests that used to live here now exercise
 // `crate::config::packs::merge_layers_with_packs_using` instead — see
@@ -341,7 +342,7 @@ fn a_literal_at_prefixed_entry_with_no_matching_dict_fails_the_load() {
 #[test]
 fn a_typst_check_rule_resolves_against_the_project_root() {
     let (_tmp, home, project) = home_and_project();
-    std::fs::write(project.join("check.typ"), "#let ok(task) = ()\n").unwrap();
+    write_file(&project, "check.typ", "#let ok(task) = ()\n");
     std::fs::write(
         project.join(".mindtape").join("config.toml"),
         "[tasks]\nroots = [\"tasks\"]\n\n\

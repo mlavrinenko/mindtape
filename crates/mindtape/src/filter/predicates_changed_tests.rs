@@ -1,6 +1,7 @@
 #![allow(clippy::unwrap_used)]
 
 use crate::test_support::tempdir;
+use crate::test_support::write_file;
 use std::collections::BTreeMap;
 use std::path::Path;
 use std::process::Command;
@@ -37,7 +38,7 @@ fn repo() -> tempfile::TempDir {
     git_init(root);
     std::fs::create_dir_all(root.join("src")).unwrap();
     for file in ["src/lib.rs", "src/lib_tests.rs", "README.md"] {
-        std::fs::write(root.join(file), "x\n").unwrap();
+        write_file(root, file, "x\n");
     }
     let ok = Command::new("git")
         .args(["add", "src/lib.rs"])

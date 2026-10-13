@@ -2,6 +2,7 @@
 
 use super::{EvalArgs, locate, run};
 use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
 
 const TASK: &str = "#metadata((
   marker: \"mindtape.task\",
@@ -75,11 +76,11 @@ fn write_pkg(root: &std::path::Path, dir_rel: &str, name: &str) {
         format!("[package]\nname = \"{name}\"\nversion = \"99.99.99\"\nentrypoint = \"lib.typ\"\n"),
     )
     .unwrap();
-    std::fs::write(
-        pkg.join("lib.typ"),
+    write_file(
+        &pkg,
+        "lib.typ",
         "#let mk(t) = [#metadata((marker: \"mindtape.task\", fields: (title: t), extras: (:))) <mindtape>]\n",
-    )
-    .unwrap();
+    );
 }
 
 /// Write a task file importing `@local/mindtape` under `root`, returning it.

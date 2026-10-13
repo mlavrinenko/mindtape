@@ -19,6 +19,7 @@
 //! this bug needed and the existing suites (one per path) didn't have.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::write_file;
 use std::path::Path;
 
 use crate::support;
@@ -164,7 +165,7 @@ fn dedup_add_suffix_writes_under_a_disambiguated_stem() {
 #[test]
 fn dedup_add_suffix_works_without_a_naming_template() {
     let dir = support::scaffold();
-    std::fs::write(dir.path().join("tasks/ship-it.typ"), "original").unwrap();
+    write_file(dir.path(), "tasks/ship-it.typ", "original");
 
     support::run_ok(dir.path(), &["add", "Ship It", "--dedup", "add-suffix"]);
     assert!(dir.path().join("tasks/ship-it-2.typ").exists());

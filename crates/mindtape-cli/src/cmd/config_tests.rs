@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use mindtape::test_support::tempdir_with_dirs;
+use mindtape::test_support::{tempdir_with_config, tempdir_with_dirs};
 use std::path::PathBuf;
 
 use mindtape::{Config, LayerSource, RuleOrigin, load_config, load_config_layered, parse_config};
@@ -15,12 +15,7 @@ fn bare_project() -> tempfile::TempDir {
 
 #[test]
 fn effective_config_round_trips_through_parse_config() {
-    let dir = bare_project();
-    std::fs::write(
-        dir.path().join(".mindtape").join("config.toml"),
-        "[project]\ncode = \"demo\"\n",
-    )
-    .unwrap();
+    let dir = tempdir_with_config("[project]\ncode = \"demo\"\n");
 
     let text = render_effective(dir.path(), false).unwrap();
     let reparsed = parse_config(&text).unwrap();
@@ -50,12 +45,9 @@ fn effective_config_json_round_trips_to_same_shape_as_toml() {
 /// rather than print a table nothing reads.
 #[test]
 fn effective_config_surfaces_the_dicts_section() {
-    let dir = bare_project();
-    std::fs::write(
-        dir.path().join(".mindtape").join("config.toml"),
+    let dir = tempdir_with_config(
         "[dicts.verbs]\nvalues = [\"add\", \"wire\"]\ninclude = [\"mindtape-verbs\"]\n",
-    )
-    .unwrap();
+    );
 
     let text = render_effective(dir.path(), false).unwrap();
     assert!(text.contains("[dicts.verbs]"), "{text}");
@@ -85,12 +77,7 @@ fn bare_project_show_reflects_the_embedded_floor() {
 
 #[test]
 fn origin_lists_exactly_the_layers_load_config_layered_returns() {
-    let dir = bare_project();
-    std::fs::write(
-        dir.path().join(".mindtape").join("config.toml"),
-        "[project]\ncode = \"demo\"\n",
-    )
-    .unwrap();
+    let dir = tempdir_with_config("[project]\ncode = \"demo\"\n");
 
     let (_config, sources, rule_origins) = load_config_layered(dir.path()).unwrap();
     assert!(
@@ -122,12 +109,7 @@ fn origin_lists_exactly_the_layers_load_config_layered_returns() {
 
 #[test]
 fn origin_marks_the_project_layer_as_existing() {
-    let dir = bare_project();
-    std::fs::write(
-        dir.path().join(".mindtape").join("config.toml"),
-        "[project]\ncode = \"demo\"\n",
-    )
-    .unwrap();
+    let dir = tempdir_with_config("[project]\ncode = \"demo\"\n");
 
     let text = render_origin(dir.path()).unwrap();
     let project_line = text
@@ -240,12 +222,9 @@ fn describe_source_covers_xdg_and_dir() {
 /// `project`.
 #[test]
 fn origin_labels_the_projects_own_rule_as_project() {
-    let dir = bare_project();
-    std::fs::write(
-        dir.path().join(".mindtape").join("config.toml"),
+    let dir = tempdir_with_config(
         "[[tasks.rules]]\nname = \"project-rule\"\nassert = 'kind == \"bug\"'\n",
-    )
-    .unwrap();
+    );
 
     let text = render_origin(dir.path()).unwrap();
     assert!(
@@ -356,12 +335,7 @@ fn origin_labels_an_xdg_defaults_rule_as_xdg() {
 /// rs`) is labeled `pack <name>`.
 #[test]
 fn origin_labels_an_embedded_packs_rule_as_pack_name() {
-    let dir = bare_project();
-    std::fs::write(
-        dir.path().join(".mindtape").join("config.toml"),
-        "extends = [\"mindtape-tasks\"]\n",
-    )
-    .unwrap();
+    let dir = tempdir_with_config("extends = [\"mindtape-tasks\"]\n");
 
     let text = render_origin(dir.path()).unwrap();
     assert!(

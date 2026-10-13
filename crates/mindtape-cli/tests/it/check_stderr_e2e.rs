@@ -2,6 +2,7 @@
 //! one count line, and leaves stdout to the `ok:` line.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::write_file;
 use std::path::Path;
 
 use crate::support;
@@ -14,14 +15,14 @@ fn broken_project() -> tempfile::TempDir {
          assert = 'in_dict(\"mindtape-dev-verbs\", word(title, 1))'\n\
          message = \"start the title with an imperative verb\"\nseverity = \"error\"\n",
     );
-    std::fs::write(
-        dir.path().join("tasks/subject.typ"),
+    write_file(
+        dir.path(),
+        "tasks/subject.typ",
         mindtape::typst_task!(
             "\n\
          #show: task.with(\n  title: \"Loader refactoring\",\n  status: wip(2026, 6, 1),\n)\n"
         ),
-    )
-    .unwrap();
+    );
     dir
 }
 

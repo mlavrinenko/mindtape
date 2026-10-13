@@ -8,6 +8,7 @@
 use super::super::{fill_title_from_stdin, run, warn_if_outside_roots};
 use super::*;
 use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
 
 // ── fill_title_from_stdin tests (survivors: body→Ok(||), ||→&&, ==→!=) ──
 
@@ -156,13 +157,13 @@ use mindtape::test_support::PRELUDE;
 /// custom template, the @local/mindtape lib, and an empty tasks dir.
 fn run_scenario_project(dir: &Path, template: &str) {
     std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::write(
-        dir.join(".mindtape/config.toml"),
+    write_file(
+        dir,
+        ".mindtape/config.toml",
         "[tasks]\nroots = [\"tasks\"]\n",
-    )
-    .unwrap();
+    );
     std::fs::create_dir_all(dir.join(".mindtape/templates")).unwrap();
-    std::fs::write(dir.join(".mindtape/templates/task.typ"), template).unwrap();
+    write_file(dir, ".mindtape/templates/task.typ", template);
     mindtape::test_support::write_lib_package(dir, PRELUDE);
     std::fs::create_dir_all(dir.join("tasks")).unwrap();
 }

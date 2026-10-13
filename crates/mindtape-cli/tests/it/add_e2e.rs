@@ -15,6 +15,7 @@
 
 use crate::support;
 use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
 
 #[test]
 fn end_to_end_files_and_validates_a_task() {
@@ -85,7 +86,7 @@ fn list_prints_template_stems_and_stops() {
 #[test]
 fn collision_is_a_hard_error() {
     let dir = support::scaffold();
-    std::fs::write(dir.path().join("tasks/dup.typ"), "existing").unwrap();
+    write_file(dir.path(), "tasks/dup.typ", "existing");
     support::mt(dir.path())
         .args(["add", "--name", "dup", "--set", "title=Dup"])
         .assert()

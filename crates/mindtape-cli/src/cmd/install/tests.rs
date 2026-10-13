@@ -1,6 +1,7 @@
 #![allow(clippy::unwrap_used)]
 
 use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
 use std::path::Path;
 
 use super::{
@@ -26,7 +27,7 @@ fn assert_skips_existing(name: &str, writer: Writer) {
     let dir = tempdir();
     let target = dir.path().join("mindtape");
     std::fs::create_dir_all(&target).unwrap();
-    std::fs::write(target.join(name), "# existing").unwrap();
+    write_file(&target, name, "# existing");
     writer(&target, false).unwrap();
     assert_eq!(
         std::fs::read_to_string(target.join(name)).unwrap(),
@@ -39,7 +40,7 @@ fn assert_overwrites(name: &str, writer: Writer, expected: &str) {
     let dir = tempdir();
     let target = dir.path().join("mindtape");
     std::fs::create_dir_all(&target).unwrap();
-    std::fs::write(target.join(name), "# old").unwrap();
+    write_file(&target, name, "# old");
     writer(&target, true).unwrap();
     assert_eq!(
         std::fs::read_to_string(target.join(name)).unwrap(),

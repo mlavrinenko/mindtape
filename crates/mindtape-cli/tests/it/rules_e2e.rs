@@ -9,6 +9,7 @@
 //! and letting a warn-severity one through with its warning printed.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::write_file;
 use std::path::{Path, PathBuf};
 
 use crate::support;
@@ -30,14 +31,14 @@ fn repo_root() -> PathBuf {
 /// `title`, so a rule's verdict is a property of the title alone.
 fn project(rules: &str, title: &str) -> tempfile::TempDir {
     let dir = scaffold_project(&format!("[tasks]\nroots = [\"tasks\"]\n\n{rules}"));
-    std::fs::write(
-        dir.path().join("tasks/subject.typ"),
+    write_file(
+        dir.path(),
+        "tasks/subject.typ",
         format!(
             "#import \"@local/mindtape:0.2.0\": *\n\n\
              #show: task.with(\n  title: \"{title}\",\n  status: wip(2026, 6, 1),\n)\n"
         ),
-    )
-    .unwrap();
+    );
     dir
 }
 
@@ -333,21 +334,21 @@ fn this_repos_own_config_carries_the_rule_at_error() {
 /// exporting `check-title`, and a single task titled `title`.
 fn check_project(rules: &str, title: &str) -> tempfile::TempDir {
     let dir = scaffold_project(&format!("[tasks]\nroots = [\"tasks\"]\n\n{rules}"));
-    std::fs::write(
-        dir.path().join("check.typ"),
+    write_file(
+        dir.path(),
+        "check.typ",
         "#let check-title(title) = if title == \"Loader refactoring\" {\n  \
              (\"title must not be exactly this\",)\n\
          } else {\n  ()\n}\n",
-    )
-    .unwrap();
-    std::fs::write(
-        dir.path().join("tasks/subject.typ"),
+    );
+    write_file(
+        dir.path(),
+        "tasks/subject.typ",
         format!(
             "#import \"@local/mindtape:0.2.0\": *\n\n\
              #show: task.with(\n  title: \"{title}\",\n  status: wip(2026, 6, 1),\n)\n"
         ),
-    )
-    .unwrap();
+    );
     dir
 }
 

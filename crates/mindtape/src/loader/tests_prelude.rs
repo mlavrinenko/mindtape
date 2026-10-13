@@ -5,12 +5,13 @@
 //! fixtures (`setup`, `write`, `write_pkg`).
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use super::tests::{setup, write, write_pkg};
+use super::tests::{setup, write_pkg};
 use super::{LoadOutcome, load_project};
 use crate::config::Config;
 use crate::model::Task;
 use crate::model::numeric::NumValue;
 use crate::recur::{PeriodUnit, Rule};
+use crate::test_support::write_file;
 use typst::WorldExt;
 use typst::syntax::VirtualRoot;
 use typst_harvest::HarvestWorld;
@@ -23,7 +24,7 @@ use crate::test_support::PRELUDE;
 fn load_real_prelude(source: &str) -> (tempfile::TempDir, LoadOutcome) {
     let dir = setup();
     write_pkg(dir.path(), "lib", "mindtape", "0.2.0", PRELUDE);
-    write(dir.path(), "tasks/t.typ", source);
+    write_file(dir.path(), "tasks/t.typ", source);
     let outcome = load_project(dir.path(), &Config::default());
     (dir, outcome)
 }
@@ -219,7 +220,7 @@ fn real_prelude_places_the_unknown_slot_error_on_the_name_in_the_task_file() {
     );
     let dir = setup();
     write_pkg(dir.path(), "lib", "mindtape", "0.2.0", PRELUDE);
-    write(dir.path(), "tasks/t.typ", source);
+    write_file(dir.path(), "tasks/t.typ", source);
     let world = HarvestWorld::with_root(&dir.path().join("tasks/t.typ"), dir.path())
         .unwrap()
         .with_local_package("mindtape", dir.path().join("lib"));

@@ -2,6 +2,7 @@
 //! and the subprocess-verified stdout/env-isolation paths.
 #![allow(clippy::unwrap_used)]
 
+use mindtape::test_support::write_file;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
@@ -152,7 +153,7 @@ fn run_child(test_name: &str, config: Option<&str>) -> (tempfile::TempDir, std::
     if let Some(body) = config {
         let wt_dir = dir.path().join("mindtape");
         std::fs::create_dir_all(&wt_dir).unwrap();
-        std::fs::write(wt_dir.join("worktrees.toml"), body).unwrap();
+        write_file(&wt_dir, "worktrees.toml", body);
     }
     let out = std::process::Command::new(std::env::current_exe().unwrap())
         .env(mindtape::CONFIG_HOME_ENV, dir.path())
@@ -205,7 +206,7 @@ fn load_registry_valid_file_returns_entries() {
 fn load_registry_non_notfound_error_propagates() {
     if std::env::var(CHILD).is_err() {
         let dir = tempfile::TempDir::new().unwrap();
-        std::fs::write(dir.path().join("mindtape"), "i am a file not a dir").unwrap();
+        write_file(dir.path(), "mindtape", "i am a file not a dir");
         let out = std::process::Command::new(std::env::current_exe().unwrap())
             .env(mindtape::CONFIG_HOME_ENV, dir.path())
             .env(CHILD, "1")

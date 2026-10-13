@@ -3,6 +3,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
+use mindtape::test_support::write_file;
 
 const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
      [[tasks.status]]\nvalue = \"wip\"\n\
@@ -10,7 +11,7 @@ const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
 
 fn check_text(source: &str) -> String {
     let dir = support::scaffold_project(CONFIG);
-    std::fs::write(dir.path().join("tasks/setup-ci.typ"), source).unwrap();
+    write_file(dir.path(), "tasks/setup-ci.typ", source);
     let out = support::mt(dir.path()).arg("check").output().unwrap();
     assert!(!out.status.success(), "the breach must fail the check");
     String::from_utf8_lossy(&out.stderr).into_owned()
@@ -45,7 +46,7 @@ fn a_cycle_is_reported_at_the_links_line_of_its_first_member() {
 /// The stderr of `mt check` over a task file that fails to evaluate.
 fn eval_warning(source: &str) -> String {
     let dir = support::scaffold_project(CONFIG);
-    std::fs::write(dir.path().join("tasks/setup-ci.typ"), source).unwrap();
+    write_file(dir.path(), "tasks/setup-ci.typ", source);
     let out = support::mt(dir.path()).arg("check").output().unwrap();
     assert!(!out.status.success(), "the load error must fail the check");
     String::from_utf8_lossy(&out.stderr).into_owned()
@@ -80,7 +81,7 @@ fn a_misspelled_field_is_reported_at_its_line() {
 /// The stderr of `mt ls` over a task file, which loads or does not.
 fn ls_stderr(source: &str) -> String {
     let dir = support::scaffold_project(CONFIG);
-    std::fs::write(dir.path().join("tasks/setup-ci.typ"), source).unwrap();
+    write_file(dir.path(), "tasks/setup-ci.typ", source);
     let out = support::mt(dir.path()).arg("ls").output().unwrap();
     String::from_utf8_lossy(&out.stderr).into_owned()
 }

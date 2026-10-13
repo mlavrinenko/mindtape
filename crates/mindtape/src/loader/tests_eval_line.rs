@@ -3,9 +3,10 @@
 //! it inside the prelude, so the reader never sees a prelude line.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use super::tests::{setup, write, write_pkg};
+use super::tests::{setup, write_pkg};
 use super::{LoadError, load_project};
 use crate::config::Config;
+use crate::test_support::write_file;
 
 use crate::test_support::PRELUDE;
 
@@ -14,7 +15,7 @@ use crate::test_support::PRELUDE;
 fn load_error(source: &str) -> LoadError {
     let dir = setup();
     write_pkg(dir.path(), "lib", "mindtape", "0.2.0", PRELUDE);
-    write(dir.path(), "tasks/t.typ", source);
+    write_file(dir.path(), "tasks/t.typ", source);
     let mut errors = load_project(dir.path(), &Config::default()).errors;
     assert_eq!(errors.len(), 1, "{errors:#?}");
     errors.remove(0)
@@ -166,7 +167,7 @@ fn an_error_keeps_typsts_hints() {
 fn a_warning_on_a_file_that_loads_is_kept() {
     let dir = setup();
     write_pkg(dir.path(), "lib", "mindtape", "0.2.0", PRELUDE);
-    write(
+    write_file(
         dir.path(),
         "tasks/t.typ",
         "<orphan>\n\

@@ -8,6 +8,7 @@
 //! rename that missed an inbound edge leaves a dangling one.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::write_file;
 use std::path::Path;
 
 use crate::support;
@@ -72,7 +73,7 @@ fn scaffold() -> tempfile::TempDir {
         ],
     );
     std::fs::create_dir_all(dir.path().join("tasks/sub")).unwrap();
-    std::fs::write(dir.path().join("tasks/sub/nested.typ"), NESTED).unwrap();
+    write_file(dir.path(), "tasks/sub/nested.typ", NESTED);
     dir
 }
 

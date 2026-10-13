@@ -1,6 +1,7 @@
 #![allow(clippy::unwrap_used)]
 
 use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
 use mindtape::test_support::{TASK_SRC, bare_task, link_edge, linked_task, noted_edge};
 use mindtape::{LoadOutcome, Status, Task};
 
@@ -343,19 +344,19 @@ fn run_prints_graph_from_disk() {
         let dir = tempdir();
         // Scaffold project manually (must exist before run() calls open()).
         mindtape::test_support::write_bare_project(dir.path());
-        std::fs::write(dir.path().join("tasks/a.typ"), TASK_SRC).unwrap();
+        write_file(dir.path(), "tasks/a.typ", TASK_SRC);
         // Need lib override for HarvestWorld evaluation.
         std::fs::create_dir_all(dir.path().join("lib")).unwrap();
-        std::fs::write(
-            dir.path().join("lib/typst.toml"),
+        write_file(
+            dir.path(),
+            "lib/typst.toml",
             "[package]\nname = \"mindtape\"\nversion = \"0.2.0\"\nentrypoint = \"prelude.typ\"\n",
-        )
-        .unwrap();
-        std::fs::write(
-            dir.path().join("lib/prelude.typ"),
+        );
+        write_file(
+            dir.path(),
+            "lib/prelude.typ",
             mindtape::test_support::PRELUDE,
-        )
-        .unwrap();
+        );
 
         let output = std::process::Command::new(std::env::current_exe().unwrap())
             .current_dir(dir.path())

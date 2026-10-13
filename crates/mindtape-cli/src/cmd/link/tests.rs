@@ -3,6 +3,7 @@
 //! a per-entry failure carries.
 #![allow(clippy::unwrap_used)]
 
+use mindtape::test_support::write_file;
 use std::path::Path;
 
 use clap::Parser;
@@ -309,7 +310,7 @@ fn a_landed_batch_runs_the_post_write_reload() {
     let (dir, project) = setup();
     // Break the on-disk config after the project was loaded, so only the
     // post-write reload can notice.
-    std::fs::write(dir.path().join(".mindtape/config.toml"), "[[[not toml\n").unwrap();
+    write_file(dir.path(), ".mindtape/config.toml", "[[[not toml\n");
     let result = run_with(&project, &parse(&["alpha", "depends-on", "beta"]));
     assert!(
         result.is_err(),

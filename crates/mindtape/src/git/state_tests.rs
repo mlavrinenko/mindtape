@@ -2,6 +2,7 @@
 
 use super::{GitCache, GitStatus, PathFilter, StateSet};
 use crate::test_support::tempdir;
+use crate::test_support::write_file;
 use crate::test_support::{git_as_tester as git, git_init};
 
 /// `git status --porcelain -z` output, NUL-separated as git writes it.
@@ -142,8 +143,8 @@ fn reading_a_real_repository_separates_staged_from_worktree() {
     let dir = tempdir();
     let root = dir.path();
     git_init(root);
-    std::fs::write(root.join("staged.rs"), "a\n").unwrap();
-    std::fs::write(root.join("loose.rs"), "b\n").unwrap();
+    write_file(root, "staged.rs", "a\n");
+    write_file(root, "loose.rs", "b\n");
     git(root, &["add", "staged.rs"]);
 
     let status = GitStatus::read(root).unwrap();
@@ -163,12 +164,12 @@ fn the_cache_reads_git_once_and_shares_it_across_clones() {
     let dir = tempdir();
     let root = dir.path();
     git_init(root);
-    std::fs::write(root.join("one.rs"), "a\n").unwrap();
+    write_file(root, "one.rs", "a\n");
     let mut cache = GitCache::default();
     cache.set_root(root);
     let clone = cache.clone();
     assert_eq!(cache.status().unwrap().entries().len(), 1);
-    std::fs::write(root.join("two.rs"), "b\n").unwrap();
+    write_file(root, "two.rs", "b\n");
     assert_eq!(
         clone.status().unwrap().entries().len(),
         1,

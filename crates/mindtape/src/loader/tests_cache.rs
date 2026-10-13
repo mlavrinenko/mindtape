@@ -5,10 +5,11 @@
 //! `PRELUDE_STUB`).
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+use crate::test_support::write_file;
 use std::path::{Path, PathBuf};
 
 use super::load_project;
-use super::tests::{PRELUDE_STUB, TASK_BODY, setup, write, write_pkg};
+use super::tests::{PRELUDE_STUB, TASK_BODY, setup, write_pkg};
 use crate::config::Config;
 use crate::parse_config;
 
@@ -45,7 +46,7 @@ fn doctor_cache_title(entry: &Path, title: &str) {
 #[test]
 fn warm_load_serves_cache_and_skips_eval() {
     let dir = setup();
-    write(dir.path(), "tasks/build.typ", TASK_BODY);
+    write_file(dir.path(), "tasks/build.typ", TASK_BODY);
     let first = load_project(dir.path(), &Config::default());
     assert_eq!(first.tasks.first().unwrap().title, "Build");
 
@@ -59,14 +60,14 @@ fn warm_load_serves_cache_and_skips_eval() {
 #[test]
 fn edited_file_misses_and_reevals() {
     let dir = setup();
-    write(dir.path(), "tasks/build.typ", TASK_BODY);
+    write_file(dir.path(), "tasks/build.typ", TASK_BODY);
     let _ = load_project(dir.path(), &Config::default());
 
     // New content -> new hash -> cache miss -> fresh eval.
-    write(
+    write_file(
         dir.path(),
         "tasks/build.typ",
-        &TASK_BODY.replace("Build", "Rebuilt"),
+        TASK_BODY.replace("Build", "Rebuilt"),
     );
     let out = load_project(dir.path(), &Config::default());
     assert_eq!(out.tasks.first().unwrap().title, "Rebuilt");
@@ -75,7 +76,7 @@ fn edited_file_misses_and_reevals() {
 #[test]
 fn config_change_busts_the_cache() {
     let dir = setup();
-    write(dir.path(), "tasks/build.typ", TASK_BODY);
+    write_file(dir.path(), "tasks/build.typ", TASK_BODY);
     let base = parse_config("").unwrap();
     let _ = load_project(dir.path(), &base);
     doctor_cache_title(&sole_cache_entry(dir.path()), "STALE");
@@ -90,7 +91,7 @@ fn config_change_busts_the_cache() {
 fn prelude_change_busts_the_cache() {
     let dir = setup();
     write_pkg(dir.path(), "lib", "mindtape", "0.2.0", PRELUDE_STUB);
-    write(
+    write_file(
         dir.path(),
         "tasks/t.typ",
         crate::typst_task!("#show: task.with(title: \"Hi\")\n"),
@@ -108,7 +109,7 @@ fn prelude_change_busts_the_cache() {
 #[test]
 fn corrupt_entry_falls_back_to_eval() {
     let dir = setup();
-    write(dir.path(), "tasks/build.typ", TASK_BODY);
+    write_file(dir.path(), "tasks/build.typ", TASK_BODY);
     let _ = load_project(dir.path(), &Config::default());
 
     std::fs::write(sole_cache_entry(dir.path()), "{ not json").unwrap();
@@ -127,7 +128,7 @@ fn a_cache_hit_replays_the_files_typst_warnings() {
         "0.2.0",
         crate::test_support::PRELUDE,
     );
-    write(
+    write_file(
         dir.path(),
         "tasks/t.typ",
         "<orphan>\n\
@@ -149,12 +150,12 @@ const IMPORTING_TASK: &str = "#import \"../shared.typ\": t\n#metadata((marker: \
 #[test]
 fn edited_imported_module_busts_the_entry() {
     let dir = setup();
-    write(dir.path(), "shared.typ", "#let t = \"Title one\"\n");
-    write(dir.path(), "tasks/imp.typ", IMPORTING_TASK);
+    write_file(dir.path(), "shared.typ", "#let t = \"Title one\"\n");
+    write_file(dir.path(), "tasks/imp.typ", IMPORTING_TASK);
     let first = load_project(dir.path(), &Config::default());
     assert_eq!(first.tasks.first().unwrap().title, "Title one");
 
-    write(dir.path(), "shared.typ", "#let t = \"Title TWO\"\n");
+    write_file(dir.path(), "shared.typ", "#let t = \"Title TWO\"\n");
     let second = load_project(dir.path(), &Config::default());
     assert_eq!(second.tasks.first().unwrap().title, "Title TWO");
 }
@@ -162,8 +163,8 @@ fn edited_imported_module_busts_the_entry() {
 #[test]
 fn unchanged_imported_module_still_hits_the_cache() {
     let dir = setup();
-    write(dir.path(), "shared.typ", "#let t = \"Title one\"\n");
-    write(dir.path(), "tasks/imp.typ", IMPORTING_TASK);
+    write_file(dir.path(), "shared.typ", "#let t = \"Title one\"\n");
+    write_file(dir.path(), "tasks/imp.typ", IMPORTING_TASK);
     let _ = load_project(dir.path(), &Config::default());
     doctor_cache_title(&sole_cache_entry(dir.path()), "FROM-CACHE");
     let second = load_project(dir.path(), &Config::default());
@@ -173,8 +174,8 @@ fn unchanged_imported_module_still_hits_the_cache() {
 #[test]
 fn deleted_imported_module_misses() {
     let dir = setup();
-    write(dir.path(), "shared.typ", "#let t = \"Title one\"\n");
-    write(dir.path(), "tasks/imp.typ", IMPORTING_TASK);
+    write_file(dir.path(), "shared.typ", "#let t = \"Title one\"\n");
+    write_file(dir.path(), "tasks/imp.typ", IMPORTING_TASK);
     let _ = load_project(dir.path(), &Config::default());
     std::fs::remove_file(dir.path().join("shared.typ")).unwrap();
     let second = load_project(dir.path(), &Config::default());

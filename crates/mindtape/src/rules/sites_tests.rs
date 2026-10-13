@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
+use crate::test_support::write_file;
 use crate::test_support::{tempdir, tempdir_with_config};
 use std::path::Path;
 
@@ -48,7 +49,7 @@ fn a_skipped_project_rule_is_located_at_its_header() {
 fn a_skipped_path_pack_rule_is_located_in_the_pack_file() {
     let dir = tempdir_with_config("extends = [\"./pack.toml\"]\n");
     let pack = format!("# a pack\n\n{}", skipping_rule("src-budget"));
-    std::fs::write(dir.path().join("pack.toml"), pack).unwrap();
+    write_file(dir.path(), "pack.toml", &pack);
     let skip = skip_report(dir.path(), None);
     assert_eq!(skip.location, Location::at("pack.toml", 3));
 }
@@ -70,7 +71,7 @@ fn a_rule_the_project_overrides_by_name_is_located_where_it_won() {
         "extends = [\"./pack.toml\"]\n\n{}",
         skipping_rule("src-budget")
     ));
-    std::fs::write(dir.path().join("pack.toml"), skipping_rule("src-budget")).unwrap();
+    write_file(dir.path(), "pack.toml", skipping_rule("src-budget"));
     let skip = skip_report(dir.path(), None);
     assert_eq!(skip.location, Location::at(".mindtape/config.toml", 3));
 }

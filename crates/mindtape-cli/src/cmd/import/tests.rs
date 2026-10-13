@@ -5,6 +5,7 @@
 use mindtape::link::Link;
 use mindtape::model::numeric::NumValue;
 use mindtape::model::{Status, Task};
+use mindtape::test_support::write_file;
 use mindtape::test_support::{bare_task, dep_edge, ice_priority, noted_edge};
 use mindtape::{CanonicalTask, Config, load_project};
 use typst_harvest::HVal;
@@ -331,7 +332,7 @@ fn a_record_with_an_id_keeps_it_as_its_stem_so_links_to_it_resolve() {
 fn an_id_that_clashes_with_an_existing_file_is_disambiguated() {
     let (dir, project) = setup_dest();
     std::fs::create_dir_all(dir.path().join("tasks")).unwrap();
-    std::fs::write(dir.path().join("tasks/taken.typ"), "").unwrap();
+    write_file(dir.path(), "tasks/taken.typ", "");
     let mut task = bare_task("taken");
     task.title = "Something else".to_owned();
     task.status = Some(status("wip", "2026-06-01"));

@@ -14,6 +14,7 @@
 )]
 
 use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
 use std::path::Path;
 
 use crate::support;
@@ -26,15 +27,15 @@ const RUN: &str = "echo run>> runs.txt&& exit 0";
 /// `up:pr-7`, with `wip` requiring an unblocked task.
 fn project(run: &str) -> tempfile::TempDir {
     let dir = support::scaffold_project(&config(run));
-    std::fs::write(
-        dir.path().join("tasks/drop-the-patch.typ"),
+    write_file(
+        dir.path(),
+        "tasks/drop-the-patch.typ",
         mindtape::typst_task!(
             "\n\
          #show: task.with(\n  title: \"Drop the patch\",\n  status: proposed(2026, 6, 1),\n  \
          waits-on: (\"up:pr-7\",),\n)\n"
         ),
-    )
-    .unwrap();
+    );
     dir
 }
 
@@ -110,7 +111,7 @@ fn a_changed_run_line_asks_again() {
     let dir = project(RUN);
     support::run_ok(dir.path(), &["allow"]);
     let changed = "echo again>> runs.txt&& exit 0";
-    std::fs::write(dir.path().join(".mindtape/config.toml"), config(changed)).unwrap();
+    write_file(dir.path(), ".mindtape/config.toml", config(changed));
 
     let (blocked, stderr) = listed(dir.path(), "blocked");
 

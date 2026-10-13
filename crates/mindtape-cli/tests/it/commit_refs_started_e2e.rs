@@ -4,6 +4,7 @@
 //! the task-scope language and nothing added to it.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::write_file;
 use std::path::Path;
 
 use crate::support;
@@ -22,19 +23,19 @@ const REFS_TASK_STARTED: &str = "[[commits.rules]]\n\
 /// Stage `tasks/parser.typ` with `status`, and one work file beside it when
 /// `with_work` is set.
 fn stage(dir: &Path, status: &str, with_work: bool) {
-    std::fs::write(
-        dir.join("tasks/parser.typ"),
+    write_file(
+        dir,
+        "tasks/parser.typ",
         format!(
             "#import \"@local/mindtape:0.2.0\": *\n\n\
              #show: task.with(\n  title: \"Write the parser\",\n  status: {status},\n  \
              priority: 3,\n)\n"
         ),
-    )
-    .unwrap();
+    );
     git(dir, &["add", "tasks/parser.typ"]);
     if with_work {
         std::fs::create_dir_all(dir.join("src")).unwrap();
-        std::fs::write(dir.join("src/lib.rs"), "work\n").unwrap();
+        write_file(dir, "src/lib.rs", "work\n");
         git(dir, &["add", "src/lib.rs"]);
     }
 }
@@ -56,15 +57,15 @@ fn work_naming_a_task_whose_flip_stayed_unstaged_is_refused() {
     let dir = commit_repo(REFS_TASK_STARTED);
     stage(dir.path(), "proposed(2026, 6, 1)", true);
     // The flip exists in the working tree only.
-    std::fs::write(
-        dir.path().join("tasks/parser.typ"),
+    write_file(
+        dir.path(),
+        "tasks/parser.typ",
         mindtape::typst_task!(
             "\n\
          #show: task.with(\n  title: \"Write the parser\",\n  status: wip(2026, 6, 2),\n  \
          priority: 3,\n)\n"
         ),
-    )
-    .unwrap();
+    );
     let (ok, text) = check_commit_msg(dir.path(), "feat: parse\n\nRefs: parser\n");
     assert!(!ok, "an unstaged flip is not the commit's: {text}");
 }

@@ -6,6 +6,7 @@
 
 use crate::support;
 use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
 
 const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
      [tasks.fields.kind]\nvalues = [\"fix\"]\n";
@@ -20,9 +21,9 @@ fn scaffold_with(config: &str, template: &str) -> tempfile::TempDir {
     let dir = tempdir();
     let templates = dir.path().join(".mindtape/templates");
     std::fs::create_dir_all(&templates).unwrap();
-    std::fs::write(dir.path().join(".mindtape/config.toml"), config).unwrap();
-    std::fs::write(templates.join("bug.typ"), template).unwrap();
-    std::fs::write(templates.join("task.typ"), template).unwrap();
+    write_file(dir.path(), ".mindtape/config.toml", config);
+    write_file(&templates, "bug.typ", template);
+    write_file(&templates, "task.typ", template);
     support::install_lib(dir.path());
     dir
 }
@@ -295,11 +296,11 @@ fn fallback_severity_reads_the_global_defaults_layer() {
         .find(|(key, _)| *key == mindtape::CONFIG_HOME_ENV)
         .unwrap();
     std::fs::create_dir_all(home.join("mindtape")).unwrap();
-    std::fs::write(
-        home.join("mindtape/defaults.toml"),
+    write_file(
+        &home,
+        "mindtape/defaults.toml",
         "[templates]\nfallback-severity = \"error\"\n",
-    )
-    .unwrap();
+    );
     let (ok, text) = check(dir.path());
     assert!(!ok, "{text}");
     assert!(

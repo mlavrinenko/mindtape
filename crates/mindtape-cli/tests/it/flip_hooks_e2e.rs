@@ -9,6 +9,7 @@
 //! Its stub commands run the same under `sh -c` and `cmd /C`.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::write_file;
 use std::path::Path;
 
 use crate::support;
@@ -34,7 +35,7 @@ fn project(hooks: &str) -> tempfile::TempDir {
 /// [`project`] before anyone ran `mt allow`.
 fn unallowed(hooks: &str) -> tempfile::TempDir {
     let dir = support::scaffold_project(&format!("{LEGEND}{hooks}"));
-    std::fs::write(dir.path().join("tasks/alpha.typ"), TASK).unwrap();
+    write_file(dir.path(), "tasks/alpha.typ", TASK);
     dir
 }
 

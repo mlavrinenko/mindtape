@@ -3,6 +3,7 @@
 
 use crate::support;
 use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
 
 #[test]
 fn go_prints_opened_message() {
@@ -12,11 +13,11 @@ fn go_prints_opened_message() {
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
 
     // Write a config that uses `true` as the editor (always succeeds).
-    std::fs::write(
-        dir.path().join(".mindtape/config.toml"),
+    write_file(
+        dir.path(),
+        ".mindtape/config.toml",
         "[tasks]\nroots = [\"tasks\"]\n[go]\neditor = \"true\"\n",
-    )
-    .unwrap();
+    );
 
     // File a task via `mt add` so it has the right format.
     support::run_ok(dir.path(), &["add", "--name", "x", "--set", "title=Test"]);

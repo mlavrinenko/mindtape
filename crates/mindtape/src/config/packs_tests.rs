@@ -1,6 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use crate::test_support::tempdir;
+use crate::test_support::write_file;
 use std::path::{Path, PathBuf};
 
 use super::merge_layers_with_packs_using;
@@ -132,9 +133,9 @@ fn an_ancestor_layers_check_rule_resolves_against_the_project_root_not_the_ances
     // A decoy at the ANCESTOR's own directory that does not export the
     // function — if load ever resolved `typst` against the declaring layer
     // instead of the project root, this is what it would find and fail on.
-    std::fs::write(home.join("checks.typ"), "#let something-else() = ()\n").unwrap();
+    write_file(&home, "checks.typ", "#let something-else() = ()\n");
     // The real module lives at the project root instead.
-    std::fs::write(project.join("checks.typ"), "#let check-thing(value) = ()\n").unwrap();
+    write_file(&project, "checks.typ", "#let check-thing(value) = ()\n");
 
     let result = load_config_layered_from(&project, Some(&home), None);
     assert!(
@@ -156,7 +157,7 @@ fn an_ancestor_layers_check_rule_still_fails_load_when_absent_at_the_project_roo
     .unwrap();
     // Only at the ancestor's own directory, proving that is not a fallback
     // location and load-time validation genuinely runs for this rule.
-    std::fs::write(home.join("checks.typ"), "#let check-thing(value) = ()\n").unwrap();
+    write_file(&home, "checks.typ", "#let check-thing(value) = ()\n");
 
     let err = load_config_layered_from(&project, Some(&home), None).unwrap_err();
     assert!(err.to_string().contains("checks.typ"), "{err}");

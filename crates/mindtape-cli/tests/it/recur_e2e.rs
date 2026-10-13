@@ -6,6 +6,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
 use std::path::Path;
 
 use crate::support;
@@ -260,9 +261,9 @@ recur: every(weeks: 1),\n\
 )\n\n== Body\n"
     );
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
-    std::fs::write(dir.path().join(".mindtape/config.toml"), config).unwrap();
+    write_file(dir.path(), ".mindtape/config.toml", config);
     support::install_lib(dir.path());
-    std::fs::write(dir.path().join("tasks/water-plants.typ"), body).unwrap();
+    write_file(dir.path(), "tasks/water-plants.typ", body);
 
     let output = mt(dir.path())
         .args(["recur", "water-plants"])

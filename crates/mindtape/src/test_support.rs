@@ -148,6 +148,34 @@ pub fn tempdir_with_dirs(dirs: &[&str]) -> tempfile::TempDir {
     dir
 }
 
+/// Write `contents` to `rel` under `root`, creating its parent directories.
+///
+/// # Panics
+/// Panics if a directory or the file cannot be written, a test-harness bug.
+#[allow(clippy::unwrap_used)]
+pub fn write_file(root: impl AsRef<Path>, rel: impl AsRef<Path>, contents: impl AsRef<[u8]>) {
+    let path = root.as_ref().join(rel);
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).unwrap();
+    }
+    std::fs::write(path, contents).unwrap();
+}
+
+/// A fresh [`tempdir`] with each `(rel, contents)` file written in it, its
+/// parent directories created.
+///
+/// # Panics
+/// Panics if writing a file fails, a test-harness bug.
+#[allow(clippy::unwrap_used)]
+#[must_use]
+pub fn tempdir_with_files(files: &[(&str, &str)]) -> tempfile::TempDir {
+    let dir = tempdir();
+    for (rel, contents) in files {
+        write_file(dir.path(), rel, contents);
+    }
+    dir
+}
+
 /// A fresh [`tempdir`] holding `.mindtape/config.toml` with `config` and
 /// nothing else: no lib, no task root.
 ///

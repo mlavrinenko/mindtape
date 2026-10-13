@@ -1,6 +1,7 @@
 #![allow(clippy::unwrap_used)]
 
-use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
+use mindtape::test_support::{tempdir, tempdir_with_files};
 use std::path::Path;
 
 use super::{
@@ -11,14 +12,14 @@ use super::{
 fn write_nested_preset(dir: &Path, name: &str, config: &str, templates: &[(&str, &str)]) {
     let root = dir.join(name);
     std::fs::create_dir_all(&root).unwrap();
-    std::fs::write(root.join("config.toml"), config).unwrap();
+    write_file(&root, "config.toml", config);
     if templates.is_empty() {
         return;
     }
     let template_dir = root.join("templates");
     std::fs::create_dir_all(&template_dir).unwrap();
     for (file, body) in templates {
-        std::fs::write(template_dir.join(file), body).unwrap();
+        write_file(&template_dir, file, body);
     }
 }
 
@@ -136,12 +137,10 @@ fn a_misspelt_preset_names_the_nearest_builtin() {
 /// A user preset shadows a built-in of the same name.
 #[test]
 fn user_preset_shadows_builtin() {
-    let dir = tempdir();
-    std::fs::write(
-        dir.path().join(format!("{DEFAULT_PRESET}.toml")),
+    let dir = tempdir_with_files(&[(
+        &format!("{DEFAULT_PRESET}.toml"),
         "[tasks]\nroots = [\"mine\"]\n",
-    )
-    .unwrap();
+    )]);
     let preset = resolve(DEFAULT_PRESET, Some(dir.path())).unwrap();
     assert!(preset.config.contains("mine"), "{}", preset.config);
 }
@@ -242,10 +241,9 @@ fn strip_comments_is_idempotent() {
 /// directory guard as `||` would admit a directory with no config.
 #[test]
 fn list_user_presets_keeps_only_preset_shapes() {
-    let dir = tempdir();
-    std::fs::write(dir.path().join("flat.toml"), "[tasks]\n").unwrap();
+    let dir = tempdir_with_files(&[("flat.toml", "[tasks]\n")]);
     write_nested_preset(dir.path(), "nested", "[tasks]\n", &[]);
-    std::fs::write(dir.path().join("notes.txt"), "not a preset").unwrap();
+    write_file(dir.path(), "notes.txt", "not a preset");
     std::fs::create_dir_all(dir.path().join("empty")).unwrap();
 
     assert_eq!(

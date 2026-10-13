@@ -1,6 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use crate::test_support::tempdir;
+use crate::test_support::write_file;
 use std::collections::HashSet;
 use std::path::Path;
 
@@ -122,7 +123,7 @@ fn check_wip_candidate_for_build(dir: &Path, config: &Config, existing: &[Task])
 #[test]
 fn filters_out_violations_of_the_existing_tasks() {
     let dir = setup();
-    std::fs::write(dir.path().join("tasks/old.typ"), marker("bogus")).unwrap();
+    write_file(dir.path(), "tasks/old.typ", marker("bogus"));
     let config = floor();
     let existing = load_project(dir.path(), &config).tasks;
     assert_eq!(existing.len(), 1);
@@ -329,7 +330,7 @@ fn a_candidate_that_fails_to_evaluate_does_not_sink_the_batch() {
 #[test]
 fn replaces_an_existing_task_at_the_same_path() {
     let dir = setup();
-    std::fs::write(dir.path().join("tasks/build.typ"), marker("bogus")).unwrap();
+    write_file(dir.path(), "tasks/build.typ", marker("bogus"));
     let config = floor();
     let existing = load_project(dir.path(), &config).tasks;
 
@@ -363,7 +364,7 @@ fn candidate_at_b(root: &Path, config: &Config, existing: &[Task], source: &str)
 #[test]
 fn a_batch_edge_that_closes_a_cycle_comes_back_as_elsewhere() {
     let dir = setup();
-    std::fs::write(dir.path().join("tasks/a.typ"), linked(&["b.typ"])).unwrap();
+    write_file(dir.path(), "tasks/a.typ", linked(&["b.typ"]));
     let config = floor();
     let existing = load_project(dir.path(), &config).tasks;
     assert_eq!(existing.len(), 1);
@@ -403,7 +404,7 @@ fn a_batch_edge_that_closes_a_cycle_comes_back_as_elsewhere() {
 #[test]
 fn a_cycle_on_the_candidate_is_not_reported_twice() {
     let dir = setup();
-    std::fs::write(dir.path().join("tasks/z.typ"), linked(&["b.typ"])).unwrap();
+    write_file(dir.path(), "tasks/z.typ", linked(&["b.typ"]));
     let config = floor();
     let existing = load_project(dir.path(), &config).tasks;
     assert_eq!(existing.len(), 1);
@@ -426,8 +427,8 @@ fn a_cycle_on_the_candidate_is_not_reported_twice() {
 #[test]
 fn an_already_present_cycle_is_not_attributed_to_the_batch() {
     let dir = setup();
-    std::fs::write(dir.path().join("tasks/a.typ"), linked(&["b.typ"])).unwrap();
-    std::fs::write(dir.path().join("tasks/b.typ"), linked(&["a.typ"])).unwrap();
+    write_file(dir.path(), "tasks/a.typ", linked(&["b.typ"]));
+    write_file(dir.path(), "tasks/b.typ", linked(&["a.typ"]));
     let config = floor();
     let existing = load_project(dir.path(), &config).tasks;
 

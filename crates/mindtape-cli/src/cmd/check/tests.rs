@@ -5,6 +5,7 @@
 #![allow(clippy::unwrap_used)]
 
 use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
 use std::path::Path;
 
 use mindtape::test_support::TASK_SRC as TASK;
@@ -149,17 +150,17 @@ pub(super) const BODY_NO_PRIORITY: &str = "#metadata((
 /// The caller provides the TOML string for the config.
 fn scaffold_violation_project(dir: &Path, toml: &str) {
     std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::write(dir.join(".mindtape/config.toml"), toml).unwrap();
+    write_file(dir, ".mindtape/config.toml", toml);
     std::fs::create_dir_all(dir.join("tasks")).unwrap();
-    std::fs::write(dir.join("tasks/y.typ"), BODY_NO_PRIORITY).unwrap();
+    write_file(dir, "tasks/y.typ", BODY_NO_PRIORITY);
     // Install a local lib override so HarvestWorld can evaluate #metadata().
     std::fs::create_dir_all(dir.join("lib")).unwrap();
-    std::fs::write(
-        dir.join("lib/typst.toml"),
+    write_file(
+        dir,
+        "lib/typst.toml",
         "[package]\nname = \"mindtape\"\nversion = \"0.2.0\"\nentrypoint = \"prelude.typ\"\n",
-    )
-    .unwrap();
-    std::fs::write(dir.join("lib/prelude.typ"), mindtape::test_support::PRELUDE).unwrap();
+    );
+    write_file(dir, "lib/prelude.typ", mindtape::test_support::PRELUDE);
 }
 
 pub(super) fn violation_config() -> Config {

@@ -2,6 +2,7 @@
 
 use super::{StatePlan, parse_batch, read_blobs};
 use crate::test_support::tempdir;
+use crate::test_support::write_file;
 use crate::test_support::{git_as_tester as git, git_init};
 
 #[test]
@@ -26,14 +27,14 @@ fn repo() -> tempfile::TempDir {
     let dir = tempdir();
     let root = dir.path();
     git_init(root);
-    std::fs::write(root.join("kept.typ"), "old\n").unwrap();
-    std::fs::write(root.join("moved.typ"), "same\n").unwrap();
+    write_file(root, "kept.typ", "old\n");
+    write_file(root, "moved.typ", "same\n");
     git(root, &["add", "-A"]);
     git(root, &["commit", "-q", "-m", "seed"]);
-    std::fs::write(root.join("kept.typ"), "new\n").unwrap();
+    write_file(root, "kept.typ", "new\n");
     git(root, &["mv", "moved.typ", "renamed.typ"]);
     git(root, &["add", "kept.typ"]);
-    std::fs::write(root.join("loose.typ"), "x\n").unwrap();
+    write_file(root, "loose.typ", "x\n");
     dir
 }
 

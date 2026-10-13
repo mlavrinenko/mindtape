@@ -14,6 +14,7 @@
 //! would hit.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::write_file;
 use std::path::Path;
 
 use crate::support;
@@ -240,8 +241,9 @@ fn mindtape_now_stamps_the_pinned_date_on_add() {
 #[test]
 fn mindtape_now_stamps_the_pinned_date_on_recur_spawn() {
     let dir = support::scaffold_project(CONFIG);
-    std::fs::write(
-        dir.path().join("tasks/water-plants.typ"),
+    write_file(
+        dir.path(),
+        "tasks/water-plants.typ",
         mindtape::typst_task!(
             "\n\
          #show: task.with(\n  \
@@ -251,8 +253,7 @@ fn mindtape_now_stamps_the_pinned_date_on_recur_spawn() {
          recur: every(weeks: 1),\n\
          )\n\n== Body\n"
         ),
-    )
-    .unwrap();
+    );
 
     mt(dir.path())
         .env("MINDTAPE_NOW", "2026-09-04")

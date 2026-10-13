@@ -24,6 +24,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::path::Path;
@@ -55,8 +56,9 @@ fn build_fixture() -> tempfile::TempDir {
 /// recurring task's tree exactly as untouched as any other.
 fn build_recurring_fixture() -> tempfile::TempDir {
     let dir = support::scaffold();
-    std::fs::write(
-        dir.path().join("tasks/water-plants.typ"),
+    write_file(
+        dir.path(),
+        "tasks/water-plants.typ",
         mindtape::typst_task!(
             "\n\
          #show: task.with(\n  \
@@ -65,8 +67,7 @@ fn build_recurring_fixture() -> tempfile::TempDir {
          recur: every(weeks: 1),\n\
          )\n"
         ),
-    )
-    .unwrap();
+    );
     dir
 }
 

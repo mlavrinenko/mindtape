@@ -13,7 +13,7 @@
 //! `cmd/import/tests.rs`; everything here calls one helper directly.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use mindtape::test_support::tempdir;
+use mindtape::test_support::{tempdir, tempdir_with_files};
 use std::collections::HashSet;
 use std::process::Command;
 
@@ -109,10 +109,7 @@ fn default_status_flag_outside_legend_fails_import() {
 
 #[test]
 fn existing_stems_returns_only_typ_stems() {
-    let dir = tempdir();
-    std::fs::write(dir.path().join("alpha.typ"), "").unwrap();
-    std::fs::write(dir.path().join("beta.typ"), "").unwrap();
-    std::fs::write(dir.path().join("notes.md"), "").unwrap();
+    let dir = tempdir_with_files(&[("alpha.typ", ""), ("beta.typ", ""), ("notes.md", "")]);
     let stems = super::place::existing_stems(dir.path());
     let expected: HashSet<String> = ["alpha".into(), "beta".into()].into_iter().collect();
     assert_eq!(stems, expected);

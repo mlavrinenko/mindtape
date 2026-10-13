@@ -1,6 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use crate::test_support::tempdir;
+use crate::test_support::write_file;
+use crate::test_support::{tempdir, tempdir_with_files};
 use std::collections::BTreeMap;
 
 use super::{
@@ -117,11 +118,10 @@ fn build_key_reacts_to_config_and_prelude() {
         "a config change must bust the key"
     );
 
-    let lib = tempdir();
-    std::fs::write(lib.path().join("prelude.typ"), "a").unwrap();
+    let lib = tempdir_with_files(&[("prelude.typ", "a")]);
     let overrides = vec![("mindtape".to_owned(), lib.path().to_path_buf())];
     let before = build_key(&base, &overrides);
-    std::fs::write(lib.path().join("prelude.typ"), "b").unwrap();
+    write_file(lib.path(), "prelude.typ", "b");
     let after = build_key(&base, &overrides);
     assert_ne!(before, after, "a prelude edit must bust the key");
 }
@@ -134,7 +134,7 @@ fn prune_stale_removes_other_build_keys_only() {
     let stale = "b".repeat(40);
     std::fs::create_dir_all(cache_root.join(&keep)).unwrap();
     std::fs::create_dir_all(cache_root.join(&stale)).unwrap();
-    std::fs::write(cache_root.join(".gitignore"), "*\n").unwrap();
+    write_file(&cache_root, ".gitignore", "*\n");
 
     prune_stale(&cache_root, &keep);
 

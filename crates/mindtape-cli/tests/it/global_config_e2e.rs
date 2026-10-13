@@ -16,6 +16,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
 use std::path::Path;
 
 use crate::support;
@@ -44,7 +45,7 @@ fn config_home_with_defaults(body: &str) -> tempfile::TempDir {
     let dir = tempdir();
     let mindtape = dir.path().join("mindtape");
     std::fs::create_dir_all(&mindtape).unwrap();
-    std::fs::write(mindtape.join("defaults.toml"), body).unwrap();
+    write_file(&mindtape, "defaults.toml", body);
     dir
 }
 

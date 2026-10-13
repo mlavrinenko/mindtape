@@ -15,6 +15,7 @@
 
 use crate::support;
 use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
 
 /// A batch-composed config records its axis answers as a comment block, and the
 /// `spec` headers answer ships the template that produces its sections.
@@ -154,7 +155,7 @@ terminal = true
 fn init_from_preset_file(body: &str) -> tempfile::TempDir {
     let dir = tempdir();
     support::install_lib(dir.path());
-    std::fs::write(dir.path().join("preset.toml"), body).unwrap();
+    write_file(dir.path(), "preset.toml", body);
     support::run_ok(dir.path(), &["init", "--preset", "preset.toml"]);
     dir
 }

@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use mindtape::test_support::tempdir;
+use mindtape::test_support::{tempdir, tempdir_with_files};
 use std::ffi::OsStr;
 
 use super::{assignment, help, presets_in, tag_token, tag_values};
@@ -9,9 +9,7 @@ use super::{assignment, help, presets_in, tag_token, tag_values};
 /// helped by its description, then the user presets — a shadowing one once.
 #[test]
 fn presets_offer_the_builtins_and_the_user_presets() {
-    let dir = tempdir();
-    std::fs::write(dir.path().join("mine.toml"), "").unwrap();
-    std::fs::write(dir.path().join("flow.toml"), "").unwrap();
+    let dir = tempdir_with_files(&[("mine.toml", ""), ("flow.toml", "")]);
     let offered = presets_in(Some(dir.path()));
     let names: Vec<String> = offered
         .iter()

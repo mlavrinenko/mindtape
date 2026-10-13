@@ -1,4 +1,5 @@
 #![allow(clippy::unwrap_used)]
+use mindtape::test_support::write_file;
 use mindtape::test_support::{tempdir, tempdir_with_dirs};
 use std::path::{Path, PathBuf};
 
@@ -339,7 +340,7 @@ fn a_stem_two_folders_share_is_refused_naming_each_path() {
     for folder in ["cli", "web"] {
         let path = dir.path().join("tasks").join(folder);
         std::fs::create_dir_all(&path).unwrap();
-        std::fs::write(path.join("gamma.typ"), TASK_SRC).unwrap();
+        write_file(&path, "gamma.typ", TASK_SRC);
     }
     let config = Config::default();
     let outcome = load_project(dir.path(), &config);

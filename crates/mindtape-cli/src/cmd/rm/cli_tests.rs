@@ -7,6 +7,7 @@
 // OnceLock-based worktree override and avoid unsafe code.
 // ---------------------------------------------------------------------------
 
+use mindtape::test_support::write_file;
 use std::path::{Path, PathBuf};
 
 use assert_cmd::Command;
@@ -30,11 +31,11 @@ const METADATA_GONE: &str = "\
 fn scaffold(files: &[(&str, &str)]) -> (tempfile::TempDir, PathBuf) {
     let (tmpdir, root) = repo_with(files);
     std::fs::create_dir_all(root.join(".mindtape")).unwrap();
-    std::fs::write(
-        root.join(".mindtape/config.toml"),
+    write_file(
+        &root,
+        ".mindtape/config.toml",
         "[tasks]\nroots = [\"tasks\"]\n",
-    )
-    .unwrap();
+    );
     (tmpdir, root)
 }
 
@@ -44,18 +45,18 @@ fn scaffold_with_lib(gone_src: &str, live_src: Option<&str>) -> (tempfile::TempD
     let (tmpdir, root) = repo_with(&[("seed.txt", "seed\n")]);
     mindtape::test_support::write_lib_package(&root, mindtape::test_support::PRELUDE);
     std::fs::create_dir_all(root.join("tasks")).unwrap();
-    std::fs::write(root.join("tasks/gone.typ"), gone_src).unwrap();
+    write_file(&root, "tasks/gone.typ", gone_src);
     if let Some(live) = live_src {
-        std::fs::write(root.join("tasks/live.typ"), live).unwrap();
+        write_file(&root, "tasks/live.typ", live);
     }
     swhid_mint::test_support::git(&root, &["add", "-A"]);
     swhid_mint::test_support::git(&root, &["commit", "-q", "-m", "seedwithlib"]);
     std::fs::create_dir_all(root.join(".mindtape")).unwrap();
-    std::fs::write(
-        root.join(".mindtape/config.toml"),
+    write_file(
+        &root,
+        ".mindtape/config.toml",
         "[tasks]\nroots = [\"tasks\"]\n",
-    )
-    .unwrap();
+    );
     (tmpdir, root)
 }
 
@@ -215,14 +216,14 @@ fn run_dry_run_skips_preflight() {
         )),
     );
     // Dirty the eligible file.
-    std::fs::write(
-        root.join("tasks/gone.typ"),
+    write_file(
+        &root,
+        "tasks/gone.typ",
         mindtape::typst_task!(
             "\n\
          #show: task.with(\n  title: \"Gone\",\n  status: done(2026, 6, 1),\n)\n\nBody. // dirty\n"
         ),
-    )
-    .unwrap();
+    );
 
     mt(&root)
         .args(["rm", "--dry-run", "-y", "gone"])

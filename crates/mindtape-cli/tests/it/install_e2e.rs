@@ -9,6 +9,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
 use std::path::{Path, PathBuf};
 
 /// Point the config and data homes at fresh tempdirs under `home` and run
@@ -200,11 +201,11 @@ fn install_long_help_names_every_skip_flag() {
 fn project_without_a_lib() -> tempfile::TempDir {
     let dir = tempdir();
     mindtape::test_support::write_bare_project(dir.path());
-    std::fs::write(
-        dir.path().join("tasks/only.typ"),
+    write_file(
+        dir.path(),
+        "tasks/only.typ",
         mindtape::typst_task!("#show: task.with(title: \"Only task\")\n"),
-    )
-    .unwrap();
+    );
     dir
 }
 
@@ -283,11 +284,11 @@ fn an_empty_data_home_resolves_no_global_package() {
 #[test]
 fn a_missing_prelude_is_one_error_however_many_tasks_fail() {
     let project = project_without_a_lib();
-    std::fs::write(
-        project.path().join("tasks/second.typ"),
+    write_file(
+        project.path(),
+        "tasks/second.typ",
         mindtape::typst_task!("#show: task.with(title: \"Second task\")\n"),
-    )
-    .unwrap();
+    );
 
     let assert = ls_with_data_home(project.path(), std::ffi::OsStr::new(""));
     let stderr = String::from_utf8(assert.get_output().stderr.clone()).unwrap();

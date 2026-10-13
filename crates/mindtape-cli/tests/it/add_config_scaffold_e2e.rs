@@ -10,6 +10,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
+use mindtape::test_support::write_file;
 
 /// A config whose `[tasks.priority]` is required: the barebones template omits
 /// priority, so `add` must splice it in.
@@ -18,12 +19,7 @@ const PRIORITY_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
 
 #[test]
 fn injects_config_required_priority_slot() {
-    let dir = support::scaffold();
-    std::fs::write(
-        dir.path().join(".mindtape/config.toml"),
-        PRIORITY_REQUIRED_CONFIG,
-    )
-    .unwrap();
+    let dir = support::scaffold_project(PRIORITY_REQUIRED_CONFIG);
 
     // `--describe` surfaces the spliced-in priority slot.
     let names = support::describe_slot_names(dir.path());
@@ -57,12 +53,7 @@ const REAL_PRIORITY_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
 
 #[test]
 fn injects_real_scale_priority_slot_and_round_trips_a_decimal() {
-    let dir = support::scaffold();
-    std::fs::write(
-        dir.path().join(".mindtape/config.toml"),
-        REAL_PRIORITY_REQUIRED_CONFIG,
-    )
-    .unwrap();
+    let dir = support::scaffold_project(REAL_PRIORITY_REQUIRED_CONFIG);
 
     // `--describe=json` reports the spliced-in priority slot as `real`.
     assert_eq!(support::describe_slot_kind(dir.path(), "priority"), "real");
@@ -90,8 +81,7 @@ const STRICT_ICE_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
 
 #[test]
 fn injects_framework_leaf_slots_for_a_strict_framework_priority() {
-    let dir = support::scaffold();
-    std::fs::write(dir.path().join(".mindtape/config.toml"), STRICT_ICE_CONFIG).unwrap();
+    let dir = support::scaffold_project(STRICT_ICE_CONFIG);
 
     // `--describe` surfaces the framework leaves, not a scalar priority.
     let names = support::describe_slot_names(dir.path());
@@ -149,12 +139,7 @@ const CUSTOM_LEGEND_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
 
 #[test]
 fn derives_initial_status_from_a_custom_legend() {
-    let dir = support::scaffold();
-    std::fs::write(
-        dir.path().join(".mindtape/config.toml"),
-        CUSTOM_LEGEND_CONFIG,
-    )
-    .unwrap();
+    let dir = support::scaffold_project(CUSTOM_LEGEND_CONFIG);
 
     let written = support::add_and_read(dir.path(), "custom-legend", &["--set", "title=T"]);
     assert!(written.contains("status: todo("), "{written}");
@@ -168,22 +153,17 @@ fn derives_initial_status_from_a_custom_legend() {
 /// kept, the date restamped, and `--status` still overrides it.
 #[test]
 fn files_at_the_status_the_template_names() {
-    let dir = support::scaffold();
-    std::fs::write(
-        dir.path().join(".mindtape/config.toml"),
-        CUSTOM_LEGEND_CONFIG,
-    )
-    .unwrap();
+    let dir = support::scaffold_project(CUSTOM_LEGEND_CONFIG);
     let templates = dir.path().join(".mindtape/templates");
     std::fs::create_dir_all(&templates).unwrap();
-    std::fs::write(
-        templates.join("task.typ"),
+    write_file(
+        &templates,
+        "task.typ",
         mindtape::typst_task!(
             "\
          #show: task.with(title: slot(\"title\"), status: done(2020, 1, 1))\n"
         ),
-    )
-    .unwrap();
+    );
 
     let add = |name: &str, extra: &[&str]| {
         support::mt(dir.path())
@@ -223,19 +203,14 @@ const ESTIMATE_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
 /// not leave a task that fails `check` the moment it lands.
 #[test]
 fn add_with_no_explicit_estimate_defaults_to_a_valid_task() {
-    let dir = support::scaffold();
-    std::fs::write(
-        dir.path().join(".mindtape/config.toml"),
-        ESTIMATE_REQUIRED_CONFIG,
-    )
-    .unwrap();
+    let dir = support::scaffold_project(ESTIMATE_REQUIRED_CONFIG);
     std::fs::create_dir_all(dir.path().join(".mindtape/templates")).unwrap();
-    std::fs::write(
-        dir.path().join(".mindtape/templates/task.typ"),
+    write_file(
+        dir.path(),
+        ".mindtape/templates/task.typ",
         PRODUCTION_TEMPLATE,
-    )
-    .unwrap();
-    std::fs::write(dir.path().join("lib.typ"), GOALS_STUB).unwrap();
+    );
+    write_file(dir.path(), "lib.typ", GOALS_STUB);
 
     let written = support::add_and_read(
         dir.path(),

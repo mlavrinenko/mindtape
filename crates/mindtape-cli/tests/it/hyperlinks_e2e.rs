@@ -5,6 +5,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
+use mindtape::test_support::write_file;
 
 /// Every OSC 8 *open* target in `line` — the payload between `ESC ] 8 ; ;`
 /// and the following `ESC \` that is non-empty (an empty payload is a close
@@ -21,14 +22,14 @@ fn hyperlink_targets(line: &str) -> Vec<&str> {
 /// `[ls] hyperlinks` precedence tests can set it without the flag.
 fn project_with_config(config: &str) -> tempfile::TempDir {
     let dir = support::scaffold_project(config);
-    std::fs::write(
-        dir.path().join("tasks/test.typ"),
+    write_file(
+        dir.path(),
+        "tasks/test.typ",
         mindtape::typst_task!(
             "\
          #show: task.with(title: \"Rewrite auth\", status: wip(2026, 6, 1))\n"
         ),
-    )
-    .unwrap();
+    );
     dir
 }
 

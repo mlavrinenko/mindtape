@@ -5,6 +5,7 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
 use mindtape::{Config, discover_slots};
 
 use super::{
@@ -177,7 +178,7 @@ fn list_includes_builtin_and_local() {
     let dir = tempdir();
     let templates = dir.path().join(".mindtape/templates");
     std::fs::create_dir_all(&templates).unwrap();
-    std::fs::write(templates.join("bug.typ"), "x").unwrap();
+    write_file(&templates, "bug.typ", "x");
     let names = list_templates(&Config::default(), dir.path());
     assert!(names.contains(&"task".to_owned()));
     assert!(names.contains(&"bug".to_owned()));

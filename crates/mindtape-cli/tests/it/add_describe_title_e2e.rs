@@ -4,6 +4,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
+use mindtape::test_support::write_file;
 
 fn refusal(dir: &std::path::Path, args: &[&str]) -> String {
     let out = support::mt(dir)
@@ -19,11 +20,11 @@ fn refusal(dir: &std::path::Path, args: &[&str]) -> String {
 fn a_template_name_beside_describe_suggests_dash_t() {
     let dir = support::scaffold();
     std::fs::create_dir_all(dir.path().join(".mindtape/templates")).unwrap();
-    std::fs::write(
-        dir.path().join(".mindtape/templates/finding.typ"),
+    write_file(
+        dir.path(),
+        ".mindtape/templates/finding.typ",
         mindtape::typst_task!("#show: task.with(title: slot(\"title\"))\n"),
-    )
-    .unwrap();
+    );
     let stderr = refusal(dir.path(), &["--describe", "finding"]);
     assert_eq!(
         stderr,

@@ -6,7 +6,7 @@
 //! and a smaller `cmd` set pins the same capture-and-context behaviour there.
 #![allow(clippy::unwrap_used)]
 
-use mindtape::test_support::tempdir;
+use mindtape::test_support::{tempdir, tempdir_with_files};
 use std::path::Path;
 
 use super::{ENV_FILE, ENV_STATUS, ENV_STEM, RunCtx, run_command};
@@ -65,8 +65,7 @@ fn a_signalled_command_has_no_code() {
 #[cfg(not(windows))]
 #[test]
 fn the_command_sees_the_root_and_the_transition() {
-    let dir = tempdir();
-    std::fs::write(dir.path().join("marker"), "x").unwrap();
+    let dir = tempdir_with_files(&[("marker", "x")]);
     let path = dir.path().join("tasks/alpha.typ");
     let script = format!("test -f marker && echo \"${ENV_STEM}|${ENV_STATUS}|${ENV_FILE}\"");
     let report = run_command(&script, &ctx(dir.path(), &path)).unwrap();
@@ -121,8 +120,7 @@ mod windows {
     /// environment.
     #[test]
     fn the_command_sees_the_root_and_the_transition() {
-        let dir = tempdir();
-        std::fs::write(dir.path().join("marker"), "x").unwrap();
+        let dir = tempdir_with_files(&[("marker", "x")]);
         let path = dir.path().join("tasks/alpha.typ");
         let script = format!("if exist marker echo %{ENV_STEM}% %{ENV_STATUS}% %{ENV_FILE}%");
         let report = run_command(&script, &ctx(dir.path(), &path)).unwrap();

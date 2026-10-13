@@ -4,6 +4,7 @@
 //! the working tree through `head(...)`, `staged(...)` and `worktree(...)`.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::write_file;
 use std::path::Path;
 
 use crate::support;
@@ -22,15 +23,15 @@ const FLIP_WITH_WORK: &str = "[[commits.rules]]\n\
 
 /// Rewrite `tasks/parser.typ` with `status` and any `extra` fields.
 fn write_parser(dir: &Path, status: &str, extra: &str) {
-    std::fs::write(
-        dir.join("tasks/parser.typ"),
+    write_file(
+        dir,
+        "tasks/parser.typ",
         format!(
             "#import \"@local/mindtape:0.2.0\": *\n\n\
              #show: task.with(\n  title: \"Write the parser\",\n  status: {status},\n  \
              priority: 3,\n{extra})\n"
         ),
-    )
-    .unwrap();
+    );
 }
 
 /// Close `parser` and stage the close.
@@ -42,7 +43,7 @@ fn stage_close(dir: &Path, extra: &str) {
 /// Stage one new work file.
 fn stage_work(dir: &Path) {
     std::fs::create_dir_all(dir.join("src")).unwrap();
-    std::fs::write(dir.join("src/lib.rs"), "work\n").unwrap();
+    write_file(dir, "src/lib.rs", "work\n");
     git(dir, &["add", "src/lib.rs"]);
 }
 

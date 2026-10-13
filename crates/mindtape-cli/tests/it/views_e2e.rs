@@ -3,15 +3,16 @@
 
 use crate::support;
 use mindtape::test_support::tempdir;
+use mindtape::test_support::write_file;
 
 fn scaffold_with_views(dir: &std::path::Path) {
     support::install_lib(dir);
     std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::write(
-        dir.join(".mindtape/config.toml"),
+    write_file(
+        dir,
+        ".mindtape/config.toml",
         "[tasks]\nroots = [\"tasks\"]\n\n[views.hot]\nfilter = 'priority > 5'\nsort = ['priority:desc']\n\n[views.simple]\nfilter = ''\n",
-    )
-    .unwrap();
+    );
 }
 
 #[test]

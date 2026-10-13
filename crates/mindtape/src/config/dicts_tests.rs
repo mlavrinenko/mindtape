@@ -1,6 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use crate::test_support::{tempdir, tempdir_with_dirs};
+use crate::test_support::write_file;
+use crate::test_support::{tempdir, tempdir_with_dirs, tempdir_with_files};
 use std::collections::BTreeMap;
 use std::path::Path;
 
@@ -40,11 +41,7 @@ fn inline_values_are_the_whole_set() {
 #[test]
 fn values_path_and_include_union_into_one_set() {
     let dir = tempdir_with_dirs(&["dicts"]);
-    std::fs::write(
-        dir.path().join("dicts/extra.txt"),
-        "# a comment\n\nfix\nwire\n",
-    )
-    .unwrap();
+    write_file(dir.path(), "dicts/extra.txt", "# a comment\n\nfix\nwire\n");
     let dicts = compile(
         "[dicts.base]\nvalues = [\"ship\"]\n\n\
          [dicts.verbs]\nvalues = [\"add\", \"wire\"]\n\
@@ -59,12 +56,7 @@ fn values_path_and_include_union_into_one_set() {
 /// files carry is exactly this shape.
 #[test]
 fn a_path_skips_comments_and_blank_lines() {
-    let dir = tempdir();
-    std::fs::write(
-        dir.path().join("words.txt"),
-        "# header\n#\n\n  add  \n\nfix\n",
-    )
-    .unwrap();
+    let dir = tempdir_with_files(&[("words.txt", "# header\n#\n\n  add  \n\nfix\n")]);
     let dicts = compile("[dicts.verbs]\npath = \"words.txt\"\n", dir.path()).unwrap();
     assert_eq!(entries(&dicts, "verbs"), ["add", "fix"]);
 }
@@ -73,7 +65,7 @@ fn a_path_skips_comments_and_blank_lines() {
 #[test]
 fn a_path_may_leave_the_project_root() {
     let dir = tempdir_with_dirs(&["project"]);
-    std::fs::write(dir.path().join("outside.txt"), "add\n").unwrap();
+    write_file(dir.path(), "outside.txt", "add\n");
     let dicts = compile(
         "[dicts.verbs]\npath = \"../outside.txt\"\n",
         &dir.path().join("project"),
@@ -217,8 +209,7 @@ fn a_dict_with_no_source_is_refused() {
 /// Distinct from "no source": the dict names a source, and the source is empty.
 #[test]
 fn a_dict_that_resolves_empty_is_refused() {
-    let dir = tempdir();
-    std::fs::write(dir.path().join("words.txt"), "# only a comment\n").unwrap();
+    let dir = tempdir_with_files(&[("words.txt", "# only a comment\n")]);
     let err = compile("[dicts.verbs]\npath = \"words.txt\"\n", dir.path()).unwrap_err();
     assert!(err.contains("dicts.verbs"), "{err}");
     assert!(err.contains("no entries"), "{err}");

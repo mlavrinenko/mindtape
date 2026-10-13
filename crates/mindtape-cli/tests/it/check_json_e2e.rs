@@ -6,6 +6,7 @@
     clippy::indexing_slicing
 )]
 
+use mindtape::test_support::write_file;
 use std::path::Path;
 
 use crate::support;
@@ -39,21 +40,9 @@ fn run(dir: &Path, args: &[&str]) -> (Option<i32>, serde_json::Value, String) {
 #[test]
 fn an_error_and_a_warning_are_two_objects_and_the_exit_code_is_one() {
     let dir = scaffold_project(CONFIG);
-    std::fs::write(
-        dir.path().join("tasks/subject.typ"),
-        task("Loader refactoring"),
-    )
-    .unwrap();
-    std::fs::write(
-        dir.path().join("tasks/polish.typ"),
-        task("Fix Loader polishing"),
-    )
-    .unwrap();
-    std::fs::write(
-        dir.path().join("tasks/warned.typ"),
-        task("Loader polishing"),
-    )
-    .unwrap();
+    write_file(dir.path(), "tasks/subject.typ", task("Loader refactoring"));
+    write_file(dir.path(), "tasks/polish.typ", task("Fix Loader polishing"));
+    write_file(dir.path(), "tasks/warned.typ", task("Loader polishing"));
 
     let (code, json, stderr) = run(dir.path(), &["check", "--json"]);
 
@@ -82,7 +71,7 @@ fn an_error_and_a_warning_are_two_objects_and_the_exit_code_is_one() {
 #[test]
 fn a_clean_project_prints_an_empty_list_and_exits_zero() {
     let dir = scaffold_project(CONFIG);
-    std::fs::write(dir.path().join("tasks/fine.typ"), task("Fix Loader")).unwrap();
+    write_file(dir.path(), "tasks/fine.typ", task("Fix Loader"));
 
     let (code, json, stderr) = run(dir.path(), &["check", "--json"]);
 
@@ -93,11 +82,7 @@ fn a_clean_project_prints_an_empty_list_and_exits_zero() {
 #[test]
 fn a_warning_alone_exits_zero() {
     let dir = scaffold_project(CONFIG);
-    std::fs::write(
-        dir.path().join("tasks/warned.typ"),
-        task("Loader polishing"),
-    )
-    .unwrap();
+    write_file(dir.path(), "tasks/warned.typ", task("Loader polishing"));
 
     let (code, json, _) = run(dir.path(), &["check", "--json"]);
 

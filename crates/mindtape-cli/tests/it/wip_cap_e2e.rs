@@ -12,6 +12,7 @@
 //! it never touches).
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use mindtape::test_support::write_file;
 use std::path::Path;
 
 use crate::support;
@@ -38,8 +39,8 @@ fn task(title: &str, status: &str) -> String {
 /// (`bar`).
 fn project() -> tempfile::TempDir {
     let dir = support::scaffold_project(&format!("{LEGEND}{CAP}"));
-    std::fs::write(dir.path().join("tasks/foo.typ"), task("Foo", "wip")).unwrap();
-    std::fs::write(dir.path().join("tasks/bar.typ"), task("Bar", "todo")).unwrap();
+    write_file(dir.path(), "tasks/foo.typ", task("Foo", "wip"));
+    write_file(dir.path(), "tasks/bar.typ", task("Bar", "todo"));
     dir
 }
 
@@ -85,7 +86,7 @@ fn the_retired_limits_table_is_an_unknown_key() {
     let dir = support::scaffold_project(&format!(
         "{LEGEND}[[tasks.limits]]\nfilter = 'status == \"wip\"'\nmax = 1\n"
     ));
-    std::fs::write(dir.path().join("tasks/foo.typ"), task("Foo", "wip")).unwrap();
+    write_file(dir.path(), "tasks/foo.typ", task("Foo", "wip"));
     let output = support::mt(dir.path()).arg("check").output().unwrap();
     assert!(!output.status.success(), "`tasks.limits` must be refused");
 }

@@ -1,6 +1,7 @@
 #![allow(clippy::unwrap_used)]
 
 use crate::test_support::tempdir;
+use crate::test_support::write_file;
 use std::fs;
 
 use super::current_branch;
@@ -46,12 +47,12 @@ fn worktree_gitdir_file_resolves() {
     let dir = tempdir();
     let real_git = dir.path().join("real-git-dir");
     fs::create_dir_all(&real_git).unwrap();
-    fs::write(real_git.join("HEAD"), "ref: refs/heads/feature/x\n").unwrap();
-    fs::write(
-        dir.path().join(".git"),
+    write_file(&real_git, "HEAD", "ref: refs/heads/feature/x\n");
+    write_file(
+        dir.path(),
+        ".git",
         format!("gitdir: {}\n", real_git.display()),
-    )
-    .unwrap();
+    );
     assert_eq!(current_branch(dir.path()), Some("feature/x".to_owned()));
 }
 
@@ -64,7 +65,7 @@ fn worktree_gitdir_file_relative_path_resolves() {
         "ref: refs/heads/relative\n",
     )
     .unwrap();
-    fs::write(dir.path().join(".git"), "gitdir: real-git-dir\n").unwrap();
+    write_file(dir.path(), ".git", "gitdir: real-git-dir\n");
     assert_eq!(current_branch(dir.path()), Some("relative".to_owned()));
 }
 
