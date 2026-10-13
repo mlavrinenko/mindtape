@@ -271,3 +271,104 @@ fn run_save_outside_project_fails() {
     };
     super::run(&args).unwrap();
 }
+
+/// `ls --json` lists a user preset as `origin: user` with a `null`
+/// description, and marks a user preset that shadows a built-in. Pins the
+/// user half of `ls_json`, which the built-in rows never reach.
+#[test]
+fn ls_json_marks_a_user_preset_and_its_shadowing() {
+    let user_dir = tempdir_with_files(&[
+        (
+            &format!("{DEFAULT_PRESET}.toml"),
+            "[tasks]\nroots = [\"mine\"]\n",
+        ),
+        ("zzz-not-a-builtin.toml", "[tasks]\nroots = [\"mine\"]\n"),
+    ]);
+
+    let json = super::ls_json(Some(user_dir.path())).unwrap();
+    let presets = json
+        .get("presets")
+        .and_then(serde_json::Value::as_array)
+        .unwrap();
+    let user_row = |name: &str| {
+        presets
+            .iter()
+            .find(|row| row["origin"] == "user" && row["name"] == name)
+            .unwrap()
+    };
+
+    let shadow = user_row(DEFAULT_PRESET);
+    assert_eq!(shadow["shadows"], true, "{shadow}");
+    assert_eq!(shadow["description"], serde_json::Value::Null, "{shadow}");
+    assert_eq!(shadow["default"], true, "{shadow}");
+
+    let novel = user_row("zzz-not-a-builtin");
+    assert_eq!(novel["shadows"], false, "{novel}");
+    assert_eq!(novel["default"], false, "{novel}");
+}
+
+/// Run `f` with `dir` read-only, and restore its mode before the caller
+/// asserts anything, so the tempdir can still be removed.
+#[cfg(unix)]
+fn read_only<T>(dir: &std::path::Path, f: impl FnOnce() -> T) -> T {
+    use std::os::unix::fs::PermissionsExt;
+    std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o555)).unwrap();
+    let out = f();
+    std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o755)).unwrap();
+    out
+}
+
+/// A user preset directory the OS will not let us add to refuses a save with
+/// "can't create", naming the directory, and writes nothing.
+#[cfg(unix)]
+#[test]
+fn save_reports_a_user_preset_dir_it_cannot_create() {
+    let project = tempdir();
+    let user_dir = tempdir();
+    write_project(project.path(), "[tasks]\nroots = [\"a\"]\n", &[]);
+
+    let err = read_only(user_dir.path(), || {
+        save(project.path(), user_dir.path(), "fresh", false)
+            .unwrap_err()
+            .to_string()
+    });
+
+    assert!(err.contains("can't create"), "{err}");
+    assert!(!user_dir.path().join("fresh").exists());
+}
+
+/// `--force` over a flat preset the OS will not let us remove refuses with
+/// "can't remove", and the flat file is still there afterwards.
+#[cfg(unix)]
+#[test]
+fn force_reports_a_flat_preset_it_cannot_remove() {
+    let project = tempdir();
+    let user_dir = tempdir_with_files(&[("flat.toml", "[tasks]\nroots = [\"old\"]\n")]);
+    write_project(project.path(), "[tasks]\nroots = [\"new\"]\n", &[]);
+
+    let err = read_only(user_dir.path(), || {
+        save(project.path(), user_dir.path(), "flat", true)
+            .unwrap_err()
+            .to_string()
+    });
+
+    assert!(err.contains("can't remove"), "{err}");
+    assert!(user_dir.path().join("flat.toml").is_file());
+}
+
+/// `ls --json` with no user preset directory lists the built-ins only, and
+/// none of them is marked shadowed.
+#[test]
+fn ls_json_without_a_user_dir_lists_only_builtins() {
+    let json = super::ls_json(None).unwrap();
+    let presets = json
+        .get("presets")
+        .and_then(serde_json::Value::as_array)
+        .unwrap();
+    assert!(!presets.is_empty());
+    assert!(
+        presets.iter().all(|row| row["origin"] == "built-in"),
+        "{json}"
+    );
+    assert!(presets.iter().all(|row| row["shadowed"] == false), "{json}");
+}
