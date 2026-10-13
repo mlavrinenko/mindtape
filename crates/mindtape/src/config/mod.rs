@@ -33,6 +33,7 @@
 //! - `pack_resolve.rs`: resolving one `extends` entry to a validated pack table.
 //! - `packs.rs`: `extends` and `disable`, resolving rule packs into a layer.
 //! - `packs_toml.rs`: nested-path reads and writes over a raw `toml::Table`.
+//! - `priority.rs`: `[tasks.priority]`, the priority scale and its frameworks.
 //! - `required.rs`: `required`, whether a core field must be set.
 //! - `rm.rs`: `[rm]` and `[retire]`, removal and retirement policy.
 //! - `roots.rs`: task root specs and the folder-derived-tag policy.
@@ -63,6 +64,7 @@ pub(crate) mod name_cycle;
 pub(crate) mod pack_resolve;
 pub(crate) mod packs;
 pub(crate) mod packs_toml;
+pub(crate) mod priority;
 pub(crate) mod required;
 pub(crate) mod rm;
 pub(crate) mod roots;
@@ -102,12 +104,13 @@ pub use crate::config::ls::{
     parse_import_view, validate_ls_rules,
 };
 pub use crate::config::ls_columns::{ColumnConfig, validate_ls_columns};
+pub use crate::config::priority::PriorityConfig;
 pub use crate::config::required::{RequiredRules, Requirement, RequirementRule};
 pub use crate::config::rm::{RetireConfig, RmConfig, RmStrategy};
 pub use crate::config::roots::{Collector, DeriveConfig, DeriveTags, RootConfig, RootSpec};
 pub use crate::config::status::{Legend, LegendEntry};
 pub use crate::config::tasks::{
-    FieldConfig, IdConfig, IdFormat, PriorityConfig, TagsConfig, TaskBodyConfig, TasksConfig,
+    FieldConfig, IdConfig, IdFormat, TagsConfig, TaskBodyConfig, TasksConfig,
 };
 pub use crate::config::views::{ViewSpec, validate_view_statuses, validate_views};
 
