@@ -150,7 +150,7 @@ groups:
       .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
       .just/docs.just: 300226a86d551abc287d058efd9cbc2143fa7f15e3c6b53131699f27f35847fc
       .just/scripts/wt-carry-lcov.sh: da29d756c94da7817fef3d1248e1cc049d9eef715400b6d0dff7908a3488bf67
-      Justfile: a4e9a093bedb1f9e2ba9c9a15c4b946308ea971b8bff2afc18f5762fe43125df
+      Justfile: eed965491979b72da755d2c7676fbee027561c9021e97e2f1b28f3136c525bff
       flake.nix: ef91529881401b7bfffd564c53a0ff62d9d24b8b9adaa6c52f510119a9004305
     dependents:
       docs/src/agents.typ: 738581f65453037d2e7e4df57dffa2aa1993a582d8e7ead92a3a02d059a97e03
@@ -162,7 +162,7 @@ groups:
       docs/src/contributing/example-projects.typ: 4f9a0c52894b9c2ab665e42bb728814b3d18badf3e8def57737d695d29912f63
       docs/src/contributing/gates.typ: 98dff9d1a2b84a1388d515a521dda0db6fa222378568d2bc95b7cfc4ca0fba3f
       docs/src/contributing/mutation-testing.typ: 96f2e41b03e5bb524e1c49dd08e9435690f37ba566cf81cc0f6dbc843e01981a
-      docs/src/contributing/signal-sweep.typ: 124ee14e2e1418b9dabe6aa27b9c2ce20e60c82cbf75c8447a75bbde7c5acc53
+      docs/src/contributing/signal-sweep.typ: 1dae6759ecc7ea0a9272d85b1054063b55588591f9d28ecbe0027b1262b594e3
       docs/src/contributing/windows.typ: 093ebafaf04b07d4abd611b33a346695a61e811b51f79e13a29df34903e96786
   doc-gate-scripts-docs:
     source:
@@ -198,7 +198,7 @@ groups:
       .just/scripts/_script-graph-lib.sh: ecc9f2eb1fdc764804c9d3dac61cd94f9e5288d41ac32a2e91bd4613fa0814c8
       .just/scripts/_script-graph.sh: 3956d990fd68bbd6bc943507f730650991cd662e7c04274a330e5fe3c51ef9e9
       .just/scripts/_script-reach.sh: 667647246522252c3b13ce000dadb39f7fda7bee663a9db54497b3919d1a1e85
-      .just/scripts/arg-pattern-check.sh: 6f48064008d1451b533c9e5525fa81d57e42c7041e89979c664fecc782392b93
+      .just/scripts/arg-pattern-check.sh: 3c1de492cdcf7bd39442d59cb846cd767ba5be92fceb05fe9325e9af41c24f24
       .just/scripts/check-gate-drift.sh: 521511d6f97ad1ec7a1f994bafe187cb1547773f217a655214ebc22c595b6f98
       .just/scripts/check-secrets-manifest.sh: 1e7d72a016934f2b7776b15f0863189851fa295ca5d12c4bcd07cd3611704ea0
       .just/scripts/check-secrets.sh: cd27c536db3202c7b9ef8439dcae9e674951465c69afed3d5dde126eb39049fe
@@ -292,16 +292,16 @@ groups:
       contrib/ask-refactoring/undertested.sh: 2fa018fe20abf9efbe170166f83f7838552cdac5951ac7b30f6643505743a5da
   sweep-templates:
     source:
-      .mindtape/templates/sweep-size.typ: a4a63ed8a6f8a331a4e744335f88b7a3fe84238b13c287ab28a059d470332b07
+      .mindtape/templates/sweep-size.typ: 81fbd6d4f4020dce9b455b4a407bb13e029f79ef76311ef03bfcdd9f14799117
     dependents:
-      .mindtape/templates/sweep-coverage.typ: 6d4f8d17389f8d34f71d829813a685d149aeefe9eda6cb5f7e5293b590a1cdac
-      .mindtape/templates/sweep-dry.typ: 68335bee3a44e9470880b5bb7a06083195680fcd7f11b530ab8ce1ab582ce4dd
-      .mindtape/templates/sweep-mutants.typ: 2183fdd7812da4264fb0707a2accf49e49824d89ca72bc74d4d70475b1d043b8
-      .mindtape/templates/sweep-repeats.typ: bb966a546beaa9e27e429613b84fba4317060fe6a89740e714d1d8e2da5a2507
-      .mindtape/templates/sweep-undertested.typ: 73e12fd227ecc67d3f3310376f498c5a0559c6ce14202bee3dc185de3e768918
-      contrib/ask-refactoring/coverage.sh: 8d066e27256364089586a34d2425061bed1fc70681dfcc2c4ef7cb9441eb0433
-      contrib/ask-refactoring/dry.sh: cae303a9b54a70c73590b2a165bc2b818f4ee206d47d4422e987cbd422167fda
-      contrib/ask-refactoring/mutants.sh: dfa32785e75ce0065d866f73dfb85519eb9f76da481b18125ede17cf34b3166c
+      .mindtape/templates/sweep-coverage.typ: 0a4985164e317116a4e74a775667beabdd067a9adb588b94647019178d1a6c08
+      .mindtape/templates/sweep-dry.typ: 5240d5748a02c0a894e9d9fe51a9bfb08727eeb02fd0d50a5c62a4d10e757542
+      .mindtape/templates/sweep-mutants.typ: 432a150ce9ddeb0d1f262ce655e58c44101680e5bf5d3a7c7ba2f7ca8a10baa2
+      .mindtape/templates/sweep-repeats.typ: 3b59251fb8066267fcae7e16138770660c510202f1d79824a8ec85b350c796cf
+      .mindtape/templates/sweep-undertested.typ: 63c6ae68f1943b51f8e670aca669a08eb0030182e6c5ebb2d7367deb0457b36f
+      contrib/ask-refactoring/coverage.sh: 832c7153e0a6b86713be4bfab1d5f963fa83026e2961de9f903ccb0e768a7144
+      contrib/ask-refactoring/dry.sh: 76b62ca6ff724c7a72675beb5ee346bcfa03578d7b07cd2930c2e1487986b6d9
+      contrib/ask-refactoring/mutants.sh: 61f9b03b29f84a3b25b1d5b4e72675838a1e858142929f910cd86479f281e413
       contrib/ask-refactoring/repeats.sh: fd406215cd01e8e681226b76494e6727e412f92cda0b853b4542d46384e7a811
       contrib/ask-refactoring/size.sh: 86c2c219e3479c50fe7af2635346e4c151f5fa2da632395279b4f5b411f5a69d
       contrib/ask-refactoring/undertested.sh: 2fa018fe20abf9efbe170166f83f7838552cdac5951ac7b30f6643505743a5da

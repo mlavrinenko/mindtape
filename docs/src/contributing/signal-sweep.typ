@@ -61,8 +61,8 @@ code. Once jscpd groups clones itself, its blocker in `canibump.toml` reads
 
 The dry arm files the clones #just.check-dry() tolerates. It runs jscpd with
 the gate's flags, keeps the pairs the baseline already holds, and joins them
-into one family per shared location. It files every family, since the baseline
-is its bar. A task closes by extracting the clone, or by a `jscpd:ignore`
+into one family per shared location. It files a family only when extracting
+it saves `--dry-gain` tokens or more. A task closes by extracting the clone, or by a `jscpd:ignore`
 marker whose comment says why the match is a coincidence. Either way the
 commit re-mints the baseline with #just.dry-baseline().
 
@@ -115,6 +115,8 @@ fresh on every run, and a cached result is the one answer it must never give.
 `[views.ask-refactoring]` in `.mindtape/config.toml`
 (`has_tag("swept") && !terminal`) is the re-run guard. While a task the sweep
 filed is still open, the sweep refuses and prints the count, so you finish one
-batch of mechanical work before the next is filed. Every filed task carries
+batch of mechanical work before the next is filed. The sweep files into
+`truth/tasks/swept/`, so a finished batch goes with
+`mt rm 'has_tag("swept") && terminal'`. Every filed task carries
 the tag `swept` and one tag naming the tool that found it. The guard selects
 on `swept` alone, so a new arm needs no change to it.

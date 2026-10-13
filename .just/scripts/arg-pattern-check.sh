@@ -13,7 +13,7 @@
 # a sibling fixture-style script rather than an added arm in that one —
 # bundling them would make one script answer two questions.
 #
-# `ask-refactoring`'s five thresholds are here for a second reason on top of
+# `ask-refactoring`'s six thresholds are here for a second reason on top of
 # the first (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-
 # attributes.typ). Its patterns are not decoration: they are what replaced
 # `[positional-arguments]` on that recipe. A digits-only value cannot be
@@ -135,7 +135,7 @@ assert_rejected eject abc
 assert_accepted eject 50
 assert_default_accepted eject
 
-# The sweep's five thresholds. One rejection per distinct pattern rather than
+# The sweep's six thresholds. One rejection per distinct pattern rather than
 # per flag: `--baseline`, `--coverage-floor` and `--fn-coverage-floor` share
 # the 0-100 percentage pattern, `--cc-floor` is unbounded digits, `--write` is
 # a single bit. The out-of-range case (`101`) is checked once for the shared
@@ -157,7 +157,7 @@ assert_default_accepted eject
 #
 # assert_default_accepted matters more here than anywhere else in this file:
 # `ask-refactoring`'s defaults are the only copy of the sweep's thresholds
-# (contrib/ask-refactoring.sh requires all five and defaults nothing), so a
+# (contrib/ask-refactoring.sh requires all six and defaults nothing), so a
 # default that failed its own pattern would break every plain
 # `just ask-refactoring` run and there is no fallback to hide it.
 assert_rejected ask-refactoring --baseline 101
@@ -165,8 +165,10 @@ assert_rejected ask-refactoring --baseline 'a b'
 assert_rejected ask-refactoring --coverage-floor abc
 assert_rejected ask-refactoring --cc-floor abc
 assert_rejected ask-refactoring --fn-coverage-floor 101
+assert_rejected ask-refactoring --dry-gain abc
 assert_accepted ask-refactoring --baseline 85
 assert_accepted ask-refactoring --coverage-floor 92 --cc-floor 12
+assert_accepted ask-refactoring --dry-gain 100
 assert_accepted ask-refactoring --write
 assert_default_accepted ask-refactoring
 

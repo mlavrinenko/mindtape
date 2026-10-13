@@ -39,7 +39,7 @@ cd "$repo"
 
 # ── the thresholds ──────────────────────────────────────────────────────────
 #
-# All six are required and none is defaulted here. The defaults live only in
+# All seven are required and none is defaulted here. The defaults live only in
 # the recipe's `[arg(...)]` attributes, which `just --usage`, the generated
 # sweep-flags.json and docs/contributing/signal-sweep.md all read. A fallback
 # here would be a second copy that fails silently at a threshold nobody chose.
@@ -51,17 +51,18 @@ COVERAGE_FLOOR=""
 CC_FLOOR=""
 FN_COVERAGE_FLOOR=""
 REPEAT_GAIN=""
+DRY_GAIN=""
 WRITE=""
 
 usage() {
     cat <<'EOF'
 usage: bash contrib/ask-refactoring.sh --write 0|1 --baseline PCT
            --coverage-floor PCT --cc-floor N --fn-coverage-floor PCT
-           --repeat-gain N
+           --repeat-gain N --dry-gain N
 
 Run it as `just ask-refactoring` — the recipe owns every default and forwards
-all six flags; `just --usage ask-refactoring` prints them with their values.
-All six are required here; there are no defaults at this layer.
+all seven flags; `just --usage ask-refactoring` prints them with their values.
+All seven are required here; there are no defaults at this layer.
 
 env:
   MT   path to the `mt` binary (default: build and use ./target/debug/mt)
@@ -82,6 +83,8 @@ while [ $# -gt 0 ]; do
         --fn-coverage-floor=*) FN_COVERAGE_FLOOR="${1#*=}"; shift ;;
         --repeat-gain) REPEAT_GAIN="$2"; shift 2 ;;
         --repeat-gain=*) REPEAT_GAIN="${1#*=}"; shift ;;
+        --dry-gain) DRY_GAIN="$2"; shift 2 ;;
+        --dry-gain=*) DRY_GAIN="${1#*=}"; shift ;;
         -h | --help) usage; exit 0 ;;
         *) echo "ask-refactoring: unknown argument: $1" >&2; usage >&2; exit 2 ;;
     esac
@@ -89,7 +92,7 @@ done
 
 # Refuse a missing or non-numeric flag. The recipe's patterns catch these at
 # dispatch, so this guards a direct `bash contrib/ask-refactoring.sh` call.
-for var in WRITE BASELINE COVERAGE_FLOOR CC_FLOOR FN_COVERAGE_FLOOR REPEAT_GAIN; do
+for var in WRITE BASELINE COVERAGE_FLOOR CC_FLOOR FN_COVERAGE_FLOOR REPEAT_GAIN DRY_GAIN; do
     flag="--$(printf '%s' "$var" | tr 'A-Z_' 'a-z-')"
     value="${!var}"
     if [ -z "$value" ]; then
@@ -155,6 +158,8 @@ stem_for() {
 file_finding() {
     local arm="$1" stem="$2" summary="$3" advice="$4"
     shift 4
+    # Every batch lands in one folder, so `mt ls swept` lists it.
+    set -- "$@" --to swept
     if [ "$WRITE" -eq 1 ]; then
         local out outcome dest
         out="$("$MT" "$@" --dedup skip --format json)"
@@ -249,7 +254,7 @@ done
 
 if [ "$findings" -eq 0 ]; then
     echo "ask-refactoring: no findings at --baseline $BASELINE / --coverage-floor $COVERAGE_FLOOR" \
-        "/ --cc-floor $CC_FLOOR --fn-coverage-floor $FN_COVERAGE_FLOOR / --repeat-gain $REPEAT_GAIN"
+        "/ --cc-floor $CC_FLOOR --fn-coverage-floor $FN_COVERAGE_FLOOR / --repeat-gain $REPEAT_GAIN / --dry-gain $DRY_GAIN"
 elif [ "$WRITE" -eq 0 ]; then
     echo "ask-refactoring: $findings finding(s); the bodies shown are in ${preview#"$repo"/}/;" \
         "re-run with --write to file them all"

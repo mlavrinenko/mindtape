@@ -1,7 +1,7 @@
 # ask-refactoring: the dry arm — the clones `just check-dry` tolerates.
 #
 # Sourced by `contrib/ask-refactoring.sh`; not executable on its own. It reads
-# that script's globals (`$repo`, `$MT`, `$WRITE`) and calls its `stem_for` and
+# that script's globals (`$repo`, `$MT`, `$WRITE`, `$DRY_GAIN`) and calls its `stem_for` and
 # `file_finding`. It owns three functions the driver looks up by name —
 # `score_dry`, `signal_dry` and `emit_dry` — reading jscpd's json report.
 #
@@ -20,8 +20,10 @@
 # mostly (half or more) fall on lines a kept family already holds is dropped.
 # A clone that slides by one line would otherwise file a task per window.
 #
-# Scoring has no bar, because the baseline is the bar: every tolerated family
-# is a finding, and the sweep's re-run guard keeps the batch from piling up.
+# The bar is `--dry-gain`, 300 by default, the repeats arm's number. With no
+# bar the arm reported 639 families at a median gain of 50 tokens, 510 of them
+# in tests: a batch nobody empties. 100 still left 147; 300 leaves 25, each a
+# block worth a helper.
 #
 #   gain = (copies - 1) * tokens - 5 * copies - 10
 #     The tokens an extraction removes, net of a 5-token call per copy and a
@@ -41,7 +43,7 @@
 #     home.
 
 score_dry() {
-    jq -r '
+    jq -r --argjson min_gain "$DRY_GAIN" '
       def clamp($lo; $hi): [[., $lo] | max, $hi] | min;
       def loc: "\(.name):\(.start)";
       def lines_of($f): [range($f.start; $f.end + 1)] | map("\($f.name):\(.)");
@@ -85,6 +87,7 @@ score_dry() {
             else .kept += [$g] | .claimed += ([$g.frags[] | lines_of(.)[] | {(.): true}] | add)
             end)
       | .kept[]
+      | select(.gain >= $min_gain)
       | ([.frags[].name] | unique | length) as $files
       | ((3 + (([.gain, 1] | max / 100 | log2) | round)) | clamp(1; 10)) as $impact
       | ((9 - (($files / 10) | round)) | clamp(1; 10)) as $ease

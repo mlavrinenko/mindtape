@@ -5,7 +5,7 @@
 # under its own linecop cap, so a derivation with an argument to write cannot
 # live inline there at all.
 #
-# Subject: `just ask-refactoring`'s flag interface — the signal sweep's five
+# Subject: `just ask-refactoring`'s flag interface — the signal sweep's seven
 # thresholds (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-
 # attributes.typ). Every one of them was prose in a comment above the recipe
 # until they became declared parameters carrying `[arg(...)]` attributes.

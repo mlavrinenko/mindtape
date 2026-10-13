@@ -76,4 +76,9 @@
     the common short call and miss the pasted setup. The number is set so a
     batch stays small enough to empty before the next sweep.
   ],
+  "dry-gain": [
+    The same measure as `--repeat-gain`, over the clones the jscpd baseline
+    tolerates rather than the ones under its floor. Its own flag because the
+    two populations differ: lowering one bar should not flood the other arm.
+  ],
 )
