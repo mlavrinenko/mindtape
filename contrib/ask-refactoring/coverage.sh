@@ -164,23 +164,24 @@ score_coverage() {
 #   reason: a constant is honest when the real answer does not vary with the
 #   measurement, not when it is merely convenient.
 # The producer, split out of `signal_coverage` because `coverage_arm_files` needs
-# the same report. Captured with `$(...)` and rc-checked rather than piped blind:
-# llvm-cov failing quietly would read as "no findings", and the sweep's one
-# unaffordable failure is a clean, wrong result. The `exit 1` reaches the top
-# level through `set -eo pipefail` — the pipeline element it kills is a subshell,
-# but pipefail carries its status out.
+# the same report. It reads the per-file `LF`/`LH` totals of the lcov
+# `ensure_lcov_fresh` vouched for, shaped as llvm-cov's JSON summary. Not
+# `cargo llvm-cov report --json`: that summary counts a line once per compiled
+# copy of the `mt` crate, so a file the suite covers whole read as 75%, and
+# every coverage finding of the second sweep was such a file.
 coverage_report_json() {
     local ignore='crates/mindtape-cli/src/main\.rs|/registry/src/'
-    local json rc
-    set +e
-    json="$(cargo llvm-cov report --ignore-filename-regex "$ignore" --json --summary-only)"
-    rc=$?
-    set -e
-    if [ $rc -ne 0 ] || ! printf '%s' "$json" | jq -e '.data[0].files' >/dev/null 2>&1; then
-        echo "ask-refactoring: cargo llvm-cov report failed (exit $rc) or wrote no JSON" >&2
-        exit 1
-    fi
-    printf '%s' "$json"
+    jq -R -s --arg ignore "$ignore" '
+      [split("end_of_record")[]
+       | split("\n") as $l
+       | ($l | map(select(startswith("SF:"))) | first // empty | .[3:]) as $f
+       | ($l | map(select(startswith("LF:")))[0][3:] | tonumber) as $n
+       | ($l | map(select(startswith("LH:")))[0][3:] | tonumber) as $h
+       | select($f | test($ignore) | not)
+       | {filename: $f, summary: {lines: {count: $n, covered: $h,
+          percent: (if $n > 0 then $h * 100 / $n else 100 end)}}}]
+      | {data: [{files: .}]}
+    ' target/coverage/lcov.info
 }
 
 signal_coverage() {
