@@ -112,6 +112,9 @@ pub(crate) fn describe(node: &Node<DefaultNumericTypes>) -> String {
     }
 }
 
+// jscpd:ignore-start
+// A table of `(variant, spelling)` pairs: any two such tables share a shape
+// and nothing else, so there is no logic to extract.
 /// The symbol each operator is written with.
 static SYMBOLS: [(Operator<DefaultNumericTypes>, &str); 27] = [
     (Operator::Add, "+"),
@@ -142,6 +145,7 @@ static SYMBOLS: [(Operator<DefaultNumericTypes>, &str); 27] = [
     (Operator::Tuple, ","),
     (Operator::Chain, ";"),
 ];
+// jscpd:ignore-end
 
 /// The symbol an operator is written with, or `None` for a node that is not
 /// one (a value, a name, a call, the root) or one this table leaves out.

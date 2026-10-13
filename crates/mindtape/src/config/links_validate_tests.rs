@@ -208,6 +208,8 @@ fn readiness_never_follows_an_external_target() {
 
 #[test]
 fn validator_names_round_trip_their_config_spelling() {
+    // jscpd:ignore-start
+    // A `(variant, spelling)` table, the same shape as any other such table.
     for (validator, spelling) in [
         (TargetValidator::LocalTaskPath, "local-task-path"),
         (TargetValidator::Url, "url"),
@@ -215,6 +217,7 @@ fn validator_names_round_trip_their_config_spelling() {
         (TargetValidator::Uuid, "uuid"),
         (TargetValidator::Regex, "regex"),
         (TargetValidator::Any, "any"),
+        // jscpd:ignore-end
     ] {
         assert_eq!(validator.name(), spelling);
         let toml = format!("[[tasks.links.kinds]]\nname = \"k\"\nvalidate = \"{spelling}\"\n");
