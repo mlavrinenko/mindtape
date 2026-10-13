@@ -30,6 +30,7 @@
 //! - `locate.rs`: the file line of a dotted config key.
 //! - `merge.rs`: the shared TOML deep merge.
 //! - `name_cycle.rs`: cycle detection over a name-reference graph.
+//! - `pack_resolve.rs`: resolving one `extends` entry to a validated pack table.
 //! - `packs.rs`: `extends` and `disable`, resolving rule packs into a layer.
 //! - `packs_toml.rs`: nested-path reads and writes over a raw `toml::Table`.
 //! - `required.rs`: `required`, whether a core field must be set.
@@ -59,6 +60,7 @@ pub(crate) mod ls;
 pub(crate) mod ls_columns;
 pub(crate) mod merge;
 pub(crate) mod name_cycle;
+pub(crate) mod pack_resolve;
 pub(crate) mod packs;
 pub(crate) mod packs_toml;
 pub(crate) mod required;
