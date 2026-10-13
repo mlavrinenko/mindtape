@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt rm` takes a folder.** `mt rm tasks/sw1` deletes every task under that
+  folder, however deep, as naming each file would, and `--dry-run` lists them.
+  A folder outside every task root is refused.
+
 - **An `mt link` target takes a stem hash.** `mt link we8 depends-on sde` links
   to the task `mt ls` prints as `sde` and writes its path, as a stem does, and
   an `--apply` map's targets take one too. A hash several tasks share is

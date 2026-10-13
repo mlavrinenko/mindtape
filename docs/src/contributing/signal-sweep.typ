@@ -115,6 +115,6 @@ fresh on every run, and a cached result is the one answer it must never give.
 filed is still open, the sweep refuses and prints the count, so you finish one
 batch of mechanical work before the next is filed. The sweep files into
 `truth/tasks/swept/`, so a finished batch goes with
-`mt rm 'has_tag("swept") && terminal'`. Every filed task carries
+`mt rm truth/tasks/swept` once every task in it is closed. Every filed task carries
 the tag `swept` and one tag naming the tool that found it. The guard selects
 on `swept` alone, so a new arm needs no change to it.

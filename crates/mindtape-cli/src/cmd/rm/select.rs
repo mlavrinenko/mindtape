@@ -4,9 +4,9 @@
 use std::collections::HashSet;
 
 use crate::diag::Result;
-use mindtape::{Filter, Readiness, RefError, Resolved, Task, Via, select};
+use mindtape::{Filter, Readiness, RefError, Resolved, Task, Via, is_path_ref, select};
 
-use crate::diag::{self, Diag};
+use crate::diag::{self, Diag, Hint};
 use crate::util::{self, Refs};
 
 /// Resolve the variadic `targets` into the set of task ids to retire.
@@ -71,6 +71,11 @@ fn resolve_one(
     spec: &str,
     readiness: &Readiness,
 ) -> Result<HashSet<String>> {
+    if is_path_ref(spec)
+        && let Some(ids) = folder_ids(project, spec)?
+    {
+        return Ok(ids);
+    }
     let found = refs.task(spec);
     if Filter::names_term(spec, &project.config) && !names_by_name(&found) {
         let filter = parse(spec)?;
@@ -81,12 +86,63 @@ fn resolve_one(
         // A lone word that is no stem, hash or term can't be a filter: filters
         // that name a field or term were routed above, and any other bare word
         // is a field that doesn't exist. It names a task that isn't there.
-        Err(ref_err) if is_bare_word(spec) => Err(ref_err.into()),
+        // A bare word is still a folder when no task, term or hash claims it.
+        Err(ref_err) if is_bare_word(spec) => unclaimed_word(project, spec, ref_err),
         Err(ref_err) => {
             let filter = Filter::parse(spec).map_err(|_| Diag::from(ref_err))?;
             Ok(ids_of(filter_tasks(project, &filter, readiness, spec)?))
         }
     }
+}
+
+/// A bare word no task, term or hash claims: the folder it names, else the
+/// reference error for the task it should have named.
+fn unclaimed_word(
+    project: &util::Project,
+    spec: &str,
+    ref_err: RefError,
+) -> Result<HashSet<String>> {
+    folder_ids(project, spec)?.ok_or_else(|| ref_err.into())
+}
+
+/// The ids of every task under the directory `spec` names, or `None` when
+/// `spec` is no directory, so it resolves as a task or a filter.
+///
+/// A path is read from the working directory, as a task path is. A directory
+/// that is no configured root, nor inside one, is refused: `rm` retires only
+/// what the project tracks.
+///
+/// # Errors
+/// Refuses a directory outside every root.
+fn folder_ids(project: &util::Project, spec: &str) -> Result<Option<HashSet<String>>> {
+    let Ok(cwd) = std::env::current_dir() else {
+        return Ok(None);
+    };
+    let Ok(dir) = cwd.join(spec).canonicalize() else {
+        return Ok(None);
+    };
+    if !dir.is_dir() {
+        return Ok(None);
+    }
+    if !project.holds(&dir) {
+        return Err(Diag::refused("the folder is outside every task root")
+            .value(spec)
+            .hint(Hint::new("name a folder inside one of tasks.roots")));
+    }
+    let ids = project
+        .outcome
+        .tasks
+        .iter()
+        .filter(|task| {
+            project
+                .root
+                .join(&task.file)
+                .canonicalize()
+                .is_ok_and(|abs| abs.starts_with(&dir))
+        })
+        .map(|task| task.id.clone())
+        .collect();
+    Ok(Some(ids))
 }
 
 /// Whether a reference named its task by path or stem rather than by stem

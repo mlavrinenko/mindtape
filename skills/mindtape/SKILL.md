@@ -33,7 +33,7 @@ It is when `.mindtape/config.toml` exists. Run `mt` in the directory that holds 
 | Change status | `mt <status> <task…>` |
 | Link tasks | `mt link <task> <kind> <target…>` |
 | Rename a task | `mt mv <task> <new-stem>` |
-| Retire a task | `mt rm <task…>` |
+| Retire a task | `mt rm <task or folder…>` |
 | Validate | `mt check` |
 
 Run `mt <cmd> --help` for every flag. Never guess the project’s statuses, link kinds, priority scale or tags: read them from `mt config show`, which prints the merged config (`--origin` names where each rule comes from), or the statuses alone from `mt flip --list`. For what no `--help` covers, read [https://mlavrinenko.github.io/mindtape/llms.txt](https://mlavrinenko.github.io/mindtape/llms.txt), which lists every docs page as Markdown.

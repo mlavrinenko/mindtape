@@ -53,7 +53,7 @@ that `mt worktrees` lists, such as `@name`, right after `mt`.
   [Change status], [`mt <status> <task…>`],
   [Link tasks], [`mt link <task> <kind> <target…>`],
   [Rename a task], [`mt mv <task> <new-stem>`],
-  [Retire a task], [`mt rm <task…>`],
+  [Retire a task], [`mt rm <task or folder…>`],
   [Validate], [`mt check`],
 )
 

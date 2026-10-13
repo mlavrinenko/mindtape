@@ -28,6 +28,19 @@ pub struct Project {
     pub outcome: LoadOutcome,
 }
 
+impl Project {
+    /// Whether the canonical path `abs` is a task root or lies inside one.
+    #[must_use]
+    pub fn holds(&self, abs: &Path) -> bool {
+        self.config.tasks.roots.iter().any(|root| {
+            self.root
+                .join(root.path())
+                .canonicalize()
+                .is_ok_and(|root_abs| abs.starts_with(root_abs))
+        })
+    }
+}
+
 /// Process-global worktree override, resolved once from the `-w`/`--worktree`
 /// flag and `$MINDTAPE_WORKTREE`. `None` means "discover by walking up".
 static WORKTREE: OnceLock<Option<PathBuf>> = OnceLock::new();

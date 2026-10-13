@@ -149,14 +149,7 @@ pub(crate) fn warn_if_outside_roots(project: &util::Project, dest: &Path) {
     let Ok(dest_abs) = dest.canonicalize() else {
         return;
     };
-    let inside = project.config.tasks.roots.iter().any(|root| {
-        project
-            .root
-            .join(root.path())
-            .canonicalize()
-            .is_ok_and(|abs| dest_abs.starts_with(abs))
-    });
-    if !inside {
+    if !project.holds(&dest_abs) {
         emit(
             &Diag::warning("the task directory is outside the configured roots")
                 .value(dest.display().to_string())

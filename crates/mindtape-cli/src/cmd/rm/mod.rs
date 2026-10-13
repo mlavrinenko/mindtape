@@ -8,9 +8,10 @@
 //! presentation.
 //!
 //! Selection: `target` is variadic — zero or more entries, each a task reference
-//! (stem, path, or stem hash) or a filter expression. A reference
-//! resolves a single task regardless of its status; a filter retires every
-//! match; the union across every entry, deduplicated by id, is retired in one
+//! (stem, path, or stem hash), a folder under a task root or a filter
+//! expression. A reference resolves a single task regardless of its status; a
+//! folder retires every task inside it, as naming each would; a filter retires
+//! every match; the union across every entry, deduplicated by id, is retired in one
 //! pass — one confirmation prompt, one tombstone/rewrite pass. With no targets
 //! at all, the configured `[rm] default_filter` applies (built-in `terminal`:
 //! sweep every terminal-status task).
@@ -74,9 +75,10 @@ use crate::{git, util};
 /// Arguments for `mt rm`.
 #[derive(Args)]
 pub struct RmArgs {
-    /// The tasks to delete, each a task (stem, hash or path) or a filter such
-    /// as `done`. Without any, `mt rm` deletes what `[rm] default-filter`
-    /// picks, which is every closed task unless you change it.
+    /// The tasks to delete, each a task (stem, hash or path), a folder under a
+    /// task root (every task inside it, however deep) or a filter such as
+    /// `done`. Without any, `mt rm` deletes what `[rm] default-filter` picks,
+    /// which is every closed task unless you change it.
     pub targets: Vec<String>,
     /// Don't ask for confirmation. Without a terminal on stdin `mt rm` can't
     /// ask, so it refuses unless you pass this.

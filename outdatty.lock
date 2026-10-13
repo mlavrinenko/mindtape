@@ -62,7 +62,7 @@ groups:
       crates/mindtape-cli/src/cmd/preset.rs: c97c181df35d3ab18ca7e136d3612796ebcab91ce33e118f76a5977150fe818c
       crates/mindtape-cli/src/cmd/recur/mod.rs: b5a6c57c927000140dea19e06de7fd1ed6954bbc5072823041cbb2b3535f3cbe
       crates/mindtape-cli/src/cmd/review.rs: 98df27eeaa9fd9ee67d20fe913b763e6e088dda81a20350dee260669a5936382
-      crates/mindtape-cli/src/cmd/rm/mod.rs: 087fe4bc28f9c529567e4685c71db754639b96d07b811cfcbd35e5c74f278bcb
+      crates/mindtape-cli/src/cmd/rm/mod.rs: dcee5f16a3fb8dbeddafb94fc02ecbf74bbc4465bb2a68517fd9af312b40d6b1
       crates/mindtape-cli/src/cmd/set.rs: bc9a0a71f52c25ce3ad7a0f5bd79e4d2e18d8358b1b7c254cc81d2d8f9c3ac79
       crates/mindtape-cli/src/cmd/views.rs: 4c8f8ca6a778b2759f59f0a7705a1137da3529d00c743a627f6aac6a53ffe928
       crates/mindtape-cli/src/cmd/worktrees.rs: 3758372047930b0e46e7eb021fbda13dda082492029d36e478468ab342ff4200
@@ -71,7 +71,7 @@ groups:
       crates/mindtape/src/lib.rs: 9439bec731df7467fa657f8db52ccbb612dc1afbe20595d6ef0cd11fece52e29
       crates/mindtape/src/model/fields.rs: eb8c665bb379a8ade21b59c34d32c6edc9b9513fd2761ca6df09df1557340068
     dependents:
-      docs/src/skill.typ: 3d8d8c7baf2ca96ec4b0b5d59736378ca07b4473751e0337d12f787982b92558
+      docs/src/skill.typ: 9fa2858586b9a91632717140ef85c6185e10923d112297541a983c67a6a811b9
       skills/mindtape/evals/README.md: 998e2cfcf60142db3101c1ddd849ef3a244acd18eb7ca3568a3195d12eb2bf6b
       skills/mindtape/evals/evals.json: 08d2bcbac3b37823d5f274379147384f10f5afa13e04b59f990a188373920474
       skills/mindtape/references/add-slots.md: 1c713e380ef0eedaf9e6d7290f87aba1f15de6dd5effea82326406ede08e31ee
@@ -96,7 +96,7 @@ groups:
       www/content/cli/preset.typ: 4fe537f9b240f8092b8e5d0504962e5fde37dc0f12fad86910e8f0b089f3eff7
       www/content/cli/recur.typ: f22f68255e3654ad84ad5ddf1c75b07eb508384281bf6f14da246dbe192eac33
       www/content/cli/review.typ: bcf2c752351cd775ea4aec69f15aa0517a9f27f08cabb69156566ab468de567d
-      www/content/cli/rm.typ: 469e431dd70f7202e38933187b976fa6cca031c5c29be16484de8d8f95e91be3
+      www/content/cli/rm.typ: c108c4479b1556fd412669958b4eaae7b07a68136b3e9b82f6dc43e7bd9afbaf
       www/content/cli/set.typ: 24b76bb77e2e3c4b0e7a265702758ada5d054e67a705b5f81c778c244cf93c59
       www/content/cli/views.typ: 9df4c84aa9fce2b98e792ad7fbdc5fbbeda72835bdd47cd589dda25a5685f714
       www/content/cli/worktrees.typ: edd512ecff478c88e54c9c8e177d02948a80a3b37ba33d275a888a7cb87416c5

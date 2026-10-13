@@ -12,6 +12,7 @@ use std::path::Path;
 
 use predicates::prelude::PredicateBooleanExt;
 
+mod folder;
 mod retire;
 use crate::support;
 
