@@ -311,3 +311,49 @@ fn a_cycle_already_on_disk_does_not_block_an_unrelated_edge() {
         &["link", "write-docs", "depends-on", "wire-oauth"],
     );
 }
+
+#[test]
+fn a_dry_run_lists_an_edge_already_on_disk_as_unchanged() {
+    let dir = scaffold();
+    support::run_ok(
+        dir.path(),
+        &["link", "wire-oauth", "depends-on", "pick-a-provider"],
+    );
+
+    let stdout = support::stdout(
+        dir.path(),
+        &[
+            "link",
+            "wire-oauth",
+            "depends-on",
+            "pick-a-provider",
+            "--dry-run",
+        ],
+    );
+    assert!(stdout.contains("would rewrite 0 task(s)"), "{stdout}");
+    assert!(stdout.contains("- wire-oauth: unchanged"), "{stdout}");
+}
+
+/// A write the OS refuses is reported as its own failure, and the run exits
+/// non-zero. The tasks folder is read-only, so the atomic rewrite cannot make
+/// its temporary file; the task itself must come through unchanged.
+#[cfg(unix)]
+#[test]
+fn a_refused_write_is_reported_and_leaves_the_task_as_it_was() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let dir = scaffold();
+    let before = source(dir.path(), "wire-oauth");
+    let tasks = dir.path().join("tasks");
+    std::fs::set_permissions(&tasks, std::fs::Permissions::from_mode(0o555)).unwrap();
+
+    let output = support::mt(dir.path())
+        .args(["link", "wire-oauth", "depends-on", "pick-a-provider"])
+        .assert()
+        .failure();
+    std::fs::set_permissions(&tasks, std::fs::Permissions::from_mode(0o755)).unwrap();
+
+    let stderr = support::stderr_of(&output);
+    assert!(stderr.contains("can't write"), "{stderr}");
+    assert_eq!(source(dir.path(), "wire-oauth"), before);
+}
