@@ -13,6 +13,18 @@ use crate::config::packs_toml::read_array;
 use crate::test_support::tempdir;
 use crate::test_support::write_file;
 
+/// The error `extends`-ing a registry of one pack, `name` holding `text`,
+/// from the embedded layer gives.
+fn extends_error(name: &str, text: &str) -> crate::config::ConfigError {
+    let registry: &[(&str, &str)] = &[(name, text)];
+    let root = tempdir();
+    let layers = [layer(
+        LayerSource::Embedded,
+        &format!("extends = [\"{name}\"]\n"),
+    )];
+    merge_layers_with_packs_using(&layers, root.path(), registry).unwrap_err()
+}
+
 #[test]
 fn extends_bare_name_resolves_to_an_embedded_pack() {
     let registry: &[(&str, &str)] = &[(
@@ -112,14 +124,7 @@ fn a_path_entry_in_the_project_layer_resolves_against_the_project_root() {
 
 #[test]
 fn a_pack_declaring_extends_is_a_config_error() {
-    let registry: &[(&str, &str)] = &[("mindtape-nested", "extends = [\"mindtape-test\"]\n")];
-    let root = tempdir();
-    let layers = [layer(
-        LayerSource::Embedded,
-        "extends = [\"mindtape-nested\"]\n",
-    )];
-
-    let err = merge_layers_with_packs_using(&layers, root.path(), registry).unwrap_err();
+    let err = extends_error("mindtape-nested", "extends = [\"mindtape-test\"]\n");
     let rendered = err.to_string();
     assert!(rendered.contains("mindtape-nested"), "{rendered}");
     assert!(rendered.contains("extends"), "{rendered}");
@@ -127,14 +132,7 @@ fn a_pack_declaring_extends_is_a_config_error() {
 
 #[test]
 fn a_pack_declaring_a_disallowed_key_is_a_config_error() {
-    let registry: &[(&str, &str)] = &[("mindtape-bad", "[project]\ncode = \"x\"\n")];
-    let root = tempdir();
-    let layers = [layer(
-        LayerSource::Embedded,
-        "extends = [\"mindtape-bad\"]\n",
-    )];
-
-    let err = merge_layers_with_packs_using(&layers, root.path(), registry).unwrap_err();
+    let err = extends_error("mindtape-bad", "[project]\ncode = \"x\"\n");
     let rendered = err.to_string();
     assert!(rendered.contains("mindtape-bad"), "{rendered}");
     assert!(rendered.contains("project"), "{rendered}");
@@ -175,27 +173,13 @@ fn commit_rules_merge_by_name_across_packs() {
 
 #[test]
 fn a_pack_may_declare_only_rules_under_commits() {
-    let registry: &[(&str, &str)] = &[("mindtape-test", "[commits]\ntrailer = \"Refs\"\n")];
-    let root = tempdir();
-    let layers = [layer(
-        LayerSource::Embedded,
-        "extends = [\"mindtape-test\"]\n",
-    )];
-
-    let err = merge_layers_with_packs_using(&layers, root.path(), registry).unwrap_err();
+    let err = extends_error("mindtape-test", "[commits]\ntrailer = \"Refs\"\n");
     assert!(err.to_string().contains("'trailer'"), "{err}");
 }
 
 #[test]
 fn a_syntax_error_in_an_embedded_pack_names_the_pack() {
-    let registry: &[(&str, &str)] = &[("mindtape-broken", "oops =\n")];
-    let root = tempdir();
-    let layers = [layer(
-        LayerSource::Embedded,
-        "extends = [\"mindtape-broken\"]\n",
-    )];
-
-    let err = merge_layers_with_packs_using(&layers, root.path(), registry).unwrap_err();
+    let err = extends_error("mindtape-broken", "oops =\n");
 
     assert!(
         err.to_string()
