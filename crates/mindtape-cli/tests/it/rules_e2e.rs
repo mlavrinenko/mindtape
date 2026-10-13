@@ -55,13 +55,7 @@ fn imperative_rule(severity: &str) -> String {
 
 /// `mt check`'s stdout plus stderr, and whether it exited zero.
 fn check(dir: &std::path::Path) -> (bool, String) {
-    let out = mt(dir).arg("check").output().unwrap();
-    let text = format!(
-        "{}{}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr)
-    );
-    (out.status.success(), text)
+    support::run_text(dir, &["check"])
 }
 
 #[test]

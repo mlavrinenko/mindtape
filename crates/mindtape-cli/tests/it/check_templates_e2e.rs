@@ -29,13 +29,7 @@ fn scaffold_with(config: &str, template: &str) -> tempfile::TempDir {
 }
 
 fn check(dir: &std::path::Path) -> (bool, String) {
-    let out = support::mt(dir).arg("check").output().unwrap();
-    let text = format!(
-        "{}{}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr)
-    );
-    (out.status.success(), text)
+    support::run_text(dir, &["check"])
 }
 
 fn template(kind: &str) -> String {

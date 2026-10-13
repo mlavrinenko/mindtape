@@ -87,6 +87,22 @@ pub fn run_stderr(dir: &Path, args: &[&str]) -> (Option<i32>, String) {
     )
 }
 
+/// What a finished `mt` (or `git`) run printed, stdout then stderr, with
+/// whether it exited zero: the pair most failure assertions read.
+pub fn text_of(out: &std::process::Output) -> (bool, String) {
+    let text = format!(
+        "{}{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    (out.status.success(), text)
+}
+
+/// `mt <args>` in `dir`, as `(succeeded, stdout then stderr)`.
+pub fn run_text(dir: &Path, args: &[&str]) -> (bool, String) {
+    text_of(&mt(dir).args(args).output().unwrap())
+}
+
 /// `mt`, ready to run in `dir` with the developer's global config out of reach
 /// ([`isolated_env`]). The spawn every e2e test goes through; a bare
 /// `cargo_bin("mt")` is the un-isolated one and only `install_e2e` (which
@@ -258,15 +274,5 @@ pub fn describe_slot_kind(dir: &Path, name: &str) -> String {
 pub fn check_commit_msg(dir: &Path, message: &str) -> (bool, String) {
     let file = dir.join("COMMIT_MSG");
     std::fs::write(&file, message).unwrap();
-    let out = mt(dir)
-        .args(["check", "--commit-msg"])
-        .arg(&file)
-        .output()
-        .unwrap();
-    let text = format!(
-        "{}{}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr)
-    );
-    (out.status.success(), text)
+    run_text(dir, &["check", "--commit-msg", file.to_str().unwrap()])
 }

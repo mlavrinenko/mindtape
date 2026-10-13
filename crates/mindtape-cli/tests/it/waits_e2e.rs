@@ -239,16 +239,7 @@ fn waiting_repo(run: &str) -> tempfile::TempDir {
 }
 
 fn check_range(dir: &Path) -> (bool, String) {
-    let out = support::mt(dir)
-        .args(["check", "--commits", "HEAD~1..HEAD"])
-        .output()
-        .unwrap();
-    let text = format!(
-        "{}{}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr)
-    );
-    (out.status.success(), text)
+    support::run_text(dir, &["check", "--commits", "HEAD~1..HEAD"])
 }
 
 #[test]

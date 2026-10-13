@@ -6,7 +6,7 @@
 use crate::support;
 use mindtape::test_support::write_file;
 
-use support::{mt, project_with_tasks};
+use support::project_with_tasks;
 
 #[test]
 fn a_pack_rule_skipped_outside_git_is_reported_once() {
@@ -19,12 +19,7 @@ fn a_pack_rule_skipped_outside_git_is_reported_once() {
         "pack.toml",
         "[[tasks.rules]]\nname = \"src-budget\"\nassert = 'changed(\"worktree\") <= 3'\n",
     );
-    let out = mt(dir.path()).arg("check").output().unwrap();
-    let text = format!(
-        "{}{}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr)
-    );
+    let (_, text) = support::run_text(dir.path(), &["check"]);
     assert_eq!(text.matches("skipped").count(), 1, "{text}");
     assert!(text.contains("pack.toml:1"), "{text}");
 }

@@ -74,13 +74,7 @@ fn fixture(rules: &str, files: u32, extra: usize) -> tempfile::TempDir {
 
 /// Run `mt check` in `root`, returning its exit success and its output.
 fn check(root: &Path) -> (bool, String) {
-    let output = support::mt(root).arg("check").output().unwrap();
-    let stdout = format!(
-        "{}{}",
-        String::from_utf8_lossy(&output.stdout),
-        String::from_utf8_lossy(&output.stderr)
-    );
-    (output.status.success(), stdout)
+    support::run_text(root, &["check"])
 }
 
 #[test]

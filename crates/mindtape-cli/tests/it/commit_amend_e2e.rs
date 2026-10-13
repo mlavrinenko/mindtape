@@ -43,13 +43,7 @@ fn commit(dir: &Path, args: &[&str]) -> (bool, String) {
     for (key, value) in isolated_env(dir) {
         command.env(key, value);
     }
-    let out = command.output().unwrap();
-    let text = format!(
-        "{}{}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr)
-    );
-    (out.status.success(), text)
+    support::text_of(&command.output().unwrap())
 }
 
 /// A repository whose `HEAD` is a work commit naming `parser`, parent of it a
