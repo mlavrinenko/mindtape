@@ -129,7 +129,8 @@ fn check_schema_version(version: Option<&Value>) -> Result<(), Diag> {
 
 #[cfg(test)]
 mod tests {
-    use super::parse_records;
+    use super::{json_kind, parse_records};
+    use serde_json::json;
 
     #[test]
     fn bare_array_with_no_schema_version_parses() {
@@ -193,6 +194,22 @@ mod tests {
                 err,
                 format!("error: t.json: expected a JSON array or object: '{kind}'\n")
             );
+        }
+    }
+
+    /// `extract_array` only asks `json_kind` about the kinds it rejects, so the
+    /// two it accepts, array and object, are pinned here directly.
+    #[test]
+    fn json_kind_names_every_kind() {
+        for (value, kind) in [
+            (json!(null), "null"),
+            (json!(true), "boolean"),
+            (json!(5), "number"),
+            (json!("x"), "string"),
+            (json!([]), "array"),
+            (json!({}), "object"),
+        ] {
+            assert_eq!(json_kind(&value), kind);
         }
     }
 }
