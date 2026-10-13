@@ -13,7 +13,7 @@ use mindtape::test_support::tempdir_with_dirs;
 use std::path::Path;
 
 use mindtape::recur::{PeriodUnit, Recur, RecurConfig, Rule};
-use mindtape::test_support::{bare_task, link_edge};
+use mindtape::test_support::{bare_task, link_edge, linked_task};
 
 use super::*;
 use crate::util::Project;
@@ -52,8 +52,10 @@ fn occurrence_index_is_one_without_a_predecessor() {
 #[test]
 fn occurrence_index_counts_the_recurred_from_chain() {
     let original = bare_task("chore");
-    let mut spawn1 = bare_task("chore-2026-06-08");
-    spawn1.links = vec![link_edge("chore.typ", "recurred-from")];
+    let spawn1 = linked_task(
+        "chore-2026-06-08",
+        vec![link_edge("chore.typ", "recurred-from")],
+    );
     let tasks = [original.clone(), spawn1.clone()];
     assert_eq!(occurrence_index(&tasks, &spawn1), 2);
 }
@@ -61,8 +63,10 @@ fn occurrence_index_counts_the_recurred_from_chain() {
 #[test]
 fn successor_of_finds_the_referrer() {
     let original = bare_task("chore");
-    let mut spawn1 = bare_task("chore-2026-06-08");
-    spawn1.links = vec![link_edge("chore.typ", "recurred-from")];
+    let spawn1 = linked_task(
+        "chore-2026-06-08",
+        vec![link_edge("chore.typ", "recurred-from")],
+    );
     let tasks = [original.clone(), spawn1.clone()];
     let found = successor_of(&tasks, &original).unwrap();
     assert_eq!(found.id, "chore-2026-06-08");
@@ -123,8 +127,10 @@ fn guard_double_spawn_bypassed_by_force() {
 fn guard_double_spawn_refuses_an_existing_successor_unless_forced() {
     let dir = tempdir_with_dirs(&[".mindtape"]);
     let original = bare_task("chore");
-    let mut spawn1 = bare_task("chore-2026-06-08");
-    spawn1.links = vec![link_edge("chore.typ", "recurred-from")];
+    let spawn1 = linked_task(
+        "chore-2026-06-08",
+        vec![link_edge("chore.typ", "recurred-from")],
+    );
     let project = Project {
         root: dir.path().to_path_buf(),
         config: mindtape::Config::default(),

@@ -15989,7 +15989,7 @@
     {
       "file": "crates/mindtape/src/test_support.rs",
       "function": "dep_config",
-      "line": 288,
+      "line": 297,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -15998,7 +15998,7 @@
     {
       "file": "crates/mindtape/src/test_support.rs",
       "function": "dep_edge",
-      "line": 250,
+      "line": 259,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -16007,7 +16007,7 @@
     {
       "file": "crates/mindtape/src/test_support.rs",
       "function": "dep_task",
-      "line": 309,
+      "line": 318,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -16061,7 +16061,16 @@
     {
       "file": "crates/mindtape/src/test_support.rs",
       "function": "link_edge",
-      "line": 240,
+      "line": 249,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/test_support.rs",
+      "function": "linked_task",
+      "line": 241,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -16070,7 +16079,7 @@
     {
       "file": "crates/mindtape/src/test_support.rs",
       "function": "noted_edge",
-      "line": 257,
+      "line": 266,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -16106,7 +16115,7 @@
     {
       "file": "crates/mindtape/src/test_support.rs",
       "function": "violation_triples",
-      "line": 298,
+      "line": 307,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,

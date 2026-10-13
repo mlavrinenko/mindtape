@@ -2,19 +2,19 @@
 
 use super::{Cycle, edges, find_referrer, resolve_edge, toposort, toposort_kind};
 use crate::model::Task;
-use crate::test_support::{bare_task, link_edge};
+use crate::test_support::{bare_task, link_edge, linked_task};
 
 fn task(id: &str, deps: &[&str]) -> Task {
     task_kind(id, "depends-on", deps)
 }
 
 fn task_kind(id: &str, kind: &str, deps: &[&str]) -> Task {
-    let mut task = bare_task(id);
-    task.links = deps
-        .iter()
-        .map(|dep| link_edge(&format!("{dep}.typ"), kind))
-        .collect();
-    task
+    linked_task(
+        id,
+        deps.iter()
+            .map(|dep| link_edge(&format!("{dep}.typ"), kind))
+            .collect(),
+    )
 }
 
 /// Position of `id` in the toposorted order.
@@ -104,11 +104,13 @@ fn cycle_display_closes_loop() {
 fn toposort_kind_walks_only_the_named_kind() {
     // `a` has both a `depends-on` and a `parent` edge to `b`; toposort_kind
     // over "parent" must ignore the depends-on edge entirely.
-    let mut a = bare_task("a");
-    a.links = vec![
-        link_edge("b.typ", "depends-on"),
-        link_edge("b.typ", "parent"),
-    ];
+    let a = linked_task(
+        "a",
+        vec![
+            link_edge("b.typ", "depends-on"),
+            link_edge("b.typ", "parent"),
+        ],
+    );
     let b = bare_task("b");
     let tasks = [a, b];
     let order = toposort_kind(&tasks, "parent").unwrap();
@@ -120,13 +122,14 @@ fn toposort_kind_walks_only_the_named_kind() {
 fn toposort_kind_detects_parent_cycle_independent_of_depends_on() {
     // a -> b -> a via `parent`, while `depends-on` is acyclic (a -> b only):
     // the parent cycle must surface even though depends-on does not.
-    let mut a = bare_task("a");
-    a.links = vec![
-        link_edge("b.typ", "depends-on"),
-        link_edge("b.typ", "parent"),
-    ];
-    let mut b = bare_task("b");
-    b.links = vec![link_edge("a.typ", "parent")];
+    let a = linked_task(
+        "a",
+        vec![
+            link_edge("b.typ", "depends-on"),
+            link_edge("b.typ", "parent"),
+        ],
+    );
+    let b = linked_task("b", vec![link_edge("a.typ", "parent")]);
 
     assert!(toposort_kind(&[a.clone(), b.clone()], "depends-on").is_ok());
     let cycle = toposort_kind(&[a, b], "parent").unwrap_err();
@@ -168,11 +171,13 @@ fn find_referrer_none_without_a_successor() {
 
 #[test]
 fn edges_resolves_every_kind_in_authored_order() {
-    let mut a = bare_task("a");
-    a.links = vec![
-        link_edge("b.typ", "depends-on"),
-        link_edge("c.typ", "parent"),
-    ];
+    let a = linked_task(
+        "a",
+        vec![
+            link_edge("b.typ", "depends-on"),
+            link_edge("c.typ", "parent"),
+        ],
+    );
     let tasks = [a, bare_task("b"), bare_task("c")];
     let edges = edges(&tasks);
     let seen: Vec<(&str, &str, &str)> = edges
@@ -185,8 +190,7 @@ fn edges_resolves_every_kind_in_authored_order() {
 #[test]
 fn edges_drops_targets_outside_the_set() {
     // `b` is not in the passed slice, so a's edge to it is not induced.
-    let mut a = bare_task("a");
-    a.links = vec![link_edge("b.typ", "depends-on")];
+    let a = linked_task("a", vec![link_edge("b.typ", "depends-on")]);
     let tasks = [a];
     assert!(edges(&tasks).is_empty());
 }

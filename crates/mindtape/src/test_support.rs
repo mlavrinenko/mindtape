@@ -236,6 +236,15 @@ pub fn git_as_tester(root: &Path, args: &[&str]) {
 
 /// A `links:` edge of `kind` to `target`, with no note — the common shape test
 /// fixtures need for readiness/cycle/resolution scenarios.
+/// A [`bare_task`] carrying `links`.
+#[must_use]
+pub fn linked_task(id: &str, links: Vec<Link>) -> Task {
+    Task {
+        links,
+        ..bare_task(id)
+    }
+}
+
 #[must_use]
 pub fn link_edge(target: &str, kind: &str) -> Link {
     Link {

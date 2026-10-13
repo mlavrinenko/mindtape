@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used)]
 
 use mindtape::test_support::tempdir;
-use mindtape::test_support::{TASK_SRC, bare_task, link_edge, noted_edge};
+use mindtape::test_support::{TASK_SRC, bare_task, link_edge, linked_task, noted_edge};
 use mindtape::{LoadOutcome, Status, Task};
 
 use super::{GraphArgs, build};
@@ -85,10 +85,8 @@ fn dot_renders_an_edge_per_relation_kind() {
 fn dot_renders_a_cycle() {
     // a -> b -> a: rendering is a plain projection, so a dependency cycle draws
     // both edges (no toposort, nothing to reject).
-    let mut a = bare_task("a");
-    a.links = vec![link_edge("b.typ", "depends-on")];
-    let mut b = bare_task("b");
-    b.links = vec![link_edge("a.typ", "depends-on")];
+    let a = linked_task("a", vec![link_edge("b.typ", "depends-on")]);
+    let b = linked_task("b", vec![link_edge("a.typ", "depends-on")]);
     let out = build(
         &args(GraphFormat::Dot, None, false),
         stub_project(vec![a, b]),
@@ -101,8 +99,7 @@ fn dot_renders_a_cycle() {
 #[test]
 fn filter_scopes_to_the_induced_subgraph() {
     // `!terminal` drops the done task b; a's edge to it is not induced.
-    let mut a = bare_task("a");
-    a.links = vec![link_edge("b.typ", "depends-on")];
+    let a = linked_task("a", vec![link_edge("b.typ", "depends-on")]);
     let tasks = vec![with_status(a, "wip"), with_status(bare_task("b"), "done")];
     let out = build(
         &args(GraphFormat::Dot, Some("!terminal"), false),
@@ -116,8 +113,7 @@ fn filter_scopes_to_the_induced_subgraph() {
 
 #[test]
 fn no_terminal_prunes_settled_tasks() {
-    let mut a = bare_task("a");
-    a.links = vec![link_edge("b.typ", "depends-on")];
+    let a = linked_task("a", vec![link_edge("b.typ", "depends-on")]);
     let tasks = vec![with_status(a, "wip"), with_status(bare_task("b"), "done")];
     let out = build(&args(GraphFormat::Dot, None, true), stub_project(tasks)).unwrap();
     assert!(out.contains("\"a\""));
@@ -127,8 +123,7 @@ fn no_terminal_prunes_settled_tasks() {
 #[test]
 fn dot_styles_blocked_and_ready_nodes() {
     // a depends on still-open b: a is blocked, b is ready.
-    let mut a = bare_task("a");
-    a.links = vec![link_edge("b.typ", "depends-on")];
+    let a = linked_task("a", vec![link_edge("b.typ", "depends-on")]);
     let tasks = vec![with_status(a, "wip"), with_status(bare_task("b"), "wip")];
     let out = build(&args(GraphFormat::Dot, None, false), stub_project(tasks)).unwrap();
     assert!(out.contains("\"a\" [label=\"a [wip]\", fillcolor=\"#fadbd8\"]"));
@@ -137,8 +132,7 @@ fn dot_styles_blocked_and_ready_nodes() {
 
 #[test]
 fn mermaid_renders_nodes_edges_and_classes() {
-    let mut a = bare_task("a");
-    a.links = vec![link_edge("b.typ", "depends-on")];
+    let a = linked_task("a", vec![link_edge("b.typ", "depends-on")]);
     let tasks = vec![with_status(a, "wip"), with_status(bare_task("b"), "done")];
     let out = build(
         &args(GraphFormat::Mermaid, None, false),
@@ -154,8 +148,7 @@ fn mermaid_renders_nodes_edges_and_classes() {
 
 #[test]
 fn dot_renders_recurred_from_edge() {
-    let mut a = bare_task("a");
-    a.links = vec![link_edge("b.typ", "recurred-from")];
+    let a = linked_task("a", vec![link_edge("b.typ", "recurred-from")]);
     let out = build(
         &args(GraphFormat::Dot, None, false),
         stub_project(vec![
@@ -171,8 +164,7 @@ fn dot_renders_recurred_from_edge() {
 
 #[test]
 fn dot_renders_supersedes_edge() {
-    let mut a = bare_task("a");
-    a.links = vec![link_edge("b.typ", "supersedes")];
+    let a = linked_task("a", vec![link_edge("b.typ", "supersedes")]);
     let out = build(
         &args(GraphFormat::Dot, None, false),
         stub_project(vec![
@@ -188,8 +180,7 @@ fn dot_renders_supersedes_edge() {
 
 #[test]
 fn dot_renders_duplicates_edge() {
-    let mut a = bare_task("a");
-    a.links = vec![link_edge("b.typ", "duplicates")];
+    let a = linked_task("a", vec![link_edge("b.typ", "duplicates")]);
     let out = build(
         &args(GraphFormat::Dot, None, false),
         stub_project(vec![
@@ -205,8 +196,7 @@ fn dot_renders_duplicates_edge() {
 
 #[test]
 fn mermaid_renders_recurred_edge() {
-    let mut a = bare_task("a");
-    a.links = vec![link_edge("b.typ", "recurred-from")];
+    let a = linked_task("a", vec![link_edge("b.typ", "recurred-from")]);
     let out = build(
         &args(GraphFormat::Mermaid, None, false),
         stub_project(vec![
@@ -220,8 +210,7 @@ fn mermaid_renders_recurred_edge() {
 
 #[test]
 fn mermaid_renders_parent_edge() {
-    let mut a = bare_task("a");
-    a.links = vec![link_edge("b.typ", "parent")];
+    let a = linked_task("a", vec![link_edge("b.typ", "parent")]);
     let out = build(
         &args(GraphFormat::Mermaid, None, false),
         stub_project(vec![
@@ -235,8 +224,7 @@ fn mermaid_renders_parent_edge() {
 
 #[test]
 fn mermaid_renders_related_edge() {
-    let mut a = bare_task("a");
-    a.links = vec![link_edge("b.typ", "related")];
+    let a = linked_task("a", vec![link_edge("b.typ", "related")]);
     let out = build(
         &args(GraphFormat::Mermaid, None, false),
         stub_project(vec![
@@ -252,8 +240,10 @@ fn mermaid_renders_related_edge() {
 /// never a task node, and never on the readiness palette.
 #[test]
 fn dot_renders_an_external_target_as_a_distinct_node() {
-    let mut a = bare_task("a");
-    a.links = vec![link_edge("https://example.com/pr/7", "discharged-by")];
+    let a = linked_task(
+        "a",
+        vec![link_edge("https://example.com/pr/7", "discharged-by")],
+    );
     let out = build(
         &args(GraphFormat::Dot, None, false),
         external_project(vec![with_status(a, "wip")], "url"),
@@ -276,8 +266,7 @@ fn dot_renders_an_external_target_as_a_distinct_node() {
 /// that happens to spell a loaded task's stem is still never traversed.
 #[test]
 fn external_kind_is_never_traversed_even_when_it_spells_a_stem() {
-    let mut a = bare_task("a");
-    a.links = vec![link_edge("b.typ", "discharged-by")];
+    let a = linked_task("a", vec![link_edge("b.typ", "discharged-by")]);
     let tasks = vec![with_status(a, "wip"), with_status(bare_task("b"), "wip")];
     let out = build(
         &args(GraphFormat::Dot, None, false),
@@ -298,8 +287,10 @@ fn external_kind_is_never_traversed_even_when_it_spells_a_stem() {
 
 #[test]
 fn mermaid_renders_external_targets_in_their_own_class() {
-    let mut a = bare_task("a");
-    a.links = vec![link_edge("https://example.com/pr/7", "discharged-by")];
+    let a = linked_task(
+        "a",
+        vec![link_edge("https://example.com/pr/7", "discharged-by")],
+    );
     let out = build(
         &args(GraphFormat::Mermaid, None, false),
         external_project(vec![with_status(a, "wip")], "url"),
@@ -316,10 +307,14 @@ fn mermaid_renders_external_targets_in_their_own_class() {
 /// Two tasks pointing at the same artifact share one node.
 #[test]
 fn repeated_external_target_renders_once() {
-    let mut a = bare_task("a");
-    a.links = vec![link_edge("https://example.com/pr/7", "discharged-by")];
-    let mut b = bare_task("b");
-    b.links = vec![link_edge("https://example.com/pr/7", "discharged-by")];
+    let a = linked_task(
+        "a",
+        vec![link_edge("https://example.com/pr/7", "discharged-by")],
+    );
+    let b = linked_task(
+        "b",
+        vec![link_edge("https://example.com/pr/7", "discharged-by")],
+    );
     let out = build(
         &args(GraphFormat::Dot, None, false),
         external_project(vec![with_status(a, "wip"), with_status(b, "wip")], "url"),

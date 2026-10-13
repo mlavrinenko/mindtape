@@ -12,6 +12,15 @@ fn two_tasks() -> tempfile::TempDir {
     support::project_with_tasks(&[("alpha.typ", "Alpha"), ("beta.typ", "Beta")])
 }
 
+/// Run `args` against [`two_tasks`], assert `mt` exits with `code`, and
+/// return its stderr.
+fn failure(args: &[&str], code: Option<i32>) -> String {
+    let dir = two_tasks();
+    let (actual, stderr) = run(dir.path(), args);
+    assert_eq!(actual, code, "{stderr}");
+    stderr
+}
+
 /// Each line starts with one of the four prefixes, and none is Rust's own.
 fn assert_prefixed(stderr: &str) {
     for line in stderr.lines() {
@@ -26,11 +35,7 @@ fn assert_prefixed(stderr: &str) {
 
 #[test]
 fn an_unknown_task_is_one_error_and_a_hint_with_no_summary() {
-    let dir = two_tasks();
-
-    let (code, stderr) = run(dir.path(), &["wip", "nonexistent-xyz"]);
-
-    assert_eq!(code, Some(1), "{stderr}");
+    let stderr = failure(&["wip", "nonexistent-xyz"], Some(1));
     assert_eq!(
         stderr,
         "error: no task: 'nonexistent-xyz'\nhint: run mt ls to see your tasks\n"
@@ -39,11 +44,7 @@ fn an_unknown_task_is_one_error_and_a_hint_with_no_summary() {
 
 #[test]
 fn a_near_miss_names_the_task_it_meant() {
-    let dir = two_tasks();
-
-    let (code, stderr) = run(dir.path(), &["wip", "alpah"]);
-
-    assert_eq!(code, Some(1), "{stderr}");
+    let stderr = failure(&["wip", "alpah"], Some(1));
     assert_eq!(
         stderr,
         "error: no task: 'alpah'\nhint: did you mean alpha?\n"
@@ -52,11 +53,7 @@ fn a_near_miss_names_the_task_it_meant() {
 
 #[test]
 fn a_batch_with_a_failure_ends_with_one_summary() {
-    let dir = two_tasks();
-
-    let (code, stderr) = run(dir.path(), &["wip", "alpha", "nonexistent-xyz"]);
-
-    assert_eq!(code, Some(1), "{stderr}");
+    let stderr = failure(&["wip", "alpha", "nonexistent-xyz"], Some(1));
     assert_prefixed(&stderr);
     assert!(
         stderr.contains("error: no task: 'nonexistent-xyz'\n"),
@@ -70,11 +67,7 @@ fn a_batch_with_a_failure_ends_with_one_summary() {
 
 #[test]
 fn a_note_passed_as_a_task_gets_a_hint_to_use_m() {
-    let dir = two_tasks();
-
-    let (code, stderr) = run(dir.path(), &["done", "alpha", "it's fixed"]);
-
-    assert_eq!(code, Some(1), "{stderr}");
+    let stderr = failure(&["done", "alpha", "it's fixed"], Some(1));
     assert_eq!(
         stderr,
         "error: no task: 'it'\\''s fixed'\n\
@@ -86,11 +79,7 @@ fn a_note_passed_as_a_task_gets_a_hint_to_use_m() {
 
 #[test]
 fn an_unknown_field_in_a_filter_is_a_usage_error() {
-    let dir = two_tasks();
-
-    let (code, stderr) = run(dir.path(), &["ls", "status == wip"]);
-
-    assert_eq!(code, Some(2), "{stderr}");
+    let stderr = failure(&["ls", "status == wip"], Some(2));
     assert_eq!(
         stderr,
         "error: unknown field: 'wip' in filter 'status == wip'\n"
@@ -99,11 +88,7 @@ fn an_unknown_field_in_a_filter_is_a_usage_error() {
 
 #[test]
 fn a_filter_that_does_not_parse_is_a_usage_error_on_one_line() {
-    let dir = two_tasks();
-
-    let (code, stderr) = run(dir.path(), &["ls", "foo("]);
-
-    assert_eq!(code, Some(2), "{stderr}");
+    let stderr = failure(&["ls", "foo("], Some(2));
     assert!(
         stderr.starts_with("error: can't parse filter: 'foo(': "),
         "{stderr}"
@@ -114,11 +99,7 @@ fn a_filter_that_does_not_parse_is_a_usage_error_on_one_line() {
 
 #[test]
 fn an_unclosed_parenthesis_is_said_in_plain_words() {
-    let dir = two_tasks();
-
-    let (code, stderr) = run(dir.path(), &["ls", "foo("]);
-
-    assert_eq!(code, Some(2), "{stderr}");
+    let stderr = failure(&["ls", "foo("], Some(2));
     assert_eq!(
         stderr,
         "error: can't parse filter: 'foo(': a '(' is never closed\n"
@@ -127,11 +108,7 @@ fn an_unclosed_parenthesis_is_said_in_plain_words() {
 
 #[test]
 fn a_tilde_points_at_matches() {
-    let dir = two_tasks();
-
-    let (code, stderr) = run(dir.path(), &["ls", "title ~ \"x\""]);
-
-    assert_eq!(code, Some(2), "{stderr}");
+    let stderr = failure(&["ls", "title ~ \"x\""], Some(2));
     assert_eq!(
         stderr,
         "error: invalid filter: 'title ~ \"x\"': '~' isn't an operator\n\
@@ -141,22 +118,14 @@ fn a_tilde_points_at_matches() {
 
 #[test]
 fn a_bare_value_shows_no_rust_type() {
-    let dir = two_tasks();
-
-    let (code, stderr) = run(dir.path(), &["ls", "\"wip\""]);
-
-    assert_eq!(code, Some(2), "{stderr}");
+    let stderr = failure(&["ls", "\"wip\""], Some(2));
     assert!(!stderr.contains("Const"), "{stderr}");
     assert!(!stderr.contains("String("), "{stderr}");
 }
 
 #[test]
 fn a_call_with_the_wrong_arguments_hints_a_correct_one() {
-    let dir = two_tasks();
-
-    let (code, stderr) = run(dir.path(), &["ls", "matches(title)"]);
-
-    assert_eq!(code, Some(2), "{stderr}");
+    let stderr = failure(&["ls", "matches(title)"], Some(2));
     assert_eq!(
         stderr,
         "error: invalid filter: 'matches(title)': matches() takes two arguments\n\
@@ -166,11 +135,7 @@ fn a_call_with_the_wrong_arguments_hints_a_correct_one() {
 
 #[test]
 fn a_call_in_place_of_a_field_is_named_as_written() {
-    let dir = two_tasks();
-
-    let (code, stderr) = run(dir.path(), &["ls", "word(title, 0) == \"a\""]);
-
-    assert_eq!(code, Some(2), "{stderr}");
+    let stderr = failure(&["ls", "word(title, 0) == \"a\""], Some(2));
     assert!(
         stderr.ends_with(": expected a field, got 'word(...)'\n"),
         "{stderr}"
@@ -179,11 +144,7 @@ fn a_call_in_place_of_a_field_is_named_as_written() {
 
 #[test]
 fn an_unknown_function_suggests_the_nearest() {
-    let dir = two_tasks();
-
-    let (code, stderr) = run(dir.path(), &["ls", "matchs(title, \"a\")"]);
-
-    assert_eq!(code, Some(2), "{stderr}");
+    let stderr = failure(&["ls", "matchs(title, \"a\")"], Some(2));
     assert_eq!(
         stderr,
         "error: unknown function: 'matchs' in filter 'matchs(title, \"a\")'\n\
@@ -193,11 +154,7 @@ fn an_unknown_function_suggests_the_nearest() {
 
 #[test]
 fn an_unknown_status_in_a_filter_is_refused_with_the_nearest() {
-    let dir = two_tasks();
-
-    let (code, stderr) = run(dir.path(), &["ls", "status == \"wpi\""]);
-
-    assert_eq!(code, Some(2), "{stderr}");
+    let stderr = failure(&["ls", "status == \"wpi\""], Some(2));
     assert_eq!(
         stderr,
         "error: unknown status: 'wpi' in filter 'status == \"wpi\"'\n\
@@ -223,11 +180,7 @@ fn a_view_naming_an_undeclared_status_fails_at_load() {
 
 #[test]
 fn an_unknown_command_is_a_usage_error() {
-    let dir = two_tasks();
-
-    let (code, stderr) = run(dir.path(), &["dne", "alpha"]);
-
-    assert_eq!(code, Some(2), "{stderr}");
+    let stderr = failure(&["dne", "alpha"], Some(2));
     assert_eq!(
         stderr,
         "error: unknown command: 'dne'\nhint: did you mean done?\n"
@@ -236,11 +189,7 @@ fn an_unknown_command_is_a_usage_error() {
 
 #[test]
 fn an_unknown_status_is_a_usage_error() {
-    let dir = two_tasks();
-
-    let (code, stderr) = run(dir.path(), &["flip", "nostatus", "alpha"]);
-
-    assert_eq!(code, Some(2), "{stderr}");
+    let stderr = failure(&["flip", "nostatus", "alpha"], Some(2));
     assert!(
         stderr.starts_with("error: unknown status: 'nostatus'\nhint: "),
         "{stderr}"
@@ -252,11 +201,7 @@ fn an_unknown_status_is_a_usage_error() {
 /// line, its causes joined with `: `.
 #[test]
 fn a_values_file_that_cannot_be_read_is_one_error_without_caused_by() {
-    let dir = two_tasks();
-
-    let (code, stderr) = run(dir.path(), &["add", "-f", "/nonexistent", "Gamma"]);
-
-    assert_eq!(code, Some(1), "{stderr}");
+    let stderr = failure(&["add", "-f", "/nonexistent", "Gamma"], Some(1));
     assert!(!stderr.contains("Caused by"), "{stderr}");
     assert_eq!(
         stderr,
@@ -266,11 +211,7 @@ fn a_values_file_that_cannot_be_read_is_one_error_without_caused_by() {
 
 #[test]
 fn a_missing_slot_names_the_flags_that_fill_it() {
-    let dir = two_tasks();
-
-    let (code, stderr) = run(dir.path(), &["add", "--name", "gamma"]);
-
-    assert_eq!(code, Some(2), "{stderr}");
+    let stderr = failure(&["add", "--name", "gamma"], Some(2));
     assert_eq!(
         stderr,
         "error: missing a required slot: 'title'\n\
@@ -281,11 +222,7 @@ fn a_missing_slot_names_the_flags_that_fill_it() {
 
 #[test]
 fn an_unknown_template_is_a_usage_error_with_a_hint() {
-    let dir = two_tasks();
-
-    let (code, stderr) = run(dir.path(), &["add", "-t", "nope", "Gamma"]);
-
-    assert_eq!(code, Some(2), "{stderr}");
+    let stderr = failure(&["add", "-t", "nope", "Gamma"], Some(2));
     assert_eq!(
         stderr,
         "error: unknown template: 'nope'\nhint: run mt add --list to see the templates\n"
@@ -294,11 +231,7 @@ fn an_unknown_template_is_a_usage_error_with_a_hint() {
 
 #[test]
 fn a_link_to_a_missing_task_is_one_error_and_no_summary() {
-    let dir = two_tasks();
-
-    let (code, stderr) = run(dir.path(), &["link", "alpha", "depends-on", "nope"]);
-
-    assert_eq!(code, Some(1), "{stderr}");
+    let stderr = failure(&["link", "alpha", "depends-on", "nope"], Some(1));
     assert_eq!(
         stderr,
         "error: tasks/alpha.typ: no task: 'nope' of kind 'depends-on'\n\
@@ -308,11 +241,7 @@ fn a_link_to_a_missing_task_is_one_error_and_no_summary() {
 
 #[test]
 fn an_unknown_field_for_set_is_a_usage_error() {
-    let dir = two_tasks();
-
-    let (code, stderr) = run(dir.path(), &["set", "alpha", "titel=x"]);
-
-    assert_eq!(code, Some(2), "{stderr}");
+    let stderr = failure(&["set", "alpha", "titel=x"], Some(2));
     assert_eq!(
         stderr,
         "error: unknown field: 'titel'\nhint: did you mean title?\n\
