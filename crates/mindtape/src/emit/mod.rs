@@ -229,3 +229,6 @@ fn emit_recur(recur: &Recur) -> String {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod recur_tests;

@@ -19,7 +19,6 @@ use crate::link::Link;
 use crate::loader::{LoadOutcome, load_project};
 use crate::model::numeric::{InputValue, NumValue};
 use crate::model::{Status, Task};
-use crate::recur::{PeriodUnit, Recur, Rule};
 use crate::test_support::bare_task;
 use crate::validate::validate;
 
@@ -30,7 +29,7 @@ use crate::test_support::PRELUDE;
 /// Activates `ice` as the priority framework, leaving manual priority
 /// allowed (the default), so both framework- and scalar-priority fixtures
 /// validate against the same project.
-const CONFIG: &str = "[tasks.priority]\nframework = \"ice\"\n";
+pub(super) const CONFIG: &str = "[tasks.priority]\nframework = \"ice\"\n";
 
 /// `CONFIG` plus a project-declared custom link kind, for the `edge(...)`
 /// escape-hatch coverage.
@@ -46,7 +45,7 @@ const STUB: &str = crate::typst_task!("(\n  title: \"Stub\",\n  status: wip(2026
 /// `.mindtape/config.toml`, and every `(name, source)` under `tasks/`, then
 /// load the project. Mirrors `crates/mindtape-cli/src/cmd/flip/tests.rs::setup`,
 /// minus the CLI's `test_util::make_project` (unavailable from this crate).
-fn setup(dir: &Path, config_text: &str, files: &[(String, String)]) -> LoadOutcome {
+pub(super) fn setup(dir: &Path, config_text: &str, files: &[(String, String)]) -> LoadOutcome {
     crate::test_support::write_lib_package(dir, PRELUDE);
     std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
     write_file(dir, ".mindtape/config.toml", config_text);
@@ -70,7 +69,7 @@ fn link_sort_key(link: &Link) -> (String, String, Option<String>) {
 /// field-by-field (modulo the loader-derived `file`/`derived_tags`/`topo`/
 /// `blocks` and link order), and it passes validation with no violation
 /// attributed to `task.id`.
-fn assert_round_trips(task: &Task, config_text: &str, stub_ids: &[&str]) {
+pub(super) fn assert_round_trips(task: &Task, config_text: &str, stub_ids: &[&str]) {
     let dir = tempdir();
     let source = emit_task(task);
     let mut files = vec![(format!("{}.typ", task.id), source.clone())];
@@ -128,7 +127,7 @@ fn assert_round_trips(task: &Task, config_text: &str, stub_ids: &[&str]) {
     );
 }
 
-fn status(name: &str, date: &str) -> Status {
+pub(super) fn status(name: &str, date: &str) -> Status {
     Status {
         name: name.to_owned(),
         date: Some(date.to_owned()),
@@ -267,44 +266,6 @@ fn round_trips_status_with_note() {
 }
 
 #[test]
-fn round_trips_recur_every() {
-    let mut task = bare_task("recur-every");
-    task.status = Some(status("wip", "2026-06-01"));
-    task.recur = Some(Recur {
-        rule: Rule::Period {
-            unit: PeriodUnit::Weeks,
-            value: 1,
-            weekdays: vec![chrono::Weekday::Mon, chrono::Weekday::Wed],
-            start: None,
-        },
-        anchor: Some("due".to_owned()),
-        until: Some("2027-01-01".to_owned()),
-        count: Some(10),
-        materialize: Some("spawn".to_owned()),
-    });
-    assert_round_trips(&task, CONFIG, &[]);
-}
-
-#[test]
-fn round_trips_recur_start() {
-    let mut task = bare_task("recur-start");
-    task.status = Some(status("wip", "2026-06-01"));
-    task.recur = Some(Recur {
-        rule: Rule::Period {
-            unit: PeriodUnit::Weeks,
-            value: 2,
-            weekdays: vec![chrono::Weekday::Mon, chrono::Weekday::Thu],
-            start: chrono::NaiveDate::from_ymd_opt(2026, 6, 8),
-        },
-        anchor: None,
-        until: None,
-        count: None,
-        materialize: None,
-    });
-    assert_round_trips(&task, CONFIG, &[]);
-}
-
-#[test]
 fn round_trips_non_empty_body() {
     let mut task = bare_task("with-body");
     task.status = Some(status("wip", "2026-06-01"));
@@ -383,84 +344,6 @@ fn emits_unnamed_framework_with_inputs_via_the_generic_escape_hatch() {
         source.contains(r#"priority: framework("custom", flag: true, note: "careful")"#),
         "{source}"
     );
-}
-
-#[test]
-fn emit_recur_rrule_escape_hatch_round_trips_through_reload() {
-    // `check_policy` gates `rrule(...)` behind config and the `rrule` cargo
-    // feature — orthogonal to emission, and this crate's own tests build
-    // without the feature — so this reloads without calling `validate` (the
-    // way `assert_round_trips` does), proving the marker-parse round trip on
-    // its own rather than the policy check this build cannot honour.
-    let dir = tempdir();
-    let mut task = bare_task("rrule-recur");
-    task.status = Some(status("wip", "2026-06-01"));
-    task.recur = Some(Recur {
-        rule: Rule::Rrule {
-            raw: "FREQ=MONTHLY;BYDAY=1MO".to_owned(),
-        },
-        anchor: Some("due".to_owned()),
-        until: None,
-        count: None,
-        materialize: None,
-    });
-    let source = emit_task(&task);
-    assert!(
-        source.contains(r#"recur: rrule("FREQ=MONTHLY;BYDAY=1MO", anchor: "due")"#),
-        "{source}"
-    );
-    let files = vec![(format!("{}.typ", task.id), source.clone())];
-    let outcome = setup(dir.path(), CONFIG, &files);
-    assert!(
-        outcome.errors.is_empty(),
-        "{:?}\n--- source ---\n{source}",
-        outcome.errors
-    );
-    let reloaded = outcome
-        .tasks
-        .into_iter()
-        .find(|found| found.id == task.id)
-        .unwrap_or_else(|| panic!("task `{}` did not load\n--- source ---\n{source}", task.id));
-    assert_eq!(reloaded.recur, task.recur);
-}
-
-#[test]
-fn round_trips_recur_without_specific_weekdays() {
-    let mut task = bare_task("recur-no-weekdays");
-    task.status = Some(status("wip", "2026-06-01"));
-    task.recur = Some(Recur {
-        rule: Rule::Period {
-            unit: PeriodUnit::Days,
-            value: 3,
-            weekdays: Vec::new(),
-            start: None,
-        },
-        anchor: None,
-        until: None,
-        count: None,
-        materialize: None,
-    });
-    assert_round_trips(&task, CONFIG, &[]);
-}
-
-#[test]
-fn round_trips_recur_with_every_weekday() {
-    use chrono::Weekday::{Fri, Mon, Sat, Sun, Thu, Tue, Wed};
-    let mut task = bare_task("recur-all-weekdays");
-    task.status = Some(status("wip", "2026-06-01"));
-    task.recur = Some(Recur {
-        rule: Rule::Period {
-            unit: PeriodUnit::Weeks,
-            value: 1,
-            weekdays: vec![Mon, Tue, Wed, Thu, Fri, Sat, Sun],
-            start: None,
-        },
-        anchor: None,
-        until: None,
-        count: None,
-        materialize: None,
-    });
-    assert_round_trips(&task, CONFIG, &[]);
 }
 
 #[test]
