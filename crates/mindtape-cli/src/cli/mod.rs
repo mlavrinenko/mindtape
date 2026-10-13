@@ -160,6 +160,9 @@ impl Cli {
     /// # Errors
     /// Propagates the command's failure.
     pub fn run(self) -> Result<()> {
+        // jscpd:ignore-start
+        // One arm per command, `Command::X(args) => x::run(&args)`: the match is the
+        // dispatch table, and a helper would only hide which module runs which verb.
         match self.command {
             Command::Add(args) => add::run(&args),
             Command::Import(args) => import::run(&args),
@@ -186,6 +189,7 @@ impl Cli {
             Command::CliDump(args) => tree_json::run(&args),
             Command::Status(argv) => flip::run_external(&argv),
         }
+        // jscpd:ignore-end
     }
 }
 
