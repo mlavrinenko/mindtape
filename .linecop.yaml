@@ -3,8 +3,8 @@ limits:
   Rust: 500
   Markdown: 200
 
-  # Shell is capped so a script that outgrows one job gets split. The cap of 300
-  # sits above every shell file in the repo.
+  # Shell is capped so a script that outgrows one job gets split. Two gate
+  # libraries with no seam carry their own cap in `overrides` below.
   #
   # linecop detects language by extension, so the shebang-only `.githooks/`
   # hooks are invisible to it at any limit. They are about 25 lines each.

@@ -473,6 +473,8 @@ scopes:
     - ".just/scripts/site-pages-fixture-check.sh"
   script-size-fixture-check:
     - ".just/scripts/size-fixture-check.sh"
+    # It sources the sweep's size arm and asserts `score_size`'s rows.
+    - "contrib/ask-refactoring/size.sh"
   script-typst-package:
     - ".just/scripts/_typst-package.sh"
   script-uninstall-lib:

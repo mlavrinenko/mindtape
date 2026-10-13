@@ -191,10 +191,9 @@ score_undertested() {
 #   would be invented rather than measured.
 signal_undertested() {
     ensure_lcov_fresh
-    # Captured before the report is scored, not while: `coverage_arm_files` runs
-    # `cargo llvm-cov report` a second time in this sweep (arms cannot share a
-    # cache — each runs in its own command substitution), and reading it into a
-    # variable first keeps that cost and any failure out of the jq pipeline.
+    # Captured before the report is scored, not while: `coverage_arm_files`
+    # re-reads the lcov in its own command substitution, and reading it into a
+    # variable first keeps any failure out of the jq pipeline.
     local reported
     reported="$(coverage_arm_files)"
     undertested_report_json | score_undertested "$reported"
