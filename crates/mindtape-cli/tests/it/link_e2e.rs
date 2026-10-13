@@ -185,7 +185,7 @@ fn an_unknown_kind_exits_non_zero_naming_the_configured_kinds() {
         .args(["link", "wire-oauth", "depends-onn", "write-docs"])
         .assert()
         .failure();
-    let stderr = String::from_utf8_lossy(&output.get_output().stderr).into_owned();
+    let stderr = support::stderr_of(&output);
     assert!(
         stderr.contains("unknown link kind: 'depends-onn'"),
         "{stderr}"
@@ -205,7 +205,7 @@ fn a_missing_target_exits_non_zero() {
         .args(["link", "wire-oauth", "depends-on", "no-such-task"])
         .assert()
         .failure();
-    let stderr = String::from_utf8_lossy(&output.get_output().stderr).into_owned();
+    let stderr = support::stderr_of(&output);
     assert!(
         stderr.contains("no task: 'no-such-task' of kind 'depends-on'"),
         "{stderr}"

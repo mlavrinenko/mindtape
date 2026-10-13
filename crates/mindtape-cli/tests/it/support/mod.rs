@@ -284,3 +284,9 @@ pub fn commit_msg_refusal(dir: &Path, message: &str) -> String {
     assert!(!ok, "the check must refuse {message:?}: {text}");
     text
 }
+
+/// The stderr of a finished `assert_cmd` run, for the tests that match on a
+/// refusal's text.
+pub fn stderr_of(done: &assert_cmd::assert::Assert) -> String {
+    String::from_utf8_lossy(&done.get_output().stderr).into_owned()
+}

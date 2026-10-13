@@ -31,7 +31,7 @@ fn refuses_to_review_a_terminal_task() {
         .args(["review", "wire-oauth"])
         .assert()
         .failure();
-    let stderr = String::from_utf8_lossy(&output.get_output().stderr).into_owned();
+    let stderr = support::stderr_of(&output);
     assert!(stderr.contains("terminal status"), "{stderr}");
 
     // A refusal must not touch the file: no `reviewed:` slot appears.
@@ -86,7 +86,7 @@ fn a_rejected_stamp_leaves_the_file_untouched() {
         .args(["review", "wire-oauth"])
         .assert()
         .failure();
-    let stderr = String::from_utf8_lossy(&output.get_output().stderr).into_owned();
+    let stderr = support::stderr_of(&output);
     assert!(
         stderr.starts_with("error: tasks/wire-oauth.typ:6: tags:"),
         "{stderr}"
@@ -106,6 +106,6 @@ fn reviewing_an_unresolvable_id_fails() {
         .args(["review", "does-not-exist"])
         .assert()
         .failure();
-    let stderr = String::from_utf8_lossy(&output.get_output().stderr).into_owned();
+    let stderr = support::stderr_of(&output);
     assert!(stderr.contains("does-not-exist"), "{stderr}");
 }

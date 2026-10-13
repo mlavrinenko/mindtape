@@ -157,7 +157,7 @@ fn assert_recur_refused(recur_override: &str, expect: &str) {
         .args(["recur", "water-plants"])
         .assert()
         .failure();
-    let stderr = String::from_utf8_lossy(&output.get_output().stderr).into_owned();
+    let stderr = support::stderr_of(&output);
     assert!(stderr.contains(expect), "{stderr}");
     assert_eq!(
         tasks_dir_entries(dir.path()),
@@ -267,7 +267,7 @@ recur: every(weeks: 1),\n\
         .assert()
         .failure();
 
-    let stderr = String::from_utf8_lossy(&output.get_output().stderr).into_owned();
+    let stderr = support::stderr_of(&output);
     assert!(
         stderr.contains("error: the task as filled:"),
         "a blocking pre-write problem reports as an error: {stderr}"

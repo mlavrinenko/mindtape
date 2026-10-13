@@ -45,7 +45,7 @@ fn config_show_outside_a_project_fails_naming_the_reason() {
     let dir = tempdir();
 
     let output = support::mt(dir.path()).arg("config").assert().failure();
-    let stderr = String::from_utf8_lossy(&output.get_output().stderr).into_owned();
+    let stderr = support::stderr_of(&output);
     assert!(
         stderr.contains("no .mindtape/ directory here or above"),
         "{stderr}"
@@ -60,7 +60,7 @@ fn malformed_config_toml_fails_show_with_context() {
         .args(["config", "show"])
         .assert()
         .failure();
-    let stderr = String::from_utf8_lossy(&output.get_output().stderr).into_owned();
+    let stderr = support::stderr_of(&output);
     assert!(stderr.contains("config.toml"), "{stderr}");
 }
 
@@ -72,6 +72,6 @@ fn malformed_config_toml_fails_origin_with_context() {
         .args(["config", "show", "--origin"])
         .assert()
         .failure();
-    let stderr = String::from_utf8_lossy(&output.get_output().stderr).into_owned();
+    let stderr = support::stderr_of(&output);
     assert!(stderr.contains("config.toml"), "{stderr}");
 }

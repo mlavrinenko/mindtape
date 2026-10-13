@@ -35,7 +35,7 @@ fn add(dir: &std::path::Path, kind: &str, extra: &[&str]) -> assert_cmd::assert:
 fn refusal_names_the_template_that_pins_the_value() {
     let dir = scaffold();
     let out = add(dir.path(), "kind=dev", &[]).failure();
-    let stderr = String::from_utf8_lossy(&out.get_output().stderr).into_owned();
+    let stderr = support::stderr_of(&out);
     assert!(
         stderr
             .contains("hint: file it with the template that sets that field itself: mt add -t dev"),
@@ -47,7 +47,7 @@ fn refusal_names_the_template_that_pins_the_value() {
 fn no_hint_when_no_template_pins_the_value() {
     let dir = scaffold();
     let out = add(dir.path(), "kind=feat", &["--set", "kind=bogus"]).failure();
-    let stderr = String::from_utf8_lossy(&out.get_output().stderr).into_owned();
+    let stderr = support::stderr_of(&out);
     assert!(!stderr.contains("hint:"), "{stderr}");
 }
 
@@ -67,7 +67,7 @@ fn no_hint_when_the_breach_names_another_field() {
         PINNED.replace("\"dev\"", "\"feat\""),
     );
     let out = add(dir.path(), "kind=feat", &[]).failure();
-    let stderr = String::from_utf8_lossy(&out.get_output().stderr).into_owned();
+    let stderr = support::stderr_of(&out);
     assert!(stderr.contains("rules.no-bare-t"), "{stderr}");
     assert!(!stderr.contains("hint:"), "{stderr}");
 }
@@ -92,7 +92,7 @@ fn a_body_header_rule_is_about_the_field_its_when_reads() {
         format!("{PINNED}\n== Rollback\n\n- Revert it.\n"),
     );
     let out = add(dir.path(), "kind=dev", &[]).failure();
-    let stderr = String::from_utf8_lossy(&out.get_output().stderr).into_owned();
+    let stderr = support::stderr_of(&out);
     assert!(stderr.contains("rollback-for-dev"), "{stderr}");
     assert!(
         stderr
@@ -116,7 +116,7 @@ fn a_field_filled_by_a_differently_named_slot_still_hints() {
         .args(["--set", "type=dev"])
         .assert()
         .failure();
-    let stderr = String::from_utf8_lossy(&out.get_output().stderr).into_owned();
+    let stderr = support::stderr_of(&out);
     assert!(stderr.contains("rules.dev-sets-difficulty"), "{stderr}");
     assert!(
         stderr

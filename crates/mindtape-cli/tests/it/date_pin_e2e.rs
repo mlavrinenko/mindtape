@@ -176,7 +176,7 @@ fn malformed_mindtape_now_is_a_hard_error_naming_the_variable() {
         .arg("ls")
         .assert()
         .failure();
-    let stderr = String::from_utf8_lossy(&output.get_output().stderr).into_owned();
+    let stderr = support::stderr_of(&output);
     assert!(stderr.contains("MINDTAPE_NOW"), "{stderr}");
     assert!(stderr.contains("not-a-date"), "{stderr}");
 }
