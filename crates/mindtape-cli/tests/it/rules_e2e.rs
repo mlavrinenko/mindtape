@@ -119,11 +119,9 @@ fn a_rule_with_no_message_names_its_own_assert() {
                 assert = 'matches(title, \"^Refactor\")'\n\
                 severity = \"error\"\n";
     let dir = project(rule, "Loader refactoring");
-    let (ok, text) = check(dir.path());
-    assert!(!ok, "got: {text}");
-    assert!(
-        text.contains("rules.imperative-title: must satisfy `matches(title, \"^Refactor\")`"),
-        "got: {text}"
+    support::assert_check_fails(
+        dir.path(),
+        "rules.imperative-title: must satisfy `matches(title, \"^Refactor\")`",
     );
 }
 
@@ -133,12 +131,7 @@ fn an_unnamed_rule_is_identified_by_its_index() {
                 assert = 'kind == \"bug\"'\n\
                 severity = \"error\"\n";
     let dir = project(rule, "Refactor the loader");
-    let (ok, text) = check(dir.path());
-    assert!(!ok, "got: {text}");
-    assert!(
-        text.contains("rules[0]: must satisfy `kind == \"bug\"`"),
-        "got: {text}"
-    );
+    support::assert_check_fails(dir.path(), "rules[0]: must satisfy `kind == \"bug\"`");
 }
 
 #[test]
@@ -193,9 +186,7 @@ fn a_malformed_assert_is_one_config_error_at_load() {
 fn a_malformed_when_is_one_config_error_at_load() {
     let rule = format!("{}when = 'nosuchfield == \"x\"'\n", imperative_rule("warn"));
     let dir = project(&rule, "Refactor the loader");
-    let (ok, text) = check(dir.path());
-    assert!(!ok, "got: {text}");
-    assert!(text.contains("tasks.rules[0].when"), "got: {text}");
+    support::assert_check_fails(dir.path(), "tasks.rules[0].when");
 }
 
 #[test]

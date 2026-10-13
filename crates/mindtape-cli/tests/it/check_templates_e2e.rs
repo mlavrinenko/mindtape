@@ -42,33 +42,27 @@ fn template(kind: &str) -> String {
 #[test]
 fn a_stale_literal_fails_naming_the_template_line() {
     let dir = scaffold(&template("\"bug\""));
-    let (ok, text) = check(dir.path());
-    assert!(!ok, "{text}");
-    assert!(
-        text.contains("error: .mindtape/templates/bug.typ:4: kind: `bug` is not an allowed value"),
-        "{text}"
+    support::assert_check_fails(
+        dir.path(),
+        "error: .mindtape/templates/bug.typ:4: kind: `bug` is not an allowed value",
     );
 }
 
 #[test]
 fn a_stale_example_fails() {
     let dir = scaffold(&template("slot(\"kind\", example: \"bug\")"));
-    let (ok, text) = check(dir.path());
-    assert!(!ok, "{text}");
-    assert!(
-        text.contains(".mindtape/templates/bug.typ:4: kind: `bug` is not an allowed value"),
-        "{text}"
+    support::assert_check_fails(
+        dir.path(),
+        ".mindtape/templates/bug.typ:4: kind: `bug` is not an allowed value",
     );
 }
 
 #[test]
 fn a_stale_default_fails() {
     let dir = scaffold(&template("slot(\"kind\", default: \"bug\")"));
-    let (ok, text) = check(dir.path());
-    assert!(!ok, "{text}");
-    assert!(
-        text.contains(".mindtape/templates/bug.typ:4: kind: `bug` is not an allowed value"),
-        "{text}"
+    support::assert_check_fails(
+        dir.path(),
+        ".mindtape/templates/bug.typ:4: kind: `bug` is not an allowed value",
     );
 }
 
@@ -79,19 +73,15 @@ fn the_example_fills_before_the_default() {
     let dir = scaffold(&template(
         "slot(\"kind\", default: \"fix\", example: \"bug\")",
     ));
-    let (ok, text) = check(dir.path());
-    assert!(!ok, "{text}");
-    assert!(text.contains("`bug` is not an allowed value"), "{text}");
+    support::assert_check_fails(dir.path(), "`bug` is not an allowed value");
 }
 
 #[test]
 fn a_slot_with_neither_example_nor_default_names_the_slot() {
     let dir = scaffold(&template("slot(\"kind\")"));
-    let (ok, text) = check(dir.path());
-    assert!(!ok, "{text}");
-    assert!(
-        text.contains(".mindtape/templates/bug.typ:4: template: slot `kind` has no example"),
-        "{text}"
+    support::assert_check_fails(
+        dir.path(),
+        ".mindtape/templates/bug.typ:4: template: slot `kind` has no example",
     );
 }
 
@@ -101,13 +91,9 @@ fn a_slot_with_neither_example_nor_default_names_the_slot() {
 fn a_text_slot_example_with_markup_names_the_slot() {
     let body = "\n#slot(\"why\", kind: \"text\", example: \"the `retire` verb\")\n";
     let dir = scaffold(&format!("{}{body}", template("\"fix\"")));
-    let (ok, text) = check(dir.path());
-    assert!(!ok, "{text}");
-    assert!(
-        text.contains(
-            ".mindtape/templates/bug.typ:7: template: slot `why` is `text`, so `mt add` files the code span"
-        ),
-        "{text}"
+    support::assert_check_fails(
+        dir.path(),
+        ".mindtape/templates/bug.typ:7: template: slot `why` is `text`, so `mt add` files the code span",
     );
 }
 
@@ -150,11 +136,9 @@ fn a_configured_example_fills_a_spliced_slot() {
 fn a_spliced_slot_without_an_example_names_its_config_path() {
     let config = ticket("");
     let dir = scaffold_with(&config, &template("\"fix\""));
-    let (ok, text) = check(dir.path());
-    assert!(!ok, "{text}");
-    assert!(
-        text.contains("slot `x-ticket` has no example; set `example` in [tasks.fields.x-ticket]"),
-        "{text}"
+    support::assert_check_fails(
+        dir.path(),
+        "slot `x-ticket` has no example; set `example` in [tasks.fields.x-ticket]",
     );
 }
 
@@ -189,12 +173,7 @@ fn a_template_that_fails_to_evaluate_is_one_breach() {
 #[test]
 fn a_template_load_failure_keeps_typsts_hints() {
     let dir = scaffold(&template("some-name-here"));
-    let (ok, text) = check(dir.path());
-    assert!(!ok, "{text}");
-    assert!(
-        text.contains("unknown variable: some-name-here\nhint: "),
-        "{text}"
-    );
+    support::assert_check_fails(dir.path(), "unknown variable: some-name-here\nhint: ");
 }
 
 /// A body slot's raw-block example is checked by the body rules like a
@@ -214,11 +193,9 @@ fn a_body_rule_reads_the_body_s_example() {
     assert!(ok, "{text}");
 
     let dir = scaffold_with(&format!("{CONFIG}{rule}"), &body("Context"));
-    let (ok, text) = check(dir.path());
-    assert!(!ok, "{text}");
-    assert!(
-        text.contains(".mindtape/templates/bug.typ:8: body.headers.rules.only-problem"),
-        "{text}"
+    support::assert_check_fails(
+        dir.path(),
+        ".mindtape/templates/bug.typ:8: body.headers.rules.only-problem",
     );
 }
 
@@ -235,11 +212,9 @@ fn a_rule_breach_on_an_example_counts() {
         &rule("no-bare-fix", "kind != \"fix\""),
         &template("slot(\"kind\", example: \"fix\")"),
     );
-    let (ok, text) = check(dir.path());
-    assert!(!ok, "{text}");
-    assert!(
-        text.contains(".mindtape/templates/bug.typ:2: rules.no-bare-fix"),
-        "{text}"
+    support::assert_check_fails(
+        dir.path(),
+        ".mindtape/templates/bug.typ:2: rules.no-bare-fix",
     );
 }
 
@@ -273,12 +248,7 @@ fn the_built_in_template_warns_by_default() {
 #[test]
 fn fallback_severity_error_fails_on_the_built_in_template() {
     let dir = fallback_project("[templates]\nfallback-severity = \"error\"\n");
-    let (ok, text) = check(dir.path());
-    assert!(!ok, "{text}");
-    assert!(
-        text.contains("error: built-in template task:3: rules.dated"),
-        "{text}"
-    );
+    support::assert_check_fails(dir.path(), "error: built-in template task:3: rules.dated");
 }
 
 /// The key is settable in the global defaults layer like any other.
@@ -295,12 +265,7 @@ fn fallback_severity_reads_the_global_defaults_layer() {
         "mindtape/defaults.toml",
         "[templates]\nfallback-severity = \"error\"\n",
     );
-    let (ok, text) = check(dir.path());
-    assert!(!ok, "{text}");
-    assert!(
-        text.contains("error: built-in template task:3: rules.dated"),
-        "{text}"
-    );
+    support::assert_check_fails(dir.path(), "error: built-in template task:3: rules.dated");
 }
 
 /// A task file at `tasks/<stem>.typ`, valid under [`CONFIG`].

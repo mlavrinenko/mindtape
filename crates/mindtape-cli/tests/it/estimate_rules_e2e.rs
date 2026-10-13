@@ -109,11 +109,9 @@ fn no_estimate_check_runs_without_a_rule() {
 #[test]
 fn an_oversized_estimate_fails_the_cap_rule() {
     let dir = fixture(CAP, 9, 0);
-    let (ok, stdout) = check(dir.path());
-    assert!(!ok, "an error rule fails the check: {stdout}");
-    assert!(
-        stdout.contains("rules.cap: must satisfy `estimate.src-files <= 5`"),
-        "{stdout}"
+    support::assert_check_fails(
+        dir.path(),
+        "rules.cap: must satisfy `estimate.src-files <= 5`",
     );
 }
 

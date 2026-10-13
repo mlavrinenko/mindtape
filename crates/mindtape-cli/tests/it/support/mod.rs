@@ -104,6 +104,16 @@ pub fn run_text(dir: &Path, args: &[&str]) -> (bool, String) {
     text_of(&mt(dir).args(args).output().unwrap())
 }
 
+/// `mt check` in `dir` must fail and print `needle`.
+pub fn assert_check_fails(dir: &Path, needle: &str) {
+    let (ok, text) = run_text(dir, &["check"]);
+    assert!(!ok, "check passed, wanted a failure: {text}");
+    assert!(
+        text.contains(needle),
+        "check output lacks {needle:?}: {text}"
+    );
+}
+
 /// `mt <args>` in `dir` must exit with `code` and print exactly `expected` on
 /// stderr: the shape of every error-format test.
 pub fn assert_stderr(dir: &Path, args: &[&str], code: i32, expected: &str) {
