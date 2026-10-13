@@ -26,6 +26,11 @@ fn tags_for(global: &DeriveConfig, path: &str) -> Vec<String> {
     RootDeriver::new(&root("mt"), global).tags_for(Path::new(path))
 }
 
+/// Asserts the tags `[tasks.derive]` yields for `path` are exactly `expected`, in order.
+fn assert_tags(global: &DeriveConfig, path: &str, expected: &[&str]) {
+    assert_eq!(tags_for(global, path), expected, "tags for {path}");
+}
+
 #[test]
 fn root_name_defaults_to_last_path_segment() {
     let spec = RootSpec::Short("truth/tasks".to_owned());
@@ -41,42 +46,32 @@ fn disabled_global_yields_nothing() {
 #[test]
 fn root_name_always_emitted_even_at_top_level() {
     let global = cfg(vec![Collector::Segments]);
-    assert_eq!(tags_for(&global, "x.typ"), vec!["mt".to_owned()]);
+    assert_tags(&global, "x.typ", &["mt"]);
 }
 
 #[test]
 fn segments_emits_each_folder() {
     let global = cfg(vec![Collector::Segments]);
-    assert_eq!(
-        tags_for(&global, "backend/auth/x.typ"),
-        vec!["mt".to_owned(), "backend".to_owned(), "auth".to_owned()]
-    );
+    assert_tags(&global, "backend/auth/x.typ", &["mt", "backend", "auth"]);
 }
 
 #[test]
 fn breadcrumbs_joins_with_separator() {
     let global = cfg(vec![Collector::Breadcrumbs]);
-    assert_eq!(
-        tags_for(&global, "backend/auth/x.typ"),
-        vec![
-            "mt".to_owned(),
-            "backend".to_owned(),
-            "backend:auth".to_owned()
-        ]
+    assert_tags(
+        &global,
+        "backend/auth/x.typ",
+        &["mt", "backend", "backend:auth"],
     );
 }
 
 #[test]
 fn both_collectors_dedupe() {
     let global = cfg(vec![Collector::Segments, Collector::Breadcrumbs]);
-    assert_eq!(
-        tags_for(&global, "backend/auth/x.typ"),
-        vec![
-            "mt".to_owned(),
-            "backend".to_owned(),
-            "auth".to_owned(),
-            "backend:auth".to_owned(),
-        ]
+    assert_tags(
+        &global,
+        "backend/auth/x.typ",
+        &["mt", "backend", "auth", "backend:auth"],
     );
 }
 
@@ -88,28 +83,19 @@ fn breadcrumb_root_folds_root_into_chain() {
         breadcrumb_root: true,
         ..DeriveConfig::default()
     };
-    assert_eq!(
-        tags_for(&global, "backend/x.typ"),
-        vec!["mt".to_owned(), "mt:backend".to_owned()]
-    );
+    assert_tags(&global, "backend/x.typ", &["mt", "mt:backend"]);
 }
 
 #[test]
 fn slugify_normalises_folder_names() {
     let global = cfg(vec![Collector::Segments]);
-    assert_eq!(
-        tags_for(&global, "Back End/x.typ"),
-        vec!["mt".to_owned(), "back-end".to_owned()]
-    );
+    assert_tags(&global, "Back End/x.typ", &["mt", "back-end"]);
 }
 
 #[test]
 fn slugify_drops_apostrophes_instead_of_slugging_them() {
     let global = cfg(vec![Collector::Segments]);
-    assert_eq!(
-        tags_for(&global, "ada's-drills/x.typ"),
-        vec!["mt".to_owned(), "adas-drills".to_owned()]
-    );
+    assert_tags(&global, "ada's-drills/x.typ", &["mt", "adas-drills"]);
 }
 
 #[test]
@@ -120,10 +106,7 @@ fn slugify_off_keeps_raw_names() {
         slugify: false,
         ..DeriveConfig::default()
     };
-    assert_eq!(
-        tags_for(&global, "Back End/x.typ"),
-        vec!["mt".to_owned(), "Back End".to_owned()]
-    );
+    assert_tags(&global, "Back End/x.typ", &["mt", "Back End"]);
 }
 
 #[test]
@@ -157,10 +140,7 @@ fn per_root_false_overrides_global_enable() {
 #[test]
 fn slugify_avoids_leading_dash() {
     let global = cfg(vec![Collector::Segments]);
-    assert_eq!(
-        tags_for(&global, "@hello/x.typ"),
-        vec!["mt".to_owned(), "hello".to_owned()]
-    );
+    assert_tags(&global, "@hello/x.typ", &["mt", "hello"]);
 }
 
 #[test]
