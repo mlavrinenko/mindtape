@@ -123,9 +123,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
         with:
           targets: ${{ matrix.target }}
-      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2.9.1
-        with:
-          key: ${{ matrix.target }}
+      # No rust-cache: a tag's run reads only caches saved under that tag or
+      # main, and none is saved under main, so a release's cache never reached
+      # the next release and cost an upload each time.
       - name: Install cross-compilation tools
         if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: |
@@ -175,7 +175,6 @@ jobs:
         with:
           ref: refs/tags/${{ needs.version-check.outputs.tag }}
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
-      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2.9.1
       # Publish in dependency order (mindtape-cli depends on mindtape); cargo
       # waits for the crates.io index to carry each crate before returning. A
       # crate whose version crates.io already has (a re-run, or a hand
