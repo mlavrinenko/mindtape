@@ -270,9 +270,9 @@ groups:
       docs/src/contributing/release.typ: a75c667745bd2c13ff376475cec4f8afe42da21978972a87668e98ad5fe70553
   release-notes:
     source:
-      Cargo.toml: 2fa7f3344d6f21f50967e00f179a24bf07e40d2b298c792b59c126f336191fcb
+      Cargo.toml: 367add3fa7a449db053901ede51968e7fc23d63d910417fa3761bd43f4ee288d
     dependents:
-      CHANGELOG.md: 088dee2f59bbceabe3d927a5eefcdc0491c965641f6e0e534c75a5c5cf4aa8e2
+      CHANGELOG.md: 334b07a0f008dc5de14c16fae9205e481557cfd73d3a34185488024c1eb78b0b
   scripts-no-doc:
     source:
       .just/scripts/_doc-blocks-control.sh: c8a84db06366a28c52831d0ecf53db96170feb22f8cb7c1655e2b278e2c997f0

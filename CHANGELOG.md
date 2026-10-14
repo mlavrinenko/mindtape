@@ -1453,6 +1453,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`cargo install mindtape-cli` builds faster.** Release builds use thin LTO,
+  which links `mt` in well under half the time for a binary 5% larger.
 - **Every task reference goes through one resolver.** `mindtape::resolve_ref`
   takes a `Base`, `Cwd` for a `<task>` argument and `Linker` for a `links:`
   target, and reads both as a path, then a stem, then a stem hash. `Resolved`

@@ -14,7 +14,9 @@ license = "MIT"
 
 [profile.release]
 strip = true
-lto = true
+# Thin, not fat: a one-line change rebuilds `mt` in 102 s instead of 271 s,
+# for a binary 5% larger (43.9 MB, not 41.9 MB).
+lto = "thin"
 codegen-units = 1
 
 # Fast profile for cargo-mutants (`--profile mutants`): drop debuginfo to cut
