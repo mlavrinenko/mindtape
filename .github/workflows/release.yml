@@ -233,7 +233,7 @@ jobs:
             size > budget { print start; exit }' "$notes")
           if [ -n "$cut" ]; then
             anchor=$(grep -m1 "^## \[$VERSION\]" CHANGELOG.md \
-              | sed 's/^## //' | tr 'A-Z' 'a-z' | sed 's/[^a-z0-9 -]//g; s/ /-/g')
+              | sed 's/^## //' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9 -]//g; s/ /-/g')
             head -n "$((cut - 1))" "$notes" > "$notes.cut"
             printf '\nThe list goes on in [CHANGELOG.md](https://github.com/%s/blob/v%s/CHANGELOG.md#%s).\n' \
               "$GITHUB_REPOSITORY" "$VERSION" "$anchor" >> "$notes.cut"

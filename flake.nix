@@ -126,6 +126,10 @@
               clippy
               rustfmt
               mold
+              # `just check-workflows`: actionlint runs shellcheck over each
+              # workflow `run:` block when it finds it on PATH.
+              actionlint
+              shellcheck
               # The secret scanner behind `just check-secrets`. Pinned here
               # rather than installed per-machine so CI (`nix develop --command
               # just check`) and a local run read the same ruleset version —

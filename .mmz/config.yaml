@@ -275,6 +275,11 @@ scopes:
   # and, if it gains retries, a test-thread count or a default filter, what the
   # suite runs. Without it here, every memoized `just test` and `just cover`
   # record survives an edit to it.
+  # The GitHub workflows. tests/it/release_notes_e2e.rs runs a step of
+  # release.yml, so the suite reads them, and actionlint lints them all.
+  workflows:
+    - ".github/workflows/**"
+
   gates-meta:
     - "Justfile"
     - ".config/nextest.toml"
@@ -509,7 +514,7 @@ commands:
 
   - name: just test
     tags: [gate]
-    inputs: [rust, policy, examples, gates-meta, script-outdatty-lock-merge, script-jscpd-baseline-merge, script-wt-carry-lcov]
+    inputs: [rust, policy, examples, workflows, gates-meta, script-outdatty-lock-merge, script-jscpd-baseline-merge, script-wt-carry-lcov]
 
   # cargo-llvm-cov instruments and runs the same suite as `just test` (same
   # scope), then writes target/coverage/lcov.info, the artifact `just crap`
@@ -518,12 +523,17 @@ commands:
   # behind a fresh `cover`.
   - name: just cover
     tags: [gate]
-    inputs: [rust, policy, examples, gates-meta, script-cover, script-outdatty-lock-merge, script-jscpd-baseline-merge, script-wt-carry-lcov]
+    inputs: [rust, policy, examples, workflows, gates-meta, script-cover, script-outdatty-lock-merge, script-jscpd-baseline-merge, script-wt-carry-lcov]
     outputs: [target/coverage/lcov.info]
 
   - name: just machete
     tags: [gate]
     inputs: [manifests, gates-meta]
+
+  # actionlint reads every workflow and runs shellcheck over each `run:` block.
+  - name: just check-workflows
+    tags: [gate]
+    inputs: [workflows, gates-meta]
 
   # linecop scans every language `.linecop.yaml` gives a base limit (Rust,
   # Markdown, Shell and Typst, with target/archive/var excluded by config), so

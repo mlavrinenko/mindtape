@@ -77,7 +77,7 @@ _check-stages: _check-fast _check-build _check-cover
 [doc("The check gates that build nothing")]
 [parallel]
 [private]
-_check-fast: (mmz "fmt-check") (mmz "clippy") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-doc-recipes") (mmz "check-doc-prose") (mmz "check-doc-blocks") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "path-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "crap-baseline-check") (mmz "check-gate-drift")
+_check-fast: (mmz "fmt-check") (mmz "clippy") (mmz "machete") (mmz "check-workflows") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-doc-recipes") (mmz "check-doc-prose") (mmz "check-doc-blocks") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "path-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "crap-baseline-check") (mmz "check-gate-drift")
 
 [doc("The check gates that build or run mt")]
 [parallel]
@@ -191,6 +191,14 @@ test *ARGS:
 [group("gate")]
 machete:
     cargo machete
+
+# A workflow runs only once pushed, so this is the one check of it before
+# then: expressions, job graph, action inputs, and shellcheck on each `run:`.
+
+[doc("Lint the GitHub workflows")]
+[group("gate")]
+check-workflows:
+    actionlint
 
 [doc("Fail if any file exceeds its linecop cap")]
 [group("gate")]
