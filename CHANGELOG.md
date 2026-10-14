@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Upgrading from 0.2
+
+0.3 is a rewrite, so there is no in-place upgrade. Start over like this.
+
+- The binary is `mt` now. `cargo install mindtape-cli` installs it, and the old
+  `mindtape` binary can go.
+- A task is one Typst file of its own (`#show: task.with(...)`), not a checkbox
+  line with an `#id()`. Nothing converts 0.2 files. Refile each open task with
+  `mt add`, or as a batch with `mt import`.
+- Config lives in each project's `.mindtape/config.toml`, which `mt init` writes.
+  The global `~/.config/mindtape/config.toml` is no longer read. Settings you
+  share across projects go in `~/.config/mindtape/defaults.toml`.
+- The `watch` daemon, its SQLite index and the NixOS module are gone. Every `mt`
+  command reads the files directly, so stop the service and delete the index.
+- The Typst package is `@local/mindtape:0.2.0`. `mt install` puts it in place.
+
 ### Added
 
 - **A close that retires other tasks counts as work.** The `mindtape-tasks`
@@ -1400,8 +1416,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   function call with its positional/named argument value spans and trailing
   `[…]` content block (`find_link_targets` is the thin link-only case); `line_of`
   maps an offset to a 1-based line. Foundation for `mt rm` link
-  rewriting and the speconaut scanner collapse (see
-  `docs/decisions/003-swhid-cleanup-tombstones-and-shared-edit-substrate.md`).
+  rewriting and the speconaut scanner collapse.
 - **`swhid-mint` crate** — mint and resolve Software Heritage identifiers
   (SWHID, ISO/IEC 18670:2025). VCS-agnostic core (`render`/`parse`/`is_swhid_url`)
   plus a `git` backend feature (via the `gix` crate, no subprocess, no libgit2)
@@ -1411,8 +1426,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   artifacts: dirty-tree guard, per-file SWHID tombstone minting, and atomic
   inbound-`link()` rewriting, planned in memory before any write. The consumer
   supplies eligibility, link identity, and tombstone policy via a `Policy` trait.
-  `mt rm` rides it; speconaut adopts it under a separate task. See
-  `docs/decisions/004-gix-git-substrate.md` for the git substrate.
+  `mt rm` rides it; speconaut adopts it under a separate task.
 - **`mt rm`** — retire terminal-status tasks: deletes each terminal
   task file and rewrites every surviving `link("<stem>.typ")` that pointed at it
   into an SWHID tombstone `link("swh:1:rev:<commit>;path=<path>")`. Does not
@@ -2448,8 +2462,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### The rewrite (2026-06-14)
 
-Per-file rewrite. See `docs/decisions/002-per-file-rewrite-and-speconaut-convergence.md`.
-
 #### Added
 
 - **Per-file task model** — one task per file via `#show: task.with(...)`, with
@@ -2459,9 +2471,9 @@ Per-file rewrite. See `docs/decisions/002-per-file-rewrite-and-speconaut-converg
   labelled-metadata-marker harvesting; a reusable substrate for file-based tools
 - **`.mindtape/config.toml`** — per-project status lifecycle, enum/number field
   constraints (required-unless-terminal, bounds), tag allow-list, default filter
-- **`mindtape check`** — config-driven validation incl. link resolution
-- **`mindtape install-lib`** — installs the Typst library (once per machine)
-- **`mindtape init`** — scaffolds project config (once per project)
+- **`mt check`** — config-driven validation incl. link resolution
+- **`mt install`** — installs the Typst library (once per machine)
+- **`mt init`** — scaffolds project config (once per project)
 - Dev tooling: parallel `just check`, sccache, cargo-machete, linecop, outdatty
 
 #### Changed
