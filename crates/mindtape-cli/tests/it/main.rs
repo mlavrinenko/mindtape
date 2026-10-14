@@ -66,7 +66,7 @@ mod read_json_e2e;
 mod read_no_write_e2e;
 mod recur_e2e;
 mod recur_import_roundtrip_e2e;
-mod release_notes_e2e;
+mod release_workflow_e2e;
 mod review_e2e;
 mod rm_e2e;
 mod rules_e2e;

@@ -76,38 +76,40 @@ jobs:
             echo "latest=$latest"
           } >> "$GITHUB_OUTPUT"
 
-  check:
-    name: Check
+  # ci.yml runs `just check` on every push to main and every PR, and
+  # `just release` tags only once that run is green. So this job asks GitHub
+  # for that verdict rather than running the suite a second time. A tag on a
+  # commit CI never passed, pushed by hand or re-run by dispatch, stops here.
+  ci-passed:
+    name: Require a green ci.yml run
     needs: version-check
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
           ref: refs/tags/${{ needs.version-check.outputs.tag }}
-          # The allowlist shrink test needs `origin/main` and fails without it.
-          fetch-depth: 0
-      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
-      # ci.yml's caches, read and never saved: a tag's run can read main's
-      # caches, but one it saved would serve only this tag.
-      - uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7
-        with:
-          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock', '**/*.nix') }}
-          restore-prefixes-first-match: nix-${{ runner.os }}-
-          save: false
-      - uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
-        with:
-          name: mlavrinenko
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
-      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2.9.1
-        with:
-          key: ${{ hashFiles('flake.lock', 'rust-toolchain.toml') }}
-          save-if: false
-      - name: Check
-        run: nix develop --command just check
+      # tests/it/release_workflow_e2e.rs runs this step.
+      - name: Require a green ci.yml run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.version-check.outputs.tag }}
+        run: |
+          sha=$(git rev-parse HEAD)
+          run=$(gh run list -R "$GITHUB_REPOSITORY" --workflow ci.yml --commit "$sha" \
+            --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+          if [ -z "$run" ]; then
+            echo "::error::ci.yml has no successful run on $sha, the commit $TAG names"
+            echo "hint: push the commit to main, wait for ci.yml, then re-run: gh workflow run release.yml -f tag=$TAG"
+            exit 1
+          fi
+          echo "ci.yml run $run passed on $sha"
 
   build:
     name: Build (${{ matrix.target }})
-    needs: [version-check, check]
+    needs: [version-check, ci-passed]
     runs-on: ${{ matrix.os }}
     strategy:
       # `ext` is the executable suffix for the target, and it is spelled out per
@@ -231,7 +233,7 @@ jobs:
       # so a section over NOTES_BUDGET bytes (bytes never undercount them) is cut
       # before the entry that crosses it and links the whole file. `just release`
       # already refused a version with no dated section, so an empty one here
-      # means the heading drifted. tests/it/release_notes_e2e.rs runs this step.
+      # means the heading drifted. tests/it/release_workflow_e2e.rs runs this step.
       - name: Extract the changelog section
         env:
           VERSION: ${{ needs.version-check.outputs.version }}

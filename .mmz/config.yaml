@@ -275,7 +275,7 @@ scopes:
   # and, if it gains retries, a test-thread count or a default filter, what the
   # suite runs. Without it here, every memoized `just test` and `just cover`
   # record survives an edit to it.
-  # The GitHub workflows. tests/it/release_notes_e2e.rs runs a step of
+  # The GitHub workflows. tests/it/release_workflow_e2e.rs runs a step of
   # release.yml, so the suite reads them, and actionlint lints them all.
   workflows:
     - ".github/workflows/**"
