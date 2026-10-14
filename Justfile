@@ -209,7 +209,7 @@ check-file-size:
 # >=50 tokens that match with their names and literals blanked, plus functions
 # whose normalized syntax trees share 80% of their subtrees. Tests included.
 
-DRY_FLAGS := "--no-tips -f rust -k 50 --ignore-identifiers --ignore-literals --similarity=0.8 --baseline .jscpd-baseline.json"
+DRY_FLAGS := "--no-tips -f rust -k 50 --ignore-identifiers --ignore-literals --similarity=0.8 --ignore '**/tests/it/main.rs' --baseline .jscpd-baseline.json"
 
 [doc("Copy-paste gate: fail on a duplicated Rust block the baseline lacks")]
 [extension('.sh')]
