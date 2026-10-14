@@ -187,6 +187,13 @@
           shellHook = ''
             export LLVM_COV=${llvm}/bin/llvm-cov
             export LLVM_PROFDATA=${llvm}/bin/llvm-profdata
+            # mold links the host target's builds: an edit to `mindtape`
+            # relinks the test binaries in 4.6 s instead of 10.2 s with ld.
+            # mold is ELF-only, so Linux only. A target variable, not
+            # RUSTFLAGS, so a recipe that sets RUSTFLAGS (mutants) wins whole.
+            ${pkgs.lib.optionalString pkgs.stdenv.isLinux ''
+              export CARGO_TARGET_${pkgs.stdenv.hostPlatform.rust.cargoEnvVarTarget}_RUSTFLAGS="-Clink-arg=-fuse-ld=mold"
+            ''}
             # Prepended idempotently: direnv reloads a shell it has already
             # loaded, and a second copy would only grow PATH.
             mt_root=$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")

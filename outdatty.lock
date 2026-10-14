@@ -156,7 +156,7 @@ groups:
       .just/docs.just: 300226a86d551abc287d058efd9cbc2143fa7f15e3c6b53131699f27f35847fc
       .just/scripts/wt-carry-lcov.sh: 0d4513fdd21068f5897a015bbc4cd02bc3644ca139d8c39053140fba491e1e76
       Justfile: 4cc3c3b536e1eef80d2a4050c7b4bc4240f785b4da50f7ab36e0e1873798386a
-      flake.nix: ef91529881401b7bfffd564c53a0ff62d9d24b8b9adaa6c52f510119a9004305
+      flake.nix: 4c21cdb24afcd0493b606c90012556b63a6b8e7329b4ef9715a65a8f74a0dca0
     dependents:
       docs/src/agents.typ: fc0515f88c029ba8b787b979dd9c47184243c76ed7378983b0be712bddfbf2c4
       docs/src/contributing.typ: 712b8defced50e555cd6e7a3970d0ce9e9c48bc67f667034b1c63d9668012d06
