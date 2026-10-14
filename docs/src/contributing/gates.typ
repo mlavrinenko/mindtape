@@ -25,7 +25,9 @@ first stage with a failing gate. The fast stage builds nothing, so you see a
 lint or prose error in seconds. The build stage holds every gate that builds
 or runs `mt`, and they share one build. The last stage runs #just.cover() and
 then #just.crap(), because coverage pays for an instrumented clean rebuild.
-Within a stage the gates run in parallel. To see the gates, ask `just` and
+Within a stage the gates run in parallel. Name stages to run only those, such
+as #just.check("fast build"). CI does that to run `cover` in a job of its own,
+since it shares no build with the other two. To see the gates, ask `just` and
 mmz rather than a doc:
 
 // docs:hand-typed the commands that list the gates, run against the live Justfile

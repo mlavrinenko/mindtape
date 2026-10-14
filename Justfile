@@ -60,12 +60,15 @@ fix-check: eject fmt clippy-fix check
 #
 # A pass prints one verdict line. A failure prints each failed gate's full log
 # and a verdict naming them. Every arm's log stays under target/check/.
+# Stage names (`just check fast build`) run only those stages, in their
+# order. CI runs `cover` in a job of its own beside `fast build`.
 
+[arg('STAGES', pattern='fast|build|cover', help='stages to run (fast, build, cover); all when none')]
 [doc("Run every check gate, fast stage first; print only failures and a verdict")]
 [group("workflow")]
 [no-exit-message]
-check:
-    bash .just/scripts/check.sh
+check *STAGES:
+    bash .just/scripts/check.sh {{ STAGES }}
 
 # The stages in order, which check.sh runs with its output captured. A failing
 # stage stops the rest. www/gates.jq reads the gate list from here.

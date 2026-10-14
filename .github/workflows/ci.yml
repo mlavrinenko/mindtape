@@ -19,14 +19,28 @@ env:
 # Actions are pinned: first-party actions to immutable release tags, third-party
 # actions to commit SHAs. Bump them with Dependabot's `github-actions` ecosystem.
 jobs:
+  # `just check`'s stages split over two runners. The cover stage rebuilds the
+  # workspace instrumented and shares no build with the others, so beside them
+  # it cuts a cold run from about 9 minutes to about 5.5 (4 cores, measured
+  # locally). The flake build joins the shorter half.
   check:
-    name: Check, Lint, Test
+    name: Check (${{ matrix.part }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - part: lint, test
+            stages: fast build
+            cache: test
+          - part: coverage, nix build
+            stages: cover
+            cache: cover
     steps:
       - uses: actions/checkout@v4
         with:
-          # The commit-rules step below reads the pushed range, whose base a
-          # depth-1 clone lacks.
+          # The commit-rules step reads the pushed range, whose base a depth-1
+          # clone lacks, and the allowlist test in both halves reads `main`.
           fetch-depth: 0
       - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
       - uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7
@@ -53,17 +67,19 @@ jobs:
       # never evicts it.
       - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2.9.1
         with:
-          key: ${{ hashFiles('flake.lock', 'rust-toolchain.toml') }}
+          # Each half builds a different profile, so each keeps its own cache.
+          key: ${{ matrix.cache }}-${{ hashFiles('flake.lock', 'rust-toolchain.toml') }}
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
-      # Same dev shell as local development, so CI and `just check` match.
-      # `just check` runs coverage and the CRAP gate as its last stage.
+      # Same dev shell and the same `just check` as local development, given
+      # this half's stages.
       - name: Check
-        run: nix develop --command just check
+        run: nix develop --command just check ${{ matrix.stages }}
 
       # The flake build the release hook runs, so a push that breaks it fails
       # here and not at release time.
       - name: Nix build
+        if: matrix.stages == 'cover'
         run: nix develop --command just nix-build
 
       # The commit-msg hook is one `--no-verify` away from skipped, so the
@@ -83,6 +99,7 @@ jobs:
       # integration cannot stale it. Product commits made before the rule
       # carry no entry, and only commits after it are judged.
       - name: Commit rules (pushed range)
+        if: matrix.stages == 'fast build'
         env:
           FLOOR: 59c947205865b61e586a49c98366e1e4173afec2
           BEFORE: ${{ github.event.pull_request.base.sha || github.event.before }}

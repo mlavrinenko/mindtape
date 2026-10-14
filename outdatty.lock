@@ -155,7 +155,7 @@ groups:
       .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
       .just/docs.just: 300226a86d551abc287d058efd9cbc2143fa7f15e3c6b53131699f27f35847fc
       .just/scripts/wt-carry-lcov.sh: 0d4513fdd21068f5897a015bbc4cd02bc3644ca139d8c39053140fba491e1e76
-      Justfile: 184236982681b67cf8b60cbf1b1ac05c82fe139e69fc0e0d157eeca17e336495
+      Justfile: 60cad72e87192ca108ede5562551b6f85ecbc0d3a0ea59a986e6fc960b66d95a
       flake.nix: 1a2acaf2bae3f132917cc298362638bbb9651eae4b20a0557e21c5d0449541ea
     dependents:
       docs/src/agents.typ: fc0515f88c029ba8b787b979dd9c47184243c76ed7378983b0be712bddfbf2c4
@@ -165,7 +165,7 @@ groups:
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
       docs/src/contributing/documentation.typ: 451e7a8b3a3579410d721855fd9343f93dcbb772ec464b06ceb75c2a7ce9b1e1
       docs/src/contributing/example-projects.typ: 4f9a0c52894b9c2ab665e42bb728814b3d18badf3e8def57737d695d29912f63
-      docs/src/contributing/gates.typ: 98dff9d1a2b84a1388d515a521dda0db6fa222378568d2bc95b7cfc4ca0fba3f
+      docs/src/contributing/gates.typ: 98893025e42dfdacaf0447dada4379ce568226a6bbec50beac18c0dad0d7c763
       docs/src/contributing/mutation-testing.typ: 96f2e41b03e5bb524e1c49dd08e9435690f37ba566cf81cc0f6dbc843e01981a
       docs/src/contributing/signal-sweep.typ: e7e1432428d88b329685c2bb3f486716cd6d6ed9309ae071c6c76cc0686fb8eb
       docs/src/contributing/windows.typ: 093ebafaf04b07d4abd611b33a346695a61e811b51f79e13a29df34903e96786
@@ -203,11 +203,11 @@ groups:
       .just/scripts/_script-graph-lib.sh: ecc9f2eb1fdc764804c9d3dac61cd94f9e5288d41ac32a2e91bd4613fa0814c8
       .just/scripts/_script-graph.sh: 3956d990fd68bbd6bc943507f730650991cd662e7c04274a330e5fe3c51ef9e9
       .just/scripts/_script-reach.sh: 667647246522252c3b13ce000dadb39f7fda7bee663a9db54497b3919d1a1e85
-      .just/scripts/arg-pattern-check.sh: acdea75a8c590bfd160b7d3de2557293ff2aac20168828f5efe5d5c086febd83
+      .just/scripts/arg-pattern-check.sh: 111e71f60b165910492ec07e52235c495e27d213bcd5c82bfdff57b1a822a169
       .just/scripts/check-gate-drift.sh: 521511d6f97ad1ec7a1f994bafe187cb1547773f217a655214ebc22c595b6f98
       .just/scripts/check-secrets-manifest.sh: 1e7d72a016934f2b7776b15f0863189851fa295ca5d12c4bcd07cd3611704ea0
       .just/scripts/check-secrets.sh: cd27c536db3202c7b9ef8439dcae9e674951465c69afed3d5dde126eb39049fe
-      .just/scripts/check.sh: fac29f9633c6bde9608b623cb03eee308a9d5fd4cd2685184bdff541480846f8
+      .just/scripts/check.sh: db95395ef7ff6ca1231fd6650df00c2a82550162c089c2a7a19998d10981d9fa
       .just/scripts/fmt-fixture-check.sh: 0e99a04c675f043f84804d43f25c6ef0f3870ae219a4779088c6f5430110e5e3
       .just/scripts/mmz-arm.sh: c67a415ff478915a0fc433b857b72627dfcdc5e122ae0e430ab5b77bde590d22
       .just/scripts/path-attr-check.sh: 0f3004e8f86fbacad47ad04a3056d3850c397957c7696f6c95d1d47cb51c558d
@@ -217,7 +217,7 @@ groups:
       .just/scripts/site-pages-fixture-check.sh: 9892296f9090c0f8b7cc2f3627bc04d9ef985aa227c80531c5b00934bf33dea1
       .just/scripts/size-fixture-check.sh: cfe1bfdde9a308535127ad68b23e8d8443958fb3109f375e56e843614bdc27ce
     dependents:
-      docs/src/contributing/gates.typ: 98dff9d1a2b84a1388d515a521dda0db6fa222378568d2bc95b7cfc4ca0fba3f
+      docs/src/contributing/gates.typ: 98893025e42dfdacaf0447dada4379ce568226a6bbec50beac18c0dad0d7c763
   githooks-docs:
     source:
       .githooks/commit-msg: b12bd38a025b39fd48a7575a687ef13187c153d6e5520b62eb16d07cac82be73

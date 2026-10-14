@@ -7,7 +7,7 @@
 # script from fmt-fixture-check.sh on purpose: that one locks that three
 # formatters reject drift in a synthesized fixture file; this one locks that
 # the `[arg(...)]` `pattern`s on `release`, `bench`, `gen-bench`, `eject`,
-# `ask-refactoring` and `outdatty-update` actually reject a bad argument and
+# `ask-refactoring`, `outdatty-update` and `check` actually reject a bad argument and
 # accept a good one.
 # Same reasoning, different subject (recipe dispatch, not file formatting), so
 # a sibling fixture-style script rather than an added arm in that one —
@@ -169,6 +169,13 @@ assert_accepted ask-refactoring --baseline 85
 assert_accepted ask-refactoring --fn-coverage-floor 92 --cc-floor 12
 assert_accepted ask-refactoring --dry-gain 100
 assert_accepted ask-refactoring --write
+# `check` takes stage names, which CI uses to run the cover stage in a job of
+# its own. A name outside the stages must fail at dispatch, not run nothing.
+assert_rejected check bogus
+assert_rejected check fast bogus
+assert_accepted check
+assert_accepted check fast build
+assert_accepted check cover
 assert_default_accepted ask-refactoring
 
 if [ "$fail" -ne 0 ]; then

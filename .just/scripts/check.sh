@@ -9,11 +9,13 @@
 # writes its log and its outcome under target/check/ (mmz-arm.sh), and this
 # script reads them back once the stages are done.
 #
-# The stages run as one `just _check-stages`, whose dependencies run in order
-# and stop at the first red stage. Its own output is just's, not a gate's: on a
-# red arm it is only just's "Recipe failed" line, so it is printed only when
-# no arm recorded a failure, which means just itself failed (a parse error, a
-# missing recipe).
+# The stages are the dependencies of `_check-stages`, run one `just` call each,
+# in order, stopping at the first red stage. Stage names as arguments (`fast`,
+# `build`, `cover`) keep only those stages, still in that order: CI runs
+# `cover` in a job of its own. The stage calls' own output is just's, not a
+# gate's: on a red arm it is only just's "Recipe failed" line, so it is printed
+# only when no arm recorded a failure, which means just itself failed (a parse
+# error, a missing recipe).
 set -eo pipefail
 
 dir=target/check
@@ -21,12 +23,30 @@ rm -rf "$dir"
 mkdir -p "$dir"
 export MINDTAPE_CHECK_DIR="$PWD/$dir"
 
+# Each stage is called by its literal name, so script-scope-check can read the
+# call graph. That spells the list twice, so a stage `_check-stages` gains and
+# this script misses fails here rather than going unrun.
+dump=$(just --dump --dump-format json)
+listed=$(jq -r '[.recipes["_check-stages"].dependencies[].recipe] | join(" ")' <<<"$dump")
+if [ "$listed" != "_check-fast _check-build _check-cover" ]; then
+    echo "check: _check-stages lists '$listed', but check.sh runs '_check-fast _check-build _check-cover'" >&2
+    exit 1
+fi
+# Whether stage $1 runs: every stage when no names follow it, else the named.
+want() { [ "$#" -eq 1 ] || [[ " ${*:2} " == *" $1 "* ]]; }
+selected=()
+for stage in fast build cover; do
+    if want "$stage" "$@"; then selected+=("_check-$stage"); fi
+done
+
 stages=$dir/stages.log
 red=0
-just _check-stages >"$stages" 2>&1 || red=1
+if want fast "$@"; then just _check-fast >>"$stages" 2>&1 || red=1; fi
+if [ "$red" -eq 0 ] && want build "$@"; then just _check-build >>"$stages" 2>&1 || red=1; fi
+if [ "$red" -eq 0 ] && want cover "$@"; then just _check-cover >>"$stages" 2>&1 || red=1; fi
 
-total=$(just --dump --dump-format json |
-    jq '.recipes as $r | [$r["_check-stages"].dependencies[] | $r[.recipe].dependencies[]] | length')
+total=$(jq --args '.recipes as $r | [$ARGS.positional[] | $r[.].dependencies[]] | length' \
+    "${selected[@]}" <<<"$dump")
 
 shopt -s nullglob
 passed=0 run=0 cached=0 failed=()
