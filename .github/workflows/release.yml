@@ -206,15 +206,46 @@ jobs:
     needs: [version-check, build, publish]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ needs.version-check.outputs.tag }}
       - uses: actions/download-artifact@v4
         with:
           merge-multiple: true
+      # The notes open with the version's `CHANGELOG.md` section; GitHub's generated
+      # compare link follows it. GitHub refuses a body over 125,000 characters,
+      # so a section over NOTES_BUDGET bytes (bytes never undercount them) is cut
+      # before the entry that crosses it and links the whole file. `just release`
+      # already refused a version with no dated section, so an empty one here
+      # means the heading drifted. tests/it/release_notes_e2e.rs runs this step.
+      - name: Extract the changelog section
+        env:
+          VERSION: ${{ needs.version-check.outputs.version }}
+        run: |
+          notes="$RUNNER_TEMP/notes.md"
+          awk -v v="$VERSION" '/^## \[/ { p = index($0, "## [" v "]") == 1; next } p' \
+            CHANGELOG.md > "$notes"
+          grep -q '[^[:space:]]' "$notes" \
+            || { echo "::error::CHANGELOG.md has no section for $VERSION"; exit 1; }
+          cut=$(LC_ALL=C awk -v budget="${NOTES_BUDGET:-120000}" '
+            /^(- |### |#### )/ { start = NR }
+            { size += length($0) + 1 }
+            size > budget { print start; exit }' "$notes")
+          if [ -n "$cut" ]; then
+            anchor=$(grep -m1 "^## \[$VERSION\]" CHANGELOG.md \
+              | sed 's/^## //' | tr 'A-Z' 'a-z' | sed 's/[^a-z0-9 -]//g; s/ /-/g')
+            head -n "$((cut - 1))" "$notes" > "$notes.cut"
+            printf '\nThe list goes on in [CHANGELOG.md](https://github.com/%s/blob/v%s/CHANGELOG.md#%s).\n' \
+              "$GITHUB_REPOSITORY" "$VERSION" "$anchor" >> "$notes.cut"
+            mv "$notes.cut" "$notes"
+          fi
       # Updates the release in place when it exists, so a re-run is safe.
       - name: Create GitHub Release
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           tag_name: ${{ needs.version-check.outputs.tag }}
           make_latest: ${{ needs.version-check.outputs.latest }}
+          body_path: ${{ runner.temp }}/notes.md
           generate_release_notes: true
           fail_on_unmatched_files: true
           files: mindtape-*
