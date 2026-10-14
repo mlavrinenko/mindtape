@@ -329,6 +329,8 @@ groups:
       crates/mindtape-cli/src/init.rs: 413f762faf5aedeba0780bb94e872825232fdafbd7692f5974083c5fa36f6cc9
       crates/mindtape-cli/src/presets/gated/templates/task.typ: 936d9906c5a3b946035b33084957378715e13cf4b3664feab9bbc5f51bb59898
       crates/mindtape/src/test_support.rs: 380fbc2e694dcdd2e5a47eb0cd1c23ea2755c1cfdb07b54c871abb24095d0826
+      crates/mindtape/src/test_support/fs.rs: a33ed4718391882fc2a9d5b6076f0fcf825db9f60aabbeb1200d5fc0e5bdbbcb
+      crates/mindtape/src/test_support/mod.rs: c46f57bdd771c6cbd19529a5338176c2f58cabbe7ae1696c769a3b70e22f607b
       examples/dsl/tasks/add-a-session-store.typ: 32b3c7516924ec9a5b26f771f35c8943ab97d0b0fb07cdb055b92252b74b8d4e
       examples/dsl/tasks/fix-the-login-redirect.typ: 08f426bb828ab02b78122c80003934739000042a16b949f534214331c7b59853
       examples/estimates/tasks/rename-the-status-glyphs.typ: 601357e17a4de3c0d124c76344a00cc4374f22043d629306470551063780dcbd
