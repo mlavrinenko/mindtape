@@ -87,6 +87,21 @@ jobs:
           # The allowlist shrink test needs `origin/main` and fails without it.
           fetch-depth: 0
       - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
+      # ci.yml's caches, read and never saved: a tag's run can read main's
+      # caches, but one it saved would serve only this tag.
+      - uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock', '**/*.nix') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          save: false
+      - uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
+        with:
+          name: mlavrinenko
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2.9.1
+        with:
+          key: ${{ hashFiles('flake.lock', 'rust-toolchain.toml') }}
+          save-if: false
       - name: Check
         run: nix develop --command just check
 
