@@ -10,11 +10,10 @@
 use crate::diag::Result;
 use clap::Args;
 use mindtape::{parse_ymd, today_iso};
-use typst_edit::{Edit, apply};
 
 use crate::diag::{Diag, Hint};
-use crate::pre_write::{self, Pending};
-use crate::task_edit::{task_with, upsert_named_arg};
+use crate::pre_write;
+use crate::task_edit::rewrite_field;
 use crate::util;
 
 /// Arguments for `mt review`.
@@ -36,66 +35,41 @@ pub fn run(args: &ReviewArgs) -> Result<()> {
 
     if task.is_terminal(&project.config.tasks.status.terminal()) {
         return Err(Diag::refused("can't review a task with a terminal status")
-            .value(&args.task.task)
+            .value(&task.id)
             .hint(Hint::new("a finished task needs no review")));
     }
 
     let today = today_iso();
     if task.reviewed.as_deref() == Some(today.as_str()) {
-        println!(
-            "already reviewed today ({} — {})",
-            args.task.task, task.title
-        );
+        println!("unchanged: {} was already reviewed today", task.id);
         return Ok(());
     }
 
-    let source = std::fs::read_to_string(&abs).map_err(|err| Diag::cannot_read(&abs, &err))?;
-
-    let edit = build_edit(&source, &today).map_err(|err| {
-        Diag::failed("can't find the task.with(…) call")
-            .at_file(&abs)
-            .cause(&err)
-    })?;
-
-    let updated = apply(&source, vec![edit]).map_err(|err| {
-        Diag::failed("can't stamp reviewed")
-            .at_file(&abs)
-            .cause(&err)
-    })?;
-
-    // Checked at the file's own path before the write, so a rejected stamp
-    // leaves the task exactly as it was — nothing written, nothing to restore.
-    pre_write::ensure(
-        &project,
-        &[Pending {
-            file: &abs,
-            source: &updated,
-        }],
-    )?;
-    util::write_task(&project.config, &abs, updated)?;
-    println!(
-        "reviewed: {} ({}) stamped on {}",
-        args.task.task, task.title, today
-    );
+    let updated = rewrite_field(&abs, "reviewed", &on_date(&today)?)?;
+    pre_write::write_checked(&project, &abs, updated)?;
+    util::report_change("reviewed", &task, &today);
     Ok(())
 }
 
-/// Build the edit that upserts `reviewed: on(y, m, d)` in the `task.with(…)` call.
-///
-/// `today` must be a `YYYY-MM-DD` string; it is parsed to produce the `on(…)` call.
-fn build_edit(source: &str, today: &str) -> Result<Edit> {
-    let call = task_with(source)?;
+/// `today`, a `YYYY-MM-DD` string, as the `on(y, m, d)` call `reviewed:` holds.
+fn on_date(today: &str) -> Result<String> {
     let (year, month, day) = parse_ymd(today)
         .ok_or_else(|| Diag::failed("not a date in YYYY-MM-DD form").value(today))?;
-    let value_text = format!("on({year}, {month}, {day})");
-    upsert_named_arg(source, &call, "reviewed", &value_text)
+    Ok(format!("on({year}, {month}, {day})"))
 }
 
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use super::build_edit;
-    use typst_edit::apply;
+    use super::{on_date, rewrite_field};
+
+    /// `source` with today's `reviewed:` stamp written in, as `mt review` does.
+    fn stamp(source: &str, today: &str) -> crate::diag::Result<String> {
+        let dir = mindtape::test_support::tempdir();
+        let file = dir.path().join("task.typ");
+        std::fs::write(&file, source).unwrap();
+        rewrite_field(&file, "reviewed", &on_date(today)?)
+    }
 
     const TASK_SOURCE: &str = mindtape::typst_task!(
         r#"(
@@ -121,25 +95,19 @@ mod tests {
     );
 
     #[test]
-    fn inserts_reviewed_when_absent() {
-        let today = "2026-06-18";
-        let edit = build_edit(TASK_SOURCE, today).unwrap();
-        let result = apply(TASK_SOURCE, vec![edit]).unwrap();
-        assert!(result.contains("reviewed: on(2026, 6, 18),"));
-        assert!(result.contains("priority: \"low\",\n  reviewed:"));
-    }
-
-    #[test]
-    fn updates_reviewed_when_present() {
-        let today = "2026-06-18";
-        let edit = build_edit(TASK_WITH_REVIEWED, today).unwrap();
-        let result = apply(TASK_WITH_REVIEWED, vec![edit]).unwrap();
-        assert!(result.contains("reviewed: on(2026, 6, 18)"));
-        assert!(!result.contains("on(2026, 1, 1)"));
+    fn stamps_reviewed_whether_absent_or_present() {
+        for source in [TASK_SOURCE, TASK_WITH_REVIEWED] {
+            let stamped = stamp(source, "2026-06-18").unwrap();
+            assert!(stamped.contains("reviewed: on(2026, 6, 18)"), "{stamped}");
+            assert!(!stamped.contains("on(2026, 1, 1)"), "{stamped}");
+        }
+        // An absent stamp lands after the last field.
+        let inserted = stamp(TASK_SOURCE, "2026-06-18").unwrap();
+        assert!(inserted.contains("priority: \"low\",\n  reviewed: on(2026, 6, 18),"));
     }
 
     #[test]
     fn errors_on_missing_task_call() {
-        assert!(build_edit("not a task file", "2026-06-18").is_err());
+        assert!(stamp("not a task file", "2026-06-18").is_err());
     }
 }

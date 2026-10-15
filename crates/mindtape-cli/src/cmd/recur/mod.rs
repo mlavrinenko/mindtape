@@ -29,11 +29,11 @@ use mindtape::recur::{Recur, RecurConfig};
 use mindtape::{Task, today_ymd};
 
 use crate::cmd::recur::edit::{
-    OccurrenceDates, apply_edits, decrement_count_edit, due_start_edits, set_recurred_from,
-    status_due_start_edits,
+    OccurrenceDates, apply_counted, due_start_edits, set_recurred_from, status_due_start_edits,
 };
 use crate::diag::{Diag, Hint, Kind, Note};
-use crate::pre_write::{self, Pending};
+use crate::pre_write;
+use crate::render::file_path;
 use crate::task_edit::task_with;
 use crate::util::{self, Project};
 
@@ -198,24 +198,6 @@ fn plan_and_read(
     Ok((next, due, start, source))
 }
 
-/// The pre-write seam every single-step `recur` path funnels through: check the
-/// materialized occurrence at the exact path it would occupy, and write it only
-/// if it passes.
-///
-/// A rejected spawn creates no file, and a rejected mutate/skip leaves the task
-/// exactly as its author left it. Nothing to repair either way — which is why
-/// no path here reports after the fact any more.
-fn commit(project: &Project, file: &Path, source: String) -> Result<()> {
-    pre_write::ensure(
-        project,
-        &[Pending {
-            file,
-            source: &source,
-        }],
-    )?;
-    util::write_task(&project.config, file, source)
-}
-
 /// The folder `abs` sits in, where its occurrences are written.
 pub(super) fn parent_dir(abs: &Path) -> Result<&Path> {
     abs.parent().ok_or_else(|| {
@@ -267,17 +249,17 @@ fn do_spawn(
 
     if args.dry_run {
         println!(
-            "would spawn {} (due {}) from {:?}",
-            file.display(),
+            "would spawn {} (due {}) from {}",
+            shown(project, &file),
             recur_dates::format_iso(next),
             task.id
         );
         return Ok(());
     }
-    commit(project, &file, new_source)?;
+    pre_write::write_checked(project, &file, new_source)?;
     println!(
         "spawned {} (due {})",
-        file.display(),
+        shown(project, &file),
         recur_dates::format_iso(next)
     );
     Ok(())
@@ -308,10 +290,30 @@ fn spawn_source(
 ) -> Result<String> {
     let mut edits = status_due_start_edits(source, config, dates)?;
     edits.push(set_recurred_from(source, predecessor_stem)?);
-    if let Some(edit) = decrement_count_edit(source, recur.count)? {
-        edits.push(edit);
+    apply_counted(source, edits, recur.count)
+}
+
+/// A new occurrence's file as `mt add` names one: its path from the project
+/// root.
+fn shown(project: &Project, file: &Path) -> String {
+    file.strip_prefix(&project.root)
+        .map_or_else(|_| file.display().to_string(), file_path::cell_text)
+}
+
+/// Write an in-place rewrite over `abs`, or on a dry run leave it be. Returns
+/// the verb to report: `verbs` holds the dry-run one, then the written one.
+fn land(
+    project: &Project,
+    abs: &Path,
+    source: String,
+    dry_run: bool,
+    verbs: [&'static str; 2],
+) -> Result<&'static str> {
+    if dry_run {
+        return Ok(verbs[0]);
     }
-    apply_edits(source, edits)
+    pre_write::write_checked(project, abs, source)?;
+    Ok(verbs[1])
 }
 
 // ---- mutate: refresh the same file in place ---------------------------
@@ -330,25 +332,20 @@ fn do_mutate(
         old_start: start,
         next_due: next,
     };
-    let mut edits = status_due_start_edits(&source, &project.config, &occurrence_dates)?;
-    if let Some(edit) = decrement_count_edit(&source, recur.count)? {
-        edits.push(edit);
-    }
-    let new_source = apply_edits(&source, edits)?;
+    let edits = status_due_start_edits(&source, &project.config, &occurrence_dates)?;
+    let new_source = apply_counted(&source, edits, recur.count)?;
 
-    if dry_run {
-        println!(
-            "would refresh {} in place (due {})",
-            abs.display(),
-            recur_dates::format_iso(next)
-        );
-        return Ok(());
-    }
-    commit(project, abs, new_source)?;
-    println!(
-        "refreshed {} (due {})",
-        abs.display(),
-        recur_dates::format_iso(next)
+    let verb = land(
+        project,
+        abs,
+        new_source,
+        dry_run,
+        ["would refresh", "refreshed"],
+    )?;
+    util::report_change(
+        verb,
+        task,
+        &format!("due {}", recur_dates::format_iso(next)),
     );
     Ok(())
 }
@@ -359,25 +356,14 @@ fn do_skip(project: &Project, task: &Task, abs: &Path, recur: &Recur, dry_run: b
     let (next, due, start, source) = plan_and_read(project, task, abs, recur)?;
     let call = task_with(&source)?;
     let next_start = crate::cmd::recur::edit::shift_start(due, start, next);
-    let mut edits = due_start_edits(&source, &call, next, next_start)?;
-    if let Some(edit) = decrement_count_edit(&source, recur.count)? {
-        edits.push(edit);
-    }
-    let new_source = apply_edits(&source, edits)?;
+    let edits = due_start_edits(&source, &call, next, next_start)?;
+    let new_source = apply_counted(&source, edits, recur.count)?;
 
-    if dry_run {
-        println!(
-            "would skip to due {} ({}), status unchanged",
-            recur_dates::format_iso(next),
-            abs.display()
-        );
-        return Ok(());
-    }
-    commit(project, abs, new_source)?;
-    println!(
-        "skipped to due {} ({})",
-        recur_dates::format_iso(next),
-        abs.display()
+    let verb = land(project, abs, new_source, dry_run, ["would skip", "skipped"])?;
+    util::report_change(
+        verb,
+        task,
+        &format!("now due {}", recur_dates::format_iso(next)),
     );
     Ok(())
 }

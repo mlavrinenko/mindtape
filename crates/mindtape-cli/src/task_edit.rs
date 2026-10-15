@@ -72,6 +72,28 @@ pub fn upsert_named_arg(source: &str, call: &Call, name: &str, value_text: &str)
     ))
 }
 
+/// The source of the task file at `abs` with `name: value_text` set in its
+/// `task.with(…)` call. Reads the file and writes nothing: the caller checks
+/// the result before it lands.
+///
+/// # Errors
+/// Returns an error when the file can't be read, holds no `task.with(…)`
+/// call, or the edit can't be applied.
+pub fn rewrite_field(abs: &Path, name: &str, value_text: &str) -> Result<String> {
+    let source = std::fs::read_to_string(abs).map_err(|err| Diag::cannot_read(abs, &err))?;
+    let call = task_with(&source).map_err(|err| {
+        Diag::failed("can't find the task.with(…) call")
+            .at_file(abs)
+            .cause(&err)
+    })?;
+    let edit = upsert_named_arg(&source, &call, name, value_text)?;
+    typst_edit::apply(&source, vec![edit]).map_err(|err| {
+        Diag::failed("can't apply the edit")
+            .at_file(abs)
+            .cause(&err)
+    })
+}
+
 /// The status name a freshly written task (`mt add`) or occurrence
 /// (`mt recur` spawn/mutate) should stamp: the legend's own initial (first
 /// non-terminal) value, falling back to the legend's first entry when every

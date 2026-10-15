@@ -405,6 +405,12 @@ pub fn canonical_source(config: &Config, source: String) -> String {
     }
 }
 
+/// Print what a write command did to one task, named by its stem whatever the
+/// caller typed for it: `<verb> <stem> (<title>): <detail>`.
+pub fn report_change(verb: &str, task: &mindtape::Task, detail: &str) {
+    println!("{verb} {} ({}): {detail}", task.id, task.title);
+}
+
 /// [`canonical_source`], then write the result to `path`.
 ///
 /// # Errors

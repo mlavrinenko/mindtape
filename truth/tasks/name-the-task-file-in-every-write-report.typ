@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 16),
+  status: done(2026, 10, 16),
 )
 
 == Problem
@@ -45,10 +45,11 @@
 
 == Changes
 
-- `crates/mindtape-cli/tests/it/stem_hash_e2e.rs`: the red test first, each write report naming the stem when given a hash.
-- `crates/mindtape-cli/src/cmd/flip/mod.rs`: report the stem.
-- `crates/mindtape-cli/src/cmd/review.rs`: report the stem.
-- `crates/mindtape-cli/src/cmd/recur/mod.rs`: name the task by its stem, not its absolute path.
+- `crates/mindtape-cli/tests/it/write_report_stem_e2e.rs`: the red test first, each write report naming the stem when given a hash.
+- `crates/mindtape-cli/src/util.rs`: `report_change` prints `<verb> <stem> (<title>): <detail>` for every in-place write.
+- `crates/mindtape-cli/src/cmd/flip/mod.rs`, `cmd/set.rs`, `cmd/review.rs`: report through it.
+- `crates/mindtape-cli/src/cmd/recur/mod.rs`, `cmd/recur/advance.rs`: name an existing task by its stem and a spawned file by its path from the project root.
+- `crates/mindtape-cli/src/task_edit.rs`, `pre_write/mod.rs`: the read, edit and checked write that set and review now share.
 
 
 == Alternatives

@@ -29,12 +29,11 @@ use std::collections::BTreeMap;
 use crate::diag::Result;
 use clap::Args;
 use mindtape::{RawValue, Task, format_num, parse_ymd, typ_array, typ_str};
-use typst_edit::apply;
 
 use crate::cmd::add::tokens::apply_token;
 use crate::diag::{Command, Diag, Hint};
-use crate::pre_write::{self, Pending};
-use crate::task_edit::{task_with, upsert_named_arg};
+use crate::pre_write;
+use crate::task_edit::rewrite_field;
 use crate::util;
 
 /// Arguments for `mt set`.
@@ -191,33 +190,9 @@ pub fn run(args: &SetArgs) -> Result<()> {
         return Ok(());
     };
 
-    let source = std::fs::read_to_string(&abs).map_err(|err| Diag::cannot_read(&abs, &err))?;
-    let call = task_with(&source).map_err(|err| {
-        Diag::failed("can't locate task.with(...)")
-            .at_file(&abs)
-            .cause(&err)
-    })?;
-    let edit = upsert_named_arg(&source, &call, field.name, &value_text)?;
-    let updated = apply(&source, vec![edit]).map_err(|err| {
-        Diag::failed("can't apply the edit")
-            .at_file(&abs)
-            .cause(&err)
-    })?;
-
-    // At the file's own path, before the write: a refused value leaves the
-    // task exactly as it was — nothing written, nothing to restore.
-    pre_write::ensure(
-        &project,
-        &[Pending {
-            file: &abs,
-            source: &updated,
-        }],
-    )?;
-    util::write_task(&project.config, &abs, updated)?;
-    println!(
-        "set {} ({}): {}: {value_text}",
-        task.id, task.title, field.name
-    );
+    let updated = rewrite_field(&abs, field.name, &value_text)?;
+    pre_write::write_checked(&project, &abs, updated)?;
+    util::report_change("set", &task, &format!("{}: {value_text}", field.name));
     Ok(())
 }
 

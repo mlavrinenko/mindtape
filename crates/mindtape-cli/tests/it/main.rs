@@ -80,4 +80,5 @@ mod tty_e2e;
 mod views_e2e;
 mod waits_e2e;
 mod wip_cap_e2e;
+mod write_report_stem_e2e;
 mod wt_carry_lcov_e2e;

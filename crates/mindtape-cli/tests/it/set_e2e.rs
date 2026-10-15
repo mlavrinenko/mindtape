@@ -242,7 +242,7 @@ fn a_task_with_an_aliased_call_is_refused_and_left_untouched() {
 
     let stderr = set_err(dir.path(), "title=Renamed");
     assert!(
-        stderr.contains("can't locate task.with") && stderr.contains("wire-oauth.typ"),
+        stderr.contains("can't find the task.with") && stderr.contains("wire-oauth.typ"),
         "{stderr}"
     );
     assert_eq!(read(dir.path()), body, "a refused write must not land");

@@ -294,6 +294,22 @@ pub fn ensure(project: &Project, pending: &[Pending<'_>]) -> Result<()> {
     refuse_rejected(pending, &verdicts)
 }
 
+/// [`ensure`] one file's new `source` at its own path, then write it. A
+/// refused source leaves the file exactly as it was, with nothing to restore.
+///
+/// # Errors
+/// Returns the refusal, or an error when the file cannot be written.
+pub fn write_checked(project: &Project, file: &Path, source: String) -> Result<()> {
+    ensure(
+        project,
+        &[Pending {
+            file,
+            source: &source,
+        }],
+    )?;
+    crate::util::write_task(&project.config, file, source)
+}
+
 /// Check one pending write against `world` and refuse it — without writing —
 /// if it is rejected. On acceptance, returns the task the source will load as,
 /// for the caller to [`absorb`] into `world` before checking the next one.

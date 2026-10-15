@@ -192,6 +192,18 @@ fn recur_call(source: &str) -> Result<Call> {
         .ok_or_else(|| Diag::failed("can't find the every() or rrule() call to update its count"))
 }
 
+/// Apply `edits` to `source` with the recur rule's `count:` decremented
+/// ([`decrement_count_edit`]), in one atomic splice.
+///
+/// # Errors
+/// Returns an error when the count can't be located or the edits can't apply.
+pub fn apply_counted(source: &str, mut edits: Vec<Edit>, count: Option<u32>) -> Result<String> {
+    if let Some(edit) = decrement_count_edit(source, count)? {
+        edits.push(edit);
+    }
+    apply_edits(source, edits)
+}
+
 /// Apply `edits` to `source` in one atomic splice.
 ///
 /// # Errors

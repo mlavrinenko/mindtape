@@ -19,7 +19,7 @@ use mindtape::today_ymd;
 
 use super::{
     RecurArgs, StemDest, dates, guard_double_spawn, mint_stem, occurrence_index, parent_dir,
-    plan_next, plan_step, spawn_source, stem_of,
+    plan_next, plan_step, shown, spawn_source, stem_of,
 };
 use crate::cmd::recur::edit::OccurrenceDates;
 use crate::diag::{self, Diag, Hint, Kind, Note};
@@ -170,7 +170,7 @@ pub(super) fn write_advance_chain(
         for (file, next, _) in spawned {
             println!(
                 "would spawn {} (due {})",
-                file.display(),
+                shown(project, file),
                 recur_dates::format_iso(*next)
             );
         }
@@ -187,7 +187,7 @@ pub(super) fn write_advance_chain(
         util::write_task(&project.config, file, source.clone())?;
         println!(
             "spawned {} (due {})",
-            file.display(),
+            shown(project, file),
             recur_dates::format_iso(*next)
         );
     }

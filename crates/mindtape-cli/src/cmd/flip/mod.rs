@@ -190,7 +190,7 @@ fn run_as(project: &Project, args: &FlipArgs, via: Via) -> Result<()> {
     let mut problems: Vec<Diag> = Vec::new();
     for spec in &args.tasks {
         match refs.task(spec) {
-            Ok(found) => resolved.push((spec.clone(), found.task.clone(), found.path)),
+            Ok(found) => resolved.push((found.task.clone(), found.path)),
             Err(err) => problems.push(note_hint(err.into(), spec, args, via)),
         }
     }
@@ -213,13 +213,13 @@ fn run_as(project: &Project, args: &FlipArgs, via: Via) -> Result<()> {
     let mut world = project.outcome.tasks.clone();
     let mut landed = Landed::default();
     let mut flipped = 0;
-    for (spec, task, abs) in &resolved {
-        match flip_target(&batch, &mut world, spec, task, abs) {
+    for (task, abs) in &resolved {
+        match flip_target(&batch, &mut world, task, abs) {
             Ok(()) => {
                 landed.record(task);
                 flipped += 1;
             }
-            Err(problem) => problems.push(name_target(problem, spec, args.tasks.len())),
+            Err(problem) => problems.push(name_target(problem, &task.id, args.tasks.len())),
         }
     }
 
@@ -229,10 +229,11 @@ fn run_as(project: &Project, args: &FlipArgs, via: Via) -> Result<()> {
     finish(problems, flipped, args.tasks.len())
 }
 
-/// `problem` with the task it is about named, when the batch has several.
-fn name_target(problem: Diag, spec: &str, targets: usize) -> Diag {
+/// `problem` with the task it is about named by its stem, when the batch has
+/// several.
+fn name_target(problem: Diag, stem: &str, targets: usize) -> Diag {
     if targets > 1 {
-        problem.note(Note::new("task").name(spec))
+        problem.note(Note::new("task").name(stem))
     } else {
         problem
     }
@@ -264,7 +265,6 @@ struct Batch<'a> {
 fn flip_target(
     batch: &Batch<'_>,
     world: &mut Vec<mindtape::Task>,
-    spec: &str,
     task: &mindtape::Task,
     abs: &Path,
 ) -> std::result::Result<(), Diag> {
@@ -293,7 +293,7 @@ fn flip_target(
     let note = note_with_overrides(args.note.as_deref(), &outcome.forced);
     let restamp = task.status.as_ref().is_some_and(|s| s.name == status);
     flip_one(batch, world, abs, note.as_deref())?;
-    report_flip(spec, &task.title, task.status.as_ref(), status, restamp);
+    report_flip(task, status, restamp);
     notice_recur(task, status, legend, &batch.project.config.tasks.recur);
     Ok(())
 }
@@ -353,18 +353,12 @@ pub(crate) fn status_edit(
 }
 
 /// Print a one-line transition summary for one task.
-fn report_flip(
-    spec: &str,
-    title: &str,
-    from: Option<&mindtape::Status>,
-    status: &str,
-    restamp: bool,
-) {
+fn report_flip(task: &mindtape::Task, status: &str, restamp: bool) {
     if restamp {
-        println!("re-stamped {spec} ({title}): {status} (today)");
+        util::report_change("re-stamped", task, &format!("{status} (today)"));
     } else {
-        let from = from.map_or("(unset)", |s| s.name.as_str());
-        println!("flipped {spec} ({title}): {from} → {status}");
+        let from = task.status.as_ref().map_or("(unset)", |s| s.name.as_str());
+        util::report_change("flipped", task, &format!("{from} → {status}"));
     }
 }
 
@@ -386,11 +380,11 @@ fn notice_recur(
     }
     match mindtape::recur::dates::effective_materialize(recur, recur_config) {
         "mutate" => println!(
-            "{:?} is recurring (mutate) — closing this ends the series",
+            "{} is recurring (mutate), so closing it ends the series",
             task.id
         ),
         _ => println!(
-            "{:?} is recurring — run `mt recur {}` to advance",
+            "{} is recurring. Run `mt recur {}` to advance it",
             task.id, task.id
         ),
     }
