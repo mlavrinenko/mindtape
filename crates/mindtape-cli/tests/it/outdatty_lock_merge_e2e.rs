@@ -261,25 +261,26 @@ fn both_sides_record_a_doc_against_a_stale_base(repo: &Repo) {
     repo.commit("feat: change alpha");
 }
 
-#[test]
-fn a_rebase_takes_the_side_whose_hash_matches_the_merged_file() {
+/// On `branch`, run `git <args>` over [`both_sides_record_a_doc_against_a_stale_base`]:
+/// the reviewed edit and the lock that matches it come out.
+fn assert_takes_the_reviewed_side(branch: &str, args: &[&str]) {
     let repo = Repo::new();
     both_sides_record_a_doc_against_a_stale_base(&repo);
-    repo.git(&["checkout", "-q", "feat"]);
-    let out = repo.command("git", &["rebase", "main"]);
+    repo.git(&["checkout", "-q", branch]);
+    let out = repo.command("git", args);
     assert!(out.status.success(), "{}{}", stdout(&out), stderr(&out));
     assert_eq!(repo.read("a-doc.txt"), "reviewed\n");
     repo.assert_lock_is_current();
 }
 
 #[test]
+fn a_rebase_takes_the_side_whose_hash_matches_the_merged_file() {
+    assert_takes_the_reviewed_side("feat", &["rebase", "main"]);
+}
+
+#[test]
 fn a_merge_takes_the_side_whose_hash_matches_the_merged_file() {
-    let repo = Repo::new();
-    both_sides_record_a_doc_against_a_stale_base(&repo);
-    let out = repo.command("git", &["merge", "-q", "--no-edit", "feat"]);
-    assert!(out.status.success(), "{}{}", stdout(&out), stderr(&out));
-    assert_eq!(repo.read("a-doc.txt"), "reviewed\n");
-    repo.assert_lock_is_current();
+    assert_takes_the_reviewed_side("main", &["merge", "-q", "--no-edit", "feat"]);
 }
 
 /// The hash that stands in for a key both sides recorded against a file the
@@ -287,13 +288,25 @@ fn a_merge_takes_the_side_whose_hash_matches_the_merged_file() {
 /// digits, so YAML quotes it.
 const UNMATCHED: &str = "0000000000000000000000000000000000000000000000000000000000000000";
 
-/// The rebase finished with `group`'s `path` holding [`UNMATCHED`], and the
-/// driver said so.
-fn assert_unmatched(repo: &Repo, out: &Output, group: &str, path: &str) {
-    assert!(out.status.success(), "{}{}", stdout(out), stderr(out));
-    let note = stderr(out);
+/// feat edits `path`'s last line and main its first, and each records
+/// `alpha`, or only `dependent` of it. Rebasing feat onto main then merges
+/// `path` as text, and the driver leaves its hash both sides changed as
+/// [`UNMATCHED`], saying so, without stopping the rebase.
+fn rebase_over_two_edits_of(repo: &Repo, path: &str, dependent: Option<&str>) {
+    repo.git(&["branch", "feat"]);
+    for (branch, from, to) in [("feat", "five", "FIVE"), ("main", "one", "ONE")] {
+        repo.git(&["checkout", "-q", branch]);
+        repo.write(path, &FIVE_LINES.replace(from, to));
+        repo.record("alpha", dependent);
+        repo.commit(&format!("edit {path}: {to}"));
+    }
+    repo.git(&["checkout", "-q", "feat"]);
+    let out = repo.command("git", &["rebase", "main"]);
+    assert!(out.status.success(), "{}{}", stdout(&out), stderr(&out));
+    assert_eq!(repo.read(path), "ONE\ntwo\nthree\nfour\nFIVE\n");
+    let note = stderr(&out);
     assert!(
-        note.contains(&format!("group {group}")) && note.contains(path),
+        note.contains("group alpha") && note.contains(path),
         "the driver names the group and the path: {note}"
     );
     let lock = repo.read("outdatty.lock");
@@ -306,19 +319,7 @@ fn assert_unmatched(repo: &Repo, out: &Output, group: &str, path: &str) {
 #[test]
 fn a_dependent_both_sides_recorded_against_neither_merged_file_finishes_the_rebase() {
     let repo = Repo::new();
-    repo.git(&["checkout", "-q", "-b", "feat"]);
-    repo.write("a-doc.txt", &FIVE_LINES.replace("five", "FIVE"));
-    repo.record("alpha", Some("a-doc.txt"));
-    repo.commit("docs: edit the last line");
-    repo.git(&["checkout", "-q", "main"]);
-    repo.write("a-doc.txt", &FIVE_LINES.replace("one", "ONE"));
-    repo.record("alpha", Some("a-doc.txt"));
-    repo.commit("docs: edit the first line");
-
-    repo.git(&["checkout", "-q", "feat"]);
-    let out = repo.command("git", &["rebase", "main"]);
-    assert_eq!(repo.read("a-doc.txt"), "ONE\ntwo\nthree\nfour\nFIVE\n");
-    assert_unmatched(&repo, &out, "alpha", "a-doc.txt");
+    rebase_over_two_edits_of(&repo, "a-doc.txt", Some("a-doc.txt"));
     repo.ok("outdatty", &["check", "--format", "quiet"]);
     repo.record("alpha", None);
     repo.assert_lock_is_current();
@@ -330,19 +331,7 @@ fn a_dependent_both_sides_recorded_against_neither_merged_file_finishes_the_reba
 #[test]
 fn a_source_both_sides_edited_and_recorded_is_left_for_review() {
     let repo = Repo::new();
-    repo.git(&["checkout", "-q", "-b", "feat"]);
-    repo.write("a.txt", &FIVE_LINES.replace("five", "FIVE"));
-    repo.record("alpha", None);
-    repo.commit("feat: edit the last line");
-    repo.git(&["checkout", "-q", "main"]);
-    repo.write("a.txt", &FIVE_LINES.replace("one", "ONE"));
-    repo.record("alpha", None);
-    repo.commit("feat: edit the first line");
-
-    repo.git(&["checkout", "-q", "feat"]);
-    let out = repo.command("git", &["rebase", "main"]);
-    assert_eq!(repo.read("a.txt"), "ONE\ntwo\nthree\nfour\nFIVE\n");
-    assert_unmatched(&repo, &out, "alpha", "a.txt");
+    rebase_over_two_edits_of(&repo, "a.txt", None);
     let check = repo.command("outdatty", &["check"]);
     assert!(!check.status.success(), "{}", stdout(&check));
     assert!(stdout(&check).contains("alpha"), "{}", stdout(&check));

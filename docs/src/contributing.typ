@@ -190,9 +190,14 @@ files that restate it.
   #just.outdatty-check() fails until the lock holds it.
 
 A rebase or merge joins two branches' `outdatty.lock` key by key through
-`.just/scripts/outdatty-lock-merge.sh`, and their `.jscpd-baseline.json` as the
-union of both fingerprint maps through `.just/scripts/jscpd-baseline-merge.sh`.
-The dev shell registers both.
+`.just/scripts/outdatty-lock-merge.sh`. When both branches edited one source
+and re-recorded it, its hash comes out as zeros, so #just.outdatty-check()
+reports that group until you review it.
+`.jscpd-baseline.json` merges as the union of both fingerprint maps through
+`.just/scripts/jscpd-baseline-merge.sh`. `crap-baseline.json` merges function
+by function through `.just/scripts/crap-baseline-merge.sh`, which keeps the
+stricter score when both sides re-scored one, and #just.crap() on the merged
+tree decides. The dev shell registers all three.
 
 = Version Management
 
