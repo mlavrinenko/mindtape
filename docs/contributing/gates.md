@@ -67,3 +67,5 @@ just’s `--fmt` flag alone formats the root `Justfile` and skips every `mod` fi
 `.githooks/local-paths` refuses a staged file that names your `$HOME`, the checkout or the primary checkout. Such a path rides in on a pasted error or log, and only your machine knows it’s local, so no gate in CI can catch it. Write `<repo>`, `<worktree>` or `~` in its place. `.githooks/commit-msg` runs the same scan over the message.
 
 `MINDTAPE_GATE_SCOPE=<reason>` skips the first assertion only. The other three still run, and `.githooks/commit-msg` refuses the commit unless its message carries a matching `Gate-Scope: <reason>` trailer. So `git log` shows which commits skipped the gate. CONTRIBUTING.md says when you may use it.
+
+A commit that stages only files under `truth/tasks/` skips the first assertion too, with no trailer. No gate reads those files, so the assertion could only fail where the gates never ran, such as a fresh `just fork` filing its task.

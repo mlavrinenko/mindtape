@@ -167,3 +167,7 @@ the same scan over the message.
 still run, and `.githooks/commit-msg` refuses the commit unless its message
 carries a matching `Gate-Scope: <reason>` trailer. So `git log` shows which
 commits skipped the gate. CONTRIBUTING.md says when you may use it.
+
+A commit that stages only files under `truth/tasks/` skips the first assertion
+too, with no trailer. No gate reads those files, so the assertion could only
+fail where the gates never ran, such as a fresh #just.fork() filing its task.

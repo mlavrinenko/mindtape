@@ -222,10 +222,10 @@ groups:
     source:
       .githooks/commit-msg: b12bd38a025b39fd48a7575a687ef13187c153d6e5520b62eb16d07cac82be73
       .githooks/local-paths: 3fed9f65a80f886ec6fa219ac250234b875faa01a6aab6ecc229cc83264e205e
-      .githooks/pre-commit: 7bde9d388be0b209ec99e719f801743d5116389c225fb08c080b20dbcd8874fc
+      .githooks/pre-commit: 1c90991ad20b8c1ee1134ff32bc187821b14dc9855a107c56b4d1c9fe2212737
     dependents:
-      docs/src/contributing/commit-messages.typ: 78d4463fe3208de8493262cae102e2e3e1ceea9dd170f6d9838c495b0a0ba0fd
-      docs/src/contributing/gates.typ: 54b9c4208a7a4cee23b810b89183fa032ff0e3c166bc5867d7f2d43228736245
+      docs/src/contributing/commit-messages.typ: 04fc294867f79bf95cebed447d652093eb72b2c105bf4bb1c95f1e4c63e18fe3
+      docs/src/contributing/gates.typ: a770dc674a61e08feec30b8d8d0f45f7776bf5cd6ce1849affd347ce0caf5ff5
   lock-merge-docs:
     source:
       .gitattributes: 6dc0f7d835d7b5c41913277ec1e461cbef772e62beca3ee892edc83272d53ad7

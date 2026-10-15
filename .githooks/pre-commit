@@ -13,6 +13,10 @@
 #    below, and `.githooks/commit-msg` refuses the commit unless the message
 #    carries a matching `Gate-Scope: <reason>` trailer, so a scoped commit
 #    can never look identical to a fully gated one in `git log`.
+#
+#    A commit that stages only `truth/tasks/**` skips it too: no gate reads
+#    those files (see 3), so the assertion could only fail on a fresh fork
+#    whose gates have never run, which blocks filing a task there.
 # 2. No staged file names this machine's $HOME or checkout
 #    (.githooks/local-paths says why only a hook can catch it).
 # 3. Typst formatting under `truth/`. `truth/tasks/**` is deliberately outside
@@ -25,7 +29,7 @@ set -eo pipefail
 root="$(git rev-parse --show-toplevel)"
 if [[ -n "${MINDTAPE_GATE_SCOPE:-}" ]]; then
     echo "pre-commit: MINDTAPE_GATE_SCOPE=${MINDTAPE_GATE_SCOPE} — skipping mmz --is-fresh --tag gate (commit-msg requires a matching Gate-Scope trailer)" >&2
-else
+elif git diff --cached --name-only | grep -qv '^truth/tasks/'; then
     direnv exec "$root" mmz --is-fresh --tag gate
 fi
 "$root/.githooks/local-paths"
