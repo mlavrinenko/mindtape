@@ -80,7 +80,7 @@ _check-stages: _check-fast _check-build _check-cover
 [doc("The check gates that build nothing")]
 [parallel]
 [private]
-_check-fast: (mmz "fmt-check") (mmz "clippy") (mmz "machete") (mmz "check-workflows") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-doc-recipes") (mmz "check-doc-prose") (mmz "check-doc-blocks") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "path-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "crap-baseline-check") (mmz "check-gate-drift")
+_check-fast: (mmz "fmt-check") (mmz "clippy") (mmz "machete") (mmz "check-workflows") (mmz "shellcheck") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-doc-recipes") (mmz "check-doc-prose") (mmz "check-doc-blocks") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "path-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "crap-baseline-check") (mmz "check-gate-drift")
 
 [doc("The check gates that build or run mt")]
 [parallel]
@@ -202,6 +202,18 @@ machete:
 [group("gate")]
 check-workflows:
     actionlint
+
+# A syntax error or quoting bug in a script shows only when something runs it:
+# git for a hook, a recipe for a script. shellcheck reads every tracked file
+# whose first line is a shell shebang, so a script without a `.sh` extension
+# (`.githooks/*`, `examples/*/scripts/*`) is linted too. The `.shellcheckrc`
+# beside the Justfile holds the options. A clean run prints nothing.
+
+[doc("Lint every tracked shell script with shellcheck")]
+[group("gate")]
+[script]
+shellcheck:
+    git ls-files -z | xargs -0 awk 'FNR == 1 && /^#!.*[\/ ](ba)?sh( |$)/ { print FILENAME } { nextfile }' | xargs -r -d '\n' shellcheck
 
 [doc("Fail if any file exceeds its linecop cap")]
 [group("gate")]

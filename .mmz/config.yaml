@@ -275,6 +275,19 @@ scopes:
   # and, if it gains retries, a test-thread count or a default filter, what the
   # suite runs. Without it here, every memoized `just test` and `just cover`
   # record survives an edit to it.
+  # Every tracked shell script, for `just shellcheck`, which lints each file
+  # whose first line is a shell shebang. `**/*.sh` is the extension, `.githooks`
+  # holds the hooks (no extension) and `examples/*/scripts` the fixture
+  # projects' own. A glob, so a script added there is read as soon as it exists.
+  # A shebang script elsewhere without `.sh` is linted when the gate runs, but
+  # a change to it alone leaves the gate fresh, so give such a script an
+  # extension. `.shellcheckrc` sets what shellcheck follows and reports.
+  shell-scripts:
+    - "**/*.sh"
+    - ".githooks/**"
+    - "examples/*/scripts/*"
+    - ".shellcheckrc"
+
   # The GitHub workflows. tests/it/release_workflow_e2e.rs runs a step of
   # release.yml, so the suite reads them, and actionlint lints them all.
   workflows:
@@ -534,6 +547,12 @@ commands:
   - name: just check-workflows
     tags: [gate]
     inputs: [workflows, gates-meta]
+
+  # shellcheck reads every tracked shell script (`shell-scripts`). `gates-meta`
+  # carries the Justfile recipe and the dev-shell pin of shellcheck itself.
+  - name: just shellcheck
+    tags: [gate]
+    inputs: [shell-scripts, gates-meta]
 
   # linecop scans every language `.linecop.yaml` gives a base limit (Rust,
   # Markdown, Shell and Typst, with target/archive/var excluded by config), so
