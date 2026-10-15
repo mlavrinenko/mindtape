@@ -8,12 +8,12 @@
 #   - a scalar `score` (an evalexpr formula over the inputs), feeding the
 #     `[tasks.priority]` bands; or
 #   - a `category` list (exhaustive + disjoint over boolean/enum inputs), each
-#     with a `when` predicate, representative `score`, and display glyph/colour.
+#     with a `when` predicate, representative `score`, and display glyph/color.
 #
 # An active framework's achievable score range must fit the priority scale; the
-# built-ins below are normalised to the default 0..9 scale.
+# built-ins below are normalized to the default 0..9 scale.
 
-# ICE — impact x confidence x ease, normalised to 0..9.
+# ICE — impact x confidence x ease, normalized to 0..9.
 [ice]
 score = "round(impact * confidence * ease * 0.09)"
 
@@ -32,7 +32,7 @@ type = "number"
 min = 1
 max = 10
 
-# RICE — reach x impact x confidence / effort, normalised to 0..9.
+# RICE — reach x impact x confidence / effort, normalized to 0..9.
 [rice]
 score = "round(reach * impact * confidence / effort * 0.18)"
 
@@ -56,7 +56,7 @@ type = "number"
 min = 1
 max = 10
 
-# WSJF — cost of delay / job size, normalised to 0..9.
+# WSJF — cost of delay / job size, normalized to 0..9.
 [wsjf]
 score = "round(cost_of_delay / job_size * 0.9)"
 

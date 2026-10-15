@@ -48,7 +48,7 @@ A code block in the docs comes from a real file under `examples/` that `mt check
 - The DSL page’s field table is `lib/prelude.typ`’s own signature.
 - To show a run, use a capture. `www/capture.sh` writes a record of each command the build ran in a terminal, what it printed and its exit code. A page shows the record with `terminal(<slug>)`, or `commands(<slug>)` for the commands alone. Both print each command from the record, so a page can’t show a command that didn’t run.
 
-`exit-code(<slug>)` prints the exit code of a refusal the page shows. A step that exits with an unexpected code fails the build. Every refusal exits 1 and every usage error 2, so a refusal capture also names its reason with `--expect <regex>`, and the build fails unless the output, without its colour, matches it. It also fails on a non-zero `--exit` with no `--expect`.
+`exit-code(<slug>)` prints the exit code of a refusal the page shows. A step that exits with an unexpected code fails the build. Every refusal exits 1 and every usage error 2, so a refusal capture also names its reason with `--expect <regex>`, and the build fails unless the output, without its color, matches it. It also fails on a non-zero `--exit` with no `--expect`.
 
 To quote one line of what a capture printed, such as an `error:` or `hint:` line, write `capture-line(<slug>, <regex>)`. It renders the first line of the capture that matches the regex, and the build fails when none does. The span gate fails on an inline span that starts with `error:`, `warning:`, `hint:` or `note:` followed by text, because a hand-typed copy goes stale when the message changes.
 
@@ -75,7 +75,7 @@ Write for a busy engineer who reads each sentence once. The rules apply to comme
 1. **State the rule and its reason.** A reader who knows the reason can apply the rule to a case it doesn’t name.
    - Bad: “Keep the recipe and the mmz `examples` scope in step.”
    - Good: “Keep the recipe and the mmz `examples` scope in step, because mmz re-runs this gate only when a file in that scope changes.”
-2. **Leave out history.** The reader needs today’s behaviour, and `git log` holds how it got there.
+2. **Leave out history.** The reader needs today’s behavior, and `git log` holds how it got there.
    - Bad: “the word-splitting that `[positional-arguments]` used to guard that recipe against, refused at dispatch now instead.”
    - Good: “a value containing a space, which the pattern refuses at dispatch, so the recipe never word-splits it.”
 3. **Use the literal word.** A reader has to translate a figure of speech, and two readers translate it differently.
@@ -105,4 +105,4 @@ The word lists are in `.just/scripts/check-doc-prose.sh`.
 
 ## The duplicate-prose audit
 
-`just dup-prose` reads the doc sources, strips markup and code, and reports sentences that two files share, worst pair first. It’s advisory, because the threshold is a judgement call and you decide where each fact lives. Run it before and after a refactor. The algorithm, its settings and why it’s written in jq are in `contrib/dup-prose.jq`.
+`just dup-prose` reads the doc sources, strips markup and code, and reports sentences that two files share, worst pair first. It’s advisory, because the threshold is a judgment call and you decide where each fact lives. Run it before and after a refactor. The algorithm, its settings and why it’s written in jq are in `contrib/dup-prose.jq`.

@@ -241,7 +241,7 @@ fn different_array_sections_compose() {
             "[tasks.priority]\nbands = [\"low\"]\n".to_owned(),
         ),
         (
-            "organisation",
+            "organization",
             "[[tasks.roots]]\npath = \"tasks\"\n".to_owned(),
         ),
     ];

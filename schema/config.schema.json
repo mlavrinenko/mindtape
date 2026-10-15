@@ -76,11 +76,11 @@
     },
     "Anchor": {
       "additionalProperties": false,
-      "description": "One labelled point in an anchor classification.",
+      "description": "One labeled point in an anchor classification.",
       "properties": {
         "color": {
           "default": null,
-          "description": "Optional colour: a named ANSI colour or `#RRGGBB`.",
+          "description": "Optional color: a named ANSI color or `#RRGGBB`.",
           "type": [
             "string",
             "null"
@@ -145,11 +145,11 @@
     },
     "Band": {
       "additionalProperties": false,
-      "description": "One contiguous labelled range in a band classification.",
+      "description": "One contiguous labeled range in a band classification.",
       "properties": {
         "color": {
           "default": null,
-          "description": "Optional colour: a named ANSI colour or `#RRGGBB`.",
+          "description": "Optional color: a named ANSI color or `#RRGGBB`.",
           "type": [
             "string",
             "null"
@@ -189,7 +189,7 @@
       "properties": {
         "color": {
           "default": null,
-          "description": "Optional colour: a named ANSI colour or `#RRGGBB`.",
+          "description": "Optional color: a named ANSI color or `#RRGGBB`.",
           "type": [
             "string",
             "null"
@@ -629,7 +629,7 @@
         },
         "slugify": {
           "default": true,
-          "description": "Normalise folder names to tag form.",
+          "description": "Normalize folder names to tag form.",
           "type": "boolean"
         }
       },
@@ -1185,7 +1185,7 @@
       ]
     },
     "Legend": {
-      "description": "The status legend: the legal status values, in lifecycle order.\n\nEach entry gives a value its glyph, colour, label and `terminal` flag. An\nempty legend (`status = []`) accepts any status. Omitting\n`[[tasks.status]]` takes the shipped six-status legend.",
+      "description": "The status legend: the legal status values, in lifecycle order.\n\nEach entry gives a value its glyph, color, label and `terminal` flag. An\nempty legend (`status = []`) accepts any status. Omitting\n`[[tasks.status]]` takes the shipped six-status legend.",
       "items": {
         "$ref": "#/$defs/LegendEntry"
       },
@@ -1197,7 +1197,7 @@
       "properties": {
         "color": {
           "default": null,
-          "description": "Optional colour: a named ANSI colour or `#RRGGBB`.",
+          "description": "Optional color: a named ANSI color or `#RRGGBB`.",
           "type": [
             "string",
             "null"
@@ -1393,7 +1393,7 @@
         },
         "overdue-color": {
           "default": null,
-          "description": "Colour for the overdue due-date accent. Defaults to `\"red\"`.",
+          "description": "Color for the overdue due-date accent. Defaults to `\"red\"`.",
           "type": [
             "string",
             "null"
@@ -1401,7 +1401,7 @@
         },
         "ready": {
           "$ref": "#/$defs/ReadyConfig",
-          "description": "Glyph, colour and label for the ready and blocked states in the `READY`\ncolumn. An unset key takes the shipped default."
+          "description": "Glyph, color and label for the ready and blocked states in the `READY`\ncolumn. An unset key takes the shipped default."
         },
         "rules": {
           "description": "Ordered auto-activation rules applied to a bare `mt ls` (no CLI\nfilter, no `@view`): the first rule whose condition holds (or that\nhas none) wins and supplies its filter, sort, and columns.",
@@ -1516,7 +1516,7 @@
     },
     "NumericField": {
       "additionalProperties": false,
-      "description": "A numeric scalar field: a `[min, max]` scale plus, optionally, one\nclassification style — contiguous bands or labelled anchor points.\nDefaults to an integer `0..9` scale with no classification.",
+      "description": "A numeric scalar field: a `[min, max]` scale plus, optionally, one\nclassification style — contiguous bands or labeled anchor points.\nDefaults to an integer `0..9` scale with no classification.",
       "properties": {
         "anchors": {
           "description": "Anchor classification (mutually exclusive with `bands`).",
@@ -1665,11 +1665,11 @@
     },
     "ReadyConfig": {
       "additionalProperties": false,
-      "description": "`[ls.ready]` — glyph, colour and label for the ready and blocked states in\nthe `READY` column. An omitted key takes the shipped default.",
+      "description": "`[ls.ready]` — glyph, color and label for the ready and blocked states in\nthe `READY` column. An omitted key takes the shipped default.",
       "properties": {
         "blocked-color": {
           "default": null,
-          "description": "Colour for the blocked state: a named ANSI colour or `#RRGGBB`.",
+          "description": "Color for the blocked state: a named ANSI color or `#RRGGBB`.",
           "type": [
             "string",
             "null"
@@ -1693,7 +1693,7 @@
         },
         "ready-color": {
           "default": null,
-          "description": "Colour for the ready state: a named ANSI colour or `#RRGGBB`.",
+          "description": "Color for the ready state: a named ANSI color or `#RRGGBB`.",
           "type": [
             "string",
             "null"
@@ -2098,7 +2098,7 @@
         },
         "difficulty": {
           "$ref": "#/$defs/NumericField",
-          "description": "The difficulty scale and its labelled anchors or bands."
+          "description": "The difficulty scale and its labeled anchors or bands."
         },
         "estimate": {
           "$ref": "#/$defs/EstimateConfig",
@@ -2147,7 +2147,7 @@
         },
         "status": {
           "$ref": "#/$defs/Legend",
-          "description": "Status legend: legal values in lifecycle order, plus per-value display\n(glyph, colour, label) and the `terminal` flag."
+          "description": "Status legend: legal values in lifecycle order, plus per-value display\n(glyph, color, label) and the `terminal` flag."
         },
         "tags": {
           "$ref": "#/$defs/TagsConfig",

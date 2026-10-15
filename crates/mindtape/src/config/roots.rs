@@ -59,7 +59,7 @@ pub struct DeriveConfig {
     pub collect: Vec<Collector>,
     /// Breadcrumb join separator.
     pub separator: String,
-    /// Normalise folder names to tag form.
+    /// Normalize folder names to tag form.
     pub slugify: bool,
     /// Whether breadcrumb tags start with the root name (`mt`, `mt:backend`,
     /// …).

@@ -120,6 +120,7 @@ highlight
 hint
 hoist
 honour
+honor
 hook
 hot-fix
 import
@@ -159,6 +160,7 @@ normalise
 normalize
 notify
 optimise
+optimize
 override
 overwrite
 pack

@@ -24,6 +24,6 @@ color = "green"
 terminal = true
 
 # No priority bands. A priority is still accepted and still sorts; it just
-# renders as a bare number instead of a coloured band label.
+# renders as a bare number instead of a colored band label.
 [tasks.priority]
 bands = []

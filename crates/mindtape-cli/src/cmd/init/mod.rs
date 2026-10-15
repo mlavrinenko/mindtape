@@ -30,7 +30,7 @@ use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 
 use self::preset::Preset;
-use self::wizard::{Estimate, Headers, Organisation, Priority, Recurrence, Required, Workflow};
+use self::wizard::{Estimate, Headers, Organization, Priority, Recurrence, Required, Workflow};
 use crate::diag::{Diag, Result};
 
 /// The Typst package version `mt install` installs. Mirrors `lib/typst.toml`.
@@ -99,7 +99,7 @@ pub struct InitArgs {
 
     /// Answer the folders question up front: whether folders become tags.
     #[arg(long, value_enum, conflicts_with = "preset")]
-    pub organisation: Option<Organisation>,
+    pub organization: Option<Organization>,
 
     /// Answer the estimate question up front: which units an estimate may use.
     #[arg(long, value_enum, conflicts_with = "preset")]
@@ -170,7 +170,7 @@ fn wizard_flags(args: &InitArgs) -> wizard::Flags {
     wizard::Flags {
         workflow: args.workflow,
         priority: args.priority,
-        organisation: args.organisation,
+        organization: args.organization,
         estimate: args.estimate,
         required: args.required,
         headers: args.headers,

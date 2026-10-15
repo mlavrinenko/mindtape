@@ -35,12 +35,12 @@ pub struct TasksConfig {
     /// Project-wide folder-derived-tag policy.
     pub derive_tags: DeriveConfig,
     /// Status legend: legal values in lifecycle order, plus per-value display
-    /// (glyph, colour, label) and the `terminal` flag.
+    /// (glyph, color, label) and the `terminal` flag.
     pub status: Legend,
     /// The priority scale, its bands, and an optional scoring framework that
     /// computes priority from inputs.
     pub priority: PriorityConfig,
-    /// The difficulty scale and its labelled anchors or bands.
+    /// The difficulty scale and its labeled anchors or bands.
     pub difficulty: NumericField,
     /// Allowed values, default and requirement for `kind` and for each
     /// `x-<ns>` extension field, keyed by field name. Any other key fails

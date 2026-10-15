@@ -22,7 +22,7 @@ no way to answer it.
 
 #recipe-config("trace-commits-to-tasks")
 
-= Behaviour
+= Behavior
 
 Add a `commit-msg` hook that runs `mt check --commit-msg`. From then on git
 refuses a commit without a `Refs:` trailer and accepts it with one, and

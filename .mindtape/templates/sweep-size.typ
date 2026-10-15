@@ -58,7 +58,7 @@
     ),
     process: (
       sound-codebase: helps[a file under its cap changes without reading its
-        neighbours],
+        neighbors],
       docs-match-code: neutral,
     ),
   ),
@@ -109,7 +109,7 @@ so the task is worth only as much as that measurement still is.
 
 == Out of scope
 
-- Behaviour changes: a split moves code and changes nothing it does.
+- Behavior changes: a split moves code and changes nothing it does.
 
 == Dogfood
 

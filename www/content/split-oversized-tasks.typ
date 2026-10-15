@@ -27,7 +27,7 @@ the cap gets tighter as the task gets harder.
 
 #recipe-config("split-oversized-tasks")
 
-= Behaviour
+= Behavior
 
 The sign-in task takes judgment and needs 7 source files, so `mt add` refuses
 it. The rename needs 12, and it's filed:

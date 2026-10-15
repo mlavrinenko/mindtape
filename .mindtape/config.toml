@@ -24,7 +24,7 @@ name = "mt"
 derive-tags = true
 
 # Status legend: legal values in lifecycle order, each with an optional glyph and
-# colour. `terminal = true` ends a task (required fields relax once terminal).
+# color. `terminal = true` ends a task (required fields relax once terminal).
 # `to` declares the allowed next statuses — the transition graph. Once any entry
 # carries `to`, `mt flip` gates every move to a listed edge (a same-status
 # re-stamp and an unset→any first stamp stay exempt; `--force` overrides), and
@@ -73,7 +73,7 @@ color = "red"
 terminal = true
 to = ["wip"]
 
-# Priority: an ICE score on a 0..9 scale, classified into labelled bands.
+# Priority: an ICE score on a 0..9 scale, classified into labeled bands.
 # `framework = "ice"` computes the score from `priority: ice(impact, confidence,
 # ease)` inputs (the built-in ICE definition ships in the baked-in config layer).
 # `allow-manual = false` is strict: every task must score through the framework,
@@ -450,7 +450,7 @@ values = [
 
 # A commit that changes product code adds a `CHANGELOG.md` entry, or says it has
 # nothing to announce with a `Changelog: none` trailer. The trigger is the files
-# changed, so a `refactor` that alters behaviour is held to it as a `fix` is.
+# changed, so a `refactor` that alters behavior is held to it as a `fix` is.
 [[commits.rules]]
 name = "changelog-with-product-change"
 when = 'count(files, "@product") >= 1 && !matches(trailers, "(?i)^Changelog: none$")'

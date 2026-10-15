@@ -3,7 +3,7 @@
 //
 // THIS layer (Typst) is config-agnostic and consumer-blind. It only:
 //   - shapes one task per file via `#show: task.with(...)`
-//   - emits one labelled metadata marker the Rust layer collects
+//   - emits one labeled metadata marker the Rust layer collects
 //   - enforces the extension discipline: any non-core slot must be `x-<ns>`
 // The Rust layer, driven by `.mindtape/config.toml`, owns the rest:
 //   - the status legend, the numeric priority/difficulty scales, the kind enum,
@@ -307,7 +307,7 @@
 #let _muted = luma(110)
 #let _rule = luma(205)
 
-// A rounded pill: bold, small, coloured wash. `fg`/`bg` default to a neutral grey.
+// A rounded pill: bold, small, colored wash. `fg`/`bg` default to a neutral gray.
 #let _pill(body, fg: luma(70), bg: luma(232)) = box(
   fill: bg,
   inset: (x: 0.55em, y: 0.3em),
@@ -316,7 +316,7 @@
 )
 
 // Per-status wash, keyed by the prelude's shortcut names. An unlisted status
-// (a project may legislate its own) falls back to a neutral grey — colour is
+// (a project may legislate its own) falls back to a neutral gray — color is
 // cosmetic, never authoritative; the Rust layer owns the legend.
 #let _status-styles = (
   draft: (luma(95), luma(234)),

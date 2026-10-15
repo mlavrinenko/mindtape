@@ -1,16 +1,16 @@
 # crates/mindtape/src/config/defaults.toml — the embedded config floor.
 #
 # Deep-merged UNDER the user's `.mindtape/config.toml` before typed
-# deserialisation (`parse_config` in `config/mod.rs`): the user's values win
+# deserialization (`parse_config` in `config/mod.rs`): the user's values win
 # field-by-field (tables merge key-by-key; arrays and scalars replace
-# wholesale). This generalises the built-in priority-frameworks merge
+# wholesale). This generalizes the built-in priority-frameworks merge
 # (`merge_builtin_frameworks` in `framework/mod.rs`) from one sub-table to the
 # whole config document.
 #
 # Semantic shift: omitting a section here now means "inherit this floor," not
 # "unconstrained." A project explicitly unconstrains a floored section by
 # setting it empty — `status = []`, `[tasks.priority] bands = []` — which the
-# array-replace merge honours.
+# array-replace merge honors.
 #
 # Sections intentionally absent here — and so still unconstrained when the
 # user config also omits them — are the free-vocabulary allow-lists:
@@ -56,7 +56,7 @@ glyph = "❌"
 color = "red"
 terminal = true
 
-# Priority: a number on a scale, classified into labelled bands.
+# Priority: a number on a scale, classified into labeled bands.
 [tasks.priority]
 kind = "int"
 min = 0
@@ -83,7 +83,7 @@ max = 9
 glyph = "🔴"
 color = "red"
 
-# Difficulty: a number on a scale, classified by sparse labelled anchors.
+# Difficulty: a number on a scale, classified by sparse labeled anchors.
 [tasks.difficulty]
 kind = "int"
 min = 0
@@ -199,7 +199,7 @@ when = "named()"
 [ls.columns.file]
 when = 'named() || (!tty() && format() == "table")'
 
-# READY-column display: glyph / colour / label for each state.
+# READY-column display: glyph / color / label for each state.
 [ls.ready]
 ready-glyph = "▶"
 ready-color = "green"

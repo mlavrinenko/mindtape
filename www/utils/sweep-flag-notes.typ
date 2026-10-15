@@ -48,7 +48,7 @@
   ],
   "cc-floor": [
     Half of a conjunction with `--fn-coverage-floor`, and the half that is not
-    a complexity judgement — #just.crap() gates complexity, at its own
+    a complexity judgment — #just.crap() gates complexity, at its own
     threshold against a committed baseline. This floor is what makes the
     coverage number mean something: below it, a low percentage says one line
     is unhit; at or above it, it says decisions are unexercised.

@@ -161,7 +161,7 @@ To see the edges, `mt graph` prints the tasks as a Graphviz DOT graph, or as
 a Mermaid flowchart with `--format mermaid`. Pass a filter to graph only the
 tasks that match, and `--no-terminal` to leave out the finished ones. Each
 node shows a task's title and status. A ready task is green, a blocked one red
-and a finished one grey. Here's the graph of `examples/links/`, the project
+and a finished one gray. Here's the graph of `examples/links/`, the project
 this page quotes:
 
 #diagram("links-graph", [`mt graph` on `examples/links/`, drawn by Graphviz])

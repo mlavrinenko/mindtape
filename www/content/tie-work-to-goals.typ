@@ -26,7 +26,7 @@ function next to the goals it checks:
 
 #fixture-slice("goals")
 
-= Behaviour
+= Behavior
 
 The milestone template rates each goal `neutral` unless you answer for it. So
 `mt add` refuses a milestone that helps no goal, and files it once one goal

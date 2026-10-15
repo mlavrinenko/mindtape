@@ -4,7 +4,7 @@
 #show: cli-page.with("graph")
 
 `mt graph` prints the dependency edges that `ready` and `blocked` read, as
-Graphviz DOT or Mermaid. Each node shows a task's title and status, coloured
+Graphviz DOT or Mermaid. Each node shows a task's title and status, colored
 by whether the task is ready. #link(u("/links/"))[Task links] describes the
 edge kinds.
 

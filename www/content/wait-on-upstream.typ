@@ -25,7 +25,7 @@ looks again, and the workaround outlives the bug by a year.
 `scripts/locked` reads `Cargo.lock`. It exits 0 once the lockfile pins the
 version an id names or a later one, and 1 while it pins an older one.
 
-= Behaviour
+= Behavior
 
 The task names what it waits on in `waits-on`. In a fresh clone `mt` runs no
 checker, so the task is blocked as unknown and `mt` asks you to allow the

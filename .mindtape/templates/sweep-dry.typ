@@ -91,7 +91,7 @@ The first copy reads:
 
 `just check-dry` fails a new clone, and `.jscpd-baseline.json` lists this one as
 older than the gate. The arm joins jscpd's pairs into a family by shared
-location, so a location may belong to a neighbouring window.
+location, so a location may belong to a neighboring window.
 
 == TO-BE
 

@@ -20,12 +20,12 @@
   raw(body.trim("\n", repeat: true), block: true),
 )
 
-// ── ANSI colour ──────────────────────────────────────────────────────────────
+// ── ANSI color ──────────────────────────────────────────────────────────────
 // A capture keeps the SGR escapes `mt` printed in a terminal. terminal-ansi()
-// turns each run into an HTML <span> with an inline colour, the way Typst's
+// turns each run into an HTML <span> with an inline color, the way Typst's
 // HTML export renders syntax highlighting, so the text stays selectable and the
 // browser draws the status glyphs. One-Dark-ish palette, readable on --term-bg.
-// A reset, or no colour, falls back to the panel's own --term-fg.
+// A reset, or no color, falls back to the panel's own --term-fg.
 #let _ansi-fg = (
   "30": "#5c6370",
   "31": "#e06c75",
@@ -45,7 +45,7 @@
   "97": "#ffffff",
 )
 // One SGR parameter list ("1;31", "0", ...) applied to the current state, a
-// (colour, bold) pair.
+// (color, bold) pair.
 #let _sgr-apply(state, codes) = {
   let (col, bold) = state
   for p in codes.split(";") {
@@ -65,7 +65,7 @@
   (col, bold)
 }
 #let _sgr-re = regex("\u{1b}\[([0-9;]*)m")
-// ANSI text -> content: plain runs as text, coloured runs as styled spans.
+// ANSI text -> content: plain runs as text, colored runs as styled spans.
 #let _ansi-spans(body) = {
   let out = ()
   let pos = 0
@@ -113,7 +113,7 @@
   json("../generated/" + slug + ".json").steps.last().code,
 ))
 
-// One line of what a capture printed, as inline code: the first line, colour
+// One line of what a capture printed, as inline code: the first line, color
 // stripped, that matches the regex `pattern`. The build fails when no line
 // matches, so a quoted diagnostic cannot outlive its text.
 #let capture-line(slug, pattern) = {
@@ -137,9 +137,9 @@
   block: true,
 )
 
-// `terminal()` with the colour the terminal showed: the same panel and the same
-// `$ command` lines, with each coloured run as a span in a selectable `pre`.
-// The Markdown copy has no colour, so it shows `terminal()`.
+// `terminal()` with the color the terminal showed: the same panel and the same
+// `$ command` lines, with each colored run as a span in a selectable `pre`.
+// The Markdown copy has no color, so it shows `terminal()`.
 #let terminal-ansi(slug) = if MARKDOWN { terminal(slug) } else {
   html.elem(
     "div",
@@ -241,7 +241,7 @@
 // ── Diagrams ─────────────────────────────────────────────────────────────────
 // render_dot in www/capture.sh draws a graph as www/generated/<slug>.svg with
 // Graphviz. diagram() rebuilds that SVG as inline elements rather than an
-// <img>, so the stylesheet can colour it for the light and the dark theme.
+// <img>, so the stylesheet can color it for the light and the dark theme.
 // Typst parses a comment in the file as an element with an empty tag, which is
 // dropped. So is the graph's own <title>, which a browser would show as a
 // tooltip over the whole drawing.
@@ -261,7 +261,7 @@
   if hit != none { hit.children.filter(c => type(c) == str).join() }
 }
 
-// Every edge as text, "<from> <label> <to>", with "to" for an unlabelled
+// Every edge as text, "<from> <label> <to>", with "to" for an unlabeled
 // edge. Graphviz titles an edge's group "<from>-><to>".
 #let _svg-edges(node) = if type(node) != dictionary { () } else if (
   node.attrs.at("class", default: "") == "edge"
@@ -313,7 +313,7 @@
 // Source lines `from` to `to` (0-based, end excluded), with a wavy line under
 // each problem's range on them, the way an editor marks it. A range that runs
 // past its first line is marked to that line's end. The marked text repeats
-// the source in a transparent colour, so the line sits under the same
+// the source in a transparent color, so the line sits under the same
 // characters in the listing's monospace font.
 #let _lsp-marked(lines, problems, from, to) = {
   let shown = from

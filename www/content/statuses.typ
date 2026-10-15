@@ -44,7 +44,7 @@ If you don't declare `[[tasks.status]]`, you get this legend from the
 #let floor = json("../generated/floor-legend.json")
 #table(
   columns: 4,
-  table.header([Value], [Glyph], [Colour], [Terminal]),
+  table.header([Value], [Glyph], [Color], [Terminal]),
   ..floor
     .map(e => (
       raw(e.value),

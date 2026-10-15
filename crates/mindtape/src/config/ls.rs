@@ -66,10 +66,10 @@ pub struct LsConfig {
     /// columns render, in that order. Empty (the default) keeps the built-in
     /// column set and order.
     pub columns_order: Vec<String>,
-    /// Glyph, colour and label for the ready and blocked states in the `READY`
+    /// Glyph, color and label for the ready and blocked states in the `READY`
     /// column. An unset key takes the shipped default.
     pub ready: ReadyConfig,
-    /// Colour for the overdue due-date accent. Defaults to `"red"`.
+    /// Color for the overdue due-date accent. Defaults to `"red"`.
     pub overdue_color: Option<String>,
     /// Ordered auto-activation rules applied to a bare `mt ls` (no CLI
     /// filter, no `@view`): the first rule whose condition holds (or that
@@ -387,7 +387,7 @@ fn validate_view_spliced(
     problems
 }
 
-/// `[ls.ready]` — glyph, colour and label for the ready and blocked states in
+/// `[ls.ready]` — glyph, color and label for the ready and blocked states in
 /// the `READY` column. An omitted key takes the shipped default.
 // One block covers both states, outside `[ls.columns.ready]`, because
 // `ColumnConfig` carries only `when`. An omitted key falls back to the
@@ -397,13 +397,13 @@ fn validate_view_spliced(
 pub struct ReadyConfig {
     /// Glyph shown for a ready (unblocked, non-terminal) task.
     pub ready_glyph: Option<String>,
-    /// Colour for the ready state: a named ANSI colour or `#RRGGBB`.
+    /// Color for the ready state: a named ANSI color or `#RRGGBB`.
     pub ready_color: Option<String>,
     /// Display label for the ready state.
     pub ready_label: Option<String>,
     /// Glyph shown for a blocked task.
     pub blocked_glyph: Option<String>,
-    /// Colour for the blocked state: a named ANSI colour or `#RRGGBB`.
+    /// Color for the blocked state: a named ANSI color or `#RRGGBB`.
     pub blocked_color: Option<String>,
     /// Display label for the blocked state.
     pub blocked_label: Option<String>,

@@ -82,7 +82,7 @@ const ANSWER_SETS: &[(&[&str], &[&str], &[&str])] = &[
             "todo-done",
             "--priority",
             "off",
-            "--organisation",
+            "--organization",
             "flat",
         ],
         &[],
@@ -94,7 +94,7 @@ const ANSWER_SETS: &[(&[&str], &[&str], &[&str])] = &[
             "gated",
             "--priority",
             "ice",
-            "--organisation",
+            "--organization",
             "folders",
             "--headers",
             "spec",
@@ -170,6 +170,22 @@ fn init_accepts_the_rrule_answer_and_checks_an_rrule_task() {
         ),
     );
     support::check_ok(dir.path());
+}
+
+/// The flag is spelled like `--color`, and the old spelling is gone.
+#[test]
+fn init_spells_the_organization_flag_in_american_english() {
+    let dir = tempdir();
+    support::install_lib(dir.path());
+    support::run_ok(
+        dir.path(),
+        &["init", "--no-input", "--organization", "flat"],
+    );
+    let other = tempdir();
+    support::mt(other.path())
+        .args(["init", "--no-input", "--organisation", "flat"])
+        .assert()
+        .code(2);
 }
 
 /// A strict-framework answer set scaffolds like any other: the fallback

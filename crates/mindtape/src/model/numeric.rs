@@ -10,9 +10,9 @@
 //!
 //! - bands — contiguous ranges that tile the scale (int: inclusive and
 //!   contiguous; real: half-open, closed last). A value falls in exactly one.
-//! - anchors — sparse labelled points. A value at an anchor shows its label;
+//! - anchors — sparse labeled points. A value at an anchor shows its label;
 //!   a value between anchors inherits the nearest lower anchor's glyph and
-//!   colour, its label derived as `lower-label + "+"×offset` (values below all
+//!   color, its label derived as `lower-label + "+"×offset` (values below all
 //!   anchors derive upward with `−`).
 //!
 //! Exactly one style is active: declaring both is a config error.
@@ -105,7 +105,7 @@ pub enum ScaleKind {
     Real,
 }
 
-/// One contiguous labelled range in a band classification.
+/// One contiguous labeled range in a band classification.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct Band {
@@ -117,11 +117,11 @@ pub struct Band {
     pub max: f64,
     /// Optional decorative glyph.
     pub glyph: Option<String>,
-    /// Optional colour: a named ANSI colour or `#RRGGBB`.
+    /// Optional color: a named ANSI color or `#RRGGBB`.
     pub color: Option<String>,
 }
 
-/// One labelled point in an anchor classification.
+/// One labeled point in an anchor classification.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct Anchor {
@@ -131,7 +131,7 @@ pub struct Anchor {
     pub label: String,
     /// Optional decorative glyph.
     pub glyph: Option<String>,
-    /// Optional colour: a named ANSI colour or `#RRGGBB`.
+    /// Optional color: a named ANSI color or `#RRGGBB`.
     pub color: Option<String>,
 }
 
@@ -142,12 +142,12 @@ pub struct NumCell {
     pub label: String,
     /// Optional decorative glyph.
     pub glyph: Option<String>,
-    /// Optional colour spec.
+    /// Optional color spec.
     pub color: Option<String>,
 }
 
 /// A numeric scalar field: a `[min, max]` scale plus, optionally, one
-/// classification style — contiguous bands or labelled anchor points.
+/// classification style — contiguous bands or labeled anchor points.
 /// Defaults to an integer `0..9` scale with no classification.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
@@ -252,7 +252,7 @@ impl NumericField {
         // anchor whose value is not below `point` in one comparison: that
         // anchor is the exact hit when its value equals `point` (the first of
         // any duplicates, since ties keep their stable sort order), and the
-        // element right before it is the nearest lower neighbour (the last of
+        // element right before it is the nearest lower neighbor (the last of
         // any duplicates at that lower value, for the same reason).
         let idx = anchors.partition_point(|anchor| anchor.value < point);
         if let Some(exact) = anchors

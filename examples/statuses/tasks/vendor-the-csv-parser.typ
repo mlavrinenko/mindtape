@@ -3,7 +3,7 @@
 #show: task.with(
   title: "Vendor the CSV parser",
   // docs:slice failed-note
-  status: failed(2026, 6, 30)[its licence forbids vendoring],
+  status: failed(2026, 6, 30)[its license forbids vendoring],
   // docs:end
   priority: 3,
 )

@@ -71,7 +71,7 @@ macro_rules! axis {
 
 mod axes;
 
-pub use axes::{Estimate, Headers, Organisation, Priority, Recurrence, Required, Workflow};
+pub use axes::{Estimate, Headers, Organization, Priority, Recurrence, Required, Workflow};
 
 /// Per-axis flag values from `mt init`. A `Some` pre-answers (and suppresses)
 /// that axis's question.
@@ -79,7 +79,7 @@ pub use axes::{Estimate, Headers, Organisation, Priority, Recurrence, Required, 
 pub struct Flags {
     pub workflow: Option<Workflow>,
     pub priority: Option<Priority>,
-    pub organisation: Option<Organisation>,
+    pub organization: Option<Organization>,
     pub estimate: Option<Estimate>,
     pub required: Option<Required>,
     pub headers: Option<Headers>,
@@ -92,7 +92,7 @@ impl Flags {
     pub fn any(&self) -> bool {
         self.workflow.is_some()
             || self.priority.is_some()
-            || self.organisation.is_some()
+            || self.organization.is_some()
             || self.estimate.is_some()
             || self.required.is_some()
             || self.headers.is_some()
@@ -105,7 +105,7 @@ impl Flags {
 pub struct Answers {
     pub workflow: Workflow,
     pub priority: Priority,
-    pub organisation: Organisation,
+    pub organization: Organization,
     pub estimate: Estimate,
     pub required: Required,
     pub headers: Headers,
@@ -124,7 +124,7 @@ pub struct Outcome {
 /// Resolve one answer per axis.
 ///
 /// A flag pre-answers its axis and is never prompted. The three core axes
-/// (workflow, priority, organisation) are asked first; the four extras hide
+/// (workflow, priority, organization) are asked first; the four extras hide
 /// behind one "accept defaults for the rest?" gate so the walk is never a wall
 /// of seven prompts. `interactive` is false for a non-terminal or `--no-input`
 /// run, where every un-flagged axis takes its default without a prompt.
@@ -139,7 +139,7 @@ pub fn resolve<R: BufRead, W: Write>(
 ) -> Result<Answers> {
     let workflow = choose(flags.workflow, interactive, reader, writer)?;
     let priority = choose(flags.priority, interactive, reader, writer)?;
-    let organisation = choose(flags.organisation, interactive, reader, writer)?;
+    let organization = choose(flags.organization, interactive, reader, writer)?;
 
     let extras_flagged = flags.estimate.is_some()
         && flags.required.is_some()
@@ -155,7 +155,7 @@ pub fn resolve<R: BufRead, W: Write>(
     Ok(Answers {
         workflow,
         priority,
-        organisation,
+        organization,
         estimate,
         required,
         headers,
@@ -257,7 +257,7 @@ pub fn assemble(answers: Answers) -> Result<Outcome> {
         ("answers", comment),
         ("workflow", answers.workflow.fragment().to_owned()),
         ("priority", answers.priority.fragment().to_owned()),
-        ("organisation", answers.organisation.fragment().to_owned()),
+        ("organization", answers.organization.fragment().to_owned()),
         ("estimate", answers.estimate.fragment().to_owned()),
         ("required", answers.required.fragment().to_owned()),
         ("headers", answers.headers.fragment().to_owned()),
@@ -286,14 +286,14 @@ fn render_answer_comment(answers: Answers) -> String {
          # answers:\n\
          #   workflow = {}\n\
          #   priority = {}\n\
-         #   organisation = {}\n\
+         #   organization = {}\n\
          #   estimate = {}\n\
          #   required = {}\n\
          #   headers = {}\n\
          #   recurrence = {}\n",
         answers.workflow.slug(),
         answers.priority.slug(),
-        answers.organisation.slug(),
+        answers.organization.slug(),
         answers.estimate.slug(),
         answers.required.slug(),
         answers.headers.slug(),
@@ -315,7 +315,7 @@ fn render_answer_comment(answers: Answers) -> String {
 pub fn parse_answer_comment(text: &str) -> Option<Answers> {
     let mut workflow = None;
     let mut priority = None;
-    let mut organisation = None;
+    let mut organization = None;
     let mut estimate = None;
     let mut required = None;
     let mut headers = None;
@@ -332,8 +332,8 @@ pub fn parse_answer_comment(text: &str) -> Option<Answers> {
         match key {
             "workflow" => workflow = workflow.or_else(|| Workflow::from_slug(value)),
             "priority" => priority = priority.or_else(|| Priority::from_slug(value)),
-            "organisation" => {
-                organisation = organisation.or_else(|| Organisation::from_slug(value));
+            "organization" => {
+                organization = organization.or_else(|| Organization::from_slug(value));
             }
             "estimate" => estimate = estimate.or_else(|| Estimate::from_slug(value)),
             "required" => required = required.or_else(|| Required::from_slug(value)),
@@ -345,7 +345,7 @@ pub fn parse_answer_comment(text: &str) -> Option<Answers> {
     Some(Answers {
         workflow: workflow?,
         priority: priority?,
-        organisation: organisation?,
+        organization: organization?,
         estimate: estimate?,
         required: required?,
         headers: headers?,

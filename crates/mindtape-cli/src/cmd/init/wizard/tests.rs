@@ -3,7 +3,7 @@
 use std::io::Cursor;
 
 use super::{
-    Answers, Axis, Estimate, Flags, Headers, Organisation, Priority, Recurrence, Required,
+    Answers, Axis, Estimate, Flags, Headers, Organization, Priority, Recurrence, Required,
     Workflow, assemble, parse_answer_comment, resolve,
 };
 
@@ -30,7 +30,7 @@ fn all_default() -> Answers {
     Answers {
         workflow: Workflow::default_value(),
         priority: Priority::default_value(),
-        organisation: Organisation::default_value(),
+        organization: Organization::default_value(),
         estimate: Estimate::default_value(),
         required: Required::default_value(),
         headers: Headers::default_value(),
@@ -62,7 +62,7 @@ fn non_interactive_with_flags_uses_flags_silently() {
     assert!(prompts.is_empty(), "{prompts:?}");
     assert_eq!(answers.workflow, Workflow::Gated);
     assert_eq!(answers.priority, Priority::Off);
-    assert_eq!(answers.organisation, Organisation::default_value());
+    assert_eq!(answers.organization, Organization::default_value());
 }
 
 /// Every axis flag pre-answers its question, so an interactive walk with all of
@@ -72,7 +72,7 @@ fn all_flags_suppress_every_question() {
     let flags = Flags {
         workflow: Some(Workflow::TodoDone),
         priority: Some(Priority::Ice),
-        organisation: Some(Organisation::Flat),
+        organization: Some(Organization::Flat),
         estimate: Some(Estimate::DaysHours),
         required: Some(Required::Difficulty),
         headers: Some(Headers::Spec),
@@ -93,16 +93,16 @@ fn core_flag_suppresses_only_its_question() {
         workflow: Some(Workflow::Gated),
         ..Flags::default()
     };
-    // priority, organisation, then the accept-defaults gate.
+    // priority, organization, then the accept-defaults gate.
     let (answers, prompts) = walk(&flags, true, "ice\nflat\n\n");
     assert_asked(
         &prompts,
         Workflow::TITLE,
-        &[Priority::TITLE, Organisation::TITLE, "Use the defaults for"],
+        &[Priority::TITLE, Organization::TITLE, "Use the defaults for"],
     );
     assert_eq!(answers.workflow, Workflow::Gated);
     assert_eq!(answers.priority, Priority::Ice);
-    assert_eq!(answers.organisation, Organisation::Flat);
+    assert_eq!(answers.organization, Organization::Flat);
     // extras defaulted (gate accepted).
     assert_eq!(answers.estimate, Estimate::default_value());
 }
@@ -115,7 +115,7 @@ fn extra_flag_suppresses_only_its_question() {
         estimate: Some(Estimate::DaysHours),
         ..Flags::default()
     };
-    // workflow, priority, organisation, gate=no, then required, headers, recurrence.
+    // workflow, priority, organization, gate=no, then required, headers, recurrence.
     let (answers, prompts) = walk(&flags, true, "flow\nbands\nfolders\nn\nnone\noff\noff\n");
     assert_asked(
         &prompts,
@@ -178,7 +178,7 @@ fn the_full_walk_asks_plain_questions() {
     for title in [
         Workflow::TITLE,
         Priority::TITLE,
-        Organisation::TITLE,
+        Organization::TITLE,
         Estimate::TITLE,
         Required::TITLE,
         Headers::TITLE,
@@ -270,7 +270,7 @@ fn answer_comment_round_trips() {
     let answers = Answers {
         workflow: Workflow::Gated,
         priority: Priority::Ice,
-        organisation: Organisation::Flat,
+        organization: Organization::Flat,
         estimate: Estimate::DaysHours,
         required: Required::Difficulty,
         headers: Headers::Spec,
@@ -301,7 +301,7 @@ fn any_is_true_for_each_single_flag() {
             ..Flags::default()
         },
         Flags {
-            organisation: Some(Organisation::Flat),
+            organization: Some(Organization::Flat),
             ..Flags::default()
         },
         Flags {
@@ -338,7 +338,7 @@ fn three_of_four_extra_flags_still_offer_the_gate() {
         headers: Some(Headers::Spec),
         ..Flags::default()
     };
-    // workflow, priority, organisation, then accept the gate.
+    // workflow, priority, organization, then accept the gate.
     let (_, prompts) = walk(&flags, true, "flow\nbands\nfolders\ny\n");
     assert!(prompts.contains("Use the defaults for"), "{prompts}");
 }

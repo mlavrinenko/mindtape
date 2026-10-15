@@ -36,7 +36,7 @@ writes the `@local/mindtape` package and where loading a project finds it.
 through `script(1)`, which the dev shell provides. It needs a terminal to
 exercise the `guard` checks, `event_loop` and `draw`. It and
 `tests/it/tty_e2e.rs` are `#![cfg(unix)]`, because `script(1)` has no Windows
-equivalent, so on Windows they compile to nothing. The behaviour is the same
+equivalent, so on Windows they compile to nothing. The behavior is the same
 on every platform, and `crossterm` implements it over ConPTY on Windows.
 
 Don't let a pty test depend on machine load. A fixed sleep passes on an idle
@@ -60,5 +60,5 @@ Windows standard library. `pkgsCross.mingwW64` supplies a rustc on the same
 pinned #rust-channel channel with the standard library for both targets.
 
 It isn't a #just.check() arm, because it needs a separate toolchain and its
-own `target/` tree. The Windows CI job still tests runtime behaviour and the
+own `target/` tree. The Windows CI job still tests runtime behavior and the
 `-msvc` target.

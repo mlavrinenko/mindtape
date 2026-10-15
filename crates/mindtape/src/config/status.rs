@@ -13,7 +13,7 @@ use crate::suggest::Unknown;
 
 /// The status legend: the legal status values, in lifecycle order.
 ///
-/// Each entry gives a value its glyph, colour, label and `terminal` flag. An
+/// Each entry gives a value its glyph, color, label and `terminal` flag. An
 /// empty legend (`status = []`) accepts any status. Omitting
 /// `[[tasks.status]]` takes the shipped six-status legend.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
@@ -31,7 +31,7 @@ pub struct LegendEntry {
     pub value: String,
     /// Optional decorative glyph (emoji or ASCII).
     pub glyph: Option<String>,
-    /// Optional colour: a named ANSI colour or `#RRGGBB`.
+    /// Optional color: a named ANSI color or `#RRGGBB`.
     pub color: Option<String>,
     /// Optional display label; falls back to `value`.
     pub label: Option<String>,

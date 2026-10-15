@@ -55,7 +55,7 @@ key.
 
 `difficulty` is a second number with the same `kind`, `min`, `max` and
 `required` keys, under `[tasks.difficulty]`. Its scale runs from
-#scale-span(fw.scales.difficulty), and it's labelled by anchors instead of
+#scale-span(fw.scales.difficulty), and it's labeled by anchors instead of
 bands. A value between two anchors takes the lower anchor's label:
 
 #anchors-table(fw)

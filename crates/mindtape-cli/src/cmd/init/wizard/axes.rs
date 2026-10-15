@@ -33,12 +33,12 @@ axis!(Priority ("How should tasks be ranked?", default = Bands) {
             [tasks.priority]\nframework = \"ice\"\nallow-manual = false\nrequired = true\n",
 });
 
-axis!(Organisation ("How do you want to organise tasks?", default = Folders) {
+axis!(Organization ("How do you want to organize tasks?", default = Folders) {
     Flat = "flat": "all in one tasks/ folder"
-        => "# organisation: one flat tasks/ root, no folder-derived tags.\n\
+        => "# organization: one flat tasks/ root, no folder-derived tags.\n\
             [[tasks.roots]]\npath = \"tasks\"\n",
     Folders = "folders": "in folders under tasks/, each folder a tag"
-        => "# organisation: folders under tasks/ become tags automatically.\n\
+        => "# organization: folders under tasks/ become tags automatically.\n\
             [[tasks.roots]]\npath = \"tasks\"\nderive-tags = true\n\n\
             [tasks.derive-tags]\nenabled = true\ncollect = [\"segments\"]\n",
 });

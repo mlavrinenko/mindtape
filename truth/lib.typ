@@ -16,7 +16,7 @@
 #let _choices = "helps[...], hurts[...] or neutral"
 
 // One group's worth of breaches ("product" or "process"): every registry
-// goal not addressed, every addressed key the registry does not recognise,
+// goal not addressed, every addressed key the registry does not recognize,
 // every value that is not helps[...]/hurts[...]/neutral, and every
 // helps/hurts with no reason. Returns (messages, effects) — effects is the
 // `effect` string of every well-shaped entry, so the caller can tell whether

@@ -26,7 +26,7 @@ success.
   "changes-name-files",
 )))
 
-= Behaviour
+= Behavior
 
 `mt add` refuses a task with sections left empty. Fill them in, write the
 Problem as one sentence instead of steps, and `mt add` refuses it again:

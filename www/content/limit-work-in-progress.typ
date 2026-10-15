@@ -22,7 +22,7 @@ yet.
 
 #recipe-config("limit-work-in-progress")
 
-= Behaviour
+= Behavior
 
 The milestone "Harden session tokens" and one task under it are in progress,
 so `mt wip` won't start a second task. It also won't start a task that waits

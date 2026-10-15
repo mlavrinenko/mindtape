@@ -83,7 +83,7 @@ much as that measurement still is.
   the file from scoring in `CRAP_EXCLUDES` in the Justfile, with the reason
   beside it in the style that list's own comment uses.
 - If you test, take the branches that decide something first; `just mutants -f`
-  on the same file says whether the new tests actually pin behaviour.
+  on the same file says whether the new tests actually pin behavior.
 - An exclusion is file-shaped, with no per-function suppression, so its reason
   has to be good enough to drop the file from the `just crap` gate too.
 

@@ -12,7 +12,7 @@ On Windows, `dirs` reads the data path from a system API that no environment var
 
 ## The pty tests are Unix-only
 
-`tests/it/interactive_e2e.rs` drives `mt ls --interactive` under a real terminal through `script(1)`, which the dev shell provides. It needs a terminal to exercise the `guard` checks, `event_loop` and `draw`. It and `tests/it/tty_e2e.rs` are `#![cfg(unix)]`, because `script(1)` has no Windows equivalent, so on Windows they compile to nothing. The behaviour is the same on every platform, and `crossterm` implements it over ConPTY on Windows.
+`tests/it/interactive_e2e.rs` drives `mt ls --interactive` under a real terminal through `script(1)`, which the dev shell provides. It needs a terminal to exercise the `guard` checks, `event_loop` and `draw`. It and `tests/it/tty_e2e.rs` are `#![cfg(unix)]`, because `script(1)` has no Windows equivalent, so on Windows they compile to nothing. The behavior is the same on every platform, and `crossterm` implements it over ConPTY on Windows.
 
 Don’t let a pty test depend on machine load. A fixed sleep passes on an idle machine and fails while other worktrees build beside it. So `opening_a_task_suspends_the_tui_and_runs_the_editor` and `opening_a_task_still_works_with_hyperlinks_active` poll the transcript for the frame they check.
 
@@ -22,4 +22,4 @@ Don’t let a pty test depend on machine load. A fixed sleep passes on an idle m
 
 Run `just check-windows` before you push. It compiles the workspace, tests included, for `x86_64-pc-windows-gnu` from Linux. It runs in its own dev shell (`nix develop .#windows`), because the default shell’s rustc has no Windows standard library. `pkgsCross.mingwW64` supplies a rustc on the same pinned 1.92.0 channel with the standard library for both targets.
 
-It isn’t a `just check` arm, because it needs a separate toolchain and its own `target/` tree. The Windows CI job still tests runtime behaviour and the `-msvc` target.
+It isn’t a `just check` arm, because it needs a separate toolchain and its own `target/` tree. The Windows CI job still tests runtime behavior and the `-msvc` target.

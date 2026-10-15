@@ -6,7 +6,7 @@
 //! - scalar — a `score` formula (evalexpr) over the inputs; the score feeds the
 //!   `[tasks.priority]` bands (e.g. ICE, RICE, WSJF).
 //! - categorical — a `category` list, each with a `when` predicate, a
-//!   representative `score`, and display glyph/colour; categories must be
+//!   representative `score`, and display glyph/color; categories must be
 //!   exhaustive and disjoint over the boolean/enum input domain (e.g.
 //!   Eisenhower, `MoSCoW`).
 //!
@@ -95,7 +95,7 @@ pub struct Category {
     pub label: Option<String>,
     /// Optional decorative glyph.
     pub glyph: Option<String>,
-    /// Optional colour: a named ANSI colour or `#RRGGBB`.
+    /// Optional color: a named ANSI color or `#RRGGBB`.
     pub color: Option<String>,
 }
 

@@ -8,7 +8,7 @@
 #
 # Required spec sections. Across agent-authored pull requests, the ticket
 # properties that moved merge rates were narrow and specific: being
-# self-contained, being well-scoped, and stating expected behaviour. Piling on
+# self-contained, being well-scoped, and stating expected behavior. Piling on
 # more context did not help. So this preset requires four sections and nothing
 # else — the ones with evidence, gated to non-terminal tasks so a closed task
 # is not held to a spec it has outgrown.
@@ -207,7 +207,7 @@ description = "Waiting on human review before it can close"
 
 # On the way into work, print what is already in flight, so an agent picking up
 # a task sees the open set rather than assuming it is alone. Nothing is
-# materialised: tasks are files in git, so `mt ls` at the flipping commit
+# materialized: tasks are files in git, so `mt ls` at the flipping commit
 # reconstructs this list exactly.
 [[on.flip]]
 when = 'into("wip")'

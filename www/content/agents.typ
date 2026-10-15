@@ -124,9 +124,9 @@ so an agent can fix its input and run the command again.
   names the file and the line. Run it in CI or a pre-commit hook.
 - A #link(u("/hooks/"))[flip hook] can run your tests when a task is closed,
   and refuse to close it while they fail.
-- `mt` colours stdout and stderr only when each one is a terminal, and on
+- `mt` colors stdout and stderr only when each one is a terminal, and on
   stderr only the `error:`, `warning:`, `hint:` and `note:` prefix.
-  `NO_COLOR` or `--color never` turn colour off in a terminal too.
+  `NO_COLOR` or `--color never` turn color off in a terminal too.
 
 = Work in a git worktree
 

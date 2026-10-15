@@ -6,7 +6,7 @@
 #let goals = (
   sound-codebase: (
     title: "Changes stay safe",
-    acid-test: [A change that breaks documented behaviour fails `just check`
+    acid-test: [A change that breaks documented behavior fails `just check`
       before it can be committed, and every file fits its size cap.],
   ),
   docs-match-code: (

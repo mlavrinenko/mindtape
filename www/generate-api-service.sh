@@ -80,7 +80,7 @@ problem: |
   + Grep `src/` for `User`.
   + 🔴 The type is `User`, while the API, the database and the UI say account.
 to-be: |
-  - 🟢 The type is `Account` everywhere, and no behaviour changes.
+  - 🟢 The type is `Account` everywhere, and no behavior changes.
 changes: |
   - `src/**/*.rs`: rename `User` to `Account` in each of the 12 files that name it.
 out-of-scope: |

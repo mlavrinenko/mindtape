@@ -16,7 +16,7 @@
 // assets — from failing on them. Once the script loads, mount PagefindUI into
 // the header #search box (waiting for the DOM if the async script wins the
 // race), then make the results drawer behave like a popup: dismiss on
-// outside-click / Escape via a `search--closed` class the CSS honours, and
+// outside-click / Escape via a `search--closed` class the CSS honors, and
 // re-open when the input regains focus. Search is a production-build feature;
 // `tola serve` has no index.
 #let _search-init = (
