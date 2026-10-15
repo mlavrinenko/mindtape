@@ -53,9 +53,10 @@ fn head(diag: &Diag) -> String {
     if let Some(tally) = diag.0.tally {
         head.push_str(&tally_text(tally));
     }
-    if let Some(value) = &diag.0.value {
+    if !diag.0.values.is_empty() {
+        let quoted: Vec<String> = diag.0.values.iter().map(|value| quote(value)).collect();
         head.push_str(": ");
-        head.push_str(&quote(value));
+        head.push_str(&quoted.join(", "));
     }
     if let Some((label, value)) = &diag.0.context {
         head.push(' ');

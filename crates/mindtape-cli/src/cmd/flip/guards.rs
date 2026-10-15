@@ -8,11 +8,6 @@ use mindtape::config::Legend;
 
 use crate::diag::{Diag, Hint, Note};
 
-/// The way past a guard.
-fn force_hint() -> Hint {
-    Hint::new("or pass --force to override")
-}
-
 /// `a (proposed), b (wip)`: the tasks a guard names; one with no known status
 /// reads `unknown`.
 fn targets(blockers: &[mindtape::Blocker]) -> String {
@@ -49,11 +44,19 @@ pub(super) fn check_transition(
     let allowed = legend.allowed_next(&from.name);
     let diag = Diag::refused("illegal transition").value(format!("{} → {to}", from.name));
     let diag = if allowed.is_empty() {
-        diag.note(Note::new("no transitions are declared from").value(&from.name))
+        diag.hint(Hint::new("pass --force to skip this check"))
+            .note(Note::new("no transitions are declared from").value(&from.name))
     } else {
-        diag.note(Note::new("allowed next").name(format!("{} → {}", from.name, allowed.join(", "))))
+        diag.hint(Hint::new(
+            "flip to an allowed status first, or pass --force to skip this check",
+        ))
+        .note(Note::new("allowed next").name(format!(
+            "{} → {}",
+            from.name,
+            allowed.join(", ")
+        )))
     };
-    Err(diag.hint(force_hint()))
+    Err(diag)
 }
 
 /// Guard one flip against the target status's `unblocked = true`: refused
@@ -70,7 +73,9 @@ pub(super) fn check_unblocked(
     Err(Diag::refused("status requires an unblocked task")
         .value(to)
         .note(Note::new("waits on").name(targets(blockers)))
-        .hint(force_hint()))
+        .hint(Hint::new(
+            "finish what it waits on first, or pass --force to skip this check",
+        )))
 }
 
 /// Guard one flip against a status that requires finished children (both
@@ -93,7 +98,9 @@ pub(super) fn check_children(
     Err(Diag::refused("status requires finished children")
         .value(to)
         .note(Note::new("unfinished").name(targets(&open)))
-        .hint(force_hint()))
+        .hint(Hint::new(
+            "finish the children first, or pass --force to skip this check",
+        )))
 }
 
 /// Guard one flip against the target status's note requirement (`note =

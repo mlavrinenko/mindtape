@@ -13,6 +13,7 @@
 //! - The text is a `&'static str`, so a value can't be formatted into it. A
 //!   value the user typed goes through [`Diag::value`] or [`Diag::context`],
 //!   which single-quote it the way a shell takes it back: `'it'\''s'`.
+//!   Several go through [`Diag::values`], each quoted: `'a', 'b'`.
 //! - A field or rule name is bare: [`Diag::rule`].
 //! - A problem tied to a file starts with its place: [`Diag::at`] renders
 //!   `error: tasks/x.typ:2: rules.one-wip: <message>`.
@@ -48,6 +49,8 @@
 //! - `prompt.rs` — the confirmation question, the one line stderr gets that
 //!   isn't a `Diag`: a prompt is not a diagnostic, so it has no prefix.
 //! - `from_lib.rs` — library errors into a `Diag`, one exhaustive match each.
+//! - `quoting.rs` — the quoted form of a filter whose bare word was meant as
+//!   text, for the hint under `unknown field`.
 //! - `from_lib_tests.rs` — unit tests for the library-error conversions.
 //! - `tests.rs`, `tests_fill.rs` — unit tests.
 
@@ -60,6 +63,7 @@ mod json;
     reason = "the confirmation prompt is the one stderr line that is not a Diag"
 )]
 mod prompt;
+mod quoting;
 #[allow(
     clippy::disallowed_methods,
     reason = "the renderer, and emit_text for a report, own stderr"
@@ -136,7 +140,8 @@ struct Parts {
     rule: Option<String>,
     what: &'static str,
     tally: Option<Tally>,
-    value: Option<String>,
+    /// The values that failed, each rendered single-quoted, joined with `, `.
+    values: Vec<String>,
     context: Option<(&'static str, String)>,
     reason: Option<String>,
     hints: Vec<Hint>,
@@ -156,7 +161,7 @@ impl Diag {
             rule: None,
             what,
             tally: None,
-            value: None,
+            values: Vec::new(),
             context: None,
             reason: None,
             hints: Vec::new(),
@@ -214,7 +219,14 @@ impl Diag {
 
     /// The value that failed, as the user typed it. Rendered single-quoted.
     pub(crate) fn value(mut self, value: impl Into<String>) -> Self {
-        self.0.value = Some(value.into());
+        self.0.values = vec![value.into()];
+        self
+    }
+
+    /// Several values that failed, as the user typed them. Each is rendered
+    /// single-quoted: `'to-be', 'changes'`.
+    pub(crate) fn values(mut self, values: impl IntoIterator<Item = impl Into<String>>) -> Self {
+        self.0.values = values.into_iter().map(Into::into).collect();
         self
     }
 

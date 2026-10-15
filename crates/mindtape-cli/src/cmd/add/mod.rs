@@ -210,7 +210,7 @@ pub fn run(args: &AddArgs) -> Result<()> {
     let stem = output_stem(args, &values, config)?;
     let file = dest.join(format!("{stem}.typ"));
 
-    let rescue = Rescue::new(interactive);
+    let rescue = Rescue::new(&template_name, interactive);
     let written = if args.print {
         print_preview(args, &project, &file, &filled, &rescue)
     } else {
@@ -307,7 +307,7 @@ fn commit(
 /// command ever loads it. A `-f`/`--set` rejection parks nothing; the values
 /// are still in the shell history that produced them.
 fn pre_verify(project: &util::Project, file: &Path, source: &str, rescue: &Rescue) -> Result<bool> {
-    let result = crate::task_edit::verify_candidate(project, file, source);
+    let result = crate::task_edit::verify_candidate(project, file, source, &rescue.template);
     if result.is_err() && rescue.interactive {
         rescue.parked.set(park(source));
     }

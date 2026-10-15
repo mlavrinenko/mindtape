@@ -5,7 +5,7 @@
 
 use std::path::Path;
 
-use mindtape::{Config, Violation, load_config, load_project, validate};
+use mindtape::{Config, Location, Violation, load_config, load_project, validate};
 use typst_edit::{Call, Edit, find_method_calls};
 
 use crate::diag::{Diag, Kind, Result};
@@ -182,15 +182,22 @@ fn report_issues(issues: &[Violation]) -> Result<()> {
 /// return means the check ran and passed.
 ///
 /// `mt add`'s door onto [`crate::pre_write`] — one file, and the only writer
-/// with somewhere to fall back to when the destination is out of root.
+/// with somewhere to fall back to when the destination is out of root. A
+/// problem names the task by `template`, the one it was filled from, since
+/// there is no path yet: `<new task from template 'task'>:2`.
 ///
 /// # Errors
 /// Returns an error if the source failed to evaluate, harvested no task
 /// marker, or violates a rule — none of which mention a file to repair,
 /// because none was created.
-pub fn verify_candidate(project: &Project, file: &Path, source: &str) -> Result<bool> {
+pub fn verify_candidate(
+    project: &Project,
+    file: &Path,
+    source: &str,
+    template: &str,
+) -> Result<bool> {
     let pending = [Pending { file, source }];
-    let verdict = crate::pre_write::check(project, &project.outcome.tasks, &pending)?
+    let mut verdict = crate::pre_write::check(project, &project.outcome.tasks, &pending)?
         .into_iter()
         .next()
         // One verdict per pending write, and exactly one was asked about.
@@ -198,9 +205,10 @@ pub fn verify_candidate(project: &Project, file: &Path, source: &str) -> Result<
     if !verdict.checked {
         return Ok(false);
     }
+    name_template(&mut verdict, template);
+    let labels = [Location::filled_label(Some(template))];
     // A warning says its piece whether or not the write is refused, and never
     // decides that it is.
-    let labels = ["the task as filled".to_owned()];
     let Some(diag) = crate::pre_write::settle(&labels, std::slice::from_ref(&verdict)) else {
         return Ok(true);
     };
@@ -208,6 +216,26 @@ pub fn verify_candidate(project: &Project, file: &Path, source: &str) -> Result<
         return Err(diag);
     }
     Err(diag.reading(verdict.reads()))
+}
+
+/// Name `template` on each place in `verdict` that is a line of the new task.
+fn name_template(verdict: &mut crate::pre_write::Verdict, template: &str) {
+    let failure = verdict
+        .load_failure
+        .iter_mut()
+        .filter_map(|failure| failure.location.as_mut());
+    let breaches = verdict
+        .violations
+        .iter_mut()
+        .map(|breach| &mut breach.location);
+    for location in failure.chain(breaches) {
+        if let Location::Filled {
+            template: named, ..
+        } = location
+        {
+            *named = Some(template.to_owned());
+        }
+    }
 }
 
 /// Unreachable placeholder: [`crate::pre_write::check`] answers one verdict per

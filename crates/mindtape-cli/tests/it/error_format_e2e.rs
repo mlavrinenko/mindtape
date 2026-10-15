@@ -82,7 +82,8 @@ fn an_unknown_field_in_a_filter_is_a_usage_error() {
     let stderr = failure(&["ls", "status == wip"], Some(2));
     assert_eq!(
         stderr,
-        "error: unknown field: 'wip' in filter 'status == wip'\n"
+        "error: unknown field: 'wip' in filter 'status == wip'\n\
+         hint: to match text, quote it, as in status == \"wip\"\n"
     );
 }
 

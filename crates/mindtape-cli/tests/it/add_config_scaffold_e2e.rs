@@ -292,7 +292,7 @@ fn print_refuses_the_fill_a_write_would_refuse() {
     );
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stderr.contains("the task as filled:3: rules.cap: keep it to one source file"),
+        stderr.contains("<new task from template 'task'>:3: rules.cap: keep it to one source file"),
         "the preview must report the rule a write would report: {stderr}"
     );
     assert!(

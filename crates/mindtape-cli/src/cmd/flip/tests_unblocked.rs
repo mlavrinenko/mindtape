@@ -45,7 +45,7 @@ fn refusal_names_the_status_and_every_blocker() {
     crate::diag::assert_plain(
         &err,
         "error: status requires an unblocked task: 'done'\n\
-         hint: or pass --force to override\n\
+         hint: finish what it waits on first, or pass --force to skip this check\n\
          note: waits on: write-atomic (proposed), link-cycle (wip)\n",
     );
     assert!(super::check_unblocked(&legend, "cancelled", &blockers).is_ok());

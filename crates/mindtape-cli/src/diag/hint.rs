@@ -7,7 +7,8 @@ use super::Diag;
 use super::render::{quote, shell_word};
 
 /// A `hint:` line. Its text is a `&'static str`; anything the user typed
-/// reaches it only through a [`Command`] argument or a did-you-mean.
+/// reaches it only through a [`Command`] argument, a did-you-mean, or an
+/// example rebuilt from the input.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct Hint(Shape);
 
@@ -20,6 +21,7 @@ enum Shape {
     OneOf(Vec<String>),
     Typst(String),
     Example(&'static str),
+    AsIn(&'static str, String),
     Project(String),
 }
 
@@ -44,6 +46,12 @@ impl Hint {
     /// `hint: for example: matches(title, "x")`.
     pub(crate) fn example(example: &'static str) -> Self {
         Self(Shape::Example(example))
+    }
+
+    /// A next step and the user's own input with it taken:
+    /// `hint: to match text, quote it, as in status == "wip"`.
+    pub(crate) fn as_in(text: &'static str, example: String) -> Self {
+        Self(Shape::AsIn(text, example))
     }
 
     /// The known name nearest to what the user typed:
@@ -78,6 +86,7 @@ impl fmt::Display for Hint {
             Shape::Typst(text) | Shape::Project(text) => formatter.write_str(text),
             Shape::OneOf(names) => write!(formatter, "use one of: {}", names.join(", ")),
             Shape::Example(example) => write!(formatter, "for example: {example}"),
+            Shape::AsIn(text, example) => write!(formatter, "{text}, as in {example}"),
         }
     }
 }

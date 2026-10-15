@@ -132,7 +132,7 @@ fn ensure_refuses_the_whole_batch_on_one_bad_entry() {
 
     let text = crate::diag::plain(&err);
     assert!(
-        text.starts_with("error: the task as filled:") && text.contains("`bogus`"),
+        text.starts_with("error: <new task>:") && text.contains("`bogus`"),
         "{text}"
     );
     assert!(!text.contains("rejected"), "no summary of its own: {text}");
@@ -163,7 +163,7 @@ fn reports_a_source_that_does_not_evaluate() {
 }
 
 /// A load failure names the line it is at, in the file as it stands on disk, and
-/// in the task as filled when there is no file yet.
+/// in a new task when there is no file yet.
 #[test]
 fn a_load_failure_names_its_line() {
     let good = marker("wip", &[]);
@@ -185,7 +185,7 @@ fn a_load_failure_names_its_line() {
 
     let place = |at: usize| verdicts[at].problems()[0].clone();
     assert!(place(0).starts_with("tasks/a.typ:"), "{}", place(0));
-    assert!(place(1).starts_with("the task as filled:"), "{}", place(1));
+    assert!(place(1).starts_with("<new task>:"), "{}", place(1));
     assert!(place(1).contains(": did not load:"), "{}", place(1));
 }
 

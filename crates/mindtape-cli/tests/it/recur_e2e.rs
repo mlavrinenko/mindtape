@@ -269,7 +269,7 @@ recur: every(weeks: 1),\n\
 
     let stderr = support::stderr_of(&output);
     assert!(
-        stderr.contains("error: the task as filled:"),
+        stderr.contains("error: <new task>:"),
         "a blocking pre-write problem reports as an error: {stderr}"
     );
     assert_eq!(

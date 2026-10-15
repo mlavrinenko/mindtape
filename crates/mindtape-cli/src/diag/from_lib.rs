@@ -137,7 +137,11 @@ pub(crate) fn filter(err: FilterError, expr: Option<&str>) -> Diag {
                 None => diag,
             }
         }
-        FilterError::UnknownField(name) => in_filter(Diag::usage("unknown field").value(name)),
+        FilterError::UnknownField(name) => quote_hint(
+            in_filter(Diag::usage("unknown field").value(&name)),
+            expr,
+            &name,
+        ),
         FilterError::UnknownStatus { value, unknown } => in_filter(
             Diag::usage("unknown status")
                 .value(value)
@@ -158,6 +162,16 @@ pub(crate) fn filter(err: FilterError, expr: Option<&str>) -> Diag {
         FilterError::Git { call, reason } => {
             Diag::failed("can't read git").reason(format!("{call}(): {reason}"))
         }
+    }
+}
+
+/// `diag` with the filter rebuilt with `name` quoted as text as its hint, when
+/// `expr` compares `name` with a field: `status == wip` means `status == "wip"`.
+fn quote_hint(diag: Diag, expr: Option<&str>, name: &str) -> Diag {
+    let quoted = expr.and_then(|expr| super::quoting::quoted_form(expr, name));
+    match quoted {
+        Some(quoted) => diag.hint(Hint::as_in("to match text, quote it", quoted)),
+        None => diag,
     }
 }
 
@@ -291,7 +305,7 @@ impl From<&Violation> for Diag {
 
 impl Diag {
     /// The place a breach or a load failure sits at: a file and line, or the
-    /// words for one that has no file (`the task as filled:7`).
+    /// words for one that has no file (`<new task from template 'task'>:7`).
     pub(crate) fn at_location(mut self, location: &Location) -> Self {
         match location {
             Location::File { file, line } => self.at(file, *line, None),
@@ -354,7 +368,7 @@ impl From<FillError> for Diag {
             } else {
                 "missing required slots"
             })
-            .value(names.join(", "))
+            .values(names)
             .hint(Hint::new("pass each with --set name=value, or with -f"))
             .hint(Hint::run(
                 Command::mt().word("add").word("--describe"),

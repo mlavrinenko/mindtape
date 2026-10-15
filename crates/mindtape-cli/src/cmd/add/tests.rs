@@ -429,7 +429,7 @@ fn outside_root_failure_names_the_file_kept_on_disk() {
         &project,
         &outcome,
         "#show: task.with(title: \"kept\")\n",
-        &super::Rescue::new(false),
+        &super::Rescue::new("task", false),
     )
     .unwrap_err();
     let err = crate::diag::plain(&err);

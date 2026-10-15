@@ -35,7 +35,7 @@ fn refusal_names_the_status_and_every_unfinished_child() {
     crate::diag::assert_plain(
         &err,
         "error: status requires finished children: 'done'\n\
-         hint: or pass --force to override\n\
+         hint: finish the children first, or pass --force to skip this check\n\
          note: unfinished: child (proposed)\n",
     );
     assert!(legend.requires_finished_children("done"));

@@ -50,6 +50,8 @@ pub enum Location {
     Filled {
         /// One-based line number within the task as filled.
         line: usize,
+        /// The template the task was filled from, when one was.
+        template: Option<String>,
     },
 }
 
@@ -70,7 +72,18 @@ impl Location {
             Self::File { line, .. }
             | Self::Builtin { line, .. }
             | Self::Pack { line, .. }
-            | Self::Filled { line } => *line,
+            | Self::Filled { line, .. } => *line,
+        }
+    }
+
+    /// What stands in for the path of a task not yet on disk:
+    /// `<new task from template 'task'>`, or `<new task>` when no template
+    /// made it. The angle brackets keep it from reading as a file.
+    #[must_use]
+    pub fn filled_label(template: Option<&str>) -> String {
+        match template {
+            Some(name) => format!("<new task from template '{name}'>"),
+            None => "<new task>".to_owned(),
         }
     }
 
@@ -90,7 +103,9 @@ impl std::fmt::Display for Location {
             Self::File { file, line } => write!(f, "{}:{line}", file.display()),
             Self::Builtin { template, line } => write!(f, "built-in template {template}:{line}"),
             Self::Pack { pack, line } => write!(f, "pack {pack}:{line}"),
-            Self::Filled { line } => write!(f, "the task as filled:{line}"),
+            Self::Filled { line, template } => {
+                write!(f, "{}:{line}", Self::filled_label(template.as_deref()))
+            }
         }
     }
 }

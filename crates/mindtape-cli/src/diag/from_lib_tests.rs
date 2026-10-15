@@ -197,11 +197,36 @@ fn a_filter_error_is_a_usage_error_naming_the_filter() {
     );
     assert_eq!(
         plain(&field),
-        "error: unknown field: 'wip' in filter 'status == wip'\n"
+        "error: unknown field: 'wip' in filter 'status == wip'\n\
+         hint: to match text, quote it, as in status == \"wip\"\n"
     );
     assert_eq!(plain(&bare), "error: unknown field: 'wip'\n");
     assert_eq!(git.kind(), Kind::Failed);
     assert_eq!(plain(&git), "error: can't read git: changed(): no repo\n");
+}
+
+/// The quoting hint quotes the unknown name only where it is compared with a
+/// field, in the user's own expression, and never inside a string.
+#[test]
+fn an_unknown_name_compared_with_a_field_gets_the_quoted_form() {
+    let hint = |expr: &str, name: &str| {
+        let diag = filter(FilterError::UnknownField(name.to_owned()), Some(expr));
+        plain(&diag).lines().nth(1).map(str::to_owned)
+    };
+    assert_eq!(
+        hint("wip != status && title == \"wip\"", "wip").as_deref(),
+        Some("hint: to match text, quote it, as in \"wip\" != status && title == \"wip\"")
+    );
+    assert_eq!(
+        hint("priority>high", "high").as_deref(),
+        Some("hint: to match text, quote it, as in priority>\"high\"")
+    );
+    assert_eq!(
+        hint("titel == \"x\"", "titel"),
+        None,
+        "a string on the other side"
+    );
+    assert_eq!(hint("has(wipe) && wip", "wip"), None, "no comparison");
 }
 
 fn toml_error(source: &str) -> toml::de::Error {
@@ -363,6 +388,20 @@ fn a_breach_renders_its_place_rule_and_message() {
         line(&warned),
         "warning: pack mindtape-tasks:3: rules.one-wip: finish the task in progress"
     );
+    for (template, place) in [
+        (Some("task"), "<new task from template 'task'>:2"),
+        (None, "<new task>:2"),
+    ] {
+        violation.location = Location::Filled {
+            line: 2,
+            template: template.map(str::to_owned),
+        };
+        let shown = line(&Diag::from(&violation));
+        assert_eq!(
+            shown,
+            format!("warning: {place}: rules.one-wip: finish the task in progress")
+        );
+    }
 }
 
 #[test]

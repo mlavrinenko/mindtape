@@ -20,16 +20,19 @@ use crate::task_edit::task_with;
 /// the source text it was filled with, and that value unquoted.
 type Slotted = (String, String, String);
 
-/// The `--edit` buffer's rescue: whether the values came from the editor, and
-/// where a rejected task was parked.
+/// What a rejected task is reported and kept with: the template it was filled
+/// from, which names it in a refusal, whether the values came from the
+/// `--edit` buffer, and where a rejected task was parked.
 pub(super) struct Rescue {
+    pub template: String,
     pub interactive: bool,
     pub parked: std::cell::Cell<Option<std::path::PathBuf>>,
 }
 
 impl Rescue {
-    pub(super) fn new(interactive: bool) -> Self {
+    pub(super) fn new(template: &str, interactive: bool) -> Self {
         Self {
+            template: template.to_owned(),
             interactive,
             parked: std::cell::Cell::new(None),
         }

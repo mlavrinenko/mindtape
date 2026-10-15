@@ -255,7 +255,7 @@ fn transition_illegal_edge_err() {
     assert_eq!(
         plain(&err),
         "error: illegal transition: 'blocked → done'\n\
-         hint: or pass --force to override\n\
+         hint: flip to an allowed status first, or pass --force to skip this check\n\
          note: allowed next: blocked → wip\n"
     );
 }
@@ -283,7 +283,7 @@ fn transition_sink_message_names_terminal() {
     assert_eq!(
         plain(&err),
         "error: illegal transition: 'done → wip'\n\
-         hint: or pass --force to override\n\
+         hint: pass --force to skip this check\n\
          note: no transitions are declared from: 'done'\n"
     );
 }

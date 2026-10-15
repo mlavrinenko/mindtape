@@ -17,7 +17,7 @@ fn a_rejected_fill_says_what_to_pass_instead() {
     assert_eq!(missing.kind(), Kind::Usage);
     assert_eq!(
         plain(&missing),
-        "error: missing required slots: 'title, problem'\n\
+        "error: missing required slots: 'title', 'problem'\n\
          hint: pass each with --set name=value, or with -f\n\
          hint: run mt add --describe to see the slots\n"
     );

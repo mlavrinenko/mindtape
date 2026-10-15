@@ -63,7 +63,7 @@ pub struct LoadFailure {
     /// The compiler's own message, Typst's own words for an eval error.
     pub message: String,
     /// The line at fault, as a breach places one: in the file on disk, or in
-    /// the task as filled when there is no file yet. `None` when the failure
+    /// the new task when there is no file yet. `None` when the failure
     /// has no place at all.
     pub location: Option<Location>,
 }
@@ -238,7 +238,7 @@ fn check_with(
 /// is there, so each breach of the candidate's own file is placed where the
 /// authored file's [`mindtape::TaskCallSpans`] say its field, or its text, or
 /// its call sits. A file that is not on disk yet (`mt add`) has no lines to
-/// open, so its breaches say they are in the task as filled.
+/// open, so its breaches say they are in a new task.
 fn place_on_disk(verdict: &mut Verdict, file: &Path, root: &Path, candidate: &str) {
     let Ok(rel) = file.strip_prefix(root) else {
         return;
@@ -253,7 +253,10 @@ fn place_on_disk(verdict: &mut Verdict, file: &Path, root: &Path, candidate: &st
                     let placed = spans.relocate(authored, candidate, "", line);
                     Location::at(rel, placed.unwrap_or(line))
                 }
-                _ => Location::Filled { line },
+                _ => Location::Filled {
+                    line,
+                    template: None,
+                },
             }
         });
     }
@@ -267,7 +270,10 @@ fn place_on_disk(verdict: &mut Verdict, file: &Path, root: &Path, candidate: &st
                 let placed = spans.relocate(authored, candidate, &violation.field, line);
                 Location::at(rel, placed.unwrap_or(line))
             }
-            _ => Location::Filled { line },
+            _ => Location::Filled {
+                line,
+                template: None,
+            },
         };
     }
 }
@@ -333,7 +339,10 @@ fn verdict(result: Result<mindtape::Checked, mindtape::LoadError>) -> Verdict {
     match result {
         Err(error) => Verdict {
             load_failure: Some(LoadFailure {
-                location: error.line.map(|line| Location::Filled { line }),
+                location: error.line.map(|line| Location::Filled {
+                    line,
+                    template: None,
+                }),
                 message: error.message,
             }),
             violations: Vec::new(),

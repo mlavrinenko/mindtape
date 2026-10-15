@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 15),
+  status: done(2026, 10, 15),
 )
 
 == Problem
@@ -58,12 +58,13 @@
 
 == Changes
 
-- `crates/mindtape-cli/src/diag/tests.rs`, `diag/tests_fill.rs`, `diag/from_lib_tests.rs`: the red tests first.
+- `crates/mindtape-cli/src/diag/tests_fill.rs`, `diag/from_lib_tests.rs`, `cmd/flip/tests*.rs`: the red tests first.
 - `crates/mindtape-cli/src/diag/mod.rs`, `diag/render.rs`: `Diag::values`, each value quoted.
 - `crates/mindtape-cli/src/diag/hint.rs`: a hint that ends with an example built from the input.
 - `crates/mindtape-cli/src/diag/from_lib.rs`: the slot list, and the quoting hint for an unknown name compared as a value.
+- `crates/mindtape-cli/src/diag/quoting.rs`: the filter rebuilt with that name quoted, outside strings and only where a field is on the other side.
 - `crates/mindtape/src/validate/violation.rs`: `Location::Filled` names its template when one is known.
-- `crates/mindtape-cli/src/task_edit.rs`, `cmd/add/mod.rs`, `pre_write/mod.rs`: pass the template name through.
+- `crates/mindtape-cli/src/task_edit.rs`, `cmd/add/mod.rs`, `cmd/add/hint.rs`, `pre_write/mod.rs`: pass the template name through.
 - `crates/mindtape-cli/src/cmd/flip/guards.rs`: a hint per guard that stands alone.
 
 
