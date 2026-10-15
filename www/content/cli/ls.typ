@@ -155,12 +155,11 @@ booleans, written bare (`!tty()`). `env()`, `weekday()`, `now()` and
 comparison may be a value or a literal, as in `weekday() >= 6` or
 `"review" == env("MODE")`. You can't compare `true` or `false`.
 
-The line under a table says where the listing came from and how many of the
-project's tasks it shows, as in `default view · 3 of 12 tasks`. When several
-sources share it, each names its facets, as in
-`your filter · sort and columns from inbox view`. When the command line
-overrides every facet of a matched rule, the line says so, as in
-`your filter · release rule overridden · 3 of 12 tasks`. In
+The line under a table says where the rows came from and how many of the
+project's tasks it shows, as in `default view · 3 of 12 tasks`. When a rule
+sets the sort, its name follows, as in `inbox view · release sort · 3 of 12 tasks`.
+A filter you typed reads `your filter · 1 of 4 tasks`. `mt ls --json` says
+where each facet came from. In
 `examples/api-service` no rule matches, so a bare `mt ls` applies the default
 view:
 
