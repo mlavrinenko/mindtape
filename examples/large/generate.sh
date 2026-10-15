@@ -54,6 +54,7 @@ for ((i = 1; i <= N; i++)); do
     printf '\n'
     printf '== Summary\n'
     printf '\n'
+        # shellcheck disable=SC2016 # the backticks are literal Typst, not a command substitution
     printf 'Generated benchmark task %d. Synthetic fixture task for load-testing `mt ls` and `mt check` at scale. Task index %d of the deterministic bench batch.\n' "${i}" "${i}"
   } > "${file}"
 done

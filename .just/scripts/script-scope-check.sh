@@ -84,6 +84,7 @@ fi
 # scope<TAB>glob, every entry of every scope. A scope's value is either a bare
 # list of globs or a `{gitignore, globs}` dict (the `lcov` scope is the second
 # shape), so both are unwrapped here rather than one being assumed.
+# shellcheck disable=SC2016 # a yq program, whose $names are yq's
 entries=$(yq -r '
     .scopes // {} | to_entries[]
     | .key as $scope
@@ -92,6 +93,7 @@ entries=$(yq -r '
 ' "$manifest")
 
 # rule<TAB>input-scope, for every rule in `commands`.
+# shellcheck disable=SC2016 # a yq program, whose $names are yq's
 rule_inputs=$(yq -r '
     .commands // [] | .[] | .name as $rule | (.inputs // [])[] | "\($rule)\t\(.)"
 ' "$manifest")

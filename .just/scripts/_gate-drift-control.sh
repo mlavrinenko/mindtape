@@ -155,6 +155,7 @@ bad-cont:
     bash .just/scripts/bad-cont.sh
 EOF
     printf '#!/usr/bin/env bash\nset -e\ncargo build -p mindtape-cli -q\n' >"$1/.just/scripts/bad-script.sh"
+    # shellcheck disable=SC2016 # the fixture script must hold a literal $SCRIPT_DIR
     printf '#!/usr/bin/env bash\nbash "$SCRIPT_DIR/inner.sh"\n' >"$1/www/outer.sh"
     printf '#!/usr/bin/env bash\ncargo run -p mindtape-cli -q -- check\n' >"$1/www/inner.sh"
     printf '#!/usr/bin/env bash\ncargo build \\\n    -p mindtape-cli -q\n' >"$1/.just/scripts/bad-cont.sh"

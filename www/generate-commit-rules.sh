@@ -27,6 +27,7 @@ capture_init
 
 capture_copy P examples/rules
 capture_prep "$P" 'git init -q -b main && mkdir migrations src && touch src/session.rs && git add -A && git commit -qm "chore: start the project"'
+# shellcheck disable=SC2016 # capture_prep runs this text in the fixture, where \$1 expands
 capture_prep "$P" 'printf "#!/bin/sh\nmt check --commit-msg \"\$1\"\n" >.git/hooks/commit-msg && chmod +x .git/hooks/commit-msg'
 
 capture commit-hook "$P" 'cat .git/hooks/commit-msg'

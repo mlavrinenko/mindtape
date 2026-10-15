@@ -138,6 +138,7 @@ done
 # fails here is the third state — an argument the table does not name at all,
 # which is exactly what a new completable argument looks like on the commit
 # that adds it.
+# shellcheck disable=SC2016 # a jq program, whose $names are jq's
 completable='[ (.globals[] | .path = "") ]
   + [ .commands[] | .name as $c | (.args[] | .path = $c) ]
   + [ .commands[] | .name as $c | .subcommands[] | .name as $s

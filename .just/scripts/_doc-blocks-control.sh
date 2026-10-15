@@ -120,7 +120,9 @@ diff "$tmp/want" "$tmp/got" >"$tmp/diff" ||
 printf 'a.typ\t3\tblock\ta fenced block\n' >"$tmp/scan"
 rc=0
 doc_blocks_judge "$tmp/scan" b.typ 2>"$tmp/judge" || rc=$?
-[ "$rc" -ne 0 ] && grep -qF 'a.typ:3: a fenced block is typed by hand' "$tmp/judge" && grep -qF 'b.typ has no hand-typed block left' "$tmp/judge" ||
+if [ "$rc" -eq 0 ] || ! grep -qF 'a.typ:3: a fenced block is typed by hand' "$tmp/judge" ||
+    ! grep -qF 'b.typ has no hand-typed block left' "$tmp/judge"; then
     fail_control "the list rule passed or misnamed: $(cat "$tmp/judge")"
+fi
 doc_blocks_judge "$tmp/scan" a.typ 2>"$tmp/judge" ||
     fail_control "the list rule refused a listed file with a block: $(cat "$tmp/judge")"

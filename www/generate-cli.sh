@@ -140,7 +140,7 @@ EOF
 
 capture_copy P examples/api-service
 capture_prep "$P" "printf '#!/bin/sh\\nexit 0\\n' >scripts/test"
-capture done "$P" 'mt done reject-expired-sessions-on-token-refresh'
+capture 'done' "$P" 'mt done reject-expired-sessions-on-token-refresh'
 
 capture_copy P examples/api-service
 capture_lines flip-examples "$P" <<'EOF'

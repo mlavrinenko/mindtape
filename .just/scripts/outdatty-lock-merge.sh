@@ -66,12 +66,14 @@ lock_json() {
         echo '{}'
     fi
 }
-o=$(lock_json "$base") && a=$(lock_json "$ours") && b=$(lock_json "$theirs") \
-    || text_merge "a side of $path does not parse as a lock"
+if ! { o=$(lock_json "$base") && a=$(lock_json "$ours") && b=$(lock_json "$theirs"); }; then
+    text_merge "a side of $path does not parse as a lock"
+fi
 
 # merge($tree): one entry per leaf of the result, `{path, value}` for a merged
 # leaf and `{path, conflict, file?}` for a conflicting one. `$tree` maps a
 # tracked path to its blake3 hash in the merged tree.
+# shellcheck disable=SC2016 # a jq program, whose $names are jq's
 lib='
 def leaves: reduce (paths(type != "object" or . == {}) as $p | [$p, getpath($p)]) as [$p, $v]
     ({}; .[$p | tojson] = $v);
@@ -152,6 +154,7 @@ fi
 # Emit the lock as outdatty writes it: `version`, `algorithm`, `groups` first,
 # `source` before `dependents`, every other map sorted, a plain scalar unquoted.
 # A conflicting leaf goes between markers, ours above theirs.
+# shellcheck disable=SC2016 # a jq program, whose $names are jq's
 emit='
 def indent($d): [range($d)] | map("  ") | join("");
 def scalar: if type == "string" and test("^[A-Za-z0-9_./-]+$")

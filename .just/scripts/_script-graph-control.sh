@@ -82,10 +82,13 @@ EOF
 : >"$ctl/.just/scripts/lonely.sh"
 : >"$ctl/.just/scripts/commented.sh"
 
+# Indent every line of stdin, so a quoted output reads as one block.
+indent() { sed 's/^/  /'; }
+
 # `bash "$graph"`: nothing under .just/scripts/ carries an exec bit.
 if ! out=$(cd "$ctl" && bash "$graph" dump.json 2>&1); then
     echo "script-graph-control: the walk FAILED on a tree it should read cleanly" >&2
-    sed 's/^/  /' <<<"$out" >&2
+    indent <<<"$out" >&2
     exit 1
 fi
 
@@ -94,7 +97,7 @@ for want in \
     'alpha	.just/scripts/c.sh	just alpha -> .just/scripts/a.sh -> just nested -> .just/scripts/c.sh'; do
     if ! grep -qF -- "$want" <<<"$out"; then
         echo "script-graph-control: the walk did not reach [${want//	/ | }]" >&2
-        sed 's/^/  /' <<<"$out" >&2
+        indent <<<"$out" >&2
         exit 1
     fi
 done
@@ -107,13 +110,13 @@ done
 for unwanted in 'commented.sh' 'absent.sh'; do
     if grep -qF -- "$unwanted" <<<"$out"; then
         echo "script-graph-control: the walk read a non-call as an edge [$unwanted]" >&2
-        sed 's/^/  /' <<<"$out" >&2
+        indent <<<"$out" >&2
         exit 1
     fi
 done
 if grep '^alpha	' <<<"$out" | grep -qF -- 'lonely.sh'; then
     echo "script-graph-control: the walk read an error message's \`just lonely\` as a call" >&2
-    sed 's/^/  /' <<<"$out" >&2
+    indent <<<"$out" >&2
     exit 1
 fi
 
@@ -125,17 +128,18 @@ assert_refuses() {
     printf '%s\n' "$body" >"$ctl/.just/scripts/a.sh"
     if out=$(cd "$ctl" && bash "$graph" dump.json 2>&1); then
         echo "script-graph-control: the walk ACCEPTED $case, so it would follow it silently" >&2
-        sed 's/^/  /' <<<"$out" >&2
+        indent <<<"$out" >&2
         exit 1
     fi
     if ! grep -qF -- "$want" <<<"$out"; then
         echo "script-graph-control: the walk refused $case without naming [$want]" >&2
-        sed 's/^/  /' <<<"$out" >&2
+        indent <<<"$out" >&2
         exit 1
     fi
 }
 
 assert_refuses "an unclassified flag" 'just --colour-me-surprised nested' \
     'carries a flag this walk has not been told about'
+# shellcheck disable=SC2016 # the fixture body is literal text, `$recipe` included
 assert_refuses "an unreadable target" 'just "$recipe"' \
     'names no recipe in the dump'

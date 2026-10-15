@@ -82,6 +82,7 @@ render_page() {
 export -f render_page
 
 cd "$SCRIPT_DIR/content"
+# shellcheck disable=SC2016 # "$1" expands in the child bash, which is the point
 find . -name '*.typ' -printf '%P\0' | sort -z |
   xargs -0 -n1 -P "$(nproc)" bash -c 'render_page "$1"' _
 

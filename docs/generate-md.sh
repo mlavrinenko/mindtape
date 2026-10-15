@@ -86,6 +86,7 @@ export MINDTAPE_GENERATED_LOCK=1
 # tree finds the record fresh instead of running www/generate.sh again.
 mmz just docs::gen
 
+# shellcheck disable=SC2016 # the backticks are literal Markdown, not a command substitution
 BANNER_TMPL='<!-- Generated from %s by `just docs md`. Do not edit; edit the source. -->'
 
 shopt -s globstar nullglob

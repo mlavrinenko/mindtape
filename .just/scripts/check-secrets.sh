@@ -85,6 +85,7 @@ derive_bound() {
     local dir=$1 out=$2 path
     local -a entries=()
     while IFS= read -r -d '' path; do
+                # shellcheck disable=SC2001 # a bracket expression with escapes, beyond ${var//}
         path=$(sed 's/[][*.^$+?(){}|\\]/\\&/g' <<<"${path%/}")
         entries+=("  '''^$path(/|\$)''',")
     done < <(git -C "$dir" ls-files -z -oi --exclude-standard --directory)

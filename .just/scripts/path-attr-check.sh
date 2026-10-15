@@ -40,6 +40,7 @@ trap 'rm -rf "$tmp"' EXIT
 
 mkdir -p "$tmp/crates/x/src"
 printf '#[cfg(test)]\n#[path = "a_tests.rs"]\nmod t;\n#[path = "tests_b.rs"]\nmod u;\n#[path = "tests.rs"]\nmod v;\n#[path = "a_tests_c.rs"]\nmod w;\n' > "$tmp/crates/x/src/ok.rs"
+# shellcheck disable=SC2016 # the backticks are literal Rust doc text
 printf '//! `#[path]` in a doc line is not an attribute.\n' > "$tmp/crates/x/src/doc.rs"
 printf '#[cfg_attr(unix, path = "unix_impl.rs")]\nmod imp;\n' > "$tmp/crates/x/src/other.rs"
 printf 'mod a;\n#[path = "flat_new.rs"]\nmod new;\n' > "$tmp/crates/x/src/stray.rs"

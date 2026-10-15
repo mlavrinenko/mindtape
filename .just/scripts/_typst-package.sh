@@ -17,4 +17,5 @@ if [ -z "$DATA" ]; then
     exit 1
 fi
 TARGET="$DATA/typst/packages/local/mindtape"
+# shellcheck disable=SC2034 # install-lib.sh and uninstall-lib.sh source this file and read it
 LINK="$TARGET/$VERSION"

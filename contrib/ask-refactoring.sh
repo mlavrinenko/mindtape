@@ -48,7 +48,8 @@ cd "$repo"
 # value would otherwise pass the required-check without the flag.
 BASELINE=""
 CC_FLOOR=""
-FN_REPEAT_GAIN=""
+FN_COVERAGE_FLOOR=""
+REPEAT_GAIN=""
 DRY_GAIN=""
 WRITE=""
 

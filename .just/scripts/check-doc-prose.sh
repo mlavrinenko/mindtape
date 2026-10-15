@@ -207,6 +207,7 @@ EOF
     } | scan "$(consts_of "$dir/h.sh")" | sed "s|^$dir/||")
     out+=$'\n'$(name_scan "$dir/n.typ" -- "$dir/m.md" | sed "s|^$dir/||")
     rm -rf "$dir"
+        # shellcheck disable=SC2016 # expected output, literal text
     want='f.typ:2: history word "used to"
 f.typ:3: history word "now"
 f.typ:3: all-caps "SHOUTED"
@@ -269,6 +270,7 @@ hits=$({
 names=$(name_scan "${typst_sources[@]}" -- "${md_sources[@]}")
 hits=$(printf '%s\n%s' "$hits" "$names" | sed '/^$/d')
 if [ -n "$hits" ]; then
+        # shellcheck disable=SC2001 # a prefix on every line, which ${var//} cannot anchor
     sed 's/^/check-doc-prose: /' <<<"$hits" >&2
     echo "check-doc-prose: rewrite each line plainly; the rules are in docs/contributing/documentation.md" >&2
     exit 1

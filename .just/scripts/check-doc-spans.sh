@@ -43,7 +43,7 @@ trap 'rm -rf "$tmp"' EXIT
 # the union of their legends. The empty homes drop any user config layer.
 for d in . examples/*/; do
     [ -d "$d/.mindtape" ] || continue
-    MINDTAPE_CONFIG_HOME= MINDTAPE_DATA_HOME= "$mt" -w "$d" config show --json
+    MINDTAPE_CONFIG_HOME='' MINDTAPE_DATA_HOME='' "$mt" -w "$d" config show --json
 done | jq -s -r '[.[].tasks.status[]?.value] | unique | join(",")' >"$tmp/statuses"
 git ls-files | sed 's|.*/||' | sort -u | jq -R . | jq -s . >"$tmp/files.json"
 
@@ -89,6 +89,7 @@ check() {
 }
 
 # The finding for a span that quotes `mt` output by hand.
+# shellcheck disable=SC2016 # the backticks are literal Typst, not a command substitution
 QUOTED='quotes `mt` output by hand; render the line with capture-line(<slug>, <regex>) from www/utils/ui.typ'
 
 control() {
