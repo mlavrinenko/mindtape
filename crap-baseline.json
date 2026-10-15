@@ -2642,7 +2642,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/init/mod.rs",
       "function": "install_lib",
-      "line": 284,
+      "line": 289,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -2651,7 +2651,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/init/mod.rs",
       "function": "package_dir",
-      "line": 302,
+      "line": 307,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -2659,8 +2659,17 @@
     },
     {
       "file": "crates/mindtape-cli/src/cmd/init/mod.rs",
+      "function": "print_next_step",
+      "line": 236,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape-cli"
+    },
+    {
+      "file": "crates/mindtape-cli/src/cmd/init/mod.rs",
       "function": "print_preset_list",
-      "line": 235,
+      "line": 241,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -2669,7 +2678,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/init/mod.rs",
       "function": "render_preset",
-      "line": 198,
+      "line": 199,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -2696,7 +2705,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/init/mod.rs",
       "function": "run_wizard",
-      "line": 210,
+      "line": 211,
       "cyclomatic": 7.0,
       "coverage": 95.23809523809523,
       "crap": 7.005291005291006,
@@ -2705,7 +2714,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/init/mod.rs",
       "function": "scaffold_config",
-      "line": 316,
+      "line": 321,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -2714,7 +2723,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/init/mod.rs",
       "function": "with_schema_directive",
-      "line": 262,
+      "line": 268,
       "cyclomatic": 7.0,
       "coverage": 100.0,
       "crap": 7.0,
@@ -2741,7 +2750,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/init/mod.rs",
       "function": "write_templates",
-      "line": 338,
+      "line": 343,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -3001,8 +3010,17 @@
     },
     {
       "file": "crates/mindtape-cli/src/cmd/install/mod.rs",
+      "function": "completion_hint",
+      "line": 151,
+      "cyclomatic": 4.0,
+      "coverage": 100.0,
+      "crap": 4.0,
+      "crate": "mindtape-cli"
+    },
+    {
+      "file": "crates/mindtape-cli/src/cmd/install/mod.rs",
       "function": "completions_dir",
-      "line": 131,
+      "line": 174,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -3019,6 +3037,15 @@
     },
     {
       "file": "crates/mindtape-cli/src/cmd/install/mod.rs",
+      "function": "quote_path",
+      "line": 164,
+      "cyclomatic": 2.0,
+      "coverage": 100.0,
+      "crap": 2.0,
+      "crate": "mindtape-cli"
+    },
+    {
+      "file": "crates/mindtape-cli/src/cmd/install/mod.rs",
       "function": "run",
       "line": 62,
       "cyclomatic": 12.0,
@@ -3028,8 +3055,17 @@
     },
     {
       "file": "crates/mindtape-cli/src/cmd/install/mod.rs",
+      "function": "shell_from_env",
+      "line": 132,
+      "cyclomatic": 2.0,
+      "coverage": 100.0,
+      "crap": 2.0,
+      "crate": "mindtape-cli"
+    },
+    {
+      "file": "crates/mindtape-cli/src/cmd/install/mod.rs",
       "function": "write_completions",
-      "line": 137,
+      "line": 180,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -3038,7 +3074,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/install/mod.rs",
       "function": "write_defaults",
-      "line": 179,
+      "line": 222,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -3047,7 +3083,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/install/mod.rs",
       "function": "write_schema",
-      "line": 199,
+      "line": 242,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -3056,7 +3092,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/install/mod.rs",
       "function": "write_seed",
-      "line": 159,
+      "line": 202,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -3065,7 +3101,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/install/mod.rs",
       "function": "xdg_defaults_dir",
-      "line": 149,
+      "line": 192,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -3074,7 +3110,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/install/mod.rs",
       "function": "xdg_schema_path",
-      "line": 189,
+      "line": 232,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -7963,8 +7999,8 @@
       "function": "amending",
       "line": 45,
       "cyclomatic": 2.0,
-      "coverage": 90.0,
-      "crap": 2.004,
+      "coverage": 100.0,
+      "crap": 2.0,
       "crate": "mindtape"
     },
     {

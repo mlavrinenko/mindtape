@@ -224,7 +224,7 @@ fn ask_axis<A: Axis, R: BufRead, W: Write>(reader: &mut R, writer: &mut W) -> Re
         }
         writeln!(
             writer,
-            "  '{choice}' is not one of the choices — pick a number or a name",
+            "  '{choice}' isn't a choice. Pick a number or a name."
         )?;
     }
 }
@@ -234,7 +234,7 @@ fn ask_axis<A: Axis, R: BufRead, W: Write>(reader: &mut R, writer: &mut W) -> Re
 fn accept_defaults<R: BufRead, W: Write>(reader: &mut R, writer: &mut W) -> Result<bool> {
     write!(
         writer,
-        "\nAccept defaults for the rest (estimate, required fields, headers, recurrence)? [Y/n] ",
+        "\nUse the defaults for estimates, required fields, body sections and repeating tasks? [Y/n] ",
     )?;
     writer.flush()?;
     let mut line = String::new();

@@ -236,15 +236,17 @@ fn run_interactively_is_suppressed_by_no_input_and_by_a_pipe() {
 // Both are driven through the real binary because each decides only what it
 // prints.
 
+/// Run `mt <args>` in a fresh directory, assert it succeeded, and return its
+/// stdout.
+fn init_stdout(args: &[&str]) -> String {
+    let dir = tempdir();
+    let assert = mt(dir.path()).args(args).assert().success();
+    String::from_utf8_lossy(&assert.get_output().stdout).into_owned()
+}
+
 #[test]
 fn explicit_preset_omits_the_other_shapes_hint() {
-    let dir = tempdir();
-    let out = mt(dir.path())
-        .args(["init", "--preset", "todone"])
-        .output()
-        .unwrap();
-    assert!(out.status.success(), "{out:?}");
-    let stdout = String::from_utf8_lossy(&out.stdout);
+    let stdout = init_stdout(&["init", "--preset", "todone"]);
     assert!(
         !stdout.contains("--list-presets"),
         "an explicit preset must not be told to browse: {stdout}"
@@ -253,28 +255,34 @@ fn explicit_preset_omits_the_other_shapes_hint() {
 
 #[test]
 fn default_fallthrough_prints_the_other_shapes_hint() {
-    let dir = tempdir();
-    let out = mt(dir.path())
-        .args(["init", "--no-input"])
-        .output()
-        .unwrap();
-    assert!(out.status.success(), "{out:?}");
-    let stdout = String::from_utf8_lossy(&out.stdout);
+    let stdout = init_stdout(&["init", "--no-input"]);
     assert!(
-        stdout.contains("--list-presets"),
-        "the fall-through should point at the other shapes: {stdout}"
+        stdout.contains("want something else? mt init --list-presets shows the other presets\n"),
+        "the fall-through should point at the other presets: {stdout}"
     );
+}
+
+/// Every path that writes a config ends on the command to run next: the
+/// default preset, an explicit one, and the wizard composing from flags.
+#[test]
+fn every_init_path_ends_on_the_next_step() {
+    for args in [
+        &["init", "--no-input"][..],
+        &["init", "--preset", "todone"][..],
+        &["init", "--workflow", "personal"][..],
+    ] {
+        let stdout = init_stdout(args);
+        assert!(
+            stdout.ends_with("next: mt add \"My first task\"\n"),
+            "{args:?}: {stdout}"
+        );
+        assert!(!stdout.contains("scaffolded"), "{args:?}: {stdout}");
+    }
 }
 
 #[test]
 fn preset_list_marks_only_the_default() {
-    let dir = tempdir();
-    let out = mt(dir.path())
-        .args(["init", "--list-presets"])
-        .output()
-        .unwrap();
-    assert!(out.status.success(), "{out:?}");
-    let stdout = String::from_utf8_lossy(&out.stdout);
+    let stdout = init_stdout(&["init", "--list-presets"]);
     let flow = stdout
         .lines()
         .find(|line| line.trim_start().starts_with(DEFAULT_PRESET))

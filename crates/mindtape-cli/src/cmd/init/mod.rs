@@ -171,7 +171,7 @@ fn wizard_flags(args: &InitArgs) -> wizard::Flags {
 
 /// Resolve, render, and write a named preset — the shared path for `--preset X`
 /// and for the non-interactive default fall-through. `explicit` suppresses the
-/// "other starter shapes" hint that only helps someone who did not pick one.
+/// "other presets" hint that only helps someone who did not pick one.
 fn write_preset(name: &str, args: &InitArgs, explicit: bool) -> Result<()> {
     let preset = preset::resolve(name, preset::user_preset_dir().as_deref())?;
     let text = with_schema_directive(&render_preset(&preset, args.annotate)?, &args.schema)?;
@@ -182,8 +182,9 @@ fn write_preset(name: &str, args: &InitArgs, explicit: bool) -> Result<()> {
     write_templates(root, &preset)?;
     println!("preset: {}", preset.name);
     if !explicit {
-        println!("run `mt init --list-presets` to see the other starter shapes");
+        println!("want something else? mt init --list-presets shows the other presets");
     }
+    print_next_step();
     Ok(())
 }
 
@@ -227,8 +228,13 @@ fn run_wizard(args: &InitArgs, flags: &wizard::Flags, interactive: bool) -> Resu
         templates: outcome.templates,
     };
     write_templates(root, &bundle)?;
-    println!("scaffolded a custom configuration");
+    print_next_step();
     Ok(())
+}
+
+/// The last line of every `init` that wrote a config: the command to run next.
+fn print_next_step() {
+    println!("next: mt add \"My first task\"");
 }
 
 /// Print one line per built-in preset, marking the default.
@@ -268,8 +274,7 @@ fn with_schema_directive(template: &str, args: &SchemaArgs) -> Result<String> {
             let path = crate::cmd::install::xdg_schema_path()?;
             if !path.exists() {
                 println!(
-                    "note: schema not installed at {} yet — run `mt install` (the \
-                     `#:schema` directive points there)",
+                    "note: schema not installed at {} yet. Run `mt install` to write it.",
                     path.display()
                 );
             }

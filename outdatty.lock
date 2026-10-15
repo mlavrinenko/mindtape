@@ -49,12 +49,12 @@ groups:
       crates/mindtape-cli/src/cmd/go.rs: ff96b4ecb4c5c8eb5be9ee3fc84084dc62b94e2b57aceeaf86a293e6189a1102
       crates/mindtape-cli/src/cmd/graph/mod.rs: 0af734ba8de8776c334059e1ee30ff18af9658594749897f1c16d6dd074c51cf
       crates/mindtape-cli/src/cmd/import/mod.rs: 9612bb332474bc41e255add8ffc28d16edb36a70b27756aa411196aba5665daa
-      crates/mindtape-cli/src/cmd/init/mod.rs: 23c438508874b2b49451e5a4b9edd29668dcb033c1bd0fc62ea003a2d19932d6
+      crates/mindtape-cli/src/cmd/init/mod.rs: 0d46b5b6b43521ccc985c1a327c979182f5bd3b2c43e7638bba1a9dfb1b49107
       crates/mindtape-cli/src/cmd/init/presets/flow/config.toml: 1a77ed26065cfd4053e8946af8ba2747002196693798ceca76e477cf4bd5cada
       crates/mindtape-cli/src/cmd/init/presets/gated/config.toml: ae7e27f54cd49b031072bdf195593204c3cc21643e8da8410f277c01efba3a48
       crates/mindtape-cli/src/cmd/init/presets/personal/config.toml: 543dfead4edfb822ec7a7562765726ed2485edd6e8045a45f3e735ff8ce728e3
       crates/mindtape-cli/src/cmd/init/presets/todone/config.toml: 4e7b1ef35cb179aab36c3704eba20ea7653ccba49479fef32cedadefa5696ee8
-      crates/mindtape-cli/src/cmd/install/mod.rs: e2d77d0166c3e2c4b7ba310324ec325d520e935e4af6912762957c6c4a2d60d0
+      crates/mindtape-cli/src/cmd/install/mod.rs: 2b49b4857c20632fdb06c04613400f4e25ebf0c8d8f72fe97abc5eb013755b9f
       crates/mindtape-cli/src/cmd/link/input.rs: 652e8922240f11eed6dd3f1726314177564a16e634501fb470e5c110b18e97d8
       crates/mindtape-cli/src/cmd/link/mod.rs: 1ed40b12e78ff54cb0027b4f1f9db5308be2ad55dacb1bedc55d0165e234f686
       crates/mindtape-cli/src/cmd/ls/mod.rs: 9ca180fe6f143d31a1c665a4408ef326a21e2ceba67ea5ac2c8f41ef813f3542
@@ -100,7 +100,7 @@ groups:
       www/content/cli/set.typ: 24b76bb77e2e3c4b0e7a265702758ada5d054e67a705b5f81c778c244cf93c59
       www/content/cli/views.typ: 9df4c84aa9fce2b98e792ad7fbdc5fbbeda72835bdd47cd589dda25a5685f714
       www/content/cli/worktrees.typ: edd512ecff478c88e54c9c8e177d02948a80a3b37ba33d275a888a7cb87416c5
-      www/content/commit-rules.typ: b8393496c0d1e9a705c616cf9bd327065d83c9f75e29544e1b286aebd644e8c1
+      www/content/commit-rules.typ: a41bd6af0063ba43c6fb950e4d3d43f3b948306ab76ffff92d6135309d0aba23
       www/content/concepts.typ: c74c98b9e7d8a542901da9b998b837a587e9b4a95aac969926a3283fbedfc096
       www/content/config.typ: 3641f7020320c54761ae504e489366b4352cf34df8c40c49def9e7b8bc76b073
       www/content/derived-tags.typ: a62813a58d4b2810162a9dfe03b0a7b89ea814f6085293b83f6abfa61f253ed7

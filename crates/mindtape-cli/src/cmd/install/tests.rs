@@ -5,7 +5,8 @@ use mindtape::test_support::write_file;
 use std::path::Path;
 
 use super::{
-    HOOKS, completions_dir, write_completions, write_defaults, write_schema, xdg_schema_path,
+    HOOKS, completion_hint, completions_dir, quote_path, shell_from_env, write_completions,
+    write_defaults, write_schema, xdg_schema_path,
 };
 
 /// A file installer under test: `(dir, force) -> Result`.
@@ -206,4 +207,68 @@ fn run_with_no_completions_writes_no_hooks() {
             .join("config/mindtape/completions/bash")
             .exists()
     );
+}
+
+/// `$SHELL` picks the hook the hint shows, by its last path segment on either
+/// separator and without `.exe`, so a Windows path reads the same on any host.
+/// A shell with no hook of its own, or no `$SHELL` at all, gets bash's line.
+#[test]
+fn shell_from_env_names_the_hook_for_shell() {
+    let cases = [
+        (Some("/usr/bin/zsh"), "zsh"),
+        (Some("/run/current-system/sw/bin/fish"), "fish"),
+        (Some("elvish"), "elvish"),
+        (Some("/usr/bin/pwsh"), "powershell"),
+        (
+            Some("C:\\Program Files\\PowerShell\\7\\pwsh.exe"),
+            "powershell",
+        ),
+        (Some("C:\\msys64\\usr\\bin\\bash.exe"), "bash"),
+        (Some("/bin/sh"), "bash"),
+        (Some(""), "bash"),
+        (None, "bash"),
+    ];
+    for (shell, hook) in cases {
+        assert_eq!(shell_from_env(shell), hook, "{shell:?}");
+    }
+}
+
+/// Each shell gets the line its own startup file takes.
+#[test]
+fn completion_hint_shows_the_source_line_for_the_shell() {
+    let dir = Path::new("/home/u/.config/mindtape/completions");
+    // Through `quote_path`: on Windows `join` adds a backslash, which quotes.
+    let path = |shell: &str| quote_path(&dir.join(shell));
+    assert_eq!(
+        completion_hint("bash", dir),
+        format!(
+            "For Tab completion, add this to your shell's startup file:\n  source {}",
+            path("bash")
+        )
+    );
+    let cases = [
+        ("zsh", format!("source {}", path("zsh"))),
+        ("fish", format!("source {}", path("fish"))),
+        ("elvish", format!("eval (slurp < {})", path("elvish"))),
+        (
+            "powershell",
+            format!(
+                "Get-Content -Raw {} | Invoke-Expression",
+                path("powershell")
+            ),
+        ),
+    ];
+    for (shell, line) in cases {
+        let hint = completion_hint(shell, dir);
+        assert!(hint.ends_with(&format!("\n  {line}")), "{hint}");
+    }
+}
+
+/// A path with a space or a backslash, as on Windows, is quoted so the line
+/// still pastes as one argument.
+#[test]
+fn completion_hint_quotes_a_path_that_needs_it() {
+    let line = completion_hint("bash", Path::new("/home/a user/completions"));
+    let quoted = format!("'{}'", Path::new("/home/a user/completions/bash").display());
+    assert!(line.ends_with(&format!("source {quoted}")), "{line}");
 }

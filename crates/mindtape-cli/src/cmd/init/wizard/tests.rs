@@ -15,6 +15,17 @@ fn walk(flags: &Flags, interactive: bool, script: &str) -> (Answers, String) {
     (answers, String::from_utf8(writer).unwrap())
 }
 
+/// `prompts` skipped the `flagged` question and asked every one in `asked`.
+fn assert_asked(prompts: &str, flagged: &str, asked: &[&str]) {
+    assert!(!prompts.contains(flagged), "{flagged} was asked: {prompts}");
+    for question in asked {
+        assert!(
+            prompts.contains(question),
+            "{question} not asked: {prompts}"
+        );
+    }
+}
+
 fn all_default() -> Answers {
     Answers {
         workflow: Workflow::default_value(),
@@ -84,13 +95,11 @@ fn core_flag_suppresses_only_its_question() {
     };
     // priority, organisation, then the accept-defaults gate.
     let (answers, prompts) = walk(&flags, true, "ice\nflat\n\n");
-    assert!(
-        !prompts.contains(Workflow::TITLE),
-        "workflow was asked: {prompts}"
+    assert_asked(
+        &prompts,
+        Workflow::TITLE,
+        &[Priority::TITLE, Organisation::TITLE, "Use the defaults for"],
     );
-    assert!(prompts.contains(Priority::TITLE), "{prompts}");
-    assert!(prompts.contains(Organisation::TITLE), "{prompts}");
-    assert!(prompts.contains("Accept defaults"), "{prompts}");
     assert_eq!(answers.workflow, Workflow::Gated);
     assert_eq!(answers.priority, Priority::Ice);
     assert_eq!(answers.organisation, Organisation::Flat);
@@ -108,13 +117,11 @@ fn extra_flag_suppresses_only_its_question() {
     };
     // workflow, priority, organisation, gate=no, then required, headers, recurrence.
     let (answers, prompts) = walk(&flags, true, "flow\nbands\nfolders\nn\nnone\noff\noff\n");
-    assert!(
-        !prompts.contains(Estimate::TITLE),
-        "estimate was asked: {prompts}"
+    assert_asked(
+        &prompts,
+        Estimate::TITLE,
+        &[Required::TITLE, Headers::TITLE, Recurrence::TITLE],
     );
-    assert!(prompts.contains(Required::TITLE), "{prompts}");
-    assert!(prompts.contains(Headers::TITLE), "{prompts}");
-    assert!(prompts.contains(Recurrence::TITLE), "{prompts}");
     assert_eq!(answers.estimate, Estimate::DaysHours);
     assert_eq!(answers.required, Required::None);
 }
@@ -159,13 +166,38 @@ fn declining_the_gate_lists_the_rrule_menu_entry() {
     assert_eq!(answers.recurrence, Recurrence::Rrule);
 }
 
+/// Every question the full walk prints is a plain question, and nothing it
+/// prints carries an em dash.
+#[test]
+fn the_full_walk_asks_plain_questions() {
+    let (_, prompts) = walk(
+        &Flags::default(),
+        true,
+        "nonsense\nflow\nbands\nfolders\nn\noff\nnone\noff\noff\n",
+    );
+    for title in [
+        Workflow::TITLE,
+        Priority::TITLE,
+        Organisation::TITLE,
+        Estimate::TITLE,
+        Required::TITLE,
+        Headers::TITLE,
+        Recurrence::TITLE,
+    ] {
+        assert!(title.ends_with('?'), "{title}");
+        assert!(prompts.contains(title), "{title} not asked: {prompts}");
+    }
+    assert!(prompts.contains("Which statuses do you want?"), "{prompts}");
+    assert!(!prompts.contains('\u{2014}'), "{prompts}");
+}
+
 /// Input that ends at the first prompt takes every default: each axis and the
 /// extras gate read EOF and fall back rather than loop.
 #[test]
 fn eof_at_every_prompt_takes_the_defaults() {
     let (answers, prompts) = walk(&Flags::default(), true, "");
     assert!(prompts.contains(Workflow::TITLE), "{prompts}");
-    assert!(prompts.contains("Accept defaults"), "{prompts}");
+    assert!(prompts.contains("Use the defaults for"), "{prompts}");
     assert!(!prompts.contains(Estimate::TITLE), "{prompts}");
     assert_eq!(answers, all_default());
 }
@@ -175,7 +207,10 @@ fn eof_at_every_prompt_takes_the_defaults() {
 fn empty_takes_default_and_garbage_reprompts() {
     // workflow: garbage then empty (=> default Flow); priority empty; org empty; gate empty.
     let (answers, prompts) = walk(&Flags::default(), true, "nonsense\n\n\n\n\n");
-    assert!(prompts.contains("not one of the choices"), "{prompts}");
+    assert!(
+        prompts.contains("'nonsense' isn't a choice. Pick a number or a name."),
+        "{prompts}"
+    );
     assert_eq!(answers.workflow, Workflow::default_value());
     assert_eq!(answers.priority, Priority::default_value());
 }
@@ -305,7 +340,7 @@ fn three_of_four_extra_flags_still_offer_the_gate() {
     };
     // workflow, priority, organisation, then accept the gate.
     let (_, prompts) = walk(&flags, true, "flow\nbands\nfolders\ny\n");
-    assert!(prompts.contains("Accept defaults"), "{prompts}");
+    assert!(prompts.contains("Use the defaults for"), "{prompts}");
 }
 
 /// A lone recurrence flag does not complete the extras either: the gate is
@@ -318,7 +353,7 @@ fn a_lone_recurrence_flag_still_offers_the_gate() {
         ..Flags::default()
     };
     let (_, prompts) = walk(&flags, true, "flow\nbands\nfolders\ny\n");
-    assert!(prompts.contains("Accept defaults"), "{prompts}");
+    assert!(prompts.contains("Use the defaults for"), "{prompts}");
 }
 
 /// Drive one axis's menu with a scripted answer, returning the choice and the

@@ -74,10 +74,10 @@ pub fn run(args: &InstallArgs) -> Result<()> {
     if !args.no_completions {
         let dir = completions_dir()?;
         write_completions(&dir, args.force)?;
+        let shell = std::env::var("SHELL").ok();
         println!(
-            "source the one for your shell from its startup file, e.g. \
-             `source {}`",
-            dir.join("bash").display()
+            "{}",
+            completion_hint(shell_from_env(shell.as_deref()), &dir)
         );
     }
     Ok(())
@@ -124,6 +124,49 @@ const HOOKS: &[(&str, &str)] = &[
 #[cfg(test)]
 pub(crate) fn hook_shells() -> impl Iterator<Item = &'static str> {
     HOOKS.iter().map(|(shell, _)| *shell)
+}
+
+/// The [`HOOKS`] shell that `$SHELL` names, by its last path segment on
+/// either separator and without `.exe`, or bash when it names none. `pwsh` is
+/// `PowerShell` 7's binary.
+pub(crate) fn shell_from_env(shell: Option<&str>) -> &'static str {
+    let name = shell
+        .and_then(|path| path.rsplit(['/', '\\']).next())
+        .map(|name| name.strip_suffix(".exe").unwrap_or(name));
+    let name = if name == Some("pwsh") {
+        Some("powershell")
+    } else {
+        name
+    };
+    HOOKS
+        .iter()
+        .map(|(shell, _)| *shell)
+        .find(|shell| Some(*shell) == name)
+        .unwrap_or("bash")
+}
+
+/// What `mt install` prints last: how to load `shell`'s hook from `dir` in
+/// that shell's startup file. A file without `.ps1` can't be dot-sourced, so
+/// `PowerShell` reads it and evaluates it instead.
+pub(crate) fn completion_hint(shell: &str, dir: &Path) -> String {
+    let path = quote_path(&dir.join(shell));
+    let line = match shell {
+        "elvish" => format!("eval (slurp < {path})"),
+        "powershell" => format!("Get-Content -Raw {path} | Invoke-Expression"),
+        _ => format!("source {path}"),
+    };
+    format!("For Tab completion, add this to your shell's startup file:\n  {line}")
+}
+
+/// `path` as one shell word: bare when it holds only characters no shell
+/// splits or expands, else in single quotes, which every hook shell reads
+/// literally. A Windows path holds a backslash, so it is always quoted.
+pub(crate) fn quote_path(path: &Path) -> String {
+    let text = path.display().to_string();
+    let bare = text
+        .chars()
+        .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '/' | '.' | '-' | '_'));
+    if bare { text } else { format!("'{text}'") }
 }
 
 /// `<config home>/mindtape/completions` — one hook file per shell, named after
