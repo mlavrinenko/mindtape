@@ -21,8 +21,8 @@ fn path_format_lists_one_path_per_line_with_no_header_or_trailer() {
     lines.sort_unstable();
     assert_eq!(lines, vec!["tasks/a.typ", "tasks/b.typ"]);
     assert!(
-        !stdout.contains("applied:"),
-        "no trailer for a program format"
+        !stdout.contains("of 2 tasks"),
+        "no footer for a program format"
     );
 }
 
@@ -67,13 +67,13 @@ fn path_format_matches_the_table_file_column_exactly() {
         .output()
         .unwrap();
     let table_stdout = String::from_utf8_lossy(&table.stdout);
-    // Drop the `FILE` header row and the table's own `applied:` trailer; each
-    // remaining row is the one column, padded to width.
+    // Drop the `FILE` header row, and the blank line and footer under the
+    // rows; each remaining row is the one column, padded to width.
     let mut table_cells: Vec<&str> = table_stdout
         .lines()
         .skip(1)
         .map(str::trim_end)
-        .filter(|line| !line.is_empty() && !line.starts_with("applied:"))
+        .take_while(|line| !line.is_empty())
         .collect();
     table_cells.sort_unstable();
     assert_eq!(table_cells, vec!["../tasks/a.typ", "../tasks/b.typ"]);

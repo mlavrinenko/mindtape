@@ -42,7 +42,7 @@ A `<task>` is a stem, a path, or the stem hash `mt ls` prints in its `slug#` col
 
 ## Finding tasks
 
-Bare `mt ls` applies the first `[[ls.rules]]` entry whose condition holds, else the project’s default view, and its `applied:` footer names which. A filter argument replaces only the filter; that rule’s or view’s sort and columns still apply. `-n N` keeps the first N rows after the sort.
+Bare `mt ls` applies the first `[[ls.rules]]` entry whose condition holds, else the project’s default view, and the line under the table names which, as in `default view · 3 of 12 tasks`. A filter argument replaces only the filter; that rule’s or view’s sort and columns still apply. `-n N` keeps the first N rows after the sort.
 
 Common filters are `ready` (open, with every `depends-on` target finished and every `waits-on` checker answering that the wait is over), `blocked`, `status == "wip"`, `has_tag("t")`, `contains("text")` and `due < now()`. `mt ls @<view>` applies a view that `mt views` lists. Before you edit a file, run `mt ls 'touches("<path>")'` to read the tasks named in the `Refs:` trailers of commits that changed it. For every field and function, read `references/filters.md`.
 

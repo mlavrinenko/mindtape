@@ -204,7 +204,9 @@ fn a_skip_that_reaches_the_last_page_truncates_nothing() {
 fn a_biting_limit_reports_shown_against_the_match_count() {
     let cut = Truncation::new(Some(10), 0, 47).unwrap();
     assert_eq!((cut.shown, cut.total, cut.skip), (10, 47, 0));
-    assert_eq!(cut.footer(), "truncated: showing 10 of 47");
+    assert_eq!(cut.footer(), "37 more not shown");
+    let page_two = Truncation::new(Some(10), 10, 47).unwrap();
+    assert_eq!(page_two.footer(), "27 more not shown");
     assert_eq!(cut.next_skip(), 10);
 }
 

@@ -68,14 +68,14 @@ impl Truncation {
         self.skip + self.shown
     }
 
-    /// The human footer line for a truncated table, labelled like
-    /// [`crate::cmd::ls::rules::trailer`]'s `applied:` so the two read as one block
-    /// under the rows. Plain — no `next:` command; that needs the parsed
-    /// `LsArgs` this type does not carry, so `crate::cmd::ls::print_trailers`
-    /// composes the full line for the one caller that has them.
+    /// How many matched rows this page left out after it: `37 more not shown`.
+    /// Plain, with no next-page command, which needs the parsed `LsArgs` this
+    /// type does not carry; `crate::cmd::ls::print_footer` adds it for the one
+    /// caller that has them, and the interactive picker shows it as is.
     #[must_use]
     pub fn footer(self) -> String {
-        format!("truncated: showing {} of {}", self.shown, self.total)
+        let hidden = self.total.saturating_sub(self.skip + self.shown);
+        format!("{hidden} more not shown")
     }
 }
 

@@ -1,12 +1,12 @@
 //! `mt ls` attribution: [`Applied`] — which source won each facet of a
-//! resolved listing — and the dim `applied:` trailer it renders as under the
-//! table.
+//! resolved listing — and the dim footer it renders as under the table:
+//! `default view · 3 of 12 tasks`.
 //!
 //! Attribution is per facet because selection and presentation come from
 //! different places: an explicit filter argument answers "which tasks" while a
 //! matching `[[ls.rules]]` entry goes on answering "how do I read this branch's
 //! listing", so one listing routinely owes its facets to two sources at once
-//! and the trailer has to name both
+//! and the footer has to name both
 //! (`truth/tasks/ls-rules-lose-their-sort-and-columns-facets-under-an-explicit-filter.typ`).
 //! [`crate::cmd::ls::rules`] does the resolving; this file records and renders the
 //! outcome.
@@ -21,14 +21,14 @@ pub const MATCH_ALL: &str = "match-all";
 pub const MANUAL: &str = "manual";
 
 /// Source attribution for [`crate::cmd::ls::rules::Bundle`], driving the human
-/// trailer and the `mt ls --json` envelope. Each facet's `_from` is a view
+/// footer and the `mt ls --json` envelope. Each facet's `_from` is a view
 /// name, a rule's label, [`MANUAL`], or [`MATCH_ALL`].
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Applied {
     /// The `[[ls.rules]]` entry that matched, by label; `None` when none did.
     /// Set whether or not the rule went on to contribute a facet — a rule that
     /// matched and was then overridden everywhere is still what the listing
-    /// answered to, and [`Applied::rule_superseded`] is how the trailer says so
+    /// answered to, and [`Applied::rule_superseded`] is how the footer says so
     /// rather than leaving it indistinguishable from a rule that never matched.
     pub rule: Option<String>,
     /// The matched rule contributed at least one facet and none of them
@@ -52,7 +52,7 @@ impl Applied {
         }
     }
 
-    /// The three facet sources, in trailer order. Taken as a snapshot before
+    /// The three facet sources, in footer order. Taken as a snapshot before
     /// the explicit-filter and flag layers run, so [`Applied::note_supersession`]
     /// can tell what the matched rule still owns afterwards.
     pub(crate) fn sources(&self) -> [String; 3] {
@@ -80,42 +80,50 @@ impl Applied {
             .filter(|(from, now)| *from != MATCH_ALL && from == now);
         self.rule_superseded = supplied.count() > 0 && survivors.count() == 0;
     }
-
-    /// Whether nothing worth mentioning applied: no rule fired and every
-    /// facet is still at the built-in default. The trailer stays silent for
-    /// this case; the JSON envelope still reports it (`"rule": null`, every
-    /// facet `"from": "match-all"`).
-    #[must_use]
-    pub fn is_trivial(&self) -> bool {
-        self.rule.is_none()
-            && self.filter_from == MATCH_ALL
-            && self.sort_from == MATCH_ALL
-            && self.columns_from == MATCH_ALL
-    }
 }
 
-/// The human trailer line, grouped by winning source in first-appearance
-/// order (filter, then sort, then columns), with a matched-but-overridden rule
-/// named at the end; `None` when [`Applied::is_trivial`].
+/// The line under a table: each source that shaped the listing, a matched
+/// rule that lost every facet, then the rows shown of the project's tasks,
+/// joined with ` · `: `default view · 3 of 12 tasks`. A listing nothing
+/// shaped gets the count alone.
 #[must_use]
-pub fn trailer(applied: &Applied) -> Option<String> {
-    if applied.is_trivial() {
-        return None;
-    }
-    let parts: Vec<String> = group_by_source(applied)
+pub fn footer(applied: &Applied, shown: usize, total: usize) -> String {
+    let groups = group_by_source(applied);
+    let alone = groups.len() == 1;
+    let mut parts: Vec<String> = groups
         .into_iter()
-        .map(|(source, facets)| format!("{source} ({})", facets.join(", ")))
+        .map(|(from, facets)| source_text(applied, from, &facets, alone))
         .collect();
-    let mut line = parts.join(" → ");
     if applied.rule_superseded {
-        let note = format!("{} superseded", applied.rule.as_deref().unwrap_or_default());
-        line = if line.is_empty() {
-            note
-        } else {
-            format!("{line} · {note}")
-        };
+        let rule = applied.rule.as_deref().unwrap_or_default();
+        parts.push(format!("{rule} rule overridden"));
     }
-    (!line.is_empty()).then(|| format!("applied: {line}"))
+    parts.push(format!("{shown} of {}", mindtape::count(total, "task")));
+    parts.join(" · ")
+}
+
+/// One source and the facets it won: `your filter and sort` for what the
+/// user typed, else `inbox view` or `release rule`, which names its facets
+/// (`sort from release rule`) only when another source shares the listing.
+fn source_text(applied: &Applied, from: &str, facets: &[&str], alone: bool) -> String {
+    let facets = match facets {
+        [one] => (*one).to_owned(),
+        [rest @ .., last] => format!("{} and {last}", rest.join(", ")),
+        [] => String::new(),
+    };
+    if from == MANUAL {
+        return format!("your {facets}");
+    }
+    let kind = if applied.rule.as_deref() == Some(from) {
+        "rule"
+    } else {
+        "view"
+    };
+    if alone {
+        format!("{from} {kind}")
+    } else {
+        format!("{facets} from {from} {kind}")
+    }
 }
 
 /// The facets each source won, sources in first-appearance order; a facet

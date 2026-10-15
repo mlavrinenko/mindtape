@@ -231,7 +231,7 @@ fn footer_reports_a_truncated_listing() {
     // absent task as a missing one.
     let cut = Truncation::new(Some(3), 0, 40).unwrap();
     let text = footer("", Some(cut));
-    assert!(text.contains("truncated: showing 3 of 40"), "got: {text}");
+    assert!(text.contains("37 more not shown"), "got: {text}");
     // The hints keep the last line: the truncation note is prepended, never
     // printed instead of the keys the caller needs.
     assert!(text.lines().next_back().unwrap().contains("Esc quit"));
@@ -239,7 +239,7 @@ fn footer_reports_a_truncated_listing() {
 
 #[test]
 fn footer_stays_silent_on_a_complete_listing() {
-    assert!(!footer("", None).contains("truncated"));
+    assert!(!footer("", None).contains("not shown"));
 }
 
 fn ls_args(format: OutputFormat) -> LsArgs {

@@ -1,6 +1,6 @@
 //! Tests for the `resolve`/`resolve_bare` cascade: rule matching,
 //! `import-views` composition, CLI-argument override precedence. `Applied`'s
-//! trailer rendering, `is_trivial`, and `bare_view_ref` parsing live in
+//! footer and `bare_view_ref` parsing live in
 //! `cmd/ls/rules_applied_ls_rules_tests_applied.rs`.
 #![allow(clippy::unwrap_used)]
 
@@ -217,7 +217,7 @@ fn match_all_fallback_when_nothing_resolves() {
     let (bundle, applied) = resolve_bare(&project).unwrap();
     assert_eq!(bundle.filter, "");
     assert!(bundle.sort.is_empty());
-    assert!(applied.is_trivial());
+    assert_eq!(applied, Applied::match_all());
 }
 
 #[test]

@@ -21,7 +21,7 @@ use std::io::IsTerminal;
 use crate::diag::Result;
 use mindtape::{Condition, ConditionEnv, Config, Facet, LsRule, ViewSpec, parse_import_view};
 
-pub use crate::cmd::ls::rules_applied::{Applied, trailer};
+pub use crate::cmd::ls::rules_applied::{Applied, footer};
 use crate::cmd::ls::rules_applied::{MANUAL, MATCH_ALL};
 
 use crate::cmd::ls::LsArgs;

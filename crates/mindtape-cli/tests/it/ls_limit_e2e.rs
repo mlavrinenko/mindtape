@@ -4,9 +4,9 @@
 //! native truncation path, `--skip` paging past what a prior page showed, and
 //! what a truncated listing says about the rows it hid.
 //!
-//! The signal is format-shaped on purpose. A table gets a `truncated:` footer
-//! beside the `applied:` trailer; `--json` gets an envelope key, since it is
-//! already a document rather than a record stream; and `csv` / `path` /
+//! The signal is format-shaped on purpose. A table gets a `more not shown` line
+//! under its footer; `--json` gets an envelope key, since it is already a
+//! document rather than a record stream; and `csv` / `path` /
 //! `path0` get nothing at all — a prose line appended to those is corruption
 //! for the `csv` reader or `xargs -0` on the other end of the pipe, which is
 //! the exact failure `--limit` exists to avoid.
@@ -25,7 +25,9 @@ fn scaffold() -> tempfile::TempDir {
 fn limit_truncates_the_table_and_says_what_it_cut() {
     let text = stdout(scaffold().path(), &["ls", "", "-n", "1"]);
     assert!(
-        text.contains("truncated: 1 of 3 — next: mt ls '' -n 1 --skip 1"),
+        text.contains(
+            "your filter · 1 of 3 tasks\n2 more not shown · next page: mt ls '' -n 1 --skip 1"
+        ),
         "the table has room for a footer, so it owes the reader the count \
          it hid and the command that fetches the rest: {text}"
     );
@@ -39,7 +41,7 @@ fn skip_drops_rows_before_the_limit_and_names_the_next_page() {
     assert!(text.contains("Beta"), "got: {text}");
     assert!(!text.contains("Alpha"), "got: {text}");
     assert!(
-        text.contains("truncated: 1 of 3 — next: mt ls '' -n 1 --skip 2"),
+        text.contains("1 more not shown · next page: mt ls '' -n 1 --skip 2"),
         "the hint advances past this page's own --skip, not past 0: {text}"
     );
 }
@@ -49,7 +51,7 @@ fn skip_past_the_match_count_prints_no_footer() {
     // Every row is already behind this `--skip`, so there is no next page —
     // an empty result is complete in itself, not a truncation.
     let text = stdout(scaffold().path(), &["ls", "", "-n", "1", "--skip", "3"]);
-    assert!(!text.contains("truncated"), "got: {text}");
+    assert!(!text.contains("next page"), "got: {text}");
 }
 
 #[test]
@@ -57,13 +59,13 @@ fn a_limit_that_hides_nothing_prints_no_footer() {
     // Three tasks under `-n 3`: the cap is met exactly and nothing is hidden,
     // so a footer here would be a claim the reader acts on and shouldn't.
     let text = stdout(scaffold().path(), &["ls", "", "-n", "3"]);
-    assert!(!text.contains("truncated"), "got: {text}");
+    assert!(!text.contains("next page"), "got: {text}");
 }
 
 #[test]
 fn an_unlimited_listing_prints_no_footer() {
     let text = stdout(scaffold().path(), &["ls", ""]);
-    assert!(!text.contains("truncated"), "got: {text}");
+    assert!(!text.contains("next page"), "got: {text}");
 }
 
 #[test]
@@ -97,7 +99,7 @@ fn json_reports_the_truncation_in_the_envelope() {
     assert_eq!(support::at(&json, "/truncated/total"), 3);
     assert_eq!(support::at(&json, "/truncated/next_skip"), 1);
     assert!(
-        !text.contains("truncated:"),
+        !text.contains("more not shown"),
         "the prose footer is table-only; --json carries the fact structurally"
     );
 }
@@ -118,7 +120,7 @@ fn csv_is_truncated_without_a_trailing_prose_line() {
     let text = stdout(dir.path(), &["ls", "", "-n", "1", "--format", "csv"]);
     let rows: Vec<&str> = text.lines().filter(|line| !line.is_empty()).collect();
     assert_eq!(rows.len(), 2, "header plus exactly one record: {text}");
-    assert!(!text.contains("truncated"), "got: {text}");
+    assert!(!text.contains("next page"), "got: {text}");
 }
 
 #[test]
@@ -155,7 +157,7 @@ fn find_forwards_the_limit_and_its_footer() {
     let dir = scaffold();
     let text = stdout(dir.path(), &["find", "a", "-n", "1"]);
     assert!(
-        text.contains("truncated: 1 of 3 — next: mt ls 'contains(\"a\")' -n 1 --skip 1"),
+        text.contains("2 more not shown · next page: mt ls 'contains(\"a\")' -n 1 --skip 1"),
         "got: {text}"
     );
 }

@@ -115,7 +115,7 @@ pub(crate) fn run_with(args: &LsArgs, project: util::Project) -> Result<()> {
         println!("{body}");
     }
     if matches!(format, OutputFormat::Table) {
-        print_trailers(args, &listing);
+        print_footer(args, &listing);
     }
     Ok(())
 }
@@ -139,21 +139,20 @@ fn format_name(args: &LsArgs) -> String {
         .map_or_else(String::new, |value| value.get_name().to_owned())
 }
 
-/// The dim lines under a rendered table: the `applied:` attribution, then —
-/// when `--limit` hid rows — a `truncated:` line naming what was cut and the
-/// command that fetches the next page. Table only — every other format is a
-/// record stream a reader parses, so a trailing prose line there is
-/// corruption, not information.
-fn print_trailers(args: &LsArgs, listing: &Listing) {
+/// The dim lines under a rendered table: where the listing came from and how
+/// many of the project's tasks it shows, then, when `--limit` hid rows, how
+/// many more matched and the command that fetches the next page. Table only:
+/// every other format is a record stream a reader parses, so a trailing prose
+/// line there is corruption, not information.
+fn print_footer(args: &LsArgs, listing: &Listing) {
     let painter = Painter::new(is_color_active());
     let dim = Style::new().effects(Effects::DIMMED);
-    let truncated_line = listing.truncated.map(|cut| {
+    let next_page = listing.truncated.map(|cut| {
         let next = next_command_hint(args, cut.next_skip());
-        format!("truncated: {} of {} — next: {next}", cut.shown, cut.total)
+        format!("{} · next page: {next}", cut.footer())
     });
-    let lines = rules::trailer(&listing.applied)
-        .into_iter()
-        .chain(truncated_line);
+    let footer = rules::footer(&listing.applied, listing.tasks.len(), listing.project_total);
+    let lines = std::iter::once(footer).chain(next_page);
     for line in lines {
         println!("{}", painter.paint(&line, dim));
     }
@@ -208,8 +207,9 @@ fn shell_quote(value: &str) -> String {
 /// The resolved listing one `mt ls` run prints: the selected tasks, the
 /// readiness and attribution they were selected under, the config the render
 /// reads (view columns folded in), the environment a column's conditional
-/// visibility evaluates against, the stem hashes of every loaded task, and
-/// what `--limit` cut — `None` when the listing is complete.
+/// visibility evaluates against, the stem hashes of every loaded task,
+/// what `--limit` cut (`None` when the listing is complete), and how many
+/// tasks the project holds before any filter.
 pub(crate) struct Listing {
     pub tasks: Vec<Task>,
     pub readiness: Readiness,
@@ -218,6 +218,7 @@ pub(crate) struct Listing {
     pub env: ConditionEnv,
     pub hashes: StemHashes,
     pub truncated: Option<Truncation>,
+    pub project_total: usize,
 }
 
 impl Listing {
@@ -260,6 +261,7 @@ pub(crate) fn resolve_and_select(args: &LsArgs, project: util::Project) -> Resul
         config.ls.columns_order = bundle.columns.clone();
     }
     let readiness = Readiness::compute(&project.outcome.tasks, &project.config);
+    let project_total = project.outcome.tasks.len();
     let hashes = util::stem_hashes(&project.outcome.tasks, &project.config);
     // The command line's filter is a usage error when it fails; a view's or
     // a rule's stays as the config reports it.
@@ -296,6 +298,7 @@ pub(crate) fn resolve_and_select(args: &LsArgs, project: util::Project) -> Resul
         env,
         hashes,
         truncated,
+        project_total,
     })
 }
 

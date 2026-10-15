@@ -1,111 +1,80 @@
-//! Tests for `Applied`'s human trailer, `is_trivial`, supersession, and
-//! `bare_view_ref`'s `@name` parsing. Cascade resolution
-//! (`resolve`/`resolve_bare`) lives in `cmd/ls/rules_tests.rs`; shares its
-//! `args`/`project`/`project_with_config` fixtures.
+//! Tests for `Applied`'s footer, supersession, and `bare_view_ref`'s `@name`
+//! parsing. Cascade resolution (`resolve`/`resolve_bare`) lives in
+//! `cmd/ls/rules_tests.rs`; shares its `args`/`project`/`project_with_config`
+//! fixtures.
 #![allow(clippy::unwrap_used)]
 
 use crate::cmd::ls::rules::tests::{args, project, project_with_config, resolve};
 
-use super::{Applied, MATCH_ALL, trailer};
+use super::{Applied, MATCH_ALL, footer};
+
+/// An `Applied` whose facets came from `filter`, `sort` and `columns`, with
+/// `rule` matched.
+fn applied(rule: Option<&str>, filter: &str, sort: &str, columns: &str) -> Applied {
+    Applied {
+        rule: rule.map(str::to_owned),
+        filter_from: filter.to_owned(),
+        sort_from: sort.to_owned(),
+        columns_from: columns.to_owned(),
+        ..Applied::default()
+    }
+}
 
 #[test]
-fn trailer_groups_by_source_in_first_appearance_order() {
-    let applied = Applied {
-        rule: Some("release".to_owned()),
-        rule_superseded: false,
-        filter_from: "inbox".to_owned(),
-        filter_value: String::new(),
-        sort_from: "release".to_owned(),
-        sort_value: vec![],
-        columns_from: "inbox".to_owned(),
-        columns_value: vec![],
-    };
+fn footer_names_the_one_source_and_counts_the_project() {
+    let from_view = applied(None, "default", MATCH_ALL, MATCH_ALL);
+    assert_eq!(footer(&from_view, 3, 12), "default view · 3 of 12 tasks");
+    assert_eq!(footer(&from_view, 1, 1), "default view · 1 of 1 task");
+    let from_rule = applied(Some("release"), MATCH_ALL, "release", MATCH_ALL);
+    assert_eq!(footer(&from_rule, 0, 2), "release rule · 0 of 2 tasks");
+}
+
+#[test]
+fn footer_names_the_facets_the_user_typed() {
+    let typed = |sort: &str, columns: &str| footer(&applied(None, "manual", sort, columns), 2, 2);
+    assert_eq!(typed(MATCH_ALL, MATCH_ALL), "your filter · 2 of 2 tasks");
     assert_eq!(
-        trailer(&applied).as_deref(),
-        Some("applied: inbox (filter, columns) → release (sort)")
+        typed("manual", MATCH_ALL),
+        "your filter and sort · 2 of 2 tasks"
+    );
+    assert_eq!(
+        typed("manual", "manual"),
+        "your filter, sort and columns · 2 of 2 tasks"
     );
 }
 
 #[test]
-fn trailer_omits_match_all_facets() {
-    let applied = Applied {
-        rule: Some("release".to_owned()),
-        filter_from: "match-all".to_owned(),
-        sort_from: "release".to_owned(),
-        columns_from: "match-all".to_owned(),
-        ..Applied::default()
-    };
+fn footer_names_each_sources_facets_when_several_share_the_listing() {
+    let shared = applied(Some("release"), "inbox", "release", "inbox");
     assert_eq!(
-        trailer(&applied).as_deref(),
-        Some("applied: release (sort)")
+        footer(&shared, 3, 12),
+        "filter and columns from inbox view · sort from release rule · 3 of 12 tasks"
+    );
+    let narrowed = applied(None, "manual", "default", "default");
+    assert_eq!(
+        footer(&narrowed, 2, 5),
+        "your filter · sort and columns from default view · 2 of 5 tasks"
     );
 }
 
 #[test]
-fn trailer_is_none_when_trivial() {
-    let applied = Applied {
-        rule: None,
-        filter_from: "match-all".to_owned(),
-        sort_from: "match-all".to_owned(),
-        columns_from: "match-all".to_owned(),
-        ..Applied::default()
-    };
-    assert!(applied.is_trivial());
-    assert_eq!(trailer(&applied).as_deref(), None);
+fn footer_is_the_count_alone_when_nothing_shaped_the_listing() {
+    assert_eq!(footer(&Applied::match_all(), 2, 2), "2 of 2 tasks");
 }
 
 #[test]
-fn is_trivial_false_when_rule_is_some_but_sort_columns_match_all() {
-    // Kills mutant at second && → || in is_trivial.
-    // Real:   rule.is_some() && filter_from != match-all && sort_from == match-all && ..
-    //         → false
-    // Mutant: (rule.is_none() && filter_from==match-all) || (sort_from==match-all && ..)
-    //         → true
+fn footer_names_a_rule_whose_every_facet_was_overridden() {
+    // A rule that matched and then lost every facet must not read like a rule
+    // that never matched.
     let applied = Applied {
-        rule: Some("x".to_owned()),
-        filter_from: "manual".to_owned(),
-        sort_from: MATCH_ALL.to_owned(),
-        columns_from: MATCH_ALL.to_owned(),
-        ..Applied::default()
-    };
-    assert!(!applied.is_trivial());
-}
-
-#[test]
-fn is_trivial_false_when_filter_from_not_match_all() {
-    // Kills mutant at first && → || in is_trivial.
-    // Real:   rule.is_none() && filter_from != match-all && …
-    //         → false
-    // Mutant: rule.is_none() || (filter_from==match-all && sort_from==match-all && …)
-    //         → true
-    let applied = Applied {
-        rule: None,
-        filter_from: "manual".to_owned(),
-        sort_from: MATCH_ALL.to_owned(),
-        columns_from: MATCH_ALL.to_owned(),
-        ..Applied::default()
-    };
-    assert!(!applied.is_trivial());
-}
-
-#[test]
-fn trailer_names_a_rule_whose_every_facet_was_overridden() {
-    // The complaint the split had to answer: a rule that matched and then lost
-    // every facet used to read exactly like a rule that never matched.
-    let applied = Applied {
-        rule: Some("release".to_owned()),
         rule_superseded: true,
-        filter_from: "manual".to_owned(),
-        sort_from: MATCH_ALL.to_owned(),
-        columns_from: MATCH_ALL.to_owned(),
-        ..Applied::default()
+        ..applied(Some("release"), "manual", MATCH_ALL, MATCH_ALL)
     };
     assert_eq!(
-        trailer(&applied).as_deref(),
-        Some("applied: manual (filter) · release superseded")
+        footer(&applied, 1, 4),
+        "your filter · release rule overridden · 1 of 4 tasks"
     );
 }
-
 #[test]
 fn note_supersession_spares_a_rule_that_still_owns_a_facet() {
     let before = [

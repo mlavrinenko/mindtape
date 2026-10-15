@@ -1,7 +1,7 @@
 //! Regression tests for cargo-mutants survivors in `cmd/ls/rules.rs`, plus the
 //! `--columns` suggestion wiring and the documented `@default` escape. Split
 //! out of `cmd/ls/rules_tests.rs` to keep both files under the size gate: the
-//! cascade's own behaviour is covered there and `Applied`'s trailer in
+//! cascade's own behaviour is covered there and `Applied`'s footer in
 //! `cmd/ls/rules_applied_ls_rules_tests_applied.rs`. Shares `cmd/ls/rules_tests.rs`'s `args`/`project`
 //! fixtures.
 #![allow(clippy::unwrap_used)]

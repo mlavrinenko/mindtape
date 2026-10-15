@@ -155,10 +155,13 @@ booleans, written bare (`!tty()`). `env()`, `weekday()`, `now()` and
 comparison may be a value or a literal, as in `weekday() >= 6` or
 `"review" == env("MODE")`. You can't compare `true` or `false`.
 
-The `applied:` line under a table names the source of each facet. When the
-command line overrides every facet of a matched rule, the line names that rule
-as superseded, as in `applied: manual (filter) · release superseded` for a
-rule named `release`. In `examples/api-service` no rule matches, so a bare
-`mt ls` applies the default view:
+The line under a table says where the listing came from and how many of the
+project's tasks it shows, as in `default view · 3 of 12 tasks`. When several
+sources share it, each names its facets, as in
+`your filter · sort and columns from inbox view`. When the command line
+overrides every facet of a matched rule, the line says so, as in
+`your filter · release rule overridden · 3 of 12 tasks`. In
+`examples/api-service` no rule matches, so a bare `mt ls` applies the default
+view:
 
 #terminal("ls")

@@ -71,7 +71,7 @@ fn find_table_footer_names_the_applied_filter() {
         .output()
         .unwrap();
     let stdout = String::from_utf8_lossy(&out.stdout);
-    assert!(stdout.contains("applied: manual (filter)"));
+    assert!(stdout.contains("your filter · 2 of 4 tasks"), "{stdout}");
 }
 
 #[test]
