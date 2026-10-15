@@ -226,7 +226,7 @@ fn init_offers_the_preset_registry() {
     assert!(
         project_values(&candidates)
             .iter()
-            .any(|c| c.as_str() == "todone"),
+            .any(|c| c.as_str() == "todo-done"),
         "built-in presets: {candidates:?}"
     );
 }

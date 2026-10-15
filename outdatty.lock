@@ -53,7 +53,7 @@ groups:
       crates/mindtape-cli/src/cmd/init/presets/flow/config.toml: 1a77ed26065cfd4053e8946af8ba2747002196693798ceca76e477cf4bd5cada
       crates/mindtape-cli/src/cmd/init/presets/gated/config.toml: 808d7929f6b077c04f936f8aa7bc044929d6682e28fae656775e3a8065d406e6
       crates/mindtape-cli/src/cmd/init/presets/personal/config.toml: 543dfead4edfb822ec7a7562765726ed2485edd6e8045a45f3e735ff8ce728e3
-      crates/mindtape-cli/src/cmd/init/presets/todone/config.toml: 36922acf33d592ae8653ff843987dc6f2e2182b2aae7f892f224751271525807
+      crates/mindtape-cli/src/cmd/init/presets/todo-done/config.toml: b41b0a4606c5cc6557565afe55efbe638dadb08bdcd586e84aceba1bd780be5f
       crates/mindtape-cli/src/cmd/install/mod.rs: cd40075f27be037472ef6cbd57cb45eb74e8bd78deb53f4119cd662bcd1017aa
       crates/mindtape-cli/src/cmd/link/input.rs: 652e8922240f11eed6dd3f1726314177564a16e634501fb470e5c110b18e97d8
       crates/mindtape-cli/src/cmd/link/mod.rs: 6bed870ccffb2eb41c31f1b2f03a68e3c242b39be2a99fc7bc9f128a404ca61d
@@ -155,7 +155,7 @@ groups:
       .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
       .just/docs.just: 300226a86d551abc287d058efd9cbc2143fa7f15e3c6b53131699f27f35847fc
       .just/scripts/wt-carry-lcov.sh: 0d4513fdd21068f5897a015bbc4cd02bc3644ca139d8c39053140fba491e1e76
-      Justfile: 0c932cf6b772b5372306497ad7f4a861bd815cb660605c7a4221af340324b0a5
+      Justfile: 9f5f6f776b6029f9cc77583bc2db8c5d0d8a0e5aed681d01a10cf1350cb90c62
       flake.nix: 1a2acaf2bae3f132917cc298362638bbb9651eae4b20a0557e21c5d0449541ea
     dependents:
       docs/src/agents.typ: fc0515f88c029ba8b787b979dd9c47184243c76ed7378983b0be712bddfbf2c4

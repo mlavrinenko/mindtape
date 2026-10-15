@@ -161,8 +161,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   overwrites), and `ls` lists built-in and user presets, the shadowed ones and
   the default (`--json` too). A preset's `[overlay]` table holds raw config the
   `mt init` wizard can't ask for, merged last.
-- **`mt init` composes a config from presets and axis flags.** Two fragments
-  declaring the same array section are an error naming both.
+- **`mt init` composes a config from presets and axis flags.** The built-in
+  presets are `todo-done`, `flow` (the default), `personal` and `gated`. Two
+  fragments declaring the same array section are an error naming both.
   `--list-presets` names the real preset directory, `--recurrence rrule` and
   `--priority ice-strict` compose, and the scaffolded config opens with a
   `#:schema` line (`--schema URL|PATH` retargets it, `--no-schema` drops it).

@@ -1,4 +1,4 @@
-# .mindtape/config.toml — the `todone` preset.
+# .mindtape/config.toml — the `todo-done` preset.
 #
 # The smallest shape that still tracks anything: a task is open, or it is
 # finished. Nothing else is constrained, so whatever priority, tag or estimate

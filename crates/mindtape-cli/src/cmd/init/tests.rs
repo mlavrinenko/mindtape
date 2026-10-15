@@ -82,7 +82,7 @@ fn templates_are_written_beside_the_config() {
 #[test]
 fn no_templates_writes_no_directory() {
     let dir = tempdir();
-    let plain = preset::resolve("todone", None).unwrap();
+    let plain = preset::resolve("todo-done", None).unwrap();
     write_templates(dir.path(), &plain).unwrap();
     assert!(!dir.path().join(".mindtape").join("templates").exists());
 }
@@ -246,7 +246,7 @@ fn init_stdout(args: &[&str]) -> String {
 
 #[test]
 fn explicit_preset_omits_the_other_shapes_hint() {
-    let stdout = init_stdout(&["init", "--preset", "todone"]);
+    let stdout = init_stdout(&["init", "--preset", "todo-done"]);
     assert!(
         !stdout.contains("--list-presets"),
         "an explicit preset must not be told to browse: {stdout}"
@@ -268,7 +268,7 @@ fn default_fallthrough_prints_the_other_shapes_hint() {
 fn every_init_path_ends_on_the_next_step() {
     for args in [
         &["init", "--no-input"][..],
-        &["init", "--preset", "todone"][..],
+        &["init", "--preset", "todo-done"][..],
         &["init", "--workflow", "personal"][..],
     ] {
         let stdout = init_stdout(args);

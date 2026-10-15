@@ -22,8 +22,8 @@ fn shipped_configs_validate_against_schema() {
 
     let presets = [
         (
-            "todone preset",
-            include_str!("../../src/cmd/init/presets/todone/config.toml"),
+            "todo-done preset",
+            include_str!("../../src/cmd/init/presets/todo-done/config.toml"),
         ),
         (
             "flow preset",

@@ -34,26 +34,26 @@ struct Builtin {
 
 const BUILTINS: &[Builtin] = &[
     Builtin {
-        name: "todone",
-        description: "Open or finished, nothing else constrained",
-        config: include_str!("presets/todone/config.toml"),
+        name: "todo-done",
+        description: "Just todo and done, any move allowed",
+        config: include_str!("presets/todo-done/config.toml"),
         templates: &[],
     },
     Builtin {
         name: "flow",
-        description: "A lifecycle with enforced transitions, for solo or team work",
+        description: "Statuses from proposed to done, with fixed moves between them. Fits solo or team work",
         config: include_str!("presets/flow/config.toml"),
         templates: &[],
     },
     Builtin {
         name: "personal",
-        description: "Life admin: capture to an inbox, hide-until dates, weekly review",
+        description: "For life admin. An inbox, tasks hidden until a date, and a weekly review",
         config: include_str!("presets/personal/config.toml"),
         templates: &[],
     },
     Builtin {
         name: "gated",
-        description: "For AI agents: required spec sections, and a review state done cannot skip",
+        description: "For AI agents. Every task needs a spec, and nothing reaches done without a review",
         config: include_str!("presets/gated/config.toml"),
         templates: &[("task.typ", include_str!("presets/gated/templates/task.typ"))],
     },

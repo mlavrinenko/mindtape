@@ -27,7 +27,7 @@ use mindtape::test_support::write_file;
 /// its walk fills the template's slots the way an author would — the walk then
 /// proves the preset's own gate passes for a task that was actually specified.
 const PRESET_PATHS: &[(&str, &[&str], &[&str])] = &[
-    ("todone", &["done"], &[]),
+    ("todo-done", &["done"], &[]),
     ("flow", &["wip", "done"], &[]),
     ("personal", &["next", "done"], &[]),
     (

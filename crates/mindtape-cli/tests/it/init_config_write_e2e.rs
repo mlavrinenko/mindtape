@@ -97,7 +97,7 @@ fn default_rendering_carries_no_commentary() {
 fn annotate_keeps_commentary_and_still_works() {
     let dir = tempdir();
     support::install_lib(dir.path());
-    support::run_ok(dir.path(), &["init", "--preset", "todone", "--annotate"]);
+    support::run_ok(dir.path(), &["init", "--preset", "todo-done", "--annotate"]);
 
     let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
     assert!(config.contains("The smallest shape"), "{config}");
@@ -108,7 +108,7 @@ fn annotate_keeps_commentary_and_still_works() {
     support::add_then_ls_and_check(dir.path(), "wire-annotated", &[]);
 }
 
-/// A todone-shaped base plus a top-level `[overlay]` the axes cannot express — a
+/// A todo-done-shaped base plus a top-level `[overlay]` the axes cannot express — a
 /// named view. The overlay merges last, so the flattened config carries `[views]`
 /// and no literal `[overlay]`.
 const OVERLAY_PRESET: &str = "\

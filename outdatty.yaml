@@ -138,7 +138,7 @@ groups:
       # restates.
       - crates/mindtape/src/model/fields.rs
       - crates/mindtape/src/config/defaults.toml
-      - crates/mindtape-cli/src/cmd/init/presets/todone/config.toml
+      - crates/mindtape-cli/src/cmd/init/presets/todo-done/config.toml
       - crates/mindtape-cli/src/cmd/init/presets/flow/config.toml
       - crates/mindtape-cli/src/cmd/init/presets/personal/config.toml
       - crates/mindtape-cli/src/cmd/init/presets/gated/config.toml
