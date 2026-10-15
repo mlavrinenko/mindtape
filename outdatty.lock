@@ -130,7 +130,7 @@ groups:
       docs/src/readme.typ: d0e61e5595a6dd4446906f41e01c6c76197a0a926cfcf2412b16ef8894d1aa01
       docs/src/skill.typ: 3d8d8c7baf2ca96ec4b0b5d59736378ca07b4473751e0337d12f787982b92558
       www/content/cli.typ: 231bb7f932d58336241d134cf32ef3201b2abe3cde0c989d5f2967a134a27ccf
-      www/content/index.typ: 33ee423dc6d613edfaea770cfc3ab11eb29a3614f57b2ec1ba5af0d999b27211
+      www/content/index.typ: 52adb00400c7a2d3502ffdf49534a5cbea008d30fae1b2cbbaccd73a575d9774
       www/content/quickstart.typ: c1b55d2fdb7988796a2a488827448e3c4bd459bdff82d1695d31190fe28ebf18
   coverage-test-re:
     source:
@@ -251,7 +251,7 @@ groups:
       skills/mindtape/references/add-slots.md: 1c713e380ef0eedaf9e6d7290f87aba1f15de6dd5effea82326406ede08e31ee
       www/content/concepts.typ: c74c98b9e7d8a542901da9b998b837a587e9b4a95aac969926a3283fbedfc096
       www/content/dsl.typ: 75786cec30063114a6bf4ef4c8bced7953fb41488dd280d67df77119f68d8b57
-      www/content/index.typ: 07e7cde3440f5e93c04619c4dc420d43013b15f84e32b48ef3deb9bdad805c56
+      www/content/index.typ: 52adb00400c7a2d3502ffdf49534a5cbea008d30fae1b2cbbaccd73a575d9774
       www/content/links.typ: e3a979681bb69195fddbb8d672e58842ae07b7464ebdd60720b12bd29a9240a0
       www/content/priority.typ: 3ce099d671a74c81abda7c1d7b0c77ca97dd21ffbdaf9e6d9884adffe22ac4ee
       www/content/recurring.typ: 01e57bdb51ca6d2f618e6365f8eebb809f45a277a513d6cf1f8854756217c787

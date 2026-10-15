@@ -1,7 +1,7 @@
 // Rendering helpers shared across content pages.
 
 #import "site.typ": MARKDOWN, PKG, md-copy-button, mindtape, u
-#import "demo.typ": lede
+#import "demo.typ": lede, showcase-intro
 
 // Inline package name, e.g. `@local/mindtape:0.2.0` — always version-synced.
 #let pkg = raw(PKG)
@@ -185,6 +185,8 @@
 
   #link(u("/quickstart/"))[Get started] · #link(u("/concepts/"))[How it works]
 
+  #showcase-intro
+
   #_text-faces()
 ]
 
@@ -209,6 +211,7 @@
       )
     })
   })
+  html.elem("p", attrs: (class: "faces-intro"), showcase-intro)
   html.elem("div", attrs: (class: "faces"), {
     _text-faces()
     // Read the SVG bytes rather than `image("…path…")`: the card is build-time

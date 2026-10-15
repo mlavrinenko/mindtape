@@ -3,11 +3,13 @@
 <h1 align="center"><img src="https://raw.githubusercontent.com/mlavrinenko/mindtape/main/www/assets/images/logo.svg" alt="Mindtape" width="120" /><br />
  Mindtape</h1>
 
-<h4 align="center">File-based task tracker with one Typst file per task. It’s flexible enough to bring your own rules and check every task and commit against them.</h4>
+<h4 align="center">Tasks as code. One Typst file per task, checked against your own rules. Write rules in <code>.mindtape/config.toml</code>, and <code>mt check</code> runs them over every task and commit.</h4>
 
 <h4 align="center"><a href="https://mlavrinenko.github.io/mindtape/">Documentation</a> · <a href="https://mlavrinenko.github.io/mindtape/quickstart/">Quickstart</a></h4>
 
 ---
+
+Here's a real task.
 
 [`examples/api-service/tasks/throttle-failed-logins-per-ip.typ`](https://github.com/mlavrinenko/mindtape/blob/main/examples/api-service/tasks/throttle-failed-logins-per-ip.typ)
 
@@ -40,9 +42,9 @@
 - Locking accounts by username, which needs its own unlock flow.
 ```
 
-## Flexible remedy
+## Bring your own rules
 
-Here are some examples of what a few lines of config can do. These checks aren’t built in. Mindtape is flexible enough to allow them, and it can do much, much more.
+None of these checks ship with Mindtape. Each one is a few lines of config. Here’s what `mt` says when a task breaks one.
 
 | Recipe | What it does | What `mt` prints |
 | --- | --- | --- |
@@ -55,7 +57,7 @@ Here are some examples of what a few lines of config can do. These checks aren�
 
 ## The elephant in the room: Typst vs Markdown + frontmatter
 
-You may ask why [Typst](https://typst.app/) and not Markdown. It’s a Turing-complete programming language, which gives us:
+Why pick [Typst](https://typst.app/) over Markdown to power a local task tracker? Here are a few reasons.
 
 1. **Language server autocompletion.** `task` declares every field as a named parameter, so your editor completes field names and flags a misspelled one.
 2. **Shared helpers.** `#import` your own Typst module to fill tasks the way you like.

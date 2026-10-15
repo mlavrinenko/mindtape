@@ -3,14 +3,16 @@
 // www/utils/demo.typ, which README.md renders too.
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": hero, lsp-demo
-#import "../utils/demo.typ": recipe-table, tagline, typst-section
+#import "../utils/demo.typ": recipe-table, typst-section
 #import "../utils/site.typ": mindtape, u
 
+// The summary is the meta description, which the page-manifest check holds to
+// one sentence. The tagline is two, so the root words it as one.
 #let meta = (
   route: "/",
   label: "Overview",
   title: mindtape,
-  summary: tagline,
+  summary: "Tasks as code, with one Typst file per task, checked against your own rules.",
   home: true,
 )
 #metadata(meta) <page-meta>

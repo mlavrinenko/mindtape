@@ -29,7 +29,15 @@
   raw(_slices.at(id).code, lang: "typ", block: true)
 }
 
-#let showcase = fixture-slice("showcase")
+// The line that introduces the showcase task, in README and on the site root.
+#let showcase-intro = "Here's a real task."
+
+// typlite joins two `par` calls into one line, so the paragraphs are markup.
+#let showcase = [
+  #showcase-intro
+
+  #fixture-slice("showcase")
+]
 
 // The first error line of the first command that failed in capture `id`.
 #let _refusal(id) = {
@@ -56,11 +64,10 @@
 #let recipe-routes = NAV.find(group => group.title == "Recipes").items
 
 #let recipe-table(link) = {
-  heading(level: 1)[Flexible remedy]
+  heading(level: 1)[Bring your own rules]
   [
-    Here are some examples of what a few lines of config can do. These checks
-    aren't built in. #mindtape is flexible enough to allow them, and it can do
-    much, much more.
+    None of these checks ship with #mindtape. Each one is a few lines of
+    config. Here's what `mt` says when a task breaks one.
   ]
   let rows = ()
   for route in recipe-routes {
@@ -81,8 +88,8 @@
 #let typst-section(link) = {
   heading(level: 1)[The elephant in the room: Typst vs Markdown + frontmatter]
   [
-    You may ask why #std.link("https://typst.app/")[Typst] and not Markdown.
-    It's a Turing-complete programming language, which gives us:
+    Why pick #std.link("https://typst.app/")[Typst] over Markdown to power a
+    local task tracker? Here are a few reasons.
 
     + #strong[Language server autocompletion.] `task` declares every field as
       a named parameter, so your editor completes field names and flags a

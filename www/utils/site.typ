@@ -69,8 +69,8 @@
 
 #let SITE = (
   title: mindtape,
-  tagline: "File-based task tracker with one Typst file per task.",
-  pitch: "It's flexible enough to bring your own rules and check every task and commit against them.",
+  tagline: "Tasks as code. One Typst file per task, checked against your own rules.",
+  pitch: "Write rules in `.mindtape/config.toml`, and `mt check` runs them over every task and commit.",
 )
 
 // Grouped sidebar: group title, and its members' reading order as routes.

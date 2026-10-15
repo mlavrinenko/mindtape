@@ -18,6 +18,7 @@
 .btn.ghost { background: transparent; color: var(--accent); }
 .btn.ghost:hover { background: var(--accent-wash); color: var(--accent-strong); }
 
+.faces-intro { margin: 0 0 0.8rem; }
 .faces {
   display: grid;
   grid-template-areas: "terminal" "source" "card";
