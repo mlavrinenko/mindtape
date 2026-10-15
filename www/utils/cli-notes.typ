@@ -53,18 +53,14 @@
   ),
   // ── Fields ──────────────────────────────────────────────────────────────────
   "set": (
-    prose: [`mt set` changes one field per call, in the same syntax as
-      `mt add --set`: `field=value`, `field+=value` to add to a list, or
-      `field@path` to read the value from a file. It writes `title`,
-      `priority` as a number, `difficulty`, `kind`, `assignee`, `waits-on`,
-      `tags`, `due` and `start`. It refuses a field that has its own command, and the error
-      names that command: `status` (`flip`), `links` (`link`), `reviewed`
-      (`review`), `recur` (`recur`) and the id (`mv`). A
+    prose: [`mt set` uses the same syntax as `mt add --set`. A field that has
+      its own command is refused, and the error names that command: `status`
+      (`flip`), `links` (`link`), `reviewed` (`review`), `recur` (`recur`) and
+      the id (`mv`). A
       #link(u("/priority/"))[framework priority] such as `ice(...)` and an
       #link(u("/estimates/"))[`estimate`] aren't single values, so `mt set`
-      doesn't write them. Edit those in the file. `mt` checks the task before
-      it writes, so a refused value leaves the file unchanged. Adding a value
-      a list already holds writes nothing, so you can safely run it again.],
+      doesn't write them. Edit those in the file. Adding a value a list
+      already holds writes nothing, so you can safely run it again.],
     outputs: ("set",),
   ),
   "eval": (outputs: ("eval",)),
