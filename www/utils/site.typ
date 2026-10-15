@@ -103,6 +103,7 @@
     items: (
       "/split-oversized-tasks/",
       "/require-a-task-shape/",
+      "/start-titles-with-a-verb/",
       "/tie-work-to-goals/",
       "/limit-work-in-progress/",
       "/wait-on-upstream/",

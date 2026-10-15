@@ -115,10 +115,14 @@ values = ["auth", "billing"]
 path = "dicts/services.txt"
 case = "fold"
 
-# Name the verbs a title may start with. The pack declares this same set under
-# this name, and a project dictionary replaces a pack's by name.
+# Start titles with a verb: the pack's imperative-title rule looks up a title's
+# first word in [dicts.verbs]. This dictionary replaces the pack's by name, so
+# it includes both shipped word lists and adds the project's own words.
+# docs:slice api-service/start-titles-with-a-verb
 [dicts.verbs]
 include = ["mindtape-verbs", "mindtape-dev-verbs"]
+values = ["backport", "dockerize"]
+# docs:end
 
 # List what is open and due to start. A bare `mt ls` applies the default view.
 [views.default]

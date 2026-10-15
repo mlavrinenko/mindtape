@@ -4,7 +4,7 @@ groups:
   api-service-recipes:
     source:
       crates/mindtape/src/packs/mindtape-tasks.toml: aa00c5a2f7bb0fbee5846a3fe169849b6d7b1d06bcaff7448969e74a32fc606a
-      examples/api-service/.mindtape/config.toml: 40f7c43899a88b914db417ff351788748d74ce08491cdb7e24a11de04dfe1339
+      examples/api-service/.mindtape/config.toml: 6646c41eea3ded70f22b1a65463e59d4faacc8df12e89fa0b93e50744b2add11
       examples/api-service/.mindtape/templates/milestone.typ: 737fc2788932ee1d2863e4041849ed4e6fe6d191952d432369d36a5343446afc
       examples/api-service/.mindtape/templates/task.typ: c139fe1c0f9cbda3786811d6abcd0a832a0ea527227008ff636b4a7b03cec03a
       examples/api-service/Cargo.lock: fb82d06c279532ad92269838be453a3ed883dcd8cf12daaad8fdd0e26f854805
@@ -26,13 +26,14 @@ groups:
       examples/api-service/tasks/throttle-failed-logins-per-ip.typ: 663b5c80f73d08dad4217483f83f700cf9b0312a7b886652ca78f5ef6fae80c1
       examples/api-service/tasks/upgrade-the-axum-web-framework.typ: 098f9d43ac19b8e59ddd3691f9f4f56f03cfc48a305aca5d84e15c6a93808a36
       examples/api-service/tasks/verify-webhooks-with-the-acme-pay-sdk.typ: dc6dce15d763d29cffa99082ce8dbf6a24bf30798d40b362eb8ae2972414835c
-      www/generate-api-service.sh: ede90fa00950d3ebda23839ab717e011ddc1610da6a1c0125e4581a97c64776d
+      www/generate-api-service.sh: abcb1a6878332504f4244b03d62eae197d17554276f4ad7f8220a1890b5e970b
     dependents:
       skills/mindtape/evals/README.md: 998e2cfcf60142db3101c1ddd849ef3a244acd18eb7ca3568a3195d12eb2bf6b
       skills/mindtape/evals/evals.json: 481bb4f0168826d9ee4086ee6f4f4f74c4c31ed3b46792871532da8372b56460
       www/content/limit-work-in-progress.typ: d03ff5ae1804c8980f880e3a7c4d40e44e3251725485c6cd071888a8cf531a8b
       www/content/require-a-task-shape.typ: 33d96b2d8d8aa08e3b15c3b0051fc9a197f588b15e95325f420037300061f256
       www/content/split-oversized-tasks.typ: 2a8f58f2a7427d7177457ee742cef995a8e13c14c445d2a1f11d0755b29fd34f
+      www/content/start-titles-with-a-verb.typ: c8758fe9bf8d50817321c14490b5978cf4775cb93a0557cfbb803d05a560ab9a
       www/content/tie-work-to-goals.typ: 33bd548d43ed3824e359f40b174d1bcce5cbdcab07788a5aa3790527cb79557f
       www/content/trace-commits-to-tasks.typ: 935c85943e08bc8e31b65d886d13200073024f23f9ad0f84aa83cb026d94f20e
       www/content/wait-on-upstream.typ: e88a4625e768e9103e2fbb93656fbc91d9e5311872eca7370c913850fd0f308d

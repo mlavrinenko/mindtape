@@ -11,7 +11,7 @@
   ),
   difficulty: 2,
   tags: ("www", "docs"),
-  estimate: (src-files: 4),
+  estimate: (src-files: 5),
   x-goals: (
     product: (
       readable-tasks: helps[a reader learns how to make every title in a list say what the task does],
@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 16),
+  status: done(2026, 10, 16),
 )
 
 == Problem
@@ -51,9 +51,10 @@
 
 == Changes
 
-- `examples/api-service/.mindtape/config.toml`: a `start-titles-with-a-verb` slice holding the rule and a `[dicts.verbs]` with two words of the project's own.
+- `examples/api-service/.mindtape/config.toml`: turn `[dicts.verbs]` into a `start-titles-with-a-verb` slice that adds two words of the project's own.
 - `www/generate-api-service.sh`: a session where `mt add` refuses a title with no verb and files two that start with one.
 - `www/content/start-titles-with-a-verb.typ`, new: the recipe page.
+- `www/utils/recipes.typ`: show a pack rule above a recipe's slice, uncommented.
 - `www/utils/site.typ`: list the page in the Recipes nav group.
 
 

@@ -609,6 +609,7 @@ groups:
     dependents:
       - www/content/split-oversized-tasks.typ
       - www/content/require-a-task-shape.typ
+      - www/content/start-titles-with-a-verb.typ
       - www/content/tie-work-to-goals.typ
       - www/content/limit-work-in-progress.typ
       - www/content/wait-on-upstream.typ

@@ -118,6 +118,32 @@ EOF
 CMD
 )"
 
+# Start titles with a verb: a title whose first word is in no verb list is
+# refused, and one that starts with a shipped verb or the project's own word
+# is filed. sections.yaml holds the sections the template asks for besides
+# the title, so the session shows only the titles.
+api_copy P
+capture_prep "$P" "$(
+    cat <<'CMD'
+cat >sections.yaml <<'EOF'
+src-files: 1
+problem: |
+  + Log in from `/settings`.
+  + 🔴 It lands on `/`, not back on `/settings`.
+to-be: |
+  - 🟢 Logging in returns to the page that asked for it.
+changes: |
+  - `src/auth/login.rs`: redirect to the `next` query parameter.
+out-of-scope: |
+  - The logout redirect.
+EOF
+CMD
+)"
+capture --exit 1 --expect 'rules\.imperative-title' start-titles-with-a-verb "$P" \
+    'mt add Login redirect broken -f sections.yaml'
+capture start-titles-with-a-verb "$P" 'mt add Fix the login redirect -f sections.yaml'
+capture start-titles-with-a-verb "$P" 'mt add Backport the login redirect fix to v1 -f sections.yaml'
+
 # Tie work to your goals: the milestone template rates each goal `neutral`
 # unless the answers say otherwise, so the goals rule refuses a milestone that
 # helps none of them, and files it once one goal says how it helps.
