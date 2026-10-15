@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": callout, pkg, terminal
+#import "../utils/ui.typ": callout, terminal
 #import "../utils/site.typ": REPO, mindtape, u
 #import "../utils/release.typ": cli-crate, release-targets
 
@@ -53,15 +53,9 @@ for it. Run it once per machine:
 
 #terminal("qs-install")
 
-Every task file starts by importing #pkg, and Typst finds it in that
-machine-wide `@local` directory. To pin a project to a prelude in its own tree,
-see #link(u("/config/"))[Configuration].
-
-`mt install` also writes a completion hook for each shell. Source the one for
-your shell from its startup file, and Tab completes the task stems (each task
-file's name without `.typ`), statuses, #link(u("/named-sets/#views"))[views],
-templates and link kinds of the project you're in. The hook asks `mt` on every
-Tab press, so the answers always match the project.
+`mt install` also prints a line that turns on Tab completion. Paste it into
+your shell's startup file, and Tab completes task names, statuses and
+#link(u("/named-sets/#views"))[views] for the project you're in.
 
 Then set up a project, once per repository:
 
@@ -74,10 +68,9 @@ and #link(u("/config/"))[Configuration] covers what the file can hold.
 
 = File your first task
 
-A task is a plain text file, so you can write one in any editor. `mt add` is
-the quick way: it fills in a template. Each value the template asks for is a
-slot. The default template has one slot, the title, so a title is all you
-pass:
+A task is a plain text file, so you can write one in any editor. Or let
+`mt add` fill in a template for you. The default template only asks for a
+title:
 
 #terminal("qs-add")
 
@@ -86,14 +79,14 @@ Here's the file it wrote:
 #raw(read("../generated/qs-written.typ"), lang: "typ", block: true)
 
 #link(u("/task-files/"))[Task files] walks through each line.
-#link(u("/templates/"))[Templates & slots] covers templates with more slots,
-editor mode and named templates.
+#link(u("/templates/"))[Templates & slots] covers editor mode, named templates
+and templates that ask for more than a title. Each value a template asks for
+is a slot.
 
 = List and query
 
-`mt ls` lists the tasks in the default view, which is what a bare `mt ls`
-shows. In a new project that's every task that isn't done or cancelled, and
-whose `start` date, if it has one, has come:
+`mt ls` shows your open tasks. It hides done and cancelled ones, and any task
+whose `start` date is still in the future:
 
 #terminal("qs-ls")
 
@@ -109,11 +102,10 @@ formats for other programs. To search by text, use
 
 = Change status
 
-The project's legend lists the statuses a task can have, in order, and the
-moves each status allows. Both are yours to change in `.mindtape/config.toml`.
-Each status is also a command that sets the status and stamps today's date.
-The `flow` preset allows `proposed` to `wip` and `wip` to `done`, so `mt`
-won't jump straight to `done`:
+Your project decides which statuses exist and which moves between them are
+allowed. It all lives in `.mindtape/config.toml`. Each status is also a
+command that sets the status and stamps today's date. The `flow` preset won't
+let you jump from proposed straight to done:
 
 #terminal("qs-refused")
 
@@ -137,6 +129,6 @@ what it checks, and #link(u("/rules/"))[Rules] covers the checks you add
 yourself.
 
 #callout("note")[
-  #link(u("/concepts/"))[Concepts] explains the model: why a task is a file, and
-  what live evaluation means.
+  Curious why a task is a file and how `mt` reads them? Take a look at
+  #link(u("/concepts/"))[Concepts].
 ]
