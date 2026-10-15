@@ -89,19 +89,39 @@ a:hover { color: var(--accent-strong); }
 }
 .brand-name { font-family: var(--font-mono); font-weight: 600; font-size: 1.05rem; letter-spacing: -0.01em; }
 
-.header-right { display: inline-flex; align-items: center; gap: 1rem; }
-.header-link { font-family: var(--font-mono); font-size: 0.85rem; color: var(--muted); text-decoration: none; }
-.header-link:hover { color: var(--accent); }
+.header-right { display: inline-flex; align-items: center; gap: 0.75rem; }
+.header-right .icon { display: block; }
 
-.theme-toggle {
-  border: 1px solid var(--border); background: var(--bg-soft); color: var(--fg);
-  width: 32px; height: 32px; border-radius: 8px; cursor: pointer; padding: 0;
-  display: inline-grid; place-items: center; font-size: 0.9rem;
+/* The GitHub mark: a 32px hit area around a 20px icon, the switch's height. */
+.header-icon {
+  display: inline-grid; place-items: center; width: 32px; height: 32px;
+  border-radius: 8px; color: var(--muted);
 }
-.theme-toggle:hover { border-color: var(--accent); }
-.theme-icon-moon { display: none; }
-[data-theme="dark"] .theme-icon-sun { display: none; }
-[data-theme="dark"] .theme-icon-moon { display: inline; }
+.header-icon .icon { width: 20px; height: 20px; }
+.header-icon:hover, .header-icon:focus-visible { color: var(--accent); background: var(--bg-soft); }
+
+/* The theme switch: a 44x24 pill whose knob slides right for dark mode. The
+   knob holds the sun in light mode and the moon in dark mode. */
+.theme-switch {
+  position: relative; flex: none; width: 44px; height: 24px; padding: 0;
+  border: 1px solid var(--border); border-radius: 999px; background: var(--bg-soft);
+  cursor: pointer; color: var(--muted);
+}
+.theme-switch:hover { border-color: var(--accent); }
+.theme-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.theme-knob {
+  position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+  display: grid; place-items: center; border-radius: 50%;
+  background: var(--bg); color: #b7791f; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  transition: transform 0.18s ease;
+}
+.theme-knob .icon { width: 12px; height: 12px; grid-area: 1 / 1; }
+.theme-switch .theme-moon { display: none; }
+[data-theme="dark"] .theme-switch { background: var(--accent-wash); }
+[data-theme="dark"] .theme-knob { transform: translateX(20px); color: var(--accent); background: var(--bg-soft); }
+[data-theme="dark"] .theme-switch .theme-sun { display: none; }
+[data-theme="dark"] .theme-switch .theme-moon { display: block; }
+@media (prefers-reduced-motion: reduce) { .theme-knob { transition: none; } }
 
 /* Shell: sidebar + main --------------------------------------------------- */
 .shell {

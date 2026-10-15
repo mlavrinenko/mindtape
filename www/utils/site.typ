@@ -62,8 +62,8 @@
 #let md-copy-button(route) = html.elem("button", attrs: (
   class: "md-copy",
   type: "button",
-  "aria-label": "Copy as Markdown",
-  "data-tip": "Copy as Markdown",
+  "aria-label": "Copy page as Markdown",
+  "data-tip": "Copy page as Markdown",
   "data-md": PREFIX + md-path(route),
 ))
 
@@ -77,9 +77,8 @@
 // A group is named for the reader's job, not for the page's origin, so a
 // reader scans one short group instead of every page:
 //
-//   - Start: a first look.
+//   - Start: a first look, and the one idea the rest rests on.
 //   - Recipes: an engineer with a problem wants the config that solves it.
-//   - Model: the one idea the rest rests on.
 //   - Tasks: authoring a task file.
 //   - Fields: setting the values a task's fields may take, such as the
 //     statuses, the priority scale, the estimate units and the named sets.
@@ -95,7 +94,10 @@
 // (label, title, summary, home) is declared on the page itself and resolved
 // from `PAGES` below by route.
 #let NAV = (
-  (title: "Start", items: ("/", "/quickstart/", "/comparison/")),
+  (
+    title: "Start",
+    items: ("/", "/quickstart/", "/concepts/", "/comparison/"),
+  ),
   (
     title: "Recipes",
     items: (
@@ -107,7 +109,6 @@
       "/trace-commits-to-tasks/",
     ),
   ),
-  (title: "Model", items: ("/concepts/",)),
   (
     title: "Tasks",
     items: (
