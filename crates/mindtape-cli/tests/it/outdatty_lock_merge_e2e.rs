@@ -282,8 +282,29 @@ fn a_merge_takes_the_side_whose_hash_matches_the_merged_file() {
     repo.assert_lock_is_current();
 }
 
+/// The hash that stands in for a key both sides recorded against a file the
+/// merge then changed again: blake3's shape, and no file's hash. It is all
+/// digits, so YAML quotes it.
+const UNMATCHED: &str = "0000000000000000000000000000000000000000000000000000000000000000";
+
+/// The rebase finished with `group`'s `path` holding [`UNMATCHED`], and the
+/// driver said so.
+fn assert_unmatched(repo: &Repo, out: &Output, group: &str, path: &str) {
+    assert!(out.status.success(), "{}{}", stdout(out), stderr(out));
+    let note = stderr(out);
+    assert!(
+        note.contains(&format!("group {group}")) && note.contains(path),
+        "the driver names the group and the path: {note}"
+    );
+    let lock = repo.read("outdatty.lock");
+    assert!(lock.contains(&format!("{path}: \"{UNMATCHED}\"")), "{lock}");
+}
+
+/// outdatty checks a group's sources, never its dependents' hashes, so a
+/// dependent the merge left unmatched blocks nothing, and the next re-record
+/// of its group writes its hash.
 #[test]
-fn a_key_both_sides_recorded_against_neither_merged_file_conflicts() {
+fn a_dependent_both_sides_recorded_against_neither_merged_file_finishes_the_rebase() {
     let repo = Repo::new();
     repo.git(&["checkout", "-q", "-b", "feat"]);
     repo.write("a-doc.txt", &FIVE_LINES.replace("five", "FIVE"));
@@ -296,17 +317,35 @@ fn a_key_both_sides_recorded_against_neither_merged_file_conflicts() {
 
     repo.git(&["checkout", "-q", "feat"]);
     let out = repo.command("git", &["rebase", "main"]);
-    assert!(!out.status.success(), "{}", stdout(&out));
-    let text = stderr(&out);
-    assert!(
-        text.contains("group alpha") && text.contains("a-doc.txt"),
-        "the conflict names the group and the path: {text}"
-    );
-    let unmerged = repo.git(&["diff", "--name-only", "--diff-filter=U"]);
-    assert_eq!(
-        unmerged, "outdatty.lock\n",
-        "a-doc.txt itself merged as text"
-    );
     assert_eq!(repo.read("a-doc.txt"), "ONE\ntwo\nthree\nfour\nFIVE\n");
-    assert!(repo.read("outdatty.lock").contains("<<<<<<<"));
+    assert_unmatched(&repo, &out, "alpha", "a-doc.txt");
+    repo.ok("outdatty", &["check", "--format", "quiet"]);
+    repo.record("alpha", None);
+    repo.assert_lock_is_current();
+}
+
+/// Two branches that both edit a source and re-record its group: neither
+/// review covers the merged source, so `outdatty check` reports the group
+/// until someone reviews it again.
+#[test]
+fn a_source_both_sides_edited_and_recorded_is_left_for_review() {
+    let repo = Repo::new();
+    repo.git(&["checkout", "-q", "-b", "feat"]);
+    repo.write("a.txt", &FIVE_LINES.replace("five", "FIVE"));
+    repo.record("alpha", None);
+    repo.commit("feat: edit the last line");
+    repo.git(&["checkout", "-q", "main"]);
+    repo.write("a.txt", &FIVE_LINES.replace("one", "ONE"));
+    repo.record("alpha", None);
+    repo.commit("feat: edit the first line");
+
+    repo.git(&["checkout", "-q", "feat"]);
+    let out = repo.command("git", &["rebase", "main"]);
+    assert_eq!(repo.read("a.txt"), "ONE\ntwo\nthree\nfour\nFIVE\n");
+    assert_unmatched(&repo, &out, "alpha", "a.txt");
+    let check = repo.command("outdatty", &["check"]);
+    assert!(!check.status.success(), "{}", stdout(&check));
+    assert!(stdout(&check).contains("alpha"), "{}", stdout(&check));
+    repo.record("alpha", None);
+    repo.assert_lock_is_current();
 }

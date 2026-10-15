@@ -19,12 +19,20 @@
 # hash, an empty `{}` map counting as a leaf) is a three-way merge of its own,
 # and a leaf only one side changed takes that side.
 #
-# A leaf both sides changed to different hashes takes the side whose hash is
-# the hash of that path in the merged tree, since that is the side whose review
-# the merged file still matches. Neither matching (both edited the file, so the
-# merged file is a third content) is a conflict naming the group and path, with
-# conflict markers around that one line, and the fix is the review the
-# conflict asks for: `just outdatty-update <group>`.
+# A file's hash both sides changed takes the side whose hash is the hash of
+# that path in the merged tree, since that is the side whose review the merged
+# file still matches. When neither matches (both edited the file, so the
+# merged file is a third content, as when two branches both edit one source
+# and re-record its group), no side's review covers the merged file, and the
+# true hash is one this driver cannot see (below). So it writes 64 zeros:
+# blake3's shape, so any outdatty reads it, and no file's hash. For a source
+# that makes `just outdatty-check` report the group stale until someone
+# reviews it and runs `just outdatty-update <group>`. That is the review a
+# conflict would ask for, without stopping the rebase first. outdatty checks
+# no dependent's hash, so for a dependent the zeros block nothing, and the
+# next re-record of its group writes the real hash. The same goes for a hash
+# one side changed and the other dropped. Any other leaf both sides changed
+# (`version`, `algorithm`) is a conflict, with markers around that one line.
 #
 # How the merged file is read, and why not from the working tree. merge-ort
 # merges every path in memory and writes the worktree only after the last one,
@@ -38,7 +46,8 @@
 # unchanged on one side takes the other side's blob, which is what git's own
 # merge does, and a path changed on both sides has no single blob to hash. When
 # the commits cannot be resolved (a stash, a criss-cross merge's virtual base)
-# every key both sides changed conflicts. A wrong guess is worse than a stop.
+# every hash both sides changed gets the zeros. A wrong guess is worse than a
+# review.
 #
 # Without `yq`, `jq` or `b3sum` on PATH (a merge run outside the dev shell), or
 # with a side that does not parse as a lock, it falls back to git's text merge,
@@ -71,10 +80,12 @@ if ! { o=$(lock_json "$base") && a=$(lock_json "$ours") && b=$(lock_json "$their
 fi
 
 # merge($tree): one entry per leaf of the result, `{path, value}` for a merged
-# leaf and `{path, conflict, file?}` for a conflicting one. `$tree` maps a
-# tracked path to its blake3 hash in the merged tree.
+# leaf, `{path, value, file, review}` for a hash left for review and
+# `{path, conflict}` for a conflicting one. `$tree` maps a tracked path to its
+# blake3 hash in the merged tree.
 # shellcheck disable=SC2016 # a jq program, whose $names are jq's
 lib='
+def unmatched: "0000000000000000000000000000000000000000000000000000000000000000";
 def leaves: reduce (paths(type != "object" or . == {}) as $p | [$p, getpath($p)]) as [$p, $v]
     ({}; .[$p | tojson] = $v);
 def merge($tree):
@@ -85,18 +96,18 @@ def merge($tree):
           def keep($x): if $x | has($k) then {path: $p, value: $x[$k]} else empty end;
           if same($A; $B) or same($O; $B) then keep($A)
           elif same($O; $A) then keep($B)
-          else ((if $p[0] == "groups" and ($p | length) == 4 and ($A | has($k)) and ($B | has($k))
-                 then $p[3] else null end) as $file
-                | if $file != null and $tree[$file] == $A[$k] then keep($A)
-                  elif $file != null and $tree[$file] == $B[$k] then keep($B)
-                  else {path: $p, file: $file, conflict: {ours: $A[$k], theirs: $B[$k],
+          else ((if $p[0] == "groups" and ($p | length) == 4 then $p[3] else null end) as $file
+                | if $file == null then {path: $p, conflict: {ours: $A[$k], theirs: $B[$k],
                         inA: ($A | has($k)), inB: ($B | has($k))}}
+                  elif ($A | has($k)) and $tree[$file] == $A[$k] then keep($A)
+                  elif ($B | has($k)) and $tree[$file] == $B[$k] then keep($B)
+                  else {path: $p, file: $file, value: unmatched, review: true}
                   end)
           end ];
 '
 
 contested=$(jq -nr --argjson o "$o" --argjson a "$a" --argjson b "$b" \
-    "$lib"' merge({}) | .[] | select(.conflict and .file) | .file')
+    "$lib"' merge({}) | .[] | select(.review) | .file')
 
 # label_commit <label>: the commit a conflict label names, or nothing.
 label_commit() {
@@ -147,7 +158,7 @@ if [ -n "$contested" ]; then
         done <<<"$contested"
     else
         echo "outdatty-lock-merge: cannot tell which commits '$ours_label' and '$theirs_label' are," \
-            "so a hash both sides changed in $path conflicts" >&2
+            "so a hash both sides changed in $path is left for review" >&2
     fi
 fi
 
@@ -180,12 +191,17 @@ merged=$(jq -nr "${args[@]}" --arg ours "$ours_label" --arg theirs "$theirs_labe
     "$lib$emit"' merge($tree) | build | emit(0)')
 printf '%s\n' "$merged" >"$ours"
 
-conflicts=$(jq -nr "${args[@]}" "$lib"' merge($tree) | .[] | select(.conflict)
-    | if .file then "group \(.path[1]), \(.path[2]) \(.file)" else "key \(.path | join("."))" end')
+# shellcheck disable=SC2016 # a jq program, whose $names are jq's
+jq -nr "${args[@]}" --arg lock "$path" "$lib"' merge($tree) | .[] | select(.review)
+    | "outdatty-lock-merge: \($lock): group \(.path[1]), \(.path[2]) \(.file):"
+        + " both sides changed it and neither matches the merged tree, so it holds a hash no file has",
+      if .path[2] == "source"
+      then "  `just outdatty-check` reports the group until you review it and run `just outdatty-update \(.path[1])`"
+      else "  outdatty checks no dependent hash, and `just outdatty-update \(.path[1])` records it" end' >&2
+conflicts=$(jq -nr "${args[@]}" "$lib"' merge($tree) | .[] | select(.conflict) | .path | join(".")')
 if [ -n "$conflicts" ]; then
     while IFS= read -r where; do
-        echo "outdatty-lock-merge: $path: $where: both sides changed it and neither matches the merged tree" >&2
+        echo "outdatty-lock-merge: $path: key $where: both sides changed it" >&2
     done <<<"$conflicts"
-    echo "  review that group's dependents against the merged tree, then run \`just outdatty-update <group>\`" >&2
     exit 1
 fi
