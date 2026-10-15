@@ -43,7 +43,7 @@ use hint::Rescue;
 mod notes;
 mod target;
 mod title;
-use notes::report_injected;
+use notes::{report_escaped_spans, report_injected};
 pub(crate) use target::minted_stem;
 pub(crate) use target::{dest_dir, warn_if_outside_roots};
 use target::{output_stem, resolve_outcome};
@@ -202,6 +202,7 @@ pub fn run(args: &AddArgs) -> Result<()> {
     let filled = inject_header(&filled, config, status.as_deref())?;
     let filled = util::canonical_source(config, filled);
     report_injected(&filled, &injected, &explicit, &env_keys)?;
+    report_escaped_spans(&values, &specs);
 
     // Resolve the path the write would land at before the `--print` return:
     // it is the candidate the pre-write check validates, and a preview must

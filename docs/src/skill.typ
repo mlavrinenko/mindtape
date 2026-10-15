@@ -94,8 +94,8 @@ A key names a template slot, which need not be a field: a framework priority
 takes its inputs (`--set impact=8`). `mt add` refuses an unknown slot and lists
 the known ones. When the template has no slot for a field, file the task
 first, then write the field with `mt set`. A `text` slot escapes Typst markup,
-so a code span in it lands as literal backticks. Read `references/add-slots.md`
-before you fill an unfamiliar template.
+so a code span in it lands as literal backticks, and `mt add` warns naming the
+slot. Read `references/add-slots.md` before you fill an unfamiliar template.
 
 Read `references/import.md` before `mt import` files a batch.
 

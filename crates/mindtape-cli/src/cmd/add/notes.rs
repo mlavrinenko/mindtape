@@ -1,14 +1,15 @@
-//! The `mt add` fill note: report each config-spliced core field the template
-//! did not declare and the caller did not set, naming the value, where it came
-//! from, and the `--set` that overrides it. A sibling module because `cmd/add/mod.rs`
-//! sits at the linecop cap; the seam is "decide what was injected" vs "say so".
+//! What `mt add` says about a fill that went through: each config-spliced core
+//! field the template did not declare and the caller did not set, naming the
+//! value, where it came from, and the `--set` that overrides it; and each `text`
+//! slot whose markup was escaped. A sibling module because `cmd/add/mod.rs`
+//! sits at the linecop cap; the seam is "decide what was filled" vs "say so".
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::diag::Result;
-use mindtape::{RequiredSlot, discover_slots};
+use mindtape::{RawValue, RequiredSlot, SlotKind, SlotSpec, discover_slots};
 
-use crate::diag::{Note, emit_note};
+use crate::diag::{Diag, Hint, Note, emit, emit_note};
 use crate::task_edit::task_with;
 
 /// Print one note per config-spliced core field the caller did not set, naming
@@ -68,4 +69,26 @@ fn display_value(raw: &str) -> String {
     raw.strip_prefix('"')
         .and_then(|text| text.strip_suffix('"'))
         .map_or_else(|| raw.to_owned(), ToOwned::to_owned)
+}
+
+/// Warn once per `text` slot whose value holds a backtick, which escaping
+/// files as a literal one. Only the backtick counts: every other markup
+/// leader has a common literal use in prose (a path's `_`, `issue #4`,
+/// `a < b`, `$5`, `@ada`), while a backtick almost always opens a code span
+/// the author meant to render. `mt check` draws the same line for a slot's
+/// example. The task still files.
+pub(super) fn report_escaped_spans(values: &BTreeMap<String, RawValue>, specs: &[SlotSpec]) {
+    for spec in specs.iter().filter(|spec| spec.kind == SlotKind::Text) {
+        if let Some(RawValue::Str(text)) = values.get(&spec.name)
+            && text.contains('`')
+        {
+            emit(
+                &Diag::warning("escaped the markup in a text slot")
+                    .value(&spec.name)
+                    .hint(Hint::new(
+                        "declare the slot kind: \"raw\" in the template to file markup as is",
+                    )),
+            );
+        }
+    }
 }

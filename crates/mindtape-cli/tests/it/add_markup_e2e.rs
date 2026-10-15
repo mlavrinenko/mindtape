@@ -118,3 +118,46 @@ fn describe_reports_raw_kind() {
     let dir = support::project_with_raw_slot_template();
     assert_eq!(support::describe_slot_kind(dir.path(), "summary"), "raw");
 }
+
+/// File task `name` with `summary` in the `text` slot, and return its stderr.
+fn add_summary(dir: &std::path::Path, name: &str, summary: &str) -> String {
+    let summary = format!("summary={summary}");
+    let output = support::mt(dir)
+        .args(["add", "--name", name, "--set", "title=T", "--set", "why=w"])
+        .args(["--set", &summary])
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "{output:?}");
+    String::from_utf8_lossy(&output.stderr).into_owned()
+}
+
+/// A backtick in a `text` slot is a code span its author meant to render, and
+/// escaping files it as literal backslashes. The task still files, and stderr
+/// names the slot and the template change that keeps markup.
+#[test]
+fn a_code_span_in_a_text_slot_warns_naming_the_slot() {
+    let dir = support::project_with_slot_template();
+
+    let stderr = add_summary(dir.path(), "spans", "Run `mmz --import <dir>` first");
+
+    assert_eq!(
+        stderr,
+        "warning: escaped the markup in a text slot: 'summary'\n\
+         hint: declare the slot kind: \"raw\" in the template to file markup as is\n"
+    );
+    let written = std::fs::read_to_string(dir.path().join("tasks/spans.typ")).unwrap();
+    assert!(
+        written.contains(r"Run \`mmz --import \<dir>\` first"),
+        "{written}"
+    );
+}
+
+/// Every other markup leader has a common literal use in prose, such as a
+/// path's `_` or `a < b`, so escaping one is no sign the author meant markup.
+#[test]
+fn plain_text_with_markup_characters_files_without_a_warning() {
+    let dir = support::project_with_slot_template();
+    let plain = "Edit src/task_edit.rs for issue #4 when a < b, $5 *each*, or ask @ada";
+
+    assert_eq!(add_summary(dir.path(), "plain", plain), "");
+}

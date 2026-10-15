@@ -50,7 +50,7 @@ Common filters are `ready` (open, with every `depends-on` target finished and ev
 
 `mt add <title…>` names the file from the title, checks the task, and writes it under the first root. `mt add --list` lists the templates, and `mt add --describe` lists a template’s slots. Pass a value you type as `--set key=value`, and values you generate as YAML on stdin with `-f -`, which needs no shell quoting. `--print` shows the task without writing it.
 
-A key names a template slot, which need not be a field: a framework priority takes its inputs (`--set impact=8`). `mt add` refuses an unknown slot and lists the known ones. When the template has no slot for a field, file the task first, then write the field with `mt set`. A `text` slot escapes Typst markup, so a code span in it lands as literal backticks. Read `references/add-slots.md` before you fill an unfamiliar template.
+A key names a template slot, which need not be a field: a framework priority takes its inputs (`--set impact=8`). `mt add` refuses an unknown slot and lists the known ones. When the template has no slot for a field, file the task first, then write the field with `mt set`. A `text` slot escapes Typst markup, so a code span in it lands as literal backticks, and `mt add` warns naming the slot. Read `references/add-slots.md` before you fill an unfamiliar template.
 
 Read `references/import.md` before `mt import` files a batch.
 

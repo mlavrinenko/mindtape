@@ -216,6 +216,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   splices verbatim, and an unknown `kind:` is an error. A slot that is a whole
   field with config `values` is a choice over them, `multichoice` for a
   `multiple` field. `--describe` refuses a title and suggests `-t`.
+- **A code span in a `text` slot files escaped, with a warning** that names the
+  slot and suggests `kind: "raw"`.
 - **A template's own `status` is the status `mt add` files it at**, dated today,
   and `--status` overrides it. The `tweak` template files done. Filed done, a
   task asks only for the fields a done task requires.

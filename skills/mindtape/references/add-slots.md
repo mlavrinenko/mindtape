@@ -79,8 +79,11 @@ never live Typst.
   slot with a placeholder, then edit the body by hand following
   `hand-editing.md`. The config checks only the section headers, not the prose
   under them.
-- After `mt add`, search the written task for a backslash-backtick pair:
-  `` rg -F '\`' <file> ``. A hit is almost always markup that landed escaped.
+- A backtick in a `text` slot still files, escaped, and `mt add` warns:
+  `` warning: escaped the markup in a text slot: 'summary' `` with a `hint:`
+  to declare the slot `kind: "raw"`. Fix the body by hand, and tell the
+  template's owner. Only the backtick warns, since `_`, `#` or `<` is often
+  literal text.
 
 ## A `raw` slot splices verbatim, by the template's choice
 

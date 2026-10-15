@@ -113,6 +113,19 @@ TYP
 done
 capture --exit 1 --expect 'is not an allowed value' check-template-stale "$B" 'mt check'
 
+# /templates/: a code span filed into a `text` slot, which files escaped and
+# warns.
+capture_scratch S
+mkdir -p "$S/.mindtape/templates"
+printf '[tasks]\nroots = ["tasks"]\n' >"$S/.mindtape/config.toml"
+cat >"$S/.mindtape/templates/task.typ" <<'TYP'
+#import "@local/mindtape:0.2.0": *
+#show: task.with(title: slot("title"))
+
+#slot("summary", kind: "text", example: "Lint before you push")
+TYP
+capture add-text-slot-span "$S" "mt add Speed up CI --set 'summary=Run \`make lint\` first'"
+
 # /derived-tags/: every task with the tags mt derives for it, and a filter on
 # one derived tag.
 run derived-tags-ls.json "$TAGS" ls '' --json

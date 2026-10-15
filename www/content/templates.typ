@@ -69,6 +69,15 @@ characters print as typed. A `raw` slot pastes its value in as Typst markup,
 and `mt add` refuses a value that doesn't parse as markup. Use `raw` for body
 sections that hold lists and code, like the template above.
 
+A backtick in a `text` slot almost always means a code span, which escaping
+files as literal backslashes. So `mt add` still files the task, but warns and
+names the slot:
+
+#terminal("add-text-slot-span")
+
+Only the backtick warns. A path's `_` or a plain `a < b` is literal text, and
+files quietly.
+
 The `default` and `example` of a `text` or `raw` slot can be a raw block as
 well as a string, so a body section's example reads as markup, as in the
 template above. Typst removes the indentation every line shares, the closing
