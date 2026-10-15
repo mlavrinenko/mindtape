@@ -1,8 +1,10 @@
-/* Mindtape docs — components: hero, three faces, terminal, language server, cards, pills. */
+/* Mindtape docs — components: hero, its panels, terminal, language server, cards, pills. */
 
 /* Hero -------------------------------------------------------------------- */
 .hero { padding: 1.2rem 0 0.5rem; }
-.hero-lede { max-width: 40rem; }
+/* The lede takes the hero's full width. main.home already caps the hero at
+   60rem, the width of the panels and tables below it, so the lede's lines stay
+   readable without a cap of their own. */
 .hero h1 { font-size: clamp(2rem, 5vw, 2.9rem); line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 0.8rem; }
 .hero-sub { font-size: 1.15rem; color: var(--muted); margin: 0; }
 .hero-cta { display: flex; flex-wrap: wrap; gap: 0.7rem; margin: 1.4rem 0 2.2rem; }
@@ -19,13 +21,6 @@
 .btn.ghost:hover { background: var(--accent-wash); color: var(--accent-strong); }
 
 .faces-intro { margin: 0 0 0.8rem; }
-.faces {
-  display: grid;
-  grid-template-areas: "terminal" "source" "card";
-}
-.face-source { grid-area: source; }
-.face-card { grid-area: card; }
-.face-terminal { grid-area: terminal; }
 .face {
   display: flex; flex-direction: column; overflow: hidden;
   border: 1px solid var(--border); border-radius: 12px; background: var(--bg);
@@ -41,15 +36,18 @@
   margin: 0; border: none; border-radius: 0; flex: 1; box-shadow: none; min-width: 0;
 }
 .face-source .face-body pre { font-size: 0.7rem; }
-/* The typeset face is a genuinely compiled task card (throttle-failed-logins-per-ip.typ →
-   SVG, inlined as a data-uri <img>); scale it to the column. */
-.face-card .face-body { padding: 1rem; align-items: flex-start; }
-.face-card .face-body > img { width: 100%; height: auto; display: block; }
-.faces-note { text-align: center; color: var(--muted); font-size: 0.92rem; font-style: italic; }
 
-@media (max-width: 44rem) {
-  .faces { grid-template-columns: 1fr; grid-template-areas: "source" "terminal" "card"; }
+/* The typeset card, folded under one line. The card is the hero task compiled
+   to SVG and inlined as a data-uri <img>. Opened, it stays a small card, not a
+   full-width page. */
+.typeset { margin: 0 0 1.2rem; }
+.typeset summary { cursor: pointer; color: var(--fg); }
+.typeset summary:hover { color: var(--accent); }
+.typeset-card {
+  max-width: 30rem; margin: 0.8rem 0 0; padding: 0.8rem;
+  border: 1px solid var(--border); border-radius: 12px; background: #ffffff;
 }
+.typeset-card img { width: 100%; height: auto; display: block; }
 
 /* Terminal panel (dark in both themes). A transcript renders as selectable
    `pre` text; terminal-ansi (ui.typ) puts the coloured runs in inline spans. */
@@ -306,7 +304,7 @@ main td code { font-size: 0.82em; }
 /* Lede paragraph under an h1 --------------------------------------------- */
 .lede { font-size: 1.12rem; color: var(--muted); margin-bottom: 1.6rem; }
 
-/* Copy as Markdown: an icon button beside the page title, its tooltip drawn
+/* Copy page as Markdown: an icon button beside the page title, its tooltip drawn
    from data-tip, which the script in layout.typ sets to "Copied" for a moment
    after a copy. */
 .page-title { display: flex; align-items: center; gap: 0.75rem; margin: 0 0 1.6rem; }

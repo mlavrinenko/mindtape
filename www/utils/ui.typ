@@ -150,13 +150,14 @@
   )
 }
 
-// All three hero faces are read from the live fixture and its captures under
-// generated/ (see www/generate.sh) — so none drift from reality: source is the
-// verbatim task file, terminal is real `mt ls` output, and the typeset card is
-// that same task genuinely compiled by the `task` show rule.
+// The hero's task, its `mt ls` row and its typeset card are read from the live
+// fixture and its captures under generated/ (see www/generate.sh), so none
+// drift from reality: the source is the verbatim task file, the terminal is
+// real `mt ls` output, and the card is that same task compiled by the `task`
+// show rule.
 #let _hero-source = read("../generated/hero-source.typ")
 
-// One face of the hero. The Markdown copy shows its caption as a paragraph.
+// One panel of the hero. The Markdown copy shows its caption as a paragraph.
 #let face(kind, caption, body) = if MARKDOWN [#caption #parbreak() #body] else {
   html.elem(
     "figure",
@@ -168,15 +169,27 @@
   )
 }
 
-// The faces both copies show. The typeset card is an inline SVG, which
-// typlite cannot write, so only the HTML hero adds it.
-#let _text-faces() = {
-  face("terminal", "terminal", terminal-ansi("hero-ls"))
+// The lines that lead into the `mt ls` panel and the typeset card.
+#let _ls-intro = [And here's how `mt ls` lists it, with the rest of the backlog.]
+#let _typeset-intro = [
+  It's Typst, so the same file also typesets into a tidy document.
+]
+
+// The task file, then how `mt ls` lists it, each under its own line. Both
+// copies show these. The typeset card is an inline SVG, which typlite cannot
+// write, so only the HTML hero adds it.
+#let _hero-panels() = {
+  let line(body) = if MARKDOWN [#body #parbreak()] else {
+    html.elem("p", attrs: (class: "faces-intro"), body)
+  }
+  line(showcase-intro)
   face("source", "source · throttle-failed-logins-per-ip.typ", raw(
     _hero-source,
     lang: "typ",
     block: true,
   ))
+  line(_ls-intro)
+  face("terminal", "terminal", terminal-ansi("hero-ls"))
 }
 
 // typlite joins two `par` calls into one line, so the paragraphs are markup.
@@ -185,9 +198,9 @@
 
   #link(u("/quickstart/"))[Get started] · #link(u("/concepts/"))[How it works]
 
-  #showcase-intro
+  #_hero-panels()
 
-  #_text-faces()
+  #_typeset-intro
 ]
 
 #let _html-hero() = html.elem("section", attrs: (class: "hero"), {
@@ -211,20 +224,20 @@
       )
     })
   })
-  html.elem("p", attrs: (class: "faces-intro"), showcase-intro)
-  html.elem("div", attrs: (class: "faces"), {
-    _text-faces()
-    // Read the SVG bytes rather than `image("…path…")`: the card is build-time
-    // content inlined as a data-uri, not a served asset, so a path literal would
-    // trip tola's asset-link validator (generated/ is never copied to public/).
-    face("card", "typeset · rendered", image(
+  _hero-panels()
+  // The card stays folded: one line says the file typesets, and a click shows
+  // it. Read the SVG bytes rather than `image("…path…")`: the card is
+  // build-time content inlined as a data-uri, not a served asset, so a path
+  // literal would trip tola's asset-link validator (generated/ is never
+  // copied to public/).
+  html.elem("details", attrs: (class: "typeset"), {
+    html.elem("summary", _typeset-intro + [ Take a look.])
+    html.elem("div", attrs: (class: "typeset-card"), image(
       read("../generated/hero-card.svg", encoding: none),
       format: "svg",
+      alt: "The task above, typeset as a document",
     ))
   })
-  html.elem("p", attrs: (class: "faces-note"))[
-    One file, three faces: source you edit, a row you query, a document you can typeset.
-  ]
 })
 
 #let hero() = if MARKDOWN { _md-hero() } else { _html-hero() }
