@@ -35,9 +35,9 @@ to the code it changes. The #link(u("/dsl/"))[Task DSL] lists every field.
 
 There's no daemon, database or index. Each `mt` command evaluates the task
 files under the roots with the Typst compiler, then applies the project's
-config to what they hold. So an edit counts as soon as the file is saved,
-whether you made it in your editor or a script, an agent or `mt` made it. Git
-versions the backlog with the code, and each branch carries its own tasks.
+config to what they hold. So a change counts the moment the file is saved,
+whoever made it. That's you in your editor, a script, an agent or `mt` itself.
+Git versions the backlog with the code, and each branch carries its own tasks.
 
 To keep this fast, `mt` caches each file's result in `.mindtape/cache/`, keyed
 by a hash of the file's bytes, and skips a file that hasn't changed.
@@ -48,6 +48,9 @@ A task's id is its filename stem, the file name without `.typ`, so
 `tasks/add-redis-client.typ` is `add-redis-client`. Every command that takes a
 task takes its id, as in `mt done add-redis-client`. Set the `id:` field to
 give a task a different id. `mt check` reports two tasks with the same id.
+
+`mt ls` also shows a short hash for each task, like `re8`. Every command takes
+it in place of the name.
 
 = Links name files
 
@@ -74,23 +77,16 @@ A field named `x-<ns>` holds a field of your own, such as `x-team`, or data
 for a tool built on #mindtape, such as `x-speconaut`. `mt ls --json` passes it
 through unchanged under `extras`.
 
-`mt` checks an `x-` field only if you declare it in `[tasks.fields.x-<ns>]`.
-There, `values` and `required` work the same as they do for `kind`. A
-`values-when` filter limits the check to the tasks it matches, such as
-`"!terminal"` to leave closed tasks alone. A declared field takes one string,
-or a list of strings with `multiple = true`, and `values` covers every
-element. `mt add` offers a required one as a
-#link(u("/templates/"))[slot]. A #link(u("/filters/"))[filter] can read the
-value whether you declared the field or not.
+Want `mt` to check one? Declare it in `[tasks.fields.x-<ns>]`.
+#link(u("/config/#extension-fields"))[Configuration] covers the rest.
 
 Any other field that `task` doesn't declare fails the file with an
 `unexpected argument` error that names it.
 
 = Where a mistake is caught
 
-The prelude refuses only what it would lose before `mt` reads the file: a
-field it doesn't declare, and a helper argument it can't store, such as a
-status note that isn't a content block. Typst fails the file on these.
+Typst itself stops a file with a misspelled field, or with a value a helper
+can't hold, like a status note that isn't a content block.
 
 `mt check` checks everything else against the project's config: the
 #link(u("/statuses/"))[status legend], the priority and difficulty scales,

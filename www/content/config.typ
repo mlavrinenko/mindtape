@@ -210,7 +210,7 @@ These sections have a page of their own:
 - `[[ls.rules]]`, `[ls.columns.<name>]` and `[ls] hyperlinks`:
   #link(u("/cli/ls/"))[`mt ls`].
 
-The two sections below have no other page.
+The sections below have no other page.
 
 = Actors
 
@@ -283,3 +283,14 @@ A `{date:FMT}` format reads these tokens, longest first:
 existing path. `add-suffix` appends `-2`, `-3` and so on until the name is
 free. If `dedup` is unset, it's `fail` when `stem` is unset and `add-suffix`
 when it's set. `mt add --dedup` overrides it for one run.
+
+= Extension fields
+
+`mt` checks an `x-<ns>` field only if you declare it in
+`[tasks.fields.x-<ns>]`. There, `values` and `required` work the same as they
+do for `kind`. A `values-when` filter limits the check to the
+tasks it matches, such as `"!terminal"` to leave closed tasks alone. A declared
+field takes one string, or a list of strings with `multiple = true`, and
+`values` covers every element. `mt add` offers a required one as a
+#link(u("/templates/"))[slot]. A #link(u("/filters/"))[filter] can read the
+value whether you declared the field or not.
