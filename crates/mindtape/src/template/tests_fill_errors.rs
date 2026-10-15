@@ -27,7 +27,7 @@ fn every_error_displays_its_slot_and_remedy() {
     let cases = [
         (
             FillError::Missing(vec!["a".to_owned(), "b".to_owned()]),
-            "missing required slot(s): a, b",
+            "missing required slots: a, b",
         ),
         (
             type_err(SlotKind::Int),

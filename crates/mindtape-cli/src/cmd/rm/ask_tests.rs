@@ -43,7 +43,7 @@ fn a_delete_plan_shows_the_delete_prompt_and_a_yes_goes_on() {
     assert!(result.is_ok());
     assert_eq!(
         shown,
-        ["rm will delete 1 task(s):", "  - gone.typ"].map(str::to_owned)
+        ["rm will delete 1 task:", "  - gone.typ"].map(str::to_owned)
     );
 }
 
@@ -51,7 +51,7 @@ fn a_delete_plan_shows_the_delete_prompt_and_a_yes_goes_on() {
 fn a_retire_plan_shows_the_retire_prompt() {
     let (result, shown) = ask(&retire_removal(), true);
     assert!(result.is_ok());
-    assert_eq!(shown, ["rm will retire 0 task(s) to done:".to_owned()]);
+    assert_eq!(shown, ["rm will retire 0 tasks to done:".to_owned()]);
 }
 
 #[test]

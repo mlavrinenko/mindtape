@@ -61,7 +61,7 @@ fn validation_violation_returns_err() {
 
 const QUIET_CLEAN_CHILD: &str = "_MT_CHECK_QUIET_CLEAN_CHILD";
 
-/// `--quiet` suppresses the `ok: N task(s) valid` summary on a clean run, but
+/// `--quiet` suppresses the `ok: N tasks` summary on a clean run, but
 /// the command still exits 0. Asserted from a child process, since the
 /// parent's test harness owns stdout.
 #[test]

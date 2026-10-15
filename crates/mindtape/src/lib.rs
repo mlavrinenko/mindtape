@@ -30,6 +30,7 @@ pub mod import_map;
 pub mod link;
 pub mod loader;
 pub mod model;
+pub mod plural;
 pub mod problem;
 pub mod recur;
 pub mod rules;
@@ -106,6 +107,7 @@ pub use model::numeric::{
 pub use model::reference::{Base, RefError, Resolved, Via, is_path_ref, resolve_ref};
 pub use model::task_spans::TaskCallSpans;
 pub use model::{Status, Task, is_history_pointer, normalize_link, relative_target, slash_path};
+pub use plural::{count, plural};
 pub use problem::Problem;
 pub use rules::{CheckSpec, RuleSpec};
 pub use sort::{default_order, default_order_with, difficulty_value, sort_by_specs};

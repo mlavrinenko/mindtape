@@ -58,7 +58,10 @@ pub(crate) fn run(project: &util::Project, range: &str, quiet: bool) -> Result<(
         return Err(Diag::commits_broke_rules(broke, failing(&left)));
     }
     if !quiet {
-        println!("ok: {} commit(s) pass commit rules", commits.commits.len());
+        println!(
+            "ok: commit rules pass on {}",
+            mindtape::count(commits.commits.len(), "commit")
+        );
     }
     Ok(())
 }

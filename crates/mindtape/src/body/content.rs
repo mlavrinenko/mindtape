@@ -32,7 +32,7 @@ pub struct ContentRuleConfig {
     /// config error naming both.
     #[serde(default)]
     pub name: Option<String>,
-    /// Path through the heading tree selecting the section(s) to assert over.
+    /// Path through the heading tree selecting the sections to assert over.
     pub path: Vec<HeaderPathSegment>,
     /// The assertion made over each matched section's content.
     pub assert: ContentAssert,

@@ -63,6 +63,9 @@ gate fails on any violation. These limits shape the code most:
 - If callers match on a library error type, derive `thiserror::Error` for it,
   as `RecurError`, `ConfigError` and `FilterError` do, and convert it in
   `diag/from_lib.rs` with a match on every variant.
+- Say a count with `mindtape::count(n, "task")`, which prints `1 task` or
+  `12 tasks`. #just.plural-check() refuses `task(s)` in a string outside
+  tests.
 - Keep `main.rs` thin and put the logic in library modules.
 
 = Testing

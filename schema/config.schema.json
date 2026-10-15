@@ -538,7 +538,7 @@
           ]
         },
         "path": {
-          "description": "Path through the heading tree selecting the section(s) to assert over.",
+          "description": "Path through the heading tree selecting the sections to assert over.",
           "items": {
             "$ref": "#/$defs/HeaderPathSegment"
           },
@@ -1831,7 +1831,7 @@
               "type": "null"
             }
           ],
-          "description": "How inbound references to removed task(s) are handled; defaults to `\"git-tombstone\"` in a git repository, `\"reject\"` without one."
+          "description": "How inbound references to a removed task are handled; defaults to `\"git-tombstone\"` in a git repository, `\"reject\"` without one."
         }
       },
       "type": "object"

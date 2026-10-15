@@ -361,7 +361,7 @@ fn the_delete_prompt_lists_the_files_and_the_links_it_rewrites() {
     assert_eq!(
         super::report::prompt_lines(&plan),
         [
-            "rm will delete 1 task(s) and rewrite links in 1 file(s):",
+            "rm will delete 1 task and rewrite links in 1 file:",
             "  - gone.typ"
         ]
     );

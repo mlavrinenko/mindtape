@@ -224,7 +224,10 @@ fn entries(args: &LinkArgs) -> Result<Vec<Entry>> {
 
 /// Print what the run would do, one line per entry (`--dry-run`).
 fn report_plan(plan: &Plan) {
-    println!("would rewrite {} task(s):", plan.staged.len());
+    println!(
+        "would rewrite {}:",
+        mindtape::count(plan.staged.len(), "task")
+    );
     for staged in &plan.staged {
         println!("  - {}: {}", staged.stem, change_summary(staged));
     }
@@ -249,7 +252,7 @@ fn change_summary(staged: &Staged) -> String {
     let dropped = if staged.removed == 0 {
         String::new()
     } else {
-        format!(" (dropping {} edge(s))", staged.removed)
+        format!(" (dropping {})", mindtape::count(staged.removed, "edge"))
     };
     if added.is_empty() {
         return format!("rewrote links:{dropped}");

@@ -150,7 +150,10 @@ fn check_project(
     let load_errors = project.outcome.errors.len() + templates.load_failures.len();
     if failures == 0 && load_errors == 0 {
         if !args.quiet && !args.json {
-            println!("ok: {} task(s) valid", project.outcome.tasks.len());
+            println!(
+                "ok: {}",
+                mindtape::count(project.outcome.tasks.len(), "task")
+            );
         }
         return Ok(());
     }

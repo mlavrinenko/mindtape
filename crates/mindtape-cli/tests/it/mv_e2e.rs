@@ -87,7 +87,7 @@ fn mv_renames_the_file_and_retargets_every_inbound_edge() {
         .assert()
         .success()
         .stdout(predicates::str::contains("tasks/new.typ"))
-        .stdout(predicates::str::contains("4 link(s) in 2 file(s)"));
+        .stdout(predicates::str::contains("4 links in 2 files"));
 
     assert!(!dir.path().join("tasks/old.typ").exists());
     assert!(dir.path().join("tasks/new.typ").exists());

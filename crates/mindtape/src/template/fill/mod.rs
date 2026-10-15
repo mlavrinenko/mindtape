@@ -105,7 +105,12 @@ pub enum FillError {
 impl fmt::Display for FillError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Missing(names) => write!(f, "missing required slot(s): {}", names.join(", ")),
+            Self::Missing(names) => write!(
+                f,
+                "missing required {}: {}",
+                crate::plural(names.len(), "slot"),
+                names.join(", ")
+            ),
             Self::Type {
                 slot,
                 want: SlotKind::List | SlotKind::MultiChoice,

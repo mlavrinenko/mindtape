@@ -3,13 +3,15 @@
 
 use std::path::Path;
 
+use mindtape::count;
+
 use super::{RetirePlan, dest_rel};
 
 /// Print what the retire plan would do (used by `--dry-run`).
 pub fn report_retire_plan(plan: &RetirePlan) {
     println!(
-        "would retire {} task(s) (status → {}):",
-        plan.rewrites.len(),
+        "would retire {} (status → {}):",
+        count(plan.rewrites.len(), "task"),
         plan.status
     );
     for rewrite in &plan.rewrites {
@@ -17,8 +19,8 @@ pub fn report_retire_plan(plan: &RetirePlan) {
     }
     if let Some(dir) = &plan.rename {
         println!(
-            "would move {} task(s) into {}/:",
-            plan.deletions.len(),
+            "would move {} into {}/:",
+            count(plan.deletions.len(), "task"),
             dir.display()
         );
         for deletion in &plan.deletions {
@@ -36,8 +38,8 @@ pub fn report_retire_plan(plan: &RetirePlan) {
 /// commit hint only when `root` sits inside a git repository.
 pub fn report_retire_applied(plan: &RetirePlan, root: &Path) {
     println!(
-        "retired {} task(s) (status → {}):",
-        plan.rewrites.len(),
+        "retired {} (status → {}):",
+        count(plan.rewrites.len(), "task"),
         plan.status
     );
     for rewrite in &plan.rewrites {
@@ -45,8 +47,8 @@ pub fn report_retire_applied(plan: &RetirePlan, root: &Path) {
     }
     if let Some(dir) = &plan.rename {
         println!(
-            "moved {} task(s) into {}/",
-            plan.deletions.len(),
+            "moved {} into {}/",
+            count(plan.deletions.len(), "task"),
             dir.display()
         );
     }
@@ -62,8 +64,9 @@ fn report_retarget(plan: &RetirePlan, verb: &str) {
     }
     let links: usize = plan.link_rewrites.iter().map(|rewrite| rewrite.links).sum();
     println!(
-        "{verb} {links} link(s) in {} file(s):",
-        plan.link_rewrites.len()
+        "{verb} {} in {}:",
+        count(links, "link"),
+        count(plan.link_rewrites.len(), "file")
     );
     for rewrite in &plan.link_rewrites {
         println!("  - {}", rewrite.rel.display());
@@ -74,8 +77,8 @@ fn report_retarget(plan: &RetirePlan, verb: &str) {
 /// move and the link retargets when there are any.
 pub fn retire_prompt_lines(plan: &RetirePlan) -> Vec<String> {
     let mut lines = vec![format!(
-        "rm will retire {} task(s) to {}:",
-        plan.rewrites.len(),
+        "rm will retire {} to {}:",
+        count(plan.rewrites.len(), "task"),
         plan.status
     )];
     lines.extend(
@@ -85,16 +88,17 @@ pub fn retire_prompt_lines(plan: &RetirePlan) -> Vec<String> {
     );
     if let Some(dir) = &plan.rename {
         lines.push(format!(
-            "and move {} task(s) into {}/",
-            plan.deletions.len(),
+            "and move {} into {}/",
+            count(plan.deletions.len(), "task"),
             dir.display()
         ));
     }
     if !plan.link_rewrites.is_empty() {
         let moved: usize = plan.link_rewrites.iter().map(|rewrite| rewrite.links).sum();
         lines.push(format!(
-            "and retarget {moved} link(s) in {} file(s)",
-            plan.link_rewrites.len()
+            "and retarget {} in {}",
+            count(moved, "link"),
+            count(plan.link_rewrites.len(), "file")
         ));
     }
     lines
@@ -137,10 +141,10 @@ mod tests {
         assert_eq!(
             retire_prompt_lines(&plan),
             [
-                "rm will retire 1 task(s) to done:",
+                "rm will retire 1 task to done:",
                 "  - gone.typ",
-                "and move 1 task(s) into .archive/",
-                "and retarget 3 link(s) in 1 file(s)",
+                "and move 1 task into .archive/",
+                "and retarget 3 links in 1 file",
             ]
         );
     }
@@ -149,7 +153,7 @@ mod tests {
     fn the_retire_prompt_in_place_has_no_move_or_retarget_line() {
         assert_eq!(
             retire_prompt_lines(&plan(None, Vec::new())),
-            ["rm will retire 1 task(s) to done:", "  - gone.typ"]
+            ["rm will retire 1 task to done:", "  - gone.typ"]
         );
     }
 }

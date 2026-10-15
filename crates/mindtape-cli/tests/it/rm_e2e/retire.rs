@@ -30,7 +30,7 @@ fn retire_dry_run(config: &str) -> (tempfile::TempDir, assert_cmd::assert::Asser
 fn rm_retire_flips_to_first_terminal_status_without_git() {
     let (dir, run) = retire_dry_run(RETIRE_CONFIG);
     run.stdout(predicates::str::contains(
-        "would retire 1 task(s) (status → done)",
+        "would retire 1 task (status → done)",
     ));
     assert!(dir.path().join("tasks/gone.typ").exists());
 
@@ -143,16 +143,16 @@ fn rm_retire_dry_run_previews_the_archive_move_and_writes_nothing() {
     // exercises it.
     let (dir, run) = retire_dry_run(RETIRE_ARCHIVE_CONFIG);
     run.stdout(predicates::str::contains(
-        "would retire 1 task(s) (status → done):",
+        "would retire 1 task (status → done):",
     ))
     .stdout(predicates::str::contains(
-        "would move 1 task(s) into .archive/:",
+        "would move 1 task into .archive/:",
     ))
     .stdout(predicates::str::contains(
         "tasks/gone.typ → tasks/.archive/gone.typ",
     ))
     .stdout(predicates::str::contains(
-        "would rewrite 3 link(s) in 1 file(s):",
+        "would rewrite 3 links in 1 file:",
     ))
     .stdout(predicates::str::contains("dry run: nothing written"));
 

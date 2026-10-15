@@ -157,8 +157,8 @@ fn rm_takes_two_refs_in_one_invocation_and_rewrites_each_inbound_link() {
         .args(["rm", "-y", "gone-a", "gone-b"])
         .assert()
         .success()
-        .stdout(predicates::str::contains("deleted 2 task(s)"))
-        .stdout(predicates::str::contains("rewrote 2 link(s) in 2 file(s)"));
+        .stdout(predicates::str::contains("deleted 2 tasks"))
+        .stdout(predicates::str::contains("rewrote 2 links in 2 files"));
 
     // Both retired files are gone.
     assert!(!dir.path().join("tasks/gone-a.typ").exists());
@@ -271,9 +271,9 @@ fn rm_unlink_strips_inbound_edges_and_deletes_without_git() {
         .assert()
         .success()
         .stdout(predicates::str::contains("strategy: unlink"))
-        .stdout(predicates::str::contains("would delete 1 task(s)"))
+        .stdout(predicates::str::contains("would delete 1 task:"))
         .stdout(predicates::str::contains(
-            "would rewrite 3 link(s) in 1 file(s)",
+            "would rewrite 3 links in 1 file:",
         ));
     assert!(dir.path().join("tasks/gone.typ").exists());
 

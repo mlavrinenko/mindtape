@@ -476,6 +476,8 @@ scopes:
     - ".just/scripts/wt-carry-lcov.sh"
   script-path-attr-check:
     - ".just/scripts/path-attr-check.sh"
+  script-plural-check:
+    - ".just/scripts/plural-check.sh"
   script-positional-args-check:
     - ".just/scripts/positional-args-check.sh"
   script-release-hook:
@@ -775,6 +777,13 @@ commands:
   - name: just path-attr-check
     tags: [gate]
     inputs: [rust, gates-meta, script-path-attr-check]
+
+  # Plural gate: no `(s)` in a string literal in non-test Rust code under
+  # `crates/`. `rust` is the tree it scans, `script-plural-check` the body, and
+  # `gates-meta` the dev-shell pin of the tools it runs.
+  - name: just plural-check
+    tags: [gate]
+    inputs: [rust, gates-meta, script-plural-check]
 
   # Scan-scope self-test: an oversized shell script at `.just/scripts/` inside
   # a replica tree must be reported by linecop reading this repo's config, and

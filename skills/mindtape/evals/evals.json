@@ -52,7 +52,7 @@
           "text": "A new task file exists whose title/slug is about the 404 on the password reset link"
         },
         {
-          "text": "`mt check` reports all tasks valid (13 total)"
+          "text": "`mt check` prints `ok: 13 tasks`"
         },
         {
           "text": "The 12 original task files are unchanged"
@@ -130,7 +130,7 @@
           "text": "The new task carries `priority: 8`, written by `mt set upgrade-the-postgres-driver priority=8` after filing — not passed via `mt add --set` (which the built-in template refuses)"
         },
         {
-          "text": "`mt check` reports all tasks valid (6 total)"
+          "text": "`mt check` prints `ok: 6 tasks`"
         },
         {
           "text": "The 5 original task files are unchanged"
@@ -158,7 +158,7 @@
           "text": "add-dark-mode.typ was not left silently unchanged with the answer only in chat"
         },
         {
-          "text": "`mt check` reports all tasks valid"
+          "text": "`mt check` prints `ok:` with the task count"
         }
       ]
     }

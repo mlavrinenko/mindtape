@@ -102,7 +102,7 @@ fn an_excluded_path_does_not_spend_the_budget() {
 fn no_estimate_check_runs_without_a_rule() {
     let dir = fixture("", 1, 8);
     let (ok, stdout) = check(dir.path());
-    assert!(ok && stdout.contains("ok: 1 task(s) valid"), "{stdout}");
+    assert!(ok && stdout.contains("ok: 1 task\n"), "{stdout}");
     assert!(!stdout.contains("working tree"), "{stdout}");
 }
 

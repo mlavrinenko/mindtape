@@ -126,7 +126,10 @@ fn check_cardinality(
                 out,
                 task,
                 (*kind).to_owned(),
-                format!("`{kind}` allows at most {max} edge(s), found {count}"),
+                format!(
+                    "`{kind}` allows at most {}, found {count}",
+                    crate::count(max, "edge")
+                ),
             );
         }
     }

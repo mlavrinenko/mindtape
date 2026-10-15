@@ -68,9 +68,12 @@ fn head(diag: &Diag) -> String {
 
 /// ` 1 of 3 tasks; 2 failed`, the failed count only when some landed.
 fn tally_text(tally: Tally) -> String {
-    let noun = if tally.total == 1 { "task" } else { "tasks" };
     let failed = tally.total.saturating_sub(tally.done);
-    let mut text = format!(" {} of {} {noun}", tally.done, tally.total);
+    let mut text = format!(
+        " {} of {}",
+        tally.done,
+        mindtape::count(tally.total, "task")
+    );
     if tally.done > 0 && failed > 0 {
         text.push_str(&format!("; {failed} failed"));
     }

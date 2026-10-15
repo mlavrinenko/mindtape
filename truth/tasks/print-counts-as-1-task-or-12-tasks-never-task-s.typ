@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 15),
+  status: done(2026, 10, 15),
 )
 
 == Problem
@@ -50,8 +50,8 @@
 
 ```text
 $ just plural-check
-crates/mindtape-cli/src/cmd/check/mod.rs:146: (s) in a string; use mindtape::count(n, "task")
-plural-check: say 1 task or 12 tasks, not task(s)
+crates/mindtape-cli/src/cmd/check/mod.rs:146: (s) in a string; count with mindtape::count(n, "noun")
+plural-check: say 1 task or 12 tasks with mindtape::count or mindtape::plural, not task(s)
 ```
 
 

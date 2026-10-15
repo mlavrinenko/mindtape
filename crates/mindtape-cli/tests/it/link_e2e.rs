@@ -168,7 +168,7 @@ fn dry_run_prints_the_plan_and_writes_nothing() {
         .assert()
         .success();
     let stdout = String::from_utf8_lossy(&output.get_output().stdout).into_owned();
-    assert!(stdout.contains("would rewrite 1 task(s)"), "{stdout}");
+    assert!(stdout.contains("would rewrite 1 task:"), "{stdout}");
     assert!(
         stdout.contains("+depends-on -> pick-a-provider.typ"),
         "{stdout}"
@@ -330,7 +330,7 @@ fn a_dry_run_lists_an_edge_already_on_disk_as_unchanged() {
             "--dry-run",
         ],
     );
-    assert!(stdout.contains("would rewrite 0 task(s)"), "{stdout}");
+    assert!(stdout.contains("would rewrite 0 tasks:"), "{stdout}");
     assert!(stdout.contains("- wire-oauth: unchanged"), "{stdout}");
 }
 

@@ -30,6 +30,7 @@ The workspace `Cargo.toml` sets its clippy lints to `deny`, so the `clippy` gate
 - Pick the kind, not the exit code: `Diag::usage` exits 2, `Diag::refused` and `Diag::failed` exit 1. `main` prints the error and exits with its code.
 - Every command returns `Result<_, Diag>`, and the `mt` binary has no `anyhow`. clippy refuses `eprintln!`, `eprint!` and `std::io::stderr` outside `diag/`, so no line reaches stderr unrendered.
 - If callers match on a library error type, derive `thiserror::Error` for it, as `RecurError`, `ConfigError` and `FilterError` do, and convert it in `diag/from_lib.rs` with a match on every variant.
+- Say a count with `mindtape::count(n, "task")`, which prints `1 task` or `12 tasks`. `just plural-check` refuses `task(s)` in a string outside tests.
 - Keep `main.rs` thin and put the logic in library modules.
 
 ## Testing

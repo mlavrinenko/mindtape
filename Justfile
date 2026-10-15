@@ -80,7 +80,7 @@ _check-stages: _check-fast _check-build _check-cover
 [doc("The check gates that build nothing")]
 [parallel]
 [private]
-_check-fast: (mmz "fmt-check") (mmz "clippy") (mmz "machete") (mmz "check-workflows") (mmz "shellcheck") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-doc-recipes") (mmz "check-doc-prose") (mmz "check-doc-blocks") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "path-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "crap-baseline-check") (mmz "check-gate-drift")
+_check-fast: (mmz "fmt-check") (mmz "clippy") (mmz "machete") (mmz "check-workflows") (mmz "shellcheck") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-doc-recipes") (mmz "check-doc-prose") (mmz "check-doc-blocks") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "path-attr-check") (mmz "plural-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "crap-baseline-check") (mmz "check-gate-drift")
 
 [doc("The check gates that build or run mt")]
 [parallel]
@@ -390,6 +390,16 @@ arg-pattern-check:
 [group("gate")]
 path-attr-check:
     bash .just/scripts/path-attr-check.sh
+
+# A count reads `1 task` or `12 tasks`: refuse `(s)` in a string literal in
+# non-test Rust code under `crates/`. The script scans a synthesized fixture
+# first, so a scan that reaches nothing fails; .just/scripts/plural-check.sh
+# says what it reads as a string and as test code.
+
+[doc("Refuse task(s) and the like in a string outside tests; use mindtape::count")]
+[group("gate")]
+plural-check:
+    bash .just/scripts/plural-check.sh
 
 # Lock the file-size gate's scan scope: an oversized shell script under
 # `.just/scripts/` must be reported by `linecop` reading this repo's

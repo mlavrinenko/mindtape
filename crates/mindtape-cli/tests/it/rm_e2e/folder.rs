@@ -48,7 +48,7 @@ fn rm_deletes_every_task_under_a_folder_named_by_its_path() {
         let (dir, out) = rm_in(cwd, &["-y", spec]);
 
         out.success()
-            .stdout(predicates::str::contains("deleted 2 task(s)"));
+            .stdout(predicates::str::contains("deleted 2 tasks"));
         assert!(!batch_left(&dir));
         assert!(dir.path().join("tasks/keep.typ").exists());
     }

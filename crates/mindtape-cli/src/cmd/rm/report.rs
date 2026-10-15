@@ -4,6 +4,7 @@
 
 use std::path::Path;
 
+use mindtape::count;
 use typst_cleanup::Plan;
 
 /// The lines of the delete prompt: how many tasks go and how many files'
@@ -12,11 +13,14 @@ pub(super) fn prompt_lines(plan: &Plan) -> Vec<String> {
     let rewrites = if plan.rewrites.is_empty() {
         String::new()
     } else {
-        format!(" and rewrite links in {} file(s)", plan.rewrites.len())
+        format!(
+            " and rewrite links in {}",
+            count(plan.rewrites.len(), "file")
+        )
     };
     let mut lines = vec![format!(
-        "rm will delete {} task(s){rewrites}:",
-        plan.deletions.len()
+        "rm will delete {}{rewrites}:",
+        count(plan.deletions.len(), "task")
     )];
     lines.extend(
         plan.deletions
@@ -40,13 +44,13 @@ pub(super) fn rewrite_link_count(plan: &Plan) -> usize {
 
 /// Print what the plan would do (used by `--dry-run`).
 pub(super) fn report_plan(plan: &Plan) {
-    println!("would delete {} task(s):", plan.deletions.len());
+    println!("would delete {}:", count(plan.deletions.len(), "task"));
     print_deletions(plan);
     if !plan.rewrites.is_empty() {
         println!(
-            "would rewrite {} link(s) in {} file(s):",
-            rewrite_link_count(plan),
-            plan.rewrites.len()
+            "would rewrite {} in {}:",
+            count(rewrite_link_count(plan), "link"),
+            count(plan.rewrites.len(), "file")
         );
         for rewrite in &plan.rewrites {
             println!("  - {}", rewrite.rel.display());
@@ -58,13 +62,13 @@ pub(super) fn report_plan(plan: &Plan) {
 /// the hint only when `root` sits inside a git repository; there is nothing
 /// to commit and no tool to name otherwise.
 pub(super) fn report_applied(plan: &Plan, root: &Path) {
-    println!("deleted {} task(s):", plan.deletions.len());
+    println!("deleted {}:", count(plan.deletions.len(), "task"));
     print_deletions(plan);
     if !plan.rewrites.is_empty() {
         println!(
-            "rewrote {} link(s) in {} file(s)",
-            rewrite_link_count(plan),
-            plan.rewrites.len()
+            "rewrote {} in {}",
+            count(rewrite_link_count(plan), "link"),
+            count(plan.rewrites.len(), "file")
         );
     }
     super::gitless::print_commit_hint(root);

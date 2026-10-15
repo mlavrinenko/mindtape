@@ -8,27 +8,23 @@
 //! error: gate failed: 'scripts/test': exit 1
 //! ```
 
-use super::Diag;
+use mindtape::count;
 
-/// `count` followed by `noun`, pluralised: `1 task`, `2 tasks`.
-fn counted(count: usize, noun: &str) -> String {
-    let plural = if count == 1 { "" } else { "s" };
-    format!("{count} {noun}{plural}")
-}
+use super::Diag;
 
 impl Diag {
     /// What `mt check` ends with: `3 problems in 2 tasks`.
     pub(crate) fn problems(problems: usize, tasks: usize) -> Self {
         Self::refused("").reason(format!(
             "{} in {}",
-            counted(problems, "problem"),
-            counted(tasks, "task")
+            count(problems, "problem"),
+            count(tasks, "task")
         ))
     }
 
     /// What `mt check --commit-msg` ends with: `2 commit message problems`.
     pub(crate) fn commit_message_problems(problems: usize) -> Self {
-        Self::refused("").reason(counted(problems, "commit message problem"))
+        Self::refused("").reason(count(problems, "commit message problem"))
     }
 
     /// What `mt check --commits` ends with: `2 commits broke commit rules`,
@@ -37,8 +33,8 @@ impl Diag {
     pub(crate) fn commits_broke_rules(commits: usize, tasks: usize) -> Self {
         let broke = [(commits, "commit"), (tasks, "task")]
             .into_iter()
-            .filter(|(count, _)| *count > 0)
-            .map(|(count, noun)| counted(count, noun))
+            .filter(|(n, _)| *n > 0)
+            .map(|(n, noun)| count(n, noun))
             .collect::<Vec<_>>()
             .join(" and ");
         Self::refused("").reason(format!("{broke} broke commit rules"))

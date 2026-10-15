@@ -42,7 +42,7 @@ pub enum GateError {
     #[error("rule path must not be empty")]
     EmptyPath,
     /// A rule names a field that its action does not accept.
-    #[error("action '{action}' does not accept field(s): {fields}")]
+    #[error("action '{action}' does not accept: {fields}")]
     UnexpectedFields {
         /// The rule's action.
         action: String,

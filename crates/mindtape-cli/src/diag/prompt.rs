@@ -50,10 +50,7 @@ mod tests {
 
     fn run(answer: &str) -> (bool, String) {
         let mut out = Vec::new();
-        let lines = vec![
-            "rm will delete 1 task(s):".to_owned(),
-            "  - a.typ".to_owned(),
-        ];
+        let lines = vec!["rm will delete 1 task:".to_owned(), "  - a.typ".to_owned()];
         let got = ask(&mut out, &mut answer.as_bytes(), &lines).unwrap();
         (got, String::from_utf8(out).unwrap())
     }
@@ -63,7 +60,7 @@ mod tests {
         let (_, written) = run("n\n");
         assert_eq!(
             written,
-            "rm will delete 1 task(s):\n  - a.typ\nContinue? [y/N] "
+            "rm will delete 1 task:\n  - a.typ\nContinue? [y/N] "
         );
     }
 

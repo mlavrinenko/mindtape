@@ -236,7 +236,7 @@ fn report_applied(from: &Path, to: &Path, rewrites: &[Rewrite], root: &Path) {
     print_commit_hint(root);
 }
 
-/// `<verb> N link(s) in M file(s)`, the files listed only when previewing:
+/// `<verb> N links in M files`, the files listed only when previewing:
 /// a plan is read to decide, and a finished report to confirm.
 fn report_rewrites(verb: &str, rewrites: &[Rewrite], list: bool) {
     if rewrites.is_empty() {
@@ -244,7 +244,11 @@ fn report_rewrites(verb: &str, rewrites: &[Rewrite], list: bool) {
     }
     let links: usize = rewrites.iter().map(|rewrite| rewrite.links).sum();
     let tail = if list { ":" } else { "" };
-    println!("{verb} {links} link(s) in {} file(s){tail}", rewrites.len());
+    println!(
+        "{verb} {} in {}{tail}",
+        mindtape::count(links, "link"),
+        mindtape::count(rewrites.len(), "file")
+    );
     if list {
         for rewrite in rewrites {
             println!("  - {}", rewrite.rel.display());
