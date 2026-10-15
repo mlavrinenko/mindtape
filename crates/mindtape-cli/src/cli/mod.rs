@@ -42,7 +42,6 @@ pub struct Cli {
     command: Command,
 
     /// Use the project at PATH, not the one the current directory is in.
-
     ///
     /// PATH is the directory holding `.mindtape/`. Without the flag, mt
     /// searches up from the current directory. Defaults to
@@ -92,11 +91,7 @@ enum Command {
     /// A template is checked by the task it would file.
     Check(check::CheckArgs),
     /// Change one field of a task: `mt set <task> <field>=<value>`.
-    ///
-    /// You can set `title`, `priority` (as a number), `difficulty`, `kind`,
-    /// `assignee`, `tags`, `due` and `start`. Other fields have their own
-    /// commands, such as `mt flip` for `status`. mt checks the new value
-    /// before it writes, so a refused one leaves the file as it was.
+    #[command(long_about = set::long_about())]
     Set(set::SetArgs),
     /// Link tasks: one link at a time, or many from a file.
     ///

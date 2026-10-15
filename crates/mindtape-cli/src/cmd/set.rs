@@ -43,7 +43,6 @@ pub struct SetArgs {
     #[command(flatten)]
     pub task: crate::cli::task_ref::TaskRef,
     /// The change: `<field>=<value>`, `<field>+=<value>` or `<field>@<path>`.
-
     ///
     /// `<field>+=<value>` adds to a list, and `<field>@<path>` reads the value
     /// from a file. `mt set --help` lists the fields you can set.
@@ -257,6 +256,29 @@ fn parse_assignment(token: &str) -> Result<(String, Assigned), Diag> {
 /// never offer a field this command would then name as unknown.
 pub(crate) fn writable_fields() -> impl Iterator<Item = &'static str> {
     WRITABLE.iter().map(|field| field.name)
+}
+
+/// The long help of `mt set`, its field list read from [`WRITABLE`] so the
+/// help names exactly the fields this command writes.
+pub(crate) fn long_about() -> String {
+    let names: Vec<String> = WRITABLE
+        .iter()
+        .map(|field| match field.shape {
+            Shape::Num => format!("`{}` (as a number)", field.name),
+            _ => format!("`{}`", field.name),
+        })
+        .collect();
+    let list = match names.split_last() {
+        Some((last, [])) => last.clone(),
+        Some((last, rest)) => format!("{} and {last}", rest.join(", ")),
+        None => String::new(),
+    };
+    format!(
+        "Change one field of a task: `mt set <task> <field>=<value>`.\n\n\
+         You can set {list}. Other fields have their own commands, such as \
+         `mt flip` for `status`. mt checks the new value before it writes, so a \
+         refused one leaves the file as it was."
+    )
 }
 
 /// The writable field `name` names.

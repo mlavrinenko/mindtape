@@ -7,7 +7,7 @@
 use mindtape::test_support::bare_task;
 use mindtape::test_support::tempdir;
 
-use super::{Assigned, parse_assignment, render, writable};
+use super::{Assigned, parse_assignment, render, writable, writable_fields};
 
 /// Render one assignment against a task carrying `tags`, the way `run` does.
 fn rendered(token: &str, tags: &[&str]) -> Result<Option<String>, crate::diag::Diag> {
@@ -172,4 +172,17 @@ fn both_operators_parse_to_the_same_field_name() {
     assert_eq!(set, "tags");
     assert_eq!(append, "tags");
     assert!(matches!(value, Assigned::Append(ref item) if item == "b"));
+}
+
+/// `mt set --help` names every field the command writes, so the list can't
+/// drift from the table again, as it did when `waits-on` was missing.
+#[test]
+fn the_long_help_names_every_writable_field() {
+    use clap::CommandFactory;
+    let cli = crate::cli::Cli::command();
+    let set = cli.find_subcommand("set").unwrap();
+    let help = set.get_long_about().unwrap().to_string();
+    for field in writable_fields() {
+        assert!(help.contains(&format!("`{field}`")), "{field}: {help}");
+    }
 }
