@@ -27,7 +27,9 @@ use crate::util;
 #[derive(Debug, clap::Args)]
 pub struct LsArgs {
     /// Which tasks to list: a filter expression, or `@view` for a saved view.
-    /// Without it, you get your project's default listing. `''` lists every task.
+    ///
+    /// Without it, you get your project's default listing. `''` lists every
+    /// task.
     pub filter: Option<String>,
 
     #[command(flatten)]
@@ -50,29 +52,34 @@ pub struct LsFlags {
     #[arg(long)]
     pub json: bool,
 
-    /// Show at most N tasks, after filtering and sorting. A table says how many
-    /// it left out.
+    /// Show at most N tasks, after filtering and sorting.
+    ///
+    /// A table says how many it left out.
     #[arg(short = 'n', long)]
     pub limit: Option<usize>,
 
-    /// Skip the first N rows after sorting. For page two of `-n 20`, use
-    /// `--skip 20`. When the table is cut off, its footer shows the `--skip`
-    /// for the next page.
+    /// Skip the first N rows after sorting.
+    ///
+    /// For page two of `-n 20`, use `--skip 20`. When the table is cut off,
+    /// its footer shows the `--skip` for the next page.
     #[arg(long)]
     pub skip: Option<usize>,
 
-    /// Sort by a field, such as `--sort due:asc`. Repeat it to break ties, or
-    /// pass `@view` to sort as that view does.
+    /// Sort by a field, such as `--sort due:asc`.
+    ///
+    /// Repeat it to break ties, or pass `@view` to sort as that view does.
     #[arg(long)]
     pub sort: Vec<String>,
 
-    /// The columns to show, as a comma-separated list, or `@view` for a view's
-    /// columns.
+    /// The columns to show, comma-separated, or `@view` for a view's columns.
     #[arg(long, value_name = "COLS")]
     pub columns: Option<String>,
 
-    /// Pick a task from the table: type its hash to highlight it, and press
-    /// Enter to open it in your editor. Needs a terminal.
+    /// Pick a task from the table and open it in your editor.
+    ///
+    /// Type a task's hash to highlight it, and press Enter to open it. Needs a
+    /// terminal.
+
     #[arg(short = 'i', long, conflicts_with = "json")]
     pub interactive: bool,
 }

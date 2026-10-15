@@ -27,21 +27,30 @@ pub struct ConfigArgs {
 /// `mt config` sub-actions.
 #[derive(Debug, clap::Subcommand)]
 enum ConfigAction {
-    /// Print the config mt uses, with every layer merged. This is the default.
+    /// Print the config mt uses, with every layer merged.
+    ///
+    /// This is the default.
     Show(ShowArgs),
-    /// Print the JSON Schema for `.mindtape/config.toml`. Works outside a project.
+    /// Print the JSON Schema for `.mindtape/config.toml`.
+    ///
+    /// Works outside a project.
     Schema,
 }
 
 /// Arguments for `mt config show`.
 #[derive(Debug, Clone, Default, clap::Args)]
 pub struct ShowArgs {
-    /// Instead of the config, list the layers it comes from, lowest priority
-    /// first, and the layer each rule comes from.
+    /// List the layers the config comes from, instead of the config.
+    ///
+    /// The layers come lowest priority first, and each rule names the layer it
+    /// comes from.
     #[arg(long, alias = "sources", conflicts_with = "defaults")]
     pub origin: bool,
 
-    /// Print only the built-in defaults. Works outside a project.
+    /// Print only the built-in defaults.
+    ///
+    /// Works outside a project.
+
     #[arg(long, conflicts_with = "origin")]
     pub defaults: bool,
 

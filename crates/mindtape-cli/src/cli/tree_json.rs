@@ -31,9 +31,11 @@ pub struct CliDumpArgs {
     #[arg(long)]
     pub json: bool,
 
-    /// Judge one `mt ...` command line the way `mt` would parse it, and exit
-    /// non-zero with the reason when it would refuse. A missing required
-    /// argument passes.
+    /// Judge one `mt ...` command line the way `mt` would parse it.
+    ///
+    /// It exits non-zero with the reason when `mt` would refuse the line. A
+    /// missing required argument passes.
+
     #[arg(long, value_name = "LINE")]
     pub check_argv: Option<String>,
 

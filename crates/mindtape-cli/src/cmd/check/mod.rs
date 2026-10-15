@@ -23,20 +23,27 @@ use crate::util;
 /// Arguments for `mt check`.
 #[derive(Args, Default)]
 pub struct CheckArgs {
-    /// Don't print the `ok` line when everything passes. Errors and warnings
-    /// still print.
+    /// Don't print the `ok` line when everything passes.
+    ///
+    /// Errors and warnings still print.
     #[arg(short = 'q', long)]
     pub quiet: bool,
-    /// Check a commit message and the staged changes against your commit rules,
-    /// instead of checking tasks. For a `commit-msg` hook: `mt check --commit-msg "$1"`.
+    /// Check a commit message and the staged changes, not tasks.
+    ///
+    /// It checks them against your commit rules, instead of checking tasks.
+    /// For a `commit-msg` hook: `mt check --commit-msg "$1"`.
     #[arg(long, value_name = "FILE", conflicts_with = "commits")]
     pub commit_msg: Option<std::path::PathBuf>,
-    /// Check each commit in a git range against your commit rules, instead of
-    /// checking tasks. For CI: `mt check --commits origin/main..HEAD`.
+    /// Check each commit in a git range, not tasks.
+    ///
+    /// It checks them against your commit rules, instead of checking tasks.
+    /// For CI: `mt check --commits origin/main..HEAD`.
     #[arg(long, value_name = "RANGE")]
     pub commits: Option<String>,
-    /// Print the problems as JSON on stdout instead of text on stderr. The
-    /// exit code is the same.
+    /// Print the problems as JSON on stdout instead of text on stderr.
+    ///
+    /// The exit code is the same.
+
     #[arg(long, conflicts_with_all = ["commit_msg", "commits"])]
     pub json: bool,
 }

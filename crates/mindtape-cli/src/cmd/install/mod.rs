@@ -45,8 +45,11 @@ pub struct InstallArgs {
     #[arg(long)]
     pub no_completions: bool,
 
-    /// Overwrite your `defaults.toml`, the JSON Schema and the completion hooks
-    /// if they exist.
+    /// Overwrite files that already exist.
+    ///
+    /// Those are your `defaults.toml`, the JSON Schema and the completion
+    /// hooks.
+
     #[arg(long)]
     pub force: bool,
 }

@@ -26,11 +26,11 @@ pub struct PresetArgs {
 /// `mt preset` sub-actions.
 #[derive(Debug, clap::Subcommand)]
 enum PresetAction {
-    /// Save this project's config and templates as a preset you can pass to
-    /// `mt init -p`.
+    /// Save this project's config and templates as a preset for `mt init -p`.
     Save(SaveArgs),
-    /// List the built-in presets and yours, marking the default and any of yours
-    /// that hides a built-in one.
+    /// List the built-in presets and yours.
+    ///
+    /// It marks the default, and any of yours that hides a built-in one.
     Ls {
         /// Print JSON: each preset's name, origin and description.
         #[arg(long)]

@@ -30,8 +30,10 @@ use crate::util;
 /// Arguments for `graph`.
 #[derive(Debug, clap::Args)]
 pub struct GraphArgs {
-    /// Which tasks to draw, as a filter expression. Without it, mt draws every
-    /// task. Links to tasks the filter leaves out aren't drawn.
+    /// Which tasks to draw, as a filter expression.
+    ///
+    /// Without it, mt draws every task. Links to tasks the filter leaves out
+    /// aren't drawn.
     pub filter: Option<String>,
 
     /// Output format.

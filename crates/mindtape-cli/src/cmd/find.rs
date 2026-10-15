@@ -20,7 +20,10 @@ use crate::util;
 /// (`mt ls 'contains("bug", title)'`).
 #[derive(Debug, clap::Args)]
 pub struct FindArgs {
-    /// Words to search for. A task matches when it contains every word.
+    /// Words to search for.
+    ///
+    /// A task matches when it contains every word.
+
     #[arg(required = true, value_name = "TERM")]
     pub terms: Vec<String>,
 

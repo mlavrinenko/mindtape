@@ -43,19 +43,24 @@ pub struct LinkArgs {
     #[arg(help = crate::cli::task_ref::HELP, required_unless_present = "apply", conflicts_with = "apply")]
     pub task: Option<String>,
 
-    /// The kind of link: `depends-on`, `parent`, `recurred-from`, `supersedes`,
-    /// `duplicates`, `related`, or one your project adds.
+    /// The kind of link, such as `depends-on` or `related`.
+    ///
+    /// The built-in kinds are `depends-on`, `parent`, `recurred-from`,
+    /// `supersedes`, `duplicates` and `related`, and your project can add more.
     #[arg(required_unless_present = "apply")]
     pub kind: Option<String>,
 
-    /// The tasks to link to, each by stem, by hash, or by a path relative to
-    /// the task. A stem that tasks in two folders share is refused, so give a
-    /// path then.
+    /// The tasks to link to, each by stem, hash or path.
+    ///
+    /// A path is relative to the task. A stem that tasks in two folders share
+    /// is refused, so give a path then.
     #[arg(required_unless_present = "apply")]
     pub targets: Vec<String>,
 
-    /// A note on the link. A `related` link needs one, unless your project
-    /// changes that. With `--apply`, put notes in the file instead.
+    /// A note on the link.
+    ///
+    /// A `related` link needs one, unless your project changes that. With
+    /// `--apply`, put notes in the file instead.
     //
     // Refused with `--apply` rather than ignored, the way an unknown `--set`
     // key is: a map carries a note per target (`note:` beside `target:`), so
@@ -68,14 +73,18 @@ pub struct LinkArgs {
     )]
     pub note: Option<String>,
 
-    /// Read many links from a YAML or JSON file, or `-` for stdin, instead of
-    /// naming one task. The file maps each task's stem to kinds, and each kind
-    /// to targets.
+    /// Read many links from a YAML or JSON file, or `-` for stdin.
+    ///
+    /// Use it instead of naming one task. The file maps each task's stem to
+    /// kinds, and each kind to targets.
     #[arg(long, value_name = "FILE")]
     pub apply: Option<String>,
 
-    /// With `--apply`, make the file the full set of links for each task it
-    /// names, removing links it leaves out. Without `--replace`, mt only adds.
+    /// With `--apply`, remove the links the file leaves out.
+    ///
+    /// The file becomes the full set of links for each task it names. Without
+    /// `--replace`, mt only adds.
+
     //
     // `--apply` only: the positional form upserts one edge, so a `--replace`
     // there would silently clear every other edge on the task, a different

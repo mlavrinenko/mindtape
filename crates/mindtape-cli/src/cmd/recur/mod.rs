@@ -57,8 +57,10 @@ pub struct RecurArgs {
     #[arg(long = "dry-run")]
     pub dry_run: bool,
 
-    /// Write the next N occurrences as new tasks at once. Works only for a
-    /// task that spawns a new file each time.
+    /// Write the next N occurrences as new tasks at once.
+    ///
+    /// Works only for a task that spawns a new file each time.
+
     #[arg(long, value_name = "N", conflicts_with = "skip")]
     pub advance: Option<u32>,
 

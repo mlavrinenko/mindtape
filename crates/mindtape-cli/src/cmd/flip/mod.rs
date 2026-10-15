@@ -62,7 +62,9 @@ pub struct FlipArgs {
     /// The tasks to change, each by stem, hash or path.
     pub tasks: Vec<String>,
 
-    /// A note on the new status. Without it, mt clears the old status's note.
+    /// A note on the new status.
+    ///
+    /// Without it, mt clears the old status's note.
     #[arg(short = 'm', long = "note", value_name = "NOTE")]
     pub note: Option<String>,
 
@@ -70,12 +72,18 @@ pub struct FlipArgs {
     #[arg(long)]
     pub list: bool,
 
-    /// Allow a status change your project's rules forbid, and one a failing
-    /// `[[on.flip]]` check would block. The status note records a skipped check.
+    /// Allow a status change your project's rules or checks would refuse.
+    ///
+    /// It allows a change your project's rules forbid, and one a failing
+    /// `[[on.flip]]` check would block. The status note records a skipped
+    /// check.
     #[arg(long)]
     pub force: bool,
 
-    /// Don't print what `[[on.flip]]` hooks show. A failing check still prints.
+    /// Don't print what `[[on.flip]]` hooks show.
+    ///
+    /// A failing check still prints.
+
     #[arg(short = 'q', long)]
     pub quiet: bool,
 }

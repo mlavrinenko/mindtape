@@ -29,15 +29,24 @@ use crate::{
     cmd::worktrees,
 };
 
-/// Mindtape: a file-based task tracker using per-file Typst artifacts.
+/// Mindtape keeps your tasks as Typst files and checks them against your rules.
 #[derive(Parser)]
-#[command(name = "mt", version, about)]
+#[command(
+    name = "mt",
+    version,
+    after_help = "Every status is a command too, like `mt wip <task>` and `mt done <task>`.\n\
+                  Run `mt flip --list` to see them all."
+)]
 pub struct Cli {
     #[command(subcommand)]
     command: Command,
 
-    /// Use the project at PATH (the directory holding `.mindtape/`) instead of
-    /// searching up from the current directory. Defaults to `$MINDTAPE_WORKTREE`.
+    /// Use the project at PATH, not the one the current directory is in.
+
+    ///
+    /// PATH is the directory holding `.mindtape/`. Without the flag, mt
+    /// searches up from the current directory. Defaults to
+    /// `$MINDTAPE_WORKTREE`.
     #[arg(short = 'w', long, value_name = "PATH", global = true)]
     pub worktree: Option<PathBuf>,
 
@@ -45,78 +54,32 @@ pub struct Cli {
     #[arg(short = 'v', long, action = clap::ArgAction::Count, global = true)]
     pub verbose: u8,
 
-    /// When to colour the output.
+    /// When to color the output.
     #[arg(long, value_name = "WHEN", default_value_t, global = true)]
     pub color: ColorChoice,
 
-    /// When to make the `#` and `file` columns clickable links. Defaults to
-    /// `[ls] hyperlinks`, which is `never` unless your project changes it.
+    /// When to make the `#` and `file` columns clickable links.
+    ///
+    /// Defaults to `[ls] hyperlinks`, which is `never` unless your project
+    /// changes it.
     #[arg(long, value_name = "WHEN", global = true)]
     pub hyperlinks: Option<HyperlinkChoice>,
 }
 
+// The order here is the order `mt --help` lists: the commands a newcomer runs
+// first, then everyday edits, then reading, then setup.
 #[derive(Subcommand)]
 enum Command {
-    /// File a new task from a template.
-    Add(add::AddArgs),
-    /// Import tasks from JSON in the format `mt ls --json` prints, checking the
-    /// whole batch against your project's rules.
-    Import(import::ImportArgs),
-    /// List tasks, optionally filtered.
-    Ls(ls::LsArgs),
-    /// Find tasks that contain every word you give. Takes the same flags as
-    /// `mt ls`.
-    Find(find::FindArgs),
-    /// Draw tasks and the links between them, as Graphviz DOT or Mermaid.
-    Graph(graph::GraphArgs),
-    /// List your saved views, or show one.
-    Views(views::ViewsArgs),
-    /// List your worktree aliases, the `@name` you put right after `mt`.
-    Worktrees(worktrees::WorktreesArgs),
-    /// Check every task, and the task each template would file, against your
-    /// project's rules.
-    Check(check::CheckArgs),
-    /// Let the commands your config runs, its `[[tasks.waits]]` checkers and
-    /// `[[on.flip]]` `run` actions, run in this repository.
-    ///
-    /// It prints each command and records them for this repository and every
-    /// worktree of it. Until you do, mt runs none of them, and a changed
-    /// command asks again. Read them first: they run with your rights.
-    Allow(allow::AllowArgs),
-    /// Show the config mt uses.
-    Config(config_cmd::ConfigArgs),
-    /// Save this project's setup as a preset for `mt init`, or list presets.
-    Preset(preset_cmd::PresetArgs),
     /// Create `.mindtape/config.toml` in the current directory.
     Init(init::InitArgs),
-    /// Install what mt needs on this machine: the Typst package, your
-    /// user-wide defaults, the config's JSON Schema, and shell completions.
+    /// File a new task from a template.
+    Add(add::AddArgs),
+    /// List tasks, optionally filtered.
+    Ls(ls::LsArgs),
+    /// Find tasks that contain every word you give.
     ///
-    /// It installs all four unless you pass `--no-lib`, `--no-defaults`,
-    /// `--no-schema` or `--no-completions`. Completions call mt itself, so
-    /// they stay current when you upgrade.
-    Install(install::InstallArgs),
-    /// Evaluate one task file and print it. The file can be outside a project.
-    Eval(eval::EvalArgs),
-    /// Open a task in your editor, set by `[go] editor`.
-    Go(go::GoArgs),
-    /// Delete tasks. Links to a deleted task become a SWHID, an ID that still
-    /// finds its file in git history.
-    Rm(rm::RmArgs),
-    /// Rename a task's file and update every link that points to it.
-    ///
-    /// Inside a git repository it runs `git mv`. It keeps the task's title and
-    /// folder, and refuses a stem another task has.
-    Mv(mv::MvArgs),
-    /// Change one field of a task: `mt set <task> <field>=<value>`.
-    ///
-    /// You can set `title`, `priority` (as a number), `difficulty`, `kind`,
-    /// `assignee`, `tags`, `due` and `start`. Other fields have their own
-    /// commands, such as `mt flip` for `status`. mt checks the new value
-    /// before it writes, so a refused one leaves the file as it was.
-    Set(set::SetArgs),
-    /// Mark a task as reviewed today.
-    Review(review::ReviewArgs),
+    /// It takes the same flags as `mt ls`.
+    Find(find::FindArgs),
     /// Change the status of tasks: `mt flip done <task>...`.
     ///
     /// Each status also works as a command of its own, so `mt done 1b 2c` is
@@ -124,20 +87,79 @@ enum Command {
     /// `mt flip --list` to see them. When some tasks fail, mt still changes
     /// the rest and reports the failures.
     Flip(flip::FlipArgs),
-    /// Write the next occurrence of a recurring task.
+    /// Check every task and every template against your project's rules.
     ///
-    /// By default it writes a new task linked back to this one. With
-    /// `materialize: "mutate"`, it resets this task in place instead.
-    /// `mt done` closes a recurring task without writing the next one.
-    Recur(recur::RecurArgs),
+    /// A template is checked by the task it would file.
+    Check(check::CheckArgs),
+    /// Change one field of a task: `mt set <task> <field>=<value>`.
+    ///
+    /// You can set `title`, `priority` (as a number), `difficulty`, `kind`,
+    /// `assignee`, `tags`, `due` and `start`. Other fields have their own
+    /// commands, such as `mt flip` for `status`. mt checks the new value
+    /// before it writes, so a refused one leaves the file as it was.
+    Set(set::SetArgs),
     /// Link tasks: one link at a time, or many from a file.
     ///
     /// `mt link <task> <kind> <target>...` adds a link to each target, and
     /// `mt link --apply <file>` adds every link a YAML or JSON file lists.
     /// Running either twice adds nothing the second time.
     Link(link_cmd::LinkArgs),
-    /// Dump the command tree as JSON for the docs generator (hidden;
-    /// reflects `Cli::command()`, so the rendered CLI reference cannot drift).
+    /// Rename a task's file and update every link that points to it.
+    ///
+    /// Inside a git repository it runs `git mv`. It keeps the task's title and
+    /// folder, and refuses a stem another task has.
+    Mv(mv::MvArgs),
+    /// Delete tasks, keeping links to them findable in git history.
+    ///
+    /// Links to a deleted task become a SWHID, an ID that still finds its file
+    /// in git history.
+    Rm(rm::RmArgs),
+    /// Evaluate one task file and print it, even outside a project.
+    Eval(eval::EvalArgs),
+    /// Open a task in your editor, set by `[go] editor`.
+    Go(go::GoArgs),
+    /// Mark a task as reviewed today.
+    Review(review::ReviewArgs),
+    /// Write the next occurrence of a recurring task.
+    ///
+    /// By default it writes a new task linked back to this one. With
+    /// `materialize: "mutate"`, it resets this task in place instead.
+    /// `mt done` closes a recurring task without writing the next one.
+    Recur(recur::RecurArgs),
+    /// Draw tasks and the links between them, as Graphviz DOT or Mermaid.
+    Graph(graph::GraphArgs),
+    /// List your saved views, or show one.
+    Views(views::ViewsArgs),
+    /// Import tasks from JSON (the `mt ls --json` format), checking them all first.
+    ///
+    /// The whole batch is checked against your project's rules before mt
+    /// writes any task.
+    Import(import::ImportArgs),
+    /// Install the Typst package, defaults, schema and completions.
+    ///
+    /// It installs what mt needs on this machine: the Typst package, your
+    /// user-wide defaults, the config's JSON Schema, and shell completions.
+    /// It installs all four unless you pass `--no-lib`, `--no-defaults`,
+    /// `--no-schema` or `--no-completions`. Completions call mt itself, so
+    /// they stay current when you upgrade.
+    Install(install::InstallArgs),
+    /// Show the config mt uses.
+    Config(config_cmd::ConfigArgs),
+    /// Trust the commands your config runs in this repo.
+    ///
+    /// Those are its `[[tasks.waits]]` checkers and `[[on.flip]]` `run`
+    /// actions. It prints each command and records them for this repository
+    /// and every worktree of it. Until you do, mt runs none of them, and a
+    /// changed command asks again. Read them first: they run with your rights.
+    Allow(allow::AllowArgs),
+    /// Save this project's setup as a preset for `mt init`, or list presets.
+    Preset(preset_cmd::PresetArgs),
+    /// List your worktree aliases, the `@name` you put right after `mt`.
+    Worktrees(worktrees::WorktreesArgs),
+    /// Dump the command tree as JSON for the docs generator.
+    ///
+    /// Hidden. It reflects `Cli::command()`, so the rendered CLI reference
+    /// cannot drift.
     #[command(name = "_cli", hide = true)]
     CliDump(tree_json::CliDumpArgs),
     /// Per-status shortcut verb (`<status> <task>...`), dispatched to `flip`.
@@ -228,7 +250,7 @@ pub fn init_logger(verbosity: u8) {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use clap::Parser;
+    use clap::{CommandFactory, Parser};
     use log::LevelFilter;
 
     use super::{Cli, builtin_subcommand_names, init_logger, verbosity_level};
@@ -276,6 +298,57 @@ mod tests {
             names.contains(&"check".to_owned()),
             "check must be in builtins: {names:?}"
         );
+    }
+
+    /// The commands a newcomer runs first open the listing, in that order.
+    #[test]
+    fn newcomer_commands_lead_the_listing() {
+        let cmd = Cli::command();
+        let names: Vec<&str> = cmd
+            .get_subcommands()
+            .filter(|sub| !sub.is_hide_set())
+            .map(clap::Command::get_name)
+            .take(6)
+            .collect();
+        assert_eq!(names, ["init", "add", "ls", "find", "flip", "check"]);
+    }
+
+    /// The status commands are external, so clap never lists them. The note
+    /// after the listing says they exist and where to see them.
+    #[test]
+    fn help_points_at_the_status_commands() {
+        for flag in ["--help", "-h"] {
+            let Err(err) = Cli::try_parse_from(["mt", flag]) else {
+                panic!("{flag} must print help");
+            };
+            let help = err.to_string();
+            assert!(help.contains("mt flip --list"), "{flag}: {help}");
+        }
+    }
+
+    /// Every short help line, a command's `about` or a flag's help, reads at
+    /// a glance. Detail goes in the long help, after a blank doc line.
+    #[test]
+    fn every_short_help_fits_one_line() {
+        const CAP: usize = 80;
+        let mut long = Vec::new();
+        let mut stack = vec![("mt".to_owned(), Cli::command())];
+        while let Some((path, cmd)) = stack.pop() {
+            let about = cmd.get_about().map(ToString::to_string).unwrap_or_default();
+            if about.chars().count() > CAP {
+                long.push(format!("{path}: {about}"));
+            }
+            for arg in cmd.get_arguments() {
+                let help = arg.get_help().map(ToString::to_string).unwrap_or_default();
+                if help.chars().count() > CAP {
+                    long.push(format!("{path} {}: {help}", arg.get_id()));
+                }
+            }
+            for sub in cmd.get_subcommands() {
+                stack.push((format!("{path} {}", sub.get_name()), sub.clone()));
+            }
+        }
+        assert!(long.is_empty(), "over {CAP} chars:\n{}", long.join("\n"));
     }
 
     /// The whole `-v` ladder, including both ends of the saturating `_ =>` arm.

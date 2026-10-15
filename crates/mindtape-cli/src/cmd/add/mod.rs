@@ -54,53 +54,74 @@ use title::{fill_title_from_args, fill_title_from_stdin};
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Args)]
 pub struct AddArgs {
-    /// The task's title. mt joins the words with spaces.
+    /// The task's title.
+    ///
+    /// mt joins the words with spaces.
     #[arg(value_name = "TITLE")]
     pub title: Vec<String>,
 
-    /// The template to fill. Defaults to your project's default template.
+    /// The template to fill.
+    ///
+    /// Defaults to your project's default template.
     #[arg(long = "template", short = 't', value_name = "TEMPLATE")]
     pub template: Option<String>,
 
-    /// Read slot values from a JSON or YAML file, or `-` for stdin. Repeat it
-    /// to merge several files, and a later file wins on a shared key.
+    /// Read slot values from a JSON or YAML file, or `-` for stdin.
+    ///
+    /// Repeat it to merge several files, and a later file wins on a shared
+    /// key.
     #[arg(long = "values", short = 'f', value_name = "PATH")]
     pub values: Vec<String>,
 
-    /// Set a slot: `key=value`, `key+=value` to add to a list, or `key@path` to
-    /// read the value from a file. It wins over `--values`.
+    /// Set a slot, as `key=value`, `key+=value` or `key@path`.
+    ///
+    /// `key+=value` adds to a list, and `key@path` reads the value from a
+    /// file. It wins over `--values`.
     #[arg(long = "set", value_name = "KEY=VALUE")]
     pub set: Vec<String>,
 
-    /// Slots to set after `--`, written as for `--set`, such as
-    /// `mt add "Fix login" -- tags+=auth summary@notes.txt`. They win over `--set`.
+    /// Slots to set after `--`, written as for `--set`.
+    ///
+    /// For example `mt add "Fix login" -- tags+=auth summary@notes.txt`. They
+    /// win over `--set`.
     #[arg(last = true, value_name = "KEY=VALUE")]
     pub tokens: Vec<String>,
 
-    /// The directory to write the task in. `.` means the first root in your config.
+    /// The directory to write the task in.
+    ///
+    /// `.` means the first root in your config.
     #[arg(long, value_name = "DIR", default_value = ".")]
     pub into: String,
 
-    /// A subfolder of `--into` to put the task in, such as `--to shopping`. If
-    /// your project tags tasks by folder, the task gets that folder's tags.
+    /// A subfolder of `--into` to put the task in, such as `--to shopping`.
+    ///
+    /// If your project tags tasks by folder, the task gets that folder's tags.
     #[arg(long = "to", value_name = "SUBDIR")]
     pub to: Option<String>,
 
-    /// The file name, without `.typ`. Defaults to a slug of the title.
+    /// The file name, without `.typ`.
+    ///
+    /// Defaults to a slug of the title.
     #[arg(long, value_name = "STEM")]
     pub name: Option<String>,
 
-    /// The status to file the task with. Defaults to the template's status, else
-    /// your project's first status that doesn't close a task.
+    /// The status to file the task with.
+    ///
+    /// Defaults to the template's status, else your project's first status
+    /// that doesn't close a task.
     #[arg(long, value_name = "NAME")]
     pub status: Option<String>,
 
-    /// Fill the template's slots in your editor. Needs a terminal.
+    /// Fill the template's slots in your editor.
+    ///
+    /// Needs a terminal.
+
     #[arg(long)]
     pub edit: bool,
 
-    /// Print the template's slots instead of filing a task. `--describe=json`
-    /// prints them as JSON.
+    /// Print the template's slots instead of filing a task.
+    ///
+    /// `--describe=json` prints them as JSON.
     #[arg(long, value_name = "FORMAT", num_args = 0..=1, require_equals = true, default_missing_value = "text")]
     pub describe: Option<String>,
 
@@ -116,8 +137,10 @@ pub struct AddArgs {
     #[arg(long = "no-verify")]
     pub no_verify: bool,
 
-    /// What to do when a task with that file name exists. Without it, mt
-    /// follows your project's `[tasks.naming]` settings.
+    /// What to do when a task with that file name exists.
+    ///
+    /// Without it, mt follows your project's `[tasks.naming]` settings.
+
     #[arg(long, value_enum, value_name = "MODE")]
     pub dedup: Option<DedupArg>,
 

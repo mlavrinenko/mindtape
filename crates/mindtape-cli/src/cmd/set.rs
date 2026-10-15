@@ -42,9 +42,11 @@ use crate::util;
 pub struct SetArgs {
     #[command(flatten)]
     pub task: crate::cli::task_ref::TaskRef,
-    /// `<field>=<value>`, `<field>+=<value>` to add to a list, or
-    /// `<field>@<path>` to read the value from a file. `mt set --help` lists
-    /// the fields you can set.
+    /// The change: `<field>=<value>`, `<field>+=<value>` or `<field>@<path>`.
+
+    ///
+    /// `<field>+=<value>` adds to a list, and `<field>@<path>` reads the value
+    /// from a file. `mt set --help` lists the fields you can set.
     pub assignment: String,
 }
 

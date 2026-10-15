@@ -75,13 +75,18 @@ use crate::{git, util};
 /// Arguments for `mt rm`.
 #[derive(Args)]
 pub struct RmArgs {
-    /// The tasks to delete, each a task (stem, hash or path), a folder under a
-    /// task root (every task inside it, however deep) or a filter such as
-    /// `done`. Without any, `mt rm` deletes what `[rm] default-filter` picks,
-    /// which is every closed task unless you change it.
+    /// The tasks to delete: tasks, folders, or a filter such as `done`.
+    ///
+    /// Each is a task (stem, hash or path), a folder under a task root (every
+    /// task inside it, however deep) or a filter such as `done`. Without any,
+    /// `mt rm` deletes what `[rm] default-filter` picks, which is every closed
+    /// task unless you change it.
     pub targets: Vec<String>,
-    /// Don't ask for confirmation. Without a terminal on stdin `mt rm` can't
-    /// ask, so it refuses unless you pass this.
+    /// Don't ask for confirmation.
+    ///
+    /// Without a terminal on stdin `mt rm` can't ask, so it refuses unless you
+    /// pass this.
+
     #[arg(short = 'y', long)]
     pub yes: bool,
     /// Show what would be deleted and rewritten without changing anything.

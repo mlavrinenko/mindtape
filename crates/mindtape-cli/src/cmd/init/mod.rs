@@ -44,9 +44,12 @@ const PRELUDE: &str = include_str!("prelude.typ");
 /// makes it read like four unrelated toggles.
 #[derive(Debug, clap::Args)]
 pub struct SchemaArgs {
-    /// Where the config's `#:schema` line points: a URL, a path relative to the
-    /// config, or `local` for the copy `mt install` writes. Defaults to the
-    /// published URL, which works for anyone who clones the repo.
+    /// Where the config's `#:schema` line points.
+    ///
+    /// It takes a URL, a path relative to the config, or `local` for the copy
+    /// `mt install` writes. Defaults to the published URL, which works for
+    /// anyone who clones the repo.
+
     #[arg(long, value_name = "URL|PATH|local")]
     pub schema: Option<String>,
 
@@ -59,8 +62,10 @@ pub struct SchemaArgs {
 #[derive(Debug, clap::Args)]
 #[allow(clippy::struct_excessive_bools)] // independent, orthogonal switches
 pub struct InitArgs {
-    /// The preset to start from: a built-in name, one you saved with
-    /// `mt preset save`, or a path to a config file or preset directory.
+    /// The preset to start from, by name or path.
+    ///
+    /// It's a built-in name, one you saved with `mt preset save`, or a path to
+    /// a config file or preset directory.
     #[arg(long, short = 'p', value_name = "NAME|PATH")]
     pub preset: Option<String>,
 
@@ -76,8 +81,11 @@ pub struct InitArgs {
     #[arg(long)]
     pub force: bool,
 
-    /// Don't ask anything. mt writes the default preset, or builds the config
-    /// from the answers you pass as flags.
+    /// Don't ask anything.
+    ///
+    /// mt writes the default preset, or builds the config from the answers you
+    /// pass as flags.
+
     #[arg(long)]
     pub no_input: bool,
 
@@ -97,11 +105,12 @@ pub struct InitArgs {
     #[arg(long, value_enum, conflicts_with = "preset")]
     pub estimate: Option<Estimate>,
 
-    /// Answer the required-fields question up front: what every open task must have.
+    /// Answer the required-fields question up front: what open tasks must have.
     #[arg(long, value_enum, conflicts_with = "preset")]
     pub required: Option<Required>,
 
-    /// Answer the sections question up front: which sections a task body must have.
+    /// Answer the sections question up front: which sections a body must have.
+
     #[arg(long, value_enum, conflicts_with = "preset")]
     pub headers: Option<Headers>,
 

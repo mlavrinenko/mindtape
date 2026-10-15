@@ -39,8 +39,10 @@ pub struct MvArgs {
     pub task: crate::cli::task_ref::TaskRef,
     /// The new stem: a file name without `.typ` and without a folder.
     pub new_stem: String,
-    /// Show the rename and every file whose links would change, without
-    /// changing anything.
+    /// Show what would change, without changing anything.
+    ///
+    /// It shows the rename and every file whose links would change.
+
     #[arg(long)]
     pub dry_run: bool,
 }

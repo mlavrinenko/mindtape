@@ -42,18 +42,20 @@ use write::{StagedTask, TaskOutcome};
 /// Arguments for `mt import`.
 #[derive(Debug, Args)]
 pub struct ImportArgs {
-    /// The JSON file to import, or `-` for stdin. `mt ls --json` writes this format.
+    /// The JSON file to import, or `-` for stdin.
+    ///
+    /// `mt ls --json` writes this format.
     #[arg(value_name = "FILE", default_value = "-")]
     pub input: String,
 
-    /// The directory to write every task in. `.` means the first root in your
-    /// config. Without it, each task goes where its `file` field says, or to
-    /// the first root.
+    /// The directory to write every task in.
+    ///
+    /// `.` means the first root in your config. Without it, each task goes
+    /// where its `file` field says, or to the first root.
     #[arg(long, value_name = "DIR")]
     pub into: Option<String>,
 
-    /// A subfolder of `--into` to put every task in, whatever its `file` field
-    /// says.
+    /// A subfolder of `--into` for every task, whatever its `file` field says.
     #[arg(long = "to", value_name = "SUBDIR")]
     pub to: Option<String>,
 
@@ -65,12 +67,17 @@ pub struct ImportArgs {
     #[arg(long, value_name = "NAME")]
     pub status: Option<String>,
 
-    /// Rename a status on the way in, as `OLD=NEW`. Repeat it for each status.
+    /// Rename a status on the way in, as `OLD=NEW`.
+    ///
+    /// Repeat it for each status.
+
     #[arg(long = "map", value_name = "OLD=NEW")]
     pub map: Vec<String>,
 
-    /// Drop tags your project doesn't allow, instead of keeping them and
-    /// reporting an error.
+    /// Drop tags your project doesn't allow, instead of reporting an error.
+    ///
+    /// Without it, mt keeps those tags and reports an error.
+
     #[arg(long)]
     pub drop_unmapped: bool,
 }
