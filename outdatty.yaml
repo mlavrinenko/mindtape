@@ -449,12 +449,14 @@ groups:
       - docs/src/contributing.typ
       - docs/src/contributing/release.typ
 
-  # The outdatty.lock and jscpd baseline merge drivers and the attributes that
-  # assign them, which contributing.typ names under Dependency Drift.
+  # The outdatty.lock, jscpd baseline and CRAP baseline merge drivers and the
+  # attributes that assign them, which contributing.typ names under Dependency
+  # Drift.
   - name: lock-merge-docs
     source:
       - .just/scripts/outdatty-lock-merge.sh
       - .just/scripts/jscpd-baseline-merge.sh
+      - .just/scripts/crap-baseline-merge.sh
       - .gitattributes
     dependents:
       - docs/src/contributing.typ
