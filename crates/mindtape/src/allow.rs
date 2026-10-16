@@ -6,7 +6,8 @@
 //! them and runs `mt allow`, which records a digest of every such line
 //! ([`commands`]) for the repository. A changed line changes the digest, so it
 //! asks again. A caller that skips a command for want of approval records it
-//! with [`hold`], and [`held_back`] lists them for the one warning per process.
+//! with [`hold`] under its project root, and [`held_back`] lists them for the
+//! one warning per process.
 //!
 //! The record lives outside the clone, under
 //! `<data home>/mindtape/allowed/` ([`crate::data_home`]), so no file a repo
@@ -17,7 +18,7 @@
 //! A record file holds the digest on its first line, then the key and each
 //! command as `#` comments for a person who opens it.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, PoisonError};
 
@@ -46,22 +47,38 @@ pub fn commands(config: &Config) -> Vec<String> {
     commands
 }
 
-/// Every command this process held back because the user has not allowed it.
-static HELD: Mutex<BTreeSet<String>> = Mutex::new(BTreeSet::new());
+/// Every command this process held back because the user has not allowed it,
+/// by the root of the project whose config declares it.
+static HELD: Mutex<BTreeMap<PathBuf, BTreeSet<String>>> = Mutex::new(BTreeMap::new());
 
-/// Record `commands` as held back: a caller found them not allowed and ran
-/// none of them.
-pub fn hold(commands: &[String]) {
+/// Record `commands` of the project at `root` as held back: a caller found
+/// them not allowed and ran none of them.
+pub fn hold(root: &Path, commands: &[String]) {
     let mut held = HELD.lock().unwrap_or_else(PoisonError::into_inner);
-    held.extend(commands.iter().cloned());
+    held.entry(root.to_path_buf())
+        .or_default()
+        .extend(commands.iter().cloned());
 }
 
-/// The commands this process would have run but held back, sorted: what the
-/// warning that asks for `mt allow` lists. Empty when nothing was held back.
+/// The commands this process would have run but held back, from every
+/// project, sorted once each: what the warning that asks for `mt allow` lists.
+/// Empty when nothing was held back.
 #[must_use]
 pub fn held_back() -> Vec<String> {
     let held = HELD.lock().unwrap_or_else(PoisonError::into_inner);
-    held.iter().cloned().collect()
+    let all: BTreeSet<&String> = held.values().flatten().collect();
+    all.into_iter().cloned().collect()
+}
+
+/// Take the commands held back for the project at `root`, sorted, so a caller
+/// that warns for one member of a set names that project, and [`held_back`]
+/// no longer lists them.
+#[must_use]
+pub fn take_held(root: &Path) -> Vec<String> {
+    let mut held = HELD.lock().unwrap_or_else(PoisonError::into_inner);
+    held.remove(root)
+        .map(|commands| commands.into_iter().collect())
+        .unwrap_or_default()
 }
 
 /// The digest an approval records for `commands`: each line, NUL-terminated,

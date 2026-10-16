@@ -5,6 +5,7 @@ use std::path::Path;
 
 use super::{
     AllowError, allowed_in, commands, digest, held_back, hold, record_in, record_path, repo_key,
+    take_held,
 };
 use crate::config::Config;
 use crate::waits::Checker;
@@ -45,9 +46,28 @@ fn the_commands_take_each_flip_run_line_beside_the_checkers() {
 }
 
 #[test]
+fn taking_a_projects_held_commands_leaves_the_others_held() {
+    hold(
+        Path::new("taken"),
+        &lines(&["held-taken-b", "held-taken-a"]),
+    );
+    hold(Path::new("kept"), &lines(&["held-kept"]));
+
+    assert_eq!(
+        take_held(Path::new("taken")),
+        ["held-taken-a", "held-taken-b"]
+    );
+
+    let held = held_back();
+    assert!(held.contains(&"held-kept".to_owned()));
+    assert!(!held.iter().any(|line| line.starts_with("held-taken-")));
+    assert!(take_held(Path::new("taken")).is_empty());
+}
+
+#[test]
 fn a_held_command_is_listed_once() {
-    hold(&lines(&["held-once-z", "held-once-y"]));
-    hold(&lines(&["held-once-z"]));
+    hold(Path::new("one"), &lines(&["held-once-z", "held-once-y"]));
+    hold(Path::new("two"), &lines(&["held-once-z"]));
 
     let held = held_back();
 

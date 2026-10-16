@@ -6,12 +6,16 @@
 //! - `cache.rs`: the persistent content-hash task cache.
 //! - `derive.rs`: folder-derived virtual tags.
 //! - `errors.rs`: the per-file failures and Typst warnings a load reports.
+//! - `many.rs`, `many_tests.rs`: several projects loaded at once, each on its
+//!   own thread.
 
 pub mod app_dirs;
 pub mod derive;
 mod errors;
+mod many;
 
 pub use errors::{LoadError, LoadWarning};
+pub use many::{Loaded, load_many};
 
 use std::path::{Path, PathBuf};
 

@@ -145,7 +145,7 @@ fn answer(entry: &str, config: &Config, root: &Path, allowed: bool) -> Answer {
         Err(problem) => return Answer::Unknown(problem.message),
     };
     if !allowed {
-        crate::allow::hold(&crate::allow::commands(config));
+        crate::allow::hold(root, &crate::allow::commands(config));
         return Answer::NotAllowed;
     }
     let mut answers = ANSWERS.lock().unwrap_or_else(PoisonError::into_inner);

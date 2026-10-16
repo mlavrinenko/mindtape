@@ -246,7 +246,8 @@ impl<'a> Hooks<'a> {
             return Ok(Some(runless_gate(run.message)));
         };
         if !self.allowed() {
-            mindtape::allow::hold(&mindtape::allow::commands(&self.project.config));
+            let project = &self.project;
+            mindtape::allow::hold(&project.root, &mindtape::allow::commands(&project.config));
             return held_back(command, run.gate, out);
         }
         let report = run_command(
