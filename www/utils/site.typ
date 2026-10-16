@@ -160,7 +160,7 @@
   ("Recurring tasks", ("recur",)),
   ("Validate & inspect config", ("check", "rules", "config")),
   ("Retire", ("rm",)),
-  ("Setup", ("init", "install", "allow", "worktrees", "preset")),
+  ("Setup", ("init", "install", "allow", "at", "preset")),
 )
 
 #let cli-route(name) = "/cli/" + name + "/"

@@ -43,7 +43,7 @@ pub const CLASSIFICATION: &[(&str, Class)] = &[
     ("graph", Class::Read),
     ("views", Class::Read),
     ("dicts", Class::Read),
-    ("worktrees", Class::Read),
+    ("at", Class::Read),
     ("check", Class::Read),
     ("allow", Class::Write),
     ("config show", Class::Read),
@@ -77,10 +77,62 @@ pub fn classify(name: &str) -> Option<Class> {
         .copied()
 }
 
+/// Whether `argv` names a command that is not [`Class::Read`], or one with no
+/// class at all (a status verb). A held set is refused for such a command
+/// before it runs, since only a read command can open a set. An argv clap
+/// refuses, or one with no command, is `false`: clap words that itself.
+#[must_use]
+pub fn is_not_read(argv: &[std::ffi::OsString]) -> bool {
+    use clap::CommandFactory;
+    let Ok(matches) = crate::cli::Cli::command().try_get_matches_from(argv) else {
+        return false;
+    };
+    let Some((name, sub)) = matches.subcommand() else {
+        return false;
+    };
+    let class = sub
+        .subcommand_name()
+        .and_then(|inner| classify(&format!("{name} {inner}")))
+        .or_else(|| classify(name));
+    class != Some(Class::Read)
+}
+
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
+
+    fn argv(words: &[&str]) -> Vec<std::ffi::OsString> {
+        words.iter().map(std::ffi::OsString::from).collect()
+    }
+
+    #[test]
+    fn writes_exempts_and_status_verbs_are_not_read() {
+        for words in [
+            &["mt", "init"][..],
+            &["mt", "install"],
+            &["mt", "flip", "done", "x"],
+            &["mt", "go", "x"],
+            &["mt", "preset", "save", "n"],
+            &["mt", "done", "x"],
+        ] {
+            assert!(is_not_read(&argv(words)), "{words:?}");
+        }
+    }
+
+    #[test]
+    fn reads_and_unparsable_lines_are_not_refused() {
+        for words in [
+            &["mt", "ls"][..],
+            &["mt", "config", "show"],
+            &["mt", "preset", "ls"],
+            &["mt", "at"],
+            &["mt"],
+            &["mt", "--no-such-flag"],
+        ] {
+            assert!(!is_not_read(&argv(words)), "{words:?}");
+        }
+    }
 
     #[test]
     fn classify_finds_a_top_level_read_command() {

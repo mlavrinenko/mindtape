@@ -178,8 +178,8 @@
       and `mt` asks again.],
     outputs: ("allow",),
   ),
-  "worktrees": (
-    examples: "worktrees-examples",
+  "at": (
+    examples: "at-examples",
   ),
   "preset": (
     examples: "preset-examples",

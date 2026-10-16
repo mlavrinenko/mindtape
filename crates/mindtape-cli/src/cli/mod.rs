@@ -23,10 +23,10 @@ use log::LevelFilter;
 use crate::render::color::ColorChoice;
 use crate::render::link::HyperlinkChoice;
 use crate::{
-    cmd::add, cmd::allow, cmd::check, cmd::config as config_cmd, cmd::dicts, cmd::eval, cmd::find,
-    cmd::flip, cmd::go, cmd::graph, cmd::import, cmd::init, cmd::install, cmd::link as link_cmd,
-    cmd::ls, cmd::mv, cmd::preset as preset_cmd, cmd::recur, cmd::review, cmd::rm, cmd::rules,
-    cmd::set, cmd::views, cmd::worktrees,
+    cmd::add, cmd::allow, cmd::at, cmd::check, cmd::config as config_cmd, cmd::dicts, cmd::eval,
+    cmd::find, cmd::flip, cmd::go, cmd::graph, cmd::import, cmd::init, cmd::install,
+    cmd::link as link_cmd, cmd::ls, cmd::mv, cmd::preset as preset_cmd, cmd::recur, cmd::review,
+    cmd::rm, cmd::rules, cmd::set, cmd::views,
 };
 
 /// Mindtape keeps your tasks as Typst files and checks them against your rules.
@@ -157,8 +157,8 @@ enum Command {
     Allow(allow::AllowArgs),
     /// Save this project's setup as a preset for `mt init`, or list presets.
     Preset(preset_cmd::PresetArgs),
-    /// List your worktree aliases, the `@name` you put right after `mt`.
-    Worktrees(worktrees::WorktreesArgs),
+    /// List the `@name`s of `at.toml`, or the projects one of them holds.
+    At(at::AtArgs),
     /// Dump the command tree as JSON for the docs generator.
     ///
     /// Hidden. It reflects `Cli::command()`, so the rendered CLI reference
@@ -196,7 +196,7 @@ impl Cli {
             Command::Graph(args) => graph::run(&args),
             Command::Views(args) => views::run(&args),
             Command::Dicts(args) => dicts::run(&args),
-            Command::Worktrees(args) => worktrees::run(&args),
+            Command::At(args) => at::run(&args),
             Command::Check(args) => check::run(&args),
             Command::Allow(args) => allow::run(&args),
             Command::Config(args) => config_cmd::run(&args),

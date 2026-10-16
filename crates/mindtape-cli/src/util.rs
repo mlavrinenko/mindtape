@@ -159,8 +159,10 @@ fn resolve_root_with(cwd: &Path, override_path: Option<&Path>) -> Result<PathBuf
 /// hyperlinks`.
 ///
 /// # Errors
-/// Returns an error if no `.mindtape/` project is found or the config is invalid.
+/// Returns an error if a set is held (`mt @set …`), no `.mindtape/` project is
+/// found or the config is invalid.
 pub fn open() -> Result<Project> {
+    crate::project_set::refuse_held()?;
     let root = resolve_root()?;
     let config = load_config(&root)?;
     warn_config(&root, &config);

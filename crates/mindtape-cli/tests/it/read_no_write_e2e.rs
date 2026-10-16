@@ -212,9 +212,9 @@ fn dicts_name_json_leaves_tree_untouched() {
 }
 
 #[test]
-fn worktrees_leaves_tree_untouched() {
+fn at_leaves_tree_untouched() {
     let dir = build_fixture();
-    assert_read_untouched(dir.path(), &["worktrees"]);
+    assert_read_untouched(dir.path(), &["at"]);
 }
 
 /// Every `Read`-classified leaf's flattened path (`"ls"`, `"config schema"`,

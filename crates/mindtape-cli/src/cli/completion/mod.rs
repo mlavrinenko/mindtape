@@ -164,6 +164,11 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
     ("graph", "filter", Source::ViewRefs),
     ("views", "name", Source::Views),
     ("dicts", "name", Source::Dicts),
+    (
+        "at",
+        "name",
+        Source::None("a name from the user's at.toml, which no project's config predicts"),
+    ),
     ("init", "preset", Source::Presets),
     ("init", "schema", Source::FilePath),
     ("eval", "task", Source::Stems),

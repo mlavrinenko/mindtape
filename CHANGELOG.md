@@ -188,9 +188,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   entry count and case, and `mt dicts <name>` prints its entries one per line,
   after `include`, `values` and `path` are merged. Both take `--json`.
 - **`-w/--worktree <path>` and `$MINDTAPE_WORKTREE` point `mt` at another
-  project.** `~/.config/mindtape/worktrees.toml` names projects, so `mt @sn ls`
-  means `mt -w <path> ls`. An entry is a `name` and `path`, or a `base` whose
-  subfolders answer to `@<folder>`. `mt worktrees` lists them.
+  project.**
+- **`~/.config/mindtape/at.toml` names projects and sets of projects.** An
+  `[at.<name>]` entry holds `include` (literal paths, one-level `*` globs or
+  other `@name`s), `exclude`, and `forks` (`false`, `true` or `"only"`, for
+  linked git worktrees). Put `@name` right after `mt`. An entry with one
+  literal path is a project, so `mt @sn ls` means `mt -w <path> ls`, and so is
+  a directory an `include` matches by name. Any other entry is a set, which a
+  command that runs on one project refuses, naming a member to pick. `mt at`
+  lists the entries, and `mt at <name>` lists a set's projects, marking forks.
+  Both take `--json`.
 - **`mt _cli --json` describes the CLI**, its filter functions and the
   `{date:FMT}` tokens, for tools and docs.
 - **`--json` on every read command**, `mt graph` and `mt preset ls` included.

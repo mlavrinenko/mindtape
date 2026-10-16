@@ -79,7 +79,7 @@ summary, so an agent can find the page it needs from one file.
 
 Every read command prints JSON with `--json`: `mt ls`, `mt eval <task>`,
 `mt check`, `mt graph`, `mt dicts`, `mt rules`,
-`mt preset ls`, `mt config show`, `mt worktrees` and `mt add --describe=json`. Here's
+`mt preset ls`, `mt config show`, `mt at` and `mt add --describe=json`. Here's
 `mt ls ready -n 1 --json`:
 
 #raw(read("../generated/api-service-ls-ready.json"), lang: "json", block: true)
@@ -139,11 +139,13 @@ each other's status changes until their branches merge, so decide which agent
 takes which task before they start.
 
 To run `mt` on a worktree from another directory, pass `-w <path>` or set
-`MINDTAPE_WORKTREE`. You can also name worktrees in `mindtape/worktrees.toml`
-in your #link(u("/config/"))[config directory]. A `[[worktrees]]` entry with
-`name` and `path` makes a leading `@name` argument stand for `-w <path>`. An
-entry with `base` makes `@<dir>` stand for `-w <base>/<dir>` when that
-directory holds a #mindtape project. `mt worktrees` lists the entries.
+`MINDTAPE_WORKTREE`. You can also name projects in `mindtape/at.toml`
+in your #link(u("/config/"))[config directory]. An `[at.<name>]` entry whose
+`include` is one path makes a leading `@name` argument stand for `-w <path>`.
+`@<dir>` also finds a project by its directory name when an `include` matches
+it. An entry with several paths or a `*` glob is a set of projects, and a
+command that runs on one project refuses it. `mt at` lists the entries, and
+`mt at <name>` lists the projects one holds and marks the forks.
 
 = Pin today's date
 

@@ -196,12 +196,12 @@ EOF
     capture_home
     capture_copy P examples/api-service
     mkdir -p "$CAPTURE_CONFIG_HOME/mindtape"
-    printf '[[worktrees]]\nname = "api"\npath = "%s"\n' "$P" >"$CAPTURE_CONFIG_HOME/mindtape/worktrees.toml"
+    printf '[at.api]\ninclude = ["%s"]\n' "$P" >"$CAPTURE_CONFIG_HOME/mindtape/at.toml"
     CAPTURE_PATHS+=("$P=~/api-service")
     capture_prep "$P" 'mt allow'
     capture_scratch Q
-    capture_lines worktrees-examples "$Q" <<'EOF'
-mt worktrees      # the configured @name aliases
-mt @api ls        # @name is -w <path>, rewritten before parsing
+    capture_lines at-examples "$Q" <<'EOF'
+mt at             # the configured @names
+mt @api ls        # a project's @name is -w <path>, rewritten before parsing
 EOF
 )

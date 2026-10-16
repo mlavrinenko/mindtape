@@ -35,8 +35,8 @@ slot. Follow `references/hand-editing.md`, then run `mt check`.
 = Is this a #mindtape project?
 
 It is when `.mindtape/config.toml` exists. Run `mt` in the directory that holds
-`.mindtape/` or below it. For another project, pass `-w <path>`, or put an alias
-that `mt worktrees` lists, such as `@name`, right after `mt`.
+`.mindtape/` or below it. For another project, pass `-w <path>`, or put a name
+that `mt at` lists, such as `@name`, right after `mt`.
 
 = Commands
 

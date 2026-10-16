@@ -17,7 +17,7 @@ Change tasks with `mt` commands, not by editing files. `mt` fills in the slug, t
 
 ## Is this a Mindtape project?
 
-It is when `.mindtape/config.toml` exists. Run `mt` in the directory that holds `.mindtape/` or below it. For another project, pass `-w <path>`, or put an alias that `mt worktrees` lists, such as `@name`, right after `mt`.
+It is when `.mindtape/config.toml` exists. Run `mt` in the directory that holds `.mindtape/` or below it. For another project, pass `-w <path>`, or put a name that `mt at` lists, such as `@name`, right after `mt`.
 
 ## Commands
 

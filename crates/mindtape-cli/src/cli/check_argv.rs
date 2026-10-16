@@ -3,7 +3,7 @@
 //! The doc gate `just check-doc-spans` finds `mt ...` command lines in the
 //! docs and hands each to this check, so a doc span is accepted or refused by
 //! the parser that runs it. The line goes through the same steps as a real
-//! run: [`cmd::worktrees::desugar_argv`]'s `@name` rewrite, then clap, then the
+//! run: [`cmd::at::desugar_argv`]'s `@name` rewrite, then clap, then the
 //! status-verb parser for a shortcut such as `mt done`. A line that only lacks
 //! a required argument passes, because a doc span shows part of a command.
 //!
@@ -19,7 +19,9 @@ use clap::error::{ContextKind, ContextValue, ErrorKind};
 use clap::{CommandFactory, Parser};
 
 use crate::cli::Cli;
-use crate::{cmd::flip, cmd::worktrees};
+use mindtape::Target;
+
+use crate::{cmd::at, cmd::flip};
 
 /// Judge `line` with `statuses` as the declared status verbs.
 ///
@@ -35,9 +37,9 @@ fn check(line: &str, statuses: &[String]) -> Result<(), String> {
     if words.first().map(String::as_str) != Some("mt") {
         return Err(format!("not an mt command line: {line}"));
     }
-    // `@name` needs no real worktree here: the sugar only has to desugar.
-    let argv = worktrees::desugar_with(words.iter().map(OsString::from).collect(), |_| {
-        Ok(PathBuf::from("."))
+    // `@name` needs no real project here: the sugar only has to desugar.
+    let (argv, _held) = at::desugar_with(words.iter().map(OsString::from).collect(), |_| {
+        Ok(Target::Project(PathBuf::from(".")))
     })
     .map_err(|err| err.to_string())?;
     match Cli::try_parse_from(argv) {

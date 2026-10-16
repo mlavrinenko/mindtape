@@ -1,5 +1,5 @@
 //! Where `mt` keeps its per-user state: the global config directory (the XDG
-//! `defaults.toml` layer, the JSON Schema, presets, `worktrees.toml`) and the
+//! `defaults.toml` layer, the JSON Schema, presets, `at.toml`) and the
 //! local data directory (the installed `@local/mindtape` Typst package).
 //!
 //! Both resolve through [`dirs`] by default — but `dirs` reads the environment
@@ -27,7 +27,7 @@ pub const CONFIG_HOME_ENV: &str = "MINDTAPE_CONFIG_HOME";
 pub const DATA_HOME_ENV: &str = "MINDTAPE_DATA_HOME";
 
 /// The directory `mindtape/defaults.toml`, `config.schema.json`, `presets/` and
-/// `worktrees.toml` live under: `$MINDTAPE_CONFIG_HOME` when set, else
+/// `at.toml` live under: `$MINDTAPE_CONFIG_HOME` when set, else
 /// `dirs::config_dir()`. `None` means no such directory applies.
 #[must_use]
 pub fn config_home() -> Option<PathBuf> {

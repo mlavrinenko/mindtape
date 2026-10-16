@@ -43,7 +43,6 @@ pub mod template;
 pub mod test_support;
 pub mod validate;
 pub mod waits;
-pub mod worktrees;
 
 pub use at::{AtConfig, AtEntry, AtError, AtFs, DiskFs, Forks, Member, Target};
 pub use at::{Board, BoardColumn, BoardSpec, Cell, TopTask};
@@ -128,7 +127,6 @@ pub use validate::candidate::{
 };
 pub use validate::severity::Severity;
 pub use validate::{Location, Violation, ViolationKind, validate};
-pub use worktrees::{WorktreeEntry, WorktreeError, WorktreeRegistry};
 
 /// Retain the tasks matching `filter`; `None` keeps them all. `config` resolves
 /// framework-scored priorities for numeric comparisons; `readiness` answers the

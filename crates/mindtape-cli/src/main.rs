@@ -82,8 +82,14 @@ fn main() -> ExitCode {
 
 fn run() -> Result<(), Diag> {
     // Rewrite a leading `@name` into `-w <path>` before clap sees the argv, so
-    // the worktree sugar reuses the existing override plumbing.
-    let argv = cmd::worktrees::desugar_argv(std::env::args_os().collect())?;
+    // a project reuses the existing override plumbing; a set is held for
+    // `util::open_set`.
+    let argv = cmd::at::desugar_argv(std::env::args_os().collect())?;
+    // A held set is never ignored: only a read command may open it, so every
+    // other command is refused before it runs, whether or not it opens a project.
+    if cli::command_class::is_not_read(&argv) {
+        project_set::refuse_held()?;
+    }
     let cli = cli::Cli::parse_from(argv);
     cli::init_logger(cli.verbose);
     // Resolve the worktree override once (flag over $MINDTAPE_WORKTREE) so every

@@ -2,11 +2,75 @@
 //! [`open_set`] loads them in parallel and warns per member, naming it.
 
 use std::path::PathBuf;
+use std::sync::OnceLock;
 
 use mindtape::LoadOutcome;
 
-use crate::diag::{Diag, Kind, Note, Result, emit};
+use crate::diag::{Diag, Hint, Kind, Note, Result, emit};
 use crate::util::{Project, config_warnings, held_back_warning, hyperlinks_for, load_problems};
+
+/// The set a leading `@name` named, held until a command opens it: `main`
+/// stores it ([`init_held_set`]), [`open_set`] callers read it
+/// ([`held_set`]), and `util::open` refuses it ([`refuse_held`]).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HeldSet {
+    /// The set's name, without the `@`.
+    pub name: String,
+    /// The command word after the name, if any.
+    pub command: Option<String>,
+    /// Each project's name and root, in set order.
+    pub members: Vec<(String, PathBuf)>,
+}
+
+impl HeldSet {
+    /// The refusal of a command that runs on one project.
+    pub fn refusal(&self) -> Diag {
+        let command = self
+            .command
+            .as_deref()
+            .map_or_else(|| "this command".to_owned(), |word| format!("`{word}`"));
+        let held = mindtape::count(self.members.len(), "project");
+        let diag = Diag::verbatim(
+            Kind::Refused,
+            format!(
+                "{command} runs on one project, and @{} holds {held}",
+                self.name
+            ),
+        );
+        match self.members.first() {
+            Some((first, _)) => {
+                let example = match &self.command {
+                    Some(word) => format!("mt @{first} {word}"),
+                    None => format!("mt @{first}"),
+                };
+                diag.hint(Hint::as_in("name one project", example))
+            }
+            None => diag,
+        }
+    }
+}
+
+static HELD_SET: OnceLock<Option<HeldSet>> = OnceLock::new();
+
+/// Record the held set (or none) for this process. Call once from `main`;
+/// later calls are ignored.
+pub fn init_held_set(held: Option<HeldSet>) {
+    let _ = HELD_SET.set(held);
+}
+
+/// The held set, or `None` when the command line named a project or no `@`.
+#[must_use]
+pub fn held_set() -> Option<&'static HeldSet> {
+    HELD_SET.get().and_then(Option::as_ref)
+}
+
+/// The refusal for a command that opens one project while a set is held.
+///
+/// # Errors
+/// Returns [`HeldSet::refusal`] when a set is held.
+pub fn refuse_held() -> Result<()> {
+    held_set().map_or(Ok(()), |held| Err(held.refusal()))
+}
 
 /// One member of a set [`open_set`] opened: the name it goes by, and its
 /// project, or why its config would not load.

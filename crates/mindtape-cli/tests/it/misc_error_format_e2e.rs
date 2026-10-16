@@ -46,13 +46,13 @@ fn eval_of_a_missing_path_quotes_it() {
 }
 
 #[test]
-fn an_unknown_worktree_alias_is_quoted_with_a_hint() {
+fn an_unknown_at_name_is_quoted_with_a_hint() {
     let (code, stderr) = run(project().path(), &["@nope", "ls"]);
 
     assert_eq!(code, Some(2), "{stderr}");
     assert!(
         stderr.starts_with(
-            "error: unknown worktree: '@nope'\nhint: add it to worktrees.toml\nnote: worktrees are configured in: '"
+            "error: unknown name: '@nope'\nhint: add it to at.toml\nnote: names are configured in: '"
         ),
         "{stderr}"
     );

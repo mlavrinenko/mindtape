@@ -126,7 +126,7 @@ groups:
       - crates/mindtape-cli/src/cmd/rm/mod.rs
       - crates/mindtape-cli/src/cmd/set.rs
       - crates/mindtape-cli/src/cmd/views.rs
-      - crates/mindtape-cli/src/cmd/worktrees.rs
+      - crates/mindtape-cli/src/cmd/at.rs
       - crates/mindtape/src/lib.rs
       # The filter/`--sort` field vocabulary. Every dependent that lists the
       # comparable fields (filters.typ, skills/mindtape/references/filters.md)
