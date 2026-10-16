@@ -38,7 +38,8 @@ explains. The project also extends the `mindtape-tasks`
 #link(u("/rule-packs/"))[rule pack], as
 #link(u("/require-a-task-shape/"))[Require a task shape] shows. The pack's
 `work-names-a-task` rule refuses a commit that names no task, unless the
-commit changes only task files. `mt check --commit-msg` also refuses a stem
+commit changes only task files or starts with `fixup!`, `squash!` or `amend!`.
+`mt check --commit-msg` also refuses a stem
 that no task has. #link(u("/commit-rules/"))[Commit rules] covers the rule
 fields, and #link(u("/rule-packs/"))[Rule packs] shows how to drop the rule.
 

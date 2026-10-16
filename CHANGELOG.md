@@ -380,6 +380,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`mt check --commits <range>` holds past commits to the rules**, each against
   its first parent. A rule reading `worktree(...)` or `changed(...)` is skipped
   and reported, and each problem names its commit.
+- **The `mindtape-tasks` pack's `work-names-a-task` skips a `fixup!`, `squash!`
+  or `amend!` commit**, since autosquash drops its message.
 
 #### Flip hooks
 

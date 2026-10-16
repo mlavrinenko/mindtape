@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 16),
+  status: done(2026, 10, 16),
 )
 
 == Problem
@@ -50,7 +50,7 @@ left in a closing report no one rereads. It belongs in
 == TO-BE
 
 - 🟢 A commit whose subject starts with `fixup! `, `squash! ` or `amend! ` passes `mt check --commit-msg` without trailers.
-- 🟢 `mt check --commits main..HEAD` still refuses a branch that lands such a commit unsquashed.
+- 🟢 The `pre-merge` hook refuses a branch that carries one unsquashed, so `just land` can't land it. No commit rule scope can do this: a tip rule never sees a commit with no `Refs:`, and commit scope runs the same in both modes.
 
 ```toml
 [[commits.rules]]
@@ -62,13 +62,16 @@ assert = "has(refs)"
 
 == Changes
 
-- `crates/mindtape/src/packs/mindtape-tasks.toml`: `work-names-a-task` skips a fixup subject, and a new tip-scope rule refuses one.
+- `crates/mindtape-cli/tests/it/commit_msg_e2e.rs`: the red tests, the pack passing each fixup prefix and still refusing a plain commit.
+- `crates/mindtape/src/packs/mindtape-tasks.toml`: `work-names-a-task` skips a fixup subject.
 - `.mindtape/config.toml`: the same guard on `changelog-with-product-change`.
+- `.config/wt.toml`: a `pre-merge` hook refuses a branch whose subjects include a fixup.
+- `docs/src/contributing/commit-messages.typ` and `www/content/commit-rules.typ`: state the exemption and the hook.
 
 
 == Rollback
 
-- Revert both files.
+- Revert the files above.
 
 
 == Out of scope

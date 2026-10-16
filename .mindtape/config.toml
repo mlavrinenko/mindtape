@@ -449,11 +449,13 @@ values = [
 ]
 
 # A commit that changes product code adds a `CHANGELOG.md` entry, or says it has
-# nothing to announce with a `Changelog: none` trailer. The trigger is the files
-# changed, so a `refactor` that alters behavior is held to it as a `fix` is.
+# nothing to announce with a `Changelog: none` trailer. A `fixup!`, `squash!` or
+# `amend!` commit is exempt: autosquash folds it into a commit that has one.
+# The trigger is the files changed, so a `refactor` that alters behavior is held
+# to it as a `fix` is.
 [[commits.rules]]
 name = "changelog-with-product-change"
-when = 'count(files, "@product") >= 1 && !matches(trailers, "(?i)^Changelog: none$")'
+when = 'count(files, "@product") >= 1 && !matches(subject, "^(fixup|squash|amend)! ") && !matches(trailers, "(?i)^Changelog: none$")'
 assert = 'matches(files, "^CHANGELOG[.]md$")'
 message = "add an entry under [Unreleased] in CHANGELOG.md, or add a `Changelog: none` trailer"
 severity = "error"

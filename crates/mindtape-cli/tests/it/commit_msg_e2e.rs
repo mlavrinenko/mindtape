@@ -159,3 +159,33 @@ fn outside_a_git_repository_the_check_fails_naming_why() {
     let text = support::commit_msg_refusal(dir.path(), "feat: parse\n\nRefs: parser\n");
     assert!(text.contains("not a git repository"), "got: {text}");
 }
+
+/// A commit repo whose config extends the shipped `mindtape-tasks` pack.
+fn pack_repo() -> tempfile::TempDir {
+    let dir = commit_repo("");
+    let config = dir.path().join(".mindtape/config.toml");
+    let base = std::fs::read_to_string(&config).unwrap();
+    std::fs::write(&config, format!("extends = [\"mindtape-tasks\"]\n{base}")).unwrap();
+    git(dir.path(), &["add", "-A"]);
+    git(dir.path(), &["commit", "-qm", "extend the pack"]);
+    dir
+}
+
+#[test]
+fn the_pack_passes_a_fixup_subject_without_trailers() {
+    let dir = pack_repo();
+    stage(dir.path(), "src/lib.rs");
+    for prefix in ["fixup!", "squash!", "amend!"] {
+        let message = format!("{prefix} feat(cli): list dictionaries\n");
+        let (ok, text) = check_commit_msg(dir.path(), &message);
+        assert!(ok, "a `{prefix}` commit needs no `Refs:`: {text}");
+    }
+}
+
+#[test]
+fn the_pack_still_refuses_a_plain_commit_without_refs() {
+    let dir = pack_repo();
+    stage(dir.path(), "src/lib.rs");
+    let text = support::commit_msg_refusal(dir.path(), "feat: fixup! is not a prefix here\n");
+    assert!(text.contains("work-names-a-task"), "{text}");
+}

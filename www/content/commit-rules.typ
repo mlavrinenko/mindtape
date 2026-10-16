@@ -107,6 +107,13 @@ A breach names the message file and the rule. Here a migration has no
 
 #terminal("commit-scope-breach")
 
+`subject` is also how a rule exempts a commit autosquash will drop. The
+`mindtape-tasks` pack's `work-names-a-task` adds
+`!matches(subject, "^(fixup|squash|amend)! ")` to its `when`, so a
+`git commit --fixup` needs no `Refs:`. No rule scope can refuse such a commit
+in a range alone, so hang that check on the merge, as the next section does for
+unfinished tasks.
+
 Rules merge by `name` across #link(u("/config/#layers"))[config layers] and
 #link(u("/rule-packs/"))[rule packs], like `[[tasks.rules]]`. To replace a
 pack's rule, declare one with its name. To drop it, use `disable`.

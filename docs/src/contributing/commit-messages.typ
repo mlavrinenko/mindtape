@@ -35,7 +35,10 @@ per-commit `[[commits.rules]]` of the `mindtape-tasks` pack
 - `work-names-a-task` refuses a commit with no `Refs:` trailer, unless every
   file it changes is a `.typ` file under a task root. This repo's only task
   root is `truth/tasks/`, so a change to `.mindtape/config.toml` or any other
-  file needs `Refs:`.
+  file needs `Refs:`. A `fixup!`, `squash!` or `amend!` subject is exempt, as
+  is `changelog-with-product-change` below, because autosquash drops its message.
+  The `pre-merge` hook refuses a branch that still carries one, so run
+  `git rebase -i --autosquash` before #just.land().
 - `flip-with-work` checks each task a commit moves into `wip` or `done`. The
   commit's `Refs:` must name the task, and the commit must change a file
   outside the task root. Two commits are exempt from the second half: one

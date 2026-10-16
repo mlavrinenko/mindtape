@@ -21,6 +21,12 @@ build = "direnv exec . just build-mt"
 [[pre-merge]]
 gate = "direnv exec . just check"
 
+# An unsquashed `fixup!` commit passes the commit-message rules, since
+# autosquash would drop its message, so the merge refuses what the rules let by.
+# Quiet on a pass.
+[[pre-merge]]
+fixups = "s=$(git log --format=%s {{ target }}..HEAD | grep -m1 -E '^(fixup|squash|amend)! '); [ -z \"$s\" ] || { echo \"unsquashed commit: $s (run git rebase -i --autosquash {{ target }})\" >&2; exit 1; }"
+
 [[pre-merge]]
 tasks = "direnv exec . just build-mt && direnv exec . mt check --commits {{ target }}..HEAD"
 
