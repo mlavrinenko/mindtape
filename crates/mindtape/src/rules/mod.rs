@@ -71,7 +71,7 @@ pub(crate) mod typst;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::config::Config;
 use crate::model::Task;
@@ -121,7 +121,7 @@ impl RulesRoot {
 /// `check = { typst, function, field }` — a `[[tasks.rules]]` entry that calls
 /// a Typst function instead of evaluating an `assert` expression.
 // `crate::rules::typst` evaluates the call.
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct CheckSpec {
     /// Path to the Typst module exporting `function`, relative to the project
@@ -187,9 +187,9 @@ impl RuleSpec {
         }
     }
 
-    /// What an `assert` breach tells the author. Only called on the `assert`
-    /// arm of [`eval::CompiledRule::compile`] — a `check` rule never reads this.
-    fn advice(&self) -> String {
+    /// What an `assert` breach tells the author: the rule's `message`, else
+    /// `must satisfy` and the expression. A `check` rule never reads this.
+    pub(crate) fn advice(&self) -> String {
         self.message.clone().unwrap_or_else(|| {
             let expr = self.assertion.as_deref().unwrap_or_default();
             format!("must satisfy `{expr}`")

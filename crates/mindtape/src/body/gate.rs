@@ -10,7 +10,6 @@ use typst_cst::{HeadingNode, parse_headings, tree};
 use crate::config::{Config, HeaderAction, HeaderPathSegment, HeaderRuleConfig};
 use crate::filter::{Filter, FilterError};
 use crate::model::Task;
-use crate::validate::severity::Severity;
 use crate::validate::{Location, Violation};
 
 /// A compiled, ready-to-run header rule (pre-parsed filter, pre-compiled regex,
@@ -208,7 +207,7 @@ fn apply_rule(
     config: &Config,
     out: &mut Vec<Violation>,
 ) {
-    if !rule_applies(rule, task, config) {
+    if !crate::body::applies(rule.when.as_ref(), task, config) {
         return;
     }
     let diagnostics = artifact_gate::run_rules(roots, std::slice::from_ref(&rule.engine_rule));
@@ -226,24 +225,13 @@ fn diagnostic_to_violation(
         || task.marker_location(),
         |line| Location::at(task.file.clone(), line),
     );
-    Violation {
-        task_id: task.id.clone(),
-        field: rule.label.clone(),
-        message: diag.message,
+    crate::body::body_violation(
+        task,
+        &rule.label,
+        diag.message,
         location,
-        severity: Severity::Error,
-        kind: crate::validate::violation::ViolationKind::Other,
-        reads: crate::validate::violation::reads_of(rule.when.iter()),
-        unknown: None,
-        dict_miss: None,
-    }
-}
-
-fn rule_applies(rule: &CompiledRule, task: &Task, config: &Config) -> bool {
-    let Some(filter) = &rule.when else {
-        return true;
-    };
-    filter.matches(task, config).unwrap_or(false)
+        rule.when.as_ref(),
+    )
 }
 
 #[cfg(test)]

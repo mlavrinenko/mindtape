@@ -25,8 +25,8 @@ use crate::render::link::HyperlinkChoice;
 use crate::{
     cmd::add, cmd::allow, cmd::check, cmd::config as config_cmd, cmd::dicts, cmd::eval, cmd::find,
     cmd::flip, cmd::go, cmd::graph, cmd::import, cmd::init, cmd::install, cmd::link as link_cmd,
-    cmd::ls, cmd::mv, cmd::preset as preset_cmd, cmd::recur, cmd::review, cmd::rm, cmd::set,
-    cmd::views, cmd::worktrees,
+    cmd::ls, cmd::mv, cmd::preset as preset_cmd, cmd::recur, cmd::review, cmd::rm, cmd::rules,
+    cmd::set, cmd::views, cmd::worktrees,
 };
 
 /// Mindtape keeps your tasks as Typst files and checks them against your rules.
@@ -142,6 +142,12 @@ enum Command {
     Install(install::InstallArgs),
     /// Show the config mt uses.
     Config(config_cmd::ConfigArgs),
+    /// List the rules your project checks, one line each.
+    ///
+    /// Each line is a rule's severity, its name as `mt config show --origin`
+    /// prints it, and the message a breach prints, after packs, overrides and
+    /// `disable` apply. A flip action that carries a message is listed too.
+    Rules(rules::RulesArgs),
     /// Trust the commands your config runs in this repo.
     ///
     /// Those are its `[[tasks.waits]]` checkers and `[[on.flip]]` `run`
@@ -194,6 +200,7 @@ impl Cli {
             Command::Check(args) => check::run(&args),
             Command::Allow(args) => allow::run(&args),
             Command::Config(args) => config_cmd::run(&args),
+            Command::Rules(args) => rules::run(&args),
             Command::Preset(args) => preset_cmd::run(&args),
             Command::Init(args) => init::run(&args),
             Command::Install(args) => install::run(&args),

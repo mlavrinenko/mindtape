@@ -22,8 +22,43 @@ pub(crate) mod headers;
 use crate::body::content_gate::{CompiledContentRule, check_content};
 use crate::body::gate::{CompiledRule, check_headers};
 use crate::config::Config;
+use crate::filter::Filter;
 use crate::model::Task;
-use crate::validate::Violation;
+use crate::validate::severity::Severity;
+use crate::validate::violation::{ViolationKind, reads_of};
+use crate::validate::{Location, Violation};
+
+/// How loudly a body rule's breach reports. A body rule has no `severity`
+/// key, so both gates report every breach at this one level.
+pub(crate) const BODY_RULE_SEVERITY: Severity = Severity::Error;
+
+/// Whether a body rule whose `when` is `when` applies to `task`. No `when`
+/// means every task, and a `when` that fails to evaluate means none.
+pub(crate) fn applies(when: Option<&Filter>, task: &Task, config: &Config) -> bool {
+    when.is_none_or(|filter| filter.matches(task, config).unwrap_or(false))
+}
+
+/// One breach of a body rule: under the rule's `label`, at
+/// [`BODY_RULE_SEVERITY`], reading the fields its `when` names.
+pub(crate) fn body_violation(
+    task: &Task,
+    label: &str,
+    message: String,
+    location: Location,
+    when: Option<&Filter>,
+) -> Violation {
+    Violation {
+        task_id: task.id.clone(),
+        field: label.to_owned(),
+        message,
+        location,
+        severity: BODY_RULE_SEVERITY,
+        kind: ViolationKind::Other,
+        reads: reads_of(when),
+        unknown: None,
+        dict_miss: None,
+    }
+}
 
 /// One source's compiled body rules — `[[tasks.body.headers.rules]]` and
 /// `[[tasks.body.content.rules]]` — compiled once per run (`mt check`) or once

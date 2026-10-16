@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 16),
+  status: wip(2026, 10, 16),
 )
 
 == Problem
@@ -48,7 +48,7 @@
 
 == Changes
 
-- Open question for the owner. Scope flag, the exact line format, and whether rules with no severity key print as `error`, which is how body rules behave today.
+- Settled: the flag is `--for add|commit|flip`, a line is `<severity>  <name>  <message>`, and a rule with no severity key prints the level the engine applies, `error` for body rules.
 - `crates/mindtape-cli/src/cmd/rules.rs`: new read command beside `views.rs`, wired into `cli/mod.rs`. It reads `[[tasks.rules]]`, `[[commits.rules]]`, both body rule lists and the `message` of each `[[on.flip]]` action.
 - `crates/mindtape/src/config/`: one function that lists the merged rules from the four sections as one record (section, name, severity, message, when), after `disable` and overrides.
 - `crates/mindtape-cli/tests/it/`: red test first, a project that extends a pack and overrides one rule.

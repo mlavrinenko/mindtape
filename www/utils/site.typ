@@ -158,7 +158,7 @@
   ("Views & dictionaries", ("views", "dicts")),
   ("Status", ("flip", "review")),
   ("Recurring tasks", ("recur",)),
-  ("Validate & inspect config", ("check", "config")),
+  ("Validate & inspect config", ("check", "rules", "config")),
   ("Retire", ("rm",)),
   ("Setup", ("init", "install", "allow", "worktrees", "preset")),
 )

@@ -132,6 +132,10 @@
 
   // ── Validate & inspect config ───────────────────────────────────────────────
   "check": (outputs: ("check",)),
+  "rules": (
+    outputs: ("rules-commit",),
+    examples: "rules-examples",
+  ),
   "config": (
     outputs: ("config-origin",),
     examples: "config-examples",

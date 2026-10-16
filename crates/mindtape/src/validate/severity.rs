@@ -12,10 +12,12 @@
 //! the constraints a project declares, where "report it and carry on" is a
 //! legitimate answer.
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// How a breached config-declared constraint reports.
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, Default, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum Severity {
     /// Print the breach; the command still succeeds. The default.
@@ -30,5 +32,14 @@ impl Severity {
     #[must_use]
     pub const fn is_error(self) -> bool {
         matches!(self, Self::Error)
+    }
+
+    /// The word a config writes for this severity: `warn` or `error`.
+    #[must_use]
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Warn => "warn",
+            Self::Error => "error",
+        }
     }
 }

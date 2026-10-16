@@ -166,6 +166,14 @@ impl CommitRuleSpec {
 }
 
 impl CommitRuleSpec {
+    /// What a breach tells the author: the rule's `message`, else `must
+    /// satisfy` and the expression.
+    pub(crate) fn advice(&self) -> String {
+        self.message
+            .clone()
+            .unwrap_or_else(|| format!("must satisfy `{}`", self.assertion))
+    }
+
     /// The breach this rule reports for `held`, the result of reading its
     /// assertion: none when it held, else the rule's message, or the failure
     /// when the assertion did not evaluate.
@@ -177,10 +185,7 @@ impl CommitRuleSpec {
     ) -> Option<CommitBreach> {
         let message = match held {
             Ok(true) => return None,
-            Ok(false) => self
-                .message
-                .clone()
-                .unwrap_or_else(|| format!("must satisfy `{}`", self.assertion)),
+            Ok(false) => self.advice(),
             Err(err) => err,
         };
         Some(CommitBreach {

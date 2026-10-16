@@ -55,6 +55,7 @@ pub use commit::{
     ChangedFiles, CommitMessage, CommitMsgError, CommitRecord, RefProblem, TrailerValue,
     parse_message, staged_files,
 };
+pub use config::active_rules::{ActiveRule, RuleSection, active_rules};
 pub use config::comments::{CommentsConfig, CommentsError, CommentsPolicy, check_comments};
 pub use config::commits::{CommitBreach, CommitRuleSpec, CommitScope, CommitsConfig, check_commit};
 pub use config::layers::{

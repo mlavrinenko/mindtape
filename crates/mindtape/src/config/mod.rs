@@ -12,6 +12,7 @@
 //!
 //! # Files
 //!
+//! - `active_rules.rs`: every rule the merged config applies, for `mt rules`.
 //! - `actors.rs`: `[[actors]]` and `[[roles]]`, the actor registry.
 //! - `add.rs`: `[add]`, the interactive editor fill for `mt add`.
 //! - `assignee.rs`: `[tasks.assignee]` constraints.
@@ -46,6 +47,7 @@
 //! - `views.rs`: `[views]`, named query bundles.
 //! - `warnings.rs`: load-time warnings about a config that loads but looks wrong.
 
+pub mod active_rules;
 pub(crate) mod actors;
 pub(crate) mod add;
 pub(crate) mod assignee;

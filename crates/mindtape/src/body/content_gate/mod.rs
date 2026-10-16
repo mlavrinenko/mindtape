@@ -30,7 +30,6 @@ use crate::body::gate::GateError;
 use crate::config::{Config, HeaderPathSegment};
 use crate::filter::Filter;
 use crate::model::Task;
-use crate::validate::severity::Severity;
 use crate::validate::{Location, Violation};
 
 mod content_gate_density;
@@ -178,7 +177,7 @@ pub fn check_content(
     let roots = tree(headings.clone());
     let mut out = Vec::new();
     for rule in rules {
-        if !rule_applies(rule, task, config) {
+        if !crate::body::applies(rule.when.as_ref(), task, config) {
             continue;
         }
         for node in match_path(&roots, &rule.path) {
@@ -187,17 +186,13 @@ pub fn check_content(
             let Some(default) = evaluate(&rule.assert, content, heading) else {
                 continue;
             };
-            out.push(Violation {
-                task_id: task.id.clone(),
-                field: rule.label.clone(),
-                message: rule.message.clone().unwrap_or(default),
-                location: Location::at(task.file.clone(), node.heading.line),
-                severity: Severity::Error,
-                kind: crate::validate::violation::ViolationKind::Other,
-                reads: crate::validate::violation::reads_of(rule.when.iter()),
-                unknown: None,
-                dict_miss: None,
-            });
+            out.push(crate::body::body_violation(
+                task,
+                &rule.label,
+                rule.message.clone().unwrap_or(default),
+                Location::at(task.file.clone(), node.heading.line),
+                rule.when.as_ref(),
+            ));
         }
     }
     out
@@ -310,13 +305,6 @@ fn word_count(text: &str) -> usize {
     text.split_whitespace()
         .filter(|tok| tok.chars().any(char::is_alphanumeric))
         .count()
-}
-
-fn rule_applies(rule: &CompiledContentRule, task: &Task, config: &Config) -> bool {
-    let Some(filter) = &rule.when else {
-        return true;
-    };
-    filter.matches(task, config).unwrap_or(false)
 }
 
 #[cfg(test)]

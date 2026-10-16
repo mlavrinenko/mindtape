@@ -368,6 +368,7 @@
         },
         "severity": {
           "$ref": "#/$defs/Severity",
+          "default": "warn",
           "description": "Whether a breach fails the check or only reports. Default `warn`."
         },
         "when": {
@@ -1940,6 +1941,7 @@
               "type": "null"
             }
           ],
+          "default": null,
           "description": "A Typst function to call instead of an `assert` expression. Exactly\none of this and `assert` is set."
         },
         "message": {
@@ -1960,6 +1962,7 @@
         },
         "severity": {
           "$ref": "#/$defs/Severity",
+          "default": "warn",
           "description": "Whether a breach fails the command or only reports. Default `warn`."
         },
         "when": {

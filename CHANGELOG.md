@@ -331,6 +331,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   name. A pack holds only the three rule arrays and `[dicts]`, a later entry
   with the same `name` replaces an earlier one, and the rule arrays append
   across layers. `mt config show --origin` names each rule's pack or layer.
+- **`mt rules` lists the rules that apply, one line each.** A line is the
+  rule's severity, its name as `mt config show --origin` prints it, and the
+  message a breach prints, after packs, overrides and `disable`. A rule with no
+  `severity` shows the level `mt` applies, and an `[[on.flip]]` action with a
+  `message` is listed too. `--for add|commit|flip` keeps what that step checks,
+  and `--json` adds the section, `when`, `assert` and a `check` rule's
+  function. The library's `active_rules` returns the same list as
+  `ActiveRule` records, and the config schema gives `warn` as the default
+  `severity` of `[[tasks.rules]]` and `[[commits.rules]]`.
 - **The `mindtape-tasks` pack ships the flagship practice.** It holds the
   section shape (Problem, TO-BE, Changes, Out of scope, plus Environment,
   Alternatives, Source of truth or Rollback by kind), heading order, 🔴/🟢

@@ -48,6 +48,7 @@ pub const CLASSIFICATION: &[(&str, Class)] = &[
     ("allow", Class::Write),
     ("config show", Class::Read),
     ("config schema", Class::Read),
+    ("rules", Class::Read),
     ("preset save", Class::Write),
     ("preset ls", Class::Read),
     ("init", Class::Write),

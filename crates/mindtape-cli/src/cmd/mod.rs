@@ -11,8 +11,8 @@
 //! - `graph/`, `import/`, `install/`, `link/`, `ls/`, `recur/`, `rm/` — the
 //!   commands split over helper files.
 //! - `allow.rs`, `config.rs`, `dicts.rs`, `eval.rs`, `find.rs`, `go.rs`, `mv.rs`,
-//!   `preset.rs`, `review.rs`, `set.rs`, `views.rs`, `worktrees.rs` — one file
-//!   each.
+//!   `preset.rs`, `review.rs`, `rules.rs`, `set.rs`, `views.rs`, `worktrees.rs` —
+//!   one file each.
 
 pub(crate) mod add;
 pub(crate) mod allow;
@@ -34,6 +34,7 @@ pub(crate) mod preset;
 pub(crate) mod recur;
 pub(crate) mod review;
 pub(crate) mod rm;
+pub(crate) mod rules;
 pub(crate) mod set;
 pub(crate) mod views;
 pub(crate) mod worktrees;
