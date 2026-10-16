@@ -489,6 +489,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt ls --format path` prints nothing when no task matches.** It used to
+  print a lone newline, so `mt ls blocked --format path | wc -l` said 1.
 - **A reader that stops reading no longer panics `mt`.** `mt ls | head -3`
   ends cleanly, and a real write error such as a full disk still fails.
 - **A killed write can't leave a task file empty or torn.** Writes go through

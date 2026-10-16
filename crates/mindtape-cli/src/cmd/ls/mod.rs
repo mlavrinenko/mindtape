@@ -106,18 +106,28 @@ pub(crate) fn run_with(args: &LsArgs, project: util::Project) -> Result<()> {
         retired: &retired,
     };
     let body = render(&listing.tasks, format, listing.render_ctx(), Some(envelope))?;
-    if matches!(format, OutputFormat::Path0) {
-        // Self-terminated: every path (including the last) already carries
-        // its own trailing NUL, so a `println!`-supplied newline would land
-        // inside the final `xargs -0` argument instead of after it.
-        print!("{body}");
-    } else {
-        println!("{body}");
-    }
+    print_body(&body, format);
     if matches!(format, OutputFormat::Table) {
         print_footer(args, &listing);
     }
     Ok(())
+}
+
+/// Print a rendered listing with the newline its format calls for.
+fn print_body(body: &str, format: OutputFormat) {
+    // An empty `path` listing is no bytes, not a lone newline, so `wc -l`
+    // counts 0 and a `while read` loop never runs. `path0` is self-terminated:
+    // every path (including the last) already carries its own trailing NUL, so
+    // a `println!`-supplied newline would land inside the final `xargs -0`
+    // argument instead of after it.
+    if body.is_empty() {
+        return;
+    }
+    if matches!(format, OutputFormat::Path0) {
+        print!("{body}");
+    } else {
+        println!("{body}");
+    }
 }
 
 /// The format this run renders in: `--json` is shorthand for `--format json`

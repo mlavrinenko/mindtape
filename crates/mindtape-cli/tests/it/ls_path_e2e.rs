@@ -191,6 +191,15 @@ fn the_file_sort_field_fails_loudly_as_unknown() {
 }
 
 #[test]
+fn path_format_prints_no_bytes_for_no_match_and_one_final_newline_otherwise() {
+    let dir = scaffold();
+    let listing = |filter: &str| support::stdout(dir.path(), &["ls", filter, "--format", "path"]);
+    assert_eq!(listing(r#"title == "nothing""#), "");
+    let all = listing("");
+    assert!(all.ends_with('\n') && !all.ends_with("\n\n"), "{all:?}");
+}
+
+#[test]
 fn path_format_composes_with_a_real_pipe() {
     // `xargs -n1 echo` proves the output is directly consumable, not just
     // shaped like it — the recipe the spec exists for.
