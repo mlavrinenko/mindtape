@@ -93,8 +93,9 @@ fn check_one(
         .map_err(read)?;
     let message = parse_message(&past.message, &config.commits.trailer);
     // Trailers resolve against the tasks the commit itself holds.
-    let (record, problems) =
+    let (mut record, problems) =
         CommitRecord::build(&message, &past.changed, &states.staged.tasks, config);
+    record.in_range = true;
     let breaches = check_commit(&record, Some(&states), config);
     let has_errors = states.head.errors.len() + states.staged.errors.len() > 0;
     if !(problems.is_empty() && breaches.is_empty() && !has_errors) {

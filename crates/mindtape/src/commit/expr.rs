@@ -12,6 +12,9 @@
 //!   its key: `matches(trailers, "^Changelog: none$")`.
 //! - `tasks_only` — a boolean, bare or called: the commit changes only task
 //!   files.
+//! - `in_range` — a boolean, bare or called: the commit is read from a range
+//!   (`mt check --commits`), false for the message `mt check --commit-msg`
+//!   checks.
 //!
 //! Functions: `has(field)` / `miss(field)` (a non-empty subject, at least one
 //! ref or file) and `matches(field, "regex")` — over a list, whether ANY entry
@@ -51,7 +54,7 @@ use crate::model::fields::FieldValue;
 use crate::problem::Problem;
 
 /// The field names a commit expression reads, for the refusal message.
-const COMMIT_FIELDS: &str = "subject, refs, files, trailers, tasks_only";
+const COMMIT_FIELDS: &str = "subject, refs, files, trailers, tasks_only, in_range";
 
 /// A parsed commit-scope expression.
 #[derive(Debug, Clone)]
@@ -169,8 +172,11 @@ fn eval_bool(node: &Node<DefaultNumericTypes>, env: Env<'_>) -> Result<bool, Fil
             function(&restore_name(identifier), node.children(), env)
         }
         Operator::VariableIdentifierRead { identifier } => {
-            match restore_name(identifier).as_str() {
-                "tasks_only" => Ok(env.commit.tasks_only),
+            let name = restore_name(identifier);
+            if let Some(flag) = commit_flag(&name, env.commit) {
+                return Ok(flag);
+            }
+            match name.as_str() {
                 "named" => Ok(env.task("`named`")?.named(env.commit)),
                 "retires_other" => Ok(env.task("`retires_other`")?.retires_other()),
                 other => Err(not_boolean(other, env)),
@@ -253,13 +259,25 @@ fn count_files(
     ))
 }
 
+/// A boolean field of the commit, read bare or called: `tasks_only`,
+/// `in_range`.
+fn commit_flag(name: &str, commit: &CommitRecord) -> Option<bool> {
+    match name {
+        "tasks_only" => Some(commit.tasks_only),
+        "in_range" => Some(commit.in_range),
+        _ => None,
+    }
+}
+
 fn function(
     name: &str,
     children: &[Node<DefaultNumericTypes>],
     env: Env<'_>,
 ) -> Result<bool, FilterError> {
+    if let Some(flag) = commit_flag(name, env.commit) {
+        return Ok(flag);
+    }
     match name {
-        "tasks_only" => Ok(env.commit.tasks_only),
         "named" => Ok(env.task("named()")?.named(env.commit)),
         "retires_other" => Ok(env.task("retires_other()")?.retires_other()),
         "head" | "staged" | "worktree" => env.task(&format!("{name}()"))?.holds(name, children),
@@ -272,6 +290,7 @@ fn function(
                 other,
                 &[
                     "tasks_only",
+                    "in_range",
                     "named",
                     "retires_other",
                     "head",

@@ -382,6 +382,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and reported, and each problem names its commit.
 - **The `mindtape-tasks` pack's `work-names-a-task` skips a `fixup!`, `squash!`
   or `amend!` commit**, since autosquash drops its message.
+- **A commit rule reads `in_range`**, true under `mt check --commits` and false
+  under `mt check --commit-msg`. The pack's `no-unsquashed-fixup` uses it to
+  refuse a range that still holds a `fixup!`, `squash!` or `amend!` commit.
 
 #### Flip hooks
 

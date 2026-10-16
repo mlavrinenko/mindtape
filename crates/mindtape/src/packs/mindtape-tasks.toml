@@ -330,9 +330,8 @@ include = ["mindtape-verbs", "mindtape-dev-verbs"]
 # other half, checked at commit time rather than review. `!tasks_only` exempts
 # a commit that only files or edits task artifacts: it refs nothing but
 # itself. A `fixup!`, `squash!` or `amend!` subject is exempt too, since
-# autosquash drops its message. An unsquashed fixup passes these rules, so a
-# project refuses it at merge, as this repo's `.config/wt.toml` pre-merge hook
-# does.
+# autosquash drops its message. An unsquashed fixup passes this rule, so
+# `no-unsquashed-fixup` below refuses it under `mt check --commits`.
 # The extending layer's own `[commits]` sets the trailer key (default
 # `Refs`) and wires a `commit-msg` hook to `mt check --commit-msg`; the rule
 # fires either way.
@@ -342,6 +341,18 @@ scope = "commit"
 when = '!tasks_only && !matches(subject, "^(fixup|squash|amend)! ")'
 assert = "has(refs)"
 message = "name the task this commit works on in a `Refs: <stem>` footer"
+severity = "error"
+
+# A fixup, squash or amend commit is fine while it is being written, since
+# autosquash drops its message, but a range that still holds one has not been
+# squashed. `in_range` is true only under `mt check --commits`, so the commit
+# hook lets the fixup through and the merge or CI check refuses it.
+[[commits.rules]]
+name = "no-unsquashed-fixup"
+scope = "commit"
+when = "in_range"
+assert = '!matches(subject, "^(fixup|squash|amend)! ")'
+message = "squash this commit first: git rebase -i --autosquash <target>"
 severity = "error"
 
 # A status flip rides with the work it claims, checked per task rather than

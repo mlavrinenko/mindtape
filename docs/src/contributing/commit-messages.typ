@@ -37,8 +37,9 @@ per-commit `[[commits.rules]]` of the `mindtape-tasks` pack
   root is `truth/tasks/`, so a change to `.mindtape/config.toml` or any other
   file needs `Refs:`. A `fixup!`, `squash!` or `amend!` subject is exempt, as
   is `changelog-with-product-change` below, because autosquash drops its message.
-  The `pre-merge` hook refuses a branch that still carries one, so run
-  `git rebase -i --autosquash` before #just.land().
+  `no-unsquashed-fixup` refuses a range that still carries one, under
+  `mt check --commits` only, so run `git rebase -i --autosquash` before
+  #just.land().
 - `flip-with-work` checks each task a commit moves into `wip` or `done`. The
   commit's `Refs:` must name the task, and the commit must change a file
   outside the task root. Two commits are exempt from the second half: one

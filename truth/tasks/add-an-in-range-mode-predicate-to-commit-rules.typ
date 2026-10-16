@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 16),
+  status: done(2026, 10, 16),
 )
 
 == Problem

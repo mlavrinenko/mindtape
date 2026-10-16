@@ -3,7 +3,7 @@ algorithm: blake3
 groups:
   api-service-recipes:
     source:
-      crates/mindtape/src/packs/mindtape-tasks.toml: 956343571233be2286131b2e08e43b26cfbec5fe6e265892376cfd8f92964b64
+      crates/mindtape/src/packs/mindtape-tasks.toml: 3fdeb23f265edd6bce9ecd888789e10dfc67c49d7ccd6d122deed44ebd37f80b
       examples/api-service/.mindtape/config.toml: 6646c41eea3ded70f22b1a65463e59d4faacc8df12e89fa0b93e50744b2add11
       examples/api-service/.mindtape/templates/milestone.typ: 737fc2788932ee1d2863e4041849ed4e6fe6d191952d432369d36a5343446afc
       examples/api-service/.mindtape/templates/task.typ: c139fe1c0f9cbda3786811d6abcd0a832a0ea527227008ff636b4a7b03cec03a
@@ -35,7 +35,7 @@ groups:
       www/content/split-oversized-tasks.typ: 2a8f58f2a7427d7177457ee742cef995a8e13c14c445d2a1f11d0755b29fd34f
       www/content/start-titles-with-a-verb.typ: 56c1a70a2f9fd71a519b00cc7498d005f6e50babc38bb5fc84f931e7ff85779c
       www/content/tie-work-to-goals.typ: 33bd548d43ed3824e359f40b174d1bcce5cbdcab07788a5aa3790527cb79557f
-      www/content/trace-commits-to-tasks.typ: 3afa67ce1380baa2b9df521a80b370ba238a58d64f8a0d52f6bf69dc43dad275
+      www/content/trace-commits-to-tasks.typ: 6da8228d61485341d03ea4bb8160cfd30f68d0d1dadacf997ff641b913df0da6
       www/content/wait-on-upstream.typ: e88a4625e768e9103e2fbb93656fbc91d9e5311872eca7370c913850fd0f308d
   cli-docs:
     source:
@@ -156,7 +156,7 @@ groups:
   dev-shell-docs:
     source:
       .config/nextest.toml: 1aa04153954c5ab8ce468d3e08225b76d6dd1f636874b9591c275c588b89f984
-      .config/wt.toml: 3141dd3e5b66ddd08cc69b85042e4d51085d74f36b4e96986359652c97e4a843
+      .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
       .just/docs.just: 300226a86d551abc287d058efd9cbc2143fa7f15e3c6b53131699f27f35847fc
       .just/scripts/wt-carry-lcov.sh: 0d4513fdd21068f5897a015bbc4cd02bc3644ca139d8c39053140fba491e1e76
       Justfile: 9f5f6f776b6029f9cc77583bc2db8c5d0d8a0e5aed681d01a10cf1350cb90c62

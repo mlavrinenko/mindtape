@@ -309,3 +309,25 @@ fn a_task_the_tip_deleted_is_not_left_wip() {
     let (ok, text) = check_range(dir, "HEAD~2..HEAD");
     assert!(ok, "a task the tip lacks cannot be wip there: {text}");
 }
+
+#[test]
+fn the_pack_lets_a_fixup_through_the_hook_and_refuses_it_in_a_range() {
+    let dir = commit_repo("");
+    let dir = dir.path();
+    let config = dir.join(".mindtape/config.toml");
+    let base = std::fs::read_to_string(&config).unwrap();
+    std::fs::write(&config, format!("extends = [\"mindtape-tasks\"]\n{base}")).unwrap();
+    git(dir, &["add", "-A"]);
+    commit(dir, "chore: extend the pack\n\nChangelog: none");
+    stage_file(dir, "src/lib.rs");
+    let message = "fixup! feat: list dictionaries\n";
+
+    let (ok, text) = support::check_commit_msg(dir, message);
+    assert!(ok, "the hook lets a fixup through: {text}");
+
+    commit(dir, message);
+    let (ok, text) = check_range(dir, "HEAD~1..HEAD");
+    assert!(!ok, "the range must refuse the fixup: {text}");
+    assert!(text.contains("no-unsquashed-fixup"), "{text}");
+    assert!(text.contains("git rebase -i --autosquash"), "{text}");
+}

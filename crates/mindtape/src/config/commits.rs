@@ -99,7 +99,7 @@ impl CommitsConfig {
 #[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum CommitScope {
-    /// Once per commit, over its `subject`, `refs`, `files`, `trailers` and `tasks_only`.
+    /// Once per commit, over its `subject`, `refs`, `files`, `trailers`, `tasks_only` and `in_range`.
     #[default]
     Commit,
     /// Once per task the commit changes or names, over the commit's fields

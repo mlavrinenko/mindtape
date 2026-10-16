@@ -315,6 +315,9 @@ pub struct CommitRecord {
     /// `tasks_only`: the commit changes at least one file, and every one is a
     /// task file (a `.typ` under a `[tasks] roots` entry).
     pub tasks_only: bool,
+    /// `in_range`: the commit was read from a range (`mt check --commits`),
+    /// not from a message being written (`mt check --commit-msg`).
+    pub in_range: bool,
     /// The stems a `scope = "task"` rule runs for: every task file the commit
     /// changes, then every ref, each once. Not an expression field.
     pub tasks: Vec<String>,
@@ -368,6 +371,7 @@ impl CommitRecord {
             files: changed.paths.clone(),
             renamed_from: changed.renamed_from.clone(),
             tasks_only,
+            in_range: false,
             tasks: subjects,
             trailers: message.trailer_lines.clone(),
         };

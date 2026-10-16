@@ -12,6 +12,7 @@ fn commit() -> CommitRecord {
         files: vec!["docs/guide.md".to_owned(), "src/lib.rs".to_owned()],
         renamed_from: Vec::new(),
         tasks_only: false,
+        in_range: false,
         tasks: Vec::new(),
         trailers: vec!["Changelog: none".to_owned(), "Refs: parser".to_owned()],
     }
@@ -95,6 +96,26 @@ fn a_named_path_set_is_read_where_a_glob_is() {
     let folded = parse_config("[dicts.source]\nvalues = [\"src/**\"]\n").unwrap();
     let problem = commit_expr_problem("count(files, \"@source\") == 1", &folded).unwrap();
     assert!(problem.contains("exact"), "{problem}");
+}
+
+#[test]
+fn in_range_is_true_only_for_a_commit_read_from_a_range() {
+    let eval_in = |expr: &str, in_range: bool| {
+        let record = CommitRecord {
+            in_range,
+            ..commit()
+        };
+        CommitExpr::parse(expr)
+            .unwrap()
+            .matches(&record, &Config::default())
+            .unwrap()
+    };
+    assert!(eval_in("in_range", true) && eval_in("in_range()", true));
+    assert!(!eval_in("in_range", false) && !eval_in("in_range()", false));
+    assert!(eval_in("!in_range", false));
+    assert!(problem_of("in_range").is_none());
+    let refused = problem_of("status == \"wip\"").unwrap();
+    assert!(refused.contains("tasks_only, in_range;"), "{refused}");
 }
 
 #[test]

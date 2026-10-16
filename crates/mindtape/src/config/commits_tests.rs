@@ -12,6 +12,7 @@ fn record(refs: &[&str], tasks_only: bool) -> CommitRecord {
         files: vec!["src/lib.rs".to_owned()],
         renamed_from: Vec::new(),
         tasks_only,
+        in_range: false,
         tasks: Vec::new(),
         trailers: Vec::new(),
     }

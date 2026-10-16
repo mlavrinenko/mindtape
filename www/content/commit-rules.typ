@@ -22,7 +22,8 @@ walks through the whole setup, from a refused commit to `touches()`.
 
 The examples run in a git copy of `examples/rules/`, whose config holds the
 three commit rules below. The rules the `mindtape-tasks` pack ships,
-`work-names-a-task`, `flip-with-work` and `named-tasks-finish-at-the-tip`, are
+`work-names-a-task`, `no-unsquashed-fixup`, `flip-with-work` and
+`named-tasks-finish-at-the-tip`, are
 listed on
 #link(u("/rule-packs/"))[Rule packs].
 
@@ -84,6 +85,10 @@ rule once per commit, over these fields:
   [`tasks_only`],
   [Whether the commit stages at least one file and every staged file is a
     `.typ` file under a `[tasks] roots` entry.],
+
+  [`in_range`],
+  [Whether the commit is read from a range: true under
+    `mt check --commits`, false under `mt check --commit-msg`.],
 )
 
 The operators come from the #link(u("/filters/"))[filter language]. The
@@ -110,9 +115,9 @@ A breach names the message file and the rule. Here a migration has no
 `subject` is also how a rule exempts a commit autosquash will drop. The
 `mindtape-tasks` pack's `work-names-a-task` adds
 `!matches(subject, "^(fixup|squash|amend)! ")` to its `when`, so a
-`git commit --fixup` needs no `Refs:`. No rule scope can refuse such a commit
-in a range alone, so hang that check on the merge, as the next section does for
-unfinished tasks.
+`git commit --fixup` needs no `Refs:`. The pack's `no-unsquashed-fixup` is
+the other half. It reads `in_range`, so the hook lets a fixup through and
+`mt check --commits` refuses one that nobody squashed.
 
 Rules merge by `name` across #link(u("/config/#layers"))[config layers] and
 #link(u("/rule-packs/"))[rule packs], like `[[tasks.rules]]`. To replace a
@@ -191,7 +196,7 @@ To refuse a branch at merge time, run `mt check --commits main..HEAD` in the
 A hook doesn't run under `git commit --no-verify`, so check the commits a
 push carries in CI too. `mt check --commits <range>` checks every commit
 `git rev-list` lists for the range, oldest first, with the same trailer check
-and rules.
+and rules. The one difference is `in_range`, which is true here.
 
 Each commit is read against its first parent, a merge included. `subject` and
 `refs` come from its message, and `files` from what it changes against that
