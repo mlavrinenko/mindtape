@@ -55,13 +55,15 @@ that `mt worktrees` lists, such as `@name`, right after `mt`.
   [Rename a task], [`mt mv <task> <new-stem>`],
   [Retire a task], [`mt rm <task or folder…>`],
   [Validate], [`mt check`],
+  [List the rules], [`mt rules`],
 )
 
 Run `mt <cmd> --help` for every flag. Never guess the project's statuses, link
 kinds, priority scale or tags: read them from `mt config show`, which prints
-the merged config (`--origin` names where each rule comes from), or the
-statuses alone from `mt flip --list`. Read the words a dictionary accepts,
-such as the verbs a title may start with, from `mt dicts <name>`. For what no
+the merged config, or the statuses alone from `mt flip --list`. Read the words
+a dictionary accepts, such as the verbs a title may start with, from
+`mt dicts <name>`. Before you file, flip or commit, run `mt rules --for <step>`
+(`add`, `flip` or `commit`) to read the rules that step checks. For what no
 `--help` covers, read #www-llms, which lists every docs page as Markdown.
 
 A `<task>` is a stem, a path, or the stem hash `mt ls` prints in its `slug#`

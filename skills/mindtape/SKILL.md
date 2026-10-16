@@ -35,8 +35,9 @@ It is when `.mindtape/config.toml` exists. Run `mt` in the directory that holds 
 | Rename a task | `mt mv <task> <new-stem>` |
 | Retire a task | `mt rm <task or folder…>` |
 | Validate | `mt check` |
+| List the rules | `mt rules` |
 
-Run `mt <cmd> --help` for every flag. Never guess the project’s statuses, link kinds, priority scale or tags: read them from `mt config show`, which prints the merged config (`--origin` names where each rule comes from), or the statuses alone from `mt flip --list`. Read the words a dictionary accepts, such as the verbs a title may start with, from `mt dicts <name>`. For what no `--help` covers, read [https://mlavrinenko.github.io/mindtape/llms.txt](https://mlavrinenko.github.io/mindtape/llms.txt), which lists every docs page as Markdown.
+Run `mt <cmd> --help` for every flag. Never guess the project’s statuses, link kinds, priority scale or tags: read them from `mt config show`, which prints the merged config, or the statuses alone from `mt flip --list`. Read the words a dictionary accepts, such as the verbs a title may start with, from `mt dicts <name>`. Before you file, flip or commit, run `mt rules --for <step>` (`add`, `flip` or `commit`) to read the rules that step checks. For what no `--help` covers, read [https://mlavrinenko.github.io/mindtape/llms.txt](https://mlavrinenko.github.io/mindtape/llms.txt), which lists every docs page as Markdown.
 
 A `<task>` is a stem, a path, or the stem hash `mt ls` prints in its `slug#` column. A hash changes only when `mt mv` renames the stem, and `mt` refuses one that several tasks share. Link a task’s file path when you name it to a person.
 

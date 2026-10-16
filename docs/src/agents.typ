@@ -52,9 +52,10 @@ skips a file whose bytes are unchanged.
 - `lib/prelude.typ` — the `@local/mindtape` package, which defines the task
   DSL.
 - `truth/tasks/` — #mindtape's own backlog, read with the in-tree `lib/`.
-  Change a task with `mt` commands, as `skills/mindtape/SKILL.md` says. Edit
-  the file by hand only for the body, a framework priority, `estimate` and
-  `x-goals`, then run `mt check`.
+  Change a task with `mt` commands, as `skills/mindtape/SKILL.md` says, and
+  list the rules each task and commit must pass with `mt rules`. Edit the file
+  by hand only for the body, a framework priority, `estimate` and `x-goals`,
+  then run `mt check`.
 - `truth/goals.typ` and `truth/process-goals.typ` — the product and process
   goals. Each open task rates every goal in `x-goals`, which the `goals` rule
   checks.

@@ -112,7 +112,8 @@ Here's the output in the #mindtape repository:
 Every rule from `mindtape-tasks` reads `pack mindtape-tasks`, except
 `section-allowlist`, which reads `project` because the project's rule replaced
 it. The repository's own rules, such as `goals` and the `Dogfood` rules, read
-`project` because only the project declares them.
+`project` because only the project declares them. To read each rule's
+severity and message as well, run #link(u("/cli/rules/"))[`mt rules`].
 
 When `mt` reports a problem with a rule itself, not with a task, it points at
 the rule's own `[[tasks.rules]]` header, whichever layer or pack declared it.

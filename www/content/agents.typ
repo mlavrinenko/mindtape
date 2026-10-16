@@ -78,7 +78,7 @@ summary, so an agent can find the page it needs from one file.
 = Read tasks as JSON
 
 Every read command prints JSON with `--json`: `mt ls`, `mt eval <task>`,
-`mt check`, `mt graph`,
+`mt check`, `mt graph`, `mt dicts`, `mt rules`,
 `mt preset ls`, `mt config show`, `mt worktrees` and `mt add --describe=json`. Here's
 `mt ls ready -n 1 --json`:
 

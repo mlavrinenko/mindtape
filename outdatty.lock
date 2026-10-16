@@ -73,7 +73,7 @@ groups:
       crates/mindtape/src/lib.rs: 0c475ff0609d421caab295c96681d892d77e8f5c8fe2cae8b6564202d73add79
       crates/mindtape/src/model/fields.rs: eb8c665bb379a8ade21b59c34d32c6edc9b9513fd2761ca6df09df1557340068
     dependents:
-      docs/src/skill.typ: 60fbeaf3b1084c74043878cea5efcb7cf31192f41da833ab0ace7b129a1e0bb6
+      docs/src/skill.typ: 06904b8ae92964a7d9d851281dc8a48e7239414523db19ed255b8af4f4971c2d
       skills/mindtape/evals/README.md: 998e2cfcf60142db3101c1ddd849ef3a244acd18eb7ca3568a3195d12eb2bf6b
       skills/mindtape/evals/evals.json: 481bb4f0168826d9ee4086ee6f4f4f74c4c31ed3b46792871532da8372b56460
       skills/mindtape/references/add-slots.md: 40f2d1cf845f44fbaf8293465be7ff4c6d6dd30c75347bf866fe673a3e3682cf
@@ -132,7 +132,7 @@ groups:
       docs/src/contributing.typ: 108fc8f468b15497242f35e278cf46dd2a50f4effc9093b825e9b075fcc49f3a
       docs/src/contributing/command-semantics.typ: 5b3219c6991e68607914d12d1386f39913d500ddb3f7d0eca2b91232789df32f
       docs/src/readme.typ: d0e61e5595a6dd4446906f41e01c6c76197a0a926cfcf2412b16ef8894d1aa01
-      docs/src/skill.typ: 60fbeaf3b1084c74043878cea5efcb7cf31192f41da833ab0ace7b129a1e0bb6
+      docs/src/skill.typ: 06904b8ae92964a7d9d851281dc8a48e7239414523db19ed255b8af4f4971c2d
       www/content/cli.typ: e3f61593ca592688f27f1f31ab148df7f7c4d817058c85a49f0bc152b190fcf0
       www/content/index.typ: 52adb00400c7a2d3502ffdf49534a5cbea008d30fae1b2cbbaccd73a575d9774
       www/content/quickstart.typ: 22765823c2934f3a3c96dbf77b8f5d42fe385914cfd27f57f8f49ff2d4f8f3ac
