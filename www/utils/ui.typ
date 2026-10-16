@@ -108,10 +108,19 @@
   "../generated/" + slug + ".json",
 ))))
 
-// The exit code of a capture's last command, for a page that shows a refusal.
-#let exit-code(slug) = raw(str(
-  json("../generated/" + slug + ".json").steps.last().code,
-))
+// The exit code of the refusal a capture shows: the last command that exited
+// non-zero. A session can end on a command that passes, such as the filing
+// that follows a refusal, so the last command's code would call a success a
+// refusal. The build fails when every command passed.
+#let exit-code(slug) = {
+  let steps = json("../generated/" + slug + ".json").steps
+  let failed = steps.filter(step => step.code != 0)
+  assert(
+    failed.len() > 0,
+    message: "capture " + slug + " has no command that exited non-zero",
+  )
+  raw(str(failed.last().code))
+}
 
 // One line of what a capture printed, as inline code: the first line, color
 // stripped, that matches the regex `pattern`. The build fails when no line

@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 16),
+  status: done(2026, 10, 16),
 )
 
 == Problem
@@ -55,13 +55,12 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `www/utils/ui.typ`: read the first failing step's code, or take the step to read.
-- `www/content/split-oversized-tasks.typ`: quote the refusal's code.
+- `www/utils/ui.typ`: `exit-code()` reads the last step that exited non-zero, and fails the build when every step passed. Each caller quotes a refusal or a usage error, so none needs a step argument, and the split-oversized-tasks page needs no edit.
 
 
 == Rollback
 
-- Revert both files.
+- Revert `www/utils/ui.typ`.
 
 
 == Out of scope
