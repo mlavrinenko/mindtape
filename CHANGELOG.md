@@ -489,6 +489,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt ls --format csv` ends with one newline.** It used to print a blank
+  line after the last record, so a script that read the listing saw an empty
+  last row. An empty listing is now `id,title` and one newline.
 - **`mt ls --format path` prints nothing when no task matches.** It used to
   print a lone newline, so `mt ls blocked --format path | wc -l` said 1.
 - **A reader that stops reading no longer panics `mt`.** `mt ls | head -3`

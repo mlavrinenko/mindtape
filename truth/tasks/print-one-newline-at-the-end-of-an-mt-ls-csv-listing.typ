@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 16),
+  status: done(2026, 10, 16),
 )
 
 == Problem
@@ -51,8 +51,8 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape-cli/src/cmd/ls/mod.rs`: print the csv body without a second newline.
-- `crates/mindtape-cli/tests/it/`: pin the csv output through the binary.
+- `crates/mindtape-cli/src/cmd/ls/mod.rs`: `print_body` prints a body ending in a newline or NUL as is and adds one newline to any other, so no format needs its own case. The table footer prints its own separating blank line, which the table body's trailing newline and `println!` used to supply.
+- `crates/mindtape-cli/tests/it/ls_newline_e2e.rs`: pin the last byte of every format, and the table's blank line before its footer, through the binary.
 
 == Rollback
 

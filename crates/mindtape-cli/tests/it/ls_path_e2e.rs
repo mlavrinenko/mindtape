@@ -108,8 +108,7 @@ fn csv_and_json_report_the_same_root_relative_file_from_a_subdirectory() {
         .output()
         .unwrap();
     let csv_stdout = String::from_utf8_lossy(&csv.stdout);
-    // Skip the header row and drop the blank line `render_csv`'s own CRLF
-    // terminator plus the outer `println!` together leave at the end.
+    // Skip the header row.
     let mut csv_cells: Vec<&str> = csv_stdout
         .lines()
         .skip(1)

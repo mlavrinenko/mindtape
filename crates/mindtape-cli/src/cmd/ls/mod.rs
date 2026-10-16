@@ -106,27 +106,27 @@ pub(crate) fn run_with(args: &LsArgs, project: util::Project) -> Result<()> {
         retired: &retired,
     };
     let body = render(&listing.tasks, format, listing.render_ctx(), Some(envelope))?;
-    print_body(&body, format);
+    print_body(&body);
     if matches!(format, OutputFormat::Table) {
         print_footer(args, &listing);
     }
     Ok(())
 }
 
-/// Print a rendered listing with the newline its format calls for.
-fn print_body(body: &str, format: OutputFormat) {
-    // An empty `path` listing is no bytes, not a lone newline, so `wc -l`
-    // counts 0 and a `while read` loop never runs. `path0` is self-terminated:
-    // every path (including the last) already carries its own trailing NUL, so
-    // a `println!`-supplied newline would land inside the final `xargs -0`
-    // argument instead of after it.
+/// Print a rendered listing: a body owns its final terminator or never does.
+///
+/// A body that ends in `\n` (`csv`, whose writer ends every record) or in NUL
+/// (`path0`, whose every path carries its own, so a newline would land inside
+/// the final `xargs -0` argument) prints as is. Any other body gets one
+/// newline. An empty body prints nothing, so an empty `path` listing counts 0
+/// in `wc -l` and a `while read` loop never runs.
+fn print_body(body: &str) {
     if body.is_empty() {
         return;
     }
-    if matches!(format, OutputFormat::Path0) {
-        print!("{body}");
-    } else {
-        println!("{body}");
+    print!("{body}");
+    if !body.ends_with(['\n', '\0']) {
+        println!();
     }
 }
 
@@ -163,6 +163,9 @@ fn print_footer(args: &LsArgs, listing: &Listing) {
     });
     let footer = rules::footer(&listing.applied, listing.tasks.len(), listing.project_total);
     let lines = std::iter::once(footer).chain(next_page);
+    // The table body ends in its own newline, so this blank line is the
+    // footer's separator, not a leftover of the body's print.
+    println!();
     for line in lines {
         println!("{}", painter.paint(&line, dim));
     }
