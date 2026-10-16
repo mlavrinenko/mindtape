@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 16),
+  status: done(
+    2026,
+    10,
+    16,
+  )[agreed: at.toml with \[at.\<name>\] sets, bare mt \@x runs board, ls grouped by project, forks opt-in, no default board outside a project],
   links: supersedes("worktree-aliases.typ")
     + related(
       "named-views-and-contexts.typ",
