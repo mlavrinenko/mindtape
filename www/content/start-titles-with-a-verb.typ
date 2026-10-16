@@ -32,7 +32,8 @@ tells you what to do before you open anything.
 
 `sections.yaml` holds the Problem and the other sections the template asks
 for, so only the title changes. `mt add` refuses a title that starts with no
-verb and writes no file. It files the ones that start with a verb:
+verb, names the nearest verbs, and writes no file. It files the ones that
+start with a verb:
 
 #terminal("start-titles-with-a-verb")
 

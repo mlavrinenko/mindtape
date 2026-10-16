@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": exit-code, terminal
+#import "../utils/ui.typ": capture-line, exit-code, terminal
 #import "../utils/site.typ": u
 #import "../utils/slices.typ": checked-slices, render-slices
 
@@ -126,6 +126,11 @@ dictionary, so no tag or field value can start with `@`. `mt` refuses a tag
 outside the list and exits #exit-code("named-sets-allowed"):
 
 #terminal("named-sets-allowed")
+
+When a rule refuses a task because `in_dict()` missed, the refusal says which
+word the dictionary lacks and names up to three of its nearest entries, as in
+#capture-line("start-titles-with-a-verb", "^hint: '"). A second hint runs
+`mt dicts` on that dictionary, so you can read the whole list.
 
 `mt` checks every dictionary when it loads the config. Each must have a
 source and resolve to at least one entry. Each `path` must be readable. Each

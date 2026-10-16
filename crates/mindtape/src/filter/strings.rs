@@ -17,11 +17,15 @@
 //! field name does — and config load dry-runs every saved expression against a
 //! probe task, so a view, a limit or a `required` rule reports its own bad
 //! filter by name at load rather than quietly matching nothing.
+//!
+//! When a rule's `assert` reads false, [`dict_miss`] walks the expression again
+//! for the `in_dict()` call that missed, so the refusal can name the
+//! dictionary, the word and the entries nearest it ([`DictMiss`]).
 
 use evalexpr::{DefaultNumericTypes, Node, Operator};
 use regex::Regex;
 
-use crate::config::Config;
+use crate::config::{Config, Dict};
 use crate::filter::expr::{call_args, describe, extract_literal, restore_name, unwrap_root};
 use crate::filter::{FilterError, field_value};
 use crate::model::Task;
@@ -172,8 +176,8 @@ pub(crate) fn matches_call(
     Ok(string_value(value, task, config)?.is_some_and(|text| regex.is_match(&text)))
 }
 
-/// `in_dict("name", <string expr>)` — membership in a configured or built-in
-/// dictionary, under that dictionary's own `case`.
+/// The two arguments of `in_dict("name", <string expr>)`: the dictionary's
+/// name, the compiled dictionary, and the word, `None` when there is none.
 ///
 /// The name is validated here, where it is written, rather than at lookup:
 /// [`crate::config::Dicts::contains`] reads an unknown name as a miss, which
@@ -183,11 +187,11 @@ pub(crate) fn matches_call(
 /// [`FilterError::UnknownDict`] for a name no compiled dictionary carries, and
 /// [`FilterError::Invalid`] on a wrong argument count or a non-literal name;
 /// whatever [`string_value`] raises for the second argument.
-pub(crate) fn in_dict_call(
+fn in_dict_lookup<'c>(
     children: &[Node<DefaultNumericTypes>],
     task: &Task,
-    config: &Config,
-) -> Result<bool, FilterError> {
+    config: &'c Config,
+) -> Result<(String, &'c Dict, Option<String>), FilterError> {
     let args = call_args(children);
     let [name, value] = args.as_slice() else {
         return Err(arity("in_dict", "in_dict(\"verbs\", word(title, 1))"));
@@ -203,7 +207,66 @@ pub(crate) fn in_dict_call(
         unknown: crate::suggest::Unknown::among(&name, dicts.names()),
         name: name.clone(),
     })?;
-    Ok(string_value(value, task, config)?.is_some_and(|text| dict.contains(&text)))
+    Ok((name, dict, string_value(value, task, config)?))
+}
+
+/// `in_dict("name", <string expr>)`: membership in a configured or built-in
+/// dictionary, under that dictionary's own `case`.
+///
+/// # Errors
+/// As [`in_dict_lookup`].
+pub(crate) fn in_dict_call(
+    children: &[Node<DefaultNumericTypes>],
+    task: &Task,
+    config: &Config,
+) -> Result<bool, FilterError> {
+    let (_, dict, word) = in_dict_lookup(children, task, config)?;
+    Ok(word.is_some_and(|text| dict.contains(&text)))
+}
+
+/// How many of a dictionary's entries a [`DictMiss`] names.
+const NEAREST_ENTRIES: usize = 3;
+
+/// An `in_dict()` call that answered no: the dictionary, the word it lacks,
+/// and up to three of its entries nearest that word.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DictMiss {
+    /// The dictionary the call names.
+    pub dict: String,
+    /// The word the dictionary lacks, as the task spells it.
+    pub word: String,
+    /// The entries nearest `word` by edit distance, nearest first, as the
+    /// dictionary stores them. Empty when none is close.
+    pub nearest: Vec<String>,
+}
+
+/// Why `node` read false for `task`: the first `in_dict()` call, reached
+/// through `&&`, `||` and parentheses alone, whose dictionary lacks its word.
+///
+/// A call under `!` explains nothing, because its miss made the expression
+/// truer. Neither does one inside `@view` or `count(...)`. A call that fails
+/// to evaluate, or reads no word, is no miss either.
+pub(crate) fn dict_miss(
+    node: &Node<DefaultNumericTypes>,
+    task: &Task,
+    config: &Config,
+) -> Option<DictMiss> {
+    match node.operator() {
+        Operator::RootNode | Operator::And | Operator::Or => node
+            .children()
+            .iter()
+            .find_map(|child| dict_miss(child, task, config)),
+        Operator::FunctionIdentifier { identifier } if identifier == "in_dict" => {
+            let (dict, entries, word) = in_dict_lookup(node.children(), task, config).ok()?;
+            let word = word.filter(|word| !entries.contains(word))?;
+            Some(DictMiss {
+                nearest: entries.nearest(&word, NEAREST_ENTRIES),
+                dict,
+                word,
+            })
+        }
+        _ => None,
+    }
 }
 
 /// `word(...)` reached boolean position. Named rather than left to the unknown

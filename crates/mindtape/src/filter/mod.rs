@@ -99,6 +99,7 @@ mod problems;
 pub(crate) use problems::{expr_problem, expr_problem_in_set, problem_of, undeclared_extras};
 pub(crate) mod predicates;
 pub(crate) mod strings;
+pub use strings::DictMiss;
 pub(crate) mod views;
 
 use evalexpr::{DefaultNumericTypes, Node, build_operator_tree};
@@ -222,6 +223,14 @@ impl Filter {
         readiness: &Readiness,
     ) -> Result<bool, FilterError> {
         self.eval(task, config, readiness, false)
+    }
+
+    /// Why the filter read false for `task`: the first `in_dict()` call
+    /// outside any `!` whose dictionary lacks its word (see
+    /// [`strings::dict_miss`]). `None` when no such call missed.
+    #[must_use]
+    pub fn dict_miss(&self, task: &Task, config: &Config) -> Option<DictMiss> {
+        strings::dict_miss(self.tree.as_ref()?, task, config)
     }
 
     /// Evaluate against `task`; `dry` checks every `changed()` call's

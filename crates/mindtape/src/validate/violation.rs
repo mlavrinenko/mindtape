@@ -162,6 +162,9 @@ pub struct Violation {
     /// What an unknown name in the message could have been: the nearest known
     /// name and the names to choose from.
     pub unknown: Option<crate::suggest::Unknown>,
+    /// The `in_dict()` miss that made a rule's `assert` read false: the
+    /// dictionary, the word it lacks and its nearest entries.
+    pub dict_miss: Option<crate::filter::DictMiss>,
 }
 
 /// What a check about `field` (a name or a path into one, such as

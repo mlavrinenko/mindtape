@@ -235,6 +235,7 @@ fn diagnostic_to_violation(
         kind: crate::validate::violation::ViolationKind::Other,
         reads: crate::validate::violation::reads_of(rule.when.iter()),
         unknown: None,
+        dict_miss: None,
     }
 }
 

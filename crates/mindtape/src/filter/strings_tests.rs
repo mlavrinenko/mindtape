@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used)]
 
 use crate::config::Config;
-use crate::filter::{Filter, FilterError};
+use crate::filter::{DictMiss, Filter, FilterError};
 use crate::model::Task;
 use crate::parse_config;
 
@@ -354,4 +354,91 @@ fn in_dict_composes_with_the_rest_of_the_language() {
     .unwrap();
     assert!(hit("@verbed && has(title)", &titled("Add auth"), &cfg));
     assert!(!hit("@verbed", &titled("Gateway auth"), &cfg));
+}
+
+// --- dict_miss() -----------------------------------------------------------
+
+/// The miss `expr` reports for a task titled `title`, under [`cased_config`].
+fn miss(expr: &str, title: &str) -> Option<DictMiss> {
+    Filter::parse(expr)
+        .unwrap()
+        .dict_miss(&titled(title), &cased_config())
+}
+
+fn verbs_miss(word: &str, nearest: &[&str]) -> DictMiss {
+    DictMiss {
+        dict: "verbs".to_owned(),
+        word: word.to_owned(),
+        nearest: nearest.iter().map(|entry| (*entry).to_owned()).collect(),
+    }
+}
+
+const VERB_FIRST: &str = "in_dict(\"verbs\", word(title, 1))";
+
+#[test]
+fn a_miss_names_the_dict_the_word_as_written_and_the_nearest_entries() {
+    assert_eq!(
+        miss(VERB_FIRST, "Ad auth"),
+        Some(verbs_miss("Ad", &["add"]))
+    );
+    assert_eq!(
+        miss(VERB_FIRST, "Zzyzx auth"),
+        Some(verbs_miss("Zzyzx", &[]))
+    );
+}
+
+#[test]
+fn a_hit_or_a_missing_word_is_no_miss() {
+    assert_eq!(miss(VERB_FIRST, "Add auth"), None);
+    assert_eq!(miss("in_dict(\"verbs\", word(title, 9))", "Ad auth"), None);
+    assert_eq!(miss("", "Ad auth"), None);
+}
+
+/// An `exact` dict misses a word that differs in case alone, and ranks the
+/// word as written.
+#[test]
+fn an_exact_miss_keeps_the_case_of_the_word() {
+    let found = miss("in_dict(\"strict\", word(title, 1))", "Add auth").unwrap();
+    assert_eq!(
+        (found.dict.as_str(), found.word.as_str()),
+        ("strict", "Add")
+    );
+    assert_eq!(found.nearest, ["add"]);
+}
+
+#[test]
+fn and_or_and_parentheses_reach_the_call() {
+    let expected = Some(verbs_miss("Ad", &["add"]));
+    for expr in [
+        "has(title) && in_dict(\"verbs\", word(title, 1))",
+        "matches(title, \"^x\") || in_dict(\"verbs\", word(title, 1))",
+        "(in_dict(\"verbs\", word(title, 1)))",
+    ] {
+        assert_eq!(miss(expr, "Ad auth"), expected, "{expr}");
+    }
+}
+
+/// A call under `!`, inside `count(...)` or behind a view made the
+/// expression no falser by missing, so it explains nothing. Neither does a
+/// call to another function of the same shape, such as
+/// `contains("verbs", title)`.
+#[test]
+fn a_negated_nested_or_other_call_explains_nothing() {
+    for expr in [
+        "!in_dict(\"verbs\", word(title, 1))",
+        "count(in_dict(\"verbs\", word(title, 1))) > 0",
+        "in_view(\"verbed\")",
+        "contains(\"verbs\", title)",
+    ] {
+        assert_eq!(miss(expr, "Ad auth"), None, "{expr}");
+    }
+}
+
+#[test]
+fn the_first_miss_in_reading_order_wins() {
+    let found = miss(
+        "in_dict(\"strict\", word(title, 1)) || in_dict(\"verbs\", word(title, 1))",
+        "Ad auth",
+    );
+    assert_eq!(found.unwrap().dict, "strict");
 }

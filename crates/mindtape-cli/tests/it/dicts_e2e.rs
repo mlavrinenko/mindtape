@@ -1,5 +1,6 @@
-//! `mt dicts` lists a project's dictionaries and the entries of one
-//! (`truth/tasks/show-the-allowed-words-of-a-dictionary-from-the-cli.typ`).
+//! `mt dicts` lists a project's dictionaries and the entries of one, and a
+//! rule refused because `in_dict()` missed names the dictionary and the
+//! nearest entries (`truth/tasks/show-the-allowed-words-of-a-dictionary-from-the-cli.typ`).
 #![allow(
     clippy::unwrap_used,
     clippy::indexing_slicing,
@@ -10,10 +11,15 @@ use crate::support;
 
 use support::{assert_stderr, mt, scaffold_project};
 
-/// Two dictionaries, one per case rule.
+/// Two dictionaries, one per case rule, and a rule that reads one. The verbs
+/// sit at one edit from `Rote`, except `rotate`, so the nearest three are a
+/// tie that only dictionary order breaks.
 const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n\
     [dicts.verbs]\nvalues = [\"vote\", \"Rose\", \"rotate\", \"rite\", \"rate\", \"note\"]\n\n\
-    [dicts.labels]\nvalues = [\"BILLING\", \"Auth\"]\ncase = \"exact\"\n";
+    [dicts.labels]\nvalues = [\"BILLING\", \"Auth\"]\ncase = \"exact\"\n\n\
+    [[tasks.rules]]\nname = \"imperative-title\"\n\
+    assert = 'in_dict(\"verbs\", word(title, 1))'\n\
+    message = \"start the title with a verb\"\nseverity = \"error\"\n";
 
 fn stdout(args: &[&str]) -> String {
     let dir = scaffold_project(CONFIG);
@@ -24,6 +30,51 @@ fn stdout(args: &[&str]) -> String {
 
 fn json(args: &[&str]) -> serde_json::Value {
     serde_json::from_str(&stdout(args)).unwrap()
+}
+
+/// A near miss names the three nearest verbs; a far one names none.
+#[test]
+fn a_refused_title_names_the_dict_and_the_nearest_entries() {
+    for (word, near) in [
+        ("Rote", "; did you mean note, rate or rite?"),
+        ("Zzyzx", ""),
+    ] {
+        let dir = scaffold_project(CONFIG);
+        let title = format!("title={word} the keys");
+        assert_stderr(
+            dir.path(),
+            &["add", "--name", "keys", "--set", &title],
+            1,
+            &format!(
+                "error: <new task from template 'task'>:3: rules.imperative-title: \
+                 start the title with a verb\n\
+                 hint: '{word}' is not in dict verbs{near}\n\
+                 hint: run mt dicts verbs to see its entries\n"
+            ),
+        );
+    }
+}
+
+#[test]
+fn check_json_carries_the_dict_hints() {
+    let dir = scaffold_project(CONFIG);
+    mindtape::test_support::write_file(
+        dir.path(),
+        "tasks/keys.typ",
+        "#import \"@local/mindtape:0.2.0\": *\n\n\
+         #show: task.with(title: \"Rote the keys\", status: wip(2026, 6, 1))\n",
+    );
+    let out = mt(dir.path()).args(["check", "--json"]).output().unwrap();
+    let report: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    let error = &report["problems"][0];
+    assert_eq!(error["rule"], "rules.imperative-title", "{report}");
+    assert_eq!(
+        error["hints"],
+        serde_json::json!([
+            "'Rote' is not in dict verbs; did you mean note, rate or rite?",
+            "run mt dicts verbs to see its entries",
+        ])
+    );
 }
 
 #[test]

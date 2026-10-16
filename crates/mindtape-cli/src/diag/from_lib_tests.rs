@@ -359,9 +359,10 @@ fn a_reference_error_names_the_reference() {
     );
 }
 
-#[test]
-fn a_breach_renders_its_place_rule_and_message() {
-    let mut violation = Violation {
+/// An `error` breach of `rules.one-wip` at `tasks/x.typ:2`, with nothing to
+/// suggest.
+pub(super) fn breach() -> Violation {
+    Violation {
         task_id: "x".to_owned(),
         field: "rules.one-wip".to_owned(),
         message: "finish the task in progress".to_owned(),
@@ -370,7 +371,13 @@ fn a_breach_renders_its_place_rule_and_message() {
         kind: ViolationKind::default(),
         reads: None,
         unknown: None,
-    };
+        dict_miss: None,
+    }
+}
+
+#[test]
+fn a_breach_renders_its_place_rule_and_message() {
+    let mut violation = breach();
     let refused = Diag::from(&violation);
     assert_eq!(refused.kind(), Kind::Refused);
     assert_eq!(

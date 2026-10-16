@@ -107,6 +107,9 @@ impl CompiledRule {
     ///
     /// Either one reading `changed()` where git cannot answer is neither: it is
     /// `Err`, and [`check_all`] skips the rule (see [`Self::skipped`]).
+    ///
+    /// An `assert` that reads false carries the `in_dict()` miss behind it,
+    /// if any ([`Filter::dict_miss`]), so the report can name the dictionary.
     fn breaches(
         &self,
         task: &Task,
@@ -129,7 +132,10 @@ impl CompiledRule {
             RuleKind::Assert { filter, advice } => {
                 match filter.matches_with(task, config, readiness) {
                     Ok(true) => Vec::new(),
-                    Ok(false) => vec![self.violation(task, advice.clone())],
+                    Ok(false) => vec![Violation {
+                        dict_miss: filter.dict_miss(task, config),
+                        ..self.violation(task, advice.clone())
+                    }],
                     Err(err @ FilterError::Git { .. }) => return Err(err),
                     Err(err) => vec![self.violation(task, err.to_string())],
                 }
@@ -177,6 +183,7 @@ impl CompiledRule {
             kind: crate::validate::violation::ViolationKind::Other,
             reads: self.reads.clone(),
             unknown: None,
+            dict_miss: None,
         }
     }
 }

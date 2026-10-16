@@ -2,9 +2,10 @@
 //! (`truth/tasks/suggest-a-nearest-match-on-an-unknown-view-name.typ`).
 //!
 //! [`nearest`] finds the closest known name by edit distance above a
-//! similarity floor. [`Unknown`] holds it with the names to choose from, so an
-//! error carries what the name could have been as data and the CLI words it
-//! as `hint:` lines.
+//! similarity floor, and [`nearest_few`] the closest few, for a word a
+//! dictionary lacks. [`Unknown`] holds the nearest name with the names to
+//! choose from, so an error carries what the name could have been as data and
+//! the CLI words it as `hint:` lines.
 
 use strsim::normalized_damerau_levenshtein;
 
@@ -36,6 +37,28 @@ pub fn nearest<'a>(name: &str, known: &[&'a str]) -> Option<&'a str> {
         }
     }
     best.map(|(candidate, _)| candidate)
+}
+
+/// Up to `limit` of `known` that clear [`SIMILARITY_FLOOR`] against `name`,
+/// nearest first. Equal scores keep the order of `known`, so the answer never
+/// varies between runs for the same candidate order.
+#[must_use]
+pub fn nearest_few<'a>(
+    name: &str,
+    known: impl IntoIterator<Item = &'a str>,
+    limit: usize,
+) -> Vec<&'a str> {
+    let mut scored: Vec<(&str, f64)> = known
+        .into_iter()
+        .map(|candidate| (candidate, normalized_damerau_levenshtein(name, candidate)))
+        .filter(|(_, score)| *score >= SIMILARITY_FLOOR)
+        .collect();
+    scored.sort_by(|(_, left), (_, right)| right.total_cmp(left));
+    scored
+        .into_iter()
+        .take(limit)
+        .map(|(candidate, _)| candidate)
+        .collect()
 }
 
 /// [`nearest`], owned: the shape a library error carries. The one library
@@ -110,6 +133,27 @@ mod tests {
         // wins" picks "foo" either way the candidates are listed.
         assert_eq!(nearest("foo", &["fo", "foo"]), Some("foo"));
         assert_eq!(nearest("foo", &["foo", "fo"]), Some("foo"));
+    }
+
+    #[test]
+    fn nearest_few_ranks_by_score_and_breaks_ties_in_candidate_order() {
+        // One edit from "rote" scores 0.75 and "rotate" two, at 0.67, so
+        // the four-way tie at 0.75 keeps candidate order.
+        let known = ["rotate", "vote", "note", "rate", "rite"];
+        assert_eq!(nearest_few("rote", known, 3), ["vote", "note", "rate"]);
+        assert_eq!(
+            nearest_few("rote", known, 9),
+            ["vote", "note", "rate", "rite", "rotate"]
+        );
+    }
+
+    #[test]
+    fn nearest_few_drops_a_score_below_the_floor_and_past_the_limit() {
+        // "ab" vs "abcd" scores exactly 0.5; "abc" vs "xyzc" scores 0.25.
+        assert_eq!(nearest_few("ab", ["abcd"], 3), ["abcd"]);
+        assert!(nearest_few("abc", ["xyzc"], 3).is_empty());
+        assert!(nearest_few("rote", ["note"], 0).is_empty());
+        assert_eq!(nearest_few("rote", ["note", "vote"], 1), ["note"]);
     }
 
     #[test]

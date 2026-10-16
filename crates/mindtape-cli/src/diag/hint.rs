@@ -23,6 +23,7 @@ enum Shape {
     Example(&'static str),
     AsIn(&'static str, String),
     Project(String),
+    NotInDict(mindtape::DictMiss),
 }
 
 impl Hint {
@@ -66,6 +67,13 @@ impl Hint {
         Self(Shape::OneOf(names))
     }
 
+    /// The word a dictionary lacks and the entries nearest it:
+    /// `hint: 'Rote' is not in dict verbs; did you mean note, rate or rite?`.
+    /// The word is the task's, so it's quoted; names are bare.
+    pub(crate) fn not_in_dict(miss: mindtape::DictMiss) -> Self {
+        Self(Shape::NotInDict(miss))
+    }
+
     /// One of Typst's own hints on an error, in Typst's words. Typst's text
     /// is not ours to fix as a `&'static str`, so only [`Diag::typst_hints`]
     /// builds one.
@@ -87,7 +95,24 @@ impl fmt::Display for Hint {
             Shape::OneOf(names) => write!(formatter, "use one of: {}", names.join(", ")),
             Shape::Example(example) => write!(formatter, "for example: {example}"),
             Shape::AsIn(text, example) => write!(formatter, "{text}, as in {example}"),
+            Shape::NotInDict(miss) => not_in_dict(formatter, miss),
         }
+    }
+}
+
+/// `'<word>' is not in dict <dict>`, then `; did you mean a, b or c?` when an
+/// entry is near.
+fn not_in_dict(formatter: &mut fmt::Formatter<'_>, miss: &mindtape::DictMiss) -> fmt::Result {
+    write!(
+        formatter,
+        "{} is not in dict {}",
+        quote(&miss.word),
+        miss.dict
+    )?;
+    match miss.nearest.as_slice() {
+        [] => Ok(()),
+        [only] => write!(formatter, "; did you mean {only}?"),
+        [rest @ .., last] => write!(formatter, "; did you mean {} or {last}?", rest.join(", ")),
     }
 }
 

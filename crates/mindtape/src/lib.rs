@@ -78,7 +78,7 @@ pub use emit::format::{typ_array, typ_str};
 pub use emit::status_value::{STATUS_SHORTCUTS, escape_markup, status_value};
 pub use filter::condition::{Condition, ConditionError};
 pub use filter::condition_env::{ColumnFacts, ConditionEnv};
-pub use filter::{Filter, FilterError};
+pub use filter::{DictMiss, Filter, FilterError};
 pub use format::format_typst;
 pub use framework::{Category, Framework, Input, InputKind};
 pub use fs_atomic::write_atomic;

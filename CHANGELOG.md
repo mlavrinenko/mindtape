@@ -309,6 +309,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   name, returning one string per breach. A breach reports as
   `rules.<name>`, or `rules[0]` unnamed, and every expression is dry-run at load.
   A work-in-progress cap is `assert = 'count(<when>) <= 2'`.
+- **A rule refused by `in_dict()` says what missed.** Under the rule's own
+  `message`, the breach names the word, the dictionary and up to three of its
+  nearest entries, as in `hint: 'Login' is not in dict verbs; did you mean
+  begin, join or log?`, then `hint: run mt dicts verbs to see its entries`.
+  `mt check --json` carries both in `hints`. A call under `!` explains nothing.
 - **Every write enforces the rules, not just `mt check`.** `mt add`, `set`,
   `flip`, `link`, `mv`, `import`, `recur` and `review` check the candidate, body
   rules included, and write nothing on an `error` breach. A warning prints and

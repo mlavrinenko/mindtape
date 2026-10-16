@@ -107,6 +107,7 @@ pub(crate) fn check(tasks: &[Task], config: &Config, out: &mut Vec<Violation>) {
                 kind: crate::validate::violation::ViolationKind::Other,
                 reads: Some(crate::validate::violation::reads_of_field("status")),
                 unknown: None,
+                dict_miss: None,
             });
         }
     }

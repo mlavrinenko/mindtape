@@ -6,8 +6,8 @@
 use mindtape::config::{ConfigError, ConfigPlace};
 use mindtape::recur::dates::RecurError;
 use mindtape::{
-    ConditionError, DateOverrideError, FillError, FilterError, Location, RefError, Severity,
-    SlotKind, Unknown, Violation,
+    ConditionError, DateOverrideError, DictMiss, FillError, FilterError, Location, RefError,
+    Severity, SlotKind, Unknown, Violation,
 };
 
 use super::{Command, Diag, Hint, Kind, Note};
@@ -300,6 +300,30 @@ impl From<&Violation> for Diag {
             .rule(violation.field.clone())
             .reason(violation.message.clone())
             .unknown(violation.unknown.as_ref())
+            .dict_miss(violation.dict_miss.as_ref())
+    }
+}
+
+impl Diag {
+    /// The word a dictionary lacks with its nearest entries, and the command
+    /// that lists them all, as far as the two-hint limit leaves room.
+    pub(crate) fn dict_miss(self, miss: Option<&DictMiss>) -> Self {
+        let Some(miss) = miss else {
+            return self;
+        };
+        let list = Hint::run(
+            Command::mt().word("dicts").arg(&miss.dict),
+            "to see its entries",
+        );
+        [Hint::not_in_dict(miss.clone()), list]
+            .into_iter()
+            .fold(self, |diag, hint| {
+                if diag.has_hint_room() {
+                    diag.hint(hint)
+                } else {
+                    diag
+                }
+            })
     }
 }
 

@@ -101,6 +101,24 @@ fn fold_normalizes_the_entries_as_well_as_the_lookup() {
     assert!(dicts.get("verbs").unwrap().contains("add"));
 }
 
+/// A `fold` dict folds the word before it ranks its entries, so `ADS` is one
+/// edit from `add` and `adz`, the tie keeps entry order, and `addle`, three
+/// edits off, is too far to name. An `exact` dict ranks the word as written,
+/// so each changed case is an edit, and its entries keep their capitals.
+#[test]
+fn nearest_ranks_the_word_under_the_dict_s_case() {
+    let dicts = compile_inline(
+        "[dicts.verbs]\nvalues = [\"Wire\", \"adz\", \"addle\", \"Add\"]\n\n\
+         [dicts.labels]\nvalues = [\"Path\", \"Auth\"]\ncase = \"exact\"\n",
+    )
+    .unwrap();
+    let (verbs, labels) = (dicts.get("verbs").unwrap(), dicts.get("labels").unwrap());
+    assert_eq!(verbs.nearest("ADS", 3), ["add", "adz"]);
+    assert_eq!(verbs.nearest("ADS", 1), ["add"]);
+    assert_eq!(labels.nearest("auth", 3), ["Auth", "Path"]);
+    assert!(labels.nearest("AUTH", 3).is_empty());
+}
+
 /// `include` unions the target's raw entries in; the including dict's own
 /// `case` decides how they are compared.
 #[test]

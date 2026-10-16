@@ -24,6 +24,7 @@
 //! `in_dict()` runs wherever a filter runs and none of those call sites has a
 //! project root to re-read the section with.
 
+use std::borrow::Cow;
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 use std::sync::{Arc, LazyLock};
@@ -105,13 +106,28 @@ impl Dict {
         Self { entries, case }
     }
 
+    /// `value` as this dictionary's entries store it: folded under `fold`.
+    fn probe<'v>(&self, value: &'v str) -> Cow<'v, str> {
+        match self.case {
+            DictCase::Exact => Cow::Borrowed(value),
+            DictCase::Fold => Cow::Owned(value.to_ascii_lowercase()),
+        }
+    }
+
     /// Is `value` in this dictionary, under its own case policy?
     #[must_use]
     pub fn contains(&self, value: &str) -> bool {
-        match self.case {
-            DictCase::Exact => self.entries.contains(value),
-            DictCase::Fold => self.entries.contains(&value.to_ascii_lowercase()),
-        }
+        self.entries.contains(self.probe(value).as_ref())
+    }
+
+    /// Up to `limit` entries nearest to `value` by edit distance, under this
+    /// dictionary's case policy: nearest first, ties in entry order.
+    #[must_use]
+    pub fn nearest(&self, value: &str, limit: usize) -> Vec<String> {
+        crate::suggest::nearest_few(&self.probe(value), self.entries(), limit)
+            .into_iter()
+            .map(str::to_owned)
+            .collect()
     }
 
     /// How this dictionary compares a lookup.
