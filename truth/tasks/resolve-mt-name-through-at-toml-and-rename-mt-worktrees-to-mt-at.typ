@@ -29,7 +29,8 @@
   assignee: "agent",
   status: proposed(2026, 10, 16),
   links: parent("show-every-tracked-project-from-one-mt-name.typ")
-    + depends-on("parse-at-toml-into-named-project-sets.typ"),
+    + depends-on("parse-at-toml-into-named-project-sets.typ")
+    + depends-on("load-every-project-of-a-set-in-parallel.typ"),
 )
 
 == Problem
@@ -55,7 +56,7 @@ hint: name one project, such as mt @speconaut flip
 
 - `crates/mindtape-cli/src/cmd/at_tests.rs`: the red tests first, from `worktrees_tests.rs`: a project rewrites to `-w`, a set is held and refused, `mt at home` lists members.
 - `crates/mindtape-cli/src/cmd/at.rs`: from `cmd/worktrees.rs`, reading `at.toml` through `mindtape::at`.
-- `crates/mindtape-cli/src/util.rs`: the held set, `open_set`'s stub, and the refusal in `open`.
+- `crates/mindtape-cli/src/util.rs`: the held set, which `open_set` reads, and the refusal in `open`.
 - `crates/mindtape-cli/src/cli/mod.rs`, `crates/mindtape-cli/src/cmd/mod.rs`, `crates/mindtape-cli/src/cli/command_class.rs`, `crates/mindtape-cli/src/cli/check_argv.rs`, `crates/mindtape-cli/src/main.rs`: the rename.
 - `crates/mindtape/src/worktrees.rs`, `crates/mindtape/src/lib.rs`, `crates/mindtape/src/loader/app_dirs.rs`: drop the old registry and its mentions.
 - `www/content/cli/at.typ`, `www/content/agents.typ`, `www/content/config.typ`, `docs/src/skill.typ`, `outdatty.yaml`: name `at.toml` and `mt at`.
