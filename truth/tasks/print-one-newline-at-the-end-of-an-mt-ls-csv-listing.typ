@@ -2,7 +2,7 @@
 #import "../lib.typ": *
 
 #show: task.with(
-  title: "Print one newline after the header of an empty csv listing in mt ls",
+  title: "Print one newline at the end of an mt ls csv listing",
   kind: "dev",
   priority: ice(
     impact: 3,
