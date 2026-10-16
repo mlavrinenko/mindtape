@@ -99,9 +99,9 @@ pub use link::scan::{EdgeCall, TargetSpan, link_edges, link_target_spans};
 pub use loader::app_dirs::{CONFIG_HOME_ENV, DATA_HOME_ENV, config_home, data_home};
 pub use loader::derive::RootDeriver;
 pub use loader::{
-    LoadError, LoadOutcome, LoadWarning, Loaded, find_root, load_many, load_project,
-    package_overrides, package_root,
+    LoadError, LoadOutcome, LoadWarning, find_root, load_project, package_overrides, package_root,
 };
+pub use loader::{Loaded, load_many};
 pub use model::canonical::{CanonicalTask, SCHEMA_VERSION};
 pub use model::handle::{Resolution, StemHashes};
 pub use model::marker::ShapeError;

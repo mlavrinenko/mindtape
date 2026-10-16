@@ -42,6 +42,11 @@ mod cmd;
 mod diag;
 mod git;
 mod pre_write;
+#[allow(
+    dead_code,
+    reason = "ls, check and board open a set in their own tasks"
+)]
+mod project_set;
 // Infrastructure for future command migration; not every item is wired yet.
 #[allow(dead_code)]
 mod render;

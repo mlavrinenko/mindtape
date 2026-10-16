@@ -311,14 +311,14 @@ fn resolve_absolute_path_eq_not_neq() {
 
 #[test]
 fn no_held_back_command_means_no_warning() {
-    assert!(held_back_warning(&[]).is_none());
+    assert!(held_back_warning(&[], None).is_none());
 }
 
 #[test]
 fn the_held_back_warning_lists_each_command_and_asks_for_mt_allow() {
     let commands = vec!["a {id}".to_owned(), "b".to_owned()];
 
-    let msg = crate::diag::plain(&held_back_warning(&commands).unwrap());
+    let msg = crate::diag::plain(&held_back_warning(&commands, None).unwrap());
 
     assert_eq!(
         msg,

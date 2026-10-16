@@ -17,6 +17,12 @@ use crate::cmd::install::hint::{
 use crate::diag::{Command, Diag, Hint, Kind, Note, emit};
 use crate::render::link::HyperlinkChoice;
 
+#[allow(
+    unused_imports,
+    reason = "ls, check and board open a set in their own tasks"
+)]
+pub use crate::project_set::{Member, open_set, open_set_warned};
+
 /// A discovered, loaded project: its root, config and load outcome.
 #[derive(Debug)]
 pub struct Project {
@@ -158,8 +164,7 @@ pub fn open() -> Result<Project> {
     let root = resolve_root()?;
     let config = load_config(&root)?;
     warn_config(&root, &config);
-    let hyperlinks =
-        crate::render::link::resolve(resolve_hyperlinks(hyperlinks_flag(), config.ls.hyperlinks));
+    let hyperlinks = hyperlinks_for(&config);
     let outcome = load_project(&root, &config);
     Ok(Project {
         root,
@@ -167,6 +172,12 @@ pub fn open() -> Result<Project> {
         outcome,
         hyperlinks,
     })
+}
+
+/// Whether a project under `config` prints hyperlinks: `--hyperlinks`, else
+/// its `[ls] hyperlinks`, resolved against the terminal.
+pub(crate) fn hyperlinks_for(config: &Config) -> bool {
+    crate::render::link::resolve(resolve_hyperlinks(hyperlinks_flag(), config.ls.hyperlinks))
 }
 
 /// [`open`], then print each load problem as a warning: the start of a command
@@ -186,13 +197,14 @@ pub fn open_warned() -> Result<Project> {
 /// `mt allow` records it. `main` calls it once, after the command, so however
 /// many loads a command makes, the user reads the list once.
 pub fn warn_held_back() {
-    if let Some(diag) = held_back_warning(&mindtape::allow::held_back()) {
+    if let Some(diag) = held_back_warning(&mindtape::allow::held_back(), None) {
         emit(&diag);
     }
 }
 
 /// The warning [`warn_held_back`] prints for `commands`, or `None` for none.
-fn held_back_warning(commands: &[String]) -> Option<Diag> {
+/// With a set member's `project` name, its hint names `mt @<project> allow`.
+pub(crate) fn held_back_warning(commands: &[String], project: Option<&str>) -> Option<Diag> {
     if commands.is_empty() {
         return None;
     }
@@ -200,7 +212,14 @@ fn held_back_warning(commands: &[String]) -> Option<Diag> {
     let diag = commands.iter().fold(diag, |diag, command| {
         diag.note(Note::new("command").value(command))
     });
-    Some(diag.hint(Hint::new("read them, then run mt allow")))
+    let hint = match project {
+        Some(name) => Hint::command(
+            "read them, then run",
+            Command::mt().arg(format!("@{name}")).word("allow"),
+        ),
+        None => Hint::new("read them, then run mt allow"),
+    };
+    Some(diag.hint(hint))
 }
 
 /// Print each load warning of `config` to stderr, naming its config file.
@@ -211,7 +230,7 @@ fn warn_config(root: &Path, config: &Config) {
 }
 
 /// One `warning:` per load warning of `config`, placed at its config file.
-fn config_warnings(root: &Path, config: &Config) -> Vec<Diag> {
+pub(crate) fn config_warnings(root: &Path, config: &Config) -> Vec<Diag> {
     let file = config_path(root);
     let shown = file.strip_prefix(root).unwrap_or(&file);
     config
