@@ -184,6 +184,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with a note, and `mt` warns once listing the commands. A changed line asks
   again.
 - **`mt views` lists and inspects views**, with `--json`.
+- **`mt dicts` lists the dictionaries**, built-ins included, with each one's
+  entry count and case, and `mt dicts <name>` prints its entries one per line,
+  after `include`, `values` and `path` are merged. Both take `--json`.
 - **`-w/--worktree <path>` and `$MINDTAPE_WORKTREE` point `mt` at another
   project.** `~/.config/mindtape/worktrees.toml` names projects, so `mt @sn ls`
   means `mt -w <path> ls`. An entry is a `name` and `path`, or a `base` whose

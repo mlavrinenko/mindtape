@@ -99,6 +99,13 @@ An included dictionary's entries compare under the including dictionary's
 Your own dictionary names can't start with `mindtape-`, because that prefix
 is for the built-ins.
 
+`mt dicts` lists every dictionary with its entry count and case, the
+built-ins included. `mt dicts <name>` prints one dictionary's entries, one per
+line, after `include`, `values` and `path` are merged. That's the list a rule
+reading the dictionary accepts, and a `fold` dictionary prints it lowercase:
+
+#terminal("named-sets-dicts")
+
 = Using a dictionary
 
 `[tasks.tags] allowed` and `[tasks.fields.<name>] values` accept `@<dict>`

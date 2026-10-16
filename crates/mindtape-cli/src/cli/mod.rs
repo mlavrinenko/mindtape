@@ -23,10 +23,10 @@ use log::LevelFilter;
 use crate::render::color::ColorChoice;
 use crate::render::link::HyperlinkChoice;
 use crate::{
-    cmd::add, cmd::allow, cmd::check, cmd::config as config_cmd, cmd::eval, cmd::find, cmd::flip,
-    cmd::go, cmd::graph, cmd::import, cmd::init, cmd::install, cmd::link as link_cmd, cmd::ls,
-    cmd::mv, cmd::preset as preset_cmd, cmd::recur, cmd::review, cmd::rm, cmd::set, cmd::views,
-    cmd::worktrees,
+    cmd::add, cmd::allow, cmd::check, cmd::config as config_cmd, cmd::dicts, cmd::eval, cmd::find,
+    cmd::flip, cmd::go, cmd::graph, cmd::import, cmd::init, cmd::install, cmd::link as link_cmd,
+    cmd::ls, cmd::mv, cmd::preset as preset_cmd, cmd::recur, cmd::review, cmd::rm, cmd::set,
+    cmd::views, cmd::worktrees,
 };
 
 /// Mindtape keeps your tasks as Typst files and checks them against your rules.
@@ -125,6 +125,8 @@ enum Command {
     Graph(graph::GraphArgs),
     /// List your saved views, or show one.
     Views(views::ViewsArgs),
+    /// List your dictionaries, or the entries of one.
+    Dicts(dicts::DictsArgs),
     /// Import tasks from JSON (the `mt ls --json` format), checking them all first.
     ///
     /// The whole batch is checked against your project's rules before mt
@@ -187,6 +189,7 @@ impl Cli {
             Command::Find(args) => find::run(&args),
             Command::Graph(args) => graph::run(&args),
             Command::Views(args) => views::run(&args),
+            Command::Dicts(args) => dicts::run(&args),
             Command::Worktrees(args) => worktrees::run(&args),
             Command::Check(args) => check::run(&args),
             Command::Allow(args) => allow::run(&args),

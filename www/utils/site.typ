@@ -155,7 +155,7 @@
   ("Listing", ("ls", "find")),
   ("Graph", ("graph",)),
   ("Links", ("link",)),
-  ("Views", ("views",)),
+  ("Views & dictionaries", ("views", "dicts")),
   ("Status", ("flip", "review")),
   ("Recurring tasks", ("recur",)),
   ("Validate & inspect config", ("check", "config")),

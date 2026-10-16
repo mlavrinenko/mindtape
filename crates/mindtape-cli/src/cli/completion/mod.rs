@@ -48,6 +48,7 @@ use clap::{Arg, Command, CommandFactory};
 use clap_complete::CompleteEnv;
 use clap_complete::engine::{ArgValueCandidates, ArgValueCompleter};
 
+use self::sources::dict_names;
 use self::sources::{
     assignment, link_kinds, presets_in, statuses, stems, tag_token, templates, view_names,
 };
@@ -65,6 +66,8 @@ pub enum Source {
     Views,
     /// Named views as the `@name` sugar filter, sort and column arguments take.
     ViewRefs,
+    /// Dictionary names: `[dicts]` and the built-ins.
+    Dicts,
     /// Template stems under `[templates] dirs`, plus the built-in `task`.
     Templates,
     /// The preset registry `mt preset ls` prints: the built-ins, then the
@@ -160,6 +163,7 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
     ("find", "columns", Source::ViewRefs),
     ("graph", "filter", Source::ViewRefs),
     ("views", "name", Source::Views),
+    ("dicts", "name", Source::Dicts),
     ("init", "preset", Source::Presets),
     ("init", "schema", Source::FilePath),
     ("eval", "task", Source::Stems),
@@ -228,6 +232,7 @@ impl Source {
             Self::Statuses => arg.add(ArgValueCandidates::new(statuses)),
             Self::Views => arg.add(ArgValueCandidates::new(|| view_names(""))),
             Self::ViewRefs => arg.add(ArgValueCandidates::new(|| view_names("@"))),
+            Self::Dicts => arg.add(ArgValueCandidates::new(dict_names)),
             Self::Templates => arg.add(ArgValueCandidates::new(templates)),
             Self::LinkKinds => arg.add(ArgValueCandidates::new(link_kinds)),
             Self::Presets => arg.add(ArgValueCandidates::new(|| {
@@ -250,6 +255,7 @@ impl Source {
             Self::Statuses => "statuses",
             Self::Views => "views",
             Self::ViewRefs => "view-refs",
+            Self::Dicts => "dicts",
             Self::Templates => "templates",
             Self::LinkKinds => "link-kinds",
             Self::Presets => "presets",

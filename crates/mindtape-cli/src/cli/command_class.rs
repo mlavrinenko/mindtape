@@ -42,6 +42,7 @@ pub const CLASSIFICATION: &[(&str, Class)] = &[
     ("find", Class::Read),
     ("graph", Class::Read),
     ("views", Class::Read),
+    ("dicts", Class::Read),
     ("worktrees", Class::Read),
     ("check", Class::Read),
     ("allow", Class::Write),

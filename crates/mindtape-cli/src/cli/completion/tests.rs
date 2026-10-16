@@ -131,6 +131,7 @@ fn source_labels_are_the_reflected_names() {
     assert_eq!(Source::Statuses.label(), Some("statuses"));
     assert_eq!(Source::Views.label(), Some("views"));
     assert_eq!(Source::ViewRefs.label(), Some("view-refs"));
+    assert_eq!(Source::Dicts.label(), Some("dicts"));
     assert_eq!(Source::Templates.label(), Some("templates"));
     assert_eq!(Source::LinkKinds.label(), Some("link-kinds"));
     assert_eq!(Source::Presets.label(), Some("presets"));

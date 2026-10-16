@@ -33,6 +33,7 @@ init_scratch() {
 capture version "$FIX" 'mt --version'
 capture ls "$FIX" 'mt ls'
 capture views "$FIX" 'mt views'
+capture dicts "$FIX" 'mt dicts'
 capture check "$FIX" 'mt check'
 capture flip-list "$FIX" 'mt flip --list'
 capture eval "$FIX" 'mt eval tasks/throttle-failed-logins-per-ip.typ'

@@ -75,6 +75,10 @@ mt views
 mt views waiting
 mt ls @waiting
 EOF
+capture_lines named-sets-dicts "$SETS" <<'EOF'
+mt dicts
+mt dicts areas
+EOF
 capture --exit 1 --expect 'is not an allowed tag' named-sets-allowed "$SETS" 'mt set fix-the-refund-rounding tags+=payments'
 
 # --- /priority/ ---------------------------------------------------------------

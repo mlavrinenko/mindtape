@@ -206,6 +206,12 @@ fn views_leaves_tree_untouched() {
 }
 
 #[test]
+fn dicts_name_json_leaves_tree_untouched() {
+    let dir = build_fixture();
+    assert_read_untouched(dir.path(), &["dicts", "mindtape-verbs", "--json"]);
+}
+
+#[test]
 fn worktrees_leaves_tree_untouched() {
     let dir = build_fixture();
     assert_read_untouched(dir.path(), &["worktrees"]);

@@ -94,6 +94,7 @@ groups:
       # `cli.json` reflects the per-argument entry and not the roster.
       - crates/mindtape-cli/src/cli/completion/mod.rs
       - crates/mindtape-cli/src/cmd/config.rs
+      - crates/mindtape-cli/src/cmd/dicts.rs
       - crates/mindtape-cli/src/cmd/eval.rs
       - crates/mindtape-cli/src/cmd/find.rs
       - crates/mindtape-cli/src/cmd/flip/mod.rs

@@ -77,7 +77,8 @@ Bare `status` sorts by legend position.
   string field, counting from 1, and works only as an argument here or in
   `matches`: `in_dict("verbs", word(title, 1))`. The `verbs` dictionary comes
   from the `mindtape-tasks` pack. Without the pack, use the built-in
-  `mindtape-verbs` or declare `[dicts.verbs]`.
+  `mindtape-verbs` or declare `[dicts.verbs]`. `mt dicts d` lists the entries
+  of `d`.
 - `touches("path")` matches the tasks named in the `Refs:` trailers of commits
   that changed that file. `[commits] trailer` sets the trailer key. Run
   `mt ls 'touches("<path>")'` before you edit a file.

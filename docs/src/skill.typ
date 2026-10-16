@@ -60,8 +60,9 @@ that `mt worktrees` lists, such as `@name`, right after `mt`.
 Run `mt <cmd> --help` for every flag. Never guess the project's statuses, link
 kinds, priority scale or tags: read them from `mt config show`, which prints
 the merged config (`--origin` names where each rule comes from), or the
-statuses alone from `mt flip --list`. For what no `--help` covers, read
-#www-llms, which lists every docs page as Markdown.
+statuses alone from `mt flip --list`. Read the words a dictionary accepts,
+such as the verbs a title may start with, from `mt dicts <name>`. For what no
+`--help` covers, read #www-llms, which lists every docs page as Markdown.
 
 A `<task>` is a stem, a path, or the stem hash `mt ls` prints in its `slug#`
 column. A hash changes only when `mt mv` renames the stem, and `mt` refuses one

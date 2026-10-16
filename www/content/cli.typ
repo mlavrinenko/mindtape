@@ -57,9 +57,9 @@ Every command takes these flags:
 
 #cli-group(CLI, CLI_GROUPS, "Links")
 
-= Views
+= Views and dictionaries
 
-#cli-group(CLI, CLI_GROUPS, "Views")
+#cli-group(CLI, CLI_GROUPS, "Views & dictionaries")
 
 = Status
 

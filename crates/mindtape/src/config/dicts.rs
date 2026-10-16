@@ -162,6 +162,11 @@ impl Dicts {
     pub fn names(&self) -> impl Iterator<Item = &str> {
         self.0.keys().map(String::as_str)
     }
+
+    /// Every compiled dictionary with its name, sorted by name.
+    pub fn iter(&self) -> impl Iterator<Item = (&str, &Dict)> {
+        self.0.iter().map(|(name, dict)| (name.as_str(), dict))
+    }
 }
 
 /// The built-in dictionaries alone, compiled once per process. Cloning a
