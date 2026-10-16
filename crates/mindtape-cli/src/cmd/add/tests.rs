@@ -280,6 +280,7 @@ fn project_with_root(dir: &Path, root: &str) -> Project {
         root: dir.to_path_buf(),
         config,
         outcome: mindtape::LoadOutcome::default(),
+        hyperlinks: false,
     }
 }
 

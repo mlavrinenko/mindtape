@@ -232,6 +232,7 @@ fn chain_project(dir: &Path, stem_template: &str) -> (Project, Task, PathBuf, Re
             errors: vec![],
             ..LoadOutcome::default()
         },
+        hyperlinks: false,
     };
     let abs = dir.join("tasks/chore.typ");
     let recur = task.recur.clone().unwrap();

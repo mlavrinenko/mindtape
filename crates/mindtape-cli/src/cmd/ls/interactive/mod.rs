@@ -102,6 +102,8 @@ struct State {
     /// The stem hashes of every loaded task; the `slug#` column and the
     /// selection both read them.
     hashes: StemHashes,
+    /// Whether the table prints hyperlinks, resolved for this project.
+    hyperlinks: bool,
     /// What `--limit` cut from the listed rows; recomputed on every refresh,
     /// since a flip made in the editor can move a task in or out of the view.
     truncated: Option<Truncation>,
@@ -120,6 +122,7 @@ impl State {
             readiness: listing.readiness,
             env: listing.env,
             hashes: listing.hashes,
+            hyperlinks: listing.hyperlinks,
             truncated: listing.truncated,
             buffer: String::new(),
         })
@@ -132,6 +135,8 @@ impl State {
             readiness: &self.readiness,
             env: &self.env,
             hashes: &self.hashes,
+            root: &self.root,
+            hyperlinks: self.hyperlinks,
         }
     }
 

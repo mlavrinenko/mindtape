@@ -15,7 +15,7 @@ use super::color::{Painter, is_color_active};
 use super::columns::{ColumnId, resolve_order, row_hyperlink_targets, rows};
 use super::field::{CellSpec, DensityMode, cell_content, content_width, render_cell};
 use super::glyph::GlyphMode;
-use super::link::{Linker, is_hyperlinks_active};
+use super::link::Linker;
 use super::width::{display_width, pad_to_width, truncate_to_width};
 
 const GAP: &str = "  ";
@@ -67,7 +67,7 @@ pub fn render_highlighted(
 fn render_inner(tasks: &[Task], ctx: RenderCtx<'_>, highlighted: &[bool]) -> Result<String> {
     let glyph_mode = glyph_mode();
     let painter = Painter::new(is_color_active());
-    let linker = Linker::new(is_hyperlinks_active());
+    let linker = Linker::new(ctx.hyperlinks);
     let rows = rows(tasks, ctx.hashes);
     let visible = resolve_order(&rows, ctx)?;
     let mut columns = build_columns(&visible, &rows, ctx, glyph_mode);
@@ -124,13 +124,13 @@ fn build_columns(
     let row_uris = visible
         .iter()
         .any(|&id| is_linked_column(id))
-        .then(|| row_hyperlink_targets(rows, ctx.config));
+        .then(|| row_hyperlink_targets(rows, ctx));
     let mut columns: Vec<Column> = visible
         .iter()
         .map(|&id| {
             let cells: Vec<CellSpec> = rows
                 .iter()
-                .map(|(hash, task)| id.cell(hash, task, ctx.config, ctx.readiness))
+                .map(|(hash, task)| id.cell(hash, task, ctx))
                 .collect();
             let width = col_width(
                 id.header(),

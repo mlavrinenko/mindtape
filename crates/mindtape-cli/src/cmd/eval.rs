@@ -28,6 +28,9 @@ pub struct EvalArgs {
 /// Returns an error if the file cannot be evaluated or holds no task marker.
 pub fn run(args: &EvalArgs) -> Result<()> {
     let (file, project) = locate(&args.task.task)?;
+    let origin = project
+        .as_ref()
+        .map(|project| (project.root.clone(), project.hyperlinks));
     let world = build_world(&file)?;
     let result =
         harvest(&world).map_err(|err| Diag::failed("can't evaluate").at_file(&file).cause(&err))?;
@@ -46,7 +49,7 @@ pub fn run(args: &EvalArgs) -> Result<()> {
     if args.json {
         print_json(&task)
     } else {
-        print_table(&task, &hashes_for(&file, &task, project))
+        print_table(&task, &hashes_for(&file, &task, project), origin)
     }
 }
 
@@ -97,7 +100,8 @@ fn print_json(task: &Task) -> Result<()> {
 /// # Errors
 /// Returns an error if the embedded floor stops parsing, or if a column's
 /// `when` fails to evaluate.
-fn print_table(task: &Task, hashes: &StemHashes) -> Result<()> {
+fn print_table(task: &Task, hashes: &StemHashes, origin: Option<(PathBuf, bool)>) -> Result<()> {
+    let (root, hyperlinks) = origin.unwrap_or_default();
     let config = mindtape::parse_config("")?;
     let readiness = mindtape::Readiness::empty();
     let env = mindtape::ConditionEnv::default();
@@ -106,6 +110,8 @@ fn print_table(task: &Task, hashes: &StemHashes) -> Result<()> {
         readiness: &readiness,
         env: &env,
         hashes,
+        root: &root,
+        hyperlinks,
     };
     println!(
         "{}",
@@ -127,6 +133,7 @@ fn hashes_for(file: &Path, task: &Task, resolved: Option<Project>) -> StemHashes
             root,
             config,
             outcome,
+            hyperlinks: false,
         })
     });
     match project {

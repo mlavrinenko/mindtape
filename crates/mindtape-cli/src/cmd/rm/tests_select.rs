@@ -27,6 +27,7 @@ fn stub_project(config: Config, tasks: Vec<Task>) -> Project {
             errors: vec![],
             ..LoadOutcome::default()
         },
+        hyperlinks: false,
     }
 }
 

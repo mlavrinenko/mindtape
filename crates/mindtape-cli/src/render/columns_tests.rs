@@ -20,12 +20,15 @@ fn rows<'a>(data: &[(&'a str, &'a Task)]) -> Vec<(String, &'a Task)> {
 /// from `[ls] columns-order`; the environment is otherwise blank, which is the
 /// captured-but-formatless shape (`!tty()`, no `format()`).
 fn shows(col: ColumnId, rows: &[(String, &Task)], readiness: &Readiness, named: bool) -> bool {
-    let config = floor_config();
+    let fixture = TestCtx {
+        readiness: readiness.clone(),
+        ..TestCtx::default()
+    };
     let env = ConditionEnv {
-        column: col.facts(rows, &config, readiness, named),
+        column: col.facts(rows, fixture.ctx(), named),
         ..ConditionEnv::default()
     };
-    col.visible(&config, &env).unwrap()
+    col.visible(&fixture.config, &env).unwrap()
 }
 
 /// The render order `config` resolves for `rows`. Every fixture here carries a
@@ -82,7 +85,12 @@ fn ready_reads_blocked_not_nonempty() {
     let task = bare_task("t");
     let config = floor_config();
     let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
-    let facts = ColumnId::Ready.facts(&rows(&[("1c", &task)]), &config, &readiness, false);
+    let fixture = TestCtx {
+        config,
+        readiness,
+        ..TestCtx::default()
+    };
+    let facts = ColumnId::Ready.facts(&rows(&[("1c", &task)]), fixture.ctx(), false);
     assert!(
         facts.nonempty,
         "a ready task renders a label, so the cells are not blank"
@@ -182,19 +190,19 @@ fn due_yesterday_is_overdue() {
 
 #[test]
 fn file_cell_renders_the_task_file_when_context_unset() {
-    // No test in this binary ever calls `file_path::init`, so the cell
-    // falls back to the root-relative `task.file` unchanged.
+    // The default fixture has no root, so the cell falls back to the
+    // root-relative `task.file` unchanged.
     let mut task = bare_task("t");
     task.file = std::path::PathBuf::from("truth/tasks/t.typ");
-    let cell = ColumnId::File.cell("1c", &task, &Config::default(), &Readiness::default());
+    let cell = ColumnId::File.cell("1c", &task, TestCtx::default().ctx());
     assert_eq!(cell.text, "truth/tasks/t.typ");
 }
 
 #[test]
 fn row_hyperlink_targets_uses_default_template_when_unset() {
     let task = bare_task("t");
-    let config = Config::default();
-    let uris = row_hyperlink_targets(&rows(&[("1c", &task)]), &config);
+    let fixture = TestCtx::with_config(Config::default());
+    let uris = row_hyperlink_targets(&rows(&[("1c", &task)]), fixture.ctx());
     assert_eq!(uris, vec![format!("file://{}", task.file.display())]);
 }
 
@@ -203,7 +211,8 @@ fn row_hyperlink_targets_honours_a_custom_template() {
     let task = bare_task("t");
     let mut config = Config::default();
     config.ls.hyperlink_target = Some("editor://open?f={rel}".to_owned());
-    let uris = row_hyperlink_targets(&rows(&[("1c", &task)]), &config);
+    let fixture = TestCtx::with_config(config);
+    let uris = row_hyperlink_targets(&rows(&[("1c", &task)]), fixture.ctx());
     assert_eq!(
         uris,
         vec![format!("editor://open?f={}", task.file.display())]
@@ -264,14 +273,14 @@ fn assignee_when(when: &str) -> Config {
 #[test]
 fn assignee_cell_is_blank_when_unset() {
     let task = assigned("t", None);
-    let cell = ColumnId::Assignee.cell("1c", &task, &Config::default(), &Readiness::default());
+    let cell = ColumnId::Assignee.cell("1c", &task, TestCtx::default().ctx());
     assert_eq!(cell.text, "");
 }
 
 #[test]
 fn assignee_cell_renders_the_actor_name() {
     let task = assigned("t", Some("agent"));
-    let cell = ColumnId::Assignee.cell("1c", &task, &Config::default(), &Readiness::default());
+    let cell = ColumnId::Assignee.cell("1c", &task, TestCtx::default().ctx());
     assert_eq!(cell.text, "agent");
 }
 

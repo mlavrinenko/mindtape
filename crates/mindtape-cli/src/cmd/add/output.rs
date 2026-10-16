@@ -81,7 +81,7 @@ pub fn handle(project: &util::Project, outcome: &Outcome) -> Handle {
     let stem = path.file_stem().and_then(|stem| stem.to_str());
     let hashes = util::stem_hashes_with(&project.outcome.tasks, &project.config, stem);
     let shown = match path.strip_prefix(&project.root) {
-        Ok(rel) => file_path::cell_text(rel),
+        Ok(rel) => file_path::cell_text(&project.root, rel),
         Err(_) => path.display().to_string(),
     };
     Handle {

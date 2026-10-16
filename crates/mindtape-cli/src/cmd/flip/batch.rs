@@ -48,6 +48,7 @@ pub(crate) fn after_batch_diags(
         root: root.to_path_buf(),
         config,
         outcome,
+        hyperlinks: false,
     };
     revalidate(&after, landed, problems);
     Ok(())

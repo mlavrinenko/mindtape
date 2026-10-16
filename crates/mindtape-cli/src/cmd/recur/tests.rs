@@ -112,6 +112,7 @@ fn guard_double_spawn_bypassed_by_force() {
         root: dir.path().to_path_buf(),
         config: mindtape::Config::default(),
         outcome: mindtape::LoadOutcome::default(),
+        hyperlinks: false,
     };
     // No loaded tasks at all: nothing to find a successor among, so both
     // forced and unforced calls succeed.
@@ -136,6 +137,7 @@ fn guard_double_spawn_refuses_an_existing_successor_unless_forced() {
             errors: vec![],
             ..mindtape::LoadOutcome::default()
         },
+        hyperlinks: false,
     };
     let err = guard_double_spawn(&project, &original, false).unwrap_err();
     crate::diag::assert_plain(

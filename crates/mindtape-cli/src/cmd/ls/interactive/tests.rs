@@ -33,6 +33,7 @@ fn state(n: usize, buffer: &str) -> State {
         env: mindtape::ConditionEnv::default(),
         truncated: None,
         buffer: buffer.to_owned(),
+        hyperlinks: false,
     }
 }
 
@@ -324,6 +325,7 @@ fn run_fails_on_non_table() {
         root: "/nonexistent".into(),
         config: Config::default(),
         outcome: Default::default(),
+        hyperlinks: false,
     };
     assert!(run(&ls_args(OutputFormat::Json), p).is_err());
 }

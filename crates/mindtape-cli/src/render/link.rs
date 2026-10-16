@@ -1,11 +1,11 @@
 //! Hyperlink-output decision: `--hyperlinks` flag and the OSC 8 sequence.
 //!
 //! Mirrors `render::color`'s shape: a choice enum driving a pure decision
-//! function, a process-global one-shot cache, and a render-time helper
-//! (`Linker` here, `Painter` there) that a disabled state turns into a no-op.
-//! One difference: [`init`] is called from [`crate::util::open`], not `main`,
-//! because the decision also consults `[ls] hyperlinks` once a project's
-//! config is loaded — `--color` never had a config counterpart to wait on.
+//! function and a render-time helper (`Linker` here, `Painter` there) that a
+//! disabled state turns into a no-op. One difference: [`resolve`] runs per
+//! project from [`crate::util::open`], not once in `main`, because the decision
+//! also consults `[ls] hyperlinks` — `--color` never had a config counterpart.
+//! The result rides in [`super::RenderCtx`].
 //!
 //! There is no terminal capability query for OSC 8 support, so `auto` is a
 //! heuristic rather than a detection, and the default is `never` rather than
@@ -15,7 +15,6 @@
 
 use std::fmt;
 use std::io::IsTerminal;
-use std::sync::OnceLock;
 
 /// The user's hyperlink preference, mirroring `--hyperlinks <auto|always|never>`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, clap::ValueEnum)]
@@ -78,28 +77,12 @@ pub fn term_is_dumb() -> bool {
     std::env::var("TERM").is_ok_and(|term| term == "dumb")
 }
 
-// --- Process-global hyperlink state ---------------------------------------
-
-static HYPERLINKS_ENABLED: OnceLock<bool> = OnceLock::new();
-
-/// Resolve and cache the hyperlink decision for this process.
-///
-/// Must be called exactly once, from [`crate::util::open`] (after the
-/// project's `[ls] hyperlinks` is known — see the module docs). Subsequent
-/// calls read the cached value without re-checking the TTY or environment.
-pub fn init(choice: HyperlinkChoice) {
-    let stdout_is_tty = std::io::stdout().is_terminal();
-    let _ =
-        HYPERLINKS_ENABLED.get_or_init(|| hyperlink_enabled(choice, stdout_is_tty, term_is_dumb()));
-}
-
-/// Returns whether hyperlink output is active for this process.
-///
-/// Falls back to `false` if [`init`] was not called (e.g. in tests, or a
-/// command that never opens a project).
+/// Resolve the hyperlink decision for one project: its `choice` against the
+/// real stdout and `TERM`. The result rides in [`super::RenderCtx`], so each
+/// project carries its own.
 #[must_use]
-pub fn is_hyperlinks_active() -> bool {
-    HYPERLINKS_ENABLED.get().copied().unwrap_or(false)
+pub fn resolve(choice: HyperlinkChoice) -> bool {
+    hyperlink_enabled(choice, std::io::stdout().is_terminal(), term_is_dumb())
 }
 
 /// Wraps a cell's already-rendered (width-fitted, possibly coloured) text in
@@ -133,7 +116,7 @@ impl Linker {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use super::{HyperlinkChoice, Linker, hyperlink_enabled, init, is_hyperlinks_active};
+    use super::{HyperlinkChoice, Linker, hyperlink_enabled};
 
     #[test]
     fn always_enables_regardless_of_tty_or_term() {
@@ -179,23 +162,6 @@ mod tests {
             HyperlinkChoice::from(mindtape::HyperlinkChoice::Never),
             HyperlinkChoice::Never
         );
-    }
-
-    // `init` sets a process-global `OnceLock` exactly once. Asserting "unset
-    // before init" is only true in a fresh process, so this re-execs the test
-    // binary for just this test name rather than sharing global state with
-    // every other test in the binary — mirrors `color`'s `init_then_is_color_active`.
-
-    const CHILD: &str = "_MT_HYPERLINKS_CHILD";
-
-    #[test]
-    fn init_then_is_hyperlinks_active() {
-        if mindtape::test_support::rerun_isolated(CHILD).is_some() {
-            return;
-        }
-        assert!(!is_hyperlinks_active(), "must be false before init");
-        init(HyperlinkChoice::Always);
-        assert!(is_hyperlinks_active(), "must be true after init(Always)");
     }
 
     #[test]

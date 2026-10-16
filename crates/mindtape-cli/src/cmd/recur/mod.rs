@@ -296,8 +296,10 @@ fn spawn_source(
 /// A new occurrence's file as `mt add` names one: its path from the project
 /// root.
 fn shown(project: &Project, file: &Path) -> String {
-    file.strip_prefix(&project.root)
-        .map_or_else(|_| file.display().to_string(), file_path::cell_text)
+    file.strip_prefix(&project.root).map_or_else(
+        |_| file.display().to_string(),
+        |rel| file_path::cell_text(&project.root, rel),
+    )
 }
 
 /// Write an in-place rewrite over `abs`, or on a dry run leave it be. Returns

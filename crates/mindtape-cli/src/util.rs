@@ -26,6 +26,9 @@ pub struct Project {
     pub config: Config,
     /// Tasks and per-file load errors.
     pub outcome: LoadOutcome,
+    /// Whether this project's listings print hyperlinks: `--hyperlinks`, else
+    /// `[ls] hyperlinks`, resolved against the terminal.
+    pub hyperlinks: bool,
 }
 
 impl Project {
@@ -63,7 +66,7 @@ fn pick_override(flag: Option<PathBuf>, env: Option<OsString>) -> Option<PathBuf
 /// Process-global `--hyperlinks` flag, resolved once from `main`. `None`
 /// means the flag was not passed, deferring to `[ls] hyperlinks` — unlike
 /// `WORKTREE`, this cannot be resolved to a final on/off decision until a
-/// project's config is loaded, which is why [`crate::render::link::init`]
+/// project's config is loaded, which is why [`crate::render::link::resolve`]
 /// itself runs from [`open`] rather than from `main`.
 static HYPERLINKS_FLAG: OnceLock<Option<HyperlinkChoice>> = OnceLock::new();
 
@@ -143,29 +146,26 @@ fn resolve_root_with(cwd: &Path, override_path: Option<&Path>) -> Result<PathBuf
 /// Find the project from the current directory (or the worktree override) and
 /// load all its tasks.
 ///
-/// Also records the `(root, cwd)` pair for [`crate::render::file_path`]'s
-/// `file` column, mirroring the `WORKTREE`/`COLOR_ENABLED` one-shot pattern; a
-/// cwd read failure is silently skipped, leaving the column's root-relative
-/// fallback in place rather than failing project discovery over it. Resolves
-/// and caches the hyperlink decision too ([`resolve_hyperlinks`],
-/// [`crate::render::link::init`]) — it has to happen here rather than `main`,
-/// since it also consults this project's `[ls] hyperlinks`.
+/// Writes no render state: the project carries its root and its resolved
+/// hyperlink choice ([`resolve_hyperlinks`], [`crate::render::link::resolve`]),
+/// which a renderer reads from its `RenderCtx`. The choice resolves here
+/// rather than in `main`, since it also consults this project's `[ls]
+/// hyperlinks`.
 ///
 /// # Errors
 /// Returns an error if no `.mindtape/` project is found or the config is invalid.
 pub fn open() -> Result<Project> {
     let root = resolve_root()?;
-    if let Ok(cwd) = std::env::current_dir() {
-        crate::render::file_path::init(&root, &cwd);
-    }
     let config = load_config(&root)?;
     warn_config(&root, &config);
-    crate::render::link::init(resolve_hyperlinks(hyperlinks_flag(), config.ls.hyperlinks));
+    let hyperlinks =
+        crate::render::link::resolve(resolve_hyperlinks(hyperlinks_flag(), config.ls.hyperlinks));
     let outcome = load_project(&root, &config);
     Ok(Project {
         root,
         config,
         outcome,
+        hyperlinks,
     })
 }
 

@@ -1,5 +1,7 @@
 //! Rendering tasks as a table, JSON, or CSV.
 
+use std::path::Path;
+
 use crate::diag::Result;
 use mindtape::config::Config;
 use mindtape::model::numeric::{NumValue, format_num};
@@ -133,18 +135,18 @@ pub fn render(
         OutputFormat::Table => crate::render::table::render(tasks, ctx),
         OutputFormat::Json => render_json(tasks, ctx.config, ctx.readiness, envelope),
         OutputFormat::Csv => render_csv(tasks, ctx),
-        OutputFormat::Path => Ok(render_path(tasks)),
-        OutputFormat::Path0 => Ok(render_path0(tasks)),
+        OutputFormat::Path => Ok(render_path(tasks, ctx.root)),
+        OutputFormat::Path0 => Ok(render_path0(tasks, ctx.root)),
     }
 }
 
 /// `path` format: one task path per line, joined (not trailing) — the caller
 /// prints this through `println!`, which supplies the final newline the same
 /// way every other format already relies on it.
-fn render_path(tasks: &[Task]) -> String {
+fn render_path(tasks: &[Task], root: &Path) -> String {
     tasks
         .iter()
-        .map(|task| crate::render::file_path::cell_text(&task.file))
+        .map(|task| crate::render::file_path::cell_text(root, &task.file))
         .collect::<Vec<_>>()
         .join("\n")
 }
@@ -153,10 +155,15 @@ fn render_path(tasks: &[Task]) -> String {
 /// the last — unlike [`render_path`], the caller must print this verbatim
 /// (`print!`, not `println!`), since a stray trailing newline after the final
 /// NUL would land inside the last `xargs -0` argument.
-fn render_path0(tasks: &[Task]) -> String {
+fn render_path0(tasks: &[Task], root: &Path) -> String {
     tasks
         .iter()
-        .map(|task| format!("{}\0", crate::render::file_path::cell_text(&task.file)))
+        .map(|task| {
+            format!(
+                "{}\0",
+                crate::render::file_path::cell_text(root, &task.file)
+            )
+        })
         .collect()
 }
 

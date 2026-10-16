@@ -61,6 +61,7 @@ fn reload(dir: &Path) -> Project {
         root: dir.to_path_buf(),
         config,
         outcome,
+        hyperlinks: false,
     }
 }
 

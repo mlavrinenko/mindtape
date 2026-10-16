@@ -5,9 +5,8 @@
 //! the form an IDE-integrated terminal (Zed, VS Code, `JetBrains`) turns into
 //! a ctrl-click with no escape sequences involved
 //! (`truth/tasks/opt-in-file-column-for-mt-ls.typ`). [`relativize`] is the
-//! pure core; the process-global `(root, cwd)` pair is recorded once by
-//! [`crate::util::open`], mirroring the `WORKTREE` and `COLOR_ENABLED`
-//! one-shot cells ([`crate::util`], [`super::color`]).
+//! pure core; the root comes from [`super::RenderCtx`], so one process can
+//! render several projects, and the working directory is read once ([`cwd`]).
 //!
 //! Only the two surfaces a human reads from a shell come through here: the
 //! table cell and `--format path`/`path0`, which exist to be pasted back into
@@ -19,29 +18,28 @@
 use std::path::{Component, Path, PathBuf};
 use std::sync::OnceLock;
 
-/// Process-global `(root, cwd)` pair, set once by [`init`]. Unset in unit
-/// tests and any caller that never opens a project, which is exactly when
-/// [`cell_text`] falls back to the root-relative path unchanged.
-static CONTEXT: OnceLock<(PathBuf, PathBuf)> = OnceLock::new();
-
-/// Record the project root and process working directory for this run.
+/// The process working directory, read once. `None` when the OS will not say,
+/// which leaves paths root-relative rather than failing a render over it.
 ///
-/// Must be called at most once with meaningful effect (from
-/// [`crate::util::open`]); later calls are ignored, matching the
-/// `WORKTREE`/`COLOR_ENABLED` one-shot pattern.
-pub fn init(root: &Path, cwd: &Path) {
-    let _ = CONTEXT.set((root.to_path_buf(), cwd.to_path_buf()));
+/// The directory belongs to the process, not to a project, so it stays a cell
+/// here while each project's root rides in [`super::RenderCtx`].
+#[must_use]
+pub fn cwd() -> Option<&'static Path> {
+    static CWD: OnceLock<Option<PathBuf>> = OnceLock::new();
+    CWD.get_or_init(|| std::env::current_dir().ok()).as_deref()
 }
 
 /// The `file` column's cell text for a task's root-relative source path
-/// (`task.file`): relative to the process's working directory when [`init`]
-/// has run, else `file` unchanged (root-relative) — what unit tests and any
-/// non-`open()` caller see.
+/// (`task.file`): relative to the working directory, given the project `root`
+/// the path is relative to. An empty `root` (no project) or an unreadable
+/// working directory leaves `file` unchanged.
 #[must_use]
-pub fn cell_text(file: &Path) -> String {
-    match CONTEXT.get() {
-        Some((root, cwd)) => relativize(root, cwd, file).display().to_string(),
-        None => file.display().to_string(),
+pub fn cell_text(root: &Path, file: &Path) -> String {
+    match cwd() {
+        Some(cwd) if !root.as_os_str().is_empty() => {
+            relativize(root, cwd, file).display().to_string()
+        }
+        _ => file.display().to_string(),
     }
 }
 
@@ -72,21 +70,22 @@ pub const DEFAULT_HYPERLINK_TARGET: &str = "file://{abs}";
 /// `template` — the absolute path (`root.join(file)`) and the same
 /// working-directory-relative path [`cell_text`] renders.
 ///
-/// Falls back to `file` unchanged for both tokens when [`init`] never ran
-/// (unit tests, any non-`open()` caller) — the same fallback [`cell_text`]
-/// uses.
+/// Falls back to `file` unchanged for both tokens when `root` is empty or the
+/// working directory is unreadable — the same fallback [`cell_text`] uses.
 #[must_use]
-pub fn hyperlink_target(file: &Path, template: &str) -> String {
-    match CONTEXT.get() {
-        Some((root, cwd)) => build_hyperlink_target(root, cwd, file, template),
-        None => template
+pub fn hyperlink_target(root: &Path, file: &Path, template: &str) -> String {
+    match cwd() {
+        Some(cwd) if !root.as_os_str().is_empty() => {
+            build_hyperlink_target(root, cwd, file, template)
+        }
+        _ => template
             .replace("{abs}", &file.display().to_string())
             .replace("{rel}", &file.display().to_string()),
     }
 }
 
 /// Pure core of [`hyperlink_target`], with `root`/`cwd` passed explicitly so
-/// the substitution is unit-testable without the process-global `CONTEXT` —
+/// the substitution is unit-testable without the process working directory —
 /// mirrors [`relativize`]'s split from [`cell_text`].
 fn build_hyperlink_target(root: &Path, cwd: &Path, file: &Path, template: &str) -> String {
     let abs = root.join(file);
@@ -181,12 +180,19 @@ mod tests {
     }
 
     #[test]
-    fn cell_text_falls_back_to_root_relative_when_context_unset() {
-        // `CONTEXT` is process-global and never set in this test binary
-        // (nothing here calls `init`), which is exactly the state unit tests
-        // and any non-`open()` caller observe.
+    fn cell_text_without_a_root_is_the_root_relative_path() {
         let file = Path::new("truth/tasks/x.typ");
-        assert_eq!(cell_text(file), "truth/tasks/x.typ");
+        assert_eq!(cell_text(Path::new(""), file), "truth/tasks/x.typ");
+    }
+
+    #[test]
+    fn cell_text_reads_the_root_it_is_given() {
+        let file = Path::new("x.typ");
+        let cwd = cwd().unwrap();
+        for root in ["/one/proj", "/two/proj"] {
+            let expected = relativize(Path::new(root), cwd, file).display().to_string();
+            assert_eq!(cell_text(Path::new(root), file), expected);
+        }
     }
 
     #[test]
@@ -217,12 +223,16 @@ mod tests {
     }
 
     #[test]
-    fn hyperlink_target_falls_back_to_file_unchanged_when_context_unset() {
-        // Mirrors `cell_text_falls_back_to_root_relative_when_context_unset`:
-        // no test in this binary ever calls `init`.
+    fn hyperlink_target_joins_the_root_it_is_given() {
+        let uri = hyperlink_target(Path::new("/one/proj"), Path::new("x.typ"), "{abs}");
+        assert_eq!(uri, "/one/proj/x.typ");
+    }
+
+    #[test]
+    fn hyperlink_target_without_a_root_is_the_file_unchanged() {
         let file = Path::new("truth/tasks/x.typ");
         assert_eq!(
-            hyperlink_target(file, "file://{abs}"),
+            hyperlink_target(Path::new(""), file, "file://{abs}"),
             "file://truth/tasks/x.typ"
         );
     }

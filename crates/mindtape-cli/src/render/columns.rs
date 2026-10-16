@@ -20,8 +20,8 @@
 
 use crate::diag::Result;
 use mindtape::{
-    ColumnFacts, Condition, ConditionEnv, Config, Readiness, ReadyState, StemHashes, Task,
-    format_iso, today_iso, waits_on,
+    ColumnFacts, Condition, ConditionEnv, Config, ReadyState, StemHashes, Task, format_iso,
+    today_iso, waits_on,
 };
 
 use super::RenderCtx;
@@ -125,7 +125,8 @@ impl ColumnId {
     /// Build this column's cell for one task. `hash` is the task's stem hash,
     /// the `slug#` column's text.
     #[must_use]
-    pub fn cell(self, hash: &str, task: &Task, config: &Config, readiness: &Readiness) -> CellSpec {
+    pub fn cell(self, hash: &str, task: &Task, ctx: RenderCtx<'_>) -> CellSpec {
+        let (config, readiness) = (ctx.config, ctx.readiness);
         match self {
             ColumnId::StemHash => plain(hash.to_owned()),
             ColumnId::Status => status_cell(task, config),
@@ -137,7 +138,7 @@ impl ColumnId {
             ColumnId::Why => plain(waits_on(readiness.blockers(task))),
             ColumnId::Children => plain(children_text(task)),
             ColumnId::Progress => plain(progress_text(task)),
-            ColumnId::File => plain(file_path::cell_text(&task.file)),
+            ColumnId::File => plain(file_path::cell_text(ctx.root, &task.file)),
         }
     }
 
@@ -151,21 +152,15 @@ impl ColumnId {
     /// own value for `contested`, so a half-filled column is contested — the
     /// blanks are exactly what a reader wants to see there.
     #[must_use]
-    pub fn facts(
-        self,
-        rows: &[(String, &Task)],
-        config: &Config,
-        readiness: &Readiness,
-        named: bool,
-    ) -> ColumnFacts {
+    pub fn facts(self, rows: &[(String, &Task)], ctx: RenderCtx<'_>, named: bool) -> ColumnFacts {
         let mut facts = ColumnFacts {
             named,
-            blocked: rows.iter().any(|(_, task)| readiness.is_blocked(task)),
+            blocked: rows.iter().any(|(_, task)| ctx.readiness.is_blocked(task)),
             ..ColumnFacts::default()
         };
         let mut first: Option<String> = None;
         for (hash, task) in rows {
-            let text = self.cell(hash, task, config, readiness).text;
+            let text = self.cell(hash, task, ctx).text;
             facts.nonempty |= !text.is_empty();
             match &first {
                 None => first = Some(text),
@@ -259,7 +254,7 @@ pub fn resolve_order(rows: &[(String, &Task)], ctx: RenderCtx<'_>) -> Result<Vec
     let mut env = ctx.env.clone();
     let mut visible = Vec::with_capacity(order.len());
     for col in order {
-        env.column = col.facts(rows, ctx.config, ctx.readiness, named);
+        env.column = col.facts(rows, ctx, named);
         if col.visible(ctx.config, &env)? {
             visible.push(col);
         }
@@ -275,14 +270,15 @@ pub fn resolve_order(rows: &[(String, &Task)], ctx: RenderCtx<'_>) -> Result<Vec
 /// [`file_path::DEFAULT_HYPERLINK_TARGET`]; `table.rs` decides whether to
 /// actually apply it (`--hyperlinks`).
 #[must_use]
-pub fn row_hyperlink_targets(rows: &[(String, &Task)], config: &Config) -> Vec<String> {
-    let template = config
+pub fn row_hyperlink_targets(rows: &[(String, &Task)], ctx: RenderCtx<'_>) -> Vec<String> {
+    let template = ctx
+        .config
         .ls
         .hyperlink_target
         .as_deref()
         .unwrap_or(file_path::DEFAULT_HYPERLINK_TARGET);
     rows.iter()
-        .map(|(_, task)| file_path::hyperlink_target(&task.file, template))
+        .map(|(_, task)| file_path::hyperlink_target(ctx.root, &task.file, template))
         .collect()
 }
 

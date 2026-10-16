@@ -212,6 +212,34 @@ fn path_format_is_empty_for_no_tasks() {
     assert_eq!(out, "");
 }
 
+/// One process renders several projects: each context relativizes a task's
+/// path from its own root, not from whichever project opened first.
+#[test]
+fn path_format_reads_the_root_of_its_own_context() {
+    let mut task = sample();
+    task.file = "truth/tasks/t1.typ".into();
+    let cwd = crate::render::file_path::cwd().unwrap();
+    let mut seen = Vec::new();
+    for root in ["/one/proj", "/two/proj"] {
+        let fixture = TestCtx {
+            root: root.into(),
+            ..TestCtx::default()
+        };
+        let out = render(
+            std::slice::from_ref(&task),
+            OutputFormat::Path,
+            fixture.ctx(),
+            None,
+        )
+        .unwrap();
+        let expected =
+            crate::render::file_path::relativize(std::path::Path::new(root), cwd, &task.file);
+        assert_eq!(out, expected.display().to_string());
+        seen.push(out);
+    }
+    assert_ne!(seen[0], seen[1], "the two roots must not share a rendering");
+}
+
 /// `--format path` is paired with the *table's* `file` column — both read
 /// `file_path::cell_text`, so the list you paste into the next command spells
 /// each path the way the listing you read it from did. CSV is not part of
@@ -222,12 +250,7 @@ fn path_format_matches_the_table_file_column_cell() {
     let mut task = sample();
     task.file = "truth/tasks/t1.typ".into();
 
-    let cell = crate::render::columns::ColumnId::File.cell(
-        "1a",
-        &task,
-        &Config::default(),
-        &Readiness::empty(),
-    );
+    let cell = crate::render::columns::ColumnId::File.cell("1a", &task, TestCtx::default().ctx());
 
     let path = render(&[task], OutputFormat::Path, TestCtx::default().ctx(), None).unwrap();
     assert_eq!(path, cell.text);

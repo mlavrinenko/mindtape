@@ -30,6 +30,7 @@ pub fn make_project_in(dir: &Path, files: &[(&str, &str)], config: Config) -> Pr
         root: dir.to_path_buf(),
         config,
         outcome,
+        hyperlinks: false,
     }
 }
 

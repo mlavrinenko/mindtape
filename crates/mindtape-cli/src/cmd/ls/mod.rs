@@ -11,6 +11,8 @@ pub(crate) mod rules;
 pub(crate) mod rules_applied;
 
 use crate::diag::Result;
+use std::path::PathBuf;
+
 use anstyle::{Effects, Style};
 
 use crate::diag::{Diag, Hint, Kind};
@@ -230,6 +232,8 @@ pub(crate) struct Listing {
     pub config: Config,
     pub env: ConditionEnv,
     pub hashes: StemHashes,
+    pub root: PathBuf,
+    pub hyperlinks: bool,
     pub truncated: Option<Truncation>,
     pub project_total: usize,
 }
@@ -244,6 +248,8 @@ impl Listing {
             readiness: &self.readiness,
             env: &self.env,
             hashes: &self.hashes,
+            root: &self.root,
+            hyperlinks: self.hyperlinks,
         }
     }
 }
@@ -275,6 +281,7 @@ pub(crate) fn resolve_and_select(args: &LsArgs, project: util::Project) -> Resul
     }
     let readiness = Readiness::compute(&project.outcome.tasks, &project.config);
     let project_total = project.outcome.tasks.len();
+    let (root, hyperlinks) = (project.root.clone(), project.hyperlinks);
     let hashes = util::stem_hashes(&project.outcome.tasks, &project.config);
     // The command line's filter is a usage error when it fails; a view's or
     // a rule's stays as the config reports it.
@@ -310,6 +317,8 @@ pub(crate) fn resolve_and_select(args: &LsArgs, project: util::Project) -> Resul
         // whether it picked the bundle or a column's visibility.
         env,
         hashes,
+        root,
+        hyperlinks,
         truncated,
         project_total,
     })

@@ -51,6 +51,7 @@ fn make_project_with_tasks(dir: &Path, task_ids: &[&str]) -> Project {
         root: dir.to_path_buf(),
         config,
         outcome,
+        hyperlinks: false,
     }
 }
 
@@ -64,6 +65,7 @@ fn stub_project(tasks: Vec<Task>) -> Project {
         root: ".".into(),
         config: Config::default(),
         outcome,
+        hyperlinks: false,
     }
 }
 
@@ -341,6 +343,7 @@ fn a_stem_two_folders_share_is_refused_naming_each_path() {
         root: dir.path().to_path_buf(),
         config,
         outcome,
+        hyperlinks: false,
     };
 
     let msg = crate::diag::plain(&resolve_task(&project, "gamma").unwrap_err());

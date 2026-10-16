@@ -27,6 +27,8 @@ pub(crate) mod breach;
 pub(crate) mod output;
 pub(crate) mod stdout;
 
+use std::path::Path;
+
 use mindtape::{ConditionEnv, Config, Readiness, StemHashes};
 
 /// What every `ls` renderer needs beyond the tasks themselves.
@@ -47,6 +49,12 @@ pub struct RenderCtx<'a> {
     /// The stem hashes of every task the project loaded, not only the rows
     /// printed, so the `slug#` column agrees across listings.
     pub hashes: &'a StemHashes,
+    /// The project root the tasks' `file` paths are relative to; empty when no
+    /// project is in play, which leaves paths root-relative.
+    pub root: &'a Path,
+    /// Whether the `slug#` and `file` cells print as OSC 8 hyperlinks, resolved
+    /// for this project from `--hyperlinks` and `[ls] hyperlinks`.
+    pub hyperlinks: bool,
 }
 
 /// Owned backing for a [`RenderCtx`] in a test.
@@ -66,6 +74,8 @@ pub struct TestCtx {
     pub readiness: Readiness,
     pub env: ConditionEnv,
     pub hashes: StemHashes,
+    pub root: std::path::PathBuf,
+    pub hyperlinks: bool,
 }
 
 #[cfg(test)]
@@ -76,6 +86,8 @@ impl Default for TestCtx {
             readiness: Readiness::default(),
             env: ConditionEnv::default(),
             hashes: StemHashes::new([]),
+            root: std::path::PathBuf::new(),
+            hyperlinks: false,
         }
     }
 }
@@ -105,6 +117,8 @@ impl TestCtx {
             readiness: &self.readiness,
             env: &self.env,
             hashes: &self.hashes,
+            root: &self.root,
+            hyperlinks: self.hyperlinks,
         }
     }
 }
