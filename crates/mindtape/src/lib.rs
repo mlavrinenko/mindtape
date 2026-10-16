@@ -15,6 +15,7 @@
 #![cfg_attr(test, allow(clippy::disallowed_methods))]
 
 pub mod allow;
+pub mod at;
 pub mod body;
 pub mod commit;
 pub mod config;
@@ -44,6 +45,7 @@ pub mod validate;
 pub mod waits;
 pub mod worktrees;
 
+pub use at::{AtConfig, AtEntry, AtError, AtFs, DiskFs, Forks, Member, Target};
 pub use body::content_gate::{CompiledContentRule, check_content, compile_content_rules};
 pub use body::gate::{CompiledRule, GateError, check_headers, compile_rules};
 pub use body::{BodyRules, check_body_rules};
