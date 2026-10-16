@@ -1,0 +1,23 @@
+# The board `mt` ships: one row per project, one cell per column.
+# `[board]` in at.toml overrides it key by key, and `[at.<name>.board]`
+# overrides that for one set. Every filter here runs under each project's own
+# config, so it names no status: a project's legend decides what is open.
+
+sort = ["ready:desc", "open:desc"]
+hide = "open == 0"
+
+[[columns]]
+name = "open"
+filter = "!terminal"
+
+[[columns]]
+name = "ready"
+filter = "ready"
+
+[[columns]]
+name = "blocked"
+filter = "blocked"
+
+[[columns]]
+name = "next"
+top = "ready"

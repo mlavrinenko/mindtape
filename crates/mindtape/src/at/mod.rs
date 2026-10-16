@@ -3,10 +3,15 @@
 //!
 //! It picks *which* projects `mt` loads, so it is parsed on its own from the
 //! app config dir and never merged into a project [`crate::config::Config`].
-//! Each `[at.<name>]` entry holds `include`, `exclude` and `forks`. An entry
-//! whose `include` is one literal path is a project; any other entry is a set.
+//! Each `[at.<name>]` entry holds `include`, `exclude`, `forks` and a
+//! `board` override. An entry whose `include` is one literal path is a
+//! project; any other entry is a set. `[board]` holds the board's columns.
 //!
 //! - `mod.rs` — the entry types, parsing and errors.
+//! - `board.rs` — `[board]`: its layers, one project's row, hiding and sorting
+//!   rows.
+//! - `board.toml` — the shipped board, which names no status.
+//! - `board_tests.rs` — the board's unit tests.
 //! - `resolve.rs` — `@x` to a project or a set: `@name` expansion, `exclude`,
 //!   `forks`, the directory-name fallback and member naming.
 //! - `scan.rs` — the injected filesystem ([`AtFs`], [`DiskFs`]), `~` expansion,
@@ -14,6 +19,7 @@
 //! - `tests.rs` — the unit tests, over an in-memory filesystem.
 //! - `scan_tests.rs` — the [`DiskFs`] tests, over a temporary tree.
 
+mod board;
 mod resolve;
 mod scan;
 
@@ -23,12 +29,17 @@ use std::path::PathBuf;
 use serde::{Deserialize, Deserializer};
 use thiserror::Error;
 
+pub use board::{Board, BoardColumn, BoardSpec, Cell, TopTask};
 pub use scan::{AtFs, DiskFs};
 
-/// A parsed `at.toml`: its entries by name.
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+/// A parsed `at.toml`: its entries by name, and the board each one shows.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AtConfig {
     entries: BTreeMap<String, AtEntry>,
+    /// `[board]` over the shipped board.
+    board: Board,
+    /// Each entry's `board` over [`Self::board`], by entry name.
+    boards: BTreeMap<String, Board>,
 }
 
 /// One `[at.<name>]` entry.
@@ -44,6 +55,8 @@ pub struct AtEntry {
     /// Whether a glob's linked git worktrees join the set.
     #[serde(default)]
     pub forks: Forks,
+    /// This entry's board, over `[board]` key by key.
+    pub board: Option<BoardSpec>,
 }
 
 /// What `forks` says about the linked git worktrees a glob matches.
@@ -103,6 +116,7 @@ pub struct Member {
 struct RawFile {
     #[serde(default)]
     at: BTreeMap<String, AtEntry>,
+    board: Option<BoardSpec>,
 }
 
 /// An `at.toml` parse or resolution failure.
@@ -147,6 +161,14 @@ pub enum AtError {
         /// The entry names from the first to the repeated one.
         chain: Vec<String>,
     },
+    /// A board layer is malformed.
+    #[error("[{scope}]: {message}")]
+    Board {
+        /// `board`, or `at.<name>.board`.
+        scope: String,
+        /// What is wrong with it, naming the column.
+        message: String,
+    },
     /// An `include` or `exclude` glob does not compile.
     #[error("bad glob {pattern:?}: {source}")]
     Glob {
@@ -163,9 +185,14 @@ impl AtConfig {
     /// # Errors
     /// [`AtError::Parse`] on malformed TOML or an unknown key,
     /// [`AtError::InvalidName`] on an entry name that is not one path segment,
-    /// or [`AtError::Entry`] on an entry with no `include`.
+    /// [`AtError::Entry`] on an entry with no `include`, or [`AtError::Board`]
+    /// on a malformed board.
     pub fn parse(text: &str) -> Result<Self, AtError> {
         let raw: RawFile = toml::from_str(text)?;
+        let board_error = |scope: String| move |message| AtError::Board { scope, message };
+        let global = raw.board.as_ref();
+        let board = Board::resolve(&[global]).map_err(board_error("board".to_owned()))?;
+        let mut boards = BTreeMap::new();
         for (name, entry) in &raw.at {
             validate_name(name)?;
             if entry.include.is_empty() {
@@ -174,8 +201,22 @@ impl AtConfig {
                     message: "needs an `include`",
                 });
             }
+            let scope = format!("at.{name}.board");
+            let own =
+                Board::resolve(&[global, entry.board.as_ref()]).map_err(board_error(scope))?;
+            boards.insert(name.clone(), own);
         }
-        Ok(Self { entries: raw.at })
+        Ok(Self {
+            entries: raw.at,
+            board,
+            boards,
+        })
+    }
+
+    /// The board `@name` shows: its entry's, else `[board]`'s.
+    #[must_use]
+    pub fn board(&self, name: &str) -> &Board {
+        self.boards.get(name).unwrap_or(&self.board)
     }
 
     /// The entry names, sorted.
