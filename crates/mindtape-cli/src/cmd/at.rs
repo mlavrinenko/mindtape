@@ -5,7 +5,7 @@
 //! and rewrite it before clap parses. A project becomes `-w <path>`, so
 //! `mt @sn ls` reuses the existing worktree-override plumbing and every command
 //! honours it uniformly. A set is held for the commands that call
-//! `util::open_set`, and `util::open` refuses it.
+//! `project_set::open_set`, and `util::open` refuses it.
 //!
 //! Only the first post-program argument is treated as sugar; `@name` anywhere
 //! else (the view sigil, `mt ls @view`) is left untouched, so the two `@` uses
@@ -150,8 +150,8 @@ fn print_json(value: &serde_json::Value) {
 }
 
 /// Rewrite a leading `@name` argument before clap parses: a project into
-/// `-w <path>`, a set into nothing, held for `util::open_set`. A bare `@name`
-/// gains the `board` command.
+/// `-w <path>`, a set into nothing, held for `project_set::open_set`. A bare
+/// `@name` gains the `board` command.
 ///
 /// # Errors
 /// Returns an error if the leading `@token` cannot be resolved.

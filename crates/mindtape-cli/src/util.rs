@@ -17,11 +17,7 @@ use crate::cmd::install::hint::{
 use crate::diag::{Command, Diag, Hint, Kind, Note, emit};
 use crate::render::link::HyperlinkChoice;
 
-#[allow(
-    unused_imports,
-    reason = "ls, check and board open a set in their own tasks"
-)]
-pub use crate::project_set::{Member, open_set, open_set_warned};
+pub use crate::project_set::open_set_warned;
 
 /// A discovered, loaded project: its root, config and load outcome.
 #[derive(Debug)]
