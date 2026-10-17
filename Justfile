@@ -80,7 +80,7 @@ _check-stages: _check-fast _check-build _check-cover
 [doc("The check gates that build nothing")]
 [parallel]
 [private]
-_check-fast: (mmz "fmt-check") (mmz "clippy") (mmz "machete") (mmz "check-workflows") (mmz "shellcheck") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-doc-recipes") (mmz "check-doc-prose") (mmz "check-doc-blocks") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "path-attr-check") (mmz "plural-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "crap-baseline-check") (mmz "check-gate-drift")
+_check-fast: (mmz "fmt-check") (mmz "clippy") (mmz "machete") (mmz "check-workflows") (mmz "shellcheck") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-doc-recipes") (mmz "check-doc-prose") (mmz "check-doc-blocks") (mmz "fmt-fixture-check") (mmz "outdatty-review-trailer-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "path-attr-check") (mmz "plural-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "crap-baseline-check") (mmz "check-gate-drift")
 
 [doc("The check gates that build or run mt")]
 [parallel]
@@ -369,6 +369,17 @@ check-doc-spans:
 [group("gate")]
 fmt-fixture-check:
     bash .just/scripts/fmt-fixture-check.sh
+
+# Commit real commits in a temp repo whose commit-msg hook runs
+# .just/scripts/outdatty-review-trailer.sh, and assert which ones it refuses: a
+# re-record that edits no dependent and names no group in a `Docs-Unaffected:`
+# trailer, under `--amend` too. The cases, and why each is a real commit, are
+# in .just/scripts/outdatty-review-trailer-fixture-check.sh.
+
+[doc("Lock the Docs-Unaffected trailer check against a fixture repo")]
+[group("gate")]
+outdatty-review-trailer-fixture-check:
+    bash .just/scripts/outdatty-review-trailer-fixture-check.sh
 
 # Lock the `[arg(...)]` patterns on release/bench/gen-bench/eject and the five
 # `ask-refactoring` thresholds: each must reject a known-bad argument and

@@ -483,6 +483,13 @@ scopes:
   # `just test` and `just cover` read this scope.
   script-wt-carry-lcov:
     - ".just/scripts/wt-carry-lcov.sh"
+  # .githooks/commit-msg runs this one, no recipe. The fixture gate
+  # `just outdatty-review-trailer-fixture-check` commits through it, so that
+  # rule reads both scopes.
+  script-outdatty-review-trailer:
+    - ".just/scripts/outdatty-review-trailer.sh"
+  script-outdatty-review-trailer-fixture-check:
+    - ".just/scripts/outdatty-review-trailer-fixture-check.sh"
   script-path-attr-check:
     - ".just/scripts/path-attr-check.sh"
   script-plural-check:
@@ -806,6 +813,14 @@ commands:
   - name: just size-fixture-check
     tags: [gate]
     inputs: [file-size-config, gates-meta, script-size-fixture-check]
+
+  # Fixture repo for the commit-msg hook's Docs-Unaffected check. The fixture
+  # builds its own repo and lock, so it reads no tracked file but the two
+  # bodies: its own and the check it commits through. `gates-meta` carries the
+  # dev-shell git, yq and jq.
+  - name: just outdatty-review-trailer-fixture-check
+    tags: [gate]
+    inputs: [gates-meta, script-outdatty-review-trailer-fixture-check, script-outdatty-review-trailer]
 
   # The CRAP gate over the lcov `just cover` writes: the threshold, then the
   # ratchet against crap-baseline.json. `just check` runs it after `cover`, so

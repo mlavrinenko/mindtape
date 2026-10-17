@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 17),
+  status: done(2026, 10, 17),
   links: parent("keep-the-user-docs-generated-or-gated-not-restated.typ")
     + depends-on(
       "split-the-cli-docs-drift-group-by-the-prose-each-source-feeds.typ",

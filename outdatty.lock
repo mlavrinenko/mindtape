@@ -186,7 +186,7 @@ groups:
     dependents:
       CHANGELOG.md: 8f2fe060ec80bf06bde61eea8e3245c8263692d90021c6f9070fa3aa02c6550d
       docs/src/agents.typ: da50da9ed7789e29e34d89dff17c92bccfee66dc09e611ad8f0adb1743ad5911
-      docs/src/contributing.typ: 108fc8f468b15497242f35e278cf46dd2a50f4effc9093b825e9b075fcc49f3a
+      docs/src/contributing.typ: 8cc757f6fd5dcdc6f2c0bba227a848ad52da421c2351b205030c3d6136936862
       docs/src/contributing/command-semantics.typ: 5b3219c6991e68607914d12d1386f39913d500ddb3f7d0eca2b91232789df32f
       docs/src/readme.typ: d0e61e5595a6dd4446906f41e01c6c76197a0a926cfcf2412b16ef8894d1aa01
       docs/src/skill.typ: 920c27780c83ec9565ed73f25152afb80703c2bc3dfc2950620d3b6392e4f221
@@ -275,11 +275,11 @@ groups:
       .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
       .just/docs.just: 300226a86d551abc287d058efd9cbc2143fa7f15e3c6b53131699f27f35847fc
       .just/scripts/wt-carry-lcov.sh: 0d4513fdd21068f5897a015bbc4cd02bc3644ca139d8c39053140fba491e1e76
-      Justfile: 59f6d13463b0f778db88716dae39c2c8a8eb5f55a8ab6664c898679bea6e17e2
+      Justfile: 96473a1d7047ac57e82011a24eddadbca4b01a8310bb0bbd7ebd3648abe9a8fd
       flake.nix: 1a2acaf2bae3f132917cc298362638bbb9651eae4b20a0557e21c5d0449541ea
     dependents:
       docs/src/agents.typ: da50da9ed7789e29e34d89dff17c92bccfee66dc09e611ad8f0adb1743ad5911
-      docs/src/contributing.typ: 108fc8f468b15497242f35e278cf46dd2a50f4effc9093b825e9b075fcc49f3a
+      docs/src/contributing.typ: 8cc757f6fd5dcdc6f2c0bba227a848ad52da421c2351b205030c3d6136936862
       docs/src/contributing/coverage-crap.typ: a77b331ac56839e52cced5ae8aa87823c440d6c2fac3c4dbf9a0d54b01039150
       docs/src/contributing/crap-baseline.typ: 551aab6a955a9d4345e73e1c171fe860663887e8b3c56f611f2f2551356eb301
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
@@ -343,6 +343,7 @@ groups:
       .just/scripts/check.sh: db95395ef7ff6ca1231fd6650df00c2a82550162c089c2a7a19998d10981d9fa
       .just/scripts/fmt-fixture-check.sh: 0e99a04c675f043f84804d43f25c6ef0f3870ae219a4779088c6f5430110e5e3
       .just/scripts/mmz-arm.sh: c67a415ff478915a0fc433b857b72627dfcdc5e122ae0e430ab5b77bde590d22
+      .just/scripts/outdatty-review-trailer-fixture-check.sh: 9cf0aa82a9fbc98bc94c9aabb613e0e1d5cbc5b7c65a84dc28756fb6e3112b21
       .just/scripts/path-attr-check.sh: badfb93ff7cb669ebad8fb8de2305e7907d4df94ab2bd8d660d80a66f5064a5c
       .just/scripts/plural-check.sh: 3487fa50c69eea4d7e37acca6ba46ee8408610f3d70ba9867b49b0cc90049546
       .just/scripts/positional-args-check.sh: 8372e811d5e7d95fdcab5f9ecb4efa6033cf66fcab57c86d31306cebd00b1e9d
@@ -354,11 +355,13 @@ groups:
       docs/src/contributing/gates.typ: a770dc674a61e08feec30b8d8d0f45f7776bf5cd6ce1849affd347ce0caf5ff5
   githooks-docs:
     source:
-      .githooks/commit-msg: b12bd38a025b39fd48a7575a687ef13187c153d6e5520b62eb16d07cac82be73
+      .githooks/commit-msg: 999e0e862359c2fde8930e09e68a773d0b503a0ff0ba83af0576b0d854a71755
       .githooks/local-paths: 3fed9f65a80f886ec6fa219ac250234b875faa01a6aab6ecc229cc83264e205e
       .githooks/pre-commit: 1c90991ad20b8c1ee1134ff32bc187821b14dc9855a107c56b4d1c9fe2212737
+      .just/scripts/outdatty-review-trailer.sh: 0064d2cfbc1e382024336e984f809cfeefcc9ea387b51bf643e368e997262942
     dependents:
-      docs/src/contributing/commit-messages.typ: 04fc294867f79bf95cebed447d652093eb72b2c105bf4bb1c95f1e4c63e18fe3
+      docs/src/contributing.typ: 8cc757f6fd5dcdc6f2c0bba227a848ad52da421c2351b205030c3d6136936862
+      docs/src/contributing/commit-messages.typ: 63fa0b535ddc4162dbdffe923ed200748dd1ac67d246d9ec8db20c7b8f4158d7
       docs/src/contributing/gates.typ: a770dc674a61e08feec30b8d8d0f45f7776bf5cd6ce1849affd347ce0caf5ff5
   lock-merge-docs:
     source:
@@ -367,14 +370,14 @@ groups:
       .just/scripts/jscpd-baseline-merge.sh: 942fd93b708275a1e4dcb233ec477a9b396df6eb6787f70ef56b86fd46def30e
       .just/scripts/outdatty-lock-merge.sh: 4738bab7adcdbb2a00834fdf2245e0b5c444d6bccaca49702e15114190653bdb
     dependents:
-      docs/src/contributing.typ: 108fc8f468b15497242f35e278cf46dd2a50f4effc9093b825e9b075fcc49f3a
+      docs/src/contributing.typ: 8cc757f6fd5dcdc6f2c0bba227a848ad52da421c2351b205030c3d6136936862
   mutation-scripts-docs:
     source:
       .just/scripts/_mutants-env.sh: 69e7c0fca1471c68031c4c65e00c2d73020196027353d280fb6b48b9b9675dfa
       .just/scripts/mutants-diff.sh: 652835d0ea4058a33acb1ac6af4cf67b95d759929a4b5b0d2c4f05fa896e9a4b
       .just/scripts/mutants.sh: 6ea849c25087550c75ef64280d7211c20f74391630ebdc09e6fb773b68d19186
     dependents:
-      docs/src/contributing.typ: ffc942404ad9adfb18049811b2fe5954d3da6431348ccd001620a84b31185aab
+      docs/src/contributing.typ: 8cc757f6fd5dcdc6f2c0bba227a848ad52da421c2351b205030c3d6136936862
       docs/src/contributing/mutation-testing.typ: 96f2e41b03e5bb524e1c49dd08e9435690f37ba566cf81cc0f6dbc843e01981a
       docs/src/contributing/signal-sweep.typ: 9699e4af7dc29f71d8d29e7d7904f6cf97d3c0fa62679ad23b10840cb65d2ec1
   prelude-docs:
@@ -401,7 +404,7 @@ groups:
       .just/scripts/release-hook.sh: b2ffb65f6ccc24aa21475b431e5efcaff7f9fcd64a8f50c3fcf0a8aeddf8a183
       release.toml: df72343747c303c3246bf302016d27869a1a51e9667dd6bea6c25c4cc8632cea
     dependents:
-      docs/src/contributing.typ: 4ccb453ce0b876de3beea14d378e3697c3719537154ce3fc3bc2a655e2349db7
+      docs/src/contributing.typ: 8cc757f6fd5dcdc6f2c0bba227a848ad52da421c2351b205030c3d6136936862
       docs/src/contributing/release.typ: a75c667745bd2c13ff376475cec4f8afe42da21978972a87668e98ad5fe70553
   release-notes:
     source:

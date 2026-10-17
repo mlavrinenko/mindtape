@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Three independent checks over the commit message being written; each can
+# Four independent checks over the commit message being written; each can
 # fail the commit on its own.
 #
 # 1. No line names this machine's $HOME or checkout (.githooks/local-paths).
@@ -10,7 +10,11 @@
 #    this hook runs from a plain `git commit` outside it; no dev shell at
 #    all (direnv missing) fails here with direnv's own error rather than
 #    silently skipping the check.
-# 3. Enforce visibility for the pre-commit freshness override. When
+# 3. A commit whose outdatty.lock re-records a group and that edits none of the
+#    group's dependents names the group in a `Docs-Unaffected:` trailer
+#    (.just/scripts/outdatty-review-trailer.sh, which says why it is a script
+#    and not a commit rule). Through `direnv exec` for its yq and jq.
+# 4. Enforce visibility for the pre-commit freshness override. When
 #    MINDTAPE_GATE_SCOPE skipped `mmz --is-fresh --tag gate` (see
 #    .githooks/pre-commit), the commit message must carry a matching
 #    `Gate-Scope:` trailer, so `git log` can tell a scoped commit apart from a
@@ -21,6 +25,7 @@ root="$(git rev-parse --show-toplevel)"
 
 "$root/.githooks/local-paths" "$msg_file"
 direnv exec "$root" cargo run -q -p mindtape-cli --bin mt --target-dir target/mt-dev -- check --commit-msg "$msg_file"
+direnv exec "$root" bash "$root/.just/scripts/outdatty-review-trailer.sh" "$msg_file"
 
 scope="${MINDTAPE_GATE_SCOPE:-}"
 [[ -z "$scope" ]] && exit 0

@@ -718,17 +718,21 @@ groups:
       - .just/scripts/plural-check.sh
       - .just/scripts/size-fixture-check.sh
       - .just/scripts/site-pages-fixture-check.sh
+      - .just/scripts/outdatty-review-trailer-fixture-check.sh
     dependents:
       - docs/src/contributing/gates.typ
 
   # The git hooks: gates.typ says what pre-commit asserts, commit-messages.typ
-  # what commit-msg checks.
+  # what commit-msg checks. contributing.typ's Dependency Drift section states
+  # the Docs-Unaffected trailer the outdatty review check asks for.
   - name: githooks-docs
     source:
       - .githooks/pre-commit
       - .githooks/commit-msg
       - .githooks/local-paths
+      - .just/scripts/outdatty-review-trailer.sh
     dependents:
+      - docs/src/contributing.typ
       - docs/src/contributing/gates.typ
       - docs/src/contributing/commit-messages.typ
 
