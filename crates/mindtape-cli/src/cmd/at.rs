@@ -96,13 +96,36 @@ fn show_one(config: &AtConfig, path: Option<&Path>, name: &str, json: bool) -> R
                 "@{name} holds {}",
                 mindtape::count(members.len(), "project")
             );
-            for member in &members {
-                let fork = if member.fork { "  (fork)" } else { "" };
-                println!("{}  {}{fork}", member.name, member.path.display());
+            for line in member_lines(&members, dirs::home_dir().as_deref()) {
+                println!("{line}");
             }
         }
     }
     Ok(())
+}
+
+/// One line per member: the name padded to the longest, the path (`~/…` under
+/// `home`), and a `(fork)` mark.
+fn member_lines(members: &[Member], home: Option<&Path>) -> Vec<String> {
+    let width = members
+        .iter()
+        .map(|m| m.name.chars().count())
+        .max()
+        .unwrap_or(0);
+    members
+        .iter()
+        .map(|member| {
+            let shown = match home.and_then(|h| member.path.strip_prefix(h).ok()) {
+                Some(rest) => {
+                    let parts: Vec<_> = rest.iter().map(|c| c.to_string_lossy()).collect();
+                    format!("~/{}", parts.join("/"))
+                }
+                None => member.path.display().to_string(),
+            };
+            let fork = if member.fork { "  (fork)" } else { "" };
+            format!("{:<width$}  {shown}{fork}", member.name)
+        })
+        .collect()
 }
 
 fn member_json(member: &Member) -> serde_json::Value {

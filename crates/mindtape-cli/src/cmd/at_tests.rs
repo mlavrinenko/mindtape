@@ -408,3 +408,34 @@ fn run_with_an_unknown_name_errors() {
     }
     assert!(super::run(&args(Some("nope"), false)).is_err());
 }
+
+fn at(name: &str, path: &str, fork: bool) -> Member {
+    Member {
+        name: name.to_owned(),
+        path: PathBuf::from(path),
+        fork,
+    }
+}
+
+#[test]
+fn member_lines_pad_names_and_abbreviate_the_home_directory() {
+    let members = [
+        at("a", "/home/me/p/a", false),
+        at("longer", "/home/me/p/longer", true),
+        at("away", "/srv/away", false),
+    ];
+    assert_eq!(
+        super::member_lines(&members, Some(Path::new("/home/me"))),
+        vec![
+            "a       ~/p/a",
+            "longer  ~/p/longer  (fork)",
+            "away    /srv/away",
+        ]
+    );
+}
+
+#[test]
+fn member_lines_keep_absolute_paths_without_a_home() {
+    let members = [at("a", "/home/me/p/a", false)];
+    assert_eq!(super::member_lines(&members, None), vec!["a  /home/me/p/a"]);
+}

@@ -1364,7 +1364,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/at.rs",
       "function": "at_path",
-      "line": 239,
+      "line": 262,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -1373,7 +1373,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/at.rs",
       "function": "desugar_argv",
-      "line": 135,
+      "line": 158,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -1382,7 +1382,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/at.rs",
       "function": "desugar_with",
-      "line": 143,
+      "line": 166,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -1391,7 +1391,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/at.rs",
       "function": "forks_word",
-      "line": 114,
+      "line": 137,
       "cyclomatic": 4.0,
       "coverage": 66.66666666666666,
       "crap": 4.5925925925925934,
@@ -1400,7 +1400,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/at.rs",
       "function": "load_at",
-      "line": 251,
+      "line": 274,
       "cyclomatic": 7.0,
       "coverage": 100.0,
       "crap": 7.0,
@@ -1409,7 +1409,16 @@
     {
       "file": "crates/mindtape-cli/src/cmd/at.rs",
       "function": "member_json",
-      "line": 108,
+      "line": 131,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape-cli"
+    },
+    {
+      "file": "crates/mindtape-cli/src/cmd/at.rs",
+      "function": "member_lines",
+      "line": 109,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -1418,7 +1427,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/at.rs",
       "function": "no_at",
-      "line": 244,
+      "line": 267,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -1427,7 +1436,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/at.rs",
       "function": "print_json",
-      "line": 122,
+      "line": 145,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -1436,7 +1445,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/at.rs",
       "function": "resolve",
-      "line": 204,
+      "line": 227,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -1445,7 +1454,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/at.rs",
       "function": "resolve_token",
-      "line": 198,
+      "line": 221,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -1473,15 +1482,15 @@
       "file": "crates/mindtape-cli/src/cmd/at.rs",
       "function": "show_one",
       "line": 84,
-      "cyclomatic": 9.0,
+      "cyclomatic": 8.0,
       "coverage": 100.0,
-      "crap": 9.0,
+      "crap": 8.0,
       "crate": "mindtape-cli"
     },
     {
       "file": "crates/mindtape-cli/src/cmd/at.rs",
       "function": "unknown_name",
-      "line": 220,
+      "line": 243,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -9106,8 +9115,8 @@
       "function": "amending",
       "line": 45,
       "cyclomatic": 2.0,
-      "coverage": 100.0,
-      "crap": 2.0,
+      "coverage": 90.0,
+      "crap": 2.004,
       "crate": "mindtape"
     },
     {

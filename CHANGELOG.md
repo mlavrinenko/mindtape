@@ -196,8 +196,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   literal path is a project, so `mt @sn ls` means `mt -w <path> ls`, and so is
   a directory an `include` matches by name. Any other entry is a set, which a
   command that runs on one project refuses, naming a member to pick. `mt at`
-  lists the entries, and `mt at <name>` lists a set's projects, marking forks.
-  Both take `--json`.
+  lists the entries, and `mt at <name>` lists a set's projects in aligned columns, a home path as `~/…`, marking
+  forks. Both take `--json`.
 - **`mt @set check` checks every project of a set.** It prints each project's
   problems together in set order, each naming its project, and ends with
   `ok: 27 projects, 1904 tasks` or `3 of 30 projects failed`, which exits 1.
