@@ -2,6 +2,7 @@
 
 use super::write_atomic;
 use crate::test_support::tempdir;
+#[cfg(unix)]
 use crate::test_support::write_file;
 
 #[test]
