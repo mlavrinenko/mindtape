@@ -45,6 +45,15 @@ mt link write-docs depends-on pick-a-provider
 mt link write-docs depends-on pick-a-provider.typ
 EOF
 
+# /links/: `mt link --apply` reads a map of stem to kind to targets. The page
+# shows the file it reads and the run, so the shape can't drift from the code.
+capture_copy A examples/links
+printf 'write-docs:\n  depends-on: [wire-oauth, speed-up-search]\n  related:\n    - target: search-too-slow\n      note: same release\nsearch-too-slow:\n  depends-on: auth-epic\n' >"$A/links.yaml"
+capture_lines links-apply "$A" <<'EOF'
+cat links.yaml
+mt link --apply links.yaml
+EOF
+
 # /recurring/: `mt recur` writes the next occurrence of a daily task.
 capture_copy R examples/recurring
 capture recurring-spawn "$R" 'mt recur nightly-dependency-audit'

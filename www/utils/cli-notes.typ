@@ -111,8 +111,8 @@
   "link": (
     prose: [`mt link <task> <kind> <target>...` adds one edge per target.
       `mt link --apply <file>`, or `-` for stdin, reads a YAML or JSON map of
-      #link(u("/concepts/#identity"))[stem] to kind to targets, described on
-      #link(u("/dsl/"))[Task DSL]. Both forms merge. An edge with the same
+      #link(u("/concepts/#identity"))[stem] to kind to targets, shown on
+      #link(u("/links/#the-apply-map"))[Task links]. Both forms merge. An edge with the same
       kind and target isn't added twice, so running either again writes
       nothing new. With `--apply`, `--replace` makes the map the whole edge
       set of each stem it names. `mt` checks the kind and the target before it

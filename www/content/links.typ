@@ -141,9 +141,18 @@ there, `mt link` leaves it alone:
 
 #terminal("links-write")
 
+== The `--apply` map
+
 To add many edges at once, `mt link --apply <file>` merges a map of task to
-kind to targets, from YAML or JSON. The #link(u("/cli/link/"))[`mt link` page]
-lists its other flags.
+kind to targets, from YAML or JSON. Pass `-` to read it from stdin. A target
+is a stem string, or a `target` and `note` mapping when the edge needs a
+note. A kind with one target takes the bare string, and several take a
+list. Here's a map and its run:
+
+#terminal("links-apply")
+
+The #link(u("/cli/link/"))[`mt link` page] lists its other flags, such as
+`--replace` and `--dry-run`.
 
 = Project-declared kinds
 
