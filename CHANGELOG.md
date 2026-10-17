@@ -476,6 +476,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Typst in a task file and its common mistakes, `/rule-packs/`, rendered
   graphs of the links and the legend, and the language server's completions and
   diagnostics on a task file.
+- **The docs build their lists from the code.** The filter fields, link kinds,
+  slot kinds, `at.toml` keys, the shipped board and the commands that run on a
+  set all render from what `mt` itself knows, and the docs build fails when a
+  page names a key or value `mt` doesn't. The schema page shows the real JSON
+  of a set and of the board, and `mt --help`, the quickstart and the sidebar
+  lead to reading many projects with `mt @name`.
 - **The agents page names the skill installers**, `gh skill install` and
   `npx skills add`.
 - **The skill files verb-first titles** and leads `-f` with YAML.
