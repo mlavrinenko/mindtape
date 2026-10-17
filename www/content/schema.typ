@@ -151,6 +151,32 @@ command line overrode them all.
 found in commit trailers and that no task has, such as tasks `mt rm` removed.
 It's `[]` when no filter calls `touches()`.
 
+= Many projects
+
+A #link(u("/read-many-projects/"))[set] such as `@work` reads every project it
+holds. `mt @work ls --json` prints an array with one listing object per
+project, in set order. Each object has the keys above, plus `project`, the name
+`mt at <name>` shows, and `error`. `error` is `null` when the project listed,
+and the message when it failed, in which case `tasks` is `[]`. Here `jq` cuts
+each listing down to its task ids:
+
+#terminal("schema-set-ls")
+
+`mt @work board --json` prints an array too, with one object per project and
+not per task:
+
+#terminal("schema-set-board")
+
+- `project` is the project's name and `path` the directory it lives in.
+- `hidden` is `true` for a row the board's `hide` filter leaves out of the
+  table. The array still holds it.
+- `cells` maps each column name to its value. A `filter` column holds a count,
+  and a `top` column holds `{id, title, file}` for the first task it ranks, or
+  `null` when no task matches. A column that fails to run holds
+  `{error}` in place of either.
+- A project whose config won't load has `project`, `path` and `error`, and no
+  `cells` or `hidden`.
+
 #callout("tip")[
   #link(u("/import-export/"))[Import & export] has recipes that write and read
   this schema.

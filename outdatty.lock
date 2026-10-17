@@ -219,8 +219,8 @@ groups:
       www/content/agents.typ: f0240344a64911b167203d705e4a679fe6d64fb4e5d0824af52d68588ff71648
       www/content/cli/ls.typ: f1d27f9e5f3a41c87dec00b859851ffcadcf11388955c758ac4fd772463dbfba
       www/content/import-export.typ: 21da077af3865d4449176940db50674755bb53cbd0c01db00f78eeb37a688e0f
-      www/content/read-many-projects.typ: f4ec7476977218d95b94ea06ca55dd0e77648e43cc7069fae38c317b6a78884c
-      www/content/schema.typ: 0cf69c7ec4bd1d42ae7796ebb7b3bd89e25bab9a98382798a3687ad263455514
+      www/content/read-many-projects.typ: 4a6bff14a8981d699ae9fa5134ad0abd67879643474b8981bb2471c441444c87
+      www/content/schema.typ: 67d7600b458799e3786abc770c583e8086c593e4e8c976454eb1164a1ed66817
   cli-preset-docs:
     source:
       crates/mindtape-cli/src/cmd/preset.rs: 1000c62334750b7fcde10b30903716659a9e1b0058ec018a6588f70ba5154b8d
@@ -469,7 +469,7 @@ groups:
       crates/mindtape/src/at/scan.rs: 688175a673dd47f09b1941339bfca17c58cb82322ff8e1ce881e3d3f2636bacc
     dependents:
       docs/src/skill.typ: 920c27780c83ec9565ed73f25152afb80703c2bc3dfc2950620d3b6392e4f221
-      www/content/read-many-projects.typ: c1647ef3aa40af74949c59737b0c49081d8f58e74dc21983a6c30c30d4e22cab
+      www/content/read-many-projects.typ: 4a6bff14a8981d699ae9fa5134ad0abd67879643474b8981bb2471c441444c87
       www/utils/cli-notes.typ: 618c6d22c5af0be948a23b2a2d0e674a3b4aa17b97233288c91682f0aa058b75
   site-markdown-docs:
     source:
