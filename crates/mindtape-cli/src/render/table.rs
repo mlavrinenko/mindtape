@@ -12,7 +12,7 @@ use mindtape::Task;
 
 use super::RenderCtx;
 use super::color::{Painter, is_color_active};
-use super::columns::{ColumnId, resolve_order, row_hyperlink_targets, rows};
+use super::columns::{ColumnId, joined_rows, resolve_order, row_hyperlink_targets, rows};
 use super::field::{CellSpec, DensityMode, cell_content, content_width, render_cell};
 use super::glyph::GlyphMode;
 use super::link::Linker;
@@ -75,6 +75,61 @@ fn render_inner(tasks: &[Task], ctx: RenderCtx<'_>, highlighted: &[bool]) -> Res
     Ok(render_grid(&columns, glyph_mode, painter, linker))
 }
 
+/// Render several listings as one table, each listing's rows in a block, in
+/// order: a set's projects, each with its own [`RenderCtx`]. The columns are
+/// every column any listing resolves visible ([`union_order`]), and each cell
+/// is built by its own listing's context.
+///
+/// A listing whose context turns hyperlinks off gets no OSC 8 wrap on its
+/// rows, whatever the others decide.
+///
+/// # Errors
+/// Returns an error if a column's `when` fails to evaluate
+/// ([`resolve_order`]).
+pub fn render_groups(groups: &[(&[Task], RenderCtx<'_>)]) -> Result<String> {
+    let glyph_mode = glyph_mode();
+    let (rows, visible) = joined_rows(groups)?;
+    let mut joined: Vec<Column> = Vec::new();
+    for ((_, ctx), rows) in groups.iter().zip(&rows) {
+        let columns = group_columns(&visible, rows, *ctx, glyph_mode);
+        join_columns(&mut joined, columns, ctx.hyperlinks);
+    }
+    apply_flex(&mut joined, terminal_width());
+    let painter = Painter::new(is_color_active());
+    let linker = Linker::new(groups.iter().any(|(_, ctx)| ctx.hyperlinks));
+    Ok(render_grid(&joined, glyph_mode, painter, linker))
+}
+
+/// Append one listing's `columns` to `joined`, column by column: the cells
+/// and link targets follow the rows already there, and the width grows to fit.
+/// Without `hyperlinks`, the listing's targets are blank, which
+/// [`render_grid`] leaves unwrapped.
+fn join_columns(joined: &mut Vec<Column>, columns: Vec<Column>, hyperlinks: bool) {
+    if joined.is_empty() {
+        joined.extend(columns.into_iter().map(|col| Column {
+            link_uris: col.link_uris.map(|uris| blank_unless(uris, hyperlinks)),
+            ..col
+        }));
+        return;
+    }
+    for (into, col) in joined.iter_mut().zip(columns) {
+        into.width = into.width.max(col.width);
+        into.cells.extend(col.cells);
+        if let (Some(uris), Some(more)) = (into.link_uris.as_mut(), col.link_uris) {
+            uris.extend(blank_unless(more, hyperlinks));
+        }
+    }
+}
+
+/// `uris` when `keep`, else as many blank targets.
+fn blank_unless(uris: Vec<String>, keep: bool) -> Vec<String> {
+    if keep {
+        uris
+    } else {
+        vec![String::new(); uris.len()]
+    }
+}
+
 /// Paint the `slug#` column's cells reverse-video for the highlighted rows. A
 /// no-op when no row is flagged or the column is not visible.
 fn apply_highlight(columns: &mut [Column], highlighted: &[bool]) {
@@ -114,6 +169,18 @@ fn build_columns(
     ctx: RenderCtx<'_>,
     glyph_mode: GlyphMode,
 ) -> Vec<Column> {
+    let mut columns = group_columns(visible, rows, ctx, glyph_mode);
+    apply_flex(&mut columns, terminal_width());
+    columns
+}
+
+/// [`build_columns`] at natural widths, before the flex column is fitted.
+fn group_columns(
+    visible: &[ColumnId],
+    rows: &[(String, &Task)],
+    ctx: RenderCtx<'_>,
+    glyph_mode: GlyphMode,
+) -> Vec<Column> {
     let full = DensityMode::Full;
     // `slug#` and `file` both link to the same per-row target (the task's own
     // file), so it is built once here — only when one of them is actually
@@ -125,7 +192,7 @@ fn build_columns(
         .iter()
         .any(|&id| is_linked_column(id))
         .then(|| row_hyperlink_targets(rows, ctx));
-    let mut columns: Vec<Column> = visible
+    visible
         .iter()
         .map(|&id| {
             let cells: Vec<CellSpec> = rows
@@ -150,9 +217,7 @@ fn build_columns(
                 link_uris,
             }
         })
-        .collect();
-    apply_flex(&mut columns, terminal_width());
-    columns
+        .collect()
 }
 
 /// Whether `id` is one of the two columns OSC 8 wraps. Fixed by design (see
@@ -238,8 +303,8 @@ fn render_grid(
                         render_cell(cell, glyph_mode, DensityMode::Full, painter, col.width)
                     };
                     match col.link_uris.as_ref().and_then(|uris| uris.get(row)) {
-                        Some(uri) => linker.link(&rendered, uri),
-                        None => rendered,
+                        Some(uri) if !uri.is_empty() => linker.link(&rendered, uri),
+                        _ => rendered,
                     }
                 })
             })

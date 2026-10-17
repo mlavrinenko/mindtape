@@ -4,11 +4,13 @@
 //!
 //! - `rules.rs` — `[[ls.rules]]` cascade resolution for a bare `mt ls`.
 //! - `rules_applied.rs` — `Applied`, which source won each facet.
+//! - `set.rs` — `mt @set ls`, one listing over every project of a set.
 //! - `interactive/` — the `--interactive` terminal picker.
 
 pub(crate) mod interactive;
 pub(crate) mod rules;
 pub(crate) mod rules_applied;
+pub(crate) mod set;
 
 use crate::diag::Result;
 use std::path::PathBuf;
@@ -91,6 +93,9 @@ pub struct LsFlags {
 /// # Errors
 /// Returns an error if the project cannot be opened or the filter/sort is invalid.
 pub fn run(args: &LsArgs) -> Result<()> {
+    if let Some(held) = crate::project_set::held_set() {
+        return set::run(args, held);
+    }
     run_with(args, util::open_warned()?)
 }
 
@@ -160,7 +165,7 @@ fn print_footer(args: &LsArgs, listing: &Listing) {
     let painter = Painter::new(is_color_active());
     let dim = Style::new().effects(Effects::DIMMED);
     let next_page = listing.truncated.map(|cut| {
-        let next = next_command_hint(args, cut.next_skip());
+        let next = next_command_hint(args, None, cut.next_skip());
         format!("{} · next page: {next}", cut.footer())
     });
     let footer = rules::footer(&listing.applied, listing.tasks.len(), listing.project_total);
@@ -174,14 +179,16 @@ fn print_footer(args: &LsArgs, listing: &Listing) {
 }
 
 /// The command that fetches the next page after a truncated listing: this
-/// run's own filter and flags, `--skip` set to `next_skip` — this page's
+/// run's own filter and flags, after the `@set` it listed if any, `--skip` set to `next_skip` — this page's
 /// `--skip` advanced past what it showed, never restated from an existing
 /// `--skip` on the command line, which `next_skip` already accounts for.
 /// Built from the parsed [`LsArgs`] rather than raw `argv`, so it is exact
 /// regardless of shell aliasing, flag order, or how `@name`/`-w` selected the
 /// worktree, and correct whether or not this run itself carried `--skip`.
-fn next_command_hint(args: &LsArgs, next_skip: usize) -> String {
-    let mut parts = vec!["mt".to_owned(), "ls".to_owned()];
+fn next_command_hint(args: &LsArgs, set: Option<&str>, next_skip: usize) -> String {
+    let mut parts = vec!["mt".to_owned()];
+    parts.extend(set.map(|name| format!("@{name}")));
+    parts.push("ls".to_owned());
     if let Some(filter) = &args.filter {
         parts.push(shell_quote(filter));
     }
@@ -250,6 +257,7 @@ impl Listing {
             hashes: &self.hashes,
             root: &self.root,
             hyperlinks: self.hyperlinks,
+            project: None,
         }
     }
 }

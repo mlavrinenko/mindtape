@@ -197,3 +197,26 @@ fn highlighted_handle_cell_still_links_and_keeps_its_shape() {
          rendering exactly, proving link and highlight compose"
     );
 }
+
+// --- render_groups: per-listing hyperlinks -----------------------------------
+
+/// A set's table joins listings that each decided hyperlinks for their own
+/// project: the rows of the one that turned them off stay unwrapped.
+#[test]
+fn render_groups_links_only_the_rows_of_a_listing_that_wants_links() {
+    let (linked, plain) = (bare_task("linked"), bare_task("plain"));
+    let mut config = mindtape::test_support::floor_config();
+    config.ls.columns_order = vec!["slug#".to_owned(), "title".to_owned()];
+    let on = TestCtx {
+        hyperlinks: true,
+        root: std::path::PathBuf::from("/r"),
+        ..TestCtx::with_config(config.clone())
+    };
+    let off = TestCtx::with_config(config);
+    let (linked, plain) = (std::slice::from_ref(&linked), std::slice::from_ref(&plain));
+    let out = super::render_groups(&[(linked, on.ctx()), (plain, off.ctx())]).unwrap();
+    let lines: Vec<&str> = out.lines().collect();
+    assert_eq!(lines.len(), 3, "{out:?}");
+    assert!(lines[1].contains("\x1b]8;;"), "{out:?}");
+    assert!(!lines[2].contains("\x1b]8;;"), "{out:?}");
+}

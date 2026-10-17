@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use crate::diag::Result;
+use crate::diag::{Diag, Result};
 use mindtape::config::Config;
 use mindtape::model::numeric::{NumValue, format_num};
 use mindtape::{CanonicalTask, Readiness, ReadyState, SCHEMA_VERSION, Task};
@@ -10,7 +10,7 @@ use serde_json::{Value, json};
 
 use crate::cmd::ls::rules::Applied;
 use crate::render::RenderCtx;
-use crate::render::columns::{ColumnId, resolve_order, rows};
+use crate::render::columns::{ColumnId, joined_rows};
 
 /// Output format for `list` and `eval`.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
@@ -140,6 +140,84 @@ pub fn render(
     }
 }
 
+/// One project's part of a set's listing: its name, and its rows with what
+/// renders them, or the error that kept it from listing.
+#[derive(Debug, Clone, Copy)]
+pub struct SetGroup<'a> {
+    pub project: &'a str,
+    pub listed: std::result::Result<Listed<'a>, &'a Diag>,
+}
+
+/// The rows of one listed project, what renders them, and their envelope.
+#[derive(Debug, Clone, Copy)]
+pub struct Listed<'a> {
+    pub tasks: &'a [Task],
+    pub ctx: RenderCtx<'a>,
+    pub envelope: Envelope<'a>,
+}
+
+/// Render a set's listing in the chosen `format`, the projects in order. The
+/// table and CSV join every listed project's rows under one header, with the
+/// `PROJECT` column first; JSON is an array of one `mt ls --json` object per
+/// project, each with its `project` and its `error` (`null` when it listed);
+/// the path formats run on through every project.
+///
+/// # Errors
+/// As [`render`].
+pub fn render_set(groups: &[SetGroup<'_>], format: OutputFormat) -> Result<String> {
+    let listed: Vec<(&[Task], RenderCtx<'_>)> = groups
+        .iter()
+        .filter_map(|group| group.listed.ok())
+        .map(|listed| (listed.tasks, listed.ctx))
+        .collect();
+    match format {
+        OutputFormat::Table => crate::render::table::render_groups(&listed),
+        OutputFormat::Json => render_set_json(groups),
+        OutputFormat::Csv => render_csv_groups(&listed),
+        OutputFormat::Path => Ok(listed
+            .iter()
+            .map(|(tasks, ctx)| render_path(tasks, ctx.root))
+            .filter(|body| !body.is_empty())
+            .collect::<Vec<_>>()
+            .join("\n")),
+        OutputFormat::Path0 => Ok(listed
+            .iter()
+            .map(|(tasks, ctx)| render_path0(tasks, ctx.root))
+            .collect()),
+    }
+}
+
+/// `mt @set ls --json`: one envelope per project, as [`render_set`] says.
+fn render_set_json(groups: &[SetGroup<'_>]) -> Result<String> {
+    let objects: Vec<Value> = groups
+        .iter()
+        .map(|group| {
+            let mut object = match group.listed {
+                Ok(listed) => json_value(
+                    listed.tasks,
+                    listed.ctx.config,
+                    listed.ctx.readiness,
+                    Some(listed.envelope),
+                ),
+                Err(_) => json!({
+                    "schema_version": SCHEMA_VERSION,
+                    "tasks": [],
+                    "applied": null,
+                    "truncated": null,
+                    "retired": [],
+                }),
+            };
+            if let Value::Object(map) = &mut object {
+                map.insert("project".to_owned(), json!(group.project));
+                let error = group.listed.err().map(ToString::to_string);
+                map.insert("error".to_owned(), json!(error));
+            }
+            object
+        })
+        .collect();
+    Ok(serde_json::to_string_pretty(&objects)?)
+}
+
 /// `path` format: one task path per line, joined (not trailing) — the caller
 /// prints this through `println!`, which supplies the final newline the same
 /// way every other format already relies on it.
@@ -173,6 +251,17 @@ fn render_json(
     readiness: &Readiness,
     envelope: Option<Envelope<'_>>,
 ) -> Result<String> {
+    let body = json_value(tasks, config, readiness, envelope);
+    Ok(serde_json::to_string_pretty(&body)?)
+}
+
+/// [`render_json`]'s document, before it is printed.
+fn json_value(
+    tasks: &[Task],
+    config: &Config,
+    readiness: &Readiness,
+    envelope: Option<Envelope<'_>>,
+) -> Value {
     let array: Vec<Value> = tasks
         .iter()
         .map(|task| {
@@ -181,7 +270,7 @@ fn render_json(
             serde_json::to_value(canonical).unwrap_or(Value::Null)
         })
         .collect();
-    let body = match envelope {
+    match envelope {
         Some(envelope) => json!({
             "schema_version": SCHEMA_VERSION,
             "tasks": array,
@@ -190,8 +279,7 @@ fn render_json(
             "retired": envelope.retired,
         }),
         None => Value::Array(array),
-    };
-    Ok(serde_json::to_string_pretty(&body)?)
+    }
 }
 
 /// `mt ls --json`'s `truncated` envelope field: `null` on a complete listing,
@@ -258,16 +346,23 @@ fn applied_to_json(applied: &Applied) -> Value {
 /// are not represented here, same as the table. `--format json` is the
 /// escape hatch: it always emits every field.
 fn render_csv(tasks: &[Task], ctx: RenderCtx<'_>) -> Result<String> {
-    let rows = rows(tasks, ctx.hashes);
-    let columns = resolve_order(&rows, ctx)?;
+    render_csv_groups(&[(tasks, ctx)])
+}
+
+/// [`render_csv`] over several listings under one header: the columns any of
+/// them shows ([`joined_rows`]), each row's cells built by its own listing.
+fn render_csv_groups(groups: &[(&[Task], RenderCtx<'_>)]) -> Result<String> {
+    let (rows, columns) = joined_rows(groups)?;
     let mut writer = csv::Writer::from_writer(Vec::new());
     writer.write_record(columns.iter().copied().map(csv_header))?;
-    for (_, task) in &rows {
-        let row: Vec<String> = columns
-            .iter()
-            .map(|&id| csv_value(id, task, ctx.config, ctx.readiness))
-            .collect();
-        writer.write_record(row)?;
+    for ((_, ctx), rows) in groups.iter().zip(&rows) {
+        for (_, task) in rows {
+            let row: Vec<String> = columns
+                .iter()
+                .map(|&id| csv_value(id, task, *ctx))
+                .collect();
+            writer.write_record(row)?;
+        }
     }
     let bytes = writer.into_inner()?;
     Ok(String::from_utf8_lossy(&bytes).into_owned())
@@ -287,8 +382,10 @@ fn csv_header(id: ColumnId) -> &'static str {
 /// mapping decision on [`render_csv`]), not the table's styled [`CellSpec`].
 ///
 /// [`CellSpec`]: crate::render::field::CellSpec
-fn csv_value(id: ColumnId, task: &Task, config: &Config, readiness: &Readiness) -> String {
+fn csv_value(id: ColumnId, task: &Task, ctx: RenderCtx<'_>) -> String {
+    let (config, readiness) = (ctx.config, ctx.readiness);
     match id {
+        ColumnId::Project => ctx.project.unwrap_or_default().to_owned(),
         ColumnId::StemHash => task.id.clone(),
         ColumnId::Status => status_name(task),
         ColumnId::Ready => ready_text(readiness.state(task)).to_owned(),

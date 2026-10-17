@@ -333,7 +333,7 @@ fn next_command_hint_reproduces_the_filter_and_appends_skip() {
     args.filter = Some("priority > 5".to_owned());
     args.flags.limit = Some(20);
     assert_eq!(
-        next_command_hint(&args, 20),
+        next_command_hint(&args, None, 20),
         "mt ls 'priority > 5' -n 20 --skip 20"
     );
 }
@@ -345,7 +345,7 @@ fn next_command_hint_advances_past_an_existing_skip() {
     let mut args = default_args();
     args.flags.limit = Some(20);
     args.flags.skip = Some(20);
-    assert_eq!(next_command_hint(&args, 40), "mt ls -n 20 --skip 40");
+    assert_eq!(next_command_hint(&args, None, 40), "mt ls -n 20 --skip 40");
 }
 
 #[test]
@@ -356,7 +356,7 @@ fn next_command_hint_carries_json_sort_and_columns() {
     args.flags.sort = vec!["priority:desc".to_owned()];
     args.flags.columns = Some("status,title".to_owned());
     assert_eq!(
-        next_command_hint(&args, 5),
+        next_command_hint(&args, None, 5),
         "mt ls --json -n 5 --sort 'priority:desc' --columns 'status,title' --skip 5"
     );
 }
@@ -367,5 +367,15 @@ fn next_command_hint_omits_the_filter_token_when_none_was_given() {
     // not grow a `''` that changes which default view applies.
     let mut args = default_args();
     args.flags.limit = Some(10);
-    assert_eq!(next_command_hint(&args, 10), "mt ls -n 10 --skip 10");
+    assert_eq!(next_command_hint(&args, None, 10), "mt ls -n 10 --skip 10");
+}
+
+#[test]
+fn next_command_hint_names_the_set_it_listed() {
+    let mut args = default_args();
+    args.flags.limit = Some(1);
+    assert_eq!(
+        next_command_hint(&args, Some("home"), 1),
+        "mt @home ls -n 1 --skip 1"
+    );
 }

@@ -35,6 +35,9 @@ use crate::diag::Diag;
 /// matches [`mindtape::LS_COLUMNS`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ColumnId {
+    /// The set member a row comes from: first, and only on a set's listing
+    /// ([`RenderCtx::project`]). No config names it, so it is not in [`ORDER`].
+    Project,
     StemHash,
     Status,
     Ready,
@@ -76,6 +79,7 @@ impl ColumnId {
     #[must_use]
     pub fn key(self) -> &'static str {
         match self {
+            ColumnId::Project => "project",
             ColumnId::StemHash => "slug#",
             ColumnId::Status => "status",
             ColumnId::Ready => "ready",
@@ -94,6 +98,7 @@ impl ColumnId {
     #[must_use]
     pub fn header(self) -> &'static str {
         match self {
+            ColumnId::Project => "PROJECT",
             ColumnId::StemHash => "SLUG#",
             ColumnId::Status => "STATUS",
             ColumnId::Ready => "READY",
@@ -128,6 +133,7 @@ impl ColumnId {
     pub fn cell(self, hash: &str, task: &Task, ctx: RenderCtx<'_>) -> CellSpec {
         let (config, readiness) = (ctx.config, ctx.readiness);
         match self {
+            ColumnId::Project => plain(ctx.project.unwrap_or_default().to_owned()),
             ColumnId::StemHash => plain(hash.to_owned()),
             ColumnId::Status => status_cell(task, config),
             ColumnId::Ready => ready_cell(readiness.state(task), config),
@@ -252,7 +258,10 @@ pub fn resolve_order(rows: &[(String, &Task)], ctx: RenderCtx<'_>) -> Result<Vec
         ORDER.to_vec()
     };
     let mut env = ctx.env.clone();
-    let mut visible = Vec::with_capacity(order.len());
+    let mut visible = Vec::with_capacity(order.len() + 1);
+    if ctx.project.is_some() {
+        visible.push(ColumnId::Project);
+    }
     for col in order {
         env.column = col.facts(rows, ctx, named);
         if col.visible(ctx.config, &env)? {
@@ -260,6 +269,51 @@ pub fn resolve_order(rows: &[(String, &Task)], ctx: RenderCtx<'_>) -> Result<Vec
         }
     }
     Ok(visible)
+}
+
+/// Each listing's rows (as [`rows`] pairs them), and the columns of the
+/// table that joins them.
+pub type Joined<'t> = (Vec<Vec<(String, &'t Task)>>, Vec<ColumnId>);
+
+/// [`Joined`]: each listing's rows, and the columns of the table that joins them
+/// ([`union_order`] of what each resolves visible): the start of every
+/// renderer of a set.
+///
+/// # Errors
+/// As [`resolve_order`].
+pub fn joined_rows<'t>(groups: &[(&'t [Task], RenderCtx<'_>)]) -> Result<Joined<'t>> {
+    let rows: Vec<Vec<(String, &Task)>> = groups
+        .iter()
+        .map(|(tasks, ctx)| rows(tasks, ctx.hashes))
+        .collect();
+    let shown = groups
+        .iter()
+        .zip(&rows)
+        .map(|((_, ctx), rows)| resolve_order(rows, *ctx))
+        .collect::<Result<Vec<_>>>()?;
+    Ok((rows, union_order(&shown)))
+}
+
+/// The columns of a table that joins several listings: every column any of
+/// `shown` resolved visible, each listing's own order kept. A column new to
+/// the union lands right after the column it follows in its own listing, so
+/// `[slug#, title]` then `[slug#, status, title]` joins as
+/// `[slug#, status, title]`.
+#[must_use]
+pub fn union_order(shown: &[Vec<ColumnId>]) -> Vec<ColumnId> {
+    let mut union: Vec<ColumnId> = Vec::new();
+    for listing in shown {
+        let mut at = 0;
+        for &col in listing {
+            if let Some(found) = union.iter().position(|&seen| seen == col) {
+                at = found + 1;
+            } else {
+                union.insert(at, col);
+                at += 1;
+            }
+        }
+    }
+    union
 }
 
 /// Per-row hyperlink target URIs, shared by every column OSC 8 wraps (`slug#` and

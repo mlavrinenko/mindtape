@@ -37,15 +37,22 @@ pub struct FindArgs {
 /// Returns an error if the project cannot be opened or the desugared filter
 /// is rejected (not expected for this shape, but propagated all the same).
 pub fn run(args: &FindArgs) -> Result<()> {
+    if let Some(held) = crate::project_set::held_set() {
+        return crate::cmd::ls::set::run(&ls_args(args), held);
+    }
     run_with(args, util::open()?)
 }
 
 pub(crate) fn run_with(args: &FindArgs, project: util::Project) -> Result<()> {
-    let ls_args = LsArgs {
+    crate::cmd::ls::run_with(&ls_args(args), project)
+}
+
+/// The `ls` run `args` stands for.
+fn ls_args(args: &FindArgs) -> LsArgs {
+    LsArgs {
         filter: Some(desugar(&args.terms)),
         flags: args.flags.clone(),
-    };
-    crate::cmd::ls::run_with(&ls_args, project)
+    }
 }
 
 /// `["login", "bug"]` → `contains("login") && contains("bug")`. Each term is

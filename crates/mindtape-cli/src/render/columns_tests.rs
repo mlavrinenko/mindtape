@@ -414,3 +414,35 @@ fn children_text_renders_the_count_for_a_parent() {
     task.children = 3;
     assert_eq!(children_text(&task), "3");
 }
+
+// --- a set's PROJECT column and joined columns -------------------------------
+
+#[test]
+fn union_order_slots_a_new_column_after_the_one_it_follows() {
+    use ColumnId::{Priority, Status, StemHash, Title};
+    let joined = union_order(&[
+        vec![StemHash, Title],
+        vec![StemHash, Status, Priority, Title],
+        vec![Title, Status],
+    ]);
+    assert_eq!(joined, [StemHash, Status, Priority, Title]);
+    assert!(union_order(&[]).is_empty());
+}
+
+#[test]
+fn the_project_column_leads_only_a_set_listing() {
+    let task = bare_task("x");
+    let fixture = TestCtx::default();
+    let rows = rows(&[("a1", &task)]);
+    let alone = resolve_order(&rows, fixture.ctx()).unwrap();
+    assert!(!alone.contains(&ColumnId::Project), "{alone:?}");
+    let ctx = RenderCtx {
+        project: Some("home"),
+        ..fixture.ctx()
+    };
+    let in_set = resolve_order(&rows, ctx).unwrap();
+    assert_eq!(in_set.first(), Some(&ColumnId::Project), "{in_set:?}");
+    assert_eq!(ColumnId::Project.cell("a1", &task, ctx).text, "home");
+    assert_eq!(ColumnId::Project.key(), "project");
+    assert_eq!(ColumnId::Project.header(), "PROJECT");
+}

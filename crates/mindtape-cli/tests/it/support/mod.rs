@@ -104,6 +104,32 @@ pub fn text_of(out: &std::process::Output) -> (bool, String) {
     (out.status.success(), text)
 }
 
+/// A finished run's exit code, stdout and stderr, each read as UTF-8.
+pub fn parts_of(out: &std::process::Output) -> (Option<i32>, String, String) {
+    (
+        out.status.code(),
+        String::from_utf8(out.stdout.clone()).unwrap(),
+        String::from_utf8(out.stderr.clone()).unwrap(),
+    )
+}
+
+/// Write `<cfg>/mindtape/at.toml` with one `[at.<name>]` entry per
+/// `(name, projects)`, each including the projects' directories.
+pub fn write_at_toml(cfg: &Path, entries: &[(&str, &[&Path])]) {
+    std::fs::create_dir_all(cfg.join("mindtape")).unwrap();
+    let toml: String = entries
+        .iter()
+        .map(|(name, dirs)| {
+            let include: Vec<String> = dirs
+                .iter()
+                .map(|dir| format!("\"{}\"", dir.display().to_string().replace('\\', "/")))
+                .collect();
+            format!("[at.{name}]\ninclude = [{}]\n\n", include.join(", "))
+        })
+        .collect();
+    std::fs::write(cfg.join("mindtape/at.toml"), toml).unwrap();
+}
+
 /// `mt <args>` in `dir`, as `(succeeded, stdout then stderr)`.
 pub fn run_text(dir: &Path, args: &[&str]) -> (bool, String) {
     text_of(&mt(dir).args(args).output().unwrap())

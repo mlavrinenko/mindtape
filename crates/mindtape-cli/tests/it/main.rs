@@ -62,6 +62,7 @@ mod ls_limit_e2e;
 mod ls_newline_e2e;
 mod ls_path_e2e;
 mod ls_progress_e2e;
+mod ls_set_e2e;
 mod ls_touches_e2e;
 mod ls_why_e2e;
 mod misc_error_format_e2e;

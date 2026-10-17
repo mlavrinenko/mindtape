@@ -112,6 +112,7 @@ fn print_table(task: &Task, hashes: &StemHashes, origin: Option<(PathBuf, bool)>
         hashes,
         root: &root,
         hyperlinks,
+        project: None,
     };
     println!(
         "{}",

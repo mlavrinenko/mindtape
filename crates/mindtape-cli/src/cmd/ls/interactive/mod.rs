@@ -137,6 +137,7 @@ impl State {
             hashes: &self.hashes,
             root: &self.root,
             hyperlinks: self.hyperlinks,
+            project: None,
         }
     }
 

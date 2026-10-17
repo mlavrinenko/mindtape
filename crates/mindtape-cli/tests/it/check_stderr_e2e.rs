@@ -26,12 +26,7 @@ fn broken_project() -> tempfile::TempDir {
 }
 
 fn run(dir: &Path, args: &[&str]) -> (Option<i32>, String, String) {
-    let out = mt(dir).args(args).output().unwrap();
-    (
-        out.status.code(),
-        String::from_utf8(out.stdout).unwrap(),
-        String::from_utf8(out.stderr).unwrap(),
-    )
+    crate::support::parts_of(&mt(dir).args(args).output().unwrap())
 }
 
 #[test]

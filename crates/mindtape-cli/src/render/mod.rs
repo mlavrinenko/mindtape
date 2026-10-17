@@ -55,6 +55,9 @@ pub struct RenderCtx<'a> {
     /// Whether the `slug#` and `file` cells print as OSC 8 hyperlinks, resolved
     /// for this project from `--hyperlinks` and `[ls] hyperlinks`.
     pub hyperlinks: bool,
+    /// The name of the set member these rows come from, which shows the
+    /// `PROJECT` column; `None` outside a set.
+    pub project: Option<&'a str>,
 }
 
 /// Owned backing for a [`RenderCtx`] in a test.
@@ -119,6 +122,7 @@ impl TestCtx {
             hashes: &self.hashes,
             root: &self.root,
             hyperlinks: self.hyperlinks,
+            project: None,
         }
     }
 }

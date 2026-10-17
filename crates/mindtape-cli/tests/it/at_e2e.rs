@@ -12,17 +12,13 @@ pub(crate) fn setup() -> (tempfile::TempDir, tempfile::TempDir, tempfile::TempDi
     let alpha = support::project_with_tasks(&[("one.typ", "One")]);
     let beta = support::project_with_tasks(&[("two.typ", "Two")]);
     let cfg = tempfile::tempdir().unwrap();
-    std::fs::create_dir_all(cfg.path().join("mindtape")).unwrap();
-    let toml = |dir: &Path| dir.display().to_string().replace('\\', "/");
-    std::fs::write(
-        cfg.path().join("mindtape/at.toml"),
-        format!(
-            "[at.alpha]\ninclude = [\"{a}\"]\n\n[at.both]\ninclude = [\"{a}\", \"{b}\"]\n",
-            a = toml(alpha.path()),
-            b = toml(beta.path()),
-        ),
-    )
-    .unwrap();
+    support::write_at_toml(
+        cfg.path(),
+        &[
+            ("alpha", &[alpha.path()]),
+            ("both", &[alpha.path(), beta.path()]),
+        ],
+    );
     (alpha, beta, cfg)
 }
 
@@ -45,11 +41,11 @@ fn a_project_name_runs_the_command_there() {
 #[test]
 fn a_set_name_is_refused_by_a_one_project_command() {
     let (_alpha, _beta, cfg) = setup();
-    let out = run(cfg.path(), &["@both", "ls"]);
+    let out = run(cfg.path(), &["@both", "eval", "one"]);
     let stderr = String::from_utf8(out.stderr).unwrap();
     assert_eq!(out.status.code(), Some(1), "{stderr}");
     assert!(
-        stderr.starts_with("error: `ls` runs on one project, and @both holds 2 projects\n"),
+        stderr.starts_with("error: `eval` runs on one project, and @both holds 2 projects\n"),
         "{stderr}"
     );
     assert!(

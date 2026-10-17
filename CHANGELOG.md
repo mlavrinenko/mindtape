@@ -252,6 +252,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Listing and filtering
 
+- **`mt @set ls` and `mt @set find` list every project of a set in one
+  table.** A `PROJECT` column comes first and rows group by project in set
+  order. Each project applies its own default listing, `@view` and sort, and
+  `-n` and `--skip` count per project. The footer reads `your filter · 9 of 61
+  tasks in 27 projects`. `--json` prints one object per project with its
+  `project` and `error`, and CSV gains a `project` column. A project that
+  fails to list prints its error naming it after the rest, and `mt` exits 1.
 - **`[views.<name>]` names a filter, sort and columns.** `mt ls @broken` applies
   a view whole, `@name` inside a filter (`'@summer && !@broken'`) or
   `in_view("name")` uses its filter, and `--sort @view` and `--columns @view`

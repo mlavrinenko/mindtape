@@ -227,6 +227,7 @@ impl<'a> Hooks<'a> {
             hashes: &hashes,
             root: &self.project.root,
             hyperlinks: self.project.hyperlinks,
+            project: None,
         };
         let table = render(&tasks, OutputFormat::Table, ctx, None)?;
         writeln!(out, "{table}")?;

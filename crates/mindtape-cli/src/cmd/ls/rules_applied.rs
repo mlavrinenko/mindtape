@@ -92,6 +92,15 @@ impl Applied {
 /// count alone.
 #[must_use]
 pub fn footer(applied: &Applied, shown: usize, total: usize) -> String {
+    let mut parts = footer_sources(applied);
+    parts.push(format!("{shown} of {}", mindtape::count(total, "task")));
+    parts.join(" · ")
+}
+
+/// [`footer`]'s parts before the count: `["inbox view", "release sort"]`,
+/// empty when nothing shaped the listing.
+#[must_use]
+pub fn footer_sources(applied: &Applied) -> Vec<String> {
     let rule = applied.rule.as_deref();
     let mut parts: Vec<String> = Vec::new();
     if let Some(label) = source_label(rule, &applied.filter_from) {
@@ -104,8 +113,7 @@ pub fn footer(applied: &Applied, shown: usize, total: usize) -> String {
     if parts.is_empty() && rule == Some(applied.columns_from.as_str()) {
         parts.push(format!("{} rule", applied.columns_from));
     }
-    parts.push(format!("{shown} of {}", mindtape::count(total, "task")));
-    parts.join(" · ")
+    parts
 }
 
 /// The filter's source: `your filter` for what the user typed, `release rule`
