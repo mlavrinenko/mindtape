@@ -93,7 +93,8 @@
 
 // Step through what a property points at to the object that holds its keys:
 // a `$ref` to its def, an array to its items, an optional (`anyOf` with
-// `null`) to its one non-null branch.
+// `null`) to its one non-null branch, a map (an object with no properties of
+// its own) to its value schema.
 #let _target(schema, node) = {
   let n = node
   for _ in range(8) {
@@ -103,6 +104,11 @@
       n = n.items
     } else if "anyOf" in n {
       n = n.anyOf.find(b => b.at("type", default: none) != "null")
+    } else if (
+      "properties" not in n
+        and type(n.at("additionalProperties", default: false)) == dictionary
+    ) {
+      n = n.additionalProperties
     } else { break }
   }
   n

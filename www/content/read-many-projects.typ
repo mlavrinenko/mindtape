@@ -1,3 +1,4 @@
+#import "../utils/config-ref.typ": config-keys-table
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": exit-code, terminal
 #import "../utils/site.typ": u
@@ -21,6 +22,7 @@
   "across-projects-config",
   ("sets", "forks"),
 )
+#let at-schema = json("../generated/at-schema.json")
 
 You keep a backlog in every repo, and `mt` reads the one you're standing in.
 That's fine until you want to know where you left off across all of them.
@@ -45,12 +47,14 @@ Name your projects once, and a leading `@name` reads every one of them.
 `#:schema ./at.schema.json` line, and an editor with tombi or Taplo completes
 its keys and checks their values as you type.
 
-Each `[at.<name>]` entry takes `include` and `exclude`. Both hold literal
-paths, `*` globs and other entries' `@name`s. A `*` matches inside one
-directory level, and a glob keeps only the directories that hold
-`.mindtape/`. An entry whose `include` is one
-literal path is a project, so `mt @shop ls` is `mt -w ~/projects/shop ls`.
-Any other entry is a set, even when it matches one project.
+Each `[at.<name>]` entry takes these keys:
+
+#config-keys-table(at-schema, "at")
+
+A `*` matches inside one directory level, and a glob keeps only the
+directories that hold `.mindtape/`. An entry whose `include` is one literal
+path is a project, so `mt @shop ls` is `mt -w ~/projects/shop ls`. Any other
+entry is a set, even when it matches one project.
 
 `mt at` lists the entries, and `mt at <name>` lists a set's projects. Each
 project goes by its directory name, or by the shortest path suffix that tells
@@ -75,6 +79,15 @@ Every cell runs under its project's own config. shop's statuses are `todo`,
 counts both right, because its columns read `!terminal`, `ready` and
 `blocked`, never a status name. The board page covers the columns, the hidden
 rows and the `⚠` row of a project whose config won't load.
+
+`[board]` in `at.toml` changes the board for every entry, and
+`[at.<name>.board]` changes it for one, key by key over the shipped board:
+
+#config-keys-table(at-schema, "board")
+
+Each `[[board.columns]]` entry takes these keys:
+
+#config-keys-table(at-schema, "board.columns")
 
 = List tasks across projects
 
@@ -126,8 +139,7 @@ otherwise:
   block: true,
 )
 
-`forks` takes `false`, the default, `true` or `"only"`, and filters only what
-a glob matches. A literal path or an `@name` in `include` joins as written.
+`forks` filters only what a glob matches. A literal path or an `@name` in `include` joins as written.
 `mt at` marks each fork. A fork that `@work` leaves out still answers to its
 directory name:
 

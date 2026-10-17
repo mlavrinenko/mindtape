@@ -129,6 +129,11 @@ printf '%s\n' "$first_release" >"$OUT/first-release.txt"
 # discipline as cli.json above.
 "$MT" config schema >"$OUT/config-schema.json"
 
+# The `at.toml` JSON Schema, which `mt install` writes beside the one above.
+# read-many-projects.typ renders its key tables. The file is committed, and
+# the golden test in crates/mindtape holds it to the structs.
+cp "$REPO/schema/at.schema.json" "$OUT/at-schema.json"
+
 # --- release workflow: prebuilt targets + published crates ----------------
 # Derived from .github/workflows/release.yml by generate-release-targets.sh
 # (its own file, so this one clears the Shell cap); the call sits here, ahead
