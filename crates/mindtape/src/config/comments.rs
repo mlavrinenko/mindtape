@@ -25,14 +25,14 @@ use crate::model::Task;
 use crate::validate::severity::Severity;
 use crate::validate::{Location, Violation};
 
-/// `[tasks.comments]` — review-comment policy over a task's whole source file.
+/// Policy for review comments anywhere in a task's source file.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct CommentsConfig {
     /// Whether a comment is unconstrained, reported, or fails `mt check`.
     pub policy: CommentsPolicy,
-    /// Regex permitting a deliberate comment form — matched against the
-    /// comment's stripped, trimmed inner text — even under `warn`/`forbid`.
+    /// Regex that permits a deliberate comment form even under `warn` or
+    /// `forbid`. It matches the comment's stripped, trimmed inner text.
     pub allow_pattern: Option<String>,
 }
 

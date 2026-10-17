@@ -2,7 +2,7 @@
 
 use serde::Deserialize;
 
-/// `[typst]` — Typst evaluation settings.
+/// Typst evaluation settings.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct TypstConfig {
@@ -13,7 +13,7 @@ pub struct TypstConfig {
     pub local_packages: Vec<LocalPackage>,
 }
 
-/// `[[typst.local-packages]]` — one `@local/<name>` package loaded from a project directory.
+/// One `@local/<name>` package loaded from a project directory.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct LocalPackage {

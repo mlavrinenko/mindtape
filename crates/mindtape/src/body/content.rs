@@ -10,7 +10,7 @@ use serde::{Deserialize, Deserializer};
 
 use crate::body::headers::{HeaderPathSegment, duplicate_rule_names, rule_label};
 
-/// `[tasks.body.content]` — section-content rules.
+/// Rules for what a body section must contain.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct ContentConfig {
@@ -74,8 +74,8 @@ pub enum ContentAssert {
     Density(DensitySpec),
 }
 
-/// `{ density = { pattern, max, per } }` — fails when one unit of the section
-/// carries more than `max` matches of `pattern`.
+/// Fails when one unit of the section carries more than `max` matches of
+/// `pattern`, as in `{ density = { pattern, max, per } }`.
 #[derive(Debug, Clone, PartialEq, Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct DensitySpec {

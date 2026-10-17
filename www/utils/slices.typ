@@ -37,7 +37,7 @@
   parts
     .map(p => {
       let s = slices.at(p.at(0))
-      comment + " " + s.file + " — " + p.at(1) + "\n" + s.code
+      comment + " " + s.file + ": " + p.at(1) + "\n" + s.code
     })
     .join("\n\n")
 )

@@ -17,7 +17,7 @@ use crate::config::Config;
 use crate::problem::Problem;
 use crate::suggest::Unknown;
 
-/// `[[actors]]` — one named worker in the project.
+/// One named worker in the project.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct Actor {
@@ -41,8 +41,8 @@ pub enum ActorKind {
     Llm,
 }
 
-/// `[[roles]]` — one role name an actor can hold. A role carries no settings;
-/// a harness keys its own config by role name.
+/// One role name an actor can hold. A role carries no settings, and a harness
+/// keys its own config by role name.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Role {

@@ -119,8 +119,8 @@ impl PeriodUnit {
     }
 }
 
-/// `[tasks.recur]` — whether recurring tasks are enabled, and the values a
-/// `recur` field may take.
+/// Whether recurring tasks are enabled, and the values a `recur` field may
+/// take.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RecurConfig {

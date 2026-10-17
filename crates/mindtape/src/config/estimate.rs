@@ -17,7 +17,7 @@ use serde::Deserialize;
 
 use crate::config::Requirement;
 
-/// `[tasks.estimate]` — the legal estimate units and whether one is required.
+/// The legal estimate units, and whether a task must carry one.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct EstimateConfig {

@@ -2,7 +2,7 @@
 
 use serde::Deserialize;
 
-/// `[templates]` — where `mt add` finds task templates.
+/// Where `mt add` finds task templates.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
 pub struct TemplatesConfig {
@@ -16,8 +16,7 @@ pub struct TemplatesConfig {
     pub fallback_severity: FallbackSeverity,
 }
 
-/// `[templates] fallback-severity` — how a breach of the built-in template
-/// reports.
+/// How severely a breach of the built-in template is reported.
 #[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum FallbackSeverity {

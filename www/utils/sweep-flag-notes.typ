@@ -35,7 +35,7 @@
   "write": [
     The one flag that is not a threshold: it decides whether a finding is
     printed or filed, never which findings there are. Dry is the default
-    because the sweep is a proposal — the remedy is the refactorer's call, and
+    because the sweep is a proposal. The remedy is the refactorer's call, and
     a proposal you have to read before it becomes a task is how that stays
     true.
   ],
@@ -48,7 +48,7 @@
   ],
   "cc-floor": [
     Half of a conjunction with `--fn-coverage-floor`, and the half that is not
-    a complexity judgment — #just.crap() gates complexity, at its own
+    a complexity judgment. #just.crap() gates complexity, at its own
     threshold against a committed baseline. This floor is what makes the
     coverage number mean something: below it, a low percentage says one line
     is unhit; at or above it, it says decisions are unexercised.
@@ -58,7 +58,8 @@
     #just.cover()'s 88% per-file floor on purpose: a function is small enough
     that one unreached line moves its percentage by tens of points, so the tail
     starts further out. Two edges rather than one shared number is the point of
-    the pair — a function has to be both complex enough and undertested enough.
+    the pair, because a function has to be both complex enough and undertested
+    enough.
   ],
   "repeat-gain": [
     Tokens an extraction removes, net of the helper and its calls, so one bar

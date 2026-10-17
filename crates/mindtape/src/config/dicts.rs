@@ -54,7 +54,7 @@ pub fn builtin_dict_names() -> Vec<&'static str> {
     BUILTIN_SOURCES.iter().map(|(name, _)| *name).collect()
 }
 
-/// `[dicts.<name>]` — one named string set, as declared in config.
+/// One named string set, as declared in config.
 #[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct DictSpec {
@@ -65,8 +65,8 @@ pub struct DictSpec {
     /// each entry is trimmed. May leave the root (`../shared/verbs.txt`), the
     /// same rule `[[typst.local-packages]] path` follows.
     pub path: Option<String>,
-    /// Other dictionaries — project or built-in — whose entries are unioned in.
-    /// The entries arrive raw; this dict's own `case` decides how they compare.
+    /// Other dictionaries, project or built-in, whose entries are unioned in.
+    /// The entries arrive raw, and this dict's own `case` decides how they compare.
     pub include: Vec<String>,
     /// How a lookup compares against the entries: `fold` (the default) is
     /// ASCII-case-insensitive, `exact` is byte equality.

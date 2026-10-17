@@ -26,7 +26,7 @@ use crate::model::numeric::NumericField;
 use crate::problem::Problem;
 use crate::suggest::Unknown;
 
-/// `[tasks]` — where tasks live and how they are constrained.
+/// Where tasks live and how they are constrained.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct TasksConfig {
@@ -104,7 +104,7 @@ impl Default for TasksConfig {
     }
 }
 
-/// `[tasks.id]` — task identity format constraint.
+/// Format constraint on a task's identity.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct IdConfig {
@@ -156,8 +156,8 @@ impl<'de> Deserialize<'de> for IdFormat {
     }
 }
 
-/// `[tasks.fields.<name>]` — allowed values, default and requirement for
-/// `kind` or one `x-<ns>` extension field.
+/// Allowed values, default and requirement for `kind` or one `x-<ns>`
+/// extension field.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct FieldConfig {
@@ -197,7 +197,7 @@ pub enum FieldExample {
     Many(Vec<String>),
 }
 
-/// `[tasks.tags]` — optional tag allow-list.
+/// Optional tag allow-list.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct TagsConfig {
@@ -344,7 +344,7 @@ pub(crate) fn validate_field_names(tasks: &TasksConfig) -> Vec<String> {
     out
 }
 
-/// `[tasks.body]` — body-shape constraints.
+/// Constraints on the shape of a task body.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct TaskBodyConfig {

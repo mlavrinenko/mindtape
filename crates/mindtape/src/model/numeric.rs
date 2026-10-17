@@ -146,8 +146,8 @@ pub struct NumCell {
     pub color: Option<String>,
 }
 
-/// A numeric scalar field: a `[min, max]` scale plus, optionally, one
-/// classification style — contiguous bands or labeled anchor points.
+/// A numeric scalar field with a `[min, max]` scale and, optionally, one
+/// classification style, either contiguous bands or labeled anchor points.
 /// Defaults to an integer `0..9` scale with no classification.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]

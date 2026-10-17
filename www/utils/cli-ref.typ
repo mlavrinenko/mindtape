@@ -53,10 +53,10 @@
     .join()
 )
 
-// enum-valued args → a tight list of `value` — help
+// enum-valued args → a tight list of `value: help`
 #let _pvals(arg) = {
   let items = arg.possible_values.map(pv => {
-    if pv.about != none { [#raw(pv.name) — #_inline(pv.about)] } else {
+    if pv.about != none { [#raw(pv.name): #_inline(pv.about)] } else {
       raw(pv.name)
     }
   })

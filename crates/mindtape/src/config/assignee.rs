@@ -16,7 +16,7 @@ use serde::Deserialize;
 
 use crate::config::Requirement;
 
-/// `[tasks.assignee]` — who may be named, and whether one must be.
+/// Who may be named as assignee, and whether a task must name one.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct AssigneeConfig {

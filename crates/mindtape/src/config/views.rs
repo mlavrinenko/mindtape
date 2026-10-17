@@ -18,7 +18,7 @@ use crate::problem::Problem;
 use crate::sort::validate_sort_spec;
 use crate::suggest::Unknown;
 
-/// `[views.<name>]` — one named query bundle.
+/// One named query bundle.
 #[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct ViewSpec {

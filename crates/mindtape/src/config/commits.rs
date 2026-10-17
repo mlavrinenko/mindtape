@@ -63,8 +63,8 @@ use crate::model::Task;
 use crate::problem::Problem;
 use crate::validate::severity::Severity;
 
-/// `[commits]` — how commits name the tasks they work on, and the rules a
-/// commit is checked against.
+/// How commits name the tasks they work on, and the rules a commit is checked
+/// against.
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct CommitsConfig {
@@ -72,7 +72,7 @@ pub struct CommitsConfig {
     /// Matched case-insensitively. A value that is a path, or names no task,
     /// is always refused.
     pub trailer: String,
-    /// `[[commits.rules]]` — assertions every checked commit must satisfy.
+    /// Assertions every checked commit must satisfy.
     pub rules: Vec<CommitRuleSpec>,
 }
 
@@ -113,7 +113,7 @@ pub enum CommitScope {
     Tip,
 }
 
-/// `[[commits.rules]]` — one assertion a checked commit must satisfy.
+/// One assertion a checked commit must satisfy.
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct CommitRuleSpec {

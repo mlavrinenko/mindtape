@@ -118,8 +118,8 @@ impl RulesRoot {
     }
 }
 
-/// `check = { typst, function, field }` — a `[[tasks.rules]]` entry that calls
-/// a Typst function instead of evaluating an `assert` expression.
+/// Call a Typst function instead of evaluating an `assert` expression, with
+/// `check = { typst, function, field }`.
 // `crate::rules::typst` evaluates the call.
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
@@ -136,8 +136,8 @@ pub struct CheckSpec {
     pub field: Option<String>,
 }
 
-/// `[[tasks.rules]]` — one assertion or check every selected task must
-/// satisfy. Set exactly one of `assert` and `check`.
+/// One assertion or check that every selected task must satisfy. Set exactly one
+/// of `assert` and `check`.
 // `validate_rules` refuses both or neither at config load. A hand-built
 // `RuleSpec` (a test, or `parse_config` alone) can still carry either
 // combination, so `eval::CompiledRule::compile` checks it again.

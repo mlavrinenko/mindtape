@@ -2,7 +2,7 @@
   "$defs": {
     "Actor": {
       "additionalProperties": false,
-      "description": "`[[actors]]` — one named worker in the project.",
+      "description": "One named worker in the project.",
       "properties": {
         "kind": {
           "$ref": "#/$defs/ActorKind",
@@ -44,11 +44,11 @@
     },
     "AddConfig": {
       "additionalProperties": false,
-      "description": "`[add]` — interactive editor fill settings.",
+      "description": "Settings for the interactive editor fill of `mt add`.",
       "properties": {
         "comments": {
           "default": true,
-          "description": "Whether the scaffold carries explanatory `#` comments — the header block\nand the per-slot annotations (kind, required/optional, choices, default).\n`true` (default) keeps them; `false` strips every comment, leaving a bare\nmapping of slot names to values.",
+          "description": "Whether the scaffold carries explanatory `#` comments. These are the header\nblock and the per-slot annotations (kind, required/optional, choices,\ndefault). `true` (default) keeps them. `false` strips every comment and\nleaves a bare mapping of slot names to values.",
           "type": "boolean"
         },
         "editor": {
@@ -110,7 +110,7 @@
     },
     "AssigneeConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.assignee]` — who may be named, and whether one must be.",
+      "description": "Who may be named as assignee, and whether a task must name one.",
       "properties": {
         "allowed": {
           "default": [],
@@ -227,7 +227,7 @@
     },
     "CheckSpec": {
       "additionalProperties": false,
-      "description": "`check = { typst, function, field }` — a `[[tasks.rules]]` entry that calls\na Typst function instead of evaluating an `assert` expression.",
+      "description": "Call a Typst function instead of evaluating an `assert` expression, with\n`check = { typst, function, field }`.",
       "properties": {
         "field": {
           "default": null,
@@ -286,7 +286,7 @@
     },
     "ColumnConfig": {
       "additionalProperties": false,
-      "description": "`[ls.columns.<name>]` — one column's display settings.",
+      "description": "Display settings for one column.",
       "properties": {
         "when": {
           "default": null,
@@ -301,11 +301,11 @@
     },
     "CommentsConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.comments]` — review-comment policy over a task's whole source file.",
+      "description": "Policy for review comments anywhere in a task's source file.",
       "properties": {
         "allow-pattern": {
           "default": null,
-          "description": "Regex permitting a deliberate comment form — matched against the\ncomment's stripped, trimmed inner text — even under `warn`/`forbid`.",
+          "description": "Regex that permits a deliberate comment form even under `warn` or\n`forbid`. It matches the comment's stripped, trimmed inner text.",
           "type": [
             "string",
             "null"
@@ -340,7 +340,7 @@
     },
     "CommitRuleSpec": {
       "additionalProperties": false,
-      "description": "`[[commits.rules]]` — one assertion a checked commit must satisfy.",
+      "description": "One assertion a checked commit must satisfy.",
       "properties": {
         "assert": {
           "description": "Commit expression that must hold for every commit the rule applies to.",
@@ -407,10 +407,10 @@
     },
     "CommitsConfig": {
       "additionalProperties": false,
-      "description": "`[commits]` — how commits name the tasks they work on, and the rules a\ncommit is checked against.",
+      "description": "How commits name the tasks they work on, and the rules a commit is checked\nagainst.",
       "properties": {
         "rules": {
-          "description": "`[[commits.rules]]` — assertions every checked commit must satisfy.",
+          "description": "Assertions every checked commit must satisfy.",
           "items": {
             "$ref": "#/$defs/CommitRuleSpec"
           },
@@ -503,7 +503,7 @@
     },
     "ContentConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.body.content]` — section-content rules.",
+      "description": "Rules for what a body section must contain.",
       "properties": {
         "rules": {
           "description": "Ordered list of section-content gating rules.",
@@ -570,7 +570,7 @@
     },
     "DensitySpec": {
       "additionalProperties": false,
-      "description": "`{ density = { pattern, max, per } }` — fails when one unit of the section\ncarries more than `max` matches of `pattern`.",
+      "description": "Fails when one unit of the section carries more than `max` matches of\n`pattern`, as in `{ density = { pattern, max, per } }`.",
       "properties": {
         "max": {
           "description": "The most matches of `pattern` a single unit may carry.",
@@ -604,7 +604,7 @@
     },
     "DeriveConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.derive-tags]` — project-wide folder-derived-tag policy.",
+      "description": "Project-wide policy for folder-derived tags.",
       "properties": {
         "breadcrumb-root": {
           "default": false,
@@ -673,7 +673,7 @@
     },
     "DictSpec": {
       "additionalProperties": false,
-      "description": "`[dicts.<name>]` — one named string set, as declared in config.",
+      "description": "One named string set, as declared in config.",
       "properties": {
         "case": {
           "$ref": "#/$defs/DictCase",
@@ -682,7 +682,7 @@
         },
         "include": {
           "default": [],
-          "description": "Other dictionaries — project or built-in — whose entries are unioned in.\nThe entries arrive raw; this dict's own `case` decides how they compare.",
+          "description": "Other dictionaries, project or built-in, whose entries are unioned in.\nThe entries arrive raw, and this dict's own `case` decides how they compare.",
           "items": {
             "type": "string"
           },
@@ -709,7 +709,7 @@
     },
     "EstimateConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.estimate]` — the legal estimate units and whether one is required.",
+      "description": "The legal estimate units, and whether a task must carry one.",
       "properties": {
         "example": {
           "additionalProperties": {
@@ -739,7 +739,7 @@
       "type": "object"
     },
     "FallbackSeverity": {
-      "description": "`[templates] fallback-severity` — how a breach of the built-in template\nreports.",
+      "description": "How severely a breach of the built-in template is reported.",
       "oneOf": [
         {
           "const": "warning",
@@ -755,7 +755,7 @@
     },
     "FieldConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.fields.<name>]` — allowed values, default and requirement for\n`kind` or one `x-<ns>` extension field.",
+      "description": "Allowed values, default and requirement for `kind` or one `x-<ns>`\nextension field.",
       "properties": {
         "default": {
           "default": null,
@@ -831,7 +831,7 @@
         },
         "list": {
           "default": null,
-          "description": "`{ list = \"filter or @view\" }` — print the matching tasks.",
+          "description": "Print the matching tasks with `{ list = \"filter or @view\" }`.",
           "type": [
             "string",
             "null"
@@ -847,7 +847,7 @@
         },
         "run": {
           "default": null,
-          "description": "`{ run = \"command\" }` — run a command through the platform shell\n(`sh -c`, or `cmd /C` on Windows). A gating action may omit it; then\nthe gate refuses the flip whenever the entry's `when` matches.",
+          "description": "Run a command through the platform shell (`sh -c`, or `cmd /C` on Windows)\nwith `{ run = \"command\" }`. A gating action may omit it, and then the gate\nrefuses the flip whenever the entry's `when` matches.",
           "type": [
             "string",
             "null"
@@ -855,7 +855,7 @@
         },
         "show": {
           "default": null,
-          "description": "`{ show = \"text\" }` — print a message.",
+          "description": "Print a message with `{ show = \"text\" }`.",
           "type": [
             "string",
             "null"
@@ -893,7 +893,7 @@
     },
     "FormatConfig": {
       "additionalProperties": false,
-      "description": "`[format]` — how `mt` canonicalizes task source before writing it.",
+      "description": "How `mt` canonicalizes task source before writing it.",
       "properties": {
         "enabled": {
           "default": true,
@@ -934,7 +934,7 @@
     },
     "GoConfig": {
       "additionalProperties": false,
-      "description": "`[go]` — settings for `mt go`.",
+      "description": "Settings for `mt go`.",
       "properties": {
         "editor": {
           "default": null,
@@ -985,7 +985,7 @@
     },
     "HeaderRuleConfig": {
       "additionalProperties": false,
-      "description": "One entry in `[[tasks.body.headers.rules]]`.\n\n`action` selects what the rule checks and which fields apply.\n- `require` / `forbid` / `unique` — how many headings `path` matches.\n- `order` — `before` headings must precede `after` headings.\n- `allowlist` — under `scope` (the top level when omitted), only `allowed`\n  headings may appear.",
+      "description": "One heading rule for a task body.\n\n`action` selects what the rule checks and which fields apply.\n- `require`, `forbid` and `unique` count how many headings `path` matches.\n- `order` makes `before` headings come ahead of `after` headings.\n- `allowlist` lets only the `allowed` headings appear under `scope` (the top\n  level when omitted).",
       "properties": {
         "action": {
           "$ref": "#/$defs/HeaderAction",
@@ -1056,7 +1056,7 @@
     },
     "HeadersConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.body.headers]` — heading-presence rules.",
+      "description": "Rules for the headings a task body must or must not have.",
       "properties": {
         "rules": {
           "description": "Ordered list of heading gating rules.",
@@ -1069,7 +1069,7 @@
       "type": "object"
     },
     "HyperlinkChoice": {
-      "description": "`[ls] hyperlinks` — whether the `slug#` and `file` cells carry OSC 8\nhyperlinks to the row's `hyperlink-target`. The `--hyperlinks` flag takes\nthe same values.\n\nA terminal without OSC 8 support can print the escape sequence as visible\ntext, and no terminal reports whether it supports OSC 8. That is why the\ndefault is `never`.",
+      "description": "Whether the `slug#` and `file` cells carry OSC 8 hyperlinks to the row's\n`hyperlink-target`. The `--hyperlinks` flag takes the same values.\n\nA terminal without OSC 8 support can print the escape sequence as visible\ntext, and no terminal reports whether it supports OSC 8. That is why the\ndefault is `never`.",
       "oneOf": [
         {
           "const": "auto",
@@ -1090,7 +1090,7 @@
     },
     "IdConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.id]` — task identity format constraint.",
+      "description": "Format constraint on a task's identity.",
       "properties": {
         "format": {
           "$ref": "#/$defs/IdFormat",
@@ -1252,7 +1252,7 @@
     },
     "LinkKind": {
       "additionalProperties": false,
-      "description": "`[[tasks.links.kinds]]` — one custom link kind.",
+      "description": "One custom link kind.",
       "properties": {
         "acyclic": {
           "default": false,
@@ -1300,7 +1300,7 @@
     },
     "LinksConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.links]` — the link kinds a task's `links:` edges may use.",
+      "description": "The link kinds a task's `links:` edges may use.",
       "properties": {
         "kinds": {
           "description": "Custom link kinds, added to the built-in ones. A built-in kind cannot\nbe redefined.",
@@ -1314,7 +1314,7 @@
     },
     "LocalPackage": {
       "additionalProperties": false,
-      "description": "`[[typst.local-packages]]` — one `@local/<name>` package loaded from a project directory.",
+      "description": "One `@local/<name>` package loaded from a project directory.",
       "properties": {
         "name": {
           "default": "",
@@ -1331,7 +1331,7 @@
     },
     "LsConfig": {
       "additionalProperties": false,
-      "description": "`[ls]` — `mt ls` defaults.",
+      "description": "Defaults for `mt ls`.",
       "properties": {
         "columns": {
           "additionalProperties": {
@@ -1416,11 +1416,11 @@
     },
     "LsRule": {
       "additionalProperties": false,
-      "description": "One `[[ls.rules]]` entry.\n\nThe first rule (top to bottom) whose `condition` holds — or that omits\n`condition` entirely — drives the default `mt ls` listing. Its effective\nfacets are `import-views` composed left-to-right (per-facet last-wins),\nthen any manual `filter` / `sort` / `columns` override (highest\nprecedence). All fields are optional; a rule with none of them still\nmatches (by an absent `condition`) but contributes no facets.",
+      "description": "One `[[ls.rules]]` entry.\n\nThe first rule (top to bottom) whose `condition` holds, or that omits\n`condition` entirely, drives the default `mt ls` listing. Its effective\nfacets are `import-views` composed left to right (per-facet last wins),\nthen any manual `filter`, `sort` or `columns` override (highest\nprecedence). All fields are optional. A rule with none of them still\nmatches (by an absent `condition`) but contributes no facets.",
       "properties": {
         "columns": {
           "default": [],
-          "description": "Manual column list — highest precedence for the columns facet. An\nentry may reference a view's columns with `@view`.",
+          "description": "Manual column list. It has the highest precedence for the columns facet.\nAn entry may reference a view's columns with `@view`.",
           "items": {
             "type": "string"
           },
@@ -1436,7 +1436,7 @@
         },
         "filter": {
           "default": null,
-          "description": "Manual filter override — highest precedence for the filter facet.\nSame grammar as `[views]`; may use `@view` / `in_view`.",
+          "description": "Manual filter override. It has the highest precedence for the filter facet.\nSame grammar as `[views]`; may use `@view` / `in_view`.",
           "type": [
             "string",
             "null"
@@ -1460,7 +1460,7 @@
         },
         "sort": {
           "default": [],
-          "description": "Manual sort override — highest precedence for the sort facet. Same\nspec grammar as `--sort`; an entry may splice `@view`.",
+          "description": "Manual sort override. It has the highest precedence for the sort facet.\nSame spec grammar as `--sort`; an entry may splice `@view`.",
           "items": {
             "type": "string"
           },
@@ -1471,7 +1471,7 @@
     },
     "NamingConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.naming]` — how `mt add` and `mt recur` name a new task's file, and\nwhat `mt add` does when that name is taken (`dedup`).",
+      "description": "How `mt add` and `mt recur` name a new task's file, and what `mt add` does\nwhen that name is taken (`dedup`).",
       "properties": {
         "dedup": {
           "anyOf": [
@@ -1517,7 +1517,7 @@
     },
     "NumericField": {
       "additionalProperties": false,
-      "description": "A numeric scalar field: a `[min, max]` scale plus, optionally, one\nclassification style — contiguous bands or labeled anchor points.\nDefaults to an integer `0..9` scale with no classification.",
+      "description": "A numeric scalar field with a `[min, max]` scale and, optionally, one\nclassification style, either contiguous bands or labeled anchor points.\nDefaults to an integer `0..9` scale with no classification.",
       "properties": {
         "anchors": {
           "description": "Anchor classification (mutually exclusive with `bands`).",
@@ -1567,7 +1567,7 @@
     },
     "OnConfig": {
       "additionalProperties": false,
-      "description": "`[on]` — hooks keyed by the event that fires them.",
+      "description": "Hooks keyed by the event that fires them.",
       "properties": {
         "flip": {
           "description": "`[[on.flip]]` entries, in declaration order.",
@@ -1581,7 +1581,7 @@
     },
     "PriorityConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.priority]` — the priority scale and its scoring frameworks.\n\nIt takes the same scale, bands and anchors as `[tasks.difficulty]`. When\n`framework` names a framework, `mt` computes a task's priority from that\nframework's inputs. `allow-manual` decides whether a raw integer is still\naccepted. `frameworks` holds the built-in frameworks merged with any the\nproject declares.",
+      "description": "The priority scale and its scoring frameworks.\n\nIt takes the same scale, bands and anchors as `[tasks.difficulty]`. When\n`framework` names a framework, `mt` computes a task's priority from that\nframework's inputs. `allow-manual` decides whether a raw integer is still\naccepted. `frameworks` holds the built-in frameworks merged with any the\nproject declares.",
       "properties": {
         "allow-manual": {
           "default": true,
@@ -1651,7 +1651,7 @@
     },
     "ProjectConfig": {
       "additionalProperties": false,
-      "description": "`[project]` — project-level settings.",
+      "description": "Project-level settings.",
       "properties": {
         "code": {
           "default": null,
@@ -1666,7 +1666,7 @@
     },
     "ReadyConfig": {
       "additionalProperties": false,
-      "description": "`[ls.ready]` — glyph, color and label for the ready and blocked states in\nthe `READY` column. An omitted key takes the shipped default.",
+      "description": "Glyph, color and label for the ready and blocked states in the `READY`\ncolumn. An omitted key takes the shipped default.",
       "properties": {
         "blocked-color": {
           "default": null,
@@ -1721,7 +1721,7 @@
     },
     "RecurConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.recur]` — whether recurring tasks are enabled, and the values a\n`recur` field may take.",
+      "description": "Whether recurring tasks are enabled, and the values a `recur` field may\ntake.",
       "properties": {
         "anchors": {
           "default": [
@@ -1778,7 +1778,7 @@
       "type": "object"
     },
     "Requirement": {
-      "description": "Whether a field is required: `false` (never), `true` (always), or a filter expression matching exactly the tasks that must carry it (e.g. `\"!terminal\"` — required until the task reaches a terminal status).",
+      "description": "Whether a field is required. `false` means never and `true` means always. A filter expression matches exactly the tasks that must carry it, such as `\"!terminal\"` for every task not yet in a terminal status.",
       "oneOf": [
         {
           "type": "boolean"
@@ -1790,7 +1790,7 @@
     },
     "RetireConfig": {
       "additionalProperties": false,
-      "description": "`[retire]` — the gitless `rm` tombstone: keep the file, flip the status terminal.",
+      "description": "The gitless `rm` tombstone. It keeps the file and flips its status to a\nterminal one.",
       "properties": {
         "rename": {
           "default": null,
@@ -1813,7 +1813,7 @@
     },
     "RmConfig": {
       "additionalProperties": false,
-      "description": "`[rm]` — defaults for the `rm` task-removal command.",
+      "description": "Defaults for the `rm` task-removal command.",
       "properties": {
         "default-filter": {
           "default": null,
@@ -1847,7 +1847,7 @@
         },
         {
           "const": "retire",
-          "description": "Keep the task file, flip it to a terminal status — a tombstone without git.",
+          "description": "Keep the task file and flip it to a terminal status. This is a tombstone\nwithout git.",
           "type": "string"
         },
         {
@@ -1864,7 +1864,7 @@
     },
     "Role": {
       "additionalProperties": false,
-      "description": "`[[roles]]` — one role name an actor can hold. A role carries no settings;\na harness keys its own config by role name.",
+      "description": "One role name an actor can hold. A role carries no settings, and a harness\nkeys its own config by role name.",
       "properties": {
         "name": {
           "description": "Unique role name.",
@@ -1922,7 +1922,7 @@
     },
     "RuleSpec": {
       "additionalProperties": false,
-      "description": "`[[tasks.rules]]` — one assertion or check every selected task must\nsatisfy. Set exactly one of `assert` and `check`.",
+      "description": "One assertion or check that every selected task must satisfy. Set exactly one\nof `assert` and `check`.",
       "properties": {
         "assert": {
           "default": null,
@@ -2008,7 +2008,7 @@
     },
     "TagsConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.tags]` — optional tag allow-list.",
+      "description": "Optional tag allow-list.",
       "properties": {
         "allowed": {
           "default": [],
@@ -2030,7 +2030,7 @@
       "type": "object"
     },
     "TargetValidator": {
-      "description": "What shape a link kind's targets take — the `validate` key of\n`[[tasks.links.kinds]]`.",
+      "description": "What shape a link kind's targets take. It is the `validate` key of\n`[[tasks.links.kinds]]`.",
       "oneOf": [
         {
           "const": "local-task-path",
@@ -2044,7 +2044,7 @@
         },
         {
           "const": "git-sha",
-          "description": "A hexadecimal git object name, 7 to 64 characters — abbreviated SHA-1\nthrough full SHA-256.",
+          "description": "A hexadecimal git object name of 7 to 64 characters, from an abbreviated\nSHA-1 up to a full SHA-256.",
           "type": "string"
         },
         {
@@ -2066,7 +2066,7 @@
     },
     "TaskBodyConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.body]` — body-shape constraints.",
+      "description": "Constraints on the shape of a task body.",
       "properties": {
         "content": {
           "$ref": "#/$defs/ContentConfig",
@@ -2081,7 +2081,7 @@
     },
     "TasksConfig": {
       "additionalProperties": false,
-      "description": "`[tasks]` — where tasks live and how they are constrained.",
+      "description": "Where tasks live and how they are constrained.",
       "properties": {
         "assignee": {
           "$ref": "#/$defs/AssigneeConfig",
@@ -2168,7 +2168,7 @@
     },
     "TemplatesConfig": {
       "additionalProperties": false,
-      "description": "`[templates]` — where `mt add` finds task templates.",
+      "description": "Where `mt add` finds task templates.",
       "properties": {
         "default": {
           "default": "task",
@@ -2194,7 +2194,7 @@
     },
     "TypstConfig": {
       "additionalProperties": false,
-      "description": "`[typst]` — Typst evaluation settings.",
+      "description": "Typst evaluation settings.",
       "properties": {
         "local-packages": {
           "description": "`@local/<name>` packages to load from a directory in the project, so a\ntask can import a package that is not installed globally. `mt`\nregisters `@local/mindtape` itself when `<root>/lib` holds the\n`mindtape` package; list any other package here.",
@@ -2208,7 +2208,7 @@
     },
     "ViewSpec": {
       "additionalProperties": false,
-      "description": "`[views.<name>]` — one named query bundle.",
+      "description": "One named query bundle.",
       "properties": {
         "columns": {
           "default": [],
@@ -2261,7 +2261,7 @@
     },
     "commits": {
       "$ref": "#/$defs/CommitsConfig",
-      "description": "`[commits]` — the task trailer and `[[commits.rules]]`, checked by\n`mt check --commit-msg`."
+      "description": "The task trailer, and the rules `mt check --commit-msg` checks a commit\nagainst."
     },
     "dicts": {
       "additionalProperties": {
@@ -2309,7 +2309,7 @@
     },
     "retire": {
       "$ref": "#/$defs/RetireConfig",
-      "description": "`[retire]` — the gitless `rm` strategy's tombstone settings."
+      "description": "Settings for the gitless `rm` strategy's tombstone."
     },
     "rm": {
       "$ref": "#/$defs/RmConfig",

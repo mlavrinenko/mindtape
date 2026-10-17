@@ -5,7 +5,7 @@
 
 use serde::Deserialize;
 
-/// `[format]` — how `mt` canonicalizes task source before writing it.
+/// How `mt` canonicalizes task source before writing it.
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct FormatConfig {

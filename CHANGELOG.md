@@ -520,6 +520,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   print a task table, so write it after the command, as in
   `mt ls --hyperlinks always`. `mt board` and `mt at` no longer list it, and its
   help and the `[ls] hyperlinks` schema text name the `slug#` and `file` columns.
+- **The config schema descriptions read as plain sentences**, with no em dashes
+  and no `[section]` lead-in. `mt config schema`, the hover text in an editor
+  and the Configuration page of the docs site now share one voice.
 
 ### Removed
 

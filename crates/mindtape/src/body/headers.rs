@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Deserializer};
 
-/// `[tasks.body.headers]` — heading-presence rules.
+/// Rules for the headings a task body must or must not have.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct HeadersConfig {
@@ -13,13 +13,13 @@ pub struct HeadersConfig {
     pub rules: Vec<HeaderRuleConfig>,
 }
 
-/// One entry in `[[tasks.body.headers.rules]]`.
+/// One heading rule for a task body.
 ///
 /// `action` selects what the rule checks and which fields apply.
-/// - `require` / `forbid` / `unique` — how many headings `path` matches.
-/// - `order` — `before` headings must precede `after` headings.
-/// - `allowlist` — under `scope` (the top level when omitted), only `allowed`
-///   headings may appear.
+/// - `require`, `forbid` and `unique` count how many headings `path` matches.
+/// - `order` makes `before` headings come ahead of `after` headings.
+/// - `allowlist` lets only the `allowed` headings appear under `scope` (the top
+///   level when omitted).
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct HeaderRuleConfig {

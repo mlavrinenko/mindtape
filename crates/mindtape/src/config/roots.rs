@@ -48,7 +48,7 @@ pub enum DeriveTags {
     Globs(Vec<String>),
 }
 
-/// `[tasks.derive-tags]` — project-wide folder-derived-tag policy.
+/// Project-wide policy for folder-derived tags.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct DeriveConfig {

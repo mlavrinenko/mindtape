@@ -6,7 +6,7 @@
 
 use serde::Deserialize;
 
-/// `[add]` — interactive editor fill settings.
+/// Settings for the interactive editor fill of `mt add`.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct AddConfig {
@@ -19,10 +19,10 @@ pub struct AddConfig {
     /// (or all-blank) string disables the header; any other text replaces it,
     /// comment-prefixed so it stays valid YAML. Ignored when `comments = false`.
     pub header: Option<String>,
-    /// Whether the scaffold carries explanatory `#` comments — the header block
-    /// and the per-slot annotations (kind, required/optional, choices, default).
-    /// `true` (default) keeps them; `false` strips every comment, leaving a bare
-    /// mapping of slot names to values.
+    /// Whether the scaffold carries explanatory `#` comments. These are the header
+    /// block and the per-slot annotations (kind, required/optional, choices,
+    /// default). `true` (default) keeps them. `false` strips every comment and
+    /// leaves a bare mapping of slot names to values.
     pub comments: bool,
 }
 

@@ -37,7 +37,7 @@ pub const LS_COLUMNS: [&str; 11] = [
     "progress", "file",
 ];
 
-/// `[ls]` — `mt ls` defaults.
+/// Defaults for `mt ls`.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct LsConfig {
@@ -119,9 +119,8 @@ where
     Ok(names)
 }
 
-/// `[ls] hyperlinks` — whether the `slug#` and `file` cells carry OSC 8
-/// hyperlinks to the row's `hyperlink-target`. The `--hyperlinks` flag takes
-/// the same values.
+/// Whether the `slug#` and `file` cells carry OSC 8 hyperlinks to the row's
+/// `hyperlink-target`. The `--hyperlinks` flag takes the same values.
 ///
 /// A terminal without OSC 8 support can print the escape sequence as visible
 /// text, and no terminal reports whether it supports OSC 8. That is why the
@@ -143,11 +142,11 @@ pub enum HyperlinkChoice {
 
 /// One `[[ls.rules]]` entry.
 ///
-/// The first rule (top to bottom) whose `condition` holds — or that omits
-/// `condition` entirely — drives the default `mt ls` listing. Its effective
-/// facets are `import-views` composed left-to-right (per-facet last-wins),
-/// then any manual `filter` / `sort` / `columns` override (highest
-/// precedence). All fields are optional; a rule with none of them still
+/// The first rule (top to bottom) whose `condition` holds, or that omits
+/// `condition` entirely, drives the default `mt ls` listing. Its effective
+/// facets are `import-views` composed left to right (per-facet last wins),
+/// then any manual `filter`, `sort` or `columns` override (highest
+/// precedence). All fields are optional. A rule with none of them still
 /// matches (by an absent `condition`) but contributes no facets.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
@@ -164,14 +163,14 @@ pub struct LsRule {
     /// importing its filter, sort, and columns) or a scoped form
     /// (`"view(filter, sort)"`) naming just the facets to import.
     pub import_views: Vec<String>,
-    /// Manual filter override — highest precedence for the filter facet.
+    /// Manual filter override. It has the highest precedence for the filter facet.
     /// Same grammar as `[views]`; may use `@view` / `in_view`.
     pub filter: Option<String>,
-    /// Manual sort override — highest precedence for the sort facet. Same
-    /// spec grammar as `--sort`; an entry may splice `@view`.
+    /// Manual sort override. It has the highest precedence for the sort facet.
+    /// Same spec grammar as `--sort`; an entry may splice `@view`.
     pub sort: Vec<String>,
-    /// Manual column list — highest precedence for the columns facet. An
-    /// entry may reference a view's columns with `@view`.
+    /// Manual column list. It has the highest precedence for the columns facet.
+    /// An entry may reference a view's columns with `@view`.
     pub columns: Vec<String>,
 }
 
@@ -387,8 +386,8 @@ fn validate_view_spliced(
     problems
 }
 
-/// `[ls.ready]` — glyph, color and label for the ready and blocked states in
-/// the `READY` column. An omitted key takes the shipped default.
+/// Glyph, color and label for the ready and blocked states in the `READY`
+/// column. An omitted key takes the shipped default.
 // One block covers both states, outside `[ls.columns.ready]`, because
 // `ColumnConfig` carries only `when`. An omitted key falls back to the
 // embedded floor, then to the renderer's literal fallback.

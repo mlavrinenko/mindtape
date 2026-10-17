@@ -19,8 +19,8 @@ use serde::{Deserialize, Deserializer};
 /// unset.
 pub const DEFAULT_STEM_TEMPLATE: &str = "{slug}";
 
-/// `[tasks.naming]` — how `mt add` and `mt recur` name a new task's file, and
-/// what `mt add` does when that name is taken (`dedup`).
+/// How `mt add` and `mt recur` name a new task's file, and what `mt add` does
+/// when that name is taken (`dedup`).
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct NamingConfig {

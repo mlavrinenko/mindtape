@@ -41,7 +41,7 @@ use crate::filter::condition::Condition;
 use crate::problem::Problem;
 use crate::suggest::Unknown;
 
-/// `[ls.columns.<name>]` — one column's display settings.
+/// Display settings for one column.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct ColumnConfig {

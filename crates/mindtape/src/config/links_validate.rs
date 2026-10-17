@@ -30,7 +30,7 @@ use serde::Deserialize;
 use crate::config::Config;
 use crate::link::{LinkKind, LinksConfig};
 
-/// What shape a link kind's targets take — the `validate` key of
+/// What shape a link kind's targets take. It is the `validate` key of
 /// `[[tasks.links.kinds]]`.
 #[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
@@ -41,8 +41,8 @@ pub enum TargetValidator {
     LocalTaskPath,
     /// An RFC 3986 URI: a scheme, then only URI-legal characters.
     Url,
-    /// A hexadecimal git object name, 7 to 64 characters — abbreviated SHA-1
-    /// through full SHA-256.
+    /// A hexadecimal git object name of 7 to 64 characters, from an abbreviated
+    /// SHA-1 up to a full SHA-256.
     GitSha,
     /// A UUID, hyphenated, as 32 bare hex digits, in braces, or with a
     /// `urn:uuid:` prefix.

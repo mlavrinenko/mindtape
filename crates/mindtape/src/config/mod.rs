@@ -150,7 +150,7 @@ pub struct Config {
     pub ls: LsConfig,
     /// `rm` (task removal) defaults.
     pub rm: RmConfig,
-    /// `[retire]` — the gitless `rm` strategy's tombstone settings.
+    /// Settings for the gitless `rm` strategy's tombstone.
     pub retire: RetireConfig,
     /// `add` (task creation) template discovery.
     pub templates: TemplatesConfig,
@@ -194,8 +194,8 @@ pub struct Config {
     /// declared, never equal-compared — see [`crate::git::state::GitCache`].
     #[serde(skip)]
     pub(crate) git: crate::git::state::GitCache,
-    /// `[commits]` — the task trailer and `[[commits.rules]]`, checked by
-    /// `mt check --commit-msg`.
+    /// The task trailer, and the rules `mt check --commit-msg` checks a commit
+    /// against.
     pub commits: crate::config::commits::CommitsConfig,
     /// Status-transition hooks (`[[on.flip]]`), run only by `mt flip`.
     pub on: crate::config::hooks::OnConfig,
@@ -220,7 +220,7 @@ pub struct Config {
     /// name that matches no rule is a config error.
     pub disable: Vec<String>,
 }
-/// `[project]` — project-level settings.
+/// Project-level settings.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct ProjectConfig {

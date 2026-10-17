@@ -14,7 +14,8 @@ pub enum RmStrategy {
     /// Mint a git-pinned SWHID tombstone and rewrite inbound edges onto it (the default in a git repo).
     #[default]
     GitTombstone,
-    /// Keep the task file, flip it to a terminal status — a tombstone without git.
+    /// Keep the task file and flip it to a terminal status. This is a tombstone
+    /// without git.
     Retire,
     /// Strip each inbound edge from the surviving tasks, then delete.
     Unlink,
@@ -22,7 +23,7 @@ pub enum RmStrategy {
     Reject,
 }
 
-/// `[rm]` — defaults for the `rm` task-removal command.
+/// Defaults for the `rm` task-removal command.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RmConfig {
@@ -34,7 +35,8 @@ pub struct RmConfig {
     pub strategy: Option<RmStrategy>,
 }
 
-/// `[retire]` — the gitless `rm` tombstone: keep the file, flip the status terminal.
+/// The gitless `rm` tombstone. It keeps the file and flips its status to a
+/// terminal one.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RetireConfig {

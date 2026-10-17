@@ -53,7 +53,7 @@ const ALWAYS: &str = "has(id)";
 /// rewrites to when the transition does not match.
 const NEVER: &str = "miss(id)";
 
-/// `[on]` — hooks keyed by the event that fires them.
+/// Hooks keyed by the event that fires them.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct OnConfig {
@@ -79,13 +79,13 @@ pub struct FlipHook {
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct FlipAction {
-    /// `{ show = "text" }` — print a message.
+    /// Print a message with `{ show = "text" }`.
     pub show: Option<String>,
-    /// `{ list = "filter or @view" }` — print the matching tasks.
+    /// Print the matching tasks with `{ list = "filter or @view" }`.
     pub list: Option<String>,
-    /// `{ run = "command" }` — run a command through the platform shell
-    /// (`sh -c`, or `cmd /C` on Windows). A gating action may omit it; then
-    /// the gate refuses the flip whenever the entry's `when` matches.
+    /// Run a command through the platform shell (`sh -c`, or `cmd /C` on Windows)
+    /// with `{ run = "command" }`. A gating action may omit it, and then the gate
+    /// refuses the flip whenever the entry's `when` matches.
     pub run: Option<String>,
     /// Heading printed above a `list`'s table.
     pub title: Option<String>,

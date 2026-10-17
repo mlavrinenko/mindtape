@@ -322,7 +322,7 @@ pub fn acyclic_kinds(config: &LinksConfig) -> Vec<&str> {
     kinds_matching(config, |rule| rule.acyclic)
 }
 
-/// `[tasks.links]` — the link kinds a task's `links:` edges may use.
+/// The link kinds a task's `links:` edges may use.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct LinksConfig {
@@ -331,7 +331,7 @@ pub struct LinksConfig {
     pub kinds: Vec<LinkKind>,
 }
 
-/// `[[tasks.links.kinds]]` — one custom link kind.
+/// One custom link kind.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct LinkKind {

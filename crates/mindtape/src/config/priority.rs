@@ -9,7 +9,7 @@ use crate::config::required::Requirement;
 use crate::framework::Framework;
 use crate::model::numeric::{Anchor, Band, NumericField, ScaleKind};
 
-/// `[tasks.priority]` — the priority scale and its scoring frameworks.
+/// The priority scale and its scoring frameworks.
 ///
 /// It takes the same scale, bands and anchors as `[tasks.difficulty]`. When
 /// `framework` names a framework, `mt` computes a task's priority from that
