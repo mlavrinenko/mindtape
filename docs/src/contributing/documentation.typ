@@ -36,6 +36,11 @@ or `&&`. That runs the `@name` rewrite, clap and the status-verb parser that
 `mt` itself runs, so the gate holds no copy of the command grammar. A missing
 required argument passes, because a span shows part of a command.
 
+It reads a config key span, such as `[ls] hyperlinks`, against
+`schema/config.schema.json`, or against `schema/at.schema.json` when the span's
+first segment is an `at.toml` key such as `[board]` or `[at.<name>]`. A key
+that neither schema has fails with the closest one.
+
 = Where the docs live
 
 - `www/content/**/*.typ` is the docs site, and `www/utils/*.typ` holds the

@@ -16,6 +16,8 @@ The span, recipe, prose and block gates read the Typst sources through one extra
 
 The span gate hands each `mt` command line it finds in a span to `mt _cli --check-argv`. It finds them after a `$ ` prompt, `VAR=value` words or `&&`. That runs the `@name` rewrite, clap and the status-verb parser that `mt` itself runs, so the gate holds no copy of the command grammar. A missing required argument passes, because a span shows part of a command.
 
+It reads a config key span, such as `[ls] hyperlinks`, against `schema/config.schema.json`, or against `schema/at.schema.json` when the span’s first segment is an `at.toml` key such as `[board]` or `[at.<name>]`. A key that neither schema has fails with the closest one.
+
 ## Where the docs live
 
 - `www/content/**/*.typ` is the docs site, and `www/utils/*.typ` holds the notes its generated references render.

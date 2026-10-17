@@ -4,9 +4,19 @@
 #
 # It judges config keys only. `mt` command lines go to `mt _cli --check-argv`
 # in check-doc-spans.sh. Each argument arrives through --slurpfile, so each is
-# a one-element array: $schema is schema/config.schema.json and $files lists
-# tracked file basenames.
-$schema[0] as $schema | $files[0] as $files |
+# a one-element array: $config is schema/config.schema.json, $at is
+# schema/at.schema.json and $files lists tracked file basenames.
+#
+# The two schemas read as one: a span resolves in the schema that holds its
+# first segment, and the two share no top-level key or definition, which the
+# merge checks.
+def merge($a; $b):
+  ([$a.properties, $b.properties, $a["$defs"], $b["$defs"]] | map(keys)) as [$pa, $pb, $da, $db]
+  | if ($pa - ($pa - $pb) | length) > 0 or ($da - ($da - $db) | length) > 0
+    then error("config.schema.json and at.schema.json share a top-level key or definition")
+    else {properties: ($a.properties + $b.properties), "$defs": ($a["$defs"] + $b["$defs"])}
+    end;
+merge($config[0]; $at[0]) as $schema | $files[0] as $files |
 
 def lev($a; $b):
   ($a | explode) as $s | ($b | explode) as $t

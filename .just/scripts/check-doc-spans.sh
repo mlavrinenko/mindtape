@@ -18,11 +18,11 @@
 #     the examples declare are passed along, because each project names its own.
 #   - check-doc-spans.jq reads the config shapes. `[a.b]` or `[[a.b]]`,
 #     optionally followed by a key: the path exists in
-#     schema/config.schema.json, and `[[...]]` is used exactly for an array of
-#     tables. `a.b.c`: the key path exists in the schema.
+#     schema/config.schema.json or schema/at.schema.json, and `[[...]]` is used
+#     exactly for an array of tables. `a.b.c`: the key path exists in the schema.
 #
-# A span is config-shaped only when its first segment is a top-level schema
-# key. That leaves Cargo tables and just attributes alone. A dotted span that
+# A span is config-shaped only when its first segment is a top-level key of
+# either schema. That leaves Cargo tables and just attributes alone. A dotted span that
 # is a tracked file's name, such as `typst.toml`, is a file name.
 #
 # A control runs first. It checks a synthetic page holding each known-bad
@@ -84,7 +84,8 @@ argv_findings() {
 check() {
     argv_findings "$@"
     spans "$@" | jq -R -r -f .just/scripts/check-doc-spans.jq \
-        --slurpfile schema schema/config.schema.json \
+        --slurpfile config schema/config.schema.json \
+        --slurpfile at schema/at.schema.json \
         --slurpfile files "$tmp/files.json"
 }
 
@@ -102,10 +103,14 @@ Good: `mt ls 'status != "done"' --sort priority:desc -n 5`, `mt done x -m "why"`
 Good: `[[tasks.roots]]`, `[tasks.priority]`, `[views.<name>]`, `[tasks] roots`,
 `[ls.columns.assignee] when = 'true'`, `[[typst.local-packages]] path`,
 `tasks.estimate.units`, `[workspace.package] version`, `[overlay]`, `typst.toml`.
+Good: `[at.<name>]`, `[at.work] forks`, `[board] sort`, `[[board.columns]] fallback`,
+`[at.<name>.board]`, `[[at.<name>.board.columns]] top`, `board.hide`, `at.toml`.
 Bad: `mt lss`, `mt ls --jsn`, `mt ls --no-such-flag`, `mt config shw`, `mt @name lsz`.
 Bad: `cd x && mt lsj`, `MINDTAPE_NOW=2026-01-01 mt ls --jsn`, `$ mt lsq`, `mt ls | mt lsp`.
 Bad: `[tasks.priorty]`, `tasks.estimate.unit`, `[tasks.roots]`, `[[tasks.priority]]`,
 `[ls] hyperlinkz`, `[tasks.estimate.units]`. #raw("mt lsr")
+Bad: `[board] sortt`, `[at.work] includes`, `[[board.columns]] fallbak`, `[board.columns]`,
+`[at.<name>.board] hide2`, `board.colums`.
 Good: `error:`, `hint:`, `error codes`. Bad: `hint: file it with mt add -t dev`, #raw("error: x: y is bad")
 // `mt lsc` in a comment line
 ```
@@ -121,6 +126,12 @@ EOF
     want=$(sort <<'EOF'
 `[[tasks.priority]]`: [[tasks.priority]] names a table; write [tasks.priority]
 `[ls] hyperlinkz`: ls has no key hyperlinkz; closest: hyperlinks
+`[board] sortt`: board has no key sortt; closest: sort
+`[at.work] includes`: at.work has no key includes; closest: include
+`[[board.columns]] fallbak`: board.columns has no key fallbak; closest: fallback
+`[board.columns]`: [board.columns] names an array of tables; write [[board.columns]]
+`[at.<name>.board] hide2`: at.<name>.board has no key hide2; closest: hide
+`board.colums`: board has no key colums; closest: columns
 `error: x: y is bad`: QUOTED
 `hint: file it with mt add -t dev`: QUOTED
 `[tasks.estimate.units]`: [tasks.estimate.units] names a value, not a table
