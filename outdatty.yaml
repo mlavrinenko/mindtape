@@ -73,7 +73,7 @@ groups:
   # its re-exports move on ordinary commits and no page restates them.
   # `cmd/review.rs` is none either, as no prose says more than its help.
 
-  # The global flags `cli/mod.rs` declares: `-w`, `--color`, `--hyperlinks`,
+  # The global flags `cli/mod.rs` declares: `-w`, `--color`,
   # and each status as a command of its own. The binary's name is cli-name's.
   - name: cli-globals-docs
     source:

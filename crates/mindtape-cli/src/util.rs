@@ -179,7 +179,13 @@ pub fn open() -> Result<Project> {
 /// Whether a project under `config` prints hyperlinks: `--hyperlinks`, else
 /// its `[ls] hyperlinks`, resolved against the terminal.
 pub(crate) fn hyperlinks_for(config: &Config) -> bool {
-    crate::render::link::resolve(resolve_hyperlinks(hyperlinks_flag(), config.ls.hyperlinks))
+    hyperlinks_with(hyperlinks_flag(), config)
+}
+
+/// [`hyperlinks_for`] with the flag passed in, for a command that parses its
+/// own arguments after the project is open (`mt <status> …`).
+pub(crate) fn hyperlinks_with(flag: Option<HyperlinkChoice>, config: &Config) -> bool {
+    crate::render::link::resolve(resolve_hyperlinks(flag, config.ls.hyperlinks))
 }
 
 /// [`open`], then print each load problem as a warning: the start of a command

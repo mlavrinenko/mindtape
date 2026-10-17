@@ -74,6 +74,7 @@ pub(super) fn flip_args(status: &str, tasks: &[&str]) -> FlipArgs {
         list: false,
         force: false,
         quiet: false,
+        hyperlinks: Default::default(),
     }
 }
 

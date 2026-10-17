@@ -59,6 +59,7 @@ fn default_args() -> LsArgs {
             sort: vec![],
             columns: None,
             interactive: false,
+            hyperlinks: Default::default(),
         },
     }
 }

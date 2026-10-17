@@ -57,13 +57,6 @@ pub struct Cli {
     /// When to color the output.
     #[arg(long, value_name = "WHEN", default_value_t, global = true)]
     pub color: ColorChoice,
-
-    /// When to make the `#` and `file` columns clickable links.
-    ///
-    /// Defaults to `[ls] hyperlinks`, which is `never` unless your project
-    /// changes it.
-    #[arg(long, value_name = "WHEN", global = true)]
-    pub hyperlinks: Option<HyperlinkChoice>,
 }
 
 // The order here is the order `mt --help` lists: the commands a newcomer runs
@@ -187,6 +180,17 @@ impl Cli {
         }
     }
 
+    /// The `--hyperlinks` choice the line passed, for the commands that take
+    /// it (`ls`, `find` and `flip`).
+    pub(crate) fn hyperlinks(&self) -> Option<HyperlinkChoice> {
+        match &self.command {
+            Command::Ls(args) => args.flags.hyperlinks.hyperlinks,
+            Command::Find(args) => args.flags.hyperlinks.hyperlinks,
+            Command::Flip(args) => args.hyperlinks.hyperlinks,
+            _ => None,
+        }
+    }
+
     /// Dispatch to the selected command.
     ///
     /// # Errors
@@ -289,17 +293,31 @@ mod tests {
     }
 
     #[test]
-    fn hyperlinks_flag_parses() {
-        let cli = Cli::try_parse_from(["mt", "--hyperlinks", "always", "check"]).unwrap();
-        assert_eq!(cli.hyperlinks, Some(HyperlinkChoice::Always));
+    fn hyperlinks_flag_parses_on_each_command_that_takes_it() {
+        for argv in [
+            &["mt", "ls", "--hyperlinks", "always"][..],
+            &["mt", "find", "word", "--hyperlinks", "always"],
+            &["mt", "flip", "done", "--hyperlinks", "always"],
+        ] {
+            let cli = Cli::try_parse_from(argv).unwrap();
+            assert_eq!(cli.hyperlinks(), Some(HyperlinkChoice::Always), "{argv:?}");
+        }
+    }
+
+    #[test]
+    fn hyperlinks_flag_is_refused_where_no_task_table_prints() {
+        for command in ["check", "board", "at"] {
+            assert!(Cli::try_parse_from(["mt", command, "--hyperlinks", "always"]).is_err());
+        }
+        assert!(Cli::try_parse_from(["mt", "--hyperlinks", "always", "ls"]).is_err());
     }
 
     #[test]
     fn hyperlinks_flag_absent_defers_to_config() {
         // Unlike `--color`, an absent `--hyperlinks` is `None`, not a default
         // value — the flag must not shadow `[ls] hyperlinks` when unpassed.
-        let cli = Cli::try_parse_from(["mt", "check"]).unwrap();
-        assert_eq!(cli.hyperlinks, None);
+        let cli = Cli::try_parse_from(["mt", "ls"]).unwrap();
+        assert_eq!(cli.hyperlinks(), None);
     }
 
     /// `check` is a built-in, which also proves the list is non-empty — a

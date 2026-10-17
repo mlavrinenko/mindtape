@@ -512,6 +512,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`--help` explains each flag in a sentence or two**, and the name is spelled
   Mindtape throughout.
 - **`cargo install mindtape-cli` builds faster**, with thin LTO.
+- **`--hyperlinks` belongs to `ls`, `find` and `flip`**, the commands that
+  print a task table, so write it after the command, as in
+  `mt ls --hyperlinks always`. `mt board` and `mt at` no longer list it, and its
+  help and the `[ls] hyperlinks` schema text name the `slug#` and `file` columns.
 
 ### Removed
 

@@ -49,6 +49,7 @@ use typst_edit::apply;
 use crate::cmd::flip::batch::{Landed, after_batch_diags, finish, note_hint};
 use crate::cmd::flip::hooks::{Hooks, Transition, note_with_overrides};
 use crate::diag::{Diag, Hint, Note, Result};
+use crate::render::link::HyperlinksArg;
 use crate::task_edit::{task_with, upsert_named_arg};
 use crate::util::{self, Project};
 
@@ -86,6 +87,9 @@ pub struct FlipArgs {
 
     #[arg(short = 'q', long)]
     pub quiet: bool,
+
+    #[command(flatten)]
+    pub hyperlinks: HyperlinksArg,
 }
 
 // Parser wrapper for the shortcut-verb path: the raw external argv
@@ -124,7 +128,7 @@ pub(crate) enum Via {
 /// command) or the underlying flip fails. Args that do not parse exit through
 /// clap with its usage error.
 pub fn run_external(external: &[String]) -> Result<()> {
-    let project = util::open_warned()?;
+    let mut project = util::open_warned()?;
     let verb = external
         .first()
         .ok_or_else(|| Diag::usage("empty shortcut invocation"))?
@@ -139,6 +143,12 @@ pub fn run_external(external: &[String]) -> Result<()> {
         .try_get_matches_from(external)
         .unwrap_or_else(|err| err.exit());
     let parsed = Shortcut::from_arg_matches(&matches)?;
+    // `main` couldn't see this flag, since clap never parsed the line, so the
+    // project opened with the config's choice alone.
+    if parsed.args.hyperlinks.hyperlinks.is_some() {
+        project.hyperlinks =
+            util::hyperlinks_with(parsed.args.hyperlinks.hyperlinks, &project.config);
+    }
     run_as(&project, &parsed.args, Via::Shortcut)
 }
 

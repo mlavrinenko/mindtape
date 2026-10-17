@@ -7,9 +7,9 @@ use mindtape::test_support::{TASK_SRC, bare_task};
 use mindtape::{Config, LoadError, LoadOutcome, Task, load_project};
 
 use super::{
-    Project, config_warnings, held_back_warning, hyperlinks_flag, init_hyperlinks_flag,
-    init_worktree, pick_override, resolve_hyperlinks, resolve_root_with, resolve_task, stem_hashes,
-    unknown_view_error, warn_errors, worktree_override,
+    Project, config_warnings, held_back_warning, hyperlinks_flag, hyperlinks_with,
+    init_hyperlinks_flag, init_worktree, pick_override, resolve_hyperlinks, resolve_root_with,
+    resolve_task, stem_hashes, unknown_view_error, warn_errors, worktree_override,
 };
 use crate::render::link::HyperlinkChoice;
 
@@ -138,6 +138,13 @@ fn resolve_hyperlinks_falls_back_to_config_when_flag_absent() {
 fn resolve_hyperlinks_defaults_to_never_when_both_absent() {
     let choice = resolve_hyperlinks(None, mindtape::HyperlinkChoice::Never);
     assert_eq!(choice, HyperlinkChoice::Never);
+}
+
+#[test]
+fn hyperlinks_with_a_passed_flag_overrides_the_config() {
+    let config = mindtape::parse_config("[ls]\nhyperlinks = \"never\"\n").unwrap();
+    assert!(hyperlinks_with(Some(HyperlinkChoice::Always), &config));
+    assert!(!hyperlinks_with(None, &config));
 }
 
 #[test]

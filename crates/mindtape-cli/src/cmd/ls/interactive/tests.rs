@@ -254,6 +254,7 @@ fn ls_args(format: OutputFormat) -> LsArgs {
             sort: vec![],
             columns: None,
             interactive: true,
+            hyperlinks: Default::default(),
         },
     }
 }

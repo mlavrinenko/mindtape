@@ -75,11 +75,11 @@ pub struct LsConfig {
     /// filter, no `@view`): the first rule whose condition holds (or that
     /// has none) wins and supplies its filter, sort, and columns.
     pub rules: Vec<LsRule>,
-    /// Whether the `#` and `file` cells carry terminal hyperlinks: `auto`,
+    /// Whether the `slug#` and `file` cells carry terminal hyperlinks: `auto`,
     /// `always`, or `never` (the default). `--hyperlinks` overrides it for one
     /// run.
     pub hyperlinks: HyperlinkChoice,
-    /// URI that a row's `#` and `file` cells link to. `mt` replaces `{abs}`
+    /// URI that a row's `slug#` and `file` cells link to. `mt` replaces `{abs}`
     /// with the task's absolute path and `{rel}` with the path the `file`
     /// column shows. Defaults to `file://{abs}`. Point it at another scheme,
     /// such as an editor's URI handler, to open the task there.
@@ -119,7 +119,7 @@ where
     Ok(names)
 }
 
-/// `[ls] hyperlinks` — whether the `#` and `file` cells carry OSC 8
+/// `[ls] hyperlinks` — whether the `slug#` and `file` cells carry OSC 8
 /// hyperlinks to the row's `hyperlink-target`. The `--hyperlinks` flag takes
 /// the same values.
 ///

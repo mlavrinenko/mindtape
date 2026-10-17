@@ -1069,7 +1069,7 @@
       "type": "object"
     },
     "HyperlinkChoice": {
-      "description": "`[ls] hyperlinks` — whether the `#` and `file` cells carry OSC 8\nhyperlinks to the row's `hyperlink-target`. The `--hyperlinks` flag takes\nthe same values.\n\nA terminal without OSC 8 support can print the escape sequence as visible\ntext, and no terminal reports whether it supports OSC 8. That is why the\ndefault is `never`.",
+      "description": "`[ls] hyperlinks` — whether the `slug#` and `file` cells carry OSC 8\nhyperlinks to the row's `hyperlink-target`. The `--hyperlinks` flag takes\nthe same values.\n\nA terminal without OSC 8 support can print the escape sequence as visible\ntext, and no terminal reports whether it supports OSC 8. That is why the\ndefault is `never`.",
       "oneOf": [
         {
           "const": "auto",
@@ -1382,7 +1382,7 @@
         },
         "hyperlink-target": {
           "default": null,
-          "description": "URI that a row's `#` and `file` cells link to. `mt` replaces `{abs}`\nwith the task's absolute path and `{rel}` with the path the `file`\ncolumn shows. Defaults to `file://{abs}`. Point it at another scheme,\nsuch as an editor's URI handler, to open the task there.",
+          "description": "URI that a row's `slug#` and `file` cells link to. `mt` replaces `{abs}`\nwith the task's absolute path and `{rel}` with the path the `file`\ncolumn shows. Defaults to `file://{abs}`. Point it at another scheme,\nsuch as an editor's URI handler, to open the task there.",
           "type": [
             "string",
             "null"
@@ -1390,7 +1390,7 @@
         },
         "hyperlinks": {
           "$ref": "#/$defs/HyperlinkChoice",
-          "description": "Whether the `#` and `file` cells carry terminal hyperlinks: `auto`,\n`always`, or `never` (the default). `--hyperlinks` overrides it for one\nrun."
+          "description": "Whether the `slug#` and `file` cells carry terminal hyperlinks: `auto`,\n`always`, or `never` (the default). `--hyperlinks` overrides it for one\nrun."
         },
         "overdue-color": {
           "default": null,

@@ -96,7 +96,7 @@ fn run() -> Result<(), Diag> {
     // Stash the `--hyperlinks` flag for `util::open` to resolve against `[ls]
     // hyperlinks` once a project's config is loaded (unlike colour, this
     // decision cannot be finished here — see `render::link`'s module docs).
-    util::init_hyperlinks_flag(cli.hyperlinks);
+    util::init_hyperlinks_flag(cli.hyperlinks());
     // Resolve colour once here; commands may query this via `color_enabled`.
     // The value is stored in a thread-local so the rest of the binary can
     // read it without threading the choice through every call-site.

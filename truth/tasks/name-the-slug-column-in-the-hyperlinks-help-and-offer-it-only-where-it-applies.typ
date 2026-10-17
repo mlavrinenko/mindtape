@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 17),
+  status: done(
+    2026,
+    10,
+    17,
+  )[Declared --hyperlinks on ls, find and flip and named slug\# in the help and schema.],
 )
 
 == Problem

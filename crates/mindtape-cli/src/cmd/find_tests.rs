@@ -17,6 +17,7 @@ fn args(terms: &[&str]) -> FindArgs {
             sort: vec![],
             columns: None,
             interactive: false,
+            hyperlinks: Default::default(),
         },
     }
 }

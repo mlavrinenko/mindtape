@@ -25,6 +25,7 @@ use self::rules::Applied;
 use crate::diag::quote as shell_quote;
 use crate::render::RenderCtx;
 use crate::render::color::{Painter, is_color_active};
+use crate::render::link::HyperlinksArg;
 use crate::render::output::{Envelope, OutputFormat, Truncation, render};
 use crate::util;
 
@@ -87,6 +88,9 @@ pub struct LsFlags {
 
     #[arg(short = 'i', long, conflicts_with = "json")]
     pub interactive: bool,
+
+    #[command(flatten)]
+    pub hyperlinks: HyperlinksArg,
 }
 
 /// Run the `ls` command.

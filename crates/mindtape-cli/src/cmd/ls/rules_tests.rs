@@ -39,6 +39,7 @@ pub(crate) fn args(filter: Option<&str>) -> LsArgs {
             sort: vec![],
             columns: None,
             interactive: false,
+            hyperlinks: Default::default(),
         },
     }
 }

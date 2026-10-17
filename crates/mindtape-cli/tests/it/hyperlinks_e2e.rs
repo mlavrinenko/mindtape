@@ -193,3 +193,45 @@ fn custom_hyperlink_target_template_is_honoured() {
         "custom hyperlink-target template must drive the URI: {out:?}"
     );
 }
+
+/// The help names the column the table prints, `slug#`, not a bare `#`.
+#[test]
+fn the_help_names_the_slug_and_file_columns() {
+    let dir = support::project_with_task("Rewrite auth");
+    for command in ["ls", "find", "flip"] {
+        let help = ls_stdout(dir.path(), &[command, "--help"]);
+        assert!(
+            help.contains("`slug#` and `file` columns"),
+            "mt {command} --help must name the slug# and file columns: {help}"
+        );
+    }
+}
+
+/// A command that prints no task table has no use for the flag, so it doesn't
+/// offer it and refuses it.
+#[test]
+fn commands_without_a_task_table_do_not_offer_the_flag() {
+    let dir = support::project_with_task("Rewrite auth");
+    for command in ["at", "board", "check", "add"] {
+        let help = ls_stdout(dir.path(), &[command, "--help"]);
+        assert!(
+            !help.contains("--hyperlinks"),
+            "mt {command} --help must not list --hyperlinks: {help}"
+        );
+        let (code, stderr) = support::run_stderr(dir.path(), &[command, "--hyperlinks", "always"]);
+        assert_eq!(
+            code,
+            Some(2),
+            "mt {command} --hyperlinks must be a usage error: {stderr}"
+        );
+    }
+}
+
+/// The flag moved from the top level to the commands that use it, so it no
+/// longer goes before the subcommand.
+#[test]
+fn the_flag_goes_after_the_command_not_before_it() {
+    let dir = support::project_with_task("Rewrite auth");
+    let (code, stderr) = support::run_stderr(dir.path(), &["--hyperlinks", "always", "ls"]);
+    assert_eq!(code, Some(2), "{stderr}");
+}

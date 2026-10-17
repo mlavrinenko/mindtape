@@ -51,6 +51,19 @@ impl From<mindtape::HyperlinkChoice> for HyperlinkChoice {
     }
 }
 
+/// The `--hyperlinks` flag, declared once and flattened into each command that
+/// prints a task table (`ls`, `find` and `flip`), so a command with no such
+/// table never offers it.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::Args)]
+pub struct HyperlinksArg {
+    /// When to make the `slug#` and `file` columns clickable links.
+    ///
+    /// Defaults to `[ls] hyperlinks`, which is `never` unless your project
+    /// changes it.
+    #[arg(long, value_name = "WHEN")]
+    pub hyperlinks: Option<HyperlinkChoice>,
+}
+
 /// Resolve whether hyperlink output should be used for stdout.
 ///
 /// Rules (in priority order):
