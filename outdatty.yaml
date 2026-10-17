@@ -61,10 +61,12 @@ groups:
   # source with the pages that restate it, and editing `cmd/ls/mod.rs` asks
   # for the `mt ls` prose and nothing else.
   #
-  # A command's source is the module that declares its `*Args` and runs it.
-  # Its helper siblings (`cmd/add/tokens.rs`, `cmd/flip/guards.rs`, …) are no
-  # group's source yet. www/utils/cli-notes.typ holds one entry per command,
-  # so in each group below it means that command's entry.
+  # A command's source is the module that declares its `*Args` and runs it,
+  # plus each helper sibling a page restates: `cmd/flip/guards.rs` and
+  # `cmd/ls/rules.rs` are sources, `cmd/link/plan.rs` is not. A helper no prose
+  # restates stays out, because listing it would fire a review on an internal
+  # refactor. www/utils/cli-notes.typ holds one entry per command, so in each
+  # group below it means that command's entry.
   #
   # A page under www/content/cli/ joins a group only when it carries prose of
   # its own. The ones that hold only `#cli-command(...)` (add, at, board,
@@ -109,11 +111,32 @@ groups:
       - skills/mindtape/evals/README.md
       - skills/mindtape/evals/evals.json
 
-  # `mt check`: the template pass, `--commit-msg` and `--commits`, the `ok:`
-  # line and the exit code.
+  # `mt allow`: what it prints and records. The approval's digest, its place
+  # outside the repo and the worktrees sharing it live in
+  # `crates/mindtape/src/allow.rs`, which hooks.typ, wait-on-upstream.typ and
+  # the skill restate.
+  - name: cli-allow-docs
+    source:
+      - crates/mindtape-cli/src/cmd/allow.rs
+      - crates/mindtape/src/allow.rs
+    dependents:
+      - www/content/cli/allow.typ
+      - www/utils/cli-notes.typ
+      - www/content/hooks.typ
+      - www/content/wait-on-upstream.typ
+      - docs/src/skill.typ
+      - skills/mindtape/evals/README.md
+      - skills/mindtape/evals/evals.json
+
+  # `mt check`: the template pass (`check/templates.rs`), `--commit-msg`
+  # (`check/commit.rs`) and `--commits` (`check/range.rs`), the `ok:` line and
+  # the exit code.
   - name: cli-check-docs
     source:
       - crates/mindtape-cli/src/cmd/check/mod.rs
+      - crates/mindtape-cli/src/cmd/check/templates.rs
+      - crates/mindtape-cli/src/cmd/check/commit.rs
+      - crates/mindtape-cli/src/cmd/check/range.rs
     dependents:
       - www/content/cli/check.typ
       - www/content/commit-rules.typ
@@ -163,11 +186,17 @@ groups:
       - www/content/cli/ls.typ
 
   # `mt flip`: the status verbs, `-m`, `--force` past a guard or a gate, and
-  # when hooks print. cli-notes.typ's `allow` entry says what a held-back gate
-  # does to a flip.
+  # when hooks print. The guards are `flip/guards.rs` (transitions, `unblocked`,
+  # unfinished children, required notes), the `[[on.flip]]` runner is
+  # `flip/hooks.rs` and the environment a `run` command sees is
+  # `flip/hooks_cmd.rs`. cli-notes.typ's `allow` entry says what a held-back
+  # gate does to a flip.
   - name: cli-flip-docs
     source:
       - crates/mindtape-cli/src/cmd/flip/mod.rs
+      - crates/mindtape-cli/src/cmd/flip/guards.rs
+      - crates/mindtape-cli/src/cmd/flip/hooks.rs
+      - crates/mindtape-cli/src/cmd/flip/hooks_cmd.rs
     dependents:
       - www/content/cli/flip.typ
       - www/content/statuses.typ
@@ -251,10 +280,12 @@ groups:
       - www/utils/link-kind-notes.typ
 
   # `mt ls`: the facets, paging and the next-page command, the line under the
-  # table, the sort spec, and that there is no `--all`.
+  # table, the sort spec, and that there is no `--all`. `ls/rules.rs` resolves
+  # the `[[ls.rules]]` cascade the pages describe.
   - name: cli-ls-docs
     source:
       - crates/mindtape-cli/src/cmd/ls/mod.rs
+      - crates/mindtape-cli/src/cmd/ls/rules.rs
     dependents:
       - www/content/cli/ls.typ
       - www/content/filters.typ
@@ -316,6 +347,18 @@ groups:
       - www/content/filters.typ
       - www/content/statuses.typ
       - www/content/cli/ls.typ
+      - docs/src/skill.typ
+
+  # `mt rules`: the line each rule prints, the severity and message it shows
+  # when a rule sets none, and which rules `--for` keeps.
+  - name: cli-rules-docs
+    source:
+      - crates/mindtape-cli/src/cmd/rules.rs
+    dependents:
+      - www/content/cli/rules.typ
+      - www/content/rules.typ
+      - www/content/rule-packs.typ
+      - www/content/agents.typ
       - docs/src/skill.typ
 
   # `mt set`: the fields it refuses and the command each one names, the
