@@ -413,6 +413,8 @@ message = "cut this section to under 120 words, or split the task in two"
 # - truth/tasks/**: a task's own file, which `mt flip` writes.
 # - crates/*/tests/**, **/*test*.rs: red-first coverage, not the change.
 # - examples/**: fixture projects the docs, gates and skill evals read.
+# - crap-baseline.json, .jscpd-baseline.json: gate baselines `just
+#   crap-baseline` and `just dry-baseline` re-mint as the code moves.
 #
 # The list is the `source` path set below, which `tweak-stays-one-file` reads
 # too, so the two rules agree on what a source file is.
@@ -433,6 +435,8 @@ values = [
   "!crates/*/tests/**",
   "!**/*test*.rs",
   "!examples/**",
+  "!crap-baseline.json",
+  "!.jscpd-baseline.json",
 ]
 
 # What ships to a user: the crates' and the Typst library's source. Tests, the

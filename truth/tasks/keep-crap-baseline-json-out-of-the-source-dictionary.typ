@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 17),
+  status: done(2026, 10, 17)[baselines left out of \@source],
 )
 
 == Problem
