@@ -18,6 +18,7 @@ mod at_e2e;
 mod breach_location_e2e;
 mod broken_pipe_e2e;
 mod check_json_e2e;
+mod check_set;
 mod check_stderr_e2e;
 mod check_templates_e2e;
 mod cli_dump_e2e;

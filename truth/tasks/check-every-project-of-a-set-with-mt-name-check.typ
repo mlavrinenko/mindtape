@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 16),
+  status: done(2026, 10, 17),
   links: parent("show-every-tracked-project-from-one-mt-name.typ")
     + depends-on(
       "resolve-mt-name-through-at-toml-and-rename-mt-worktrees-to-mt-at.typ",

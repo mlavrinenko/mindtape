@@ -15,7 +15,7 @@ mod errors;
 mod many;
 
 pub use errors::{LoadError, LoadWarning};
-pub use many::{Loaded, load_many};
+pub use many::{Loaded, load_many, map_parallel};
 
 use std::path::{Path, PathBuf};
 

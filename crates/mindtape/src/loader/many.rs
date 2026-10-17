@@ -23,10 +23,18 @@ pub struct Loaded {
 /// A thread that panics resumes its panic here, as a single load would.
 #[must_use]
 pub fn load_many(roots: &[PathBuf]) -> Vec<Result<Loaded, ConfigError>> {
+    map_parallel(roots.iter().collect(), |root| load_one(root))
+}
+
+/// Run `work` on each item on a scoped thread of its own, and return the
+/// results in the order the items came. A thread that panics resumes its
+/// panic here.
+pub fn map_parallel<T: Send, R: Send>(items: Vec<T>, work: impl Fn(T) -> R + Sync) -> Vec<R> {
+    let work = &work;
     std::thread::scope(|scope| {
-        let handles: Vec<_> = roots
-            .iter()
-            .map(|root| scope.spawn(move || load_one(root)))
+        let handles: Vec<_> = items
+            .into_iter()
+            .map(|item| scope.spawn(move || work(item)))
             .collect();
         handles
             .into_iter()

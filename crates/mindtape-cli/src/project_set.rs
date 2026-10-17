@@ -116,6 +116,7 @@ pub fn open_set(members: &[(String, PathBuf)]) -> Vec<Member> {
 /// [`open_set`], then print each member's load problems as warnings naming
 /// it: the start of a command that lists what did load.
 #[must_use]
+#[allow(dead_code, reason = "ls and board open a set in their own tasks")]
 pub fn open_set_warned(members: &[(String, PathBuf)]) -> Vec<Member> {
     let set = open_set(members);
     for member in &set {
@@ -148,7 +149,7 @@ pub(crate) fn member_load_problems(name: &str, outcome: &LoadOutcome, kind: Kind
 }
 
 /// The `note: project: <name>` line under a set member's problem.
-fn project_note(name: &str) -> Note {
+pub(crate) fn project_note(name: &str) -> Note {
     Note::new("project").name(name)
 }
 

@@ -5,11 +5,13 @@
 //!
 //! - `commit.rs` — `--commit-msg`, the commit being written.
 //! - `range.rs` — `--commits`, a range of commits.
+//! - `set.rs` — a set named by `@name`: every member, reported together.
 //! - `templates.rs` — the template pass over every `mt add --list` template.
 //! - `cmd/ls/interactive/tests.rs`, `tests_rules.rs`, `*_tests.rs` — unit tests.
 
 pub(crate) mod commit;
 pub(crate) mod range;
+mod set;
 pub(crate) mod templates;
 
 use std::collections::BTreeSet;
@@ -53,6 +55,9 @@ pub struct CheckArgs {
 /// # Errors
 /// Returns an error (non-zero exit) if any task is invalid or failed to load.
 pub fn run(args: &CheckArgs) -> Result<()> {
+    if let Some(held) = crate::project_set::held_set() {
+        return set::run(held, args);
+    }
     run_with(&util::open()?, args)
 }
 
@@ -113,42 +118,24 @@ impl Report {
     }
 }
 
+/// What one project's check found past its load problems: the problems in
+/// print order, how many fail the run, and in how many tasks.
+pub(crate) struct Findings {
+    pub(crate) diags: Vec<Diag>,
+    pub(crate) problems: usize,
+    pub(crate) tasks: usize,
+}
+
 fn check_project(
     project: &util::Project,
     args: &CheckArgs,
     body_rules: BodyRules<'_>,
     report: &mut Report,
 ) -> Result<()> {
-    let mut violations = validate(&project.outcome.tasks, &project.config);
-    violations.extend(body_violations(project, body_rules)?);
-    let templates = crate::cmd::check::templates::breaches(project, body_rules)?;
-    violations.extend(templates.violations);
-    report.extend(
-        templates
-            .load_warnings
-            .iter()
-            .chain(&templates.load_failures)
-            .cloned(),
-    );
-
-    // `[tasks.comments]` breaches carry the severity of their policy.
-    violations.extend(
-        check_comments(&project.outcome.tasks, &project.config, &project.root)
-            .map_err(|err| Diag::failed("can't scan tasks.comments").cause(&err))?,
-    );
-
-    report.extend(violations.iter().map(Diag::from));
+    let findings = gather(project, body_rules)?;
+    report.extend(findings.diags);
     report.finish()?;
-
-    // A `[[tasks.rules]]` breach at `severity = "warn"` has already printed;
-    // it is a report, not a failure, so it is not counted here.
-    let fatal: Vec<&Violation> = violations
-        .iter()
-        .filter(|violation| violation.is_fatal())
-        .collect();
-    let failures = fatal.len();
-    let load_errors = project.outcome.errors.len() + templates.load_failures.len();
-    if failures == 0 && load_errors == 0 {
+    if findings.problems == 0 {
         if !args.quiet && !args.json {
             println!(
                 "ok: {}",
@@ -157,6 +144,39 @@ fn check_project(
         }
         return Ok(());
     }
+    Err(Diag::problems(findings.problems, findings.tasks))
+}
+
+/// Check one project's tasks, its templates and its comments.
+///
+/// # Errors
+/// Returns an error when a file can't be read or a rule doesn't compile.
+pub(crate) fn gather(project: &util::Project, body_rules: BodyRules<'_>) -> Result<Findings> {
+    let mut violations = validate(&project.outcome.tasks, &project.config);
+    violations.extend(body_violations(project, body_rules)?);
+    let templates = crate::cmd::check::templates::breaches(project, body_rules)?;
+    violations.extend(templates.violations);
+    let mut diags: Vec<Diag> = templates
+        .load_warnings
+        .iter()
+        .chain(&templates.load_failures)
+        .cloned()
+        .collect();
+
+    // `[tasks.comments]` breaches carry the severity of their policy.
+    violations.extend(
+        check_comments(&project.outcome.tasks, &project.config, &project.root)
+            .map_err(|err| Diag::failed("can't scan tasks.comments").cause(&err))?,
+    );
+    diags.extend(violations.iter().map(Diag::from));
+
+    // A `[[tasks.rules]]` breach at `severity = "warn"` has already printed;
+    // it is a report, not a failure, so it is not counted here.
+    let fatal: Vec<&Violation> = violations
+        .iter()
+        .filter(|violation| violation.is_fatal())
+        .collect();
+    let load_errors = project.outcome.errors.len() + templates.load_failures.len();
     let tasks = fatal
         .iter()
         .map(|violation| violation.task_id.as_str())
@@ -170,7 +190,11 @@ fn check_project(
         .collect::<BTreeSet<_>>()
         .len()
         + templates.load_failures.len();
-    Err(Diag::problems(failures + load_errors, tasks))
+    Ok(Findings {
+        diags,
+        problems: fatal.len() + load_errors,
+        tasks,
+    })
 }
 
 /// The header and content body rules over every loaded task's source.

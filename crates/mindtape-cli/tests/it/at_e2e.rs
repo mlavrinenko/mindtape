@@ -8,7 +8,7 @@ use crate::support;
 
 /// Two projects, `alpha` and `beta`, and a config home whose `at.toml` names
 /// `@alpha` a project and `@both` a set of the two.
-fn setup() -> (tempfile::TempDir, tempfile::TempDir, tempfile::TempDir) {
+pub(crate) fn setup() -> (tempfile::TempDir, tempfile::TempDir, tempfile::TempDir) {
     let alpha = support::project_with_tasks(&[("one.typ", "One")]);
     let beta = support::project_with_tasks(&[("two.typ", "Two")]);
     let cfg = tempfile::tempdir().unwrap();
@@ -26,7 +26,7 @@ fn setup() -> (tempfile::TempDir, tempfile::TempDir, tempfile::TempDir) {
     (alpha, beta, cfg)
 }
 
-fn run(cfg: &Path, args: &[&str]) -> std::process::Output {
+pub(crate) fn run(cfg: &Path, args: &[&str]) -> std::process::Output {
     let here = tempfile::tempdir().unwrap();
     support::mt(here.path())
         .env(mindtape::CONFIG_HOME_ENV, cfg)
