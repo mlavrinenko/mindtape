@@ -53,134 +53,321 @@ require_tracked: ["!**"]
 # A forgotten one misattributes the watermark and never breaks a build.
 
 groups:
-  # The CLI surface (commands, flags, behaviour) is documented by hand in the
-  # docs-site reference pages. README.md carries only a thin, illustrative
-  # command teaser, tracked by the coarser cli-name group below.
+  # The CLI groups. The build renders every command, flag, default and help
+  # line from `mt _cli --json` (www/generated/cli.json), and
+  # `just check-doc-spans` checks each `mt …` argv the prose quotes, so a flag
+  # change needs no review. What still drifts is prose that restates what a
+  # module does: a refusal, a default, an output shape. So each group pairs one
+  # source with the pages that restate it, and editing `cmd/ls/mod.rs` asks
+  # for the `mt ls` prose and nothing else.
   #
-  # `cli/mod.rs` only wires the `Command` enum onto each module's `*Args` struct.
-  # It names the types and does not declare their fields. Every flag lives in
-  # its own command module (`AddArgs` in `cmd/add/mod.rs`, `LsArgs` in `cmd/ls/mod.rs`, …), so a
-  # flag change there leaves `cli/mod.rs` byte-identical and busts no group unless
-  # the module is a source. The modules below are listed explicitly and not as a
-  # glob (e.g. `crates/mindtape-cli/src/*.rs`), because the command directory
-  # interleaves each command's `*Args` module with its own helper, rendering
-  # and test siblings (`cmd/add/dedup.rs`, `cmd/add/interactive.rs`, `cmd/ls/rules.rs`,
-  # `cmd/init/wizard/mod.rs`, `*_tests*.rs`, …) under no naming convention that
-  # separates the two (`add*.rs` alone matches five unrelated files). A
-  # directory-wide glob would fire this group on internal refactors that touch
-  # no documented flag. An explicit list needs a manual add for a brand-new
-  # command module, but `just check-doc-coverage` covers that half of the gap
-  # (it fails naming any visible `mt` subcommand missing from
-  # `www/utils/cli-notes.typ`), so this list only has to catch the other half:
-  # a flag changing on a command the docs already know. `cli/tree_json.rs`
-  # (`mt _cli`) is not one of these sources. It is hidden tooling that reflects
-  # `Cli::command()` back out for the docs generator, so it can only remove
-  # drift (see its own module doc).
+  # A command's source is the module that declares its `*Args` and runs it.
+  # Its helper siblings (`cmd/add/tokens.rs`, `cmd/flip/guards.rs`, …) are no
+  # group's source yet. www/utils/cli-notes.typ holds one entry per command,
+  # so in each group below it means that command's entry.
   #
-  # hooks.typ, estimates.typ, named-sets.typ, statuses.typ and rules.typ are
-  # dependents for config.typ's reason: each is a deep dive split off that page,
-  # and each restates by hand the config surface it covers (`[[on.flip]]`,
-  # `[tasks.estimate]`, `[views]`/`[dicts]`, the status legend, the rule
-  # arrays). A section moved to a page of its own stays under the drift gate.
-  - name: cli-docs
+  # A page under www/content/cli/ joins a group only when it carries prose of
+  # its own. The ones that hold only `#cli-command(...)` (add, at, board,
+  # eval, find, go, import, init, install, preset, review, set) render from
+  # cli.json and restate nothing. `crates/mindtape/src/lib.rs` is no source:
+  # its re-exports move on ordinary commits and no page restates them.
+  # `cmd/review.rs` is none either, as no prose says more than its help.
+
+  # The global flags `cli/mod.rs` declares: `-w`, `--color`, `--hyperlinks`,
+  # and each status as a command of its own. The binary's name is cli-name's.
+  - name: cli-globals-docs
     source:
       - crates/mindtape-cli/src/cli/mod.rs
-      - crates/mindtape-cli/src/cmd/add/mod.rs
-      - crates/mindtape-cli/src/cmd/check/mod.rs
-      # Not an `*Args` module: it declares which argument completes from which
-      # project value. The dependents restate that set in prose (cli-notes.typ's
-      # `install` entry names the sources a tab press offers), and nothing in
-      # www/generated/*.json carries it as a fact a page could render instead.
-      # `cli.json` reflects the per-argument entry and not the roster.
-      - crates/mindtape-cli/src/cli/completion/mod.rs
-      - crates/mindtape-cli/src/cmd/config.rs
-      - crates/mindtape-cli/src/cmd/dicts.rs
-      - crates/mindtape-cli/src/cmd/eval.rs
-      - crates/mindtape-cli/src/cmd/find.rs
-      - crates/mindtape-cli/src/cmd/flip/mod.rs
-      - crates/mindtape-cli/src/cmd/go.rs
-      - crates/mindtape-cli/src/cmd/graph/mod.rs
-      - crates/mindtape-cli/src/cmd/import/mod.rs
-      - crates/mindtape-cli/src/cmd/init/mod.rs
-      - crates/mindtape-cli/src/cmd/install/mod.rs
-      # `mt link`'s flags live in `cmd/link/mod.rs` (`LinkArgs`). Its input format,
-      # the adjacency map the docs restate by hand on the DSL page and in
-      # SKILL.md, lives in `cmd/link/input.rs`, so both are sources. The other two
-      # halves are not: `cmd/link/edit.rs` and `cmd/link/plan.rs` decide what gets
-      # written and what is refused, and no dependent restates either beyond
-      # what those two files already declare.
-      - crates/mindtape-cli/src/cmd/link/mod.rs
-      - crates/mindtape-cli/src/cmd/link/input.rs
-      - crates/mindtape-cli/src/cmd/ls/mod.rs
-      - crates/mindtape-cli/src/cmd/mv.rs
-      # `--format`'s per-surface contract: which columns each machine format
-      # carries and what each cell means. `cmd/ls/mod.rs` decides nothing about this, as
-      # it hands a resolved list to `render()`. So the CSV mapping decision
-      # (`#` -> `id`, and `file` as the root-relative record path rather than
-      # the table's cwd-relative display) lives here and nowhere else, while
-      # www/content/cli/ls.typ and schema.typ each restate it by hand.
-      - crates/mindtape-cli/src/render/output.rs
-      - crates/mindtape-cli/src/cmd/preset.rs
-      - crates/mindtape-cli/src/cmd/recur/mod.rs
-      - crates/mindtape-cli/src/cmd/review.rs
-      - crates/mindtape-cli/src/cmd/rm/mod.rs
-      - crates/mindtape-cli/src/cmd/set.rs
-      - crates/mindtape-cli/src/cmd/views.rs
-      - crates/mindtape-cli/src/cmd/at.rs
-      - crates/mindtape-cli/src/cmd/board.rs
-      - crates/mindtape/src/lib.rs
-      # The filter/`--sort` field vocabulary. Every dependent that lists the
-      # comparable fields (filters.typ, skills/mindtape/references/filters.md)
-      # hand-types them, and nothing in www/generated/*.json carries this
-      # registry. Renaming `file` to `path` would change a documented surface
-      # while every source above stayed byte-identical. `sort.rs` is not a
-      # second source: its accepted vocabulary is derived from this registry
-      # (`is_sort_field`), so a field cannot enter or leave one without the
-      # other, and the rest of that file is comparator internals no dependent
-      # restates.
-      - crates/mindtape/src/model/fields.rs
-      - crates/mindtape/src/config/defaults.toml
-      - crates/mindtape-cli/src/cmd/init/presets/todo-done/config.toml
-      - crates/mindtape-cli/src/cmd/init/presets/flow/config.toml
-      - crates/mindtape-cli/src/cmd/init/presets/personal/config.toml
-      - crates/mindtape-cli/src/cmd/init/presets/gated/config.toml
     dependents:
-      - www/content/cli.typ
-      # One page per command. Each may carry hand-written prose beside the
-      # reference cli-ref.typ renders, as cli/ls.typ does for columns and
-      # `[[ls.rules]]`.
-      - www/content/cli/*.typ
-      - www/content/links.typ
-      - www/content/recurring.typ
-      - www/content/filters.typ
+      - www/content/agents.typ
       - www/content/config.typ
-      - www/content/statuses.typ
-      - www/content/rules.typ
-      - www/content/hooks.typ
-      - www/content/estimates.typ
-      - www/content/named-sets.typ
+      - www/content/cli/ls.typ
+      - docs/src/skill.typ
+
+  # Which argument completes from which project value. cli-notes.typ's
+  # `install` entry and the quickstart name the values a tab press offers.
+  - name: cli-completion-docs
+    source:
+      - crates/mindtape-cli/src/cli/completion/mod.rs
+    dependents:
+      - www/utils/cli-notes.typ
+      - www/content/quickstart.typ
+
+  # `mt add`: the fill order, the built-in template, `--dedup`, the editor,
+  # `--describe=json` and `--format json`, and the refusal of an unknown slot.
+  - name: cli-add-docs
+    source:
+      - crates/mindtape-cli/src/cmd/add/mod.rs
+    dependents:
+      - www/utils/cli-notes.typ
+      - www/content/templates.typ
+      - www/content/config.typ
+      - www/content/agents.typ
+      - www/content/quickstart.typ
+      - docs/src/skill.typ
+      - skills/mindtape/references/add-slots.md
+      - skills/mindtape/evals/README.md
+      - skills/mindtape/evals/evals.json
+
+  # `mt check`: the template pass, `--commit-msg` and `--commits`, the `ok:`
+  # line and the exit code.
+  - name: cli-check-docs
+    source:
+      - crates/mindtape-cli/src/cmd/check/mod.rs
+    dependents:
+      - www/content/cli/check.typ
       - www/content/commit-rules.typ
+      - www/content/templates.typ
       - www/content/quickstart.typ
       - www/content/agents.typ
-      - www/content/read-many-projects.typ
-      - www/content/concepts.typ
-      - www/content/derived-tags.typ
-      - www/content/import-export.typ
+      - skills/mindtape/evals/evals.json
+
+  # `mt config`: `show`, `--origin` and `--defaults`.
+  - name: cli-config-docs
+    source:
+      - crates/mindtape-cli/src/cmd/config.rs
+    dependents:
+      - www/content/cli/config.typ
+      - www/content/config.typ
       - www/content/priority.typ
+      - www/content/agents.typ
+      - docs/src/skill.typ
+
+  # `mt dicts`: the listing's count and case, and one dictionary's merged
+  # entries.
+  - name: cli-dicts-docs
+    source:
+      - crates/mindtape-cli/src/cmd/dicts.rs
+    dependents:
+      - www/content/cli/dicts.typ
+      - www/content/named-sets.typ
+      - www/content/agents.typ
+      - docs/src/skill.typ
+      - skills/mindtape/references/filters.md
+
+  # `mt eval` reads one file with no readiness, so its `why` is empty and its
+  # `children` 0, as the schema says.
+  - name: cli-eval-docs
+    source:
+      - crates/mindtape-cli/src/cmd/eval.rs
+    dependents:
       - www/content/schema.typ
-      - www/content/templates.typ
+      - www/content/agents.typ
+
+  # `mt find` is `mt ls` over `contains()` terms.
+  - name: cli-find-docs
+    source:
+      - crates/mindtape-cli/src/cmd/find.rs
+    dependents:
+      - www/utils/cli-notes.typ
+      - www/content/cli/ls.typ
+
+  # `mt flip`: the status verbs, `-m`, `--force` past a guard or a gate, and
+  # when hooks print. cli-notes.typ's `allow` entry says what a held-back gate
+  # does to a flip.
+  - name: cli-flip-docs
+    source:
+      - crates/mindtape-cli/src/cmd/flip/mod.rs
+    dependents:
+      - www/content/cli/flip.typ
+      - www/content/statuses.typ
+      - www/content/hooks.typ
+      - www/content/links.typ
+      - www/content/quickstart.typ
       - www/utils/cli-notes.typ
       - docs/src/skill.typ
-      # SKILL.md (generated from docs/src/skill.typ by `just docs::md`) keeps
-      # `mt add` slot detail in this reference (progressive disclosure, per the
-      # .linecop.yaml note). The content is still CLI surface, so the file stays
-      # a tracked dependent.
-      - skills/mindtape/references/add-slots.md
-      # The skill's filter reference lists the field vocabulary by hand, as
-      # filters.typ does.
+      - skills/mindtape/evals/evals.json
+
+  # `mt go`'s editor lookup and its `{task}` token.
+  - name: cli-go-docs
+    source:
+      - crates/mindtape-cli/src/cmd/go.rs
+    dependents:
+      - www/utils/cli-notes.typ
+
+  # `mt graph`: its two formats, `--no-terminal`, the node colors and the leaf
+  # nodes of an external kind.
+  - name: cli-graph-docs
+    source:
+      - crates/mindtape-cli/src/cmd/graph/mod.rs
+    dependents:
+      - www/content/cli/graph.typ
+      - www/content/links.typ
+      - www/content/agents.typ
+
+  # `mt import`: the batch check, the report, `--map`, `--to`, `--into`,
+  # `--dry-run`, the naming and the exit code.
+  - name: cli-import-docs
+    source:
+      - crates/mindtape-cli/src/cmd/import/mod.rs
+    dependents:
+      - www/content/import-export.typ
+      - www/content/schema.typ
+      - skills/mindtape/references/import.md
+
+  # `mt init`: the default preset, `--no-input`, the `#:schema` line and the
+  # preset overlay.
+  - name: cli-init-docs
+    source:
+      - crates/mindtape-cli/src/cmd/init/mod.rs
+    dependents:
+      - www/content/quickstart.typ
+      - www/content/config.typ
+      - www/content/import-export.typ
+
+  # `mt install`: the four parts it writes, where each lands, and when to run
+  # it again.
+  - name: cli-install-docs
+    source:
+      - crates/mindtape-cli/src/cmd/install/mod.rs
+    dependents:
+      - www/utils/cli-notes.typ
+      - www/content/quickstart.typ
+      - www/content/config.typ
+
+  # `mt link`: how a target is named and written, the merge, `--replace`, and
+  # the `--apply` map, whose shape `cmd/link/input.rs` parses. `edit.rs` and
+  # `plan.rs` decide nothing the prose restates.
+  - name: cli-link-docs
+    source:
+      - crates/mindtape-cli/src/cmd/link/mod.rs
+      - crates/mindtape-cli/src/cmd/link/input.rs
+    dependents:
+      - www/content/cli/link.typ
+      - www/utils/cli-notes.typ
+      - www/content/links.typ
+      - docs/src/skill.typ
+      - skills/mindtape/references/hand-editing.md
+
+  # `mt ls`: the facets, paging and the next-page command, the line under the
+  # table, the sort spec, and that there is no `--all`.
+  - name: cli-ls-docs
+    source:
+      - crates/mindtape-cli/src/cmd/ls/mod.rs
+    dependents:
+      - www/content/cli/ls.typ
+      - www/content/filters.typ
+      - www/content/named-sets.typ
+      - www/content/agents.typ
+      - www/content/schema.typ
+      - docs/src/skill.typ
       - skills/mindtape/references/filters.md
       - skills/mindtape/evals/README.md
       - skills/mindtape/evals/evals.json
+
+  # `mt mv`: a bare stem, `git mv`, a rename in place, and each edge keeping
+  # its prefix.
+  - name: cli-mv-docs
+    source:
+      - crates/mindtape-cli/src/cmd/mv.rs
+    dependents:
+      - www/content/cli/mv.typ
+      - www/utils/cli-notes.typ
+      - www/content/concepts.typ
+
+  # What each `--format` carries: the JSON envelope (`applied`, `truncated`,
+  # `retired`), a set's `project` and `error`, and the CSV mapping (`slug#` as
+  # `id`, `file` from the root). The table and the cell meanings are
+  # restated by hand on these pages.
+  - name: cli-output-docs
+    source:
+      - crates/mindtape-cli/src/render/output.rs
+    dependents:
+      - www/content/schema.typ
+      - www/content/cli/ls.typ
+      - www/content/agents.typ
+      - www/content/import-export.typ
+      - www/content/read-many-projects.typ
+
+  # `mt preset ls --json`, in the agents page's list of JSON commands.
+  - name: cli-preset-docs
+    source:
+      - crates/mindtape-cli/src/cmd/preset.rs
+    dependents:
+      - www/content/agents.typ
+
+  # `mt recur`: the refusals, `--dry-run`, `--advance` and `--skip`.
+  - name: cli-recur-docs
+    source:
+      - crates/mindtape-cli/src/cmd/recur/mod.rs
+    dependents:
+      - www/content/cli/recur.typ
+      - www/content/recurring.typ
+
+  # `mt rm`: a reference, a folder or a filter per entry, one confirmation,
+  # the filter word read before a stem hash, and the bare `mt rm`.
+  - name: cli-rm-docs
+    source:
+      - crates/mindtape-cli/src/cmd/rm/mod.rs
+    dependents:
+      - www/content/cli/rm.typ
+      - www/utils/cli-notes.typ
+      - www/content/filters.typ
+      - www/content/statuses.typ
+      - www/content/cli/ls.typ
+      - docs/src/skill.typ
+
+  # `mt set`: the fields it refuses and the command each one names, the
+  # fields it writes, and its re-run writing nothing.
+  - name: cli-set-docs
+    source:
+      - crates/mindtape-cli/src/cmd/set.rs
+    dependents:
+      - www/utils/cli-notes.typ
+      - www/content/cli/mv.typ
+      - www/content/estimates.typ
+      - docs/src/skill.typ
+      - skills/mindtape/references/hand-editing.md
+      - skills/mindtape/references/blocking.md
+      - skills/mindtape/evals/evals.json
+
+  # `mt views`: the listing, and one view's description.
+  - name: cli-views-docs
+    source:
+      - crates/mindtape-cli/src/cmd/views.rs
+    dependents:
+      - www/content/cli/views.typ
+      - www/content/named-sets.typ
+      - docs/src/skill.typ
+
+  # The filter and `--sort` field vocabulary. filters.typ and the skill's
+  # filter reference list the fields by hand, and no fact file carries the
+  # registry. `sort.rs` is not a second source: it reads its sortable fields
+  # off this one (`is_sort_field`), and the rest is comparator internals.
+  # cli/ls.typ says `file` is no field and points at `path`.
+  - name: filter-fields-docs
+    source:
+      - crates/mindtape/src/model/fields.rs
+    dependents:
+      - www/content/filters.typ
+      - skills/mindtape/references/filters.md
+      - www/content/cli/ls.typ
+
+  # The config floor's values that prose quotes: the default view, `[rm]
+  # default-filter`, the shipped `[ls.columns]` whens and `[templates]`. The
+  # legend's table on /statuses/ renders from floor-legend.json and the scales
+  # on /priority/ from frameworks.json, so neither page is here for those.
+  - name: config-floor-docs
+    source:
+      - crates/mindtape/src/config/defaults.toml
+    dependents:
+      - www/content/filters.typ
+      - www/content/cli/ls.typ
+      - www/content/quickstart.typ
+      - www/content/templates.typ
+      - www/content/statuses.typ
+      - www/content/import-export.typ
+      - www/content/config.typ
+
+  # The `flow` preset `mt init` writes by default. The quickstart's refused
+  # flip and the jq adapters' status names quote its legend. No page quotes
+  # the other presets.
+  - name: flow-preset-docs
+    source:
+      - crates/mindtape-cli/src/cmd/init/presets/flow/config.toml
+    dependents:
+      - www/content/quickstart.typ
+      - www/content/import-export.typ
 
   # The filter language's functions (`has`, `miss`, `contains`, `touches`,
   # `stale`, `changed`, `count`, `links`, `in_view`, ...) are matched by name
@@ -191,7 +378,7 @@ groups:
   # two pages. Each module is listed rather than globbed, because a source
   # glob cannot exclude: `filter/**` would make every test edit and the
   # `[[ls.rules]]` condition language re-confirm these pages. The field
-  # vocabulary the same pages list is tracked by cli-docs.
+  # vocabulary the same pages list is tracked by filter-fields-docs.
   - name: filter-docs
     source:
       - crates/mindtape/src/filter/mod.rs
@@ -227,9 +414,9 @@ groups:
   # The Typst task DSL is mirrored in the docs and the CLI's embedded copy.
   # concepts.typ, priority.typ, and templates.typ each carry their own
   # `task.with(...)`/`ice(...)`/`slot(...)` snippet taken from this file's
-  # signatures. They are also in cli-docs, for their CLI and config facts (dual
-  # membership, as with SKILL.md below). dsl.typ stays the detailed reference
-  # the others defer to.
+  # signatures. Each is also in a CLI group above for the command facts it
+  # restates (dual membership, as with SKILL.md below). dsl.typ stays the
+  # detailed reference the others defer to.
   #
   # index.typ's "Why Typst" list restates what the `task` signature checks.
   #
