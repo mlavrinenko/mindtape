@@ -195,13 +195,20 @@ EOF
 (
     capture_home
     capture_copy P examples/api-service
+    capture_copy L examples/links
+    capture_copy M examples/minimal
     mkdir -p "$CAPTURE_CONFIG_HOME/mindtape"
-    printf '[at.api]\ninclude = ["%s"]\n' "$P" >"$CAPTURE_CONFIG_HOME/mindtape/at.toml"
-    CAPTURE_PATHS+=("$P=~/api-service")
+    printf '[at.api]\ninclude = ["%s"]\n\n[at.demo]\ninclude = ["%s", "%s", "%s"]\nboard.hide = "ready < 5"\n' \
+        "$P" "$P" "$L" "$M" >"$CAPTURE_CONFIG_HOME/mindtape/at.toml"
+    CAPTURE_PATHS+=("$P=~/api-service" "$L=~/links" "$M=~/minimal")
     capture_prep "$P" 'mt allow'
     capture_scratch Q
     capture_lines at-examples "$Q" <<'EOF'
 mt at             # the configured @names
 mt @api ls        # a project's @name is -w <path>, rewritten before parsing
+EOF
+    capture_lines board-examples "$Q" <<'EOF'
+mt @demo                # a bare @name runs mt @demo board
+mt @demo board --all    # the rows hide hides, too
 EOF
 )

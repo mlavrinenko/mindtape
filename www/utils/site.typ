@@ -152,7 +152,7 @@
 #let CLI_GROUPS = (
   ("Files", ("add", "import", "mv", "go", "eval")),
   ("Fields", ("set",)),
-  ("Listing", ("ls", "find")),
+  ("Listing", ("ls", "find", "board")),
   ("Graph", ("graph",)),
   ("Links", ("link",)),
   ("Views & dictionaries", ("views", "dicts")),

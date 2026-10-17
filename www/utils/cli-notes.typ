@@ -91,6 +91,16 @@
   "ls.columns": (
     examples: "ls-columns-examples",
   ),
+  "board": (
+    prose: [Each column is a `[[board.columns]]` entry in `at.toml`. A
+      `filter` column counts the tasks it matches, and a `top` column shows
+      the first match in the project's default order. Every filter runs under
+      that project's own config. A cell that fails prints `?` with a note
+      under the table, and a project whose config won't load is a `⚠` row,
+      after which `mt` exits 1. `hide` drops a row, `sort` orders them, and
+      `[at.<name>.board]` overrides `[board]` for one set.],
+    examples: "board-examples",
+  ),
 
   // ── Graph ───────────────────────────────────────────────────────────────────
   "graph": (

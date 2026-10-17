@@ -145,7 +145,9 @@ in your #link(u("/config/"))[config directory]. An `[at.<name>]` entry whose
 `@<dir>` also finds a project by its directory name when an `include` matches
 it. An entry with several paths or a `*` glob is a set of projects, and a
 command that runs on one project refuses it. `mt at` lists the entries, and
-`mt at <name>` lists the projects one holds and marks the forks.
+`mt at <name>` lists the projects one holds and marks the forks. A bare
+`mt @<name>` runs #link(u("/cli/board/"))[`mt board`] on it, one row per
+project with its open, ready and blocked counts and its next ready task.
 
 = Pin today's date
 
