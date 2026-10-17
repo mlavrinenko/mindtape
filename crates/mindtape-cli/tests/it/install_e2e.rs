@@ -31,6 +31,17 @@ fn schema_path(home: &Path) -> PathBuf {
     home.join("config/mindtape/config.schema.json")
 }
 
+/// Each schema `mt install` writes, beside `config.schema.json`, with the
+/// text it must hold.
+fn schemas(home: &Path) -> [(PathBuf, String); 2] {
+    let config = schema_path(home);
+    let at = config.with_file_name("at.schema.json");
+    [
+        (config, mindtape::config_schema_json()),
+        (at, mindtape::at::schema_json()),
+    ]
+}
+
 fn lib_typst_toml(home: &Path) -> PathBuf {
     home.join("data/typst/packages/local/mindtape/0.2.0/typst.toml")
 }
@@ -49,7 +60,7 @@ fn seed_existing_defaults(home: &Path) -> PathBuf {
 }
 
 /// Bare `mt install` writes the Typst package files, the XDG global
-/// `defaults.toml`, and the JSON Schema.
+/// `defaults.toml`, and both JSON Schemas.
 #[test]
 fn install_writes_lib_defaults_and_schema() {
     let home = tempdir();
@@ -57,46 +68,42 @@ fn install_writes_lib_defaults_and_schema() {
 
     assert!(lib_typst_toml(home.path()).exists());
     assert!(lib_prelude(home.path()).exists());
-    assert!(defaults_path(home.path()).exists());
-    assert!(schema_path(home.path()).exists());
-
     let content = std::fs::read_to_string(defaults_path(home.path())).unwrap();
     assert_eq!(content, mindtape::embedded_defaults());
-    let schema = std::fs::read_to_string(schema_path(home.path())).unwrap();
-    assert_eq!(schema, mindtape::config_schema_json());
+    for (path, expected) in schemas(home.path()) {
+        assert_eq!(
+            std::fs::read_to_string(&path).unwrap(),
+            expected,
+            "{path:?}"
+        );
+    }
 }
 
-/// `--no-lib` writes the XDG defaults and schema, skipping the Typst package.
-#[test]
-fn no_lib_skips_only_the_package() {
-    let home = tempdir();
-    run_install(home.path(), &["install", "--no-lib"]).success();
-
-    assert!(defaults_path(home.path()).exists());
-    assert!(schema_path(home.path()).exists());
-    assert!(!lib_typst_toml(home.path()).exists());
+/// The files each `--no-*` flag skips, by flag: every other part still lands.
+fn parts(home: &Path) -> [(&'static str, Vec<PathBuf>); 3] {
+    [
+        ("--no-lib", vec![lib_typst_toml(home), lib_prelude(home)]),
+        ("--no-defaults", vec![defaults_path(home)]),
+        (
+            "--no-schema",
+            schemas(home).into_iter().map(|(path, _)| path).collect(),
+        ),
+    ]
 }
 
-/// `--no-defaults` writes the Typst package and schema, skipping the defaults.
+/// Each of `--no-lib`, `--no-defaults` and `--no-schema` skips its own files
+/// and only those.
 #[test]
-fn no_defaults_skips_only_the_defaults() {
-    let home = tempdir();
-    run_install(home.path(), &["install", "--no-defaults"]).success();
-
-    assert!(lib_typst_toml(home.path()).exists());
-    assert!(schema_path(home.path()).exists());
-    assert!(!defaults_path(home.path()).exists());
-}
-
-/// `--no-schema` writes the lib and defaults but skips the JSON Schema.
-#[test]
-fn no_schema_skips_only_the_schema() {
-    let home = tempdir();
-    run_install(home.path(), &["install", "--no-schema"]).success();
-
-    assert!(lib_typst_toml(home.path()).exists());
-    assert!(defaults_path(home.path()).exists());
-    assert!(!schema_path(home.path()).exists());
+fn each_skip_flag_skips_only_its_part() {
+    for (flag, _) in parts(Path::new("")) {
+        let home = tempdir();
+        run_install(home.path(), &["install", flag]).success();
+        for (part, paths) in parts(home.path()) {
+            for path in paths {
+                assert_eq!(path.exists(), part != flag, "{flag}: {path:?}");
+            }
+        }
+    }
 }
 
 /// An existing `config.schema.json` survives a bare `mt install`, and `--force`
