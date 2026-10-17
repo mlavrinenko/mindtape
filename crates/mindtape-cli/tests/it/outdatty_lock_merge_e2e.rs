@@ -338,3 +338,29 @@ fn a_source_both_sides_edited_and_recorded_is_left_for_review() {
     repo.record("alpha", None);
     repo.assert_lock_is_current();
 }
+
+/// main renames group `gamma` to `delta` and re-records, while feat records a
+/// review of a `gamma` dependent. A rebase of feat onto main must not bring
+/// `gamma` back: `outdatty check` passes with a lock group the manifest no
+/// longer declares, so nothing else would notice.
+#[test]
+fn a_rebase_over_a_renamed_group_drops_the_old_groups_leaves() {
+    let repo = Repo::new();
+    repo.git(&["checkout", "-q", "-b", "feat"]);
+    repo.write("g-doc.txt", "reviewed\n");
+    repo.record("gamma", Some("g-doc.txt"));
+    repo.commit("docs: review g-doc");
+
+    repo.git(&["checkout", "-q", "main"]);
+    repo.write("outdatty.yaml", &MANIFEST.replace("gamma", "delta"));
+    repo.ok("outdatty", &["update", "--format", "quiet"]);
+    repo.commit("dev: rename gamma to delta");
+
+    repo.git(&["checkout", "-q", "feat"]);
+    let out = repo.command("git", &["rebase", "main"]);
+    assert!(out.status.success(), "{}{}", stdout(&out), stderr(&out));
+    let lock = repo.read("outdatty.lock");
+    assert!(!lock.contains("gamma"), "{lock}");
+    assert!(lock.contains("delta"), "{lock}");
+    repo.ok("outdatty", &["check", "--format", "quiet"]);
+}

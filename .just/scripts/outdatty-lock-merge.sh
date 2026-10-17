@@ -49,6 +49,14 @@
 # every hash both sides changed gets the zeros. A wrong guess is worse than a
 # review.
 #
+# A group the merged `outdatty.yaml` does not declare is dropped whole, whichever
+# side still holds it. `outdatty check` ignores such a group, so a split or a
+# rename would otherwise leave the old group's hashes behind, and a rebase would
+# bring them back from a branch that re-recorded the group before the split. The
+# merged manifest is read from the commits like a merged file (above): a
+# manifest one side changed is the merged one, and when both changed it, a group
+# either declares stays. With no commits resolved, nothing is dropped.
+#
 # Without `yq`, `jq` or `b3sum` on PATH (a merge run outside the dev shell), or
 # with a side that does not parse as a lock, it falls back to git's text merge,
 # which is what the repo had before the driver.
@@ -82,12 +90,16 @@ fi
 # merge($tree): one entry per leaf of the result, `{path, value}` for a merged
 # leaf, `{path, value, file, review}` for a hash left for review and
 # `{path, conflict}` for a conflicting one. `$tree` maps a tracked path to its
-# blake3 hash in the merged tree.
+# blake3 hash in the merged tree. `$declared` lists the groups the merged
+# `outdatty.yaml` declares, or is null when that is unknown: a group outside
+# it is left out of the result, whatever either side holds for it.
 # shellcheck disable=SC2016 # a jq program, whose $names are jq's
 lib='
 def unmatched: "0000000000000000000000000000000000000000000000000000000000000000";
 def leaves: reduce (paths(type != "object" or . == {}) as $p | [$p, getpath($p)]) as [$p, $v]
     ({}; .[$p | tojson] = $v);
+def declared($e): $declared == null or $e.path[0] != "groups"
+    or ($declared | index($e.path[1])) != null;
 def merge($tree):
     ($o | leaves) as $O | ($a | leaves) as $A | ($b | leaves) as $B
     | [ [$O, $A, $B] | map(keys) | add | unique | .[]
@@ -103,11 +115,9 @@ def merge($tree):
                   elif ($B | has($k)) and $tree[$file] == $B[$k] then keep($B)
                   else {path: $p, file: $file, value: unmatched, review: true}
                   end)
-          end ];
+          end ]
+    | map(select(declared(.)));
 '
-
-contested=$(jq -nr --argjson o "$o" --argjson a "$a" --argjson b "$b" \
-    "$lib"' merge({}) | .[] | select(.review) | .file')
 
 # label_commit <label>: the commit a conflict label names, or nothing.
 label_commit() {
@@ -140,18 +150,57 @@ merged_hash() {
     [ -z "$merged" ] || git cat-file blob "$merged" | b3sum --no-names
 }
 
-tree='{}'
-if [ -n "$contested" ]; then
+# resolve_commits: set base_commit, ours_commit and theirs_commit when the labels
+# name them and each one holds the lock blob git handed over.
+resolve_commits() {
     base_commit=$(label_commit "$base_label") || true
     ours_commit=$(git rev-parse -q --verify HEAD) || true
     theirs_commit=$(label_commit "$theirs_label") || true
-    if [ -n "$base_commit" ] && [ -n "$ours_commit" ] && [ -n "$theirs_commit" ] \
+    [ -n "$base_commit" ] && [ -n "$ours_commit" ] && [ -n "$theirs_commit" ] \
         && lock_blob_is "$base_commit" "$base" && lock_blob_is "$ours_commit" "$ours" \
-        && lock_blob_is "$theirs_commit" "$theirs"; then
-        # Lock paths are relative to the lock's directory; git's are to the top.
-        dir=$(dirname "$path")
-        prefix=${dir#.}
-        prefix=${prefix:+$prefix/}
+        && lock_blob_is "$theirs_commit" "$theirs"
+}
+
+# declared_groups: the group names the merged outdatty.yaml (beside the lock)
+# declares, as a JSON array, or `null` when that cannot be told. A manifest
+# only one side changed is the merged one. When both changed it, the merge of
+# the two is out of sight, so a group either side declares counts as declared.
+declared_groups() {
+    local file=${prefix}outdatty.yaml ob oh ot blobs names='[]' side more
+    ob=$(blob "$base_commit" "$file") oh=$(blob "$ours_commit" "$file") ot=$(blob "$theirs_commit" "$file")
+    if [ "$ot" = "$ob" ]; then
+        blobs=("$oh")
+    elif [ "$oh" = "$ob" ] || [ "$oh" = "$ot" ]; then
+        blobs=("$ot")
+    else
+        blobs=("$oh" "$ot")
+    fi
+    for side in "${blobs[@]}"; do
+        [ -n "$side" ] || { echo null; return 0; }
+        more=$(git cat-file blob "$side" | yq -c '[.groups[]?.name]' 2>/dev/null) \
+            || { echo null; return 0; }
+        names=$(jq -nc --argjson x "$names" --argjson y "$more" '$x + $y') \
+            || { echo null; return 0; }
+    done
+    echo "$names"
+}
+
+# Lock paths are relative to the lock's directory; git's are to the top.
+dir=$(dirname "$path")
+prefix=${dir#.}
+prefix=${prefix:+$prefix/}
+
+commits_known=
+resolve_commits && commits_known=1
+declared=null
+[ -z "$commits_known" ] || declared=$(declared_groups)
+
+contested=$(jq -nr --argjson o "$o" --argjson a "$a" --argjson b "$b" --argjson declared "$declared" \
+    "$lib"' merge({}) | .[] | select(.review) | .file')
+
+tree='{}'
+if [ -n "$contested" ]; then
+    if [ -n "$commits_known" ]; then
         while IFS= read -r file; do
             hash=$(merged_hash "$prefix$file")
             [ -z "$hash" ] || tree=$(jq -c --arg f "$file" --arg h "$hash" '.[$f] = $h' <<<"$tree")
@@ -186,7 +235,7 @@ def build: sort_by(.path | length)
     | reduce .[] as $e ({}; setpath($e.path;
         if $e.conflict then {"\u0000conflict": $e.conflict} else $e.value end));
 '
-args=(--argjson o "$o" --argjson a "$a" --argjson b "$b" --argjson tree "$tree")
+args=(--argjson o "$o" --argjson a "$a" --argjson b "$b" --argjson tree "$tree" --argjson declared "$declared")
 merged=$(jq -nr "${args[@]}" --arg ours "$ours_label" --arg theirs "$theirs_label" \
     "$lib$emit"' merge($tree) | build | emit(0)')
 printf '%s\n' "$merged" >"$ours"

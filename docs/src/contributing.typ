@@ -196,7 +196,9 @@ A rebase or merge joins two branches' `outdatty.lock` key by key through
 `.just/scripts/outdatty-lock-merge.sh`. When both branches edited one source
 and re-recorded it, its hash comes out as zeros, so #just.outdatty-check()
 reports that group until you review it and commit the re-record, which owes
-the footer like any other.
+the footer like any other. The driver also drops a group the merged
+`outdatty.yaml` no longer declares, so a split or a rename leaves no orphan
+hashes.
 `.jscpd-baseline.json` merges as the union of both fingerprint maps through
 `.just/scripts/jscpd-baseline-merge.sh`. `crap-baseline.json` merges function
 by function through `.just/scripts/crap-baseline-merge.sh`, which keeps the
