@@ -178,6 +178,12 @@ pub const FIELDS: &[FieldDef] = &[
     },
 ];
 
+/// Every [`FIELDS`] name, in registry order: the fields a filter compares
+/// and `--sort` orders, which `mt _cli --json` hands the docs.
+pub fn field_names() -> impl Iterator<Item = &'static str> {
+    FIELDS.iter().map(|def| def.name)
+}
+
 /// Look up a field by its filter/`--sort` name.
 #[must_use]
 pub fn get(name: &str) -> Option<&'static FieldDef> {
@@ -222,7 +228,7 @@ pub fn is_contains_field(name: &str) -> bool {
 /// haystack).
 #[must_use]
 pub fn contains_field_names() -> Vec<&'static str> {
-    let mut names: Vec<&'static str> = FIELDS.iter().map(|def| def.name).collect();
+    let mut names: Vec<&'static str> = field_names().collect();
     names.extend(TEXT_ONLY_CONTAINS_FIELDS);
     names
 }

@@ -86,6 +86,7 @@ fn dump(root: &Command) -> Value {
         "filter_functions": filter_functions(),
         "date_tokens": date_tokens(),
         "slot_kinds": slot_kinds(),
+        "fields": fields(),
     })
 }
 
@@ -120,6 +121,14 @@ fn slot_kinds() -> Vec<Value> {
     mindtape::SlotKind::ALL
         .iter()
         .map(|kind| json!({"name": kind.as_str()}))
+        .collect()
+}
+
+/// The fields a filter compares, in registry order, each marked with whether
+/// `--sort` takes it, so the docs render the sort rule the code applies.
+fn fields() -> Vec<Value> {
+    mindtape::field_names()
+        .map(|name| json!({"name": name, "sortable": mindtape::sort::is_sort_field(name)}))
         .collect()
 }
 

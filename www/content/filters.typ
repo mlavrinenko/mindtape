@@ -1,6 +1,37 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": callout, commands, exit-code, terminal, terminal-ansi
 #import "../utils/site.typ": u
+#import "../utils/filter-field-notes.typ": filter-field-notes
+
+// The fields and which of them sort come from `FIELDS` and
+// `is_sort_field`, read back through filter-fields.json. A notes key that
+// isn't a field there is filter only.
+#let filter-fields = json("../generated/filter-fields.json").fields
+#for field in filter-fields {
+  assert(
+    field.name in filter-field-notes,
+    message: "www/utils/filter-field-notes.typ has no note for the filter field "
+      + field.name,
+  )
+}
+#let sorted-fields = filter-fields.filter(f => f.sortable).map(f => f.name)
+#let unsorted-fields = (
+  filter-field-notes.keys().filter(name => name not in sorted-fields)
+)
+#let field-rows = {
+  let rows = ()
+  for (name, note) in filter-field-notes {
+    let sorts = name in sorted-fields
+    if (
+      rows.len() > 0 and rows.last().note == note and rows.last().sorts == sorts
+    ) {
+      rows.last().names.push(name)
+    } else {
+      rows.push((names: (name,), note: note, sorts: sorts))
+    }
+  }
+  rows
+}
 
 #let meta = (
   route: "/filters/",
@@ -28,43 +59,12 @@ backend project's backlog:
 #table(
   columns: 2,
   table.header([Field], [Value]),
-  [`status`],
-  [The status name. It sorts by position in the #link(u("/statuses/"))[status legend].],
-
-  [`status.name`, `status.date`, `status.note`],
-  [The name, the ISO date and the note of the status stamp. `status.name` sorts alphabetically.],
-
-  [`status.index`],
-  [The status's 0-based position in the legend, as a number. A status outside the legend has none.],
-
-  [`priority`, `difficulty`],
-  [Numbers. A #link(u("/priority/"))[framework] priority reads as its score.],
-
-  [`kind`, `title`, `id`, `assignee`], [Text.],
-  [`due`, `start`, `reviewed`], [ISO dates, compared as text: `due < now()`.],
-  [`path`],
-  [The task file's path from the project root, with `/` on every platform.],
-
-  [`depth`],
-  [How many folders deep the file sits under its root: 0 in the root itself.],
-
-  [`role`],
-  [Matches when the assignee holds that role in `[[actors]]`. Comparison only, so it doesn't sort.],
-
-  [`topo`, `blocks`],
-  [The task's place in the dependency graph, described below.],
-
-  [`children`, `progress`],
-  [The number of #link(u("/links/"))[`parent`] children, and the finished share of them from 0 to 1. A task with no children has no `progress`.],
-
-  [`estimate.<unit>`],
-  [One #link(u("/estimates/"))[estimate] unit, as a number. Filters only, so it doesn't sort.],
-
-  [`estimate`],
-  [The estimate dict. Only `has()` and `miss()` read it: `has(estimate, "days")`.],
-
-  [`tags`],
-  [The written and derived tags. `has(tags, "frontend")` reads them, and `contains` searches them.],
+  ..field-rows
+    .map(row => (
+      row.names.map(raw).join([, ]),
+      if row.sorts { row.note } else [#row.note It doesn't sort.],
+    ))
+    .flatten(),
 
   [`x-<ns>`],
   [An extension field, whether or not `[tasks.fields]` declares it. Text, a number or a boolean compares like any field. A list equals nothing, so use `has(field, value)` to read it. A dict takes only `has()` and `miss()`. If a filter in the config names an undeclared one while `[tasks.fields]` declares others, `mt` warns at load and suggests the nearest declared name.],
@@ -267,8 +267,8 @@ read-only (`--no-optional-locks`) and at most once per command.
 = Sort and limit
 
 `--sort` takes `field`, `field:asc` or `field:desc`. Repeat it to add keys,
-most significant first. Every field in the table sorts except `role`,
-`estimate.<unit>` and `estimate`. An `x-<ns>` list or dict sorts as a missing
+most significant first. Every field in the table sorts except
+#unsorted-fields.map(raw).join([, ], last: [ and ]). An `x-<ns>` list or dict sorts as a missing
 value, last. `ready` sorts too: ready, then blocked, then terminal. Any other
 direction, such as `priority:up`, is an error. `[ls] default-sort` takes the
 same specs.

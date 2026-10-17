@@ -40,9 +40,9 @@ A field the task does not carry is unequal to every literal, so
 `kind != "bug"` matches a task with no `kind`. Use `miss(kind)` to select
 absence.
 
-`--sort` takes every field listed above `role`, an `x-<ns>` slot, and
-`ready`, which sorts ready tasks before blocked ones and finished ones last.
-Bare `status` sorts by legend position.
+`--sort` takes every field above except `role`, `estimate.<unit>`, `estimate`
+and `tags`. It also takes `ready`, which sorts ready tasks before blocked ones
+and finished ones last. Bare `status` sorts by legend position.
 
 ## Operators
 

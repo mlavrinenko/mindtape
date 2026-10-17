@@ -103,6 +103,7 @@ pub use loader::{
 };
 pub use loader::{Loaded, load_many, map_parallel};
 pub use model::canonical::{CanonicalTask, SCHEMA_VERSION};
+pub use model::fields::field_names;
 pub use model::handle::{Resolution, StemHashes};
 pub use model::marker::ShapeError;
 pub use model::numeric::{

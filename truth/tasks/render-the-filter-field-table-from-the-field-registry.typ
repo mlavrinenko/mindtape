@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 17),
+  status: done(2026, 10, 17),
   links: parent("keep-the-user-docs-generated-or-gated-not-restated.typ")
     + depends-on(
       "list-the-template-slot-kinds-from-one-slotkind-registry.typ",

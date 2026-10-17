@@ -330,16 +330,19 @@ groups:
       - www/content/named-sets.typ
       - docs/src/skill.typ
 
-  # The filter and `--sort` field vocabulary. filters.typ and the skill's
-  # filter reference list the fields by hand, and no fact file carries the
-  # registry. `sort.rs` is not a second source: it reads its sortable fields
-  # off this one (`is_sort_field`), and the rest is comparator internals.
-  # cli/ls.typ says `file` is no field and points at `path`.
+  # The filter and `--sort` field vocabulary. /filters/ renders its field
+  # table and sort exceptions from filter-fields.json, so the page isn't here.
+  # What the hash still guards is the prose beside those names, which a
+  # change of meaning leaves compiling and wrong: the notes the table renders,
+  # the skill's filter reference (check-doc-facts checks only its names), and
+  # cli/ls.typ, which says `file` is no field and points at `path`. `sort.rs`
+  # is not a second source: it reads its sortable fields off this one
+  # (`is_sort_field`), and the rest is comparator internals.
   - name: filter-fields-docs
     source:
       - crates/mindtape/src/model/fields.rs
     dependents:
-      - www/content/filters.typ
+      - www/utils/filter-field-notes.typ
       - skills/mindtape/references/filters.md
       - www/content/cli/ls.typ
 

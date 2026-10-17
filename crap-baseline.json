@@ -463,6 +463,15 @@
     },
     {
       "file": "crates/mindtape-cli/src/cli/tree_json.rs",
+      "function": "fields",
+      "line": 128,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape-cli"
+    },
+    {
+      "file": "crates/mindtape-cli/src/cli/tree_json.rs",
       "function": "filter_functions",
       "line": 95,
       "cyclomatic": 1.0,
@@ -14360,7 +14369,7 @@
     {
       "file": "crates/mindtape/src/lib.rs",
       "function": "select",
-      "line": 138,
+      "line": 139,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -15152,7 +15161,7 @@
     {
       "file": "crates/mindtape/src/model/fields.rs",
       "function": "contains_field_names",
-      "line": 224,
+      "line": 230,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -15161,7 +15170,7 @@
     {
       "file": "crates/mindtape/src/model/fields.rs",
       "function": "extra",
-      "line": 260,
+      "line": 266,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -15169,16 +15178,7 @@
     },
     {
       "file": "crates/mindtape/src/model/fields.rs",
-      "function": "from_extra",
-      "line": 243,
-      "cyclomatic": 8.0,
-      "coverage": 80.0,
-      "crap": 8.512,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/model/fields.rs",
-      "function": "get",
+      "function": "field_names",
       "line": 183,
       "cyclomatic": 1.0,
       "coverage": 100.0,
@@ -15187,8 +15187,26 @@
     },
     {
       "file": "crates/mindtape/src/model/fields.rs",
+      "function": "from_extra",
+      "line": 249,
+      "cyclomatic": 8.0,
+      "coverage": 80.0,
+      "crap": 8.512,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/model/fields.rs",
+      "function": "get",
+      "line": 189,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/model/fields.rs",
       "function": "held",
-      "line": 273,
+      "line": 279,
       "cyclomatic": 7.0,
       "coverage": 93.75,
       "crap": 7.011962890625,
@@ -15197,7 +15215,7 @@
     {
       "file": "crates/mindtape/src/model/fields.rs",
       "function": "is_contains_field",
-      "line": 215,
+      "line": 221,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -15206,7 +15224,7 @@
     {
       "file": "crates/mindtape/src/model/fields.rs",
       "function": "is_extra",
-      "line": 234,
+      "line": 240,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -15215,7 +15233,7 @@
     {
       "file": "crates/mindtape/src/model/fields.rs",
       "function": "num_field",
-      "line": 300,
+      "line": 306,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -15224,7 +15242,7 @@
     {
       "file": "crates/mindtape/src/model/fields.rs",
       "function": "opt_str",
-      "line": 292,
+      "line": 298,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,

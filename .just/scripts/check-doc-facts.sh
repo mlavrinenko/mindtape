@@ -8,7 +8,7 @@
 # the facts www/generate-facts.sh and www/generate-site-pages.sh derive
 # instead of a hand-maintained list (see truth/tasks/derive-the-drift-prone-
 # doc-facts-from-their-sources.typ and truth/tasks/derive-site-pages-json-
-# from-the-pages-page-meta-blocks.typ). Seven arms: every crate in
+# from-the-pages-page-meta-blocks.typ). Eight arms: every crate in
 # crate-map.json needs a www/utils/crate-notes.typ entry, every DSL field in
 # dsl-fields.json needs a www/utils/dsl-field-notes.typ entry, every priority framework
 # in frameworks.json needs a www/utils/framework-notes.typ entry
@@ -16,6 +16,8 @@
 # sweep-flags.json needs a www/utils/sweep-flag-notes.typ entry
 # (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-attributes.typ),
 # every slot kind in slot-kinds.json needs a www/utils/slot-kind-notes.typ entry,
+# every filter field in filter-fields.json opens a code span in the skill's
+# filter reference,
 # and every www/content/**/*.typ page needs a route in site-pages.json and,
 # when top-level, a `NAV` entry in www/utils/site.typ. The first four arms read their Typst dict's
 # keys through the same target/-rooted driver trick as check-doc-coverage.sh,
@@ -116,6 +118,23 @@ for page in www/content/filters.typ skills/mindtape/references/filters.md; do
         exit 1
     fi
 done
+
+# The filter-fields arm: every field in the filter field registry (`FIELDS` in
+# crates/mindtape/src/model/fields.rs, read back through filter-fields.json)
+# must open a code span in the skill's filter reference, which an agent reads
+# with no site access. The site's table renders from the same fact, and its
+# build fails on a field with no www/utils/filter-field-notes.typ entry. A
+# field name holds dots, so they're escaped before the name becomes a pattern.
+filter_fields=$(jq -r '.fields[].name' www/generated/filter-fields.json)
+page=skills/mindtape/references/filters.md
+missing_filter_fields=$(while IFS= read -r name; do
+    grep -qE "\`${name//./\\.}([^A-Za-z0-9_.-]|\$)" "$page" || echo "$name"
+done <<<"$filter_fields")
+if [ -n "$missing_filter_fields" ]; then
+    echo "check-doc-facts: filter fields missing from $page:" >&2
+    while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_filter_fields"
+    exit 1
+fi
 
 # The slot-kinds arm: every kind in the SlotKind registry (read back through
 # slot-kinds.json) needs a www/utils/slot-kind-notes.typ entry, so the

@@ -20,7 +20,7 @@
 # than this script: www/generate-site-pages.sh derives that one and needs
 # generate.sh's own captures — see both headers for why.
 #
-# Nine artifacts, nine sources:
+# Ten artifacts, ten sources:
 #   - crate-map.json    <- `cargo metadata`, rust-toolchain.toml, the
 #                          [workspace.package] table, lib/typst.toml
 #   - dsl-fields.json   <- lib/prelude.typ's `task` signature, read back
@@ -34,6 +34,8 @@
 #                          `filter_functions` key of cli.json (`mt _cli`)
 #   - slot-kinds.json   <- the template slot kinds, read back from the
 #                          `slot_kinds` key of cli.json (`mt _cli`)
+#   - filter-fields.json <- the filter field registry, read back from the
+#                          `fields` key of cli.json (`mt _cli`)
 #   - gates.json        <- `just --dump --dump-format json` for the
 #                          `[group("gate")]` tags and `check`'s own dependency
 #                          list, for row order (see www/gates.jq)
@@ -165,6 +167,12 @@ jq '{tokens: .date_tokens}' "$OUT/cli.json" | emit date-tokens.json
 # crates/mindtape/src/template/mod.rs that `parse` and the refusals read, so
 # the templates page holds no kind by hand.
 jq '{kinds: .slot_kinds}' "$OUT/cli.json" | emit slot-kinds.json
+
+# --- filter-fields.json -------------------------------------------------------
+# The fields a filter compares, each marked sortable, off `FIELDS` in
+# crates/mindtape/src/model/fields.rs and `is_sort_field` in sort.rs, so the
+# filters page holds no field name or sort exception by hand.
+jq '{fields: .fields}' "$OUT/cli.json" | emit filter-fields.json
 
 # site-pages.json — the docs site's page manifest — is derived in its own
 # script, www/generate-site-pages.sh. Each page carries its own `<page-meta>`

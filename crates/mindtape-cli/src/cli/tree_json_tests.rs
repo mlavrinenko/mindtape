@@ -51,6 +51,18 @@ fn slot_kinds_carry_every_registered_kind() {
 }
 
 #[test]
+fn fields_carry_every_registered_field_as_sortable() {
+    let t = tree();
+    let fields = names(&t, "fields");
+    let registry: Vec<_> = mindtape::field_names().collect();
+    assert_eq!(fields, registry);
+    assert!(fields.contains(&"status.index") && !fields.contains(&"role"));
+    for entry in arr(&t, "fields") {
+        assert_eq!(entry.get("sortable"), Some(&Value::Bool(true)), "{entry}");
+    }
+}
+
+#[test]
 fn filter_functions_carry_the_registry() {
     let t = tree();
     let functions = names(&t, "filter_functions");
