@@ -214,9 +214,19 @@ fn render_groups_links_only_the_rows_of_a_listing_that_wants_links() {
     };
     let off = TestCtx::with_config(config);
     let (linked, plain) = (std::slice::from_ref(&linked), std::slice::from_ref(&plain));
-    let out = super::render_groups(&[(linked, on.ctx()), (plain, off.ctx())]).unwrap();
-    let lines: Vec<&str> = out.lines().collect();
-    assert_eq!(lines.len(), 3, "{out:?}");
-    assert!(lines[1].contains("\x1b]8;;"), "{out:?}");
-    assert!(!lines[2].contains("\x1b]8;;"), "{out:?}");
+    // Either order: the first listing seeds the joined columns, the rest
+    // append to them, and both paths must drop an unwanted link.
+    let linked_rows = [true, false];
+    for (groups, wrapped) in [
+        ([(linked, on.ctx()), (plain, off.ctx())], linked_rows),
+        ([(plain, off.ctx()), (linked, on.ctx())], [false, true]),
+    ] {
+        let out = super::render_groups(&groups).unwrap();
+        let rows: Vec<bool> = out
+            .lines()
+            .skip(1)
+            .map(|row| row.contains("\x1b]8;;"))
+            .collect();
+        assert_eq!(rows, wrapped, "{out:?}");
+    }
 }

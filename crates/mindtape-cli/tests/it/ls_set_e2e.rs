@@ -208,4 +208,9 @@ fn interactive_refuses_a_set() {
         stderr.starts_with("error: --interactive lists one project\n"),
         "{stderr}"
     );
+    let hint = format!(
+        "hint: name one project, as in mt @{} ls --interactive\n",
+        set.alpha()
+    );
+    assert!(stderr.contains(&hint), "{stderr}");
 }
