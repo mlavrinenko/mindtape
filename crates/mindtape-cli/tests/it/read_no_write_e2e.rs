@@ -223,6 +223,12 @@ fn at_leaves_tree_untouched() {
 /// (`cli::command_class::CLASSIFICATION` must equal the visible command tree), so
 /// this only has to walk the tree the same way that gate does.
 fn read_command_paths() -> Vec<String> {
+    read_leaves().into_iter().map(|(path, _)| path).collect()
+}
+
+/// Every `Read`-classified leaf of a fresh `mt _cli --json`, as its flattened
+/// path and its JSON node, so a test reads any mark the registry exports.
+pub(crate) fn read_leaves() -> Vec<(String, serde_json::Value)> {
     let dir = tempdir();
     let output = support::mt(dir.path())
         .args(["_cli", "--json"])
@@ -242,7 +248,11 @@ fn read_command_paths() -> Vec<String> {
 /// Recurse into a node with subcommands (`config`, `preset`); collect a leaf
 /// whose `class.kind` is `"read"`, flattening its path the same way
 /// `cli/tree_json.rs`'s `flattened_name` does.
-fn collect_read_leaves(commands: &[serde_json::Value], prefix: &str, out: &mut Vec<String>) {
+fn collect_read_leaves(
+    commands: &[serde_json::Value],
+    prefix: &str,
+    out: &mut Vec<(String, serde_json::Value)>,
+) {
     for cmd in commands {
         let name = cmd.get("name").and_then(serde_json::Value::as_str).unwrap();
         let path = if prefix.is_empty() {
@@ -259,7 +269,7 @@ fn collect_read_leaves(commands: &[serde_json::Value], prefix: &str, out: &mut V
                 .pointer("/class/kind")
                 .and_then(serde_json::Value::as_str);
             if kind == Some("read") {
-                out.push(path);
+                out.push((path, cmd.clone()));
             }
         } else {
             collect_read_leaves(subs, &path, out);
@@ -269,7 +279,7 @@ fn collect_read_leaves(commands: &[serde_json::Value], prefix: &str, out: &mut V
 
 /// Extra args a read command needs beyond its bare name split on spaces, for
 /// a required positional the classification has no way to supply generically.
-fn extra_args(path: &str) -> &'static [&'static str] {
+pub(crate) fn extra_args(path: &str) -> &'static [&'static str] {
     match path {
         // `mt eval <file>`: the file positional is required.
         "eval" => &["tasks/alpha.typ"],

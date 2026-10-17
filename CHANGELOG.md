@@ -200,8 +200,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   other `@name`s), `exclude`, and `forks` (`false`, `true` or `"only"`, for
   linked git worktrees). Put `@name` right after `mt`. An entry with one
   literal path is a project, so `mt @sn ls` means `mt -w <path> ls`, and so is
-  a directory an `include` matches by name. Any other entry is a set, which a
-  command that runs on one project refuses, naming a member to pick. `mt at`
+  a directory an `include` matches by name. Any other entry is a set. Every
+  command but `ls`, `find`, `check` and `board` refuses a set before it runs,
+  `mt @set at` and `mt @set config schema` included, naming a member to pick. `mt at`
   lists the entries, and `mt at <name>` lists a set's projects in aligned columns, a home path as `~/…`, marking
   forks. Both take `--json`. `mt --help` ends with a line on `@name`.
 - **`mt @set check` checks every project of a set.** It prints each project's
@@ -219,7 +220,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   them all.
 - **`mt _cli --json` describes the CLI**, its filter functions, the filter
   fields and which of them sort, the template slot kinds, the built-in link
-  kinds with their rules and the `{date:FMT}` tokens, for tools and docs.
+  kinds with their rules, the `{date:FMT}` tokens and which commands run on a
+  set, for tools and docs.
 - **`--json` on every read command**, `mt graph` and `mt preset ls` included.
   `mt check --json` prints a `problems` array (`severity`, `file`, `line`,
   `place`, `rule`, `message`, `hints`) in the `schema_version` envelope.

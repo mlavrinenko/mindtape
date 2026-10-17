@@ -182,6 +182,24 @@ fn config_show_carries_its_own_class_not_the_parent() {
 }
 
 #[test]
+fn a_leaf_carries_the_set_mark_and_a_parent_carries_none() {
+    let t = tree();
+    assert_eq!(
+        command(&t, "ls").get("runs_on_set"),
+        Some(&Value::Bool(true))
+    );
+    assert_eq!(
+        command(&t, "eval").get("runs_on_set"),
+        Some(&Value::Bool(false))
+    );
+    assert_eq!(
+        command(&t, "add").get("runs_on_set"),
+        Some(&Value::Bool(false))
+    );
+    assert!(command(&t, "config").get("runs_on_set").unwrap().is_null());
+}
+
+#[test]
 fn go_carries_an_exempt_class_with_a_reason() {
     let t = tree();
     let go = command(&t, "go");

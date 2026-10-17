@@ -89,3 +89,29 @@ fn a_set_name_is_refused_by_a_command_that_never_opens_a_project() {
         assert_eq!(written, 0, "{args:?} wrote into the working directory");
     }
 }
+
+/// The registry's set mark, read back from `mt _cli --json`, is the whole
+/// rule: a marked read command runs on `@both`, and every other read command
+/// refuses it with the one-project refusal before it runs.
+#[test]
+fn a_set_runs_exactly_the_commands_the_registry_marks() {
+    let (_alpha, _beta, cfg) = setup();
+    for (path, node) in crate::read_no_write_e2e::read_leaves() {
+        let on_set = node
+            .get("runs_on_set")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or_else(|| panic!("`{path}` carries no runs_on_set mark"));
+        let mut args = vec!["@both"];
+        args.extend(path.split(' '));
+        args.extend_from_slice(crate::read_no_write_e2e::extra_args(&path));
+        let out = run(cfg.path(), &args);
+        let stderr = String::from_utf8(out.stderr).unwrap();
+        let refused = stderr.contains("runs on one project, and @both holds 2 projects");
+        if on_set {
+            assert!(out.status.success() && !refused, "{args:?}: {stderr}");
+        } else {
+            assert_eq!(out.status.code(), Some(1), "{args:?}: {stderr}");
+            assert!(refused, "{args:?}: {stderr}");
+        }
+    }
+}

@@ -82,9 +82,10 @@ fn run() -> Result<(), Diag> {
     // a project reuses the existing override plumbing; a set is held for
     // `util::open_set`.
     let argv = cmd::at::desugar_argv(std::env::args_os().collect())?;
-    // A held set is never ignored: only a read command may open it, so every
-    // other command is refused before it runs, whether or not it opens a project.
-    if cli::command_class::is_not_read(&argv) {
+    // A held set is never ignored: only a command the registry marks as running
+    // on a set may open it, so every other command is refused before it runs,
+    // whether or not it opens a project.
+    if cli::command_class::refuses_a_set(&argv) {
         project_set::refuse_held()?;
     }
     let cli = cli::Cli::parse_from(argv);

@@ -11,7 +11,10 @@
 //! carries the CQRS split for `docs/src/contributing.typ` and
 //! `tests/it/read_no_write_e2e.rs` to read, instead of either retyping it. A
 //! node with subcommands (`config`, `preset`) carries `class: null`: it is
-//! not a leaf, only its children are classified.
+//! not a leaf, only its children are classified. A leaf also carries
+//! `runs_on_set`, whether the registry marks it as running on a set, so the
+//! docs list the set commands from the table `main` refuses a set by; a node
+//! with subcommands carries `runs_on_set: null`.
 //!
 //! Refs: `truth/tasks/structured-cli-reference-from-command-dump.typ`,
 //! `truth/tasks/gate-the-cqrs-split-against-the-command-tree.typ`.
@@ -161,7 +164,7 @@ fn subcommands(cmd: &Command, prefix: &str) -> Vec<Value> {
 }
 
 /// One command node: name, both about levels, visible aliases, local args,
-/// read/write `class`, and nested subcommands. Global args are dropped here —
+/// read/write `class`, `runs_on_set`, and nested subcommands. Global args are dropped here —
 /// they live once at the top.
 fn command_json(cmd: &Command, prefix: &str) -> Value {
     let name = cmd.get_name();
@@ -177,10 +180,13 @@ fn command_json(cmd: &Command, prefix: &str) -> Value {
     let subs = subcommands(cmd, &path);
     // Only a leaf is classified — `config`/`preset` are containers, not
     // commands in their own right; their children carry the class instead.
-    let class = if subs.is_empty() {
-        class_json(&path)
+    let (class, runs_on_set) = if subs.is_empty() {
+        (
+            class_json(&path),
+            Value::Bool(command_class::runs_on_set(&path)),
+        )
     } else {
-        Value::Null
+        (Value::Null, Value::Null)
     };
     json!({
         "name": name,
@@ -189,6 +195,7 @@ fn command_json(cmd: &Command, prefix: &str) -> Value {
         "aliases": cmd.get_visible_aliases().collect::<Vec<_>>(),
         "args": args,
         "class": class,
+        "runs_on_set": runs_on_set,
         "subcommands": subs,
     })
 }
@@ -211,7 +218,7 @@ fn flattened_name(prefix: &str, name: &str) -> String {
 /// rather than panicking the dump itself.
 fn class_json(path: &str) -> Value {
     match command_class::classify(path) {
-        Some(Class::Read) => json!({"kind": "read", "reason": null}),
+        Some(Class::Read(_)) => json!({"kind": "read", "reason": null}),
         Some(Class::Write) => json!({"kind": "write", "reason": null}),
         Some(Class::Exempt(reason)) => json!({"kind": "exempt", "reason": reason}),
         None => Value::Null,
