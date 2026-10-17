@@ -3,7 +3,9 @@
 # comment) and text, tab separated. The variables `allowed` (acronyms that may
 # be all-caps), `consts` (constants, allowed only as `$NAME`, `${NAME}` or
 # `NAME=`), `words` and `phrases` (the history lists) come
-# from the script. Prints "file:line: message" per hit. A line of `-` names a
+# from the script. So do `dash`, a regex of the files whose prose rows must hold
+# no em dash, and `dashonly`, a regex of the files that get no other rule.
+# Prints "file:line: message" per hit. A line of `-` names a
 # schema key in the file column and prints "file: message".
 BEGIN {
     n = split(allowed, a, /[ \n]+/)
@@ -69,6 +71,15 @@ function count(s, re,    k) {
     pfile = file; pkind = kind; pline = line
     v = visible(text)
     low = tolower(v)
+
+    # An em dash in rendered text is a hit, one per dash. A comment row is
+    # not rendered, so it never counts.
+    if (kind == "prose" && dash != "" && file ~ dash) {
+        t = v
+        k = gsub(/—/, "", t)
+        while (k-- > 0) hit("em dash")
+    }
+    if (dashonly != "" && file ~ dashonly) next
 
     for (i = 1; i <= nw; i++) {
         k = count(low, "(^|[^a-z0-9_])" word[i] "([^a-z0-9_(]|$)")

@@ -17,7 +17,8 @@ The doc gates catch mechanical errors:
 - #just.docs-check() finds a dead link.
 - #just.check-doc-facts() finds a derived fact with no entry.
 - #just.check-doc-recipes() finds a hand-typed recipe name.
-- #just.check-doc-prose() finds history words, shouting and a typed name.
+- #just.check-doc-prose() finds history words, shouting, an em dash in text a
+  reader sees and a typed name.
 - #just.check-doc-blocks() finds a hand-typed code block.
 
 No gate finds duplicated prose or a page that doesn't help its reader. The
@@ -192,10 +193,10 @@ few lines as it takes.
   - Bad: "An unknown bare name is refused naming what IS available"
   - Good: "An unknown bare name is refused with a list of the available packs"
 
-#just.check-doc-prose() enforces two of these rules and one of its own. It
+#just.check-doc-prose() enforces two of these rules and two of its own. It
 fails on the history words `now`, `used to`, `no longer`, `anymore` and
-`formerly`, on an all-caps word outside its acronym list, and on the product's
-name typed out.
+`formerly`, on an all-caps word outside its acronym list, on an em dash in
+text a reader sees, and on the product's name typed out.
 
 - A Typst source writes the name as `#mindtape`, which `www/utils/site.typ`
   reads from the site title in `www/tola.toml`, so a typed name fails
@@ -204,15 +205,21 @@ name typed out.
 - A shell constant passes only as `$NAME`, `${NAME}` or `NAME=`. A lone
   capital beside an all-caps word counts as shouting, so wrap a constant's
   bare name in backticks.
+- An em dash fails in the rendered prose and the string literals of
+  `www/content` and `www/utils`, in every schema `description` and in every
+  help string of `mt _cli --json`, and the hit names the file and line, or the
+  key path. A code comment, AGENTS.md, the skill and the page build errors in
+  `www/utils/page.typ` and `site.typ` are not that text, so they may keep one.
+  Split the sentence, or use a comma, a colon in a list or parentheses.
 - It skips raw spans, fenced blocks and double-quoted text, so a quoted bad
   example passes.
 - It applies the same rules to the full-line `#` comments of every shell
   script, YAML file, Justfile and `.just` module that git lists, tracked or
-  not yet added, and to every `description` in `schema/config.schema.json`.
-  So it reads a new script the day it lands, and a new violation fails the
+  not yet added, and to every `description` in `schema/config.schema.json` and
+  `schema/at.schema.json`. So it reads a new script the day it lands, and a new violation fails the
   gate outright.
 
-The word lists are in `.just/scripts/check-doc-prose.sh`.
+The word lists are in `.just/scripts/_doc-prose-lib.sh`, and what the scan skips is argued in `.just/scripts/check-doc-prose.sh`.
 
 = The duplicate-prose audit
 

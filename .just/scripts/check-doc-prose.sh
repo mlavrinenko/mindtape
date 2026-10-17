@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # .just/scripts/check-doc-prose.sh — the body of the `check-doc-prose` recipe.
+# The word lists and the readers that turn each source into rows are in
+# _doc-prose-lib.sh. This file holds the control and the run.
 # It stops doc prose, config comments and config schema descriptions from
 # telling history or shouting in all-caps words, and a Typst doc source from
 # typing the product's name (`name_scan` below).
@@ -16,9 +18,18 @@
 # directives and heredoc bodies in those files are not prose and are skipped.
 # `EXCLUDE` names a file to skip, with its reason.
 #
-# It reads every `description` out of schema/config.schema.json too, because those texts reach the docs site and
-# editors, and a hit there names the key path. The rules it enforces, with
-# examples, are in docs/src/contributing/documentation.typ under "Plain prose".
+# It reads every `description` out of schema/config.schema.json and
+# schema/at.schema.json too, because those texts reach the docs site and
+# editors, and a hit there names the key path. The help strings of
+# `mt _cli --json` are read the same way, labelled `cli.json:` and the command
+# path. The rules it enforces, with examples, are in
+# docs/src/contributing/documentation.typ under "Plain prose".
+#
+# One rule applies only to text a reader sees on the site, in an editor or in
+# `--help`: an em dash is a hit in the rendered prose and string literals of
+# www/content and www/utils, in a schema description and in a help string. A
+# code comment is not that text, and neither are AGENTS.md, the skill and the
+# build errors in `PAGE_ERRORS` below, which only a contributor reads.
 #
 # Text inside a raw span, a fenced block or double quotes is skipped, because
 # it is code or a quotation: `now()` and "YYYY-MM-DD" never count. A comment
@@ -38,118 +49,18 @@ set -eo pipefail
 
 # shellcheck source=.just/scripts/_doc-blocks-lib.sh
 source .just/scripts/_doc-blocks-lib.sh
+# shellcheck source=.just/scripts/_doc-prose-lib.sh
+source .just/scripts/_doc-prose-lib.sh
 
-ALLOWED="ADR AI ANSI API ASCII ATX CC CGO CI CLI CNAME CPU CQRS CRAP CSS CSV CWD
-DB DOM DOT DRY DSL ERR ETA ETXTBSY FTL GB GIO GPL GUI HEAD HTML ICE ICU ID IEC
-ISBN ISC ISO JS JSON LLVM MB MCP MIT OG OS OSC PATH PDF PR PTY README RFC RICE
-RRULE RUSTFLAGS SEO SGR SHA SQL SSG STDERR STDIN STDOUT SVG SWHID TAB TO-BE TOML
-TSV TTY TUI UI UNC URI URL UTC UUID VCS WIP WSJF XDG YAML"
-HISTORY_WORDS="now anymore formerly"
-HISTORY_PHRASES="used to|no longer"
+# The files whose prose rows must hold no em dash: a regex on the file column.
+# The control swaps in its own.
+DASH_RE='^(www/(content|utils)/|schema/|cli[.]json:)'
 
-# One awk pass over the rows on stdin, in check-doc-prose.awk. The consts
-# argument lists the constants the scanned files declare.
-scan() { # <consts>
-    awk -F'\t' -v allowed="$ALLOWED" -v consts="$1" -v words="$HISTORY_WORDS" \
-        -v phrases="$HISTORY_PHRASES" -f .just/scripts/check-doc-prose.awk
-}
-
-# The constants the given files assign: `NAME=` at the start of a shell line,
-# possibly after `local`.
-consts_of() { # <file>...
-    {
-        cat "$@" | grep -oE '^[ \t]*(local +|declare +-[A-Za-z]+ +)?[A-Z][A-Z0-9_]*=' | sed -E 's/^[ \t]*(local +|declare +-[A-Za-z]+ +)?//; s/=$//'
-    } | sort -u | tr '\n' ' ' || true
-}
-
-# The rows of each file by kind. A Typst file comes from the extractor. A
-# shell script, Justfile or YAML file yields its full-line `#` comments, and
-# every other line as an empty row that ends an open quote. A shell script
-# loses its shebang, its shellcheck directives and its heredoc bodies. Any
-# other file is Markdown, read as written.
-rows_for() { # <file>...
-    local f
-    for f in "$@"; do
-        case "$f" in
-        *.typ) doc_extract "$f" | awk -F'\t' '$3 == "prose" || $3 == "comment"' ;;
-        *.sh)
-            # A heredoc body is data, so its `#` lines are not comments.
-            awk -v f="$f" '
-                function row(t) { print f "\t" FNR "\tcomment\t" t }
-                heredoc != "" {
-                    l = $0
-                    if (dash) sub(/^\t+/, "", l)
-                    if (l == heredoc) heredoc = ""
-                    row(""); next
-                }
-                $0 ~ /^[ \t]*#/ {
-                    if (FNR == 1 && $0 ~ /^#!/ || $0 ~ /^[ \t]*#[ \t]*shellcheck /) { row(""); next }
-                    gsub(/\t/, " "); sub(/^[ \t]*#+/, ""); row($0); next
-                }
-                {
-                    if (match($0, /<<-?[ \t]*["\047]?[A-Za-z_][A-Za-z0-9_]*/)) {
-                        d = substr($0, RSTART, RLENGTH)
-                        dash = (d ~ /^<<-/)
-                        sub(/^<<-?[ \t]*["\047]?/, "", d)
-                        heredoc = d
-                    }
-                    row("")
-                }' "$f" ;;
-        Justfile | *.just | *.yaml | *.yml)
-            awk -v f="$f" '{
-                gsub(/\t/, " ")
-                t = ""
-                if ($0 ~ /^[ \t]*#/) { t = $0; sub(/^[ \t]*#+/, "", t) }
-                print f "\t" FNR "\tcomment\t" t
-            }' "$f" ;;
-        *) awk -v f="$f" '{ gsub(/\t/, " "); print f "\t" FNR "\tprose\t" $0 }' "$f" ;;
-        esac
-    done
-}
-
-# Every `description` of a JSON schema ($1, labelled as $2) as rows for `scan`.
-# Each row carries the file and the key path in its file column and `-` as its
-# line, so a hit names the key. The walk visits the places a schema nests
-# another schema and skips `default` and `examples`, which hold data.
-schema_text() {
-    jq -r --arg f "$2" '
-        def descs($p):
-            if type != "object" then empty else
-                (if (.description | type) == "string" then
-                    {key: (if ($p | length) == 0 then "(root)" else $p | join(".") end),
-                     text: .description}
-                 else empty end),
-                (("properties", "$defs", "definitions", "patternProperties") as $m
-                 | (.[$m] // empty | select(type == "object") | to_entries[]
-                    | .key as $k | .value | descs($p + [$m, $k]))),
-                (("items", "additionalProperties", "not", "if", "then", "else") as $m
-                 | (.[$m] // empty | descs($p + [$m]))),
-                (("oneOf", "anyOf", "allOf") as $m
-                 | (.[$m] // empty | select(type == "array") | to_entries[]
-                    | .key as $i | .value | descs($p + [$m, ($i | tostring)])))
-            end;
-        descs([]) | "\($f):\(.key)" as $file
-        | .text | split("\n")[] | [$file, "-", "prose", gsub("\t"; " ")] | join("\t")' "$1"
-}
-
-# The product's name. A Typst source renders it as `#mindtape`, from the
-# constant www/utils/site.typ reads out of the site title in www/tola.toml, so
-# a typed name in either spelling is a hit wherever it sits: prose, a string or
-# a comment. A Markdown source can't reach the constant, so there only the
-# old spelling is a hit. Prints "file:line: message" per hit.
-name_scan() { # <typst file>... -- <markdown file>...
-    local typ=() md=()
-    while [ "$#" -gt 0 ] && [ "$1" != "--" ]; do typ+=("$1"); shift; done
-    [ "$#" -gt 0 ] && shift
-    md=("$@")
-    if [ "${#typ[@]}" -gt 0 ]; then
-        grep -nHoE 'Mind[Tt]ape' "${typ[@]}" | sed -E 's/^([^:]+:[0-9]+):(.*)$/\1: typed name "\2", write #mindtape/'
-    fi
-    if [ "${#md[@]}" -gt 0 ]; then
-        grep -nHoE 'MindTape' "${md[@]}" | sed -E 's/^([^:]+:[0-9]+):.*$/\1: spelling "MindTape", write Mindtape/'
-    fi
-    return 0
-}
+# Files whose string literals may keep an em dash, each with its reason.
+PAGE_ERRORS=(
+    'www/utils/page.typ|build errors about a page manifest'
+    'www/utils/site.typ|build errors about a route'
+)
 
 # Control: a scanner that matches nothing passes a dirty tree, so it first has
 # to report exactly the hits planted in this fixture.
@@ -201,11 +112,30 @@ EOF
     cat >"$dir/m.md" <<'EOF'
 Mindtape passes here, MindTape does not.
 EOF
+    cat >"$dir/dash.typ" <<'EOF'
+// A comment — passes, and so do `a — span` and "a — quote".
+One — and two — dashes count.
+#let note = "A string — counts."
+EOF
+    cat >"$dir/dash.json" <<'EOF'
+{"description": "A key — with a dash.",
+ "properties": {"k": {"description": "Fine, and `a — span` passes."}}}
+EOF
+    cat >"$dir/cli.json" <<'EOF'
+{"about": "Shout NOW — it is now fine here.",
+ "commands": [{"name": "ls", "args": [{"id": "n", "about": "Two\nlines — here."}]}]}
+EOF
     out=$({
         rows_for "$dir/f.typ" "$dir/g.yaml" "$dir/h.sh"
         schema_text "$dir/s.json" s.json
-    } | scan "$(consts_of "$dir/h.sh")" | sed "s|^$dir/||")
+    } | scan "$(consts_of "$dir/h.sh")" '' '' | sed "s|^$dir/||")
     out+=$'\n'$(name_scan "$dir/n.typ" -- "$dir/m.md" | sed "s|^$dir/||")
+    out+=$'\n'$({
+        rows_for "$dir/dash.typ"
+        string_rows "$dir/dash.typ"
+        schema_text "$dir/dash.json" dash.json
+        cli_text <"$dir/cli.json"
+    } | scan '' "^($dir/dash|dash[.]json|cli[.]json:)" '^cli[.]json:' | sed "s|^$dir/||")
     rm -rf "$dir"
         # shellcheck disable=SC2016 # expected output, literal text
     want='f.typ:2: history word "used to"
@@ -230,7 +160,13 @@ s.json:$defs.A.oneOf.0: history word "used to"
 s.json:$defs.A.oneOf.0: all-caps "SHOUTED"
 n.typ:1: typed name "Mindtape", write #mindtape
 n.typ:1: typed name "MindTape", write #mindtape
-m.md:1: spelling "MindTape", write Mindtape'
+m.md:1: spelling "MindTape", write Mindtape
+dash.typ:2: em dash
+dash.typ:2: em dash
+dash.typ:3: em dash
+dash.json:(root): em dash
+cli.json:about: em dash
+cli.json:commands.ls.args.n.about: em dash'
     if [ "$out" != "$want" ]; then
         printf 'check-doc-prose: the control fixture gave\n%s\nexpected\n%s\n' \
             "$out" "$want" >&2
@@ -263,10 +199,27 @@ while IFS= read -r f; do
 done < <(git ls-files --cached --others --exclude-standard -- \
     '*.sh' '*.just' '*.yaml' '*.yml' Justfile '*/Justfile')
 
+# The strings of the site sources, bar the files in PAGE_ERRORS.
+string_sources=()
+for f in "${typst_sources[@]}"; do
+    skip=0
+    for e in "${PAGE_ERRORS[@]}"; do
+        [ "${e%%|*}" = "$f" ] && skip=1
+    done
+    case "$f" in www/*) [ "$skip" -eq 1 ] || string_sources+=("$f") ;; esac
+done
+
+# `mt _cli --json` comes from the same binary as check-doc-spans reads.
+# `--tests`: docs/contributing/gates.md, "One mt binary, one feature set".
+cargo build -p mindtape-cli --tests -q
+
 hits=$({
     rows_for "${typst_sources[@]}" "${md_sources[@]}" "${comment_sources[@]}"
+    string_rows "${string_sources[@]}"
     schema_text schema/config.schema.json schema/config.schema.json
-} | scan "$(consts_of "${typst_sources[@]}" "${comment_sources[@]}")")
+    schema_text schema/at.schema.json schema/at.schema.json
+    ./target/debug/mt _cli --json | cli_text
+} | scan "$(consts_of "${typst_sources[@]}" "${comment_sources[@]}")" "$DASH_RE" '^cli[.]json:')
 names=$(name_scan "${typst_sources[@]}" -- "${md_sources[@]}")
 hits=$(printf '%s\n%s' "$hits" "$names" | sed '/^$/d')
 if [ -n "$hits" ]; then

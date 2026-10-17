@@ -740,6 +740,7 @@ groups:
       - .just/scripts/check-doc-recipes.sh
       - .just/scripts/check-doc-prose.sh
       - .just/scripts/check-doc-prose.awk
+      - .just/scripts/_doc-prose-lib.sh
       - .just/scripts/check-doc-blocks.sh
       - .just/scripts/_doc-blocks-lib.sh
       - .just/scripts/check-doc-spans.sh

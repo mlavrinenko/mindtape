@@ -410,6 +410,8 @@ scopes:
     - ".just/scripts/check-doc-recipes.sh"
   script-check-doc-prose:
     - ".just/scripts/check-doc-prose.sh"
+  script-doc-prose-lib:
+    - ".just/scripts/_doc-prose-lib.sh"
   script-check-doc-blocks:
     - ".just/scripts/check-doc-blocks.sh"
   script-doc-blocks-control:
@@ -672,12 +674,12 @@ commands:
   # module: the Justfile and .just/docs.just (`gates-meta`), .mmz/config.yaml
   # (`mmz-config`), outdatty.yaml (`outdatty-config`), .linecop.yaml
   # (`file-size-config`), .just/scripts (`scripts-all`) and the rest
-  # (`comment-sources`, `docs`). It also reads the descriptions in
-  # schema/config.schema.json (`policy`). It reads the committed schema, so it
-  # never builds `mt`, and it reads no generated file.
+  # (`comment-sources`, `docs`). It also reads the descriptions in both schemas
+  # (`policy`) and the help strings of `mt _cli --json`, so it builds `mt`
+  # (`rust`), as check-doc-spans does. It reads no generated file.
   - name: just check-doc-prose
     tags: [gate]
-    inputs: [docs, gates-meta, mmz-config, outdatty-config, file-size-config, policy, scripts-all, comment-sources, script-check-doc-prose, script-doc-blocks-lib]
+    inputs: [rust, docs, gates-meta, mmz-config, outdatty-config, file-size-config, policy, scripts-all, comment-sources, script-check-doc-prose, script-doc-prose-lib, script-doc-blocks-lib]
 
   # Parses www/content, www/utils and docs/src (`docs`) with typstyle, which
   # the dev shell pins (`gates-meta`), and runs its control over synthetic

@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 17),
+  status: done(2026, 10, 17),
   links: parent("keep-the-user-docs-generated-or-gated-not-restated.typ")
     + depends-on(
       "name-the-slug-column-in-the-hyperlinks-help-and-offer-it-only-where-it-applies.typ",

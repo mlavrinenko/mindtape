@@ -80,12 +80,12 @@ _check-stages: _check-fast _check-build _check-cover
 [doc("The check gates that build nothing")]
 [parallel]
 [private]
-_check-fast: (mmz "fmt-check") (mmz "clippy") (mmz "machete") (mmz "check-workflows") (mmz "shellcheck") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-doc-recipes") (mmz "check-doc-prose") (mmz "check-doc-blocks") (mmz "fmt-fixture-check") (mmz "outdatty-review-trailer-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "path-attr-check") (mmz "plural-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "crap-baseline-check") (mmz "check-gate-drift")
+_check-fast: (mmz "fmt-check") (mmz "clippy") (mmz "machete") (mmz "check-workflows") (mmz "shellcheck") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-doc-recipes") (mmz "check-doc-blocks") (mmz "fmt-fixture-check") (mmz "outdatty-review-trailer-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "path-attr-check") (mmz "plural-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "crap-baseline-check") (mmz "check-gate-drift")
 
 [doc("The check gates that build or run mt")]
 [parallel]
 [private]
-_check-build: (mmz "test") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-spans") (mmz "docs::check") (mmz "docs::md-check") (mmz "site-pages-fixture-check")
+_check-build: (mmz "test") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-spans") (mmz "check-doc-prose") (mmz "docs::check") (mmz "docs::md-check") (mmz "site-pages-fixture-check")
 
 [doc("Coverage, then the CRAP gate over it")]
 [private]
@@ -331,11 +331,13 @@ check-doc-recipes:
     bash .just/scripts/check-doc-recipes.sh
 
 # Fails when a doc source, a Justfile or YAML config comment, or a description
-# in schema/config.schema.json tells history or shouts in all-caps words, or
-# when a Typst doc source types the product's name instead of `#mindtape`. The
-# word lists, and what the scan skips, are in .just/scripts/check-doc-prose.sh.
+# in a schema tells history or shouts in all-caps words, when a Typst doc source
+# types the product's name instead of `#mindtape`, or when site text, a schema
+# description or a `mt _cli --json` help string holds an em dash. It builds `mt`
+# for that dump. The word lists are in .just/scripts/_doc-prose-lib.sh, and what
+# the scan skips is in .just/scripts/check-doc-prose.sh.
 
-[doc("Fail on history words, all-caps emphasis or a typed product name in doc prose, config comments and schema descriptions")]
+[doc("Fail on history words, all-caps emphasis, an em dash in site text or a typed product name in doc prose, config comments and schema descriptions")]
 [group("gate")]
 check-doc-prose:
     bash .just/scripts/check-doc-prose.sh
