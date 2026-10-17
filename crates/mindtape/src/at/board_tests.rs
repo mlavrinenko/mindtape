@@ -3,6 +3,8 @@
 
 #![allow(clippy::unwrap_used)]
 
+use std::cmp::Ordering;
+
 use super::{Board, Cell, TopTask};
 use crate::at::{AtConfig, AtError};
 use crate::config::Config;
@@ -37,11 +39,22 @@ fn counts(cells: &[Cell]) -> Vec<Option<usize>> {
         .collect()
 }
 
-fn failure(toml: &str) -> String {
+/// Assert that `toml` is refused as a bad board, with `needle` in the message.
+fn refused(toml: &str, needle: &str) {
     match AtConfig::parse(toml) {
-        Err(err @ AtError::Board { .. }) => err.to_string(),
+        Err(err @ AtError::Board { .. }) => {
+            let message = err.to_string();
+            assert!(message.contains(needle), "{needle:?} not in {message}");
+        }
         other => panic!("expected a board error, got {other:?}"),
     }
+}
+
+/// The counts of one `@wip` column with a `terminal` fallback, under `config`.
+fn wip_counts(config: &Config) -> Vec<Option<usize>> {
+    let board =
+        board("[[board.columns]]\nname = \"wip\"\nfilter = \"@wip\"\nfallback = \"terminal\"\n");
+    counts(&board.row(&tasks(), config))
 }
 
 #[test]
@@ -57,18 +70,12 @@ fn filter_cells_count_the_matching_tasks() {
 
 #[test]
 fn a_view_cell_uses_the_projects_view() {
-    let board =
-        board("[[board.columns]]\nname = \"wip\"\nfilter = \"@wip\"\nfallback = \"terminal\"\n");
-    let cells = board.row(&tasks(), &with_view());
-    assert_eq!(counts(&cells), [Some(2)]);
+    assert_eq!(wip_counts(&with_view()), [Some(2)]);
 }
 
 #[test]
 fn a_view_cell_falls_back_when_the_project_lacks_the_view() {
-    let board =
-        board("[[board.columns]]\nname = \"wip\"\nfilter = \"@wip\"\nfallback = \"terminal\"\n");
-    let cells = board.row(&tasks(), &dep_config(""));
-    assert_eq!(counts(&cells), [Some(1)]);
+    assert_eq!(wip_counts(&dep_config("")), [Some(1)]);
 }
 
 #[test]
@@ -213,35 +220,62 @@ fn the_shipped_board_names_no_status() {
 
 #[test]
 fn a_column_needs_exactly_one_of_filter_and_top() {
-    let both = failure("[[board.columns]]\nname = \"x\"\nfilter = \"\"\ntop = \"\"\n");
-    assert!(both.contains("[board]"), "{both}");
-    assert!(failure("[[board.columns]]\nname = \"x\"\n").contains("filter"));
+    refused(
+        "[[board.columns]]\nname = \"x\"\nfilter = \"\"\ntop = \"\"\n",
+        "[board]",
+    );
+    refused("[[board.columns]]\nname = \"x\"\n", "filter");
 }
 
 #[test]
 fn column_names_are_unique() {
     let twice = "[[board.columns]]\nname = \"x\"\nfilter = \"\"\n";
-    assert!(failure(&format!("{twice}{twice}")).contains("'x'"));
+    refused(&format!("{twice}{twice}"), "'x'");
 }
 
 #[test]
 fn a_cell_filter_that_does_not_parse_is_refused() {
-    let message = failure("[[board.columns]]\nname = \"x\"\nfilter = \"((\"\n");
-    assert!(message.contains("'x'"), "{message}");
+    refused("[[board.columns]]\nname = \"x\"\nfilter = \"((\"\n", "'x'");
 }
 
 #[test]
 fn sort_and_hide_name_only_columns() {
-    let sort = failure("[board]\nsort = [\"nope:desc\"]\n");
-    assert!(sort.contains("nope"), "{sort}");
-    let direction = failure("[board]\nsort = [\"open:up\"]\n");
-    assert!(direction.contains("up"), "{direction}");
-    let hide = failure("[board]\nhide = \"nope > 1\"\n");
-    assert!(hide.contains("nope"), "{hide}");
+    refused("[board]\nsort = [\"nope:desc\"]\n", "nope");
+    refused("[board]\nsort = [\"open:up\"]\n", "up");
+    refused("[board]\nhide = \"nope > 1\"\n", "nope");
 }
 
 #[test]
 fn a_bad_set_board_names_its_set() {
-    let message = failure("[at.home]\ninclude = [\"~/a\"]\n[at.home.board]\nsort = [\"nope\"]\n");
-    assert!(message.contains("[at.home.board]"), "{message}");
+    refused(
+        "[at.home]\ninclude = [\"~/a\"]\n[at.home.board]\nsort = [\"nope\"]\n",
+        "[at.home.board]",
+    );
+}
+
+#[test]
+fn hide_compares_numbers_whole_or_not() {
+    let board = board("[board]\nhide = \"open > 1 || ready < 0.5\"\n");
+    let row = |open, ready| [Cell::Count(open), Cell::Count(ready), Cell::Count(0)];
+    assert!(board.hides(&row(2, 1)));
+    assert!(!board.hides(&row(1, 1)));
+    assert!(board.hides(&row(1, 0)));
+}
+
+#[test]
+fn the_shipped_board_hides_a_project_with_nothing_open() {
+    assert_eq!(board("").hide(), Some("open == 0"));
+}
+
+#[test]
+fn failed_cells_sort_after_any_value_and_tie_with_each_other() {
+    let failed = Cell::Failed("column 'x': boom".to_owned());
+    let count = Cell::Count(1);
+    for descending in [false, true] {
+        let order = |left, right| super::compare_cells(left, right, descending);
+        assert_eq!(order(Some(&failed), Some(&count)), Ordering::Greater);
+        assert_eq!(order(None, Some(&count)), Ordering::Greater);
+        assert_eq!(order(Some(&count), Some(&failed)), Ordering::Less);
+        assert_eq!(order(Some(&failed), None), Ordering::Equal);
+    }
 }

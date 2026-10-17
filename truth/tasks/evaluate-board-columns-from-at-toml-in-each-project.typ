@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 17),
+  status: done(2026, 10, 17),
   links: parent("show-every-tracked-project-from-one-mt-name.typ")
     + depends-on("parse-at-toml-into-named-project-sets.typ"),
 )

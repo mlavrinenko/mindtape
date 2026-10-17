@@ -45,10 +45,8 @@ pub mod validate;
 pub mod waits;
 pub mod worktrees;
 
-pub use at::{
-    AtConfig, AtEntry, AtError, AtFs, Board, BoardColumn, BoardSpec, Cell, DiskFs, Forks, Member,
-    Target, TopTask,
-};
+pub use at::{AtConfig, AtEntry, AtError, AtFs, DiskFs, Forks, Member, Target};
+pub use at::{Board, BoardColumn, BoardSpec, Cell, TopTask};
 pub use body::content_gate::{CompiledContentRule, check_content, compile_content_rules};
 pub use body::gate::{CompiledRule, GateError, check_headers, compile_rules};
 pub use body::{BodyRules, check_body_rules};

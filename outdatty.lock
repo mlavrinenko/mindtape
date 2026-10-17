@@ -70,7 +70,7 @@ groups:
       crates/mindtape-cli/src/cmd/worktrees.rs: 3758372047930b0e46e7eb021fbda13dda082492029d36e478468ab342ff4200
       crates/mindtape-cli/src/render/output.rs: 18dc6b69c42b1ae40cb4416c04d5a7e03ae8bcaa4dcd7f4bd45ab5ed01f922a1
       crates/mindtape/src/config/defaults.toml: 207b19a3ef4149c0bd9ad07aaa4ef4aed33bead65f913182c22e9a1fe7d8569b
-      crates/mindtape/src/lib.rs: c16fa5c834b5c34baf8a71be85f261bd11ad209d9566913662af393e4ed5f5ba
+      crates/mindtape/src/lib.rs: 7ff89f2de157f0c327669fc48b2821a43b9555b734063577a6cf3fd76d0ee852
       crates/mindtape/src/model/fields.rs: eb8c665bb379a8ade21b59c34d32c6edc9b9513fd2761ca6df09df1557340068
     dependents:
       docs/src/skill.typ: 06904b8ae92964a7d9d851281dc8a48e7239414523db19ed255b8af4f4971c2d
@@ -159,7 +159,7 @@ groups:
       .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
       .just/docs.just: 300226a86d551abc287d058efd9cbc2143fa7f15e3c6b53131699f27f35847fc
       .just/scripts/wt-carry-lcov.sh: 0d4513fdd21068f5897a015bbc4cd02bc3644ca139d8c39053140fba491e1e76
-      Justfile: 9f5f6f776b6029f9cc77583bc2db8c5d0d8a0e5aed681d01a10cf1350cb90c62
+      Justfile: 127155def60ad4bfd52240bb529ad57c560ad062168d990f8e205848384e13bd
       flake.nix: 1a2acaf2bae3f132917cc298362638bbb9651eae4b20a0557e21c5d0449541ea
     dependents:
       docs/src/agents.typ: da50da9ed7789e29e34d89dff17c92bccfee66dc09e611ad8f0adb1743ad5911
