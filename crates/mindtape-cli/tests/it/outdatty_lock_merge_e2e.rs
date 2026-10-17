@@ -346,17 +346,15 @@ fn a_source_both_sides_edited_and_recorded_is_left_for_review() {
 #[test]
 fn a_rebase_over_a_renamed_group_drops_the_old_groups_leaves() {
     let repo = Repo::new();
-    repo.git(&["checkout", "-q", "-b", "feat"]);
-    repo.write("g-doc.txt", "reviewed\n");
-    repo.record("gamma", Some("g-doc.txt"));
-    repo.commit("docs: review g-doc");
-
-    repo.git(&["checkout", "-q", "main"]);
+    repo.git(&["branch", "feat"]);
     repo.write("outdatty.yaml", &MANIFEST.replace("gamma", "delta"));
     repo.ok("outdatty", &["update", "--format", "quiet"]);
     repo.commit("dev: rename gamma to delta");
 
-    repo.git(&["checkout", "-q", "feat"]);
+    repo.git(&["switch", "-q", "feat"]);
+    repo.write("g-doc.txt", "reviewed\n");
+    repo.record("gamma", Some("g-doc.txt"));
+    repo.commit("docs: review g-doc");
     let out = repo.command("git", &["rebase", "main"]);
     assert!(out.status.success(), "{}{}", stdout(&out), stderr(&out));
     let lock = repo.read("outdatty.lock");

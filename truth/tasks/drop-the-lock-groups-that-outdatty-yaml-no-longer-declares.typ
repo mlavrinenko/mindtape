@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 17),
+  status: done(2026, 10, 17),
 )
 
 == Problem
@@ -62,6 +62,7 @@ left in a closing report no one rereads. It belongs in
 
 - `.just/scripts/outdatty-lock-merge.sh`: drop each group the merged `outdatty.yaml` doesn't declare.
 - `outdatty.lock`: remove `sweep-dedup` and `worktree-release-docs`.
+- `Justfile`: `outdatty-check` fails on a lock group the manifest doesn't declare, until outdatty reports one itself.
 
 
 == Rollback
@@ -71,7 +72,7 @@ left in a closing report no one rereads. It belongs in
 
 == Out of scope
 
-- The orphan check itself belongs upstream in outdatty, whose `check` could report an undeclared lock group the way it reports an unrecorded dependent. File it there.
+- The lasting orphan check belongs upstream in outdatty, whose `check` could report an undeclared lock group the way it reports an unrecorded dependent. It is filed there; the local check is a stopgap.
 
 
 == Dogfood

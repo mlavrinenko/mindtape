@@ -262,10 +262,20 @@ check-dry:
 check-secrets:
     bash .just/scripts/check-secrets.sh
 
+# `outdatty check` passes with a lock group that outdatty.yaml has dropped, which
+# a split or a rename leaves behind, so the second half catches it. That is a
+# stopgap: the lasting fix is upstream, where `outdatty check` should report an
+# undeclared lock group the way it reports an unrecorded dependent. Drop the
+# second half when it does.
+
 [doc("Fail if a source changed without its dependents reconfirmed")]
 [group("gate")]
+[script]
 outdatty-check:
     outdatty check
+    declared=$(yq -r '.groups[].name' outdatty.yaml | sort)
+    orphans=$(comm -13 <(echo "$declared") <(yq -r '.groups | keys[]' outdatty.lock | sort))
+    [ -z "$orphans" ] || { echo "outdatty.lock holds groups outdatty.yaml does not declare, delete them: $orphans" >&2; exit 1; }
 
 # Checks each fixture another tool runs `mt` against, so the fixture cannot go
 # stale: api-service feeds the docs generator and the skill's triage evals,

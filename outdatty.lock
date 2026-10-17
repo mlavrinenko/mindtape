@@ -303,15 +303,15 @@ groups:
       .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
       .just/docs.just: 300226a86d551abc287d058efd9cbc2143fa7f15e3c6b53131699f27f35847fc
       .just/scripts/wt-carry-lcov.sh: 0d4513fdd21068f5897a015bbc4cd02bc3644ca139d8c39053140fba491e1e76
-      Justfile: 32797c681e6560765c83c14fe1378d0a5c14e09d56dcdeb12fb5e2e522a35364
+      Justfile: 2f01b83eddf52bd34883c61f1d880c5890d6ffa5771f0921fe983ba6d6ab9eb4
       flake.nix: 1a2acaf2bae3f132917cc298362638bbb9651eae4b20a0557e21c5d0449541ea
     dependents:
       docs/src/agents.typ: da50da9ed7789e29e34d89dff17c92bccfee66dc09e611ad8f0adb1743ad5911
-      docs/src/contributing.typ: b6bad6dbdad0d71d7df94e9e4b99223fe33fb5c4d6d587ae890124d617a9a646
+      docs/src/contributing.typ: c80196459a029ea3b5120742275000ca9ace6816b21348be8cb24e54697676f1
       docs/src/contributing/coverage-crap.typ: a77b331ac56839e52cced5ae8aa87823c440d6c2fac3c4dbf9a0d54b01039150
       docs/src/contributing/crap-baseline.typ: 551aab6a955a9d4345e73e1c171fe860663887e8b3c56f611f2f2551356eb301
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
-      docs/src/contributing/documentation.typ: "0000000000000000000000000000000000000000000000000000000000000000"
+      docs/src/contributing/documentation.typ: 392c1149d553322d5f5e7e5873c744d55be4c951b38a2c031ee1eea67fc1bf1c
       docs/src/contributing/example-projects.typ: 4f9a0c52894b9c2ab665e42bb728814b3d18badf3e8def57737d695d29912f63
       docs/src/contributing/gates.typ: 51735a583246931d805614c065262de61613967e160f757a6d9841c9e422510c
       docs/src/contributing/mutation-testing.typ: 96f2e41b03e5bb524e1c49dd08e9435690f37ba566cf81cc0f6dbc843e01981a
@@ -404,7 +404,7 @@ groups:
       .just/scripts/jscpd-baseline-merge.sh: 942fd93b708275a1e4dcb233ec477a9b396df6eb6787f70ef56b86fd46def30e
       .just/scripts/outdatty-lock-merge.sh: e9935aa3a6e9d6237ab0a681d03d9dcb6b292df8e578fae512df5a0c8cf6d95c
     dependents:
-      docs/src/contributing.typ: b6bad6dbdad0d71d7df94e9e4b99223fe33fb5c4d6d587ae890124d617a9a646
+      docs/src/contributing.typ: c80196459a029ea3b5120742275000ca9ace6816b21348be8cb24e54697676f1
   mutation-scripts-docs:
     source:
       .just/scripts/_mutants-env.sh: 69e7c0fca1471c68031c4c65e00c2d73020196027353d280fb6b48b9b9675dfa
