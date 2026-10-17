@@ -100,8 +100,7 @@ fn the_command_sees_the_root_and_the_transition() {
 /// capture, the code, and the context — not the shell's formatting.
 #[cfg(windows)]
 mod windows {
-    use super::{ENV_FILE, ENV_STATUS, ENV_STEM, ctx, run_command};
-    use mindtape::test_support::tempdir;
+    use super::{ENV_FILE, ENV_STATUS, ENV_STEM, ctx, run_command, tempdir, tempdir_with_files};
 
     #[test]
     fn a_passing_command_reports_success_and_its_output() {
