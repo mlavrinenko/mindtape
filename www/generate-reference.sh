@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # www/generate-reference.sh — capture the mt runs that /filters/,
-# /named-sets/, /priority/ and /estimates/ show. www/generate.sh
-# calls it with the repo root and the generated/ directory, inside the lock it
-# holds, so this script takes no lock of its own.
+# /named-sets/, /priority/, /estimates/ and /read-many-projects/ show.
+# www/generate.sh calls it with the repo root and the generated/ directory,
+# inside the lock it holds, so this script takes no lock of its own.
 #
 # Read commands run in a fixture in place. Commands that write, or need git,
 # run in a copy. Each capture is a record (www/capture.sh), so a page prints
@@ -93,3 +93,33 @@ capture --exit 1 --expect 'rules\.judgment-stays-small' estimates-cap "$P" 'mt s
 # shellcheck disable=SC2016 # capture_prep runs this text in the fixture, where $f expands
 capture_prep "$P" 'mt wip rewrite-loader && mkdir -p src && for f in a b c d e; do echo x >src/$f.rs; done'
 capture estimates-budget "$P" 'mt check'
+
+# --- /read-many-projects/ -----------------------------------------------------
+# The copy is `$HOME` and holds the at.toml under .config/, so `~/projects` is the
+# copy's projects/. shop gets a git repository and one linked worktree, the
+# fork that the `forks` key keeps out or lets in. The runs start outside every
+# project, so each path prints whole, from `~`.
+(
+    capture_copy P examples/across-projects
+    CAPTURE_HOME=$P CAPTURE_CONFIG_HOME=$P/.config
+    CAPTURE_PATHS+=("$P=~")
+    capture_prep "$P/projects/shop" "git init -q && git add -A && $COMMIT -m fixture && git worktree add -q ../shop-wishlist -b wishlist"
+    capture_scratch Q
+    capture_lines across-at "$Q" <<'EOF'
+mt at
+mt at work
+EOF
+    capture across-board "$Q" 'mt @work'
+    capture_lines across-ls "$Q" <<'EOF'
+mt @work ls
+mt @work ls ready -n 1
+mt @work find email
+EOF
+    capture across-check "$Q" 'mt @work check'
+    capture --exit 1 --expect 'runs on one project' across-write "$Q" 'mt @work add fix the coupon field'
+    capture_lines across-forks "$Q" <<'EOF'
+mt at all
+mt at forks
+mt @shop-wishlist ls
+EOF
+)

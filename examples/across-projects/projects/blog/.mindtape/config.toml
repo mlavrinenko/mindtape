@@ -1,0 +1,30 @@
+#:schema ../../../../../schema/config.schema.json
+# examples/across-projects/projects/blog/.mindtape/config.toml — the other
+# project /read-many-projects/ reads through one @name. Its legend is draft,
+# in-review and done, where shop's is todo, wip and done.
+
+[[typst.local-packages]]
+name = "mindtape"
+path = "../../../../lib"
+
+[tasks]
+roots = ["tasks"]
+
+[[tasks.status]]
+value = "draft"
+glyph = "📝"
+color = "cyan"
+
+[[tasks.status]]
+value = "in-review"
+glyph = "👀"
+color = "yellow"
+
+[[tasks.status]]
+value = "done"
+glyph = "📰"
+color = "green"
+terminal = true
+
+[views.default]
+filter = "!terminal"

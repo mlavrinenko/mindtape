@@ -139,15 +139,8 @@ each other's status changes until their branches merge, so decide which agent
 takes which task before they start.
 
 To run `mt` on a worktree from another directory, pass `-w <path>` or set
-`MINDTAPE_WORKTREE`. You can also name projects in `mindtape/at.toml`
-in your #link(u("/config/"))[config directory]. An `[at.<name>]` entry whose
-`include` is one path makes a leading `@name` argument stand for `-w <path>`.
-`@<dir>` also finds a project by its directory name when an `include` matches
-it. An entry with several paths or a `*` glob is a set of projects, and a
-command that runs on one project refuses it. `mt at` lists the entries, and
-`mt at <name>` lists the projects one holds and marks the forks. A bare
-`mt @<name>` runs #link(u("/cli/board/"))[`mt board`] on it, one row per
-project with its open, ready and blocked counts and its next ready task.
+`MINDTAPE_WORKTREE`. To name your projects and read several at once, see
+#link(u("/read-many-projects/"))[Read many projects].
 
 = Pin today's date
 

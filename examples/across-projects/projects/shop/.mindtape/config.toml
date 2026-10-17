@@ -1,0 +1,38 @@
+#:schema ../../../../../schema/config.schema.json
+# examples/across-projects/projects/shop/.mindtape/config.toml — one of the two
+# projects /read-many-projects/ reads through one @name. Its legend differs
+# from blog's on purpose, so the page shows each project running under its own
+# config.
+
+[[typst.local-packages]]
+name = "mindtape"
+path = "../../../../lib"
+
+[tasks]
+roots = ["tasks"]
+
+[[tasks.status]]
+value = "todo"
+glyph = "📋"
+color = "cyan"
+
+[[tasks.status]]
+value = "wip"
+glyph = "🔨"
+color = "yellow"
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+
+[tasks.priority]
+kind = "int"
+min = 0
+max = 9
+required = false
+
+[views.default]
+filter = "!terminal"
+sort = ["priority:desc"]

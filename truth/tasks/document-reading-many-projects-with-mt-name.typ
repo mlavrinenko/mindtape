@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 16),
+  status: done(2026, 10, 17),
   links: parent("show-every-tracked-project-from-one-mt-name.typ")
     + depends-on(
       "list-tasks-from-every-project-of-a-set-in-one-grouped-table.typ",

@@ -138,6 +138,7 @@
     items: (
       "/self-validating-tasks/",
       "/agents/",
+      "/read-many-projects/",
       "/import-export/",
       "/internals/",
     ),

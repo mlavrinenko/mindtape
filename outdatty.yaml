@@ -162,6 +162,7 @@ groups:
       - www/content/commit-rules.typ
       - www/content/quickstart.typ
       - www/content/agents.typ
+      - www/content/read-many-projects.typ
       - www/content/concepts.typ
       - www/content/derived-tags.typ
       - www/content/import-export.typ
@@ -413,6 +414,22 @@ groups:
     dependents:
       - docs/src/contributing/docs-site-build.typ
       - www/content/agents.typ
+      - docs/src/skill.typ
+
+  # How a leading @name picks one project or a set, and which commands read a
+  # set: at.toml's keys and resolution in mindtape::at, the held set and its
+  # refusal in project_set.rs, and the set paths of ls and check. The page
+  # and the skill restate them by hand around the captured runs.
+  - name: sets-docs
+    source:
+      - crates/mindtape/src/at/mod.rs
+      - crates/mindtape/src/at/resolve.rs
+      - crates/mindtape/src/at/scan.rs
+      - crates/mindtape-cli/src/project_set.rs
+      - crates/mindtape-cli/src/cmd/ls/set.rs
+      - crates/mindtape-cli/src/cmd/check/set.rs
+    dependents:
+      - www/content/read-many-projects.typ
       - docs/src/skill.typ
 
   # The coverage and CRAP scripts, which coverage-crap.typ and crap-baseline.typ

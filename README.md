@@ -80,7 +80,7 @@ cargo install mindtape-cli
 - **Fields**: [Statuses](https://mlavrinenko.github.io/mindtape/statuses/) · [Priority](https://mlavrinenko.github.io/mindtape/priority/) · [Estimates](https://mlavrinenko.github.io/mindtape/estimates/) · [Views & dictionaries](https://mlavrinenko.github.io/mindtape/named-sets/)
 - **Checks**: [Rules](https://mlavrinenko.github.io/mindtape/rules/) · [Rule packs](https://mlavrinenko.github.io/mindtape/rule-packs/) · [Commit rules](https://mlavrinenko.github.io/mindtape/commit-rules/) · [Flip hooks](https://mlavrinenko.github.io/mindtape/hooks/)
 - **Reference**: [CLI reference](https://mlavrinenko.github.io/mindtape/cli/) · [Filter language](https://mlavrinenko.github.io/mindtape/filters/) · [Configuration](https://mlavrinenko.github.io/mindtape/config/) · [Canonical schema](https://mlavrinenko.github.io/mindtape/schema/)
-- **Integrate**: [Self-validating tasks](https://mlavrinenko.github.io/mindtape/self-validating-tasks/) · [For AI agents](https://mlavrinenko.github.io/mindtape/agents/) · [Import & export](https://mlavrinenko.github.io/mindtape/import-export/) · [Internals](https://mlavrinenko.github.io/mindtape/internals/)
+- **Integrate**: [Self-validating tasks](https://mlavrinenko.github.io/mindtape/self-validating-tasks/) · [For AI agents](https://mlavrinenko.github.io/mindtape/agents/) · [Read many projects](https://mlavrinenko.github.io/mindtape/read-many-projects/) · [Import & export](https://mlavrinenko.github.io/mindtape/import-export/) · [Internals](https://mlavrinenko.github.io/mindtape/internals/)
 
 ## Contributing
 

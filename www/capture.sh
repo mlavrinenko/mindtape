@@ -97,6 +97,10 @@ capture_home() {
     CAPTURE_PATHS+=("$root/config=~/.config" "$root/data=~/.local/share")
 }
 
+# CAPTURE_HOME, when set, is the `$HOME` every capture runs under, so a `~` in
+# what `mt` reads, such as an at.toml path, expands inside the capture area.
+CAPTURE_HOME=
+
 # The project the record names: the directory's path in the repo, or in the
 # area capture_copy or capture_scratch made it in.
 _capture_project() {
@@ -134,6 +138,7 @@ _capture_env() {
         -u MINDTAPE_WORKTREE -u MINDTAPE_PRINCIPAL -u MINDTAPE_NO_CACHE \
         TERM=xterm-256color SHELL="$(command -v bash)" PATH="$CAPTURE_TMP/bin:$PATH" \
         MINDTAPE_CONFIG_HOME="$CAPTURE_CONFIG_HOME" MINDTAPE_DATA_HOME="$CAPTURE_DATA_HOME" \
+        ${CAPTURE_HOME:+"HOME=$CAPTURE_HOME"} \
         CAPTURE_CMD="${CAPTURE_CMD:-}" \
         "$@")
 }

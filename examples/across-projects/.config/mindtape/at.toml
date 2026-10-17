@@ -1,0 +1,25 @@
+# examples/across-projects/.config/mindtape/at.toml — the at.toml the
+# /read-many-projects/ captures read. They run with this directory's parent as
+# HOME, so `~/projects` is examples/across-projects/projects.
+
+# docs:slice across-projects/sets
+# One path: @shop stands for -w ~/projects/shop.
+[at.shop]
+include = ["~/projects/shop"]
+
+# A glob: @work is a set of every project under ~/projects.
+[at.work]
+include = ["~/projects/*"]
+# docs:end
+
+# docs:slice across-projects/forks
+# The same glob, with each checkout's linked git worktrees beside it.
+[at.all]
+include = ["~/projects/*"]
+forks = true
+
+# The linked git worktrees alone.
+[at.forks]
+include = ["~/projects/*"]
+forks = "only"
+# docs:end

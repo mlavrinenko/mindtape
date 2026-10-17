@@ -36,7 +36,10 @@ slot. Follow `references/hand-editing.md`, then run `mt check`.
 
 It is when `.mindtape/config.toml` exists. Run `mt` in the directory that holds
 `.mindtape/` or below it. For another project, pass `-w <path>`, or put a name
-that `mt at` lists, such as `@name`, right after `mt`.
+that `mt at` lists, such as `@name`, right after `mt`. `mt at <name>` shows
+whether a name is one project or a set. On a set, `ls`, `find`, `check` and a
+bare `mt @name`, the board, read every project. Every other command, every
+write included, refuses a set: put one project's `@name` there instead.
 
 = Commands
 
