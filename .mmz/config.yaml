@@ -217,6 +217,9 @@ scopes:
     # www/generated/ by www/generate-rule-packs.sh; lives under crates/, so
     # no glob above already covers it.
     - "crates/mindtape/src/packs/mindtape-tasks.toml"
+    # Quoted verbatim by www/content/read-many-projects.typ and the board's
+    # CLI page, cut by its `docs:slice` markers into www/generated/.
+    - "crates/mindtape/src/at/board.toml"
     # Quoted verbatim by www/content/self-validating-tasks.typ and captured
     # (a deliberately failing `mt check`) by www/generate.sh. Not in the
     # `examples` scope above: that one is `just check-examples`'s validated

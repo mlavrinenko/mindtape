@@ -7,6 +7,7 @@
 // render as a block to copy; `outputs`, the slugs of captures that render as
 // transcripts. www/generate-cli.sh makes every capture named here.
 
+#import "shipped-board.typ": shipped-board
 #import "site.typ": u
 
 #let cli-notes = (
@@ -92,13 +93,16 @@
     examples: "ls-columns-examples",
   ),
   "board": (
-    prose: [Each column is a `[[board.columns]]` entry in `at.toml`. A
-      `filter` column counts the tasks it matches, and a `top` column shows
-      the first match in the project's default order. Every filter runs under
-      that project's own config. A cell that fails prints `?` with a note
-      under the table, and a project whose config won't load is a `⚠` row,
-      after which `mt` exits 1. `hide` drops a row, `sort` orders them, and
-      `[at.<name>.board]` overrides `[board]` for one set.],
+    prose: [A column is a `[[board.columns]]` entry in `at.toml`. A `filter`
+      column counts the tasks it matches, and a `top` column shows the first
+      match in the project's default order. Every filter runs under that
+      project's own config. A cell that fails prints `?` with a note under the
+      table, and a project whose config won't load is a `⚠` row, after which
+      `mt` exits 1. This is the board `mt` ships, and
+      #link(u("/read-many-projects/#see-every-project-at-once"))[Read many
+        projects] lists the keys that override it.
+
+      #shipped-board],
     examples: "board-examples",
   ),
 

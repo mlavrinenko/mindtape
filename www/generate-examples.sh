@@ -160,6 +160,7 @@ CONFIG_SOURCES=(
   "examples/derived-tags/.mindtape/config.toml"
   "examples/self-validating/.mindtape/config.toml"
   "examples/across-projects/.config/mindtape/at.toml"
+  "crates/mindtape/src/at/board.toml"
 )
 
 # Every fact a page opens. Declared rather than derived from the markers
@@ -169,7 +170,7 @@ CONFIG_SOURCES=(
 # `api-service` holds the recipe slices. The Recipes pages render them
 # through www/utils/recipes.typ, and generate-api-service.sh reads the same
 # markers to require a session for each.
-CONFIG_FACTS=(across-projects api-service commit-rules config derived-tags estimates hooks links named-sets priority rule-packs rules self-validating statuses)
+CONFIG_FACTS=(across-projects api-service commit-rules config derived-tags estimates hooks links named-sets priority rule-packs rules self-validating shipped-board statuses)
 
 # Same two-pass shape as slice_fixture: awk writes each slice to its own temp
 # file and one index row per slice, then jq builds the JSON with --rawfile so

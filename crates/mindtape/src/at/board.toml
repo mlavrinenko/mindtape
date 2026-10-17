@@ -3,6 +3,7 @@
 # overrides that for one set. Every filter here runs under each project's own
 # config, so it names no status: a project's legend decides what is open.
 
+# docs:slice shipped-board/board
 sort = ["ready:desc", "open:desc"]
 hide = "open == 0"
 
@@ -21,3 +22,4 @@ filter = "blocked"
 [[columns]]
 name = "next"
 top = "ready"
+# docs:end

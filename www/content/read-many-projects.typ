@@ -1,5 +1,6 @@
 #import "../utils/config-ref.typ": config-keys-table
 #import "../utils/page.typ": page
+#import "../utils/shipped-board.typ": shipped-board
 #import "../utils/ui.typ": exit-code, terminal
 #import "../utils/site.typ": u
 #import "../utils/slices.typ": checked-slices, render-slices
@@ -79,6 +80,12 @@ Every cell runs under its project's own config. shop's statuses are `todo`,
 counts both right, because its columns read `!terminal`, `ready` and
 `blocked`, never a status name. The board page covers the columns, the hidden
 rows and the `⚠` row of a project whose config won't load.
+
+This is the board `mt` ships. It lists the projects with the most ready tasks
+first, then the most open ones, and drops a project with nothing open, so a
+project with no open task is missing from the table:
+
+#shipped-board
 
 `[board]` in `at.toml` changes the board for every entry, and
 `[at.<name>.board]` changes it for one, key by key over the shipped board:
