@@ -110,7 +110,8 @@ commit. The thresholds and their reasons are in
 If you touch `flake.nix` or `.cargo/config.toml`, run #just.nix-build().
 
 In a delegated worktree, you can skip the hook's freshness check with
-`MINDTAPE_GATE_SCOPE=<reason> git commit`. That's safe there because
+`MINDTAPE_GATE_SCOPE=<reason> git commit`, with a matching
+`Gate-Scope: <reason>` footer in the message. That's safe there because
 #just.land() runs #just.check() on the branch's final tree before it
 fast-forwards. Never scope a commit to get past a failing gate.
 
