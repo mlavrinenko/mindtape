@@ -203,6 +203,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `ok: 27 projects, 1904 tasks` or `3 of 30 projects failed`, which exits 1.
   A project whose config won't parse fails that way too. `--json` prints one
   object per project, the projects check in parallel, and `--commit-msg` and `--commits` refuse a set.
+- **`mt board` shows one row per project**, and a bare `mt @home` runs
+  `mt @home board`. Each row counts the project's open, ready and blocked
+  tasks and names its next ready one, under that project's own config. The
+  columns are `[[board.columns]]` in `at.toml`, each a `filter` count or a
+  `top` task, with `sort` and `hide` beside them and `[at.<name>.board]` per
+  set. A failed cell prints `?` with a note, a project whose config won't load
+  is a `⚠` row and exits 1, `--all` shows the hidden rows and `--json` prints
+  them all.
 - **`mt _cli --json` describes the CLI**, its filter functions and the
   `{date:FMT}` tokens, for tools and docs.
 - **`--json` on every read command**, `mt graph` and `mt preset ls` included.

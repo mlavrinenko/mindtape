@@ -127,7 +127,8 @@ fn print_json(value: &serde_json::Value) {
 }
 
 /// Rewrite a leading `@name` argument before clap parses: a project into
-/// `-w <path>`, a set into nothing, held for `util::open_set`.
+/// `-w <path>`, a set into nothing, held for `util::open_set`. A bare `@name`
+/// gains the `board` command.
 ///
 /// # Errors
 /// Returns an error if the leading `@token` cannot be resolved.
@@ -162,6 +163,13 @@ where
     if let Some(token) = token {
         let target = resolve(&token)?;
         rest.remove(0);
+        // A bare `mt @x`, flags aside, runs `mt @x board`.
+        if rest
+            .iter()
+            .all(|arg| arg.to_str().is_some_and(|s| s.starts_with('-')))
+        {
+            rest.insert(0, OsString::from("board"));
+        }
         match target {
             Target::Project(path) => {
                 out.push(OsString::from("-w"));
@@ -240,7 +248,7 @@ fn no_at() -> Result<AtConfig> {
 /// Load `at.toml`, returning it alongside the expected path (`None` only when
 /// the config dir cannot be resolved). A missing file is an empty config, not
 /// an error; only a malformed file fails.
-fn load_at() -> Result<(AtConfig, Option<PathBuf>)> {
+pub(crate) fn load_at() -> Result<(AtConfig, Option<PathBuf>)> {
     let Some(path) = at_path() else {
         return Ok((no_at()?, None));
     };

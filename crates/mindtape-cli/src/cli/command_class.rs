@@ -44,6 +44,7 @@ pub const CLASSIFICATION: &[(&str, Class)] = &[
     ("views", Class::Read),
     ("dicts", Class::Read),
     ("at", Class::Read),
+    ("board", Class::Read),
     ("check", Class::Read),
     ("allow", Class::Write),
     ("config show", Class::Read),
@@ -127,6 +128,7 @@ mod tests {
             &["mt", "config", "show"],
             &["mt", "preset", "ls"],
             &["mt", "at"],
+            &["mt", "board"],
             &["mt"],
             &["mt", "--no-such-flag"],
         ] {

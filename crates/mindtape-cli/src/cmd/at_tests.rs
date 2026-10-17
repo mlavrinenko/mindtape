@@ -52,8 +52,11 @@ fn a_project_rewrites_to_the_worktree_flag() {
 }
 
 #[test]
-fn a_project_with_no_subcommand_still_rewrites() {
-    assert_eq!(desugar(&["mt", "@sn"]).0, vec!["mt", "-w", "/wt/sn"]);
+fn a_bare_project_runs_its_board() {
+    assert_eq!(
+        desugar(&["mt", "@sn"]).0,
+        vec!["mt", "-w", "/wt/sn", "board"]
+    );
 }
 
 #[test]
@@ -80,10 +83,14 @@ fn a_held_set_names_the_command_past_global_flags() {
 }
 
 #[test]
-fn a_bare_set_holds_no_command() {
+fn a_bare_set_runs_the_board_with_its_flags() {
     let (out, held) = desugar(&["mt", "@home"]);
-    assert_eq!(out, vec!["mt"]);
-    assert_eq!(held.unwrap().command, None);
+    assert_eq!(out, vec!["mt", "board"]);
+    assert_eq!(held.unwrap().command.as_deref(), Some("board"));
+    assert_eq!(
+        desugar(&["mt", "@home", "--all"]).0,
+        vec!["mt", "board", "--all"]
+    );
 }
 
 #[test]
@@ -97,10 +104,14 @@ fn the_refusal_names_the_command_the_count_and_a_project() {
 }
 
 #[test]
-fn the_refusal_of_a_bare_set_says_this_command() {
+fn the_refusal_of_a_set_with_no_command_says_this_command() {
     let (_, held) = desugar(&["mt", "@home"]);
+    let held = HeldSet {
+        command: None,
+        ..held.unwrap()
+    };
     crate::diag::assert_plain(
-        &held.unwrap().refusal(),
+        &held.refusal(),
         "error: this command runs on one project, and @home holds 2 projects\n\
          hint: name one project, as in mt @alpha\n",
     );

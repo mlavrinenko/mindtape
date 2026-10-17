@@ -23,8 +23,8 @@ use log::LevelFilter;
 use crate::render::color::ColorChoice;
 use crate::render::link::HyperlinkChoice;
 use crate::{
-    cmd::add, cmd::allow, cmd::at, cmd::check, cmd::config as config_cmd, cmd::dicts, cmd::eval,
-    cmd::find, cmd::flip, cmd::go, cmd::graph, cmd::import, cmd::init, cmd::install,
+    cmd::add, cmd::allow, cmd::at, cmd::board, cmd::check, cmd::config as config_cmd, cmd::dicts,
+    cmd::eval, cmd::find, cmd::flip, cmd::go, cmd::graph, cmd::import, cmd::init, cmd::install,
     cmd::link as link_cmd, cmd::ls, cmd::mv, cmd::preset as preset_cmd, cmd::recur, cmd::review,
     cmd::rm, cmd::rules, cmd::set, cmd::views,
 };
@@ -159,6 +159,12 @@ enum Command {
     Preset(preset_cmd::PresetArgs),
     /// List the `@name`s of `at.toml`, or the projects one of them holds.
     At(at::AtArgs),
+    /// Show one row per project: its open, ready and blocked counts and what's next.
+    ///
+    /// On a set, `mt @home board` or a bare `mt @home`, each project gets a
+    /// row under its own config. Otherwise it shows the current project.
+    /// The columns come from `[board]` in at.toml.
+    Board(board::BoardArgs),
     /// Dump the command tree as JSON for the docs generator.
     ///
     /// Hidden. It reflects `Cli::command()`, so the rendered CLI reference
@@ -197,6 +203,7 @@ impl Cli {
             Command::Views(args) => views::run(&args),
             Command::Dicts(args) => dicts::run(&args),
             Command::At(args) => at::run(&args),
+            Command::Board(args) => board::run(&args),
             Command::Check(args) => check::run(&args),
             Command::Allow(args) => allow::run(&args),
             Command::Config(args) => config_cmd::run(&args),
