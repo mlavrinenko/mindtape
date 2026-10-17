@@ -66,7 +66,7 @@ what is wrong.
   columns: 2,
   table.header([Variable], [Effect]),
   [`MINDTAPE_CONFIG_HOME`],
-  [Replaces the config directory: where `mt` reads the second layer and where `mt install` writes `config.schema.json`. You write `presets/` and `at.toml` there yourself, and `mt` reads them.],
+  [Replaces the config directory: where `mt` reads the second layer and where `mt install` writes `config.schema.json` and `at.schema.json`. You write `presets/` and `at.toml` there yourself, and `mt` reads them.],
 
   [`MINDTAPE_DATA_HOME`],
   [Replaces the data directory: where `mt install` writes the `@local/mindtape` package, and where task files resolve it from.],

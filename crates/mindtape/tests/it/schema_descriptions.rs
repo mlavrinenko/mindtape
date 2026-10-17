@@ -1,5 +1,6 @@
-//! Every description in the config schema is hover text in an editor and a
-//! cell on the docs site's Configuration page, so it must read as user prose.
+//! Every description in the config and `at.toml` schemas is hover text in an
+//! editor, and the config schema's are cells on the docs site's Configuration
+//! page, so each must read as user prose.
 //! A Rust path or a rustdoc intra-doc link in one means a developer note
 //! leaked out of a doc comment; that note belongs in a `//` comment instead.
 #![allow(clippy::unwrap_used)]
@@ -66,10 +67,13 @@ fn problem(text: &str) -> Option<&'static str> {
 
 #[test]
 fn schema_descriptions_carry_no_rust_paths_or_intra_doc_links() {
-    let schema: Value = serde_json::from_str(&mindtape::config_schema_json()).unwrap();
     let mut found = Vec::new();
-    descriptions(&schema, "", &mut found);
-    assert!(!found.is_empty(), "the schema carries no descriptions");
+    for text in [mindtape::config_schema_json(), mindtape::at::schema_json()] {
+        let schema: Value = serde_json::from_str(&text).unwrap();
+        let before = found.len();
+        descriptions(&schema, "", &mut found);
+        assert!(found.len() > before, "a schema carries no descriptions");
+    }
     let failures: Vec<String> = found
         .iter()
         .filter_map(|(path, text)| problem(text).map(|why| format!("{path}: {why}")))

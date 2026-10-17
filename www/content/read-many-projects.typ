@@ -41,6 +41,10 @@ Name your projects once, and a leading `@name` reads every one of them.
   block: true,
 )
 
+`mt install` writes `at.schema.json` beside it. Start `at.toml` with a
+`#:schema ./at.schema.json` line, and an editor with tombi or Taplo completes
+its keys and checks their values as you type.
+
 Each `[at.<name>]` entry takes `include` and `exclude`. Both hold literal
 paths, `*` globs and other entries' `@name`s. A `*` matches inside one
 directory level, and a glob keeps only the directories that hold

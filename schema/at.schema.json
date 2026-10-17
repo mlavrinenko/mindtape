@@ -1,0 +1,141 @@
+{
+  "$defs": {
+    "AtEntry": {
+      "additionalProperties": false,
+      "description": "One `[at.<name>]` entry: a project when `include` is one literal path,\nelse a set.",
+      "properties": {
+        "board": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoardSpec"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "This entry's board, over `[board]` key by key."
+        },
+        "exclude": {
+          "default": [],
+          "description": "The same forms as `include`, whose matches leave the set.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "forks": {
+          "description": "Whether a glob's linked git worktrees join the set: `false`, the\ndefault, keeps them out, `true` lists them beside their main checkouts,\nand `\"only\"` lists them alone.",
+          "enum": [
+            false,
+            true,
+            "only"
+          ]
+        },
+        "include": {
+          "default": [],
+          "description": "Literal paths, one-level `*` globs, or `@name`s.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "BoardColumn": {
+      "additionalProperties": false,
+      "description": "One `[[board.columns]]` entry. It sets exactly one of `filter` and `top`.",
+      "properties": {
+        "fallback": {
+          "description": "The filter to use instead when the project lacks a view the column's\nfilter names.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "filter": {
+          "description": "A filter whose matching tasks the cell counts.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "description": "The column's name, which `sort` and `hide` read it by.",
+          "type": "string"
+        },
+        "top": {
+          "description": "A filter whose first task, in the project's default order, is the cell.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "BoardSpec": {
+      "additionalProperties": false,
+      "description": "One board layer as written: each key overrides the layer below it.",
+      "properties": {
+        "columns": {
+          "description": "The columns, in display order.",
+          "items": {
+            "$ref": "#/$defs/BoardColumn"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
+        "hide": {
+          "description": "An expression over the cells; a row it holds for is hidden. Empty hides\nnothing.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sort": {
+          "description": "Row order: `column`, `column:asc` or `column:desc`, ties broken by\nthe next entry and then by set order.",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/at.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Schema for `at.toml` in the Mindtape config directory. It names the projects and sets a leading `@name` selects, and the board a bare `mt @name` shows.",
+  "properties": {
+    "at": {
+      "additionalProperties": {
+        "$ref": "#/$defs/AtEntry"
+      },
+      "description": "The projects and sets, by the name `@name` selects.",
+      "type": "object"
+    },
+    "board": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BoardSpec"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "The board every entry shows, over the shipped board key by key."
+    }
+  },
+  "title": "Mindtape projects and sets",
+  "type": "object"
+}

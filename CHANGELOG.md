@@ -442,6 +442,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **A JSON Schema for `.mindtape/config.toml`.** `mt install` writes it,
   `mt config schema` prints it, and a schema-aware editor reads the `#:schema`
   line `mt init` writes. Its descriptions read as user docs.
+- **A JSON Schema for `at.toml`.** `mt install` writes `at.schema.json` beside
+  `config.schema.json`, so a `#:schema ./at.schema.json` line gets your editor
+  completing `include`, `exclude`, `forks` and the `[board]` keys.
 - **Config layers.** `~/.config/mindtape/defaults.toml`, ancestor
   `.mindtape/defaults.toml` files and the project config merge in order.
 - **`$MINDTAPE_CONFIG_HOME` and `$MINDTAPE_DATA_HOME` move the per-user

@@ -144,10 +144,10 @@ groups:
       www/content/quickstart.typ: 22765823c2934f3a3c96dbf77b8f5d42fe385914cfd27f57f8f49ff2d4f8f3ac
   cli-install-docs:
     source:
-      crates/mindtape-cli/src/cmd/install/mod.rs: cd40075f27be037472ef6cbd57cb45eb74e8bd78deb53f4119cd662bcd1017aa
+      crates/mindtape-cli/src/cmd/install/mod.rs: e34bedf42c70ad913401f9d8a1699415f73a3d3f01ef19760cd033c1d1c504ce
     dependents:
-      www/content/config.typ: a63e2ae648931e2e479eb4bb5150dac73302c1c8e8b5ab54b36cd2709ca4972c
-      www/content/quickstart.typ: 22765823c2934f3a3c96dbf77b8f5d42fe385914cfd27f57f8f49ff2d4f8f3ac
+      www/content/config.typ: 03ab3a9b54c311b17b6ffed43afdbfbda7c2b624e236a2d799d8478f1367431b
+      www/content/quickstart.typ: f42fafe408f2cfb32b8f8543658f8a69a3dcc61d84d799871f3ed89a2144db45
       www/utils/cli-notes.typ: 8cae2ec0d00665b34b57193614b7631f6845b923b2a52d35ca0678a377f72521
   cli-link-docs:
     source:
@@ -430,14 +430,14 @@ groups:
       crates/mindtape-cli/src/cmd/check/set.rs: 6aa7818567a557b2440d409d9282c0d1ba34490342776a1d67d89f13a9fe7c78
       crates/mindtape-cli/src/cmd/ls/set.rs: 5211ef80e2e4d45914901d99cbc1e8f00617022e672fb2a36af7a62bc3ce2296
       crates/mindtape-cli/src/project_set.rs: 962374a000530c66413f44230d0da71b11db12913ab11103123f26a122848423
-      crates/mindtape/src/at/board.rs: 98bda12707584a427a8c7ba00487dc284578feeb8d26e374f5b7fe77b6b2222e
+      crates/mindtape/src/at/board.rs: 724c338739d12973d8abd4e884d2ba2d18bc483e6351fedfdc84832d1a1accc3
       crates/mindtape/src/at/board.toml: 3c27c89e77133f8f3dc831842891f43ea3dd47bf2a3d02867ddf8b6df9aca614
-      crates/mindtape/src/at/mod.rs: 1f915b0ff39392fd182091bd21a14b62d255168e8b27731a2cb5fcf10968c8db
+      crates/mindtape/src/at/mod.rs: 45561334de50c1be4577d118a40062dd4058de9a76bf9b3a5fb0e9abe7b210f8
       crates/mindtape/src/at/resolve.rs: eeaa24a0ff2ea0dff5d8e695ef025f4165d9c134dc8126cc5331c88f4d083c94
       crates/mindtape/src/at/scan.rs: 688175a673dd47f09b1941339bfca17c58cb82322ff8e1ce881e3d3f2636bacc
     dependents:
       docs/src/skill.typ: 920c27780c83ec9565ed73f25152afb80703c2bc3dfc2950620d3b6392e4f221
-      www/content/read-many-projects.typ: f4ec7476977218d95b94ea06ca55dd0e77648e43cc7069fae38c317b6a78884c
+      www/content/read-many-projects.typ: 0eed8ec6a3b8c8c7fcd5f65760821942a287109d0f09b4d3c32e2903c8838c86
       www/utils/cli-notes.typ: 8cae2ec0d00665b34b57193614b7631f6845b923b2a52d35ca0678a377f72521
   site-markdown-docs:
     source:

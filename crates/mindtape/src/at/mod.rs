@@ -14,6 +14,10 @@
 //! - `board_tests.rs` — the board's unit tests.
 //! - `resolve.rs` — `@x` to a project or a set: `@name` expansion, `exclude`,
 //!   `forks`, the directory-name fallback and member naming.
+//! - `schema.rs` — the JSON Schema for `at.toml`, derived from the entry and
+//!   board types, with the values [`Forks`] takes spelled out.
+//! - `schema_tests.rs` — the schema's unit tests, held to
+//!   `schema/at.schema.json`.
 //! - `scan.rs` — the injected filesystem ([`AtFs`], [`DiskFs`]), `~` expansion,
 //!   one-level glob expansion and the project and fork tests.
 //! - `tests.rs` — the unit tests, over an in-memory filesystem.
@@ -22,6 +26,7 @@
 mod board;
 mod resolve;
 mod scan;
+mod schema;
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
@@ -31,6 +36,7 @@ use thiserror::Error;
 
 pub use board::{Board, BoardColumn, BoardSpec, Cell, TopTask};
 pub use scan::{AtFs, DiskFs};
+pub use schema::schema_json;
 
 /// A parsed `at.toml`: its entries by name, and the board each one shows.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -42,8 +48,9 @@ pub struct AtConfig {
     boards: BTreeMap<String, Board>,
 }
 
-/// One `[at.<name>]` entry.
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+/// One `[at.<name>]` entry: a project when `include` is one literal path,
+/// else a set.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct AtEntry {
     /// Literal paths, one-level `*` globs, or `@name`s.
@@ -52,8 +59,11 @@ pub struct AtEntry {
     /// The same forms as `include`, whose matches leave the set.
     #[serde(default)]
     pub exclude: Vec<String>,
-    /// Whether a glob's linked git worktrees join the set.
+    /// Whether a glob's linked git worktrees join the set: `false`, the
+    /// default, keeps them out, `true` lists them beside their main checkouts,
+    /// and `"only"` lists them alone.
     #[serde(default)]
+    #[schemars(schema_with = "schema::forks")]
     pub forks: Forks,
     /// This entry's board, over `[board]` key by key.
     pub board: Option<BoardSpec>,
@@ -111,11 +121,13 @@ pub struct Member {
 }
 
 /// The raw file shape.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct RawFile {
+    /// The projects and sets, by the name `@name` selects.
     #[serde(default)]
     at: BTreeMap<String, AtEntry>,
+    /// The board every entry shows, over the shipped board key by key.
     board: Option<BoardSpec>,
 }
 

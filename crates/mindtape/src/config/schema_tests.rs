@@ -13,21 +13,28 @@ use crate::model::naming::DedupMode;
 /// `MINDTAPE_BLESS=1 cargo test -p mindtape schema_matches_golden`.
 #[test]
 fn schema_matches_golden() {
-    let generated = config_schema_json();
-    let golden_path = concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../../schema/config.schema.json"
+    assert_matches_golden(
+        &config_schema_json(),
+        "config.schema.json",
+        "schema_matches_golden",
     );
+}
+
+/// `generated` must equal the committed `schema/<file>`, or with
+/// `MINDTAPE_BLESS` set it overwrites that file. `test` names the test to
+/// re-run for the bless.
+pub(crate) fn assert_matches_golden(generated: &str, file: &str, test: &str) {
+    let golden_path = format!("{}/../../schema/{file}", env!("CARGO_MANIFEST_DIR"));
     if std::env::var_os("MINDTAPE_BLESS").is_some() {
-        std::fs::write(golden_path, &generated).unwrap();
+        std::fs::write(&golden_path, generated).unwrap();
         return;
     }
-    let golden = std::fs::read_to_string(golden_path).unwrap_or_default();
+    let golden = std::fs::read_to_string(&golden_path).unwrap_or_default();
     assert!(
         generated == golden,
-        "config JSON schema drifted from the config structs; re-bless with \
-         `MINDTAPE_BLESS=1 cargo test -p mindtape schema_matches_golden`\n{}",
-        first_difference(&golden, &generated)
+        "schema/{file} drifted from its structs; re-bless with \
+         `MINDTAPE_BLESS=1 cargo test -p mindtape {test}`\n{}",
+        first_difference(&golden, generated)
     );
 }
 

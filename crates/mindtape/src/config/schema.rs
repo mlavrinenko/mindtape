@@ -38,18 +38,34 @@ pub const SCHEMA_URL: &str =
 /// unreachable for the well-formed `Config` schema.
 #[must_use]
 pub fn config_schema_json() -> String {
-    let mut root = serde_json::to_value(schemars::schema_for!(crate::config::Config))
-        .expect("Config JSON schema serialises to a value");
+    stamped_schema_json(
+        schemars::schema_for!(crate::config::Config),
+        SCHEMA_URL,
+        "Mindtape project configuration",
+        "Schema for `.mindtape/config.toml`, the per-project Mindtape \
+         configuration. Every section is optional; an omitted section takes \
+         the shipped defaults.",
+    )
+}
+
+/// `schema` with its `$id`, `title` and `description` set, as pretty-printed
+/// JSON with a trailing newline. Each schema file `mt install` writes goes
+/// through here, so they share one layout.
+///
+/// # Panics
+/// Panics only if `schema` fails to serialise to JSON, which a schemars
+/// schema never does.
+pub(crate) fn stamped_schema_json(
+    schema: Schema,
+    id: &str,
+    title: &str,
+    description: &str,
+) -> String {
+    let mut root = serde_json::to_value(schema).expect("JSON schema serialises to a value");
     if let serde_json::Value::Object(map) = &mut root {
-        map.insert("$id".to_owned(), SCHEMA_URL.into());
-        map.insert("title".to_owned(), "Mindtape project configuration".into());
-        map.insert(
-            "description".to_owned(),
-            "Schema for `.mindtape/config.toml`, the per-project Mindtape \
-             configuration. Every section is optional; an omitted section takes \
-             the shipped defaults."
-                .into(),
-        );
+        map.insert("$id".to_owned(), id.into());
+        map.insert("title".to_owned(), title.into());
+        map.insert("description".to_owned(), description.into());
     }
     let mut out = serde_json::to_string_pretty(&root).expect("schema serialises to JSON");
     out.push('\n');
@@ -273,4 +289,4 @@ impl JsonSchema for HeaderPathSegment {
 
 #[cfg(test)]
 #[path = "schema_tests.rs"]
-mod tests;
+pub(crate) mod tests;

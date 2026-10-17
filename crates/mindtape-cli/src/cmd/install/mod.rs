@@ -1,6 +1,6 @@
 //! `mt install` — set up the USER ENVIRONMENT: the `@local/mindtape` Typst
-//! package, the XDG global `defaults.toml` app-config layer, the JSON Schema
-//! for `.mindtape/config.toml`, and the shell completion hooks.
+//! package, the XDG global `defaults.toml` app-config layer, the JSON Schemas
+//! for `.mindtape/config.toml` and `at.toml`, and the shell completion hooks.
 //!
 //! Distinct from `mt init`, which scaffolds a PROJECT's `.mindtape/config.toml`.
 //! By default performs all four installs; `--no-lib`/`--no-defaults`/
@@ -37,7 +37,8 @@ pub struct InstallArgs {
     #[arg(long)]
     pub no_defaults: bool,
 
-    /// Skip installing the JSON Schema for `.mindtape/config.toml`.
+    /// Skip installing the JSON Schemas for `.mindtape/config.toml` and
+    /// `at.toml`.
     #[arg(long)]
     pub no_schema: bool,
 
@@ -47,7 +48,7 @@ pub struct InstallArgs {
 
     /// Overwrite files that already exist.
     ///
-    /// Those are your `defaults.toml`, the JSON Schema and the completion
+    /// Those are your `defaults.toml`, the JSON Schemas and the completion
     /// hooks.
 
     #[arg(long)]
@@ -57,6 +58,10 @@ pub struct InstallArgs {
 /// Filename of the JSON Schema installed under the XDG config dir, and the
 /// target of `mt init`'s default `#:schema` directive.
 const SCHEMA_FILE_NAME: &str = "config.schema.json";
+
+/// Filename of the `at.toml` JSON Schema, beside `at.toml` itself, so that
+/// file's `#:schema ./at.schema.json` line finds it.
+const AT_SCHEMA_FILE_NAME: &str = "at.schema.json";
 
 /// Run the `install` command.
 ///
@@ -236,17 +241,23 @@ pub(crate) fn xdg_schema_path() -> Result<PathBuf> {
     Ok(xdg_defaults_dir()?.join(SCHEMA_FILE_NAME))
 }
 
-/// Write the XDG global `config.schema.json` in `dir`: the JSON Schema for
-/// `.mindtape/config.toml`, generated from the config structs
-/// ([`mindtape::config_schema_json`]). `mt init` scaffolds a project config
-/// whose `#:schema` directive points here, so a schema-aware TOML editor
-/// (tombi, Taplo) assists filling values. Leaves an existing file alone unless
-/// `force`.
+/// Write the two JSON Schemas in `dir`, each generated from its structs, so a
+/// schema-aware TOML editor (tombi, Taplo) assists filling values.
+/// `config.schema.json` ([`mindtape::config_schema_json`]) is what the
+/// `#:schema` directive `mt init` scaffolds points at. `at.schema.json`
+/// ([`mindtape::at::schema_json`]) sits beside `at.toml`, which you write
+/// yourself. Leaves an existing file alone unless `force`.
 pub(crate) fn write_schema(dir: &Path, force: bool) -> Result<()> {
     write_seed(
         dir,
         SCHEMA_FILE_NAME,
         &mindtape::config_schema_json(),
+        force,
+    )?;
+    write_seed(
+        dir,
+        AT_SCHEMA_FILE_NAME,
+        &mindtape::at::schema_json(),
         force,
     )
 }

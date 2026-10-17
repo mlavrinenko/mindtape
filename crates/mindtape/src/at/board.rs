@@ -28,7 +28,7 @@ use crate::sort::default_order_with;
 const SHIPPED: &str = include_str!("board.toml");
 
 /// One board layer as written: each key overrides the layer below it.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct BoardSpec {
     /// The columns, in display order.
@@ -41,8 +41,8 @@ pub struct BoardSpec {
     pub hide: Option<String>,
 }
 
-/// One `[[board.columns]]` entry.
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+/// One `[[board.columns]]` entry. It sets exactly one of `filter` and `top`.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct BoardColumn {
     /// The column's name, which `sort` and `hide` read it by.

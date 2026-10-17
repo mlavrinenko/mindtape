@@ -103,6 +103,23 @@ fn write_schema_overwrites_with_force() {
     );
 }
 
+/// The `--no-schema` half writes the `at.toml` schema beside the config one,
+/// so an `at.toml` can point its `#:schema` line at `./at.schema.json`.
+#[test]
+fn write_schema_writes_the_at_schema_beside_it() {
+    assert_writes_content("at.schema.json", write_schema, &mindtape::at::schema_json());
+}
+
+#[test]
+fn write_schema_skips_an_existing_at_schema_without_force() {
+    assert_skips_existing("at.schema.json", write_schema);
+}
+
+#[test]
+fn write_schema_overwrites_the_at_schema_with_force() {
+    assert_overwrites("at.schema.json", write_schema, &mindtape::at::schema_json());
+}
+
 /// `xdg_schema_path` returns a path ending with `config.schema.json`,
 /// not a `Default::default()` (empty) `PathBuf`.
 #[test]
