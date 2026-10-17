@@ -35,7 +35,8 @@ use crate::{
     name = "mt",
     version,
     after_help = "Every status is a command too, like `mt wip <task>` and `mt done <task>`.\n\
-                  Run `mt flip --list` to see them all."
+                  Run `mt flip --list` to see them all.\n\
+                  Put `@name` first, as in `mt @work ls`, to run in a project or set `mt at` lists."
 )]
 pub struct Cli {
     #[command(subcommand)]

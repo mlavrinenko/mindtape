@@ -1,7 +1,9 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": callout, terminal
 #import "../utils/site.typ": CLI_GROUPS, u
-#import "../utils/cli-ref.typ": CLI, cli-gate, cli-group, render-globals
+#import "../utils/cli-ref.typ": (
+  CLI, cli-gate, cli-group, render-after-help, render-globals,
+)
 
 #let meta = (
   route: "/cli/",
@@ -30,6 +32,10 @@ what that run printed.
 // examples. cli-gate fails the build when a command has no group or a note
 // names no command, so a new command cannot go missing from this index.
 #cli-gate(CLI, CLI_GROUPS)
+
+`mt --help` ends on these lines:
+
+#render-after-help(CLI)
 
 = Global flags
 

@@ -80,6 +80,7 @@ fn dump(root: &Command) -> Value {
         "bin": root.get_name(),
         "version": root.get_version(),
         "about": opt_str(root.get_about()),
+        "after_help": opt_str(root.get_after_help()),
         "globals": globals,
         "commands": subcommands(root, ""),
         "filter_functions": filter_functions(),

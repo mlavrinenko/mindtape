@@ -132,3 +132,6 @@ yourself.
   Curious why a task is a file and how `mt` reads them? Take a look at
   #link(u("/concepts/"))[Concepts].
 ]
+
+Got more than one repo? #link(u("/read-many-projects/"))[Read many projects]
+shows how one `mt @name` reads them all.

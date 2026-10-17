@@ -222,6 +222,11 @@
 // on every command.
 #let render-globals(data) = _args-table(data.globals, "@global")
 
+// The closing lines of `mt --help`, one per line, with backtick spans as code.
+#let render-after-help(data) = (
+  data.after_help.split("\n").map(_inline).join(linebreak())
+)
+
 // One group of the index: each command linked to its page, with its summary.
 #let cli-group(data, groups, title) = {
   let by = _by-name(data)

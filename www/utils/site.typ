@@ -77,7 +77,8 @@
 // A group is named for the reader's job, not for the page's origin, so a
 // reader scans one short group instead of every page:
 //
-//   - Start: a first look, and the one idea the rest rests on.
+//   - Start: a first look, how to read many repos at once, and the one idea
+//     the rest rests on.
 //   - Recipes: an engineer with a problem wants the config that solves it.
 //   - Tasks: authoring a task file.
 //   - Fields: setting the values a task's fields may take, such as the
@@ -88,7 +89,10 @@
 //   - Integrate: wiring `mt` into a repo, a tool or another tracker.
 //
 // No group holds more than six pages, because a longer run makes the reader
-// read every label again. No single page can declare this fact. Spreading it
+// read every label again. Recipes is the exception: a reader picks a recipe by
+// its title and never reads them in order, so it may run longer.
+//
+// No single page can declare this fact. Spreading it
 // across the page files as `order:` integers would hide the sidebar's shape
 // and let two pages claim one slot. Every other fact about a nav entry
 // (label, title, summary, home) is declared on the page itself and resolved
@@ -96,7 +100,13 @@
 #let NAV = (
   (
     title: "Start",
-    items: ("/", "/quickstart/", "/concepts/", "/comparison/"),
+    items: (
+      "/",
+      "/quickstart/",
+      "/read-many-projects/",
+      "/concepts/",
+      "/comparison/",
+    ),
   ),
   (
     title: "Recipes",
@@ -138,7 +148,6 @@
     items: (
       "/self-validating-tasks/",
       "/agents/",
-      "/read-many-projects/",
       "/import-export/",
       "/internals/",
     ),

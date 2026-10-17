@@ -299,3 +299,11 @@ fn every_read_command_takes_json() {
         "read commands without --json: {missing:?}"
     );
 }
+
+#[test]
+fn root_after_help_names_the_at_name_prefix() {
+    let t = tree();
+    let after = field(&t, "after_help");
+    assert!(after.contains("mt flip --list"));
+    assert!(after.contains("`@name`"), "{after}");
+}
