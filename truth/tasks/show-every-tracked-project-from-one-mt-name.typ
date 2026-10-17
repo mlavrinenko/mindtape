@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 16),
+  status: done(2026, 10, 17),
   links: related(
     "read-many-projects-through-one-mt-name-selector.typ",
   )[the design its children build],

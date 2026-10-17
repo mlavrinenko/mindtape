@@ -189,6 +189,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   after `include`, `values` and `path` are merged. Both take `--json`.
 - **`-w/--worktree <path>` and `$MINDTAPE_WORKTREE` point `mt` at another
   project.**
+- **`mt @home` reads every project you track in one run.** A bare `mt @home`
+  prints one board row per project, `mt @home ls ready` lists their tasks in
+  one table grouped by project, and `mt @home check` checks them all. Each
+  project loads in parallel under its own config, so 28 projects take about
+  as long as the slowest one, and a project whose config won't load is a ⚠
+  row instead of a dead run. Writes still go to one project at a time.
 - **`~/.config/mindtape/at.toml` names projects and sets of projects.** An
   `[at.<name>]` entry holds `include` (literal paths, one-level `*` globs or
   other `@name`s), `exclude`, and `forks` (`false`, `true` or `"only"`, for
