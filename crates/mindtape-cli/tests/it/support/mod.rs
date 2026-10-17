@@ -5,12 +5,16 @@
 //! calls is dead code, hence the module-wide allow. The project fixtures live in
 //! `fixtures.rs`, the merge-driver runs in `merge_driver.rs`, and the scrubbed
 //! process builder in `shell.rs`; the `mt` spawns and read-backs stay here.
+//! Only Unix e2e modules use `merge_driver.rs` and `shell.rs`, so both build on
+//! Unix alone.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods, dead_code)]
 
 use std::path::{Path, PathBuf};
 
 mod fixtures;
+#[cfg(unix)]
 mod merge_driver;
+#[cfg(unix)]
 mod shell;
 pub use fixtures::{
     commit_repo, git, git_commit_all, init_preset, install_lib, project_with_raw_slot_template,
@@ -18,7 +22,9 @@ pub use fixtures::{
     project_with_template_and_config, scaffold, scaffold_config, scaffold_project,
     write_aliased_task,
 };
+#[cfg(unix)]
 pub use merge_driver::{merge_branches, run_driver, text_merge_conflicts};
+#[cfg(unix)]
 pub use shell::{checkout, shell};
 
 const PRELUDE: &str = include_str!("../../../../../lib/prelude.typ");
