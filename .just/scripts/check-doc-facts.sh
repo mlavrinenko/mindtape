@@ -8,13 +8,14 @@
 # the facts www/generate-facts.sh and www/generate-site-pages.sh derive
 # instead of a hand-maintained list (see truth/tasks/derive-the-drift-prone-
 # doc-facts-from-their-sources.typ and truth/tasks/derive-site-pages-json-
-# from-the-pages-page-meta-blocks.typ). Six arms: every crate in
+# from-the-pages-page-meta-blocks.typ). Seven arms: every crate in
 # crate-map.json needs a www/utils/crate-notes.typ entry, every DSL field in
 # dsl-fields.json needs a www/utils/dsl-field-notes.typ entry, every priority framework
 # in frameworks.json needs a www/utils/framework-notes.typ entry
 # (truth/tasks/derive-the-built-in-priority-tables.typ), every sweep flag in
 # sweep-flags.json needs a www/utils/sweep-flag-notes.typ entry
 # (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-attributes.typ),
+# every slot kind in slot-kinds.json needs a www/utils/slot-kind-notes.typ entry,
 # and every www/content/**/*.typ page needs a route in site-pages.json and,
 # when top-level, a `NAV` entry in www/utils/site.typ. The first four arms read their Typst dict's
 # keys through the same target/-rooted driver trick as check-doc-coverage.sh,
@@ -115,6 +116,21 @@ for page in www/content/filters.typ skills/mindtape/references/filters.md; do
         exit 1
     fi
 done
+
+# The slot-kinds arm: every kind in the SlotKind registry (read back through
+# slot-kinds.json) needs a www/utils/slot-kind-notes.typ entry, so the
+# templates page never renders a kind without its note.
+kinds=$(jq -r '.kinds[].name' www/generated/slot-kinds.json)
+printf '#import "/www/utils/slot-kind-notes.typ": slot-kind-notes\n#metadata(slot-kind-notes.keys()) <slot-kind-notes-keys>\n' \
+    > "$tmp/slot-kind-keys.typ"
+documented_kinds=$(typst query --root . "$tmp/slot-kind-keys.typ" '<slot-kind-notes-keys>' \
+    --field value --one | jq -r '.[]')
+missing_kinds=$(comm -23 <(sort <<<"$kinds") <(sort <<<"$documented_kinds"))
+if [ -n "$missing_kinds" ]; then
+    echo "check-doc-facts: undocumented slot kinds (no www/utils/slot-kind-notes.typ entry):" >&2
+    while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_kinds"
+    exit 1
+fi
 
 # The completions arm: every value-taking argument clap declares must name
 # where its values come from (truth/tasks/emit-shell-completions-from-the-

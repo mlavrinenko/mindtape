@@ -294,7 +294,7 @@ groups:
       .just/scripts/_doc-blocks-lib.sh: d9e87132af23c43bdb47591f85eec19e313a6cf4bb479be378a86aff598bcd62
       .just/scripts/check-doc-blocks.sh: 95069c6947bf9a65f48ee44676a515e1c70a7bfd7e53e5c89142940b38b109a7
       .just/scripts/check-doc-coverage.sh: e36f87d379fa6f3ddbc5f4fb62551a0d75419816226c5533c3503125fa0617c1
-      .just/scripts/check-doc-facts.sh: dbb9b5a1a8f04a334e6352fbaac882d190ca5ec76b9192c25af9ba23faac370b
+      .just/scripts/check-doc-facts.sh: 2b9ee48e5f4f0b7ca90ded5719818bd137be3fd9622544992f1133b8f3f5a7e1
       .just/scripts/check-doc-prose.awk: ee24e35c98ff1a243bc423cfeda62e2a53ffb0d4618a00aa4b9d5c41d1344db4
       .just/scripts/check-doc-prose.sh: 6aebc6b147cfb7f3870dfd26ac0c4b237869ea59af34e9d251c0b2d20556c472
       .just/scripts/check-doc-recipes.sh: fd397519691e5efe66e3d03a8a8f7bf62b2faaa77d694e8262d998590611909c
@@ -302,7 +302,7 @@ groups:
       .just/scripts/check-doc-spans.sh: ea50a109c989957d27861da1a787dea13b589b041da99b6357781738e4b8e466
       .just/scripts/docs-md-check.sh: 06b5b942d9a14fa00134ec4de64b4f2e706ae49bf1b55206b2afd54c2d87791f
     dependents:
-      docs/src/contributing/documentation.typ: 451e7a8b3a3579410d721855fd9343f93dcbb772ec464b06ceb75c2a7ce9b1e1
+      docs/src/contributing/documentation.typ: 77b8def1a0dd823c58a2fb32b63d31560df318e900edc8e21d7f5ded52f9669a
       docs/src/contributing/generated-docs.typ: 6a981d7c8fd1b98a7ef3ea7916fc8f83bdca254e5d86ba53f300a52902236189
   filter-docs:
     source:

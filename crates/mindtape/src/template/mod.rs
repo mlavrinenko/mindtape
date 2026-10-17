@@ -82,6 +82,23 @@ pub enum SlotKind {
 }
 
 impl SlotKind {
+    /// Every kind once, in the order a refusal and the docs list them. `parse`
+    /// reads the spelling of each from here, so a kind missing from this list
+    /// can't be declared.
+    pub const ALL: [Self; 11] = [
+        Self::String,
+        Self::Int,
+        Self::Float,
+        Self::Real,
+        Self::Bool,
+        Self::Date,
+        Self::List,
+        Self::Text,
+        Self::Raw,
+        Self::Choice,
+        Self::MultiChoice,
+    ];
+
     /// The config/DSL spelling of this kind.
     #[must_use]
     pub fn as_str(self) -> &'static str {
@@ -100,22 +117,15 @@ impl SlotKind {
         }
     }
 
+    /// The spelling of each kind, comma-joined, as a refusal lists them.
+    #[must_use]
+    pub fn spellings() -> String {
+        let names: Vec<_> = Self::ALL.iter().map(|kind| kind.as_str()).collect();
+        names.join(", ")
+    }
+
     fn parse(text: &str) -> Option<Self> {
-        let kind = match text {
-            "string" => Self::String,
-            "int" => Self::Int,
-            "float" => Self::Float,
-            "real" => Self::Real,
-            "bool" => Self::Bool,
-            "date" => Self::Date,
-            "list" => Self::List,
-            "text" => Self::Text,
-            "raw" => Self::Raw,
-            "choice" => Self::Choice,
-            "multichoice" => Self::MultiChoice,
-            _ => return None,
-        };
-        Some(kind)
+        Self::ALL.into_iter().find(|kind| kind.as_str() == text)
     }
 
     /// Whether this kind splices its value straight into body markup —

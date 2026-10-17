@@ -88,3 +88,15 @@ fn unknown_kind_fails_even_when_the_slot_is_unfilled() {
         fill_wrapped(r#"body: slot("body", kind: "markdown", default: "x")"#, &[]).unwrap_err();
     assert!(matches!(&err, FillError::UnknownKind { .. }), "{err:?}");
 }
+
+/// The refusal lists every kind the parser accepts, read off the registry, so
+/// a kind added to `SlotKind` can't be left out of what a template author reads.
+#[test]
+fn unknown_kind_message_names_every_registered_kind() {
+    let err = fill_wrapped(r#"body: slot("body", kind: "multi-choice")"#, &[]).unwrap_err();
+    let msg = err.to_string();
+    for kind in SlotKind::ALL {
+        assert!(msg.contains(kind.as_str()), "{msg} lacks {}", kind.as_str());
+    }
+    assert!(msg.ends_with("choice, multichoice"), "{msg}");
+}

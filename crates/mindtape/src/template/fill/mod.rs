@@ -137,8 +137,8 @@ impl fmt::Display for FillError {
             }
             Self::UnknownKind { slot, kind } => write!(
                 f,
-                "slot {slot:?} declares unknown kind {kind:?}; expected one of: \
-                 string, int, float, real, bool, date, list, text, raw, choice"
+                "slot {slot:?} declares unknown kind {kind:?}; expected one of: {}",
+                SlotKind::spellings()
             ),
             Self::BadMarkup { slot, message } => {
                 write!(f, "slot {slot:?} is not valid Typst markup: {message}")

@@ -84,6 +84,7 @@ fn dump(root: &Command) -> Value {
         "commands": subcommands(root, ""),
         "filter_functions": filter_functions(),
         "date_tokens": date_tokens(),
+        "slot_kinds": slot_kinds(),
     })
 }
 
@@ -109,6 +110,15 @@ fn date_tokens() -> Vec<Value> {
     mindtape::DATE_TOKENS
         .iter()
         .map(|t| json!({"token": t.token, "expands_to": t.expands_to}))
+        .collect()
+}
+
+/// The slot kinds a template may declare, in the order `SlotKind::ALL` lists
+/// them, so the docs render the kinds the parser accepts.
+fn slot_kinds() -> Vec<Value> {
+    mindtape::SlotKind::ALL
+        .iter()
+        .map(|kind| json!({"name": kind.as_str()}))
         .collect()
 }
 

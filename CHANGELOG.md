@@ -529,6 +529,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A mistyped slot kind lists every kind `mt add` accepts.** The error left
+  out `multichoice`, so a template author who wrote `multi-choice` was told
+  to pick from ten kinds when there are eleven.
 - **`mt ls --format csv` ends with one newline.** It used to print a blank
   line after the last record, so a script that read the listing saw an empty
   last row. An empty listing is now `id,title` and one newline.

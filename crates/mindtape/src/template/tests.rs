@@ -208,3 +208,32 @@ fn reads_a_raw_block_default_dedented_with_any_tag() {
         Some("helps[one table]")
     );
 }
+
+/// Every kind is listed once, and each spelling parses back to its kind, so
+/// `ALL` and `parse` can't disagree.
+#[test]
+fn all_lists_each_kind_once_and_parse_reads_each_back() {
+    for (i, kind) in SlotKind::ALL.iter().enumerate() {
+        assert_eq!(SlotKind::parse(kind.as_str()), Some(*kind));
+        assert!(
+            !SlotKind::ALL.iter().take(i).any(|k| k == kind),
+            "{kind:?} listed twice"
+        );
+        // Adding a variant fails this match, which is the prompt to list it in `ALL`.
+        let listed = match kind {
+            SlotKind::String
+            | SlotKind::Int
+            | SlotKind::Float
+            | SlotKind::Real
+            | SlotKind::Bool
+            | SlotKind::Date
+            | SlotKind::List
+            | SlotKind::Text
+            | SlotKind::Raw
+            | SlotKind::Choice
+            | SlotKind::MultiChoice => true,
+        };
+        assert!(listed);
+    }
+    assert_eq!(SlotKind::ALL.len(), 11);
+}

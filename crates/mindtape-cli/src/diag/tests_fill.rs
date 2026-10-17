@@ -98,3 +98,24 @@ fn a_rejected_fill_value_names_the_slot() {
     let edit = Diag::from(FillError::Edit("overlap".into()));
     assert_eq!(plain(&edit), "error: can't rewrite the template: overlap\n");
 }
+
+/// The rendered refusal for a mistyped kind lists every kind `mt add` accepts.
+#[test]
+fn an_unknown_kind_lists_every_registered_kind() {
+    let diag = Diag::from(mindtape::FillError::UnknownKind {
+        slot: "tags".into(),
+        kind: "multi-choice".into(),
+    });
+    let spellings: Vec<_> = mindtape::SlotKind::ALL
+        .iter()
+        .map(|kind| kind.as_str())
+        .collect();
+    assert_eq!(
+        plain(&diag),
+        format!(
+            "error: slot declares an unknown kind: 'multi-choice' in slot 'tags': expected one of {}\n",
+            spellings.join(", ")
+        )
+    );
+    assert!(plain(&diag).contains("choice, multichoice"));
+}

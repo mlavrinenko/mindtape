@@ -434,9 +434,10 @@ impl From<FillError> for Diag {
             FillError::UnknownKind { slot, kind } => Diag::failed("slot declares an unknown kind")
                 .value(kind)
                 .context("in slot", slot)
-                .reason(
-                    "expected one of string, int, float, real, bool, date, list, text, raw, choice",
-                ),
+                .reason(format!(
+                    "expected one of {}",
+                    mindtape::SlotKind::spellings()
+                )),
             FillError::BadMarkup { slot, message } => Diag::usage("slot is not valid Typst markup")
                 .value(slot)
                 .reason(message),

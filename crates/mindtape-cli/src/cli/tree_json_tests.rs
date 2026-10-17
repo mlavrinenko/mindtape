@@ -26,6 +26,11 @@ fn longs(args: &[Value]) -> Vec<&str> {
     args.iter().map(|a| field(a, "long")).collect()
 }
 
+/// The `name` of each entry under `key`.
+fn names<'a>(value: &'a Value, key: &str) -> Vec<&'a str> {
+    arr(value, key).iter().map(|e| field(e, "name")).collect()
+}
+
 #[test]
 fn date_tokens_carry_the_format_table() {
     let t = tree();
@@ -37,14 +42,20 @@ fn date_tokens_carry_the_format_table() {
 }
 
 #[test]
+fn slot_kinds_carry_every_registered_kind() {
+    let t = tree();
+    let kinds = names(&t, "slot_kinds");
+    let registry: Vec<_> = mindtape::SlotKind::ALL.iter().map(|k| k.as_str()).collect();
+    assert_eq!(kinds, registry);
+    assert!(kinds.contains(&"multichoice"));
+}
+
+#[test]
 fn filter_functions_carry_the_registry() {
     let t = tree();
-    let names: Vec<_> = arr(&t, "filter_functions")
-        .iter()
-        .map(|f| field(f, "name"))
-        .collect();
-    assert!(names.contains(&"exists") && names.contains(&"has"));
-    assert_eq!(names.len(), mindtape::filter::functions().len());
+    let functions = names(&t, "filter_functions");
+    assert!(functions.contains(&"exists") && functions.contains(&"has"));
+    assert_eq!(functions.len(), mindtape::filter::functions().len());
 }
 
 #[test]

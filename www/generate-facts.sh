@@ -20,7 +20,7 @@
 # than this script: www/generate-site-pages.sh derives that one and needs
 # generate.sh's own captures — see both headers for why.
 #
-# Eight artifacts, eight sources:
+# Nine artifacts, nine sources:
 #   - crate-map.json    <- `cargo metadata`, rust-toolchain.toml, the
 #                          [workspace.package] table, lib/typst.toml
 #   - dsl-fields.json   <- lib/prelude.typ's `task` signature, read back
@@ -32,6 +32,8 @@
 #                          `date_tokens` key of cli.json (`mt _cli`)
 #   - filter-functions.json <- the filter registry, read back from the
 #                          `filter_functions` key of cli.json (`mt _cli`)
+#   - slot-kinds.json   <- the template slot kinds, read back from the
+#                          `slot_kinds` key of cli.json (`mt _cli`)
 #   - gates.json        <- `just --dump --dump-format json` for the
 #                          `[group("gate")]` tags and `check`'s own dependency
 #                          list, for row order (see www/gates.jq)
@@ -157,6 +159,12 @@ jq '{functions: .filter_functions}' "$OUT/cli.json" | emit filter-functions.json
 # crates/mindtape/src/date/mod.rs that `format_iso` matches against, so the
 # config page holds no token by hand.
 jq '{tokens: .date_tokens}' "$OUT/cli.json" | emit date-tokens.json
+
+# --- slot-kinds.json ----------------------------------------------------------
+# The kinds a template's `slot(kind: ...)` accepts, off `SlotKind::ALL` in
+# crates/mindtape/src/template/mod.rs that `parse` and the refusals read, so
+# the templates page holds no kind by hand.
+jq '{kinds: .slot_kinds}' "$OUT/cli.json" | emit slot-kinds.json
 
 # site-pages.json — the docs site's page manifest — is derived in its own
 # script, www/generate-site-pages.sh. Each page carries its own `<page-meta>`

@@ -1,6 +1,9 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": capture-line, terminal
 #import "../utils/site.typ": u
+#import "../utils/slot-kind-notes.typ": slot-kind-notes
+
+#let slot-kinds = json("../generated/slot-kinds.json")
 
 #let meta = (
   route: "/templates/",
@@ -48,7 +51,7 @@ arguments:
   columns: 2,
   table.header([Argument], [What it does]),
   [`kind`],
-  [What the value is: `string` (the default), `int`, `float`, `real`, `bool`, `date` (`YYYY-MM-DD`), `list` (of strings), `choice`, `multichoice` (a list of the `choices`), `text` or `raw`.],
+  [What the value is, as one of these kinds. #slot-kinds.kinds.map(k => [#raw(k.name) is #slot-kind-notes.at(k.name)]).join([; ], last: [; or ]).],
 
   [`choices`],
   [The values a `choice` or `multichoice` slot accepts. If a slot is a whole field value, as in `kind: slot("kind", example: "test")`, and has no `choices` of its own, it takes the field's allowed values: `values` from `[tasks.fields.kind]`, `allowed` from `[tasks.assignee]`. A field that holds a list makes the slot a `multichoice`.],
