@@ -42,3 +42,36 @@ fn a_cell_prints_its_count_task_or_question_mark() {
     assert_eq!(cell_text(&Cell::Top(None), &hashes), "-");
     assert_eq!(cell_text(&Cell::Failed("no".to_owned()), &hashes), "?");
 }
+
+#[test]
+fn a_failed_project_widens_only_the_name_column() {
+    let config = mindtape::AtConfig::parse("").unwrap_or_else(|err| panic!("{err}"));
+    let board = config.board("");
+    let loaded = Row {
+        name: "alpha".to_owned(),
+        root: PathBuf::from("/p/alpha"),
+        body: Ok(Loaded {
+            cells: vec![
+                Cell::Count(1),
+                Cell::Count(1),
+                Cell::Count(0),
+                Cell::Top(None),
+            ],
+            hashes: StemHashes::new(std::iter::empty()),
+            hidden: false,
+        }),
+    };
+    let broken = Row {
+        name: "broken".to_owned(),
+        root: PathBuf::from("/p/broken"),
+        body: Err("a message far wider than any count".to_owned()),
+    };
+    assert_eq!(
+        table(board, &[&loaded, &broken]),
+        [
+            "PROJECT   OPEN  READY  BLOCKED  NEXT",
+            "alpha        1      1        0  -",
+            "⚠ broken  a message far wider than any count",
+        ]
+    );
+}
