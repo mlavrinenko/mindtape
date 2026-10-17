@@ -51,6 +51,9 @@ pub enum Reach {
 /// `(flattened command name, classification)` for every visible leaf `mt
 /// _cli --json` reflects. Order follows `cli/mod.rs`'s own `Command` enum, so a
 /// diff here tracks a diff there.
+// jscpd:ignore-start
+// A table of `(command, class)` rows: rows of one shape are the data, not a
+// pasted block.
 pub const CLASSIFICATION: &[(&str, Class)] = &[
     ("add", Class::Write),
     ("import", Class::Write),
@@ -83,6 +86,7 @@ pub const CLASSIFICATION: &[(&str, Class)] = &[
     ("recur", Class::Write),
     ("link", Class::Write),
 ];
+// jscpd:ignore-end
 
 /// Look up a flattened command name's classification.
 #[must_use]

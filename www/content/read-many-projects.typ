@@ -1,6 +1,7 @@
 #import "../utils/config-ref.typ": config-keys-table
 #import "../utils/page.typ": page
 #import "../utils/shipped-board.typ": shipped-board
+#import "../utils/set-command-notes.typ": set-command-list
 #import "../utils/ui.typ": exit-code, terminal
 #import "../utils/site.typ": u
 #import "../utils/slices.typ": checked-slices, render-slices
@@ -124,8 +125,8 @@ they refuse a set.
 
 = Write in one project
 
-Only `ls`, `find`, `check` and `board` run on a set. Every other command, and
-every write, takes one project and refuses a set with exit code
+Only #set-command-list() run on a set. Every other command, and every write,
+takes one project and refuses a set with exit code
 #exit-code("across-write"):
 
 #terminal("across-write")

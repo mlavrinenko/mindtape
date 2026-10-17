@@ -323,7 +323,7 @@ groups:
       .just/scripts/_doc-prose-lib.sh: 729a7470c312ee40427e7aff909042d5ee5693b628a47ea8004bc26b30a06b88
       .just/scripts/check-doc-blocks.sh: 95069c6947bf9a65f48ee44676a515e1c70a7bfd7e53e5c89142940b38b109a7
       .just/scripts/check-doc-coverage.sh: e36f87d379fa6f3ddbc5f4fb62551a0d75419816226c5533c3503125fa0617c1
-      .just/scripts/check-doc-facts.sh: efefc199b552972c8f2aae62ccba1ad154387f5cb1ff322ec6b6e164f9208848
+      .just/scripts/check-doc-facts.sh: ef1526e356168f10644b8803f4c7bea989ab281317f48a09d5e48f23404d1e60
       .just/scripts/check-doc-prose.awk: d2bcb8ad4e59d6a0af6164a0f06d7959237450843b51e0cf6b14e45198688fe1
       .just/scripts/check-doc-prose.sh: a39ffaa742510478ad3ee4be5637765866908287b52913b28c9a726126bef30b
       .just/scripts/check-doc-recipes.sh: fd397519691e5efe66e3d03a8a8f7bf62b2faaa77d694e8262d998590611909c
@@ -457,6 +457,11 @@ groups:
       .just/scripts/install.sh: aefc0e3bf9046e8adb2d4484f082b84faa3f87f83fcd23f176a80fdcc3f6d250
       .just/scripts/uninstall-lib.sh: a9c3a5c622cea12c4fe3233f6e4b222425f9bbba36f1cebd92dbff59cb4e9640
     dependents: {}
+  set-commands-docs:
+    source:
+      crates/mindtape-cli/src/cli/command_class.rs: 80e006c523e51461edf4ed3857188a8591845844fef32626c2b41943f66eee00
+    dependents:
+      www/utils/set-command-notes.typ: c7ad281621ae54196f9ff422551f72b9ecfd797e062a445a90def4917ec411d3
   sets-docs:
     source:
       crates/mindtape-cli/src/cmd/at.rs: a70ecd55d7c145ba9712f3843c9ea263a51cd4abc3e9bbff29db1ac24d6c7fcb
@@ -469,8 +474,8 @@ groups:
       crates/mindtape/src/at/resolve.rs: eeaa24a0ff2ea0dff5d8e695ef025f4165d9c134dc8126cc5331c88f4d083c94
       crates/mindtape/src/at/scan.rs: 688175a673dd47f09b1941339bfca17c58cb82322ff8e1ce881e3d3f2636bacc
     dependents:
-      docs/src/skill.typ: 920c27780c83ec9565ed73f25152afb80703c2bc3dfc2950620d3b6392e4f221
-      www/content/read-many-projects.typ: 4a6bff14a8981d699ae9fa5134ad0abd67879643474b8981bb2471c441444c87
+      docs/src/skill.typ: 07bc5bb6d1bb24e5d0da636c1313b12d625ddc2e2d82517db9b9c6230d4508c1
+      www/content/read-many-projects.typ: 2b7f82b95d0b691a4cc495df33b3965b60f5f0adb35340739f64702f897e804f
       www/utils/cli-notes.typ: 618c6d22c5af0be948a23b2a2d0e674a3b4aa17b97233288c91682f0aa058b75
   site-markdown-docs:
     source:

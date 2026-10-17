@@ -95,7 +95,7 @@
     {
       "file": "crates/mindtape-cli/src/cli/command_class.rs",
       "function": "classify",
-      "line": 89,
+      "line": 93,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -104,7 +104,7 @@
     {
       "file": "crates/mindtape-cli/src/cli/command_class.rs",
       "function": "refuses_a_set",
-      "line": 108,
+      "line": 112,
       "cyclomatic": 1.0,
       "coverage": 90.0,
       "crap": 1.001,
@@ -113,7 +113,7 @@
     {
       "file": "crates/mindtape-cli/src/cli/command_class.rs",
       "function": "runs_on_set",
-      "line": 99,
+      "line": 103,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,

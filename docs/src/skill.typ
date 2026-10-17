@@ -6,6 +6,7 @@
 // generator writes it with `yq`. The title's backticks come from a string, not
 // a raw span, so the rendered h1 stays plain text.
 #import "lib.typ": doc-title, mindtape, www-llms
+#import "/www/utils/set-command-notes.typ": set-command-list
 
 #metadata((
   output: "skills/mindtape/SKILL.md",
@@ -37,8 +38,8 @@ slot. Follow `references/hand-editing.md`, then run `mt check`.
 It is when `.mindtape/config.toml` exists. Run `mt` in the directory that holds
 `.mindtape/` or below it. For another project, pass `-w <path>`, or put a name
 that `mt at` lists, such as `@name`, right after `mt`. `mt at <name>` shows
-whether a name is one project or a set. On a set, `ls`, `find`, `check` and a
-bare `mt @name`, the board, read every project. Every other command, every
+whether a name is one project or a set. On a set, #set-command-list() read
+every project, and a bare `mt @name` runs `board`. Every other command, every
 write included, refuses a set: put one project's `@name` there instead.
 
 = Commands

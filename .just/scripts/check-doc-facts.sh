@@ -8,7 +8,7 @@
 # the facts www/generate-facts.sh and www/generate-site-pages.sh derive
 # instead of a hand-maintained list (see truth/tasks/derive-the-drift-prone-
 # doc-facts-from-their-sources.typ and truth/tasks/derive-site-pages-json-
-# from-the-pages-page-meta-blocks.typ). Nine arms: every crate in
+# from-the-pages-page-meta-blocks.typ). Ten arms: every crate in
 # crate-map.json needs a www/utils/crate-notes.typ entry, every DSL field in
 # dsl-fields.json needs a www/utils/dsl-field-notes.typ entry, every priority framework
 # in frameworks.json needs a www/utils/framework-notes.typ entry
@@ -17,8 +17,9 @@
 # (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-attributes.typ),
 # every slot kind in slot-kinds.json needs a www/utils/slot-kind-notes.typ entry,
 # every built-in link kind in link-kinds.json needs a www/utils/link-kind-notes.typ
-# entry, every filter field in filter-fields.json opens a code span in the skill's
-# filter reference,
+# entry, every command in set-commands.json needs a
+# www/utils/set-command-notes.typ entry, every filter field in
+# filter-fields.json opens a code span in the skill's filter reference,
 # and every www/content/**/*.typ page needs a route in site-pages.json and,
 # when top-level, a `NAV` entry in www/utils/site.typ. The first four arms read their Typst dict's
 # keys through the same target/-rooted driver trick as check-doc-coverage.sh,
@@ -164,6 +165,21 @@ missing_link_kinds=$(comm -23 <(sort <<<"$link_kinds") <(sort <<<"$documented_li
 if [ -n "$missing_link_kinds" ]; then
     echo "check-doc-facts: undocumented link kinds (no www/utils/link-kind-notes.typ entry):" >&2
     while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_link_kinds"
+    exit 1
+fi
+
+# The set-commands arm: every command the registry marks `runs_on_set` (read
+# back through set-commands.json) needs a www/utils/set-command-notes.typ
+# entry, so no page lists a set command without saying what it does there.
+set_commands=$(jq -r '.commands[]' www/generated/set-commands.json)
+printf '#import "/www/utils/set-command-notes.typ": set-command-notes\n#metadata(set-command-notes.keys()) <set-command-notes-keys>\n' \
+    > "$tmp/set-command-keys.typ"
+documented_set_commands=$(typst query --root . "$tmp/set-command-keys.typ" '<set-command-notes-keys>' \
+    --field value --one | jq -r '.[]')
+missing_set_commands=$(comm -23 <(sort <<<"$set_commands") <(sort <<<"$documented_set_commands"))
+if [ -n "$missing_set_commands" ]; then
+    echo "check-doc-facts: undocumented set commands (no www/utils/set-command-notes.typ entry):" >&2
+    while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_set_commands"
     exit 1
 fi
 

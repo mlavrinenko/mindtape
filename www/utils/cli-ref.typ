@@ -16,6 +16,7 @@
 
 #import "ui.typ": commands, terminal
 #import "cli-notes.typ": cli-notes
+#import "set-command-notes.typ": set-command-notes
 #import "site.typ": MARKDOWN, cli-route, u
 #import "page.typ": page
 
@@ -132,6 +133,20 @@
   for slug in note.at("outputs", default: ()) { terminal(slug) }
 }
 
+// ── whether a leaf runs on a set ─────────────────────────────────────────────
+// cli.json marks each leaf `runs_on_set` from the command registry, the mark
+// `main` refuses a set by, and leaves it `none` on a node with subcommands.
+#let _reach(cmd, path) = {
+  let sets = link(u("/read-many-projects/"))[set]
+  if cmd.runs_on_set == true {
+    parbreak()
+    [Runs on every project of a #sets too. #set-command-notes.at(path.join(" "))]
+  } else if cmd.runs_on_set == false {
+    parbreak()
+    _dim[Runs on one project and refuses a #sets.]
+  }
+}
+
 // ── one command block (recursive over subcommands) ───────────────────────────
 // The page title names the top-level command, so only a subcommand gets a
 // heading: `mt config show` is a level-1 heading on the `config` page.
@@ -146,6 +161,7 @@
     parbreak()
     note.prose
   }
+  _reach(cmd, path)
   _args-table(cmd.args, key)
   if note != none and "examples" in note { commands(note.examples) }
   _outputs(note)

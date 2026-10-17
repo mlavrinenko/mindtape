@@ -20,7 +20,7 @@
 # than this script: www/generate-site-pages.sh derives that one and needs
 # generate.sh's own captures — see both headers for why.
 #
-# Eleven artifacts, eleven sources:
+# Twelve artifacts, twelve sources:
 #   - crate-map.json    <- `cargo metadata`, rust-toolchain.toml, the
 #                          [workspace.package] table, lib/typst.toml
 #   - dsl-fields.json   <- lib/prelude.typ's `task` signature, read back
@@ -38,6 +38,8 @@
 #                          `fields` key of cli.json (`mt _cli`)
 #   - link-kinds.json   <- the built-in link kinds and their rules, read back
 #                          from the `link_kinds` key of cli.json (`mt _cli`)
+#   - set-commands.json <- the commands that run on a set, read back from
+#                          each leaf's `runs_on_set` in cli.json (`mt _cli`)
 #   - gates.json        <- `just --dump --dump-format json` for the
 #                          `[group("gate")]` tags and `check`'s own dependency
 #                          list, for row order (see www/gates.jq)
@@ -181,6 +183,21 @@ jq '{fields: .fields}' "$OUT/cli.json" | emit filter-fields.json
 # off `BUILTIN_KINDS` in crates/mindtape/src/link/mod.rs, so the links page
 # holds no kind name or count by hand.
 jq '{kinds: .link_kinds}' "$OUT/cli.json" | emit link-kinds.json
+
+# --- set-commands.json --------------------------------------------------------
+# The flattened path of every leaf command marked `runs_on_set`, in `mt --help`
+# order, off `CLASSIFICATION` in crates/mindtape-cli/src/cli/command_class.rs,
+# the mark `main` refuses a set by. The sets page and the skill list these
+# commands and hold none by hand.
+jq '
+  def leaves($prefix):
+    ($prefix + [.name]) as $path
+    | if (.subcommands | length) == 0
+      then select(.runs_on_set) | $path | join(" ")
+      else .subcommands[] | leaves($path)
+      end;
+  {commands: [.commands[] | leaves([])]}
+' "$OUT/cli.json" | emit set-commands.json
 
 # site-pages.json — the docs site's page manifest — is derived in its own
 # script, www/generate-site-pages.sh. Each page carries its own `<page-meta>`
