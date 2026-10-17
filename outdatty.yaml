@@ -239,6 +239,17 @@ groups:
       - docs/src/skill.typ
       - skills/mindtape/references/hand-editing.md
 
+  # The built-in link kinds and the rule each carries (`BUILTIN_KINDS`).
+  # /links/ renders its table, its count and each kind's rule from
+  # link-kinds.json, and `mt link --help` lists the kinds off the same table, so
+  # neither is here. What the hash still guards is the meaning each kind's note
+  # gives, which a change of rule leaves compiling and wrong.
+  - name: link-kinds-docs
+    source:
+      - crates/mindtape/src/link/mod.rs
+    dependents:
+      - www/utils/link-kind-notes.typ
+
   # `mt ls`: the facets, paging and the next-page command, the line under the
   # table, the sort spec, and that there is no `--all`.
   - name: cli-ls-docs

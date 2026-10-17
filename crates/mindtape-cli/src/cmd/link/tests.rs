@@ -324,3 +324,26 @@ fn a_cycle_created_by_the_batch_is_reported() {
     let err = run_with(&project, &parse(&["--apply", map.to_str().unwrap()])).unwrap_err();
     assert_eq!(err.to_string(), "linked 1 of 2 tasks; 1 failed");
 }
+
+/// `mt link --help` lists the built-in kinds off the table `mt check` resolves
+/// them with, so a seventh kind shows up there without an edit.
+#[test]
+fn the_kind_help_names_every_builtin() {
+    let help = super::kind_help();
+    let missing: Vec<_> = mindtape::link::builtin_kinds()
+        .map(|(name, _)| name)
+        .filter(|name| !help.contains(&format!("`{name}`")))
+        .collect();
+    assert!(missing.is_empty(), "{missing:?} missing from {help}");
+}
+
+#[test]
+fn join_and_reads_as_a_sentence_list() {
+    let list = |items: &[&str]| {
+        super::join_and(&items.iter().map(ToString::to_string).collect::<Vec<_>>())
+    };
+    assert_eq!(list(&[]), "");
+    assert_eq!(list(&["a"]), "a");
+    assert_eq!(list(&["a", "b"]), "a and b");
+    assert_eq!(list(&["a", "b", "c"]), "a, b and c");
+}

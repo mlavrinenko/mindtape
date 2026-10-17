@@ -1,6 +1,7 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": diagram, terminal
 #import "../utils/site.typ": u
+#import "../utils/link-kind-notes.typ": link-kind-notes
 #import "../utils/slices.typ": checked-slices, render-slices
 #import "../utils/config-ref.typ": config-keys-table, config-values-table
 
@@ -18,6 +19,36 @@
 // `just check-examples` validates. The transcripts are runs against it and a
 // copy of it, made by www/generate-model.sh, which also draws its graph.
 #let schema = json("../generated/config-schema.json")
+
+// The built-in kinds and their rules come from `BUILTIN_KINDS`, read back
+// through link-kinds.json. A kind with no note fails the page build.
+#let link-kinds = json("../generated/link-kinds.json").kinds
+#for kind in link-kinds {
+  assert(
+    kind.name in link-kind-notes,
+    message: "www/utils/link-kind-notes.typ has no note for the link kind "
+      + kind.name,
+  )
+}
+#let number-words = (
+  "1": "one",
+  "2": "two",
+  "3": "three",
+  "4": "four",
+  "5": "five",
+  "6": "six",
+  "7": "seven",
+  "8": "eight",
+  "9": "nine",
+)
+// The rules of a kind, as the sentences that follow its note.
+#let kind-rules(kind) = {
+  if kind.blocking [ Until then the task is blocked.]
+  if kind.acyclic [ `mt check` refuses a cycle of these edges.]
+  if (
+    kind.max != none
+  ) [ A task has at most #number-words.at(str(kind.max), default: str(kind.max)).]
+}
 #let slices = checked-slices(
   json("../generated/links.json"),
   "links",
@@ -71,19 +102,12 @@ such as one you declare in config, use `edge("<kind>", ...)`:
 #table(
   columns: 2,
   table.header([Kind], [A `kind("target.typ")` edge means]),
-  [`depends-on`],
-  [This task can't start until the target is finished. It's the only built-in kind that makes a task blocked. `mt check` refuses a cycle of these edges.],
-
-  [`parent`],
-  [This task is part of the target. `mt check` refuses a cycle of these edges.],
-
-  [`related`],
-  [The two tasks are connected. The edge needs a note that says how.],
-
-  [`supersedes`], [This task replaces the target.],
-  [`duplicates`], [This task is the same work as the target.],
-  [`recurred-from`],
-  [The target is the previous occurrence of this recurring task. `mt recur` writes it. See #link(u("/recurring/"))[Recurring tasks].],
+  ..link-kinds
+    .map(kind => (
+      raw(kind.name),
+      [#link-kind-notes.at(kind.name)#kind-rules(kind)],
+    ))
+    .flatten(),
 )
 
 = Parents and progress
@@ -123,7 +147,7 @@ lists its other flags.
 
 = Project-declared kinds
 
-`[[tasks.links.kinds]]` adds your own kinds next to the six built-ins. A task
+`[[tasks.links.kinds]]` adds your own kinds next to the #number-words.at(str(link-kinds.len()), default: str(link-kinds.len())) built-ins. A task
 writes one with `edge("<kind>", ...)`, like the `discharged-by` edge above.
 `examples/links/` declares these:
 

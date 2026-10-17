@@ -87,6 +87,7 @@ fn dump(root: &Command) -> Value {
         "date_tokens": date_tokens(),
         "slot_kinds": slot_kinds(),
         "fields": fields(),
+        "link_kinds": link_kinds(),
     })
 }
 
@@ -129,6 +130,21 @@ fn slot_kinds() -> Vec<Value> {
 fn fields() -> Vec<Value> {
     mindtape::field_names()
         .map(|name| json!({"name": name, "sortable": mindtape::sort::is_sort_field(name)}))
+        .collect()
+}
+
+/// The built-in link kinds in table order, each with the rule `mt check`
+/// holds its edges to, so the docs render the kinds the code resolves.
+fn link_kinds() -> Vec<Value> {
+    mindtape::link::builtin_kinds()
+        .map(|(name, rule)| {
+            json!({
+                "name": name,
+                "max": rule.max,
+                "blocking": rule.blocking,
+                "acyclic": rule.acyclic,
+            })
+        })
         .collect()
 }
 

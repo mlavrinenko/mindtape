@@ -20,7 +20,7 @@
 # than this script: www/generate-site-pages.sh derives that one and needs
 # generate.sh's own captures — see both headers for why.
 #
-# Ten artifacts, ten sources:
+# Eleven artifacts, eleven sources:
 #   - crate-map.json    <- `cargo metadata`, rust-toolchain.toml, the
 #                          [workspace.package] table, lib/typst.toml
 #   - dsl-fields.json   <- lib/prelude.typ's `task` signature, read back
@@ -36,6 +36,8 @@
 #                          `slot_kinds` key of cli.json (`mt _cli`)
 #   - filter-fields.json <- the filter field registry, read back from the
 #                          `fields` key of cli.json (`mt _cli`)
+#   - link-kinds.json   <- the built-in link kinds and their rules, read back
+#                          from the `link_kinds` key of cli.json (`mt _cli`)
 #   - gates.json        <- `just --dump --dump-format json` for the
 #                          `[group("gate")]` tags and `check`'s own dependency
 #                          list, for row order (see www/gates.jq)
@@ -173,6 +175,12 @@ jq '{kinds: .slot_kinds}' "$OUT/cli.json" | emit slot-kinds.json
 # crates/mindtape/src/model/fields.rs and `is_sort_field` in sort.rs, so the
 # filters page holds no field name or sort exception by hand.
 jq '{fields: .fields}' "$OUT/cli.json" | emit filter-fields.json
+
+# --- link-kinds.json ----------------------------------------------------------
+# The built-in link kinds, each with its `max`, `blocking` and `acyclic` rule,
+# off `BUILTIN_KINDS` in crates/mindtape/src/link/mod.rs, so the links page
+# holds no kind name or count by hand.
+jq '{kinds: .link_kinds}' "$OUT/cli.json" | emit link-kinds.json
 
 # site-pages.json — the docs site's page manifest — is derived in its own
 # script, www/generate-site-pages.sh. Each page carries its own `<page-meta>`

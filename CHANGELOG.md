@@ -218,8 +218,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is a `⚠` row and exits 1, `--all` shows the hidden rows and `--json` prints
   them all.
 - **`mt _cli --json` describes the CLI**, its filter functions, the filter
-  fields and which of them sort, the template slot kinds and the `{date:FMT}`
-  tokens, for tools and docs.
+  fields and which of them sort, the template slot kinds, the built-in link
+  kinds with their rules and the `{date:FMT}` tokens, for tools and docs.
 - **`--json` on every read command**, `mt graph` and `mt preset ls` included.
   `mt check --json` prints a `problems` array (`severity`, `file`, `line`,
   `place`, `rule`, `message`, `hints`) in the `schema_version` envelope.

@@ -44,10 +44,7 @@ pub struct LinkArgs {
     pub task: Option<String>,
 
     /// The kind of link, such as `depends-on` or `related`.
-    ///
-    /// The built-in kinds are `depends-on`, `parent`, `recurred-from`,
-    /// `supersedes`, `duplicates` and `related`, and your project can add more.
-    #[arg(required_unless_present = "apply")]
+    #[arg(required_unless_present = "apply", long_help = kind_help())]
     pub kind: Option<String>,
 
     /// The tasks to link to, each by stem, hash or path.
@@ -98,6 +95,26 @@ pub struct LinkArgs {
     /// Show what would change without writing anything.
     #[arg(long)]
     pub dry_run: bool,
+}
+
+/// The `KIND` help: the short line, then the built-in kinds read off the table
+/// `mt check` resolves them with, so a new kind needs no edit here.
+fn kind_help() -> String {
+    let names: Vec<String> = mindtape::link::builtin_kinds()
+        .map(|(name, _)| format!("`{name}`"))
+        .collect();
+    let list = join_and(&names);
+    format!(
+        "The kind of link, such as `depends-on` or `related`.\n\nThe built-in kinds are {list}, and your project can add more."
+    )
+}
+
+/// `a`, `a and b` or `a, b and c`.
+fn join_and(items: &[String]) -> String {
+    match items.split_last() {
+        Some((last, rest)) if !rest.is_empty() => format!("{} and {last}", rest.join(", ")),
+        _ => items.join(""),
+    }
 }
 
 /// Run the `link` command.

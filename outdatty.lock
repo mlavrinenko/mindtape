@@ -152,12 +152,12 @@ groups:
   cli-link-docs:
     source:
       crates/mindtape-cli/src/cmd/link/input.rs: 652e8922240f11eed6dd3f1726314177564a16e634501fb470e5c110b18e97d8
-      crates/mindtape-cli/src/cmd/link/mod.rs: 6bed870ccffb2eb41c31f1b2f03a68e3c242b39be2a99fc7bc9f128a404ca61d
+      crates/mindtape-cli/src/cmd/link/mod.rs: f0c8cb75b4e36d40c66ed844750187a8322571215259c077b0f7fd5beb0f4416
     dependents:
       docs/src/skill.typ: 920c27780c83ec9565ed73f25152afb80703c2bc3dfc2950620d3b6392e4f221
       skills/mindtape/references/hand-editing.md: 5590368d84f407a3a8eeb1fbf85992318fb1c36a8e55caeabe90fe2b4c74d033
       www/content/cli/link.typ: ac3ee85ac4177d19f47fa0d46886017b4ea676370b2021ec53f5475aa5f573e9
-      www/content/links.typ: 5d2f2e81e8a001bf376f91d0bee3e4cc2c35eea79a1c6ec066be7019cdaad3e2
+      www/content/links.typ: 3706f53e509443ebbd03aeca7066a7de887906856fa1d31d6627535d3eccb92e
       www/utils/cli-notes.typ: 8cae2ec0d00665b34b57193614b7631f6845b923b2a52d35ca0678a377f72521
   cli-ls-docs:
     source:
@@ -294,7 +294,7 @@ groups:
       .just/scripts/_doc-blocks-lib.sh: d9e87132af23c43bdb47591f85eec19e313a6cf4bb479be378a86aff598bcd62
       .just/scripts/check-doc-blocks.sh: 95069c6947bf9a65f48ee44676a515e1c70a7bfd7e53e5c89142940b38b109a7
       .just/scripts/check-doc-coverage.sh: e36f87d379fa6f3ddbc5f4fb62551a0d75419816226c5533c3503125fa0617c1
-      .just/scripts/check-doc-facts.sh: 97bf9771a072dfd2dee5f22ff3f09fbff593bea6aa4174e93f81fd9c3e8a68d3
+      .just/scripts/check-doc-facts.sh: efefc199b552972c8f2aae62ccba1ad154387f5cb1ff322ec6b6e164f9208848
       .just/scripts/check-doc-prose.awk: ee24e35c98ff1a243bc423cfeda62e2a53ffb0d4618a00aa4b9d5c41d1344db4
       .just/scripts/check-doc-prose.sh: 6aebc6b147cfb7f3870dfd26ac0c4b237869ea59af34e9d251c0b2d20556c472
       .just/scripts/check-doc-recipes.sh: fd397519691e5efe66e3d03a8a8f7bf62b2faaa77d694e8262d998590611909c
@@ -363,6 +363,11 @@ groups:
       docs/src/contributing.typ: 8cc757f6fd5dcdc6f2c0bba227a848ad52da421c2351b205030c3d6136936862
       docs/src/contributing/commit-messages.typ: 63fa0b535ddc4162dbdffe923ed200748dd1ac67d246d9ec8db20c7b8f4158d7
       docs/src/contributing/gates.typ: a770dc674a61e08feec30b8d8d0f45f7776bf5cd6ce1849affd347ce0caf5ff5
+  link-kinds-docs:
+    source:
+      crates/mindtape/src/link/mod.rs: e6c700153977bbbdddfb2b20acefb863c844aecad1f5bb543d5d22fba5cd8428
+    dependents:
+      www/utils/link-kind-notes.typ: fa45efd35cebb66df1d06a55dae739d9e7ba9d509588900b76791b690cded928
   lock-merge-docs:
     source:
       .gitattributes: 9fed88afe7d52657aab607cde3362622635cbac84e142c88fa83a9dc93e1711f

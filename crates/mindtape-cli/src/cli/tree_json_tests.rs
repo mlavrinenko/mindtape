@@ -63,6 +63,33 @@ fn fields_carry_every_registered_field_as_sortable() {
 }
 
 #[test]
+fn link_kinds_carry_every_builtin_with_its_rule() {
+    let t = tree();
+    let registry: Vec<_> = mindtape::link::builtin_kinds()
+        .map(|(name, _)| name)
+        .collect();
+    assert_eq!(names(&t, "link_kinds"), registry);
+    let rule = |name: &str| {
+        let kind = arr(&t, "link_kinds")
+            .iter()
+            .find(|k| field(k, "name") == name)
+            .unwrap();
+        (
+            kind.get("max").cloned(),
+            kind.get("blocking").cloned(),
+            kind.get("acyclic").cloned(),
+        )
+    };
+    let (max, blocking, acyclic) = rule("depends-on");
+    assert_eq!(
+        (max, blocking, acyclic),
+        (Some(Value::Null), Some(true.into()), Some(true.into()))
+    );
+    let (max, blocking, _) = rule("parent");
+    assert_eq!((max, blocking), (Some(json!(1)), Some(false.into())));
+}
+
+#[test]
 fn filter_functions_carry_the_registry() {
     let t = tree();
     let functions = names(&t, "filter_functions");

@@ -213,6 +213,12 @@ const BUILTIN_KINDS: &[(&str, KindRule)] = &[
     ),
 ];
 
+/// The built-in kinds with their rules, in table order: the list `mt check`
+/// resolves a kind against first, which `mt _cli --json` hands the docs.
+pub fn builtin_kinds() -> impl Iterator<Item = (&'static str, KindRule)> {
+    BUILTIN_KINDS.iter().copied()
+}
+
 /// Whether `name` is one of the immutable built-in kinds.
 #[must_use]
 pub fn is_builtin_kind(name: &str) -> bool {

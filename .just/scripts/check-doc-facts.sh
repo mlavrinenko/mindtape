@@ -8,7 +8,7 @@
 # the facts www/generate-facts.sh and www/generate-site-pages.sh derive
 # instead of a hand-maintained list (see truth/tasks/derive-the-drift-prone-
 # doc-facts-from-their-sources.typ and truth/tasks/derive-site-pages-json-
-# from-the-pages-page-meta-blocks.typ). Eight arms: every crate in
+# from-the-pages-page-meta-blocks.typ). Nine arms: every crate in
 # crate-map.json needs a www/utils/crate-notes.typ entry, every DSL field in
 # dsl-fields.json needs a www/utils/dsl-field-notes.typ entry, every priority framework
 # in frameworks.json needs a www/utils/framework-notes.typ entry
@@ -16,7 +16,8 @@
 # sweep-flags.json needs a www/utils/sweep-flag-notes.typ entry
 # (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-attributes.typ),
 # every slot kind in slot-kinds.json needs a www/utils/slot-kind-notes.typ entry,
-# every filter field in filter-fields.json opens a code span in the skill's
+# every built-in link kind in link-kinds.json needs a www/utils/link-kind-notes.typ
+# entry, every filter field in filter-fields.json opens a code span in the skill's
 # filter reference,
 # and every www/content/**/*.typ page needs a route in site-pages.json and,
 # when top-level, a `NAV` entry in www/utils/site.typ. The first four arms read their Typst dict's
@@ -148,6 +149,21 @@ missing_kinds=$(comm -23 <(sort <<<"$kinds") <(sort <<<"$documented_kinds"))
 if [ -n "$missing_kinds" ]; then
     echo "check-doc-facts: undocumented slot kinds (no www/utils/slot-kind-notes.typ entry):" >&2
     while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_kinds"
+    exit 1
+fi
+
+# The link-kinds arm: every built-in kind (`BUILTIN_KINDS`, read back through
+# link-kinds.json) needs a www/utils/link-kind-notes.typ entry, so the links
+# page never renders a kind without its note.
+link_kinds=$(jq -r '.kinds[].name' www/generated/link-kinds.json)
+printf '#import "/www/utils/link-kind-notes.typ": link-kind-notes\n#metadata(link-kind-notes.keys()) <link-kind-notes-keys>\n' \
+    > "$tmp/link-kind-keys.typ"
+documented_link_kinds=$(typst query --root . "$tmp/link-kind-keys.typ" '<link-kind-notes-keys>' \
+    --field value --one | jq -r '.[]')
+missing_link_kinds=$(comm -23 <(sort <<<"$link_kinds") <(sort <<<"$documented_link_kinds"))
+if [ -n "$missing_link_kinds" ]; then
+    echo "check-doc-facts: undocumented link kinds (no www/utils/link-kind-notes.typ entry):" >&2
+    while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_link_kinds"
     exit 1
 fi
 
