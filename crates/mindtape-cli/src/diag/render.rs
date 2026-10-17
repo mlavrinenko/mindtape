@@ -10,13 +10,13 @@ use crate::render::color::{self, Painter};
 
 /// `value` in single quotes, the way a shell takes it back: an inner `'`
 /// becomes `'\''`.
-pub(super) fn quote(value: &str) -> String {
+pub(crate) fn quote(value: &str) -> String {
     format!("'{}'", value.replace('\'', r"'\''"))
 }
 
 /// `word` as a shell reads it back: bare when every character is safe there,
 /// else [`quote`]d.
-pub(super) fn shell_word(word: &str) -> String {
+pub(crate) fn shell_word(word: &str) -> String {
     let safe = |c: char| c.is_ascii_alphanumeric() || "-_./:@%+=,".contains(c);
     if !word.is_empty() && word.chars().all(safe) {
         word.to_owned()

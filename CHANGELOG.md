@@ -281,6 +281,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `truncated: 20 of 143, next: mt ls -n 20 --skip 20`, and `--json` carries
   `truncated` (`shown`, `total`, `next_skip`, `null` when complete). CSV and the
   path formats stay clean.
+  The `next page:` command keeps how you chose the project, so pasting it
+  from any directory pages the same listing: `mt @sn ls -n 20 --skip 20`, or
+  `mt -w ../x ls -n 20 --skip 20` with a quoted path when it needs one.
+  `$MINDTAPE_WORKTREE` stays out, because the environment carries over.
 - **Output formats.** `--format json` prints `{"tasks": [...], "applied": ...}`
   with a `retired` key when `touches()` ran, `--format csv` gives the
   root-relative `file` and stable `id`, and `--format path` or `path0` prints

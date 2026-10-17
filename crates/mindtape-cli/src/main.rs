@@ -46,6 +46,7 @@ mod project_set;
 // Infrastructure for future command migration; not every item is wired yet.
 #[allow(dead_code)]
 mod render;
+mod selector;
 mod task_edit;
 #[cfg(test)]
 mod test_util;
@@ -90,6 +91,7 @@ fn run() -> Result<(), Diag> {
     cli::init_logger(cli.verbose);
     // Resolve the worktree override once (flag over $MINDTAPE_WORKTREE) so every
     // command's discovery entry point honours it uniformly.
+    selector::init_flag(cli.worktree.clone());
     util::init_worktree(cli.worktree.clone());
     // Stash the `--hyperlinks` flag for `util::open` to resolve against `[ls]
     // hyperlinks` once a project's config is loaded (unlike colour, this

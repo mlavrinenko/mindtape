@@ -28,7 +28,8 @@ built-in columns and sort:
 `-n` cuts the list after the sort, and `--skip` drops rows before `-n` cuts.
 So `mt ls -n 20 --skip 20` is the second page of 20. A cut table says how many
 rows it hid and prints the command for the next page, with your filter and
-flags kept and `--skip` advanced:
+flags kept and `--skip` advanced. It also keeps how you picked the project, an
+`@name` or a `-w` path, so you can paste it from any directory:
 
 #terminal("ls-cut")
 

@@ -22,6 +22,7 @@ use mindtape::sort::{default_order_with, sort_by_specs};
 use mindtape::{ConditionEnv, Config, Filter, Readiness, StemHashes, Task, select};
 
 use self::rules::Applied;
+use crate::diag::quote as shell_quote;
 use crate::render::RenderCtx;
 use crate::render::color::{Painter, is_color_active};
 use crate::render::output::{Envelope, OutputFormat, Truncation, render};
@@ -165,7 +166,7 @@ fn print_footer(args: &LsArgs, listing: &Listing) {
     let painter = Painter::new(is_color_active());
     let dim = Style::new().effects(Effects::DIMMED);
     let next_page = listing.truncated.map(|cut| {
-        let next = next_command_hint(args, None, cut.next_skip());
+        let next = next_command_hint(args, crate::selector::hint().as_deref(), cut.next_skip());
         format!("{} · next page: {next}", cut.footer())
     });
     let footer = rules::footer(&listing.applied, listing.tasks.len(), listing.project_total);
@@ -179,15 +180,16 @@ fn print_footer(args: &LsArgs, listing: &Listing) {
 }
 
 /// The command that fetches the next page after a truncated listing: this
-/// run's own filter and flags, after the `@set` it listed if any, `--skip` set to `next_skip` — this page's
+/// run's own filter and flags, after the `selector` (`@name` or `-w <path>`) that
+/// chose its project if any, `--skip` set to `next_skip` — this page's
 /// `--skip` advanced past what it showed, never restated from an existing
 /// `--skip` on the command line, which `next_skip` already accounts for.
 /// Built from the parsed [`LsArgs`] rather than raw `argv`, so it is exact
 /// regardless of shell aliasing, flag order, or how `@name`/`-w` selected the
 /// worktree, and correct whether or not this run itself carried `--skip`.
-fn next_command_hint(args: &LsArgs, set: Option<&str>, next_skip: usize) -> String {
+fn next_command_hint(args: &LsArgs, selector: Option<&str>, next_skip: usize) -> String {
     let mut parts = vec!["mt".to_owned()];
-    parts.extend(set.map(|name| format!("@{name}")));
+    parts.extend(selector.map(str::to_owned));
     parts.push("ls".to_owned());
     if let Some(filter) = &args.filter {
         parts.push(shell_quote(filter));
@@ -214,16 +216,6 @@ fn next_command_hint(args: &LsArgs, set: Option<&str>, next_skip: usize) -> Stri
     parts.push("--skip".to_owned());
     parts.push(next_skip.to_string());
     parts.join(" ")
-}
-
-/// Single-quote `value` for the shell, the way the rest of this reference
-/// already writes a filter argument (`mt ls ''`): safe whether or not
-/// quoting is needed, so the hint never has to decide. An embedded `'` closes
-/// the quote, escapes itself, then reopens it (`'\''`) rather than requiring
-/// nothing to escape, which a filter expression's own `"..."` strings do not
-/// promise.
-fn shell_quote(value: &str) -> String {
-    format!("'{}'", value.replace('\'', "'\\''"))
 }
 
 /// The resolved listing one `mt ls` run prints: the selected tasks, the

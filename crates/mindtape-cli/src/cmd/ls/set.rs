@@ -160,6 +160,6 @@ fn next_page(args: &LsArgs, held: &HeldSet, listings: &[&Listing]) -> Option<Str
         .iter()
         .map(|cut| cut.total.saturating_sub(cut.next_skip()))
         .sum();
-    let next = next_command_hint(args, Some(&held.name), next_skip);
+    let next = next_command_hint(args, Some(&format!("@{}", held.name)), next_skip);
     Some(format!("{hidden} more not shown · next page: {next}"))
 }

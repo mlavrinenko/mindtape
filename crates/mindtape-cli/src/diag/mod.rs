@@ -77,7 +77,9 @@ use std::path::Path;
 pub(crate) use from_lib::filter;
 pub(crate) use hint::{Command, Hint, Note};
 pub(crate) use prompt::confirm;
-pub(crate) use render::{emit, emit_note, emit_text, line, report, stderr_is_terminal};
+pub(crate) use render::{
+    emit, emit_note, emit_text, line, quote, report, shell_word, stderr_is_terminal,
+};
 pub(crate) use summary::dedupe_notes;
 
 /// What a command returns: its result, or the [`Diag`] `main` prints.

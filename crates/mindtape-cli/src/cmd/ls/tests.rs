@@ -375,7 +375,7 @@ fn next_command_hint_names_the_set_it_listed() {
     let mut args = default_args();
     args.flags.limit = Some(1);
     assert_eq!(
-        next_command_hint(&args, Some("home"), 1),
+        next_command_hint(&args, Some("@home"), 1),
         "mt @home ls -n 1 --skip 1"
     );
 }

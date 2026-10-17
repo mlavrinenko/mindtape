@@ -161,3 +161,67 @@ fn find_forwards_the_limit_and_its_footer() {
         "got: {text}"
     );
 }
+
+/// `mt <selector…> ls -n 1` from an unrelated directory, with `cfg` as the
+/// config home and `env` set: its stdout.
+fn paged(selector: &[&str], cfg: &std::path::Path, env: &[(&str, &std::path::Path)]) -> String {
+    let here = tempfile::tempdir().unwrap();
+    let mut command = support::mt(here.path());
+    command.env(mindtape::CONFIG_HOME_ENV, cfg);
+    command.envs(env.iter().copied());
+    let out = command
+        .args(selector)
+        .args(["ls", "-n", "1"])
+        .output()
+        .unwrap();
+    let (code, stdout, stderr) = support::parts_of(&out);
+    assert_eq!(code, Some(0), "{stderr}");
+    stdout
+}
+
+#[test]
+fn a_named_project_pages_under_its_name() {
+    let project = scaffold();
+    let cfg = tempfile::tempdir().unwrap();
+    support::write_at_toml(cfg.path(), &[("solo", &[project.path()])]);
+    let text = paged(&["@solo"], cfg.path(), &[]);
+    assert!(
+        text.ends_with("next page: mt @solo ls -n 1 --skip 1\n"),
+        "got: {text}"
+    );
+}
+
+#[test]
+fn a_worktree_flag_pages_with_the_flag_as_typed() {
+    let project = scaffold();
+    let cfg = tempfile::tempdir().unwrap();
+    let path = project.path().to_str().unwrap();
+    let text = paged(&["-w", path], cfg.path(), &[]);
+    let hint = format!("next page: mt -w {path} ls -n 1 --skip 1\n");
+    assert!(text.ends_with(&hint), "got: {text}");
+}
+
+#[test]
+fn a_worktree_path_with_spaces_is_quoted_in_the_hint() {
+    let project = scaffold();
+    let parent = tempfile::tempdir().unwrap();
+    let spaced = parent.path().join("my proj");
+    std::fs::rename(project.path(), &spaced).unwrap();
+    let cfg = tempfile::tempdir().unwrap();
+    let text = paged(&["-w", spaced.to_str().unwrap()], cfg.path(), &[]);
+    let hint = format!("next page: mt -w '{}' ls -n 1 --skip 1\n", spaced.display());
+    assert!(text.ends_with(&hint), "got: {text}");
+}
+
+#[test]
+fn the_worktree_env_stays_out_of_the_hint() {
+    // The environment carries over when the hint is pasted, so restating it
+    // would only pin a path the reader may have since changed.
+    let project = scaffold();
+    let cfg = tempfile::tempdir().unwrap();
+    let text = paged(&[], cfg.path(), &[("MINDTAPE_WORKTREE", project.path())]);
+    assert!(
+        text.ends_with("next page: mt ls -n 1 --skip 1\n"),
+        "got: {text}"
+    );
+}

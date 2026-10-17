@@ -156,9 +156,23 @@ fn print_json(value: &serde_json::Value) {
 /// # Errors
 /// Returns an error if the leading `@token` cannot be resolved.
 pub fn desugar_argv(argv: Vec<OsString>) -> Result<Vec<OsString>> {
+    let name = leading_token(&argv);
     let (out, held) = desugar_with(argv, resolve_token)?;
+    // A project turned into `-w <path>`; remember the name for a command's
+    // hint to restate. A set is held, and its hint reads the held name.
+    if let (None, Some(name)) = (&held, name) {
+        crate::selector::init_at_name(&name);
+    }
     init_held_set(held);
     Ok(out)
+}
+
+/// The `@token` (without the `@`) right after the program name, if any.
+fn leading_token(argv: &[OsString]) -> Option<String> {
+    argv.get(1)
+        .and_then(|arg| arg.to_str())
+        .and_then(|s| s.strip_prefix('@'))
+        .map(str::to_owned)
 }
 
 /// The pure core of [`desugar_argv`]: `resolve` maps a token to what it names,
