@@ -56,7 +56,7 @@
 
 == Changes
 
-- `.just/scripts/check-doc-prose.sh`, `.just/scripts/check-doc-prose.awk`: the red check first: the em-dash rule, failing on today's tree. Then read `cli.json` help strings too.
+- `.just/scripts/check-doc-prose.sh`, `.just/scripts/check-doc-prose.awk`: the red check first: the em-dash rule, failing on today's tree. Then read `cli.json` help strings and `schema/at.schema.json` descriptions too.
 - `crates/mindtape/src/config/*.rs` and the other modules whose doc comments feed the schema, about 30 files: rewrite each description.
 - `schema/config.schema.json`: regenerate.
 - `www/utils/crate-notes.typ`, `www/utils/sweep-flag-notes.typ`, `www/utils/cli-ref.typ`, `www/utils/slices.typ`: rewrite the rendered ones.
