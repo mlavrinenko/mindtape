@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use typst_harvest::HarvestError;
 
-use crate::model::task_spans::TaskCallSpans;
+use crate::model::task_spans::{CallRegion, TaskCallSpans};
 
 /// A per-file failure encountered while loading the project.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -24,6 +24,11 @@ pub struct LoadError {
     /// Typst's hints on the diagnostic that gave the place, in its order and
     /// wording. Empty when the failure is not an eval error.
     pub hints: Vec<String>,
+    /// Where `line` and `column` lie against the file's `task.with(…)` call:
+    /// in one argument's value, in the call, or outside it, which is also the
+    /// region of a failure with no place. Boxed, so a `Result` that carries a
+    /// `LoadError` stays under clippy's `result_large_err` size.
+    pub region: Box<CallRegion>,
 }
 
 /// A Typst warning raised while evaluating a task file, whether or not the
@@ -97,40 +102,49 @@ impl LoadError {
     /// itself, its trace walked when Typst raised it in the prelude. Typst
     /// leaves a show-everything rule out of that trace, so an error raised
     /// elsewhere that reaches no line of the file falls back to the line of
-    /// the file's `task.with(…)` call, which applied the rule. The hints are
-    /// the ones on the diagnostic that gave the place, else on the first.
+    /// the file's `task.with(…)` call, which applied the rule, and lies in
+    /// that call. The hints are the ones on the diagnostic that gave the
+    /// place, else on the first.
     #[must_use]
     pub(crate) fn harvest(file: PathBuf, err: &HarvestError, source: &str) -> Self {
-        let (line, column, hints) = match err {
-            HarvestError::Eval { error, .. } => {
-                let found = error
-                    .diagnostics
-                    .iter()
-                    .find_map(|diag| diag.first_in(&error.main).map(|at| (diag, at)));
-                let hints = found
-                    .map(|(diag, _)| diag)
-                    .or(error.diagnostics.first())
-                    .map(hint_texts)
-                    .unwrap_or_default();
-                if let Some((_, at)) = found {
-                    (Some(at.line), Some(at.column), hints)
-                } else {
-                    let raised_elsewhere =
-                        error.diagnostics.iter().any(|diag| diag.location.is_some());
-                    let call = raised_elsewhere
-                        .then(|| TaskCallSpans::parse(source).call_line())
-                        .flatten();
-                    (call, None, hints)
-                }
+        let message = err.to_string();
+        let error = match err {
+            HarvestError::Eval { error, .. } => error,
+            HarvestError::File(_) | HarvestError::World(_) => {
+                return Self {
+                    file,
+                    message,
+                    ..Self::default()
+                };
             }
-            HarvestError::File(_) | HarvestError::World(_) => (None, None, Vec::new()),
+        };
+        let spans = TaskCallSpans::parse(source);
+        let found = error
+            .diagnostics
+            .iter()
+            .find_map(|diag| diag.first_in(&error.main).map(|at| (diag, at)));
+        let hints = found
+            .map(|(diag, _)| diag)
+            .or(error.diagnostics.first())
+            .map(hint_texts)
+            .unwrap_or_default();
+        let (line, column, region) = if let Some((_, at)) = found {
+            let region = spans.region_at(source, at.line, at.column);
+            (Some(at.line), Some(at.column), region)
+        } else {
+            let raised_elsewhere = error.diagnostics.iter().any(|diag| diag.location.is_some());
+            match raised_elsewhere.then(|| spans.call_line()).flatten() {
+                Some(call) => (Some(call), None, CallRegion::Call),
+                None => (None, None, CallRegion::Outside),
+            }
         };
         Self {
             file,
             line,
             column,
-            message: err.to_string(),
+            message,
             hints,
+            region: Box::new(region),
         }
     }
 

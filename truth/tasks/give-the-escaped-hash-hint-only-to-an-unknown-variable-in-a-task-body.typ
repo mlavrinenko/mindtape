@@ -10,7 +10,7 @@
     ease: 6,
   ),
   difficulty: 2,
-  estimate: (src-files: 2),
+  estimate: (src-files: 4),
   tags: ("found", "cli"),
   x-goals: (
     product: (
@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 19),
+  status: wip(2026, 10, 19),
 )
 
 == Problem
@@ -48,19 +48,22 @@ left in a closing report no one rereads. It belongs in
 
 == TO-BE
 
-- 🟢 An unknown variable inside the `task.with(...)` header gets no escaped-hash hint.
-- 🟢 An unknown name used as a status helper gets a hint that lists the configured statuses, as `mt flip --list` does.
+- 🟢 An unknown variable in the body keeps the escaped-hash hint, once per run.
+- 🟢 An unknown variable inside the `status:` argument gets `hint: run mt flip --list to see the statuses`, worded as `mt flip` words its own refusal, and no escaped-hash hint.
+- 🟢 Any other unknown variable in the `task.with(...)` header, such as a misspelled `ice(`, gets neither hint.
 
 
 == Changes
 
-- `crates/mindtape-cli/src/util.rs`: give the hash hint only when the error's span falls in the body, and the status hint when it falls in the header.
+- `crates/mindtape/src/model/task_spans.rs`: keep the byte ranges of the call and of each named argument's value, and say whether a line and column fall outside the call, in it, or in one argument's value.
+- `crates/mindtape/src/loader/errors.rs`: record that region on `LoadError` when the file is evaluated.
+- `crates/mindtape-cli/src/util.rs`: give the escaped-hash hint only outside the header, and the status hint only inside `status:`.
 - `crates/mindtape-cli/src/cmd/install/hint.rs`: add the status hint beside `escaped_hash_hint`.
 
 
 == Rollback
 
-- Revert both files.
+- Revert the four files.
 
 
 == Out of scope

@@ -1,4 +1,4 @@
-use super::TaskCallSpans;
+use super::{CallRegion, TaskCallSpans};
 
 const SRC: &str = crate::typst_task!(
     "(\n  title: \"T\",\n  \
@@ -12,6 +12,39 @@ fn names_the_call_and_each_argument_line() {
     assert_eq!(spans.field_line("title"), Some(4));
     assert_eq!(spans.field_line("links"), Some(5));
     assert_eq!(spans.body(SRC), "== Body");
+}
+
+/// The `links` value, the call's closing `)`, the body, the import line, and a
+/// line past the end; then a source with no call.
+#[test]
+fn a_point_falls_in_an_argument_in_the_call_or_outside_it() {
+    let spans = TaskCallSpans::parse(SRC);
+    let regions: Vec<CallRegion> = [(5, 10), (6, 1), (8, 1), (1, 1), (99, 1)]
+        .into_iter()
+        .map(|(line, column)| spans.region_at(SRC, line, column))
+        .collect();
+    let (links, outside) = (
+        CallRegion::Argument("links".to_owned()),
+        CallRegion::Outside,
+    );
+    let call = CallRegion::Call;
+    assert_eq!(
+        regions,
+        [links, call, outside.clone(), outside.clone(), outside]
+    );
+    let none = TaskCallSpans::default().region_at(SRC, 5, 10);
+    assert_eq!(none, CallRegion::Outside);
+}
+
+/// Typst counts a column in characters, so the two-byte letters in the title
+/// move the byte offset of `tags` but not its column, 40.
+#[test]
+fn a_column_counts_characters_not_bytes() {
+    let src = "#show: task.with(title: \"Größe\", tags: (\"a\",))\n";
+    let spans = TaskCallSpans::parse(src);
+    let tags = CallRegion::Argument("tags".to_owned());
+    assert_eq!(spans.region_at(src, 1, 40), tags);
+    assert_eq!(spans.region_at(src, 1, 39), CallRegion::Call);
 }
 
 #[test]

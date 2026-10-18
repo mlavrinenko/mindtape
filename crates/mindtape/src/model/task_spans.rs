@@ -1,11 +1,13 @@
 //! Where a task file's `task.with(…)` call and its arguments sit, read once.
 //!
-//! Every place that points a breach at a line, or slices the prose body after
-//! the call, asks this one parse: the loader, [`crate::Task::field_location`]
-//! and the template check. Parse-plane only (no eval):
-//! [`typst_edit::find_method_calls`] locates the call.
+//! Every place that points a breach at a line, slices the prose body after
+//! the call, or asks which argument a load error falls in reads this one
+//! parse: the loader, [`crate::Task::field_location`] and the template check.
+//! Parse-plane only (no eval): [`typst_edit::find_method_calls`] locates the
+//! call.
 
 use std::collections::BTreeMap;
+use std::ops::Range;
 
 use typst_edit::{Call, find_method_calls, line_of};
 
@@ -21,11 +23,28 @@ const TASK: &str = "task";
 pub struct TaskCallSpans {
     /// One-based line the call opens on.
     call_line: Option<usize>,
+    /// Byte offset of the call's start.
+    call_start: Option<usize>,
     /// Byte offset just past the call's closing `)`, or past its trailing
     /// content block.
     call_end: Option<usize>,
     /// One-based line of each named argument's value.
     fields: BTreeMap<String, usize>,
+    /// Byte range of each named argument's value.
+    values: BTreeMap<String, Range<usize>>,
+}
+
+/// Where a point of a task file lies against its `task.with(…)` call.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub enum CallRegion {
+    /// Not inside the call: the body after it, the imports before it, a file
+    /// with no call, or a point not known at all.
+    #[default]
+    Outside,
+    /// Inside the call, but in no named argument's value.
+    Call,
+    /// Inside the value of the call's argument of this name.
+    Argument(String),
 }
 
 impl TaskCallSpans {
@@ -46,18 +65,21 @@ impl TaskCallSpans {
     }
 
     fn of_call(source: &str, call: &Call) -> Self {
-        let fields = call
+        let values: BTreeMap<String, Range<usize>> = call
             .args
             .iter()
-            .filter_map(|arg| {
-                let name = arg.name.clone()?;
-                Some((name, line_of(source, arg.value_range.start)))
-            })
+            .filter_map(|arg| Some((arg.name.clone()?, arg.value_range.clone())))
+            .collect();
+        let fields = values
+            .iter()
+            .map(|(name, range)| (name.clone(), line_of(source, range.start)))
             .collect();
         Self {
             call_line: Some(line_of(source, call.range.start)),
+            call_start: Some(call.range.start),
             call_end: Some(call.range.end),
             fields,
+            values,
         }
     }
 
@@ -66,11 +88,11 @@ impl TaskCallSpans {
     pub fn from_lines(call_line: usize, fields: &[(&str, usize)]) -> Self {
         Self {
             call_line: (call_line > 0).then_some(call_line),
-            call_end: None,
             fields: fields
                 .iter()
                 .map(|(name, line)| ((*name).to_owned(), *line))
                 .collect(),
+            ..Self::default()
         }
     }
 
@@ -94,6 +116,26 @@ impl TaskCallSpans {
     pub fn has_field(&self, field: &str) -> bool {
         let root = field.split(['.', '[']).next().unwrap_or(field);
         self.fields.contains_key(root)
+    }
+
+    /// Where the point at one-based `line` and `column` of `source`, which
+    /// these are the spans of, lies against the call. Typst counts the column
+    /// in characters, so this does too.
+    #[must_use]
+    pub fn region_at(&self, source: &str, line: usize, column: usize) -> CallRegion {
+        let (Some(start), Some(end)) = (self.call_start, self.call_end) else {
+            return CallRegion::Outside;
+        };
+        match byte_at(source, line, column) {
+            Some(at) if (start..end).contains(&at) => self
+                .values
+                .iter()
+                .find(|(_, range)| range.contains(&at))
+                .map_or(CallRegion::Call, |(name, _)| {
+                    CallRegion::Argument(name.clone())
+                }),
+            _ => CallRegion::Outside,
+        }
     }
 
     /// The prose after the call in `source`, trimmed; empty when there is no
@@ -131,6 +173,22 @@ impl TaskCallSpans {
             .map(|index| index + 1);
         Some(by_text.unwrap_or(call))
     }
+}
+
+/// The byte offset of the one-based `line` and `column` (in characters) of
+/// `source`, a column past the line's end clamped to it, or `None` when
+/// `source` has no such line.
+fn byte_at(source: &str, line: usize, column: usize) -> Option<usize> {
+    let start = match line.checked_sub(2) {
+        None => 0,
+        Some(newlines) => source.match_indices('\n').nth(newlines)?.0 + 1,
+    };
+    let text = source.get(start..)?.lines().next().unwrap_or_default();
+    let offset = text
+        .char_indices()
+        .nth(column.saturating_sub(1))
+        .map_or(text.len(), |(at, _)| at);
+    Some(start + offset)
 }
 
 #[cfg(test)]

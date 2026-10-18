@@ -60,6 +60,28 @@ fn an_assert_inside_the_prelude_names_the_task_files_call() {
     assert_eq!(error.line, Some(5));
 }
 
+/// A misspelled status helper lies in the `status` argument, and a `#` in
+/// the prose lies outside the call.
+#[test]
+fn an_error_records_where_it_falls_against_the_call() {
+    use crate::model::task_spans::CallRegion;
+    let in_status = load_error(crate::typst_task!(
+        "(\n  title: \"T\",\n  status: finished(2026, 10, 19),\n)\n"
+    ));
+    let in_body = load_error(crate::typst_task!(
+        "(title: \"T\")\nChannel #N carries it.\n"
+    ));
+    let seen = [in_status, in_body].map(|error| (error.message, *error.region));
+    let status = CallRegion::Argument("status".to_owned());
+    assert_eq!(
+        seen,
+        [
+            ("unknown variable: finished".to_owned(), status),
+            ("unknown variable: N".to_owned(), CallRegion::Outside),
+        ]
+    );
+}
+
 #[test]
 fn an_error_with_no_line_names_the_file_alone() {
     let error = LoadError {
@@ -118,10 +140,15 @@ const CALL_ON_LINE_2: &str = "#import \"x.typ\": *\n#show: task.with(title: \"T\
 
 #[test]
 fn only_an_error_raised_elsewhere_falls_back_to_the_task_call() {
+    use crate::model::task_spans::CallRegion;
     let line = |err| LoadError::harvest("tasks/t.typ".into(), &err, CALL_ON_LINE_2).line;
     assert_eq!(line(eval_error(Some(("tasks/t.typ", 7)))), Some(7));
     assert_eq!(line(eval_error(Some(("lib.typ", 9)))), Some(2));
     assert_eq!(line(eval_error(None)), None);
+    let region = |err| *LoadError::harvest("tasks/t.typ".into(), &err, CALL_ON_LINE_2).region;
+    assert_eq!(region(eval_error(Some(("lib.typ", 9)))), CallRegion::Call);
+    let past_the_end = region(eval_error(Some(("tasks/t.typ", 7))));
+    assert_eq!(past_the_end, CallRegion::Outside);
     assert_eq!(
         line(typst_harvest::HarvestError::File("gone".to_owned())),
         None

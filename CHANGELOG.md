@@ -506,7 +506,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   optional severity and `ViolationKind`, `write_atomic`, `shell`,
   `config_schema_json`, `map_canonical`, `stem_for_title`, `emit_task`,
   `package_overrides`, `package_root` and `sort::sort_fields`. `LoadError`
-  carries `line`, `column`, `hints` and `place()`, `LoadOutcome` carries
+  carries `line`, `column`, `hints`, `place()` and `region`, the `CallRegion`
+  that `TaskCallSpans::region_at` gives its point. `LoadOutcome` carries
   `warnings`, `ConfigError::Invalid` carries a `ConfigPlace`,
   `naming::disambiguate` returns `NamingError::Exhausted` past 10,000 tries, and
   recurrence catch-up returns `RecurError::CatchUpExhausted`.
