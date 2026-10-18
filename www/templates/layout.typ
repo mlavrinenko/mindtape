@@ -11,6 +11,33 @@
 // on DOMContentLoaded and on every toggle.
 #let _theme-script = "(function(){var d=document.documentElement;var t=localStorage.getItem('theme');if(t){d.setAttribute('data-theme',t)}else if(window.matchMedia('(prefers-color-scheme:dark)').matches){d.setAttribute('data-theme','dark')}}());function syncThemeSwitch(){var dark=document.documentElement.getAttribute('data-theme')==='dark';document.querySelectorAll('.theme-switch').forEach(function(b){b.setAttribute('aria-checked',dark?'true':'false')})}function toggleTheme(){var d=document.documentElement;var n=d.getAttribute('data-theme')==='dark'?'light':'dark';d.setAttribute('data-theme',n);localStorage.setItem('theme',n);syncThemeSwitch()}document.addEventListener('DOMContentLoaded',syncThemeSwitch);"
 
+// The narrow-screen nav drawer. Below main.css's 52rem breakpoint the sidebar
+// is a drawer that the header's menu button opens. The `js-nav` class, set
+// before first paint, turns the drawer on, so without script the sidebar
+// stays in the page, after the content. Opening sets `nav-open` on <html>,
+// pins the drawer under the header and scrolls it to the current page. A tap
+// on a link or outside the drawer closes it, and so does Escape, which hands
+// focus back to the button.
+#let _nav-script = "document.documentElement.classList.add('js-nav');
+function setNav(open){
+var d=document.documentElement,b=document.querySelector('.nav-toggle'),s=document.querySelector('.sidebar');
+d.classList.toggle('nav-open',open);
+if(b)b.setAttribute('aria-expanded',open?'true':'false');
+if(!open||!s)return;
+d.style.setProperty('--header-bottom',document.querySelector('.site-header').getBoundingClientRect().bottom+'px');
+var a=s.querySelector('[aria-current=page]');
+s.scrollTop=a?a.offsetTop-s.clientHeight/3:0;
+}
+document.addEventListener('click',function(e){
+var open=document.documentElement.classList.contains('nav-open');
+if(e.target.closest('.nav-toggle'))setNav(!open);
+else if(open&&(e.target.closest('.sidebar a')||!e.target.closest('.sidebar')))setNav(false);
+});
+document.addEventListener('keydown',function(e){
+if(e.key!=='Escape'||!document.documentElement.classList.contains('nav-open'))return;
+setNav(false);document.querySelector('.nav-toggle').focus();
+});"
+
 // Bootstrap Pagefind's search UI. The bundle (UI JS/CSS + index) is generated
 // post-build by `pagefind --site public/mindtape` (.just/docs.just's `build`)
 // into /mindtape/pagefind/, which is invisible to `tola build`/`validate`.
@@ -228,6 +255,7 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
     href: "/assets/styles/components.css",
   ))
   html.script(_theme-script)
+  html.script(_nav-script)
   html.script(_matrix-script)
   html.script(_toc-script)
   html.script(_md-copy-script)
@@ -315,6 +343,25 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
   }),
 )
 
+// The menu button, shown below the 52rem breakpoint once the nav script runs.
+// It shows three bars while the drawer is closed and a cross while it is
+// open, and aria-expanded tells a screen reader which.
+#let _menu = html.elem(
+  "button",
+  attrs: (
+    class: "header-icon nav-toggle",
+    type: "button",
+    "aria-label": "Menu",
+    "aria-expanded": "false",
+    "aria-controls": "site-nav",
+    title: "Menu",
+  ),
+  {
+    _icon("icon nav-bars", "M4 6h16M4 12h16M4 18h16", stroke: true)
+    _icon("icon nav-cross", "M6 6l12 12M18 6L6 18", stroke: true)
+  },
+)
+
 // One sidebar link. `page-meta` returns `none` only during
 // www/generate-site-pages.sh's bootstrap pass, before the manifest it queries
 // every page to build exists yet, so that entry renders nothing rather than a
@@ -358,16 +405,20 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
   }))
 }
 
-#let _sidebar(active) = html.elem("aside", attrs: (class: "sidebar"), {
-  html.elem("nav", attrs: ("aria-label": "Documentation"), {
-    for group in NAV {
-      html.elem("div", attrs: (class: "nav-group"), {
-        html.elem("p", attrs: (class: "nav-title"), [#group.title])
-        html.elem("ul", for route in group.items { _nav-item(route, active) })
-      })
-    }
-  })
-})
+#let _sidebar(active) = html.elem(
+  "aside",
+  attrs: (class: "sidebar", id: "site-nav"),
+  {
+    html.elem("nav", attrs: ("aria-label": "Documentation"), {
+      for group in NAV {
+        html.elem("div", attrs: (class: "nav-group"), {
+          html.elem("p", attrs: (class: "nav-title"), [#group.title])
+          html.elem("ul", for route in group.items { _nav-item(route, active) })
+        })
+      }
+    })
+  },
+)
 
 #let layout(body, meta: (:)) = {
   let title = meta.at("title", default: none)
@@ -385,6 +436,7 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
       html.elem("div", attrs: (class: "header-right"), {
         _github
         _toggle
+        _menu
       })
     })
   })
