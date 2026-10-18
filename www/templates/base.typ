@@ -3,6 +3,10 @@
 // The layout renders the page title as <h1>, so content headings start at <h2>.
 // Each heading gets a slug id so the on-page anchors and cross-page #fragments
 // resolve.
+//
+// Each table sits in a `table-scroll` div, which components.css turns into a
+// sideways scroll box on narrow screens, so a table too wide for a phone
+// scrolls in place rather than widening the page.
 
 #import "../utils/tola.typ": to-string
 
@@ -36,6 +40,8 @@
   show heading.where(level: 3): it => html.elem("h4", attrs: (
     id: slug(it.body),
   ))[#it.body]
+
+  show table: it => html.elem("div", attrs: (class: "table-scroll"), it)
 
   body
 }

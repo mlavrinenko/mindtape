@@ -331,17 +331,21 @@ main td code { font-size: 0.82em; }
 .md-copy:hover::after, .md-copy:focus-visible::after, .md-copy.md-copy-said::after { opacity: 1; }
 
 /* Nothing widens a narrow page ------------------------------------------
-   A code span, a URL or a table cell may break anywhere. `anywhere`, unlike
-   `break-word`, also shrinks a cell's minimum width, so a table fits the
-   screen. The comparison matrix scrolls in its own box, so its cells keep
-   their words whole. A listing in a cell sizes to the cell and scrolls
-   inside it. The copy button's tooltip shows only "Copied": the longer hover
-   tip, hidden or not, would reach past the screen's right edge. */
+   In prose a code span or a URL may break anywhere, and a wrapped span draws
+   its chip on each line. In a table cell it breaks only when the token alone
+   is wider than the cell: `break-word` keeps a column's minimum width at its
+   longest word, where `anywhere` would shrink it below a short one. A table
+   that still cannot fit scrolls in its `table-scroll` box (base.typ), except
+   the comparison matrix, whose own box scrolls already. A listing in a cell
+   sizes to the cell and scrolls inside it. The copy button's tooltip shows
+   only "Copied": the longer hover tip, hidden or not, would reach past the
+   screen's right edge. */
 @media (max-width: 52rem) {
   main :not(pre) > code, main a { overflow-wrap: anywhere; }
-  main td:first-child, main th:first-child { min-width: 7.5rem; }
-  .matrix td, .matrix th { overflow-wrap: normal; }
-  .matrix td:first-child, .matrix th:first-child { min-width: 0; }
+  main :not(pre) > code { -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  main td code, main th code, main td a, main th a { overflow-wrap: break-word; }
+  .table-scroll { overflow-x: auto; }
+  .matrix .table-scroll { overflow-x: visible; }
   main td pre { contain: inline-size; }
   .md-copy:not(.md-copy-said)::after { display: none; }
 }
