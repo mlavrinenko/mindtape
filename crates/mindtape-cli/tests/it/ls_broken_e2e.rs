@@ -1,6 +1,6 @@
-//! `mt ls` over a project with a task file that fails to load: it warns
-//! naming the file, lists the rest, counts the broken file last in the line
-//! under the table, and exits 0.
+//! `mt ls` and `mt find` over a project with a task file that fails to load:
+//! each warns naming the file, lists the rest, counts the broken file last in
+//! the line under the table, and exits 0.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
@@ -33,4 +33,11 @@ fn ls_warns_and_counts_the_broken_file_last() {
 fn find_counts_the_broken_file_too() {
     let stdout = support::stdout(project().path(), &["find", "Beta"]);
     assert!(stdout.ends_with(FOOTER), "{stdout}");
+}
+
+#[test]
+fn find_warns_about_the_broken_file() {
+    let (code, stderr) = support::run_stderr(project().path(), &["find", "Beta"]);
+    assert_eq!(code, Some(0), "{stderr}");
+    assert!(stderr.starts_with("warning: tasks/gamma.typ:"), "{stderr}");
 }

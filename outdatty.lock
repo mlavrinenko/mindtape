@@ -107,10 +107,10 @@ groups:
       www/content/schema.typ: 0cf69c7ec4bd1d42ae7796ebb7b3bd89e25bab9a98382798a3687ad263455514
   cli-find-docs:
     source:
-      crates/mindtape-cli/src/cmd/find.rs: 4a6c29972cfe8345a4293f4f6bc15f25c864838896cd9b1bc1a2dabc265a2700
+      crates/mindtape-cli/src/cmd/find.rs: 440b4fac7b04cd723a775ee4361122867c1826e6006f222e8518a56a80378fd1
     dependents:
-      www/content/cli/ls.typ: f1d27f9e5f3a41c87dec00b859851ffcadcf11388955c758ac4fd772463dbfba
-      www/utils/cli-notes.typ: 8cae2ec0d00665b34b57193614b7631f6845b923b2a52d35ca0678a377f72521
+      www/content/cli/ls.typ: 78adb14cc3e8dec8ebb763791951b2cdc7200a51cd91bf38f18f827b03b9ef0d
+      www/utils/cli-notes.typ: eb5f2bfaf6963ce6ca758bec25155e4b0dc7771b3ed651baf3b70f6ac781f69c
   cli-flip-docs:
     source:
       crates/mindtape-cli/src/cmd/flip/guards.rs: ba2e4c74d012fc3c4a76b6a068f7bfe8f92419485030214675ed5cda51997228

@@ -40,7 +40,7 @@ pub fn run(args: &FindArgs) -> Result<()> {
     if let Some(held) = crate::project_set::held_set() {
         return crate::cmd::ls::set::run(&ls_args(args), held);
     }
-    run_with(args, util::open()?)
+    run_with(args, util::open_warned()?)
 }
 
 pub(crate) fn run_with(args: &FindArgs, project: util::Project) -> Result<()> {
