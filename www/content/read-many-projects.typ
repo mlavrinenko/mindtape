@@ -1,6 +1,5 @@
 #import "../utils/config-ref.typ": config-keys-table
 #import "../utils/page.typ": page
-#import "../utils/shipped-board.typ": shipped-board
 #import "../utils/set-command-notes.typ": set-command-list
 #import "../utils/ui.typ": exit-code, terminal
 #import "../utils/site.typ": u
@@ -76,26 +75,14 @@ per project:
 
 #terminal("across-board")
 
-Every cell runs under its project's own config. shop's statuses are `todo`,
-`wip` and `done`, blog's are `draft`, `in-review` and `done`, and the board
-counts both right, because its columns read `!terminal`, `ready` and
-`blocked`, never a status name. The board page covers the columns, the hidden
-rows and the `⚠` row of a project whose config won't load.
+Each cell runs under its project's own config, so shop's `todo` and blog's
+`draft` both count as open. The columns ask `!terminal`, `ready` and
+`blocked`, never a status name. The #link(u("/cli/board/"))[board page]
+covers the hidden rows and the `⚠` row of a project whose config won't load.
 
-This is the board `mt` ships. It lists the projects with the most ready tasks
-first, then the most open ones, and drops a project with nothing open, so a
-project with no open task is missing from the table:
-
-#shipped-board
-
-`[board]` in `at.toml` changes the board for every entry, and
-`[at.<name>.board]` changes it for one, key by key over the shipped board:
-
-#config-keys-table(at-schema, "board")
-
-Each `[[board.columns]]` entry takes these keys:
-
-#config-keys-table(at-schema, "board.columns")
+Projects with the most ready tasks come first, and a project with nothing open
+drops off. Want other columns or another order? Override the board in
+`at.toml`, as #link(u("/cli/board/"))[`mt board`] shows.
 
 = List tasks across projects
 

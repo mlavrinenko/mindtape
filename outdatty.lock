@@ -488,8 +488,8 @@ groups:
       crates/mindtape/src/at/scan.rs: 688175a673dd47f09b1941339bfca17c58cb82322ff8e1ce881e3d3f2636bacc
     dependents:
       docs/src/skill.typ: 07bc5bb6d1bb24e5d0da636c1313b12d625ddc2e2d82517db9b9c6230d4508c1
-      www/content/read-many-projects.typ: 87c555ee8e730c642eb0dcdc232a3e76f84d44c3dbca51486b0778da233a6e91
-      www/utils/cli-notes.typ: caa80445aa1b83f04ae117cffea53fc321fb50773e9fc2e255fa43aaf8ac34d8
+      www/content/read-many-projects.typ: 9313aa055d8e7156215c5118a32a0ecb5c2feede9d8d85561e2fa670df542608
+      www/utils/cli-notes.typ: eb5f2bfaf6963ce6ca758bec25155e4b0dc7771b3ed651baf3b70f6ac781f69c
   site-markdown-docs:
     source:
       www/generate-md.sh: 0c53d056f7722dbbaf787c7820780faadca744cb38a0522b2a3f65c7cb107bd6

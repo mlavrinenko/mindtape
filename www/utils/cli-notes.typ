@@ -7,8 +7,11 @@
 // render as a block to copy; `outputs`, the slugs of captures that render as
 // transcripts. www/generate-cli.sh makes every capture named here.
 
+#import "config-ref.typ": config-keys-table
 #import "shipped-board.typ": shipped-board
 #import "site.typ": u
+
+#let at-schema = json("../generated/at-schema.json")
 
 #let cli-notes = (
   // ── Files ───────────────────────────────────────────────────────────────────
@@ -98,11 +101,19 @@
       match in the project's default order. Every filter runs under that
       project's own config. A cell that fails prints `?` with a note under the
       table, and a project whose config won't load is a `⚠` row, after which
-      `mt` exits 1. This is the board `mt` ships, and
-      #link(u("/read-many-projects/#see-every-project-at-once"))[Read many
-        projects] lists the keys that override it.
+      `mt` exits 1. This is the board `mt` ships:
 
-      #shipped-board],
+      #shipped-board
+
+      `[board]` in `at.toml` changes the board for every entry, and
+      `[at.<name>.board]` changes it for one, key by key over the shipped
+      board:
+
+      #config-keys-table(at-schema, "board")
+
+      Each `[[board.columns]]` entry takes these keys:
+
+      #config-keys-table(at-schema, "board.columns")],
     examples: "board-examples",
   ),
 

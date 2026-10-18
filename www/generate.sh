@@ -130,8 +130,9 @@ printf '%s\n' "$first_release" >"$OUT/first-release.txt"
 "$MT" config schema >"$OUT/config-schema.json"
 
 # The `at.toml` JSON Schema, which `mt install` writes beside the one above.
-# read-many-projects.typ renders its key tables. The file is committed, and
-# the golden test in crates/mindtape holds it to the structs.
+# read-many-projects.typ and the board note in cli-notes.typ render its key
+# tables. The file is committed, and the golden test in crates/mindtape holds
+# it to the structs.
 cp "$REPO/schema/at.schema.json" "$OUT/at-schema.json"
 
 # --- release workflow: prebuilt targets + published crates ----------------
