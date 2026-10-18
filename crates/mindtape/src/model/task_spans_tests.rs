@@ -62,6 +62,13 @@ fn a_source_without_the_call_has_no_line_and_no_body() {
     assert_eq!(spans.body("no marker\n"), "");
 }
 
+/// Lines are one-based, so a hand-built call line of 0 means no call.
+#[test]
+fn spans_built_by_hand_on_line_zero_have_no_call() {
+    assert_eq!(TaskCallSpans::from_lines(0, &[]).call_line(), None);
+    assert_eq!(TaskCallSpans::from_lines(1, &[]).call_line(), Some(1));
+}
+
 #[test]
 fn a_call_through_a_helper_is_located_by_its_name() {
     let src = "#show: helper.with(\n  title: \"T\",\n)\nbody\n";

@@ -155,6 +155,20 @@ fn only_an_error_raised_elsewhere_falls_back_to_the_task_call() {
     );
 }
 
+/// A failure that is not an eval error keeps its file and message, and has no
+/// place and no region.
+#[test]
+fn a_file_error_keeps_its_file_and_message() {
+    let gone = typst_harvest::HarvestError::File("gone".to_owned());
+    let error = LoadError::harvest("tasks/t.typ".into(), &gone, CALL_ON_LINE_2);
+    let expected = LoadError {
+        file: "tasks/t.typ".into(),
+        message: gone.to_string(),
+        ..LoadError::default()
+    };
+    assert_eq!(error, expected);
+}
+
 #[test]
 fn an_error_raised_elsewhere_in_a_file_with_no_task_call_names_no_line() {
     let error = LoadError::harvest(
