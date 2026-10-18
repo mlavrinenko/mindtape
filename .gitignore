@@ -12,9 +12,10 @@
 /mutants.out
 /mutants.out.old
 # Persistent per-file harvest cache (crates/mindtape/src/loader/cache.rs). Git-ignored
-# scratch, rebuilt on demand; each cache dir also self-ignores via an inner
-# `.gitignore`, so example projects under examples/ stay clean too.
-.mindtape/cache/
+# scratch, rebuilt on demand. The `**/` keeps the line from being anchored to
+# the repo root, so a cache under examples/ is ignored, and so out of every mmz
+# input, before `mt` has written the cache's own self-ignoring `.gitignore`.
+**/.mindtape/cache/
 # Reference clones for research (typst, tinymist, mephistypsteles, ...)
 /var
 # Skill eval scratch (sandboxes, run transcripts, generated benchmark/HTML);
