@@ -329,3 +329,19 @@ main td code { font-size: 0.82em; }
   z-index: 5;
 }
 .md-copy:hover::after, .md-copy:focus-visible::after, .md-copy.md-copy-said::after { opacity: 1; }
+
+/* Nothing widens a narrow page ------------------------------------------
+   A code span, a URL or a table cell may break anywhere. `anywhere`, unlike
+   `break-word`, also shrinks a cell's minimum width, so a table fits the
+   screen. The comparison matrix scrolls in its own box, so its cells keep
+   their words whole. A listing in a cell sizes to the cell and scrolls
+   inside it. The copy button's tooltip shows only "Copied": the longer hover
+   tip, hidden or not, would reach past the screen's right edge. */
+@media (max-width: 52rem) {
+  main :not(pre) > code, main a { overflow-wrap: anywhere; }
+  main td:first-child, main th:first-child { min-width: 7.5rem; }
+  .matrix td, .matrix th { overflow-wrap: normal; }
+  .matrix td:first-child, .matrix th:first-child { min-width: 0; }
+  main td pre { contain: inline-size; }
+  .md-copy:not(.md-copy-said)::after { display: none; }
+}
