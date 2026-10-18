@@ -461,6 +461,22 @@ groups:
       - www/content/filters.typ
       - skills/mindtape/references/filters.md
 
+  # The two word lists `mt` ships as the `mindtape-verbs` and
+  # `mindtape-dev-verbs` dictionaries. The pages restate them by hand: the
+  # 500-verb count, sample words such as `refactor` and `rate-limit`, and the
+  # words ("Backport") that neither list holds. The `mt dicts` output they
+  # capture is generated, so only this prose can drift.
+  - name: dict-words-docs
+    source:
+      - crates/mindtape/src/dicts/verbs.txt
+      - crates/mindtape/src/dicts/dev-verbs.txt
+    dependents:
+      - www/content/named-sets.typ
+      - www/content/start-titles-with-a-verb.typ
+      - www/content/filters.typ
+      - www/content/rule-packs.typ
+      - skills/mindtape/references/filters.md
+
   # What `ready` and `blocked` mean once a `waits-on` checker can block a task.
   - name: waits-docs
     source:

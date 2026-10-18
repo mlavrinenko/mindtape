@@ -328,6 +328,16 @@ groups:
       docs/src/contributing/mutation-testing.typ: 31b20e01d002372723da2f5f0543b77fca9f7ae6289018c346097d657c93f4cb
       docs/src/contributing/signal-sweep.typ: 828c709e0319fa6ed2128431ff98eb1ae22259d2543104415c391fe619983442
       docs/src/contributing/windows.typ: b683c414f960b33a43aebbedbd884539e84005ec6575de458527a4e7b31ff38f
+  dict-words-docs:
+    source:
+      crates/mindtape/src/dicts/dev-verbs.txt: 1d44018123133b9cd533d473d9f9df0f24a44131e77961178424f7311782d648
+      crates/mindtape/src/dicts/verbs.txt: 7c9d5759ba342228e958c3cfb20f0e1ab7ca64b2610c3efaeb766f9eb85a9162
+    dependents:
+      skills/mindtape/references/filters.md: fd1ba6f38dc7107f143ab77f150bc6d412c155cbc7627bece961c4a40f9b318a
+      www/content/filters.typ: 1653273378d328a6c0060bf66b9524dcc04c4c77b08398c7947b93b6f37cab1b
+      www/content/named-sets.typ: 32193f399664b8339c9a9ace4e614ed26f8fa1e742f4887df0d632c7b4b38720
+      www/content/rule-packs.typ: 15de8f4b616f2762018daab5ac99ca0015ceabe18efa7acca9e9c45ed0425db2
+      www/content/start-titles-with-a-verb.typ: 866a1925b639e28e3c716dd815d5973c5197d38f1faed4c042dde9e0825a859d
   doc-gate-scripts-docs:
     source:
       .just/scripts/_doc-blocks-lib.sh: a33f51afe2298cdcd21584d3dd313f282249e001bde750f642afa591d28e158e
