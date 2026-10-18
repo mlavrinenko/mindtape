@@ -66,8 +66,9 @@
 #let recipe-table(link) = {
   heading(level: 1)[Bring your own rules]
   [
-    None of these checks ship with #mindtape. Each one is a few lines of
-    config. Here's what `mt` says when a task breaks one.
+    No rule is hardcoded in #mindtape. Every check is a few lines of config,
+    either yours or from the `mindtape-tasks` pack that ships alongside.
+    Here's what `mt` says when a task breaks one.
   ]
   let rows = ()
   for route in recipe-routes {

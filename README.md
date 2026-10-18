@@ -44,7 +44,7 @@ Here's a real task.
 
 ## Bring your own rules
 
-None of these checks ship with Mindtape. Each one is a few lines of config. Here’s what `mt` says when a task breaks one.
+No rule is hardcoded in Mindtape. Every check is a few lines of config, either yours or from the `mindtape-tasks` pack that ships alongside. Here’s what `mt` says when a task breaks one.
 
 | Recipe | What it does | What `mt` prints |
 | --- | --- | --- |
