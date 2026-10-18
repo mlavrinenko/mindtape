@@ -33,6 +33,10 @@ Before you change a file, decide who reads it and what they can do after. Then r
 
 A file at its line cap covers too much, and trimming words to fit doesn’t fix that. Rewrite it whole, or move the argument to a `docs/contributing/*.md` file and leave a link in the always-loaded source.
 
+## Fix the bug, not the page
+
+The docs never mention a bug or a workaround. When writing a page turns up behavior that would need a caveat, fix the behavior and describe it fixed.
+
 ## State each fact once
 
 A generated fact (`www/generated/*.json`, read by both render paths) can’t drift. A hand-written sentence can. Two pages state the same fact in different words, one of them changes, and no gate fails. So state a fact on one page and link to it from the others. Content that both render paths show, like the tagline, the recipe table and the Typst section in README and on the site root, lives once in a module both call (`www/utils/demo.typ`).
