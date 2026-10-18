@@ -14,7 +14,7 @@
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
-use mindtape::{AtConfig, DiskFs, Member, Target};
+use mindtape::{AtConfig, AtError, DiskFs, Member, Target};
 
 use crate::diag::{Diag, Hint, Note, Result};
 use crate::project_set::{HeldSet, init_held_set};
@@ -82,7 +82,8 @@ fn show_all(config: &AtConfig, path: Option<&Path>, json: bool) {
 
 /// `mt at <name>`: what `@name` resolves to.
 fn show_one(config: &AtConfig, path: Option<&Path>, name: &str, json: bool) -> Result<()> {
-    let target = resolve(config, name)?.ok_or_else(|| unknown_name(name, config, path))?;
+    let target = resolve(config, name, |pick| format!("mt at {pick}"))?
+        .ok_or_else(|| unknown_name(name, config, path))?;
     match target {
         Target::Project(root) if json => print_json(&serde_json::json!({
             "name": name, "kind": "project", "path": root.display().to_string(),
@@ -115,17 +116,22 @@ fn member_lines(members: &[Member], home: Option<&Path>) -> Vec<String> {
     members
         .iter()
         .map(|member| {
-            let shown = match home.and_then(|h| member.path.strip_prefix(h).ok()) {
-                Some(rest) => {
-                    let parts: Vec<_> = rest.iter().map(|c| c.to_string_lossy()).collect();
-                    format!("~/{}", parts.join("/"))
-                }
-                None => member.path.display().to_string(),
-            };
             let fork = if member.fork { "  (fork)" } else { "" };
+            let shown = shown_path(&member.path, home);
             format!("{:<width$}  {shown}{fork}", member.name)
         })
         .collect()
+}
+
+/// `path` as `~/…` when it lies under `home`, else whole.
+fn shown_path(path: &Path, home: Option<&Path>) -> String {
+    match home.and_then(|h| path.strip_prefix(h).ok()) {
+        Some(rest) => {
+            let parts: Vec<_> = rest.iter().map(|c| c.to_string_lossy()).collect();
+            format!("~/{}", parts.join("/"))
+        }
+        None => path.display().to_string(),
+    }
 }
 
 fn member_json(member: &Member) -> serde_json::Value {
@@ -157,7 +163,8 @@ fn print_json(value: &serde_json::Value) {
 /// Returns an error if the leading `@token` cannot be resolved.
 pub fn desugar_argv(argv: Vec<OsString>) -> Result<Vec<OsString>> {
     let name = leading_token(&argv);
-    let (out, held) = desugar_with(argv, resolve_token)?;
+    let command = argv.get(2..).and_then(command_word);
+    let (out, held) = desugar_with(argv, |token| resolve_token(token, command.as_deref()))?;
     // A project turned into `-w <path>`; remember the name for a command's
     // hint to restate. A set is held, and its hint reads the held name.
     if let (None, Some(name)) = (&held, name) {
@@ -172,6 +179,15 @@ fn leading_token(argv: &[OsString]) -> Option<String> {
     argv.get(1)
         .and_then(|arg| arg.to_str())
         .and_then(|s| s.strip_prefix('@'))
+        .map(str::to_owned)
+}
+
+/// The first argument in `args` that is no flag: the command a `@token`
+/// precedes.
+fn command_word(args: &[OsString]) -> Option<String> {
+    args.iter()
+        .filter_map(|arg| arg.to_str())
+        .find(|arg| !arg.starts_with('-'))
         .map(str::to_owned)
 }
 
@@ -213,14 +229,9 @@ where
                 out.push(path.into_os_string());
             }
             Target::Set(members) => {
-                let command = rest
-                    .iter()
-                    .filter_map(|arg| arg.to_str())
-                    .find(|arg| !arg.starts_with('-'))
-                    .map(str::to_owned);
                 held = Some(HeldSet {
                     name: token,
-                    command,
+                    command: command_word(&rest),
                     members: members.into_iter().map(|m| (m.name, m.path)).collect(),
                 });
             }
@@ -231,21 +242,57 @@ where
 }
 
 /// Resolve a `@token` (without the `@`) through the app-scoped `at.toml`,
-/// erroring with the known names and config path on a miss.
-fn resolve_token(token: &str) -> Result<Target> {
+/// erroring with the known names and config path on a miss. `command` is the
+/// command the token precedes, which a clash's hint restates.
+fn resolve_token(token: &str, command: Option<&str>) -> Result<Target> {
     let (config, path) = load_at()?;
-    resolve(&config, token)?.ok_or_else(|| unknown_name(token, &config, path.as_deref()))
+    let example = |pick: &str| match command {
+        Some(word) => format!("mt @{pick} {word}"),
+        None => format!("mt @{pick}"),
+    };
+    resolve(&config, token, example)?.ok_or_else(|| unknown_name(token, &config, path.as_deref()))
 }
 
 /// [`AtConfig::resolve`] against the disk, with a failure as a `Diag`.
-fn resolve(config: &AtConfig, token: &str) -> Result<Option<Target>> {
+/// `example` spells the command line that picks one directory of a clash.
+fn resolve(
+    config: &AtConfig,
+    token: &str,
+    example: impl Fn(&str) -> String,
+) -> Result<Option<Target>> {
+    let home = dirs::home_dir();
     config
-        .resolve(token, dirs::home_dir().as_deref(), &DiskFs)
-        .map_err(|err| {
-            Diag::usage("can't resolve")
+        .resolve(token, home.as_deref(), &DiskFs)
+        .map_err(|err| match &err {
+            AtError::Clash { candidates, .. } => clash(token, candidates, home.as_deref(), example),
+            _ => Diag::usage("can't resolve")
                 .value(format!("@{token}"))
-                .cause(&err)
+                .cause(&err),
         })
+}
+
+/// The refusal of a name several directories answer to: each one with the
+/// suffix name that picks it, and a command line that does.
+fn clash(
+    token: &str,
+    candidates: &[Member],
+    home: Option<&Path>,
+    example: impl Fn(&str) -> String,
+) -> Diag {
+    let diag = candidates.iter().fold(
+        Diag::usage("name matches several directories").value(format!("@{token}")),
+        |diag, member| {
+            let shown = shown_path(&member.path, home);
+            diag.note(Note::new("candidate").name(format!("@{} → {shown}", member.name)))
+        },
+    );
+    match candidates.first() {
+        Some(first) => diag.hint(Hint::as_in(
+            "pick one by its path suffix",
+            example(&first.name),
+        )),
+        None => diag,
+    }
 }
 
 /// A helpful "unknown name" error: a nearest-match hint, the known names and

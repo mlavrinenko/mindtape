@@ -1,21 +1,25 @@
-//! `@x` to a project or a set: `[at.x]` first, else the directory named `x`
-//! that an `include` matches. A set expands its `@name` includes, drops what
-//! `exclude` matches and filters a glob's forks, then names each member.
+//! `@x` to a project or a set: `[at.x]` first, else the directory whose path
+//! ends in `x` that an `include` matches, so `@blog` and `@oss/blog` both find
+//! `~/oss/blog`. A set expands its `@name` includes, drops what `exclude`
+//! matches and filters a glob's forks, then names each member by the shortest
+//! path suffix that `@` takes back.
 
 use std::path::{Component, Path, PathBuf};
 
 use super::scan::{expand_glob, expand_tilde, is_fork, is_glob};
-use super::{AtConfig, AtError, AtFs, Forks, Member, Target, validate_name};
+use super::{AtConfig, AtError, AtFs, Forks, Member, Target, validate_token};
 
 impl AtConfig {
     /// Resolve `token`, the text after a leading `@`.
     ///
     /// An entry whose `include` is one literal path is a project, and so is a
-    /// directory found by name. Any other entry is a set. `home` expands a
-    /// leading `~`. Returns `Ok(None)` when nothing answers to `token`.
+    /// directory found by its name or a longer path suffix, such as
+    /// `oss/blog`. Any other entry is a set. `home` expands a leading `~`.
+    /// Returns `Ok(None)` when nothing answers to `token`.
     ///
     /// # Errors
-    /// [`AtError::InvalidName`] when `token` is not one path segment,
+    /// [`AtError::InvalidName`] when `token` is not path segments joined by
+    /// `/`,
     /// [`AtError::Clash`] when two directories answer to it,
     /// [`AtError::Cycle`] on an `@name` cycle, [`AtError::Unknown`] on an
     /// `@name` include that names nothing, or [`AtError::Glob`] on a bad glob.
@@ -25,7 +29,7 @@ impl AtConfig {
         home: Option<&Path>,
         fs: &dyn AtFs,
     ) -> Result<Option<Target>, AtError> {
-        validate_name(token)?;
+        validate_token(token)?;
         let resolver = Resolver {
             config: self,
             home,
@@ -115,9 +119,11 @@ impl Resolver<'_> {
         Ok(found)
     }
 
-    /// The one directory named `name` that any entry's literal or glob
-    /// `include` matches, whatever its `exclude` and `forks` say.
+    /// The one directory whose path ends in `name`'s segments that any
+    /// entry's literal or glob `include` matches, whatever its `exclude` and
+    /// `forks` say.
     fn find_dir(&self, name: &str) -> Result<Option<PathBuf>, AtError> {
+        let wanted: Vec<String> = name.split('/').map(str::to_owned).collect();
         let mut hits: Vec<PathBuf> = Vec::new();
         for entry in self.config.entries.values() {
             for pattern in entry.include.iter().filter(|p| !p.starts_with('@')) {
@@ -128,9 +134,7 @@ impl Resolver<'_> {
                     vec![path]
                 };
                 for candidate in candidates {
-                    if candidate.file_name().is_some_and(|n| n == name)
-                        && !hits.contains(&candidate)
-                    {
+                    if segments_of(&candidate).ends_with(&wanted) && !hits.contains(&candidate) {
                         hits.push(candidate);
                     }
                 }
@@ -141,7 +145,7 @@ impl Resolver<'_> {
             1 => Ok(hits.pop()),
             _ => Err(AtError::Clash {
                 name: name.to_owned(),
-                paths: hits,
+                candidates: name_members(hits, self.fs),
             }),
         }
     }

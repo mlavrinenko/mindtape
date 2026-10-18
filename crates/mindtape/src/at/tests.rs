@@ -223,7 +223,7 @@ fn an_entry_name_must_be_one_path_segment() {
 
 #[test]
 fn an_invalid_token_is_refused() {
-    for token in ["", ".", "..", "a/b", "a\\b"] {
+    for token in ["", ".", "..", "a\\b", "/a", "a/", "a//b", "a/../b"] {
         let err = resolve(HOME, &home_fs(), token).unwrap_err();
         assert!(
             matches!(err, AtError::InvalidName { .. }),
@@ -399,14 +399,38 @@ fn two_directories_with_one_name_are_refused_naming_both() {
     let fs = FakeFs::default().project("/h/a/repo");
     let err = resolve(toml, &fs, "repo").unwrap_err();
     match err {
-        AtError::Clash { name, paths } => {
+        AtError::Clash { name, candidates } => {
             assert_eq!(name, "repo");
+            let named: Vec<_> = candidates
+                .iter()
+                .map(|member| (member.name.as_str(), member.path.clone()))
+                .collect();
             assert_eq!(
-                paths,
-                vec![PathBuf::from("/h/a/repo"), PathBuf::from("/h/b/repo")]
+                named,
+                vec![
+                    ("a/repo", PathBuf::from("/h/a/repo")),
+                    ("b/repo", PathBuf::from("/h/b/repo"))
+                ]
             );
         }
         other => panic!("expected a clash, got {other:?}"),
+    }
+}
+
+#[test]
+fn a_path_suffix_picks_one_of_the_clashing_directories() {
+    let toml = "[at.a]\ninclude = [\"~/a/*\"]\n\n[at.b]\ninclude = [\"~/b/repo\"]\n";
+    let fs = FakeFs::default().project("/h/a/repo");
+    for (token, want) in [
+        ("a/repo", Some("/h/a/repo")),
+        ("h/b/repo", Some("/h/b/repo")),
+        ("c/repo", None),
+    ] {
+        assert_eq!(
+            project(toml, &fs, token),
+            want.map(PathBuf::from),
+            "@{token}"
+        );
     }
 }
 

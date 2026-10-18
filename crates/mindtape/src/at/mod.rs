@@ -13,7 +13,7 @@
 //! - `board.toml` — the shipped board, which names no status.
 //! - `board_tests.rs` — the board's unit tests.
 //! - `resolve.rs` — `@x` to a project or a set: `@name` expansion, `exclude`,
-//!   `forks`, the directory-name fallback and member naming.
+//!   `forks`, the path-suffix fallback and member naming.
 //! - `schema.rs` — the JSON Schema for `at.toml`, derived from the entry and
 //!   board types, with the values [`Forks`] takes spelled out.
 //! - `schema_tests.rs` — the schema's unit tests, held to
@@ -145,7 +145,8 @@ pub enum AtError {
         /// What is wrong with it.
         message: &'static str,
     },
-    /// An entry name or `@x` token is not one safe path segment.
+    /// An entry name is not one safe path segment, or an `@x` token is not a
+    /// `/`-joined run of them.
     #[error("invalid name {name:?}: {reason}")]
     InvalidName {
         /// The offending name, without its `@`.
@@ -160,12 +161,13 @@ pub enum AtError {
         name: String,
     },
     /// Several directories answer to one name.
-    #[error("@{name} matches {} directories", paths.len())]
+    #[error("@{name} matches {} directories", candidates.len())]
     Clash {
         /// The name, without its `@`.
         name: String,
-        /// Every matching directory, in config order.
-        paths: Vec<PathBuf>,
+        /// Every matching directory in config order, each named by its
+        /// shortest path suffix that tells it from the others.
+        candidates: Vec<Member>,
     },
     /// `@name` includes reach back to an entry being expanded.
     #[error("@name cycle: {}", chain.join(" -> "))]
@@ -244,22 +246,39 @@ impl AtConfig {
     }
 }
 
-/// Refuse a name that is not one safe path segment.
+/// Refuse an entry name that is not one safe path segment.
 fn validate_name(name: &str) -> Result<(), AtError> {
+    if name.contains(['/', '\\']) {
+        return Err(AtError::InvalidName {
+            name: name.to_owned(),
+            reason: "must be one path segment, with no `/` or `\\`",
+        });
+    }
+    validate_token(name)
+}
+
+/// Refuse an `@x` token that is not safe path segments joined by `/`, the
+/// path suffix a set member goes by.
+fn validate_token(token: &str) -> Result<(), AtError> {
     let invalid = |reason| {
         Err(AtError::InvalidName {
-            name: name.to_owned(),
+            name: token.to_owned(),
             reason,
         })
     };
-    if name.is_empty() {
+    if token.is_empty() {
         return invalid("empty name");
     }
-    if name == "." || name == ".." {
-        return invalid("`.` and `..` are not names");
+    if token.contains('\\') {
+        return invalid("must be path segments joined by `/`, with no `\\`");
     }
-    if name.contains(['/', '\\']) {
-        return invalid("must be one path segment, with no `/` or `\\`");
+    for segment in token.split('/') {
+        if segment.is_empty() {
+            return invalid("empty path segment");
+        }
+        if segment == "." || segment == ".." {
+            return invalid("`.` and `..` are not names");
+        }
     }
     Ok(())
 }

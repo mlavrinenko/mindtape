@@ -59,15 +59,15 @@ path is a project, so `mt @shop ls` is `mt -w ~/projects/shop ls`. Any other
 entry is a set, even when it matches one project.
 
 `mt at` lists the entries, and `mt at <name>` lists a set's projects. Each
-project goes by its directory name, or by the shortest path suffix that tells
-two same-named directories apart:
+project goes by its directory name:
 
 #terminal("across-at")
 
-A name with no entry falls back to the directory of that name that any
-`include` matches, so `mt @blog ls` works with no `[at.blog]`. When two
-different directories carry the name, or `@name`s include each other in a
-loop, `mt` refuses and says which.
+A name with no entry finds the directory of that name in any `include`, so
+`mt @blog ls` works with no `[at.blog]`. Got two directories called `blog`?
+Each goes by the shortest path suffix that tells them apart, like `oss/blog`,
+and `mt @oss/blog ls` works too. A loop of `@name`s that include each other
+gets refused, and `mt` prints the loop.
 
 = See every project at once
 

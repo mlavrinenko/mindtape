@@ -115,3 +115,57 @@ fn a_set_runs_exactly_the_commands_the_registry_marks() {
         }
     }
 }
+
+/// Two projects named `blog`, under `projects/` and `oss/` of one root, both in
+/// the `@both` set. Returns the root, which owns both, and the config home.
+fn two_blogs() -> (tempfile::TempDir, tempfile::TempDir) {
+    let root = tempfile::tempdir().unwrap();
+    for (parent, title) in [("projects", "Mine"), ("oss", "Theirs")] {
+        let project = support::project_with_tasks(&[("post.typ", title)]).keep();
+        std::fs::create_dir_all(root.path().join(parent)).unwrap();
+        std::fs::rename(project, root.path().join(parent).join("blog")).unwrap();
+    }
+    let cfg = tempfile::tempdir().unwrap();
+    let mine = root.path().join("projects/blog");
+    let theirs = root.path().join("oss/blog");
+    support::write_at_toml(cfg.path(), &[("both", &[&mine, &theirs])]);
+    (root, cfg)
+}
+
+#[test]
+fn a_name_two_directories_share_is_refused_listing_both_and_how_to_pick() {
+    let (root, cfg) = two_blogs();
+    let (code, _, stderr) = support::parts_of(&run(cfg.path(), &["@blog", "ls"]));
+    assert_eq!(code, Some(2), "{stderr}");
+    // The path as at.toml spells it, which is how `mt` prints it back.
+    let shown = |rel: &str| {
+        root.path()
+            .join(rel)
+            .display()
+            .to_string()
+            .replace('\\', "/")
+    };
+    assert_eq!(
+        stderr,
+        format!(
+            "error: name matches several directories: '@blog'\n\
+             hint: pick one by its path suffix, as in mt @projects/blog ls\n\
+             note: candidate: @projects/blog → {}\n\
+             note: candidate: @oss/blog → {}\n",
+            shown("projects/blog"),
+            shown("oss/blog")
+        )
+    );
+}
+
+#[test]
+fn the_suffix_name_mt_at_prints_selects_that_project() {
+    let (_root, cfg) = two_blogs();
+    let (ok, text) = support::text_of(&run(cfg.path(), &["at", "both"]));
+    assert!(ok && text.contains("oss/blog "), "{text}");
+    let (ok, text) = support::text_of(&run(cfg.path(), &["@oss/blog", "ls", ""]));
+    assert!(
+        ok && text.contains("Theirs") && !text.contains("Mine"),
+        "{text}"
+    );
+}

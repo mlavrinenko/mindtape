@@ -260,15 +260,14 @@ fn load_at_non_notfound_error_propagates() {
     assert!(super::load_at().is_err(), "ENOTDIR should propagate");
 }
 
-/// A token that is not one path segment is refused, and the message names the
-/// `@token` the user typed and says the resolution failed, not that the name is
-/// unknown.
+/// A token with a `..` segment is refused, and the message names the `@token`
+/// the user typed and says the resolution failed, not that the name is unknown.
 #[test]
-fn resolve_token_refuses_a_token_that_is_not_one_path_segment() {
+fn resolve_token_refuses_a_dot_dot_segment() {
     if run_child(&at_file(SN_CFG)).is_some() {
         return;
     }
-    let err = crate::diag::plain(&super::resolve_token("..").unwrap_err());
+    let err = crate::diag::plain(&super::resolve_token("..", None).unwrap_err());
     assert!(err.contains("can't resolve"), "{err}");
     assert!(err.contains("'@..'"), "{err}");
 }
@@ -278,7 +277,7 @@ fn resolve_token_resolves_a_project() {
     if run_child(&at_file(SN_CFG)).is_some() {
         return;
     }
-    let target = super::resolve_token("sn").unwrap();
+    let target = super::resolve_token("sn", None).unwrap();
     assert_eq!(target, Target::Project(PathBuf::from("/wt/sn")));
 }
 
