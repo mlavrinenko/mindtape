@@ -23,9 +23,6 @@
 #let beads-url = "https://github.com/gastownhall/beads"
 #let backlog-url = "https://github.com/MrLesk/Backlog.md"
 
-// The date of the first release, from CHANGELOG.md.
-#let first-release = read("../generated/first-release.txt").trim()
-
 // A table cell coloured by how fully a tool has the feature: green for yes,
 // amber for partly, grey for no. Rows that describe rather than rate use no
 // colour. The colours come from CSS variables in components.css, so they work
@@ -118,7 +115,7 @@
     [#cap("green")[Yes]],
 
     [#link(u("/priority/"))[Priority]],
-    [Integer scale, or scored from inputs by ICE, RICE, WSJF and others],
+    [A number on your scale, or scored from inputs by ICE, RICE, WSJF and others],
     [`P0`–`P3`],
     [`H`/`M`/`L`, and an urgency score computed from many attributes],
     [`(A)`–`(Z)`],
@@ -223,8 +220,8 @@
   a task applies them first.
 - #strong[Priority from inputs.] ICE, RICE, WSJF, Eisenhower and MoSCoW turn a
   task's inputs into a priority (#link(u("/priority/"))[Priority]).
-  Taskwarrior's urgency is also computed, from fixed attributes such as the due
-  date, tags and age, with coefficients you tune.
+  Taskwarrior's urgency is computed too, from the due date, tags, age and your
+  own attributes, with coefficients you tune.
 - #strong[A task is Typst.] A task can import a shared module and call your
   own functions. See #link(u("/self-validating-tasks/"))[Self-validating
     tasks].
@@ -237,12 +234,11 @@
 - #strong[You work in Emacs.] Org-mode gives you an agenda across all your
   files and exports outlines to HTML, LaTeX and PDF.
 - #strong[Issues that sync with a hosted tracker.] git-bug imports from and
-  exports to GitHub, GitLab, Jira and Launchpad.
+  exports to GitHub, GitLab and Jira, and imports from Launchpad.
 - #strong[Many agents taking work from one queue.] Beads lets an agent claim a
   task atomically, so two agents never take the same one. #mindtape has an
   `assignee` field and WIP rules, but no claim.
 - #strong[You need a browser board, or an MCP server.] Backlog.md has both,
   and Beads has an MCP server.
-- #strong[Maturity.] #mindtape's first release came out on #first-release.
-  Taskwarrior and todo.txt have years of add-ons, integrations and mobile
-  apps.
+- #strong[Maturity.] Taskwarrior and todo.txt have years of add-ons,
+  integrations and mobile apps.
