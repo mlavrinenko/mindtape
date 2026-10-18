@@ -57,6 +57,12 @@ for it. Run it once per machine:
 your shell's startup file, and Tab completes task names, statuses and
 #link(u("/named-sets/#views"))[views] for the project you're in.
 
+Open a task in an editor that runs
+#link("https://myriad-dreamin.github.io/tinymist/")[tinymist], the Typst
+language server, and it finds the installed prelude, completes the `task`
+fields and flags a misspelled one. #link(u("/task-files/#the-import"))[Task files]
+explains the `@local` import.
+
 Then set up a project, once per repository:
 
 #terminal("qs-init")
