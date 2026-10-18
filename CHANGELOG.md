@@ -558,6 +558,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`mt find` names a task file that fails to load.** It used to skip the file
   without a word, while `mt ls` warned. Both print the same warning now, and
   `mt find` still lists the rest and exits 0.
+- **A misspelled status helper points at the statuses, not at `#`.**
+  `status: finished(…)` used to get the advice about a literal `#` in a task
+  body. Now an unknown name in `status:` hints `run mt flip --list to see the
+  statuses`, any other unknown name in the `task.with(...)` header gets no
+  hint, and only one outside the header keeps the `#` advice.
 - **A second `mt init` fails.** Over an existing config it used to print a note
   and exit 0, so a script never knew nothing was written. Now it exits 1 with
   `error: config already exists` and the hint to pass `--force`.

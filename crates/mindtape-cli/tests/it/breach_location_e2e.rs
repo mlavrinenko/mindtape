@@ -74,6 +74,52 @@ fn a_misspelled_field_is_reported_at_its_line() {
     );
 }
 
+/// A misspelled status helper gets the statuses hint, and no advice about `#`.
+#[test]
+fn an_unknown_status_helper_points_at_the_statuses() {
+    let text = eval_warning(mindtape::typst_task!(
+        "(\n  title: \"Set up CI\",\n  status: finished(2026, 10, 19),\n)\n"
+    ));
+    assert!(
+        text.contains(
+            "error: tasks/setup-ci.typ:5:11: unknown variable: finished\n\
+             hint: run mt flip --list to see the statuses\n"
+        ),
+        "{text}"
+    );
+    assert!(!text.contains("a literal #"), "{text}");
+}
+
+/// Any other unknown name in the header, such as a misspelled framework
+/// helper, gets neither hint.
+#[test]
+fn an_unknown_helper_elsewhere_in_the_header_gets_no_hint() {
+    let text = eval_warning(mindtape::typst_task!(
+        "(\n  title: \"Set up CI\",\n  \
+         priority: icee(impact: 8, confidence: 0.7, ease: 6),\n)\n"
+    ));
+    assert!(
+        text.contains("error: tasks/setup-ci.typ:5:13: unknown variable: icee\n"),
+        "{text}"
+    );
+    assert!(!text.contains("hint:"), "{text}");
+}
+
+#[test]
+fn an_unknown_variable_in_the_body_gets_the_escape_hint() {
+    let text = eval_warning(mindtape::typst_task!(
+        "(title: \"Set up CI\")\nChannel #N carries it.\n"
+    ));
+    assert!(
+        text.contains(
+            "error: tasks/setup-ci.typ:4:10: unknown variable: N\n\
+             hint: a literal # in a task body opens a Typst expression: \
+             write \\# or put the prose in a code block\n"
+        ),
+        "{text}"
+    );
+}
+
 /// The stderr of `mt ls` over a task file, which loads or does not.
 fn ls_stderr(source: &str) -> String {
     let dir = support::scaffold_project(CONFIG);

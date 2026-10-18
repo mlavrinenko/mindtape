@@ -1,21 +1,26 @@
 //! Load failures whose diagnostic names a symptom but never the remedy, and
 //! the hints that name it.
 //!
-//! Two of them today:
-//!
 //! - Task files import `@local/mindtape`, but the machine has never run
 //!   `mt install`. Typst reports it per file as `file not found (searched at
-//!   <data dir>/typst/packages/local/mindtape/<version>/typst.toml)` — a path,
-//!   not a remedy. Every task in the project fails the same way, so
+//!   <data dir>/typst/packages/local/mindtape/<version>/typst.toml)`, a path
+//!   and not a remedy. Every task in the project fails the same way, so
 //!   [`crate::util::report_load_problems`] folds them into the one
 //!   [`prelude_diag`] that names the command and the config key.
+//!   [`prelude_hints`] puts the same advice on a refused write's own error.
 //! - A task body is Typst markup, so a literal `#` in prose (`Channel #N
 //!   carries it`) opens an inline expression and the file fails with `unknown
-//!   variable: N`. The message names the variable the reader never wrote and
-//!   never mentions `\#`, so [`escaped_hash_hint`] says it, once per run, on
-//!   the first such error.
+//!   variable: N`. The message names a variable the reader never wrote and
+//!   never mentions `\#`, so [`escaped_hash_hint`] says it.
+//! - A misspelled status helper (`status: finished(…)`) fails with `unknown
+//!   variable: finished`, so [`status_hint`] names the command that lists the
+//!   statuses.
 //!
-//! [`prelude_hints`] puts the same advice on a refused write's own error.
+//! [`RegionHints`] picks between the last two by where the error falls
+//! against the `task.with(…)` call, and gives each once per run.
+
+use mindtape::LoadError;
+use mindtape::model::task_spans::CallRegion;
 
 use crate::diag::{Command, Diag, Hint, Kind, Note};
 
@@ -44,10 +49,10 @@ const UNKNOWN_VARIABLE: &str = "unknown variable";
 /// Whether `message` is the unknown-variable diagnostic itself.
 ///
 /// Anchored at the start rather than searched for: an error that merely quotes
-/// the phrase — a task titled `unknown variable`, a nested diagnostic naming
-/// another failure's text — is a different failure, and pointing its author at
-/// `\#` sends them after a `#` that is not there.
-pub(crate) fn is_unknown_variable(message: &str) -> bool {
+/// the phrase, such as a task titled `unknown variable` or a nested diagnostic
+/// naming another failure's text, is a different failure, and pointing its
+/// author at `\#` sends them after a `#` that is not there.
+fn is_unknown_variable(message: &str) -> bool {
     message.starts_with(UNKNOWN_VARIABLE)
 }
 
@@ -88,10 +93,54 @@ pub(crate) fn prelude_hints(diag: Diag) -> Diag {
 /// The hint for a body whose prose was read as markup. Names both remedies,
 /// because a run of `#`-heavy prose is better off in a code block than
 /// escaped hash by hash.
-pub(crate) fn escaped_hash_hint() -> Hint {
+fn escaped_hash_hint() -> Hint {
     Hint::new(
         "a literal # in a task body opens a Typst expression: write \\# or put the prose in a code block",
     )
+}
+
+/// The `task.with(…)` argument a status helper fills.
+const STATUS_ARGUMENT: &str = "status";
+
+/// The hint for a misspelled status helper, worded as `mt flip` words its
+/// own refusal of an unknown status.
+fn status_hint() -> Hint {
+    Hint::run(
+        Command::mt().word("flip").word("--list"),
+        "to see the statuses",
+    )
+}
+
+/// The region hints one run has given, so each rides on the first load error
+/// that needs it and a project with many such errors reads it once.
+#[derive(Debug, Default)]
+pub(crate) struct RegionHints {
+    hash: bool,
+    status: bool,
+}
+
+impl RegionHints {
+    /// The hint an `unknown variable` `error` gets the first time its region
+    /// asks for one: [`escaped_hash_hint`] outside the `task.with(…)` call,
+    /// [`status_hint`] in its `status:` argument. An error elsewhere in the
+    /// call gets neither and uses neither up.
+    pub(crate) fn hint_for(&mut self, error: &LoadError) -> Option<Hint> {
+        if !is_unknown_variable(&error.message) {
+            return None;
+        }
+        let (given, hint) = match &*error.region {
+            CallRegion::Outside => (&mut self.hash, escaped_hash_hint()),
+            CallRegion::Argument(name) if name == STATUS_ARGUMENT => {
+                (&mut self.status, status_hint())
+            }
+            CallRegion::Argument(_) | CallRegion::Call => return None,
+        };
+        if *given {
+            return None;
+        }
+        *given = true;
+        Some(hint)
+    }
 }
 
 #[cfg(test)]

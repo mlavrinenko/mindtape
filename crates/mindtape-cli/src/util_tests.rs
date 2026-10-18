@@ -8,10 +8,13 @@ use mindtape::{Config, LoadError, LoadOutcome, Task, load_project};
 
 use super::{
     Project, config_warnings, held_back_warning, hyperlinks_flag, hyperlinks_with,
-    init_hyperlinks_flag, init_worktree, pick_override, resolve_hyperlinks, resolve_root_with,
-    resolve_task, stem_hashes, unknown_view_error, warn_errors, worktree_override,
+    init_hyperlinks_flag, init_worktree, load_problems, pick_override, resolve_hyperlinks,
+    resolve_root_with, resolve_task, stem_hashes, unknown_view_error, warn_errors,
+    worktree_override,
 };
+use crate::diag::Kind;
 use crate::render::link::HyperlinkChoice;
+use mindtape::model::task_spans::CallRegion;
 
 #[test]
 fn warn_errors_is_silent_when_no_errors() {
@@ -244,6 +247,54 @@ fn warn_errors_prints_to_stderr() {
         ..LoadOutcome::default()
     };
     warn_errors(&outcome);
+}
+
+/// An `unknown variable: <name>` load error in `file`, at a point in `region`.
+fn unknown_variable(file: &str, name: &str, region: CallRegion) -> LoadError {
+    LoadError {
+        file: file.into(),
+        line: Some(5),
+        column: Some(3),
+        message: format!("unknown variable: {name}"),
+        region: Box::new(region),
+        ..LoadError::default()
+    }
+}
+
+/// The status hint rides on the first error in a `status:` argument, the
+/// escaped-hash hint on the first one outside the call, and an error
+/// elsewhere in the call gets neither, nor uses either up.
+#[test]
+fn each_hint_rides_on_the_first_error_in_its_region() {
+    let status = || CallRegion::Argument("status".to_owned());
+    let errors = vec![
+        unknown_variable("a.typ", "task", CallRegion::Call),
+        unknown_variable("b.typ", "icee", CallRegion::Argument("priority".to_owned())),
+        unknown_variable("c.typ", "finished", status()),
+        unknown_variable("d.typ", "finshed", status()),
+        unknown_variable("e.typ", "N", CallRegion::Outside),
+        unknown_variable("f.typ", "M", CallRegion::Outside),
+    ];
+    let outcome = LoadOutcome {
+        errors,
+        ..LoadOutcome::default()
+    };
+    let text: String = load_problems(&outcome, Kind::Failed)
+        .iter()
+        .map(crate::diag::plain)
+        .collect();
+    assert_eq!(
+        text,
+        "error: a.typ:5:3: unknown variable: task\n\
+         error: b.typ:5:3: unknown variable: icee\n\
+         error: c.typ:5:3: unknown variable: finished\n\
+         hint: run mt flip --list to see the statuses\n\
+         error: d.typ:5:3: unknown variable: finshed\n\
+         error: e.typ:5:3: unknown variable: N\n\
+         hint: a literal # in a task body opens a Typst expression: \
+         write \\# or put the prose in a code block\n\
+         error: f.typ:5:3: unknown variable: M\n"
+    );
 }
 
 #[test]

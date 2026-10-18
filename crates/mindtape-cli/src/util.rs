@@ -11,9 +11,7 @@ use mindtape::{
     Task, ViewSpec, config_path, find_root, load_config, load_project, write_atomic,
 };
 
-use crate::cmd::install::hint::{
-    escaped_hash_hint, is_unknown_variable, names_prelude_package, prelude_diag,
-};
+use crate::cmd::install::hint::{RegionHints, names_prelude_package, prelude_diag};
 use crate::diag::{Command, Diag, Hint, Kind, Note, emit};
 use crate::render::link::HyperlinkChoice;
 
@@ -349,10 +347,10 @@ pub fn warn_errors(outcome: &LoadOutcome) {
 /// `kind` is how a file that failed to load reads: [`Kind::Warning`] for a
 /// command that lists what did load, [`Kind::Failed`] for one that fails on it
 /// (`mt check`). Typst's message, its place and its hints come through as
-/// Typst words them. Two project-wide failures are said once, not per file: a
-/// prelude that does not resolve is one error naming the install command and
-/// the config key, and the escaped-hash advice rides on the first body that
-/// needs it.
+/// Typst words them. Project-wide advice is said once, not per file: a prelude
+/// that does not resolve is one error naming the install command and the
+/// config key, and the escaped-hash and status hints of [`RegionHints`] each
+/// ride on the first error that needs them.
 pub fn report_load_problems(outcome: &LoadOutcome, kind: Kind) {
     for diag in load_problems(outcome, kind) {
         emit(&diag);
@@ -363,7 +361,7 @@ pub fn report_load_problems(outcome: &LoadOutcome, kind: Kind) {
 pub(crate) fn load_problems(outcome: &LoadOutcome, kind: Kind) -> Vec<Diag> {
     let mut out = Vec::new();
     let mut prelude_missing = false;
-    let mut hash_hinted = false;
+    let mut region_hints = RegionHints::default();
     for error in &outcome.errors {
         if names_prelude_package(&error.message) {
             if !prelude_missing {
@@ -372,12 +370,11 @@ pub(crate) fn load_problems(outcome: &LoadOutcome, kind: Kind) -> Vec<Diag> {
             prelude_missing = true;
             continue;
         }
-        let mut diag = load_diag(kind, error);
-        if !hash_hinted && is_unknown_variable(&error.message) {
-            hash_hinted = true;
-            diag = diag.hint(escaped_hash_hint());
-        }
-        out.push(diag);
+        let diag = load_diag(kind, error);
+        out.push(match region_hints.hint_for(error) {
+            Some(hint) => diag.hint(hint),
+            None => diag,
+        });
     }
     out.extend(outcome.warnings.iter().map(warning_diag));
     out
