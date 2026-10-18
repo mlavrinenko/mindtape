@@ -30,11 +30,11 @@ groups:
     dependents:
       skills/mindtape/evals/README.md: 998e2cfcf60142db3101c1ddd849ef3a244acd18eb7ca3568a3195d12eb2bf6b
       skills/mindtape/evals/evals.json: 481bb4f0168826d9ee4086ee6f4f4f74c4c31ed3b46792871532da8372b56460
-      www/content/limit-work-in-progress.typ: d03ff5ae1804c8980f880e3a7c4d40e44e3251725485c6cd071888a8cf531a8b
-      www/content/require-a-task-shape.typ: 33d96b2d8d8aa08e3b15c3b0051fc9a197f588b15e95325f420037300061f256
-      www/content/split-oversized-tasks.typ: 2a8f58f2a7427d7177457ee742cef995a8e13c14c445d2a1f11d0755b29fd34f
-      www/content/start-titles-with-a-verb.typ: 56c1a70a2f9fd71a519b00cc7498d005f6e50babc38bb5fc84f931e7ff85779c
-      www/content/tie-work-to-goals.typ: 33bd548d43ed3824e359f40b174d1bcce5cbdcab07788a5aa3790527cb79557f
+      www/content/limit-work-in-progress.typ: c8bf092555288cd46fa02bc7ba8392bce040aa3b4276835caac2426e91143f42
+      www/content/require-a-task-shape.typ: 5b9123c39a324896579488b95f2173d3f52207050f9de20bd8e90ee2b425632e
+      www/content/split-oversized-tasks.typ: 95aed236a683d6e127cb2431f29836328cd777635a067767440bd045694c1885
+      www/content/start-titles-with-a-verb.typ: 866a1925b639e28e3c716dd815d5973c5197d38f1faed4c042dde9e0825a859d
+      www/content/tie-work-to-goals.typ: 2f9c7f67208ae0a48449f64100d63eb58d0f6526b2e3200e1f5807709ad2a704
       www/content/trace-commits-to-tasks.typ: 6da8228d61485341d03ea4bb8160cfd30f68d0d1dadacf997ff641b913df0da6
       www/content/wait-on-upstream.typ: e88a4625e768e9103e2fbb93656fbc91d9e5311872eca7370c913850fd0f308d
   cli-add-docs:
@@ -196,7 +196,7 @@ groups:
       crates/mindtape-cli/src/cmd/mv.rs: 4ee983e4e3feaeac8a959a15653990542090a4d76cb557851b872405f3867b0f
     dependents:
       www/content/cli/mv.typ: 7b1e53503cf9ad86e400df8153d6744ac8c7feb810ceff6f29d0ea59ecbe27d9
-      www/content/concepts.typ: 8a0a74d1a58e668882240e171cb749bf95dbf52b9f9619e26eed36d8053dd88f
+      www/content/concepts.typ: c27baa666da3eaa762af463adc529ed39b6a36cecb64b0d65e963eda148b34ec
       www/utils/cli-notes.typ: 8cae2ec0d00665b34b57193614b7631f6845b923b2a52d35ca0678a377f72521
   cli-name:
     source:
@@ -322,7 +322,7 @@ groups:
       docs/src/contributing/coverage-crap.typ: 9c0f023250f1ebd68197effe275d4ed403232bf5687d770b6aabc77335c8fbf8
       docs/src/contributing/crap-baseline.typ: 729c9977b3c0039473762207c3a6e8b81e8c88310d8b23bb8653e890650f7af6
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
-      docs/src/contributing/documentation.typ: cdc9035b8f1b627be1f9cec9b4fbcfdea42027a9fc2a8b962afacf1d05518691
+      docs/src/contributing/documentation.typ: d5d6ac3ee68d431915380cd36d506df524d56ddee308d16b6c569fc89b5982ae
       docs/src/contributing/example-projects.typ: 76c3fa5a5c24504d12d7686b5c4940e46694f96e7ade3f56cd0ad544ef5e14a2
       docs/src/contributing/gates.typ: e780eeaef5ae1989e9914531723adb5900e7b24942c96cba9a529d248886f931
       docs/src/contributing/mutation-testing.typ: 31b20e01d002372723da2f5f0543b77fca9f7ae6289018c346097d657c93f4cb
@@ -342,7 +342,7 @@ groups:
       .just/scripts/check-doc-spans.sh: 5d214e48039299faa283c7e79dda37d8a4438c8f61e85669367c4812fbe1fc65
       .just/scripts/docs-md-check.sh: 06b5b942d9a14fa00134ec4de64b4f2e706ae49bf1b55206b2afd54c2d87791f
     dependents:
-      docs/src/contributing/documentation.typ: cdc9035b8f1b627be1f9cec9b4fbcfdea42027a9fc2a8b962afacf1d05518691
+      docs/src/contributing/documentation.typ: d5d6ac3ee68d431915380cd36d506df524d56ddee308d16b6c569fc89b5982ae
       docs/src/contributing/generated-docs.typ: 6a981d7c8fd1b98a7ef3ea7916fc8f83bdca254e5d86ba53f300a52902236189
   filter-docs:
     source:
@@ -433,7 +433,7 @@ groups:
       docs/src/agents.typ: da50da9ed7789e29e34d89dff17c92bccfee66dc09e611ad8f0adb1743ad5911
       docs/src/skill.typ: 000ca65adb97feca643fccd2b992ba4dd5d1f6a52812907ab53bbb52cde231ed
       skills/mindtape/references/add-slots.md: 1c713e380ef0eedaf9e6d7290f87aba1f15de6dd5effea82326406ede08e31ee
-      www/content/concepts.typ: c74c98b9e7d8a542901da9b998b837a587e9b4a95aac969926a3283fbedfc096
+      www/content/concepts.typ: c27baa666da3eaa762af463adc529ed39b6a36cecb64b0d65e963eda148b34ec
       www/content/dsl.typ: 75786cec30063114a6bf4ef4c8bced7953fb41488dd280d67df77119f68d8b57
       www/content/index.typ: 52adb00400c7a2d3502ffdf49534a5cbea008d30fae1b2cbbaccd73a575d9774
       www/content/links.typ: 5d2f2e81e8a001bf376f91d0bee3e4cc2c35eea79a1c6ec066be7019cdaad3e2

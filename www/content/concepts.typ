@@ -49,8 +49,8 @@ A task's id is its filename stem, the file name without `.typ`, so
 task takes its id, as in `mt done add-redis-client`. Set the `id:` field to
 give a task a different id. `mt check` reports two tasks with the same id.
 
-`mt ls` also shows a short hash for each task, like `re8`. Every command takes
-it in place of the name.
+`mt ls` also shows a short hash for each task in its `SLUG#` column, like
+`re8`. Every command takes it in place of the name.
 
 = Links name files
 
@@ -80,13 +80,11 @@ through unchanged under `extras`.
 Want `mt` to check one? Declare it in `[tasks.fields.x-<ns>]`.
 #link(u("/config/#extension-fields"))[Configuration] covers the rest.
 
-Any other field that `task` doesn't declare fails the file with an
-`unexpected argument` error that names it.
-
 = Where a mistake is caught
 
-Typst itself stops a file with a misspelled field, or with a value a helper
-can't hold, like a status note that isn't a content block.
+Typst stops a file before any rule runs. A misspelled field, or any other
+field `task` doesn't declare, fails with `unexpected argument: titel`. A helper
+refuses a value it can't hold, like a status note that isn't a content block.
 
 `mt check` checks everything else against the project's config: the
 #link(u("/statuses/"))[status legend], the priority and difficulty scales,

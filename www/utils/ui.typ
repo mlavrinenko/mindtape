@@ -112,14 +112,30 @@
 // non-zero. A session can end on a command that passes, such as the filing
 // that follows a refusal, so the last command's code would call a success a
 // refusal. The build fails when every command passed.
-#let exit-code(slug) = {
+//
+// A capture that shows two refusals names one with `step`, the command's
+// index from 0. The build fails when the capture has no such command, or when
+// it exited 0.
+#let exit-code(slug, step: none) = {
   let steps = json("../generated/" + slug + ".json").steps
-  let failed = steps.filter(step => step.code != 0)
+  if step == none {
+    let failed = steps.filter(s => s.code != 0)
+    assert(
+      failed.len() > 0,
+      message: "capture " + slug + " has no command that exited non-zero",
+    )
+    return raw(str(failed.last().code))
+  }
+  let picked = steps.at(step, default: none)
   assert(
-    failed.len() > 0,
-    message: "capture " + slug + " has no command that exited non-zero",
+    picked != none,
+    message: "capture " + slug + " has no command " + str(step),
   )
-  raw(str(failed.last().code))
+  assert(
+    picked.code != 0,
+    message: "capture " + slug + " command " + str(step) + " exited 0",
+  )
+  raw(str(picked.code))
 }
 
 // One line of what a capture printed, as inline code: the first line, color

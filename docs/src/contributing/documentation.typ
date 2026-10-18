@@ -102,8 +102,11 @@ tell.
   the commands alone. Both print each command from the record, so a page
   can't show a command that didn't run.
 
-`exit-code(<slug>)` prints the exit code of a refusal the page shows. A step
-that exits with an unexpected code fails the build. Every refusal exits 1 and
+`exit-code(<slug>)` prints the exit code of a refusal the page shows, the
+last command that exited non-zero. For a capture with two refusals, pick one
+with `step: <n>`, the command's index from 0. The build fails when that
+command passed or doesn't exist. A step that exits with an unexpected code
+fails the build. Every refusal exits 1 and
 every usage error 2, so a refusal capture also names its reason with
 `--expect <regex>`, and the build fails unless the output, without its
 color, matches it. It also fails on a non-zero `--exit` with no `--expect`.

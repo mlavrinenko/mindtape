@@ -13,10 +13,9 @@
 
 #show: page.with(..meta)
 
-An agent starts three tasks and finishes none. The working tree holds parts of
-all three, and no commit can name just one. Or it starts a task whose
-dependency is still open, and writes code against a client that doesn't exist
-yet.
+You start three tasks and finish none. The working tree holds parts of all
+three, and no commit can name just one. Or you start a task whose dependency is
+still open, and write code against a client that doesn't exist yet.
 
 = Config
 
@@ -48,7 +47,8 @@ milestone's tasks in its `children` and `progress` columns.
 `tasks.status` lists the statuses a task may hold. `terminal = true` marks
 `done` as the status that ends a task. `unblocked = true` on `wip` makes
 `mt wip` refuse a task while a `depends-on` edge points at a task that isn't
-done. `--force` overrides it. `mt ls blocked` and its `why` column list each
+done. On `done`, it makes `mt done` refuse a milestone with an open child.
+`--force` overrides both. `mt ls blocked` and its `why` column list each
 waiting task and what it waits on. #link(u("/statuses/"))[Statuses] covers
 terminal and unblocked statuses.
 

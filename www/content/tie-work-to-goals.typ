@@ -14,7 +14,7 @@
 
 #show: page.with(..meta)
 
-An agent opens a milestone to rewrite the logging. It's tidy work, but it
+A teammate opens a milestone to rewrite the logging. It's tidy work, but it
 serves none of your goals, and nobody asks why until a week has gone into it.
 
 = Config

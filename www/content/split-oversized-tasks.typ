@@ -13,7 +13,7 @@
 
 #show: page.with(..meta)
 
-An agent files "Sign in with Google and GitHub" as one task. The change touches
+Someone files "Sign in with Google and GitHub" as one task. The change touches
 the config, the routes, the auth module and a migration. The diff is too big to
 review, and when a test fails, you can't tell which part broke it. A task that
 touches a few files gives you a diff you can read, and a failing test points at
@@ -21,7 +21,7 @@ that diff.
 
 A rename is different. It touches every file that names the type, but it's one
 decision, and splitting it only copies that decision into several tasks. So
-the cap gets tighter as the task gets harder.
+the cap only applies to work that takes judgment.
 
 = Config
 
@@ -35,7 +35,7 @@ it. The rename needs 12, and it's filed:
 #terminal("split-oversized-tasks")
 
 The refused `mt add` exits #exit-code("split-oversized-tasks") and writes no
-file. An agent reads the rule's message and files two smaller tasks instead.
+file.
 
 = Deep dive
 
