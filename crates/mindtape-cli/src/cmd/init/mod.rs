@@ -20,7 +20,8 @@
 //! - `wizard/` — the questionnaire over the configuration axes.
 //! - `presets/` — the built-in preset directories, one folder each.
 //! - `axes/` — the axis fragments the wizard composes.
-//! - `cmd/ls/interactive/tests.rs`, `*_tests.rs` — unit tests.
+//! - `tests.rs` — unit tests of this file.
+//! - `compose_tests.rs`, `preset_tests.rs` — unit tests of `compose.rs` and `preset.rs`.
 
 pub(crate) mod compose;
 pub(crate) mod preset;

@@ -155,11 +155,11 @@ groups:
       www/content/schema.typ: 0cf69c7ec4bd1d42ae7796ebb7b3bd89e25bab9a98382798a3687ad263455514
   cli-init-docs:
     source:
-      crates/mindtape-cli/src/cmd/init/mod.rs: 3c8681f7b7c736dac9a22eb8c17a36f3f3c11fcfb13a02ca3de2fec69203ec6e
+      crates/mindtape-cli/src/cmd/init/mod.rs: 1bc9212bfcede8b4783b9dc1120ed9ee4172204e0639a95415ace2031dd32ebd
     dependents:
       www/content/config.typ: fd58f73796c2733610d040a62d6e3a6a4b1d0f1509e9874a29cd72448047e2d7
       www/content/import-export.typ: 21da077af3865d4449176940db50674755bb53cbd0c01db00f78eeb37a688e0f
-      www/content/quickstart.typ: f42fafe408f2cfb32b8f8543658f8a69a3dcc61d84d799871f3ed89a2144db45
+      www/content/quickstart.typ: 09b26451dd0518acb8ff21d00389a586b21b78855ee75cc5a2b0f9f7c12e8d9e
   cli-install-docs:
     source:
       crates/mindtape-cli/src/cmd/install/mod.rs: b85bd549469b1ffbe9d092a419751523cc0aa2d51553cf150d00fc48c0e63e11
