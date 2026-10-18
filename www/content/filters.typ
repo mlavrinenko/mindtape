@@ -88,10 +88,15 @@ The left side of a comparison is a field or a count. The right side is a
 literal, `now()`, another field or a count. Two numbers compare as numbers.
 
 A field the task doesn't have is unequal to every value and orders against
-none. So `kind != "bug"` matches a task with no `kind`, and `kind == "bug"` and
-`kind < "bug"` don't. So `field == "x"` and `field != "x"` split the backlog in
-two with nothing left over. `miss(field)` selects the tasks without the
-field.
+none. `kind != "bug"` matches a task with no `kind`, while `kind == "bug"` and
+`kind < "bug"` don't, so `==` and `!=` split the backlog in two with nothing
+left over. `miss(field)` selects the tasks without the field.
+
+`!` flips the answer after the comparison, so `!(field <= 2)` isn't
+`field > 2`. The finished tasks here have no estimate, and only the second
+filter lets them through:
+
+#terminal("filters-missing")
 
 `now()` is today's date. `stale()`, `now()` and the overdue marker read the
 same date, which `MINDTAPE_NOW` pins (see
@@ -163,10 +168,11 @@ which declares the `verbs` dictionary. Without the pack, use the built-in
 that opens with a code span, such as #raw("`mt ls` prints paths"), has `mt`
 as its first word, so the last example above lets `matches()` accept it.
 
-A value that isn't there, such as a missing field or a word past the end of
-the title, doesn't match. Any other problem is an error, and the message
-names it: an unknown dictionary, a pattern `regex` refuses, a number where
-text is needed, or a wrong argument count. `mt ls` exits
+`matches()` and `in_dict()` don't match a value that isn't there, such as a
+missing field or a word past the end of the title. That's how `==` reads one,
+so `!matches(...)` does match it. Anything else wrong is an error that names
+the problem, such as an unknown dictionary, a pattern `regex` refuses, a
+number where text is needed, or a wrong argument count. `mt ls` exits
 #exit-code("filters-unknown-dict"):
 
 #terminal("filters-unknown-dict")

@@ -34,6 +34,10 @@ COMMIT='git -c user.name=docs -c user.email=docs@example.com -c commit.gpgsign=f
 capture hero-ls "$API" 'mt ls'
 capture filters-open "$API" "mt ls '!terminal'"
 capture filters-operators "$API" "mt ls 'kind == \"fix\" || (kind == \"feat\" && estimate.src-files <= 2)'"
+capture_lines filters-missing "$API" <<'EOF'
+mt ls 'estimate.src-files > 2'
+mt ls '!(estimate.src-files <= 2)'
+EOF
 capture_lines filters-functions "$API" <<'EOF'
 mt ls 'has(estimate) && miss(assignee)'
 mt ls 'contains("redis")'                 # title, id and body
