@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 19),
+  status: done(2026, 10, 19),
 )
 
 == Problem
@@ -48,7 +48,7 @@ left in a closing report no one rereads. It belongs in
 
 == TO-BE
 
-- 🟢 `mt init` over an existing config exits 1 with `error: ./.mindtape/config.toml already exists` and `hint: pass --force to overwrite it`, built as a `Diag::refused`.
+- 🟢 `mt init` over an existing config exits 1 with `error: config already exists: './.mindtape/config.toml'` and `hint: pass --force to overwrite it`, built as a `Diag::refused`.
 
 
 == Changes

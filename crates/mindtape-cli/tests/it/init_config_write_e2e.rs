@@ -236,14 +236,23 @@ fn init_no_schema_omits_directive() {
     assert!(!config.contains("#:schema"), "{config}");
 }
 
-/// Without `--force` an existing config survives; with it, `init` overwrites.
-/// A skipped write installs no templates either — a half-applied preset would
-/// leave a project whose config and templates disagree.
+/// Without `--force` `init` refuses an existing config with exit 1 and leaves
+/// it as it was; with it, `init` overwrites. A refused write installs no
+/// templates either, since a half-applied preset would leave a project whose
+/// config and templates disagree.
 #[test]
 fn force_interplay_unchanged() {
     let dir = support::scaffold_project("# existing");
 
-    support::run_ok(dir.path(), &["init", "--preset", "gated"]);
+    let (code, stderr) = support::run_stderr(dir.path(), &["init", "--preset", "gated"]);
+    assert_eq!(
+        (code, stderr.as_str()),
+        (
+            Some(1),
+            "error: config already exists: './.mindtape/config.toml'\n\
+             hint: pass --force to overwrite it\n"
+        )
+    );
     assert_eq!(
         std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap(),
         "# existing"

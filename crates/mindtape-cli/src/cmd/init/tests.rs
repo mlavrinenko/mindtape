@@ -8,6 +8,7 @@ use super::{
     write_templates,
 };
 use crate::cmd::init::preset::{self, DEFAULT_PRESET};
+use crate::diag::Kind;
 
 /// The real `mt` binary, isolated from the developer's global config so `init`
 /// writes only into `dir`.
@@ -35,27 +36,32 @@ fn init_args(schema: Option<&str>, no_schema: bool) -> SchemaArgs {
 #[test]
 fn scaffold_creates_config_when_absent() {
     let dir = tempdir();
-    assert!(scaffold_config(dir.path(), false, SAMPLE).unwrap());
+    scaffold_config(dir.path(), false, SAMPLE).unwrap();
     assert!(dir.path().join(".mindtape").join("config.toml").exists());
 }
 
-/// An existing config survives without `--force`, and the write is reported as
-/// not having landed so the caller skips the templates too.
-#[test]
-fn scaffold_skips_existing_without_force() {
+/// A project whose config holds `# existing`, and that config's path.
+fn existing_config() -> (tempfile::TempDir, std::path::PathBuf) {
     let dir = tempdir_with_dirs(&[".mindtape"]);
     let config = dir.path().join(".mindtape").join("config.toml");
     std::fs::write(&config, "# existing").unwrap();
-    assert!(!scaffold_config(dir.path(), false, SAMPLE).unwrap());
+    (dir, config)
+}
+
+/// Without `--force` an existing config is refused and survives, so the
+/// caller writes no templates either.
+#[test]
+fn scaffold_refuses_existing_without_force() {
+    let (dir, config) = existing_config();
+    let err = scaffold_config(dir.path(), false, SAMPLE).unwrap_err();
+    assert_eq!(err.kind(), Kind::Refused);
     assert_eq!(std::fs::read_to_string(&config).unwrap(), "# existing");
 }
 
 #[test]
 fn scaffold_overwrites_with_force() {
-    let dir = tempdir_with_dirs(&[".mindtape"]);
-    let config = dir.path().join(".mindtape").join("config.toml");
-    std::fs::write(&config, "# old").unwrap();
-    assert!(scaffold_config(dir.path(), true, SAMPLE).unwrap());
+    let (dir, config) = existing_config();
+    scaffold_config(dir.path(), true, SAMPLE).unwrap();
     assert_eq!(std::fs::read_to_string(&config).unwrap(), SAMPLE);
 }
 

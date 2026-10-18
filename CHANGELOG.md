@@ -550,6 +550,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A second `mt init` fails.** Over an existing config it used to print a note
+  and exit 0, so a script never knew nothing was written. Now it exits 1 with
+  `error: config already exists` and the hint to pass `--force`.
 - **A mistyped slot kind lists every kind `mt add` accepts.** The error left
   out `multichoice`, so a template author who wrote `multi-choice` was told
   to pick from ten kinds when there are eleven.

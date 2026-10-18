@@ -31,7 +31,7 @@ use std::path::{Path, PathBuf};
 
 use self::preset::Preset;
 use self::wizard::{Estimate, Headers, Organization, Priority, Recurrence, Required, Workflow};
-use crate::diag::{Diag, Result};
+use crate::diag::{Diag, Hint, Result};
 
 /// The Typst package version `mt install` installs. Mirrors `lib/typst.toml`.
 const TYPST_PKG_VERSION: &str = "0.2.0";
@@ -185,9 +185,7 @@ fn write_preset(name: &str, args: &InitArgs, explicit: bool) -> Result<()> {
     let preset = preset::resolve(name, preset::user_preset_dir().as_deref())?;
     let text = with_schema_directive(&render_preset(&preset, args.annotate)?, &args.schema)?;
     let root = Path::new(".");
-    if !scaffold_config(root, args.force, &text)? {
-        return Ok(());
-    }
+    scaffold_config(root, args.force, &text)?;
     write_templates(root, &preset)?;
     println!("preset: {}", preset.name);
     if !explicit {
@@ -227,9 +225,7 @@ fn run_wizard(args: &InitArgs, flags: &wizard::Flags, interactive: bool) -> Resu
     let outcome = wizard::assemble(answers)?;
     let text = with_schema_directive(&outcome.config, &args.schema)?;
     let root = Path::new(".");
-    if !scaffold_config(root, args.force, &text)? {
-        return Ok(());
-    }
+    scaffold_config(root, args.force, &text)?;
     // Reuse the preset template writer for any synthesised templates.
     let bundle = Preset {
         name: "custom".to_owned(),
@@ -324,24 +320,28 @@ pub(crate) fn package_dir() -> Result<PathBuf> {
     Ok(path)
 }
 
-/// Write the scaffold, returning whether it landed. An existing config without
-/// `--force` is left alone and reported, and the caller writes no templates
-/// either — a half-applied preset is worse than none.
-pub(crate) fn scaffold_config(root: &Path, force: bool, template: &str) -> Result<bool> {
+/// Write the scaffold. Without `--force` an existing config is refused and
+/// left alone, so the caller writes no templates either: a half-applied preset
+/// is worse than none.
+pub(crate) fn scaffold_config(root: &Path, force: bool, template: &str) -> Result<()> {
     let dir = root.join(".mindtape");
     let config = dir.join("config.toml");
     if config.exists() && !force {
-        println!(
-            "{} already exists (use --force to overwrite)",
-            config.display()
-        );
-        return Ok(false);
+        return Err(Diag::refused("config already exists")
+            .value(config.display().to_string())
+            .hint(Hint::new("pass --force to overwrite it")));
     }
-    std::fs::create_dir_all(&dir).map_err(|err| Diag::cannot_write(&dir, &err))?;
-    mindtape::write_atomic(&config, template.as_bytes())
-        .map_err(|err| Diag::cannot_write(&config, &err))?;
-    println!("wrote {}", config.display());
-    Ok(true)
+    write_announced(&dir, &config, template)
+}
+
+/// Write `content` to `path`, which lies in `dir`, creating `dir`, and print
+/// `wrote <path>`. Shared by the scaffold and `mt install`'s seed files.
+pub(crate) fn write_announced(dir: &Path, path: &Path, content: &str) -> Result<()> {
+    std::fs::create_dir_all(dir).map_err(|err| Diag::cannot_write(dir, &err))?;
+    mindtape::write_atomic(path, content.as_bytes())
+        .map_err(|err| Diag::cannot_write(path, &err))?;
+    println!("wrote {}", path.display());
+    Ok(())
 }
 
 /// Drop the preset's `mt add` templates into `.mindtape/templates`.

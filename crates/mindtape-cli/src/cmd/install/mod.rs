@@ -22,7 +22,7 @@ pub(crate) mod hint;
 
 use std::path::{Path, PathBuf};
 
-use crate::cmd::init::install_lib;
+use crate::cmd::init::{install_lib, write_announced};
 use crate::diag::{Diag, Result};
 
 /// Arguments for `install`.
@@ -216,11 +216,7 @@ fn write_seed(dir: &Path, name: &str, content: &str, force: bool) -> Result<()> 
         );
         return Ok(());
     }
-    std::fs::create_dir_all(dir).map_err(|err| Diag::cannot_write(dir, &err))?;
-    mindtape::write_atomic(&path, content.as_bytes())
-        .map_err(|err| Diag::cannot_write(&path, &err))?;
-    println!("wrote {}", path.display());
-    Ok(())
+    write_announced(dir, &path, content)
 }
 
 /// Write the XDG global `defaults.toml` in `dir`, seeded from the embedded
