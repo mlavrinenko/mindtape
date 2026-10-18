@@ -10,7 +10,7 @@
 //!
 //! Nothing goes missing quietly. A value that is simply not there — a field the
 //! task does not carry, a word past the end of the title — resolves to `None`
-//! and reads as a non-match, the same missing-field rule comparisons follow.
+//! and reads as a non-match, as it does under `==`, so `!matches(...)` holds.
 //! Everything else is a named [`FilterError`]: an unknown dictionary, an
 //! invalid regex, a numeric field where a string is required, a wrong argument
 //! count. They surface where the expression is evaluated, exactly as an unknown
