@@ -23,27 +23,28 @@ fn applied(rule: Option<&str>, filter: &str, sort: &str, columns: &str) -> Appli
 #[test]
 fn footer_names_the_view_and_counts_the_project() {
     let from_view = applied(None, "default", "default", "default");
-    assert_eq!(footer(&from_view, 3, 12), "default view · 3 of 12 tasks");
-    assert_eq!(footer(&from_view, 1, 1), "default view · 1 of 1 task");
+    assert_eq!(footer(&from_view, 3, 12, 0), "default view · 3 of 12 tasks");
+    assert_eq!(footer(&from_view, 1, 1, 0), "default view · 1 of 1 task");
     // A rule that set the filter is named once, not again for its sort.
     let from_rule = applied(Some("release"), "release", "release", "release");
-    assert_eq!(footer(&from_rule, 0, 2), "release rule · 0 of 2 tasks");
+    assert_eq!(footer(&from_rule, 0, 2, 0), "release rule · 0 of 2 tasks");
 }
 
 #[test]
 fn footer_names_a_sort_rule_after_the_view() {
     let shared = applied(Some("release"), "inbox", "release", "inbox");
     assert_eq!(
-        footer(&shared, 3, 12),
+        footer(&shared, 3, 12, 0),
         "inbox view · release sort · 3 of 12 tasks"
     );
     let sort_only = applied(Some("release"), MATCH_ALL, "release", MATCH_ALL);
-    assert_eq!(footer(&sort_only, 0, 2), "release sort · 0 of 2 tasks");
+    assert_eq!(footer(&sort_only, 0, 2, 0), "release sort · 0 of 2 tasks");
 }
 
 #[test]
 fn footer_says_your_filter_whatever_else_the_user_typed() {
-    let typed = |sort: &str, columns: &str| footer(&applied(None, "manual", sort, columns), 2, 2);
+    let typed =
+        |sort: &str, columns: &str| footer(&applied(None, "manual", sort, columns), 2, 2, 0);
     assert_eq!(typed(MATCH_ALL, MATCH_ALL), "your filter · 2 of 2 tasks");
     assert_eq!(typed("manual", MATCH_ALL), "your filter · 2 of 2 tasks");
     assert_eq!(typed("manual", "manual"), "your filter · 2 of 2 tasks");
@@ -52,18 +53,31 @@ fn footer_says_your_filter_whatever_else_the_user_typed() {
 #[test]
 fn footer_leaves_out_a_view_that_only_sorts_or_picks_columns() {
     let narrowed = applied(None, "manual", "default", "default");
-    assert_eq!(footer(&narrowed, 2, 5), "your filter · 2 of 5 tasks");
+    assert_eq!(footer(&narrowed, 2, 5, 0), "your filter · 2 of 5 tasks");
 }
 
 #[test]
 fn footer_names_a_rule_that_only_picks_columns() {
     let columns_only = applied(Some("wide"), MATCH_ALL, MATCH_ALL, "wide");
-    assert_eq!(footer(&columns_only, 2, 2), "wide rule · 2 of 2 tasks");
+    assert_eq!(footer(&columns_only, 2, 2, 0), "wide rule · 2 of 2 tasks");
 }
 
 #[test]
 fn footer_is_the_count_alone_when_nothing_shaped_the_listing() {
-    assert_eq!(footer(&Applied::match_all(), 2, 2), "2 of 2 tasks");
+    assert_eq!(footer(&Applied::match_all(), 2, 2, 0), "2 of 2 tasks");
+}
+
+#[test]
+fn footer_counts_the_broken_files_last() {
+    let from_view = applied(None, "default", "default", "default");
+    assert_eq!(
+        footer(&from_view, 1, 2, 1),
+        "default view · 1 of 2 tasks · 1 broken"
+    );
+    assert_eq!(
+        footer(&Applied::match_all(), 0, 0, 3),
+        "0 of 0 tasks · 3 broken"
+    );
 }
 
 #[test]
@@ -72,7 +86,7 @@ fn footer_leaves_an_overridden_rule_to_the_json() {
         rule_superseded: true,
         ..applied(Some("release"), "manual", MATCH_ALL, MATCH_ALL)
     };
-    assert_eq!(footer(&applied, 1, 4), "your filter · 1 of 4 tasks");
+    assert_eq!(footer(&applied, 1, 4, 0), "your filter · 1 of 4 tasks");
 }
 
 #[test]

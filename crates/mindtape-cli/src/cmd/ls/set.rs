@@ -9,7 +9,7 @@
 use anstyle::{Effects, Style};
 
 use super::{Listing, LsArgs, effective_format, next_command_hint, print_body, resolve_and_select};
-use crate::cmd::ls::rules::footer_sources;
+use crate::cmd::ls::rules::{broken_part, footer_sources};
 use crate::diag::{Diag, Hint, Kind, Note, Result, emit};
 use crate::project_set::HeldSet;
 use crate::render::color::{Painter, is_color_active};
@@ -104,8 +104,9 @@ fn render_groups(groups: &[Group], format: OutputFormat) -> Result<String> {
     render_set(&parts, format)
 }
 
-/// The dim lines under a set's table: where the rows came from and how many
-/// of the listed projects' tasks they are, then, when `-n` hid rows in any
+/// The dim lines under a set's table: where the rows came from, how many of
+/// the listed projects' tasks they are and how many of their task files
+/// failed to load, then, when `-n` hid rows in any
 /// project, how many and the command for the next page. Nothing when no
 /// project listed, since each one's error says why.
 fn print_footer(args: &LsArgs, held: &HeldSet, groups: &[Group]) {
@@ -125,8 +126,9 @@ fn print_footer(args: &LsArgs, held: &HeldSet, groups: &[Group]) {
     }
 }
 
-/// `your filter · 9 of 61 tasks in 27 projects`: the listings' source when
-/// they all share it, then the rows shown of the listed projects' tasks.
+/// `your filter · 9 of 61 tasks in 27 projects · 1 broken`: the listings'
+/// source when they all share it, the rows shown of the listed projects'
+/// tasks, then their task files that failed to load.
 fn footer(listings: &[&Listing]) -> String {
     let mut sources = listings
         .iter()
@@ -144,6 +146,8 @@ fn footer(listings: &[&Listing]) -> String {
         mindtape::count(total, "task"),
         mindtape::count(listings.len(), "project")
     ));
+    let broken = listings.iter().map(|listing| listing.broken).sum();
+    parts.extend(broken_part(broken));
     parts.join(" · ")
 }
 

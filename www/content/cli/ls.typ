@@ -159,9 +159,12 @@ comparison may be a value or a literal, as in `weekday() >= 6` or
 The line under a table says where the rows came from and how many of the
 project's tasks it shows, as in `default view · 3 of 12 tasks`. When a rule
 sets the sort, its name follows, as in `inbox view · release sort · 3 of 12 tasks`.
-A filter you typed reads `your filter · 1 of 4 tasks`. `mt ls --json` says
-where each facet came from. In
-`examples/api-service` no rule matches, so a bare `mt ls` applies the default
-view:
+A filter you typed reads `your filter · 1 of 4 tasks`, and `mt ls --json`
+says where each facet came from. In `examples/api-service` no rule matches, so
+a bare `mt ls` applies the default view:
 
 #terminal("ls")
+
+A task file that fails to load gets a warning naming it, and the line under
+the table counts it last, as in `default view · 1 of 2 tasks · 1 broken`.
+`mt ls` still lists the rest and exits 0. `mt check` fails on a broken file.

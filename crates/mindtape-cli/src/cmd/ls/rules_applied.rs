@@ -1,6 +1,6 @@
 //! `mt ls` attribution: [`Applied`] — which source won each facet of a
 //! resolved listing — and the dim footer it renders as under the table:
-//! `default view · 3 of 12 tasks`.
+//! `default view · 3 of 12 tasks`, with `· 1 broken` when a file failed to load.
 //!
 //! Attribution is per facet because selection and presentation come from
 //! different places: an explicit filter argument answers "which tasks" while a
@@ -85,16 +85,25 @@ impl Applied {
 }
 
 /// The line under a table: where the listing's rows came from, a rule that
-/// set the sort, then the rows shown of the project's tasks, joined with
-/// ` · `: `inbox view · release sort · 3 of 12 tasks`. It doesn't say which
-/// facet came from where, or that the command line overrode a rule; the
-/// `mt ls --json` envelope carries both. A listing nothing shaped gets the
-/// count alone.
+/// set the sort, the rows shown of the project's tasks, then the task files
+/// that failed to load, joined with ` · `:
+/// `inbox view · release sort · 3 of 12 tasks · 1 broken`. It doesn't say
+/// which facet came from where, or that the command line overrode a rule;
+/// the `mt ls --json` envelope carries both. A listing nothing shaped gets
+/// the counts alone.
 #[must_use]
-pub fn footer(applied: &Applied, shown: usize, total: usize) -> String {
+pub fn footer(applied: &Applied, shown: usize, total: usize, broken: usize) -> String {
     let mut parts = footer_sources(applied);
     parts.push(format!("{shown} of {}", mindtape::count(total, "task")));
+    parts.extend(broken_part(broken));
     parts.join(" · ")
+}
+
+/// [`footer`]'s last part, `1 broken`, counting the task files that failed
+/// to load; none when every file loaded.
+#[must_use]
+pub fn broken_part(broken: usize) -> Option<String> {
+    (broken > 0).then(|| format!("{broken} broken"))
 }
 
 /// [`footer`]'s parts before the count: `["inbox view", "release sort"]`,

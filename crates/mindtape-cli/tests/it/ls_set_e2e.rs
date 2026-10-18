@@ -120,6 +120,15 @@ fn a_set_lists_one_table_grouped_by_project_in_set_order() {
 }
 
 #[test]
+fn the_footer_counts_the_task_files_that_failed_to_load() {
+    let set = Set::new();
+    std::fs::write(set.alpha.path().join("tasks/three.typ"), "#broken(\n").unwrap();
+    let footer = "\nyour filter · 3 of 3 tasks in 2 projects · 1 broken\n";
+    let stdout = set.stdout(&["ls", ""], 0);
+    assert!(stdout.ends_with(footer), "{stdout}");
+}
+
+#[test]
 fn limit_counts_per_project() {
     let set = Set::new();
     let stdout = set.stdout(&["ls", "", "-n", "1"], 0);

@@ -290,6 +290,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   from any directory pages the same listing: `mt @sn ls -n 20 --skip 20`, or
   `mt -w ../x ls -n 20 --skip 20` with a quoted path when it needs one.
   `$MINDTAPE_WORKTREE` stays out, because the environment carries over.
+- **The footer counts the task files that failed to load.** `mt ls`, `mt find`
+  and their set forms end it with `· 1 broken`, as in `default view · 1 of 2
+  tasks · 1 broken`. They still list the rest and exit 0, and `mt check` fails
+  on the file.
 - **Output formats.** `--format json` prints `{"tasks": [...], "applied": ...}`
   with a `retired` key when `touches()` ran, `--format csv` gives the
   root-relative `file` and stable `id`, and `--format path` or `path0` prints

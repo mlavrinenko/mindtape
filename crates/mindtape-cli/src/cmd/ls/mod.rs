@@ -161,8 +161,9 @@ fn format_name(args: &LsArgs) -> String {
         .map_or_else(String::new, |value| value.get_name().to_owned())
 }
 
-/// The dim lines under a rendered table: where the listing came from and how
-/// many of the project's tasks it shows, then, when `--limit` hid rows, how
+/// The dim lines under a rendered table: where the listing came from, how
+/// many of the project's tasks it shows and how many task files failed to
+/// load, then, when `--limit` hid rows, how
 /// many more matched and the command that fetches the next page. Table only:
 /// every other format is a record stream a reader parses, so a trailing prose
 /// line there is corruption, not information.
@@ -173,7 +174,12 @@ fn print_footer(args: &LsArgs, listing: &Listing) {
         let next = next_command_hint(args, crate::selector::hint().as_deref(), cut.next_skip());
         format!("{} · next page: {next}", cut.footer())
     });
-    let footer = rules::footer(&listing.applied, listing.tasks.len(), listing.project_total);
+    let footer = rules::footer(
+        &listing.applied,
+        listing.tasks.len(),
+        listing.project_total,
+        listing.broken,
+    );
     let lines = std::iter::once(footer).chain(next_page);
     // The table body ends in its own newline, so this blank line is the
     // footer's separator, not a leftover of the body's print.
@@ -226,8 +232,9 @@ fn next_command_hint(args: &LsArgs, selector: Option<&str>, next_skip: usize) ->
 /// readiness and attribution they were selected under, the config the render
 /// reads (view columns folded in), the environment a column's conditional
 /// visibility evaluates against, the stem hashes of every loaded task,
-/// what `--limit` cut (`None` when the listing is complete), and how many
-/// tasks the project holds before any filter.
+/// what `--limit` cut (`None` when the listing is complete), how many tasks
+/// the project holds before any filter, and how many task files failed to
+/// load.
 pub(crate) struct Listing {
     pub tasks: Vec<Task>,
     pub readiness: Readiness,
@@ -239,6 +246,7 @@ pub(crate) struct Listing {
     pub hyperlinks: bool,
     pub truncated: Option<Truncation>,
     pub project_total: usize,
+    pub broken: usize,
 }
 
 impl Listing {
@@ -285,6 +293,7 @@ pub(crate) fn resolve_and_select(args: &LsArgs, project: util::Project) -> Resul
     }
     let readiness = Readiness::compute(&project.outcome.tasks, &project.config);
     let project_total = project.outcome.tasks.len();
+    let broken = project.outcome.errors.len();
     let (root, hyperlinks) = (project.root.clone(), project.hyperlinks);
     let hashes = util::stem_hashes(&project.outcome.tasks, &project.config);
     // The command line's filter is a usage error when it fails; a view's or
@@ -325,6 +334,7 @@ pub(crate) fn resolve_and_select(args: &LsArgs, project: util::Project) -> Resul
         hyperlinks,
         truncated,
         project_total,
+        broken,
     })
 }
 
