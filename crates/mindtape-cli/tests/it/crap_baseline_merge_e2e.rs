@@ -13,7 +13,7 @@ use crate::support::{checkout, merge_branches, run_driver, text_merge_conflicts}
 
 const DRIVER: &str = ".just/scripts/crap-baseline-merge.sh";
 
-/// A baseline as `just crap-baseline` writes it, every entry in one file,
+/// A baseline as `just crap::baseline` writes it, every entry in one file,
 /// given as `(function, line, crap)` in file order. The cyclomatic score
 /// equals the CRAP score, as it does at full coverage.
 fn baseline(entries: &[(&str, u32, f64)]) -> String {
@@ -72,7 +72,7 @@ fn a_function_both_sides_rescored_keeps_the_stricter_score_either_way() {
     assert_eq!(merged, theirs);
     let note = String::from_utf8_lossy(&out.stderr);
     assert!(
-        note.contains("src/a.rs f:") && note.contains("just crap"),
+        note.contains("src/a.rs f:") && note.contains("just crap::check"),
         "the driver names the function and the gate that decides it: {note}"
     );
     assert_eq!(merge(&base, &theirs, &ours), theirs);

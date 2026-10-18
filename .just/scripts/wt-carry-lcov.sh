@@ -3,9 +3,9 @@
 # hook's lcov carry (.config/wt.toml). Runs from the root of the worktree about
 # to be removed, which is where worktrunk runs that hook.
 #
-# `just cover` writes target/coverage/lcov.info, and `just crap` scores against
+# `just cover` writes target/coverage/lcov.info, and `just crap::check` scores against
 # it. The file is gitignored, so after a fast-forward the primary checkout holds
-# none, or one from before the merge, and the next `just crap` there would pay
+# none, or one from before the merge, and the next `just crap::check` there would pay
 # a second instrumented build for numbers the worktree already has.
 #
 # Never fatal: the merge has landed, and a failed copy does not un-land it. Every
@@ -28,7 +28,7 @@ if [ -f "$primary/$lcov" ] && [ ! "$here/$lcov" -nt "$primary/$lcov" ]; then
 fi
 
 # The copy gets a new mtime, so staleness is judged here, against the sources
-# the lcov was written from, by the same script `just crap` asks. That script
+# the lcov was written from, by the same script `just crap::check` asks. That script
 # judges by content through mmz, so a rebase that rewrites mtimes but not bytes
 # still carries.
 stale=$(cd "$here" && bash .just/scripts/_lcov-stale-reason.sh 2>/dev/null) || stale=unanswered

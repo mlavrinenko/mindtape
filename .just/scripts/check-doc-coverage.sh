@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/check-doc-coverage.sh — the body of the `check-doc-coverage`
+# .just/scripts/check-doc-coverage.sh — the body of the `docs::coverage`
 # recipe. Every path below is repo-root-relative, because the recipe runs at
 # the repo root.
 #

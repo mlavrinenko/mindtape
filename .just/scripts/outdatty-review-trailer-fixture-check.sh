@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # .just/scripts/outdatty-review-trailer-fixture-check.sh — the body of the
-# `outdatty-review-trailer-fixture-check` recipe
+# `outdatty::trailer-fixture` recipe
 # (truth/tasks/require-a-docs-unaffected-trailer-when-an-outdatty-re-record-
 # edits-no-dependent.typ). Runs from the repo root, like the recipe that
 # invokes it.

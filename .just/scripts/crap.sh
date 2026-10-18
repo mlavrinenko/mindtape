@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/crap.sh — the body of the `crap` recipe, extracted under
+# .just/scripts/crap.sh — the body of the `crap::check` recipe, extracted under
 # truth/tasks/extract-the-coverage-and-release-recipe-bodies-into-scripts.typ.
 # Runs from the repo root, like the recipe that invokes it. The threshold
 # itself, why a stale lcov is refused rather than scored against, and why there
@@ -7,9 +7,9 @@
 # docs/contributing/coverage-crap.md.
 #
 # The exclude flags arrive as arguments ("$@"), never as a copy of the list.
-# CRAP_EXCLUDES stays one Justfile variable because three consumers must score
-# the same file set — this gate, `crap-baseline`, and
-# contrib/ask-refactoring/undertested.sh via `_crap-excludes` — and a baseline
+# CRAP_EXCLUDES stays one variable in .just/crap.just because three consumers
+# must score the same file set — this gate, `crap::baseline`, and
+# contrib/ask-refactoring/undertested.sh via `just --evaluate` — and a baseline
 # minted over a different set than the gate scores reports every difference
 # between the two lists as a regression.
 #
@@ -47,7 +47,7 @@
 # Arm selection. The first argument picks which checks run; the excludes
 # follow it:
 #
-#   all       both arms — the gate (`just crap`).
+#   all       both arms — the gate (`just crap::check`).
 #   absolute  the threshold arm only — the pre-mint check
 #             (.just/scripts/crap-baseline.sh).
 #
@@ -70,9 +70,9 @@ all | absolute) ;;
     ;;
 esac
 lcov=target/coverage/lcov.info
-reason=$(just _lcov-stale-reason)
+reason=$(bash .just/scripts/_lcov-stale-reason.sh)
 if [ -n "$reason" ]; then
-    echo "just crap: $reason — run \`just cover\` first" >&2
+    echo "just crap::check: $reason — run \`just cover\` first" >&2
     echo "  (a source the lcov never saw scores as 0% covered, not as unknown)" >&2
     exit 1
 fi

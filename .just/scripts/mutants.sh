@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/mutants.sh — the body of the `mutants` recipe, extracted under
+# .just/scripts/mutants.sh — the body of the `mutants::sweep` recipe, extracted under
 # truth/tasks/extract-the-coverage-and-release-recipe-bodies-into-scripts.typ.
 # Runs from the repo root, like the recipe that invokes it. The timeout caveat,
 # how to bound a loop a mutant can hang, and why there is deliberately no CI

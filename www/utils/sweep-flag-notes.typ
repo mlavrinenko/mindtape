@@ -5,7 +5,7 @@
 // number is its own number rather than one band shared across the sweep's
 // arms. An entry must never restate the help text or the default:
 // docs/src/contributing/signal-sweep.typ renders both alongside, derived, so a
-// copy here would be the drift this file exists to end. `just check-doc-facts`
+// copy here would be the drift this file exists to end. `just docs::facts`
 // fails naming any sweep-flags.json entry with no matching key here.
 //
 // The full argument for each band — the distributions, the counts, what each
@@ -14,15 +14,15 @@
 // valuable thing in the arm, and prose that lived away from the constants it
 // explains would drift away from them. These entries point there.
 //
-// Two entries below cross-reference other gates (`just cover`, `just crap`)
+// Two entries below cross-reference other gates (`just cover`, `just crap::check`)
 // to explain what those measure that this sweep's own arms do not, so those
 // mentions go through `#just.<name>()` too — a hand-typed recipe name is
-// exactly the drift check-doc-recipes exists to catch, and it scans this
+// exactly the drift docs::recipes exists to catch, and it scans this
 // directory. That makes this file a reader of www/generated/ (the generated
 // `just` module), which is only safe because the renderers that reach it —
-// docs::md and check-doc-facts — hold the www/generated/ flock across their
+// docs::md and docs::facts — hold the www/generated/ flock across their
 // typst queries as well as their own regenerate (see docs/generate-md.sh and
-// the check-doc-facts recipe for the fd-held idiom). If you add a consumer
+// the docs::facts recipe for the fd-held idiom). If you add a consumer
 // that renders this dict outside one of those, it must hold that lock for
 // its whole run or read no generated file at all, the way crate-notes.typ
 // and dsl-field-notes.typ do.
@@ -48,7 +48,7 @@
   ],
   "cc-floor": [
     Half of a conjunction with `--fn-coverage-floor`, and the half that is not
-    a complexity judgment. #just.crap() gates complexity, at its own
+    a complexity judgment. #just.crap-check() gates complexity, at its own
     threshold against a committed baseline. This floor is what makes the
     coverage number mean something: below it, a low percentage says one line
     is unhit; at or above it, it says decisions are unexercised.

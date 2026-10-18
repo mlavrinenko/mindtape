@@ -1,6 +1,6 @@
 //! `mt _cli --check-argv` — judge one command line the way `mt` would parse it.
 //!
-//! The doc gate `just check-doc-spans` finds `mt ...` command lines in the
+//! The doc gate `just docs::spans` finds `mt ...` command lines in the
 //! docs and hands each to this check, so a doc span is accepted or refused by
 //! the parser that runs it. The line goes through the same steps as a real
 //! run: [`cmd::at::desugar_argv`]'s `@name` rewrite, then clap, then the

@@ -1,4 +1,4 @@
-# `just check-secrets` bounds its gitleaks walk by what git ignores, derived
+# `just lint::secrets` bounds its gitleaks walk by what git ignores, derived
 # from this file (and every other ignore source) on each run.
 /.direnv
 /build
@@ -8,7 +8,7 @@
 # tracked cargo-mutants config is the one exception.
 /.cargo/*
 !/.cargo/mutants.toml
-# cargo-mutants scratch (mutant build dirs + reports); regenerable via `just mutants`
+# cargo-mutants scratch (mutant build dirs + reports); regenerable via `just mutants::sweep`
 /mutants.out
 /mutants.out.old
 # Persistent per-file harvest cache (crates/mindtape/src/loader/cache.rs). Git-ignored

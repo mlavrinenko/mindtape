@@ -13,7 +13,7 @@
 #
 # `www/generate.sh` runs first, through `mmz just docs::gen` — a source that reads
 # `www/generated/*.json` must never depend on some other recipe (`docs::gen`,
-# `check-doc-facts`) having run first in this process. It has to run the whole
+# `docs::facts`) having run first in this process. It has to run the whole
 # script, not only `www/generate-facts.sh`, because www/generated/site-pages.json
 # — which docs/src/lib.typ's `fact("site-pages")` reads for `www-link` and
 # `www-groups` — comes from www/generate-site-pages.sh. Deriving it compiles
@@ -40,8 +40,8 @@
 # value, as docs/src/agents.typ's crate-derived bullets do elsewhere in the
 # same file — a regex has no way to know that is even the same kind of
 # expression). `typst query` is the read-back tool every other generator in
-# this repo already uses for exactly this (see Justfile's check-doc-coverage /
-# check-doc-facts) — `--target html --features html` is required here only
+# this repo already uses for exactly this (see check-doc-coverage.sh /
+# check-doc-facts.sh) — `--target html --features html` is required here only
 # because every source imports docs/src/lib.typ's `doc-title`, which calls
 # `html.elem`; that function does not exist in the query's evaluation scope
 # without both flags, and errors "unknown variable: html" if either is

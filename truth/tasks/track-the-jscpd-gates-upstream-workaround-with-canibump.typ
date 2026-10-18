@@ -36,7 +36,7 @@
 
 == Problem
 
-+ Read `check-dry` in the `Justfile`.
++ Read `.just/scripts/lint-dry.sh`.
 + 🔴 It filters jscpd's JSON report down to the new clones with `jq`, because under `--baseline` every reporter prints all clones, old ones included. Nothing says when upstream fixes that, so the filter stays after its reason is gone.
 
 
@@ -48,7 +48,7 @@
 == Changes
 
 - `canibump.toml`: the blocker, beside the one the repeats arm waits on.
-- `Justfile`: a link to the issue in `check-dry`'s comment, which canibump's scan then finds listed.
+- `.just/scripts/lint-dry.sh`: a link to the issue in its header comment, which canibump's scan then finds listed.
 
 
 == Rollback

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/check-gate-drift.sh — the body of the `check-gate-drift` recipe
+# .just/scripts/check-gate-drift.sh — the body of the `meta::gate-drift` recipe
 # (truth/tasks/fail-the-gate-when-toml-fmt-paths-or-a-plain-mt-build-drifts.typ).
 # Runs from the repo root, like the recipe that invokes it.
 #

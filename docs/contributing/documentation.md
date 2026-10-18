@@ -5,10 +5,10 @@
 The doc gates catch mechanical errors:
 
 - `just docs check` finds a dead link.
-- `just check-doc-facts` finds a derived fact with no entry.
-- `just check-doc-recipes` finds a hand-typed recipe name.
-- `just check-doc-prose` finds history words, shouting, an em dash in text a reader sees and a typed name.
-- `just check-doc-blocks` finds a hand-typed code block.
+- `just docs facts` finds a derived fact with no entry.
+- `just docs recipes` finds a hand-typed recipe name.
+- `just docs prose` finds history words, shouting, an em dash in text a reader sees and a typed name.
+- `just docs blocks` finds a hand-typed code block.
 
 No gate finds duplicated prose or a page that doesn’t help its reader. The rules below cover what the gates can’t.
 
@@ -21,7 +21,7 @@ It reads a config key span, such as `[ls] hyperlinks`, against `schema/config.sc
 ## Where the docs live
 
 - `www/content/**/*.typ` is the docs site, and `www/utils/*.typ` holds the notes its generated references render.
-- Each `mt` command has a page, `www/content/cli/<command>.typ`, which renders the command from `www/utils/cli-ref.typ` and can add prose of its own. `just check-doc-coverage` fails on a command with no page or no `www/utils/cli-notes.typ` entry.
+- Each `mt` command has a page, `www/content/cli/<command>.typ`, which renders the command from `www/utils/cli-ref.typ` and can add prose of its own. `just docs coverage` fails on a command with no page or no `www/utils/cli-notes.typ` entry.
 - `docs/src/readme.typ`, `docs/src/agents.typ` and `docs/src/skill.typ` render to README.md, AGENTS.md and `skills/mindtape/SKILL.md`.
 - `docs/src/contributing.typ` renders CONTRIBUTING.md, and `docs/src/contributing/*.typ` render `docs/contributing/*.md`.
 
@@ -37,7 +37,7 @@ A file at its line cap covers too much, and trimming words to fit doesn’t fix 
 
 A generated fact (`www/generated/*.json`, read by both render paths) can’t drift. A hand-written sentence can. Two pages state the same fact in different words, one of them changes, and no gate fails. So state a fact on one page and link to it from the others. Content that both render paths show, like the tagline, the recipe table and the Typst section in README and on the site root, lives once in a module both call (`www/utils/demo.typ`).
 
-The `just dup-prose` audit reports two kinds of repeat that are deliberate:
+The `just docs dup-prose` audit reports two kinds of repeat that are deliberate:
 
 - A document an agent reads whole (AGENTS.md, the skill and its references) keeps its own copy of what it needs, because its reader may have no site access.
 - Shared code, such as a render loop or a crate table, may be extracted or copied. Never paraphrase it, because reworded code is worse than either.
@@ -54,7 +54,7 @@ A code block in the docs comes from a real file under `examples/` that `mt check
 
 To quote one line of what a capture printed, such as an `error:` or `hint:` line, write `capture-line(<slug>, <regex>)`. It renders the first line of the capture that matches the regex, and the build fails when none does. The span gate fails on an inline span that starts with `error:`, `warning:`, `hint:` or `note:` followed by text, because a hand-typed copy goes stale when the message changes.
 
-`just check-doc-blocks` fails on a fenced block, or a block `raw(...)`, whose text is written in the source. If no fixture can hold a block, such as a grammar sketch, put `// docs:hand-typed <reason>` on the line above it. The gate lists the sources not yet converted. A listed source with no hand-typed block left fails, so the list only shrinks.
+`just docs blocks` fails on a fenced block, or a block `raw(...)`, whose text is written in the source. If no fixture can hold a block, such as a grammar sketch, put `// docs:hand-typed <reason>` on the line above it. The gate lists the sources not yet converted. A listed source with no hand-typed block left fails, so the list only shrinks.
 
 ## Voice
 
@@ -96,7 +96,7 @@ Write for a busy engineer who reads each sentence once. The rules apply to comme
    - Bad: “An unknown bare name is refused naming what IS available”
    - Good: “An unknown bare name is refused with a list of the available packs”
 
-`just check-doc-prose` enforces two of these rules and two of its own. It fails on the history words `now`, `used to`, `no longer`, `anymore` and `formerly`, on an all-caps word outside its acronym list, on an em dash in text a reader sees, and on the product’s name typed out.
+`just docs prose` enforces two of these rules and two of its own. It fails on the history words `now`, `used to`, `no longer`, `anymore` and `formerly`, on an all-caps word outside its acronym list, on an em dash in text a reader sees, and on the product’s name typed out.
 
 - A Typst source writes the name as `#mindtape`, which `www/utils/site.typ` reads from the site title in `www/tola.toml`, so a typed name fails anywhere in the file, raw spans and comments included. A Markdown source can’t reach the constant, so there only the old CamelCase spelling fails.
 - A shell constant passes only as `$NAME`, `${NAME}` or `NAME=`. A lone capital beside an all-caps word counts as shouting, so wrap a constant’s bare name in backticks.
@@ -108,4 +108,4 @@ The word lists are in `.just/scripts/_doc-prose-lib.sh`, and what the scan skips
 
 ## The duplicate-prose audit
 
-`just dup-prose` reads the doc sources, strips markup and code, and reports sentences that two files share, worst pair first. It’s advisory, because the threshold is a judgment call and you decide where each fact lives. Run it before and after a refactor. The algorithm, its settings and why it’s written in jq are in `contrib/dup-prose.jq`.
+`just docs dup-prose` reads the doc sources, strips markup and code, and reports sentences that two files share, worst pair first. It’s advisory, because the threshold is a judgment call and you decide where each fact lives. Run it before and after a refactor. The algorithm, its settings and why it’s written in jq are in `contrib/dup-prose.jq`.

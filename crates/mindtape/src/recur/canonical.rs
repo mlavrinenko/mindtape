@@ -121,7 +121,7 @@ mod tests {
     fn period_round_trips_through_canonical() {
         // Values deliberately differ from `model/canonical_tests.rs`'s
         // `every_recur_serializes_and_round_trips` (same property, one level
-        // up the stack) so `check-dry` sees two fixtures, not one copy-pasted
+        // up the stack) so `lint::dry` sees two fixtures, not one copy-pasted
         // twice.
         let recur = Recur {
             rule: Rule::Period {

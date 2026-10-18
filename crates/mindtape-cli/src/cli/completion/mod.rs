@@ -13,7 +13,7 @@
 //! value-taking argument `mt` declares. [`Source::None`] is an answer too,
 //! carrying the reason no project value fits. Two readers share the table:
 //! [`decorate`] hangs each entry's completer on the clap tree, and
-//! [`crate::cli::tree_json`] reflects it back out so `just check-doc-facts` can
+//! [`crate::cli::tree_json`] reflects it back out so `just docs::facts` can
 //! set-difference the arguments clap declares against the ones named here. A
 //! new completable argument therefore fails a gate until it says where its
 //! values come from.
@@ -220,7 +220,7 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
 // jscpd:ignore-end
 
 /// The source declared for `(path, id)`, or `None` when the table does not
-/// name the argument at all — the state `just check-doc-facts` fails on.
+/// name the argument at all — the state `just docs::facts` fails on.
 #[must_use]
 pub fn lookup(path: &str, id: &str) -> Option<Source> {
     SOURCES

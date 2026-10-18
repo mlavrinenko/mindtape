@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/check-doc-spans.sh — the body of the `check-doc-spans` recipe.
+# .just/scripts/check-doc-spans.sh — the body of the `docs::spans` recipe.
 # Runs from the repo root, like the recipe that invokes it.
 #
 # Stops prose that names an `mt` subcommand, flag or config key that does not

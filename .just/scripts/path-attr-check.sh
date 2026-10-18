@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/path-attr-check.sh — the body of the `path-attr-check` recipe
+# .just/scripts/path-attr-check.sh — the body of the `lint::path-attr` recipe
 # (truth/tasks/hold-the-folder-per-area-layout-with-a-lint-and-a-path-check.typ).
 # Runs from the repo root, like the recipe that invokes it.
 #

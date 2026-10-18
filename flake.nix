@@ -56,7 +56,7 @@
         mingw = pkgs.pkgsCross.mingwW64;
         mingwBin = "${mingw.stdenv.cc}/bin/${mingw.stdenv.cc.targetPrefix}";
 
-        # cargo-crap (the CRAP-metric gate behind `just crap`) is not in
+        # cargo-crap (the CRAP-metric gate behind `just crap::check`) is not in
         # nixpkgs. Build it from the crates.io tarball with naersk `singleStep`
         # — crates.io' data-access policy 403s the UA that nixpkgs'
         # `fetch-cargo-vendor` sends, so `buildRustPackage` cannot compute a
@@ -126,11 +126,11 @@
               clippy
               rustfmt
               mold
-              # `just check-workflows`: actionlint runs shellcheck over each
+              # `just lint::workflows`: actionlint runs shellcheck over each
               # workflow `run:` block when it finds it on PATH.
               actionlint
               shellcheck
-              # The secret scanner behind `just check-secrets`. Pinned here
+              # The secret scanner behind `just lint::secrets`. Pinned here
               # rather than installed per-machine so CI (`nix develop --command
               # just check`) and a local run read the same ruleset version —
               # the default ruleset is compiled into the binary, so a version

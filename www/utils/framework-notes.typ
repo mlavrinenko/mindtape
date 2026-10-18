@@ -5,11 +5,11 @@
 // which www/generate-facts.sh derives from crates/mindtape/src/framework/frameworks.toml
 // and defaults.toml: the framework list, each input's name, type and bounds,
 // the score formula or categories, the shipped bands and difficulty anchors.
-// So a note here never restates a bound or a formula. `just check-doc-facts`
+// So a note here never restates a bound or a formula. `just docs::facts`
 // fails on a framework in frameworks.json with no note here.
 //
 // The renderers take the fact as an argument instead of reading it, because
-// the check-doc-facts driver imports this file to read the note keys, and an
+// the docs::facts driver imports this file to read the note keys, and an
 // import that read www/generated/ would race the docs::check arm that deletes
 // it.
 

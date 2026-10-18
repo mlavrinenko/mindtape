@@ -1,10 +1,10 @@
-# .gitleaks.toml — the ruleset `just check-secrets` reads this tree with
+# .gitleaks.toml — the ruleset `just lint::secrets` reads this tree with
 # (truth/tasks/scan-the-tree-for-secrets-with-gitleaks.typ).
 #
 # WHAT THE GATE IS FOR: a credential sitting in a tracked file of the CURRENT
 # tree. History is deliberately out of scope — `gitleaks git` reports the
 # absolute paths this repo has already committed (the leak
-# `just crap-baseline-check` exists to stop repeating) and would need a
+# `just crap::baseline-check` exists to stop repeating) and would need a
 # `.gitleaksignore` entry per past mint, which is a triage backlog rather than
 # a gate.
 #
@@ -15,7 +15,7 @@
 # rule cannot live here: the default config's global allowlist matches
 # `/home/<user>/` and drops any custom rule's finding on it, measured under
 # `--log-level trace` on gitleaks 8.30 (`skipping finding: global allowlist
-# allowed-regex=true`). That job stays with `just crap-baseline-check`, whose
+# allowed-regex=true`). That job stays with `just crap::baseline-check`, whose
 # own header argues it; dropping the default ruleset to make such a rule fire
 # would leave a secret scanner scanning for no secrets.
 #

@@ -253,7 +253,7 @@ fn arg_json(arg: &Arg, path: &str) -> Value {
 /// value source, `{"source": null, "reason": "..."}` for one deliberately
 /// without, and `null` for an argument the table does not name at all.
 ///
-/// That third state is the one `just check-doc-facts` fails on, which is why
+/// That third state is the one `just docs::facts` fails on, which is why
 /// it is reflected here rather than grepped out of `cli/completion/mod.rs`: the gate
 /// then reads the same table the completers are built from, so it cannot be
 /// satisfied by a mention the parser never sees.

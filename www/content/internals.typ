@@ -22,7 +22,7 @@ audit, package or build on the implementation.
 = Workspace
 
 // The crate list and versions come from www/generated/crate-map.json, and the
-// one-line notes from www/utils/crate-notes.typ. `just check-doc-facts` fails
+// one-line notes from www/utils/crate-notes.typ. `just docs::facts` fails
 // when a crate has no note.
 #let crate-map = json("../generated/crate-map.json")
 
@@ -58,11 +58,11 @@ never sees the cache. On a generated backlog of 2000 tasks:
   [`mt check`], [0.33 s], [0.08 s],
 )
 
-// Measured by hand: `just bench` prints hyperfine's report and saves nothing a
+// Measured by hand: `just bench::run` prints hyperfine's report and saves nothing a
 // page could read, so the date and machine below let a reader judge the
 // figures.
 These figures were measured on 2026-08-16 on one Linux machine with an
-i7-12700H, and nothing regenerates them. Run #just.bench() on your machine for
+i7-12700H, and nothing regenerates them. Run #just.bench-run() on your machine for
 the warm column. For the cold column, set `MINDTAPE_NO_CACHE=1` to make `mt`
 skip the cache.
 

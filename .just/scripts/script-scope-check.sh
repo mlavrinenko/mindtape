@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/script-scope-check.sh — the body of the `script-scope-check`
+# .just/scripts/script-scope-check.sh — the body of the `meta::script-scope`
 # recipe (truth/tasks/split-gates-meta-into-per-script-scopes.typ). Runs from
 # the repo root, like the recipe that invokes it.
 #
@@ -33,7 +33,7 @@
 #      missing.typ). Membership is all this arm claims: which dependents a
 #      script owes is outdatty's own subject, and it answers that well once the
 #      file is listed at all.
-#   4. Does the `just outdatty-check` rule hash every file outdatty.yaml
+#   4. Does the `just outdatty::check` rule hash every file outdatty.yaml
 #      lists, source or dependent? outdatty compares them to the lock, but mmz
 #      serves the rule from cache unless a declared input changed, so a listed
 #      file outside the rule's scopes (06a0492f's .config/wt.toml) goes
@@ -184,13 +184,13 @@ for script in "${scripts[@]}"; do
 done
 
 # Arm four: every file outdatty.yaml lists, as a source or a dependent, is
-# hashed by the `just outdatty-check` rule. outdatty-check compares each listed
+# hashed by the `just outdatty::check` rule. outdatty-check compares each listed
 # file to outdatty.lock, so a listed file that none of the rule's input scopes
 # holds can change and leave the gate recorded fresh, which let a .config/wt.toml
 # edit land on a red main. A glob entry is expanded over the files git lists, so
 # a dependent glob is judged file by file. Patterns match as in arm two, and
 # the rule's own scopes are the only thing read: no scope is named here.
-outdatty_rule="just outdatty-check"
+outdatty_rule="just outdatty::check"
 rule_patterns=$(awk -F'\t' -v r="$outdatty_rule" '$1 == r { print $2 }' <<<"$rule_inputs" |
     while IFS= read -r scope; do
         awk -F'\t' -v s="$scope" '$1 == s { print $2 }' <<<"$entries"

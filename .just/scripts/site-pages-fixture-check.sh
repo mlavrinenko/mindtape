@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # .just/scripts/site-pages-fixture-check.sh — the body of the
-# `site-pages-fixture-check` recipe
+# `docs::pages-fixture` recipe
 # (truth/tasks/pin-the-docs-manifest-gate-failures-with-a-selftest.typ). Runs
 # from the repo root, like the recipe that invokes it.
 #

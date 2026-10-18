@@ -1,7 +1,7 @@
 // What each core task field means, keyed by field name. The /dsl/ page reads
 // the field list and each default from www/generated/dsl-fields.json, which
 // www/generate-facts.sh reads off lib/prelude.typ's `task` signature, so this
-// dictionary holds only the meaning. `just check-doc-facts` fails on a field
+// dictionary holds only the meaning. `just docs::facts` fails on a field
 // in that list with no entry here.
 
 #import "site.typ": u

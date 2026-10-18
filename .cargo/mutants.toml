@@ -1,10 +1,10 @@
 # cargo-mutants config. Mutation testing is a manual/scoped dev aid driven by
-# `just mutants` (see CONTRIBUTING.md "Testing"), never a `just check` gate.
+# `just mutants::sweep` (see CONTRIBUTING.md "Testing"), never a `just check` gate.
 
 # Classes are named in docs/contributing/mutation-testing.md (Triage).
 #
 # main.rs: entry-point — a thin entry point, excluded like the CRAP gate
-# (`just crap`) excludes it.
+# (`just crap::check`) excludes it.
 exclude_globs = ["**/main.rs"]
 # Provably-equivalent mutants: unkillable by construction, excluded so a swept
 # file can reach a clean (zero-survivor) result and stop re-appearing in the

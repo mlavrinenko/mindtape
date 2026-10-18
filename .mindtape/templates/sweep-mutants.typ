@@ -80,7 +80,7 @@ every run, so the task is worth only as much as that measurement still is.
 
 == TO-BE
 
-- 🟢 `just mutants -f` on this file reports the mutant as caught, or
+- 🟢 `just mutants::sweep -f` on this file reports the mutant as caught, or
   `.cargo/mutants.toml` declares it uninteresting with a reason.
 
 == Changes

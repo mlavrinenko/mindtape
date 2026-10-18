@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# .just/scripts/arg-pattern-check.sh — the body of the `arg-pattern-check`
+# .just/scripts/arg-pattern-check.sh — the body of the `meta::arg-pattern`
 # recipe (truth/tasks/validate-recipe-arguments-with-the-arg-attribute.typ).
 # Runs from the repo root, like the recipe that invokes it.
 #
 # A pattern nobody exercises is a comment, not a gate. So this is a separate
 # script from fmt-fixture-check.sh on purpose: that one locks that three
 # formatters reject drift in a synthesized fixture file; this one locks that
-# the `[arg(...)]` `pattern`s on `release`, `bench`, `gen-bench`, `eject`,
-# `ask-refactoring`, `outdatty-update` and `check` actually reject a bad argument and
+# the `[arg(...)]` `pattern`s on `release`, `bench::run`, `bench::gen`, `eject`,
+# `ask-refactoring`, `outdatty::update` and `check` actually reject a bad argument and
 # accept a good one.
 # Same reasoning, different subject (recipe dispatch, not file formatting), so
 # a sibling fixture-style script rather than an added arm in that one —
@@ -95,37 +95,37 @@ assert_rejected release v0.3.0
 assert_rejected release 0.3
 assert_accepted release 0.3.0
 
-assert_rejected bench abc
-assert_accepted bench 100
+assert_rejected bench::run abc
+assert_accepted bench::run 100
 
-assert_rejected gen-bench abc
-assert_accepted gen-bench 100
+assert_rejected bench::gen abc
+assert_accepted bench::gen 100
 
-# `outdatty-update` takes the one group whose source was just edited — the
-# blanket form is the separate `outdatty-update-all` recipe, so the group is
+# `outdatty::update` takes the one group whose source was just edited — the
+# blanket form is the separate `outdatty::update-all` recipe, so the group is
 # required (no default to assert). The `'Dev Docs'` case is the word-splitting
 # one, where the shell would split the value into two words:
 # the body interpolates the value into `outdatty update --group {{ GROUP }}`,
 # so a space must be refused at dispatch. `'DEV_DOCS'` locks the shape that a
 # group name can never take (outdatty.yaml names are all lowercase).
-assert_rejected outdatty-update 'Dev Docs'
-assert_rejected outdatty-update 'DEV_DOCS'
-assert_accepted outdatty-update dev-shell-docs
+assert_rejected outdatty::update 'Dev Docs'
+assert_rejected outdatty::update 'DEV_DOCS'
+assert_accepted outdatty::update dev-shell-docs
 
 # The optional dependents are spliced into the body as `--dependent <path>`
 # words by `prepend`, unquoted, so each path must be refused at dispatch when
 # it carries a space or a shell metacharacter. Every tracked path here is
 # letters, digits, `.`, `_`, `/` and `-`.
-assert_rejected outdatty-update dev-shell-docs 'docs/src/a b.typ'
-assert_rejected outdatty-update dev-shell-docs 'docs/src/a.typ;true'
-assert_accepted outdatty-update dev-shell-docs docs/src/contributing/windows.typ
+assert_rejected outdatty::update dev-shell-docs 'docs/src/a b.typ'
+assert_rejected outdatty::update dev-shell-docs 'docs/src/a.typ;true'
+assert_accepted outdatty::update dev-shell-docs docs/src/contributing/windows.typ
 
-# Bare `just outdatty-update` must fail at dispatch too — the whole point of
+# Bare `just outdatty::update` must fail at dispatch too — the whole point of
 # requiring the group is that muscle memory cannot reach the blanket form.
 # The error is just's own missing-argument one, not a pattern
 # mismatch, so assert_rejected's message check does not apply.
-if out=$(just --dry-run --yes outdatty-update </dev/null 2>&1); then
-    echo "arg-pattern-check: bare outdatty-update succeeded — GROUP must be required" >&2
+if out=$(just --dry-run --yes outdatty::update </dev/null 2>&1); then
+    echo "arg-pattern-check: bare outdatty::update succeeded — GROUP must be required" >&2
     echo "  output: $out" >&2
     fail=1
 fi

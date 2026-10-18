@@ -71,7 +71,7 @@ fn editor_command_env_var_not_empty_used() {
 ///
 /// One function with two `#[cfg]` bodies rather than two `#[cfg]`ed functions
 /// of the same name: coverage tooling keys a function by (file, name), so a
-/// same-named pair is one key with two entries, and `just crap` reported both
+/// same-named pair is one key with two entries, and `just crap::check` reported both
 /// as new *and* both as removed on every run — against a baseline holding them
 /// verbatim. A body-level `cfg` compiles to exactly the same thing on either
 /// platform and leaves one key.

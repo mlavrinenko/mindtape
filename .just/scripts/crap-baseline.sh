@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/crap-baseline.sh — the body of the `crap-baseline` recipe,
+# .just/scripts/crap-baseline.sh — the body of the `crap::baseline` recipe,
 # extracted under
 # truth/tasks/extract-the-coverage-and-release-recipe-bodies-into-scripts.typ.
 # Runs from the repo root, like the recipe that invokes it. When to re-mint is

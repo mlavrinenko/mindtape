@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/script-attr-check.sh — the body of the `script-attr-check`
+# .just/scripts/script-attr-check.sh — the body of the `meta::script-attr`
 # recipe (truth/tasks/lock-the-script-attribute-against-a-shebang-
 # regression.typ). Runs from the repo root, like the recipe that invokes it.
 #

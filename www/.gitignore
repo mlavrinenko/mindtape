@@ -10,7 +10,7 @@
 # rsvg-convert writes those two rasters through GIO, which saves atomically: a
 # `.goutputstream-XXXXXX` sibling, then a rename over the target. The sibling
 # lives for milliseconds, and unignored it was an INPUT — mmz resolved it while
-# hashing `secrets-tree` for a parallel `just check-secrets`, then exited 8
+# hashing `secrets-tree` for a parallel `just lint::secrets`, then exited 8
 # ("input www/assets/images/.goutputstream-RLQRU3 disappeared after it was
 # resolved") with no secret involved, once in three runs
 # (truth/tasks/check-secrets-races-the-docs-arm-over-www-generated.typ). Ignored

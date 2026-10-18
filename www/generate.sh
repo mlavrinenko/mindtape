@@ -163,7 +163,7 @@ grep -v '^// docs:' "$FIX/tasks/throttle-failed-logins-per-ip.typ" >"$OUT/hero-s
 # show rule (lib/prelude.typ) — not hand-built HTML. Typst HTML export inlines
 # the SVG as a self-contained data-uri `<img>`, so nothing lands in public/.
 # Resolve @local/mindtape via a throwaway local-package path symlinked at lib/,
-# so this never depends on `just install-lib` being run first.
+# so this never depends on `just install::lib` being run first.
 PKGS="$(mktemp -d)"
 LIBVER="$(sed -n 's/^version = "\(.*\)"/\1/p' "$REPO/lib/typst.toml" | head -1)"
 mkdir -p "$PKGS/local/mindtape"

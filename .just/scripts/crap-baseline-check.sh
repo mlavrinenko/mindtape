@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/crap-baseline-check.sh — the body of the `crap-baseline-check`
+# .just/scripts/crap-baseline-check.sh — the body of the `crap::baseline-check`
 # recipe (truth/tasks/relativize-the-crap-baseline-s-committed-file-paths.typ).
 # Runs from the repo root, like the recipe that invokes it, and is called a
 # second time by .just/scripts/crap-baseline.sh so a bad mint fails at the mint
@@ -33,7 +33,7 @@ set -eo pipefail
 baseline=crap-baseline.json
 
 if [ ! -f "$baseline" ]; then
-    echo "crap-baseline-check: $baseline is missing — \`just crap-baseline\` mints it" >&2
+    echo "crap-baseline-check: $baseline is missing — \`just crap::baseline\` mints it" >&2
     exit 1
 fi
 
@@ -93,6 +93,6 @@ if [ -n "$offenders" ]; then
         echo "  $path" >&2
     done
     [ "$n" -gt 5 ] && echo "  … and $((n - 5)) more" >&2
-    echo "  re-mint with \`just crap-baseline\`, which strips the workspace root" >&2
+    echo "  re-mint with \`just crap::baseline\`, which strips the workspace root" >&2
     exit 1
 fi

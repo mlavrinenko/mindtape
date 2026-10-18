@@ -3,7 +3,7 @@
 # Reads a JSON array of {file, text} objects on stdin, one per doc SOURCE
 # (never a generated render — a README and its docs/src source would otherwise
 # differ only by the render, and every pair would be a false positive). Run it
-# through `just dup-prose`; it is advisory, not a gate: the threshold is a
+# through `just docs::dup-prose`; it is advisory, not a gate: the threshold is a
 # judgement call, and this report is an input to a human deciding where a fact
 # should live, not a verdict.
 #

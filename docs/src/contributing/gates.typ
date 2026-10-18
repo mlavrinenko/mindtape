@@ -24,7 +24,7 @@ CONTRIBUTING.md.
 first stage with a failing gate. The fast stage builds nothing, so you see a
 lint error in seconds. The build stage holds every gate that builds
 or runs `mt`, and they share one build. The last stage runs #just.cover() and
-then #just.crap(), because coverage pays for an instrumented clean rebuild.
+then #just.crap-check(), because coverage pays for an instrumented clean rebuild.
 Within a stage the gates run in parallel. Name stages to run only those, such
 as #just.check("fast build"). CI does that to run `cover` in a job of its own,
 since it shares no build with the other two. To see the gates, ask `just` and
@@ -63,20 +63,20 @@ the arm as run or cached, because a cache hit prints nothing (`on_hit: ""` in
 output. #just.test("<filter>") runs outside mmz, so a filtered run never
 records a pass for the full suite.
 
-Every rule reads the `gates-meta` scope, which includes the `Justfile`, so a
-`Justfile` edit re-runs every arm. Each script under `.just/scripts/` has a
+Every rule reads the `gates-meta` scope, which includes every justfile, so a
+justfile edit re-runs every arm. Each script under `.just/scripts/` has a
 scope of its own, so editing one re-runs the arms that reach it and the few
-that read the whole directory. The same goes for outdatty: `outdatty-check`
-reads every file `outdatty.yaml` lists, and #just.script-scope-check() fails
+that read the whole directory. The same goes for outdatty: `outdatty::check`
+reads every file `outdatty.yaml` lists, and #just.meta-script-scope() fails
 naming a listed file that its scopes miss.
 
 == Inputs a glob can't name
 
-#just.crap() reads `target/coverage/lcov.info`, which git ignores. mmz drops
+#just.crap-check() reads `target/coverage/lcov.info`, which git ignores. mmz drops
 ignored paths from a scope, so the `lcov` scope sets `gitignore: false`. With
 the lcov in its inputs, the arm re-runs when #just.cover() writes a new one.
 
-#just.check-secrets() scans the whole tree, but `.mmz/config.yaml` has no
+#just.lint-secrets() scans the whole tree, but `.mmz/config.yaml` has no
 negative glob, and no gate may name `truth/tasks/**`. `mt flip` writes the
 task file it gates, so such an input would make the gate stale in the middle
 of the flip. So the arm's inputs are one glob per top-level directory, and
@@ -92,10 +92,10 @@ has to stay out of them or take the writer's lock.
   reader and writer of that directory holds the `target/www-generated.lock`
   flock for its whole run. The readers regenerate through
   `mmz just docs::gen` inside that lock, so the generator runs once per tree.
-- #just.site-pages-fixture-check() copies `www/` into a temporary replica. It
+- #just.docs-pages-fixture() copies `www/` into a temporary replica. It
   skips `public/` and `.tola/`, which the #just.docs-check() arm writes, and
   regenerates `www/generated/` inside the lock.
-- #just.check-secrets() derives a gitleaks allowlist from the paths git
+- #just.lint-secrets() derives a gitleaks allowlist from the paths git
   ignores, so the scan skips `www/generated/` and `www/.tola/`. gitleaks
   still stats the skipped directory itself, so the scan holds the lock too.
   `.just/scripts/check-secrets.sh` has the measurements.
@@ -120,7 +120,7 @@ that way and runs `./target/debug/mt`, because `cargo run` takes no
 `--tests`. A build with other features writes to another target directory,
 as #just.build-mt() does with `target/mt-dev`.
 
-#just.check-gate-drift() fails naming file and line on any build of
+#just.meta-gate-drift() fails naming file and line on any build of
 `mindtape-cli` that a #just.check() arm reaches without `--tests` or a flag
 that writes elsewhere.
 
@@ -129,7 +129,7 @@ that writes elsewhere.
 `.mmz/config.yaml` names one scope per file under `.just/scripts/`. A single
 glob over the directory would re-run every gate when one script changed. A
 list covers only the scripts someone added to it, so
-#just.script-scope-check() fails on a script no scope names, on a rule that
+#just.meta-script-scope() fails on a script no scope names, on a rule that
 reaches a script its inputs miss, and on a script that's a source of no
 `outdatty.yaml` group. Put a new script in the group of the doc that restates
 it, or in the source-only group when no doc does.
@@ -138,7 +138,7 @@ it, or in the source-only group when no doc does.
 = The formatter path lists
 
 #just.fmt() and #just.fmt-check() read one list per formatter from the
-`Justfile`, so a path you add there reaches both. #just.check-gate-drift()
+`Justfile`, so a path you add there reaches both. #just.meta-gate-drift()
 fails when `TOML_FMT_PATHS` misses a TOML file git lists.
 
 #for (name, value) in fact("gates").at("assignments") [
@@ -146,10 +146,10 @@ fails when `TOML_FMT_PATHS` misses a TOML file git lists.
 ]
 
 just's `--fmt` flag alone formats the root `Justfile` and skips every `mod`
-file (verified on just 1.46). So each file in `JUST_FMT_PATHS` gets its own
-`--justfile <file>` pass, `--fmt` in #just.fmt() and `--dump` diffed against
-the file in #just.fmt-check(), and each needs its own `set unstable := true`.
-If a module file moves without its entry, it drops out of both recipes.
+file (verified on just 1.46). So each file `JUST_FMT_PATHS` matches gets its
+own `--justfile <file>` pass, `--fmt` in #just.fmt() and `--dump` diffed
+against the file in #just.fmt-check(), and each needs its own
+`set unstable := true`.
 
 = What the pre-commit hook asserts
 

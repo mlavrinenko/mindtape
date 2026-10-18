@@ -88,7 +88,7 @@ so the task is worth only as much as that measurement still is.
 
 == TO-BE
 
-- 🟢 `just check-file-size` passes and `linecop --baseline 90` no longer names
+- 🟢 `just lint::size` passes and `linecop --baseline 90` no longer names
   this file.
 
 == Changes

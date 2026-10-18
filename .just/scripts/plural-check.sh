@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/plural-check.sh — the body of the `plural-check` recipe
+# .just/scripts/plural-check.sh — the body of the `lint::plural` recipe
 # (truth/tasks/print-counts-as-1-task-or-12-tasks-never-task-s.typ).
 # Runs from the repo root, like the recipe that invokes it.
 #

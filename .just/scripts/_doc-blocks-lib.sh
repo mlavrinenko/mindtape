@@ -1,5 +1,5 @@
 # .just/scripts/_doc-blocks-lib.sh — the doc sources' shared reader. It holds
-# the scanner `just check-doc-blocks` runs, the extractor that check-doc-spans,
+# the scanner `just docs::blocks` runs, the extractor that check-doc-spans,
 # check-doc-recipes and check-doc-prose read, and the source manifest. Sourced
 # by those gates and by the blocks control. Runs from the repo root.
 #

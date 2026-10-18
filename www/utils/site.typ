@@ -31,7 +31,7 @@
 #let SITE_URL = TOLA.site.info.url.trim("/", at: end)
 
 // The product's name, read from the site title in tola.toml, so a doc source
-// writes `#mindtape` and never types the name. `just check-doc-prose` fails on
+// writes `#mindtape` and never types the name. `just docs::prose` fails on
 // a typed one.
 #let mindtape = TOLA.site.info.title
 

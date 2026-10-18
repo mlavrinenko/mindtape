@@ -14,7 +14,7 @@
 # merge conflicts on every rebase. The merge is the union of both sides'
 # `fingerprints` (a fingerprint on both sides keeps the larger count), with
 # `version` from ours. A fingerprint a side removed comes back; it is a stale
-# entry at worst, and `just check-dry` on the merged tree decides the rest.
+# entry at worst, and `just lint::dry` on the merged tree decides the rest.
 # The output is `version`, then `fingerprints` sorted by key, as jscpd writes it.
 #
 # Without `jq` on PATH, or with a side that does not parse as a baseline, it

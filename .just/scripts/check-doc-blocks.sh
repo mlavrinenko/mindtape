@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/check-doc-blocks.sh — the body of `just check-doc-blocks`.
+# .just/scripts/check-doc-blocks.sh — the body of `just docs::blocks`.
 # Runs from the repo root.
 #
 # A code block typed by hand into a doc source shows text that nothing runs or

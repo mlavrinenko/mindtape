@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/size-fixture-check.sh — the body of the `size-fixture-check`
+# .just/scripts/size-fixture-check.sh — the body of the `meta::size-fixture`
 # recipe. Runs from the repo root, like the recipe that invokes it.
 #
 # Lock the file-size gate's scan scope, not its limits: synthesize an
@@ -15,7 +15,7 @@
 # "All files within size limits." — the same output a clean tree gives.
 #
 # Why A replica rather than a probe in the real `.just/scripts/`: `just check`
-# runs its arms in parallel, and the real `check-file-size` arm is one of
+# runs its arms in parallel, and the real `lint::size` arm is one of
 # them. A 401-line file appearing in the tracked tree mid-run would fail that
 # arm, nondeterministically, for a reason no reader could place — and an
 # interrupted run would leave the junk file behind. The replica carries the

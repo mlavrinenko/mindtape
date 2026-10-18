@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/_crap-ratchet-control.sh — the control `just crap` runs before
+# .just/scripts/_crap-ratchet-control.sh — the control `just crap::check` runs before
 # it scores the real tree. Runs from the repo root. Builds a one-file tree with
 # two same-named functions in a temp dir, never the working tree.
 set -eo pipefail
@@ -87,4 +87,4 @@ expect "shifted, second regressed" 1 "$tmp/out" "$rc" "1 regressed" "src/lib.rs:
 # A function the baseline does not list fails, naming it and the re-mint.
 jq '.entries |= map(select(.line != 8))' "$tmp/base.json" > "$tmp/d.json"
 rc=$(ratchet "$tmp/b" "$tmp/d.json" "$tmp/out")
-expect "shifted, second unlisted" 1 "$tmp/out" "$rc" "no baseline entry" "src/lib.rs:11 D::from" "just crap-baseline"
+expect "shifted, second unlisted" 1 "$tmp/out" "$rc" "no baseline entry" "src/lib.rs:11 D::from" "just crap::baseline"

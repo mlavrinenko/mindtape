@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/check-secrets.sh — the body of the `check-secrets` recipe
+# .just/scripts/check-secrets.sh — the body of the `lint::secrets` recipe
 # (truth/tasks/scan-the-tree-for-secrets-with-gitleaks.typ). Runs from the
 # repo root, like the recipe that invokes it.
 #

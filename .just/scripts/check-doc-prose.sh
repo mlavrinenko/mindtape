@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/check-doc-prose.sh — the body of the `check-doc-prose` recipe.
+# .just/scripts/check-doc-prose.sh — the body of the `docs::prose` recipe.
 # The word lists and the readers that turn each source into rows are in
 # _doc-prose-lib.sh. This file holds the control and the run.
 # It stops doc prose, config comments and config schema descriptions from

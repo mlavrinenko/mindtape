@@ -8,7 +8,7 @@ use crate::cli::Cli;
 
 /// Every value-taking argument clap declares must be named by `SOURCES`.
 ///
-/// The `just check-doc-facts` arm asserts the same thing through the reflected
+/// The `just docs::facts` arm asserts the same thing through the reflected
 /// JSON, which is what makes it visible in CI output; this one fails first and
 /// locally, on the commit that adds the argument, without a docs regenerate.
 #[test]

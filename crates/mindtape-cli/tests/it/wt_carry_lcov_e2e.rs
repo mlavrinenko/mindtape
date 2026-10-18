@@ -1,5 +1,5 @@
 //! `.just/scripts/wt-carry-lcov.sh` copies the worktree's coverage lcov to the
-//! primary checkout when the worktrunk `pre-remove` hook fires, so `just crap`
+//! primary checkout when the worktrunk `pre-remove` hook fires, so `just crap::check`
 //! there scores a landed merge without a second instrumented build. Each test
 //! builds a primary checkout and a worktree of it, runs the script from the
 //! worktree root as the hook does, and reads what reached the primary.

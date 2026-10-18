@@ -8,7 +8,7 @@ Why `just check-examples` validates every example project, and how it makes each
 
 Other tools run `mt` against the example projects. `api-service` feeds the docs generator and the skill’s triage evals, and `minimal` feeds the skill’s trap evals. A config format change can break an example without any error, so `just check-examples` runs `mt check` on each one.
 
-When you add an example, add it to the recipe’s loop and to the `examples` scope in `.mmz/config.yaml`. mmz re-runs the gate only when a file in that scope changes, so an example outside it stops being checked.
+When you add an example, add it to the list in `.just/scripts/check-examples.sh` and to the `examples` scope in `.mmz/config.yaml`. mmz re-runs the gate only when a file in that scope changes, so an example outside it stops being checked.
 
 ## Why each example validates against this checkout
 

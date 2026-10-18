@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/mutants-diff.sh — the body of the `mutants-diff` recipe,
+# .just/scripts/mutants-diff.sh — the body of the `mutants::diff` recipe,
 # extracted under
 # truth/tasks/extract-the-coverage-and-release-recipe-bodies-into-scripts.typ.
 # Runs from the repo root, like the recipe that invokes it. What a

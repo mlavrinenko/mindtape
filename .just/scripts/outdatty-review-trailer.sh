@@ -5,7 +5,7 @@
 # runs a hook. Reads the index, HEAD and the message, and writes nothing.
 # .just/scripts/outdatty-review-trailer-fixture-check.sh holds its cases.
 #
-# A re-record (`just outdatty-update <group>`) moves the group's source hashes
+# A re-record (`just outdatty::update <group>`) moves the group's source hashes
 # in outdatty.lock and says someone read the group's dependents. When the
 # commit edits one of them, the diff shows the review. When it edits none, the
 # lock alone can't tell a review that found nothing from one nobody did, and

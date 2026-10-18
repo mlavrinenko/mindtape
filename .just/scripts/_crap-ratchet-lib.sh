@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/_crap-ratchet-lib.sh — the ratchet arm of `just crap`, sourced
+# .just/scripts/_crap-ratchet-lib.sh — the ratchet arm of `just crap::check`, sourced
 # by crap.sh and pinned by its control (_crap-ratchet-control.sh).
 #
 # Why the baseline is aligned before cargo-crap reads it
@@ -61,7 +61,7 @@ crap_ratchet() {
     if [ -n "$new" ]; then
         echo "crap: these functions have no baseline entry, so nothing holds them:"
         echo "$new"
-        echo "  run \`just crap-baseline\` in the same commit as the code that adds them"
+        echo "  run \`just crap::baseline\` in the same commit as the code that adds them"
         rc=1
     fi
     rm -f "$cur" "$aligned" "$delta"

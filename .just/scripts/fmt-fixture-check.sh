@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/fmt-fixture-check.sh — the body of the `fmt-fixture-check`
+# .just/scripts/fmt-fixture-check.sh — the body of the `meta::fmt-fixture`
 # recipe, extracted under truth/tasks/extract-the-long-gate-recipe-bodies-into-
 # scripts.typ. Runs from the repo root, like the recipe that invokes it.
 #

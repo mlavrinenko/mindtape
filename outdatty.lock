@@ -77,10 +77,10 @@ groups:
       www/content/templates.typ: 8a1237cda7858a3f6cbfbdde95b61c485fc7f6b7465208f3464e4f48d4c936c6
   cli-completion-docs:
     source:
-      crates/mindtape-cli/src/cli/completion/mod.rs: f62a98e4ebcc1c893dcda97c1afbdd79339ba2d43a22d46f2b23f4c83f4b957a
+      crates/mindtape-cli/src/cli/completion/mod.rs: 630cbe95ad4e2d665a55c4fb500d2b8d3e2b51fe7bf0269329acc046e73a17f6
     dependents:
-      www/content/quickstart.typ: 22765823c2934f3a3c96dbf77b8f5d42fe385914cfd27f57f8f49ff2d4f8f3ac
-      www/utils/cli-notes.typ: 8cae2ec0d00665b34b57193614b7631f6845b923b2a52d35ca0678a377f72521
+      www/content/quickstart.typ: f42fafe408f2cfb32b8f8543658f8a69a3dcc61d84d799871f3ed89a2144db45
+      www/utils/cli-notes.typ: caa80445aa1b83f04ae117cffea53fc321fb50773e9fc2e255fa43aaf8ac34d8
   cli-config-docs:
     source:
       crates/mindtape-cli/src/cmd/config.rs: d283df083c1f3d6f97784c5e0c30a919e851279ed1c53ff6303e0a577fea76ed
@@ -282,56 +282,67 @@ groups:
       www/content/templates.typ: 13f62ffc9f8995f24f44f3e619bf6e77b9a7f2d74a9ca11c213cc6fcfbabf457
   coverage-test-re:
     source:
-      .just/scripts/cover.sh: 05fc0a034ad4e695e577a11b765d0c1958c24fea51ed03509121f7211707622e
+      .just/scripts/cover.sh: 73d1a1789544c06df4258a636c4584c086036bb1150420f219366b0b4987dcad
     dependents:
-      contrib/ask-refactoring/undertested.sh: 47722cc9c646a7957d455077bec31dda71c69d46d2521d33e77d47fe39ca4af0
+      contrib/ask-refactoring/undertested.sh: 0dbccb8dc0bef644899df463783a27b672591548d431444069f8cd7861cad53b
   crap-scripts-docs:
     source:
-      .just/scripts/_crap-ratchet-control.sh: 4475050ae573823bc2aeb493ee9bd8385004920ad618cfcd2d2e1767a0dcd801
-      .just/scripts/_crap-ratchet-lib.sh: b090720ea70902bf7dd5177eedb9837b351ad54932d92da45632efeeb2ccd7ca
-      .just/scripts/_lcov-stale-reason.sh: 69e665278f407f05d71e949a062a988a4e901731e08780e40c9e32f4ce16d335
-      .just/scripts/cover.sh: 05fc0a034ad4e695e577a11b765d0c1958c24fea51ed03509121f7211707622e
-      .just/scripts/crap-baseline-check.sh: c44c998700a5e14ae944829bc42ef6005e30041525aba2725cfe2fddd005f5e9
-      .just/scripts/crap-baseline.sh: 9557082bf19d408a02ab75cc5386d1c0667391cd24c07fa62ed595ef521cce87
-      .just/scripts/crap.sh: 0fe34355ac5e66c110063232fcbb7634b3f82c224308a5dd57b58efc1763b7b8
+      .just/scripts/_crap-ratchet-control.sh: 0b915c3332609d6fe240a29ac89dfacbf32c1973b8f0fe5c851e76e44c204c57
+      .just/scripts/_crap-ratchet-lib.sh: f16ff185d1794ab0d8e030b044f2209e74269f2bf6b145af692a1680719a5a18
+      .just/scripts/_lcov-stale-reason.sh: 39e955b133973bd603f0a40caea2856e053c8a46bf88e1d0afe6fd827409656a
+      .just/scripts/cover.sh: 73d1a1789544c06df4258a636c4584c086036bb1150420f219366b0b4987dcad
+      .just/scripts/crap-baseline-check.sh: 8f2f4cd66da9e9920e6d62a12c0f2b322863f501e133c01547aad7775658db33
+      .just/scripts/crap-baseline.sh: 5016aa4c18b0e9a48f3f9c158a7d2b89c97bfbdf1924fb60758e8e96577a09aa
+      .just/scripts/crap.sh: c700833ee9ad21d47630090acb16544036f83fd7af09905d4d905bcc9a4a57be
     dependents:
-      docs/src/contributing/coverage-crap.typ: a77b331ac56839e52cced5ae8aa87823c440d6c2fac3c4dbf9a0d54b01039150
-      docs/src/contributing/crap-baseline.typ: 551aab6a955a9d4345e73e1c171fe860663887e8b3c56f611f2f2551356eb301
+      docs/src/contributing/coverage-crap.typ: 9c0f023250f1ebd68197effe275d4ed403232bf5687d770b6aabc77335c8fbf8
+      docs/src/contributing/crap-baseline.typ: 729c9977b3c0039473762207c3a6e8b81e8c88310d8b23bb8653e890650f7af6
   dev-shell-docs:
     source:
-      .config/nextest.toml: 1aa04153954c5ab8ce468d3e08225b76d6dd1f636874b9591c275c588b89f984
+      .config/nextest.toml: d1353c6139c6bf51cb8664747c93f2ca9c721bd6c8e54b2c2c646ebefc17d5fc
       .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
-      .just/docs.just: 300226a86d551abc287d058efd9cbc2143fa7f15e3c6b53131699f27f35847fc
-      .just/scripts/wt-carry-lcov.sh: 0d4513fdd21068f5897a015bbc4cd02bc3644ca139d8c39053140fba491e1e76
-      Justfile: 2f01b83eddf52bd34883c61f1d880c5890d6ffa5771f0921fe983ba6d6ab9eb4
-      flake.nix: 1a2acaf2bae3f132917cc298362638bbb9651eae4b20a0557e21c5d0449541ea
+      .just/bench.just: 537461a4aecca375d05e7cd460ec36d1eaaff5167e5a698f065a9c8f61e976c1
+      .just/crap.just: 55277dc6af08fbe6b70d6ec9867f9cc3aea1d1217842886ca3179da85ba23db6
+      .just/docs.just: 2f7338970bce328e1f3513b0c5e3f80655c8689f6998e190d516d902f8608594
+      .just/install.just: 954199fef527226e47dc9672b7c88752abc6f16995103f2284c9f50444c5201f
+      .just/lint.just: 6902b7cb5e46616714e01121810615606114f4b5400d259d042d6c995eb2fe73
+      .just/meta.just: 17f3c67395d11fe1ed06ad6067c77a2e0939fdf7f95706df3bbed76d3e59a368
+      .just/mutants.just: 2fc963a8cf93ea6a7ddea17132d68ae6a349489af89a4a83455fdd99386dd6d0
+      .just/outdatty.just: fd88856095ffd476462d1ff4197bebd5c96fcace2230de58c89d3c23603cd4ac
+      .just/scripts/check-examples.sh: c2d514b1b7e8af223e7ab4af27115dfe33e56f6af98702639d5fb5008910ae6b
+      .just/scripts/clippy.sh: d586661b1bca816bcdf145d4fdd785125624d5b79e78f493b65811c66fb87df4
+      .just/scripts/lint-dry.sh: 3d6dcc3232e7cd56e7761b7c42d4c4c22bf60e8b6c48de9fa58856e00905792a
+      .just/scripts/outdatty-check.sh: f30eb34d7f52ffab5e56721d8d45c105c14a8bff490839a4ff31c83439959177
+      .just/scripts/wt-carry-lcov.sh: a4d4b96d24cee1d76f8d19ddcc10b6f4b99a1cb9f7c8ec3143cf487f2bb9861c
+      Justfile: bce8498879dd22affb4b2561725cab3297c79c8bce5b5d1c51bf8da4462bdd06
+      flake.nix: 04ba62d57ad8573616988cc721e9d73c35580c78a76ea5e1a6993d339b7e31c5
     dependents:
-      docs/src/agents.typ: da50da9ed7789e29e34d89dff17c92bccfee66dc09e611ad8f0adb1743ad5911
-      docs/src/contributing.typ: c80196459a029ea3b5120742275000ca9ace6816b21348be8cb24e54697676f1
-      docs/src/contributing/coverage-crap.typ: a77b331ac56839e52cced5ae8aa87823c440d6c2fac3c4dbf9a0d54b01039150
-      docs/src/contributing/crap-baseline.typ: 551aab6a955a9d4345e73e1c171fe860663887e8b3c56f611f2f2551356eb301
+      docs/src/agents.typ: b60c66d46729c944b878cc0d112e26741e5d2621ed8dc803c5ed0092daf2adeb
+      docs/src/contributing.typ: 8fdfbc6a82f6bfdd80020102c516045ab578d05c66960dfe32bcc75ce75a4a33
+      docs/src/contributing/coverage-crap.typ: 9c0f023250f1ebd68197effe275d4ed403232bf5687d770b6aabc77335c8fbf8
+      docs/src/contributing/crap-baseline.typ: 729c9977b3c0039473762207c3a6e8b81e8c88310d8b23bb8653e890650f7af6
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
-      docs/src/contributing/documentation.typ: 392c1149d553322d5f5e7e5873c744d55be4c951b38a2c031ee1eea67fc1bf1c
-      docs/src/contributing/example-projects.typ: 4f9a0c52894b9c2ab665e42bb728814b3d18badf3e8def57737d695d29912f63
-      docs/src/contributing/gates.typ: 51735a583246931d805614c065262de61613967e160f757a6d9841c9e422510c
-      docs/src/contributing/mutation-testing.typ: 96f2e41b03e5bb524e1c49dd08e9435690f37ba566cf81cc0f6dbc843e01981a
-      docs/src/contributing/signal-sweep.typ: e7e1432428d88b329685c2bb3f486716cd6d6ed9309ae071c6c76cc0686fb8eb
+      docs/src/contributing/documentation.typ: cdc9035b8f1b627be1f9cec9b4fbcfdea42027a9fc2a8b962afacf1d05518691
+      docs/src/contributing/example-projects.typ: 76c3fa5a5c24504d12d7686b5c4940e46694f96e7ade3f56cd0ad544ef5e14a2
+      docs/src/contributing/gates.typ: e780eeaef5ae1989e9914531723adb5900e7b24942c96cba9a529d248886f931
+      docs/src/contributing/mutation-testing.typ: 31b20e01d002372723da2f5f0543b77fca9f7ae6289018c346097d657c93f4cb
+      docs/src/contributing/signal-sweep.typ: 828c709e0319fa6ed2128431ff98eb1ae22259d2543104415c391fe619983442
       docs/src/contributing/windows.typ: b683c414f960b33a43aebbedbd884539e84005ec6575de458527a4e7b31ff38f
   doc-gate-scripts-docs:
     source:
-      .just/scripts/_doc-blocks-lib.sh: d9e87132af23c43bdb47591f85eec19e313a6cf4bb479be378a86aff598bcd62
+      .just/scripts/_doc-blocks-lib.sh: a33f51afe2298cdcd21584d3dd313f282249e001bde750f642afa591d28e158e
       .just/scripts/_doc-prose-lib.sh: 729a7470c312ee40427e7aff909042d5ee5693b628a47ea8004bc26b30a06b88
-      .just/scripts/check-doc-blocks.sh: 95069c6947bf9a65f48ee44676a515e1c70a7bfd7e53e5c89142940b38b109a7
-      .just/scripts/check-doc-coverage.sh: e36f87d379fa6f3ddbc5f4fb62551a0d75419816226c5533c3503125fa0617c1
-      .just/scripts/check-doc-facts.sh: ef1526e356168f10644b8803f4c7bea989ab281317f48a09d5e48f23404d1e60
+      .just/scripts/check-doc-blocks.sh: a0716896accb4fbde245e409d74c7b2468d380a4ab3d4fb723e840ddb8c7c1a5
+      .just/scripts/check-doc-coverage.sh: 53d59ca20009df201bb0336f5723671e06a901f6d3eca7240217be0d3906bb46
+      .just/scripts/check-doc-facts.sh: dfba4a6322799338f1a132fc448279f7c26065bf795314feaf4637741389ef84
       .just/scripts/check-doc-prose.awk: d2bcb8ad4e59d6a0af6164a0f06d7959237450843b51e0cf6b14e45198688fe1
-      .just/scripts/check-doc-prose.sh: a39ffaa742510478ad3ee4be5637765866908287b52913b28c9a726126bef30b
-      .just/scripts/check-doc-recipes.sh: fd397519691e5efe66e3d03a8a8f7bf62b2faaa77d694e8262d998590611909c
+      .just/scripts/check-doc-prose.sh: d50946939e7ee93943fa8ab75b5997f2fc832fc1f453bc55ed7d8d325ae35f64
+      .just/scripts/check-doc-recipes.sh: 16b6391dfd3673c5a56053269affe591eb385d60490584662c0d11f5104f4010
       .just/scripts/check-doc-spans.jq: 41528a59d42cc6f3721798ecc4547ea559bbfbddfdf6103edaf449294da3bd84
-      .just/scripts/check-doc-spans.sh: dbb5b0824fc25f97a50a15af5ecffa1225312f8e9836c2906528a740cbdfd1ed
+      .just/scripts/check-doc-spans.sh: 5d214e48039299faa283c7e79dda37d8a4438c8f61e85669367c4812fbe1fc65
       .just/scripts/docs-md-check.sh: 06b5b942d9a14fa00134ec4de64b4f2e706ae49bf1b55206b2afd54c2d87791f
     dependents:
-      docs/src/contributing/documentation.typ: 392c1149d553322d5f5e7e5873c744d55be4c951b38a2c031ee1eea67fc1bf1c
+      docs/src/contributing/documentation.typ: cdc9035b8f1b627be1f9cec9b4fbcfdea42027a9fc2a8b962afacf1d05518691
       docs/src/contributing/generated-docs.typ: 6a981d7c8fd1b98a7ef3ea7916fc8f83bdca254e5d86ba53f300a52902236189
   filter-docs:
     source:
@@ -365,33 +376,33 @@ groups:
       .just/scripts/_script-graph-lib.sh: ecc9f2eb1fdc764804c9d3dac61cd94f9e5288d41ac32a2e91bd4613fa0814c8
       .just/scripts/_script-graph.sh: 3956d990fd68bbd6bc943507f730650991cd662e7c04274a330e5fe3c51ef9e9
       .just/scripts/_script-reach.sh: 667647246522252c3b13ce000dadb39f7fda7bee663a9db54497b3919d1a1e85
-      .just/scripts/arg-pattern-check.sh: 111e71f60b165910492ec07e52235c495e27d213bcd5c82bfdff57b1a822a169
-      .just/scripts/check-gate-drift.sh: 521511d6f97ad1ec7a1f994bafe187cb1547773f217a655214ebc22c595b6f98
-      .just/scripts/check-secrets-manifest.sh: 1e7d72a016934f2b7776b15f0863189851fa295ca5d12c4bcd07cd3611704ea0
-      .just/scripts/check-secrets.sh: 708e28d9919a05db0b1867375487c1b6b00c7e826623d1841d881a85ccadc3ba
+      .just/scripts/arg-pattern-check.sh: 41b9262db2c38a08765a86c936e60671dbc4d742b754f6087a3a94f259e64308
+      .just/scripts/check-gate-drift.sh: c5f3ae953a06ee214d249b773ed50f5f9f9df8df035ffa93668bb5284583698e
+      .just/scripts/check-secrets-manifest.sh: 2a7d8dcb5ad11e94705623d8d77dfbf111e410089ae406501609ef45f37a84b1
+      .just/scripts/check-secrets.sh: 1bf12d53d9e67f1662ef7d20532c8a7544b77628e304f176c33e3b1b8512da40
       .just/scripts/check.sh: db95395ef7ff6ca1231fd6650df00c2a82550162c089c2a7a19998d10981d9fa
-      .just/scripts/fmt-fixture-check.sh: 0e99a04c675f043f84804d43f25c6ef0f3870ae219a4779088c6f5430110e5e3
+      .just/scripts/fmt-fixture-check.sh: 66b3f60fdc4ffced3da267564abe814b36ede6a6b74f77986dc91972eb7c1830
       .just/scripts/mmz-arm.sh: c67a415ff478915a0fc433b857b72627dfcdc5e122ae0e430ab5b77bde590d22
-      .just/scripts/outdatty-review-trailer-fixture-check.sh: 9cf0aa82a9fbc98bc94c9aabb613e0e1d5cbc5b7c65a84dc28756fb6e3112b21
-      .just/scripts/path-attr-check.sh: badfb93ff7cb669ebad8fb8de2305e7907d4df94ab2bd8d660d80a66f5064a5c
-      .just/scripts/plural-check.sh: 3487fa50c69eea4d7e37acca6ba46ee8408610f3d70ba9867b49b0cc90049546
-      .just/scripts/positional-args-check.sh: 8372e811d5e7d95fdcab5f9ecb4efa6033cf66fcab57c86d31306cebd00b1e9d
-      .just/scripts/script-attr-check.sh: fb01697288a0863da85cad64bb5ce1430508f9d56f54e013dcf41a119b64d61d
-      .just/scripts/script-scope-check.sh: 1b812b52da16f540dd439ac4f5f0ae10668767b4a2907ea44903fff225b27319
-      .just/scripts/site-pages-fixture-check.sh: 9892296f9090c0f8b7cc2f3627bc04d9ef985aa227c80531c5b00934bf33dea1
-      .just/scripts/size-fixture-check.sh: cfe1bfdde9a308535127ad68b23e8d8443958fb3109f375e56e843614bdc27ce
+      .just/scripts/outdatty-review-trailer-fixture-check.sh: 205b14fa204c443c93db4cc1a1b6025bd1d9e31ef89dbafe9d15adbdcd99cbd6
+      .just/scripts/path-attr-check.sh: 1a7a2c4bb7acf241902bb2f7bced8a01f04acfda2453a9345d66f8339515a331
+      .just/scripts/plural-check.sh: e03e46853e17d4ce52d0750dd5096273084e250ef7c4cf06fed88b999022acc9
+      .just/scripts/positional-args-check.sh: 5ada345156b656f0c9ae2fe68e657cb88a9c5eb0fd62021eb749eea0ba17b3d8
+      .just/scripts/script-attr-check.sh: 10f0be62487b883a5b5c520e17301616fc4b5251faa1f8c24db61b421ea3a9b2
+      .just/scripts/script-scope-check.sh: a328b08b365d4778aa4b4ade097d403ec6e5eeab2166cba8a6c3caa4c7fc17d8
+      .just/scripts/site-pages-fixture-check.sh: ceb62190de1412ec102237ceac60536633e4c27fafa32e888366b0cb6403b1e7
+      .just/scripts/size-fixture-check.sh: 7de392527e7d4e55046288e358e5629e67132a453f0c632c92c1ba986b4344c1
     dependents:
-      docs/src/contributing/gates.typ: a770dc674a61e08feec30b8d8d0f45f7776bf5cd6ce1849affd347ce0caf5ff5
+      docs/src/contributing/gates.typ: e780eeaef5ae1989e9914531723adb5900e7b24942c96cba9a529d248886f931
   githooks-docs:
     source:
       .githooks/commit-msg: 999e0e862359c2fde8930e09e68a773d0b503a0ff0ba83af0576b0d854a71755
       .githooks/local-paths: 3fed9f65a80f886ec6fa219ac250234b875faa01a6aab6ecc229cc83264e205e
       .githooks/pre-commit: 1c90991ad20b8c1ee1134ff32bc187821b14dc9855a107c56b4d1c9fe2212737
-      .just/scripts/outdatty-review-trailer.sh: 0064d2cfbc1e382024336e984f809cfeefcc9ea387b51bf643e368e997262942
+      .just/scripts/outdatty-review-trailer.sh: 3cd54d0ee4850ddf48340a7f09b6922946ccc850feb1c31e75c59f298b1c8d19
     dependents:
-      docs/src/contributing.typ: 8cc757f6fd5dcdc6f2c0bba227a848ad52da421c2351b205030c3d6136936862
+      docs/src/contributing.typ: 8fdfbc6a82f6bfdd80020102c516045ab578d05c66960dfe32bcc75ce75a4a33
       docs/src/contributing/commit-messages.typ: 63fa0b535ddc4162dbdffe923ed200748dd1ac67d246d9ec8db20c7b8f4158d7
-      docs/src/contributing/gates.typ: a770dc674a61e08feec30b8d8d0f45f7776bf5cd6ce1849affd347ce0caf5ff5
+      docs/src/contributing/gates.typ: e780eeaef5ae1989e9914531723adb5900e7b24942c96cba9a529d248886f931
   link-kinds-docs:
     source:
       crates/mindtape/src/link/mod.rs: 06f509c4bf8b98e5085ba92ec59c5bbb15e9310155c9ec4013c7d9a96b98d94b
@@ -400,20 +411,21 @@ groups:
   lock-merge-docs:
     source:
       .gitattributes: 9fed88afe7d52657aab607cde3362622635cbac84e142c88fa83a9dc93e1711f
-      .just/scripts/crap-baseline-merge.sh: 59b7760c97eb5c4b084d67483327a57f953deb97f780aa198e05ac6335482990
-      .just/scripts/jscpd-baseline-merge.sh: 942fd93b708275a1e4dcb233ec477a9b396df6eb6787f70ef56b86fd46def30e
-      .just/scripts/outdatty-lock-merge.sh: e9935aa3a6e9d6237ab0a681d03d9dcb6b292df8e578fae512df5a0c8cf6d95c
+      .just/scripts/crap-baseline-merge.sh: c9d29ff171b50588e06ad7979d30c7baf72f02c8b04014cc148785207d84b9a6
+      .just/scripts/jscpd-baseline-merge.sh: 44286956b03124b41144ac8ade961a0c4450c56c80728756a20807de0e2c6b26
+      .just/scripts/outdatty-lock-merge.sh: a31e4ba6b9faf2a060055987a1f88fe36796bbda003f3eed2bf7a8552af4db08
     dependents:
-      docs/src/contributing.typ: c80196459a029ea3b5120742275000ca9ace6816b21348be8cb24e54697676f1
+      docs/src/contributing.typ: 8fdfbc6a82f6bfdd80020102c516045ab578d05c66960dfe32bcc75ce75a4a33
   mutation-scripts-docs:
     source:
-      .just/scripts/_mutants-env.sh: 69e7c0fca1471c68031c4c65e00c2d73020196027353d280fb6b48b9b9675dfa
-      .just/scripts/mutants-diff.sh: 652835d0ea4058a33acb1ac6af4cf67b95d759929a4b5b0d2c4f05fa896e9a4b
-      .just/scripts/mutants.sh: 6ea849c25087550c75ef64280d7211c20f74391630ebdc09e6fb773b68d19186
+      .just/scripts/_mutants-env.sh: 9466af3a376f2e27daeae597772760851e53b5e3fcc3b345080f815768a43a0c
+      .just/scripts/mutants-diff.sh: 71bf6e299beb895bb72c3c66892f2fbe3ade4755ab70b5b8c5db7e55927b138b
+      .just/scripts/mutants-status.sh: 777881a59742c603da8d0bf6b456f146bb1e531c2b902b6b06827c8322711cd7
+      .just/scripts/mutants.sh: fafb6be395be94001702344558e53c7d5fdd7283fc33dbed779b30a9d0240df5
     dependents:
-      docs/src/contributing.typ: 8cc757f6fd5dcdc6f2c0bba227a848ad52da421c2351b205030c3d6136936862
-      docs/src/contributing/mutation-testing.typ: 96f2e41b03e5bb524e1c49dd08e9435690f37ba566cf81cc0f6dbc843e01981a
-      docs/src/contributing/signal-sweep.typ: 9699e4af7dc29f71d8d29e7d7904f6cf97d3c0fa62679ad23b10840cb65d2ec1
+      docs/src/contributing.typ: 8fdfbc6a82f6bfdd80020102c516045ab578d05c66960dfe32bcc75ce75a4a33
+      docs/src/contributing/mutation-testing.typ: 31b20e01d002372723da2f5f0543b77fca9f7ae6289018c346097d657c93f4cb
+      docs/src/contributing/signal-sweep.typ: 828c709e0319fa6ed2128431ff98eb1ae22259d2543104415c391fe619983442
   prelude-docs:
     source:
       lib/prelude.typ: 5ddf48a38c39f2c101eb9ec29a477b59d6fca80286b9bd9d82b9e1bf47997d35
@@ -436,9 +448,10 @@ groups:
   release-docs:
     source:
       .just/scripts/release-hook.sh: b2ffb65f6ccc24aa21475b431e5efcaff7f9fcd64a8f50c3fcf0a8aeddf8a183
+      .just/scripts/release.sh: 816750cc3cf4bb058caa158215fbd069e055a5526f75978fc7ee401c64c254bf
       release.toml: df72343747c303c3246bf302016d27869a1a51e9667dd6bea6c25c4cc8632cea
     dependents:
-      docs/src/contributing.typ: 8cc757f6fd5dcdc6f2c0bba227a848ad52da421c2351b205030c3d6136936862
+      docs/src/contributing.typ: 8fdfbc6a82f6bfdd80020102c516045ab578d05c66960dfe32bcc75ce75a4a33
       docs/src/contributing/release.typ: a75c667745bd2c13ff376475cec4f8afe42da21978972a87668e98ad5fe70553
   release-notes:
     source:
@@ -447,15 +460,15 @@ groups:
       CHANGELOG.md: a6b0b146b4753558177800efc9c486f51b7373c5d436693162ecdaabaabb2413
   scripts-no-doc:
     source:
-      .just/scripts/_doc-blocks-control.sh: 3342f1af54590239a03f4547db590342cc7350a81207c11a0a170d22f180ddde
-      .just/scripts/_gate-drift-control.sh: 660481de3fb39b8fb2cdfb6ec958cd27a523561ee765aea82eaf4e497c1a443c
-      .just/scripts/_nav-diff.sh: 83bdc7d3fcec16a2f3bdffeee918477c5e4687393671c338e2a18382a7d855c9
-      .just/scripts/_script-graph-control.sh: 27ffb63f453f70c04e7b738e7933ebafb60e8a24a7f64e426f7f02d4086638a6
+      .just/scripts/_doc-blocks-control.sh: 066258f034694487e0a94bba355457293697ff06ca7b974884ba3d5ca24ae7da
+      .just/scripts/_gate-drift-control.sh: 8f1b66e77138918bf0b14a8466d697df0aa33692ade7a779b5b003917ab170d7
+      .just/scripts/_nav-diff.sh: 42595379c530c0184a23e18e87939b23b0bdbee6cc4ac82ab946a681a92bc0e9
+      .just/scripts/_script-graph-control.sh: 02e416c7dceda5dda470fdb3636b95ac56368bdcc9071059d208d19019022028
       .just/scripts/_typst-package.sh: f495789b35c120c8e39250855cb823c69ba36ab3e5bc3901bdc370b8ca5b3750
-      .just/scripts/install-bin.sh: 194415c8f2e9b90aa5534fe7726d4f93525689ef4fde2e517628149af3948318
-      .just/scripts/install-lib.sh: a32b796ffb58b5ccdff32d9eb2e69a2535abbb6de3aead82f176e9ca3f8a4e32
+      .just/scripts/install-bin.sh: d9f35240a8e5306bf943c5569cf73bf18080877df9278f3f005ba7dfdaf9211f
+      .just/scripts/install-lib.sh: c995c433c86e15afd404e4985938c610840f55d5940a88d2a7bed26db0e95961
       .just/scripts/install.sh: aefc0e3bf9046e8adb2d4484f082b84faa3f87f83fcd23f176a80fdcc3f6d250
-      .just/scripts/uninstall-lib.sh: a9c3a5c622cea12c4fe3233f6e4b222425f9bbba36f1cebd92dbff59cb4e9640
+      .just/scripts/uninstall-lib.sh: 4af9019b842202302644725851d43d6c5f363280b51e8d285d13103c04930a5f
     dependents: {}
   set-commands-docs:
     source:
@@ -486,17 +499,17 @@ groups:
       www/content/agents.typ: 6abf42d103d52885cd8144658561a0a843e941c264e46c14fbb687522e53ccc1
   sweep-templates:
     source:
-      .mindtape/templates/sweep-size.typ: 9f9d952065b29b6a87176c2066c75bb76c2df1149ac842b5c82bbd6123001337
+      .mindtape/templates/sweep-size.typ: 07d3929a42a5bd13cb49676cd9563f4973af8dc92ec174b15739bc4f8e1998f1
     dependents:
-      .mindtape/templates/sweep-dry.typ: 9038eef0ba67902ec4a796c103f5b5127b3ef24b0d8c1cec59b97c104391b196
-      .mindtape/templates/sweep-mutants.typ: a9a07748ba6c6a71b32905271fdae355e169f29181eae3626e7e2ff0ff490462
-      .mindtape/templates/sweep-repeats.typ: c37137c6211bfb3fa8407f3df8c248f2970a122fc13ec4a5c2b12546872bca11
-      .mindtape/templates/sweep-undertested.typ: 0f76ae089177f4655518b57c11a448d65ec99e0f1b712d7ac6b33a00e9146fa1
-      contrib/ask-refactoring/dry.sh: e1150d248ee31bc7003464f01499abff41da15b83448058ca4afce986606c351
-      contrib/ask-refactoring/mutants.sh: d7923310af1b6640d17a103a69c79ca0b69f1ba6d8e53138756ba6511b6ad914
-      contrib/ask-refactoring/repeats.sh: fd406215cd01e8e681226b76494e6727e412f92cda0b853b4542d46384e7a811
+      .mindtape/templates/sweep-dry.typ: aa222cc227e2f4e481570445861a027209ffe8cdfd411aea03a2c72b2a6b100a
+      .mindtape/templates/sweep-mutants.typ: 85b457379b29eb657e9b903232f0298441a82b00981f3ced5ce8ce444c67e39b
+      .mindtape/templates/sweep-repeats.typ: 84baa4ca4cc1c1c740ea24d7dae901621e1e88afed60456040312f7c08596255
+      .mindtape/templates/sweep-undertested.typ: a1ed3dc0b7c02bd986b78301487f23c05740badce62b5d96ae7836bfbd1a3b9f
+      contrib/ask-refactoring/dry.sh: 7cf2502d6a5c6fc6bf8d1d608f86e0f978fa4fb41d0be36ea13189a063e48418
+      contrib/ask-refactoring/mutants.sh: b2d8c92b9b6d923bb9c7de3532d973813afc148b245e19938959d92ac894a891
+      contrib/ask-refactoring/repeats.sh: 989312c298ed2288b8bed2b752a016e2ed01d54da09ab8d448754c18acaf940e
       contrib/ask-refactoring/size.sh: 90cac99f2e7c4c0fd2bb0092becf961cae3465c402f1bb50c916082415acfd0a
-      contrib/ask-refactoring/undertested.sh: eae79c949cb8558c97c160eb07ecfba1b6ee9d8652fffc680e1921d0fb544fcb
+      contrib/ask-refactoring/undertested.sh: 0dbccb8dc0bef644899df463783a27b672591548d431444069f8cd7861cad53b
   task-templates:
     source:
       .mindtape/templates/task.typ: b952f55d4abf2eccfc0301f0255fe57e81c4690e26d6ce27bceae9a4adafa04e

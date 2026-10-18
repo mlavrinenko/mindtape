@@ -15,11 +15,11 @@
 The doc gates catch mechanical errors:
 
 - #just.docs-check() finds a dead link.
-- #just.check-doc-facts() finds a derived fact with no entry.
-- #just.check-doc-recipes() finds a hand-typed recipe name.
-- #just.check-doc-prose() finds history words, shouting, an em dash in text a
+- #just.docs-facts() finds a derived fact with no entry.
+- #just.docs-recipes() finds a hand-typed recipe name.
+- #just.docs-prose() finds history words, shouting, an em dash in text a
   reader sees and a typed name.
-- #just.check-doc-blocks() finds a hand-typed code block.
+- #just.docs-blocks() finds a hand-typed code block.
 
 No gate finds duplicated prose or a page that doesn't help its reader. The
 rules below cover what the gates can't.
@@ -48,7 +48,7 @@ that neither schema has fails with the closest one.
   notes its generated references render.
 - Each `mt` command has a page, `www/content/cli/<command>.typ`, which renders
   the command from `www/utils/cli-ref.typ` and can add prose of its own.
-  #just.check-doc-coverage() fails on a command with no page or no
+  #just.docs-coverage() fails on a command with no page or no
   `www/utils/cli-notes.typ` entry.
 - `docs/src/readme.typ`, `docs/src/agents.typ` and `docs/src/skill.typ`
   render to README.md, AGENTS.md and `skills/mindtape/SKILL.md`.
@@ -77,7 +77,7 @@ one page and link to it from the others. Content that both render paths
 show, like the tagline, the recipe table and the Typst section in README and
 on the site root, lives once in a module both call (`www/utils/demo.typ`).
 
-The #just.dup-prose() audit reports two kinds of repeat that are deliberate:
+The #just.docs-dup-prose() audit reports two kinds of repeat that are deliberate:
 
 - A document an agent reads whole (AGENTS.md, the skill and its references)
   keeps its own copy of what it needs, because its reader may have no site
@@ -115,7 +115,7 @@ gate fails on an inline span that starts with `error:`, `warning:`, `hint:` or
 `note:` followed by text, because a hand-typed copy goes stale when the
 message changes.
 
-#just.check-doc-blocks() fails on a fenced block, or a block `raw(...)`,
+#just.docs-blocks() fails on a fenced block, or a block `raw(...)`,
 whose text is written in the source. If no fixture can hold a block, such as
 a grammar sketch, put `// docs:hand-typed <reason>` on the line above it. The
 gate lists the sources not yet converted. A listed source with no hand-typed
@@ -193,7 +193,7 @@ few lines as it takes.
   - Bad: "An unknown bare name is refused naming what IS available"
   - Good: "An unknown bare name is refused with a list of the available packs"
 
-#just.check-doc-prose() enforces two of these rules and two of its own. It
+#just.docs-prose() enforces two of these rules and two of its own. It
 fails on the history words `now`, `used to`, `no longer`, `anymore` and
 `formerly`, on an all-caps word outside its acronym list, on an em dash in
 text a reader sees, and on the product's name typed out.
@@ -223,7 +223,7 @@ The word lists are in `.just/scripts/_doc-prose-lib.sh`, and what the scan skips
 
 = The duplicate-prose audit
 
-#just.dup-prose() reads the doc sources, strips markup and code, and reports
+#just.docs-dup-prose() reads the doc sources, strips markup and code, and reports
 sentences that two files share, worst pair first. It's advisory, because the
 threshold is a judgment call and you decide where each fact lives. Run it
 before and after a refactor. The algorithm, its settings and why it's

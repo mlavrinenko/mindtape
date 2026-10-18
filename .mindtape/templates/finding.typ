@@ -115,7 +115,7 @@ left in a closing report no one rereads. It belongs in
   kind: "raw",
   prompt: "Bullets opening with 🟢: how it should work, behave and feel once this lands",
   example: ```typ
-  - 🟢 A clean `just machete` prints nothing, and a dirty one prints the unused crates.
+  - 🟢 A clean `just lint::machete` prints nothing, and a dirty one prints the unused crates.
   ```,
 )
 

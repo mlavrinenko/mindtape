@@ -6,7 +6,7 @@
 # name — `score_repeats`, `signal_repeats`, `emit_repeats` — reading jscpd's
 # json report.
 #
-# A stopgap, and it says so. `just check-dry` gates clones of 50 tokens and up,
+# A stopgap, and it says so. `just lint::dry` gates clones of 50 tokens and up,
 # because below that jscpd's pairs are too many to gate one by one. What it
 # cannot see is a 15-token line pasted 400 times. jscpd's clone classes
 # (github:kucherenko/jscpd#1000) will group pairs into one entry with every

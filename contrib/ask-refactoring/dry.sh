@@ -1,4 +1,4 @@
-# ask-refactoring: the dry arm — the clones `just check-dry` tolerates.
+# ask-refactoring: the dry arm — the clones `just lint::dry` tolerates.
 #
 # Sourced by `contrib/ask-refactoring.sh`; not executable on its own. It reads
 # that script's globals (`$repo`, `$MT`, `$WRITE`, `$DRY_GAIN`) and calls its `stem_for` and
@@ -121,7 +121,7 @@ signal_dry() {
     out="$(mktemp -d)"
     # The gate's own flags, so the arm and the gate agree on what a clone is
     # and which ones the baseline tolerates.
-    flags="$(just --evaluate DRY_FLAGS)"
+    flags="$(just --justfile .just/lint.just --evaluate DRY_FLAGS)"
     set +e
     # shellcheck disable=SC2086
     jscpd $flags -r json -o "$out" crates >/dev/null 2>&1
@@ -161,7 +161,7 @@ emit_dry() {
     local measured="+ 🔴 $shape $copies times across $files $([ "$files" -eq 1 ] && echo file || echo files), $tokens jscpd tokens at most. Extracting it saves about $gain tokens net of the helper and its calls.
 $listed"
 
-    local remedy="- \`$path\` and every other file the Problem lists: extract a helper and call it from each copy, or mark the copies as intended with \`// jscpd:ignore-start\` and \`// jscpd:ignore-end\` and a comment saying why the match is a coincidence. Either way, re-mint the baseline with \`just dry-baseline\` in the same commit."
+    local remedy="- \`$path\` and every other file the Problem lists: extract a helper and call it from each copy, or mark the copies as intended with \`// jscpd:ignore-start\` and \`// jscpd:ignore-end\` and a comment saying why the match is a coincidence. Either way, re-mint the baseline with \`just lint::dry-baseline\` in the same commit."
 
     local args=(
         add "extract the clone at $path:$line ($copies copies)"
@@ -181,6 +181,6 @@ $listed"
     advice="$(printf '%s\n' \
         'the stem is taken, so this clone was filed before and closed' \
         'without the baseline losing it — reopen it, or mark the copies with' \
-        '`jscpd:ignore-start` and a comment saying why, then `just dry-baseline`')"
+        '`jscpd:ignore-start` and a comment saying why, then `just lint::dry-baseline`')"
     file_finding dry "$stem" "[$copies copies, gain $gain]" "$advice" "${args[@]}"
 }

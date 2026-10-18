@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/_gate-drift-control.sh — the control `just check-gate-drift`
+# .just/scripts/_gate-drift-control.sh — the control `just meta::gate-drift`
 # runs before it reads the real tree (see check-gate-drift.sh for why a control
 # at all). Runs from the repo root. Builds synthetic trees in a temp dir, never
 # the working tree: `just check` runs its arms in parallel, so a probe in the

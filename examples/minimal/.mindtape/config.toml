@@ -26,7 +26,7 @@
 # declares nothing; this fixture lives INSIDE the Mindtape checkout, so it must
 # resolve `@local/mindtape` from the `lib/` two levels up — the prelude under
 # test — rather than through the machine-global local-package symlink, which
-# points at whichever checkout last ran `just install-lib`. Without it
+# points at whichever checkout last ran `just install::lib`. Without it
 # `just check-examples` gates a fork's fixture against the main tree's prelude.
 [[typst.local-packages]]
 name = "mindtape"

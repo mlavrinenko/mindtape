@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Body of `just install-bin`. Lands in cargo's bin directory, as `cargo install` does.
+# Body of `just install::bin`. Lands in cargo's bin directory, as `cargo install` does.
 set -eo pipefail
 BIN="${CARGO_HOME:-$HOME/.cargo}/bin"
 cargo build --release -p mindtape-cli

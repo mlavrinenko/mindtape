@@ -89,14 +89,14 @@ The first copy reads:
   ````,
 )
 
-`just check-dry` fails a new clone, and `.jscpd-baseline.json` lists this one as
+`just lint::dry` fails a new clone, and `.jscpd-baseline.json` lists this one as
 older than the gate. The arm joins jscpd's pairs into a family by shared
 location, so a location may belong to a neighboring window.
 
 == TO-BE
 
 - 🟢 The clone lives in one helper, or its copies carry a `jscpd:ignore`
-  marker whose comment says why they match, and `just dry-baseline` has
+  marker whose comment says why they match, and `just lint::dry-baseline` has
   dropped it from the baseline.
 
 == Changes
@@ -106,7 +106,7 @@ location, so a location may belong to a neighboring window.
   kind: "raw",
   prompt: "one bullet naming the first copy's file in backticks: extract a helper, or mark the copies as intended",
   example: ```typ
-  - `crates/mindtape-cli/src/cmd/add/tests_subprocess.rs` and every other file the Problem lists: extract a helper and call it from each copy, or mark the copies as intended with `// jscpd:ignore-start` and `// jscpd:ignore-end` and a comment saying why the match is a coincidence. Either way, re-mint the baseline with `just dry-baseline` in the same commit.
+  - `crates/mindtape-cli/src/cmd/add/tests_subprocess.rs` and every other file the Problem lists: extract a helper and call it from each copy, or mark the copies as intended with `// jscpd:ignore-start` and `// jscpd:ignore-end` and a comment saying why the match is a coincidence. Either way, re-mint the baseline with `just lint::dry-baseline` in the same commit.
   ```,
 )
 - In tests, a fixture or setup function is the helper. A test still reads top

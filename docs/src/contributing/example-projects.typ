@@ -2,8 +2,8 @@
 // docs/contributing/example-projects.md through docs/generate-md.sh
 // (typlite; docs/src/lib.typ lists the constraints).
 //
-// The settings this page explains are in the Justfile's `check-examples`
-// recipe and in each example's `.mindtape/config.toml`.
+// The settings this page explains are in .just/scripts/check-examples.sh and
+// in each example's `.mindtape/config.toml`.
 #import "../lib.typ": doc-title, just
 
 #metadata((
@@ -22,7 +22,8 @@ docs generator and the skill's triage evals, and `minimal` feeds the skill's
 trap evals. A config format change can break an example without any error,
 so #just.check-examples() runs `mt check` on each one.
 
-When you add an example, add it to the recipe's loop and to the `examples`
+When you add an example, add it to the list in
+`.just/scripts/check-examples.sh` and to the `examples`
 scope in `.mmz/config.yaml`. mmz re-runs the gate only when a file in that
 scope changes, so an example outside it stops being checked.
 

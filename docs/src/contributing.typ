@@ -45,7 +45,7 @@ gate fails on any violation. These limits shape the code most:
   of 20.
 - A module's path is its file path. An area is a folder with a `mod.rs` whose
   `//!` header lists its files, and the lint fails on `foo.rs` beside `foo/`.
-  Use `#[path]` only for a test sibling. #just.path-attr-check() refuses any
+  Use `#[path]` only for a test sibling. #just.lint-path-attr() refuses any
   other use.
 
 = Error Handling
@@ -64,7 +64,7 @@ gate fails on any violation. These limits shape the code most:
   as `RecurError`, `ConfigError` and `FilterError` do, and convert it in
   `diag/from_lib.rs` with a match on every variant.
 - Say a count with `mindtape::count(n, "task")`, which prints `1 task` or
-  `12 tasks`. #just.plural-check() refuses `task(s)` in a string outside
+  `12 tasks`. #just.lint-plural() refuses `task(s)` in a string outside
   tests.
 - Keep `main.rs` thin and put the logic in library modules.
 
@@ -99,8 +99,8 @@ mmz --status --tag gate        # which gates are fresh, stale or failed
 
 #link("docs/contributing/gates.md")[docs/contributing/gates.md] covers how
 #just.check() orders the gates, how it skips unchanged work, and the
-formatter path lists. When you add a TOML file, a Typst directory or a
-justfile module, add it to its `*_FMT_PATHS` list in the `Justfile`.
+formatter path lists. When you add a TOML file or a Typst directory, add it
+to its `*_FMT_PATHS` list in the `Justfile`.
 #just.fmt() and #just.fmt-check() both read those lists.
 
 If you add a function or complexity, run #just.crap-baseline() in the same
@@ -203,7 +203,7 @@ hashes, and #just.outdatty-check() fails on one that got in anyway.
 `.jscpd-baseline.json` merges as the union of both fingerprint maps through
 `.just/scripts/jscpd-baseline-merge.sh`. `crap-baseline.json` merges function
 by function through `.just/scripts/crap-baseline-merge.sh`, which keeps the
-stricter score when both sides re-scored one, and #just.crap() on the merged
+stricter score when both sides re-scored one, and #just.crap-check() on the merged
 tree decides. The dev shell registers all three.
 
 = Version Management

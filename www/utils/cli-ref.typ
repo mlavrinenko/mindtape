@@ -12,7 +12,7 @@
 //
 // Prose of the page's own goes before or after the `cli-command` call.
 // `cli-page` fails the build unless the page renders its own command once,
-// and `just check-doc-coverage` fails unless every command has a page.
+// and `just docs::coverage` fails unless every command has a page.
 
 #import "ui.typ": commands, terminal
 #import "cli-notes.typ": cli-notes

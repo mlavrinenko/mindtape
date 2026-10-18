@@ -6,12 +6,12 @@
 # makes the number mean anything, are argued in
 # docs/contributing/coverage-crap.md.
 set -eo pipefail
-# main.rs is excluded — keep it thin (`just crap` excludes it too); so is any
+# main.rs is excluded — keep it thin (`just crap::check` excludes it too); so is any
 # registry checkout, which llvm-cov's own dep filter misses when CARGO_HOME is
 # relocated (a local kache), so local and CI report the same set.
 ignore='crates/mindtape-cli/src/main\.rs|/registry/src/'
 # Test files are not production code: the same regex as COVERAGE_TEST_RE in
-# contrib/ask-refactoring/undertested.sh, jq's equivalent of `just crap`'s globs.
+# contrib/ask-refactoring/undertested.sh, jq's equivalent of `just crap::check`'s globs.
 test_re='(^|/)([^/]*_)?tests(_[^/]*)?\.rs$'
 mkdir -p target/coverage
 # Instrument once (--no-report), then render both reports from that profdata.
@@ -32,7 +32,7 @@ cargo llvm-cov nextest --workspace --no-report --cargo-quiet --cargo-quiet
 cargo llvm-cov report --ignore-filename-regex "$ignore" \
     --lcov --output-path target/coverage/lcov.info
 # Only the header and `TOTAL` row: the per-file table is ~230 lines a gate run
-# never reads, `just crap` reads the lcov above, and llvm-cov's --summary-only
+# never reads, `just crap::check` reads the lcov above, and llvm-cov's --summary-only
 # drops nothing in text mode. pipefail keeps --fail-under-lines' exit status.
 cargo llvm-cov report --ignore-filename-regex "$ignore" --fail-under-lines 90 |
     sed -n '1p;$p'

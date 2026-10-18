@@ -8,9 +8,9 @@ limits:
   #
   # linecop detects language by extension, so the shebang-only `.githooks/`
   # hooks are invisible to it at any limit. They are about 25 lines each.
-  # `.just/docs.just` has the same gap: linecop knows no language for the
-  # `.just` extension, so the module file is uncapped while every script beside
-  # it is capped (`include_hidden` below brings those scripts into the scan and
+  # The `.just/*.just` modules have the same gap: linecop knows no language for
+  # the `.just` extension, so they are uncapped while every script beside them
+  # is capped (`include_hidden` below brings those scripts into the scan and
   # does nothing for an unrecognized extension).
   Shell: 300
 
@@ -111,7 +111,7 @@ exclude_dirs:
 
 # The walker skips dot-prefixed directories by default, which would leave every
 # recipe body in `.just/scripts/` uncapped. Setting `include_hidden` here and
-# not passing `--hidden` in the recipe keeps `check-file-size` a single
+# not passing `--hidden` in the recipe keeps `lint::size` a single
 # `linecop` invocation, so the gate table's Command column renders the real
 # command. It also keeps the scan scope a property of the repo: `linecop`,
 # `linecop --baseline 85` and `just eject`'s `--format paths` run all see the

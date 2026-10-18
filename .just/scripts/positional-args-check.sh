@@ -7,7 +7,7 @@
 # one is itself separate from fmt-fixture-check.sh: different subject. That
 # one locks that `[arg(...)]` `pattern`s reject bad input and accept good
 # input at dispatch, entirely via `--dry-run`, so no recipe body ever runs.
-# This one locks that `test`, `build`, `mutants` and `mutants-diff` — the
+# This one locks that `test`, `build`, `mutants::sweep` and `mutants::diff` — the
 # recipes that take a passthrough `*ARGS` — actually forward it as a real
 # argument vector instead of a bare string.
 # That property is invisible to `--dry-run`: word-splitting and globbing
@@ -41,9 +41,8 @@
 # character surviving as one word, end to end) lives in this task's own
 # commit message and is not re-run on every `just check` — mutants and
 # ask-refactoring shell out to real cargo/mt builds, and this repo already
-# keeps them out of `just check` for exactly that cost (see the Justfile's
-# `mutants`/`ask-refactoring` comments, and docs/contributing/mutation-
-# testing.md for why the mutation sweep has no CI job either). A static gate is
+# keeps them out of `just check` for exactly that cost (see docs/contributing/
+# mutation-testing.md for why the mutation sweep has no CI job either). A static gate is
 # what stays cheap
 # enough to run every time and still catches the regression that matters:
 # the attribute or the "$@" disappearing from the Justfile or a script.
@@ -59,7 +58,8 @@ dump="$(just --dump --dump-format json)"
 assert_forwards() {
     local recipe="$1" ok
     ok=$(jq -e --arg name "$recipe" '
-        .recipes[$name] as $r
+        ($name | split("::")) as $path
+        | (reduce $path[:-1][] as $m (.; .modules[$m]) | .recipes[$path[-1]]) as $r
         | ($r.attributes // [] | any(. == "positional-arguments"))
           and (($r.body // []) | length == 1)
           and (($r.body[0] // []) | all(type == "string"))
@@ -73,8 +73,8 @@ assert_forwards() {
 
 assert_forwards test
 assert_forwards build
-assert_forwards mutants
-assert_forwards mutants-diff
+assert_forwards mutants::sweep
+assert_forwards mutants::diff
 
 # assert_script_forwards <script> <pattern>
 # The script a passthrough recipe forwards into must consume "$@" itself —

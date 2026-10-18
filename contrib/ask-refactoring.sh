@@ -9,7 +9,7 @@
 #
 #   Only advisory signals qualify. A signal that already blocks a commit, such
 #   as jscpd's new clones, outdatty, machete or clippy, never files a task. The
-#   part of jscpd no gate enforces is the baseline `just check-dry` tolerates,
+#   part of jscpd no gate enforces is the baseline `just lint::dry` tolerates,
 #   which the dry arm files, and the snippets under its 50-token floor, which
 #   the repeats arm files.
 #
@@ -18,7 +18,7 @@
 #   Idempotency comes from the signal, not a ledger. A closed task whose
 #   condition still holds is noticed again, because the work did not happen.
 #   The one suppression is an override with a written reason in the signal's
-#   own config: .linecop.yaml for sizes, an `--exclude` in the `just crap`
+#   own config: .linecop.yaml for sizes, an `--exclude` in the `just crap::check`
 #   recipe for coverage.
 #
 # The re-run guard is [views.ask-refactoring] in .mindtape/config.toml: while a

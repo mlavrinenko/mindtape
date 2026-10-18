@@ -3,7 +3,7 @@
 // from www/generated/link-kinds.json, which www/generate-facts.sh reads off
 // `BUILTIN_KINDS` in crates/mindtape/src/link/mod.rs, so this dictionary holds
 // only the meaning and never restates a rule the code holds. `just
-// check-doc-facts` fails on a kind in that list with no entry here, and the
+// docs::facts` fails on a kind in that list with no entry here, and the
 // page fails to build on the same gap.
 
 #import "site.typ": u

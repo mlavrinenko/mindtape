@@ -1,9 +1,9 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/mlavrinenko/outdatty/main/schema/outdatty.schema.json
 
 # Declares which dependents must be re-confirmed when a source changes. After
-# editing a source, review the dependents and run `just outdatty-update <group>`
-# to record the new state. `just outdatty-update-all` re-records every group, so
-# use it only after reviewing every group's dependents. `just outdatty-check`
+# editing a source, review the dependents and run `just outdatty::update <group>`
+# to record the new state. `just outdatty::update-all` re-records every group, so
+# use it only after reviewing every group's dependents. `just outdatty::check`
 # (part of `just check`) fails until you do.
 
 # `require_tracked` opts out of outdatty's audit that every non-gitignored file
@@ -19,7 +19,7 @@
 require_tracked: ["!**"]
 
 # What a dependent-only edit owes this lock: record that dependent alone, in the
-# commit that made the edit, with `just outdatty-update <group> <path>`.
+# commit that made the edit, with `just outdatty::update <group> <path>`.
 #
 # Only a source change triggers the gate. That asymmetry is intended. A
 # dependent edited on its own moves no source hash, so the gate stays green, and
@@ -55,7 +55,7 @@ require_tracked: ["!**"]
 groups:
   # The CLI groups. The build renders every command, flag, default and help
   # line from `mt _cli --json` (www/generated/cli.json), and
-  # `just check-doc-spans` checks each `mt …` argv the prose quotes, so a flag
+  # `just docs::spans` checks each `mt …` argv the prose quotes, so a flag
   # change needs no review. What still drifts is prose that restates what a
   # module does: a refusal, a default, an output shape. So each group pairs one
   # source with the pages that restate it, and editing `cmd/ls/mod.rs` asks
@@ -399,7 +399,7 @@ groups:
   # table and sort exceptions from filter-fields.json, so the page isn't here.
   # What the hash still guards is the prose beside those names, which a
   # change of meaning leaves compiling and wrong: the notes the table renders,
-  # the skill's filter reference (check-doc-facts checks only its names), and
+  # the skill's filter reference (docs::facts checks only its names), and
   # cli/ls.typ, which says `file` is no field and points at `path`. `sort.rs`
   # is not a second source: it reads its sortable fields off this one
   # (`is_sort_field`), and the rest is comparator internals.
@@ -519,7 +519,7 @@ groups:
   # input leaves that prose compiling and wrong. Two failure modes a hash cannot
   # see are already covered without it: a framework that leaves frameworks.toml
   # fails the page render by name, and one that arrives fails `just
-  # check-doc-facts` until it has an entry. So a one-dependent group is the
+  # docs::facts` until it has an entry. So a one-dependent group is the
   # whole wiring.
   - name: priority-frameworks
     source:
@@ -637,7 +637,7 @@ groups:
   # The scripts under .just/scripts/ are listed one by one, each in the group of
   # the doc that restates it, so a script fix asks for that doc and no other. A
   # script no doc restates sits in the source-only group at the end. Tracking a
-  # new script is a decision: `just script-scope-check` fails on a script that
+  # new script is a decision: `just meta::script-scope` fails on a script that
   # is a source of no group.
   - name: dev-shell-docs
     source:
@@ -645,8 +645,19 @@ groups:
       - Justfile
       - .config/nextest.toml
       - .config/wt.toml
+      - .just/bench.just
+      - .just/crap.just
       - .just/docs.just
+      - .just/install.just
+      - .just/lint.just
+      - .just/meta.just
+      - .just/mutants.just
+      - .just/outdatty.just
       - .just/scripts/wt-carry-lcov.sh
+      - .just/scripts/clippy.sh
+      - .just/scripts/lint-dry.sh
+      - .just/scripts/outdatty-check.sh
+      - .just/scripts/check-examples.sh
     dependents:
       - docs/src/contributing.typ
       - docs/src/agents.typ
@@ -715,6 +726,7 @@ groups:
     source:
       - .just/scripts/mutants.sh
       - .just/scripts/mutants-diff.sh
+      - .just/scripts/mutants-status.sh
       - .just/scripts/_mutants-env.sh
     dependents:
       - docs/src/contributing/mutation-testing.typ
@@ -724,6 +736,7 @@ groups:
   # The release recipe, which contributing.typ and the release deep dive describe.
   - name: release-docs
     source:
+      - .just/scripts/release.sh
       - .just/scripts/release-hook.sh
       - release.toml
     dependents:

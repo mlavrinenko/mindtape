@@ -16,8 +16,7 @@
 # ── the lcov, and what counts as production ─────────────────────────────────
 #
 # The lcov `just cover` writes is a build artifact nothing re-derives for free.
-# `just crap`'s own comment (see the Justfile) documents what a stale one does:
-# a source the lcov never saw has no coverage record at all, so it reads as 0%
+# A stale one fails like this: a source the lcov never saw has no coverage record at all, so it reads as 0%
 # covered rather than as unknown — a phantom failure, not a missing measurement.
 # `ensure_lcov_fresh` asks mmz to refresh the lcov, then refuses a missing file
 # or one whose cover record differs from the sources, so a stale one is
@@ -37,7 +36,7 @@ ensure_lcov_fresh() {
         exit 1
     fi
     rm -f "$log"
-    # The same script `just crap` asks. It judges by content through mmz, not
+    # The same script `just crap::check` asks. It judges by content through mmz, not
     # mtime: a checkout or rebase touches a source without changing its bytes,
     # and mmz then hits and leaves the lcov alone.
     local reason
@@ -50,8 +49,8 @@ ensure_lcov_fresh() {
 }
 
 # Test files are not production code. `*_tests.rs` / `tests.rs` (and ejectest's
-# infix-split `foo_tests_bar.rs` siblings) are instrumented, and `just crap`
-# excludes the same files from CRAP scoring (`CRAP_EXCLUDES` in the Justfile).
+# infix-split `foo_tests_bar.rs` siblings) are instrumented, and `just crap::check`
+# excludes the same files from CRAP scoring (`CRAP_EXCLUDES` in .just/crap.just).
 # The regex is jq's equivalent of those globs, as one pattern because jq has no
 # glob matcher. `.just/scripts/cover.sh` holds a copy for its per-file gate.
 COVERAGE_TEST_RE='(^|/)([^/]*_)?tests(_[^/]*)?\.rs$'
@@ -78,7 +77,7 @@ COVERAGE_TEST_RE='(^|/)([^/]*_)?tests(_[^/]*)?\.rs$'
 # has no record, so `cargo crap` reads it as 0% covered rather than as unknown,
 # and a sweep that files phantoms is worse than one that refuses.
 #
-# Exclusions come from `just _crap-excludes` — the Justfile's `CRAP_EXCLUDES`,
+# Exclusions come from `CRAP_EXCLUDES` in .just/crap.just,
 # whose comment there gives the reason a second hand-maintained copy is not
 # acceptable; a third in a shell script is the same mistake. Those globs drop
 # `main.rs` (absent from the lcov, so every function in it would score 0%) and
@@ -90,7 +89,7 @@ undertested_report_json() {
     local excludes
     # `read -r -a` rather than an unquoted expansion: the list is globs, and a
     # bare word-split would let the shell expand `**/main.rs` against the tree.
-    read -r -a excludes <<<"$(just _crap-excludes)"
+    read -r -a excludes <<<"$(just --justfile .just/crap.just --evaluate CRAP_EXCLUDES)"
     local json rc
     set +e
     json="$(cargo crap --lcov target/coverage/lcov.info --workspace \
@@ -125,7 +124,7 @@ undertested_report_json() {
 #
 #   CC has mean 3.54, sd 3.05, and 293 of the 1025 functions are at 5 or above,
 #   so the floor is not rare by itself — the conjunction is. It is not a
-#   complexity judgment either (`just crap` gates that, at 30 and against a
+#   complexity judgment either (`just crap::check` gates that, at 30 and against a
 #   committed baseline); it is what makes the coverage number mean something. The
 #   18 functions at CC < 5 and coverage < 80 are the noise it drops:
 #   `HyperlinkChoice::fmt` and `ColorChoice::fmt` (Display impls at 0% and
@@ -240,6 +239,6 @@ emit_undertested() {
         --set 'tags+=swept' --set 'tags+=coverage'
     )
 
-    local advice; advice=$(printf '%s\n' 'the stem is taken, so this function was filed before and closed' 'without its coverage rising — reopen it, or exclude the file in' 'the Justfile'\''s `CRAP_EXCLUDES` with a written reason')
+    local advice; advice=$(printf '%s\n' 'the stem is taken, so this function was filed before and closed' 'without its coverage rising — reopen it, or exclude the file in' '`CRAP_EXCLUDES` in .just/crap.just with a written reason')
     file_finding undertested "$stem" "[ice($impact, $confidence, $ease)]" "$advice" "${args[@]}"
 }

@@ -40,7 +40,7 @@
 # stale, conflict between contributors, and be absent on a fresh clone, which is
 # exactly the reasoning that kept the undertested arm off a stored baseline.
 #
-# Where to read it: `just mutants` (full) writes `mutants.out`, while a scoped
+# Where to read it: `just mutants::sweep` (full) writes `mutants.out`, while a scoped
 # run (`-f`, `--in-diff`) writes `target/mutants-scoped` so it cannot clobber
 # the `--iterate` cache the full sweep reads (`.just/scripts/mutants.sh`). Both
 # are complete sweep records, so the arm takes whichever ran last; a sweep is a
@@ -55,7 +55,7 @@ done
 mutants_available() {
     if [ -z "$MUTANTS_JSON" ]; then
         echo "ask-refactoring: no outcomes.json under mutants.out or target/mutants-scoped — skipping the mutants arm" >&2
-        echo "  (refresh with \`just mutants\` — hours — or \`just mutants -f FILE\`" >&2
+        echo "  (refresh with \`just mutants::sweep\` — hours — or \`just mutants::sweep -f FILE\`" >&2
         echo "   for each changed source; this arm never runs cargo-mutants itself)" >&2
         return 1
     fi
@@ -64,7 +64,7 @@ mutants_available() {
     if [ -n "$newer" ]; then
         echo "ask-refactoring: $MUTANTS_JSON predates $newer — skipping the mutants arm" >&2
         echo "  (a survivor it names may have been pinned since; refresh it with" >&2
-        echo "   \`just mutants\` — hours — or \`just mutants -f FILE\` per changed source)" >&2
+        echo "   \`just mutants::sweep\` — hours — or \`just mutants::sweep -f FILE\` per changed source)" >&2
         return 1
     fi
     return 0

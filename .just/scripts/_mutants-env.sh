@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # .just/scripts/_mutants-env.sh — the CARGO_MUTANTS_JOBS/RUSTFLAGS preamble
 # shared by mutants.sh and mutants-diff.sh. Sourced, not executed on its own
-# — an underscore-prefixed helper, same convention as _lcov-stale-reason.sh
-# and the `_crap-excludes` recipe.
+# — an underscore-prefixed helper, same convention as _lcov-stale-reason.sh.
 #
 # Three parallel jobs and the mold linker, benchmarked at ~3.5x over the naive
 # run. Both are overridable, and both are tuned for the pre-PR pass: drop jobs

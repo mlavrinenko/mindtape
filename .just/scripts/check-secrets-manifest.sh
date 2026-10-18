@@ -24,7 +24,7 @@
 # bust this rule's cached pass.
 set -eo pipefail
 
-rule="just check-secrets"
+rule="just lint::secrets"
 
 # mmz's own expansion of the rule's declared inputs, so this arm compares
 # against what mmz actually hashes rather than against a second reading of

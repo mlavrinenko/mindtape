@@ -26,8 +26,8 @@
 # and re-record its group), no side's review covers the merged file, and the
 # true hash is one this driver cannot see (below). So it writes 64 zeros:
 # blake3's shape, so any outdatty reads it, and no file's hash. For a source
-# that makes `just outdatty-check` report the group stale until someone
-# reviews it and runs `just outdatty-update <group>`. That is the review a
+# that makes `just outdatty::check` report the group stale until someone
+# reviews it and runs `just outdatty::update <group>`. That is the review a
 # conflict would ask for, without stopping the rebase first. outdatty checks
 # no dependent's hash, so for a dependent the zeros block nothing, and the
 # next re-record of its group writes the real hash. The same goes for a hash
@@ -245,8 +245,8 @@ jq -nr "${args[@]}" --arg lock "$path" "$lib"' merge($tree) | .[] | select(.revi
     | "outdatty-lock-merge: \($lock): group \(.path[1]), \(.path[2]) \(.file):"
         + " both sides changed it and neither matches the merged tree, so it holds a hash no file has",
       if .path[2] == "source"
-      then "  `just outdatty-check` reports the group until you review it and run `just outdatty-update \(.path[1])`"
-      else "  outdatty checks no dependent hash, and `just outdatty-update \(.path[1])` records it" end' >&2
+      then "  `just outdatty::check` reports the group until you review it and run `just outdatty::update \(.path[1])`"
+      else "  outdatty checks no dependent hash, and `just outdatty::update \(.path[1])` records it" end' >&2
 conflicts=$(jq -nr "${args[@]}" "$lib"' merge($tree) | .[] | select(.conflict) | .path | join(".")')
 if [ -n "$conflicts" ]; then
     while IFS= read -r where; do

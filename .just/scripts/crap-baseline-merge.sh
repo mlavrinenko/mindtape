@@ -35,7 +35,7 @@
 # ratchet's ordering. A line both sides moved takes ours. Within one file's
 # same-named functions each line is kept above the one before, so the ratchet
 # still pairs them in the same order. The output is sorted by file, function
-# and line, as `just crap-baseline` writes it, and `just crap` on the merged
+# and line, as `just crap::baseline` writes it, and `just crap::check` on the merged
 # tree decides the rest.
 #
 # Without `jq` on PATH, or with a side that does not parse as a baseline, it
@@ -106,5 +106,5 @@ jq -n --slurpfile o "$tmp/o" --slurpfile a "$tmp/a" --slurpfile b "$tmp/b" \
     '$o[0] as $o | $a[0] as $a | $b[0] as $b | '"$merge" >"$tmp/merged"
 jq '.doc' "$tmp/merged" >"$ours"
 jq -r '.contested[]' "$tmp/merged" | while IFS= read -r where; do
-    echo "crap-baseline-merge: $where: both sides re-scored it; kept the stricter score, and \`just crap\` on the merged tree decides" >&2
+    echo "crap-baseline-merge: $where: both sides re-scored it; kept the stricter score, and \`just crap::check\` on the merged tree decides" >&2
 done

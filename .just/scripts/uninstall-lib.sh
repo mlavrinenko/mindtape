@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Body of `just uninstall-lib`. Runs from the repo root, like install-lib.sh,
+# Body of `just install::uninstall-lib`. Runs from the repo root, like install-lib.sh,
 # whose preamble it shares.
 set -eo pipefail
 . .just/scripts/_typst-package.sh

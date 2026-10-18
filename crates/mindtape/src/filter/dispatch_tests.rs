@@ -3,7 +3,7 @@
 //!
 //! `function` is a flat match over filter-function names, so its cyclomatic
 //! complexity is dispatch breadth. Leaving the rare arms unexercised is what
-//! pushed it over the CRAP threshold (`just crap`); these tests walk them.
+//! pushed it over the CRAP threshold (`just crap::check`); these tests walk them.
 
 #![allow(clippy::unwrap_used)]
 

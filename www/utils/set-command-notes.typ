@@ -4,7 +4,7 @@
 // `runs_on_set` mark that `CLASSIFICATION` in
 // crates/mindtape-cli/src/cli/command_class.rs gives each command, the same
 // mark `main` refuses a set by. So this dictionary holds only what a command
-// does on a set. `just check-doc-facts` fails on a marked command with no
+// does on a set. `just docs::facts` fails on a marked command with no
 // entry here, and `set-commands` below fails the build on the same gap. Both
 // readers below are functions, so importing the dictionary alone reads no
 // generated file.

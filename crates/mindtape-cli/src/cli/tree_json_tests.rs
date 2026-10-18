@@ -233,7 +233,7 @@ fn leaf_paths(commands: &[Value], prefix: &str, out: &mut Vec<(String, Value)>) 
 /// The exhaustiveness gate this module exists for: the union of
 /// `cli::command_class::CLASSIFICATION` must equal the visible leaf commands
 /// `mt _cli --json` reflects, in both directions — mirrors
-/// `check-doc-coverage`'s set-difference shape, failing naming the
+/// `docs::coverage`'s set-difference shape, failing naming the
 /// offender rather than healing silently.
 #[test]
 fn every_visible_leaf_is_classified_and_no_entry_is_stale() {

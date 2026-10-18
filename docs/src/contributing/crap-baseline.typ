@@ -27,7 +27,7 @@ Relative paths cost the gate nothing. cargo-crap pairs a function with its
 baseline entry on file, function and line first, and the live scan's paths
 are absolute on every machine, so that pass never matches. Its next pass pairs
 by name and path suffix, which can't tell apart two functions of one name in
-one file, such as the eleven `Diag::from` in `from_lib.rs`. So #just.crap()
+one file, such as the eleven `Diag::from` in `from_lib.rs`. So #just.crap-check()
 first gives the baseline the scan's root, and gives each such function the
 line of the one at the same position in the scan. A line shift then changes
 no pairing, and a rise in any of them fails.
@@ -41,7 +41,7 @@ control first, because a filter that matches nothing reports a clean file.
 
 gitleaks can't do this job. Its default ruleset ignores any finding under
 `/home/<user>/`, and a config that extends it can only add allowlists.
-#just.check-secrets() uses gitleaks for credentials.
+#just.lint-secrets() uses gitleaks for credentials.
 
 = What the mint checks first
 

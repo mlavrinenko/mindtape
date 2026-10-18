@@ -13,7 +13,7 @@
 
 #doc-title[Coverage and CRAP]
 
-Why #just.cover() and #just.crap() work the way they do. Read this before you
+Why #just.cover() and #just.crap-check() work the way they do. Read this before you
 change either recipe's flags.
 
 = Coverage
@@ -22,7 +22,7 @@ change either recipe's flags.
 #just.check(), after every other gate passed. llvm-cov merges the profile of
 every process, so the end-to-end tests that spawn `mt` count toward the
 command code they run. The recipe writes `target/coverage/lcov.info` for
-#just.crap() and fails below 90% of lines. `main.rs` is excluded, so keep it
+#just.crap-check() and fails below 90% of lines. `main.rs` is excluded, so keep it
 thin.
 
 The workspace total can stay green while one file sinks, so the recipe also
@@ -55,7 +55,7 @@ feature sets and other commits. It then reports coverage the current source
 can't produce. cargo-llvm-cov documents the clean as the precondition for
 merging runs.
 
-Inflated coverage hides exactly what #just.crap() and the sweep's undertested
+Inflated coverage hides exactly what #just.crap-check() and the sweep's undertested
 arm exist to find. Measured here, a session's leftover profiles put a
 function that no test can call at 84% covered. A baseline minted from such an
 lcov fails dozens of functions on the next clean run. Don't remove the clean
@@ -63,7 +63,7 @@ to save time.
 
 = The CRAP threshold
 
-#just.crap() runs after #just.cover() over the same `lcov.info`, in the same
+#just.crap-check() runs after #just.cover() over the same `lcov.info`, in the same
 CI job. CRAP is `CC² × uncovered³ + CC`, and the gate fails a function that
 scores above 30. It refuses an lcov older than any source file, so run
 #just.cover() first. It skips test modules (`*_tests.rs`, `tests.rs` and
@@ -75,7 +75,7 @@ Above about 90% coverage the cubed term vanishes, and a function scores its
 own cyclomatic complexity. That's why a flat dispatcher sits near the
 threshold. If you add an arm to one, cover it in the same change.
 
-So the threshold isn't the whole gate. #just.crap() also compares every
+So the threshold isn't the whole gate. #just.crap-check() also compares every
 function against `crap-baseline.json`, a committed score per function, and
 fails any function whose score rose. A rise means complexity went up or
 coverage went down, at any score. That catches a complex, undertested
@@ -95,7 +95,7 @@ covers the baseline file.
 A function in a file written after the lcov has no coverage record. With
 `--missing` at its default, `pessimistic`, it scores as 0% covered. On a
 10-day-old lcov that gave 28 failures, 27 of them false. A gate that reports
-false failures is worse than none, so #just.crap() refuses a stale lcov and
+false failures is worse than none, so #just.crap-check() refuses a stale lcov and
 names the recipe that refreshes it. Stale means a source is newer than the
 lcov and #just.cover() is not fresh for its content, so a checkout or rebase
 that leaves the bytes alone does not refuse.
@@ -109,7 +109,7 @@ arm.
 
 = Why both run in every check
 
-#just.check() runs #just.cover() and then #just.crap() as its last stage, so
+#just.check() runs #just.cover() and then #just.crap-check() as its last stage, so
 the pre-commit hook refuses a commit whose coverage or CRAP score was never
 measured. A CRAP gate that skipped on a stale lcov would skip on nearly every
 commit that changes code, and the baseline would drift unseen. The stage

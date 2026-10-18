@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/check-doc-recipes.sh — the body of the `check-doc-recipes`
+# .just/scripts/check-doc-recipes.sh — the body of the `docs::recipes`
 # recipe, extracted under truth/tasks/extract-the-long-gate-recipe-bodies-into-
 # scripts.typ. Every path below is repo-root-relative, because the recipe that
 # invokes it runs at the repo root.

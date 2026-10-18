@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/_doc-blocks-control.sh — the control `just check-doc-blocks`
+# .just/scripts/_doc-blocks-control.sh — the control `just docs::blocks`
 # runs before it scans the real tree. Runs from the repo root and writes only
 # to a temp dir, since `just check` runs its arms in parallel.
 #

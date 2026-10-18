@@ -22,9 +22,9 @@ status-level = "fail"
 # TIMEOUT instead of caught. These unit tests run inside the nextest process,
 # so the lock has to be in the environment it inherits: `.just/scripts/
 # _mutants-env.sh` unsets `VISUAL` and points `EDITOR` at a binary that cannot
-# exist, and every `just mutants`/`just mutants-diff` sources it.
+# exist, and every `just mutants::sweep`/`just mutants::diff` sources it.
 #
 # Not a block in this file: nextest accepts an unknown `[env]` table with a
 # warning and ignores it (verified 2026-09-29). Not `.cargo/config.toml`
 # either — `just nix-build` exists to reject a committed one. A raw
-# `cargo mutants` bypasses the lock; `just mutants` is the supported path.
+# `cargo mutants` bypasses the lock; `just mutants::sweep` is the supported path.

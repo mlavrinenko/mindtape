@@ -84,7 +84,7 @@ META="$(cargo metadata --format-version 1)"
 # excluded as workspace members). A hand-written list was the last hardcoded
 # claim in this file and would go stale the day an eighth crate is extracted —
 # which is the precise failure this whole script exists to prevent. When one
-# is, it appears here automatically and `just check-doc-facts` fails until it
+# is, it appears here automatically and `just docs::facts` fails until it
 # has prose, instead of silently going unmentioned.
 SUBSTRATE_REPO_RE='github\.com/mlavrinenko/'
 
@@ -120,9 +120,9 @@ jq -f "$SCRIPT_DIR/crate-map.jq" \
 # by a regex over the signature (a regex drifts the moment the signature's
 # formatting does; this doesn't, because it evaluates the same code the marker
 # comes from). Importing by path (`/lib/prelude.typ`), not `@local/mindtape`,
-# means this never depends on `just install-lib` having run. The driver lives
+# means this never depends on `just install::lib` having run. The driver lives
 # under target/ because `typst query --root .` refuses a source outside the
-# project root — same trick `just check-doc-coverage` already uses.
+# project root — same trick `just docs::coverage` already uses.
 tmp="$(mktemp -d -p target)"
 trap 'rm -rf "$tmp"' EXIT
 printf '#import "/lib/prelude.typ": task\n#show: task.with()\n= body\n' \
@@ -246,7 +246,7 @@ JUST_TYP_HEADER="$(cat <<'HDR'
 // recipes included. Each renders the invocation as a raw span:
 // `#just.check()` -> `just check`, `#just.docs-check()` -> `just docs check`;
 // extra positional args join onto the command, so
-// `#just.mutants("-f <file>")` -> `just mutants -f <file>`.
+// `#just.mutants-sweep("-f <file>")` -> `just mutants::sweep -f <file>`.
 //
 // Import as a module: `#import "/www/generated/just.typ" as just`.
 // docs/src/lib.typ re-exports it so a docs/src source imports one place;

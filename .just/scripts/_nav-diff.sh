@@ -17,7 +17,7 @@
 # script-scope-check's arm two derives a rule's scopes by following
 # script-to-script hops, so a caller that does not name `script-nav-diff` fails
 # the gate with the chain that reached this file. Both callers carry the input
-# in .mmz/config.yaml (`just check-doc-facts` and `just site-pages-fixture-check`),
+# in .mmz/config.yaml (`just docs::facts` and `just docs::pages-fixture`),
 # and the gate checks that each does.
 #
 # Two failure directions, neither implying the other: a page with no `NAV`

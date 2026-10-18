@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Body of `just install-lib`. Runs from the repo root, like the recipe that
+# Body of `just install::lib`. Runs from the repo root, like the recipe that
 # invokes it — `$(pwd)/lib` is the link target, so a caller in another
 # directory would install a broken symlink.
 set -eo pipefail

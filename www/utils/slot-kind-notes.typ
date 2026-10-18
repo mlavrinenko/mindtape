@@ -2,7 +2,7 @@
 // /templates/ page reads the kind list from www/generated/slot-kinds.json,
 // which www/generate-facts.sh reads off `SlotKind::ALL` in
 // crates/mindtape/src/template/mod.rs, so this dictionary holds only the
-// meaning. `just check-doc-facts` fails on a kind in that list with no entry
+// meaning. `just docs::facts` fails on a kind in that list with no entry
 // here, and the page fails to build on the same gap.
 
 // Each note is a phrase without a final period: the page joins them into one

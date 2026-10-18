@@ -1,7 +1,7 @@
 // Hand-written, one-line prose per published crate, keyed by crate name.
 // Everything a machine can state (the list, versions, direct-vs-transitive)
 // comes from www/generated/crate-map.json; this dict carries only what it
-// cannot — what the crate is for. `just check-doc-facts` fails naming any
+// cannot — what the crate is for. `just docs::facts` fails naming any
 // crate-map.json entry with no matching key here.
 //
 // Refs: truth/tasks/derive-the-drift-prone-doc-facts-from-their-sources.typ

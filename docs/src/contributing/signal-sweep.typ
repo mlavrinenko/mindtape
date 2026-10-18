@@ -59,15 +59,15 @@ snippets pasted many times, and files the ones whose extraction saves the most
 code. Once jscpd groups clones itself, its blocker in `canibump.toml` reads
 `bumpable` and the arm goes.
 
-The dry arm files the clones #just.check-dry() tolerates. It runs jscpd with
+The dry arm files the clones #just.lint-dry() tolerates. It runs jscpd with
 the gate's flags, keeps the pairs the baseline already holds, and joins them
 into one family per shared location. It files a family only when extracting
 it saves `--dry-gain` tokens or more. A task closes by extracting the clone, or by a `jscpd:ignore`
 marker whose comment says why the match is a coincidence. Either way the
-commit re-mints the baseline with #just.dry-baseline().
+commit re-mints the baseline with #just.lint-dry-baseline().
 
 The mutants arm has no threshold. It reads `outcomes.json` from whichever
-sweep ran last: `mutants.out` after a full #just.mutants(), or
+sweep ran last: `mutants.out` after a full #just.mutants-sweep(), or
 `target/mutants-scoped` after a scoped run. When neither exists, or the one
 it picked is stale, it skips with a message naming the command that
 refreshes it. #just.mutants-status() reports a running sweep's progress and

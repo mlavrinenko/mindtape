@@ -22,7 +22,7 @@ The workspace `Cargo.toml` sets its clippy lints to `deny`, so the `clippy` gate
 - No `unwrap()` or `expect()` outside tests. Use `?` with a `Diag` in the `mt` binary and `thiserror` in the library.
 - No `todo!()`, `unimplemented!()`, `unreachable!()`, `unsafe` or wildcard imports.
 - A function gets at most 70 lines, 5 arguments and a cognitive complexity of 20.
-- A module’s path is its file path. An area is a folder with a `mod.rs` whose `//!` header lists its files, and the lint fails on `foo.rs` beside `foo/`. Use `#[path]` only for a test sibling. `just path-attr-check` refuses any other use.
+- A module’s path is its file path. An area is a folder with a `mod.rs` whose `//!` header lists its files, and the lint fails on `foo.rs` beside `foo/`. Use `#[path]` only for a test sibling. `just lint path-attr` refuses any other use.
 
 ## Error Handling
 
@@ -30,7 +30,7 @@ The workspace `Cargo.toml` sets its clippy lints to `deny`, so the `clippy` gate
 - Pick the kind, not the exit code: `Diag::usage` exits 2, `Diag::refused` and `Diag::failed` exit 1. `main` prints the error and exits with its code.
 - Every command returns `Result<_, Diag>`, and the `mt` binary has no `anyhow`. clippy refuses `eprintln!`, `eprint!` and `std::io::stderr` outside `diag/`, so no line reaches stderr unrendered.
 - If callers match on a library error type, derive `thiserror::Error` for it, as `RecurError`, `ConfigError` and `FilterError` do, and convert it in `diag/from_lib.rs` with a match on every variant.
-- Say a count with `mindtape::count(n, "task")`, which prints `1 task` or `12 tasks`. `just plural-check` refuses `task(s)` in a string outside tests.
+- Say a count with `mindtape::count(n, "task")`, which prints `1 task` or `12 tasks`. `just lint plural` refuses `task(s)` in a string outside tests.
 - Keep `main.rs` thin and put the logic in library modules.
 
 ## Testing
@@ -40,7 +40,7 @@ The workspace `Cargo.toml` sets its clippy lints to `deny`, so the `clippy` gate
 - When a file nears its linecop cap, run `just fix-check`. It moves the file’s inline tests into a `_tests.rs` sibling (`tests.rs` for a `mod.rs`) with [ejectest](https://github.com/mlavrinenko/ejectest).
 - Run the suite with `just test` and count it with `just count-tests`.
 - If your code runs a process or joins paths, the Windows CI job runs it too. See [docs/contributing/windows.md](docs/contributing/windows.md).
-- Before a PR, run `just mutants-diff` and triage every survivor. A run over 100 mutants, about 20 minutes, needs the owner’s approval, so an agent stops and asks instead of setting `MINDTAPE_MUTANTS_APPROVED=1` itself. The triage classes are in [docs/contributing/mutation-testing.md](docs/contributing/mutation-testing.md).
+- Before a PR, run `just mutants diff` and triage every survivor. A run over 100 mutants, about 20 minutes, needs the owner’s approval, so an agent stops and asks instead of setting `MINDTAPE_MUTANTS_APPROVED=1` itself. The triage classes are in [docs/contributing/mutation-testing.md](docs/contributing/mutation-testing.md).
 
 ## Quality Gates (run by `just check`)
 
@@ -51,9 +51,9 @@ just --list --list-submodules  # every gate under [gate], with what it checks
 mmz --status --tag gate        # which gates are fresh, stale or failed
 ```
 
-[docs/contributing/gates.md](docs/contributing/gates.md) covers how `just check` orders the gates, how it skips unchanged work, and the formatter path lists. When you add a TOML file, a Typst directory or a justfile module, add it to its `*_FMT_PATHS` list in the `Justfile`. `just fmt` and `just fmt-check` both read those lists.
+[docs/contributing/gates.md](docs/contributing/gates.md) covers how `just check` orders the gates, how it skips unchanged work, and the formatter path lists. When you add a TOML file or a Typst directory, add it to its `*_FMT_PATHS` list in the `Justfile`. `just fmt` and `just fmt-check` both read those lists.
 
-If you add a function or complexity, run `just crap-baseline` in the same commit. The thresholds and their reasons are in [docs/contributing/coverage-crap.md](docs/contributing/coverage-crap.md).
+If you add a function or complexity, run `just crap baseline` in the same commit. The thresholds and their reasons are in [docs/contributing/coverage-crap.md](docs/contributing/coverage-crap.md).
 
 If you touch `flake.nix` or `.cargo/config.toml`, run `just nix-build`.
 
@@ -94,12 +94,12 @@ When you see a real problem outside your task, file it with `mt add --template f
 
 [`outdatty.yaml`](outdatty.yaml) lists, for each source file, the files that restate it.
 
-- After you edit a source, update its dependents, run `just outdatty-update <group>` and commit `outdatty.lock`. If the dependents all still hold and the commit edits none of them, add a `Docs-Unaffected: <group>` footer, one line per group you read. The commit-msg hook refuses the commit without it and lists the files to read.
-- After you edit only a dependent, record that one file in the same commit with `just outdatty-update <group> <path>`.
-- A recorded hash says someone reviewed the dependents. So run `just outdatty-update-all` only after you’ve reviewed every group.
-- A new file that a glob dependent matches needs a hash of its own. `just outdatty-check` fails until the lock holds it.
+- After you edit a source, update its dependents, run `just outdatty update <group>` and commit `outdatty.lock`. If the dependents all still hold and the commit edits none of them, add a `Docs-Unaffected: <group>` footer, one line per group you read. The commit-msg hook refuses the commit without it and lists the files to read.
+- After you edit only a dependent, record that one file in the same commit with `just outdatty update <group> <path>`.
+- A recorded hash says someone reviewed the dependents. So run `just outdatty update-all` only after you’ve reviewed every group.
+- A new file that a glob dependent matches needs a hash of its own. `just outdatty check` fails until the lock holds it.
 
-A rebase or merge joins two branches’ `outdatty.lock` key by key through `.just/scripts/outdatty-lock-merge.sh`. When both branches edited one source and re-recorded it, its hash comes out as zeros, so `just outdatty-check` reports that group until you review it and commit the re-record, which owes the footer like any other. The driver also drops a group the merged `outdatty.yaml` doesn’t declare, so a split or a rename leaves no orphan hashes, and `just outdatty-check` fails on one that got in anyway. `.jscpd-baseline.json` merges as the union of both fingerprint maps through `.just/scripts/jscpd-baseline-merge.sh`. `crap-baseline.json` merges function by function through `.just/scripts/crap-baseline-merge.sh`, which keeps the stricter score when both sides re-scored one, and `just crap` on the merged tree decides. The dev shell registers all three.
+A rebase or merge joins two branches’ `outdatty.lock` key by key through `.just/scripts/outdatty-lock-merge.sh`. When both branches edited one source and re-recorded it, its hash comes out as zeros, so `just outdatty check` reports that group until you review it and commit the re-record, which owes the footer like any other. The driver also drops a group the merged `outdatty.yaml` doesn’t declare, so a split or a rename leaves no orphan hashes, and `just outdatty check` fails on one that got in anyway. `.jscpd-baseline.json` merges as the union of both fingerprint maps through `.just/scripts/jscpd-baseline-merge.sh`. `crap-baseline.json` merges function by function through `.just/scripts/crap-baseline-merge.sh`, which keeps the stricter score when both sides re-scored one, and `just crap check` on the merged tree decides. The dev shell registers all three.
 
 ## Version Management
 
