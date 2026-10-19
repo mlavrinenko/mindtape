@@ -187,7 +187,8 @@
       so it offers this project's #link(u("/concepts/#identity"))[stems],
       statuses, #link(u("/named-sets/#views"))[views], templates and link
       kinds, and the presets for `mt init --preset`. `mt install` copies the
-      prelude into the data directory, so run it again after you upgrade `mt`.
+      prelude into #link(u("/config/#local-typst-packages"))[Typst's package
+        directory], so run it again after you upgrade `mt`.
       That rewrites the prelude to match the binary. The completion hooks ask
       `mt` on each tab press, so they stay current without it.],
   ),

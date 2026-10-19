@@ -3,7 +3,7 @@
 //!
 //! - Task files import `@local/mindtape`, but the machine has never run
 //!   `mt install`. Typst reports it per file as `file not found (searched at
-//!   <data dir>/typst/packages/local/mindtape/<version>/typst.toml)`, a path
+//!   <package root>/local/mindtape/<version>/typst.toml)`, a path
 //!   and not a remedy. Every task in the project fails the same way, so
 //!   [`crate::util::report_load_problems`] folds them into the one
 //!   [`prelude_diag`] that names the command and the config key.
@@ -24,13 +24,14 @@ use mindtape::model::task_spans::CallRegion;
 
 use crate::diag::{Command, Diag, Hint, Kind, Note};
 
-/// The path segment Typst searched: the local-package directory for the
-/// prelude. Matched instead of the diagnostic's wording, which is Typst's to
+/// The path segment Typst searched under the package root, whatever that root
+/// is. Matched instead of the diagnostic's wording, which is Typst's to
 /// change; separators are normalised so this holds on Windows too.
-const PRELUDE_PKG_PATH: &str = "packages/local/mindtape/";
+const PRELUDE_PKG_PATH: &str = "/local/mindtape/";
 
-/// What Typst searched when no data directory resolves at all (an empty
-/// `$MINDTAPE_DATA_HOME`): the package spec itself, with no path.
+/// What Typst searched when no package root resolves at all (an empty
+/// `$MINDTAPE_DATA_HOME` or `$TYPST_PACKAGE_PATH`): the package spec itself,
+/// with no path.
 const PRELUDE_SPEC: &str = "searched at @local/mindtape:";
 
 /// Whether `message` is a load error about the unresolved prelude package.
@@ -163,6 +164,14 @@ mod tests {
         let bare = "file not found (searched at @local/mindtape:0.2.0)";
         assert!(names_prelude_package(bare));
         assert_eq!(super::searched_path(bare), None);
+    }
+
+    /// A `$TYPST_PACKAGE_PATH` names the package root whole, so the searched
+    /// path need not run through a `packages/` directory.
+    #[test]
+    fn detects_a_package_root_from_typst_package_path() {
+        let moved = "file not found (searched at /opt/typst/local/mindtape/0.2.0/typst.toml)";
+        assert!(names_prelude_package(moved));
     }
 
     #[test]

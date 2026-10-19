@@ -310,11 +310,15 @@ pub(crate) fn install_lib() -> Result<()> {
     Ok(())
 }
 
+/// Where `mt install` writes the `@local/mindtape` package: under
+/// [`mindtape::package_root`], the directory every task file's import
+/// resolves from and, unless `$MINDTAPE_DATA_HOME` moves it, the one Typst and
+/// tinymist read.
 pub(crate) fn package_dir() -> Result<PathBuf> {
-    let mut path =
-        mindtape::data_home().ok_or_else(|| Diag::failed("can't find the local data directory"))?;
-    path.push("typst");
-    path.push("packages");
+    let mut path = mindtape::package_root().ok_or_else(|| {
+        Diag::failed("can't find the Typst package directory")
+            .hint(Hint::new("set MINDTAPE_DATA_HOME to a directory"))
+    })?;
     path.push("local");
     path.push("mindtape");
     path.push(TYPST_PKG_VERSION);

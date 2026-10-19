@@ -98,7 +98,7 @@ impl TaskCache {
             };
         }
         let cache_root = root.join(".mindtape").join("cache");
-        let key = build_key(config, overrides);
+        let key = build_key(config, overrides, crate::package_root().as_deref());
         prune_stale(&cache_root, &key);
         let dir = cache_root.join(&key);
         let dir = std::fs::create_dir_all(&dir).is_ok().then(|| {
@@ -221,21 +221,25 @@ pub(crate) fn disabled() -> bool {
 }
 
 /// The build key: a hex digest folding the cache format, the `mt` version, the
-/// whole config, the local-package directory, and every prelude/override
-/// directory's contents. Governs the cache directory, so any change busts the
-/// whole cache.
-fn build_key(config: &Config, overrides: &[(String, PathBuf)]) -> String {
+/// whole config, `package_root` (the local-package directory), and every
+/// prelude/override directory's contents. Governs the cache directory, so any
+/// change busts the whole cache.
+fn build_key(
+    config: &Config,
+    overrides: &[(String, PathBuf)],
+    package_root: Option<&Path>,
+) -> String {
     let mut hasher = Sha1::new();
     hasher.update(FORMAT_VERSION.to_le_bytes());
     hasher.update(b"\x00mt\x00");
     hasher.update(env!("CARGO_PKG_VERSION").as_bytes());
     // Where an unoverridden `@local` import resolves from. The path, not its
     // contents: it holds every installed package, and only the one this project
-    // imports could matter. Folding it in means moving `$MINDTAPE_DATA_HOME`
-    // routes reads to a fresh cache instead of replaying markers harvested
-    // against a prelude that is no longer the one being resolved.
+    // imports could matter. Folding it in means moving `$MINDTAPE_DATA_HOME` or
+    // `$TYPST_PACKAGE_PATH` routes reads to a fresh cache instead of replaying
+    // markers harvested against a prelude that is no longer the one resolved.
     hasher.update(b"\x00pkgroot\x00");
-    if let Some(dir) = crate::data_home() {
+    if let Some(dir) = package_root {
         hasher.update(dir.as_os_str().as_encoded_bytes());
     }
     hasher.update(b"\x00cfg\x00");

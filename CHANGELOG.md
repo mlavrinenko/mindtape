@@ -555,6 +555,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt install` puts the prelude where Typst and tinymist look, on Windows
+  too.** It wrote under `%LOCALAPPDATA%\typst\packages` while both read
+  `%APPDATA%\typst\packages`, so tinymist never found it. `mt install` and task
+  files now share the directory typst-world resolves for Typst, and a set
+  `$TYPST_PACKAGE_PATH` moves it on every platform, as it does for `typst`. On
+  Windows, run `mt install` once more and delete the old copy.
 - **`mt find` names a task file that fails to load.** It used to skip the file
   without a word, while `mt ls` warned. Both print the same warning now, and
   `mt find` still lists the rest and exits 0.

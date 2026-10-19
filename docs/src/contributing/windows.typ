@@ -29,6 +29,9 @@ variable moves. A test that sets `XDG_DATA_HOME` would test a path `mt` never
 reads there. That's why `MINDTAPE_CONFIG_HOME` and `MINDTAPE_DATA_HOME`
 exist. `tests/it/install_e2e.rs` sets them to check both where `mt install`
 writes the `@local/mindtape` package and where loading a project finds it.
+`tests/it/install_package_path_e2e.rs` leaves `MINDTAPE_DATA_HOME` unset and
+sets `TYPST_PACKAGE_PATH` instead, which typst-world reads on every platform,
+to check the same against Typst's own package directory.
 
 = The pty tests are Unix-only
 

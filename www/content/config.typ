@@ -69,7 +69,10 @@ what is wrong.
   [Replaces the config directory: where `mt` reads the second layer and where `mt install` writes `config.schema.json` and `at.schema.json`. You write `presets/` and `at.toml` there yourself, and `mt` reads them. #link(u("/read-many-projects/"))[Read many projects] covers `at.toml`, and #link(u("/cli/board/"))[`mt board`] lists its board keys.],
 
   [`MINDTAPE_DATA_HOME`],
-  [Replaces the data directory: where `mt install` writes the `@local/mindtape` package, and where task files resolve it from.],
+  [Replaces the data directory. `mt install` writes the `@local/mindtape` package under its `typst/packages`, and task files resolve it from there.],
+
+  [`TYPST_PACKAGE_PATH`],
+  [Moves the package directory Typst reads, for `mt` too, unless `MINDTAPE_DATA_HOME` is set. See Local Typst packages below.],
 
   [`MINDTAPE_NOW`],
   [Sets today's date, which `mt` uses for status dates, for `now()` and `stale()` in filters, and in `mt recur`. Takes `YYYY-MM-DD` or an RFC 3339 timestamp, whose date part is used as written.],
@@ -81,8 +84,8 @@ what is wrong.
   [Fills a required assignee in `mt add`. See Actors below.],
 )
 
-The two directory variables work on every platform. The platform's own
-lookup reads `XDG_CONFIG_HOME` and `XDG_DATA_HOME` on Linux only, so for a
+The `MINDTAPE_` directory variables work on every platform. The platform's
+own lookup reads `XDG_CONFIG_HOME` and `XDG_DATA_HOME` on Linux only, so for a
 test or a sandbox that must not see your own setup, set these instead. Set but
 empty, each one means there's no such directory. `mt` then reads no global
 layer, or resolves no global package. #just.check-examples() runs that way, so
@@ -97,7 +100,23 @@ variable.
 = Local Typst packages
 
 A task file imports the DSL as `@local/mindtape`, and Typst resolves a
-`@local` package from one directory per machine, the one `mt install` fills.
+`@local` package from one directory per machine. `mt install` fills that
+directory, and `mt`, `typst` and tinymist all read it.
+
+#table(
+  columns: 2,
+  table.header([Platform], [Directory]),
+  [Linux],
+  [`$XDG_DATA_HOME/typst/packages`, else `~/.local/share/typst/packages`],
+
+  [macOS], [`~/Library/Application Support/typst/packages`],
+  [Windows], [`%APPDATA%\typst\packages`],
+)
+
+A set `TYPST_PACKAGE_PATH` replaces it on every platform, for all three
+tools. `MINDTAPE_DATA_HOME` replaces it for `mt` alone, which suits a test
+but hides the package from your editor.
+
 So every checkout on that machine reads whichever `lib/` was installed last.
 To pin a project to its own copy, add a `[[typst.local-packages]]` entry. It
 resolves the package from a path in the project instead:

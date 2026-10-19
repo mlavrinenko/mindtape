@@ -113,17 +113,31 @@ fn build_key_reacts_to_config_and_prelude() {
     let mut tweaked = Config::default();
     tweaked.project.code = Some("other".to_owned());
     assert_ne!(
-        build_key(&base, &[]),
-        build_key(&tweaked, &[]),
+        build_key(&base, &[], None),
+        build_key(&tweaked, &[], None),
         "a config change must bust the key"
     );
 
     let lib = tempdir_with_files(&[("prelude.typ", "a")]);
     let overrides = vec![("mindtape".to_owned(), lib.path().to_path_buf())];
-    let before = build_key(&base, &overrides);
+    let before = build_key(&base, &overrides, None);
     write_file(lib.path(), "prelude.typ", "b");
-    let after = build_key(&base, &overrides);
+    let after = build_key(&base, &overrides, None);
     assert_ne!(before, after, "a prelude edit must bust the key");
+}
+
+/// The key follows the directory an unoverridden `@local` import reads, so
+/// moving it, as `$TYPST_PACKAGE_PATH` does, never replays a harvest made
+/// against another prelude.
+#[test]
+fn build_key_reacts_to_the_package_root() {
+    let base = Config::default();
+    let one = std::path::Path::new("/one/typst/packages");
+    let two = std::path::Path::new("/two/typst/packages");
+    let here = build_key(&base, &[], Some(one));
+    assert_ne!(here, build_key(&base, &[], Some(two)));
+    assert_ne!(here, build_key(&base, &[], None));
+    assert_eq!(here, build_key(&base, &[], Some(one)));
 }
 
 #[test]

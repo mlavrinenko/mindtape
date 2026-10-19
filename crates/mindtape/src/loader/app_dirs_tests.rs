@@ -4,7 +4,7 @@
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
-use super::{config_home, data_home, resolve};
+use super::{config_home, data_home, package_root, package_root_from, resolve};
 
 /// A stand-in for `dirs::config_dir()`, so the fall-through case is asserted
 /// without depending on the machine running the test.
@@ -60,5 +60,50 @@ fn the_entry_points_resolve_without_panicking() {
     assert_eq!(
         data_home(),
         resolve(std::env::var_os(super::DATA_HOME_ENV), dirs::data_local_dir)
+    );
+}
+
+/// A stand-in for `typst_world::platform_package_root()`, the directory Typst
+/// and tinymist read `@local` packages from on the machine running the test.
+#[allow(clippy::unnecessary_wraps)] // must match `platform_package_root`'s signature
+fn typst_root() -> Option<PathBuf> {
+    Some(PathBuf::from("/machine/typst/packages"))
+}
+
+/// A set data home holds the package root, so `mt install` and the loader
+/// both move with it.
+#[test]
+fn a_set_data_home_holds_the_package_root() {
+    let root = package_root_from(Some(OsString::from("/tmp/pinned")), typst_root);
+
+    assert_eq!(
+        root,
+        Some(Path::new("/tmp/pinned").join("typst").join("packages"))
+    );
+}
+
+/// An empty data home resolves no global package, for a read and a write.
+#[test]
+fn an_empty_data_home_names_no_package_root() {
+    assert_eq!(package_root_from(Some(OsString::new()), typst_root), None);
+}
+
+/// Unset, the package root is Typst's own, not one under `data_home()`:
+/// on Windows that is `%APPDATA%` where `data_home()` is `%LOCALAPPDATA%`.
+#[test]
+fn an_unset_data_home_uses_typsts_package_root() {
+    assert_eq!(package_root_from(None, typst_root), typst_root());
+}
+
+/// The entry point takes the fallback from typst-world, the reader every
+/// world uses, so the install and the read can't name two directories.
+#[test]
+fn the_package_root_falls_back_to_typst_worlds() {
+    assert_eq!(
+        package_root(),
+        package_root_from(
+            std::env::var_os(super::DATA_HOME_ENV),
+            typst_world::platform_package_root
+        )
     );
 }

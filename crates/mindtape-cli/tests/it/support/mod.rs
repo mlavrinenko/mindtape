@@ -351,3 +351,9 @@ pub fn commit_msg_refusal(dir: &Path, message: &str) -> String {
 pub fn stderr_of(done: &assert_cmd::assert::Assert) -> String {
     String::from_utf8_lossy(&done.get_output().stderr).into_owned()
 }
+
+/// The stdout of a finished `assert_cmd` run, for the tests that match on
+/// what a command printed.
+pub fn stdout_of(done: &assert_cmd::assert::Assert) -> String {
+    String::from_utf8_lossy(&done.get_output().stdout).into_owned()
+}

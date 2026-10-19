@@ -155,9 +155,9 @@ groups:
       www/content/schema.typ: 0cf69c7ec4bd1d42ae7796ebb7b3bd89e25bab9a98382798a3687ad263455514
   cli-init-docs:
     source:
-      crates/mindtape-cli/src/cmd/init/mod.rs: 1bc9212bfcede8b4783b9dc1120ed9ee4172204e0639a95415ace2031dd32ebd
+      crates/mindtape-cli/src/cmd/init/mod.rs: 9cca23563248fff19f742922564234964c6c75bdcd71d96838a837cb925f68f0
     dependents:
-      www/content/config.typ: fd58f73796c2733610d040a62d6e3a6a4b1d0f1509e9874a29cd72448047e2d7
+      www/content/config.typ: 1d390ccc01da51e4718e1eed90dd044cb4377e198f0a453bf53b7cfc1f5f9ea8
       www/content/import-export.typ: 21da077af3865d4449176940db50674755bb53cbd0c01db00f78eeb37a688e0f
       www/content/quickstart.typ: 09b26451dd0518acb8ff21d00389a586b21b78855ee75cc5a2b0f9f7c12e8d9e
   cli-install-docs:
@@ -474,7 +474,7 @@ groups:
       .just/scripts/_gate-drift-control.sh: 8f1b66e77138918bf0b14a8466d697df0aa33692ade7a779b5b003917ab170d7
       .just/scripts/_nav-diff.sh: 42595379c530c0184a23e18e87939b23b0bdbee6cc4ac82ab946a681a92bc0e9
       .just/scripts/_script-graph-control.sh: 02e416c7dceda5dda470fdb3636b95ac56368bdcc9071059d208d19019022028
-      .just/scripts/_typst-package.sh: f495789b35c120c8e39250855cb823c69ba36ab3e5bc3901bdc370b8ca5b3750
+      .just/scripts/_typst-package.sh: 1b775e3c8951bd08453dc3d0cb06311387c8b6eb413f202ffd164d7a24ad0b2d
       .just/scripts/install-bin.sh: d9f35240a8e5306bf943c5569cf73bf18080877df9278f3f005ba7dfdaf9211f
       .just/scripts/install-lib.sh: c995c433c86e15afd404e4985938c610840f55d5940a88d2a7bed26db0e95961
       .just/scripts/install.sh: aefc0e3bf9046e8adb2d4484f082b84faa3f87f83fcd23f176a80fdcc3f6d250
