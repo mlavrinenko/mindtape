@@ -71,7 +71,9 @@ mmz *ARGS:
 
 # worktrunk takes no merge defaults from project config, so they live here.
 # `--no-squash` keeps each commit's `Refs:` footer and `--no-commit` refuses a
-# dirty tree. A recipe cannot move its caller's shell, so neither one cds.
+# dirty tree. A recipe cannot move its caller's shell, so neither one cds. The
+# cd directive goes to a throwaway file, so wt has a real file to write it to
+# and prints no "shell integration not installed" warning.
 
 [doc("Fork a sibling worktree on a new branch, with its dev mt built")]
 [group("workflow")]
@@ -80,10 +82,14 @@ fork slug *args:
     wt switch --create --yes --no-cd "$@"
 
 [doc("Gate, fast-forward the branch onto main and remove its worktree")]
+[extension('.sh')]
 [group("workflow")]
 [positional-arguments]
+[script]
 land *args:
-    WORKTRUNK_DIRECTIVE_CD_FILE=/dev/null wt merge --no-squash --no-commit --yes "$@"
+    cd_file=$(mktemp)
+    trap 'rm -f "$cd_file"' EXIT
+    WORKTRUNK_DIRECTIVE_CD_FILE="$cd_file" wt merge --no-squash --no-commit --yes "$@"
 
 [doc("Build the project")]
 [group("dev")]

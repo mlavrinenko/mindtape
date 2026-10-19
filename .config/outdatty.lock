@@ -314,7 +314,7 @@ groups:
       .just/scripts/lint-dry.sh: 935cd86b688eaeea3b62ea86f21eb8fec32d72d3f8f848720b333df9ea7b4814
       .just/scripts/outdatty-check.sh: e219b61957163b1cf7ffd32d183fa37a8de60d1573fc68d7f02aab5f0eeb772b
       .just/scripts/wt-carry-lcov.sh: a4d4b96d24cee1d76f8d19ddcc10b6f4b99a1cb9f7c8ec3143cf487f2bb9861c
-      Justfile: 13ed6270b9b364dfb41dfac3ffdf18cbdeea4f000953d3f1e44497c21d8f2661
+      Justfile: 824caecd26297545e2fb244e9628b576ab9349fe7eb5a60c5ae46c969ae3e8f6
       flake.nix: bbcb46698504bc1a3b0708fac535ba4c0bcadc169baf2a630a7c8459e394bfec
     dependents:
       docs/src/agents.typ: b60c66d46729c944b878cc0d112e26741e5d2621ed8dc803c5ed0092daf2adeb
