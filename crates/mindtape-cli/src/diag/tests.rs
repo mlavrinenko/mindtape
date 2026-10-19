@@ -98,6 +98,42 @@ fn a_run_hint_and_a_text_hint_render_as_written() {
 }
 
 #[test]
+fn a_members_hints_run_its_commands_in_it_and_a_global_one_bare() {
+    let diag = Diag::failed("x")
+        .hint(Hint::run(
+            Command::mt().word("flip").word("--list"),
+            "to see the statuses",
+        ))
+        .hint(Hint::command(
+            "install it once per machine",
+            Command::mt_global().word("install"),
+        ))
+        .in_member("blog");
+    assert_eq!(
+        plain(&diag),
+        "error: x\n\
+         hint: run mt @blog flip --list to see the statuses\n\
+         hint: install it once per machine: mt install\n\
+         note: project: blog\n"
+    );
+}
+
+#[test]
+fn a_members_name_is_quoted_for_the_shell_and_a_text_hint_kept() {
+    let diag = Diag::failed("x")
+        .hint(Hint::command("list them", Command::mt().word("ls")))
+        .hint(Hint::new("run mt ls"))
+        .in_member("my blog");
+    assert_eq!(
+        plain(&diag),
+        "error: x\n\
+         hint: list them: mt '@my blog' ls\n\
+         hint: run mt ls\n\
+         note: project: my blog\n"
+    );
+}
+
+#[test]
 #[should_panic(expected = "at most two hints")]
 fn a_third_hint_is_refused() {
     let _ = Diag::failed("x")

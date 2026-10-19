@@ -7,7 +7,7 @@ use serde_json::json;
 use super::{CheckArgs, Findings, gather};
 use crate::diag::{Diag, Hint, Kind, Result, emit};
 use crate::pre_write::with_body_rules;
-use crate::project_set::{HeldSet, Member, member_load_problems, open_set, project_note};
+use crate::project_set::{HeldSet, Member, member_load_problems, open_set};
 
 /// One member's report: its problems in print order, and whether it failed.
 struct MemberReport {
@@ -97,7 +97,7 @@ fn report(member: Member) -> MemberReport {
             problems,
             ..
         }) => {
-            diags.extend(found.into_iter().map(|diag| diag.note(project_note(&name))));
+            diags.extend(found.into_iter().map(|diag| diag.in_member(&name)));
             MemberReport {
                 failed: problems > 0,
                 tasks: project.outcome.tasks.len(),
@@ -116,7 +116,7 @@ fn report(member: Member) -> MemberReport {
 
 fn failure(name: String, diag: Diag) -> MemberReport {
     MemberReport {
-        diags: vec![diag.note(project_note(&name))],
+        diags: vec![diag.in_member(&name)],
         name,
         failed: true,
         tasks: 0,

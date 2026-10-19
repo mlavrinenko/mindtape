@@ -82,6 +82,23 @@ impl Hint {
     pub(super) fn typst(text: String) -> Self {
         Self(Shape::Typst(text))
     }
+
+    /// The hint as the set member `name` gives it: the command it names runs
+    /// in that member.
+    fn in_member(self, name: &str) -> Self {
+        Self(match self.0 {
+            Shape::Command(text, command) => Shape::Command(text, command.in_member(name)),
+            Shape::Run(command, purpose) => Shape::Run(command.in_member(name), purpose),
+            shape @ (Shape::Text(_)
+            | Shape::DidYouMean(_)
+            | Shape::OneOf(_)
+            | Shape::Typst(_)
+            | Shape::Example(_)
+            | Shape::AsIn(..)
+            | Shape::Project(_)
+            | Shape::NotInDict(_)) => shape,
+        })
+    }
 }
 
 impl fmt::Display for Hint {
@@ -174,6 +191,21 @@ impl Diag {
     pub(crate) fn project_hint(self, text: impl Into<String>) -> Self {
         self.hint(Hint(Shape::Project(text.into())))
     }
+
+    /// The problem as the set member `name` reports it: every command its
+    /// hints name runs in that member, and a note names it.
+    ///
+    /// ```text
+    /// hint: run mt @blog flip --list to see the statuses
+    /// note: project: blog
+    /// ```
+    pub(crate) fn in_member(mut self, name: &str) -> Self {
+        self.0.hints = std::mem::take(&mut self.0.hints)
+            .into_iter()
+            .map(|hint| hint.in_member(name))
+            .collect();
+        self.note(Note::new("project").name(name))
+    }
 }
 
 /// A `note:` line: context the reader may need, with no action.
@@ -242,30 +274,56 @@ impl fmt::Display for Note {
 /// A command line in a hint: literal words, and arguments the user typed,
 /// which are quoted only when a shell needs them to be, so the line pastes.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct Command(Vec<String>);
+pub(crate) struct Command {
+    words: Vec<String>,
+    /// Whether the command reads no project, as `mt install` doesn't, so a
+    /// set member's hint names it without the member's `@name`.
+    global: bool,
+}
 
 impl Command {
-    /// `mt`, to which words and arguments are added.
+    /// `mt`, for a command that runs on a project, to which words and
+    /// arguments are added.
     pub(crate) fn mt() -> Self {
-        Self(vec!["mt".to_owned()])
+        Self {
+            words: vec!["mt".to_owned()],
+            global: false,
+        }
+    }
+
+    /// `mt`, for a command that reads no project, such as `mt install`.
+    pub(crate) fn mt_global() -> Self {
+        Self {
+            global: true,
+            ..Self::mt()
+        }
     }
 
     /// A literal word: a subcommand or a flag.
     pub(crate) fn word(mut self, word: &'static str) -> Self {
-        self.0.push(word.to_owned());
+        self.words.push(word.to_owned());
         self
     }
 
     /// An argument the user typed or a name from the project, quoted for the
     /// shell when it has to be.
     pub(crate) fn arg(mut self, arg: impl AsRef<str>) -> Self {
-        self.0.push(shell_word(arg.as_ref()));
+        self.words.push(shell_word(arg.as_ref()));
+        self
+    }
+
+    /// The command run in the set member `name`, as `mt @<name> …`. A global
+    /// command stays as it is.
+    fn in_member(mut self, name: &str) -> Self {
+        if !self.global {
+            self.words.insert(1, shell_word(&format!("@{name}")));
+        }
         self
     }
 }
 
 impl fmt::Display for Command {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str(&self.0.join(" "))
+        formatter.write_str(&self.words.join(" "))
     }
 }

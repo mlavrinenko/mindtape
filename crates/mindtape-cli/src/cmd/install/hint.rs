@@ -83,7 +83,7 @@ pub(crate) fn prelude_diag(kind: Kind, message: &str) -> Diag {
 pub(crate) fn prelude_hints(diag: Diag) -> Diag {
     diag.hint(Hint::command(
         "install it once per machine",
-        Command::mt().word("install"),
+        Command::mt_global().word("install"),
     ))
     .hint(Hint::new(
         "or pin a copy under [[typst.local-packages]] in the config",

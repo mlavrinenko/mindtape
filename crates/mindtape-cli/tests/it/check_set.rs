@@ -145,3 +145,33 @@ fn a_task_rule_breach_fails_its_project_though_the_config_loads() {
     assert_eq!(json["projects"][0]["ok"], true);
     assert_eq!(json["projects"][1]["ok"], false);
 }
+
+/// A member's hint names its `mt` command with the member's `@name`, so the
+/// line runs as printed from where the set was checked.
+#[test]
+fn a_members_hint_runs_its_command_in_that_member() {
+    let (_alpha, beta, cfg) = setup();
+    std::fs::write(
+        beta.path().join("tasks/bad.typ"),
+        mindtape::typst_task!("(\n  title: \"Bad\",\n  status: finishd(2026, 10, 19),\n)\n"),
+    )
+    .unwrap();
+    let name = beta
+        .path()
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_owned();
+    let stderr = fails(&["@both", "check"], &cfg);
+    let printed = format!("mt @{name} flip --list");
+    assert!(
+        stderr.contains(&format!(
+            "hint: run {printed} to see the statuses\nnote: project: {name}\n"
+        )),
+        "{stderr}"
+    );
+    let words: Vec<&str> = printed.split(' ').skip(1).collect();
+    let (ok, text) = support::text_of(&run(cfg.path(), &words));
+    assert!(ok && text.contains("done"), "{text}");
+}

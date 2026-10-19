@@ -10,7 +10,7 @@
     ease: 6,
   ),
   difficulty: 3,
-  estimate: (src-files: 2),
+  estimate: (src-files: 5),
   tags: ("found", "cli"),
   x-goals: (
     product: (
@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 19),
+  status: wip(2026, 10, 19),
 )
 
 == Problem
@@ -57,18 +57,22 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape-cli/src/diag/hint.rs`: let a hint's command take the member's `@name`.
-- The set runner that adds `note: project: …`: hand the member's name to the hints it prints.
+- `crates/mindtape-cli/src/diag/hint.rs`: `Diag::in_member` puts the member's `@name` into every project command its hints name and adds `note: project: <name>`, and `Command::mt_global()` builds a command that stays bare.
+- `crates/mindtape-cli/src/project_set.rs`: pass a member's config warnings and load problems through `Diag::in_member`, in place of `project_note`.
+- `crates/mindtape-cli/src/cmd/check/set.rs`: the same for a member's findings and its failure.
+- `crates/mindtape-cli/src/cmd/ls/set.rs`: the same for a member that fails to list.
+- `crates/mindtape-cli/src/cmd/install/hint.rs`: build `mt install` with `Command::mt_global()`.
 
 
 == Rollback
 
-- Revert both files.
+- Revert the five files.
 
 
 == Out of scope
 
 - Hints that name a global command such as `mt install`, which take no `@name`.
+- The held-back warning's `mt @<name> allow`, which `held_back_warning` builds by hand: `route-the-held-back-allow-hint-through-diag-in-member.typ`, since five files are this difficulty's cap.
 
 
 == Dogfood
