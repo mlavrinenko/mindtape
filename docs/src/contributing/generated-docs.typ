@@ -167,6 +167,6 @@ message at all. So before you use a new construct in a source, run
   Rewrap so no line starts with the number, or escape the period (`15\.`).
 
 typlite emits one line per paragraph, so a generated file's line count
-measures paragraphs, list items and table rows. `.linecop.yaml` caps each
-`docs/src` source, and also caps the rendered CONTRIBUTING.md, which every
+measures paragraphs, list items and table rows. `.config/linecop.yaml` caps
+each `docs/src` source, and also caps the rendered CONTRIBUTING.md, which every
 agent session loads.

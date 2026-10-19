@@ -107,7 +107,7 @@ assert_accepted bench::gen 100
 # one, where the shell would split the value into two words:
 # the body interpolates the value into `outdatty update --group {{ GROUP }}`,
 # so a space must be refused at dispatch. `'DEV_DOCS'` locks the shape that a
-# group name can never take (outdatty.yaml names are all lowercase).
+# group name can never take (.config/outdatty.yaml names are all lowercase).
 assert_rejected outdatty::update 'Dev Docs'
 assert_rejected outdatty::update 'DEV_DOCS'
 assert_accepted outdatty::update dev-shell-docs

@@ -195,7 +195,7 @@ bash "$SCRIPT_DIR/generate-facts.sh"
 # (PKG_VERSION) just written above, plus every capture this script itself
 # wrote (hero-source.typ, cli.json, …) — a page importing utils/ui.typ dies on
 # a top-level read() otherwise (measured in the umbrella task). Its own file
-# because this one is already at .linecop.yaml's 300-line Shell cap.
+# because this one is already at .config/linecop.yaml's 300-line Shell cap.
 bash "$SCRIPT_DIR/generate-site-pages.sh"
 
 # A capture shows what any reader's `mt` prints, so no capture may name this

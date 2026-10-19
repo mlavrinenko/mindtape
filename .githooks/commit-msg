@@ -10,10 +10,10 @@
 #    this hook runs from a plain `git commit` outside it; no dev shell at
 #    all (direnv missing) fails here with direnv's own error rather than
 #    silently skipping the check.
-# 3. A commit whose outdatty.lock re-records a group and that edits none of the
-#    group's dependents names the group in a `Docs-Unaffected:` trailer
-#    (.just/scripts/outdatty-review-trailer.sh, which says why it is a script
-#    and not a commit rule). Through `direnv exec` for its yq and jq.
+# 3. A commit whose .config/outdatty.lock re-records a group and that edits
+#    none of the group's dependents names the group in a `Docs-Unaffected:`
+#    trailer (.just/scripts/outdatty-review-trailer.sh, which says why it is a
+#    script and not a commit rule). Through `direnv exec` for its yq and jq.
 # 4. Enforce visibility for the pre-commit freshness override. When
 #    MINDTAPE_GATE_SCOPE skipped `mmz --is-fresh --tag gate` (see
 #    .githooks/pre-commit), the commit message must carry a matching

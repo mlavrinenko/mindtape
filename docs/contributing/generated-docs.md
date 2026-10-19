@@ -82,4 +82,4 @@ A footnote fails with a message about typlite’s internals, not your source. A 
 - `doc-title` with a raw span inside renders the span as `<code>`, so the heading demotion in `docs/generate-md.sh` skips it and the title stays a raw `<h1>`. For a literal backtick in a title, interpolate the character from a string.
 - A wrapped line that starts with a number and a period is a list item to Typst. The paragraph splits around a stray list marker with no error. Rewrap so no line starts with the number, or escape the period (`15\.`).
 
-typlite emits one line per paragraph, so a generated file’s line count measures paragraphs, list items and table rows. `.linecop.yaml` caps each `docs/src` source, and also caps the rendered CONTRIBUTING.md, which every agent session loads.
+typlite emits one line per paragraph, so a generated file’s line count measures paragraphs, list items and table rows. `.config/linecop.yaml` caps each `docs/src` source, and also caps the rendered CONTRIBUTING.md, which every agent session loads.

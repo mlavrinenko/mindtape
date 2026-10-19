@@ -1,9 +1,10 @@
-//! `outdatty.lock` merges key by key through the `outdatty-lock` merge driver
-//! (`.just/scripts/outdatty-lock-merge.sh`), which `just install-hooks`
+//! `.config/outdatty.lock` merges key by key through the `outdatty-lock` merge
+//! driver (`.just/scripts/outdatty-lock-merge.sh`), which `just install-hooks`
 //! registers and `.gitattributes` assigns. Each test builds a throwaway repo
-//! that carries the driver, the attributes and two outdatty groups, registers
-//! the driver with the real recipe, and merges two branches that recorded the
-//! lock.
+//! laid out like this one, its manifest and lock in `.config/` with
+//! `root: ..`, that carries the driver, the attributes and two outdatty
+//! groups. It registers the driver with the real recipe and merges two
+//! branches that recorded the lock.
 //!
 //! Unix only: the driver needs `bash`, `yq`, `jq` and `b3sum`, which the dev
 //! shell provides and the Windows job, which has no dev shell, does not.
@@ -16,7 +17,13 @@ use std::process::Output;
 
 const DRIVER: &str = ".just/scripts/outdatty-lock-merge.sh";
 
-const MANIFEST: &str = "require_tracked: [\"!**\"]
+/// Where this repo keeps the manifest and the lock. Their `root: ..` makes
+/// every lock key a path from the top of the repo, not from `.config/`.
+const MANIFEST_PATH: &str = ".config/outdatty.yaml";
+const LOCK: &str = ".config/outdatty.lock";
+
+const MANIFEST: &str = "root: ..
+require_tracked: [\"!**\"]
 groups:
   - name: alpha
     source: [a.txt]
@@ -50,7 +57,7 @@ impl Repo {
                 &std::fs::read_to_string(checkout().join(path)).unwrap(),
             );
         }
-        repo.write("outdatty.yaml", MANIFEST);
+        repo.write(MANIFEST_PATH, MANIFEST);
         for path in ["a.txt", "a-doc.txt", "g.txt", "g-doc.txt"] {
             repo.write(path, FIVE_LINES);
         }
@@ -127,7 +134,7 @@ impl Repo {
     /// which is what a merge without the driver would do.
     fn text_merge_conflicts(&self, base: &str, ours: &str, theirs: &str) -> bool {
         for (name, rev) in [("O", base), ("A", ours), ("B", theirs)] {
-            let blob = self.git(&["show", &format!("{rev}:outdatty.lock")]);
+            let blob = self.git(&["show", &format!("{rev}:{LOCK}")]);
             self.write(&format!("merge-{name}"), &blob);
         }
         let out = self.command(
@@ -144,11 +151,11 @@ impl Repo {
     /// merged tree: `outdatty check` passes and a full re-record changes no
     /// byte of it.
     fn assert_lock_is_current(&self) {
-        let before = self.read("outdatty.lock");
+        let before = self.read(LOCK);
         assert!(!before.contains("<<<<<<<"), "{before}");
         self.ok("outdatty", &["check", "--format", "quiet"]);
         self.ok("outdatty", &["update", "--format", "quiet"]);
-        assert_eq!(self.read("outdatty.lock"), before);
+        assert_eq!(self.read(LOCK), before);
     }
 }
 
@@ -186,16 +193,7 @@ fn the_driver_merges_three_lock_versions_that_conflict_as_text() {
 
     let out = repo.command(
         "bash",
-        &[
-            DRIVER,
-            "O",
-            "A",
-            "B",
-            "outdatty.lock",
-            "base",
-            "ours",
-            "theirs",
-        ],
+        &[DRIVER, "O", "A", "B", LOCK, "base", "ours", "theirs"],
     );
     assert!(out.status.success(), "{}", stderr(&out));
     let expected = ours
@@ -207,11 +205,11 @@ fn the_driver_merges_three_lock_versions_that_conflict_as_text() {
 #[test]
 fn a_lock_merged_with_itself_keeps_every_byte() {
     let repo = Repo::new();
-    let lock = repo.read("outdatty.lock");
+    let lock = repo.read(LOCK);
     for name in ["O", "A", "B"] {
         repo.write(name, &lock);
     }
-    let out = repo.command("bash", &[DRIVER, "O", "A", "B", "outdatty.lock"]);
+    let out = repo.command("bash", &[DRIVER, "O", "A", "B", LOCK]);
     assert!(out.status.success(), "{}", stderr(&out));
     assert_eq!(repo.read("A"), lock);
 }
@@ -221,7 +219,7 @@ fn a_rebase_over_branches_that_recorded_different_groups_does_not_conflict() {
     let repo = Repo::new();
     repo.git(&["checkout", "-q", "-b", "feat"]);
     repo.write(
-        "outdatty.yaml",
+        MANIFEST_PATH,
         &MANIFEST.replace(
             "  - name: gamma",
             "  - name: beta\n    source: [b.txt]\n    dependents: [b-doc.txt]\n  - name: gamma",
@@ -309,7 +307,7 @@ fn rebase_over_two_edits_of(repo: &Repo, path: &str, dependent: Option<&str>) {
         note.contains("group alpha") && note.contains(path),
         "the driver names the group and the path: {note}"
     );
-    let lock = repo.read("outdatty.lock");
+    let lock = repo.read(LOCK);
     assert!(lock.contains(&format!("{path}: \"{UNMATCHED}\"")), "{lock}");
 }
 
@@ -347,7 +345,7 @@ fn a_source_both_sides_edited_and_recorded_is_left_for_review() {
 fn a_rebase_over_a_renamed_group_drops_the_old_groups_leaves() {
     let repo = Repo::new();
     repo.git(&["branch", "feat"]);
-    repo.write("outdatty.yaml", &MANIFEST.replace("gamma", "delta"));
+    repo.write(MANIFEST_PATH, &MANIFEST.replace("gamma", "delta"));
     repo.ok("outdatty", &["update", "--format", "quiet"]);
     repo.commit("dev: rename gamma to delta");
 
@@ -357,7 +355,7 @@ fn a_rebase_over_a_renamed_group_drops_the_old_groups_leaves() {
     repo.commit("docs: review g-doc");
     let out = repo.command("git", &["rebase", "main"]);
     assert!(out.status.success(), "{}{}", stdout(&out), stderr(&out));
-    let lock = repo.read("outdatty.lock");
+    let lock = repo.read(LOCK);
     assert!(!lock.contains("gamma"), "{lock}");
     assert!(lock.contains("delta"), "{lock}");
     repo.ok("outdatty", &["check", "--format", "quiet"]);

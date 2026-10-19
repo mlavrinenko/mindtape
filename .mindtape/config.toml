@@ -407,7 +407,7 @@ message = "cut this section to under 120 words, or split the task in two"
 #   docs/contributing/*.md: rendered from docs/src/**.typ by `just docs-md`.
 # - www/generated/**: derived facts and captured CLI output, rebuilt by
 #   `just docs-gen`.
-# - outdatty.lock: a review watermark `just outdatty::update` rewrites.
+# - .config/outdatty.lock: a review watermark `just outdatty::update` rewrites.
 # - docs/src/**, www/content/**: the docs every task touches by process.
 # - CHANGELOG.md: the entry every task's commit carries.
 # - truth/tasks/**: a task's own file, which `mt flip` writes.
@@ -428,7 +428,7 @@ values = [
   "!skills/mindtape/SKILL.md",
   "!docs/contributing/*.md",
   "!www/generated/**",
-  "!outdatty.lock",
+  "!.config/outdatty.lock",
   "!docs/src/**",
   "!www/content/**",
   "!CHANGELOG.md",
@@ -500,7 +500,7 @@ severity = "error"
 # It selects on the provenance tag alone, not on any signal tag, so a new signal
 # joins the guard for free. `!terminal` is what "still open" means here:
 # cancelling a finding is a legitimate way to empty the view, and so is writing
-# the `.linecop.yaml` override that makes the finding stop existing.
+# the `.config/linecop.yaml` override that makes the finding stop existing.
 [views.ask-refactoring]
 filter = 'has_tag("swept") && !terminal'
 sort = ["priority:desc"]

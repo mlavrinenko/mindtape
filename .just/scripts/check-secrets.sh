@@ -10,8 +10,8 @@
 #
 # Why the target is `.` and the CWD is the repo root, measured rather than
 # assumed: gitleaks reports a finding's path exactly as its target was
-# spelled, so `gitleaks dir "$PWD"` yields `/home/…/outdatty.lock` and every
-# `^`-anchored allowlist in that config silently stops matching — the
+# spelled, so `gitleaks dir "$PWD"` yields `/home/…/.config/outdatty.lock` and
+# every `^`-anchored allowlist in that config silently stops matching — the
 # gate would go from one known false positive to several, and the walk bound
 # would stop bounding. A relative `.` from the root is the only invocation
 # those anchors describe. It is also why arm one scans its fixture by cd-ing
@@ -29,7 +29,7 @@
 #   - the derived walk bound fires and is `^`-anchored, and follows git's own
 #     negation (the copies under `target/` and `.cargo/` are silent, the
 #     tracked `.cargo/keep.toml` beside them is not),
-#   - the outdatty.lock allowlist fires (the digest line is silent),
+#   - the .config/outdatty.lock allowlist fires (the digest line is silent),
 #   - it is scoped to the digest shape (a `generic-api-key` hit in that same
 #     file that is not a bare sha256 is still reported — dropping
 #     `condition = "AND"` from the config fails here and nowhere else),
@@ -76,8 +76,8 @@ trap 'rm -rf "$fixture" "$bounds"' EXIT
 # lookahead RE2 lacks. Each entry becomes a `^<path>(/|$)` allowlist
 # appended to a copy of $config: appended rather than `[extend] path`-ed,
 # because a `targetRules` allowlist in an extended config is dropped (the
-# outdatty.lock one, measured on gitleaks 8.30, and caught by arm one's
-# control). `(/|$)` rather than `/`: `^gen/` never matches
+# .config/outdatty.lock one, measured on gitleaks 8.30, and caught by arm
+# one's control). `(/|$)` rather than `/`: `^gen/` never matches
 # the directory `gen` itself, so the walk would descend and stat children a
 # parallel docs arm may be deleting (measured under `--log-level debug` on
 # gitleaks 8.30). The config is written outside the scanned tree.
@@ -110,16 +110,16 @@ gitleaks_bin=$(command -v gitleaks) || {
     exit 1
 }
 
-mkdir -p "$fixture/target"
-# Three lines, one per thing the outdatty.lock allowlist must get right. The
-# first is a synthetic stand-in for the real lock's `refactor-auth.typ` entry
-# — keyed on a name carrying "auth" so `generic-api-key` reads it as a secret
-# — and must be silenced. Synthetic rather than copied, so re-recording that
-# group cannot rot this fixture. The second is the same rule in the same file
+mkdir -p "$fixture/target" "$fixture/.config"
+# Three lines, one per thing the .config/outdatty.lock allowlist must get
+# right. The first is a synthetic stand-in for the real lock's
+# `refactor-auth.typ` entry — keyed on a name carrying "auth" so
+# `generic-api-key` reads it as a secret — and must be silenced. Synthetic
+# rather than copied, so re-recording that group cannot rot this fixture. The second is the same rule in the same file
 # on a value that is not a bare sha256, and must survive: it is the only line
 # that fails if the allowlist is widened from the digest shape to the whole
 # file. The third is a different rule entirely, and must survive too.
-cat >"$fixture/outdatty.lock" <<EOF
+cat >"$fixture/.config/outdatty.lock" <<EOF
   refactor-auth.typ: $control_digest
   refactor-auth-key.typ: $control_nondigest
   leaked.typ: $control_key
@@ -133,7 +133,7 @@ printf 'key = %s\n' "$control_key" | tee "$fixture/target/leak.txt" \
     "$fixture/.cargo/junk" >"$fixture/.cargo/keep.toml"
 printf '/target\n/.cargo/*\n!/.cargo/keep.toml\n' >"$fixture/.gitignore"
 git -C "$fixture" init -q
-git -C "$fixture" add .gitignore outdatty.lock .cargo/keep.toml
+git -C "$fixture" add .gitignore .config/outdatty.lock .cargo/keep.toml
 derive_bound "$fixture" "$bounds/control.toml"
 
 # `--exit-code 0` so a finding is not an error here — the finding is the
@@ -149,7 +149,7 @@ if ! (cd "$fixture" && "$gitleaks_bin" dir -c "$bounds/control.toml" --no-banner
     exit 1
 fi
 
-expected=".cargo/keep.toml:aws-access-token, outdatty.lock:aws-access-token, outdatty.lock:generic-api-key"
+expected=".cargo/keep.toml:aws-access-token, .config/outdatty.lock:aws-access-token, .config/outdatty.lock:generic-api-key"
 control=$(jq -r '[.[] | "\(.File):\(.RuleID)"] | sort | join(", ")' "$report")
 if [ "$control" != "$expected" ]; then
     echo "check-secrets: the control fixture reported [$control]" >&2

@@ -26,15 +26,15 @@
 #      cover every script that body reaches — through another script and
 #      through a nested `just`, not only the ones it names itself.
 #   3. Is it coupled to the docs it can rot, or placed on purpose where none
-#      does? Same enumeration problem, one file over: `outdatty.yaml` lists
-#      these scripts one by one in groups, and outdatty reacts only to files it
-#      lists, so a script never added is coupled to no dependent and reported
-#      by nothing (truth/tasks/fail-a-half-wired-gate-arm-at-the-wiring-it-is-
-#      missing.typ). Membership is all this arm claims: which dependents a
+#      does? Same enumeration problem, one file over: `.config/outdatty.yaml`
+#      lists these scripts one by one in groups, and outdatty reacts only to
+#      files it lists, so a script never added is coupled to no dependent and
+#      reported by nothing (truth/tasks/fail-a-half-wired-gate-arm-at-the-
+#      wiring-it-is-missing.typ). Membership is all this arm claims: which dependents a
 #      script owes is outdatty's own subject, and it answers that well once the
 #      file is listed at all.
-#   4. Does the `just outdatty::check` rule hash every file outdatty.yaml
-#      lists, source or dependent? outdatty compares them to the lock, but mmz
+#   4. Does the `just outdatty::check` rule hash every file
+#      .config/outdatty.yaml lists, source or dependent? outdatty compares them to the lock, but mmz
 #      serves the rule from cache unless a declared input changed, so a listed
 #      file outside the rule's scopes (06a0492f's .config/wt.toml) goes
 #      false-fresh. Arm three covers scripts only; this covers every path.
@@ -162,32 +162,32 @@ while IFS=$'\t' read -r recipe script chain; do
     fi
 done <<<"$reachable"
 
-# Arm three: every script is a source of some outdatty.yaml group. Read from
-# outdatty.yaml rather than outdatty.lock, because the lock records what was
-# confirmed, so a script listed in neither is missing from both and the lock
-# agrees with itself.
-group_sources=$(yq -r '.groups // [] | .[] | (.source // [])[]' outdatty.yaml)
+# Arm three: every script is a source of some .config/outdatty.yaml group. Read
+# from the manifest rather than .config/outdatty.lock, because the lock records
+# what was confirmed, so a script listed in neither is missing from both and
+# the lock agrees with itself.
+group_sources=$(yq -r '.groups // [] | .[] | (.source // [])[]' .config/outdatty.yaml)
 
 if [ -z "$group_sources" ]; then
-    echo "script-scope-check: outdatty.yaml declares no group sources" >&2
+    echo "script-scope-check: .config/outdatty.yaml declares no group sources" >&2
     echo "  the key this arm reads was renamed or removed; retarget the arm, do not delete it" >&2
     exit 1
 fi
 
 for script in "${scripts[@]}"; do
     if ! grep -qxF "$script" <<<"$group_sources"; then
-        echo "script-scope-check: $script is a source of no outdatty.yaml group" >&2
+        echo "script-scope-check: $script is a source of no .config/outdatty.yaml group" >&2
         echo "  add \`      - $script\` to the group of the doc that restates it, so editing it asks for that doc" >&2
         echo "  or to the source-only group scripts-no-doc, with the reason no doc restates it" >&2
         fail=1
     fi
 done
 
-# Arm four: every file outdatty.yaml lists, as a source or a dependent, is
-# hashed by the `just outdatty::check` rule. outdatty-check compares each listed
-# file to outdatty.lock, so a listed file that none of the rule's input scopes
-# holds can change and leave the gate recorded fresh, which let a .config/wt.toml
-# edit land on a red main. A glob entry is expanded over the files git lists, so
+# Arm four: every file .config/outdatty.yaml lists, as a source or a dependent,
+# is hashed by the `just outdatty::check` rule. outdatty-check compares each
+# listed file to .config/outdatty.lock, so a listed file that none of the
+# rule's input scopes holds can change and leave the gate recorded fresh, which
+# let a .config/wt.toml edit land on a red main. A glob entry is expanded over the files git lists, so
 # a dependent glob is judged file by file. Patterns match as in arm two, and
 # the rule's own scopes are the only thing read: no scope is named here.
 outdatty_rule="just outdatty::check"
@@ -201,7 +201,7 @@ if [ -z "$rule_patterns" ]; then
     exit 1
 fi
 files=$(git ls-files --cached --others --exclude-standard)
-listed=$(yq -r '.groups // [] | .[] | ((.source // []) + (.dependents // []))[]' outdatty.yaml | sort -u)
+listed=$(yq -r '.groups // [] | .[] | ((.source // []) + (.dependents // []))[]' .config/outdatty.yaml | sort -u)
 while IFS= read -r entry; do
     [ -n "$entry" ] || continue
     if [[ "$entry" == *[][*?]* ]]; then
@@ -221,7 +221,7 @@ while IFS= read -r entry; do
             fi
         done <<<"$rule_patterns"
         if [ "$covered" -eq 0 ]; then
-            echo "script-scope-check: $f is listed in outdatty.yaml but no scope of \`$outdatty_rule\` holds it" >&2
+            echo "script-scope-check: $f is listed in .config/outdatty.yaml but no scope of \`$outdatty_rule\` holds it" >&2
             echo "  add it to the \`outdatty-sources\` scope in $manifest, so editing it busts the rule" >&2
             fail=1
         fi

@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 19),
+  status: done(2026, 10, 19),
 )
 
 == Problem
@@ -47,7 +47,9 @@
 
 - `flake.lock`: qahq 0.8.0.
 - `.config/outdatty.yaml`, `.config/outdatty.lock`, `.config/linecop.yaml`: the moved files, each config with `root: ..`.
-- `.just/outdatty.just`, `Justfile`, `.just/scripts/*.sh`: the manifest and lock paths the scripts and the merge driver read.
+- `.just/outdatty.just`, `Justfile`, `.just/scripts/*.sh`: the manifest and lock paths the scripts and their fixtures read.
+- `.just/scripts/outdatty-lock-merge.sh`: read the manifest beside the lock and turn a lock key into a path from the top through its `root:`. It read `config/outdatty.yaml` for a lock in `.config/`.
+- `.config/gitleaks.toml`: the lock allowlist's anchored path.
 - `.gitattributes`, `.mmz/config.yaml`, `.mindtape/config.toml`, `flake.nix`, `.githooks/commit-msg`: the new paths.
 - `docs/src/contributing.typ`, `docs/src/contributing/*.typ`, `contrib/ask-refactoring*`, `.mindtape/templates/sweep-size.typ`, `www/*.sh`: the new paths, with the rendered docs.
 - `crates/mindtape-cli/tests/it/outdatty_lock_merge_e2e.rs`: the lock and manifest at their new paths.

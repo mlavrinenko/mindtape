@@ -178,11 +178,11 @@ scoring are in
 
 = Dependency Drift (outdatty)
 
-#link("outdatty.yaml")[`outdatty.yaml`] lists, for each source file, the
-files that restate it.
+#link(".config/outdatty.yaml")[`.config/outdatty.yaml`] lists, for each source
+file, the files that restate it.
 
 - After you edit a source, update its dependents, run
-  #just.outdatty-update("<group>") and commit `outdatty.lock`. If the
+  #just.outdatty-update("<group>") and commit `.config/outdatty.lock`. If the
   dependents all still hold and the commit edits none of them, add a
   `Docs-Unaffected: <group>` footer, one line per group you read. The
   commit-msg hook refuses the commit without it and lists the files to read.
@@ -193,13 +193,13 @@ files that restate it.
 - A new file that a glob dependent matches needs a hash of its own.
   #just.outdatty-check() fails until the lock holds it.
 
-A rebase or merge joins two branches' `outdatty.lock` key by key through
+A rebase or merge joins the two branches' locks key by key through
 `.just/scripts/outdatty-lock-merge.sh`. When both branches edited one source
 and re-recorded it, its hash comes out as zeros, so #just.outdatty-check()
 reports that group until you review it and commit the re-record, which owes
-the footer like any other. The driver also drops a group the merged
-`outdatty.yaml` doesn't declare, so a split or a rename leaves no orphan
-hashes, and #just.outdatty-check() fails on one that got in anyway.
+the footer like any other. The driver also drops a group the merged manifest
+doesn't declare, so a split or a rename leaves no orphan hashes, and
+#just.outdatty-check() fails on one that got in anyway.
 `.config/jscpd-baseline.json` merges as the union of both fingerprint maps
 through `.just/scripts/jscpd-baseline-merge.sh`. `.config/crap-baseline.json`
 merges function by function through `.just/scripts/crap-baseline-merge.sh`,

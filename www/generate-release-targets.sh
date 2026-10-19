@@ -3,8 +3,8 @@
 # from .github/workflows/release.yml, for the install page.
 #
 # Split out of www/generate.sh (which calls this, still inside the lock it
-# already holds) to bring that script back under .linecop.yaml's 300-line
-# Shell cap. This one takes no lock of its own: it is called from inside the
+# already holds) to bring that script back under .config/linecop.yaml's
+# 300-line Shell cap. This one takes no lock of its own: it is called from inside the
 # same critical section that `rm -rf`s and restores www/generated/, and writes
 # exactly one artifact into the directory the caller hands it.
 #

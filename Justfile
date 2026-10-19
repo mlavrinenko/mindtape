@@ -176,14 +176,14 @@ check-windows:
 [script]
 install-hooks:
     git config core.hooksPath .githooks
-    git config merge.outdatty-lock.name "outdatty.lock, merged key by key"
+    git config merge.outdatty-lock.name ".config/outdatty.lock, merged key by key"
     git config merge.outdatty-lock.driver 'bash .just/scripts/outdatty-lock-merge.sh %O %A %B %P %S %X %Y'
     git config merge.jscpd-baseline.name ".config/jscpd-baseline.json, merged as a fingerprint union"
     git config merge.jscpd-baseline.driver 'bash .just/scripts/jscpd-baseline-merge.sh %O %A %B %P'
     git config merge.crap-baseline.name ".config/crap-baseline.json, merged entry by entry"
     git config merge.crap-baseline.driver 'bash .just/scripts/crap-baseline-merge.sh %O %A %B %P'
     rm -f .git/hooks/pre-commit
-    echo "installed .githooks and the outdatty.lock, .config/jscpd-baseline.json and .config/crap-baseline.json merge drivers"
+    echo "installed .githooks and the .config/outdatty.lock, .config/jscpd-baseline.json and .config/crap-baseline.json merge drivers"
 
 [doc("Count tests across the workspace")]
 [extension('.sh')]

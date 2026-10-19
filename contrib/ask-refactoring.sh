@@ -18,8 +18,8 @@
 #   Idempotency comes from the signal, not a ledger. A closed task whose
 #   condition still holds is noticed again, because the work did not happen.
 #   The one suppression is an override with a written reason in the signal's
-#   own config: .linecop.yaml for sizes, an `--exclude` in the `just crap::check`
-#   recipe for coverage.
+#   own config: .config/linecop.yaml for sizes, an `--exclude` in the
+#   `just crap::check` recipe for coverage.
 #
 # The re-run guard is [views.ask-refactoring] in .mindtape/config.toml: while a
 # task the sweep filed is open, the sweep refuses.

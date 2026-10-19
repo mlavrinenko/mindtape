@@ -46,7 +46,7 @@
 #   - just.typ          <- the same `just --dump` as gates.json (one
 #                          shell-out, two artifacts): a Typst module, one
 #                          function per public recipe
-#   - linecop-caps.json <- .linecop.yaml, via yq
+#   - linecop-caps.json <- .config/linecop.yaml, via yq
 #   - sweep-flags.json  <- the same `just --dump` (see www/sweep-flags.jq)
 #
 # linecop-caps.json is the one artifact without a consumer. It is derived
@@ -288,7 +288,7 @@ jq -r --arg header "$JUST_TYP_HEADER" '
 jq -f "$SCRIPT_DIR/sweep-flags.jq" <<<"$JUST_DUMP" | emit sweep-flags.json
 
 # --- linecop-caps.json --------------------------------------------------------
-# The exact `limits`/`overrides` .linecop.yaml carries — the source CONTRIBUTING.md
-# quotes caps from. yq is the same jq-over-YAML wrapper generate.sh uses for the
+# The exact `limits`/`overrides` .config/linecop.yaml carries — the source
+# CONTRIBUTING.md quotes caps from. yq is the same jq-over-YAML wrapper generate.sh uses for the
 # release workflow, so this stays consistent with the rest of the docs tooling.
-yq '{limits, overrides}' .linecop.yaml | emit linecop-caps.json
+yq '{limits, overrides}' .config/linecop.yaml | emit linecop-caps.json

@@ -21,7 +21,7 @@ A passing `just check` prints one line, such as `check: 28 gates passed (3 run, 
 
 `.just/scripts/mmz-arm.sh` does the capture once for every arm, so no tool needs a quiet flag. It writes each arm’s output to `target/check/<gate>.log`, and the log stays there after a pass. It asks `mmz --is-fresh` first, to count the arm as run or cached, because a cache hit prints nothing (`on_hit: ""` in `.mmz/config.yaml`). Outside `just check`, `just mmz <gate>` streams its output. `just test <filter>` runs outside mmz, so a filtered run never records a pass for the full suite.
 
-Every rule reads the `gates-meta` scope, which includes every justfile, so a justfile edit re-runs every arm. Each script under `.just/scripts/` has a scope of its own, so editing one re-runs the arms that reach it and the few that read the whole directory. The same goes for outdatty: `outdatty::check` reads every file `outdatty.yaml` lists, and `just meta script-scope` fails naming a listed file that its scopes miss.
+Every rule reads the `gates-meta` scope, which includes every justfile, so a justfile edit re-runs every arm. Each script under `.just/scripts/` has a scope of its own, so editing one re-runs the arms that reach it and the few that read the whole directory. The same goes for outdatty: `outdatty::check` reads every file `.config/outdatty.yaml` lists, and `just meta script-scope` fails naming a listed file that its scopes miss.
 
 ### Inputs a glob can’t name
 
@@ -48,7 +48,7 @@ So every arm that builds `mt` runs `cargo build -p mindtape-cli --tests`, which 
 
 ### Why each script has its own scope
 
-`.mmz/config.yaml` names one scope per file under `.just/scripts/`. A single glob over the directory would re-run every gate when one script changed. A list covers only the scripts someone added to it, so `just meta script-scope` fails on a script no scope names, on a rule that reaches a script its inputs miss, and on a script that’s a source of no `outdatty.yaml` group. Put a new script in the group of the doc that restates it, or in the source-only group when no doc does. `.just/scripts/script-scope-check.sh` explains each arm.
+`.mmz/config.yaml` names one scope per file under `.just/scripts/`. A single glob over the directory would re-run every gate when one script changed. A list covers only the scripts someone added to it, so `just meta script-scope` fails on a script no scope names, on a rule that reaches a script its inputs miss, and on a script that’s a source of no `.config/outdatty.yaml` group. Put a new script in the group of the doc that restates it, or in the source-only group when no doc does. `.just/scripts/script-scope-check.sh` explains each arm.
 
 ## The formatter path lists
 

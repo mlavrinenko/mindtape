@@ -1,4 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/mlavrinenko/linecop/refs/heads/main/linecop-schema.json
+
+# The repo root: linecop scans it, and every override pattern starts there.
+root: ..
+
 limits:
   Rust: 500
   Markdown: 200
@@ -44,7 +48,7 @@ overrides:
   # fires, follow "Rewrite the whole file" in docs/contributing/documentation.md
   # and never raise the number.
   #
-  # A pattern is a `.gitignore` line read from this file's directory. A bare
+  # A pattern is a `.gitignore` line read from `root`, the repo root. A bare
   # `README.md` matches that name at any depth, and `./README.md` or
   # `/README.md` anchors to the root. Each rendered file's pattern is anchored
   # with `./`, because skills/mindtape/evals/README.md is written by hand and

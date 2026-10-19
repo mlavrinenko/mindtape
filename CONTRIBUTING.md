@@ -92,14 +92,14 @@ When you see a real problem outside your task, file it with `mt add --template f
 
 ## Dependency Drift (outdatty)
 
-[`outdatty.yaml`](outdatty.yaml) lists, for each source file, the files that restate it.
+[`.config/outdatty.yaml`](.config/outdatty.yaml) lists, for each source file, the files that restate it.
 
-- After you edit a source, update its dependents, run `just outdatty update <group>` and commit `outdatty.lock`. If the dependents all still hold and the commit edits none of them, add a `Docs-Unaffected: <group>` footer, one line per group you read. The commit-msg hook refuses the commit without it and lists the files to read.
+- After you edit a source, update its dependents, run `just outdatty update <group>` and commit `.config/outdatty.lock`. If the dependents all still hold and the commit edits none of them, add a `Docs-Unaffected: <group>` footer, one line per group you read. The commit-msg hook refuses the commit without it and lists the files to read.
 - After you edit only a dependent, record that one file in the same commit with `just outdatty update <group> <path>`.
 - A recorded hash says someone reviewed the dependents. So run `just outdatty update-all` only after you’ve reviewed every group.
 - A new file that a glob dependent matches needs a hash of its own. `just outdatty check` fails until the lock holds it.
 
-A rebase or merge joins two branches’ `outdatty.lock` key by key through `.just/scripts/outdatty-lock-merge.sh`. When both branches edited one source and re-recorded it, its hash comes out as zeros, so `just outdatty check` reports that group until you review it and commit the re-record, which owes the footer like any other. The driver also drops a group the merged `outdatty.yaml` doesn’t declare, so a split or a rename leaves no orphan hashes, and `just outdatty check` fails on one that got in anyway. `.config/jscpd-baseline.json` merges as the union of both fingerprint maps through `.just/scripts/jscpd-baseline-merge.sh`. `.config/crap-baseline.json` merges function by function through `.just/scripts/crap-baseline-merge.sh`, which keeps the stricter score when both sides re-scored one, and `just crap check` on the merged tree decides. The dev shell registers all three.
+A rebase or merge joins the two branches’ locks key by key through `.just/scripts/outdatty-lock-merge.sh`. When both branches edited one source and re-recorded it, its hash comes out as zeros, so `just outdatty check` reports that group until you review it and commit the re-record, which owes the footer like any other. The driver also drops a group the merged manifest doesn’t declare, so a split or a rename leaves no orphan hashes, and `just outdatty check` fails on one that got in anyway. `.config/jscpd-baseline.json` merges as the union of both fingerprint maps through `.just/scripts/jscpd-baseline-merge.sh`. `.config/crap-baseline.json` merges function by function through `.just/scripts/crap-baseline-merge.sh`, which keeps the stricter score when both sides re-scored one, and `just crap check` on the merged tree decides. The dev shell registers all three.
 
 ## Version Management
 

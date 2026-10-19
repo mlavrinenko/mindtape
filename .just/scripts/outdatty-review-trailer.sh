@@ -6,7 +6,7 @@
 # .just/scripts/outdatty-review-trailer-fixture-check.sh holds its cases.
 #
 # A re-record (`just outdatty::update <group>`) moves the group's source hashes
-# in outdatty.lock and says someone read the group's dependents. When the
+# in .config/outdatty.lock and says someone read the group's dependents. When the
 # commit edits one of them, the diff shows the review. When it edits none, the
 # lock alone can't tell a review that found nothing from one nobody did, and
 # the dependents' hashes the re-record carried along don't help either. So such
@@ -38,7 +38,7 @@
 set -eo pipefail
 
 msg_file=$1
-lock=outdatty.lock
+lock=.config/outdatty.lock
 
 git rev-parse -q --verify MERGE_HEAD >/dev/null && exit 0
 
@@ -112,7 +112,7 @@ owed=$(jq -r -n --argjson old "$old" --argjson new "$new" \
 [ -z "$owed" ] && exit 0
 
 {
-    echo "commit-msg: outdatty.lock records a review of these groups, but this commit"
+    echo "commit-msg: .config/outdatty.lock records a review of these groups, but this commit"
     echo "changes none of their dependents:"
     echo
     while read -r group deps; do

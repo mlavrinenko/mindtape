@@ -49,8 +49,8 @@ machine and fails while other worktrees build beside it. So
 the frame they check.
 
 `tests/it/outdatty_lock_merge_e2e.rs` is `#![cfg(unix)]` too. It runs the
-`outdatty.lock` merge driver, a bash script that needs `yq`, `jq` and `b3sum`
-from the dev shell, and the Windows job has no dev shell.
+`.config/outdatty.lock` merge driver, a bash script that needs `yq`, `jq` and
+`b3sum` from the dev shell, and the Windows job has no dev shell.
 
 = Catching compile errors early
 

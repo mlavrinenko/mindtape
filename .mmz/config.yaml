@@ -115,11 +115,11 @@ scopes:
 
   # linecop config — a limit change busts the file-size gate.
   file-size-config:
-    - ".linecop.yaml"
+    - ".config/linecop.yaml"
 
   # gitleaks' ruleset for this repo — the default rules and one allowlist.
   # An edit changes what `just lint::secrets` can find, so it busts that rule
-  # the way .linecop.yaml busts the size gate.
+  # the way .config/linecop.yaml busts the size gate.
   secrets-config:
     - ".config/gitleaks.toml"
 
@@ -155,12 +155,12 @@ scopes:
     - "www/**"
 
   # outdatty's own config + lock. The dependents outdatty re-reads are already
-  # covered by the `rust`/`policy`/`examples`/`docs` scopes (outdatty.lock
-  # hashes their content), so a dependent edit busts via those scopes, and a
-  # raw lock/config edit busts here.
+  # covered by the `rust`/`policy`/`examples`/`docs` scopes (the lock hashes
+  # their content), so a dependent edit busts via those scopes, and a raw
+  # lock/config edit busts here.
   outdatty-config:
-    - "outdatty.yaml"
-    - "outdatty.lock"
+    - ".config/outdatty.yaml"
+    - ".config/outdatty.lock"
 
   # The example projects `just check-examples` validates. Keep this list and
   # that recipe in step: a fixture outside the scope goes false-fresh and stops
@@ -307,9 +307,9 @@ scopes:
   dry-baseline:
     - ".config/jscpd-baseline.json"
 
-  # The outdatty.yaml sources and dependents that no other scope holds, for
-  # `just outdatty::check`. The rule compares every listed file to outdatty.lock,
-  # so a listed file outside its inputs goes false-fresh when it changes.
+  # The .config/outdatty.yaml sources and dependents that no other scope holds,
+  # for `just outdatty::check`. The rule compares every listed file to the
+  # lock, so a listed file outside its inputs goes false-fresh when it changes.
   # `just meta::script-scope` (arm four) fails by name on a listed file that
   # the rule's scopes miss, so a new outdatty source is added here or to a scope
   # the rule already takes.
@@ -331,14 +331,14 @@ scopes:
 
   # The whole script directory as a set, for the four rules whose subject is
   # the directory rather than one body in it: `lint::size` (linecop scans
-  # every .sh under it, since .linecop.yaml sets `include_hidden: true`),
-  # `outdatty::check` (every script is a source of some group, so every script's
-  # content is compared against outdatty.lock), `meta::gate-drift` (which walks
-  # the call graph out of `check` and reads every script it reaches, so a new
-  # script is read as soon as it exists) and `meta::script-scope` (which takes
-  # the set difference below). All four take seconds at most, so the churn a
-  # glob costs here is worth paying. A rule that reads one body takes that
-  # body's own scope instead.
+  # every .sh under it, since .config/linecop.yaml sets `include_hidden:
+  # true`), `outdatty::check` (every script is a source of some group, so every
+  # script's content is compared against .config/outdatty.lock),
+  # `meta::gate-drift` (which walks the call graph out of `check` and reads
+  # every script it reaches, so a new script is read as soon as it exists) and
+  # `meta::script-scope` (which takes the set difference below). All four take
+  # seconds at most, so the churn a glob costs here is worth paying. A rule
+  # that reads one body takes that body's own scope instead.
   #
   # It is the only glob over this directory. A rule that has to notice a new
   # script cannot be given an enumeration, because the file it must react to is
@@ -584,8 +584,8 @@ commands:
     tags: [gate]
     inputs: [shell-scripts, gates-meta]
 
-  # linecop scans every language `.linecop.yaml` gives a base limit (Rust,
-  # Markdown, Shell and Typst, with target/archive/var excluded by config), so
+  # linecop scans every language `.config/linecop.yaml` gives a base limit
+  # (Rust, Markdown, Shell and Typst, with target/archive/var excluded by config), so
   # the input list has to cover all four. `crates/**/*.rs` is `rust`; the
   # tracked `.md` files and the `www/`+`contrib/` shell live under `docs`;
   # `.just/scripts/*.sh` is `scripts-all`, the whole directory and not one body,
@@ -594,7 +594,7 @@ commands:
   # Typst half: `lib/**`, `.mindtape/templates/**` and the example
   # projects' task trees and templates. Without them a Typst file could cross its
   # cap while this rule still reported fresh. `.mindtape/templates/**` is
-  # scanned only because `.linecop.yaml` sets `include_hidden: true`.
+  # scanned only because `.config/linecop.yaml` sets `include_hidden: true`.
   - name: just lint::size
     tags: [gate]
     inputs: [rust, policy, examples, file-size-config, docs, gates-meta, scripts-all]
@@ -628,7 +628,7 @@ commands:
   # a dependent edit busts via those scopes, and `outdatty-config` covers the
   # lock and the group config directly. The rule takes `scripts-all` and not one
   # script's scope: every file in .just/scripts/ is a source of some group
-  # (outdatty.yaml lists them one by one), so this rule reads the whole
+  # (.config/outdatty.yaml lists them one by one), so this rule reads the whole
   # directory, and a per-body scope would leave the rest false-fresh.
   # `outdatty-sources` holds the listed files no other scope does; arm four of
   # `just meta::script-scope` fails by name on one the inputs miss.
@@ -655,8 +655,8 @@ commands:
 
   # Regenerates its own facts (www/generate-facts.sh reads Cargo.toml/Cargo.lock/
   # rust-toolchain.toml — `rust` — plus lib/prelude.typ/lib/typst.toml —
-  # `policy` — and .linecop.yaml — `file-size-config`) then set-differences
-  # crate-map.json/dsl-fields.json against the two prose dicts under
+  # `policy` — and .config/linecop.yaml — `file-size-config`) then
+  # set-differences crate-map.json/dsl-fields.json against the two prose dicts under
   # www/utils/ (`docs`). `script-check-doc-facts` is the recipe body;
   # `gates-meta` carries the gate-table shape www/generate-facts.sh's
   # gates.json reads back out of the Justfile. `script-nav-diff` is here because
@@ -679,8 +679,8 @@ commands:
   # Scans the doc sources (`docs`) for history words and all-caps emphasis, and
   # the full-line comments of every tracked shell script, YAML file and Justfile
   # module: the Justfile and .just/*.just (`gates-meta`), .mmz/config.yaml
-  # (`mmz-config`), outdatty.yaml (`outdatty-config`), .linecop.yaml
-  # (`file-size-config`), .just/scripts (`scripts-all`) and the rest
+  # (`mmz-config`), .config/outdatty.yaml (`outdatty-config`),
+  # .config/linecop.yaml (`file-size-config`), .just/scripts (`scripts-all`) and the rest
   # (`comment-sources`, `docs`). It also reads the descriptions in both schemas
   # (`policy`) and the help strings of `mt _cli --json`, so it builds `mt`
   # (`rust`), as docs::spans does. It reads no generated file.
@@ -712,8 +712,8 @@ commands:
   # The inputs are the union the four readers declared for running
   # www/generate.sh themselves: the built `mt` (`rust`), the prelude and root
   # config (`policy`), the fixtures it captures (`examples`), www/, docs/,
-  # contrib/ and the release workflow (`docs`), the .linecop.yaml it reads back
-  # as linecop-caps.json (`file-size-config`), and the Justfile it dumps for
+  # contrib/ and the release workflow (`docs`), the .config/linecop.yaml it
+  # reads back as linecop-caps.json (`file-size-config`), and the Justfile it dumps for
   # gates.json and just.typ (`gates-meta`). The `outputs` void the record when
   # www/generated/ or the favicon is deleted, by a `cargo clean`-style wipe or a
   # fresh clone, so a reader never meets a fresh record over a missing file.
@@ -876,8 +876,8 @@ commands:
   # this rule must react to is by definition the one no scope lists yet, and an
   # enumeration could not see it appear. `script-script-scope-check` is its own
   # body, and `gates-meta` is the Justfile it dumps plus the dev shell yq/jq
-  # come from. `outdatty-config` is here because arm three reads outdatty.yaml's
-  # group sources, so a script dropped from those lists must bust this rule.
+  # come from. `outdatty-config` is here because arm three reads
+  # .config/outdatty.yaml's group sources, so a script dropped from those lists must bust this rule.
   # Without it the arm would report a verdict over a file it never hashed, the
   # false-fresh the arms themselves exist to refuse.
   #
@@ -903,8 +903,8 @@ commands:
   # body runs www/generate.sh to produce www/generated/, so this rule reads
   # everything `just docs::check` names for that same producer: the built `mt`
   # and its sources, lib/prelude.typ, the example fixtures it captures
-  # against. `file-size-config` is for the .linecop.yaml generate-facts.sh reads
-  # back as linecop-caps.json, as `just docs::facts` names it for running
+  # against. `file-size-config` is for the .config/linecop.yaml
+  # generate-facts.sh reads back as linecop-caps.json, as `just docs::facts` names it for running
   # the same script. A verdict rarely turns on these four scopes, but naming
   # them costs a re-run, and leaving them out would record a pass over a file
   # the rule never hashed.

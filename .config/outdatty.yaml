@@ -1,5 +1,9 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/mlavrinenko/outdatty/main/schema/outdatty.schema.json
 
+# Every path below and every key in outdatty.lock, which sits beside this file,
+# starts at the repo root.
+root: ..
+
 # Declares which dependents must be re-confirmed when a source changes. After
 # editing a source, review the dependents and run `just outdatty::update <group>`
 # to record the new state. `just outdatty::update-all` re-records every group, so

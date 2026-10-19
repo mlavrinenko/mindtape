@@ -4,9 +4,9 @@
 #
 # Lock the file-size gate's scan scope, not its limits: synthesize an
 # oversized shell script at `.just/scripts/` inside a replica tree, then
-# assert `linecop`, reading this repo's `.linecop.yaml`, reports it. The
-# limits themselves need no self-test — a cap either fires or the number is
-# wrong, and either is visible. What is invisible, and what this gate exists
+# assert `linecop`, reading this repo's `.config/linecop.yaml`, reports it.
+# The limits themselves need no self-test — a cap either fires or the number
+# is wrong, and either is visible. What is invisible, and what this gate exists
 # for, is a walker that never reaches the file: linecop skipped dot-prefixed
 # directories until `include_hidden: true`, so every recipe body the Justfile
 # extraction moved into `.just/scripts/` was uncapped for as long as the
@@ -19,7 +19,8 @@
 # them. A 401-line file appearing in the tracked tree mid-run would fail that
 # arm, nondeterministically, for a reason no reader could place — and an
 # interrupted run would leave the junk file behind. The replica carries the
-# repo's own config file verbatim, so it still tests the real policy: a
+# repo's own config file verbatim at the same path, whose `root: ..` makes the
+# replica the tree it describes, so it still tests the real policy: a
 # `.just` entry added to `exclude_dirs`, or `include_hidden` flipped back off,
 # fails here.
 #
@@ -38,9 +39,9 @@ probe_rel=".just/scripts/_probe.sh"
 probe="$tmp/$probe_rel"
 mkdir -p "$(dirname "$probe")"
 # One line over the Shell cap read from the config, never a literal 401: the
-# cap is .linecop.yaml's to set, and a hard-coded number here would turn a
-# deliberate cap change into a failure of this gate instead of a pass.
-cap=$(yq -r '.limits.Shell' .linecop.yaml)
+# cap is .config/linecop.yaml's to set, and a hard-coded number here would
+# turn a deliberate cap change into a failure of this gate instead of a pass.
+cap=$(yq -r '.limits.Shell' .config/linecop.yaml)
 {
     echo '#!/usr/bin/env bash'
     for _ in $(seq "$cap"); do echo 'echo probe'; done
@@ -59,10 +60,11 @@ if [ "$lines" -le "$cap" ]; then
     exit 1
 fi
 
-cp .linecop.yaml "$tmp/.linecop.yaml"
-if reported=$(linecop --config "$tmp/.linecop.yaml" --format paths "$tmp"); then
+mkdir -p "$tmp/.config"
+cp .config/linecop.yaml "$tmp/.config/linecop.yaml"
+if reported=$(linecop --config "$tmp/.config/linecop.yaml" --format paths "$tmp"); then
     echo "size-fixture-check: linecop reported nothing for a $lines-line file at $probe_rel" >&2
-    echo "  the size gate does not reach .just/ — check include_hidden in .linecop.yaml" >&2
+    echo "  the size gate does not reach .just/ — check include_hidden in .config/linecop.yaml" >&2
     exit 1
 fi
 if ! grep -qF "$probe_rel" <<<"$reported"; then
@@ -73,8 +75,8 @@ fi
 
 # Arm two: the same scan, the same probe, `include_hidden` deleted. The probe
 # must go unreported — proving the arm above passed because of that key.
-yq -y 'del(.include_hidden)' .linecop.yaml > "$tmp/no-hidden.yaml"
-if unreported=$(linecop --config "$tmp/no-hidden.yaml" --format paths "$tmp"); then
+yq -y 'del(.include_hidden)' .config/linecop.yaml > "$tmp/.config/no-hidden.yaml"
+if unreported=$(linecop --config "$tmp/.config/no-hidden.yaml" --format paths "$tmp"); then
     [ -z "$unreported" ] || {
         echo "size-fixture-check: unexpected violation with include_hidden removed: $unreported" >&2
         exit 1

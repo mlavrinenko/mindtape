@@ -26,7 +26,7 @@ unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_OBJECT_DIRECTORY GIT_PREFIX BASH_
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 repo="$tmp/repo"
-mkdir -p "$repo/src" "$repo/docs" "$tmp/hooks"
+mkdir -p "$repo/src" "$repo/docs" "$repo/.config" "$tmp/hooks"
 # shellcheck disable=SC2016 # "$1" is the hook's own argument, expanded when it runs
 printf '#!/usr/bin/env bash\nexec bash %q "$1"\n' "$check" >"$tmp/hooks/commit-msg"
 chmod +x "$tmp/hooks/commit-msg"
@@ -43,12 +43,13 @@ fail() {
     exit 1
 }
 
-# The lock: ls-docs and add-docs share docs/rules.typ, so a re-record of one
-# carries the shared file's hash along in the other. src-only has no
-# dependents. $1 ls-docs source, $2 docs/rules.typ in both groups, $3 add-docs
-# source, $4 src-only source, $5 any extra group text.
+# The lock, where this repo keeps it: ls-docs and add-docs share
+# docs/rules.typ, so a re-record of one carries the shared file's hash along
+# in the other. src-only has no dependents. $1 ls-docs source, $2
+# docs/rules.typ in both groups, $3 add-docs source, $4 src-only source, $5
+# any extra group text.
 lock() {
-    cat >"$repo/outdatty.lock" <<EOF
+    cat >"$repo/.config/outdatty.lock" <<EOF
 version: 1
 algorithm: blake3
 groups:

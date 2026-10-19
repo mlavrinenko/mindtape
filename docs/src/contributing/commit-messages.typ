@@ -64,9 +64,9 @@ no task.
 
 Last, `.just/scripts/outdatty-review-trailer.sh` holds a re-record to the
 `Docs-Unaffected:` footer CONTRIBUTING.md's Dependency Drift section asks
-for. It refuses a commit whose staged `outdatty.lock` moves a group's source
-hash while the commit changes none of that group's dependents, unless a footer
-names the group. A dependent hash the re-record carried along doesn't count,
+for. It refuses a commit whose staged `.config/outdatty.lock` moves a group's
+source hash while the commit changes none of that group's dependents, unless a
+footer names the group. A dependent hash the re-record carried along doesn't count,
 since nobody edited that file. A merge commit passes, because the merged
 commits carried their own footers, and a rebase pick runs no hook at all.
 

@@ -160,8 +160,8 @@ remedy_for() {
         Rust)
             cat <<'EOF'
 - Pick the remedy, then do it. Either carve the file along a seam that means
-  something, or raise its cap in `.linecop.yaml` with an override that names a
-  new sane number and says why. Both are correct answers. A split for its own
+  something, or raise its cap in `.config/linecop.yaml` with an override that
+  names a new sane number and says why. Both are correct answers. A split for its own
   sake is not: the cap is there to push back on scope growth, not on accuracy.
 - If you split, the extracted module has to stand on its own and be named for
   what it does. An arbitrary bottom half moved into a `_more.rs` clears linecop
@@ -174,15 +174,16 @@ EOF
   rewrite the source whole for its reader, or move an argument where a reader
   reaches it deliberately, such as a deep dive or a skill's `references/`.
   Trimming words to fit is not a fix.
-- Re-cap only a file no session loads whole. The `.linecop.yaml` override of an
-  always-loaded file says it is rewritten, never raised.
+- Re-cap only a file no session loads whole. The `.config/linecop.yaml`
+  override of an always-loaded file says it is rewritten, never raised.
 EOF
             ;;
         *)
             cat <<'EOF'
 - Pick the remedy, then do it. Either move a self-contained part of this file
-  somewhere it stands on its own, or raise its cap in `.linecop.yaml` with an
-  override that names a new sane number and says why. Both are correct answers.
+  somewhere it stands on its own, or raise its cap in `.config/linecop.yaml`
+  with an override that names a new sane number and says why. Both are correct
+  answers.
   A split for its own sake is not: the cap is there to push back on scope
   growth, not on accuracy.
 - If you split, what comes out has to be nameable for what it does. A cut made

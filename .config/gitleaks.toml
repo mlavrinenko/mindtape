@@ -28,10 +28,10 @@
 [extend]
 useDefault = true
 
-# THE ONE FALSE POSITIVE this tree reports today. `outdatty.lock` records a
-# sha256 per tracked dependent, keyed by its path, and `generic-api-key` reads
-# `refactor-auth.typ: <digest>` as an auth secret — the key contains "auth"
-# and the digest clears the entropy floor.
+# THE ONE FALSE POSITIVE this tree reports today. `.config/outdatty.lock`
+# records a sha256 per tracked dependent, keyed by its path, and
+# `generic-api-key` reads `refactor-auth.typ: <digest>` as an auth secret — the
+# key contains "auth" and the digest clears the entropy floor.
 #
 # Scoped three ways rather than by fingerprint, because a lock line's number
 # moves on every re-record and a `Fingerprint` allowlist would silently expire
@@ -39,11 +39,11 @@ useDefault = true
 # ONE file it misfires in, and to the shape of what it matched. A bare 64-hex
 # digest is all this file ever holds, so anything in it that is NOT one stays
 # reported — which is what `condition = "AND"` buys over three independent
-# allowlists, and what the `outdatty.lock` arm of
+# allowlists, and what the `.config/outdatty.lock` arm of
 # `.just/scripts/check-secrets.sh` proves rather than assumes.
 [[allowlists]]
-description = "outdatty.lock records a sha256 per dependent, not a credential"
+description = ".config/outdatty.lock records a sha256 per dependent, not a credential"
 targetRules = ["generic-api-key"]
 condition = "AND"
-paths = ['''^outdatty\.lock$''']
+paths = ['''^\.config/outdatty\.lock$''']
 regexes = ['''^[a-f0-9]{64}$''']

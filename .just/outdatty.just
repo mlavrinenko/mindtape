@@ -13,9 +13,9 @@ list:
 check:
     bash .just/scripts/outdatty-check.sh
 
-[arg('GROUP', pattern='[a-z][a-z0-9-]*', help='outdatty group to re-confirm — the names outdatty.yaml declares')]
+[arg('GROUP', pattern='[a-z][a-z0-9-]*', help='outdatty group to re-confirm — the names .config/outdatty.yaml declares')]
 [arg('DEPENDENTS', pattern='[A-Za-z0-9._/-]+', help='record only these dependents of GROUP, leaving the rest pending')]
-[doc("Re-confirm one dependency group, or only the named dependents in it, into outdatty.lock")]
+[doc("Re-confirm one dependency group, or only the named dependents in it, into .config/outdatty.lock")]
 update GROUP *DEPENDENTS:
     outdatty update --group {{ GROUP }} {{ prepend('--dependent ', DEPENDENTS) }}
 

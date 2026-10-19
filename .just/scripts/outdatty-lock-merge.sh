@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# .just/scripts/outdatty-lock-merge.sh — the git merge driver for outdatty.lock
-# (truth/tasks/merge-outdatty-lock-by-group-so-parallel-branches-rebase-
-# without-a-conflict.typ). `.gitattributes` assigns it as `merge=outdatty-lock`,
+# .just/scripts/outdatty-lock-merge.sh — the git merge driver for
+# .config/outdatty.lock (truth/tasks/merge-outdatty-lock-by-group-so-parallel-
+# branches-rebase-without-a-conflict.typ). `.gitattributes` assigns it as `merge=outdatty-lock`,
 # and `just install-hooks`, which the dev shell runs on entry, registers it as
 #
 #   bash .just/scripts/outdatty-lock-merge.sh %O %A %B %P %S %X %Y
@@ -49,7 +49,7 @@
 # every hash both sides changed gets the zeros. A wrong guess is worse than a
 # review.
 #
-# A group the merged `outdatty.yaml` does not declare is dropped whole, whichever
+# A group the merged manifest does not declare is dropped whole, whichever
 # side still holds it. `outdatty check` ignores such a group, so a split or a
 # rename would otherwise leave the old group's hashes behind, and a rebase would
 # bring them back from a branch that re-recorded the group before the split. The
@@ -62,7 +62,7 @@
 # which is what the repo had before the driver.
 set -eo pipefail
 
-base=$1 ours=$2 theirs=$3 path=${4:-outdatty.lock}
+base=$1 ours=$2 theirs=$3 path=${4:-.config/outdatty.lock}
 base_label=${5:-base} ours_label=${6:-ours} theirs_label=${7:-theirs}
 
 text_merge() {
@@ -91,7 +91,7 @@ fi
 # leaf, `{path, value, file, review}` for a hash left for review and
 # `{path, conflict}` for a conflicting one. `$tree` maps a tracked path to its
 # blake3 hash in the merged tree. `$declared` lists the groups the merged
-# `outdatty.yaml` declares, or is null when that is unknown: a group outside
+# manifest declares, or is null when that is unknown: a group outside
 # it is left out of the result, whatever either side holds for it.
 # shellcheck disable=SC2016 # a jq program, whose $names are jq's
 lib='
@@ -161,21 +161,28 @@ resolve_commits() {
         && lock_blob_is "$theirs_commit" "$theirs"
 }
 
-# declared_groups: the group names the merged outdatty.yaml (beside the lock)
-# declares, as a JSON array, or `null` when that cannot be told. A manifest
-# only one side changed is the merged one. When both changed it, the merge of
-# the two is out of sight, so a group either side declares counts as declared.
-declared_groups() {
-    local file=${prefix}outdatty.yaml ob oh ot blobs names='[]' side more
-    ob=$(blob "$base_commit" "$file") oh=$(blob "$ours_commit" "$file") ot=$(blob "$theirs_commit" "$file")
+# merged_manifests: set `manifests` to the blob of the merged manifest. A
+# manifest only one side changed is the merged one. When both changed it, the
+# merge of the two is out of sight, so it holds both sides' blobs, ours first.
+# An empty entry is a side with no manifest.
+merged_manifests() {
+    local ob oh ot
+    ob=$(blob "$base_commit" "$manifest") oh=$(blob "$ours_commit" "$manifest") ot=$(blob "$theirs_commit" "$manifest")
     if [ "$ot" = "$ob" ]; then
-        blobs=("$oh")
+        manifests=("$oh")
     elif [ "$oh" = "$ob" ] || [ "$oh" = "$ot" ]; then
-        blobs=("$ot")
+        manifests=("$ot")
     else
-        blobs=("$oh" "$ot")
+        manifests=("$oh" "$ot")
     fi
-    for side in "${blobs[@]}"; do
+}
+
+# declared_groups: the group names the merged manifest declares, as a JSON
+# array, or `null` when that cannot be told. When both sides changed it, a
+# group either side declares counts as declared.
+declared_groups() {
+    local names='[]' side more
+    for side in "${manifests[@]}"; do
         [ -n "$side" ] || { echo null; return 0; }
         more=$(git cat-file blob "$side" | yq -c '[.groups[]?.name]' 2>/dev/null) \
             || { echo null; return 0; }
@@ -185,15 +192,32 @@ declared_groups() {
     echo "$names"
 }
 
-# Lock paths are relative to the lock's directory; git's are to the top.
-dir=$(dirname "$path")
-prefix=${dir#.}
-prefix=${prefix:+$prefix/}
+# key_prefix: what turns a lock key into a path from the top of the worktree,
+# where git names every path: the merged manifest's `root:`, a path from the
+# manifest's directory that defaults to that directory, then a `/`. Ours wins
+# when both sides changed the manifest.
+key_prefix() {
+    local root=
+    [ -z "${manifests[0]}" ] || root=$(git cat-file blob "${manifests[0]}" | yq -r '.root // ""' 2>/dev/null) || root=
+    # shellcheck disable=SC2016 # a jq program, whose $names are jq's
+    jq -nr --arg p "$dir/${root:-.}" '$p | split("/") | reduce .[] as $s ([];
+        if $s == "" or $s == "." then . elif $s == ".." and length > 0 and .[-1] != ".." then .[:-1]
+        else . + [$s] end) | join("/") | if . == "" then . else . + "/" end'
+}
 
-commits_known=
+# The manifest sits beside the lock, as outdatty looks for it.
+dir=$(dirname "$path")
+manifest=outdatty.yaml
+[ "$dir" = . ] || manifest=$dir/$manifest
+
+commits_known='' prefix=''
 resolve_commits && commits_known=1
 declared=null
-[ -z "$commits_known" ] || declared=$(declared_groups)
+if [ -n "$commits_known" ]; then
+    merged_manifests
+    declared=$(declared_groups)
+    prefix=$(key_prefix)
+fi
 
 contested=$(jq -nr --argjson o "$o" --argjson a "$a" --argjson b "$b" --argjson declared "$declared" \
     "$lib"' merge({}) | .[] | select(.review) | .file')
