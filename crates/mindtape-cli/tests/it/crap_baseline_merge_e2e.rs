@@ -1,5 +1,5 @@
-//! `crap-baseline.json` merges entry by entry through the `crap-baseline`
-//! merge driver (`.just/scripts/crap-baseline-merge.sh`), which
+//! `.config/crap-baseline.json` merges entry by entry through the
+//! `crap-baseline` merge driver (`.just/scripts/crap-baseline-merge.sh`), which
 //! `just install-hooks` registers and `.gitattributes` assigns. The rebase test
 //! merges two branches in a throwaway repo; the others run the driver on three
 //! files, as git would.
@@ -12,6 +12,7 @@
 use crate::support::{checkout, merge_branches, run_driver, text_merge_conflicts};
 
 const DRIVER: &str = ".just/scripts/crap-baseline-merge.sh";
+const BASELINE: &str = ".config/crap-baseline.json";
 
 /// A baseline as `just crap::baseline` writes it, every entry in one file,
 /// given as `(function, line, crap)` in file order. The cyclomatic score
@@ -33,7 +34,7 @@ fn baseline(entries: &[(&str, u32, f64)]) -> String {
 
 /// The driver's result for the three sides, as git would keep it.
 fn merge(base: &str, ours: &str, theirs: &str) -> String {
-    run_driver(DRIVER, "crap-baseline.json", [base, ours, theirs]).0
+    run_driver(DRIVER, BASELINE, [base, ours, theirs]).0
 }
 
 #[test]
@@ -51,7 +52,7 @@ fn a_rebase_over_two_branches_that_shifted_one_files_functions_does_not_conflict
     let three = [base.as_str(), &main, &feat];
     assert!(text_merge_conflicts(three));
 
-    let merged = merge_branches(DRIVER, "crap-baseline.json", three, true);
+    let merged = merge_branches(DRIVER, BASELINE, three, true);
     // `e` from main, `f`'s new score from feat, and every line both sides
     // moved from main, the side a rebase calls ours.
     let want = baseline(&[
@@ -68,7 +69,7 @@ fn a_function_both_sides_rescored_keeps_the_stricter_score_either_way() {
     let base = baseline(&[("f", 10, 5.0)]);
     let ours = baseline(&[("f", 10, 7.0)]);
     let theirs = baseline(&[("f", 10, 6.0)]);
-    let (merged, out) = run_driver(DRIVER, "crap-baseline.json", [&base, &ours, &theirs]);
+    let (merged, out) = run_driver(DRIVER, BASELINE, [&base, &ours, &theirs]);
     assert_eq!(merged, theirs);
     let note = String::from_utf8_lossy(&out.stderr);
     assert!(
@@ -105,6 +106,6 @@ fn same_named_functions_keep_their_order_when_their_lines_cross() {
 
 #[test]
 fn the_committed_baseline_merged_with_itself_keeps_every_byte() {
-    let lock = std::fs::read_to_string(checkout().join("crap-baseline.json")).unwrap();
+    let lock = std::fs::read_to_string(checkout().join(BASELINE)).unwrap();
     assert_eq!(merge(&lock, &lock, &lock), lock);
 }

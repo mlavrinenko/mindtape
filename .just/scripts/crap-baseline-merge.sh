@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # .just/scripts/crap-baseline-merge.sh — the git merge driver for
-# crap-baseline.json (truth/tasks/merge-the-crap-baseline-and-same-key-
+# .config/crap-baseline.json (truth/tasks/merge-the-crap-baseline-and-same-key-
 # outdatty-conflicts.typ). `.gitattributes` assigns it as `merge=crap-baseline`,
 # and `just install-hooks` registers it as
 #
@@ -42,7 +42,7 @@
 # falls back to git's text merge, which is what the repo had before the driver.
 set -eo pipefail
 
-base=$1 ours=$2 theirs=$3 path=${4:-crap-baseline.json}
+base=$1 ours=$2 theirs=$3 path=${4:-.config/crap-baseline.json}
 
 text_merge() {
     echo "crap-baseline-merge: $1; falling back to git's text merge of $path" >&2

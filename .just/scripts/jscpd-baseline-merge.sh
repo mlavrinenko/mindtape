@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # .just/scripts/jscpd-baseline-merge.sh — the git merge driver for
-# .jscpd-baseline.json (truth/tasks/merge-the-jscpd-baseline-by-fingerprint-
+# .config/jscpd-baseline.json (truth/tasks/merge-the-jscpd-baseline-by-fingerprint-
 # union.typ). `.gitattributes` assigns it as `merge=jscpd-baseline`, and
 # `just install-hooks` registers it as
 #

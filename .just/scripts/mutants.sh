@@ -4,7 +4,7 @@
 # Runs from the repo root, like the recipe that invokes it. The timeout caveat,
 # how to bound a loop a mutant can hang, and why there is deliberately no CI
 # mutation job are argued in docs/contributing/mutation-testing.md. The file
-# set, the excludes and the `mutants` profile come from .cargo/mutants.toml;
+# set, the excludes and the `mutants` profile come from .config/mutants.toml;
 # extra args pass through ("$@").
 #
 # CARGO_MUTANTS_JOBS/RUSTFLAGS come from _mutants-env.sh, shared with
@@ -33,4 +33,4 @@ if [ -n "$has_subset" ] && [ -z "$has_output" ]; then
 fi
 
 mutants_budget_check "$@"
-cargo mutants "$@"
+cargo mutants --config "$MUTANTS_CONFIG" "$@"

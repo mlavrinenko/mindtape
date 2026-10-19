@@ -108,7 +108,7 @@ non-verdict, not a pass" else "" end)
 #   confidence = 0.8, constant
 #     cargo-mutants ran the suite, so survival is measured, not forecast. Lower
 #     than the 0.9 the size arm carries because a survivor can be
-#     provably unkillable — `.cargo/mutants.toml` documents two such equivalent
+#     provably unkillable — `.config/mutants.toml` documents two such equivalent
 #     mutants today — so unlike a line count, the finding itself can turn out to
 #     be a non-problem. That is a different uncertainty from "the remedy is a
 #     judgment call", and it belongs in the number.
@@ -121,7 +121,7 @@ non-verdict, not a pass" else "" end)
 #
 #   difficulty tracks the same length on the config's judgment rubric, and the
 #   estimate is a flat `(src-files: 1)`: the test module gains a case, or
-#   `.cargo/mutants.toml` gains an exclusion. Both remedies touch one file, so a
+#   `.config/mutants.toml` gains an exclusion. Both remedies touch one file, so a
 #   varying number here would be invented rather than measured.
 score_mutants() {
     jq -r '
@@ -195,6 +195,6 @@ emit_mutants() {
         --set 'tags+=swept' --set 'tags+=mutants'
     )
 
-    local advice; advice=$(printf '%s\n' 'the stem is taken, so this mutant was filed before and closed' 'without being killed — reopen it, or add it to' '`.cargo/mutants.toml` `exclude_re` with its reason')
+    local advice; advice=$(printf '%s\n' 'the stem is taken, so this mutant was filed before and closed' 'without being killed — reopen it, or add it to' '`.config/mutants.toml` `exclude_re` with its reason')
     file_finding mutants "$stem" "[ice($impact, $confidence, $ease)]" "$advice" "${args[@]}"
 }

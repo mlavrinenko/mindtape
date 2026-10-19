@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# .just/scripts/release-hook.sh — the `pre-release-hook` of release.toml, which
-# `just release VERSION` runs through cargo-release. cargo-release itself refuses
-# a dirty tree and a branch other than main; this refuses the rest. Every
+# .just/scripts/release-hook.sh — the `pre-release-hook` of .config/release.toml,
+# which `just release VERSION` runs through cargo-release. cargo-release itself
+# refuses a dirty tree and a branch other than main; this refuses the rest. Every
 # refusal guards a way a release has gone wrong, and prints one `error:` and at
 # most two `hint:` lines. v0.2.0's crates were published by hand before its tag
 # was pushed, so every run of the tag's workflow failed at `cargo publish` and

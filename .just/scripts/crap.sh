@@ -111,4 +111,4 @@ fi
 source .just/scripts/_crap-ratchet-lib.sh
 bash .just/scripts/_crap-ratchet-control.sh
 root=$(cargo metadata --format-version 1 --no-deps | jq -r '.workspace_root')
-crap_ratchet "$root" crap-baseline.json --lcov "$lcov" --workspace "$@"
+crap_ratchet "$root" .config/crap-baseline.json --lcov "$lcov" --workspace "$@"

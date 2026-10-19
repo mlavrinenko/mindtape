@@ -289,7 +289,7 @@ const CURSOR_SHOW: &str = "\x1b[?25h";
 /// Quitting must restore the terminal: leave the alternate screen and show the
 /// cursor again, after having entered and hidden them.
 ///
-/// `.cargo/mutants.toml` used to excuse `Tui::drop` and `leave_screen` as
+/// `.config/mutants.toml` used to excuse `Tui::drop` and `leave_screen` as
 /// unobservable, on the reasoning that `leave_screen` errors (or is a no-op)
 /// without a TTY. Under this pty there *is* a TTY, so both write real bytes
 /// into the captured stream: an empty `Drop` body or a `leave_screen` replaced

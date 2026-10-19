@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # Body of `just release VERSION`; DRY_RUN comes from the recipe's --dry-run.
-# cargo-release (release.toml) bumps, dates CHANGELOG.md, runs release-hook.sh,
-# commits and pushes main. Then this waits for ci.yml on that commit and tags
-# only if it is green. A red run leaves main pushed and no tag, and a re-run
-# repeats nothing the first run did. A tag whose workflow failed is re-run,
-# never re-tagged: `gh workflow run release.yml -f tag=v<version>`.
+# cargo-release (.config/release.toml) bumps, dates CHANGELOG.md, runs
+# release-hook.sh, commits and pushes main. Then this waits for ci.yml on that
+# commit and tags only if it is green. A red run leaves main pushed and no tag,
+# and a re-run repeats nothing the first run did. A tag whose workflow failed
+# is re-run, never re-tagged: `gh workflow run release.yml -f tag=v<version>`.
 set -eo pipefail
 version="$1"
 refuse() { echo "error: $1" >&2; shift; for h in "$@"; do echo "hint: $h" >&2; done; exit 1; }
 tag=v$version
-args=(-p mindtape-cli --no-confirm)
+args=(-p mindtape-cli -c .config/release.toml --no-confirm)
 if [ -z "$DRY_RUN" ]; then
     read -r -p "Push main and $tag to origin, proceed? [y/N] " answer
     [ "$answer" = y ] || exit 1

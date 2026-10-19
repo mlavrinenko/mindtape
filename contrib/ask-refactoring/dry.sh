@@ -5,16 +5,17 @@
 # `file_finding`. It owns three functions the driver looks up by name —
 # `score_dry`, `signal_dry` and `emit_dry` — reading jscpd's json report.
 #
-# The gate stops a new clone, and `.jscpd-baseline.json` lists the ones that
-# predate it. A tolerated clone is not enforced by anything, so it is the part
-# of jscpd this sweep may report (the header of `ask-refactoring.sh` rules out
-# only what a gate still enforces). The arm runs jscpd with the gate's own
+# The gate stops a new clone, and `.config/jscpd-baseline.json` lists the ones
+# that predate it. A tolerated clone is not enforced by anything, so it is the
+# part of jscpd this sweep may report (the header of `ask-refactoring.sh` rules
+# out only what a gate still enforces). The arm runs jscpd with the gate's own
 # `DRY_FLAGS` and keeps the pairs the report marks `isNew: false`.
 #
 # Grouping: jscpd reports pairs, so a snippet pasted three times is up to three
 # of them. The pairs are joined into families by a shared location (file and
 # first line), which is jscpd's clone class until upstream ships one
-# (github:kucherenko/jscpd#1000, `canibump.toml`'s `jscpd-clone-classes`).
+# (github:kucherenko/jscpd#1000, the `jscpd-clone-classes` blocker in
+# `.config/canibump.toml`).
 #
 # Fold: families are taken by gain, highest first, and one whose locations
 # mostly (half or more) fall on lines a kept family already holds is dropped.

@@ -4,10 +4,8 @@
 /build
 /target
 /result
-# Local cargo config (host sccache/RUSTC_WRAPPER) stays out of git, but the
-# tracked cargo-mutants config is the one exception.
-/.cargo/*
-!/.cargo/mutants.toml
+# Local cargo config (host sccache/RUSTC_WRAPPER) stays out of git.
+/.cargo
 # cargo-mutants scratch (mutant build dirs + reports); regenerable via `just mutants::sweep`
 /mutants.out
 /mutants.out.old

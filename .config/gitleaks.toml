@@ -1,5 +1,5 @@
-# .gitleaks.toml — the ruleset `just lint::secrets` reads this tree with
-# (truth/tasks/scan-the-tree-for-secrets-with-gitleaks.typ).
+# .config/gitleaks.toml — the ruleset `just lint::secrets` reads this tree
+# with (truth/tasks/scan-the-tree-for-secrets-with-gitleaks.typ).
 #
 # WHAT THE GATE IS FOR: a credential sitting in a tracked file of the CURRENT
 # tree. History is deliberately out of scope — `gitleaks git` reports the

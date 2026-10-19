@@ -14,8 +14,8 @@
     # A second nixpkgs, read for `tombi` and `worktrunk`. The main pin stays
     # where the tinymist/Typst note below wants it; it predates worktrunk's
     # package, and tombi >= 1.5 is the first with per-schema `format.rules` that
-    # switch key and array-value sorting off (see tombi.toml). Move it on its
-    # own: `nix flake update nixpkgs-tombi`.
+    # switch key and array-value sorting off (see .config/tombi.toml). Move it on
+    # its own: `nix flake update nixpkgs-tombi`.
     nixpkgs-tombi.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     qahq.url = "github:mlavrinenko/qahq";
     # Typst-native static site generator that builds the docs under www/.
@@ -112,7 +112,7 @@
               cargo-machete
               cargo-llvm-cov
               # The release bump, CHANGELOG dating, commit and tag behind
-              # `just release`; release.toml configures it.
+              # `just release`; .config/release.toml configures it.
               cargo-release
               cargo-mutants
               # cargo-nextest is a GATE dependency, not a dev aid: `just test`

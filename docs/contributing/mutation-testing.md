@@ -17,7 +17,7 @@ Coverage shows that a line ran. Mutation testing shows that a test fails when th
 - A scoped run writes `target/mutants-scoped`, so it never overwrites `mutants.out`. The sweep’s mutants arm reads whichever ran last.
 - To see a running sweep’s progress and ETA, run `just mutants status`. It reads `mutants.out` unless you name another directory.
 
-`.cargo/mutants.toml` sets the file set, the excludes and the `mutants` build profile without debug info.
+`.config/mutants.toml` sets the file set, the excludes and the `mutants` build profile without debug info. cargo-mutants looks for its config in `.cargo/` only, so the recipes pass this one with `--config`, and a bare `cargo mutants` runs without it.
 
 ## When to trust a verdict
 
@@ -34,7 +34,7 @@ Every mutant re-runs a suite with subprocess and PTY tests, and a shared CI runn
 Every survivor is a real gap or an equivalent mutant.
 
 - For a real gap, write a test that kills it. If you won’t fix it in this change, leave it to `just ask-refactoring`, which reads the last sweep’s outcomes and files one task per survivor.
-- An equivalent mutant changes nothing a test can observe. Record it in `.cargo/mutants.toml` under `exclude_re` or `exclude_globs`, and start its comment with the class name below, so you can grep each class.
+- An equivalent mutant changes nothing a test can observe. Record it in `.config/mutants.toml` under `exclude_re` or `exclude_globs`, and start its comment with the class name below, so you can grep each class.
 
 The classes:
 

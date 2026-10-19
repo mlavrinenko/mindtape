@@ -15,7 +15,7 @@ CRAP_EXCLUDES := "--exclude **/main.rs --exclude **/ls/interactive/tui.rs --excl
 check:
     bash .just/scripts/crap.sh all {{ CRAP_EXCLUDES }}
 
-[doc("Re-mint crap-baseline.json after a new function or complexity rise")]
+[doc("Re-mint .config/crap-baseline.json after a new function or complexity rise")]
 baseline:
     bash .just/scripts/crap-baseline.sh {{ CRAP_EXCLUDES }}
 

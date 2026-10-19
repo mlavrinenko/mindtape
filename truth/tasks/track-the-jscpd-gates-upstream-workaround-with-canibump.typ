@@ -42,12 +42,12 @@
 
 == TO-BE
 
-- 🟢 `canibump.toml` holds a blocker on the upstream jscpd issue for new-only reports, and `just canibump` says when the filter can go.
+- 🟢 `.config/canibump.toml` holds a blocker on the upstream jscpd issue for new-only reports, and `just canibump` says when the filter can go.
 
 
 == Changes
 
-- `canibump.toml`: the blocker, beside the one the repeats arm waits on.
+- `.config/canibump.toml`: the blocker, beside the one the repeats arm waits on.
 - `.just/scripts/lint-dry.sh`: a link to the issue in its header comment, which canibump's scan then finds listed.
 
 

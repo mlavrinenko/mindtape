@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Body of `just lint dry`; the jscpd flags arrive as arguments. jscpd fails on
-# any clone .jscpd-baseline.json does not list. The baseline keys a clone by a
-# fingerprint of its raw tokens, so an edit inside an old clone makes it new.
+# any clone .config/jscpd-baseline.json does not list. The baseline keys a clone
+# by a fingerprint of its raw tokens, so an edit inside an old clone makes it
+# new.
 # Fix a finding by extracting a shared helper, not by shuffling tokens until
 # the detector stops matching.
 #

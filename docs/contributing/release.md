@@ -6,7 +6,7 @@ What `just release VERSION` runs, and how to finish a release that failed. The t
 
 ## What the recipe runs
 
-1. It runs [cargo-release](https://github.com/crate-ci/cargo-release) (`release.toml`), which refuses a dirty tree or a branch other than `main`, bumps the version, dates the entries under `[Unreleased]` and commits.
+1. It runs [cargo-release](https://github.com/crate-ci/cargo-release) (`.config/release.toml`), which refuses a dirty tree or a branch other than `main`, bumps the version, dates the entries under `[Unreleased]` and commits.
 2. Between the bump and the commit, cargo-release runs `.just/scripts/release-hook.sh`. The hook refuses every other state a release has failed from.
 3. The recipe pushes `main`, so CI runs on the release tree.
 4. It tags only once that commit’s `ci.yml` run is green.

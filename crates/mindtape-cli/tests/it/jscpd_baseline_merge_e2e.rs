@@ -1,4 +1,4 @@
-//! `.jscpd-baseline.json` merges as a union of fingerprints through the
+//! `.config/jscpd-baseline.json` merges as a union of fingerprints through the
 //! `jscpd-baseline` merge driver (`.just/scripts/jscpd-baseline-merge.sh`),
 //! which `just install-hooks` registers and `.gitattributes` assigns. The test
 //! merges two branches that each minted a different clone in a throwaway repo.
@@ -32,7 +32,7 @@ fn two_branches_that_each_added_a_clone_merge_to_their_union() {
     assert!(text_merge_conflicts(three));
     let merged = merge_branches(
         ".just/scripts/jscpd-baseline-merge.sh",
-        ".jscpd-baseline.json",
+        ".config/jscpd-baseline.json",
         three,
         false,
     );

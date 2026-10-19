@@ -50,10 +50,10 @@ cargo crap --lcov target/coverage/lcov.info --workspace "$@" \
 # through untouched.
 root=$(cargo metadata --format-version 1 --no-deps | jq -r '.workspace_root')
 jq --arg root "$root/" \
-    '.entries |= map(.file |= ltrimstr($root))' "$tmp" > crap-baseline.json
+    '.entries |= map(.file |= ltrimstr($root))' "$tmp" > .config/crap-baseline.json
 
 # Fail where the mistake is made, not one gate later. Same script `just check`
 # runs, so the mint and the gate can never disagree about what counts as a
 # machine-local path.
 bash .just/scripts/crap-baseline-check.sh
-echo "crap-baseline.json re-minted — commit it with the change that justifies it"
+echo ".config/crap-baseline.json re-minted — commit it with the change that justifies it"

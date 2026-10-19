@@ -56,8 +56,8 @@ script that applies it.
 
 The repeats arm is a stopgap. It groups jscpd's clone pairs by hand into
 snippets pasted many times, and files the ones whose extraction saves the most
-code. Once jscpd groups clones itself, its blocker in `canibump.toml` reads
-`bumpable` and the arm goes.
+code. Once jscpd groups clones itself, its blocker in `.config/canibump.toml`
+reads `bumpable` and the arm goes.
 
 The dry arm files the clones #just.lint-dry() tolerates. It runs jscpd with
 the gate's flags, keeps the pairs the baseline already holds, and joins them

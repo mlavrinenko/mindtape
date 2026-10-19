@@ -91,8 +91,9 @@ The first copy reads:
 
 `just ask-refactoring` filed this from jscpd's pairs at 15 tokens, under the
 50-token floor of `just lint::dry`. The arm groups the pairs by hand until
-jscpd's own clone classes ship (`canibump.toml`, `jscpd-clone-classes`), so a
-location may belong to a neighboring window of the same snippet.
+jscpd's own clone classes ship (`jscpd-clone-classes` in
+`.config/canibump.toml`), so a location may belong to a neighboring window of
+the same snippet.
 
 == TO-BE
 

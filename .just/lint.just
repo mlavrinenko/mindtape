@@ -22,21 +22,21 @@ workflows:
 [group("gate")]
 [script]
 shellcheck:
-    git ls-files -z | xargs -0 awk 'FNR == 1 && /^#!.*[\/ ](ba)?sh( |$)/ { print FILENAME } { nextfile }' | xargs -r -d '\n' shellcheck
+    git ls-files -z | xargs -0 awk 'FNR == 1 && /^#!.*[\/ ](ba)?sh( |$)/ { print FILENAME } { nextfile }' | xargs -r -d '\n' shellcheck --rcfile .config/shellcheckrc
 
 [doc("Fail if any file exceeds its linecop cap")]
 [group("gate")]
 size:
     linecop
 
-DRY_FLAGS := "--no-tips -f rust -k 50 --ignore-identifiers --ignore-literals --similarity=0.8 --ignore '**/tests/it/main.rs' --baseline .jscpd-baseline.json"
+DRY_FLAGS := "--no-tips -f rust -k 50 --ignore-identifiers --ignore-literals --similarity=0.8 --ignore '**/tests/it/main.rs' --baseline .config/jscpd-baseline.json"
 
 [doc("Copy-paste gate: fail on a duplicated Rust block the baseline lacks")]
 [group("gate")]
 dry:
     bash .just/scripts/lint-dry.sh {{ DRY_FLAGS }}
 
-[doc("Re-mint .jscpd-baseline.json after extracting a clone or accepting one")]
+[doc("Re-mint .config/jscpd-baseline.json after extracting a clone or accepting one")]
 dry-baseline:
     jscpd {{ DRY_FLAGS }} --update-baseline -r silent crates
 

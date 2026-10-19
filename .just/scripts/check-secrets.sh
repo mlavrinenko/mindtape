@@ -3,7 +3,7 @@
 # (truth/tasks/scan-the-tree-for-secrets-with-gitleaks.typ). Runs from the
 # repo root, like the recipe that invokes it.
 #
-# What it scans: the working tree as it stands, under `.gitleaks.toml` —
+# What it scans: the working tree as it stands, under `.config/gitleaks.toml` —
 # gitleaks' own default ruleset plus this repo's allowlist, argued in that
 # file, plus the walk bound derived below from what git ignores. History is out of scope; the reason
 # is argued there too.
@@ -11,7 +11,7 @@
 # Why the target is `.` and the CWD is the repo root, measured rather than
 # assumed: gitleaks reports a finding's path exactly as its target was
 # spelled, so `gitleaks dir "$PWD"` yields `/home/…/outdatty.lock` and every
-# `^`-anchored allowlist in .gitleaks.toml silently stops matching — the
+# `^`-anchored allowlist in that config silently stops matching — the
 # gate would go from one known false positive to several, and the walk bound
 # would stop bounding. A relative `.` from the root is the only invocation
 # those anchors describe. It is also why arm one scans its fixture by cd-ing
@@ -42,7 +42,7 @@
 # a concurrent run.
 set -eo pipefail
 
-config=".gitleaks.toml"
+config=".config/gitleaks.toml"
 
 if [ ! -f "$config" ]; then
     echo "check-secrets: $config is missing — running outside the repo root?" >&2
@@ -72,7 +72,7 @@ trap 'rm -rf "$fixture" "$bounds"' EXIT
 # answer: `ls-files -oi --exclude-standard --directory` lists what it ignores
 # across both .gitignore files, .git/info/exclude and core.excludesFile,
 # collapses a wholly ignored directory to one entry, and never lists a
-# tracked file, so `!/.cargo/mutants.toml` stays scanned without the
+# tracked file, so one inside an ignored directory stays scanned without the
 # lookahead RE2 lacks. Each entry becomes a `^<path>(/|$)` allowlist
 # appended to a copy of $config: appended rather than `[extend] path`-ed,
 # because a `targetRules` allowlist in an extended config is dropped (the

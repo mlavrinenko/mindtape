@@ -19,8 +19,9 @@ The tag push is the only publish path, so don't run `cargo publish` or push
 = What the recipe runs
 
 + It runs #link("https://github.com/crate-ci/cargo-release")[cargo-release]
-  (`release.toml`), which refuses a dirty tree or a branch other than `main`,
-  bumps the version, dates the entries under `[Unreleased]` and commits.
+  (`.config/release.toml`), which refuses a dirty tree or a branch other than
+  `main`, bumps the version, dates the entries under `[Unreleased]` and
+  commits.
 + Between the bump and the commit, cargo-release runs
   `.just/scripts/release-hook.sh`. The hook refuses every other state a
   release has failed from.

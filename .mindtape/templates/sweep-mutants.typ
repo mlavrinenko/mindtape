@@ -81,16 +81,16 @@ every run, so the task is worth only as much as that measurement still is.
 == TO-BE
 
 - 🟢 `just mutants::sweep -f` on this file reports the mutant as caught, or
-  `.cargo/mutants.toml` declares it uninteresting with a reason.
+  `.config/mutants.toml` declares it uninteresting with a reason.
 
 == Changes
 
 - Pick the remedy, then do it: write the assertion that kills the mutant, or
-  declare it uninteresting in `.cargo/mutants.toml` with a reason. The
+  declare it uninteresting in `.config/mutants.toml` with a reason. The
   assertion has to be one a reader would want anyway.
 - If you assert, assert on the behavior the mutated line decides, not on the
   literal it was replaced with.
-- If you exclude, write the reason next to the entry in `.cargo/mutants.toml`.
+- If you exclude, write the reason next to the entry in `.config/mutants.toml`.
   A written reason is the only thing that suppresses this finding on the next
   sweep; there is no ignore list anywhere else, deliberately.
 

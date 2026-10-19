@@ -89,9 +89,9 @@ The first copy reads:
   ````,
 )
 
-`just lint::dry` fails a new clone, and `.jscpd-baseline.json` lists this one as
-older than the gate. The arm joins jscpd's pairs into a family by shared
-location, so a location may belong to a neighboring window.
+`just lint::dry` fails a new clone, and `.config/jscpd-baseline.json` lists
+this one as older than the gate. The arm joins jscpd's pairs into a family by
+shared location, so a location may belong to a neighboring window.
 
 == TO-BE
 

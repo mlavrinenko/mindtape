@@ -13,8 +13,8 @@
 
 #doc-title[The CRAP baseline]
 
-What #just.crap-baseline() writes to `crap-baseline.json`, and what it checks
-first. The ratchet that reads the baseline is in
+What #just.crap-baseline() writes to `.config/crap-baseline.json`, and what it
+checks first. The ratchet that reads the baseline is in
 #link("docs/contributing/coverage-crap.md")[docs/contributing/coverage-crap.md].
 
 = Why the paths are repo-relative

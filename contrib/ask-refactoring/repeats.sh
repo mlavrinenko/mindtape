@@ -11,8 +11,8 @@
 # cannot see is a 15-token line pasted 400 times. jscpd's clone classes
 # (github:kucherenko/jscpd#1000) will group pairs into one entry with every
 # location and a stable fingerprint, which lets the gate itself filter on copies
-# and size. Until then this arm groups the pairs by hand, and canibump.toml's
-# `jscpd-clone-classes` blocker says when it can go.
+# and size. Until then this arm groups the pairs by hand, and the
+# `jscpd-clone-classes` blocker in .config/canibump.toml says when it can go.
 #
 # The reasoning behind this arm's numbers lives here with the code that applies
 # them, deliberately: a doc it lived in instead would drift from the constants.

@@ -9,8 +9,9 @@
 # `cargo metadata` gives it, which are absolute, and cargo-crap 0.3.1 has no
 # flag to shorten them. crap-baseline.sh strips the workspace root back off
 # before writing the tracked file; nothing about that is enforced by the mint
-# succeeding, and a re-mint by hand (`cargo crap … --output crap-baseline.json`,
-# the exact command the recipe ran before) puts every local path straight back.
+# succeeding, and a re-mint by hand (`cargo crap … --output
+# .config/crap-baseline.json`, the exact command the recipe ran before) puts
+# every local path straight back.
 # The leak is invisible in review — a 1000-entry JSON diff nobody reads line by
 # line — so it needs a check rather than a convention.
 #
@@ -30,7 +31,7 @@
 # skipping when coverage is stale.
 set -eo pipefail
 
-baseline=crap-baseline.json
+baseline=.config/crap-baseline.json
 
 if [ ! -f "$baseline" ]; then
     echo "crap-baseline-check: $baseline is missing — \`just crap::baseline\` mints it" >&2

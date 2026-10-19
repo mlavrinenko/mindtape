@@ -125,7 +125,7 @@ clippy:
 clippy-fix:
     cargo clippy --fix --workspace --all-targets --allow-dirty --allow-staged -- -D warnings
 
-TOML_FMT_PATHS := ".cargo/mutants.toml canibump.toml .config/nextest.toml .config/wt.toml .gitleaks.toml .mindtape/config.toml Cargo.toml clippy.toml crates/mindtape-cli/Cargo.toml crates/mindtape-cli/src/cmd/init/axes/headers_spec.toml crates/mindtape-cli/src/cmd/init/axes/workflow_flow.toml crates/mindtape-cli/src/cmd/init/axes/workflow_gated.toml crates/mindtape-cli/src/cmd/init/axes/workflow_personal.toml crates/mindtape-cli/src/cmd/init/axes/workflow_todo_done.toml crates/mindtape-cli/src/cmd/init/presets/flow/config.toml crates/mindtape-cli/src/cmd/init/presets/gated/config.toml crates/mindtape-cli/src/cmd/init/presets/personal/config.toml crates/mindtape-cli/src/cmd/init/presets/todo-done/config.toml crates/mindtape/Cargo.toml crates/mindtape/src/at/board.toml crates/mindtape/src/config/defaults.toml crates/mindtape/src/framework/frameworks.toml crates/mindtape/src/packs/mindtape-tasks.toml examples/across-projects/.config/mindtape/at.toml examples/across-projects/projects/blog/.mindtape/config.toml examples/across-projects/projects/shop/.mindtape/config.toml examples/api-service/.mindtape/config.toml examples/derived-tags/.mindtape/config.toml examples/dsl/.mindtape/config.toml examples/estimates/.mindtape/config.toml examples/large/.mindtape/config.toml examples/links/.mindtape/config.toml examples/minimal/.mindtape/config.toml examples/named-sets/.mindtape/config.toml examples/priority/.mindtape/config.toml examples/recurring/.mindtape/config.toml examples/round-trip/.mindtape/config.toml examples/rules/.mindtape/config.toml examples/self-validating/.mindtape/config.toml examples/statuses/.mindtape/config.toml examples/task-files/.mindtape/config.toml lib/typst.toml release.toml rust-toolchain.toml rustfmt.toml tombi.toml www/tola.toml"
+TOML_FMT_PATHS := ".config/canibump.toml .config/gitleaks.toml .config/mutants.toml .config/nextest.toml .config/release.toml .config/tombi.toml .config/wt.toml .mindtape/config.toml Cargo.toml clippy.toml crates/mindtape-cli/Cargo.toml crates/mindtape-cli/src/cmd/init/axes/headers_spec.toml crates/mindtape-cli/src/cmd/init/axes/workflow_flow.toml crates/mindtape-cli/src/cmd/init/axes/workflow_gated.toml crates/mindtape-cli/src/cmd/init/axes/workflow_personal.toml crates/mindtape-cli/src/cmd/init/axes/workflow_todo_done.toml crates/mindtape-cli/src/cmd/init/presets/flow/config.toml crates/mindtape-cli/src/cmd/init/presets/gated/config.toml crates/mindtape-cli/src/cmd/init/presets/personal/config.toml crates/mindtape-cli/src/cmd/init/presets/todo-done/config.toml crates/mindtape/Cargo.toml crates/mindtape/src/at/board.toml crates/mindtape/src/config/defaults.toml crates/mindtape/src/framework/frameworks.toml crates/mindtape/src/packs/mindtape-tasks.toml examples/across-projects/.config/mindtape/at.toml examples/across-projects/projects/blog/.mindtape/config.toml examples/across-projects/projects/shop/.mindtape/config.toml examples/api-service/.mindtape/config.toml examples/derived-tags/.mindtape/config.toml examples/dsl/.mindtape/config.toml examples/estimates/.mindtape/config.toml examples/large/.mindtape/config.toml examples/links/.mindtape/config.toml examples/minimal/.mindtape/config.toml examples/named-sets/.mindtape/config.toml examples/priority/.mindtape/config.toml examples/recurring/.mindtape/config.toml examples/round-trip/.mindtape/config.toml examples/rules/.mindtape/config.toml examples/self-validating/.mindtape/config.toml examples/statuses/.mindtape/config.toml examples/task-files/.mindtape/config.toml lib/typst.toml rust-toolchain.toml rustfmt.toml www/tola.toml"
 TYPST_FMT_PATHS := "lib truth .mindtape/templates examples/api-service/tasks examples/api-service/.mindtape/templates examples/estimates/.mindtape/templates examples/self-validating/.mindtape/templates examples/named-sets/.mindtape/templates examples/derived-tags/api examples/derived-tags/web examples/links/tasks examples/named-sets/tasks examples/priority/tasks examples/recurring/tasks examples/round-trip/tasks examples/dsl/tasks examples/task-files/tasks examples/across-projects/projects/blog/tasks examples/across-projects/projects/shop/tasks examples/lsp examples/rules examples/statuses/tasks www/content www/templates www/utils docs/src"
 
 # A bare `just --fmt` skips every module file.
@@ -178,12 +178,12 @@ install-hooks:
     git config core.hooksPath .githooks
     git config merge.outdatty-lock.name "outdatty.lock, merged key by key"
     git config merge.outdatty-lock.driver 'bash .just/scripts/outdatty-lock-merge.sh %O %A %B %P %S %X %Y'
-    git config merge.jscpd-baseline.name ".jscpd-baseline.json, merged as a fingerprint union"
+    git config merge.jscpd-baseline.name ".config/jscpd-baseline.json, merged as a fingerprint union"
     git config merge.jscpd-baseline.driver 'bash .just/scripts/jscpd-baseline-merge.sh %O %A %B %P'
-    git config merge.crap-baseline.name "crap-baseline.json, merged entry by entry"
+    git config merge.crap-baseline.name ".config/crap-baseline.json, merged entry by entry"
     git config merge.crap-baseline.driver 'bash .just/scripts/crap-baseline-merge.sh %O %A %B %P'
     rm -f .git/hooks/pre-commit
-    echo "installed .githooks and the outdatty.lock, .jscpd-baseline.json and crap-baseline.json merge drivers"
+    echo "installed .githooks and the outdatty.lock, .config/jscpd-baseline.json and .config/crap-baseline.json merge drivers"
 
 [doc("Count tests across the workspace")]
 [extension('.sh')]
@@ -204,11 +204,11 @@ file-sizes:
 
 # A non-zero exit is the answer (9: a workaround can go), not a failure.
 
-[doc("Say which upstream change in canibump.toml landed, so its workaround can go")]
+[doc("Say which upstream change in .config/canibump.toml landed, so its workaround can go")]
 [group("advisory")]
 [no-exit-message]
 canibump *ARGS:
-    canibump --refresh {{ ARGS }}
+    canibump --manifest .config/canibump.toml --refresh {{ ARGS }}
 
 # Refuses while `mt ls @ask-refactoring` still lists an open sweep task.
 

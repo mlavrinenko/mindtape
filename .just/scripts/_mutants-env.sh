@@ -29,8 +29,12 @@ export EDITOR="mt-no-such-editor"
 export CARGO_MUTANTS_JOBS="${CARGO_MUTANTS_JOBS:-3}"
 export RUSTFLAGS="${RUSTFLAGS:-} -Clink-arg=-fuse-ld=mold"
 
+# cargo-mutants finds its config only at .cargo/mutants.toml, and this repo
+# keeps it in .config/, so every `cargo mutants` call passes this path.
+MUTANTS_CONFIG=.config/mutants.toml
+
 # Each mutant builds and tests the whole workspace (`test_workspace` in
-# .cargo/mutants.toml), and Cargo's default build parallelism is one rustc per
+# $MUTANTS_CONFIG), and Cargo's default build parallelism is one rustc per
 # core *per mutant*. Two mutant workers put ~14 concurrent `mindtape` rustc
 # processes in flight at up to ~6 GB each, enough to exhaust memory and get
 # the sweep killed mid-run. Cap each
@@ -58,7 +62,7 @@ export RUSTC_WRAPPER=
 MUTANTS_BUDGET=100
 mutants_budget_check() {
     local count
-    count=$(cargo mutants --list "$@" | wc -l)
+    count=$(cargo mutants --config "$MUTANTS_CONFIG" --list "$@" | wc -l)
     if [ "$count" -le "$MUTANTS_BUDGET" ] || [ "${MINDTAPE_MUTANTS_APPROVED:-}" = 1 ]; then
         return 0
     fi

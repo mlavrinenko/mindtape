@@ -754,7 +754,7 @@ groups:
     source:
       - .just/scripts/release.sh
       - .just/scripts/release-hook.sh
-      - release.toml
+      - .config/release.toml
     dependents:
       - docs/src/contributing.typ
       - docs/src/contributing/release.typ

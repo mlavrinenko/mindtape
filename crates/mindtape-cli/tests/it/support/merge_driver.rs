@@ -65,7 +65,7 @@ pub fn merge_branches(driver: &str, file: &str, three: [&str; 3], rebase: bool) 
         git init -q -b main
         git config user.email t@example.com; git config user.name t
         git config commit.gpgsign false
-        mkdir -p "$(dirname "$DRIVER")"
+        mkdir -p "$(dirname "$DRIVER")" "$(dirname "$FILE")"
         cp "$ROOT/$DRIVER" "$DRIVER"
         cp "$ROOT/.gitattributes" .
         just --justfile "$ROOT/Justfile" --working-directory . install-hooks

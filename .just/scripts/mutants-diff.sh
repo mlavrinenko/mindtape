@@ -32,4 +32,4 @@ if [ -z "$has_output" ]; then
 fi
 
 mutants_budget_check --in-diff "$diff_file" "$@"
-cargo mutants --in-diff "$diff_file" "$@"
+cargo mutants --config "$MUTANTS_CONFIG" --in-diff "$diff_file" "$@"

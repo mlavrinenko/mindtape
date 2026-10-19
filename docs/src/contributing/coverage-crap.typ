@@ -76,8 +76,8 @@ own cyclomatic complexity. That's why a flat dispatcher sits near the
 threshold. If you add an arm to one, cover it in the same change.
 
 So the threshold isn't the whole gate. #just.crap-check() also compares every
-function against `crap-baseline.json`, a committed score per function, and
-fails any function whose score rose. A rise means complexity went up or
+function against `.config/crap-baseline.json`, a committed score per
+function, and fails any function whose score rose. A rise means complexity went up or
 coverage went down, at any score. That catches a complex, undertested
 function that scores well under 30. It also fails a function the baseline
 doesn't list, and names it. Otherwise a new function stays unheld until
