@@ -156,7 +156,7 @@ pub fn resolve(name: &str, user_dir: Option<&Path>) -> Result<Preset> {
         name,
         &names,
         Hint::run(
-            Command::mt().word("preset").word("ls"),
+            Command::mt_global().word("preset").word("ls"),
             "to see the presets",
         ),
     ))

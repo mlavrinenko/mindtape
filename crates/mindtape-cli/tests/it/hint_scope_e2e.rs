@@ -82,3 +82,19 @@ fn a_run_that_found_its_project_keeps_its_hints_bare() {
         assert!(stderr.contains(&hint("mt flip --list")), "{stderr}");
     }
 }
+
+#[test]
+fn a_global_commands_hint_stays_bare_under_a_worktree_flag() {
+    let parent = tempfile::tempdir().unwrap();
+    std::fs::create_dir(parent.path().join("new")).unwrap();
+    let out = support::mt(parent.path())
+        .args(["-w", "new", "init", "--preset", "nope"])
+        .output()
+        .unwrap();
+    let (code, _, stderr) = support::parts_of(&out);
+    assert_eq!(code, Some(2), "{stderr}");
+    assert!(
+        stderr.contains("hint: run mt preset ls to see the presets\n"),
+        "{stderr}"
+    );
+}

@@ -199,14 +199,13 @@ pub fn open_warned() -> Result<Project> {
 /// `mt allow` records it. `main` calls it once, after the command, so however
 /// many loads a command makes, the user reads the list once.
 pub fn warn_held_back() {
-    if let Some(diag) = held_back_warning(&mindtape::allow::held_back(), None) {
+    if let Some(diag) = held_back_warning(&mindtape::allow::held_back()) {
         emit(&diag);
     }
 }
 
 /// The warning [`warn_held_back`] prints for `commands`, or `None` for none.
-/// With a set member's `project` name, its hint names `mt @<project> allow`.
-pub(crate) fn held_back_warning(commands: &[String], project: Option<&str>) -> Option<Diag> {
+pub(crate) fn held_back_warning(commands: &[String]) -> Option<Diag> {
     if commands.is_empty() {
         return None;
     }
@@ -214,13 +213,7 @@ pub(crate) fn held_back_warning(commands: &[String], project: Option<&str>) -> O
     let diag = commands.iter().fold(diag, |diag, command| {
         diag.note(Note::new("command").value(command))
     });
-    let hint = match project {
-        Some(name) => Hint::command(
-            "read them, then run",
-            Command::mt().arg(format!("@{name}")).word("allow"),
-        ),
-        None => Hint::new("read them, then run mt allow"),
-    };
+    let hint = Hint::ending_in("read them, then run", Command::mt().word("allow"));
     Some(diag.hint(hint))
 }
 

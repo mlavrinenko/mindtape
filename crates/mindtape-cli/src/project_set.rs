@@ -134,8 +134,8 @@ fn member_warnings(name: &str, project: &Project) -> Vec<Diag> {
     let held = mindtape::allow::take_held(&project.root);
     config_warnings(&project.root, &project.config)
         .into_iter()
+        .chain(held_back_warning(&held))
         .map(|diag| diag.in_member(name))
-        .chain(held_back_warning(&held, Some(name)))
         .collect()
 }
 

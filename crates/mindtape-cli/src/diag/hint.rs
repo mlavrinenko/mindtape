@@ -16,6 +16,7 @@ pub(crate) struct Hint(Shape);
 enum Shape {
     Text(&'static str),
     Command(&'static str, Command),
+    EndingIn(&'static str, Command),
     Run(Command, &'static str),
     DidYouMean(String),
     OneOf(Vec<String>),
@@ -36,6 +37,12 @@ impl Hint {
     /// `hint: to add a note, pass it with -m: mt done a -m 'a note'`.
     pub(crate) fn command(text: &'static str, command: Command) -> Self {
         Self(Shape::Command(text, command))
+    }
+
+    /// A next step in words that ends in the command taking it:
+    /// `hint: read them, then run mt allow`.
+    pub(crate) fn ending_in(text: &'static str, command: Command) -> Self {
+        Self(Shape::EndingIn(text, command))
     }
 
     /// A command and what it's for: `hint: run mt ls to see your tasks`.
@@ -88,6 +95,7 @@ impl Hint {
     fn in_member(self, name: &str) -> Self {
         Self(match self.0 {
             Shape::Command(text, command) => Shape::Command(text, command.in_member(name)),
+            Shape::EndingIn(text, command) => Shape::EndingIn(text, command.in_member(name)),
             Shape::Run(command, purpose) => Shape::Run(command.in_member(name), purpose),
             shape @ (Shape::Text(_)
             | Shape::DidYouMean(_)
@@ -106,6 +114,7 @@ impl fmt::Display for Hint {
         match &self.0 {
             Shape::Text(text) => formatter.write_str(text),
             Shape::Command(text, command) => write!(formatter, "{text}: {command}"),
+            Shape::EndingIn(text, command) => write!(formatter, "{text} {command}"),
             Shape::Run(command, purpose) => write!(formatter, "run {command} {purpose}"),
             Shape::DidYouMean(name) => write!(formatter, "did you mean {name}?"),
             Shape::Typst(text) | Shape::Project(text) => formatter.write_str(text),

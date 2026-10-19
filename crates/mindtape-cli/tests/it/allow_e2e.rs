@@ -171,3 +171,36 @@ fn a_config_whose_only_command_is_a_flip_run_has_something_to_allow() {
     assert!(!allowed.contains("nothing to allow"), "{allowed}");
     assert!(allowed.contains("  exit 0"), "{allowed}");
 }
+
+/// A set member's warning names `mt allow` with the member's `@name` and the
+/// member itself, so the line runs as printed from where the set was listed.
+#[test]
+fn a_set_members_warning_asks_for_its_own_mt_allow() {
+    let dir = project(RUN);
+    let other = support::project_with_tasks(&[("one.typ", "One")]);
+    let cfg = tempdir();
+    support::write_at_toml(cfg.path(), &[("both", &[dir.path(), other.path()])]);
+    let name = dir.path().file_name().unwrap().to_str().unwrap();
+    let here = tempdir();
+    let run = |args: &[&str]| {
+        let mut command = support::mt(here.path());
+        command
+            .env(mindtape::CONFIG_HOME_ENV, cfg.path())
+            .args(args);
+        support::parts_of(&command.output().unwrap())
+    };
+
+    let (_, _, stderr) = run(&["@both", "ls", "blocked"]);
+    let printed = format!("mt @{name} allow");
+    let words: Vec<&str> = printed.split(' ').skip(1).collect();
+    let (code, allowed, _) = run(&words);
+
+    assert!(
+        stderr.contains(&format!(
+            "hint: read them, then run {printed}\nnote: command: '{RUN}'\nnote: project: {name}\n"
+        )),
+        "{stderr}"
+    );
+    assert_eq!(code, Some(0));
+    assert!(allowed.contains(RUN), "{allowed}");
+}

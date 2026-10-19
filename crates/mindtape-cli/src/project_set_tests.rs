@@ -60,10 +60,11 @@ fn a_members_config_warning_and_held_commands_name_it() {
     assert!(texts[0].starts_with("warning: .mindtape/config.toml: tasks.rules[0]"));
     assert!(texts[0].ends_with("note: project: api\n"), "{}", texts[0]);
     assert!(
-        texts[1].contains("hint: read them, then run: mt @api allow\n"),
+        texts[1].contains("hint: read them, then run mt @api allow\n"),
         "{}",
         texts[1]
     );
+    assert!(texts[1].ends_with("note: project: api\n"), "{}", texts[1]);
     assert!(!mindtape::allow::held_back().contains(&"make up".to_owned()));
 }
 
@@ -101,12 +102,16 @@ fn a_members_load_error_names_it() {
 
 #[test]
 fn a_members_held_back_warning_asks_for_mt_at_its_name_allow() {
-    let msg = plain(&held_back_warning(&["b".to_owned()], Some("web")).unwrap());
+    let msg = plain(
+        &held_back_warning(&["b".to_owned()])
+            .unwrap()
+            .in_member("web"),
+    );
 
     assert_eq!(
         msg,
         "warning: not running the commands your config declares until you allow them\n\
-         hint: read them, then run: mt @web allow\nnote: command: 'b'\n"
+         hint: read them, then run mt @web allow\nnote: command: 'b'\nnote: project: web\n"
     );
 }
 
