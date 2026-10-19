@@ -1,7 +1,7 @@
 // Rendering helpers shared across content pages.
 
 #import "site.typ": MARKDOWN, PKG, md-copy-button, mindtape, u
-#import "demo.typ": lede, showcase-intro
+#import "demo.typ": lede, listing-capture, listing-intro, showcase-intro
 
 // Inline package name, e.g. `@local/mindtape:0.2.0` — always version-synced.
 #let pkg = raw(PKG)
@@ -194,8 +194,7 @@
   )
 }
 
-// The lines that lead into the `mt ls` panel and the typeset card.
-#let _ls-intro = [And here's how `mt ls` lists it, with the rest of the backlog.]
+// The line that leads into the typeset card.
 #let _typeset-intro = [
   It's Typst, so the same file also typesets into a tidy document.
 ]
@@ -213,8 +212,8 @@
     lang: "typ",
     block: true,
   ))
-  line(_ls-intro)
-  face("terminal", "terminal", terminal-ansi("hero-ls"))
+  line(listing-intro)
+  face("terminal", "terminal", terminal-ansi(listing-capture))
 }
 
 // typlite joins two `par` calls into one line, so the paragraphs are markup.

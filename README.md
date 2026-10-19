@@ -3,7 +3,7 @@
 <h1 align="center"><img src="https://raw.githubusercontent.com/mlavrinenko/mindtape/main/www/assets/images/logo.svg" alt="Mindtape" width="120" /><br />
  Mindtape</h1>
 
-<h4 align="center">Tasks as code. One Typst file per task, checked against your own rules. Write rules in <code>.mindtape/config.toml</code>, and <code>mt check</code> runs them over every task and commit.</h4>
+<h4 align="center">Tasks as code. A tracker in your repo, one Typst file per task, checked against your own rules. Write rules in <code>.mindtape/config.toml</code>, and <code>mt check</code> runs them over every task and commit.</h4>
 
 <h4 align="center"><a href="https://mlavrinenko.github.io/mindtape/">Documentation</a> · <a href="https://mlavrinenko.github.io/mindtape/quickstart/">Quickstart</a></h4>
 
@@ -42,6 +42,24 @@ Here's a real task.
 - Locking accounts by username, which needs its own unlock flow.
 ```
 
+And here’s how `mt ls` lists it, with the rest of the backlog.
+
+```
+$ mt ls
+SLUG#  STATUS    READY       PRIORITY  DUE         TITLE
+zpz    proposed  ▶ ready     🔴 red    2026-10-02  Index the orders by customer
+qre    wip       ▶ ready     🟡 amber              Reject expired sessions on token refresh
+05c    proposed  ▶ ready     🟡 amber  2026-10-05  Rotate the JWT signing key
+ygv    proposed  ▶ ready     🟡 amber  2026-10-03  Document the webhook retry policy
+re8    proposed  ▶ ready     🟡 amber              Add a Redis client to the app state
+8f7    wip       ▶ ready     🟡 amber              Harden session tokens
+4ze    proposed  ▶ ready     🟢 green  2026-10-20  Replace the deprecated search client
+9ds    proposed  🔒 blocked  🟡 amber              Verify webhooks with the acme-pay SDK
+2q0    proposed  🔒 blocked  🟢 green              Throttle failed logins per IP
+
+default view · 9 of 14 tasks
+```
+
 ## Bring your own rules
 
 No rule is hardcoded in Mindtape. Every check is a few lines of config, either yours or from the `mindtape-tasks` pack that ships alongside. Here’s what `mt` says when a task breaks one.
@@ -63,7 +81,8 @@ Why pick [Typst](https://typst.app/) over Markdown to power a local task tracker
 1. **Language server autocompletion.** `task` declares every field as a named parameter, so your editor completes field names and flags a misspelled one.
 2. **Shared helpers.** `#import` your own Typst module to fill tasks the way you like.
 3. **Computed fields.** Fill a field with an expression, like `due: release - duration(days: 14)`. Change `release` in your shared module, and every deadline moves.
-4. **Custom validators.** Bring your own checks by writing a Typst function. See [Self-validating tasks](https://mlavrinenko.github.io/mindtape/self-validating-tasks/).
+4. **Links that don’t rot.** A link is a path `mt check` resolves, so a dead one fails the check. `mt mv` renames a task and rewrites every link to it.
+5. **Custom validators.** Bring your own checks by writing a Typst function. See [Self-validating tasks](https://mlavrinenko.github.io/mindtape/self-validating-tasks/).
 
 ## Install
 

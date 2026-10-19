@@ -69,7 +69,7 @@
 
 #let SITE = (
   title: mindtape,
-  tagline: "Tasks as code. One Typst file per task, checked against your own rules.",
+  tagline: "Tasks as code. A tracker in your repo, one Typst file per task, checked against your own rules.",
   pitch: "Write rules in `.mindtape/config.toml`, and `mt check` runs them over every task and commit.",
 )
 

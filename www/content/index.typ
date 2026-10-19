@@ -12,7 +12,7 @@
   route: "/",
   label: "Overview",
   title: mindtape,
-  summary: "Tasks as code, with one Typst file per task, checked against your own rules.",
+  summary: "Tasks as code, a tracker in your repo with one Typst file per task, checked against your own rules.",
   home: true,
 )
 #metadata(meta) <page-meta>
