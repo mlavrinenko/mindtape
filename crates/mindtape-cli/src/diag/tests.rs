@@ -134,6 +134,21 @@ fn a_members_name_is_quoted_for_the_shell_and_a_text_hint_kept() {
 }
 
 #[test]
+fn a_scoped_command_names_its_project_and_a_member_takes_its_place() {
+    let scoped = || Command::under(Some("-w blog".to_owned())).word("ls");
+    assert_eq!(scoped().to_string(), "mt -w blog ls");
+    let diag = Diag::failed("x")
+        .hint(Hint::run(scoped(), "to see your tasks"))
+        .in_member("web");
+    assert_eq!(
+        plain(&diag),
+        "error: x\n\
+         hint: run mt @web ls to see your tasks\n\
+         note: project: web\n"
+    );
+}
+
+#[test]
 #[should_panic(expected = "at most two hints")]
 fn a_third_hint_is_refused() {
     let _ = Diag::failed("x")

@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 19),
+  status: done(2026, 10, 19),
 )
 
 == Problem
@@ -56,14 +56,12 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape-cli/src/cmd/at.rs`: record the `@name` that `desugar_argv` rewrites into `-w <path>`.
-- `crates/mindtape-cli/src/main.rs`: record a `-w` the user typed, apart from `$MINDTAPE_WORKTREE`.
-- `crates/mindtape-cli/src/diag/hint.rs`: scope a project `Command` by what was recorded, as `Diag::in_member` scopes it for a set member.
+- `crates/mindtape-cli/src/diag/hint.rs`: build a project `Command` under the `@name` or `-w <dir>` that `crate::selector` already records for `mt ls`'s next-page line, and let `Diag::in_member` put a set member's `@name` in its place.
 
 
 == Rollback
 
-- Revert the three files.
+- Revert the file.
 
 
 == Out of scope

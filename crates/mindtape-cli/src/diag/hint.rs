@@ -275,18 +275,30 @@ impl fmt::Display for Note {
 /// which are quoted only when a shell needs them to be, so the line pastes.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct Command {
+    /// The words after `mt` that pick the project it runs on: this run's own
+    /// `@name` or `-w <dir>`, or a set member's `@name`. `None` when the run
+    /// found its project from where it stood, and for a global command.
+    scope: Option<String>,
+    /// The words after the scope: a subcommand, its flags and arguments.
     words: Vec<String>,
-    /// Whether the command reads no project, as `mt install` doesn't, so a
-    /// set member's hint names it without the member's `@name`.
+    /// Whether the command reads no project, as `mt install` doesn't, so no
+    /// scope is put on it.
     global: bool,
 }
 
 impl Command {
     /// `mt`, for a command that runs on a project, to which words and
-    /// arguments are added.
+    /// arguments are added. Under `mt @blog` or `mt -w <dir>`, it carries the
+    /// same words, so it runs on the same project as printed.
     pub(crate) fn mt() -> Self {
+        Self::under(crate::selector::hint())
+    }
+
+    /// The core of [`Self::mt`]: `mt` on the project `scope` picks.
+    pub(super) fn under(scope: Option<String>) -> Self {
         Self {
-            words: vec!["mt".to_owned()],
+            scope,
+            words: Vec::new(),
             global: false,
         }
     }
@@ -295,7 +307,7 @@ impl Command {
     pub(crate) fn mt_global() -> Self {
         Self {
             global: true,
-            ..Self::mt()
+            ..Self::under(None)
         }
     }
 
@@ -312,11 +324,11 @@ impl Command {
         self
     }
 
-    /// The command run in the set member `name`, as `mt @<name> …`. A global
-    /// command stays as it is.
+    /// The command run in the set member `name`, as `mt @<name> …`, in place
+    /// of the run's own scope. A global command stays as it is.
     fn in_member(mut self, name: &str) -> Self {
         if !self.global {
-            self.words.insert(1, shell_word(&format!("@{name}")));
+            self.scope = Some(shell_word(&format!("@{name}")));
         }
         self
     }
@@ -324,6 +336,10 @@ impl Command {
 
 impl fmt::Display for Command {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str(&self.words.join(" "))
+        formatter.write_str("mt")?;
+        for word in self.scope.iter().chain(&self.words) {
+            write!(formatter, " {word}")?;
+        }
+        Ok(())
     }
 }

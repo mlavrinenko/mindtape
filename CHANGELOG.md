@@ -576,6 +576,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `run mt @blog flip --list to see the statuses`. In `mt @work ls @nope`, a
   project that lacks the view hints `run mt @blog views to see the views`. A
   command that reads no project, such as `mt install`, stays bare.
+- **A hint under `mt @blog` or `-w` runs on that same project.** `mt @blog
+  check` used to hint `run mt flip --list to see the statuses`, which fails
+  typed where you stand. Now a hint's `mt` command carries the `@blog` or
+  `-w <dir>` you gave, as in `run mt @blog flip --list to see the statuses`. A
+  run inside the project, or one `$MINDTAPE_WORKTREE` points at, keeps its
+  hints bare.
 - **A second `mt init` fails.** Over an existing config it used to print a note
   and exit 0, so a script never knew nothing was written. Now it exits 1 with
   `error: config already exists` and the hint to pass `--force`.
