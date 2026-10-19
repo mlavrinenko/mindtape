@@ -429,9 +429,9 @@ groups:
   mutation-scripts-docs:
     source:
       .just/scripts/_mutants-env.sh: 7f3c51e2199e8a2f8543ffb256ddbece9a10f3a7d3b7fa0a4a3603604be245de
-      .just/scripts/mutants-diff.sh: 3d05682d9eb079923976932bd159cf29eb3fec23b6712b8641e7873f34366e83
+      .just/scripts/mutants-diff.sh: 9f49a7d406a47d3ffa223296849902ed1b04ad5bc9ccf14f7543299a5efb1e00
       .just/scripts/mutants-status.sh: 777881a59742c603da8d0bf6b456f146bb1e531c2b902b6b06827c8322711cd7
-      .just/scripts/mutants.sh: 0ac4a84e597ade9774b8ff1ca4478032947c52f6e28e7ceaded29528c7d5b365
+      .just/scripts/mutants.sh: f3b42a3323ba39de4b38872c4b46c290d4c3a80a10079aea88f8d2a6b425264e
     dependents:
       docs/src/contributing.typ: 32ffb7ea79d23fb5e373d148e1648f5d22f22dffe1922b2f6f9670550e3fdf97
       docs/src/contributing/mutation-testing.typ: 6a7b5cf5a51a025ebd6b8b991da6b2cc8494a2e96cf6d5a7f9608d00a497f7e5

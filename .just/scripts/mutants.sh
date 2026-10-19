@@ -11,6 +11,8 @@
 # mutants-diff.sh — argued there for why both stay script-local rather than a
 # Justfile-level `export`.
 set -eo pipefail
+# shellcheck source=_mutants-env.sh
+# shellcheck source-path=SCRIPTDIR
 . "$(dirname "${BASH_SOURCE[0]}")/_mutants-env.sh"
 
 # A run that selects a subset rewrites its output directory's mutant list and

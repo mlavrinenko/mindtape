@@ -13,6 +13,8 @@
 # RUSTFLAGS in every cargo invocation's fingerprint and invalidate the
 # workspace build cache for every other recipe.
 set -eo pipefail
+# shellcheck source=_mutants-env.sh
+# shellcheck source-path=SCRIPTDIR
 . "$(dirname "${BASH_SOURCE[0]}")/_mutants-env.sh"
 diff_file=$(mktemp)
 trap 'rm -f "$diff_file"' EXIT
