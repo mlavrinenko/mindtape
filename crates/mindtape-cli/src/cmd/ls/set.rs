@@ -10,7 +10,7 @@ use anstyle::{Effects, Style};
 
 use super::{Listing, LsArgs, effective_format, next_command_hint, print_body, resolve_and_select};
 use crate::cmd::ls::rules::{broken_part, footer_sources};
-use crate::diag::{Diag, Hint, Kind, Note, Result, emit};
+use crate::diag::{Diag, Hint, Kind, Result, emit};
 use crate::project_set::HeldSet;
 use crate::render::color::{Painter, is_color_active};
 use crate::render::output::{Envelope, Listed, OutputFormat, SetGroup, Truncation, render_set};
@@ -51,7 +51,7 @@ pub(crate) fn run(args: &LsArgs, held: &HeldSet) -> Result<()> {
     for group in groups {
         if let Err(diag) = group.listing {
             failed += 1;
-            emit(&diag.note(Note::new("project").name(&group.name)));
+            emit(&diag.in_member(&group.name));
         }
     }
     if failed == 0 {

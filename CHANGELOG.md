@@ -567,8 +567,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   error, `mt @work check` used to hint `run mt flip --list to see the
   statuses`, which ran in whatever project you stood in. Now every problem a
   member prints names its `mt` commands with the member's `@name`, as in
-  `run mt @blog flip --list to see the statuses`. A command that reads no
-  project, such as `mt install`, stays bare.
+  `run mt @blog flip --list to see the statuses`. In `mt @work ls @nope`, a
+  project that lacks the view hints `run mt @blog views to see the views`. A
+  command that reads no project, such as `mt install`, stays bare.
 - **A second `mt init` fails.** Over an existing config it used to print a note
   and exit 0, so a script never knew nothing was written. Now it exits 1 with
   `error: config already exists` and the hint to pass `--force`.

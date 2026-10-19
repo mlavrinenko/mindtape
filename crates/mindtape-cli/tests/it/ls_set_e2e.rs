@@ -145,6 +145,8 @@ fn a_project_lacking_the_view_fails_and_the_rest_still_list() {
     let expected = [(set.alpha(), "Uno".to_owned())];
     assert_eq!(rows(&stdout), expected, "{stdout}");
     assert!(stderr.contains("unknown view: 'mine'"), "{stderr}");
+    let hint = format!("hint: run mt @{} views to see the views\n", set.beta());
+    assert!(stderr.contains(&hint), "{stderr}");
     assert!(
         stderr.ends_with("error: 1 of 2 projects did not list\n"),
         "{stderr}"

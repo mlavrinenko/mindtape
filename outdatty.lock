@@ -490,7 +490,7 @@ groups:
       crates/mindtape-cli/src/cmd/at.rs: f1f03052322a6bcc6786bbd31a0322c027637ef2e25a6a138b6a9bfbaee7a3d6
       crates/mindtape-cli/src/cmd/board.rs: 364465cc25512e8c563fbdedebc5697750abce854fe5d9f934606db8b41af9e1
       crates/mindtape-cli/src/cmd/check/set.rs: 8f4d852f81d0fc1e3a22c03012db4764dc7c3810b85870681e197e20feab09f8
-      crates/mindtape-cli/src/cmd/ls/set.rs: d3400c5c1462fe42cc14e0a3ef583014b15f158c4e1b17c620abb1d4446405e2
+      crates/mindtape-cli/src/cmd/ls/set.rs: c3765b8f6fa76a480627c718e78220d9f85a6eab3abe03090e897646122be318
       crates/mindtape-cli/src/project_set.rs: ad73ee97229a3acf662aaf209dc78ff0b5d816a7940e59c6b27474b5bf363509
       crates/mindtape/src/at/board.rs: 724c338739d12973d8abd4e884d2ba2d18bc483e6351fedfdc84832d1a1accc3
       crates/mindtape/src/at/mod.rs: def1f20ed880c0e78561a33f7704d01d1f0aa7fd15382d083e1e50319530121f
