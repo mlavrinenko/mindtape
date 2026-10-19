@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 19),
+  status: wip(2026, 10, 19),
 )
 
 == Problem
@@ -51,12 +51,18 @@ left in a closing report no one rereads. It belongs in
 
 == TO-BE
 
-- 🟢 On Windows, `mt install` writes the prelude under `%APPDATA%\typst\packages\local\mindtape`, the directory Typst and tinymist read `@local` packages from, and `mt` reads it back from there.
+- 🟢 With `$MINDTAPE_DATA_HOME` unset, `mt install` writes the prelude under the directory Typst and tinymist read `@local` packages from, and `mt` reads it back from there. That's `$TYPST_PACKAGE_PATH` when set, else `dirs::data_dir()` joined with `typst/packages`, so `%APPDATA%\typst\packages` on Windows.
+- 🟢 `$MINDTAPE_DATA_HOME` still moves both to its own `typst/packages`, and set but empty still resolves no global package.
+- 🟢 The `allowed/` records stay under `data_home()`, which keeps `dirs::data_local_dir()`.
 
 == Changes
 
-- `crates/mindtape/src/loader/app_dirs.rs`: resolve the package directory through `dirs::data_dir()`. `data_home()` also holds the `allowed/` records (`allow.rs`) and the cache directory (`loader/cache.rs`), so decide whether those follow or keep `data_local_dir()`.
-- `crates/mindtape/src/loader/app_dirs_tests.rs`: the fallback assertion at line 62 compares against `dirs::data_local_dir`, so it follows the choice.
+- `Cargo.toml`, `crates/mindtape/Cargo.toml`, `Cargo.lock`: require typst-world 0.5.5, whose `DiskProvider` reads `@local` where Typst does and whose `platform_package_root()` names that directory.
+- `crates/mindtape/src/loader/app_dirs.rs`: `package_root()` moves here and falls back to `typst_world::platform_package_root()` rather than `data_home()`, so the directory has one source.
+- `crates/mindtape-cli/src/cmd/init/mod.rs`: `package_dir()` builds on `package_root()`.
+- `crates/mindtape/src/loader/cache.rs`: the build key folds `package_root()`, the directory a read resolves, so moving `$TYPST_PACKAGE_PATH` busts it as moving `$MINDTAPE_DATA_HOME` does. The cache stays in `.mindtape/cache/`.
+- `.just/scripts/_typst-package.sh`: the dev symlink follows `$TYPST_PACKAGE_PATH` too.
+- `www/content/config.typ`: name the directory and both variables.
 
 == Rollback
 
