@@ -391,8 +391,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Alternatives, Source of truth or Rollback by kind), heading order, 🔴/🟢
   markers, word caps, an em-dash density cap and `imperative-title`, and each
   message says the next step. Its commit rules are `work-names-a-task`,
-  `flip-with-work` (a `wip` or `done` flip rides with its work, a `decision`
-  task or an `mt rm` of other tasks counts) and `named-tasks-finish-at-the-tip`.
+  `flip-with-work` (a `wip` or `done` flip rides with its work; a `decision`
+  task, a `milestone` or an `mt rm` of other tasks counts) and `named-tasks-finish-at-the-tip`.
 - **Field rules live in one descriptor.** `[tasks.fields.<name>]` (a project
   field such as `[tasks.fields.x-<ns>]` included), `[tasks.assignee]`,
   `[tasks.tags]`, `[tasks.estimate]` and the numeric scales take `values`,

@@ -13,7 +13,7 @@ just check           # run before every commit
 
 Run `just` recipes, not raw `cargo`: they carry the right flags and environment. In the dev shell, `mt` is `target/mt-dev/debug/mt`. `just build-mt` builds it, and the worktrunk hooks in `.config/wt.toml` run it when `just fork` makes a worktree and after `just land` lands in a checkout. Between those builds, `mt` can be older than the code beside it.
 
-This file holds the rules. The `docs/contributing/*.md` deep dives explain why and how they work, and `AGENTS.md` says what Mindtape is.
+This file holds the rules, the `docs/contributing/*.md` deep dives explain why, and `AGENTS.md` says what Mindtape is.
 
 ## Code Style
 
@@ -69,7 +69,7 @@ just fork <slug> --base=@  # the same, from the current commit, not main
 just land                  # in the worktree: gate, wip check, fast-forward, remove
 ```
 
-A worktree only gets commits, never your working tree, so commit first and branch before you flip a task: run `mt wip <stem>` inside the worktree. Don’t use `git stash` in a worktree: all worktrees share one stash list, so a `pop` can apply another worktree’s work. Make a WIP commit instead.
+A worktree only gets commits, never your working tree, so commit first and branch before you flip a task: run `mt wip <stem>` inside the worktree. Don’t `git stash` in a worktree: all worktrees share one stash list, so a `pop` can apply another’s work. Make a WIP commit instead.
 
 `.config/wt.toml` holds the hooks, so a clone with nix and direnv needs no worktrunk config of its own. Before the fast-forward they run `just check` and `mt check --commits main..HEAD`, which refuses a branch that names a still-`wip` task in `Refs:`.
 
@@ -80,7 +80,7 @@ A worktree only gets commits, never your working tree, so commit first and branc
 - File a task in its own `task:` commit, with no `Refs:`. The exception is a change to one source file that’s too small to plan: file it with `mt add -t tweak`, which files it done, in the commit that makes the change, and name it in `Refs:`.
 - Stage a status flip with the work it claims: `mt wip` with the first work commit, `mt done` with the last. A commit holding only a flip is refused, and so is one naming a task that isn’t `wip` in the staged tree.
 - If a commit changes product code (`crates/**` and `lib/**`, tests excepted), it also adds an entry under `[Unreleased]` in `CHANGELOG.md`. If there’s nothing to announce, add a `Changelog: none` trailer instead. The commit-msg hook and CI refuse the commit otherwise, whatever its type.
-- A task tagged `decision` has no code of its own. It can close in a commit that changes only task files, with a `Refs:` footer naming it.
+- A `decision` task or a milestone has no code of its own. It can close in a commit that changes only task files, with a `Refs:` footer naming it.
 
 [docs/contributing/commit-messages.md](docs/contributing/commit-messages.md) says what checks these rules, and why `Refs:` names a stem.
 

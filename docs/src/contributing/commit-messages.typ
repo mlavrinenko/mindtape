@@ -42,9 +42,10 @@ per-commit `[[commits.rules]]` of the `mindtape-tasks` pack
   #just.land().
 - `flip-with-work` checks each task a commit moves into `wip` or `done`. The
   commit's `Refs:` must name the task, and the commit must change a file
-  outside the task root. Two commits are exempt from the second half: one
-  that retires another task with `mt rm`, and one for a task tagged
-  `decision`, which has no code to commit with it.
+  outside the task root. Three commits are exempt from the second half: one
+  that retires another task with `mt rm`, one for a task tagged `decision`,
+  which has no code to commit with it, and one for a milestone, which ends
+  through its leaves.
 - `named-tasks-finish-at-the-tip` is a `scope = "tip"` rule, which runs only
   under `mt check --commits <range>`. It refuses a range whose commits name a
   task that's still `wip` in the newest commit, and prints the stems. So you put

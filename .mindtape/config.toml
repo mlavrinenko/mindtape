@@ -245,8 +245,8 @@ allowed = [
   # settled in the body, with no code deliverable of its own — see
   # Extending Mindtape in CONTRIBUTING.md. `flip-with-work`
   # (mindtape-tasks) reads it to let one close in a task-only commit,
-  # `staged(has_tag("decision"))`, the sole exemption from riding its
-  # close in the work it names.
+  # `staged(has_tag("decision"))`, an exemption from riding its close in
+  # the work it names, as a milestone's is.
   "decision",
   # Provenance, written by `just ask-refactoring` (contrib/ask-refactoring.sh)
   # and by nothing else. `swept` marks a task the sweep filed rather than a

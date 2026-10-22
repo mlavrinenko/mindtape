@@ -3,7 +3,7 @@ algorithm: blake3
 groups:
   api-service-recipes:
     source:
-      crates/mindtape/src/packs/mindtape-tasks.toml: 3fdeb23f265edd6bce9ecd888789e10dfc67c49d7ccd6d122deed44ebd37f80b
+      crates/mindtape/src/packs/mindtape-tasks.toml: 354a285bfbcfb71e67eae7da59cac6e821af2ad60d30bcb280f0c56329e71286
       examples/api-service/.mindtape/config.toml: 6646c41eea3ded70f22b1a65463e59d4faacc8df12e89fa0b93e50744b2add11
       examples/api-service/.mindtape/templates/milestone.typ: 737fc2788932ee1d2863e4041849ed4e6fe6d191952d432369d36a5343446afc
       examples/api-service/.mindtape/templates/task.typ: c139fe1c0f9cbda3786811d6abcd0a832a0ea527227008ff636b4a7b03cec03a
@@ -28,7 +28,7 @@ groups:
       examples/api-service/tasks/verify-webhooks-with-the-acme-pay-sdk.typ: dc6dce15d763d29cffa99082ce8dbf6a24bf30798d40b362eb8ae2972414835c
       www/generate-api-service.sh: abcb1a6878332504f4244b03d62eae197d17554276f4ad7f8220a1890b5e970b
     dependents:
-      skills/mindtape/evals/README.md: 998e2cfcf60142db3101c1ddd849ef3a244acd18eb7ca3568a3195d12eb2bf6b
+      skills/mindtape/evals/README.md: b451b8b388e4a1c8e95f876258e9c3425355a7bf9c1cfa0f04ec1a0c57b3bd6a
       skills/mindtape/evals/evals.json: 481bb4f0168826d9ee4086ee6f4f4f74c4c31ed3b46792871532da8372b56460
       www/content/limit-work-in-progress.typ: c8bf092555288cd46fa02bc7ba8392bce040aa3b4276835caac2426e91143f42
       www/content/require-a-task-shape.typ: 5b9123c39a324896579488b95f2173d3f52207050f9de20bd8e90ee2b425632e

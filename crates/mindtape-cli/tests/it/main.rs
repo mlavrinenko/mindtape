@@ -24,6 +24,7 @@ mod check_stderr_e2e;
 mod check_templates_e2e;
 mod cli_dump_e2e;
 mod commit_amend_e2e;
+mod commit_milestone_e2e;
 mod commit_msg_e2e;
 mod commit_msg_task_e2e;
 mod commit_range_e2e;

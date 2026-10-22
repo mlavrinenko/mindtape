@@ -29,8 +29,8 @@ environment. In the dev shell, `mt` is `target/mt-dev/debug/mt`. #just.build-mt(
 #just.land() lands in a checkout. Between those builds, `mt` can be older than
 the code beside it.
 
-This file holds the rules. The `docs/contributing/*.md` deep dives explain
-why and how they work, and `AGENTS.md` says what #mindtape is.
+This file holds the rules, the `docs/contributing/*.md` deep dives explain
+why, and `AGENTS.md` says what #mindtape is.
 
 = Code Style
 
@@ -131,8 +131,8 @@ just land                  # in the worktree: gate, wip check, fast-forward, rem
 
 A worktree only gets commits, never your working tree, so commit first and
 branch before you flip a task: run `mt wip <stem>` inside the worktree. Don't
-use `git stash` in a worktree: all worktrees share one stash list, so a `pop`
-can apply another worktree's work. Make a WIP commit instead.
+`git stash` in a worktree: all worktrees share one stash list, so a `pop` can
+apply another's work. Make a WIP commit instead.
 
 `.config/wt.toml` holds the hooks, so a clone with nix and direnv needs no
 worktrunk config of its own. Before the fast-forward they run #just.check() and
@@ -157,8 +157,8 @@ still-`wip` task in `Refs:`.
   excepted), it also adds an entry under `[Unreleased]` in `CHANGELOG.md`. If
   there's nothing to announce, add a `Changelog: none` trailer instead. The
   commit-msg hook and CI refuse the commit otherwise, whatever its type.
-- A task tagged `decision` has no code of its own. It can close in a commit
-  that changes only task files, with a `Refs:` footer naming it.
+- A `decision` task or a milestone has no code of its own. It can close in a
+  commit that changes only task files, with a `Refs:` footer naming it.
 
 #link(
   "docs/contributing/commit-messages.md",

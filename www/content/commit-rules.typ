@@ -161,7 +161,9 @@ moves the task into status `s`.
 
 The `mindtape-tasks` pack's `flip-with-work` uses `retires_other` so that a
 cleanup task closes in the commit that runs `mt rm` on other tasks, though
-that commit stages nothing but task files.
+that commit stages nothing but task files. It also lets a task of
+`kind: "milestone"` close alone, because a milestone ends through its leaves
+and has no work of its own.
 
 A breach names the task after the rule. Here `mt done` changed the task
 file, but only the code is staged:

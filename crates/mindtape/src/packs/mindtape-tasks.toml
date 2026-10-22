@@ -370,12 +370,15 @@ severity = "error"
 # a broken one — see `.mindtape/config.toml` for this repo's own call.
 # `retires_other` is the second escape hatch: a close whose work is retiring
 # other tasks (`mt rm`) touches nothing but task files, yet it is work. A
-# flip beside mere edits to other tasks' files still counts as none.
+# flip beside mere edits to other tasks' files still counts as none. The third
+# is a milestone: `staged(kind == "milestone")` reads the same `kind` this
+# pack's section rules do, for a task that ends through its leaves and carries
+# no work of its own.
 [[commits.rules]]
 name = "flip-with-work"
 scope = "task"
 when = 'into("wip") || into("done")'
-assert = 'named && (!tasks_only || retires_other || staged(has_tag("decision")))'
+assert = 'named && (!tasks_only || retires_other || staged(has_tag("decision")) || staged(kind == "milestone"))'
 message = "start or close a task in a commit that carries its work"
 severity = "error"
 
