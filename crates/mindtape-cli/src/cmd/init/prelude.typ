@@ -271,6 +271,27 @@
   materialize: materialize,
 )
 
+// Query-backed estimates. `count(n, ..queries)` is a unit's manual count `n`
+// plus the files its queries match: `grep(regex, within: glob)` reads file
+// contents, `glob(pattern)` reads paths. A regex may be a raw block
+// (`` `fn \w+` ``), so it needs no string escapes. Each builds a plain dict;
+// the Rust layer lists the files, runs the queries and adds them up, and only
+// for a unit the project names under `[tasks.estimate.queries]`.
+#let _text(v) = if type(v) == content and v.func() == raw { v.text } else { v }
+#let grep(regex, within: none) = (
+  query: "grep",
+  regex: _text(regex),
+  within: within,
+)
+#let glob(pattern) = (query: "glob", pattern: pattern)
+#let count(n, ..queries) = {
+  assert(
+    queries.named().len() == 0,
+    message: "count() takes a number and then grep(...) or glob(...) queries",
+  )
+  (count: n, queries: queries.pos())
+}
+
 // Template authoring helper. `mt add` discovers `slot(...)` calls on the
 // parse plane and replaces each with a filled literal, so a filed task holds
 // plain values and never calls `slot`. At eval time a slot returns its `default`,
@@ -407,12 +428,40 @@
 // A kind pill, if set.
 #let _kind-pill(k) = if type(k) == str and k != "" { _pill(k) } else { none }
 
+// One `count(...)` query as text: `grep fn \w+ in src/**` or `glob docs/*`.
+#let _fmt-query(q) = if type(q) != dictionary { _scalar(q) } else if (
+  q.at("query", default: none) == "grep"
+) {
+  let within = q.at("within", default: none)
+  (
+    "grep "
+      + _scalar(q.at("regex", default: ""))
+      + if within != none {
+        " in " + _scalar(within)
+      } else { "" }
+  )
+} else {
+  (
+    _scalar(q.at("query", default: ""))
+      + " "
+      + _scalar(q.at("pattern", default: ""))
+  )
+}
+
 // The estimate unit dict (`(days: 1, hours: 2)` → `1 day, 2 hours`), authored
-// order preserved, unit singularised at one.
+// order preserved, unit singularised at one. A `count(...)` unit reads as its
+// manual part plus its queries: `2 + grep fn \w+ src-files`.
 #let _fmt-estimate(est) = {
   if type(est) != dictionary or est.len() == 0 { return none }
   let parts = ()
   for (unit, val) in est {
+    if type(val) == dictionary and "count" in val {
+      let terms = (
+        (_scalar(val.count),) + val.at("queries", default: ()).map(_fmt-query)
+      )
+      parts.push(terms.join(" + ") + " " + unit)
+      continue
+    }
     let u = if val == 1 and unit.ends-with("s") { unit.slice(0, -1) } else {
       unit
     }

@@ -128,6 +128,7 @@ pub fn load_project(root: &Path, config: &Config) -> LoadOutcome {
     // A checker's answer is about now, not about the file, so it is asked on
     // every load and never cached.
     crate::waits::annotate(&mut outcome.tasks, config, root);
+    crate::estimate_queries::annotate(&mut outcome.tasks, config, root);
     outcome
 }
 

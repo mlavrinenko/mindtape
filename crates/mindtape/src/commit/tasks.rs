@@ -129,6 +129,7 @@ impl ProjectState {
     ) -> Self {
         tasks.sort_by(|left, right| left.id.cmp(&right.id));
         crate::waits::annotate(&mut tasks, config, root);
+        crate::estimate_queries::annotate(&mut tasks, config, root);
         crate::graph::dep_rank::annotate(&mut tasks, config);
         let readiness = Readiness::compute(&tasks, config);
         Self {

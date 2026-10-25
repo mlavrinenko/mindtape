@@ -323,16 +323,16 @@ pub(crate) fn check_in_scale(
     }
 }
 
-/// Validate a task's estimate: presence when `required`, and allowed unit
-/// names. A quantity is never checked here — a cap is a `[[tasks.rules]]`
+/// Validate a task's estimate: presence when `required`, allowed unit names,
+/// and a `count(...)` unit that resolved. A quantity is never checked here — a cap is a `[[tasks.rules]]`
 /// entry reading `estimate.<unit>`.
 ///
-/// Units are skipped once a task is terminal — it cannot be re-estimated any
+/// Units and counts are skipped once a task is terminal — it cannot be re-estimated any
 /// more, so retiring a unit is one edit to `units` rather than a rewrite of
 /// every closed task that ever carried it.
 fn check_estimate(task: &Task, config: &Config, required: bool, out: &mut Vec<Violation>) {
     let estimate = &config.tasks.estimate;
-    if task.estimate.is_empty() {
+    if task.estimate.is_empty() && task.estimate_counts.is_empty() {
         if required {
             push(
                 out,
@@ -346,7 +346,17 @@ fn check_estimate(task: &Task, config: &Config, required: bool, out: &mut Vec<Vi
     if task.is_terminal(&config.tasks.status.terminal()) {
         return;
     }
-    for unit in task.estimate.keys() {
+    for (unit, count) in &task.estimate_counts {
+        if let Some(problem) = &count.problem {
+            push(out, task, &format!("estimate.{unit}"), problem.clone());
+        }
+    }
+    let units: std::collections::BTreeSet<&String> = task
+        .estimate
+        .keys()
+        .chain(task.estimate_counts.keys())
+        .collect();
+    for unit in units {
         if !estimate.units.is_empty() && !estimate.units.contains(unit) {
             push(
                 out,

@@ -132,7 +132,7 @@ fn reports_a_wrong_typed_estimate_quantity_by_its_unit() {
         "estimate",
         value,
         "estimate.days",
-        "expected a number, found a string",
+        "expected a number or count(...), found a string",
     );
     assert_eq!(task.estimate.get("hours"), Some(&2.0));
     assert!(!task.estimate.contains_key("days"));

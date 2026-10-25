@@ -723,6 +723,14 @@
             "null"
           ]
         },
+        "queries": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "The units that take `count(n, ..queries)`, each naming the path set,\na glob or an `@name` set, its matched files must fall in. A unit\nmissing here takes only a plain number.",
+          "type": "object"
+        },
         "required": {
           "$ref": "#/$defs/Requirement",
           "description": "Whether an estimate must be set."

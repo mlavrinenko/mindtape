@@ -2,10 +2,11 @@
 # examples/estimates/.mindtape/config.toml — the checked project /estimates/
 # reads back as data.
 #
-# Its one job is estimates: a `files` unit, then the caps and the working-tree
+# Its one job is estimates: a `files` unit that takes `count(...)`, whose
+# `rename-the-harvest-cache` task greps `src/`, then the caps and the working-tree
 # budget as plain `[[tasks.rules]]` entries — a ceiling gated on `difficulty`,
 # an unconditional one, a floor, and a `changed()` budget. The page slices
-# those two groups out of this file instead of retyping them, so a cap
+# those groups out of this file instead of retyping them, so a cap
 # `mt check` would refuse can no longer be printed as a cap to copy.
 #
 # `files` rather than a duration because a file count is the one estimate a
@@ -33,10 +34,15 @@ path = "../../lib"
 [tasks]
 roots = ["tasks"]
 
-# docs:slice estimates/caps
+# docs:slice estimates/queries
 [tasks.estimate]
 units = ["files"]
 
+[tasks.estimate.queries]
+files = "**/src/**"
+# docs:end
+
+# docs:slice estimates/caps
 [[tasks.rules]]
 name = "judgment-stays-small"
 when = "!terminal && difficulty >= 3"

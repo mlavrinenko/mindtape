@@ -40,6 +40,7 @@ mod crap_baseline_merge_e2e;
 mod date_pin_e2e;
 mod dicts_e2e;
 mod error_format_e2e;
+mod estimate_queries_e2e;
 mod estimate_rules_e2e;
 mod eval_e2e;
 mod eval_fixture_e2e;

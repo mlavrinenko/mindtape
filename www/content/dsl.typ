@@ -37,8 +37,9 @@ names and shows each default. Misspell a field as `titel` and the file fails
 with `unexpected argument: titel`, which the language server marks under the
 misspelled name.
 
-A value is plain data. Helpers like `ice(...)` and `every(...)` only build a
-dictionary. `mt` does the scoring and the date arithmetic.
+A value is plain data. Helpers like `ice(...)`, `every(...)` and
+`count(...)` only build a dictionary. `mt` does the scoring, the date
+arithmetic and the file matching.
 
 #table(
   columns: 2,

@@ -90,6 +90,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   blocking target is unfinished, and `mt check` warns about a task already
   there. The `flow` and `gated` presets set it on `wip` and `done`. `--force`
   overrides both.
+- **An estimate unit can count the files its queries match.**
+  `estimate: (src-files: count(2, grep(`parse_task`, within: "src/**")))`
+  resolves to 2 plus the files that `grep(...)` or `glob(...)` match, each file
+  once, among the files git lists. A unit takes `count(...)` once
+  `[tasks.estimate.queries]` names the path set its files must fall in, such
+  as `src-files = "@source"`, and rules read `estimate.src-files` as the
+  resolved number. `mt check` reports a regex that doesn't compile, and a
+  count on a unit with no entry.
 
 #### Naming tasks
 

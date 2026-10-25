@@ -29,6 +29,11 @@ pub struct EstimateConfig {
     /// pairs. A required estimate with no `example` leaves that slot
     /// unfillable.
     pub example: Option<BTreeMap<String, f64>>,
+    /// The units that take `count(n, ..queries)`, each naming the path set,
+    /// a glob or an `@name` set, its matched files must fall in. A unit
+    /// missing here takes only a plain number.
+    // How a count resolves: `crate::estimate_queries`.
+    pub queries: BTreeMap<String, String>,
 }
 
 #[cfg(test)]

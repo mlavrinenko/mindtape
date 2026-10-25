@@ -21,6 +21,7 @@ pub mod commit;
 pub mod config;
 mod date;
 pub mod emit;
+pub mod estimate_queries;
 pub mod filter;
 pub mod format;
 pub mod framework;

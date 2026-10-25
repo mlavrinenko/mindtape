@@ -29,6 +29,13 @@ fn load_real_prelude(source: &str) -> (tempfile::TempDir, LoadOutcome) {
     (dir, outcome)
 }
 
+/// A world compiling `tasks/t.typ` under `dir` against the real prelude.
+fn prelude_world(dir: &std::path::Path) -> HarvestWorld {
+    HarvestWorld::with_root(&dir.join("tasks/t.typ"), dir)
+        .unwrap()
+        .with_local_package("mindtape", dir.join("lib"))
+}
+
 /// Load one task authored with a single `task.with` field and return the first
 /// load-error message. Used by the assertion tests, which all expect the file
 /// to fail eval and produce no task at all.
@@ -212,9 +219,7 @@ fn real_prelude_places_the_unknown_slot_error_on_the_name_in_the_task_file() {
     let dir = setup();
     write_pkg(dir.path(), "lib", "mindtape", "0.2.0", PRELUDE);
     write_file(dir.path(), "tasks/t.typ", source);
-    let world = HarvestWorld::with_root(&dir.path().join("tasks/t.typ"), dir.path())
-        .unwrap()
-        .with_local_package("mindtape", dir.path().join("lib"));
+    let world = prelude_world(dir.path());
     let world: &dyn typst::World = &world;
 
     let errors = typst::compile::<PagedDocument>(world).output.unwrap_err();
@@ -373,7 +378,7 @@ fn real_prelude_carries_a_wrong_typed_element_to_the_rust_shape_error() {
         (
             "estimate: (days: \"two\")",
             "estimate.days",
-            "expected a number, found a string",
+            "expected a number or count(...), found a string",
         ),
     ];
     for (field, path, message) in cases {
@@ -405,4 +410,35 @@ fn a_slot_evaluates_to_its_default_and_ignores_its_example() {
     ));
     assert_eq!(outcome.errors, Vec::new());
     assert_eq!(outcome.tasks.first().unwrap().title, "T");
+}
+
+/// `count(...)`, `grep(...)` and `glob(...)` reach the marker as the dicts the
+/// Rust layer reads, a raw-block regex as its text, and the printed card lays
+/// the composite out without an error.
+#[test]
+fn real_prelude_carries_a_count_estimate_and_renders_it() {
+    let source = crate::typst_task!(
+        "(title: \"T\", estimate: (src-files: count(2, grep(`fn \\w+`, within: \"src/**\"), glob(\"a.rs\"))))\n"
+    );
+    let (dir, outcome) = load_real_prelude(source);
+    assert_eq!(outcome.errors, Vec::new());
+    let task = outcome.tasks.first().unwrap();
+    assert!(task.shape_errors.is_empty(), "{:?}", task.shape_errors);
+    let count = task.estimate_counts.get("src-files").unwrap();
+    assert_eq!(count.manual, 2.0);
+    assert_eq!(
+        count.queries,
+        vec![
+            crate::estimate_queries::Query::Grep {
+                regex: "fn \\w+".to_owned(),
+                within: Some("src/**".to_owned()),
+            },
+            crate::estimate_queries::Query::Glob {
+                pattern: "a.rs".to_owned(),
+            },
+        ]
+    );
+    let world = prelude_world(dir.path());
+    let world: &dyn typst::World = &world;
+    assert!(typst::compile::<PagedDocument>(world).output.is_ok());
 }

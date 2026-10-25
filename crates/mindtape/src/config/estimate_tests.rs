@@ -54,3 +54,15 @@ fn the_retired_bound_and_drift_tables_are_unknown_keys() {
         assert!(err.to_string().contains("unknown field"), "{table}: {err}");
     }
 }
+
+#[test]
+fn queries_name_a_path_set_per_unit() {
+    let config = parse_config(&format!(
+        "{CONFIG}\n[tasks.estimate.queries]\nfiles = \"src/**\"\n"
+    ))
+    .unwrap();
+    assert_eq!(
+        config.tasks.estimate.queries,
+        BTreeMap::from([("files".to_owned(), "src/**".to_owned())])
+    );
+}

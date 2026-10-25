@@ -28,7 +28,7 @@ use std::path::{Path, PathBuf};
 use typst_harvest::HVal;
 
 use crate::model::marker::{
-    ShapeError, field, field_str, parse_num_map, parse_num_value, parse_status, parse_str_array,
+    ShapeError, field, field_str, parse_num_value, parse_status, parse_str_array,
 };
 use crate::model::numeric::NumValue;
 
@@ -68,7 +68,12 @@ pub struct Task {
     pub assignee: Option<String>,
     /// Estimate as an opaque `unit -> quantity` map (e.g. `{days: 5, hours: 5}`
     /// or `{points: 8}`). Units are free labels; never converted or compared.
+    /// A `count(...)` unit appears here once [`crate::estimate_queries::annotate`]
+    /// resolves it.
     pub estimate: BTreeMap<String, f64>,
+    /// The units written as `count(n, ..queries)`, as authored. See
+    /// [`crate::estimate_queries`].
+    pub estimate_counts: BTreeMap<String, crate::estimate_queries::CountEstimate>,
     /// Typed relation edges from `links:` (task↔task dependency, hierarchy,
     /// and cross-reference edges), each carrying a kind and optional note.
     /// Targets are raw paths as written in the DSL (e.g. `"other.typ"` or
@@ -189,7 +194,8 @@ impl Task {
         let id = explicit_id.unwrap_or(stem);
         let tags = parse_str_array(field(fields, "tags"), "tags", &mut errors);
         let waits_on = parse_str_array(field(fields, "waits-on"), "waits-on", &mut errors);
-        let estimate = parse_num_map(field(fields, "estimate"), "estimate", &mut errors);
+        let (estimate, estimate_counts) =
+            crate::estimate_queries::parse_estimate(field(fields, "estimate"), &mut errors);
         let links = crate::link::parse_links(field(fields, "links"), &mut errors);
         let recur = crate::recur::parse_recur(field(fields, "recur"), &mut errors);
         Self {
@@ -202,6 +208,7 @@ impl Task {
             kind: field_str(fields, "kind", &mut errors),
             assignee: field_str(fields, "assignee", &mut errors).filter(|s| !s.is_empty()),
             estimate,
+            estimate_counts,
             links,
             waits_on,
             answers: BTreeMap::new(),

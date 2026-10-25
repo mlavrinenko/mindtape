@@ -213,32 +213,6 @@ fn input_value(value: &HVal) -> Option<InputValue> {
     }
 }
 
-/// Project an opaque `unit -> quantity` map (`estimate`). A non-numeric
-/// quantity is reported as `<field>.<unit>` — the unit label itself is free
-/// text and never checked here.
-pub(crate) fn parse_num_map(
-    value: Option<&HVal>,
-    field_name: &str,
-    errors: &mut Vec<ShapeError>,
-) -> BTreeMap<String, f64> {
-    let Some(value) = value else {
-        return BTreeMap::new();
-    };
-    let Some(dict) = value.as_dict() else {
-        errors.push(shape_error(field_name, "a dict", value));
-        return BTreeMap::new();
-    };
-    let mut out = BTreeMap::new();
-    for (key, val) in dict.iter().filter(|(_, val)| !val.is_null()) {
-        if let Some(num) = val.as_f64() {
-            out.insert(key.clone(), num);
-        } else {
-            errors.push(shape_error(&format!("{field_name}.{key}"), "a number", val));
-        }
-    }
-    out
-}
-
 /// Project an array of strings (`tags`). A non-string entry is reported as
 /// `<field>[<index>]` rather than dropped, so a mistyped tag names its own
 /// position instead of reading as one tag fewer.

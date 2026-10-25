@@ -85,6 +85,7 @@ pub fn map_canonical(canonical: &CanonicalTask, config: &Config, opts: &MapOptio
         kind: canonical.kind.clone(),
         assignee: canonical.assignee.clone(),
         estimate: canonical.estimate.clone(),
+        estimate_counts: std::collections::BTreeMap::new(),
         links,
         waits_on: canonical.waits_on.clone(),
         answers: std::collections::BTreeMap::new(),

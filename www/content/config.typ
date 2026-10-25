@@ -216,7 +216,8 @@ These sections have a page of their own:
   #link(u("/derived-tags/"))[Derived tags].
 - `[tasks.priority]` and `[tasks.difficulty]`:
   #link(u("/priority/"))[Priority].
-- `[tasks.estimate]`: #link(u("/estimates/"))[Estimates].
+- `[tasks.estimate]` and `[tasks.estimate.queries]`:
+  #link(u("/estimates/"))[Estimates].
 - `[tasks.recur]`: #link(u("/recurring/"))[Recurring tasks].
 - `[views.<name>]` and `[dicts.<name>]`:
   #link(u("/named-sets/"))[Views & dictionaries].

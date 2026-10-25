@@ -438,18 +438,18 @@ groups:
       docs/src/contributing/signal-sweep.typ: 471350cebc9b82602b8ee48d162e4f3365368284a001782e4e2c7f6cb4857146
   prelude-docs:
     source:
-      lib/prelude.typ: 5ddf48a38c39f2c101eb9ec29a477b59d6fca80286b9bd9d82b9e1bf47997d35
+      lib/prelude.typ: ffdc066586cec58de64b686ddd57fdd80c86c07ffcbccb9c2149da0bdecfc78f
     dependents:
-      docs/src/agents.typ: da50da9ed7789e29e34d89dff17c92bccfee66dc09e611ad8f0adb1743ad5911
-      docs/src/skill.typ: 000ca65adb97feca643fccd2b992ba4dd5d1f6a52812907ab53bbb52cde231ed
-      skills/mindtape/references/add-slots.md: 1c713e380ef0eedaf9e6d7290f87aba1f15de6dd5effea82326406ede08e31ee
+      docs/src/agents.typ: b60c66d46729c944b878cc0d112e26741e5d2621ed8dc803c5ed0092daf2adeb
+      docs/src/skill.typ: 07bc5bb6d1bb24e5d0da636c1313b12d625ddc2e2d82517db9b9c6230d4508c1
+      skills/mindtape/references/add-slots.md: 40f2d1cf845f44fbaf8293465be7ff4c6d6dd30c75347bf866fe673a3e3682cf
       www/content/concepts.typ: c27baa666da3eaa762af463adc529ed39b6a36cecb64b0d65e963eda148b34ec
-      www/content/dsl.typ: 75786cec30063114a6bf4ef4c8bced7953fb41488dd280d67df77119f68d8b57
-      www/content/index.typ: 52adb00400c7a2d3502ffdf49534a5cbea008d30fae1b2cbbaccd73a575d9774
-      www/content/links.typ: 5d2f2e81e8a001bf376f91d0bee3e4cc2c35eea79a1c6ec066be7019cdaad3e2
+      www/content/dsl.typ: 86321a98fa0a0305c3b6eb1b74a73d2a40415f0728aee7648feb19d4fb457b6a
+      www/content/index.typ: 2237937279fb72b8035aa8a0df8e050f5f9e0312df997023a8dd940ddc512621
+      www/content/links.typ: 4f6f04305d7f5f369370f4ff22b831e1460a982decebb249db2a34a97694d020
       www/content/priority.typ: 3b01af3c586fd325859fdf8e086589c7a6254692126bd9f153c41b82393f9d8b
       www/content/recurring.typ: 9bb8e9b0b10dca758a092fd67776c376a2f44f4c3bff264025cd12482275f3d5
-      www/content/templates.typ: 1d5e426de0e63a9c95ba7783ad6899d6377dc731ee4c4d986c46b3306c4848be
+      www/content/templates.typ: 8a1237cda7858a3f6cbfbdde95b61c485fc7f6b7465208f3464e4f48d4c936c6
   priority-frameworks:
     source:
       crates/mindtape/src/framework/frameworks.toml: 7ace56205f2fa3bc5973eba8cbb94b47b30b70d564fc278a81e35d6615cfdcbb

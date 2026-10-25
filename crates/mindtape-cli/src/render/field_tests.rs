@@ -302,6 +302,7 @@ fn stub_task() -> Task {
         kind: None,
         assignee: None,
         estimate: Default::default(),
+        estimate_counts: Default::default(),
         links: vec![],
         waits_on: vec![],
         answers: std::collections::BTreeMap::new(),

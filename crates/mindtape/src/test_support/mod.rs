@@ -66,6 +66,7 @@ pub fn bare_task(id: &str) -> Task {
         kind: None,
         assignee: None,
         estimate: BTreeMap::new(),
+        estimate_counts: BTreeMap::new(),
         links: Vec::new(),
         waits_on: Vec::new(),
         answers: BTreeMap::new(),

@@ -21,7 +21,9 @@
     the names.],
   "estimate": [A dictionary of units to amounts: `(days: 1, hours: 2)`. `mt`
     checks the units against the project's list and never converts between
-    them. See #link(u("/estimates/"))[Estimates].],
+    them. A file-count unit can add query matches to a manual count:
+    `(files: count(2, grep("fn parse")))`. See
+    #link(u("/estimates/"))[Estimates].],
   "links": [Typed edges to other tasks, joined with `+`:
     `depends-on("a.typ") + related("b.typ")[why]`. See
     #link(u("/links/"))[Task links].],
