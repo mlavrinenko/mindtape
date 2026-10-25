@@ -142,6 +142,13 @@ units = ["src-files"]
 required = "!terminal"
 example = { src-files = 1 }
 
+# A judgment task writes `src-files: count(n, grep(...))`, a `grep` per symbol
+# it changes, so `judgment-stays-small` reads the fan-out the code has today,
+# not a guess. The matches count inside the `source` path set below, the one
+# `src-budget` holds the working tree to.
+[tasks.estimate.queries]
+src-files = "@source"
+
 # No estimate check is built in: the caps and the working-tree budget below are
 # ordinary `[[tasks.rules]]` entries reading `estimate.src-files` and
 # `changed(...)`. See truth/tasks/retire-the-drift-check-and-estimate-bounds-in-
