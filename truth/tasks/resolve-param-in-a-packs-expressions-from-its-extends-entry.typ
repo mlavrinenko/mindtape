@@ -39,7 +39,7 @@
 
 + Write a path pack with `[params] max-files = 5` and a rule asserting `estimate.src-files <= param("max-files")`.
 + Extend it with `extends = [{ pack = "./team.toml", with = { max-files = 8 } }]`.
-+ 🔴 `mt check` refuses both: it prints `extends: entries must be strings`, and the pack may not declare `params`.
++ 🔴 `mt check` refuses both: it prints `extends: entries must be strings`, and `[params]` reaches the merged config as an unknown field.
 
 
 == TO-BE
@@ -59,7 +59,7 @@ extends = [{ pack = "./team.toml", with = { max-files = 8 } }]
 - `crates/mindtape/src/config/packs_toml.rs`: parse an `extends` entry as a string or a `{ pack, with }` table.
 - `crates/mindtape/src/config/params.rs` (new): parse `[params]`, check `with` against it, and rewrite `param()` calls with a string-literal-aware pass like `join_kebab_names` in `crates/mindtape/src/filter/expr.rs`.
 - `crates/mindtape/src/config/mod.rs`: list the file in the module header.
-- `crates/mindtape/src/config/packs.rs`: rewrite each pack before the fold, and reject `param()` in a layer's own expressions.
+- `crates/mindtape/src/config/packs.rs`: in `fold_layer_packs`, rewrite each pack between `resolve_pack` and `take_rule_arrays`, so its rule expressions are rewritten too, and take `[params]` out of the pack before `PackLayer::add` merges the rest. Reject `param()` in a layer's own expressions.
 - `schema/config.schema.json`: regenerate.
 - `www/content/packs.typ`: a Parameters section.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
