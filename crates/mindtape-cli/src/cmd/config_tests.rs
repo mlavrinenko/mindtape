@@ -203,11 +203,12 @@ fn run_schema_prints_json_schema_to_stdout() {
 fn describe_source_covers_xdg_and_dir() {
     use super::describe_source;
 
-    let xdg = describe_source(&LayerSource::Xdg(PathBuf::from("/tmp/x.toml")));
+    let home = tempfile::tempdir().unwrap();
+    let xdg = describe_source(&LayerSource::Xdg(home.path().join("x.toml")));
     assert!(xdg.starts_with("xdg:"));
     assert!(xdg.contains("(missing)"));
 
-    let dir = describe_source(&LayerSource::Dir(PathBuf::from("/tmp/d.toml")));
+    let dir = describe_source(&LayerSource::Dir(home.path().join("d.toml")));
     assert!(dir.starts_with("dir:"));
     assert!(dir.contains("(missing)"));
 }
