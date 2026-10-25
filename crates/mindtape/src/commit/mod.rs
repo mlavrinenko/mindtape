@@ -393,18 +393,26 @@ pub(crate) fn task_stem(task: &Task) -> String {
     )
 }
 
-/// The stem a trailer value names: the value itself, or a path's file stem.
+/// The stem a trailer value names: a bare value as written, a path's file stem.
 pub(crate) fn value_stem(value: &str) -> String {
+    if !is_path_form(value) {
+        return value.to_owned();
+    }
     Path::new(value).file_stem().map_or_else(
         || value.to_owned(),
         |stem| stem.to_string_lossy().into_owned(),
     )
 }
 
+/// Whether a trailer value is a path, not a bare stem.
+fn is_path_form(value: &str) -> bool {
+    value.contains(['/', '\\']) || value.ends_with(".typ")
+}
+
 /// What is wrong with one trailer value, if anything.
 fn ref_problem(value: &str, stem: &str, stems: &[String], key: &str) -> Option<Problem> {
     let known = stems.iter().any(|known| known == stem);
-    if value.contains(['/', '\\']) || value.ends_with(".typ") {
+    if is_path_form(value) {
         let fix = if known {
             format!("write the stem: `{key}: {stem}`")
         } else {

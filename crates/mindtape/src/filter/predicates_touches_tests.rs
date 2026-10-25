@@ -145,3 +145,22 @@ fn the_index_is_cached_by_head() {
         ["other"]
     );
 }
+
+#[test]
+fn touches_reads_a_dotted_bare_stem_as_the_stem() {
+    let dir = tempdir();
+    let root = dir.path();
+    git_init(root);
+    write_file(root, "src/a.rs", "one\n");
+    commit(root, "feat: a\n\nRefs: foo.task-261023");
+    let config = config_at(root);
+    let set = [bare_task("foo.task-261023"), bare_task("foo")];
+    let readiness = Readiness::compute(&set, &config);
+    let filter = Filter::parse(r#"touches("src/a.rs")"#).unwrap();
+    let matched: Vec<&str> = set
+        .iter()
+        .filter(|task| filter.matches_with(task, &config, &readiness).unwrap())
+        .map(|task| task.id.as_str())
+        .collect();
+    assert_eq!(matched, ["foo.task-261023"]);
+}

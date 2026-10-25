@@ -562,6 +562,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A bare `Refs:` value is the stem as written.** `Refs: foo.task-261023`
+  read as `foo`, so `mt check --commits` said it named no task and
+  `touches()` matched nothing. Only a value holding `/` or `\`, or ending in
+  `.typ`, reads as a path and loses its extension.
+
 - **`mt install` puts the prelude where Typst and tinymist look, on Windows
   too.** It wrote under `%LOCALAPPDATA%\typst\packages` while both read
   `%APPDATA%\typst\packages`, so tinymist never found it. `mt install` and task

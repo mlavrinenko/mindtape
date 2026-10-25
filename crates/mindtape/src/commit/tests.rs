@@ -192,3 +192,24 @@ fn tasks_dedup_keeping_order() {
     let (record, _) = CommitRecord::build(&message, &changed, &tasks, &config);
     assert_eq!(record.tasks, ["parser", "lexer"]);
 }
+
+#[test]
+fn a_bare_dotted_value_is_the_stem_as_written() {
+    assert_eq!(super::value_stem("foo.task-261023"), "foo.task-261023");
+    assert_eq!(
+        super::value_stem("tasks/foo.task-261023.typ"),
+        "foo.task-261023"
+    );
+    assert_eq!(super::value_stem("foo.task-261023.typ"), "foo.task-261023");
+}
+
+#[test]
+fn a_dotted_stem_trailer_names_its_task() {
+    let config = parse_config("").unwrap();
+    let tasks = [bare_task("foo.task-261023")];
+    let message = parse_message("x\n\nRefs: foo.task-261023\n", "Refs");
+    let (record, problems) =
+        CommitRecord::build(&message, &ChangedFiles::default(), &tasks, &config);
+    assert!(problems.is_empty(), "{problems:?}");
+    assert_eq!(record.refs, ["foo.task-261023"]);
+}
