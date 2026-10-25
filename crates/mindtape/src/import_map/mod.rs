@@ -74,6 +74,10 @@ pub fn map_canonical(canonical: &CanonicalTask, config: &Config, opts: &MapOptio
     let body = body::map_body(canonical, config, &mut entries);
     let (extras, carried_extras) = extras::map_extras(&canonical.extras, &mut entries);
     let links = canonical.links.iter().map(map_link).collect();
+    let mut estimate_counts = std::collections::BTreeMap::new();
+    for (unit, count) in &canonical.estimate_counts {
+        estimate_counts.insert(unit.clone(), count.to_count());
+    }
 
     let task = Task {
         id: canonical.id.clone(),
@@ -85,7 +89,7 @@ pub fn map_canonical(canonical: &CanonicalTask, config: &Config, opts: &MapOptio
         kind: canonical.kind.clone(),
         assignee: canonical.assignee.clone(),
         estimate: canonical.estimate.clone(),
-        estimate_counts: std::collections::BTreeMap::new(),
+        estimate_counts,
         links,
         waits_on: canonical.waits_on.clone(),
         answers: std::collections::BTreeMap::new(),

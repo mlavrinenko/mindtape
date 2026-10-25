@@ -151,3 +151,31 @@ fn mt_eval_shows_where_a_count_comes_from() {
         serde_json::json!(2)
     );
 }
+
+#[test]
+fn mt_ls_json_and_mt_import_give_back_the_count() {
+    let dir = fixture(
+        &config("src-files = \"@source\"", ""),
+        "count(2, grep(`parse_task`), glob(\"src/c.rs\"))",
+    );
+    let root = dir.path();
+    let (ok, export) = support::run_text(root, &["ls", "", "--json"]);
+    assert!(ok, "{export}");
+    let json: serde_json::Value = serde_json::from_str(&export).unwrap();
+    let task = &json["tasks"][0];
+    assert_eq!(task["estimate"]["src-files"], serde_json::json!(5.0));
+    assert_eq!(
+        task["estimate_counts"]["src-files"]["count"],
+        serde_json::json!(2.0)
+    );
+    write_file(root, "export.json", &export);
+    std::fs::remove_file(root.join("tasks/rename.typ")).unwrap();
+    let (ok, text) = support::run_text(root, &["import", "export.json"]);
+    assert!(ok, "{text}");
+    let written = std::fs::read_to_string(root.join("tasks/rename.typ")).unwrap();
+    assert!(
+        written.contains("src-files: count(2, grep(`parse_task`), glob(\"src/c.rs\"))"),
+        "{written}"
+    );
+    assert_eq!(resolved(root), serde_json::json!(5.0));
+}

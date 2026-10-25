@@ -27,6 +27,7 @@ use std::collections::BTreeMap;
 
 use crate::date::parse_ymd;
 use crate::emit::status_value::status_value;
+use crate::estimate_queries::{CountEstimate, Query};
 use crate::model::numeric::{InputValue, NumValue, format_num};
 use crate::model::{Status, Task};
 use crate::recur::{Recur, Rule};
@@ -83,7 +84,7 @@ fn emit_fields(task: &Task) -> Vec<String> {
     if let Some(assignee) = &task.assignee {
         fields.push(format!("assignee: {}", typ_str(assignee)));
     }
-    if let Some(estimate) = emit_estimate(&task.estimate) {
+    if let Some(estimate) = emit_estimate(task) {
         fields.push(estimate);
     }
     if let Some(links) = links::emit_links(&task.links) {
@@ -173,16 +174,49 @@ fn emit_input(value: &InputValue) -> String {
     }
 }
 
-/// `estimate: (unit: n, ...)`, or `None` when the map is empty.
-fn emit_estimate(estimate: &BTreeMap<String, f64>) -> Option<String> {
-    if estimate.is_empty() {
+/// `estimate: (unit: n, ...)`, or `None` when the task has no estimate. A
+/// `count(...)` unit is written as the count, not its resolved number.
+fn emit_estimate(task: &Task) -> Option<String> {
+    let mut parts: BTreeMap<&str, String> = task
+        .estimate
+        .iter()
+        .map(|(unit, value)| (unit.as_str(), format_num(*value)))
+        .collect();
+    for (unit, count) in &task.estimate_counts {
+        parts.insert(unit, emit_count(count));
+    }
+    if parts.is_empty() {
         return None;
     }
-    let parts: Vec<String> = estimate
+    let parts: Vec<String> = parts
         .iter()
-        .map(|(unit, value)| format!("{unit}: {}", format_num(*value)))
+        .map(|(unit, value)| format!("{unit}: {value}"))
         .collect();
     Some(format!("estimate: ({})", parts.join(", ")))
+}
+
+/// `count(n, grep(...), glob(...))`. A regex is a raw block, as an author
+/// writes it, unless it holds a backtick or a line break, or is empty.
+fn emit_count(count: &CountEstimate) -> String {
+    let mut args = vec![format_num(count.manual)];
+    for query in &count.queries {
+        args.push(match query {
+            Query::Grep { regex, glob } => {
+                let raw = !regex.is_empty() && !regex.contains(['`', '\n', '\r']);
+                let regex = if raw {
+                    format!("`{regex}`")
+                } else {
+                    typ_str(regex)
+                };
+                match glob {
+                    Some(glob) => format!("grep({regex}, {})", typ_str(glob)),
+                    None => format!("grep({regex})"),
+                }
+            }
+            Query::Glob { pattern } => format!("glob({})", typ_str(pattern)),
+        });
+    }
+    format!("count({})", args.join(", "))
 }
 
 /// `recur: every(...)` for a period rule, `recur: rrule(...)` for the escape

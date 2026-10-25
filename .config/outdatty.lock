@@ -101,10 +101,10 @@ groups:
       www/content/named-sets.typ: 32193f399664b8339c9a9ace4e614ed26f8fa1e742f4887df0d632c7b4b38720
   cli-eval-docs:
     source:
-      crates/mindtape-cli/src/cmd/eval.rs: 6ffb983aaf4a1e9884365cc06d33cad5fce1f35d86ce9a7acfeb0dc6a3c83886
+      crates/mindtape-cli/src/cmd/eval.rs: 44b978e4b6fdd6f6f016bd596742b761d7b62cd43156e598953936977ecde6a0
     dependents:
       www/content/agents.typ: f0240344a64911b167203d705e4a679fe6d64fb4e5d0824af52d68588ff71648
-      www/content/schema.typ: 2e2da223c55b03827c3d4761737386bbb60431b75b74d6f6349f2af3a7f770b3
+      www/content/schema.typ: 075efa7fb6f33cbdfecffdcd69e256e307c624c56feeee75c9358940b03aa5d7
   cli-find-docs:
     source:
       crates/mindtape-cli/src/cmd/find.rs: 440b4fac7b04cd723a775ee4361122867c1826e6006f222e8518a56a80378fd1

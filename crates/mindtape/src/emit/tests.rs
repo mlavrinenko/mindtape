@@ -356,3 +356,50 @@ fn emits_deterministic_field_order() {
     let second = emit_task(&task);
     assert_eq!(first, second);
 }
+
+/// A `count(...)` unit writes back as the count: a plain regex as a raw block,
+/// one holding a backtick or a line break as an escaped string, and a glob's
+/// quote escaped. What resolves is the loader's business, so only the
+/// authored half is compared.
+#[test]
+fn round_trips_a_count_estimate() {
+    use crate::estimate_queries::{CountEstimate, Query};
+    let grep = |regex: &str, glob: Option<&str>| Query::Grep {
+        regex: regex.to_owned(),
+        glob: glob.map(str::to_owned),
+    };
+    let count = CountEstimate {
+        manual: 2.0,
+        queries: vec![
+            grep(r"fn \w+\(", Some("src/**")),
+            grep("a`b\nc", None),
+            Query::Glob {
+                pattern: "docs/\"q\"*".to_owned(),
+            },
+        ],
+        matches: Vec::new(),
+        problem: None,
+    };
+    let mut task = bare_task("counted");
+    task.estimate.insert("hours".to_owned(), 1.0);
+    task.estimate.insert("files".to_owned(), 9.0);
+    task.estimate_counts
+        .insert("files".to_owned(), count.clone());
+    let source = emit_task(&task);
+    assert!(
+        source.contains(r#"count(2, grep(`fn \w+\(`, "src/**"), grep("a`b"#),
+        "{source}"
+    );
+    let dir = tempdir();
+    let outcome = setup(
+        dir.path(),
+        CONFIG,
+        &[("counted.typ".to_owned(), source.clone())],
+    );
+    let reloaded = outcome.tasks.first().unwrap();
+    let mut back = reloaded.estimate_counts.get("files").unwrap().clone();
+    back.problem = None;
+    back.matches.clear();
+    assert_eq!(back, count, "--- source ---\n{source}");
+    assert_eq!(reloaded.estimate.get("hours"), Some(&1.0));
+}

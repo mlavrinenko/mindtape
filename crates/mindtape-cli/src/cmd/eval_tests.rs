@@ -206,7 +206,7 @@ fn a_plain_estimate_prints_no_breakdown() {
 
 #[test]
 fn the_json_breakdown_sits_beside_the_resolved_number() {
-    let json = super::task_json(&counted(), &mindtape::Config::default());
+    let json = crate::render::output::task_to_json(&counted(), &mindtape::Config::default());
     assert_eq!(json["estimate"]["src-files"], serde_json::json!(5.0));
     assert_eq!(
         json["estimate_counts"],

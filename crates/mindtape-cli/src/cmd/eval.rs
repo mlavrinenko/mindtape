@@ -139,24 +139,6 @@ fn breakdown(task: &Task) -> String {
     out
 }
 
-/// The JSON `mt eval --json` prints: the canonical task, plus each
-/// `count(...)` unit's breakdown under `estimate_counts`.
-fn task_json(task: &Task, config: &Config) -> serde_json::Value {
-    let mut json = task_to_json(task, config);
-    if let Some(object) = json.as_object_mut() {
-        let counts: serde_json::Map<String, serde_json::Value> = task
-            .estimate_counts
-            .iter()
-            .map(|(unit, count)| (unit.clone(), count.json()))
-            .collect();
-        object.insert(
-            "estimate_counts".to_owned(),
-            serde_json::Value::Object(counts),
-        );
-    }
-    json
-}
-
 /// Print one harvested task as a bare JSON object — no envelope, since there
 /// is no listing here for `applied` or `truncated` to describe.
 ///
@@ -165,7 +147,7 @@ fn task_json(task: &Task, config: &Config) -> serde_json::Value {
 fn print_json(task: &Task) -> Result<()> {
     println!(
         "{}",
-        serde_json::to_string_pretty(&task_json(task, &Config::default()))?
+        serde_json::to_string_pretty(&task_to_json(task, &Config::default()))?
     );
     Ok(())
 }

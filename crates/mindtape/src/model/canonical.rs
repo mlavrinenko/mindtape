@@ -19,7 +19,8 @@
 //! | `difficulty`    | authored | number, label string, or framework-name fallback    |
 //! | `kind`          | authored |                                                      |
 //! | `assignee`      | authored |                                                      |
-//! | `estimate`      | authored | opaque `unit -> quantity` map                        |
+//! | `estimate`      | authored | opaque `unit -> quantity` map; a `count(...)` unit holds its resolved number |
+//! | `estimate_counts` | authored | `count(...)` units as `{count, queries, problem}`; import reads `count` and `queries` |
 //! | `links`         | authored | `[{task, kind, note}]`                              |
 //! | `waits_on`      | authored | `checker:id` entries                                |
 //! | `tags`          | authored | authored tags only                                  |
@@ -58,6 +59,7 @@ use serde_json::Value;
 use typst_harvest::HVal;
 
 use crate::config::Config;
+use crate::estimate_queries::{CountEstimate, Query};
 use crate::link::Link;
 use crate::model::numeric::{InputValue, NumValue};
 use crate::model::{Status, Task};
@@ -92,6 +94,10 @@ pub struct CanonicalTask {
     /// Opaque `unit -> quantity` estimate map.
     #[serde(default)]
     pub estimate: BTreeMap<String, f64>,
+    /// The units written as `count(...)`, in source form. On import a unit
+    /// here wins over its resolved number in [`Self::estimate`].
+    #[serde(default)]
+    pub estimate_counts: BTreeMap<String, CanonicalCount>,
     /// Typed `links:` edges.
     #[serde(default)]
     pub links: Vec<CanonicalLink>,
@@ -198,6 +204,89 @@ pub enum CanonicalPriority {
     },
 }
 
+/// One `count(...)` estimate unit: its manual part, its queries, and why it
+/// didn't resolve (read-only, `null` once it did).
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct CanonicalCount {
+    /// The manual part, `n`.
+    pub count: f64,
+    /// The queries, in authored order.
+    #[serde(default)]
+    pub queries: Vec<CanonicalQuery>,
+    /// Why the unit didn't resolve (read-only).
+    #[serde(default)]
+    pub problem: Option<String>,
+}
+
+/// One query of a [`CanonicalCount`], tagged by `query`. `files` is how many
+/// files it matched (read-only), absent before the unit resolves.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "query", rename_all = "lowercase")]
+pub enum CanonicalQuery {
+    /// `grep(regex, glob)`.
+    Grep {
+        /// The pattern.
+        regex: String,
+        /// The optional glob or `@name` set.
+        #[serde(default)]
+        glob: Option<String>,
+        /// Files matched (read-only).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        files: Option<usize>,
+    },
+    /// `glob(pattern)`.
+    Glob {
+        /// The glob or `@name` set.
+        pattern: String,
+        /// Files matched (read-only).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        files: Option<usize>,
+    },
+}
+
+impl CanonicalCount {
+    /// `count` in canonical form, each query beside the files it matched.
+    #[must_use]
+    pub fn from_count(count: &CountEstimate) -> Self {
+        let queries = count
+            .queries
+            .iter()
+            .enumerate()
+            .map(|(index, query)| {
+                let files = count.matches.get(index).copied();
+                match query.clone() {
+                    Query::Grep { regex, glob } => CanonicalQuery::Grep { regex, glob, files },
+                    Query::Glob { pattern } => CanonicalQuery::Glob { pattern, files },
+                }
+            })
+            .collect();
+        Self {
+            count: count.manual,
+            queries,
+            problem: count.problem.clone(),
+        }
+    }
+
+    /// The authored half, as the task model holds it before it resolves.
+    #[must_use]
+    pub fn to_count(&self) -> CountEstimate {
+        let queries = self
+            .queries
+            .iter()
+            .map(|query| match query.clone() {
+                CanonicalQuery::Grep { regex, glob, .. } => Query::Grep { regex, glob },
+                CanonicalQuery::Glob { pattern, .. } => Query::Glob { pattern },
+            })
+            .collect();
+        CountEstimate {
+            manual: self.count,
+            queries,
+            matches: Vec::new(),
+            problem: None,
+        }
+    }
+}
+
 impl CanonicalTask {
     /// Project `task` into the canonical schema. `config` resolves a
     /// framework priority's read-side `score`.
@@ -213,6 +302,11 @@ impl CanonicalTask {
             kind: task.kind.clone(),
             assignee: task.assignee.clone(),
             estimate: task.estimate.clone(),
+            estimate_counts: task
+                .estimate_counts
+                .iter()
+                .map(|(unit, count)| (unit.clone(), CanonicalCount::from_count(count)))
+                .collect(),
             links: task.links.iter().map(canonical_link).collect(),
             waits_on: task.waits_on.clone(),
             tags: task.tags.clone(),

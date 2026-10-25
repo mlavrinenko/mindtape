@@ -103,6 +103,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the files it matched, so a query that matches nothing shows as `0 files`.
   `--json` carries the same under `estimate_counts`, beside the resolved
   number in `estimate`.
+- **A `count(...)` estimate survives `mt ls --json | mt import`.** The
+  canonical JSON carries each such unit under `estimate_counts` in its source
+  form, and `mt import` writes it back as the `count(...)` it came from, not
+  the number it resolved to on the day of the export.
 
 #### Naming tasks
 

@@ -53,10 +53,11 @@ A field is #strong[authored] when it holds a value written in the task file.
     resolved to.],
 
   [`estimate_counts`],
-  [computed],
-  [From `mt eval` only. Each `count(...)` unit as
-    `{count, queries, problem}`. Each query carries the files it matched as
-    `files`, and `problem` says why the unit didn't resolve, or is `null`.],
+  [authored],
+  [Each `count(...)` unit as `{count, queries, problem}`. Each query
+    carries the files it matched as `files`, and `problem` says why the unit
+    didn't resolve, or is `null`. `mt import` writes the unit back as the
+    `count(...)` from `count` and `queries`, and ignores the rest.],
 
   [`links`],
   [authored],

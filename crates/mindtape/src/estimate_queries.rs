@@ -87,36 +87,6 @@ pub struct CountEstimate {
     pub problem: Option<String>,
 }
 
-impl CountEstimate {
-    /// The unit as JSON: its manual part, each query with the files it
-    /// matched, and why it didn't resolve.
-    #[must_use]
-    pub fn json(&self) -> serde_json::Value {
-        let queries: Vec<serde_json::Value> = self
-            .queries
-            .iter()
-            .enumerate()
-            .map(|(index, query)| {
-                let mut entry = match query {
-                    Query::Grep { regex, glob } => {
-                        serde_json::json!({"query": "grep", "regex": regex, "glob": glob})
-                    }
-                    Query::Glob { pattern } => {
-                        serde_json::json!({"query": "glob", "pattern": pattern})
-                    }
-                };
-                if let (Some(files), Some(object)) =
-                    (self.matches.get(index), entry.as_object_mut())
-                {
-                    object.insert("files".to_owned(), serde_json::json!(files));
-                }
-                entry
-            })
-            .collect();
-        serde_json::json!({"count": self.manual, "queries": queries, "problem": self.problem})
-    }
-}
-
 /// Project the `estimate` field: a plain number per unit, or a
 /// `count(...)` dict. A value that is neither is a [`ShapeError`] at
 /// `estimate.<unit>`.
