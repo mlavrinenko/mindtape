@@ -55,11 +55,12 @@ layer's array are a config error that names both. `extends` and `disable`,
 which adopt a rule pack and drop a rule, are on
 #link(u("/packs/"))[Rule packs].
 
-Two keys name a program for `mt` to run: `[go] editor` and `[add] editor`.
-They wait for #link(u("/cli/allow/"))[`mt allow`] like a checker or a flip
-`run` does, so a clone can't start a program before you have read it. Until
-then `mt` opens `$VISUAL` instead and warns once with the held command. An
-editor in your own `mindtape/defaults.toml` needs no approval. An ancestor's
+`[go] editor` and `[add] editor` name a program that `mt` runs, as a checker
+or a flip `run` does. They wait for #link(u("/cli/allow/"))[`mt allow`], so a
+clone can't start a program before you have read it. Until then `mt` tries
+`$VISUAL`, then `$EDITOR`, and warns once with the held command. With neither
+set, `mt go` fails and `mt add` opens `vi` (`notepad` on Windows). An editor in
+your own `mindtape/defaults.toml` needs no approval. An ancestor's
 `.mindtape/defaults.toml` does, since it can live inside a clone.
 
 Write a rule's `message` as the next step: an imperative in lower case, with no

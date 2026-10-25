@@ -215,11 +215,11 @@ fn interactive_add_refuses_when_only_stdout_is_a_tty() {
     );
 }
 
-/// Install a stand-in `$EDITOR` under `dir` that discards the scaffold and
+/// Install a stand-in editor `name` under `dir` that discards the scaffold and
 /// writes `body` in its place, then returns its path. The heredoc delimiter is
 /// quoted so the shell expands nothing — `$x$` must reach the buffer intact.
-fn fake_editor(dir: &Path, body: &str) -> String {
-    let path = dir.join("fake-editor.sh");
+fn fake_editor(dir: &Path, name: &str, body: &str) -> String {
+    let path = dir.join(name);
     std::fs::write(
         &path,
         format!("#!/bin/sh\ncat > \"$1\" <<'MT_EOF'\n{body}\nMT_EOF\n"),
@@ -246,6 +246,7 @@ fn interactive_add_escapes_markup_from_the_saved_buffer() {
     let hazards = support::MARKUP_HAZARDS;
     let editor = fake_editor(
         dir.path(),
+        "fake-editor.sh",
         &format!("title: \"{hazards}\"\nwhy: |-\n  {hazards}\n"),
     );
 
@@ -276,21 +277,12 @@ fn interactive_add_escapes_markup_from_the_saved_buffer() {
 #[test]
 fn interactive_add_holds_a_project_editor_until_mt_allow() {
     let dir = support::project_with_slot_template();
-    let held = fake_editor(dir.path(), "title: \"Held\"\nwhy: |-\n  why");
-    let visual = dir.path().join("visual.sh");
-    std::fs::write(
-        &visual,
-        "#!/bin/sh\ncat > \"$1\" <<'MT_EOF'\ntitle: \"Visual\"\nwhy: |-\n  why\nMT_EOF\n",
-    )
-    .unwrap();
-    {
-        use std::os::unix::fs::PermissionsExt;
-        std::fs::set_permissions(&visual, std::fs::Permissions::from_mode(0o755)).unwrap();
-    }
+    let held = fake_editor(dir.path(), "held.sh", "title: \"Held\"\nwhy: |-\n  why");
+    let visual = fake_editor(dir.path(), "visual.sh", "title: \"Visual\"\nwhy: |-\n  why");
     let config = dir.path().join(".mindtape/config.toml");
     let text = std::fs::read_to_string(&config).unwrap();
     std::fs::write(&config, format!("{text}\n[add]\neditor = {held:?}\n")).unwrap();
-    let env = [("VISUAL", visual.to_str().unwrap())];
+    let env = [("VISUAL", visual.as_str())];
 
     let out = pty_output(dir.path(), "add --name first --edit", 200, &env);
 

@@ -15,7 +15,7 @@ use crate::diag::Result;
 use clap::Args;
 use mindtape::Config;
 
-use crate::diag::{Diag, Hint};
+use crate::diag::{Command as DiagCommand, Diag, Hint};
 use crate::util;
 
 /// Token in a `[go] editor` command replaced with the resolved task path.
@@ -48,10 +48,26 @@ pub fn run(args: &GoArgs) -> Result<()> {
 /// `[go] editor` when the user allowed it, then `$VISUAL`, then `$EDITOR`.
 ///
 /// # Errors
-/// Returns an error naming `[go] editor` when none of the three is usable.
+/// Returns an error naming `[go] editor` when none of the three is usable, or
+/// pointing at `mt allow` when `[go] editor` is the one held back.
 pub(crate) fn resolve_editor(root: &Path, config: &Config) -> Result<String> {
-    let configured = mindtape::allow::runnable_editor(root, config, config.go.editor.as_deref());
-    editor_command(configured.as_deref())
+    let set = config.go.editor.as_deref().map(str::trim);
+    let configured = mindtape::allow::runnable_editor(root, config, set);
+    editor_command(configured.as_deref()).map_err(|err| match set {
+        Some(held) if configured.is_none() && !held.is_empty() => held_editor(held),
+        _ => err,
+    })
+}
+
+/// The refusal for a `[go] editor` that waits for `mt allow`, with no
+/// `$VISUAL` or `$EDITOR` to open instead.
+fn held_editor(editor: &str) -> Diag {
+    Diag::refused("the [go] editor waits for your approval")
+        .value(editor)
+        .hint(Hint::ending_in(
+            "read it, then run",
+            DiagCommand::mt().word("allow"),
+        ))
 }
 
 /// Spawn the editor on `path` and wait for it to exit.

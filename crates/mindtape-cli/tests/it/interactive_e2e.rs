@@ -366,7 +366,11 @@ fn enter_without_a_match_opens_nothing() {
 /// ` --hyperlinks always`). Returns the session's stdout, having already
 /// asserted it exited cleanly within [`WAIT_TIMEOUT`].
 fn select_first_task_and_open(suffix: &str) -> String {
-    let dir = support::project_with_task(TASK_TITLE);
+    open_first_task_in(&support::project_with_task(TASK_TITLE), suffix)
+}
+
+/// [`select_first_task_and_open`] in the already-built project `dir`.
+fn open_first_task_in(dir: &tempfile::TempDir, suffix: &str) -> String {
     // Type the task's stem hash, then Enter (CR in raw mode) to open it; wait
     // for SUSPEND_MARKER rather than guessing how long the editor takes to run.
     let hash = mindtape::StemHashes::new(["test"])
@@ -383,6 +387,27 @@ fn select_first_task_and_open(suffix: &str) -> String {
         // that is reading rather than one still switching terminal modes.
         &[SUSPEND_MARKER, ENTER_ALT],
     )
+}
+
+/// A project `[go] editor` waits for `mt allow` in the picker's open too: the
+/// held editor never runs, `$EDITOR` opens the task, and the warning after the
+/// session names the held command.
+#[test]
+fn opening_a_task_holds_a_project_editor_and_falls_back_to_editor() {
+    let dir = support::project_with_task(TASK_TITLE);
+    mindtape::test_support::write_file(dir.path(), "held.sh", "touch held-ran\n");
+    let command = format!("sh {}", dir.path().join("held.sh").display());
+    let config = dir.path().join(".mindtape/config.toml");
+    let text = std::fs::read_to_string(&config).unwrap();
+    let held = format!("{text}\n[go]\neditor = {command:?}\n");
+    mindtape::test_support::write_file(dir.path(), ".mindtape/config.toml", &held);
+
+    let stdout = open_first_task_in(&dir, "");
+
+    assert!(stdout.contains(SUSPEND_MARKER), "{stdout}");
+    assert!(!dir.path().join("held-ran").exists());
+    assert!(stdout.contains("warning:"), "{stdout}");
+    assert!(stdout.contains(&command), "{stdout}");
 }
 
 /// The risk `truth/tasks/hyperlink-the-handle-column.typ` exists to guard:

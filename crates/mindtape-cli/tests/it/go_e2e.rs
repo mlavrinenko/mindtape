@@ -64,6 +64,7 @@ fn an_editor_that_fails_to_run_fails_go_without_opening() {
     }
 }
 
+#[cfg(unix)]
 /// A script under `dir` that appends `name` to `marks.txt`, returned as an
 /// editor command, so a test reads which editor ran.
 fn marking_editor(dir: &std::path::Path, name: &str) -> String {
@@ -76,6 +77,7 @@ fn marking_editor(dir: &std::path::Path, name: &str) -> String {
     format!("sh {}", script.display())
 }
 
+#[cfg(unix)]
 /// A project with task `x` and two marking editors: one called `name`, and
 /// `visual`. Returns the project and the two editor commands, in that order.
 fn project_with_marking_editors(name: &str) -> (tempfile::TempDir, String, String) {
@@ -85,6 +87,7 @@ fn project_with_marking_editors(name: &str) -> (tempfile::TempDir, String, Strin
     (dir, named, visual)
 }
 
+#[cfg(unix)]
 /// `mt go x` in `dir` with `$VISUAL` set to `visual` and, when given, the
 /// config home `home`. Asserts the run succeeded and the editors marked
 /// `marks.txt` as `expected` so far, and returns stderr.
@@ -107,6 +110,7 @@ fn go_marking(
     stderr
 }
 
+#[cfg(unix)]
 /// A clone's `[go] editor` is a program `mt` would run, so it waits for
 /// `mt allow` like a checker does: until then `$VISUAL` opens the task and
 /// one warning names the held command.
@@ -130,6 +134,7 @@ fn a_project_editor_waits_for_mt_allow_and_visual_opens_the_task() {
     assert!(!stderr.contains("warning:"), "{stderr}");
 }
 
+#[cfg(unix)]
 /// The user's own `<config home>/mindtape/defaults.toml` is theirs, so its
 /// `[go] editor` runs with no `mt allow`, ahead of `$VISUAL`.
 #[test]
@@ -145,4 +150,30 @@ fn an_editor_from_the_users_own_config_runs_without_mt_allow() {
     let stderr = go_marking(dir.path(), &visual, Some(home.path()), "mine\n");
 
     assert!(!stderr.contains("warning:"), "{stderr}");
+}
+
+/// With the project's `[go] editor` held and no `$VISUAL` or `$EDITOR`, `mt go`
+/// says the editor waits for approval and points at `mt allow`, not at setting
+/// an editor that is already set.
+#[test]
+fn a_held_editor_with_no_fallback_points_at_mt_allow() {
+    let dir = project_with_config("[tasks]\nroots = [\"tasks\"]\n[go]\neditor = \"true\"\n");
+
+    let out = support::mt(dir.path())
+        .args(["go", "x"])
+        .env_remove("EDITOR")
+        .output()
+        .unwrap();
+
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert_eq!(out.status.code(), Some(1), "{stderr}");
+    assert!(
+        stderr.contains("the [go] editor waits for your approval: 'true'"),
+        "{stderr}"
+    );
+    assert!(
+        stderr.contains("hint: read it, then run mt allow"),
+        "{stderr}"
+    );
+    assert!(!stderr.contains("no editor configured"), "{stderr}");
 }

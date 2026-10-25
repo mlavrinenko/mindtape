@@ -124,8 +124,8 @@ external blocker, read `references/blocking.md`. Never mark a blocked task
 `mt` runs no command from the config, neither a `[[tasks.waits]]` checker, an
 `[[on.flip]]` `run` nor a `[go]` or `[add]` editor, until the user allows them.
 Until then a wait reads `unknown: not allowed`, a flip gate refuses with
-`gate not allowed`, an editor falls back to `$VISUAL`, and `mt` warns once with
-the command list. Never run `mt allow`, or `--force` past that refusal: the
+`gate not allowed`, an editor falls back to `$VISUAL`, then `$EDITOR`, and `mt`
+warns once with the command list. Never run `mt allow`, or `--force` past that refusal: the
 commands run with the user's rights. Pass the warning to the user.
 
 = Commits and checks

@@ -172,14 +172,22 @@ fn record_names_the_file_it_could_not_write() {
 /// The config of a project whose own `config.toml` is `project`, loaded over
 /// a user layer (`<config home>/mindtape/defaults.toml`) holding `user`.
 fn layered(user: &str, project: &str) -> Config {
+    layered_under_ancestor(user, "", project)
+}
+
+/// [`layered`], with an ancestor `.mindtape/defaults.toml` holding `ancestor`
+/// one directory above the project, which the walk-up reaches.
+fn layered_under_ancestor(user: &str, ancestor: &str, project: &str) -> Config {
     let dir = tempdir();
+    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
+    std::fs::write(dir.path().join(".mindtape").join("defaults.toml"), ancestor).unwrap();
     let xdg = dir.path().join("xdg");
     std::fs::create_dir_all(xdg.join("mindtape")).unwrap();
     std::fs::write(xdg.join("mindtape").join("defaults.toml"), user).unwrap();
     let root = dir.path().join("root");
     std::fs::create_dir_all(root.join(".mindtape")).unwrap();
     std::fs::write(root.join(".mindtape").join("config.toml"), project).unwrap();
-    crate::load_config_layered_from(&root, None, Some(&xdg))
+    crate::load_config_layered_from(&root, Some(dir.path()), Some(&xdg))
         .unwrap()
         .0
 }
@@ -224,6 +232,17 @@ fn only_an_editor_the_users_own_layer_did_not_set_is_listed() {
             "{user:?} {project:?}"
         );
     }
+}
+
+#[test]
+fn an_ancestors_defaults_editor_is_listed_like_the_projects() {
+    let config = layered_under_ancestor(
+        "[go]\neditor = \"mine {task}\"\n",
+        "[go]\neditor = \"ancestor {task}\"\n[add]\neditor = \"ancestor\"\n",
+        "",
+    );
+
+    assert_eq!(commands(&config), lines(&["ancestor", "ancestor {task}"]));
 }
 
 #[test]
