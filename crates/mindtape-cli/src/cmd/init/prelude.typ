@@ -272,17 +272,19 @@
 )
 
 // Query-backed estimates. `count(n, ..queries)` is a unit's manual count `n`
-// plus the files its queries match: `grep(regex, within: glob)` reads file
-// contents, `glob(pattern)` reads paths. A regex may be a raw block
+// plus the files its queries match: `grep(regex, glob)` reads file contents,
+// narrowed to an optional glob, and `glob(pattern)` reads paths. A regex may be a raw block
 // (`` `fn \w+` ``), so it needs no string escapes. Each builds a plain dict;
 // the Rust layer lists the files, runs the queries and adds them up, and only
 // for a unit the project names under `[tasks.estimate.queries]`.
 #let _text(v) = if type(v) == content and v.func() == raw { v.text } else { v }
-#let grep(regex, within: none) = (
-  query: "grep",
-  regex: _text(regex),
-  within: within,
-)
+#let grep(regex, ..scope) = {
+  assert(
+    scope.named().len() == 0 and scope.pos().len() <= 1,
+    message: "grep() takes a regex and then at most one glob",
+  )
+  (query: "grep", regex: _text(regex), glob: scope.pos().at(0, default: none))
+}
 #let glob(pattern) = (query: "glob", pattern: pattern)
 #let count(n, ..queries) = {
   assert(
@@ -432,12 +434,12 @@
 #let _fmt-query(q) = if type(q) != dictionary { _scalar(q) } else if (
   q.at("query", default: none) == "grep"
 ) {
-  let within = q.at("within", default: none)
+  let scope = q.at("glob", default: none)
   (
     "grep "
       + _scalar(q.at("regex", default: ""))
-      + if within != none {
-        " in " + _scalar(within)
+      + if scope != none {
+        " in " + _scalar(scope)
       } else { "" }
   )
 } else {

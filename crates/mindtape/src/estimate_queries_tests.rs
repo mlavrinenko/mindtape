@@ -21,11 +21,11 @@ fn text(value: &str) -> HVal {
     HVal::Str(value.to_owned())
 }
 
-fn grep(regex: &str, within: Option<&str>) -> HVal {
+fn grep(regex: &str, glob: Option<&str>) -> HVal {
     dict(&[
         ("query", text("grep")),
         ("regex", text(regex)),
-        ("within", within.map_or(HVal::Null, text)),
+        ("glob", glob.map_or(HVal::Null, text)),
     ])
 }
 
@@ -60,7 +60,7 @@ fn a_count_unit_parses_beside_a_plain_one() {
         queries: vec![
             Query::Grep {
                 regex: "fn".to_owned(),
-                within: Some("src/**".to_owned()),
+                glob: Some("src/**".to_owned()),
             },
             Query::Glob {
                 pattern: "docs/*".to_owned(),
@@ -133,13 +133,7 @@ fn annotate_writes_the_resolved_count_and_clears_nothing_else() {
     write_file(dir.path(), "src/c.rs", "const C: u8 = 1;\n");
     write_file(dir.path(), "docs/a.md", "fn parse()\n");
     let regex = r"fn \w+\(".to_owned();
-    let task = annotated(
-        dir.path(),
-        Query::Grep {
-            regex,
-            within: None,
-        },
-    );
+    let task = annotated(dir.path(), Query::Grep { regex, glob: None });
     assert_eq!(task.estimate.get("files"), Some(&3.0));
     assert_eq!(task.estimate.get("hours"), Some(&2.0));
     assert_eq!(task.estimate_counts.get("files").unwrap().problem, None);

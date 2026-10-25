@@ -418,7 +418,7 @@ fn a_slot_evaluates_to_its_default_and_ignores_its_example() {
 #[test]
 fn real_prelude_carries_a_count_estimate_and_renders_it() {
     let source = crate::typst_task!(
-        "(title: \"T\", estimate: (src-files: count(2, grep(`fn \\w+`, within: \"src/**\"), glob(\"a.rs\"))))\n"
+        "(title: \"T\", estimate: (src-files: count(2, grep(`fn \\w+`, \"src/**\"), glob(\"a.rs\"))))\n"
     );
     let (dir, outcome) = load_real_prelude(source);
     assert_eq!(outcome.errors, Vec::new());
@@ -431,7 +431,7 @@ fn real_prelude_carries_a_count_estimate_and_renders_it() {
         vec![
             crate::estimate_queries::Query::Grep {
                 regex: "fn \\w+".to_owned(),
-                within: Some("src/**".to_owned()),
+                glob: Some("src/**".to_owned()),
             },
             crate::estimate_queries::Query::Glob {
                 pattern: "a.rs".to_owned(),
@@ -441,4 +441,21 @@ fn real_prelude_carries_a_count_estimate_and_renders_it() {
     let world = prelude_world(dir.path());
     let world: &dyn typst::World = &world;
     assert!(typst::compile::<PagedDocument>(world).output.is_ok());
+}
+
+/// `grep(...)` takes one optional glob, so a second one or a named argument
+/// fails the file rather than narrowing nothing.
+#[test]
+fn real_prelude_refuses_a_grep_with_more_than_one_glob() {
+    for call in [
+        "grep(`a`, \"x/**\", \"y/**\")",
+        "grep(`a`, within: \"x/**\")",
+    ] {
+        let field = format!("estimate: (files: count(1, {call}))");
+        let message = prelude_eval_error(&field);
+        assert!(
+            message.contains("grep() takes a regex and then at most one glob"),
+            "{call}: {message}"
+        );
+    }
 }

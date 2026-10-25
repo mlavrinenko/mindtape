@@ -91,7 +91,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   there. The `flow` and `gated` presets set it on `wip` and `done`. `--force`
   overrides both.
 - **An estimate unit can count the files its queries match.**
-  `estimate: (src-files: count(2, grep(`parse_task`, within: "src/**")))`
+  `estimate: (src-files: count(2, grep(`parse_task`, "src/**")))`
   resolves to 2 plus the files that `grep(...)` or `glob(...)` match, each file
   once, among the files git lists. A unit takes `count(...)` once
   `[tasks.estimate.queries]` names the path set its files must fall in, such

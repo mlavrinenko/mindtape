@@ -438,7 +438,7 @@ groups:
       docs/src/contributing/signal-sweep.typ: 471350cebc9b82602b8ee48d162e4f3365368284a001782e4e2c7f6cb4857146
   prelude-docs:
     source:
-      lib/prelude.typ: ffdc066586cec58de64b686ddd57fdd80c86c07ffcbccb9c2149da0bdecfc78f
+      lib/prelude.typ: 24773ff582c6b6ae61ec7ae768dbd6afc7044c68c2041f85a715a75d55cf2c80
     dependents:
       docs/src/agents.typ: b60c66d46729c944b878cc0d112e26741e5d2621ed8dc803c5ed0092daf2adeb
       docs/src/skill.typ: 07bc5bb6d1bb24e5d0da636c1313b12d625ddc2e2d82517db9b9c6230d4508c1

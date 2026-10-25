@@ -78,10 +78,10 @@ spreads to a fourth file, `mt check` refuses the task before you start it.
 
 Two queries build the count:
 
-- `grep(regex, within: glob)` matches the files whose text matches `regex`,
+- `grep(regex, glob)` matches the files whose text matches `regex`,
   in #link("https://docs.rs/regex/latest/regex/#syntax")[Rust regex syntax].
-  Write the regex as a raw block, so a backslash needs no escape. `within`
-  narrows it to the paths a glob or `@name` set admits.
+  Write the regex as a raw block, so a backslash needs no escape. The
+  optional glob, or `@name` set, narrows it to the paths that admits.
 - `glob(pattern)` matches the files whose path matches `pattern`.
 
 A file several queries match counts once. Queries read the files git lists:

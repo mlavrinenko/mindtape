@@ -1,11 +1,11 @@
 //! An estimate unit resolved from a manual count plus file queries.
 //!
 //! ```typ
-//! estimate: (src-files: count(2, grep(`parse_task`, within: "src/**/*.rs"))),
+//! estimate: (src-files: count(2, grep(`parse_task`, "src/**/*.rs"))),
 //! ```
 //!
 //! The prelude's `count(n, ..queries)` builds a `(count, queries)` dict, and
-//! `grep(regex, within: glob)` and `glob(pattern)` build one query each. A
+//! `grep(regex, glob)` and `glob(pattern)` build one query each. A
 //! unit takes `count(...)` only when `[tasks.estimate.queries]` names the path
 //! set its matches must fall in:
 //!
@@ -42,13 +42,13 @@ use crate::model::marker::{ShapeError, shape_error, shape_message};
 /// One file query inside `count(...)`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Query {
-    /// `grep(regex, within: glob)`: the files whose bytes match `regex`,
-    /// narrowed to `within` when it is set.
+    /// `grep(regex, glob)`: the files whose bytes match `regex`, narrowed
+    /// to `glob` when it is set.
     Grep {
         /// The pattern, in `regex` crate syntax.
         regex: String,
         /// A glob or `@name` path set the file must also fall in.
-        within: Option<String>,
+        glob: Option<String>,
     },
     /// `glob(pattern)`: the files whose path matches `pattern`.
     Glob {
@@ -143,7 +143,7 @@ fn parse_query(value: &HVal) -> Option<Query> {
     match value.get("query").and_then(HVal::as_str)? {
         "grep" => Some(Query::Grep {
             regex: text("regex")?,
-            within: text("within"),
+            glob: text("glob"),
         }),
         "glob" => Some(Query::Glob {
             pattern: text("pattern")?,
@@ -274,8 +274,8 @@ fn run(
 ) -> Result<Vec<String>, String> {
     let label = query.label();
     let (scope, regex) = match query {
-        Query::Grep { regex, within } => {
-            let scope = within
+        Query::Grep { regex, glob } => {
+            let scope = glob
                 .as_deref()
                 .map(|glob| path_filter(glob, dicts))
                 .transpose();

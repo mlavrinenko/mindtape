@@ -74,7 +74,8 @@ fn a_count_resolves_to_the_manual_part_plus_the_files_its_queries_match() {
 
 #[test]
 fn a_file_two_queries_match_counts_once() {
-    let estimate = "count(1, grep(`parse_task`, within: \"src/*.rs\"), glob(\"src/b.rs\"), glob(\"src/c.rs\"))";
+    let estimate =
+        "count(1, grep(`parse_task`, \"src/*.rs\"), glob(\"src/b.rs\"), glob(\"src/c.rs\"))";
     assert_eq!(resolves(estimate), serde_json::json!(4.0));
 }
 
