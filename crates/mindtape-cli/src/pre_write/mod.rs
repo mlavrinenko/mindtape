@@ -80,6 +80,43 @@ impl LoadFailure {
     }
 }
 
+/// One reason a write is refused: the line a breach prints, and the check's
+/// own words that a configured message replaced, which `mt check` prints on a
+/// `note:` line under it. Derefs to the line.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Problem {
+    /// `location: field: message`, or `did not load: …`.
+    pub line: String,
+    /// The breach's [`Violation::detail`].
+    pub detail: Option<String>,
+}
+
+impl std::ops::Deref for Problem {
+    type Target = str;
+
+    fn deref(&self) -> &str {
+        &self.line
+    }
+}
+
+impl std::fmt::Display for Problem {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.line)
+    }
+}
+
+impl From<String> for Problem {
+    fn from(line: String) -> Self {
+        Self { line, detail: None }
+    }
+}
+
+impl From<&str> for Problem {
+    fn from(line: &str) -> Self {
+        line.to_owned().into()
+    }
+}
+
 /// What the project says about one pending write.
 #[derive(Debug)]
 pub struct Verdict {
@@ -136,16 +173,22 @@ impl Verdict {
     /// wrong, and a bare Typst error among `field: message` lines reads as if
     /// it were one. [`Verdict::task`] being `None` on a checked entry is the
     /// machine-readable half of the same distinction.
-    pub(crate) fn problems(&self) -> Vec<String> {
+    pub(crate) fn problems(&self) -> Vec<Problem> {
         if let Some(failure) = &self.load_failure {
-            return vec![match &failure.location {
-                Some(at) => format!("{at}: did not load: {}", failure.message),
-                None => format!("did not load: {}", failure.message),
-            }];
+            return vec![
+                match &failure.location {
+                    Some(at) => format!("{at}: did not load: {}", failure.message),
+                    None => format!("did not load: {}", failure.message),
+                }
+                .into(),
+            ];
         }
         self.breaches()
             .filter(|violation| violation.is_fatal())
-            .map(crate::render::breach::at)
+            .map(|violation| Problem {
+                line: crate::render::breach::at(violation),
+                detail: violation.detail.clone(),
+            })
             .collect()
     }
 }

@@ -155,7 +155,7 @@ fn import_records(project: &Project, args: &ImportArgs, raw: &str) -> Result<Vec
                 label,
                 stem: String::new(),
                 filed: false,
-                problems: vec![err.to_string()],
+                problems: vec![err.to_string().into()],
                 report: mapped.report,
             }),
         }
@@ -306,6 +306,9 @@ fn render_task(out: &mut String, outcome: &TaskOutcome, filed_verb: &str) {
     }
     for problem in &outcome.problems {
         let _ = writeln!(out, "    - {problem}");
+        if let Some(detail) = &problem.detail {
+            let _ = writeln!(out, "      note: {detail}");
+        }
     }
 }
 

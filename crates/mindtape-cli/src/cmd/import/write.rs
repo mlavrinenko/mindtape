@@ -25,7 +25,7 @@ use crate::diag::Result;
 use mindtape::ImportReport;
 
 use crate::diag::Diag;
-use crate::pre_write::{self, Pending};
+use crate::pre_write::{self, Pending, Problem};
 use crate::util::Project;
 
 /// One mapped-and-emitted record, ready to land: its report label, the folder
@@ -46,7 +46,7 @@ pub(crate) struct TaskOutcome {
     pub stem: String,
     pub filed: bool,
     /// Load/validate problems attributed to this record; empty when clean.
-    pub problems: Vec<String>,
+    pub problems: Vec<Problem>,
     pub report: ImportReport,
 }
 
@@ -106,7 +106,7 @@ pub(crate) fn preview(project: &Project, staged: Vec<StagedTask>) -> Result<Vec<
 /// # Errors
 /// Returns an error if the project's configured body rules do not compile
 /// (see [`crate::pre_write::check`]).
-fn check_staged(project: &Project, staged: &[StagedTask]) -> Result<Vec<Vec<String>>> {
+fn check_staged(project: &Project, staged: &[StagedTask]) -> Result<Vec<Vec<Problem>>> {
     let files: Vec<PathBuf> = staged
         .iter()
         .map(|task| task.dest.join(format!("{}.typ", task.stem)))
@@ -125,7 +125,7 @@ fn check_staged(project: &Project, staged: &[StagedTask]) -> Result<Vec<Vec<Stri
         .collect())
 }
 
-fn pair_outcomes(staged: Vec<StagedTask>, problems: Vec<Vec<String>>) -> Vec<TaskOutcome> {
+fn pair_outcomes(staged: Vec<StagedTask>, problems: Vec<Vec<Problem>>) -> Vec<TaskOutcome> {
     staged
         .into_iter()
         .zip(problems)

@@ -148,10 +148,10 @@ groups:
       www/content/links.typ: 5d2f2e81e8a001bf376f91d0bee3e4cc2c35eea79a1c6ec066be7019cdaad3e2
   cli-import-docs:
     source:
-      crates/mindtape-cli/src/cmd/import/mod.rs: d09dd4cf42eba5437346ddd6d91931ccb427bbf55f09ce1e4f601b9cf173aff7
+      crates/mindtape-cli/src/cmd/import/mod.rs: 3659b7162b284cc87185f32e31bb216412f79d006a5aa90939894a81844aaa6b
     dependents:
       skills/mindtape/references/import.md: 36e4dc0bc9849a56ce6e6fe1e9b194024e89c04ef0f538b6c1769d32d6c66ca1
-      www/content/import-export.typ: 21da077af3865d4449176940db50674755bb53cbd0c01db00f78eeb37a688e0f
+      www/content/import-export.typ: d554b9ba8bf9d352c8b7ab1188670b61a3e41c2f275ec02a6a5b7ccbe856f2c4
       www/content/schema.typ: 67d7600b458799e3786abc770c583e8086c593e4e8c976454eb1164a1ed66817
   cli-init-docs:
     source:

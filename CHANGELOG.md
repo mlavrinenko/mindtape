@@ -154,6 +154,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a missing status, `--map OLD=NEW` renames a foreign one, and
   `--drop-unmapped` drops a tag outside the allow-list. A dry run that skips a
   record ends `error: would file 1 of 2 tasks; 1 failed`, not `filed`.
+  A skipped record's report keeps a content rule's detail on an indented
+  `note:` line under the breach, as `mt check` prints it.
   `contrib/jq/taskwarrior.jq` and `contrib/jq/github.jq` turn `task export` and
   `gh issue list --json` output into that JSON, with neutral statuses (`todo`,
   `done`, `cancelled`) and the source's own data kept in `x-tw` or `x-gh`.

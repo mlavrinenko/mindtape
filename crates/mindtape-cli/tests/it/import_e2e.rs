@@ -127,6 +127,33 @@ fn the_failure_line_says_would_file_under_a_dry_run() {
         ));
 }
 
+/// A content rule's detail prints under the skipped record's breach, indented,
+/// as `mt check` prints it on a `note:` line.
+#[test]
+fn a_skipped_record_keeps_the_content_rule_detail_under_its_breach() {
+    let dir = support::scaffold_project(
+        "[tasks]\nroots = [\"tasks\"]\n\
+         [[tasks.status]]\nvalue = \"wip\"\n\
+         [[tasks.body.content.rules]]\nname = \"no-open-questions\"\npath = [\"TO-BE\"]\n\
+         assert = { density = { pattern = '\\?(\\s|$)', max = 0, per = \"sentence\" } }\n\
+         message = \"ask the user and write the answer in\"\n",
+    );
+    let asks = ONE_TASK_JSON.replace(
+        r#""body":"""#,
+        r#""body":"= TO-BE\n\nShould it cover the board?\n""#,
+    );
+
+    support::mt(dir.path())
+        .args(["import", "--dry-run"])
+        .write_stdin(asks)
+        .assert()
+        .code(1)
+        .stderr(predicates::str::contains(
+            "ask the user and write the answer in\n      note: section `TO-BE` sentence 1 \
+             (\"Should it cover the board?\") must carry at most 0 matches",
+        ));
+}
+
 /// A canonical record for `stem` at `file`, depending on `dep` when given.
 fn record(stem: &str, file: &str, dep: Option<&str>) -> String {
     let links = dep.map_or_else(String::new, |target| {
