@@ -19,7 +19,7 @@
 //! whitespace-delimited tokens containing an alphanumeric character, so
 //! markup, code blocks, and nested subsection headings all count — a `Scope`
 //! section that is all `#raw` is a real shape and must not read as empty.
-//! Density is the one exception: its unit split drops fenced code entirely,
+//! Density is the one exception: its unit split drops code, fenced or inline,
 //! since a pattern inside a code sample is not prose.
 
 use regex::Regex;

@@ -54,7 +54,7 @@ pub struct ContentRuleConfig {
 /// - `{ density = { pattern = "regex", max = N, per = "section" } }` — no
 ///   single unit may carry more than `N` matches of the regex; `per` is
 ///   `section` (the default), `paragraph`, or `sentence`. Unlike the word
-///   counts and the regex asserts above, a fenced code block is excluded
+///   counts and the regex asserts above, code, fenced or inline, is excluded
 ///   from matching entirely — see [`crate::body::content_gate`] for the unit-split
 ///   rules.
 #[derive(Debug, Clone, PartialEq)]

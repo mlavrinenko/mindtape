@@ -370,8 +370,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `action` of `require`, `forbid`, `unique`, `order` or `allowlist`, and
   `[[tasks.body.content.rules]]` hold a section to `non-empty`, `min-words`,
   `max-words`, `must-match`, `must-not-match` or `density` (`pattern`, `max`,
-  `per = "section" | "paragraph" | "sentence"`, code blocks skipped). Both take
-  a `name`, reported as `body.headers.rules.<name>`.
+  `per = "section" | "paragraph" | "sentence"`, code skipped whether fenced or
+  inline). Both take a `name`, reported as `body.headers.rules.<name>`.
 - **Rule packs.** A config layer's `extends = [...]` pulls in a pack, built in
   (`mindtape-…`) or a TOML file by path, and `disable = [...]` drops rules by
   name. A pack holds only the three rule arrays and `[dicts]`, a later entry

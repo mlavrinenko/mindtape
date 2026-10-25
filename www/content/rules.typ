@@ -213,8 +213,8 @@ down to the next heading of the same or a higher level, subsections included.
   unit carries more than `max` matches. `per` is `section` (the default),
   `paragraph` or `sentence`. Paragraphs split at blank lines and at each list
   item. Sentences split after a `.`, `!` or `?` followed by a space or the
-  end. Fenced code is removed first, so a match inside a code sample never
-  counts.
+  end. Code is removed first, fenced or inline, so a match inside a code
+  sample or a backtick span never counts, and a span never splits a sentence.
 
 `mt` refuses a write that breaks a body rule, the same as a field rule.
 `mt check` reports a body violation at the heading's line, or at the
