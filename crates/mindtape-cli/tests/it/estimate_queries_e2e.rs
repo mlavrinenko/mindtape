@@ -115,7 +115,7 @@ fn a_regex_that_does_not_compile_is_a_violation() {
     );
     support::assert_check_fails(
         dir.path(),
-        "estimate.src-files: grep `parse(` isn't a regex",
+        "estimate.src-files: grep `parse(` isn't a regex: unclosed group\n",
     );
 }
 

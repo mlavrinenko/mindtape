@@ -303,14 +303,16 @@ fn run(
         .collect())
 }
 
-/// The last line of a `regex` error, which names what went wrong.
+/// The last line of a `regex` error, which names what went wrong, without
+/// its `error: ` label.
 fn last_line(text: &str) -> String {
-    text.lines()
+    let line = text
+        .lines()
         .rev()
         .find(|line| !line.trim().is_empty())
         .unwrap_or(text)
-        .trim()
-        .to_owned()
+        .trim();
+    line.strip_prefix("error: ").unwrap_or(line).to_owned()
 }
 
 /// Config-load problems in `[tasks.estimate.queries]`: a unit outside a
