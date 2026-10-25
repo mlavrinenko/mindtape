@@ -4,7 +4,9 @@
 //! spawns the `[go] editor` command. A `{task}` token in the command is replaced
 //! with the resolved path; without it the path is appended. Editor resolution:
 //! `[go] editor` → `$VISUAL` → `$EDITOR`, then error — no `vi` floor, so a GUI
-//! user is told to configure `[go] editor` rather than dropped into `vi`.
+//! user is told to configure `[go] editor` rather than dropped into `vi`. A
+//! `[go] editor` the user has not allowed (`mt allow`) counts as unset, and
+//! the end-of-run warning names it ([`mindtape::allow::runnable_editor`]).
 
 use std::path::Path;
 use std::process::Command;
@@ -36,19 +38,20 @@ pub fn run(args: &GoArgs) -> Result<()> {
 
     let (task, abs) = util::resolve_task(&project, &args.task.task)?;
 
-    let template = resolve_editor(&project.config)?;
+    let template = resolve_editor(&project.root, &project.config)?;
     spawn_editor(&template, &abs)?;
     println!("opened {} ({})", args.task.task, task.title);
     Ok(())
 }
 
-/// Resolve the editor command template for a project: `[go] editor`, then
-/// `$VISUAL`, then `$EDITOR`.
+/// Resolve the editor command template for the project at `root`:
+/// `[go] editor` when the user allowed it, then `$VISUAL`, then `$EDITOR`.
 ///
 /// # Errors
-/// Returns an error naming `[go] editor` when none of the three is set.
-pub(crate) fn resolve_editor(config: &Config) -> Result<String> {
-    editor_command(config.go.editor.as_deref())
+/// Returns an error naming `[go] editor` when none of the three is usable.
+pub(crate) fn resolve_editor(root: &Path, config: &Config) -> Result<String> {
+    let configured = mindtape::allow::runnable_editor(root, config, config.go.editor.as_deref());
+    editor_command(configured.as_deref())
 }
 
 /// Spawn the editor on `path` and wait for it to exit.
@@ -240,15 +243,6 @@ mod tests {
             _ => Some("nano".to_owned()),
         };
         assert_eq!(editor_from(None, lookup).unwrap(), "nano");
-    }
-
-    /// `resolve_editor` passes through the configured editor value.
-    /// A return replaced with `String::new()` would fail the `== "vim"` assertion.
-    #[test]
-    fn resolve_editor_returns_configured_cmd() {
-        let mut config = mindtape::Config::default();
-        config.go.editor = Some("vim".to_owned());
-        assert_eq!(super::resolve_editor(&config).unwrap(), "vim");
     }
 
     /// A task path under a tempdir. `spawn_editor` only ever passes it to the

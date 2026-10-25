@@ -191,6 +191,11 @@ pub struct Config {
     /// equal-compared — see [`crate::rules::sites::RuleSites`].
     #[serde(skip)]
     pub(crate) rule_sites: crate::rules::sites::RuleSites,
+    /// The editor commands the user's own config layer sets, which `mt allow`
+    /// does not ask about. Derived at load, never declared, never
+    /// equal-compared — see [`crate::allow::UserCommands`].
+    #[serde(skip)]
+    pub(crate) user_commands: crate::allow::UserCommands,
     /// What git says changed under the project root, read the first time a
     /// filter's `changed()` asks and shared from then on. Derived, never
     /// declared, never equal-compared — see [`crate::git::state::GitCache`].

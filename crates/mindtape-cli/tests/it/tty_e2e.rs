@@ -270,3 +270,41 @@ fn interactive_add_escapes_markup_from_the_saved_buffer() {
     assert_eq!(support::at(&task, "/title").as_str(), Some(hazards));
     assert_eq!(support::at(&task, "/links/0/note").as_str(), Some(hazards));
 }
+
+/// `[add] editor` of a clone is held like `[go] editor`: until `mt allow`,
+/// `--edit` opens `$VISUAL` instead, and the held command is named.
+#[test]
+fn interactive_add_holds_a_project_editor_until_mt_allow() {
+    let dir = support::project_with_slot_template();
+    let held = fake_editor(dir.path(), "title: \"Held\"\nwhy: |-\n  why");
+    let visual = dir.path().join("visual.sh");
+    std::fs::write(
+        &visual,
+        "#!/bin/sh\ncat > \"$1\" <<'MT_EOF'\ntitle: \"Visual\"\nwhy: |-\n  why\nMT_EOF\n",
+    )
+    .unwrap();
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&visual, std::fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    let config = dir.path().join(".mindtape/config.toml");
+    let text = std::fs::read_to_string(&config).unwrap();
+    std::fs::write(&config, format!("{text}\n[add]\neditor = {held:?}\n")).unwrap();
+    let env = [("VISUAL", visual.to_str().unwrap())];
+
+    let out = pty_output(dir.path(), "add --name first --edit", 200, &env);
+
+    assert!(out.contains("wrote"), "{out}");
+    assert!(out.contains("warning:"), "{out}");
+    assert!(out.contains(&held), "{out}");
+    let first = std::fs::read_to_string(dir.path().join("tasks/first.typ")).unwrap();
+    assert!(first.contains("Visual"), "{first}");
+
+    support::run_ok(dir.path(), &["allow"]);
+    let out = pty_output(dir.path(), "add --name second --edit", 200, &env);
+
+    assert!(out.contains("wrote"), "{out}");
+    assert!(!out.contains("warning:"), "{out}");
+    let second = std::fs::read_to_string(dir.path().join("tasks/second.typ")).unwrap();
+    assert!(second.contains("Held"), "{second}");
+}

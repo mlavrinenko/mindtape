@@ -197,12 +197,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   argument its stems, and `mt set ... tags=` the tags. A project that fails to
   load offers nothing, quietly.
 - **`mt allow` approves the config's commands before any run.** No
-  `[[tasks.waits]]` checker and no `[[on.flip]]` `run` runs until `mt allow`
-  records a hash of every `run` line for the repository, shared by its
-  worktrees. Until then a wait reads `unknown: not allowed`, a gate refuses with
-  `gate not allowed` (`--force` waives it), a `run` without `gate` is skipped
-  with a note, and `mt` warns once listing the commands. A changed line asks
-  again.
+  `[[tasks.waits]]` checker, no `[[on.flip]]` `run` and no `[go] editor` or
+  `[add] editor` runs until `mt allow` records a hash of every such line for
+  the repository, shared by its worktrees. Until then a wait reads
+  `unknown: not allowed`, a gate refuses with `gate not allowed` (`--force`
+  waives it), a `run` without `gate` is skipped with a note, `mt go` and
+  `mt add --edit` open `$VISUAL` in place of a held editor, and `mt` warns once
+  listing the commands. A changed line asks again. An editor in your own
+  `<config home>/mindtape/defaults.toml` needs no approval.
 - **`mt views` lists and inspects views**, with `--json`.
 - **`mt dicts` lists the dictionaries**, built-ins included, with each one's
   entry count and case, and `mt dicts <name>` prints its entries one per line,

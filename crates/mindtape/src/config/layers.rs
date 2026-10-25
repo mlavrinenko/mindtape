@@ -202,6 +202,7 @@ fn build_config(
     // agree on an ordering that only exists to satisfy this line.
     config.rules_root.set(root);
     config.rule_sites = crate::rules::sites::RuleSites::from_origins(&rule_origins, root);
+    config.user_commands = crate::allow::UserCommands::from_layers(layers);
     config.git.set_root(root);
     config.validate().map_err(ConfigError::invalid)?;
     // Root-aware, so it cannot run inside `Config::validate` itself (which

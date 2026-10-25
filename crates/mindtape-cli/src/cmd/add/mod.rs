@@ -196,7 +196,9 @@ pub fn run(args: &AddArgs) -> Result<()> {
     let tty = std::io::stdin().is_terminal() && std::io::stdout().is_terminal();
     let interactive = interactive::should_open(args.edit, &config.add, &specs, &values, tty)?;
     if interactive {
-        values = interactive::run(&config.add, &specs, &values)?;
+        let editor =
+            mindtape::allow::runnable_editor(&project.root, config, config.add.editor.as_deref());
+        values = interactive::run(&config.add, editor.as_deref(), &specs, &values)?;
     }
     let filled = fill(&source, &markup_safe(&values, &specs)).map_err(Diag::from)?;
     let filled = inject_header(&filled, config, status.as_deref())?;

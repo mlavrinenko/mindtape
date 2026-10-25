@@ -21,17 +21,26 @@ fn go_prints_opened_message() {
 
     // File a task via `mt add` so it has the right format.
     support::run_ok(dir.path(), &["add", "--name", "x", "--set", "title=Test"]);
+    support::run_ok(dir.path(), &["allow"]);
 
     let output = support::mt(dir.path()).args(["go", "x"]).output().unwrap();
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("opened"), "mt go should print 'opened ...'");
 }
 
-/// A project whose `[go] editor` is `editor`, with one task `x` filed.
-fn project_with_editor(editor: &str) -> tempfile::TempDir {
-    let config = format!("[tasks]\nroots = [\"tasks\"]\n[go]\neditor = \"{editor}\"\n");
-    let dir = support::scaffold_project(&config);
+/// A project with `config` and one task `x` filed.
+fn project_with_config(config: &str) -> tempfile::TempDir {
+    let dir = support::scaffold_project(config);
     support::run_ok(dir.path(), &["add", "--name", "x", "--set", "title=Test"]);
+    dir
+}
+
+/// A project whose `[go] editor` is `editor`, allowed, with one task `x` filed.
+fn project_with_editor(editor: &str) -> tempfile::TempDir {
+    let dir = project_with_config(&format!(
+        "[tasks]\nroots = [\"tasks\"]\n[go]\neditor = \"{editor}\"\n"
+    ));
+    support::run_ok(dir.path(), &["allow"]);
     dir
 }
 
@@ -53,4 +62,87 @@ fn an_editor_that_fails_to_run_fails_go_without_opening() {
         assert!(text.contains(editor), "{text}");
         assert!(!text.contains("opened"), "{text}");
     }
+}
+
+/// A script under `dir` that appends `name` to `marks.txt`, returned as an
+/// editor command, so a test reads which editor ran.
+fn marking_editor(dir: &std::path::Path, name: &str) -> String {
+    let script = dir.join(format!("{name}.sh"));
+    std::fs::write(
+        &script,
+        format!("echo {name} >> \"{}/marks.txt\"\n", dir.display()),
+    )
+    .unwrap();
+    format!("sh {}", script.display())
+}
+
+/// A project with task `x` and two marking editors: one called `name`, and
+/// `visual`. Returns the project and the two editor commands, in that order.
+fn project_with_marking_editors(name: &str) -> (tempfile::TempDir, String, String) {
+    let dir = project_with_config("[tasks]\nroots = [\"tasks\"]\n");
+    let named = marking_editor(dir.path(), name);
+    let visual = marking_editor(dir.path(), "visual");
+    (dir, named, visual)
+}
+
+/// `mt go x` in `dir` with `$VISUAL` set to `visual` and, when given, the
+/// config home `home`. Asserts the run succeeded and the editors marked
+/// `marks.txt` as `expected` so far, and returns stderr.
+fn go_marking(
+    dir: &std::path::Path,
+    visual: &str,
+    home: Option<&std::path::Path>,
+    expected: &str,
+) -> String {
+    let mut command = support::mt(dir);
+    command.args(["go", "x"]).env("VISUAL", visual);
+    if let Some(home) = home {
+        command.env(mindtape::CONFIG_HOME_ENV, home);
+    }
+    let out = command.output().unwrap();
+    let stderr = String::from_utf8_lossy(&out.stderr).into_owned();
+    assert!(out.status.success(), "{stderr}");
+    let marks = std::fs::read_to_string(dir.join("marks.txt")).unwrap_or_default();
+    assert_eq!(marks, expected, "{stderr}");
+    stderr
+}
+
+/// A clone's `[go] editor` is a program `mt` would run, so it waits for
+/// `mt allow` like a checker does: until then `$VISUAL` opens the task and
+/// one warning names the held command.
+#[test]
+fn a_project_editor_waits_for_mt_allow_and_visual_opens_the_task() {
+    let (dir, held, visual) = project_with_marking_editors("held");
+    let config = format!("[tasks]\nroots = [\"tasks\"]\n[go]\neditor = {held:?}\n");
+    write_file(dir.path(), ".mindtape/config.toml", &config);
+
+    let stderr = go_marking(dir.path(), &visual, None, "visual\n");
+
+    assert_eq!(stderr.matches("warning:").count(), 1, "{stderr}");
+    assert!(stderr.contains(&held), "{stderr}");
+    assert!(
+        stderr.contains("hint: read them, then run mt allow"),
+        "{stderr}"
+    );
+
+    support::run_ok(dir.path(), &["allow"]);
+    let stderr = go_marking(dir.path(), &visual, None, "visual\nheld\n");
+    assert!(!stderr.contains("warning:"), "{stderr}");
+}
+
+/// The user's own `<config home>/mindtape/defaults.toml` is theirs, so its
+/// `[go] editor` runs with no `mt allow`, ahead of `$VISUAL`.
+#[test]
+fn an_editor_from_the_users_own_config_runs_without_mt_allow() {
+    let (dir, mine, visual) = project_with_marking_editors("mine");
+    let home = tempdir();
+    write_file(
+        home.path().join("mindtape"),
+        "defaults.toml",
+        format!("[go]\neditor = {mine:?}\n"),
+    );
+
+    let stderr = go_marking(dir.path(), &visual, Some(home.path()), "mine\n");
+
+    assert!(!stderr.contains("warning:"), "{stderr}");
 }

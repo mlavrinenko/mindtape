@@ -1,11 +1,11 @@
 #![allow(clippy::unwrap_used)]
 
 use crate::test_support::tempdir;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use super::{
     AllowError, allowed_in, commands, digest, held_back, hold, record_in, record_path, repo_key,
-    take_held,
+    runnable_editor_in, take_held,
 };
 use crate::config::Config;
 use crate::waits::Checker;
@@ -115,12 +115,19 @@ fn inside_git_every_worktree_shares_the_common_dir_as_key() {
     assert_eq!(repo_key(&sibling), key);
 }
 
-#[test]
-fn a_recorded_set_is_allowed_and_a_changed_one_is_not() {
+/// A fresh data home and an existing project root, side by side in one
+/// tempdir that the caller keeps alive.
+fn data_home_and_root() -> (tempfile::TempDir, PathBuf, PathBuf) {
     let dir = tempdir();
     let home = dir.path().join("home");
     let root = dir.path().join("root");
     std::fs::create_dir_all(&root).unwrap();
+    (dir, home, root)
+}
+
+#[test]
+fn a_recorded_set_is_allowed_and_a_changed_one_is_not() {
+    let (_dir, home, root) = data_home_and_root();
     let recorded = lines(&["scripts/locked {id}"]);
 
     assert!(!allowed_in(Some(&home), &root, &recorded));
@@ -160,4 +167,96 @@ fn record_names_the_file_it_could_not_write() {
 
     assert!(matches!(err, AllowError::Write { .. }), "{err}");
     assert!(err.to_string().starts_with("can't write "), "{err}");
+}
+
+/// The config of a project whose own `config.toml` is `project`, loaded over
+/// a user layer (`<config home>/mindtape/defaults.toml`) holding `user`.
+fn layered(user: &str, project: &str) -> Config {
+    let dir = tempdir();
+    let xdg = dir.path().join("xdg");
+    std::fs::create_dir_all(xdg.join("mindtape")).unwrap();
+    std::fs::write(xdg.join("mindtape").join("defaults.toml"), user).unwrap();
+    let root = dir.path().join("root");
+    std::fs::create_dir_all(root.join(".mindtape")).unwrap();
+    std::fs::write(root.join(".mindtape").join("config.toml"), project).unwrap();
+    crate::load_config_layered_from(&root, None, Some(&xdg))
+        .unwrap()
+        .0
+}
+
+#[test]
+fn the_commands_list_a_go_and_an_add_editor_beside_the_run_lines() {
+    let config = crate::parse_config(
+        "[go]\neditor = \"zed {task}\"\n[add]\neditor = \"nvim -p\"\n\
+         [[tasks.waits]]\nname = \"up\"\nrun = \"b\"\n",
+    )
+    .unwrap();
+
+    assert_eq!(commands(&config), lines(&["b", "nvim -p", "zed {task}"]));
+}
+
+/// `commands` of a project over a user layer, for each `(user, project, listed)`
+/// case: the editors that still ask for `mt allow`.
+#[test]
+fn only_an_editor_the_users_own_layer_did_not_set_is_listed() {
+    let cases = [
+        ("", "[go]\neditor = \"  \"\n", &[][..]),
+        (
+            "",
+            "[go]\neditor = \"evil {task}\"\n[add]\neditor = \"evil\"\n",
+            &["evil", "evil {task}"],
+        ),
+        (
+            "[go]\neditor = \"mine {task}\"\n[add]\neditor = \"mine\"\n",
+            "",
+            &[],
+        ),
+        (
+            "[go]\neditor = \"mine {task}\"\n",
+            "[go]\neditor = \"evil {task}\"\n",
+            &["evil {task}"],
+        ),
+    ];
+    for (user, project, listed) in cases {
+        assert_eq!(
+            commands(&layered(user, project)),
+            lines(listed),
+            "{user:?} {project:?}"
+        );
+    }
+}
+
+#[test]
+fn an_editor_is_held_until_the_commands_are_allowed() {
+    let (_dir, home, root) = data_home_and_root();
+    let config = layered("", "[go]\neditor = \"held-editor-evil {task}\"\n");
+    let editor = config.go.editor.as_deref();
+
+    assert_eq!(
+        runnable_editor_in(Some(&home), &root, &config, editor),
+        None
+    );
+    assert_eq!(take_held(&root), ["held-editor-evil {task}"]);
+
+    record_in(Some(&home), &root, &commands(&config)).unwrap();
+
+    assert_eq!(
+        runnable_editor_in(Some(&home), &root, &config, editor).as_deref(),
+        Some("held-editor-evil {task}")
+    );
+    assert!(take_held(&root).is_empty());
+}
+
+#[test]
+fn a_user_layer_editor_runs_unasked_and_no_editor_holds_nothing() {
+    let root = Path::new("/no/such/root");
+    let config = layered("[go]\neditor = \"mine {task}\"\n", "");
+
+    assert_eq!(
+        runnable_editor_in(None, root, &config, config.go.editor.as_deref()).as_deref(),
+        Some("mine {task}")
+    );
+    assert_eq!(runnable_editor_in(None, root, &config, None), None);
+    assert_eq!(runnable_editor_in(None, root, &config, Some("  ")), None);
+    assert!(take_held(root).is_empty());
 }

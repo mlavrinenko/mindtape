@@ -226,11 +226,14 @@ fn run_parses_editor_output() {
     let dir = tempdir();
     let script = dir.path().join("editor.sh");
     std::fs::write(&script, "cat > \"$1\" << 'EOF'\nx: \"ParsedTitle\"\nEOF\n").unwrap();
-    let config = AddConfig {
-        editor: Some(format!("bash {}", script.display())),
-        ..Default::default()
-    };
+    let editor = format!("bash {}", script.display());
     let specs = discover_slots("#show: task.with(x: slot(\"x\"))");
-    let values = run(&config, &specs, &BTreeMap::new()).unwrap();
+    let values = run(
+        &AddConfig::default(),
+        Some(&editor),
+        &specs,
+        &BTreeMap::new(),
+    )
+    .unwrap();
     assert_eq!(values["x"], RawValue::Str("ParsedTitle".to_owned()));
 }

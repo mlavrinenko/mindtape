@@ -287,7 +287,7 @@ fn open(state: &State, tui: &Tui, indices: &[usize]) -> Result<bool> {
     if paths.is_empty() {
         return Ok(false);
     }
-    let template = go::resolve_editor(&state.config)?;
+    let template = go::resolve_editor(&state.root, &state.config)?;
     suspend(tui, || {
         for path in &paths {
             go::spawn_editor(&template, path)?;

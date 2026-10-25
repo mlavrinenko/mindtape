@@ -58,18 +58,21 @@ fn has_unfilled_required(specs: &[SlotSpec], seed: &BTreeMap<String, RawValue>) 
 }
 
 /// Open the editor on a scaffold for `specs` pre-filled from `seed`, returning
-/// the values the user saved.
+/// the values the user saved. `editor` is the `[add] editor` to run, `None`
+/// when it is unset or not yet allowed (`mt allow`), which falls back to
+/// `$VISUAL`.
 ///
 /// # Errors
 /// Returns an error when no editor can be spawned, the editor exits without
 /// saving, or the saved buffer is not a valid YAML mapping.
 pub fn run(
     config: &AddConfig,
+    editor: Option<&str>,
     specs: &[SlotSpec],
     seed: &BTreeMap<String, RawValue>,
 ) -> Result<BTreeMap<String, RawValue>> {
     let buffer = scaffold(config, specs, seed);
-    let command = editor_command(config.editor.as_deref());
+    let command = editor_command(editor);
     let edited = open_in_editor(&command, &buffer)?;
     parse_buffer(&edited)
 }

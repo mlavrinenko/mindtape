@@ -1,10 +1,13 @@
 //! Which config commands the user has allowed to run in a repository.
 //!
 //! A clone's `.mindtape/config.toml` can name shell lines that `mt` runs: a
-//! `[[tasks.waits]]` checker, which read commands run, and an `[[on.flip]]`
-//! `run` action, which `mt flip` runs. None of them runs until the user reads
-//! them and runs `mt allow`, which records a digest of every such line
-//! ([`commands`]) for the repository. A changed line changes the digest, so it
+//! `[[tasks.waits]]` checker, which read commands run, an `[[on.flip]]` `run`
+//! action, which `mt flip` runs, and the `[go] editor` and `[add] editor`
+//! programs, which `mt go` and `mt add` spawn. None of them runs until the
+//! user reads them and runs `mt allow`, which records a digest of every such
+//! line ([`commands`]) for the repository. An editor the user's own
+//! `<config home>/mindtape/defaults.toml` sets is the user's, and needs no
+//! approval ([`UserCommands`]); [`runnable_editor`] decides. A changed line changes the digest, so it
 //! asks again. A caller that skips a command for want of approval records it
 //! with [`hold`] under its project root, and [`held_back`] lists them for the
 //! one warning per process.
@@ -25,13 +28,15 @@ use std::sync::{Mutex, PoisonError};
 use sha1::{Digest, Sha1};
 
 use crate::config::Config;
+use crate::config::layers::{Layer, LayerSource};
 use crate::fs_atomic::write_atomic;
 
 /// Every command line the config asks `mt` to run, sorted and deduplicated:
 /// what [`digest`] covers and what `mt allow` lists. That is each
-/// `[[tasks.waits]]` `run` line and each `[[on.flip]]` action's `run` line.
-/// Another kind of config command joins by adding its lines here, and every
-/// approval then asks again.
+/// `[[tasks.waits]]` `run` line, each `[[on.flip]]` action's `run` line, and
+/// the `[go] editor` and `[add] editor` commands unless the user's own layer
+/// set them. Another kind of config command joins by adding its lines here,
+/// and every approval then asks again.
 #[must_use]
 pub fn commands(config: &Config) -> Vec<String> {
     let checkers = config.tasks.waits.iter().map(|checker| checker.run.clone());
@@ -41,10 +46,85 @@ pub fn commands(config: &Config) -> Vec<String> {
         .iter()
         .flat_map(|hook| &hook.actions)
         .filter_map(|action| action.run.clone());
-    let mut commands: Vec<String> = checkers.chain(actions).collect();
+    let editors = [&config.go.editor, &config.add.editor]
+        .into_iter()
+        .filter_map(|editor| untrusted_editor(config, editor.as_deref()));
+    let mut commands: Vec<String> = checkers.chain(actions).chain(editors).collect();
     commands.sort();
     commands.dedup();
     commands
+}
+
+/// The editor commands the user's own config layer sets, which run without
+/// approval. Derived at load by [`crate::config::layers`], never declared,
+/// never equal-compared, like [`crate::rules::RulesRoot`]: it is empty for a
+/// [`Config`] built through [`crate::config::parse_config`] alone, so every
+/// editor there is a project's. Only `<config home>/mindtape/defaults.toml`
+/// counts. An ancestor's `.mindtape/defaults.toml` can sit inside a clone, so
+/// it is no more the user's than the project's own file.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct UserCommands(BTreeSet<String>);
+
+impl PartialEq for UserCommands {
+    fn eq(&self, _other: &Self) -> bool {
+        true
+    }
+}
+
+impl UserCommands {
+    /// The trimmed `[go] editor` and `[add] editor` of every global layer in
+    /// `layers`. A layer that is not TOML sets none: the merge reports it.
+    pub(crate) fn from_layers(layers: &[Layer]) -> Self {
+        let editors = layers
+            .iter()
+            .filter(|layer| matches!(layer.source, LayerSource::Xdg(_)))
+            .filter_map(|layer| layer.text.parse::<toml::Table>().ok())
+            .flat_map(|table| [editor_of(&table, "go"), editor_of(&table, "add")])
+            .flatten();
+        Self(editors.collect())
+    }
+}
+
+/// `table`'s `[<section>] editor`, trimmed, when it is a non-blank string.
+fn editor_of(table: &toml::Table, section: &str) -> Option<String> {
+    let editor = table.get(section)?.get("editor")?.as_str()?.trim();
+    (!editor.is_empty()).then(|| editor.to_owned())
+}
+
+/// `editor` trimmed, unless it is blank or the user's own layer set it.
+fn untrusted_editor(config: &Config, editor: Option<&str>) -> Option<String> {
+    let editor = editor?.trim();
+    (!editor.is_empty() && !config.user_commands.0.contains(editor)).then(|| editor.to_owned())
+}
+
+/// The editor command a caller may spawn: `editor`, a `[go] editor` or
+/// `[add] editor` of `config`, when the user's own layer set it or the user
+/// allowed the config's commands for `root`'s repository. Otherwise `None`,
+/// and the editor is held back for the warning that asks for `mt allow`, so
+/// the caller falls back to `$VISUAL`. A blank or absent editor is `None` and
+/// holds nothing.
+#[must_use]
+pub fn runnable_editor(root: &Path, config: &Config, editor: Option<&str>) -> Option<String> {
+    runnable_editor_in(crate::data_home().as_deref(), root, config, editor)
+}
+
+/// [`runnable_editor`] against the data home `home`.
+fn runnable_editor_in(
+    home: Option<&Path>,
+    root: &Path,
+    config: &Config,
+    editor: Option<&str>,
+) -> Option<String> {
+    let editor = editor?.trim();
+    if editor.is_empty() {
+        return None;
+    }
+    if untrusted_editor(config, Some(editor)).is_none() || allowed_in(home, root, &commands(config))
+    {
+        return Some(editor.to_owned());
+    }
+    hold(root, &[editor.to_owned()]);
+    None
 }
 
 /// Every command this process held back because the user has not allowed it,

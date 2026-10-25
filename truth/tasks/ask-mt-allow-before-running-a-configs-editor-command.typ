@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 26),
+  status: wip(2026, 10, 26),
 )
 
 == Problem
@@ -52,15 +52,16 @@ left in a closing report no one rereads. It belongs in
 
 - 🟢 `allow::commands` lists `[go] editor` and `[add] editor` beside the `run` lines, so a clone or a pack that sets one asks `mt allow` first.
 - 🟢 Until then, `mt go` and the editor fill fall back to `$VISUAL`, then `$EDITOR`, and warn once naming the held command.
-- 🟢 An editor set in the user's own config layer needs no approval.
+- 🟢 An editor set in the user's own `<config home>/mindtape/defaults.toml` needs no approval. An ancestor's `.mindtape/defaults.toml` can sit inside a clone, so it is held like the project's file.
+- 🟢 One `mt allow` covers the editors and the `run` lines, and `mt ls`'s open takes the same gate, since it spawns `[go] editor` too.
 
 
 == Changes
 
 - `crates/mindtape/src/allow_tests.rs`: the red tests first: a project `[go] editor` is held, a user-layer one runs.
-- `crates/mindtape/src/allow.rs`: list the two editor commands from the project layer and its packs.
-- `crates/mindtape-cli/src/cmd/go.rs`, `crates/mindtape-cli/src/cmd/add/interactive.rs`: skip a held editor and fall back.
-- `www/content/config.typ`: say the editor keys wait for `mt allow`.
+- `crates/mindtape/src/allow.rs`: list the two editor commands unless the user's global layer set them (`UserCommands`, stamped on the `Config` at load by `config/layers.rs`), and `runnable_editor` decides whether a caller may spawn one, holding it otherwise.
+- `crates/mindtape-cli/src/cmd/go.rs`, `crates/mindtape-cli/src/cmd/add/mod.rs`, `crates/mindtape-cli/src/cmd/add/interactive.rs`, `crates/mindtape-cli/src/cmd/ls/interactive/mod.rs`: skip a held editor and fall back.
+- `www/content/config.typ`, `www/content/cli/allow.typ`, `www/content/templates.typ`, `www/utils/cli-notes.typ`, `docs/src/skill.typ`: say the editor keys wait for `mt allow`.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 
 
