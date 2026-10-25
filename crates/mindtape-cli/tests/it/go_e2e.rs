@@ -152,28 +152,41 @@ fn an_editor_from_the_users_own_config_runs_without_mt_allow() {
     assert!(!stderr.contains("warning:"), "{stderr}");
 }
 
-/// With the project's `[go] editor` held and no `$VISUAL` or `$EDITOR`, `mt go`
-/// says the editor waits for approval and points at `mt allow`, not at setting
-/// an editor that is already set.
-#[test]
-fn a_held_editor_with_no_fallback_points_at_mt_allow() {
-    let dir = project_with_config("[tasks]\nroots = [\"tasks\"]\n[go]\neditor = \"true\"\n");
-
-    let out = support::mt(dir.path())
+/// `mt go x` in `dir` with no `$VISUAL` or `$EDITOR`: the exit code and stderr.
+fn go_without_fallback(dir: &std::path::Path) -> (Option<i32>, String) {
+    let out = support::mt(dir)
         .args(["go", "x"])
         .env_remove("EDITOR")
         .output()
         .unwrap();
+    (
+        out.status.code(),
+        String::from_utf8_lossy(&out.stderr).into_owned(),
+    )
+}
 
-    let stderr = String::from_utf8_lossy(&out.stderr);
-    assert_eq!(out.status.code(), Some(1), "{stderr}");
-    assert!(
-        stderr.contains("the [go] editor waits for your approval: 'true'"),
-        "{stderr}"
-    );
-    assert!(
-        stderr.contains("hint: read it, then run mt allow"),
-        "{stderr}"
-    );
-    assert!(!stderr.contains("no editor configured"), "{stderr}");
+/// With no `$VISUAL` or `$EDITOR`, a held `[go] editor` is refused with the
+/// reason and a hint at `mt allow`, not at setting an editor that is already
+/// set, while a blank one holds nothing back and still asks for an editor.
+#[test]
+fn a_held_editor_with_no_fallback_points_at_mt_allow_and_a_blank_one_does_not() {
+    let cases = [
+        (
+            "true",
+            "approval: 'true'\nhint: read it, then run mt allow",
+            "no editor configured",
+        ),
+        ("  ", "no editor configured", "mt allow"),
+    ];
+    for (editor, expected, absent) in cases {
+        let dir = project_with_config(&format!(
+            "[tasks]\nroots = [\"tasks\"]\n[go]\neditor = \"{editor}\"\n"
+        ));
+
+        let (code, stderr) = go_without_fallback(dir.path());
+
+        assert_eq!(code, Some(1), "{stderr}");
+        assert!(stderr.contains(expected), "{stderr}");
+        assert!(!stderr.contains(absent), "{stderr}");
+    }
 }
