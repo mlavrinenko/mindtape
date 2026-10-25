@@ -137,6 +137,10 @@ fn mt_eval_shows_where_a_count_comes_from() {
     let (ok, text) = support::run_text(dir.path(), &["eval", "rename"]);
     assert!(ok, "{text}");
     assert!(
+        text.contains("Rename the parser\n\nestimate.src-files"),
+        "one blank line above the breakdown: {text:?}"
+    );
+    assert!(
         text.contains(
             "estimate.src-files = 4\n  2        manual\n  2 files  grep `parse_task` in `src/*.rs`\n  0 files  glob `docs/**`\n"
         ),

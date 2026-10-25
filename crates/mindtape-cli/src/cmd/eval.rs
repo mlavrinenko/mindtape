@@ -51,10 +51,8 @@ pub fn run(args: &EvalArgs) -> Result<()> {
         print_json(&task)
     } else {
         print_table(&task, &hashes_for(&file, &task, project), origin)?;
-        let breakdown = breakdown(&task);
-        if !breakdown.is_empty() {
-            print!("\n{breakdown}");
-        }
+        // The table already ends in a blank line.
+        print!("{}", breakdown(&task));
         Ok(())
     }
 }
