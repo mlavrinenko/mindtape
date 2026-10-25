@@ -55,8 +55,8 @@ wrote .mindtape/packs.lock
 == Changes
 
 - `crates/mindtape-cli/tests/it/packs.rs`: the red tests first: a first lock, a moved annotated tag, a commit `ref`, an unchanged ref, a dropped source.
-- `crates/mindtape/src/pack_sources/fetch.rs`: resolve a `ref` to a commit.
-- `crates/mindtape/src/pack_sources/lock.rs`: write the lock.
+- `crates/mindtape/src/config/pack_sources/fetch.rs`: resolve a `ref` to a commit.
+- `crates/mindtape/src/config/pack_sources/lock.rs`: write the lock.
 - `crates/mindtape-cli/src/cmd/packs/mod.rs`: the `update` subcommand.
 - `crates/mindtape-cli/src/cli/command_class.rs`: classify `packs update` as a write.
 - `www/content/packs.typ`: the command.

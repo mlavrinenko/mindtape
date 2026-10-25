@@ -52,7 +52,7 @@
 == Changes
 
 - `www/generate-packs.sh`: build the fixture repository and capture both commands, with `MINDTAPE_CACHE_HOME` pointing inside the scratch directory.
-- `Justfile`: run it where the docs capture runs.
+- `www/generate.sh`: export the scratch cache directory before it runs the generator.
 - `www/content/packs.typ`: render the captures.
 
 

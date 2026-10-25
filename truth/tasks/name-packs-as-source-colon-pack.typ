@@ -11,7 +11,7 @@
   ),
   difficulty: 2,
   tags: ("mt", "gating"),
-  estimate: (src-files: 12),
+  estimate: (src-files: 16),
   x-goals: (
     product: (
       readable-tasks: neutral,
@@ -56,7 +56,10 @@ extends = ["mindtape:tasks", "./team.toml"]
 
 - `crates/mindtape/src/config/packs_tests.rs`: the red tests first: `mindtape:tasks` resolves, `mindtape-tasks` and `mindtape:nope` fail with their suggestions.
 - `crates/mindtape/src/config/pack_resolve.rs`: split an entry into source and pack.
-- `crates/mindtape/src/config/packs.rs`: key the embedded registry by pack name under the `mindtape` source.
+- `crates/mindtape/src/config/pack_registry.rs` (new): move `EMBEDDED_PACKS` and the origin types out of `packs.rs`, keyed by pack name under the `mindtape` source, so `packs.rs` keeps room under its 500-line cap for the leaves after this one.
+- `crates/mindtape/src/config/packs.rs`: read the registry from there. `crates/mindtape/src/lib.rs`: re-export the origin types from their new file.
+- `crates/mindtape/src/config/mod.rs`: the `extends` field doc, which the schema copies, and the header entry for `pack_registry.rs`.
+- `schema/config.schema.json`: regenerate.
 - `crates/mindtape/src/packs/mindtape-tasks.toml`: move to `tasks.toml`.
 - `.mindtape/config.toml`, `examples/api-service/.mindtape/config.toml`: `extends = ["mindtape:tasks"]`.
 - `Justfile` (`TOML_FMT_PATHS`), `.mmz/config.yaml`: glob the pack files.

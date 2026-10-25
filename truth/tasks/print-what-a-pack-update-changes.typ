@@ -55,9 +55,9 @@ wrote .mindtape/packs.lock
 
 == Changes
 
-- `crates/mindtape/src/pack_sources/diff_tests.rs`: the red tests first, one per change kind.
-- `crates/mindtape/src/pack_sources/diff.rs` (new): diff two resolved packs, comparing parsed values, not text.
-- `crates/mindtape/src/pack_sources/mod.rs`: list the file in the header.
+- `crates/mindtape/src/config/pack_sources/diff_tests.rs`: the red tests first, one per change kind.
+- `crates/mindtape/src/config/pack_sources/diff.rs` (new): diff two resolved packs, comparing parsed values, not text.
+- `crates/mindtape/src/config/pack_sources/mod.rs`: list the file in the header.
 - `crates/mindtape-cli/src/cmd/packs/mod.rs`: print the diff under each moved source.
 - `www/content/packs.typ`: the report.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.

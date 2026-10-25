@@ -35,7 +35,7 @@
 == Problem
 
 + Put `check.typ` beside `team/pack.toml`, with a rule `check = { typst = "check.typ", function = "check-x", field = "x-x" }` and a `[dicts.words] path = "words.txt"`.
-+ Extend `./team` and run `mt check`.
++ Add `extends = ["./team/pack.toml"]` and run `mt check`.
 + 🔴 Both paths resolve from the project root: `check.typ` "does not exist", since `CheckSpec` in `crates/mindtape/src/rules/mod.rs` carries only the path string and `rules/typst.rs` joins it onto the root.
 
 
@@ -59,7 +59,7 @@ check = { typst = "check.typ", function = "check-x", field = "x-x" }
 - `crates/mindtape/src/rules/mod.rs`: a `#[serde(skip)]` root field on `CheckSpec`.
 - `crates/mindtape/src/config/layers.rs`: stamp that root on each rule from its pack origin in `build_config`.
 - `crates/mindtape/src/rules/eval.rs`, `crates/mindtape/src/rules/typst.rs`: evaluate a check from its own root, not `rules_root`.
-- `crates/mindtape/src/config/dicts.rs`: read a pack dict's `path` from the pack directory.
+- `crates/mindtape/src/config/packs.rs`: rebase a pack dict's `path` onto the pack directory as an absolute path during the fold, since a dict keeps no origin after the merge and `dicts.rs` already reads a path outside the root.
 - `www/content/packs.typ`: the paths a pack resolves.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 

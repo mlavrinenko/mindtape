@@ -62,7 +62,7 @@ $ mt packs install
 - `crates/mindtape-cli/src/cli/mod.rs`: wire `packs`.
 - `crates/mindtape-cli/src/cli/command_class.rs`: classify `packs install` as a read.
 - `www/utils/site.typ`: `packs` in `CLI_GROUPS`.
-- `www/content/packs.typ`: a CI example.
+- `www/content/cli/packs.typ` (new): the command page, which a `CLI_GROUPS` entry requires. `www/content/packs.typ`: a CI example.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 
 

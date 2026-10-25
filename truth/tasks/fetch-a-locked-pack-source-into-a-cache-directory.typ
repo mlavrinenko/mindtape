@@ -45,18 +45,18 @@ sha256( for each file, sorted bytewise by its /-separated path:
         u64-LE(len(path)) path u64-LE(len(bytes)) bytes )
 ```
 
-- 🟢 `pack_sources::fetch(source, lock, cache_root)` runs `git -c core.autocrlf=false -c core.eol=lf` to fetch the source's `ref` into a temporary directory inside `cache_root`, checks out the locked commit, hashes the tree as above with `.git/` left out, and renames it to `<cache_root>/<sha256>/`.
-- 🟢 A hash that differs from the lock fails, naming the source and both hashes. A symlink in the tree fails.
+- 🟢 `pack_sources::fetch(git, ref, commit, expected: Option<&str>, cache_root) -> sha256` fetches `ref` with `git -c core.autocrlf=false -c core.eol=lf` into a temporary directory inside `cache_root`, checks out `commit`, hashes it as above without `.git/`, and renames it to `<cache_root>/<sha256>/`.
+- 🟢 Given `expected`, the lock's hash for `mt packs install`, a different hash fails, naming both. `mt packs update` passes none and locks the hash it gets. A symlink fails.
 - 🟢 A target directory already present whose hash matches is success, so two fetches at once both pass.
 - 🟢 A missing `git` fails as `git not found`, with a hint to install it.
 
 
 == Changes
 
-- `crates/mindtape/src/pack_sources/fetch_tests.rs`: the red tests first, against a local bare repository with a CRLF-sensitive file and a racing second fetch.
-- `crates/mindtape/src/pack_sources/hash.rs` (new): the framed tree hash.
-- `crates/mindtape/src/pack_sources/fetch.rs` (new): the fetch, checkout and rename.
-- `crates/mindtape/src/pack_sources/mod.rs`: list both files in the header.
+- `crates/mindtape/src/config/pack_sources/fetch_tests.rs`: the red tests first, against a local bare repository with a CRLF-sensitive file and a racing second fetch.
+- `crates/mindtape/src/config/pack_sources/hash.rs` (new): the framed tree hash.
+- `crates/mindtape/src/config/pack_sources/fetch.rs` (new): the fetch, checkout and rename.
+- `crates/mindtape/src/config/pack_sources/mod.rs`: list both files in the header.
 - `crates/mindtape/Cargo.toml`, `Cargo.lock`: the `sha2` crate.
 
 

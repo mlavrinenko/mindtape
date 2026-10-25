@@ -11,7 +11,7 @@
   ),
   difficulty: 3,
   tags: ("mt", "cli"),
-  estimate: (src-files: 3),
+  estimate: (src-files: 5),
   x-goals: (
     product: (
       readable-tasks: neutral,
@@ -46,12 +46,12 @@
 
 ```console
 $ mt config show --origin
-rule tasks.rules.judgment-stays-small: pack ./team.toml
-key tasks.priority.framework: pack ./team.toml
-param ./team.toml.max-files = 8: project
+rule tasks.rules.judgment-stays-small: pack /work/app/./team.toml
+key tasks.priority.framework: pack /work/app/./team.toml
+param max-files = 8: project, for pack /work/app/./team.toml
 ```
 
-- 🟢 Each leaf value a pack set prints as `key <dotted path>: pack <name>`, after the rule lines. A value the layer replaced prints the layer.
+- 🟢 Each leaf value a pack set prints as `key <dotted path>: pack <origin>`, after the rule lines, naming the pack as the rule lines already do. A value the layer replaced prints the layer.
 - 🟢 Each parameter prints its value and where it came from: `project` or another layer for a `with` value, `default` otherwise.
 
 
@@ -61,6 +61,7 @@ param ./team.toml.max-files = 8: project
 - `crates/mindtape/src/config/packs.rs`: record the pack behind each leaf value and each parameter while folding.
 - `crates/mindtape/src/config/layers.rs`: carry those origins beside the rule origins.
 - `crates/mindtape-cli/src/cmd/config.rs`: print them.
+- `crates/mindtape/src/config/mod.rs`, `crates/mindtape/src/lib.rs`: follow the wider `load_config_layered` result and re-export the new origin type.
 - `www/content/packs.typ`: the `--origin` section.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 

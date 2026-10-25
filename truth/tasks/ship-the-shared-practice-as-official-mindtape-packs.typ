@@ -68,6 +68,7 @@ extends = [
 
 - The `mmz` close gate: it runs a tool other projects may lack.
 - Built-in dictionary names such as `mindtape-verbs`: `in_dict` reads them in their own namespace.
+- Status names as parameters: the packs name `wip` and `done`, which the floor and `mindtape:flow` share. A project with a legend of its own keeps those two names, or overrides the rules that read them by name.
 
 
 == Dogfood

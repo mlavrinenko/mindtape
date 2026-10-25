@@ -11,7 +11,7 @@
   ),
   difficulty: 5,
   tags: ("mt", "gating"),
-  estimate: (src-files: 4),
+  estimate: (src-files: 5),
   x-goals: (
     product: (
       readable-tasks: neutral,
@@ -61,8 +61,9 @@ framework = "ice"
 - `crates/mindtape/src/config/packs_tests.rs`: the red tests first, one per TO-BE bullet.
 - `crates/mindtape/src/config/pack_resolve.rs`: replace the allow-list in `validate_pack_shape` with the deny-list above.
 - `crates/mindtape/src/config/packs.rs`: fold each layer's packs into one sub-layer, with the conflict check, and merge it below the layer.
-- `crates/mindtape/src/config/mod.rs`: the module docs on what a pack may hold.
-- `www/generate-rule-packs.sh`: capture the refusal of `extends` in place of `priority`, which no longer fails.
+- `crates/mindtape/src/config/mod.rs`: the `extends` field doc on what a pack may hold.
+- `schema/config.schema.json`: regenerate, since the schema copies that doc.
+- `www/generate-packs.sh`: capture the refusal of `extends` in place of `priority`, which no longer fails.
 - `www/content/packs.typ`: rewrite "What a pack may hold" and "Merge order".
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 

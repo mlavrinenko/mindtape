@@ -49,7 +49,7 @@ values = ["crates/**", "lib/**", "!**/*_tests.rs"]
 
 - 🟢 `mindtape:tweaks` holds `tweak-lands-done` and `tweak-stays-one-file`, and the `[dicts.source]` of `**` that `tweak-stays-one-file` reads, equal to `mindtape:budget`'s, so the two packs agree.
 - 🟢 `mindtape:commits` holds `refs-task-is-started` and this repo's `changelog-with-product-change`, which skips `fixup!` subjects and a `Changelog: none` trailer, with a `[dicts.product]` of `**` that a project replaces.
-- 🟢 Each pack loads alone: `extends = ["mindtape:tweaks"]` passes `mt check`.
+- 🟢 Each pack loads alone over the floor's legend: `extends = ["mindtape:tweaks"]` passes `mt check`.
 
 
 == Changes

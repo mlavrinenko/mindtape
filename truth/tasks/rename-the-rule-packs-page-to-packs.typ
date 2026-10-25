@@ -56,7 +56,8 @@
 - `www/content/rule-packs.typ`: move to `www/content/packs.typ`, retitled, with `route: "/packs/"`.
 - `www/content/*.typ`, `www/content/cli/rules.typ`: point every `/rule-packs/` link at `/packs/`.
 - `www/utils/site.typ`: the nav entry.
-- `www/generate-rule-packs.sh`: move to `www/generate-packs.sh`, its captures renamed `packs-*`, and `Justfile`: call it there.
+- `www/generate-rule-packs.sh`: move to `www/generate-packs.sh`, its captures renamed `packs-*`.
+- `www/generate.sh`: call it there.
 - `www/generate-examples.sh`: the `CONFIG_FACTS` entry and the comment.
 - `.mindtape/config.toml`: the `docs:slice packs/...` names.
 - `.config/outdatty.yaml`, `.config/outdatty.lock`: the two entries, re-recorded.
