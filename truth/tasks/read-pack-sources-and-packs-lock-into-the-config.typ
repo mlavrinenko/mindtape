@@ -70,7 +70,8 @@ sha256 = "9c41…"
 - `crates/mindtape/src/config/pack_sources/mod.rs` (new area): parse `[pack-sources]` and `read_raw`, with a `//!` header listing the area's files.
 - `crates/mindtape/src/config/pack_sources/lock.rs` (new): parse `.mindtape/packs.lock` and compare it with the sources.
 - `crates/mindtape/src/config/mod.rs`: declare the area, list it in the header, and add `pack_sources` to `Config`, which `deny_unknown_fields` and the config docs gate both require.
-- `crates/mindtape/src/config/packs.rs`: read `[pack-sources]` from the project layer, refuse it elsewhere, and run the staleness check.
+- `crates/mindtape/src/config/packs.rs`: read `[pack-sources]` from the project layer, refuse it in any other layer, and run the staleness check.
+- `crates/mindtape/src/config/pack_resolve.rs`: add `pack-sources` to `PACK_DENIED_KEYS`, so a pack refuses it.
 - `schema/config.schema.json`: regenerate.
 - `www/content/config.typ`: a `pack-sources` row. `www/content/packs.typ`: a "Packs from a git source" section.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
