@@ -152,7 +152,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   validates the batch as one set. A bad record is skipped and the rest land.
   `--dry-run` previews, `--into`/`--to` pick the destination, `--status` fills
   a missing status, `--map OLD=NEW` renames a foreign one, and
-  `--drop-unmapped` drops a tag outside the allow-list.
+  `--drop-unmapped` drops a tag outside the allow-list. A dry run that skips a
+  record ends `error: would file 1 of 2 tasks; 1 failed`, not `filed`.
   `contrib/jq/taskwarrior.jq` and `contrib/jq/github.jq` turn `task export` and
   `gh issue list --json` output into that JSON, with neutral statuses (`todo`,
   `done`, `cancelled`) and the source's own data kept in `x-tw` or `x-gh`.

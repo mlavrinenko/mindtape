@@ -47,20 +47,25 @@ fn imports_from_a_file_argument() {
     support::check_ok(dir.path());
 }
 
+/// A clean record followed by one whose status is outside the legend.
+fn mixed_batch() -> String {
+    let bad = ONE_TASK_JSON
+        .replace("Wire import", "Bad record")
+        .replace(r#""name":"wip""#, r#""name":"nonesuch""#);
+    format!(
+        "[{},{}]",
+        &ONE_TASK_JSON[1..ONE_TASK_JSON.len() - 1],
+        &bad[1..bad.len() - 1]
+    )
+}
+
 /// One bad record does not refuse the batch — the good one still lands, and the
 /// run exits 1 after the report — and the bad one is never written, so no file has to be removed afterwards. The
 /// second record's status is outside the legend.
 #[test]
 fn a_rejected_record_is_never_written_and_the_rest_still_land() {
     let dir = scaffold();
-    let bad = ONE_TASK_JSON
-        .replace("Wire import", "Bad record")
-        .replace(r#""name":"wip""#, r#""name":"nonesuch""#);
-    let batch = format!(
-        "[{},{}]",
-        &ONE_TASK_JSON[1..ONE_TASK_JSON.len() - 1],
-        &bad[1..bad.len() - 1]
-    );
+    let batch = mixed_batch();
 
     support::mt(dir.path())
         .arg("import")
@@ -95,6 +100,31 @@ fn dry_run_says_would_file_and_writes_nothing() {
         .stderr(predicates::str::ends_with("dry run: nothing written\n"));
 
     assert!(!dir.path().join("tasks/wire-import.typ").exists());
+}
+
+/// A dry run that skips a record ends by saying what it would file, never
+/// that it filed; a real import keeps "filed".
+#[test]
+fn the_failure_line_says_would_file_under_a_dry_run() {
+    let dir = scaffold();
+    let batch = mixed_batch();
+
+    support::mt(dir.path())
+        .args(["import", "--dry-run"])
+        .write_stdin(batch.clone())
+        .assert()
+        .code(1)
+        .stderr(predicates::str::ends_with(
+            "error: would file 1 of 2 tasks; 1 failed\n",
+        ));
+    support::mt(dir.path())
+        .arg("import")
+        .write_stdin(batch)
+        .assert()
+        .code(1)
+        .stderr(predicates::str::ends_with(
+            "error: filed 1 of 2 tasks; 1 failed\n",
+        ));
 }
 
 /// A canonical record for `stem` at `file`, depending on `dep` when given.

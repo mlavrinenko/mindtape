@@ -2886,9 +2886,9 @@
       "file": "crates/mindtape-cli/src/cmd/import/mod.rs",
       "function": "fail_on_skips",
       "line": 104,
-      "cyclomatic": 3.0,
+      "cyclomatic": 4.0,
       "coverage": 100.0,
-      "crap": 3.0,
+      "crap": 4.0,
       "crate": "mindtape-cli"
     },
     {

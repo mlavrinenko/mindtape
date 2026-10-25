@@ -95,13 +95,13 @@ fn run_with(project: &Project, args: &ImportArgs) -> Result<()> {
     let raw = input::read_source(&args.input)?;
     let outcomes = import_records(project, args, &raw)?;
     report(&outcomes, args.dry_run);
-    fail_on_skips(&outcomes)
+    fail_on_skips(&outcomes, args.dry_run)
 }
 
 /// The closing verdict: an error naming the skip count when any record was
 /// skipped, so a script can tell a partial import from a whole one. The
 /// records that passed are already written by then.
-fn fail_on_skips(outcomes: &[TaskOutcome]) -> Result<()> {
+fn fail_on_skips(outcomes: &[TaskOutcome], dry_run: bool) -> Result<()> {
     let skipped = outcomes.iter().filter(|outcome| !outcome.filed).count();
     if skipped == 0 {
         return Ok(());
@@ -111,7 +111,7 @@ fn fail_on_skips(outcomes: &[TaskOutcome]) -> Result<()> {
         crate::diag::emit(&prelude_diag(Kind::Failed, message));
     }
     Err(Diag::batch(
-        "filed",
+        if dry_run { "would file" } else { "filed" },
         outcomes.len() - skipped,
         outcomes.len(),
     ))
