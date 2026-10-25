@@ -30,6 +30,17 @@ pub enum PackOrigin {
     Path(PathBuf),
 }
 
+impl PackOrigin {
+    /// How an error names the pack: its `<source>:<pack>` name, or its
+    /// resolved path.
+    pub(crate) fn label(&self) -> String {
+        match self {
+            Self::Embedded(name) => name.clone(),
+            Self::Path(path) => path.display().to_string(),
+        }
+    }
+}
+
 /// Where one entry in a merged rule array came from: a layer file directly,
 /// or a pack that layer's `extends` pulled in.
 #[derive(Debug, Clone, PartialEq, Eq)]

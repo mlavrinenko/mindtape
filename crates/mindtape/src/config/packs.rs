@@ -1,13 +1,28 @@
-//! `extends`/`disable`: resolving rule packs into a layer's own
-//! `[[tasks.rules]]`, `[[tasks.body.headers.rules]]`,
-//! `[[tasks.body.content.rules]]` and `[[commits.rules]]` before
-//! [`crate::config::layers`] deep-merges everything else.
+//! `extends`/`disable`: folding each layer's packs in just below it, and
+//! resolving the four rule arrays `[[tasks.rules]]`,
+//! `[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]` and
+//! `[[commits.rules]]` across every layer and pack.
 //!
-//! A pack is a config-syntax fragment carrying only the four rule arrays and
-//! `[dicts]` — `<source>:<pack>` resolves to one compiled into the binary
-//! ([`EMBEDDED_PACKS`], under `mindtape`); a path (anything with a path
-//! separator) resolves to a TOML file, relative to the layer that names it. A
-//! pack may not itself `extends`, so resolution is one level deep.
+//! A pack is a config-syntax fragment. `<source>:<pack>` resolves to one
+//! compiled into the binary ([`EMBEDDED_PACKS`], under `mindtape`); a path
+//! (anything with a path separator) resolves to a TOML file, relative to the
+//! layer that names it. A pack may declare any config key but the few
+//! [`crate::config::pack_resolve`] refuses, `extends` among them, so
+//! resolution is one level deep.
+//!
+//! Per layer, in order: [`fold_layer_packs`] resolves the layer's `extends`
+//! entries, takes each pack's rule arrays out, and folds the rest into one
+//! [`PackLayer`] sub-layer ([`crate::config::pack_fold`] holds the merge and
+//! its conflict check, which a key the layer sets itself settles). The
+//! sub-layer deep-merges into the document, then the layer's own keys on
+//! top, so a layer's table keeps the keys its packs set and it doesn't.
+//!
+//! That loop in [`fold_layer_packs`] is the seam later steps hook into. A
+//! step that rewrites a whole pack, rule expressions included, sits between
+//! [`resolve_pack`] and [`take_rule_arrays`], and takes out any key of its
+//! own, such as `[params]`, before [`PackLayer::add`] merges the rest. A
+//! step that needs each pack's own table reads [`PackLayer`]'s per-pack
+//! tables before [`PackLayer::into_table`] drops them.
 //!
 //! Per rule array, entries fold in source order — every pack a layer extends
 //! (in `extends` order), then the layer's own declared entries — and a later
@@ -20,12 +35,6 @@
 //! instead of silently collapsing. `disable` then drops every rule (in any of
 //! the four arrays) carrying a listed name, erroring on a name matching
 //! none.
-//!
-//! `[dicts]` needs no such array-splicing: each pack's `[dicts]` table is
-//! deep-merged in ahead of the extending layer's own document, so the normal
-//! per-key table merge already gives "later (the layer's own) wins".
-//! Everything else a pack might contain is rejected at load — see
-//! [`validate_pack_shape`].
 
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -33,6 +42,7 @@ use std::path::{Path, PathBuf};
 use crate::config::ConfigError;
 use crate::config::layers::{Layer, LayerSource};
 use crate::config::merge::deep_merge_tables;
+use crate::config::pack_fold::PackLayer;
 use crate::config::pack_registry::{EMBEDDED_PACKS, RuleOrigin, RuleOriginEntry};
 use crate::config::pack_resolve::resolve_pack;
 use crate::config::packs_toml::{
@@ -106,31 +116,11 @@ fn merge_layers_with_packs_using(
         disable_names.extend(read_string_list(&table, "disable")?);
 
         let base_dir = layer_base_dir(&layer.source, root);
-        for entry in &extends {
-            let pack = resolve_pack(entry, &base_dir, registry)?;
-            let origin = RuleOrigin::Pack(pack.origin);
-            for (accumulator, path) in accumulators.iter_mut().zip(RULE_ARRAY_PATHS) {
-                let lines = header_lines(&pack.text, path);
-                accumulator.extend_batch(read_array(&pack.table, path), &origin, &lines);
-            }
-            if let Some(dicts) = pack.table.get("dicts") {
-                let mut wrapper = toml::Table::new();
-                wrapper.insert("dicts".to_owned(), dicts.clone());
-                deep_merge_tables(&mut doc, wrapper);
-            }
-        }
+        let packs = fold_layer_packs(&extends, &base_dir, registry, &table, &mut accumulators)?;
+        deep_merge_tables(&mut doc, packs.into_table());
 
         let origin = RuleOrigin::Layer(layer.source.clone());
-        for (accumulator, path) in accumulators.iter_mut().zip(RULE_ARRAY_PATHS) {
-            let lines = header_lines(&layer.text, path);
-            accumulator.extend_batch(read_array(&table, path), &origin, &lines);
-        }
-        // The rule-array paths merge specially (above); strip them so the
-        // generic fold below never wholesale-replaces one with another
-        // layer's, only to be overwritten again once every layer is in.
-        for path in RULE_ARRAY_PATHS {
-            remove_path(&mut table, path);
-        }
+        take_rule_arrays(&mut table, &layer.text, &origin, &mut accumulators);
         deep_merge_tables(&mut doc, table);
     }
 
@@ -151,6 +141,47 @@ fn merge_layers_with_packs_using(
         table: doc,
         rule_origins,
     })
+}
+
+/// Resolve one layer's `extends` entries in order: each pack's rule arrays
+/// join `accumulators`, and the rest of it folds into the [`PackLayer`] that
+/// merges just below `layer`, the layer's own table.
+///
+/// # Errors
+/// Returns [`ConfigError`] for an unresolvable pack, one declaring a key a
+/// pack may not, or two packs setting one value differently that `layer`
+/// doesn't set.
+fn fold_layer_packs(
+    extends: &[String],
+    base_dir: &Path,
+    registry: &[(&str, &str)],
+    layer: &toml::Table,
+    accumulators: &mut [RuleAccumulator; RULE_ARRAYS],
+) -> Result<PackLayer, ConfigError> {
+    let mut packs = PackLayer::default();
+    for entry in extends {
+        let mut pack = resolve_pack(entry, base_dir, registry)?;
+        let origin = RuleOrigin::Pack(pack.origin.clone());
+        take_rule_arrays(&mut pack.table, &pack.text, &origin, accumulators);
+        packs.add(pack.origin, pack.table, layer)?;
+    }
+    Ok(packs)
+}
+
+/// Move one source's rule arrays out of `table` into `accumulators`, so the
+/// deep merge of the rest never replaces one source's array with another's.
+/// `text` is the source's TOML, for each rule's header line.
+fn take_rule_arrays(
+    table: &mut toml::Table,
+    text: &str,
+    origin: &RuleOrigin,
+    accumulators: &mut [RuleAccumulator; RULE_ARRAYS],
+) {
+    for (accumulator, path) in accumulators.iter_mut().zip(RULE_ARRAY_PATHS) {
+        let lines = header_lines(text, path);
+        accumulator.extend_batch(read_array(table, path), origin, &lines);
+        remove_path(table, path);
+    }
 }
 
 /// One accumulated rule: its value, the source it came from and its header line.
@@ -310,3 +341,7 @@ mod tests_body;
 #[cfg(test)]
 #[path = "packs_tests_extends.rs"]
 mod tests_extends;
+
+#[cfg(test)]
+#[path = "packs_tests_merge.rs"]
+mod tests_merge;

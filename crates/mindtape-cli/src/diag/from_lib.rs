@@ -214,19 +214,29 @@ pub(super) fn config(err: &ConfigError) -> Diag {
             message,
             place,
             unknown,
-        } => invalid(message, place.as_ref(), unknown.as_ref()),
+            hint,
+        } => invalid(message, place.as_ref(), unknown.as_ref(), *hint),
     }
 }
 
 /// A config that parsed but failed a check: `<file>:<line>: <key>: <message>`.
 /// A second problem is a `note:` line. What the first problem's unknown name
-/// could have been becomes hints.
-fn invalid(message: &str, place: Option<&ConfigPlace>, unknown: Option<&Unknown>) -> Diag {
+/// could have been becomes hints, and so does its next step.
+fn invalid(
+    message: &str,
+    place: Option<&ConfigPlace>,
+    unknown: Option<&Unknown>,
+    hint: Option<&'static str>,
+) -> Diag {
     let mut diag = Diag::failed("");
     if let Some(place) = place {
         diag = diag.at(&place.file, place.line, None);
     }
-    diag.reason(message).unknown(unknown)
+    let diag = diag.reason(message).unknown(unknown);
+    match hint {
+        Some(hint) => diag.hint(Hint::new(hint)),
+        None => diag,
+    }
 }
 
 impl Diag {

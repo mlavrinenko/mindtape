@@ -50,6 +50,17 @@ pub(crate) fn read_array(table: &toml::Table, path: &[&str]) -> Vec<toml::Value>
         .unwrap_or_default()
 }
 
+/// The value at a nested TOML path, or `None` when any segment along the way
+/// is missing or not a table.
+pub(crate) fn get_path<'a>(table: &'a toml::Table, path: &[&str]) -> Option<&'a toml::Value> {
+    let (&last, ancestors) = path.split_last()?;
+    let mut current = table;
+    for key in ancestors {
+        current = current.get(*key)?.as_table()?;
+    }
+    current.get(last)
+}
+
 /// The one-based line of each `[[<path>]]` table header in `text`, in file
 /// order — the position of every entry [`read_array`] reads from a file
 /// declaring its rules as tables. A file that writes the array inline has no

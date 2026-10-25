@@ -1,12 +1,13 @@
 //! `extends` resolution: a layer's `extends` list, resolved against an
 //! injected pack registry so a test never needs a real embedded pack —
-//! `source:pack` names, path entries, and the two keys a pack may not
+//! `source:pack` names, path entries, and the keys a pack may not
 //! declare. Split out of `config/packs_tests.rs`, which was near the linecop
 //! cap; the shared `layer` fixture stays in the parent test module and is
 //! reached through `super::tests`.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use super::tests::layer;
+use super::tests_merge::merge_packs;
 use super::{merge_layers_with_packs, merge_layers_with_packs_using};
 use crate::config::layers::LayerSource;
 use crate::config::pack_registry::{PackOrigin, RuleOrigin};
@@ -14,16 +15,10 @@ use crate::config::packs_toml::read_array;
 use crate::test_support::tempdir;
 use crate::test_support::write_file;
 
-/// The error `extends`-ing a registry of one pack, `name` holding `text`,
-/// from the embedded layer gives.
+/// The error `extends`-ing one pack, `name` holding `text`, from the
+/// embedded layer gives.
 fn extends_error(name: &str, text: &str) -> crate::config::ConfigError {
-    let registry: &[(&str, &str)] = &[(name, text)];
-    let root = tempdir();
-    let layers = [layer(
-        LayerSource::Embedded,
-        &format!("extends = [\"mindtape:{name}\"]\n"),
-    )];
-    merge_layers_with_packs_using(&layers, root.path(), registry).unwrap_err()
+    merge_packs(&[(name, text)]).unwrap_err()
 }
 
 #[test]
@@ -192,12 +187,40 @@ fn a_pack_declaring_extends_is_a_config_error() {
     assert!(rendered.contains("extends"), "{rendered}");
 }
 
+/// Each key a pack may not declare, and a pack declaring it.
+const DENIED: [(&str, &str); 6] = [
+    ("extends", "extends = []\n"),
+    ("project.code", "[project]\ncode = \"x\"\n"),
+    ("disable", "disable = []\n"),
+    ("tasks.roots", "[tasks]\nroots = [\"elsewhere\"]\n"),
+    ("templates.dirs", "[templates]\ndirs = [\"elsewhere\"]\n"),
+    ("typst", "[typst]\n"),
+];
+
 #[test]
-fn a_pack_declaring_a_disallowed_key_is_a_config_error() {
-    let err = extends_error("bad", "[project]\ncode = \"x\"\n");
-    let rendered = err.to_string();
-    assert!(rendered.contains("mindtape:bad"), "{rendered}");
-    assert!(rendered.contains("project"), "{rendered}");
+fn a_pack_declaring_a_denied_key_names_the_pack_and_the_key() {
+    for (key, text) in DENIED {
+        let err = extends_error("bad", text);
+        assert_eq!(
+            err.to_string(),
+            format!("invalid config: extends: pack 'mindtape:bad' may not declare: '{key}'"),
+            "{text}"
+        );
+    }
+}
+
+#[test]
+fn a_pack_may_declare_a_sibling_of_a_denied_key() {
+    let merged = merge_packs(&[(
+        "test",
+        "[tasks.priority]\nmax = 5\n\n[commits]\ntrailer = \"Fixes\"\n",
+    )])
+    .unwrap();
+    assert_eq!(
+        merged.table["tasks"]["priority"]["max"].as_integer(),
+        Some(5)
+    );
+    assert_eq!(merged.table["commits"]["trailer"].as_str(), Some("Fixes"));
 }
 
 /// `[[commits.rules]]` merges by name like the task rule arrays: a pack's
@@ -231,12 +254,6 @@ fn commit_rules_merge_by_name_across_packs() {
         .map(|entry| entry.label.as_str())
         .collect();
     assert_eq!(labels, ["commits.rules.names-a-task"]);
-}
-
-#[test]
-fn a_pack_may_declare_only_rules_under_commits() {
-    let err = extends_error("test", "[commits]\ntrailer = \"Refs\"\n");
-    assert!(err.to_string().contains("'trailer'"), "{err}");
 }
 
 #[test]

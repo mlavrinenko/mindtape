@@ -61,6 +61,7 @@ fn a_config_error_lists_its_known_names_on_a_hint() {
         message: "views.a.columns: unknown column: 'fiel'".to_owned(),
         place: None,
         unknown: Some(Unknown::among("fiel", ["file", "title"])),
+        hint: None,
     };
     assert_eq!(
         plain(&super::from_lib::config(&err)),
@@ -76,10 +77,22 @@ fn a_list_alone_is_one_hint() {
         message: "extends: unknown pack: 'x'".to_owned(),
         place: None,
         unknown: Some(Unknown::among("x", ["a", "b"])),
+        hint: None,
     };
     assert_eq!(
         plain(&super::from_lib::config(&err)),
         "error: extends: unknown pack: 'x'\nhint: use one of: a, b\n"
+    );
+}
+
+#[test]
+fn a_config_errors_next_step_is_a_hint() {
+    let err = ConfigError::invalid("extends: packs 'a' and 'b' set different values for: 'k'")
+        .with_hint("set the key yourself");
+    assert_eq!(
+        plain(&super::from_lib::config(&err)),
+        "error: extends: packs 'a' and 'b' set different values for: 'k'\n\
+         hint: set the key yourself\n"
     );
 }
 
@@ -270,6 +283,7 @@ fn an_invalid_config_names_its_line_and_turns_a_near_match_into_a_hint() {
             nearest: Some("y".to_owned()),
             names: vec!["y".to_owned(), "z".to_owned()],
         }),
+        hint: None,
     };
     assert_eq!(
         plain(&Diag::from(err)),

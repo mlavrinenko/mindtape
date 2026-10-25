@@ -402,14 +402,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   also cover the board?") must carry at most 0 matches`, in `mt check`, in a
   refused write, and in a `notes` array that every `mt check --json` problem
   now carries.
-- **Rule packs.** A config layer's `extends = [...]` pulls in a pack, named
+- **Packs.** A config layer's `extends = [...]` pulls in a pack, named
   `<source>:<pack>` or given as a TOML file by path, and `disable = [...]`
   drops rules by name. `mindtape` is the one source known without a
   declaration, and `mindtape:tasks` is the pack built in. An old
-  `mindtape:tasks` is refused as unknown, with `mindtape:tasks` as the
-  suggestion. A pack holds only the three rule arrays and `[dicts]`, a later entry
-  with the same `name` replaces an earlier one, and the rule arrays append
-  across layers. `mt config show --origin` names each rule's pack or layer.
+  `mindtape-tasks` is refused as unknown, with `mindtape:tasks` as the
+  suggestion. A later rule with the same `name` replaces an earlier one, and
+  the rule arrays append across layers. `mt config show --origin` names each
+  rule's pack or layer.
+- **A pack carries any config key.** Its `[tasks.priority]`, views, statuses
+  and the rest deep-merge just below the layer that extends it, so the layer's
+  `[tasks.priority] allow-manual` keeps the pack's `framework` and the floor
+  fills in the rest. Two packs in one `extends` that set one value differently
+  fail, naming the dotted key and both packs, unless the extending layer sets
+  that key itself. A pack may not declare `extends`, `disable`,
+  `project.code`, `tasks.roots`, `templates.dirs` or `[typst]`. The library's
+  `ConfigError::Invalid` carries a `hint`, which `mt` prints as `hint:`.
 - **`mt rules` lists the rules that apply, one line each.** A line is the
   rule's severity, its name as `mt config show --origin` prints it, and the
   message a breach prints, after packs, overrides and `disable`. A rule with no

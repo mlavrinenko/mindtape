@@ -178,6 +178,12 @@ fn layered(user: &str, project: &str) -> Config {
 /// [`layered`], with an ancestor `.mindtape/defaults.toml` holding `ancestor`
 /// one directory above the project, which the walk-up reaches.
 fn layered_under_ancestor(user: &str, ancestor: &str, project: &str) -> Config {
+    layered_with_pack(user, ancestor, project, "")
+}
+
+/// [`layered_under_ancestor`], with `pack` as the project's `team.toml`, a
+/// path pack its config can extend as `./team.toml`.
+fn layered_with_pack(user: &str, ancestor: &str, project: &str, pack: &str) -> Config {
     let dir = tempdir();
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
     std::fs::write(dir.path().join(".mindtape").join("defaults.toml"), ancestor).unwrap();
@@ -187,6 +193,7 @@ fn layered_under_ancestor(user: &str, ancestor: &str, project: &str) -> Config {
     let root = dir.path().join("root");
     std::fs::create_dir_all(root.join(".mindtape")).unwrap();
     std::fs::write(root.join(".mindtape").join("config.toml"), project).unwrap();
+    std::fs::write(root.join("team.toml"), pack).unwrap();
     crate::load_config_layered_from(&root, Some(dir.path()), Some(&xdg))
         .unwrap()
         .0
@@ -243,6 +250,22 @@ fn an_ancestors_defaults_editor_is_listed_like_the_projects() {
     );
 
     assert_eq!(commands(&config), lines(&["ancestor", "ancestor {task}"]));
+}
+
+#[test]
+fn a_packs_editor_is_listed_and_held_like_the_projects() {
+    let config = layered_with_pack(
+        "[go]\neditor = \"mine {task}\"\n",
+        "",
+        "extends = [\"./team.toml\"]\n",
+        "[go]\neditor = \"pack {task}\"\n[add]\neditor = \"pack\"\n",
+    );
+    assert_eq!(commands(&config), lines(&["pack", "pack {task}"]));
+
+    let root = Path::new("/no/such/pack-root");
+    let editor = config.go.editor.as_deref();
+    assert_eq!(runnable_editor_in(None, root, &config, editor), None);
+    assert_eq!(take_held(root), ["pack {task}"]);
 }
 
 #[test]

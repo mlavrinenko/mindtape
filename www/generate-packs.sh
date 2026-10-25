@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # www/generate-packs.sh — capture every built-in pack, this repo's
-# own `mt config show --origin`, and three configs `mt` refuses, for
-# /packs/.
+# own `mt config show --origin`, a pack's priority merged below the project's,
+# and four configs `mt` refuses, for /packs/.
 #
 # Split out of www/generate.sh (which calls this, still inside the lock it
 # already holds) under the same 300-line Shell cap that split off
@@ -33,7 +33,19 @@ source "$REPO/www/capture.sh"
 capture_init
 capture packs-origin "$REPO" 'mt config show --origin'
 
-# Three projects whose config names a pack `mt` refuses. Each record shows the
+# A pack's [tasks.priority] under the project's own: the project's key wins,
+# the pack's other key stays, and the floor fills the rest.
+merge=
+capture_scratch merge
+mkdir -p "$merge/.mindtape"
+printf 'extends = ["./team.toml"]\n\n[tasks.priority]\nallow-manual = true\n' \
+  >"$merge/.mindtape/config.toml"
+printf '[tasks.priority]\nframework = "ice"\nallow-manual = false\n' >"$merge/team.toml"
+capture packs-merge "$merge" 'head .mindtape/config.toml team.toml'
+capture packs-merge "$merge" \
+  "mt config show --json | jq -c '.tasks.priority | {framework, \"allow-manual\", min, max}'"
+
+# Four projects whose config names a pack `mt` refuses. Each record shows the
 # config, then the refusal, which must match <expect>.
 refused() { # <slug> <expect> <show-command> <file=content>...
   local slug=$1 expect=$2 show=$3 dir pair
@@ -48,6 +60,10 @@ refused packs-unknown 'unknown pack' 'cat .mindtape/config.toml' \
   $'.mindtape/config.toml=extends = ["mindtape:task"]\n'
 refused packs-shape 'may not declare' 'head .mindtape/config.toml team.toml' \
   $'.mindtape/config.toml=extends = ["./team.toml"]\n' \
-  $'team.toml=[[tasks.rules]]\nname = "has-owner"\nassert = "has(assignee)"\nmessage = "name an owner"\n\n[tasks.priority]\nmax = 5\n'
+  $'team.toml=extends = ["mindtape:tasks"]\n\n[[tasks.rules]]\nname = "has-owner"\nassert = "has(assignee)"\nmessage = "name an owner"\n'
+refused packs-conflict 'set different values' 'head .mindtape/config.toml team.toml ops.toml' \
+  $'.mindtape/config.toml=extends = ["./team.toml", "./ops.toml"]\n' \
+  $'team.toml=[tasks.priority]\nframework = "ice"\n' \
+  $'ops.toml=[tasks.priority]\nframework = "rice"\n'
 refused packs-disable 'no rule named' 'cat .mindtape/config.toml' \
   $'.mindtape/config.toml=extends = ["mindtape:tasks"]\ndisable = ["imperative-titles"]\n'

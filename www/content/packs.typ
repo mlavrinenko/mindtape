@@ -7,17 +7,19 @@
   route: "/packs/",
   label: "Packs",
   title: "Packs",
-  summary: "How a project adopts, overrides and drops rule packs, and every rule the `mindtape:tasks` pack ships.",
+  summary: "How a project adopts packs, how their keys and rules merge, and every rule the `mindtape:tasks` pack ships.",
 )
 #metadata(meta) <page-meta>
 
 #show: page.with(..meta)
 
-Running several projects the same way? Put the rules in a pack. A rule pack
-is a set of rules a project adopts by name, and each project can still change
-them locally. #link(u("/config/"))[Configuration] lists the `extends` and
-`disable` keys. This page covers how `mt` finds and merges a pack, and lists
-the rules of the pack `mt` ships, `mindtape:tasks`.
+Running several projects the same way? Put the shared config in a pack. A
+pack is a TOML file in config syntax that a project adopts by name: its rules,
+its priority framework, its views, whatever you'd otherwise copy around. Each
+project can still change any of it locally.
+#link(u("/config/"))[Configuration] lists the `extends` and `disable` keys.
+This page covers how `mt` finds and merges a pack, and lists the rules of the
+pack `mt` ships, `mindtape:tasks`.
 
 = Adopt a pack
 
@@ -47,17 +49,14 @@ A name replaces a rule only across sources. Two rules with one name in the
 same file are a config error, as #link(u("/config/"))[Configuration]
 describes.
 
-A pack's `[dicts]` merge ahead of the layer's own, key by key, so to replace
-one #link(u("/named-sets/"))[dictionary], declare it under the same name.
-
 = What a pack may hold
 
-A pack is a TOML file in config syntax that holds only rule arrays and
-`[dicts]`: `[[tasks.rules]]`, `[[tasks.body.headers.rules]]`,
-`[[tasks.body.content.rules]]`, `[[commits.rules]]` and `[dicts]`. `mt`
-refuses a pack that declares anything else, `extends` included, and names the
-pack and the key. A pack can't extend another pack, so there's only ever one
-level to resolve.
+Any config key, except six. `extends` and `disable` belong to the project,
+so a pack can't extend another pack and there's only ever one level to
+resolve. `project.code` is the project's own name. `tasks.roots`,
+`templates.dirs` and `[typst]` point into the project's own tree, which a
+shared file can't know. `mt` refuses a pack that declares one of them and
+names the pack and the key:
 
 #terminal("packs-shape")
 
@@ -92,10 +91,32 @@ running:
 
 = Merge order
 
-`mt` merges each config layer in turn. Within a layer, each rule array takes
-the rules of the layer's `extends` packs in the order listed, then the layer's
-own rules. After every layer is merged, `mt` drops the rules named in any
-layer's `disable`. A name listed in two layers is dropped once.
+`mt` merges each config layer in turn, and each layer's packs merge just below
+it. Tables merge key by key, and an array or a scalar replaces the value under
+it whole, the same as between two layers. So a project's `[tasks.priority]`
+keeps the framework a pack picked, and the floor fills in what neither sets:
+
+#terminal("packs-merge")
+
+A pack beats every layer below the one adopting it, and that layer beats the
+pack. A #link(u("/named-sets/"))[dictionary] merges the same way, key by key.
+
+Two packs in one `extends` that set one value differently are an error, since
+nothing would say which one the project got. `mt` names the key and both
+packs:
+
+#terminal("packs-conflict")
+
+Set that key in the layer that adopts both packs and the clash is gone, since
+the layer's value wins anyway. Equal values agree, so two packs can both carry
+the same dictionary. Packs adopted by two different layers never clash: the
+higher layer wins.
+
+The four rule arrays merge by name instead. Each takes the rules of the
+layer's packs in `extends` order, then the layer's own rules, and a rule
+replaces an earlier one with the same `name` in its place. After every layer
+is merged, `mt` drops the rules named in any layer's `disable`. A name listed
+in two layers is dropped once.
 
 = Read `mt config show --origin`
 

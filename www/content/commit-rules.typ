@@ -25,7 +25,7 @@ three commit rules below. The rules the `mindtape:tasks` pack ships,
 `work-names-a-task`, `no-unsquashed-fixup`, `flip-with-work` and
 `named-tasks-finish-at-the-tip`, are
 listed on
-#link(u("/packs/"))[Rule packs].
+#link(u("/packs/"))[Packs].
 
 #let parts = (
   ("trailer", "the trailer that names tasks"),

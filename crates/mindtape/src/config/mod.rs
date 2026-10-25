@@ -31,9 +31,10 @@
 //! - `locate.rs`: the file line of a dotted config key.
 //! - `merge.rs`: the shared TOML deep merge.
 //! - `name_cycle.rs`: cycle detection over a name-reference graph.
+//! - `pack_fold.rs`: one layer's packs, folded into the sub-layer below it.
 //! - `pack_registry.rs`: the packs compiled into the binary and the origin types.
 //! - `pack_resolve.rs`: resolving one `extends` entry to a validated pack table.
-//! - `packs.rs`: `extends` and `disable`, resolving rule packs into a layer.
+//! - `packs.rs`: `extends` and `disable`, merging packs into each layer.
 //! - `packs_toml.rs`: nested-path reads and writes over a raw `toml::Table`.
 //! - `priority.rs`: `[tasks.priority]`, the priority scale and its frameworks.
 //! - `required.rs`: `required`, whether a core field must be set.
@@ -66,6 +67,7 @@ pub(crate) mod ls;
 pub(crate) mod ls_columns;
 pub(crate) mod merge;
 pub(crate) mod name_cycle;
+pub(crate) mod pack_fold;
 pub(crate) mod pack_registry;
 pub(crate) mod pack_resolve;
 pub(crate) mod packs;
@@ -216,10 +218,12 @@ pub struct Config {
     /// separator is a TOML pack file, relative to the file that declares it.
     /// Any other entry is `<source>:<pack>`, and `mindtape` is the one source
     /// known without a declaration: `mindtape:tasks` is a pack built into
-    /// `mt`. A pack adds entries to `[[tasks.rules]]`,
-    /// `[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]`,
-    /// `[[commits.rules]]` and `[dicts]`, ahead of this layer's own. A rule in
-    /// this layer replaces a pack rule with the same name.
+    /// `mt`. A pack holds any config key but `extends`, `disable`,
+    /// `project.code`, `tasks.roots`, `templates.dirs` and `[typst]`. Its
+    /// keys merge just below this layer's own, table by table, and its rules
+    /// come ahead of this layer's, where a rule with the same name replaces
+    /// it. Two packs here that set one value differently are an error,
+    /// unless this layer sets that key too.
     // `crate::config::packs` resolves and consumes `extends` before this struct
     // is built, so the field reads back as whichever layer declared it last.
     // No command reads it.
@@ -280,6 +284,8 @@ pub enum ConfigError {
         /// What the first problem's unknown name could have been, if it has
         /// one.
         unknown: Option<Unknown>,
+        /// What to try next, when the first problem has an obvious next step.
+        hint: Option<&'static str>,
     },
 }
 
@@ -292,7 +298,18 @@ impl ConfigError {
             message: problem.text,
             place: None,
             unknown: problem.unknown,
+            hint: None,
         }
+    }
+
+    /// `self` with `next` as what to try next, when it is
+    /// [`ConfigError::Invalid`].
+    #[must_use]
+    pub fn with_hint(mut self, next: &'static str) -> Self {
+        if let Self::Invalid { hint, .. } = &mut self {
+            *hint = Some(next);
+        }
+        self
     }
 }
 
