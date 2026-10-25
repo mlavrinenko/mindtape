@@ -64,11 +64,20 @@ fn non_mapping_root_names_the_source() {
 }
 
 #[test]
-fn malformed_yaml_names_the_source() {
+fn malformed_yaml_names_the_source_and_hints_at_quoting() {
     let err = refusal("key: [unterminated\n");
     assert!(
         err.starts_with("error: can't parse YAML: 'v.yaml': "),
         "{err}"
+    );
+    let backtick = refusal("title: Probe\nwhy: `quoted` start\n");
+    assert!(backtick.contains("at line 2 column 6"), "{backtick}");
+    assert!(
+        backtick.ends_with(
+            "\nhint: quote a value that starts with a YAML indicator such as a backtick, \
+             or write it as a `|-` block\n"
+        ),
+        "{backtick}"
     );
 }
 

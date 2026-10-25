@@ -256,6 +256,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `multiple` field. `--describe` refuses a title and suggests `-t`.
 - **A code span in a `text` slot files escaped, with a warning** that names the
   slot and suggests `kind: "raw"`.
+- **A YAML error in `mt add -f` carries a `hint:`.** A value that starts with a
+  YAML indicator such as a backtick needs quotes, or a `|-` block.
 - **A template's own `status` is the status `mt add` files it at**, dated today,
   and `--status` overrides it. The `tweak` template files done. Filed done, a
   task asks only for the fields a done task requires.

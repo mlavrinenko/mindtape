@@ -15,7 +15,7 @@ use std::collections::BTreeMap;
 
 use mindtape::RawValue;
 
-use crate::diag::Diag;
+use crate::diag::{Diag, Hint};
 
 /// Parse `text` as a single YAML document whose root is a mapping, converting
 /// each value to a [`RawValue`] (a `null` value keeps its key, mapped to
@@ -37,8 +37,14 @@ pub fn parse_mapping(
         Some(source) => diag.value(source),
         None => diag,
     };
-    let value: serde_yaml_ng::Value = serde_yaml_ng::from_str(text)
-        .map_err(|err| at(Diag::failed("can't parse YAML")).cause(&err))?;
+    let value: serde_yaml_ng::Value = serde_yaml_ng::from_str(text).map_err(|err| {
+        at(Diag::failed("can't parse YAML"))
+            .cause(&err)
+            .hint(Hint::new(
+                "quote a value that starts with a YAML indicator such as a backtick, \
+                     or write it as a `|-` block",
+            ))
+    })?;
     let mapping = match value {
         serde_yaml_ng::Value::Mapping(mapping) => mapping,
         serde_yaml_ng::Value::Null => return Ok(BTreeMap::new()),
