@@ -1,4 +1,4 @@
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use super::{EvalArgs, locate, run};
 use mindtape::test_support::tempdir;
@@ -141,4 +141,97 @@ fn locate_refuses_a_missing_path_with_a_separator() {
 fn locate_refuses_a_missing_typ_path() {
     let err = locate("nope.typ").unwrap_err();
     crate::diag::assert_plain(&err, "error: no such file: 'nope.typ'\n");
+}
+
+// --- the breakdown of a count(...) estimate ---
+
+/// A task whose `src-files` resolved to 2 manual plus 3 files, from a grep
+/// that matched 3 and a glob that matched none.
+fn counted() -> mindtape::Task {
+    use mindtape::estimate_queries::{CountEstimate, Query};
+    let mut task = mindtape::test_support::bare_task("t");
+    task.estimate.insert("src-files".to_owned(), 5.0);
+    task.estimate.insert("hours".to_owned(), 1.0);
+    // jscpd:ignore-start
+    // The same two queries the library's parse test reads, as plain data.
+    let count = CountEstimate {
+        manual: 2.0,
+        queries: vec![
+            Query::Grep {
+                regex: "PathFilter".to_owned(),
+                glob: Some("crates/**".to_owned()),
+            },
+            Query::Glob {
+                pattern: "docs/*.md".to_owned(),
+            },
+        ],
+        matches: vec![3, 0],
+        problem: None,
+    };
+    // jscpd:ignore-end
+    task.estimate_counts.insert("src-files".to_owned(), count);
+    task
+}
+
+#[test]
+fn a_count_estimate_prints_its_manual_part_each_query_and_the_total() {
+    assert_eq!(
+        super::breakdown(&counted()),
+        "estimate.src-files = 5\n\
+         \x20 2        manual\n\
+         \x20 3 files  grep `PathFilter` in `crates/**`\n\
+         \x20 0 files  glob `docs/*.md`\n"
+    );
+}
+
+#[test]
+fn a_count_that_did_not_resolve_prints_why() {
+    let mut task = counted();
+    task.estimate.remove("src-files");
+    let count = task.estimate_counts.get_mut("src-files").unwrap();
+    count.matches.clear();
+    count.problem = Some("no path set is named `@src`".to_owned());
+    assert_eq!(
+        super::breakdown(&task),
+        "estimate.src-files: no path set is named `@src`\n"
+    );
+}
+
+#[test]
+fn a_plain_estimate_prints_no_breakdown() {
+    let mut task = counted();
+    task.estimate_counts.clear();
+    assert_eq!(super::breakdown(&task), "");
+}
+
+#[test]
+fn the_json_breakdown_sits_beside_the_resolved_number() {
+    let json = super::task_json(&counted(), &mindtape::Config::default());
+    assert_eq!(json["estimate"]["src-files"], serde_json::json!(5.0));
+    assert_eq!(
+        json["estimate_counts"],
+        serde_json::json!({
+            "src-files": {
+                "count": 2.0,
+                "queries": [
+                    {"query": "grep", "regex": "PathFilter", "glob": "crates/**", "files": 3},
+                    {"query": "glob", "pattern": "docs/*.md", "files": 0}
+                ],
+                "problem": null
+            }
+        })
+    );
+}
+
+#[test]
+fn a_count_under_no_project_says_its_unit_takes_a_plain_number() {
+    let dir = tempdir();
+    let file = dir.path().join("t.typ");
+    std::fs::write(&file, TASK).unwrap();
+    let mut task = counted();
+    super::resolve_counts(&mut task, &file, None);
+    assert_eq!(
+        super::breakdown(&task),
+        "estimate.src-files: `src-files` takes a plain number; name its path set under [tasks.estimate.queries] to count files\n"
+    );
 }

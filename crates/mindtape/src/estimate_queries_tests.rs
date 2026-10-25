@@ -66,6 +66,7 @@ fn a_count_unit_parses_beside_a_plain_one() {
                 pattern: "docs/*".to_owned(),
             },
         ],
+        matches: Vec::new(),
         problem: None,
     };
     assert_eq!(counts.get("src-files"), Some(&expected));
@@ -116,6 +117,7 @@ fn annotated(dir: &std::path::Path, query: Query) -> crate::model::Task {
     let count = CountEstimate {
         manual: 1.0,
         queries: vec![query],
+        matches: Vec::new(),
         problem: None,
     };
     task.estimate_counts.insert("files".to_owned(), count);

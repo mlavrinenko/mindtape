@@ -47,7 +47,17 @@ A field is #strong[authored] when it holds a value written in the task file.
 
   [`kind`], [authored], [],
   [`assignee`], [authored], [],
-  [`estimate`], [authored], [A map from unit to quantity.],
+  [`estimate`],
+  [authored],
+  [A map from unit to quantity. A `count(...)` unit holds the number it
+    resolved to.],
+
+  [`estimate_counts`],
+  [computed],
+  [From `mt eval` only. Each `count(...)` unit as
+    `{count, queries, problem}`. Each query carries the files it matched as
+    `files`, and `problem` says why the unit didn't resolve, or is `null`.],
+
   [`links`],
   [authored],
   [`[{task, kind, note}]`. `task` is the target's file name as the task

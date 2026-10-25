@@ -98,6 +98,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   as `src-files = "@source"`, and rules read `estimate.src-files` as the
   resolved number. `mt check` reports a regex that doesn't compile, and a
   count on a unit with no entry.
+- **`mt eval` shows where a `count(...)` estimate comes from.** Under the
+  table it prints each such unit's total, its manual part and each query with
+  the files it matched, so a query that matches nothing shows as `0 files`.
+  `--json` carries the same under `estimate_counts`, beside the resolved
+  number in `estimate`.
 
 #### Naming tasks
 

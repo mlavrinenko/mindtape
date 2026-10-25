@@ -73,7 +73,12 @@ A task then writes the unit as a count:
 )
 
 Two files mention `HarvestCache` under `src/`, so `estimate.files` reads 4, and
-every rule sees that number. The judgment cap below holds it to 5, so when the type
+every rule sees that number. `mt eval` shows where the number comes from, so
+you can check a query that matches nothing before you start:
+
+#terminal("estimates-eval")
+
+The judgment cap below holds it to 5, so when the type
 spreads to a fourth file, `mt check` refuses the task before you start it.
 
 Two queries build the count:

@@ -4,7 +4,7 @@
 //! Drives a real git working copy and the real prelude, so `count(...)`,
 //! `grep(...)` and `glob(...)` go through the constructors a task file calls,
 //! and the queries match the files git lists.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use std::path::Path;
 
@@ -126,4 +126,28 @@ fn a_queries_entry_naming_an_unknown_path_set_fails_the_config() {
     let (ok, text) = support::run_text(dir.path(), &["check"]);
     assert!(!ok, "{text}");
     assert!(text.contains("tasks.estimate.queries.src-files"), "{text}");
+}
+
+#[test]
+fn mt_eval_shows_where_a_count_comes_from() {
+    let dir = fixture(
+        &config("src-files = \"@source\"", ""),
+        "count(2, grep(`parse_task`, \"src/*.rs\"), glob(\"docs/**\"))",
+    );
+    let (ok, text) = support::run_text(dir.path(), &["eval", "rename"]);
+    assert!(ok, "{text}");
+    assert!(
+        text.contains(
+            "estimate.src-files = 4\n  2        manual\n  2 files  grep `parse_task` in `src/*.rs`\n  0 files  glob `docs/**`\n"
+        ),
+        "{text}"
+    );
+    let (ok, json) = support::run_text(dir.path(), &["eval", "rename", "--json"]);
+    assert!(ok, "{json}");
+    let json: serde_json::Value = serde_json::from_str(&json).unwrap();
+    assert_eq!(json["estimate"]["src-files"], serde_json::json!(4.0));
+    assert_eq!(
+        json["estimate_counts"]["src-files"]["queries"][0]["files"],
+        serde_json::json!(2)
+    );
 }

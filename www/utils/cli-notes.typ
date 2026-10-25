@@ -67,7 +67,13 @@
       already holds writes nothing, so you can safely run it again.],
     outputs: ("set",),
   ),
-  "eval": (outputs: ("eval",)),
+  "eval": (
+    outputs: ("eval",),
+    prose: [A `count(...)` estimate prints under the table as its manual part,
+      each query with the files it matched, and the total. `--json` carries
+      the same under `estimate_counts`, beside the resolved number in
+      `estimate`. See #link(u("/estimates/"))[Estimates].],
+  ),
   "go": (
     prose: [`mt go` finds the task's file and opens it with `[go] editor`, or
       `$VISUAL`, or `$EDITOR`. If none is set, it fails and asks you to set

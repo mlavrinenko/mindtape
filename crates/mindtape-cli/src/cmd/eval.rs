@@ -3,7 +3,7 @@
 use std::path::{Path, PathBuf};
 
 use crate::diag::Result;
-use mindtape::{StemHashes, Task, find_root, load_config, load_project};
+use mindtape::{Config, StemHashes, Task, find_root, load_config, load_project};
 use typst_harvest::{HarvestWorld, harvest};
 
 use crate::diag::{Diag, Hint};
@@ -44,12 +44,18 @@ pub fn run(args: &EvalArgs) -> Result<()> {
         .file_stem()
         .map(|stem| stem.to_string_lossy().into_owned())
         .unwrap_or_default();
-    let task = Task::from_marker(id, file.clone(), &marker.value);
+    let mut task = Task::from_marker(id, file.clone(), &marker.value);
+    resolve_counts(&mut task, &file, project.as_ref());
 
     if args.json {
         print_json(&task)
     } else {
-        print_table(&task, &hashes_for(&file, &task, project), origin)
+        print_table(&task, &hashes_for(&file, &task, project), origin)?;
+        let breakdown = breakdown(&task);
+        if !breakdown.is_empty() {
+            print!("\n{breakdown}");
+        }
+        Ok(())
     }
 }
 
@@ -75,6 +81,82 @@ fn locate(reference: &str) -> Result<(PathBuf, Option<Project>)> {
     Ok((abs, Some(project)))
 }
 
+/// Resolve `task`'s `count(...)` units against the project enclosing `file`:
+/// `project` when the reference resolved one, else the one above the file.
+/// Under no project, the default config names no unit, so each count records
+/// why it can't resolve.
+fn resolve_counts(task: &mut Task, file: &Path, project: Option<&Project>) {
+    if task.estimate_counts.is_empty() {
+        return;
+    }
+    let (root, config) = project
+        .map(|project| (project.root.clone(), project.config.clone()))
+        .or_else(|| {
+            let root = find_root(file.canonicalize().ok()?.parent()?)?;
+            let config = load_config(&root).ok()?;
+            Some((root, config))
+        })
+        .unwrap_or_else(|| {
+            let dir = file.parent().unwrap_or_else(|| Path::new("."));
+            (dir.to_path_buf(), Config::default())
+        });
+    mindtape::estimate_queries::annotate(std::slice::from_mut(task), &config, &root);
+}
+
+/// Where each `count(...)` unit's number comes from: the resolved total, the
+/// manual part, and each query with the files it matched, aligned in two
+/// columns. A unit that didn't resolve prints why instead. Empty for a task
+/// with no count.
+fn breakdown(task: &Task) -> String {
+    let mut out = String::new();
+    for (unit, count) in &task.estimate_counts {
+        let Some(total) = task.estimate.get(unit).filter(|_| count.problem.is_none()) else {
+            let problem = count.problem.as_deref().unwrap_or("not resolved");
+            out.push_str(&format!("estimate.{unit}: {problem}\n"));
+            continue;
+        };
+        let mut rows = vec![(mindtape::format_num(count.manual), "manual".to_owned())];
+        rows.extend(
+            count
+                .queries
+                .iter()
+                .zip(&count.matches)
+                .map(|(query, files)| (mindtape::count(*files, "file"), query.label())),
+        );
+        let width = rows
+            .iter()
+            .map(|(left, _)| left.chars().count())
+            .max()
+            .unwrap_or(0);
+        out.push_str(&format!(
+            "estimate.{unit} = {}\n",
+            mindtape::format_num(*total)
+        ));
+        for (left, label) in rows {
+            out.push_str(&format!("  {left:<width$}  {label}\n"));
+        }
+    }
+    out
+}
+
+/// The JSON `mt eval --json` prints: the canonical task, plus each
+/// `count(...)` unit's breakdown under `estimate_counts`.
+fn task_json(task: &Task, config: &Config) -> serde_json::Value {
+    let mut json = task_to_json(task, config);
+    if let Some(object) = json.as_object_mut() {
+        let counts: serde_json::Map<String, serde_json::Value> = task
+            .estimate_counts
+            .iter()
+            .map(|(unit, count)| (unit.clone(), count.json()))
+            .collect();
+        object.insert(
+            "estimate_counts".to_owned(),
+            serde_json::Value::Object(counts),
+        );
+    }
+    json
+}
+
 /// Print one harvested task as a bare JSON object — no envelope, since there
 /// is no listing here for `applied` or `truncated` to describe.
 ///
@@ -83,7 +165,7 @@ fn locate(reference: &str) -> Result<(PathBuf, Option<Project>)> {
 fn print_json(task: &Task) -> Result<()> {
     println!(
         "{}",
-        serde_json::to_string_pretty(&task_to_json(task, &mindtape::Config::default()))?
+        serde_json::to_string_pretty(&task_json(task, &Config::default()))?
     );
     Ok(())
 }

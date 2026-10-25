@@ -93,6 +93,7 @@ capture --exit 1 --expect 'allow-manual = false' priority-strict "$REPO/examples
 # A rule reading changed() needs a git repository, so the copy gets one.
 capture_copy P examples/estimates
 capture_prep "$P" "git init -q && git add -A && $COMMIT -m fixture"
+capture estimates-eval "$P" 'mt eval rename-the-harvest-cache'
 capture --exit 1 --expect 'rules\.judgment-stays-small' estimates-cap "$P" 'mt set rename-the-status-glyphs difficulty=3'
 # shellcheck disable=SC2016 # capture_prep runs this text in the fixture, where $f expands
 capture_prep "$P" 'mt wip rewrite-loader && mkdir -p src && for f in a b c d e; do echo x >src/$f.rs; done'

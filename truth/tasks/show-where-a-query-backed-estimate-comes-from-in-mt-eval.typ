@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 25),
+  status: done(2026, 10, 25),
   links: depends-on(
     "resolve-an-estimate-from-a-manual-count-plus-file-queries.typ",
   ),

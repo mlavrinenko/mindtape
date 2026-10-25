@@ -58,11 +58,15 @@ pub enum Query {
 }
 
 impl Query {
-    /// The query as `mt` names it in a problem, such as ``grep `parse(` ``.
+    /// The query as `mt` names it, such as ``grep `parse(` in `src/**` ``.
     #[must_use]
     pub fn label(&self) -> String {
         match self {
-            Self::Grep { regex, .. } => format!("grep `{regex}`"),
+            Self::Grep { regex, glob: None } => format!("grep `{regex}`"),
+            Self::Grep {
+                regex,
+                glob: Some(glob),
+            } => format!("grep `{regex}` in `{glob}`"),
             Self::Glob { pattern } => format!("glob `{pattern}`"),
         }
     }
@@ -75,8 +79,42 @@ pub struct CountEstimate {
     pub manual: f64,
     /// The queries whose matched files add to it, in authored order.
     pub queries: Vec<Query>,
+    /// How many files each query matched, in the order of
+    /// [`queries`](Self::queries), set by [`annotate`]. Their sum can pass
+    /// the resolved count, since a file several queries match counts once.
+    pub matches: Vec<usize>,
     /// Why the unit didn't resolve, set by [`annotate`]; `None` once it did.
     pub problem: Option<String>,
+}
+
+impl CountEstimate {
+    /// The unit as JSON: its manual part, each query with the files it
+    /// matched, and why it didn't resolve.
+    #[must_use]
+    pub fn json(&self) -> serde_json::Value {
+        let queries: Vec<serde_json::Value> = self
+            .queries
+            .iter()
+            .enumerate()
+            .map(|(index, query)| {
+                let mut entry = match query {
+                    Query::Grep { regex, glob } => {
+                        serde_json::json!({"query": "grep", "regex": regex, "glob": glob})
+                    }
+                    Query::Glob { pattern } => {
+                        serde_json::json!({"query": "glob", "pattern": pattern})
+                    }
+                };
+                if let (Some(files), Some(object)) =
+                    (self.matches.get(index), entry.as_object_mut())
+                {
+                    object.insert("files".to_owned(), serde_json::json!(files));
+                }
+                entry
+            })
+            .collect();
+        serde_json::json!({"count": self.manual, "queries": queries, "problem": self.problem})
+    }
 }
 
 /// Project the `estimate` field: a plain number per unit, or a
@@ -133,6 +171,7 @@ fn parse_count(value: &HVal, at: &str, errors: &mut Vec<ShapeError>) -> Option<C
     Some(CountEstimate {
         manual,
         queries,
+        matches: Vec::new(),
         problem: None,
     })
 }
@@ -158,12 +197,14 @@ pub fn annotate(tasks: &mut [Task], config: &Config, root: &Path) {
     for task in tasks {
         for (unit, count) in &mut task.estimate_counts {
             match resolve(unit, count, config, root) {
-                Ok(matched) => {
+                Ok((union, matches)) => {
+                    count.matches = matches;
                     count.problem = None;
                     task.estimate
-                        .insert(unit.clone(), count.manual + matched as f64);
+                        .insert(unit.clone(), count.manual + union as f64);
                 }
                 Err(problem) => {
+                    count.matches.clear();
                     count.problem = Some(problem);
                     task.estimate.remove(unit);
                 }
@@ -172,13 +213,14 @@ pub fn annotate(tasks: &mut [Task], config: &Config, root: &Path) {
     }
 }
 
-/// How many files the queries of `count` match inside `unit`'s path set.
+/// How many files the queries of `count` match inside `unit`'s path set, a
+/// file once, and how many each query matched.
 fn resolve(
     unit: &str,
     count: &CountEstimate,
     config: &Config,
     root: &Path,
-) -> Result<usize, String> {
+) -> Result<(usize, Vec<usize>), String> {
     let set = config.tasks.estimate.queries.get(unit).ok_or_else(|| {
         format!(
             "`{unit}` takes a plain number; name its path set under [tasks.estimate.queries] to count files"
@@ -188,12 +230,14 @@ fn resolve(
     let admitted = path_filter(set, dicts)?;
     let tree = tree(root)?;
     let mut union = BTreeSet::new();
+    let mut each = Vec::new();
     for query in &count.queries {
         let key = (root.to_path_buf(), set.clone(), query.clone());
         let matched = matches(key, &tree, &admitted, dicts)?;
+        each.push(matched.len());
         union.extend(matched.iter().cloned());
     }
-    Ok(union.len())
+    Ok((union.len(), each))
 }
 
 /// `glob` compiled as a one-entry path set.
