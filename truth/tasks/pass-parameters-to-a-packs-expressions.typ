@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 26),
+  status: done(
+    2026,
+    10,
+    26,
+  )[agreed: a pack's \[params\] with defaults, extends entries as { pack, with }, and param() rewritten into literals at config load],
   links: parent("share-config-between-projects-through-packs.typ"),
 )
 

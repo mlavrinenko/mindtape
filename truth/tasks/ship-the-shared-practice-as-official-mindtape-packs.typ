@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 26),
+  status: done(
+    2026,
+    10,
+    26,
+  )[agreed: mindtape:\<pack> built into mt, mindtape-tasks renamed mindtape:tasks with no alias, and eight official packs],
   links: parent("share-config-between-projects-through-packs.typ"),
 )
 

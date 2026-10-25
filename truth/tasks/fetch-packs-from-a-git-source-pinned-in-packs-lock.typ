@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 26),
+  status: done(
+    2026,
+    10,
+    26,
+  )[agreed: \[pack-sources\] in the project layer, a committed packs.lock, a sha256-addressed cache, mt packs install and update, and no fetch in read commands],
   links: parent("share-config-between-projects-through-packs.typ")
     + related(
       "let-a-config-extend-rule-packs.typ",

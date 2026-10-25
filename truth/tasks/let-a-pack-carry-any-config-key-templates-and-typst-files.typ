@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 26),
+  status: done(
+    2026,
+    10,
+    26,
+  )[agreed: a pack deep-merges as a layer just below the one extending it, unequal values from two packs conflict, and a directory pack ships templates and check files],
   links: parent("share-config-between-projects-through-packs.typ"),
 )
 
