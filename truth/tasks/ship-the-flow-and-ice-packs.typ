@@ -30,16 +30,15 @@
   status: proposed(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ")
     + depends-on(
-      "name-packs-as-source-colon-pack.typ",
+      "ship-the-dogfood-pack-and-widen-mindtape-tasks.typ",
       "merge-named-on-flip-entries-across-packs-and-layers.typ",
-      "resolve-param-in-a-packs-expressions-from-its-extends-entry.typ",
     ),
 )
 
 == Problem
 
 + Read the `[[tasks.status]]`, `[tasks.priority]` and `[[on.flip]]` entries of this repo's `.mindtape/config.toml`.
-+ 🔴 Six statuses with their transitions, the ICE priority with three bands and the stale-WIP gate sit there by hand, and the bands repeat word for word in fourteen projects.
++ 🔴 The six statuses of the embedded floor sit there again by hand only to add `to` edges and `unblocked`, beside an ICE `framework` that fourteen projects copy and a stale-WIP gate that eight copy.
 
 
 == TO-BE
@@ -48,10 +47,9 @@
 extends = ["mindtape:tasks", "mindtape:flow", "mindtape:ice"]
 ```
 
-- 🟢 `mindtape:flow` holds the six statuses from `proposed` to `failed` with their glyphs, colors, `terminal`, `unblocked` and `to` edges, and the `stale-wip` gate with `days = 30` as a parameter.
-- 🟢 `mindtape:ice` holds `[tasks.priority]` as an ICE score on 0..9 with `allow-manual = false`, and the `low`, `normal` and `high` bands.
-- 🟢 A project that declares its own `[[tasks.status]]` or `[tasks.priority]` replaces the pack's whole.
-- 🟢 `www/content/packs.typ` lists both packs.
+- 🟢 `mindtape:flow` restates the floor's six statuses with this repo's `to` edges and `unblocked` flags, since an array replaces whole, and adds the `stale-wip` gate with `days = 30` as a parameter.
+- 🟢 `mindtape:ice` sets only `framework = "ice"`, `allow-manual = false`, `required = "!terminal"` and `example = 3` under `[tasks.priority]`. The floor's 0..9 scale and its three bands show through.
+- 🟢 A project's own `[[tasks.status]]` replaces the pack's legend whole, and `mt check` validates the `to` edges of whichever legend wins.
 
 
 == Changes
@@ -66,8 +64,8 @@ extends = ["mindtape:tasks", "mindtape:flow", "mindtape:ice"]
 
 == Alternatives
 
-- The five-status legend of the `mt init` flow preset: fewer projects adopt it, and the preset can extend this pack later.
-- The priority bands in `mindtape:tasks`: the six sections need no priority, so every adopter would get a scale it never asked for.
+- The transitions in the floor itself: a project with no transition graph would get one it never asked for.
+- The priority framework in `mindtape:tasks`: the six sections need no priority.
 
 
 == Out of scope

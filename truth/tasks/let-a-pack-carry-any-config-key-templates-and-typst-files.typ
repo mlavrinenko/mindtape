@@ -41,16 +41,17 @@
 == TO-BE
 
 ```text
-team.toml            # a file pack
-team/pack.toml       # a directory pack
+team.toml               # a file pack
+team/pack.toml          # a directory pack
 team/templates/feat.typ
-team/lib.typ         # check = { typst = "lib.typ", … } resolves here
+team/check.typ          # check = { typst = "check.typ", … } resolves here
 ```
 
-- 🟢 A pack declares any config key but `extends`, `disable` and `[pack-sources]`, so packs stay one level deep.
-- 🟢 A pack's key sits just below the layer that extends it, and the layer's own key replaces it whole. Two packs in one `extends` setting one key is an error naming both.
-- 🟢 Rule arrays and `[[on.flip]]` append and replace by `name`. `[[tasks.status]]` replaces whole.
-- 🟢 A directory pack's `templates/` joins the template dirs after the project's own, and its paths resolve from the pack directory, wherever it sits.
+- 🟢 A pack merges like a config layer just below the layer that extends it: tables merge key by key, arrays and scalars replace whole, and the embedded floor shows through.
+- 🟢 Two packs in one `extends` that set one value differently fail, naming the key and both packs. Equal values agree.
+- 🟢 Rule arrays and `[[on.flip]]` append and replace by `name`.
+- 🟢 A pack refuses `extends`, `disable`, `[pack-sources]`, `tasks.roots`, `templates.dirs` and `[typst]`.
+- 🟢 A directory pack's `templates/` joins the template dirs after the merge. Its check and dict files resolve from the pack directory, wherever it sits.
 
 
 == Changes
@@ -60,15 +61,16 @@ team/lib.typ         # check = { typst = "lib.typ", … } resolves here
 
 == Alternatives
 
-- A second mechanism, such as a preset layer, for the keys that aren't rules: two ways to share one config.
-- Last pack wins on a shared key: nothing would say which legend the project got.
+- A preset layer for the keys that aren't rules: two ways to share one config.
+- The layer's table replaces the pack's whole: this repo's `[tasks.estimate.queries]` would vanish beside a pack's `[tasks.estimate]`.
+- Last pack wins on a shared value: nothing would say which one the project got.
 - Merge `[[tasks.status]]` entry by entry: halves of two transition graphs make no graph.
-- Require `name` on every `[[on.flip]]` entry: `[[tasks.rules]]` already lets an unnamed entry append, and one rule for both is simpler.
 
 
 == Out of scope
 
 - A pack extending a pack: one level keeps resolution and `mt config show --origin` simple.
+- The keys refused above: they name the project's own tree, or a second level of packs.
 - A Typst file the task files import, such as `truth/lib.typ`: a task imports it by a path inside the project, so sharing it means publishing a Typst package.
 
 

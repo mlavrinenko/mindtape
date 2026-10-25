@@ -52,8 +52,8 @@ extends = [
 ```
 
 - 🟢 `mindtape:wip-caps` holds the two WIP caps, with `milestones = 1` and `leaves = 1` as parameters.
-- 🟢 `mindtape:budget` holds `judgment-stays-small` and `src-budget`, with `min-difficulty = 3` and `max-files = 5` as parameters, `[tasks.estimate]` in `src-files` and a `[dicts.source]` of `**` that a project replaces.
-- 🟢 `www/content/packs.typ` lists both packs' rules and parameters, read from the pack files.
+- 🟢 `mindtape:budget` holds `judgment-stays-small`, skipping milestones, and `src-budget`, with `min-difficulty = 3` and `max-files = 5` as parameters. It sets `[tasks.estimate] units = ["src-files"]` and a `[dicts.source]` of `**`.
+- 🟢 A project's `[tasks.estimate.queries]` and its own `[dicts.source]` merge over the pack's, as this repo's do.
 
 
 == Changes
@@ -61,8 +61,8 @@ extends = [
 - `crates/mindtape/src/config/packs_tests.rs`: the red tests first: each pack's rules load with their defaults and with `with` values.
 - `crates/mindtape/src/packs/wip-caps.toml`, `crates/mindtape/src/packs/budget.toml` (new): the packs.
 - `crates/mindtape/src/config/packs.rs`: register both.
-- `.mindtape/config.toml`: extend both packs and drop the four hand-written rules and `[tasks.estimate]`.
-- `www/generate-rule-packs.sh`, `www/content/packs.typ`: generate and render every built-in pack's tables, not just `mindtape:tasks`.
+- `.mindtape/config.toml`: extend both packs and drop the four hand-written rules and `[tasks.estimate] units`.
+- `www/content/packs.typ`: both packs' rules and parameters, read from the generated pack files.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 
 

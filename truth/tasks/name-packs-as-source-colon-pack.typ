@@ -29,7 +29,10 @@
   assignee: "agent",
   status: proposed(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ")
-    + depends-on("ship-the-shared-practice-as-official-mindtape-packs.typ"),
+    + depends-on(
+      "ship-the-shared-practice-as-official-mindtape-packs.typ",
+      "rename-the-rule-packs-page-to-packs.typ",
+    ),
 )
 
 == Problem
@@ -45,9 +48,8 @@ extends = ["mindtape:tasks", "./team.toml"]
 ```
 
 - 🟢 An entry with a `/` is a path. Any other entry must be `<source>:<pack>`, and `mindtape` is the one source known without a declaration.
-- 🟢 `mindtape-tasks` is refused as unknown, with `mindtape:tasks` as the suggestion; the pack has no other name.
-- 🟢 An unknown `<source>` or `<pack>` lists what the source holds.
-- 🟢 The pack file moves to `crates/mindtape/src/packs/tasks.toml`, and every script, doc and config names it there.
+- 🟢 `mindtape-tasks` is refused as unknown, with `mindtape:tasks` as the suggestion. An unknown `<pack>` lists what the source holds.
+- 🟢 The pack file moves to `crates/mindtape/src/packs/tasks.toml`. Every tool that lists pack files globs `crates/mindtape/src/packs/*.toml`, and the docs generator copies each pack to `www/generated/packs/<pack>.toml`, so a new pack needs no edit outside its own file and the registry.
 
 
 == Changes
@@ -57,7 +59,9 @@ extends = ["mindtape:tasks", "./team.toml"]
 - `crates/mindtape/src/config/packs.rs`: key the embedded registry by pack name under the `mindtape` source.
 - `crates/mindtape/src/packs/mindtape-tasks.toml`: move to `tasks.toml`.
 - `.mindtape/config.toml`, `examples/api-service/.mindtape/config.toml`: `extends = ["mindtape:tasks"]`.
-- `Justfile`, `www/generate-rule-packs.sh`, `.config/outdatty.yaml`, `.githooks/commit-msg`, `.mmz/config.yaml`, `.just/scripts/check-doc-prose.sh`, `www/utils/*.typ`, `crates/mindtape-cli/src/cmd/config.rs`: the new name and path.
+- `Justfile` (`TOML_FMT_PATHS`), `.mmz/config.yaml`: glob the pack files.
+- `www/generate-packs.sh`, `www/utils/recipes.typ`: copy and read every pack from `www/generated/packs/`.
+- `.config/outdatty.yaml`, `.githooks/commit-msg`, `.just/scripts/check-doc-prose.sh`, `www/utils/demo.typ`, `crates/mindtape-cli/src/cmd/config.rs`: the new name and path.
 - `www/content/*.typ`, `docs/src/**/*.typ`, `skills/mindtape/references/filters.md`: the new name.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 

@@ -9,9 +9,9 @@
     confidence: 0.6,
     ease: 5,
   ),
-  difficulty: 5,
+  difficulty: 4,
   tags: ("mt", "gating", "cli"),
-  estimate: (src-files: 4),
+  estimate: (src-files: 5),
   x-goals: (
     product: (
       readable-tasks: neutral,
@@ -37,7 +37,7 @@
 == Problem
 
 + Clone a project whose `.mindtape/packs.lock` pins `acme`, on a machine whose cache lacks it.
-+ 🔴 `mt check` fails with `pack source "acme" is not installed`, and no command fetches it.
++ 🔴 `mt check` fails with `pack source not installed: 'acme'`, and no command fetches it.
 
 
 == TO-BE
@@ -49,36 +49,35 @@ $ mt packs install
 1 source up to date
 ```
 
-- 🟢 For each locked source not in the cache, `mt` runs `git` to fetch the locked commit into a temporary directory, hashes it, and renames it into place only when the hash matches the lock.
-- 🟢 It refuses a lock that disagrees with `[pack-sources]`, as `npm ci` does, and a hash mismatch, naming the source and both hashes.
-- 🟢 Two installs at once, as from two worktrees, both succeed: the rename is atomic and the second one keeps the first's copy.
-- 🟢 A missing `git` fails with a hint to install it.
+- 🟢 `mt packs install` reads the sources and the lock with `pack_sources::read_raw`, without loading the config it repairs, and calls `pack_sources::fetch` for each locked source the cache lacks.
+- 🟢 It refuses a lock that disagrees with `[pack-sources]`, as `npm ci` does, with a hint to run `mt packs update`.
+- 🟢 It counts as a read command, since it changes no authored file.
 
 
 == Changes
 
 - `crates/mindtape-cli/tests/it/packs.rs`: the red tests first, fetching from a local bare repository by path, and `crates/mindtape-cli/tests/it/main.rs` declaring it.
-- `crates/mindtape/src/config/pack_sources.rs`: fetch a source at a commit into the cache.
 - `crates/mindtape-cli/src/cmd/packs/mod.rs` (new): `mt packs` and its `install` subcommand.
 - `crates/mindtape-cli/src/cmd/mod.rs`: list the folder in the module header.
 - `crates/mindtape-cli/src/cli/mod.rs`: wire `packs`.
-- `www/content/cli/packs.typ` (new), `www/content/packs.typ`: the command and a CI example.
+- `crates/mindtape-cli/src/cli/command_class.rs`: classify `packs install` as a read.
+- `www/utils/site.typ`: `packs` in `CLI_GROUPS`.
+- `www/content/packs.typ`: a CI example.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 
 
 == Alternatives
 
 - Fold it into `mt install`: that command sets up the machine, while this one restores what one project pins.
-- Fetch with an HTTP client: a TLS stack in `mt`, and private repositories would need a token scheme of their own.
+- Load the config first, as other commands do: the load fails on the very source this command installs.
 
 
 == Out of scope
 
 - Moving a source to a newer commit: `move-pack-sources-along-their-ref-with-mt-packs-update.typ`.
-- Pruning old cache entries: the cache is safe to delete whole.
 
 
 == Dogfood
 
-Not applicable: this repo adopts only the built-in `mindtape:` packs. The tests fetch from a local repository, on Windows too.
+Not applicable: this repo adopts only the built-in `mindtape:` packs.
 

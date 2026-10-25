@@ -34,7 +34,7 @@
 == Problem
 
 + Read the `.mindtape/config.toml` of the nine projects that adopt `mindtape-tasks`.
-+ 🔴 Each copies what the pack lacks: `milestone-wip-cap` and `leaf-wip-cap` word for word in nine, `tweak-lands-done` and `refs-task-is-started` in eight, the Dogfood rules in six, the ICE bands in fourteen and `[tasks.comments]` in fifteen.
++ 🔴 Each copies what the pack lacks: `milestone-wip-cap` and `leaf-wip-cap` word for word in nine, `tweak-lands-done` and `refs-task-is-started` in eight, the Dogfood rules in six, the ICE priority in fourteen and `[tasks.comments]` in fifteen.
 + 🔴 A built-in pack is named by the reserved `mindtape-` prefix, a form with no room for a pack from another source.
 
 
@@ -49,7 +49,7 @@ extends = [
 ```
 
 - 🟢 `<source>:<pack>` names a pack. The `mindtape` source is built into `mt` and needs no declaration or fetch. An entry with a `/` is still a path. `mindtape-tasks` becomes `mindtape:tasks`, with no alias.
-- 🟢 `mindtape:tasks` adds `[tasks.fields.kind]` and `[tasks.comments]`. `flow` holds the six-status legend and the stale-WIP gate, `ice` the 0..9 priority and its bands, `wip-caps` one open milestone and one open leaf, `budget` `judgment-stays-small` and `src-budget`, `tweaks` the two tweak rules, `commits` `refs-task-is-started` and `changelog-with-product-change`, `dogfood` the five Dogfood rules.
+- 🟢 `tasks` adds `[tasks.fields.kind]` and `[tasks.comments]`. `flow` gives the floor's six statuses their transitions and a stale-WIP gate, `ice` puts the ICE framework on the floor's scale, `wip-caps` caps open milestones and leaves, `budget` holds `judgment-stays-small` and `src-budget`, `tweaks` the two tweak rules, `commits` `refs-task-is-started` and `changelog-with-product-change`, `dogfood` the four Dogfood rules.
 
 
 == Changes

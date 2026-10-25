@@ -11,7 +11,7 @@
   ),
   difficulty: 5,
   tags: ("mt", "gating", "cli"),
-  estimate: (src-files: 3),
+  estimate: (src-files: 4),
   x-goals: (
     product: (
       readable-tasks: neutral,
@@ -35,7 +35,7 @@
 == Problem
 
 + Add `[pack-sources.acme]` with `ref = "v1"`, or push a fix to `v1` of an already locked source.
-+ 🔴 Nothing writes the source into `.mindtape/packs.lock` or moves the lock to the new commit, and a reviewer of the lock's diff sees only a new hash.
++ 🔴 Nothing writes the source into `.mindtape/packs.lock` or moves the lock to the new commit, so the project stays on the stale lock that `mt` refuses.
 
 
 == TO-BE
@@ -43,35 +43,34 @@
 ```console
 $ mt packs update acme
 acme v1: 3f2c1a9 → 8d01e44
-  acme:commits  ~ rule commits.rules.changelog-with-product-change
-                + on.flip close-gate: run "just check"
 wrote .mindtape/packs.lock
 ```
 
-- 🟢 `mt packs update [<source>…]` resolves each source's `ref` to a commit, fetches it into the cache, and rewrites its lock entry. With no source it updates them all.
-- 🟢 It prints, per pack, each key, rule and `on.flip` entry added, changed or removed, and every new or changed `run` line.
+- 🟢 `mt packs update [<source>…]` resolves each `ref` to a commit, fetches it with `pack_sources::fetch`, and rewrites the lock entry. With no source it updates them all, and it drops lock entries no source declares.
+- 🟢 A 40-hex `ref` is the commit itself. Otherwise `git ls-remote` answers, and for an annotated tag the peeled `^{}` line wins.
 - 🟢 A source whose `ref` still names the locked commit prints `acme v1: up to date` and leaves the lock alone.
-- 🟢 A changed `run` line still waits for `mt allow`.
+- 🟢 It reads the sources with `pack_sources::read_raw`, and counts as a write command.
 
 
 == Changes
 
-- `crates/mindtape-cli/tests/it/packs.rs`: the red tests first: a first lock, a moved tag, an unchanged ref.
-- `crates/mindtape/src/config/pack_sources.rs`: resolve a `ref` with `git ls-remote`, write the lock, and diff two resolved packs.
-- `crates/mindtape-cli/src/cmd/packs/mod.rs`: the `update` subcommand and its report.
-- `www/content/cli/packs.typ`, `www/content/packs.typ`: the command.
+- `crates/mindtape-cli/tests/it/packs.rs`: the red tests first: a first lock, a moved annotated tag, a commit `ref`, an unchanged ref, a dropped source.
+- `crates/mindtape/src/pack_sources/fetch.rs`: resolve a `ref` to a commit.
+- `crates/mindtape/src/pack_sources/lock.rs`: write the lock.
+- `crates/mindtape-cli/src/cmd/packs/mod.rs`: the `update` subcommand.
+- `crates/mindtape-cli/src/cli/command_class.rs`: classify `packs update` as a write.
+- `www/content/packs.typ`: the command.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 
 
 == Alternatives
 
-- Print a text diff of the TOML: a reordered file would look like a change, while the semantic diff names what behaves differently.
 - Let `mt packs install` write a missing lock entry: then CI could pass on a lock nobody reviewed.
 
 
 == Out of scope
 
-- Writing the diff into the commit message: the user copies what the review needs.
+- Reporting what the new commit changes: `print-what-a-pack-update-changes.typ`.
 
 
 == Dogfood

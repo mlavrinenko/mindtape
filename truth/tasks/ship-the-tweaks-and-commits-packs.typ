@@ -29,7 +29,7 @@
   assignee: "agent",
   status: proposed(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ")
-    + depends-on("name-packs-as-source-colon-pack.typ"),
+    + depends-on("ship-the-wip-caps-and-budget-packs.typ"),
 )
 
 == Problem
@@ -47,14 +47,14 @@ extends = ["mindtape:tasks", "mindtape:tweaks", "mindtape:commits"]
 values = ["crates/**", "lib/**", "!**/*_tests.rs"]
 ```
 
-- 🟢 `mindtape:tweaks` holds `tweak-lands-done` and `tweak-stays-one-file`.
+- 🟢 `mindtape:tweaks` holds `tweak-lands-done` and `tweak-stays-one-file`, and the `[dicts.source]` of `**` that `tweak-stays-one-file` reads, equal to `mindtape:budget`'s, so the two packs agree.
 - 🟢 `mindtape:commits` holds `refs-task-is-started` and this repo's `changelog-with-product-change`, which skips `fixup!` subjects and a `Changelog: none` trailer, with a `[dicts.product]` of `**` that a project replaces.
-- 🟢 `www/content/packs.typ` lists both packs' rules.
+- 🟢 Each pack loads alone: `extends = ["mindtape:tweaks"]` passes `mt check`.
 
 
 == Changes
 
-- `crates/mindtape/src/config/packs_tests.rs`: the red tests first: each pack's rules load and run.
+- `crates/mindtape/src/config/packs_tests.rs`: the red tests first: each pack loads alone and beside `mindtape:budget`, and its rules run.
 - `crates/mindtape/src/packs/tweaks.toml`, `crates/mindtape/src/packs/commits.toml` (new): the packs.
 - `crates/mindtape/src/config/packs.rs`: register both.
 - `.mindtape/config.toml`: extend both packs and drop the four hand-written rules.
@@ -71,6 +71,7 @@ values = ["crates/**", "lib/**", "!**/*_tests.rs"]
 == Out of scope
 
 - `work-names-a-task`, `flip-with-work` and `named-tasks-finish-at-the-tip`: they already ship in `mindtape:tasks`.
+- The `tweak` tag in a project's `[tasks.tags]`: the tag list is the project's.
 
 
 == Dogfood

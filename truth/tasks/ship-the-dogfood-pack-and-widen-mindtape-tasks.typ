@@ -29,17 +29,14 @@
   assignee: "agent",
   status: proposed(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ")
-    + depends-on(
-      "name-packs-as-source-colon-pack.typ",
-      "merge-every-config-key-from-a-pack-below-the-layer-that-extends-it.typ",
-    ),
+    + depends-on("ship-the-tweaks-and-commits-packs.typ"),
 )
 
 == Problem
 
 + Extend `mindtape:tasks` in a project with no `[tasks.fields.kind]`.
 + 🔴 The pack's `environment-for-fix` and its siblings read `kind`, which the pack doesn't declare, so each project copies `[tasks.fields.kind]`, and fifteen copy `[tasks.comments]` as well.
-+ 🔴 The five Dogfood rules and the `section-allowlist` override that admits Dogfood sit by hand in this repo, and six projects copy them.
++ 🔴 `one-dogfood-section`, `dogfood-after-out-of-scope`, `dogfood-non-empty`, `dogfood-word-cap` and the `section-allowlist` override that admits Dogfood sit by hand in this repo, and six projects copy them.
 
 
 == TO-BE
@@ -48,14 +45,14 @@
 extends = ["mindtape:tasks", "mindtape:dogfood"]
 ```
 
-- 🟢 `mindtape:tasks` declares `[tasks.fields.kind]` with `feat`, `fix`, `refactor`, `docs`, `test`, `dev` and `milestone`, and `[tasks.comments]` with `policy = "forbid"`.
-- 🟢 `mindtape:dogfood` holds the five Dogfood rules and a `section-allowlist` that admits Dogfood. Listed after `mindtape:tasks`, it replaces that pack's allowlist by name.
-- 🟢 `www/content/packs.typ` lists both packs.
+- 🟢 `mindtape:tasks` declares `[tasks.fields.kind]` with `feat`, `fix`, `refactor`, `docs`, `test`, `dev` and `milestone`, `required = "!terminal"` and `example = "feat"`, and `[tasks.comments]` with `policy = "forbid"`.
+- 🟢 `mindtape:dogfood` holds the four Dogfood rules and a `section-allowlist` that admits Dogfood. Listed after `mindtape:tasks`, it replaces that pack's allowlist by name.
+- 🟢 A test fails when the dogfood allowlist differs from the tasks pack's by anything but `Dogfood`, so the two can't drift.
 
 
 == Changes
 
-- `crates/mindtape/src/config/packs_tests.rs`: the red tests first: `kind` resolves from the pack alone, and the Dogfood allowlist replaces the tasks pack's.
+- `crates/mindtape/src/config/packs_tests.rs`: the red tests first: `kind` resolves from the pack alone, the Dogfood allowlist replaces the tasks pack's, and the drift check.
 - `crates/mindtape/src/packs/tasks.toml`: the two keys.
 - `crates/mindtape/src/packs/dogfood.toml` (new): the pack.
 - `crates/mindtape/src/config/packs.rs`: register it.
@@ -67,7 +64,7 @@ extends = ["mindtape:tasks", "mindtape:dogfood"]
 == Alternatives
 
 - The Dogfood rules inside `mindtape:tasks`: Dogfood is this practice's own check on its tool, which a project using `mt` alone has no use for.
-- A `kind` values parameter: a parameter reaches expressions only, and a project with other kinds replaces `[tasks.fields.kind]` whole.
+- Let one allowlist rule extend another: the allowlist's `allowed` is an array, which replaces whole, and a second mechanism for one pair of packs costs more than a test.
 
 
 == Out of scope

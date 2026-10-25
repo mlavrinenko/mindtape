@@ -11,7 +11,7 @@
   ),
   difficulty: 5,
   tags: ("mt", "gating"),
-  estimate: (src-files: 5),
+  estimate: (src-files: 4),
   x-goals: (
     product: (
       readable-tasks: neutral,
@@ -30,8 +30,8 @@
   status: proposed(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ")
     + depends-on(
-      "read-pack-sources-and-packs-lock-into-the-config.typ",
-      "let-a-pack-directory-ship-templates-and-typst-files.typ",
+      "fetch-a-locked-pack-source-into-a-cache-directory.typ",
+      "resolve-a-packs-check-and-dict-files-from-its-directory.typ",
     ),
 )
 
@@ -50,19 +50,20 @@
 
 - 🟢 `acme:<pack>` resolves to `<pack>.toml` or `<pack>/pack.toml` under the cache directory named by the lock's `sha256`.
 - 🟢 The cache directory is `$MINDTAPE_CACHE_HOME`, else the platform cache directory, such as `~/.cache` on Linux.
-- 🟢 `mt` hashes the cached tree on every load and refuses a mismatch, naming the directory.
-- 🟢 A source missing from the cache fails with `pack source "acme" is not installed` and a hint to run `mt packs install`. No read command touches the network.
+- 🟢 `mt` hashes the cached tree on every load with `pack_sources::hash` and refuses a mismatch, naming the directory.
+- 🟢 A source missing from the cache fails with `pack source not installed: 'acme'` and a hint to run `mt packs install`. No read command touches the network.
 - 🟢 `mt config show --origin` prints `pack acme:commits`.
 
 
 == Changes
 
-- `crates/mindtape/src/config/pack_sources_tests.rs`: the red tests first, against a cache directory the test fills.
-- `crates/mindtape/src/config/pack_sources.rs`: hash a tree as the sha256 of each file's relative path and bytes in path order, `.git/` excluded.
-- `crates/mindtape/src/config/pack_resolve.rs`: resolve a declared source's pack from the cache.
+- `crates/mindtape/src/config/packs_tests.rs`: the red tests first, against a cache directory the test fills.
+- `crates/mindtape/src/config/pack_resolve.rs`: resolve a declared source's pack from the cache, as a new `PackOrigin` variant.
+- `crates/mindtape/src/config/packs.rs`: pass the lock to the resolver.
 - `crates/mindtape/src/loader/app_dirs.rs`: `cache_home()` with the `MINDTAPE_CACHE_HOME` override.
-- `crates/mindtape/Cargo.toml`, `Cargo.lock`: the `sha2` crate.
+- `crates/mindtape-cli/src/cmd/config.rs`: print the new origin.
 - `www/content/packs.typ`, `www/content/config.typ`: the cache directory and its variable.
+- `docs/src/skill.typ`: tell an agent that meets `pack source not installed` to run `mt packs install`.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 
 
@@ -74,7 +75,7 @@
 
 == Out of scope
 
-- Writing the cache: `fetch-the-locked-pack-sources-with-mt-packs-install.typ`.
+- Writing the cache: `fetch-a-locked-pack-source-into-a-cache-directory.typ`.
 
 
 == Dogfood

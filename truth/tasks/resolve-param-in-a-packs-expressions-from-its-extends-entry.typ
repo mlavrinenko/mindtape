@@ -39,7 +39,7 @@
 
 + Write a path pack with `[params] max-files = 5` and a rule asserting `estimate.src-files <= param("max-files")`.
 + Extend it with `extends = [{ pack = "./team.toml", with = { max-files = 8 } }]`.
-+ 🔴 `mt check` refuses both: `extends` takes only strings, and the pack may not declare `params`.
++ 🔴 `mt check` refuses both: it prints `extends: entries must be strings`, and the pack may not declare `params`.
 
 
 == TO-BE
@@ -49,18 +49,17 @@ extends = [{ pack = "./team.toml", with = { max-files = 8 } }]
 ```
 
 - 🟢 The rule caps at 8, and at 5 when the entry is the bare string.
-- 🟢 `param()` works in every expression the pack declares and resolves at config load, so the filter evaluator never sees it.
+- 🟢 At config load, each `param("name")` outside a string literal becomes the value's literal in every expression key of the pack: rule `when` and `assert`, commit rules, `on.flip` `when`, `views.*.filter`, every `required`, and the `[ls]` and `[rm]` filters.
 - 🟢 `mt` refuses, naming the pack: a `with` key the pack doesn't declare, with the nearest name; a value of another type than the default; `param()` naming no parameter; `param()` in a layer's own expression; one pack extended twice in a layer.
-- 🟢 `mt config show --origin` prints `param <pack>.<name> = <value>: <origin>`.
 
 
 == Changes
 
-- `crates/mindtape/src/config/packs_tests.rs`: the red tests first, one per refusal plus the default and the override.
+- `crates/mindtape/src/config/packs_tests.rs`: the red tests first, one per refusal plus the default, the override and a `param(` inside a string literal left alone.
 - `crates/mindtape/src/config/packs_toml.rs`: parse an `extends` entry as a string or a `{ pack, with }` table.
-- `crates/mindtape/src/config/params.rs` (new): parse `[params]`, check `with` against it, and rewrite each `param("name")` in the pack's expressions into its literal.
+- `crates/mindtape/src/config/params.rs` (new): parse `[params]`, check `with` against it, and rewrite `param()` calls with a string-literal-aware pass like `join_kebab_names` in `crates/mindtape/src/filter/expr.rs`.
 - `crates/mindtape/src/config/mod.rs`: list the file in the module header.
-- `crates/mindtape/src/config/packs.rs`: run the rewrite on each pack before the fold, and reject `param()` in a layer's own expressions.
+- `crates/mindtape/src/config/packs.rs`: rewrite each pack before the fold, and reject `param()` in a layer's own expressions.
 - `schema/config.schema.json`: regenerate.
 - `www/content/packs.typ`: a Parameters section.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
@@ -69,12 +68,14 @@ extends = [{ pack = "./team.toml", with = { max-files = 8 } }]
 == Alternatives
 
 - A `param()` function in the filter evaluator: every call site would need the pack's values at evaluation time.
-- Rewrite the expression text with a regex: a `param(` inside a string literal would change too, so the rewrite walks the parsed expression.
+- Rewrite the parsed `evalexpr` tree: its nodes carry no spans to write the text back from.
+- A plain regex: it would rewrite a `param(` inside a string literal too.
 
 
 == Out of scope
 
 - Parameters in values that aren't expressions, and set-valued parameters: `pass-parameters-to-a-packs-expressions.typ` rules both out.
+- Printing parameter values: `print-each-pack-key-and-parameter-origin-in-mt-config-show.typ`.
 
 
 == Dogfood
