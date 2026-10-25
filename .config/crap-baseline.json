@@ -1364,7 +1364,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/yaml_values.rs",
       "function": "number_to_raw",
-      "line": 72,
+      "line": 78,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -1382,7 +1382,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/yaml_values.rs",
       "function": "sequence_strings",
-      "line": 79,
+      "line": 85,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -1391,7 +1391,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/yaml_values.rs",
       "function": "yaml_to_raw",
-      "line": 57,
+      "line": 63,
       "cyclomatic": 8.0,
       "coverage": 100.0,
       "crap": 8.0,
@@ -15232,7 +15232,7 @@
     },
     {
       "file": "crates/mindtape/src/loader/many.rs",
-      "function": "load_one",
+      "function": "load_root",
       "line": 51,
       "cyclomatic": 2.0,
       "coverage": 100.0,
@@ -15296,7 +15296,7 @@
     {
       "file": "crates/mindtape/src/loader/mod.rs",
       "function": "find_root",
-      "line": 51,
+      "line": 54,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -15305,7 +15305,7 @@
     {
       "file": "crates/mindtape/src/loader/mod.rs",
       "function": "find_root_bounded",
-      "line": 63,
+      "line": 66,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -15315,6 +15315,15 @@
       "file": "crates/mindtape/src/loader/mod.rs",
       "function": "first_task_marker",
       "line": 398,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/loader/mod.rs",
+      "function": "harvest_items",
+      "line": 170,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -15340,8 +15349,17 @@
     },
     {
       "file": "crates/mindtape/src/loader/mod.rs",
+      "function": "load_one",
+      "line": 146,
+      "cyclomatic": 4.0,
+      "coverage": 100.0,
+      "crap": 4.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/loader/mod.rs",
       "function": "load_project",
-      "line": 109,
+      "line": 112,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,

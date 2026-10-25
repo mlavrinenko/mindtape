@@ -102,7 +102,7 @@ pub use loader::derive::RootDeriver;
 pub use loader::{
     LoadError, LoadOutcome, LoadWarning, find_root, load_project, package_overrides, package_root,
 };
-pub use loader::{Loaded, load_many, map_parallel};
+pub use loader::{Loaded, load_many, load_one, map_parallel};
 pub use model::canonical::{CanonicalTask, SCHEMA_VERSION};
 pub use model::fields::field_names;
 pub use model::handle::{Resolution, StemHashes};

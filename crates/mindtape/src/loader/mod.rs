@@ -32,6 +32,9 @@ use crate::model::task_spans::TaskCallSpans;
 // documented `lib.rs` surface.
 pub(crate) mod cache;
 
+#[cfg(test)]
+mod tests_one;
+
 use cache::{Cached, CachedOutcome, TaskCache};
 
 /// The outcome of loading a project: the tasks found and any per-file errors.
@@ -107,14 +110,7 @@ struct Miss<'a> {
 /// prelude is parsed once and evaluation fans out across cores.
 #[must_use]
 pub fn load_project(root: &Path, config: &Config) -> LoadOutcome {
-    let overrides = package_overrides(root, config);
-    let items = collect_items(root, config);
-    let cache = TaskCache::open(root, config, &overrides);
-
-    let mut outcome = LoadOutcome::default();
-    let misses = split_hits(&items, &cache, &mut outcome);
-    harvest_misses(&misses, root, &overrides, &cache, &mut outcome);
-
+    let mut outcome = harvest_items(&collect_items(root, config), root, config);
     outcome.tasks.sort_by(|left, right| left.id.cmp(&right.id));
     outcome
         .warnings
@@ -129,6 +125,55 @@ pub fn load_project(root: &Path, config: &Config) -> LoadOutcome {
     // every load and never cached.
     crate::waits::annotate(&mut outcome.tasks, config, root);
     crate::estimate_queries::annotate(&mut outcome.tasks, config, root);
+    outcome
+}
+
+/// Load the one task file at `path`, project-relative or absolute, under
+/// `config`, through the same content-hash cache [`load_project`] uses, with
+/// its waits annotated as [`load_project`] does.
+///
+/// The task equals the one [`load_project`] gives that file, except that the
+/// fields which need the whole set (`topo`, `blocks`, `children`, `progress`)
+/// stay empty: no other task is loaded to derive them from.
+///
+/// `Ok(None)` is a file with no `task.with` call, which [`load_project`] skips
+/// silently. A load failure is the [`LoadError`] [`load_project`] would list.
+///
+/// # Errors
+///
+/// The file's load failure, or a path that is not a `.typ` file inside a
+/// configured task root: a file there would carry no folder tags and so
+/// differ from its [`load_project`] task.
+pub fn load_one(root: &Path, config: &Config, path: &Path) -> Result<Option<Task>, LoadError> {
+    let rel = path.strip_prefix(root).unwrap_or(path);
+    let in_a_root = config
+        .tasks
+        .roots
+        .iter()
+        .any(|spec| rel.strip_prefix(spec.path()).is_ok());
+    if !in_a_root || rel.extension().and_then(|ext| ext.to_str()) != Some("typ") {
+        return Err(LoadError {
+            file: rel.to_path_buf(),
+            message: "not a `.typ` file inside a task root".to_owned(),
+            ..LoadError::default()
+        });
+    }
+    let mut outcome = harvest_items(&[item_at(root, config, rel)], root, config);
+    if let Some(error) = outcome.errors.into_iter().next() {
+        return Err(error);
+    }
+    crate::waits::annotate(&mut outcome.tasks, config, root);
+    Ok(outcome.tasks.into_iter().next())
+}
+
+/// Serve `items` from the cache and live-evaluate the misses, unsorted and
+/// before any whole-set annotation.
+fn harvest_items(items: &[LoadItem], root: &Path, config: &Config) -> LoadOutcome {
+    let overrides = package_overrides(root, config);
+    let cache = TaskCache::open(root, config, &overrides);
+    let mut outcome = LoadOutcome::default();
+    let misses = split_hits(items, &cache, &mut outcome);
+    harvest_misses(&misses, root, &overrides, &cache, &mut outcome);
     outcome
 }
 

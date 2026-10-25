@@ -23,7 +23,7 @@ pub struct Loaded {
 /// A thread that panics resumes its panic here, as a single load would.
 #[must_use]
 pub fn load_many(roots: &[PathBuf]) -> Vec<Result<Loaded, ConfigError>> {
-    map_parallel(roots.iter().collect(), |root| load_one(root))
+    map_parallel(roots.iter().collect(), |root| load_root(root))
 }
 
 /// Run `work` on each item on a scoped thread of its own, and return the
@@ -48,7 +48,7 @@ pub fn map_parallel<T: Send, R: Send>(items: Vec<T>, work: impl Fn(T) -> R + Syn
 }
 
 /// The config of `root`, then its tasks under that config.
-fn load_one(root: &Path) -> Result<Loaded, ConfigError> {
+fn load_root(root: &Path) -> Result<Loaded, ConfigError> {
     let config = load_config(root)?;
     let outcome = load_project(root, &config);
     Ok(Loaded { config, outcome })

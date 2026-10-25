@@ -531,6 +531,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `warnings`, `ConfigError::Invalid` carries a `ConfigPlace`,
   `naming::disambiguate` returns `NamingError::Exhausted` past 10,000 tries, and
   recurrence catch-up returns `RecurError::CatchUpExhausted`.
+- **`mindtape::load_one(root, config, path)` loads one task file.** It reads
+  through the same content-hash cache as `load_project`, annotates waits the same
+  way, and returns `Ok(Some(task))`, `Ok(None)` for a file with no `task.with`,
+  or the file's `LoadError`. A path outside every task root, or not a `.typ`
+  file, is an error. `topo`, `blocks`, `children` and `progress` stay empty,
+  since they need the whole set.
 
 ### Changed
 
