@@ -1,4 +1,4 @@
-//! The shipped `mindtape-tasks` pack's `flip-with-work` lets a milestone close
+//! The shipped `mindtape:tasks` pack's `flip-with-work` lets a milestone close
 //! in a task-only commit (`truth/tasks/exempt-a-milestones-close-from-the-
 //! flip-with-work-rule.typ`): it ends through its leaves and carries no work of
 //! its own, so its flip is the whole commit. A leaf's bare close stays refused.
@@ -16,7 +16,7 @@ fn pack_repo() -> tempfile::TempDir {
     write_file(
         dir.path(),
         ".mindtape/config.toml",
-        "extends = [\"mindtape-tasks\"]\n[tasks]\nroots = [\"tasks\"]\n",
+        "extends = [\"mindtape:tasks\"]\n[tasks]\nroots = [\"tasks\"]\n",
     );
     for (file, kind) in [("ship.typ", "milestone"), ("leaf.typ", "feat")] {
         let path = dir.path().join("tasks").join(file);

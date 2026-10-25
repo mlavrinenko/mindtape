@@ -76,7 +76,7 @@ and finished ones last. Bare `status` sorts by legend position.
   `[dicts.d]` section or a built-in. `word(f, n)` gives the n-th word of a
   string field, counting from 1, and works only as an argument here or in
   `matches`: `in_dict("verbs", word(title, 1))`. The `verbs` dictionary comes
-  from the `mindtape-tasks` pack. Without the pack, use the built-in
+  from the `mindtape:tasks` pack. Without the pack, use the built-in
   `mindtape-verbs` or declare `[dicts.verbs]`. `mt dicts d` lists the entries
   of `d`.
 - `touches("path")` matches the tasks named in the `Refs:` trailers of commits

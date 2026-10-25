@@ -64,7 +64,7 @@ pub use config::commits::{CommitBreach, CommitRuleSpec, CommitScope, CommitsConf
 pub use config::layers::{
     LayerSource, load_config_layered, load_config_layered_from, merged_config_table,
 };
-pub use config::packs::{PackOrigin, RuleOrigin, RuleOriginEntry};
+pub use config::pack_registry::{PackOrigin, RuleOrigin, RuleOriginEntry};
 pub use config::schema::{SCHEMA_URL, config_schema_json};
 pub use config::{
     Actor, ActorKind, AddConfig, AssigneeConfig, BUILTIN_PREFIX, Collector, ColumnConfig, Config,

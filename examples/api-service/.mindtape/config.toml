@@ -3,7 +3,7 @@
 
 # Require a task shape: Problem, TO-BE, Changes and Out of scope in every task.
 # docs:slice api-service/require-a-task-shape
-extends = ["mindtape-tasks"]
+extends = ["mindtape:tasks"]
 # docs:end
 
 # Limit work in progress: one milestone and one task in wip, each started

@@ -1,4 +1,4 @@
-//! The shipped `mindtape-tasks` pack's `no-open-questions` refuses an open
+//! The shipped `mindtape:tasks` pack's `no-open-questions` refuses an open
 //! task whose TO-BE, Changes, Out of scope or Dogfood asks a question
 //! (`truth/tasks/refuse-a-task-that-leaves-a-question-open.typ`). A `?` in
 //! code, or in Problem, is no question.
@@ -15,7 +15,7 @@ const ADVICE: &str = "body.content.rules.no-open-questions: \
 /// with `problem` and `to_be` as its Problem and TO-BE bullets.
 fn check(problem: &str, to_be: &str) -> (Option<i32>, String) {
     let dir =
-        support::scaffold_project("extends = [\"mindtape-tasks\"]\n[tasks]\nroots = [\"tasks\"]\n");
+        support::scaffold_project("extends = [\"mindtape:tasks\"]\n[tasks]\nroots = [\"tasks\"]\n");
     write_file(
         dir.path(),
         "tasks/board.typ",

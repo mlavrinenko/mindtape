@@ -34,7 +34,7 @@ refuses a commit without a `Refs:` trailer and accepts it with one, and
 
 `[commits] trailer` names the trailer that holds task stems. A stem is the
 task's file name without `.typ`, as #link(u("/concepts/#identity"))[Concepts]
-explains. The project also extends the `mindtape-tasks`
+explains. The project also extends the `mindtape:tasks`
 #link(u("/packs/"))[rule pack], as
 #link(u("/require-a-task-shape/"))[Require a task shape] shows. The pack's
 `work-names-a-task` rule refuses a commit that names no task, unless the

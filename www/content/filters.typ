@@ -160,7 +160,7 @@ field or `word(...)` as their text:
 
 #commands("filters-strings")
 
-`api-service` extends the #link(u("/packs/"))[`mindtape-tasks`] pack,
+`api-service` extends the #link(u("/packs/"))[`mindtape:tasks`] pack,
 which declares the `verbs` dictionary. Without the pack, use the built-in
 `mindtape-verbs`, or declare your own `[dicts.verbs]`.
 

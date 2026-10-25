@@ -209,10 +209,10 @@ scopes:
     # www/generate.sh reads the release workflow (via yq) to derive the
     # quickstart install targets baked into the built docs.
     - ".github/workflows/release.yml"
-    # Quoted verbatim by www/content/packs.typ, copied into
-    # www/generated/ by www/generate-packs.sh; lives under crates/, so
+    # Every pack, quoted verbatim by www/content/packs.typ and copied into
+    # www/generated/packs/ by www/generate-packs.sh; lives under crates/, so
     # no glob above already covers it.
-    - "crates/mindtape/src/packs/mindtape-tasks.toml"
+    - "crates/mindtape/src/packs/*.toml"
     # Quoted verbatim by www/content/read-many-projects.typ and the board's
     # CLI page, cut by its `docs:slice` markers into www/generated/.
     - "crates/mindtape/src/at/board.toml"

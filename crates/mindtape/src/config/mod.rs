@@ -31,6 +31,7 @@
 //! - `locate.rs`: the file line of a dotted config key.
 //! - `merge.rs`: the shared TOML deep merge.
 //! - `name_cycle.rs`: cycle detection over a name-reference graph.
+//! - `pack_registry.rs`: the packs compiled into the binary and the origin types.
 //! - `pack_resolve.rs`: resolving one `extends` entry to a validated pack table.
 //! - `packs.rs`: `extends` and `disable`, resolving rule packs into a layer.
 //! - `packs_toml.rs`: nested-path reads and writes over a raw `toml::Table`.
@@ -65,6 +66,7 @@ pub(crate) mod ls;
 pub(crate) mod ls_columns;
 pub(crate) mod merge;
 pub(crate) mod name_cycle;
+pub(crate) mod pack_registry;
 pub(crate) mod pack_resolve;
 pub(crate) mod packs;
 pub(crate) mod packs_toml;
@@ -205,10 +207,11 @@ pub struct Config {
     /// Role names (`[[roles]]`) that actors may hold. A role carries no
     /// settings; a harness keys its own config by role name.
     pub roles: Vec<crate::config::actors::Role>,
-    /// Rule packs this config builds on, in any config layer. A name with the
-    /// reserved `mindtape-` prefix and no path separator is a pack built into
-    /// `mt`. Anything with a path separator is a TOML pack file, relative to
-    /// the file that declares it. A pack adds entries to `[[tasks.rules]]`,
+    /// Packs this config builds on, in any config layer. An entry with a path
+    /// separator is a TOML pack file, relative to the file that declares it.
+    /// Any other entry is `<source>:<pack>`, and `mindtape` is the one source
+    /// known without a declaration: `mindtape:tasks` is a pack built into
+    /// `mt`. A pack adds entries to `[[tasks.rules]]`,
     /// `[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]`,
     /// `[[commits.rules]]` and `[dicts]`, ahead of this layer's own. A rule in
     /// this layer replaces a pack rule with the same name.

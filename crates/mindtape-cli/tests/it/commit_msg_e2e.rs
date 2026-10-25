@@ -160,12 +160,12 @@ fn outside_a_git_repository_the_check_fails_naming_why() {
     assert!(text.contains("not a git repository"), "got: {text}");
 }
 
-/// A commit repo whose config extends the shipped `mindtape-tasks` pack.
+/// A commit repo whose config extends the shipped `mindtape:tasks` pack.
 fn pack_repo() -> tempfile::TempDir {
     let dir = commit_repo("");
     let config = dir.path().join(".mindtape/config.toml");
     let base = std::fs::read_to_string(&config).unwrap();
-    std::fs::write(&config, format!("extends = [\"mindtape-tasks\"]\n{base}")).unwrap();
+    std::fs::write(&config, format!("extends = [\"mindtape:tasks\"]\n{base}")).unwrap();
     git(dir.path(), &["add", "-A"]);
     git(dir.path(), &["commit", "-qm", "extend the pack"]);
     dir

@@ -56,7 +56,7 @@ Your team says "dockerize" or "backport"? Put the word in `values`. A longer
 list fits better in a file with one word per line, named by `path`.
 #link(u("/named-sets/"))[Views & dictionaries] covers every dictionary key.
 
-The example project extends the `mindtape-tasks` #link(u("/packs/"))[rule pack],
+The example project extends the `mindtape:tasks` #link(u("/packs/"))[rule pack],
 which ships the rule and a `verbs` dictionary, so it only declares
 `[dicts.verbs]`. That replaces the pack's dictionary by name, so keep the
 `include` line when you add words.

@@ -164,17 +164,17 @@ fn an_ancestor_layers_check_rule_still_fails_load_when_absent_at_the_project_roo
 }
 
 /// Build the typed [`crate::config::Config`] `project`'s own
-/// `.mindtape/config.toml` extending `registry`'s `"mindtape-test"` pack (and
+/// `.mindtape/config.toml` extending `registry`'s `"test"` pack (and
 /// nothing else) would produce — merge, then the same typed-deserialization
 /// tail [`crate::config::layers::build_config`] runs after its own merge — for
 /// a test that needs the pack registry injected, which
-/// `load_config_layered_from`'s real (possibly empty) [`super::EMBEDDED_PACKS`]
+/// `load_config_layered_from`'s real (possibly empty) [`crate::config::pack_registry::EMBEDDED_PACKS`]
 /// cannot give it.
 fn config_extending_test_pack(project: &Path, registry: &[(&str, &str)]) -> crate::config::Config {
     let merged = merge_layers_with_packs_using(
         &[layer(
             LayerSource::Project(project.join(".mindtape").join("config.toml")),
-            "extends = [\"mindtape-test\"]\n",
+            "extends = [\"mindtape:test\"]\n",
         )],
         project,
         registry,
@@ -188,7 +188,7 @@ fn config_extending_test_pack(project: &Path, registry: &[(&str, &str)]) -> crat
 #[test]
 fn a_packs_check_rule_is_validated_at_load_against_the_project_root() {
     let registry: &[(&str, &str)] = &[(
-        "mindtape-test",
+        "test",
         "[[tasks.rules]]\nname = \"pack-check\"\n\
          check = { typst = \"missing.typ\", function = \"f\" }\n",
     )];
@@ -202,7 +202,7 @@ fn a_packs_check_rule_is_validated_at_load_against_the_project_root() {
 #[test]
 fn a_pack_declaring_two_same_named_rules_is_a_config_error() {
     let registry: &[(&str, &str)] = &[(
-        "mindtape-test",
+        "test",
         "[[tasks.rules]]\nname = \"dup\"\nassert = 'kind == \"bug\"'\n\n\
          [[tasks.rules]]\nname = \"dup\"\nassert = 'kind == \"chore\"'\n",
     )];
@@ -216,13 +216,13 @@ fn a_pack_declaring_two_same_named_rules_is_a_config_error() {
 #[test]
 fn pack_rules_come_before_the_layers_own_in_the_merged_array() {
     let registry: &[(&str, &str)] = &[(
-        "mindtape-test",
+        "test",
         "[[tasks.rules]]\nassert = 'kind == \"bug\"'\nmessage = \"from-pack\"\n",
     )];
     let root = tempdir();
     let layers = [layer(
         LayerSource::Embedded,
-        "extends = [\"mindtape-test\"]\n\n[[tasks.rules]]\nassert = 'kind == \"bug\"'\nmessage = \"from-layer\"\n",
+        "extends = [\"mindtape:test\"]\n\n[[tasks.rules]]\nassert = 'kind == \"bug\"'\nmessage = \"from-layer\"\n",
     )];
 
     let merged = merge_layers_with_packs_using(&layers, root.path(), registry).unwrap();
@@ -240,13 +240,13 @@ fn pack_rules_come_before_the_layers_own_in_the_merged_array() {
 #[test]
 fn a_packs_dicts_merge_in_and_the_layers_own_entry_wins_on_a_shared_name() {
     let registry: &[(&str, &str)] = &[(
-        "mindtape-test",
+        "test",
         "[dicts.verbs]\nvalues = [\"ship\"]\n\n[dicts.nouns]\nvalues = [\"task\"]\n",
     )];
     let root = tempdir();
     let layers = [layer(
         LayerSource::Embedded,
-        "extends = [\"mindtape-test\"]\n\n[dicts.verbs]\nvalues = [\"ride\"]\n",
+        "extends = [\"mindtape:test\"]\n\n[dicts.verbs]\nvalues = [\"ride\"]\n",
     )];
 
     let merged = merge_layers_with_packs_using(&layers, root.path(), registry).unwrap();

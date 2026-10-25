@@ -1,4 +1,4 @@
-//! The `imperative-title` rule the `mindtape-tasks` pack ships, run against
+//! The `imperative-title` rule the `mindtape:tasks` pack ships, run against
 //! titles an engineer files. The rule is loaded through `extends`, so the
 //! assertion under test is the one a project inherits, over the dictionaries
 //! the binary embeds.
@@ -12,7 +12,7 @@ fn accepted(title: &str) -> bool {
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
     mindtape::write_atomic(
         &dir.path().join(".mindtape/config.toml"),
-        b"extends = [\"mindtape-tasks\"]\n",
+        b"extends = [\"mindtape:tasks\"]\n",
     )
     .unwrap();
     let config = mindtape::load_config_layered_from(dir.path(), None, None)

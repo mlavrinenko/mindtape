@@ -216,7 +216,7 @@ fn each_state_holds_a_task_once() {
     assert!(ok, "{text}");
 }
 
-/// The rule `mindtape-tasks` ships for the tip of a range.
+/// The rule `mindtape:tasks` ships for the tip of a range.
 const FINISH_AT_THE_TIP: &str = "[[commits.rules]]\n\
      name = \"named-tasks-finish-at-the-tip\"\n\
      scope = \"tip\"\n\
@@ -316,7 +316,7 @@ fn the_pack_lets_a_fixup_through_the_hook_and_refuses_it_in_a_range() {
     let dir = dir.path();
     let config = dir.join(".mindtape/config.toml");
     let base = std::fs::read_to_string(&config).unwrap();
-    std::fs::write(&config, format!("extends = [\"mindtape-tasks\"]\n{base}")).unwrap();
+    std::fs::write(&config, format!("extends = [\"mindtape:tasks\"]\n{base}")).unwrap();
     git(dir, &["add", "-A"]);
     commit(dir, "chore: extend the pack\n\nChangelog: none");
     stage_file(dir, "src/lib.rs");

@@ -62,7 +62,7 @@ default view · 9 of 14 tasks
 
 ## Bring your own rules
 
-No rule is hardcoded in Mindtape. Every check is a few lines of config, either yours or from the `mindtape-tasks` pack that ships alongside. Here’s what `mt` says when a task breaks one.
+No rule is hardcoded in Mindtape. Every check is a few lines of config, either yours or from the `mindtape:tasks` pack that ships alongside. Here’s what `mt` says when a task breaks one.
 
 | Recipe | What it does | What `mt` prints |
 | --- | --- | --- |

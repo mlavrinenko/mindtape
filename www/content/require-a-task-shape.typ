@@ -43,7 +43,7 @@ fills in. `mt add` refuses a fill that leaves a slot out, and the pack's rules
 refuse one left empty. `mt add --describe` lists the slots, each with a prompt
 and an example. #link(u("/templates/"))[Templates & slots] covers both.
 
-`extends` adopts the `mindtape-tasks` #link(u("/packs/"))[rule pack], a
+`extends` adopts the `mindtape:tasks` #link(u("/packs/"))[rule pack], a
 set of rules that ships with `mt`. Its rules require Problem, TO-BE, Changes
 and Out of scope, in that order, plus one more section for some kinds, like
 Environment for a `fix`. The Problem must be numbered steps, with 🔴

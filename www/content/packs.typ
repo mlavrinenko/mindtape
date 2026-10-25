@@ -7,7 +7,7 @@
   route: "/packs/",
   label: "Packs",
   title: "Packs",
-  summary: "How a project adopts, overrides and drops rule packs, and every rule the `mindtape-tasks` pack ships.",
+  summary: "How a project adopts, overrides and drops rule packs, and every rule the `mindtape:tasks` pack ships.",
 )
 #metadata(meta) <page-meta>
 
@@ -17,14 +17,14 @@ Running several projects the same way? Put the rules in a pack. A rule pack
 is a set of rules a project adopts by name, and each project can still change
 them locally. #link(u("/config/"))[Configuration] lists the `extends` and
 `disable` keys. This page covers how `mt` finds and merges a pack, and lists
-the rules of the pack `mt` ships, `mindtape-tasks`.
+the rules of the pack `mt` ships, `mindtape:tasks`.
 
 = Adopt a pack
 
 `extends` in any #link(u("/config/#layers"))[config layer] names the packs
 that layer adopts. If the layer declares a rule with the same `name` as a
 pack's rule, it replaces that rule where the pack put it. #mindtape's own
-`.mindtape/config.toml` adopts `mindtape-tasks` and replaces
+`.mindtape/config.toml` adopts `mindtape:tasks` and replaces
 `section-allowlist` to allow one more section, `Dogfood`:
 
 #let parts = (
@@ -63,9 +63,10 @@ level to resolve.
 
 = Where a pack comes from
 
-An `extends` entry with no `/` in it names a pack built into `mt`. Names that
-start with `mindtape-` are kept for these, and `mindtape-tasks` is the only
-one. `mt` refuses an unknown name and lists the packs it has:
+An `extends` entry with no `/` in it is `<source>:<pack>`. `mindtape` is the
+one source `mt` knows without a declaration, and it holds the packs built into
+`mt`, so far `mindtape:tasks`. `mt` refuses an unknown name and lists the packs
+the source has:
 
 #terminal("packs-unknown")
 
@@ -76,9 +77,8 @@ it. For `.mindtape/config.toml` that's the project root. For the user layer
 Linux. `mt` refuses a missing file and prints the path it resolved.
 
 #callout("warn")[
-  `"mindtape-tasks.toml"` has no `/`, so `mt` reads it as the name of a built-in
-  pack, and refuses it as unknown. Write `"./mindtape-tasks.toml"` for a file
-  of that name.
+  `"tasks.toml"` has no `/`, so `mt` reads it as a pack name, not a file, and
+  refuses it as unknown. Write `"./tasks.toml"` for a file of that name.
 ]
 
 = Drop a rule
@@ -109,7 +109,7 @@ Here's the output in the #mindtape repository:
 
 #terminal("packs-origin")
 
-Every rule from `mindtape-tasks` reads `pack mindtape-tasks`, except
+Every rule from `mindtape:tasks` reads `pack mindtape:tasks`, except
 `section-allowlist`, which reads `project` because the project's rule replaced
 it. The repository's own rules, such as `goals` and the `Dogfood` rules, read
 `project` because only the project declares them. To read each rule's
@@ -121,18 +121,18 @@ That's a file and line for a layer or a path pack, and `pack <name>:<line>`
 for a built-in pack. `mt check` reports a rule skipped for lack of git this
 way.
 
-= The rules in `mindtape-tasks`
+= The rules in `mindtape:tasks`
 
-`extends = ["mindtape-tasks"]` gives you the task shape #mindtape's own
+`extends = ["mindtape:tasks"]` gives you the task shape #mindtape's own
 backlog uses. Each open task has four sections in order: Problem, TO-BE,
 Changes and Out of scope. A `fix`, `feat`, `docs` or `dev` task adds one more
 section of its own. The tables below are read from
-#link(REPO + "/blob/main/crates/mindtape/src/packs/mindtape-tasks.toml")[the
+#link(REPO + "/blob/main/crates/mindtape/src/packs/tasks.toml")[the
   pack file], and each message is the text `mt check` prints. The
 `imperative-title` rule reads the `verbs` dictionary, which the pack builds
 from the two word lists `mt` ships.
 
-#let pack = toml("../generated/mindtape-tasks-pack.toml")
+#let pack = toml("../generated/packs/tasks.toml")
 
 #let rule-table(rules) = table(
   columns: (auto, auto, 1fr),

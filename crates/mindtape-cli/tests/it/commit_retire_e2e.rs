@@ -1,4 +1,4 @@
-//! The shipped `mindtape-tasks` pack's `flip-with-work` counts retiring
+//! The shipped `mindtape:tasks` pack's `flip-with-work` counts retiring
 //! another task as work (`truth/tasks/count-retiring-other-tasks-as-work-in-
 //! the-flip-with-work-rule.typ`): a close that deletes other task files
 //! passes, while a bare flip, or a flip beside edits to other tasks, is
@@ -19,7 +19,7 @@ fn pack_repo() -> tempfile::TempDir {
     write_file(
         dir.path(),
         ".mindtape/config.toml",
-        "extends = [\"mindtape-tasks\"]\n[tasks]\nroots = [\"tasks\"]\n",
+        "extends = [\"mindtape:tasks\"]\n[tasks]\nroots = [\"tasks\"]\n",
     );
     git_commit_all(dir.path());
     dir

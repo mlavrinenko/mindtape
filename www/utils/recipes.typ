@@ -31,8 +31,8 @@
   raw(code, lang: "toml", block: true)
 }
 
-// www/generate-packs.sh copies the mindtape-tasks pack here verbatim.
-#let _pack-text = read("../generated/mindtape-tasks-pack.toml")
+// www/generate-packs.sh copies the mindtape:tasks pack here verbatim.
+#let _pack-text = read("../generated/packs/tasks.toml")
 #let _pack = toml(bytes(_pack-text))
 
 // The lines of the pack's rule `name`, as written in the pack. A rule runs
@@ -40,7 +40,7 @@
 #let _pack-rule-lines(name) = {
   let lines = _pack-text.split("\n")
   let at = lines.position(line => line == "name = \"" + name + "\"")
-  assert(at != none, message: "mindtape-tasks has no rule " + name)
+  assert(at != none, message: "mindtape:tasks has no rule " + name)
   let start = at
   while not lines.at(start).starts-with("[[") { start -= 1 }
   let end = at
@@ -52,7 +52,7 @@
 // comes from, for a recipe whose slice reads a rule the pack ships.
 #let pack-rule(name) = (
   (
-    "# The mindtape-tasks pack ships this rule. Without the pack, add it yourself.",
+    "# The mindtape:tasks pack ships this rule. Without the pack, add it yourself.",
     .._pack-rule-lines(name),
     "",
   ).join("\n")

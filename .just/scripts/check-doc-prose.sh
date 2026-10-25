@@ -107,7 +107,7 @@ EOF
 EOF
     cat >"$dir/n.typ" <<'EOF'
 #let x = "Mindtape" // MindTape
-Use #mindtape, not mindtape-tasks.
+Use #mindtape, not mindtape:tasks.
 EOF
     cat >"$dir/m.md" <<'EOF'
 Mindtape passes here, MindTape does not.

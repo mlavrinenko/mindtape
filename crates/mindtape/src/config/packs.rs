@@ -4,11 +4,10 @@
 //! [`crate::config::layers`] deep-merges everything else.
 //!
 //! A pack is a config-syntax fragment carrying only the four rule arrays and
-//! `[dicts]` — a bare name resolves to one compiled into the binary
-//! ([`EMBEDDED_PACKS`]); a path (anything with a path separator, even one
-//! starting with the reserved `mindtape-` prefix) resolves to a TOML file,
-//! relative to the layer that names it. A pack may not itself `extends`, so
-//! resolution is one level deep.
+//! `[dicts]` — `<source>:<pack>` resolves to one compiled into the binary
+//! ([`EMBEDDED_PACKS`], under `mindtape`); a path (anything with a path
+//! separator) resolves to a TOML file, relative to the layer that names it. A
+//! pack may not itself `extends`, so resolution is one level deep.
 //!
 //! Per rule array, entries fold in source order — every pack a layer extends
 //! (in `extends` order), then the layer's own declared entries — and a later
@@ -34,53 +33,11 @@ use std::path::{Path, PathBuf};
 use crate::config::ConfigError;
 use crate::config::layers::{Layer, LayerSource};
 use crate::config::merge::deep_merge_tables;
+use crate::config::pack_registry::{EMBEDDED_PACKS, RuleOrigin, RuleOriginEntry};
 use crate::config::pack_resolve::resolve_pack;
 use crate::config::packs_toml::{
     header_lines, read_array, read_string_list, remove_path, write_array,
 };
-
-/// Rule packs compiled into the binary, `(name, TOML text)`. A new entry is a
-/// one-line addition here plus a `crates/mindtape/src/packs/<name>.toml`
-/// file, named under the reserved `mindtape-` prefix.
-pub(crate) const EMBEDDED_PACKS: &[(&str, &str)] = &[(
-    "mindtape-tasks",
-    include_str!("../packs/mindtape-tasks.toml"),
-)];
-
-/// Where one resolved pack came from, for `mt config show --origin`.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum PackOrigin {
-    /// A bare name resolved against [`EMBEDDED_PACKS`].
-    Embedded(String),
-    /// A path pack, resolved to an absolute (or as-given, if the base
-    /// couldn't be made absolute) path.
-    Path(PathBuf),
-}
-
-/// Where one entry in a merged rule array came from: a layer file directly,
-/// or a pack that layer's `extends` pulled in.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum RuleOrigin {
-    /// Declared directly in this config layer.
-    Layer(LayerSource),
-    /// Pulled in through `extends`.
-    Pack(PackOrigin),
-}
-
-/// One rule's provenance in a merged array: its report-style label
-/// (`tasks.rules.<name>` or `tasks.rules[<index>]`, matching
-/// [`crate::rules::RuleSpec::label`]'s own convention) and where it
-/// came from. Backs `mt config show --origin`.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RuleOriginEntry {
-    /// e.g. `tasks.rules.imperative-title` or `tasks.body.headers.rules[2]`.
-    pub label: String,
-    /// The pack or layer this entry's current content came from.
-    pub origin: RuleOrigin,
-    /// The one-based line of the entry's `[[…]]` table header in that source,
-    /// or `None` when the source writes the array inline.
-    pub line: Option<usize>,
-}
 
 /// The rule-array TOML paths that append across layers and packs,
 /// same-name-replaces, rather than replacing wholesale like every other

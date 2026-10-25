@@ -22,7 +22,8 @@
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
-use crate::config::packs::{RuleOriginEntry, merge_layers_with_packs};
+use crate::config::pack_registry::RuleOriginEntry;
+use crate::config::packs::merge_layers_with_packs;
 use crate::config::{Config, ConfigError, EMBEDDED_DEFAULTS, config_path};
 use crate::framework::merge_builtin_frameworks;
 

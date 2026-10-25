@@ -399,9 +399,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   also cover the board?") must carry at most 0 matches`, in `mt check`, in a
   refused write, and in a `notes` array that every `mt check --json` problem
   now carries.
-- **Rule packs.** A config layer's `extends = [...]` pulls in a pack, built in
-  (`mindtape-…`) or a TOML file by path, and `disable = [...]` drops rules by
-  name. A pack holds only the three rule arrays and `[dicts]`, a later entry
+- **Rule packs.** A config layer's `extends = [...]` pulls in a pack, named
+  `<source>:<pack>` or given as a TOML file by path, and `disable = [...]`
+  drops rules by name. `mindtape` is the one source known without a
+  declaration, and `mindtape:tasks` is the pack built in. An old
+  `mindtape:tasks` is refused as unknown, with `mindtape:tasks` as the
+  suggestion. A pack holds only the three rule arrays and `[dicts]`, a later entry
   with the same `name` replaces an earlier one, and the rule arrays append
   across layers. `mt config show --origin` names each rule's pack or layer.
 - **`mt rules` lists the rules that apply, one line each.** A line is the
@@ -413,7 +416,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   function. The library's `active_rules` returns the same list as
   `ActiveRule` records, and the config schema gives `warn` as the default
   `severity` of `[[tasks.rules]]` and `[[commits.rules]]`.
-- **The `mindtape-tasks` pack ships the flagship practice.** It holds the
+- **The `mindtape:tasks` pack ships the flagship practice.** It holds the
   section shape (Problem, TO-BE, Changes, Out of scope, plus Environment,
   Alternatives, Source of truth or Rollback by kind), heading order, 🔴/🟢
   markers, word caps, an em-dash density cap, `no-open-questions` (a `?` that
@@ -455,7 +458,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`mt check --commits <range>` holds past commits to the rules**, each against
   its first parent. A rule reading `worktree(...)` or `changed(...)` is skipped
   and reported, and each problem names its commit.
-- **The `mindtape-tasks` pack's `work-names-a-task` skips a `fixup!`, `squash!`
+- **The `mindtape:tasks` pack's `work-names-a-task` skips a `fixup!`, `squash!`
   or `amend!` commit**, since autosquash drops its message.
 - **A commit rule reads `in_range`**, true under `mt check --commits` and false
   under `mt check --commit-msg`. The pack's `no-unsquashed-fixup` uses it to
@@ -508,7 +511,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `examples/api-service` backlog, with a page per problem. The sidebar groups
   pages by job, and terms are defined at first use.
 - **New pages.** One per `mt` command under `/cli/`, `/task-files/` for the
-  Typst in a task file and its common mistakes, `/rule-packs/`, rendered
+  Typst in a task file and its common mistakes, `/packs/`, rendered
   graphs of the links and the legend, and the language server's completions and
   diagnostics on a task file.
 - **The docs build their lists from the code.** The filter fields, link kinds,

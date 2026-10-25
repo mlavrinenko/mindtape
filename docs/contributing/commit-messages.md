@@ -14,7 +14,7 @@ Refs: <stem>
 
 ## What checks them
 
-`.githooks/commit-msg` refuses a message that names your `$HOME` or the checkout, as the pre-commit hook refuses such a file ([docs/contributing/gates.md](docs/contributing/gates.md) says why). Then it runs `mt check --commit-msg`, which applies the per-commit `[[commits.rules]]` of the `mindtape-tasks` pack (`crates/mindtape/src/packs/mindtape-tasks.toml`).
+`.githooks/commit-msg` refuses a message that names your `$HOME` or the checkout, as the pre-commit hook refuses such a file ([docs/contributing/gates.md](docs/contributing/gates.md) says why). Then it runs `mt check --commit-msg`, which applies the per-commit `[[commits.rules]]` of the `mindtape:tasks` pack (`crates/mindtape/src/packs/tasks.toml`).
 
 - `work-names-a-task` refuses a commit with no `Refs:` trailer, unless every file it changes is a `.typ` file under a task root. This repo’s only task root is `truth/tasks/`, so a change to `.mindtape/config.toml` or any other file needs `Refs:`. A `fixup!`, `squash!` or `amend!` subject is exempt, as is `changelog-with-product-change` below, because autosquash drops its message. `no-unsquashed-fixup` refuses a range that still carries one, under `mt check --commits` only, so run `git rebase -i --autosquash` before `just land`.
 - `flip-with-work` checks each task a commit moves into `wip` or `done`. The commit’s `Refs:` must name the task, and the commit must change a file outside the task root. Three commits are exempt from the second half: one that retires another task with `mt rm`, one for a task tagged `decision`, which has no code to commit with it, and one for a milestone, which ends through its leaves.

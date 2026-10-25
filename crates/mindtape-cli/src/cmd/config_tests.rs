@@ -330,16 +330,16 @@ fn origin_labels_an_xdg_defaults_rule_as_xdg() {
     print!("{}", render_origin(&root).unwrap());
 }
 
-/// A rule pulled in through a bare `extends` name resolved against the
+/// A rule pulled in through a `source:pack` `extends` name resolved against the
 /// compiled-in `EMBEDDED_PACKS` registry (`crates/mindtape/src/config/packs.
 /// rs`) is labeled `pack <name>`.
 #[test]
 fn origin_labels_an_embedded_packs_rule_as_pack_name() {
-    let dir = tempdir_with_config("extends = [\"mindtape-tasks\"]\n");
+    let dir = tempdir_with_config("extends = [\"mindtape:tasks\"]\n");
 
     let text = render_origin(dir.path()).unwrap();
     assert!(
-        text.contains("rule tasks.rules.imperative-title: pack mindtape-tasks"),
+        text.contains("rule tasks.rules.imperative-title: pack mindtape:tasks"),
         "{text}"
     );
 }

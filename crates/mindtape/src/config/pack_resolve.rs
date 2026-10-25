@@ -1,12 +1,12 @@
-//! Resolving one `extends` entry to a validated pack table: a bare name
-//! against the embedded registry, a path against the extending layer's
-//! directory, and the shape check that keeps a pack to rule arrays and
-//! `[dicts]`. [`crate::config::packs`] folds what this returns.
+//! Resolving one `extends` entry to a validated pack table: a path against
+//! the extending layer's directory, any other entry as `<source>:<pack>`
+//! against the embedded registry, and the shape check that keeps a pack to
+//! rule arrays and `[dicts]`. [`crate::config::packs`] folds what this returns.
 
 use std::path::Path;
 
 use crate::config::ConfigError;
-use crate::config::packs::PackOrigin;
+use crate::config::pack_registry::{EMBEDDED_SOURCE, PackOrigin};
 use crate::problem::Problem;
 use crate::suggest::Unknown;
 
@@ -18,10 +18,9 @@ pub(super) struct ResolvedPack {
     pub(super) text: String,
 }
 
-/// A path pack has a path separator somewhere in it — a bare embedded-pack
-/// name never does, even one carrying the reserved `mindtape-` prefix
-/// (`"mindtape-tasks.toml"` with no separator is still a bare name, and an
-/// unknown one).
+/// A path entry has a path separator somewhere in it. Any other entry is a
+/// `<source>:<pack>` name, so `"tasks.toml"` with no separator is an unknown
+/// pack, never a missing file.
 fn is_path_entry(entry: &str) -> bool {
     entry.chars().any(std::path::is_separator)
 }
@@ -51,11 +50,7 @@ pub(super) fn resolve_pack(
             text,
         })
     } else {
-        let text = registry
-            .iter()
-            .find(|(name, _)| *name == entry)
-            .map(|(_, text)| *text)
-            .ok_or_else(|| unknown_pack_error(entry, registry))?;
+        let text = embedded_text(entry, registry)?;
         let table: toml::Table = toml::from_str(text).map_err(|error| ConfigError::ParseIn {
             origin: format!("pack {entry}"),
             error,
@@ -69,14 +64,43 @@ pub(super) fn resolve_pack(
     }
 }
 
+/// The text of the pack a `<source>:<pack>` entry names in `registry`, the
+/// packs of the [`EMBEDDED_SOURCE`] source.
+fn embedded_text<'r>(entry: &str, registry: &[(&'r str, &'r str)]) -> Result<&'r str, ConfigError> {
+    let Some((source, pack)) = entry.split_once(':') else {
+        return Err(unknown_pack_error(entry, registry));
+    };
+    if source != EMBEDDED_SOURCE {
+        return Err(unknown_source_error(source));
+    }
+    registry
+        .iter()
+        .find(|(name, _)| *name == pack)
+        .map(|(_, text)| *text)
+        .ok_or_else(|| unknown_pack_error(entry, registry))
+}
+
+fn unknown_source_error(source: &str) -> ConfigError {
+    ConfigError::invalid(
+        Problem::new(format!(
+            "extends: unknown pack source: {}",
+            crate::config::quote(source)
+        ))
+        .with(Unknown::among(source, [EMBEDDED_SOURCE])),
+    )
+}
+
 fn unknown_pack_error(entry: &str, registry: &[(&str, &str)]) -> ConfigError {
-    let names: Vec<&str> = registry.iter().map(|(name, _)| *name).collect();
+    let names: Vec<String> = registry
+        .iter()
+        .map(|(name, _)| format!("{EMBEDDED_SOURCE}:{name}"))
+        .collect();
     ConfigError::invalid(
         Problem::new(format!(
             "extends: unknown pack: {}",
             crate::config::quote(entry)
         ))
-        .with(Unknown::among(entry, names)),
+        .with(Unknown::among(entry, names.iter().map(String::as_str))),
     )
 }
 

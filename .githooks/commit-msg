@@ -3,7 +3,7 @@
 # fail the commit on its own.
 #
 # 1. No line names this machine's $HOME or checkout (.githooks/local-paths).
-# 2. `[[commits.rules]]` (mindtape-tasks: `work-names-a-task`) — a `Refs:
+# 2. `[[commits.rules]]` (`mindtape:tasks`: `work-names-a-task`) — a `Refs:
 #    <stem>` footer naming the task this commit works on, via `cargo run`
 #    so a rebuild happens transparently (see .githooks/pre-commit). Built
 #    through `direnv exec`, so the dev shell's toolchain resolves even when

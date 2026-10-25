@@ -4,13 +4,13 @@
 # to accept the defaults and the prelude's full status shortcut set.
 
 # The flagship task practice — the six-section shape, its markers and word
-# caps, and the imperative-title rule — ships as the `mindtape-tasks` pack
-# (`crates/mindtape/src/packs/mindtape-tasks.toml`) rather than living here by
+# caps, and the imperative-title rule — ships as the `mindtape:tasks` pack
+# (`crates/mindtape/src/packs/tasks.toml`) rather than living here by
 # hand. What stays local is only what is true of THIS repo: goal verdicts
 # (the `goals` rule, below) and an extra `Dogfood` section the pack has no
 # opinion on — see the `section-allowlist` override further down for how.
 # docs:slice packs/extends
-extends = ["mindtape-tasks"]
+extends = ["mindtape:tasks"]
 # docs:end
 
 [tasks]
@@ -251,7 +251,7 @@ allowed = [
   # A task the ADR process retired into: an architectural or tooling call
   # settled in the body, with no code deliverable of its own — see
   # Extending Mindtape in CONTRIBUTING.md. `flip-with-work`
-  # (mindtape-tasks) reads it to let one close in a task-only commit,
+  # (`mindtape:tasks`) reads it to let one close in a task-only commit,
   # `staged(has_tag("decision"))`, an exemption from riding its close in
   # the work it names, as a milestone's is.
   "decision",
@@ -336,7 +336,7 @@ policy = "forbid"
 
 # Every open task is one spec in the pack's six sections (Problem, TO-BE,
 # Changes, Out of scope, plus its kind's own section) — see
-# `crates/mindtape/src/packs/mindtape-tasks.toml` for the shape and the
+# `crates/mindtape/src/packs/tasks.toml` for the shape and the
 # research it is checked against. Goal verdicts sit beside status and links
 # instead, in `x-goals:` (see the `goals` rule below): one verdict per goal
 # in truth/goals.typ and truth/process-goals.typ, checked by

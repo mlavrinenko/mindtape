@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 26),
+  status: done(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ")
     + depends-on(
       "ship-the-shared-practice-as-official-mindtape-packs.typ",
@@ -48,13 +48,13 @@ extends = ["mindtape:tasks", "./team.toml"]
 ```
 
 - 🟢 An entry with a `/` is a path. Any other entry must be `<source>:<pack>`, and `mindtape` is the one source known without a declaration.
-- 🟢 `mindtape-tasks` is refused as unknown, with `mindtape:tasks` as the suggestion. An unknown `<pack>` lists what the source holds.
-- 🟢 The pack file moves to `crates/mindtape/src/packs/tasks.toml`. Every tool that lists pack files globs `crates/mindtape/src/packs/*.toml`, and the docs generator copies each pack to `www/generated/packs/<pack>.toml`, so a new pack needs no edit outside its own file and the registry.
+- 🟢 `mindtape-tasks` is refused as unknown, with `mindtape:tasks` as the suggestion. An unknown `<pack>` lists what the source holds. A source other than `mindtape` is refused as an unknown pack source, listing the known sources.
+- 🟢 The pack file moves to `crates/mindtape/src/packs/tasks.toml`. The mmz scopes and outdatty sources glob `crates/mindtape/src/packs/*.toml`, and the docs generator copies each pack to `www/generated/packs/<pack>.toml`, so a new pack needs no edit outside its own file, the registry and `TOML_FMT_PATHS`.
 
 
 == Changes
 
-- `crates/mindtape/src/config/packs_tests.rs`: the red tests first: `mindtape:tasks` resolves, `mindtape-tasks` and `mindtape:nope` fail with their suggestions.
+- `crates/mindtape/src/config/packs_tests_extends.rs`: the red tests first: `mindtape:tasks` resolves, `mindtape-tasks` and `mindtape:nope` fail with their suggestions.
 - `crates/mindtape/src/config/pack_resolve.rs`: split an entry into source and pack.
 - `crates/mindtape/src/config/pack_registry.rs` (new): move `EMBEDDED_PACKS` and the origin types out of `packs.rs`, keyed by pack name under the `mindtape` source, so `packs.rs` keeps room under its 500-line cap for the leaves after this one.
 - `crates/mindtape/src/config/packs.rs`: read the registry from there. `crates/mindtape/src/lib.rs`: re-export the origin types from their new file.
@@ -62,7 +62,7 @@ extends = ["mindtape:tasks", "./team.toml"]
 - `schema/config.schema.json`: regenerate.
 - `crates/mindtape/src/packs/mindtape-tasks.toml`: move to `tasks.toml`.
 - `.mindtape/config.toml`, `examples/api-service/.mindtape/config.toml`: `extends = ["mindtape:tasks"]`.
-- `Justfile` (`TOML_FMT_PATHS`), `.mmz/config.yaml`: glob the pack files.
+- `.mmz/config.yaml`, `.config/outdatty.yaml`: glob the pack files. `Justfile` (`TOML_FMT_PATHS`): name `tasks.toml`, since `meta::gate-drift` compares that list with the TOML files git knows and refuses a glob.
 - `www/generate-packs.sh`, `www/utils/recipes.typ`: copy and read every pack from `www/generated/packs/`.
 - `.config/outdatty.yaml`, `.githooks/commit-msg`, `.just/scripts/check-doc-prose.sh`, `www/utils/demo.typ`, `crates/mindtape-cli/src/cmd/config.rs`: the new name and path.
 - `www/content/*.typ`, `docs/src/**/*.typ`, `skills/mindtape/references/filters.md`: the new name.

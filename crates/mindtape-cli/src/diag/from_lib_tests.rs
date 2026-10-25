@@ -387,14 +387,14 @@ fn a_breach_renders_its_place_rule_and_message() {
     );
     violation.severity = Severity::Warn;
     violation.location = Location::Pack {
-        pack: "mindtape-tasks".to_owned(),
+        pack: "mindtape:tasks".to_owned(),
         line: 3,
     };
     let warned = Diag::from(&violation);
     assert_eq!(warned.kind(), Kind::Warning);
     assert_eq!(
         line(&warned),
-        "warning: pack mindtape-tasks:3: rules.one-wip: finish the task in progress"
+        "warning: pack mindtape:tasks:3: rules.one-wip: finish the task in progress"
     );
     for (template, place) in [
         (Some("task"), "<new task from template 'task'>:2"),

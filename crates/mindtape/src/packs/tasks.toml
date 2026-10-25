@@ -1,6 +1,6 @@
-# mindtape-tasks — the flagship task practice as a rule pack.
+# mindtape:tasks — the flagship task practice as a rule pack.
 #
-# `extends = ["mindtape-tasks"]` in any config layer gives a repo the shape
+# `extends = ["mindtape:tasks"]` in any config layer gives a repo the shape
 # Mindtape's own backlog is written in: every open task is one spec in a
 # closed set of sections, in a fixed order, each with markers and caps that
 # make it skimmable and reproducible without a template a human has to copy

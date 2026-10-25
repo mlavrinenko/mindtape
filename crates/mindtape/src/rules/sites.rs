@@ -13,7 +13,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use crate::config::layers::LayerSource;
-use crate::config::packs::{PackOrigin, RuleOrigin, RuleOriginEntry};
+use crate::config::pack_registry::{PackOrigin, RuleOrigin, RuleOriginEntry};
 use crate::validate::violation::Location;
 
 /// The label prefix of the `[[tasks.rules]]` entries in a rule origin record.

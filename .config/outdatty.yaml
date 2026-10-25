@@ -915,7 +915,7 @@ groups:
 
   # Each page in the docs site's Recipes group explains, in prose, one block
   # of examples/api-service's config, the session generate-api-service.sh
-  # records for it, and the mindtape-tasks rules that block adopts. The config
+  # records for it, and the mindtape:tasks rules that block adopts. The config
   # and the session render from generated facts, so only that prose can drift.
   # The skill's evals state the fixture's task counts and ready order by hand,
   # so any file under the fixture is a source; crates/mindtape-cli/tests/it/
@@ -924,7 +924,7 @@ groups:
     source:
       - examples/api-service/**
       - www/generate-api-service.sh
-      - crates/mindtape/src/packs/mindtape-tasks.toml
+      - crates/mindtape/src/packs/*.toml
     dependents:
       - www/content/split-oversized-tasks.typ
       - www/content/require-a-task-shape.typ

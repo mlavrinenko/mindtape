@@ -21,7 +21,7 @@ made. #link(u("/trace-commits-to-tasks/"))[Trace commits to tasks]
 walks through the whole setup, from a refused commit to `touches()`.
 
 The examples run in a git copy of `examples/rules/`, whose config holds the
-three commit rules below. The rules the `mindtape-tasks` pack ships,
+three commit rules below. The rules the `mindtape:tasks` pack ships,
 `work-names-a-task`, `no-unsquashed-fixup`, `flip-with-work` and
 `named-tasks-finish-at-the-tip`, are
 listed on
@@ -113,7 +113,7 @@ A breach names the message file and the rule. Here a migration has no
 #terminal("commit-scope-breach")
 
 `subject` is also how a rule exempts a commit autosquash will drop. The
-`mindtape-tasks` pack's `work-names-a-task` adds
+`mindtape:tasks` pack's `work-names-a-task` adds
 `!matches(subject, "^(fixup|squash|amend)! ")` to its `when`, so a
 `git commit --fixup` needs no `Refs:`. The pack's `no-unsquashed-fixup` is
 the other half. It reads `in_range`, so the hook lets a fixup through and
@@ -159,7 +159,7 @@ nobody reading the rule could tell which state it means.
 `into("s")` means `staged(status == "s") && !head(status == "s")`: the commit
 moves the task into status `s`.
 
-The `mindtape-tasks` pack's `flip-with-work` uses `retires_other` so that a
+The `mindtape:tasks` pack's `flip-with-work` uses `retires_other` so that a
 cleanup task closes in the commit that runs `mt rm` on other tasks, though
 that commit stages nothing but task files. It also lets a task of
 `kind: "milestone"` close alone, because a milestone ends through its leaves
@@ -178,7 +178,7 @@ the range's newest commit, the tip, holds it. Only `mt check --commits` runs
 it, since `mt check --commit-msg` checks one commit with no range. A tip rule
 is an ordinary #link(u("/filters/"))[filter expression], like a
 `[[tasks.rules]]` one: `status`, `ready` and `count(...)` read the tip's tasks,
-and there are no commit fields or state wrappers. The `mindtape-tasks` pack
+and there are no commit fields or state wrappers. The `mindtape:tasks` pack
 ships `named-tasks-finish-at-the-tip`, which asserts `!(status == "wip")`, and
 the config above has the same rule as `finish-named-tasks`. A task named in several commits is checked once, and a
 breach leads with the tip's id and names the task. Here a branch starts a task

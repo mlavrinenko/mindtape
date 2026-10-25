@@ -109,7 +109,7 @@ pub(crate) fn render_effective(root: &Path, json: bool) -> Result<String> {
 /// Render the contributing layers for `root`, one per line, in the same
 /// precedence order [`load_config_layered`] returns them — followed, when any
 /// of the three rule arrays merged in a pack, by one `rule <label>: <origin>`
-/// line per rule naming the pack (`pack mindtape-tasks` / `pack <path>`) or
+/// line per rule naming the pack (`pack mindtape:tasks` / `pack <path>`) or
 /// the layer it came from.
 ///
 /// # Errors

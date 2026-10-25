@@ -2289,7 +2289,7 @@
     },
     "extends": {
       "default": [],
-      "description": "Rule packs this config builds on, in any config layer. A name with the\nreserved `mindtape-` prefix and no path separator is a pack built into\n`mt`. Anything with a path separator is a TOML pack file, relative to\nthe file that declares it. A pack adds entries to `[[tasks.rules]]`,\n`[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]`,\n`[[commits.rules]]` and `[dicts]`, ahead of this layer's own. A rule in\nthis layer replaces a pack rule with the same name.",
+      "description": "Packs this config builds on, in any config layer. An entry with a path\nseparator is a TOML pack file, relative to the file that declares it.\nAny other entry is `<source>:<pack>`, and `mindtape` is the one source\nknown without a declaration: `mindtape:tasks` is a pack built into\n`mt`. A pack adds entries to `[[tasks.rules]]`,\n`[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]`,\n`[[commits.rules]]` and `[dicts]`, ahead of this layer's own. A rule in\nthis layer replaces a pack rule with the same name.",
       "items": {
         "type": "string"
       },

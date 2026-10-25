@@ -6,7 +6,7 @@ use std::path::Path;
 
 use super::RuleSites;
 use crate::config::layers::{LayerSource, load_config_layered_from};
-use crate::config::packs::{PackOrigin, RuleOrigin, RuleOriginEntry};
+use crate::config::pack_registry::{PackOrigin, RuleOrigin, RuleOriginEntry};
 use crate::rules::check_all;
 use crate::test_support::bare_task;
 use crate::validate::severity::Severity;
@@ -80,12 +80,12 @@ fn a_rule_the_project_overrides_by_name_is_located_where_it_won() {
 fn a_built_in_pack_rule_is_located_by_pack_name_and_line() {
     let entry = RuleOriginEntry {
         label: "tasks.rules.imperative-title".to_owned(),
-        origin: RuleOrigin::Pack(PackOrigin::Embedded("mindtape-tasks".to_owned())),
+        origin: RuleOrigin::Pack(PackOrigin::Embedded("mindtape:tasks".to_owned())),
         line: Some(17),
     };
     let sites = RuleSites::from_origins(&[entry], Path::new("/project"));
     let site = sites.get("rules.imperative-title").unwrap();
-    assert_eq!(site.to_string(), "pack mindtape-tasks:17");
+    assert_eq!(site.to_string(), "pack mindtape:tasks:17");
     assert_eq!(site.file(), None);
 }
 

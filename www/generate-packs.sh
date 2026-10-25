@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# www/generate-packs.sh — capture the `mindtape-tasks` pack, this repo's
+# www/generate-packs.sh — capture every built-in pack, this repo's
 # own `mt config show --origin`, and three configs `mt` refuses, for
 # /packs/.
 #
@@ -22,10 +22,11 @@ REPO="$1"
 OUT="$2"
 MT="$REPO/target/debug/mt"
 
-# The pack file itself, copied verbatim so the page can read() it under
-# www's --root (same reason generate.sh copies hero-source.typ/template.typ
-# out of examples/api-service instead of reading them in place).
-cp "$REPO/crates/mindtape/src/packs/mindtape-tasks.toml" "$OUT/mindtape-tasks-pack.toml"
+# Every pack file, copied verbatim to packs/<pack>.toml so a page can read()
+# it under www's --root (same reason generate.sh copies hero-source.typ and
+# template.typ out of examples/api-service instead of reading them in place).
+mkdir -p "$OUT/packs"
+cp "$REPO"/crates/mindtape/src/packs/*.toml "$OUT/packs/"
 
 # shellcheck source=www/capture.sh
 source "$REPO/www/capture.sh"
@@ -44,9 +45,9 @@ refused() { # <slug> <expect> <show-command> <file=content>...
   capture --exit 1 --expect "$expect" "$slug" "$dir" 'mt check'
 }
 refused packs-unknown 'unknown pack' 'cat .mindtape/config.toml' \
-  $'.mindtape/config.toml=extends = ["mindtape-task"]\n'
+  $'.mindtape/config.toml=extends = ["mindtape:task"]\n'
 refused packs-shape 'may not declare' 'head .mindtape/config.toml team.toml' \
   $'.mindtape/config.toml=extends = ["./team.toml"]\n' \
   $'team.toml=[[tasks.rules]]\nname = "has-owner"\nassert = "has(assignee)"\nmessage = "name an owner"\n\n[tasks.priority]\nmax = 5\n'
 refused packs-disable 'no rule named' 'cat .mindtape/config.toml' \
-  $'.mindtape/config.toml=extends = ["mindtape-tasks"]\ndisable = ["imperative-titles"]\n'
+  $'.mindtape/config.toml=extends = ["mindtape:tasks"]\ndisable = ["imperative-titles"]\n'

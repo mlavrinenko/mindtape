@@ -1,4 +1,4 @@
-//! End-to-end proof that the embedded `mindtape-tasks` pack, extended alone
+//! End-to-end proof that the embedded `mindtape:tasks` pack, extended alone
 //! (no local rules layered over it), enforces the task practice it ships:
 //! a well-formed six-section body passes every header/content rule the pack
 //! declares, and an empty body — the task's own Problem step — is refused.
@@ -13,15 +13,15 @@ use crate::config::layers::load_config_layered_from;
 use crate::test_support::{bare_task, home_and_project};
 
 /// Build the typed [`crate::config::Config`] a project whose ONLY
-/// `.mindtape/config.toml` content is `extends = ["mindtape-tasks"]` would
-/// load — against the real [`super::EMBEDDED_PACKS`], not a fixture
+/// `.mindtape/config.toml` content is `extends = ["mindtape:tasks"]` would
+/// load — against the real [`crate::config::pack_registry::EMBEDDED_PACKS`], not a fixture
 /// registry, so this proves the pack actually shipped, not just that the
 /// merge mechanism works.
 fn config_extending_the_real_pack() -> (tempfile::TempDir, crate::config::Config) {
     let (tmp, home, project) = home_and_project();
     std::fs::write(
         project.join(".mindtape").join("config.toml"),
-        "extends = [\"mindtape-tasks\"]\n",
+        "extends = [\"mindtape:tasks\"]\n",
     )
     .unwrap();
 
@@ -44,7 +44,7 @@ fn violations_for(config: &crate::config::Config, source: &str) -> Vec<crate::va
 }
 
 /// A body carrying every section the pack's practice asks for, in the order
-/// it asks for it, each with its markers — the shape `mindtape-tasks`
+/// it asks for it, each with its markers — the shape `mindtape:tasks`
 /// exists to require — passes clean under the pack alone.
 #[test]
 fn a_well_formed_body_passes_under_the_pack_alone() {
