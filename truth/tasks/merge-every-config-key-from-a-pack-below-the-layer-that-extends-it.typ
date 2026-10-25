@@ -54,11 +54,12 @@ framework = "ice"
 - 🟢 Two packs in one `extends` that set one value differently fail, naming the dotted key and both packs. Equal values, such as one `[dicts.source]` in two packs, agree.
 - 🟢 A pack declaring `extends`, `disable`, `tasks.roots`, `templates.dirs` or `[typst]` fails, naming the pack and the key.
 - 🟢 Rule arrays merge as before.
+- 🟢 A pack's `[go]` or `[add]` editor is listed by `allow::commands`, so it waits for `mt allow` like the project's own.
 
 
 == Changes
 
-- `crates/mindtape/src/config/packs_tests.rs`: the red tests first, one per TO-BE bullet.
+- `crates/mindtape/src/config/packs_tests.rs`: the red tests first, one per TO-BE bullet. `crates/mindtape/src/allow_tests.rs` gets the editor one: the gate reads the merged config, so it needs no code, only the test, which can't be written until a pack may carry `[go]`.
 - `crates/mindtape/src/config/pack_resolve.rs`: replace the allow-list in `validate_pack_shape` with the deny-list above.
 - `crates/mindtape/src/config/packs.rs`: fold each layer's packs into one sub-layer, with the conflict check, and merge it below the layer.
 - `crates/mindtape/src/config/mod.rs`: the `extends` field doc on what a pack may hold.
