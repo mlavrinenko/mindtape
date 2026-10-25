@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# www/generate-rule-packs.sh — capture the `mindtape-tasks` pack, this repo's
+# www/generate-packs.sh — capture the `mindtape-tasks` pack, this repo's
 # own `mt config show --origin`, and three configs `mt` refuses, for
-# /rule-packs/.
+# /packs/.
 #
 # Split out of www/generate.sh (which calls this, still inside the lock it
 # already holds) under the same 300-line Shell cap that split off
@@ -30,7 +30,7 @@ cp "$REPO/crates/mindtape/src/packs/mindtape-tasks.toml" "$OUT/mindtape-tasks-pa
 # shellcheck source=www/capture.sh
 source "$REPO/www/capture.sh"
 capture_init
-capture rule-packs-origin "$REPO" 'mt config show --origin'
+capture packs-origin "$REPO" 'mt config show --origin'
 
 # Three projects whose config names a pack `mt` refuses. Each record shows the
 # config, then the refusal, which must match <expect>.
@@ -43,10 +43,10 @@ refused() { # <slug> <expect> <show-command> <file=content>...
   capture "$slug" "$dir" "$show"
   capture --exit 1 --expect "$expect" "$slug" "$dir" 'mt check'
 }
-refused rule-packs-unknown 'unknown pack' 'cat .mindtape/config.toml' \
+refused packs-unknown 'unknown pack' 'cat .mindtape/config.toml' \
   $'.mindtape/config.toml=extends = ["mindtape-task"]\n'
-refused rule-packs-shape 'may not declare' 'head .mindtape/config.toml team.toml' \
+refused packs-shape 'may not declare' 'head .mindtape/config.toml team.toml' \
   $'.mindtape/config.toml=extends = ["./team.toml"]\n' \
   $'team.toml=[[tasks.rules]]\nname = "has-owner"\nassert = "has(assignee)"\nmessage = "name an owner"\n\n[tasks.priority]\nmax = 5\n'
-refused rule-packs-disable 'no rule named' 'cat .mindtape/config.toml' \
+refused packs-disable 'no rule named' 'cat .mindtape/config.toml' \
   $'.mindtape/config.toml=extends = ["mindtape-tasks"]\ndisable = ["imperative-titles"]\n'

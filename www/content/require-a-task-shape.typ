@@ -43,14 +43,14 @@ fills in. `mt add` refuses a fill that leaves a slot out, and the pack's rules
 refuse one left empty. `mt add --describe` lists the slots, each with a prompt
 and an example. #link(u("/templates/"))[Templates & slots] covers both.
 
-`extends` adopts the `mindtape-tasks` #link(u("/rule-packs/"))[rule pack], a
+`extends` adopts the `mindtape-tasks` #link(u("/packs/"))[rule pack], a
 set of rules that ships with `mt`. Its rules require Problem, TO-BE, Changes
 and Out of scope, in that order, plus one more section for some kinds, like
 Environment for a `fix`. The Problem must be numbered steps, with 🔴
 on the step that shows the bug. Each TO-BE bullet opens with 🟢, and each
 Changes bullet names a file. A question left in TO-BE, Changes or Out of scope
 fails, so ask it before you file, while a `?` in code passes. If you edit a task
-by hand, `mt check` runs the same rules on it. #link(u("/rule-packs/"))[Rule
+by hand, `mt check` runs the same rules on it. #link(u("/packs/"))[Rule
   packs] lists every rule in the pack and shows how to drop one, and
 #link(u("/rules/"))[Rules] covers body rules.
 

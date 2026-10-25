@@ -9,7 +9,7 @@
 # hand. What stays local is only what is true of THIS repo: goal verdicts
 # (the `goals` rule, below) and an extra `Dogfood` section the pack has no
 # opinion on — see the `section-allowlist` override further down for how.
-# docs:slice rule-packs/extends
+# docs:slice packs/extends
 extends = ["mindtape-tasks"]
 # docs:end
 
@@ -352,7 +352,7 @@ policy = "forbid"
 # that mechanism: an adopting repo with its own extra section copies this
 # shape; one it wants gone entirely reaches for `disable = ["<name>"]`
 # instead.
-# docs:slice rule-packs/section-allowlist
+# docs:slice packs/section-allowlist
 [[tasks.body.headers.rules]]
 name = "section-allowlist"
 action = "allowlist"

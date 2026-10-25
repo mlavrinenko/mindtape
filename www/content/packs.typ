@@ -4,9 +4,9 @@
 #import "../utils/slices.typ": checked-slices, render-slices
 
 #let meta = (
-  route: "/rule-packs/",
-  label: "Rule packs",
-  title: "Rule packs",
+  route: "/packs/",
+  label: "Packs",
+  title: "Packs",
   summary: "How a project adopts, overrides and drops rule packs, and every rule the `mindtape-tasks` pack ships.",
 )
 #metadata(meta) <page-meta>
@@ -36,8 +36,8 @@ pack's rule, it replaces that rule where the pack put it. #mindtape's own
 )
 
 #let slices = checked-slices(
-  json("../generated/rule-packs-config.json"),
-  "rule-packs-config",
+  json("../generated/packs-config.json"),
+  "packs-config",
   parts.map(p => p.at(0)),
 )
 
@@ -59,7 +59,7 @@ refuses a pack that declares anything else, `extends` included, and names the
 pack and the key. A pack can't extend another pack, so there's only ever one
 level to resolve.
 
-#terminal("rule-packs-shape")
+#terminal("packs-shape")
 
 = Where a pack comes from
 
@@ -67,7 +67,7 @@ An `extends` entry with no `/` in it names a pack built into `mt`. Names that
 start with `mindtape-` are kept for these, and `mindtape-tasks` is the only
 one. `mt` refuses an unknown name and lists the packs it has:
 
-#terminal("rule-packs-unknown")
+#terminal("packs-unknown")
 
 An entry with a `/` is a path to a TOML file, like `./team.toml` above. A
 path is relative to the directory two levels above the config file that names
@@ -88,7 +88,7 @@ rule from any of the four arrays, whichever pack or layer declared it. A name
 that matches no rule is a config error, so a typo can't leave a rule
 running:
 
-#terminal("rule-packs-disable")
+#terminal("packs-disable")
 
 = Merge order
 
@@ -107,7 +107,7 @@ the layers that contributed, then one line per rule in merge order:
 layer (`embedded`, `xdg`, `dir` or `project`), or `pack <name>` for a pack.
 Here's the output in the #mindtape repository:
 
-#terminal("rule-packs-origin")
+#terminal("packs-origin")
 
 Every rule from `mindtape-tasks` reads `pack mindtape-tasks`, except
 `section-allowlist`, which reads `project` because the project's rule replaced

@@ -35,7 +35,7 @@ refuses a commit without a `Refs:` trailer and accepts it with one, and
 `[commits] trailer` names the trailer that holds task stems. A stem is the
 task's file name without `.typ`, as #link(u("/concepts/#identity"))[Concepts]
 explains. The project also extends the `mindtape-tasks`
-#link(u("/rule-packs/"))[rule pack], as
+#link(u("/packs/"))[rule pack], as
 #link(u("/require-a-task-shape/"))[Require a task shape] shows. The pack's
 `work-names-a-task` rule refuses a commit that names no task, unless the
 commit changes only task files or starts with `fixup!`, `squash!` or `amend!`.
@@ -43,7 +43,7 @@ The pack's `no-unsquashed-fixup` rule refuses such a commit once it sits in a
 range, so `mt check --commits` catches a fixup nobody squashed.
 `mt check --commit-msg` also refuses a stem
 that no task has. #link(u("/commit-rules/"))[Commit rules] covers the rule
-fields, and #link(u("/rule-packs/"))[Rule packs] shows how to drop the rule.
+fields, and #link(u("/packs/"))[Rule packs] shows how to drop the rule.
 
 Anyone can skip a hook with `--no-verify`, so run `mt check --commits` in CI
 on the commits a push carries. #link(u("/commit-rules/"))[Commit rules] shows

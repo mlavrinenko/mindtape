@@ -6,7 +6,7 @@
 `mt rules` lists every rule your project checks, one line each. A line holds
 the rule's severity, its name as `mt config show --origin` prints it, and the
 message a breach prints. It lists what's left after packs, overrides and
-`disable`, so a project that extends a #link(u("/rule-packs/"))[rule pack]
+`disable`, so a project that extends a #link(u("/packs/"))[rule pack]
 sees the rules it actually got. A flip action that carries a `message` shows
 up too, named by its place in `[[on.flip]]`.
 

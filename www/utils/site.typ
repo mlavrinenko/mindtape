@@ -137,7 +137,7 @@
   ),
   (
     title: "Checks",
-    items: ("/rules/", "/rule-packs/", "/commit-rules/", "/hooks/"),
+    items: ("/rules/", "/packs/", "/commit-rules/", "/hooks/"),
   ),
   (
     title: "Reference",

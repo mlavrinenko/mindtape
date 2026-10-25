@@ -372,7 +372,7 @@ groups:
     dependents:
       - www/content/cli/rules.typ
       - www/content/rules.typ
-      - www/content/rule-packs.typ
+      - www/content/packs.typ
       - www/content/agents.typ
       - docs/src/skill.typ
 
@@ -478,7 +478,7 @@ groups:
       - www/content/named-sets.typ
       - www/content/start-titles-with-a-verb.typ
       - www/content/filters.typ
-      - www/content/rule-packs.typ
+      - www/content/packs.typ
       - skills/mindtape/references/filters.md
 
   # What `ready` and `blocked` mean once a `waits-on` checker can block a task.

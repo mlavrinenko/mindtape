@@ -40,7 +40,7 @@
 #   # docs:end
 #
 # The fact name rides in the marker here because one config file feeds several
-# pages — the repo's own carries /hooks/'s run-less gate and /rule-packs/'s
+# pages — the repo's own carries /hooks/'s run-less gate and /packs/'s
 # adopt block — where a task-slice fixture is one project per page and can take its
 # name from the directory. Each fact lands at <fact>-config.json, shaped like a
 # task fact minus `root`: one fact's slices may come from two projects, so the
@@ -172,7 +172,7 @@ CONFIG_SOURCES=(
 # `api-service` holds the recipe slices. The Recipes pages render them
 # through www/utils/recipes.typ, and generate-api-service.sh reads the same
 # markers to require a session for each.
-CONFIG_FACTS=(across-projects api-service commit-rules config derived-tags estimates hooks links named-sets priority rule-packs rules self-validating shipped-board statuses)
+CONFIG_FACTS=(across-projects api-service commit-rules config derived-tags estimates hooks links named-sets priority packs rules self-validating shipped-board statuses)
 
 # Same two-pass shape as slice_fixture: awk writes each slice to its own temp
 # file and one index row per slice, then jq builds the JSON with --rawfile so

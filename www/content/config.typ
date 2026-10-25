@@ -48,12 +48,12 @@ value, so `[tasks] status = []` leaves the status field unconstrained.
 The four rule arrays work differently. `[[tasks.rules]]`,
 `[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]` and
 `[[commits.rules]]` collect the entries of every layer and of every
-#link(u("/rule-packs/"))[rule pack] a layer adopts. An entry replaces a lower
+#link(u("/packs/"))[rule pack] a layer adopts. An entry replaces a lower
 layer's entry with the same `name`, in its place, so you can change one
 inherited rule and keep the rest. Two entries with the same `name` in one
 layer's array are a config error that names both. `extends` and `disable`,
 which adopt a rule pack and drop a rule, are on
-#link(u("/rule-packs/"))[Rule packs].
+#link(u("/packs/"))[Rule packs].
 
 Write a rule's `message` as the next step: an imperative in lower case, with no
 trailing period or em dash, such as `move Environment after Problem`. `mt check`
@@ -224,7 +224,7 @@ These sections have a page of their own:
 - `[[on.flip]]`: #link(u("/hooks/"))[Flip hooks].
 - `[[tasks.waits]]`: #link(u("/wait-on-upstream/"))[Wait on upstream].
 - `[templates]` and `[add]`: #link(u("/templates/"))[Templates & slots].
-- `extends` and `disable`: #link(u("/rule-packs/"))[Rule packs].
+- `extends` and `disable`: #link(u("/packs/"))[Rule packs].
 - `[commits]`: #link(u("/commit-rules/"))[Commit rules].
 - `[ls]` and `[rm]` filters: #link(u("/filters/"))[Filter language].
 - `[[ls.rules]]`, `[ls.columns.<name>]` and `[ls] hyperlinks`:

@@ -249,7 +249,7 @@ groups:
       docs/src/skill.typ: 920c27780c83ec9565ed73f25152afb80703c2bc3dfc2950620d3b6392e4f221
       www/content/agents.typ: f0240344a64911b167203d705e4a679fe6d64fb4e5d0824af52d68588ff71648
       www/content/cli/rules.typ: 924e0ed9b83fc105b1d2f50b292e3195d14ab020d12ac5c84c47def7a2dfbaad
-      www/content/rule-packs.typ: 15de8f4b616f2762018daab5ac99ca0015ceabe18efa7acca9e9c45ed0425db2
+      www/content/packs.typ: 855a2717a2a315497a071e96120c7c73ba54c507756f8c75a1ac769e5f33f69f
       www/content/rules.typ: d5a3fa7c056cea8ad040eb900aa2415eac621fbb0e16bfb2cc6856967c51be41
   cli-set-docs:
     source:
@@ -336,7 +336,7 @@ groups:
       skills/mindtape/references/filters.md: fd1ba6f38dc7107f143ab77f150bc6d412c155cbc7627bece961c4a40f9b318a
       www/content/filters.typ: 1653273378d328a6c0060bf66b9524dcc04c4c77b08398c7947b93b6f37cab1b
       www/content/named-sets.typ: 32193f399664b8339c9a9ace4e614ed26f8fa1e742f4887df0d632c7b4b38720
-      www/content/rule-packs.typ: 15de8f4b616f2762018daab5ac99ca0015ceabe18efa7acca9e9c45ed0425db2
+      www/content/packs.typ: 855a2717a2a315497a071e96120c7c73ba54c507756f8c75a1ac769e5f33f69f
       www/content/start-titles-with-a-verb.typ: 866a1925b639e28e3c716dd815d5973c5197d38f1faed4c042dde9e0825a859d
   doc-gate-scripts-docs:
     source:

@@ -31,7 +31,7 @@
   raw(code, lang: "toml", block: true)
 }
 
-// www/generate-rule-packs.sh copies the mindtape-tasks pack here verbatim.
+// www/generate-packs.sh copies the mindtape-tasks pack here verbatim.
 #let _pack-text = read("../generated/mindtape-tasks-pack.toml")
 #let _pack = toml(bytes(_pack-text))
 

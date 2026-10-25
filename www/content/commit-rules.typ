@@ -25,7 +25,7 @@ three commit rules below. The rules the `mindtape-tasks` pack ships,
 `work-names-a-task`, `no-unsquashed-fixup`, `flip-with-work` and
 `named-tasks-finish-at-the-tip`, are
 listed on
-#link(u("/rule-packs/"))[Rule packs].
+#link(u("/packs/"))[Rule packs].
 
 #let parts = (
   ("trailer", "the trailer that names tasks"),
@@ -120,7 +120,7 @@ the other half. It reads `in_range`, so the hook lets a fixup through and
 `mt check --commits` refuses one that nobody squashed.
 
 Rules merge by `name` across #link(u("/config/#layers"))[config layers] and
-#link(u("/rule-packs/"))[rule packs], like `[[tasks.rules]]`. To replace a
+#link(u("/packs/"))[rule packs], like `[[tasks.rules]]`. To replace a
 pack's rule, declare one with its name. To drop it, use `disable`.
 
 = Task scope

@@ -136,7 +136,7 @@ bash "$SCRIPT_DIR/generate-release-targets.sh" "$REPO" "$OUT"
 
 # More captures and the fixture slices, each in its own script so this file
 # stays under the Shell cap.
-bash "$SCRIPT_DIR/generate-self-validating.sh" "$REPO" "$OUT"; bash "$SCRIPT_DIR/generate-rule-packs.sh" "$REPO" "$OUT"; bash "$SCRIPT_DIR/generate-examples.sh" "$REPO" "$OUT"
+bash "$SCRIPT_DIR/generate-self-validating.sh" "$REPO" "$OUT"; bash "$SCRIPT_DIR/generate-packs.sh" "$REPO" "$OUT"; bash "$SCRIPT_DIR/generate-examples.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-config-runs.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-guides.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-model.sh" "$REPO" "$OUT"
