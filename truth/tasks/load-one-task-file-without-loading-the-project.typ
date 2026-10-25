@@ -39,15 +39,24 @@
 
 == TO-BE
 
-- 🟢 `mindtape::load_one(root, config, path)` returns that one task, or the warning that kept it from loading, through the same content-hash cache `load_project` uses.
-- 🟢 Fields that need the whole set (`topo`, `blocks`, `children`, `progress`) are absent on a task `load_one` returns, and its docs say so.
+```rust
+pub fn load_one(root: &Path, config: &Config, path: &Path) -> Result<Option<Task>, LoadError>
+```
+
+- 🟢 A valid task file gives `Ok(Some(task))`, read through the same content-hash cache `load_project` uses, with its waits annotated as `load_project` does. Its core fields equal the same file's task out of `load_project`.
+- 🟢 A file with no `task.with` gives `Ok(None)`, since `load_project` skips it silently.
+- 🟢 A load failure gives `Err(LoadError)`, the same error `load_project` lists for that file.
+- 🟢 A path outside every configured root gives `Err(LoadError)` naming the path, because such a file would get no folder tags and so differ from its `load_project` task.
+- 🟢 Fields that need the whole set (`topo`, `blocks`, `children`, `progress`) stay empty on the task, and the docs on `load_one` say so.
 
 
 == Changes
 
-- `crates/mindtape/src/loader/tests.rs`: the red test first, `load_one` returning the same core fields `load_project` gives that file, and a warning for a file that is not a task.
+- `crates/mindtape/src/loader/tests.rs`: the red test first, one case each for a valid task, a file with no `task.with`, a load failure and a path outside the roots, plus core-field equality with `load_project` for the same file.
 - `crates/mindtape/src/loader/mod.rs`: `load_one`, sharing the overrides, the cache lookup and the harvest of a miss with `load_project`.
+- `crates/mindtape/src/loader/many.rs`: rename its private `load_one(root)` to `load_root`.
 - `crates/mindtape/src/lib.rs`: re-export `load_one`.
+- `CHANGELOG.md`: an entry under `[Unreleased]`.
 
 
 == Alternatives
