@@ -17,6 +17,7 @@ fn breach_at(field: &str, line: usize) -> Violation {
         kind: crate::validate::violation::ViolationKind::Other,
         reads: None,
         unknown: None,
+        detail: None,
         dict_miss: None,
     }
 }

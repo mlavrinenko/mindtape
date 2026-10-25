@@ -371,6 +371,7 @@ pub(super) fn breach() -> Violation {
         kind: ViolationKind::default(),
         reads: None,
         unknown: None,
+        detail: None,
         dict_miss: None,
     }
 }

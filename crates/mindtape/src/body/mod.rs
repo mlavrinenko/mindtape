@@ -56,6 +56,7 @@ pub(crate) fn body_violation(
         kind: ViolationKind::Other,
         reads: reads_of(when),
         unknown: None,
+        detail: None,
         dict_miss: None,
     }
 }

@@ -164,6 +164,7 @@ fn breach(home: TemplateHome<'_>, line: usize, message: String) -> Violation {
         kind: crate::validate::violation::ViolationKind::Other,
         reads: Some(std::collections::BTreeSet::new()),
         unknown: None,
+        detail: None,
         dict_miss: None,
     }
 }

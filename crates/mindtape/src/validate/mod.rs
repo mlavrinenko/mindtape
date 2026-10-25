@@ -131,6 +131,7 @@ fn check_id_uniqueness(tasks: &[Task], out: &mut Vec<Violation>) {
                 kind: crate::validate::violation::ViolationKind::Other,
                 reads: Some(crate::validate::violation::reads_of_field("id")),
                 unknown: None,
+                detail: None,
                 dict_miss: None,
             });
         } else {
@@ -183,6 +184,7 @@ pub(crate) fn violation(task: &Task, field: &str, message: String) -> Violation 
         kind: crate::validate::violation::ViolationKind::Other,
         reads: Some(crate::validate::violation::reads_of_field(field)),
         unknown: None,
+        detail: None,
         dict_miss: None,
     }
 }

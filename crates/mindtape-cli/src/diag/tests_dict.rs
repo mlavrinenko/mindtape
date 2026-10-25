@@ -8,6 +8,7 @@ use super::{Diag, assert_plain};
 /// A breach of `rules.one-wip` whose `in_dict()` missed `Rote` in `verbs`.
 fn breach(nearest: &[&str]) -> Violation {
     Violation {
+        detail: None,
         dict_miss: Some(DictMiss {
             dict: "verbs".to_owned(),
             word: "Rote".to_owned(),

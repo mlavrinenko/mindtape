@@ -219,7 +219,12 @@ down to the next heading of the same or a higher level, subsections included.
 `mt` refuses a write that breaks a body rule, the same as a field rule.
 `mt check` reports a body violation at the heading's line, or at the
 `task.with(…)` line if a required section is missing, named
-`body.headers.rules.<name>` or `body.content.rules.<name>`.
+`body.headers.rules.<name>` or `body.content.rules.<name>`. A content rule's
+`message` takes the line, and the check's own words move to a `note:` under it,
+so you still see which paragraph or sentence broke the rule. `--json` lists them
+in `notes`.
+
+#terminal("rules-content-detail")
 
 = Review comments
 

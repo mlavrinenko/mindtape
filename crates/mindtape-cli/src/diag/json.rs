@@ -8,8 +8,8 @@ use super::{Diag, render};
 impl Diag {
     /// The problem as one object: `severity` (`error` or `warning`), `file`
     /// and `line` (`null` when it has none), `place` (the text the plain
-    /// report starts with), `rule`, `message` (without place or rule) and
-    /// `hints`.
+    /// report starts with), `rule`, `message` (without place or rule), `hints`
+    /// and `notes`.
     pub(crate) fn to_json(&self) -> Value {
         let (file, line) = self
             .0
@@ -24,6 +24,7 @@ impl Diag {
             "rule": self.0.rule,
             "message": render::text(self),
             "hints": self.0.hints.iter().map(ToString::to_string).collect::<Vec<_>>(),
+            "notes": self.0.notes.iter().map(ToString::to_string).collect::<Vec<_>>(),
         })
     }
 }
@@ -48,7 +49,7 @@ mod tests {
             json!({
                 "severity": "error", "file": "tasks/a.typ", "line": 7,
                 "place": "tasks/a.typ:7", "rule": "rules.x",
-                "message": "bad title", "hints": [],
+                "message": "bad title", "hints": [], "notes": [],
             })
         );
     }
@@ -59,7 +60,7 @@ mod tests {
             Diag::warning("careful").to_json(),
             json!({
                 "severity": "warning", "file": null, "line": null, "place": null,
-                "rule": null, "message": "careful", "hints": [],
+                "rule": null, "message": "careful", "hints": [], "notes": [],
             })
         );
     }

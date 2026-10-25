@@ -146,6 +146,7 @@ fn to_violation(task: &Task, comment: &Comment, severity: Severity) -> Violation
         kind: crate::validate::violation::ViolationKind::Other,
         reads: Some(crate::validate::violation::reads_of_field("comments")),
         unknown: None,
+        detail: None,
         dict_miss: None,
     }
 }

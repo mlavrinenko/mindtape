@@ -138,6 +138,18 @@ fn compile_content_rule(
     })
 }
 
+impl CompiledContentRule {
+    /// A breach's message and detail from the check's own words: the
+    /// configured message with those words kept as the detail, or those words
+    /// alone.
+    fn worded(&self, default: String) -> (String, Option<String>) {
+        match &self.message {
+            Some(message) => (message.clone(), Some(default)),
+            None => (default, None),
+        }
+    }
+}
+
 fn compile_segment(seg: &HeaderPathSegment) -> Result<CompiledSeg, GateError> {
     match seg {
         HeaderPathSegment::Exact(text) => Ok(CompiledSeg::Exact(text.clone())),
@@ -186,13 +198,16 @@ pub fn check_content(
             let Some(default) = evaluate(&rule.assert, content, heading) else {
                 continue;
             };
-            out.push(crate::body::body_violation(
+            let (message, detail) = rule.worded(default);
+            let mut violation = crate::body::body_violation(
                 task,
                 &rule.label,
-                rule.message.clone().unwrap_or(default),
+                message,
                 Location::at(task.file.clone(), node.heading.line),
                 rule.when.as_ref(),
-            ));
+            );
+            violation.detail = detail;
+            out.push(violation);
         }
     }
     out

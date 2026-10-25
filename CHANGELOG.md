@@ -372,6 +372,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `max-words`, `must-match`, `must-not-match` or `density` (`pattern`, `max`,
   `per = "section" | "paragraph" | "sentence"`, code skipped whether fenced or
   inline). Both take a `name`, reported as `body.headers.rules.<name>`.
+- **A content rule's `message` keeps the check's own words.** They print on a
+  `note:` under the message, such as `section 'TO-BE' sentence 2 ("Should it
+  also cover the board?") must carry at most 0 matches`, in `mt check`, in a
+  refused write, and in a `notes` array that every `mt check --json` problem
+  now carries.
 - **Rule packs.** A config layer's `extends = [...]` pulls in a pack, built in
   (`mindtape-…`) or a TOML file by path, and `disable = [...]` drops rules by
   name. A pack holds only the three rule arrays and `[dicts]`, a later entry

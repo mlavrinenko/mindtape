@@ -133,6 +133,7 @@ impl CompiledRule {
                 match filter.matches_with(task, config, readiness) {
                     Ok(true) => Vec::new(),
                     Ok(false) => vec![Violation {
+                        detail: None,
                         dict_miss: filter.dict_miss(task, config),
                         ..self.violation(task, advice.clone())
                     }],
@@ -183,6 +184,7 @@ impl CompiledRule {
             kind: crate::validate::violation::ViolationKind::Other,
             reads: self.reads.clone(),
             unknown: None,
+            detail: None,
             dict_miss: None,
         }
     }

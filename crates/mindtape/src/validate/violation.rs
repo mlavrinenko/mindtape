@@ -136,6 +136,10 @@ pub struct Violation {
     pub field: String,
     /// Human-readable message.
     pub message: String,
+    /// The check's own words, kept when a configured message replaced them
+    /// in [`Violation::message`]: which sentence, which count. `None` when the
+    /// message is the check's own.
+    pub detail: Option<String>,
     /// Where the violation points: the line of the offending field, heading
     /// or comment, else the `task.with(…)` call itself; for a breach of the
     /// config, its entry there.

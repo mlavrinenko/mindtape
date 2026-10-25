@@ -40,6 +40,13 @@ capture_copy R examples/rules
 capture --exit 1 --expect 'rules\.one-task-in-flight' rules-wip-cap "$R" 'mt flip wip add-csv-export'
 capture --exit 1 --expect 'rules\.bugs-outrank-the-low-band' rules-assert "$R" 'mt set fix-the-session-timeout priority=1'
 capture --exit 1 --expect 'required field is missing' rules-required "$R" 'mt set add-csv-export kind=bug'
+# A paragraph with two em dashes breaks one-dash-per-paragraph, whose message
+# takes the line while the check's own words follow on a note. The file goes
+# back after, so the captures below see the fixture as it is.
+cp "$R/tasks/add-csv-export.typ" "$R/add-csv-export.typ.orig"
+printf '\nThe export runs on the server — not in the browser — so it scales.\n' >>"$R/tasks/add-csv-export.typ"
+capture --exit 1 --expect 'note: section .Notes. paragraph 2' rules-content-detail "$R" 'mt check'
+mv "$R/add-csv-export.typ.orig" "$R/tasks/add-csv-export.typ"
 capture rules-warn "$R" "mt set add-csv-export 'title=Add CSV export to the report page.'"
 
 # The legend a project gets when it declares none: the embedded floor's, read

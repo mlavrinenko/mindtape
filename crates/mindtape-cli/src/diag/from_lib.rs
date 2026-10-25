@@ -301,6 +301,18 @@ impl From<&Violation> for Diag {
             .reason(violation.message.clone())
             .unknown(violation.unknown.as_ref())
             .dict_miss(violation.dict_miss.as_ref())
+            .detail(violation.detail.as_deref())
+    }
+}
+
+impl Diag {
+    /// The check's own words under a breach whose configured message replaced
+    /// them, as a note.
+    fn detail(self, detail: Option<&str>) -> Self {
+        match detail {
+            Some(detail) => self.note(Note::line(detail)),
+            None => self,
+        }
     }
 }
 
