@@ -314,11 +314,11 @@ groups:
       .just/scripts/lint-dry.sh: 935cd86b688eaeea3b62ea86f21eb8fec32d72d3f8f848720b333df9ea7b4814
       .just/scripts/outdatty-check.sh: e219b61957163b1cf7ffd32d183fa37a8de60d1573fc68d7f02aab5f0eeb772b
       .just/scripts/wt-carry-lcov.sh: a4d4b96d24cee1d76f8d19ddcc10b6f4b99a1cb9f7c8ec3143cf487f2bb9861c
-      Justfile: 824caecd26297545e2fb244e9628b576ab9349fe7eb5a60c5ae46c969ae3e8f6
+      Justfile: 51517a8fab53131e40117309f87b915f8934cc93f28283ad8f9d1faf5e752b10
       flake.nix: bbcb46698504bc1a3b0708fac535ba4c0bcadc169baf2a630a7c8459e394bfec
     dependents:
       docs/src/agents.typ: b60c66d46729c944b878cc0d112e26741e5d2621ed8dc803c5ed0092daf2adeb
-      docs/src/contributing.typ: 32ffb7ea79d23fb5e373d148e1648f5d22f22dffe1922b2f6f9670550e3fdf97
+      docs/src/contributing.typ: c25dd84dd6d6a495d53cfbbebd1375a90a811270c4abc68933cdd2d53fe0c9d8
       docs/src/contributing/coverage-crap.typ: 2ba5b919cfa0d8af52b361a848c45f7720dcde6374e8bcab8ddde9f71ec1057c
       docs/src/contributing/crap-baseline.typ: e7254b2b9736613cc3c7a2f31a7f7f25ddf72dce913311f13b89221cca05cd09
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db

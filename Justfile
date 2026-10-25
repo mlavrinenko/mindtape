@@ -181,6 +181,8 @@ check-windows:
 [group("dev")]
 [script]
 install-hooks:
+    # git exports GIT_DIR to a hook's children and it beats `git -C`: drop it, so the recipe writes only the repo it runs in.
+    unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
     git config core.hooksPath .githooks
     git config merge.outdatty-lock.name ".config/outdatty.lock, merged key by key"
     git config merge.outdatty-lock.driver 'bash .just/scripts/outdatty-lock-merge.sh %O %A %B %P %S %X %Y'
