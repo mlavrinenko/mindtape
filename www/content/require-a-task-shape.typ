@@ -48,9 +48,10 @@ set of rules that ships with `mt`. Its rules require Problem, TO-BE, Changes
 and Out of scope, in that order, plus one more section for some kinds, like
 Environment for a `fix`. The Problem must be numbered steps, with 🔴
 on the step that shows the bug. Each TO-BE bullet opens with 🟢, and each
-Changes bullet names a file. If you edit a task by hand, `mt check` runs the
-same rules on it. #link(u("/rule-packs/"))[Rule packs] lists every rule in the
-pack and shows how to drop one, and #link(u("/rules/"))[Rules] covers body
-rules.
+Changes bullet names a file. A question left in TO-BE, Changes or Out of scope
+fails, so ask it before you file, while a `?` in code passes. If you edit a task
+by hand, `mt check` runs the same rules on it. #link(u("/rule-packs/"))[Rule
+  packs] lists every rule in the pack and shows how to drop one, and
+#link(u("/rules/"))[Rules] covers body rules.
 
 This repo extends the same pack in #own-config.

@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 19),
+  status: done(2026, 10, 25),
   links: depends-on(
     "skip-inline-code-in-a-content-density-count.typ",
     "keep-a-content-rules-detail-under-its-custom-message.typ",

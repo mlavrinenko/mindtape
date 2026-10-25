@@ -394,8 +394,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The `mindtape-tasks` pack ships the flagship practice.** It holds the
   section shape (Problem, TO-BE, Changes, Out of scope, plus Environment,
   Alternatives, Source of truth or Rollback by kind), heading order, 🔴/🟢
-  markers, word caps, an em-dash density cap and `imperative-title`, and each
-  message says the next step. Its commit rules are `work-names-a-task`,
+  markers, word caps, an em-dash density cap, `no-open-questions` (a `?` that
+  ends a sentence of an open task's TO-BE, Changes, Out of scope or Dogfood,
+  outside code) and `imperative-title`, and each message says the next step.
+  Its commit rules are `work-names-a-task`,
   `flip-with-work` (a `wip` or `done` flip rides with its work; a `decision`
   task, a `milestone` or an `mt rm` of other tasks counts) and `named-tasks-finish-at-the-tip`.
 - **Field rules live in one descriptor.** `[tasks.fields.<name>]` (a project

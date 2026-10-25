@@ -312,6 +312,16 @@ assert = { density = { pattern = "—", max = 1, per = "paragraph" } }
 when = "!terminal"
 message = "keep one em dash per paragraph at most; use a comma, a colon or a second sentence for the rest"
 
+# A question left in the sections that say what to build is a decision the
+# implementer makes alone halfway through. Density skips code, so a `?` in a
+# quoted command passes, and Problem stays free to quote output that has one.
+[[tasks.body.content.rules]]
+name = "no-open-questions"
+path = [{ match = "TO-BE|Changes|Out of scope|Dogfood" }]
+assert = { density = { pattern = '\?(\s|$)', max = 0, per = "sentence" } }
+when = "!terminal"
+message = "ask the user and write the answer in, since a task leaves no question open"
+
 # A title's grammatical shape is a convention `mt check` can hold once there
 # is a vocabulary to ask against: `verbs` unions both dictionaries `mt` ships
 # so this rule always has one, project-specific additions included via a

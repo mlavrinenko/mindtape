@@ -3,7 +3,7 @@ algorithm: blake3
 groups:
   api-service-recipes:
     source:
-      crates/mindtape/src/packs/mindtape-tasks.toml: 354a285bfbcfb71e67eae7da59cac6e821af2ad60d30bcb280f0c56329e71286
+      crates/mindtape/src/packs/mindtape-tasks.toml: 92eaf04dd0435c0024865924e2685ba6d71b235f17ac6bc6f8bf34f94ab22c05
       examples/api-service/.mindtape/config.toml: 6646c41eea3ded70f22b1a65463e59d4faacc8df12e89fa0b93e50744b2add11
       examples/api-service/.mindtape/templates/milestone.typ: 737fc2788932ee1d2863e4041849ed4e6fe6d191952d432369d36a5343446afc
       examples/api-service/.mindtape/templates/task.typ: c139fe1c0f9cbda3786811d6abcd0a832a0ea527227008ff636b4a7b03cec03a
@@ -31,7 +31,7 @@ groups:
       skills/mindtape/evals/README.md: b451b8b388e4a1c8e95f876258e9c3425355a7bf9c1cfa0f04ec1a0c57b3bd6a
       skills/mindtape/evals/evals.json: 481bb4f0168826d9ee4086ee6f4f4f74c4c31ed3b46792871532da8372b56460
       www/content/limit-work-in-progress.typ: c8bf092555288cd46fa02bc7ba8392bce040aa3b4276835caac2426e91143f42
-      www/content/require-a-task-shape.typ: 5b9123c39a324896579488b95f2173d3f52207050f9de20bd8e90ee2b425632e
+      www/content/require-a-task-shape.typ: e80e1b8f8e4a9d3124d68291737d81d63121e1b7e2aa03254e6dd55441ec807b
       www/content/split-oversized-tasks.typ: 95aed236a683d6e127cb2431f29836328cd777635a067767440bd045694c1885
       www/content/start-titles-with-a-verb.typ: 866a1925b639e28e3c716dd815d5973c5197d38f1faed4c042dde9e0825a859d
       www/content/tie-work-to-goals.typ: 2f9c7f67208ae0a48449f64100d63eb58d0f6526b2e3200e1f5807709ad2a704
