@@ -61,7 +61,7 @@ Read `references/import.md` before `mt import` files a batch.
 
 `mt ls blocked --columns title,why` shows what each blocked task waits on. A legend may have no `blocked` status, so check `mt flip --list` first. For an external blocker, read `references/blocking.md`. Never mark a blocked task `wip`: that counts against any work-in-progress cap and says someone is on it.
 
-`mt` runs no command from the config, neither a `[[tasks.waits]]` checker nor an `[[on.flip]]` `run`, until the user allows them. Until then a wait reads `unknown: not allowed`, a flip gate refuses with `gate not allowed`, and `mt` warns once with the command list. Never run `mt allow`, or `--force` past that refusal: the commands run with the user’s rights. Pass the warning to the user.
+`mt` runs no command from the config, neither a `[[tasks.waits]]` checker, an `[[on.flip]]` `run` nor a `[go]` or `[add]` editor, until the user allows them. Until then a wait reads `unknown: not allowed`, a flip gate refuses with `gate not allowed`, an editor falls back to `$VISUAL`, and `mt` warns once with the command list. Never run `mt allow`, or `--force` past that refusal: the commands run with the user’s rights. Pass the warning to the user.
 
 ## Commits and checks
 

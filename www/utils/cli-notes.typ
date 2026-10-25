@@ -78,7 +78,9 @@
     prose: [`mt go` finds the task's file and opens it with `[go] editor`, or
       `$VISUAL`, or `$EDITOR`. If none is set, it fails and asks you to set
       `[go] editor`. `mt` replaces a `{task}` token in the command with the
-      path, or appends the path when there's no token.],
+      path, or appends the path when there's no token. A project's
+      `[go] editor` waits for #link(u("/cli/allow/"))[`mt allow`]; until then
+      `mt go` uses `$VISUAL`.],
   ),
 
   // ── Listing ─────────────────────────────────────────────────────────────────
@@ -203,7 +205,8 @@
       and lists them. A task that waits on a checker stays blocked, its `why`
       reading `unknown: not allowed`, and `mt wip --force` still starts it. A
       flip gate refuses the flip, and `--force` takes it past. A flip `run`
-      without `gate` is skipped. `mt allow` prints each command and records a hash of them all in
+      without `gate` is skipped. An editor that isn't allowed is skipped too,
+      and `mt go` or `mt add --edit` opens `$VISUAL` instead. `mt allow` prints each command and records a hash of them all in
       `allowed/` under `mt`'s data directory, outside the repo, so no clone
       can approve its own commands. The record belongs to the repo's git
       directory, so every worktree of it shares one approval. Change a command

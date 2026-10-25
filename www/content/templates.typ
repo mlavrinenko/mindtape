@@ -225,5 +225,6 @@ required slot left empty fails the add with the slot's name. That's the case
 for a script or an agent.
 
 The editor is `[add] editor`, else `$VISUAL`, else `$EDITOR`, else `vi`
-(`notepad` on Windows). `[add] header` replaces the instructions at the top of
+(`notepad` on Windows). A project's `[add] editor` runs only after
+#link(u("/cli/allow/"))[`mt allow`]. `[add] header` replaces the instructions at the top of
 the file, and `[add] comments = false` leaves out every comment.
