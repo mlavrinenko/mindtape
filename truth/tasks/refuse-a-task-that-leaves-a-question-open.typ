@@ -28,6 +28,10 @@
   ),
   assignee: "agent",
   status: proposed(2026, 10, 19),
+  links: depends-on(
+    "skip-inline-code-in-a-content-density-count.typ",
+    "keep-a-content-rules-detail-under-its-custom-message.typ",
+  ),
 )
 
 == Problem
@@ -39,21 +43,22 @@
 
 == TO-BE
 
-- 🟢 A question mark that ends a sentence in TO-BE, Changes, Out of scope or Dogfood fails `mt check` with `ask the user and write the answer in, since a task leaves no question open`.
+- 🟢 A question mark that ends a sentence in TO-BE, Changes, Out of scope or Dogfood fails `mt check` with `ask the user and write the answer in, since a task leaves no question open`, and a `note:` under it quotes the sentence.
 - 🟢 A `?` inside a code span or a code block, and anywhere in Problem, passes.
+- 🟢 A terminal task is exempt, so the closed backlog needs no rewrite.
 - 🟢 The rule ships in the `mindtape-tasks` pack, so a project drops or overrides it by name.
 
 
 == Changes
 
+- `crates/mindtape-cli/tests/it/`: the red test first. A TO-BE bullet `- Should it also cover the board?` fails with the message and the note. A `?` in a code span, in a fenced block and in Problem passes.
 - `crates/mindtape/src/packs/mindtape-tasks.toml`: the `no-open-questions` content rule, below.
-- `crates/mindtape-cli/tests/it/`: the red test first, one task with a question in TO-BE and one with a `?` in a code span.
 
 ```toml
 [[tasks.body.content.rules]]
 name = "no-open-questions"
 path = [{ match = "TO-BE|Changes|Out of scope|Dogfood" }]
-assert = { must-not-match = '\?(\s|$)' }
+assert = { density = { pattern = '\?(\s|$)', max = 0, per = "sentence" } }
 when = "!terminal"
 message = "ask the user and write the answer in, since a task leaves no question open"
 ```
@@ -61,6 +66,7 @@ message = "ask the user and write the answer in, since a task leaves no question
 
 == Alternatives
 
+- A `must-not-match` rule. It reads the raw section, code included, so every quoted command with a `?` would trip it.
 - A banned-phrase list such as `open question` or `TBD`. It misses a question asked in plain words, and a project can add phrases with `must-not-match` already.
 - A rule in this repo's config only. Open questions are what every agent leaves behind, so the pack is the place.
 
@@ -68,7 +74,7 @@ message = "ask the user and write the answer in, since a task leaves no question
 == Out of scope
 
 - Problem, which quotes commands and output where a `?` is literal.
-- A new assertion kind. If content rules see code spans as text, strip them in the regex first, and file a mechanism task only when the regex can't.
+- A new assertion kind. `density` with `max = 0` per sentence already says "no sentence asks", once it skips code.
 
 
 == Dogfood
