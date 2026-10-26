@@ -73,3 +73,14 @@ fn a_string_literal_parses_back_as_the_same_string() {
             .unwrap()
     );
 }
+
+#[test]
+fn a_hyphen_before_another_hyphen_joins_no_name() {
+    assert_eq!(rewrite("x--param(\"p\")").unwrap(), "x--7");
+}
+
+#[test]
+fn a_string_array_at_a_named_step_holds_no_expression() {
+    let mut layer: toml::Table = toml::from_str("[tasks]\nroots = ['param(\"p\")']\n").unwrap();
+    super::refuse_param_calls(&mut layer).unwrap();
+}
