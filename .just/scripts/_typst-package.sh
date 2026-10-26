@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-# Sourced preamble for install-lib.sh and uninstall-lib.sh — the one place the
-# @local/mindtape version and its install path are derived. Deriving them in
-# each script with the same sed would give a version-path change two edit
-# sites and no gate pairing them.
+# Sourced preamble for uninstall-lib.sh: the @local/mindtape version and the
+# directory `mt install` writes it to. install-lib.sh needs neither, since
+# `mt install` resolves the directory itself.
 VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' lib/typst.toml | head -1)
 # The package directory `mt` installs into and loads from, `package_root()` in
 # crates/mindtape/src/loader/app_dirs.rs: `$MINDTAPE_DATA_HOME/typst/packages`
@@ -22,5 +21,5 @@ if [ -z "$PACKAGES" ]; then
     exit 1
 fi
 TARGET="$PACKAGES/local/mindtape"
-# shellcheck disable=SC2034 # install-lib.sh and uninstall-lib.sh source this file and read it
+# shellcheck disable=SC2034 # uninstall-lib.sh sources this file and reads it
 LINK="$TARGET/$VERSION"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Body of `just install`, run after its install-bin and install-lib deps: the
-# generated JSON Schema, then every skill linked into the harness dirs. Runs
-# from the repo root — `$(pwd)/skills` is the link target.
+# generated JSON Schema, then a copy of every skill in the harness dirs. Runs
+# from the repo root, where `skills/` is.
 #
 # `defaults.toml` is deliberately not refreshed. It is seeded once and then
 # hand-edited as the global config layer (crates/mindtape-cli/src/cmd/install/mod.rs),
@@ -19,10 +19,11 @@ for dir in "$HOME/.claude/skills" "$HOME/.config/opencode/skills"; do
     for manifest in skills/*/SKILL.md; do
         name=$(basename "$(dirname "$manifest")")
         target="$dir/$name"
-        # Same trap as install-lib.sh: `ln -sfn` onto a real directory drops
-        # the link inside it instead of replacing it.
-        [ -L "$target" ] || rm -rf "$target"
-        ln -sfn "$(pwd)/skills/$name" "$target"
-        echo "linked skill -> $target"
+        # A copy, not a link: the skill stays matched to the installed `mt`
+        # while this checkout moves on. `rm -rf` on a link from an older
+        # install removes the link alone.
+        rm -rf "$target"
+        cp -R "skills/$name" "$target"
+        echo "copied skill -> $target"
     done
 done

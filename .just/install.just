@@ -4,7 +4,7 @@ set working-directory := '..'
 set script-interpreter := ["bash", "-eo", "pipefail"]
 
 [default]
-[doc("Install everything: mt, the Typst lib, schema, skill")]
+[doc("Install a snapshot of everything: mt, the Typst lib, schema, skill")]
 all: bin lib
     bash .just/scripts/install.sh
 
@@ -12,10 +12,10 @@ all: bin lib
 bin:
     bash .just/scripts/install-bin.sh
 
-[doc("Install the mindtape Typst library for local #import (dev symlink)")]
-lib:
+[doc("Install the installed mt's own copy of the Typst library for local #import")]
+lib: bin
     bash .just/scripts/install-lib.sh
 
-[doc("Remove the dev symlink installed by lib")]
+[doc("Remove the Typst library installed by lib")]
 uninstall-lib:
     bash .just/scripts/uninstall-lib.sh

@@ -311,7 +311,7 @@ groups:
       .just/bench.just: 537461a4aecca375d05e7cd460ec36d1eaaff5167e5a698f065a9c8f61e976c1
       .just/crap.just: bbd5c5afd5c0949810cb7647c8dc495836f5b3ea3edd1d2ddba77703317caa6c
       .just/docs.just: 2f7338970bce328e1f3513b0c5e3f80655c8689f6998e190d516d902f8608594
-      .just/install.just: 954199fef527226e47dc9672b7c88752abc6f16995103f2284c9f50444c5201f
+      .just/install.just: d5b6fa1381014bf12de6551f5356a832667bd0d107998cbe86c03ce7eee16989
       .just/lint.just: 604b9095499bf0436e35798df886509b154a38582f017ff386d229c93167de46
       .just/meta.just: 17f3c67395d11fe1ed06ad6067c77a2e0939fdf7f95706df3bbed76d3e59a368
       .just/mutants.just: 2fc963a8cf93ea6a7ddea17132d68ae6a349489af89a4a83455fdd99386dd6d0
@@ -334,7 +334,7 @@ groups:
       docs/src/contributing/gates.typ: da1f8374cdcf7a6ab215414f499bda4fbfbfd17a89e88f4d83b8679b2d5c4348
       docs/src/contributing/mutation-testing.typ: 6a7b5cf5a51a025ebd6b8b991da6b2cc8494a2e96cf6d5a7f9608d00a497f7e5
       docs/src/contributing/signal-sweep.typ: 471350cebc9b82602b8ee48d162e4f3365368284a001782e4e2c7f6cb4857146
-      docs/src/contributing/windows.typ: 09b29464996733ddbe76b17e087151e58f356b03394c9f6cd8ac08474a9e0d05
+      docs/src/contributing/windows.typ: f60a64a30bacbcf16ca2c7252a195303fc3eaf63ef99ea2c0d99484b2c3017e8
   dict-words-docs:
     source:
       crates/mindtape/src/dicts/dev-verbs.txt: 1d44018123133b9cd533d473d9f9df0f24a44131e77961178424f7311782d648
@@ -481,11 +481,11 @@ groups:
       .just/scripts/_gate-drift-control.sh: 8f1b66e77138918bf0b14a8466d697df0aa33692ade7a779b5b003917ab170d7
       .just/scripts/_nav-diff.sh: 42595379c530c0184a23e18e87939b23b0bdbee6cc4ac82ab946a681a92bc0e9
       .just/scripts/_script-graph-control.sh: 02e416c7dceda5dda470fdb3636b95ac56368bdcc9071059d208d19019022028
-      .just/scripts/_typst-package.sh: 1b775e3c8951bd08453dc3d0cb06311387c8b6eb413f202ffd164d7a24ad0b2d
+      .just/scripts/_typst-package.sh: 6d480eba3bc42fd4e0b4a74249c57f3c115863f2dd9885ebd22582583f38616c
       .just/scripts/install-bin.sh: d9f35240a8e5306bf943c5569cf73bf18080877df9278f3f005ba7dfdaf9211f
-      .just/scripts/install-lib.sh: c995c433c86e15afd404e4985938c610840f55d5940a88d2a7bed26db0e95961
-      .just/scripts/install.sh: aefc0e3bf9046e8adb2d4484f082b84faa3f87f83fcd23f176a80fdcc3f6d250
-      .just/scripts/uninstall-lib.sh: 4af9019b842202302644725851d43d6c5f363280b51e8d285d13103c04930a5f
+      .just/scripts/install-lib.sh: ddf51e6e5573b2d9248727efc32fc186facc03087e53560e43190623b72ece1e
+      .just/scripts/install.sh: 5e9cefe19ec7b94b7002a952d56ed59081730f96449623a072726f7a5a6e257f
+      .just/scripts/uninstall-lib.sh: 37c4a93bd69f7192428ad440fb177e5341c255e4867b7e9389ea86c800d409c1
     dependents: {}
   set-commands-docs:
     source:
