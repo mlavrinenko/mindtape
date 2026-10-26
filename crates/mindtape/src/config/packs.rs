@@ -29,7 +29,7 @@
 //! with `[params]`. A layer's own table gets [`refuse_param_calls`] first,
 //! since no parameter reaches it. A step that needs each pack's own table
 //! reads [`PackLayer`]'s per-pack tables before [`PackLayer::into_table`]
-//! drops them.
+//! drops them, as [`Sources::record_keys`] does for the keys each pack set.
 //!
 //! Per rule array, entries fold in source order — every pack a layer extends
 //! (in `extends` order), then the layer's own declared entries — and a later
@@ -146,10 +146,17 @@ fn merge_layers_with_packs_using(
         pack_dirs.extend(packs.dirs().map(Path::to_path_buf));
         files.push_packs(packs.texts(), root);
         files.push_layer(layer, root);
+        for (pack, params) in packs.params() {
+            files.record_params(&layer.source, pack, params);
+        }
+        for (pack, pack_table) in packs.tables() {
+            files.record_keys(&RuleOrigin::Pack(pack.clone()), pack_table);
+        }
         deep_merge_tables(&mut doc, packs.into_table());
 
         let origin = RuleOrigin::Layer(layer.source.clone());
         take_rule_arrays(&mut table, &layer.text, &origin, &mut accumulators);
+        files.record_keys(&origin, &table);
         deep_merge_tables(&mut doc, table);
     }
 
@@ -200,7 +207,8 @@ fn fold_layer_packs(
         if let Some(dir) = pack.origin.root() {
             rebase_dict_paths(&mut pack.table, dir);
         }
-        apply_params(&mut pack.table, &entry.with, &pack.origin.label())?;
+        let params = apply_params(&mut pack.table, &entry.with, &pack.origin.label())?;
+        packs.keep_params(pack.origin.clone(), params);
         let origin = RuleOrigin::Pack(pack.origin.clone());
         take_rule_arrays(&mut pack.table, &pack.text, &origin, accumulators);
         packs.keep_text(pack.origin.clone(), pack.text);
@@ -410,3 +418,7 @@ mod tests_budget;
 #[cfg(test)]
 #[path = "packs_tests_commits.rs"]
 mod tests_commits;
+
+#[cfg(test)]
+#[path = "packs_tests_origins.rs"]
+mod tests_origins;

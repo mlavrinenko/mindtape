@@ -75,6 +75,7 @@ pub use config::{
     builtin_dict_names, compile_dicts, config_path, embedded_defaults, load_config, parse_config,
     parse_import_view, roles_of, validate_dicts, validate_views,
 };
+pub use config::{KeyOrigin, ParamOrigin};
 pub use date::pin::{DateOverrideError, init_pinned_today};
 pub use date::{DATE_TOKENS, DateToken, days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};
 pub use emit::emit_task;

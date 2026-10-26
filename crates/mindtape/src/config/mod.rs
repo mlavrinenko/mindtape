@@ -32,6 +32,7 @@
 //! - `locate.rs`: the file line of a dotted config key.
 //! - `merge.rs`: the shared TOML deep merge.
 //! - `name_cycle.rs`: cycle detection over a name-reference graph.
+//! - `origins.rs`: the pack or layer behind each key and pack parameter.
 //! - `pack_dirs.rs`: a directory pack's `templates/`, appended to `templates.dirs`.
 //! - `pack_files.rs`: a pack's check files and dictionary paths, resolved from its directory.
 //! - `pack_fold.rs`: one layer's packs, folded into the sub-layer below it.
@@ -73,6 +74,7 @@ pub(crate) mod ls;
 pub(crate) mod ls_columns;
 pub(crate) mod merge;
 pub(crate) mod name_cycle;
+mod origins;
 pub(crate) mod pack_dirs;
 pub(crate) mod pack_files;
 pub(crate) mod pack_fold;
@@ -124,6 +126,7 @@ pub use crate::config::ls::{
     parse_import_view, validate_ls_rules,
 };
 pub use crate::config::ls_columns::{ColumnConfig, validate_ls_columns};
+pub use crate::config::origins::{KeyOrigin, ParamOrigin};
 pub use crate::config::params::{PackEntry, PackWith, ParamValue};
 pub use crate::config::priority::PriorityConfig;
 pub use crate::config::required::{RequiredRules, Requirement, RequirementRule};
@@ -204,6 +207,12 @@ pub struct Config {
     /// equal-compared — see [`crate::rules::sites::RuleSites`].
     #[serde(skip)]
     pub(crate) rule_sites: crate::rules::sites::RuleSites,
+    /// The text of every layer and pack the config merged, and the origin of
+    /// each key and parameter, kept by [`crate::config::layers::build_config`].
+    /// Derived, never declared, never equal-compared — see
+    /// [`crate::config::locate::Provenance`].
+    #[serde(skip)]
+    pub(crate) provenance: crate::config::locate::Provenance,
     /// The editor commands the user's own config layer sets, which `mt allow`
     /// does not ask about. Derived at load, never declared, never
     /// equal-compared — see [`crate::allow::UserCommands`].
@@ -351,6 +360,18 @@ impl Config {
     #[must_use]
     pub fn warnings(&self) -> Vec<crate::problem::Problem> {
         crate::config::warnings::warnings(self)
+    }
+
+    /// The leaf keys some pack set, each with the pack or layer whose value
+    /// won, by dotted path. Empty for a config built from one string.
+    pub fn key_origins(&self) -> impl Iterator<Item = KeyOrigin> + '_ {
+        self.provenance.key_origins()
+    }
+
+    /// Each pack parameter, with its value and whether an `extends` entry's
+    /// `with` set it, in the order the layers named their packs.
+    pub fn param_origins(&self) -> impl Iterator<Item = &ParamOrigin> {
+        self.provenance.param_origins().iter()
     }
 
     /// The compiled `[dicts.<name>]` sets, plus the built-ins, which are always

@@ -458,6 +458,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   paths to the same file. A path pack's label is its canonical path. The
   config schema tags each expression key with `x-expression` and its
   language.
+- **`mt config show --origin` names the pack behind each key and parameter.**
+  After the rule lines it prints `key <path>: <origin>` for each value a pack
+  set, naming the layer instead when the layer replaced it, and `param <name> =
+  <value>: <set by>, for pack <pack>` for each parameter, where `<set by>` is
+  the layer whose `with` set it or `default`. The library's `Config` keeps the
+  record: `key_origins()` and `param_origins()`.
 - **The library fetches a locked pack source into a cache.**
   `config::pack_sources::fetch` runs `git fetch` for the source's `ref`, with
   the caller's `GIT_*` repository variables dropped, fetched objects checked

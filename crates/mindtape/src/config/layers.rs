@@ -22,7 +22,7 @@
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
-use crate::config::locate::Sources;
+use crate::config::locate::{Provenance, Sources};
 use crate::config::pack_registry::RuleOriginEntry;
 use crate::config::packs::merge_layers_with_packs;
 use crate::config::{Config, ConfigError, EMBEDDED_DEFAULTS, config_path};
@@ -205,6 +205,7 @@ fn build_config(
         rule_origins,
         sources,
     } = merge_doc(layers, root)?;
+    let sources = Provenance::new(sources);
     build_typed(table, rule_origins, layers, root, &sources)
         .map_err(|err| name_file(err, &sources, root))
 }
@@ -215,11 +216,12 @@ fn build_typed(
     rule_origins: Vec<RuleOriginEntry>,
     layers: &[Layer],
     root: &Path,
-    sources: &Sources,
+    sources: &Provenance,
 ) -> Result<(Config, Vec<RuleOriginEntry>), ConfigError> {
     let mut config: Config = toml::Value::Table(doc)
         .try_into()
         .map_err(|merged| sources.blame(merged))?;
+    config.provenance = sources.clone();
     crate::config::pack_files::stamp_check_roots(&mut config.tasks.rules, &rule_origins);
     config.dict_cache = crate::config::compile_dicts(&config.dicts, root)
         .map_err(ConfigError::invalid)?

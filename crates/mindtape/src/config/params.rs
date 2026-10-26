@@ -67,6 +67,15 @@ pub enum ParamValue {
     String(String),
 }
 
+/// One parameter of a pack as `apply_params` resolved it.
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) struct ResolvedParam {
+    pub(crate) name: String,
+    pub(crate) value: toml::Value,
+    /// Whether the entry's `with` set it, rather than the pack's default.
+    pub(crate) from_with: bool,
+}
+
 /// Take `[params]` out of `pack`, set each parameter `with` names, and write
 /// every `param()` call in the pack's expressions as its value's literal.
 /// `label` names the pack in an error.
@@ -80,7 +89,7 @@ pub(super) fn apply_params(
     pack: &mut toml::Table,
     with: &toml::Table,
     label: &str,
-) -> Result<(), ConfigError> {
+) -> Result<Vec<ResolvedParam>, ConfigError> {
     let values = resolve_values(pack.remove("params"), with, label)?;
     rewrite_expressions(pack, &mut |key, expr, joins_kebab| {
         let lookup = |name: &str| values.get(name).map(literal);
@@ -100,7 +109,15 @@ pub(super) fn apply_params(
                 .with(Unknown::among(&name, values.keys().map(String::as_str))),
             ),
         })
-    })
+    })?;
+    Ok(values
+        .into_iter()
+        .map(|(name, value)| ResolvedParam {
+            from_with: with.contains_key(&name),
+            name,
+            value,
+        })
+        .collect())
 }
 
 /// Refuse a `param()` call in a layer's own expressions, which no pack's

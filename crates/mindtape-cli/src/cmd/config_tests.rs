@@ -357,3 +357,47 @@ fn describe_rule_origin_labels_the_embedded_floor() {
     let origin = RuleOrigin::Layer(LayerSource::Embedded);
     assert_eq!(describe_rule_origin(&origin), "embedded");
 }
+
+/// A pack setting the scale and declaring a cap, extended with a `with` value.
+fn project_with_team_pack(own: &str) -> (tempfile::TempDir, PathBuf) {
+    let dir = bare_project();
+    let pack = dir.path().join("team.toml");
+    std::fs::write(
+        &pack,
+        "[params]\nmax-files = 5\n\n[tasks.priority]\nframework = \"ice\"\n\n\
+         [[tasks.rules]]\nname = \"small\"\nassert = 'estimate.src-files <= param(\"max-files\")'\n",
+    )
+    .unwrap();
+    std::fs::write(dir.path().join(".mindtape").join("config.toml"), own).unwrap();
+    (dir, pack)
+}
+
+#[test]
+fn origin_prints_each_pack_key_and_parameter_after_the_rules() {
+    let own = "extends = [{ pack = \"./team.toml\", with = { max-files = 8 } }]\n";
+    let (dir, pack) = project_with_team_pack(own);
+    let text = render_origin(dir.path()).unwrap();
+    let pack = pack.display();
+    let tail = format!(
+        "rule tasks.rules.small: pack {pack}\n\
+         key tasks.priority.framework: pack {pack}\n\
+         param max-files = 8: project, for pack {pack}\n"
+    );
+    assert!(text.ends_with(&tail), "{text}");
+}
+
+#[test]
+fn origin_names_the_layer_that_replaced_a_pack_key_and_a_default_parameter() {
+    let own = "extends = [\"./team.toml\"]\n[tasks.priority]\nframework = \"rice\"\n";
+    let (dir, pack) = project_with_team_pack(own);
+    let text = render_origin(dir.path()).unwrap();
+    assert!(
+        text.contains("key tasks.priority.framework: project\n"),
+        "{text}"
+    );
+    let line = format!(
+        "param max-files = 5: default, for pack {}\n",
+        pack.display()
+    );
+    assert!(text.contains(&line), "{text}");
+}

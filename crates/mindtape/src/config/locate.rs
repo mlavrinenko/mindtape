@@ -5,11 +5,14 @@
 //! that holds a key serde refuses ([`Sources::blame`]), so a key a pack or an
 //! ancestor `defaults.toml` sets is never charged to the project config.
 
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 use toml_edit::{ImDocument, Item, Table, TableLike, Value};
 
 use crate::config::layers::{Layer, LayerSource};
+use crate::config::origins::{KeySlot, ParamOrigin};
 use crate::config::pack_registry::{PACK_FILE, PackOrigin, RuleOrigin};
 use crate::config::packs_toml::header_lines;
 use crate::config::{Config, ConfigError};
@@ -61,6 +64,36 @@ struct RuleSlot {
 pub(crate) struct Sources {
     items: Vec<Source>,
     rules: Vec<RuleSlot>,
+    /// Each leaf key's winning source, by dotted path.
+    pub(super) keys: BTreeMap<String, KeySlot>,
+    /// Each pack parameter, resolved.
+    pub(super) params: Vec<ParamOrigin>,
+}
+
+/// [`Sources`] as a loaded [`Config`] keeps it: shared by every clone and never
+/// equal-compared, as two configs of one declared content are one config
+/// wherever its keys came from.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct Provenance(Arc<Sources>);
+
+impl Provenance {
+    pub(crate) fn new(sources: Sources) -> Self {
+        Self(Arc::new(sources))
+    }
+}
+
+impl std::ops::Deref for Provenance {
+    type Target = Sources;
+
+    fn deref(&self) -> &Sources {
+        &self.0
+    }
+}
+
+impl PartialEq for Provenance {
+    fn eq(&self, _other: &Self) -> bool {
+        true
+    }
 }
 
 impl Sources {

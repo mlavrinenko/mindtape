@@ -15,14 +15,16 @@
 //! wherever nothing above it sets a key. Packs of two different layers never
 //! conflict: the later layer's wins, as for any two layers.
 //!
-//! [`PackLayer`] keeps each pack's own table beside the merge, in `extends`
-//! order, so a later pass can name the pack behind each value.
+//! [`PackLayer`] keeps each pack's own table and resolved parameters beside the
+//! merge, in `extends` order, so [`crate::config::origins`] can name the pack
+//! behind each value.
 
 use std::path::Path;
 
 use crate::config::ConfigError;
 use crate::config::merge::deep_merge_tables;
 use crate::config::pack_registry::PackOrigin;
+use crate::config::params::ResolvedParam;
 
 /// The packs of one layer's `extends`, folded so far.
 #[derive(Default)]
@@ -33,6 +35,8 @@ pub(super) struct PackLayer {
     packs: Vec<(PackOrigin, toml::Table)>,
     /// Each added pack's source text, for the file an error names.
     texts: Vec<(PackOrigin, String)>,
+    /// Each added pack's resolved parameters.
+    params: Vec<(PackOrigin, Vec<ResolvedParam>)>,
 }
 
 impl PackLayer {
@@ -75,6 +79,22 @@ impl PackLayer {
     /// Keep a pack's source text beside its table.
     pub(super) fn keep_text(&mut self, origin: PackOrigin, text: String) {
         self.texts.push((origin, text));
+    }
+
+    /// Keep a pack's resolved parameters beside its table.
+    pub(super) fn keep_params(&mut self, origin: PackOrigin, params: Vec<ResolvedParam>) {
+        self.params.push((origin, params));
+    }
+
+    /// Each added pack's resolved parameters, in `extends` order.
+    pub(super) fn params(&self) -> &[(PackOrigin, Vec<ResolvedParam>)] {
+        &self.params
+    }
+
+    /// Each added pack's own table, rule arrays and `[params]` taken out, in
+    /// `extends` order.
+    pub(super) fn tables(&self) -> &[(PackOrigin, toml::Table)] {
+        &self.packs
     }
 
     /// Each added pack's origin and source text, in `extends` order.
