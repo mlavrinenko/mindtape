@@ -6,7 +6,10 @@
 //! A pack is a config-syntax fragment. `<source>:<pack>` resolves to one
 //! compiled into the binary ([`EMBEDDED_PACKS`], under `mindtape`); a path
 //! (anything with a path separator) resolves to a TOML file, relative to the
-//! layer that names it. A pack may declare any config key but the few
+//! layer that names it. Before any layer folds,
+//! [`crate::config::pack_sources::for_layers`] reads the project's
+//! `[pack-sources]` and checks them against `.mindtape/packs.lock`, and only
+//! the project layer may name a pack in one. A pack may declare any config key but the few
 //! [`crate::config::pack_resolve`] refuses, `extends` among them, so
 //! resolution is one level deep.
 //!
@@ -44,7 +47,7 @@ use crate::config::layers::{Layer, LayerSource};
 use crate::config::merge::deep_merge_tables;
 use crate::config::pack_fold::PackLayer;
 use crate::config::pack_registry::{EMBEDDED_PACKS, RuleOrigin, RuleOriginEntry};
-use crate::config::pack_resolve::resolve_pack;
+use crate::config::pack_resolve::{PackScope, resolve_pack};
 use crate::config::packs_toml::{
     header_lines, read_array, read_string_list, remove_path, write_array,
 };
@@ -88,7 +91,7 @@ pub(crate) struct PackMerge {
 ///
 /// # Errors
 /// Returns [`ConfigError::Invalid`] for a malformed `extends`/`disable`
-/// entry, an unresolvable pack, a pack declaring a key it may not, or a
+/// entry, a misplaced or stale pack source, an unresolvable pack, a pack declaring a key it may not, or a
 /// `disable` name matching no rule.
 pub(crate) fn merge_layers_with_packs(
     layers: &[Layer],
@@ -108,6 +111,7 @@ fn merge_layers_with_packs_using(
     let mut doc = toml::Table::new();
     let mut accumulators: [RuleAccumulator; RULE_ARRAYS] = Default::default();
     let mut disable_names: BTreeSet<String> = BTreeSet::new();
+    let sources = crate::config::pack_sources::for_layers(layers, root)?;
 
     for layer in layers {
         let mut table: toml::Table =
@@ -116,7 +120,12 @@ fn merge_layers_with_packs_using(
         disable_names.extend(read_string_list(&table, "disable")?);
 
         let base_dir = layer_base_dir(&layer.source, root);
-        let packs = fold_layer_packs(&extends, &base_dir, registry, &table, &mut accumulators)?;
+        let scope = PackScope {
+            registry,
+            sources: &sources,
+            project: matches!(layer.source, LayerSource::Project(_)),
+        };
+        let packs = fold_layer_packs(&extends, &base_dir, &scope, &table, &mut accumulators)?;
         deep_merge_tables(&mut doc, packs.into_table());
 
         let origin = RuleOrigin::Layer(layer.source.clone());
@@ -154,13 +163,13 @@ fn merge_layers_with_packs_using(
 fn fold_layer_packs(
     extends: &[String],
     base_dir: &Path,
-    registry: &[(&str, &str)],
+    scope: &PackScope<'_>,
     layer: &toml::Table,
     accumulators: &mut [RuleAccumulator; RULE_ARRAYS],
 ) -> Result<PackLayer, ConfigError> {
     let mut packs = PackLayer::default();
     for entry in extends {
-        let mut pack = resolve_pack(entry, base_dir, registry)?;
+        let mut pack = resolve_pack(entry, base_dir, scope)?;
         let origin = RuleOrigin::Pack(pack.origin.clone());
         take_rule_arrays(&mut pack.table, &pack.text, &origin, accumulators);
         packs.add(pack.origin, pack.table, layer)?;

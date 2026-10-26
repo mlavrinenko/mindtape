@@ -416,8 +416,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fills in the rest. Two packs in one `extends` that set one value differently
   fail, naming the dotted key and both packs, unless the extending layer sets
   that key itself. A pack may not declare `extends`, `disable`,
-  `project.code`, `tasks.roots`, `templates.dirs` or `[typst]`. The library's
-  `ConfigError::Invalid` carries a `hint`, which `mt` prints as `hint:`.
+  `pack-sources`, `project.code`, `tasks.roots`, `templates.dirs` or
+  `[typst]`. The library's `ConfigError::Invalid` carries a `hint`, which `mt`
+  prints as `hint:`.
+- **A project declares pack sources.** `[pack-sources.<name>]` names a git
+  repository by `git` and `ref`, a tag, branch or commit, and
+  `.mindtape/packs.lock` pins each one to a commit and a hash. Every config
+  load refuses a source the lock lacks, or pins from another `git` or `ref`,
+  as `pack source lock is stale: 'acme'`. Only the project's own
+  `.mindtape/config.toml` may declare a source or extend a pack from one, and
+  `mindtape` is taken. The library's `config::pack_sources::read_raw` reads
+  the sources and the lock without loading the config.
 - **`mt rules` lists the rules that apply, one line each.** A line is the
   rule's severity, its name as `mt config show --origin` prints it, and the
   message a breach prints, after packs, overrides and `disable`. A rule with no

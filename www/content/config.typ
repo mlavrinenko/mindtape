@@ -193,6 +193,7 @@ leaves out.
   ("commits", "[commits]"),
   ("extends", "extends"),
   ("disable", "disable"),
+  ("pack-sources", "[pack-sources.<name>]"),
   ("tasks.comments", "[tasks.comments]"),
   ("tasks.links", "[[tasks.links.kinds]]"),
   ("actors", "[[actors]]"),
@@ -231,7 +232,8 @@ These sections have a page of their own:
 - `[[on.flip]]`: #link(u("/hooks/"))[Flip hooks].
 - `[[tasks.waits]]`: #link(u("/wait-on-upstream/"))[Wait on upstream].
 - `[templates]` and `[add]`: #link(u("/templates/"))[Templates & slots].
-- `extends` and `disable`: #link(u("/packs/"))[Packs].
+- `extends`, `disable` and `[pack-sources.<name>]`:
+  #link(u("/packs/"))[Packs].
 - `[commits]`: #link(u("/commit-rules/"))[Commit rules].
 - `[ls]` and `[rm]` filters: #link(u("/filters/"))[Filter language].
 - `[[ls.rules]]`, `[ls.columns.<name>]` and `[ls] hyperlinks`:

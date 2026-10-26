@@ -1,15 +1,28 @@
 //! Resolving one `extends` entry to a validated pack table: a path against
 //! the extending layer's directory, any other entry as `<source>:<pack>`
-//! against the embedded registry, and the shape check that refuses the keys
+//! against the embedded registry or a declared pack source, and the shape
+//! check that refuses the keys
 //! a pack may not declare. [`crate::config::packs`] folds what this returns.
 
 use std::path::Path;
 
 use crate::config::ConfigError;
 use crate::config::pack_registry::{EMBEDDED_SOURCE, PackOrigin};
+use crate::config::pack_sources::PackSources;
 use crate::config::packs_toml::get_path;
 use crate::problem::Problem;
 use crate::suggest::Unknown;
+
+/// What a `<source>:<pack>` entry of one layer resolves against.
+pub(super) struct PackScope<'a> {
+    /// The packs of the [`EMBEDDED_SOURCE`] source.
+    pub(super) registry: &'a [(&'a str, &'a str)],
+    /// The project's declared sources and lock.
+    pub(super) sources: &'a PackSources,
+    /// Whether the layer is the project's own, the one layer that may use a
+    /// declared source.
+    pub(super) project: bool,
+}
 
 /// One resolved pack: its provenance and validated table.
 pub(super) struct ResolvedPack {
@@ -30,7 +43,7 @@ fn is_path_entry(entry: &str) -> bool {
 pub(super) fn resolve_pack(
     entry: &str,
     base_dir: &Path,
-    registry: &[(&str, &str)],
+    scope: &PackScope<'_>,
 ) -> Result<ResolvedPack, ConfigError> {
     if is_path_entry(entry) {
         let path = base_dir.join(entry);
@@ -51,7 +64,7 @@ pub(super) fn resolve_pack(
             text,
         })
     } else {
-        let text = embedded_text(entry, registry)?;
+        let text = embedded_text(entry, scope)?;
         let table: toml::Table = toml::from_str(text).map_err(|error| ConfigError::ParseIn {
             origin: format!("pack {entry}"),
             error,
@@ -65,14 +78,15 @@ pub(super) fn resolve_pack(
     }
 }
 
-/// The text of the pack a `<source>:<pack>` entry names in `registry`, the
-/// packs of the [`EMBEDDED_SOURCE`] source.
-fn embedded_text<'r>(entry: &str, registry: &[(&'r str, &'r str)]) -> Result<&'r str, ConfigError> {
+/// The text of the pack a `<source>:<pack>` entry names among the packs of
+/// the [`EMBEDDED_SOURCE`] source.
+fn embedded_text<'r>(entry: &str, scope: &PackScope<'r>) -> Result<&'r str, ConfigError> {
+    let registry = scope.registry;
     let Some((source, pack)) = entry.split_once(':') else {
         return Err(unknown_pack_error(entry, registry));
     };
     if source != EMBEDDED_SOURCE {
-        return Err(unknown_source_error(source));
+        return Err(source_error(source, scope));
     }
     registry
         .iter()
@@ -81,14 +95,28 @@ fn embedded_text<'r>(entry: &str, registry: &[(&'r str, &'r str)]) -> Result<&'r
         .ok_or_else(|| unknown_pack_error(entry, registry))
 }
 
-fn unknown_source_error(source: &str) -> ConfigError {
-    ConfigError::invalid(
-        Problem::new(format!(
-            "extends: unknown pack source: {}",
-            crate::config::quote(source)
+/// Why `source`, not [`EMBEDDED_SOURCE`], resolves no pack. A source the
+/// project declares can't be read before it is installed, and only the
+/// project layer may use one.
+fn source_error(source: &str, scope: &PackScope<'_>) -> ConfigError {
+    let quoted = crate::config::quote(source);
+    if !scope.sources.declares(source) {
+        let declared = scope.sources.sources.keys().filter(|_| scope.project);
+        let known = std::iter::once(EMBEDDED_SOURCE).chain(declared.map(String::as_str));
+        return ConfigError::invalid(
+            Problem::new(format!("extends: unknown pack source: {quoted}"))
+                .with(Unknown::among(source, known)),
+        );
+    }
+    if scope.project {
+        ConfigError::invalid(format!("extends: pack source not installed: {quoted}"))
+            .with_hint("run `mt packs install` to fetch the locked sources")
+    } else {
+        ConfigError::invalid(format!(
+            "extends: only the project config may use pack source: {quoted}"
         ))
-        .with(Unknown::among(source, [EMBEDDED_SOURCE])),
-    )
+        .with_hint("move the entry into the project's .mindtape/config.toml")
+    }
 }
 
 fn unknown_pack_error(entry: &str, registry: &[(&str, &str)]) -> ConfigError {
@@ -106,12 +134,14 @@ fn unknown_pack_error(entry: &str, registry: &[(&str, &str)]) -> ConfigError {
 }
 
 /// The keys a pack may not declare, as TOML paths. `extends` and `disable`
-/// would make a second level of packs; `project.code` is the project's own
+/// would make a second level of packs, and `pack-sources` a second place to
+/// declare a source; `project.code` is the project's own
 /// name; `tasks.roots`, `templates.dirs` and `[typst]` name the project's
 /// own tree. Every other key deep-merges like any config layer's.
-const PACK_DENIED_KEYS: [&[&str]; 6] = [
+const PACK_DENIED_KEYS: [&[&str]; 7] = [
     &["extends"],
     &["disable"],
+    &["pack-sources"],
     &["project", "code"],
     &["tasks", "roots"],
     &["templates", "dirs"],

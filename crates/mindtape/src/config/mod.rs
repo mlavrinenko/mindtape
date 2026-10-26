@@ -34,6 +34,7 @@
 //! - `pack_fold.rs`: one layer's packs, folded into the sub-layer below it.
 //! - `pack_registry.rs`: the packs compiled into the binary and the origin types.
 //! - `pack_resolve.rs`: resolving one `extends` entry to a validated pack table.
+//! - `pack_sources/`: `[pack-sources]` and `.mindtape/packs.lock`.
 //! - `packs.rs`: `extends` and `disable`, merging packs into each layer.
 //! - `packs_toml.rs`: nested-path reads and writes over a raw `toml::Table`.
 //! - `priority.rs`: `[tasks.priority]`, the priority scale and its frameworks.
@@ -70,6 +71,7 @@ pub(crate) mod name_cycle;
 pub(crate) mod pack_fold;
 pub(crate) mod pack_registry;
 pub(crate) mod pack_resolve;
+pub mod pack_sources;
 pub(crate) mod packs;
 pub(crate) mod packs_toml;
 pub(crate) mod priority;
@@ -219,7 +221,8 @@ pub struct Config {
     /// Any other entry is `<source>:<pack>`, and `mindtape` is the one source
     /// known without a declaration: `mindtape:tasks` is a pack built into
     /// `mt`. A pack holds any config key but `extends`, `disable`,
-    /// `project.code`, `tasks.roots`, `templates.dirs` and `[typst]`. Its
+    /// `pack-sources`, `project.code`, `tasks.roots`, `templates.dirs` and
+    /// `[typst]`. Its
     /// keys merge just below this layer's own, table by table, and its rules
     /// come ahead of this layer's, where a rule with the same name replaces
     /// it. Two packs here that set one value differently are an error,
@@ -231,6 +234,15 @@ pub struct Config {
     /// Rule names to drop once every pack and layer has added its rules. A
     /// name that matches no rule is a config error.
     pub disable: Vec<String>,
+    /// Git repositories the project takes packs from, each a
+    /// `[pack-sources.<name>]` table of `git`, the repository, and `ref`, a
+    /// tag, branch or commit. An `extends` entry `<name>:<pack>` names a pack
+    /// in one. Only the project's own `.mindtape/config.toml` declares a
+    /// source, and `mindtape` is taken. `.mindtape/packs.lock` pins each
+    /// source to a commit, and a config load refuses a source the lock
+    /// doesn't pin from the `git` and `ref` declared here.
+    #[serde(rename = "pack-sources")]
+    pub pack_sources: BTreeMap<String, crate::config::pack_sources::PackSource>,
 }
 /// Project-level settings.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]

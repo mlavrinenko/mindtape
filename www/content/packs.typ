@@ -51,9 +51,10 @@ describes.
 
 = What a pack may hold
 
-Any config key, except six. `extends` and `disable` belong to the project,
+Any config key, except seven. `extends` and `disable` belong to the project,
 so a pack can't extend another pack and there's only ever one level to
-resolve. `project.code` is the project's own name. `tasks.roots`,
+resolve. `[pack-sources]` belongs to the project too, so every source sits in
+one file. `project.code` is the project's own name. `tasks.roots`,
 `templates.dirs` and `[typst]` point into the project's own tree, which a
 shared file can't know. `mt` refuses a pack that declares one of them and
 names the pack and the key:
@@ -79,6 +80,23 @@ Linux. `mt` refuses a missing file and prints the path it resolved.
   `"tasks.toml"` has no `/`, so `mt` reads it as a pack name, not a file, and
   refuses it as unknown. Write `"./tasks.toml"` for a file of that name.
 ]
+
+= Packs from a git source
+
+Your team's packs can live in a git repository of their own. Declare it as
+`[pack-sources.<name>]` in the project's `.mindtape/config.toml`, with `git`
+for the repository and `ref` for a tag, branch or commit, and adopt a pack
+from it as `<name>:<pack>`. Only the project config declares a source or adopts
+a pack from one, so a clone resolves the same packs on every machine. The name
+`mindtape` is taken.
+
+`.mindtape/packs.lock` pins each source to the commit its `ref` named and a
+hash of the files there, and you commit it beside the config. Every command
+that reads the config checks the lock against the sources first. A source the
+lock lacks, or pins from another `git` or `ref`, is refused, here after a bump
+from `v1` to `v2`.
+
+#terminal("packs-stale")
 
 = Drop a rule
 

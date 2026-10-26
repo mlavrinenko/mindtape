@@ -1587,6 +1587,25 @@
       },
       "type": "object"
     },
+    "PackSource": {
+      "additionalProperties": false,
+      "description": "One `[pack-sources.<name>]` entry.",
+      "properties": {
+        "git": {
+          "description": "The repository, as any URL or path `git fetch` takes.",
+          "type": "string"
+        },
+        "ref": {
+          "description": "The tag, branch or commit to lock.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "git",
+        "ref"
+      ],
+      "type": "object"
+    },
     "PriorityConfig": {
       "additionalProperties": false,
       "description": "The priority scale and its scoring frameworks.\n\nIt takes the same scale, bands and anchors as `[tasks.difficulty]`. When\n`framework` names a framework, `mt` computes a task's priority from that\nframework's inputs. `allow-manual` decides whether a raw integer is still\naccepted. `frameworks` holds the built-in frameworks merged with any the\nproject declares.",
@@ -2289,7 +2308,7 @@
     },
     "extends": {
       "default": [],
-      "description": "Packs this config builds on, in any config layer. An entry with a path\nseparator is a TOML pack file, relative to the file that declares it.\nAny other entry is `<source>:<pack>`, and `mindtape` is the one source\nknown without a declaration: `mindtape:tasks` is a pack built into\n`mt`. A pack holds any config key but `extends`, `disable`,\n`project.code`, `tasks.roots`, `templates.dirs` and `[typst]`. Its\nkeys merge just below this layer's own, table by table, and its rules\ncome ahead of this layer's, where a rule with the same name replaces\nit. Two packs here that set one value differently are an error,\nunless this layer sets that key too.",
+      "description": "Packs this config builds on, in any config layer. An entry with a path\nseparator is a TOML pack file, relative to the file that declares it.\nAny other entry is `<source>:<pack>`, and `mindtape` is the one source\nknown without a declaration: `mindtape:tasks` is a pack built into\n`mt`. A pack holds any config key but `extends`, `disable`,\n`pack-sources`, `project.code`, `tasks.roots`, `templates.dirs` and\n`[typst]`. Its\nkeys merge just below this layer's own, table by table, and its rules\ncome ahead of this layer's, where a rule with the same name replaces\nit. Two packs here that set one value differently are an error,\nunless this layer sets that key too.",
       "items": {
         "type": "string"
       },
@@ -2310,6 +2329,13 @@
     "on": {
       "$ref": "#/$defs/OnConfig",
       "description": "Status-transition hooks (`[[on.flip]]`), run only by `mt flip`."
+    },
+    "pack-sources": {
+      "additionalProperties": {
+        "$ref": "#/$defs/PackSource"
+      },
+      "description": "Git repositories the project takes packs from, each a\n`[pack-sources.<name>]` table of `git`, the repository, and `ref`, a\ntag, branch or commit. An `extends` entry `<name>:<pack>` names a pack\nin one. Only the project's own `.mindtape/config.toml` declares a\nsource, and `mindtape` is taken. `.mindtape/packs.lock` pins each\nsource to a commit, and a config load refuses a source the lock\ndoesn't pin from the `git` and `ref` declared here.",
+      "type": "object"
     },
     "project": {
       "$ref": "#/$defs/ProjectConfig",
