@@ -93,3 +93,10 @@ fn a_string_array_at_a_named_step_holds_no_expression() {
     let mut layer: toml::Table = toml::from_str("[tasks]\nroots = ['param(\"p\")']\n").unwrap();
     super::refuse_param_calls(&mut layer).unwrap();
 }
+
+#[test]
+fn an_array_where_a_table_belongs_is_not_stepped_into_by_name() {
+    let text = "tasks = [{ x = { when = 'param(\"p\")' } }]\n";
+    let mut layer: toml::Table = toml::from_str(text).unwrap();
+    super::refuse_param_calls(&mut layer).unwrap();
+}
