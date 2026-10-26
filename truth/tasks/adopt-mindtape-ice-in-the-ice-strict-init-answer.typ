@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 26),
+  status: done(2026, 10, 26),
   links: related(
     "share-config-between-projects-through-packs.typ",
   )[its Out of scope names this follow-up],

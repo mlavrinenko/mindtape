@@ -249,18 +249,16 @@ fn spec_headers_ship_a_template() {
     assert!(body.contains("Acceptance criteria"));
 }
 
-/// A strict-framework priority that is required composes and validates: the
-/// fallback template satisfies it through the spliced framework leaf slots.
+/// The strict ICE answer adopts the `mindtape:ice` pack instead of copying its
+/// keys, and its comment links the pack's docs.
 #[test]
-fn strict_framework_priority_assembles() {
+fn strict_framework_priority_adopts_the_ice_pack() {
     let mut answers = all_default();
     answers.priority = Priority::IceStrict;
-    let outcome = assemble(answers).unwrap();
-    assert!(
-        outcome.config.contains("allow-manual = false"),
-        "{}",
-        outcome.config
-    );
+    let config = assemble(answers).unwrap().config;
+    assert!(config.contains("extends = [\"mindtape:ice\"]"), "{config}");
+    assert!(!config.contains("allow-manual"), "{config}");
+    assert!(config.contains("/packs/"), "{config}");
 }
 
 /// The recorded answer comment round-trips: parsing it back yields the same

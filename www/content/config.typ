@@ -167,6 +167,12 @@ may carry an `[overlay]` table, which `mt init` merges over the rest of the
 preset. Tables merge key by key, and any other value in the overlay replaces
 the preset's. You get one file, with no comments and no `[overlay]`.
 
+An answer you give `mt init` instead of a preset can adopt a
+#link(u("/packs/"))[pack] rather than copy its keys. `--priority ice-strict`
+writes `extends = ["mindtape:ice"]`, so the project gets the pack's fixes when
+`mt` upgrades. When several answers adopt packs, `mt init` folds them into one
+`extends` line near the top of the file.
+
 = Sections
 
 Here's every top-level section, with the description `mt config schema`

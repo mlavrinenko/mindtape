@@ -12,6 +12,8 @@
 //! And when two ordinary fragments both bind the same array-valued section — a
 //! status legend, priority bands, difficulty anchors, roots — the fold hard-errors
 //! naming both, because an array replaces wholesale and one would silently win.
+//! The one array exempt from that rule is the top-level `extends`: each
+//! fragment may adopt packs, and the fold joins their entries into one array.
 
 use crate::diag::Result;
 
@@ -22,6 +24,10 @@ use crate::diag::{Diag, Hint, Note};
 /// path in [`crate::cmd::init`] labels a preset's extracted overlay with it.
 pub(crate) const OVERLAY_AXIS: &str = "overlay";
 
+/// The top-level key a fragment adopts packs under. [`compose`] folds every
+/// fragment's entries into one array.
+const EXTENDS: &str = "extends";
+
 /// Fold ordered fragments into one flattened config body.
 ///
 /// Each fragment is a self-contained, readable TOML snippet that owns disjoint
@@ -31,6 +37,11 @@ pub(crate) const OVERLAY_AXIS: &str = "overlay";
 /// order, preserving each one's comments and layout, then re-parse as one TOML
 /// document so a table two fragments both define surfaces here rather than at the
 /// config loader.
+///
+/// A fragment's top-level `extends` leaves its place: the entries of every
+/// fragment fold, in order and each once, into one `extends` array after the
+/// comment block that opens the body. Left in place, a later fragment's
+/// `extends` would land in the table an earlier one opened.
 ///
 /// A fragment named `"overlay"` (see [`OVERLAY_AXIS`]) is not concatenated: its
 /// body is deep-merged over the composed base after every other fragment, so it
@@ -45,7 +56,8 @@ pub(crate) const OVERLAY_AXIS: &str = "overlay";
 /// defined the same table), or when the overlay is not valid TOML.
 pub fn compose(fragments: &[(&str, String)]) -> Result<String> {
     reject_array_conflicts(fragments)?;
-    let base = concat_base(fragments);
+    let (base, entries) = concat_base(fragments);
+    let base = fold_extends(&base, &entries);
     let mut merged: toml::Table = toml::from_str(&base).map_err(|err| {
         Diag::failed("the axis fragments are not one TOML document")
             .cause(&err)
@@ -68,13 +80,16 @@ pub fn compose(fragments: &[(&str, String)]) -> Result<String> {
         .map_err(|err| Diag::failed("can't write the config with its overlay applied").cause(&err))
 }
 
-/// Concatenate the ordinary fragments in order, dropping empties and the overlay.
-fn concat_base(fragments: &[(&str, String)]) -> String {
+/// Concatenate the ordinary fragments in order, dropping empties and the overlay,
+/// and lift out their `extends` entries, each once.
+fn concat_base(fragments: &[(&str, String)]) -> (String, Vec<toml::Value>) {
     let mut out = String::new();
+    let mut entries = Vec::new();
     for (axis, text) in fragments {
         if *axis == OVERLAY_AXIS {
             continue;
         }
+        let text = lift_extends(text, &mut entries);
         let body = text.trim();
         if body.is_empty() {
             continue;
@@ -85,7 +100,69 @@ fn concat_base(fragments: &[(&str, String)]) -> String {
         out.push_str(body);
         out.push('\n');
     }
+    (out, entries)
+}
+
+/// Move a fragment's top-level `extends` entries into `entries`, skipping any
+/// already there, and return the fragment without its `extends` line. A
+/// fragment that does not parse, or adopts no pack, comes back unchanged.
+fn lift_extends(text: &str, entries: &mut Vec<toml::Value>) -> String {
+    let Ok(mut table) = toml::from_str::<toml::Table>(text) else {
+        return text.to_owned();
+    };
+    let Some(toml::Value::Array(adopted)) = table.remove(EXTENDS) else {
+        return text.to_owned();
+    };
+    for entry in adopted {
+        if !entries.contains(&entry) {
+            entries.push(entry);
+        }
+    }
+    text.lines()
+        .filter(|line| {
+            !line
+                .trim_start()
+                .strip_prefix(EXTENDS)
+                .is_some_and(|rest| rest.trim_start().starts_with('='))
+        })
+        .map(|line| format!("{line}\n"))
+        .collect()
+}
+
+/// Write the folded `extends` array into `base`, after the comment block that
+/// opens it, or first when no such block stands apart.
+fn fold_extends(base: &str, entries: &[toml::Value]) -> String {
+    if entries.is_empty() {
+        return base.to_owned();
+    }
+    let listed: Vec<String> = entries.iter().map(ToString::to_string).collect();
+    let (head, rest) = base.split_at(leading_comment_end(base));
+    let mut out = String::from(head);
+    if !head.is_empty() {
+        out.push('\n');
+    }
+    out.push_str(&format!("{EXTENDS} = [{}]\n", listed.join(", ")));
+    let rest = rest.trim_start_matches('\n');
+    if !rest.is_empty() {
+        out.push('\n');
+        out.push_str(rest);
+    }
     out
+}
+
+/// The byte offset just past the comment block that opens `text`, when a blank
+/// line or the end closes it; else 0, since a comment right above a key
+/// describes that key.
+fn leading_comment_end(text: &str) -> usize {
+    let mut end = 0;
+    for line in text.split_inclusive('\n') {
+        if line.trim_start().starts_with('#') {
+            end += line.len();
+            continue;
+        }
+        return if line.trim().is_empty() { end } else { 0 };
+    }
+    end
 }
 
 /// Refuse two ordinary fragments that each bind the same array-valued section.
@@ -108,6 +185,7 @@ fn reject_array_conflicts(fragments: &[(&str, String)]) -> Result<()> {
         };
         let mut paths = Vec::new();
         collect_array_paths(&table, "", &mut paths);
+        paths.retain(|path| path != EXTENDS);
         for path in paths {
             match owner.get(path.as_str()) {
                 Some(prev) if *prev != *axis => {

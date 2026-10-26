@@ -249,3 +249,70 @@ fn different_array_sections_compose() {
     let table: toml::Table = toml::from_str(&out).unwrap();
     assert!(table.contains_key("tasks"));
 }
+
+/// Each fragment's `extends` folds into one array in fragment order, each entry
+/// once, at the top level: left in place, a later fragment's `extends` line
+/// would land inside the table an earlier fragment opened.
+#[test]
+fn extends_entries_fold_into_one_top_level_array() {
+    let fragments = vec![
+        (
+            "workflow",
+            "[[tasks.status]]\nvalue = \"todo\"\n".to_owned(),
+        ),
+        ("priority", "extends = [\"mindtape:ice\"]\n".to_owned()),
+        (
+            "budget",
+            "extends = [\"mindtape:ice\", { pack = \"mindtape:budget\", with = { max-files = 8 } }]\n"
+                .to_owned(),
+        ),
+    ];
+    let out = compose(&fragments).unwrap();
+    assert_eq!(out.matches("extends").count(), 1, "{out}");
+    let table: toml::Value = toml::from_str(&out).unwrap();
+    let extends = table.get("extends").unwrap().as_array().unwrap();
+    assert_eq!(extends.len(), 2, "{out}");
+    assert_eq!(extends.first().unwrap().as_str(), Some("mindtape:ice"));
+    assert_eq!(
+        dig(extends.get(1).unwrap(), "with.max-files")
+            .unwrap()
+            .as_integer(),
+        Some(8),
+        "{out}"
+    );
+}
+
+/// The folded `extends` line follows the leading comment block, so a recorded
+/// answer block still opens the file, and the fragment that held it keeps its
+/// comment in place.
+#[test]
+fn extends_follows_the_leading_comment_block() {
+    let out = compose(&[
+        ("answers", "# a\n# b\n".to_owned()),
+        (
+            "workflow",
+            "[[tasks.status]]\nvalue = \"todo\"\n".to_owned(),
+        ),
+        (
+            "priority",
+            "# p note\nextends = [\"mindtape:ice\"]\n".to_owned(),
+        ),
+    ])
+    .unwrap();
+    assert_eq!(
+        out,
+        "# a\n# b\n\nextends = [\"mindtape:ice\"]\n\n\
+         [[tasks.status]]\nvalue = \"todo\"\n\n# p note\n"
+    );
+}
+
+/// With no leading comment, the folded `extends` line opens the file.
+#[test]
+fn extends_opens_a_file_without_a_leading_comment() {
+    let out = compose(&[
+        ("a", "x = 1\n".to_owned()),
+        ("b", "extends = [\"mindtape:ice\"]\n".to_owned()),
+    ])
+    .unwrap();
+    assert_eq!(out, "extends = [\"mindtape:ice\"]\n\nx = 1\n");
+}

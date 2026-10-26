@@ -188,10 +188,10 @@ fn init_spells_the_organization_flag_in_american_english() {
         .code(2);
 }
 
-/// A strict-framework answer set scaffolds like any other: the fallback
-/// template supplies the required priority through the spliced framework leaf
-/// slots (covered end-to-end in `ANSWER_SETS` above), so init writes the
-/// config instead of refusing the set.
+/// A strict-framework answer set scaffolds like any other: it adopts the
+/// `mindtape:ice` pack, which loads to a strict ICE priority on every open
+/// task, and the fallback template supplies it through the spliced framework
+/// leaf slots (covered end-to-end in `ANSWER_SETS` above).
 #[test]
 fn strict_framework_priority_answer_set_scaffolds() {
     let dir = tempdir();
@@ -201,7 +201,13 @@ fn strict_framework_priority_answer_set_scaffolds() {
         &["init", "--no-input", "--priority", "ice-strict"],
     );
     let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
-    assert!(config.contains("allow-manual = false"), "{config}");
+    assert!(config.contains("extends = [\"mindtape:ice\"]"), "{config}");
+    let shown = support::stdout(dir.path(), &["config", "show", "--json"]);
+    let shown: serde_json::Value = serde_json::from_str(&shown).unwrap();
+    let key = |name: &str| shown.pointer(&format!("/tasks/priority/{name}")).cloned();
+    assert_eq!(key("framework"), Some("ice".into()), "{shown}");
+    assert_eq!(key("allow-manual"), Some(false.into()), "{shown}");
+    assert_eq!(key("required"), Some("!terminal".into()), "{shown}");
 }
 
 /// A preset that constrains task bodies also installs the template producing

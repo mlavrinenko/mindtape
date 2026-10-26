@@ -28,9 +28,10 @@ axis!(Priority ("How should tasks be ranked?", default = Bands) {
     Ice = "ice": "an ICE score, or a plain number"
         => "# priority: ICE scoring (impact x confidence x ease); raw ints still allowed.\n\
             [tasks.priority]\nframework = \"ice\"\n",
-    IceStrict = "ice-strict": "an ICE score on every task, no plain numbers"
-        => "# priority: ICE scoring enforced on every task, no raw fallback.\n\
-            [tasks.priority]\nframework = \"ice\"\nallow-manual = false\nrequired = true\n",
+    IceStrict = "ice-strict": "an ICE score on every open task, no plain numbers"
+        => "# priority: ICE scoring on every open task, no raw fallback, from the\n\
+            # mindtape:ice pack in `extends`: https://mlavrinenko.github.io/mindtape/packs/\n\
+            extends = [\"mindtape:ice\"]\n",
 });
 
 axis!(Organization ("How do you want to organize tasks?", default = Folders) {

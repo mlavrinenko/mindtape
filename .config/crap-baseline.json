@@ -3119,7 +3119,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/init/compose.rs",
       "function": "collect_array_paths",
-      "line": 134,
+      "line": 212,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -3128,7 +3128,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/init/compose.rs",
       "function": "compose",
-      "line": 46,
+      "line": 57,
       "cyclomatic": 7.0,
       "coverage": 100.0,
       "crap": 7.0,
@@ -3137,7 +3137,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/init/compose.rs",
       "function": "concat_base",
-      "line": 72,
+      "line": 85,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -3145,8 +3145,35 @@
     },
     {
       "file": "crates/mindtape-cli/src/cmd/init/compose.rs",
+      "function": "fold_extends",
+      "line": 134,
+      "cyclomatic": 4.0,
+      "coverage": 100.0,
+      "crap": 4.0,
+      "crate": "mindtape-cli"
+    },
+    {
+      "file": "crates/mindtape-cli/src/cmd/init/compose.rs",
+      "function": "leading_comment_end",
+      "line": 156,
+      "cyclomatic": 4.0,
+      "coverage": 90.0,
+      "crap": 4.016,
+      "crate": "mindtape-cli"
+    },
+    {
+      "file": "crates/mindtape-cli/src/cmd/init/compose.rs",
+      "function": "lift_extends",
+      "line": 109,
+      "cyclomatic": 3.0,
+      "coverage": 94.73684210526315,
+      "crap": 3.0013121446274966,
+      "crate": "mindtape-cli"
+    },
+    {
+      "file": "crates/mindtape-cli/src/cmd/init/compose.rs",
       "function": "merge_overlay",
-      "line": 153,
+      "line": 231,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -3155,10 +3182,10 @@
     {
       "file": "crates/mindtape-cli/src/cmd/init/compose.rs",
       "function": "reject_array_conflicts",
-      "line": 100,
+      "line": 177,
       "cyclomatic": 7.0,
-      "coverage": 96.0,
-      "crap": 7.003136,
+      "coverage": 96.15384615384616,
+      "crap": 7.002787892580792,
       "crate": "mindtape-cli"
     },
     {
@@ -3416,7 +3443,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/init/wizard/axes.rs",
       "function": "Headers::templates",
-      "line": 83,
+      "line": 84,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -9700,8 +9727,8 @@
       "function": "amending",
       "line": 45,
       "cyclomatic": 2.0,
-      "coverage": 90.0,
-      "crap": 2.004,
+      "coverage": 100.0,
+      "crap": 2.0,
       "crate": "mindtape"
     },
     {

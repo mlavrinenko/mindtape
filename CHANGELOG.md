@@ -184,9 +184,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`mt init` composes a config from presets and axis flags.** The built-in
   presets are `todo-done`, `flow` (the default), `personal` and `gated`. Two
   fragments declaring the same array section are an error naming both.
-  `--list-presets` names the real preset directory, `--recurrence rrule` and
-  `--priority ice-strict` compose, and the scaffolded config opens with a
-  `#:schema` line (`--schema URL|PATH` retargets it, `--no-schema` drops it).
+  `--list-presets` names the real preset directory, `--recurrence rrule`
+  composes, `--priority ice-strict` adopts the `mindtape:ice` pack, and an
+  answer's packs fold into one `extends` array. The scaffolded config opens
+  with a `#:schema` line (`--schema URL|PATH` retargets it, `--no-schema`
+  drops it).
 - **`mt install` installs the prelude, defaults, schema and shell completions.**
   `--no-lib`, `--no-defaults`, `--no-schema` and `--no-completions` skip a part,
   and `--force` overwrites.
