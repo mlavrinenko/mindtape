@@ -155,6 +155,24 @@ fn a_file_added_to_the_cached_tree_is_refused_too() {
     assert!(message.contains("does not match the lock"), "{message}");
 }
 
+#[cfg(unix)]
+#[test]
+fn a_symlink_planted_in_the_cached_tree_is_refused() {
+    let fx = fixture("\"acme:commits\"", &[("commits.toml", RULE)]);
+    std::os::unix::fs::symlink("/etc/hostname", fx.tree.join("link")).unwrap();
+
+    let (message, _) = fx.refusal();
+
+    let dir = crate::config::quote(&fx.tree.display().to_string());
+    assert_eq!(
+        message,
+        format!(
+            "extends: pack source 'acme' does not match the lock: {dir}: \
+             pack source holds a symlink: 'link'"
+        )
+    );
+}
+
 #[test]
 fn a_source_missing_from_the_cache_is_not_installed() {
     let fx = fixture("\"acme:commits\"", &[("commits.toml", RULE)]);
