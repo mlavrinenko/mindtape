@@ -59,6 +59,7 @@ param max-files = 8: project, for pack /work/app/./team.toml
 
 - `crates/mindtape-cli/src/cmd/config_tests.rs`: the red test first, the output above.
 - `crates/mindtape/src/config/packs.rs`, `crates/mindtape/src/config/pack_fold.rs`: record the pack behind each leaf value and each parameter while folding. `PackLayer::into_table` drops the per-pack tables, so return them beside the merged sub-layer.
+- `crates/mindtape/src/config/params.rs`: `apply_params` resolves each parameter in `resolve_values` and drops the result, so return each value and whether the entry's `with` set it.
 - `crates/mindtape/src/config/layers.rs`: carry those origins beside the rule origins.
 - `crates/mindtape-cli/src/cmd/config.rs`: print them.
 - `crates/mindtape/src/config/mod.rs`, `crates/mindtape/src/lib.rs`: follow the wider `load_config_layered` result and re-export the new origin type.
