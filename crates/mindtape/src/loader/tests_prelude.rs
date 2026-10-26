@@ -5,9 +5,8 @@
 //! fixtures (`setup`, `write`, `write_pkg`).
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use super::tests::{setup, write_pkg};
+use super::tests::{lib_config, setup, write_pkg};
 use super::{LoadOutcome, load_project};
-use crate::config::Config;
 use crate::model::Task;
 use crate::model::numeric::NumValue;
 use crate::recur::{PeriodUnit, Rule};
@@ -19,13 +18,14 @@ use typst_layout::PagedDocument;
 
 use crate::test_support::PRELUDE;
 
-/// Load one file authored against the real prelude, under a default config.
+/// Load one file authored against the real prelude, under a config that
+/// resolves it from the project's `lib/`.
 /// The `TempDir` rides along in the return so the caller keeps it alive.
 fn load_real_prelude(source: &str) -> (tempfile::TempDir, LoadOutcome) {
     let dir = setup();
     write_pkg(dir.path(), "lib", "mindtape", "0.2.0", PRELUDE);
     write_file(dir.path(), "tasks/t.typ", source);
-    let outcome = load_project(dir.path(), &Config::default());
+    let outcome = load_project(dir.path(), &lib_config());
     (dir, outcome)
 }
 

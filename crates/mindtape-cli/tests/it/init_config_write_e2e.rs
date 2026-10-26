@@ -243,6 +243,7 @@ fn init_no_schema_omits_directive() {
 #[test]
 fn force_interplay_unchanged() {
     let dir = support::scaffold_project("# existing");
+    let existing = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
 
     let (code, stderr) = support::run_stderr(dir.path(), &["init", "--preset", "gated"]);
     assert_eq!(
@@ -255,7 +256,7 @@ fn force_interplay_unchanged() {
     );
     assert_eq!(
         std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap(),
-        "# existing"
+        existing
     );
     assert!(
         !dir.path().join(".mindtape/templates/task.typ").exists(),

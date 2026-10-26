@@ -213,11 +213,8 @@ fn hashes_for(file: &Path, task: &Task, resolved: Option<Project>) -> StemHashes
 /// is what the file's virtual path is relative to. Which `@local` packages
 /// resolve is a different question, and not one this command gets to answer:
 /// it asks [`mindtape::package_overrides`], the same function the batch loader
-/// asks, against the enclosing project. Deciding here instead is what let
-/// `mt eval` register any `<root>/lib` holding a `typst.toml` as `mindtape` —
-/// so in a worktree whose `lib/` is some other package it resolved the import
-/// there and died on the manifest's declared name, while `mt ls` on the same
-/// tree was fine.
+/// asks, against the enclosing project, so `mt eval` and `mt ls` resolve one
+/// import to one package.
 ///
 /// # Errors
 /// Returns an error if the file does not exist, the world cannot be built, or
@@ -231,7 +228,7 @@ pub(crate) fn build_world(file: &Path) -> Result<HarvestWorld> {
     // `find_root` looks for `.mindtape`, which the Typst root markers
     // (`Cargo.toml`, `lib/`, `.git`) need not agree with; a file under no
     // project at all falls back to the world's root, where the lookup finds no
-    // config and no in-tree lib either.
+    // config and so no `[[typst.local-packages]]` entry.
     let root = find_root(world.root()).unwrap_or_else(|| world.root().to_path_buf());
     let config = load_config(&root)?;
     let mut world = world.with_package_root(mindtape::package_root());

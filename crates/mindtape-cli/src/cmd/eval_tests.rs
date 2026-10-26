@@ -96,19 +96,10 @@ fn write_importing_task(root: &std::path::Path) -> std::path::PathBuf {
 }
 
 #[test]
-fn eval_registers_an_in_tree_lib_named_mindtape() {
-    let dir = tempdir();
-    write_pkg(dir.path(), "lib", "mindtape");
-    let file = write_importing_task(dir.path());
-    assert!(eval(&file, true).is_ok());
-}
-
-#[test]
-fn eval_does_not_hijack_a_foreign_lib_package() {
-    // `<root>/lib` is some other project's Typst package, and the project
-    // points `@local/mindtape` elsewhere. Keying the override off the mere
-    // existence of `lib/typst.toml` resolved the import to `lib/` and failed
-    // on its declared name; the manifest name is what decides.
+fn eval_resolves_mindtape_from_the_projects_entry() {
+    // `<root>/lib` is some other project's Typst package, and the project's
+    // `[[typst.local-packages]]` entry points `@local/mindtape` elsewhere:
+    // `mt eval` resolves the import where the entry says, as the loader does.
     let dir = tempdir();
     write_pkg(dir.path(), "lib", "other");
     write_pkg(dir.path(), "vendor/mindtape", "mindtape");

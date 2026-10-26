@@ -17,8 +17,9 @@ mod fs;
 mod process;
 
 pub use fs::{
-    PRELUDE, git_as_tester, git_init, git_stdout, home_and_project, tempdir, tempdir_with_config,
-    tempdir_with_dirs, tempdir_with_files, write_bare_project, write_file, write_lib_package,
+    LIB_ENTRY, PRELUDE, git_as_tester, git_init, git_stdout, home_and_project, tempdir,
+    tempdir_with_config, tempdir_with_dirs, tempdir_with_files, write_bare_project, write_file,
+    write_lib_package, write_package,
 };
 pub use process::{
     assert_child_ok, current_test_name, rerun_isolated, rerun_isolated_stderr,

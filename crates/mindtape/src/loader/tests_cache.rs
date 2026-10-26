@@ -8,8 +8,8 @@
 use crate::test_support::write_file;
 use std::path::{Path, PathBuf};
 
-use super::load_project;
-use super::tests::{PRELUDE_STUB, TASK_BODY, setup, write_pkg};
+use super::tests::{PRELUDE_STUB, TASK_BODY, lib_config, setup, write_pkg};
+use super::{LoadOutcome, load_project};
 use crate::config::Config;
 use crate::parse_config;
 
@@ -45,12 +45,24 @@ fn doctor_cache_title(entry: &Path, title: &str) {
 
 /// The first task's title from a fresh default-config load of `root`.
 fn load_title(root: &Path) -> String {
-    load_project(root, &Config::default())
+    load_title_with(root, &Config::default())
+}
+
+/// The first task's title from a fresh load of `root` under `config`.
+fn load_title_with(root: &Path, config: &Config) -> String {
+    load_project(root, config)
         .tasks
         .first()
         .unwrap()
         .title
         .clone()
+}
+
+/// Write `tasks/build.typ` and load `root` once under the default config,
+/// which fills the cache.
+fn warm_build(root: &Path) -> LoadOutcome {
+    write_file(root, "tasks/build.typ", TASK_BODY);
+    load_project(root, &Config::default())
 }
 
 /// Doctor the cached entry, reload, and assert the doctored title came back:
@@ -63,8 +75,7 @@ fn assert_served_from_cache(root: &Path) {
 #[test]
 fn warm_load_serves_cache_and_skips_eval() {
     let dir = setup();
-    write_file(dir.path(), "tasks/build.typ", TASK_BODY);
-    let first = load_project(dir.path(), &Config::default());
+    let first = warm_build(dir.path());
     assert_eq!(first.tasks.first().unwrap().title, "Build");
 
     // An unchanged file must be served from its cached marker, not re-evaluated
@@ -75,8 +86,7 @@ fn warm_load_serves_cache_and_skips_eval() {
 #[test]
 fn edited_file_misses_and_reevals() {
     let dir = setup();
-    write_file(dir.path(), "tasks/build.typ", TASK_BODY);
-    let _ = load_project(dir.path(), &Config::default());
+    let _ = warm_build(dir.path());
 
     // New content -> new hash -> cache miss -> fresh eval.
     write_file(
@@ -104,26 +114,26 @@ fn config_change_busts_the_cache() {
 #[test]
 fn prelude_change_busts_the_cache() {
     let dir = setup();
+    let config = lib_config();
     write_pkg(dir.path(), "lib", "mindtape", "0.2.0", PRELUDE_STUB);
     write_file(
         dir.path(),
         "tasks/t.typ",
         crate::typst_task!("(title: \"Hi\")\n"),
     );
-    let _ = load_project(dir.path(), &Config::default());
+    let _ = load_project(dir.path(), &config);
     doctor_cache_title(&sole_cache_entry(dir.path()), "STALE");
 
     // Editing the prelude changes the lib hash -> build key -> re-eval.
     let bumped = format!("{PRELUDE_STUB}\n// bump\n");
     write_pkg(dir.path(), "lib", "mindtape", "0.2.0", &bumped);
-    assert_eq!(load_title(dir.path()), "Hi");
+    assert_eq!(load_title_with(dir.path(), &config), "Hi");
 }
 
 #[test]
 fn corrupt_entry_falls_back_to_eval() {
     let dir = setup();
-    write_file(dir.path(), "tasks/build.typ", TASK_BODY);
-    let _ = load_project(dir.path(), &Config::default());
+    let _ = warm_build(dir.path());
 
     std::fs::write(sole_cache_entry(dir.path()), "{ not json").unwrap();
     let out = load_project(dir.path(), &Config::default());
@@ -148,11 +158,11 @@ fn a_cache_hit_replays_the_files_typst_warnings() {
          #import \"@local/mindtape:0.2.0\": *\n\
          #show: task.with(title: \"T\")\n",
     );
-    let first = load_project(dir.path(), &Config::default());
+    let first = load_project(dir.path(), &lib_config());
     assert_eq!(first.warnings.len(), 1, "{:?}", first.warnings);
 
     doctor_cache_title(&sole_cache_entry(dir.path()), "FROM-CACHE");
-    let second = load_project(dir.path(), &Config::default());
+    let second = load_project(dir.path(), &lib_config());
     assert_eq!(second.tasks.first().unwrap().title, "FROM-CACHE");
     assert_eq!(second.warnings, first.warnings);
 }

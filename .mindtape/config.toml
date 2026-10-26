@@ -23,6 +23,13 @@ extends = [
 ]
 # docs:end
 
+# The backlog imports `@local/mindtape` from this checkout's own `lib/`, so a
+# worktree evaluates its tasks against its branch's prelude, whatever `mt
+# install` last wrote for the rest of the machine.
+[[typst.local-packages]]
+name = "mindtape"
+path = "lib"
+
 [tasks]
 
 # Mindtape's own backlog lives here, one task per file. The `mt` root name is

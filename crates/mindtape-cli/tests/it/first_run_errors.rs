@@ -124,7 +124,11 @@ fn import_without_the_prelude_prints_the_install_error_once_before_the_skip_coun
 fn import_skipped_for_another_reason_prints_no_install_note() {
     let (_home, project) = fresh_project();
     write_file(&project, "in.json", ONE_RECORD);
-    support::install_lib(&project);
+    // Installed where `run_fresh` points the data home, as `mt install` would.
+    mindtape::test_support::write_package(
+        &project.join("empty-data/typst/packages/local/mindtape/0.2.0"),
+        mindtape::test_support::PRELUDE,
+    );
 
     let (_, stderr) = run_fresh(&project, &["import", "in.json"]);
 

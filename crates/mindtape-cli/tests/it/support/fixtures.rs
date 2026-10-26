@@ -122,10 +122,14 @@ pub fn git_commit_all(dir: &Path) {
     );
 }
 
-/// Install the in-tree `@local/mindtape` lib override and an empty `tasks/`
-/// root under `dir`, so a task filed there can actually be evaluated.
+/// Install `@local/mindtape` where [`super::mt`]'s isolated data home puts the
+/// package root, as `mt install` would, and an empty `tasks/` root under
+/// `dir`, so a task filed there can actually be evaluated.
 pub fn install_lib(dir: &Path) {
-    mindtape::test_support::write_lib_package(dir, PRELUDE);
+    let pkg = dir
+        .join(super::DATA_HOME)
+        .join("typst/packages/local/mindtape/0.2.0");
+    mindtape::test_support::write_package(&pkg, PRELUDE);
     std::fs::create_dir_all(dir.join("tasks")).unwrap();
 }
 
@@ -137,15 +141,21 @@ pub fn scaffold() -> tempfile::TempDir {
     scaffold_project(TASKS_ROOT_CONFIG)
 }
 
-/// A throwaway project directory: the in-tree `@local/mindtape` package
-/// override plus an empty `tasks/` root ([`install_lib`]), and `config` written
-/// to `.mindtape/config.toml`. The shared prologue for every e2e test that
-/// needs a real project with a config of its own.
+/// A throwaway project directory: `@local/mindtape` and an empty `tasks/`
+/// root ([`install_lib`]), and `config` written to `.mindtape/config.toml`.
+/// The shared prologue for every e2e test that needs a real project with a
+/// config of its own.
+///
+/// The config also pins the package to an in-tree `lib/` with
+/// [`mindtape::test_support::LIB_ENTRY`], so `mt` run from another directory,
+/// as for a member of a set, still resolves it.
 pub fn scaffold_project(config: &str) -> tempfile::TempDir {
     let dir = tempdir();
     install_lib(dir.path());
+    mindtape::test_support::write_lib_package(dir.path(), PRELUDE);
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
-    write_file(dir.path(), ".mindtape/config.toml", config);
+    let config = format!("{config}{}", mindtape::test_support::LIB_ENTRY);
+    write_file(dir.path(), ".mindtape/config.toml", &config);
     dir
 }
 

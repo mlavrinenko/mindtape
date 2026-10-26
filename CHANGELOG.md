@@ -741,6 +741,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - **`search()`**, replaced by `contains()`.
+- **The implicit `lib/` package.** A project whose `lib/typst.toml` named the
+  package `mindtape` resolved `@local/mindtape` from there with no entry. Pin
+  it with `[[typst.local-packages]]` instead, as this repository does.
 - **Spellings from 0.3's development.** They never shipped and have no alias.
   The gone ones are `[handle] check-len` (handles are stem hashes now),
   `[[tasks.limits]]` (use `count()` in a rule), `[tasks.estimate.drift]` and

@@ -55,14 +55,7 @@ fn setup() -> (tempfile::TempDir, Project) {
 }
 
 fn reload(dir: &Path) -> Project {
-    let config = mindtape::parse_config(CONFIG).unwrap();
-    let outcome = mindtape::load_project(dir, &config);
-    Project {
-        root: dir.to_path_buf(),
-        config,
-        outcome,
-        hyperlinks: false,
-    }
+    crate::test_util::reload_with_lib(dir, CONFIG)
 }
 
 fn source(dir: &Path, stem: &str) -> String {

@@ -58,7 +58,22 @@ pub fn make_project_with_lib_in(
 ) -> Project {
     mindtape::test_support::write_lib_package(dir, prelude);
     std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::write(dir.join(".mindtape/config.toml"), config_text).unwrap();
-    let config = parse_config(config_text).unwrap();
+    let config_text = with_lib_entry(config_text);
+    std::fs::write(dir.join(".mindtape/config.toml"), &config_text).unwrap();
+    let config = parse_config(&config_text).unwrap();
     make_project_in(dir, files, config)
+}
+
+/// Load the project already at `dir` again under `config_text`, without
+/// rewriting its task files: what a second command run sees after a first one
+/// rewrote them. Pairs with [`make_project_with_lib_in`].
+pub fn reload_with_lib(dir: &Path, config_text: &str) -> Project {
+    let config = parse_config(&with_lib_entry(config_text)).unwrap();
+    make_project_in(dir, &[], config)
+}
+
+/// `config_text` with the entry that resolves `@local/mindtape` from the
+/// `lib/` that [`make_project_with_lib_in`] writes.
+fn with_lib_entry(config_text: &str) -> String {
+    format!("{config_text}{}", mindtape::test_support::LIB_ENTRY)
 }

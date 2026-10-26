@@ -52,11 +52,11 @@ fn scaffold_with_lib(gone_src: &str, live_src: Option<&str>) -> (tempfile::TempD
     swhid_mint::test_support::git(&root, &["add", "-A"]);
     swhid_mint::test_support::git(&root, &["commit", "-q", "-m", "seedwithlib"]);
     std::fs::create_dir_all(root.join(".mindtape")).unwrap();
-    write_file(
-        &root,
-        ".mindtape/config.toml",
-        "[tasks]\nroots = [\"tasks\"]\n",
+    let config = format!(
+        "[tasks]\nroots = [\"tasks\"]\n{}",
+        mindtape::test_support::LIB_ENTRY
     );
+    write_file(&root, ".mindtape/config.toml", &config);
     (tmpdir, root)
 }
 

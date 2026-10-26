@@ -224,10 +224,18 @@ pub(super) fn write_pkg(root: &Path, dir_rel: &str, name: &str, version: &str, e
     write_file(&pkg, "lib.typ", entry);
 }
 
+/// The config that resolves `@local/mindtape` from the project's `lib/`, where
+/// [`write_pkg`] puts a `mindtape` package.
+pub(super) fn lib_config() -> Config {
+    parse_config(crate::test_support::LIB_ENTRY).unwrap()
+}
+
 // A bogus version no install would ship, so resolution depends only on the
-// in-tree override — these stay hermetic regardless of any installed package.
+// project's own entries, whatever package the machine has installed.
 #[test]
-fn in_tree_lib_registered_when_named_mindtape() {
+fn in_tree_mindtape_lib_needs_a_local_packages_entry() {
+    // `<root>/lib` is the `mindtape` package, but no entry names it: the core
+    // resolves no path of its own, so `@local/mindtape` stays unresolved.
     let dir = setup();
     write_pkg(dir.path(), "lib", "mindtape", "99.99.99", PRELUDE_STUB);
     write_file(
@@ -236,28 +244,7 @@ fn in_tree_lib_registered_when_named_mindtape() {
         "#import \"@local/mindtape:99.99.99\": *\n#show: task.with(title: \"Hi\")\n= Body\n",
     );
     let outcome = load_project(dir.path(), &Config::default());
-    assert_eq!(outcome.errors, Vec::new());
-    assert_eq!(outcome.tasks.len(), 1);
-    assert_eq!(outcome.tasks.first().unwrap().title, "Hi");
-}
-
-#[test]
-fn foreign_lib_not_hijacked_as_mindtape() {
-    // `<root>/lib` is some other package: the `mindtape` override must NOT fire,
-    // so `@local/mindtape` is unresolved (no install here) and the file errors
-    // rather than silently loading against the foreign lib.
-    let dir = setup();
-    write_pkg(dir.path(), "lib", "other", "99.99.99", PRELUDE_STUB);
-    write_file(
-        dir.path(),
-        "tasks/t.typ",
-        "#import \"@local/mindtape:99.99.99\": *\n#show: task.with(title: \"Hi\")\n= Body\n",
-    );
-    let outcome = load_project(dir.path(), &Config::default());
-    assert!(
-        outcome.tasks.is_empty(),
-        "foreign lib must not resolve as the mindtape package"
-    );
+    assert!(outcome.tasks.is_empty(), "{:?}", outcome.tasks);
     assert_eq!(outcome.errors.len(), 1);
 }
 

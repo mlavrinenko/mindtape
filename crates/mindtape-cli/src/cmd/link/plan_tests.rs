@@ -41,14 +41,7 @@ fn setup(config_text: &str) -> (tempfile::TempDir, Project) {
 /// — what a second `mt link` invocation sees. [`setup`] would restore the
 /// fixtures over the rewrite under test.
 fn reload(dir: &Path, config_text: &str) -> Project {
-    let config = mindtape::parse_config(config_text).unwrap();
-    let outcome = mindtape::load_project(dir, &config);
-    Project {
-        root: dir.to_path_buf(),
-        config,
-        outcome,
-        hyperlinks: false,
-    }
+    crate::test_util::reload_with_lib(dir, config_text)
 }
 
 fn entry(stem: &str, kind: &str, target: &str, note: Option<&str>) -> Entry {

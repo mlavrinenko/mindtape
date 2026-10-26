@@ -48,6 +48,7 @@ const STUB: &str = crate::typst_task!("(\n  title: \"Stub\",\n  status: wip(2026
 pub(super) fn setup(dir: &Path, config_text: &str, files: &[(String, String)]) -> LoadOutcome {
     crate::test_support::write_lib_package(dir, PRELUDE);
     std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
+    let config_text = &format!("{config_text}{}", crate::test_support::LIB_ENTRY);
     write_file(dir, ".mindtape/config.toml", config_text);
     std::fs::create_dir_all(dir.join("tasks")).unwrap();
     for (name, source) in files {

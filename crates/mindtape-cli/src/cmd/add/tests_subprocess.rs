@@ -157,11 +157,11 @@ use mindtape::test_support::PRELUDE;
 /// custom template, the @local/mindtape lib, and an empty tasks dir.
 fn run_scenario_project(dir: &Path, template: &str) {
     std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    write_file(
-        dir,
-        ".mindtape/config.toml",
-        "[tasks]\nroots = [\"tasks\"]\n",
+    let config = format!(
+        "[tasks]\nroots = [\"tasks\"]\n{}",
+        mindtape::test_support::LIB_ENTRY
     );
+    write_file(dir, ".mindtape/config.toml", &config);
     std::fs::create_dir_all(dir.join(".mindtape/templates")).unwrap();
     write_file(dir, ".mindtape/templates/task.typ", template);
     mindtape::test_support::write_lib_package(dir, PRELUDE);
