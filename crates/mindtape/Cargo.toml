@@ -57,6 +57,11 @@ serde_json = "1"
 # (`crates/mindtape/src/loader/cache.rs`): a file's SHA-1 keys its cache entry, and a
 # per-file digest feeds the prelude/lib fingerprint in the build key.
 sha1 = "0.10"
+# The framed tree hash a `.mindtape/packs.lock` entry pins
+# (`crates/mindtape/src/config/pack_sources/hash.rs`). SHA-256, since the
+# hash names the cache directory a fetched source lands in. Shares `digest`
+# 0.10 with `sha1`.
+sha2 = "0.10"
 # Derives the JSON Schema for `.mindtape/config.toml` straight off the config
 # structs (single source of truth), so `mt install`/`mt init` can ship an
 # editor-assist schema that never drifts from the types. Emits draft 2020-12.

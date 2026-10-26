@@ -11,10 +11,24 @@
 //! # Files
 //!
 //! - `mod.rs`: `[pack-sources]`, [`read_raw`] and the load-time checks.
+//! - `fetch.rs`, `fetch_tests.rs`: [`fetch`], one locked source into the
+//!   cache.
+//! - `git.rs`, `git_tests.rs`: git run apart from the caller's git state,
+//!   and the blobs streamed out of it.
+//! - `hash.rs`, `hash_tests.rs`: [`hash`], the framed tree hash a lock pins.
+//! - `listing.rs`, `listing_tests.rs`: the blobs of a commit's tree, and
+//!   the paths no platform may write differently.
 //! - `lock.rs`: `.mindtape/packs.lock` and its entries.
+//! - `scratch.rs`, `scratch_tests.rs`: the directory a fetch builds in, its
+//!   sweep, and the rename into the cache.
 //! - `tests.rs`: the unit tests, through a full config load.
 
+mod fetch;
+mod git;
+mod hash;
+mod listing;
 mod lock;
+mod scratch;
 
 use std::collections::BTreeMap;
 use std::io::ErrorKind;
@@ -22,6 +36,8 @@ use std::path::Path;
 
 use serde::Deserialize;
 
+pub use crate::config::pack_sources::fetch::{FetchError, fetch};
+pub use crate::config::pack_sources::hash::hash;
 pub use crate::config::pack_sources::lock::{LockedSource, PackLock, lock_path};
 
 use crate::config::layers::{Layer, LayerSource};

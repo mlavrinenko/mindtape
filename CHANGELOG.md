@@ -458,6 +458,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   paths to the same file. A path pack's label is its canonical path. The
   config schema tags each expression key with `x-expression` and its
   language.
+- **The library fetches a locked pack source into a cache.**
+  `config::pack_sources::fetch` runs `git fetch` for the source's `ref`, with
+  the caller's `GIT_*` repository variables dropped, fetched objects checked
+  and only https, ssh, git and local paths allowed. It writes the locked
+  commit's files from git's own objects, so no `core.autocrlf`,
+  `.gitattributes` or filter changes a byte, and renames the tree to
+  `<cache root>/<sha256>/`. `config::pack_sources::hash` is that sha256, over
+  every file framed by its path and length. A symlink, a submodule, a path
+  that is not ASCII, has an empty, `.` or `..` part, or names something
+  Windows can't hold (`C:x`, `a\b`, `CON`, a trailing dot), two spellings of
+  one path in different case, or a hash other than the lock's fails, on every
+  platform. A SHA-256 repository fetches by its 64-digit commit, two fetches
+  of one tree at once both pass, and a fetch sweeps scratch directories over
+  an hour old.
 - **`mt rules` lists the rules that apply, one line each.** A line is the
   rule's severity, its name as `mt config show --origin` prints it, and the
   message a breach prints, after packs, overrides and `disable`. A rule with no

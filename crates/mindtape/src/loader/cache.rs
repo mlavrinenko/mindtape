@@ -323,7 +323,7 @@ pub(crate) fn ensure_ignored(cache_root: &Path) {
 }
 
 /// Lowercase hex of a digest.
-fn hex(bytes: &[u8]) -> String {
+pub(crate) fn hex(bytes: &[u8]) -> String {
     let mut out = String::with_capacity(bytes.len() * 2);
     for &byte in bytes {
         let _ = write!(out, "{byte:02x}");
