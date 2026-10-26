@@ -157,8 +157,8 @@ at 5 files and the project raises the cap to 8:
 `mt` writes each value into the pack's expressions when it loads the config,
 so `mt check`, `mt rules` and `mt config show` all see `8`. It works in every
 expression the pack holds, from a rule's `when` and `assert` to a view's
-`filter`, an `[[on.flip]]` `when`, each `required` and the `[ls]` and `[rm]`
-filters. A `param()` inside a string literal stays as written, and so does
+`filter`, an `[[on.flip]]` `when` or `list`, each `required` and the `[ls]`
+and `[rm]` filters. A `param()` inside a string literal stays as written, and so does
 one in a rule's `message`, which is text and no expression. A bare entry like `"./team.toml"` keeps every
 default.
 
@@ -170,7 +170,8 @@ the nearest one:
 #terminal("packs-params-unknown")
 
 It also refuses a value of another type than the default, a `param()` that
-names no parameter, and one pack listed twice in one `extends`. A `param()`
+names no parameter, and one pack listed twice in one `extends`, even by two
+paths to the same file. A `param()`
 in a layer's own expression is refused too, since only a pack has
 parameters.
 

@@ -37,6 +37,7 @@ pub struct ContentRuleConfig {
     /// The assertion made over each matched section's content.
     pub assert: ContentAssert,
     /// Optional filter expression gating this rule to matching tasks only.
+    #[schemars(extend("x-expression" = "filter"))]
     pub when: Option<String>,
     /// Override for the default violation message.
     pub message: Option<String>,

@@ -170,9 +170,11 @@ pub struct FieldConfig {
     /// template nor the caller sets it. `mt check` never applies it.
     pub default: Option<String>,
     /// Whether the field must be set.
+    #[schemars(extend("x-expression" = "filter"))]
     pub required: Requirement,
     /// A filter naming the tasks held to `values`; every other task keeps
     /// whatever it carries. Absent holds every task.
+    #[schemars(extend("x-expression" = "filter"))]
     pub values_when: Option<String>,
     /// Whether an `x-<ns>` field holds a list of strings rather than one
     /// string. `mt check` refuses a string in such a field, and a list in a
@@ -208,6 +210,7 @@ pub struct TagsConfig {
     pub allowed: Vec<String>,
     /// A filter naming the tasks held to `allowed`. Absent means `!terminal`,
     /// so a closed task keeps a tag dropped from the list.
+    #[schemars(extend("x-expression" = "filter"))]
     pub values_when: Option<String>,
 }
 

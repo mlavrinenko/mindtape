@@ -10,13 +10,17 @@
 //!
 //! The rewrite skips string literals, the way
 //! [`crate::filter::expr::join_kebab_names`] does, so `title ==
-//! "param(\"x\")"` stays as written. It reaches only [`EXPRESSION_KEYS`]: a
-//! rule's `message` is prose, not an expression.
+//! "param(\"x\")"` stays as written. It reaches only the keys
+//! [`expression_keys`] reads from the config schema: a rule's `message` is
+//! prose, not an expression. A key in a language that reads `a-b` as one
+//! name, as the filter language does, takes `my-param("x")` for a name, and
+//! a formula reads it as `my - param("x")`.
 
 use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
+use crate::config::expression_keys::expression_keys;
 use crate::config::{ConfigError, quote};
 use crate::problem::Problem;
 use crate::suggest::Unknown;
@@ -63,37 +67,6 @@ pub enum ParamValue {
     String(String),
 }
 
-/// Every config key whose value is an expression, as TOML path steps. `*`
-/// steps into every key of a table or every entry of an array.
-const EXPRESSION_KEYS: [&[&str]; 18] = [
-    &["tasks", "rules", "*", "when"],
-    &["tasks", "rules", "*", "assert"],
-    &["tasks", "body", "headers", "rules", "*", "when"],
-    &["tasks", "body", "content", "rules", "*", "when"],
-    &["commits", "rules", "*", "when"],
-    &["commits", "rules", "*", "assert"],
-    &["on", "flip", "*", "when"],
-    &["views", "*", "filter"],
-    &["tasks", "*", "required"],
-    &["tasks", "fields", "*", "required"],
-    &["tasks", "*", "values-when"],
-    &["tasks", "fields", "*", "values-when"],
-    &["tasks", "priority", "frameworks", "*", "score"],
-    &[
-        "tasks",
-        "priority",
-        "frameworks",
-        "*",
-        "category",
-        "*",
-        "when",
-    ],
-    &["ls", "rules", "*", "condition"],
-    &["ls", "rules", "*", "filter"],
-    &["ls", "columns", "*", "when"],
-    &["rm", "default-filter"],
-];
-
 /// Take `[params]` out of `pack`, set each parameter `with` names, and write
 /// every `param()` call in the pack's expressions as its value's literal.
 /// `label` names the pack in an error.
@@ -109,8 +82,9 @@ pub(super) fn apply_params(
     label: &str,
 ) -> Result<(), ConfigError> {
     let values = resolve_values(pack.remove("params"), with, label)?;
-    rewrite_expressions(pack, &mut |key, expr| {
-        rewrite_calls(expr, |name| values.get(name).map(literal)).map_err(|error| match error {
+    rewrite_expressions(pack, &mut |key, expr, joins_kebab| {
+        let lookup = |name: &str| values.get(name).map(literal);
+        rewrite_calls(expr, joins_kebab, lookup).map_err(|error| match error {
             CallError::Malformed => ConfigError::invalid(format!(
                 "extends: pack {} calls param() without one quoted name in {}",
                 quote(label),
@@ -136,8 +110,8 @@ pub(super) fn apply_params(
 /// Returns [`ConfigError::Invalid`] naming the first expression key holding
 /// one.
 pub(super) fn refuse_param_calls(layer: &mut toml::Table) -> Result<(), ConfigError> {
-    rewrite_expressions(layer, &mut |key, expr| {
-        rewrite_calls(expr, |_| None).map_err(|error| {
+    rewrite_expressions(layer, &mut |key, expr, joins_kebab| {
+        rewrite_calls(expr, joins_kebab, |_| None).map_err(|error| {
             let message =
                 format!("{key}: param() reads a pack's parameter, and this layer is no pack");
             ConfigError::invalid(match error {
@@ -229,17 +203,25 @@ fn literal(value: &toml::Value) -> String {
     }
 }
 
-/// What rewrites one expression: its dotted key and text in, the new text out.
-type Rewrite<'f> = dyn FnMut(&str, &str) -> Result<String, ConfigError> + 'f;
+/// What rewrites one expression: its dotted key, its text and whether its
+/// language joins kebab names in, the new text out.
+type Rewrite<'f> = dyn FnMut(&str, &str, bool) -> Result<String, ConfigError> + 'f;
 
-/// Run `rewrite` over every string at one of [`EXPRESSION_KEYS`] in `table`.
+/// [`Rewrite`] for one expression key, whose language is settled.
+type RewriteAt<'f> = dyn FnMut(&str, &str) -> Result<String, ConfigError> + 'f;
+
+/// Run `rewrite` over every string at one of the [`expression_keys`] in
+/// `table`.
 fn rewrite_expressions(table: &mut toml::Table, rewrite: &mut Rewrite) -> Result<(), ConfigError> {
-    EXPRESSION_KEYS.iter().try_for_each(|pattern| {
-        let Some((step, rest)) = pattern.split_first() else {
-            return Ok(());
+    for expression in expression_keys() {
+        let Some((step, rest)) = expression.path.split_first() else {
+            continue;
         };
-        visit_table(table, step, rest, "", rewrite)
-    })
+        let joins_kebab = expression.joins_kebab;
+        let mut at_key = |key: &str, expr: &str| rewrite(key, expr, joins_kebab);
+        visit_table(table, step, rest, "", &mut at_key)?;
+    }
+    Ok(())
 }
 
 /// Visit each entry of `table` that `step` matches, `key` being the table's
@@ -247,9 +229,9 @@ fn rewrite_expressions(table: &mut toml::Table, rewrite: &mut Rewrite) -> Result
 fn visit_table(
     table: &mut toml::Table,
     step: &str,
-    rest: &[&str],
+    rest: &[String],
     key: &str,
-    rewrite: &mut Rewrite,
+    rewrite: &mut RewriteAt,
 ) -> Result<(), ConfigError> {
     for (name, child) in table.iter_mut() {
         if step == "*" || name == step {
@@ -268,9 +250,9 @@ fn visit_table(
 /// string at its end.
 fn visit(
     value: &mut toml::Value,
-    pattern: &[&str],
+    pattern: &[String],
     key: &str,
-    rewrite: &mut Rewrite,
+    rewrite: &mut RewriteAt,
 ) -> Result<(), ConfigError> {
     let Some((step, rest)) = pattern.split_first() else {
         if let toml::Value::String(expr) = value {
@@ -280,7 +262,7 @@ fn visit(
     };
     match value {
         toml::Value::Table(table) => visit_table(table, step, rest, key, rewrite),
-        toml::Value::Array(items) if *step == "*" => {
+        toml::Value::Array(items) if step == "*" => {
             for (index, item) in items.iter_mut().enumerate() {
                 visit(item, rest, &format!("{key}[{index}]"), rewrite)?;
             }
@@ -300,9 +282,14 @@ enum CallError {
 }
 
 /// `expr` with each `param("name")` call outside a string literal replaced
-/// by `lookup(name)`. `param` inside a longer name, such as `my-param`, is no
-/// call, and neither is a `param` with no `(` after it.
-fn rewrite_calls(expr: &str, lookup: impl Fn(&str) -> Option<String>) -> Result<String, CallError> {
+/// by `lookup(name)`. `param` inside a longer name, such as `x.param`, is no
+/// call, and neither is a `param` with no `(` after it. With `joins_kebab`,
+/// `my-param` is one name too.
+fn rewrite_calls(
+    expr: &str,
+    joins_kebab: bool,
+    lookup: impl Fn(&str) -> Option<String>,
+) -> Result<String, CallError> {
     let mut out = String::with_capacity(expr.len());
     let mut rest = expr;
     let (mut in_string, mut escaped) = (false, false);
@@ -313,7 +300,7 @@ fn rewrite_calls(expr: &str, lookup: impl Fn(&str) -> Option<String>) -> Result<
             in_string = escaped || ch != '"';
             escaped = !escaped && ch == '\\';
         } else if !in_run && (ch.is_alphabetic() || ch == '_') {
-            let (name, tail) = rest.split_at(name_len(rest));
+            let (name, tail) = rest.split_at(name_len(rest, joins_kebab));
             if name == "param"
                 && let Some((argument, after)) = call_argument(tail)?
             {
@@ -340,12 +327,14 @@ fn is_name_char(ch: char) -> bool {
     ch.is_alphanumeric() || ch == '_' || ch == '.'
 }
 
-/// The byte length of the name `text` starts with, a hyphen joining two
-/// name characters as [`crate::filter::expr::join_kebab_names`] joins them.
-fn name_len(text: &str) -> usize {
+/// The byte length of the name `text` starts with. With `joins_kebab`, a
+/// hyphen joins two name characters as
+/// [`crate::filter::expr::join_kebab_names`] joins them.
+fn name_len(text: &str, joins_kebab: bool) -> usize {
     let mut chars = text.char_indices().peekable();
     while let Some((index, ch)) = chars.next() {
-        let joins = ch == '-'
+        let joins = joins_kebab
+            && ch == '-'
             && chars
                 .peek()
                 .is_some_and(|(_, next)| next.is_alphanumeric() || *next == '_');

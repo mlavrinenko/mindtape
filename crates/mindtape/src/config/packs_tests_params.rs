@@ -80,23 +80,101 @@ fn string_float_and_boolean_values_become_their_literals() {
     assert_eq!(assert, r#"kind == "a \"b\" \\ c" && x <= 2.0 && true"#);
 }
 
+/// A pack setting every expression key of the config to `param("p")`, read
+/// in a way that key's language parses.
+const EVERY_KEY: &str = r#"[params]
+p = 7
+
+[[tasks.rules]]
+name = "r"
+when = 'a == param("p")'
+assert = 'b == param("p")'
+
+[[commits.rules]]
+name = "c"
+when = 'c == param("p")'
+assert = 'd == param("p")'
+
+[[tasks.body.headers.rules]]
+when = 'e == param("p")'
+
+[[tasks.body.content.rules]]
+when = 'f == param("p")'
+
+[[on.flip]]
+when = 'g == param("p")'
+actions = [{ list = 'h == param("p")' }]
+
+[views.mine]
+filter = 'i == param("p")'
+
+[tasks.priority]
+required = 'j == param("p")'
+
+[tasks.difficulty]
+required = 'k == param("p")'
+
+[tasks.estimate]
+required = 'l == param("p")'
+
+[tasks.assignee]
+required = 'm == param("p")'
+values-when = 'n == param("p")'
+
+[tasks.tags]
+values-when = 'o == param("p")'
+
+[tasks.fields.risk]
+required = 'q == param("p")'
+values-when = 'r == param("p")'
+
+[tasks.priority.frameworks.half]
+score = 's == param("p")'
+
+[[tasks.priority.frameworks.half.category]]
+when = 't == param("p")'
+
+[[ls.rules]]
+condition = 'u == param("p")'
+filter = 'v == param("p")'
+
+[ls.columns.title]
+when = 'w == param("p")'
+
+[rm]
+default-filter = 'x == param("p")'
+"#;
+
 #[test]
 fn every_expression_key_of_the_pack_is_rewritten() {
-    let pack = "[params]\np = 7\n\n\
-        [[tasks.rules]]\nname = \"r\"\nwhen = 'a == param(\"p\")'\nassert = 'b == param(\"p\")'\n\n\
-        [[commits.rules]]\nname = \"c\"\nwhen = 'c == param(\"p\")'\nassert = 'd == param(\"p\")'\n\n\
-        [[tasks.body.headers.rules]]\nwhen = 'e == param(\"p\")'\n\n\
-        [[on.flip]]\nwhen = 'f == param(\"p\")'\n\n\
-        [views.mine]\nfilter = 'g == param(\"p\")'\n\n\
-        [tasks.priority]\nrequired = 'h == param(\"p\")'\n\n\
-        [tasks.fields.risk]\nrequired = 'i == param(\"p\")'\n\n\
-        [[ls.rules]]\ncondition = 'j == param(\"p\")'\nfilter = 'l == param(\"p\")'\n\n\
-        [ls.columns.title]\nwhen = 'm == param(\"p\")'\n\n\
-        [rm]\ndefault-filter = 'k == param(\"p\")'\n";
-    let merged = merge_with(pack, "extends = [\"mindtape:budget\"]\n").unwrap();
+    let merged = merge_with(EVERY_KEY, "extends = [\"mindtape:budget\"]\n").unwrap();
     let doc = toml::Value::Table(merged.table).to_string();
     assert!(!doc.contains("param("), "{doc}");
-    assert_eq!(doc.matches("== 7").count(), 13, "{doc}");
+    let keys = crate::config::expression_keys::expression_keys().len();
+    assert_eq!(doc.matches("== 7").count(), keys, "{doc}");
+}
+
+#[test]
+fn a_formula_reads_a_hyphen_before_param_as_a_minus_and_still_loads() {
+    let (_tmp, home, project) = home_and_project();
+    write_file(
+        &project,
+        "team.toml",
+        "[params]\nw = 1\n\n[tasks.priority]\nframework = \"half\"\n\n\
+         [tasks.priority.frameworks.half]\nscore = 'round(ease-param(\"w\"))'\n\n\
+         [tasks.priority.frameworks.half.inputs.ease]\ntype = \"number\"\nmin = 1\nmax = 10\n",
+    );
+    write_file(
+        &project,
+        ".mindtape/config.toml",
+        "extends = [\"./team.toml\"]\n",
+    );
+
+    let config = load_config_layered_from(&project, Some(&home), None)
+        .unwrap()
+        .0;
+    let half = &config.tasks.priority.frameworks["half"];
+    assert_eq!(half.score.as_deref(), Some("round(ease-1)"));
 }
 
 #[test]
@@ -224,4 +302,25 @@ fn a_path_pack_with_params_loads_with_the_with_value() {
         .find(|rule| rule.name.as_deref() == Some("small"))
         .unwrap();
     assert_eq!(rule.assertion.as_deref(), Some("estimate.src-files <= 8"));
+}
+
+#[test]
+fn two_paths_to_one_pack_file_are_one_pack_listed_twice() {
+    let (_tmp, home, project) = home_and_project();
+    write_file(&project, "team.toml", BUDGET);
+    let up = format!(
+        "../{}/team.toml",
+        project.file_name().unwrap().to_string_lossy()
+    );
+    write_file(
+        &project,
+        ".mindtape/config.toml",
+        format!("extends = [\"./team.toml\", {{ pack = \"{up}\", with = {{ max-files = 8 }} }}]\n"),
+    );
+
+    let err = load_config_layered_from(&project, Some(&home), None)
+        .unwrap_err()
+        .to_string();
+    assert!(err.ends_with("team.toml' is listed twice"), "{err}");
+    assert!(!err.contains("..") && !err.contains("./"), "{err}");
 }

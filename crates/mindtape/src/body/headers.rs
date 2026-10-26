@@ -49,6 +49,7 @@ pub struct HeaderRuleConfig {
     #[serde(default)]
     pub allowed: Vec<HeaderPathSegment>,
     /// Optional filter expression gating this rule to matching tasks only.
+    #[schemars(extend("x-expression" = "filter"))]
     pub when: Option<String>,
     /// Override for the default violation message.
     pub message: Option<String>,

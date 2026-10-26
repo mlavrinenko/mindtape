@@ -127,10 +127,12 @@ pub struct CommitRuleSpec {
     pub scope: CommitScope,
     /// Commit expression that must hold for every commit the rule applies to.
     #[serde(rename = "assert")]
+    #[schemars(extend("x-expression" = "commit"))]
     pub assertion: String,
     /// Commit expression gating which commits the rule applies to. Absent
     /// means every commit.
     #[serde(default)]
+    #[schemars(extend("x-expression" = "commit"))]
     pub when: Option<String>,
     /// What a breach tells the author, in place of the default advice naming
     /// the `assert` expression.

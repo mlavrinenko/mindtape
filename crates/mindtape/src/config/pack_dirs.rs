@@ -68,3 +68,7 @@ pub(super) fn absolute(path: &Path) -> PathBuf {
     }
     clean
 }
+
+#[cfg(test)]
+#[path = "pack_dirs_tests.rs"]
+mod tests;

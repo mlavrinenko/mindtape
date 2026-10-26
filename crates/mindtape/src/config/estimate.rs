@@ -24,6 +24,7 @@ pub struct EstimateConfig {
     /// Allowed unit names. Empty = any unit.
     pub units: Vec<String>,
     /// Whether an estimate must be set.
+    #[schemars(extend("x-expression" = "filter"))]
     pub required: Requirement,
     /// The estimate `mt check` files a spliced slot with, as `unit = quantity`
     /// pairs. A required estimate with no `example` leaves that slot

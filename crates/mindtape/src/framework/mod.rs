@@ -47,6 +47,7 @@ pub struct Framework {
     pub inputs: BTreeMap<String, Input>,
     /// Arithmetic expression over the inputs that computes the score, such as
     /// `impact * confidence * ease`. Cannot be combined with `category`.
+    #[schemars(extend("x-expression" = "formula"))]
     pub score: Option<String>,
     /// Categories to classify a task into. For any input values, exactly one
     /// category's `when` must be true. Cannot be combined with `score`.
@@ -88,6 +89,7 @@ pub enum InputKind {
 pub struct Category {
     /// Boolean expression over the inputs. A task falls in this category
     /// when it is true.
+    #[schemars(extend("x-expression" = "formula"))]
     pub when: String,
     /// Score of a task in this category, used for bands and sorting.
     pub score: f64,

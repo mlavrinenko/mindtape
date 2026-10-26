@@ -454,7 +454,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   string literals and a rule's `message`. `mt` refuses a `with` key the pack
   doesn't declare, suggesting the nearest, a value of another type than the
   default, a `param()` naming no parameter, a `param()` in a layer's own
-  expression, and one pack listed twice in one `extends`.
+  expression, and one pack listed twice in one `extends`, even under two
+  paths to the same file. A path pack's label is its canonical path. The
+  config schema tags each expression key with `x-expression` and its
+  language.
 - **`mt rules` lists the rules that apply, one line each.** A line is the
   rule's severity, its name as `mt config show --origin` prints it, and the
   message a breach prints, after packs, overrides and `disable`. A rule with no

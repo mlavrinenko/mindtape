@@ -163,6 +163,7 @@ pub struct NumericField {
     /// Anchor classification (mutually exclusive with `bands`).
     pub anchors: Vec<Anchor>,
     /// Whether the field must be set.
+    #[schemars(extend("x-expression" = "filter"))]
     pub required: Requirement,
     /// The value `mt check` files a spliced slot with. A required field with
     /// no `example` leaves that slot unfillable.

@@ -180,14 +180,15 @@ fn a_syntax_error_in_a_path_pack_names_the_pack_file() {
         ".mindtape/config.toml",
         "extends = [\"./pack.toml\"]\n[tasks]\nroots = [\"tasks\"]\n",
     );
-    let pack = project.join("./pack.toml");
-    std::fs::write(&pack, "oops =\n").unwrap();
+    std::fs::write(project.join("pack.toml"), "oops =\n").unwrap();
 
     let (ok, stderr) = run_fresh(&project, &["ls"]);
 
     assert!(!ok, "{stderr}");
+    let sep = std::path::MAIN_SEPARATOR;
     assert!(
-        stderr.contains(&format!("{}:1:7: can't parse config: ", pack.display())),
+        stderr.contains(&format!("{sep}pack.toml:1:7: can't parse config: ")),
         "{stderr}"
     );
+    assert!(!stderr.contains(&format!(".{sep}pack.toml")), "{stderr}");
 }

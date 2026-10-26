@@ -24,6 +24,7 @@ use crate::suggest::Unknown;
 pub struct ViewSpec {
     /// Filter expression (the filter facet). May reference other views via
     /// `in_view("other")` or the `@other` sugar. Empty means match-all.
+    #[schemars(extend("x-expression" = "filter"))]
     pub filter: String,
     /// Sort chain applied when this view drives sort (bundle mode or
     /// `--sort @name`). Same spec grammar as `--sort`; empty means the default

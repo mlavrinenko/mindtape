@@ -52,6 +52,7 @@ pub struct ColumnConfig {
     /// the column never renders.
     // The embedded floor sets `when` on every column, so an absent `when` is a
     // column a config layer deleted.
+    #[schemars(extend("x-expression" = "condition"))]
     pub when: Option<String>,
 }
 

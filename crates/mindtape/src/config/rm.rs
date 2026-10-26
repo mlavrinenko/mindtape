@@ -30,6 +30,7 @@ pub struct RmConfig {
     /// Filter selecting which tasks a bare `mt rm` (no target given) retires.
     /// Defaults to `"terminal"`, sweeping every task in a terminal status.
     /// An explicit ref or filter argument on the command line overrides it.
+    #[schemars(extend("x-expression" = "filter"))]
     pub default_filter: Option<String>,
     /// How inbound references to a removed task are handled; defaults to `"git-tombstone"` in a git repository, `"reject"` without one.
     pub strategy: Option<RmStrategy>,

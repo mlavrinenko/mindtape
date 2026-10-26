@@ -77,6 +77,7 @@ pub struct FlipHook {
     pub name: Option<String>,
     /// Filter over the task being flipped, plus `into("status")` for the status
     /// being stamped. Empty fires on every flip.
+    #[schemars(extend("x-expression" = "filter"))]
     pub when: String,
     /// Actions to run, in declaration order.
     pub actions: Vec<FlipAction>,
@@ -92,6 +93,7 @@ pub struct FlipAction {
     /// Print a message with `{ show = "text" }`.
     pub show: Option<String>,
     /// Print the matching tasks with `{ list = "filter or @view" }`.
+    #[schemars(extend("x-expression" = "filter"))]
     pub list: Option<String>,
     /// Run a command through the platform shell (`sh -c`, or `cmd /C` on Windows)
     /// with `{ run = "command" }`. A gating action may omit it, and then the gate

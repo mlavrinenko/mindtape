@@ -157,6 +157,7 @@ pub struct LsRule {
     /// Condition expression over environment predicates such as
     /// `on_branch`, `env`, `weekday`, and `now`. Absent means the rule always
     /// matches.
+    #[schemars(extend("x-expression" = "condition"))]
     pub condition: Option<String>,
     /// Ordered list of views to import facets from, composed left-to-right
     /// (later entries win on conflict). Each entry is a view name (`"view"`,
@@ -165,6 +166,7 @@ pub struct LsRule {
     pub import_views: Vec<String>,
     /// Manual filter override. It has the highest precedence for the filter facet.
     /// Same grammar as `[views]`; may use `@view` / `in_view`.
+    #[schemars(extend("x-expression" = "filter"))]
     pub filter: Option<String>,
     /// Manual sort override. It has the highest precedence for the sort facet.
     /// Same spec grammar as `--sort`; an entry may splice `@view`.

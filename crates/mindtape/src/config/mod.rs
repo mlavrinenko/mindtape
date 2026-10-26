@@ -21,6 +21,7 @@
 //! - `defaults.toml`: the embedded floor every config layers over.
 //! - `dicts.rs`: `[dicts.<name>]`, named string sets.
 //! - `estimate.rs`: `[tasks.estimate]` unit allow-list.
+//! - `expression_keys.rs`: every expression key, read from the config schema.
 //! - `format.rs`: `[format]`, whether `mt` reformats what it writes.
 //! - `go.rs`: `[go]`, the editor `mt go` opens.
 //! - `hooks.rs`: `[[on.flip]]`, actions bound to a status change.
@@ -61,6 +62,7 @@ pub mod comments;
 pub mod commits;
 pub(crate) mod dicts;
 pub(crate) mod estimate;
+pub(crate) mod expression_keys;
 pub(crate) mod format;
 pub(crate) mod go;
 pub mod hooks;

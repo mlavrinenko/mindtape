@@ -47,7 +47,7 @@ pub(super) fn resolve_pack(
     scope: &PackScope<'_>,
 ) -> Result<ResolvedPack, ConfigError> {
     if is_path_entry(entry) {
-        let path = base_dir.join(entry);
+        let path = canonical(&base_dir.join(entry));
         if path.is_dir() {
             let dir = path.components().collect::<PathBuf>();
             refuse_ambiguous(&dir)?;
@@ -71,6 +71,30 @@ pub(super) fn resolve_pack(
             table,
             text: text.to_owned(),
         })
+    }
+}
+
+/// `path` absolute and free of `..` and symlinks, so two entries naming one
+/// file name one pack, or `path` itself when it can't be resolved, such as a
+/// missing file. Windows' verbatim prefix `\\?\` comes off, so the label
+/// reads like any other path.
+fn canonical(path: &Path) -> PathBuf {
+    path.canonicalize()
+        .map_or_else(|_| path.to_path_buf(), strip_verbatim)
+}
+
+/// `path` without a Windows verbatim prefix: `\\?\C:\x` becomes `C:\x`,
+/// and `\\?\UNC\host\share` becomes `\\host\share`.
+fn strip_verbatim(path: PathBuf) -> PathBuf {
+    let Some(text) = path.to_str() else {
+        return path;
+    };
+    match text.strip_prefix(r"\\?\") {
+        Some(rest) => match rest.strip_prefix(r"UNC\") {
+            Some(share) => PathBuf::from(format!(r"\\{share}")),
+            None => PathBuf::from(rest),
+        },
+        None => path,
     }
 }
 
@@ -208,3 +232,7 @@ fn validate_pack_shape(table: &toml::Table, pack_label: &str) -> Result<(), Conf
         None => Ok(()),
     }
 }
+
+#[cfg(test)]
+#[path = "pack_resolve_tests.rs"]
+mod tests;

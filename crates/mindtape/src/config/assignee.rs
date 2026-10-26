@@ -23,9 +23,11 @@ pub struct AssigneeConfig {
     /// Allowed assignees (the project's actors). Empty = accept any value.
     pub allowed: Vec<String>,
     /// Whether an assignee must be set.
+    #[schemars(extend("x-expression" = "filter"))]
     pub required: Requirement,
     /// A filter naming the tasks held to `allowed`; every other task keeps
     /// whatever it carries. Absent holds every task.
+    #[schemars(extend("x-expression" = "filter"))]
     pub values_when: Option<String>,
     /// The assignee `mt check` files a spliced slot with. A required assignee
     /// with no `example` leaves that slot unfillable.

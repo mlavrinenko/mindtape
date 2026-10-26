@@ -157,6 +157,7 @@ pub struct RuleSpec {
     /// Filter expression that must evaluate true for every task the rule
     /// applies to. Exactly one of this and `check` is set.
     #[serde(default, rename = "assert")]
+    #[schemars(extend("x-expression" = "filter"))]
     pub assertion: Option<String>,
     /// A Typst function to call instead of an `assert` expression. Exactly
     /// one of this and `assert` is set.
@@ -165,6 +166,7 @@ pub struct RuleSpec {
     /// Filter expression gating which tasks the rule applies to. Absent means
     /// every task.
     #[serde(default)]
+    #[schemars(extend("x-expression" = "filter"))]
     pub when: Option<String>,
     /// What an `assert` breach tells the author to do, in place of the
     /// default advice naming the `assert` expression. A `check` rule ignores

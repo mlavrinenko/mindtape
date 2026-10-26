@@ -5,7 +5,16 @@ use crate::filter::Filter;
 
 /// `expr` with every `param()` call naming `p` replaced by `7`.
 fn rewrite(expr: &str) -> Result<String, CallError> {
-    rewrite_calls(expr, |name| (name == "p").then(|| "7".to_owned()))
+    rewrite_calls(expr, true, |name| (name == "p").then(|| "7".to_owned()))
+}
+
+#[test]
+fn a_formula_reads_a_hyphen_before_param_as_a_minus() {
+    let lookup = |name: &str| (name == "p").then(|| "7".to_owned());
+    assert_eq!(
+        rewrite_calls("ease-param(\"p\")", false, lookup).unwrap(),
+        "ease-7"
+    );
 }
 
 #[test]
