@@ -33,8 +33,7 @@
 
 == Problem
 
-+ Reviewing `merge-every-config-key-from-a-pack-below-the-layer-that-extends-it.typ`, which lets a pack set `[views]`
-+ 🔴 #raw("crates/mindtape/src/config/locate.rs"): a bad value a pack or an ancestor `defaults.toml` set is placed at a line of the project config that doesn't hold it: `place_of` searches only layer files, and `key_line` falls back to the deepest ancestor key the file declares
++ 🔴 #raw("crates/mindtape/src/config/locate.rs"): `place_of` searches only layer files, and `key_line` falls back to the deepest ancestor key a file declares, so a bad value from a pack lands on an unrelated project line:
 
 ```
 $ head .mindtape/config.toml team.toml
@@ -51,12 +50,13 @@ $ mt check
 error: .mindtape/config.toml:3: views.board.filter: failed to parse filter: a '(' is never closed
 ```
 
-Line 3 is `[views.mine]`, matched through the ancestor key `views`.
++ 🔴 A pack rule's broken expression lands on the project's rule of the same index, without naming the pack. With the pack's `bad` rule merged first and the project's own rule on line 5:
 
+```
+$ mt check
+error: .mindtape/config.toml:5: tasks.rules[0].assert: invalid filter: 'nope(...)' can't be a comparison value; only 'now()' can
+```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
-#raw("crates/mindtape/src/config/locate.rs").
 
 == Environment
 

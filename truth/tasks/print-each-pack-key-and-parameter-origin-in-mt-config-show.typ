@@ -46,9 +46,9 @@
 
 ```console
 $ mt config show --origin
-rule tasks.rules.judgment-stays-small: pack /work/app/./team.toml
-key tasks.priority.framework: pack /work/app/./team.toml
-param max-files = 8: project, for pack /work/app/./team.toml
+rule tasks.rules.judgment-stays-small: pack /work/app/team.toml
+key tasks.priority.framework: pack /work/app/team.toml
+param max-files = 8: project, for pack /work/app/team.toml
 ```
 
 - 🟢 Each leaf value a pack set prints as `key <dotted path>: pack <origin>`, after the rule lines, naming the pack as the rule lines already do. A value the layer replaced prints the layer.
