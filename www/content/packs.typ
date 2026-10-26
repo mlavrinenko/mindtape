@@ -122,10 +122,15 @@ hashes each source once, however many of its packs you adopt. Every command
 pays for that hash, so keep a pack source small, a repository that holds
 packs and nothing else. A
 pack from a source names its dictionary files only inside the source's tree.
-No read command touches the network, so a source the cache lacks is refused,
-with a hint to fetch it:
+Only `mt packs` touches the network, so every other command refuses a source
+the cache lacks, with a hint to fetch it:
 
 #terminal("packs-not-installed")
+
+`mt packs install` fetches each locked source the cache lacks and refuses a
+tree that doesn't hash to the lock. Like `npm ci`, it refuses a lock that
+disagrees with `[pack-sources]`, so a CI job or a fresh clone gets the packs
+you reviewed and nothing newer. In CI, run `mt packs install && mt check`.
 
 = A pack in a directory
 

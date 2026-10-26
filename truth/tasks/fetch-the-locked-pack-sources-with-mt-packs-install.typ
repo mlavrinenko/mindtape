@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 26),
+  status: done(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ")
     + depends-on(
       "resolve-a-declared-pack-from-the-cache-and-verify-its-hash.typ",
@@ -51,13 +51,14 @@ $ mt packs install
 
 - 🟢 `mt packs install` reads the sources and the lock with `pack_sources::read_raw`, without loading the config it repairs, and calls `pack_sources::fetch` for each locked source the cache lacks.
 - 🟢 It refuses a lock that disagrees with `[pack-sources]`, as `npm ci` does, with a hint to run `mt packs update`.
-- 🟢 It counts as a read command, since it changes no authored file.
+- 🟢 It counts as a read command, since it changes no authored file, so it takes `--json` like every read: one object per source with its `commit`, `sha256` and whether it was `fetched`.
 
 
 == Changes
 
 - `crates/mindtape-cli/tests/it/packs.rs`: the red tests first, fetching from a local bare repository by path, and `crates/mindtape-cli/tests/it/main.rs` declaring it. `support::isolated_env` points `MINDTAPE_CACHE_HOME` at `support::CACHE_HOME` under the test's directory.
 - `crates/mindtape-cli/src/cmd/packs/mod.rs` (new): `mt packs` and its `install` subcommand. It passes `pack_sources::cache_root()`, `<cache dir>/mindtape/packs`, as `cache_root`, the directory the load reads, and a relative `git` path joined to the project root, since `fetch` runs git in the caller's directory.
+- `crates/mindtape/src/config/pack_sources/fetch.rs`: `locate`, the relative-path join, so `mt packs update` shares it.
 - `crates/mindtape-cli/src/diag/from_lib.rs`: convert `pack_sources::FetchError`, matching every variant, with `FetchError::hint` as the hint.
 - `crates/mindtape-cli/src/cmd/mod.rs`: list the folder in the module header.
 - `crates/mindtape-cli/src/cli/mod.rs`: wire `packs`.
