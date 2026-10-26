@@ -23,6 +23,8 @@ pub(crate) const EMBEDDED_PACKS: &[(&str, &str)] = &[
     ("tasks", include_str!("../packs/tasks.toml")),
     ("wip-caps", include_str!("../packs/wip-caps.toml")),
     ("budget", include_str!("../packs/budget.toml")),
+    ("tweaks", include_str!("../packs/tweaks.toml")),
+    ("commits", include_str!("../packs/commits.toml")),
 ];
 
 /// Where one resolved pack came from, for `mt config show --origin`.

@@ -9,7 +9,7 @@ use crate::config::layers::load_config_layered_from;
 use crate::test_support::home_and_project;
 
 /// The config a project holding `own` as its `.mindtape/config.toml` loads.
-fn load(own: &str) -> Config {
+pub(super) fn load(own: &str) -> Config {
     let (_tmp, home, project) = home_and_project();
     std::fs::write(project.join(".mindtape").join("config.toml"), own).unwrap();
     load_config_layered_from(&project, Some(&home), None)

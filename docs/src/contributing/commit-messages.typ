@@ -36,7 +36,8 @@ per-commit `[[commits.rules]]` of the `mindtape:tasks` pack
   file it changes is a `.typ` file under a task root. This repo's only task
   root is `truth/tasks/`, so a change to `.mindtape/config.toml` or any other
   file needs `Refs:`. A `fixup!`, `squash!` or `amend!` subject is exempt, as
-  is `changelog-with-product-change` below, because autosquash drops its message.
+  is the `changelog-with-product-change` rule of `mindtape:commits`, because
+  autosquash drops its message.
   `no-unsquashed-fixup` refuses a range that still carries one, under
   `mt check --commits` only, so run `git rebase -i --autosquash` before
   #just.land().
@@ -52,7 +53,8 @@ per-commit `[[commits.rules]]` of the `mindtape:tasks` pack
   the `done` flip in the task's last commit. The `pre-merge` hook of #just.land() runs
   `mt check --commits main..HEAD` to hold a branch to it.
 
-`.mindtape/config.toml` adds one rule of its own:
+The `mindtape:commits` pack (`crates/mindtape/src/packs/commits.toml`) adds
+one more rule:
 
 - `refs-task-is-started` refuses a commit whose `Refs:` task is neither `wip`
   nor terminal in the staged tree. A task still `proposed` fails it, and so

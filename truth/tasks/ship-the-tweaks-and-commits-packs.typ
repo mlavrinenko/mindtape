@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 26),
+  status: done(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ")
     + depends-on("ship-the-wip-caps-and-budget-packs.typ"),
 )
@@ -44,7 +44,7 @@
 extends = ["mindtape:tasks", "mindtape:tweaks", "mindtape:commits"]
 
 [dicts.product]
-values = ["crates/**", "lib/**", "!**/*_tests.rs"]
+values = ["crates/**", "lib/**", "!crates/*/tests/**", "!**/*test*.rs"]
 ```
 
 - 🟢 `mindtape:tweaks` holds `tweak-lands-done` and `tweak-stays-one-file`, and the `[dicts.source]` of `**` that `tweak-stays-one-file` reads, equal to `mindtape:budget`'s, so the two packs agree.
@@ -54,11 +54,11 @@ values = ["crates/**", "lib/**", "!**/*_tests.rs"]
 
 == Changes
 
-- `crates/mindtape/src/config/packs_tests.rs`: the red tests first: each pack loads alone and beside `mindtape:budget`, and its rules run.
+- `crates/mindtape/src/config/packs_tests_commits.rs` (new, since `packs_tests.rs` nears its cap), `crates/mindtape-cli/tests/it/commit_packs_e2e.rs` (new): the red tests first: each pack loads alone and beside `mindtape:budget`, and its rules run.
 - `crates/mindtape/src/packs/tweaks.toml`, `crates/mindtape/src/packs/commits.toml` (new): the packs.
-- `crates/mindtape/src/config/packs.rs`: register both.
+- `crates/mindtape/src/config/pack_registry.rs`, `Justfile`: register both, and add both files to `TOML_FMT_PATHS`.
 - `.mindtape/config.toml`: extend both packs and drop the four hand-written rules.
-- `www/content/packs.typ`, `www/content/commit-rules.typ`: the two packs.
+- `www/content/packs.typ`, `www/content/commit-rules.typ`, `docs/src/contributing/commit-messages.typ`: the two packs.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 
 

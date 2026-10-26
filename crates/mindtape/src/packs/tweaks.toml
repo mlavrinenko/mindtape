@@ -1,0 +1,38 @@
+# mindtape:tweaks — a change too small to plan, filed done in its own commit.
+#
+# A tweak is a task the project files with `mt add -t tweak`, in the commit
+# that makes the change, and never opens. It skips the planning sections
+# because it is terminal the moment it exists, and every `!terminal` rule and
+# requirement passes it by. An open one would be a planned task wearing the
+# wrong template.
+#
+# `tweak-lands-done` holds a tweak to that. `tweak-stays-one-file` holds its
+# commit to one source file, by the `source` path set. A tweak is never `wip`,
+# so a working-tree budget (`mindtape:budget`'s `src-budget`) never sees it.
+# The pack sets `source` to every path, equal to the one `mindtape:budget`
+# sets, so adopting both agrees; replace it with your own `[dicts.source]` of
+# `!` globs to leave docs and generated files out of the count.
+#
+# The pack leaves the `tweak` tag to the project: list it in `[tasks.tags]`
+# when that table limits the tags.
+#
+# Adopt it as `extends = ["mindtape:tweaks"]`.
+
+[dicts.source]
+case = "exact"
+values = ["**"]
+
+[[tasks.rules]]
+name = "tweak-lands-done"
+when = 'has_tag("tweak")'
+assert = "terminal"
+message = "file a tweak done, in the commit that makes the change: `mt add -t tweak`; plan anything bigger with another template"
+severity = "error"
+
+[[commits.rules]]
+name = "tweak-stays-one-file"
+scope = "task"
+when = 'into("done") && staged(has_tag("tweak"))'
+assert = 'count(files, "@source") <= 1'
+message = "file a planned task for the rest, since a tweak changes one source file"
+severity = "error"

@@ -14,6 +14,8 @@ extends = [
   "mindtape:tasks",
   "mindtape:wip-caps",
   { pack = "mindtape:budget", with = { max-files = 5 } },
+  "mindtape:tweaks",
+  "mindtape:commits",
 ]
 # docs:end
 
@@ -152,16 +154,6 @@ example = { src-files = 1 }
 # rules `goals(...)` used to enforce at Typst load — missing/unknown goals, a
 # helps/hurts with no reason, a task that helps nothing — but as `mt check`
 # breaches instead of a load-time panic.
-# A tweak skips the planning sections because it is never open: filed done,
-# it is terminal, and every `!terminal` rule and requirement passes it by. An
-# open one would be a planned task wearing the wrong template.
-[[tasks.rules]]
-name = "tweak-lands-done"
-when = 'has_tag("tweak")'
-assert = "terminal"
-message = "file a tweak done, in the commit that makes the change: `mt add -t tweak`; plan anything bigger with another template"
-severity = "error"
-
 [[tasks.rules]]
 name = "goals"
 when = "!terminal"
@@ -391,43 +383,6 @@ values = [
   "!crates/*/tests/**",
   "!**/*test*.rs",
 ]
-
-# A commit that changes product code adds a `CHANGELOG.md` entry, or says it has
-# nothing to announce with a `Changelog: none` trailer. A `fixup!`, `squash!` or
-# `amend!` commit is exempt: autosquash folds it into a commit that has one.
-# The trigger is the files changed, so a `refactor` that alters behavior is held
-# to it as a `fix` is.
-[[commits.rules]]
-name = "changelog-with-product-change"
-when = 'count(files, "@product") >= 1 && !matches(subject, "^(fixup|squash|amend)! ") && !matches(trailers, "(?i)^Changelog: none$")'
-assert = 'matches(files, "^CHANGELOG[.]md$")'
-message = "add an entry under [Unreleased] in CHANGELOG.md, or add a `Changelog: none` trailer"
-severity = "error"
-
-# A tweak is never open, so `src-budget` (wip only) never sees it; this holds
-# its commit to one source file, by the `source` path set `src-budget` reads.
-[[commits.rules]]
-name = "tweak-stays-one-file"
-scope = "task"
-when = 'into("done") && staged(has_tag("tweak"))'
-assert = 'count(files, "@source") <= 1'
-message = "file a planned task for the rest, since a tweak changes one source file"
-severity = "error"
-
-# Work names a task only once the committed tree holds it started or finished.
-# A commit whose task is still `proposed`, or whose `wip` or `done` flip stayed
-# in the working tree, is refused here, because the repair afterwards is a
-# rewrite of commits. `named` limits it to tasks the trailer names, and
-# `staged(exists)` leaves a stem with no file to the trailer check. A decision
-# closing in a task-only commit passes, since its staged status is `done`.
-# `wt merge` asks the other half: a branch may not leave a named task wip.
-[[commits.rules]]
-name = "refs-task-is-started"
-scope = "task"
-when = "named && staged(exists)"
-assert = 'staged(status == "wip" || terminal)'
-message = "flip the task to wip in the first commit that names it (`mt wip <stem>`, staged with the work)"
-severity = "error"
 
 # The sweep's own inbox: everything `just ask-refactoring` filed that is still
 # open. It is both a listing (`mt ls @ask-refactoring`) and the sweep's re-run

@@ -4,7 +4,9 @@ groups:
   api-service-recipes:
     source:
       crates/mindtape/src/packs/budget.toml: 54739bb1028bba904c3516de51e486da9ac50a3fc1ac819abebdab1b8a52867a
+      crates/mindtape/src/packs/commits.toml: 8e61b32e0f6686d7bf6012e0f457d7f0e88a7ac555735ccdd6db8eeb5c0c5c36
       crates/mindtape/src/packs/tasks.toml: 072aa1fd9b594d74521dd737d9b30dc2d3bc014fea1339af838d50252f8383a0
+      crates/mindtape/src/packs/tweaks.toml: 3f5c1612deb1f9c5a11ec5580f9bc48ed0b256e54960082c4441fdea43e1278e
       crates/mindtape/src/packs/wip-caps.toml: 5dc4ccb78198701f7c04354fbfc636eec497500513ebab981ebeb6832aa0ce9a
       examples/api-service/.mindtape/config.toml: e853a7c7e0b0ec7ff06f36d9d1ea920894e33643be3b63b13cd6a92539448955
       examples/api-service/.mindtape/templates/milestone.typ: 737fc2788932ee1d2863e4041849ed4e6fe6d191952d432369d36a5343446afc
@@ -316,7 +318,7 @@ groups:
       .just/scripts/lint-dry.sh: 935cd86b688eaeea3b62ea86f21eb8fec32d72d3f8f848720b333df9ea7b4814
       .just/scripts/outdatty-check.sh: e219b61957163b1cf7ffd32d183fa37a8de60d1573fc68d7f02aab5f0eeb772b
       .just/scripts/wt-carry-lcov.sh: a4d4b96d24cee1d76f8d19ddcc10b6f4b99a1cb9f7c8ec3143cf487f2bb9861c
-      Justfile: cfc7d2152fa68e54a88f51214421f1f70b866fd0401e670da140d2e98c49a51c
+      Justfile: 2d2be1798b411f23ae170e271e8090095a2926c5f9e703f331907e07494f7e0e
       flake.nix: bbcb46698504bc1a3b0708fac535ba4c0bcadc169baf2a630a7c8459e394bfec
     dependents:
       docs/src/agents.typ: b60c66d46729c944b878cc0d112e26741e5d2621ed8dc803c5ed0092daf2adeb

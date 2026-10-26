@@ -406,3 +406,7 @@ mod tests_params;
 #[cfg(test)]
 #[path = "packs_tests_budget.rs"]
 mod tests_budget;
+
+#[cfg(test)]
+#[path = "packs_tests_commits.rs"]
+mod tests_commits;

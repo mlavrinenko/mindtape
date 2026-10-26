@@ -19,7 +19,8 @@ its priority framework, its views, whatever you'd otherwise copy around. Each
 project can still change any of it locally.
 #link(u("/config/"))[Configuration] lists the `extends` and `disable` keys.
 This page covers how `mt` finds and merges a pack, and lists the rules of the
-packs `mt` ships: `mindtape:tasks`, `mindtape:wip-caps` and `mindtape:budget`.
+packs `mt` ships: `mindtape:tasks`, `mindtape:wip-caps`, `mindtape:budget`,
+`mindtape:tweaks` and `mindtape:commits`.
 
 = Adopt a pack
 
@@ -27,7 +28,7 @@ packs `mt` ships: `mindtape:tasks`, `mindtape:wip-caps` and `mindtape:budget`.
 that layer adopts. If the layer declares a rule with the same `name` as a
 pack's rule, it replaces that rule where the pack put it. #mindtape's own
 `.mindtape/config.toml` adopts `mindtape:tasks` and replaces
-`section-allowlist` to allow one more section, `Dogfood`. It adopts the two
+`section-allowlist` to allow one more section, `Dogfood`. It adopts the four
 packs below too, `mindtape:budget` with `max-files` set to 5:
 
 #let parts = (
@@ -70,7 +71,8 @@ merges into the config.
 
 An `extends` entry with no `/` in it is `<source>:<pack>`. `mindtape` is the
 one source `mt` knows without a declaration, and it holds the packs built into
-`mt`: `mindtape:tasks`, `mindtape:wip-caps` and `mindtape:budget`. `mt` refuses an unknown name and lists the packs
+`mt`: `mindtape:tasks`, `mindtape:wip-caps`, `mindtape:budget`,
+`mindtape:tweaks` and `mindtape:commits`. `mt` refuses an unknown name and lists the packs
 the source has:
 
 #terminal("packs-unknown")
@@ -239,8 +241,8 @@ Here's the output in the #mindtape repository:
 
 Every rule from a pack reads `pack <name>`: the two caps read
 `pack mindtape:wip-caps`, `judgment-stays-small` and `src-budget` read
-`pack mindtape:budget`, and the rest of the task rules read
-`pack mindtape:tasks`. The exception is `section-allowlist`, which reads `project` because the project's rule replaced
+`pack mindtape:budget`, `tweak-lands-done` reads `pack mindtape:tweaks`, and
+the rest of the task rules read `pack mindtape:tasks`. The exception is `section-allowlist`, which reads `project` because the project's rule replaced
 it. The repository's own rules, such as `goals` and the `Dogfood` rules, read
 `project` because only the project declares them. To read each rule's
 severity and message as well, run #link(u("/cli/rules/"))[`mt rules`].
@@ -344,3 +346,39 @@ of `**`, so every file counts. Keys merge key by key, so your own
 `[dicts.source]` of yours with `!` globs for docs and generated files replaces
 the pack's `**`, as #mindtape's own does. A parameter reaches expressions only,
 never the unit, so a project that sizes in `files` overrides both rules by name.
+
+= The rules in `mindtape:tweaks`
+
+A tweak is a change too small to plan: `mt add -t tweak` files it done, in the
+commit that makes the change. `extends = ["mindtape:tweaks"]` holds a project
+to that. `tweak-lands-done` refuses a tweak that isn't terminal, and
+`tweak-stays-one-file` refuses a commit that closes a tweak and changes more
+than one file of the `source` path set. The pack leaves the `tweak` tag to the
+project: list it in `[tasks.tags]` if that table limits the tags. It sets
+`[dicts.source]` to `**`, the same as `mindtape:budget`, so a project adopts
+both and the two agree. Your own `[dicts.source]` replaces it for both.
+
+#let tweaks = toml("../generated/packs/tweaks.toml")
+
+#rule-table(tweaks.tasks.rules)
+
+#rule-table(tweaks.commits.rules)
+
+= The rules in `mindtape:commits`
+
+`extends = ["mindtape:commits"]` holds each commit to two rules, and both
+are #link(u("/commit-rules/"))[commit rules]. `changelog-with-product-change`
+asks a commit that changes a file of the `product` path set for a
+`CHANGELOG.md` entry. A `Changelog: none` trailer says there's nothing to
+announce, and a `fixup!`, `squash!` or `amend!` subject is exempt, since
+autosquash folds it into a commit that has one. `refs-task-is-started`
+refuses a commit whose `Refs:` task isn't `wip` or terminal in the staged tree.
+
+The pack sets `[dicts.product]` to `**`, so every file counts as product.
+Replace it with your own `[dicts.product]`, such as `crates/**` and
+`!**/*_tests.rs`, to say what ships to a user. A project that keeps its
+changelog elsewhere overrides the rule by name.
+
+#let commits = toml("../generated/packs/commits.toml")
+
+#rule-table(commits.commits.rules)

@@ -1,0 +1,42 @@
+# mindtape:commits — a commit names a started task and announces a product
+# change.
+#
+# `changelog-with-product-change`: a commit that changes product code adds a
+# `CHANGELOG.md` entry, or says it has nothing to announce with a
+# `Changelog: none` trailer. A `fixup!`, `squash!` or `amend!` commit is
+# exempt: autosquash folds it into a commit that has one. The trigger is the
+# files changed, so a `refactor` that alters behavior is held to it as a `fix`
+# is. The pack sets `product` to every path, so replace it with your own
+# `[dicts.product]` of globs and `!` globs for what ships to a user.
+#
+# `refs-task-is-started`: work names a task only once the committed tree holds
+# it started or finished. A commit whose task is still `proposed`, or whose
+# `wip` or `done` flip stayed in the working tree, is refused here, because the
+# repair afterwards is a rewrite of commits. `named` limits it to tasks the
+# trailer names, and `staged(exists)` leaves a stem with no file to the trailer
+# check. A decision closing in a task-only commit passes, since its staged
+# status is `done`.
+#
+# The pack keeps no changelog path as a parameter: a project that keeps its
+# changelog elsewhere overrides the rule by name.
+#
+# Adopt it as `extends = ["mindtape:commits"]`.
+
+[dicts.product]
+case = "exact"
+values = ["**"]
+
+[[commits.rules]]
+name = "changelog-with-product-change"
+when = 'count(files, "@product") >= 1 && !matches(subject, "^(fixup|squash|amend)! ") && !matches(trailers, "(?i)^Changelog: none$")'
+assert = 'matches(files, "^CHANGELOG[.]md$")'
+message = "add an entry under [Unreleased] in CHANGELOG.md, or add a `Changelog: none` trailer"
+severity = "error"
+
+[[commits.rules]]
+name = "refs-task-is-started"
+scope = "task"
+when = "named && staged(exists)"
+assert = 'staged(status == "wip" || terminal)'
+message = "flip the task to wip in the first commit that names it (`mt wip <stem>`, staged with the work)"
+severity = "error"

@@ -505,6 +505,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `min-difficulty = 3` and `max-files = 5` as parameters. It also sets the
   `src-files` estimate unit, its `@source` query and a `source` path set of
   `**`, which a project's own `[dicts.source]` replaces.
+- **The `mindtape:tweaks` and `mindtape:commits` packs ship the tweak and commit
+  rules.** `tweaks` holds `tweak-lands-done` and `tweak-stays-one-file`, with a
+  `source` path set of `**` that equals `mindtape:budget`'s, so a project
+  adopts both. `commits` holds `refs-task-is-started` and
+  `changelog-with-product-change`, which skips a `fixup!`, `squash!` or `amend!`
+  subject and a `Changelog: none` trailer, with a `product` path set of `**`
+  that a project replaces.
 - **Field rules live in one descriptor.** `[tasks.fields.<name>]` (a project
   field such as `[tasks.fields.x-<ns>]` included), `[tasks.assignee]`,
   `[tasks.tags]`, `[tasks.estimate]` and the numeric scales take `values`,
