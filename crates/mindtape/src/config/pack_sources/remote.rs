@@ -8,18 +8,20 @@
 //! line, the commit it points to, wins over the tag's own line.
 
 use std::ffi::OsStr;
+use std::path::Path;
 
 use crate::config::pack_sources::FetchError;
 use crate::config::pack_sources::fetch::is_commit_id;
 use crate::config::pack_sources::git::Git;
 
-/// The commit `reference` of the repository `git` names now.
+/// The commit `reference` of the repository `git` names now. git runs in
+/// `cache_root`, as a fetch does.
 ///
 /// # Errors
 /// Returns [`FetchError`] when git is missing or fails, or the repository
 /// has no such ref.
-pub fn resolve(git: &str, reference: &str) -> Result<String, FetchError> {
-    resolve_with(OsStr::new("git"), git, reference)
+pub fn resolve(git: &str, reference: &str, cache_root: &Path) -> Result<String, FetchError> {
+    resolve_with(OsStr::new("git"), git, reference, cache_root)
 }
 
 /// [`resolve`] through `program` in place of `git`.
@@ -27,11 +29,12 @@ pub(super) fn resolve_with(
     program: &OsStr,
     git: &str,
     reference: &str,
+    cache_root: &Path,
 ) -> Result<String, FetchError> {
     if is_commit_id(reference) {
         return Ok(reference.to_owned());
     }
-    let runner = Git::new(program)?;
+    let runner = Git::new(program, cache_root)?;
     // A pattern matches a ref's tail, and a peeled line's tail is `^{}`.
     let peeled = format!("{reference}^{{}}");
     let args = ["ls-remote", "--end-of-options", git, reference, &peeled].map(OsStr::new);

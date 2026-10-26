@@ -79,7 +79,8 @@ fn locked(sources: &PackSources) -> impl Iterator<Item = (&str, &LockedSource)> 
 /// Fetch `name` as `locked` pins it into `cache`, its tree checked against
 /// the lock's hash.
 fn fetch(root: &Path, name: &str, locked: &LockedSource, cache: &Path) -> Result<()> {
-    let git = pack_sources::locate(&locked.git, root);
+    let named = |error| Diag::from(error).value(name);
+    let git = pack_sources::locate(&locked.git, root).map_err(named)?;
     pack_sources::fetch(
         &git,
         &locked.reference,
@@ -87,6 +88,6 @@ fn fetch(root: &Path, name: &str, locked: &LockedSource, cache: &Path) -> Result
         Some(&locked.sha256),
         cache,
     )
-    .map_err(|error| Diag::from(error).value(name))?;
+    .map_err(named)?;
     Ok(())
 }

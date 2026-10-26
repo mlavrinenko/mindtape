@@ -60,15 +60,14 @@ impl From<mindtape::config::pack_sources::FetchError> for Diag {
         let what = match &err {
             E::GitNotFound | E::Git { .. } => "can't run git for pack source",
             E::UnknownRef { .. } => "can't resolve pack source",
+            E::DriveRelative { .. } => "can't locate pack source",
             E::BadCommit { .. }
             | E::MissingCommit { .. }
             | E::Unsupported { .. }
             | E::Mismatch { .. } => "can't fetch pack source",
             E::Occupied { .. } | E::Io(_) => "can't write pack source to the cache",
         };
-        // The message already holds an `Io` variant's source, which
-        // `cause` would print twice.
-        let diag = Self::failed(what).reason(err.to_string());
+        let diag = Self::failed(what).cause(&err);
         match err.hint() {
             Some(hint) => diag.hint(Hint::new(hint)),
             None => diag,

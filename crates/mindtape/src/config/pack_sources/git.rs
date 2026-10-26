@@ -2,10 +2,17 @@
 //! command drops the environment variables that point git at another
 //! repository or config, and pins the settings that would change what it
 //! fetches or how.
+//!
+//! Every command also runs in the cache root with `GIT_CEILING_DIRECTORIES`
+//! set to its parent, so a command that takes no `--git-dir`, such as `ls-remote`,
+//! never finds a repository around the directory `mt` runs in, nor reads
+//! that repository's config, such as a `core.sshCommand` or a
+//! `url.<base>.insteadOf` that would send a lookup and a fetch to two places.
+//! The cache root is `mt`'s own, so no clone can put a repository there.
 
 use std::ffi::OsStr;
 use std::io::{BufRead, BufReader, ErrorKind, Read as _, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 use crate::config::pack_sources::FetchError;
@@ -27,17 +34,31 @@ const PINNED: [&str; 7] = [
 /// Local paths, which a test source and a source on disk use.
 const FILE_PROTOCOL: &str = "protocol.file.allow=always";
 
-/// A git program and the variables it runs without.
+/// The variable that stops git's search for a repository.
+const CEILING: &str = "GIT_CEILING_DIRECTORIES";
+
+/// A git program, the directory it runs in, the one git's search for a
+/// repository stops below, and the variables it runs without.
 pub(super) struct Git<'a> {
     program: &'a OsStr,
+    workdir: PathBuf,
+    ceiling: PathBuf,
     strip: Vec<String>,
 }
 
 impl<'a> Git<'a> {
-    /// `program`, with the variables `git rev-parse --local-env-vars` names
-    /// and `GIT_ALLOW_PROTOCOL` stripped from each command it runs.
-    pub(super) fn new(program: &'a OsStr) -> Result<Self, FetchError> {
+    /// `program`, run in `workdir`, which it creates, with the variables
+    /// `git rev-parse --local-env-vars` names and `GIT_ALLOW_PROTOCOL`
+    /// stripped from each command it runs.
+    pub(super) fn new(program: &'a OsStr, workdir: &Path) -> Result<Self, FetchError> {
+        std::fs::create_dir_all(workdir)?;
+        let workdir = std::path::absolute(workdir)?;
+        // git never searches above a ceiling, but always searches the
+        // directory it runs in, which is `mt`'s own.
+        let ceiling = workdir.parent().unwrap_or(&workdir).to_path_buf();
         let output = Command::new(program)
+            .current_dir(&workdir)
+            .env(CEILING, &ceiling)
             .args(["rev-parse", "--local-env-vars"])
             .output()
             .map_err(spawn_error)?;
@@ -49,7 +70,12 @@ impl<'a> Git<'a> {
             .map(str::to_owned)
             .collect();
         strip.push("GIT_ALLOW_PROTOCOL".to_owned());
-        Ok(Self { program, strip })
+        Ok(Self {
+            program,
+            workdir,
+            ceiling,
+            strip,
+        })
     }
 
     /// Run `args`, against `repo` as `--git-dir` when given, and return
@@ -116,6 +142,9 @@ impl<'a> Git<'a> {
         for name in &self.strip {
             command.env_remove(name);
         }
+        command
+            .current_dir(&self.workdir)
+            .env(CEILING, &self.ceiling);
         for setting in PINNED.iter().chain([&FILE_PROTOCOL]) {
             command.args(["-c", setting]);
         }

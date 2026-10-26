@@ -55,8 +55,12 @@ fn a_lightweight_tag_or_branch_resolves_to_its_own_line() {
 #[test]
 fn a_commit_ref_is_its_own_commit_and_runs_no_git() {
     let missing = OsStr::new("mt-no-such-git");
-    assert_eq!(resolve_with(missing, "unused", TAG).unwrap(), TAG);
-    let error = resolve_with(missing, "unused", "v1").unwrap_err();
+    let cache = tempdir();
+    assert_eq!(
+        resolve_with(missing, "unused", TAG, cache.path()).unwrap(),
+        TAG
+    );
+    let error = resolve_with(missing, "unused", "v1", cache.path()).unwrap_err();
     assert!(matches!(error, FetchError::GitNotFound), "{error}");
 }
 
@@ -72,8 +76,9 @@ fn a_local_repository_answers_with_the_commit_its_tag_names() {
     let commit = git_stdout(&work, &["rev-parse", "HEAD"]);
     let url = work.display().to_string();
 
-    assert_eq!(resolve(&url, "v1").unwrap(), commit);
-    let error = resolve(&url, "v9").unwrap_err();
+    let cache = dir.path().join("cache");
+    assert_eq!(resolve(&url, "v1", &cache).unwrap(), commit);
+    let error = resolve(&url, "v9", &cache).unwrap_err();
     assert_eq!(error.to_string(), "no ref 'v9' in the repository");
     assert!(error.hint().is_some_and(|hint| hint.contains("`ref`")));
 }

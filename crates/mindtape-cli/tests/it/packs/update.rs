@@ -3,7 +3,7 @@
 use std::path::Path;
 
 use mindtape::config::pack_sources::{LockedSource, read_raw};
-use mindtape::test_support::{tempdir_with_config, write_file};
+use mindtape::test_support::{git_as_tester, tempdir_with_config, write_file};
 
 use super::{RULE, Upstream, assert_resolves_pack, config, lock, locked_project, mt_in, tree_hash};
 
@@ -56,26 +56,37 @@ fn update_locks_a_source_the_lock_lacks_and_fetches_it() {
     assert_resolves_pack(dir.path());
 }
 
+/// The rule `acme-rule` after a fix.
+const FIXED: &str = "[[tasks.rules]]\nname = \"acme-rule\"\nassert = 'kind != \"\"'\n";
+
+/// A [`locked_project`] whose `v1` then moved to [`FIXED`]: the project, the
+/// locked commit and the new one.
+fn moved_project() -> (tempfile::TempDir, String, String) {
+    let (dir, old, _) = locked_project();
+    let new = Upstream { root: dir.path() }.publish(FIXED, "v1");
+    (dir, old, new)
+}
+
+/// What an update from `old` to `new` of [`moved_project`] prints.
+fn moved_report(old: &str, new: &str) -> String {
+    format!(
+        "acme v1: {} → {}\n  ~ acme:commits\n    ~ rule tasks.rules.acme-rule\n\
+         wrote .mindtape/packs.lock\n",
+        short(old),
+        short(new)
+    )
+}
+
 #[test]
 fn update_follows_a_moved_annotated_tag_to_its_commit() {
-    let (dir, old, _) = locked_project();
-    let fixed = "[[tasks.rules]]\nname = \"acme-rule\"\nassert = 'kind != \"\"'\n";
-    let new = Upstream { root: dir.path() }.publish(fixed, "v1");
+    let (dir, old, new) = moved_project();
 
     let stdout = update(dir.path(), &["acme"]);
 
-    assert_eq!(
-        stdout,
-        format!(
-            "acme v1: {} → {}\n  ~ acme:commits\n    ~ rule tasks.rules.acme-rule\n\
-             wrote .mindtape/packs.lock\n",
-            short(&old),
-            short(&new)
-        )
-    );
+    assert_eq!(stdout, moved_report(&old, &new));
     let entry = locked(dir.path()).unwrap();
     assert_eq!(entry.commit, new);
-    assert_eq!(entry.sha256, tree_hash(fixed));
+    assert_eq!(entry.sha256, tree_hash(FIXED));
 }
 
 #[test]
@@ -169,9 +180,57 @@ fn update_still_locks_a_source_whose_old_tree_is_gone() {
     assert_eq!(code, Some(0), "{stderr}");
     let warning = stderr.lines().next().unwrap_or_default();
     assert!(
-        warning.starts_with("warning: can't diff pack source: 'acme'"),
+        warning.starts_with("warning: can't fetch the old tree of pack source: 'acme'"),
         "{stderr}"
     );
+    assert!(stdout.contains("\n  + acme:commits\n"), "{stdout}");
     assert_eq!(stdout.lines().last(), Some("wrote .mindtape/packs.lock"));
     assert_eq!(locked(dir.path()).unwrap().commit, commit);
+}
+
+#[test]
+fn update_fetches_the_old_tree_from_the_new_git_when_the_source_moved_hosts() {
+    let (dir, old, new) = moved_project();
+    let upstream = dir.path().join("upstream");
+    std::fs::rename(upstream.join("src.git"), upstream.join("moved.git")).unwrap();
+    let moved = config("v1").replace("upstream/src.git", "upstream/moved.git");
+    write_file(dir.path(), ".mindtape/config.toml", moved);
+
+    let (code, stdout, stderr) = mt_in(dir.path(), dir.path(), &["packs", "update"]);
+
+    assert_eq!((code, stderr.as_str()), (Some(0), ""));
+    assert_eq!(stdout, moved_report(&old, &new));
+}
+
+#[test]
+fn a_failed_update_prints_no_progress_and_keeps_the_lock() {
+    let (dir, _, _) = locked_project();
+    Upstream { root: dir.path() }
+        .publish("[[tasks.rules]]\nname = \"x\"\nassert = \"true\"\n", "v1");
+    let zed = "\n[pack-sources.zed]\ngit = \"upstream/src.git\"\nref = \"v9\"\n";
+    write_file(dir.path(), ".mindtape/config.toml", config("v1") + zed);
+    let before = lock_bytes(dir.path());
+
+    let (code, stdout, stderr) = mt_in(dir.path(), dir.path(), &["packs", "update"]);
+
+    assert_eq!(code, Some(1), "{stderr}");
+    assert!(stderr.contains("'zed'"), "{stderr}");
+    assert_eq!(stdout, "");
+    assert_eq!(lock_bytes(dir.path()), before);
+}
+
+#[test]
+fn update_reads_no_config_of_a_repository_around_the_project() {
+    let dir = tempdir_with_config(&config("v1"));
+    let commit = Upstream { root: dir.path() }.publish(RULE, "v1");
+    let root = dir.path();
+    git_as_tester(root, &["init", "--quiet"]);
+    let upstream = format!("{}/", root.join("upstream").display());
+    let rewrite = "url.file:///nonexistent/.insteadOf";
+    git_as_tester(root, &["config", rewrite, &upstream]);
+
+    let (code, _, stderr) = mt_in(root, root, &["packs", "update"]);
+
+    assert_eq!(code, Some(0), "{stderr}");
+    assert_eq!(locked(root).unwrap().commit, commit);
 }

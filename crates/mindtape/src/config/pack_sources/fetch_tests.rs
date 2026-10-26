@@ -356,9 +356,9 @@ fn a_sha256_source_fetches_by_its_64_digit_commit() {
 fn locate_joins_a_relative_path_to_the_root_and_passes_a_url() {
     let root = Path::new("/srv/project");
     let joined = root.join("../packs.git").display().to_string();
-    assert_eq!(locate("../packs.git", root), joined);
+    assert_eq!(locate("../packs.git", root).unwrap(), joined);
     assert_eq!(
-        locate("packs", root),
+        locate("packs", root).unwrap(),
         root.join("packs").display().to_string()
     );
     for remote in [
@@ -367,17 +367,34 @@ fn locate_joins_a_relative_path_to_the_root_and_passes_a_url() {
         "git@example.com:acme/packs.git",
         "example.com:packs",
     ] {
-        assert_eq!(locate(remote, root), remote, "{remote}");
+        assert_eq!(locate(remote, root).unwrap(), remote, "{remote}");
     }
     let absolute = std::env::temp_dir().join("packs.git").display().to_string();
-    assert_eq!(locate(&absolute, root), absolute);
+    assert_eq!(locate(&absolute, root).unwrap(), absolute);
 }
 
 #[test]
-fn locate_reads_a_slash_or_a_one_letter_prefix_before_the_colon_as_a_path() {
+fn locate_reads_a_slash_before_the_colon_as_a_path() {
     let root = Path::new("/srv/project");
-    for path in ["dir/a:b", "dir\\a:b", "C:packs"] {
+    for path in ["dir/a:b", "dir\\a:b"] {
         let joined = root.join(path).display().to_string();
-        assert_eq!(locate(path, root), joined, "{path}");
+        assert_eq!(locate(path, root).unwrap(), joined, "{path}");
+    }
+}
+
+#[test]
+fn locate_refuses_a_drive_relative_path_on_every_platform() {
+    let root = Path::new("/srv/project");
+    for path in ["C:packs", "c:", "Z:..\\packs"] {
+        let error = locate(path, root).unwrap_err();
+        assert!(
+            matches!(&error, FetchError::DriveRelative { git } if git == path),
+            "{error}"
+        );
+        assert!(error.hint().is_some(), "{path}");
+    }
+    let absolute = ["C:/packs", "C:\\packs"];
+    for path in absolute {
+        assert!(locate(path, root).is_ok(), "{path}");
     }
 }

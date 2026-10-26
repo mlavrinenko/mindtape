@@ -511,7 +511,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   refuses a lock that disagrees with `[pack-sources]`, with a hint to run
   `mt packs update`. It reads the sources without loading the config, writes
   only the cache, and takes `--json`. A relative `git` path is read from the
-  project root, which the library's `config::pack_sources::locate` resolves.
+  project root, which the library's `config::pack_sources::locate` resolves,
+  and a drive-relative one such as `C:packs` is refused on every platform.
+  Every git command runs in the cache root and searches no further, so no
+  repository around the project, nor its config, takes part.
 - **`mt packs update` moves pack sources along their `ref`.** It resolves
   each source's `ref` with `git ls-remote`, the peeled commit of an annotated
   tag and a tag before a branch of the same name, or takes a 40- or 64-digit
@@ -519,7 +522,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and prints `acme v1: 3f2c1a9 → 8d01e44`, `acme v1: locked 3f2c1a9` for a
   new one, or `acme v1: up to date`. It drops the entries no source declares,
   takes source names to update only those, and writes `.mindtape/packs.lock`
-  once, atomically, after every fetch passed. The library adds
+  once, atomically, after every fetch passed. It prints its report only after
+  that write, so a failed update prints its error alone. The library adds
   `config::pack_sources::resolve` and `write_lock`.
 - **`mt packs update` prints what a moved source changes.** Under each moved
   source it lists the packs added (`+`), changed (`~`) or removed (`-`), and
@@ -528,8 +532,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   so a reformatted pack shows nothing. Every new `run` or `editor` line
   prints in full under its entry, and every other file of the source as
   `~ file team/check.typ`. When the old tree isn't cached it fetches it by
-  its commit, and when that fails it warns and still writes the lock. The
-  library adds `config::pack_sources::diff_trees`.
+  its commit from the old `git`, then from the source's `git`, since a
+  source may move hosts. When both fail it warns and lists the new tree as
+  all added, so no new command goes unlisted. The library adds
+  `config::pack_sources::diff_trees`.
 - **`mt rules` lists the rules that apply, one line each.** A line is the
   rule's severity, its name as `mt config show --origin` prints it, and the
   message a breach prints, after packs, overrides and `disable`. A rule with no

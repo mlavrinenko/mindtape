@@ -41,6 +41,15 @@ pub enum FetchError {
         /// The value given as the commit.
         commit: String,
     },
+    /// A source's `git` is a path relative to a drive's current directory.
+    #[error(
+        "pack source git is relative to a drive, not the project: {}",
+        quote(git)
+    )]
+    DriveRelative {
+        /// The `git` the source gives.
+        git: String,
+    },
     /// The repository has no ref of the name a source gives.
     #[error("no ref {} in the repository", quote(reference))]
     UnknownRef {
@@ -82,8 +91,9 @@ pub enum FetchError {
         /// The directory.
         dir: PathBuf,
     },
-    /// Reading or writing the cache failed.
-    #[error("io error: {0}")]
+    /// Reading or writing the cache failed. It prints as the OS words it,
+    /// and has no source of its own, so a cause chain prints it once.
+    #[error(transparent)]
     Io(#[from] std::io::Error),
 }
 
@@ -94,6 +104,9 @@ impl FetchError {
         match self {
             Self::GitNotFound => Some("install git and put it on PATH"),
             Self::MissingCommit { .. } => Some("run `mt packs update` to lock the ref anew"),
+            Self::DriveRelative { .. } => {
+                Some("write the path from the project root, or with a separator after the colon")
+            }
             Self::UnknownRef { .. } => {
                 Some("set `ref` to a tag, branch or commit the repository has")
             }
@@ -140,15 +153,31 @@ pub fn fetch(
 }
 
 /// Where git finds the source `git` that the project under `root` declares.
-/// [`fetch`] runs git in the caller's directory, so a relative path is joined
+/// [`fetch`] runs git apart from the project, so a relative path is joined
 /// to `root`. A URL, an scp-like `host:path` and an absolute path pass as
 /// given.
-#[must_use]
-pub fn locate(git: &str, root: &Path) -> String {
-    if is_remote(git) || Path::new(git).is_absolute() {
-        return git.to_owned();
+///
+/// # Errors
+/// Returns [`FetchError::DriveRelative`] for a drive letter and a colon with
+/// no separator after it, such as `C:packs`, on every platform: Windows reads
+/// it against the current directory of that drive, which is not the project.
+pub fn locate(git: &str, root: &Path) -> Result<String, FetchError> {
+    if is_drive_relative(git) {
+        return Err(FetchError::DriveRelative {
+            git: git.to_owned(),
+        });
     }
-    root.join(git).display().to_string()
+    if is_remote(git) || Path::new(git).is_absolute() {
+        return Ok(git.to_owned());
+    }
+    Ok(root.join(git).display().to_string())
+}
+
+/// Whether `git` is a drive letter and a colon with no `/` or `\` after it.
+fn is_drive_relative(git: &str) -> bool {
+    let mut chars = git.chars();
+    let drive = chars.next().is_some_and(|ch| ch.is_ascii_alphabetic());
+    drive && chars.next() == Some(':') && !matches!(chars.next(), Some('/' | '\\'))
 }
 
 /// Whether git reads `git` as a URL rather than a path: it holds `://`, or a
@@ -178,8 +207,9 @@ impl Fetch<'_> {
                 commit: self.commit.to_owned(),
             });
         }
-        let git = Git::new(self.program)?;
-        std::fs::create_dir_all(cache_root)?;
+        let git = Git::new(self.program, cache_root)?;
+        // git runs in the cache root, so every path it is given is absolute.
+        let cache_root = &std::path::absolute(cache_root)?;
         sweep(cache_root, STALE_AFTER);
         let scratch = Scratch::new(cache_root)?;
         let repo = scratch.0.join("git");
