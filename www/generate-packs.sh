@@ -112,3 +112,52 @@ refused packs-ambiguous 'ambiguous pack' 'find team team.toml' \
 refused packs-params-unknown 'has no parameter' 'head .mindtape/config.toml team.toml' \
   $'.mindtape/config.toml=extends = [{ pack = "./team.toml", with = { max-file = 8 } }]\n' \
   $'team.toml=[params]\nmax-files = 5\n'
+
+# A pack source the build can fetch offline: a bare repository beside the
+# project, whose `v1` and `v2` tags hold two commits of one pack, and `v2`
+# a second pack. `mt packs update` locks `v1`, `mt packs install` fetches it
+# into an empty cache, and the bump to `v2` prints what the new commit
+# changes. git reads no config of the builder's, and the fixed identity and
+# dates give each commit the same hash on every build. capture.sh points
+# MINDTAPE_CACHE_HOME at the capture area, which prints as `~/.cache`.
+export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
+export GIT_AUTHOR_NAME=Ada GIT_AUTHOR_EMAIL=ada@example.com
+export GIT_COMMITTER_NAME=Ada GIT_COMMITTER_EMAIL=ada@example.com
+export GIT_AUTHOR_DATE=2026-10-01T12:00:00Z GIT_COMMITTER_DATE=2026-10-01T12:00:00Z
+CAPTURE_PATHS+=("$CAPTURE_TMP/cache=~/.cache")
+source=
+capture_scratch source
+work="$(dirname "$source")/work"
+mkdir -p "$work" "$source/.mindtape"
+cat >"$work/commits.toml" <<'TOML'
+[[commits.rules]]
+name = "short-subject"
+assert = 'matches(subject, "^.{1,72}$")'
+message = "keep the subject under 73 characters"
+TOML
+git -C "$work" init -q -b main
+git -C "$work" add -A
+git -C "$work" commit -qm "Ship the commits pack"
+git -C "$work" tag -a -m v1 v1
+sed -i 's/{1,72}/{1,50}/; s/under 73/under 51/' "$work/commits.toml"
+cat >>"$work/commits.toml" <<'TOML'
+
+[[on.flip]]
+name = "close-gate"
+when = 'into("done")'
+actions = [{ run = "just check", gate = true, message = "the checks must pass" }]
+TOML
+printf '[[tasks.rules]]\nname = "has-owner"\nassert = "has(assignee)"\n' >"$work/ops.toml"
+git -C "$work" add -A
+git -C "$work" commit -qm "Gate a close on the checks, add the ops pack"
+git -C "$work" tag -a -m v2 v2
+git clone -q --bare "$work" "$(dirname "$source")/acme-packs.git"
+printf 'extends = ["acme:commits"]\n\n[pack-sources.acme]\ngit = "../acme-packs.git"\nref = "v1"\n' \
+  >"$source/.mindtape/config.toml"
+capture packs-lock "$source" 'cat .mindtape/config.toml'
+capture packs-lock "$source" 'mt packs update'
+rm -rf "$CAPTURE_TMP/cache"
+capture packs-install "$source" 'mt packs install'
+capture packs-install "$source" 'mt packs install'
+sed -i 's/ref = "v1"/ref = "v2"/' "$source/.mindtape/config.toml"
+capture packs-update "$source" 'mt packs update'

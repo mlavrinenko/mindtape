@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 26),
+  status: wip(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ")
     + depends-on("print-what-a-pack-update-changes.typ"),
 )
@@ -51,8 +51,7 @@
 
 == Changes
 
-- `www/generate-packs.sh`: build the fixture repository and capture both commands, with `MINDTAPE_CACHE_HOME` pointing inside the scratch directory.
-- `www/generate.sh`: export the scratch cache directory before it runs the generator.
+- `www/generate-packs.sh`: build the fixture repository and capture both commands. `www/capture.sh` already points `MINDTAPE_CACHE_HOME` inside the capture area, so a `CAPTURE_PATHS` pair prints it as `~/.cache`, and `www/generate.sh` needs no change.
 - `www/content/packs.typ`: render the captures.
 
 
