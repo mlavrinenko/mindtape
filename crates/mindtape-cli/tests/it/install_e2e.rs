@@ -310,3 +310,52 @@ fn a_missing_prelude_is_one_error_however_many_tasks_fail() {
     );
     assert!(stderr.contains("[[typst.local-packages]]"), "{stderr}");
 }
+
+/// A package dir that links elsewhere, such as a checkout's `lib/`, under
+/// `home`, with a sentinel prelude at the link's target. Returns the target's
+/// prelude path.
+#[cfg(unix)]
+fn link_package_dir(home: &Path) -> PathBuf {
+    let checkout = home.join("checkout/lib");
+    std::fs::create_dir_all(&checkout).unwrap();
+    std::fs::write(checkout.join("prelude.typ"), "// dev").unwrap();
+    let link = lib_prelude(home).parent().unwrap().to_path_buf();
+    std::fs::create_dir_all(link.parent().unwrap()).unwrap();
+    std::os::unix::fs::symlink(&checkout, &link).unwrap();
+    checkout.join("prelude.typ")
+}
+
+/// `mt install` leaves a symlinked package dir alone and says where it links,
+/// so an older binary never rewrites the checkout a developer linked in.
+#[cfg(unix)]
+#[test]
+fn install_keeps_a_symlinked_package_dir() {
+    let home = tempdir();
+    let target = link_package_dir(home.path());
+    let assert = run_install(home.path(), &["install", "--no-defaults", "--no-schema"]).success();
+    let stdout = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
+    assert_eq!(std::fs::read_to_string(&target).unwrap(), "// dev");
+    assert!(stdout.contains("kept @local/mindtape:0.2.0"), "{stdout}");
+    assert!(stdout.contains("checkout/lib"), "{stdout}");
+}
+
+/// `--force` replaces the link with this binary's own copy and leaves the
+/// link's target as it was.
+#[cfg(unix)]
+#[test]
+fn install_force_replaces_a_symlinked_package_dir() {
+    let home = tempdir();
+    let target = link_package_dir(home.path());
+    run_install(
+        home.path(),
+        &["install", "--no-defaults", "--no-schema", "--force"],
+    )
+    .success();
+    let dir = lib_prelude(home.path()).parent().unwrap().to_path_buf();
+    assert!(!dir.symlink_metadata().unwrap().is_symlink());
+    assert_eq!(
+        std::fs::read_to_string(lib_prelude(home.path())).unwrap(),
+        mindtape::test_support::PRELUDE
+    );
+    assert_eq!(std::fs::read_to_string(&target).unwrap(), "// dev");
+}

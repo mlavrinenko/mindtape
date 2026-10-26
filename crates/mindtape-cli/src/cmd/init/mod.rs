@@ -292,8 +292,25 @@ fn with_schema_directive(template: &str, args: &SchemaArgs) -> Result<String> {
     Ok(format!("#:schema {value}\n{template}"))
 }
 
-pub(crate) fn install_lib() -> Result<()> {
+/// Write the `@local/mindtape` package this binary embeds.
+///
+/// A package dir that is a symlink, such as one a developer points at a
+/// checkout's `lib/`, stays as it is unless `force`: written through, it would
+/// rewrite that checkout with this binary's prelude. `force` replaces the link
+/// with a plain copy and leaves its target alone.
+pub(crate) fn install_lib(force: bool) -> Result<()> {
     let dir = package_dir()?;
+    if let Ok(target) = std::fs::read_link(&dir) {
+        if !force {
+            println!(
+                "kept @local/mindtape:{TYPST_PKG_VERSION} -> {}, a link to {}; --force replaces it with this mt's copy",
+                dir.display(),
+                target.display()
+            );
+            return Ok(());
+        }
+        remove_link(&dir)?;
+    }
     std::fs::create_dir_all(&dir).map_err(|err| Diag::cannot_write(&dir, &err))?;
     let manifest = format!(
         "[package]\nname = \"mindtape\"\nversion = \"{TYPST_PKG_VERSION}\"\nentrypoint = \"prelude.typ\"\n"
@@ -308,6 +325,15 @@ pub(crate) fn install_lib() -> Result<()> {
         dir.display()
     );
     Ok(())
+}
+
+/// Remove the symlink at `link` without touching what it points to. Windows
+/// keeps a link to a directory as a directory entry, which `remove_dir`
+/// removes; Unix removes any link with `remove_file`.
+fn remove_link(link: &Path) -> Result<()> {
+    std::fs::remove_file(link)
+        .or_else(|_| std::fs::remove_dir(link))
+        .map_err(|err| Diag::cannot_write(link, &err))
 }
 
 /// Where `mt install` writes the `@local/mindtape` package: under

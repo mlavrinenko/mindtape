@@ -189,7 +189,9 @@
   "install": (
     prose: [`--no-lib`, `--no-defaults`, `--no-schema` and `--no-completions`
       each skip one part. `--force` overwrites an existing defaults file,
-      schema or hook. `mt` writes one completion hook per shell under
+      schema or hook. It also replaces a package directory that is a symlink,
+      which `mt install` otherwise leaves alone, so it never writes into the
+      checkout the link points at. `mt` writes one completion hook per shell under
       `~/.config/mindtape/completions/`. Source the one for your shell from
       its startup file. The hook asks `mt` for completions on each tab press,
       so it offers this project's #link(u("/concepts/#identity"))[stems],

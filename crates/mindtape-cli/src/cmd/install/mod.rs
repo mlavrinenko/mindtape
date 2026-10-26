@@ -49,7 +49,8 @@ pub struct InstallArgs {
     /// Overwrite files that already exist.
     ///
     /// Those are your `defaults.toml`, the JSON Schemas and the completion
-    /// hooks.
+    /// hooks. The package is written on every install, unless its directory
+    /// is a symlink: `--force` replaces the link with this binary's copy.
 
     #[arg(long)]
     pub force: bool,
@@ -63,21 +64,25 @@ const SCHEMA_FILE_NAME: &str = "config.schema.json";
 /// file's `#:schema ./at.schema.json` line finds it.
 const AT_SCHEMA_FILE_NAME: &str = "at.schema.json";
 
+/// One installer of a file under the config dir: `(dir, force)`.
+type ConfigWriter = fn(&Path, bool) -> Result<()>;
+
 /// Run the `install` command.
 ///
 /// # Errors
 /// Returns an error if either half (lib or defaults) fails to write.
 pub fn run(args: &InstallArgs) -> Result<()> {
     if !args.no_lib {
-        install_lib()?;
+        install_lib(args.force)?;
     }
-    if !args.no_defaults {
-        let dir = xdg_defaults_dir()?;
-        write_defaults(&dir, args.force)?;
-    }
-    if !args.no_schema {
-        let dir = xdg_defaults_dir()?;
-        write_schema(&dir, args.force)?;
+    let config_writers: [(bool, ConfigWriter); 2] = [
+        (args.no_defaults, write_defaults),
+        (args.no_schema, write_schema),
+    ];
+    for (skip, write) in config_writers {
+        if !skip {
+            write(&xdg_defaults_dir()?, args.force)?;
+        }
     }
     if !args.no_completions {
         let dir = completions_dir()?;

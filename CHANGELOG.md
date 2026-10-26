@@ -191,7 +191,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   drops it).
 - **`mt install` installs the prelude, defaults, schema and shell completions.**
   `--no-lib`, `--no-defaults`, `--no-schema` and `--no-completions` skip a part,
-  and `--force` overwrites.
+  and `--force` overwrites. A package directory that is a symlink, such as one
+  pointing at a checkout's `lib/`, stays as it is unless `--force` replaces it.
 - **Tab completion asks the live project.** The hooks under
   `~/.config/mindtape/completions/` call `mt` on each press, so `mt flip `
   offers the legend, `mt ls @` the views, `mt add -t` the templates,
