@@ -163,6 +163,7 @@ CONFIG_SOURCES=(
   "examples/self-validating/.mindtape/config.toml"
   "examples/across-projects/.config/mindtape/at.toml"
   "crates/mindtape/src/at/board.toml"
+  "crates/mindtape/src/packs/dogfood.toml"
 )
 
 # Every fact a page opens. Declared rather than derived from the markers

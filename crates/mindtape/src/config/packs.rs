@@ -422,3 +422,7 @@ mod tests_commits;
 #[cfg(test)]
 #[path = "packs_tests_origins.rs"]
 mod tests_origins;
+
+#[cfg(test)]
+#[path = "packs_tests_dogfood.rs"]
+mod tests_dogfood;

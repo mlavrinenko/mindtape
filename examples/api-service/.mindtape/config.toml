@@ -95,6 +95,14 @@ name = "locked"
 run = "scripts/locked {id}"
 # docs:end
 
+# The tasks hold `docs:` slice markers as comments, which the pack bans.
+[tasks.comments]
+allow-pattern = "^docs:"
+
+# The templates have no `kind` slot, which the pack requires of an open task.
+[tasks.fields.kind]
+required = false
+
 # Run the tests before a task closes. `mt done` refuses while `scripts/test`
 # fails.
 [[on.flip]]

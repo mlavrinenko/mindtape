@@ -27,15 +27,16 @@ packs `mt` ships: `mindtape:tasks`, `mindtape:wip-caps`, `mindtape:budget`,
 `extends` in any #link(u("/config/#layers"))[config layer] names the packs
 that layer adopts. If the layer declares a rule with the same `name` as a
 pack's rule, it replaces that rule where the pack put it. #mindtape's own
-`.mindtape/config.toml` adopts `mindtape:tasks` and replaces
-`section-allowlist` to allow one more section, `Dogfood`. It adopts the four
-packs below too, `mindtape:budget` with `max-files` set to 5:
+`.mindtape/config.toml` adopts `mindtape:tasks` and, after it,
+`mindtape:dogfood`, whose `section-allowlist` replaces the tasks pack's to
+allow one more section, `Dogfood`. It adopts the other packs below too,
+`mindtape:budget` with `max-files` set to 5:
 
 #let parts = (
   ("extends", "the adoption, at the top of the file"),
   (
     "section-allowlist",
-    "the replacement, further down: the name matches, the position does not matter",
+    "the replacement, in the dogfood pack: the name matches, so it takes the place of the tasks pack's rule",
   ),
 )
 
@@ -242,9 +243,10 @@ Here's the output in the #mindtape repository:
 Every rule from a pack reads `pack <name>`: the two caps read
 `pack mindtape:wip-caps`, `judgment-stays-small` and `src-budget` read
 `pack mindtape:budget`, `tweak-lands-done` reads `pack mindtape:tweaks`, and
-the rest of the task rules read `pack mindtape:tasks`. The exception is `section-allowlist`, which reads `project` because the project's rule replaced
-it. The repository's own rules, such as `goals` and the `Dogfood` rules, read
-`project` because only the project declares them. To read each rule's
+the rest of the task rules read `pack mindtape:tasks`. The exception is
+`section-allowlist` and the Dogfood rules, which read `pack mindtape:dogfood`,
+because that pack replaced the tasks pack's allowlist. The repository's own
+rule `goals` reads `project` because only the project declares it. To read each rule's
 severity and message as well, run #link(u("/cli/rules/"))[`mt rules`].
 
 After the rules come the other keys a pack set, as `key <dotted path>:
@@ -265,7 +267,10 @@ way.
 `extends = ["mindtape:tasks"]` gives you the task shape #mindtape's own
 backlog uses. Each open task has four sections in order: Problem, TO-BE,
 Changes and Out of scope. A `fix`, `feat`, `docs` or `dev` task adds one more
-section of its own. The tables below are read from
+section of its own. The pack also declares the `kind` field the rules read,
+with `feat`, `fix`, `refactor`, `docs`, `test`, `dev` and `milestone`, and
+requires it of an open task, and it forbids a comment in a task file. The
+tables below are read from
 #link(REPO + "/blob/main/crates/mindtape/src/packs/tasks.toml")[the
   pack file], and each message is the text `mt check` prints. The
 `imperative-title` rule reads the `verbs` dictionary, which the pack builds
@@ -389,3 +394,19 @@ changelog elsewhere overrides the rule by name.
 #let commits = toml("../generated/packs/commits.toml")
 
 #rule-table(commits.commits.rules)
+
+= The rules in `mindtape:dogfood`
+
+A project that builds with its own tool can ask each task how it will use the
+change itself. `extends = ["mindtape:tasks", "mindtape:dogfood"]` adds a
+Dogfood section after Out of scope. It must exist once, hold something ("Not
+applicable" and a reason counts) and stay under 120 words. List it after
+`mindtape:tasks`, since its `section-allowlist` replaces that pack's rule of
+the same name, with `Dogfood` allowed, and a test keeps the two lists one name
+apart.
+
+#let dogfood = toml("../generated/packs/dogfood.toml")
+
+#rule-table(dogfood.tasks.body.headers.rules)
+
+#rule-table(dogfood.tasks.body.content.rules)

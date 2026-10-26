@@ -21,7 +21,7 @@ fn check(problem: &str, to_be: &str) -> (Option<i32>, String) {
         "tasks/board.typ",
         format!(
             "#import \"@local/mindtape:0.2.0\": *\n\n\
-             #show: task.with(\n  title: \"Cover the board\",\n  status: wip(2026, 6, 1),\n)\n\n\
+             #show: task.with(\n  title: \"Cover the board\",\n  kind: \"refactor\",\n  status: wip(2026, 6, 1),\n)\n\n\
              == Problem\n\n+ Run `mt board`.\n+ 🔴 {problem}\n\n\
              == TO-BE\n\n- 🟢 It lists the tasks.\n{to_be}\n\n\
              == Changes\n\n- `src/board.rs`: list the tasks.\n\n\

@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 26),
+  status: done(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ")
     + depends-on("ship-the-tweaks-and-commits-packs.typ"),
 )
@@ -45,19 +45,20 @@
 extends = ["mindtape:tasks", "mindtape:dogfood"]
 ```
 
-- 🟢 `mindtape:tasks` declares `[tasks.fields.kind]` with `feat`, `fix`, `refactor`, `docs`, `test`, `dev` and `milestone`, `required = "!terminal"` and `example = "feat"`, and `[tasks.comments]` with `policy = "forbid"`.
+- 🟢 `mindtape:tasks` declares `[tasks.fields.kind]` with `feat`, `fix`, `refactor`, `docs`, `test`, `dev` and `milestone`, `required = "!terminal"` and `example = "test"`, the one kind whose open task needs no section of its own, so `mt check` can file a generic template with it, and `[tasks.comments]` with `policy = "forbid"`.
 - 🟢 `mindtape:dogfood` holds the four Dogfood rules and a `section-allowlist` that admits Dogfood. Listed after `mindtape:tasks`, it replaces that pack's allowlist by name.
 - 🟢 A test fails when the dogfood allowlist differs from the tasks pack's by anything but `Dogfood`, so the two can't drift.
 
 
 == Changes
 
-- `crates/mindtape/src/config/packs_tests.rs`: the red tests first: `kind` resolves from the pack alone, the Dogfood allowlist replaces the tasks pack's, and the drift check.
+- `crates/mindtape/src/config/packs_tests_dogfood.rs` (new, since `packs_tests.rs` nears its cap), `crates/mindtape-cli/tests/it/tasks_pack_kind_e2e.rs` (new): the red tests first: `kind` resolves from the pack alone, the Dogfood allowlist replaces the tasks pack's, and the drift check.
 - `crates/mindtape/src/packs/tasks.toml`: the two keys.
 - `crates/mindtape/src/packs/dogfood.toml` (new): the pack.
-- `crates/mindtape/src/config/packs.rs`: register it.
+- `crates/mindtape/src/config/pack_registry.rs`, `Justfile`: register it, and add it to `TOML_FMT_PATHS`.
+- `examples/api-service/.mindtape/config.toml`, `crates/mindtape-cli/tests/it/open_questions_e2e.rs`: the fixtures that extend the pack now allow their `docs:` comments and give an open task a `kind`.
 - `.mindtape/config.toml`: extend `mindtape:dogfood` and drop the Dogfood rules, the allowlist override, `[tasks.fields.kind]` and `[tasks.comments]`.
-- `www/content/packs.typ`: both packs.
+- `www/content/packs.typ`, `www/generate-examples.sh`: both packs, with the allowlist example sliced from the pack file.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 
 

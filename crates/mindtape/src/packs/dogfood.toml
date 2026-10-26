@@ -1,0 +1,57 @@
+# mindtape:dogfood — a Dogfood section on every open task.
+#
+# A project that builds with its own tool says, in each task, how it will use
+# the change itself: "Not applicable" with a reason opts out. The pack adds
+# that fifth section to the practice of `mindtape:tasks`: it must exist once,
+# after Out of scope, say something, and stay under 120 words.
+#
+# List it after `mindtape:tasks`: `section-allowlist` below replaces the tasks
+# pack's rule of the same name in its place, with `Dogfood` allowed. The two
+# allowlists differ by that one name, and a test (`packs_tests_dogfood.rs`)
+# fails when they drift. An allowlist is an array, which replaces whole, so
+# there is no way to extend one rule from another.
+#
+# The tasks pack's `section-word-cap` does not reach `Dogfood`, so the pack
+# caps it with a rule of its own.
+#
+# Adopt it as `extends = ["mindtape:tasks", "mindtape:dogfood"]`.
+
+# docs:slice packs/section-allowlist
+[[tasks.body.headers.rules]]
+name = "section-allowlist"
+action = "allowlist"
+allowed = [
+  { match = "^(Problem|Environment|TO-BE|Source of truth|Changes|Alternatives|Rollback|Out of scope|Dogfood)$" },
+]
+when = "!terminal"
+message = "limit an open task to Problem, TO-BE, Changes, Out of scope and Dogfood, plus its kind's own section"
+# docs:end
+
+[[tasks.body.headers.rules]]
+name = "one-dogfood-section"
+path = ["Dogfood"]
+action = "unique"
+when = "!terminal"
+message = "add one Dogfood section saying how this repo will dogfood the task (\"Not applicable\" with a reason opts out)"
+
+[[tasks.body.headers.rules]]
+name = "dogfood-after-out-of-scope"
+action = "order"
+before = ["Out of scope"]
+after = ["Dogfood"]
+when = "!terminal"
+message = "move Dogfood after Out of scope"
+
+[[tasks.body.content.rules]]
+name = "dogfood-non-empty"
+path = ["Dogfood"]
+assert = "non-empty"
+when = "!terminal"
+message = "write how this repo uses the change under Dogfood, or \"Not applicable\" and why"
+
+[[tasks.body.content.rules]]
+name = "dogfood-word-cap"
+path = ["Dogfood"]
+assert = { max-words = 120 }
+when = "!terminal"
+message = "cut this section to under 120 words, or split the task in two"

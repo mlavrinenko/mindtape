@@ -3,15 +3,15 @@
 # White-listed: Mindtape constrains only what is declared here. Omit a section
 # to accept the defaults and the prelude's full status shortcut set.
 
-# The flagship task practice — the six-section shape, its markers and word
-# caps, and the imperative-title rule — ships as the `mindtape:tasks` pack
-# (`crates/mindtape/src/packs/tasks.toml`) rather than living here by
-# hand. What stays local is only what is true of THIS repo: goal verdicts
-# (the `goals` rule, below) and an extra `Dogfood` section the pack has no
-# opinion on — see the `section-allowlist` override further down for how.
+# The practice ships as packs (`crates/mindtape/src/packs/`) rather than living
+# here by hand: the task shape (`mindtape:tasks`), the Dogfood section
+# (`mindtape:dogfood`), the WIP caps, the size budget, tweaks and the commit
+# rules. What stays local is only what is true of THIS repo: the goal verdicts
+# (the `goals` rule, below), the tag list, the actors and the path sets.
 # docs:slice packs/extends
 extends = [
   "mindtape:tasks",
+  "mindtape:dogfood",
   "mindtape:wip-caps",
   { pack = "mindtape:budget", with = { max-files = 5 } },
   "mindtape:tweaks",
@@ -153,7 +153,9 @@ example = { src-files = 1 }
 # and cannot walk its nested values, so this reaches for `check`: `check-goals` re-checks the same
 # rules `goals(...)` used to enforce at Typst load — missing/unknown goals, a
 # helps/hurts with no reason, a task that helps nothing — but as `mt check`
-# breaches instead of a load-time panic.
+# breaches instead of a load-time panic. One verdict per goal in
+# truth/goals.typ and truth/process-goals.typ, and a task that helps no goal is
+# refused, so nothing unjustified gets filed.
 [[tasks.rules]]
 name = "goals"
 when = "!terminal"
@@ -202,31 +204,6 @@ allowed = [
   "tweak",
 ]
 
-# What kind of work a task is. The leaf kinds are commit types, so a task names
-# the commit that will close it. `dev` stands where Conventional Commits puts
-# `chore`, which names no kind of work: it changes the harness around the repo —
-# gates, scripts, the backlog's own config and spec — to improve the development
-# experience or enable a process. `milestone` is the one kind no commit closes:
-# it ends through its leaves, and the WIP limits below cap it separately. A
-# misspelled kind would silently fall out of that cap, which is why the list is
-# closed.
-#
-# The sweep templates stamp their one kind (`refactor` for a size finding,
-# `test` for the rest). `task.typ` declares a `kind` slot with no `choices`, so
-# `mt add` offers this list rather than a second copy of it. A non-interactive
-# add fails naming that slot, so agents pass `--set kind=feat`. The slot's
-# example is `test`, because `mt check` files `task.typ` with it, and a `feat`,
-# `fix`, `docs` or `dev` needs a section of its own that the generic template
-# does not carry.
-#
-# `required = "!terminal"` mirrors the fields above: an open task names its
-# kind, a closed one is exempt, so history predating the field is not
-# backfilled.
-[tasks.fields.kind]
-values = ["feat", "fix", "refactor", "docs", "test", "dev", "milestone"]
-required = "!terminal"
-example = "test"
-
 # Who is working the task. The only distinction this backlog needs is
 # human-vs-model: `max` holds the work no agent can finish — a render loaded in
 # a browser, a decision the maintainer owns — and `agent` holds everything
@@ -251,73 +228,6 @@ example = "test"
 allowed = ["max", "agent"]
 required = "!terminal"
 example = "agent"
-
-# A review comment left in a task file is a conversation, not content: a human
-# annotates, an agent reframes the task and removes the note. Forbidding it
-# stops the conversation silently becoming the artifact.
-[tasks.comments]
-policy = "forbid"
-
-# Every open task is one spec in the pack's six sections (Problem, TO-BE,
-# Changes, Out of scope, plus its kind's own section) — see
-# `crates/mindtape/src/packs/tasks.toml` for the shape and the
-# research it is checked against. Goal verdicts sit beside status and links
-# instead, in `x-goals:` (see the `goals` rule below): one verdict per goal
-# in truth/goals.typ and truth/process-goals.typ, checked by
-# `check-goals(...)` in truth/lib.typ. A task that helps no goal is refused,
-# so nothing unjustified gets filed.
-#
-# `section-allowlist` overrides the pack's own rule of the same name to add
-# one more section, `Dogfood`, this repo's own convention for saying how it
-# uses a change ("Not applicable" with a reason opts out) — a same-named
-# entry replaces the pack's in place rather than appending beside it, so
-# restating the full allowed set with `Dogfood` added is how a local section
-# gets layered onto an inherited practice. This is the worked example for
-# that mechanism: an adopting repo with its own extra section copies this
-# shape; one it wants gone entirely reaches for `disable = ["<name>"]`
-# instead.
-# docs:slice packs/section-allowlist
-[[tasks.body.headers.rules]]
-name = "section-allowlist"
-action = "allowlist"
-allowed = [
-  { match = "^(Problem|Environment|TO-BE|Source of truth|Changes|Alternatives|Rollback|Out of scope|Dogfood)$" },
-]
-when = "!terminal"
-message = "limit an open task to Problem, TO-BE, Changes, Out of scope and Dogfood, plus its kind's own section"
-# docs:end
-
-[[tasks.body.headers.rules]]
-name = "one-dogfood-section"
-path = ["Dogfood"]
-action = "unique"
-when = "!terminal"
-message = "add one Dogfood section saying how this repo will dogfood the task (\"Not applicable\" with a reason opts out)"
-
-[[tasks.body.headers.rules]]
-name = "dogfood-after-out-of-scope"
-action = "order"
-before = ["Out of scope"]
-after = ["Dogfood"]
-when = "!terminal"
-message = "move Dogfood after Out of scope"
-
-[[tasks.body.content.rules]]
-name = "dogfood-non-empty"
-path = ["Dogfood"]
-assert = "non-empty"
-when = "!terminal"
-message = "write how this repo uses the change under Dogfood, or \"Not applicable\" and why"
-
-# The pack's own word cap (`section-word-cap`) does not reach `Dogfood`,
-# since that section is only ever this repo's own — so it gets a cap of its
-# own rather than an override of the pack's.
-[[tasks.body.content.rules]]
-name = "dogfood-word-cap"
-path = ["Dogfood"]
-assert = { max-words = 120 }
-when = "!terminal"
-message = "cut this section to under 120 words, or split the task in two"
 
 # The default `mt ls` listing is inherited from the embedded floor's
 # `[views.default]` view. Redeclare `[views.default]` here to add a

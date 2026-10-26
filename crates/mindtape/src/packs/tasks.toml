@@ -5,9 +5,8 @@
 # closed set of sections, in a fixed order, each with markers and caps that
 # make it skimmable and reproducible without a template a human has to copy
 # by hand. Adopt it, then layer this repo's OWN policy over it with `disable
-# = ["<name>"]` or a same-named override — see `.mindtape/config.toml` for a
-# worked example (`section-allowlist`, overridden there to add a local-only
-# `Dogfood` section).
+# = ["<name>"]` or a same-named override — see `mindtape:dogfood` for a worked
+# example (`section-allowlist`, replaced there to add a `Dogfood` section).
 #
 # The set came out of the 2026-09-15 backlog review and the research it was
 # checked against:
@@ -39,8 +38,35 @@
 # What this pack deliberately leaves out, because it is only ever true of the
 # adopting repo, never of the practice itself: a goal-verdicts rule (its
 # `check` names a Typst module local to the repo), any extra section such as
-# a `Dogfood` heading, assignees, WIP limits, estimate bounds, and a close
-# gate. Add those in the extending layer.
+# a `Dogfood` heading (`mindtape:dogfood` adds that one), assignees and a
+# close gate. The WIP caps, the size budget, tweaks and the commit rules are
+# packs of their own. Add the rest in the extending layer.
+
+# What kind of work a task is. The leaf kinds are commit types, so a task names
+# the commit that will close it. `dev` stands where Conventional Commits puts
+# `chore`, which names no kind of work: it changes the harness around the repo —
+# gates, scripts, the backlog's own config and spec — to improve the development
+# experience or enable a process. `milestone` is the one kind no commit closes:
+# it ends through its leaves, and a WIP cap can count it separately. The rules
+# below read `kind`, and a misspelled kind would silently fall out of them,
+# which is why the list is closed.
+#
+# `required = "!terminal"`: an open task names its kind, a closed one is
+# exempt, so history predating the field is not backfilled.
+#
+# The `example` is `test` because `mt check` files each template with it, and a
+# `feat`, `fix`, `docs` or `dev` needs a section of its own that a generic
+# template does not carry.
+[tasks.fields.kind]
+values = ["feat", "fix", "refactor", "docs", "test", "dev", "milestone"]
+required = "!terminal"
+example = "test"
+
+# A review comment left in a task file is a conversation, not content: a human
+# annotates, an agent reframes the task and removes the note. Forbidding it
+# stops the conversation silently becoming the artifact.
+[tasks.comments]
+policy = "forbid"
 
 [[tasks.body.headers.rules]]
 name = "section-allowlist"

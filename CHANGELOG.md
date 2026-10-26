@@ -522,6 +522,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `changelog-with-product-change`, which skips a `fixup!`, `squash!` or `amend!`
   subject and a `Changelog: none` trailer, with a `product` path set of `**`
   that a project replaces.
+- **The `mindtape:dogfood` pack ships the Dogfood section, and `mindtape:tasks`
+  declares `kind`.** `dogfood` holds `one-dogfood-section`,
+  `dogfood-after-out-of-scope`, `dogfood-non-empty`, `dogfood-word-cap` and a
+  `section-allowlist` that admits Dogfood, which replaces the tasks pack's
+  allowlist when listed after it. `mindtape:tasks` now declares
+  `[tasks.fields.kind]` (`feat`, `fix`, `refactor`, `docs`, `test`, `dev`,
+  `milestone`, required of an open task) and `[tasks.comments]` with
+  `policy = "forbid"`, so a project that extends it alone needs neither.
 - **Field rules live in one descriptor.** `[tasks.fields.<name>]` (a project
   field such as `[tasks.fields.x-<ns>]` included), `[tasks.assignee]`,
   `[tasks.tags]`, `[tasks.estimate]` and the numeric scales take `values`,
