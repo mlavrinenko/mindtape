@@ -318,7 +318,7 @@ groups:
       .just/outdatty.just: 6d4c0f088d4e078000ce7e3db1aef3289e07afba2ecb6f3a15a5729a94f4a403
       .just/scripts/check-examples.sh: c2d514b1b7e8af223e7ab4af27115dfe33e56f6af98702639d5fb5008910ae6b
       .just/scripts/clippy.sh: d586661b1bca816bcdf145d4fdd785125624d5b79e78f493b65811c66fb87df4
-      .just/scripts/lint-dry.sh: 935cd86b688eaeea3b62ea86f21eb8fec32d72d3f8f848720b333df9ea7b4814
+      .just/scripts/lint-dry.sh: 05eb5f706284988cb6c9c1c8f3c87a67d359a962f86aa8e01fcc45efd525fc59
       .just/scripts/outdatty-check.sh: e219b61957163b1cf7ffd32d183fa37a8de60d1573fc68d7f02aab5f0eeb772b
       .just/scripts/wt-carry-lcov.sh: a4d4b96d24cee1d76f8d19ddcc10b6f4b99a1cb9f7c8ec3143cf487f2bb9861c
       Justfile: 53c7bf88ffecc6862edd72fca73b5d2a10cc01f2eecabbf63c58af1445cff546

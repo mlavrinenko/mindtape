@@ -10,7 +10,7 @@
     ease: 7,
   ),
   difficulty: 2,
-  estimate: (src-files: 2),
+  estimate: (src-files: 3),
   tags: ("found", "tooling", "dry"),
   x-goals: (
     product: (
@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 26),
+  status: done(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ"),
 )
 
@@ -53,8 +53,10 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `.just/lint.just` or `.just/scripts/lint-dry.sh`: stop declaration lines from forming a clone, then re-mint the baseline once so it drops the declaration-only entries.
-- `docs/contributing/gates.md` or the script header: say what the gate skips.
+- `.config/jscpd.json`: new, with three `ignorePattern` regexes for `mod` lines with their attributes, `use` items and `include_str!` registry entries. jscpd reads it from the repo root, so the gate, `dry-baseline` and the sweep's dry arm all skip those lines.
+- `.config/jscpd-baseline.json`: re-mint once, so it drops the declaration-only entries.
+- `.mmz/config.yaml`: add `.config/jscpd.json` to the `dry-baseline` scope, so editing it re-runs the gate.
+- `.just/scripts/lint-dry.sh`: say in the header what the gate skips.
 
 == Rollback
 

@@ -3,6 +3,12 @@
 # any clone .config/jscpd-baseline.json does not list. The baseline keys a clone
 # by a fingerprint of its raw tokens, so an edit inside an old clone makes it
 # new.
+# .config/jscpd.json (read from the repo root, so every jscpd run here sees it)
+# makes jscpd skip declaration lines: `mod` lines with their attributes, `use`
+# items and `("name", include_str!("..."))` registry entries. A list of those
+# has no helper to extract, and adding one more line must not change a
+# fingerprint. Skipped tokens also leave a clone that straddles one, so a new
+# pattern re-mints the baseline once.
 # Fix a finding by extracting a shared helper, not by shuffling tokens until
 # the detector stops matching.
 #

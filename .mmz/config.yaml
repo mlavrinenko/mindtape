@@ -302,10 +302,12 @@ scopes:
     - "flake.nix"
     - "flake.lock"
 
-  # The clones `just lint::dry` tolerates. Re-minting it changes what the gate
-  # lets through, so it is that gate's input.
+  # The clones `just lint::dry` tolerates, and the jscpd config that says which
+  # lines never count toward a clone. Re-minting the baseline or editing the
+  # config changes what the gate lets through, so both are that gate's input.
   dry-baseline:
     - ".config/jscpd-baseline.json"
+    - ".config/jscpd.json"
 
   # The .config/outdatty.yaml sources and dependents that no other scope holds,
   # for `just outdatty::check`. The rule compares every listed file to the
