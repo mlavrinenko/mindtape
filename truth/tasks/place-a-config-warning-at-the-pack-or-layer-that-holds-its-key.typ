@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 26),
+  status: done(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ"),
 )
 
@@ -61,7 +61,7 @@ left in a closing report no one rereads. It belongs in
 == Changes
 
 - `crates/mindtape-cli/src/util.rs`: place each warning through the sources the load kept, not `config_path(root)`.
-- `crates/mindtape/src/config/locate.rs`: its `Sources` is the mechanism; `Config` has to carry it, as it carries `rule_sites`.
+- `crates/mindtape/src/config/locate.rs`, `crates/mindtape/src/config/mod.rs`: its `Sources` is the mechanism. `Config` carries it as `provenance`, the carrier `print-each-pack-key-and-parameter-origin-in-mt-config-show.typ` landed for its key and parameter origins, and `Config::warning_place` asks it.
 
 == Rollback
 
