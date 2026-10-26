@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # www/generate-packs.sh — capture every built-in pack, this repo's
 # own `mt config show --origin`, a pack's priority merged below the project's,
-# and five configs `mt` refuses, for /packs/.
+# a directory pack, and six configs `mt` refuses, for /packs/.
 #
 # Split out of www/generate.sh (which calls this, still inside the lock it
 # already holds) under the same 300-line Shell cap that split off
@@ -45,14 +45,28 @@ capture packs-merge "$merge" 'head .mindtape/config.toml team.toml'
 capture packs-merge "$merge" \
   "mt config show --json | jq -c '.tasks.priority | {framework, \"allow-manual\", min, max}'"
 
-# Five projects whose config `mt` refuses. Each record shows the
+# A directory pack: its `pack.toml` is the pack, and the template beside it
+# reaches `mt add --list`.
+dirpack=
+capture_scratch dirpack
+mkdir -p "$dirpack/.mindtape" "$dirpack/team/templates"
+printf 'extends = ["./team"]\n' >"$dirpack/.mindtape/config.toml"
+: >"$dirpack/team/pack.toml"
+cp "$REPO/examples/api-service/.mindtape/templates/task.typ" "$dirpack/team/templates/feat.typ"
+capture packs-dir "$dirpack" 'find team -type f'
+capture packs-dir "$dirpack" 'mt add --list'
+
+# Six projects whose config `mt` refuses. Each record shows the
 # config, then the refusal, which must match <expect>.
 refused() { # <slug> <expect> <show-command> <file=content>...
   local slug=$1 expect=$2 show=$3 dir pair
   shift 3
   capture_scratch dir
   mkdir -p "$dir/.mindtape"
-  for pair in "$@"; do printf '%s' "${pair#*=}" >"$dir/${pair%%=*}"; done
+  for pair in "$@"; do
+    mkdir -p "$(dirname "$dir/${pair%%=*}")"
+    printf '%s' "${pair#*=}" >"$dir/${pair%%=*}"
+  done
   capture "$slug" "$dir" "$show"
   capture --exit 1 --expect "$expect" "$slug" "$dir" 'mt check'
 }
@@ -70,3 +84,7 @@ refused packs-stale 'lock is stale' 'head .mindtape/config.toml .mindtape/packs.
   $'.mindtape/packs.lock=[acme]\ngit = "https://github.com/acme/mindtape-packs"\nref = "v1"\ncommit = "3f2c1a9e0b7d4c55e1a2b3c4d5e6f708192a3b4c"\nsha256 = "9c41e0d2b7a35f8c6e1d4a9b0c2f7e3d5a8b1c4e7f0a3d6b9c2e5f8a1b4d7c0e"\n'
 refused packs-disable 'no rule named' 'cat .mindtape/config.toml' \
   $'.mindtape/config.toml=extends = ["mindtape:tasks"]\ndisable = ["imperative-titles"]\n'
+refused packs-ambiguous 'ambiguous pack' 'find team team.toml' \
+  $'.mindtape/config.toml=extends = ["./team"]\n' \
+  $'team/pack.toml=' \
+  $'team.toml='

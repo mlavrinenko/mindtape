@@ -167,7 +167,9 @@ fn describe_rule_origin(origin: &RuleOrigin) -> String {
         RuleOrigin::Layer(LayerSource::Dir(_)) => "dir".to_owned(),
         RuleOrigin::Layer(LayerSource::Project(_)) => "project".to_owned(),
         RuleOrigin::Pack(PackOrigin::Embedded(name)) => format!("pack {name}"),
-        RuleOrigin::Pack(PackOrigin::Path(path)) => format!("pack {}", path.display()),
+        RuleOrigin::Pack(PackOrigin::Path(path) | PackOrigin::Dir(path)) => {
+            format!("pack {}", path.display())
+        }
     }
 }
 

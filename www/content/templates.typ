@@ -31,7 +31,10 @@ project.
 in `[templates] dirs`. It uses `task.typ` unless you pick another with
 `--template <name>`. To change that default name, set `[templates] default`.
 If the project has no such file, `mt add` uses a built-in template whose only
-slot is `title`. `mt add --list` lists the templates it finds.
+slot is `title`. `mt add --list` lists the templates it finds. A
+#link(u("/packs/#a-pack-in-a-directory"))[directory pack] can ship templates too. They
+come after your own directories, so a template of yours with the same name
+wins.
 
 Sometimes `mt add` refuses a task because of one field, and another template
 would have set that field the way you wanted. In that case the error suggests

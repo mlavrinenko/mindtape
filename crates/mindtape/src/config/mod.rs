@@ -31,6 +31,7 @@
 //! - `locate.rs`: the file line of a dotted config key.
 //! - `merge.rs`: the shared TOML deep merge.
 //! - `name_cycle.rs`: cycle detection over a name-reference graph.
+//! - `pack_dirs.rs`: a directory pack's `templates/`, appended to `templates.dirs`.
 //! - `pack_fold.rs`: one layer's packs, folded into the sub-layer below it.
 //! - `pack_registry.rs`: the packs compiled into the binary and the origin types.
 //! - `pack_resolve.rs`: resolving one `extends` entry to a validated pack table.
@@ -68,6 +69,7 @@ pub(crate) mod ls;
 pub(crate) mod ls_columns;
 pub(crate) mod merge;
 pub(crate) mod name_cycle;
+pub(crate) mod pack_dirs;
 pub(crate) mod pack_fold;
 pub(crate) mod pack_registry;
 pub(crate) mod pack_resolve;
@@ -217,7 +219,9 @@ pub struct Config {
     /// settings; a harness keys its own config by role name.
     pub roles: Vec<crate::config::actors::Role>,
     /// Packs this config builds on, in any config layer. An entry with a path
-    /// separator is a TOML pack file, relative to the file that declares it.
+    /// separator is a TOML pack file, or a directory pack, a folder holding
+    /// `pack.toml` and an optional `templates/`, relative to the file that
+    /// declares it. A directory's `templates/` joins `templates.dirs`.
     /// Any other entry is `<source>:<pack>`, and `mindtape` is the one source
     /// known without a declaration: `mindtape:tasks` is a pack built into
     /// `mt`. A pack holds any config key but `extends`, `disable`,

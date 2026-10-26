@@ -4,7 +4,7 @@
 //! --origin` prints. [`crate::config::pack_resolve`] looks a `<source>:<pack>`
 //! entry up here; [`crate::config::packs`] folds what it returns.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::config::layers::LayerSource;
 
@@ -12,6 +12,9 @@ use crate::config::layers::LayerSource;
 /// `mindtape:<pack>` names one. It is the one source known without a
 /// declaration.
 pub(crate) const EMBEDDED_SOURCE: &str = "mindtape";
+
+/// The file a directory pack's table is read from.
+pub(crate) const PACK_FILE: &str = "pack.toml";
 
 /// Packs compiled into the binary, `(pack, TOML text)`, each under
 /// [`EMBEDDED_SOURCE`]. A new pack is a `crates/mindtape/src/packs/<pack>.toml`
@@ -25,9 +28,13 @@ pub enum PackOrigin {
     /// A `mindtape:<pack>` entry resolved against [`EMBEDDED_PACKS`], held as
     /// the whole `<source>:<pack>` name.
     Embedded(String),
-    /// A path pack, resolved to an absolute (or as-given, if the base
-    /// couldn't be made absolute) path.
+    /// A path pack naming a TOML file, resolved to an absolute (or as-given,
+    /// if the base couldn't be made absolute) path.
     Path(PathBuf),
+    /// A directory pack, held as the directory: its `pack.toml` is the pack,
+    /// and its `templates/` joins `templates.dirs`. A pack fetched into a
+    /// cache resolves to this too.
+    Dir(PathBuf),
 }
 
 impl PackOrigin {
@@ -36,7 +43,15 @@ impl PackOrigin {
     pub(crate) fn label(&self) -> String {
         match self {
             Self::Embedded(name) => name.clone(),
-            Self::Path(path) => path.display().to_string(),
+            Self::Path(path) | Self::Dir(path) => path.display().to_string(),
+        }
+    }
+
+    /// The pack's directory, when it is a directory pack.
+    pub(crate) fn dir(&self) -> Option<&Path> {
+        match self {
+            Self::Dir(dir) => Some(dir),
+            Self::Embedded(_) | Self::Path(_) => None,
         }
     }
 }

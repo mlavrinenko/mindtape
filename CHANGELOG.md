@@ -427,6 +427,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `.mindtape/config.toml` may declare a source or extend a pack from one, and
   `mindtape` is taken. The library's `config::pack_sources::read_raw` reads
   the sources and the lock without loading the config.
+- **A pack can be a directory.** An `extends` path naming a folder reads the
+  `pack.toml` in it, and the folder's `templates/` joins `[templates] dirs`
+  behind the project's own, so `mt add --list` lists both and a project
+  template with the same name wins. The folder may sit outside the project. A
+  `team.toml` beside a `team/` folder makes `extends = ["./team"]` ambiguous,
+  and `mt` refuses it naming both.
 - **`mt rules` lists the rules that apply, one line each.** A line is the
   rule's severity, its name as `mt config show --origin` prints it, and the
   message a breach prints, after packs, overrides and `disable`. A rule with no

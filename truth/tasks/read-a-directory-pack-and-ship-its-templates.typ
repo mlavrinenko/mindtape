@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 26),
+  status: done(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ")
     + depends-on(
       "merge-every-config-key-from-a-pack-below-the-layer-that-extends-it.typ",
@@ -47,18 +47,22 @@ team/pack.toml           # extends = ["./team"]
 team/templates/feat.typ  # mt add -t feat
 ```
 
-- 🟢 An `extends` path naming a directory reads its `pack.toml`. A `team.toml` beside a `team/` directory is refused as ambiguous, naming both.
-- 🟢 After every layer and pack is merged, each directory pack's `templates/` is appended to the template dirs, so a project template with the same name wins and `mt add --list` lists both.
+- 🟢 An `extends` path naming a directory reads its `pack.toml`. `"./team"` beside a `team.toml` is refused as ambiguous, naming both. `"./team.toml"` still reads the file.
+- 🟢 After every layer and pack is merged, each directory pack's `templates/`, when it exists, is appended to `templates.dirs` as an absolute path, so a project template of the same name wins and `mt add --list` lists both.
+- 🟢 Of two directory packs, the later layer's comes first, then the one listed last, as a later rule replaces an earlier one. A pack two layers extend counts once.
 - 🟢 The pack directory may sit outside the project, as a fetched pack will.
 
 
 == Changes
 
-- `crates/mindtape/src/config/packs_tests_body.rs`: the red tests first: a template from a directory pack, a project template overriding it, the ambiguous pair.
-- `crates/mindtape/src/config/pack_resolve.rs`: read `<dir>/pack.toml`, refuse the ambiguous pair, and record the pack directory.
-- `crates/mindtape/src/config/packs.rs`: append each pack's `templates/` to `templates.dirs` after the fold.
-- `crates/mindtape-cli/src/cmd/add/values.rs`: read template dirs that may be absolute.
-- `www/content/packs.typ`, `www/content/templates.typ`: the directory form.
+- `crates/mindtape/src/config/packs_tests_dirs.rs` (new): the red tests first: the directory read, the missing `pack.toml`, the ambiguous pair, the appended and ordered template dirs. `crates/mindtape-cli/tests/it/add_e2e.rs` gets the `mt add` one: a pack outside the project, with a project template overriding it.
+- `crates/mindtape/src/config/pack_registry.rs`: `PackOrigin::Dir`, holding the directory, and `PACK_FILE`.
+- `crates/mindtape/src/config/pack_resolve.rs`: `resolve_dir_pack`, which a fetched pack reuses with its cache directory, and the ambiguous-pair refusal.
+- `crates/mindtape/src/config/pack_dirs.rs` (new): append each directory pack's `templates/` to `templates.dirs`. `pack_fold.rs` lists its packs' directories, and `packs.rs` calls the append after the fold.
+- `crates/mindtape/src/rules/sites.rs`, `crates/mindtape-cli/src/cmd/config.rs`: name a directory pack's rules by its `pack.toml` and `mt config show --origin` by its directory.
+- `crates/mindtape-cli/src/cmd/add/values.rs` needs no change: `root.join(dir)` already takes an absolute dir.
+- `www/content/packs.typ`, `www/content/templates.typ`, `www/generate-packs.sh`: the directory form, with two captures.
+- `schema/config.schema.json`: regenerate, since the schema copies the `extends` doc.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 
 

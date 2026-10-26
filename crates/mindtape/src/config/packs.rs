@@ -5,11 +5,13 @@
 //!
 //! A pack is a config-syntax fragment. `<source>:<pack>` resolves to one
 //! compiled into the binary ([`EMBEDDED_PACKS`], under `mindtape`); a path
-//! (anything with a path separator) resolves to a TOML file, relative to the
-//! layer that names it. Before any layer folds,
-//! [`crate::config::pack_sources::for_layers`] reads the project's
-//! `[pack-sources]` and checks them against `.mindtape/packs.lock`, and only
-//! the project layer may name a pack in one. A pack may declare any config key but the few
+//! (anything with a path separator) resolves to a TOML file, or to a
+//! directory holding `pack.toml`, relative to the layer that names it. Before
+//! any layer folds, [`crate::config::pack_sources::for_layers`] reads the
+//! project's `[pack-sources]` and checks them against `.mindtape/packs.lock`,
+//! and only the project layer may name a pack in one. After the merge,
+//! [`append_template_dirs`] adds each directory pack's `templates/` to
+//! `templates.dirs`. A pack may declare any config key but the few
 //! [`crate::config::pack_resolve`] refuses, `extends` among them, so
 //! resolution is one level deep.
 //!
@@ -45,6 +47,7 @@ use std::path::{Path, PathBuf};
 use crate::config::ConfigError;
 use crate::config::layers::{Layer, LayerSource};
 use crate::config::merge::deep_merge_tables;
+use crate::config::pack_dirs::append_template_dirs;
 use crate::config::pack_fold::PackLayer;
 use crate::config::pack_registry::{EMBEDDED_PACKS, RuleOrigin, RuleOriginEntry};
 use crate::config::pack_resolve::{PackScope, resolve_pack};
@@ -112,6 +115,7 @@ fn merge_layers_with_packs_using(
     let mut accumulators: [RuleAccumulator; RULE_ARRAYS] = Default::default();
     let mut disable_names: BTreeSet<String> = BTreeSet::new();
     let sources = crate::config::pack_sources::for_layers(layers, root)?;
+    let mut pack_dirs: Vec<PathBuf> = Vec::new();
 
     for layer in layers {
         let mut table: toml::Table =
@@ -126,6 +130,7 @@ fn merge_layers_with_packs_using(
             project: matches!(layer.source, LayerSource::Project(_)),
         };
         let packs = fold_layer_packs(&extends, &base_dir, &scope, &table, &mut accumulators)?;
+        pack_dirs.extend(packs.dirs().map(Path::to_path_buf));
         deep_merge_tables(&mut doc, packs.into_table());
 
         let origin = RuleOrigin::Layer(layer.source.clone());
@@ -134,6 +139,7 @@ fn merge_layers_with_packs_using(
     }
 
     apply_disable(&mut accumulators, &disable_names)?;
+    append_template_dirs(&mut doc, &pack_dirs)?;
 
     let mut rule_origins = Vec::new();
     for ((accumulator, path), prefix) in accumulators
@@ -354,3 +360,7 @@ mod tests_extends;
 #[cfg(test)]
 #[path = "packs_tests_merge.rs"]
 mod tests_merge;
+
+#[cfg(test)]
+#[path = "packs_tests_dirs.rs"]
+mod tests_dirs;

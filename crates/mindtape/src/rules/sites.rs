@@ -13,7 +13,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use crate::config::layers::LayerSource;
-use crate::config::pack_registry::{PackOrigin, RuleOrigin, RuleOriginEntry};
+use crate::config::pack_registry::{PACK_FILE, PackOrigin, RuleOrigin, RuleOriginEntry};
 use crate::validate::violation::Location;
 
 /// The label prefix of the `[[tasks.rules]]` entries in a rule origin record.
@@ -65,6 +65,9 @@ fn site(entry: &RuleOriginEntry, root: &Path) -> Option<Location> {
             pack: name.clone(),
             line,
         }),
+        RuleOrigin::Pack(PackOrigin::Dir(dir)) => {
+            Some(Location::at(relative(&dir.join(PACK_FILE), root), line))
+        }
         RuleOrigin::Pack(PackOrigin::Path(path))
         | RuleOrigin::Layer(
             LayerSource::Xdg(path) | LayerSource::Dir(path) | LayerSource::Project(path),

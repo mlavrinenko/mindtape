@@ -70,8 +70,8 @@ the source has:
 
 #terminal("packs-unknown")
 
-An entry with a `/` is a path to a TOML file, like `./team.toml` above. A
-path is relative to the directory two levels above the config file that names
+An entry with a `/` is a path to a TOML file, like `./team.toml` above, or to
+a #link(u("/packs/#a-pack-in-a-directory"))[folder]. A path is relative to the directory two levels above the config file that names
 it. For `.mindtape/config.toml` that's the project root. For the user layer
 `mindtape/defaults.toml` it's your config directory, such as `~/.config` on
 Linux. `mt` refuses a missing file and prints the path it resolved.
@@ -97,6 +97,25 @@ lock lacks, or pins from another `git` or `ref`, is refused, here after a bump
 from `v1` to `v2`.
 
 #terminal("packs-stale")
+
+= A pack in a directory
+
+A pack that carries files needs a folder. Name the folder in `extends`, and
+`mt` reads `pack.toml` inside it. The folder's `templates/` joins
+`[templates] dirs` behind your own directories, so `mt add -t feat` finds a
+template the pack ships, and a template of yours with the same name wins.
+`mt add --list` lists both:
+
+#terminal("packs-dir")
+
+The folder can sit anywhere, inside the project or not. When two packs ship a
+template with one name, the pack of the later layer wins, and within a layer
+the one listed last. If a `team.toml` sits beside a `team/` folder,
+`extends = ["./team"]` could mean either, so `mt` refuses it and names both:
+
+#terminal("packs-ambiguous")
+
+Write `"./team.toml"` to read the file.
 
 = Drop a rule
 

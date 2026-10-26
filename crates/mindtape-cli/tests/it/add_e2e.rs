@@ -83,6 +83,51 @@ fn list_prints_template_stems_and_stops() {
     );
 }
 
+/// A directory pack outside the project ships `feat` and `shared`; the
+/// project has its own `shared`. `mt add --list` lists all three, and `-t
+/// shared` files the project's, since a project template wins by name.
+#[test]
+fn a_directory_pack_ships_its_templates_beneath_the_projects_own() {
+    let pack = tempdir();
+    let template = |title: &str| {
+        format!("#import \"@local/mindtape:0.2.0\": *\n#show: task.with(title: \"{title}\")\n")
+    };
+    write_file(pack.path(), "pack.toml", "");
+    write_file(pack.path(), "templates/feat.typ", template("from the pack"));
+    write_file(
+        pack.path(),
+        "templates/shared.typ",
+        template("from the pack"),
+    );
+    let dir = support::scaffold_project(&format!(
+        "extends = [{:?}]\n\n[tasks]\nroots = [\"tasks\"]\n",
+        pack.path()
+    ));
+    write_file(
+        dir.path(),
+        ".mindtape/templates/shared.typ",
+        template("from the project"),
+    );
+
+    let listed = support::mt(dir.path())
+        .args(["add", "--list"])
+        .assert()
+        .success();
+    let stdout = String::from_utf8_lossy(&listed.get_output().stdout).into_owned();
+    let names: Vec<&str> = stdout.lines().collect();
+    assert_eq!(names, ["feat", "shared", "task"], "{stdout}");
+
+    let printed = |name: &str| {
+        let out = support::mt(dir.path())
+            .args(["add", "-t", name, "--name", "x", "--print"])
+            .assert()
+            .success();
+        String::from_utf8_lossy(&out.get_output().stdout).into_owned()
+    };
+    assert!(printed("shared").contains("from the project"));
+    assert!(printed("feat").contains("from the pack"));
+}
+
 #[test]
 fn collision_is_a_hard_error() {
     let dir = support::scaffold();

@@ -2308,7 +2308,7 @@
     },
     "extends": {
       "default": [],
-      "description": "Packs this config builds on, in any config layer. An entry with a path\nseparator is a TOML pack file, relative to the file that declares it.\nAny other entry is `<source>:<pack>`, and `mindtape` is the one source\nknown without a declaration: `mindtape:tasks` is a pack built into\n`mt`. A pack holds any config key but `extends`, `disable`,\n`pack-sources`, `project.code`, `tasks.roots`, `templates.dirs` and\n`[typst]`. Its\nkeys merge just below this layer's own, table by table, and its rules\ncome ahead of this layer's, where a rule with the same name replaces\nit. Two packs here that set one value differently are an error,\nunless this layer sets that key too.",
+      "description": "Packs this config builds on, in any config layer. An entry with a path\nseparator is a TOML pack file, or a directory pack, a folder holding\n`pack.toml` and an optional `templates/`, relative to the file that\ndeclares it. A directory's `templates/` joins `templates.dirs`.\nAny other entry is `<source>:<pack>`, and `mindtape` is the one source\nknown without a declaration: `mindtape:tasks` is a pack built into\n`mt`. A pack holds any config key but `extends`, `disable`,\n`pack-sources`, `project.code`, `tasks.roots`, `templates.dirs` and\n`[typst]`. Its\nkeys merge just below this layer's own, table by table, and its rules\ncome ahead of this layer's, where a rule with the same name replaces\nit. Two packs here that set one value differently are an error,\nunless this layer sets that key too.",
       "items": {
         "type": "string"
       },

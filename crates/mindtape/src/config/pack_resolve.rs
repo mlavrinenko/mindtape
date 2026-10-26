@@ -1,13 +1,14 @@
 //! Resolving one `extends` entry to a validated pack table: a path against
-//! the extending layer's directory, any other entry as `<source>:<pack>`
-//! against the embedded registry or a declared pack source, and the shape
-//! check that refuses the keys
-//! a pack may not declare. [`crate::config::packs`] folds what this returns.
+//! the extending layer's directory, to a file or to a directory pack
+//! ([`resolve_dir_pack`], which a fetched pack reuses), any other entry as
+//! `<source>:<pack>` against the embedded registry or a declared pack source,
+//! and the shape check that refuses the keys a pack may not declare.
+//! [`crate::config::packs`] folds what this returns.
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::config::ConfigError;
-use crate::config::pack_registry::{EMBEDDED_SOURCE, PackOrigin};
+use crate::config::pack_registry::{EMBEDDED_SOURCE, PACK_FILE, PackOrigin};
 use crate::config::pack_sources::PackSources;
 use crate::config::packs_toml::get_path;
 use crate::problem::Problem;
@@ -47,17 +48,12 @@ pub(super) fn resolve_pack(
 ) -> Result<ResolvedPack, ConfigError> {
     if is_path_entry(entry) {
         let path = base_dir.join(entry);
-        let text = std::fs::read_to_string(&path).map_err(|_| {
-            ConfigError::invalid(format!(
-                "extends: pack not found: {}",
-                crate::config::quote(&path.display().to_string())
-            ))
-        })?;
-        let table: toml::Table = toml::from_str(&text).map_err(|error| ConfigError::ParseIn {
-            origin: path.display().to_string(),
-            error,
-        })?;
-        validate_pack_shape(&table, &path.display().to_string())?;
+        if path.is_dir() {
+            let dir = path.components().collect::<PathBuf>();
+            refuse_ambiguous(&dir)?;
+            return resolve_dir_pack(&dir);
+        }
+        let (table, text) = read_pack_file(&path)?;
         Ok(ResolvedPack {
             origin: PackOrigin::Path(path),
             table,
@@ -76,6 +72,55 @@ pub(super) fn resolve_pack(
             text: text.to_owned(),
         })
     }
+}
+
+/// Resolve the directory pack at `dir`: its `pack.toml`, validated like any
+/// pack. The origin records the directory, so the fold can find its
+/// `templates/`. A pack cached from a remote source resolves the same way.
+///
+/// # Errors
+/// Returns [`ConfigError`] when `dir` holds no readable `pack.toml`, it
+/// doesn't parse, or it declares a key a pack may not.
+pub(super) fn resolve_dir_pack(dir: &Path) -> Result<ResolvedPack, ConfigError> {
+    let (table, text) = read_pack_file(&dir.join(PACK_FILE))?;
+    Ok(ResolvedPack {
+        origin: PackOrigin::Dir(dir.to_path_buf()),
+        table,
+        text,
+    })
+}
+
+/// Refuse a directory `dir` that sits beside a `<dir>.toml`: the entry could
+/// mean either, so `mt` names both and picks neither.
+fn refuse_ambiguous(dir: &Path) -> Result<(), ConfigError> {
+    let mut sibling = dir.as_os_str().to_owned();
+    sibling.push(".toml");
+    let sibling = PathBuf::from(sibling);
+    if sibling.is_file() {
+        return Err(ConfigError::invalid(format!(
+            "extends: ambiguous pack: {} is a directory beside {}",
+            crate::config::quote(&dir.display().to_string()),
+            crate::config::quote(&sibling.display().to_string())
+        ))
+        .with_hint("name the file with its .toml extension, or rename one of them"));
+    }
+    Ok(())
+}
+
+/// Read and validate the pack file at `path`.
+fn read_pack_file(path: &Path) -> Result<(toml::Table, String), ConfigError> {
+    let text = std::fs::read_to_string(path).map_err(|_| {
+        ConfigError::invalid(format!(
+            "extends: pack not found: {}",
+            crate::config::quote(&path.display().to_string())
+        ))
+    })?;
+    let table: toml::Table = toml::from_str(&text).map_err(|error| ConfigError::ParseIn {
+        origin: path.display().to_string(),
+        error,
+    })?;
+    validate_pack_shape(&table, &path.display().to_string())?;
+    Ok((table, text))
 }
 
 /// The text of the pack a `<source>:<pack>` entry names among the packs of

@@ -18,6 +18,8 @@
 //! [`PackLayer`] keeps each pack's own table beside the merge, in `extends`
 //! order, so a later pass can name the pack behind each value.
 
+use std::path::Path;
+
 use crate::config::ConfigError;
 use crate::config::merge::deep_merge_tables;
 use crate::config::pack_registry::PackOrigin;
@@ -59,6 +61,11 @@ impl PackLayer {
         deep_merge_tables(&mut self.merged, table.clone());
         self.packs.push((origin, table));
         Ok(())
+    }
+
+    /// The directory of each directory pack added so far, in `extends` order.
+    pub(super) fn dirs(&self) -> impl Iterator<Item = &Path> {
+        self.packs.iter().filter_map(|(origin, _)| origin.dir())
     }
 
     /// The sub-layer to merge below the layer that extends these packs.
