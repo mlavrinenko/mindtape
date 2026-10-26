@@ -109,6 +109,14 @@ from `v1` to `v2`.
 
 #terminal("packs-stale")
 
+`mt packs update` writes the lock. It asks the repository which commit each
+`ref` names, takes a 40- or 64-digit `ref` as the commit itself, fetches that
+tree and rewrites the source's entry. Name sources, as in
+`mt packs update acme`, to move only those. A source whose `ref` still names
+the locked commit prints `up to date` and keeps its entry, and an entry no
+source declares is dropped. Read the lock's diff before you commit it, since
+the new commit is the config every clone gets.
+
 `mt` reads a source's packs from your cache directory, such as `~/.cache` on
 Linux, under `mindtape/packs/<sha256>/`, named by the lock's hash.
 `acme:team` is `team.toml` at the top of that tree, or `team/pack.toml` for a
