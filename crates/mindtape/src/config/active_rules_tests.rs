@@ -210,3 +210,17 @@ fn a_severity_labels_and_serializes_as_its_config_word() {
         );
     }
 }
+
+/// A named hook is listed by its name, the way `mt config show --origin`
+/// prints it, and the action's slot follows.
+#[test]
+fn a_named_flip_hook_lists_by_its_name() {
+    let listed = rules(
+        "[[on.flip]]\nwhen = ''\nactions = [{ show = \"hi\" }]\n\
+         [[on.flip]]\nname = \"stale-wip\"\nwhen = 'into(\"wip\")'\n\
+         actions = [{ gate = true, message = \"re-read the scope\" }]\n",
+    );
+
+    let names: Vec<_> = listed.iter().map(|rule| rule.name.as_str()).collect();
+    assert_eq!(names, ["on.flip.stale-wip.actions[0]"]);
+}

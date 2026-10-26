@@ -13,7 +13,7 @@ use crate::body::BODY_RULE_SEVERITY;
 use crate::body::headers::rule_label;
 use crate::config::Config;
 use crate::config::commits::CommitRuleSpec;
-use crate::config::hooks::FlipAction;
+use crate::config::hooks::{FlipAction, FlipHook};
 use crate::rules::{CheckSpec, RuleSpec};
 use crate::validate::severity::Severity;
 
@@ -59,8 +59,9 @@ pub struct ActiveRule {
     pub section: RuleSection,
     /// The dotted name `mt config show --origin` prints, such as
     /// `tasks.rules.imperative-title` or `tasks.rules[3]` for an unnamed
-    /// rule. A flip action has no name, so it reads `on.flip[0].actions[1]`,
-    /// its path in a config error.
+    /// rule. A flip action takes its hook's, followed by its slot, so it
+    /// reads `on.flip.stale-wip.actions[1]`, or `on.flip[0].actions[1]` for an
+    /// unnamed hook.
     pub name: String,
     /// The severity a breach reports at: the rule's own, else the level the
     /// engine applies to its section.
@@ -192,7 +193,7 @@ fn flip_actions(config: &Config) -> Vec<ActiveRule> {
             };
             out.push(ActiveRule {
                 section: RuleSection::OnFlip,
-                name: format!("on.flip[{index}].actions[{slot}]"),
+                name: format!("{}.actions[{slot}]", hook_label(hook, index)),
                 severity: flip_severity(action),
                 message: Some(message.clone()),
                 when: when.clone(),
@@ -202,6 +203,12 @@ fn flip_actions(config: &Config) -> Vec<ActiveRule> {
         }
     }
     out
+}
+
+/// How `mt config show --origin` labels a hook: `on.flip.<name>`, or
+/// `on.flip[<index>]` when it has no name.
+fn hook_label(hook: &FlipHook, index: usize) -> String {
+    rule_label(hook.name.as_deref(), "on.flip", index)
 }
 
 const fn flip_severity(action: &FlipAction) -> Severity {

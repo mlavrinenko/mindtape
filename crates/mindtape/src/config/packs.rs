@@ -1,7 +1,7 @@
 //! `extends`/`disable`: folding each layer's packs in just below it, and
-//! resolving the four rule arrays `[[tasks.rules]]`,
-//! `[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]` and
-//! `[[commits.rules]]` across every layer and pack.
+//! resolving the five arrays that merge by name, `[[tasks.rules]]`,
+//! `[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]`,
+//! `[[commits.rules]]` and `[[on.flip]]`, across every layer and pack.
 //!
 //! A pack is a config-syntax fragment. `<source>:<pack>` resolves to one
 //! compiled into the binary ([`EMBEDDED_PACKS`], under `mindtape`); a path
@@ -37,8 +37,8 @@
 //! are both kept untouched, so a same-file mistake still reaches
 //! [`crate::body::headers::validate_header_rules`] /
 //! [`crate::body::content::validate_content_rules`] as a duplicate-name error
-//! instead of silently collapsing. `disable` then drops every rule (in any of
-//! the four arrays) carrying a listed name, erroring on a name matching
+//! instead of silently collapsing. `disable` then drops every entry (in any of
+//! the five arrays) carrying a listed name, erroring on a name matching
 //! none.
 
 use std::collections::{BTreeSet, HashMap, HashSet};
@@ -56,7 +56,7 @@ use crate::config::packs_toml::{
     header_lines, read_array, read_string_list, remove_path, write_array,
 };
 
-/// The rule-array TOML paths that append across layers and packs,
+/// The array TOML paths that append across layers and packs,
 /// same-name-replaces, rather than replacing wholesale like every other
 /// array.
 const RULE_ARRAY_PATHS: [&[&str]; RULE_ARRAYS] = [
@@ -64,10 +64,11 @@ const RULE_ARRAY_PATHS: [&[&str]; RULE_ARRAYS] = [
     &["tasks", "body", "headers", "rules"],
     &["tasks", "body", "content", "rules"],
     &["commits", "rules"],
+    &["on", "flip"],
 ];
 
 /// How many rule arrays merge by name.
-const RULE_ARRAYS: usize = 4;
+const RULE_ARRAYS: usize = 5;
 
 /// The dotted report prefix for each of [`RULE_ARRAY_PATHS`], in the same
 /// order.
@@ -76,6 +77,7 @@ const RULE_ARRAY_PREFIXES: [&str; RULE_ARRAYS] = [
     "tasks.body.headers.rules",
     "tasks.body.content.rules",
     "commits.rules",
+    "on.flip",
 ];
 
 /// The merged document plus every rule's provenance, [`merge_layers_with_packs`]'s
@@ -372,3 +374,7 @@ mod tests_dirs;
 #[cfg(test)]
 #[path = "packs_tests_files.rs"]
 mod tests_files;
+
+#[cfg(test)]
+#[path = "packs_tests_flip.rs"]
+mod tests_flip;

@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 26),
+  status: done(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ")
     + depends-on(
       "merge-every-config-key-from-a-pack-below-the-layer-that-extends-it.typ",
@@ -52,18 +52,20 @@ actions = [{ gate = true, message = "re-read the scope first" }]
 
 - 🟢 `[[on.flip]]` takes an optional `name`, and its entries append across packs and layers as `[[tasks.rules]]` entries do.
 - 🟢 A later entry with the same `name` replaces the earlier one in place, and `disable = ["stale-wip"]` drops it.
-- 🟢 An unnamed entry appends and can't be replaced.
-- 🟢 `mt rules` labels a gate `on.flip.stale-wip`, or `on.flip[<index>]` when it has no name.
+- 🟢 An unnamed entry appends and can't be replaced. Two entries of one file sharing a name are a config error.
+- 🟢 `mt config show --origin` labels a hook `on.flip.stale-wip`, or `on.flip[<index>]`. `mt rules` lists each action under its hook's label and slot: `on.flip.stale-wip.actions[0]`.
 
 
 == Changes
 
-- `crates/mindtape/src/config/hooks_tests.rs`: the red tests first: an ancestor's gate fires beside the project's, a same-name entry replaces it, `disable` drops it.
-- `crates/mindtape/src/config/hooks.rs`: `name: Option<String>` on `FlipHook`.
-- `crates/mindtape/src/config/packs.rs`: add `on.flip` to the arrays that append by name, and let `disable` reach it.
-- `crates/mindtape/src/config/active_rules.rs`: label a gate by its name.
+- `crates/mindtape/src/config/packs_tests_flip.rs` (new) and `active_rules_tests.rs`: the red tests first: an ancestor's gate fires beside the project's, a same-name entry replaces it, `disable` drops it, an unnamed one appends, a pack's gate merges, a duplicate name in one file fails, the labels.
+- `crates/mindtape/src/config/hooks.rs`: `name: Option<String>` on `FlipHook`, and `validate_flip_names`, called from `semantic.rs`.
+- `crates/mindtape/src/config/packs.rs`: `on.flip` joins the arrays that merge by name, so `disable` reaches it too.
+- `crates/mindtape/src/config/active_rules.rs`: label an action by its hook's name, and keep its slot, so two actions of one hook stay apart.
+- `crates/mindtape-cli/tests/it/rules_list_e2e.rs`: `--origin` now lists the hooks, so the label test compares them too.
+- `.mindtape/config.toml`: name this repo's two hooks.
 - `schema/config.schema.json`: regenerate.
-- `www/content/hooks.typ`, `www/content/packs.typ`: the `name` key and the merge.
+- `www/content/hooks.typ`, `www/content/packs.typ`, `www/content/config.typ`: the `name` key and the merge.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 
 
@@ -80,5 +82,5 @@ actions = [{ gate = true, message = "re-read the scope first" }]
 
 == Dogfood
 
-This repo's stale-WIP gate moves into `mindtape:flow` and its close gate stays local, both firing on one flip.
+This repo names its two hooks, `stale-wip` and `gates-fresh`. The stale-WIP gate moves into `mindtape:flow` once that pack exists, and the close gate stays local, both firing on one flip.
 

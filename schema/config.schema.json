@@ -891,6 +891,14 @@
           },
           "type": "array"
         },
+        "name": {
+          "default": null,
+          "description": "Optional name. A later entry with the same name, from a nearer layer\nor a pack, replaces an earlier one in place, and `disable` drops it by\nname. An unnamed entry always appends and is never replaced. Also the\nlabel `mt rules` and `mt config show --origin` print.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "when": {
           "default": "",
           "description": "Filter over the task being flipped, plus `into(\"status\")` for the status\nbeing stamped. Empty fires on every flip.",

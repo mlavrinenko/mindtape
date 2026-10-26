@@ -13,9 +13,14 @@
 //! actions = [{ list = "@wip", title = "Already in flight" }]
 //!
 //! [[on.flip]]
+//! name = "tests-pass"
 //! when = 'into("done") && !has_tag("chore")'
 //! actions = [{ run = "just check", gate = true, message = "tests must pass" }]
 //! ```
+//!
+//! `[[on.flip]]` entries append across packs and layers, a later entry named
+//! like an earlier one replaces it in place, and `disable` drops one by name
+//! ([`crate::config::packs`]), as for `[[tasks.rules]]`.
 //!
 //! `when` is a [filter expression](crate::filter) over the task **as it stands
 //! before the write** (so `status == "wip"` names the status being left), plus
@@ -65,6 +70,11 @@ pub struct OnConfig {
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct FlipHook {
+    /// Optional name. A later entry with the same name, from a nearer layer
+    /// or a pack, replaces an earlier one in place, and `disable` drops it by
+    /// name. An unnamed entry always appends and is never replaced. Also the
+    /// label `mt rules` and `mt config show --origin` print.
+    pub name: Option<String>,
     /// Filter over the task being flipped, plus `into("status")` for the status
     /// being stamped. Empty fires on every flip.
     pub when: String,

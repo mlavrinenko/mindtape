@@ -50,6 +50,12 @@ impl Config {
         problems.extend(plain(crate::config::comments::validate_comments(self)));
         problems.extend(crate::config::actors::validate_actors(self));
         problems.extend(crate::config::hooks::validate_flip_hooks(self));
+        // Two entries sharing a name can only come from one file: the merge
+        // replaced any pair from different sources.
+        problems.extend(plain(crate::body::headers::duplicate_rule_names(
+            self.on.flip.iter().map(|hook| hook.name.as_deref()),
+            "on.flip",
+        )));
         problems.extend(plain(crate::waits::validate_checkers(self)));
         problems.extend(plain(crate::estimate_queries::validate_config(self)));
         problems.extend(validate_ls_rules(&self.ls.rules, &self.views));

@@ -134,9 +134,9 @@ pack's rule by name. The built-in packs name no files.
 = Drop a rule
 
 To turn off a rule you don't want, list its name in `disable`. It drops the
-rule from any of the four arrays, whichever pack or layer declared it. A name
-that matches no rule is a config error, so a typo can't leave a rule
-running:
+rule from any of the five arrays, whichever pack or layer declared it, a
+named #link(u("/hooks/"))[flip hook] included. A name that matches no rule is a
+config error, so a typo can't leave a rule running:
 
 #terminal("packs-disable")
 
@@ -163,9 +163,12 @@ the layer's value wins anyway. Equal values agree, so two packs can both carry
 the same dictionary. Packs adopted by two different layers never clash: the
 higher layer wins.
 
-The four rule arrays merge by name instead. Each takes the rules of the
-layer's packs in `extends` order, then the layer's own rules, and a rule
-replaces an earlier one with the same `name` in its place. After every layer
+Five arrays merge by name instead: `[[tasks.rules]]`, the two body rule
+arrays, `[[commits.rules]]` and `[[on.flip]]`. Each takes the entries of the
+layer's packs in `extends` order, then the layer's own, and an entry replaces
+an earlier one with the same `name` in its place. A flip hook with no `name`
+appends and nothing can replace it, so a pack's hook that the project should
+be able to change needs one. After every layer
 is merged, `mt` drops the rules named in any layer's `disable`. A name listed
 in two layers is dropped once.
 
@@ -174,7 +177,8 @@ in two layers is dropped once.
 To see where each rule came from, run `mt config show --origin`. It prints
 the layers that contributed, then one line per rule in merge order:
 `rule <label>: <origin>`. `<label>` is the rule's array and name, such as
-`tasks.rules.<name>`, or `tasks.rules[<index>]` for a rule with no name.
+`tasks.rules.<name>` or `on.flip.<name>`, or `tasks.rules[<index>]` for a rule
+with no name.
 `mt check` names a broken rule without the leading `tasks.`. `<origin>` is a
 layer (`embedded`, `xdg`, `dir` or `project`), or `pack <name>` for a pack.
 Here's the output in the #mindtape repository:

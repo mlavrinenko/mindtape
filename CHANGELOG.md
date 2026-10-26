@@ -440,6 +440,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the pack's own files and `@local` packages, never a file of the project. A
   rule or dictionary the project declares itself resolves from the project
   root as before.
+- **`[[on.flip]]` hooks merge by name.** A hook takes an optional `name`. Hooks
+  from every config layer and pack now add up instead of the nearest layer's
+  replacing the rest, a later hook with the same `name` replaces the earlier
+  one in place, and `disable = ["<name>"]` drops it. A hook with no `name`
+  always appends. `mt config show --origin` labels a hook `on.flip.<name>` or
+  `on.flip[<index>]`, and `mt rules` lists its actions under that label, such
+  as `on.flip.stale-wip.actions[0]`.
 - **`mt rules` lists the rules that apply, one line each.** A line is the
   rule's severity, its name as `mt config show --origin` prints it, and the
   message a breach prints, after packs, overrides and `disable`. A rule with no

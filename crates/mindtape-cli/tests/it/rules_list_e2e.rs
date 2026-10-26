@@ -96,7 +96,8 @@ fn lists_each_rule_after_the_pack_override_and_disable() {
 }
 
 /// Each array rule is named as `mt config show --origin` names it, in its
-/// order, so a reader can look a listed rule up there.
+/// order, so a reader can look a listed rule up there. A flip action adds its
+/// slot to its hook's name.
 #[test]
 fn names_each_rule_as_config_show_origin_does() {
     let dir = project();
@@ -111,7 +112,7 @@ fn names_each_rule_as_config_show_origin_does() {
     let names: Vec<&str> = listed
         .lines()
         .filter_map(|line| line.split_whitespace().nth(1))
-        .filter(|name| !name.starts_with("on.flip"))
+        .map(|name| name.split_once(".actions[").map_or(name, |(hook, _)| hook))
         .collect();
 
     assert_eq!(names, labels);

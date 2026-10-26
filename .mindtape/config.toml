@@ -575,6 +575,7 @@ description = "Blocked tasks and what each waits on"
 # whenever `when` matches, so the condition above is the whole check.
 # docs:slice hooks/stale-gate
 [[on.flip]]
+name = "stale-wip"
 when = 'into("wip") && stale(30)'
 actions = [
   { gate = true, message = "re-read the scope against today's code, fix what went stale, run `mt review`, then start again" },
@@ -582,6 +583,7 @@ actions = [
 # docs:end
 
 [[on.flip]]
+name = "gates-fresh"
 when = 'into("done") || into("cancelled") || into("failed")'
 actions = [
   { run = "mmz --is-fresh --tag gate", gate = true, message = "run `just check`, then flip again" },
