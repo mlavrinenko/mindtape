@@ -117,6 +117,14 @@ the locked commit prints `up to date` and keeps its entry, and an entry no
 source declares is dropped. Read the lock's diff before you commit it, since
 the new commit is the config every clone gets.
 
+Under each source it moves, `mt packs update` prints what the move changes,
+compared as parsed TOML, so a reformatted pack reads as unchanged. Each line
+names a pack, a key, a rule or another array entry, marked `+` for added,
+`~` for changed and `-` for removed. Every new `run` or `editor` line prints
+in full under its entry, and it still runs only once you `mt allow` it. Any
+other file of the source, such as a template or a check module, prints as
+`file <path>`.
+
 `mt` reads a source's packs from your cache directory, such as `~/.cache` on
 Linux, under `mindtape/packs/<sha256>/`, named by the lock's hash.
 `acme:team` is `team.toml` at the top of that tree, or `team/pack.toml` for a
