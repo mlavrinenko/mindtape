@@ -6,9 +6,9 @@ What runs on Windows, what can’t, and how you catch a Windows compile error be
 
 ## What CI runs on Windows
 
-The `windows` job in `.github/workflows/ci.yml` runs `cargo build` and `cargo nextest run`. It doesn’t run `just check`, because the other gates behave the same on every platform. Windows has no Nix, so `taiki-e/install-action` installs nextest there. The job covers the code that differs by platform: `cmd /C` against `sh -c` for an `[[on.flip]]` `run`, the config and data paths from `dirs`, and path separators.
+The `windows` job in `.github/workflows/ci.yml` runs `cargo build` and `cargo nextest run`. It doesn’t run `just check`, because the other gates behave the same on every platform. Windows has no Nix, so `taiki-e/install-action` installs nextest there. The job covers the code that differs by platform: `cmd /C` against `sh -c` for an `[[on.flip]]` `run`, the config, data and cache paths from `dirs`, and path separators.
 
-On Windows, `dirs` reads the data path from a system API that no environment variable moves. A test that sets `XDG_DATA_HOME` would test a path `mt` never reads there. That’s why `MINDTAPE_CONFIG_HOME` and `MINDTAPE_DATA_HOME` exist. `tests/it/install_e2e.rs` sets them to check both where `mt install` writes the `@local/mindtape` package and where loading a project finds it. `tests/it/install_package_path_e2e.rs` leaves `MINDTAPE_DATA_HOME` unset and sets `TYPST_PACKAGE_PATH` instead, which typst-world reads on every platform, to check the same against Typst’s own package directory.
+On Windows, `dirs` reads the data path from a system API that no environment variable moves. A test that sets `XDG_DATA_HOME` would test a path `mt` never reads there. That’s why `MINDTAPE_CONFIG_HOME`, `MINDTAPE_DATA_HOME` and `MINDTAPE_CACHE_HOME` exist, and why `support::isolated_env` sets all three. `tests/it/packs_cache_e2e.rs` fills the pack cache under the last one. `tests/it/install_e2e.rs` sets them to check both where `mt install` writes the `@local/mindtape` package and where loading a project finds it. `tests/it/install_package_path_e2e.rs` leaves `MINDTAPE_DATA_HOME` unset and sets `TYPST_PACKAGE_PATH` instead, which typst-world reads on every platform, to check the same against Typst’s own package directory.
 
 ## The pty tests are Unix-only
 

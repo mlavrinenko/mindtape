@@ -494,8 +494,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reads `commits.toml`, or `commits/pack.toml` for a folder pack, in
   `<cache>/mindtape/packs/<sha256>/`, the tree the lock's hash names, and
   `mt config show --origin` labels its rules `pack acme:commits`. Every load
-  hashes the tree first and refuses one that doesn't match the lock, naming its
-  directory. A source the cache lacks fails as
+  hashes each source's tree once, before reading it, and refuses one that
+  doesn't match the lock, naming its directory. A source the cache lacks fails as
   `pack source not installed: 'acme'`, with a hint to run `mt packs install`,
   and an unknown pack lists the ones the tree holds. A pack name takes letters,
   digits, `-` and `_`, a cached pack's dictionary `path` must stay inside its

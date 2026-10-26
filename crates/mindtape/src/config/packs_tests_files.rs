@@ -198,3 +198,54 @@ fn the_root_a_pack_rule_carries_is_its_pack_directory() {
     let team: PathBuf = tmp.path().join("project").join("team");
     assert_eq!(check.root.as_deref(), Some(team.as_path()));
 }
+
+/// The message a pack rule's `check` module outside its pack gets.
+fn outside(module: &str) -> String {
+    format!("tasks.rules[0].check: `{module}` is outside the pack's directory")
+}
+
+#[test]
+fn a_pack_check_module_outside_the_packs_directory_is_refused() {
+    let rule = CHECK_RULE.replace("\"check.typ\"", "\"../check.typ\"");
+    in_each_pack(&rule, "check.typ", check_x, |files, config, entry| {
+        let mut files = files.to_vec();
+        let above = format!("{}/../check.typ", files[0].0.trim_end_matches("/pack.toml"));
+        let text = check_x(entry);
+        files.push((&above, &text));
+
+        let (_tmp, loaded) = load(&files, config);
+
+        let err = loaded.unwrap_err().to_string();
+        assert!(err.contains(&outside("../check.typ")), "{entry}: {err}");
+    });
+}
+
+#[test]
+fn a_pack_check_module_given_as_an_absolute_path_is_refused() {
+    let tmp = crate::test_support::tempdir();
+    let module = tmp.path().join("check.typ");
+    std::fs::write(&module, check_x("elsewhere")).unwrap();
+    let module = module.display().to_string().replace('\\', "/");
+    let rule = CHECK_RULE.replace("\"check.typ\"", &format!("\"{module}\""));
+    let files = [("project/team/pack.toml", rule.as_str())];
+
+    let (_tmp, loaded) = load(&files, "extends = [\"./team\"]\n");
+
+    let err = loaded.unwrap_err().to_string();
+    assert!(err.contains(&outside(&module)), "{err}");
+}
+
+/// A layer's own rule has no pack bound, so `../shared/check.typ` reaches
+/// Typst, whose world refuses a path out of the project root, as before.
+#[test]
+fn a_layers_own_check_module_above_the_project_meets_typsts_refusal() {
+    let rule = CHECK_RULE.replace("\"check.typ\"", "\"../shared/check.typ\"");
+    let shared = check_x("the shared file");
+    let files = [("shared/check.typ", shared.as_str())];
+
+    let (_tmp, loaded) = load(&files, &rule);
+
+    let err = loaded.unwrap_err().to_string();
+    assert!(!err.contains("outside the pack"), "{err}");
+    assert!(err.contains("would escape the project root"), "{err}");
+}

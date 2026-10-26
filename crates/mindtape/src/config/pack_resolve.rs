@@ -8,7 +8,7 @@
 use std::path::{Path, PathBuf};
 
 use crate::config::ConfigError;
-use crate::config::pack_cache::resolve_cached;
+use crate::config::pack_cache::{VerifiedTrees, resolve_cached};
 use crate::config::pack_registry::{EMBEDDED_SOURCE, PACK_FILE, PackOrigin};
 use crate::config::pack_sources::PackSources;
 use crate::config::packs_toml::get_path;
@@ -27,6 +27,8 @@ pub(super) struct PackScope<'a> {
     /// The directory the declared sources are cached in, or `None` when no
     /// source is installed.
     pub(super) cache: Option<&'a Path>,
+    /// The cached trees this config load has already hashed.
+    pub(super) verified: &'a VerifiedTrees,
 }
 
 /// One resolved pack: its provenance and validated table.

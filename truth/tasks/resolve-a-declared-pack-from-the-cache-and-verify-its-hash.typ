@@ -50,7 +50,7 @@
 
 - 🟢 `acme:<pack>` resolves to `<pack>.toml` or `<pack>/pack.toml` under the cache directory named by the lock's `sha256`.
 - 🟢 The cache directory is `$MINDTAPE_CACHE_HOME`, else the platform cache directory, such as `~/.cache` on Linux.
-- 🟢 `mt` hashes the cached tree on every load with `pack_sources::hash` and refuses a mismatch, naming the directory.
+- 🟢 `mt` hashes each used source's cached tree once per load with `pack_sources::hash` and refuses a mismatch, naming the directory.
 - 🟢 A source missing from the cache fails with `pack source not installed: 'acme'` and a hint to run `mt packs install`. No read command touches the network.
 - 🟢 `mt config show --origin` prints `pack acme:commits`.
 - 🟢 No file of the tree resolves outside it. `<pack>` takes letters, digits, `-` and `_`. A dictionary `path` stays in the tree, and any pack's `check` module in the pack's directory.

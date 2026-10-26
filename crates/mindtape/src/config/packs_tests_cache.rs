@@ -128,6 +128,21 @@ fn a_source_pack_directory_reads_its_pack_toml_and_templates() {
 }
 
 #[test]
+fn two_packs_of_one_source_resolve_in_one_load() {
+    let team = RULE.replace("acme-rule", "team-rule");
+    let files = [("commits.toml", RULE), ("team/pack.toml", team.as_str())];
+    let fx = fixture("\"acme:commits\", \"acme:team\"", &files);
+
+    let (config, _) = fx.load().unwrap();
+
+    let names: Vec<_> = config.tasks.rules.iter().map(|r| r.name.clone()).collect();
+    assert_eq!(
+        names,
+        [Some("acme-rule".to_owned()), Some("team-rule".to_owned())]
+    );
+}
+
+#[test]
 fn a_tree_that_no_longer_hashes_to_the_lock_is_refused_naming_its_directory() {
     let fx = fixture("\"acme:commits\"", &[("commits.toml", RULE)]);
     std::fs::write(fx.tree.join("commits.toml"), "").unwrap();

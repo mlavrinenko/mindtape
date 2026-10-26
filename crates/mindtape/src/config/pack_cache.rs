@@ -3,11 +3,15 @@
 //!
 //! The tree came from the network, so [`resolve_cached`] hashes it with
 //! [`crate::config::pack_sources::hash`] and refuses it unless it hashes to
-//! the lock's `sha256`, before it reads a file of it. The hash refuses a
+//! the lock's `sha256`, before it reads a file of it. [`VerifiedTrees`]
+//! keeps each tree that passed, so a load hashes a source once however many
+//! of its packs it extends. The hash refuses a
 //! symlink, so a tree that passes holds plain files and directories only. The
 //! pack part of the entry takes a plain name, so `<pack>.toml` and
 //! `<pack>/pack.toml` both stay inside the tree.
 
+use std::cell::RefCell;
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use crate::config::pack_registry::{PACK_FILE, PackOrigin};
@@ -21,6 +25,11 @@ use crate::suggest::Unknown;
 
 /// The extension of a pack file.
 const TOML: &str = ".toml";
+
+/// The tree of each source that hashed to its lock in this config load, by
+/// source name.
+#[derive(Default)]
+pub(super) struct VerifiedTrees(RefCell<BTreeMap<String, PathBuf>>);
 
 /// Resolve `pack` of the declared `source`, the parts of `entry`, from the
 /// source's cached tree.
@@ -65,8 +74,23 @@ pub(super) fn resolve_cached(
     })
 }
 
-/// The cached tree of `source`, once it hashes to the lock's `sha256`.
+/// The cached tree of `source`, once it hashes to the lock's `sha256`, from
+/// [`PackScope::verified`] when an earlier entry already hashed it.
 fn verified_tree(source: &str, scope: &PackScope<'_>) -> Result<PathBuf, ConfigError> {
+    if let Some(tree) = scope.verified.0.borrow().get(source) {
+        return Ok(tree.clone());
+    }
+    let tree = hash_tree(source, scope)?;
+    scope
+        .verified
+        .0
+        .borrow_mut()
+        .insert(source.to_owned(), tree.clone());
+    Ok(tree)
+}
+
+/// Hash the cached tree of `source` and return it when it matches the lock.
+fn hash_tree(source: &str, scope: &PackScope<'_>) -> Result<PathBuf, ConfigError> {
     let locked = scope.sources.lock.entries.get(source);
     let (Some(cache), Some(locked)) = (scope.cache, locked) else {
         return Err(not_installed(source));
@@ -122,3 +146,7 @@ fn tree_packs(tree: &Path) -> Vec<String> {
     packs.dedup();
     packs
 }
+
+#[cfg(test)]
+#[path = "pack_cache_tests.rs"]
+mod tests;

@@ -117,7 +117,10 @@ moves the cache, as #link(u("/config/#environment-variables"))[Configuration]
 says.
 
 Every load hashes the cached tree again and refuses one that doesn't match the
-lock, naming its directory, so a file edited by hand there can't slip in. A
+lock, naming its directory, so a file edited by hand there can't slip in. It
+hashes each source once, however many of its packs you adopt. Every command
+pays for that hash, so keep a pack source small, a repository that holds
+packs and nothing else. A
 pack from a source names its dictionary files only inside the source's tree.
 No read command touches the network, so a source the cache lacks is refused,
 with a hint to fetch it:

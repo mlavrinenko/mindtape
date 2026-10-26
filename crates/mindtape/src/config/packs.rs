@@ -51,6 +51,7 @@ use crate::config::ConfigError;
 use crate::config::layers::{Layer, LayerSource};
 use crate::config::locate::Sources;
 use crate::config::merge::deep_merge_tables;
+use crate::config::pack_cache::VerifiedTrees;
 use crate::config::pack_dirs::append_template_dirs;
 use crate::config::pack_files::rebase_dict_paths;
 use crate::config::pack_fold::PackLayer;
@@ -141,6 +142,7 @@ fn merge_with(
     let mut accumulators: [RuleAccumulator; RULE_ARRAYS] = Default::default();
     let mut disable_names: BTreeSet<String> = BTreeSet::new();
     let sources = crate::config::pack_sources::for_layers(layers, root)?;
+    let verified = VerifiedTrees::default();
     let mut pack_dirs: Vec<PathBuf> = Vec::new();
     let mut files = Sources::default();
 
@@ -157,6 +159,7 @@ fn merge_with(
             sources: &sources,
             project: matches!(layer.source, LayerSource::Project(_)),
             cache,
+            verified: &verified,
         };
         let packs = fold_layer_packs(&extends, &base_dir, &scope, &table, &mut accumulators)?;
         pack_dirs.extend(packs.dirs().map(Path::to_path_buf));
