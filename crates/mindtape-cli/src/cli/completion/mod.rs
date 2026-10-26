@@ -50,7 +50,8 @@ use clap_complete::engine::{ArgValueCandidates, ArgValueCompleter};
 
 use self::sources::dict_names;
 use self::sources::{
-    assignment, link_kinds, presets_in, statuses, stems, tag_token, templates, view_names,
+    assignment, link_kinds, pack_sources, presets_in, statuses, stems, tag_token, templates,
+    view_names,
 };
 use crate::cli::Cli;
 use crate::util;
@@ -75,6 +76,8 @@ pub enum Source {
     Presets,
     /// Edge kinds: the six built-ins plus `[[tasks.links.kinds]]`.
     LinkKinds,
+    /// Pack source names: `[pack-sources]`.
+    PackSources,
     /// `mt set`'s `<field>=<value>`: the fields it writes, then this project's
     /// tags once the token names `tags`.
     Assignment,
@@ -170,6 +173,7 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
         Source::None("a name from the user's at.toml, which no project's config predicts"),
     ),
     ("init", "preset", Source::Presets),
+    ("packs update", "sources", Source::PackSources),
     ("init", "schema", Source::FilePath),
     ("eval", "task", Source::Stems),
     ("go", "task", Source::Stems),
@@ -240,6 +244,7 @@ impl Source {
             Self::Dicts => arg.add(ArgValueCandidates::new(dict_names)),
             Self::Templates => arg.add(ArgValueCandidates::new(templates)),
             Self::LinkKinds => arg.add(ArgValueCandidates::new(link_kinds)),
+            Self::PackSources => arg.add(ArgValueCandidates::new(pack_sources)),
             Self::Presets => arg.add(ArgValueCandidates::new(|| {
                 presets_in(crate::cmd::init::preset::user_preset_dir().as_deref())
             })),
@@ -263,6 +268,7 @@ impl Source {
             Self::Dicts => "dicts",
             Self::Templates => "templates",
             Self::LinkKinds => "link-kinds",
+            Self::PackSources => "pack-sources",
             Self::Presets => "presets",
             Self::Assignment => "assignment",
             Self::TagToken => "tag-token",

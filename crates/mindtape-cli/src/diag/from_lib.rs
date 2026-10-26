@@ -59,6 +59,7 @@ impl From<mindtape::config::pack_sources::FetchError> for Diag {
         use mindtape::config::pack_sources::FetchError as E;
         let what = match &err {
             E::GitNotFound | E::Git { .. } => "can't run git for pack source",
+            E::UnknownRef { .. } => "can't resolve pack source",
             E::BadCommit { .. }
             | E::MissingCommit { .. }
             | E::Unsupported { .. }

@@ -228,3 +228,24 @@ fn a_lock_or_config_that_cannot_be_read_is_an_io_error() {
         Err(ConfigError::Io(_))
     ));
 }
+
+#[test]
+fn a_written_lock_reads_back_as_written_under_its_header() {
+    let root = project(&[
+        (".mindtape/config.toml", SOURCE),
+        (".mindtape/packs.lock", LOCK),
+    ]);
+    let lock = read_raw(root.path()).unwrap().lock;
+    let written = tempdir();
+    std::fs::create_dir(written.path().join(".mindtape")).unwrap();
+
+    super::write_lock(written.path(), &lock).unwrap();
+
+    let text = std::fs::read_to_string(super::lock_path(written.path())).unwrap();
+    assert!(
+        text.starts_with("# Written by `mt packs update`."),
+        "{text}"
+    );
+    assert!(text.contains("\n[acme]\ngit = "), "{text}");
+    assert_eq!(read_raw(written.path()).unwrap().lock, lock);
+}

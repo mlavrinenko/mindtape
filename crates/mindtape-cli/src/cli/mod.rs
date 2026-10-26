@@ -134,10 +134,11 @@ enum Command {
     /// `--no-schema` or `--no-completions`. Completions call mt itself, so
     /// they stay current when you upgrade.
     Install(install::InstallArgs),
-    /// Fetch the pack sources `.mindtape/packs.lock` pins.
+    /// Fetch the pack sources `.mindtape/packs.lock` pins, or move the lock.
     ///
     /// No other command touches the network, so a source the cache lacks
-    /// stays refused until `mt packs install` fetches it.
+    /// stays refused until `mt packs install` fetches it, and a source the
+    /// lock lacks until `mt packs update` locks it.
     Packs(packs::PacksArgs),
     /// Show the config mt uses.
     Config(config_cmd::ConfigArgs),

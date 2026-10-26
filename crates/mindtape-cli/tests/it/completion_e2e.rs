@@ -308,3 +308,12 @@ fn a_tag_token_outside_a_project_yields_nothing() {
     let candidates = complete(dir.path(), &["mt", "set", "x", "tags="]);
     assert!(project_values(&candidates).is_empty(), "{candidates:?}");
 }
+
+/// `mt packs update <TAB>` offers the declared pack sources, even while the
+/// lock lacks them and the config load refuses the project.
+#[test]
+fn packs_update_offers_the_declared_sources_of_a_stale_lock() {
+    let dir = tempdir_with_config("[pack-sources.acme]\ngit = \"a.git\"\nref = \"v1\"\n");
+    let candidates = complete(dir.path(), &["mt", "packs", "update", ""]);
+    assert!(candidates.contains(&"acme".to_owned()), "{candidates:?}");
+}

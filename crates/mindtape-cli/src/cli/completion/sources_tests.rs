@@ -3,7 +3,7 @@
 use mindtape::test_support::{tempdir, tempdir_with_files};
 use std::ffi::OsStr;
 
-use super::{assignment, help, presets_in, tag_token, tag_values};
+use super::{assignment, help, pack_sources_in, presets_in, tag_token, tag_values};
 
 /// `mt init --preset` offers every built-in `mt preset ls` prints, each
 /// helped by its description, then the user presets — a shadowing one once.
@@ -77,4 +77,19 @@ fn tag_values_declines_a_non_tag_key() {
     assert!(tag_values("priority=3").is_none());
     assert!(tag_values("tags").is_none());
     assert!(tag_token(OsStr::new("priority=3")).is_empty());
+}
+
+/// `mt packs update` offers the declared sources, read even while the lock
+/// is stale, and nothing outside a project.
+#[test]
+fn pack_sources_offer_the_declared_names() {
+    let config = "[pack-sources.acme]\ngit = \"a.git\"\nref = \"v1\"\n\n\
+                  [pack-sources.ops]\ngit = \"b.git\"\nref = \"v1\"\n";
+    let dir = tempdir_with_files(&[(".mindtape/config.toml", config)]);
+    let names: Vec<String> = pack_sources_in(Some(dir.path()))
+        .iter()
+        .map(|candidate| candidate.get_value().to_string_lossy().into_owned())
+        .collect();
+    assert_eq!(names, ["acme", "ops"]);
+    assert!(pack_sources_in(None).is_empty());
 }

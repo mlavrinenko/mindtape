@@ -19,7 +19,9 @@
 //! - `hash.rs`, `hash_tests.rs`: [`hash`], the framed tree hash a lock pins.
 //! - `listing.rs`, `listing_tests.rs`: the blobs of a commit's tree, and
 //!   the paths no platform may write differently.
-//! - `lock.rs`: `.mindtape/packs.lock` and its entries.
+//! - `lock.rs`: `.mindtape/packs.lock`, its entries, and [`write_lock`].
+//! - `remote.rs`, `remote_tests.rs`: [`resolve`], the commit a `ref` names
+//!   now.
 //! - `scratch.rs`, `scratch_tests.rs`: the directory a fetch builds in, its
 //!   sweep, and the rename into the cache.
 //! - `tests.rs`: the unit tests, through a full config load.
@@ -29,6 +31,7 @@ mod git;
 mod hash;
 mod listing;
 mod lock;
+mod remote;
 mod scratch;
 
 use std::collections::BTreeMap;
@@ -39,7 +42,8 @@ use serde::Deserialize;
 
 pub use crate::config::pack_sources::fetch::{FetchError, fetch, locate};
 pub use crate::config::pack_sources::hash::hash;
-pub use crate::config::pack_sources::lock::{LockedSource, PackLock, lock_path};
+pub use crate::config::pack_sources::lock::{LockedSource, PackLock, lock_path, write_lock};
+pub use crate::config::pack_sources::remote::resolve;
 
 use crate::config::layers::{Layer, LayerSource};
 use crate::config::pack_registry::EMBEDDED_SOURCE;

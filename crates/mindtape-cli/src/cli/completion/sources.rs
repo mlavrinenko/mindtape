@@ -96,6 +96,24 @@ pub(super) fn dict_names() -> Vec<CompletionCandidate> {
     })
 }
 
+/// The sources `[pack-sources]` declares. They're read without a config
+/// load, because `mt packs update` runs while the load refuses a stale lock.
+pub(super) fn pack_sources() -> Vec<CompletionCandidate> {
+    pack_sources_in(util::resolve_root().ok().as_deref())
+}
+
+/// [`pack_sources`] of the project at `root`.
+pub(super) fn pack_sources_in(root: Option<&Path>) -> Vec<CompletionCandidate> {
+    root.and_then(|root| mindtape::config::pack_sources::read_raw(root).ok())
+        .map(|raw| {
+            raw.sources
+                .into_keys()
+                .map(CompletionCandidate::new)
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
 /// Template stems, exactly the set `mt add --list` prints.
 pub(super) fn templates() -> Vec<CompletionCandidate> {
     from_project(|project| {

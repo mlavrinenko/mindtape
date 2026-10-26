@@ -134,6 +134,7 @@ fn source_labels_are_the_reflected_names() {
     assert_eq!(Source::Dicts.label(), Some("dicts"));
     assert_eq!(Source::Templates.label(), Some("templates"));
     assert_eq!(Source::LinkKinds.label(), Some("link-kinds"));
+    assert_eq!(Source::PackSources.label(), Some("pack-sources"));
     assert_eq!(Source::Presets.label(), Some("presets"));
     assert_eq!(Source::Assignment.label(), Some("assignment"));
     assert_eq!(Source::TagToken.label(), Some("tag-token"));

@@ -1,12 +1,13 @@
 //! `.mindtape/packs.lock`: for each pack source, the `git` and `ref` it was
 //! locked from, the `commit` that `ref` named then, and the `sha256` of the
-//! source's files at that commit. `mt` writes it and the project commits it.
+//! source's files at that commit. `mt packs update` writes it with
+//! [`write_lock`], and the project commits it.
 
 use std::collections::BTreeMap;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::config::ConfigError;
 use crate::config::pack_sources::PackSource;
@@ -18,7 +19,7 @@ pub fn lock_path(root: &Path) -> PathBuf {
 }
 
 /// One source as the lock pins it, `[<name>]` in the lock file.
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct LockedSource {
     /// The repository the source was locked from.
@@ -47,6 +48,19 @@ impl PackLock {
             .get(name)
             .is_some_and(|locked| locked.git == source.git && locked.reference == source.reference)
     }
+}
+
+/// The comment a written lock starts with.
+const HEADER: &str = "# Written by `mt packs update`. Commit it beside .mindtape/config.toml.\n\n";
+
+/// Write `lock` as the lock file under `root`, all at once, so a reader sees
+/// the old file or the new one and never a part of it.
+///
+/// # Errors
+/// Returns the I/O error when the file can't be written.
+pub fn write_lock(root: &Path, lock: &PackLock) -> std::io::Result<()> {
+    let body = toml::to_string(&lock.entries).map_err(std::io::Error::other)?;
+    crate::write_atomic(&lock_path(root), format!("{HEADER}{body}").as_bytes())
 }
 
 /// Read the lock under `root`. A missing file is an empty lock.

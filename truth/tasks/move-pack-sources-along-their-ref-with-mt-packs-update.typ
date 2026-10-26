@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 26),
+  status: wip(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ")
     + depends-on("fetch-the-locked-pack-sources-with-mt-packs-install.typ"),
 )
@@ -46,18 +46,19 @@ acme v1: 3f2c1a9 → 8d01e44
 wrote .mindtape/packs.lock
 ```
 
-- 🟢 `mt packs update [<source>…]` resolves each `ref` to a commit, fetches it with `pack_sources::fetch`, and rewrites the lock entry. With no source it updates them all, and it drops lock entries no source declares.
+- 🟢 `mt packs update [<source>…]` resolves each `ref` to a commit, fetches it with `pack_sources::fetch`, and rewrites the lock entry once every fetch passed. With no source it updates them all, and it drops lock entries no source declares.
 - 🟢 A 40-hex `ref` is the commit itself. Otherwise `git ls-remote` answers, and for an annotated tag the peeled `^{}` line wins.
-- 🟢 A source whose `ref` still names the locked commit prints `acme v1: up to date` and leaves the lock alone.
+- 🟢 A source whose `ref` still names the locked commit prints `acme v1: up to date` and leaves the lock alone. A new source prints `acme v1: locked 3f2c1a9`, and a dropped entry `dropped acme`, with or without source names.
 - 🟢 It reads the sources with `pack_sources::read_raw`, and counts as a write command.
 
 
 == Changes
 
-- `crates/mindtape-cli/tests/it/packs.rs`: the red tests first: a first lock, a moved annotated tag, a commit `ref`, an unchanged ref, a dropped source.
-- `crates/mindtape/src/config/pack_sources/fetch.rs`: resolve a `ref` to a commit.
+- `crates/mindtape-cli/tests/it/packs/update.rs`: the red tests first: a first lock, a moved annotated tag, a commit `ref`, an unchanged ref, a dropped source.
+- `crates/mindtape/src/config/pack_sources/remote.rs` (new), `remote_tests.rs`: `resolve`, a `ref` to a commit, through the fetch's `Git`, and `FetchError::UnknownRef`.
 - `crates/mindtape/src/config/pack_sources/lock.rs`: write the lock.
-- `crates/mindtape-cli/src/cmd/packs/mod.rs`: the `update` subcommand.
+- `crates/mindtape-cli/src/cmd/packs/update.rs` (new): the `update` subcommand, with `install` moved to `install.rs` beside it.
+- `crates/mindtape-cli/tests/it/packs/`: `packs.rs` becomes a folder, `install.rs` and `update.rs`.
 - `crates/mindtape-cli/src/cli/command_class.rs`: classify `packs update` as a write.
 - `www/content/packs.typ`: the command.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.

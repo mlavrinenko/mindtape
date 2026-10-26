@@ -41,6 +41,12 @@ pub enum FetchError {
         /// The value given as the commit.
         commit: String,
     },
+    /// The repository has no ref of the name a source gives.
+    #[error("no ref {} in the repository", quote(reference))]
+    UnknownRef {
+        /// The `ref` the source gives.
+        reference: String,
+    },
     /// The fetched `ref` doesn't reach the locked commit.
     #[error("commit {} is not on ref {}", quote(commit), quote(reference))]
     MissingCommit {
@@ -88,6 +94,9 @@ impl FetchError {
         match self {
             Self::GitNotFound => Some("install git and put it on PATH"),
             Self::MissingCommit { .. } => Some("run `mt packs update` to lock the ref anew"),
+            Self::UnknownRef { .. } => {
+                Some("set `ref` to a tag, branch or commit the repository has")
+            }
             Self::Occupied { .. } => Some("delete the directory: the cache is safe to delete"),
             Self::Git { .. }
             | Self::BadCommit { .. }
@@ -232,7 +241,7 @@ fn os(arg: &str) -> &OsStr {
 }
 
 /// A commit id is 40 or 64 lowercase hex digits.
-fn is_commit_id(value: &str) -> bool {
+pub(super) fn is_commit_id(value: &str) -> bool {
     matches!(value.len(), 40 | 64)
         && value
             .chars()

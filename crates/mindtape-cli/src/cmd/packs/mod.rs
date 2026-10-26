@@ -3,18 +3,22 @@
 //!
 //! Each subcommand reads the two files with `pack_sources::read_raw`, not a
 //! config load, because a load refuses the very state they repair. `install`
-//! writes only the cache, so it is a read command.
+//! writes only the cache, so it is a read command. `update` writes the lock.
 //!
 //! # Files
 //!
-//! - `mod.rs`: `mt packs` and `install`.
+//! - `mod.rs`: `mt packs` and what both subcommands share.
+//! - `install.rs`: `mt packs install`.
+//! - `update.rs`: `mt packs update`.
 
-use std::path::{Path, PathBuf};
+mod install;
+mod update;
 
-use mindtape::config::pack_sources::{self, LockedSource, PackSources};
+use std::path::PathBuf;
+
+use mindtape::config::pack_sources;
 
 use crate::diag::{Diag, Hint, Result};
-use crate::util;
 
 /// Arguments for `packs`.
 #[derive(Debug, clap::Args)]
@@ -36,100 +40,27 @@ enum PacksAction {
         #[arg(long)]
         json: bool,
     },
-}
-
-/// One declared source after `install`.
-struct Installed<'a> {
-    source: &'a str,
-    commit: &'a str,
-    sha256: &'a str,
-    fetched: bool,
+    /// Lock each source at the commit its `ref` points to.
+    ///
+    /// It fetches each source whose commit moved, rewrites its lock entry,
+    /// and drops the entries no source declares.
+    Update {
+        /// The sources to update. Without one, it updates them all.
+        sources: Vec<String>,
+    },
 }
 
 /// Run the `packs` command.
 ///
 /// # Errors
 /// Returns an error if no project is found, its sources or lock can't be
-/// read or disagree, no cache directory applies, or a fetch fails.
+/// read or disagree, no cache directory applies, a `ref` can't be resolved,
+/// a fetch fails, or the lock can't be written.
 pub fn run(args: &PacksArgs) -> Result<()> {
     match &args.action {
-        PacksAction::Install { json } => install(*json),
+        PacksAction::Install { json } => install::run(*json),
+        PacksAction::Update { sources } => update::run(sources),
     }
-}
-
-/// `mt packs install`: fetch every declared source whose locked tree the
-/// cache lacks, then report each source.
-fn install(json: bool) -> Result<()> {
-    let root = util::resolve_root()?;
-    let sources = pack_sources::read_raw(&root)?;
-    sources.check_fresh()?;
-    let cache = cache_root()?;
-    let mut report = Vec::new();
-    for (name, locked) in locked(&sources) {
-        let tree = cache.join(&locked.sha256);
-        let fetched = !tree.is_dir();
-        if fetched {
-            fetch(&root, name, locked, &cache)?;
-            if !json {
-                println!(
-                    "fetched {name} {} into {}",
-                    short(&locked.commit),
-                    tree.display()
-                );
-            }
-        }
-        report.push(Installed {
-            source: name,
-            commit: &locked.commit,
-            sha256: &locked.sha256,
-            fetched,
-        });
-    }
-    if json {
-        let rows: Vec<serde_json::Value> = report.iter().map(Installed::json).collect();
-        println!("{}", serde_json::to_string_pretty(&rows)?);
-        return Ok(());
-    }
-    let cached = report.iter().filter(|source| !source.fetched).count();
-    if cached > 0 || report.is_empty() {
-        println!("{} up to date", mindtape::count(cached, "source"));
-    }
-    Ok(())
-}
-
-impl Installed<'_> {
-    fn json(&self) -> serde_json::Value {
-        serde_json::json!({
-            "source": self.source,
-            "commit": self.commit,
-            "sha256": self.sha256,
-            "fetched": self.fetched,
-        })
-    }
-}
-
-/// Each declared source with its lock entry, by name. A lock entry no source
-/// declares is left out.
-fn locked(sources: &PackSources) -> impl Iterator<Item = (&str, &LockedSource)> {
-    sources.sources.keys().filter_map(|name| {
-        let locked = sources.lock.entries.get(name)?;
-        Some((name.as_str(), locked))
-    })
-}
-
-/// Fetch `name` as `locked` pins it into `cache`, its tree checked against
-/// the lock's hash.
-fn fetch(root: &Path, name: &str, locked: &LockedSource, cache: &Path) -> Result<()> {
-    let git = pack_sources::locate(&locked.git, root);
-    pack_sources::fetch(
-        &git,
-        &locked.reference,
-        &locked.commit,
-        Some(&locked.sha256),
-        cache,
-    )
-    .map_err(|error| Diag::from(error).value(name))?;
-    Ok(())
 }
 
 /// The directory the config load reads each source's tree from.

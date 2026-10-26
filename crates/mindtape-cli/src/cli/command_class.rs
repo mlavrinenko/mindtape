@@ -74,6 +74,7 @@ pub const CLASSIFICATION: &[(&str, Class)] = &[
     ("init", Class::Write),
     ("install", Class::Write),
     ("packs install", Class::Read(Reach::One)),
+    ("packs update", Class::Write),
     ("eval", Class::Read(Reach::One)),
     (
         "go",

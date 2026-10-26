@@ -512,6 +512,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mt packs update`. It reads the sources without loading the config, writes
   only the cache, and takes `--json`. A relative `git` path is read from the
   project root, which the library's `config::pack_sources::locate` resolves.
+- **`mt packs update` moves pack sources along their `ref`.** It resolves
+  each source's `ref` with `git ls-remote`, the peeled commit of an annotated
+  tag and a tag before a branch of the same name, or takes a 40- or 64-digit
+  `ref` as the commit. It fetches each moved source, rewrites its lock entry,
+  and prints `acme v1: 3f2c1a9 → 8d01e44`, `acme v1: locked 3f2c1a9` for a
+  new one, or `acme v1: up to date`. It drops the entries no source declares,
+  takes source names to update only those, and writes `.mindtape/packs.lock`
+  once, atomically, after every fetch passed. The library adds
+  `config::pack_sources::resolve` and `write_lock`.
 - **`mt rules` lists the rules that apply, one line each.** A line is the
   rule's severity, its name as `mt config show --origin` prints it, and the
   message a breach prints, after packs, overrides and `disable`. A rule with no
