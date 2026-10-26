@@ -56,14 +56,15 @@ $ mt packs install
 
 == Changes
 
-- `crates/mindtape-cli/tests/it/packs.rs`: the red tests first, fetching from a local bare repository by path, and `crates/mindtape-cli/tests/it/main.rs` declaring it.
-- `crates/mindtape-cli/src/cmd/packs/mod.rs` (new): `mt packs` and its `install` subcommand. It passes `<cache dir>/mindtape/packs` as `cache_root`, and a relative `git` path joined to the project root, since `fetch` runs git in the caller's directory.
+- `crates/mindtape-cli/tests/it/packs.rs`: the red tests first, fetching from a local bare repository by path, and `crates/mindtape-cli/tests/it/main.rs` declaring it. `support::isolated_env` points `MINDTAPE_CACHE_HOME` at `support::CACHE_HOME` under the test's directory.
+- `crates/mindtape-cli/src/cmd/packs/mod.rs` (new): `mt packs` and its `install` subcommand. It passes `pack_sources::cache_root()`, `<cache dir>/mindtape/packs`, as `cache_root`, the directory the load reads, and a relative `git` path joined to the project root, since `fetch` runs git in the caller's directory.
 - `crates/mindtape-cli/src/diag/from_lib.rs`: convert `pack_sources::FetchError`, matching every variant, with `FetchError::hint` as the hint.
 - `crates/mindtape-cli/src/cmd/mod.rs`: list the folder in the module header.
 - `crates/mindtape-cli/src/cli/mod.rs`: wire `packs`.
 - `crates/mindtape-cli/src/cli/command_class.rs`: classify `packs install` as a read.
 - `www/utils/site.typ`: `packs` in `CLI_GROUPS`.
 - `www/content/cli/packs.typ` (new): the command page, which a `CLI_GROUPS` entry requires. `www/content/packs.typ`: a CI example.
+- `docs/src/skill.typ`: tell an agent that meets `pack source not installed` to run `mt packs install`. It moved here from `resolve-a-declared-pack-from-the-cache-and-verify-its-hash.typ`, since `just docs spans` refuses a span naming a command that doesn't exist yet. `skills/mindtape/SKILL.md` is near its 6600-byte cap, so tighten other prose to fit.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 
 
