@@ -48,6 +48,7 @@ use std::path::{Path, PathBuf};
 
 use crate::config::ConfigError;
 use crate::config::layers::{Layer, LayerSource};
+use crate::config::locate::Sources;
 use crate::config::merge::deep_merge_tables;
 use crate::config::pack_dirs::append_template_dirs;
 use crate::config::pack_files::rebase_dict_paths;
@@ -93,6 +94,9 @@ pub(crate) struct PackMerge {
     pub table: toml::Table,
     /// One entry per final rule, across every rule array, in array order.
     pub rule_origins: Vec<RuleOriginEntry>,
+    /// The text of every layer and pack file, in merge precedence, so an
+    /// error can name the file it comes from.
+    pub sources: Sources,
 }
 
 /// Fold `layers` into one document, resolving each layer's own `extends`
@@ -123,6 +127,7 @@ fn merge_layers_with_packs_using(
     let mut disable_names: BTreeSet<String> = BTreeSet::new();
     let sources = crate::config::pack_sources::for_layers(layers, root)?;
     let mut pack_dirs: Vec<PathBuf> = Vec::new();
+    let mut files = Sources::default();
 
     for layer in layers {
         let mut table: toml::Table =
@@ -139,6 +144,8 @@ fn merge_layers_with_packs_using(
         };
         let packs = fold_layer_packs(&extends, &base_dir, &scope, &table, &mut accumulators)?;
         pack_dirs.extend(packs.dirs().map(Path::to_path_buf));
+        files.push_packs(packs.texts(), root);
+        files.push_layer(layer, root);
         deep_merge_tables(&mut doc, packs.into_table());
 
         let origin = RuleOrigin::Layer(layer.source.clone());
@@ -156,6 +163,10 @@ fn merge_layers_with_packs_using(
         .zip(RULE_ARRAY_PREFIXES)
     {
         let (values, origins) = accumulator.into_parts();
+        files.add_rule_slots(
+            path,
+            origins.iter().map(|(_, origin, line)| (origin, *line)),
+        );
         write_array(&mut doc, path, values)?;
         rule_origins.extend(labeled_origins(prefix, origins));
     }
@@ -163,6 +174,7 @@ fn merge_layers_with_packs_using(
     Ok(PackMerge {
         table: doc,
         rule_origins,
+        sources: files,
     })
 }
 
@@ -191,6 +203,7 @@ fn fold_layer_packs(
         apply_params(&mut pack.table, &entry.with, &pack.origin.label())?;
         let origin = RuleOrigin::Pack(pack.origin.clone());
         take_rule_arrays(&mut pack.table, &pack.text, &origin, accumulators);
+        packs.keep_text(pack.origin.clone(), pack.text);
         packs.add(pack.origin, pack.table, layer)?;
     }
     Ok(packs)

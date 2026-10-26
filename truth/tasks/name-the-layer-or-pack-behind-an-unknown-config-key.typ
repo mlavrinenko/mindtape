@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 26),
+  status: done(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ"),
 )
 
@@ -58,14 +58,17 @@ Any project, on `mt` at main: put `[projet]` in `../.mindtape/defaults.toml` or 
 
 == TO-BE
 
-- 🟢 An unknown or wrong-typed key fails naming the layer file or pack that set it, such as `unknown field 'projet' in pack /work/app/./team.toml`.
+- 🟢 An unknown or wrong-typed key fails naming the layer file or pack that set it, with its line and column, such as `team.toml:3:2: can't parse config: unknown field 'projet'`. A pack compiled into the binary is `pack mindtape:tasks`, a directory pack its `pack.toml`.
 - 🟢 A key that only the merge makes wrong, with no single source to blame, keeps today's message.
 
 
 == Changes
 
-- `crates/mindtape/src/config/layers.rs`: when the typed deserialization of the merged document fails, retry each layer and pack table alone and name the first that fails on the same field.
-- `crates/mindtape/src/config/layers_tests.rs`: the red tests first, one for a pack and one for an ancestor layer.
+One mechanism with `place-a-config-error-only-at-a-source-that-declares-its-full-key.typ`: `Sources` in `locate.rs` holds the text of every layer and pack file, in merge precedence, and the merge (`packs.rs`) fills it.
+
+- `crates/mindtape/src/config/locate.rs`: `Sources::blame` retries each source alone, highest precedence first, and names the first that fails on the same message as the merged document. It returns `ConfigError::ParseIn`, which already renders `<file>:<line>:<col>:`.
+- `crates/mindtape/src/config/layers.rs`: `build_config` asks `Sources::blame` where it asked the project layer alone.
+- `crates/mindtape/src/config/layers_tests_source.rs` and `locate_tests.rs`: the red tests first, a path pack, a directory pack, an ancestor layer, the project and an embedded pack.
 
 
 == Out of scope

@@ -175,6 +175,22 @@ paths to the same file. A `param()`
 in a layer's own expression is refused too, since only a pack has
 parameters.
 
+= A mistake in a pack
+
+An error names the file that holds the mistake, with the line, so you open
+the pack and not your own config. That goes for a path pack, a directory pack,
+a source's pack and the `defaults.toml` of a parent folder alike. An unknown
+key:
+
+#terminal("packs-typo")
+
+And a value that doesn't pass its check:
+
+#terminal("packs-bad-value")
+
+A problem that only the merge causes, with no one file to blame, leads with
+the key alone.
+
 = Merge order
 
 `mt` merges each config layer in turn, and each layer's packs merge just below

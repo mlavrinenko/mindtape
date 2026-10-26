@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # www/generate-packs.sh — capture every built-in pack, this repo's
 # own `mt config show --origin`, a pack's priority merged below the project's,
-# a directory pack, a pack's parameter set from `with`, and seven configs
+# a directory pack, a pack's parameter set from `with`, and nine configs
 # `mt` refuses, for /packs/.
 #
 # Split out of www/generate.sh (which calls this, still inside the lock it
@@ -69,7 +69,7 @@ capture packs-params "$params" 'head .mindtape/config.toml team.toml'
 capture packs-params "$params" \
   "mt config show --json | jq -r '.tasks.rules[] | select(.name == \"small\") | .assert'"
 
-# Seven projects whose config `mt` refuses. Each record shows the
+# Nine projects whose config `mt` refuses. Each record shows the
 # config, then the refusal, which must match <expect>.
 refused() { # <slug> <expect> <show-command> <file=content>...
   local slug=$1 expect=$2 show=$3 dir pair
@@ -92,6 +92,12 @@ refused packs-conflict 'set different values' 'head .mindtape/config.toml team.t
   $'.mindtape/config.toml=extends = ["./team.toml", "./ops.toml"]\n' \
   $'team.toml=[tasks.priority]\nframework = "ice"\n' \
   $'ops.toml=[tasks.priority]\nframework = "rice"\n'
+refused packs-typo 'unknown field' 'head .mindtape/config.toml team.toml' \
+  $'.mindtape/config.toml=extends = ["./team.toml"]\n' \
+  $'team.toml=[views.board]\nfilter = "has(title)"\n\n[projet]\nname = "app"\n'
+refused packs-bad-value 'views.board.filter' 'head .mindtape/config.toml team.toml' \
+  $'.mindtape/config.toml=extends = ["./team.toml"]\n\n[views.mine]\nfilter = "has(title)"\n' \
+  $'team.toml=[views.board]\nfilter = "(("\n'
 refused packs-stale 'lock is stale' 'head .mindtape/config.toml .mindtape/packs.lock' \
   $'.mindtape/config.toml=[pack-sources.acme]\ngit = "https://github.com/acme/mindtape-packs"\nref = "v2"\n' \
   $'.mindtape/packs.lock=[acme]\ngit = "https://github.com/acme/mindtape-packs"\nref = "v1"\ncommit = "3f2c1a9e0b7d4c55e1a2b3c4d5e6f708192a3b4c"\nsha256 = "9c41e0d2b7a35f8c6e1d4a9b0c2f7e3d5a8b1c4e7f0a3d6b9c2e5f8a1b4d7c0e"\n'

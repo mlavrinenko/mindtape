@@ -7,7 +7,15 @@ use crate::support;
 
 /// The stderr of `mt ls` over a project whose config is `config`.
 fn ls_stderr(config: &str) -> String {
+    ls_stderr_with_pack(config, None)
+}
+
+/// [`ls_stderr`] with `team.toml`, which `config` may extend, holding `pack`.
+fn ls_stderr_with_pack(config: &str, pack: Option<&str>) -> String {
     let dir = support::scaffold_project(config);
+    if let Some(pack) = pack {
+        std::fs::write(dir.path().join("team.toml"), pack).unwrap();
+    }
     let output = support::mt(dir.path()).arg("ls").output().unwrap();
     assert_eq!(output.status.code(), Some(1), "{output:?}");
     String::from_utf8(output.stderr).unwrap()
@@ -48,5 +56,31 @@ fn a_hook_title_on_a_run_action_says_which_kind_takes_it() {
     assert_eq!(
         stderr,
         "error: .mindtape/config.toml:6: on.flip[0].actions[0]: 'title' applies only to list actions\n"
+    );
+}
+
+#[test]
+fn an_unknown_key_in_a_pack_names_the_pack_and_its_line() {
+    let stderr = ls_stderr_with_pack(
+        "extends = [\"./team.toml\"]\n",
+        Some("[ls]\n\n[projet]\nx = 1\n"),
+    );
+
+    assert!(
+        stderr.starts_with("error: team.toml:3:2: can't parse config: unknown field `projet`"),
+        "{stderr}"
+    );
+}
+
+#[test]
+fn a_bad_value_in_a_pack_is_reported_at_the_pack_line() {
+    let stderr = ls_stderr_with_pack(
+        "extends = [\"./team.toml\"]\n\n[views.mine]\nfilter = \"has(title)\"\n",
+        Some("[views.board]\nfilter = \"((\"\n"),
+    );
+
+    assert!(
+        stderr.starts_with("error: team.toml:2: views.board.filter: "),
+        "{stderr}"
     );
 }

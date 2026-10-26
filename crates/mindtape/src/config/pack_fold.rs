@@ -31,6 +31,8 @@ pub(super) struct PackLayer {
     merged: toml::Table,
     /// Each added pack and its table, rule arrays already taken out.
     packs: Vec<(PackOrigin, toml::Table)>,
+    /// Each added pack's source text, for the file an error names.
+    texts: Vec<(PackOrigin, String)>,
 }
 
 impl PackLayer {
@@ -68,6 +70,16 @@ impl PackLayer {
         deep_merge_tables(&mut self.merged, table.clone());
         self.packs.push((origin, table));
         Ok(())
+    }
+
+    /// Keep a pack's source text beside its table.
+    pub(super) fn keep_text(&mut self, origin: PackOrigin, text: String) {
+        self.texts.push((origin, text));
+    }
+
+    /// Each added pack's origin and source text, in `extends` order.
+    pub(super) fn texts(&self) -> &[(PackOrigin, String)] {
+        &self.texts
     }
 
     /// The directory of each directory pack added so far, in `extends` order.

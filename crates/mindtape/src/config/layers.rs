@@ -22,6 +22,7 @@
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
+use crate::config::locate::Sources;
 use crate::config::pack_registry::RuleOriginEntry;
 use crate::config::packs::merge_layers_with_packs;
 use crate::config::{Config, ConfigError, EMBEDDED_DEFAULTS, config_path};
@@ -144,14 +145,24 @@ fn dir_layers(root: &Path, home: Option<&Path>) -> Vec<Layer> {
 ///
 /// # Errors
 /// Returns [`ConfigError`] if any layer or pack fails to parse, an `extends`
-/// pack can't be resolved, or a `disable` name matches no rule.
-fn merge_doc(
-    layers: &[Layer],
-    root: &Path,
-) -> Result<(toml::Table, Vec<RuleOriginEntry>), ConfigError> {
-    let mut merged = merge_layers_with_packs(layers, root)?;
+/// pack can't be resolved, or a `disable` name matches no rule. The error
+/// already names its file.
+fn merge_doc(layers: &[Layer], root: &Path) -> Result<MergedDoc, ConfigError> {
+    let mut merged = merge_layers_with_packs(layers, root)
+        .map_err(|err| name_file(err, &Sources::of_layers(layers, root), root))?;
     merge_builtin_frameworks(&mut merged.table);
-    Ok((merged.table, merged.rule_origins))
+    Ok(MergedDoc {
+        table: merged.table,
+        rule_origins: merged.rule_origins,
+        sources: merged.sources,
+    })
+}
+
+/// [`merge_doc`]'s result.
+struct MergedDoc {
+    table: toml::Table,
+    rule_origins: Vec<RuleOriginEntry>,
+    sources: Sources,
 }
 
 /// [`merge_doc`], then deserialize and run semantic validation — the shared
@@ -182,14 +193,33 @@ fn merge_doc(
 /// against, and needs to have resolved before `validate` (which does not
 /// itself read either list, but every command downstream of a successful load
 /// does) ever sees a bare `@name` instead of the set it names.
+///
+/// An error comes back naming the layer, ancestor `defaults.toml` or pack that
+/// holds its key.
 fn build_config(
     layers: &[Layer],
     root: &Path,
 ) -> Result<(Config, Vec<RuleOriginEntry>), ConfigError> {
-    let (doc, rule_origins) = merge_doc(layers, root)?;
+    let MergedDoc {
+        table,
+        rule_origins,
+        sources,
+    } = merge_doc(layers, root)?;
+    build_typed(table, rule_origins, layers, root, &sources)
+        .map_err(|err| name_file(err, &sources, root))
+}
+
+/// The typed half of [`build_config`], its errors not yet placed.
+fn build_typed(
+    doc: toml::Table,
+    rule_origins: Vec<RuleOriginEntry>,
+    layers: &[Layer],
+    root: &Path,
+    sources: &Sources,
+) -> Result<(Config, Vec<RuleOriginEntry>), ConfigError> {
     let mut config: Config = toml::Value::Table(doc)
         .try_into()
-        .map_err(|merged| locate_in_project_layer(merged, layers))?;
+        .map_err(|merged| sources.blame(merged))?;
     crate::config::pack_files::stamp_check_roots(&mut config.tasks.rules, &rule_origins);
     config.dict_cache = crate::config::compile_dicts(&config.dicts, root)
         .map_err(ConfigError::invalid)?
@@ -221,20 +251,6 @@ fn build_config(
     Ok((config, rule_origins))
 }
 
-/// The merged document is rebuilt from the layers' values, so an error
-/// deserializing it carries no line or column. When the project's own config,
-/// deserialized alone, fails with the same message, that error has the span,
-/// so it stands in for the merged one. Only the project layer is searched,
-/// because that is the file the CLI names around a load error.
-fn locate_in_project_layer(merged: toml::de::Error, layers: &[Layer]) -> ConfigError {
-    let located = layers
-        .iter()
-        .filter(|layer| matches!(layer.source, LayerSource::Project(_)))
-        .find_map(|layer| toml::from_str::<Config>(&layer.text).err())
-        .filter(|alone| alone.message() == merged.message());
-    ConfigError::Parse(located.unwrap_or(merged))
-}
-
 /// Assemble the merged TOML document for `root` — every discovered layer (and
 /// each one's `extends` packs) folded together, plus the spliced-in built-in
 /// priority frameworks — without deserializing into a typed [`Config`] or
@@ -245,14 +261,12 @@ fn locate_in_project_layer(merged: toml::de::Error, layers: &[Layer]) -> ConfigE
 /// As [`merge_doc`].
 pub fn merged_config_table(root: &Path) -> Result<toml::Table, ConfigError> {
     let layers = discover_layers(root, dirs::home_dir().as_deref());
-    merge_doc(&layers, root)
-        .map(|(table, _rule_origins)| table)
-        .map_err(|err| name_file(err, &layers, root))
+    merge_doc(&layers, root).map(|merged| merged.table)
 }
 
 /// `err` with the file it is about: a TOML error of the project's own config
 /// names that file, and a semantic failure gets the line of its key.
-fn name_file(err: ConfigError, layers: &[Layer], root: &Path) -> ConfigError {
+fn name_file(err: ConfigError, sources: &Sources, root: &Path) -> ConfigError {
     match err {
         ConfigError::Parse(error) if error.span().is_some() => ConfigError::ParseIn {
             origin: config_path(root)
@@ -268,7 +282,7 @@ fn name_file(err: ConfigError, layers: &[Layer], root: &Path) -> ConfigError {
             unknown,
             hint,
         } => {
-            let place = crate::config::locate::place_of(&message, layers, root);
+            let place = sources.place_of(&message);
             ConfigError::Invalid {
                 message,
                 place,
@@ -317,11 +331,14 @@ pub fn load_config_layered_from(
 ) -> Result<(Config, Vec<LayerSource>, Vec<RuleOriginEntry>), ConfigError> {
     let layers = discover_layers_with_xdg(root, home, xdg_config_dir);
     let sources = layers.iter().map(|layer| layer.source.clone()).collect();
-    let (config, rule_origins) =
-        build_config(&layers, root).map_err(|err| name_file(err, &layers, root))?;
+    let (config, rule_origins) = build_config(&layers, root)?;
     Ok((config, sources, rule_origins))
 }
 
 #[cfg(test)]
 #[path = "layers_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "layers_tests_source.rs"]
+mod tests_source;

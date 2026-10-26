@@ -369,21 +369,21 @@ fn an_unknown_table_in_the_project_config_keeps_its_span() {
     assert_eq!(error.span(), Some(27..31), "{error}");
 }
 
-/// An unknown table in an ancestor's `defaults.toml` stays unlocated: the CLI
-/// names the project config around a load error, so a span into another file
-/// would point at the wrong line.
+/// An unknown table in an ancestor's `defaults.toml` keeps the span in that
+/// file, and the error names the file (see `layers_tests_source.rs`).
 #[test]
-fn an_unknown_table_in_an_ancestor_defaults_has_no_span() {
+fn an_unknown_table_in_an_ancestor_defaults_keeps_its_span() {
     let error = parse_failure(Some("[taks]\nx = 1\n"), "[tasks]\nroots = [\"tasks\"]\n");
     assert!(error.message().contains("unknown field `taks`"), "{error}");
-    assert_eq!(error.span(), None, "{error}");
+    assert_eq!(error.span(), Some(1..5), "{error}");
 }
 
 /// When the project config fails alone on a different message than the merged
-/// document, its span would locate a different error, so the merged one stands.
+/// document, its span would locate a different error, so the file that fails
+/// on the merged message is the one named.
 #[test]
 fn a_project_error_other_than_the_merged_one_is_not_borrowed() {
-    let error = parse_failure(Some("[aaa]\nx = 1\n"), "[zzz]\nx = 1\n");
+    let error = parse_failure(Some("[aaa]\nx = 1\n"), "\n\n[zzz]\nx = 1\n");
     assert!(error.message().contains("unknown field `aaa`"), "{error}");
-    assert_eq!(error.span(), None, "{error}");
+    assert_eq!(error.span(), Some(1..4), "{error}");
 }

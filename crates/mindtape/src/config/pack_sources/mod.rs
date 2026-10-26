@@ -195,7 +195,8 @@ fn refuse_outside_project(layer: &Layer, path: &Path, root: &Path) -> Result<(),
         "{KEY}: declared outside the project config: {}",
         quote(&path.display().to_string())
     );
-    let place = crate::config::locate::place_of(&message, std::slice::from_ref(layer), root);
+    let place = crate::config::locate::Sources::of_layers(std::slice::from_ref(layer), root)
+        .place_of(&message);
     Err(ConfigError::Invalid {
         message,
         place,

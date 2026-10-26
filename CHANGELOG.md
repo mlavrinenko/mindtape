@@ -472,6 +472,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   platform. A SHA-256 repository fetches by its 64-digit commit, two fetches
   of one tree at once both pass, and a fetch sweeps scratch directories over
   an hour old.
+- **A config error names the layer or pack that holds its key.** An unknown
+  or wrong-typed key in a pack or an ancestor `defaults.toml` fails as
+  `team.toml:3:2: can't parse config: unknown field 'projet'`, and a pack from
+  the binary reads `pack mindtape:tasks`. A bad value a pack sets, such as a
+  view's filter, is placed at the pack's line, and a pack rule's bad expression
+  at its own `[[tasks.rules]]` table, where `mt` used to point at a line of
+  `.mindtape/config.toml` that held neither. A key no file declares in full has
+  no place, and the error leads with the key alone.
 - **`mt rules` lists the rules that apply, one line each.** A line is the
   rule's severity, its name as `mt config show --origin` prints it, and the
   message a breach prints, after packs, overrides and `disable`. A rule with no

@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 26),
+  status: done(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ"),
 )
 
@@ -65,15 +65,19 @@ Any project, on `mt` at main: extend a path pack that sets a bad `[views.board] 
 
 == TO-BE
 
-- 🟢 The error above reads `team.toml:2: views.board.filter: …`, at the pack line that sets the value.
+- 🟢 The first error above reads `team.toml:2: views.board.filter: …`, at the pack line that sets the value.
+- 🟢 The rule error reads `team.toml:<line of its [[tasks.rules]]>: tasks.rules[0].assert: …`, and a rule of the project's own is placed at its own `[[tasks.rules]]` table, whatever its index in the merged array.
 - 🟢 A key no source declares in full gets no place, and the error leads with the key alone.
 
 
 == Changes
 
-- `crates/mindtape/src/config/locate.rs`: place a problem only where a source declares its full key, and search pack texts (`ResolvedPack.text`) beside the layer files, in merge precedence.
-- `crates/mindtape/src/config/packs.rs`: keep each resolved pack's path and text for `place_of`.
-- `crates/mindtape/src/config/locate_tests.rs`: the red tests first: a pack's bad value, an ancestor layer's, and a key no source declares in full.
+One mechanism with `name-the-layer-or-pack-behind-an-unknown-config-key.typ`: `Sources` in `locate.rs` holds each layer's and pack's file name and text, in merge precedence.
+
+- `crates/mindtape/src/config/locate.rs`: `Sources::place_of` searches every source, highest precedence first, and `key_line` returns a line only when the source declares the whole key. A rule-array key (`tasks.rules[2]`, `on.flip[0]`) counts the merged array, so `Sources` maps it through each entry's origin and `[[…]]` header line to its index among that file's own tables first. A rule written inline in its file, with no header, gets no place.
+- `crates/mindtape/src/config/packs.rs`, `pack_fold.rs`: the merge keeps each resolved pack's source and fills `Sources` beside the layers.
+- `crates/mindtape/src/config/layers.rs`: `build_config` places an error through those sources.
+- `crates/mindtape/src/config/layers_tests_source.rs`, `locate_tests.rs`: the red tests first: a pack's bad value, an ancestor layer's, a key no source declares in full, and a pack rule beside the project's own.
 
 
 == Out of scope
