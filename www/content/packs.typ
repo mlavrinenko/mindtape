@@ -228,9 +228,9 @@ in two layers is dropped once.
 
 = Read `mt config show --origin`
 
-To see where each rule came from, run `mt config show --origin`. It prints
-the layers that contributed, then one line per rule in merge order:
-`rule <label>: <origin>`. `<label>` is the rule's array and name, such as
+To see where each rule, key and parameter came from, run `mt config show
+--origin`. It prints the layers that contributed, then one line per rule in
+merge order: `rule <label>: <origin>`. `<label>` is the rule's array and name, such as
 `tasks.rules.<name>` or `on.flip.<name>`, or `tasks.rules[<index>]` for a rule
 with no name.
 `mt check` names a broken rule without the leading `tasks.`. `<origin>` is a
@@ -246,6 +246,20 @@ the rest of the task rules read `pack mindtape:tasks`. The exception is `section
 it. The repository's own rules, such as `goals` and the `Dogfood` rules, read
 `project` because only the project declares them. To read each rule's
 severity and message as well, run #link(u("/cli/rules/"))[`mt rules`].
+
+After the rules come the other keys a pack set and the parameters it
+declares. A key line is `key <dotted path>: <origin>`, and it names the layer
+instead of the pack when the layer replaced the value. A parameter line is
+`param <name> = <value>: <set by>, for pack <pack>`, where `<set by>` is the
+layer whose `with` set it, or `default`:
+
+// docs:hand-typed this repository extends no pack that declares a parameter
+```console
+$ mt config show --origin
+rule tasks.rules.small: pack /work/app/team.toml
+key tasks.priority.framework: pack /work/app/team.toml
+param max-files = 8: project, for pack /work/app/team.toml
+```
 
 When `mt` reports a problem with a rule itself, not with a task, it points at
 the rule's own `[[tasks.rules]]` header, whichever layer or pack declared it.

@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 26),
+  status: done(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ")
     + depends-on(
       "merge-every-config-key-from-a-pack-below-the-layer-that-extends-it.typ",
@@ -57,12 +57,14 @@ param max-files = 8: project, for pack /work/app/team.toml
 
 == Changes
 
+One carrier serves this task and `place-a-config-warning-at-the-pack-or-layer-that-holds-its-key.typ`: `Sources`, which holds every file's text, also holds each leaf key's winning source and each parameter. `Config` keeps it as `provenance`, so `load_config_layered`'s result stays as it is and `mt` reads the origins off the loaded config.
+
 - `crates/mindtape-cli/src/cmd/config_tests.rs`: the red test first, the output above.
-- `crates/mindtape/src/config/packs.rs`, `crates/mindtape/src/config/pack_fold.rs`: record the pack behind each leaf value and each parameter while folding. `PackLayer::into_table` drops the per-pack tables, so return them beside the merged sub-layer.
-- `crates/mindtape/src/config/params.rs`: `apply_params` resolves each parameter in `resolve_values` and drops the result, so return each value and whether the entry's `with` set it.
-- `crates/mindtape/src/config/layers.rs`: carry those origins beside the rule origins.
+- `crates/mindtape/src/config/origins.rs`: `KeyOrigin`, `ParamOrigin` and the `Sources` methods that record them.
+- `crates/mindtape/src/config/packs.rs`, `crates/mindtape/src/config/pack_fold.rs`: record each pack's leaf keys and parameters while folding, from the per-pack tables `PackLayer` keeps, and the layer's own after them so a replaced key names the layer.
+- `crates/mindtape/src/config/params.rs`: `apply_params` returns each resolved parameter and whether the entry's `with` set it.
+- `crates/mindtape/src/config/layers.rs`, `crates/mindtape/src/config/mod.rs`, `crates/mindtape/src/lib.rs`: `Config::key_origins` and `Config::param_origins`, and the re-exported types.
 - `crates/mindtape-cli/src/cmd/config.rs`: print them.
-- `crates/mindtape/src/config/mod.rs`, `crates/mindtape/src/lib.rs`: follow the wider `load_config_layered` result and re-export the new origin type.
 - `www/content/packs.typ`: the `--origin` section.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 
@@ -79,5 +81,5 @@ param max-files = 8: project, for pack /work/app/team.toml
 
 == Dogfood
 
-This repo's `mt config show --origin` names the pack behind its legend, priority and caps.
+This repo's `mt config show --origin` names the pack behind each key one sets.
 

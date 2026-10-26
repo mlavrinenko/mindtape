@@ -87,12 +87,12 @@ groups:
       www/utils/cli-notes.typ: caa80445aa1b83f04ae117cffea53fc321fb50773e9fc2e255fa43aaf8ac34d8
   cli-config-docs:
     source:
-      crates/mindtape-cli/src/cmd/config.rs: 1286741fd4964e7faac8638f132dea7fd2ebbb8d99d7b87ce848a91599cb9e57
+      crates/mindtape-cli/src/cmd/config.rs: c472abcb9b640f730801ce89e304bbc90d6bcba492e8fadfe692bea105ef2b03
     dependents:
       docs/src/skill.typ: e874b983dd5e712c168bbbf32d87c60ea53ac51affe0b27c1d5ee31bea1eac84
       www/content/agents.typ: f0240344a64911b167203d705e4a679fe6d64fb4e5d0824af52d68588ff71648
       www/content/cli/config.typ: 759e88dd07ecfa1a6a754c24faa30145a41f28776504d3628161b59eb4faf885
-      www/content/config.typ: 28f7eb1e815db1814377ca33b4a5a4598cc9b5e6a5e5745f26132bc3b235d8fa
+      www/content/config.typ: 9947b6ed2e14e20a7b5aa65e34266f71c3bff8256203f03681f816967d4bbe8d
       www/content/priority.typ: 3b01af3c586fd325859fdf8e086589c7a6254692126bd9f153c41b82393f9d8b
   cli-dicts-docs:
     source:
