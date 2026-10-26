@@ -1,13 +1,14 @@
 //! Resolving one `extends` entry to a validated pack table: a path against
 //! the extending layer's directory, to a file or to a directory pack
-//! ([`resolve_dir_pack`], which a fetched pack reuses), any other entry as
-//! `<source>:<pack>` against the embedded registry or a declared pack source,
-//! and the shape check that refuses the keys a pack may not declare.
-//! [`crate::config::packs`] folds what this returns.
+//! ([`resolve_dir_pack`]), any other entry as `<source>:<pack>` against the
+//! embedded registry or, through [`crate::config::pack_cache`], a declared
+//! source's cached tree, and the shape check that refuses the keys a pack may
+//! not declare. [`crate::config::packs`] folds what this returns.
 
 use std::path::{Path, PathBuf};
 
 use crate::config::ConfigError;
+use crate::config::pack_cache::resolve_cached;
 use crate::config::pack_registry::{EMBEDDED_SOURCE, PACK_FILE, PackOrigin};
 use crate::config::pack_sources::PackSources;
 use crate::config::packs_toml::get_path;
@@ -23,6 +24,9 @@ pub(super) struct PackScope<'a> {
     /// Whether the layer is the project's own, the one layer that may use a
     /// declared source.
     pub(super) project: bool,
+    /// The directory the declared sources are cached in, or `None` when no
+    /// source is installed.
+    pub(super) cache: Option<&'a Path>,
 }
 
 /// One resolved pack: its provenance and validated table.
@@ -53,13 +57,20 @@ pub(super) fn resolve_pack(
             refuse_ambiguous(&dir)?;
             return resolve_dir_pack(&dir);
         }
-        let (table, text) = read_pack_file(&path)?;
+        let (table, text) = read_pack_file(&path, None)?;
         Ok(ResolvedPack {
             origin: PackOrigin::Path(path),
             table,
             text,
         })
     } else {
+        if let Some((source, pack)) = entry.split_once(':')
+            && source != EMBEDDED_SOURCE
+            && scope.project
+            && scope.sources.declares(source)
+        {
+            return resolve_cached(entry, source, pack, scope);
+        }
         let text = embedded_text(entry, scope)?;
         let table: toml::Table = toml::from_str(text).map_err(|error| ConfigError::ParseIn {
             origin: format!("pack {entry}"),
@@ -106,7 +117,7 @@ fn strip_verbatim(path: PathBuf) -> PathBuf {
 /// Returns [`ConfigError`] when `dir` holds no readable `pack.toml`, it
 /// doesn't parse, or it declares a key a pack may not.
 pub(super) fn resolve_dir_pack(dir: &Path) -> Result<ResolvedPack, ConfigError> {
-    let (table, text) = read_pack_file(&dir.join(PACK_FILE))?;
+    let (table, text) = read_pack_file(&dir.join(PACK_FILE), None)?;
     Ok(ResolvedPack {
         origin: PackOrigin::Dir(dir.to_path_buf()),
         table,
@@ -116,7 +127,7 @@ pub(super) fn resolve_dir_pack(dir: &Path) -> Result<ResolvedPack, ConfigError> 
 
 /// Refuse a directory `dir` that sits beside a `<dir>.toml`: the entry could
 /// mean either, so `mt` names both and picks neither.
-fn refuse_ambiguous(dir: &Path) -> Result<(), ConfigError> {
+pub(super) fn refuse_ambiguous(dir: &Path) -> Result<(), ConfigError> {
     let mut sibling = dir.as_os_str().to_owned();
     sibling.push(".toml");
     let sibling = PathBuf::from(sibling);
@@ -131,8 +142,12 @@ fn refuse_ambiguous(dir: &Path) -> Result<(), ConfigError> {
     Ok(())
 }
 
-/// Read and validate the pack file at `path`.
-fn read_pack_file(path: &Path) -> Result<(toml::Table, String), ConfigError> {
+/// Read and validate the pack file at `path`, which errors name by `label`
+/// when given, else by the path.
+pub(super) fn read_pack_file(
+    path: &Path,
+    label: Option<&str>,
+) -> Result<(toml::Table, String), ConfigError> {
     let text = std::fs::read_to_string(path).map_err(|_| {
         ConfigError::invalid(format!(
             "extends: pack not found: {}",
@@ -143,7 +158,8 @@ fn read_pack_file(path: &Path) -> Result<(toml::Table, String), ConfigError> {
         origin: path.display().to_string(),
         error,
     })?;
-    validate_pack_shape(&table, &path.display().to_string())?;
+    let shown = path.display().to_string();
+    validate_pack_shape(&table, label.unwrap_or(&shown))?;
     Ok((table, text))
 }
 
@@ -164,9 +180,9 @@ fn embedded_text<'r>(entry: &str, scope: &PackScope<'r>) -> Result<&'r str, Conf
         .ok_or_else(|| unknown_pack_error(entry, registry))
 }
 
-/// Why `source`, not [`EMBEDDED_SOURCE`], resolves no pack. A source the
-/// project declares can't be read before it is installed, and only the
-/// project layer may use one.
+/// Why `source`, not [`EMBEDDED_SOURCE`], resolves no pack here: the project
+/// declares no such source, or this layer isn't the project's, the only one
+/// that may use one.
 fn source_error(source: &str, scope: &PackScope<'_>) -> ConfigError {
     let quoted = crate::config::quote(source);
     if !scope.sources.declares(source) {
@@ -177,15 +193,19 @@ fn source_error(source: &str, scope: &PackScope<'_>) -> ConfigError {
                 .with(Unknown::among(source, known)),
         );
     }
-    if scope.project {
-        ConfigError::invalid(format!("extends: pack source not installed: {quoted}"))
-            .with_hint("run `mt packs install` to fetch the locked sources")
-    } else {
-        ConfigError::invalid(format!(
-            "extends: only the project config may use pack source: {quoted}"
-        ))
-        .with_hint("move the entry into the project's .mindtape/config.toml")
-    }
+    ConfigError::invalid(format!(
+        "extends: only the project config may use pack source: {quoted}"
+    ))
+    .with_hint("move the entry into the project's .mindtape/config.toml")
+}
+
+/// A declared `source` whose tree isn't in the cache.
+pub(super) fn not_installed(source: &str) -> ConfigError {
+    ConfigError::invalid(format!(
+        "extends: pack source not installed: {}",
+        crate::config::quote(source)
+    ))
+    .with_hint("run `mt packs install` to fetch the locked sources")
 }
 
 fn unknown_pack_error(entry: &str, registry: &[(&str, &str)]) -> ConfigError {

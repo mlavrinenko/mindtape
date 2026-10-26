@@ -44,7 +44,9 @@ CAPTURE_PATHS=()
 
 # Make the capture area: the `mt` shim on PATH, and a data home holding this
 # build's prelude for projects that resolve `@local/mindtape` from it. The
-# config home stays empty, so a builder's own defaults.toml changes nothing.
+# config home stays empty, so a builder's own defaults.toml changes nothing,
+# and the cache home is the area's own, so no pack source the builder fetched
+# resolves.
 capture_init() {
     CAPTURE_TMP=$(cd "$(mktemp -d)" && pwd -P)
     trap 'rm -rf "$CAPTURE_TMP"' EXIT
@@ -138,6 +140,7 @@ _capture_env() {
         -u MINDTAPE_WORKTREE -u MINDTAPE_PRINCIPAL -u MINDTAPE_NO_CACHE \
         TERM=xterm-256color SHELL="$(command -v bash)" PATH="$CAPTURE_TMP/bin:$PATH" \
         MINDTAPE_CONFIG_HOME="$CAPTURE_CONFIG_HOME" MINDTAPE_DATA_HOME="$CAPTURE_DATA_HOME" \
+        MINDTAPE_CACHE_HOME="$CAPTURE_TMP/cache" \
         ${CAPTURE_HOME:+"HOME=$CAPTURE_HOME"} \
         CAPTURE_CMD="${CAPTURE_CMD:-}" \
         "$@")

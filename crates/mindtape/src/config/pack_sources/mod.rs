@@ -6,7 +6,8 @@
 //! sources on every config load, refuses them in any other layer, and refuses
 //! a source the lock doesn't pin from its declared `git` and `ref`.
 //! [`read_raw`] reads the same two files without loading the config, for
-//! `mt packs`, which repairs the very state a load refuses.
+//! `mt packs`, which repairs the very state a load refuses. A fetched source
+//! sits in [`cache_root`] under its `sha256`.
 //!
 //! # Files
 //!
@@ -32,7 +33,7 @@ mod scratch;
 
 use std::collections::BTreeMap;
 use std::io::ErrorKind;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
 
@@ -98,6 +99,24 @@ impl PackSources {
     pub(crate) fn declares(&self, name: &str) -> bool {
         self.sources.contains_key(name)
     }
+}
+
+/// The directory each fetched source's tree sits in, as `<sha256>/`:
+/// `mindtape/packs/` under [`crate::cache_home`]. `None` when no cache
+/// directory applies, so no source is installed.
+#[must_use]
+pub fn cache_root() -> Option<PathBuf> {
+    crate::cache_home().map(|home| home.join("mindtape").join("packs"))
+}
+
+/// Whether `name` takes only letters, digits, `-` and `_`, as a source name
+/// and the pack part of a `<source>:<pack>` entry must. Such a name can't
+/// leave the directory it is looked up in.
+pub(crate) fn is_plain_name(name: &str) -> bool {
+    !name.is_empty()
+        && name
+            .chars()
+            .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_'))
 }
 
 /// The project's sources and lock under `root`, read without resolving
@@ -170,11 +189,7 @@ fn check_name(name: &str) -> Result<(), ConfigError> {
             quote(name)
         )));
     }
-    let spelled = !name.is_empty()
-        && name
-            .chars()
-            .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_'));
-    if spelled {
+    if is_plain_name(name) {
         return Ok(());
     }
     Err(ConfigError::invalid(format!(

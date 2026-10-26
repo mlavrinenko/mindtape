@@ -73,7 +73,7 @@ fn real_registry_error(entry: &str) -> crate::config::ConfigError {
         LayerSource::Embedded,
         &format!("extends = [\"{entry}\"]\n"),
     )];
-    merge_layers_with_packs(&layers, root.path()).unwrap_err()
+    merge_layers_with_packs(&layers, root.path(), None).unwrap_err()
 }
 
 #[test]
@@ -84,7 +84,7 @@ fn mindtape_tasks_resolves_from_the_real_registry() {
         "extends = [\"mindtape:tasks\"]\n",
     )];
 
-    let merged = merge_layers_with_packs(&layers, root.path()).unwrap();
+    let merged = merge_layers_with_packs(&layers, root.path(), None).unwrap();
     assert!(!merged.rule_origins.is_empty());
     match &merged.rule_origins[0].origin {
         RuleOrigin::Pack(PackOrigin::Embedded(name)) => assert_eq!(name, "mindtape:tasks"),
@@ -171,7 +171,7 @@ fn a_path_entry_in_the_project_layer_resolves_against_the_project_root() {
         LayerSource::Project(project.join(".mindtape").join("config.toml")),
         "extends = [\"../shared/team-pack.toml\"]\n",
     )];
-    let merged = merge_layers_with_packs(&layers, &project).unwrap();
+    let merged = merge_layers_with_packs(&layers, &project, None).unwrap();
     let rules = read_array(&merged.table, &["tasks", "rules"]);
     assert_eq!(
         rules[0].get("name").and_then(toml::Value::as_str),

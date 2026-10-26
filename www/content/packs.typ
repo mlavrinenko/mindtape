@@ -109,6 +109,21 @@ from `v1` to `v2`.
 
 #terminal("packs-stale")
 
+`mt` reads a source's packs from your cache directory, such as `~/.cache` on
+Linux, under `mindtape/packs/<sha256>/`, named by the lock's hash.
+`acme:team` is `team.toml` at the top of that tree, or `team/pack.toml` for a
+#link(u("/packs/#a-pack-in-a-directory"))[folder] pack. A pack name takes letters, digits, `-` and `_`. `MINDTAPE_CACHE_HOME`
+moves the cache, as #link(u("/config/#environment-variables"))[Configuration]
+says.
+
+Every load hashes the cached tree again and refuses one that doesn't match the
+lock, naming its directory, so a file edited by hand there can't slip in. A
+pack from a source names its dictionary files only inside the source's tree.
+No read command touches the network, so a source the cache lacks is refused,
+with a hint to fetch it:
+
+#terminal("packs-not-installed")
+
 = A pack in a directory
 
 A pack that carries files needs a folder. Name the folder in `extends`, and
@@ -138,7 +153,7 @@ file. So a pack that sits in `team/` finds `team/check.typ` and
 
 A pack's check file runs in a Typst world rooted at that directory. It imports
 the pack's other files and `@local` packages, and it can't import a file of
-the project. A rule and a dictionary that the project declares itself resolve
+the project. So `mt` refuses a `check` path that leaves the pack's directory. A rule and a dictionary that the project declares itself resolve
 from the project root, as they always did, and so does a rule that replaces a
 pack's rule by name. The built-in packs name no files.
 

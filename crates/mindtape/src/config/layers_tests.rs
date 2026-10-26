@@ -164,7 +164,7 @@ fn no_files_anywhere_matches_parse_config_empty() {
     let (_tmp, home, project) = home_and_project();
 
     let layers = discover_layers_with_xdg(&project, Some(&home), None);
-    let (config, _rule_origins) = build_config(&layers, &project).unwrap();
+    let (config, _rule_origins) = build_config(&layers, &project, None).unwrap();
     let expected = parse_config("").unwrap();
     assert_eq!(config, expected);
 }

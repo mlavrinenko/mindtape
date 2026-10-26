@@ -62,7 +62,8 @@ pub use config::active_rules::{ActiveRule, RuleSection, active_rules};
 pub use config::comments::{CommentsConfig, CommentsError, CommentsPolicy, check_comments};
 pub use config::commits::{CommitBreach, CommitRuleSpec, CommitScope, CommitsConfig, check_commit};
 pub use config::layers::{
-    LayerSource, load_config_layered, load_config_layered_from, merged_config_table,
+    LayerSource, load_config_layered, load_config_layered_from, load_config_layered_in,
+    merged_config_table,
 };
 pub use config::pack_registry::{PackOrigin, RuleOrigin, RuleOriginEntry};
 pub use config::schema::{SCHEMA_URL, config_schema_json};
@@ -98,7 +99,9 @@ pub use import_map::{
     stem_for_title,
 };
 pub use link::scan::{EdgeCall, TargetSpan, link_edges, link_target_spans};
-pub use loader::app_dirs::{CONFIG_HOME_ENV, DATA_HOME_ENV, config_home, data_home};
+pub use loader::app_dirs::{
+    CACHE_HOME_ENV, CONFIG_HOME_ENV, DATA_HOME_ENV, cache_home, config_home, data_home,
+};
 pub use loader::derive::RootDeriver;
 pub use loader::{
     LoadError, LoadOutcome, LoadWarning, find_root, load_project, package_overrides, package_root,

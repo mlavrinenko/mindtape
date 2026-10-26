@@ -181,14 +181,20 @@ pub(crate) fn validate_load(config: &Config, root: &Path) -> Result<(), String> 
     }
 }
 
-/// Whether `check.typst` exists and exports `check.function`: an explicit
+/// Whether `check.typst` exists and exports `check.function`. A pack's
+/// module must sit in the pack's directory, the root its world reads from, so
+/// a path out of it is refused before `mt` looks for the file. Then an explicit
 /// filesystem check for the first (a clearer message than whatever Typst's
 /// own file-not-found diagnostic says), then a probe import for the second —
 /// no call, since a function that only errors for some inputs must not fail
 /// config load over a value it was never asked to handle.
 fn check_module(root: &Path, config: &Config, check: &CheckSpec) -> Result<(), String> {
     let check_root = check.root.as_deref().unwrap_or(root);
-    if !check_root.join(&check.typst).is_file() {
+    let module = check_root.join(&check.typst);
+    if check.root.is_some() && !crate::config::pack_dirs::stays_inside(check_root, &module) {
+        return Err(format!("`{}` is outside the pack's directory", check.typst));
+    }
+    if !module.is_file() {
         return Err(format!("`{}` does not exist", check.typst));
     }
     let root_abs = canonical(check_root);

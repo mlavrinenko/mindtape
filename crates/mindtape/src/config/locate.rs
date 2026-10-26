@@ -128,10 +128,12 @@ impl Sources {
     }
 
     /// Add a pack's file: its path, its `pack.toml` for a directory pack, or
-    /// `pack <name>` for one compiled in.
+    /// `pack <source>:<pack>` for one compiled in or cached from a source.
     pub(crate) fn push_pack(&mut self, origin: &PackOrigin, text: &str, root: &Path) {
         let file = match origin {
-            PackOrigin::Embedded(name) => PathBuf::from(format!("pack {name}")),
+            PackOrigin::Embedded(name) | PackOrigin::Cached { name, .. } => {
+                PathBuf::from(format!("pack {name}"))
+            }
             PackOrigin::Path(path) => shown(path, root),
             PackOrigin::Dir(dir) => shown(&dir.join(PACK_FILE), root),
         };

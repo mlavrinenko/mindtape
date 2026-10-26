@@ -57,14 +57,17 @@ impl RuleSites {
     }
 }
 
-/// One entry's location: its source file, or the built-in pack's name.
+/// One entry's location: its source file, or the `<source>:<pack>` name of
+/// a built-in or cached pack.
 fn site(entry: &RuleOriginEntry, root: &Path) -> Option<Location> {
     let line = entry.line?;
     match &entry.origin {
-        RuleOrigin::Pack(PackOrigin::Embedded(name)) => Some(Location::Pack {
-            pack: name.clone(),
-            line,
-        }),
+        RuleOrigin::Pack(PackOrigin::Embedded(name) | PackOrigin::Cached { name, .. }) => {
+            Some(Location::Pack {
+                pack: name.clone(),
+                line,
+            })
+        }
         RuleOrigin::Pack(PackOrigin::Dir(dir)) => {
             Some(Location::at(relative(&dir.join(PACK_FILE), root), line))
         }

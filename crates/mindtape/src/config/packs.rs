@@ -4,7 +4,8 @@
 //! `[[commits.rules]]` and `[[on.flip]]`, across every layer and pack.
 //!
 //! A pack is a config-syntax fragment. `<source>:<pack>` resolves to one
-//! compiled into the binary ([`EMBEDDED_PACKS`], under `mindtape`); a path
+//! compiled into the binary ([`EMBEDDED_PACKS`], under `mindtape`) or to one
+//! in a declared source's tree in the cache; a path
 //! (anything with a path separator) resolves to a TOML file, or to a
 //! directory holding `pack.toml`, relative to the layer that names it. Before
 //! any layer folds, [`crate::config::pack_sources::for_layers`] reads the
@@ -100,27 +101,41 @@ pub(crate) struct PackMerge {
 }
 
 /// Fold `layers` into one document, resolving each layer's own `extends`
-/// (against [`EMBEDDED_PACKS`]) and applying its `disable` after every layer
-/// has merged in.
+/// (against [`EMBEDDED_PACKS`], or a declared source's tree in `cache`) and
+/// applying its `disable` after every layer has merged in.
 ///
 /// # Errors
 /// Returns [`ConfigError::Invalid`] for a malformed `extends`/`disable`
-/// entry, a misplaced or stale pack source, an unresolvable pack, a pack declaring a key it may not, or a
-/// `disable` name matching no rule.
+/// entry, a misplaced, stale or uninstalled pack source, a cached tree that
+/// doesn't match the lock, an unresolvable pack, a pack declaring a key it
+/// may not or naming a file outside its source, or a `disable` name matching
+/// no rule.
 pub(crate) fn merge_layers_with_packs(
     layers: &[Layer],
     root: &Path,
+    cache: Option<&Path>,
 ) -> Result<PackMerge, ConfigError> {
-    merge_layers_with_packs_using(layers, root, EMBEDDED_PACKS)
+    merge_with(layers, root, EMBEDDED_PACKS, cache)
 }
 
-/// [`merge_layers_with_packs`] with the embedded-pack registry injected, so a
-/// test can resolve a bare name against a fixture pack without touching the
-/// real (possibly empty) [`EMBEDDED_PACKS`].
+/// [`merge_layers_with_packs`] with no cache and the embedded-pack registry
+/// injected, so a test can resolve a bare name against a fixture pack without
+/// touching the real (possibly empty) [`EMBEDDED_PACKS`].
+#[cfg(test)]
 fn merge_layers_with_packs_using(
     layers: &[Layer],
     root: &Path,
     registry: &[(&str, &str)],
+) -> Result<PackMerge, ConfigError> {
+    merge_with(layers, root, registry, None)
+}
+
+/// [`merge_layers_with_packs`] against `registry`.
+fn merge_with(
+    layers: &[Layer],
+    root: &Path,
+    registry: &[(&str, &str)],
+    cache: Option<&Path>,
 ) -> Result<PackMerge, ConfigError> {
     let mut doc = toml::Table::new();
     let mut accumulators: [RuleAccumulator; RULE_ARRAYS] = Default::default();
@@ -141,6 +156,7 @@ fn merge_layers_with_packs_using(
             registry,
             sources: &sources,
             project: matches!(layer.source, LayerSource::Project(_)),
+            cache,
         };
         let packs = fold_layer_packs(&extends, &base_dir, &scope, &table, &mut accumulators)?;
         pack_dirs.extend(packs.dirs().map(Path::to_path_buf));
@@ -205,7 +221,7 @@ fn fold_layer_packs(
     for entry in extends {
         let mut pack = resolve_pack(&entry.pack, base_dir, scope)?;
         if let Some(dir) = pack.origin.root() {
-            rebase_dict_paths(&mut pack.table, dir);
+            rebase_dict_paths(&mut pack.table, dir, &pack.origin)?;
         }
         let params = apply_params(&mut pack.table, &entry.with, &pack.origin.label())?;
         packs.keep_params(pack.origin.clone(), params);
@@ -430,3 +446,7 @@ mod tests_dogfood;
 #[cfg(test)]
 #[path = "packs_tests_flow.rs"]
 mod tests_flow;
+
+#[cfg(test)]
+#[path = "packs_tests_cache.rs"]
+mod tests_cache;

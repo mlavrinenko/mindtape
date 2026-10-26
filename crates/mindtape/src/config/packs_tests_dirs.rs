@@ -29,7 +29,7 @@ fn merge_project(
     text: &str,
 ) -> Result<super::PackMerge, crate::config::ConfigError> {
     let source = LayerSource::Project(project.join(".mindtape").join("config.toml"));
-    merge_layers_with_packs(&[layer(source, text)], project)
+    merge_layers_with_packs(&[layer(source, text)], project, None)
 }
 
 /// How many task rules `extends = [{entry}]` reads from `files` in a project.

@@ -112,7 +112,8 @@ pub(crate) fn render_effective(root: &Path, json: bool) -> Result<String> {
 /// leads, as far as any exist, one `rule <label>: <origin>` line per rule,
 /// one `key <path>: <origin>` line per key a pack set, and one `param <name> =
 /// <value>: <set by>, for pack <pack>` line per pack parameter. An origin
-/// names the pack (`pack mindtape:tasks` / `pack <path>`) or the layer.
+/// names the pack (`pack mindtape:tasks`, `pack acme:commits` or
+/// `pack <path>`) or the layer.
 ///
 /// # Errors
 /// Returns an error if the layered config fails to load.
@@ -187,14 +188,16 @@ fn existence(path: &Path) -> &'static str {
 
 /// One rule's origin, short form: which kind of layer it came from directly
 /// (the layers section above already names each layer's own path), or, for a
-/// pack, `pack <name>` / `pack <path>`.
+/// pack, `pack <source>:<pack>` / `pack <path>`.
 fn describe_rule_origin(origin: &RuleOrigin) -> String {
     match origin {
         RuleOrigin::Layer(LayerSource::Embedded) => "embedded".to_owned(),
         RuleOrigin::Layer(LayerSource::Xdg(_)) => "xdg".to_owned(),
         RuleOrigin::Layer(LayerSource::Dir(_)) => "dir".to_owned(),
         RuleOrigin::Layer(LayerSource::Project(_)) => "project".to_owned(),
-        RuleOrigin::Pack(PackOrigin::Embedded(name)) => format!("pack {name}"),
+        RuleOrigin::Pack(PackOrigin::Embedded(name) | PackOrigin::Cached { name, .. }) => {
+            format!("pack {name}")
+        }
         RuleOrigin::Pack(PackOrigin::Path(path) | PackOrigin::Dir(path)) => {
             format!("pack {}", path.display())
         }

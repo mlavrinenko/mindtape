@@ -78,6 +78,7 @@ mod misc_error_format_e2e;
 mod mv_e2e;
 mod open_questions_e2e;
 mod outdatty_lock_merge_e2e;
+mod packs_cache_e2e;
 mod pre_write_refusal_e2e;
 mod read_json_e2e;
 mod read_no_write_e2e;

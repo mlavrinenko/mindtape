@@ -1,6 +1,8 @@
 //! The files a pack names resolve from the pack's own directory, not the
 //! project root: a rule's `check.typst` module and a dictionary's `path`.
-//! A built-in pack has no directory, so its paths stay the project's.
+//! A built-in pack has no directory, so its paths stay the project's. A
+//! cached pack's paths must stay inside its source's tree, which came from
+//! the network.
 //!
 //! A dictionary keeps no origin once the packs merge, so [`rebase_dict_paths`]
 //! turns each `path` into an absolute one while the pack is still its own
@@ -10,23 +12,44 @@
 
 use std::path::Path;
 
-use crate::config::pack_dirs::absolute;
-use crate::config::pack_registry::{RuleOrigin, RuleOriginEntry};
+use crate::config::pack_dirs::{absolute, stays_inside};
+use crate::config::pack_registry::{PackOrigin, RuleOrigin, RuleOriginEntry};
+use crate::config::{ConfigError, quote};
 use crate::rules::RuleSpec;
 
 /// Make each `[dicts.<name>] path` of the pack table `table` absolute, from
 /// the pack's directory `dir`.
-pub(super) fn rebase_dict_paths(table: &mut toml::Table, dir: &Path) {
+///
+/// # Errors
+/// Returns [`ConfigError::Invalid`] when `origin` has a
+/// [`PackOrigin::bound`] and a path leaves it.
+pub(super) fn rebase_dict_paths(
+    table: &mut toml::Table,
+    dir: &Path,
+    origin: &PackOrigin,
+) -> Result<(), ConfigError> {
     let Some(dicts) = table.get_mut("dicts").and_then(toml::Value::as_table_mut) else {
-        return;
+        return Ok(());
     };
-    for spec in dicts.iter_mut().filter_map(|(_, spec)| spec.as_table_mut()) {
-        if let Some(path) = spec.get_mut("path")
-            && let Some(text) = path.as_str()
+    for (name, spec) in dicts.iter_mut() {
+        let Some(path) = spec.as_table_mut().and_then(|spec| spec.get_mut("path")) else {
+            continue;
+        };
+        let Some(text) = path.as_str() else {
+            continue;
+        };
+        if let Some(bound) = origin.bound()
+            && !stays_inside(bound, &dir.join(text))
         {
-            *path = toml::Value::String(absolute(&dir.join(text)).display().to_string());
+            return Err(ConfigError::invalid(format!(
+                "extends: pack {} names a file outside its source: dicts.{name}.path: {}",
+                quote(&origin.label()),
+                quote(text)
+            )));
         }
+        *path = toml::Value::String(absolute(&dir.join(text)).display().to_string());
     }
+    Ok(())
 }
 
 /// Set the root of each `check` rule of `rules` that a pack declared, to

@@ -4,7 +4,7 @@
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
-use super::{config_home, data_home, package_root, package_root_from, resolve};
+use super::{cache_home, config_home, data_home, package_root, package_root_from, resolve};
 
 /// A stand-in for `dirs::config_dir()`, so the fall-through case is asserted
 /// without depending on the machine running the test.
@@ -48,7 +48,7 @@ fn an_unset_override_with_no_platform_directory_is_none() {
     assert_eq!(resolved, None);
 }
 
-/// Both public entry points read their own variable. Asserted only as "does not
+/// Each public entry point reads its own variable. Asserted only as "does not
 /// panic and agrees with the seam" — the env is process-global, so a test that
 /// set the variable would race every other test in this binary.
 #[test]
@@ -60,6 +60,10 @@ fn the_entry_points_resolve_without_panicking() {
     assert_eq!(
         data_home(),
         resolve(std::env::var_os(super::DATA_HOME_ENV), dirs::data_local_dir)
+    );
+    assert_eq!(
+        cache_home(),
+        resolve(std::env::var_os(super::CACHE_HOME_ENV), dirs::cache_dir)
     );
 }
 

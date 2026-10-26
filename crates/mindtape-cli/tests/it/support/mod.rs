@@ -37,6 +37,10 @@ const NO_GLOBAL_CONFIG: &str = "no-global-config";
 /// own project directory, which `mt allow` creates when a test runs it.
 const DATA_HOME: &str = "data-home";
 
+/// Where [`isolated_env`] points the cache directory: a path under the test's
+/// own project directory, so a test fills the pack cache it reads.
+pub const CACHE_HOME: &str = "cache-home";
+
 /// Environment variables that steer `mt` and must not reach a spawned binary
 /// from the developer's shell: `MINDTAPE_NOW` repins the clock every dated
 /// write reads, `MINDTAPE_WORKTREE` retargets the project root, and `VISUAL`
@@ -80,11 +84,13 @@ const STUB_EDITOR: &str = "mt-no-such-editor";
 ///
 /// `MINDTAPE_DATA_HOME` gets a fresh directory under `dir` for the same reason:
 /// it holds the `mt allow` approvals, and a test must neither read the
-/// developer's nor leave its own behind.
-pub fn isolated_env(dir: &Path) -> [(&'static str, PathBuf); 4] {
+/// developer's nor leave its own behind. `MINDTAPE_CACHE_HOME` too, so a
+/// pack source the developer fetched never resolves in a test.
+pub fn isolated_env(dir: &Path) -> [(&'static str, PathBuf); 5] {
     [
         (mindtape::CONFIG_HOME_ENV, dir.join(NO_GLOBAL_CONFIG)),
         (mindtape::DATA_HOME_ENV, dir.join(DATA_HOME)),
+        (mindtape::CACHE_HOME_ENV, dir.join(CACHE_HOME)),
         ("XDG_CONFIG_HOME", dir.join(NO_GLOBAL_CONFIG)),
         ("HOME", dir.to_path_buf()),
     ]

@@ -79,6 +79,9 @@ what is wrong.
   [`MINDTAPE_DATA_HOME`],
   [Replaces the data directory. `mt install` writes the `@local/mindtape` package under its `typst/packages`, and task files resolve it from there.],
 
+  [`MINDTAPE_CACHE_HOME`],
+  [Replaces the cache directory. Each fetched #link(u("/packs/#packs-from-a-git-source"))[pack source] sits in its `mindtape/packs/`.],
+
   [`TYPST_PACKAGE_PATH`],
   [Moves the package directory Typst reads, for `mt` too, unless `MINDTAPE_DATA_HOME` is set. See Local Typst packages below.],
 
@@ -93,10 +96,10 @@ what is wrong.
 )
 
 The `MINDTAPE_` directory variables work on every platform. The platform's
-own lookup reads `XDG_CONFIG_HOME` and `XDG_DATA_HOME` on Linux only, so for a
+own lookup reads `XDG_CONFIG_HOME`, `XDG_DATA_HOME` and `XDG_CACHE_HOME` on Linux only, so for a
 test or a sandbox that must not see your own setup, set these instead. Set but
 empty, each one means there's no such directory. `mt` then reads no global
-layer, or resolves no global package. #just.check-examples() runs that way, so
+layer, resolves no global package, or finds no pack source installed. #just.check-examples() runs that way, so
 each example project reads the prelude beside it.
 
 With `MINDTAPE_NOW` unset or empty, today is the system clock's local date,

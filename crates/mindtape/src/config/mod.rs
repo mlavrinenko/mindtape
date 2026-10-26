@@ -33,6 +33,7 @@
 //! - `merge.rs`: the shared TOML deep merge.
 //! - `name_cycle.rs`: cycle detection over a name-reference graph.
 //! - `origins.rs`: the pack or layer behind each key and pack parameter.
+//! - `pack_cache.rs`: a declared source's pack, resolved in its verified cached tree.
 //! - `pack_dirs.rs`: a directory pack's `templates/`, appended to `templates.dirs`.
 //! - `pack_files.rs`: a pack's check files and dictionary paths, resolved from its directory.
 //! - `pack_fold.rs`: one layer's packs, folded into the sub-layer below it.
@@ -75,6 +76,7 @@ pub(crate) mod ls_columns;
 pub(crate) mod merge;
 pub(crate) mod name_cycle;
 mod origins;
+pub(crate) mod pack_cache;
 pub(crate) mod pack_dirs;
 pub(crate) mod pack_files;
 pub(crate) mod pack_fold;

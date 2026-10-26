@@ -8,7 +8,8 @@
 //! `extends`, first. That is the order a later rule replaces an earlier one
 //! by name. A directory pack that two layers extend counts once, at its
 //! latest place. The dirs are absolute, since a pack may sit outside the
-//! project.
+//! project. [`stays_inside`] checks a path a pack names against the
+//! directory it must stay in.
 
 use std::path::{Component, Path, PathBuf};
 
@@ -47,6 +48,13 @@ pub(super) fn append_template_dirs(
     let mut dirs = read_array(doc, &TEMPLATE_DIRS);
     dirs.extend(added.into_iter().map(toml::Value::String));
     crate::config::packs_toml::write_array(doc, &TEMPLATE_DIRS, dirs)
+}
+
+/// Whether `path` names `base` or a file under it, once both are
+/// [`absolute`]. An absolute `path` joined to `base` replaces it, so it
+/// passes only when it names a file under `base` itself.
+pub(crate) fn stays_inside(base: &Path, path: &Path) -> bool {
+    absolute(path).starts_with(absolute(base))
 }
 
 /// `path` made absolute, with its `.` and `..` segments resolved by name, so

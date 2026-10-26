@@ -40,9 +40,19 @@ pub enum PackOrigin {
     /// if the base couldn't be made absolute) path.
     Path(PathBuf),
     /// A directory pack, held as the directory: its `pack.toml` is the pack,
-    /// and its `templates/` joins `templates.dirs`. A pack fetched into a
-    /// cache resolves to this too.
+    /// and its `templates/` joins `templates.dirs`.
     Dir(PathBuf),
+    /// A `<source>:<pack>` entry resolved against a declared source's tree in
+    /// the cache: `<pack>.toml` at the tree's top, or `<pack>/pack.toml`.
+    Cached {
+        /// The whole `<source>:<pack>` name.
+        name: String,
+        /// The source's tree, `<cache>/<sha256>/`, which every file the pack
+        /// names stays inside.
+        tree: PathBuf,
+        /// The pack's directory, when it is a directory pack.
+        dir: Option<PathBuf>,
+    },
 }
 
 impl PackOrigin {
@@ -50,7 +60,7 @@ impl PackOrigin {
     /// resolved path.
     pub(crate) fn label(&self) -> String {
         match self {
-            Self::Embedded(name) => name.clone(),
+            Self::Embedded(name) | Self::Cached { name, .. } => name.clone(),
             Self::Path(path) | Self::Dir(path) => path.display().to_string(),
         }
     }
@@ -61,6 +71,7 @@ impl PackOrigin {
         match self {
             Self::Dir(dir) => Some(dir),
             Self::Path(file) => file.parent(),
+            Self::Cached { tree, dir, .. } => Some(dir.as_deref().unwrap_or(tree)),
             Self::Embedded(_) => None,
         }
     }
@@ -69,7 +80,18 @@ impl PackOrigin {
     pub(crate) fn dir(&self) -> Option<&Path> {
         match self {
             Self::Dir(dir) => Some(dir),
+            Self::Cached { dir, .. } => dir.as_deref(),
             Self::Embedded(_) | Self::Path(_) => None,
+        }
+    }
+
+    /// The directory every file the pack names must stay inside: a cached
+    /// pack's source tree, which came from the network. A local pack may
+    /// name any file, as the project itself may.
+    pub(crate) fn bound(&self) -> Option<&Path> {
+        match self {
+            Self::Cached { tree, .. } => Some(tree),
+            Self::Embedded(_) | Self::Path(_) | Self::Dir(_) => None,
         }
     }
 }

@@ -1,7 +1,8 @@
 //! Where `mt` keeps its per-user state: the global config directory (the XDG
 //! `defaults.toml` layer, the JSON Schema, presets, `at.toml`), the local data
-//! directory (the `allowed/` records) and the package root the
-//! `@local/mindtape` Typst package is installed under.
+//! directory (the `allowed/` records), the cache directory (the fetched pack
+//! sources) and the package root the `@local/mindtape` Typst package is
+//! installed under.
 //!
 //! The two app directories resolve through [`dirs`] by default, but `dirs`
 //! reads the environment only on Unix. On Windows it goes through the
@@ -10,8 +11,9 @@
 //! nothing there and a test that asserts a write landed under an injected
 //! `XDG_DATA_HOME` fails outright.
 //!
-//! Hence one env seam that works on every platform: `$MINDTAPE_CONFIG_HOME` and
-//! `$MINDTAPE_DATA_HOME` replace the resolved directory wholesale. Set (and
+//! Hence one env seam that works on every platform: `$MINDTAPE_CONFIG_HOME`,
+//! `$MINDTAPE_DATA_HOME` and `$MINDTAPE_CACHE_HOME` replace the resolved
+//! directory wholesale. Set (and
 //! non-empty) wins over `dirs`; set-but-empty means "this app directory does
 //! not exist", which drops the global config layer rather than falling back to
 //! the machine's own: an explicit disable, never a silent fall-through.
@@ -32,6 +34,10 @@ pub const CONFIG_HOME_ENV: &str = "MINDTAPE_CONFIG_HOME";
 /// package root under its `typst/packages/`.
 pub const DATA_HOME_ENV: &str = "MINDTAPE_DATA_HOME";
 
+/// Environment override for the cache directory, the one holding
+/// `mindtape/packs/`.
+pub const CACHE_HOME_ENV: &str = "MINDTAPE_CACHE_HOME";
+
 /// The directory `mindtape/defaults.toml`, `config.schema.json`, `presets/` and
 /// `at.toml` live under: `$MINDTAPE_CONFIG_HOME` when set, else
 /// `dirs::config_dir()`. `None` means no such directory applies.
@@ -46,6 +52,14 @@ pub fn config_home() -> Option<PathBuf> {
 #[must_use]
 pub fn data_home() -> Option<PathBuf> {
     resolve(std::env::var_os(DATA_HOME_ENV), dirs::data_local_dir)
+}
+
+/// The directory the fetched pack sources live under, in `mindtape/packs/`:
+/// `$MINDTAPE_CACHE_HOME` when set, else `dirs::cache_dir()`, such as
+/// `~/.cache` on Linux. `None` means no such directory applies.
+#[must_use]
+pub fn cache_home() -> Option<PathBuf> {
+    resolve(std::env::var_os(CACHE_HOME_ENV), dirs::cache_dir)
 }
 
 /// The directory holding `local/<name>/<version>/`, which `mt install` writes

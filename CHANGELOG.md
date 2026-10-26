@@ -490,6 +490,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   at its own `[[tasks.rules]]` table, where `mt` used to point at a line of
   `.mindtape/config.toml` that held neither. A key no file declares in full has
   no place, and the error leads with the key alone.
+- **A pack from a declared source resolves from the cache.** `acme:commits`
+  reads `commits.toml`, or `commits/pack.toml` for a folder pack, in
+  `<cache>/mindtape/packs/<sha256>/`, the tree the lock's hash names, and
+  `mt config show --origin` labels its rules `pack acme:commits`. Every load
+  hashes the tree first and refuses one that doesn't match the lock, naming its
+  directory. A source the cache lacks fails as
+  `pack source not installed: 'acme'`, with a hint to run `mt packs install`,
+  and an unknown pack lists the ones the tree holds. A pack name takes letters,
+  digits, `-` and `_`, a cached pack's dictionary `path` must stay inside its
+  tree, and any pack's `check` module must stay inside the pack's directory.
+  The cache is `$MINDTAPE_CACHE_HOME`, else the platform cache directory, such
+  as `~/.cache` on Linux. The library adds `config::pack_sources::cache_root`
+  and `load_config_layered_in`, which takes the cache, while
+  `load_config_layered_from` reads none.
 - **`mt rules` lists the rules that apply, one line each.** A line is the
   rule's severity, its name as `mt config show --origin` prints it, and the
   message a breach prints, after packs, overrides and `disable`. A rule with no
@@ -599,8 +613,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   completing `include`, `exclude`, `forks` and the `[board]` keys.
 - **Config layers.** `~/.config/mindtape/defaults.toml`, ancestor
   `.mindtape/defaults.toml` files and the project config merge in order.
-- **`$MINDTAPE_CONFIG_HOME` and `$MINDTAPE_DATA_HOME` move the per-user
-  directories** on every platform, for reading, `mt install` and package
+- **`$MINDTAPE_CONFIG_HOME`, `$MINDTAPE_DATA_HOME` and `$MINDTAPE_CACHE_HOME`
+  move the per-user directories** on every platform, for reading, `mt install` and package
   loading alike. Set but empty means none.
 - **`$MINDTAPE_NOW` pins today**, as a `YYYY-MM-DD` date or an RFC 3339
   timestamp, for every stamp, `now()`, `stale(N)` and `mt recur`. A malformed

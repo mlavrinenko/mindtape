@@ -147,8 +147,12 @@ fn dir_layers(root: &Path, home: Option<&Path>) -> Vec<Layer> {
 /// Returns [`ConfigError`] if any layer or pack fails to parse, an `extends`
 /// pack can't be resolved, or a `disable` name matches no rule. The error
 /// already names its file.
-fn merge_doc(layers: &[Layer], root: &Path) -> Result<MergedDoc, ConfigError> {
-    let mut merged = merge_layers_with_packs(layers, root)
+fn merge_doc(
+    layers: &[Layer],
+    root: &Path,
+    pack_cache: Option<&Path>,
+) -> Result<MergedDoc, ConfigError> {
+    let mut merged = merge_layers_with_packs(layers, root, pack_cache)
         .map_err(|err| name_file(err, &Sources::of_layers(layers, root), root))?;
     merge_builtin_frameworks(&mut merged.table);
     Ok(MergedDoc {
@@ -199,12 +203,13 @@ struct MergedDoc {
 fn build_config(
     layers: &[Layer],
     root: &Path,
+    pack_cache: Option<&Path>,
 ) -> Result<(Config, Vec<RuleOriginEntry>), ConfigError> {
     let MergedDoc {
         table,
         rule_origins,
         sources,
-    } = merge_doc(layers, root)?;
+    } = merge_doc(layers, root, pack_cache)?;
     let sources = Provenance::new(sources);
     build_typed(table, rule_origins, layers, root, &sources)
         .map_err(|err| name_file(err, &sources, root))
@@ -263,7 +268,8 @@ fn build_typed(
 /// As [`merge_doc`].
 pub fn merged_config_table(root: &Path) -> Result<toml::Table, ConfigError> {
     let layers = discover_layers(root, dirs::home_dir().as_deref());
-    merge_doc(&layers, root).map(|merged| merged.table)
+    let pack_cache = crate::config::pack_sources::cache_root();
+    merge_doc(&layers, root, pack_cache.as_deref()).map(|merged| merged.table)
 }
 
 /// `err` with the file it is about: a TOML error of the project's own config
@@ -299,7 +305,8 @@ fn name_file(err: ConfigError, sources: &Sources, root: &Path) -> ConfigError {
 /// Assemble the full layered config for `root`: discover every layer, merge
 /// them (resolving each one's `extends` packs and applying `disable`), and
 /// build the typed [`Config`]. Returns the layer provenance and every rule's
-/// own, for `mt config show --origin`.
+/// own, for `mt config show --origin`. A declared pack source resolves from
+/// [`crate::config::pack_sources::cache_root`].
 ///
 /// # Errors
 /// Returns [`ConfigError`] if any layer or pack fails to parse, an `extends`
@@ -308,16 +315,18 @@ fn name_file(err: ConfigError, sources: &Sources, root: &Path) -> ConfigError {
 pub fn load_config_layered(
     root: &Path,
 ) -> Result<(Config, Vec<LayerSource>, Vec<RuleOriginEntry>), ConfigError> {
-    load_config_layered_from(
+    load_config_layered_in(
         root,
         dirs::home_dir().as_deref(),
         crate::loader::app_dirs::config_home().as_deref(),
+        crate::config::pack_sources::cache_root().as_deref(),
     )
 }
 
 /// [`load_config_layered`] with both environment-derived directories injected:
 /// `home` bounds the ancestor walk, `xdg_config_dir` locates the global
-/// `mindtape/defaults.toml` layer. Pass `None` for either to drop it.
+/// `mindtape/defaults.toml` layer. Pass `None` for either to drop it. No pack
+/// source is installed, so a pack from a declared source fails to resolve.
 ///
 /// The entry point for a caller that must not read the running machine —
 /// embedders wiring their own config discovery, and any test asserting on a
@@ -331,9 +340,24 @@ pub fn load_config_layered_from(
     home: Option<&Path>,
     xdg_config_dir: Option<&Path>,
 ) -> Result<(Config, Vec<LayerSource>, Vec<RuleOriginEntry>), ConfigError> {
+    load_config_layered_in(root, home, xdg_config_dir, None)
+}
+
+/// [`load_config_layered_from`] with the pack cache injected too:
+/// `pack_cache` is the directory each declared source's tree sits in, as
+/// `<sha256>/`, or `None` when no source is installed.
+///
+/// # Errors
+/// As [`load_config_layered`].
+pub fn load_config_layered_in(
+    root: &Path,
+    home: Option<&Path>,
+    xdg_config_dir: Option<&Path>,
+    pack_cache: Option<&Path>,
+) -> Result<(Config, Vec<LayerSource>, Vec<RuleOriginEntry>), ConfigError> {
     let layers = discover_layers_with_xdg(root, home, xdg_config_dir);
     let sources = layers.iter().map(|layer| layer.source.clone()).collect();
-    let (config, rule_origins) = build_config(&layers, root)?;
+    let (config, rule_origins) = build_config(&layers, root, pack_cache)?;
     Ok((config, sources, rule_origins))
 }
 
