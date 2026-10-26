@@ -35,8 +35,8 @@ slot. Follow `references/hand-editing.md`, then run `mt check`.
 
 = Is this a #mindtape project?
 
-It is when `.mindtape/config.toml` exists. Run `mt` in the directory that holds
-`.mindtape/` or below it. For another project, pass `-w <path>`, or put a name
+It is when `.mindtape/config.toml` exists. Run `mt` at or below the directory that
+holds `.mindtape/`. For another project, pass `-w <path>`, or put a name
 that `mt at` lists, such as `@name`, right after `mt`. `mt at <name>` shows
 whether a name is one project or a set. On a set, #set-command-list() read
 every project, and a bare `mt @name` runs `board`. Every other command, every
@@ -63,8 +63,8 @@ write included, refuses a set: put one project's `@name` there instead.
 )
 
 Run `mt <cmd> --help` for every flag. Never guess the project's statuses, link
-kinds, priority scale or tags: read them from `mt config show`, which prints
-the merged config, or the statuses alone from `mt flip --list`. Read the words
+kinds, priority scale or tags: read them from `mt config show`, the merged
+config, or the statuses from `mt flip --list`. Read the words
 a dictionary accepts, such as the verbs a title may start with, from
 `mt dicts <name>`. Before you file, flip or commit, run `mt rules --for <step>`
 (`add`, `flip` or `commit`) to read the rules that step checks. For what no
@@ -99,8 +99,8 @@ needs no shell quoting. `--print` shows the task without writing it.
 
 A key names a template slot, which need not be a field: a framework priority
 takes its inputs (`--set impact=8`). `mt add` refuses an unknown slot and lists
-the known ones. When the template has no slot for a field, file the task
-first, then write the field with `mt set`. A `text` slot escapes Typst markup,
+the known ones. For a field the template has no slot for, file the task,
+then `mt set` it. A `text` slot escapes Typst markup,
 so a code span in it lands as literal backticks, and `mt add` warns naming the
 slot. Read `references/add-slots.md` before you fill an unfamiliar template.
 
@@ -113,13 +113,13 @@ status with today's date, and `-m "…"` sets the note. A refused flip names its
 reason: the legend forbids the transition, the task has an unfinished
 dependency, or it is a parent with an unfinished child. Fix the reason.
 `--force` overrides the refusal and waives a failing `[[on.flip]]` gate; use it
-only to fix a mistake. Exit 127 from a gate means `mt` ran outside the
-project's dev shell, so flip from inside it.
+only to fix a mistake. Exit 127 from a gate means `mt` ran outside the dev
+shell, so flip from inside it.
 
 `mt ls blocked --columns title,why` shows what each blocked task waits on. A
 legend may have no `blocked` status, so check `mt flip --list` first. For an
 external blocker, read `references/blocking.md`. Never mark a blocked task
-`wip`: that counts against any work-in-progress cap and says someone is on it.
+`wip`: that says someone is on it and counts against a WIP cap.
 
 `mt` runs no command from the config, neither a `[[tasks.waits]]` checker, an
 `[[on.flip]]` `run` nor a `[go]` or `[add]` editor, until the user allows them.
@@ -134,3 +134,5 @@ A project with the `flip-with-work` commit rule refuses a commit that holds
 only a `wip` or `done` flip. Commit `mt wip <stem>` with the first change of
 the work and `mt done <stem>` with the last, whose `Refs:` trailer names the
 task. A commit that files a task holds no flip and no `Refs:` trailer.
+
+If `mt` says `pack source not installed`, run `mt packs install`.

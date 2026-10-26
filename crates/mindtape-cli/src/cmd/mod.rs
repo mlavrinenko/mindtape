@@ -8,8 +8,9 @@
 //!
 //! - `add/`, `check/`, `flip/`, `init/` — `mt add`, `mt check`, `mt flip` (with
 //!   the status shortcut verbs) and `mt init` (with its wizard, presets, axes).
-//! - `graph/`, `import/`, `install/`, `link/`, `ls/`, `recur/`, `rm/` — the
-//!   commands split over helper files.
+//! - `graph/`, `import/`, `install/`, `link/`, `ls/`, `packs/`, `recur/`,
+//!   `rm/` — the commands split over helper files, or with subcommands of
+//!   their own.
 //! - `allow.rs`, `config.rs`, `dicts.rs`, `eval.rs`, `find.rs`, `go.rs`, `mv.rs`,
 //!   `preset.rs`, `review.rs`, `rules.rs`, `set.rs`, `views.rs`, `at.rs`,
 //!   `board.rs` —
@@ -33,6 +34,7 @@ pub(crate) mod install;
 pub(crate) mod link;
 pub(crate) mod ls;
 pub(crate) mod mv;
+pub(crate) mod packs;
 pub(crate) mod preset;
 pub(crate) mod recur;
 pub(crate) mod review;

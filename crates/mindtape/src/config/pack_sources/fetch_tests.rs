@@ -4,11 +4,10 @@
 
 use std::ffi::OsStr;
 use std::path::Path;
-use std::process::Command;
 
-use super::{Fetch, FetchError, fetch};
+use super::{Fetch, FetchError, fetch, locate};
 use crate::config::pack_sources::git::git_error;
-use crate::test_support::{git_as_tester, rerun_isolated_with, tempdir, write_file};
+use crate::test_support::{git_as_tester, git_stdout, rerun_isolated_with, tempdir, write_file};
 
 /// The framed hash of [`source`]'s tree, the same on every platform.
 const SOURCE_HASH: &str = "32c8ada3417d4cd0d8ec52f8487b73232601df2a20f9992d6aadfbd3eac3d386";
@@ -31,17 +30,6 @@ fn fetch_with(
     request.run(cache_root)
 }
 
-/// Run git in `dir` and return its stdout, trimmed.
-fn git_out(dir: &Path, args: &[&str]) -> String {
-    let output = Command::new("git")
-        .args(args)
-        .current_dir(dir)
-        .output()
-        .unwrap();
-    assert!(output.status.success(), "git {args:?} must succeed");
-    String::from_utf8(output.stdout).unwrap().trim().to_owned()
-}
-
 /// A tempdir holding an empty git repository `work`, made by `init`.
 fn work_repo(init: &[&str]) -> (tempfile::TempDir, std::path::PathBuf) {
     let dir = tempdir();
@@ -56,7 +44,7 @@ fn work_repo(init: &[&str]) -> (tempfile::TempDir, std::path::PathBuf) {
 fn publish(dir: &Path, work: &Path, commit: &str) -> String {
     git_as_tester(work, &["tag", "v1", commit]);
     git_as_tester(dir, &["clone", "--quiet", "--bare", "work", "src.git"]);
-    git_out(work, &["rev-parse", "v1^{commit}"])
+    git_stdout(work, &["rev-parse", "v1^{commit}"])
 }
 
 /// A bare repository holding one commit, tagged `v1` and on `main`, and that
@@ -69,7 +57,7 @@ fn source(with_symlink: bool) -> (tempfile::TempDir, String) {
     write_file(&work, "team/pack.toml", "c = 3\n");
     git_as_tester(&work, &["add", "."]);
     if with_symlink {
-        let blob = git_out(&work, &["hash-object", "-w", "commits.toml"]);
+        let blob = git_stdout(&work, &["hash-object", "-w", "commits.toml"]);
         let info = format!("120000,{blob},link");
         git_as_tester(&work, &["update-index", "--add", "--cacheinfo", &info]);
     }
@@ -275,14 +263,14 @@ fn unhex(hex: &str) -> Vec<u8> {
 fn traversal_source() -> (tempfile::TempDir, String) {
     let (dir, work) = work_repo(&["init", "--quiet"]);
     write_file(&work, "evil", "pwned\n");
-    let mut id = git_out(&work, &["hash-object", "-w", "evil"]);
+    let mut id = git_stdout(&work, &["hash-object", "-w", "evil"]);
     let mut entry = ("100644", "evil");
     for _ in 0..4 {
         let mut tree = format!("{} {}\0", entry.0, entry.1).into_bytes();
         tree.extend(unhex(&id));
         write_file(&work, "tree.bin", &tree);
         let args = ["hash-object", "-t", "tree", "--literally", "-w", "tree.bin"];
-        id = git_out(&work, &args);
+        id = git_stdout(&work, &args);
         entry = ("40000", "..");
     }
     let tester = [
@@ -295,7 +283,7 @@ fn traversal_source() -> (tempfile::TempDir, String) {
         "-m",
         "x",
     ];
-    let commit = git_out(&work, &tester);
+    let commit = git_stdout(&work, &tester);
     let commit = publish(dir.path(), &work, &commit);
     (dir, commit)
 }
@@ -362,4 +350,34 @@ fn a_sha256_source_fetches_by_its_64_digit_commit() {
     let sha = fetch(&url, "v1", &commit, None, cache.path()).unwrap();
     let file = cache.path().join(sha).join("commits.toml");
     assert_eq!(std::fs::read(file).unwrap(), b"a = 1\n");
+}
+
+#[test]
+fn locate_joins_a_relative_path_to_the_root_and_passes_a_url() {
+    let root = Path::new("/srv/project");
+    let joined = root.join("../packs.git").display().to_string();
+    assert_eq!(locate("../packs.git", root), joined);
+    assert_eq!(
+        locate("packs", root),
+        root.join("packs").display().to_string()
+    );
+    for remote in [
+        "https://example.com/acme/packs",
+        "ssh://git@example.com/acme",
+        "git@example.com:acme/packs.git",
+        "example.com:packs",
+    ] {
+        assert_eq!(locate(remote, root), remote, "{remote}");
+    }
+    let absolute = std::env::temp_dir().join("packs.git").display().to_string();
+    assert_eq!(locate(&absolute, root), absolute);
+}
+
+#[test]
+fn locate_reads_a_slash_or_a_one_letter_prefix_before_the_colon_as_a_path() {
+    let root = Path::new("/srv/project");
+    for path in ["dir/a:b", "dir\\a:b", "C:packs"] {
+        let joined = root.join(path).display().to_string();
+        assert_eq!(locate(path, root), joined, "{path}");
+    }
 }

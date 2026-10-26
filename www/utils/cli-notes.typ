@@ -220,4 +220,11 @@
   "preset": (
     examples: "preset-examples",
   ),
+  "packs": (
+    prose: [`mt packs install` fetches each
+      #link(u("/packs/#packs-from-a-git-source"))[pack source] that
+      `.mindtape/packs.lock` pins and your cache lacks. It refuses a lock
+      that disagrees with `[pack-sources]`, so a clone or a CI job gets the
+      packs you reviewed. It writes only the cache, never your project.],
+  ),
 )

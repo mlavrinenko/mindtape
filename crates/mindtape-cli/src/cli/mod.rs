@@ -25,8 +25,8 @@ use crate::render::link::HyperlinkChoice;
 use crate::{
     cmd::add, cmd::allow, cmd::at, cmd::board, cmd::check, cmd::config as config_cmd, cmd::dicts,
     cmd::eval, cmd::find, cmd::flip, cmd::go, cmd::graph, cmd::import, cmd::init, cmd::install,
-    cmd::link as link_cmd, cmd::ls, cmd::mv, cmd::preset as preset_cmd, cmd::recur, cmd::review,
-    cmd::rm, cmd::rules, cmd::set, cmd::views,
+    cmd::link as link_cmd, cmd::ls, cmd::mv, cmd::packs, cmd::preset as preset_cmd, cmd::recur,
+    cmd::review, cmd::rm, cmd::rules, cmd::set, cmd::views,
 };
 
 /// Mindtape keeps your tasks as Typst files and checks them against your rules.
@@ -134,6 +134,11 @@ enum Command {
     /// `--no-schema` or `--no-completions`. Completions call mt itself, so
     /// they stay current when you upgrade.
     Install(install::InstallArgs),
+    /// Fetch the pack sources `.mindtape/packs.lock` pins.
+    ///
+    /// No other command touches the network, so a source the cache lacks
+    /// stays refused until `mt packs install` fetches it.
+    Packs(packs::PacksArgs),
     /// Show the config mt uses.
     Config(config_cmd::ConfigArgs),
     /// List the rules your project checks, one line each.
@@ -216,6 +221,7 @@ impl Cli {
             Command::Preset(args) => preset_cmd::run(&args),
             Command::Init(args) => init::run(&args),
             Command::Install(args) => install::run(&args),
+            Command::Packs(args) => packs::run(&args),
             Command::Eval(args) => eval::run(&args),
             Command::Go(args) => go::run(&args),
             Command::Rm(args) => rm::run(&args),

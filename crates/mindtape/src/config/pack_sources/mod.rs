@@ -13,7 +13,7 @@
 //!
 //! - `mod.rs`: `[pack-sources]`, [`read_raw`] and the load-time checks.
 //! - `fetch.rs`, `fetch_tests.rs`: [`fetch`], one locked source into the
-//!   cache.
+//!   cache, and [`locate`], the repository a declared `git` names.
 //! - `git.rs`, `git_tests.rs`: git run apart from the caller's git state,
 //!   and the blobs streamed out of it.
 //! - `hash.rs`, `hash_tests.rs`: [`hash`], the framed tree hash a lock pins.
@@ -37,7 +37,7 @@ use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
 
-pub use crate::config::pack_sources::fetch::{FetchError, fetch};
+pub use crate::config::pack_sources::fetch::{FetchError, fetch, locate};
 pub use crate::config::pack_sources::hash::hash;
 pub use crate::config::pack_sources::lock::{LockedSource, PackLock, lock_path};
 

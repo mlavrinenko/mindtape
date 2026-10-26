@@ -130,6 +130,29 @@ pub fn fetch(
     request.run(cache_root)
 }
 
+/// Where git finds the source `git` that the project under `root` declares.
+/// [`fetch`] runs git in the caller's directory, so a relative path is joined
+/// to `root`. A URL, an scp-like `host:path` and an absolute path pass as
+/// given.
+#[must_use]
+pub fn locate(git: &str, root: &Path) -> String {
+    if is_remote(git) || Path::new(git).is_absolute() {
+        return git.to_owned();
+    }
+    root.join(git).display().to_string()
+}
+
+/// Whether git reads `git` as a URL rather than a path: it holds `://`, or a
+/// colon before any slash after more than one character, as `host:path`
+/// does and a drive letter's `C:` doesn't.
+fn is_remote(git: &str) -> bool {
+    if git.contains("://") {
+        return true;
+    }
+    git.split_once(':')
+        .is_some_and(|(host, _)| host.len() > 1 && !host.contains(['/', '\\']))
+}
+
 /// One [`fetch`], with the git program it runs.
 pub(super) struct Fetch<'a> {
     pub(super) program: &'a OsStr,

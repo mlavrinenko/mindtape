@@ -160,6 +160,22 @@ pub fn git_init(dir: &Path) {
     );
 }
 
+/// Run `git <args>` in `dir` and return its stdout, trimmed.
+///
+/// # Panics
+/// Panics if git fails or prints anything but UTF-8.
+#[allow(clippy::unwrap_used)]
+#[must_use]
+pub fn git_stdout(dir: &Path, args: &[&str]) -> String {
+    let output = Command::new("git")
+        .args(args)
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "git {args:?} must succeed");
+    String::from_utf8(output.stdout).unwrap().trim().to_owned()
+}
+
 /// Run `git <args>` in `root` as a throwaway identity with signing off,
 /// asserting success — the committing half of [`git_init`] for tests that
 /// build a history.

@@ -52,6 +52,29 @@ impl From<mindtape::allow::AllowError> for Diag {
     }
 }
 
+/// A pack source `mt packs` couldn't fetch, with the error's own next step.
+/// The caller names the source with [`Diag::value`].
+impl From<mindtape::config::pack_sources::FetchError> for Diag {
+    fn from(err: mindtape::config::pack_sources::FetchError) -> Self {
+        use mindtape::config::pack_sources::FetchError as E;
+        let what = match &err {
+            E::GitNotFound | E::Git { .. } => "can't run git for pack source",
+            E::BadCommit { .. }
+            | E::MissingCommit { .. }
+            | E::Unsupported { .. }
+            | E::Mismatch { .. } => "can't fetch pack source",
+            E::Occupied { .. } | E::Io(_) => "can't write pack source to the cache",
+        };
+        // The message already holds an `Io` variant's source, which
+        // `cause` would print twice.
+        let diag = Self::failed(what).reason(err.to_string());
+        match err.hint() {
+            Some(hint) => diag.hint(Hint::new(hint)),
+            None => diag,
+        }
+    }
+}
+
 impl From<csv::IntoInnerError<csv::Writer<Vec<u8>>>> for Diag {
     fn from(err: csv::IntoInnerError<csv::Writer<Vec<u8>>>) -> Self {
         Self::failed("can't write CSV").cause(&err)

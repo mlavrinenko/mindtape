@@ -504,6 +504,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   as `~/.cache` on Linux. The library adds `config::pack_sources::cache_root`
   and `load_config_layered_in`, which takes the cache, while
   `load_config_layered_from` reads none.
+- **`mt packs install` fetches the pack sources the lock pins.** For each
+  declared source whose tree the cache lacks it fetches the locked commit,
+  checks its hash against the lock and prints `fetched acme 3f2c1a9 into
+  <dir>`, then counts the rest as `1 source up to date`. Like `npm ci`, it
+  refuses a lock that disagrees with `[pack-sources]`, with a hint to run
+  `mt packs update`. It reads the sources without loading the config, writes
+  only the cache, and takes `--json`. A relative `git` path is read from the
+  project root, which the library's `config::pack_sources::locate` resolves.
 - **`mt rules` lists the rules that apply, one line each.** A line is the
   rule's severity, its name as `mt config show --origin` prints it, and the
   message a breach prints, after packs, overrides and `disable`. A rule with no
