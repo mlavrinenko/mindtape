@@ -58,8 +58,7 @@
 == Changes
 
 - `crates/mindtape/src/config/packs_tests.rs`: the red tests first, against a cache directory the test fills.
-- `crates/mindtape/src/config/pack_resolve.rs`: resolve a declared source's pack from the cache, as a new `PackOrigin` variant.
-- `crates/mindtape/src/config/packs.rs`: pass the lock to the resolver.
+- `crates/mindtape/src/config/pack_resolve.rs`: resolve a declared source's pack from the cache, as a new `PackOrigin` variant. `PackScope` already carries the sources and the lock, and `source_error` already refuses a declared source as `pack source not installed`; look in the cache before that line.
 - `crates/mindtape/src/loader/app_dirs.rs`: `cache_home()` with the `MINDTAPE_CACHE_HOME` override.
 - `crates/mindtape-cli/src/cmd/config.rs`: print the new origin.
 - `www/content/packs.typ`, `www/content/config.typ`: the cache directory and its variable.
