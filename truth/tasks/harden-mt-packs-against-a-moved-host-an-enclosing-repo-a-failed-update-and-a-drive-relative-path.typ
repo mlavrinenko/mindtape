@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 26),
+  status: done(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ"),
 )
 
@@ -57,7 +57,7 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape/src/config/pack_sources/git.rs`: every command runs apart from any enclosing repository.
+- `crates/mindtape/src/config/pack_sources/git.rs`: every command runs in the cache root with `GIT_CEILING_DIRECTORIES` set to its parent. A ceiling, not an empty scratch `--git-dir`, because one setting covers every command, `init` and `rev-parse` included, and the cache root is `mt`'s own.
 - `crates/mindtape/src/config/pack_sources/fetch.rs`: refuse a drive-relative `git`.
 - `crates/mindtape-cli/src/cmd/packs/report.rs`: retry from the new `git`, then diff against an empty tree.
 - `crates/mindtape-cli/src/cmd/packs/update.rs`: buffer the report until the lock is written.

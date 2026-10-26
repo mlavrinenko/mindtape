@@ -127,7 +127,9 @@ names a pack, a key, a rule or another array entry, marked `+` for added,
 `~` for changed and `-` for removed. Every new `run` or `editor` line prints
 in full under its entry, and it still runs only once you `mt allow` it. Any
 other file of the source, such as a template or a check module, prints as
-`file <path>`. Here the project bumps `ref` to `v2`, whose commit tightens a
+`file <path>`. When your cache lacks the old tree, it fetches it by its
+commit, from the new `git` if the old one fails, and if both fail it warns
+and lists the new tree as all added. Here the project bumps `ref` to `v2`, whose commit tightens a
 rule, gates a close on a `run` line and adds a pack:
 
 #terminal("packs-update")
