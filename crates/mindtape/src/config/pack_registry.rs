@@ -47,6 +47,16 @@ impl PackOrigin {
         }
     }
 
+    /// The directory the pack's own files resolve from: a directory pack's
+    /// directory, or the one holding a pack file. A built-in pack has none.
+    pub(crate) fn root(&self) -> Option<&Path> {
+        match self {
+            Self::Dir(dir) => Some(dir),
+            Self::Path(file) => file.parent(),
+            Self::Embedded(_) => None,
+        }
+    }
+
     /// The pack's directory, when it is a directory pack.
     pub(crate) fn dir(&self) -> Option<&Path> {
         match self {

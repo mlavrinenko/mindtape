@@ -29,6 +29,7 @@ fn a_check_rule_lists_its_function_and_no_message() {
                 typst: "lib.typ".to_owned(),
                 function: "check-goals".to_owned(),
                 field: Some("x-goals".to_owned()),
+                root: None,
             }),
         }]
     );

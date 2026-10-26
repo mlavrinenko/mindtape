@@ -16,6 +16,7 @@ fn spec(function: &str) -> CheckSpec {
         typst: "check.typ".to_owned(),
         function: function.to_owned(),
         field: None,
+        root: None,
     }
 }
 
@@ -25,6 +26,7 @@ fn field_spec(function: &str, field: &str) -> CheckSpec {
         typst: "check.typ".to_owned(),
         function: function.to_owned(),
         field: Some(field.to_owned()),
+        root: None,
     }
 }
 

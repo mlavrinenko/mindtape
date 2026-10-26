@@ -433,6 +433,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   template with the same name wins. The folder may sit outside the project. A
   `team.toml` beside a `team/` folder makes `extends = ["./team"]` ambiguous,
   and `mt` refuses it naming both.
+- **A pack's check and dictionary files resolve from its directory.** A pack
+  rule's `check` Typst module and a pack dictionary's `path` are read from
+  the folder of a directory pack, or the one holding a pack file, not the
+  project root. The check runs in a Typst world rooted there, so it imports
+  the pack's own files and `@local` packages, never a file of the project. A
+  rule or dictionary the project declares itself resolves from the project
+  root as before.
 - **`mt rules` lists the rules that apply, one line each.** A line is the
   rule's severity, its name as `mt config show --origin` prints it, and the
   message a breach prints, after packs, overrides and `disable`. A rule with no

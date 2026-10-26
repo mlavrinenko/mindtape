@@ -81,7 +81,8 @@ allow-lists share:
 
 A dictionary takes entries from three keys, and needs at least one. `values`
 lists them inline. `path` names a file with one entry per line, relative to
-the project root. `mt` trims each line and skips blank lines and lines
+the project root, or to the pack's directory for a dictionary a
+#link(u("/packs/#files-a-pack-names"))[pack] declares. `mt` trims each line and skips blank lines and lines
 starting with `#`. `include` adds every entry of other dictionaries, your own
 or the built-ins.
 

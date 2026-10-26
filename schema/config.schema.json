@@ -242,7 +242,7 @@
           "type": "string"
         },
         "typst": {
-          "description": "Path to the Typst module exporting `function`, relative to the project\nroot (the directory holding `.mindtape/`).",
+          "description": "Path to the Typst module exporting `function`, relative to the project\nroot (the directory holding `.mindtape/`), or to the directory of the\npack that declares the rule.",
           "type": "string"
         }
       },
@@ -690,7 +690,7 @@
         },
         "path": {
           "default": null,
-          "description": "A file of entries, one per line, relative to the project root. Blank\nlines and lines whose first non-blank character is `#` are skipped, and\neach entry is trimmed. May leave the root (`../shared/verbs.txt`), the\nsame rule `[[typst.local-packages]] path` follows.",
+          "description": "A file of entries, one per line, relative to the project root, or to\nthe directory of the pack that declares the dictionary. Blank\nlines and lines whose first non-blank character is `#` are skipped, and\neach entry is trimmed. May leave the root (`../shared/verbs.txt`), the\nsame rule `[[typst.local-packages]] path` follows.",
           "type": [
             "string",
             "null"

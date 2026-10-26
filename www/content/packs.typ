@@ -117,6 +117,20 @@ the one listed last. If a `team.toml` sits beside a `team/` folder,
 
 Write `"./team.toml"` to read the file.
 
+= Files a pack names
+
+A pack can name files of its own: a rule's Typst `check`, or a
+#link(u("/named-sets/"))[dictionary] `path`. Both resolve from the pack's
+directory, which is the folder of a directory pack, or the one holding a pack
+file. So a pack that sits in `team/` finds `team/check.typ` and
+`team/words.txt` wherever the project lives, with nothing copied across.
+
+A pack's check file runs in a Typst world rooted at that directory. It imports
+the pack's other files and `@local` packages, and it can't import a file of
+the project. A rule and a dictionary that the project declares itself resolve
+from the project root, as they always did, and so does a rule that replaces a
+pack's rule by name. The built-in packs name no files.
+
 = Drop a rule
 
 To turn off a rule you don't want, list its name in `disable`. It drops the

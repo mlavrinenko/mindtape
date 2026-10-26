@@ -49,6 +49,13 @@
 //! prints, whose date-shaped fields are already plain `YYYY-MM-DD` strings by
 //! the time [`crate::model::Task`] holds them.
 //!
+//! # Rules a pack declares
+//!
+//! A rule a pack declared evaluates in a world rooted at the pack's own
+//! directory ([`CheckSpec::root`]), so its file imports the pack's other files
+//! and `@local` packages, never the project's files. The `@local` overrides
+//! still come from the project: they name packages, not the project's tree.
+//!
 //! # Failure
 //!
 //! A missing file or an unexported function is refused at config load
@@ -70,6 +77,11 @@ use crate::emit::format::{hval_to_typ, typ_array, typ_dict_with};
 use crate::model::Task;
 use crate::model::canonical::{CanonicalTask, json_to_hval};
 use crate::rules::CheckSpec;
+
+/// `path` made canonical, or as given when it can't be.
+fn canonical(path: &Path) -> PathBuf {
+    path.canonicalize().unwrap_or_else(|_| path.to_path_buf())
+}
 
 /// One `check` rule, built once and reused across every task it is asked
 /// about: the project root, the resolved `@local` package overrides, and the
@@ -99,7 +111,7 @@ impl CompiledCheck {
             typst_path: spec.typst.clone(),
             function: spec.function.clone(),
             field: spec.field.clone(),
-            root_abs: root.canonicalize().unwrap_or_else(|_| root.to_path_buf()),
+            root_abs: canonical(spec.root.as_deref().unwrap_or(root)),
             overrides: crate::loader::package_overrides(root, config),
             snapshot: SourceSnapshot::new(),
             counter: AtomicU64::new(0),
@@ -175,10 +187,11 @@ pub(crate) fn validate_load(config: &Config, root: &Path) -> Result<(), String> 
 /// no call, since a function that only errors for some inputs must not fail
 /// config load over a value it was never asked to handle.
 fn check_module(root: &Path, config: &Config, check: &CheckSpec) -> Result<(), String> {
-    if !root.join(&check.typst).is_file() {
+    let check_root = check.root.as_deref().unwrap_or(root);
+    if !check_root.join(&check.typst).is_file() {
         return Err(format!("`{}` does not exist", check.typst));
     }
-    let root_abs = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
+    let root_abs = canonical(check_root);
     let id = root_file_id(".mindtape/check-probe/load.typ").map_err(|err| err.to_string())?;
     let mut world = HarvestWorld::with_provider(id, root_abs, Box::new(DiskProvider))
         .with_package_root(crate::loader::package_root());

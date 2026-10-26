@@ -413,3 +413,47 @@ fn an_unknown_check_function_is_one_config_error_at_load() {
         "an unknown function fails at load, naming its own path: {text}"
     );
 }
+
+/// A pack file beside the project holds a word list, a rule reading it and a
+/// `check` rule whose file imports a sibling. `mt check` resolves all three
+/// from the pack's directory, and the project holds none of them.
+#[test]
+fn a_packs_check_file_and_dict_file_resolve_from_the_pack_directory() {
+    let dir =
+        scaffold_project("extends = [\"./team/pack.toml\"]\n\n[tasks]\nroots = [\"tasks\"]\n");
+    let team = "[dicts.words]\npath = \"words.txt\"\n\n\
+         [[tasks.rules]]\nname = \"known-verb\"\nseverity = \"error\"\n\
+         assert = 'in_dict(\"words\", word(title, 1))'\n\n\
+         [[tasks.rules]]\nname = \"not-banned\"\nseverity = \"error\"\n\
+         check = { typst = \"check.typ\", function = \"check-title\", field = \"title\" }\n";
+    write_file(dir.path(), "team/pack.toml", team);
+    write_file(dir.path(), "team/words.txt", "fix\n");
+    write_file(
+        dir.path(),
+        "team/helper.typ",
+        "#let banned = \"Loader refactoring\"\n",
+    );
+    write_file(
+        dir.path(),
+        "team/check.typ",
+        "#import \"helper.typ\": banned\n\
+         #let check-title(title) = if title == banned { (\"title is banned\",) } else { () }\n",
+    );
+    for (stem, title) in [("bad", "Loader refactoring"), ("good", "Fix the loader")] {
+        write_file(
+            dir.path(),
+            format!("tasks/{stem}.typ"),
+            format!(
+                "#import \"@local/mindtape:0.2.0\": *\n\n\
+                 #show: task.with(\n  title: \"{title}\",\n  status: wip(2026, 6, 1),\n)\n"
+            ),
+        );
+    }
+
+    let (ok, text) = check(dir.path());
+
+    assert!(!ok, "{text}");
+    assert!(text.contains("tasks/bad.typ:3: rules.known-verb"), "{text}");
+    assert!(text.contains("rules.not-banned: title is banned"), "{text}");
+    assert!(!text.contains("tasks/good.typ"), "{text}");
+}

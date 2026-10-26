@@ -48,6 +48,7 @@ use crate::config::ConfigError;
 use crate::config::layers::{Layer, LayerSource};
 use crate::config::merge::deep_merge_tables;
 use crate::config::pack_dirs::append_template_dirs;
+use crate::config::pack_files::rebase_dict_paths;
 use crate::config::pack_fold::PackLayer;
 use crate::config::pack_registry::{EMBEDDED_PACKS, RuleOrigin, RuleOriginEntry};
 use crate::config::pack_resolve::{PackScope, resolve_pack};
@@ -176,6 +177,9 @@ fn fold_layer_packs(
     let mut packs = PackLayer::default();
     for entry in extends {
         let mut pack = resolve_pack(entry, base_dir, scope)?;
+        if let Some(dir) = pack.origin.root() {
+            rebase_dict_paths(&mut pack.table, dir);
+        }
         let origin = RuleOrigin::Pack(pack.origin.clone());
         take_rule_arrays(&mut pack.table, &pack.text, &origin, accumulators);
         packs.add(pack.origin, pack.table, layer)?;
@@ -364,3 +368,7 @@ mod tests_merge;
 #[cfg(test)]
 #[path = "packs_tests_dirs.rs"]
 mod tests_dirs;
+
+#[cfg(test)]
+#[path = "packs_tests_files.rs"]
+mod tests_files;

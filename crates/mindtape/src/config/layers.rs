@@ -190,6 +190,7 @@ fn build_config(
     let mut config: Config = toml::Value::Table(doc)
         .try_into()
         .map_err(|merged| locate_in_project_layer(merged, layers))?;
+    crate::config::pack_files::stamp_check_roots(&mut config.tasks.rules, &rule_origins);
     config.dict_cache = crate::config::compile_dicts(&config.dicts, root)
         .map_err(ConfigError::invalid)?
         .into();

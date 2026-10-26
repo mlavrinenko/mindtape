@@ -60,7 +60,8 @@ pub fn builtin_dict_names() -> Vec<&'static str> {
 pub struct DictSpec {
     /// Entries written inline.
     pub values: Vec<String>,
-    /// A file of entries, one per line, relative to the project root. Blank
+    /// A file of entries, one per line, relative to the project root, or to
+    /// the directory of the pack that declares the dictionary. Blank
     /// lines and lines whose first non-blank character is `#` are skipped, and
     /// each entry is trimmed. May leave the root (`../shared/verbs.txt`), the
     /// same rule `[[typst.local-packages]] path` follows.

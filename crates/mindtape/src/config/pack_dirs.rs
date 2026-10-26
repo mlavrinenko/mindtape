@@ -52,7 +52,7 @@ pub(super) fn append_template_dirs(
 /// `path` made absolute, with its `.` and `..` segments resolved by name, so
 /// two spellings of one folder compare equal. The working directory is left
 /// out when it can't be read.
-fn absolute(path: &Path) -> PathBuf {
+pub(super) fn absolute(path: &Path) -> PathBuf {
     let path = std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf());
     let mut clean = PathBuf::new();
     for part in path.components() {

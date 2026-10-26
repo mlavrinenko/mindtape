@@ -125,7 +125,8 @@ impl RulesRoot {
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct CheckSpec {
     /// Path to the Typst module exporting `function`, relative to the project
-    /// root (the directory holding `.mindtape/`).
+    /// root (the directory holding `.mindtape/`), or to the directory of the
+    /// pack that declares the rule.
     pub typst: String,
     /// Name of the function `typst` exports that this rule calls.
     pub function: String,
@@ -134,6 +135,11 @@ pub struct CheckSpec {
     /// `mt eval --json` prints.
     #[serde(default)]
     pub field: Option<String>,
+    /// The directory `typst` resolves from and the check evaluates in, when a
+    /// pack declared the rule: the pack's own directory. `None` means the
+    /// project root. Set at load, never read from config.
+    #[serde(skip)]
+    pub(crate) root: Option<PathBuf>,
 }
 
 /// One assertion or check that every selected task must satisfy. Set exactly one
