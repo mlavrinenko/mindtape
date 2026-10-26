@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 26),
+  status: done(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ")
     + depends-on(
       "name-packs-as-source-colon-pack.typ",
@@ -52,15 +52,15 @@ extends = [
 ```
 
 - 🟢 `mindtape:wip-caps` holds the two WIP caps, with `milestones = 1` and `leaves = 1` as parameters.
-- 🟢 `mindtape:budget` holds `judgment-stays-small`, skipping milestones, and `src-budget`, with `min-difficulty = 3` and `max-files = 5` as parameters. It sets `[tasks.estimate] units = ["src-files"]` and a `[dicts.source]` of `**`.
+- 🟢 `mindtape:budget` holds `judgment-stays-small`, skipping milestones, and `src-budget`, with `min-difficulty = 3` and `max-files = 5` as parameters. It sets `[tasks.estimate] units = ["src-files"]`, a query `src-files = "@source"` and a `[dicts.source]` of `**`.
 - 🟢 A project's `[tasks.estimate.queries]` and its own `[dicts.source]` merge over the pack's, as this repo's do.
 
 
 == Changes
 
-- `crates/mindtape/src/config/packs_tests.rs`: the red tests first: each pack's rules load with their defaults and with `with` values.
+- `crates/mindtape/src/config/packs_tests_budget.rs` (new, since `packs_tests.rs` nears its cap): the red tests first: each pack's rules load with their defaults and with `with` values.
 - `crates/mindtape/src/packs/wip-caps.toml`, `crates/mindtape/src/packs/budget.toml` (new): the packs.
-- `crates/mindtape/src/config/packs.rs`: register both.
+- `crates/mindtape/src/config/pack_registry.rs`, `Justfile`: register both, and add both files to `TOML_FMT_PATHS`.
 - `.mindtape/config.toml`: extend both packs and drop the four hand-written rules and `[tasks.estimate] units`.
 - `www/content/packs.typ`: both packs' rules and parameters, read from the generated pack files.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.

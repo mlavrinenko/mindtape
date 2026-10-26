@@ -3,7 +3,9 @@ algorithm: blake3
 groups:
   api-service-recipes:
     source:
+      crates/mindtape/src/packs/budget.toml: 54739bb1028bba904c3516de51e486da9ac50a3fc1ac819abebdab1b8a52867a
       crates/mindtape/src/packs/tasks.toml: 072aa1fd9b594d74521dd737d9b30dc2d3bc014fea1339af838d50252f8383a0
+      crates/mindtape/src/packs/wip-caps.toml: 5dc4ccb78198701f7c04354fbfc636eec497500513ebab981ebeb6832aa0ce9a
       examples/api-service/.mindtape/config.toml: e853a7c7e0b0ec7ff06f36d9d1ea920894e33643be3b63b13cd6a92539448955
       examples/api-service/.mindtape/templates/milestone.typ: 737fc2788932ee1d2863e4041849ed4e6fe6d191952d432369d36a5343446afc
       examples/api-service/.mindtape/templates/task.typ: c139fe1c0f9cbda3786811d6abcd0a832a0ea527227008ff636b4a7b03cec03a
@@ -31,11 +33,11 @@ groups:
       skills/mindtape/evals/README.md: b451b8b388e4a1c8e95f876258e9c3425355a7bf9c1cfa0f04ec1a0c57b3bd6a
       skills/mindtape/evals/evals.json: 481bb4f0168826d9ee4086ee6f4f4f74c4c31ed3b46792871532da8372b56460
       www/content/limit-work-in-progress.typ: c8bf092555288cd46fa02bc7ba8392bce040aa3b4276835caac2426e91143f42
-      www/content/require-a-task-shape.typ: 0c6073dbcc5b38e65afcd3f05f4c31603ea34089d1ff7722ba1c6c6a29ca5e33
+      www/content/require-a-task-shape.typ: 227b07d49a1a5220de619a1c863cfedfb9bb5b7ee83c143040f414cd35457040
       www/content/split-oversized-tasks.typ: 95aed236a683d6e127cb2431f29836328cd777635a067767440bd045694c1885
       www/content/start-titles-with-a-verb.typ: d3e4e4ba441ecba4b2973461d407ca2fcf87ecac42d09b1da065817fcf890518
       www/content/tie-work-to-goals.typ: 2f9c7f67208ae0a48449f64100d63eb58d0f6526b2e3200e1f5807709ad2a704
-      www/content/trace-commits-to-tasks.typ: 153a1f7c9624fe6de2116e0c4b011c505c8e7c3795eda583116ffec1d4c37906
+      www/content/trace-commits-to-tasks.typ: 93773030b3b07a290b7599b1d509184ff28341e37fdde53e88b5778eda25aae9
       www/content/wait-on-upstream.typ: e88a4625e768e9103e2fbb93656fbc91d9e5311872eca7370c913850fd0f308d
   cli-add-docs:
     source:
@@ -314,7 +316,7 @@ groups:
       .just/scripts/lint-dry.sh: 935cd86b688eaeea3b62ea86f21eb8fec32d72d3f8f848720b333df9ea7b4814
       .just/scripts/outdatty-check.sh: e219b61957163b1cf7ffd32d183fa37a8de60d1573fc68d7f02aab5f0eeb772b
       .just/scripts/wt-carry-lcov.sh: a4d4b96d24cee1d76f8d19ddcc10b6f4b99a1cb9f7c8ec3143cf487f2bb9861c
-      Justfile: 52677ac0bf1e545f2437b424d76011c5fcb32c3e75fa7d99acf1f87bb7542e4f
+      Justfile: cfc7d2152fa68e54a88f51214421f1f70b866fd0401e670da140d2e98c49a51c
       flake.nix: bbcb46698504bc1a3b0708fac535ba4c0bcadc169baf2a630a7c8459e394bfec
     dependents:
       docs/src/agents.typ: b60c66d46729c944b878cc0d112e26741e5d2621ed8dc803c5ed0092daf2adeb

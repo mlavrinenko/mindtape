@@ -498,6 +498,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Its commit rules are `work-names-a-task`,
   `flip-with-work` (a `wip` or `done` flip rides with its work; a `decision`
   task, a `milestone` or an `mt rm` of other tasks counts) and `named-tasks-finish-at-the-tip`.
+- **The `mindtape:wip-caps` and `mindtape:budget` packs ship the WIP caps and
+  the size budget.** `wip-caps` holds `milestone-wip-cap` and `leaf-wip-cap`,
+  with `milestones = 1` and `leaves = 1` as parameters. `budget` holds
+  `judgment-stays-small`, which skips a milestone, and `src-budget`, with
+  `min-difficulty = 3` and `max-files = 5` as parameters. It also sets the
+  `src-files` estimate unit, its `@source` query and a `source` path set of
+  `**`, which a project's own `[dicts.source]` replaces.
 - **Field rules live in one descriptor.** `[tasks.fields.<name>]` (a project
   field such as `[tasks.fields.x-<ns>]` included), `[tasks.assignee]`,
   `[tasks.tags]`, `[tasks.estimate]` and the numeric scales take `values`,

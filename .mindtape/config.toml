@@ -10,7 +10,11 @@
 # (the `goals` rule, below) and an extra `Dogfood` section the pack has no
 # opinion on — see the `section-allowlist` override further down for how.
 # docs:slice packs/extends
-extends = ["mindtape:tasks"]
+extends = [
+  "mindtape:tasks",
+  "mindtape:wip-caps",
+  { pack = "mindtape:budget", with = { max-files = 5 } },
+]
 # docs:end
 
 [tasks]
@@ -138,51 +142,8 @@ example = 3
 # guidance already carries, and is checkable against git while the work runs.
 # See truth/tasks/move-open-tasks-and-templates-to-a-src-files-estimate.typ.
 [tasks.estimate]
-units = ["src-files"]
 required = "!terminal"
 example = { src-files = 1 }
-
-# A judgment task writes `src-files: count(n, grep(...))`, a `grep` per symbol
-# it changes, so `judgment-stays-small` reads the fan-out the code has today,
-# not a guess. The matches count inside the `source` path set below, the one
-# `src-budget` holds the working tree to.
-[tasks.estimate.queries]
-src-files = "@source"
-
-# No estimate check is built in: the caps and the working-tree budget below are
-# ordinary `[[tasks.rules]]` entries reading `estimate.src-files` and
-# `changed(...)`. See truth/tasks/retire-the-drift-check-and-estimate-bounds-in-
-# favour-of-rules.typ.
-#
-# The cap is a validation error, not a warning: an oversized task must be split
-# before the work starts, not after. Terminal tasks are exempt. No minimum: a
-# docs-only task touches no source, and 0 is an honest count, not a missing one.
-#
-# Only judgment work is capped, because the decomposition pressure a cap exists
-# to create belongs on unbounded judgment, not on size. Judgment work (3 and up
-# on the rubric above) is held to 5 source files — p75 of this repo's
-# files-per-commit over 200 commits (p50=2, p75=5, p90=11, p95=15, p99=32) —
-# since a design decision spread wider than that is two decisions. Mechanical
-# work (0-2) has no cap: a fully specified change carries one decision however
-# many files it touches, and splitting it only copies that decision into
-# several tasks. A module move, which must edit every importer in one commit,
-# cannot be split at all without an alias. `src-budget` below still warns when
-# the work outgrows the estimate filed for it.
-#
-# The 5 is provisional: retune it as the backlog shows where it pinches.
-[[tasks.rules]]
-name = "judgment-stays-small"
-when = "!terminal && difficulty >= 3"
-assert = "estimate.src-files <= 5"
-message = "split the decision from the mechanical fan-out instead of widening the cap"
-severity = "error"
-
-[[tasks.rules]]
-name = "src-budget"
-when = 'status == "wip" && has(estimate.src-files)'
-assert = 'changed("staged+worktree", "@source") <= estimate.src-files'
-message = "move work not yet written into a new task; what is already written ships with this one, so closing it needs no split, and estimate.src-files stays as filed"
-severity = "warn"
 
 # Goal verdicts moved out of the body into `x-goals:`, beside status and
 # links, so a script can find them without parsing prose (`mt eval --json`
@@ -205,35 +166,6 @@ severity = "error"
 name = "goals"
 when = "!terminal"
 check = { typst = "truth/lib.typ", function = "check-goals", field = "x-goals" }
-severity = "error"
-
-# Work-in-progress caps. One milestone and one leaf, no more. A milestone
-# coordinates its leaves and may legitimately stay open across sessions; a leaf
-# may not, and a session ending on an open leaf is the failure these exist to
-# stop. `severity = "error"` because the intended response is to finish or split
-# the open work, not to note the breach and carry on.
-#
-# No status name is hardcoded in Rust — each is a `count(...)` rule over a
-# filter, named so it can be overridden by name across packs like any other
-# rule. `when` repeats `assert`'s own predicate: the cap is a constant
-# comparison, true or false alike for every task it names, so every task
-# `when` admits gets its own breach the moment the cap is crossed — which is
-# how a refused `mt flip` gets to name every task sharing the set, not just the
-# one it is flipping. The second filter catches every task carrying no `kind`
-# at all, since an absent field is unequal to every literal in the filter
-# language, so the pair partitions the whole backlog by construction.
-[[tasks.rules]]
-name = "milestone-wip-cap"
-when = 'status == "wip" && kind == "milestone"'
-assert = 'count(status == "wip" && kind == "milestone") <= 1'
-message = "close or split the open milestone before opening another"
-severity = "error"
-
-[[tasks.rules]]
-name = "leaf-wip-cap"
-when = 'status == "wip" && kind != "milestone"'
-assert = 'count(status == "wip" && kind != "milestone") <= 1'
-message = "finish the open task, or split off what is done and close that, before starting another"
 severity = "error"
 
 [tasks.tags]

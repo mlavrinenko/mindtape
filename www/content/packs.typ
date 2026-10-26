@@ -7,7 +7,7 @@
   route: "/packs/",
   label: "Packs",
   title: "Packs",
-  summary: "How a project adopts and tunes packs, how their keys and rules merge, and the rules `mindtape:tasks` ships.",
+  summary: "How a project adopts and tunes packs, how their rules merge, and the rules and parameters of the packs `mt` ships.",
 )
 #metadata(meta) <page-meta>
 
@@ -19,7 +19,7 @@ its priority framework, its views, whatever you'd otherwise copy around. Each
 project can still change any of it locally.
 #link(u("/config/"))[Configuration] lists the `extends` and `disable` keys.
 This page covers how `mt` finds and merges a pack, and lists the rules of the
-pack `mt` ships, `mindtape:tasks`.
+packs `mt` ships: `mindtape:tasks`, `mindtape:wip-caps` and `mindtape:budget`.
 
 = Adopt a pack
 
@@ -27,7 +27,8 @@ pack `mt` ships, `mindtape:tasks`.
 that layer adopts. If the layer declares a rule with the same `name` as a
 pack's rule, it replaces that rule where the pack put it. #mindtape's own
 `.mindtape/config.toml` adopts `mindtape:tasks` and replaces
-`section-allowlist` to allow one more section, `Dogfood`:
+`section-allowlist` to allow one more section, `Dogfood`. It adopts the two
+packs below too, `mindtape:budget` with `max-files` set to 5:
 
 #let parts = (
   ("extends", "the adoption, at the top of the file"),
@@ -69,7 +70,7 @@ merges into the config.
 
 An `extends` entry with no `/` in it is `<source>:<pack>`. `mindtape` is the
 one source `mt` knows without a declaration, and it holds the packs built into
-`mt`, so far `mindtape:tasks`. `mt` refuses an unknown name and lists the packs
+`mt`: `mindtape:tasks`, `mindtape:wip-caps` and `mindtape:budget`. `mt` refuses an unknown name and lists the packs
 the source has:
 
 #terminal("packs-unknown")
@@ -236,8 +237,10 @@ Here's the output in the #mindtape repository:
 
 #terminal("packs-origin")
 
-Every rule from `mindtape:tasks` reads `pack mindtape:tasks`, except
-`section-allowlist`, which reads `project` because the project's rule replaced
+Every rule from a pack reads `pack <name>`: the two caps read
+`pack mindtape:wip-caps`, `judgment-stays-small` and `src-budget` read
+`pack mindtape:budget`, and the rest of the task rules read
+`pack mindtape:tasks`. The exception is `section-allowlist`, which reads `project` because the project's rule replaced
 it. The repository's own rules, such as `goals` and the `Dogfood` rules, read
 `project` because only the project declares them. To read each rule's
 severity and message as well, run #link(u("/cli/rules/"))[`mt rules`].
@@ -273,6 +276,15 @@ from the two word lists `mt` ships.
     .flatten(),
 )
 
+#let param-table(params, notes) = table(
+  columns: (auto, auto, 1fr),
+  table.header([Parameter], [Default], [Meaning]),
+  ..params
+    .pairs()
+    .map(((name, value)) => (raw(name), raw(str(value)), notes.at(name)))
+    .flatten(),
+)
+
 == Task rules
 
 #rule-table(pack.tasks.rules)
@@ -291,3 +303,44 @@ These run on a commit from `mt check --commit-msg` and on a range from
 `mt check --commits`. See #link(u("/commit-rules/"))[Commit rules].
 
 #rule-table(pack.commits.rules)
+
+= The rules in `mindtape:wip-caps`
+
+`extends = ["mindtape:wip-caps"]` keeps one milestone and one other task open
+at a time. Both rules are errors, so a flip that would open a second one
+is refused. Each cap is a parameter, read from
+#link(REPO + "/blob/main/crates/mindtape/src/packs/wip-caps.toml")[the pack file]:
+
+#let caps = toml("../generated/packs/wip-caps.toml")
+
+#param-table(caps.params, (
+  milestones: "How many milestones may be `wip` at once.",
+  leaves: "How many tasks that aren't milestones may be `wip` at once.",
+))
+
+#rule-table(caps.tasks.rules)
+
+= The rules in `mindtape:budget`
+
+`extends = ["mindtape:budget"]` holds a task's size to a number of source
+files. A task estimates the files it means to touch in `estimate.src-files`.
+`judgment-stays-small` refuses an open task of judgment work, and a milestone
+is exempt, that estimates more than `max-files`. `src-budget` warns when the
+working tree has changed more files than the task in progress estimated.
+
+#let budget = toml("../generated/packs/budget.toml")
+
+#param-table(budget.params, (
+  max-files: "The most source files a judgment task may estimate.",
+  min-difficulty: "The lowest difficulty that counts as judgment work.",
+))
+
+#rule-table(budget.tasks.rules)
+
+The pack also sets `[tasks.estimate] units = ["src-files"]`, a query that
+counts a task's `grep` matches inside the `source` path set, and a `[dicts.source]`
+of `**`, so every file counts. Keys merge key by key, so your own
+`[tasks.estimate.queries]` adds to the pack's. An array replaces it, so a
+`[dicts.source]` of yours with `!` globs for docs and generated files replaces
+the pack's `**`, as #mindtape's own does. A parameter reaches expressions only,
+never the unit, so a project that sizes in `files` overrides both rules by name.

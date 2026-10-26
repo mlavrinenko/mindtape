@@ -1,0 +1,67 @@
+# mindtape:budget — a task's size, in source files, held to a budget.
+#
+# A task estimates how many non-test SOURCE FILES it means to touch — not how
+# long it will take, and not the docs, tests and changelog every task touches
+# by process. A duration is a guess a model will happily invent; a
+# source-file count is plannable up front, and is checkable against git while
+# the work runs. The pack sets `[tasks.estimate] units = ["src-files"]` and
+# a `source` path set of `**`; narrow the set in your own `[dicts.source]`
+# with `!` globs (docs, generated files, fixtures), which replaces this one.
+#
+# No estimate check is built in: both rules read `estimate.src-files` and
+# `changed(...)`, as ordinary `[[tasks.rules]]` entries.
+#
+# `judgment-stays-small` is an error, not a warning: an oversized task must be
+# split before the work starts, not after. Only judgment work is capped,
+# because the decomposition pressure a cap exists to create belongs on
+# unbounded judgment, not on size. Judgment work (`min-difficulty` and up on
+# the difficulty rubric) is held to `max-files` source files, since a design
+# decision spread wider than that is two decisions. Mechanical work has no
+# cap: a fully specified change carries one decision however many files it
+# touches, and splitting it only copies that decision into several tasks. A
+# milestone is skipped, since it holds no files of its own. The default of 5
+# is the p75 of one repo's files-per-commit over 200 commits; retune it as
+# your backlog shows where it pinches.
+#
+# `src-budget` warns when the working tree outgrows the estimate filed for the
+# task in progress. A filed estimate is never raised: it records the
+# decomposition as planned.
+#
+# A project that sizes in another unit overrides both rules by name: a
+# parameter reaches expressions only, never the unit.
+#
+# Adopt it as `extends = ["mindtape:budget"]`, or tune it with
+# `{ pack = "mindtape:budget", with = { max-files = 8 } }`.
+
+[params]
+# The most source files a judgment task may estimate.
+max-files = 5
+# The lowest difficulty that counts as judgment work.
+min-difficulty = 3
+
+[tasks.estimate]
+units = ["src-files"]
+
+# A judgment task writes `src-files: count(n, grep(...))`, a `grep` per symbol
+# it changes, so the cap reads the fan-out the code has today, not a guess.
+# The matches count inside the `source` path set.
+[tasks.estimate.queries]
+src-files = "@source"
+
+[[tasks.rules]]
+name = "judgment-stays-small"
+when = '!terminal && kind != "milestone" && difficulty >= param("min-difficulty")'
+assert = 'estimate.src-files <= param("max-files")'
+message = "split the decision from the mechanical fan-out instead of widening the cap"
+severity = "error"
+
+[[tasks.rules]]
+name = "src-budget"
+when = 'status == "wip" && has(estimate.src-files)'
+assert = 'changed("staged+worktree", "@source") <= estimate.src-files'
+message = "move work not yet written into a new task; what is already written ships with this one, so closing it needs no split, and estimate.src-files stays as filed"
+severity = "warn"
+
+[dicts.source]
+case = "exact"
+values = ["**"]

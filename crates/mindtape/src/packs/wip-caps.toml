@@ -1,0 +1,40 @@
+# mindtape:wip-caps — work-in-progress caps: one milestone and one leaf.
+#
+# A milestone coordinates its leaves and may legitimately stay open across
+# sessions; a leaf may not, and a session ending on an open leaf is the
+# failure these exist to stop. `severity = "error"` because the intended
+# response is to finish or split the open work, not to note the breach and
+# carry on.
+#
+# No status name is hardcoded in Rust — each cap is a `count(...)` rule over a
+# filter, named so a project can override it by name like any other rule.
+# `when` repeats `assert`'s own predicate: the cap is a constant comparison,
+# true or false alike for every task it names, so every task `when` admits
+# gets its own breach the moment the cap is crossed. That is how a refused
+# `mt flip` names every task sharing the set, not just the one it is flipping.
+# The second filter catches every task carrying no `kind` at all, since an
+# absent field is unequal to every literal in the filter language, so the pair
+# partitions the whole backlog by construction.
+#
+# Adopt it as `extends = ["mindtape:wip-caps"]`, or raise a cap with
+# `{ pack = "mindtape:wip-caps", with = { leaves = 2 } }`.
+
+[params]
+# How many milestones may be `wip` at once.
+milestones = 1
+# How many tasks that are not milestones may be `wip` at once.
+leaves = 1
+
+[[tasks.rules]]
+name = "milestone-wip-cap"
+when = 'status == "wip" && kind == "milestone"'
+assert = 'count(status == "wip" && kind == "milestone") <= param("milestones")'
+message = "close or split the open milestone before opening another"
+severity = "error"
+
+[[tasks.rules]]
+name = "leaf-wip-cap"
+when = 'status == "wip" && kind != "milestone"'
+assert = 'count(status == "wip" && kind != "milestone") <= param("leaves")'
+message = "finish the open task, or split off what is done and close that, before starting another"
+severity = "error"

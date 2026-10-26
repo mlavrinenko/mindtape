@@ -402,3 +402,7 @@ mod tests_flip;
 #[cfg(test)]
 #[path = "packs_tests_params.rs"]
 mod tests_params;
+
+#[cfg(test)]
+#[path = "packs_tests_budget.rs"]
+mod tests_budget;

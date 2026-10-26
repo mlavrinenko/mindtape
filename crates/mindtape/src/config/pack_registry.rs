@@ -19,8 +19,11 @@ pub(crate) const PACK_FILE: &str = "pack.toml";
 /// Packs compiled into the binary, `(pack, TOML text)`, each under
 /// [`EMBEDDED_SOURCE`]. A new pack is a `crates/mindtape/src/packs/<pack>.toml`
 /// file plus a one-line entry here.
-pub(crate) const EMBEDDED_PACKS: &[(&str, &str)] =
-    &[("tasks", include_str!("../packs/tasks.toml"))];
+pub(crate) const EMBEDDED_PACKS: &[(&str, &str)] = &[
+    ("tasks", include_str!("../packs/tasks.toml")),
+    ("wip-caps", include_str!("../packs/wip-caps.toml")),
+    ("budget", include_str!("../packs/budget.toml")),
+];
 
 /// Where one resolved pack came from, for `mt config show --origin`.
 #[derive(Debug, Clone, PartialEq, Eq)]
