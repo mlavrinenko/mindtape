@@ -12,6 +12,8 @@
 //! # Files
 //!
 //! - `mod.rs`: `[pack-sources]`, [`read_raw`] and the load-time checks.
+//! - `diff.rs`, `diff_tests.rs`: [`diff_trees`], what moving a source from
+//!   one tree to another changes, pack by pack.
 //! - `fetch.rs`, `fetch_tests.rs`: [`fetch`], one locked source into the
 //!   cache, and [`locate`], the repository a declared `git` names.
 //! - `git.rs`, `git_tests.rs`: git run apart from the caller's git state,
@@ -26,6 +28,7 @@
 //!   sweep, and the rename into the cache.
 //! - `tests.rs`: the unit tests, through a full config load.
 
+mod diff;
 mod fetch;
 mod git;
 mod hash;
@@ -40,6 +43,9 @@ use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
 
+pub use crate::config::pack_sources::diff::{
+    Change, DiffError, EntryDiff, PackDiff, TreeDiff, diff_trees,
+};
 pub use crate::config::pack_sources::fetch::{FetchError, fetch, locate};
 pub use crate::config::pack_sources::hash::hash;
 pub use crate::config::pack_sources::lock::{LockedSource, PackLock, lock_path, write_lock};

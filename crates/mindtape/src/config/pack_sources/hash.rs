@@ -16,9 +16,7 @@ use crate::config::pack_sources::FetchError;
 /// Returns [`FetchError::Unsupported`] for a symlink or a path that is not
 /// UTF-8, and [`FetchError::Io`] when a file can't be read.
 pub fn hash(dir: &Path) -> Result<String, FetchError> {
-    let mut files = Vec::new();
-    collect(dir, "", &mut files)?;
-    files.sort_unstable();
+    let files = files(dir)?;
     let mut hasher = Sha256::new();
     for path in &files {
         let bytes = std::fs::read(dir.join(path))?;
@@ -26,6 +24,17 @@ pub fn hash(dir: &Path) -> Result<String, FetchError> {
         frame(&mut hasher, &bytes);
     }
     Ok(crate::loader::cache::hex(&hasher.finalize()))
+}
+
+/// The `/`-separated path of every file under `dir`, sorted bytewise.
+///
+/// # Errors
+/// As [`hash`], for a symlink, a path that is not UTF-8 or a failed read.
+pub(super) fn files(dir: &Path) -> Result<Vec<String>, FetchError> {
+    let mut files = Vec::new();
+    collect(dir, "", &mut files)?;
+    files.sort_unstable();
+    Ok(files)
 }
 
 /// Feed `bytes` to `hasher`, led by its length.

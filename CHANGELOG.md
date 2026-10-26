@@ -521,6 +521,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   takes source names to update only those, and writes `.mindtape/packs.lock`
   once, atomically, after every fetch passed. The library adds
   `config::pack_sources::resolve` and `write_lock`.
+- **`mt packs update` prints what a moved source changes.** Under each moved
+  source it lists the packs added (`+`), changed (`~`) or removed (`-`), and
+  in a changed pack each key, rule and array entry, such as
+  `~ rule tasks.rules.changelog` or `+ on.flip.gate`, compared as parsed TOML
+  so a reformatted pack shows nothing. Every new `run` or `editor` line
+  prints in full under its entry, and every other file of the source as
+  `~ file team/check.typ`. When the old tree isn't cached it fetches it by
+  its commit, and when that fails it warns and still writes the lock. The
+  library adds `config::pack_sources::diff_trees`.
 - **`mt rules` lists the rules that apply, one line each.** A line is the
   rule's severity, its name as `mt config show --origin` prints it, and the
   message a breach prints, after packs, overrides and `disable`. A rule with no

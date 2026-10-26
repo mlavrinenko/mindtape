@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 26),
+  status: wip(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ")
     + depends-on("move-pack-sources-along-their-ref-with-mt-packs-update.typ"),
 )
@@ -43,14 +43,17 @@
 ```console
 $ mt packs update acme
 acme v1: 3f2c1a9 → 8d01e44
-  acme:commits  ~ rule commits.rules.changelog-with-product-change
-                + on.flip close-gate: run "just check"
+  ~ acme:commits
+    ~ rule commits.rules.changelog-with-product-change
+    + on.flip.close-gate
+        run "just check"
+  ~ file team/check.typ
 wrote .mindtape/packs.lock
 ```
 
 - 🟢 Per pack, it prints each key, rule and `on.flip` entry added (`+`), changed (`~`) or removed (`-`), by name or dotted key.
 - 🟢 Every new or changed `run` line prints in full, and still waits for `mt allow`.
-- 🟢 A pack added to or dropped from the source prints as one `+` or `-` line.
+- 🟢 A pack added to or dropped from the source prints as one `+` or `-` line. Any other file of the source, such as a check module, prints as `file <path>`.
 
 
 == Changes
@@ -58,7 +61,7 @@ wrote .mindtape/packs.lock
 - `crates/mindtape/src/config/pack_sources/diff_tests.rs`: the red tests first, one per change kind.
 - `crates/mindtape/src/config/pack_sources/diff.rs` (new): diff two resolved packs, comparing parsed values, not text.
 - `crates/mindtape/src/config/pack_sources/mod.rs`: list the file in the header.
-- `crates/mindtape-cli/src/cmd/packs/mod.rs`: print the diff under each moved source.
+- `crates/mindtape-cli/src/cmd/packs/report.rs` (new): print the diff under each moved source, fetching the old tree by its commit when the cache lacks it.
 - `www/content/packs.typ`: the report.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 

@@ -24,7 +24,7 @@ use crate::problem::Problem;
 use crate::suggest::Unknown;
 
 /// The extension of a pack file.
-const TOML: &str = ".toml";
+pub(crate) const TOML: &str = ".toml";
 
 /// The tree of each source that hashed to its lock in this config load, by
 /// source name.
@@ -128,7 +128,7 @@ fn unknown_cached_pack(entry: &str, source: &str, tree: &Path) -> ConfigError {
 
 /// The packs at the top of `tree`, sorted: each `<pack>.toml` file and each
 /// `<pack>/` directory holding a `pack.toml`, whose name is plain.
-fn tree_packs(tree: &Path) -> Vec<String> {
+pub(crate) fn tree_packs(tree: &Path) -> Vec<String> {
     let mut packs = Vec::new();
     for entry in std::fs::read_dir(tree).into_iter().flatten().flatten() {
         let path = entry.path();

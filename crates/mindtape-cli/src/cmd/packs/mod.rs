@@ -9,9 +9,11 @@
 //!
 //! - `mod.rs`: `mt packs` and what both subcommands share.
 //! - `install.rs`: `mt packs install`.
+//! - `report.rs`: what `update` prints under each moved source.
 //! - `update.rs`: `mt packs update`.
 
 mod install;
+mod report;
 mod update;
 
 use std::path::PathBuf;

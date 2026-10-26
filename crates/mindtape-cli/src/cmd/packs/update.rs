@@ -8,7 +8,7 @@ use std::path::Path;
 
 use mindtape::config::pack_sources::{self, LockedSource, PackLock, PackSource, lock_path};
 
-use super::{cache_root, short};
+use super::{cache_root, report, short};
 use crate::diag::{Diag, Hint, Result};
 use crate::util;
 
@@ -103,6 +103,7 @@ fn relock(
         Some(old) => println!("{label}: {} → {}", short(&old.commit), short(&commit)),
         None => println!("{label}: locked {}", short(&commit)),
     }
+    report::print_diff(root, name, entry, &cache.join(&sha256), cache);
     Ok(Some(LockedSource {
         git: source.git.clone(),
         reference: source.reference.clone(),
