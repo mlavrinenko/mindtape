@@ -111,11 +111,15 @@ from `v1` to `v2`.
 
 `mt packs update` writes the lock. It asks the repository which commit each
 `ref` names, takes a 40- or 64-digit `ref` as the commit itself, fetches that
-tree and rewrites the source's entry. Name sources, as in
-`mt packs update acme`, to move only those. A source whose `ref` still names
-the locked commit prints `up to date` and keeps its entry, and an entry no
-source declares is dropped. Read the lock's diff before you commit it, since
-the new commit is the config every clone gets.
+tree and rewrites the source's entry. Here it locks a source the lock lacked,
+from a repository beside the project:
+
+#terminal("packs-lock")
+
+Name sources, as in `mt packs update acme`, to move only those. A source whose
+`ref` still names the locked commit prints `up to date` and keeps its entry,
+and an entry no source declares is dropped. Read the lock's diff before you
+commit it, since the new commit is the config every clone gets.
 
 Under each source it moves, `mt packs update` prints what the move changes,
 compared as parsed TOML, so a reformatted pack reads as unchanged. Each line
@@ -123,7 +127,10 @@ names a pack, a key, a rule or another array entry, marked `+` for added,
 `~` for changed and `-` for removed. Every new `run` or `editor` line prints
 in full under its entry, and it still runs only once you `mt allow` it. Any
 other file of the source, such as a template or a check module, prints as
-`file <path>`.
+`file <path>`. Here the project bumps `ref` to `v2`, whose commit tightens a
+rule, gates a close on a `run` line and adds a pack:
+
+#terminal("packs-update")
 
 `mt` reads a source's packs from your cache directory, such as `~/.cache` on
 Linux, under `mindtape/packs/<sha256>/`, named by the lock's hash.
@@ -146,7 +153,12 @@ the cache lacks, with a hint to fetch it:
 `mt packs install` fetches each locked source the cache lacks and refuses a
 tree that doesn't hash to the lock. Like `npm ci`, it refuses a lock that
 disagrees with `[pack-sources]`, so a CI job or a fresh clone gets the packs
-you reviewed and nothing newer. In CI, run `mt packs install && mt check`.
+you reviewed and nothing newer. Here an empty cache gets the locked tree, and
+a second run finds it there:
+
+#terminal("packs-install")
+
+In CI, run `mt packs install && mt check`.
 
 = A pack in a directory
 
