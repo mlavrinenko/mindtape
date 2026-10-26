@@ -447,6 +447,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   always appends. `mt config show --origin` labels a hook `on.flip.<name>` or
   `on.flip[<index>]`, and `mt rules` lists its actions under that label, such
   as `on.flip.stale-wip.actions[0]`.
+- **A pack takes parameters.** It declares each with a default in `[params]`,
+  and its expressions read it as `param("name")`. An `extends` entry
+  `{ pack = "./team.toml", with = { max-files = 8 } }` sets the pack's own
+  value, and `mt` writes it into every expression of the pack at load, skipping
+  string literals and a rule's `message`. `mt` refuses a `with` key the pack
+  doesn't declare, suggesting the nearest, a value of another type than the
+  default, a `param()` naming no parameter, a `param()` in a layer's own
+  expression, and one pack listed twice in one `extends`.
 - **`mt rules` lists the rules that apply, one line each.** A line is the
   rule's severity, its name as `mt config show --origin` prints it, and the
   message a breach prints, after packs, overrides and `disable`. A rule with no

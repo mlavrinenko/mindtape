@@ -1595,6 +1595,19 @@
       },
       "type": "object"
     },
+    "PackEntry": {
+      "anyOf": [
+        {
+          "description": "A pack name, `<source>:<pack>`, or a path to a TOML pack file. Every\nparameter of the pack keeps its default.",
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/PackWith",
+          "description": "A pack and the values of some of its parameters."
+        }
+      ],
+      "description": "One `extends` entry: a pack's name, or a table naming the pack and the\nvalues of its parameters."
+    },
     "PackSource": {
       "additionalProperties": false,
       "description": "One `[pack-sources.<name>]` entry.",
@@ -1613,6 +1626,51 @@
         "ref"
       ],
       "type": "object"
+    },
+    "PackWith": {
+      "additionalProperties": false,
+      "description": "An `extends` entry that sets a pack's parameters: `{ pack = \"./team.toml\",\nwith = { max-files = 8 } }`.",
+      "properties": {
+        "pack": {
+          "description": "The pack, named as in a bare entry.",
+          "type": "string"
+        },
+        "with": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ParamValue"
+          },
+          "default": {},
+          "description": "A value for each parameter to change, keyed by the name the pack's\n`[params]` declares. A value takes the type of the parameter's\ndefault.",
+          "type": "object"
+        }
+      },
+      "required": [
+        "pack"
+      ],
+      "type": "object"
+    },
+    "ParamValue": {
+      "anyOf": [
+        {
+          "description": "`true` or `false`.",
+          "type": "boolean"
+        },
+        {
+          "description": "A whole number.",
+          "format": "int64",
+          "type": "integer"
+        },
+        {
+          "description": "A number with a fraction.",
+          "format": "double",
+          "type": "number"
+        },
+        {
+          "description": "A string, written into the expression as a quoted literal.",
+          "type": "string"
+        }
+      ],
+      "description": "One parameter value: a string, a number or a boolean."
     },
     "PriorityConfig": {
       "additionalProperties": false,
@@ -2316,9 +2374,9 @@
     },
     "extends": {
       "default": [],
-      "description": "Packs this config builds on, in any config layer. An entry with a path\nseparator is a TOML pack file, or a directory pack, a folder holding\n`pack.toml` and an optional `templates/`, relative to the file that\ndeclares it. A directory's `templates/` joins `templates.dirs`.\nAny other entry is `<source>:<pack>`, and `mindtape` is the one source\nknown without a declaration: `mindtape:tasks` is a pack built into\n`mt`. A pack holds any config key but `extends`, `disable`,\n`pack-sources`, `project.code`, `tasks.roots`, `templates.dirs` and\n`[typst]`. Its\nkeys merge just below this layer's own, table by table, and its rules\ncome ahead of this layer's, where a rule with the same name replaces\nit. Two packs here that set one value differently are an error,\nunless this layer sets that key too.",
+      "description": "Packs this config builds on, in any config layer. An entry with a path\nseparator is a TOML pack file, or a directory pack, a folder holding\n`pack.toml` and an optional `templates/`, relative to the file that\ndeclares it. A directory's `templates/` joins `templates.dirs`.\nAny other entry is `<source>:<pack>`, and `mindtape` is the one source\nknown without a declaration: `mindtape:tasks` is a pack built into\n`mt`. A pack holds any config key but `extends`, `disable`,\n`pack-sources`, `project.code`, `tasks.roots`, `templates.dirs` and\n`[typst]`. Its\nkeys merge just below this layer's own, table by table, and its rules\ncome ahead of this layer's, where a rule with the same name replaces\nit. Two packs here that set one value differently are an error,\nunless this layer sets that key too. An entry `{ pack, with }` sets\nthe pack's parameters, which its expressions read as\n`param(\"name\")`.",
       "items": {
-        "type": "string"
+        "$ref": "#/$defs/PackEntry"
       },
       "type": "array"
     },

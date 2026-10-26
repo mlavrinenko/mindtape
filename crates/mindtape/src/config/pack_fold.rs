@@ -39,14 +39,21 @@ impl PackLayer {
     /// between its packs, since its value wins over both.
     ///
     /// # Errors
-    /// Returns [`ConfigError::Invalid`] when the pack sets a value an earlier
-    /// pack of this layer set differently and `layer` doesn't set it.
+    /// Returns [`ConfigError::Invalid`] when this layer already added the
+    /// pack, or the pack sets a value an earlier pack of this layer set
+    /// differently and `layer` doesn't set it.
     pub(super) fn add(
         &mut self,
         origin: PackOrigin,
         table: toml::Table,
         layer: &toml::Table,
     ) -> Result<(), ConfigError> {
+        if self.packs.iter().any(|(earlier, _)| *earlier == origin) {
+            return Err(ConfigError::invalid(format!(
+                "extends: pack {} is listed twice",
+                crate::config::quote(&origin.label())
+            )));
+        }
         for (earlier, earlier_table) in &self.packs {
             if let Some(key) = first_conflict(earlier_table, &table, Some(layer)) {
                 return Err(ConfigError::invalid(format!(

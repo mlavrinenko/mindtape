@@ -5,9 +5,11 @@
 //! that module's own pack-resolution and merge logic under the file-size cap.
 
 use crate::config::ConfigError;
+use crate::problem::Problem;
+use crate::suggest::Unknown;
 
-/// Read a top-level `Vec<String>` key (`extends`/`disable`), defaulting to
-/// empty when absent.
+/// Read a top-level `Vec<String>` key such as `disable`, defaulting to empty
+/// when absent.
 ///
 /// # Errors
 /// Returns [`ConfigError::Invalid`] if the key exists but isn't an array of
@@ -28,6 +30,69 @@ pub(crate) fn read_string_list(table: &toml::Table, key: &str) -> Result<Vec<Str
         ))),
     }
 }
+
+/// One `extends` entry: the pack it names and the `with` values it sets for
+/// the pack's parameters, empty for a bare name.
+pub(crate) struct ExtendsEntry {
+    /// The pack: `<source>:<pack>`, or a path to a TOML file.
+    pub(crate) pack: String,
+    /// The entry's `with` table.
+    pub(crate) with: toml::Table,
+}
+
+/// Read a layer's `extends`, each entry a pack name or a `{ pack, with }`
+/// table, defaulting to empty when absent.
+///
+/// # Errors
+/// Returns [`ConfigError::Invalid`] if `extends` isn't an array, or an entry
+/// is neither form.
+pub(crate) fn read_extends(table: &toml::Table) -> Result<Vec<ExtendsEntry>, ConfigError> {
+    match table.get("extends") {
+        None => Ok(Vec::new()),
+        Some(toml::Value::Array(items)) => items.iter().map(extends_entry).collect(),
+        Some(_) => Err(ConfigError::invalid("extends: must be an array")),
+    }
+}
+
+fn extends_entry(item: &toml::Value) -> Result<ExtendsEntry, ConfigError> {
+    let shape =
+        || ConfigError::invalid("extends: an entry is a pack name or a { pack, with } table");
+    let table = match item {
+        toml::Value::String(pack) => {
+            return Ok(ExtendsEntry {
+                pack: pack.clone(),
+                with: toml::Table::new(),
+            });
+        }
+        toml::Value::Table(table) => table,
+        _ => return Err(shape()),
+    };
+    if let Some(key) = table.keys().find(|key| !ENTRY_KEYS.contains(&key.as_str())) {
+        return Err(ConfigError::invalid(
+            Problem::new(format!(
+                "extends: unknown key in an entry: {}",
+                crate::config::quote(key)
+            ))
+            .with(Unknown::near(key, &ENTRY_KEYS)),
+        ));
+    }
+    let pack = table
+        .get("pack")
+        .and_then(toml::Value::as_str)
+        .ok_or_else(shape)?;
+    let with = match table.get("with") {
+        None => toml::Table::new(),
+        Some(toml::Value::Table(with)) => with.clone(),
+        Some(_) => return Err(shape()),
+    };
+    Ok(ExtendsEntry {
+        pack: pack.to_owned(),
+        with,
+    })
+}
+
+/// The keys an `extends` entry table takes.
+const ENTRY_KEYS: [&str; 2] = ["pack", "with"];
 
 /// The array at a nested TOML path (e.g. `["tasks", "body", "headers",
 /// "rules"]`), or empty when any segment along the way is missing or not a

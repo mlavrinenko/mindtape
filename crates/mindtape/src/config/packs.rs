@@ -25,9 +25,11 @@
 //! That loop in [`fold_layer_packs`] is the seam later steps hook into. A
 //! step that rewrites a whole pack, rule expressions included, sits between
 //! [`resolve_pack`] and [`take_rule_arrays`], and takes out any key of its
-//! own, such as `[params]`, before [`PackLayer::add`] merges the rest. A
-//! step that needs each pack's own table reads [`PackLayer`]'s per-pack
-//! tables before [`PackLayer::into_table`] drops them.
+//! own before [`PackLayer::add`] merges the rest, as [`apply_params`] does
+//! with `[params]`. A layer's own table gets [`refuse_param_calls`] first,
+//! since no parameter reaches it. A step that needs each pack's own table
+//! reads [`PackLayer`]'s per-pack tables before [`PackLayer::into_table`]
+//! drops them.
 //!
 //! Per rule array, entries fold in source order — every pack a layer extends
 //! (in `extends` order), then the layer's own declared entries — and a later
@@ -53,8 +55,10 @@ use crate::config::pack_fold::PackLayer;
 use crate::config::pack_registry::{EMBEDDED_PACKS, RuleOrigin, RuleOriginEntry};
 use crate::config::pack_resolve::{PackScope, resolve_pack};
 use crate::config::packs_toml::{
-    header_lines, read_array, read_string_list, remove_path, write_array,
+    ExtendsEntry, header_lines, read_array, read_extends, read_string_list, remove_path,
+    write_array,
 };
+use crate::config::params::{apply_params, refuse_param_calls};
 
 /// The array TOML paths that append across layers and packs,
 /// same-name-replaces, rather than replacing wholesale like every other
@@ -123,8 +127,9 @@ fn merge_layers_with_packs_using(
     for layer in layers {
         let mut table: toml::Table =
             toml::from_str(&layer.text).map_err(|error| layer_parse_error(&layer.source, error))?;
-        let extends = read_string_list(&table, "extends")?;
+        let extends = read_extends(&table)?;
         disable_names.extend(read_string_list(&table, "disable")?);
+        refuse_param_calls(&mut table)?;
 
         let base_dir = layer_base_dir(&layer.source, root);
         let scope = PackScope {
@@ -161,16 +166,17 @@ fn merge_layers_with_packs_using(
     })
 }
 
-/// Resolve one layer's `extends` entries in order: each pack's rule arrays
-/// join `accumulators`, and the rest of it folds into the [`PackLayer`] that
-/// merges just below `layer`, the layer's own table.
+/// Resolve one layer's `extends` entries in order: each pack's `param()`
+/// calls take the entry's values, its rule arrays join `accumulators`, and
+/// the rest of it folds into the [`PackLayer`] that merges just below
+/// `layer`, the layer's own table.
 ///
 /// # Errors
 /// Returns [`ConfigError`] for an unresolvable pack, one declaring a key a
-/// pack may not, or two packs setting one value differently that `layer`
-/// doesn't set.
+/// pack may not, a parameter error, one pack listed twice, or two packs
+/// setting one value differently that `layer` doesn't set.
 fn fold_layer_packs(
-    extends: &[String],
+    extends: &[ExtendsEntry],
     base_dir: &Path,
     scope: &PackScope<'_>,
     layer: &toml::Table,
@@ -178,10 +184,11 @@ fn fold_layer_packs(
 ) -> Result<PackLayer, ConfigError> {
     let mut packs = PackLayer::default();
     for entry in extends {
-        let mut pack = resolve_pack(entry, base_dir, scope)?;
+        let mut pack = resolve_pack(&entry.pack, base_dir, scope)?;
         if let Some(dir) = pack.origin.root() {
             rebase_dict_paths(&mut pack.table, dir);
         }
+        apply_params(&mut pack.table, &entry.with, &pack.origin.label())?;
         let origin = RuleOrigin::Pack(pack.origin.clone());
         take_rule_arrays(&mut pack.table, &pack.text, &origin, accumulators);
         packs.add(pack.origin, pack.table, layer)?;
@@ -378,3 +385,7 @@ mod tests_files;
 #[cfg(test)]
 #[path = "packs_tests_flip.rs"]
 mod tests_flip;
+
+#[cfg(test)]
+#[path = "packs_tests_params.rs"]
+mod tests_params;

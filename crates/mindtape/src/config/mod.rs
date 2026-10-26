@@ -39,6 +39,7 @@
 //! - `pack_sources/`: `[pack-sources]` and `.mindtape/packs.lock`.
 //! - `packs.rs`: `extends` and `disable`, merging packs into each layer.
 //! - `packs_toml.rs`: nested-path reads and writes over a raw `toml::Table`.
+//! - `params.rs`: `[params]` and `param()`, a pack's parameters and their rewrite.
 //! - `priority.rs`: `[tasks.priority]`, the priority scale and its frameworks.
 //! - `required.rs`: `required`, whether a core field must be set.
 //! - `rm.rs`: `[rm]` and `[retire]`, removal and retirement policy.
@@ -78,6 +79,7 @@ pub(crate) mod pack_resolve;
 pub mod pack_sources;
 pub(crate) mod packs;
 pub(crate) mod packs_toml;
+pub(crate) mod params;
 pub(crate) mod priority;
 pub(crate) mod required;
 pub(crate) mod rm;
@@ -120,6 +122,7 @@ pub use crate::config::ls::{
     parse_import_view, validate_ls_rules,
 };
 pub use crate::config::ls_columns::{ColumnConfig, validate_ls_columns};
+pub use crate::config::params::{PackEntry, PackWith, ParamValue};
 pub use crate::config::priority::PriorityConfig;
 pub use crate::config::required::{RequiredRules, Requirement, RequirementRule};
 pub use crate::config::rm::{RetireConfig, RmConfig, RmStrategy};
@@ -232,11 +235,13 @@ pub struct Config {
     /// keys merge just below this layer's own, table by table, and its rules
     /// come ahead of this layer's, where a rule with the same name replaces
     /// it. Two packs here that set one value differently are an error,
-    /// unless this layer sets that key too.
+    /// unless this layer sets that key too. An entry `{ pack, with }` sets
+    /// the pack's parameters, which its expressions read as
+    /// `param("name")`.
     // `crate::config::packs` resolves and consumes `extends` before this struct
     // is built, so the field reads back as whichever layer declared it last.
     // No command reads it.
-    pub extends: Vec<String>,
+    pub extends: Vec<PackEntry>,
     /// Rule names to drop once every pack and layer has added its rules. A
     /// name that matches no rule is a config error.
     pub disable: Vec<String>,

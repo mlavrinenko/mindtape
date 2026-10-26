@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 26),
+  status: done(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ")
     + depends-on(
       "pass-parameters-to-a-packs-expressions.typ",
@@ -49,19 +49,20 @@ extends = [{ pack = "./team.toml", with = { max-files = 8 } }]
 ```
 
 - 🟢 The rule caps at 8, and at 5 when the entry is the bare string.
-- 🟢 At config load, each `param("name")` outside a string literal becomes the value's literal in every expression key of the pack: rule `when` and `assert`, commit rules, `on.flip` `when`, `views.*.filter`, every `required`, and the `[ls]` and `[rm]` filters.
+- 🟢 At config load, each `param("name")` outside a string literal becomes the value's literal in every expression key of the pack: rule `when` and `assert`, commit rules, `on.flip` `when`, `views.*.filter`, every `required` and `values-when`, a priority framework's `score` and category `when`, `[[ls.rules]]` `condition` and `filter`, `[ls.columns]` `when`, and `[rm] default-filter`. A rule's `message` is prose and keeps its text.
 - 🟢 `mt` refuses, naming the pack: a `with` key the pack doesn't declare, with the nearest name; a value of another type than the default; `param()` naming no parameter; `param()` in a layer's own expression; one pack extended twice in a layer.
 
 
 == Changes
 
-- `crates/mindtape/src/config/packs_tests.rs`: the red tests first, one per refusal plus the default, the override and a `param(` inside a string literal left alone.
+- `crates/mindtape/src/config/packs_tests_params.rs` (new, since `packs_tests.rs` nears its cap): the red tests first, one per refusal plus the default, the override and a `param(` inside a string literal left alone. `params_tests.rs` covers the call scanner.
 - `crates/mindtape/src/config/packs_toml.rs`: parse an `extends` entry as a string or a `{ pack, with }` table.
-- `crates/mindtape/src/config/params.rs` (new): parse `[params]`, check `with` against it, and rewrite `param()` calls with a string-literal-aware pass like `join_kebab_names` in `crates/mindtape/src/filter/expr.rs`.
-- `crates/mindtape/src/config/mod.rs`: list the file in the module header.
+- `crates/mindtape/src/config/params.rs` (new): parse `[params]`, check `with` against it, and rewrite `param()` calls with a string-literal-aware pass like `join_kebab_names` in `crates/mindtape/src/filter/expr.rs`. `EXPRESSION_KEYS` lists the expression keys as TOML paths. `PackEntry` types `Config::extends` for the schema.
+- `crates/mindtape/src/config/mod.rs`: list the file in the module header, and type `extends` as `Vec<PackEntry>`.
 - `crates/mindtape/src/config/packs.rs`: in `fold_layer_packs`, rewrite each pack between `resolve_pack` and `take_rule_arrays`, so its rule expressions are rewritten too, and take `[params]` out of the pack before `PackLayer::add` merges the rest. Reject `param()` in a layer's own expressions.
+- `crates/mindtape/src/config/pack_fold.rs`: `PackLayer::add` refuses a pack its layer already added.
 - `schema/config.schema.json`: regenerate.
-- `www/content/packs.typ`: a Parameters section.
+- `www/content/packs.typ`, `www/generate-packs.sh`: a Parameters section, with the override and the unknown-key refusal as captures.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 
 

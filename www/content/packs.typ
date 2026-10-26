@@ -7,7 +7,7 @@
   route: "/packs/",
   label: "Packs",
   title: "Packs",
-  summary: "How a project adopts packs, how their keys and rules merge, and every rule the `mindtape:tasks` pack ships.",
+  summary: "How a project adopts and tunes packs, how their keys and rules merge, and the rules `mindtape:tasks` ships.",
 )
 #metadata(meta) <page-meta>
 
@@ -60,6 +60,10 @@ shared file can't know. `mt` refuses a pack that declares one of them and
 names the pack and the key:
 
 #terminal("packs-shape")
+
+`[params]` is the one key a pack holds that a layer doesn't. It declares the
+pack's parameters, which `mt` writes into the pack's expressions and never
+merges into the config.
 
 = Where a pack comes from
 
@@ -139,6 +143,36 @@ named #link(u("/hooks/"))[flip hook] included. A name that matches no rule is a
 config error, so a typo can't leave a rule running:
 
 #terminal("packs-disable")
+
+= Set a pack's parameters
+
+A pack can leave a number open for each project to pick. It declares the
+value with a default in `[params]`, and its expressions read it as
+`param("name")`. A project sets its own value in the `extends` entry with
+`with`, and still gets every later fix to the rule. Here the pack caps a task
+at 5 files and the project raises the cap to 8:
+
+#terminal("packs-params")
+
+`mt` writes each value into the pack's expressions when it loads the config,
+so `mt check`, `mt rules` and `mt config show` all see `8`. It works in every
+expression the pack holds, from a rule's `when` and `assert` to a view's
+`filter`, an `[[on.flip]]` `when`, each `required` and the `[ls]` and `[rm]`
+filters. A `param()` inside a string literal stays as written, and so does
+one in a rule's `message`, which is text and no expression. A bare entry like `"./team.toml"` keeps every
+default.
+
+A value is a string, a number or a boolean, of the same type as its default.
+The parameters belong to their pack, so two packs can each have a
+`max-files`. `mt` refuses a `with` key the pack doesn't declare and suggests
+the nearest one:
+
+#terminal("packs-params-unknown")
+
+It also refuses a value of another type than the default, a `param()` that
+names no parameter, and one pack listed twice in one `extends`. A `param()`
+in a layer's own expression is refused too, since only a pack has
+parameters.
 
 = Merge order
 

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # www/generate-packs.sh — capture every built-in pack, this repo's
 # own `mt config show --origin`, a pack's priority merged below the project's,
-# a directory pack, and six configs `mt` refuses, for /packs/.
+# a directory pack, a pack's parameter set from `with`, and seven configs
+# `mt` refuses, for /packs/.
 #
 # Split out of www/generate.sh (which calls this, still inside the lock it
 # already holds) under the same 300-line Shell cap that split off
@@ -56,7 +57,19 @@ cp "$REPO/examples/api-service/.mindtape/templates/task.typ" "$dirpack/team/temp
 capture packs-dir "$dirpack" 'find team -type f'
 capture packs-dir "$dirpack" 'mt add --list'
 
-# Six projects whose config `mt` refuses. Each record shows the
+# A pack's param() call, written in with the project's `with` value.
+params=
+capture_scratch params
+mkdir -p "$params/.mindtape"
+printf 'extends = [{ pack = "./team.toml", with = { max-files = 8 } }]\n' \
+  >"$params/.mindtape/config.toml"
+printf '[params]\nmax-files = 5\n\n[[tasks.rules]]\nname = "small"\nassert = %s\n' \
+  "'estimate.src-files <= param(\"max-files\")'" >"$params/team.toml"
+capture packs-params "$params" 'head .mindtape/config.toml team.toml'
+capture packs-params "$params" \
+  "mt config show --json | jq -r '.tasks.rules[] | select(.name == \"small\") | .assert'"
+
+# Seven projects whose config `mt` refuses. Each record shows the
 # config, then the refusal, which must match <expect>.
 refused() { # <slug> <expect> <show-command> <file=content>...
   local slug=$1 expect=$2 show=$3 dir pair
@@ -88,3 +101,6 @@ refused packs-ambiguous 'ambiguous pack' 'find team team.toml' \
   $'.mindtape/config.toml=extends = ["./team"]\n' \
   $'team/pack.toml=' \
   $'team.toml='
+refused packs-params-unknown 'has no parameter' 'head .mindtape/config.toml team.toml' \
+  $'.mindtape/config.toml=extends = [{ pack = "./team.toml", with = { max-file = 8 } }]\n' \
+  $'team.toml=[params]\nmax-files = 5\n'
