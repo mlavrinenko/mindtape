@@ -49,6 +49,7 @@ mod find_e2e;
 mod first_run_errors;
 mod flip_e2e;
 mod flip_hooks_e2e;
+mod flow_pack_e2e;
 mod gitignore_cache_e2e;
 mod global_config_e2e;
 mod go_e2e;

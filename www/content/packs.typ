@@ -19,8 +19,9 @@ its priority framework, its views, whatever you'd otherwise copy around. Each
 project can still change any of it locally.
 #link(u("/config/"))[Configuration] lists the `extends` and `disable` keys.
 This page covers how `mt` finds and merges a pack, and lists the rules of the
-packs `mt` ships: `mindtape:tasks`, `mindtape:wip-caps`, `mindtape:budget`,
-`mindtape:tweaks` and `mindtape:commits`.
+packs `mt` ships: `mindtape:tasks`, `mindtape:dogfood`, `mindtape:flow`,
+`mindtape:ice`, `mindtape:wip-caps`, `mindtape:budget`, `mindtape:tweaks` and
+`mindtape:commits`.
 
 = Adopt a pack
 
@@ -30,7 +31,8 @@ pack's rule, it replaces that rule where the pack put it. #mindtape's own
 `.mindtape/config.toml` adopts `mindtape:tasks` and, after it,
 `mindtape:dogfood`, whose `section-allowlist` replaces the tasks pack's to
 allow one more section, `Dogfood`. It adopts the other packs below too,
-`mindtape:budget` with `max-files` set to 5:
+`mindtape:budget` with `max-files` set to 5, and keeps only its tag list, its
+actors, its path sets, its goal check and its close gate:
 
 #let parts = (
   ("extends", "the adoption, at the top of the file"),
@@ -72,8 +74,9 @@ merges into the config.
 
 An `extends` entry with no `/` in it is `<source>:<pack>`. `mindtape` is the
 one source `mt` knows without a declaration, and it holds the packs built into
-`mt`: `mindtape:tasks`, `mindtape:wip-caps`, `mindtape:budget`,
-`mindtape:tweaks` and `mindtape:commits`. `mt` refuses an unknown name and lists the packs
+`mt`: `mindtape:tasks`, `mindtape:dogfood`, `mindtape:flow`, `mindtape:ice`,
+`mindtape:wip-caps`, `mindtape:budget`, `mindtape:tweaks` and
+`mindtape:commits`. `mt` refuses an unknown name and lists the packs
 the source has:
 
 #terminal("packs-unknown")
@@ -245,8 +248,11 @@ Every rule from a pack reads `pack <name>`: the two caps read
 `pack mindtape:budget`, `tweak-lands-done` reads `pack mindtape:tweaks`, and
 the rest of the task rules read `pack mindtape:tasks`. The exception is
 `section-allowlist` and the Dogfood rules, which read `pack mindtape:dogfood`,
-because that pack replaced the tasks pack's allowlist. The repository's own
-rule `goals` reads `project` because only the project declares it. To read each rule's
+because that pack replaced the tasks pack's allowlist. The `stale-wip` hook
+reads `pack mindtape:flow`, and the repository's own rule `goals` and its
+`gates-fresh` hook read `project` because only the project declares them. Keys
+that aren't rules read the same way, such as `key tasks.status` for
+`pack mindtape:flow`. To read each rule's
 severity and message as well, run #link(u("/cli/rules/"))[`mt rules`].
 
 After the rules come the other keys a pack set, as `key <dotted path>:
@@ -410,3 +416,46 @@ apart.
 #rule-table(dogfood.tasks.body.headers.rules)
 
 #rule-table(dogfood.tasks.body.content.rules)
+
+= The rules in `mindtape:flow`
+
+`extends = ["mindtape:flow"]` gives you the six statuses of the floor, with the
+moves between them. A task goes `proposed`, `accepted`, `wip`, then `done`,
+`cancelled` or `failed`, and a closed task reopens into `wip`. `wip` and `done`
+refuse a task whose `depends-on` target is unfinished. The pack also adds the
+`stale-wip` hook, which refuses to start a task untouched for `days` days
+until `mt review` stamps it. The default is 30 days.
+
+#let flow = toml("../generated/packs/flow.toml")
+
+#param-table(flow.params, (
+  days: "How many days a task may sit untouched before starting it is refused.",
+))
+
+#table(
+  columns: (auto, auto, 1fr),
+  table.header([Status], [Moves to], [Blocked by an open dependency]),
+  ..flow
+    .tasks
+    .status
+    .map(s => (
+      raw(s.value),
+      if "to" in s { s.to.map(raw).join([, ]) } else [nothing],
+      if s.at("unblocked", default: false) [yes] else [no],
+    ))
+    .flatten(),
+)
+
+A `[[tasks.status]]` of yours replaces the legend whole. The hook names `wip`,
+so a legend with no `wip` is a config error until you list `stale-wip` in
+`disable`. The pack leaves a close gate to the project: it would run a tool
+your project may lack. See #link(u("/hooks/"))[Hooks] for writing one.
+
+= The rules in `mindtape:ice`
+
+`extends = ["mindtape:ice"]` scores priority with the ICE framework. It sets
+`framework = "ice"`, `allow-manual = false`, `required = "!terminal"` and
+`example = 3` under `[tasks.priority]`, so an open task calls `ice(...)` and a
+raw number is refused. The pack sets nothing else: the shipped 0 to 9 scale and
+its three bands show through, and a `[[tasks.priority.bands]]` of yours
+replaces them. See #link(u("/priority/"))[Priority] for the frameworks.

@@ -26,6 +26,8 @@ pub(crate) const EMBEDDED_PACKS: &[(&str, &str)] = &[
     ("tweaks", include_str!("../packs/tweaks.toml")),
     ("commits", include_str!("../packs/commits.toml")),
     ("dogfood", include_str!("../packs/dogfood.toml")),
+    ("flow", include_str!("../packs/flow.toml")),
+    ("ice", include_str!("../packs/ice.toml")),
 ];
 
 /// Where one resolved pack came from, for `mt config show --origin`.

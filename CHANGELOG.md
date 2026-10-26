@@ -530,6 +530,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `[tasks.fields.kind]` (`feat`, `fix`, `refactor`, `docs`, `test`, `dev`,
   `milestone`, required of an open task) and `[tasks.comments]` with
   `policy = "forbid"`, so a project that extends it alone needs neither.
+- **The `mindtape:flow` and `mindtape:ice` packs ship the status legend and
+  the ICE priority.** `flow` restates the floor's six statuses with their `to`
+  edges and `unblocked` flags, and holds the `stale-wip` hook, with `days = 30`
+  as a parameter. A project's own `[[tasks.status]]` replaces the legend whole.
+  `ice` sets `framework = "ice"`, `allow-manual = false`, `required` and
+  `example` under `[tasks.priority]`, so the floor's scale and bands show
+  through.
 - **Field rules live in one descriptor.** `[tasks.fields.<name>]` (a project
   field such as `[tasks.fields.x-<ns>]` included), `[tasks.assignee]`,
   `[tasks.tags]`, `[tasks.estimate]` and the numeric scales take `values`,

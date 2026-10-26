@@ -128,6 +128,11 @@ none. An entry with an empty `to` is a sink, which a task leaves only with
 status, the first entry that isn't terminal. It checks only the current
 status, because a task file keeps no history of earlier statuses.
 
+To get the shipped six statuses with a transition graph, extend the
+#link(u("/packs/#the-rules-in-mindtape-flow"))[`mindtape:flow`] pack. Your own
+`[[tasks.status]]` replaces its legend whole, and `mt check` validates the
+`to` edges of whichever legend wins.
+
 = Required notes
 
 With `note = "required"`, `mt flip` won't move a task into that status

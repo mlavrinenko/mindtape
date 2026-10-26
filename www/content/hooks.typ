@@ -13,7 +13,7 @@
 
 #show: page.with(..meta)
 
-// The run-less gate is a slice of this repo's own .mindtape/config.toml.
+// The run-less gate is a slice of the `mindtape:flow` pack file.
 #let own = checked-slices(
   json("../generated/hooks-config.json"),
   "hooks-config",
@@ -76,8 +76,8 @@ failing command prints its output either way.
 = Gates
 
 A gate with no `run` refuses whenever `when` matches, so `when` is the whole
-check. This repo refuses to start a task that nobody has reviewed or moved in
-30 days:
+check. The `mindtape:flow` pack refuses to start a task that nobody has
+reviewed or moved in 30 days, the default of its `days` parameter:
 
 #raw(
   render-slices(

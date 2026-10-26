@@ -1,0 +1,20 @@
+# mindtape:ice — priority scored by the ICE framework.
+#
+# `framework = "ice"` computes the score from `priority: ice(impact,
+# confidence, ease)` inputs (the built-in ICE definition ships in the baked-in
+# config layer). `allow-manual = false` is strict: every task must score
+# through the framework, no hand-set integers. The pack sets only those two
+# keys, `required` and `example`: the floor's 0..9 scale and its `low`,
+# `normal` and `high` bands show through, so a project that wants other bands
+# declares its own `[[tasks.priority.bands]]`.
+#
+# `required = "!terminal"`: an open task is scored, a closed one is exempt, so
+# finishing work never means backfilling a prediction nobody will route on.
+#
+# Adopt it as `extends = ["mindtape:ice"]`.
+
+[tasks.priority]
+framework = "ice"
+allow-manual = false
+required = "!terminal"
+example = 3

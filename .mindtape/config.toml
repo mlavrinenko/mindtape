@@ -5,13 +5,17 @@
 
 # The practice ships as packs (`crates/mindtape/src/packs/`) rather than living
 # here by hand: the task shape (`mindtape:tasks`), the Dogfood section
-# (`mindtape:dogfood`), the WIP caps, the size budget, tweaks and the commit
-# rules. What stays local is only what is true of THIS repo: the goal verdicts
-# (the `goals` rule, below), the tag list, the actors and the path sets.
+# (`mindtape:dogfood`), the status legend and the stale-WIP gate
+# (`mindtape:flow`), ICE priority (`mindtape:ice`), the WIP caps, the size
+# budget, tweaks and the commit rules. What stays local is only what is true
+# of THIS repo: the goal verdicts (the `goals` rule, below), the tag list, the
+# actors, the path sets and the close gate.
 # docs:slice packs/extends
 extends = [
   "mindtape:tasks",
   "mindtape:dogfood",
+  "mindtape:flow",
+  "mindtape:ice",
   "mindtape:wip-caps",
   { pack = "mindtape:budget", with = { max-files = 5 } },
   "mindtape:tweaks",
@@ -28,91 +32,6 @@ extends = [
 path = "truth/tasks"
 name = "mt"
 derive-tags = true
-
-# Status legend: legal values in lifecycle order, each with an optional glyph and
-# color. `terminal = true` ends a task (required fields relax once terminal).
-# `to` declares the allowed next statuses — the transition graph. Once any entry
-# carries `to`, `mt flip` gates every move to a listed edge (a same-status
-# re-stamp and an unset→any first stamp stay exempt; `--force` overrides), and
-# `mt check` flags a task sitting in a status unreachable from `proposed`. The
-# terminal `done`/`failed` states declare reopen edges back to `wip`; `cancelled`
-# is a sink (revive it with `--force`). `unblocked = true` on `wip` and `done`
-# refuses entering them while a `depends-on` target is unfinished; on the
-# terminal `done` it also refuses closing a parent over an unfinished child.
-[[tasks.status]]
-value = "proposed"
-glyph = "💡"
-color = "blue"
-to = ["accepted", "wip", "cancelled"]
-
-[[tasks.status]]
-value = "accepted"
-glyph = "📋"
-color = "cyan"
-to = ["wip", "cancelled"]
-
-[[tasks.status]]
-value = "wip"
-glyph = "🔨"
-color = "yellow"
-unblocked = true
-to = ["done", "failed", "accepted"]
-
-[[tasks.status]]
-value = "done"
-glyph = "✅"
-color = "green"
-terminal = true
-unblocked = true
-to = ["wip", "cancelled", "failed"]
-
-[[tasks.status]]
-value = "cancelled"
-glyph = "🚫"
-color = "magenta"
-terminal = true
-
-[[tasks.status]]
-value = "failed"
-glyph = "❌"
-color = "red"
-terminal = true
-to = ["wip"]
-
-# Priority: an ICE score on a 0..9 scale, classified into labeled bands.
-# `framework = "ice"` computes the score from `priority: ice(impact, confidence,
-# ease)` inputs (the built-in ICE definition ships in the baked-in config layer).
-# `allow-manual = false` is strict: every task must score through the framework,
-# no hand-set integers.
-[tasks.priority]
-kind = "int"
-min = 0
-max = 9
-required = "!terminal"
-example = 3
-framework = "ice"
-allow-manual = false
-
-[[tasks.priority.bands]]
-label = "low"
-min = 0
-max = 2
-glyph = "🟢"
-color = "green"
-
-[[tasks.priority.bands]]
-label = "normal"
-min = 3
-max = 6
-glyph = "🟡"
-color = "yellow"
-
-[[tasks.priority.bands]]
-label = "high"
-min = 7
-max = 9
-glyph = "🔴"
-color = "red"
 
 # Difficulty says which model tier and reasoning effort a task wants, before
 # anyone starts it. The scale and its junior/mid/senior/staff anchors come from
@@ -362,23 +281,6 @@ description = "Blocked tasks and what each waits on"
 # The terminal statuses are listed rather than derived: `when` sees the task as
 # it stands BEFORE the write, so a bare `terminal` would test the status being
 # left, not the one being entered.
-# Picking a task up is when its scope gets re-read. A task that sat untouched
-# for 30 days (no `mt review`, no status change) has drifted from the code and
-# the backlog around it — a Scope counting "the five open tasks" when there are
-# now twenty — so starting it is refused until someone re-reads it, fixes what
-# went stale, and stamps `mt review`. 30 is provisional, like the estimate caps.
-#
-# A run-less gate: `gate = true` with no `run` refuses unconditionally
-# whenever `when` matches, so the condition above is the whole check.
-# docs:slice hooks/stale-gate
-[[on.flip]]
-name = "stale-wip"
-when = 'into("wip") && stale(30)'
-actions = [
-  { gate = true, message = "re-read the scope against today's code, fix what went stale, run `mt review`, then start again" },
-]
-# docs:end
-
 [[on.flip]]
 name = "gates-fresh"
 when = 'into("done") || into("cancelled") || into("failed")'

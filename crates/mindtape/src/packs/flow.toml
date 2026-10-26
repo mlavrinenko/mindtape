@@ -1,0 +1,89 @@
+# mindtape:flow — a status legend with its transition graph, and a gate that
+# refuses to start a stale task.
+#
+# The embedded floor declares the six statuses with no edges, so any move is
+# legal. This pack restates the same six with `to` edges and `unblocked`
+# flags, since an array replaces whole, and a project's own `[[tasks.status]]`
+# replaces the pack's legend whole in turn. `mt check` validates the `to`
+# edges of whichever legend wins.
+#
+# Status legend: legal values in lifecycle order, each with an optional glyph
+# and color. `terminal = true` ends a task (required fields relax once
+# terminal). `to` declares the allowed next statuses — the transition graph.
+# Once any entry carries `to`, `mt flip` gates every move to a listed edge (a
+# same-status re-stamp and an unset→any first stamp stay exempt; `--force`
+# overrides), and `mt check` flags a task sitting in a status unreachable from
+# `proposed`. The terminal `done`/`failed` states declare reopen edges back to
+# `wip`; `cancelled` is a sink (revive it with `--force`). `unblocked = true`
+# on `wip` and `done` refuses entering them while a `depends-on` target is
+# unfinished; on the terminal `done` it also refuses closing a parent over an
+# unfinished child.
+#
+# `stale-wip`: picking a task up is when its scope gets re-read. A task that
+# sat untouched for `days` days (no `mt review`, no status change) has drifted
+# from the code and the backlog around it — a Scope counting "the five open
+# tasks" when there are now twenty — so starting it is refused until someone
+# re-reads it, fixes what went stale, and stamps `mt review`. The default of
+# 30 is provisional: retune it with `days`.
+#
+# A run-less gate: `gate = true` with no `run` refuses unconditionally
+# whenever `when` matches, so the condition is the whole check.
+#
+# The pack leaves a close gate to the project, since the command that proves a
+# build passed is the project's own.
+#
+# Adopt it as `extends = ["mindtape:flow"]`, or tune the gate with
+# `{ pack = "mindtape:flow", with = { days = 14 } }`.
+
+[params]
+# How many days a task may sit untouched before starting it is refused.
+days = 30
+
+[[tasks.status]]
+value = "proposed"
+glyph = "💡"
+color = "blue"
+to = ["accepted", "wip", "cancelled"]
+
+[[tasks.status]]
+value = "accepted"
+glyph = "📋"
+color = "cyan"
+to = ["wip", "cancelled"]
+
+[[tasks.status]]
+value = "wip"
+glyph = "🔨"
+color = "yellow"
+unblocked = true
+to = ["done", "failed", "accepted"]
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+unblocked = true
+to = ["wip", "cancelled", "failed"]
+
+[[tasks.status]]
+value = "cancelled"
+glyph = "🚫"
+color = "magenta"
+terminal = true
+
+[[tasks.status]]
+value = "failed"
+glyph = "❌"
+color = "red"
+terminal = true
+to = ["wip"]
+
+# docs:slice hooks/stale-gate
+[[on.flip]]
+name = "stale-wip"
+when = 'into("wip") && stale(param("days"))'
+actions = [
+  { gate = true, message = "re-read the scope against today's code, fix what went stale, run `mt review`, then start again" },
+]
+# docs:end

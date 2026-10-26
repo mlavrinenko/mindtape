@@ -6,6 +6,8 @@ groups:
       crates/mindtape/src/packs/budget.toml: 54739bb1028bba904c3516de51e486da9ac50a3fc1ac819abebdab1b8a52867a
       crates/mindtape/src/packs/commits.toml: 8e61b32e0f6686d7bf6012e0f457d7f0e88a7ac555735ccdd6db8eeb5c0c5c36
       crates/mindtape/src/packs/dogfood.toml: bfbc085ee470797e0e7b16535721c59404454d95301f997b2ac3ffd4c5099964
+      crates/mindtape/src/packs/flow.toml: 13627963544f7dcf27b69d791f158202970181d7127581329783107fc254c6e8
+      crates/mindtape/src/packs/ice.toml: fc82bc4388152c8d755244c532f7311481f6333dbbc9ee3498220abdc5b35e1a
       crates/mindtape/src/packs/tasks.toml: 40eee191870d5bdb94325f360292ced7803994ce0027e32a8a24480eac570c79
       crates/mindtape/src/packs/tweaks.toml: 3f5c1612deb1f9c5a11ec5580f9bc48ed0b256e54960082c4441fdea43e1278e
       crates/mindtape/src/packs/wip-caps.toml: 5dc4ccb78198701f7c04354fbfc636eec497500513ebab981ebeb6832aa0ce9a
@@ -319,7 +321,7 @@ groups:
       .just/scripts/lint-dry.sh: 935cd86b688eaeea3b62ea86f21eb8fec32d72d3f8f848720b333df9ea7b4814
       .just/scripts/outdatty-check.sh: e219b61957163b1cf7ffd32d183fa37a8de60d1573fc68d7f02aab5f0eeb772b
       .just/scripts/wt-carry-lcov.sh: a4d4b96d24cee1d76f8d19ddcc10b6f4b99a1cb9f7c8ec3143cf487f2bb9861c
-      Justfile: 7ed0958fe8538d5a948dd8d7d9b3f6b02a2614b7fc33621b53469452aa3ce40d
+      Justfile: 53c7bf88ffecc6862edd72fca73b5d2a10cc01f2eecabbf63c58af1445cff546
       flake.nix: bbcb46698504bc1a3b0708fac535ba4c0bcadc169baf2a630a7c8459e394bfec
     dependents:
       docs/src/agents.typ: b60c66d46729c944b878cc0d112e26741e5d2621ed8dc803c5ed0092daf2adeb

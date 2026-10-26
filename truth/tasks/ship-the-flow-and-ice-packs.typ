@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 26),
+  status: done(2026, 10, 26),
   links: parent("share-config-between-projects-through-packs.typ")
     + depends-on(
       "ship-the-dogfood-pack-and-widen-mindtape-tasks.typ",
@@ -47,18 +47,18 @@
 extends = ["mindtape:tasks", "mindtape:flow", "mindtape:ice"]
 ```
 
-- 🟢 `mindtape:flow` restates the floor's six statuses with this repo's `to` edges and `unblocked` flags, since an array replaces whole, and adds the `stale-wip` gate with `days = 30` as a parameter.
+- 🟢 `mindtape:flow` restates the floor's six statuses with this repo's `to` edges and `unblocked` flags, since an array replaces whole, and adds the `stale-wip` gate with `days = 30` as a parameter. A project legend with no `wip` leaves that gate naming a status it lacks, so it lists `stale-wip` in `disable`.
 - 🟢 `mindtape:ice` sets only `framework = "ice"`, `allow-manual = false`, `required = "!terminal"` and `example = 3` under `[tasks.priority]`. The floor's 0..9 scale and its three bands show through.
 - 🟢 A project's own `[[tasks.status]]` replaces the pack's legend whole, and `mt check` validates the `to` edges of whichever legend wins.
 
 
 == Changes
 
-- `crates/mindtape/src/config/packs_tests.rs`: the red tests first: each pack loads, the stale gate fires, a project legend replaces the pack's.
+- `crates/mindtape/src/config/packs_tests_flow.rs`, `crates/mindtape-cli/tests/it/flow_pack_e2e.rs` (new, since `packs_tests.rs` nears its cap): the red tests first: each pack loads, the stale gate fires, a project legend replaces the pack's.
 - `crates/mindtape/src/packs/flow.toml`, `crates/mindtape/src/packs/ice.toml` (new): the packs.
-- `crates/mindtape/src/config/packs.rs`: register both.
+- `crates/mindtape/src/config/pack_registry.rs`, `Justfile`: register both, and add both files to `TOML_FMT_PATHS`.
 - `.mindtape/config.toml`: extend both packs and drop the legend, the priority and the stale gate, keeping the close gate.
-- `www/content/packs.typ`, `www/content/statuses.typ`, `www/content/priority.typ`: the two packs.
+- `www/content/packs.typ`, `statuses.typ`, `priority.typ`, `hooks.typ`, `www/generate-examples.sh`: the two packs, with the stale gate sliced from the pack file.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 
 

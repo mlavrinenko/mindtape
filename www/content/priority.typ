@@ -95,6 +95,11 @@ framework, so `mt` refuses a raw number and exits
 
 #terminal("priority-strict")
 
+To adopt exactly this setup without writing the keys, extend the
+#link(u("/packs/#the-rules-in-mindtape-ice"))[`mindtape:ice`] pack. It sets
+`framework`, `allow-manual = false`, `required` and `example`, and the shipped
+scale and bands stay.
+
 #link(u("/templates/"))[Templates & slots] shows how `mt add` fills a
 framework's inputs.
 

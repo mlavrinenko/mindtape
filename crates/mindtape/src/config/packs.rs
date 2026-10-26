@@ -426,3 +426,7 @@ mod tests_origins;
 #[cfg(test)]
 #[path = "packs_tests_dogfood.rs"]
 mod tests_dogfood;
+
+#[cfg(test)]
+#[path = "packs_tests_flow.rs"]
+mod tests_flow;
