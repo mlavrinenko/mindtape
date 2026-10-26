@@ -464,6 +464,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   <value>: <set by>, for pack <pack>` for each parameter, where `<set by>` is
   the layer whose `with` set it or `default`. The library's `Config` keeps the
   record: `key_origins()` and `param_origins()`.
+- **A config warning points into the pack that holds its key.** A filter in a
+  pack's rule that names an undeclared `x-` field now warns at that pack's
+  file and line, as `team.toml:6: tasks.rules[0].assert: ...`, not at the
+  project config. `Config::warning_place` gives the place.
 - **The library fetches a locked pack source into a cache.**
   `config::pack_sources::fetch` runs `git fetch` for the source's `ref`, with
   the caller's `GIT_*` repository variables dropped, fetched objects checked

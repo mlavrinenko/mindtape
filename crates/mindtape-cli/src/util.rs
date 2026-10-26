@@ -224,7 +224,9 @@ fn warn_config(root: &Path, config: &Config) {
     }
 }
 
-/// One `warning:` per load warning of `config`, placed at its config file.
+/// One `warning:` per load warning of `config`, placed at the file and line
+/// of its key in the layer or pack that holds it, or at the project config
+/// when no file does.
 pub(crate) fn config_warnings(root: &Path, config: &Config) -> Vec<Diag> {
     let file = config_path(root);
     let shown = file.strip_prefix(root).unwrap_or(&file);
@@ -232,9 +234,12 @@ pub(crate) fn config_warnings(root: &Path, config: &Config) -> Vec<Diag> {
         .warnings()
         .into_iter()
         .map(|warning| {
-            Diag::verbatim(Kind::Warning, warning.text)
-                .at_file(shown)
-                .unknown(warning.unknown.as_ref())
+            let diag = Diag::verbatim(Kind::Warning, warning.text.clone())
+                .unknown(warning.unknown.as_ref());
+            match config.warning_place(&warning) {
+                Some(place) => diag.at(&place.file, place.line, None),
+                None => diag.at_file(shown),
+            }
         })
         .collect()
 }

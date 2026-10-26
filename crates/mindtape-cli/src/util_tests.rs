@@ -415,3 +415,21 @@ fn a_stem_two_folders_share_is_refused_naming_each_path() {
         assert!(msg.contains(&file.display().to_string()), "{msg}");
     }
 }
+
+#[test]
+fn a_config_warning_from_a_pack_is_placed_at_the_pack_file_and_line() {
+    let dir = mindtape::test_support::tempdir_with_config("extends = [\"./team.toml\"]\n");
+    std::fs::write(
+        dir.path().join("team.toml"),
+        "[tasks.fields.x-machine]\nvalues = [\"alpha\"]\n\n[[tasks.rules]]\nname = \"r\"\n\
+         assert = 'x-machnie == \"alpha\"'\nseverity = \"warn\"\n",
+    )
+    .unwrap();
+    let (config, _, _) = mindtape::load_config_layered(dir.path()).unwrap();
+    let diags = config_warnings(dir.path(), &config);
+    let text = crate::diag::plain(diags.first().unwrap());
+    assert!(
+        text.starts_with("warning: team.toml:6: tasks.rules[0].assert"),
+        "{text}"
+    );
+}

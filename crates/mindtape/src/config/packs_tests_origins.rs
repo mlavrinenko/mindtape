@@ -1,11 +1,12 @@
-//! The keys and parameters a loaded config remembers a pack for. The fixtures
-//! write real files, so the origins are the ones `mt config show --origin`
-//! prints.
+//! The keys and parameters a loaded config remembers a pack for, and the
+//! file a load warning is placed in. The fixtures write real files, so the
+//! origins are the ones `mt config show --origin` prints.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use std::path::PathBuf;
 
 use crate::config::layers::{LayerSource, load_config_layered_from};
+use crate::config::locate::ConfigPlace;
 use crate::config::pack_registry::{PackOrigin, RuleOrigin};
 use crate::config::{Config, KeyOrigin, ParamOrigin};
 use crate::test_support::{home_and_project, write_file};
@@ -78,4 +79,20 @@ fn a_default_value_names_no_layer() {
     let params: Vec<&ParamOrigin> = config.param_origins().collect();
     assert_eq!(params[0].value, "5");
     assert_eq!(params[0].set_by, None);
+}
+
+#[test]
+fn a_warning_sits_at_the_pack_file_and_line_of_its_key() {
+    let team = "[tasks.fields.x-machine]\nvalues = [\"alpha\"]\n\n[[tasks.rules]]\nname = \"r\"\n\
+        assert = 'x-machnie == \"alpha\"'\nseverity = \"warn\"\n";
+    let (_tmp, _project, config) = load(team, "extends = [\"./team.toml\"]\n");
+    let warnings = config.warnings();
+    assert_eq!(warnings.len(), 1);
+    assert_eq!(
+        config.warning_place(&warnings[0]),
+        Some(ConfigPlace {
+            file: PathBuf::from("team.toml"),
+            line: 6
+        })
+    );
 }

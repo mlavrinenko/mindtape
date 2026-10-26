@@ -362,6 +362,15 @@ impl Config {
         crate::config::warnings::warnings(self)
     }
 
+    /// The place of a warning from [`Config::warnings`]: the file and line of
+    /// the key it is about, in the layer or pack that holds it. `None` when
+    /// the message leads with no key, or no file declares it, as for a config
+    /// built from one string.
+    #[must_use]
+    pub fn warning_place(&self, warning: &crate::problem::Problem) -> Option<ConfigPlace> {
+        self.provenance.place_of(&warning.text)
+    }
+
     /// The leaf keys some pack set, each with the pack or layer whose value
     /// won, by dotted path. Empty for a config built from one string.
     pub fn key_origins(&self) -> impl Iterator<Item = KeyOrigin> + '_ {
