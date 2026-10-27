@@ -252,6 +252,9 @@ fn load_at_valid_file_returns_entries() {
     assert!(path.is_some());
 }
 
+/// Unix only: Windows reports a file standing where a directory should be as
+/// "path not found", which `load_at` rightly reads as no config at all.
+#[cfg(unix)]
 #[test]
 fn load_at_non_notfound_error_propagates() {
     if run_child(&[("mindtape", "i am a file not a dir")]).is_some() {

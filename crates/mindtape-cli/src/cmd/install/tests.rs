@@ -286,6 +286,9 @@ fn completion_hint_shows_the_source_line_for_the_shell() {
 #[test]
 fn completion_hint_quotes_a_path_that_needs_it() {
     let line = completion_hint("bash", Path::new("/home/a user/completions"));
-    let quoted = format!("'{}'", Path::new("/home/a user/completions/bash").display());
+    let quoted = format!(
+        "'{}'",
+        Path::new("/home/a user/completions").join("bash").display()
+    );
     assert!(line.ends_with(&format!("source {quoted}")), "{line}");
 }

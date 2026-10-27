@@ -175,8 +175,9 @@ fn view_sort_follows_a_bare_view_reference() {
 // --- run and gates -----------------------------------------------------
 
 /// A gate on the way into a terminal status, spelled with a command that fails.
+/// `&&` chains in both `sh` and `cmd`, where `;` does not.
 const FAILING_GATE: &str = "[[on.flip]]\nwhen = 'into(\"done\")'\n\
-     actions = [{ run = 'echo boom; exit 3', gate = true, message = \"prove it\" }]\n";
+     actions = [{ run = 'echo boom && exit 3', gate = true, message = \"prove it\" }]\n";
 
 #[test]
 fn a_passing_gate_allows_the_flip_and_stays_quiet() {
@@ -195,7 +196,7 @@ fn a_failing_gate_refuses_and_surfaces_the_output() {
     let (outcome, out) = run_visible(dir.path(), FAILING_GATE, "done");
     assert_eq!(
         plain(&outcome.refusal.unwrap()),
-        "error: gate failed: 'echo boom; exit 3': exit 3\n\
+        "error: gate failed: 'echo boom && exit 3': exit 3\n\
          hint: prove it\n\
          hint: or pass --force to skip the gate; the status note records it\n"
     );
@@ -223,7 +224,7 @@ fn force_waives_a_failing_gate_and_records_it() {
         outcome.refusal.is_none(),
         "--force must let the flip through"
     );
-    assert_eq!(outcome.forced, vec!["echo boom; exit 3".to_owned()]);
+    assert_eq!(outcome.forced, vec!["echo boom && exit 3".to_owned()]);
     assert!(out.contains("--force"), "{out}");
 }
 
@@ -249,7 +250,7 @@ fn a_failed_gate_skips_the_actions_after_it() {
 fn a_failing_run_without_gate_warns_but_allows() {
     let dir = tempdir();
     let config = "[[on.flip]]\nwhen = 'into(\"done\")'\n\
-                  actions = [{ run = 'echo hmm; exit 1' }]\n";
+                  actions = [{ run = 'echo hmm && exit 1' }]\n";
     let (outcome, out) = run_visible(dir.path(), config, "done");
     assert!(outcome.refusal.is_none());
     assert!(out.contains("warning:"), "{out}");
@@ -267,20 +268,31 @@ fn a_passing_run_without_gate_prints_only_when_visible() {
     assert_eq!(hidden, "");
 }
 
+/// Passes when the task file exists. `cmd` reads `%VAR%`, not `$VAR`.
+#[cfg(not(windows))]
+const FILE_EXISTS: &str = "test -f \"$MINDTAPE_TASK_FILE\"";
+/// Passes when the task file exists. `cmd` reads `%VAR%`, not `$VAR`.
+#[cfg(windows)]
+const FILE_EXISTS: &str = "if exist %MINDTAPE_TASK_FILE% (exit 0) else (exit 1)";
+/// Prints `<stem>/<status>` and fails, so the output shows.
+#[cfg(not(windows))]
+const ECHO_STEM_STATUS: &str = "echo \"$MINDTAPE_TASK_STEM/$MINDTAPE_TASK_STATUS\" && exit 1";
+/// Prints `<stem>/<status>` and fails, so the output shows.
+#[cfg(windows)]
+const ECHO_STEM_STATUS: &str = "echo %MINDTAPE_TASK_STEM%/%MINDTAPE_TASK_STATUS%&& exit 1";
+
 /// The command sees the task it is gating.
 #[test]
 fn a_command_receives_the_task_path_and_stem() {
     let dir = tempdir();
-    let config = "[[on.flip]]\nwhen = ''\n\
-         actions = [{ run = 'echo \"$MINDTAPE_TASK_STEM $MINDTAPE_TASK_STATUS\"; \
-         test -f \"$MINDTAPE_TASK_FILE\"', gate = true }]\n";
-    let (outcome, out) = run_visible(dir.path(), config, "done");
+    let config =
+        format!("[[on.flip]]\nwhen = ''\nactions = [{{ run = '{FILE_EXISTS}', gate = true }}]\n");
+    let (outcome, out) = run_visible(dir.path(), &config, "done");
     assert!(outcome.refusal.is_none(), "the task file must exist: {out}");
     assert!(out.is_empty(), "a passing gate prints nothing: {out}");
 
-    let echo = "[[on.flip]]\nwhen = ''\n\
-         actions = [{ run = 'echo \"$MINDTAPE_TASK_STEM/$MINDTAPE_TASK_STATUS\"; exit 1' }]\n";
-    let (_, printed) = run_visible(dir.path(), echo, "done");
+    let echo = format!("[[on.flip]]\nwhen = ''\nactions = [{{ run = '{ECHO_STEM_STATUS}' }}]\n");
+    let (_, printed) = run_visible(dir.path(), &echo, "done");
     assert!(printed.contains("alpha/done"), "{printed}");
 }
 

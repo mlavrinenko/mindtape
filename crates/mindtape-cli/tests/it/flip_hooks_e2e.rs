@@ -101,7 +101,7 @@ fn a_passing_gate_allows_the_flip() {
 fn a_failing_gate_refuses_the_flip_and_writes_nothing() {
     let dir = project(
         "[[on.flip]]\nwhen = 'into(\"done\")'\n\
-         actions = [{ run = 'echo needs-review >&2; exit 2', gate = true, \
+         actions = [{ run = 'echo needs-review >&2 && exit 2', gate = true, \
          message = \"a human has to look first\" }]\n",
     );
     let before = task_source(dir.path());
@@ -118,7 +118,7 @@ fn a_failing_gate_refuses_the_flip_and_writes_nothing() {
     );
     assert_eq!(
         stderr,
-        "error: gate failed: 'echo needs-review >&2; exit 2': exit 2\n\
+        "error: gate failed: 'echo needs-review >&2 && exit 2': exit 2\n\
          hint: a human has to look first\n\
          hint: or pass --force to skip the gate; the status note records it\n",
         "one error, the config's message, the way past"

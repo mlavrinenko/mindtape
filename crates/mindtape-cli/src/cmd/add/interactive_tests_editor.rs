@@ -224,9 +224,7 @@ fn non_required_slot_not_unfilled() {
 #[test]
 fn run_parses_editor_output() {
     let dir = tempdir();
-    let script = dir.path().join("editor.sh");
-    std::fs::write(&script, "cat > \"$1\" << 'EOF'\nx: \"ParsedTitle\"\nEOF\n").unwrap();
-    let editor = format!("bash {}", script.display());
+    let editor = editor_script(dir.path(), "x: \"ParsedTitle\"");
     let specs = discover_slots("#show: task.with(x: slot(\"x\"))");
     let values = run(
         &AddConfig::default(),
@@ -236,4 +234,21 @@ fn run_parses_editor_output() {
     )
     .unwrap();
     assert_eq!(values["x"], RawValue::Str("ParsedTitle".to_owned()));
+}
+
+/// An editor command that overwrites the file it is handed with `line`.
+#[cfg(unix)]
+fn editor_script(dir: &std::path::Path, line: &str) -> String {
+    let script = dir.join("editor.sh");
+    std::fs::write(&script, format!("cat > \"$1\" << 'EOF'\n{line}\nEOF\n")).unwrap();
+    format!("sh {}", script.display())
+}
+
+/// An editor command that overwrites the file it is handed with `line`. Not
+/// `bash`: on Windows that can resolve to WSL's launcher in `System32`.
+#[cfg(windows)]
+fn editor_script(dir: &std::path::Path, line: &str) -> String {
+    let script = dir.join("editor.cmd");
+    std::fs::write(&script, format!("@echo {line}> %1\r\n")).unwrap();
+    format!("cmd /C {}", script.display())
 }
