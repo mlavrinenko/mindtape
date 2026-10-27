@@ -57,6 +57,8 @@
 mod from_lib;
 mod hint;
 mod io;
+#[cfg(test)]
+pub(crate) use io::{NOT_FOUND, PATH_NOT_FOUND};
 mod json;
 #[allow(
     clippy::disallowed_methods,

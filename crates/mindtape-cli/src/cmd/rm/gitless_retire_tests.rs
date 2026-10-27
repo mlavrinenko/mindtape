@@ -107,7 +107,10 @@ fn retire_plan_errors_without_terminal_status() {
 fn retire_plan_names_a_task_file_it_cannot_read() {
     assert_eq!(
         retire_error(&[]),
-        "error: can't read: 'gone.typ': no such file or directory\n"
+        format!(
+            "error: can't read: 'gone.typ': {}\n",
+            crate::diag::NOT_FOUND
+        )
     );
 }
 

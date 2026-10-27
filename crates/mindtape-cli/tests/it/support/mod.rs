@@ -41,6 +41,13 @@ const DATA_HOME: &str = "data-home";
 /// own project directory, so a test fills the pack cache it reads.
 pub const CACHE_HOME: &str = "cache-home";
 
+/// The reason `mt` gives for a missing file on this platform: the OS's words.
+#[cfg(not(windows))]
+pub const NOT_FOUND: &str = "no such file or directory";
+/// The reason `mt` gives for a missing file on this platform: the OS's words.
+#[cfg(windows)]
+pub const NOT_FOUND: &str = "the system cannot find the file specified";
+
 /// Environment variables that steer `mt` and must not reach a spawned binary
 /// from the developer's shell: `MINDTAPE_NOW` repins the clock every dated
 /// write reads, `MINDTAPE_WORKTREE` retargets the project root, and `VISUAL`

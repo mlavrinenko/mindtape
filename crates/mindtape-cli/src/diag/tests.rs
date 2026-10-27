@@ -215,7 +215,10 @@ fn a_failed_read_names_the_path_and_the_os_reason() {
     let diag = Diag::cannot_read(Path::new("nope.typ"), &err);
     assert_eq!(
         plain(&diag),
-        "error: can't read: 'nope.typ': no such file or directory\n"
+        format!(
+            "error: can't read: 'nope.typ': {}\n",
+            crate::diag::PATH_NOT_FOUND
+        )
     );
     assert_eq!(diag.kind(), Kind::Failed);
 }

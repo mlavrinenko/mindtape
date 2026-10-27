@@ -9,7 +9,8 @@
 //! A command that touches a file uses [`Diag::cannot_read`] or
 //! [`Diag::cannot_write`] and adds a hint when it has a next step. Any other
 //! message that fails on I/O ends in [`Diag::io`], so the reason reads the same
-//! everywhere: the OS's words, lowercase, with Rust's `(os error 2)` left off.
+//! everywhere: the OS's words, lowercase, with Rust's `(os error 2)` and a
+//! final period left off.
 
 use std::io;
 use std::path::Path;
@@ -40,13 +41,15 @@ impl Diag {
 }
 
 /// `err` as the reason of a message: its text with a trailing `(os error N)`
-/// dropped and the first letter lowercase.
+/// and a trailing period dropped, and the first letter lowercase. Windows
+/// ends its reasons with a period, which would sit mid-line.
 fn reason(err: &io::Error) -> String {
     let text = err.to_string();
     let text = match text.rfind(" (os error ") {
         Some(at) if text.ends_with(')') => text.get(..at).unwrap_or(&text),
         _ => &text,
     };
+    let text = text.strip_suffix('.').unwrap_or(text);
     let mut chars = text.chars();
     match chars.next() {
         Some(first) => first.to_lowercase().chain(chars).collect(),
@@ -60,6 +63,19 @@ impl From<io::Error> for Diag {
         Self::failed("i/o failed").io(&err)
     }
 }
+
+/// The reason a read of a missing file gets on this platform.
+#[cfg(all(test, not(windows)))]
+pub(crate) const NOT_FOUND: &str = "no such file or directory";
+/// The reason a read of a missing file gets on this platform.
+#[cfg(all(test, windows))]
+pub(crate) const NOT_FOUND: &str = "the system cannot find the file specified";
+/// The reason a read under a missing directory gets on this platform.
+#[cfg(all(test, not(windows)))]
+pub(crate) const PATH_NOT_FOUND: &str = "no such file or directory";
+/// The reason a read under a missing directory gets on this platform.
+#[cfg(all(test, windows))]
+pub(crate) const PATH_NOT_FOUND: &str = "the system cannot find the path specified";
 
 #[cfg(test)]
 mod tests {
@@ -80,6 +96,13 @@ mod tests {
     #[test]
     fn the_os_error_suffix_is_dropped_and_the_first_letter_lowercased() {
         let err = io::Error::from_raw_os_error(2);
-        assert_eq!(reason(&err), "no such file or directory");
+        assert_eq!(reason(&err), NOT_FOUND);
+    }
+
+    /// Windows ends its reasons with a period, which would sit mid-line.
+    #[test]
+    fn a_trailing_period_is_dropped() {
+        let err = io::Error::other("Access is denied.");
+        assert_eq!(reason(&err), "access is denied");
     }
 }

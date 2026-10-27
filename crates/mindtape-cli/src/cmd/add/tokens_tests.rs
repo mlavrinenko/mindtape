@@ -133,7 +133,10 @@ fn an_unreadable_file_errors_naming_the_slot_and_the_path() {
     let err = rejected("summary@no/such/notes.txt");
     assert_eq!(
         err,
-        "error: can't read slot file: 'no/such/notes.txt' for slot 'summary': no such file or directory\n"
+        format!(
+            "error: can't read slot file: 'no/such/notes.txt' for slot 'summary': {}\n",
+            crate::diag::PATH_NOT_FOUND
+        )
     );
 }
 

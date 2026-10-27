@@ -28,7 +28,7 @@ fn import_of_a_missing_file_is_a_failed_read() {
         project().path(),
         &["import", "none.json"],
         1,
-        "error: can't read: 'none.json': no such file or directory\n",
+        &format!("error: can't read: 'none.json': {}\n", support::NOT_FOUND),
     );
 }
 

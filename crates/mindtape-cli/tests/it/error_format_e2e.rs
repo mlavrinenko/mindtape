@@ -206,7 +206,10 @@ fn a_values_file_that_cannot_be_read_is_one_error_without_caused_by() {
     assert!(!stderr.contains("Caused by"), "{stderr}");
     assert_eq!(
         stderr,
-        "error: can't read values: '/nonexistent': no such file or directory\n"
+        format!(
+            "error: can't read values: '/nonexistent': {}\n",
+            support::NOT_FOUND
+        )
     );
 }
 
