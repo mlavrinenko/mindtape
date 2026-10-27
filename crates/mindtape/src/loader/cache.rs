@@ -43,13 +43,11 @@ use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use sha1::{Digest, Sha1};
 use typst_harvest::HVal;
 
 use super::LoadWarning;
 use crate::config::Config;
-use crate::model::canonical::{hval_to_json, json_to_hval};
 
 /// On-disk entry format. Bump when the entry shape or the marker reconstruction
 /// changes; folded into the build key, so a bump busts every entry.
@@ -128,7 +126,7 @@ impl TaskCache {
             return None;
         }
         let outcome = match entry.marker {
-            Some(value) => CachedOutcome::Marker(json_to_hval(&value)),
+            Some(value) => CachedOutcome::Marker(value),
             None => CachedOutcome::NoMarker,
         };
         Some(Cached {
@@ -175,7 +173,7 @@ impl TaskCache {
         };
         let entry = Entry {
             format: FORMAT_VERSION,
-            marker: marker.map(hval_to_json),
+            marker: marker.cloned(),
             warnings: warnings.to_vec(),
             deps,
         };
@@ -198,7 +196,7 @@ impl TaskCache {
 #[derive(Serialize, Deserialize)]
 struct Entry {
     format: u32,
-    marker: Option<Value>,
+    marker: Option<HVal>,
     #[serde(default)]
     warnings: Vec<LoadWarning>,
     /// Imported project files and their hashes when the entry was written.

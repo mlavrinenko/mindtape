@@ -757,6 +757,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A `check` rule gets an infinite or NaN float from an `x-` field.** `mt`
+  wrote it into the call as Rust's `inf` or `NaN`, so the rule broke with
+  `unknown variable: inf`. It's Typst's `float.inf` and `float.nan` now.
 - **Task files in a folder load on Windows.** Each one failed with `bad
   virtual path "tasks\\alpha.typ": path contains backslash`, so a project
   with a `tasks/` root loaded nothing there. `mt` now names every file to

@@ -17,10 +17,9 @@
 //! sits — Typst's own import rule, the one [`crate::validate::candidate`] leans on for
 //! the opposite reason (a candidate's relative imports must resolve as if the
 //! file already lived at its destination). The synthetic file never touches
-//! disk: it is installed with
-//! [`typst_world::World::with_source_override`], the same route
-//! [`crate::validate::candidate`] uses for a task that does not exist on disk yet, on a
-//! world built with [`typst_world::DiskProvider`] rooted at the project.
+//! disk: the world is built around it with
+//! [`typst_world::World::with_main_source`], the same route
+//! [`crate::validate::candidate`] uses for a task that does not exist on disk yet.
 //!
 //! # Reuse across tasks
 //!
@@ -37,12 +36,11 @@
 //!
 //! # Value literal
 //!
-//! The function's argument is a Typst literal built from an [`HVal`] tree,
-//! reusing [`crate::emit::format`]'s string/array/dict rendering with one
-//! difference: [`HVal::Date`] renders as a real `datetime(year:, month:,
-//! day:)` call rather than the quoted string [`crate::emit::format::hval_to_typ`]
-//! writes for round-tripping `x-<ns>` extras verbatim. That distinction only
-//! has anything to preserve for `field`, which reads straight off
+//! The function's argument is [`HVal::to_typst`] of an [`HVal`] tree, which
+//! evaluates back to the same value: a [`HVal::Date`] is a real
+//! `datetime(year:, month:, day:)` call, not the quoted string
+//! [`crate::emit::format::hval_to_typ`] writes into a task file. That
+//! distinction only has anything to preserve for `field`, which reads straight off
 //! [`crate::model::Task::extras`] (never round-tripped through JSON, so a
 //! nested date the author wrote survives as [`HVal::Date`]); the no-`field`
 //! whole-task case is built from the same canonical shape `mt eval --json`
@@ -68,14 +66,13 @@
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use serde_json::Value;
+use serde::Deserialize as _;
 use typst_harvest::{HVal, Harvest, HarvestWorld, SourceSnapshot, harvest};
-use typst_world::{DiskProvider, root_file_id};
+use typst_world::root_file_id;
 
 use crate::config::Config;
-use crate::emit::format::{hval_to_typ, typ_array, typ_dict_with};
 use crate::model::Task;
-use crate::model::canonical::{CanonicalTask, json_to_hval};
+use crate::model::canonical::CanonicalTask;
 use crate::rules::CheckSpec;
 
 /// `path` made canonical, or as given when it can't be.
@@ -125,14 +122,9 @@ impl CompiledCheck {
         let Some((id, source)) = self.probe(&value) else {
             return vec!["internal error: could not build a check probe".to_owned()];
         };
-        let mut world =
-            HarvestWorld::with_provider(id, self.root_abs.clone(), Box::new(DiskProvider))
-                .with_package_root(crate::loader::package_root())
-                .with_shared_sources(&self.snapshot);
-        for (name, dir) in &self.overrides {
-            world = world.with_local_package(name, dir.clone());
-        }
-        let world = world.with_source_override(id, source);
+        let world = HarvestWorld::with_main_source(id, self.root_abs.clone(), source)
+            .with_shared_sources(&self.snapshot);
+        let world = crate::loader::with_packages(world, &self.overrides);
         match harvest(&world) {
             Ok(result) => breaches_from(&result),
             Err(err) => vec![err.to_string()],
@@ -149,7 +141,7 @@ impl CompiledCheck {
             "#import \"/{}\": {name}\n#metadata({name}({arg})) <mindtape.check>\n",
             self.typst_path,
             name = self.function,
-            arg = check_literal(value),
+            arg = value.to_typst(),
         );
         Some((id, source))
     }
@@ -199,13 +191,10 @@ fn check_module(root: &Path, config: &Config, check: &CheckSpec) -> Result<(), S
     }
     let root_abs = canonical(check_root);
     let id = root_file_id(".mindtape/check-probe/load.typ").map_err(|err| err.to_string())?;
-    let mut world = HarvestWorld::with_provider(id, root_abs, Box::new(DiskProvider))
-        .with_package_root(crate::loader::package_root());
-    for (name, dir) in crate::loader::package_overrides(root, config) {
-        world = world.with_local_package(&name, dir);
-    }
     let source = format!("#import \"/{}\": {}\n", check.typst, check.function);
-    let world = world.with_source_override(id, source);
+    let world = HarvestWorld::with_main_source(id, root_abs, source);
+    let world =
+        crate::loader::with_packages(world, &crate::loader::package_overrides(root, config));
     harvest(&world).map(|_| ()).map_err(|err| {
         format!(
             "`{}` does not export `{}`: {err}",
@@ -234,12 +223,13 @@ fn field_value(task: &Task, config: &Config, field: Option<&str>) -> HVal {
 
 /// `task` projected to the same canonical shape `mt eval --json` prints, as an
 /// [`HVal`] tree instead of [`serde_json::Value`] — routed through
-/// [`CanonicalTask`] and [`json_to_hval`] rather than a second projection off
-/// [`Task`], so the two never drift on what "the whole task" contains.
+/// [`CanonicalTask`]'s JSON rather than a second projection off [`Task`], so
+/// the two never drift on what "the whole task" contains.
 fn canonical_hval(task: &Task, config: &Config) -> HVal {
     let canonical = CanonicalTask::from_task(task, config);
-    let json = serde_json::to_value(canonical).unwrap_or(Value::Null);
-    json_to_hval(&json)
+    serde_json::to_value(canonical)
+        .and_then(HVal::deserialize)
+        .unwrap_or(HVal::Null)
 }
 
 /// Read the harvested `mindtape.check` marker back into a breach list: an
@@ -253,37 +243,13 @@ fn breaches_from(result: &Harvest) -> Vec<String> {
     };
     match &marker.value {
         HVal::Array(items) => items.iter().map(string_or_literal).collect(),
-        other => vec![format!("returned {}", check_literal(other))],
+        other => vec![format!("returned {}", other.to_typst())],
     }
 }
 
 fn string_or_literal(item: &HVal) -> String {
     item.as_str()
-        .map_or_else(|| check_literal(item), ToOwned::to_owned)
-}
-
-/// Project one [`HVal`] to the Typst literal `check.function` receives: like
-/// [`hval_to_typ`], except a date renders as a real `datetime(...)` value
-/// instead of a quoted string (see the module doc's "Value literal" section).
-fn check_literal(value: &HVal) -> String {
-    match value {
-        HVal::Date(text) => date_literal(text),
-        HVal::Array(items) => typ_array(&items.iter().map(check_literal).collect::<Vec<_>>()),
-        HVal::Dict(map) => typ_dict_with(map, check_literal),
-        other => hval_to_typ(other),
-    }
-}
-
-/// `datetime(year: Y, month: M, day: D)` for a well-formed `YYYY-MM-DD`
-/// [`HVal::Date`]; falls back to a quoted string for one that is not (an
-/// [`HVal::Date`] is only ever built from a real Typst `datetime`, by
-/// [`typst_world::convert`], so this is defensive rather than reachable in
-/// practice).
-fn date_literal(text: &str) -> String {
-    crate::date::parse_ymd(text).map_or_else(
-        || hval_to_typ(&HVal::Str(text.to_owned())),
-        |(year, month, day)| format!("datetime(year: {year}, month: {month}, day: {day})"),
-    )
+        .map_or_else(|| item.to_typst(), ToOwned::to_owned)
 }
 
 #[cfg(test)]

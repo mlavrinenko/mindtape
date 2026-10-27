@@ -6,10 +6,9 @@ use std::collections::BTreeMap;
 
 use super::{
     Cached, CachedOutcome, TaskCache, build_key, disabled, ensure_ignored, is_build_key,
-    json_to_hval, prune_stale,
+    prune_stale,
 };
 use crate::config::Config;
-use crate::model::canonical::hval_to_json;
 use typst_harvest::HVal;
 
 fn open(root: &std::path::Path) -> TaskCache {
@@ -177,35 +176,6 @@ fn ensure_ignored_writes_self_ignoring_gitignore() {
     assert_eq!(
         std::fs::read_to_string(cache_root.join(".gitignore")).unwrap(),
         "*\n"
-    );
-}
-
-#[test]
-fn json_hval_roundtrip_preserves_scalars_and_nesting() {
-    let value = HVal::Dict(BTreeMap::from([
-        ("int".to_owned(), HVal::Int(-3)),
-        ("float".to_owned(), HVal::Float(1.5)),
-        ("null".to_owned(), HVal::Null),
-        (
-            "arr".to_owned(),
-            HVal::Array(vec![
-                HVal::Bool(false),
-                HVal::Int(0),
-                HVal::Str("s".to_owned()),
-            ]),
-        ),
-    ]));
-    assert_eq!(json_to_hval(&hval_to_json(&value)), value);
-}
-
-#[test]
-fn json_hval_roundtrip_collapses_date_to_string() {
-    // JSON cannot carry the date/string distinction; a date reads back as a
-    // string. Harmless — consumers read both via `HVal::as_str`.
-    let dated = HVal::Date("2026-01-02".to_owned());
-    assert_eq!(
-        json_to_hval(&hval_to_json(&dated)),
-        HVal::Str("2026-01-02".to_owned())
     );
 }
 

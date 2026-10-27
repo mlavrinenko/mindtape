@@ -40,7 +40,6 @@ use crate::model::Task;
 use crate::model::canonical::CanonicalTask;
 use crate::recur::CanonicalRecur;
 
-pub use crate::model::canonical::json_to_hval;
 pub use report::{EntryKind, ImportReport, MapOptions, ReportEntry};
 pub use stem::{slug_from_title, stem_for_title};
 

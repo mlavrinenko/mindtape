@@ -143,7 +143,7 @@ pub struct CanonicalTask {
     pub recur: Option<crate::recur::CanonicalRecur>,
     /// Opaque consumer extensions, keyed by `x-<ns>` slot.
     #[serde(default)]
-    pub extras: BTreeMap<String, Value>,
+    pub extras: BTreeMap<String, HVal>,
 }
 
 /// `status:` in the canonical schema.
@@ -319,11 +319,7 @@ impl CanonicalTask {
             reviewed: task.reviewed.clone(),
             body: task.body.clone(),
             recur: task.recur.as_ref().map(crate::recur::Recur::to_canonical),
-            extras: task
-                .extras
-                .iter()
-                .map(|(key, value)| (key.clone(), hval_to_json(value)))
-                .collect(),
+            extras: task.extras.clone(),
         }
     }
 }
@@ -380,53 +376,6 @@ fn input_value_to_json(value: &InputValue) -> Value {
         InputValue::Num(num) => Value::from(*num),
         InputValue::Bool(flag) => Value::from(*flag),
         InputValue::Text(text) => Value::from(text.clone()),
-    }
-}
-
-/// Convert a harvested extras value (`x-<ns>` slot content) into JSON. Shared
-/// by [`CanonicalTask::from_task`] and `mindtape-cli`'s `render_csv`-adjacent
-/// JSON output, so the extras shape never drifts between the two call sites.
-#[must_use]
-pub fn hval_to_json(value: &HVal) -> Value {
-    match value {
-        HVal::Null => Value::Null,
-        HVal::Bool(flag) => Value::from(*flag),
-        HVal::Int(num) => Value::from(*num),
-        HVal::Float(num) => Value::from(*num),
-        HVal::Str(text) | HVal::Date(text) => Value::from(text.clone()),
-        HVal::Array(items) => Value::Array(items.iter().map(hval_to_json).collect()),
-        HVal::Dict(map) => Value::Object(
-            map.iter()
-                .map(|(key, val)| (key.clone(), hval_to_json(val)))
-                .collect(),
-        ),
-    }
-}
-
-/// Convert one JSON value into a harvested [`HVal`] — the inverse of
-/// [`hval_to_json`]. A JSON number becomes [`HVal::Int`] when it fits an `i64`
-/// (matching how [`hval_to_json`] renders an `HVal::Int`), else [`HVal::Float`].
-/// A JSON string always becomes [`HVal::Str`] — the `HVal::Date`/`HVal::Str`
-/// distinction is already lost on the forward projection (`hval_to_json` maps
-/// both to a bare JSON string), so this is the only sound reverse; the emitter
-/// renders both variants identically anyway (`emit::format::hval_to_typ`).
-/// Shared by `mt import`'s extras passthrough (`import_map::map_extras`) and the
-/// persistent harvest cache (`loader::cache`).
-#[must_use]
-pub fn json_to_hval(value: &Value) -> HVal {
-    match value {
-        Value::Null => HVal::Null,
-        Value::Bool(flag) => HVal::Bool(*flag),
-        Value::Number(num) => num
-            .as_i64()
-            .map_or_else(|| HVal::Float(num.as_f64().unwrap_or_default()), HVal::Int),
-        Value::String(text) => HVal::Str(text.clone()),
-        Value::Array(items) => HVal::Array(items.iter().map(json_to_hval).collect()),
-        Value::Object(map) => HVal::Dict(
-            map.iter()
-                .map(|(key, val)| (key.clone(), json_to_hval(val)))
-                .collect(),
-        ),
     }
 }
 

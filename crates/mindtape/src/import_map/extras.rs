@@ -4,21 +4,18 @@
 
 use std::collections::BTreeMap;
 
-use serde_json::Value;
 use typst_harvest::HVal;
-
-use crate::model::canonical::json_to_hval;
 
 use super::report::ReportEntry;
 
 /// Convert a canonical record's `extras` into `Task::extras`: every `x-<ns>`
-/// key round-trips via [`json_to_hval`]; a key missing the `x-` prefix
+/// key carries through as is; a key missing the `x-` prefix
 /// violates the discipline the prelude enforces structurally, so it is
 /// dropped and reported rather than written to a field the prelude would
 /// reject anyway. Returns the converted map plus the keys carried through
 /// unchanged (for [`super::ImportReport::carried_extras`]).
 pub(crate) fn map_extras(
-    canonical: &BTreeMap<String, Value>,
+    canonical: &BTreeMap<String, HVal>,
     out: &mut Vec<ReportEntry>,
 ) -> (BTreeMap<String, HVal>, Vec<String>) {
     let mut extras = BTreeMap::new();
@@ -31,7 +28,7 @@ pub(crate) fn map_extras(
             ));
             continue;
         }
-        extras.insert(key.clone(), json_to_hval(value));
+        extras.insert(key.clone(), value.clone());
         carried.push(key.clone());
     }
     (extras, carried)

@@ -231,11 +231,10 @@ pub(crate) fn build_world(file: &Path) -> Result<HarvestWorld> {
     // config and so no `[[typst.local-packages]]` entry.
     let root = find_root(world.root()).unwrap_or_else(|| world.root().to_path_buf());
     let config = load_config(&root)?;
-    let mut world = world.with_package_root(mindtape::package_root());
-    for (name, dir) in mindtape::package_overrides(&root, &config) {
-        world = world.with_local_package(&name, dir);
-    }
-    Ok(world)
+    Ok(mindtape::with_packages(
+        world,
+        &mindtape::package_overrides(&root, &config),
+    ))
 }
 
 #[cfg(test)]

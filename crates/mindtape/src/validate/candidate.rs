@@ -16,15 +16,14 @@
 //! [`Candidate::rel`] is the file id Typst resolves relative imports against,
 //! and the folder-derived tags and nesting depth are read off that same path.
 //! What makes this possible without a file is
-//! [`World::with_source_override`](typst_world::World::with_source_override) —
-//! every disk-backed constructor canonicalizes its path, so the world is built
-//! from the id directly instead.
+//! [`World::with_main_source`](typst_world::World::with_main_source), which
+//! holds the main source in memory and reads every import from disk.
 
 use std::collections::HashSet;
 use std::path::Path;
 
 use typst_harvest::{HVal, HarvestWorld, harvest};
-use typst_world::{DiskProvider, project_file_id};
+use typst_world::project_file_id;
 
 use crate::body::{BodyRules, check_body_rules};
 use crate::config::Config;
@@ -298,15 +297,9 @@ fn eval_marker(
     let root_abs = crate::canonical(root).unwrap_or_else(|_| root.to_path_buf());
     let id = project_file_id(&root_abs, &root_abs.join(candidate.rel))
         .map_err(|err| fail(err.to_string()))?;
-    // `with_package_root` installs the provider that resolves `@local/...`,
-    // replacing the `DiskProvider` this constructor requires; the same pair
-    // `HarvestWorld::with_root` sets up for a file that exists.
-    let mut world = HarvestWorld::with_provider(id, root_abs, Box::new(DiskProvider))
-        .with_package_root(crate::loader::package_root());
-    for (name, dir) in crate::loader::package_overrides(root, config) {
-        world = world.with_local_package(&name, dir);
-    }
-    let world = world.with_source_override(id, candidate.source);
+    let world = HarvestWorld::with_main_source(id, root_abs, candidate.source);
+    let world =
+        crate::loader::with_packages(world, &crate::loader::package_overrides(root, config));
 
     let harvested = harvest(&world)
         .map_err(|err| LoadError::harvest(candidate.rel.to_path_buf(), &err, candidate.source))?;

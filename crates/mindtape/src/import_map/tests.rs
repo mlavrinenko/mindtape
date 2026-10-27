@@ -246,7 +246,7 @@ fn extras_carry_x_ns_keys_through() {
     let mut c = canonical("x");
     c.extras.insert(
         "x-speconaut".to_owned(),
-        json!({"kind": "story", "count": 3}),
+        serde_json::from_value(json!({"kind": "story", "count": 3})).unwrap(),
     );
     let mapped = map_canonical(&c, &config(), &MapOptions::default());
     assert_eq!(mapped.report.carried_extras, vec!["x-speconaut".to_owned()]);
@@ -262,27 +262,10 @@ fn extras_carry_x_ns_keys_through() {
 #[test]
 fn extras_reject_keys_missing_the_x_prefix() {
     let mut c = canonical("x");
-    c.extras.insert("foo".to_owned(), json!(1));
+    c.extras.insert("foo".to_owned(), HVal::Int(1));
     let mapped = map_canonical(&c, &config(), &MapOptions::default());
     assert!(!mapped.task.extras.contains_key("foo"));
     assert_violated(&mapped, "extras");
-}
-
-#[test]
-fn json_to_hval_inverts_hval_to_json_for_non_date_variants() {
-    let value = HVal::Dict(BTreeMap::from([
-        ("n".to_owned(), HVal::Null),
-        ("b".to_owned(), HVal::Bool(true)),
-        ("i".to_owned(), HVal::Int(7)),
-        ("f".to_owned(), HVal::Float(1.5)),
-        ("s".to_owned(), HVal::Str("hi".to_owned())),
-        (
-            "a".to_owned(),
-            HVal::Array(vec![HVal::Int(1), HVal::Int(2)]),
-        ),
-    ]));
-    let as_json = crate::model::canonical::hval_to_json(&value);
-    assert_eq!(json_to_hval(&as_json), value);
 }
 
 // --- links / identity ----------------------------------------------------

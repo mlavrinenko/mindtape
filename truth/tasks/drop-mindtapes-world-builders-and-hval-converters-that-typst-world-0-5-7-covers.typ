@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 28),
+  status: done(
+    2026,
+    10,
+    28,
+  )[with\_main\_source, with\_packages and HVal serde and to\_typst replace the local copies],
 )
 
 == Problem

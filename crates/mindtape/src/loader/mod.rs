@@ -372,13 +372,20 @@ fn build_world(
     root: &Path,
     overrides: &[(String, PathBuf)],
 ) -> Result<HarvestWorld, String> {
-    let mut world = HarvestWorld::with_root(file, root)
-        .map_err(|err| err.to_string())?
-        .with_package_root(package_root());
+    let world = HarvestWorld::with_root(file, root).map_err(|err| err.to_string())?;
+    Ok(with_packages(world, overrides))
+}
+
+/// `world` resolving `@local` packages the way every world Mindtape builds
+/// does: under [`package_root`], with `overrides` (from [`package_overrides`])
+/// pinning a package to an in-tree directory first.
+#[must_use]
+pub fn with_packages(world: HarvestWorld, overrides: &[(String, PathBuf)]) -> HarvestWorld {
+    let mut world = world.with_package_root(package_root());
     for (name, dir) in overrides {
         world = world.with_local_package(name, dir.clone());
     }
-    Ok(world)
+    world
 }
 
 /// The `@local/<name>` → in-tree overrides for this project: its

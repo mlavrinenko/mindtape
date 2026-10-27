@@ -75,28 +75,20 @@ pub(crate) fn hval_to_typ(value: &HVal) -> String {
         HVal::Float(num) => typ_float(*num),
         HVal::Str(text) | HVal::Date(text) => typ_str(text),
         HVal::Array(items) => typ_array(&items.iter().map(hval_to_typ).collect::<Vec<_>>()),
-        HVal::Dict(map) => typ_dict_with(map, hval_to_typ),
+        HVal::Dict(map) => typ_dict(map),
     }
 }
 
-/// A Typst dict literal built from already-rendered element strings, keyed by
-/// `map`'s own keys: `(:)` empty, `("k": v, …)` otherwise — every key quoted,
-/// mirroring `lib/prelude.typ`'s own `"in-review": (...)` entry, so an
-/// arbitrary extras key never needs identifier validation. `render` projects
-/// one value to its literal; [`hval_to_typ`] passes itself back in for the
-/// recursive case, and [`crate::rules::typst`] passes its own
-/// datetime-aware dispatcher instead.
-#[must_use]
-pub(crate) fn typ_dict_with(
-    map: &BTreeMap<String, HVal>,
-    render: impl Fn(&HVal) -> String,
-) -> String {
+/// A Typst dict literal: `(:)` empty, `("k": v, …)` otherwise — every key
+/// quoted, mirroring `lib/prelude.typ`'s own `"in-review": (...)` entry, so an
+/// arbitrary extras key never needs identifier validation.
+fn typ_dict(map: &BTreeMap<String, HVal>) -> String {
     if map.is_empty() {
         return "(:)".to_owned();
     }
     let parts: Vec<String> = map
         .iter()
-        .map(|(key, value)| format!("{}: {}", typ_str(key), render(value)))
+        .map(|(key, value)| format!("{}: {}", typ_str(key), hval_to_typ(value)))
         .collect();
     format!("({})", parts.join(", "))
 }

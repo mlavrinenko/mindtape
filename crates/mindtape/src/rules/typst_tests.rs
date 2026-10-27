@@ -147,7 +147,7 @@ fn a_non_array_return_is_one_breach_naming_it() {
 }
 
 /// A nested date in an `x-<ns>` slot survives as an [`HVal::Date`] and reaches
-/// the function as a real Typst `datetime(...)` — the one place `check_literal`
+/// the function as a real Typst `datetime(...)` through `HVal::to_typst` — where it
 /// diverges from `hval_to_typ`'s quoted-string round-trip.
 #[test]
 fn a_date_in_an_x_field_reaches_the_function_as_a_datetime() {
@@ -161,6 +161,22 @@ fn a_date_in_an_x_field_reaches_the_function_as_a_datetime() {
     );
     let check = CompiledCheck::new(&field_spec("check-date", "x-due"), dir.path(), &config());
     assert!(check.evaluate(&task, &config()).is_empty());
+}
+
+/// An infinite float in an `x-<ns>` slot reaches the function as Typst's own
+/// `float.inf`, not Rust's `inf`, which Typst reads as an unknown variable.
+#[test]
+fn an_infinite_float_in_an_x_field_reaches_the_function() {
+    let dir = project(
+        "#let check-inf(value) = if value == float.inf { () } else { (\"unexpected: \" + repr(value),) }\n",
+    );
+    let mut task = bare_task("a");
+    task.extras.insert(
+        "x-cap".to_owned(),
+        typst_harvest::HVal::Float(f64::INFINITY),
+    );
+    let check = CompiledCheck::new(&field_spec("check-inf", "x-cap"), dir.path(), &config());
+    assert_eq!(check.evaluate(&task, &config()), Vec::<String>::new());
 }
 
 /// An [`HVal::Date`] that is not a `YYYY-MM-DD` falls back to a quoted string
