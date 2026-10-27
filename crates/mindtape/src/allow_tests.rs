@@ -92,7 +92,7 @@ fn the_digest_changes_with_any_line_and_cannot_be_forged_by_joining_two() {
 fn outside_git_the_key_is_the_root() {
     let dir = tempdir();
 
-    assert_eq!(repo_key(dir.path()), dir.path().canonicalize().unwrap());
+    assert_eq!(repo_key(dir.path()), crate::canonical(dir.path()).unwrap());
 }
 
 #[test]
@@ -110,7 +110,7 @@ fn inside_git_every_worktree_shares_the_common_dir_as_key() {
 
     let key = repo_key(&main);
 
-    assert_eq!(key, main.join(".git").canonicalize().unwrap());
+    assert_eq!(key, crate::canonical(&main.join(".git")).unwrap());
     assert_eq!(repo_key(&main.join("sub")), key);
     assert_eq!(repo_key(&sibling), key);
 }

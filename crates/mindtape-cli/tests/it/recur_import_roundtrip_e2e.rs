@@ -12,10 +12,7 @@ use std::path::{Path, PathBuf};
 use crate::support;
 
 fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../..")
-        .canonicalize()
-        .unwrap()
+    mindtape::canonical(&Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")).unwrap()
 }
 
 /// A scratch project sharing `examples/recurring`'s status legend and

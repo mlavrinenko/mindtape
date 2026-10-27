@@ -20,7 +20,7 @@ use crate::model::slash_path;
 /// is not under `root`.
 pub fn disk_world(file: &Path, root: &Path) -> Result<HarvestWorld, WorldError> {
     let canon = |path: &Path| {
-        path.canonicalize()
+        crate::canonical(path)
             .map_err(|err| WorldError::World(format!("canonicalize {}: {err}", path.display())))
     };
     let (abs, root) = (canon(file)?, canon(root)?);

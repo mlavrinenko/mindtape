@@ -173,14 +173,19 @@ impl<'a> Lookup<'a, '_> {
     /// An OS path from `dir`, matched on canonical files.
     fn os_path(&self, dir: &Path, reference: &str) -> Result<Resolved<'a>, RefError> {
         let joined = dir.join(reference);
-        let abs = joined.canonicalize().map_err(|source| RefError::Path {
+        let abs = crate::canonical(&joined).map_err(|source| RefError::Path {
             path: joined,
             source,
         })?;
         let task = self
             .tasks
             .iter()
-            .find(|task| self.root.join(&task.file).canonicalize().ok().as_deref() == Some(&abs))
+            .find(|task| {
+                crate::canonical(&self.root.join(&task.file))
+                    .ok()
+                    .as_deref()
+                    == Some(&abs)
+            })
             .ok_or_else(|| RefError::NoTaskAt(abs.clone()))?;
         Ok(Resolved {
             task,

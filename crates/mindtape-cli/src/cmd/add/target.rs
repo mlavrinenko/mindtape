@@ -151,7 +151,7 @@ fn base_dir(into: &str, project: &util::Project) -> Result<PathBuf> {
 /// Warn when `dest` lands outside every configured root, since recursive loading
 /// only sees files under a root.
 pub(crate) fn warn_if_outside_roots(project: &util::Project, dest: &Path) {
-    let Ok(dest_abs) = dest.canonicalize() else {
+    let Ok(dest_abs) = mindtape::canonical(dest) else {
         return;
     };
     if !project.holds(&dest_abs) {

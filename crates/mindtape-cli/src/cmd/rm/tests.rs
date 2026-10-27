@@ -241,7 +241,10 @@ fn toplevel_finds_work_tree_from_subdir() {
     let (_dir, root) = repo_with(&[("a.typ", "a\n")]);
     let sub = root.join("nested");
     std::fs::create_dir_all(&sub).unwrap();
-    assert_eq!(git::toplevel(&sub).unwrap().canonicalize().unwrap(), root);
+    assert_eq!(
+        mindtape::canonical(&git::toplevel(&sub).unwrap()).unwrap(),
+        root
+    );
 }
 
 #[test]

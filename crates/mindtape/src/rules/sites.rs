@@ -80,7 +80,7 @@ fn site(entry: &RuleOriginEntry, root: &Path) -> Option<Location> {
 }
 
 fn relative(path: &Path, root: &Path) -> std::path::PathBuf {
-    path.strip_prefix(root).unwrap_or(path).to_path_buf()
+    crate::relative_to(path, root)
 }
 
 #[cfg(test)]

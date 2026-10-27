@@ -761,6 +761,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   virtual path "tasks\\alpha.typ": path contains backslash`, so a project
   with a `tasks/` root loaded nothing there. `mt` now names every file to
   Typst with `/`, as on Linux and macOS.
+- **No `\\?\` paths on Windows, and pack errors stay relative.** `mt -w`
+  printed task files as `\\?\C:\...`, and an error in a pack named its
+  absolute path whenever the project root was spelled another way than the
+  resolved pack, as through a symlink or a short `RUNNER~1` name. Paths now
+  resolve through one helper that drops the prefix, and a pack under the
+  project is named relative to it.
 - **A tombstone written on Windows resolves everywhere.** `mt rm` wrote its
   `path=` with `\`, as in `swh:1:rev:…;path=tasks\gone.typ`, and git paths
   use `/`. It writes `/` now.

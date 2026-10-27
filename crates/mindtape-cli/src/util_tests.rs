@@ -156,7 +156,7 @@ fn resolve_root_override_targets_named_worktree() {
     // cwd is elsewhere; the absolute override still selects the worktree.
     let cwd = tempdir();
     let root = resolve_root_with(cwd.path(), Some(dir.path())).unwrap();
-    assert_eq!(root, dir.path().canonicalize().unwrap());
+    assert_eq!(root, mindtape::canonical(dir.path()).unwrap());
 }
 
 #[test]
@@ -164,7 +164,7 @@ fn resolve_root_override_relative_resolves_against_cwd() {
     let cwd = tempdir();
     std::fs::create_dir_all(cwd.path().join("wt").join(".mindtape")).unwrap();
     let root = resolve_root_with(cwd.path(), Some(Path::new("wt"))).unwrap();
-    assert_eq!(root, cwd.path().join("wt").canonicalize().unwrap());
+    assert_eq!(root, mindtape::canonical(&cwd.path().join("wt")).unwrap());
 }
 
 #[test]
@@ -361,7 +361,7 @@ fn resolve_absolute_path_eq_not_neq() {
     let project = make_project_with_tasks(dir.path(), &["alpha"]);
     let abs = dir.path().join("tasks/alpha.typ");
     std::fs::write(&abs, mindtape::test_support::TASK_SRC).unwrap();
-    let abs = abs.canonicalize().unwrap();
+    let abs = mindtape::canonical(&abs).unwrap();
     let (task, path) = resolve_task(&project, abs.to_str().unwrap()).unwrap();
     assert_eq!(task.id, "alpha");
     assert_eq!(path, abs);

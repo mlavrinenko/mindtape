@@ -150,7 +150,7 @@ fn a_shared_hash_is_ambiguous_naming_each_stem_and_its_hash() {
 fn a_path_resolves_from_the_working_directory() {
     let dir = root_with(&["alpha"]);
     let tasks = tasks(&["alpha"]);
-    let abs = dir.path().join("tasks/alpha.typ").canonicalize().unwrap();
+    let abs = crate::canonical(&dir.path().join("tasks/alpha.typ")).unwrap();
     for reference in ["tasks/alpha.typ", abs.to_str().unwrap()] {
         let got = resolve(&tasks, dir.path(), reference).unwrap();
         assert_eq!(got, ("alpha".to_owned(), abs.clone()), "{reference}");

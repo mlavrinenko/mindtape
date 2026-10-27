@@ -36,9 +36,7 @@ impl Project {
     #[must_use]
     pub fn holds(&self, abs: &Path) -> bool {
         self.config.tasks.roots.iter().any(|root| {
-            self.root
-                .join(root.path())
-                .canonicalize()
+            mindtape::canonical(&self.root.join(root.path()))
                 .is_ok_and(|root_abs| abs.starts_with(root_abs))
         })
     }
@@ -136,7 +134,7 @@ fn resolve_root_with(cwd: &Path, override_path: Option<&Path>) -> Result<PathBuf
             .value(base.display().to_string())
             .hint(Hint::new("run mt init there, or pass another path to -w")));
     }
-    base.canonicalize().map_err(|err| {
+    mindtape::canonical(&base).map_err(|err| {
         Diag::failed("can't resolve worktree")
             .value(base.display().to_string())
             .io(&err)
@@ -229,7 +227,7 @@ fn warn_config(root: &Path, config: &Config) {
 /// when no file does.
 pub(crate) fn config_warnings(root: &Path, config: &Config) -> Vec<Diag> {
     let file = config_path(root);
-    let shown = file.strip_prefix(root).unwrap_or(&file);
+    let shown = mindtape::relative_to(&file, root);
     config
         .warnings()
         .into_iter()
@@ -238,7 +236,7 @@ pub(crate) fn config_warnings(root: &Path, config: &Config) -> Vec<Diag> {
                 .unknown(warning.unknown.as_ref());
             match config.warning_place(&warning) {
                 Some(place) => diag.at(&place.file, place.line, None),
-                None => diag.at_file(shown),
+                None => diag.at_file(&shown),
             }
         })
         .collect()

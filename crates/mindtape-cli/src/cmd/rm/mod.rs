@@ -383,7 +383,7 @@ fn inbound_references(
 
 /// `path` made absolute and symlink-free.
 fn canonical(path: &Path) -> Result<PathBuf, Diag> {
-    path.canonicalize().map_err(|err| {
+    mindtape::canonical(path).map_err(|err| {
         Diag::failed("can't resolve path")
             .value(path.display().to_string())
             .io(&err)

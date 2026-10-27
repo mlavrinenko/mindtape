@@ -80,7 +80,7 @@ use crate::rules::CheckSpec;
 
 /// `path` made canonical, or as given when it can't be.
 fn canonical(path: &Path) -> PathBuf {
-    path.canonicalize().unwrap_or_else(|_| path.to_path_buf())
+    crate::canonical(path).unwrap_or_else(|_| path.to_path_buf())
 }
 
 /// One `check` rule, built once and reused across every task it is asked

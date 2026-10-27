@@ -21,10 +21,7 @@ use crate::support;
 /// (`crates/mindtape-cli` -> `../..`), so the test finds `contrib/jq/*`
 /// regardless of the working directory `cargo test` runs from.
 fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../..")
-        .canonicalize()
-        .unwrap()
+    mindtape::canonical(&Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")).unwrap()
 }
 
 /// Run `jq -f <script> <input>`, returning stdout. Panics (never silently

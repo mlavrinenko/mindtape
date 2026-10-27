@@ -118,7 +118,7 @@ fn folder_ids(project: &util::Project, spec: &str) -> Result<Option<HashSet<Stri
     let Ok(cwd) = std::env::current_dir() else {
         return Ok(None);
     };
-    let Ok(dir) = cwd.join(spec).canonicalize() else {
+    let Ok(dir) = mindtape::canonical(&cwd.join(spec)) else {
         return Ok(None);
     };
     if !dir.is_dir() {
@@ -134,10 +134,7 @@ fn folder_ids(project: &util::Project, spec: &str) -> Result<Option<HashSet<Stri
         .tasks
         .iter()
         .filter(|task| {
-            project
-                .root
-                .join(&task.file)
-                .canonicalize()
+            mindtape::canonical(&project.root.join(&task.file))
                 .is_ok_and(|abs| abs.starts_with(&dir))
         })
         .map(|task| task.id.clone())

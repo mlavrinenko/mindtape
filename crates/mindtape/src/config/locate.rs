@@ -210,7 +210,7 @@ impl Sources {
 
 /// `path` relative to `root` when it sits under it.
 fn shown(path: &Path, root: &Path) -> PathBuf {
-    path.strip_prefix(root).unwrap_or(path).to_path_buf()
+    crate::relative_to(path, root)
 }
 
 /// The line of the whole `key` in `item`, if it declares it.

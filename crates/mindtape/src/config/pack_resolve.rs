@@ -89,26 +89,9 @@ pub(super) fn resolve_pack(
 
 /// `path` absolute and free of `..` and symlinks, so two entries naming one
 /// file name one pack, or `path` itself when it can't be resolved, such as a
-/// missing file. Windows' verbatim prefix `\\?\` comes off, so the label
-/// reads like any other path.
+/// missing file.
 fn canonical(path: &Path) -> PathBuf {
-    path.canonicalize()
-        .map_or_else(|_| path.to_path_buf(), strip_verbatim)
-}
-
-/// `path` without a Windows verbatim prefix: `\\?\C:\x` becomes `C:\x`,
-/// and `\\?\UNC\host\share` becomes `\\host\share`.
-fn strip_verbatim(path: PathBuf) -> PathBuf {
-    let Some(text) = path.to_str() else {
-        return path;
-    };
-    match text.strip_prefix(r"\\?\") {
-        Some(rest) => match rest.strip_prefix(r"UNC\") {
-            Some(share) => PathBuf::from(format!(r"\\{share}")),
-            None => PathBuf::from(rest),
-        },
-        None => path,
-    }
+    crate::canonical(path).unwrap_or_else(|_| path.to_path_buf())
 }
 
 /// Resolve the directory pack at `dir`: its `pack.toml`, validated like any
@@ -254,7 +237,3 @@ fn validate_pack_shape(table: &toml::Table, pack_label: &str) -> Result<(), Conf
         None => Ok(()),
     }
 }
-
-#[cfg(test)]
-#[path = "pack_resolve_tests.rs"]
-mod tests;

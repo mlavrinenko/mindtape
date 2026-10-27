@@ -78,6 +78,10 @@ thiserror = "2"
 evalexpr = "12"
 uuid = { version = "1", features = ["v4", "v7"] }
 dirs = "5"
+# `canonical` (`src/fs_canonical.rs`): `std::fs::canonicalize` returns a
+# `\\?\` verbatim path on Windows, which dunce turns back into `C:\` when
+# that is safe. Already in `Cargo.lock` transitively, at the same version.
+dunce = "1"
 # Nearest-name suggestion for an unknown view name (`crates/mindtape/src/
 # suggest.rs`). Already in `Cargo.lock` transitively via clap's `Command`
 # suggestion feature, at the same 0.11 line this pins, so promoting it to a

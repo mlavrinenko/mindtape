@@ -182,7 +182,7 @@ pub fn repo_key(root: &Path) -> PathBuf {
         .map(|out| out.trim().to_owned())
         .filter(|out| !out.is_empty());
     let key = common.map_or_else(|| root.to_path_buf(), |dir| root.join(dir));
-    key.canonicalize().unwrap_or(key)
+    crate::canonical(&key).unwrap_or(key)
 }
 
 /// The record file for `key` under `data_home`.

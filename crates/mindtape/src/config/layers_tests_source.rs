@@ -141,3 +141,23 @@ fn a_project_rules_bad_expression_is_placed_after_a_pack_rule() {
     assert_eq!((file, line), (PathBuf::from(".mindtape/config.toml"), 6));
     assert!(message.starts_with("tasks.rules[1].assert: "), "{message}");
 }
+
+/// A project reached through a symlink still names its pack relative to the
+/// root. The pack's path is canonical, so the root has to be too: Windows
+/// has the same split between a short `RUNNER~1` name and the long one.
+#[cfg(unix)]
+#[test]
+fn a_pack_under_a_symlinked_root_is_named_relative_to_it() {
+    let (tmp, home, project) = home_and_project();
+    let symlinked = tmp.path().join("link");
+    std::os::unix::fs::symlink(&project, &symlinked).unwrap();
+    write_file(
+        &project,
+        ".mindtape/config.toml",
+        "extends = [\"./team.toml\"]\n",
+    );
+    write_file(&project, "team.toml", "[ls]\n\n[projet]\nx = 1\n");
+    let err = super::load_config_layered_from(&symlinked, Some(&home), None).unwrap_err();
+    let (origin, line, _) = parse_in(err);
+    assert_eq!((origin.as_str(), line), ("team.toml", 3));
+}

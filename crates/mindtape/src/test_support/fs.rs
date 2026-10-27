@@ -45,12 +45,18 @@ pub fn write_package(pkg: &Path, prelude: &str) {
 /// A fresh tempdir, removed when the returned guard drops. The setup line
 /// nearly every test that touches the disk opens with.
 ///
+/// It sits under the canonical temp dir, so a test's paths match the ones
+/// `mt` resolves. On Windows `%TEMP%` can hold a short name such as
+/// `RUNNER~1`, which [`crate::canonical`] spells out in full.
+///
 /// # Panics
 /// Panics if the OS refuses a temp directory, a test-harness bug.
 #[allow(clippy::unwrap_used)]
 #[must_use]
 pub fn tempdir() -> tempfile::TempDir {
-    tempfile::tempdir().unwrap()
+    let base = std::env::temp_dir();
+    let base = crate::canonical(&base).unwrap_or(base);
+    tempfile::tempdir_in(base).unwrap()
 }
 
 /// A fresh [`tempdir`] with each of `dirs` (relative paths) created in it.

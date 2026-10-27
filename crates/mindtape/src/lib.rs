@@ -26,6 +26,7 @@ pub mod filter;
 pub mod format;
 pub mod framework;
 pub mod fs_atomic;
+pub mod fs_canonical;
 pub mod git;
 pub mod graph;
 pub mod import_map;
@@ -88,6 +89,7 @@ pub use filter::{DictMiss, Filter, FilterError};
 pub use format::format_typst;
 pub use framework::{Category, Framework, Input, InputKind};
 pub use fs_atomic::write_atomic;
+pub use fs_canonical::{canonical, relative_to};
 pub use git::current_branch;
 pub use graph::children::{children_violation, unfinished_children};
 pub use graph::ready::{

@@ -90,7 +90,7 @@ fn resolve_counts(task: &mut Task, file: &Path, project: Option<&Project>) {
     let (root, config) = project
         .map(|project| (project.root.clone(), project.config.clone()))
         .or_else(|| {
-            let root = find_root(file.canonicalize().ok()?.parent()?)?;
+            let root = find_root(mindtape::canonical(file).ok()?.parent()?)?;
             let config = load_config(&root).ok()?;
             Some((root, config))
         })
@@ -189,7 +189,7 @@ fn print_table(task: &Task, hashes: &StemHashes, origin: Option<(PathBuf, bool)>
 /// no project, or one its project does not load, is hashed alone.
 fn hashes_for(file: &Path, task: &Task, resolved: Option<Project>) -> StemHashes {
     let project = resolved.or_else(|| {
-        let root = find_root(file.canonicalize().ok()?.parent()?)?;
+        let root = find_root(mindtape::canonical(file).ok()?.parent()?)?;
         let config = load_config(&root).ok()?;
         let outcome = load_project(&root, &config);
         Some(Project {
@@ -226,7 +226,7 @@ pub(crate) fn build_world(file: &Path) -> Result<HarvestWorld> {
     let setup_failed = |err: &(dyn std::error::Error + 'static)| {
         Diag::failed("can't set up the Typst world").cause(err)
     };
-    let abs = file.canonicalize().map_err(|err| setup_failed(&err))?;
+    let abs = mindtape::canonical(file).map_err(|err| setup_failed(&err))?;
     let typst_root = find_project_root(abs.parent().unwrap_or(&abs));
     let world = mindtape::disk_world(&abs, &typst_root).map_err(|err| setup_failed(&err))?;
     // `find_root` looks for `.mindtape`, which the Typst root markers

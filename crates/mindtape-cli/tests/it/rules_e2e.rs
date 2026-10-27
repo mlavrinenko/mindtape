@@ -21,10 +21,7 @@ use support::{mt, scaffold_project};
 /// `.mindtape/config.toml` regardless of the working directory `cargo test`
 /// runs from.
 fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../..")
-        .canonicalize()
-        .unwrap()
+    mindtape::canonical(&Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")).unwrap()
 }
 
 /// A project whose config carries `rules` verbatim plus a single task titled

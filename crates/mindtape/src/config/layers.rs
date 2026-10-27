@@ -110,8 +110,8 @@ fn project_layer(root: &Path) -> Option<Layer> {
 /// canonicalised before comparison and de-duplication, so a symlinked home (or
 /// a symlink loop in the ancestry) does not double-count a layer.
 fn dir_layers(root: &Path, home: Option<&Path>) -> Vec<Layer> {
-    let canonical_home = home.and_then(|h| h.canonicalize().ok());
-    let mut dir = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
+    let canonical_home = home.and_then(|h| crate::canonical(h).ok());
+    let mut dir = crate::canonical(root).unwrap_or_else(|_| root.to_path_buf());
     let mut seen = HashSet::new();
     let mut found = Vec::new();
     loop {
@@ -277,9 +277,7 @@ pub fn merged_config_table(root: &Path) -> Result<toml::Table, ConfigError> {
 fn name_file(err: ConfigError, sources: &Sources, root: &Path) -> ConfigError {
     match err {
         ConfigError::Parse(error) if error.span().is_some() => ConfigError::ParseIn {
-            origin: config_path(root)
-                .strip_prefix(root)
-                .unwrap_or(&config_path(root))
+            origin: crate::relative_to(&config_path(root), root)
                 .display()
                 .to_string(),
             error,
