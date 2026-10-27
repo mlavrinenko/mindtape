@@ -8,15 +8,19 @@
 //! - `errors.rs`: the per-file failures and Typst warnings a load reports.
 //! - `many.rs`, `many_tests.rs`: several projects loaded at once, each on its
 //!   own thread.
+//! - `world.rs`, `world_tests.rs`: the disk-backed Typst world a task file
+//!   evaluates in.
 
 pub mod app_dirs;
 pub mod derive;
 mod errors;
 mod many;
+mod world;
 
 pub use app_dirs::package_root;
 pub use errors::{LoadError, LoadWarning};
 pub use many::{Loaded, load_many, map_parallel};
+pub use world::disk_world;
 
 use std::path::{Path, PathBuf};
 
@@ -24,8 +28,8 @@ use typst_harvest::{HVal, Harvest, HarvestError, HarvestWorld, SourceSnapshot, b
 
 use crate::config::Config;
 use crate::loader::derive::RootDeriver;
-use crate::model::Task;
 use crate::model::task_spans::TaskCallSpans;
+use crate::model::{Task, slash_path};
 
 // The persistent task cache is a loader implementation detail with no public
 // API, so it lives as a private submodule here rather than on the crate's
@@ -333,7 +337,7 @@ fn record_miss(
         Ok(harvested) => {
             let warnings = LoadWarning::from_diagnostics(
                 &miss.item.rel,
-                &typst_path(&miss.item.rel),
+                &slash_path(&miss.item.rel),
                 &harvested.warnings,
             );
             let marker = harvested
@@ -367,17 +371,12 @@ fn record_miss(
     }
 }
 
-/// `rel` in Typst's path form: `/`-separated on every platform.
-fn typst_path(rel: &Path) -> String {
-    rel.to_string_lossy().replace('\\', "/")
-}
-
 fn build_world(
     file: &Path,
     root: &Path,
     overrides: &[(String, PathBuf)],
 ) -> Result<HarvestWorld, String> {
-    let mut world = HarvestWorld::with_root(file, root)
+    let mut world = disk_world(file, root)
         .map_err(|err| err.to_string())?
         .with_package_root(package_root());
     for (name, dir) in overrides {

@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use crate::diag::Result;
 use mindtape::{Config, StemHashes, Task, find_root, load_config, load_project};
-use typst_harvest::{HarvestWorld, harvest};
+use typst_harvest::{HarvestWorld, find_project_root, harvest};
 
 use crate::diag::{Diag, Hint};
 use crate::render::RenderCtx;
@@ -223,8 +223,12 @@ pub(crate) fn build_world(file: &Path) -> Result<HarvestWorld> {
     if !file.is_file() {
         return Err(Diag::failed("no such file").value(file.display().to_string()));
     }
-    let world = HarvestWorld::new(file)
-        .map_err(|err| Diag::failed("can't set up the Typst world").cause(&err))?;
+    let setup_failed = |err: &(dyn std::error::Error + 'static)| {
+        Diag::failed("can't set up the Typst world").cause(err)
+    };
+    let abs = file.canonicalize().map_err(|err| setup_failed(&err))?;
+    let typst_root = find_project_root(abs.parent().unwrap_or(&abs));
+    let world = mindtape::disk_world(&abs, &typst_root).map_err(|err| setup_failed(&err))?;
     // `find_root` looks for `.mindtape`, which the Typst root markers
     // (`Cargo.toml`, `lib/`, `.git`) need not agree with; a file under no
     // project at all falls back to the world's root, where the lookup finds no

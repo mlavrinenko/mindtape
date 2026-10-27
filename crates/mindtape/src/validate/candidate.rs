@@ -297,8 +297,8 @@ fn eval_marker(
     };
     // Typst virtual paths are `/`-separated on every platform, so a Windows
     // `tasks\foo.typ` has to be spelled the way the loader's own ids are.
-    let vpath = candidate.rel.to_string_lossy().replace('\\', "/");
-    let id = root_file_id(&vpath).map_err(|err| fail(err.to_string()))?;
+    let id = root_file_id(&crate::model::slash_path(candidate.rel))
+        .map_err(|err| fail(err.to_string()))?;
     let root_abs = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
     // `with_package_root` installs the provider that resolves `@local/...`,
     // replacing the `DiskProvider` this constructor requires; the same pair

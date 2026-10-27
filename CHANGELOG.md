@@ -757,6 +757,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Task files in a folder load on Windows.** Each one failed with `bad
+  virtual path "tasks\\alpha.typ": path contains backslash`, so a project
+  with a `tasks/` root loaded nothing there. `mt` now names every file to
+  Typst with `/`, as on Linux and macOS.
 - **A bare `Refs:` value is the stem as written.** `Refs: foo.task-261023`
   read as `foo`, so `mt check --commits` said it named no task and
   `touches()` matched nothing. Only a value holding `/` or `\`, or ending in
