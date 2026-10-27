@@ -11,9 +11,7 @@ use crate::model::Task;
 use crate::model::numeric::NumValue;
 use crate::recur::{PeriodUnit, Rule};
 use crate::test_support::write_file;
-use typst::WorldExt;
-use typst::syntax::VirtualRoot;
-use typst_harvest::HarvestWorld;
+use typst_harvest::{HarvestError, HarvestWorld, harvest};
 use typst_layout::PagedDocument;
 
 use crate::test_support::PRELUDE;
@@ -219,17 +217,17 @@ fn real_prelude_places_the_unknown_slot_error_on_the_name_in_the_task_file() {
     let dir = setup();
     write_pkg(dir.path(), "lib", "mindtape", "0.2.0", PRELUDE);
     write_file(dir.path(), "tasks/t.typ", source);
-    let world = prelude_world(dir.path());
-    let world: &dyn typst::World = &world;
 
-    let errors = typst::compile::<PagedDocument>(world).output.unwrap_err();
-    let error = &errors[0];
-    assert_eq!(error.message, "unexpected argument: titel");
-    let file = error.span.id().unwrap();
-    assert_eq!(file.vpath().get_with_slash(), "/tasks/t.typ");
-    assert!(matches!(file.root(), VirtualRoot::Project));
-    let range = world.range(error.span).unwrap();
-    assert!(source[range.start..].starts_with("titel"), "{range:?}");
+    let Err(HarvestError::Eval { error, .. }) = harvest(&prelude_world(dir.path())) else {
+        panic!("expected an eval error");
+    };
+    let diagnostic = &error.diagnostics[0];
+    assert_eq!(diagnostic.message, "unexpected argument: titel");
+    let at = diagnostic.location.as_ref().unwrap();
+    assert_eq!(at.path, "tasks/t.typ");
+    let line = source.lines().nth(at.line - 1).unwrap();
+    let column: String = line.chars().skip(at.column - 1).collect();
+    assert!(column.starts_with("titel"), "{at}");
 }
 
 /// Every call the sink took before it refused through Typst still loads: no

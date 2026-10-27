@@ -94,8 +94,8 @@ tempfile = { version = "3", optional = true }
 [dev-dependencies]
 tempfile = "3"
 # Already in the tree at these versions, under `typst-harvest`. The harvest
-# flattens an eval error to its message, so `loader/tests_prelude.rs` compiles a
-# task file itself to read where Typst places the error.
+# evaluates and never lays out, so `loader/tests_prelude.rs` compiles a task
+# file itself to prove the prelude's card lays a count estimate out.
 typst = "0.15"
 typst-layout = "0.15"
 
