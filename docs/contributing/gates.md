@@ -19,15 +19,15 @@ Each arm is `just mmz <gate>`, which runs `mmz just <gate>`, so mmz caches each 
 
 A passing `just check` prints one line, such as `check: 28 gates passed (3 run, 25 cached)`. An agent usually reads the output once the run ends, and every line costs it context. A gate’s progress and its report on a clean tree tell that reader nothing a pass doesn’t. A failing run prints the full log of each failed gate, then a verdict naming them, such as `check: 1 of 28 gates failed: just clippy`, and exits non-zero. The verdict ends with `(10 not run)` when a red stage stopped the run before later stages.
 
-`.just/scripts/mmz-arm.sh` does the capture once for every arm, so no tool needs a quiet flag. It writes each arm’s output to `target/check/<gate>.log`, and the log stays there after a pass. It asks `mmz --is-fresh` first, to count the arm as run or cached, because a cache hit prints nothing (`on_hit: ""` in `.mmz/config.yaml`). Outside `just check`, `just mmz <gate>` streams its output. `just test <filter>` runs outside mmz, so a filtered run never records a pass for the full suite.
+`.just/scripts/mmz-arm.sh` does the capture once for every arm, so no tool needs a quiet flag. It writes each arm’s output to `target/check/<gate>.log`, and the log stays there after a pass. A cache hit prints nothing (`on_hit: ""` in `.mmz/config.yaml`), so the arm counts itself as run or cached from the `skipped` or `ran` mmz writes to the file `MMZ_REPORT` names. Outside `just check`, `just mmz <gate>` streams its output. `just test <filter>` runs outside mmz, so a filtered run never records a pass for the full suite.
 
 Every rule reads the `gates-meta` scope, which includes every justfile, so a justfile edit re-runs every arm. Each script under `.just/scripts/` has a scope of its own, so editing one re-runs the arms that reach it and the few that read the whole directory. The same goes for outdatty: `outdatty::check` reads every file `.config/outdatty.yaml` lists, and `just meta script-scope` fails naming a listed file that its scopes miss.
 
-### Inputs a glob can’t name
+### Inputs a plain glob can’t name
 
 `just crap check` reads `target/coverage/lcov.info`, which git ignores. mmz drops ignored paths from a scope, so the `lcov` scope sets `gitignore: false`. With the lcov in its inputs, the arm re-runs when `just cover` writes a new one.
 
-`just lint secrets` scans the whole tree, but `.mmz/config.yaml` has no negative glob, and no gate may name `truth/tasks/**`. `mt flip` writes the task file it gates, so such an input would make the gate stale in the middle of the flip. So the arm’s inputs are one glob per top-level directory, and `.just/scripts/check-secrets-manifest.sh` fails naming any tracked file those globs miss.
+`just lint secrets` scans the whole tree, but no gate may name `truth/tasks/**`. `mt flip` writes the task file it gates, so such an input would make the gate stale in the middle of the flip. So the `secrets-tree` scope is `**` with `exclude: ["truth/tasks"]`. The scan still reads the task files. A change to one just doesn’t re-run the arm.
 
 ### Arms must not read what another arm writes
 

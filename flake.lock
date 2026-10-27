@@ -1559,11 +1559,11 @@
         "tola": "tola"
       },
       "locked": {
-        "lastModified": 1792447416,
-        "narHash": "sha256-ZwQ/t7Vih52eBfJ+XBcTrGtbgFQ5vJJYR1IlMvlAHbk=",
+        "lastModified": 1793138815,
+        "narHash": "sha256-zbALLn91H0xIgT1VCJtHn9oEpkfYBPy0tY/KNxsLFkM=",
         "owner": "mlavrinenko",
         "repo": "mmz",
-        "rev": "c44872da8fcb9b20cd4967bbed6895a3ad56a7be",
+        "rev": "55626a794fee385e3fa9208866412791f59e9e37",
         "type": "github"
       },
       "original": {

@@ -225,16 +225,3 @@ if [ -n "$findings" ]; then
     echo "  re-run \`gitleaks dir -c $config -v <file>\` to see what matched" >&2
     exit 1
 fi
-
-# Released the moment the walk is over: every [parallel] arm that touches
-# www/generated/ is blocked while it is held, and neither arm below reads
-# that directory — mmz filters its own walk by www/.gitignore.
-exec 9>&-
-
-# -------------------------------------------------------------- arm three
-
-# The manifest coverage check lives in check-secrets-manifest.sh, its own file
-# so this one clears the Shell cap; that file argues in place why it reads
-# .mmz/config.yaml's own expansion and what it deliberately leaves uncovered.
-# It reads nothing the lock above protects.
-bash .just/scripts/check-secrets-manifest.sh

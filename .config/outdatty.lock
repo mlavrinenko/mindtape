@@ -395,11 +395,10 @@ groups:
       .just/scripts/_script-reach.sh: 667647246522252c3b13ce000dadb39f7fda7bee663a9db54497b3919d1a1e85
       .just/scripts/arg-pattern-check.sh: a025cc126dca21f5d0f64ef889de24daef833001210b5c9f2e03379c49800325
       .just/scripts/check-gate-drift.sh: c5f3ae953a06ee214d249b773ed50f5f9f9df8df035ffa93668bb5284583698e
-      .just/scripts/check-secrets-manifest.sh: 2a7d8dcb5ad11e94705623d8d77dfbf111e410089ae406501609ef45f37a84b1
-      .just/scripts/check-secrets.sh: 41ee1ab9ee0ae7ee9e4f78559decbf7634e73fb322e6bfd35f95e9ad6e53569f
+      .just/scripts/check-secrets.sh: 67d84316b3fe85a60e9ed72a5da24a6f34868e232179abaa50332586b5dadf7d
       .just/scripts/check.sh: db95395ef7ff6ca1231fd6650df00c2a82550162c089c2a7a19998d10981d9fa
       .just/scripts/fmt-fixture-check.sh: 66b3f60fdc4ffced3da267564abe814b36ede6a6b74f77986dc91972eb7c1830
-      .just/scripts/mmz-arm.sh: c67a415ff478915a0fc433b857b72627dfcdc5e122ae0e430ab5b77bde590d22
+      .just/scripts/mmz-arm.sh: 3f0937a94e229180ed2530f2e0e8feae99fc6cc963601b17c5e6391ae9d58513
       .just/scripts/outdatty-review-trailer-fixture-check.sh: 1ee3819129ffc4699a5fc1358fb673b6829b51ce33acf674a725908e3583aa6c
       .just/scripts/path-attr-check.sh: 1a7a2c4bb7acf241902bb2f7bced8a01f04acfda2453a9345d66f8339515a331
       .just/scripts/plural-check.sh: e03e46853e17d4ce52d0750dd5096273084e250ef7c4cf06fed88b999022acc9
@@ -409,7 +408,7 @@ groups:
       .just/scripts/site-pages-fixture-check.sh: ceb62190de1412ec102237ceac60536633e4c27fafa32e888366b0cb6403b1e7
       .just/scripts/size-fixture-check.sh: 9ce5b092925dc75114b57cabc3423719dd556411b4e8a3b1a28e428e2aecb858
     dependents:
-      docs/src/contributing/gates.typ: da1f8374cdcf7a6ab215414f499bda4fbfbfd17a89e88f4d83b8679b2d5c4348
+      docs/src/contributing/gates.typ: 5ba865a4a93ace027d6ff830e8d97d23d2e36250c5d313994334a68ca702e62f
   githooks-docs:
     source:
       .githooks/commit-msg: 09f9ee77fd56bc939bf4f81e7fc2a473140ca1308079479a164c4b6a3c69da4c

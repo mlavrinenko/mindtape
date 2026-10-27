@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 28),
+  status: done(2026, 10, 28),
 )
 
 == Problem
@@ -35,7 +35,7 @@
 + Read the `secrets-tree` scope in `.mmz/config.yaml`.
 + 🔴 It lists one glob per top-level directory, because mmz had no negative glob, and `.just/scripts/check-secrets-manifest.sh` runs as a third arm of `just lint::secrets` to catch a directory nobody listed. mmz 0.13.0 ships `exclude:`, so both guard a gap that is gone.
 + Read `.just/scripts/mmz-arm.sh`.
-+ 🔴 It runs `mmz --is-fresh -- just <gate>` before each arm only to tell a hit from a run, since `on_hit: ""` prints nothing. That hashes every arm's inputs twice. mmz 0.15.0 writes the answer to the file `MMZ_REPORT` names.
++ 🔴 It runs `mmz --is-fresh -- just <gate>` before each arm only to tell a hit from a run, since `on_hit: ""` prints nothing. That hashes every arm's inputs twice. mmz 0.15.1 writes the answer to the file `MMZ_REPORT` names.
 
 
 == TO-BE
@@ -52,7 +52,7 @@
 
 == Changes
 
-- `flake.lock`: bump the `mmz` input to 0.15.0.
+- `flake.lock`: bump the `mmz` input to 0.15.1.
 - `.mmz/config.yaml`: rewrite `secrets-tree` as above, drop `script-check-secrets-manifest` and its comments, and reword the `on_hit` note.
 - `.just/scripts/check-secrets-manifest.sh`: delete.
 - `.just/scripts/check-secrets.sh`: drop the call to arm three.
@@ -63,7 +63,7 @@
 
 == Rollback
 
-Revert the commit. The old scope list, the manifest arm and the `--is-fresh` pre-check all work on mmz 0.15.0.
+Revert the commit. The old scope list, the manifest arm and the `--is-fresh` pre-check all work on mmz 0.15.1.
 
 
 == Out of scope

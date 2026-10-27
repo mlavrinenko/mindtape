@@ -123,36 +123,14 @@ scopes:
   secrets-config:
     - ".config/gitleaks.toml"
 
-  # Everything `just lint::secrets` reads, which is the whole tracked tree:
-  # a credential can land in any file, so no narrower list would cover it.
-  # It is an enumeration because `truth/tasks/**` must stay out (see "Note on
-  # scope" above: `mt flip` writes the task file it is gating), mmz has no
-  # negative glob, and `**` minus one directory is therefore a list of what is
-  # left. Those task files are still scanned. The read is just not memoized,
+  # Everything `just lint::secrets` reads, which is the whole tree: a
+  # credential can land in any file, so no narrower list would cover it. The
+  # task files stay out (see "Note on scope" above: `mt flip` writes the task
+  # file it is gating). They are still scanned, the read is just not memoized,
   # as `just fmt-check` already does over the same directory.
-  #
-  # The enumeration fails when a top-level directory appears that nobody adds
-  # here: the scope goes false-fresh with a whole subtree unhashed. Arm three
-  # of .just/scripts/check-secrets.sh refuses that. It set-differences
-  # `git ls-files` against mmz's own expansion of this scope and fails naming
-  # the uncovered files. So a missing line below turns the gate red, and
-  # adding the line it names fixes it.
   secrets-tree:
-    - "*"
-    - ".config/**"
-    - ".githooks/**"
-    - ".github/**"
-    - ".just/**"
-    - ".mindtape/**"
-    - ".mmz/**"
-    - "contrib/**"
-    - "crates/**"
-    - "docs/**"
-    - "examples/**"
-    - "lib/**"
-    - "schema/**"
-    - "skills/**"
-    - "www/**"
+    globs: ["**"]
+    exclude: ["truth/tasks"]
 
   # outdatty's own config + lock. The dependents outdatty re-reads are already
   # covered by the `rust`/`policy`/`examples`/`docs` scopes (the lock hashes
@@ -427,8 +405,6 @@ scopes:
     - ".just/scripts/_gate-drift-lib.sh"
   script-check-secrets:
     - ".just/scripts/check-secrets.sh"
-  script-check-secrets-manifest:
-    - ".just/scripts/check-secrets-manifest.sh"
   script-cover:
     - ".just/scripts/cover.sh"
   script-crap:
@@ -537,8 +513,9 @@ scopes:
 
 # Empty: a cache hit prints nothing, because an exit code already carries the
 # verdict. A direct `just mmz <gate>` on an unchanged tree stays silent, and
-# under `just check` .just/scripts/mmz-arm.sh asks `mmz --is-fresh` whether an
-# arm was a hit, so the verdict line can count hits without a note per arm.
+# under `just check` .just/scripts/mmz-arm.sh reads each arm's hit from the
+# file `MMZ_REPORT` names, so the verdict line can count hits without a note
+# per arm.
 on_hit: ""
 
 # `just ask-refactoring` is absent below because memoizing it would defeat it,
@@ -607,23 +584,14 @@ commands:
     tags: [gate]
     inputs: [rust, gates-meta, dry-baseline, script-lint-dry]
 
-  # gitleaks over the whole tracked tree. `secrets-tree` is that tree (minus
-  # the one directory a gate-tagged rule may not name, argued on the scope
-  # itself) and `secrets-config` is the ruleset it reads it with. Both belong
-  # to this rule alone. `mmz-config` is here for script-scope-check's reason,
-  # one file over: arm three, whose body is
-  # .just/scripts/check-secrets-manifest.sh (named by `script-check-secrets-
-  # manifest` below), reads this manifest as data. It set-differences
-  # `git ls-files` against mmz's own expansion of `secrets-tree`, so an
-  # input-list edit must re-run the arm that judges it. The scope union
-  # already covers .mmz/config.yaml through `.mmz/**`, and naming it anyway
-  # follows the rule the `mmz-config` scope exists for: a rule that reads a
-  # file as data says so. No `rust`: nothing is built or run here, and
-  # `crates/**` is scanned as text through `secrets-tree` like every other
-  # file.
+  # gitleaks over the whole tree. `secrets-tree` is that tree (minus the one
+  # directory a gate-tagged rule may not name, argued on the scope itself) and
+  # `secrets-config` is the ruleset it reads it with. Both belong to this rule
+  # alone. No `rust`: nothing is built or run here, and `crates/**` is scanned
+  # as text through `secrets-tree` like every other file.
   - name: just lint::secrets
     tags: [gate]
-    inputs: [secrets-tree, secrets-config, mmz-config, gates-meta, script-check-secrets, script-check-secrets-manifest]
+    inputs: [secrets-tree, secrets-config, gates-meta, script-check-secrets]
 
   # outdatty.check re-reads every dependent's current content and compares it to
   # the lock. Every dependent lives under `rust`/`policy`/`examples`/`docs`, so

@@ -801,7 +801,6 @@ groups:
       - .just/scripts/check.sh
       - .just/scripts/mmz-arm.sh
       - .just/scripts/check-secrets.sh
-      - .just/scripts/check-secrets-manifest.sh
       - .just/scripts/check-gate-drift.sh
       - .just/scripts/_gate-drift-lib.sh
       - .just/scripts/script-scope-check.sh

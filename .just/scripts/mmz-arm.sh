@@ -10,8 +10,10 @@
 # can print a failed gate's log and drop a passing one's. The capture sits here,
 # once, rather than as a quiet flag on each tool: most of the tools have none.
 #
-# Whether the run is a cache hit is asked of mmz before the run, because a hit
-# prints nothing (`on_hit: ""`) and so leaves no trace in the log.
+# Whether the run was a cache hit comes from the run itself: a hit prints
+# nothing (`on_hit: ""`), so mmz writes `skipped` or `ran` to the file
+# MMZ_REPORT names instead. No word means mmz stopped before it decided, which
+# counts as a run, since the arm did not pass on a cached record.
 set -eo pipefail
 
 if [ -z "${MINDTAPE_CHECK_DIR:-}" ]; then
@@ -21,12 +23,14 @@ fi
 name="just $*"
 slug=$(printf '%s' "$*" | tr -c 'A-Za-z0-9_.-' '_')
 log="$MINDTAPE_CHECK_DIR/$slug.log"
-
-how=run
-if mmz --is-fresh -- just "$@" >/dev/null 2>&1; then how=cached; fi
+report="$MINDTAPE_CHECK_DIR/$slug.report"
+rm -f "$report"
 
 rc=0
-mmz just "$@" >"$log" 2>&1 || rc=$?
+MMZ_REPORT="$report" mmz just "$@" >"$log" 2>&1 || rc=$?
+
+how=run
+if [ "$(cat "$report" 2>/dev/null)" = skipped ]; then how=cached; fi
 
 outcome=pass
 if [ "$rc" -ne 0 ]; then outcome=fail; fi
