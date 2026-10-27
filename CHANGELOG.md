@@ -764,6 +764,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **A tombstone written on Windows resolves everywhere.** `mt rm` wrote its
   `path=` with `\`, as in `swh:1:rev:…;path=tasks\gone.typ`, and git paths
   use `/`. It writes `/` now.
+- **`mt add --to` refuses `\etc` and `C:etc` on Windows.** Neither is absolute
+  there, so both got past the check, and joining either left the destination
+  root.
 - **A failed read ends without a stray period on Windows.** Windows ends its
   reasons with one, so `can't read: 'a.json': the system cannot find the file
   specified.` had it mid-sentence.

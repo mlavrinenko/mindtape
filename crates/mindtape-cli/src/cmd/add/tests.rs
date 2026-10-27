@@ -316,6 +316,17 @@ fn dest_to_rejects_absolute_subfolder() {
     assert!(dest_dir(".", Some("/etc"), &project).is_err());
 }
 
+/// `\etc` and `C:etc` are not absolute on Windows, yet joining either drops
+/// the destination root, so `--to` refuses them too.
+#[cfg(windows)]
+#[test]
+fn dest_to_rejects_a_rooted_or_drive_relative_subfolder() {
+    let dir = tempdir();
+    let project = project_with_root(dir.path(), "tasks");
+    assert!(dest_dir(".", Some("\\etc"), &project).is_err());
+    assert!(dest_dir(".", Some("C:etc"), &project).is_err());
+}
+
 #[test]
 fn dest_into_an_absolute_path_is_taken_as_is() {
     let dir = tempdir();

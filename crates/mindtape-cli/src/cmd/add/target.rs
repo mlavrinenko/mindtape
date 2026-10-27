@@ -6,7 +6,7 @@
 //! (see `crate::cmd::import`).
 
 use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 use crate::diag::Result;
 use mindtape::{Config, RawValue, model::naming, today_ymd};
@@ -111,7 +111,12 @@ pub(crate) fn dest_dir(into: &str, to: Option<&str>, project: &util::Project) ->
         return Ok(base);
     };
     let sub = Path::new(sub);
-    if sub.is_absolute() {
+    // On Windows `/etc` and `C:etc` are not absolute, yet joining either
+    // replaces the base, so refuse any root or drive.
+    let leaves_base = sub
+        .components()
+        .any(|part| matches!(part, Component::Prefix(_) | Component::RootDir));
+    if leaves_base {
         return Err(
             Diag::usage("--to expects a subfolder, not an absolute path")
                 .value(sub.display().to_string())
