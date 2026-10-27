@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 28),
+  status: done(2026, 10, 28),
 )
 
 == Problem
@@ -39,12 +39,12 @@
 
 - 🟢 The dev shell carries linecop 0.8.1, which caps a language under any key spelling and lets an override's caps stand without a language base.
 - 🟢 `.githooks/*` sit under a `Bash` cap and the Justfile and `.just/*.just` under a `Just` cap, both 300 like `Shell`.
-- 🟢 `.config/linecop.yaml` has no `Typst` base, and its comments describe no workaround.
+- 🟢 `Typst: 1000` stays as an intended ceiling for every Typst file, not a base the overrides need, and the config comments describe no workaround.
 
 == Changes
 
 - `flake.lock`: bump `qahq/linecop` to the v0.8.1 release commit.
-- `.config/linecop.yaml`: add `Bash: 300` and `Just: 300`, drop `Typst: 1000`, and rewrite the comments that explained both workarounds.
+- `.config/linecop.yaml`: add `Bash: 300` and `Just: 300`, keep `Typst: 1000` as a real ceiling, and rewrite the comments that explained both workarounds.
 
 == Rollback
 
@@ -52,7 +52,7 @@
 
 == Out of scope
 
-- A real cap for every Typst file. `lib/prelude.typ` and the site sources lose the 1000-line ceiling that only existed to wake the overrides; picking a Typst cap is its own call.
+- Tightening the Typst ceiling. It stays at 1000 so dropping the workaround loosens no guard.
 
 == Dogfood
 

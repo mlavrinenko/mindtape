@@ -7,26 +7,19 @@ limits:
   Rust: 500
   Markdown: 200
 
-  # Shell is capped so a script that outgrows one job gets split. Two gate
-  # libraries with no seam carry their own cap in `overrides` below.
-  #
-  # linecop detects language by extension, so the shebang-only `.githooks/`
-  # hooks are invisible to it at any limit. They are about 25 lines each.
-  # The `.just/*.just` modules have the same gap: linecop knows no language for
-  # the `.just` extension, so they are uncapped while every script beside them
-  # is capped (`include_hidden` below brings those scripts into the scan and
-  # does nothing for an unrecognized extension).
+  # A script that outgrows one job gets split. Two gate libraries with no seam
+  # carry their own cap in `overrides` below. The `.githooks/` hooks have no
+  # extension, so their `#!/usr/bin/env bash` line makes them Bash, not Shell.
   Shell: 300
+  Bash: 300
 
-  # A base is required for an override's `limit:` to do anything (verified): a
-  # `docs/src/**` override with no `Typst` entry here scans zero .typ files,
-  # because linecop skips a language entirely when it has no base. Without this
-  # line the per-source overrides below would be inert. 1000 is a floor and not
-  # a target, picked to clear the largest Typst file in the repo
-  # (`lib/prelude.typ`) with headroom. Every cap that matters for a docs/src/*.typ
-  # source lives in that source's own override below, at a fraction of this
-  # number. Raising this number to fit one file would loosen every other Typst
-  # file's ceiling at once.
+  # The Justfile and the `.just/*.just` modules, held to the scripts' cap.
+  Just: 300
+
+  # A real ceiling for every Typst file, picked to clear the largest
+  # (`lib/prelude.typ`) with headroom. The `docs/src` sources carry tighter
+  # caps in their own overrides below. Raising this to fit one file loosens
+  # every other Typst file at once, so split the file instead.
   Typst: 1000
 
 # The changelog is append-only (all under [Unreleased] pre-1.0) and gets
@@ -121,8 +114,7 @@ exclude_dirs:
 # `linecop --baseline 85` and `just eject`'s `--format paths` run all see the
 # same file set, which they would not if only the gate carried the flag.
 #
-# It pulls in `.just/scripts/*.sh`, `.mindtape/templates/*.typ` and the
-# example fixtures' copies of those templates, all far under the Typst floor.
+# It pulls in `.githooks/`, the `.just/` modules and `.just/scripts/*.sh`.
 # VCS metadata stays excluded by linecop itself and gitignored paths are still
 # skipped, so `.direnv/` and `.mmz/cache/` never enter the walk.
 include_hidden: true
