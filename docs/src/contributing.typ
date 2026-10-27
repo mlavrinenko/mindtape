@@ -194,11 +194,11 @@ file, the files that restate it.
   #just.outdatty-check() fails until the lock holds it.
 
 A rebase or merge joins the two branches' locks key by key through
-`.just/scripts/outdatty-lock-merge.sh`. When both branches edited one source
-and re-recorded it, its hash comes out as zeros, so #just.outdatty-check()
-reports that group until you review it and commit the re-record, which owes
-the footer like any other. The driver also drops a group the merged manifest
-doesn't declare, so a split or a rename leaves no orphan hashes, and
+outdatty's own merge driver, `outdatty merge-lock`. When both branches edited
+one source and re-recorded it, its hash comes out as zeros, so
+#just.outdatty-check() reports that group until you review it and commit the
+re-record, which owes the footer like any other. A group one branch dropped
+stays dropped, so a split or a rename leaves no orphan hashes, and
 #just.outdatty-check() fails on one that got in anyway.
 `.config/jscpd-baseline.json` merges as the union of both fingerprint maps
 through `.just/scripts/jscpd-baseline-merge.sh`. `.config/crap-baseline.json`

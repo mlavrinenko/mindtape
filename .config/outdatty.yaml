@@ -676,7 +676,6 @@ groups:
       - .just/scripts/wt-carry-lcov.sh
       - .just/scripts/clippy.sh
       - .just/scripts/lint-dry.sh
-      - .just/scripts/outdatty-check.sh
       - .just/scripts/check-examples.sh
     dependents:
       - docs/src/contributing.typ
@@ -763,12 +762,11 @@ groups:
       - docs/src/contributing.typ
       - docs/src/contributing/release.typ
 
-  # The outdatty.lock, jscpd baseline and CRAP baseline merge drivers and the
-  # attributes that assign them, which contributing.typ names under Dependency
-  # Drift.
+  # The jscpd and CRAP baseline merge drivers, and the attributes that assign
+  # them and outdatty's own lock driver, which contributing.typ names under
+  # Dependency Drift.
   - name: lock-merge-docs
     source:
-      - .just/scripts/outdatty-lock-merge.sh
       - .just/scripts/jscpd-baseline-merge.sh
       - .just/scripts/crap-baseline-merge.sh
       - .gitattributes

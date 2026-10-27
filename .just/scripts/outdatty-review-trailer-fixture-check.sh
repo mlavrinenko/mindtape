@@ -18,9 +18,8 @@ check="$PWD/.just/scripts/outdatty-review-trailer.sh"
 [ -f "$check" ] || { echo "outdatty-review-trailer-fixture-check: $check is missing" >&2; exit 1; }
 
 # The gate may run under a git hook (`just land`), whose variables would point
-# the fixture's git at this repo. `BASH_ENV` goes for the reason
-# crates/mindtape-cli/tests/it/outdatty_lock_merge_e2e.rs drops it: a host hook
-# there may rebuild `PATH` from the `.envrc` the temp repo lacks, losing yq.
+# the fixture's git at this repo. `BASH_ENV` goes too: a host hook there may
+# rebuild `PATH` from the `.envrc` the temp repo lacks, losing yq.
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_OBJECT_DIRECTORY GIT_PREFIX BASH_ENV
 
 tmp=$(mktemp -d)

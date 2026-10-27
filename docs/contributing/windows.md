@@ -18,8 +18,6 @@ On Windows, `dirs` reads the data path from a system API that no environment var
 
 Don’t let a pty test depend on machine load. A fixed sleep passes on an idle machine and fails while other worktrees build beside it. So `opening_a_task_suspends_the_tui_and_runs_the_editor` and `opening_a_task_still_works_with_hyperlinks_active` poll the transcript for the frame they check.
 
-`tests/it/outdatty_lock_merge_e2e.rs` is `#![cfg(unix)]` too. It runs the `.config/outdatty.lock` merge driver, a bash script that needs `yq`, `jq` and `b3sum` from the dev shell, and the Windows job has no dev shell.
-
 ## Catching compile errors early
 
 Run `just check-windows` before you push. It compiles the workspace, tests included, for `x86_64-pc-windows-gnu` from Linux. It runs in its own dev shell (`nix develop .#windows`), because the default shell’s rustc has no Windows standard library. `pkgsCross.mingwW64` supplies a rustc on the same pinned 1.92.0 channel with the standard library for both targets.

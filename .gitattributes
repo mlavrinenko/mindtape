@@ -1,7 +1,7 @@
-# .config/outdatty.lock merges key by key: .just/scripts/outdatty-lock-merge.sh,
+# .config/outdatty.lock merges key by key: outdatty's own `outdatty merge-lock`,
 # which `just install-hooks` registers. Delete this line to fall back to git's
 # text merge.
-.config/outdatty.lock merge=outdatty-lock
+.config/outdatty.lock merge=outdatty
 # .config/jscpd-baseline.json merges as the union of both sides' fingerprints:
 # .just/scripts/jscpd-baseline-merge.sh, which `just install-hooks` registers.
 # Delete this line to fall back to git's text merge.

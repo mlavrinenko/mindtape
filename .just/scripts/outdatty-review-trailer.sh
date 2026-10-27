@@ -34,7 +34,8 @@
 # passes: its diff against the first parent is the other branch's work, whose
 # commits carried their own reviews. A rebase pick runs no commit-msg hook, so
 # `just land` passes through, and the review a zeroed hash asks for after it
-# (.just/scripts/outdatty-lock-merge.sh) is a new commit that names the group.
+# (`outdatty merge-lock`, the lock's merge driver) is a new commit that names
+# the group.
 set -eo pipefail
 
 msg_file=$1

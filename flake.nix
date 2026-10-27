@@ -103,10 +103,6 @@
               pkgs-tombi.worktrunk
             ]
             ++ (with pkgs; [
-              # .config/outdatty.lock records blake3 hashes, and the lock's
-              # merge driver (.just/scripts/outdatty-lock-merge.sh) hashes a
-              # file from the merged tree to pick the side that recorded it.
-              b3sum
               rustc
               cargo
               cargo-machete

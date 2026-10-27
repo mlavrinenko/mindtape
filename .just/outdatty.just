@@ -11,7 +11,7 @@ list:
 [doc("Fail if a source changed without its dependents reconfirmed")]
 [group("gate")]
 check:
-    bash .just/scripts/outdatty-check.sh
+    outdatty check
 
 [arg('GROUP', pattern='[a-z][a-z0-9-]*', help='outdatty group to re-confirm — the names .config/outdatty.yaml declares')]
 [arg('DEPENDENTS', pattern='[A-Za-z0-9._/-]+', help='record only these dependents of GROUP, leaving the rest pending')]

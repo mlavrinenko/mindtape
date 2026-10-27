@@ -77,7 +77,6 @@ mod ls_why_e2e;
 mod misc_error_format_e2e;
 mod mv_e2e;
 mod open_questions_e2e;
-mod outdatty_lock_merge_e2e;
 mod packs;
 mod packs_cache_e2e;
 mod pre_write_refusal_e2e;

@@ -184,8 +184,8 @@ install-hooks:
     # git exports GIT_DIR to a hook's children and it beats `git -C`: drop it, so the recipe writes only the repo it runs in.
     unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
     git config core.hooksPath .githooks
-    git config merge.outdatty-lock.name ".config/outdatty.lock, merged key by key"
-    git config merge.outdatty-lock.driver 'bash .just/scripts/outdatty-lock-merge.sh %O %A %B %P %S %X %Y'
+    git config merge.outdatty.name ".config/outdatty.lock, merged key by key"
+    git config merge.outdatty.driver 'outdatty merge-lock %O %A %B'
     git config merge.jscpd-baseline.name ".config/jscpd-baseline.json, merged as a fingerprint union"
     git config merge.jscpd-baseline.driver 'bash .just/scripts/jscpd-baseline-merge.sh %O %A %B %P'
     git config merge.crap-baseline.name ".config/crap-baseline.json, merged entry by entry"

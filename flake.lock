@@ -2470,11 +2470,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792369734,
-        "narHash": "sha256-uzXeVkBWne6g4TNm8aAvmQOvAzhkbqj2WATGmQFLpz0=",
+        "lastModified": 1793138017,
+        "narHash": "sha256-d4sl4u9RP1yrHb3t9jcFlZBk5MbQWG6T0Qv9fS732Is=",
         "owner": "mlavrinenko",
         "repo": "outdatty",
-        "rev": "9b211f9c305d5635a6a9527f48b0529f3eac93f6",
+        "rev": "98674a6de1ffd18c97053ce8d550f168090739ad",
         "type": "github"
       },
       "original": {
