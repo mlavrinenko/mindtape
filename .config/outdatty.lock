@@ -319,7 +319,7 @@ groups:
       .just/scripts/check-examples.sh: c2d514b1b7e8af223e7ab4af27115dfe33e56f6af98702639d5fb5008910ae6b
       .just/scripts/clippy.sh: d586661b1bca816bcdf145d4fdd785125624d5b79e78f493b65811c66fb87df4
       .just/scripts/wt-carry-lcov.sh: a4d4b96d24cee1d76f8d19ddcc10b6f4b99a1cb9f7c8ec3143cf487f2bb9861c
-      Justfile: e95b2f41bff36e508c4d4b15be51560c37073c91d5f39c4362af7958e2f9931f
+      Justfile: 3a600119ef1091d168c0b415daaa394c4212fb86704ae7ce46b43b4e11cb5896
       flake.nix: 9c67a7d20242c6778f72e6e0c1ece835630812bfa746b971e720640e5c678572
     dependents:
       docs/src/agents.typ: b60c66d46729c944b878cc0d112e26741e5d2621ed8dc803c5ed0092daf2adeb

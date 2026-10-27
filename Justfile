@@ -176,7 +176,12 @@ check-windows:
         cargo check --workspace --all-targets --locked \
         --target x86_64-pc-windows-gnu
 
-[doc("Point git at the tracked hooks and register the merge drivers")]
+# The config is shared by every worktree, so a driver goes only when no
+# worktree's .gitattributes names it. `merge.<name>.mindtape` marks the ones
+# this recipe registers; an unmarked driver that runs a .just/scripts/ script
+# predates the mark. Anything else is the user's and stays.
+
+[doc("Point git at the tracked hooks, register the merge drivers and drop stale ones")]
 [extension('.sh')]
 [group("dev")]
 [script]
@@ -184,12 +189,24 @@ install-hooks:
     # git exports GIT_DIR to a hook's children and it beats `git -C`: drop it, so the recipe writes only the repo it runs in.
     unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
     git config core.hooksPath .githooks
-    git config merge.outdatty.name ".config/outdatty.lock, merged key by key"
-    git config merge.outdatty.driver 'outdatty merge-lock %O %A %B'
-    git config merge.jscpd-baseline.name ".config/jscpd-baseline.json, merged by jscpd fingerprint by fingerprint"
-    git config merge.jscpd-baseline.driver 'jscpd --merge-baseline %O %A %B'
-    git config merge.crap-baseline.name ".config/crap-baseline.json, merged entry by entry"
-    git config merge.crap-baseline.driver 'bash .just/scripts/crap-baseline-merge.sh %O %A %B %P'
+    register() {
+        git config "merge.$1.name" "$2"
+        git config "merge.$1.driver" "$3"
+        git config "merge.$1.mindtape" true
+    }
+    register outdatty ".config/outdatty.lock, merged key by key" 'outdatty merge-lock %O %A %B'
+    register jscpd-baseline ".config/jscpd-baseline.json, merged by jscpd fingerprint by fingerprint" 'jscpd --merge-baseline %O %A %B'
+    register crap-baseline ".config/crap-baseline.json, merged entry by entry" 'bash .just/scripts/crap-baseline-merge.sh %O %A %B %P'
+    named=$(git worktree list --porcelain | sed -n 's/^worktree //p' | while IFS= read -r tree; do
+        sed -n 's/^[^#].*[[:space:]]merge=\([^[:space:]]*\).*/\1/p' "$tree/.gitattributes" 2>/dev/null || true
+    done)
+    git config --name-only --get-regexp '^merge\..*\.driver$' | sed -e 's/^merge\.//' -e 's/\.driver$//' | while IFS= read -r name; do
+        if printf '%s\n' "$named" | grep -qxF -- "$name"; then continue; fi
+        if [ "$(git config --get "merge.$name.mindtape")" = true ] || git config --get "merge.$name.driver" | grep -q '\.just/scripts/'; then
+            git config --remove-section "merge.$name"
+            echo "dropped the stale merge driver $name"
+        fi
+    done
     rm -f .git/hooks/pre-commit
     echo "installed .githooks and the .config/outdatty.lock, .config/jscpd-baseline.json and .config/crap-baseline.json merge drivers"
 

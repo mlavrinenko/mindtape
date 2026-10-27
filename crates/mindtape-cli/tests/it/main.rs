@@ -61,6 +61,7 @@ mod import_jq_e2e;
 mod init_config_write_e2e;
 mod init_e2e;
 mod install_e2e;
+mod install_hooks_e2e;
 mod install_package_path_e2e;
 mod interactive_e2e;
 mod jscpd_baseline_merge_e2e;
