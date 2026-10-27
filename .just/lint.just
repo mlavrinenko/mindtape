@@ -29,12 +29,22 @@ shellcheck:
 size:
     linecop
 
+# The baseline keys a clone by a fingerprint of its raw tokens, so an edit
+# inside an old clone makes it new. .config/jscpd.json, which jscpd reads from
+# the repo root on every run here, skips declaration lines: `mod` lines with
+# their attributes, `use` items and `("name", include_str!("..."))` registry
+# entries. A list of those has no helper to extract, and one more line must not
+# change a fingerprint. A skipped token also ends a clone that straddled it, so
+# a new pattern re-mints the baseline once.
 DRY_FLAGS := "--no-tips -f rust -k 50 --ignore-identifiers --ignore-literals --similarity=0.8 --ignore '**/tests/it/main.rs' --baseline .config/jscpd-baseline.json"
 
+# Fix a finding by extracting a shared helper, not by shuffling tokens until the
+# detector stops matching. `--new-only` prints only the clones the baseline
+# lacks.
 [doc("Copy-paste gate: fail on a duplicated Rust block the baseline lacks")]
 [group("gate")]
 dry:
-    bash .just/scripts/lint-dry.sh {{ DRY_FLAGS }}
+    jscpd {{ DRY_FLAGS }} --new-only --fail-on-new-clones 0 -r ai crates
 
 [doc("Re-mint .config/jscpd-baseline.json after extracting a clone or accepting one")]
 dry-baseline:

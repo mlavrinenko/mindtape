@@ -312,13 +312,12 @@ groups:
       .just/crap.just: bbd5c5afd5c0949810cb7647c8dc495836f5b3ea3edd1d2ddba77703317caa6c
       .just/docs.just: 2f7338970bce328e1f3513b0c5e3f80655c8689f6998e190d516d902f8608594
       .just/install.just: d5b6fa1381014bf12de6551f5356a832667bd0d107998cbe86c03ce7eee16989
-      .just/lint.just: 604b9095499bf0436e35798df886509b154a38582f017ff386d229c93167de46
+      .just/lint.just: 6b6c29903f00da4a7f3bc31b65c4a34652697815df4702efaca93f600dbaea6f
       .just/meta.just: 17f3c67395d11fe1ed06ad6067c77a2e0939fdf7f95706df3bbed76d3e59a368
       .just/mutants.just: 2fc963a8cf93ea6a7ddea17132d68ae6a349489af89a4a83455fdd99386dd6d0
       .just/outdatty.just: fb95f90850c8179bb3fba01a8ae90e2fe703c1c551cb8181892bd24b03f95866
       .just/scripts/check-examples.sh: c2d514b1b7e8af223e7ab4af27115dfe33e56f6af98702639d5fb5008910ae6b
       .just/scripts/clippy.sh: d586661b1bca816bcdf145d4fdd785125624d5b79e78f493b65811c66fb87df4
-      .just/scripts/lint-dry.sh: 05eb5f706284988cb6c9c1c8f3c87a67d359a962f86aa8e01fcc45efd525fc59
       .just/scripts/wt-carry-lcov.sh: a4d4b96d24cee1d76f8d19ddcc10b6f4b99a1cb9f7c8ec3143cf487f2bb9861c
       Justfile: ddef24a1cb344ab740414f8b891b139300b7cc1e7bdd0f6cb7df694bf70a76fe
       flake.nix: 9c67a7d20242c6778f72e6e0c1ece835630812bfa746b971e720640e5c678572

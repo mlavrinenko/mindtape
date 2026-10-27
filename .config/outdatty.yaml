@@ -675,7 +675,6 @@ groups:
       - .just/outdatty.just
       - .just/scripts/wt-carry-lcov.sh
       - .just/scripts/clippy.sh
-      - .just/scripts/lint-dry.sh
       - .just/scripts/check-examples.sh
     dependents:
       - docs/src/contributing.typ

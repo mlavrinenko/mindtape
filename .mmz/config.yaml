@@ -441,8 +441,6 @@ scopes:
     - ".just/scripts/mutants-diff.sh"
   script-mutants-status:
     - ".just/scripts/mutants-status.sh"
-  script-lint-dry:
-    - ".just/scripts/lint-dry.sh"
   script-release:
     - ".just/scripts/release.sh"
   script-mutants-env:
@@ -575,7 +573,7 @@ commands:
   # justfile edit re-runs this gate, and so does a re-minted baseline.
   - name: just lint::dry
     tags: [gate]
-    inputs: [rust, gates-meta, dry-baseline, script-lint-dry]
+    inputs: [rust, gates-meta, dry-baseline]
 
   # gitleaks over the whole tree. `secrets-tree` is that tree (minus the one
   # directory a gate-tagged rule may not name, argued on the scope itself) and
