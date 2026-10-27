@@ -761,6 +761,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   virtual path "tasks\\alpha.typ": path contains backslash`, so a project
   with a `tasks/` root loaded nothing there. `mt` now names every file to
   Typst with `/`, as on Linux and macOS.
+- **A tombstone written on Windows resolves everywhere.** `mt rm` wrote its
+  `path=` with `\`, as in `swh:1:rev:…;path=tasks\gone.typ`, and git paths
+  use `/`. It writes `/` now.
 - **A failed read ends without a stray period on Windows.** Windows ends its
   reasons with one, so `can't read: 'a.json': the system cannot find the file
   specified.` had it mid-sentence.

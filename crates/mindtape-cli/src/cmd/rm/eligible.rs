@@ -27,7 +27,7 @@ pub(super) fn check_eligible_files(
         let abs = root.join(&task.file);
         let reason = match abs.strip_prefix(git_root) {
             Err(_) => Reason::Outside,
-            Ok(rel) => match swhid_mint::git::mint_rev_path(git_root, &rel.to_string_lossy()) {
+            Ok(rel) => match swhid_mint::git::mint_rev_path(git_root, &mindtape::slash_path(rel)) {
                 Ok(_) => continue,
                 Err(swhid_mint::git::Error::NotTracked(_)) => Reason::Untracked,
                 Err(swhid_mint::git::Error::Dirty(_)) => Reason::Dirty,

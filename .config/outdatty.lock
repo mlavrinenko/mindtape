@@ -241,14 +241,14 @@ groups:
       www/content/recurring.typ: 9bb8e9b0b10dca758a092fd67776c376a2f44f4c3bff264025cd12482275f3d5
   cli-rm-docs:
     source:
-      crates/mindtape-cli/src/cmd/rm/mod.rs: 1ca1b62769f144763f7d5ccabb9cc76158ce64ec72a43564bcc277a119d818b6
+      crates/mindtape-cli/src/cmd/rm/mod.rs: 087867f96c1c747f23621fa6eb45f275ef8446d0cf06ddff7b7b0a5b9dc6c808
     dependents:
-      docs/src/skill.typ: 920c27780c83ec9565ed73f25152afb80703c2bc3dfc2950620d3b6392e4f221
-      www/content/cli/ls.typ: f1d27f9e5f3a41c87dec00b859851ffcadcf11388955c758ac4fd772463dbfba
+      docs/src/skill.typ: efbf73c5a7fb68ecb18c2c395dba7ffb1b3c0edf9d1d449d85cecd655ff35852
+      www/content/cli/ls.typ: 78adb14cc3e8dec8ebb763791951b2cdc7200a51cd91bf38f18f827b03b9ef0d
       www/content/cli/rm.typ: c108c4479b1556fd412669958b4eaae7b07a68136b3e9b82f6dc43e7bd9afbaf
-      www/content/filters.typ: 97a4fe03ecfdc952c5f39d1af58fcdc5cc3bf48d5549f1866005f7e59c7b26f7
-      www/content/statuses.typ: fa11fdf07770cd5ff39ff2333e3fa6a01294b646a135857eb7f52e01a4f4f6af
-      www/utils/cli-notes.typ: 8cae2ec0d00665b34b57193614b7631f6845b923b2a52d35ca0678a377f72521
+      www/content/filters.typ: 49639dd7d856166b3cae024af915c16ab9124345f62ef44f4e29aed09d8174f6
+      www/content/statuses.typ: e1adb2f5358a58777fda7117b066dd5d0ac1f1949c8e1d01d26c979b175c8fe9
+      www/utils/cli-notes.typ: f4f3fdc25dd45b7465220811f822300fe7ebeefde4ed1e476f63d24e46397621
   cli-rules-docs:
     source:
       crates/mindtape-cli/src/cmd/rules.rs: 8886828c2545e0231efbee8b87a9d912639f6239820a17a51de78d819348623a

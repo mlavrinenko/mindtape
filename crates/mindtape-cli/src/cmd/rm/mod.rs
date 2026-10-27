@@ -119,7 +119,13 @@ impl Policy for TaskLinks {
         }
     }
 
+    /// The SWHID's `path=` is a git path, so it is written with `/`. On
+    /// Windows typst-cleanup mints it from the platform path, with `\`.
     fn tombstone(&self, _retired: &Artifact, swhid: &Swhid) -> String {
+        let swhid = Swhid {
+            path: swhid.path.as_ref().map(|path| path.replace('\\', "/")),
+            ..swhid.clone()
+        };
         format!("\"{}\"", swhid.render())
     }
 }
