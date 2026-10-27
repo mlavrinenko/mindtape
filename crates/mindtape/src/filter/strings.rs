@@ -27,6 +27,7 @@ use regex::Regex;
 
 use crate::config::{Config, Dict};
 use crate::filter::expr::{call_args, describe, extract_literal, restore_name, unwrap_root};
+use crate::filter::predicates::text_only_value;
 use crate::filter::{FilterError, field_value};
 use crate::model::Task;
 use crate::model::fields::FieldValue;
@@ -69,7 +70,12 @@ pub(crate) fn string_value(
 /// and reading it as `"8"` would make it silently almost-work. An `x-<ns>`
 /// list holds no single string and reads as no value, as it equals nothing
 /// under `==`: one slot may hold a string on one task and a list on the next.
+/// The text-only fields `body`, `note` and `tags` read as `contains()` reads
+/// them ([`text_only_value`]).
 fn string_field(task: &Task, name: &str, config: &Config) -> Result<Option<String>, FilterError> {
+    if let Some(text) = text_only_value(task, name) {
+        return Ok(Some(text));
+    }
     match field_value(task, name, config)? {
         FieldValue::Str(text) => Ok(Some(text)),
         FieldValue::Missing | FieldValue::List(_) => Ok(None),

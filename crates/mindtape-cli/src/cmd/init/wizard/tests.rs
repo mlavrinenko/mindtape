@@ -236,6 +236,47 @@ fn default_answers_assemble_and_validate() {
     config.validate().unwrap();
 }
 
+/// `sets` with each one's `pick` axis set to every value of `A`, in turn.
+fn across<A: Axis>(sets: Vec<Answers>, pick: fn(&mut Answers, A)) -> Vec<Answers> {
+    sets.into_iter()
+        .flat_map(|answers| {
+            A::VARIANTS.iter().map(move |&value| {
+                let mut set = answers;
+                pick(&mut set, value);
+                set
+            })
+        })
+        .collect()
+}
+
+/// Every answer set the axes can compose: their whole cross product.
+fn every_answer_set() -> Vec<Answers> {
+    let sets = across::<Workflow>(vec![all_default()], |set, value| set.workflow = value);
+    let sets = across::<Priority>(sets, |set, value| set.priority = value);
+    let sets = across::<Organization>(sets, |set, value| set.organization = value);
+    let sets = across::<Estimate>(sets, |set, value| set.estimate = value);
+    let sets = across::<Required>(sets, |set, value| set.required = value);
+    let sets = across::<Headers>(sets, |set, value| set.headers = value);
+    across::<Recurrence>(sets, |set, value| set.recurrence = value)
+}
+
+/// Every answer set the axes compose declares no command, so `mt init`'s
+/// project runs nothing it must `mt allow` first, on any OS. It walks the
+/// whole cross product, because a command could come from any one fragment.
+#[test]
+fn no_answer_set_declares_a_command() {
+    let sets = every_answer_set();
+    assert_eq!(sets.len(), 512);
+    for answers in sets {
+        let config = mindtape::parse_config(&assemble(answers).unwrap().config).unwrap();
+        assert_eq!(
+            mindtape::allow::commands(&config),
+            Vec::<String>::new(),
+            "{answers:?}"
+        );
+    }
+}
+
 /// The `spec` body-headers answer ships the task template that produces its
 /// required sections.
 #[test]

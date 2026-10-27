@@ -220,6 +220,28 @@ fn matches_runs_a_regex_over_a_string_field() {
     assert!(hit("matches(id, \"auth$\")", &titled("Add auth"), &cfg));
 }
 
+/// `matches()` reads the text-only fields `contains()` reads: the prose body,
+/// every link note joined, and the tags, authored and derived, joined.
+#[test]
+fn matches_reads_the_text_only_fields() {
+    let cfg = Config::default();
+    let mut task = titled("Add auth");
+    task.body = "== Summary\n\n- TODO: say what is wrong\n".to_owned();
+    task.links = vec![crate::test_support::noted_edge(
+        "other.typ",
+        "related",
+        "blocked on review",
+    )];
+    task.tags = vec!["backend".to_owned()];
+    task.derived_tags = vec!["auth".to_owned()];
+    assert!(hit("matches(body, \"(?m)^- TODO:\")", &task, &cfg));
+    assert!(hit("matches(note, \"on review$\")", &task, &cfg));
+    assert!(hit("matches(tags, \"^backend auth$\")", &task, &cfg));
+
+    task.body = "== Summary\n\nThe login drops a TODO: marker.\n".to_owned();
+    assert!(!hit("matches(body, \"(?m)^- TODO:\")", &task, &cfg));
+}
+
 #[test]
 fn an_invalid_regex_errors_naming_the_pattern() {
     let got = err(

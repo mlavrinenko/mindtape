@@ -184,3 +184,19 @@ fn a_packs_gate_applies_beside_the_projects_and_the_project_replaces_it_by_name(
         ]
     );
 }
+
+/// Mindtape's own embedded packs declare no command, so a project that
+/// extends one runs nothing it must `mt allow` first, on any OS. A gate a pack
+/// ships is a filter condition, as `stale-wip` is. A user's own pack may
+/// declare any `run`: this holds the embedded ones alone to the rule.
+#[test]
+fn no_embedded_pack_declares_a_command() {
+    for (pack, _) in crate::config::pack_registry::EMBEDDED_PACKS {
+        let config = super::tests_budget::load(&format!("extends = [\"mindtape:{pack}\"]\n"));
+        assert_eq!(
+            crate::allow::commands(&config),
+            Vec::<String>::new(),
+            "mindtape:{pack}"
+        );
+    }
+}

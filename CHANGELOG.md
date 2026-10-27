@@ -373,6 +373,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and first descending. `--sort` takes every filter field plus the `ready`
   rank, `assignee` and `reviewed` included, and a direction other than `asc` or
   `desc` is an error.
+- **`matches()` reads `body`, `note` and `tags`.** It reads the text-only
+  fields `contains()` reads, so `matches(body, "(?m)^- TODO:")` finds a task
+  that still holds a template's placeholder line. Before, it exited 2 with
+  `unknown field: 'body'`.
 
 #### Rules and checks
 
@@ -757,6 +761,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A fresh `gated` project closes a task on any OS.** Its `done` gate was a
+  `grep` shell line, so `mt done` refused until `mt allow`, and `cmd /C` on
+  Windows couldn't run it at all. It's a filter condition now,
+  `matches(body, "(?m)^\s*- TODO:")`, which runs no command. No shipped
+  preset, `mt init` answer set or `mindtape:` pack declares a `run`.
 - **A `check` rule gets an infinite or NaN float from an `x-` field.** `mt`
   wrote it into the call as Rust's `inf` or `NaN`, so the rule broke with
   `unknown variable: inf`. It's Typst's `float.inf` and `float.nan` now.

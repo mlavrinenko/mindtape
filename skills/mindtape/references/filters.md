@@ -70,8 +70,8 @@ and finished ones last. Bare `status` sorts by legend position.
 - `stale(N)` matches a task whose `reviewed` date, or else status date, is
   more than N days old. A task with neither date is stale too.
 - `in_view("v")`, written `@v` for short, matches when view `v`'s filter does.
-- `matches(f, "re")` matches when the field's text matches the unanchored
-  regular expression.
+- `matches(f, "re")` matches when the text of field `f`, which may be `body`,
+  `note` or `tags`, matches the unanchored regular expression.
 - `in_dict("d", s)` matches when string `s` is in dictionary `d`, a
   `[dicts.d]` section or a built-in. `word(f, n)` gives the n-th word of a
   string field, counting from 1, and works only as an argument here or in

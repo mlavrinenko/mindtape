@@ -156,7 +156,9 @@ has `Fix` as its first word. It returns text, so it only appears as an
 argument. `matches(field, "regex")` matches a Rust `regex` pattern anywhere in
 the text. `in_dict("name", text)` matches when the text is in the named
 #link(u("/named-sets/"))[dictionary]. Both `matches()` and `in_dict()` take a
-field or `word(...)` as their text:
+field or `word(...)` as their text. Like `contains()`, they also read `body`,
+`note` and `tags`, so the last example finds a task that still holds a
+template's placeholder line:
 
 #commands("filters-strings")
 

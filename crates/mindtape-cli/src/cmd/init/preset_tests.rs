@@ -40,6 +40,22 @@ fn every_builtin_parses_in_both_renderings() {
     }
 }
 
+/// A built-in preset declares no command, so a fresh project runs nothing it
+/// must `mt allow` first, and the same config works under `sh` and `cmd`. A
+/// gate a preset ships is a filter condition. A user's own preset or config may
+/// declare any `run`: this holds Mindtape's presets alone to the rule.
+#[test]
+fn no_builtin_declares_a_command() {
+    for (name, _) in list_builtins() {
+        let config = mindtape::parse_config(&resolve(name, None).unwrap().render(false)).unwrap();
+        assert_eq!(
+            mindtape::allow::commands(&config),
+            Vec::<String>::new(),
+            "preset {name}"
+        );
+    }
+}
+
 /// Stripping comments must not change what the config means: both renderings
 /// deserialize to the same `Config`.
 #[test]

@@ -49,10 +49,21 @@ const GATED_FILLS: [&str; 8] = [
     "files=- src/lib.rs",
 ];
 
+/// File the task `name` in the project at `dir` with `fills`, then flip it
+/// through `walk`, checking the project after each step.
+fn file_and_walk(dir: &std::path::Path, name: &str, fills: &[&str], walk: &[&str]) {
+    support::add_then_ls_and_check(dir, name, fills);
+    for status in walk {
+        support::run_ok(dir, &["flip", status, name]);
+        support::check_ok(dir);
+    }
+}
+
 /// The gate that makes a first run trustworthy: for every built-in preset,
 /// scaffold, file a task with nothing but a title, and walk it to a terminal
-/// status — validating at each step. It allows the preset's commands first, so
-/// `gated`'s own gate runs.
+/// status — validating at each step. It runs no `mt allow`, so it proves a
+/// fresh project closes a task on any OS, and that `gated`'s own gate passes a
+/// task whose slots are filled.
 ///
 /// This is what catches a preset that requires something its own template does
 /// not produce. Such a project scaffolds cleanly and then fails on the user's
@@ -61,12 +72,7 @@ const GATED_FILLS: [&str; 8] = [
 fn every_preset_supports_add_check_and_a_full_walk() {
     for (preset, path, fills) in PRESET_PATHS {
         let dir = support::init_preset(preset);
-        support::run_ok(dir.path(), &["allow"]);
-        support::add_then_ls_and_check(dir.path(), "wire-preset", fills);
-        for status in *path {
-            support::run_ok(dir.path(), &["flip", status, "wire-preset"]);
-            support::check_ok(dir.path());
-        }
+        file_and_walk(dir.path(), "wire-preset", fills, path);
     }
 }
 
@@ -144,11 +150,7 @@ fn composed_answer_sets_support_add_check_and_a_full_walk() {
         let mut init_args = vec!["init", "--no-input"];
         init_args.extend_from_slice(flags);
         support::run_ok(dir.path(), &init_args);
-        support::add_then_ls_and_check(dir.path(), "wire-set", fills);
-        for status in *walk {
-            support::run_ok(dir.path(), &["flip", status, "wire-set"]);
-            support::check_ok(dir.path());
-        }
+        file_and_walk(dir.path(), "wire-set", fills, walk);
     }
 }
 
@@ -241,12 +243,12 @@ fn gated_preset_blocks_done_straight_from_wip() {
 }
 
 /// The `gated` preset's shipped `[[on.flip]]` gate is real: a task still
-/// carrying the template's TODO placeholders cannot reach `done`, and `--force`
-/// is the way past — which then records itself in the status note.
+/// carrying the template's TODO placeholders cannot reach `done`, with no `mt
+/// allow` either, and `--force` is the way past, which records itself in the
+/// status note.
 #[test]
 fn gated_preset_gates_done_on_an_unfilled_task() {
     let dir = support::init_preset("gated");
-    support::run_ok(dir.path(), &["allow"]);
     support::run_ok(dir.path(), &["add", "--name", "hollow", "--set", "title=T"]);
     for status in ["accepted", "wip", "needs-review"] {
         support::run_ok(dir.path(), &["flip", status, "hollow"]);

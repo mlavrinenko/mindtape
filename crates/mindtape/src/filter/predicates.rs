@@ -271,25 +271,30 @@ pub(crate) fn contains_call(
     Ok(values.iter().any(|value| contains_ci(value, &needle)))
 }
 
-/// Resolve `name`'s `contains()` haystack on `task`: `body` reads
-/// [`Task::body`] directly (marker-free), `note` joins every `links[].note`
-/// ([`joined_notes`]), `tags` joins authored and derived tags
-/// ([`Task::all_tags`]); anything else defers to [`field_value`]. Errors
-/// outside [`model::fields::is_contains_field`]'s vocabulary.
+/// Resolve `name`'s `contains()` haystack on `task`: a text-only field through
+/// [`text_only_value`], anything else through [`field_value`]. Errors outside
+/// [`model::fields::is_contains_field`]'s vocabulary.
 fn contains_value(task: &Task, name: &str, config: &Config) -> Result<FieldValue, FilterError> {
     if !fields::is_contains_field(name) {
         return Err(FilterError::UnknownField(name.to_owned()));
     }
-    if name == fields::BODY_FIELD {
-        return Ok(FieldValue::Str(task.body.clone()));
+    match text_only_value(task, name) {
+        Some(text) => Ok(FieldValue::Str(text)),
+        None => field_value(task, name, config),
     }
-    if name == fields::NOTE_FIELD {
-        return Ok(FieldValue::Str(joined_notes(task)));
+}
+
+/// The text of a text-only field, which `contains()` and `matches()` both
+/// read: `body` is [`Task::body`] (marker-free), `note` joins every
+/// `links[].note` ([`joined_notes`]), and `tags` joins authored and derived
+/// tags ([`Task::all_tags`]). `None` for any other name.
+pub(crate) fn text_only_value(task: &Task, name: &str) -> Option<String> {
+    match name {
+        fields::BODY_FIELD => Some(task.body.clone()),
+        fields::NOTE_FIELD => Some(joined_notes(task)),
+        fields::TAGS_FIELD => Some(task.all_tags().join(" ")),
+        _ => None,
     }
-    if name == fields::TAGS_FIELD {
-        return Ok(FieldValue::Str(task.all_tags().join(" ")));
-    }
-    field_value(task, name, config)
 }
 
 /// Every `links[].note` on `task`, space-joined so a needle cannot spuriously

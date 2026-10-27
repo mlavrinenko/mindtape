@@ -1420,8 +1420,8 @@
       "function": "run",
       "line": 22,
       "cyclomatic": 6.0,
-      "coverage": 100.0,
-      "crap": 6.0,
+      "coverage": 86.66666666666667,
+      "crap": 6.085333333333334,
       "crate": "mindtape-cli"
     },
     {
@@ -9637,8 +9637,8 @@
       "function": "amending",
       "line": 45,
       "cyclomatic": 2.0,
-      "coverage": 100.0,
-      "crap": 2.0,
+      "coverage": 90.0,
+      "crap": 2.004,
       "crate": "mindtape"
     },
     {
@@ -14756,10 +14756,10 @@
     {
       "file": "crates/mindtape/src/filter/predicates.rs",
       "function": "contains_value",
-      "line": 279,
-      "cyclomatic": 5.0,
+      "line": 277,
+      "cyclomatic": 4.0,
       "coverage": 100.0,
-      "crap": 5.0,
+      "crap": 4.0,
       "crate": "mindtape"
     },
     {
@@ -14828,7 +14828,7 @@
     {
       "file": "crates/mindtape/src/filter/predicates.rs",
       "function": "joined_notes",
-      "line": 297,
+      "line": 302,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -14837,7 +14837,7 @@
     {
       "file": "crates/mindtape/src/filter/predicates.rs",
       "function": "path_set_error",
-      "line": 306,
+      "line": 311,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -14850,6 +14850,15 @@
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/filter/predicates.rs",
+      "function": "text_only_value",
+      "line": 291,
+      "cyclomatic": 5.0,
+      "coverage": 100.0,
+      "crap": 5.0,
       "crate": "mindtape"
     },
     {
@@ -14900,7 +14909,7 @@
     {
       "file": "crates/mindtape/src/filter/strings.rs",
       "function": "arity",
-      "line": 281,
+      "line": 287,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -14909,7 +14918,7 @@
     {
       "file": "crates/mindtape/src/filter/strings.rs",
       "function": "dict_miss",
-      "line": 249,
+      "line": 255,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -14918,7 +14927,7 @@
     {
       "file": "crates/mindtape/src/filter/strings.rs",
       "function": "in_dict_call",
-      "line": 218,
+      "line": 224,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -14927,7 +14936,7 @@
     {
       "file": "crates/mindtape/src/filter/strings.rs",
       "function": "in_dict_lookup",
-      "line": 190,
+      "line": 196,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -14936,7 +14945,7 @@
     {
       "file": "crates/mindtape/src/filter/strings.rs",
       "function": "matches_call",
-      "line": 156,
+      "line": 162,
       "cyclomatic": 4.0,
       "coverage": 88.88888888888889,
       "crap": 4.021947873799726,
@@ -14945,7 +14954,7 @@
     {
       "file": "crates/mindtape/src/filter/strings.rs",
       "function": "nth_word",
-      "line": 127,
+      "line": 133,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -14954,7 +14963,7 @@
     {
       "file": "crates/mindtape/src/filter/strings.rs",
       "function": "string_call",
-      "line": 85,
+      "line": 91,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -14963,16 +14972,16 @@
     {
       "file": "crates/mindtape/src/filter/strings.rs",
       "function": "string_field",
-      "line": 72,
-      "cyclomatic": 5.0,
+      "line": 75,
+      "cyclomatic": 6.0,
       "coverage": 100.0,
-      "crap": 5.0,
+      "crap": 6.0,
       "crate": "mindtape"
     },
     {
       "file": "crates/mindtape/src/filter/strings.rs",
       "function": "string_value",
-      "line": 44,
+      "line": 45,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -14981,7 +14990,7 @@
     {
       "file": "crates/mindtape/src/filter/strings.rs",
       "function": "word_call",
-      "line": 108,
+      "line": 114,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -14990,7 +14999,7 @@
     {
       "file": "crates/mindtape/src/filter/strings.rs",
       "function": "word_index",
-      "line": 137,
+      "line": 143,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -14999,7 +15008,7 @@
     {
       "file": "crates/mindtape/src/filter/strings.rs",
       "function": "word_is_not_boolean",
-      "line": 274,
+      "line": 280,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,

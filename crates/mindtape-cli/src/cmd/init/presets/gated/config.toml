@@ -199,11 +199,6 @@ description = "Waiting on human review before it can close"
 # Flip hooks: what happens when a task changes status. `mt flip` is the only
 # command that runs these — `mt check`, `mt ls` and every other read execute
 # nothing, so `mt check` stays safe inside an editor or a commit hook.
-#
-# Trust boundary: a command below is exactly as trusted as a Justfile recipe or
-# a git hook. It comes from this repository's own config and runs with your full
-# authority, from the project root. Nothing sandboxes it, and nothing pretends
-# to. Read a project's config before running `mt flip` under it.
 
 # On the way into work, print what is already in flight, so an agent picking up
 # a task sees the open set rather than assuming it is alone. Nothing is
@@ -213,33 +208,44 @@ description = "Waiting on human review before it can close"
 when = 'into("wip")'
 actions = [{ list = "@wip", title = "Already in flight — finish these first:" }]
 
-# On the way into `done`, an external check. The shipped one is the floor, not
-# the ceiling: it refuses a task whose body still carries this preset's TODO
-# placeholders, because a task nobody ever specified is a task nobody can have
-# finished. Replace the command with the one that actually proves your work —
-# `just check`, `cargo test`, your CI script. It receives $MINDTAPE_TASK_FILE,
-# $MINDTAPE_TASK_STEM and $MINDTAPE_TASK_STATUS, so a script can inspect the
-# artifact being closed.
+# On the way into `done`, a gate. The shipped one is the floor, not the
+# ceiling: it refuses a task whose body still carries one of this preset's
+# `- TODO:` placeholder lines, because a task nobody ever specified is a task
+# nobody can have finished. It has no `run`, so the condition is the whole
+# check: it runs no command, needs no `mt allow`, and works on every OS.
 #
 # `mt done --force` overrides a failing gate and records the override in the
 # status note — an escape hatch that leaves a trace.
+[[on.flip]]
+name = "unfilled-placeholders"
+when = 'into("done") && matches(body, "(?m)^\\s*- TODO:")'
+actions = [
+  { gate = true, message = "fill in the template's TODO placeholders before closing the task" },
+]
+
+# To gate `done` on a check that proves the work, add a `run` command: `just
+# check`, `cargo test`, your CI script. It runs from the project root and
+# receives $MINDTAPE_TASK_FILE, $MINDTAPE_TASK_STEM and $MINDTAPE_TASK_STATUS.
+# No command runs until you read the config and run `mt allow`.
+#
+# Trust boundary: a command is exactly as trusted as a Justfile recipe or a git
+# hook. It comes from this repository's own config and runs with your full
+# authority. Nothing sandboxes it, and nothing pretends to. Read a project's
+# config before running `mt flip` under it.
 #
 # MAKE THE GATE CHEAP. Pointing `run` straight at `just check` works, but a full
 # build inside `mt flip` is slow, fires at the least convenient moment, and
 # teaches an agent to reach for `--force` — which defeats the gate. Prefer
 # ASSERTING the check already passed against this worktree over running it:
 #
-#   run = "mmz --is-fresh -- just check"
+#   [[on.flip]]
+#   when = 'into("done")'
+#   actions = [{ run = "mmz --is-fresh -- just check", gate = true }]
 #
 # `mmz` (a memoized command runner, github:mlavrinenko/mmz) exits 0 only when
 # `just check` last passed with its declared inputs unchanged, and never runs
-# the wrapped command itself. It is one option, not a requirement — `run` is a
-# plain command, so any equivalent freshness check does. Whatever you use, scope
-# its inputs to exclude the task files themselves: `mt flip` writes the artifact
-# it is gating, so a rule keyed on the whole tree goes stale the instant a status
-# is stamped and the gate can never pass.
-[[on.flip]]
-when = 'into("done")'
-actions = [
-  { run = '! grep -q "TODO:" "$MINDTAPE_TASK_FILE"', gate = true, message = "fill in the template's TODO placeholders, or point this gate at a check that proves the work" },
-]
+# the wrapped command itself. It is one option, not a requirement: any
+# equivalent freshness check does. Whatever you use, scope its inputs to
+# exclude the task files themselves: `mt flip` writes the artifact it is
+# gating, so a rule keyed on the whole tree goes stale the instant a status is
+# stamped and the gate can never pass.
