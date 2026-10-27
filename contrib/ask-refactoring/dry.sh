@@ -9,21 +9,17 @@
 # that predate it. A tolerated clone is not enforced by anything, so it is the
 # part of jscpd this sweep may report (the header of `ask-refactoring.sh` rules
 # out only what a gate still enforces). The arm runs jscpd with the gate's own
-# `DRY_FLAGS` and keeps the pairs the report marks `isNew: false`.
+# `DRY_FLAGS` and reads the report's `classes`: jscpd joins the pairs of one
+# block into a class that lists each copy once. It keeps the classes marked
+# `isNew: false`.
 #
-# Grouping: jscpd reports pairs, so a snippet pasted three times is up to three
-# of them. The pairs are joined into families by a shared location (file and
-# first line), which is jscpd's clone class until upstream ships one
-# (github:kucherenko/jscpd#1000, the `jscpd-clone-classes` blocker in
-# `.config/canibump.toml`).
+# Fold: classes are taken by gain, highest first, and one whose copies mostly
+# (half or more) fall on lines a kept class already holds is dropped. A clone
+# that slides by one line would otherwise file a task per window.
 #
-# Fold: families are taken by gain, highest first, and one whose locations
-# mostly (half or more) fall on lines a kept family already holds is dropped.
-# A clone that slides by one line would otherwise file a task per window.
-#
-# Families anchored in one file make one task: jscpd reports a pattern's
-# sliding windows as separate families, and the first sweep filed the same
-# assert helper as five tasks. Their gains add up; each family clears the bar
+# Classes anchored in one file make one task: jscpd reports a pattern's
+# sliding windows as separate classes, and the first sweep filed the same
+# assert helper as five tasks. Their gains add up; each class clears the bar
 # on its own first.
 #
 # The bar is `--dry-gain`, 300 by default, the repeats arm's number. With no
@@ -33,7 +29,7 @@
 #
 #   gain = (copies - 1) * tokens - 5 * copies - 10
 #     The tokens an extraction removes, net of a 5-token call per copy and a
-#     10-token helper, with the family's largest pair as `tokens`.
+#     10-token helper, with the tokens of the class's largest pair.
 #
 #   impact = 3 + round(log2(gain / 100)), clamped 1..10
 #     Doubling the gain is worth one point. Most tolerated clones are a pair
@@ -51,40 +47,11 @@
 score_dry() {
     jq -r --argjson min_gain "$DRY_GAIN" '
       def clamp($lo; $hi): [[., $lo] | max, $hi] | min;
-      def loc: "\(.name):\(.start)";
       def lines_of($f): [range($f.start; $f.end + 1)] | map("\($f.name):\(.)");
-      def join_pair($p):
-        ($p.firstFile | loc) as $a | ($p.secondFile | loc) as $b
-        | (.comp[$a]) as $ca | (.comp[$b]) as $cb
-        | (if $ca == null and $cb == null then
-             (.n + 1) as $id | .n = $id
-             | .comp[$a] = $id | .comp[$b] = $id
-             | .mem[($id | tostring)] = [$a, $b]
-           elif $cb == null then
-             .comp[$b] = $ca | .mem[($ca | tostring)] += [$b]
-           elif $ca == null then
-             .comp[$a] = $cb | .mem[($cb | tostring)] += [$a]
-           elif $ca == $cb then .
-           else
-             (.mem[($cb | tostring)]) as $m
-             | reduce $m[] as $x (.; .comp[$x] = $ca)
-             | .mem[($ca | tostring)] += $m
-             | del(.mem[($cb | tostring)])
-           end)
-        | .nodes[$a] = ($p.firstFile | {name, start, end})
-        | .nodes[$b] = ($p.secondFile | {name, start, end})
-        | .pairs[$a] += [$p | {tokens, fragment, anchor: .firstFile.name, start: .firstFile.start}];
-      [.duplicates[] | select(.isNew | not)] as $dups
-      | reduce $dups[] as $p ({comp: {}, mem: {}, nodes: {}, pairs: {}, n: 0}; join_pair($p))
-      | . as $st
-      | [$st.mem[]
-         | . as $members
-         | ([$members[] | $st.pairs[.] // [] | .[]] | sort_by(-.tokens, .anchor, .start) | .[0]) as $best
-         | {tokens: $best.tokens, fragment: $best.fragment,
-            anchor: {name: $best.anchor, start: $best.start},
-            frags: ([$members[] | $st.nodes[.]] | sort_by(.name, .start))}
-         | . + {copies: (.frags | length)}
-         | . + {gain: ((.copies - 1) * .tokens - 5 * .copies - 10)}]
+      [.classes[] | select(.isNew | not)
+       | {tokens, fragment, anchor: (.fragments[0] | {name, start}),
+          frags: [.fragments[] | {name, start, end}], copies: (.fragments | length)}
+       | . + {gain: ((.copies - 1) * .tokens - 5 * .copies - 10)}]
       | sort_by(-.gain, .anchor.name, .anchor.start)
       | reduce .[] as $g ({kept: [], claimed: {}};
           . as $k

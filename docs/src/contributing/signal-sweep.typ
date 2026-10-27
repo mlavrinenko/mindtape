@@ -54,17 +54,16 @@ arm takes two, because a function must be both complex and undertested to be
 worth a task. Each number's argument sits beside its constant in the arm
 script that applies it.
 
-The repeats arm is a stopgap. It groups jscpd's clone pairs by hand into
-snippets pasted many times, and files the ones whose extraction saves the most
-code. Once jscpd groups clones itself, its blocker in `.config/canibump.toml`
-reads `bumpable` and the arm goes.
+The repeats arm reads jscpd's clone classes at 15 tokens, each a snippet with
+every copy listed once, and files the ones whose extraction saves the most
+code.
 
 The dry arm files the clones #just.lint-dry() tolerates. It runs jscpd with
-the gate's flags, keeps the pairs the baseline already holds, and joins them
-into one family per shared location. It files a family only when extracting
-it saves `--dry-gain` tokens or more. A task closes by extracting the clone, or by a `jscpd:ignore`
-marker whose comment says why the match is a coincidence. Either way the
-commit re-mints the baseline with #just.lint-dry-baseline().
+the gate's flags and keeps the clone classes the baseline already holds. It
+files a class only when extracting it saves `--dry-gain` tokens or more. A
+task closes by extracting the clone, or by a `jscpd:ignore` marker whose
+comment says why the match is a coincidence. Either way the commit re-mints
+the baseline with #just.lint-dry-baseline().
 
 The mutants arm has no threshold. It reads `outcomes.json` from whichever
 sweep ran last: `mutants.out` after a full #just.mutants-sweep(), or

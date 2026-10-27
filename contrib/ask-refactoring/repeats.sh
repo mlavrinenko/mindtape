@@ -6,13 +6,9 @@
 # name — `score_repeats`, `signal_repeats`, `emit_repeats` — reading jscpd's
 # json report.
 #
-# A stopgap, and it says so. `just lint::dry` gates clones of 50 tokens and up,
-# because below that jscpd's pairs are too many to gate one by one. What it
-# cannot see is a 15-token line pasted 400 times. jscpd's clone classes
-# (github:kucherenko/jscpd#1000) will group pairs into one entry with every
-# location and a stable fingerprint, which lets the gate itself filter on copies
-# and size. Until then this arm groups the pairs by hand, and the
-# `jscpd-clone-classes` blocker in .config/canibump.toml says when it can go.
+# `just lint::dry` gates clones of 50 tokens and up, because below that jscpd's
+# pairs are too many to gate one by one. What it cannot see is a 15-token line
+# pasted 400 times, which this arm reports.
 #
 # The reasoning behind this arm's numbers lives here with the code that applies
 # them, deliberately: a doc it lived in instead would drift from the constants.
@@ -24,14 +20,12 @@
 # tree it was chosen on (395 copies, a 17-token window with its neighbours),
 # and one line is the smallest thing worth a helper.
 #
-# Exact tokens, not `--ignore-identifiers`: the arm groups pairs by the text of
-# their first fragment, and a renamed copy has other text. Renamed copies of
-# 50 tokens and up are the gate's job.
+# Exact tokens, not `--ignore-identifiers`: renamed copies of 50 tokens and up
+# are the gate's job.
 #
-# Grouping: jscpd anchors every pair of a repeated snippet on its first copy,
-# so pairs with the same first-fragment text are one group, and the group's
-# copies are its distinct locations. Approximate, since a window that starts a
-# line later is another group, which is what the overlap fold below absorbs.
+# Grouping: the report's `classes` join the pairs of one snippet, each copy
+# once, a copy being a file and the lines it spans. A window that starts a
+# line later is another class, which is what the overlap fold below absorbs.
 #
 # Noise: a fragment of nothing but `use`, `mod`, attribute and bracket lines is
 # dropped, and so is one with under 30 characters left once those lines go.
@@ -50,8 +44,8 @@
 #   chosen on, after the fold. 200 filed 25 and 100 filed 102, a batch nobody
 #   empties before the next sweep.
 #
-# Fold: groups are taken by gain, highest first, and one whose locations
-# mostly (half or more) fall on lines a kept group already holds is dropped.
+# Fold: classes are taken by gain, highest first, and one whose copies mostly
+# (half or more) fall on lines a kept class already holds is dropped.
 # Without it one setup line files a task per window that starts on it.
 #
 #   impact = 3 + round(log2(gain / 100)), clamped 1..10
@@ -74,16 +68,12 @@ score_repeats() {
       def clamp($lo; $hi): [[., $lo] | max, $hi] | min;
       def noise: test("^\\s*(#!?\\[.*\\]|(pub(\\([a-z]+\\))? )?use .*;|(pub )?mod .*;|[{}()\\];,]*)\\s*$");
       def lines_of($f): [range($f.start; $f.end + 1)] | map("\($f.name):\(.)");
-      [.duplicates[]
-       | {key: (.fragment | gsub("\\s+"; " ")),
-          fragment,
+      [.classes[]
+       | {fragment, tokens,
           body: ([.fragment | split("\n")[] | select(noise | not)] | join(" ") | gsub("\\s+"; " ")),
-          anchor: {name: .firstFile.name, start: .firstFile.start},
-          tokens, frags: [.firstFile, .secondFile]}]
+          anchor: (.fragments[0] | {name, start}),
+          frags: [.fragments[] | {name, start, end}]}]
       | map(select((.body | length) >= 30))
-      | group_by(.key)
-      | map({tokens: .[0].tokens, fragment: .[0].fragment, anchor: .[0].anchor,
-             frags: ([.[].frags[] | {name, start, end}] | unique_by("\(.name):\(.start)"))})
       | map(. + {copies: (.frags | length)})
       | map(. + {gain: ((.copies - 1) * .tokens - 5 * .copies - 10)})
       | map(select(.gain >= $min_gain))

@@ -1,11 +1,3 @@
 #:schema https://raw.githubusercontent.com/mlavrinenko/canibump/main/schema/canibump.schema.json
 # Upstream changes this repo's workarounds wait on. `just canibump` says which
 # can go. Add a blocker whenever a comment explains a workaround.
-
-# The sweep's repeats arm groups jscpd's clone pairs by hand. jscpd's clone
-# classes group them with a stable fingerprint, which lets check-dry filter on
-# copies and size itself.
-[[blocker]]
-id = "jscpd-clone-classes"
-note = "contrib/ask-refactoring/repeats.sh: drop the arm and gate short repeats in check-dry with jscpd's clone classes, once a release qahq pins carries them"
-state = "github:kucherenko/jscpd#1000"
