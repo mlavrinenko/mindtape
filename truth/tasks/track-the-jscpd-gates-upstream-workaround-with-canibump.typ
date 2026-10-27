@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 12),
+  status: cancelled(
+    2026,
+    10,
+    28,
+  )[the jscpd fork's --new-only removed the filter this blocker was to track],
   links: depends-on(
     "gate-on-new-jscpd-clones-renamed-and-near-miss-copies-included.typ",
   )

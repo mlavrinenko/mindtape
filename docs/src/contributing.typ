@@ -200,8 +200,8 @@ one source and re-recorded it, its hash comes out as zeros, so
 re-record, which owes the footer like any other. A group one branch dropped
 stays dropped, so a split or a rename leaves no orphan hashes, and
 #just.outdatty-check() fails on one that got in anyway.
-`.config/jscpd-baseline.json` merges as the union of both fingerprint maps
-through `.just/scripts/jscpd-baseline-merge.sh`. `.config/crap-baseline.json`
+`.config/jscpd-baseline.json` merges fingerprint by fingerprint through
+`jscpd --merge-baseline`. `.config/crap-baseline.json`
 merges function by function through `.just/scripts/crap-baseline-merge.sh`,
 which keeps the stricter score when both sides re-scored one, and
 #just.crap-check() on the merged tree decides. The dev shell registers all

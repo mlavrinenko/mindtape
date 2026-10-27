@@ -2,9 +2,9 @@
 # which `just install-hooks` registers. Delete this line to fall back to git's
 # text merge.
 .config/outdatty.lock merge=outdatty
-# .config/jscpd-baseline.json merges as the union of both sides' fingerprints:
-# .just/scripts/jscpd-baseline-merge.sh, which `just install-hooks` registers.
-# Delete this line to fall back to git's text merge.
+# .config/jscpd-baseline.json merges through jscpd --merge-baseline, which
+# `just install-hooks` registers. Delete this line to fall back to git's text
+# merge.
 .config/jscpd-baseline.json merge=jscpd-baseline
 # .config/crap-baseline.json merges entry by entry, keyed as the ratchet pairs
 # them: .just/scripts/crap-baseline-merge.sh, which `just install-hooks`

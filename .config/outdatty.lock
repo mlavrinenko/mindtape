@@ -319,20 +319,20 @@ groups:
       .just/scripts/check-examples.sh: c2d514b1b7e8af223e7ab4af27115dfe33e56f6af98702639d5fb5008910ae6b
       .just/scripts/clippy.sh: d586661b1bca816bcdf145d4fdd785125624d5b79e78f493b65811c66fb87df4
       .just/scripts/wt-carry-lcov.sh: a4d4b96d24cee1d76f8d19ddcc10b6f4b99a1cb9f7c8ec3143cf487f2bb9861c
-      Justfile: ddef24a1cb344ab740414f8b891b139300b7cc1e7bdd0f6cb7df694bf70a76fe
+      Justfile: e95b2f41bff36e508c4d4b15be51560c37073c91d5f39c4362af7958e2f9931f
       flake.nix: 9c67a7d20242c6778f72e6e0c1ece835630812bfa746b971e720640e5c678572
     dependents:
       docs/src/agents.typ: b60c66d46729c944b878cc0d112e26741e5d2621ed8dc803c5ed0092daf2adeb
-      docs/src/contributing.typ: f31eaeb39b2e56382ae4e8202178606cccc1bef8076f5c8f5e7c722508898f19
+      docs/src/contributing.typ: 1ca75aeee284b6d73705ac8101837eb485d5a0c42e30a772e7defb70bd208082
       docs/src/contributing/coverage-crap.typ: 2ba5b919cfa0d8af52b361a848c45f7720dcde6374e8bcab8ddde9f71ec1057c
       docs/src/contributing/crap-baseline.typ: e7254b2b9736613cc3c7a2f31a7f7f25ddf72dce913311f13b89221cca05cd09
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
       docs/src/contributing/documentation.typ: a5287b1b2d1c80780fdf7790a358d2fed9eebb3d2d0ebb04851b615e84291cb5
       docs/src/contributing/example-projects.typ: 76c3fa5a5c24504d12d7686b5c4940e46694f96e7ade3f56cd0ad544ef5e14a2
-      docs/src/contributing/gates.typ: da1f8374cdcf7a6ab215414f499bda4fbfbfd17a89e88f4d83b8679b2d5c4348
+      docs/src/contributing/gates.typ: 5ba865a4a93ace027d6ff830e8d97d23d2e36250c5d313994334a68ca702e62f
       docs/src/contributing/mutation-testing.typ: 6a7b5cf5a51a025ebd6b8b991da6b2cc8494a2e96cf6d5a7f9608d00a497f7e5
-      docs/src/contributing/signal-sweep.typ: 471350cebc9b82602b8ee48d162e4f3365368284a001782e4e2c7f6cb4857146
-      docs/src/contributing/windows.typ: '0000000000000000000000000000000000000000000000000000000000000000'
+      docs/src/contributing/signal-sweep.typ: cdae0265949212c4f748fb6a85be3348b4a48db19ccce1267446180894378e49
+      docs/src/contributing/windows.typ: d59ea013fa0c789e6f636aa05f80dfe49c19cc836585c9884ceb33c56cbfbd5a
   dict-words-docs:
     source:
       crates/mindtape/src/dicts/dev-verbs.txt: 1d44018123133b9cd533d473d9f9df0f24a44131e77961178424f7311782d648
@@ -424,11 +424,10 @@ groups:
       www/utils/link-kind-notes.typ: fa45efd35cebb66df1d06a55dae739d9e7ba9d509588900b76791b690cded928
   lock-merge-docs:
     source:
-      .gitattributes: db959119c11ea96389fd7a97e7d227c2ef312b39414ea62b8f5238c1ffa4a5d7
+      .gitattributes: e71a1da6017b02854dda72d61aa45228575c807f2d307625d43adf75a2d4392f
       .just/scripts/crap-baseline-merge.sh: 007f29683e4e2351cf7fda5d108699da8d3b434bd0fff4f6a92f6a45b3858ed8
-      .just/scripts/jscpd-baseline-merge.sh: ce3c64e036b21adc0c952ac0a999d02871bc356a4e4038625e99af45a0e6a5b0
     dependents:
-      docs/src/contributing.typ: f31eaeb39b2e56382ae4e8202178606cccc1bef8076f5c8f5e7c722508898f19
+      docs/src/contributing.typ: 1ca75aeee284b6d73705ac8101837eb485d5a0c42e30a772e7defb70bd208082
   mutation-scripts-docs:
     source:
       .just/scripts/_mutants-env.sh: 7f3c51e2199e8a2f8543ffb256ddbece9a10f3a7d3b7fa0a4a3603604be245de

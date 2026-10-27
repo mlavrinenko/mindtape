@@ -186,8 +186,8 @@ install-hooks:
     git config core.hooksPath .githooks
     git config merge.outdatty.name ".config/outdatty.lock, merged key by key"
     git config merge.outdatty.driver 'outdatty merge-lock %O %A %B'
-    git config merge.jscpd-baseline.name ".config/jscpd-baseline.json, merged as a fingerprint union"
-    git config merge.jscpd-baseline.driver 'bash .just/scripts/jscpd-baseline-merge.sh %O %A %B %P'
+    git config merge.jscpd-baseline.name ".config/jscpd-baseline.json, merged by jscpd fingerprint by fingerprint"
+    git config merge.jscpd-baseline.driver 'jscpd --merge-baseline %O %A %B'
     git config merge.crap-baseline.name ".config/crap-baseline.json, merged entry by entry"
     git config merge.crap-baseline.driver 'bash .just/scripts/crap-baseline-merge.sh %O %A %B %P'
     rm -f .git/hooks/pre-commit

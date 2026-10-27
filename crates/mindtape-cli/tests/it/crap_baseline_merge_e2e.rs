@@ -52,7 +52,7 @@ fn a_rebase_over_two_branches_that_shifted_one_files_functions_does_not_conflict
     let three = [base.as_str(), &main, &feat];
     assert!(text_merge_conflicts(three));
 
-    let merged = merge_branches(DRIVER, BASELINE, three, true);
+    let merged = merge_branches(Some(DRIVER), BASELINE, three, true);
     // `e` from main, `f`'s new score from feat, and every line both sides
     // moved from main, the side a rebase calls ours.
     let want = baseline(&[

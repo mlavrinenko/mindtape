@@ -1,9 +1,9 @@
-//! `.config/jscpd-baseline.json` merges as a union of fingerprints through the
-//! `jscpd-baseline` merge driver (`.just/scripts/jscpd-baseline-merge.sh`),
-//! which `just install-hooks` registers and `.gitattributes` assigns. The test
-//! merges two branches that each minted a different clone in a throwaway repo.
+//! `.config/jscpd-baseline.json` merges through jscpd's own merge driver,
+//! `jscpd --merge-baseline`, which `just install-hooks` registers and
+//! `.gitattributes` assigns. The test merges two branches that each changed
+//! the baseline in a throwaway repo.
 //!
-//! Unix only: the driver needs `bash` and `jq`, which the dev shell provides
+//! Unix only: the run needs `bash` and `jscpd`, which the dev shell provides
 //! and the Windows job, which has no dev shell, does not.
 #![cfg(unix)]
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
@@ -23,19 +23,15 @@ fn baseline(fingerprints: &[(&str, u32)]) -> String {
 }
 
 #[test]
-fn two_branches_that_each_added_a_clone_merge_to_their_union() {
+fn two_branches_merge_to_what_each_added_and_removed() {
     let base = baseline(&[("0aa", 1), ("9cc", 1)]);
     let ours = baseline(&[("0aa", 1), ("9cc", 1), ("9dd", 1)]);
-    let theirs = baseline(&[("0aa", 1), ("9cc", 1), ("9ee", 2)]);
+    // Theirs extracted the `0aa` clone and accepted `9ee` twice.
+    let theirs = baseline(&[("9cc", 1), ("9ee", 2)]);
     // Both branches change the line after `9cc`, so git's text merge conflicts.
     let three = [base.as_str(), &ours, &theirs];
     assert!(text_merge_conflicts(three));
-    let merged = merge_branches(
-        ".just/scripts/jscpd-baseline-merge.sh",
-        ".config/jscpd-baseline.json",
-        three,
-        false,
-    );
-    let want = baseline(&[("0aa", 1), ("9cc", 1), ("9dd", 1), ("9ee", 2)]);
+    let merged = merge_branches(None, ".config/jscpd-baseline.json", three, false);
+    let want = baseline(&[("9cc", 1), ("9dd", 1), ("9ee", 2)]);
     assert_eq!(merged, want);
 }

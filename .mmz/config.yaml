@@ -447,15 +447,10 @@ scopes:
     - ".just/scripts/_mutants-env.sh"
   script-nav-diff:
     - ".just/scripts/_nav-diff.sh"
-  # The jscpd baseline merge driver is no recipe's body. The e2e test in
-  # crates/mindtape-cli/tests/it/jscpd_baseline_merge_e2e.rs runs it, together
+  # The CRAP baseline merge driver is no recipe's body. The e2e test in
+  # crates/mindtape-cli/tests/it/crap_baseline_merge_e2e.rs runs it, together
   # with the `.gitattributes` line that assigns it, so `just test` and
   # `just cover` read this scope.
-  script-jscpd-baseline-merge:
-    - ".just/scripts/jscpd-baseline-merge.sh"
-    - ".gitattributes"
-  # Likewise the CRAP baseline merge driver and its test,
-  # crates/mindtape-cli/tests/it/crap_baseline_merge_e2e.rs.
   script-crap-baseline-merge:
     - ".just/scripts/crap-baseline-merge.sh"
     - ".gitattributes"
@@ -527,7 +522,7 @@ commands:
 
   - name: just test
     tags: [gate]
-    inputs: [rust, policy, examples, workflows, gates-meta, script-jscpd-baseline-merge, script-crap-baseline-merge, script-wt-carry-lcov]
+    inputs: [rust, policy, examples, workflows, gates-meta, script-crap-baseline-merge, script-wt-carry-lcov]
 
   # cargo-llvm-cov instruments and runs the same suite as `just test` (same
   # scope), then writes target/coverage/lcov.info, the artifact `just crap::check`
@@ -536,7 +531,7 @@ commands:
   # behind a fresh `cover`.
   - name: just cover
     tags: [gate]
-    inputs: [rust, policy, examples, workflows, gates-meta, script-cover, script-jscpd-baseline-merge, script-crap-baseline-merge, script-wt-carry-lcov]
+    inputs: [rust, policy, examples, workflows, gates-meta, script-cover, script-crap-baseline-merge, script-wt-carry-lcov]
     outputs: [target/coverage/lcov.info]
 
   - name: just lint::machete
