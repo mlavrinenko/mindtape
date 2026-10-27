@@ -137,9 +137,9 @@ checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
 
 [[package]]
 name = "artifact-gate"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "457a6c61c52946d2ba644b638eb9699a122c55f627bb66d09585220a8aaba9d2"
+checksum = "f1e9dfbb7f4857dd13b775acfa41574d696e551b89864b6c0035209c233b6af8"
 dependencies = [
  "regex",
  "thiserror 2.0.18",
@@ -4184,9 +4184,9 @@ dependencies = [
 
 [[package]]
 name = "typst-cst"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5cb3eaa76ab014a27a182766e5589d60a54fdeb5adf62e8ec79f832d6aaa83df"
+checksum = "e594bb932e36905bcd2cc63c540a965c910a7efa20a7c1d9c2f39c7b95173ad7"
 dependencies = [
  "typst-syntax",
 ]

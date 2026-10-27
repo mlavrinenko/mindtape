@@ -139,7 +139,11 @@ fn compile_rule(rule: &HeaderRuleConfig, index: usize) -> Result<CompiledRule, G
     })
 }
 
-fn compile_path(segments: &[HeaderPathSegment]) -> Result<Vec<artifact_gate::Matcher>, GateError> {
+/// Compile a heading path into artifact-gate matchers, shared with the content
+/// gate.
+pub(crate) fn compile_path(
+    segments: &[HeaderPathSegment],
+) -> Result<Vec<artifact_gate::Matcher>, GateError> {
     segments.iter().map(compile_segment).collect()
 }
 

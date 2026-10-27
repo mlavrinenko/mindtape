@@ -5,7 +5,8 @@
 //! (types in [`crate::body::content`]). Compile them once with
 //! [`compile_content_rules`], then call [`check_content`] once per task's
 //! source text — the mirror image of the heading-tree gating in [`crate::body::gate`],
-//! which this module reuses for its path selection but not for its evaluation.
+//! whose path compiler it shares. [`artifact_gate::select_by`] picks the
+//! sections and [`typst_cst::Heading::section`] spans each one.
 //!
 //! A `path` (the same `HeaderPathSegment` shape the heading rules use)
 //! selects one or more sections. A section's *content* is everything from the
@@ -22,12 +23,13 @@
 //! Density is the one exception: its unit split drops code, fenced or inline,
 //! since a pattern inside a code sample is not prose.
 
+use artifact_gate::{Matcher, select_by};
 use regex::Regex;
-use typst_cst::{Heading, HeadingNode, parse_headings, tree};
+use typst_cst::{parse_headings, tree};
 
 use crate::body::content::{ContentAssert, DensityUnit};
-use crate::body::gate::GateError;
-use crate::config::{Config, HeaderPathSegment};
+use crate::body::gate::{GateError, compile_path};
+use crate::config::Config;
 use crate::filter::Filter;
 use crate::model::Task;
 use crate::validate::{Location, Violation};
@@ -39,7 +41,7 @@ use content_gate_density::density_violation;
 /// regexes, pre-baked diagnostic message).
 #[derive(Debug)]
 pub struct CompiledContentRule {
-    path: Vec<CompiledSeg>,
+    path: Vec<Matcher>,
     assert: CompiledAssert,
     when: Option<Filter>,
     /// Override for the default violation message.
@@ -47,21 +49,6 @@ pub struct CompiledContentRule {
     /// This rule's name if it has one, else its position — see
     /// [`crate::body::content::ContentRuleConfig::label`].
     label: String,
-}
-
-/// One compiled path segment, mirroring `artifact_gate::Matcher` with the
-/// fields exposed so match evaluation can live here.
-#[derive(Debug)]
-enum CompiledSeg {
-    /// Exact, case-sensitive, direct-child heading-text match.
-    Exact(String),
-    /// Regex heading-text match; `recursive = true` searches all descendants.
-    Pattern {
-        /// Compiled regex.
-        re: Regex,
-        /// Search any descendant (`true`) or only direct children (`false`).
-        recursive: bool,
-    },
 }
 
 /// A compiled assertion.
@@ -111,11 +98,7 @@ fn compile_content_rule(
     if rule.path.is_empty() {
         return Err(GateError::EmptyPath);
     }
-    let path = rule
-        .path
-        .iter()
-        .map(compile_segment)
-        .collect::<Result<_, _>>()?;
+    let path = compile_path(&rule.path)?;
     let assert = match &rule.assert {
         ContentAssert::NonEmpty => CompiledAssert::NonEmpty,
         ContentAssert::MinWords(n) => CompiledAssert::MinWords(*n),
@@ -150,16 +133,6 @@ impl CompiledContentRule {
     }
 }
 
-fn compile_segment(seg: &HeaderPathSegment) -> Result<CompiledSeg, GateError> {
-    match seg {
-        HeaderPathSegment::Exact(text) => Ok(CompiledSeg::Exact(text.clone())),
-        HeaderPathSegment::Pattern { pattern, recursive } => Ok(CompiledSeg::Pattern {
-            re: compile_regex(pattern)?,
-            recursive: *recursive,
-        }),
-    }
-}
-
 fn compile_regex(pattern: &str) -> Result<Regex, GateError> {
     Regex::new(pattern).map_err(|err| GateError::Regex {
         pattern: pattern.to_owned(),
@@ -182,18 +155,22 @@ pub fn check_content(
     if rules.is_empty() {
         return Vec::new();
     }
-    let headings = parse_headings(source);
-    if headings.is_empty() {
+    let roots = tree(parse_headings(source));
+    if roots.is_empty() {
         return Vec::new();
     }
-    let roots = tree(headings.clone());
     let mut out = Vec::new();
     for rule in rules {
         if !crate::body::applies(rule.when.as_ref(), task, config) {
             continue;
         }
-        for node in match_path(&roots, &rule.path) {
-            let content = section_content(source, &headings, node);
+        for node in select_by(
+            &roots,
+            &rule.path,
+            |n| n.heading.text.as_str(),
+            |n| n.children.as_slice(),
+        ) {
+            let content = source.get(node.heading.section.clone()).unwrap_or_default();
             let heading = &node.heading.text;
             let Some(default) = evaluate(&rule.assert, content, heading) else {
                 continue;
@@ -211,79 +188,6 @@ pub fn check_content(
         }
     }
     out
-}
-
-/// Nodes matching the full `path` from `roots` — the same traversal
-/// `artifact_gate`'s path rules use (Exact is a direct-child match, a Pattern
-/// with `recursive` starts from all descendants).
-fn match_path<'a>(roots: &'a [HeadingNode], path: &[CompiledSeg]) -> Vec<&'a HeadingNode> {
-    let Some((seg, rest)) = path.split_first() else {
-        return Vec::new();
-    };
-    let candidates: Vec<&HeadingNode> = if is_recursive(seg) {
-        all_descendants(roots)
-    } else {
-        roots.iter().collect()
-    };
-    let mut results = Vec::new();
-    for entry in candidates {
-        if seg_matches(seg, &entry.heading.text) {
-            if rest.is_empty() {
-                results.push(entry);
-            } else {
-                results.extend(match_path(&entry.children, rest));
-            }
-        }
-    }
-    results
-}
-
-fn all_descendants(roots: &[HeadingNode]) -> Vec<&HeadingNode> {
-    let mut found = Vec::new();
-    for entry in roots {
-        found.push(entry);
-        found.extend(all_descendants(&entry.children));
-    }
-    found
-}
-
-fn seg_matches(seg: &CompiledSeg, text: &str) -> bool {
-    match seg {
-        CompiledSeg::Exact(expected) => expected == text,
-        CompiledSeg::Pattern { re, .. } => re.is_match(text),
-    }
-}
-
-fn is_recursive(seg: &CompiledSeg) -> bool {
-    matches!(
-        seg,
-        CompiledSeg::Pattern {
-            recursive: true,
-            ..
-        }
-    )
-}
-
-/// The source text of a section: everything after `node`'s heading marker up
-/// to the next heading of the same or higher level (nested subsection prose
-/// therefore included), or to the end of the file for the last section.
-fn section_content<'a>(source: &'a str, headings: &[Heading], node: &HeadingNode) -> &'a str {
-    let start = node.heading.range.end;
-    // The node's own heading always appears in the flat document-order list
-    // the tree was built from; if it somehow does not, treat the section as
-    // everything after it. `.get` keeps the slicing total by construction.
-    let end = headings
-        .iter()
-        .position(|h| h == &node.heading)
-        .map_or(source.len(), |idx| {
-            headings
-                .get(idx + 1..)
-                .into_iter()
-                .flatten()
-                .find(|h| h.depth <= node.heading.depth)
-                .map_or(source.len(), |h| h.range.start)
-        });
-    source.get(start..end).unwrap_or_default()
 }
 
 /// Apply a compiled assertion to a section's content, returning the default
