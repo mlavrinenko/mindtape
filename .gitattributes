@@ -10,3 +10,7 @@
 # them: .just/scripts/crap-baseline-merge.sh, which `just install-hooks`
 # registers. Delete this line to fall back to git's text merge.
 .config/crap-baseline.json merge=crap-baseline
+# The schema goldens are compared byte for byte with what the generator
+# writes, which is LF. Without this, Windows checks them out as CRLF and both
+# `schema_matches_golden` tests fail there.
+schema/*.json text eol=lf

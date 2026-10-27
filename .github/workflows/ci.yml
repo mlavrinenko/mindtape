@@ -161,5 +161,7 @@ jobs:
       - name: Build
         run: cargo build --workspace --all-targets
 
+      # Windows runs rarely, so one red run should list every failure: with
+      # fail-fast, the 0.3.0 preflight stopped after 46 of 3899 tests.
       - name: Test
-        run: cargo nextest run --workspace
+        run: cargo nextest run --workspace --no-fail-fast

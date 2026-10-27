@@ -22,7 +22,14 @@ The `windows` job in `.github/workflows/ci.yml` runs `cargo build` and
 behave the same on every platform. Windows has no Nix, so
 `taiki-e/install-action` installs nextest there. The job covers the code that
 differs by platform: `cmd /C` against `sh -c` for an `[[on.flip]]` `run`, the
-config, data and cache paths from `dirs`, and path separators.
+config, data and cache paths from `dirs`, and path separators. Windows runs
+rarely, so nextest runs there with `--no-fail-fast` and one red run lists every
+failure.
+
+The runner's git checks text files out with `\r\n` line endings. A test that
+compares a committed file byte for byte with the `\n` its code writes fails
+there, though every line matches. So such a file gets `text eol=lf` in
+`.gitattributes`, as the `schema/*.json` goldens do.
 
 On Windows, `dirs` reads the data path from a system API that no environment
 variable moves. A test that sets `XDG_DATA_HOME` would test a path `mt` never

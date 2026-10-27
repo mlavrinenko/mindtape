@@ -334,7 +334,7 @@ groups:
       docs/src/contributing/gates.typ: da1f8374cdcf7a6ab215414f499bda4fbfbfd17a89e88f4d83b8679b2d5c4348
       docs/src/contributing/mutation-testing.typ: 6a7b5cf5a51a025ebd6b8b991da6b2cc8494a2e96cf6d5a7f9608d00a497f7e5
       docs/src/contributing/signal-sweep.typ: 471350cebc9b82602b8ee48d162e4f3365368284a001782e4e2c7f6cb4857146
-      docs/src/contributing/windows.typ: f60a64a30bacbcf16ca2c7252a195303fc3eaf63ef99ea2c0d99484b2c3017e8
+      docs/src/contributing/windows.typ: 4edb1ac90e3c6ab7475971abbcb4843589b654982e4d23ca6c1719777cbf3a1a
   dict-words-docs:
     source:
       crates/mindtape/src/dicts/dev-verbs.txt: 1d44018123133b9cd533d473d9f9df0f24a44131e77961178424f7311782d648
@@ -427,12 +427,12 @@ groups:
       www/utils/link-kind-notes.typ: fa45efd35cebb66df1d06a55dae739d9e7ba9d509588900b76791b690cded928
   lock-merge-docs:
     source:
-      .gitattributes: bfc3a2acd0ce9e5bd484dec8d30d8a8413c2636c033f76a8bbd8d7afd46a6f7e
+      .gitattributes: 3315bc5fb21b335a73374c66ca73bd8c6a22b23dd72af7a192ec4174caa102b6
       .just/scripts/crap-baseline-merge.sh: 007f29683e4e2351cf7fda5d108699da8d3b434bd0fff4f6a92f6a45b3858ed8
       .just/scripts/jscpd-baseline-merge.sh: ce3c64e036b21adc0c952ac0a999d02871bc356a4e4038625e99af45a0e6a5b0
       .just/scripts/outdatty-lock-merge.sh: 98c13d9d46292485df6ef56322904af20c4949613c0f5cae86a676afa153ace5
     dependents:
-      docs/src/contributing.typ: 32ffb7ea79d23fb5e373d148e1648f5d22f22dffe1922b2f6f9670550e3fdf97
+      docs/src/contributing.typ: c25dd84dd6d6a495d53cfbbebd1375a90a811270c4abc68933cdd2d53fe0c9d8
   mutation-scripts-docs:
     source:
       .just/scripts/_mutants-env.sh: 7f3c51e2199e8a2f8543ffb256ddbece9a10f3a7d3b7fa0a4a3603604be245de
