@@ -207,10 +207,10 @@ groups:
       www/utils/cli-notes.typ: 8cae2ec0d00665b34b57193614b7631f6845b923b2a52d35ca0678a377f72521
   cli-name:
     source:
-      crates/mindtape-cli/Cargo.toml: 0d8caaf37e225d24c3de69ea55b86691f292dec6703a5b09f0acde0f3bd01a00
+      crates/mindtape-cli/Cargo.toml: f5f7b40a70c62af2fcf7d08771d97022ca3b702f5ede3762b62563739485b846
       crates/mindtape-cli/src/cli/mod.rs: 9e2980f805d28af33786e288496a8d41fd0145fc421662d16789c682314f9652
     dependents:
-      CHANGELOG.md: c8f23e8a9893ac31210057873190d0b5bafa528e3835b8e1d163834b12787311
+      CHANGELOG.md: 0a9c1f3c9b1ad81341ff1a9a0817c30ebccb26af866529380eaf00b5d9eaa1ea
       docs/src/agents.typ: b60c66d46729c944b878cc0d112e26741e5d2621ed8dc803c5ed0092daf2adeb
       docs/src/contributing.typ: c25dd84dd6d6a495d53cfbbebd1375a90a811270c4abc68933cdd2d53fe0c9d8
       docs/src/contributing/command-semantics.typ: 5b3219c6991e68607914d12d1386f39913d500ddb3f7d0eca2b91232789df32f
@@ -241,7 +241,7 @@ groups:
       www/content/recurring.typ: 9bb8e9b0b10dca758a092fd67776c376a2f44f4c3bff264025cd12482275f3d5
   cli-rm-docs:
     source:
-      crates/mindtape-cli/src/cmd/rm/mod.rs: b2dd199c2a71961847b0a127240f574a3e7981786380356c26a5d28993cc410d
+      crates/mindtape-cli/src/cmd/rm/mod.rs: 5e2ce9bac29fabad8bbaeae701af6b286c2f680a1860a22a0e14d4fafe686194
     dependents:
       docs/src/skill.typ: efbf73c5a7fb68ecb18c2c395dba7ffb1b3c0edf9d1d449d85cecd655ff35852
       www/content/cli/ls.typ: 78adb14cc3e8dec8ebb763791951b2cdc7200a51cd91bf38f18f827b03b9ef0d

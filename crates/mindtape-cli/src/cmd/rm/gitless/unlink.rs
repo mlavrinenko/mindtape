@@ -22,7 +22,7 @@ use typst_cleanup::{Plan, Rewrite};
 use crate::diag::Diag;
 use crate::task_edit::task_with;
 
-use super::plain_delete_plan;
+use super::super::artifacts;
 
 /// Where an inbound edge to a matched task points once the run is over.
 #[derive(Debug, Clone, Copy)]
@@ -150,7 +150,7 @@ pub fn retarget_raw(raw: &str, stem: &str) -> String {
 /// spliced back together, fails the run.
 pub fn unlink_plan(tasks: &[Task], eligible: &HashSet<String>, root: &Path) -> Result<Plan> {
     Ok(Plan {
-        deletions: plain_delete_plan(tasks, eligible, root).deletions,
+        deletions: typst_cleanup::delete_plan(&artifacts(tasks, eligible, root).0).deletions,
         rewrites: inbound_rewrites(tasks, eligible, root, Retarget::Drop)?,
     })
 }

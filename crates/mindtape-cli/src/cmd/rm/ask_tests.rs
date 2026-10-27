@@ -3,15 +3,15 @@
 
 use std::cell::RefCell;
 
-use super::super::{Removal, RetirePlan, ask_with, plain_delete_plan};
-use super::{ids, task};
+use super::super::{Removal, RetirePlan, ask_with};
+use super::{delete_plan, ids, task};
 use mindtape::test_support::tempdir_with_files;
 
 /// A delete plan for one task, on disk under a temp root.
 fn delete_removal() -> (tempfile::TempDir, Removal) {
     let dir = tempdir_with_files(&[("gone.typ", "gone\n")]);
     let tasks = vec![task("gone", "gone.typ", Some("done"))];
-    let plan = plain_delete_plan(&tasks, &ids(&["gone"]), dir.path());
+    let plan = delete_plan(&tasks, &ids(&["gone"]), dir.path());
     (dir, Removal::Delete(plan))
 }
 

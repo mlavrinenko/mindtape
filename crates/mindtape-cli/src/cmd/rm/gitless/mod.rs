@@ -9,7 +9,7 @@
 //! - `report.rs` — the retire strategy's report and confirm helpers.
 //! - `unlink.rs` — the walk over the other files that name a task.
 
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
 use crate::diag::Result;
@@ -35,18 +35,13 @@ pub fn resolve_strategy(config: &Config, has_git: bool) -> RmStrategy {
 
 /// The `reject` strategy's refusal: a note for every surviving task that
 /// references a removed task, naming the removed ids it links to.
-pub fn reject_diag(referrers: &BTreeMap<PathBuf, HashSet<String>>) -> Diag {
+pub fn reject_diag(referrers: &BTreeMap<PathBuf, BTreeSet<String>>) -> Diag {
     let refusal = Diag::refused("cannot remove tasks that other tasks link to").hint(Hint::new(
         "a gitless repository has no tombstone to rewrite onto: set [rm] strategy to \"retire\" or \"unlink\" to remove them anyway",
     ));
     referrers.iter().fold(refusal, |diag, (file, ids)| {
-        let mut sorted: Vec<&str> = ids.iter().map(String::as_str).collect();
-        sorted.sort();
-        diag.note(Note::new("link from").name(format!(
-            "{} to {}",
-            file.display(),
-            sorted.join(", ")
-        )))
+        let ids: Vec<&str> = ids.iter().map(String::as_str).collect();
+        diag.note(Note::new("link from").name(format!("{} to {}", file.display(), ids.join(", "))))
     })
 }
 
@@ -68,25 +63,6 @@ pub fn redact_git_error(err: &typst_cleanup::Error, root: &Path) -> String {
 pub fn print_commit_hint(root: &Path) {
     if git::toplevel(root).is_ok() {
         println!("review the changes and commit when satisfied");
-    }
-}
-
-/// The deletion-only plan for tasks nothing references: no tombstones, no
-/// rewrites, no git. Deletions sorted like [`typst_cleanup::plan`]'s, for a
-/// stable report.
-pub fn plain_delete_plan(tasks: &[Task], eligible: &HashSet<String>, root: &Path) -> Plan {
-    let mut deletions: Vec<Deletion> = tasks
-        .iter()
-        .filter(|task| eligible.contains(&task.id))
-        .map(|task| Deletion {
-            abs: root.join(&task.file),
-            rel: task.file.clone(),
-        })
-        .collect();
-    deletions.sort_by(|a, b| a.rel.cmp(&b.rel));
-    Plan {
-        deletions,
-        rewrites: Vec::new(),
     }
 }
 

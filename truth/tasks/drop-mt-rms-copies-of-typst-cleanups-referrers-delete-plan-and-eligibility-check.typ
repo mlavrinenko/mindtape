@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 28),
+  status: done(
+    2026,
+    10,
+    28,
+  )[mt rm calls typst-cleanup 0.3's referrers, delete\_plan and Error::Ineligible],
 )
 
 == Problem

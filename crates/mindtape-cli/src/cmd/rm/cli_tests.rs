@@ -188,14 +188,10 @@ fn report_applied_without_rewrites_omits_rewrite_section() {
 // --- run ---
 
 #[test]
-fn run_dry_run_skips_preflight() {
-    // Mutant deletes `!` so `if args.dry_run { check... }`.
-    // Real code skips the pre-flight on dry-run; mutant runs it.  With a dirty
-    // eligible file the real code fails from plan() (mint_rev_path on dirty
-    // file) — error does NOT say "cannot remove".  The mutant fails from
-    // check_eligible_files — error DOES say "cannot remove".
-    // The eligible task must be referenced: an unreferenced task is deleted
-    // directly with no git, so the preflight path never runs.
+fn run_dry_run_refuses_a_dirty_task_like_a_real_run() {
+    // A dry run says what the real run would refuse, in the same words. The
+    // eligible task must be referenced: an unreferenced task is deleted
+    // directly with no git, so nothing is minted.
     let (_dir, root) = scaffold_with_lib(
         mindtape::typst_task!("(\n  title: \"Gone\",\n  status: done(2026, 6, 1),\n)\n\nBody.\n"),
         Some(mindtape::typst_task!(
@@ -216,5 +212,11 @@ fn run_dry_run_skips_preflight() {
         .args(["rm", "--dry-run", "-y", "gone"])
         .assert()
         .failure()
-        .stderr(predicate::str::contains("cannot remove").from_utf8().not());
+        .stderr(
+            predicate::str::starts_with("error: cannot remove: 'gone'\n")
+                .and(predicate::str::contains(
+                    "note: file: tasks/gone.typ has uncommitted changes\n",
+                ))
+                .from_utf8(),
+        );
 }

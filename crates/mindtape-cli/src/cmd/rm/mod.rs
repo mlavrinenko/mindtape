@@ -22,7 +22,7 @@
 //!
 //! Git is gated on need, not presence: [`run`] scans the survivors for inbound
 //! references before touching the repository, and a task nothing references is
-//! deleted directly ([`plain_delete_plan`]) — no strategy-deciding toplevel
+//! deleted directly ([`typst_cleanup::delete_plan`]) — no strategy-deciding toplevel
 //! discovery, no tombstone, no committed-clean guard. When a survivor does
 //! reference a removed task, the configured `[rm] strategy` decides what
 //! happens to those edges: the git-pinned SWHID tombstone rewrite
@@ -36,11 +36,10 @@
 //! # Files
 //!
 //! - `gitless/` — the strategies when no git repository pins a tombstone.
-//! - `eligible.rs` — refuses a task file git can't pin to a tombstone.
 //! - `report.rs` — the delete-style plan's report and confirm helpers.
 //! - `select.rs` — resolves the `target` argument into task ids.
 
-use std::collections::{BTreeMap, HashSet};
+use std::collections::HashSet;
 use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 
@@ -55,13 +54,10 @@ pub use typst_cleanup::{Plan, apply};
 
 mod gitless;
 pub(crate) use gitless::{
-    Retarget, RetirePlan, inbound_rewrites, plain_delete_plan, print_commit_hint, redact_git_error,
-    reject_diag, report_retire_applied, report_retire_plan, resolve_strategy, retarget_raw,
-    retire_apply, retire_plan, retire_prompt_lines, unlink_plan,
+    Retarget, RetirePlan, inbound_rewrites, print_commit_hint, redact_git_error, reject_diag,
+    report_retire_applied, report_retire_plan, resolve_strategy, retarget_raw, retire_apply,
+    retire_plan, retire_prompt_lines, unlink_plan,
 };
-
-mod eligible;
-use eligible::check_eligible_files;
 
 mod select;
 use select::select_targets;
@@ -157,14 +153,11 @@ pub fn run(args: &RmArgs) -> Result<()> {
 
     // A task nothing references needs no tombstone, so no git at all. Only when
     // a survivor points at an eligible task is the strategy consulted.
-    let referrers = referrers(&project.outcome.tasks, &eligible, &root)?;
+    let (retire, survivors) = artifacts(&project.outcome.tasks, &eligible, &root);
+    let referrers = typst_cleanup::referrers(&retire, &survivors, &TaskLinks)?;
     if referrers.is_empty() {
-        return finalize(
-            &Removal::Delete(plain_delete_plan(&project.outcome.tasks, &eligible, &root)),
-            args,
-            None,
-            &root,
-        );
+        let plan = typst_cleanup::delete_plan(&retire);
+        return finalize(&Removal::Delete(plan), args, None, &root);
     }
 
     let (git_root, git_error) = match git::toplevel(&root) {
@@ -176,10 +169,7 @@ pub fn run(args: &RmArgs) -> Result<()> {
             let Some(git_root) = git_root else {
                 return Err(no_repository(git_error.as_ref(), &root));
             };
-            if !args.dry_run {
-                check_eligible_files(&project.outcome.tasks, &eligible, &root, &git_root)?;
-            }
-            let plan = plan(&project.outcome.tasks, &eligible, &root, &git_root)?;
+            let plan = typst_cleanup::plan(&retire, &survivors, &git_root, &TaskLinks)?;
             finalize(&Removal::Delete(plan), args, Some("git-tombstone"), &root)
         }
         RmStrategy::Reject => Err(reject_diag(&referrers)),
@@ -289,90 +279,23 @@ fn finalize(removal: &Removal, args: &RmArgs, strategy: Option<&str>, root: &Pat
     Ok(())
 }
 
-/// Compute the removal plan over `tasks`: partition the `eligible` ids (to
-/// retire) from survivors (to scan) and delegate to [`typst_cleanup::plan`],
-/// which mints a tombstone per retired task and retargets every survivor's
-/// inbound references — located by [`TaskLinks::scan`], so the `links:` helper
-/// edges are covered, not just `link()`. Nothing is written.
-///
-/// # Errors
-/// Propagates [`typst_cleanup`] failures: a file outside the repository, an
-/// unrecoverable tombstone mint (untracked, dirty — this is where a dirty
-/// eligible file aborts a `--dry-run`), a survivor read, or a rejected splice.
-fn plan(tasks: &[Task], eligible: &HashSet<String>, root: &Path, git_root: &Path) -> Result<Plan> {
-    let mut retire = Vec::new();
-    let mut survivors = Vec::new();
-    for task in tasks {
-        let artifact = Artifact {
+/// The `eligible` tasks (to retire) and the rest (the survivors to scan), as
+/// typst-cleanup's [`Artifact`]s under `root`. Every removal path starts here:
+/// [`typst_cleanup::referrers`], [`typst_cleanup::delete_plan`] and
+/// [`typst_cleanup::plan`] all take this split.
+fn artifacts(
+    tasks: &[Task],
+    eligible: &HashSet<String>,
+    root: &Path,
+) -> (Vec<Artifact>, Vec<Artifact>) {
+    tasks
+        .iter()
+        .map(|task| Artifact {
             abs: root.join(&task.file),
             rel: task.file.clone(),
             id: task.id.clone(),
-        };
-        if eligible.contains(&task.id) {
-            retire.push(artifact);
-        } else {
-            survivors.push(artifact);
-        }
-    }
-    Ok(typst_cleanup::plan(
-        &retire, &survivors, git_root, &TaskLinks,
-    )?)
-}
-
-/// Which eligible ids each *surviving* task's source references — the same
-/// parse-plane scan the tombstone path uses ([`TaskLinks::scan`] +
-/// [`TaskLinks::identity`]), so the `links:` helper edges are covered, not
-/// just `link()`. No eval, no git. Empty means no tombstone is needed: plain
-/// deletion.
-///
-/// A link *from* an eligible task counts for nothing — it is going away in the
-/// same run, so it is not waiting for attention.
-///
-/// # Errors
-/// A survivor file that cannot be read fails the run, matching the tombstone
-/// path's behaviour in [`typst_cleanup::plan`].
-fn referrers(
-    tasks: &[Task],
-    eligible: &HashSet<String>,
-    root: &Path,
-) -> Result<BTreeMap<PathBuf, HashSet<String>>> {
-    let policy = TaskLinks;
-    let mut by_file: BTreeMap<PathBuf, HashSet<String>> = BTreeMap::new();
-    for task in tasks {
-        if eligible.contains(&task.id) {
-            continue;
-        }
-        let source = std::fs::read_to_string(root.join(&task.file))
-            .map_err(|err| Diag::cannot_read(&task.file, &err))?;
-        let mut hits = HashSet::new();
-        for target in policy.scan(&source) {
-            let Some(id) = policy.identity(&target.raw) else {
-                continue;
-            };
-            if eligible.contains(&id) {
-                hits.insert(id);
-            }
-        }
-        if !hits.is_empty() {
-            by_file.insert(task.file.clone(), hits);
-        }
-    }
-    Ok(by_file)
-}
-
-/// The union of [`referrers`]'s referenced ids — enough to decide whether any
-/// strategy applies at all. The run path works off the per-file map; tests
-/// still exercise the union.
-#[cfg(test)]
-fn inbound_references(
-    tasks: &[Task],
-    eligible: &HashSet<String>,
-    root: &Path,
-) -> Result<HashSet<String>> {
-    Ok(referrers(tasks, eligible, root)?
-        .into_values()
-        .flatten()
-        .collect())
+        })
+        .partition(|artifact| eligible.contains(&artifact.id))
 }
 
 /// `path` made absolute and symlink-free.

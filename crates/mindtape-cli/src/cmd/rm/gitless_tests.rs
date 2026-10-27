@@ -1,16 +1,13 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing, unsafe_code)]
 
 use mindtape::test_support::{tempdir, tempdir_with_files};
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::PathBuf;
 
 use mindtape::{RmStrategy, parse_config};
 
-use super::super::{
-    apply, plain_delete_plan, redact_git_error, referrers, reject_diag, resolve_strategy,
-    unlink_plan,
-};
-use super::{gone_and_live, ids, survivor, task};
+use super::super::{apply, redact_git_error, reject_diag, resolve_strategy, unlink_plan};
+use super::{delete_plan, gone_and_live, ids, referrers, survivor, task};
 use crate::git;
 
 /// A legend with `wip` → `done` (terminal), the pair most retire tests need.
@@ -44,9 +41,12 @@ fn resolve_strategy_configured_value_wins_either_way() {
 
 #[test]
 fn the_reject_refusal_names_every_survivor_and_its_ids() {
-    let mut referrers: BTreeMap<PathBuf, HashSet<String>> = BTreeMap::new();
-    referrers.insert(PathBuf::from("tasks/live.typ"), ids(&["orphan", "gone"]));
-    referrers.insert(PathBuf::from("tasks/other.typ"), ids(&["gone"]));
+    let set =
+        |values: &[&str]| -> BTreeSet<String> { values.iter().map(|v| (*v).to_owned()).collect() };
+    let referrers = BTreeMap::from([
+        (PathBuf::from("tasks/live.typ"), set(&["orphan", "gone"])),
+        (PathBuf::from("tasks/other.typ"), set(&["gone"])),
+    ]);
 
     assert_eq!(
         crate::diag::plain(&reject_diag(&referrers)),
@@ -77,7 +77,10 @@ fn referrers_maps_files_to_hits_and_skips_eligible() {
     let map = referrers(&tasks, &ids(&["gone", "a"]), root).unwrap();
 
     assert_eq!(map.len(), 1);
-    assert_eq!(map[&PathBuf::from("live.typ")], ids(&["gone"]));
+    assert_eq!(
+        map[&PathBuf::from("live.typ")],
+        BTreeSet::from(["gone".to_owned()])
+    );
 }
 
 #[test]
@@ -255,7 +258,7 @@ fn gitless_strategies_share_the_plain_delete_shape() {
     let map = referrers(&tasks, &ids(&["gone", "a"]), root).unwrap();
     assert!(map.is_empty());
 
-    let plan = plain_delete_plan(&tasks, &ids(&["gone", "a"]), root);
+    let plan = delete_plan(&tasks, &ids(&["gone", "a"]), root);
     assert_eq!(plan.deletions.len(), 2);
     assert!(plan.rewrites.is_empty());
 }

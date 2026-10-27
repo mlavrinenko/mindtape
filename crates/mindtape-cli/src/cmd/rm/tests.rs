@@ -2,17 +2,57 @@
 
 use mindtape::test_support::write_file;
 use mindtape::test_support::{tempdir, tempdir_with_files};
-use std::collections::HashSet;
-use std::path::PathBuf;
+use std::collections::{BTreeMap, BTreeSet, HashSet};
+use std::path::{Path, PathBuf};
 
 use mindtape::test_support::bare_task;
 use mindtape::{Status, Task};
 use swhid_mint::test_support::repo_with;
 
 use super::report::rewrite_link_count;
-use super::{Plan, apply, check_eligible_files, inbound_references, plain_delete_plan, plan};
+use super::{Plan, TaskLinks, apply, artifacts};
 use crate::git;
 use typst_cleanup::{Rewrite, is_clean};
+
+/// [`typst_cleanup::plan`] over `tasks`, split the way `run` splits them.
+fn plan(
+    tasks: &[Task],
+    eligible: &HashSet<String>,
+    root: &Path,
+    git_root: &Path,
+) -> crate::diag::Result<Plan> {
+    let (retire, survivors) = artifacts(tasks, eligible, root);
+    Ok(typst_cleanup::plan(
+        &retire, &survivors, git_root, &TaskLinks,
+    )?)
+}
+
+/// [`typst_cleanup::referrers`] over `tasks` with `rm`'s policy.
+pub(super) fn referrers(
+    tasks: &[Task],
+    eligible: &HashSet<String>,
+    root: &Path,
+) -> crate::diag::Result<BTreeMap<PathBuf, BTreeSet<String>>> {
+    let (retire, survivors) = artifacts(tasks, eligible, root);
+    Ok(typst_cleanup::referrers(&retire, &survivors, &TaskLinks)?)
+}
+
+/// Every id some survivor references: the union of [`referrers`].
+fn inbound_references(
+    tasks: &[Task],
+    eligible: &HashSet<String>,
+    root: &Path,
+) -> crate::diag::Result<HashSet<String>> {
+    Ok(referrers(tasks, eligible, root)?
+        .into_values()
+        .flatten()
+        .collect())
+}
+
+/// [`typst_cleanup::delete_plan`] for the `eligible` tasks under `root`.
+pub(super) fn delete_plan(tasks: &[Task], eligible: &HashSet<String>, root: &Path) -> Plan {
+    typst_cleanup::delete_plan(&artifacts(tasks, eligible, root).0)
+}
 
 /// Build an eligible id set from string slices.
 pub(super) fn ids(values: &[&str]) -> HashSet<String> {
@@ -139,24 +179,6 @@ fn explicit_id_retires_non_terminal_task() {
     assert_eq!(plan.deletions[0].rel, PathBuf::from("gone.typ"));
 }
 
-#[test]
-fn plan_aborts_when_a_removed_task_is_untracked() {
-    // `gone` is committed; `orphan` exists in the tree but was never committed,
-    // so it has no last-touch commit to pin a tombstone to. The whole plan must
-    // fail — all-or-nothing, before any deletion.
-    let (_dir, root) = repo_with(&[("gone.typ", "gone\n")]);
-    write_file(&root, "orphan.typ", "orphan\n");
-    let tasks = vec![
-        task("gone", "gone.typ", Some("done")),
-        task("orphan", "orphan.typ", Some("done")),
-    ];
-
-    let result = plan(&tasks, &ids(&["gone", "orphan"]), &root, &root);
-    assert!(result.is_err());
-    assert!(root.join("gone.typ").exists());
-    assert!(root.join("orphan.typ").exists());
-}
-
 // --- unreferenced removal: no git at all ---
 
 #[test]
@@ -182,55 +204,6 @@ fn inbound_references_empty_when_nothing_points_at_eligible() {
     assert!(referenced.is_empty());
 }
 
-#[test]
-fn inbound_references_ignores_eligible_tasks_own_edges() {
-    // `a` (also being removed) links to `gone` — both go away in the same run,
-    // so the edge is not waiting for attention and must not force a tombstone.
-    let dir = tempdir_with_files(&[("a.typ", &depends_survivor())]);
-    let root = dir.path();
-    let tasks = vec![
-        task("gone", "gone.typ", Some("done")),
-        task("a", "a.typ", Some("done")),
-    ];
-
-    let referenced = inbound_references(&tasks, &ids(&["gone", "a"]), root).unwrap();
-
-    assert!(referenced.is_empty());
-}
-
-#[test]
-fn plain_delete_plan_deletes_without_git() {
-    // No repository anywhere: the eligible task is removed by direct deletion,
-    // the survivor is left untouched — not even read.
-    let dir = tempdir_with_files(&[("gone.typ", "gone\n"), ("live.typ", &depends_survivor())]);
-    let root = dir.path();
-    let tasks = gone_and_live("done");
-
-    let plan = plain_delete_plan(&tasks, &ids(&["gone"]), root);
-    assert_eq!(plan.deletions.len(), 1);
-    assert_eq!(plan.deletions[0].rel, PathBuf::from("gone.typ"));
-    assert!(plan.rewrites.is_empty());
-
-    apply(&plan).unwrap();
-    assert!(!root.join("gone.typ").exists());
-    assert!(root.join("live.typ").exists());
-}
-
-#[test]
-fn plain_delete_plan_sorts_like_tombstone_path() {
-    let dir = tempdir();
-    let root = dir.path();
-    let tasks = vec![
-        task("b", "b.typ", Some("done")),
-        task("a", "a.typ", Some("done")),
-    ];
-
-    let plan = plain_delete_plan(&tasks, &ids(&["a", "b"]), root);
-
-    assert_eq!(plan.deletions[0].rel, PathBuf::from("a.typ"));
-    assert_eq!(plan.deletions[1].rel, PathBuf::from("b.typ"));
-}
-
 // The behaviour of `is_clean` (dirty tracked file, untracked file) is owned and
 // tested by `typst-cleanup`; the CLI's reliance on it is covered by
 // `apply_writes_and_deletes_without_committing` asserting the post-apply tree is
@@ -249,23 +222,23 @@ fn toplevel_finds_work_tree_from_subdir() {
 }
 
 #[test]
-fn preflight_passes_with_unrelated_dirty_file() {
+fn plan_passes_with_unrelated_dirty_file() {
     // An unrelated file is modified; the eligible task is clean.
-    // The pre-flight must not block: only the task files themselves matter.
+    // The plan must not refuse: only the task files themselves matter.
     let (_dir, root) = repo_with(&[("gone.typ", "gone\n"), ("notes.txt", "draft\n")]);
     // Dirty an unrelated file.
     write_file(&root, "notes.txt", "changed draft\n");
     let tasks = vec![task("gone", "gone.typ", Some("done"))];
-    let result = check_eligible_files(&tasks, &ids(&["gone"]), &root, &root);
+    let result = plan(&tasks, &ids(&["gone"]), &root, &root);
     assert!(result.is_ok());
 }
 
 #[test]
-fn preflight_blocks_dirty_eligible_task() {
+fn plan_refuses_a_dirty_task() {
     let (_dir, root) = repo_with(&[("gone.typ", "gone\n")]);
     write_file(&root, "gone.typ", "changed\n");
     let tasks = vec![task("gone", "gone.typ", Some("done"))];
-    let err = check_eligible_files(&tasks, &ids(&["gone"]), &root, &root).unwrap_err();
+    let err = plan(&tasks, &ids(&["gone"]), &root, &root).unwrap_err();
     crate::diag::assert_plain(
         &err,
         "error: cannot remove: 'gone'\n\
@@ -275,25 +248,7 @@ fn preflight_blocks_dirty_eligible_task() {
 }
 
 #[test]
-fn preflight_blocks_untracked_eligible_task() {
-    // Seed with a dummy committed file so git has at least one commit.
-    let (_dir, root) = repo_with(&[("seed.txt", "seed\n")]);
-    write_file(&root, "orphan.typ", "orphan\n");
-    let tasks = vec![task("orphan", "orphan.typ", Some("done"))];
-    let err = check_eligible_files(&tasks, &ids(&["orphan"]), &root, &root).unwrap_err();
-    let text = crate::diag::plain(&err);
-    assert!(
-        text.starts_with("error: cannot remove: 'orphan'\n"),
-        "{text}"
-    );
-    assert!(
-        text.contains("note: file: orphan.typ is not tracked by git\n"),
-        "{text}"
-    );
-}
-
-#[test]
-fn preflight_reports_all_offenders_at_once() {
+fn plan_names_every_offender_at_once() {
     // Two tasks with problems: both must appear in the single error, not just the first.
     let (_dir, root) = repo_with(&[("a.typ", "a\n")]);
     write_file(&root, "a.typ", "changed\n");
@@ -302,7 +257,7 @@ fn preflight_reports_all_offenders_at_once() {
         task("a", "a.typ", Some("done")),
         task("b", "b.typ", Some("done")),
     ];
-    let err = check_eligible_files(&tasks, &ids(&["a", "b"]), &root, &root).unwrap_err();
+    let err = plan(&tasks, &ids(&["a", "b"]), &root, &root).unwrap_err();
     let text = crate::diag::plain(&err);
     assert!(
         text.starts_with("error: cannot remove several tasks\n"),
@@ -316,6 +271,7 @@ fn preflight_reports_all_offenders_at_once() {
         text.contains("note: file: b.typ is not tracked by git\n"),
         "{text}"
     );
+    assert!(root.join("a.typ").exists() && root.join("b.typ").exists());
 }
 
 #[test]
@@ -332,7 +288,7 @@ fn a_task_file_outside_the_repository_is_refused_as_one() {
     let (_dir, root) = repo_with(&[("seed.txt", "seed\n")]);
     let elsewhere = tempdir();
     let tasks = vec![task("gone", "gone.typ", Some("done"))];
-    let err = check_eligible_files(&tasks, &ids(&["gone"]), &root, elsewhere.path()).unwrap_err();
+    let err = plan(&tasks, &ids(&["gone"]), &root, elsewhere.path()).unwrap_err();
     assert!(
         crate::diag::plain(&err).contains("note: file: gone.typ is outside the git repository\n")
     );

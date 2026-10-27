@@ -776,6 +776,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **A failed read ends without a stray period on Windows.** Windows ends its
   reasons with one, so `can't read: 'a.json': the system cannot find the file
   specified.` had it mid-sentence.
+- **`mt rm --dry-run` refuses an uncommitted task the way `mt rm` does.** It
+  named only the first file git couldn't pin, as `task file has uncommitted
+  changes`, while the real run listed every one under `cannot remove`. Both
+  list them all now.
 - **A bare `Refs:` value is the stem as written.** `Refs: foo.task-261023`
   read as `foo`, so `mt check --commits` said it named no task and
   `touches()` matched nothing. Only a value holding `/` or `\`, or ending in

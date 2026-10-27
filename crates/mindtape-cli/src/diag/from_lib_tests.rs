@@ -128,25 +128,39 @@ fn cleanup_text(err: typst_cleanup::Error) -> String {
 #[test]
 fn a_cleanup_failure_is_worded_by_what_went_wrong() {
     use swhid_mint::git::Error as Mint;
-    use typst_cleanup::Error;
+    use typst_cleanup::{Artifact, Error, Ineligible, Reason};
     let path = || std::path::PathBuf::from("tasks/a.typ");
-    let commit = "hint: commit the file first: the tombstone pins its last-touch commit\n";
+    let bad = |id: &str, reason| Ineligible {
+        artifact: Artifact {
+            abs: std::path::PathBuf::from(format!("/r/tasks/{id}.typ")),
+            rel: std::path::PathBuf::from(format!("tasks/{id}.typ")),
+            id: id.to_owned(),
+        },
+        reason,
+    };
+    let commit = "hint: commit them first: a tombstone pins the last-touch commit\n";
 
     assert_eq!(
-        cleanup_text(Error::OutsideRepo(path())),
-        "error: task file is outside the git repository: 'tasks/a.typ'\n"
+        cleanup_text(Error::Ineligible(vec![bad(
+            "a",
+            Reason::Mint(Mint::NotTracked("a".into()))
+        )])),
+        format!(
+            "error: cannot remove: 'a'\n{commit}note: file: tasks/a.typ is not tracked by git\n"
+        )
     );
     assert_eq!(
-        cleanup_text(Error::Mint(path(), Mint::NotTracked("a".into()))),
-        format!("error: task file is not tracked by git: 'tasks/a.typ'\n{commit}")
-    );
-    assert_eq!(
-        cleanup_text(Error::Mint(path(), Mint::Dirty("a".into()))),
-        format!("error: task file has uncommitted changes: 'tasks/a.typ'\n{commit}")
-    );
-    assert_eq!(
-        cleanup_text(Error::Mint(path(), Mint::Git("boom".into()))),
-        "error: tasks/a.typ: git: boom\n"
+        cleanup_text(Error::Ineligible(vec![
+            bad("a", Reason::OutsideRepo),
+            bad("b", Reason::Mint(Mint::Dirty("b".into()))),
+            bad("c", Reason::Mint(Mint::Git("boom".into()))),
+        ])),
+        format!(
+            "error: cannot remove several tasks\n{commit}\
+             note: file: tasks/a.typ is outside the git repository\n\
+             note: file: tasks/b.typ has uncommitted changes\n\
+             note: file: tasks/c.typ failed in git: boom\n"
+        )
     );
     let denied = || std::io::Error::from(std::io::ErrorKind::PermissionDenied);
     assert_eq!(

@@ -48,12 +48,14 @@
 //! - `io.rs` — the failed read or write and the OS's reason for it.
 //! - `prompt.rs` — the confirmation question, the one line stderr gets that
 //!   isn't a `Diag`: a prompt is not a diagnostic, so it has no prefix.
+//! - `cleanup.rs` — a typst-cleanup error into a `Diag`, every unpinnable file named.
 //! - `from_lib.rs` — library errors into a `Diag`, one exhaustive match each.
 //! - `quoting.rs` — the quoted form of a filter whose bare word was meant as
 //!   text, for the hint under `unknown field`.
 //! - `from_lib_tests.rs` — unit tests for the library-error conversions.
 //! - `tests.rs`, `tests_dict.rs`, `tests_fill.rs` — unit tests.
 
+mod cleanup;
 mod from_lib;
 mod hint;
 mod io;

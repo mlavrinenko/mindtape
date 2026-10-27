@@ -10,11 +10,8 @@ use mindtape::{
     Severity, SlotKind, Unknown, Violation,
 };
 
-use super::{Command, Diag, Hint, Kind, Note};
+use super::{Command, Diag, Hint, Note};
 
-/// A retire or rewrite that [`typst_cleanup`] could not plan or apply. A
-/// file that git can't pin a tombstone to is the project's rule refusing the
-/// work; a failed read, write or splice is the work failing.
 impl From<mindtape::config::hooks::HookError> for Diag {
     fn from(err: mindtape::config::hooks::HookError) -> Self {
         filter(err.source, Some(&err.when)).rule(format!("on.flip[{}].when", err.index))
@@ -78,45 +75,6 @@ impl From<mindtape::config::pack_sources::FetchError> for Diag {
 impl From<csv::IntoInnerError<csv::Writer<Vec<u8>>>> for Diag {
     fn from(err: csv::IntoInnerError<csv::Writer<Vec<u8>>>) -> Self {
         Self::failed("can't write CSV").cause(&err)
-    }
-}
-
-impl From<typst_cleanup::Error> for Diag {
-    fn from(err: typst_cleanup::Error) -> Self {
-        cleanup(&err)
-    }
-}
-
-fn cleanup(err: &typst_cleanup::Error) -> Diag {
-    use typst_cleanup::Error;
-    match err {
-        Error::OutsideRepo(path) => Diag::refused("task file is outside the git repository")
-            .value(path.display().to_string()),
-        Error::Mint(path, source) => mint(path, source),
-        Error::Read(path, source) => Diag::cannot_read(path, source),
-        Error::Write(path, source) => Diag::cannot_write(path, source),
-        Error::Rewrite(path, source) => Diag::failed("can't rewrite links")
-            .value(path.display().to_string())
-            .cause(source),
-        Error::Git(message) => Diag::verbatim(Kind::Failed, format!("git: {message}")),
-    }
-}
-
-/// A tombstone that could not be minted for the file at `path`.
-fn mint(path: &std::path::Path, source: &swhid_mint::git::Error) -> Diag {
-    use swhid_mint::git::Error;
-    let shown = path.display().to_string();
-    let commit_first = Hint::new("commit the file first: the tombstone pins its last-touch commit");
-    match source {
-        Error::NotTracked(_) => Diag::refused("task file is not tracked by git")
-            .value(shown)
-            .hint(commit_first),
-        Error::Dirty(_) => Diag::refused("task file has uncommitted changes")
-            .value(shown)
-            .hint(commit_first),
-        Error::Git(message) => {
-            Diag::verbatim(Kind::Failed, format!("git: {message}")).at_file(path)
-        }
     }
 }
 
