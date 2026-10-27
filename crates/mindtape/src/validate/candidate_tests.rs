@@ -227,7 +227,11 @@ fn errors_when_the_destination_leaves_the_root() {
 
     assert_eq!(err.file, Path::new("../build.typ"));
     assert_eq!(err.line, None);
-    assert!(err.message.contains("bad virtual path"), "{}", err.message);
+    assert!(
+        err.message.contains("is not under project root"),
+        "{}",
+        err.message
+    );
 }
 
 /// A task marker with `depends-on` edges — the batch fixture, since an edge is

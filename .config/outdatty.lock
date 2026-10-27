@@ -108,7 +108,7 @@ groups:
       www/content/named-sets.typ: 32193f399664b8339c9a9ace4e614ed26f8fa1e742f4887df0d632c7b4b38720
   cli-eval-docs:
     source:
-      crates/mindtape-cli/src/cmd/eval.rs: 50cfa772cec91c943d0f11471af55ad5175b711bc41e17d81acde03b44f175b2
+      crates/mindtape-cli/src/cmd/eval.rs: fd78676cd0b7fd26b1970e569d9e8220b69063d3e8718d0025b928fc03951483
     dependents:
       www/content/agents.typ: f0240344a64911b167203d705e4a679fe6d64fb4e5d0824af52d68588ff71648
       www/content/schema.typ: 075efa7fb6f33cbdfecffdcd69e256e307c624c56feeee75c9358940b03aa5d7
@@ -207,10 +207,10 @@ groups:
       www/utils/cli-notes.typ: 8cae2ec0d00665b34b57193614b7631f6845b923b2a52d35ca0678a377f72521
   cli-name:
     source:
-      crates/mindtape-cli/Cargo.toml: 2cc63de218be3f4bf26c532fc23f2a5e91493104779d0316778d5314f8a10aee
+      crates/mindtape-cli/Cargo.toml: 0d8caaf37e225d24c3de69ea55b86691f292dec6703a5b09f0acde0f3bd01a00
       crates/mindtape-cli/src/cli/mod.rs: 9e2980f805d28af33786e288496a8d41fd0145fc421662d16789c682314f9652
     dependents:
-      CHANGELOG.md: d0f61d91772941f27e2b190fa1da97f288a324150a9e5fc3014fdacae95b0832
+      CHANGELOG.md: c8f23e8a9893ac31210057873190d0b5bafa528e3835b8e1d163834b12787311
       docs/src/agents.typ: b60c66d46729c944b878cc0d112e26741e5d2621ed8dc803c5ed0092daf2adeb
       docs/src/contributing.typ: c25dd84dd6d6a495d53cfbbebd1375a90a811270c4abc68933cdd2d53fe0c9d8
       docs/src/contributing/command-semantics.typ: 5b3219c6991e68607914d12d1386f39913d500ddb3f7d0eca2b91232789df32f
@@ -241,7 +241,7 @@ groups:
       www/content/recurring.typ: 9bb8e9b0b10dca758a092fd67776c376a2f44f4c3bff264025cd12482275f3d5
   cli-rm-docs:
     source:
-      crates/mindtape-cli/src/cmd/rm/mod.rs: 31fe26dcbe5641df0d3fc8f4058b0dda0c4a731121b453b46362297d38502346
+      crates/mindtape-cli/src/cmd/rm/mod.rs: b2dd199c2a71961847b0a127240f574a3e7981786380356c26a5d28993cc410d
     dependents:
       docs/src/skill.typ: efbf73c5a7fb68ecb18c2c395dba7ffb1b3c0edf9d1d449d85cecd655ff35852
       www/content/cli/ls.typ: 78adb14cc3e8dec8ebb763791951b2cdc7200a51cd91bf38f18f827b03b9ef0d

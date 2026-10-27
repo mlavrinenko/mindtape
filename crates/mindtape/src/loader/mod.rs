@@ -8,19 +8,15 @@
 //! - `errors.rs`: the per-file failures and Typst warnings a load reports.
 //! - `many.rs`, `many_tests.rs`: several projects loaded at once, each on its
 //!   own thread.
-//! - `world.rs`, `world_tests.rs`: the disk-backed Typst world a task file
-//!   evaluates in.
 
 pub mod app_dirs;
 pub mod derive;
 mod errors;
 mod many;
-mod world;
 
 pub use app_dirs::package_root;
 pub use errors::{LoadError, LoadWarning};
 pub use many::{Loaded, load_many, map_parallel};
-pub use world::disk_world;
 
 use std::path::{Path, PathBuf};
 
@@ -376,7 +372,7 @@ fn build_world(
     root: &Path,
     overrides: &[(String, PathBuf)],
 ) -> Result<HarvestWorld, String> {
-    let mut world = disk_world(file, root)
+    let mut world = HarvestWorld::with_root(file, root)
         .map_err(|err| err.to_string())?
         .with_package_root(package_root());
     for (name, dir) in overrides {

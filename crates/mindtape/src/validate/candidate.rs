@@ -24,7 +24,7 @@ use std::collections::HashSet;
 use std::path::Path;
 
 use typst_harvest::{HVal, HarvestWorld, harvest};
-use typst_world::{DiskProvider, root_file_id};
+use typst_world::{DiskProvider, project_file_id};
 
 use crate::body::{BodyRules, check_body_rules};
 use crate::config::Config;
@@ -295,11 +295,9 @@ fn eval_marker(
         message,
         ..LoadError::default()
     };
-    // Typst virtual paths are `/`-separated on every platform, so a Windows
-    // `tasks\foo.typ` has to be spelled the way the loader's own ids are.
-    let id = root_file_id(&crate::model::slash_path(candidate.rel))
-        .map_err(|err| fail(err.to_string()))?;
     let root_abs = crate::canonical(root).unwrap_or_else(|_| root.to_path_buf());
+    let id = project_file_id(&root_abs, &root_abs.join(candidate.rel))
+        .map_err(|err| fail(err.to_string()))?;
     // `with_package_root` installs the provider that resolves `@local/...`,
     // replacing the `DiskProvider` this constructor requires; the same pair
     // `HarvestWorld::with_root` sets up for a file that exists.

@@ -4173,9 +4173,9 @@ dependencies = [
 
 [[package]]
 name = "typst-cleanup"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba2cef245ebbe7f6279c807de8b363fd534d4dafe288331923af0d714d7a5d83"
+checksum = "04dcb667280ce512da46a5139adc467ac3725f06ce94e17ef908e47a5c769207"
 dependencies = [
  "gix",
  "swhid-mint",
@@ -4469,9 +4469,9 @@ dependencies = [
 
 [[package]]
 name = "typst-world"
-version = "0.5.5"
+version = "0.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "afc66e2fd979f753744bc86ed84765399d08b40342f4cee99bef539c493cfc66"
+checksum = "5a0b8922e5a7a234635d003a149e3cad038d08f61c2b687a26175f8f863c522e"
 dependencies = [
  "chrono",
  "dirs",

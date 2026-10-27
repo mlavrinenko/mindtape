@@ -106,8 +106,7 @@ pub use loader::app_dirs::{
 };
 pub use loader::derive::RootDeriver;
 pub use loader::{
-    LoadError, LoadOutcome, LoadWarning, disk_world, find_root, load_project, package_overrides,
-    package_root,
+    LoadError, LoadOutcome, LoadWarning, find_root, load_project, package_overrides, package_root,
 };
 pub use loader::{Loaded, load_many, load_one, map_parallel};
 pub use model::canonical::{CanonicalTask, SCHEMA_VERSION};

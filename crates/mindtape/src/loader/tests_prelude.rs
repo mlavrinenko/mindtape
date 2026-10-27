@@ -31,7 +31,7 @@ fn load_real_prelude(source: &str) -> (tempfile::TempDir, LoadOutcome) {
 
 /// A world compiling `tasks/t.typ` under `dir` against the real prelude.
 fn prelude_world(dir: &std::path::Path) -> HarvestWorld {
-    crate::loader::disk_world(&dir.join("tasks/t.typ"), dir)
+    HarvestWorld::with_root(&dir.join("tasks/t.typ"), dir)
         .unwrap()
         .with_local_package("mindtape", dir.join("lib"))
 }

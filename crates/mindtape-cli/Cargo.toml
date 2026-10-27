@@ -21,7 +21,7 @@ mindtape = { version = "0.3.0", path = "../mindtape" }
 # `mindtape::today_ymd()`/the task's own fields).
 chrono = { version = "0.4", default-features = false, features = ["std"] }
 typst-harvest = "0.6.0"
-typst-cleanup = "0.2.0"
+typst-cleanup = "0.2.1"
 swhid-mint = "0.1.1"
 typst-edit = "0.1.0"
 clap = { version = "4", features = ["derive", "string"] }

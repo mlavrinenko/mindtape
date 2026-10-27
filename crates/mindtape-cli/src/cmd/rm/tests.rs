@@ -424,25 +424,3 @@ fn no_repository_names_the_way_out_and_redacts_the_root() {
     let bare = crate::diag::plain(&super::no_repository(None, root));
     assert!(!bare.contains("note:"), "{bare}");
 }
-
-/// A tombstone's `path=` is a git path, `/`-separated on every platform. On
-/// Windows the cleanup crate hands it over with `\`, which no other machine
-/// resolves.
-#[test]
-fn a_tombstone_writes_its_path_with_forward_slashes() {
-    use typst_cleanup::{Artifact, Policy, Swhid};
-    let swhid = Swhid {
-        kind: swhid_mint::Kind::Revision,
-        hash: "0".repeat(40),
-        path: Some("tasks\\gone.typ".to_owned()),
-    };
-    let artifact = Artifact {
-        abs: PathBuf::from("gone.typ"),
-        rel: PathBuf::from("gone.typ"),
-        id: "gone".to_owned(),
-    };
-    assert_eq!(
-        super::TaskLinks.tombstone(&artifact, &swhid),
-        format!("\"swh:1:rev:{};path=tasks/gone.typ\"", "0".repeat(40))
-    );
-}
