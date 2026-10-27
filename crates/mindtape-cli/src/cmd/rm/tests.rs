@@ -243,7 +243,8 @@ fn toplevel_finds_work_tree_from_subdir() {
     std::fs::create_dir_all(&sub).unwrap();
     assert_eq!(
         mindtape::canonical(&git::toplevel(&sub).unwrap()).unwrap(),
-        root
+        // `repo_with` resolves its root with std, which keeps `\\?\` on Windows.
+        mindtape::canonical(&root).unwrap()
     );
 }
 
