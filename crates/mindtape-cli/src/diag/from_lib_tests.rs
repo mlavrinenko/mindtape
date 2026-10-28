@@ -313,7 +313,7 @@ fn a_reference_error_names_the_reference() {
     );
     assert_eq!(
         plain(&Diag::from(RefError::NoTaskAt("tasks/x.typ".into()))),
-        "error: no task at: 'tasks/x.typ'\n"
+        shown("error: no task at: 'tasks/x.typ'\n")
     );
     assert_eq!(
         plain(&Diag::from(RefError::Empty)),

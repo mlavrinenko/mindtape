@@ -16,6 +16,11 @@ fn expected_path(dir: &std::path::Path, rel: &str) -> String {
     mindtape::slash_path(&dir.join("tasks").join(rel))
 }
 
+/// The same path as `--format path` shows it, in the native separator.
+fn shown_path(dir: &std::path::Path, rel: &str) -> String {
+    mindtape::display_path(dir.join("tasks").join(rel))
+}
+
 /// A scaffolded project with a pre-existing `tasks/dup.typ`, the shared
 /// fixture every skipped/suffixed outcome test collides against.
 fn scaffold_with_existing_dup() -> tempfile::TempDir {
@@ -62,7 +67,7 @@ fn path_format_prints_only_the_written_path() {
     let stdout = String::from_utf8_lossy(&output);
     assert_eq!(
         stdout.trim_end_matches('\n'),
-        expected_path(dir.path(), "wired.typ")
+        shown_path(dir.path(), "wired.typ")
     );
 }
 
@@ -79,7 +84,7 @@ fn path0_format_is_nul_terminated() {
         .get_output()
         .stdout
         .clone();
-    let expected = format!("{}\0", expected_path(dir.path(), "wired.typ"));
+    let expected = format!("{}\0", shown_path(dir.path(), "wired.typ"));
     assert_eq!(output, expected.into_bytes());
 }
 

@@ -311,8 +311,7 @@ fn home_prints(extra: &str, json: bool, check: impl Fn(&str)) {
 fn run_lists_entries() {
     let cfg = format!("{SN_CFG}[at.home]\ninclude = [\"/wt/*\", \"@sn\"]\n");
     prints(&at_file(&cfg), &args(None, false), |stdout| {
-        let line = format!("@sn → {}\n", mindtape::display_path("/wt/sn"));
-        assert!(stdout.contains(&line), "{stdout}");
+        assert!(stdout.contains("@sn → /wt/sn\n"), "{stdout}");
         assert!(stdout.contains("@home → /wt/*, @sn\n"), "{stdout}");
     });
 }
