@@ -118,11 +118,14 @@ pub fn resolve_root() -> Result<PathBuf> {
 /// logic is testable without touching process-global state.
 fn resolve_root_with(cwd: &Path, override_path: Option<&Path>) -> Result<PathBuf> {
     let Some(path) = override_path else {
-        return find_root(cwd).ok_or_else(|| {
+        // Canonical, as `-w` is, so the `file` column relativizes against a
+        // working directory spelled the same way (`render::file_path::cwd`).
+        let root = find_root(cwd).ok_or_else(|| {
             Diag::failed("no .mindtape/ directory here or above").hint(Hint::new(
                 "run mt init to make one here, or pass -w <path> to use another project",
             ))
-        });
+        })?;
+        return Ok(mindtape::canonical(&root).unwrap_or(root));
     };
     let base = if path.is_absolute() {
         path.to_path_buf()

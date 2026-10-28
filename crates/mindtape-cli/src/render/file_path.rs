@@ -20,15 +20,24 @@ use std::sync::OnceLock;
 
 use super::file_uri;
 
-/// The process working directory, read once. `None` when the OS will not say,
-/// which leaves paths root-relative rather than failing a render over it.
+/// The process working directory, read once and [`resolved`]. `None` when
+/// the OS will not say, which leaves paths root-relative rather than failing
+/// a render over it.
 ///
 /// The directory belongs to the process, not to a project, so it stays a cell
 /// here while each project's root rides in [`super::RenderCtx`].
 #[must_use]
 pub fn cwd() -> Option<&'static Path> {
     static CWD: OnceLock<Option<PathBuf>> = OnceLock::new();
-    CWD.get_or_init(|| std::env::current_dir().ok()).as_deref()
+    CWD.get_or_init(|| std::env::current_dir().ok().map(resolved))
+        .as_deref()
+}
+
+/// `dir` in canonical form, as a project root is, so a symlink or a Windows
+/// short name such as `RUNNER~1` in one spelling doesn't send [`relativize`]
+/// up to the drive. `dir` unchanged when it doesn't resolve.
+fn resolved(dir: PathBuf) -> PathBuf {
+    mindtape::canonical(&dir).unwrap_or(dir)
 }
 
 /// The `file` column's cell text for a task's root-relative source path
@@ -179,6 +188,22 @@ mod tests {
         assert_eq!(
             relativize(root, cwd, file),
             PathBuf::from("../proj/truth/tasks/x.typ")
+        );
+    }
+
+    /// A working directory spelled through a symlink, or on Windows a short
+    /// `RUNNER~1` name, still sits under the canonical root it names.
+    #[cfg(unix)]
+    #[test]
+    fn a_symlinked_working_directory_resolves_under_the_canonical_root() {
+        let dir = mindtape::test_support::tempdir();
+        std::fs::create_dir_all(dir.path().join("real/tasks")).unwrap();
+        std::os::unix::fs::symlink(dir.path().join("real"), dir.path().join("link")).unwrap();
+        let root = mindtape::canonical(&dir.path().join("real")).unwrap();
+        let cwd = resolved(dir.path().join("link/tasks"));
+        assert_eq!(
+            relativize(&root, &cwd, Path::new("tasks/a.typ")),
+            PathBuf::from("../tasks/a.typ")
         );
     }
 

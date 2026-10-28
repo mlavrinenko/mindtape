@@ -187,7 +187,21 @@ fn resolve_root_no_override_walks_up() {
     let child = dir.path().join("a").join("b");
     std::fs::create_dir_all(&child).unwrap();
     let root = resolve_root_with(&child, None).unwrap();
-    assert_eq!(root, dir.path());
+    assert_eq!(root, mindtape::canonical(dir.path()).unwrap());
+}
+
+/// A working directory reached through a symlink, or on Windows a short
+/// `RUNNER~1` name, finds the project at its canonical path, the one `-w`
+/// and the `file` column's working directory resolve to.
+#[cfg(unix)]
+#[test]
+fn resolve_root_no_override_is_canonical_through_a_symlink() {
+    let dir = tempdir();
+    std::fs::create_dir_all(dir.path().join("real/.mindtape")).unwrap();
+    std::fs::create_dir_all(dir.path().join("real/tasks")).unwrap();
+    std::os::unix::fs::symlink(dir.path().join("real"), dir.path().join("link")).unwrap();
+    let root = resolve_root_with(&dir.path().join("link/tasks"), None).unwrap();
+    assert_eq!(root, mindtape::canonical(&dir.path().join("real")).unwrap());
 }
 
 // --- Subprocess tests (process-global `OnceLock` isolation) -----------

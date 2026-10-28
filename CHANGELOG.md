@@ -776,6 +776,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The `file` column stays short under a short or symlinked directory.** On
+  Windows, from a directory spelled with a short name such as `RUNNER~1`, the
+  column climbed to the drive, as in `..\..\..\..\..\runneradmin\...\a.typ`,
+  because the working directory and the project root were spelled two ways.
+  Both resolve to their canonical form now.
 - **A flip hook can't flip its own task in a loop.** An `[[on.flip]]` command
   that ran `mt flip done` on the task it ran for started the same hook again,
   without end. Every command gets the flips in progress in
