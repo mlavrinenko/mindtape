@@ -36,11 +36,13 @@ size:
 # entries. A list of those has no helper to extract, and one more line must not
 # change a fingerprint. A skipped token also ends a clone that straddled it, so
 # a new pattern re-mints the baseline once.
+
 DRY_FLAGS := "--no-tips -f rust -k 50 --ignore-identifiers --ignore-literals --similarity=0.8 --ignore '**/tests/it/main.rs' --baseline .config/jscpd-baseline.json"
 
 # Fix a finding by extracting a shared helper, not by shuffling tokens until the
 # detector stops matching. `--new-only` prints only the clones the baseline
 # lacks.
+
 [doc("Copy-paste gate: fail on a duplicated Rust block the baseline lacks")]
 [group("gate")]
 dry:
