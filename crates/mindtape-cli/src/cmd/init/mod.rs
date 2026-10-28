@@ -284,7 +284,7 @@ fn with_schema_directive(template: &str, args: &SchemaArgs) -> Result<String> {
                     path.display()
                 );
             }
-            format!("file://{}", path.display())
+            crate::render::file_uri::file_uri(&path)
         }
         Some(value) => value.to_owned(),
         None => mindtape::SCHEMA_URL.to_owned(),

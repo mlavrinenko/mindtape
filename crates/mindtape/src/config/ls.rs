@@ -80,8 +80,10 @@ pub struct LsConfig {
     /// run.
     pub hyperlinks: HyperlinkChoice,
     /// URI that a row's `slug#` and `file` cells link to. `mt` replaces `{abs}`
-    /// with the task's absolute path and `{rel}` with the path the `file`
-    /// column shows. Defaults to `file://{abs}`. Point it at another scheme,
+    /// with the task's absolute path as it follows `file://`, such as
+    /// `/C:/proj/tasks/a.typ`, and `{rel}` with the path the `file` column
+    /// shows. Both use `/` and percent-encode a space or any other character a
+    /// URI can't hold. Defaults to `file://{abs}`. Point it at another scheme,
     /// such as an editor's URI handler, to open the task there.
     pub hyperlink_target: Option<String>,
     /// Fields that `contains()` searches when a call names none, in order.

@@ -91,8 +91,10 @@ shares its prefix. On a terminal it shows when you name it, as in
 
 `--hyperlinks always`, or `[ls] hyperlinks`, turns the `slug#` column, and
 `file` when shown, into OSC 8 links to `[ls] hyperlink-target` (default
-`file://{abs}`). `--hyperlinks auto` turns them on for a terminal whose `TERM`
-isn't `dumb`. The default is `never`, because a terminal without OSC 8 support
+`file://{abs}`). Each link is a URI, so it uses `/` and percent-encodes a
+space, whatever `--path-separator` says. On Windows the default reads
+`file:///C:/proj/tasks/a.typ`, and a UNC path names its server as the host.
+`--hyperlinks auto` turns them on for a terminal whose `TERM` isn't `dumb`. The default is `never`, because a terminal without OSC 8 support
 can print the link as garbage.
 
 `mt ls -i` keeps the table open and reads keys. Type a stem hash to highlight

@@ -1430,7 +1430,7 @@
         },
         "hyperlink-target": {
           "default": null,
-          "description": "URI that a row's `slug#` and `file` cells link to. `mt` replaces `{abs}`\nwith the task's absolute path and `{rel}` with the path the `file`\ncolumn shows. Defaults to `file://{abs}`. Point it at another scheme,\nsuch as an editor's URI handler, to open the task there.",
+          "description": "URI that a row's `slug#` and `file` cells link to. `mt` replaces `{abs}`\nwith the task's absolute path as it follows `file://`, such as\n`/C:/proj/tasks/a.typ`, and `{rel}` with the path the `file` column\nshows. Both use `/` and percent-encode a space or any other character a\nURI can't hold. Defaults to `file://{abs}`. Point it at another scheme,\nsuch as an editor's URI handler, to open the task there.",
           "type": [
             "string",
             "null"

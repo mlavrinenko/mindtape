@@ -790,6 +790,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Windows couldn't run it at all. It's a filter condition now,
   `matches(body, "(?m)^\s*- TODO:")`, which runs no command. No shipped
   preset, `mt init` answer set or `mindtape:` pack declares a `run`.
+- **A hyperlink on Windows opens its task.** The `slug#` and `file` links
+  read `file://C:\proj\tasks\a.typ`, which names a host `C:`, or mixed both
+  separators, as in `file:///home/user/proj\truth/...`. They're RFC 8089 URIs
+  now: `file:///C:/proj/tasks/a.typ`, with `/`, a percent-encoded space, no
+  `\\?\` prefix, and `file://server/share/...` for a UNC path. The
+  `#:schema` line `mt init --schema local` writes is one too.
 - **A `check` rule gets an infinite or NaN float from an `x-` field.** `mt`
   wrote it into the call as Rust's `inf` or `NaN`, so the rule broke with
   `unknown variable: inf`. It's Typst's `float.inf` and `float.nan` now.

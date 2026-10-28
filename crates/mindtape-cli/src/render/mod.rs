@@ -12,6 +12,7 @@
 //! - [`width`] — Unicode display-width-aware truncation and padding helpers.
 //! - [`sep`] — stable separator policy for machine-readable output.
 //! - [`field`] — `Field` trait and generic cell rendering seam.
+//! - [`file_uri`] — a path as an RFC 8089 `file:` URI, for hyperlinks.
 //!
 //! # Files
 //!
@@ -132,6 +133,7 @@ pub mod columns;
 pub mod field;
 pub mod fields;
 pub mod file_path;
+pub mod file_uri;
 pub mod glyph;
 pub mod link;
 pub mod sep;

@@ -18,6 +18,8 @@
 use std::path::{Component, Path, PathBuf};
 use std::sync::OnceLock;
 
+use super::file_uri;
+
 /// The process working directory, read once. `None` when the OS will not say,
 /// which leaves paths root-relative rather than failing a render over it.
 ///
@@ -61,16 +63,17 @@ pub fn relativize(root: &Path, cwd: &Path, file: &Path) -> PathBuf {
 }
 
 /// Default `[ls] hyperlink-target` template: the `file://` scheme over the
-/// absolute path. Anyone whose editor registers its own URI scheme overrides
-/// this in config instead.
+/// absolute path, `file:///C:/proj/tasks/a.typ` on Windows. Anyone whose
+/// editor registers its own URI scheme overrides this in config instead.
 pub const DEFAULT_HYPERLINK_TARGET: &str = "file://{abs}";
 
 /// Build the `file` column's hyperlink target URI for `file` (a task's
 /// root-relative source path) by substituting `{abs}` and `{rel}` into
-/// `template` — the absolute path (`root.join(file)`) and the same
-/// working-directory-relative path [`cell_text`] renders.
+/// `template`: what follows `file://` for `root.join(file)`
+/// ([`file_uri::uri_tail`]), and the working-directory-relative path
+/// [`cell_text`] renders, both `/`-separated and percent-encoded.
 ///
-/// Falls back to `file` unchanged for both tokens when `root` is empty or the
+/// Falls back to `file` for both tokens when `root` is empty or the
 /// working directory is unreadable — the same fallback [`cell_text`] uses.
 #[must_use]
 pub fn hyperlink_target(root: &Path, file: &Path, template: &str) -> String {
@@ -79,8 +82,8 @@ pub fn hyperlink_target(root: &Path, file: &Path, template: &str) -> String {
             build_hyperlink_target(root, cwd, file, template)
         }
         _ => template
-            .replace("{abs}", &file.display().to_string())
-            .replace("{rel}", &file.display().to_string()),
+            .replace("{abs}", &file_uri::uri_path(file))
+            .replace("{rel}", &file_uri::uri_path(file)),
     }
 }
 
@@ -91,8 +94,8 @@ fn build_hyperlink_target(root: &Path, cwd: &Path, file: &Path, template: &str) 
     let abs = root.join(file);
     let rel = relativize(root, cwd, file);
     template
-        .replace("{abs}", &abs.display().to_string())
-        .replace("{rel}", &rel.display().to_string())
+        .replace("{abs}", &file_uri::uri_tail(&abs))
+        .replace("{rel}", &file_uri::uri_path(&rel))
 }
 
 /// The relative path from `from` to `to` (both absolute): shared-prefix
@@ -195,31 +198,39 @@ mod tests {
         }
     }
 
-    #[test]
-    fn build_hyperlink_target_substitutes_abs() {
-        let root = Path::new("/home/user/proj");
-        let cwd = Path::new("/home/user/proj");
-        let file = Path::new("truth/tasks/x.typ");
-        let uri = build_hyperlink_target(root, cwd, file, "file://{abs}");
-        assert_eq!(uri, "file:///home/user/proj/truth/tasks/x.typ");
-    }
+    /// `(root, cwd, file, template, uri)`: `{abs}` from the root, `{rel}`
+    /// from a subdirectory, and both at once, percent-encoded.
+    const TARGETS: &[(&str, &str, &str, &str, &str)] = &[
+        (
+            "/home/user/proj",
+            "/home/user/proj",
+            "truth/tasks/x.typ",
+            "file://{abs}",
+            "file:///home/user/proj/truth/tasks/x.typ",
+        ),
+        (
+            "/home/user/proj",
+            "/home/user/proj/sub",
+            "truth/tasks/x.typ",
+            "editor://{rel}",
+            "editor://../truth/tasks/x.typ",
+        ),
+        (
+            "/my proj",
+            "/my proj",
+            "a b.typ",
+            "{rel} -> {abs}",
+            "a%20b.typ -> /my%20proj/a%20b.typ",
+        ),
+    ];
 
     #[test]
-    fn build_hyperlink_target_substitutes_rel_from_a_subdirectory() {
-        let root = Path::new("/home/user/proj");
-        let cwd = Path::new("/home/user/proj/sub");
-        let file = Path::new("truth/tasks/x.typ");
-        let uri = build_hyperlink_target(root, cwd, file, "editor://{rel}");
-        assert_eq!(uri, "editor://../truth/tasks/x.typ");
-    }
-
-    #[test]
-    fn build_hyperlink_target_supports_both_tokens_in_one_template() {
-        let root = Path::new("/proj");
-        let cwd = Path::new("/proj");
-        let file = Path::new("x.typ");
-        let uri = build_hyperlink_target(root, cwd, file, "{rel} -> {abs}");
-        assert_eq!(uri, "x.typ -> /proj/x.typ");
+    fn build_hyperlink_target_substitutes_each_token() {
+        for (root, cwd, file, template, uri) in TARGETS {
+            let built =
+                build_hyperlink_target(Path::new(root), Path::new(cwd), Path::new(file), template);
+            assert_eq!(built, *uri, "{template}");
+        }
     }
 
     #[test]
