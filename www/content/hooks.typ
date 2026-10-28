@@ -96,7 +96,8 @@ reviewed or moved in 30 days, the default of its `days` parameter:
 records that in the status note: the command, or the `message` of a gate with
 no `run`. So the task file shows which check was skipped.
 
-A gate command runs from the project root with three variables set:
+A `run` command, gate or not, runs from the project root with these
+variables set:
 
 #table(
   columns: 2,
@@ -106,10 +107,29 @@ A gate command runs from the project root with three variables set:
   [The task's id: its file stem, unless `id:` sets one.],
 
   [`MINDTAPE_TASK_STATUS`], [The status being stamped.],
+  [`MINDTAPE_FLIP_CHAIN`],
+  [The flips in progress, this one last, one per line. `mt` reads it, so leave it be.],
 )
 
 An array gets no shell, so `$MINDTAPE_TASK_FILE` in one of its items stays as
 written. The program reads the variable itself.
+
+= A hook that flips a task
+
+A command may run `mt flip` itself, say to close a parent once its last
+child is done. That nested flip is a flip like any other, so the other task's
+own hooks and gates run too.
+
+What it can't do is flip a task into a status that's already in progress
+above it. Picture a gate on `done` that runs `mt done` on its own task. The
+inner flip would fire the same gate, which flips again, and so on forever.
+So `mt` refuses the inner flip, names every flip in the chain, and exits 1.
+Two hooks that close each other end the same way, on the second visit to the
+first task. A gate that runs it fails like any failing gate, so the outer
+flip is refused too, and `--force` doesn't lift the refusal on the inner one.
+
+A chain also stops at 16 nested flips, which catches a hook that keeps adding
+fresh tasks and flipping them.
 
 = Trust and portability
 

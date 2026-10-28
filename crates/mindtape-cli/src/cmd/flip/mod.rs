@@ -20,12 +20,16 @@
 //! `flip` is also the one command that runs the project's `[[on.flip]]` actions
 //! ([`crate::cmd::flip::hooks`]). They run per target, after the transition and
 //! note-requirement guards and before the write, so a refusing gate leaves that
-//! task's file untouched.
+//! task's file untouched. A hook's command may run `mt flip` too, and a
+//! nested flip of a task into a status it is already taking is refused
+//! ([`crate::cmd::flip::chain`]), so hooks can't loop.
 //!
 //! # Files
 //!
 //! - `batch.rs` — the post-write revalidation of a landed batch, and the
 //!   batch's error report.
+//! - `chain.rs` — the flips in progress above this `mt`, which a nested flip
+//!   may not repeat.
 //! - `guards.rs` — the transition and note guards cleared before a write.
 //! - `hooks.rs` — the `[[on.flip]]` action runner.
 //! - `hooks_cmd.rs` — executing a `run` action's command.
@@ -33,6 +37,7 @@
 //! - `tests*.rs`, `*_tests.rs` — unit tests.
 
 pub(crate) mod batch;
+pub(crate) mod chain;
 pub(crate) mod hooks;
 pub(crate) mod hooks_cmd;
 mod verbs;
@@ -270,8 +275,10 @@ struct Batch<'a> {
 /// `Err(diag)` says why it did not — the batch reports it and moves on, so a
 /// refused target leaves its own file untouched without rolling back the rest.
 ///
-/// Order matters: the transition graph and the note requirement are cheap,
-/// local checks, so they run before any configured command does.
+/// Order matters: a flip already in progress above this `mt` is refused first,
+/// `--force` or not, since its hooks would start this one again. The
+/// transition graph and the note requirement are cheap, local checks, so they
+/// run before any configured command does.
 fn flip_target(
     batch: &Batch<'_>,
     world: &mut Vec<mindtape::Task>,
@@ -279,6 +286,7 @@ fn flip_target(
     abs: &Path,
 ) -> std::result::Result<(), Diag> {
     let (args, status) = (batch.args, batch.status);
+    batch.hooks.chain().admit(abs, &task.id, status)?;
     let legend = &batch.project.config.tasks.status;
     if !args.force {
         check_transition(legend, task.status.as_ref(), status)?;

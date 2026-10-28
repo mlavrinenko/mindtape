@@ -33,6 +33,7 @@ use mindtape::config::hooks::{ActionKind, FlipAction, matching_flip_hooks};
 use mindtape::shell::ConfigCommand;
 use mindtape::{ConditionEnv, Filter, Readiness, Task, select};
 
+use crate::cmd::flip::chain::Chain;
 use crate::cmd::flip::hooks_cmd::{CommandReport, RunCtx, run_command};
 use crate::diag::{Diag, Hint, Kind};
 use crate::render::RenderCtx;
@@ -98,6 +99,9 @@ pub(crate) struct Hooks<'a> {
     /// Whether the user allowed the config's commands, asked on the first
     /// `run` only, since the answer costs a `git` call.
     allowed: OnceCell<bool>,
+    /// The flips in progress above this `mt`, which every `run` command gets
+    /// with its own flip added.
+    chain: Chain,
 }
 
 impl<'a> Hooks<'a> {
@@ -119,7 +123,13 @@ impl<'a> Hooks<'a> {
             show,
             env: crate::cmd::ls::rules::build_env(project, "table"),
             allowed: OnceCell::new(),
+            chain: Chain::inherited(),
         }
+    }
+
+    /// The flips in progress above this `mt`.
+    pub(crate) fn chain(&self) -> &Chain {
+        &self.chain
     }
 
     /// Whether the user allowed the commands the project's config runs.
@@ -260,6 +270,7 @@ impl<'a> Hooks<'a> {
                 path: at.path,
                 stem: &at.task.id,
                 target: at.target,
+                chain: &self.chain,
             },
         )?;
         if report.success {

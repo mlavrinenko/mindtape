@@ -767,6 +767,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A flip hook can't flip its own task in a loop.** An `[[on.flip]]` command
+  that ran `mt flip done` on the task it ran for started the same hook again,
+  without end. Every command gets the flips in progress in
+  `MINDTAPE_FLIP_CHAIN` now, and a nested flip that repeats one is refused
+  with the chain named. A hook that flips another task still runs that
+  task's hooks, up to 16 flips deep.
 - **A checker that runs `mt` answers once.** A `[[tasks.waits]]` checker such
   as `mt ls ready` loaded its own project, ran itself again and never came
   back. Every checker runs with `MINDTAPE_WAITS_CHECKER=1` now, and an `mt`

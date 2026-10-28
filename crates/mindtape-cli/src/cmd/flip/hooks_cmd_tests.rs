@@ -13,6 +13,8 @@ use std::path::{Path, PathBuf};
 
 use mindtape::shell::ConfigCommand;
 
+use crate::cmd::flip::chain::Chain;
+
 use super::{CommandReport, ENV_FILE, ENV_STATUS, ENV_STEM, RunCtx, run_command};
 
 /// `text` as a shell line, the form every case below is written in.
@@ -20,12 +22,16 @@ fn line(text: &str) -> ConfigCommand {
     ConfigCommand::Line(text.to_owned())
 }
 
+/// No flip in progress above the one under test.
+static NO_CHAIN: Chain = Chain::NONE;
+
 fn ctx<'a>(root: &'a Path, path: &'a Path) -> RunCtx<'a> {
     RunCtx {
         root,
         path,
         stem: "alpha",
         target: "done",
+        chain: &NO_CHAIN,
     }
 }
 

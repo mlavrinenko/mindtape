@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 28),
+  status: done(2026, 10, 28),
 )
 
 == Problem
@@ -60,13 +60,16 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape-cli/src/cmd/flip/hooks_cmd.rs`: pass the transitions in flight down in an env variable, as `waits.rs` passes `MINDTAPE_WAITS_CHECKER`.
-- `crates/mindtape-cli/src/cmd/flip/mod.rs`: refuse a flip whose task and target are already in flight.
+- `crates/mindtape-cli/tests/it/flip_chain_e2e.rs`: the red tests, each under a 20 s timeout: a gate flipping its own task is refused in one hop, two hooks closing each other are refused, and a gate closing another task runs that task's gate.
+- `crates/mindtape-cli/src/cmd/flip/chain.rs`: the flips in progress, read from `MINDTAPE_FLIP_CHAIN`; refuse a repeated (task file, status) pair, and any flip 16 deep.
+- `crates/mindtape-cli/src/cmd/flip/hooks_cmd.rs`: pass the chain plus this flip down to every `run` command.
+- `crates/mindtape-cli/src/cmd/flip/mod.rs`: admit each target against the chain before any guard, `--force` or not.
+- `www/content/hooks.typ`: say what a hook's own `mt flip` may do.
 
 
 == Rollback
 
-- Revert both files.
+- Revert the commit.
 
 
 == Out of scope

@@ -121,14 +121,14 @@ groups:
   cli-flip-docs:
     source:
       crates/mindtape-cli/src/cmd/flip/guards.rs: ba2e4c74d012fc3c4a76b6a068f7bfe8f92419485030214675ed5cda51997228
-      crates/mindtape-cli/src/cmd/flip/hooks.rs: ac5e29d5cae51f04e3fbfa59e2c77489b0ec12d68e1aada845be2ebd55487b8f
-      crates/mindtape-cli/src/cmd/flip/hooks_cmd.rs: c981b41761c83d9f028ef9f66a9129c233bb766f2de8cdc214f7eb0e4844eb5a
-      crates/mindtape-cli/src/cmd/flip/mod.rs: 18db78a7982e1c51288181486b1b689aa9698996aaad3bbd4c121f8d4e207693
+      crates/mindtape-cli/src/cmd/flip/hooks.rs: 2af65ffbeefbae0208d3d0e11517569ca9339745632c7f741a4c9f79f7f3e995
+      crates/mindtape-cli/src/cmd/flip/hooks_cmd.rs: 55cc3a05f52d6be1279c63cee5a288b47838838e6fc7f29470cb1c290e233632
+      crates/mindtape-cli/src/cmd/flip/mod.rs: ea382f4df749dc0dceb25a8c1185356721334ba2eb6d7b9b8037f14bcc5c8367
     dependents:
       docs/src/skill.typ: efbf73c5a7fb68ecb18c2c395dba7ffb1b3c0edf9d1d449d85cecd655ff35852
       skills/mindtape/evals/evals.json: 481bb4f0168826d9ee4086ee6f4f4f74c4c31ed3b46792871532da8372b56460
       www/content/cli/flip.typ: e2a040fa7c9bc827bbd7c58510205c6dcf8639cb5d4ac534d77aedf8a4715cd3
-      www/content/hooks.typ: 5143d987a57b698ebe0b84a5e0ccce841981f7bda8886d3284d199cbbe1881e6
+      www/content/hooks.typ: eafa7bbbedc26f726431d6936bcb03de5a6e5b0bc153f05efb3576eb54d7ca40
       www/content/links.typ: 4f6f04305d7f5f369370f4ff22b831e1460a982decebb249db2a34a97694d020
       www/content/quickstart.typ: 09b26451dd0518acb8ff21d00389a586b21b78855ee75cc5a2b0f9f7c12e8d9e
       www/content/statuses.typ: e1adb2f5358a58777fda7117b066dd5d0ac1f1949c8e1d01d26c979b175c8fe9

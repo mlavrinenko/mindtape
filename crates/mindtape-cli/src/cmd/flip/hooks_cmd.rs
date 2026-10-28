@@ -2,12 +2,15 @@
 //!
 //! The command runs through [`mindtape::shell`], the executor `[[tasks.waits]]`
 //! checkers share, from the project root with the transition in its
-//! environment. That module states the trust boundary.
+//! environment. That module states the trust boundary. The environment also
+//! carries the flips in progress ([`ENV_CHAIN`]), so a nested `mt flip` can
+//! refuse one that would loop.
 
 use std::path::Path;
 
 use mindtape::shell::ConfigCommand;
 
+use crate::cmd::flip::chain::{Chain, ENV_CHAIN};
 use crate::diag::{Diag, Result};
 
 /// Absolute path of the task being flipped.
@@ -27,6 +30,8 @@ pub(crate) struct RunCtx<'a> {
     pub stem: &'a str,
     /// The status being stamped.
     pub target: &'a str,
+    /// The flips in progress above this one.
+    pub chain: &'a Chain,
 }
 
 /// What one command run reported.
@@ -51,7 +56,7 @@ impl CommandReport {
 
 /// Run `command`, a shell line or an array, from the project root, with
 /// the transition in the environment ([`ENV_FILE`], [`ENV_STEM`],
-/// [`ENV_STATUS`]).
+/// [`ENV_STATUS`]) and the chain with this flip added ([`ENV_CHAIN`]).
 ///
 /// Output is captured rather than inherited so a gate's evidence can be printed
 /// under the refusal that rests on it, and so a scripted flip stays clean when
@@ -62,10 +67,12 @@ impl CommandReport {
 /// runs and fails is not an error here — it is a [`CommandReport`] the caller
 /// decides about.
 pub(crate) fn run_command(command: &ConfigCommand, ctx: &RunCtx<'_>) -> Result<CommandReport> {
+    let chain = ctx.chain.passed_down(ctx.path, ctx.stem, ctx.target);
     let env = [
         (ENV_FILE, ctx.path.as_os_str()),
         (ENV_STEM, ctx.stem.as_ref()),
         (ENV_STATUS, ctx.target.as_ref()),
+        (ENV_CHAIN, chain.as_os_str()),
     ];
     let output = mindtape::shell::run(command, ctx.root, &env).map_err(|err| {
         Diag::failed("can't run on.flip command")
