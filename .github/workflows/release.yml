@@ -191,8 +191,9 @@ jobs:
     environment: crates-io
     # Trusted Publishing: crates.io trusts this repo, release.yml and the
     # crates-io environment, and trades the job's GitHub identity token for one
-    # that is revoked when the job ends. No registry secret is stored. v0.3.0's
-    # first publish failed on a stored token that had expired.
+    # that is revoked when the job ends. Only a crate's first publish reads a
+    # stored token (below). v0.3.0's first publish failed on a stored token
+    # that had expired.
     permissions:
       contents: read
       id-token: write
@@ -212,13 +213,32 @@ jobs:
       # crate whose version crates.io already has (a re-run, or a hand
       # `cargo publish`) is skipped rather than failed. Any answer but 200 or
       # 404 stops the run: an unreachable crates.io is not "not published yet".
-      # www/generate-release-targets.sh reads the `cargo publish -p` lines.
+      # Trusted Publishing can't create a crate, so a crate crates.io lacks goes
+      # out once with CARGO_NEW_CRATE_TOKEN, a short-lived token scoped to
+      # publish-new for that crate, and through Trusted Publishing after that.
+      # www/generate-release-targets.sh reads the `cargo publish -p` lines, and
+      # tests/it/release_workflow_e2e.rs runs the mindtape-cli step.
       - name: Publish mindtape
         env:
-          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+          TRUSTED_TOKEN: ${{ steps.auth.outputs.token }}
+          NEW_CRATE_TOKEN: ${{ secrets.CARGO_NEW_CRATE_TOKEN }}
         run: |
-          status=$(curl -sS -o /dev/null -w '%{http_code}' -A "$GITHUB_REPOSITORY release workflow" \
-            "https://crates.io/api/v1/crates/mindtape/$VERSION")
+          ask() {
+            curl -sS -o /dev/null -w '%{http_code}' -A "$GITHUB_REPOSITORY release workflow" \
+              "https://crates.io/api/v1/crates/mindtape$1"
+          }
+          crate=$(ask "")
+          case "$crate" in
+            200) export CARGO_REGISTRY_TOKEN="$TRUSTED_TOKEN" ;;
+            404)
+              if [ -z "$NEW_CRATE_TOKEN" ]; then
+                echo "::error::mindtape is not on crates.io yet, and Trusted Publishing can't create a crate. Store a publish-new token scoped to mindtape as the crates-io environment's CARGO_NEW_CRATE_TOKEN, then re-run"
+                exit 1
+              fi
+              export CARGO_REGISTRY_TOKEN="$NEW_CRATE_TOKEN" ;;
+            *) echo "::error::crates.io answered HTTP $crate for mindtape"; exit 1 ;;
+          esac
+          status=$(ask "/$VERSION")
           case "$status" in
             200) echo "::notice::mindtape $VERSION is already on crates.io; skipping cargo publish" ;;
             404) cargo publish -p mindtape --locked ;;
@@ -226,10 +246,25 @@ jobs:
           esac
       - name: Publish mindtape-cli
         env:
-          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+          TRUSTED_TOKEN: ${{ steps.auth.outputs.token }}
+          NEW_CRATE_TOKEN: ${{ secrets.CARGO_NEW_CRATE_TOKEN }}
         run: |
-          status=$(curl -sS -o /dev/null -w '%{http_code}' -A "$GITHUB_REPOSITORY release workflow" \
-            "https://crates.io/api/v1/crates/mindtape-cli/$VERSION")
+          ask() {
+            curl -sS -o /dev/null -w '%{http_code}' -A "$GITHUB_REPOSITORY release workflow" \
+              "https://crates.io/api/v1/crates/mindtape-cli$1"
+          }
+          crate=$(ask "")
+          case "$crate" in
+            200) export CARGO_REGISTRY_TOKEN="$TRUSTED_TOKEN" ;;
+            404)
+              if [ -z "$NEW_CRATE_TOKEN" ]; then
+                echo "::error::mindtape-cli is not on crates.io yet, and Trusted Publishing can't create a crate. Store a publish-new token scoped to mindtape-cli as the crates-io environment's CARGO_NEW_CRATE_TOKEN, then re-run"
+                exit 1
+              fi
+              export CARGO_REGISTRY_TOKEN="$NEW_CRATE_TOKEN" ;;
+            *) echo "::error::crates.io answered HTTP $crate for mindtape-cli"; exit 1 ;;
+          esac
+          status=$(ask "/$VERSION")
           case "$status" in
             200) echo "::notice::mindtape-cli $VERSION is already on crates.io; skipping cargo publish" ;;
             404) cargo publish -p mindtape-cli --locked ;;

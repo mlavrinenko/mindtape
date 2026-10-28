@@ -157,3 +157,74 @@ fn the_ci_gate_fails_when_ci_has_no_green_run_on_the_tagged_commit() {
         "{printed}"
     );
 }
+
+/// Runs the "Publish mindtape-cli" step with stub `curl` and `cargo` on `PATH`.
+/// crates.io answers `krate` for the crate and `version` for 1.2.0, and the
+/// step gets `new_token` as its new-crate token: what it printed, whether it
+/// passed, and each `cargo` call with the token it saw.
+fn publish(krate: &str, version: &str, new_token: &str) -> (Result<String, String>, String) {
+    let dir = tempdir();
+    let bin = dir.path().join("bin");
+    std::fs::create_dir(&bin).unwrap();
+    let log = dir.path().join("cargo.log");
+    let curl = format!(
+        "#!/bin/sh\nfor url; do :; done\ncase \"$url\" in\n\
+         */1.2.0) printf {version} ;;\n*) printf {krate} ;;\nesac\n"
+    );
+    let cargo = format!(
+        "#!/bin/sh\necho \"$* token=$CARGO_REGISTRY_TOKEN\" >> \"{}\"\n",
+        log.display()
+    );
+    for (name, body) in [("curl", curl), ("cargo", cargo)] {
+        std::fs::write(bin.join(name), body).unwrap();
+        crate::support::shell("chmod", dir.path())
+            .args(["+x", &bin.join(name).display().to_string()])
+            .status()
+            .unwrap();
+    }
+    let path = format!("{}:{}", bin.display(), std::env::var("PATH").unwrap());
+    let env = [
+        ("PATH", path.as_str()),
+        ("VERSION", "1.2.0"),
+        ("TRUSTED_TOKEN", "trusted"),
+        ("NEW_CRATE_TOKEN", new_token),
+    ];
+    let result = run_step("Publish mindtape-cli", dir.path(), &env);
+    (result, std::fs::read_to_string(log).unwrap_or_default())
+}
+
+/// The token a passing publish of a missing 1.2.0 handed `cargo publish`, with
+/// crates.io answering `krate` for the crate.
+fn publish_token(krate: &str) -> String {
+    let (result, log) = publish(krate, "404", "new");
+    result.unwrap();
+    let token = log.strip_prefix("publish -p mindtape-cli --locked token=");
+    token.unwrap().trim_end().to_owned()
+}
+
+/// A published crate's new version goes out through Trusted Publishing, and a
+/// crate crates.io lacks with the new-crate token.
+#[test]
+fn the_publish_token_follows_whether_crates_io_has_the_crate() {
+    let tokens = [publish_token("200"), publish_token("404")];
+    assert_eq!(tokens, ["trusted", "new"]);
+}
+
+#[test]
+fn a_crate_crates_io_lacks_fails_without_a_new_crate_token() {
+    let (result, log) = publish("404", "404", "");
+    let printed = result.unwrap_err();
+    assert!(
+        printed.contains("::error::mindtape-cli is not on crates.io yet"),
+        "{printed}"
+    );
+    assert!(printed.contains("CARGO_NEW_CRATE_TOKEN"), "{printed}");
+    assert_eq!(log, "");
+}
+
+#[test]
+fn a_version_crates_io_has_is_skipped() {
+    let (result, log) = publish("200", "200", "new");
+    assert!(result.unwrap().contains("already on crates.io"));
+    assert_eq!(log, "");
+}
