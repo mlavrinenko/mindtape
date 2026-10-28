@@ -137,9 +137,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: refs/tags/${{ needs.version-check.outputs.tag }}
-      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
-        with:
-          targets: ${{ matrix.target }}
+      # cargo builds with the toolchain rust-toolchain.toml pins, whatever
+      # rustup's default is, so the target goes to that one. v0.3.0's first run
+      # added it to `stable` instead and every cross build found no `core`.
+      - name: Install the pinned toolchain and the target
+        shell: bash
+        run: |
+          rustup toolchain install
+          rustup target add ${{ matrix.target }}
       # No rust-cache: a tag's run reads only caches saved under that tag or
       # main, and none is saved under main, so a release's cache never reached
       # the next release and cost an upload each time.
@@ -191,7 +196,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: refs/tags/${{ needs.version-check.outputs.tag }}
-      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+      - name: Install the pinned toolchain
+        run: rustup toolchain install
       # Publish in dependency order (mindtape-cli depends on mindtape); cargo
       # waits for the crates.io index to carry each crate before returning. A
       # crate whose version crates.io already has (a re-run, or a hand
