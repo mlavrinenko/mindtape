@@ -8,6 +8,7 @@ use crate::config::{Config, parse_config};
 use crate::filter::Filter;
 use crate::graph::ready::Readiness;
 use crate::model::{Status, Task};
+use crate::shell::ConfigCommand;
 use crate::test_support::bare_task;
 
 /// A task at `status`, for scoping a `when` against the status being left.
@@ -159,7 +160,7 @@ gate = true"#
         .kind()
         .unwrap(),
         ActionKind::Run {
-            command: Some("just check"),
+            command: Some(&ConfigCommand::Line("just check".to_owned())),
             gate: true,
             message: None,
         }

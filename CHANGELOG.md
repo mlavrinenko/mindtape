@@ -641,6 +641,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and `MINDTAPE_TASK_STATUS` set, and `show` and `list` go quiet under
   `--quiet` or a pipe. Read commands run nothing. The `gated` preset lists the
   open work on the way into `wip` and gates the way into `done`.
+- **A `run` takes an array, run with no shell.** An `[[on.flip]]` `run` or a
+  `[[tasks.waits]]` checker's `run` is a string for `sh -c` (`cmd /C` on
+  Windows), as before, or an array such as `["cargo", "test"]`, whose program
+  `mt` starts directly, the same on every OS. A checker's `{id}` fills each item
+  on its own, so no shell reads it. `mt allow` lists an array as written, and
+  turning a string into an array, or back, asks again.
 
 #### Config and environment
 

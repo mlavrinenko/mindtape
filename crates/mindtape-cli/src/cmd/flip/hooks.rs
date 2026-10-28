@@ -30,6 +30,7 @@ use std::path::Path;
 
 use crate::diag::Result;
 use mindtape::config::hooks::{ActionKind, FlipAction, matching_flip_hooks};
+use mindtape::shell::ConfigCommand;
 use mindtape::{ConditionEnv, Filter, Readiness, Task, select};
 
 use crate::cmd::flip::hooks_cmd::{CommandReport, RunCtx, run_command};
@@ -77,9 +78,9 @@ struct Gate {
 /// argument-count lint.
 #[derive(Clone, Copy)]
 struct RunSpec<'a> {
-    /// The command line, or `None` for a run-less gate — `kind()` only ever
+    /// The command, or `None` for a run-less gate — `kind()` only ever
     /// pairs that with `gate: true`.
-    command: Option<&'a str>,
+    command: Option<&'a ConfigCommand>,
     gate: bool,
     message: Option<&'a str>,
 }
@@ -243,16 +244,17 @@ impl<'a> Hooks<'a> {
         at: &Transition<'_>,
         out: &mut dyn Write,
     ) -> Result<Option<Gate>> {
-        let Some(command) = run.command else {
+        let Some(spec) = run.command else {
             return Ok(Some(runless_gate(run.message)));
         };
+        let command = spec.to_string();
         if !self.allowed() {
             let project = &self.project;
             mindtape::allow::hold(&project.root, &mindtape::allow::commands(&project.config));
-            return held_back(command, run.gate, out);
+            return held_back(&command, run.gate, out);
         }
         let report = run_command(
-            command,
+            spec,
             &RunCtx {
                 root: &self.project.root,
                 path: at.path,
@@ -264,23 +266,23 @@ impl<'a> Hooks<'a> {
             // A successful non-gate run's output is informational — presentation,
             // suppressed on the same terms as `show` and `list`.
             if !run.gate && self.show {
-                write_output(out, command, &report)?;
+                write_output(out, &command, &report)?;
             }
             return Ok(None);
         }
         // A failure always surfaces, quiet or not: it is either the evidence a
         // refusal rests on, or a command the project asked to be told about.
-        write_output(out, command, &report)?;
+        write_output(out, &command, &report)?;
         if !run.gate {
             let advice = run.message.unwrap_or(DEFAULT_ADVICE);
             writeln!(out, "warning: {command} ({}) — {advice}", report.verdict())?;
             return Ok(None);
         }
         let refusal = Diag::refused("gate failed")
-            .value(command)
+            .value(&command)
             .exit(report.code);
         Ok(Some(Gate {
-            command: command.to_owned(),
+            command,
             refusal: with_override_hint(refusal, run.message),
         }))
     }

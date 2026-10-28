@@ -6,6 +6,8 @@
 
 use std::path::Path;
 
+use mindtape::shell::ConfigCommand;
+
 use crate::diag::{Diag, Result};
 
 /// Absolute path of the task being flipped.
@@ -47,7 +49,7 @@ impl CommandReport {
     }
 }
 
-/// Run `command` through the platform shell, from the project root, with
+/// Run `command`, a shell line or an array, from the project root, with
 /// the transition in the environment ([`ENV_FILE`], [`ENV_STEM`],
 /// [`ENV_STATUS`]).
 ///
@@ -59,7 +61,7 @@ impl CommandReport {
 /// Returns an error when the shell itself cannot be spawned. A command that
 /// runs and fails is not an error here — it is a [`CommandReport`] the caller
 /// decides about.
-pub(crate) fn run_command(command: &str, ctx: &RunCtx<'_>) -> Result<CommandReport> {
+pub(crate) fn run_command(command: &ConfigCommand, ctx: &RunCtx<'_>) -> Result<CommandReport> {
     let env = [
         (ENV_FILE, ctx.path.as_os_str()),
         (ENV_STEM, ctx.stem.as_ref()),
@@ -67,7 +69,7 @@ pub(crate) fn run_command(command: &str, ctx: &RunCtx<'_>) -> Result<CommandRepo
     ];
     let output = mindtape::shell::run(command, ctx.root, &env).map_err(|err| {
         Diag::failed("can't run on.flip command")
-            .value(command)
+            .value(command.to_string())
             .io(&err)
     })?;
     Ok(CommandReport {

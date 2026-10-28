@@ -265,9 +265,8 @@
           "type": "string"
         },
         "run": {
-          "default": "",
-          "description": "The command line, with `{id}` standing for the entry's id. It runs\nthrough `sh -c`, or `cmd /C` on Windows, from the project root. Exit 0\nmeans the wait is over, 1 means it goes on, anything else is unknown.",
-          "type": "string"
+          "$ref": "#/$defs/ConfigCommand",
+          "description": "The command, with `{id}` standing for the entry's id: a line that runs\nthrough `sh -c`, or `cmd /C` on Windows, or an array whose program runs\nwith no shell and whose every item gets `{id}` filled. It runs from the\nproject root. Exit 0 means the wait is over, 1 means it goes on,\nanything else is unknown."
         }
       },
       "type": "object"
@@ -429,6 +428,22 @@
         }
       },
       "type": "object"
+    },
+    "ConfigCommand": {
+      "anyOf": [
+        {
+          "description": "A command line for the platform shell: `sh -c`, or `cmd /C` on Windows.",
+          "type": "string"
+        },
+        {
+          "description": "A program and its arguments, run directly with no shell, the same on\nevery platform. The program is found on `PATH`.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      ],
+      "description": "A command a config asks `mt` to run: a `run` key's value."
     },
     "ContentAssert": {
       "description": "The assertion made over a matched section's content: the string `\"non-empty\"`, or a one-key table `{ min-words = N }`, `{ max-words = N }`, `{ must-match = \"regex\" }`, `{ must-not-match = \"regex\" }`, or `{ density = { pattern = \"regex\", max = N, per = \"section\" } }`.",
@@ -865,12 +880,15 @@
           ]
         },
         "run": {
-          "default": null,
-          "description": "Run a command through the platform shell (`sh -c`, or `cmd /C` on Windows)\nwith `{ run = \"command\" }`. A gating action may omit it, and then the gate\nrefuses the flip whenever the entry's `when` matches.",
-          "type": [
-            "string",
-            "null"
-          ]
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConfigCommand"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Run a command with `{ run = \"command\" }`, through the platform shell\n(`sh -c`, or `cmd /C` on Windows), or with `{ run = [\"program\", \"arg\"] }`,\ndirectly with no shell. A gating action may omit it, and then the gate\nrefuses the flip whenever the entry's `when` matches."
         },
         "show": {
           "default": null,

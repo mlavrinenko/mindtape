@@ -14,6 +14,7 @@ mod add_inherited_choices_e2e;
 mod add_markup_e2e;
 mod add_template_hint_e2e;
 mod allow_e2e;
+mod argv_run_e2e;
 mod at_e2e;
 mod board_e2e;
 mod breach_location_e2e;

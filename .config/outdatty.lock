@@ -60,14 +60,14 @@ groups:
   cli-allow-docs:
     source:
       crates/mindtape-cli/src/cmd/allow.rs: 611f0b153ee59bcc3aee3725b1317b6b3febfb92438ce53da127fa809f6d9a81
-      crates/mindtape/src/allow.rs: e1c7195d2dc23dcef11134ff7a5bb1510345e4e2f1c64bafc1173a7df9e6dc77
+      crates/mindtape/src/allow.rs: 516361df95f090993b6bfbc3ca38c8c3ff545d7259801d8d98206c99b70f970e
     dependents:
       docs/src/skill.typ: efbf73c5a7fb68ecb18c2c395dba7ffb1b3c0edf9d1d449d85cecd655ff35852
       skills/mindtape/evals/README.md: b451b8b388e4a1c8e95f876258e9c3425355a7bf9c1cfa0f04ec1a0c57b3bd6a
       skills/mindtape/evals/evals.json: 481bb4f0168826d9ee4086ee6f4f4f74c4c31ed3b46792871532da8372b56460
       www/content/cli/allow.typ: b4339d36cae71e4f3d4db1b5d3abe55c09c9725938ac1a5f610acd7c8263bd31
-      www/content/hooks.typ: 9eeb6a75d9acb55c38175ada6ec78a58665897df9b97cd40d4808b1d59d6f14a
-      www/content/wait-on-upstream.typ: e88a4625e768e9103e2fbb93656fbc91d9e5311872eca7370c913850fd0f308d
+      www/content/hooks.typ: 5143d987a57b698ebe0b84a5e0ccce841981f7bda8886d3284d199cbbe1881e6
+      www/content/wait-on-upstream.typ: af5dc39a862ddc877f0c6d1137765f606f8f3fdb3fef860f86cf4861be05a5fe
       www/utils/cli-notes.typ: f4f3fdc25dd45b7465220811f822300fe7ebeefde4ed1e476f63d24e46397621
   cli-check-docs:
     source:
@@ -121,18 +121,18 @@ groups:
   cli-flip-docs:
     source:
       crates/mindtape-cli/src/cmd/flip/guards.rs: ba2e4c74d012fc3c4a76b6a068f7bfe8f92419485030214675ed5cda51997228
-      crates/mindtape-cli/src/cmd/flip/hooks.rs: 84289987ca537dd5f7c793b3c5b56dd99038aa0d89b023093a7acd233a43fa22
-      crates/mindtape-cli/src/cmd/flip/hooks_cmd.rs: 7a410216d7302645cc72e74367266137cf81aad278de7f3472f5350560c8ed6e
+      crates/mindtape-cli/src/cmd/flip/hooks.rs: ac5e29d5cae51f04e3fbfa59e2c77489b0ec12d68e1aada845be2ebd55487b8f
+      crates/mindtape-cli/src/cmd/flip/hooks_cmd.rs: c981b41761c83d9f028ef9f66a9129c233bb766f2de8cdc214f7eb0e4844eb5a
       crates/mindtape-cli/src/cmd/flip/mod.rs: 18db78a7982e1c51288181486b1b689aa9698996aaad3bbd4c121f8d4e207693
     dependents:
-      docs/src/skill.typ: 920c27780c83ec9565ed73f25152afb80703c2bc3dfc2950620d3b6392e4f221
+      docs/src/skill.typ: efbf73c5a7fb68ecb18c2c395dba7ffb1b3c0edf9d1d449d85cecd655ff35852
       skills/mindtape/evals/evals.json: 481bb4f0168826d9ee4086ee6f4f4f74c4c31ed3b46792871532da8372b56460
       www/content/cli/flip.typ: e2a040fa7c9bc827bbd7c58510205c6dcf8639cb5d4ac534d77aedf8a4715cd3
-      www/content/hooks.typ: da8f692075bd20b05f2a74951530f96a75461fdcfd5cd64305ca803310d26fa4
+      www/content/hooks.typ: 5143d987a57b698ebe0b84a5e0ccce841981f7bda8886d3284d199cbbe1881e6
       www/content/links.typ: 4f6f04305d7f5f369370f4ff22b831e1460a982decebb249db2a34a97694d020
-      www/content/quickstart.typ: f42fafe408f2cfb32b8f8543658f8a69a3dcc61d84d799871f3ed89a2144db45
-      www/content/statuses.typ: fa11fdf07770cd5ff39ff2333e3fa6a01294b646a135857eb7f52e01a4f4f6af
-      www/utils/cli-notes.typ: 68636dca6fb7aa12387dbf54dc74895caa82dc4329a61404510fdfbe51357ce5
+      www/content/quickstart.typ: 09b26451dd0518acb8ff21d00389a586b21b78855ee75cc5a2b0f9f7c12e8d9e
+      www/content/statuses.typ: e1adb2f5358a58777fda7117b066dd5d0ac1f1949c8e1d01d26c979b175c8fe9
+      www/utils/cli-notes.typ: f4f3fdc25dd45b7465220811f822300fe7ebeefde4ed1e476f63d24e46397621
   cli-globals-docs:
     source:
       crates/mindtape-cli/src/cli/mod.rs: 9e2980f805d28af33786e288496a8d41fd0145fc421662d16789c682314f9652
@@ -595,9 +595,9 @@ groups:
   waits-docs:
     source:
       crates/mindtape/src/graph/ready.rs: 308fd9d84a4925246cb6f23698cd64e04c6912a99787c0e2ef80e24b5455ed2b
-      crates/mindtape/src/waits.rs: 5ed46829cb08e920f85f7d776e35e4741cd44a94486abafae82455ff051ce861
+      crates/mindtape/src/waits.rs: 85c2c01090f7bbafb7dd010ba528d30ff77693b8bde0a443b31750b688ccbb17
     dependents:
-      docs/src/skill.typ: 06904b8ae92964a7d9d851281dc8a48e7239414523db19ed255b8af4f4971c2d
-      skills/mindtape/references/filters.md: fd1ba6f38dc7107f143ab77f150bc6d412c155cbc7627bece961c4a40f9b318a
-      www/content/filters.typ: 97a4fe03ecfdc952c5f39d1af58fcdc5cc3bf48d5549f1866005f7e59c7b26f7
-      www/content/wait-on-upstream.typ: e88a4625e768e9103e2fbb93656fbc91d9e5311872eca7370c913850fd0f308d
+      docs/src/skill.typ: efbf73c5a7fb68ecb18c2c395dba7ffb1b3c0edf9d1d449d85cecd655ff35852
+      skills/mindtape/references/filters.md: a28105db579ae1fbf2041ccfb18cc597c2c377075ceca5665eafc187c0c1aa80
+      www/content/filters.typ: 75268ee14b7cbefda65c4f66a2cd63732c1e760a77eee00892af8b62bdd9ca8c
+      www/content/wait-on-upstream.typ: af5dc39a862ddc877f0c6d1137765f606f8f3fdb3fef860f86cf4861be05a5fe

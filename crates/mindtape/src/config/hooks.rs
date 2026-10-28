@@ -47,6 +47,7 @@ use crate::filter::{Filter, FilterError};
 use crate::graph::ready::Readiness;
 use crate::model::Task;
 use crate::problem::Problem;
+use crate::shell::ConfigCommand;
 use crate::suggest::Unknown;
 
 /// A filter atom matching every task: `id` is a plain `String` on [`Task`] and
@@ -95,10 +96,11 @@ pub struct FlipAction {
     /// Print the matching tasks with `{ list = "filter or @view" }`.
     #[schemars(extend("x-expression" = "filter"))]
     pub list: Option<String>,
-    /// Run a command through the platform shell (`sh -c`, or `cmd /C` on Windows)
-    /// with `{ run = "command" }`. A gating action may omit it, and then the gate
+    /// Run a command with `{ run = "command" }`, through the platform shell
+    /// (`sh -c`, or `cmd /C` on Windows), or with `{ run = ["program", "arg"] }`,
+    /// directly with no shell. A gating action may omit it, and then the gate
     /// refuses the flip whenever the entry's `when` matches.
-    pub run: Option<String>,
+    pub run: Option<ConfigCommand>,
     /// Heading printed above a `list`'s table.
     pub title: Option<String>,
     /// Explanation printed when `run` exits non-zero, or when a gate with no
@@ -127,9 +129,9 @@ pub enum ActionKind<'a> {
     /// matches. `kind()` only ever produces a `None` command alongside
     /// `gate: true`.
     Run {
-        /// The command line, run through the platform shell (`sh -c`; `cmd /C`
-        /// on Windows). `None` for a run-less gate.
-        command: Option<&'a str>,
+        /// The command: a line for the platform shell, or an array run with
+        /// no shell. `None` for a run-less gate.
+        command: Option<&'a ConfigCommand>,
         /// Whether a non-zero exit (or, with no command, always) refuses the
         /// flip.
         gate: bool,
@@ -150,7 +152,7 @@ impl FlipAction {
         match (
             self.show.as_deref(),
             self.list.as_deref(),
-            self.run.as_deref(),
+            self.run.as_ref(),
         ) {
             (Some(text), None, None) => {
                 reject(&[
@@ -426,6 +428,12 @@ fn action_problems(index: usize, hook: &FlipHook, probe: &Task, config: &Config)
                 if let Some(problem) = crate::filter::expr_problem_in_set(filter, probe, config) {
                     problems.push(problem.under(&format!("{at}.list")));
                 }
+            }
+            Ok(ActionKind::Run {
+                command: Some(command),
+                ..
+            }) if command.is_blank() => {
+                problems.push(Problem::new(format!("{at}.run: empty command")));
             }
             Ok(_) => {}
         }

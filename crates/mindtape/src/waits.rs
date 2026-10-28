@@ -20,8 +20,10 @@
 //! is the tool's own job. [`annotate`] runs each distinct command line once per
 //! process, and only for open tasks.
 //!
-//! `{id}` is pasted into a shell line, so [`command_line`] refuses an id with a
-//! character outside [`ID_PUNCT`] and [`annotate`] never runs one.
+//! A string `run` pastes `{id}` into a shell line, so [`command_line`] refuses
+//! an id with a character outside [`ID_PUNCT`] and [`annotate`] never runs
+//! one. An array `run` fills `{id}` into each item, where no shell reads it.
+//! The id rule holds there too, so an entry is valid under either form.
 //!
 //! No checker runs until the user allows the config's commands with `mt allow`
 //! ([`crate::allow`]). Until then every entry answers [`Answer::NotAllowed`],
@@ -36,6 +38,7 @@ use serde::Deserialize;
 
 use crate::config::{Config, quote};
 use crate::model::Task;
+use crate::shell::ConfigCommand;
 use crate::suggest::Unknown;
 
 /// One `[[tasks.waits]]` entry: a named command that answers whether a task
@@ -45,10 +48,12 @@ use crate::suggest::Unknown;
 pub struct Checker {
     /// The name a `waits-on` entry writes before its colon.
     pub name: String,
-    /// The command line, with `{id}` standing for the entry's id. It runs
-    /// through `sh -c`, or `cmd /C` on Windows, from the project root. Exit 0
-    /// means the wait is over, 1 means it goes on, anything else is unknown.
-    pub run: String,
+    /// The command, with `{id}` standing for the entry's id: a line that runs
+    /// through `sh -c`, or `cmd /C` on Windows, or an array whose program runs
+    /// with no shell and whose every item gets `{id}` filled. It runs from the
+    /// project root. Exit 0 means the wait is over, 1 means it goes on,
+    /// anything else is unknown.
+    pub run: ConfigCommand,
 }
 
 /// What a checker answered for one `waits-on` entry.
@@ -90,7 +95,7 @@ pub const ID_PUNCT: &str = "._@/#:+-";
 
 /// Every answer this process has had, keyed by project root and command line,
 /// so a checker that several tasks or several loads ask about runs once.
-static ANSWERS: Mutex<BTreeMap<(PathBuf, String), Answer>> = Mutex::new(BTreeMap::new());
+static ANSWERS: Mutex<BTreeMap<(PathBuf, ConfigCommand), Answer>> = Mutex::new(BTreeMap::new());
 
 /// Stamp each open task's [`Task::answers`] with what its checkers say, running
 /// each command line at most once per process. A terminal task runs nothing,
@@ -156,7 +161,7 @@ fn answer(entry: &str, config: &Config, root: &Path, allowed: bool) -> Answer {
 }
 
 /// Run one checker command and read its exit code as an [`Answer`].
-fn run(command: &str, root: &Path) -> Answer {
+fn run(command: &ConfigCommand, root: &Path) -> Answer {
     match crate::shell::run(command, root, &[]) {
         Ok(output) => {
             let line = first_line(&output.stdout).or_else(|| first_line(&output.stderr));
@@ -167,7 +172,7 @@ fn run(command: &str, root: &Path) -> Answer {
                 None => Answer::Unknown(line.unwrap_or_else(|| "terminated by signal".to_owned())),
             }
         }
-        Err(err) => Answer::Unknown(format!("can't run {}: {err}", quote(command))),
+        Err(err) => Answer::Unknown(format!("can't run {}: {err}", quote(&command.to_string()))),
     }
 }
 
@@ -195,7 +200,7 @@ pub struct EntryProblem {
 /// Returns an [`EntryProblem`] when `entry` has no colon, names a checker
 /// `[[tasks.waits]]` does not declare, or has an id that is empty, starts with
 /// punctuation, or holds a character outside letters, digits and [`ID_PUNCT`].
-pub fn command_line(entry: &str, config: &Config) -> Result<String, EntryProblem> {
+pub fn command_line(entry: &str, config: &Config) -> Result<ConfigCommand, EntryProblem> {
     let plain = |message: String| EntryProblem {
         message,
         unknown: None,
@@ -219,7 +224,7 @@ pub fn command_line(entry: &str, config: &Config) -> Result<String, EntryProblem
             quote(id)
         )));
     }
-    Ok(checker.run.replace("{id}", id))
+    Ok(checker.run.map(|part| part.replace("{id}", id)))
 }
 
 /// Whether `id` can stand in a shell word as is: see [`ID_PUNCT`].
@@ -251,7 +256,7 @@ pub(crate) fn validate_checkers(config: &Config) -> Vec<String> {
         if !seen.insert(name.as_str()) {
             problems.push(format!("{at}.name: {} is declared twice", quote(name)));
         }
-        if checker.run.trim().is_empty() {
+        if checker.run.is_blank() {
             problems.push(format!("{at}.run: empty command"));
         }
     }

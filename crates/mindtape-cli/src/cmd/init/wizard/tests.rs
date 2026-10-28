@@ -271,7 +271,7 @@ fn no_answer_set_declares_a_command() {
         let config = mindtape::parse_config(&assemble(answers).unwrap().config).unwrap();
         assert_eq!(
             mindtape::allow::commands(&config),
-            Vec::<String>::new(),
+            Vec::<mindtape::shell::ConfigCommand>::new(),
             "{answers:?}"
         );
     }

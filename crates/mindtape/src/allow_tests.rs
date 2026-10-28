@@ -8,6 +8,7 @@ use super::{
     runnable_editor_in, take_held,
 };
 use crate::config::Config;
+use crate::shell::ConfigCommand;
 use crate::waits::Checker;
 
 fn config(runs: &[&str]) -> Config {
@@ -17,14 +18,20 @@ fn config(runs: &[&str]) -> Config {
         .enumerate()
         .map(|(index, run)| Checker {
             name: format!("c{index}"),
-            run: (*run).to_owned(),
+            run: ConfigCommand::Line((*run).to_owned()),
         })
         .collect();
     config
 }
 
-fn lines(runs: &[&str]) -> Vec<String> {
-    runs.iter().map(|run| (*run).to_owned()).collect()
+fn lines(runs: &[&str]) -> Vec<ConfigCommand> {
+    runs.iter()
+        .map(|run| ConfigCommand::Line((*run).to_owned()))
+        .collect()
+}
+
+fn argv(args: &[&str]) -> ConfigCommand {
+    ConfigCommand::Argv(args.iter().map(|arg| (*arg).to_owned()).collect())
 }
 
 #[test]
@@ -86,6 +93,28 @@ fn the_digest_changes_with_any_line_and_cannot_be_forged_by_joining_two() {
     assert_ne!(one, digest(&lines(&["a c"])));
     assert_ne!(one, digest(&lines(&["a", "b"])));
     assert_ne!(digest(&lines(&["ab"])), digest(&lines(&["a", "b"])));
+}
+
+/// An array lists in TOML's array syntax, and digests apart from a line that
+/// shows the same, so turning one into the other asks again. Changing an
+/// argument asks again too.
+#[test]
+fn an_array_lists_as_an_array_and_digests_apart_from_a_line() {
+    let config = crate::parse_config(
+        "[[on.flip]]\nwhen = ''\nactions = [{ run = [\"cargo\", \"test\"], gate = true }]\n",
+    )
+    .unwrap();
+    let listed = commands(&config);
+
+    assert_eq!(listed, [argv(&["cargo", "test"])]);
+    assert_eq!(
+        listed.first().map(ToString::to_string).as_deref(),
+        Some(r#"["cargo", "test"]"#)
+    );
+    let alike = lines(&[r#"["cargo", "test"]"#]);
+    assert_ne!(digest(&listed), digest(&alike));
+    assert_ne!(digest(&listed), digest(&[argv(&["cargo", "tests"])]));
+    assert_ne!(digest(&listed), digest(&[argv(&["cargo test"])]));
 }
 
 #[test]

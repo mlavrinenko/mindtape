@@ -1,15 +1,24 @@
 //! Tests for the `[[on.flip]]` command executor: capture, verdict, context.
 //!
-//! A `run` command is shell text, so the cases below are written in the shell
+//! The cases below are shell lines, written in the shell
 //! `mindtape::shell::SHELL` names and split by platform: the POSIX set carries the full
 //! contract (including the signal verdict, which Windows has no analogue for),
 //! and a smaller `cmd` set pins the same capture-and-context behaviour there.
+//! An array `run` needs no shell, so `tests/it/argv_run_e2e.rs` covers it on
+//! every platform at once.
 #![allow(clippy::unwrap_used)]
 
 use mindtape::test_support::{tempdir, tempdir_with_files};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-use super::{ENV_FILE, ENV_STATUS, ENV_STEM, RunCtx, run_command};
+use mindtape::shell::ConfigCommand;
+
+use super::{CommandReport, ENV_FILE, ENV_STATUS, ENV_STEM, RunCtx, run_command};
+
+/// `text` as a shell line, the form every case below is written in.
+fn line(text: &str) -> ConfigCommand {
+    ConfigCommand::Line(text.to_owned())
+}
 
 fn ctx<'a>(root: &'a Path, path: &'a Path) -> RunCtx<'a> {
     RunCtx {
@@ -20,6 +29,20 @@ fn ctx<'a>(root: &'a Path, path: &'a Path) -> RunCtx<'a> {
     }
 }
 
+/// Run the shell line `text` from the project root `root`, flipping the task
+/// `tasks/alpha.typ`, and return the report and that task's path.
+fn run_in(root: &Path, text: &str) -> (CommandReport, PathBuf) {
+    let path = root.join("tasks/alpha.typ");
+    let report = run_command(&line(text), &ctx(root, &path)).unwrap();
+    (report, path)
+}
+
+/// [`run_in`] an empty project root.
+fn run_line(text: &str) -> CommandReport {
+    let dir = tempdir();
+    run_in(dir.path(), text).0
+}
+
 /// A shell that cannot start is an error, not a failed command: a missing
 /// project root leaves the spawn nothing to run in, so the caller must not read
 /// the absence of a verdict as a pass.
@@ -28,7 +51,7 @@ fn a_command_that_cannot_spawn_is_an_error_naming_it() {
     let dir = tempdir();
     let root = dir.path().join("no-such-root");
     let path = root.join("tasks/alpha.typ");
-    let err = match run_command("echo hi", &ctx(&root, &path)) {
+    let err = match run_command(&line("echo hi"), &ctx(&root, &path)) {
         Err(err) => crate::diag::plain(&err),
         Ok(report) => panic!("expected a spawn error, got {}", report.output),
     };
@@ -41,9 +64,7 @@ fn a_command_that_cannot_spawn_is_an_error_naming_it() {
 #[cfg(not(windows))]
 #[test]
 fn a_passing_command_reports_success_and_its_output() {
-    let dir = tempdir();
-    let path = dir.path().join("tasks/alpha.typ");
-    let report = run_command("echo hello", &ctx(dir.path(), &path)).unwrap();
+    let report = run_line("echo hello");
     assert!(report.success);
     assert_eq!(report.code, Some(0));
     assert_eq!(report.output, "hello\n");
@@ -53,9 +74,7 @@ fn a_passing_command_reports_success_and_its_output() {
 #[cfg(not(windows))]
 #[test]
 fn stdout_and_stderr_are_both_captured() {
-    let dir = tempdir();
-    let path = dir.path().join("tasks/alpha.typ");
-    let report = run_command("echo out; echo err >&2; exit 4", &ctx(dir.path(), &path)).unwrap();
+    let report = run_line("echo out; echo err >&2; exit 4");
     assert!(!report.success);
     assert_eq!(report.code, Some(4));
     assert!(report.output.contains("out"), "{}", report.output);
@@ -70,9 +89,7 @@ fn stdout_and_stderr_are_both_captured() {
 #[cfg(unix)]
 #[test]
 fn a_signalled_command_has_no_code() {
-    let dir = tempdir();
-    let path = dir.path().join("tasks/alpha.typ");
-    let report = run_command("kill -9 $$", &ctx(dir.path(), &path)).unwrap();
+    let report = run_line("kill -9 $$");
     assert!(!report.success);
     assert_eq!(report.code, None);
     assert_eq!(report.verdict(), "terminated by signal");
@@ -84,9 +101,8 @@ fn a_signalled_command_has_no_code() {
 #[test]
 fn the_command_sees_the_root_and_the_transition() {
     let dir = tempdir_with_files(&[("marker", "x")]);
-    let path = dir.path().join("tasks/alpha.typ");
     let script = format!("test -f marker && echo \"${ENV_STEM}|${ENV_STATUS}|${ENV_FILE}\"");
-    let report = run_command(&script, &ctx(dir.path(), &path)).unwrap();
+    let (report, path) = run_in(dir.path(), &script);
     assert!(report.success, "{}", report.output);
     assert_eq!(
         report.output.trim(),
@@ -100,13 +116,11 @@ fn the_command_sees_the_root_and_the_transition() {
 /// capture, the code, and the context — not the shell's formatting.
 #[cfg(windows)]
 mod windows {
-    use super::{ENV_FILE, ENV_STATUS, ENV_STEM, ctx, run_command, tempdir, tempdir_with_files};
+    use super::{ENV_FILE, ENV_STATUS, ENV_STEM, run_in, run_line, tempdir_with_files};
 
     #[test]
     fn a_passing_command_reports_success_and_its_output() {
-        let dir = tempdir();
-        let path = dir.path().join("tasks/alpha.typ");
-        let report = run_command("echo hello", &ctx(dir.path(), &path)).unwrap();
+        let report = run_line("echo hello");
         assert!(report.success, "{}", report.output);
         assert_eq!(report.code, Some(0));
         assert_eq!(report.output.trim(), "hello");
@@ -115,9 +129,7 @@ mod windows {
     /// A non-zero exit is reported, not raised — the caller decides about it.
     #[test]
     fn a_failing_command_reports_its_code() {
-        let dir = tempdir();
-        let path = dir.path().join("tasks/alpha.typ");
-        let report = run_command("exit /b 4", &ctx(dir.path(), &path)).unwrap();
+        let report = run_line("exit /b 4");
         assert!(!report.success);
         assert_eq!(report.code, Some(4));
         assert_eq!(report.verdict(), "exit 4");
@@ -126,9 +138,7 @@ mod windows {
     /// Both streams are captured: a gate's evidence is usually on stderr.
     #[test]
     fn stdout_and_stderr_are_both_captured() {
-        let dir = tempdir();
-        let path = dir.path().join("tasks/alpha.typ");
-        let report = run_command("echo out& echo err 1>&2", &ctx(dir.path(), &path)).unwrap();
+        let report = run_line("echo out& echo err 1>&2");
         assert!(report.output.contains("out"), "{}", report.output);
         assert!(report.output.contains("err"), "{}", report.output);
     }
@@ -138,9 +148,8 @@ mod windows {
     #[test]
     fn the_command_sees_the_root_and_the_transition() {
         let dir = tempdir_with_files(&[("marker", "x")]);
-        let path = dir.path().join("tasks/alpha.typ");
         let script = format!("if exist marker echo %{ENV_STEM}% %{ENV_STATUS}% %{ENV_FILE}%");
-        let report = run_command(&script, &ctx(dir.path(), &path)).unwrap();
+        let (report, _) = run_in(dir.path(), &script);
         assert!(report.success, "{}", report.output);
         let out = report.output.trim();
         assert!(out.starts_with("alpha done"), "{out}");

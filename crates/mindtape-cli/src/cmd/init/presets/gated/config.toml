@@ -226,6 +226,9 @@ actions = [
 # To gate `done` on a check that proves the work, add a `run` command: `just
 # check`, `cargo test`, your CI script. It runs from the project root and
 # receives $MINDTAPE_TASK_FILE, $MINDTAPE_TASK_STEM and $MINDTAPE_TASK_STATUS.
+# A string runs through `sh -c`, or `cmd /C` on Windows. An array, such as
+# `run = ["cargo", "test"]`, runs its program with no shell, the same on every
+# OS.
 # No command runs until you read the config and run `mt allow`.
 #
 # Trust boundary: a command is exactly as trusted as a Justfile recipe or a git

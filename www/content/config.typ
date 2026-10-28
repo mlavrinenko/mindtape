@@ -63,6 +63,11 @@ set, `mt go` fails and `mt add` opens `vi` (`notepad` on Windows). An editor in
 your own `mindtape/defaults.toml` needs no approval. An ancestor's
 `.mindtape/defaults.toml` does, since it can live inside a clone.
 
+A `run` in `[[tasks.waits]]` or `[[on.flip]]` takes a string, which runs
+through `sh -c`, or `cmd /C` on Windows, or an array such as
+`["cargo", "test"]`, which runs its program with no shell.
+#link(u("/hooks/#trust-and-portability"))[Flip hooks] says when to pick which.
+
 Write a rule's `message` as the next step: an imperative in lower case, with no
 trailing period or em dash, such as `move Environment after Problem`. `mt check`
 prints it after the rule's name, so it should tell the author what to do, not

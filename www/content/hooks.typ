@@ -61,6 +61,9 @@ one file can't share a name.
   [`{ run = "command", gate = true }`],
   [Runs the command. A non-zero exit refuses the flip.],
 
+  [`{ run = ["cargo", "test"] }`],
+  [Runs the program with those arguments and no shell. It takes `gate` and `message` like a string `run`.],
+
   [`{ gate = true }`], [Refuses every flip the hook's `when` matches.],
 )
 
@@ -105,12 +108,16 @@ A gate command runs from the project root with three variables set:
   [`MINDTAPE_TASK_STATUS`], [The status being stamped.],
 )
 
+An array gets no shell, so `$MINDTAPE_TASK_FILE` in one of its items stays as
+written. The program reads the variable itself.
+
 = Trust and portability
 
 #callout("warn")[
   A `run` command is as trusted as a `Justfile` recipe or a git hook. It comes
-  from the project's config and runs with your permissions, through `sh -c`,
-  or `cmd /C` on Windows. Nothing sandboxes it. So `mt` runs none until you
+  from the project's config and runs with your permissions. A string runs
+  through `sh -c`, or `cmd /C` on Windows, and an array runs its program
+  directly. Nothing sandboxes it. So `mt` runs none until you
   read the config's commands and run #link(u("/cli/allow/"))[`mt allow`] in
   the repo.
 ]
@@ -121,8 +128,12 @@ Until then a gate with `run` refuses the flip and names `mt allow`, and
 lists the commands it held back. A gate with no `run` runs nothing, so it needs
 no approval.
 
-The two shells share no syntax. If you use the project on both, write a
-command both accept, or call a script.
+The two shells share no syntax. If you use the project on both, write the
+command as an array, such as `run = ["cargo", "test"]`. `mt` starts the
+program itself and hands it each item as one argument, the same on every
+platform. The program has to be one the platform can start: an executable on
+`PATH` or a path to one, not a shell script on Windows. `mt allow` lists an
+array as written, and turning a string into an array, or back, asks again.
 
 Only `mt flip` and its status commands, such as `mt done`, run actions.
 `mt check`, `mt ls` and the other read commands run none. The one command a

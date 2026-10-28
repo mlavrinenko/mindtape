@@ -46,7 +46,10 @@ fn a_members_config_warning_and_held_commands_name_it() {
          [[tasks.rules]]\nname = \"r\"\nassert = 'x-machnie == \"alpha\"'\n",
     )
     .unwrap();
-    mindtape::allow::hold(&root, &["make up".to_owned()]);
+    mindtape::allow::hold(
+        &root,
+        &[mindtape::shell::ConfigCommand::Line("make up".to_owned())],
+    );
     let project = Project {
         root,
         config,

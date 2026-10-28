@@ -195,7 +195,7 @@ fn no_embedded_pack_declares_a_command() {
         let config = super::tests_budget::load(&format!("extends = [\"mindtape:{pack}\"]\n"));
         assert_eq!(
             crate::allow::commands(&config),
-            Vec::<String>::new(),
+            Vec::<crate::shell::ConfigCommand>::new(),
             "mindtape:{pack}"
         );
     }

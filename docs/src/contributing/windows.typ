@@ -4,7 +4,7 @@
 //
 // The Rust channel below reads www/generated/crate-map.json, which takes it
 // from rust-toolchain.toml, so a toolchain bump updates the sentence.
-#import "../lib.typ": doc-title, fact, just
+#import "../lib.typ": doc-title, fact, just, mindtape
 
 #metadata((
   output: "docs/contributing/windows.md",
@@ -25,6 +25,14 @@ differs by platform: `cmd /C` against `sh -c` for an `[[on.flip]]` `run`, the
 config, data and cache paths from `dirs`, and path separators. Windows runs
 rarely, so nextest runs there with `--no-fail-fast` and one red run lists every
 failure.
+
+A test of a config command passes on Windows only if it's portable. A string
+`run` must mean the same to `sh -c` and `cmd /C`, as the stub checkers in
+`tests/it/waits_e2e.rs` do. An array `run` needs no shell, so
+`tests/it/argv_run_e2e.rs` spawns `mt` itself, the one program every runner
+has. #mindtape's own presets and packs ship gates with no `run` at all, and
+`no_builtin_declares_a_command`, `no_answer_set_declares_a_command` and
+`no_embedded_pack_declares_a_command` keep it that way.
 
 The runner's git checks text files out with `\r\n` line endings. A test that
 compares a committed file byte for byte with the `\n` its code writes fails

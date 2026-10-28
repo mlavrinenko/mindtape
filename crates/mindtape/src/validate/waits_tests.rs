@@ -10,7 +10,7 @@ fn config() -> Config {
     let mut config = Config::default();
     config.tasks.waits = vec![Checker {
         name: "up".to_owned(),
-        run: "exit 0".to_owned(),
+        run: crate::shell::ConfigCommand::Line("exit 0".to_owned()),
     }];
     config
 }

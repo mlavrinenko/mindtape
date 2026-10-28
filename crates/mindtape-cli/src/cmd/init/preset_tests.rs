@@ -50,7 +50,7 @@ fn no_builtin_declares_a_command() {
         let config = mindtape::parse_config(&resolve(name, None).unwrap().render(false)).unwrap();
         assert_eq!(
             mindtape::allow::commands(&config),
-            Vec::<String>::new(),
+            Vec::<mindtape::shell::ConfigCommand>::new(),
             "preset {name}"
         );
     }

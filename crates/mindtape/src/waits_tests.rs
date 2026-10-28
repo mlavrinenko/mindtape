@@ -6,12 +6,13 @@ use std::path::Path;
 use super::{Answer, Checker, annotate_with, command_line, stamp, validate_checkers};
 use crate::allow::held_back;
 use crate::config::{Config, LegendEntry};
+use crate::shell::ConfigCommand;
 use crate::test_support::bare_task;
 
 fn checker(name: &str, run: &str) -> Checker {
     Checker {
         name: name.to_owned(),
-        run: run.to_owned(),
+        run: ConfigCommand::Line(run.to_owned()),
     }
 }
 
@@ -23,7 +24,21 @@ fn config(checkers: Vec<Checker>) -> Config {
 
 fn line(entry: &str) -> Result<String, String> {
     command_line(entry, &config(vec![checker("up", "check {id} {id}")]))
+        .map(|command| command.to_string())
         .map_err(|problem| problem.message)
+}
+
+/// `args` as an array command.
+fn argv(args: &[&str]) -> ConfigCommand {
+    ConfigCommand::Argv(args.iter().map(|arg| (*arg).to_owned()).collect())
+}
+
+/// The config holding one `up` checker that runs `args` as an array.
+fn array_config(args: &[&str]) -> Config {
+    config(vec![Checker {
+        name: "up".to_owned(),
+        run: argv(args),
+    }])
 }
 
 #[test]
@@ -260,4 +275,21 @@ fn annotate_holds_every_open_task_back_when_not_allowed() {
 
     assert_eq!(tasks[0].answers["up:x"], Answer::NotAllowed);
     assert_eq!(tasks[1].answers["up:x"], Answer::NotAllowed);
+}
+
+/// An array's `{id}` fills each item alone, so the id stays one argument.
+#[test]
+fn an_array_checker_fills_the_id_into_each_item() {
+    let command = command_line("up:pr-7", &array_config(&["gh", "{id}", "x{id}"]));
+
+    assert_eq!(command.ok(), Some(argv(&["gh", "pr-7", "xpr-7"])));
+}
+
+/// An array with no program is as empty as a blank line.
+#[test]
+fn an_array_with_no_program_is_an_empty_command() {
+    assert_eq!(
+        validate_checkers(&array_config(&[])),
+        ["tasks.waits[0].run: empty command"]
+    );
 }

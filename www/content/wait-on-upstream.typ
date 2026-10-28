@@ -38,8 +38,9 @@ same listing lets it go:
 = Deep dive
 
 Each `[[tasks.waits]]` entry names a checker command. A task lists
-`checker:id` entries in `waits-on`, and `mt` runs the checker's `run` line from
-the project root with `{id}` filled in. Exit 0 means the wait is over. Exit 1
+`checker:id` entries in `waits-on`, and `mt` runs the checker's `run` from the
+project root with `{id}` filled in. A `run` is a shell line or an array, as in
+a #link(u("/hooks/#trust-and-portability"))[flip hook]. Exit 0 means the wait is over. Exit 1
 means the task still waits. Any other exit means `mt` can't tell, and the task
 stays blocked. The first line the command prints lands in `why`. Add an entry
 with `mt set <task> waits-on+=locked:acme-pay@2.4.0`.
@@ -50,16 +51,19 @@ line once per call and skips closed tasks. Fetching news over the network is
 the tool's own job, on its own schedule, such as a timer, a recipe or the bot
 that bumps your lockfile.
 
-`{id}` lands in a shell line as is, so `mt check` refuses an id that a shell
-could read as more than a word. An id starts with a letter or digit and holds
-letters, digits and `._@/#:+-`.
+In a string `run`, `{id}` lands in a shell line as is, so `mt check` refuses
+an id that a shell could read as more than a word. An id starts with a letter
+or digit and holds letters, digits and `._@/#:+-`. An array such as
+`run = ["scripts/locked", "{id}"]` fills `{id}` into each item on its own, and
+no shell reads it. The same id rule holds there, so an entry works under
+either form.
 
 A checker runs with your full rights, like a `Justfile` recipe, and `mt ls`
 would run it the moment you clone. So `mt` runs none until
 #link(u("/cli/allow/"))[`mt allow`] records the config's commands for the
 repo. Until then each command warns once and lists them, every wait reads
 `unknown: not allowed`, and `mt wip --force` still starts a task. The approval
-lives outside the repo and covers each of its worktrees. Change a `run` line
+lives outside the repo and covers each of its worktrees. Change a `run`
 and `mt` asks again.
 
 #link(u("/links/"))[Task links] covers `depends-on`, the blocker that waits on

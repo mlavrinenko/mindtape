@@ -1,14 +1,14 @@
 //! Which config commands the user has allowed to run in a repository.
 //!
-//! A clone's `.mindtape/config.toml` can name shell lines that `mt` runs: a
+//! A clone's `.mindtape/config.toml` can name commands that `mt` runs: a
 //! `[[tasks.waits]]` checker, which read commands run, an `[[on.flip]]` `run`
 //! action, which `mt flip` runs, and the `[go] editor` and `[add] editor`
 //! programs, which `mt go` and `mt add` spawn. None of them runs until the
 //! user reads them and runs `mt allow`, which records a digest of every such
-//! line ([`commands`]) for the repository. An editor the user's own
+//! command ([`commands`]) for the repository. An editor the user's own
 //! `<config home>/mindtape/defaults.toml` sets is the user's, and needs no
-//! approval ([`UserCommands`]); [`runnable_editor`] decides. A changed line changes the digest, so it
-//! asks again. A caller that skips a command for want of approval records it
+//! approval ([`UserCommands`]); [`runnable_editor`] decides. A changed
+//! command changes the digest, so it asks again. A caller that skips a command for want of approval records it
 //! with [`hold`] under its project root, and [`held_back`] lists them for the
 //! one warning per process.
 //!
@@ -30,15 +30,16 @@ use sha1::{Digest, Sha1};
 use crate::config::Config;
 use crate::config::layers::{Layer, LayerSource};
 use crate::fs_atomic::write_atomic;
+use crate::shell::ConfigCommand;
 
-/// Every command line the config asks `mt` to run, sorted and deduplicated:
-/// what [`digest`] covers and what `mt allow` lists. That is each
-/// `[[tasks.waits]]` `run` line, each `[[on.flip]]` action's `run` line, and
-/// the `[go] editor` and `[add] editor` commands unless the user's own layer
-/// set them. Another kind of config command joins by adding its lines here,
+/// Every command the config asks `mt` to run, sorted and deduplicated: what
+/// [`digest`] covers and what `mt allow` lists. That is each
+/// `[[tasks.waits]]` `run`, each `[[on.flip]]` action's `run`, and the
+/// `[go] editor` and `[add] editor` commands unless the user's own layer set
+/// them. Another kind of config command joins by adding its commands here,
 /// and every approval then asks again.
 #[must_use]
-pub fn commands(config: &Config) -> Vec<String> {
+pub fn commands(config: &Config) -> Vec<ConfigCommand> {
     let checkers = config.tasks.waits.iter().map(|checker| checker.run.clone());
     let actions = config
         .on
@@ -48,8 +49,9 @@ pub fn commands(config: &Config) -> Vec<String> {
         .filter_map(|action| action.run.clone());
     let editors = [&config.go.editor, &config.add.editor]
         .into_iter()
-        .filter_map(|editor| untrusted_editor(config, editor.as_deref()));
-    let mut commands: Vec<String> = checkers.chain(actions).chain(editors).collect();
+        .filter_map(|editor| untrusted_editor(config, editor.as_deref()))
+        .map(ConfigCommand::Line);
+    let mut commands: Vec<ConfigCommand> = checkers.chain(actions).chain(editors).collect();
     commands.sort();
     commands.dedup();
     commands
@@ -123,7 +125,7 @@ fn runnable_editor_in(
     {
         return Some(editor.to_owned());
     }
-    hold(root, &[editor.to_owned()]);
+    hold(root, &[ConfigCommand::Line(editor.to_owned())]);
     None
 }
 
@@ -132,12 +134,13 @@ fn runnable_editor_in(
 static HELD: Mutex<BTreeMap<PathBuf, BTreeSet<String>>> = Mutex::new(BTreeMap::new());
 
 /// Record `commands` of the project at `root` as held back: a caller found
-/// them not allowed and ran none of them.
-pub fn hold(root: &Path, commands: &[String]) {
+/// them not allowed and ran none of them. Each is kept as it shows, for the
+/// warning.
+pub fn hold(root: &Path, commands: &[ConfigCommand]) {
     let mut held = HELD.lock().unwrap_or_else(PoisonError::into_inner);
     held.entry(root.to_path_buf())
         .or_default()
-        .extend(commands.iter().cloned());
+        .extend(commands.iter().map(ToString::to_string));
 }
 
 /// The commands this process would have run but held back, from every
@@ -161,13 +164,19 @@ pub fn take_held(root: &Path) -> Vec<String> {
         .unwrap_or_default()
 }
 
-/// The digest an approval records for `commands`: each line, NUL-terminated,
-/// through SHA-1, as lowercase hex.
+/// The digest an approval records for `commands`, through SHA-1, as
+/// lowercase hex. A line goes in NUL-terminated. An array goes in as it shows,
+/// NUL-terminated after a leading NUL, which no line starts with, since a line
+/// holding NUL can't run. So an array and a line that show alike digest apart,
+/// and turning one into the other asks again.
 #[must_use]
-pub fn digest(commands: &[String]) -> String {
+pub fn digest(commands: &[ConfigCommand]) -> String {
     let mut hasher = Sha1::new();
     for command in commands {
-        hasher.update(command.as_bytes());
+        if matches!(command, ConfigCommand::Argv(_)) {
+            hasher.update([0]);
+        }
+        hasher.update(command.to_string().as_bytes());
         hasher.update([0]);
     }
     hex(&hasher.finalize())
@@ -196,12 +205,12 @@ pub fn record_path(data_home: &Path, key: &Path) -> PathBuf {
 /// An empty list needs no approval. With no data home there is nowhere to
 /// record one, so nothing is allowed.
 #[must_use]
-pub fn is_allowed(root: &Path, commands: &[String]) -> bool {
+pub fn is_allowed(root: &Path, commands: &[ConfigCommand]) -> bool {
     allowed_in(crate::data_home().as_deref(), root, commands)
 }
 
 /// [`is_allowed`] against the data home `home`.
-fn allowed_in(home: Option<&Path>, root: &Path, commands: &[String]) -> bool {
+fn allowed_in(home: Option<&Path>, root: &Path, commands: &[ConfigCommand]) -> bool {
     if commands.is_empty() {
         return true;
     }
@@ -236,19 +245,23 @@ pub enum AllowError {
 /// # Errors
 /// [`AllowError::NoDataHome`] when no data directory applies, and
 /// [`AllowError::Write`] when the file cannot be written.
-pub fn record(root: &Path, commands: &[String]) -> Result<PathBuf, AllowError> {
+pub fn record(root: &Path, commands: &[ConfigCommand]) -> Result<PathBuf, AllowError> {
     record_in(crate::data_home().as_deref(), root, commands)
 }
 
 /// [`record`] under the data home `home`.
-fn record_in(home: Option<&Path>, root: &Path, commands: &[String]) -> Result<PathBuf, AllowError> {
+fn record_in(
+    home: Option<&Path>,
+    root: &Path,
+    commands: &[ConfigCommand],
+) -> Result<PathBuf, AllowError> {
     let home = home.ok_or(AllowError::NoDataHome)?;
     let key = repo_key(root);
     let path = record_path(home, &key);
     let mut text = format!("{}\n# {}\n", digest(commands), key.display());
     for command in commands {
         text.push_str("# ");
-        text.push_str(command);
+        text.push_str(&command.to_string());
         text.push('\n');
     }
     let fail = |source| AllowError::Write {
