@@ -181,7 +181,7 @@ eject PCT='90':
 [group("dev")]
 check-windows:
     nix develop .#windows --command \
-        cargo check --workspace --all-targets --locked \
+        cargo check --quiet --workspace --all-targets --locked \
         --target x86_64-pc-windows-gnu
 
 # The config is shared by every worktree, so a driver goes only when no
