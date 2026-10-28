@@ -282,18 +282,8 @@ impl Task {
     /// between the ISO value and `[ls] date-format`.
     #[must_use]
     pub fn file_key(&self) -> String {
-        slash_path(&self.file)
+        crate::slash_path(&self.file)
     }
-}
-
-/// `path` with its components joined by `/` on every platform, the form a link
-/// target is written in. `Path::display` prints `\` on Windows.
-#[must_use]
-pub fn slash_path(path: &Path) -> String {
-    path.components()
-        .map(|part| part.as_os_str().to_string_lossy())
-        .collect::<Vec<_>>()
-        .join("/")
 }
 
 /// Whether a link target is a history pointer (a SWHID tombstone) rather than a

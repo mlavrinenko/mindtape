@@ -396,7 +396,7 @@ fn csv_value(id: ColumnId, task: &Task, ctx: RenderCtx<'_>) -> String {
         ColumnId::Why => mindtape::waits_on(readiness.blockers(task)),
         ColumnId::Children => task.children.to_string(),
         ColumnId::Progress => task.progress().map(|p| p.to_string()).unwrap_or_default(),
-        ColumnId::File => task.file.display().to_string(),
+        ColumnId::File => task.file_key(),
     }
 }
 

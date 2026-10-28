@@ -1,8 +1,8 @@
 <!-- Generated from docs/src/contributing/windows.typ by `just docs md`. Do not edit; edit the source. -->
 
-# Windows and the pty tests
+# Windows, paths and the pty tests
 
-What runs on Windows, what can’t, and how you catch a Windows compile error before CI does.
+What runs on Windows, what can’t, how a path turns into text, and how you catch a Windows compile error before CI does.
 
 ## What CI runs on Windows
 
@@ -13,6 +13,15 @@ A test of a config command passes on Windows only if it’s portable. A string `
 The runner’s git checks text files out with `\r\n` line endings. A test that compares a committed file byte for byte with the `\n` its code writes fails there, though every line matches. So such a file gets `text eol=lf` in `.gitattributes`, as the `schema/*.json` goldens do.
 
 On Windows, `dirs` reads the data path from a system API that no environment variable moves. A test that sets `XDG_DATA_HOME` would test a path `mt` never reads there. That’s why `MINDTAPE_CONFIG_HOME`, `MINDTAPE_DATA_HOME` and `MINDTAPE_CACHE_HOME` exist, and why `support::isolated_env` sets all three. `tests/it/packs_cache_e2e.rs` fills the pack cache under the last one. `tests/it/install_e2e.rs` sets them to check both where `mt install` writes the `@local/mindtape` package and where loading a project finds it. `tests/it/install_package_path_e2e.rs` leaves `MINDTAPE_DATA_HOME` unset and sets `TYPST_PACKAGE_PATH` instead, which typst-world reads on every platform, to check the same against Typst’s own package directory.
+
+## Paths
+
+A path shown to people uses the native separator, and a path a program reads uses `/`, as in git, rustc, ripgrep and fd. The CLI reference states the rule for users. In code, a path turns into text through one of the two helpers in `crates/mindtape/src/path_text.rs`:
+
+- `mindtape::display_path` for a path a person reads: a message, a note, an error’s place, the `file` column. It honours `--path-separator`.
+- `mindtape::slash_path` for a path a program reads or a file stores: the JSON and CSV `file` field, a link target, a lock entry.
+
+A test that pins how a path reads passes `--path-separator` a `\`, so a Linux run takes the route Windows takes by default. A test about something else that prints a path wraps the expected path in `support::native`, which writes the platform’s separator.
 
 ## The pty tests are Unix-only
 

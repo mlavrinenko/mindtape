@@ -34,9 +34,10 @@ A field is #strong[authored] when it holds a value written in the task file.
 
   [`file`],
   [computed],
-  [The path from the project root, which the `path` filter field also reads.
-    The table's `file` column shows the path from the working directory
-    instead.],
+  [The path from the project root, with `/` between folders on every
+    platform, which the `path` filter field also reads. The table's `file`
+    column shows the path from the working directory instead, in your
+    platform's #link(u("/cli/#paths"))[separator].],
 
   [`title`], [authored], [The only field a record must carry.],
   [`status`], [authored], [`{name, date, note}`, or `null` when unset.],

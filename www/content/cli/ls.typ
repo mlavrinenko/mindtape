@@ -75,7 +75,8 @@ field, a view or a status as a filter before it tries a stem hash. `mt`
 refuses a stem hash that more than one task shares, and the refusal names
 each task's stem and hash.
 
-`file` is the task's path, relative to the working directory. Its cell is
+`file` is the task's path, relative to the working directory and in your
+platform's #link(u("/cli/#paths"))[separator]. Its cell is
 never empty, so `nonempty()` can't hide it. It shows when stdout isn't a
 terminal, because a saved stem hash can turn ambiguous once a new task's hash
 shares its prefix. On a terminal it shows when you name it, as in

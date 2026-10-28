@@ -24,8 +24,9 @@ use typst_harvest::{HVal, Harvest, HarvestError, HarvestWorld, SourceSnapshot, b
 
 use crate::config::Config;
 use crate::loader::derive::RootDeriver;
+use crate::model::Task;
 use crate::model::task_spans::TaskCallSpans;
-use crate::model::{Task, slash_path};
+use crate::slash_path;
 
 // The persistent task cache is a loader implementation detail with no public
 // API, so it lives as a private submodule here rather than on the crate's

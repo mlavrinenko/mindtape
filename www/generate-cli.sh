@@ -42,6 +42,8 @@ capture rules-commit "$FIX" 'mt rules --for commit'
 capture ls-default "$FIX" "mt ls 'has_tag(\"billing\")' --columns @default --sort @default"
 capture ls-cut "$FIX" "mt ls '' -n 5"
 capture ls-file-when "$FIX" "mt config show --defaults | grep -A1 '^\[ls.columns.file\]'"
+capture path-separator "$FIX" "mt --path-separator '\\' ls ready -n 2 --format path"
+capture path-separator "$FIX" "mt --path-separator '\\' ls ready -n 2 --json | jq -r '.tasks[].file'"
 
 capture_lines ls-examples "$FIX" <<'EOF'
 mt ls ''                        # empty filter: lists everything

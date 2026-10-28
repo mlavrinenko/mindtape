@@ -75,7 +75,8 @@ pub struct CanonicalTask {
     /// Stable identity: the file stem, or an explicit authored `id:`.
     #[serde(default)]
     pub id: String,
-    /// Path to the source file, relative to the project root.
+    /// Path to the source file, relative to the project root and
+    /// `/`-separated on every platform ([`Task::file_key`]).
     #[serde(default)]
     pub file: String,
     /// Human-readable title.
@@ -294,7 +295,7 @@ impl CanonicalTask {
     pub fn from_task(task: &Task, config: &Config) -> Self {
         Self {
             id: task.id.clone(),
-            file: task.file.display().to_string(),
+            file: task.file_key(),
             title: task.title.clone(),
             status: task.status.as_ref().map(canonical_status),
             priority: priority_to_canonical(task.priority.as_ref(), config),

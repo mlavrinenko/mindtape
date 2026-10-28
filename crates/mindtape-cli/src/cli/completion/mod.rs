@@ -106,6 +106,11 @@ pub enum Source {
 pub const SOURCES: &[(&str, &str, Source)] = &[
     ("", "worktree", Source::DirPath),
     (
+        "",
+        "path_separator",
+        Source::None("one character of the user's choosing, which no project value predicts"),
+    ),
+    (
         "add",
         "title",
         Source::None("the task's title, in the user's own words"),

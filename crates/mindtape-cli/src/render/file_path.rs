@@ -37,9 +37,9 @@ pub fn cwd() -> Option<&'static Path> {
 pub fn cell_text(root: &Path, file: &Path) -> String {
     match cwd() {
         Some(cwd) if !root.as_os_str().is_empty() => {
-            relativize(root, cwd, file).display().to_string()
+            mindtape::display_path(relativize(root, cwd, file))
         }
-        _ => file.display().to_string(),
+        _ => mindtape::display_path(file),
     }
 }
 

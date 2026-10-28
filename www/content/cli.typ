@@ -43,6 +43,23 @@ Every command takes these flags:
 
 #render-globals(CLI)
 
+== Paths
+
+`mt` shows you each path in your platform's own separator, `\` on Windows and
+`/` everywhere else. That's the `file` column, `--format path`, the place an
+error points at, and every path in a message, so you can paste any of them
+straight into your shell.
+
+A path a program reads uses `/` on every platform. That's the `file` field of
+`--json` and `--format csv`, the `file` and `place` of `mt check --json`, and
+every link `mt` writes into a task. A script reads the same output on every
+machine, and a task file reads the same in every checkout.
+
+`--path-separator` picks the separator of the paths shown to you, as it does
+in ripgrep and fd. What a program reads keeps its `/`.
+
+#terminal("path-separator")
+
 = Files
 
 #cli-group(CLI, CLI_GROUPS, "Files")

@@ -102,6 +102,11 @@ fn run() -> Result<(), Diag> {
     // The value is stored in a thread-local so the rest of the binary can
     // read it without threading the choice through every call-site.
     init_color(cli.color);
+    // Before any command prints a path: every one it shows goes through
+    // `mindtape::display_path`, which reads this.
+    if let Some(separator) = cli.path_separator {
+        mindtape::init_path_separator(separator);
+    }
     // Resolve the pinned-clock override ($MINDTAPE_NOW) once, before any
     // command reads a date: every `mindtape::date` helper and
     // the today-stamping paths (add/flip/review/recur) read the same cached

@@ -370,3 +370,9 @@ pub fn stderr_of(done: &assert_cmd::assert::Assert) -> String {
 pub fn stdout_of(done: &assert_cmd::assert::Assert) -> String {
     String::from_utf8_lossy(&done.get_output().stdout).into_owned()
 }
+
+/// `path`, written with `/`, in the separator `mt` shows people on this
+/// platform: what a message, an error's place or the `file` column prints.
+pub fn native(path: &str) -> String {
+    path.replace('/', std::path::MAIN_SEPARATOR_STR)
+}

@@ -57,6 +57,25 @@ pub struct Cli {
     /// When to color the output.
     #[arg(long, value_name = "WHEN", default_value_t, global = true)]
     pub color: ColorChoice,
+
+    /// Write SEP between folders in every path mt shows you.
+    ///
+    /// Defaults to your platform's own, `\` on Windows and `/` elsewhere.
+    /// Paths a program reads keep `/`: the JSON and CSV `file` field, and
+    /// every path mt stores.
+    #[arg(long, value_name = "SEP", global = true, value_parser = parse_separator)]
+    pub path_separator: Option<char>,
+}
+
+/// `--path-separator`'s value: one ASCII character, as ripgrep and fd take.
+fn parse_separator(text: &str) -> std::result::Result<char, String> {
+    let mut chars = text.chars();
+    match (chars.next(), chars.next()) {
+        (Some(c), None) if c.is_ascii() => Ok(c),
+        _ => Err("give one ASCII character, such as / or \\. \
+                  Git Bash turns a lone / into a path, so write // there"
+            .to_owned()),
+    }
 }
 
 // The order here is the order `mt --help` lists: the commands a newcomer runs

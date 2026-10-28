@@ -82,6 +82,7 @@ mod mv_e2e;
 mod open_questions_e2e;
 mod packs;
 mod packs_cache_e2e;
+mod path_separator_e2e;
 mod pre_write_refusal_e2e;
 mod read_json_e2e;
 mod read_no_write_e2e;

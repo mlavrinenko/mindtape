@@ -33,6 +33,7 @@ pub mod import_map;
 pub mod link;
 pub mod loader;
 pub mod model;
+pub mod path_text;
 pub mod plural;
 pub mod problem;
 pub mod recur;
@@ -119,7 +120,8 @@ pub use model::numeric::{
 };
 pub use model::reference::{Base, RefError, Resolved, Via, is_path_ref, resolve_ref};
 pub use model::task_spans::TaskCallSpans;
-pub use model::{Status, Task, is_history_pointer, normalize_link, relative_target, slash_path};
+pub use model::{Status, Task, is_history_pointer, normalize_link, relative_target};
+pub use path_text::{display_path, init_path_separator, slash_path};
 pub use plural::{count, plural};
 pub use problem::Problem;
 pub use rules::{CheckSpec, RuleSpec};

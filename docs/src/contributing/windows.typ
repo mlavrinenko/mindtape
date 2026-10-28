@@ -10,10 +10,10 @@
   output: "docs/contributing/windows.md",
 )) <mindtape-md>
 
-#doc-title[Windows and the pty tests]
+#doc-title[Windows, paths and the pty tests]
 
-What runs on Windows, what can't, and how you catch a Windows compile error
-before CI does.
+What runs on Windows, what can't, how a path turns into text, and how you
+catch a Windows compile error before CI does.
 
 = What CI runs on Windows
 
@@ -49,6 +49,23 @@ writes the `@local/mindtape` package and where loading a project finds it.
 `tests/it/install_package_path_e2e.rs` leaves `MINDTAPE_DATA_HOME` unset and
 sets `TYPST_PACKAGE_PATH` instead, which typst-world reads on every platform,
 to check the same against Typst's own package directory.
+
+= Paths
+
+A path shown to people uses the native separator, and a path a program reads
+uses `/`, as in git, rustc, ripgrep and fd. The CLI reference states the rule
+for users. In code, a path turns into text through one of the two helpers in
+`crates/mindtape/src/path_text.rs`:
+
+- `mindtape::display_path` for a path a person reads: a message, a note, an
+  error's place, the `file` column. It honours `--path-separator`.
+- `mindtape::slash_path` for a path a program reads or a file stores: the JSON
+  and CSV `file` field, a link target, a lock entry.
+
+A test that pins how a path reads passes `--path-separator` a `\`, so a Linux
+run takes the route Windows takes by default. A test about something else
+that prints a path wraps the expected path in `support::native`, which writes
+the platform's separator.
 
 = The pty tests are Unix-only
 
