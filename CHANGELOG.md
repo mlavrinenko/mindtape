@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-28
+
 ### Upgrading from 0.2
 
 0.3 is a rewrite, so there is no in-place upgrade. Start over like this.
@@ -989,5 +991,6 @@ Initial release.
 - **NixOS module** for declarative service configuration
 - **Cross-platform release binaries** (Linux x86_64/aarch64, macOS x86_64/aarch64)
 
+[0.3.0]: https://github.com/mlavrinenko/mindtape/releases/tag/v0.3.0
 [0.2.0]: https://github.com/mlavrinenko/mindtape/releases/tag/v0.2.0
 [0.1.0]: https://github.com/mlavrinenko/mindtape/releases/tag/v0.1.0
