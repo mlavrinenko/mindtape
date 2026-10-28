@@ -295,6 +295,17 @@ actions = [
   { run = "mmz --is-fresh --tag gate", gate = true, message = "run `just check`, then flip again" },
 ]
 
+# Replaces the tasks pack's rule by name to exempt the commit `just release`
+# makes, whose subject is set in .config/release.toml. It dates CHANGELOG.md
+# and bumps the version, which is work on no task.
+[[commits.rules]]
+name = "work-names-a-task"
+scope = "commit"
+when = '!tasks_only && !matches(subject, "^(fixup|squash|amend)! ") && !matches(subject, "^chore\\(release\\): [0-9]+\\.[0-9]+\\.[0-9]+$")'
+assert = "has(refs)"
+message = "name the task this commit works on in a `Refs: <stem>` footer"
+severity = "error"
+
 [add]
 header = ""
 comments = false
