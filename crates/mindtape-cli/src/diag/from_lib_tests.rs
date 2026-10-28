@@ -326,7 +326,10 @@ fn a_reference_error_names_the_reference() {
     };
     assert_eq!(
         plain(&Diag::from(path)),
-        "error: can't resolve path: 'nope/x.typ': not found\n"
+        crate::test_util::native_in(
+            "error: can't resolve path: 'nope/x.typ': not found\n",
+            &["nope/x.typ"]
+        )
     );
 }
 

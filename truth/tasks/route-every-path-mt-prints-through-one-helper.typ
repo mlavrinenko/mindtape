@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 28),
+  status: done(2026, 10, 28),
   links: depends-on(
     "show-paths-in-the-native-separator-with-a-path-separator-override.typ",
   ),
