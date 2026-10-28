@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use super::render::{quote, render, shell_word};
+use super::render::{quote, render, shell_word, shell_word_on};
 use super::{Command, Diag, Hint, Kind, Note};
 
 fn plain(diag: &Diag) -> String {
@@ -27,6 +27,14 @@ fn a_shell_word_is_bare_when_safe_and_quoted_otherwise() {
     assert_eq!(shell_word("a note"), "'a note'");
     assert_eq!(shell_word("$HOME"), "'$HOME'");
     assert_eq!(shell_word(""), "''");
+}
+
+/// A Windows shell reads `\` literally, so a Windows path stays bare there,
+/// while a POSIX shell would take it as an escape.
+#[test]
+fn a_backslash_is_bare_only_where_it_separates() {
+    assert_eq!(shell_word_on(r"C:\proj\a.typ", true), r"C:\proj\a.typ");
+    assert_eq!(shell_word_on(r"a\b", false), r"'a\b'");
 }
 
 #[test]

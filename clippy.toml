@@ -20,6 +20,7 @@ disallowed-methods = [
   { path = "std::fs::File::create", reason = "truncates with no fsync; use mindtape::write_atomic, or File::create_new to require a fresh path" },
   { path = "mt::util::warn_errors", reason = "use util::open_warned, which opens the project and warns once" },
   { path = "mindtape::suggest::nearest", reason = "use Diag::did_you_mean or did_you_mean_or in the CLI, suggest::nearest_owned in the library" },
+  { path = "std::path::Path::display", reason = "a path shown to people goes through mindtape::display_path, one a program reads or a file stores through mindtape::slash_path" },
 ]
 
 # Every stderr line goes through `crates/mindtape-cli/src/diag/`: a typed

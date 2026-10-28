@@ -376,3 +376,11 @@ pub fn stdout_of(done: &assert_cmd::assert::Assert) -> String {
 pub fn native(path: &str) -> String {
     path.replace('/', std::path::MAIN_SEPARATOR_STR)
 }
+
+/// `text` with each of `paths` in it, written with `/`, in the separator `mt`
+/// shows people on this platform: an expected message that names them.
+pub fn native_in(text: &str, paths: &[&str]) -> String {
+    paths.iter().fold(text.to_owned(), |text, path| {
+        text.replace(path, &native(path))
+    })
+}

@@ -62,7 +62,7 @@ pub enum Via {
 #[derive(Debug, thiserror::Error)]
 pub enum RefError {
     /// A reference spelled as a path could not be resolved.
-    #[error("resolve {}", .path.display())]
+    #[error("resolve {}", crate::display_path(.path))]
     Path {
         /// The path, joined onto the working directory when relative.
         path: PathBuf,
@@ -71,7 +71,7 @@ pub enum RefError {
         source: std::io::Error,
     },
     /// A path that no loaded task owns.
-    #[error("no task at {}", .0.display())]
+    #[error("no task at {}", crate::display_path(.0))]
     NoTaskAt(PathBuf),
     /// A stem several tasks share, none of them in the base's folder.
     #[error("stem {reference:?} names {} tasks", .paths.len())]

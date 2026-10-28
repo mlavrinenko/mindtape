@@ -84,8 +84,9 @@ fn an_outgrown_working_tree_warns_through_the_budget_rule() {
     let (ok, stdout) = check(dir.path());
     assert!(ok, "a warn rule leaves `mt check` green: {stdout}");
     assert!(
-        stdout
-            .contains("warning: tasks/budgeted.typ:1: rules.src-budget: split the remaining work"),
+        stdout.contains(&shown(
+            "warning: tasks/budgeted.typ:1: rules.src-budget: split the remaining work"
+        )),
         "the breach names the rule and its advice: {stdout}"
     );
 }
@@ -129,4 +130,9 @@ fn the_retired_estimate_tables_are_unknown_keys() {
         let (ok, stdout) = check(root);
         assert!(!ok, "`{table}` must be refused: {stdout}");
     }
+}
+
+/// An expected message, each task path in it in the separator `mt` shows.
+fn shown(text: &str) -> String {
+    support::native_in(text, &["tasks/budgeted.typ"])
 }

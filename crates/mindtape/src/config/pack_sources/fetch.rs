@@ -86,7 +86,7 @@ pub enum FetchError {
         actual: String,
     },
     /// The cache directory the hash names holds a tree of another hash.
-    #[error("cache directory holds other files: {}", quote(&dir.display().to_string()))]
+    #[error("cache directory holds other files: {}", quote(&crate::display_path(dir)))]
     Occupied {
         /// The directory.
         dir: PathBuf,
@@ -170,7 +170,7 @@ pub fn locate(git: &str, root: &Path) -> Result<String, FetchError> {
     if is_remote(git) || Path::new(git).is_absolute() {
         return Ok(git.to_owned());
     }
-    Ok(root.join(git).display().to_string())
+    Ok(root.join(git).to_string_lossy().into_owned())
 }
 
 /// Whether `git` is a drive letter and a colon with no `/` or `\` after it.

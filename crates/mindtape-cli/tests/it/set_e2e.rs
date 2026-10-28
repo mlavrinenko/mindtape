@@ -198,7 +198,10 @@ fn a_hazardous_string_value_survives_the_round_trip() {
 fn a_refused_set_reports_the_file_and_line_of_the_breach() {
     let dir = scaffold();
     let stderr = set_err(dir.path(), "priority=99");
-    assert!(stderr.contains("error: tasks/wire-oauth.typ:"), "{stderr}");
+    assert!(
+        stderr.contains(&shown("error: tasks/wire-oauth.typ:")),
+        "{stderr}"
+    );
 }
 
 /// A refused write that inserts a field has no line of its own on disk, so the
@@ -209,7 +212,7 @@ fn a_refused_insert_points_at_the_call_on_disk() {
     let dir = scaffold();
     let stderr = set_err(dir.path(), "priority=99");
     assert!(
-        stderr.contains("error: tasks/wire-oauth.typ:3: priority:"),
+        stderr.contains(&shown("error: tasks/wire-oauth.typ:3: priority:")),
         "{stderr}"
     );
 }
@@ -228,7 +231,10 @@ fn a_refused_replace_points_at_the_field_on_disk() {
     let padded = written.replacen("title:", "// a\n  // b\n  title:", 1);
     mindtape::write_atomic(&dir.path().join("tasks/wire-oauth.typ"), padded.as_bytes()).unwrap();
     let stderr = set_err(dir.path(), "priority=99");
-    let expected = format!("error: tasks/wire-oauth.typ:{}: priority:", line + 2);
+    let expected = shown(&format!(
+        "error: tasks/wire-oauth.typ:{}: priority:",
+        line + 2
+    ));
     assert!(stderr.contains(&expected), "{stderr}\n{padded}");
 }
 
@@ -246,4 +252,9 @@ fn a_task_with_an_aliased_call_is_refused_and_left_untouched() {
         "{stderr}"
     );
     assert_eq!(read(dir.path()), body, "a refused write must not land");
+}
+
+/// An expected message, each task path in it in the separator `mt` shows.
+fn shown(text: &str) -> String {
+    support::native_in(text, &["tasks/wire-oauth.typ"])
 }

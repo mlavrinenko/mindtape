@@ -350,7 +350,10 @@ fn a_config_warning_is_a_warning_at_the_config_file() {
     assert!(!diags.is_empty(), "the fixture must earn a warning");
     let text = crate::diag::plain(diags.first().unwrap());
     assert!(
-        text.starts_with("warning: .mindtape/config.toml: tasks.rules[0]"),
+        text.starts_with(&format!(
+            "warning: {}: tasks.rules[0]",
+            mindtape::display_path(".mindtape/config.toml")
+        )),
         "{text}"
     );
 }

@@ -246,11 +246,9 @@ fn toml_error(error: &toml::de::Error, origin: Option<&str>) -> Diag {
         .and_then(|first| first.strip_prefix("TOML parse error at line "))
         .and_then(|rest| rest.split_once(", column "));
     match (origin, at) {
-        (Some(origin), Some((line, col))) => {
-            let mut diag = diag.reason(message);
-            diag.0.place = Some(format!("{origin}:{line}:{col}"));
-            diag
-        }
+        (Some(origin), Some((line, col))) => diag
+            .reason(message)
+            .at_words(format!("{origin}:{line}:{col}")),
         (Some(origin), None) => diag.value(origin).reason(message),
         (None, Some((line, col))) => diag.reason(format!("line {line}, column {col}: {message}")),
         (None, None) => diag.reason(message),
@@ -333,12 +331,11 @@ impl Diag {
 impl Diag {
     /// The place a breach or a load failure sits at: a file and line, or the
     /// words for one that has no file (`<new task from template 'task'>:7`).
-    pub(crate) fn at_location(mut self, location: &Location) -> Self {
+    pub(crate) fn at_location(self, location: &Location) -> Self {
         match location {
             Location::File { file, line } => self.at(file, *line, None),
             Location::Builtin { .. } | Location::Pack { .. } | Location::Filled { .. } => {
-                self.0.place = Some(location.to_string());
-                self
+                self.at_words(location.to_string())
             }
         }
     }
@@ -350,15 +347,15 @@ fn reference(err: &RefError) -> Diag {
     let list = || Hint::run(Command::mt().word("ls"), "to see your tasks");
     match err {
         RefError::Path { path, source } => Diag::failed("can't resolve path")
-            .value(path.display().to_string())
+            .value(mindtape::display_path(path))
             .io(source),
         RefError::Empty => Diag::usage("empty task reference").hint(list()),
-        RefError::NoTaskAt(path) => Diag::failed("no task at").value(path.display().to_string()),
+        RefError::NoTaskAt(path) => Diag::failed("no task at").value(mindtape::display_path(path)),
         RefError::SharedStem { reference, paths } => paths.iter().fold(
             Diag::failed("stem names several tasks")
                 .value(reference.clone())
                 .hint(Hint::new("pass the path of the one you mean")),
-            |diag, path| diag.note(Note::new("candidate").name(path.display().to_string())),
+            |diag, path| diag.note(Note::new("candidate").name(mindtape::display_path(path))),
         ),
         RefError::Ambiguous {
             reference,

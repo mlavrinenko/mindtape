@@ -66,7 +66,7 @@ pub fn inbound_rewrites(
         }
         let contents = typst_edit::apply(&source, edits).map_err(|err| {
             Diag::failed("can't rewrite links")
-                .value(task.file.display().to_string())
+                .value(mindtape::display_path(&task.file))
                 .cause(&err)
         })?;
         rewrites.push(Rewrite {

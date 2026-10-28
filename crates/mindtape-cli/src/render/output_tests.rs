@@ -203,7 +203,7 @@ fn path_format_emits_one_path_per_line_no_header() {
     let mut b = bare_task("t2");
     b.file = "tasks/b.typ".into();
     let out = render(&[a, b], OutputFormat::Path, TestCtx::default().ctx(), None).unwrap();
-    assert_eq!(out, "tasks/a.typ\ntasks/b.typ");
+    assert_eq!(out, mindtape::display_path("tasks/a.typ\ntasks/b.typ"));
 }
 
 #[test]
@@ -287,7 +287,7 @@ fn path0_format_terminates_every_entry_including_the_last() {
     let mut b = bare_task("t2");
     b.file = "tasks/b.typ".into();
     let out = render(&[a, b], OutputFormat::Path0, TestCtx::default().ctx(), None).unwrap();
-    assert_eq!(out, "tasks/a.typ\0tasks/b.typ\0");
+    assert_eq!(out, mindtape::display_path("tasks/a.typ\0tasks/b.typ\0"));
     assert_eq!(out.matches('\0').count(), 2, "one NUL per task, incl. last");
 }
 

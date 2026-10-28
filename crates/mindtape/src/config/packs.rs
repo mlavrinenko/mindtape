@@ -374,7 +374,7 @@ fn apply_disable(
 fn layer_parse_error(source: &LayerSource, error: toml::de::Error) -> ConfigError {
     match source {
         LayerSource::Xdg(path) | LayerSource::Dir(path) => ConfigError::ParseIn {
-            origin: path.display().to_string(),
+            origin: crate::display_path(path),
             error,
         },
         LayerSource::Project(_) | LayerSource::Embedded => ConfigError::Parse(error),

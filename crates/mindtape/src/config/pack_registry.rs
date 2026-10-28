@@ -61,7 +61,7 @@ impl PackOrigin {
     pub(crate) fn label(&self) -> String {
         match self {
             Self::Embedded(name) | Self::Cached { name, .. } => name.clone(),
-            Self::Path(path) | Self::Dir(path) => path.display().to_string(),
+            Self::Path(path) | Self::Dir(path) => crate::display_path(path),
         }
     }
 

@@ -75,7 +75,7 @@ pub(super) fn expand_glob(path: &Path, fs: &dyn AtFs) -> Result<Vec<PathBuf>, At
             Component::Normal(_) if is_glob(&segment) => {
                 let matcher = Glob::new(&segment)
                     .map_err(|source| AtError::Glob {
-                        pattern: path.display().to_string(),
+                        pattern: crate::display_path(path),
                         source,
                     })?
                     .compile_matcher();

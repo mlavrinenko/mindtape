@@ -22,7 +22,10 @@ fn install_fetches_a_locked_source_the_load_then_reads() {
         .join("mindtape/packs")
         .join(&sha);
     let short = &commit[..7];
-    let fetched = format!("fetched acme {short} into {}\n", tree.display());
+    let fetched = format!(
+        "fetched acme {short} into {}\n",
+        mindtape::display_path(&tree)
+    );
     assert_eq!(stdout, fetched);
     assert!(tree.join("commits.toml").is_file(), "{stdout}");
     assert_resolves_pack(dir.path());

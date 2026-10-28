@@ -64,7 +64,11 @@ pub fn run(args: &PresetArgs) -> Result<()> {
                     .hint(Hint::new("set the directory in MINDTAPE_CONFIG_HOME"))
             })?;
             let dest = save(&root, &user_dir, &save_args.name, save_args.force)?;
-            println!("saved preset {:?} -> {}", save_args.name, dest.display());
+            println!(
+                "saved preset {:?} -> {}",
+                save_args.name,
+                mindtape::display_path(&dest)
+            );
             Ok(())
         }
         PresetAction::Ls { json } => {
@@ -104,7 +108,7 @@ pub(crate) fn save(root: &Path, user_dir: &Path, name: &str, force: bool) -> Res
         if !force {
             return Err(Diag::refused("user preset already exists")
                 .value(name)
-                .note(Note::new("it is at").value(existing.display().to_string()))
+                .note(Note::new("it is at").value(mindtape::display_path(&existing)))
                 .hint(Hint::command(
                     "overwrite it",
                     Command::mt()
@@ -117,7 +121,7 @@ pub(crate) fn save(root: &Path, user_dir: &Path, name: &str, force: bool) -> Res
         if existing.is_file() {
             std::fs::remove_file(&existing).map_err(|err| {
                 Diag::failed("can't remove")
-                    .value(existing.display().to_string())
+                    .value(mindtape::display_path(&existing))
                     .io(&err)
             })?;
         }
@@ -144,7 +148,7 @@ pub(crate) fn save(root: &Path, user_dir: &Path, name: &str, force: bool) -> Res
 fn create_dir(dir: &Path) -> Result<()> {
     std::fs::create_dir_all(dir).map_err(|err| {
         Diag::failed("can't create")
-            .value(dir.display().to_string())
+            .value(mindtape::display_path(dir))
             .io(&err)
     })
 }
@@ -185,7 +189,7 @@ pub(crate) fn render_ls(user_dir: Option<&Path>) -> Result<String> {
     out.push('\n');
     out.push_str("user presets");
     if let Some(dir) = user_dir {
-        out.push_str(&format!(" ({})", dir.display()));
+        out.push_str(&format!(" ({})", mindtape::display_path(dir)));
     }
     out.push_str(":\n");
     for name in &user_names {

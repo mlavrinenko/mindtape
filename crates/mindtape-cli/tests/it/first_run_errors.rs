@@ -67,7 +67,9 @@ fn unknown_config_table_is_reported_once_with_its_line_and_column() {
         "{stderr}"
     );
     assert!(
-        stderr.starts_with("error: .mindtape/config.toml:4:2: can't parse config"),
+        stderr.starts_with(&shown(
+            "error: .mindtape/config.toml:4:2: can't parse config"
+        )),
         "{stderr}"
     );
 }
@@ -80,7 +82,9 @@ fn a_syntax_error_in_the_config_is_reported_once() {
 
     assert!(!ok, "{stderr}");
     assert!(
-        stderr.starts_with("error: .mindtape/config.toml:1:7: can't parse config"),
+        stderr.starts_with(&shown(
+            "error: .mindtape/config.toml:1:7: can't parse config"
+        )),
         "{stderr}"
     );
     assert_eq!(stderr.matches("1:7").count(), 1, "{stderr}");
@@ -167,7 +171,7 @@ fn a_syntax_error_in_the_global_defaults_names_that_file() {
     assert!(
         stderr.contains(&format!(
             "{}:1:7: can't parse config: invalid string, expected",
-            defaults.display()
+            mindtape::display_path(&defaults)
         )),
         "{stderr}"
     );
@@ -195,4 +199,9 @@ fn a_syntax_error_in_a_path_pack_names_the_pack_file() {
         "{stderr}"
     );
     assert!(!stderr.contains(&format!(".{sep}pack.toml")), "{stderr}");
+}
+
+/// An expected message, each task path in it in the separator `mt` shows.
+fn shown(text: &str) -> String {
+    support::native_in(text, &[".mindtape/config.toml"])
 }

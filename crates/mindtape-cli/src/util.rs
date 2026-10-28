@@ -131,12 +131,12 @@ fn resolve_root_with(cwd: &Path, override_path: Option<&Path>) -> Result<PathBuf
     };
     if !base.join(".mindtape").is_dir() {
         return Err(Diag::failed("no .mindtape/ directory in worktree")
-            .value(base.display().to_string())
+            .value(mindtape::display_path(&base))
             .hint(Hint::new("run mt init there, or pass another path to -w")));
     }
     mindtape::canonical(&base).map_err(|err| {
         Diag::failed("can't resolve worktree")
-            .value(base.display().to_string())
+            .value(mindtape::display_path(&base))
             .io(&err)
     })
 }
@@ -299,12 +299,9 @@ impl<'p> Refs<'p> {
     pub fn target(&self, linker: &Task, reference: &str) -> std::result::Result<String, RefError> {
         let base = Base::Linker(&linker.file);
         let found = self.resolve(base, reference)?;
-        Ok(base
-            .path_to(&self.project.root, &found.task.file)
-            .components()
-            .map(|part| part.as_os_str().to_string_lossy())
-            .collect::<Vec<_>>()
-            .join("/"))
+        Ok(mindtape::slash_path(
+            &base.path_to(&self.project.root, &found.task.file),
+        ))
     }
 
     fn resolve(

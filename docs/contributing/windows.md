@@ -21,6 +21,8 @@ A path shown to people uses the native separator, and a path a program reads use
 - `mindtape::display_path` for a path a person reads: a message, a note, an error’s place, the `file` column. It honours `--path-separator`.
 - `mindtape::slash_path` for a path a program reads or a file stores: the JSON and CSV `file` field, a link target, a lock entry.
 
+`clippy.toml` refuses `Path::display`, so a new message can’t print a path any other way. A path that stays a path, such as a template directory the config passes on, keeps its own form through `to_string_lossy`.
+
 A test that pins how a path reads passes `--path-separator` a `\`, so a Linux run takes the route Windows takes by default. A test about something else that prints a path wraps the expected path in `support::native`, which writes the platform’s separator.
 
 ## The pty tests are Unix-only

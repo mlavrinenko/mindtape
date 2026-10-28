@@ -15,19 +15,19 @@ pub fn report_retire_plan(plan: &RetirePlan) {
         plan.status
     );
     for rewrite in &plan.rewrites {
-        println!("  - {}", rewrite.rel.display());
+        println!("  - {}", mindtape::display_path(&rewrite.rel));
     }
     if let Some(dir) = &plan.rename {
         println!(
             "would move {} into {}/:",
             count(plan.deletions.len(), "task"),
-            dir.display()
+            mindtape::display_path(dir)
         );
         for deletion in &plan.deletions {
             println!(
                 "  - {} → {}",
-                deletion.rel.display(),
-                dest_rel(&plan.rename, &deletion.rel).display()
+                mindtape::display_path(&deletion.rel),
+                mindtape::display_path(dest_rel(&plan.rename, &deletion.rel))
             );
         }
     }
@@ -43,13 +43,13 @@ pub fn report_retire_applied(plan: &RetirePlan, root: &Path) {
         plan.status
     );
     for rewrite in &plan.rewrites {
-        println!("  - {}", rewrite.rel.display());
+        println!("  - {}", mindtape::display_path(&rewrite.rel));
     }
     if let Some(dir) = &plan.rename {
         println!(
             "moved {} into {}/",
             count(plan.deletions.len(), "task"),
-            dir.display()
+            mindtape::display_path(dir)
         );
     }
     report_retarget(plan, "rewrote");
@@ -69,7 +69,7 @@ fn report_retarget(plan: &RetirePlan, verb: &str) {
         count(plan.link_rewrites.len(), "file")
     );
     for rewrite in &plan.link_rewrites {
-        println!("  - {}", rewrite.rel.display());
+        println!("  - {}", mindtape::display_path(&rewrite.rel));
     }
 }
 
@@ -84,13 +84,13 @@ pub fn retire_prompt_lines(plan: &RetirePlan) -> Vec<String> {
     lines.extend(
         plan.rewrites
             .iter()
-            .map(|rewrite| format!("  - {}", rewrite.rel.display())),
+            .map(|rewrite| format!("  - {}", mindtape::display_path(&rewrite.rel))),
     );
     if let Some(dir) = &plan.rename {
         lines.push(format!(
             "and move {} into {}/",
             count(plan.deletions.len(), "task"),
-            dir.display()
+            mindtape::display_path(dir)
         ));
     }
     if !plan.link_rewrites.is_empty() {

@@ -82,7 +82,7 @@ pub fn handle(project: &util::Project, outcome: &Outcome) -> Handle {
     let hashes = util::stem_hashes_with(&project.outcome.tasks, &project.config, stem);
     let shown = match path.strip_prefix(&project.root) {
         Ok(rel) => file_path::cell_text(&project.root, rel),
-        Err(_) => path.display().to_string(),
+        Err(_) => mindtape::display_path(path),
     };
     Handle {
         hash: stem
@@ -101,8 +101,8 @@ pub fn handle(project: &util::Project, outcome: &Outcome) -> Handle {
 pub fn render(outcome: &Outcome, handle: &Handle, format: Format) -> String {
     match format {
         Format::Text => render_text(outcome, handle),
-        Format::Path => outcome.path().display().to_string(),
-        Format::Path0 => format!("{}\0", outcome.path().display()),
+        Format::Path => mindtape::display_path(outcome.path()),
+        Format::Path0 => format!("{}\0", mindtape::display_path(outcome.path())),
         Format::Json => render_json(outcome, handle),
     }
 }
@@ -119,7 +119,7 @@ fn render_text(outcome: &Outcome, handle: &Handle) -> String {
 fn render_json(outcome: &Outcome, handle: &Handle) -> String {
     let value = json!({
         "outcome": outcome.label(),
-        "path": outcome.path().display().to_string(),
+        "path": mindtape::slash_path(outcome.path()),
         "slug": handle.hash,
     });
     serde_json::to_string_pretty(&value).unwrap_or_default()

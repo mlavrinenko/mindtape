@@ -124,7 +124,7 @@ fn check_id_uniqueness(tasks: &[Task], out: &mut Vec<Violation>) {
                 message: format!(
                     "duplicate id `{}`; first seen in `{}`",
                     task.id,
-                    first.file.display()
+                    crate::display_path(&first.file)
                 ),
                 location: task.field_location("id"),
                 severity: Severity::Error,

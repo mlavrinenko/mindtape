@@ -60,7 +60,8 @@ fn a_members_config_warning_and_held_commands_name_it() {
     let texts: Vec<String> = member_warnings("api", &project).iter().map(plain).collect();
 
     assert_eq!(texts.len(), 2, "{texts:?}");
-    assert!(texts[0].starts_with("warning: .mindtape/config.toml: tasks.rules[0]"));
+    let place = mindtape::display_path(".mindtape/config.toml");
+    assert!(texts[0].starts_with(&format!("warning: {place}: tasks.rules[0]")));
     assert!(texts[0].ends_with("note: project: api\n"), "{}", texts[0]);
     assert!(
         texts[1].contains("hint: read them, then run mt @api allow\n"),

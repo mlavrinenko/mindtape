@@ -74,7 +74,7 @@ pub(crate) fn land(project: &Project, staged: Vec<StagedTask>) -> Result<Vec<Tas
         }
         std::fs::create_dir_all(&task.dest).map_err(|err| {
             Diag::failed("can't create")
-                .value(task.dest.display().to_string())
+                .value(mindtape::display_path(&task.dest))
                 .io(&err)
         })?;
         let path = task.dest.join(format!("{}.typ", task.stem));

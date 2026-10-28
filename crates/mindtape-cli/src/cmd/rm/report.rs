@@ -25,7 +25,7 @@ pub(super) fn prompt_lines(plan: &Plan) -> Vec<String> {
     lines.extend(
         plan.deletions
             .iter()
-            .map(|deletion| format!("  - {}", deletion.rel.display())),
+            .map(|deletion| format!("  - {}", mindtape::display_path(&deletion.rel))),
     );
     lines
 }
@@ -33,7 +33,7 @@ pub(super) fn prompt_lines(plan: &Plan) -> Vec<String> {
 /// List each deletion in `plan` as an indented bullet on stdout.
 fn print_deletions(plan: &Plan) {
     for deletion in &plan.deletions {
-        println!("  - {}", deletion.rel.display());
+        println!("  - {}", mindtape::display_path(&deletion.rel));
     }
 }
 
@@ -53,7 +53,7 @@ pub(super) fn report_plan(plan: &Plan) {
             count(plan.rewrites.len(), "file")
         );
         for rewrite in &plan.rewrites {
-            println!("  - {}", rewrite.rel.display());
+            println!("  - {}", mindtape::display_path(&rewrite.rel));
         }
     }
 }

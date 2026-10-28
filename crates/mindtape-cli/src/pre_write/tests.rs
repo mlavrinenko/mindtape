@@ -45,7 +45,8 @@ fn refuses_a_rewrite_without_touching_the_file() {
     let err = verify_one(&project, &project.outcome.tasks, &file, &bad).unwrap_err();
 
     let text = crate::diag::plain(&err);
-    assert!(text.starts_with("error: tasks/a.typ:"), "{text}");
+    let place = format!("error: {}:", mindtape::display_path("tasks/a.typ"));
+    assert!(text.starts_with(&place), "{text}");
     assert!(!text.contains("rejected"), "no summary of its own: {text}");
     assert_eq!(std::fs::read_to_string(&file).unwrap(), good);
 }
@@ -184,7 +185,11 @@ fn a_load_failure_names_its_line() {
     .unwrap();
 
     let place = |at: usize| verdicts[at].problems()[0].clone();
-    assert!(place(0).starts_with("tasks/a.typ:"), "{}", place(0));
+    assert!(
+        place(0).starts_with(&mindtape::display_path("tasks/a.typ:")),
+        "{}",
+        place(0)
+    );
     assert!(place(1).starts_with("<new task>:"), "{}", place(1));
     assert!(place(1).contains(": did not load:"), "{}", place(1));
 }

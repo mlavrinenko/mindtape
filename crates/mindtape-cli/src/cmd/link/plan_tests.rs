@@ -111,7 +111,10 @@ fn an_unknown_kind_is_refused_with_the_configured_list_and_a_suggestion() {
     );
     let problem = only_problem(&plan);
     assert!(
-        problem.starts_with("error: tasks/alpha.typ: unknown link kind: 'depends-onn'\n"),
+        problem.starts_with(&format!(
+            "error: {}: unknown link kind: 'depends-onn'\n",
+            mindtape::display_path("tasks/alpha.typ")
+        )),
         "{problem}"
     );
     assert!(
@@ -379,11 +382,17 @@ fn a_stem_two_folders_share_is_refused_naming_both() {
         "{problem}"
     );
     assert!(
-        problem.contains("note: candidate: ../cli/gamma.typ\n"),
+        problem.contains(&format!(
+            "note: candidate: {}\n",
+            mindtape::display_path("../cli/gamma.typ")
+        )),
         "{problem}"
     );
     assert!(
-        problem.contains("note: candidate: ../web/gamma.typ\n"),
+        problem.contains(&format!(
+            "note: candidate: {}\n",
+            mindtape::display_path("../web/gamma.typ")
+        )),
         "{problem}"
     );
 }

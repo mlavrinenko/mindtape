@@ -162,9 +162,8 @@ pub fn verify_written(root: &Path, file: &Path) -> Result<()> {
         });
     }
     let Some(task) = outcome.tasks.iter().find(|task| task.file == rel) else {
-        return Err(
-            Diag::failed("written task harvested no task marker").value(rel.display().to_string())
-        );
+        return Err(Diag::failed("written task harvested no task marker")
+            .value(mindtape::display_path(rel)));
     };
 
     let issues: Vec<_> = validate(&outcome.tasks, &config)

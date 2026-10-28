@@ -28,7 +28,7 @@ fn a_bad_view_sort_is_reported_at_its_line() {
 
     assert_eq!(
         stderr,
-        "error: .mindtape/config.toml:5: views.broken.sort: unknown sort field: 'nofield'\n"
+        shown("error: .mindtape/config.toml:5: views.broken.sort: unknown sort field: 'nofield'\n")
     );
 }
 
@@ -37,11 +37,11 @@ fn an_unknown_pack_is_quoted_and_names_the_near_match() {
     let stderr = ls_stderr("extends = [\"mindtape:task\"]\n");
 
     assert!(
-        stderr.starts_with(
+        stderr.starts_with(&shown(
             "error: .mindtape/config.toml:1: extends: unknown pack: 'mindtape:task'\n\
              hint: did you mean mindtape:tasks?\n\
              hint: use one of: "
-        ),
+        )),
         "{stderr}"
     );
 }
@@ -55,7 +55,9 @@ fn a_hook_title_on_a_run_action_says_which_kind_takes_it() {
 
     assert_eq!(
         stderr,
-        "error: .mindtape/config.toml:6: on.flip[0].actions[0]: 'title' applies only to list actions\n"
+        shown(
+            "error: .mindtape/config.toml:6: on.flip[0].actions[0]: 'title' applies only to list actions\n"
+        )
     );
 }
 
@@ -83,4 +85,9 @@ fn a_bad_value_in_a_pack_is_reported_at_the_pack_line() {
         stderr.starts_with("error: team.toml:2: views.board.filter: "),
         "{stderr}"
     );
+}
+
+/// An expected message, each task path in it in the separator `mt` shows.
+fn shown(text: &str) -> String {
+    support::native_in(text, &[".mindtape/config.toml"])
 }

@@ -3,24 +3,23 @@
 
 use serde_json::{Value, json};
 
-use super::{Diag, render};
+use super::{Diag, Place, render};
 
 impl Diag {
     /// The problem as one object: `severity` (`error` or `warning`), `file`
     /// and `line` (`null` when it has none), `place` (the text the plain
-    /// report starts with), `rule`, `message` (without place or rule), `hints`
+    /// report starts with, `/`-separated like `file`), `rule`, `message` (without place or rule), `hints`
     /// and `notes`.
     pub(crate) fn to_json(&self) -> Value {
-        let (file, line) = self
-            .0
-            .site
-            .as_ref()
-            .map_or((None, None), |(file, line)| (Some(file.as_str()), *line));
+        let (file, line) = match &self.0.place {
+            Some(Place::File { path, line, .. }) => (Some(mindtape::slash_path(path)), *line),
+            _ => (None, None),
+        };
         json!({
             "severity": self.0.kind.label(),
             "file": file,
             "line": line,
-            "place": self.0.place,
+            "place": self.0.place.as_ref().map(|place| place.text(mindtape::slash_path)),
             "rule": self.0.rule,
             "message": render::text(self),
             "hints": self.0.hints.iter().map(ToString::to_string).collect::<Vec<_>>(),

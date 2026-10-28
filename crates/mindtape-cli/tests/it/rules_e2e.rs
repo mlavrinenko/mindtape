@@ -64,7 +64,8 @@ fn an_assert_that_holds_leaves_check_green() {
     assert!(
         !text
             .lines()
-            .any(|line| line.contains("tasks/subject.typ") && line.contains("imperative-title")),
+            .any(|line| line.contains(&shown("tasks/subject.typ"))
+                && line.contains("imperative-title")),
         "got: {text}"
     );
 }
@@ -78,10 +79,10 @@ fn a_breach_names_the_file_the_rule_and_its_message() {
         "an error-severity breach must fail the command: {text}"
     );
     assert!(
-        text.contains(
+        text.contains(&shown(
             "error: tasks/subject.typ:3: rules.imperative-title: \
              start the title with an imperative verb"
-        ),
+        )),
         "a breach reports at the task's marker line, prefixed by its \
          severity: {text}"
     );
@@ -93,7 +94,9 @@ fn a_warn_breach_prints_and_passes() {
     let (ok, text) = check(dir.path());
     assert!(ok, "warn is a report, not a failure: {text}");
     assert!(
-        text.contains("warning: tasks/subject.typ:3: rules.imperative-title:"),
+        text.contains(&shown(
+            "warning: tasks/subject.typ:3: rules.imperative-title:"
+        )),
         "got: {text}"
     );
 }
@@ -200,7 +203,7 @@ fn mt_add_refuses_a_write_that_breaches_an_error_rule() {
         "a blocking problem reports as an error: {stderr}"
     );
     assert!(
-        !stderr.contains("warning: tasks/leftover.typ"),
+        !stderr.contains(&shown("warning: tasks/leftover.typ")),
         "a refused write is not a warning: {stderr}"
     );
     assert!(
@@ -223,7 +226,7 @@ fn mt_add_lets_a_warn_rule_through() {
         "a non-blocking breach reports as a warning: {stderr}"
     );
     assert!(
-        !stderr.contains("error: tasks/leftover.typ"),
+        !stderr.contains(&shown("error: tasks/leftover.typ")),
         "a write that lands is not an error: {stderr}"
     );
     assert!(
@@ -246,7 +249,9 @@ fn mt_flip_refuses_a_write_that_breaches_an_error_rule() {
     assert!(!out.status.success(), "an error rule must refuse the flip");
     let stderr = String::from_utf8_lossy(&out.stderr);
     assert!(
-        stderr.contains("error: tasks/subject.typ:3: rules.closed-work-is-owned"),
+        stderr.contains(&shown(
+            "error: tasks/subject.typ:3: rules.closed-work-is-owned"
+        )),
         "a blocking problem reports as an error: {stderr}"
     );
 }
@@ -265,7 +270,9 @@ fn mt_flip_lets_a_warn_rule_through() {
     );
     let stderr = String::from_utf8_lossy(&out.stderr);
     assert!(
-        stderr.contains("warning: tasks/subject.typ:3: rules.imperative-title"),
+        stderr.contains(&shown(
+            "warning: tasks/subject.typ:3: rules.imperative-title"
+        )),
         "the warn breach reports as a warning: {stderr}"
     );
     assert!(
@@ -361,10 +368,10 @@ fn a_check_breach_names_the_file_the_rule_and_the_functions_own_string() {
         "an error-severity check breach must fail the command: {text}"
     );
     assert!(
-        text.contains(
+        text.contains(&shown(
             "error: tasks/subject.typ:3: rules.no-loader-refactoring: \
              title must not be exactly this"
-        ),
+        )),
         "a check breach reports exactly like an assert breach: {text}"
     );
 }
@@ -450,7 +457,23 @@ fn a_packs_check_file_and_dict_file_resolve_from_the_pack_directory() {
     let (ok, text) = check(dir.path());
 
     assert!(!ok, "{text}");
-    assert!(text.contains("tasks/bad.typ:3: rules.known-verb"), "{text}");
+    assert!(
+        text.contains(&shown("tasks/bad.typ:3: rules.known-verb")),
+        "{text}"
+    );
     assert!(text.contains("rules.not-banned: title is banned"), "{text}");
-    assert!(!text.contains("tasks/good.typ"), "{text}");
+    assert!(!text.contains(&shown("tasks/good.typ")), "{text}");
+}
+
+/// An expected message, each task path in it in the separator `mt` shows.
+fn shown(text: &str) -> String {
+    support::native_in(
+        text,
+        &[
+            "tasks/subject.typ",
+            "tasks/leftover.typ",
+            "tasks/bad.typ",
+            "tasks/good.typ",
+        ],
+    )
 }

@@ -48,14 +48,17 @@ fn path_format_is_the_bare_path_for_every_outcome() {
         Outcome::Skipped(path()),
         Outcome::Suffixed(path()),
     ] {
-        assert_eq!(render(&outcome, &handle(), Format::Path), "tasks/foo.typ");
+        assert_eq!(
+            render(&outcome, &handle(), Format::Path),
+            mindtape::display_path("tasks/foo.typ")
+        );
     }
 }
 
 #[test]
 fn path0_format_is_nul_terminated_not_newline_terminated() {
     let out = render(&Outcome::Wrote(path()), &handle(), Format::Path0);
-    assert_eq!(out, "tasks/foo.typ\0");
+    assert_eq!(out, mindtape::display_path("tasks/foo.typ\0"));
     assert!(!out.ends_with('\n'));
 }
 

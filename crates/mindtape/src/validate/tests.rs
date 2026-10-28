@@ -285,7 +285,8 @@ fn broken_link_violation_names_resolved_path() {
         .find(|v| v.field == "depends-on")
         .expect("expected a depends-on violation");
     assert!(
-        v.message.contains("tasks/nonexistent.typ"),
+        v.message
+            .contains(&crate::display_path("tasks/nonexistent.typ")),
         "violation message should name resolved path, got: {}",
         v.message
     );

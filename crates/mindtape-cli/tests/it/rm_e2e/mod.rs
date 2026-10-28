@@ -245,9 +245,9 @@ fn rm_defaults_to_reject_without_git_and_lists_surviving_referrers() {
         .stderr(predicates::str::contains(
             "error: cannot remove tasks that other tasks link to\n",
         ))
-        .stderr(predicates::str::contains(
+        .stderr(predicates::str::contains(shown(
             "note: link from: tasks/live.typ to gone\n",
-        ));
+        )));
 
     mt(dir.path())
         .args(["rm", "-y", "gone"])
@@ -297,4 +297,9 @@ fn rm_batch_removing_every_referrer_needs_no_strategy_without_git() {
 
     assert!(!dir.path().join("tasks/gone.typ").exists());
     assert!(!dir.path().join("tasks/live.typ").exists());
+}
+
+/// An expected message, each task path in it in the separator `mt` shows.
+fn shown(text: &str) -> String {
+    support::native_in(text, &["tasks/live.typ"])
 }

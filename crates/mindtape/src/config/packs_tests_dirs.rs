@@ -109,10 +109,10 @@ fn a_directory_packs_templates_follow_the_projects_own_dirs() {
     )
     .unwrap();
 
-    let team = project.join("team/templates").display().to_string();
+    let team = project.join("team").join("templates");
     assert_eq!(
-        merged.table["templates"]["dirs"].to_string(),
-        format!("[\"mine\", {team:?}]")
+        merged.table["templates"]["dirs"],
+        toml::Value::Array(vec!["mine".into(), team.to_string_lossy().as_ref().into()])
     );
 }
 
@@ -168,13 +168,15 @@ const AB: [(&str, &str); 4] = [
     ("b/templates/x.typ", ""),
 ];
 
-/// The folder before `/templates` in each of `dirs`, the project's own
+/// The folder that holds each of `dirs`, the project's own
 /// `.mindtape/templates` showing as `.mindtape`.
 fn names(dirs: &[String]) -> Vec<&str> {
     (dirs.iter())
         .map(|dir| {
-            let folder = dir.trim_end_matches("/templates");
-            folder.rsplit('/').next().unwrap_or(folder)
+            let folder = Path::new(dir.as_str()).parent();
+            (folder.and_then(Path::file_name))
+                .and_then(std::ffi::OsStr::to_str)
+                .unwrap_or(dir)
         })
         .collect()
 }

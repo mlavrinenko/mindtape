@@ -344,7 +344,7 @@ fn flip_one(
     let source = std::fs::read_to_string(abs).map_err(|err| Diag::cannot_read(abs, &err))?;
     let updated = status_edit(&source, batch.status, batch.ymd, note).map_err(|err| {
         Diag::failed("can't rewrite the status")
-            .value(abs.display().to_string())
+            .value(mindtape::display_path(abs))
             .cause(&err)
     })?;
     let landed = crate::pre_write::verify_one(project, world, abs, &updated)?;

@@ -180,7 +180,10 @@ fn revalidate_prints_the_unreachable_violation() {
 fn refuses_a_rewrite_that_would_not_load() {
     if let Some(err) = mindtape::test_support::rerun_isolated_stderr(FLIP_CHILD_ENV) {
         assert!(
-            err.contains("error: tasks/alpha.typ:3: did not load:"),
+            err.contains(&format!(
+                "error: {}:3: did not load:",
+                mindtape::display_path("tasks/alpha.typ")
+            )),
             "expected the pre-write refusal prefixed as an error: {err}"
         );
         assert!(

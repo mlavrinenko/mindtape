@@ -61,10 +61,7 @@ fn an_unknown_key_in_a_directory_pack_names_its_pack_file() {
         &[("team/pack.toml", "[projet]\nx = 1\n")],
     );
     let (origin, line, _) = parse_in(err);
-    assert_eq!(
-        origin,
-        PathBuf::from("team/pack.toml").display().to_string()
-    );
+    assert_eq!(origin, crate::display_path("team/pack.toml"));
     assert_eq!(line, 1);
 }
 
@@ -75,19 +72,16 @@ fn an_unknown_key_in_an_ancestor_defaults_names_that_file() {
         &[("../.mindtape/defaults.toml", "\n[projet]\nx=1\n")],
     );
     let (origin, line, _) = parse_in(err);
-    let defaults = PathBuf::from(".mindtape/defaults.toml");
-    assert!(
-        origin.ends_with(&defaults.display().to_string()),
-        "{origin}"
-    );
+    let defaults = crate::display_path(".mindtape/defaults.toml");
+    assert!(origin.ends_with(&defaults), "{origin}");
     assert_eq!(line, 2);
 }
 
 #[test]
 fn an_unknown_key_in_the_project_config_still_names_it() {
     let (origin, line, _) = parse_in(failure("[ls]\n[projet]\nx = 1\n", &[]));
-    let config = PathBuf::from(".mindtape/config.toml");
-    assert_eq!((origin, line), (config.display().to_string(), 2));
+    let config = crate::display_path(".mindtape/config.toml");
+    assert_eq!((origin, line), (config, 2));
 }
 
 #[test]

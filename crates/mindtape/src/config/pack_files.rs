@@ -47,7 +47,7 @@ pub(super) fn rebase_dict_paths(
                 quote(text)
             )));
         }
-        *path = toml::Value::String(absolute(&dir.join(text)).display().to_string());
+        *path = toml::Value::String(absolute(&dir.join(text)).to_string_lossy().into_owned());
     }
     Ok(())
 }

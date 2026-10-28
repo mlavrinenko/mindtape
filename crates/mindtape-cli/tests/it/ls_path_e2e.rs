@@ -19,7 +19,7 @@ fn path_format_lists_one_path_per_line_with_no_header_or_trailer() {
     let stdout = String::from_utf8_lossy(&out.stdout);
     let mut lines: Vec<&str> = stdout.lines().collect();
     lines.sort_unstable();
-    assert_eq!(lines, vec!["tasks/a.typ", "tasks/b.typ"]);
+    assert_eq!(lines, ["tasks/a.typ", "tasks/b.typ"].map(support::native));
     assert!(
         !stdout.contains("of 2 tasks"),
         "no footer for a program format"
@@ -49,7 +49,7 @@ fn path0_format_is_nul_delimited_and_self_terminated() {
         .filter(|s| !s.is_empty())
         .collect();
     parts.sort_unstable();
-    assert_eq!(parts, vec!["tasks/a.typ", "tasks/b.typ"]);
+    assert_eq!(parts, ["tasks/a.typ", "tasks/b.typ"].map(support::native));
 }
 
 /// The spec's whole premise: paths render exactly as the table's `file`
@@ -76,7 +76,10 @@ fn path_format_matches_the_table_file_column_exactly() {
         .take_while(|line| !line.is_empty())
         .collect();
     table_cells.sort_unstable();
-    assert_eq!(table_cells, vec!["../tasks/a.typ", "../tasks/b.typ"]);
+    assert_eq!(
+        table_cells,
+        ["../tasks/a.typ", "../tasks/b.typ"].map(support::native)
+    );
 
     let path = support::mt(dir.path())
         .current_dir(&cwd)
@@ -150,7 +153,10 @@ fn the_path_field_stays_root_relative_while_the_display_follows_the_cwd() {
         .output()
         .unwrap();
     let stdout = String::from_utf8_lossy(&out.stdout);
-    assert_eq!(stdout.lines().collect::<Vec<_>>(), vec!["../tasks/a.typ"]);
+    assert_eq!(
+        stdout.lines().collect::<Vec<_>>(),
+        [support::native("../tasks/a.typ")]
+    );
 }
 
 /// The rename's whole point: the old spelling fails loudly rather than
@@ -227,6 +233,11 @@ fn path_format_composes_with_a_real_pipe() {
     }
     let xargs_out = xargs.wait_with_output().unwrap();
     let echoed = String::from_utf8_lossy(&xargs_out.stdout);
-    assert!(echoed.contains("tasks/a.typ"));
-    assert!(echoed.contains("tasks/b.typ"));
+    assert!(echoed.contains(&shown("tasks/a.typ")));
+    assert!(echoed.contains(&shown("tasks/b.typ")));
+}
+
+/// An expected message, each task path in it in the separator `mt` shows.
+fn shown(text: &str) -> String {
+    support::native_in(text, &["tasks/a.typ", "tasks/b.typ"])
 }

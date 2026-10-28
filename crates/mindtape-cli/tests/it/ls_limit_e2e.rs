@@ -87,7 +87,10 @@ fn limit_applies_after_the_sort() {
             "path",
         ],
     );
-    assert_eq!(text.lines().collect::<Vec<_>>(), vec!["tasks/c.typ"]);
+    assert_eq!(
+        text.lines().collect::<Vec<_>>(),
+        [support::native("tasks/c.typ")]
+    );
 }
 
 #[test]
@@ -209,7 +212,10 @@ fn a_worktree_path_with_spaces_is_quoted_in_the_hint() {
     std::fs::rename(project.path(), &spaced).unwrap();
     let cfg = tempfile::tempdir().unwrap();
     let text = paged(&["-w", spaced.to_str().unwrap()], cfg.path(), &[]);
-    let hint = format!("next page: mt -w '{}' ls -n 1 --skip 1\n", spaced.display());
+    let hint = format!(
+        "next page: mt -w '{}' ls -n 1 --skip 1\n",
+        spaced.to_string_lossy()
+    );
     assert!(text.ends_with(&hint), "got: {text}");
 }
 

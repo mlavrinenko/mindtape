@@ -49,14 +49,14 @@ fn the_breach_on_another_task_is_one_note_for_the_whole_batch() {
 
     assert_eq!(
         stderr,
-        format!(
+        shown(&format!(
             "error: tasks/bar.typ:3: {BREACH}\n\
              note: tasks/foo.typ:3: {BREACH}\n\
              note: task: bar\n\
              error: tasks/baz.typ:3: {BREACH}\n\
              note: task: baz\n\
              error: flipped 0 of 2 tasks\n"
-        )
+        ))
     );
 }
 
@@ -68,9 +68,14 @@ fn a_single_refused_target_prints_no_summary_and_no_reported_on() {
 
     assert_eq!(
         stderr,
-        format!(
+        shown(&format!(
             "error: tasks/bar.typ:3: {BREACH}\n\
              note: tasks/foo.typ:3: {BREACH}\n"
-        )
+        ))
     );
+}
+
+/// An expected message, each task path in it in the separator `mt` shows.
+fn shown(text: &str) -> String {
+    support::native_in(text, &["tasks/bar.typ", "tasks/baz.typ", "tasks/foo.typ"])
 }

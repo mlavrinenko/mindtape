@@ -41,7 +41,11 @@ pub fn reject_diag(referrers: &BTreeMap<PathBuf, BTreeSet<String>>) -> Diag {
     ));
     referrers.iter().fold(refusal, |diag, (file, ids)| {
         let ids: Vec<&str> = ids.iter().map(String::as_str).collect();
-        diag.note(Note::new("link from").name(format!("{} to {}", file.display(), ids.join(", "))))
+        diag.note(Note::new("link from").name(format!(
+            "{} to {}",
+            mindtape::display_path(file),
+            ids.join(", ")
+        )))
     })
 }
 
@@ -51,7 +55,7 @@ pub fn reject_diag(referrers: &BTreeMap<PathBuf, BTreeSet<String>>) -> Diag {
 #[must_use]
 pub fn redact_git_error(err: &typst_cleanup::Error, root: &Path) -> String {
     err.to_string()
-        .replace(&root.display().to_string(), "<tasks-root>")
+        .replace(&*root.to_string_lossy(), "<tasks-root>")
 }
 
 /// Print the post-apply commit hint, but only when `root` sits inside a git
@@ -109,7 +113,7 @@ pub fn retire_plan(
                 std::fs::read_to_string(&abs).map_err(|err| Diag::cannot_read(&task.file, &err))?;
             status_edit(&source, &status, ymd, None).map_err(|err| {
                 Diag::failed("can't rewrite the status")
-                    .value(task.file.display().to_string())
+                    .value(mindtape::display_path(&task.file))
                     .cause(&err)
             })?
         };
@@ -222,7 +226,7 @@ fn retarget_inbound_edges(
         }
         let contents = typst_edit::apply(&source, edits).map_err(|err| {
             Diag::failed("can't retarget links")
-                .value(task.file.display().to_string())
+                .value(mindtape::display_path(&task.file))
                 .cause(&err)
         })?;
         link_rewrites.push(Rewrite {
@@ -275,7 +279,7 @@ pub fn retire_apply(plan: &RetirePlan) -> Result<()> {
         if let Some(parent) = rewrite.abs.parent() {
             std::fs::create_dir_all(parent).map_err(|err| {
                 Diag::failed("can't create folder")
-                    .value(parent.display().to_string())
+                    .value(mindtape::display_path(parent))
                     .io(&err)
             })?;
         }

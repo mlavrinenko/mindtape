@@ -8,7 +8,7 @@
 //! [`display_path`] and [`slash_path`] are the only two ways a path becomes
 //! text, and `clippy.toml` refuses `Path::display` elsewhere.
 
-use std::path::{MAIN_SEPARATOR, Path};
+use std::path::{Component, MAIN_SEPARATOR, Path};
 use std::sync::OnceLock;
 
 /// The separator [`display_path`] writes, once [`init_path_separator`] set
@@ -32,12 +32,31 @@ pub fn display_path(path: impl AsRef<Path>) -> String {
 
 /// `path` with its components joined by `/` on every platform: the form a
 /// program reads and a file stores, such as a link target or the JSON `file`.
+/// An absolute path keeps its one leading `/`, and a Windows prefix reads
+/// `C:` or `//server/share`.
 #[must_use]
 pub fn slash_path(path: &Path) -> String {
-    path.components()
-        .map(|part| part.as_os_str().to_string_lossy())
-        .collect::<Vec<_>>()
-        .join("/")
+    let mut text = String::new();
+    // Whether the next named component follows another and needs a `/`.
+    let mut follows = false;
+    for part in path.components() {
+        let name = part.as_os_str().to_string_lossy();
+        match part {
+            Component::Prefix(_) => text.push_str(&with_separator(&name, '/', true)),
+            Component::RootDir => text.push('/'),
+            Component::CurDir | Component::ParentDir | Component::Normal(_) => {
+                if follows {
+                    text.push('/');
+                }
+                text.push_str(&name);
+            }
+        }
+        follows = matches!(
+            part,
+            Component::CurDir | Component::ParentDir | Component::Normal(_)
+        );
+    }
+    text
 }
 
 /// `text` with each separator written as `separator`. `/` always counts as

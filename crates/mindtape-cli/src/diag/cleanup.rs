@@ -13,7 +13,7 @@ impl From<Error> for Diag {
             Error::Read(path, source) => Self::cannot_read(&path, &source),
             Error::Write(path, source) => Self::cannot_write(&path, &source),
             Error::Rewrite(path, source) => Self::failed("can't rewrite links")
-                .value(path.display().to_string())
+                .value(mindtape::display_path(&path))
                 .cause(&source),
             Error::Git(message) => Self::verbatim(Kind::Failed, format!("git: {message}")),
         }
@@ -36,7 +36,7 @@ fn ineligible(found: &[Ineligible]) -> Diag {
 fn note(bad: &Ineligible) -> Note {
     Note::new("file").name(format!(
         "{} {}",
-        bad.artifact.rel.display(),
+        mindtape::display_path(&bad.artifact.rel),
         words(&bad.reason)
     ))
 }

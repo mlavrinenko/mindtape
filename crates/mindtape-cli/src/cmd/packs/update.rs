@@ -37,7 +37,7 @@ pub(super) fn run(names: &[String]) -> Result<()> {
     if changed {
         pack_sources::write_lock(&root, &lock)
             .map_err(|error| Diag::cannot_write(&lock_path(&root), &error))?;
-        let shown = mindtape::slash_path(&lock_path(Path::new("")));
+        let shown = mindtape::display_path(lock_path(Path::new("")));
         update.report.line(&format!("wrote {shown}"));
     }
     update.report.print();

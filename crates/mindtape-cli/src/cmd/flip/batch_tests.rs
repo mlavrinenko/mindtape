@@ -65,7 +65,8 @@ fn a_landed_file_that_fails_to_reload_is_reported() {
 
     assert_eq!(problems.len(), 1, "{problems:?}");
     let text = crate::diag::plain(&problems[0]);
-    assert!(text.starts_with("error: tasks/broken.typ"), "{text}");
+    let place = format!("error: {}", mindtape::display_path("tasks/broken.typ"));
+    assert!(text.starts_with(&place), "{text}");
     assert!(
         text.contains("note: it was written, and no longer loads"),
         "{text}"

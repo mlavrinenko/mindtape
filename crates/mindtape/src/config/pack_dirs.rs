@@ -36,7 +36,7 @@ pub(super) fn append_template_dirs(
     for dir in pack_dirs.iter().rev() {
         let templates = dir.join(TEMPLATES_FOLDER);
         if templates.is_dir() {
-            let text = absolute(&templates).display().to_string();
+            let text = absolute(&templates).to_string_lossy().into_owned();
             if !added.contains(&text) {
                 added.push(text);
             }

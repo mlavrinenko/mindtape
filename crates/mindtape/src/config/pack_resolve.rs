@@ -119,8 +119,8 @@ pub(super) fn refuse_ambiguous(dir: &Path) -> Result<(), ConfigError> {
     if sibling.is_file() {
         return Err(ConfigError::invalid(format!(
             "extends: ambiguous pack: {} is a directory beside {}",
-            crate::config::quote(&dir.display().to_string()),
-            crate::config::quote(&sibling.display().to_string())
+            crate::config::quote(&crate::display_path(dir)),
+            crate::config::quote(&crate::display_path(&sibling))
         ))
         .with_hint("name the file with its .toml extension, or rename one of them"));
     }
@@ -136,14 +136,14 @@ pub(super) fn read_pack_file(
     let text = std::fs::read_to_string(path).map_err(|_| {
         ConfigError::invalid(format!(
             "extends: pack not found: {}",
-            crate::config::quote(&path.display().to_string())
+            crate::config::quote(&crate::display_path(path))
         ))
     })?;
     let table: toml::Table = toml::from_str(&text).map_err(|error| ConfigError::ParseIn {
-        origin: path.display().to_string(),
+        origin: crate::display_path(path),
         error,
     })?;
-    let shown = path.display().to_string();
+    let shown = crate::display_path(path);
     validate_pack_shape(&table, label.unwrap_or(&shown))?;
     Ok((table, text))
 }

@@ -59,8 +59,10 @@ fn a_second_wip_task_is_refused_and_names_the_one_already_in_flight() {
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert_eq!(
         stderr,
-        "error: tasks/bar.typ:3: rules.wip-cap: must satisfy `count(status == \"wip\") <= 1`\n\
-         note: tasks/foo.typ:3: rules.wip-cap: must satisfy `count(status == \"wip\") <= 1`\n",
+        shown(
+            "error: tasks/bar.typ:3: rules.wip-cap: must satisfy `count(status == \"wip\") <= 1`\n\
+         note: tasks/foo.typ:3: rules.wip-cap: must satisfy `count(status == \"wip\") <= 1`\n"
+        ),
         "the candidate's own breach is the error; the task already occupying the cap is one note"
     );
     assert_eq!(
@@ -89,4 +91,9 @@ fn the_retired_limits_table_is_an_unknown_key() {
     write_file(dir.path(), "tasks/foo.typ", task("Foo", "wip"));
     let output = support::mt(dir.path()).arg("check").output().unwrap();
     assert!(!output.status.success(), "`tasks.limits` must be refused");
+}
+
+/// An expected message, each task path in it in the separator `mt` shows.
+fn shown(text: &str) -> String {
+    support::native_in(text, &["tasks/bar.typ", "tasks/foo.typ"])
 }

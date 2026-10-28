@@ -376,7 +376,8 @@ fn markup_safe(
 /// file exists, so this note is never printed there.
 fn kept(err: Diag, file: &Path) -> Diag {
     let diag = err.note(
-        Note::new("the task was kept on disk exactly as written").value(file.display().to_string()),
+        Note::new("the task was kept on disk exactly as written")
+            .value(mindtape::display_path(file)),
     );
     if diag.has_hint_room() {
         diag.hint(Hint::new("fix or delete it before the next command"))

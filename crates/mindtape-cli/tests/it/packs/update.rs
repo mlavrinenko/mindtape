@@ -42,8 +42,9 @@ fn update_locks_a_source_the_lock_lacks_and_fetches_it() {
     assert_eq!(
         stdout,
         format!(
-            "acme v1: locked {}\n  + acme:commits\nwrote .mindtape/packs.lock\n",
-            short(&commit)
+            "acme v1: locked {}\n  + acme:commits\nwrote {}\n",
+            short(&commit),
+            lock_shown()
         )
     );
     let entry = locked(dir.path()).unwrap();
@@ -54,6 +55,11 @@ fn update_locks_a_source_the_lock_lacks_and_fetches_it() {
     assert_eq!(entry.commit, commit);
     assert_eq!(entry.sha256, tree_hash(RULE));
     assert_resolves_pack(dir.path());
+}
+
+/// The lock's path as `mt packs update` shows it.
+fn lock_shown() -> String {
+    crate::support::native(".mindtape/packs.lock")
 }
 
 /// The rule `acme-rule` after a fix.
@@ -71,9 +77,10 @@ fn moved_project() -> (tempfile::TempDir, String, String) {
 fn moved_report(old: &str, new: &str) -> String {
     format!(
         "acme v1: {} → {}\n  ~ acme:commits\n    ~ rule tasks.rules.acme-rule\n\
-         wrote .mindtape/packs.lock\n",
+         wrote {}\n",
         short(old),
-        short(new)
+        short(new),
+        lock_shown()
     )
 }
 
@@ -103,11 +110,11 @@ fn update_takes_a_commit_ref_as_the_commit_itself() {
 
 #[test]
 fn update_keeps_an_unmoved_entry_and_drops_one_no_source_declares() {
-    let cases: [(Option<&str>, &str, bool); 2] = [
-        (None, "acme v1: up to date\n", true),
+    let cases: [(Option<&str>, String, bool); 2] = [
+        (None, "acme v1: up to date\n".to_owned(), true),
         (
             Some(""),
-            "dropped acme\nwrote .mindtape/packs.lock\n",
+            format!("dropped acme\nwrote {}\n", lock_shown()),
             false,
         ),
     ];
@@ -225,7 +232,7 @@ fn update_reads_no_config_of_a_repository_around_the_project() {
     let commit = Upstream { root: dir.path() }.publish(RULE, "v1");
     let root = dir.path();
     git_as_tester(root, &["init", "--quiet"]);
-    let upstream = format!("{}/", root.join("upstream").display());
+    let upstream = format!("{}/", root.join("upstream").to_string_lossy());
     let rewrite = "url.file:///nonexistent/.insteadOf";
     git_as_tester(root, &["config", rewrite, &upstream]);
 

@@ -40,7 +40,7 @@ fn the_columns_render_the_count_and_done_over_children() {
 fn progress_filters_and_sorts_as_a_fraction() {
     let dir = epic_project();
     let text = stdout(dir.path(), &["ls", "progress < 0.5", "--format", "path"]);
-    assert_eq!(text.trim(), "tasks/epic.typ");
+    assert_eq!(text.trim(), shown("tasks/epic.typ"));
     let none = stdout(dir.path(), &["ls", "progress == 1", "--format", "path"]);
     assert_eq!(none.trim(), "");
     stdout(dir.path(), &["ls", "", "--sort", "progress:desc"]);
@@ -73,4 +73,9 @@ fn csv_carries_the_raw_count_and_fraction() {
     );
     assert!(text.contains("children,progress"), "{text}");
     assert!(text.contains("3,0.333"), "{text}");
+}
+
+/// An expected message, each task path in it in the separator `mt` shows.
+fn shown(text: &str) -> String {
+    support::native_in(text, &["tasks/epic.typ"])
 }

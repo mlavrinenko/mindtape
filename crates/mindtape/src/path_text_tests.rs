@@ -53,3 +53,19 @@ fn slash_path_joins_native_components_with_slashes() {
     let path = Path::new("tasks").join("sub").join("a.typ");
     assert_eq!(slash_path(&path), "tasks/sub/a.typ");
 }
+
+#[test]
+fn slash_path_keeps_an_absolute_path_rooted_once() {
+    assert_eq!(slash_path(Path::new("/home/u/a.typ")), "/home/u/a.typ");
+}
+
+/// A drive and a UNC prefix parse only on Windows.
+#[cfg(windows)]
+#[test]
+fn slash_path_writes_a_windows_prefix_with_slashes() {
+    assert_eq!(slash_path(Path::new(r"C:\proj\a.typ")), "C:/proj/a.typ");
+    assert_eq!(
+        slash_path(Path::new(r"\\server\share\a.typ")),
+        "//server/share/a.typ"
+    );
+}

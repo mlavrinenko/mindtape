@@ -50,9 +50,9 @@ pub struct LoadWarning {
 /// Where `file:line:col` puts a reader, leaving off what is unknown.
 fn place_of(file: &Path, line: Option<usize>, column: Option<usize>) -> String {
     match (line, column) {
-        (Some(line), Some(column)) => format!("{}:{line}:{column}", file.display()),
-        (Some(line), None) => format!("{}:{line}", file.display()),
-        _ => file.display().to_string(),
+        (Some(line), Some(column)) => format!("{}:{line}:{column}", crate::display_path(file)),
+        (Some(line), None) => format!("{}:{line}", crate::display_path(file)),
+        _ => crate::display_path(file),
     }
 }
 

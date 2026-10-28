@@ -221,7 +221,7 @@ fn hashes_for(file: &Path, task: &Task, resolved: Option<Project>) -> StemHashes
 /// the project's config does not parse.
 pub(crate) fn build_world(file: &Path) -> Result<HarvestWorld> {
     if !file.is_file() {
-        return Err(Diag::failed("no such file").value(file.display().to_string()));
+        return Err(Diag::failed("no such file").value(mindtape::display_path(file)));
     }
     let world = HarvestWorld::new(file)
         .map_err(|err| Diag::failed("can't set up the Typst world").cause(&err))?;

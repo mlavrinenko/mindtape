@@ -255,7 +255,10 @@ fn print_preset_list() {
         println!("  {name:<10} {description}{marker}");
     }
     if let Some(dir) = preset::user_preset_dir() {
-        println!("\nuser presets live in {} and shadow these.", dir.display());
+        println!(
+            "\nuser presets live in {} and shadow these.",
+            mindtape::display_path(&dir)
+        );
     }
 }
 
@@ -281,7 +284,7 @@ fn with_schema_directive(template: &str, args: &SchemaArgs) -> Result<String> {
             if !path.exists() {
                 println!(
                     "note: schema not installed at {} yet. Run `mt install` to write it.",
-                    path.display()
+                    mindtape::display_path(&path)
                 );
             }
             crate::render::file_uri::file_uri(&path)
@@ -304,8 +307,8 @@ pub(crate) fn install_lib(force: bool) -> Result<()> {
         if !force {
             println!(
                 "kept @local/mindtape:{TYPST_PKG_VERSION} -> {}, a link to {}; --force replaces it with this mt's copy",
-                dir.display(),
-                target.display()
+                mindtape::display_path(&dir),
+                mindtape::display_path(&target)
             );
             return Ok(());
         }
@@ -322,7 +325,7 @@ pub(crate) fn install_lib(force: bool) -> Result<()> {
     }
     println!(
         "installed @local/mindtape:{TYPST_PKG_VERSION} -> {}",
-        dir.display()
+        mindtape::display_path(&dir)
     );
     Ok(())
 }
@@ -359,7 +362,7 @@ pub(crate) fn scaffold_config(root: &Path, force: bool, template: &str) -> Resul
     let config = dir.join("config.toml");
     if config.exists() && !force {
         return Err(Diag::refused("config already exists")
-            .value(config.display().to_string())
+            .value(mindtape::display_path(&config))
             .hint(Hint::new("pass --force to overwrite it")));
     }
     write_announced(&dir, &config, template)
@@ -371,7 +374,7 @@ pub(crate) fn write_announced(dir: &Path, path: &Path, content: &str) -> Result<
     std::fs::create_dir_all(dir).map_err(|err| Diag::cannot_write(dir, &err))?;
     mindtape::write_atomic(path, content.as_bytes())
         .map_err(|err| Diag::cannot_write(path, &err))?;
-    println!("wrote {}", path.display());
+    println!("wrote {}", mindtape::display_path(path));
     Ok(())
 }
 
@@ -390,7 +393,7 @@ pub(crate) fn write_templates(root: &Path, preset: &Preset) -> Result<()> {
         let path = dir.join(file);
         mindtape::write_atomic(&path, body.as_bytes())
             .map_err(|err| Diag::cannot_write(&path, &err))?;
-        println!("wrote {}", path.display());
+        println!("wrote {}", mindtape::display_path(&path));
     }
     Ok(())
 }

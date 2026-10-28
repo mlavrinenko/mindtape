@@ -203,7 +203,7 @@ fn load_failure(template: &Filed, checked: &str, err: &LoadError, kind: Kind) ->
     let diag = Diag::verbatim(kind, &err.message).typst_hints(err.hints.iter().cloned());
     let label = template.file.as_ref().map_or_else(
         || format!("built-in template {}", template.name),
-        |file| file.display().to_string(),
+        |file| file.to_string_lossy().into_owned(),
     );
     let spans = TaskCallSpans::parse(&template.authored);
     let line = err

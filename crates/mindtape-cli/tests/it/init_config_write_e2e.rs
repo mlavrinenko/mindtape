@@ -250,8 +250,12 @@ fn force_interplay_unchanged() {
         (code, stderr.as_str()),
         (
             Some(1),
-            "error: config already exists: './.mindtape/config.toml'\n\
-             hint: pass --force to overwrite it\n"
+            support::native_in(
+                "error: config already exists: './.mindtape/config.toml'\n\
+                 hint: pass --force to overwrite it\n",
+                &["./.mindtape/config.toml"]
+            )
+            .as_str()
         )
     );
     assert_eq!(

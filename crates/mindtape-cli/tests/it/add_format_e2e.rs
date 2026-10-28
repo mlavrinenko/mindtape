@@ -219,7 +219,7 @@ fn text_report_names_the_slug_hash_that_mt_eval_resolves() {
     let hash = reported_hash(&stdout);
     assert!(!hash.is_empty(), "no hash in {stdout}");
     assert!(
-        stdout.starts_with("wrote tasks/wired.typ ("),
+        stdout.starts_with(&shown("wrote tasks/wired.typ (")),
         "path is cwd-relative: {stdout}"
     );
     let evaluated = support::stdout(dir.path(), &["eval", &hash]);
@@ -243,4 +243,9 @@ fn json_report_carries_the_slug_hash() {
         evaluated.contains("wired") || evaluated.contains('T'),
         "{evaluated}"
     );
+}
+
+/// An expected message, each task path in it in the separator `mt` shows.
+fn shown(text: &str) -> String {
+    support::native_in(text, &["tasks/wired.typ"])
 }

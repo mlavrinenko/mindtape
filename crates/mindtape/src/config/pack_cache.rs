@@ -103,7 +103,7 @@ fn hash_tree(source: &str, scope: &PackScope<'_>) -> Result<PathBuf, ConfigError
         ConfigError::invalid(format!(
             "extends: pack source {} does not match the lock: {}{detail}",
             quote(source),
-            quote(&tree.display().to_string())
+            quote(&crate::display_path(&tree))
         ))
         .with_hint("delete the directory, then run `mt packs install` to fetch it again")
     };

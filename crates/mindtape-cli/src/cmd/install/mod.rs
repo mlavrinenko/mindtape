@@ -175,7 +175,7 @@ pub(crate) fn completion_hint(shell: &str, dir: &Path) -> String {
 /// splits or expands, else in single quotes, which every hook shell reads
 /// literally. A Windows path holds a backslash, so it is always quoted.
 pub(crate) fn quote_path(path: &Path) -> String {
-    let text = path.display().to_string();
+    let text = mindtape::display_path(path);
     let bare = text
         .chars()
         .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '/' | '.' | '-' | '_'));
@@ -217,7 +217,7 @@ fn write_seed(dir: &Path, name: &str, content: &str, force: bool) -> Result<()> 
     if path.exists() && !force {
         println!(
             "{} already exists (use --force to overwrite)",
-            path.display()
+            mindtape::display_path(&path)
         );
         return Ok(());
     }

@@ -35,7 +35,7 @@ fn find_one_term_matches_every_task_naming_it() {
     let dir = scaffold();
     assert_eq!(
         find_paths(dir.path(), &["login"]),
-        vec!["tasks/both.typ", "tasks/login.typ"]
+        ["tasks/both.typ", "tasks/login.typ"].map(support::native)
     );
 }
 
@@ -44,7 +44,7 @@ fn find_several_terms_conjoin() {
     let dir = scaffold();
     assert_eq!(
         find_paths(dir.path(), &["login", "bug"]),
-        vec!["tasks/both.typ"]
+        [support::native("tasks/both.typ")]
     );
 }
 

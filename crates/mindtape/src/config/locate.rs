@@ -200,7 +200,7 @@ impl Sources {
         let culprit = self.items.iter().rev().find_map(|item| {
             let alone = toml::from_str::<Config>(&item.text).err()?;
             (alone.message() == merged.message()).then(|| ConfigError::ParseIn {
-                origin: item.file.display().to_string(),
+                origin: crate::display_path(&item.file),
                 error: alone,
             })
         });

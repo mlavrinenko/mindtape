@@ -102,11 +102,17 @@ const WARN_CHILD: &str = "_MT_CHECK_COMMIT_WARN_CHILD";
 fn warn_state_errors_reports_each_state() {
     if let Some(stderr) = mindtape::test_support::rerun_isolated_stderr(WARN_CHILD) {
         assert!(
-            stderr.contains("warning: tasks/head.typ as HEAD: boom"),
+            stderr.contains(&format!(
+                "warning: {} as HEAD: boom",
+                mindtape::display_path("tasks/head.typ")
+            )),
             "the HEAD state's error must be reported: {stderr}"
         );
         assert!(
-            stderr.contains("warning: tasks/staged.typ as staged: broken"),
+            stderr.contains(&format!(
+                "warning: {} as staged: broken",
+                mindtape::display_path("tasks/staged.typ")
+            )),
             "the staged state's error must be reported: {stderr}"
         );
         return;

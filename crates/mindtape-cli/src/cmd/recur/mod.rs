@@ -201,7 +201,7 @@ fn plan_and_read(
 /// The folder `abs` sits in, where its occurrences are written.
 pub(super) fn parent_dir(abs: &Path) -> Result<&Path> {
     abs.parent().ok_or_else(|| {
-        Diag::failed("task file has no parent directory").value(abs.display().to_string())
+        Diag::failed("task file has no parent directory").value(mindtape::display_path(abs))
     })
 }
 
@@ -297,7 +297,7 @@ fn spawn_source(
 /// root.
 fn shown(project: &Project, file: &Path) -> String {
     file.strip_prefix(&project.root).map_or_else(
-        |_| file.display().to_string(),
+        |_| mindtape::display_path(file),
         |rel| file_path::cell_text(&project.root, rel),
     )
 }

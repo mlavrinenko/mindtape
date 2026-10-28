@@ -277,9 +277,7 @@ pub fn merged_config_table(root: &Path) -> Result<toml::Table, ConfigError> {
 fn name_file(err: ConfigError, sources: &Sources, root: &Path) -> ConfigError {
     match err {
         ConfigError::Parse(error) if error.span().is_some() => ConfigError::ParseIn {
-            origin: crate::relative_to(&config_path(root), root)
-                .display()
-                .to_string(),
+            origin: crate::display_path(crate::relative_to(&config_path(root), root)),
             error,
         },
         ConfigError::Invalid {

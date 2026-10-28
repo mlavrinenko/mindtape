@@ -193,7 +193,7 @@ mod tests {
         let file = Path::new("x.typ");
         let cwd = cwd().unwrap();
         for root in ["/one/proj", "/two/proj"] {
-            let expected = relativize(Path::new(root), cwd, file).display().to_string();
+            let expected = mindtape::display_path(relativize(Path::new(root), cwd, file));
             assert_eq!(cell_text(Path::new(root), file), expected);
         }
     }

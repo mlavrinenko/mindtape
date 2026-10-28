@@ -204,7 +204,7 @@ pub struct ChangedFiles {
 /// [`CommitMsgError::Git`] / [`CommitMsgError::Spawn`] when git fails.
 pub fn staged_files(root: &Path) -> Result<ChangedFiles, CommitMsgError> {
     let root_prefix = git(root, &["rev-parse", "--show-prefix"]).map_err(|err| match err {
-        CommitMsgError::Git { .. } => CommitMsgError::NotGit(root.display().to_string()),
+        CommitMsgError::Git { .. } => CommitMsgError::NotGit(crate::display_path(root)),
         other => other,
     })?;
     let revs = index_revs(root)?;

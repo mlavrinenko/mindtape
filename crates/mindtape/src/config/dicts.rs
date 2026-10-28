@@ -321,7 +321,7 @@ fn own_entries(name: &str, spec: &DictSpec, root: Option<&Path>) -> Result<Vec<S
         let text = std::fs::read_to_string(&full).map_err(|err| {
             format!(
                 "dicts.{name}.path: can't read: {}: {err}",
-                super::quote(&full.display().to_string())
+                super::quote(&crate::display_path(&full))
             )
         })?;
         entries.extend(parse_entries(&text));

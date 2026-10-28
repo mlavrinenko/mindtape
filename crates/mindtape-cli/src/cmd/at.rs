@@ -69,7 +69,7 @@ fn show_all(config: &AtConfig, path: Option<&Path>, json: bool) {
         match path {
             Some(p) => println!(
                 "nothing configured (add [at.<name>] entries to {})",
-                p.display()
+                mindtape::display_path(p)
             ),
             None => println!("nothing configured (could not resolve the app config directory)"),
         }
@@ -86,9 +86,9 @@ fn show_one(config: &AtConfig, path: Option<&Path>, name: &str, json: bool) -> R
         .ok_or_else(|| unknown_name(name, config, path))?;
     match target {
         Target::Project(root) if json => print_json(&serde_json::json!({
-            "name": name, "kind": "project", "path": root.display().to_string(),
+            "name": name, "kind": "project", "path": mindtape::slash_path(&root),
         })),
-        Target::Project(root) => println!("@{name} → {}", root.display()),
+        Target::Project(root) => println!("@{name} → {}", mindtape::display_path(&root)),
         Target::Set(members) if json => print_json(&serde_json::json!({
             "name": name, "kind": "set", "members": members.iter().map(member_json).collect::<Vec<_>>(),
         })),
@@ -128,15 +128,15 @@ fn shown_path(path: &Path, home: Option<&Path>) -> String {
     match home.and_then(|h| path.strip_prefix(h).ok()) {
         Some(rest) => {
             let parts: Vec<_> = rest.iter().map(|c| c.to_string_lossy()).collect();
-            format!("~/{}", parts.join("/"))
+            mindtape::display_path(format!("~/{}", parts.join("/")))
         }
-        None => path.display().to_string(),
+        None => mindtape::display_path(path),
     }
 }
 
 fn member_json(member: &Member) -> serde_json::Value {
     serde_json::json!({
-        "name": member.name, "path": member.path.display().to_string(), "fork": member.fork,
+        "name": member.name, "path": mindtape::slash_path(&member.path), "fork": member.fork,
     })
 }
 
@@ -314,7 +314,7 @@ fn unknown_name(token: &str, config: &AtConfig, path: Option<&Path>) -> Diag {
         diag = diag.note(Note::new("known names").name(names.join(", ")));
     }
     match path {
-        Some(p) => diag.note(Note::new("names are configured in").value(p.display().to_string())),
+        Some(p) => diag.note(Note::new("names are configured in").value(mindtape::display_path(p))),
         None => diag.note(Note::new("no app config directory resolves")),
     }
 }

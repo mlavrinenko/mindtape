@@ -78,7 +78,7 @@ pub(crate) fn read_lock(root: &Path) -> Result<PackLock, ConfigError> {
     let shown = lock_path(Path::new(""));
     let entries: BTreeMap<String, LockedSource> =
         toml::from_str(&text).map_err(|error| ConfigError::ParseIn {
-            origin: shown.display().to_string(),
+            origin: crate::display_path(&shown),
             error,
         })?;
     for (name, locked) in &entries {
@@ -105,7 +105,7 @@ fn check_hex(
     }
     Err(ConfigError::invalid(format!(
         "{}: {name}.{key}: not lowercase hex of the right length: {}",
-        shown.display(),
+        crate::display_path(shown),
         crate::config::quote(value)
     )))
 }

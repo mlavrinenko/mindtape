@@ -130,7 +130,10 @@ fn an_unknown_kind_fails_the_run_and_writes_nothing() {
     let err = run_with(&project, &parse(&["alpha", "depends-onn", "beta"])).unwrap_err();
     let err = crate::diag::plain(&err);
     assert!(
-        err.starts_with("error: tasks/alpha.typ: unknown link kind: 'depends-onn'\n"),
+        err.starts_with(&format!(
+            "error: {}: unknown link kind: 'depends-onn'\n",
+            mindtape::display_path("tasks/alpha.typ")
+        )),
         "{err}"
     );
     assert!(

@@ -76,7 +76,7 @@ mod render;
 mod summary;
 
 use std::fmt;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub(crate) use from_lib::filter;
 pub(crate) use hint::{Command, Hint, Note};
@@ -129,6 +129,40 @@ struct Tally {
     total: usize,
 }
 
+/// Where a problem sits.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum Place {
+    /// A file, with its line and column when known.
+    File {
+        path: PathBuf,
+        line: Option<usize>,
+        col: Option<usize>,
+    },
+    /// A place with no file, such as `pack <name>:3`, already in words.
+    Words(String),
+}
+
+impl Place {
+    /// `path:line[:col]` with the path written by `path_text`: as people
+    /// read it ([`mindtape::display_path`]) or as a program does
+    /// ([`mindtape::slash_path`]).
+    fn text(&self, path_text: fn(&Path) -> String) -> String {
+        match self {
+            Self::File { path, line, col } => {
+                let mut text = path_text(path);
+                if let Some(line) = line {
+                    text.push_str(&format!(":{line}"));
+                    if let Some(col) = col {
+                        text.push_str(&format!(":{col}"));
+                    }
+                }
+                text
+            }
+            Self::Words(words) => words.clone(),
+        }
+    }
+}
+
 /// One problem, built with the methods below and printed by [`render`]. Boxed,
 /// so a `Result<_, Diag>` stays a pointer wide.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -139,10 +173,8 @@ pub(crate) struct Diag(Box<Parts>);
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct Parts {
     kind: Kind,
-    /// `path:line[:col]`, or a place with no file such as `pack <name>:3`.
-    place: Option<String>,
-    /// The file and line behind `place`, when it names a file.
-    site: Option<(String, Option<usize>)>,
+    /// The file and line the problem sits at, or a place with no file.
+    place: Option<Place>,
     rule: Option<String>,
     what: &'static str,
     tally: Option<Tally>,
@@ -163,7 +195,6 @@ impl Diag {
         Self(Box::new(Parts {
             kind,
             place: None,
-            site: None,
             rule: None,
             what,
             tally: None,
@@ -243,20 +274,29 @@ impl Diag {
         self
     }
 
-    /// The file place the problem is tied to, as the user should read it.
+    /// The file place the problem is tied to: `path:line[:col]`.
     pub(crate) fn at(mut self, path: &Path, line: usize, col: Option<usize>) -> Self {
-        self.0.place = Some(match col {
-            Some(col) => format!("{}:{line}:{col}", path.display()),
-            None => format!("{}:{line}", path.display()),
+        self.0.place = Some(Place::File {
+            path: path.to_path_buf(),
+            line: Some(line),
+            col,
         });
-        self.0.site = Some((path.display().to_string(), Some(line)));
         self
     }
 
     /// The file the problem is tied to, when no line of it is known.
     pub(crate) fn at_file(mut self, path: &Path) -> Self {
-        self.0.place = Some(path.display().to_string());
-        self.0.site = Some((path.display().to_string(), None));
+        self.0.place = Some(Place::File {
+            path: path.to_path_buf(),
+            line: None,
+            col: None,
+        });
+        self
+    }
+
+    /// A place with no file, already in words, such as `pack <name>:3`.
+    fn at_words(mut self, words: String) -> Self {
+        self.0.place = Some(Place::Words(words));
         self
     }
 

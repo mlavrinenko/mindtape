@@ -302,7 +302,7 @@ fn artifacts(
 fn canonical(path: &Path) -> Result<PathBuf, Diag> {
     mindtape::canonical(path).map_err(|err| {
         Diag::failed("can't resolve path")
-            .value(path.display().to_string())
+            .value(mindtape::display_path(path))
             .io(&err)
     })
 }

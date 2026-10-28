@@ -238,8 +238,10 @@ fn a_link_to_a_missing_task_is_one_error_and_no_summary() {
     let stderr = failure(&["link", "alpha", "depends-on", "nope"], Some(1));
     assert_eq!(
         stderr,
-        "error: tasks/alpha.typ: no task: 'nope' of kind 'depends-on'\n\
+        shown(
+            "error: tasks/alpha.typ: no task: 'nope' of kind 'depends-on'\n\
          hint: run mt ls to see your tasks\n"
+        )
     );
 }
 
@@ -282,4 +284,9 @@ fn colour_goes_on_the_prefix_only() {
         stderr.starts_with("\u{1b}[1m\u{1b}[31merror:\u{1b}[0m no task: 'nonexistent-xyz'\n"),
         "{stderr:?}"
     );
+}
+
+/// An expected message, each task path in it in the separator `mt` shows.
+fn shown(text: &str) -> String {
+    support::native_in(text, &["tasks/alpha.typ"])
 }

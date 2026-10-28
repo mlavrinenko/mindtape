@@ -176,9 +176,21 @@ pub(crate) fn render_schema() -> String {
 fn describe_source(source: &LayerSource) -> String {
     match source {
         LayerSource::Embedded => "embedded: <built-in>".to_owned(),
-        LayerSource::Xdg(path) => format!("xdg: {} ({})", path.display(), existence(path)),
-        LayerSource::Dir(path) => format!("dir: {} ({})", path.display(), existence(path)),
-        LayerSource::Project(path) => format!("project: {} ({})", path.display(), existence(path)),
+        LayerSource::Xdg(path) => format!(
+            "xdg: {} ({})",
+            mindtape::display_path(path),
+            existence(path)
+        ),
+        LayerSource::Dir(path) => format!(
+            "dir: {} ({})",
+            mindtape::display_path(path),
+            existence(path)
+        ),
+        LayerSource::Project(path) => format!(
+            "project: {} ({})",
+            mindtape::display_path(path),
+            existence(path)
+        ),
     }
 }
 
@@ -199,7 +211,7 @@ fn describe_rule_origin(origin: &RuleOrigin) -> String {
             format!("pack {name}")
         }
         RuleOrigin::Pack(PackOrigin::Path(path) | PackOrigin::Dir(path)) => {
-            format!("pack {}", path.display())
+            format!("pack {}", mindtape::display_path(path))
         }
     }
 }

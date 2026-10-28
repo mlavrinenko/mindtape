@@ -88,7 +88,7 @@ fn a_rejected_stamp_leaves_the_file_untouched() {
         .failure();
     let stderr = support::stderr_of(&output);
     assert!(
-        stderr.starts_with("error: tasks/wire-oauth.typ:6: tags:"),
+        stderr.starts_with(&shown("error: tasks/wire-oauth.typ:6: tags:")),
         "{stderr}"
     );
     assert_eq!(
@@ -127,4 +127,9 @@ fn an_aliased_task_call_is_refused_and_left_untouched() {
     );
     assert!(stderr.contains("can't find the task.with"), "{stderr}");
     assert_eq!(std::fs::read_to_string(&file).unwrap(), body);
+}
+
+/// An expected message, each task path in it in the separator `mt` shows.
+fn shown(text: &str) -> String {
+    support::native_in(text, &["tasks/wire-oauth.typ"])
 }

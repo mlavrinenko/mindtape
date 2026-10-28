@@ -148,9 +148,9 @@ fn rm_retire_dry_run_previews_the_archive_move_and_writes_nothing() {
     .stdout(predicates::str::contains(
         "would move 1 task into .archive/:",
     ))
-    .stdout(predicates::str::contains(
+    .stdout(predicates::str::contains(shown(
         "tasks/gone.typ → tasks/.archive/gone.typ",
-    ))
+    )))
     .stdout(predicates::str::contains(
         "would rewrite 3 links in 1 file:",
     ))
@@ -167,4 +167,16 @@ fn rm_retire_dry_run_previews_the_archive_move_and_writes_nothing() {
         live.contains("\"gone.typ\""),
         "retargeted despite dry-run:\n{live}"
     );
+}
+
+/// An expected message, each task path in it in the separator `mt` shows.
+fn shown(text: &str) -> String {
+    support::native_in(
+        text,
+        &[
+            "tasks/.archive/gone.typ",
+            "tasks/gone.typ",
+            "tasks/live.typ",
+        ],
+    )
 }

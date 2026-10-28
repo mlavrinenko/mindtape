@@ -256,10 +256,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Paths read the way your platform writes them.** On Windows, every path
   `mt` shows you uses `\`: the `file` column, `--format path`, an error's
   place such as `tasks\a.typ:3`, and the paths in a message, with no
-  `.mindtape/templates\bug.typ` mix. What a program reads uses `/` on every
-  platform: the `file` field of `--json` and `--format csv`, and the `file` and
-  `place` of `mt check --json`. The global `--path-separator <SEP>` picks the
-  separator of the paths shown to you, as in ripgrep and fd.
+  `.mindtape/templates\bug.typ` mix, and a command hint leaves a Windows path
+  unquoted. What a program reads uses `/` on every platform: the `file` field
+  of `--json` and `--format csv`, the `file` and `place` of `mt check --json`,
+  and the paths of `mt at --json` and `mt board --json`. The global
+  `--path-separator <SEP>` picks the separator of the paths shown to you, as
+  in ripgrep and fd.
 
 #### Filing tasks with `mt add`
 

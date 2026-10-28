@@ -33,7 +33,7 @@ pub(super) fn resolve_outcome(
     file: PathBuf,
 ) -> Result<Option<Outcome>> {
     let dedup = dedup::effective_mode(args.dedup, &project.config);
-    let label = file.display().to_string();
+    let label = mindtape::display_path(&file);
     let collision = dedup::resolve(dedup, stem, &label, |candidate| {
         dest.join(format!("{candidate}.typ")).exists()
     })?;
@@ -119,7 +119,7 @@ pub(crate) fn dest_dir(into: &str, to: Option<&str>, project: &util::Project) ->
     if leaves_base {
         return Err(
             Diag::usage("--to expects a subfolder, not an absolute path")
-                .value(sub.display().to_string())
+                .value(mindtape::display_path(sub))
                 .hint(Hint::new("give it relative to the destination root")),
         );
     }
@@ -157,7 +157,7 @@ pub(crate) fn warn_if_outside_roots(project: &util::Project, dest: &Path) {
     if !project.holds(&dest_abs) {
         emit(
             &Diag::warning("the task directory is outside the configured roots")
-                .value(dest.display().to_string())
+                .value(mindtape::display_path(dest))
                 .hint(Hint::new(
                     "add it to tasks.roots, or mt won't track the task",
                 )),

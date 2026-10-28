@@ -39,7 +39,7 @@ fn a_breach_and_the_count_go_to_stderr_and_stdout_stays_empty() {
     assert_eq!(stdout, "", "stdout carries only the ok line");
     assert!(
         stderr.contains(
-            "error: tasks/subject.typ:3: rules.imperative-title: start the title with an imperative verb\n"
+            &shown("error: tasks/subject.typ:3: rules.imperative-title: start the title with an imperative verb\n")
         ),
         "{stderr}"
     );
@@ -89,4 +89,9 @@ fn a_commit_message_problem_goes_to_stderr() {
         stderr.ends_with("error: 1 commit message problem\n"),
         "{stderr}"
     );
+}
+
+/// An expected message, each task path in it in the separator `mt` shows.
+fn shown(text: &str) -> String {
+    support::native_in(text, &["tasks/subject.typ"])
 }

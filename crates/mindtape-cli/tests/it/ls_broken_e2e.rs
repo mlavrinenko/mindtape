@@ -24,7 +24,10 @@ fn ls_warns_and_counts_the_broken_file_last() {
     let dir = project();
     let ls = ["ls", "contains(\"Alpha\")"];
     let (_, stderr) = support::run_stderr(dir.path(), &ls);
-    assert!(stderr.starts_with("warning: tasks/gamma.typ:"), "{stderr}");
+    assert!(
+        stderr.starts_with(&shown("warning: tasks/gamma.typ:")),
+        "{stderr}"
+    );
     let stdout = support::stdout(dir.path(), &ls);
     assert!(stdout.ends_with(FOOTER), "{stdout}");
 }
@@ -39,5 +42,13 @@ fn find_counts_the_broken_file_too() {
 fn find_warns_about_the_broken_file() {
     let (code, stderr) = support::run_stderr(project().path(), &["find", "Beta"]);
     assert_eq!(code, Some(0), "{stderr}");
-    assert!(stderr.starts_with("warning: tasks/gamma.typ:"), "{stderr}");
+    assert!(
+        stderr.starts_with(&shown("warning: tasks/gamma.typ:")),
+        "{stderr}"
+    );
+}
+
+/// An expected message, each task path in it in the separator `mt` shows.
+fn shown(text: &str) -> String {
+    support::native_in(text, &["tasks/gamma.typ"])
 }

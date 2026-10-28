@@ -91,7 +91,7 @@ pub fn run(args: &BoardArgs) -> Result<()> {
 /// The name the current project goes by: its directory's.
 fn project_name(project: &Project) -> String {
     project.root.file_name().map_or_else(
-        || project.root.display().to_string(),
+        || mindtape::display_path(&project.root),
         |name| name.to_string_lossy().into_owned(),
     )
 }
@@ -240,7 +240,7 @@ fn print_json(board: &Board, rows: &[Row]) {
     let items: Vec<serde_json::Value> = rows
         .iter()
         .map(|row| {
-            let (project, path) = (&row.name, row.root.display().to_string());
+            let (project, path) = (&row.name, mindtape::slash_path(&row.root));
             match &row.body {
                 Err(message) => serde_json::json!({
                     "project": project, "path": path, "error": message,
@@ -269,7 +269,7 @@ fn cell_json(cell: &Cell) -> serde_json::Value {
     match cell {
         Cell::Count(count) => (*count).into(),
         Cell::Top(Some(top)) => serde_json::json!({
-            "id": top.id, "title": top.title, "file": top.file.display().to_string(),
+            "id": top.id, "title": top.title, "file": mindtape::slash_path(&top.file),
         }),
         Cell::Top(None) => serde_json::Value::Null,
         Cell::Failed(message) => serde_json::json!({ "error": message }),

@@ -62,6 +62,10 @@ for users. In code, a path turns into text through one of the two helpers in
 - `mindtape::slash_path` for a path a program reads or a file stores: the JSON
   and CSV `file` field, a link target, a lock entry.
 
+`clippy.toml` refuses `Path::display`, so a new message can't print a path
+any other way. A path that stays a path, such as a template directory the
+config passes on, keeps its own form through `to_string_lossy`.
+
 A test that pins how a path reads passes `--path-separator` a `\`, so a Linux
 run takes the route Windows takes by default. A test about something else
 that prints a path wraps the expected path in `support::native`, which writes

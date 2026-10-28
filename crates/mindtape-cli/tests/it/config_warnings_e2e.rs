@@ -25,7 +25,9 @@ fn ls_stderr(config: &str, pack: &str) -> String {
 fn a_command_warns_about_an_undeclared_extra_in_a_rule() {
     let stderr = ls_stderr(CONFIG, "");
     assert!(
-        stderr.contains("warning: .mindtape/config.toml:7: tasks.rules[0].assert: `x-machnie`"),
+        stderr.contains(&shown(
+            "warning: .mindtape/config.toml:7: tasks.rules[0].assert: `x-machnie`"
+        )),
         "{stderr}"
     );
     assert!(stderr.contains("did you mean x-machine?"), "{stderr}");
@@ -40,4 +42,9 @@ fn a_warning_from_a_pack_points_into_the_pack() {
         stderr.contains("warning: team.toml:5: tasks.rules[0].assert: `x-machnie`"),
         "{stderr}"
     );
+}
+
+/// An expected message, each task path in it in the separator `mt` shows.
+fn shown(text: &str) -> String {
+    support::native_in(text, &[".mindtape/config.toml"])
 }

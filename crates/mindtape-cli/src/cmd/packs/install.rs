@@ -33,7 +33,7 @@ pub(super) fn run(json: bool) -> Result<()> {
                 println!(
                     "fetched {name} {} into {}",
                     short(&locked.commit),
-                    tree.display()
+                    mindtape::display_path(&tree)
                 );
             }
         }

@@ -100,7 +100,7 @@ impl Location {
 impl std::fmt::Display for Location {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::File { file, line } => write!(f, "{}:{line}", file.display()),
+            Self::File { file, line } => write!(f, "{}:{line}", crate::display_path(file)),
             Self::Builtin { template, line } => write!(f, "built-in template {template}:{line}"),
             Self::Pack { pack, line } => write!(f, "pack {pack}:{line}"),
             Self::Filled { line, template } => {

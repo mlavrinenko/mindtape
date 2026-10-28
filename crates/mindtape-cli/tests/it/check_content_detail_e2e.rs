@@ -14,7 +14,13 @@ const QUESTIONS: &str = "[tasks]\nroots = [\"tasks\"]\n\n\
 
 const ADVICE: &str = "message = \"ask the user and write the answer in\"\n";
 
-const BREACH: &str = "error: tasks/board.typ:8: body.content.rules.no-open-questions: ";
+/// The breach's place and rule, its task file as `mt` shows it.
+fn breach() -> String {
+    support::native_in(
+        "error: tasks/board.typ:8: body.content.rules.no-open-questions: ",
+        &["tasks/board.typ"],
+    )
+}
 
 const DETAIL: &str = "section `TO-BE` sentence 2 (\"Should it also cover the board?\") \
      must carry at most 0 matches of `\\?(\\s|$)` (found 1)";
@@ -44,7 +50,10 @@ fn stderr_in(config: &str, args: &[&str]) -> String {
 fn a_custom_message_keeps_the_detail_as_a_note() {
     let stderr = stderr_in(&format!("{QUESTIONS}{ADVICE}"), &["check"]);
 
-    let expected = format!("{BREACH}ask the user and write the answer in\nnote: {DETAIL}\n");
+    let expected = format!(
+        "{}ask the user and write the answer in\nnote: {DETAIL}\n",
+        breach()
+    );
     assert!(stderr.contains(&expected), "{stderr}");
 }
 
@@ -52,7 +61,10 @@ fn a_custom_message_keeps_the_detail_as_a_note() {
 fn without_a_message_the_detail_is_the_message_and_no_note_repeats_it() {
     let stderr = stderr_in(QUESTIONS, &["check"]);
 
-    assert!(stderr.contains(&format!("{BREACH}{DETAIL}\n")), "{stderr}");
+    assert!(
+        stderr.contains(&format!("{}{DETAIL}\n", breach())),
+        "{stderr}"
+    );
     assert!(!stderr.contains("note:"), "{stderr}");
 }
 
@@ -76,6 +88,9 @@ fn json_lists_the_detail_in_notes() {
 fn a_refused_write_prints_the_detail_too() {
     let stderr = stderr_in(&format!("{QUESTIONS}{ADVICE}"), &["wip", "board"]);
 
-    let expected = format!("{BREACH}ask the user and write the answer in\nnote: {DETAIL}\n");
+    let expected = format!(
+        "{}ask the user and write the answer in\nnote: {DETAIL}\n",
+        breach()
+    );
     assert!(stderr.contains(&expected), "{stderr}");
 }

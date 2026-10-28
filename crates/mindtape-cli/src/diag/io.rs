@@ -21,7 +21,7 @@ impl Diag {
     /// The file at `path` could not be read: `can't read: '<path>': <reason>`.
     pub(crate) fn cannot_read(path: &Path, err: &io::Error) -> Self {
         Self::failed("can't read")
-            .value(path.display().to_string())
+            .value(mindtape::display_path(path))
             .io(err)
     }
 
@@ -29,7 +29,7 @@ impl Diag {
     /// <reason>`. Nothing was written.
     pub(crate) fn cannot_write(path: &Path, err: &io::Error) -> Self {
         Self::failed("can't write")
-            .value(path.display().to_string())
+            .value(mindtape::display_path(path))
             .io(err)
     }
 

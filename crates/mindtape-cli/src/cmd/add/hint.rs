@@ -62,7 +62,7 @@ impl RefusalContext<'_> {
         let mut diag = err;
         if let Some(parked) = parked {
             diag = diag.note(
-                Note::new("the filled task was parked at").value(parked.display().to_string()),
+                Note::new("the filled task was parked at").value(mindtape::display_path(&parked)),
             );
         }
         if let Some(fields) = refused {

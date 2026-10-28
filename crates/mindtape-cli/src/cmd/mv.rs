@@ -152,12 +152,12 @@ fn refuse_taken(project: &Project, stem: &str, to: &Path) -> Result<()> {
     if let Some(taken) = project.outcome.tasks.iter().find(|task| task.id == stem) {
         return Err(Diag::refused("stem is taken")
             .value(stem)
-            .note(Note::new("held by").name(taken.file.display().to_string()))
+            .note(Note::new("held by").name(mindtape::display_path(&taken.file)))
             .hint(pick_another()));
     }
     if to.exists() {
         return Err(Diag::refused("file already exists")
-            .value(to.display().to_string())
+            .value(mindtape::display_path(to))
             .hint(pick_another()));
     }
     Ok(())
@@ -196,8 +196,8 @@ fn move_file(root: &Path, from: &Path, to: &Path) -> Result<()> {
     }
     std::fs::rename(from, to).map_err(|err| {
         Diag::failed("can't move")
-            .value(from.display().to_string())
-            .context("to", to.display().to_string())
+            .value(mindtape::display_path(from))
+            .context("to", mindtape::display_path(to))
             .io(&err)
     })
 }
@@ -223,7 +223,11 @@ fn git_mv(root: &Path, from: &Path, to: &Path) -> bool {
 /// Print what the run would do (`--dry-run`): the move, and every file whose
 /// edges change.
 fn report_plan(from: &Path, to: &Path, rewrites: &[Rewrite]) {
-    println!("would move {} -> {}", from.display(), to.display());
+    println!(
+        "would move {} -> {}",
+        mindtape::display_path(from),
+        mindtape::display_path(to)
+    );
     report_rewrites("would rewrite", rewrites, true);
     println!("dry run: nothing written");
 }
@@ -231,7 +235,11 @@ fn report_plan(from: &Path, to: &Path, rewrites: &[Rewrite]) {
 /// Print what the run just did, and — inside a repository, where there is
 /// something to commit — remind the user to review it.
 fn report_applied(from: &Path, to: &Path, rewrites: &[Rewrite], root: &Path) {
-    println!("moved {} -> {}", from.display(), to.display());
+    println!(
+        "moved {} -> {}",
+        mindtape::display_path(from),
+        mindtape::display_path(to)
+    );
     report_rewrites("rewrote", rewrites, false);
     print_commit_hint(root);
 }
@@ -251,7 +259,7 @@ fn report_rewrites(verb: &str, rewrites: &[Rewrite], list: bool) {
     );
     if list {
         for rewrite in rewrites {
-            println!("  - {}", rewrite.rel.display());
+            println!("  - {}", mindtape::display_path(&rewrite.rel));
         }
     }
 }

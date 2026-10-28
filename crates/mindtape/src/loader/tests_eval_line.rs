@@ -32,7 +32,7 @@ fn a_syntax_error_names_its_line() {
     assert_eq!(error.message, "expected comma");
     assert_eq!(error.line, Some(5));
     assert_eq!(error.column, Some(34));
-    assert_eq!(error.place(), "tasks/t.typ:5:34");
+    assert_eq!(error.place(), crate::display_path("tasks/t.typ:5:34"));
 }
 
 #[test]
@@ -88,7 +88,7 @@ fn an_error_with_no_line_names_the_file_alone() {
         message: "source harvested no task marker".to_owned(),
         ..LoadError::default()
     };
-    assert_eq!(error.place(), "tasks/t.typ");
+    assert_eq!(error.place(), crate::display_path("tasks/t.typ"));
 }
 
 /// Typst leaves a show-everything rule out of the trace, so an assert the
@@ -215,5 +215,5 @@ fn a_warning_on_a_file_that_loads_is_kept() {
         warning.message,
         "label `<orphan>` is not attached to anything"
     );
-    assert_eq!(warning.place(), "tasks/t.typ:1:1");
+    assert_eq!(warning.place(), crate::display_path("tasks/t.typ:1:1"));
 }

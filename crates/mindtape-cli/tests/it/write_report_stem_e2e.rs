@@ -124,5 +124,13 @@ fn a_spawn_names_the_new_file_from_the_project_root() {
     let dir = support::scaffold_config(CONFIG, &[("standup.typ", &spawn)]);
 
     let spawned = first_line(dir.path(), &["recur", "standup"]);
-    assert!(spawned.starts_with("spawned tasks/standup-"), "{spawned}");
+    assert!(
+        spawned.starts_with(&shown("spawned tasks/standup-")),
+        "{spawned}"
+    );
+}
+
+/// An expected message, each task path in it in the separator `mt` shows.
+fn shown(text: &str) -> String {
+    support::native_in(text, &["tasks/standup-"])
 }

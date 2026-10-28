@@ -396,7 +396,7 @@ fn open_first_task_in(dir: &tempfile::TempDir, suffix: &str) -> String {
 fn opening_a_task_holds_a_project_editor_and_falls_back_to_editor() {
     let dir = support::project_with_task(TASK_TITLE);
     mindtape::test_support::write_file(dir.path(), "held.sh", "touch held-ran\n");
-    let command = format!("sh {}", dir.path().join("held.sh").display());
+    let command = format!("sh {}", dir.path().join("held.sh").to_string_lossy());
     let config = dir.path().join(".mindtape/config.toml");
     let text = std::fs::read_to_string(&config).unwrap();
     let held = format!("{text}\n[go]\neditor = {command:?}\n");

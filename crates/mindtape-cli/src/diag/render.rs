@@ -17,7 +17,14 @@ pub(crate) fn quote(value: &str) -> String {
 /// `word` as a shell reads it back: bare when every character is safe there,
 /// else [`quote`]d.
 pub(crate) fn shell_word(word: &str) -> String {
-    let safe = |c: char| c.is_ascii_alphanumeric() || "-_./:@%+=,".contains(c);
+    shell_word_on(word, cfg!(windows))
+}
+
+/// [`shell_word`], `windows` saying whether `\` is safe bare: cmd and
+/// `PowerShell` read it literally, so a Windows path needs no quotes.
+pub(crate) fn shell_word_on(word: &str, windows: bool) -> String {
+    let safe =
+        |c: char| c.is_ascii_alphanumeric() || "-_./:@%+=,".contains(c) || (windows && c == '\\');
     if !word.is_empty() && word.chars().all(safe) {
         word.to_owned()
     } else {
@@ -29,7 +36,8 @@ pub(crate) fn shell_word(word: &str) -> String {
 /// its value and context, then the reason, joined with `: `. A trailing period
 /// on the reason is dropped.
 pub(super) fn message(diag: &Diag) -> String {
-    let mut parts: Vec<String> = diag.0.place.clone().into_iter().collect();
+    let shown = |path: &std::path::Path| mindtape::display_path(path);
+    let mut parts: Vec<String> = diag.0.place.iter().map(|place| place.text(shown)).collect();
     parts.extend(diag.0.rule.clone());
     parts.push(text(diag));
     parts.retain(|part| !part.is_empty());

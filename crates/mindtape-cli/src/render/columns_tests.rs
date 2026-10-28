@@ -195,7 +195,7 @@ fn file_cell_renders_the_task_file_when_context_unset() {
     let mut task = bare_task("t");
     task.file = std::path::PathBuf::from("truth/tasks/t.typ");
     let cell = ColumnId::File.cell("1c", &task, TestCtx::default().ctx());
-    assert_eq!(cell.text, "truth/tasks/t.typ");
+    assert_eq!(cell.text, mindtape::display_path("truth/tasks/t.typ"));
 }
 
 #[test]

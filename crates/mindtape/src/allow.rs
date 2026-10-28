@@ -230,7 +230,7 @@ pub enum AllowError {
     #[error("no data directory to record the approval in")]
     NoDataHome,
     /// The record file could not be written.
-    #[error("can't write {}: {source}", path.display())]
+    #[error("can't write {}: {source}", crate::display_path(path))]
     Write {
         /// The record file.
         path: PathBuf,
@@ -258,7 +258,7 @@ fn record_in(
     let home = home.ok_or(AllowError::NoDataHome)?;
     let key = repo_key(root);
     let path = record_path(home, &key);
-    let mut text = format!("{}\n# {}\n", digest(commands), key.display());
+    let mut text = format!("{}\n# {}\n", digest(commands), crate::slash_path(&key));
     for command in commands {
         text.push_str("# ");
         text.push_str(&command.to_string());

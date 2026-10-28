@@ -162,11 +162,7 @@ fn check_resolution(task: &Task, link: &Link, files: &HashSet<&Path>, out: &mut 
     let resolved = resolve_link_path(&task.file, &link.task);
     let found = resolved.as_deref().is_some_and(|p| files.contains(p));
     if !found {
-        let display = resolved
-            .as_deref()
-            .unwrap_or(Path::new(&link.task))
-            .display()
-            .to_string();
+        let display = crate::display_path(resolved.as_deref().unwrap_or(Path::new(&link.task)));
         let mut breach = breach(task, kind_field(link), unresolved_message(&display));
         breach.kind = ViolationKind::UnresolvedLink;
         out.push(breach);

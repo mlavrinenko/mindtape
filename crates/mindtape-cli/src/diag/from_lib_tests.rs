@@ -139,15 +139,15 @@ fn a_cleanup_failure_is_worded_by_what_went_wrong() {
         reason,
     };
     let commit = "hint: commit them first: a tombstone pins the last-touch commit\n";
+    let [file_a, file_b, file_c] =
+        ["a", "b", "c"].map(|id| mindtape::display_path(format!("tasks/{id}.typ")));
 
     assert_eq!(
         cleanup_text(Error::Ineligible(vec![bad(
             "a",
             Reason::Mint(Mint::NotTracked("a".into()))
         )])),
-        format!(
-            "error: cannot remove: 'a'\n{commit}note: file: tasks/a.typ is not tracked by git\n"
-        )
+        format!("error: cannot remove: 'a'\n{commit}note: file: {file_a} is not tracked by git\n")
     );
     assert_eq!(
         cleanup_text(Error::Ineligible(vec![
@@ -157,19 +157,19 @@ fn a_cleanup_failure_is_worded_by_what_went_wrong() {
         ])),
         format!(
             "error: cannot remove several tasks\n{commit}\
-             note: file: tasks/a.typ is outside the git repository\n\
-             note: file: tasks/b.typ has uncommitted changes\n\
-             note: file: tasks/c.typ failed in git: boom\n"
+             note: file: {file_a} is outside the git repository\n\
+             note: file: {file_b} has uncommitted changes\n\
+             note: file: {file_c} failed in git: boom\n"
         )
     );
     let denied = || std::io::Error::from(std::io::ErrorKind::PermissionDenied);
     assert_eq!(
         cleanup_text(Error::Read(path(), denied())),
-        "error: can't read: 'tasks/a.typ': permission denied\n"
+        format!("error: can't read: '{file_a}': permission denied\n")
     );
     assert_eq!(
         cleanup_text(Error::Write(path(), denied())),
-        "error: can't write: 'tasks/a.typ': permission denied\n"
+        format!("error: can't write: '{file_a}': permission denied\n")
     );
     assert_eq!(
         cleanup_text(Error::Git("no repository".into())),
@@ -178,7 +178,7 @@ fn a_cleanup_failure_is_worded_by_what_went_wrong() {
     let splice = typst_edit::EditError::NotCharBoundary { offset: 1 };
     assert!(
         cleanup_text(Error::Rewrite(path(), splice))
-            .starts_with("error: can't rewrite links: 'tasks/a.typ': ")
+            .starts_with(&format!("error: can't rewrite links: '{file_a}': "))
     );
 }
 

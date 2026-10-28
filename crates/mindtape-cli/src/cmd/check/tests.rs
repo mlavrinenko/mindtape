@@ -331,8 +331,9 @@ fn breach(severity: mindtape::Severity, line: usize) -> mindtape::Violation {
 fn every_breach_line_starts_with_a_severity() {
     use mindtape::Severity::{Error, Warn};
     let show = |s, l| crate::render::breach::line(&breach(s, l));
-    assert_eq!(show(Error, 3), "error: tasks/t.typ:3: f: m");
-    assert_eq!(show(Warn, 3), "warning: tasks/t.typ:3: f: m");
+    let place = mindtape::display_path("tasks/t.typ:3");
+    assert_eq!(show(Error, 3), format!("error: {place}: f: m"));
+    assert_eq!(show(Warn, 3), format!("warning: {place}: f: m"));
 }
 
 #[test]

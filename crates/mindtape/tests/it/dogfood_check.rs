@@ -137,11 +137,11 @@ fn dogfood_templates_stamp_a_known_kind_or_leave_it_to_config() {
         let generic =
             ["task.typ", "tweak.typ"].contains(&path.file_name().unwrap().to_str().unwrap());
         match kind {
-            None => assert!(generic, "{} stamps no kind", path.display()),
+            None => assert!(generic, "{} stamps no kind", mindtape::display_path(path)),
             Some(kind) => assert!(
                 !generic && allowed.iter().any(|value| value == kind),
                 "{} stamps `{kind}`; allowed {allowed:?}",
-                path.display()
+                mindtape::display_path(path)
             ),
         }
     }

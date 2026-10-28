@@ -251,7 +251,7 @@ pub fn list_user_presets(dir: &Path) -> Result<Vec<String>> {
 /// user preset.
 fn path_preset(path: &Path) -> Result<Preset> {
     let name = path.file_stem().map_or_else(
-        || path.display().to_string(),
+        || mindtape::display_path(path),
         |stem| stem.to_string_lossy().into_owned(),
     );
     if path.is_dir() {
@@ -291,7 +291,7 @@ pub(crate) fn read_templates(dir: &Path) -> Result<Vec<(String, String)>> {
             let file = path
                 .file_name()
                 .ok_or_else(|| {
-                    Diag::failed("template has no file name").value(path.display().to_string())
+                    Diag::failed("template has no file name").value(mindtape::display_path(&path))
                 })?
                 .to_string_lossy()
                 .into_owned();
