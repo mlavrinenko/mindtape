@@ -170,10 +170,7 @@ fn update_prints_what_the_moved_commit_changes_pack_by_pack() {
         \x20   ~ rule tasks.rules.acme-rule\n\
         \x20 + acme:ops\n\
         \x20     run \"gh pr view\"\n";
-    assert_eq!(
-        stdout,
-        format!("{moved}{report}wrote .mindtape/packs.lock\n")
-    );
+    assert_eq!(stdout, format!("{moved}{report}wrote {}\n", lock_shown()));
 }
 
 #[test]
@@ -191,7 +188,10 @@ fn update_still_locks_a_source_whose_old_tree_is_gone() {
         "{stderr}"
     );
     assert!(stdout.contains("\n  + acme:commits\n"), "{stdout}");
-    assert_eq!(stdout.lines().last(), Some("wrote .mindtape/packs.lock"));
+    assert_eq!(
+        stdout.lines().last(),
+        Some(format!("wrote {}", lock_shown()).as_str())
+    );
     assert_eq!(locked(dir.path()).unwrap().commit, commit);
 }
 

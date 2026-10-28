@@ -121,67 +121,6 @@ fn an_unknown_path_set_says_how_to_declare_it() {
     );
 }
 
-fn cleanup_text(err: typst_cleanup::Error) -> String {
-    crate::diag::plain(&Diag::from(err))
-}
-
-#[test]
-fn a_cleanup_failure_is_worded_by_what_went_wrong() {
-    use swhid_mint::git::Error as Mint;
-    use typst_cleanup::{Artifact, Error, Ineligible, Reason};
-    let path = || std::path::PathBuf::from("tasks/a.typ");
-    let bad = |id: &str, reason| Ineligible {
-        artifact: Artifact {
-            abs: std::path::PathBuf::from(format!("/r/tasks/{id}.typ")),
-            rel: std::path::PathBuf::from(format!("tasks/{id}.typ")),
-            id: id.to_owned(),
-        },
-        reason,
-    };
-    let commit = "hint: commit them first: a tombstone pins the last-touch commit\n";
-    let [file_a, file_b, file_c] =
-        ["a", "b", "c"].map(|id| mindtape::display_path(format!("tasks/{id}.typ")));
-
-    assert_eq!(
-        cleanup_text(Error::Ineligible(vec![bad(
-            "a",
-            Reason::Mint(Mint::NotTracked("a".into()))
-        )])),
-        format!("error: cannot remove: 'a'\n{commit}note: file: {file_a} is not tracked by git\n")
-    );
-    assert_eq!(
-        cleanup_text(Error::Ineligible(vec![
-            bad("a", Reason::OutsideRepo),
-            bad("b", Reason::Mint(Mint::Dirty("b".into()))),
-            bad("c", Reason::Mint(Mint::Git("boom".into()))),
-        ])),
-        format!(
-            "error: cannot remove several tasks\n{commit}\
-             note: file: {file_a} is outside the git repository\n\
-             note: file: {file_b} has uncommitted changes\n\
-             note: file: {file_c} failed in git: boom\n"
-        )
-    );
-    let denied = || std::io::Error::from(std::io::ErrorKind::PermissionDenied);
-    assert_eq!(
-        cleanup_text(Error::Read(path(), denied())),
-        format!("error: can't read: '{file_a}': permission denied\n")
-    );
-    assert_eq!(
-        cleanup_text(Error::Write(path(), denied())),
-        format!("error: can't write: '{file_a}': permission denied\n")
-    );
-    assert_eq!(
-        cleanup_text(Error::Git("no repository".into())),
-        "error: git: no repository\n"
-    );
-    let splice = typst_edit::EditError::NotCharBoundary { offset: 1 };
-    assert!(
-        cleanup_text(Error::Rewrite(path(), splice))
-            .starts_with(&format!("error: can't rewrite links: '{file_a}': "))
-    );
-}
-
 #[test]
 fn a_library_error_is_converted_with_its_own_words() {
     let err = DateOverrideError::InvalidNow("garbage".to_owned());
@@ -301,8 +240,10 @@ fn an_invalid_config_names_its_line_and_turns_a_near_match_into_a_hint() {
     };
     assert_eq!(
         plain(&Diag::from(err)),
-        "error: .mindtape/config.toml:3: extends: unknown pack: 'x'\n\
+        shown(
+            "error: .mindtape/config.toml:3: extends: unknown pack: 'x'\n\
          note: ls.sort: bad\nhint: did you mean y?\nhint: use one of: y, z\n"
+        )
     );
 }
 
@@ -355,10 +296,12 @@ fn a_reference_error_names_the_reference() {
     };
     assert_eq!(
         plain(&Diag::from(shared)),
-        "error: stem names several tasks: 'gamma'\n\
+        shown(
+            "error: stem names several tasks: 'gamma'\n\
          hint: pass the path of the one you mean\n\
          note: candidate: ../cli/gamma.typ\n\
          note: candidate: ../web/gamma.typ\n"
+        )
     );
     let near = RefError::NoMatch {
         reference: "alpah".to_owned(),
@@ -411,7 +354,7 @@ fn a_breach_renders_its_place_rule_and_message() {
     assert_eq!(refused.kind(), Kind::Refused);
     assert_eq!(
         line(&refused),
-        "error: tasks/x.typ:2: rules.one-wip: finish the task in progress"
+        shown("error: tasks/x.typ:2: rules.one-wip: finish the task in progress")
     );
     violation.severity = Severity::Warn;
     violation.location = Location::Pack {
@@ -497,4 +440,15 @@ fn the_other_filter_errors_keep_their_reason_and_kind() {
         assert_eq!(diag.kind(), Kind::Usage);
         assert_eq!(plain(&diag), expected);
     }
+}
+
+/// An expected message, each path in it in the separator `mt` shows.
+fn shown(text: &str) -> String {
+    let paths = [
+        "tasks/x.typ",
+        "../cli/gamma.typ",
+        "../web/gamma.typ",
+        ".mindtape/config.toml",
+    ];
+    crate::test_util::native_in(text, &paths)
 }

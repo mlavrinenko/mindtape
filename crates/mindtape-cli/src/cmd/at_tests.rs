@@ -171,9 +171,12 @@ fn unknown_name_omits_names_when_empty() {
     );
     crate::diag::assert_plain(
         &err,
-        "error: unknown name: '@bad'\n\
-         hint: add it to at.toml\n\
-         note: names are configured in: '/c/at.toml'\n",
+        &format!(
+            "error: unknown name: '@bad'\n\
+             hint: add it to at.toml\n\
+             note: names are configured in: '{}'\n",
+            mindtape::display_path("/c/at.toml")
+        ),
     );
 }
 
@@ -308,7 +311,8 @@ fn home_prints(extra: &str, json: bool, check: impl Fn(&str)) {
 fn run_lists_entries() {
     let cfg = format!("{SN_CFG}[at.home]\ninclude = [\"/wt/*\", \"@sn\"]\n");
     prints(&at_file(&cfg), &args(None, false), |stdout| {
-        assert!(stdout.contains("@sn → /wt/sn\n"), "{stdout}");
+        let line = format!("@sn → {}\n", mindtape::display_path("/wt/sn"));
+        assert!(stdout.contains(&line), "{stdout}");
         assert!(stdout.contains("@home → /wt/*, @sn\n"), "{stdout}");
     });
 }
@@ -391,7 +395,8 @@ fn run_with_a_name_and_json_prints_members() {
 #[test]
 fn run_with_a_project_name_prints_its_path() {
     prints(&at_file(SN_CFG), &args(Some("sn"), false), |stdout| {
-        assert!(stdout.contains("@sn → /wt/sn\n"), "{stdout}");
+        let line = format!("@sn → {}\n", mindtape::display_path("/wt/sn"));
+        assert!(stdout.contains(&line), "{stdout}");
     });
 }
 
@@ -428,16 +433,20 @@ fn member_lines_pad_names_and_abbreviate_the_home_directory() {
     ];
     assert_eq!(
         super::member_lines(&members, Some(Path::new("/home/me"))),
-        vec![
+        [
             "a       ~/p/a",
             "longer  ~/p/longer  (fork)",
             "away    /srv/away",
         ]
+        .map(mindtape::display_path)
     );
 }
 
 #[test]
 fn member_lines_keep_absolute_paths_without_a_home() {
     let members = [at("a", "/home/me/p/a", false)];
-    assert_eq!(super::member_lines(&members, None), vec!["a  /home/me/p/a"]);
+    assert_eq!(
+        super::member_lines(&members, None),
+        [mindtape::display_path("a  /home/me/p/a")]
+    );
 }

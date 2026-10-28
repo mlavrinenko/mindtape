@@ -57,11 +57,17 @@ fn a_place_and_a_rule_lead_the_message() {
     let without = Diag::refused("finish the task in progress").at(path, 2, None);
     assert_eq!(
         plain(&with_col),
-        "error: tasks/x.typ:2:5: rules.one-wip: finish the task in progress\n"
+        crate::test_util::native_in(
+            "error: tasks/x.typ:2:5: rules.one-wip: finish the task in progress\n",
+            &["tasks/x.typ", "tasks/a.typ"]
+        )
     );
     assert_eq!(
         plain(&without),
-        "error: tasks/x.typ:2: finish the task in progress\n"
+        crate::test_util::native_in(
+            "error: tasks/x.typ:2: finish the task in progress\n",
+            &["tasks/x.typ", "tasks/a.typ"]
+        )
     );
 }
 
@@ -236,7 +242,10 @@ fn a_failed_write_says_so_and_a_custom_error_keeps_its_words() {
     let denied = std::io::Error::from(std::io::ErrorKind::PermissionDenied);
     assert_eq!(
         plain(&Diag::cannot_write(Path::new("tasks/a.typ"), &denied)),
-        "error: can't write: 'tasks/a.typ': permission denied\n"
+        crate::test_util::native_in(
+            "error: can't write: 'tasks/a.typ': permission denied\n",
+            &["tasks/a.typ"]
+        )
     );
     let custom = std::io::Error::other("Disk is full");
     assert_eq!(

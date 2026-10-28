@@ -214,9 +214,10 @@ fn run_dry_run_refuses_a_dirty_task_like_a_real_run() {
         .failure()
         .stderr(
             predicate::str::starts_with("error: cannot remove: 'gone'\n")
-                .and(predicate::str::contains(
+                .and(predicate::str::contains(crate::test_util::native_in(
                     "note: file: tasks/gone.typ has uncommitted changes\n",
-                ))
+                    &["tasks/gone.typ"],
+                )))
                 .from_utf8(),
         );
 }

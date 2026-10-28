@@ -185,7 +185,7 @@ mod tests {
     #[test]
     fn cell_text_without_a_root_is_the_root_relative_path() {
         let file = Path::new("truth/tasks/x.typ");
-        assert_eq!(cell_text(Path::new(""), file), "truth/tasks/x.typ");
+        assert_eq!(cell_text(Path::new(""), file), mindtape::display_path(file));
     }
 
     #[test]

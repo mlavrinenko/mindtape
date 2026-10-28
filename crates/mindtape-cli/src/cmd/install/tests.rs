@@ -288,7 +288,7 @@ fn completion_hint_quotes_a_path_that_needs_it() {
     let line = completion_hint("bash", Path::new("/home/a user/completions"));
     let quoted = format!(
         "'{}'",
-        Path::new("/home/a user/completions").join("bash").display()
+        mindtape::display_path(Path::new("/home/a user/completions").join("bash"))
     );
     assert!(line.ends_with(&format!("source {quoted}")), "{line}");
 }

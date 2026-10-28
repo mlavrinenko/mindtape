@@ -77,3 +77,11 @@ pub fn reload_with_lib(dir: &Path, config_text: &str) -> Project {
 fn with_lib_entry(config_text: &str) -> String {
     format!("{config_text}{}", mindtape::test_support::LIB_ENTRY)
 }
+
+/// `text` with each of `paths` in it, written with `/`, in the separator `mt`
+/// shows people: an expected message that names them.
+pub fn native_in(text: &str, paths: &[&str]) -> String {
+    paths.iter().fold(text.to_owned(), |text, path| {
+        text.replace(path, &mindtape::display_path(path))
+    })
+}

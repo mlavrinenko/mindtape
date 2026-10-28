@@ -181,6 +181,10 @@ fn a_policy_that_rejects_a_recur_reports_the_first_problem_and_notes_the_rest() 
 #[test]
 fn a_file_with_no_parent_names_itself() {
     let err = parent_dir(Path::new("/")).unwrap_err();
-    crate::diag::assert_plain(&err, "error: task file has no parent directory: '/'\n");
+    let expected = format!(
+        "error: task file has no parent directory: '{}'\n",
+        mindtape::display_path("/")
+    );
+    crate::diag::assert_plain(&err, &expected);
     assert_eq!(parent_dir(Path::new("a/b.typ")).unwrap(), Path::new("a"));
 }

@@ -50,10 +50,13 @@ fn the_reject_refusal_names_every_survivor_and_its_ids() {
 
     assert_eq!(
         crate::diag::plain(&reject_diag(&referrers)),
-        "error: cannot remove tasks that other tasks link to\n\
+        crate::test_util::native_in(
+            "error: cannot remove tasks that other tasks link to\n\
          hint: a gitless repository has no tombstone to rewrite onto: set [rm] strategy to \"retire\" or \"unlink\" to remove them anyway\n\
          note: link from: tasks/live.typ to gone, orphan\n\
-         note: link from: tasks/other.typ to gone\n"
+         note: link from: tasks/other.typ to gone\n",
+            &["tasks/live.typ", "tasks/other.typ"]
+        )
     );
 }
 

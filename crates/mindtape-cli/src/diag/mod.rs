@@ -53,7 +53,7 @@
 //! - `quoting.rs` — the quoted form of a filter whose bare word was meant as
 //!   text, for the hint under `unknown field`.
 //! - `from_lib_tests.rs` — unit tests for the library-error conversions.
-//! - `tests.rs`, `tests_dict.rs`, `tests_fill.rs` — unit tests.
+//! - `tests.rs`, `tests_cleanup.rs`, `tests_dict.rs`, `tests_fill.rs` — unit tests.
 
 mod cleanup;
 mod from_lib;
@@ -396,6 +396,8 @@ mod from_lib_tests;
 #[allow(clippy::unwrap_used)]
 mod tests;
 
+#[cfg(test)]
+mod tests_cleanup;
 #[cfg(test)]
 mod tests_dict;
 #[cfg(test)]

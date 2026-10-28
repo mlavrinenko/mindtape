@@ -13,7 +13,7 @@ use mindtape::test_support::write_file;
 /// mirroring today's `wrote <path>` prose (never shortened to a cwd-relative
 /// form the way `mt ls --format path` shows a task's `file`).
 fn expected_path(dir: &std::path::Path, rel: &str) -> String {
-    dir.join("tasks").join(rel).display().to_string()
+    mindtape::slash_path(&dir.join("tasks").join(rel))
 }
 
 /// A scaffolded project with a pre-existing `tasks/dup.typ`, the shared

@@ -8545,6 +8545,15 @@
     },
     {
       "file": "crates/mindtape-cli/src/test_util.rs",
+      "function": "native_in",
+      "line": 83,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape-cli"
+    },
+    {
+      "file": "crates/mindtape-cli/src/test_util.rs",
       "function": "reload_with_lib",
       "line": 70,
       "cyclomatic": 1.0,

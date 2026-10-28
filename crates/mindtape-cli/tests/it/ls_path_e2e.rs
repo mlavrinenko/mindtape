@@ -207,10 +207,11 @@ fn path_format_prints_no_bytes_for_no_match_and_one_final_newline_otherwise() {
 #[test]
 fn path_format_composes_with_a_real_pipe() {
     // `xargs -n1 echo` proves the output is directly consumable, not just
-    // shaped like it — the recipe the spec exists for.
+    // shaped like it — the recipe the spec exists for. xargs reads `\` as an
+    // escape, so on Windows the recipe asks for `/` with `--path-separator`.
     let dir = scaffold();
     let mt_out = support::mt(dir.path())
-        .args(["ls", "", "--format", "path"])
+        .args(["--path-separator", "/", "ls", "", "--format", "path"])
         .output()
         .unwrap();
     assert!(mt_out.status.success());
@@ -233,11 +234,6 @@ fn path_format_composes_with_a_real_pipe() {
     }
     let xargs_out = xargs.wait_with_output().unwrap();
     let echoed = String::from_utf8_lossy(&xargs_out.stdout);
-    assert!(echoed.contains(&shown("tasks/a.typ")));
-    assert!(echoed.contains(&shown("tasks/b.typ")));
-}
-
-/// An expected message, each task path in it in the separator `mt` shows.
-fn shown(text: &str) -> String {
-    support::native_in(text, &["tasks/a.typ", "tasks/b.typ"])
+    assert!(echoed.contains("tasks/a.typ"));
+    assert!(echoed.contains("tasks/b.typ"));
 }

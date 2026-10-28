@@ -234,7 +234,7 @@ fn path_format_reads_the_root_of_its_own_context() {
         .unwrap();
         let expected =
             crate::render::file_path::relativize(std::path::Path::new(root), cwd, &task.file);
-        assert_eq!(out, expected.display().to_string());
+        assert_eq!(out, mindtape::display_path(expected));
         seen.push(out);
     }
     assert_ne!(seen[0], seen[1], "the two roots must not share a rendering");

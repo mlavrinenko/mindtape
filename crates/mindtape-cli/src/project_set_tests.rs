@@ -100,7 +100,10 @@ fn a_members_load_error_names_it() {
 
     assert_eq!(
         diags.iter().map(plain).collect::<Vec<_>>(),
-        ["warning: tasks/broken.typ:2: eval failed\nnote: project: web\n"]
+        [crate::test_util::native_in(
+            "warning: tasks/broken.typ:2: eval failed\nnote: project: web\n",
+            &["tasks/broken.typ"]
+        )]
     );
 }
 

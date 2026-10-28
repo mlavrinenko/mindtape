@@ -137,14 +137,8 @@ fn a_name_two_directories_share_is_refused_listing_both_and_how_to_pick() {
     let (root, cfg) = two_blogs();
     let (code, _, stderr) = support::parts_of(&run(cfg.path(), &["@blog", "ls"]));
     assert_eq!(code, Some(2), "{stderr}");
-    // The path as at.toml spells it, which is how `mt` prints it back.
-    let shown = |rel: &str| {
-        root.path()
-            .join(rel)
-            .display()
-            .to_string()
-            .replace('\\', "/")
-    };
+    // The path at.toml names, in the separator `mt` shows people.
+    let shown = |rel: &str| mindtape::display_path(root.path().join(rel));
     assert_eq!(
         stderr,
         format!(

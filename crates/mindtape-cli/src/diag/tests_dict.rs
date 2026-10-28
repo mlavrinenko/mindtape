@@ -20,6 +20,14 @@ fn breach(nearest: &[&str]) -> Violation {
 
 const REFUSED: &str = "error: tasks/x.typ:2: rules.one-wip: finish the task in progress\n";
 
+/// [`assert_plain`] with the task path in `expected` as `mt` shows it.
+fn assert_shown(diag: &Diag, expected: &str) {
+    assert_plain(
+        diag,
+        &crate::test_util::native_in(expected, &["tasks/x.typ"]),
+    );
+}
+
 #[test]
 fn the_hint_joins_the_nearest_entries_in_order() {
     for (nearest, tail) in [
@@ -31,7 +39,7 @@ fn the_hint_joins_the_nearest_entries_in_order() {
             "; did you mean note, rate or rite?",
         ),
     ] {
-        assert_plain(
+        assert_shown(
             &Diag::from(&breach(nearest)),
             &format!(
                 "{REFUSED}hint: 'Rote' is not in dict verbs{tail}\n\
@@ -49,7 +57,7 @@ fn the_word_is_quoted_and_the_command_pastes() {
         miss.word = "it's".to_owned();
         miss.dict = "my verbs".to_owned();
     }
-    assert_plain(
+    assert_shown(
         &Diag::from(&violation),
         &format!(
             "{REFUSED}hint: 'it'\\''s' is not in dict my verbs\n\
@@ -64,12 +72,12 @@ fn the_word_is_quoted_and_the_command_pastes() {
 fn the_miss_takes_only_the_hint_room_left() {
     let mut violation = breach(&["note"]);
     violation.unknown = Some(Unknown::among("fiel", ["file"]));
-    assert_plain(
+    assert_shown(
         &Diag::from(&violation),
         &format!("{REFUSED}hint: did you mean file?\nhint: use one of: file\n"),
     );
     violation.unknown = Some(Unknown::near("fiel", &["file"]));
-    assert_plain(
+    assert_shown(
         &Diag::from(&violation),
         &format!(
             "{REFUSED}hint: did you mean file?\n\
