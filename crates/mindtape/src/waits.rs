@@ -29,8 +29,15 @@
 //! ([`crate::allow`]). Until then every entry answers [`Answer::NotAllowed`],
 //! which blocks like an unknown answer, and [`crate::allow::held_back`] names
 //! the commands for the one warning the caller prints.
+//!
+//! A checker runs with [`NESTED_ENV`] set, and an `mt` that finds it set runs
+//! no checker: every entry answers [`Answer::Nested`]. So a checker that runs
+//! `mt` against its own project, which loads the project and asks its waits
+//! again, gets one answer instead of spawning itself without end. Nesting
+//! stops at one level by construction, whatever the checkers run.
 
 use std::collections::BTreeMap;
+use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, PoisonError};
 
@@ -69,6 +76,9 @@ pub enum Answer {
     /// The checker did not run, since the user has not allowed the config's
     /// commands. Blocks like [`Answer::Unknown`].
     NotAllowed,
+    /// The checker did not run, since this `mt` runs inside a checker
+    /// ([`NESTED_ENV`]). Blocks like [`Answer::Unknown`].
+    Nested,
 }
 
 impl Answer {
@@ -80,6 +90,7 @@ impl Answer {
             Self::Waiting(line) => Some(line.clone()),
             Self::Unknown(line) => Some(format!("unknown: {line}")),
             Self::NotAllowed => Some("unknown: not allowed".to_owned()),
+            Self::Nested => Some("unknown: asked inside a checker".to_owned()),
         }
     }
 }
@@ -93,20 +104,41 @@ pub const FIELD: &str = "waits-on";
 /// letter or digit, so it cannot open an option or a comment either.
 pub const ID_PUNCT: &str = "._@/#:+-";
 
+/// The variable every checker runs with. An `mt` that finds it set runs no
+/// checker of its own and answers [`Answer::Nested`] instead.
+pub const NESTED_ENV: &str = "MINDTAPE_WAITS_CHECKER";
+
+/// Whether checkers may run in this process, and if not, why.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Permit {
+    /// Run them.
+    Run,
+    /// The user has not allowed the config's commands.
+    NotAllowed,
+    /// This `mt` runs inside a checker.
+    Nested,
+}
+
 /// Every answer this process has had, keyed by project root and command line,
 /// so a checker that several tasks or several loads ask about runs once.
 static ANSWERS: Mutex<BTreeMap<(PathBuf, ConfigCommand), Answer>> = Mutex::new(BTreeMap::new());
 
 /// Stamp each open task's [`Task::answers`] with what its checkers say, running
 /// each command line at most once per process. A terminal task runs nothing,
-/// and no checker runs while the config's commands are not allowed.
+/// and no checker runs while the config's commands are not allowed or inside
+/// another checker.
 pub fn annotate(tasks: &mut [Task], config: &Config, root: &Path) {
-    annotate_with(tasks, config, root, || allowed(config, root));
+    annotate_with(tasks, config, root, || permit(config, root));
 }
 
-/// [`annotate`], with `allowed` saying whether checkers may run. It is asked
+/// [`annotate`], with `permit` saying whether checkers may run. It is asked
 /// only when some open task waits on something.
-fn annotate_with(tasks: &mut [Task], config: &Config, root: &Path, allowed: impl FnOnce() -> bool) {
+fn annotate_with(
+    tasks: &mut [Task],
+    config: &Config,
+    root: &Path,
+    permit: impl FnOnce() -> Permit,
+) {
     let terminal = config.tasks.status.terminal();
     let asked: Vec<&mut Task> = tasks
         .iter_mut()
@@ -115,43 +147,59 @@ fn annotate_with(tasks: &mut [Task], config: &Config, root: &Path, allowed: impl
     if asked.is_empty() {
         return;
     }
-    let allowed = allowed();
+    let permit = permit();
     for task in asked {
-        stamp(task, config, root, allowed);
+        stamp(task, config, root, permit);
     }
 }
 
 /// Stamp `task`'s [`Task::answers`] whatever its status: what a flip out of a
 /// terminal status needs, since [`annotate`] asks nothing for that task.
 pub fn ask(task: &mut Task, config: &Config, root: &Path) {
-    let allowed = task.waits_on.is_empty() || allowed(config, root);
-    stamp(task, config, root, allowed);
+    let permit = if task.waits_on.is_empty() {
+        Permit::Run
+    } else {
+        permit(config, root)
+    };
+    stamp(task, config, root, permit);
 }
 
-/// Whether the user allowed the commands `config` runs for `root`'s repository.
-fn allowed(config: &Config, root: &Path) -> bool {
-    crate::allow::is_allowed(root, &crate::allow::commands(config))
+/// Whether checkers may run: not inside another checker, and only once the
+/// user allowed the commands `config` runs for `root`'s repository.
+fn permit(config: &Config, root: &Path) -> Permit {
+    if std::env::var_os(NESTED_ENV).is_some() {
+        Permit::Nested
+    } else if crate::allow::is_allowed(root, &crate::allow::commands(config)) {
+        Permit::Run
+    } else {
+        Permit::NotAllowed
+    }
 }
 
-/// Stamp `task`'s [`Task::answers`], running its checkers only when `allowed`.
-fn stamp(task: &mut Task, config: &Config, root: &Path, allowed: bool) {
+/// Stamp `task`'s [`Task::answers`], running its checkers only on
+/// [`Permit::Run`].
+fn stamp(task: &mut Task, config: &Config, root: &Path, permit: Permit) {
     task.answers = task
         .waits_on
         .iter()
-        .map(|entry| (entry.clone(), answer(entry, config, root, allowed)))
+        .map(|entry| (entry.clone(), answer(entry, config, root, permit)))
         .collect();
 }
 
 /// What `entry`'s checker says, from the process-wide memo or a fresh run, or
-/// [`Answer::NotAllowed`] without a run when the commands are not `allowed`.
-fn answer(entry: &str, config: &Config, root: &Path, allowed: bool) -> Answer {
+/// the answer `permit` gives without a run when it is not [`Permit::Run`].
+fn answer(entry: &str, config: &Config, root: &Path, permit: Permit) -> Answer {
     let command = match command_line(entry, config) {
         Ok(command) => command,
         Err(problem) => return Answer::Unknown(problem.message),
     };
-    if !allowed {
-        crate::allow::hold(root, &crate::allow::commands(config));
-        return Answer::NotAllowed;
+    match permit {
+        Permit::Run => {}
+        Permit::Nested => return Answer::Nested,
+        Permit::NotAllowed => {
+            crate::allow::hold(root, &crate::allow::commands(config));
+            return Answer::NotAllowed;
+        }
     }
     let mut answers = ANSWERS.lock().unwrap_or_else(PoisonError::into_inner);
     answers
@@ -160,9 +208,10 @@ fn answer(entry: &str, config: &Config, root: &Path, allowed: bool) -> Answer {
         .clone()
 }
 
-/// Run one checker command and read its exit code as an [`Answer`].
+/// Run one checker command, with [`NESTED_ENV`] set, and read its exit code
+/// as an [`Answer`].
 fn run(command: &ConfigCommand, root: &Path) -> Answer {
-    match crate::shell::run(command, root, &[]) {
+    match crate::shell::run(command, root, &[(NESTED_ENV, OsStr::new("1"))]) {
         Ok(output) => {
             let line = first_line(&output.stdout).or_else(|| first_line(&output.stderr));
             match output.code {

@@ -273,3 +273,32 @@ fn a_commit_range_asks_a_checker_once_however_many_commits_it_holds() {
     let runs = std::fs::read_to_string(dir.path().join("runs.txt")).unwrap();
     assert_eq!(runs.lines().count(), 1, "{runs}");
 }
+
+/// A checker that runs `mt ls ready` against its own project loads it again,
+/// and so would run itself again without end. The nested `mt` runs no checker,
+/// so its listing exits 0 and frees the task. The timeout turns a regression
+/// into a failure instead of a hung suite.
+#[test]
+fn a_checker_that_runs_mt_on_its_own_project_answers_once() {
+    let run = format!("['{}', 'ls', '{{id}}']", env!("CARGO_BIN_EXE_mt"));
+    let config =
+        format!("[tasks]\nroots = [\"tasks\"]\n\n[[tasks.waits]]\nname = \"self\"\nrun = {run}\n");
+    let dir = support::scaffold_project(&config);
+    write_task(
+        dir.path(),
+        "drop-the-patch",
+        "Drop the patch",
+        r#"("self:ready",)"#,
+    );
+    support::run_ok(dir.path(), &["allow"]);
+
+    let out = support::mt(dir.path())
+        .args(["ls", "ready", "--columns", "title"])
+        .timeout(std::time::Duration::from_secs(20))
+        .output()
+        .unwrap();
+
+    let (ok, text) = support::text_of(&out);
+    assert!(ok, "{out:?}");
+    assert!(text.contains("Drop the patch"), "{text}");
+}

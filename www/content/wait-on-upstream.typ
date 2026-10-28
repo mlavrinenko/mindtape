@@ -51,6 +51,13 @@ line once per call and skips closed tasks. Fetching news over the network is
 the tool's own job, on its own schedule, such as a timer, a recipe or the bot
 that bumps your lockfile.
 
+A checker can run `mt` too, say `mt ls ready` against the same project. That
+inner `mt` loads the project, so it would run the same checker, which starts
+another `mt`, and so on forever. It doesn't. Every checker runs with
+`MINDTAPE_WAITS_CHECKER=1` set, and an `mt` that sees it runs no checker at
+all. Its waits read `unknown: asked inside a checker`, and the outer `mt` gets
+its answer in one hop.
+
 In a string `run`, `{id}` lands in a shell line as is, so `mt check` refuses
 an id that a shell could read as more than a word. An id starts with a letter
 or digit and holds letters, digits and `._@/#:+-`. An array such as

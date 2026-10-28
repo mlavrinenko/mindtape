@@ -767,6 +767,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A checker that runs `mt` answers once.** A `[[tasks.waits]]` checker such
+  as `mt ls ready` loaded its own project, ran itself again and never came
+  back. Every checker runs with `MINDTAPE_WAITS_CHECKER=1` now, and an `mt`
+  that sees it runs no checker, so its waits read `unknown: asked inside a
+  checker`.
 - **A fresh `gated` project closes a task on any OS.** Its `done` gate was a
   `grep` shell line, so `mt done` refused until `mt allow`, and `cmd /C` on
   Windows couldn't run it at all. It's a filter condition now,

@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 28),
+  status: done(2026, 10, 28),
 )
 
 == Problem
@@ -53,8 +53,10 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape/src/waits_tests.rs`: the red test, a checker that calls back into the loader runs once.
-- `crates/mindtape/src/waits.rs`: mark the checker's environment, and run no checker under that mark.
+- `crates/mindtape-cli/tests/it/waits_e2e.rs`: the red test, a checker running `mt ls ready` on its own project answers within a 20 s timeout.
+- `crates/mindtape/src/waits.rs`: run every checker with `MINDTAPE_WAITS_CHECKER=1`, and under it run no checker and answer `Nested`.
+- `crates/mindtape/src/waits_tests.rs`: the mark reaches the checker, and under it nothing runs.
+- `www/content/wait-on-upstream.typ`: say what a nested `mt` answers.
 
 
 == Rollback
@@ -64,7 +66,7 @@ left in a closing report no one rereads. It belongs in
 
 == Out of scope
 
-- `[[on.flip]]` commands. A read never runs them, so a gate running `mt ls` can't recurse.
+- `[[on.flip]]` commands. A gate running `mt flip` on its own task recurses too, but a hook may fairly flip another task, whose gates must still run, so it needs a guard of its own: `stop-a-flip-hook-that-flips-its-own-task-from-spawning-itself-without-end`.
 
 
 == Dogfood

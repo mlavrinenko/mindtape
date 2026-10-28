@@ -3,7 +3,7 @@
 use crate::test_support::tempdir;
 use std::path::Path;
 
-use super::{Answer, Checker, annotate_with, command_line, stamp, validate_checkers};
+use super::{Answer, Checker, Permit, annotate_with, command_line, stamp, validate_checkers};
 use crate::allow::held_back;
 use crate::config::{Config, LegendEntry};
 use crate::shell::ConfigCommand;
@@ -99,6 +99,10 @@ fn a_reason_marks_an_unknown_answer_and_none_for_a_resolved_one() {
         Answer::NotAllowed.reason().as_deref(),
         Some("unknown: not allowed")
     );
+    assert_eq!(
+        Answer::Nested.reason().as_deref(),
+        Some("unknown: asked inside a checker")
+    );
 }
 
 /// The answer `run` gives for one entry, asked from a fresh directory so no
@@ -112,7 +116,7 @@ fn answer_of(run: &str) -> Answer {
         &mut task,
         &config(vec![checker("up", run)]),
         dir.path(),
-        true,
+        Permit::Run,
     );
     task.answers["up:x"].clone()
 }
@@ -137,18 +141,34 @@ fn the_exit_code_decides_the_answer_and_the_first_printed_line_its_reason() {
     );
 }
 
+/// The mark is what stops an `mt` the checker runs from running checkers.
+#[cfg(not(windows))]
+#[test]
+fn a_checker_runs_with_the_nested_mark_set() {
+    assert_eq!(
+        answer_of(&format!("echo \"${}\"; exit 1", super::NESTED_ENV)),
+        Answer::Waiting("1".to_owned())
+    );
+}
+
+/// Two tasks, `a` and `b`, each waiting on `up:x`.
+fn two_waiting_on_up_x() -> Vec<crate::model::Task> {
+    let mut tasks = vec![bare_task("a"), bare_task("b")];
+    for task in &mut tasks {
+        task.waits_on = vec!["up:x".to_owned()];
+    }
+    tasks
+}
+
 #[cfg(not(windows))]
 #[test]
 fn a_command_line_runs_once_per_root_however_often_it_is_asked() {
     let dir = tempdir();
     let config = config(vec![checker("up", "echo run >> runs; exit 1")]);
-    let mut tasks = vec![bare_task("a"), bare_task("b")];
-    for task in &mut tasks {
-        task.waits_on = vec!["up:x".to_owned()];
-    }
+    let mut tasks = two_waiting_on_up_x();
 
-    annotate_with(&mut tasks, &config, dir.path(), || true);
-    annotate_with(&mut tasks, &config, dir.path(), || true);
+    annotate_with(&mut tasks, &config, dir.path(), || Permit::Run);
+    annotate_with(&mut tasks, &config, dir.path(), || Permit::Run);
 
     let runs = std::fs::read_to_string(dir.path().join("runs")).unwrap();
     assert_eq!(runs.lines().count(), 1);
@@ -177,7 +197,9 @@ fn a_terminal_task_is_not_asked_and_a_bad_entry_never_runs() {
     open.waits_on = vec!["nope:x".to_owned()];
     let mut tasks = vec![done, open];
 
-    annotate_with(&mut tasks, &config, Path::new("/no/such/root"), || true);
+    annotate_with(&mut tasks, &config, Path::new("/no/such/root"), || {
+        Permit::Run
+    });
 
     assert!(tasks[0].answers.is_empty());
     assert_eq!(
@@ -195,7 +217,7 @@ fn a_shell_that_cannot_start_is_an_unknown_answer() {
         &mut task,
         &config(vec![checker("up", "exit 0")]),
         Path::new("/no/such/root"),
-        true,
+        Permit::Run,
     );
 
     let Answer::Unknown(reason) = &task.answers["up:x"] else {
@@ -236,7 +258,7 @@ fn a_checker_the_user_has_not_allowed_answers_without_running() {
         &mut task,
         &config(vec![checker("up", run)]),
         dir.path(),
-        false,
+        Permit::NotAllowed,
     );
 
     assert_eq!(task.answers["up:x"], Answer::NotAllowed);
@@ -256,7 +278,7 @@ fn annotate_asks_about_the_approval_only_when_an_open_task_waits() {
 
     annotate_with(&mut tasks, &config, Path::new("/no/such/root"), || {
         asked.set(true);
-        false
+        Permit::NotAllowed
     });
 
     assert!(!asked.get());
@@ -266,12 +288,11 @@ fn annotate_asks_about_the_approval_only_when_an_open_task_waits() {
 #[test]
 fn annotate_holds_every_open_task_back_when_not_allowed() {
     let config = config(vec![checker("up", "exit 0")]);
-    let mut tasks = vec![bare_task("a"), bare_task("b")];
-    for task in &mut tasks {
-        task.waits_on = vec!["up:x".to_owned()];
-    }
+    let mut tasks = two_waiting_on_up_x();
 
-    annotate_with(&mut tasks, &config, Path::new("/no/such/root"), || false);
+    annotate_with(&mut tasks, &config, Path::new("/no/such/root"), || {
+        Permit::NotAllowed
+    });
 
     assert_eq!(tasks[0].answers["up:x"], Answer::NotAllowed);
     assert_eq!(tasks[1].answers["up:x"], Answer::NotAllowed);
@@ -292,4 +313,27 @@ fn an_array_with_no_program_is_an_empty_command() {
         validate_checkers(&array_config(&[])),
         ["tasks.waits[0].run: empty command"]
     );
+}
+
+/// Inside a checker no checker runs, so one that runs `mt` on its own project
+/// cannot spawn itself again.
+#[test]
+fn inside_a_checker_no_checker_runs() {
+    let dir = tempdir();
+    let mut tasks = vec![bare_task("t")];
+    tasks[0].waits_on = vec!["up:x".to_owned(), "nope:x".to_owned()];
+
+    annotate_with(
+        &mut tasks,
+        &config(vec![checker("up", "echo ran >> runs")]),
+        dir.path(),
+        || Permit::Nested,
+    );
+
+    assert_eq!(tasks[0].answers["up:x"], Answer::Nested);
+    assert_eq!(
+        tasks[0].answers["nope:x"],
+        Answer::Unknown("unknown checker: 'nope'".to_owned())
+    );
+    assert!(!dir.path().join("runs").exists());
 }
