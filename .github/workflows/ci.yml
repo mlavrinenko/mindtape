@@ -142,10 +142,12 @@ jobs:
           # diag/allowlist_tests.rs compares the list with `main`'s, and fails
           # in CI where it finds no `main`.
           fetch-depth: 0
-      # Same toolchain source as release.yml's build job: the action exports
-      # RUSTUP_TOOLCHAIN, which takes precedence over rust-toolchain.toml, so
-      # this tests what the Windows release binary is actually compiled with.
-      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+      # The toolchain rust-toolchain.toml pins, as release.yml's build job
+      # installs it, so this tests what the Windows release binary is
+      # compiled with.
+      - name: Install the pinned toolchain
+        shell: bash
+        run: rustup toolchain install
       # cargo-nextest is not part of rustup, and there is no Nix here to
       # provide the dev shell's copy (flake.nix) — install the same runner
       # the Linux job gates on, from an official prebuilt. Pinned to a commit
