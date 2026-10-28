@@ -47,3 +47,29 @@ if ! just --justfile "$bad_just" --fmt --check >/dev/null 2>&1; then
     echo "fmt-fixture-check: just rejected its OWN formatting of the module file — the failure above was not about drift" >&2
     exit 1
 fi
+# The loop over the module files has its own bug class: a `for` whose body ends
+# in `diff` leaves only the last file's status as the recipe's status, so a
+# drifted module that sorts before a clean one passed. Run the real recipe
+# over bad, bad, clean: it must fail and name both bad files, never the clean
+# one. The clean file goes through `--fmt` first, so it is a fixed point.
+bad_a="$tmp/bad-a.just"
+bad_b="$tmp/bad-b.just"
+clean="$tmp/clean.just"
+printf 'set unstable := true\nfixture:\n  echo drifted\n' > "$bad_a"
+cp "$bad_a" "$bad_b"
+printf 'set unstable := true\n\nfixture:\n    echo clean\n' > "$clean"
+just --justfile "$clean" --fmt >/dev/null 2>&1
+if out=$(just _fmt-check-just "$bad_a" "$bad_b" "$clean" 2>&1); then
+    echo "fmt-fixture-check: fmt-check passed with a drifted module before a clean one — the loop loses a status" >&2
+    exit 1
+fi
+for want in "$bad_a" "$bad_b"; do
+    if ! grep -qF -- "$want" <<<"$out"; then
+        echo "fmt-fixture-check: fmt-check did not list $want — it must name every drifted module" >&2
+        exit 1
+    fi
+done
+if grep -qF -- "$clean" <<<"$out"; then
+    echo "fmt-fixture-check: fmt-check listed the clean module $clean" >&2
+    exit 1
+fi

@@ -156,7 +156,15 @@ fmt-check:
     tombi format --check --quiet {{ TOML_FMT_PATHS }}
     typstyle --check {{ TYPST_FMT_PATHS }}
     just --dump | diff -u Justfile -
-    for f in {{ JUST_FMT_PATHS }}; do just --justfile "$f" --dump | diff -u "$f" -; done
+    just _fmt-check-just {{ JUST_FMT_PATHS }}
+
+# `just --dump` prints the formatted module, so `diff` fails on drift. A `for`
+# keeps only its last body's status, so each failure sets `rc` and the loop
+# goes on to list every drifted module.
+
+[private]
+_fmt-check-just *FILES:
+    rc=0; for f in {{ FILES }}; do just --justfile "$f" --dump | diff -u "$f" - || rc=1; done; exit $rc
 
 [doc("Validate each example project against itself")]
 [group("gate")]

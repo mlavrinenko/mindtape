@@ -148,7 +148,10 @@ just's `--fmt` flag alone formats the root `Justfile` and skips every `mod`
 file (verified on just 1.46). So each file `JUST_FMT_PATHS` matches gets its
 own `--justfile <file>` pass, `--fmt` in #just.fmt() and `--dump` diffed
 against the file in #just.fmt-check(), and each needs its own
-`set unstable := true`.
+`set unstable := true`. #just.fmt-check() lists every module that differs and
+fails on any one, not only the last: a bare `for` over the files keeps just the
+last body's exit status. #just.meta-fmt-fixture() runs that check over two
+drifted modules and a clean one that sorts last.
 
 = What the pre-commit hook asserts
 
