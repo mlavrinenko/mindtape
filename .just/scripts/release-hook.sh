@@ -52,6 +52,16 @@ grep -Eq "^## \[${version//./\\.}\] - " CHANGELOG.md && heading="$version"
 entries=$(sed -n "/^## \[${heading//./\\.}\]/,/^## \[/p" CHANGELOG.md | sed '1d;$d' | sed '/^[[:space:]]*$/d')
 [ -n "$entries" ] \
     || refuse "CHANGELOG.md has nothing under [$heading] to release" "add the release's entries under '## [Unreleased]' and commit"
+# The bump moves the version in the Cargo manifests, the sources of the
+# `release-notes` and `cli-name` groups. The release commit is their review:
+# it dates CHANGELOG.md, and the other dependents name the crate, not its
+# version. A dry run sees the tree unbumped and records nothing.
+if [ "$DRY_RUN" != true ]; then
+    for group in release-notes cli-name; do
+        just outdatty::update "$group" >/dev/null \
+            || refuse "can't re-record outdatty group '$group'" "run just outdatty check and fix what it reports"
+    done
+fi
 just check || refuse "just check failed on this tree" "fix what it reports above, then commit"
 just nix-build || refuse "the flake doesn't build in a clean sandbox" "fix what just nix-build reports above"
 # --allow-dirty: on a real run the bump is not committed yet.

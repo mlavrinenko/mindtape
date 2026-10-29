@@ -23,8 +23,9 @@ The tag push is the only publish path, so don't run `cargo publish` or push
   `main`, bumps the version, dates the entries under `[Unreleased]` and
   commits.
 + Between the bump and the commit, cargo-release runs
-  `.just/scripts/release-hook.sh`. The hook refuses every other state a
-  release has failed from.
+  `.just/scripts/release-hook.sh`. The hook re-records the outdatty groups
+  whose sources are the Cargo manifests, since the release commit reviews the
+  bump, and refuses every other state a release has failed from.
 + The recipe pushes `main`, so CI runs on the release tree.
 + It tags only once that commit's `ci.yml` run is green.
 
