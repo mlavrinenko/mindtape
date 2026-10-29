@@ -207,18 +207,18 @@ groups:
       www/utils/cli-notes.typ: f4f3fdc25dd45b7465220811f822300fe7ebeefde4ed1e476f63d24e46397621
   cli-name:
     source:
-      crates/mindtape-cli/Cargo.toml: f5f7b40a70c62af2fcf7d08771d97022ca3b702f5ede3762b62563739485b846
+      crates/mindtape-cli/Cargo.toml: 44d767ecc3b7ecdc4cc6ec2bf35050927729394706e08c831de698fed08cd3f4
       crates/mindtape-cli/src/cli/mod.rs: 198ee44c15ac2af637945565fee41295590859615ca8a41cb155cf7e0eff2cb6
     dependents:
-      CHANGELOG.md: f60ae458b4d0cef0e745f86ca6a644484f5ffa1876dc200241905b8ab434056f
-      docs/src/agents.typ: b60c66d46729c944b878cc0d112e26741e5d2621ed8dc803c5ed0092daf2adeb
-      docs/src/contributing.typ: 1ca75aeee284b6d73705ac8101837eb485d5a0c42e30a772e7defb70bd208082
+      CHANGELOG.md: 99cf06a70be407fd8223607e4824c5ff83a468b024cd3ef3255751eb15d848f1
+      docs/src/agents.typ: 45130e088144e6d3b9c725a76491d2437f6df04bf0ab6a4bb1a10dc1cd035540
+      docs/src/contributing.typ: 5f88a39c77ced797cc49de272197916aa11bfed5e66cfdc68e26dc5ac90e0bfa
       docs/src/contributing/command-semantics.typ: 5b3219c6991e68607914d12d1386f39913d500ddb3f7d0eca2b91232789df32f
-      docs/src/readme.typ: d0e61e5595a6dd4446906f41e01c6c76197a0a926cfcf2412b16ef8894d1aa01
+      docs/src/readme.typ: 9e3bd7c84f8dab0339286acc8544ef83a93c05fce6df0b4c2e3573d9a87a5254
       docs/src/skill.typ: efbf73c5a7fb68ecb18c2c395dba7ffb1b3c0edf9d1d449d85cecd655ff35852
       www/content/cli.typ: 92c068e1f731acc31c81897fcb327f57028a09e660fcdbdf8d1ffb1ef7c3569c
       www/content/index.typ: 2237937279fb72b8035aa8a0df8e050f5f9e0312df997023a8dd940ddc512621
-      www/content/quickstart.typ: 09b26451dd0518acb8ff21d00389a586b21b78855ee75cc5a2b0f9f7c12e8d9e
+      www/content/quickstart.typ: e648924e5f5d9ce48a89e75a4ef846310072e141cf699af29f6dc5c4ae9df3ec
   cli-output-docs:
     source:
       crates/mindtape-cli/src/render/output.rs: 1f09275c92fe74d40ca19f1f449c12ee7e52bd2d1894cc36f7ff08aa2f3c4e8c
@@ -469,9 +469,9 @@ groups:
       docs/src/contributing/release.typ: 3a40712ffaa551f9d5a68ad9ff3f32f5073dac07243bc5911e37759860c98140
   release-notes:
     source:
-      Cargo.toml: 367add3fa7a449db053901ede51968e7fc23d63d910417fa3761bd43f4ee288d
+      Cargo.toml: 98d4165242b052f297da8fe986a066aefdb92c8c73e09b652927b1affe9ba41b
     dependents:
-      CHANGELOG.md: a6b0b146b4753558177800efc9c486f51b7373c5d436693162ecdaabaabb2413
+      CHANGELOG.md: 99cf06a70be407fd8223607e4824c5ff83a468b024cd3ef3255751eb15d848f1
   scripts-no-doc:
     source:
       .just/scripts/_doc-blocks-control.sh: 066258f034694487e0a94bba355457293697ff06ca7b974884ba3d5ca24ae7da
