@@ -320,7 +320,7 @@ groups:
       .just/scripts/clippy.sh: d586661b1bca816bcdf145d4fdd785125624d5b79e78f493b65811c66fb87df4
       .just/scripts/wt-carry-lcov.sh: a4d4b96d24cee1d76f8d19ddcc10b6f4b99a1cb9f7c8ec3143cf487f2bb9861c
       Justfile: c7c78364e14e65e39b643d7d028ba5af045415801a030468c4b62b00d7c9e584
-      flake.nix: 9c67a7d20242c6778f72e6e0c1ece835630812bfa746b971e720640e5c678572
+      flake.nix: 9dea758eaab5a300a9ac1b3aac82d4fc5d669b433c87d7f082917a9806850d43
     dependents:
       docs/src/agents.typ: 45130e088144e6d3b9c725a76491d2437f6df04bf0ab6a4bb1a10dc1cd035540
       docs/src/contributing.typ: 86b33162ceb1e300d032923ee04e0b5ab41516fa08a00726e5b42ecf116c041c

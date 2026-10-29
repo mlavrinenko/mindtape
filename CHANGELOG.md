@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `nix run github:mlavrinenko/mindtape` runs `mt` again.
+
 ## [0.3.0] - 2026-10-28
 
 ### Upgrading from 0.2

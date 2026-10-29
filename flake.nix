@@ -76,9 +76,13 @@
       {
         # For `nix build` & `nix run` (produces the `mt` binary):
         packages.default = naersk'.buildPackage {
+          # naersk would name a virtual workspace `rust-workspace`, and `nix run`
+          # runs `bin/<name>` unless `mainProgram` says otherwise.
+          name = "mindtape";
           src = ./.;
           inherit version;
           doCheck = false;
+          meta.mainProgram = "mt";
         };
 
         # For `nix develop`:
