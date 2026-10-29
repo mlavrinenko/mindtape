@@ -10,8 +10,6 @@
       # comment in nix/dev/flake.nix.
       pkgs-tombi = (import inputs.nixpkgs-tombi) { inherit system; };
 
-      naersk' = pkgs.callPackage inputs.naersk { };
-
       # nixpkgs' rustc ships no `llvm-tools-preview` component, so
       # cargo-llvm-cov cannot find llvm-cov/llvm-profdata in the sysroot.
       # Point it at a standalone LLVM of the SAME major as rustc's (1.92 →
@@ -21,23 +19,6 @@
       # Windows cross-check toolchain (see `devShells.windows`).
       mingw = pkgs.pkgsCross.mingwW64;
       mingwBin = "${mingw.stdenv.cc}/bin/${mingw.stdenv.cc.targetPrefix}";
-
-      # cargo-crap (the CRAP-metric gate behind `just crap::check`) is not in
-      # nixpkgs. Build it from the crates.io tarball with naersk `singleStep`
-      # — crates.io' data-access policy 403s the UA that nixpkgs'
-      # `fetch-cargo-vendor` sends, so `buildRustPackage` cannot compute a
-      # vendor hash; naersk vendors through cargo itself and sidesteps it.
-      cargo-crap = naersk'.buildPackage {
-        pname = "cargo-crap";
-        version = "0.3.1";
-        src = pkgs.fetchCrate {
-          pname = "cargo-crap";
-          version = "0.3.1";
-          hash = "sha256-3qvyS5+7kQgmfk8Sl+29VJq+u+aECoh6n9A/9i0fRyY=";
-        };
-        singleStep = true;
-        doCheck = false;
-      };
     in
     {
       # For `nix develop`:
@@ -46,7 +27,9 @@
         # shell inherits it and it never reaches the `nix build` sandbox.
         nativeBuildInputs =
           [
-            cargo-crap
+            # The CRAP-metric gate behind `just crap::check`, built and
+            # cached once in qahq.
+            inputs.qahq.packages.${system}.cargo-crap
             inputs.mmz.packages.${system}.default
             inputs.qahq.packages.${system}.canibump
             inputs.qahq.packages.${system}.jscpd

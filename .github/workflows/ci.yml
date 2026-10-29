@@ -59,6 +59,9 @@ jobs:
         with:
           name: mlavrinenko
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          # naersk's compiled dependency tree, 328 MB for 0.3.0 against
+          # 18 MB for `mt`, would fill the free cache and evict releases.
+          pushFilter: "-deps-"
       # Compiled dependencies only: cargo reuses an artifact only when its
       # fingerprint (compiler, flags, features, source) matches, so a stale
       # one rebuilds rather than changing a result. The key's flake.lock hash

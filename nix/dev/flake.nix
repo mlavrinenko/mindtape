@@ -16,7 +16,11 @@
     # `format.rules` that switch key and array-value sorting off (see
     # .config/tombi.toml).
     nixpkgs-tombi.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    qahq.url = "github:mlavrinenko/qahq";
+    # qahq ships `mt` too; this repo builds its own, so the cycle is cut.
+    qahq = {
+      url = "github:mlavrinenko/qahq";
+      inputs.mindtape.follows = "";
+    };
     # Typst-native static site generator that builds the docs under www/.
     tola.url = "github:tola-rs/tola-ssg/v0.7.1";
   };

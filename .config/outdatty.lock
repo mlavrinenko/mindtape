@@ -321,12 +321,12 @@ groups:
       .just/scripts/wt-carry-lcov.sh: a4d4b96d24cee1d76f8d19ddcc10b6f4b99a1cb9f7c8ec3143cf487f2bb9861c
       Justfile: c7c78364e14e65e39b643d7d028ba5af045415801a030468c4b62b00d7c9e584
       flake.nix: 325112feb8cc629198bd6721f88d54efc933a1aebbf80d9a2e32f5f5ffc3cbc0
-      nix/dev/flake.nix: 0259ce5b523eb81acb674c4a1ce082c751e17f61dd46fdecc1e49ed38a1b6647
-      nix/dev/shell.nix: 7021ca12ff8349b027a855253c082213e2e297640b01db5029bb2b48ecac8ff3
+      nix/dev/flake.nix: 4272c7e414ff67f94e9ed6917f7b9155beecdcbcb0adc0b1f563e7641a0fd30b
+      nix/dev/shell.nix: a101a16316de79b0e0ce368d0e8620c89220c216ab35641d78c98f1186e4c287
     dependents:
       docs/src/agents.typ: 45130e088144e6d3b9c725a76491d2437f6df04bf0ab6a4bb1a10dc1cd035540
       docs/src/contributing.typ: 5f88a39c77ced797cc49de272197916aa11bfed5e66cfdc68e26dc5ac90e0bfa
-      docs/src/contributing/coverage-crap.typ: ed286bba011c848ad1c21bf45426a790ab532fbf28ef1ff962755a47ffb15e77
+      docs/src/contributing/coverage-crap.typ: 04666555d5eb876d5baed3f598e509794a12051227c352183c232475645e7432
       docs/src/contributing/crap-baseline.typ: e7254b2b9736613cc3c7a2f31a7f7f25ddf72dce913311f13b89221cca05cd09
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
       docs/src/contributing/documentation.typ: a5287b1b2d1c80780fdf7790a358d2fed9eebb3d2d0ebb04851b615e84291cb5
