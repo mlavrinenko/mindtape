@@ -82,6 +82,12 @@ jobs:
         if: matrix.stages == 'cover'
         run: nix develop --command just nix-build
 
+      # The flake as an adopter meets it: locked from another flake, entered
+      # on a `$HOME` that never ran `mt install`, and run with `nix run`.
+      - name: Flake smoke test
+        if: matrix.stages == 'cover'
+        run: nix develop --command just smoke-flake
+
       # The commit-msg hook is one `--no-verify` away from skipped, so the
       # commits it guards are held to `[[commits.rules]]` again here: a push
       # checks what it pushed, a PR its own commits. Nothing earlier is read —

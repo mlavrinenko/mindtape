@@ -67,7 +67,9 @@ skips a file whose bytes are unchanged.
 - `examples/` — fixture projects: `api-service`, a sample backend backlog that
   feeds the docs and the skill's evals; `minimal`, the smallest config;
   `dsl`, the task quoted below; `large`, a 2000-task benchmark whose gitignored
-  tasks #just.bench-gen() writes. Each other one backs one docs page.
+  tasks #just.bench-gen() writes; `nix-adopter`, a flake that takes `mt` into
+  its dev shell, which #just.smoke-flake() locks against the working tree.
+  Each other one backs one docs page.
 
 Before you write about a feature, read the `www/content/` page that covers
 it: #page-src("dsl") for task fields, edge kinds and `recur`,

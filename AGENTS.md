@@ -16,7 +16,7 @@ Mindtape is a file-based task tracker. Each task is one Typst file (`#show: task
 - `www/content/*.typ` — the docs site, built with tola.
 - `docs/src/*.typ` — the sources of README.md, AGENTS.md, CONTRIBUTING.md, SKILL.md and the `docs/contributing/*.md` deep dives.
 - `skills/mindtape/` — the agent skill for driving `mt`, with its references and evals.
-- `examples/` — fixture projects: `api-service`, a sample backend backlog that feeds the docs and the skill’s evals; `minimal`, the smallest config; `dsl`, the task quoted below; `large`, a 2000-task benchmark whose gitignored tasks `just bench gen` writes. Each other one backs one docs page.
+- `examples/` — fixture projects: `api-service`, a sample backend backlog that feeds the docs and the skill’s evals; `minimal`, the smallest config; `dsl`, the task quoted below; `large`, a 2000-task benchmark whose gitignored tasks `just bench gen` writes; `nix-adopter`, a flake that takes `mt` into its dev shell, which `just smoke-flake` locks against the working tree. Each other one backs one docs page.
 
 Before you write about a feature, read the `www/content/` page that covers it: `dsl.typ` for task fields, edge kinds and `recur`, `templates.typ` for `mt add` and slots, `derived-tags.typ`, `priority.typ`, `filters.typ`, and `config.typ` for every config key.
 

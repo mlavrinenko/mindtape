@@ -842,6 +842,9 @@ groups:
       - .just/scripts/_typst-package.sh
       # A set difference over two route lists, which no doc restates.
       - .just/scripts/_nav-diff.sh
+      # The flake smoke test, which its recipe's doc line describes and no doc
+      # restates step by step.
+      - .just/scripts/smoke-flake.sh
       # The controls hold fixtures that no doc names. The readers they drive are
       # sources of the groups above.
       - .just/scripts/_script-graph-control.sh

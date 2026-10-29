@@ -364,10 +364,11 @@ scopes:
   # matches on the path and does not read the name, so the convention is only a
   # convention.
   #
-  # Ten scripts are named by no rule: crap-baseline.sh, release-hook.sh, the four
-  # install scripts (install.sh, install-bin.sh, install-lib.sh,
+  # Eleven scripts are named by no rule: crap-baseline.sh, release-hook.sh, the
+  # four install scripts (install.sh, install-bin.sh, install-lib.sh,
   # uninstall-lib.sh), the two sourced preambles (_mutants-env.sh,
-  # _typst-package.sh) and the two that run the gates (check.sh, mmz-arm.sh).
+  # _typst-package.sh), the two that run the gates (check.sh, mmz-arm.sh) and
+  # the flake smoke test (smoke-flake.sh).
   # They are bodies of recipes that no rule in `commands` wraps, and installs
   # mutate the machine, so memoizing them would skip the mutation. They still get a scope, because
   # script-scope-check demands that every script be named, and `scripts-all`
@@ -474,6 +475,8 @@ scopes:
     - ".just/scripts/positional-args-check.sh"
   script-release-hook:
     - ".just/scripts/release-hook.sh"
+  script-smoke-flake:
+    - ".just/scripts/smoke-flake.sh"
   script-script-attr-check:
     - ".just/scripts/script-attr-check.sh"
   script-script-graph:

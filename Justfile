@@ -266,6 +266,11 @@ nix-build:
     git ls-files -z --others --exclude-standard | xargs -0 -r git add --intent-to-add --
     nix build .#default
 
+[doc("Lock, enter and run the flake from a fresh project, as an adopter does")]
+[group("release")]
+smoke-flake:
+    bash .just/scripts/smoke-flake.sh
+
 [arg('DRY_RUN', long='dry-run', value='true', help='run every check, then say what would be pushed')]
 [arg('VERSION', pattern='\d+\.\d+\.\d+', help='semver, no leading v (e.g. 0.3.0)')]
 [doc("Push main, wait for its CI, then tag and push the tag")]
