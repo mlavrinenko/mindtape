@@ -1,6 +1,6 @@
 // docs/src/lib.typ — shared helpers for the docs/src/*.typ sources that
 // docs/generate-md.sh renders to Markdown with typlite (nixpkgs' tinymist,
-// `$out/bin/typlite`; see flake.nix for the pin). This module is not itself a
+// `$out/bin/typlite`; see nix/dev/shell.nix for the pin). This module is not itself a
 // source: it carries no `<mindtape-md>` metadata block, so the generator's
 // glob (docs/src/**/*.typ) skips it via the same zero-match check it uses for
 // any future non-source helper under docs/src/.

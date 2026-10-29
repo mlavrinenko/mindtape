@@ -44,4 +44,4 @@ A CRAP band below 30 would point the wrong way. Of the 15 functions here that sc
 
 ## Where the tools come from
 
-`flake.nix` supplies cargo-crap and the LLVM tools `cargo-llvm-cov` needs, and its comments explain both.
+`nix/dev/shell.nix` supplies cargo-crap and the LLVM tools `cargo-llvm-cov` needs, and its comments explain both.

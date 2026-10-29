@@ -238,8 +238,8 @@ scopes:
     - ".config/crap-baseline.json"
 
   # Shared by every rule: the recipe bodies the justfiles hold inline
-  # (Justfile and its .just/*.just modules) and the dev shell they all run in (flake.nix and
-  # flake.lock). Every formatter, linter and cargo tool comes from that shell,
+  # (Justfile and its .just/*.just modules) and the dev shell they all run in (flake.nix,
+  # nix/dev/ and both locks). Every formatter, linter and cargo tool comes from that shell,
   # so a toolchain or tool-set bump must re-run every gate, machete included.
   # flake.nix is a source of the outdatty `dev-shell-docs` group, so listing it here stops
   # `outdatty::check` reporting fresh after a flake.nix edit. All files are
@@ -279,6 +279,7 @@ scopes:
     - ".just/*.just"
     - "flake.nix"
     - "flake.lock"
+    - "nix/dev/**"
 
   # The clones `just lint::dry` tolerates, and the jscpd config that says which
   # lines never count toward a clone. Re-minting the baseline or editing the

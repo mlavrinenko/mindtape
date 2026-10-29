@@ -320,11 +320,13 @@ groups:
       .just/scripts/clippy.sh: d586661b1bca816bcdf145d4fdd785125624d5b79e78f493b65811c66fb87df4
       .just/scripts/wt-carry-lcov.sh: a4d4b96d24cee1d76f8d19ddcc10b6f4b99a1cb9f7c8ec3143cf487f2bb9861c
       Justfile: c7c78364e14e65e39b643d7d028ba5af045415801a030468c4b62b00d7c9e584
-      flake.nix: 9dea758eaab5a300a9ac1b3aac82d4fc5d669b433c87d7f082917a9806850d43
+      flake.nix: 325112feb8cc629198bd6721f88d54efc933a1aebbf80d9a2e32f5f5ffc3cbc0
+      nix/dev/flake.nix: 0259ce5b523eb81acb674c4a1ce082c751e17f61dd46fdecc1e49ed38a1b6647
+      nix/dev/shell.nix: 7021ca12ff8349b027a855253c082213e2e297640b01db5029bb2b48ecac8ff3
     dependents:
       docs/src/agents.typ: 45130e088144e6d3b9c725a76491d2437f6df04bf0ab6a4bb1a10dc1cd035540
-      docs/src/contributing.typ: 86b33162ceb1e300d032923ee04e0b5ab41516fa08a00726e5b42ecf116c041c
-      docs/src/contributing/coverage-crap.typ: 2ba5b919cfa0d8af52b361a848c45f7720dcde6374e8bcab8ddde9f71ec1057c
+      docs/src/contributing.typ: 5f88a39c77ced797cc49de272197916aa11bfed5e66cfdc68e26dc5ac90e0bfa
+      docs/src/contributing/coverage-crap.typ: ed286bba011c848ad1c21bf45426a790ab532fbf28ef1ff962755a47ffb15e77
       docs/src/contributing/crap-baseline.typ: e7254b2b9736613cc3c7a2f31a7f7f25ddf72dce913311f13b89221cca05cd09
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
       docs/src/contributing/documentation.typ: a5287b1b2d1c80780fdf7790a358d2fed9eebb3d2d0ebb04851b615e84291cb5
@@ -480,7 +482,7 @@ groups:
       .just/scripts/install-bin.sh: d9f35240a8e5306bf943c5569cf73bf18080877df9278f3f005ba7dfdaf9211f
       .just/scripts/install-lib.sh: ddf51e6e5573b2d9248727efc32fc186facc03087e53560e43190623b72ece1e
       .just/scripts/install.sh: 5e9cefe19ec7b94b7002a952d56ed59081730f96449623a072726f7a5a6e257f
-      .just/scripts/smoke-flake.sh: f93cd66687428ead66bb28fa3bc46a6667abe906426f12f7788654e1b5f715b1
+      .just/scripts/smoke-flake.sh: a1a55a8f4db6410a7398902ce4cf15c3bbcfaf0c57274797f5b187656ee36cfd
       .just/scripts/uninstall-lib.sh: 37c4a93bd69f7192428ad440fb177e5341c255e4867b7e9389ea86c800d409c1
     dependents: {}
   set-commands-docs:

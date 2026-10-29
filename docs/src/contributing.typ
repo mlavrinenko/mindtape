@@ -107,8 +107,8 @@ If you add a function or complexity, run #just.crap-baseline() in the same
 commit. The thresholds and their reasons are in
 #link("docs/contributing/coverage-crap.md")[docs/contributing/coverage-crap.md].
 
-If you touch `flake.nix` or `.cargo/config.toml`, run #just.nix-build(), and
-for `flake.nix` #just.smoke-flake() too.
+If you touch `flake.nix`, `nix/dev/` or `.cargo/config.toml`, run
+#just.nix-build(), and for the flake #just.smoke-flake() too.
 
 In a delegated worktree, you can skip the hook's freshness check with
 `MINDTAPE_GATE_SCOPE=<reason> git commit`, with a matching

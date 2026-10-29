@@ -118,5 +118,5 @@ the faster stages pass.
 
 = Where the tools come from
 
-`flake.nix` supplies cargo-crap and the LLVM tools `cargo-llvm-cov` needs, and
-its comments explain both.
+`nix/dev/shell.nix` supplies cargo-crap and the LLVM tools `cargo-llvm-cov`
+needs, and its comments explain both.

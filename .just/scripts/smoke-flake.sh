@@ -5,9 +5,9 @@
 # flake.
 set -euo pipefail
 
-# Mindtape's own node, nixpkgs and what `packages.default` builds from. A dev
-# input that leaks into the outputs adopters read pushes the lock past it.
-MAX_NODES=6
+# mindtape, nixpkgs, naersk and flake-parts: what `packages.default` builds
+# from. A dev-shell input that leaks into the root flake pushes the lock past it.
+MAX_NODES=4
 
 root=$(git rev-parse --show-toplevel)
 # A git flake sees only files git knows, so new ones are marked intent-to-add.
