@@ -2,9 +2,10 @@
 # Body of `just check-examples`: each fixture another tool runs `mt` against,
 # checked against its own project. Each fixture's `[[typst.local-packages]]`
 # points `@local/mindtape` at this checkout's lib/. An empty
-# MINDTAPE_DATA_HOME removes the machine-global package fallback, so a fixture
-# that lost its entry fails instead of passing against another checkout's
-# prelude. XDG_DATA_HOME would not do: `dirs` reads it on Unix only.
+# MINDTAPE_DATA_HOME removes the machine-global package, so a fixture that lost
+# its entry reads the prelude `mt` embeds, which a test keeps equal to lib/,
+# and never another checkout's. XDG_DATA_HOME would not do: `dirs` reads it on
+# Unix only.
 #
 # One `--tests` build, then the binary itself: a plain `cargo run` relinks
 # target/debug/mt without the features the test arm links it with.

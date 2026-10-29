@@ -566,7 +566,7 @@ groups:
     dependents:
       - crates/mindtape/src/test_support/fs.rs
       - crates/mindtape/src/test_support/mod.rs
-      - crates/mindtape-cli/src/cmd/init/mod.rs
+      - crates/mindtape/src/loader/embedded.rs
       - crates/mindtape-cli/src/cmd/init/presets/gated/templates/task.typ
       - examples/minimal/tasks/fix-login-bug.typ
       - examples/minimal/tasks/add-dark-mode.typ

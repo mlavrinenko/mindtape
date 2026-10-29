@@ -16,7 +16,6 @@
 //!
 //! - `compose.rs` — folds the wizard's axis fragments into one config body.
 //! - `preset.rs` — the named starter shapes.
-//! - `prelude.typ` — the copy of `lib/prelude.typ` that `mt install` writes.
 //! - `wizard/` — the questionnaire over the configuration axes.
 //! - `presets/` — the built-in preset directories, one folder each.
 //! - `axes/` — the axis fragments the wizard composes.
@@ -34,11 +33,8 @@ use self::preset::Preset;
 use self::wizard::{Estimate, Headers, Organization, Priority, Recurrence, Required, Workflow};
 use crate::diag::{Diag, Hint, Result};
 
-/// The Typst package version `mt install` installs. Mirrors `lib/typst.toml`.
-const TYPST_PKG_VERSION: &str = "0.2.0";
-/// A copy of `lib/prelude.typ`, inside the crate so the published tarball
-/// holds it; a test keeps the two equal.
-const PRELUDE: &str = include_str!("prelude.typ");
+/// The Typst package version `mt install` installs.
+const TYPST_PKG_VERSION: &str = mindtape::PRELUDE_VERSION;
 
 /// The `#:schema` directive controls, grouped so they travel together — the
 /// two are one decision, and splitting them across the parent's flag list
@@ -315,10 +311,11 @@ pub(crate) fn install_lib(force: bool) -> Result<()> {
         remove_link(&dir)?;
     }
     std::fs::create_dir_all(&dir).map_err(|err| Diag::cannot_write(&dir, &err))?;
-    let manifest = format!(
-        "[package]\nname = \"mindtape\"\nversion = \"{TYPST_PKG_VERSION}\"\nentrypoint = \"prelude.typ\"\n"
-    );
-    for (name, text) in [("typst.toml", manifest.as_str()), ("prelude.typ", PRELUDE)] {
+    let manifest = mindtape::prelude_manifest();
+    for (name, text) in [
+        ("typst.toml", manifest.as_str()),
+        ("prelude.typ", mindtape::PRELUDE),
+    ] {
         let path = dir.join(name);
         mindtape::write_atomic(&path, text.as_bytes())
             .map_err(|err| Diag::cannot_write(&path, &err))?;

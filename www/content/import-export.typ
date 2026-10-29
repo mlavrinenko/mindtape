@@ -33,9 +33,7 @@ reason for a skip. When a content rule's `message` replaced the check's own
 words, they follow on an indented `note:` line, as `mt check` prints them. It also lists each change made to fit the config: `mapped`,
 `defaulted`, `dropped` or `violated`. `mt import` writes the records that
 pass, prints the report, then exits 1 if it skipped any record, so a script
-can tell a partial import from a whole one. If a record was skipped because
-`@local/mindtape` isn't installed, the report ends with one note naming
-`mt install`.
+can tell a partial import from a whole one.
 
 If the source's status names differ from your legend, `--map old=new` renames
 a status before the check. `--to <dir>` writes the batch into a subfolder of

@@ -216,6 +216,19 @@ fn project_without_a_lib() -> tempfile::TempDir {
     dir
 }
 
+/// A project whose one task imports a prelude version this `mt` doesn't embed,
+/// as a project pinned to another release does, so only an installed copy
+/// could serve it.
+fn project_on_an_unembedded_prelude() -> tempfile::TempDir {
+    let dir = tempdir();
+    mindtape::test_support::write_bare_project(dir.path());
+    write_file(dir.path(), "tasks/only.typ", UNEMBEDDED_TASK);
+    dir
+}
+
+const UNEMBEDDED_TASK: &str =
+    "#import \"@local/mindtape:0.1.0\": *\n#show: task.with(title: \"Only task\")\n";
+
 /// `mt ls` in `project`, with the data home pointed at `data` (verbatim, so an
 /// empty value stays empty) and the global config layer out of reach.
 fn ls_with_data_home(project: &Path, data: &std::ffi::OsStr) -> assert_cmd::assert::Assert {
@@ -259,7 +272,7 @@ fn ls_fails_against_a_data_home_the_package_was_not_installed_into() {
     )
     .success();
     let elsewhere = tempdir();
-    let project = project_without_a_lib();
+    let project = project_on_an_unembedded_prelude();
 
     let assert = ls_with_data_home(project.path(), elsewhere.path().as_os_str());
     let stderr = String::from_utf8(assert.get_output().stderr.clone()).unwrap();
@@ -269,13 +282,24 @@ fn ls_fails_against_a_data_home_the_package_was_not_installed_into() {
     );
 }
 
+/// A machine where `mt install` never ran reads the prelude `mt` embeds, as a
+/// CI runner or a fresh clone does.
+#[test]
+fn an_uninstalled_data_home_reads_the_embedded_prelude() {
+    let project = project_without_a_lib();
+    let empty = tempdir();
+
+    let assert = ls_with_data_home(project.path(), empty.path().as_os_str()).success();
+    let stdout = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
+    assert!(stdout.contains("Only task"), "{stdout}");
+}
+
 /// Set but empty is `app_dirs`'s "no such directory", and a read honours it the
 /// same way a write does: no global package resolves at all, even on a machine
-/// that has one installed. What `just check-examples` leans on to prove each
-/// example fixture resolves its prelude from the checkout beside it.
+/// that has one installed.
 #[test]
 fn an_empty_data_home_resolves_no_global_package() {
-    let project = project_without_a_lib();
+    let project = project_on_an_unembedded_prelude();
 
     let assert = ls_with_data_home(project.path(), std::ffi::OsStr::new(""));
     let stderr = String::from_utf8(assert.get_output().stderr.clone()).unwrap();
@@ -290,11 +314,11 @@ fn an_empty_data_home_resolves_no_global_package() {
 /// file.
 #[test]
 fn a_missing_prelude_is_one_error_however_many_tasks_fail() {
-    let project = project_without_a_lib();
+    let project = project_on_an_unembedded_prelude();
     write_file(
         project.path(),
         "tasks/second.typ",
-        mindtape::typst_task!("(title: \"Second task\")\n"),
+        UNEMBEDDED_TASK.replace("Only", "Second"),
     );
 
     let assert = ls_with_data_home(project.path(), std::ffi::OsStr::new(""));

@@ -51,11 +51,11 @@ The first line imports #pkg, the #mindtape prelude. The `: *` brings in every
 name the prelude defines: `task`, the status functions such as `wip`, and the
 link functions such as `depends-on`.
 
-`@local` means the Typst packages installed on this machine. `mt install` puts
-the prelude there, as the #link(u("/quickstart/"))[Quickstart] shows, so the
-import works on any machine where you've run it. To point the import at a
-prelude in the project's own tree instead, see
-#link(u("/config/"))[Configuration].
+`@local` means the Typst packages installed on this machine. Where none holds
+the prelude, `mt` reads the copy built into it, so `mt` itself works anywhere.
+`mt install` puts the prelude there for your editor and `typst`, as the
+#link(u("/quickstart/"))[Quickstart] shows. To point the import at a prelude in
+the project's own tree instead, see #link(u("/config/"))[Configuration].
 
 = The show rule
 

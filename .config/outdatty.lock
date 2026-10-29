@@ -162,11 +162,11 @@ groups:
       www/content/schema.typ: 67d7600b458799e3786abc770c583e8086c593e4e8c976454eb1164a1ed66817
   cli-init-docs:
     source:
-      crates/mindtape-cli/src/cmd/init/mod.rs: d575a67348352ad5b83dbea5f3db9cb6c5588d79d272a9f130872825e92284c5
+      crates/mindtape-cli/src/cmd/init/mod.rs: bbad3a73d80c87b1924017c0bfbf522592fa43135e05d5bdf0f162a62ee33109
     dependents:
-      www/content/config.typ: 307f22c085dfcfa36d4c7c6e43b2db008fbe244d6344282b0a5b81aa5f52e9a3
-      www/content/import-export.typ: d554b9ba8bf9d352c8b7ab1188670b61a3e41c2f275ec02a6a5b7ccbe856f2c4
-      www/content/quickstart.typ: 09b26451dd0518acb8ff21d00389a586b21b78855ee75cc5a2b0f9f7c12e8d9e
+      www/content/config.typ: 26726e523de1c45aef01b9082d3565c2cd0f1c45e1006849507b9d507f289b58
+      www/content/import-export.typ: 98b466df607028897172d76455c41c32b165762b1d7d2b49887a771a53505215
+      www/content/quickstart.typ: d1de653b82b13b05997dd1d41f55aab8d82873533acb41f0913a2fa52978e672
   cli-install-docs:
     source:
       crates/mindtape-cli/src/cmd/install/mod.rs: c7f31444930bff928223e6c51f1235db57b827ef6cea6c30c5ede0143c627f5f
@@ -316,7 +316,7 @@ groups:
       .just/meta.just: 17f3c67395d11fe1ed06ad6067c77a2e0939fdf7f95706df3bbed76d3e59a368
       .just/mutants.just: 2fc963a8cf93ea6a7ddea17132d68ae6a349489af89a4a83455fdd99386dd6d0
       .just/outdatty.just: fb95f90850c8179bb3fba01a8ae90e2fe703c1c551cb8181892bd24b03f95866
-      .just/scripts/check-examples.sh: c2d514b1b7e8af223e7ab4af27115dfe33e56f6af98702639d5fb5008910ae6b
+      .just/scripts/check-examples.sh: c35573a106d22c9168c8182f4ff689a6a84bd9dd70a0fa70d787f4407a4e4856
       .just/scripts/clippy.sh: d586661b1bca816bcdf145d4fdd785125624d5b79e78f493b65811c66fb87df4
       .just/scripts/wt-carry-lcov.sh: a4d4b96d24cee1d76f8d19ddcc10b6f4b99a1cb9f7c8ec3143cf487f2bb9861c
       Justfile: c7c78364e14e65e39b643d7d028ba5af045415801a030468c4b62b00d7c9e584
@@ -330,7 +330,7 @@ groups:
       docs/src/contributing/crap-baseline.typ: e7254b2b9736613cc3c7a2f31a7f7f25ddf72dce913311f13b89221cca05cd09
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
       docs/src/contributing/documentation.typ: a5287b1b2d1c80780fdf7790a358d2fed9eebb3d2d0ebb04851b615e84291cb5
-      docs/src/contributing/example-projects.typ: 76c3fa5a5c24504d12d7686b5c4940e46694f96e7ade3f56cd0ad544ef5e14a2
+      docs/src/contributing/example-projects.typ: 13c47f927dfd8dbdd92844f18863c3e1ce9c1422ef843e661aabee551d89a738
       docs/src/contributing/gates.typ: ba77fb07445b62e6143695f0c2f6c75f4c55cf38c6a21104853b6bb6bcb90c89
       docs/src/contributing/mutation-testing.typ: 6a7b5cf5a51a025ebd6b8b991da6b2cc8494a2e96cf6d5a7f9608d00a497f7e5
       docs/src/contributing/signal-sweep.typ: cdae0265949212c4f748fb6a85be3348b4a48db19ccce1267446180894378e49
@@ -541,6 +541,7 @@ groups:
       crates/mindtape-cli/src/cmd/init/presets/gated/templates/task.typ: b31a40c89bcc9c44ba9388206b1f4a84b901ba7005836dc62ebba6bdbe54fd85
       crates/mindtape-cli/src/init.rs: 413f762faf5aedeba0780bb94e872825232fdafbd7692f5974083c5fa36f6cc9
       crates/mindtape-cli/src/presets/gated/templates/task.typ: 936d9906c5a3b946035b33084957378715e13cf4b3664feab9bbc5f51bb59898
+      crates/mindtape/src/loader/embedded.rs: cd1ed7e0e66e5e51d41c0dbbbd5813d6bc83c48bb0776784d7408d4176bfe126
       crates/mindtape/src/test_support.rs: 380fbc2e694dcdd2e5a47eb0cd1c23ea2755c1cfdb07b54c871abb24095d0826
       crates/mindtape/src/test_support/fs.rs: a33ed4718391882fc2a9d5b6076f0fcf825db9f60aabbeb1200d5fc0e5bdbbcb
       crates/mindtape/src/test_support/mod.rs: c46f57bdd771c6cbd19529a5338176c2f58cabbe7ae1696c769a3b70e22f607b

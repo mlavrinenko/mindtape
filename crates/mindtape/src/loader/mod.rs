@@ -5,16 +5,21 @@
 //! - `app_dirs.rs`: where `mt` keeps its per-user state.
 //! - `cache.rs`: the persistent content-hash task cache.
 //! - `derive.rs`: folder-derived virtual tags.
+//! - `embedded.rs`, `embedded_tests.rs`: the prelude package this crate embeds,
+//!   served where none is installed. `prelude.typ` is its copy of
+//!   `lib/prelude.typ`.
 //! - `errors.rs`: the per-file failures and Typst warnings a load reports.
 //! - `many.rs`, `many_tests.rs`: several projects loaded at once, each on its
 //!   own thread.
 
 pub mod app_dirs;
 pub mod derive;
+mod embedded;
 mod errors;
 mod many;
 
 pub use app_dirs::package_root;
+pub use embedded::{PRELUDE, PRELUDE_VERSION, prelude_manifest};
 pub use errors::{LoadError, LoadWarning};
 pub use many::{Loaded, load_many, map_parallel};
 
@@ -379,10 +384,11 @@ fn build_world(
 
 /// `world` resolving `@local` packages the way every world Mindtape builds
 /// does: under [`package_root`], with `overrides` (from [`package_overrides`])
-/// pinning a package to an in-tree directory first.
+/// pinning a package to an in-tree directory first, and the embedded prelude
+/// where neither holds it.
 #[must_use]
 pub fn with_packages(world: HarvestWorld, overrides: &[(String, PathBuf)]) -> HarvestWorld {
-    let mut world = world.with_package_root(package_root());
+    let mut world = world.with_file_provider(embedded::package_provider(package_root()));
     for (name, dir) in overrides {
         world = world.with_local_package(name, dir.clone());
     }

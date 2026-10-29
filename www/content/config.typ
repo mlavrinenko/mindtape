@@ -117,7 +117,8 @@ variable.
 
 A task file imports the DSL as `@local/mindtape`, and Typst resolves a
 `@local` package from one directory per machine. `mt install` fills that
-directory, and `mt`, `typst` and tinymist all read it.
+directory, and `mt`, `typst` and tinymist all read it. Where it lacks the
+prelude version `mt` ships, `mt` reads the copy built into it.
 
 #table(
   columns: 2,

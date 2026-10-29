@@ -4469,9 +4469,9 @@ dependencies = [
 
 [[package]]
 name = "typst-world"
-version = "0.5.7"
+version = "0.5.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0aa8d234c8e1cebf32dbbd449257dddd2a606b8b6c94a9c23401181ae961201"
+checksum = "8958fe15e75136ff00713c830108db6f61947b88728b136c53ee28fefb041bee"
 dependencies = [
  "chrono",
  "dirs",

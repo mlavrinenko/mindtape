@@ -96,7 +96,11 @@ fn an_excluded_path_does_not_spend_the_budget() {
     // 5 counted paths against a 5-file budget; the excluded sixth is free.
     let dir = fixture(BUDGET, 5, 3);
     let (ok, stdout) = check(dir.path());
-    assert!(ok && !stdout.contains("src-budget"), "{stdout}");
+    assert!(ok, "{stdout}");
+    assert!(
+        !stdout.contains(&shown("tasks/budgeted.typ:1: rules.src-budget")),
+        "{stdout}"
+    );
 }
 
 #[test]

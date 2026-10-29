@@ -34,9 +34,55 @@ fn fresh_project() -> (tempfile::TempDir, std::path::PathBuf) {
     (home, project)
 }
 
+/// Point `project`'s default template at a prelude version this `mt` doesn't
+/// embed, as a project pinned to another release does, so only an installed
+/// copy could serve it.
+fn pin_an_unembedded_prelude(project: &Path) {
+    const BUILTIN: &str = include_str!("../../src/cmd/add/templates/task.typ");
+    let pinned = BUILTIN.replacen("@local/mindtape:0.2.0", "@local/mindtape:0.1.0", 1);
+    assert_ne!(
+        pinned, BUILTIN,
+        "the built-in template no longer imports 0.2.0"
+    );
+    write_file(project, ".mindtape/templates/task.typ", &pinned);
+}
+
+#[test]
+fn add_on_a_fresh_machine_files_the_task_on_the_embedded_prelude() {
+    let (_home, project) = fresh_project();
+
+    let (added, stderr) = run_fresh(&project, &["add", "Fix login"]);
+    assert!(added, "{stderr}");
+    let (checked, stderr) = run_fresh(&project, &["check"]);
+    assert!(checked, "{stderr}");
+    assert!(!stderr.contains("prelude"), "{stderr}");
+}
+
+/// A project template whose prelude doesn't resolve fails the check with one
+/// error naming the remedy.
+#[test]
+fn check_names_mt_install_once_for_a_template_whose_prelude_is_missing() {
+    let (_home, project) = fresh_project();
+    pin_an_unembedded_prelude(&project);
+
+    let (ok, stderr) = run_fresh(&project, &["check"]);
+
+    assert!(!ok, "{stderr}");
+    assert_eq!(
+        stderr.matches("can't find the prelude package").count(),
+        1,
+        "{stderr}"
+    );
+    assert!(
+        stderr.contains("hint: install it once per machine: mt install"),
+        "{stderr}"
+    );
+}
+
 #[test]
 fn add_without_the_prelude_names_mt_install_and_the_local_package_pin() {
     let (_home, project) = fresh_project();
+    pin_an_unembedded_prelude(&project);
 
     let (ok, stderr) = run_fresh(&project, &["add", "Fix login"]);
 
@@ -108,8 +154,10 @@ const PRELUDE_ERROR: &str = "error: can't find the prelude package: '@local/mind
 
 const ONE_RECORD: &str = r#"[{"id":"","file":"","title":"Fix login","status":{"name":"proposed","date":"2026-06-01","note":null},"priority":null,"difficulty":null,"kind":null,"estimate":{},"links":[],"tags":[],"derived_tags":[],"due":null,"start":null,"reviewed":null,"body":"","extras":{}}]"#;
 
+/// `mt import` writes the import this `mt` embeds, so a fresh machine files
+/// every record.
 #[test]
-fn import_without_the_prelude_prints_the_install_error_once_before_the_skip_count() {
+fn import_on_a_fresh_machine_files_every_record() {
     let (_home, project) = fresh_project();
     let record = &ONE_RECORD[1..ONE_RECORD.len() - 1];
     let two = format!("[{},{}]", record, record.replace("Fix login", "Fix logout"));
@@ -117,11 +165,8 @@ fn import_without_the_prelude_prints_the_install_error_once_before_the_skip_coun
 
     let (ok, stderr) = run_fresh(&project, &["import", "in.json"]);
 
-    assert!(!ok, "{stderr}");
-    assert_eq!(stderr.matches(PRELUDE_ERROR).count(), 1, "{stderr}");
-    let error_at = stderr.find(PRELUDE_ERROR).unwrap();
-    assert!(stderr.rfind("did not load").unwrap() < error_at, "{stderr}");
-    assert!(stderr.ends_with("error: filed 0 of 2 tasks\n"), "{stderr}");
+    assert!(ok, "{stderr}");
+    assert!(!stderr.contains(PRELUDE_ERROR), "{stderr}");
 }
 
 #[test]

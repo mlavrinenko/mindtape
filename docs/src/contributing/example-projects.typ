@@ -38,6 +38,7 @@ prelude change needs it.
 So each example's config points the import at this checkout's `lib/` with a
 `[[typst.local-packages]]` entry. The recipe also sets `MINDTAPE_DATA_HOME`
 to an empty value, which `mt` reads as no directory, so no machine-wide
-package resolves at all. That also lets the gate run on a machine that never
-ran `mt install`, such as CI. `XDG_DATA_HOME` wouldn't work, because `dirs`
-reads it on Linux only.
+package resolves at all. An example that lost its entry then reads the prelude
+built into `mt`, which a test keeps equal to `lib/`, and never another
+checkout's. `XDG_DATA_HOME` wouldn't work, because `dirs` reads it on Linux
+only.

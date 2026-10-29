@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - `nix run github:mlavrinenko/mindtape` runs `mt` again.
+- `mt` reads the prelude built into it where no package directory holds that
+  version, so a CI runner or a fresh clone loads tasks without `mt install`.
+  An installed copy still wins.
 
 ## [0.3.0] - 2026-10-28
 

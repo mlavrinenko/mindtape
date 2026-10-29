@@ -48,8 +48,9 @@ cd mindtape && cargo build --release
 
 = Set up the environment
 
-Task files import a Typst prelude, and `mt install` puts it where Typst looks
-for it. Run it once per machine:
+Task files import a Typst prelude. `mt` carries its own copy, so a CI runner
+or a fresh clone needs no setup. Your editor and `typst` look for the prelude
+on the machine, and `mt install` puts it there. Run it once per machine:
 
 #terminal("qs-install")
 

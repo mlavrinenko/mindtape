@@ -34,8 +34,9 @@ typst-harvest = "0.6.0"
 # (which re-exports its `World` as `HarvestWorld`), so this edge adds no crate
 # to the build. It is direct for what the re-export does not carry: the
 # `project_file_id` and `root_file_id` that name a generated main source, and
-# the `serde` feature that reads and writes an `HVal` as JSON.
-typst-world = { version = "0.5.7", features = ["serde"] }
+# the `serde` feature that reads and writes an `HVal` as JSON, and the providers
+# that serve the embedded prelude (`loader/embedded.rs`).
+typst-world = { version = "0.5.8", features = ["serde"] }
 typst-cst = "0.3.0"
 typst-edit = "0.1.0"
 # Normalize the Typst source `mt` writes to typstyle's canonical form
@@ -49,6 +50,9 @@ typstyle-core = "0.15.0"
 typst-syntax = "0.15"
 artifact-gate = "0.2.0"
 swhid-mint = { version = "0.1.1", default-features = false }
+# Already in the tree at this version, under `typst-harvest`. Names the `Bytes`
+# and `FileId` the embedded prelude is served as (`loader/embedded.rs`).
+typst = "0.15"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # Content-hashing task files for the persistent per-file harvest cache
@@ -91,10 +95,9 @@ tempfile = { version = "3", optional = true }
 
 [dev-dependencies]
 tempfile = "3"
-# Already in the tree at these versions, under `typst-harvest`. The harvest
+# Already in the tree at this version, under `typst-harvest`. The harvest
 # evaluates and never lays out, so `loader/tests_prelude.rs` compiles a task
 # file itself to prove the prelude's card lays a count estimate out.
-typst = "0.15"
 typst-layout = "0.15"
 
 [lints]
