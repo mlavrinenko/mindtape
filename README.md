@@ -90,7 +90,7 @@ Why pick [Typst](https://typst.app/) over Markdown to power a local task tracker
 cargo install mindtape-cli
 ```
 
-[Quickstart](https://mlavrinenko.github.io/mindtape/quickstart/) covers prebuilt binaries, `nix run` and a first project from `mt init` to `mt check`.
+[Quickstart](https://mlavrinenko.github.io/mindtape/quickstart/) covers prebuilt binaries, a Nix dev shell and a first project from `mt init` to `mt check`.
 
 ## Documentation
 

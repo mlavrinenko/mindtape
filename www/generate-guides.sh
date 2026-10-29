@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # www/generate-guides.sh — capture the mt runs that /templates/, /agents/ and
 # /derived-tags/ show, against examples/api-service/ and
-# examples/derived-tags/. www/generate.sh calls it inside the lock it holds,
+# examples/derived-tags/, and copy the flake /quickstart/ quotes. www/generate.sh calls it inside the lock it holds,
 # so this script takes no lock of its own. It is a separate file to keep
 # generate.sh under the 300-line Shell cap.
 #
@@ -36,6 +36,10 @@ run() {
     "$MT" allow >/dev/null && "$MT" --color never "$@"
   ) >"$OUT/$file"
 }
+
+# /quickstart/: the flake a Nix project takes `mt` from, as `just smoke-flake`
+# locks and runs it, without the header that names that recipe.
+sed '1,/^{/{/^#/d}' "$REPO/examples/nix-adopter/flake.nix" >"$OUT/nix-adopter-flake.nix"
 
 # /templates/: the template, the slots mt finds in it, and the task that one
 # values file fills. `--print` checks the task and prints it without writing

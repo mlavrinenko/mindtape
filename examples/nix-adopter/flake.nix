@@ -3,7 +3,8 @@
 {
   inputs = {
     mindtape.url = "github:mlavrinenko/mindtape";
-    # Mindtape's own pin, so the lock holds what Mindtape brings and no more.
+    # Mindtape's own pin, so the lock gains nothing more and the build is the
+    # one in Mindtape's binary cache.
     nixpkgs.follows = "mindtape/nixpkgs";
   };
 

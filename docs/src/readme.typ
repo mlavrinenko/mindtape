@@ -54,8 +54,8 @@
 // docs:hand-typed the crate name comes from the release workflow, and the build does not run cargo install
 #raw("cargo install " + cli-crate, lang: "sh", block: true)
 
-#www-link("/quickstart/") covers prebuilt binaries, `nix run` and a first
-project from `mt init` to `mt check`.
+#www-link("/quickstart/") covers prebuilt binaries, a Nix dev shell and a
+first project from `mt init` to `mt check`.
 
 = Documentation
 

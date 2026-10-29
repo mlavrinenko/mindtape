@@ -37,6 +37,54 @@ Or run it from the flake without installing:
 nix run github:mlavrinenko/mindtape -- --help
 ```
 
+Or put `mt` in a project's Nix dev shell. The easy way is
+#link("https://github.com/mlavrinenko/qahq")[qahq], a flake that bundles `mt`
+with the other checks a repo runs, so one input brings them all:
+
+// docs:hand-typed the build does not fetch qahq from GitHub
+```nix
+{
+  inputs.qahq.url = "github:mlavrinenko/qahq";
+
+  outputs =
+    { nixpkgs, qahq, ... }:
+    let
+      system = "x86_64-linux";
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
+    {
+      devShells.${system}.default = pkgs.mkShell {
+        packages = [ qahq.packages.${system}.mindtape ];
+      };
+    };
+}
+```
+
+qahq's CI pushes every tool to its binary cache. Trust the cache once and Nix
+downloads `mt` instead of compiling it:
+
+// docs:hand-typed a NixOS setting the build cannot apply
+```nix
+nix.settings = {
+  extra-substituters = [ "https://qahq.cachix.org" ];
+  extra-trusted-public-keys = [
+    "qahq.cachix.org-1:m43yxxOk1vih9jTZmKXZXgHSSKsW/rNVZUqgXqrELM8="
+  ];
+};
+```
+
+Leave qahq's `nixpkgs` alone. Point it at yours and every tool gets a new
+hash, so the cache misses and Nix compiles them all.
+
+No qahq? Take #mindtape's own flake as an input. It adds four nodes to your
+`flake.lock` and nothing else, since its dev tooling sits in a lock of its own:
+
+#raw(read("../generated/nix-adopter-flake.nix"), lang: "nix", block: true)
+
+Following #mindtape's `nixpkgs` keeps the build the one its CI pushes to
+`https://mlavrinenko.cachix.org`, whose key is
+`mlavrinenko.cachix.org-1:vNcY3Nf5Y1J0D30uNAwrw44CBHbHDd1tGiA18ANz4XY=`.
+
 Or build it from source with a Rust toolchain. The binary lands in
 `target/release/mt`:
 
