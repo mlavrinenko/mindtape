@@ -59,6 +59,9 @@ jobs:
         with:
           name: mlavrinenko
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          # qahq builds and caches the dev shell's lint tools, so CI pulls them
+          # from there instead of building them and pushing a second copy.
+          extraPullNames: qahq
           # naersk's compiled dependency tree, 328 MB for 0.3.0 against
           # 18 MB for `mt`, would fill the free cache and evict releases.
           pushFilter: "-deps-"
