@@ -40,11 +40,13 @@
     prompt: "(src-files: N)",
     example: "(src-files: 1)",
   ),
-  tags: slot("tags", kind: "list", prompt: "found, plus an area tag", example: (
-    "found",
-    "tooling",
-    "stateless",
-  )),
+  tags: slot(
+    "tags",
+    kind: "list",
+    prompt: "found, plus an area tag, and `stateful` or `stateless`",
+    default: ("found", "stateless"),
+    example: ("found", "tooling", "stateless"),
+  ),
   x-goals: (
     product: (
       readable-tasks: slot("readable-tasks", kind: "raw", default: "neutral"),
@@ -78,7 +80,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + #slot(
     "context",

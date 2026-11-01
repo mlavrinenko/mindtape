@@ -14,7 +14,12 @@
     ease: slot("ease", kind: "int", default: 5),
   ),
   difficulty: slot("difficulty", kind: "int", default: 3),
-  tags: slot("tags", kind: "list", default: ()),
+  tags: slot(
+    "tags",
+    kind: "list",
+    prompt: "Area tags, and `stateful` or `stateless`",
+    default: ("stateless",),
+  ),
   estimate: slot("estimate", kind: "text", default: "(src-files: 2)"),
   x-goals: (
     product: (
@@ -53,10 +58,10 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 #slot(
-  "problem",
+  "as-is",
   kind: "raw",
   prompt: "Numbered steps anyone can follow, commands in backticks; open the step that shows the defect with 🔴 and quote what it printed",
   example: ```typ
@@ -70,7 +75,7 @@
 #slot(
   "to-be",
   kind: "raw",
-  prompt: "Bullets opening with 🟢: how it should work, behave and feel once this lands",
+  prompt: "Bullets opening with 🟢: how it should work, behave and feel once this lands, plus a fenced example",
   example: ```typ
   - 🟢 A task without a `due` sorts after every dated task, in either direction.
   ```,

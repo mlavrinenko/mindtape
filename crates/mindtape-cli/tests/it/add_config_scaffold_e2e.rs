@@ -216,7 +216,7 @@ fn add_with_no_explicit_estimate_defaults_to_a_valid_task() {
             "--set",
             "title=No estimate",
             "--set",
-            "problem=+ A step.",
+            "as-is=+ A step.",
             "--set",
             "to-be=- An end state.",
             "--set",

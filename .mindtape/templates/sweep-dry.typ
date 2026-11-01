@@ -41,10 +41,13 @@
     example: "(src-files: 8)",
   ),
   assignee: "agent",
-  tags: slot("tags", kind: "list", prompt: "swept, dry", example: (
-    "swept",
-    "dry",
-  )),
+  tags: slot(
+    "tags",
+    kind: "list",
+    prompt: "swept, dry",
+    default: ("stateless",),
+    example: ("swept", "dry", "stateless"),
+  ),
   x-goals: (
     product: (
       readable-tasks: neutral,
@@ -62,7 +65,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `just ask-refactoring`.
 #slot(
@@ -106,7 +109,7 @@ shared location, so a location may belong to a neighboring window.
   kind: "raw",
   prompt: "one bullet naming the first copy's file in backticks: extract a helper, or mark the copies as intended",
   example: ```typ
-  - `crates/mindtape-cli/src/cmd/add/tests_subprocess.rs` and every other file the Problem lists: extract a helper and call it from each copy, or mark the copies as intended with `// jscpd:ignore-start` and `// jscpd:ignore-end` and a comment saying why the match is a coincidence. Either way, re-mint the baseline with `just lint::dry-baseline` in the same commit.
+  - `crates/mindtape-cli/src/cmd/add/tests_subprocess.rs` and every other file the AS-IS lists: extract a helper and call it from each copy, or mark the copies as intended with `// jscpd:ignore-start` and `// jscpd:ignore-end` and a comment saying why the match is a coincidence. Either way, re-mint the baseline with `just lint::dry-baseline` in the same commit.
   ```,
 )
 - In tests, a fixture or setup function is the helper. A test still reads top

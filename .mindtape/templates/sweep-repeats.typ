@@ -41,10 +41,13 @@
     example: "(src-files: 8)",
   ),
   assignee: "agent",
-  tags: slot("tags", kind: "list", prompt: "swept, repeats", example: (
-    "swept",
-    "repeats",
-  )),
+  tags: slot(
+    "tags",
+    kind: "list",
+    prompt: "swept, repeats",
+    default: ("stateless",),
+    example: ("swept", "repeats", "stateless"),
+  ),
   x-goals: (
     product: (
       readable-tasks: neutral,
@@ -62,7 +65,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `just ask-refactoring`.
 #slot(
@@ -105,7 +108,7 @@ neighboring window of the same snippet.
   kind: "raw",
   prompt: "one bullet naming the first copy's file in backticks: extract a helper, or mark the copies as intended",
   example: ```typ
-  - `crates/mindtape-cli/src/cmd/go.rs` and every other file the Problem lists: extract a helper and call it from each copy, or mark the copies as intended with `// jscpd:ignore-start` and `// jscpd:ignore-end` and a comment saying why the repetition is a coincidence.
+  - `crates/mindtape-cli/src/cmd/go.rs` and every other file the AS-IS lists: extract a helper and call it from each copy, or mark the copies as intended with `// jscpd:ignore-start` and `// jscpd:ignore-end` and a comment saying why the repetition is a coincidence.
   ```,
 )
 - In tests, a fixture or setup function is the helper. A test still reads top

@@ -45,7 +45,8 @@
     "tags",
     kind: "list",
     prompt: "swept, size, plus tests for a test module",
-    example: ("swept", "size"),
+    default: ("stateless",),
+    example: ("swept", "size", "stateless"),
   ),
   x-goals: (
     product: (
@@ -64,7 +65,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `linecop --format json`.
 #slot(

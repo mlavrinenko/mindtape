@@ -41,10 +41,13 @@
     example: "(src-files: 2)",
   ),
   assignee: "agent",
-  tags: slot("tags", kind: "list", prompt: "swept, coverage", example: (
-    "swept",
-    "coverage",
-  )),
+  tags: slot(
+    "tags",
+    kind: "list",
+    prompt: "swept, coverage",
+    default: ("stateless",),
+    example: ("swept", "coverage", "stateless"),
+  ),
   x-goals: (
     product: (
       readable-tasks: neutral,
@@ -62,7 +65,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `just cover`, then `just ask-refactoring`.
 + 🔴 #raw(slot("function", prompt: "the undertested function", example: "compare_due")) in #raw(slot("path", prompt: "repo-relative path of the file it lives in", example: "crates/mindtape/src/sort.rs")) is #slot("percent", kind: "text", prompt: "the function's covered lines as a percentage", example: "40")% covered at cyclomatic complexity #slot("complexity", kind: "text", prompt: "the function's cyclomatic complexity", example: "9"), inside this arm's band: complexity #slot("cc_floor", kind: "text", prompt: "the complexity floor the band starts at", example: "5") or above, coverage under #slot("cov_floor", kind: "text", prompt: "the coverage floor the band ends at", example: "60")%.

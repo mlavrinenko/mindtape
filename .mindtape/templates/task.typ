@@ -14,7 +14,7 @@
   ),
   difficulty: slot("difficulty", kind: "int", default: 3),
   kind: slot("kind", example: "test"),
-  tags: slot("tags", kind: "list", default: ()),
+  tags: slot("tags", kind: "list", default: ("stateless",)),
   estimate: slot("estimate", kind: "text", default: "(src-files: 2)"),
   x-goals: (
     product: (
@@ -53,10 +53,10 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 #slot(
-  "problem",
+  "as-is",
   kind: "raw",
   prompt: "Numbered steps anyone can follow, commands in backticks; open the step that shows the defect with 🔴 and quote what it printed",
   example: ```typ
