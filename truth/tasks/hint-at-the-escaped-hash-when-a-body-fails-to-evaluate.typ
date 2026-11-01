@@ -1,4 +1,4 @@
-#import "@local/mindtape:0.2.0": *
+#import "@local/mindtape:0.3.0": *
 
 #show: task.with(
   title: "hint at the \\# escape when a task body fails to evaluate",

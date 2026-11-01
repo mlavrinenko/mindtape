@@ -1,4 +1,4 @@
-#import "@local/mindtape:0.2.0": *
+#import "@local/mindtape:0.3.0": *
 
 #show: task.with(
   title: "Say in the src-budget message that written work needs no split",

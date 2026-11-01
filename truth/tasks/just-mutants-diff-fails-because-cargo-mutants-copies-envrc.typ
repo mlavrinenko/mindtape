@@ -1,4 +1,4 @@
-#import "@local/mindtape:0.2.0": *
+#import "@local/mindtape:0.3.0": *
 
 #show: task.with(
   title: "just mutants-diff fails on a clean tree because cargo-mutants copies .envrc",

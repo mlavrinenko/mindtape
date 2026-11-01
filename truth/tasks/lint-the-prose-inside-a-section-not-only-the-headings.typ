@@ -1,4 +1,4 @@
-#import "@local/mindtape:0.2.0": *
+#import "@local/mindtape:0.3.0": *
 
 #show: task.with(
   title: "lint the prose inside a section not only the headings",

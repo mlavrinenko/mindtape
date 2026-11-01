@@ -38,7 +38,7 @@ for ((i = 1; i <= N; i++)); do
   fi
 
   {
-    printf '#import "@local/mindtape:0.2.0": *\n'
+    printf '#import "@local/mindtape:0.3.0": *\n'
     printf '\n'
     printf '#show: task.with(\n'
     printf '  title: "Bench task %d",\n' "${i}"

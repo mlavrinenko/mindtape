@@ -1,4 +1,4 @@
-#import "@local/mindtape:0.2.0": *
+#import "@local/mindtape:0.3.0": *
 #import "../goals.typ": helps, neutral
 #show: task.with(
   title: "Harden session tokens",

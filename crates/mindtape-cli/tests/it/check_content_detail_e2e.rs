@@ -32,7 +32,7 @@ fn board(config: &str) -> tempfile::TempDir {
     write_file(
         dir.path(),
         "tasks/board.typ",
-        "#import \"@local/mindtape:0.2.0\": *\n\n\
+        "#import \"@local/mindtape:0.3.0\": *\n\n\
          #show: task.with(\n  title: \"Cover the board\",\n  status: accepted(2026, 6, 1),\n)\n\n\
          = TO-BE\n\n- Run `mt ls ?` first.\n- Should it also cover the board?\n",
     );

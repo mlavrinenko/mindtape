@@ -1,4 +1,4 @@
-#import "@local/mindtape:0.2.0": *
+#import "@local/mindtape:0.3.0": *
 #show: task.with(
   title: "Send the order confirmation email",
   status: todo(2026, 9, 25),

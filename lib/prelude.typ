@@ -65,6 +65,39 @@
 // Serves every date slot uniformly (due, start, reviewed, …).
 #let on(y, m, d) = datetime(year: y, month: m, day: d)
 
+// Goal verdicts. A project declares its goals, and a task rates each one with
+// `helps`, `hurts` or `neutral`. `verdicts(given, ..neutral-names)` spells a
+// whole group at once: every positional name becomes a neutral slot, and the
+// `given` dict merges LAST so an explicit verdict wins over the slot. Naming a
+// goal both ways is an authoring mistake rather than a tie to break silently,
+// so it asserts instead of letting one side win.
+#let helps(reason) = (effect: "helps", reason: reason)
+#let hurts(reason) = (effect: "hurts", reason: reason)
+#let neutral = (effect: "neutral", reason: none)
+#let verdicts(given, ..neutral-names) = {
+  assert(
+    neutral-names.named().len() == 0,
+    message: "verdicts() takes the verdicts dict and then neutral goal names",
+  )
+  assert(
+    type(given) == dictionary,
+    message: "verdicts() takes a verdicts dict first, got " + str(type(given)),
+  )
+  let slots = neutral-names.pos()
+  assert(
+    slots.all(name => type(name) == str),
+    message: "verdicts() neutral slots must be goal names",
+  )
+  let both = slots.filter(name => name in given)
+  assert(
+    both.len() == 0,
+    message: "goal `"
+      + both.at(0, default: "")
+      + "` has both a verdict and a neutral slot; name it once",
+  )
+  slots.map(name => (name, neutral)).to-dict() + given
+}
+
 // Priority framework packagers. These are pure sugar: they only shape a
 // `(framework, inputs)` dict for the Rust layer to score — no math, bounds, or
 // classification live here (those are config + Rust concerns). `framework` is

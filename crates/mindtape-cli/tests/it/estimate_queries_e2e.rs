@@ -32,7 +32,7 @@ const CAP: &str = "[[tasks.rules]]\nname = \"cap\"\n\
 /// A `wip` task whose estimate is `estimate`, through the real prelude.
 fn task(estimate: &str) -> String {
     format!(
-        "#import \"@local/mindtape:0.2.0\": *\n\n\
+        "#import \"@local/mindtape:0.3.0\": *\n\n\
          #show: task.with(\n  title: \"Rename the parser\",\n  status: wip(2026, 10, 25),\n  \
          estimate: (src-files: {estimate}),\n)\n"
     )

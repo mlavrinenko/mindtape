@@ -115,7 +115,7 @@ fn config_change_busts_the_cache() {
 fn prelude_change_busts_the_cache() {
     let dir = setup();
     let config = lib_config();
-    write_pkg(dir.path(), "lib", "mindtape", "0.2.0", PRELUDE_STUB);
+    write_pkg(dir.path(), "lib", "mindtape", "0.3.0", PRELUDE_STUB);
     write_file(
         dir.path(),
         "tasks/t.typ",
@@ -126,7 +126,7 @@ fn prelude_change_busts_the_cache() {
 
     // Editing the prelude changes the lib hash -> build key -> re-eval.
     let bumped = format!("{PRELUDE_STUB}\n// bump\n");
-    write_pkg(dir.path(), "lib", "mindtape", "0.2.0", &bumped);
+    write_pkg(dir.path(), "lib", "mindtape", "0.3.0", &bumped);
     assert_eq!(load_title_with(dir.path(), &config), "Hi");
 }
 
@@ -148,14 +148,14 @@ fn a_cache_hit_replays_the_files_typst_warnings() {
         dir.path(),
         "lib",
         "mindtape",
-        "0.2.0",
+        "0.3.0",
         crate::test_support::PRELUDE,
     );
     write_file(
         dir.path(),
         "tasks/t.typ",
         "<orphan>\n\
-         #import \"@local/mindtape:0.2.0\": *\n\
+         #import \"@local/mindtape:0.3.0\": *\n\
          #show: task.with(title: \"T\")\n",
     );
     let first = load_project(dir.path(), &lib_config());

@@ -88,7 +88,7 @@ message = "a dev chore carries difficulty 3"
 severity = "error"
 TOML
 cat >"$T/.mindtape/templates/dev.typ" <<'TYP'
-#import "@local/mindtape:0.2.0": *
+#import "@local/mindtape:0.3.0": *
 #show: task.with(
   title: slot("title"),
   kind: "dev",
@@ -108,7 +108,7 @@ values = ["fix"]
 TOML
 for name in bug task; do
   cat >"$B/.mindtape/templates/$name.typ" <<'TYP'
-#import "@local/mindtape:0.2.0": *
+#import "@local/mindtape:0.3.0": *
 #show: task.with(
   title: slot("title", example: "Fix the crash on save"),
   kind: "bug",
@@ -123,7 +123,7 @@ capture_scratch S
 mkdir -p "$S/.mindtape/templates"
 printf '[tasks]\nroots = ["tasks"]\n' >"$S/.mindtape/config.toml"
 cat >"$S/.mindtape/templates/task.typ" <<'TYP'
-#import "@local/mindtape:0.2.0": *
+#import "@local/mindtape:0.3.0": *
 #show: task.with(title: slot("title"))
 
 #slot("summary", kind: "text", example: "Lint before you push")

@@ -1,4 +1,4 @@
-#import "@local/mindtape:0.2.0": *
+#import "@local/mindtape:0.3.0": *
 #import "../lib.typ": *
 
 #show: task.with(
@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 1),
+  status: done(2026, 11, 2),
   links: depends-on("task-templates.typ") + depends-on("as-is-sweep.typ"),
 )
 

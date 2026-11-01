@@ -1,5 +1,5 @@
 // docs:slice ship-onboarding-checklist
-#import "@local/mindtape:0.2.0": *
+#import "@local/mindtape:0.3.0": *
 #show: task.with(
   title: "Ship the onboarding checklist",
   status: done(2026, 7, 1),

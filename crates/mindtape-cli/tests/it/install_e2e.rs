@@ -43,11 +43,11 @@ fn schemas(home: &Path) -> [(PathBuf, String); 2] {
 }
 
 fn lib_typst_toml(home: &Path) -> PathBuf {
-    home.join("data/typst/packages/local/mindtape/0.2.0/typst.toml")
+    home.join("data/typst/packages/local/mindtape/0.3.0/typst.toml")
 }
 
 fn lib_prelude(home: &Path) -> PathBuf {
-    home.join("data/typst/packages/local/mindtape/0.2.0/prelude.typ")
+    home.join("data/typst/packages/local/mindtape/0.3.0/prelude.typ")
 }
 
 /// Seed an existing XDG `defaults.toml` (sentinel content) under `home`,
@@ -359,7 +359,7 @@ fn install_keeps_a_symlinked_package_dir() {
     let assert = run_install(home.path(), &["install", "--no-defaults", "--no-schema"]).success();
     let stdout = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
     assert_eq!(std::fs::read_to_string(&target).unwrap(), "// dev");
-    assert!(stdout.contains("kept @local/mindtape:0.2.0"), "{stdout}");
+    assert!(stdout.contains("kept @local/mindtape:0.3.0"), "{stdout}");
     assert!(stdout.contains("checkout/lib"), "{stdout}");
 }
 

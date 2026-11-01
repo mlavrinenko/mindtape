@@ -1,4 +1,4 @@
-#import "@local/mindtape:0.2.0": *
+#import "@local/mindtape:0.3.0": *
 
 #show: task.with(
   title: "mt rm gitless manual test",
@@ -28,7 +28,7 @@ Verify mt rm removes an unreferenced task in a real session outside a git repo, 
 == Outcome
 
 Session run 2026-08-07 against scratch projects under `/tmp`, using the release
-binary and the installed `@local/mindtape:0.2.0` package (byte-identical to the
+binary and the installed `@local/mindtape:0.3.0` package (byte-identical to the
 in-tree `lib/prelude.typ`). Projects scaffolded with `mt init --no-input` (the
 `flow` preset), not a hand-written config.
 

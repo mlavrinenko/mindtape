@@ -46,7 +46,7 @@ The Typst plumbing comes from seven crates.io dependencies, whose source sits un
 ## Task DSL (lib/prelude.typ)
 
 ```typ
-#import "@local/mindtape:0.2.0": *
+#import "@local/mindtape:0.3.0": *
 #show: task.with(
   title: "Fix the login redirect",
   status: wip(2026, 6, 14)[reproduced on staging], // the status, the date it was set, and a note

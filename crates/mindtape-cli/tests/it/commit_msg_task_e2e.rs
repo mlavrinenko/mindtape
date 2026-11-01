@@ -27,7 +27,7 @@ fn write_parser(dir: &Path, status: &str, extra: &str) {
         dir,
         "tasks/parser.typ",
         format!(
-            "#import \"@local/mindtape:0.2.0\": *\n\n\
+            "#import \"@local/mindtape:0.3.0\": *\n\n\
              #show: task.with(\n  title: \"Write the parser\",\n  status: {status},\n  \
              priority: 3,\n{extra})\n"
         ),

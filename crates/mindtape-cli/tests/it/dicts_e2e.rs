@@ -61,7 +61,7 @@ fn check_json_carries_the_dict_hints() {
     mindtape::test_support::write_file(
         dir.path(),
         "tasks/keys.typ",
-        "#import \"@local/mindtape:0.2.0\": *\n\n\
+        "#import \"@local/mindtape:0.3.0\": *\n\n\
          #show: task.with(title: \"Rote the keys\", status: wip(2026, 6, 1))\n",
     );
     let out = mt(dir.path()).args(["check", "--json"]).output().unwrap();

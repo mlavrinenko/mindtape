@@ -34,7 +34,7 @@ use std::collections::BTreeMap;
 #[macro_export]
 macro_rules! typst_import {
     ($($part:literal),+) => {
-        concat!("#import \"@local/mindtape:0.2.0\": *\n", $($part),+)
+        concat!("#import \"@local/mindtape:0.3.0\": *\n", $($part),+)
     };
 }
 

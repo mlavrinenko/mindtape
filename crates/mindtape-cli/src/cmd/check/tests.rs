@@ -193,7 +193,7 @@ fn scaffold_violation_project(dir: &Path, toml: &str) {
     write_file(
         dir,
         "lib/typst.toml",
-        "[package]\nname = \"mindtape\"\nversion = \"0.2.0\"\nentrypoint = \"prelude.typ\"\n",
+        "[package]\nname = \"mindtape\"\nversion = \"0.3.0\"\nentrypoint = \"prelude.typ\"\n",
     );
     write_file(dir, "lib/prelude.typ", mindtape::test_support::PRELUDE);
 }

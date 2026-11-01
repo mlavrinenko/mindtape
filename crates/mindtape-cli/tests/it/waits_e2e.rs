@@ -42,7 +42,7 @@ fn write_task(dir: &Path, stem: &str, title: &str, waits_on: &str) {
 
 fn write_task_in(dir: &Path, stem: &str, title: &str, status: &str, waits_on: &str) {
     let source = format!(
-        "#import \"@local/mindtape:0.2.0\": *\n\n\
+        "#import \"@local/mindtape:0.3.0\": *\n\n\
          #show: task.with(\n  title: \"{title}\",\n  status: {status}(2026, 6, 1),\n  \
          waits-on: {waits_on},\n)\n"
     );

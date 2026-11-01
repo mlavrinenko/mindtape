@@ -22,6 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   section, and any task without the tag must carry none. The tag-required rule
   and the fenced AS-IS repro and TO-BE example sit behind the pack's
   `statefulness` and `examples` parameters, both off.
+- **The Typst package exports the goal verdicts.** `@local/mindtape:0.3.0`
+  adds `helps`, `hurts`, `neutral` and `verdicts(given, ..neutral-names)`.
+  `verdicts` fills every neutral slot in one call, puts the explicit verdicts
+  last so one wins over its slot, and refuses a goal named both ways. Every
+  task file imports the package at its new version.
 
 ### Fixed
 

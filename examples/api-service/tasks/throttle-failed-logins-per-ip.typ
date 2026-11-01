@@ -1,5 +1,5 @@
 // docs:slice showcase
-#import "@local/mindtape:0.2.0": *
+#import "@local/mindtape:0.3.0": *
 #show: task.with(
   title: "Throttle failed logins per IP",
   kind: "feat",

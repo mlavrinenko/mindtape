@@ -40,7 +40,7 @@ use format::{hval_to_typ, typ_array, typ_str};
 #[must_use]
 pub fn emit_task(task: &Task) -> String {
     let fields = emit_fields(task);
-    let mut out = String::from("#import \"@local/mindtape:0.2.0\": *\n\n#show: task.with(\n");
+    let mut out = String::from("#import \"@local/mindtape:0.3.0\": *\n\n#show: task.with(\n");
     for field in &fields {
         out.push_str("  ");
         out.push_str(field);

@@ -34,7 +34,7 @@ fn check(dir: &std::path::Path) -> (bool, String) {
 
 fn template(kind: &str) -> String {
     format!(
-        "#import \"@local/mindtape:0.2.0\": *\n#show: task.with(\n  \
+        "#import \"@local/mindtape:0.3.0\": *\n#show: task.with(\n  \
          title: slot(\"title\", example: \"Fix the crash on save\"),\n  kind: {kind},\n)\n"
     )
 }
@@ -277,7 +277,7 @@ fn add_task(dir: &std::path::Path, stem: &str, title: &str) {
     let file = dir.join(format!("tasks/{stem}.typ"));
     std::fs::create_dir_all(file.parent().unwrap()).unwrap();
     let source = format!(
-        "#import \"@local/mindtape:0.2.0\": *\n#show: task.with(\n  title: \"{title}\",\n  \
+        "#import \"@local/mindtape:0.3.0\": *\n#show: task.with(\n  title: \"{title}\",\n  \
          kind: \"fix\",\n  status: proposed(2026, 1, 1),\n)\n"
     );
     std::fs::write(file, source).unwrap();

@@ -20,7 +20,7 @@ fn check(as_is: &str, to_be: &str) -> (Option<i32>, String) {
         dir.path(),
         "tasks/board.typ",
         format!(
-            "#import \"@local/mindtape:0.2.0\": *\n\n\
+            "#import \"@local/mindtape:0.3.0\": *\n\n\
              #show: task.with(\n  title: \"Cover the board\",\n  kind: \"refactor\",\n  status: wip(2026, 6, 1),\n)\n\n\
              == AS-IS\n\n+ Run `mt board`.\n+ 🔴 {as_is}\n\n\
              == TO-BE\n\n- 🟢 It lists the tasks.\n{to_be}\n\n\

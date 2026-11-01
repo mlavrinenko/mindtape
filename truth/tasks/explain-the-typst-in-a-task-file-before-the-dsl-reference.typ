@@ -1,4 +1,4 @@
-#import "@local/mindtape:0.2.0": *
+#import "@local/mindtape:0.3.0": *
 #import "../lib.typ": *
 
 #show: task.with(
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Open the Quickstart and read the first task file it writes, `tasks/fix-the-login-bug.typ`.
-+ 🔴 Its two code lines, `#import "@local/mindtape:0.2.0": *` and `#show: task.with(...)`, are explained on no page, and `rg -n 'typst.app' www/content` prints nothing: no page links the Typst documentation.
++ 🔴 Its two code lines, `#import "@local/mindtape:0.3.0": *` and `#show: task.with(...)`, are explained on no page, and `rg -n 'typst.app' www/content` prints nothing: no page links the Typst documentation.
 + 🔴 The syntax the fields use (named arguments, the dictionary `(days: 1)`, the one-item array `("backend",)`, the content block `[...]`, links joined with `+`) shows up only in passing on the DSL page, which is a field reference.
 
 Every task is a Typst file, so a reader who does not know Typst stalls at the first file they open by hand.

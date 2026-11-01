@@ -1,4 +1,4 @@
-#import "@local/mindtape:0.2.0": *
+#import "@local/mindtape:0.3.0": *
 
 #show: task.with(
   title: "Learn-piano example tracker",
@@ -17,7 +17,7 @@ A real, self-contained MindTape project under `examples/learn-piano/` — a pian
 practice tracker that showcases MindTape features and doubles as the fixture the
 docs generator (generate-docs-cli-reference) runs `mt` against. One project
 serves every injected-output doc surface; it must pass `mt check` and be gated in
-CI so it can never rot silently. It imports the real `@local/mindtape:0.2.0`
+CI so it can never rot silently. It imports the real `@local/mindtape:0.3.0`
 (enlisted in the outdatty `typst-pkg-version` group).
 
 == Layout

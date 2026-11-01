@@ -13,7 +13,7 @@ use crate::test_support::PRELUDE;
 /// one load error.
 fn load_error(source: &str) -> LoadError {
     let dir = setup();
-    write_pkg(dir.path(), "lib", "mindtape", "0.2.0", PRELUDE);
+    write_pkg(dir.path(), "lib", "mindtape", "0.3.0", PRELUDE);
     write_file(dir.path(), "tasks/t.typ", source);
     let mut errors = load_project(dir.path(), &lib_config()).errors;
     assert_eq!(errors.len(), 1, "{errors:#?}");
@@ -199,12 +199,12 @@ fn an_error_keeps_typsts_hints() {
 #[test]
 fn a_warning_on_a_file_that_loads_is_kept() {
     let dir = setup();
-    write_pkg(dir.path(), "lib", "mindtape", "0.2.0", PRELUDE);
+    write_pkg(dir.path(), "lib", "mindtape", "0.3.0", PRELUDE);
     write_file(
         dir.path(),
         "tasks/t.typ",
         "<orphan>\n\
-         #import \"@local/mindtape:0.2.0\": *\n\
+         #import \"@local/mindtape:0.3.0\": *\n\
          #show: task.with(title: \"T\")\n",
     );
     let outcome = load_project(dir.path(), &lib_config());

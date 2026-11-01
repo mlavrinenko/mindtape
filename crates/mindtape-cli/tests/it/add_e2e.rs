@@ -90,7 +90,7 @@ fn list_prints_template_stems_and_stops() {
 fn a_directory_pack_ships_its_templates_beneath_the_projects_own() {
     let pack = tempdir();
     let template = |title: &str| {
-        format!("#import \"@local/mindtape:0.2.0\": *\n#show: task.with(title: \"{title}\")\n")
+        format!("#import \"@local/mindtape:0.3.0\": *\n#show: task.with(title: \"{title}\")\n")
     };
     write_file(pack.path(), "pack.toml", "");
     write_file(pack.path(), "templates/feat.typ", template("from the pack"));

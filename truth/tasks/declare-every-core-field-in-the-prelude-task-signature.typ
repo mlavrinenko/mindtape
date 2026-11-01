@@ -1,4 +1,4 @@
-#import "@local/mindtape:0.2.0": *
+#import "@local/mindtape:0.3.0": *
 
 #show: task.with(
   title: "Declare every core field in the prelude task signature",
@@ -28,7 +28,7 @@ lib/prelude.typ declares the task show-rule as \#let task(body, ..meta), so ever
 
 Driven against tinymist 0.14.18 (Typst 0.14.2) over stdio LSP, on a probe file
 holding `\#show: task.with(` with the cursor in the argument list, with the
-prelude installed as `@local/mindtape:0.2.0` under an isolated `XDG_DATA_HOME`.
+prelude installed as `@local/mindtape:0.3.0` under an isolated `XDG_DATA_HOME`.
 
 `textDocument/signatureHelp` before:
 

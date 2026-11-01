@@ -1,4 +1,4 @@
-#import "@local/mindtape:0.2.0": *
+#import "@local/mindtape:0.3.0": *
 #import "../lib.typ": *
 
 #show: task.with(
@@ -38,7 +38,7 @@
 ```
 $ typst compile tasks/b.typ   # a file that writes `titel:`
 error: assertion failed: unknown task slot `titel`; tool extensions must use an x-<ns> slot
-    ┌─ @local/mindtape:0.2.0/prelude.typ:672:4
+    ┌─ @local/mindtape:0.3.0/prelude.typ:672:4
 ```
 tinymist 0.14.10 sends the same error with the URI of `prelude.typ` and no related information.
 

@@ -6,7 +6,7 @@
 use crate::support;
 
 /// A task whose `title` is misspelt, so the prelude refuses the call.
-const MISSPELT: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
+const MISSPELT: &str = "#import \"@local/mindtape:0.3.0\": *\n\n\
                         #show: task.with(\n  titel: \"Gamma\",\n  status: wip(2026, 6, 1),\n)\n";
 
 /// The line under the table when one of the two tasks that loaded matches.

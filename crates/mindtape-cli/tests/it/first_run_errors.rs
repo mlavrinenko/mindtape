@@ -39,10 +39,10 @@ fn fresh_project() -> (tempfile::TempDir, std::path::PathBuf) {
 /// copy could serve it.
 fn pin_an_unembedded_prelude(project: &Path) {
     const BUILTIN: &str = include_str!("../../src/cmd/add/templates/task.typ");
-    let pinned = BUILTIN.replacen("@local/mindtape:0.2.0", "@local/mindtape:0.1.0", 1);
+    let pinned = BUILTIN.replacen("@local/mindtape:0.3.0", "@local/mindtape:0.1.0", 1);
     assert_ne!(
         pinned, BUILTIN,
-        "the built-in template no longer imports 0.2.0"
+        "the built-in template no longer imports 0.3.0"
     );
     write_file(project, ".mindtape/templates/task.typ", &pinned);
 }
@@ -175,7 +175,7 @@ fn import_skipped_for_another_reason_prints_no_install_note() {
     write_file(&project, "in.json", ONE_RECORD);
     // Installed where `run_fresh` points the data home, as `mt install` would.
     mindtape::test_support::write_package(
-        &project.join("empty-data/typst/packages/local/mindtape/0.2.0"),
+        &project.join("empty-data/typst/packages/local/mindtape/0.3.0"),
         mindtape::test_support::PRELUDE,
     );
 

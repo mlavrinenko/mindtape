@@ -1,4 +1,4 @@
-#import "@local/mindtape:0.2.0": *
+#import "@local/mindtape:0.3.0": *
 #show: task.with(
   title: "Set up CI pipeline",
   status: done(2026, 6, 10)[merged in #42],

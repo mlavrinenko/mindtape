@@ -1,17 +1,18 @@
-// Helpers every open task imports. `check-goals(value)` checks a task's
+// The goal check every open task imports. `check-goals(value)` checks a task's
 // `x-goals` field against both goal sets, goals.typ (what Mindtape is for)
 // and process-goals.typ (how this repo builds it), returning one message per
 // problem instead of panicking: a `[[tasks.rules]] check` rule collects every
 // string it returns as a breach, so several omissions surface together
 // rather than one panic at a time. A task nothing justifies (helps no goal)
 // is refused, not filed.
+//
+// The verdict helpers come from the prelude, so an adopter writes the same
+// dict a task does without copying this file; this module re-exports them and
+// keeps only what is true of this repo.
 
+#import "@local/mindtape:0.3.0": helps, hurts, neutral
 #import "goals.typ": goals as product-goals
 #import "process-goals.typ": goals as process-goals
-
-#let helps(reason) = (effect: "helps", reason: reason)
-#let hurts(reason) = (effect: "hurts", reason: reason)
-#let neutral = (effect: "neutral", reason: none)
 
 #let _choices = "helps[...], hurts[...] or neutral"
 

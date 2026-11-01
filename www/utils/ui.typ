@@ -3,7 +3,7 @@
 #import "site.typ": MARKDOWN, PKG, md-copy-button, mindtape, u
 #import "demo.typ": lede, listing-capture, listing-intro, showcase-intro
 
-// Inline package name, e.g. `@local/mindtape:0.2.0` — always version-synced.
+// Inline package name, e.g. `@local/mindtape:0.3.0` — always version-synced.
 #let pkg = raw(PKG)
 
 // `html.elem(tag, attrs: attrs, body)`, or the bare body in the Markdown copy

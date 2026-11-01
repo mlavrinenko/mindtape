@@ -12,7 +12,7 @@ use typst_world::{
 };
 
 /// The prelude package's version. Mirrors `lib/typst.toml`.
-pub const PRELUDE_VERSION: &str = "0.2.0";
+pub const PRELUDE_VERSION: &str = "0.3.0";
 
 /// A copy of `lib/prelude.typ`, inside the crate so the published tarball
 /// holds it; a test keeps the two equal.

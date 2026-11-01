@@ -21,7 +21,7 @@ fn write_task(dir: &Path, stem: &str, tags: &[&str]) {
     std::fs::write(
         dir.join("tasks").join(format!("{stem}.typ")),
         format!(
-            "#import \"@local/mindtape:0.2.0\": *\n\n\
+            "#import \"@local/mindtape:0.3.0\": *\n\n\
              #show: task.with(\n  title: \"Task {stem}\",\n  \
              status: proposed(2026, 8, 1),\n  priority: 5,\n  tags: ({tags}),\n)\n"
         ),

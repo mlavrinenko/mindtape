@@ -11,7 +11,7 @@ use crate::model::Task;
 use crate::model::numeric::NumValue;
 use crate::recur::{PeriodUnit, Rule};
 use crate::test_support::write_file;
-use typst_harvest::{HarvestError, HarvestWorld, harvest};
+use typst_harvest::{HVal, HarvestError, HarvestWorld, harvest};
 use typst_layout::PagedDocument;
 
 use crate::test_support::PRELUDE;
@@ -21,7 +21,7 @@ use crate::test_support::PRELUDE;
 /// The `TempDir` rides along in the return so the caller keeps it alive.
 fn load_real_prelude(source: &str) -> (tempfile::TempDir, LoadOutcome) {
     let dir = setup();
-    write_pkg(dir.path(), "lib", "mindtape", "0.2.0", PRELUDE);
+    write_pkg(dir.path(), "lib", "mindtape", "0.3.0", PRELUDE);
     write_file(dir.path(), "tasks/t.typ", source);
     let outcome = load_project(dir.path(), &lib_config());
     (dir, outcome)
@@ -39,7 +39,7 @@ fn prelude_world(dir: &std::path::Path) -> HarvestWorld {
 /// to fail eval and produce no task at all.
 fn prelude_eval_error(field: &str) -> String {
     let source = format!(
-        "#import \"@local/mindtape:0.2.0\": *\n\
+        "#import \"@local/mindtape:0.3.0\": *\n\
          #show: task.with(title: \"T\", {field})\n"
     );
     let (_dir, outcome) = load_real_prelude(&source);
@@ -59,7 +59,7 @@ fn prelude_eval_error(field: &str) -> String {
 /// that claim, rather than three tests that merely happen to agree.
 fn task_with_links(links: &str) -> Task {
     let source = format!(
-        "#import \"@local/mindtape:0.2.0\": *\n\
+        "#import \"@local/mindtape:0.3.0\": *\n\
          #show: task.with(title: \"T\", links: {links})\n"
     );
     let (_dir, outcome) = load_real_prelude(&source);
@@ -215,7 +215,7 @@ fn real_prelude_places_the_unknown_slot_error_on_the_name_in_the_task_file() {
     let source =
         crate::typst_task!("(\n  titel: \"typo\",\n  x-speconaut: (spec: \"s.typ\"),\n)\n");
     let dir = setup();
-    write_pkg(dir.path(), "lib", "mindtape", "0.2.0", PRELUDE);
+    write_pkg(dir.path(), "lib", "mindtape", "0.3.0", PRELUDE);
     write_file(dir.path(), "tasks/t.typ", source);
 
     let Err(HarvestError::Eval { error, .. }) = harvest(&prelude_world(dir.path())) else {
@@ -243,7 +243,7 @@ fn real_prelude_still_takes_every_extension_slot_it_took() {
     ];
     for (fields, keys) in cases {
         let (_dir, outcome) = load_real_prelude(&format!(
-            "#import \"@local/mindtape:0.2.0\": *\n\
+            "#import \"@local/mindtape:0.3.0\": *\n\
              #show: task.with(title: \"T\", {fields})\n"
         ));
         assert_eq!(outcome.errors, Vec::new(), "`{fields}` failed to load");
@@ -381,7 +381,7 @@ fn real_prelude_carries_a_wrong_typed_element_to_the_rust_shape_error() {
     ];
     for (field, path, message) in cases {
         let source = format!(
-            "#import \"@local/mindtape:0.2.0\": *\n\
+            "#import \"@local/mindtape:0.3.0\": *\n\
              #show: task.with(title: \"T\", {field})\n"
         );
         let (_dir, outcome) = load_real_prelude(&source);
@@ -456,4 +456,44 @@ fn real_prelude_refuses_a_grep_with_more_than_one_glob() {
             "{call}: {message}"
         );
     }
+}
+
+/// The prelude's goal verdicts: `verdicts` fills every neutral slot and keeps
+/// the explicit verdicts, so a task spells a whole group once.
+#[test]
+fn real_prelude_verdicts_fills_neutral_slots_and_keeps_an_explicit_verdict() {
+    let (_dir, outcome) = load_real_prelude(crate::typst_task!(
+        "(title: \"T\", x-goals: (product: verdicts(\
+           (cheap-adoption: helps[one config line], \
+            enforced-practice: hurts[a hidden step]), \
+           \"readable-tasks\")))\n"
+    ));
+    assert_eq!(outcome.errors, Vec::new());
+    let goals = outcome.tasks[0].extras["x-goals"]
+        .get("product")
+        .and_then(HVal::as_dict)
+        .unwrap();
+    let effect = |name: &str| {
+        goals
+            .get(name)
+            .and_then(|v| v.get("effect"))
+            .and_then(HVal::as_str)
+    };
+    assert_eq!(effect("readable-tasks"), Some("neutral"));
+    assert_eq!(effect("cheap-adoption"), Some("helps"));
+    assert_eq!(effect("enforced-practice"), Some("hurts"));
+}
+
+/// Naming one goal as both an explicit verdict and a neutral slot is an
+/// authoring mistake, not a precedence question: the merge would silently keep
+/// the verdict, so the helper asserts and names the goal instead.
+#[test]
+fn real_prelude_verdicts_refuses_a_goal_listed_both_ways() {
+    let message = prelude_eval_error(
+        "x-goals: (product: verdicts((cheap-adoption: helps[why],), \"cheap-adoption\"))",
+    );
+    assert!(
+        message.contains("`cheap-adoption`") && message.contains("neutral"),
+        "{message}"
+    );
 }
