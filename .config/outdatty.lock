@@ -540,13 +540,13 @@ groups:
       .mindtape/templates/task.typ: e997d7c04416c08a5014b6a01e2d7cff890c7aa545bb4d5c10a31e2a8f848529
     dependents:
       .mindtape/templates/decision.typ: 677909b79f0aa78bffbf1184bff36967311727cef9062708d04b95eb13ed2560
-      .mindtape/templates/dev-stateful.typ: dd99593478592a3fff677f305ba379028dabdafdb4ff4c3cf5a955660df9b876
-      .mindtape/templates/dev.typ: 6e71566ef8e0c255fcb1f8f351a8f16a2797436d9ea1d2beff0ccab73770e871
+      .mindtape/templates/dev-stateful.typ: a25d7b54b46669acc2bfdc92f9bfc683e2841831118685bacfcf230d4c54481c
+      .mindtape/templates/dev.typ: 86ea24794d76a6d89b305ebf80a8faf1a2435f968d54907a48c8a9529808a0b8
       .mindtape/templates/docs.typ: 2b66ad53d37fa84c69eea478c375235fc3ae89afce12d319bdb95cc805ba273f
-      .mindtape/templates/feat-stateful.typ: 55af91bb56a59f675bc997431a8c599065be3d859e6f3110614a97216315faa9
-      .mindtape/templates/feat.typ: baf1b328fd3843d13bb493980e5db8588db558b423d5ba8624ee014c42d87882
-      .mindtape/templates/fix-stateful.typ: 3170b140363b825d46c363d9acd8ef1247b73e2eabc6886d443c8093033b0994
-      .mindtape/templates/fix.typ: 501aeb7613516cd03ccdf2666cc25cf296ba1b4deaaa80dac723e5de74a20506
+      .mindtape/templates/feat-stateful.typ: c1cd5ac6cf53fa39370e17a1b8b56a1d830a171e02c22fee542e962760c9abbb
+      .mindtape/templates/feat.typ: 2797933dddbea957aa68345d021ffe90656b004017653502b10ca0759d0f4645
+      .mindtape/templates/fix-stateful.typ: 565357fe9aa2b8f302176749304507e3aca114b74e6e706ede36ab21f6452fd6
+      .mindtape/templates/fix.typ: d03d3bddbdbd52de57793ed60dc96d4c6ba8d0cd30834758419f089bb51590d7
   typst-pkg-version:
     source:
       lib/typst.toml: 968e5202c3c212d4790b9e552d34da5c122212b7032f969543dbbfc50d6e89c5

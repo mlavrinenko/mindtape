@@ -12,7 +12,7 @@
 # actors, the path sets and the close gate.
 # docs:slice packs/extends
 extends = [
-  { pack = "mindtape:tasks", with = { statefulness = false, examples = false } },
+  { pack = "mindtape:tasks", with = { statefulness = true, examples = true } },
   "mindtape:dogfood",
   "mindtape:flow",
   "mindtape:ice",
@@ -102,7 +102,7 @@ allowed = [
   "gating",
   # What a change does to state, not how far it reaches: `stateful` requires a
   # Rollback section, and a task without it must carry none. `stateless` says
-  # so explicitly; the pack's `statefulness` parameter, off here, makes one of
+  # so explicitly; the pack's `statefulness` parameter, on here, makes one of
   # the two required.
   "stateful",
   "stateless",

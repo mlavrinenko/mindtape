@@ -76,9 +76,15 @@
   "to-be",
   kind: "raw",
   prompt: "Bullets opening with 🟢: how it should work, behave and feel once this lands, plus a fenced example",
-  example: ```typ
+  example: ````typ
   - 🟢 A task without a `due` sorts after every dated task, in either direction.
-  ```,
+
+  ```
+  $ mt ls --sort due:asc
+  dated-task  due: 2026-11-03
+  undated-task
+  ```
+  ````,
 )
 
 == Changes

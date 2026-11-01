@@ -64,10 +64,16 @@
   "as-is",
   kind: "raw",
   prompt: "Numbered steps anyone can follow, commands in backticks; open the step that shows the defect with 🔴 and quote what it printed",
-  example: ```typ
+  example: ````typ
   + Run `mt ls --sort due:asc` in a project where some tasks have no `due`.
-  + 🔴 The undated tasks print first, above the one due tomorrow.
-  ```,
+  + 🔴 The undated tasks print first:
+
+  ```
+  $ mt ls --sort due:asc
+  undated-task
+  dated-task  due: 2026-11-03
+  ```
+  ````,
 )
 
 == Environment
@@ -87,9 +93,15 @@
   "to-be",
   kind: "raw",
   prompt: "Bullets opening with 🟢: how it should work, behave and feel once this lands, plus a fenced example",
-  example: ```typ
+  example: ````typ
   - 🟢 A task without a `due` sorts after every dated task, in either direction.
-  ```,
+
+  ```
+  $ mt ls --sort due:asc
+  dated-task  due: 2026-11-03
+  undated-task
+  ```
+  ````,
 )
 
 == Changes

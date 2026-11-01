@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 1),
+  status: done(2026, 11, 2),
   links: depends-on("task-shape-docs.typ") + depends-on("as-is-sweep.typ"),
 )
 

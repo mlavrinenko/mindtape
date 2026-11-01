@@ -116,10 +116,15 @@ left in a closing report no one rereads. It belongs in
 #slot(
   "to-be",
   kind: "raw",
-  prompt: "Bullets opening with 🟢: how it should work, behave and feel once this lands",
-  example: ```typ
+  prompt: "Bullets opening with 🟢: how it should work, behave and feel once this lands, plus a fenced example",
+  example: ````typ
   - 🟢 A clean `just lint::machete` prints nothing, and a dirty one prints the unused crates.
-  ```,
+
+  ```
+  $ just lint::machete
+  error: unused crate `serde` in crates/mindtape
+  ```
+  ````,
 )
 
 == Changes
