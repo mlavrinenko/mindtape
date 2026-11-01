@@ -30,7 +30,7 @@
   status: done(2026, 10, 8),
 )
 
-== Problem
+== AS-IS
 
 + Capturing every error \`mt\` prints for the error inventory
 + 🔴 #raw("crates/mindtape-cli/src/cmd/rm/mod.rs"): with stdin not a terminal, \`mt rm\` prints its prompt, reads nothing and reports that the user aborted

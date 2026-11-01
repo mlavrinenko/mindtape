@@ -30,7 +30,7 @@
   status: done(2026, 10, 15),
 )
 
-== Problem
+== AS-IS
 
 + Land two `just fork` worktrees that both touched `crates/mindtape-cli/src/cli/mod.rs`, ran `just crap-baseline` and recorded its outdatty group.
 + 🔴 `just land` rebases the second onto main and stops on both files:

@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Open the home page and `/filters/`.
 + 🔴 The hero's `mt ls` and the `/filters/` listing are SVG images drawn from `.ansi` files that `www/generate.sh` captures off a terminal with `--color always`. They show no status glyphs, and the page does not show the command.

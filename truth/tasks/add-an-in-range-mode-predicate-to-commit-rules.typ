@@ -30,7 +30,7 @@
   status: done(2026, 10, 16),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt check --commit-msg msg` with a `fixup! feat: x` subject, then `mt check --commits main..HEAD` over a branch holding that commit.
 + 🔴 No commit rule can pass the first and refuse the second: both modes run the same commit-scope rules over the same fields, and a tip rule never sees a commit that has no `Refs:`.

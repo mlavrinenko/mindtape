@@ -30,7 +30,7 @@
   status: done(2026, 10, 7),
 )
 
-== Problem
+== AS-IS
 
 + Integrating the area-move branches, then re-running the gate on main
 + 🔴 #raw(".just/scripts/integrate.sh"): Integrate copies the worktree's \`.mmz/cache\` gate records but not \`target/coverage/lcov.info\`, so \`just crap\` on main refuses the stale lcov after every integrate that touched source.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 29),
 )
 
-== Problem
+== AS-IS
 
 + Open the Quickstart's Install section to add `mt` to a project's Nix dev shell.
 + 🔴 It offers `nix run` alone. It never shows a flake input, the binary cache that serves the build, or that qahq ships `mt` beside the other dev tools.

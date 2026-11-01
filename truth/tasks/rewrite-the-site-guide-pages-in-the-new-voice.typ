@@ -35,7 +35,7 @@
   links: depends-on("give-the-docs-a-conversational-voice.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Open `www/content/templates.typ`.
 + 🔴 "When a refused add left a field to a slot, another template writes that field as the value you passed, and a breach that refused the add is about that field, the error ends with a line such as ..."

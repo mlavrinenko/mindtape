@@ -12,28 +12,28 @@ groups:
       crates/mindtape/src/packs/tweaks.toml: 3f5c1612deb1f9c5a11ec5580f9bc48ed0b256e54960082c4441fdea43e1278e
       crates/mindtape/src/packs/wip-caps.toml: 5dc4ccb78198701f7c04354fbfc636eec497500513ebab981ebeb6832aa0ce9a
       examples/api-service/.mindtape/config.toml: 2772704ac06e53ebd56294237c7377381bf143c0ee071c2ceab60c00d627e1d5
-      examples/api-service/.mindtape/templates/milestone.typ: e181542424e7377afb6a119a8882658b29bf2e6b392a065157b3809e3242feb2
-      examples/api-service/.mindtape/templates/task.typ: d4fa57a7089e2109c6e571de413fbd75c98be3cdb708ff19b1f708c08ec9a377
+      examples/api-service/.mindtape/templates/milestone.typ: 16f034f50958f7aaa3d25333cb5fc1fc199e340908762008bdae59b9721f3040
+      examples/api-service/.mindtape/templates/task.typ: 27c10fb99191aef051f488bf42e5c1cc690d7325ec4f70b2342103572b3f0ce5
       examples/api-service/Cargo.lock: fb82d06c279532ad92269838be453a3ed883dcd8cf12daaad8fdd0e26f854805
       examples/api-service/dicts/services.txt: 25d2e5ae4c8231bfd16b9d15dfa934c5fcac55a1bd176572f20466164163c39a
       examples/api-service/goals.typ: 645a69203fe3daf01800cb37b89facf831b0965422bb6bc07e15e2854079a614
       examples/api-service/scripts/locked: b3e770216763ddae63d751d7e5fafcab424a8a32628689f6b3cc859e8e7c49d5
       examples/api-service/scripts/test: 490e2b2adafd0151a29e903fbd21a77229c0f94ea7724a1ddf7aabc5561f79cc
-      examples/api-service/tasks/add-redis-client.typ: 2960998ef5d642ad76a6f223bed1e6e750c797854cabb1d71c7e3fdadeb2be77
+      examples/api-service/tasks/add-redis-client.typ: b6610e88512e7f0fab78df0b5e9ae47ec16369fa4ca35b63ee5207c2b4325560
       examples/api-service/tasks/add-request-ids-to-log-lines.typ: e8d57e31af6d3a3c28d7b8d04380b9efbfa2ab44314771a7a10be57d010d9d5c
-      examples/api-service/tasks/document-the-webhook-retry-policy.typ: 2a55643945d8ab78483cad1a982160ac3b01958eeabd90b2ce158eb1ad00f75a
+      examples/api-service/tasks/document-the-webhook-retry-policy.typ: faf73bfaf634ab536127a59fe1a51dae2760635232df70fac4f8f3ebb939b35d
       examples/api-service/tasks/fix-the-404-page-typo.typ: 2d314728f94c7a39798197c550d89e20914e26ac4cf69208626a03e2209161d6
-      examples/api-service/tasks/harden-session-tokens.typ: 7de6c7705d7fe767edc861bab76e8ab868520b829431095bf2450ef1e374ca65
-      examples/api-service/tasks/index-the-orders-by-customer.typ: 3652305ee525a2a2d2e352b7b2d34b27ad4a6f63d81a826685f1b6b3af8b3a9c
+      examples/api-service/tasks/harden-session-tokens.typ: 117ee0f243ef51f152824c9199c7f3e3978b53a58c484399f4eeb64e8d86b873
+      examples/api-service/tasks/index-the-orders-by-customer.typ: 4e30f4ac5c52cdce1625304c8c554f92eb883bf51679c86f95ec4477da5c59a0
       examples/api-service/tasks/pin-the-rust-toolchain-in-ci.typ: f4eb97deea4f097d5b44314b4db755b4aa4fdde3ecae83de72d666b07656c493
-      examples/api-service/tasks/reject-expired-sessions-on-token-refresh.typ: 213acdb0ad0753994b4b797ebcf2d953c87f3247b17cb4dbaac6dd5368939485
-      examples/api-service/tasks/replace-the-deprecated-search-client.typ: e44eeed5816b989e26f46e5be7ff6d09287d9cabd28947dfd6c1edb544d6931f
-      examples/api-service/tasks/rotate-the-jwt-signing-key.typ: 03c85c30f721c0bf75c05102ff6a4f8386a0f28a63e237eb7005913e25923e28
-      examples/api-service/tasks/send-a-welcome-email-after-signup.typ: c659cd1eb81bbb66173bc4ab3a587f6bcbf7358621d64e78cf037f134b059021
-      examples/api-service/tasks/throttle-failed-logins-per-ip.typ: 449fa2124feee07b55b4f5d67769c24ada3d42f5890eb595fa2ed9986cd314e4
+      examples/api-service/tasks/reject-expired-sessions-on-token-refresh.typ: 28b7e7b079a11261dec38ab71e764ed4080574cf739e01101e15819f1be7b6e4
+      examples/api-service/tasks/replace-the-deprecated-search-client.typ: 5ef17560e2e2bd5b064bfc1d4625e5e91d5db126344f8e370087126ae43877b7
+      examples/api-service/tasks/rotate-the-jwt-signing-key.typ: b7dae1451312bab8609a4c56fb7fca3db589343807aa1d39e219ebc9eb59da94
+      examples/api-service/tasks/send-a-welcome-email-after-signup.typ: 4b3acd9f658f5b2fd313afbfc38c1b6f9abeaf23f99b04a11c31187e8ceb1843
+      examples/api-service/tasks/throttle-failed-logins-per-ip.typ: da32eafb35966b6d0122519df064fdd61283aa33e1e44283d6b3f4d78cee732b
       examples/api-service/tasks/upgrade-the-axum-web-framework.typ: 098f9d43ac19b8e59ddd3691f9f4f56f03cfc48a305aca5d84e15c6a93808a36
-      examples/api-service/tasks/verify-webhooks-with-the-acme-pay-sdk.typ: d57992bfdf390ac4f2470082ca35b536ca8498492a73499278f10471f216db83
-      www/generate-api-service.sh: f7546f7acec0d4c54ecdb36fbf6bb28d762696fca1df7bb465cc43e058c21d84
+      examples/api-service/tasks/verify-webhooks-with-the-acme-pay-sdk.typ: eaed586b8b9a5633859511918b4c5e02492c4cda4c809bc68955baa5acc8615a
+      www/generate-api-service.sh: 5e93e995b121087c3eb9d79767f6ebbfb9a30d808415f3626a6c6765ac9d3181
     dependents:
       skills/mindtape/evals/README.md: b451b8b388e4a1c8e95f876258e9c3425355a7bf9c1cfa0f04ec1a0c57b3bd6a
       skills/mindtape/evals/evals.json: 30cf7329118dc87b78164b1f425b6bc114f509d6ed4112cd0c174438b9ecc826

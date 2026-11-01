@@ -30,7 +30,7 @@
   status: done(2026, 10, 17),
 )
 
-== Problem
+== AS-IS
 
 + Rebasing a branch that re-recorded cli-docs onto the split, in a scratch clone
 + 🔴 #raw("outdatty.lock"): `outdatty check` passes with lock groups the manifest doesn't declare, and the lock merge driver keeps a dropped group's leaves that the other branch changed, so a split or a rename leaves orphan hashes behind.

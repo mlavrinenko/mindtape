@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `linecop --baseline 90`.
 + 🔴 `docs/src/agents.typ` stands at 158 of 166 lines and its `AGENTS.md` at 75 of 78; `docs/src/skill.typ` at 131 of 144 and its `SKILL.md` at 69 of 76.

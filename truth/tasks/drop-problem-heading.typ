@@ -32,7 +32,7 @@
 )
 
 
-== Problem
+== AS-IS
 
 + Run `mt rules --for add` and read the allowlist.
 + 🔴 The allowlist still accepts `Problem` after the sweep, so a new task can pick either heading.

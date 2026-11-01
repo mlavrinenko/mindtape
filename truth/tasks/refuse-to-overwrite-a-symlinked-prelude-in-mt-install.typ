@@ -30,7 +30,7 @@
   status: done(2026, 10, 26),
 )
 
-== Problem
+== AS-IS
 
 + Trying the new `mt init` in a temp dir, where `mt` resolved to an older `~/.cargo/bin/mt`.
 + 🔴 #raw("crates/mindtape-cli/src/cmd/init/mod.rs"): `install_lib` writes `prelude.typ` whatever `--force` says, and `write_atomic` follows the package dir's symlink into the dev checkout, so an older binary silently rewrites `lib/prelude.typ` to the prelude it embeds.

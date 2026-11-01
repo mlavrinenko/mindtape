@@ -30,7 +30,7 @@
   status: done(2026, 10, 16),
 )
 
-== Problem
+== AS-IS
 
 + Run `just docs build` and open the site root at a desktop and a phone width, in light and dark.
 + 🔴 "Here's a real task." sits above an `mt ls` table, not a task. The lede wraps at 40rem. The "typeset · rendered" card fills a whole screen.

@@ -32,7 +32,7 @@
 )
 
 
-== Problem
+== AS-IS
 
 + Run `mt add --describe -t dev` and read the sections the template asks for.
 + 🔴 Every template still writes `Problem`, and the `dev` template still writes `Rollback`, so the new rules have no template that satisfies them.

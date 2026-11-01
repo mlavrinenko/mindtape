@@ -30,7 +30,7 @@
   status: done(2026, 9, 28),
 )
 
-== Problem
+== AS-IS
 
 + `git log -200 --format='%(trailers:key=Refs,valueonly)'` in this repo.
 + 🔴 83 trailers are repo-root paths and one is a bare stem: nothing checks them, a path breaks when a task moves folders, and a mistyped trailer silently names nothing.

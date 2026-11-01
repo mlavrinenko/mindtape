@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Closing the check-doc-prose pending list and reading how it allows constants
 + 🔴 #raw(".just/scripts/check-doc-prose.awk"): a word the scanned files assign as a shell variable is allowed in all-caps anywhere in prose, and a single shouted capital inside an all-caps run is not flagged

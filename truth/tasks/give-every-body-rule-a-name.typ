@@ -30,7 +30,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Add `name = "problem-steps"` to any `[[tasks.body.content.rules]]` entry in `.mindtape/config.toml`.
 + Run `mt check`.

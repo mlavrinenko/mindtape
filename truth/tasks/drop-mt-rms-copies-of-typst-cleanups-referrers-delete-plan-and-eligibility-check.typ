@@ -34,7 +34,7 @@
   )[mt rm calls typst-cleanup 0.3's referrers, delete\_plan and Error::Ineligible],
 )
 
-== Problem
+== AS-IS
 
 + Read `crates/mindtape-cli/src/cmd/rm/mod.rs`, `gitless/mod.rs` and `eligible.rs`.
 + 🔴 `referrers` repeats typst-cleanup's `Policy::scan` and `Policy::identity` loop, `plain_delete_plan` builds a `Plan` by hand and copies the crate's sort order, and `check_eligible_files` mints every eligible file a second time because `typst_cleanup::plan` stopped at the first file it couldn't mint.

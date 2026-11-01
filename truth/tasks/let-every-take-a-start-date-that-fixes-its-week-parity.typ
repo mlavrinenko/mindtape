@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt recur` on a task declaring `every(weeks: 2, on: (mon, thu))` whose last `due` is Thursday 2026-06-04.
 + 🔴 The next date follows `SERIES_EPOCH`, the Monday 2001-01-01 in `crates/mindtape/src/recur_dates.rs`, which counts every series' week parity. No argument lets a project pick which alternate weeks the series runs on.

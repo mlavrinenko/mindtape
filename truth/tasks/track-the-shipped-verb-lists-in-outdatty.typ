@@ -30,7 +30,7 @@
   status: done(2026, 10, 18),
 )
 
-== Problem
+== AS-IS
 
 + Run `rg -l 'mindtape-dev-verbs' www skills` in the repo.
 + 🔴 `www/content/named-sets.typ` and `www/content/start-titles-with-a-verb.typ` quote the word lists in `crates/mindtape/src/dicts/*.txt` (the 500-verb count, `refactor`, `deprecate`, `rate-limit`, "Backport" missing from both).

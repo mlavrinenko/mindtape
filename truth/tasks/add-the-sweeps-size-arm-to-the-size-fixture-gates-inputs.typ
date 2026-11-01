@@ -30,7 +30,7 @@
   status: done(2026, 10, 13),
 )
 
-== Problem
+== AS-IS
 
 + Commit `82070d9b`, which edits `contrib/ask-refactoring/size.sh`, then run `just check`.
 + 🔴 It passes with `just size-fixture-check` cached, though `bash .just/scripts/size-fixture-check.sh` fails: `score_size read crates/x/src/config/tests_id.rs as '', not a test`. The gate sources the size arm, but its mmz inputs omit it.

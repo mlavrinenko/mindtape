@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Put `[views.broken] sort = ["nofield"]` in `.mindtape/config.toml` and run `mt ls`.
 + 🔴 It prints `error: load /abs/path/.mindtape/config.toml: invalid config: views.broken.sort: unknown sort field: nofield`, an absolute path and no line.

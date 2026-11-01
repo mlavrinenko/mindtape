@@ -32,7 +32,7 @@
 )
 
 
-== Problem
+== AS-IS
 
 + Run `mt rules --for add` and count the sections a `dev` task must carry.
 + 🔴 A `dev` task carries `Rollback` for a revert that is the default, and a `decision` task cannot carry `Alternatives` until its kind is `feat`.

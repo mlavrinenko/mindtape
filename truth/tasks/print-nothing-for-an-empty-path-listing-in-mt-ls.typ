@@ -30,7 +30,7 @@
   status: done(2026, 10, 16),
 )
 
-== Problem
+== AS-IS
 
 + Counting tasks across projects with `mt ls <filter> --format path | wc -l` while prototyping a cross-project overview
 + 🔴 #raw("crates/mindtape-cli/src/cmd/ls/mod.rs"): `mt ls` with `--format path` prints a lone newline when no task matches, because `println!` adds one after the empty body

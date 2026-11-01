@@ -35,7 +35,7 @@
   links: parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + In a project that extends `mindtape-tasks`, run `mt add "Delete the old fixture"`, `mt add "Group the index by section"` and `mt add "Rate-limit the login endpoint"`.
 + 🔴 Each prints `rules.imperative-title: start the title with an imperative verb` and writes nothing.

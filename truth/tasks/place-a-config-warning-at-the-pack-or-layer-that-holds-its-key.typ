@@ -31,7 +31,7 @@
   links: parent("share-config-between-projects-through-packs.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Fixing config errors to name their pack, in `place-a-config-error-only-at-a-source-that-declares-its-full-key.typ`
 + 🔴 #raw("crates/mindtape-cli/src/util.rs"): `config_warnings` places every load warning at the project config, whatever file holds the key

@@ -34,7 +34,7 @@
 
 
 
-== Problem
+== AS-IS
 
 + Read `www/content/tie-work-to-goals.typ` and the skill's task example.
 + 🔴 The goals page shows the `goals.typ` helper and the skill has no `x-goals` example, so the short form is absent from the docs.

@@ -34,7 +34,7 @@
   )[check\_candidates answers a newly closed cycle reported on a non-candidate to every candidate; pre-existing cycles still never block. The message keeps mt check's rotation (alpha → beta → alpha, reported on alpha) rather than re-rotating it onto the writer],
 )
 
-== Problem
+== AS-IS
 
 + In a scratch project, `mt add alpha` and `mt add beta`.
 + `mt link alpha depends-on beta` exits 0.

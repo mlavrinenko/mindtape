@@ -31,7 +31,7 @@
   links: parent("share-config-between-projects-through-packs.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Widening packs to any config key, in `merge-every-config-key-from-a-pack-below-the-layer-that-extends-it.typ`
 + 🔴 #raw("crates/mindtape/src/config/layers.rs"): a misspelled key in a pack or an ancestor `.mindtape/defaults.toml` fails the merged config without naming the file that holds it, so the reader looks in `.mindtape/config.toml`

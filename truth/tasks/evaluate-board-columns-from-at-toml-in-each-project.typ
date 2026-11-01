@@ -32,7 +32,7 @@
     + depends-on("parse-at-toml-into-named-project-sets.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Ask how many tasks are open, ready and blocked in each of 30 projects.
 + 🔴 Each count is a `mt -w <path> ls <filter> --format path | wc -l` per project, and a filter such as `status == "wip"` fails in a project whose legend lacks `wip`.

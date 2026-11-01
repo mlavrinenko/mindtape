@@ -30,7 +30,7 @@
   status: done(2026, 10, 14),
 )
 
-== Problem
+== AS-IS
 
 + Pre-release review for 0.3.0, after `just release 0.3.0 --dry-run` passed
 + 🔴 #raw("CHANGELOG.md"): `[Unreleased]` is 171 KB of 257 entries logged commit by commit, some naming commands that no longer exist, and nothing tells a 0.2.0 user that the binary is now `mt` and their task files must be refiled

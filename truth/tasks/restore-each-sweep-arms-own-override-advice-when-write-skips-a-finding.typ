@@ -30,7 +30,7 @@
   status: done(2026, 10, 13),
 )
 
-== Problem
+== AS-IS
 
 + Reading commit ee2ff69e while starting the dry sweep arm
 + 🔴 #raw("contrib/ask-refactoring.sh"): file_finding prints one generic skipped hint, so the size, coverage, undertested and mutants arms lost their own override advice (the just cover exclude, CRAP_EXCLUDES, exclude_re)

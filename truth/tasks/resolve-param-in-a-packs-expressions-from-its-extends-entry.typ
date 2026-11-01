@@ -35,7 +35,7 @@
     ),
 )
 
-== Problem
+== AS-IS
 
 + Write a path pack with `[params] max-files = 5` and a rule asserting `estimate.src-files <= param("max-files")`.
 + Extend it with `extends = [{ pack = "./team.toml", with = { max-files = 8 } }]`.

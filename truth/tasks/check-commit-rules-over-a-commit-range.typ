@@ -31,7 +31,7 @@
   links: depends-on("check-commit-messages-against-commit-rules.typ"),
 )
 
-== Problem
+== AS-IS
 
 + `git commit --no-verify -m 'task: close x'`.
 + 🔴 The commit lands: `mt check --commit-msg` runs only from a hook, and a hook is one flag away from skipped.

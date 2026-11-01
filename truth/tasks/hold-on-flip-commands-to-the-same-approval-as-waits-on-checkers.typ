@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Clone `examples/api-service`, whose `[[on.flip]]` runs `scripts/test` into `done`.
 + 🔴 Run `mt done reject-expired-sessions-on-token-refresh`. It runs `scripts/test` before you have read the config.

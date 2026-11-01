@@ -34,7 +34,7 @@
   )[scoped runs write \\\`target/mutants-scoped\\\`; the full sweep keeps \\\`mutants.out\\\`; the arm reads the newer of the two; \\\`just check\\\` green],
 )
 
-== Problem
+== AS-IS
 
 + Run a full workspace sweep: `just mutants --iterate`.
 + 🔴 The 2026-09-30 run printed `INFO Iteration excludes 46 previously caught or unviable mutants` before 15 hours of testing: earlier scoped runs had overwritten `mutants.out`, the cache a full run reads, so 4240 mutants were tested instead of only re-running the previous misses.

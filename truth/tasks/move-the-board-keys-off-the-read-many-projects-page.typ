@@ -30,7 +30,7 @@
   status: done(2026, 10, 18),
 )
 
-== Problem
+== AS-IS
 
 + Open `/read-many-projects/` and read "See every project at once".
 + 🔴 A start page carries the shipped board and two `at.toml` key tables, `board` and `board.columns`, that belong on `/cli/board/`.

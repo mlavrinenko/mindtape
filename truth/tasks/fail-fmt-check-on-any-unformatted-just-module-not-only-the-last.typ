@@ -30,7 +30,7 @@
   status: done(2026, 10, 28),
 )
 
-== Problem
+== AS-IS
 
 + Running `just fmt` while fixing `stop-a-waits-checker-that-runs-mt-from-spawning-itself-without-end`
 + 🔴 #raw("Justfile"): `fmt-check`'s `for f in .just/*.just` loop keeps only the last diff's exit status, so it exits 0 over a diff in `.just/lint.just`, and `just fmt` there deletes the comment line `# lacks.`

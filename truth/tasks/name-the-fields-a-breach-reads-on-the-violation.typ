@@ -33,7 +33,7 @@
   )[both reshape Violation; land one struct change],
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the add hint after cc77f2b7
 + 🔴 #raw("crates/mindtape/src/config_rules.rs"): \`breach\_fields\` reads a body rule's breach as about \`body\`, and the hint matches slot names against field names, so neither refusal below hints at \`-t dev\`

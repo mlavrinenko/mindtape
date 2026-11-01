@@ -30,7 +30,7 @@
   status: done(2026, 10, 17),
 )
 
-== Problem
+== AS-IS
 
 + Change one line of `crates/mindtape-cli/src/cmd/ls/mod.rs`, as `dc34aced` did, and run `just outdatty-check`.
 + 🔴 It prints `[ stale ]  cli-docs` and 27 `review dependent:` lines, one of them a glob over 25 command pages. Four commits on 16 and 17 October re-recorded that group with no doc edit.

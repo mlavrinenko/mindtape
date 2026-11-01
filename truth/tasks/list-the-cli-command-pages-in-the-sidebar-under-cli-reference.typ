@@ -30,7 +30,7 @@
   status: done(2026, 10, 6),
 )
 
-== Problem
+== AS-IS
 
 + Open any docs page and read the sidebar's Reference group.
 + 🔴 It shows one "CLI reference" entry. None of the 21 command pages under `/cli/` appear, so a reader reaches `mt link` only through the index or search.

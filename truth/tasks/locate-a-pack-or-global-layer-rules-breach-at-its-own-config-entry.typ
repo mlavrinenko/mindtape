@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt check` in a project whose `extends = ["mindtape-tasks"]` pack has a `[[tasks.rules]]` rule that cannot be evaluated, for example one whose `changed()` git cannot answer.
 + 🔴 The warning `skipped: …` points at the first task's `task.with(…)` line. `config_entry` in `crates/mindtape/src/config_rules_eval.rs` scans only the project's `.mindtape/config.toml`, so a rule from a pack or a global config layer has no location.

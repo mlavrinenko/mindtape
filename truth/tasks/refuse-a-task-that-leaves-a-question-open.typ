@@ -34,7 +34,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt add` with a TO-BE bullet `- 🟢 Should it also cover the board?`.
 + Run `mt check`.

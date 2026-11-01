@@ -34,7 +34,7 @@
   )[just ask-refactoring's repeats arm files short snippets by extraction gain],
 )
 
-== Problem
+== AS-IS
 
 + Run `just check-dry`. It passes, because its floor is 50 tokens.
 + 🔴 `let dir = tempfile::tempdir().unwrap();` and the setup after it repeat in 395 places across 78 test files. No gate or sweep reports it, because each copy is under 50 tokens.

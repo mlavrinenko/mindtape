@@ -34,7 +34,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 1. Open `truth/tasks/de-slop-the-docs-site-start-and-guide-pages.typ`, under
   `== Rules`. Every de-slop pass so far says: "Do not restructure headings or

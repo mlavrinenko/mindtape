@@ -30,7 +30,7 @@
   status: done(2026, 10, 4),
 )
 
-== Problem
+== AS-IS
 
 + Write a template whose slot has no `default`:
 

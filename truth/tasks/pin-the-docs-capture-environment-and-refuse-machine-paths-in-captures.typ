@@ -31,7 +31,7 @@
   links: parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Run `rg -n /home/ www/generated/`.
 + 🔴 It prints `www/generated/config-origin.txt:2:xdg: /home/user/.config/mindtape/defaults.toml (exists)` and the same line from `rule-packs-origin.txt`. The /cli/ and /rule-packs/ pages publish both.

@@ -14,7 +14,7 @@
     + parent("harden-session-tokens.typ"),
 )
 
-== Problem
+== AS-IS
 + Run `grep JWT_SIGNING_KEY .env.production`.
 + 🔴 The key is 214 days old, and a leaked key would sign valid tokens until someone noticed.
 

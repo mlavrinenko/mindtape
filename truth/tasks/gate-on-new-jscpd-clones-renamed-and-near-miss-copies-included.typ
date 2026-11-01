@@ -34,7 +34,7 @@
   )[check-dry fails on clones .jscpd-baseline.json lacks, renamed and near-miss ones included],
 )
 
-== Problem
+== AS-IS
 
 + Run `just check-dry`. jscpd 5.0.15 at `-k 70` passes with no clone.
 + 🔴 It matches exact tokens, so a renamed copy slips past. jscpd 5.4.1 with `--ignore-identifiers --ignore-literals` finds 599 renamed clones at `-k 70`, such as the hand-written string-to-enum `Deserialize` impls in `crates/mindtape/src/body/content.rs` and `crates/mindtape/src/model/naming.rs`.

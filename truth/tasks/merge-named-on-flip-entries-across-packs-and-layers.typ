@@ -34,7 +34,7 @@
     ),
 )
 
-== Problem
+== AS-IS
 
 + Put an `[[on.flip]]` stale-WIP gate in a `.mindtape/defaults.toml` one directory above a project whose `.mindtape/config.toml` has an `[[on.flip]]` close gate.
 + Run `mt config show` in the project.

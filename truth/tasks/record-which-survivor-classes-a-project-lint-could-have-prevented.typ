@@ -30,7 +30,7 @@
   status: done(2026, 10, 1),
 )
 
-== Problem
+== AS-IS
 
 + Read the `exclude_re` list in `.cargo/mutants.toml` (7 entries today).
 + 🔴 Each entry's reason says why the mutant cannot be killed, but nothing names its class, so the next sweep re-triages the same class by hand and no one can count which classes recur.

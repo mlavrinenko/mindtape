@@ -25,7 +25,7 @@ Here's a real task.
   links: depends-on("add-redis-client.typ"),
 )
 
-== Problem
+== AS-IS
 + Run `for i in $(seq 50); do curl -so /dev/null -w '%{http_code} ' -d user=ada -d password=x localhost:8080/login; done`.
 + 🔴 It prints `401` fifty times. A script can guess passwords as fast as the server answers.
 

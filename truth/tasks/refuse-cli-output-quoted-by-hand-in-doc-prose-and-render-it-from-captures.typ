@@ -30,7 +30,7 @@
   status: done(2026, 10, 8),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the docs before release: templates.typ quotes a hint that mt add no longer prints
 + 🔴 #raw("www/content/templates.typ"): an inline span quoting mt output, such as an error: or hint: line, passes every doc gate, so the quoted text goes stale when the message changes

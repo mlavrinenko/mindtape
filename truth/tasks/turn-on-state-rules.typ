@@ -31,7 +31,7 @@
   links: depends-on("task-shape-docs.typ") + depends-on("as-is-sweep.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt tags --for add` and read the statefulness and example rules.
 + 🔴 Both are parameter-gated off, so a new task can still omit the statefulness tag and the example fence.

@@ -34,7 +34,7 @@
   )[the Recipes group ties milestones to goals in place of the gate-done recipe],
 )
 
-== Problem
+== AS-IS
 
 + Open the "Gate done on your checks" recipe.
 + 🔴 It runs the tests when a task closes, which a pre-commit hook already does whenever the flip rides in the work's last commit.

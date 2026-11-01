@@ -30,7 +30,7 @@
   status: done(2026, 10, 7),
 )
 
-== Problem
+== AS-IS
 
 + Read `.just/scripts/outdatty-check.sh`.
 + 🔴 It re-implements what outdatty 0.6.0 does itself, and only for glob dependents, so nine listed `examples/task-files` dependents had no lock entry unnoticed.

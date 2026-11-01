@@ -30,7 +30,7 @@
   status: done(2026, 10, 16),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt init --list-presets`.
 + 🔴 It lists `todone`, while the `mt init` wizard calls the same workflow `todo-done`.

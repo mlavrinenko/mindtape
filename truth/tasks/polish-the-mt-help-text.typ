@@ -30,7 +30,7 @@
   status: done(2026, 10, 15),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt --help` in any project.
 + 🔴 The about line reads "Command-line interface for Mindtape, a file-based task tracker over Typst", which says nothing a newcomer can act on.

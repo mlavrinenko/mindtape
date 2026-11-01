@@ -30,7 +30,7 @@
   status: done(2026, 10, 11),
 )
 
-== Problem
+== AS-IS
 
 + Asked how commit rules see a task that waits on a \`\[\[tasks.waits\]\]\` checker
 + 🔴 #raw("crates/mindtape/src/commit/tasks.rs"): \`ProjectState::new\` builds each commit's tasks without asking their checkers, so in \`mt check --commits\` a waiting task reads ready, while \`--commit-msg\` on the staged tree reads it blocked

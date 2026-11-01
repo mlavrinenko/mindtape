@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Landing the check-doc-prose scan of every shell script, YAML file and Justfile comment
 + 🔴 #raw(".just/scripts/check-doc-prose.pending"): 12 files, lines 1 to 12 of the pending list, still tell history or shout in all-caps words

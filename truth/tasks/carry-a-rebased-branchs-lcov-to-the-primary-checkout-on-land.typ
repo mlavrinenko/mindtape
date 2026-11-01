@@ -30,7 +30,7 @@
   status: done(2026, 10, 13),
 )
 
-== Problem
+== AS-IS
 
 + Running `just check` on main after four parallel branches landed, each rebased onto main first
 + 🔴 #raw(".just/scripts/wt-carry-lcov.sh"): after a branch is rebased and landed, main's `just crap` fails on a stale lcov, though `just cover` read fresh in the branch's records

@@ -30,7 +30,7 @@
   status: done(2026, 10, 1),
 )
 
-== Problem
+== AS-IS
 
 + Read `crates/mindtape/src/fs_atomic.rs:31-42` (`write_atomic`'s cleanup arm).
 + 🔴 The cleanup arm (`remove_file(&tmp)`) is only reachable when a step after the temp file's creation fails, and no test made one fail: deleting `let _ = fs::remove_file(&tmp);` left the suite green.

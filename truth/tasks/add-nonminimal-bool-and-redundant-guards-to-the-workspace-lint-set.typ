@@ -34,7 +34,7 @@
   )[No-op: a workspace deny is as overridable by a module \#\[allow\] as -D warnings already is, and the cited looks\_like\_path clause is a MAIN\_SEPARATOR comparison neither lint flags.],
 )
 
-== Problem
+== AS-IS
 
 + Read `Cargo.toml`'s `[workspace.lints.clippy]` (line 30).
 + 🔴 `if_same_then_else` (line 47) and `match_same_arms` (line 134) are explicit `deny`s, but `nonminimal_bool` and `redundant_guards` are absent: they only gate through the clippy recipe's `-D warnings` (`Justfile:86`), so a module-level `allow` or a recipe change drops them with nothing to notice.

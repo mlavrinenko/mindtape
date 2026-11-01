@@ -30,7 +30,7 @@
   status: done(2026, 10, 16),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing three agent branches, each told to fold review fixes in with `git commit --fixup` and `rebase --autosquash`.
 + 🔴 #raw("crates/mindtape/src/packs/mindtape-tasks.toml"): `mt check --commit-msg` refuses a `fixup!` commit for a missing `Refs:` footer and changelog trailer, though autosquash drops its message and `just land` re-checks the squashed commits.

@@ -37,7 +37,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt eval nope.typ` in a project.
 + 🔴 It prints `Error: no such file: nope.typ`, unquoted and capitalised.

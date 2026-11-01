@@ -34,7 +34,7 @@
   )[both recipes count first and refuse over 100 without approval],
 )
 
-== Problem
+== AS-IS
 
 + An agent ran `just mutants-diff` on a branch with a wide diff.
 + 🔴 It started a sweep that would have run for hours, and only the owner killing it stopped it.

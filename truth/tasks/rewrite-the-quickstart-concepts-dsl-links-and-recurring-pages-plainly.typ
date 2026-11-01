@@ -36,7 +36,7 @@
     + parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Read the pages against the code.
 + 🔴 `links.typ:16` and `concepts.typ:42` say a link target is a filename stem. `mt` resolves it as a path relative to the linking file (`crates/mindtape/src/model.rs:277`).

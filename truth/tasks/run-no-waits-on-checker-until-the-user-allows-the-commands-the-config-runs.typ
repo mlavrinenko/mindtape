@@ -30,7 +30,7 @@
   status: done(2026, 10, 11),
 )
 
-== Problem
+== AS-IS
 
 + Clone a repo whose `.mindtape/config.toml` declares `[[tasks.waits]] run = "scripts/locked {id}"`.
 + 🔴 Run `mt ls`. It runs `scripts/locked` with your authority before you have read the config.

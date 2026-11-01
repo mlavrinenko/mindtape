@@ -30,7 +30,7 @@
   status: done(2026, 10, 7),
 )
 
-== Problem
+== AS-IS
 
 + Integrating the per-command CLI pages and the docs-terms pass, which edited those pages.
 + 🔴 #raw("outdatty.lock"): The \`cli-docs\` group lists \`www/content/cli/\*.typ\` as a glob dependent, and the lock recorded no hash for any file it matches, because nobody ran the update after the 21 pages were added. The glob itself works: outdatty 0.5.0 records one hash per matched file, as `outdatty update --group cli-docs --dependent www/content/cli/add.typ` shows.

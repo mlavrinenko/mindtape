@@ -32,7 +32,7 @@
 )
 
 
-== Problem
+== AS-IS
 
 + Run `mt add --describe -t dev` and count the eight per-goal slots.
 + 🔴 The template writes eight verdict lines per task, so every filed task carries the long form.

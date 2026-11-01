@@ -34,7 +34,7 @@
   )[\`mt add\` now prints a stderr note per config-spliced core field the caller did not set, naming the value, its origin (\`\[tasks.assignee\]\` env \`MINDTAPE\_PRINCIPAL\`, \`\[tasks.fields.kind\]\` default, or a spliced slot) and the \`--set \<field>=\<value>\` override; std documented in SKILL.md],
 )
 
-== Problem
+== AS-IS
 
 + Run `mt add -t dev …` with `$MINDTAPE_PRINCIPAL=agent`.
 + 🔴 The filed task carries `assignee: "agent"`, although the `dev` template never mentions `assignee`; neither the output nor the file says the value came from `[tasks.assignee]`'s env default rather than from the filer.

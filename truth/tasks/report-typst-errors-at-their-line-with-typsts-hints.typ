@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Misspell `title` as `titel` in a task file and run `mt check`.
 + 🔴 It prints `warning: tasks/broken.typ:2: eval error: unexpected argument: titel`: a warning under the command that fails on it, an `eval error:` prefix, no column, and none of Typst's hints.

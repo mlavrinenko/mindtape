@@ -30,7 +30,7 @@
   status: done(2026, 10, 16),
 )
 
-== Problem
+== AS-IS
 
 + Writing the verb-first titles recipe, which reuses `exit-code()` from `www/utils/ui.typ`.
 + 🔴 #raw("www/content/split-oversized-tasks.typ"): `exit-code(slug)` returns the last step's code, and the split-oversized-tasks session ends with the rename that files, so the page says the refused `mt add` exits 0.

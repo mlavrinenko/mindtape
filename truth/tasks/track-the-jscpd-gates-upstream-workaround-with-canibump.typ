@@ -38,7 +38,7 @@
     + depends-on("track-the-sweeps-repeats-arm-with-canibump.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Read `.just/scripts/lint-dry.sh`.
 + 🔴 It filters jscpd's JSON report down to the new clones with `jq`, because under `--baseline` every reporter prints all clones, old ones included. Nothing says when upstream fixes that, so the filter stays after its reason is gone.

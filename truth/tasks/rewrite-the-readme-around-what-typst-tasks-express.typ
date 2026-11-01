@@ -31,7 +31,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Open `README.md` as a software engineer who already keeps tasks in Markdown files with YAML frontmatter.
 + 🔴 The first screen calls MindTape a daemon-free file-based task tracker and shows a task, but nothing in it needs Typst: frontmatter plus a script does the same.

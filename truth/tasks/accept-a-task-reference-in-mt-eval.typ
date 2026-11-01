@@ -34,7 +34,7 @@
   )[stem and handle resolve through util::resolve\_task; a path still works outside a project; unknown stems get a did-you-mean on every command],
 )
 
-== Problem
+== AS-IS
 
 + `skills/mindtape/SKILL.md` lists `mt eval <task>`, where `<task>` is a stem, a path, or a `#` handle.
 + 🔴 `mt eval refuse-a-dependency-cycle-when-mt-link-writes-it` prints `Error: no such file: refuse-a-dependency-cycle-when-mt-link-writes-it`; `mt eval --help` shows `<FILE>`.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 7),
 )
 
-== Problem
+== AS-IS
 
 + Fixing the first-run errors, whose prelude note reaches mt add only
 + 🔴 #raw("crates/mindtape-cli/src/import/write.rs"): \`mt import\` on a machine where \`mt install\` never ran skips every record with the Typst path and never names \`mt install\`

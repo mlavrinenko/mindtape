@@ -35,7 +35,7 @@
   links: depends-on("give-the-docs-a-conversational-voice.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Open `www/content/one-task-at-a-time.typ`.
 + 🔴 "Because a write command refuses a change that breaks a rule, `mt wip` refuses the second start."

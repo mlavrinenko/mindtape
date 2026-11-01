@@ -30,7 +30,7 @@
   status: done(2026, 10, 7),
 )
 
-== Problem
+== AS-IS
 
 + Running \`mt done X\` then \`git commit --amend --no-edit\` on the commit holding X's work.
 + 🔴 #raw("crates/mindtape/src/commit_msg.rs"): \`staged\_files\` diffs the index against HEAD (\`--cached\`), so during an amend \`files\` holds only the flip, \`tasks\_only\` is true, and rule \`flip-with-work\` refuses a commit that does carry the work.

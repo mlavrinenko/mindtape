@@ -32,7 +32,7 @@
     + depends-on("read-a-directory-pack-and-ship-its-templates.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Put `check.typ` beside `team/pack.toml`, with a rule `check = { typst = "check.typ", function = "check-x", field = "x-x" }` and a `[dicts.words] path = "words.txt"`.
 + Add `extends = ["./team/pack.toml"]` and run `mt check`.

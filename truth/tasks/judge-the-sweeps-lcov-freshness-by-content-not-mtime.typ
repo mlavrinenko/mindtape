@@ -30,7 +30,7 @@
   status: done(2026, 10, 13),
 )
 
-== Problem
+== AS-IS
 
 + Running `just ask-refactoring` after reverting a probe edit with `git checkout`
 + 🔴 #raw("contrib/ask-refactoring/coverage.sh"): `ensure_lcov_fresh` refuses an lcov older than any `crates/**/*.rs` by mtime, but `just mmz cover` caches by content, so after a checkout or rebase the cache hits, the lcov is not rewritten, and the sweep refuses

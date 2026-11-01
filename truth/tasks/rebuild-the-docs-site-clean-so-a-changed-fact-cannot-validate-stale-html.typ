@@ -30,7 +30,7 @@
   status: done(2026, 9, 22),
 )
 
-== Problem
+== AS-IS
 
 + Change `min` from 1 to 2 under `[ice.inputs.impact]` in
   `crates/mindtape/src/frameworks.toml`.

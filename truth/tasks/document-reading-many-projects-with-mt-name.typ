@@ -36,7 +36,7 @@
     ),
 )
 
-== Problem
+== AS-IS
 
 + Open the docs site and look for a way to see several projects at once.
 + 🔴 Only `www/content/agents.typ` covers `@name`, as one project per name. Nothing shows a set, the board, or which commands run on a set.

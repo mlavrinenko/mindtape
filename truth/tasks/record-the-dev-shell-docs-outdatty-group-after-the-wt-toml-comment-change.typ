@@ -30,7 +30,7 @@
   status: done(2026, 10, 13),
 )
 
-== Problem
+== AS-IS
 
 + Running just land from a worktree rebased onto main at 06a0492f
 + 🔴 #raw("outdatty.lock"): 06a0492f edited .config/wt.toml, the source of the dev-shell-docs group, without recording the group, so outdatty-check fails on main and blocks every just land

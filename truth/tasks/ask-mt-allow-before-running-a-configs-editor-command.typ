@@ -30,7 +30,7 @@
   status: done(2026, 10, 26),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the packs milestone, where fetched packs may carry any config key
 + 🔴 #raw("crates/mindtape/src/allow.rs"): `mt allow` covers `[[tasks.waits]]` and `[[on.flip]]` `run` lines only, while `mt go` and `mt add`'s editor fill spawn the program a config's `[go] editor` or `[add] editor` names, ahead of `$VISUAL`, without asking

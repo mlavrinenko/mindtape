@@ -64,7 +64,7 @@
     ),
 )
 
-== Problem
+== AS-IS
 
 + Read `crates/mindtape-cli/src/main.rs` and `crates/mindtape-cli/src/cmd/mod.rs`.
 + 🔴 Modules still carry `allow(clippy::disallowed_macros)`, and `diag/from_lib.rs` still bridges `anyhow` chains with `Diag::legacy`, so a new `.context(format!(..))` compiles and prints free text.

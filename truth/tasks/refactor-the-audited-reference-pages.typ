@@ -34,7 +34,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 1. 🔴 The audit of the reference-side pages found facts the code contradicts:
   `named-sets` says a view's `filter` is required (it defaults to match-all),

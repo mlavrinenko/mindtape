@@ -30,7 +30,7 @@
   status: done(2026, 10, 19),
 )
 
-== Problem
+== AS-IS
 
 + Misspelling a status helper in a task header and running `mt check`
 + 🔴 #raw("crates/mindtape-cli/src/util.rs"): `load_problems` attaches the escaped-hash hint to every first `unknown variable` error, so a misspelled helper in the `task.with(...)` header gets advice about `#` in the body

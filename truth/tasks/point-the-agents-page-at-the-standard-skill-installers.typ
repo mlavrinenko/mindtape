@@ -30,7 +30,7 @@
   status: done(2026, 10, 6),
 )
 
-== Problem
+== AS-IS
 
 + Open `/agents/` and read "Give your agent the skill".
 + 🔴 It says "Copy that directory into the directory your agent loads skills from". It names neither the skill format, the directory nor a tool that installs a skill.

@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Open `CONTRIBUTING.md` at "Quality Gates".
 + 🔴 A 27-row table restates every gate, and nothing there says which gates `just check` runs first.

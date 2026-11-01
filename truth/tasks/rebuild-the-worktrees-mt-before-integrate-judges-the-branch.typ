@@ -30,7 +30,7 @@
   status: done(2026, 10, 7),
 )
 
-== Problem
+== AS-IS
 
 + Integrating a branch rebased over a config change.
 + 🔴 #raw(".just/scripts/integrate.sh"): \`integrate.sh\` runs \`mt\` in the worktree, but that binary was built once by \`fork.sh\`; after a rebase over a config change it rejects the new config, so a good branch is refused.

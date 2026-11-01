@@ -31,7 +31,7 @@
   links: parent("share-config-between-projects-through-packs.typ"),
 )
 
-== Problem
+== AS-IS
 
 + 🔴 #raw("crates/mindtape/src/config/locate.rs"): `place_of` searches only layer files, and `key_line` falls back to the deepest ancestor key a file declares, so a bad value from a pack lands on an unrelated project line:
 

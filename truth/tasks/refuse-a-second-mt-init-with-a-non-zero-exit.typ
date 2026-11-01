@@ -30,7 +30,7 @@
   status: done(2026, 10, 19),
 )
 
-== Problem
+== AS-IS
 
 + Re-running `mt init` in a project that already has a config
 + 🔴 #raw("crates/mindtape-cli/src/cmd/init/mod.rs"): `scaffold_config` prints its refusal with `println!` and returns `Ok(false)`, so `mt init` over an existing config exits 0 with no `error:` prefix and writes nothing

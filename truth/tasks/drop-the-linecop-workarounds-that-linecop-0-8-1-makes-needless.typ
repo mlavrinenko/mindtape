@@ -30,7 +30,7 @@
   status: done(2026, 10, 28),
 )
 
-== Problem
+== AS-IS
 
 + Read `.config/linecop.yaml`: it leaves `.githooks/*` and `.just/*.just` uncapped, on the belief that linecop detects language by extension only and knows no Just.
 + 🔴 Both beliefs were wrong: tokei falls back to the shebang and knows `Just`. linecop 0.8.0 did ignore a `Bash` key, since it looked languages up by tokei's display name `BASH`, and it counted only languages named in `limits`, so the `docs/src/**` overrides needed a dummy `Typst: 1000` base.

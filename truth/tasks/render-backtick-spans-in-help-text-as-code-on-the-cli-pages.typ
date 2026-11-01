@@ -30,7 +30,7 @@
   status: done(2026, 10, 8),
 )
 
-== Problem
+== AS-IS
 
 + Rewriting the mt help text
 + 🔴 #raw("www/utils/cli-ref.typ"): www/utils/cli-ref.typ renders a command's help as plain text, so a backtick span such as \`-n 20\` prints with its backticks on the /cli/ pages

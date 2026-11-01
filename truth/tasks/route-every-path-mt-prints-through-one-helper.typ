@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Push a branch and run the `windows` job of `.github/workflows/ci.yml`.
 + 🔴 88 tests fail, such as `mv_e2e::mv_renames_the_file_and_retargets_every_inbound_edge`, which reads `moved tasks\old.typ -> tasks\new.typ` where it expects `/`.

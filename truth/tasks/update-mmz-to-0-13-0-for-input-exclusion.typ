@@ -30,7 +30,7 @@
   status: done(2026, 10, 20),
 )
 
-== Problem
+== AS-IS
 
 + Run `mmz --version` in the dev shell.
 + 🔴 It prints `mmz 0.12.1`, which cannot leave a path out of a scope. Gates globbing `examples/**` hashed `.mindtape/cache/` files another gate deleted mid-hash, which failed a run, and only the `**/.mindtape/cache/` line in `.gitignore` keeps them out now.

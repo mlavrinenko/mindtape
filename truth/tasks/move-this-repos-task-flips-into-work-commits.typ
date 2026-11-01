@@ -34,7 +34,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + `git log --format=%s -300 | rg -c '^task: (start|close)'`.
 + 🔴 108 of 300 commits are flip-only. Starts are committed on main because `just fork` refuses a dirty tree (`.just/scripts/fork.sh:74`); closes land after the work.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 8),
 )
 
-== Problem
+== AS-IS
 
 + Rewording the example rule messages
 + 🔴 #raw("crates/mindtape-cli/src/cmd/init/presets/gated/config.toml"): the init presets word rule messages as statements, not imperative next steps

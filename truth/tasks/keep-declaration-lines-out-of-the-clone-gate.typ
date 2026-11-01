@@ -31,7 +31,7 @@
   links: parent("share-config-between-projects-through-packs.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Adding a pack and its test module, as five agents did today for the packs milestone
 + 🔴 #raw(".just/scripts/lint-dry.sh"): `just lint dry` reads a run of `mod`, `#[path] mod tests_*` and `include_str!` registry lines as a renamed clone of itself, so each new module or pack fails the gate until the baseline is re-minted. A declaration list has no helper to extract.

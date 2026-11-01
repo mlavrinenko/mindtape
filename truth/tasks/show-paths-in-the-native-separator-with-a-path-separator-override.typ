@@ -30,7 +30,7 @@
   status: done(2026, 10, 28),
 )
 
-== Problem
+== AS-IS
 
 + On Windows, run `mt check` in a project whose template breaks a rule.
 + 🔴 It prints `error: .mindtape/templates\bug.typ:8: ...`, with both separators in one path.

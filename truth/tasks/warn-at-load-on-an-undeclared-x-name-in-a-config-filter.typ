@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing filter reads of x- fields in 4cd099ab
 + 🔴 #raw("crates/mindtape/src/filter.rs"): a config filter naming a misspelled \`x-\` field loads and matches nothing, while a misspelled core field fails the load

@@ -34,7 +34,7 @@
     + parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + After the captures move, run `rg -l learn-piano . -g '!examples/learn-piano/**' -g '!truth/**'`.
 + 🔴 Only gate wiring still names it (`Justfile` `check-examples`, `TYPST_FMT_PATHS`, `.mmz/config.yaml`), so the gate keeps validating a fixture nothing reads.

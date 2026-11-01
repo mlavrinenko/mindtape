@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Running examples/estimates outside git.
 + 🔴 #raw("crates/mindtape/src/filter.rs"): \`expr\_problem\_in\_set\` dry-runs a rule with \`dry: false\`, so \`changed()\` and \`touches()\` read git at every config load.

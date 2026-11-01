@@ -30,7 +30,7 @@
   status: done(2026, 10, 17),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the skill's evals while splitting cli-docs
 + 🔴 #raw("skills/mindtape/evals/README.md"): The README calls examples/minimal the floor config, but minimal declares its own todo, wip, done and cancelled legend, while the floor's has proposed, accepted and failed too.

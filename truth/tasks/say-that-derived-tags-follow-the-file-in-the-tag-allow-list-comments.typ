@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Rewriting /derived-tags/, which made the same claim
 + 🔴 #raw("crates/mindtape/src/validate.rs"): The check\_tags comment says a closed task keeps the tags its folder derived when it was filed, but the loader derives folder tags again on every load.

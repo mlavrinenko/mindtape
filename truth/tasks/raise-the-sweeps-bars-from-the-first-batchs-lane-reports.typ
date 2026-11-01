@@ -30,7 +30,7 @@
   status: done(2026, 10, 13),
 )
 
-== Problem
+== AS-IS
 
 + Run the first sweep batch through seven agent lanes.
 + 🔴 Lanes called three kinds of finding busywork: test modules at 90..95% of their cap, a file 3 uncovered lines below the floor, and one assert pattern filed as five dry tasks.

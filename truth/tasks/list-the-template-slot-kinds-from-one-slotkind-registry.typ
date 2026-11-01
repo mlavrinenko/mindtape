@@ -31,7 +31,7 @@
   links: parent("keep-the-user-docs-generated-or-gated-not-restated.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Put `tags: slot("tags", kind: "multi-choice", choices: ("a", "b"))` in `.mindtape/templates/task.typ` and run `mt add x`.
 + 🔴 It prints `error: slot declares an unknown kind: 'multi-choice' in slot 'tags': expected one of string, int, float, real, bool, date, list, text, raw, choice`. `multichoice` is missing, though `SlotKind::parse` accepts it.

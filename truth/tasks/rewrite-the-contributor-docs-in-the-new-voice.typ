@@ -35,7 +35,7 @@
   links: depends-on("give-the-docs-a-conversational-voice.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Read `CONTRIBUTING.md`, Worktrees.
 + 🔴 "It refuses when this checkout has uncommitted changes, because `git worktree add` copies commits only."

@@ -30,7 +30,7 @@
   status: done(2026, 10, 13),
 )
 
-== Problem
+== AS-IS
 
 + Source `contrib/ask-refactoring/repeats.sh`, run jscpd at 15 tokens over `crates` and pipe its report through `score_repeats` with `REPEAT_GAIN=300`.
 + 🔴 It prints 12 groups. The biggest is `let dir = tempfile::tempdir().unwrap();`, 395 copies in 107 files. The rest are test setups pasted 8 to 58 times: an `mt add` run and read-back, a `Condition::parse` assert, a link-edge fixture, a self-test re-exec, a rules-test project and a template const.

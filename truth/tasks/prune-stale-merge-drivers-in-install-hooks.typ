@@ -30,7 +30,7 @@
   status: done(2026, 10, 28),
 )
 
-== Problem
+== AS-IS
 
 + Reading the shared .git/config while landing a rename of a merge driver
 + 🔴 #raw("Justfile"): `just install-hooks` writes `merge.<name>.*` and never removes one, so a renamed or deleted driver stays in the shared `.git/config`

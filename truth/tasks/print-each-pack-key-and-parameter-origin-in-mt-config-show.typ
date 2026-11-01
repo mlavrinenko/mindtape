@@ -35,7 +35,7 @@
     ),
 )
 
-== Problem
+== AS-IS
 
 + Extend a pack that sets `[tasks.priority] framework = "ice"` and declares `[params] max-files = 5`, with `with = { max-files = 8 }`.
 + Run `mt config show --origin`.

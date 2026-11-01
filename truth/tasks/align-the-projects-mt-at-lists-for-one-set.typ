@@ -31,7 +31,7 @@
   links: parent("show-every-tracked-project-from-one-mt-name.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Write `[at.home] include = ["~/projects/home/*"]` in `at.toml`.
 + Run `mt at`. It prints `@home → ~/projects/home/*`, with the path as written.

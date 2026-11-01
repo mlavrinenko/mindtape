@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + `.mindtape/config.toml` caps work in progress with two `[[tasks.limits]]` entries.
 + 🔴 No filter can count tasks: an expression sees one task, so the cap needs its own table and checker (`crates/mindtape/src/config_limits.rs`).

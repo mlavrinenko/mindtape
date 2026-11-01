@@ -30,7 +30,7 @@
   status: done(2026, 10, 12),
 )
 
-== Problem
+== AS-IS
 
 + Checking the scroll shadows on the comparison page at a 900-pixel viewport.
 

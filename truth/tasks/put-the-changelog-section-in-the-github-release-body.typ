@@ -30,7 +30,7 @@
   status: done(2026, 10, 14),
 )
 
-== Problem
+== AS-IS
 
 + Pre-release review for 0.3.0, reading how `release.yml` makes the GitHub release
 + 🔴 #raw(".github/workflows/release.yml"): The release step builds its body from `generate_release_notes`, which lists merged PRs. This repo lands by fast-forward with no PRs, so the v0.3.0 page would show only a compare link, not the `CHANGELOG.md` section

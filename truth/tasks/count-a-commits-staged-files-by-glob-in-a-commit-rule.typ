@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Adding a commit rule that caps a tweak's commit at one source file
 + 🔴 #raw("crates/mindtape/src/commit_expr.rs"): a commit rule cannot count \`files\`, and \`changed()\` is refused there

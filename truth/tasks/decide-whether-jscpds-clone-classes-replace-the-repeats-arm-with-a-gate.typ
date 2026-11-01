@@ -30,7 +30,7 @@
   status: proposed(2026, 10, 28),
 )
 
-== Problem
+== AS-IS
 
 + Read the `jscpd-clone-classes` blocker that `.config/canibump.toml` carried before the commit that dropped it.
 + 🔴 Its plan was to drop the repeats arm of `just ask-refactoring` and gate short repeats in `just lint dry` once jscpd shipped clone classes. The fork qahq pins ships them now, and nothing tracks the plan.

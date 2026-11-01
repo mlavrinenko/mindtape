@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Filing a \`dev\` task with plain \`mt add\`.
 + 🔴 #raw(".mindtape/templates/task.typ"): The default template offers \`kind=dev\` but has no Rollback slot, which \`rollback-for-dev\` requires.

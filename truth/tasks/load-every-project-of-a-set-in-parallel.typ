@@ -31,7 +31,7 @@
   links: parent("show-every-tracked-project-from-one-mt-name.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Run `time (for d in ~/projects/home/*/.mindtape; do mt -w "${d%/.mindtape}" ls '!terminal' --format path >/dev/null; done)` over 30 projects with a warm cache.
 + 🔴 It takes 2.9s, while the same 30 runs started at once take 0.11s: loading one project after another leaves the cores idle.

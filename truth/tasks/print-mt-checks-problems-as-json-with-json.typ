@@ -30,7 +30,7 @@
   status: done(2026, 10, 8),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the docs before release, checking agents.typ against mt check --help
 + 🔴 #raw("crates/mindtape-cli/src/cmd/check/"): mt check has no --json flag, while www/content/agents.typ:80 and comparison.typ:172 promise JSON from every read command, so an agent following them gets a usage error

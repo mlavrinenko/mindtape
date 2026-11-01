@@ -30,7 +30,7 @@
   status: done(2026, 10, 28),
 )
 
-== Problem
+== AS-IS
 
 + Read the `secrets-tree` scope in `.mmz/config.yaml`.
 + 🔴 It lists one glob per top-level directory, because mmz had no negative glob, and `.just/scripts/check-secrets-manifest.sh` runs as a third arm of `just lint::secrets` to catch a directory nobody listed. mmz 0.13.0 ships `exclude:`, so both guard a gap that is gone.

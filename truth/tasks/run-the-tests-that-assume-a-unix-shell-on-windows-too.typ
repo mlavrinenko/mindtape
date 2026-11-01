@@ -30,7 +30,7 @@
   status: done(2026, 10, 27),
 )
 
-== Problem
+== AS-IS
 
 + Run the Windows CI job (run 40576881551).
 + 🔴 Eight tests fail on their own assumptions, not on `mt`. The flip hook tests chain with `;` and read `$VAR`, but `cmd /C` chains with `&&` and reads `%VAR%`. The editor test runs `bash`, which on Windows can be WSL's launcher. The ENOTDIR test expects an error that Windows reports as not found. The completion hint test spells the path it expects with `/`.

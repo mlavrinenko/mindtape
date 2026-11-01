@@ -9,7 +9,7 @@
   due: on(2026, 10, 2),
 )
 
-== Problem
+== AS-IS
 + Run `curl localhost:8080/customers/4711/orders`.
 + 🔴 It takes 3 seconds, because Postgres scans every row of `orders`.
 

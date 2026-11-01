@@ -32,7 +32,7 @@
 )
 
 
-== Problem
+== AS-IS
 
 + Run `rg -l '^\s*x-goals:' truth/tasks` and count the files.
 + 🔴 Every block lists eight verdicts, and the backlog keeps the long form after the helper lands.

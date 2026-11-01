@@ -30,7 +30,7 @@
   status: done(2026, 10, 15),
 )
 
-== Problem
+== AS-IS
 
 + Put a syntax error in `.githooks/pre-commit`, such as an unclosed `if`.
 + 🔴 Run `just check`. It passes, because no gate reads the shell scripts. Git finds the error when it runs the hook.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 15),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt init --help`.
 + 🔴 It lists `--organisation`, while the same binary spells `--color` and reads `NO_COLOR`.

@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt ls 'foo('`.
 + 🔴 It prints `error: can't parse filter: 'foo(': Found an unmatched opening parenthesis '('`, evalexpr's capitalised words.

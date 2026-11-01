@@ -30,7 +30,7 @@
   status: done(2026, 10, 25),
 )
 
-== Problem
+== AS-IS
 
 + In speconaut, run any commit inside a session; its pre-commit and commit-msg hooks look up the bound task through `find_task` in `src/extraction/task_bridge.rs`.
 + 🔴 `find_task` calls `mindtape::load_project` and filters the result for one path, so every hook call walks every task root and content-hashes every task file, however large the backlog.

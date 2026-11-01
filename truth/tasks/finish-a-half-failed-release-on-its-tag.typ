@@ -34,7 +34,7 @@
   )[release-dry-run refuses before tagging; the workflow re-runs a tag and skips published crates],
 )
 
-== Problem
+== AS-IS
 
 + `mindtape` 0.2.0 was published to crates.io by hand before `v0.2.0` was pushed.
 + 🔴 The tag's four release runs all failed at `cargo publish`, so `v0.2.0` has no GitHub release, and `mindtape-cli` has never reached crates.io.

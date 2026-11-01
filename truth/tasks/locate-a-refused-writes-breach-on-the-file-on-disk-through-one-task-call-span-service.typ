@@ -33,7 +33,7 @@
   )[both reshape how a breach is located and printed; the renderer prints what the span service locates],
 )
 
-== Problem
+== AS-IS
 
 + Reviewing commits 05c9c425 and 3c1dca31 in a scratch project
 + 🔴 #raw("crates/mindtape-cli/src/pre_write.rs"): A refused write reports lines of the unwritten candidate, and loader.rs, model.rs and template\_check.rs each look up the task.with call on their own.

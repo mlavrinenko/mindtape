@@ -34,7 +34,7 @@
   )[mt check refuses a text slot whose example shows a code span, and this repo's templates pass it],
 )
 
-== Problem
+== AS-IS
 
 + Run `mt add --template finding --describe`. The `context` slot is `text`, and its example reads #raw("Running `just check` while fixing the sort order").
 + Fill `context` the way the example shows and run `mt add --template finding -f -`.

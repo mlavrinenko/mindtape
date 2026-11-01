@@ -34,7 +34,7 @@
     ),
 )
 
-== Problem
+== AS-IS
 
 + Clone a project whose `.mindtape/packs.lock` pins `acme`, on a machine whose cache lacks it.
 + 🔴 `mt check` fails with `pack source not installed: 'acme'`, and no command fetches it.

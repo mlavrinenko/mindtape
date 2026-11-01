@@ -32,7 +32,7 @@
     + depends-on("read-pack-sources-and-packs-lock-into-the-config.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Lock `acme` at a commit on Linux, then restore it on a Windows runner whose git has `core.autocrlf=true`.
 + 🔴 No code puts a source into a cache, and a naive checkout turns every LF into CRLF there, so any hash of the files would differ from the lock's.

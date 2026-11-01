@@ -38,7 +38,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + A task is `wip` across three commits, each carrying `Refs: <stem>`.
 + 🔴 `changed("staged+worktree")` sees only the uncommitted part; what the task already committed counts nowhere, so a budget resets on every commit.

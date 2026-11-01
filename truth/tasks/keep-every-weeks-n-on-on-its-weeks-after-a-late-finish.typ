@@ -30,7 +30,7 @@
   status: done(2026, 10, 4),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing commit f8cc8400 with a pinned date in a scratch project
 + 🔴 #raw("crates/mindtape/src/recur_dates.rs"): next\_weekday\_after treats the week of its start date as an on-week, so finishing late into an off week shifts the whole series by a week.

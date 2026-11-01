@@ -30,7 +30,7 @@
   status: done(2026, 10, 29),
 )
 
-== Problem
+== AS-IS
 
 + Look up the 0.3.0 build in the cache: `curl https://mlavrinenko.cachix.org/19668k1cqyk7xrhpl0gvi8a7db6010ms.narinfo`.
 + 🔴 `rust-workspace-deps-0.3.0`, naersk's compiled dependency tree, takes 328 MB against 18 MB for `mt`. CI pushes one per lock change, so the free 5 GB fills with them and evicts released binaries first.

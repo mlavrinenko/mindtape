@@ -30,7 +30,7 @@
   status: done(2026, 10, 7)[agreed: mod.rs folders, placements A],
 )
 
-== Problem
+== AS-IS
 
 + Run `ls crates/mindtape/src | wc -l`.
 + 🔴 It prints 229: about 15 areas spelled as flat prefixed files (`filter_compare.rs`), with half of them `_tests.rs` siblings.

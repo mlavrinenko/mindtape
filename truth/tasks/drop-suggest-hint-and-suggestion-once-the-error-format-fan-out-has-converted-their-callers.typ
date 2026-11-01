@@ -34,7 +34,7 @@
   )[suggest.rs holds nearest and the Unknown carrier; no caller builds a did-you-mean string.],
 )
 
-== Problem
+== AS-IS
 
 + Closing report-task-references-and-project-discovery-in-the-error-format
 + 🔴 #raw("crates/mindtape/src/suggest.rs"): \`hint\` and \`suggestion\` still build \`; did you mean: x?\` strings for filter, config, set, link, add, ls and worktrees, which the nearest-name-as-a-Hint format replaces

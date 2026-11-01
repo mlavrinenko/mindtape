@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt add -f /nonexistent t`.
 + 🔴 It prints `error: read values from /nonexistent: No such file or directory (os error 2)`.

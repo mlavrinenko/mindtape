@@ -35,7 +35,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Break a template so it no longer loads and run `mt check`.
 + 🔴 It prints `<template>: did not load: eval error: <message>`, not the `error: file:line:col:` line a task file gets.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 19),
 )
 
-== Problem
+== AS-IS
 
 + Open `README.md` on GitHub.
 + 🔴 The first screen shows one task file, but not the `mt ls` listing a user reads every day.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 4),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing commits e3a52225, d228fe5b and c0bd3b46
 + 🔴 #raw(".just/scripts/check-doc-spans.sh"): three doc gates tokenize Typst with their own awk, and a string holding three backticks blinds two of them for the rest of the file

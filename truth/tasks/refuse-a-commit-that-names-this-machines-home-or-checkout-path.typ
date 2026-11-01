@@ -34,7 +34,7 @@
   )[the pre-commit and commit-msg hooks refuse \$HOME and the checkout's paths],
 )
 
-== Problem
+== AS-IS
 
 + File a finding with `mt add --template finding` and paste a failing `cp` as its evidence, as `keep-the-docs-captures-from-copying-examples-api-service-while-another-gate-writes-its-cache` was filed.
 + Commit the task file.

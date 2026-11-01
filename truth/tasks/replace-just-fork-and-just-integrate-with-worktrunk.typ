@@ -30,7 +30,7 @@
   status: done(2026, 10, 11),
 )
 
-== Problem
+== AS-IS
 
 + Delegate work: `just fork <slug>`, commit, then `just integrate <branch>`.
 + 🔴 The worktree lifecycle is 393 lines of bash (`.just/scripts/fork.sh`, `.just/scripts/integrate.sh`) plus an e2e test, which the user's worktrunk (`wt`) now covers: sibling worktree, `direnv allow`, the `just check` gate, the no-wip-task check, carrying `.mmz/cache` and the lcov into the primary checkout.

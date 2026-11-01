@@ -33,7 +33,7 @@
   )[the design its children build],
 )
 
-== Problem
+== AS-IS
 
 + Keep Mindtape tasks in 30 repos under `~/projects/home`.
 + Ask which of them has work ready, blocked or broken.

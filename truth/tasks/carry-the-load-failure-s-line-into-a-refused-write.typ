@@ -30,7 +30,7 @@
   status: done(2026, 10, 7),
 )
 
-== Problem
+== AS-IS
 
 + Running `mt add` or a batch write with a source that fails to evaluate.
 + 🔴 #raw("crates/mindtape-cli/src/pre_write.rs"): the refusal prints the message with no line, though the load error has one.

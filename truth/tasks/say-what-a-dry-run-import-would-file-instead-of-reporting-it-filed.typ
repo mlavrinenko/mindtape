@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Capturing the CLI reference's `mt import` examples for the docs.
 + 🔴 #raw("crates/mindtape-cli/src/import.rs"): `mt import --dry-run` prints the same report as a real import, `3 filed`, while it writes nothing; `mt mv`, `mt rm` and `mt link` say `would` and end with `dry run: nothing written`.

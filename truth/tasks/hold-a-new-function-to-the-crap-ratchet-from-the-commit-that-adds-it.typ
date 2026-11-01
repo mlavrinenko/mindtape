@@ -30,7 +30,7 @@
   status: done(2026, 10, 11),
 )
 
-== Problem
+== AS-IS
 
 + On main at d811e6e7, run `just crap-baseline` and diff `crap-baseline.json` against the committed one.
 + 🔴 Functions that earlier commits added have no entry, among them `date_tokens` (crates/mindtape-cli/src/cli/tree_json.rs), `handle` (crates/mindtape-cli/src/cmd/add/output.rs), `stem_hashes_with` (crates/mindtape-cli/src/util.rs) and `DateToken::render` (crates/mindtape/src/date/mod.rs). The ratchet in `.just/scripts/_crap-ratchet-lib.sh` compares only functions the baseline lists, so until someone re-mints, nothing stops these from getting worse.

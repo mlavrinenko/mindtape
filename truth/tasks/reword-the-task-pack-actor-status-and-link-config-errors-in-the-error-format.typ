@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Put `extends = ["nope"]` in `.mindtape/config.toml` and run `mt ls`.
 + 🔴 It prints `extends: unknown pack `nope`; available packs: …`, the list folded into the error line behind `Error: load …` and `Caused by:`.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Rewriting the last pending comment files for check-doc-prose
 + 🔴 #raw(".just/scripts/check-doc-prose.sh"): check-doc-prose.pending is empty, yet the script still reads it and runs a pending\_filter arm with its own control

@@ -34,7 +34,7 @@
   )[commit\_expr\_problem and task\_expr\_problem return Problem; an unknown path set carries its nearest name.],
 )
 
-== Problem
+== AS-IS
 
 + Dropping the did-you-mean clause when commit 2 moved suggestions to Unknown data
 + 🔴 #raw("crates/mindtape/src/commit/expr.rs"): commit\_expr\_problem and task\_expr\_problem return plain strings, so an unknown in\_dict in a commits.rules expression loses its did-you-mean and choices hints

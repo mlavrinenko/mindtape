@@ -35,7 +35,7 @@
     ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt config show --origin` in this repo.
 + 🔴 The built-in pack reads `pack mindtape-tasks`: a built-in is told apart only by a reserved `mindtape-` prefix, a form with no room for a pack from another source.

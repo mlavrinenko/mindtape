@@ -36,7 +36,7 @@
     )[carries out its layout],
 )
 
-== Problem
+== AS-IS
 
 + Run `ls crates/*/src`.
 + 🔴 `filter.rs` and `filter_*.rs`, `expr.rs`, `condition.rs`, `condition_env.rs` sit flat at the crate root, so the module path does not name the file and nothing marks the area's internals.

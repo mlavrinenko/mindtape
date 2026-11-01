@@ -30,7 +30,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Read Version Management in `CONTRIBUTING.md`: no backward compatibility before the first public release.
 + Run `rg -n -i 'retired|deprecated|legacy' crates/mindtape/src crates/mindtape-cli/src --glob '!*tests*'`.

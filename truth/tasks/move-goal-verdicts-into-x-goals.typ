@@ -35,7 +35,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Open `truth/tasks/give-every-body-rule-a-name.typ`.
 + 🔴 Its goal verdicts fill a 17-line `== Goals` section between Problem and TO-BE, so a reader skimming from what is broken to how it should work crosses a wall of `neutral`.

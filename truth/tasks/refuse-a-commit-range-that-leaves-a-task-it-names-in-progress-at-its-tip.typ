@@ -30,7 +30,7 @@
   status: done(2026, 10, 11),
 )
 
-== Problem
+== AS-IS
 
 + A branch commits work with `Refs: <stem>` but forgets `mt done <stem>`, then lands.
 + 🔴 `mt check --commits <range>` (crates/mindtape-cli/src/cmd/check/range.rs) holds each commit to `[commits]`, but nothing asks whether a task the range names is still `wip` at the tip. A shell helper does that today: the wip block of ~/projects/home/mindtape/.just/scripts/integrate.sh, now `wt-tasks-done` in ~/.nix/apps/worktrunk.nix. Every repo would copy it into `.just/scripts/` (task `configure-worktrunk-in-the-repo-so-a-fresh-clone-needs-no-host-setup`).

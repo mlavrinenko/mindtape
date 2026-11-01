@@ -31,7 +31,7 @@
   links: depends-on("check-commit-messages-against-commit-rules.typ"),
 )
 
-== Problem
+== AS-IS
 
 + An agent is about to edit `crates/mindtape/src/ready.rs`.
 + 🔴 No command answers which tasks shaped that file; the only route is `git log` on it and reading each `Refs:` trailer by hand.

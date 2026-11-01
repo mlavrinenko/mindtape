@@ -31,7 +31,7 @@
   links: parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Read the Commit rules line of `README.md`'s doc index.
 + 🔴 It shows a backslash before each backtick around `Refs` and `mt check --commit-msg`. The site's lede and the page's meta description show the backticks as text.

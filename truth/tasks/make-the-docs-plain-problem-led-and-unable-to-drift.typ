@@ -34,7 +34,7 @@
   )[every child landed; README and the site open on the api-service problems, and the gate refuses hand-typed blocks and stale names],
 )
 
-== Problem
+== AS-IS
 
 + Run the README Usage block in a fresh `mt init` project.
 + 🔴 `mt add --set title="Wire OAuth" --set priority=7` prints `unknown --set/-f key(s): priority; known slots: title`, and `mt flip done wire-oauth` prints `illegal transition proposed → done`.

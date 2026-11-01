@@ -32,7 +32,7 @@
 )
 
 
-== Problem
+== AS-IS
 
 + Read the `x-goals` block in a current task: eight verdicts, seven of them `neutral`.
 + 🔴 The helper lives only in `truth/lib.typ`, so an adopter's task files cannot use the short form.

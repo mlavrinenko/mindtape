@@ -34,7 +34,7 @@
   )[\[tasks.fields.x-\<ns>\] holds an extra to values and required; mt add splices a required one; any other key fails config load],
 )
 
-== Problem
+== AS-IS
 
 + In a scratch project, declare a field the task DSL never declared:
 

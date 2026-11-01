@@ -30,7 +30,7 @@
   status: done(2026, 9, 16),
 )
 
-== Problem
+== AS-IS
 
 + Run `just cover`, then `just crap`.
 + 🔴 One function is over the CRAP threshold of 30: `describe_rule_origin` (`crates/mindtape-cli/src/config_cmd.rs:156`) scores 56 on seven branches at 0% coverage.

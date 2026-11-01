@@ -30,7 +30,7 @@
   status: done(2026, 10, 8),
 )
 
-== Problem
+== AS-IS
 
 + Running just check on a branch rebased over a one-entry allowlist
 + 🔴 #raw("crates/mindtape-cli/src/diag/allowlist_tests.rs"): entries() reads one quoted entry per line, so a list rustfmt folds onto one line reads as empty and the shrink test reports its entry as added

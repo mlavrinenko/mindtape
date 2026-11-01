@@ -33,7 +33,7 @@
   )[the reserved filter words come from the registry],
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the stem-hash commits 45d958bd to 9006d477
 + 🔴 #raw("crates/mindtape/src/handle.rs"): \`StemHashes\` mints hashes without knowing the stems, so a printed hash equal to another task's exact stem resolves to that stem's task, and one equal to a filter word reads as a filter in \`mt rm\`.

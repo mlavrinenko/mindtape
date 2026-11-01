@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + On Windows, run `mt ls --hyperlinks always --columns slug,file`.
 + 🔴 The link reads `file://C:\proj\tasks\a.typ`, which names the host `C:`, and a root joined with a `/` path gives `file:///home/user/proj\truth/...`.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 7),
 )
 
-== Problem
+== AS-IS
 
 + Running a full \`just check\` while several worktrees built at once.
 + 🔴 #raw("crates/mindtape-cli/tests/interactive_e2e.rs"): \`opening\_a\_task\_suspends\_the\_tui\_and\_runs\_the\_editor\` fails under load on the fixed 5s wall-clock deadline \`WAIT\_TIMEOUT\` and passes alone; the done task \`isolate-the-interactive-pty-tests-from-concurrent-load\` fixed a different assertion in the same tests.

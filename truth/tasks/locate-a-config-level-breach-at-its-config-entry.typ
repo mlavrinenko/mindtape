@@ -33,7 +33,7 @@
   )[both change what a breach Location can name],
 )
 
-== Problem
+== AS-IS
 
 + Running \`mt check\` outside git on a project with a changed() rule
 + 🔴 #raw("crates/mindtape/src/config_rules_eval.rs"): A mandatory Location pins problems that are not about a task line onto an arbitrary or invented one.

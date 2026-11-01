@@ -30,7 +30,7 @@
   status: done(2026, 10, 13),
 )
 
-== Problem
+== AS-IS
 
 + Moving `mt link` targets onto the shared resolver, which writes each target `/`-separated
 + 🔴 #raw("crates/mindtape-cli/src/cmd/rm/gitless/mod.rs"): `mt rm`'s inbound retarget writes `relative_target(...).display()`, which prints `\` between folders on Windows

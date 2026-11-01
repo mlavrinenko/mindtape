@@ -30,7 +30,7 @@
   status: done(2026, 10, 13),
 )
 
-== Problem
+== AS-IS
 
 + Adding the repeats arm to `just ask-refactoring`, whose emit calls a new shared helper.
 + 🔴 #raw("contrib/ask-refactoring/size.sh"): The size, coverage, undertested and mutants arms each carry their own copy of the block that files a finding or prints it, which `file_finding` in `contrib/ask-refactoring.sh` now does once.

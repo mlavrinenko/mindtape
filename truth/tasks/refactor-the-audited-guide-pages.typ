@@ -34,7 +34,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 1. 🔴 An audit of the seven Guide pages the earlier waves never touched found the
   same rot: quickstart retells `/cli/` and `/config/`, comparison argues dstask

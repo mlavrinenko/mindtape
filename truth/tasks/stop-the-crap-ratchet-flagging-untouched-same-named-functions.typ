@@ -30,7 +30,7 @@
   status: done(2026, 10, 8),
 )
 
-== Problem
+== AS-IS
 
 + Integrating two agent branches from the pre-release docs review
 + 🔴 #raw("crap-baseline.json"): two branches that never touched crates/mindtape-cli/src/diag/from\_lib.rs each failed the crap gate on a Diag::from regression there and re-minted the whole baseline

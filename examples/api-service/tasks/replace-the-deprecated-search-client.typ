@@ -9,7 +9,7 @@
   due: on(2026, 10, 20),
 )
 
-== Problem
+== AS-IS
 + Run `cargo build 2>&1 | grep elasticsearch`.
 + 🔴 It warns that the `elasticsearch` crate is deprecated, and the vendor ships fixes to its replacement only.
 

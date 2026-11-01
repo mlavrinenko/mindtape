@@ -30,7 +30,7 @@
   status: done(2026, 10, 8),
 )
 
-== Problem
+== AS-IS
 
 + Closing report-typst-errors-at-their-line-with-typsts-hints
 + 🔴 #raw("crates/mindtape/src/loader/cache.rs"): a Typst warning prints on the run that evaluates a file and never again, because a cache hit skips evaluation and the cache stores no warnings

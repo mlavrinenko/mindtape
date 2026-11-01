@@ -34,7 +34,7 @@
     )[carries out its layout],
 )
 
-== Problem
+== AS-IS
 
 + Run `ls crates/*/src`.
 + 🔴 `config.rs`, every `config_*.rs` apart from the `[[tasks.rules]]` four, `merge.rs`, `name_cycle.rs`, `defaults.toml`, `packs/`, `dicts/` sit flat at the crate root, so the module path does not name the file and nothing marks the area's internals.

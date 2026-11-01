@@ -30,7 +30,7 @@
   status: done(2026, 10, 25),
 )
 
-== Problem
+== AS-IS
 
 + Give a `density` content rule a `message`, and break it in one sentence of a task.
 + Run `mt check`.

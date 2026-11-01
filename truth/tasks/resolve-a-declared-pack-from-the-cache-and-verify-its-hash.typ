@@ -35,7 +35,7 @@
     ),
 )
 
-== Problem
+== AS-IS
 
 + Declare `[pack-sources.acme]`, lock it, and add `extends = ["acme:commits"]`.
 + 🔴 `mt check` refuses `acme:commits` as an unknown pack: only the `mindtape` source resolves.

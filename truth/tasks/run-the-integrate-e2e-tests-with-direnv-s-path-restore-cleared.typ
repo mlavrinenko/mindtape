@@ -30,7 +30,7 @@
   status: done(2026, 10, 7),
 )
 
-== Problem
+== AS-IS
 
 + Running `just test` from the dev shell.
 + 🔴 #raw("crates/mindtape-cli/tests/integrate_refs_e2e.rs"): `direnv exec` restores the pre-shell `PATH`, dropping the test's `mt` for the host's.

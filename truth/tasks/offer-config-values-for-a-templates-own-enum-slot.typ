@@ -30,7 +30,7 @@
   status: done(2026, 10, 4),
 )
 
-== Problem
+== AS-IS
 
 + `.mindtape/templates/task.typ` leaves `kind` out, so `mt add` splices a choice over `[tasks.fields.kind] values`, and the template check files it with the first value.
 

@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Rewriting /concepts/ and /links/, which state that a target is a path.
 + 🔴 #raw("docs/src/skill.typ"): The skill tells agents that \`links:\` edges name tasks by stem, but \`mt\` resolves a target as a path relative to the linking file.

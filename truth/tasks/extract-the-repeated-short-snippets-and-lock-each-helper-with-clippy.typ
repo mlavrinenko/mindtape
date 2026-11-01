@@ -30,7 +30,7 @@
   status: done(2026, 10, 13),
 )
 
-== Problem
+== AS-IS
 
 + Run `rg -l -U 'util::open\(\)\?;\n\s*util::warn_errors' crates`.
 + 🔴 Seven commands (`go`, `link`, `mv`, `recur`, `review`, `rm`, `set`) open with the same two lines: `util::open()?` and `util::warn_errors(&project.outcome)`.

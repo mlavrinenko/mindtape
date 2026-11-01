@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Put `[[on.flip]]` with a `title` on a `run` action in `.mindtape/config.toml` and run `mt ls`.
 + 🔴 It prints `` `title` does not apply to this action kind (title: list, gate/message: run) ``, a parenthetical nobody can act on.

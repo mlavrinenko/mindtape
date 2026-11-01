@@ -34,7 +34,7 @@
     ),
 )
 
-== Problem
+== AS-IS
 
 + Share `.mindtape/templates/feat.typ` between two projects that adopt one practice.
 + 🔴 `extends` reads one TOML file, so the template gets copied, and the copies drift: across nine such projects `feat.typ` differs by 45 to 97 lines.

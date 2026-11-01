@@ -36,7 +36,7 @@
     + parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Run the pages' recipes against a fixture.
 + 🔴 `import-export.typ:132` exports with `mt ls --json`, which applies the default view: 9 of learn-piano's 13 tasks come out, and the recipe's `done` branch never runs. The CSV recipe (`:143`) fails on a framework priority. The adapters emit `todo`, which the default `flow` legend lacks.

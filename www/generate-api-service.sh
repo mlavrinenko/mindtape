@@ -101,7 +101,7 @@ as-is: GET /audit returns every row, and on production the response is 40 MB.
 EOF
 CMD
 )"
-capture --exit 1 --expect 'problem-is-numbered-steps' require-a-task-shape "$P" "$(
+capture --exit 1 --expect 'as-is-is-numbered-steps' require-a-task-shape "$P" "$(
     cat <<'CMD'
 mt add -f - <<'EOF'
 title: Paginate the audit log endpoint

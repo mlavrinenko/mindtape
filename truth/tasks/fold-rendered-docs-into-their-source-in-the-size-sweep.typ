@@ -34,7 +34,7 @@
   )[one finding per doc; the prose remedy links to the rewrite rule],
 )
 
-== Problem
+== AS-IS
 
 + Run `just ask-refactoring`.
 + 🔴 It would file `size-AGENTS-md` and `size-docs-src-agents-typ`, and `size-skills-mindtape-SKILL-md` and `size-docs-src-skill-typ`: two tasks for each rendered doc, one for the render and one for its source.

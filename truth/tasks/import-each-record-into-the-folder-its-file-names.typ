@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the import commits 851468df to 8b99e87b
 + 🔴 #raw("crates/mindtape-cli/src/import.rs"): \`mt import\` writes every record into one folder and ignores its \`file\`, so a cross-folder link breaks; the stem check sees that folder only; the report hides a \`-2\` rename.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 17),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the cli-link-docs dependents while splitting cli-docs
 + 🔴 #raw("www/utils/cli-notes.typ"): The `link` note says the `--apply` map is described on Task DSL, but dsl.typ never mentions it, and links.typ gives it one sentence.

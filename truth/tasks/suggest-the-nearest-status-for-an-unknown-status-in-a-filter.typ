@@ -30,7 +30,7 @@
   status: done(2026, 10, 8),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the docs before release, running the example from filters.typ:177
 + 🔴 #raw("crates/mindtape/src/filter/mod.rs"): an unknown status in a filter names the value but suggests nothing, while filters.typ promises a suggestion and unknown fields and dicts already get a nearest-name hint

@@ -30,7 +30,7 @@
   status: done(2026, 10, 6),
 )
 
-== Problem
+== AS-IS
 
 + Fetch `https://mlavrinenko.github.io/mindtape/concepts/` the way an agent's fetch tool does.
 + 🔴 It gets 28.6 KB of HTML with the sidebar, styles and scripts around 4.9 KB of content. No Markdown copy exists.

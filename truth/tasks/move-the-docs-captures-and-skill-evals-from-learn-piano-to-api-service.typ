@@ -34,7 +34,7 @@
     + parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Run `rg -l learn-piano www docs/src skills .just Justfile`.
 + 🔴 The CLI, quickstart, filters, templates and import-export captures, the skill's triage evals and the contributor docs all read `examples/learn-piano`. Its tasks practise scales and Clair de Lune, so every transcript on the site shows a piano backlog to an audience of software engineers.

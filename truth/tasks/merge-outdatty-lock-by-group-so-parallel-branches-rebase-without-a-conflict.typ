@@ -30,7 +30,7 @@
   status: done(2026, 10, 6),
 )
 
-== Problem
+== AS-IS
 
 + Fork two worktrees with `just fork`, and in each edit a source in a different outdatty group and run `just outdatty-update <group>`.
 + Integrate the first, then `git rebase main` in the second.

@@ -31,7 +31,7 @@
   links: depends-on("address-tasks-by-stem-hash-in-every-mt-command.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Read the handle advice in `skills/mindtape/SKILL.md`.
 + 🔴 It says a handle resolves against bare `mt ls` and tells agents to pass the stem, which the stem hash makes wrong.

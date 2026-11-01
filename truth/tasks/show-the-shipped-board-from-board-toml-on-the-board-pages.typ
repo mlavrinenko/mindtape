@@ -37,7 +37,7 @@
     )[it drops board.toml from the sets-docs sources the split adds],
 )
 
-== Problem
+== AS-IS
 
 + Look for the board `mt` ships on `/cli/board/` and `/read-many-projects/`.
 + 🔴 Neither shows it. `crates/mindtape/src/at/board.toml` sorts by `ready:desc` then `open:desc` and hides `open == 0`, and no doc names either.

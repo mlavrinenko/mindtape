@@ -35,7 +35,7 @@
     ),
 )
 
-== Problem
+== AS-IS
 
 + Read the `[[tasks.status]]`, `[tasks.priority]` and `[[on.flip]]` entries of this repo's `.mindtape/config.toml`.
 + 🔴 The six statuses of the embedded floor sit there again by hand only to add `to` edges and `unblocked`, beside an ICE `framework` that fourteen projects copy and a stale-WIP gate that eight copy.

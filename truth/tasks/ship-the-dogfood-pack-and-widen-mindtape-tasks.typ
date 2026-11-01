@@ -32,7 +32,7 @@
     + depends-on("ship-the-tweaks-and-commits-packs.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Extend `mindtape:tasks` in a project with no `[tasks.fields.kind]`.
 + 🔴 The pack's `environment-for-fix` and its siblings read `kind`, which the pack doesn't declare, so each project copies `[tasks.fields.kind]`, and fifteen copy `[tasks.comments]` as well.

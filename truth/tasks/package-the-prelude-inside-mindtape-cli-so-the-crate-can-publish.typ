@@ -30,7 +30,7 @@
   status: done(2026, 10, 8),
 )
 
-== Problem
+== AS-IS
 
 + Running \`cargo publish --dry-run --locked --workspace\`, the new release preflight, on the release-pipeline branch
 + 🔴 #raw("crates/mindtape-cli/src/cmd/init/mod.rs"): mindtape-cli's packaged tarball does not compile, because \`include\_str!\` reaches \`lib/prelude.typ\` outside the crate directory, so the next release would fail at \`cargo publish -p mindtape-cli\`

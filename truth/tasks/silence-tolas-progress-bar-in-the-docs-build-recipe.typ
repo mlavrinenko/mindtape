@@ -30,7 +30,7 @@
   status: done(2026, 10, 12),
 )
 
-== Problem
+== AS-IS
 
 + Building the docs site to check the comparison matrix fix
 + 🔴 #raw(".just/docs.just"): `just docs build` prints tola's `[build]` progress bar as one carriage-return redraw per page on every clean run.

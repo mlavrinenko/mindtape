@@ -30,7 +30,7 @@
   status: done(2026, 10, 19),
 )
 
-== Problem
+== AS-IS
 
 + Checking that tinymist finds the prelude `mt install` writes
 + 🔴 #raw("crates/mindtape/src/loader/app_dirs.rs"): `data_home()` uses `dirs::data_local_dir()`, `%LOCALAPPDATA%` on Windows, but Typst and tinymist read `@local` from `dirs::data_dir()`, `%APPDATA%`

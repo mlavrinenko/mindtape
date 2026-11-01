@@ -35,7 +35,7 @@
     + parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Open the docs site and look for how to stop agents from filing tasks that touch 100 files.
 + 🔴 The NAV lists features: Task DSL, Filter language, Configuration. The answer is an `estimate` unit, a `[[tasks.rules]]` assert and `changed()`, spread over /estimates/, /filters/ and /config/. A reader must already know the mechanism to find it.

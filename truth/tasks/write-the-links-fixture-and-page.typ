@@ -34,7 +34,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 1. `www/content/dsl.typ`'s "Task links" section is written from invented
   names — `design-schema.typ`, `wire-oauth`, `acme/app/pull/42`. None exists

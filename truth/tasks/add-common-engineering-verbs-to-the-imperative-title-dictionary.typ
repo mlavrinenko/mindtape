@@ -34,7 +34,7 @@
   )[compute, filter, page, roll and switch added to dev-verbs.txt (91 entries); verbs.txt is frequency-derived and stays untouched],
 )
 
-== Problem
+== AS-IS
 
 + filing tasks with \`mt add\` in one session
 + 🔴 #raw("crates/mindtape/src/dicts/verbs.txt"): The imperative-title rule refused five ordinary imperative verbs in one session, forcing title rewrites.

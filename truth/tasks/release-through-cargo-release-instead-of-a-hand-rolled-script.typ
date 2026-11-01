@@ -30,7 +30,7 @@
   status: done(2026, 10, 11),
 )
 
-== Problem
+== AS-IS
 
 + Read `.just/scripts/release.sh` and the `release` and `release-dry-run` recipes.
 + 🔴 Moving `[Unreleased]` into a dated `CHANGELOG.md` section, and bumping `[workspace.package] version` and `mindtape-cli`'s `mindtape` dependency, are hand steps the script only checks for.

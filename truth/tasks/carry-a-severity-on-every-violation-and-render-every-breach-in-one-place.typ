@@ -30,7 +30,7 @@
   status: done(2026, 10, 4),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing commit fb6e260d with \`\[tasks.comments\] policy = "warn"\` in a scratch project
 + 🔴 #raw("crates/mindtape-cli/src/check.rs"): A comment under the warn policy prints as error while mt check exits 0, because the caller decides blocking and an unset severity renders as error.

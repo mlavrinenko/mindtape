@@ -30,7 +30,7 @@
   status: done(2026, 10, 2),
 )
 
-== Problem
+== AS-IS
 
 + Run `tombi format --check Cargo.toml clippy.toml crates/mindtape/Cargo.toml crates/mindtape-cli/Cargo.toml crates/mindtape/src/defaults.toml crates/mindtape/src/frameworks.toml examples/self-validating/.mindtape/config.toml` with the dev shell's tombi 0.7.27.
 + 🔴 Every file fails, and `tombi format` re-sorts keys by schema, detaching the `# --- Code Quality ---` groups in `Cargo.toml` from their lints. `TOML_FMT_PATHS` lists six files, so the other tracked TOML is never checked.

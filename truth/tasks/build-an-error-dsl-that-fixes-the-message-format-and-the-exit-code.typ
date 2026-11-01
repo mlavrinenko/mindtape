@@ -37,7 +37,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt wip nonexistent-xyz`.
 + 🔴 It prints `error: nonexistent-xyz: no task with id "nonexistent-xyz"` and then `Error: 1 task(s) had problems`: two prefixes, the value twice, a summary for one task.

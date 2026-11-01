@@ -35,7 +35,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + A project declares `[tasks.estimate] units = ["src-files"]` and one task goes `wip` with `estimate: (src-files: 3)`.
 + 🔴 `mt check` warns `working tree touches 17 file(s), over the 4 declared by …` although the project wrote no such check: `DriftConfig::default()` hardcodes `unit = "files"`.

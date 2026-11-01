@@ -30,7 +30,7 @@
   status: done(2026, 10, 13),
 )
 
-== Problem
+== AS-IS
 
 + Run `just ask-refactoring`.
 + 🔴 It runs 14 minutes and prints 53486 lines: the full body of each of 682 findings, one `mt add --print` per finding at about a second each.

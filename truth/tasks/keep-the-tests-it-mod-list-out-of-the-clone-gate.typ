@@ -30,7 +30,7 @@
   status: done(2026, 10, 14),
 )
 
-== Problem
+== AS-IS
 
 + Adding `release_notes_e2e` to `crates/mindtape-cli/tests/it/main.rs` for the release notes step
 + 🔴 #raw("Justfile"): Every new `tests/it` module changes the fingerprint of `main.rs`'s `mod` list, which jscpd reads as a renamed clone of itself, so `just check-dry` fails until `just dry-baseline` re-mints the baseline. A `mod` list has no helper to extract

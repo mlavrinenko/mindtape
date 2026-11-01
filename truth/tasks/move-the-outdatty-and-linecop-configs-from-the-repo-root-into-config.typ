@@ -30,7 +30,7 @@
   status: done(2026, 10, 19),
 )
 
-== Problem
+== AS-IS
 
 + Run `git ls-tree --name-only HEAD` in the repo root.
 + 🔴 It lists 35 entries. Three are one tool's config each: `outdatty.yaml`, `outdatty.lock` and `.linecop.yaml`. outdatty 0.9.0 and linecop 0.8.0 read a config from `.config/` with a `root:` that points back at the repo, but the dev shell pins outdatty 0.7.0 and linecop 0.7.0.

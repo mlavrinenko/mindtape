@@ -34,7 +34,7 @@
     )[carries out its layout],
 )
 
-== Problem
+== AS-IS
 
 + Run `ls crates/*/src`.
 + 🔴 `add*.rs`, `yaml_values.rs`, `templates/`, `check*.rs`, `flip*.rs`, `init*.rs`, `preset.rs`, `axes/`, `presets/` sit flat at the crate root, so the module path does not name the file and nothing marks the area's internals.

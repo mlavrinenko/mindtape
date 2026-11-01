@@ -30,7 +30,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt add -t task` with a TO-BE bullet that does not open with 🟢.
 + 🔴 It writes the file. Only a later `mt check`, or the pre-commit hook, reports that every TO-BE bullet must open with 🟢.

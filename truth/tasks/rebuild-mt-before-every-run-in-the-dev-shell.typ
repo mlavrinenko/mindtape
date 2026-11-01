@@ -30,7 +30,7 @@
   status: done(2026, 9, 27),
 )
 
-== Problem
+== AS-IS
 
 + `just fork x`, then `mt flip wip <task>` in the new worktree.
 + 🔴 It fails loading `.mindtape/config.toml`: `target/debug` is empty, so the stale `~/.cargo/bin/mt` answers.

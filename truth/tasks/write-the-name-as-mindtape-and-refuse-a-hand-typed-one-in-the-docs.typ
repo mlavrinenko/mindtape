@@ -34,7 +34,7 @@
   )[the docs render the name from the site title, and check-doc-prose refuses a typed one],
 )
 
-== Problem
+== AS-IS
 
 + Run `rg -c MindTape www docs/src crates`.
 + 🔴 The name is typed out in prose, help text and the config schema, about 120 times, as `MindTape`.

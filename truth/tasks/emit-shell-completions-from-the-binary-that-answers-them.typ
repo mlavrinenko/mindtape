@@ -30,7 +30,7 @@
   status: done(2026, 9, 22),
 )
 
-== Problem
+== AS-IS
 
 + Press tab after `mt flip ` in any shell.
 + 🔴 Nothing completes. `mt install` writes the Typst package, the XDG

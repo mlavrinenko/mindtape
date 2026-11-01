@@ -30,7 +30,7 @@
   status: done(2026, 10, 18),
 )
 
-== Problem
+== AS-IS
 
 + List `~/projects/blog` and `~/oss/blog` in one `at.toml` set, `[at.both]`.
 + Run `mt @blog ls`.

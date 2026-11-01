@@ -30,7 +30,7 @@
   status: done(2026, 9, 16),
 )
 
-== Problem
+== AS-IS
 
 + Run `just cover`, then `just crap`.
 + 🔴 `crap-baseline.json` carries 45 entries from 15 test files, among them `crates/mindtape/src/validate_tests_shape.rs` and `crates/mindtape/src/config_packs_tests_body.rs`.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 14),
 )
 
-== Problem
+== AS-IS
 
 1. Time `just check`'s stages cold in a fresh clone on 4 cores, with no kache and no mmz cache.
 2. 🔴 fast takes 116 s, build 215 s and cover 212 s, one after another in CI's one job, about 9 minutes. cover shares no build with the other two, yet waits for them.

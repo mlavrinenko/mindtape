@@ -34,7 +34,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 1. 🔴 `crates/mindtape/src/canonical.rs`'s module doc says `mt ls --json | mt
   import` round-trips, but `CanonicalTask` has no `recur` and `mt import`

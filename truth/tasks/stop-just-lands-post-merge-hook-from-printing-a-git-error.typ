@@ -34,7 +34,7 @@
   )[not a repo hook; needs a worktrunk fix, see Changes],
 )
 
-== Problem
+== AS-IS
 
 + Landing the snippet-extraction branch with `just land`
 + 🔴 #raw(".config/wt.toml"): after `just land` removes the worktree, the run prints `fatal: not a git repository`, though the land succeeded

@@ -34,7 +34,7 @@
   )[with\_main\_source, with\_packages and HVal serde and to\_typst replace the local copies],
 )
 
-== Problem
+== AS-IS
 
 + Read `crates/mindtape/src/validate/candidate.rs`, `rules/typst.rs` and `model/canonical.rs`.
 + 🔴 Three sites build a disk world around an in-memory main source by hand, naming the id twice and `DiskProvider` explicitly, and each repeats the package-root and overrides policy that `loader::build_world` and `mt eval` repeat too.

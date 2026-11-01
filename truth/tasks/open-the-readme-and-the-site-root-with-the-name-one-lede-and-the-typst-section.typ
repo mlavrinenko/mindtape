@@ -34,7 +34,7 @@
   )[README and the site root open with the name and the lede, and render the Typst section from demo.typ],
 )
 
-== Problem
+== AS-IS
 
 + Open README.md.
 + 🔴 A tagline and an intro paragraph say the same thing twice, and the site root's H1 is that tagline.

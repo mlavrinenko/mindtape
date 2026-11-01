@@ -32,7 +32,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Open `www/content/config.typ` at "The five content assertions".
 + 🔴 It lists five. `density`, which landed in `add-a-density-content-assert.typ`, is missing, so no project can learn it exists.

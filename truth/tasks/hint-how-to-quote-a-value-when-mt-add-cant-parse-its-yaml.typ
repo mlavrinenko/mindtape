@@ -30,7 +30,7 @@
   status: done(2026, 10, 25),
 )
 
-== Problem
+== AS-IS
 
 + Run ```sh printf 'title: Probe\nwhy: `quoted` start\n' | mt add -t tweak -f -```.
 + 🔴 It prints `error: can't parse YAML: '-': found character that cannot start any token at line 2 column 6, while scanning for the next token` and no `hint:` line. A value opening with a backtick, which task prose does all the time, is a reserved YAML indicator.

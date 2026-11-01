@@ -37,7 +37,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt wip add-redis-client index-the-orders-by-customer` in `examples/api-service`.
 + 🔴 Each target prints its `rules.one-wip` breach, the same breach on `reject-expired-sessions-on-token-refresh` with `(reported on …)` once per target, then `error: add-redis-client: 1 task(s) rejected; nothing was written` for each, then the batch summary.

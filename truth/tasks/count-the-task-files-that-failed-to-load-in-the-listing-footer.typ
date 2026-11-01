@@ -30,7 +30,7 @@
   status: done(2026, 10, 19),
 )
 
-== Problem
+== AS-IS
 
 + Listing a project in which one task file has a misspelled field
 + 🔴 #raw("crates/mindtape-cli/src/cmd/ls/mod.rs"): `mt ls` prints a broken file's error as a warning above the table, then leaves the file out of the footer's count, so the footer reads as if every task file loaded

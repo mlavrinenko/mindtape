@@ -35,7 +35,7 @@
     + parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Run the pages' examples and read their claims.
 + 🔴 `templates.typ:142` sets `estimate.files: 2`; the template on that page has no such slot. `agents.typ:64` sets `priority`, which no template the docs use declares.

@@ -34,7 +34,7 @@
     )[with cli-docs whole, every command-module commit would need the trailer, so the split makes it name a real review],
 )
 
-== Problem
+== AS-IS
 
 + Change `crates/mindtape-cli/src/cmd/ls/mod.rs`, run `just outdatty-update cli-docs`, and commit with no doc edit, as `dc34aced` did.
 + 🔴 The commit lands, and its `outdatty.lock` diff moves the source hash. The log can't tell a review that found nothing from a re-record nobody read.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 27),
 )
 
-== Problem
+== AS-IS
 
 + On Windows, run `mt import none.json`.
 + 🔴 It prints `error: can't read: 'none.json': the system cannot find the file specified.`, with a period mid-sentence, because Windows ends its reasons with one.

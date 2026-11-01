@@ -30,7 +30,7 @@
   status: done(2026, 10, 11),
 )
 
-== Problem
+== AS-IS
 
 + On a machine without the maintainer's ~/.nix, clone mindtape and run `wt switch --create x`, commit, then `wt merge`.
 + 🔴 worktrunk's defaults squash the branch into one commit, losing each commit's `Refs:` footer, and commit a dirty tree. No gate runs, because the gate, the wip check and the gate-record carry are user hooks in ~/.nix (`apps/worktrunk.nix`, helpers `wt-tasks-done`, `wt-carry-gate`).

@@ -34,7 +34,7 @@
   )[handles become hashes, which removes the ordinal],
 )
 
-== Problem
+== AS-IS
 
 + Checking the mindtape skill's handle advice against the code.
 + 🔴 #raw("crates/mindtape-cli/src/util.rs"): A filtered mt ls numbers its own rows, but resolve\_task resolves every handle against the default view, so a filtered handle can name another task.

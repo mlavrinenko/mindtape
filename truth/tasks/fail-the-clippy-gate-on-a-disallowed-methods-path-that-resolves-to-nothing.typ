@@ -30,7 +30,7 @@
   status: done(2026, 10, 13),
 )
 
-== Problem
+== AS-IS
 
 + Adding the `util::open_warned` and `Diag::did_you_mean` bans to `clippy.toml` for the snippet-extraction task
 + 🔴 #raw("clippy.toml"): clippy accepts a `disallowed-methods` entry whose path names no function, so a mistyped ban silently bans nothing

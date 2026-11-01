@@ -30,7 +30,7 @@
   status: done(2026, 10, 8),
 )
 
-== Problem
+== AS-IS
 
 + Integrating the docs-claims branch from the pre-release docs review
 + 🔴 #raw("www/content/config.typ"): the {date:FMT} token table on the config page is typed by hand from a doc comment in date/mod.rs, so no gate fails when a token changes

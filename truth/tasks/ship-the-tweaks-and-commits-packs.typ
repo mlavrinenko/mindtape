@@ -32,7 +32,7 @@
     + depends-on("ship-the-wip-caps-and-budget-packs.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Read the `[[tasks.rules]]` and `[[commits.rules]]` of this repo's `.mindtape/config.toml`.
 + 🔴 `tweak-lands-done`, `tweak-stays-one-file`, `refs-task-is-started` and `changelog-with-product-change` sit there by hand. Eight projects copy them, and `changelog-with-product-change` exists in four versions.

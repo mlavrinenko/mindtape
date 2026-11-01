@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Filing the stem-hash tasks with \`mt add --template feat -f \<yaml>\`
 + 🔴 #raw("crates/mindtape-cli/src/add_hint.rs"): mt add hints at every template that pins any value the caller passed, even when the refusal is about another field, so a body word-cap refusal lists four sweep templates for assignee=agent.

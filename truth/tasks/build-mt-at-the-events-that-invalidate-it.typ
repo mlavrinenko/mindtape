@@ -33,7 +33,7 @@
   )[supersedes its per-call rebuild wrapper with build-at-the-events],
 )
 
-== Problem
+== AS-IS
 
 + Enter the dev shell and run `mt --version`.
 + 🔴 A no-op run costs ~167 ms against ~6 ms for `target/mt-dev/debug/mt` invoked directly: the wrapper runs `cargo build -q` before every call.

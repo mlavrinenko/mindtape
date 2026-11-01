@@ -30,7 +30,7 @@
   status: done(2026, 9, 28),
 )
 
-== Problem
+== AS-IS
 
 + `rg -n 'fs::write' crates/*/src --glob '!*tests*'` lists the authored-file writes: `write_task` in `crates/mindtape-cli/src/util.rs:309` (nine callers: `flip`, `set`, `link`, `mv`, `recur`, `recur_advance`, `review`, `import`), plus `add.rs:206`, `init.rs`, `install.rs`, `preset_cmd.rs`.
 + 🔴 Each is `std::fs::write`: truncate, then write. A process killed between the two (Ctrl-C, OOM, a full disk) leaves an empty or partial `.typ`, and a concurrent reader (tinymist, a hook's `mt ls`, an editor reload) can read it half-written.

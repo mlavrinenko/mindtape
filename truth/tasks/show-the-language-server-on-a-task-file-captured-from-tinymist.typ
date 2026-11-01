@@ -30,7 +30,7 @@
   status: done(2026, 10, 6),
 )
 
-== Problem
+== AS-IS
 
 + Open the Overview and read "Why Typst".
 + 🔴 It claims "the Typst language server completes field names in your editor" and that "a misspelled field … fails with the file named", and shows neither.

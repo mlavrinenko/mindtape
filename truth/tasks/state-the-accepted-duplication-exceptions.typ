@@ -34,7 +34,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 1. `just dup-prose` closes every pair this wave can: 13 remain, and all but
   three are README/AGENTS work or the front-door demo. Three findings are

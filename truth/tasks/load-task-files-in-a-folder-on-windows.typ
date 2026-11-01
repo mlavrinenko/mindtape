@@ -30,7 +30,7 @@
   status: done(2026, 10, 27),
 )
 
-== Problem
+== AS-IS
 
 + On Windows, run `mt ls` in a project whose root is `tasks/`.
 + 🔴 Every task fails: `error: tasks\alpha.typ: bad virtual path "tasks\\alpha.typ": path contains backslash`.

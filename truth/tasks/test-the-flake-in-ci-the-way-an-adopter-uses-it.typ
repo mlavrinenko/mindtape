@@ -30,7 +30,7 @@
   status: done(2026, 10, 29),
 )
 
-== Problem
+== AS-IS
 
 + Read `.github/workflows/ci.yml`: it builds the flake but never runs what it built, or locks it from another flake.
 + 🔴 0.3.0 shipped with `nix run` broken, `mt` unable to load tasks on a fresh machine, and a 190-node lock for adopters, and no job noticed.

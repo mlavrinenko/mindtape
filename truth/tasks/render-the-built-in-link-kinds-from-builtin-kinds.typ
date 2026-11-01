@@ -34,7 +34,7 @@
     )[both add a registry to tree\_json.rs and generate-facts.sh, so landing in turn avoids a conflict in the same lines],
 )
 
-== Problem
+== AS-IS
 
 + Read "The built-in kinds" in `www/content/links.typ`, then run `mt link --help`.
 + 🔴 The page types one row per kind and says "next to the six built-ins". The help types "The built-in kinds are `depends-on`, `parent`, `recurred-from`, `supersedes`, `duplicates` and `related`". `BUILTIN_KINDS` in `crates/mindtape/src/link/mod.rs` is in no outdatty group, so a seventh kind leaves all three green.

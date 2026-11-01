@@ -30,7 +30,7 @@
   status: done(2026, 10, 18),
 )
 
-== Problem
+== AS-IS
 
 + Open `www/content/comparison.typ` and the recipe pages `split-oversized-tasks`, `require-a-task-shape`, `tie-work-to-goals`, `limit-work-in-progress` and `start-titles-with-a-verb`, then `concepts.typ`.
 + 🔴 The text overstates or misstates what `mt` does. git-bug reads as exporting to Launchpad, a recipe says `mt add` refuses an empty slot, the comparison dates Mindtape's first release, and `exit-code()` can quote only the last refusal of a capture whose steps exit 2 and then 1.

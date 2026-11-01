@@ -30,7 +30,7 @@
   status: done(2026, 10, 8),
 )
 
-== Problem
+== AS-IS
 
 + Run the `windows` job of `.github/workflows/ci.yml`, which checks out at depth 1.
 + 🔴 `the_list_only_shrinks_from_the_branch_point` in `crates/mindtape-cli/src/diag/allowlist_tests.rs` finds no `main` and returns, so it passes without checking anything.

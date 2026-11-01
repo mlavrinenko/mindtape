@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Filing review findings with the \`finding\` template
 + 🔴 #raw("crates/mindtape-cli/src/add.rs"): \`mt add --describe finding\` takes \`finding\` as a title and describes the default template, with no warning

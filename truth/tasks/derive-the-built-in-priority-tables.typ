@@ -30,7 +30,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 1. 🔴 `/priority/`'s framework table, its ICE description and its new
   difficulty anchors are hand-typed from `crates/mindtape/src/frameworks.toml`

@@ -31,7 +31,7 @@
   links: parent("show-every-tracked-project-from-one-mt-name.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Read `crates/mindtape-cli/src/render/file_path.rs:25` and `crates/mindtape-cli/src/render/link.rs:83`.
 + 🔴 `util::open` stores the project root and the hyperlink choice in two process-wide `OnceLock`s and ignores later writes, so a process that renders two projects prints the second one's FILE cells from the first one's root.

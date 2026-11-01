@@ -30,7 +30,7 @@
   status: done(2026, 10, 19),
 )
 
-== Problem
+== AS-IS
 
 + Run `ls -A` in the repo root.
 + 🔴 It lists 52 entries. Eight are one tool's config each: `tombi.toml`, `canibump.toml`, `.gitleaks.toml`, `.shellcheckrc`, `crap-baseline.json`, `.jscpd-baseline.json` and `release.toml`, plus `.cargo/mutants.toml`, the one tracked file in an ignored folder. Every one of those tools can read its config from `.config/`.

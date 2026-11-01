@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the examples cf85120b gives slots that mt add splices
 + 🔴 #raw("crates/mindtape/src/add_slots.rs"): a spliced slot's example is invented in Rust (a scale midpoint, the first value, the field name without \`x-\`, \`someone\`), so a rule on the field's shape fails the template check with no config to fix it

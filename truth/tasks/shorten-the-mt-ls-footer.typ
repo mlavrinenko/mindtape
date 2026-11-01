@@ -30,7 +30,7 @@
   status: done(2026, 10, 16),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt ls` in a project whose matching `[[ls.rules]]` entry imports the `inbox` view and sets its own sort.
 + 🔴 The footer reads `filter and columns from inbox view · sort from release rule · 3 of 12 tasks`.

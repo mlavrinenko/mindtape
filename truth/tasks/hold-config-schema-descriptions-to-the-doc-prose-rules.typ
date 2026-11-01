@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Rendering config key tables from the schema for /statuses/, /rules/ and /links/
 + 🔴 #raw("schema/config.schema.json"): config doc comments reach the docs site and editors through the schema, and no check refuses a history word in them.

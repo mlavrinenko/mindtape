@@ -30,7 +30,7 @@
   status: done(2026, 10, 6),
 )
 
-== Problem
+== AS-IS
 
 + In a fresh home where `mt install` never ran, run `mt init --no-input`, then `mt add "Fix login"`.
 + 🔴 It prints `Error: the task as filled did not load: eval error: file not found (searched at <data>/typst/packages/local/mindtape/0.2.0/typst.toml)`. Nothing says `mt install` puts the prelude there.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + writing check-doc-spans.sh, which scans the same doc sources
 + 🔴 #raw(".just/scripts/check-doc-recipes.sh"): The awk tagger toggles the block state only on a line that starts with three backticks, so a block opened mid-line leaves the state wrong after it.

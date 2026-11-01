@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt import bad.json` on a file that isn't JSON.
 + 🔴 It prints `Error: parse canonical task-JSON`, a blank line, `Caused by:` and `expected ident at line 1 column 2`.

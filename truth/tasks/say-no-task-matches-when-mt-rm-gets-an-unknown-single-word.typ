@@ -30,7 +30,7 @@
   status: done(2026, 10, 8),
 )
 
-== Problem
+== AS-IS
 
 + Capturing every error \`mt\` prints for the error inventory
 + 🔴 #raw("crates/mindtape-cli/src/cmd/rm/select.rs"): \`mt rm\` with a word that is neither a stem nor a stem hash hands it to the filter parser, which answers in filter terms

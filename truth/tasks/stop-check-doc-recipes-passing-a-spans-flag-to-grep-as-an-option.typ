@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Writing just's --fmt flag in a doc code span while rewriting docs/src/contributing/gates.typ
 + 🔴 #raw(".just/scripts/check-doc-recipes.sh"): A code span such as \`just --fmt\` makes \`is\_recipe\` run \`grep -qxF --fmt\`, so grep prints a usage error and the gate suggests calling \`\#just.--fmt(...)\`.

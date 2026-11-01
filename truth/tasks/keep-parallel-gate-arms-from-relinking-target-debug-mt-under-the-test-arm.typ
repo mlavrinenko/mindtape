@@ -30,7 +30,7 @@
   status: done(2026, 10, 2),
 )
 
-== Problem
+== AS-IS
 
 + Run `just check` on a tree where every arm is stale.
 + 🔴 On 2026-10-01 the `test` arm failed `add_e2e::end_to_end_files_from_yaml_on_stdin` with `Failed to spawn ... target/debug/mt ...: No such file or directory`; the re-run passed.

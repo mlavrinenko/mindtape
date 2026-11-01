@@ -35,7 +35,7 @@
   links: parent("share-config-between-projects-through-packs.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Read the `.mindtape/config.toml` of the nine projects that adopt `mindtape-tasks`.
 + 🔴 Each copies what the pack lacks: `milestone-wip-cap` and `leaf-wip-cap` word for word in nine, `tweak-lands-done` and `refs-task-is-started` in eight, the Dogfood rules in six, the ICE priority in fourteen and `[tasks.comments]` in fifteen.

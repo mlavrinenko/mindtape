@@ -30,7 +30,7 @@
   status: done(2026, 11, 1),
 )
 
-== Problem
+== AS-IS
 
 + Migrating kimmable's config to mt 0.3.0
 + 🔴 #raw("crates/mindtape-cli/src/cmd/check/mod.rs"), #raw("crates/mindtape-cli/src/util.rs"): `mt check` and `mt ls` print each Typst warning in full with its hint, so one habit repeated across a backlog floods the output

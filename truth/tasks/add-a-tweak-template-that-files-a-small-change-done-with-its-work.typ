@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Make a one-line config change, which needs a `Refs:` task.
 + Run `mt add --template dev --describe text`.

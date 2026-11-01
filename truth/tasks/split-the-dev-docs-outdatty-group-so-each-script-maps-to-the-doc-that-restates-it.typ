@@ -30,7 +30,7 @@
   status: done(2026, 10, 4),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the gate fix commits e551aca4, d228fe5b and c0bd3b46
 + 🔴 #raw("outdatty.yaml"): dev-docs ties 40 sources to 11 dependents, so a script fix is re-recorded unread, and gate-notes.typ is in no group

@@ -30,7 +30,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 1. 🔴 The audit's hand-typed blocks are config, not task markers, so
   `www/generate-examples.sh` cannot slice them: `/named-sets/`'s views and

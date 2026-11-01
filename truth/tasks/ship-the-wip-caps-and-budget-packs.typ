@@ -35,7 +35,7 @@
     ),
 )
 
-== Problem
+== AS-IS
 
 + Read the `[[tasks.rules]]` of this repo's `.mindtape/config.toml`.
 + 🔴 `milestone-wip-cap`, `leaf-wip-cap`, `judgment-stays-small` and `src-budget` sit there by hand, and nine other projects copy them, three with a different cap or `when`.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 14),
 )
 
-== Problem
+== AS-IS
 
 + Closing `accept-a-folder-path-in-mt-rm`, whose dogfood removes 250 done tasks with `mt rm truth/tasks/swept` in the closing commit
 + 🔴 #raw("crates/mindtape/src/packs/mindtape-tasks.toml"): the shipped `flip-with-work` rule reads a commit that retires other tasks plus the `done` flip as `tasks_only`, so it refuses a close whose work is retiring tasks, and the closer had to add an unrelated test to get past it

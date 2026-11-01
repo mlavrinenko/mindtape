@@ -30,7 +30,7 @@
   status: done(2026, 9, 22),
 )
 
-== Problem
+== AS-IS
 
 + A delegated agent finds something real outside its scope and writes it in
   its closing report.

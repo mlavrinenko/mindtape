@@ -30,7 +30,7 @@
   status: done(2026, 10, 17),
 )
 
-== Problem
+== AS-IS
 
 + Marking the commands that run on a set in the command registry.
 + 🔴 #raw("crates/mindtape-cli/src/project_set.rs"): Two lint allowances still say a set opener waits for a later task, though `ls`, `find`, `check` and `board` all open sets now.

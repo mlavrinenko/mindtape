@@ -30,7 +30,7 @@
   status: done(2026, 10, 28),
 )
 
-== Problem
+== AS-IS
 
 + Push a `v*` tag, as `just release 0.3.0` did.
 + 🔴 `Build (aarch64-unknown-linux-gnu)` in `release.yml` run 40748057090 failed, and the other builds were cancelled:

@@ -30,7 +30,7 @@
   status: done(2026, 11, 1),
 )
 
-== Problem
+== AS-IS
 
 + Running `just release 0.3.0`, whose dry run had passed
 + 🔴 #raw(".just/scripts/release-hook.sh"): the release hook never runs the commit rules on the release commit message, so a dry run passes a release whose commit the commit-msg hook then refuses

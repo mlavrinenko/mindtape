@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `jq '.fingerprints | length' .jscpd-baseline.json`.
 + 🔴 It prints about 2000: clones the gate tolerates because they predate it. Most are in tests, such as repeated setup in `crates/mindtape-cli/src/cmd/add/tests_subprocess.rs`.

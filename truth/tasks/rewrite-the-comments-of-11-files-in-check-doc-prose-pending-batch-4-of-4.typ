@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Landing the check-doc-prose scan of every shell script, YAML file and Justfile comment
 + 🔴 #raw(".just/scripts/check-doc-prose.pending"): 11 files still tell history or shout in all-caps words: .just/scripts/script-scope-check.sh, .just/scripts/site-pages-fixture-check.sh, .just/scripts/size-fixture-check.sh, .just/scripts/\_typst-package.sh, www/facts-lib.sh, www/generate-examples.sh, www/generate-facts.sh, www/generate-release-targets.sh, www/generate-rule-packs.sh, www/generate.sh, www/generate-site-pages.sh

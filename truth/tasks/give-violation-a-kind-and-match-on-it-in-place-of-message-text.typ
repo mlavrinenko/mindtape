@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Filing the follow-ups that read the check results of \`mt add\` templates.
 + 🔴 #raw("crates/mindtape/src/validate_links.rs"): \`is\_unresolved\` decides that a breach is an unresolved link target by testing the start and end of its message text

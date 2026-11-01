@@ -30,7 +30,7 @@
   status: done(2026, 9, 27),
 )
 
-== Problem
+== AS-IS
 
 + A project declares `[tasks.estimate] units = ["files"]`; 362 closed tasks carry `estimate: (files: N)`.
 + It moves to `units = ["src-files"]`.

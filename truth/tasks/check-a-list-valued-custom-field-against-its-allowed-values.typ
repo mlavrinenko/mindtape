@@ -30,7 +30,7 @@
   status: done(2026, 10, 4),
 )
 
-== Problem
+== AS-IS
 
 + In a dotfiles repo, `[tasks.fields.x-machine]` declares the machine vocabulary, and six tasks carry `x-machine: ("alpha", "gamma")`.
 

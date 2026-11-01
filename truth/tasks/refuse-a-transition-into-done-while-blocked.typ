@@ -30,7 +30,7 @@
   status: done(2026, 9, 27),
 )
 
-== Problem
+== AS-IS
 
 + `mt link b depends-on a` with `a` still proposed.
 + 🔴 `mt flip wip b` and then `mt done b` both succeed: the legend's `to` edges check the status pair, never the graph.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 4),
 )
 
-== Problem
+== AS-IS
 
 + Flipping a task with \`mt done\`, I ran \`mt done --help\` to learn how to pass the note.
 + 🔴 #raw("crates/mindtape-cli/src/flip.rs"): \`mt \<status> --help\` exits 1, prefixes the help with \`Error:\`, opens it with the rustdoc of the internal \`Shortcut\` parser and names the binary \`mindtape-cli\`.

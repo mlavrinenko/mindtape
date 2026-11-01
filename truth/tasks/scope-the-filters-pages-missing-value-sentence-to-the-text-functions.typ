@@ -30,7 +30,7 @@
   status: done(2026, 10, 18),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing what a filter does with a field the task doesn't carry
 + 🔴 #raw("www/content/filters.typ"): the Text functions section says a missing field never matches, yet `!=` matches it, as the Operators section on the same page says

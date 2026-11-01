@@ -32,7 +32,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt init` in a new repo, then `mt add` a task with an empty body.
 + 🔴 Nothing refuses it. The six-section rules, the word caps and the imperative-title rule live only in this repo's `.mindtape/config.toml`, a block another repo can only copy and then watch drift.

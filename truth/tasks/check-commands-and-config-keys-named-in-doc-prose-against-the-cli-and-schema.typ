@@ -35,7 +35,7 @@
   links: parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Read `www/content/config.typ:120`.
 + 🔴 It names `[tasks.roots]`, which is TOML table syntax. `roots` is an array of tables, written `[[tasks.roots]]`, and line 79 of the same page says so.

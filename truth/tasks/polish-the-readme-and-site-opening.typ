@@ -30,7 +30,7 @@
   status: done(2026, 10, 15)[README and site root open on the settled wording],
 )
 
-== Problem
+== AS-IS
 
 + Open README.md.
 + 🔴 The tagline says "File-based task tracker", the pitch says "flexible enough", and the recipes heading says "Flexible remedy".

@@ -30,7 +30,7 @@
   status: done(2026, 10, 6),
 )
 
-== Problem
+== AS-IS
 
 + Open any docs page and read the sidebar's Reference group.
 + 🔴 It lists 13 pages in one flat run: CLI reference, Filter language, Priority, Configuration, Statuses, Rules, Rule packs, Commit rules, Named sets, Hooks, Estimates, JSON schema, Import & export.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 15),
 )
 
-== Problem
+== AS-IS
 
 + Declare a template slot `#slot("summary", kind: "text", example: "plain words")`. `mt check` accepts it, since the example shows no code span.
 + Fill it with `mt add -t that -f -`, the YAML value holding a code span such as ``` `mmz --import <dir>` ```.

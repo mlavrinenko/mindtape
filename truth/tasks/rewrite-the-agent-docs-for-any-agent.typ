@@ -35,7 +35,7 @@
   links: depends-on("give-the-docs-a-conversational-voice.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Read `skills/mindtape/SKILL.md` and `README.md`.
 + 🔴 Both tell the reader to make every change through `mt`. A person may edit a task file as text, and only an agent needs the hard rule.

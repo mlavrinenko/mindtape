@@ -30,7 +30,7 @@
   status: done(2026, 10, 8),
 )
 
-== Problem
+== AS-IS
 
 + Capturing every error \`mt\` prints for the error inventory
 + 🔴 #raw("crates/mindtape/src/filter/mod.rs"): a status value that no \`\[tasks.status\]\` entry declares passes a filter and a view's \`filter\` without a word, and the filter matches nothing

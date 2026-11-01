@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt ls --sort nofield`.
 + 🔴 It prints `Error: unknown sort field: nofield`.

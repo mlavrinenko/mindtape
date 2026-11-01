@@ -30,7 +30,7 @@
   status: done(2026, 9, 22),
 )
 
-== Problem
+== AS-IS
 
 + Running \`just check\` in one worktree while three delegated agents ran their own suites on the same machine.
 + 🔴 #raw("crates/mindtape-cli/tests/interactive_e2e.rs"): Two pty tests fail under concurrent machine load and pass in isolation, so a green suite depends on nothing else running.

@@ -32,7 +32,7 @@
     + depends-on("print-what-a-pack-update-changes.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Read the "Packs from a git source" section of `www/content/packs.typ`.
 + 🔴 Its `mt packs` output is typed by hand: the docs build has no git source to fetch from, so the text can drift from what the commands print.

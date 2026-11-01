@@ -36,7 +36,7 @@
     ),
 )
 
-== Problem
+== AS-IS
 
 + Add `[pack-sources.acme]` with `git` and `ref` to `.mindtape/config.toml`.
 + 🔴 `mt check` refuses `pack-sources` as an unknown field, and no file can record the commit the project adopted.

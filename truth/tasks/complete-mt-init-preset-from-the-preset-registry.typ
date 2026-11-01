@@ -30,7 +30,7 @@
   status: done(2026, 9, 22),
 )
 
-== Problem
+== AS-IS
 
 + Wiring the per-argument completion table in truth/tasks/emit-shell-completions-from-the-binary-that-answers-them.typ
 + 🔴 #raw("crates/mindtape-cli/src/completion.rs"): \`mt init --preset\` is the one argument in SOURCES whose values are enumerable by an existing function and that still records \`Source::None\`, because the driving task named six project-derived sources and presets are an install-level registry rather than a project value.

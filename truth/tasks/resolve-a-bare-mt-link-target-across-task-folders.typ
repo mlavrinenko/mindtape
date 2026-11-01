@@ -30,7 +30,7 @@
   status: done(2026, 10, 1),
 )
 
-== Problem
+== AS-IS
 
 + In a project with `cli/spectrogram-parity.typ` and `docs/a.typ`, run `mt link a depends-on spectrogram-parity`.
 + 🔴 It refuses: `` `depends-on` edge target `spectrogram-parity.typ` names no task; did you mean: spectrogram-parity? `` — the suggestion is the very name it just refused.

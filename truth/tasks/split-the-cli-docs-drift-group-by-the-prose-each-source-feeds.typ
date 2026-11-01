@@ -31,7 +31,7 @@
   links: parent("keep-the-user-docs-generated-or-gated-not-restated.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Change one line of `crates/mindtape-cli/src/cmd/ls/mod.rs` and run `just outdatty-check`.
 + 🔴 It prints `[ stale ]  cli-docs` and 27 `review dependent:` lines: 20 site pages, `cli-notes.typ`, the skill with its references and evals, and the `www/content/cli/*.typ` glob, whose 25 pages include 12 that hold only `#cli-command(...)`, rendered from `cli.json`.

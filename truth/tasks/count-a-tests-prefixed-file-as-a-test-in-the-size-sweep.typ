@@ -30,7 +30,7 @@
   status: done(2026, 10, 7),
 )
 
-== Problem
+== AS-IS
 
 + Moving library areas into folders, where test modules of a mod.rs are named \`tests\_\*.rs\`
 + 🔴 #raw("contrib/ask-refactoring/size.sh"): The size arm's \`\$is\_test\` regex misses \`tests\_\*.rs\`, so a themed test module of a \`mod.rs\` is scored as production code.

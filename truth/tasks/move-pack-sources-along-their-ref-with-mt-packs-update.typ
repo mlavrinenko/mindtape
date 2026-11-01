@@ -32,7 +32,7 @@
     + depends-on("fetch-the-locked-pack-sources-with-mt-packs-install.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Add `[pack-sources.acme]` with `ref = "v1"`, or push a fix to `v1` of an already locked source.
 + 🔴 Nothing writes the source into `.mindtape/packs.lock` or moves the lock to the new commit, so the project stays on the stale lock that `mt` refuses.

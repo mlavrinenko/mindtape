@@ -30,7 +30,7 @@
   status: done(2026, 10, 8),
 )
 
-== Problem
+== AS-IS
 
 + Reading config errors against the error format in diag/mod.rs
 + 🔴 #raw("crates/mindtape/src/config"): config errors end with a known-name list on the error line, where the format puts the next step on a hint line

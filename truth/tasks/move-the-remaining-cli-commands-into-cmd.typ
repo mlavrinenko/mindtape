@@ -34,7 +34,7 @@
     )[carries out its layout],
 )
 
-== Problem
+== AS-IS
 
 + Run `ls crates/*/src`.
 + 🔴 `link_*.rs`, `ls*.rs` + `ls_interactive/`, `find.rs`, `recur*.rs`, `rm*.rs`, `graph*.rs`, `install*.rs`, `import.rs` + `import/`, `config_cmd.rs`, `eval.rs`, `go.rs`, `mv.rs`, `preset_cmd.rs`, `review.rs`, `set.rs`, `views.rs`, `worktrees.rs` sit flat at the crate root, so the module path does not name the file and nothing marks the area's internals.

@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt check` on a task whose Environment section sits before its Problem.
 + 🔴 It prints `rules.environment-follows-problem: Environment follows Problem`, a fact where the reader needs the fix.

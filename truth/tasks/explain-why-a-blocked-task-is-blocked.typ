@@ -34,7 +34,7 @@
   )[why column (named()), why list in --json, \@blocked view in this repo; documented on the CLI, schema and import pages and in the skill],
 )
 
-== Problem
+== AS-IS
 
 + `mt ls blocked`.
 + 🔴 It lists blocked tasks but not what blocks them; an agent must `mt eval` each task and then each target to learn which blockers are unfinished.

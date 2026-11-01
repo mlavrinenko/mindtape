@@ -30,7 +30,7 @@
   status: done(2026, 10, 19),
 )
 
-== Problem
+== AS-IS
 
 + Following the Quickstart to the point where the README's autocompletion claim should start to hold
 + 🔴 #raw("www/content/quickstart.typ"): The README promises that the editor completes field names and flags a misspelled one, but the Quickstart names no language server and never links the page that explains `@local` packages

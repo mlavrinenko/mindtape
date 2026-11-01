@@ -36,7 +36,7 @@
     ),
 )
 
-== Problem
+== AS-IS
 
 + Define `[at.home]` over `~/projects/home/*` and run `mt @home ls ready`.
 + 🔴 No command lists tasks from two projects. Today it prints `error: unknown worktree: '@home'`, and a shell loop prints one table per project with no project name on a row.

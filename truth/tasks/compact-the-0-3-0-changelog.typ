@@ -30,7 +30,7 @@
   status: done(2026, 10, 15),
 )
 
-== Problem
+== AS-IS
 
 + Run `sed -n '/^## \[Unreleased\]/,/^## \[0.2.0\]/p' CHANGELOG.md | wc -c`.
 + 🔴 It prints about 171000. The section logs 0.3.0 commit by commit, so one feature spreads over an Added entry, later Changed entries and a Fixed entry for a bug that never shipped, and many entries name internal modules and gate plumbing.

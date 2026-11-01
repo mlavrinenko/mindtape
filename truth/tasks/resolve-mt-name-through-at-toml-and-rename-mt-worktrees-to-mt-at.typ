@@ -33,7 +33,7 @@
     + depends-on("load-every-project-of-a-set-in-parallel.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Write `[at.home]` in `~/.config/mindtape/at.toml`.
 + Run `mt @home ls`, then `mt at`.

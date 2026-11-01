@@ -30,7 +30,7 @@
   status: done(2026, 10, 28),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt init --preset gated`, file a task with `mt add`, fill its slots and walk it to `needs-review`.
 + 🔴 On Linux, `mt flip done` refuses until `mt allow` approves `! grep -q "TODO:" "$MINDTAPE_TASK_FILE"`, the preset's own `[[on.flip]]` gate in `crates/mindtape-cli/src/cmd/init/presets/gated/config.toml`.

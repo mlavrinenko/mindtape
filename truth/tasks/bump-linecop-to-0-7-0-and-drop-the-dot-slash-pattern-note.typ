@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + `flake.lock` pins qahq at linecop 0.4.0. `nix flake update qahq` brings linecop 0.7.0 (qahq v0.5.0).
 + Read the comment above the rendered-file overrides in `.linecop.yaml`.

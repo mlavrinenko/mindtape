@@ -30,7 +30,7 @@
   status: done(2026, 9, 22),
 )
 
-== Problem
+== AS-IS
 
 + Two delegated agents in this session each edited one dependent, re-recorded its group, and absorbed unrelated pending watermarks onto their commit.
 + 🔴 #raw("outdatty.yaml"): Re-recording a group to stamp one dependent also stamps every other pending dependent in it, which is the misattribution the manifest's own header warns against.

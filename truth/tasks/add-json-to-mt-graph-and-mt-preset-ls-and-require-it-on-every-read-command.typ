@@ -31,7 +31,7 @@
   links: depends-on("print-mt-checks-problems-as-json-with-json.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the docs before release, checking agents.typ against each read command's flags
 + 🔴 #raw("crates/mindtape-cli/src/cli/tree_json.rs"): mt graph and mt preset ls have no --json, and nothing fails when a read command lacks it

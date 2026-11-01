@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the api-service capture commits a71dbf48 and 3afcd40a
 + 🔴 #raw("www/capture.sh"): a capture with \`--exit 1\` checks only the exit code, and every \`mt\` error exits 1, so a page can show an unrelated error under prose that names a rule

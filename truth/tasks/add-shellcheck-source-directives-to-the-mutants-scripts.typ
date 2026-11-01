@@ -30,7 +30,7 @@
   status: done(2026, 10, 20),
 )
 
-== Problem
+== AS-IS
 
 + Run `shellcheck -x --norc .just/scripts/mutants.sh .just/scripts/mutants-diff.sh` from the repo root, or from `/tmp` with absolute paths.
 + 🔴 It prints `SC1091 (info): Not following: ./_mutants-env.sh` for `mutants.sh` line 14 and `mutants-diff.sh` line 16. An editor's shellcheck searches upward for `.shellcheckrc` only, so it hits this since the rc moved to `.config/shellcheckrc`, whose `source-path=SCRIPTDIR` was the only thing that resolved the source.

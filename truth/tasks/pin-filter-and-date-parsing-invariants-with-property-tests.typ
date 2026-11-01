@@ -34,7 +34,7 @@
   )[No bug evidence behind it; the filter has no printer to round-trip, and the unwrap/indexing/panic denies already cover the no-panic property. Cost of a grammar generator outweighs a speculative return.],
 )
 
-== Problem
+== AS-IS
 
 + Read the filter language tests under `crates/mindtape/src/filter*` and the date/recur tests.
 + 🔴 Those parsers take open input (expressions, dates, rrule strings) but every test samples a handful of literals by hand; no test states the invariant over all inputs, so wrong specs and parse/eval asymmetries survive both the suite and the sweep.

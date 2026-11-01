@@ -30,7 +30,7 @@
   status: done(2026, 10, 16),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt wip wcw`, where `wcw` is the stem hash of `fix-the-login-redirect`.
 + 🔴 It prints `flipped wcw (Fix the login redirect): proposed → wip`.

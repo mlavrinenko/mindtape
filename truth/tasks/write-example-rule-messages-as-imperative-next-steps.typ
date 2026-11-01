@@ -30,7 +30,7 @@
   status: done(2026, 10, 8),
 )
 
-== Problem
+== AS-IS
 
 + Reading config errors against the error format in diag/mod.rs
 + 🔴 #raw("examples/rules/.mindtape/config.toml"): example rule messages read as statements, not imperative next steps like the shipped pack's

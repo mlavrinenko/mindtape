@@ -37,7 +37,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt check 2>/dev/null` in a project with a rule breach.
 + 🔴 The breach prints on stdout, and only `Error: 1 violation(s), 0 load error(s)` reaches stderr.

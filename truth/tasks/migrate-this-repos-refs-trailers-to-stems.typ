@@ -31,7 +31,7 @@
   links: depends-on("check-commit-messages-against-commit-rules.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Read `CONTRIBUTING.md`, Commit Messages.
 + 🔴 It asks for `Refs: truth/tasks/<stem>.typ`, a path that breaks when a task moves, and nothing checks it.

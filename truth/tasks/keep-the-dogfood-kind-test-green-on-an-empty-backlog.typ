@@ -30,7 +30,7 @@
   status: done(2026, 9, 16),
 )
 
-== Problem
+== AS-IS
 
 + Close every open task in `truth/tasks/`, so `mt ls '!terminal'` prints no rows.
 + Run `cargo test -p mindtape --test dogfood_check`.

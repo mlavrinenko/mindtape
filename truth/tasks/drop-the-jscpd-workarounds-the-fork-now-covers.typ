@@ -30,7 +30,7 @@
   status: done(2026, 10, 28),
 )
 
-== Problem
+== AS-IS
 
 + Read `.just/scripts/lint-dry.sh`.
 + 🔴 It filters jscpd's JSON report to the `isNew` clones with `jq`, because under `--baseline` every reporter prints every clone.

@@ -30,7 +30,7 @@
   status: done(2026, 9, 22),
 )
 
-== Problem
+== AS-IS
 
 + Adding \`mt set\` per the task that put this eval's regrade out of scope.
 + 🔴 #raw("skills/mindtape/evals/evals.json"): Eval 4's expected output states that priority has no CLI writer, and its rubric grades a hand edit as the correct recovery; \`mt set \<task> priority=8\` is now that writer.

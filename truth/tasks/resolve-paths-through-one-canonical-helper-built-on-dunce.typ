@@ -30,7 +30,7 @@
   status: done(2026, 10, 28),
 )
 
-== Problem
+== AS-IS
 
 + On Windows, run `mt -w <project> ls` (CI run 40580151452, `ls_limit_e2e::a_worktree_flag_pages_with_the_flag_as_typed`).
 + 🔴 The file column prints `\\?\C:\Users\runneradmin\...\tasks\a.typ`, because `Path::canonicalize` returns a verbatim path on Windows.

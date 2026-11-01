@@ -30,7 +30,7 @@
   status: done(2026, 10, 25),
 )
 
-== Problem
+== AS-IS
 
 + Importing a task whose TO-BE breaks a content rule that sets a `message`
 + 🔴 #raw("crates/mindtape-cli/src/pre_write/mod.rs"): `Verdict::problems` renders each breach as one line, so the report drops the `note:` line `mt check` prints under the message

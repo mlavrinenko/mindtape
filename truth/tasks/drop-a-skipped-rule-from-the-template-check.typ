@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Locating a pack rule's skipped warning at its own config entry.
 + 🔴 #raw("crates/mindtape/src/candidate.rs"): a rule skipped for lack of git is reported at its config entry and again for the built-in template

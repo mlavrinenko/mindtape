@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing commit 1368e19c, which added the filter-docs outdatty group
 + 🔴 #raw("crates/mindtape/src/filter_eval.rs"): the function names live in a hand-kept WORDS array beside two match blocks that repeat four arms, and the docs track them only through an outdatty file list

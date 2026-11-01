@@ -30,7 +30,7 @@
   status: done(2026, 10, 26),
 )
 
-== Problem
+== AS-IS
 
 + Read `package_overrides` in `crates/mindtape/src/loader/mod.rs`.
 + 🔴 `mindtape_lib_dir` resolves `@local/mindtape` from `<root>/lib` whenever its `typst.toml` names the package `mindtape`, a path and a package name written into the core library.

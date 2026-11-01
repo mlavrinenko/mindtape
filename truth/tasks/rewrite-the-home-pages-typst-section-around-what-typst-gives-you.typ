@@ -34,7 +34,7 @@
   )[the section names three gains, and one editor capture shows the menu and the squiggle together],
 )
 
-== Problem
+== AS-IS
 
 + Open the site root and read "Why Typst".
 + 🔴 "Values checked on load" claims a check that a JSON schema gives Markdown frontmatter too.

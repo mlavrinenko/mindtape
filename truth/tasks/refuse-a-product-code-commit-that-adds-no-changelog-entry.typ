@@ -30,7 +30,7 @@
   status: done(2026, 10, 7),
 )
 
-== Problem
+== AS-IS
 
 + Read `git log --format='%h %s' 37a8e3b7..93d78e66 -- CHANGELOG.md` after the 2026-10-06 docs round.
 + 🔴 Of eleven branches, only the two `fix` commits touched `CHANGELOG.md`. The `feat(www)` and `docs(www)` work for Markdown copies, per-command pages, diagrams and the lock merge driver landed without an entry, and one catch-up commit (`169b4260`) added them later.

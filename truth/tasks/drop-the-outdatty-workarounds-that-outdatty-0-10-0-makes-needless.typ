@@ -30,7 +30,7 @@
   status: done(2026, 10, 28),
 )
 
-== Problem
+== AS-IS
 
 + Read `.just/scripts/outdatty-check.sh` and `.just/scripts/outdatty-lock-merge.sh`.
 + 🔴 The first diffs the lock's groups against the manifest's with `yq`, though `outdatty check` has failed on an orphaned lock group since 0.8.0. The second is a 280-line bash merge driver for `.config/outdatty.lock` that needs `yq`, `jq` and `b3sum`, plus a 360-line e2e test, because outdatty shipped no driver.

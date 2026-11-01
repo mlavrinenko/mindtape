@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Writing check-doc-prose, which scans only the doc sources.
 + 🔴 #raw("Justfile"): The comments in the Justfile, .just/docs.just, .mmz/config.yaml, outdatty.yaml and .linecop.yaml tell history and shout, and no check scans them.

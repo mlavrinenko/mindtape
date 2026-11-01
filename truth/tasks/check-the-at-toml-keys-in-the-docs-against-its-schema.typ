@@ -34,7 +34,7 @@
     )[the gate and the key table read schema/at.schema.json, which that task writes],
 )
 
-== Problem
+== AS-IS
 
 + Add a sentence with the spans `[board] sortt` and `[ls] hyperlinkz` to `www/content/read-many-projects.typ` and run `just check-doc-spans`.
 + 🔴 It flags only the second, printing `ls has no key hyperlinkz; closest: hyperlinks`. `[board] sortt` passes, because `rooted` in `.just/scripts/check-doc-spans.jq` checks a span only when its first segment is a top-level key of `schema/config.schema.json`.

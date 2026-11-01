@@ -30,7 +30,7 @@
   status: done(2026, 10, 14),
 )
 
-== Problem
+== AS-IS
 
 1. Read `.github/workflows/ci.yml`'s `check` job.
 2. 🔴 It caches the Nix store but no cargo build, so every push compiles the workspace cold for clippy, the tests, the dev `mt` and the coverage rebuild.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 17),
 )
 
-== Problem
+== AS-IS
 
 + Committing the first of two commits in a delegated worktree with `MINDTAPE_GATE_SCOPE`.
 + 🔴 #raw("docs/src/contributing.typ"): CONTRIBUTING.md says `MINDTAPE_GATE_SCOPE=<reason> git commit` skips the freshness check, but the commit-msg hook also requires a matching `Gate-Scope:` trailer, so a commit made as written is refused.

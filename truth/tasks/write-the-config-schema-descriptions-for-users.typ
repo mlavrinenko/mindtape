@@ -31,7 +31,7 @@
   links: parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Run `rg -c 'crate::' schema/config.schema.json`.
 + 🔴 It prints `5`. One description reads `` [`crate::config_packs`] — so this field always reads back as whichever layer ... ``.

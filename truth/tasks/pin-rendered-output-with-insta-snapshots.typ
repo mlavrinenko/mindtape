@@ -34,7 +34,7 @@
   )[The motivating HyperlinkChoice::fmt survivor is already killed by render/link.rs:165 (4918023a); one assert\_eq does what a snapshot dependency and review workflow would.],
 )
 
-== Problem
+== AS-IS
 
 + Read `/tmp/survivors.txt`'s render section from the 2026-09-30 scoped sweep.
 + 🔴 `crates/mindtape-cli/src/render/link.rs:37:9 replace <impl fmt::Display for HyperlinkChoice>::fmt -> fmt::Result with Ok(Default::default())` survived into the sprint's survivor list: pinning one rendered shape takes several hand-written assertions per test.

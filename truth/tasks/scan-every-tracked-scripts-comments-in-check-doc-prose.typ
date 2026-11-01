@@ -30,7 +30,7 @@
   status: done(2026, 10, 4),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing commit 0c371aae
 + 🔴 #raw(".just/scripts/check-doc-prose.sh"): the gate reads comments from a hand list of five config files, so 14 of the 69 shell scripts still tell history

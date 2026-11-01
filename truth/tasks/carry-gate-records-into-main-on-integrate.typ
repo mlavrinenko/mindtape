@@ -30,7 +30,7 @@
   status: done(2026, 10, 7),
 )
 
-== Problem
+== AS-IS
 
 + Committing after a just integrate
 + 🔴 #raw(".just/scripts/integrate.sh"): integrate.sh asserts the gate in the worktree (line 157), then fast-forwards (line 170) without telling main's .mmz/cache. Main's gate is stale, so .githooks/pre-commit refuses the next commit until just check re-runs: about 10 minutes, twice today.

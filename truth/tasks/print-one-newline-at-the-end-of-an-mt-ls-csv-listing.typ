@@ -30,7 +30,7 @@
   status: done(2026, 10, 16),
 )
 
-== Problem
+== AS-IS
 
 + Fixing the lone newline of an empty `--format path` listing in `mt ls`
 + 🔴 #raw("crates/mindtape-cli/src/cmd/ls/mod.rs"): `mt ls --format csv` prints a blank line after the last record, because the csv writer already ends each record with a newline and `println!` adds a second

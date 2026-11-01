@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt set <task> titel=x`.
 + 🔴 It prints `Error: unknown field: titel; did you mean: title?; writable fields: …`.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 29),
 )
 
-== Problem
+== AS-IS
 
 + Run `nix run github:mlavrinenko/mindtape/v0.3.0 -- --version`.
 + 🔴 It fails with `unable to execute '/nix/store/…-rust-workspace-0.3.0/bin/rust-workspace': No such file or directory`. naersk names the package after the virtual workspace, and nothing sets `mainProgram`.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 17),
 )
 
-== Problem
+== AS-IS
 
 + Dogfooding milestone 4q2 from `~` with `mt @mt ls -n 2`.
 + 🔴 #raw("crates/mindtape-cli/src/cmd/ls/mod.rs"): A single-project `@name` turns into `-w <path>` before `ls` parses, so the next-page hint drops it. A set's hint keeps its `@name`.

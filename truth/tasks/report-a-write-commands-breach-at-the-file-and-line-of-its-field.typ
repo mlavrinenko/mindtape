@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Closing the task that gave every \`mt check\` breach a file and line
 + 🔴 #raw("crates/mindtape-cli/src/pre_write.rs"): Write commands still print a validation breach under the task stem, where \`mt check\` now prints file and line.

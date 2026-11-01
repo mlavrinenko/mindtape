@@ -34,7 +34,7 @@
     )[both rewrite read-many-projects.typ, so they land in turn],
 )
 
-== Problem
+== AS-IS
 
 + Look up which commands take `mt @work` on `/read-many-projects/` and in `skills/mindtape/SKILL.md`.
 + 🔴 The page types "Only `ls`, `find`, `check` and `board` run on a set", and `docs/src/skill.typ` types the same four.

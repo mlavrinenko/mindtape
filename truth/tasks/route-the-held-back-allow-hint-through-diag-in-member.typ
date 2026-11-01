@@ -30,7 +30,7 @@
   status: done(2026, 10, 19),
 )
 
-== Problem
+== AS-IS
 
 + Naming the member project in a hint's `mt` command inside a set, which added `Diag::in_member`
 + 🔴 #raw("crates/mindtape-cli/src/util.rs"): `held_back_warning` builds a set member's `mt @<name> allow` by hand, so it skips `Diag::in_member` and prints no `note: project: <name>`

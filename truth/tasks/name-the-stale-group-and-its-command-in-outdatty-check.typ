@@ -30,7 +30,7 @@
   status: done(2026, 10, 7)[the recipe prints each stale group from the JSON],
 )
 
-== Problem
+== AS-IS
 
 + Merging four parallel docs rewrites
 + 🔴 #raw("Justfile"): a failing `just outdatty-check` prints only source paths, with no group and no command to run

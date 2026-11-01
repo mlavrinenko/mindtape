@@ -34,7 +34,7 @@
   )[forced past failing gate: "mmz --is-fresh --tag gate"],
 )
 
-== Problem
+== AS-IS
 
 + Wiring the outdatty.lock merge driver's e2e test into the \`just test\` mmz rule
 + 🔴 #raw(".mmz/config.yaml"): \`crates/mindtape-cli/tests/integrate\_refs\_e2e.rs\` runs \`.just/scripts/integrate.sh\`, but the \`just test\` and \`just cover\` rules do not list \`script-integrate\`, so an edit to integrate.sh alone leaves both served as fresh cache hits.

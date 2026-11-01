@@ -34,7 +34,7 @@
   )[cargo llvm-cov --branch is unstable (nightly-only) and rust-toolchain.toml pins stable 1.92.0.],
 )
 
-== Problem
+== AS-IS
 
 + Read `crates/mindtape/src/config_rules_eval.rs`'s `resolve_and_select` exclusion in `.cargo/mutants.toml`.
 + 🔴 `if skip > 0` was line-covered by every test; no test passed `skip == 0`, so the sweep's `>= 0` mutant was unkillable and had to be excluded by hand. Line coverage cannot see the difference.

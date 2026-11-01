@@ -30,7 +30,7 @@
   status: done(2026, 10, 6),
 )
 
-== Problem
+== AS-IS
 
 + Open `/cli/` on the docs site and look for `mt link`.
 + 🔴 One page of about 7,400 words holds all the commands. The reader scrolls past twenty others, and a search hit or an agent fetching the page gets all of them.

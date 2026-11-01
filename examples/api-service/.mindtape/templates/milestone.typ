@@ -31,7 +31,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 #slot(
   "problem",
   kind: "raw",

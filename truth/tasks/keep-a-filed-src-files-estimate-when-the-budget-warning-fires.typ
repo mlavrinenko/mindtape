@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt wip` on a task whose diff touches more source files than `estimate.src-files`.
 + 🔴 It warns `rules.src-budget: split the remaining work into a new task and finish the part in hand`, and an agent asks whether to raise the estimate.

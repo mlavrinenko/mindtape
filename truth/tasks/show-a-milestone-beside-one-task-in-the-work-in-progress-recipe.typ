@@ -34,7 +34,7 @@
   )[the recipe caps one milestone and one task, and its session shows both in progress],
 )
 
-== Problem
+== AS-IS
 
 + Open the recipe "One task at a time".
 + 🔴 Its label opens with no verb, unlike the other five.

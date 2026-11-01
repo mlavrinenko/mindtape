@@ -30,7 +30,7 @@
   status: done(2026, 10, 8)[warm load re-hashes imported modules],
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the docs before release, checking internals.typ's cache claim against a task that imports a shared module
 + 🔴 #raw("crates/mindtape/src/loader/cache.rs"): the cache key covers the task file's bytes and the build key (mt version, config, prelude) but never the modules the task imports, so mt ls shows a field computed from an edited module at its old value

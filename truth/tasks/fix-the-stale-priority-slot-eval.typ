@@ -30,7 +30,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 1. 🔴 `skills/mindtape/evals/evals.json` eval 4,
   `add-with-priority-slot-trap`, expects `--set priority=8` on the built-in

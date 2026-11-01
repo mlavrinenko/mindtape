@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Filing a task titled Speed up login in the api-service example
 + 🔴 #raw("crates/mindtape/src/dicts/dev-verbs.txt"): The imperative-title rule refuses a title that starts with Speed, a common verb in engineering task titles.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + `jq -r '.["$defs"].RuleSpec.properties.name.description' schema/config.schema.json`
 + 🔴 It prints "What the rule is called, used to report it (`rules.<name>`)". The `name` descriptions of `CommitRuleSpec`, `ContentRuleConfig` and `HeaderRuleConfig` open the same way, and the doc prose check refuses "used to" as history. The `ready` description of `LsConfig` and the description of `ReadyConfig` write the column header `READY` in capitals.

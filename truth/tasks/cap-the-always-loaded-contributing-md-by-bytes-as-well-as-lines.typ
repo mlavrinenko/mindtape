@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Setting the linecop cap on CONTRIBUTING.md while cutting it to the rules
 + 🔴 #raw(".linecop.yaml"): linecop counts lines only, and typlite writes one line per paragraph, so the 142-line cap on CONTRIBUTING.md passes the 30 KB version that the cut removed.

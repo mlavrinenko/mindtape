@@ -33,7 +33,7 @@
   )[template\_check::relocate moves into the span service],
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the template check that cf85120b added to \`mt check\`
 + 🔴 #raw("crates/mindtape-cli/src/check_templates.rs"): \`mt check\` validates every template in one \`check\_candidates\` batch with the live backlog, at \`\<dest>/\<template-name>.typ\`, so backlog state and stem collisions fail the template pass

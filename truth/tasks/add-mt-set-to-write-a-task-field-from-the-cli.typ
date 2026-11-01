@@ -30,7 +30,7 @@
   status: done(2026, 9, 22),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt add "Upgrade the driver"`, then try to give the new task a
   priority without opening the file.

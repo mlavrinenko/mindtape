@@ -30,7 +30,7 @@
   status: done(2026, 11, 1),
 )
 
-== Problem
+== AS-IS
 
 + Making `mt` serve its embedded prelude, which let `mt check` evaluate the built-in template in a test fixture
 + 🔴 #raw("crates/mindtape-cli/src/cmd/check/templates.rs"): `mt check` runs a git-state rule such as `changed(...)` against a template's sample task, so a working-tree budget fires on a template that is no one's work

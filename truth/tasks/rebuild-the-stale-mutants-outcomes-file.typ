@@ -34,7 +34,7 @@
   )[mutants.out refreshed by a full --iterate run; 106 tasks filed for the survivors; the 5 timeouts filed; the skip message names just mutants],
 )
 
-== Problem
+== AS-IS
 
 + Run `just ask-refactoring`.
 + 🔴 It prints `ask-refactoring: mutants.out/outcomes.json predates crates/mindtape/tests/dogfood_check.rs — skipping the mutants arm`: the file was last written 2026-09-10, so surviving mutants from every commit since are invisible to the sweep.

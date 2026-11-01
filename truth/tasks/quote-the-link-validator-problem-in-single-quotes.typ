@@ -30,7 +30,7 @@
   status: done(2026, 10, 8),
 )
 
-== Problem
+== AS-IS
 
 + Reading config errors against the error format in diag/mod.rs
 + 🔴 #raw("crates/mindtape/src/config/links_validate.rs"): Validators::problem quotes the kind and target in backticks, not the format's single quotes

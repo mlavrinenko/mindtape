@@ -30,7 +30,7 @@
   status: done(2026, 9, 22),
 )
 
-== Problem
+== AS-IS
 
 + Wiring dynamic shell completions; every other value-taking argument got a source, this one could not.
 + 🔴 #raw("crates/mindtape-cli/src/cli.rs"): A status shortcut verb takes its task argument through a clap external\_subcommand, whose tail clap never parses and so cannot complete.

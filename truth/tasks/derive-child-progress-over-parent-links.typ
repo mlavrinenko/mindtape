@@ -30,7 +30,7 @@
   status: done(2026, 9, 28),
 )
 
-== Problem
+== AS-IS
 
 + `rg -l 'parent\(' truth/tasks | wc -l` counts 23 tasks with a parent.
 + 🔴 Nothing reports how far a parent's children have got: `mt ls` has no `children` or `progress` field, and `mt done <parent>` succeeds while its children are still open.

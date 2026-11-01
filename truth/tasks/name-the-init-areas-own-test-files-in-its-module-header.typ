@@ -30,7 +30,7 @@
   status: done(2026, 10, 19),
 )
 
-== Problem
+== AS-IS
 
 + Fixing the second `mt init` refusal in `crates/mindtape-cli/src/cmd/init/mod.rs`
 + 🔴 #raw("crates/mindtape-cli/src/cmd/init/mod.rs"): the `# Files` list in the `//!` header names `cmd/ls/interactive/tests.rs`, a file of another area, and leaves out `tests.rs`, `compose_tests.rs` and `preset_tests.rs`, which the folder holds

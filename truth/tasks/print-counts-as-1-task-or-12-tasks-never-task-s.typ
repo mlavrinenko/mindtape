@@ -30,7 +30,7 @@
   status: done(2026, 10, 15),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt init` in an empty git repo, then `mt add Fix the login`.
 + Run `mt check`.

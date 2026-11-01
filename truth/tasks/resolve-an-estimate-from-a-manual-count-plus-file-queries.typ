@@ -30,7 +30,7 @@
   status: done(2026, 10, 25),
 )
 
-== Problem
+== AS-IS
 
 + In `../speconaut`, run ```sh git grep -il refactoring e3ef3b5e -- 'src/*.rs' ':!*test*' | wc -l```.
 + 🔴 It prints `13`. The task filed at that commit said `estimate: (src-files: 4)`, and its commit touched 15 source files. Two more tasks missed the same way (8 against 11, 5 against 20). The estimate is a bare number, so `judgment-stays-small` checked a guess, and the query that would have shown the fan-out had nowhere to live.

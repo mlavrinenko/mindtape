@@ -10,6 +10,6 @@
   links: depends-on("pick-a-session-store.typ"),
 )
 
-== Problem
+== AS-IS
 
 A session stays valid until logout, however long it sits idle.

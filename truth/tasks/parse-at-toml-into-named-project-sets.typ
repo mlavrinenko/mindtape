@@ -31,7 +31,7 @@
   links: parent("show-every-tracked-project-from-one-mt-name.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Put `[[worktrees]]` entries with `name`, `path` or `base` in `~/.config/mindtape/worktrees.toml`.
 + Run `mt worktrees`.

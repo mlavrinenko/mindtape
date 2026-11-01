@@ -37,7 +37,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt done <task>` in `examples/api-service` with its `[[on.flip]]` gate failing.
 + 🔴 It prints `error: <task>: gate "scripts/test" failed (exit 1); nothing written — fix it, or re-run with --force (the override is recorded in the status note)`: one long line that names the task twice and says "nothing written", which `error:` already means.

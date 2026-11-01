@@ -30,7 +30,7 @@
   status: done(2026, 9, 27),
 )
 
-== Problem
+== AS-IS
 
 + `mt ls 'estimate.files > 3'`.
 + 🔴 It is refused: `estimate` supports only `has(estimate)`/`miss(estimate)` (`crates/mindtape/src/filter_predicates.rs`), so no rule can compare an estimate, and bounds on it needed the bespoke `[[tasks.estimate.max]]`/`min` checker.

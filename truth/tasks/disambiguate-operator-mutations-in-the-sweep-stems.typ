@@ -34,7 +34,7 @@
   )[\`stem\_for\` spells operator characters out and the mutants stem now carries the span, so \`replace > with >=\` and \`replace > with \<\` no longer fold; a synthetic outcomes file with the 137 survivors yields 137 distinct stems (was 106), and the size/coverage/undertested stems are unchanged],
 )
 
-== Problem
+== AS-IS
 
 + Re-filing the survivors the refreshed sweep named, while finishing \`rebuild-the-stale-mutants-outcomes-file\`.
 + 🔴 #raw("contrib/ask-refactoring.sh"): \`stem\_for\` maps every run of non-alphanumeric characters to a single hyphen, so distinct mutations of the same expression collapse onto one stem and the later finding is skipped as already filed.

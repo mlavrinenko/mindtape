@@ -35,7 +35,7 @@
     + parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Open /config/.
 + 🔴 The source is 827 lines with about 20 top-level sections: the layer merge, the status legend, rules, link kinds, environment variables, local packages.

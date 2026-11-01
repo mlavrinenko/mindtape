@@ -37,7 +37,7 @@
     ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt @mt`.
 + 🔴 It prints `error: 'mt' requires a subcommand but one was not provided`, and no command shows where each project stands.

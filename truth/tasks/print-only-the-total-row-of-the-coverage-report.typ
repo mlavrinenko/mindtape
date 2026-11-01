@@ -30,7 +30,7 @@
   status: done(2026, 10, 6),
 )
 
-== Problem
+== AS-IS
 
 + Run `just cover`.
 + 🔴 It prints a per-file table of about 230 lines after the test summary.

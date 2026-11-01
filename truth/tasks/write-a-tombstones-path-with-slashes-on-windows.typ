@@ -30,7 +30,7 @@
   status: done(2026, 10, 27),
 )
 
-== Problem
+== AS-IS
 
 + On Windows, in a git repository, run `mt rm gone-a` where `live-a` depends on `gone-a`.
 + 🔴 `live-a` gets `depends-on("swh:1:rev:…;path=tasks\gone-a.typ")`. A SWHID's `path=` is a git path, and git paths use `/`, so the tombstone resolves nowhere (`rm_e2e::rm_takes_two_refs_in_one_invocation_and_rewrites_each_inbound_link`, CI run 40576881551).

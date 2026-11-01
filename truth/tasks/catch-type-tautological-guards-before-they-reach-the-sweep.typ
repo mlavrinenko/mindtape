@@ -34,7 +34,7 @@
   )[No source lint can see a mutant-vs-source equivalence, as the task itself says; the source-form review rule folds into record-which-survivor-classes-a-project-lint-could-have-prevented.],
 )
 
-== Problem
+== AS-IS
 
 + Read `.cargo/mutants.toml`'s `exclude_re` entry for `replace > with >= in resolve_and_select`.
 + 🔴 The sweep reached a `usize` compared `>= 0` and hand-excluded it as provably equivalent: no test can distinguish it, so the mutant is a doomed triage cycle. The same shape produced the `parse_batch` `<`→`<=` exclusion.

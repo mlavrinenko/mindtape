@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt ls 'has_tag("found")' --columns '#,title'` and note a handle, such as `7i`.
 + Run `mt eval 7i`.

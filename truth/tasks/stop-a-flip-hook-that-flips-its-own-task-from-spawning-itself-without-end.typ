@@ -30,7 +30,7 @@
   status: done(2026, 10, 28),
 )
 
-== Problem
+== AS-IS
 
 + Fixing `stop-a-waits-checker-that-runs-mt-from-spawning-itself-without-end`, which named `[[on.flip]]` out of scope
 + 🔴 #raw("crates/mindtape-cli/src/cmd/flip/hooks_cmd.rs"): an `[[on.flip]]` `run` that runs `mt flip done <stem>` on the task being flipped reruns the same hook in the child, which spawns the next child, with no bound

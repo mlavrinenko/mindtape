@@ -30,7 +30,7 @@
   status: done(2026, 10, 18),
 )
 
-== Problem
+== AS-IS
 
 + Open `Justfile`: 984 lines, 60 recipes at the top level beside one `docs` module.
 + 🔴 Most recipes carry a comment block that repeats their `[doc]` or points at the script the body already names, and `release`, `mutants::status` and `lint::dry` hold 20 to 40 lines of script inline.

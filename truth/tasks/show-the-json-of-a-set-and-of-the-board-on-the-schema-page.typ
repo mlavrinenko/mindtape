@@ -34,7 +34,7 @@
     )[both rewrite read-many-projects.typ, so they land in turn],
 )
 
-== Problem
+== AS-IS
 
 + Open `/schema/` to parse `mt @work ls --json` or `mt @work board --json` in a script.
 + 🔴 Its sections are Fields, A record, Priority and The listing, all for one project. A set's listing adds `project` and `error` (`crates/mindtape-cli/src/render/output.rs:211`), and `board --json` prints `project`, `path`, `hidden` and `cells` per row (`crates/mindtape-cli/src/cmd/board.rs:239`).

@@ -34,7 +34,7 @@
     )[carries out its layout],
 )
 
-== Problem
+== AS-IS
 
 + Run `ls crates/*/src`.
 + 🔴 `config_rules.rs`, `config_rules_eval.rs`, `config_rules_typst.rs`, `config_rule_sites.rs` sit flat at the crate root, so the module path does not name the file and nothing marks the area's internals.

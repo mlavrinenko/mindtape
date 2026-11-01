@@ -31,7 +31,7 @@
   links: depends-on("check-commit-messages-against-commit-rules.typ"),
 )
 
-== Problem
+== AS-IS
 
 + `git log --format=%s -300 | rg -c '^task: (start|close)'` in this repo.
 + 🔴 108 of the last 300 commits carry only a status flip: a close lands apart from its work, so reverting the work leaves the task done, and nothing can check it because commit rules see only the message.

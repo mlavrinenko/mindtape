@@ -35,7 +35,7 @@
     + parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Run `wc -c CONTRIBUTING.md`.
 + 🔴 It prints `29837`. The gate table is 18.5 KB of that, and every agent session here loads the whole file through `AGENTS.md`.

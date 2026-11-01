@@ -33,7 +33,7 @@
   )[both rewrite check-doc-spans; land the extractor first so this reads spans from it],
 )
 
-== Problem
+== AS-IS
 
 + Reviewing commits e3a52225 and e551aca4
 + 🔴 #raw(".just/scripts/check-doc-spans.jq"): the gate re-implements clap's argv grammar in jq, skips a span whose \`mt\` follows a prefix, and its control expects the live CLI's flags

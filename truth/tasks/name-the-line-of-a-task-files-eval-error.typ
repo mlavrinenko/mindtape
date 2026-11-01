@@ -34,7 +34,7 @@
   )[LoadError carries the line of the first diagnostic inside the task file, its trace walked through the prelude, else the task.with line; typst-world and typst-harvest 0.4.0],
 )
 
-== Problem
+== AS-IS
 
 + Capturing \`mt check\` on broken task files for the /task-files/ docs page
 + 🔴 #raw("crates/mindtape/src/loader.rs"): an eval error in a task file names the file but not the line, so a syntax mistake in a 30-line task has to be found by eye

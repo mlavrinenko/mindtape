@@ -34,7 +34,7 @@
   )[the todo.txt item is gone, and the maturity item states the first release date from CHANGELOG.md],
 )
 
-== Problem
+== AS-IS
 
 + Open the comparison page and read "When another tool fits better".
 + 🔴 "The least tooling" says todo.txt is a text file any editor opens, which a Typst task file is too.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 29),
 )
 
-== Problem
+== AS-IS
 
 + On a machine that never ran `mt install`, such as a CI runner, run `mt init --no-input`, then `mt add "Try it"`.
 + 🔴 `mt add` fails with `did not load: file not found (searched at …/typst/packages/local/mindtape/0.2.0/typst.toml)`, and `mt check` warns `can't find the prelude package`, though the binary embeds that very prelude for `mt install`.

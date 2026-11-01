@@ -35,7 +35,7 @@
     + parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Run the README Usage block in a fresh `mt init` project.
 + 🔴 `mt add --set title="Wire OAuth" --set priority=7` prints `unknown --set/-f key(s): priority; known slots: title`, and `mt flip done wire-oauth` prints `illegal transition proposed → done`.

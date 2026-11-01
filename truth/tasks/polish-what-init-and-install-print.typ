@@ -30,7 +30,7 @@
   status: done(2026, 10, 15),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt init --no-input` in an empty directory.
 + 🔴 It ends with `run mt init --list-presets to see the other starter shapes` and no hint of what to do next.

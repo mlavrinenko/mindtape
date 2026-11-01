@@ -33,7 +33,7 @@
 
 
 
-== Problem
+== AS-IS
 
 + Run `mt rules --for add` and read the section names the docs still use.
 + 🔴 `www/content/require-a-task-shape.typ` and `packs.typ` still say `Problem` and a `Rollback` for every `dev` task.

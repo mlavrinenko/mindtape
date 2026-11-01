@@ -31,7 +31,7 @@
   links: parent("keep-the-user-docs-generated-or-gated-not-restated.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Write `sortt = ["ready:desc"]` under `[board]` in `at.toml`, in an editor that reads a `#:schema` line.
 + 🔴 The editor flags nothing, because no schema exists. `RawFile`, `AtEntry`, `BoardSpec` and `BoardColumn` in `crates/mindtape/src/at/` derive only `Deserialize`, and `mt install` writes only `config.schema.json`.

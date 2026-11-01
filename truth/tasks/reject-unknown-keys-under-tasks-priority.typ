@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + resolving config keys named in doc prose against schema/config.schema.json
 + 🔴 #raw("crates/mindtape/src/config_tasks.rs"): PriorityConfig flattens NumericField with serde(flatten), which cannot combine with deny\_unknown\_fields, so an unknown key under \[tasks.priority\] loads without an error.

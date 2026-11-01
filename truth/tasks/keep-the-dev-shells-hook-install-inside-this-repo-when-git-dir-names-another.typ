@@ -30,7 +30,7 @@
   status: done(2026, 10, 25),
 )
 
-== Problem
+== AS-IS
 
 + Export `GIT_DIR` naming another repo's `.git`, as git does for every hook it runs, and enter this repo's dev shell from that process.
 + The `shellHook` in `flake.nix` runs `just install-hooks > /dev/null 2>&1`.

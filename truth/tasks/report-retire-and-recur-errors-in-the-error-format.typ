@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt recur <task>` on a task with no `recur` field.
 + 🔴 It prints `Error: "add-redis-client" has no `recur` field; nothing to advance`, the stem in Rust quotes.

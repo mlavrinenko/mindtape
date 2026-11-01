@@ -34,7 +34,7 @@
   )[the four arms emit src-files; \`mt add --print\` runs the write's check; \`add --list\` covered, holding the CRAP ratchet],
 )
 
-== Problem
+== AS-IS
 
 + Run `just ask-refactoring --write` on a tree whose config renamed `[tasks.estimate] units` to `src-files`.
 + 🔴 The sweep dies on its first finding: `error: size-…-config-rules-rs: estimate: files is not an allowed estimate unit`, and `--write` files nothing after it.

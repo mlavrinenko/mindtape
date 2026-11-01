@@ -34,7 +34,7 @@
   )[seven pages carry one name in the sidebar and their heading],
 )
 
-== Problem
+== AS-IS
 
 + Click "Statuses" in the docs sidebar.
 + 🔴 The page's heading says "The status legend", and seven more pages carry two names.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 28),
 )
 
-== Problem
+== AS-IS
 
 + Read `match_path`, `all_descendants`, `seg_matches` and `is_recursive` in `crates/mindtape/src/body/content_gate/mod.rs`.
 + 🔴 They copy artifact-gate 0.1.0's private path traversal line for line, over a `CompiledSeg` enum that mirrors `artifact_gate::Matcher`, because artifact-gate exposed no path selection.

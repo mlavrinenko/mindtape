@@ -30,7 +30,7 @@
   status: done(2026, 10, 16),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt config show | wc -l` in this repo.
 + 🔴 It prints 779 lines, of which 51 are rules (`tasks.rules`, `commits.rules`, `tasks.body.headers.rules`, `tasks.body.content.rules`) mixed with statuses, priority bands, views and hook actions.

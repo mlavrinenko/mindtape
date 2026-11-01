@@ -34,7 +34,7 @@
     )[carries out its layout],
 )
 
-== Problem
+== AS-IS
 
 + Run `ls crates/*/src`.
 + 🔴 `loader.rs` + `cache.rs`, `derive.rs`, `app_dirs.rs`; `link.rs` + `link_scan.rs`; `framework*.rs` + `frameworks.toml`; `recur*.rs`; `template*.rs` + `add_slots.rs`; `emit.rs` + `status_value.rs`; `date*.rs` sit flat at the crate root, so the module path does not name the file and nothing marks the area's internals.

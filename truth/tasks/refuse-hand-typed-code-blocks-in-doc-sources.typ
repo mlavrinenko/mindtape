@@ -31,7 +31,7 @@
   links: parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Count the fenced code blocks typed into `www/content`, `docs/src` and `www/utils`.
 + 🔴 About 120 fenced blocks are typed into the sources; `config.typ` alone has 27.

@@ -34,7 +34,7 @@
     ),
 )
 
-== Problem
+== AS-IS
 
 + Open `www/content/rule-packs.typ`, served at `/rule-packs/`.
 + 🔴 Once a pack carries a legend, a priority and templates, the page's name and route say it holds rules only, and nine pages link it under that name.

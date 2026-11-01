@@ -30,7 +30,7 @@
   status: done(2026, 10, 19),
 )
 
-== Problem
+== AS-IS
 
 + Running `just check`, where mmz hashed a cache temp file that another gate renamed away
 + 🔴 #raw(".gitignore"): the line `.mindtape/cache/` is anchored to the repo root, so only the inner `.gitignore` that `mt` writes keeps an `examples/` cache out of mmz's inputs

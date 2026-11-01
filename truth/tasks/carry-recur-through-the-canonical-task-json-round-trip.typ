@@ -30,7 +30,7 @@
   status: done(2026, 9, 22),
 )
 
-== Problem
+== AS-IS
 
 + File a recurring task, then run `mt ls --json` over it.
 + 🔴 The record carries no `recur` key at all. `CanonicalTask` has no field

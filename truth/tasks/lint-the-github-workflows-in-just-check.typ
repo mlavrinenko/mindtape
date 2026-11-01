@@ -30,7 +30,7 @@
   status: done(2026, 10, 14),
 )
 
-== Problem
+== AS-IS
 
 1. Edit `.github/workflows/ci.yml` so a job `needs` a job that doesn't exist.
 2. 🔴 Run `just check`. It passes: no gate reads the workflows, so the error shows only on GitHub, after a push.

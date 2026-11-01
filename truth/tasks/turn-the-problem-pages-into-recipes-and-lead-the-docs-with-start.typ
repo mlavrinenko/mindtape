@@ -34,7 +34,7 @@
   )[Recipes lead after Start, and README and the site root list them in one table],
 )
 
-== Problem
+== AS-IS
 
 + Open the docs site.
 + 🔴 The sidebar opens with Problems above Start, and its entry "Split oversized tasks" opens a page titled "Tasks too big to finish in one change".

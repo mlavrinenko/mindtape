@@ -34,7 +34,7 @@
   )[an M↓ button beside each page title copies its Markdown, and the header link is gone],
 )
 
-== Problem
+== AS-IS
 
 + Open any docs page.
 + 🔴 The header's "Markdown" link sits next to GitHub, and nothing says it opens the page's Markdown copy.

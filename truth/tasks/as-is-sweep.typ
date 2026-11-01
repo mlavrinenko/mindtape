@@ -27,12 +27,12 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 1),
+  status: done(2026, 11, 2),
   links: depends-on("task-shape-docs.typ"),
 )
 
 
-== Problem
+== AS-IS
 
 + Run `rg --hidden -l '^== Problem$' truth/tasks examples` and count the files.
 + 🔴 The backlog still uses `Problem` while the pack accepts `AS-IS`.

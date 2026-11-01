@@ -37,7 +37,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Read `contrib/ask-refactoring/repeats.sh`.
 + 🔴 It hand-rolls clone groups, which upstream jscpd issue 1000 adds to jscpd itself. Nothing in this repo says when that lands, so the stopgap would stay after its reason is gone.

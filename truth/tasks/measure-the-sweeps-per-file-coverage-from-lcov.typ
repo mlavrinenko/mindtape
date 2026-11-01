@@ -30,7 +30,7 @@
   status: done(2026, 10, 13),
 )
 
-== Problem
+== AS-IS
 
 + Running `just ask-refactoring` after the first sweep batch landed
 + 🔴 #raw("contrib/ask-refactoring/coverage.sh"): the coverage arm reads `cargo llvm-cov report --json --summary-only`, which counts a line once per monomorphized copy of the binary crate, so all 9 files it reports sit at or above the floor in `lcov.info`

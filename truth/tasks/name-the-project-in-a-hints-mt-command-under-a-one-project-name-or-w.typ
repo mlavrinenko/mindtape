@@ -30,7 +30,7 @@
   status: done(2026, 10, 19),
 )
 
-== Problem
+== AS-IS
 
 + Running `mt @blog check` from the directory that holds the set
 + 🔴 #raw("crates/mindtape-cli/src/cmd/at.rs"): under `mt @blog` or `-w`, a hint names a bare `mt` command, which fails run as printed from the same directory

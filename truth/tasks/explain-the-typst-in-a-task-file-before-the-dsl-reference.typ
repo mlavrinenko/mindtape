@@ -30,7 +30,7 @@
   status: done(2026, 10, 6),
 )
 
-== Problem
+== AS-IS
 
 + Open the Quickstart and read the first task file it writes, `tasks/fix-the-login-bug.typ`.
 + 🔴 Its two code lines, `#import "@local/mindtape:0.2.0": *` and `#show: task.with(...)`, are explained on no page, and `rg -n 'typst.app' www/content` prints nothing: no page links the Typst documentation.

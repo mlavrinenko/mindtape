@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Edit a source file and run `just check`.
 + 🔴 A formatting error is reported only after every gate finished, about 100 s later.

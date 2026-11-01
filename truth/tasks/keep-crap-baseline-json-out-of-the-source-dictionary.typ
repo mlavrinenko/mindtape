@@ -30,7 +30,7 @@
   status: done(2026, 10, 17)[baselines left out of \@source],
 )
 
-== Problem
+== AS-IS
 
 + Running `mt check` after `just crap-baseline` on the at.toml registry branch
 + 🔴 #raw(".mindtape/config.toml"): `[dicts.source]` doesn't exclude `crap-baseline.json`, so every task that adds a function, and so must re-mint the baseline, counts one extra source file against `estimate.src-files`

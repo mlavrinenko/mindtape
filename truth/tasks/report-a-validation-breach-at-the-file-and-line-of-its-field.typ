@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the uniform breach shape of \`mt check\` after it landed
 + 🔴 #raw("crates/mindtape-cli/src/check.rs"): A violation from validate.rs carries no location, so format\_violation prints the task stem where every other breach prints a file and line.

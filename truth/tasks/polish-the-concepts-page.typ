@@ -30,7 +30,7 @@
   status: done(2026, 10, 16),
 )
 
-== Problem
+== AS-IS
 
 + Open `www/content/concepts.typ`, or the Concepts page it builds.
 + 🔴 Identity never mentions the short hash that `mt ls` shows, the extension-field section holds config details that belong to Configuration, and two sentences read stiffly.

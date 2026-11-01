@@ -35,7 +35,7 @@
   links: parent("share-config-between-projects-through-packs.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Put `[tasks.priority]` in `./team.toml` and add `extends = ["./team.toml"]` to `.mindtape/config.toml`.
 + 🔴 `mt check` prints `extends: pack '…/team.toml' may not declare: 'priority'`: `validate_pack_shape` in `crates/mindtape/src/config/pack_resolve.rs` allows only rule arrays and `[dicts]`.

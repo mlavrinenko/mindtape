@@ -31,7 +31,7 @@
   links: parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Run `jq -r '."$defs".LinkKind.properties.validate.description' schema/config.schema.json`.
 + 🔴 Its second line reads `which is exactly the historical behaviour (a stem resolved against the`.

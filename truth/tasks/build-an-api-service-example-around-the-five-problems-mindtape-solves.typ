@@ -34,7 +34,7 @@
     + parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Read `examples/`.
 + 🔴 The project that feeds the docs captures and the skill evals is `learn-piano`, a piano practice backlog. MindTape is aimed at software engineers, and the piano tasks show none of the problems they would adopt it for.

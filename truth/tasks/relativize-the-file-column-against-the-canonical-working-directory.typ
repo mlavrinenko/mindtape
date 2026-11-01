@@ -30,7 +30,7 @@
   status: done(2026, 10, 28),
 )
 
-== Problem
+== AS-IS
 
 + Reading the Windows CI log of `ls_limit_e2e::a_worktree_flag_pages_with_the_flag_as_typed` while fixing path separators
 + 🔴 #raw("crates/mindtape-cli/src/render/file_path.rs"): `cwd()` reads `std::env::current_dir()` uncanonicalized, so a working directory spelled with an 8.3 short name such as `RUNNER~1` shares no folder with the canonical root and the `file` cell climbs to the drive

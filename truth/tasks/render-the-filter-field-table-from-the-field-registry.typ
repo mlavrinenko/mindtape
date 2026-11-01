@@ -37,7 +37,7 @@
     )[it edits the outdatty group the split creates for fields.rs],
 )
 
-== Problem
+== AS-IS
 
 + Open the field table in `www/content/filters.typ` and the field list in `skills/mindtape/references/filters.md`.
 + 🔴 Both are typed by hand, and `filters.typ` says "Every field in the table sorts except `role`, `estimate.<unit>` and `estimate`" in prose. `check-doc-facts` checks the filter functions' names on both pages, but no arm reads `FIELDS` in `crates/mindtape/src/model/fields.rs`, so a renamed field leaves both green.

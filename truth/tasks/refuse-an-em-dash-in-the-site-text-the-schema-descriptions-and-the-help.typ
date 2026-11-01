@@ -34,7 +34,7 @@
     )[both rewrite the \[ls\] hyperlinks doc comments in config/ls.rs and regenerate schema/config.schema.json],
 )
 
-== Problem
+== AS-IS
 
 + Run `mt config schema | jq '[.. | objects | .description? | strings | select(test("—"))] | length'`.
 + 🔴 It prints `59`. Descriptions such as "`[add]` — interactive editor fill settings." reach the `/config/` Sections table and `mt config schema` in a register the site's own pages don't use.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Running mt check on a hand-written task in examples/api-service to see what the docs captures will show
 + 🔴 #raw("crates/mindtape/src/gate.rs"): One mt check listing prints breaches in three shapes: a task rule with an error prefix and a file and line, a missing body section with neither, and a body content rule with a file and line but no prefix.

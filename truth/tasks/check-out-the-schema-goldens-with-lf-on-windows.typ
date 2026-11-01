@@ -30,7 +30,7 @@
   status: done(2026, 10, 27),
 )
 
-== Problem
+== AS-IS
 
 + Dispatch `ci.yml` on `main` at `364f88ad`, as the 0.3.0 release preflight did (run 40567353299).
 + 🔴 The `Test (Windows)` job fails `at::schema::tests::at_schema_matches_golden` with `schema/at.schema.json drifted from its structs` and `identical for 141 line(s); committed has 141, generated has 141`.

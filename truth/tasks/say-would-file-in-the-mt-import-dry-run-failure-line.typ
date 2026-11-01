@@ -30,7 +30,7 @@
   status: done(2026, 10, 25),
 )
 
-== Problem
+== AS-IS
 
 + Importing a batch with `--dry-run` where one record breaks a rule
 + 🔴 #raw("crates/mindtape-cli/src/cmd/import/mod.rs"): `fail_on_skips` always builds `Diag::batch("filed", …)`, so a dry run that wrote nothing ends by saying it filed tasks

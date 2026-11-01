@@ -34,7 +34,7 @@
   )[each Problems, Start and reference page defines or links terminal, slot, legend, floor, layer, facet, stem, view, rule pack, gate and flip at first use],
 )
 
-== Problem
+== AS-IS
 
 + Open `/split-oversized-tasks/`, the first page in the sidebar.
 + 🔴 Its config uses `when = "!terminal"` and the page never says what a terminal status is. Only `/statuses/` defines it.

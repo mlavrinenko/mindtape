@@ -33,7 +33,7 @@
   )[its Out of scope names this follow-up],
 )
 
-== Problem
+== AS-IS
 
 + Run `mt init --no-input --priority ice-strict` in an empty directory.
 + 🔴 The written `.mindtape/config.toml` sets `framework`, `allow-manual` and `required` under `[tasks.priority]` by hand, copied into `crates/mindtape-cli/src/cmd/init/wizard/axes.rs`, with no `extends` line, though `mindtape:ice` ships the same practice.

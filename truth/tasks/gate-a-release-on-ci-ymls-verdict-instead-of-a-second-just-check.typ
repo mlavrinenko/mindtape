@@ -30,7 +30,7 @@
   status: done(2026, 10, 14),
 )
 
-== Problem
+== AS-IS
 
 1. Read `.github/workflows/release.yml`'s `check` job.
 2. 🔴 It runs `just check` on the tagged commit, which `ci.yml` already passed: `just release` tags only once that run is green. So every release spends a second full run on a verdict GitHub already holds.

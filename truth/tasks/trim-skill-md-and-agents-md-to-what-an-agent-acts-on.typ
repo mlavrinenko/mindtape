@@ -35,7 +35,7 @@
     + parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Read `skills/mindtape/SKILL.md`.
 + 🔴 `:14` and `:77` both state the hand-edit exception. `:39` restates `mt set --help` just before `:41` says flags live in `--help`. `:53` repeats the `k=v`/`k+=v`/`k@path` syntax. `:47` is a 200-word list of filter fields and helpers.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 6),
 )
 
-== Problem
+== AS-IS
 
 + Edit any file under `crates/`.
 + Run `just check-doc-facts`, `just docs::check`, `just docs::md-check` and `just site-pages-fixture-check` in parallel, as `just check` does.

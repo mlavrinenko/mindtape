@@ -31,7 +31,7 @@
 )
 
 
-== Problem
+== AS-IS
 
 + Run `mt rules --json` and read the `when` and `assert` strings to find the tags a rule reads.
 + 🔴 Nothing lists the tags a project allows beside the rules that read them, so an agent has to rebuild the map from the config and the rule text.

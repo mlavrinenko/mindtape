@@ -30,7 +30,7 @@
   status: done(2026, 10, 7),
 )
 
-== Problem
+== AS-IS
 
 + Rendering the CLI pages to Markdown for llms.txt
 + 🔴 #raw("www/utils/cli-ref.typ"): \`\_desc\` strips the short help from the front of the long help, and when clap's long help repeats it with a trailing period, the period stays behind as a paragraph of its own

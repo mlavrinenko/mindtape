@@ -30,7 +30,7 @@
   status: done(2026, 10, 25),
 )
 
-== Problem
+== AS-IS
 
 + Add a `density` content rule with `pattern = '\?(\s|$)'`, `max = 0` and `per = "sentence"` over a TO-BE section.
 + Write the bullet ``` - `mt ls ? --help` shows the flag. ``` there.

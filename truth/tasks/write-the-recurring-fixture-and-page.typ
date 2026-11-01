@@ -34,7 +34,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 1. `www/content/dsl.typ`'s "Recurring tasks" section is a syntax list with
   invented task shape around it; nothing checks that the list still matches

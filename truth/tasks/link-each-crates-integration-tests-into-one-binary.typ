@@ -30,7 +30,7 @@
   status: done(2026, 10, 11),
 )
 
-== Problem
+== AS-IS
 
 + `cargo test --no-run` builds one executable per file in `crates/*/tests/`: 71 for mindtape-cli, 3 for mindtape.
 + 🔴 On 2026-10-11 `target/debug/deps` held 263 executables averaging 298 MB (80 GB), and `just cover` builds the set again, instrumented (51 GB in one worktree). The disk filled.

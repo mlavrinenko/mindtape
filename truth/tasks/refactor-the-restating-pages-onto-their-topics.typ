@@ -34,7 +34,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 1. `www/content/config.typ` is 874 lines over 21 headings. The deep dives
   that used to live inside it (hooks, estimates, views and dictionaries, rule

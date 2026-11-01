@@ -38,7 +38,7 @@
     )[reverses its Out of scope line on packs fetched over the network],
 )
 
-== Problem
+== AS-IS
 
 + Keep a team's packs in their own git repository and adopt them in several projects.
 + 🔴 An `extends` entry is a built-in name or a path inside the project, so each project carries the packs as a submodule or a copy, and every `just fork` worktree must initialise the submodule again.

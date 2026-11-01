@@ -10,7 +10,7 @@
   start: on(2026, 10, 15),
 )
 
-== Problem
+== AS-IS
 + Sign up with a new address.
 + 🔴 No email arrives, so a user who mistyped the address never learns it.
 

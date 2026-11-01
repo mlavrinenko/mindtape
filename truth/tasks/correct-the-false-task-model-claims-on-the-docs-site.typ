@@ -30,7 +30,7 @@
   status: done(2026, 10, 8),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the docs before release against the 0.3.0 binary
 + 🔴 #raw("www/content/schema.typ"): five pages state task-model behaviour the code does not have

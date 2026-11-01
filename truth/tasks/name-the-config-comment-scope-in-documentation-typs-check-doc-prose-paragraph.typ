@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Extending check-doc-prose.sh to the Justfile and YAML config comments and to the config schema descriptions, with docs/src/contributing/ out of reach in that worktree.
 + 🔴 #raw("docs/src/contributing/documentation.typ"): the paragraph on `just check-doc-prose` does not say the gate also scans the full-line comments of the Justfile, `.just/*.just` and the three YAML configs, and every `description` in `schema/config.schema.json`.

@@ -37,7 +37,7 @@
     + parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Run the pages' examples and read their claims.
 + 🔴 `filters.typ:141` and `:157` use `in_dict("verbs", …)`. In a fresh project it prints `unknown dict in filter: verbs`: the `verbs` dict comes from the mindtape-tasks pack.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 7),
 )
 
-== Problem
+== AS-IS
 
 + Fixing the first-run errors, which locate an unknown table in the project config only
 + 🔴 #raw("crates/mindtape/src/config_packs.rs"): A TOML syntax error in an ancestor \`.mindtape/defaults.toml\` prints under \`load \<project>/.mindtape/config.toml\`, so its line and column point into the wrong file

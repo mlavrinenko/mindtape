@@ -34,7 +34,7 @@
   )[skip advances -n paging; a truncated table's footer and --json's truncated.next\_skip name the exact --skip that continues; documented on the CLI, schema and agents pages and in the skill],
 )
 
-== Problem
+== AS-IS
 
 + `mt ls '' -n 20` in a large project.
 + 🔴 It prints the cut count but offers no way to the next page: there is no `--skip`, so an agent narrows the filter blindly or raises `-n`.

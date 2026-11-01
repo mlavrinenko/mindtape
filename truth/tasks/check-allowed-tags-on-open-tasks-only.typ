@@ -30,7 +30,7 @@
   status: done(2026, 9, 28),
 )
 
-== Problem
+== AS-IS
 
 + A project drops `speconaut` from `[tasks.tags] allowed`.
 + 🔴 `mt check` fails every closed task tagged `speconaut`: `check_tags` in `crates/mindtape/src/validate.rs` checks authored and folder-derived tags on every task, so dropping a tag means rewriting finished history or keeping the tag legal forever.

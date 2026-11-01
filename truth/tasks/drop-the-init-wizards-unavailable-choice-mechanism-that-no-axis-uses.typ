@@ -30,7 +30,7 @@
   status: done(2026, 10, 13),
 )
 
-== Problem
+== AS-IS
 
 + Building the rrule engine into every `mt` binary, which removed the one `unavailable` block a real axis declared.
 + 🔴 #raw("crates/mindtape-cli/src/cmd/init/wizard/mod.rs"): No real axis declares an `unavailable` block, so `Axis::unavailable`, `Axis::offered`, the flag refusal in `choose` and the one-choice skip in `ask_axis` run only for the test axes `Probe` and `Lone`.

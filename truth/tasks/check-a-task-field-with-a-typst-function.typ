@@ -30,7 +30,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Give a task the field `x-goals: (product: (cheap-adoption: "helps"),)`.
 + Add `[[tasks.rules]]` with `assert = 'has(x-goals)'` to `.mindtape/config.toml` and run `mt check`.

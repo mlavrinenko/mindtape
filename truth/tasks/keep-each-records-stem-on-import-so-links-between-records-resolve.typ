@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Round-tripping the example projects through `mt ls '' --json` and `mt import` for /import-export/.
 + 🔴 #raw("crates/mindtape-cli/src/import.rs"): `mt import` names each file from the record's title and ignores its `id`, so a link to a record whose stem differs from its title no longer resolves, and the record holding the link is skipped.

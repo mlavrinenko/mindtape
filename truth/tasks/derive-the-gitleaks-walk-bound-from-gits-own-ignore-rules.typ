@@ -34,7 +34,7 @@
   )[bound derived from git ls-files -oi --exclude-standard --directory and appended to a copy of .gitleaks.toml; arm four and its hand copy deleted],
 )
 
-== Problem
+== AS-IS
 
 + Run agents in `.claude/worktrees/` (globally gitignored), then `just check`.
 + 🔴 `check-secrets` walks every worktree's `target/`: minutes of CPU, then hundreds of `generic-api-key` hits in build caches: `.gitleaks.toml`'s path allowlist is a hand copy of the repo's two `.gitignore` files and cannot see `core.excludesFile`.

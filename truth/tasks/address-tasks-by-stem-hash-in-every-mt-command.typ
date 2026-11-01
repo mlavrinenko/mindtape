@@ -31,7 +31,7 @@
   links: depends-on("derive-a-stem-hash-for-each-task-in-the-library.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt ls 'has_tag("found")'` and note the `#` of a row.
 + Pass it to `mt eval`.

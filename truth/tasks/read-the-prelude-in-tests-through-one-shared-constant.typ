@@ -33,7 +33,7 @@
   )[clears the way for its test-file moves],
 )
 
-== Problem
+== AS-IS
 
 + Run `rg -l 'include_str!\("\.\./\.\./\.\./lib/prelude.typ"\)' crates`.
 + 🔴 16 test files each spell the path to `lib/prelude.typ` relative to their own depth, so moving any of them into an area folder breaks its build.

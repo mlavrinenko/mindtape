@@ -34,7 +34,7 @@
     )[carries out its layout],
 )
 
-== Problem
+== AS-IS
 
 + Run `ls crates/*/src`.
 + 🔴 `graph.rs`, `ready.rs`, `dep_rank.rs`, `children.rs` sit flat at the crate root, so the module path does not name the file and nothing marks the area's internals.

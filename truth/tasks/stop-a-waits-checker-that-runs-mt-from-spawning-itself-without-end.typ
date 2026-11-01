@@ -30,7 +30,7 @@
   status: done(2026, 10, 28),
 )
 
-== Problem
+== AS-IS
 
 + Writing `argv_run_e2e`, whose checker first ran `mt dicts {id}` against its own project
 + 🔴 #raw("crates/mindtape/src/waits.rs"): a checker whose command loads the same project runs every checker again in the child, which spawns the next child, with no bound

@@ -33,7 +33,7 @@
   )[both read HEAD, index and working tree; share one git state reader],
 )
 
-== Problem
+== AS-IS
 
 + A project wants a warning when the work on a task outgrows the source files it planned, counting source only.
 + 🔴 It cannot: the only git-aware check is `crates/mindtape/src/estimate_drift.rs`, hardwired to the `files` unit and the unstaged-plus-staged tree, with `[tasks.estimate.drift] exclude` as its one knob. It counts docs, tests and `CHANGELOG.md`, which every task here touches by process, so it warned on every task in one session and was ignored.

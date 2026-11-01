@@ -34,7 +34,7 @@
   )[two columns and five rows on the comparison page; prose names claims, MCP and the Kanban board],
 )
 
-== Problem
+== AS-IS
 
 + Open `www/content/comparison.typ`.
 + 🔴 The matrix compares dstask, Taskwarrior, todo.txt, Org-mode and git-bug, and none of them ships an agent integration. Beads and Backlog.md, the two trackers built for coding agents and the nearest in scope, are missing.

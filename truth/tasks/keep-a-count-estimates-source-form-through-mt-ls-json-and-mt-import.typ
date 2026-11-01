@@ -35,7 +35,7 @@
   status: done(2026, 10, 25),
 )
 
-== Problem
+== AS-IS
 
 + In a git project whose `[tasks.estimate.queries]` has `src-files = "crates/**"`, with two files under `crates/` naming `PathFilter`, file a task with `estimate: (src-files: count(2, grep("PathFilter", "crates/**")))`.
 + Run `mt ls --json > /tmp/export.json`, delete the task file, and run `mt import /tmp/export.json`.

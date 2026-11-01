@@ -30,7 +30,7 @@
   status: done(2026, 10, 28),
 )
 
-== Problem
+== AS-IS
 
 + In a project used on Linux and Windows, write `[[on.flip]]` with `run = "scripts/check.sh"`, or a `[[tasks.waits]]` checker with `run = "gh pr view {id}"`.
 + 🔴 `mt` runs it through `sh -c` on Linux and `cmd /C` on Windows, which share no syntax, so one line can't serve both.

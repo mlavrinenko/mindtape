@@ -9,7 +9,7 @@
   due: on(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 + Open `docs/webhooks.md`.
 + 🔴 It does not say how often or how long the service retries a failed delivery, so customers ask support.
 

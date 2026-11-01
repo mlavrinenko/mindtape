@@ -30,7 +30,7 @@
   status: done(2026, 10, 19),
 )
 
-== Problem
+== AS-IS
 
 + Counting the task files that failed to load in the `mt ls` footer
 + 🔴 #raw("crates/mindtape-cli/src/cmd/find.rs"): `mt find` opens the project with `util::open()`, not `util::open_warned()`, so it skips a task file that fails to load without a warning, while `mt ls` and `mt @set find` print one

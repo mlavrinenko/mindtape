@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the x- field commits f12ca44d through 922148f6
 + 🔴 #raw("crates/mindtape/src/validate.rs"): \`\[tasks.fields\] values\`, \`\[tasks.assignee\] allowed\` and \`\[tasks.tags\] allowed\` each have their own validator, slot generator and closed-task rule, and they already disagree

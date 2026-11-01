@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the shortcut-verb help fix in \`crates/mindtape-cli/src/flip.rs\`
 + 🔴 #raw("crates/mindtape-cli/src/flip.rs"): a shortcut verb wraps clap's usage error in \`bail!\`, so it prints \`Error: error:\` and exits 1, where \`mt flip\` exits 2

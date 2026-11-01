@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt ls 'matches(title)'`.
 + 🔴 It prints `Error: invalid filter: matches() takes two arguments: matches(field, "regex")`, the usage example folded into the error.

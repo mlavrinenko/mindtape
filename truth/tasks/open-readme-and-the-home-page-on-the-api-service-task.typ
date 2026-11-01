@@ -36,7 +36,7 @@
     + parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Read `README.md` from the top.
 + 🔴 The first code block is 40 lines of YAML that MindTape never reads, written to look worse than it is. The real task after it is this repo's own backlog task, with eight goal verdicts, `#import "../lib.typ"` and a Dogfood section.

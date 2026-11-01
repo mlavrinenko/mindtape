@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Running \`just check\` on a machine under load while landing the doc gates
 + 🔴 #raw("crates/mindtape-cli/tests/interactive_e2e.rs"): quitting\_restores\_the\_terminal sends ESC after a fixed 300 ms sleep, so it fails when the machine is loaded and passes alone

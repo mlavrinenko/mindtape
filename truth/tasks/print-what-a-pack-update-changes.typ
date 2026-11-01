@@ -32,7 +32,7 @@
     + depends-on("move-pack-sources-along-their-ref-with-mt-packs-update.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt packs update acme` after a fix lands on `v1`.
 + 🔴 It prints the old and new commit only, and the lock's diff shows a new hash, so a reviewer can't see that the update changed a rule or added a `run` line.

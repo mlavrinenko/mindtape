@@ -35,7 +35,7 @@
     ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt check` in each of the 30 projects under `~/projects/home` with today's `mt`.
 + 🔴 Three of them fail before reading a task, and nothing reported it, because `mt check` covers one repo per run. kimmable prints:

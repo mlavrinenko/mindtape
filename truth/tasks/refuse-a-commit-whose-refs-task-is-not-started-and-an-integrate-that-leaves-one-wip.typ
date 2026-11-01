@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Commit work with `Refs: some-task` while the task is still `proposed` in the staged tree.
 + 🔴 The commit lands. `flip-with-work` in `crates/mindtape/src/packs/mindtape-tasks.toml` fires only on a commit that moves a task into `wip` or `done`, so the missing flip is never seen.

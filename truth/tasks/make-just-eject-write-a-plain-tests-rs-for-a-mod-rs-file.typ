@@ -33,7 +33,7 @@
   )[the eject half of its test layout],
 )
 
-== Problem
+== AS-IS
 
 + In an area folder, run `just eject` on a near-cap `mod.rs`.
 + 🔴 ejectest writes `mod_tests.rs` and a `#[path]` line, where the area layout wants a plain `mod tests;` in `tests.rs`.

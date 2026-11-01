@@ -30,7 +30,7 @@
   status: done(2026, 10, 18),
 )
 
-== Problem
+== AS-IS
 
 + Run `just docs build`, serve `www/public/` and open the site root and `/config/` in a 375px wide viewport.
 + 🔴 Every sidebar group sits above the page, so the home hero starts about 900px down.

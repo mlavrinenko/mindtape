@@ -34,7 +34,7 @@
     )[carries out its layout],
 )
 
-== Problem
+== AS-IS
 
 + Run `ls crates/*/src`.
 + 🔴 `cli.rs`, `cli_check.rs`, `cli_dump.rs`, `command_class.rs`, `completion*.rs`, `task_ref.rs`, `output.rs`, `breach.rs`, `stdout.rs`, `ls_interactive/mod.rs`, `render/mod.rs` sit flat at the crate root, so the module path does not name the file and nothing marks the area's internals.

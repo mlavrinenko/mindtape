@@ -46,7 +46,7 @@
     )[carries out its layout],
 )
 
-== Problem
+== AS-IS
 
 + After the area moves, add `#[path = "filter_new.rs"] mod new;` to `crates/mindtape/src/filter/mod.rs` with the file at the crate root, or add `src/foo.rs` beside `src/foo/`.
 + 🔴 `just check` passes both: nothing holds the layout, and the 500-line cap pushes splits back to flat `#[path]` files, as it did before.

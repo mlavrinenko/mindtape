@@ -35,7 +35,7 @@
   links: parent("share-config-between-projects-through-packs.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Adopt a pack whose `judgment-stays-small` asserts `estimate.src-files <= 5`, in a project that wants 8.
 + 🔴 The only way is to copy the whole rule under its `name` and edit the number, so its `when` and `message` drift from the pack's: across nine projects the copies differ in a `kind != "milestone"` clause as well as the cap.

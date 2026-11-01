@@ -30,7 +30,7 @@
   status: done(2026, 11, 1),
 )
 
-== Problem
+== AS-IS
 
 + In a project extending `mindtape:tasks`, make a `--no-ff` merge of a branch that flips a task and changes a product file.
 + Run `mt check --commit-msg .git/MERGE_MSG` while the merge is stopped.

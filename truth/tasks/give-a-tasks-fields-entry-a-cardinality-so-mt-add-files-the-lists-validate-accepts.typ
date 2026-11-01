@@ -33,7 +33,7 @@
   )[the descriptor absorbs cardinality; either can land first],
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the list-valued extension field check in c1882d4d
 + 🔴 #raw("crates/mindtape/src/add_slots.rs"): \`validate\` accepts a list in a declared \`x-\` field, but every slot \`mt add\` makes for it is a single-value \`choice\`, so a list cannot be filed

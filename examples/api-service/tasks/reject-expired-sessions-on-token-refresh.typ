@@ -9,7 +9,7 @@
   links: parent("harden-session-tokens.typ"),
 )
 
-== Problem
+== AS-IS
 + Log in, then wait 24 hours for the session to expire.
 + Run `curl -X POST -b session=<expired-id> localhost:8080/token/refresh`.
 + 🔴 It returns `200` with a new access token.

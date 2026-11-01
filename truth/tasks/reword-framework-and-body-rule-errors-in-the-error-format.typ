@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Declare a priority framework whose score uses `%` and run `mt ls`.
 + 🔴 It prints `score uses unsupported operator Mod`, a Rust variant name.

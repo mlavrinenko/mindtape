@@ -30,7 +30,7 @@
   status: done(2026, 9, 22),
 )
 
-== Problem
+== AS-IS
 
 + filing the first real finding while adding the finding-filing channel, checking linecop headroom across the repo
 + 🔴 #raw("www/generate-facts.sh"): sits at 298 of its 300-line linecop cap, so the next fact has nowhere to go

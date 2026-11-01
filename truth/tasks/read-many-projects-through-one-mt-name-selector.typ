@@ -38,7 +38,7 @@
     )[a set is picked per command, never remembered as a context],
 )
 
-== Problem
+== AS-IS
 
 + Keep Mindtape tasks in many repos, such as the 30 under `~/projects/home`.
 + Run `mt @home ls` to see them together.

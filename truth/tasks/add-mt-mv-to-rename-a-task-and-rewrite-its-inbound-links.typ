@@ -30,7 +30,7 @@
   status: done(2026, 9, 22),
 )
 
-== Problem
+== AS-IS
 
 + Identity is the filename stem, so a task whose title turned out wrong
   carries a stem that names the wrong thing forever.

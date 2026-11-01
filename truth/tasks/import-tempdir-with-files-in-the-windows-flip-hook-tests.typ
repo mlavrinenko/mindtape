@@ -30,7 +30,7 @@
   status: done(2026, 10, 17)[just check-windows compiles],
 )
 
-== Problem
+== AS-IS
 
 + Running `just check-windows` on the at.toml registry branch
 + 🔴 #raw("crates/mindtape-cli/src/cmd/flip/hooks_cmd_tests.rs"): the `windows` test module calls `tempdir_with_files` but imports only `tempdir`, so `just check-windows` fails to compile

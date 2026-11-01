@@ -31,7 +31,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Open `www/content/config.typ` at "The four layers".
 + 🔴 It explains layers whose arrays replace wholesale and says nothing about `extends`, `disable`, rule names or the `mindtape-tasks` pack, so a reader cannot find the one-line adoption.

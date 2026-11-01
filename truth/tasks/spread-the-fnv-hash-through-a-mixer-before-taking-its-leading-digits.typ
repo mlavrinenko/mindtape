@@ -30,7 +30,7 @@
   status: done(2026, 10, 4),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing the stem-hash commit 45d958bd against examples/large
 + 🔴 #raw("crates/mindtape/src/handle.rs"): \`encode\` takes FNV-1a 64's most significant digits first, and FNV-1a spreads a stem's last bytes poorly into its top bits, so stems that differ only at the end share long prefixes.

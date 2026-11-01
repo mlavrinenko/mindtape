@@ -31,7 +31,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `rg -n 'import "\.\./[^/"]+\.typ": \*' www/content examples`.
 + 🔴 It prints nothing. No page or example shows a task importing a shared Typst file, the one thing Markdown with frontmatter cannot do without writing a linter.

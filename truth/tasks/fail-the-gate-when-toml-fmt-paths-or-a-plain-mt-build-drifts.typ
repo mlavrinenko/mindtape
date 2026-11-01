@@ -30,7 +30,7 @@
   status: done(2026, 10, 2),
 )
 
-== Problem
+== AS-IS
 
 + 🔴 Add `tmp-probe.toml` (untracked) at the repo root and run `just check`: it passes. `TOML_FMT_PATHS` in the `Justfile` is a hand-kept list, so `tombi format --check` never reads the new file and the list drifts from `git ls-files` unseen (`cd8a4e51` had to enumerate every tracked TOML by hand).
 + 🔴 Add `cargo build -p mindtape-cli -q` to any gate-reachable script: `just check` stays green, yet a plain build relinks `target/debug/mt` under the running test arm (`32d79fd9`, `docs/contributing/gates.md` "One mt binary, one feature set"); the race fires only on a stale tree, so it returns unseen.

@@ -31,7 +31,7 @@
   links: depends-on("check-estimate-units-on-open-tasks-only.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Four tasks closed in one session each declared `estimate: (files: N)` and each got `warning: working tree touches N file(s), over the M declared by …`.
 + 🔴 The count includes docs pages, tests and `CHANGELOG.md`, which every task here touches by process, so the warning fired every time and carried no signal. The one real miss, source files the plan left out, was buried in it.

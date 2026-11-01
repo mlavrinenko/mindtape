@@ -30,7 +30,7 @@
   status: done(2026, 10, 18),
 )
 
-== Problem
+== AS-IS
 
 + Running the first `just check` in a fresh `just fork` worktree
 + 🔴 #raw(".gitignore"): only the root `/.mindtape/cache/` is ignored, so the temp file `ensure_ignored` writes before a fixture's cache `.gitignore` exists lands in the `examples/rules/**` mmz scope

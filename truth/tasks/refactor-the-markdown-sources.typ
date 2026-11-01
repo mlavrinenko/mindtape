@@ -34,7 +34,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 1. The audit's 13 open pairs all sit on README.md, AGENTS.md or a skill
   reference. README keeps its own copy of the opening demo (six pairs), echoes

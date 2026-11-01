@@ -30,7 +30,7 @@
   status: done(2026, 10, 25),
 )
 
-== Problem
+== AS-IS
 
 + In a project whose task stems hold a dot, such as speconaut's `foo.task-261023.typ`, commit with the trailer `Refs: foo.task-261023`.
 + Run `mt check --commits HEAD~1..HEAD`.

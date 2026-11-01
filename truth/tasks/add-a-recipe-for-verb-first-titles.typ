@@ -30,7 +30,7 @@
   status: done(2026, 10, 16),
 )
 
-== Problem
+== AS-IS
 
 + Open the docs site's Recipes nav group, or the recipe table in `README.md`.
 + 🔴 No recipe shows how to require a verb-first title, though the `mindtape-tasks` pack's `imperative-title` rule and the shipped verb dictionaries do exactly that.

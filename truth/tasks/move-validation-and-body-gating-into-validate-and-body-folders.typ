@@ -34,7 +34,7 @@
     )[carries out its layout],
 )
 
-== Problem
+== AS-IS
 
 + Run `ls crates/*/src`.
 + 🔴 `validate.rs`, `validate_*.rs`, `candidate.rs`, `violation.rs`, `severity.rs`, `body_*.rs`, `gate.rs`, `content_gate*.rs` sit flat at the crate root, so the module path does not name the file and nothing marks the area's internals.

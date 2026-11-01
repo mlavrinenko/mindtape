@@ -30,7 +30,7 @@
   status: done(2026, 10, 19),
 )
 
-== Problem
+== AS-IS
 
 + Running `mt @work check` over a set whose member has a misspelled status helper
 + 🔴 #raw("crates/mindtape-cli/src/diag/hint.rs"): Inside `mt @set check`, a hint that names an `mt` command prints it without the member's `@name`, so running it from the set's directory doesn't reach the project the error came from

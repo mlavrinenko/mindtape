@@ -35,7 +35,7 @@
   links: depends-on("give-the-docs-a-conversational-voice.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt wip nonexistent-xyz`.
 + 🔴 It prints `error: nonexistent-xyz: no task with id "nonexistent-xyz"` and then `Error: 1 task(s) had problems`.

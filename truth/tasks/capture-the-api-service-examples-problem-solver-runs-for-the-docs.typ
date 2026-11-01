@@ -35,7 +35,7 @@
     + parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Look for a captured `mt` refusal in `www/generated/`.
 + 🔴 There is none for a size cap at `mt add`, a missing section, a failing done gate, a second task in progress, or a commit without `Refs:`. These refusals are what a reader should see first, and today only prose describes them.

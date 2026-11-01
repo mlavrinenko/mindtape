@@ -30,7 +30,7 @@
   status: done(2026, 10, 28),
 )
 
-== Problem
+== AS-IS
 
 + typst-world 0.5.6 builds a project file id with `/` on every platform, and adds `project_file_id`. typst-cleanup 0.2.1 mints a tombstone's `path=` with `/`.
 + 🔴 Mindtape still carries the workarounds for both: `loader::disk_world`, the `slash_path` id in `validate/candidate.rs`, and the `\` rewrite in `TaskLinks::tombstone`.

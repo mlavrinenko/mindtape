@@ -30,7 +30,7 @@
   status: done(2026, 10, 17),
 )
 
-== Problem
+== AS-IS
 
 + Splitting the cli-docs drift group into one group per command source
 + 🔴 #raw("outdatty.yaml"): Each CLI group lists only a command's `*Args` module, so prose on /statuses/, /hooks/, the `mt ls`, `mt allow` and `mt rules` pages, /templates/ and /commit-rules/ restates modules no group lists.

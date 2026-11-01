@@ -34,7 +34,7 @@
   )[the comparison opens on its lede, the matrix shades its scroll edges, and the quickstart says the legend is config],
 )
 
-== Problem
+== AS-IS
 
 + Open the comparison page.
 + 🔴 It says twice that it compares local trackers, explains why hosted trackers are absent, and says the table scrolls sideways.

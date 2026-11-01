@@ -31,7 +31,7 @@
   links: parent("keep-the-user-docs-generated-or-gated-not-restated.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt --help`, then open the home page, `/quickstart/` and `/cli/`, looking for a way to read several projects.
 + 🔴 `mt --help` ends on "Run `mt flip --list` to see them all.", and none of the four names `@name`.

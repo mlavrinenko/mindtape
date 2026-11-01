@@ -30,7 +30,7 @@
   status: done(2026, 10, 8),
 )
 
-== Problem
+== AS-IS
 
 + Filing tasks from the pre-release docs review, then referring to one as ksr
 + 🔴 #raw("crates/mindtape-cli/src/cmd/add/"): mt add reports only the absolute path it wrote, so the slug hash that every other command accepts is unknown until a separate mt ls

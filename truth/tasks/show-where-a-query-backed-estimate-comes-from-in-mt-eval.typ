@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Once query-backed estimates resolve, file a task with `estimate: (src-files: count(2, grep(...)))` and run `mt eval <stem>`.
 + 🔴 Only the resolved total shows, so a reviewer can't tell the manual part from what each query matched, or check a query that matches nothing.

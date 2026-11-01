@@ -31,7 +31,7 @@
   links: depends-on("add-a-count-aggregate-to-filters.typ"),
 )
 
-== Problem
+== AS-IS
 
 + `.mindtape/config.toml` declares two `[[tasks.limits]]` WIP caps.
 + 🔴 `[[tasks.limits]]` is its own table and checker (`crates/mindtape/src/config_limits.rs`) for what `count(status == "wip") <= 1` says as a rule, and it cannot be merged by name across packs like a rule.

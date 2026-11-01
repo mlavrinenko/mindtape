@@ -30,7 +30,7 @@
   status: done(2026, 10, 6),
 )
 
-== Problem
+== AS-IS
 
 + Open `/links/`.
 + 🔴 The edges between the fixture's tasks are given as text, and the reader assembles the graph in their head.

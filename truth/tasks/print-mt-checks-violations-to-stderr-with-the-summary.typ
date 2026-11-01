@@ -34,7 +34,7 @@
   )[Duplicate of report-check-problems-on-stderr-in-the-error-format, which moves every mt check line to stderr and adds the count.],
 )
 
-== Problem
+== AS-IS
 
 + Capturing every error \`mt\` prints for the error inventory
 + 🔴 #raw("crates/mindtape-cli/src/cmd/check/mod.rs"): \`mt check\` prints each violation to stdout and only the count to stderr, so stderr alone says a check failed without saying why

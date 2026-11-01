@@ -30,7 +30,7 @@
   status: done(2026, 10, 7),
 )
 
-== Problem
+== AS-IS
 
 + Running \`just nix-build\` in the background while committing part of a worktree's changes
 + 🔴 #raw("Justfile"): the \`nix-build\` recipe runs \`git add -A\`, so every unstaged change lands in whatever commit comes next

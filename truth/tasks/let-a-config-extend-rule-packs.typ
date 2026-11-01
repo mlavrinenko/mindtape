@@ -31,7 +31,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Put a `[[tasks.rules]]` entry in a `.mindtape/defaults.toml` one directory above a project, the ancestor layer `www/content/config.typ` describes under "The four layers".
 + Run `mt config show` in the project: the inherited rule is there.

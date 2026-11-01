@@ -30,7 +30,7 @@
   status: done(2026, 10, 7),
 )
 
-== Problem
+== AS-IS
 
 + Read the README intro or any page under `www/content/`.
 + 🔴 It reads like a spec: no "you", no contractions, and sentences such as "Because a write command refuses a change that breaks a rule, `mt wip` refuses the second start."

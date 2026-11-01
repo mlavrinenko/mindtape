@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing commit 2a3e070f with a \`git mv\` in a scratch repository
 + 🔴 #raw("crates/mindtape/src/commit_msg.rs"): count(files) counts a rename as two files where changed() counts one, and the 14-glob exclude list is copied into both src-budget and tweak-stays-one-file.

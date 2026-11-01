@@ -30,7 +30,7 @@
   status: done(2026, 10, 7),
 )
 
-== Problem
+== AS-IS
 
 + Reading why 21 CLI pages went unrecorded until commit 22b1024e.
 + 🔴 #raw("Justfile"): \`outdatty check\` passes while a file matched by a glob dependent has no lock entry, so a new page under \`www/content/cli/\*.typ\` stays unrecorded and unwatched with every gate green.

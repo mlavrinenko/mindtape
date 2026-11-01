@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Moving the skill's filter list into skills/mindtape/references/filters.md.
 + 🔴 #raw("outdatty.yaml"): No outdatty group lists the filter evaluator as a source, so a new or renamed filter function leaves the filter docs unflagged.

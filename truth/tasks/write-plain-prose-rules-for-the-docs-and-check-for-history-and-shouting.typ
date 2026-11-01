@@ -31,7 +31,7 @@
   links: parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Run `rg -n -i '\b(used to|no longer|anymore|formerly)\b' www docs/src -g '*.typ'`.
 + 🔴 It prints lines like `docs/src/contributing/coverage-crap.typ:135: ... used to be absent from`. A reader needs the current rule; the history is in `git log`.

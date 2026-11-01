@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Reviewing commit 3afcd40a
 + 🔴 #raw("skills/mindtape/evals/evals.json"): the evals state api-service's counts by hand, no outdatty group sources its tasks, and five generators restate its clock

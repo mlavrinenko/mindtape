@@ -30,7 +30,7 @@
   status: done(2026, 10, 29),
 )
 
-== Problem
+== AS-IS
 
 + Add `inputs.mindtape.url = "github:mlavrinenko/mindtape/v0.3.0"` to another flake and run `nix flake lock`.
 + 🔴 Its `flake.lock` grows to 190 nodes, 24 of them fenix and 23 naersk. mmz, qahq, tola and nixpkgs-tombi come along, though `packages.default` builds from nixpkgs and naersk alone.

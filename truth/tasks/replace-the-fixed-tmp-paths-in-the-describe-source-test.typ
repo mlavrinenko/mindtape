@@ -30,7 +30,7 @@
   status: done(2026, 10, 25),
 )
 
-== Problem
+== AS-IS
 
 + Running `just check` in a fresh worktree
 + 🔴 #raw("crates/mindtape-cli/src/cmd/config_tests.rs"): `describe_source_covers_xdg_and_dir` asserts that the fixed path `/tmp/x.toml` is missing, so a stray file there fails `just test` and with it the pre-commit gate

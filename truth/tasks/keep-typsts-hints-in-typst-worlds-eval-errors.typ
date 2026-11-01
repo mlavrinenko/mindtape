@@ -34,7 +34,7 @@
   )[typst-world 0.5.0 carries the hints; LoadError keeps them],
 )
 
-== Problem
+== AS-IS
 
 + Reading how \`mt\` renders Typst diagnostics for the error inventory
 + 🔴 #raw("Cargo.lock"): \`World::eval\_error\` in typst-world 0.4.0 copies each diagnostic's message, location and trace but not its hints, so \`mt\` never shows them

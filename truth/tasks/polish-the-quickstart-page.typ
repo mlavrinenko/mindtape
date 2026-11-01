@@ -30,7 +30,7 @@
   status: done(2026, 10, 16),
 )
 
-== Problem
+== AS-IS
 
 + Open `www/content/quickstart.typ`, or the Quickstart page it builds.
 + 🔴 It explains the `@local` prelude directory, a completion hook per shell, slots, the default view and the legend before the reader has filed one task.

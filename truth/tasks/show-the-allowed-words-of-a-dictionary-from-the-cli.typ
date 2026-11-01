@@ -30,7 +30,7 @@
   status: done(2026, 10, 16),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt add Banana the thing` in a project that extends `mindtape-tasks`.
 + 🔴 It prints `rules.imperative-title: start the title with an imperative verb`. The line names no dictionary and no allowed word.

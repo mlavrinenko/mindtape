@@ -30,7 +30,7 @@
   status: done(2026, 10, 26),
 )
 
-== Problem
+== AS-IS
 
 + Open the `.mindtape/config.toml` of nine projects that adopt `extends = ["mindtape-tasks"]`.
 + 🔴 Each still copies the status legend, the ICE bands, the WIP caps, the commit rules and the `on.flip` gates by hand, and the copies drift: `judgment-stays-small` caps at 5 files in one project and 8 in another.

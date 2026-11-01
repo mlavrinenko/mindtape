@@ -30,7 +30,7 @@
   status: done(2026, 10, 1),
 )
 
-== Problem
+== AS-IS
 
 + Read `Justfile`'s `TOML_FMT_PATHS`.
 + 🔴 `.cargo/mutants.toml` is absent, so `tombi format --check .cargo/mutants.toml` fails today and no gate notices.

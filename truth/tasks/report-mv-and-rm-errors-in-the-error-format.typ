@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt mv a a/b`.
 + 🔴 It prints three clauses and two em dashes behind `Error:`.

@@ -31,7 +31,7 @@
   status: done(2026, 10, 4),
 )
 
-== Problem
+== AS-IS
 
 + In a scratch project, set `[tasks.fields.kind] values = ["fix"]` and add `.mindtape/templates/bug.typ` whose `task.with` hard-codes `kind: "bug"`.
 

@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Running the /import-export/ recipes in the docs generator, which must fail the build when a recipe fails.
 + 🔴 #raw("crates/mindtape-cli/src/import.rs"): `mt import` exits 0 when it skips records, even when it files none, so a script or CI step that imports cannot tell from the exit code that records were lost.

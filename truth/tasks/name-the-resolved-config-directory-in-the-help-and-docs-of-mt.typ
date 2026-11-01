@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
 )
 
-== Problem
+== AS-IS
 
 + Auditing the scripts and docs for paths that only hold on one machine
 + 🔴 #raw("crates/mindtape-cli/src/init.rs"): \`mt\` names \`~/.config/mindtape\` as its config directory on every platform, while it reads \`MINDTAPE\_CONFIG\_HOME\`, else \`dirs::config\_dir()\`, which is \`~/Library/Application Support\` on macOS and \`%APPDATA%\` on Windows

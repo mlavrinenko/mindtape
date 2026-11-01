@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Read the overrides in `.linecop.yaml`.
 + 🔴 `./AGENTS.md` and `./skills/mindtape/SKILL.md` carry `exclude: true`, so their rendered size goes unchecked, though every agent session loads them whole. Only their Typst sources carry a line cap, which a paragraph growing into an essay passes.

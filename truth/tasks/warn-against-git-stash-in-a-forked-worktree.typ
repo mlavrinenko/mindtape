@@ -30,7 +30,7 @@
   status: done(2026, 10, 7)[one sentence in Worktrees],
 )
 
-== Problem
+== AS-IS
 
 + Three agents rewrote docs in parallel forked worktrees
 + 🔴 #raw(".just/scripts/fork.sh"): git keeps one stash list for every worktree of a repo, so git stash pop in one fork can apply another fork's entry

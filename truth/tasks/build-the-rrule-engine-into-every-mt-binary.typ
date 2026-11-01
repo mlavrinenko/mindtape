@@ -34,7 +34,7 @@
   )[rrule is a plain dependency; the feature, its stub, check-rrule and the CI step are gone],
 )
 
-== Problem
+== AS-IS
 
 + Install `mt` with `cargo install mindtape-cli` and write `recur: rrule("FREQ=MONTHLY;BYDAY=1MO")` in a task.
 + 🔴 `mt check` refuses it, because release builds leave out the `rrule` feature, and the quickstart warns about it.

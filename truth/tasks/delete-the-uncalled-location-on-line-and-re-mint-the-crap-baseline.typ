@@ -30,7 +30,7 @@
   status: done(2026, 10, 6),
 )
 
-== Problem
+== AS-IS
 
 + Run `just cover`, then `just crap`.
 + 🔴 It prints `21 CRAP regression(s) detected`, led by `Location::on_line` at 30.0 with 0% coverage.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 13),
 )
 
-== Problem
+== AS-IS
 
 + Run `just cover` on a tree where one production file sits at 50% line coverage and the total stays above 90%.
 + 🔴 It passes: `--fail-under-lines 90` gates the workspace total only, so per-file coverage is held by nothing but the sweep's coverage arm, which files tasks after the fact.

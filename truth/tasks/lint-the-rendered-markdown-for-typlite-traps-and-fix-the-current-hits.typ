@@ -31,7 +31,7 @@
   links: parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Open `skills/mindtape/SKILL.md` on GitHub and find the "Filter and sort" row.
 + 🔴 The `|` in `` `--sort <field>[:asc|desc]` `` splits the row into an extra cell. `CONTRIBUTING.md:63` breaks the same way.

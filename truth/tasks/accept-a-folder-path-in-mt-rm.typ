@@ -30,7 +30,7 @@
   status: done(2026, 10, 14),
 )
 
-== Problem
+== AS-IS
 
 + Planning to file each `just ask-refactoring` batch into a folder and remove it once done
 + 🔴 #raw("crates/mindtape-cli/src/cmd/rm/mod.rs"): `mt rm` reads a folder path as a filter and refuses it, so removing a folder of tasks takes its derived tag instead

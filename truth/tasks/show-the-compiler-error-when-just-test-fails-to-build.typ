@@ -30,7 +30,7 @@
   status: done(2026, 10, 12),
 )
 
-== Problem
+== AS-IS
 
 + Writing a red unit test that calls a function not yet written
 + 🔴 #raw("Justfile"): the test recipe passes --cargo-quiet twice, which drops rustc's diagnostics too, so a build failure prints only the cargo command line and its exit code

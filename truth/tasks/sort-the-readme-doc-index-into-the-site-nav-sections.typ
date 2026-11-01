@@ -35,7 +35,7 @@
   links: parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Read the end of `README.md`, "The docs site has the rest".
 + 🔴 It is one flat list of 22 pages, each with its full summary: about half the file.

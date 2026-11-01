@@ -30,7 +30,7 @@
   status: done(2026, 10, 13),
 )
 
-== Problem
+== AS-IS
 
 + Landing seven parallel sweep lanes onto main
 + 🔴 #raw(".jscpd-baseline.json"): every lane that re-minted the clone baseline conflicted with the lanes landed before it, and each rebase needed the conflict taken by hand and `just dry-baseline` re-run

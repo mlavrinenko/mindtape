@@ -30,7 +30,7 @@
   status: done(2026, 10, 23),
 )
 
-== Problem
+== AS-IS
 
 + Under `extends = ["mindtape-tasks"]`, with a task of `kind: "milestone"` in `wip` and all its leaves done, stage `mt done <milestone>` alone and commit with a `Refs: <milestone>` footer.
 + 🔴 The `commit-msg` hook prints `commits.rules.flip-with-work: <milestone>: start or close a task in a commit that carries its work`. The rule exempts a `decision` and a close that retires other tasks, but not a milestone, which ends through its leaves and carries no work of its own.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 14),
 )
 
-== Problem
+== AS-IS
 
 + Running jscpd_baseline_merge_e2e on main, which fails in a tempdir
 + 🔴 #raw("crates/mindtape-cli/tests/it/jscpd_baseline_merge_e2e.rs"): the test sets BASH_ENV= only inside its script, but bash runs the host BASH_ENV hook (/etc/bash_env) at startup, which drops the dev shell PATH in a tempdir with no .envrc; outdatty_lock_merge_e2e.rs and wt_carry_lcov_e2e.rs each hand-roll env_remove("BASH_ENV"), so the bug recurs with every new script test

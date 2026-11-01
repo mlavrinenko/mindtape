@@ -30,7 +30,7 @@
   status: done(2026, 10, 13),
 )
 
-== Problem
+== AS-IS
 
 + Landing 06a0492f, which edited .config/wt.toml and went red on main
 + 🔴 #raw(".mmz/config.yaml"): the `just outdatty-check` rule takes no scope holding .config/wt.toml, .gitattributes, the .githooks files or release.toml, so an edit to those outdatty sources serves a false-fresh gate

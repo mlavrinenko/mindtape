@@ -30,7 +30,7 @@
   status: done(2026, 10, 1),
 )
 
-== Problem
+== AS-IS
 
 + Run `just mutants` with kache as `RUSTC_WRAPPER` (the developer's shell sets it session-wide), then split `~/.cache/kache/events.jsonl` by `root` and `result`.
 + 🔴 The 2026-09-30 sweep, summed over parallel rustc processes: hits avoided about 400 s of compile; 1326 misses on `mindtape`, `mt` and `*_e2e` targets cost about 28 min of keying and storing; 2442 adaptive passthroughs still cost about 25 min of keying. The misses wrote 146.5 GB through the 60 GB store, evicting what normal builds hit.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 13),
 )
 
-== Problem
+== AS-IS
 
 + Linking two tasks I had just filed, by the hashes `mt add` printed.
 + 🔴 #raw("crates/mindtape-cli/src/cmd/link/plan.rs"): `mt link` takes a stem hash for its task but refuses one as a target, though `mt add` and `mt ls` print the hash as the task's handle.

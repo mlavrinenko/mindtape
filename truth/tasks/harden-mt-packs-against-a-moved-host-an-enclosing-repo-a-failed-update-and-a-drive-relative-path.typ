@@ -31,7 +31,7 @@
   links: parent("share-config-between-projects-through-packs.typ"),
 )
 
-== Problem
+== AS-IS
 
 + Review of the landed range 7fe45d58^..b967e214, the mt packs commands.
 + 🔴 #raw("crates/mindtape/src/config/pack_sources/git.rs"): Four gaps in `mt packs`, each a case the commands don't hold.

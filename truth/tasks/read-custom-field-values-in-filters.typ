@@ -30,7 +30,7 @@
   status: done(2026, 10, 4),
 )
 
-== Problem
+== AS-IS
 
 + In a dotfiles repo, `x-machine` marks each open task's host(s); `mt ls 'x-machine == "alpha"'` should list alpha's tasks.
 

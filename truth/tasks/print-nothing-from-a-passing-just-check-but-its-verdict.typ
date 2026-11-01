@@ -30,7 +30,7 @@
   status: done(2026, 10, 7),
 )
 
-== Problem
+== AS-IS
 
 + Gating nine docs branches in a row.
 + 🔴 #raw("Justfile"): A passing \`just check\` prints about 40 lines that a pass already implies, and the CRAP report lists functions as new on every run.

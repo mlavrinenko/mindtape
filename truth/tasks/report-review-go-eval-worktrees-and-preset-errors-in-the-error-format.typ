@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt go <task>` with no editor configured.
 + 🔴 It prints `Error: no editor configured: set `[go] editor` in .mindtape/config.toml (or $VISUAL / $EDITOR)`, the fix inside the error.

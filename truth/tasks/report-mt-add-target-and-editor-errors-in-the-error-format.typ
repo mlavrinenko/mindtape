@@ -33,7 +33,7 @@
   ),
 )
 
-== Problem
+== AS-IS
 
 + Run `mt add t --edit </dev/null` with `EDITOR=false`.
 + 🔴 It prints `Error: editor "false" exited without saving`, the command in Rust quotes.

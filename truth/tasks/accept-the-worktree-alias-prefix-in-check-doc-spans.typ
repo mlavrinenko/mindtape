@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Running just check-doc-spans over the trimmed mindtape skill.
 + 🔴 #raw(".just/scripts/check-doc-spans.jq"): check-doc-spans reads the word after mt as the subcommand, so it refuses \`mt \@name ls\`, a form mt accepts.

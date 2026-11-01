@@ -34,7 +34,7 @@
   )[Declared --hyperlinks on ls, find and flip and named slug\# in the help and schema.],
 )
 
-== Problem
+== AS-IS
 
 + Auditing the user docs for restated facts after the `mt @name` milestone
 + 🔴 #raw("crates/mindtape-cli/src/cli/mod.rs"): `--hyperlinks` says it links the `#` and `file` columns, but the column is `slug#`, and the flag is global, so it shows on `mt at` and `mt board`, whose output has neither

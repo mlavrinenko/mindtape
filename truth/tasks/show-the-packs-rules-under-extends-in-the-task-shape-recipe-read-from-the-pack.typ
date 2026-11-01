@@ -34,7 +34,7 @@
   )[the recipe's config block shows three pack rules as comments, cut from the pack copy the Rule packs page reads],
 )
 
-== Problem
+== AS-IS
 
 + Open the "Require a task shape" recipe.
 + 🔴 Its config is `extends = ["mindtape-tasks"]`, and nothing on the page shows what the pack holds.

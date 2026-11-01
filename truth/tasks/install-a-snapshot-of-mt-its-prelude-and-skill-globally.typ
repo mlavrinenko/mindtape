@@ -30,7 +30,7 @@
   status: done(2026, 10, 26),
 )
 
-== Problem
+== AS-IS
 
 + Run `just install`, then edit `lib/prelude.typ` in this checkout.
 + 🔴 Every other project on the machine now evaluates its tasks against the edited prelude with the binary from the last install, because `.just/scripts/install-lib.sh` links `~/.local/share/typst/packages/local/mindtape/<version>` to `<repo>/lib`. `.just/scripts/install.sh` links the skills the same way.

@@ -30,7 +30,7 @@
   status: done(2026, 10, 3),
 )
 
-== Problem
+== AS-IS
 
 + Verifying the /recurring/ page's weekday claims against recur\_dates.rs.
 + 🔴 #raw("crates/mindtape/src/recur_dates.rs"): With an \`on:\` weekday set, \`mt recur\` steps to the next listed weekday and ignores the week count, so \`every(weeks: 2, on: (mon,))\` repeats every Monday.

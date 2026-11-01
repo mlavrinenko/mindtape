@@ -30,7 +30,7 @@
   status: done(2026, 10, 13),
 )
 
-== Problem
+== AS-IS
 
 + Run `just ask-refactoring`.
 + 🔴 The dry arm reports 639 clone families, median gain 50 tokens, because it has no bar. `--write` would file them among 856 tasks in `truth/tasks/`, where 180 closed swept tasks already sit.

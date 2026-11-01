@@ -30,7 +30,7 @@
   status: done(2026, 10, 7),
 )
 
-== Problem
+== AS-IS
 
 + Capturing tinymist's diagnostics on examples/lsp/invalid/misspelled-field.typ for the Overview
 + 🔴 #raw("lib/prelude.typ"): tinymist publishes the \`unknown task slot\` error on the prelude's assert and publishes nothing for the task file, so an editor draws no squiggle under the misspelled field.
