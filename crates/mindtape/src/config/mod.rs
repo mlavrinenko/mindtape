@@ -373,6 +373,19 @@ impl Config {
         self.provenance.place_of(&warning.text)
     }
 
+    /// A copy of this config whose `changed()` reads an empty change set: no
+    /// path is staged or changed in the working tree, and git is not run. A
+    /// caller checking a source no one wrote yet, such as a template's sample
+    /// task, holds it to a change set of its own this way.
+    #[must_use]
+    pub fn with_empty_change_set(&self) -> Self {
+        let mut config = self.clone();
+        config
+            .git
+            .set_status(crate::git::state::GitStatus::default());
+        config
+    }
+
     /// The leaf keys some pack set, each with the pack or layer whose value
     /// won, by dotted path. Empty for a config built from one string.
     pub fn key_origins(&self) -> impl Iterator<Item = KeyOrigin> + '_ {

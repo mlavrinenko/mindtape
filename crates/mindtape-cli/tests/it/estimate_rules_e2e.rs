@@ -15,14 +15,16 @@ use mindtape::test_support::git_init;
 
 use crate::support;
 
-/// A project config declaring a `src-files` estimate unit, with `rules`
+/// A project config declaring a required `src-files` estimate with a one-file
+/// example, so a template filed from it carries an estimate, with `rules`
 /// appended verbatim.
 fn config(rules: &str) -> String {
     format!(
         "[tasks]\nroots = [\"tasks\"]\n\n\
          [[tasks.status]]\nvalue = \"wip\"\n\
          [[tasks.status]]\nvalue = \"done\"\nterminal = true\n\n\
-         [tasks.estimate]\nunits = [\"src-files\"]\n\n{rules}"
+         [tasks.estimate]\nunits = [\"src-files\"]\nrequired = true\n\
+         example = {{ src-files = 1 }}\n\n{rules}"
     )
 }
 
@@ -88,6 +90,21 @@ fn an_outgrown_working_tree_warns_through_the_budget_rule() {
             "warning: tasks/budgeted.typ:1: rules.src-budget: split the remaining work"
         )),
         "the breach names the rule and its advice: {stdout}"
+    );
+}
+
+/// A template's sample task is no one's work, so it meets an empty change set:
+/// the working-tree budget that warns on the backlog leaves the template alone.
+#[test]
+fn a_template_meets_an_empty_working_tree() {
+    let dir = fixture(BUDGET, 4, 3);
+    let (ok, stdout) = check(dir.path());
+    assert!(ok, "{stdout}");
+    assert!(
+        !stdout
+            .lines()
+            .any(|line| line.contains("built-in template") && line.contains("rules.src-budget")),
+        "the budget must not fire on a template: {stdout}"
     );
 }
 

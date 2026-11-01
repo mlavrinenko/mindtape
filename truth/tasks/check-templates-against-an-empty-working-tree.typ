@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 29),
+  status: done(2026, 11, 1),
 )
 
 == Problem
@@ -56,6 +56,7 @@ left in a closing report no one rereads. It belongs in
 
 - `crates/mindtape-cli/tests/it/estimate_rules_e2e.rs`: the red test first, no `src-budget` warning on the built-in template.
 - `crates/mindtape-cli/src/cmd/check/templates.rs`: evaluate a template's rules against an empty change set.
+- `crates/mindtape/src/config/mod.rs` and `crates/mindtape/src/git/state.rs`: a config copy whose `changed()` reads an empty change set.
 
 
 == Rollback

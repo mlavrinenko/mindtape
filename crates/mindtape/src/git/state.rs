@@ -306,6 +306,13 @@ impl GitCache {
         self.refs = crate::commit::refs::RefsCache::default();
     }
 
+    /// Answer every later [`Self::status`] with `status`, without running git.
+    /// A caller holding an evaluation to a change set other than the working
+    /// tree's builds it here.
+    pub fn set_status(&mut self, status: GitStatus) {
+        self.status = Arc::new(OnceLock::from(Ok(status)));
+    }
+
     /// The root's git status, read at most once.
     ///
     /// # Errors

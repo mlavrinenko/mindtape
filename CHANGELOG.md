@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`mt check` holds a template's sample task to an empty working tree.** A
+  budget rule such as `changed(...) <= estimate.src-files` no longer warns on a
+  built-in or project template, which is no one's work. Every other rule still
+  checks the template.
+
 ### Changed
 
 - **`mt check` skips merge commits by default.** A merge joins commits that

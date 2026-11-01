@@ -96,10 +96,12 @@ change breaks a template, you find out from `mt check` right away, not at the
 next `mt add`.
 
 It fills each template as `mt add` would, with every slot holding its
-`example`, else its `default`. Then it checks the result like a task, alone
-and against an empty backlog, under the file name `mt add` would give it. A
-problem the template can fix counts, and the error names the template file and
-the line of the field:
+`example`, else its `default`. Then it checks the result like a task, alone,
+against an empty backlog and an empty working tree, under the file name
+`mt add` would give it. A rule reading `changed()` sees no changes, so a
+budget on the work in progress never fires on a template. A problem the
+template can fix counts, and the error names the template file and the line
+of the field:
 #capture-line("check-template-stale", "^error: .*bug.typ").
 A problem about the backlog doesn't count: a `count()` cap, a rule on `ready`
 or `blocked`, a link cycle, or a link to a task that isn't there.

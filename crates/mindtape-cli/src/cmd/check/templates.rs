@@ -234,15 +234,12 @@ fn check_alone(
         rel: &template.rel,
         source: checked,
     };
-    let answer = mindtape::check_candidates(
-        &project.root,
-        &project.config,
-        &[],
-        &[candidate],
-        body_rules,
-    )
-    .into_iter()
-    .next();
+    // A template's sample task is no one's work: it meets an empty change set,
+    // so a rule such as `changed(...) <= estimate.src-files` never fires on it.
+    let config = project.config.with_empty_change_set();
+    let answer = mindtape::check_candidates(&project.root, &config, &[], &[candidate], body_rules)
+        .into_iter()
+        .next();
     match answer {
         Some(Ok(answer)) => {
             let sources = TemplateSources {
@@ -251,7 +248,7 @@ fn check_alone(
                 checked,
             };
             let own = (answer.violations.into_iter())
-                .filter(|violation| !mindtape::reads_set_breach(&project.config, violation))
+                .filter(|violation| !mindtape::reads_set_breach(&config, violation))
                 .collect();
             Ok(mindtape::template_breaches(sources, own))
         }

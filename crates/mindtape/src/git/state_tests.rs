@@ -176,3 +176,12 @@ fn the_cache_reads_git_once_and_shares_it_across_clones() {
         "the second read is the first one's answer, not a second git run"
     );
 }
+
+#[test]
+fn an_assumed_status_replaces_what_git_would_say() {
+    let dir = tempdir();
+    let mut cache = GitCache::default();
+    cache.set_root(dir.path());
+    cache.set_status(GitStatus::parse(" M one.rs\0"));
+    assert_eq!(paths(cache.status().unwrap(), "worktree"), ["one.rs"]);
+}
