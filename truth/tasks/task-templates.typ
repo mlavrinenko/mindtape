@@ -10,7 +10,7 @@
     ease: 8,
   ),
   difficulty: 2,
-  tags: ("mt",),
+  tags: ("mt", "stateless"),
   estimate: (src-files: 14),
   x-goals: (
     product: (
@@ -54,10 +54,6 @@
 - `.mindtape/templates/dev-stateful.typ`: the stateful dev template with Rollback.
 - `.mindtape/templates/feat-stateful.typ` and `.mindtape/templates/fix-stateful.typ`: the same for feat and fix.
 - `.mindtape/templates/decision.typ`: the decision template.
-
-== Rollback
-
-- Revert the templates; the old section prompts return.
 
 == Out of scope
 

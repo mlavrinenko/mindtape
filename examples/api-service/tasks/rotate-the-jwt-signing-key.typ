@@ -5,7 +5,7 @@
   priority: ice(impact: 8, confidence: 0.9, ease: 8),
   status: proposed(2026, 9, 21),
   estimate: (src-files: 1),
-  tags: ("auth", "security"),
+  tags: ("auth", "security", "stateful"),
   due: on(2026, 10, 5),
   recur: every(days: 90),
   links: related(

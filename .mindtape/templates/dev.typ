@@ -14,7 +14,7 @@
     ease: slot("ease", kind: "int", default: 5),
   ),
   difficulty: slot("difficulty", kind: "int", default: 3),
-  tags: slot("tags", kind: "list", default: ()),
+  tags: slot("tags", kind: "list", default: ("stateless",)),
   estimate: slot("estimate", kind: "text", default: "(src-files: 2)"),
   x-goals: (
     product: (
@@ -85,17 +85,6 @@
   example: ```typ
   - `crates/mindtape/src/sort_tests.rs`: the red test first, a missing `due` sorting last.
   - `crates/mindtape/src/sort.rs`: order a missing `due` after every present one.
-  ```,
-)
-
-== Rollback
-
-#slot(
-  "rollback",
-  kind: "raw",
-  prompt: "How to undo this if it breaks something: what to revert or restore",
-  example: ```typ
-  - Revert the commit. No file format or config key changes.
   ```,
 )
 

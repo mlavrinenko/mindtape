@@ -6,7 +6,7 @@
   status: proposed(2026, 9, 24),
   estimate: (src-files: 2),
   waits-on: ("locked:acme-pay@2.4.0",),
-  tags: ("billing",),
+  tags: ("billing", "stateful"),
 )
 
 == Problem

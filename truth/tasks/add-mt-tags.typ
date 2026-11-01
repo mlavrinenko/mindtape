@@ -10,7 +10,7 @@
     ease: 7,
   ),
   difficulty: 3,
-  tags: ("cli", "tooling"),
+  tags: ("cli", "tooling", "stateless"),
   estimate: (src-files: 4),
   x-goals: (
     product: (

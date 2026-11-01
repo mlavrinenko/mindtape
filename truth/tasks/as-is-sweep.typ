@@ -10,7 +10,7 @@
   ),
   difficulty: 2,
   kind: "refactor",
-  tags: ("mt",),
+  tags: ("mt", "stateless"),
   estimate: (src-files: 0),
   x-goals: (
     product: (

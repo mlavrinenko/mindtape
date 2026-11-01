@@ -43,6 +43,7 @@
   tags: slot("tags", kind: "list", prompt: "found, plus an area tag", example: (
     "found",
     "tooling",
+    "stateless",
   )),
   x-goals: (
     product: (
@@ -127,17 +128,6 @@ left in a closing report no one rereads. It belongs in
   prompt: "One bullet per file: `path`, then what changes there",
   example: ```typ
   - `Justfile`: send the banner to `/dev/null` and keep the exit code.
-  ```,
-)
-
-== Rollback
-
-#slot(
-  "rollback",
-  kind: "raw",
-  prompt: "How to undo this if it breaks something: what to revert or restore",
-  example: ```typ
-  - Revert the `Justfile` line.
   ```,
 )
 

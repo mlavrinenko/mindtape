@@ -10,7 +10,7 @@
     ease: 6,
   ),
   difficulty: 4,
-  tags: ("mt", "substrate"),
+  tags: ("mt", "substrate", "stateless"),
   estimate: (src-files: 5),
   x-goals: (
     product: (

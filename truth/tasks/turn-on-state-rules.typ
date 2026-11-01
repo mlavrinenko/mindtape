@@ -10,7 +10,7 @@
     ease: 9,
   ),
   difficulty: 2,
-  tags: ("mt",),
+  tags: ("mt", "stateless"),
   estimate: (src-files: 1),
   x-goals: (
     product: (
@@ -50,10 +50,6 @@ extends = [{ pack = "mindtape:tasks", with = { statefulness = true, examples = t
 == Changes
 
 - `.mindtape/config.toml`: the two `with` values and the tags the rules require.
-
-== Rollback
-
-- Revert the config; the rules are off again.
 
 == Out of scope
 

@@ -10,7 +10,7 @@
     ease: 8,
   ),
   difficulty: 2,
-  tags: ("mt",),
+  tags: ("mt", "stateless"),
   estimate: (src-files: 14),
   x-goals: (
     product: (
@@ -57,10 +57,6 @@ x-goals: (
 == Changes
 
 - `.mindtape/templates/*.typ`: the goal slots and the `verdicts` example in every template with `x-goals`.
-
-== Rollback
-
-- Revert the templates; the eight slots return.
 
 == Out of scope
 

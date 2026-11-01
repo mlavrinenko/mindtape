@@ -10,7 +10,7 @@
     ease: 9,
   ),
   difficulty: 2,
-  tags: ("mt",),
+  tags: ("mt", "stateless"),
   estimate: (src-files: 2),
   x-goals: (
     product: (
@@ -52,10 +52,6 @@ allowed = [{ match = "^(AS-IS|Environment|TO-BE|Source of truth|Changes|Alternat
 
 - `crates/mindtape/src/packs/tasks.toml`: the allowlist and the remove-Problem message.
 - `crates/mindtape/src/packs/dogfood.toml`: the matching allowlist.
-
-== Rollback
-
-- Revert the commit; both headings are accepted again.
 
 == Out of scope
 

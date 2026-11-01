@@ -10,7 +10,7 @@
     ease: 8,
   ),
   difficulty: 2,
-  tags: ("docs", "www"),
+  tags: ("docs", "www", "stateless"),
   estimate: (src-files: 0),
   x-goals: (
     product: (

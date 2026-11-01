@@ -3,7 +3,7 @@
 
 #show: task.with(
   title: "Decide whether jscpd's clone classes replace the repeats arm with a gate",
-  kind: "dev",
+  kind: "decision",
   priority: ice(
     impact: 3,
     confidence: 0.6,
@@ -50,10 +50,10 @@
 - `.mmz/config.yaml`: the gate's scope, if one is added.
 
 
-== Rollback
+== Alternatives
 
-- Revert the commit; the sweep arm keeps reporting.
-
+- Keep the repeats arm as it is: it re-reports the same 26 snippets every sweep and gates nothing, so the growth the decision exists to stop continues.
+- Gate at jscpd's 50-token floor: 26 snippets with 300 tokens of gain fail today's tree, so the gate starts red.
 
 == Out of scope
 
