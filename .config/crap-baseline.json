@@ -5828,16 +5828,16 @@
     {
       "file": "crates/mindtape-cli/src/cmd/tags.rs",
       "function": "entries",
-      "line": 57,
-      "cyclomatic": 1.0,
+      "line": 58,
+      "cyclomatic": 2.0,
       "coverage": 100.0,
-      "crap": 1.0,
+      "crap": 2.0,
       "crate": "mindtape-cli"
     },
     {
       "file": "crates/mindtape-cli/src/cmd/tags.rs",
       "function": "json",
-      "line": 117,
+      "line": 126,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -5846,7 +5846,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/tags.rs",
       "function": "reads",
-      "line": 79,
+      "line": 84,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -5855,10 +5855,10 @@
     {
       "file": "crates/mindtape-cli/src/cmd/tags.rs",
       "function": "render",
-      "line": 97,
-      "cyclomatic": 5.0,
+      "line": 102,
+      "cyclomatic": 6.0,
       "coverage": 100.0,
-      "crap": 5.0,
+      "crap": 6.0,
       "crate": "mindtape-cli"
     },
     {
@@ -5873,7 +5873,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/tags.rs",
       "function": "tag_rule",
-      "line": 88,
+      "line": 93,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,

@@ -48,18 +48,19 @@ pub fn run(args: &TagsArgs) -> Result<()> {
     if args.json {
         println!("{}", serde_json::to_string_pretty(&json(&entries))?);
     } else {
-        print!("{}", render(&entries));
+        print!("{}", render(&entries, args.moment));
     }
     Ok(())
 }
 
-/// Every allowed tag in config order, each with the rules that read it.
+/// Every allowed tag in config order, each with the rules that read it. With
+/// a moment, only the tags one of its rules reads survive.
 fn entries(config: &Config, moment: Option<Moment>) -> Vec<TagEntry> {
     let rules: Vec<ActiveRule> = active_rules(config)
         .into_iter()
         .filter(|rule| moment.is_none_or(|moment| moment.enforces(rule.section)))
         .collect();
-    config
+    let mut entries: Vec<TagEntry> = config
         .tasks
         .tags
         .allowed
@@ -72,7 +73,11 @@ fn entries(config: &Config, moment: Option<Moment>) -> Vec<TagEntry> {
                 .map(tag_rule)
                 .collect(),
         })
-        .collect()
+        .collect();
+    if moment.is_some() {
+        entries.retain(|entry| !entry.rules.is_empty());
+    }
+    entries
 }
 
 /// Whether a rule's `when` or `assert` names `tag` as `has_tag("<tag>")`.
@@ -93,8 +98,8 @@ fn tag_rule(rule: &ActiveRule) -> TagRule {
 }
 
 /// `<tag>  <rule>` with the message under the rule, or `<tag>  area label`
-/// when no rule reads it.
-fn render(entries: &[TagEntry]) -> String {
+/// when no rule reads it. An empty filtered list says no tag is read.
+fn render(entries: &[TagEntry], moment: Option<Moment>) -> String {
     let width = widest(entries.iter().map(|entry| entry.tag.as_str()));
     let mut out = String::new();
     for entry in entries {
@@ -108,7 +113,11 @@ fn render(entries: &[TagEntry]) -> String {
         }
     }
     if out.is_empty() {
-        out.push_str("no tag list; every tag is allowed\n");
+        out.push_str(if moment.is_some() {
+            "no tags are read at this moment\n"
+        } else {
+            "no tag list; every tag is allowed\n"
+        });
     }
     out
 }
