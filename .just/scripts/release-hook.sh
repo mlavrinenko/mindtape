@@ -10,7 +10,10 @@
 #
 # cargo-release runs this after the bump and the changelog replacement, and also
 # in a dry run (DRY_RUN=true), where it sees the tree unchanged. It reads the
-# NEW_VERSION, DRY_RUN and WORKSPACE_ROOT variables cargo-release sets.
+# NEW_VERSION, DRY_RUN and WORKSPACE_ROOT variables cargo-release sets. The
+# release commit's subject comes from `pre-release-commit-message` in
+# .config/release.toml, so the commit-msg hook judges it only after the push;
+# this runs the same check before the dry run can call the release good.
 set -euo pipefail
 cd "$WORKSPACE_ROOT"
 version="$NEW_VERSION"
@@ -52,6 +55,19 @@ grep -Eq "^## \[${version//./\\.}\] - " CHANGELOG.md && heading="$version"
 entries=$(sed -n "/^## \[${heading//./\\.}\]/,/^## \[/p" CHANGELOG.md | sed '1d;$d' | sed '/^[[:space:]]*$/d')
 [ -n "$entries" ] \
     || refuse "CHANGELOG.md has nothing under [$heading] to release" "add the release's entries under '## [Unreleased]' and commit"
+# The commit-msg hook would refuse the release subject after the push, so judge
+# it here, where a dry run still stops. Run the mt the hook builds, not the dev
+# shell's copy, which can be older than this tree.
+msg=$(mktemp) \
+    || refuse "can't make a temp file for the release commit message" "check \$TMPDIR, then re-run"
+trap 'rm -f "$msg"' EXIT
+subject=$(sed -n 's/^pre-release-commit-message = "\(.*\)"$/\1/p' .config/release.toml)
+[ -n "$subject" ] \
+    || refuse "can't read pre-release-commit-message from .config/release.toml" "restore the key, then re-run"
+printf '%s\n' "${subject//\{\{version\}\}/$version}" >"$msg" \
+    || refuse "can't write the release commit message to a temp file" "check \$TMPDIR, then re-run"
+cargo run -q -p mindtape-cli --bin mt --target-dir target/mt-dev -- check --commit-msg "$msg" \
+    || refuse "the release commit message breaks the commit rules" "fix what mt reports above, then re-run"
 # The bump moves the version in the Cargo manifests, the sources of the
 # `release-notes` and `cli-name` groups. The release commit is their review:
 # it dates CHANGELOG.md, and the other dependents name the crate, not its
