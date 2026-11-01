@@ -7,8 +7,8 @@ use std::sync::OnceLock;
 
 use crate::diag::Result;
 use mindtape::{
-    Base, Config, Filter, LoadError, LoadOutcome, LoadWarning, RefError, Resolved, StemHashes,
-    Task, ViewSpec, config_path, find_root, load_config, load_project, write_atomic,
+    Base, Config, Filter, LoadError, LoadOutcome, RefError, Resolved, StemHashes, Task, ViewSpec,
+    config_path, find_root, load_config, load_project, write_atomic,
 };
 
 use crate::cmd::install::hint::{RegionHints, names_prelude_package, prelude_diag};
@@ -59,6 +59,21 @@ pub fn init_worktree(flag: Option<PathBuf>) {
 /// `MINDTAPE_WORKTREE` value. An empty env var counts as unset.
 fn pick_override(flag: Option<PathBuf>, env: Option<OsString>) -> Option<PathBuf> {
     flag.or_else(|| env.filter(|value| !value.is_empty()).map(PathBuf::from))
+}
+
+/// Process-global `-v` flag, resolved once from `main`.
+static VERBOSE: OnceLock<bool> = OnceLock::new();
+
+/// Record whether `-v` was passed. Call once from `main`; later calls are
+/// ignored. Tests that never call it read `false`.
+pub fn init_verbose(verbose: bool) {
+    let _ = VERBOSE.set(verbose);
+}
+
+/// Whether `-v` was passed, for a report that normally folds repeated lines
+/// and should list every site when asked.
+pub(crate) fn verbose() -> bool {
+    VERBOSE.get().copied().unwrap_or(false)
 }
 
 /// Process-global `--hyperlinks` flag, resolved once from `main`. `None`
@@ -353,8 +368,23 @@ pub fn report_load_problems(outcome: &LoadOutcome, kind: Kind) {
     }
 }
 
-/// The problems [`report_load_problems`] prints, in its order, unprinted.
+/// The problems [`report_load_problems`] prints, in its order, unprinted. A
+/// Typst warning repeated with the same message is one line unless `-v` asks
+/// for every site.
 pub(crate) fn load_problems(outcome: &LoadOutcome, kind: Kind) -> Vec<Diag> {
+    folded_load_problems(outcome, kind, verbose())
+}
+
+/// [`load_problems`] with the folding choice passed in: `verbose` keeps every
+/// warning site. `mt check` also sets it for `--json`.
+pub(crate) fn folded_load_problems(outcome: &LoadOutcome, kind: Kind, verbose: bool) -> Vec<Diag> {
+    let mut out = load_errors(outcome, kind);
+    out.extend(crate::warnings::fold_warnings(&outcome.warnings, verbose));
+    out
+}
+
+/// The load errors of `outcome`, without its Typst warnings.
+fn load_errors(outcome: &LoadOutcome, kind: Kind) -> Vec<Diag> {
     let mut out = Vec::new();
     let mut prelude_missing = false;
     let mut region_hints = RegionHints::default();
@@ -372,39 +402,19 @@ pub(crate) fn load_problems(outcome: &LoadOutcome, kind: Kind) -> Vec<Diag> {
             None => diag,
         });
     }
-    out.extend(outcome.warnings.iter().map(warning_diag));
     out
 }
 
 /// The line for a file that failed to load: its place as `file:line:col`
 /// (less when Typst gave less), Typst's message, Typst's hints.
 fn load_diag(kind: Kind, error: &LoadError) -> Diag {
-    at_place(
+    crate::warnings::at_place(
         Diag::verbatim(kind, &error.message),
         &error.file,
         error.line,
         error.column,
     )
     .typst_hints(error.hints.iter().cloned())
-}
-
-/// The line for a Typst warning on a file that loaded.
-fn warning_diag(warning: &LoadWarning) -> Diag {
-    at_place(
-        Diag::verbatim(Kind::Warning, &warning.message),
-        &warning.file,
-        warning.line,
-        warning.column,
-    )
-    .typst_hints(warning.hints.iter().cloned())
-}
-
-/// `diag` placed at `file:line:col`, or at the bare file when no line is known.
-fn at_place(diag: Diag, file: &Path, line: Option<usize>, column: Option<usize>) -> Diag {
-    match line {
-        Some(line) => diag.at(file, line, column),
-        None => diag.at_file(file),
-    }
 }
 
 /// Canonicalize task source before it lands on disk or stdout. Runs typstyle

@@ -51,6 +51,9 @@ pub struct Cli {
     pub worktree: Option<PathBuf>,
 
     /// Print more logging: `-v` for info, `-vv` for debug, `-vvv` for trace.
+    ///
+    /// It also lists every site of a Typst warning that `mt` would otherwise
+    /// print once, with its count and files.
     #[arg(short = 'v', long, action = clap::ArgAction::Count, global = true)]
     pub verbose: u8,
 

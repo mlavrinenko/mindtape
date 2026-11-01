@@ -7,7 +7,7 @@ use serde_json::json;
 use super::{CheckArgs, Findings, gather};
 use crate::diag::{Diag, Hint, Kind, Result, emit};
 use crate::pre_write::with_body_rules;
-use crate::project_set::{HeldSet, Member, member_load_problems, open_set};
+use crate::project_set::{HeldSet, Member, member_load_problems_folded, open_set};
 
 /// One member's report: its problems in print order, and whether it failed.
 struct MemberReport {
@@ -23,7 +23,7 @@ struct MemberReport {
 /// Returns a refusal for the commit flags, and one when any member fails.
 pub(super) fn run(held: &HeldSet, args: &CheckArgs) -> Result<()> {
     refuse_commit_flags(held, args)?;
-    let reports = report_all(open_set(&held.members));
+    let reports = report_all(open_set(&held.members), args.json || crate::util::verbose());
     let failed = reports.iter().filter(|report| report.failed).count();
     if args.json {
         print_json(&reports)?;
@@ -55,8 +55,8 @@ pub(super) fn run(held: &HeldSet, args: &CheckArgs) -> Result<()> {
 /// Check every member on a thread of its own, and return the reports in the
 /// order the members came. The checks print nothing and share no state, so
 /// the order the threads finish in shows nowhere.
-fn report_all(members: Vec<Member>) -> Vec<MemberReport> {
-    mindtape::map_parallel(members, report)
+fn report_all(members: Vec<Member>, verbose: bool) -> Vec<MemberReport> {
+    mindtape::map_parallel(members, |member| report(member, verbose))
 }
 
 /// `--commit-msg` and `--commits` read one repo's git.
@@ -84,13 +84,13 @@ fn refuse_commit_flags(held: &HeldSet, args: &CheckArgs) -> Result<()> {
 }
 
 /// Check one member, keeping what it prints instead of printing it.
-fn report(member: Member) -> MemberReport {
+fn report(member: Member, verbose: bool) -> MemberReport {
     let name = member.name;
     let project = match member.project {
         Ok(project) => project,
         Err(diag) => return failure(name, diag),
     };
-    let mut diags = member_load_problems(&name, &project.outcome, Kind::Failed);
+    let mut diags = member_load_problems_folded(&name, &project.outcome, Kind::Failed, verbose);
     match with_body_rules(&project.config, |rules| gather(&project, rules)) {
         Ok(Findings {
             diags: found,

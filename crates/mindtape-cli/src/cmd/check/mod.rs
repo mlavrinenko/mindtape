@@ -76,9 +76,10 @@ pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> 
         return crate::cmd::check::range::run(project, range, args.quiet, args.check_merges);
     }
     let mut report = Report::new(args.json);
-    report.extend(util::load_problems(
+    report.extend(util::folded_load_problems(
         &project.outcome,
         crate::diag::Kind::Failed,
+        args.json || util::verbose(),
     ));
 
     crate::pre_write::with_body_rules(&project.config, |body_rules| {

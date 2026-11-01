@@ -51,6 +51,7 @@ mod task_edit;
 #[cfg(test)]
 mod test_util;
 mod util;
+mod warnings;
 
 use std::process::ExitCode;
 
@@ -90,6 +91,7 @@ fn run() -> Result<(), Diag> {
     }
     let cli = cli::Cli::parse_from(argv);
     cli::init_logger(cli.verbose);
+    util::init_verbose(cli.verbose > 0);
     // Resolve the worktree override once (flag over $MINDTAPE_WORKTREE) so every
     // command's discovery entry point honours it uniformly.
     selector::init_flag(cli.worktree.clone());

@@ -126,6 +126,53 @@ fn multiple_valid_tasks_reports_count() {
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
+const REPEATED_WARNING_CHILD: &str = "_MT_CHECK_REPEATED_WARNING_CHILD";
+
+/// Run `mt check` over one task with two Typst warnings, in a child process so
+/// its stderr can be read. `verbose` sets `-v` in the child.
+fn with_bold_warning(sentinel: &str, verbose: bool, check: impl FnOnce(&str)) {
+    if let Some(stderr) = mindtape::test_support::rerun_isolated_stderr(sentinel) {
+        check(&stderr);
+        return;
+    }
+    if verbose {
+        util::init_verbose(true);
+    }
+    let body = format!("{TASK}\nSome **bold**.\n");
+    let (_dir, project) = make_project(&[("a.typ", &body)]);
+    assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
+}
+
+/// A warning Typst repeats in one file is printed once, with its hint, its
+/// count and the file, not once per site.
+#[test]
+fn repeated_typst_warnings_print_once_with_count_and_files() {
+    with_bold_warning(REPEATED_WARNING_CHILD, false, |stderr| {
+        let file = mindtape::display_path("tasks/a.typ");
+        crate::test_util::assert_count(stderr, "warning: no text within stars", 1);
+        assert!(
+            stderr.contains(&format!("no text within stars: 2 times in {file}")),
+            "{stderr}"
+        );
+        crate::test_util::assert_count(stderr, "hint: using multiple consecutive stars", 1);
+    });
+}
+
+const VERBOSE_WARNING_CHILD: &str = "_MT_CHECK_VERBOSE_WARNING_CHILD";
+
+/// `--verbose` lists every warning site instead of folding them.
+#[test]
+fn verbose_typst_warnings_list_each_site() {
+    with_bold_warning(VERBOSE_WARNING_CHILD, true, |stderr| {
+        let file = mindtape::display_path("tasks/a.typ");
+        crate::test_util::assert_count(stderr, "no text within stars", 2);
+        assert!(
+            stderr.contains(&format!("warning: {file}:")),
+            "each site names the file and line: {stderr}"
+        );
+    });
+}
+
 pub(super) const BODY_NO_PRIORITY: &str = "#metadata((
   marker: \"mindtape.task\",
   fields: (title: \"Y\", status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none)),

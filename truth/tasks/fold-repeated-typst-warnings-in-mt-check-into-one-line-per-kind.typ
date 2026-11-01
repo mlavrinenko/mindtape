@@ -27,13 +27,13 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 28),
+  status: done(2026, 11, 1),
 )
 
 == Problem
 
 + Migrating kimmable's config to mt 0.3.0
-+ 🔴 #raw("crates/mindtape-cli/src/cmd/check/mod.rs"): `mt check` prints each Typst warning in full with its hint, so one habit repeated across a backlog floods the output
++ 🔴 #raw("crates/mindtape-cli/src/cmd/check/mod.rs"), #raw("crates/mindtape-cli/src/util.rs"): `mt check` and `mt ls` print each Typst warning in full with its hint, so one habit repeated across a backlog floods the output
 
 In kimmable, `mt check 2>&1 | rg -c 'no text within stars'` prints `188`, each a warning line plus the same hint:
 ```
@@ -42,16 +42,20 @@ hint: using multiple consecutive stars (e.g. **) has no additional effect
 ```
 
 This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
-#raw("crates/mindtape-cli/src/cmd/check/mod.rs").
+left in a closing report no one rereads. It belongs in the shared load
+report, so every command that prints a Typst warning folds it.
 
 == TO-BE
 
-- 🟢 `mt check` prints a repeated warning once, with its hint, the count and the files, and `--verbose` still lists each site.
+- 🟢 `mt check` and `mt ls` print a repeated warning once, with its hint, the count and the files, and `--verbose` still lists each site.
 
 == Changes
 
-- `crates/mindtape-cli/src/cmd/check/mod.rs`: group warnings by message, and print each group once with its hint, count and files.
+- `crates/mindtape-cli/src/warnings.rs` (new): fold warnings with the same message into one line naming the hint, the count and the files; `fold_warnings` keeps every site when asked.
+- `crates/mindtape-cli/src/util.rs`: `load_problems` folds for every command that reports load warnings, so `mt ls`, `mt find` and a set share the behavior; `folded_load_problems` passes the choice explicitly.
+- `crates/mindtape-cli/src/cmd/check/mod.rs`, `cmd/check/set.rs`, `project_set.rs`: keep every site for `--json` and `-v`.
+- `crates/mindtape-cli/src/main.rs`, `cli/mod.rs`: carry the `-v` flag to the report and say in its help that it lists every site.
+- Tests in `warnings_tests.rs`, `cmd/check/tests.rs`, `tests/it/breach_location_e2e.rs`; the changelog, the `check` and `ls` docs pages and the outdatty lock.
 
 == Rollback
 
@@ -63,4 +67,4 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-This repo's `mt check` keeps its one-line success, and a backlog with a repeated warning stays readable.
+This repo's `mt check` keeps its one-line success, `mt ls` stays readable on a backlog with a repeated warning, and the shared report folds it.

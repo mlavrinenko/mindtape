@@ -177,6 +177,18 @@ fn a_typst_warning_on_a_file_that_loads_is_its_own_warning_line() {
     );
 }
 
+#[test]
+fn repeated_typst_warnings_in_a_listing_fold_to_one_line() {
+    let text = ls_stderr(mindtape::typst_task!(
+        "(title: \"Set up CI\")\nSome **bold**.\n"
+    ));
+    assert!(
+        text.contains("warning: no text within stars: 2 times in"),
+        "{text}"
+    );
+    assert_eq!(text.matches("no text within stars").count(), 1, "{text}");
+}
+
 /// An expected message, its task file in the separator `mt` shows.
 fn shown(text: &str) -> String {
     support::native_in(text, &["tasks/setup-ci.typ"])

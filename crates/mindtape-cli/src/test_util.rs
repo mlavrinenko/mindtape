@@ -85,3 +85,8 @@ pub fn native_in(text: &str, paths: &[&str]) -> String {
         text.replace(path, &mindtape::display_path(path))
     })
 }
+
+/// Assert `text` holds `needle` exactly `expected` times.
+pub fn assert_count(text: &str, needle: &str, expected: usize) {
+    assert_eq!(text.matches(needle).count(), expected, "{text}");
+}

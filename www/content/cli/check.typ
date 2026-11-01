@@ -7,7 +7,8 @@
 links and dependency cycles. It also checks the task each template files with
 its defaults, as #link(u("/templates/"))[Templates & slots] describes. It
 prints each problem it finds and exits non-zero if there's at least one. Run
-it after you edit a task file by hand.
+it after you edit a task file by hand. A Typst warning repeated in the same
+message prints once, with its count and files; `-v` lists every site instead.
 #link(u("/concepts/#where-a-mistake-is-caught"))[Concepts] says which mistakes
 the prelude catches and which `mt check` catches, and
 #link(u("/rules/"))[Rules] covers the checks you can add. To check a commit

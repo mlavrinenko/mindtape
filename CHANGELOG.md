@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`mt` folds repeated Typst warnings into one line.** A warning with the
+  same message prints once in `mt check`, `mt ls` and a set's report, with its
+  hint, its count and the files it sits in; pass `-v` to list every site.
 - **`mt check` skips merge commits by default.** A merge joins commits that
   were checked on their own, so `--commit-msg` and `--commits` no longer judge
   its index or first-parent diff. Pass `--check-merges` to check one, and read

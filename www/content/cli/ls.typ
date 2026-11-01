@@ -171,3 +171,5 @@ a bare `mt ls` applies the default view:
 A task file that fails to load gets a warning naming it, and the line under
 the table counts it last, as in `default view · 1 of 2 tasks · 1 broken`.
 `mt ls` still lists the rest and exits 0. `mt check` fails on a broken file.
+A Typst warning repeated in the same message prints once, with its count and
+files; `-v` lists every site.

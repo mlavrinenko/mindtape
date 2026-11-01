@@ -7,7 +7,10 @@ use std::sync::OnceLock;
 use mindtape::LoadOutcome;
 
 use crate::diag::{Diag, Hint, Kind, Result, emit};
-use crate::util::{Project, config_warnings, held_back_warning, hyperlinks_for, load_problems};
+use crate::util::{
+    Project, config_warnings, folded_load_problems, held_back_warning, hyperlinks_for,
+    load_problems,
+};
 
 /// The set a leading `@name` named, held until a command opens it: `main`
 /// stores it ([`init_held_set`]), [`open_set`] callers read it
@@ -142,6 +145,19 @@ fn member_warnings(name: &str, project: &Project) -> Vec<Diag> {
 /// [`load_problems`] of a set's member `name`, each naming it.
 pub(crate) fn member_load_problems(name: &str, outcome: &LoadOutcome, kind: Kind) -> Vec<Diag> {
     load_problems(outcome, kind)
+        .into_iter()
+        .map(|diag| diag.in_member(name))
+        .collect()
+}
+
+/// [`folded_load_problems`] of a set's member `name`, each naming it.
+pub(crate) fn member_load_problems_folded(
+    name: &str,
+    outcome: &LoadOutcome,
+    kind: Kind,
+    verbose: bool,
+) -> Vec<Diag> {
+    folded_load_problems(outcome, kind, verbose)
         .into_iter()
         .map(|diag| diag.in_member(name))
         .collect()
