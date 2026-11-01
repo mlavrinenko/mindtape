@@ -169,6 +169,7 @@
     outputs: ("rules-commit",),
     examples: "rules-examples",
   ),
+  "tags": (:),
   "config": (
     outputs: ("config-origin",),
     examples: "config-examples",

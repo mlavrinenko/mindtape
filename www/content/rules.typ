@@ -33,7 +33,9 @@ on this page. Rules from an ancestor directory's defaults and from rule packs
 add to your project's own, as #link(u("/config/"))[Configuration] describes.
 To share one set of rules between projects, see
 #link(u("/packs/"))[Packs]. To list the rules your project ends up
-with, one line each, run #link(u("/cli/rules/"))[`mt rules`].
+with, one line each, run #link(u("/cli/rules/"))[`mt rules`]. To see which tags
+those rules read, and the message each prints, run
+#link(u("/cli/tags/"))[`mt tags`].
 
 = Required fields
 

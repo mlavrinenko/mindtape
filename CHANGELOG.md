@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`mt tags` lists the tags a project allows and the rules that read them.**
+  Each tag shows every rule whose `when` or `assert` names
+  `has_tag("<tag>")`, with the message a breach prints. A tag no rule reads
+  shows as an area label. `--for add`, `--for flip` and `--for commit` narrow
+  the list to the rules one step enforces, and `--json` carries the same map
+  under `schema_version`.
+
 ### Fixed
 
 - **`mt check` holds a template's sample task to an empty working tree.** A

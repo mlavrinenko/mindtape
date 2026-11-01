@@ -60,14 +60,15 @@ write included, refuses a set: put one project's `@name` there instead.
   [Retire a task], [`mt rm <task or folder…>`],
   [Validate], [`mt check`],
   [List the rules], [`mt rules`],
+  [List the tags], [`mt tags`],
 )
 
 Run `mt <cmd> --help` for every flag. Never guess the project's statuses, link
-kinds, priority scale or tags: read them from `mt config show`, the merged
-config, or the statuses from `mt flip --list`. Read the words
+kinds, priority scale or tags: read them from `mt tags`, `mt config show`, the
+merged config, or the statuses from `mt flip --list`. Read the words
 a dictionary accepts, such as the verbs a title may start with, from
-`mt dicts <name>`. Before you file, flip or commit, run `mt rules --for <step>`
-(`add`, `flip` or `commit`) to read the rules that step checks. For what no
+`mt dicts <name>`. Before you file, flip or commit, run `mt tags --for <step>`
+and `mt rules --for <step>` (`add`, `flip` or `commit`). For what no
 `--help` covers, read #www-llms, which lists every docs page as Markdown.
 
 A `<task>` is a stem, a path, or the stem hash `mt ls` prints in its `slug#`

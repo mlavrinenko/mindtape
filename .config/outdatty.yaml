@@ -376,6 +376,19 @@ groups:
       - www/content/agents.typ
       - docs/src/skill.typ
 
+  # `mt tags`: the tag-to-rules scan, the message it shows, the `--for` filter
+  # and the area label a tag no rule reads prints.
+  - name: cli-tags-docs
+    source:
+      - crates/mindtape-cli/src/cmd/tags.rs
+    dependents:
+      - www/content/cli/tags.typ
+      - www/content/rules.typ
+      - www/content/agents.typ
+      - www/utils/cli-notes.typ
+      - docs/src/agents.typ
+      - docs/src/skill.typ
+
   # `mt set`: the fields it refuses and the command each one names, the
   # fields it writes, and its re-run writing nothing.
   - name: cli-set-docs

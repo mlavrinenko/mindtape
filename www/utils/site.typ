@@ -168,7 +168,7 @@
   ("Views & dictionaries", ("views", "dicts")),
   ("Status", ("flip", "review")),
   ("Recurring tasks", ("recur",)),
-  ("Validate & inspect config", ("check", "rules", "config")),
+  ("Validate & inspect config", ("check", "rules", "tags", "config")),
   ("Retire", ("rm",)),
   ("Setup", ("init", "install", "packs", "allow", "at", "preset")),
 )

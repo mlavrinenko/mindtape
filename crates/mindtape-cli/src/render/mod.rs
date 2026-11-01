@@ -128,6 +128,11 @@ impl TestCtx {
     }
 }
 
+/// The character count of the widest of `items`, for padding a name column.
+pub(crate) fn widest<'a>(items: impl Iterator<Item = &'a str>) -> usize {
+    items.map(|item| item.chars().count()).max().unwrap_or(0)
+}
+
 pub mod color;
 pub mod columns;
 pub mod field;

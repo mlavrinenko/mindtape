@@ -7,6 +7,7 @@
 use mindtape::{ActiveRule, RuleSection, active_rules, load_config};
 
 use crate::diag::Result;
+use crate::render::widest;
 use crate::util;
 
 /// Arguments for `rules`.
@@ -40,7 +41,7 @@ impl Moment {
     /// arrays. Only `mt flip` runs `[[on.flip]]` (`cmd/flip/hooks.rs`), and
     /// only `mt check --commit-msg` and `--commits` read `[[commits.rules]]`
     /// (`cmd/check/commit.rs`, `cmd/check/range.rs`).
-    const fn enforces(self, section: RuleSection) -> bool {
+    pub(crate) const fn enforces(self, section: RuleSection) -> bool {
         match section {
             RuleSection::TasksRules | RuleSection::BodyHeaders | RuleSection::BodyContent => {
                 matches!(self, Self::Add | Self::Flip)
@@ -82,11 +83,7 @@ fn render(rules: &[ActiveRule]) -> String {
     if rules.is_empty() {
         return "no rules apply\n".to_owned();
     }
-    let width = rules
-        .iter()
-        .map(|rule| rule.name.chars().count())
-        .max()
-        .unwrap_or(0);
+    let width = widest(rules.iter().map(|rule| rule.name.as_str()));
     rules
         .iter()
         .map(|rule| {
@@ -102,7 +99,7 @@ fn render(rules: &[ActiveRule]) -> String {
 
 /// The message a breach prints, or who words it when each breach words its
 /// own.
-fn message(rule: &ActiveRule) -> String {
+pub(crate) fn message(rule: &ActiveRule) -> String {
     match (&rule.message, &rule.check) {
         (Some(message), _) => message.clone(),
         (None, Some(check)) => format!("(messages from {} in {})", check.function, check.typst),
