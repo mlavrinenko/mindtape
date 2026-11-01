@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 1),
+  status: done(2026, 11, 2),
   links: depends-on("add-mt-tags.typ", "task-templates.typ"),
 )
 

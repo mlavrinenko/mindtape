@@ -5,7 +5,7 @@
   priority: ice(impact: 6, confidence: 0.6, ease: 5),
   status: proposed(2026, 9, 26),
   estimate: (src-files: 4),
-  tags: ("notifications",),
+  tags: ("notifications", "stateless"),
   due: on(2026, 10, 30),
   start: on(2026, 10, 15),
 )
@@ -16,6 +16,11 @@
 
 == TO-BE
 - 🟢 A signup sends one welcome email with a confirmation link within a minute.
+
+```sh
+$ curl -s -X POST -d 'email=ada@example.com' localhost:8080/signup
+{"user_id":4711,"welcome_email":"queued"}
+```
 
 == Changes
 - `Cargo.toml`: add the `lettre` crate.

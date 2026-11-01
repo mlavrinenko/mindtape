@@ -21,6 +21,12 @@
 == TO-BE
 - 🟢 The production key is at most 90 days old, and tokens signed with the previous key stay valid for 24 hours.
 
+```sh
+$ scripts/rotate-key
+JWT_SIGNING_KEY=<new-key>
+JWT_SIGNING_KEY_PREVIOUS=<old-key>
+```
+
 == Changes
 - `src/auth/token.rs`: verify a token against the current and the previous key.
 - `scripts/rotate-key`, new: generate a key and print the two environment lines to deploy.

@@ -86,7 +86,7 @@ color = "red"
 # Tag by service: a tag is a service name or one of a few areas. `@services`
 # expands to the dictionary below when the config loads.
 [tasks.tags]
-allowed = ["@services", "security", "docs", "stateful", "stateless"]
+allowed = ["@services", "security", "docs", "stateful", "stateless", "no-repro", "no-ui-ux"]
 
 # Wait on upstream: a task waits until Cargo.lock pins the release it needs.
 # docs:slice api-service/wait-on-upstream

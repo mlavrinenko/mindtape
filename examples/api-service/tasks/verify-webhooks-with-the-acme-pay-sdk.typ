@@ -16,6 +16,10 @@
 == TO-BE
 - 🟢 `src/billing/webhook.rs` calls `acme_pay::Webhook::verify` and holds no signature code of its own.
 
+```rust
+let event = acme_pay::Webhook::verify(&headers, &body)?;
+```
+
 == Changes
 - `src/billing/webhook.rs`: replace the hand-rolled HMAC check with `Webhook::verify`.
 - `Cargo.toml`: drop the `hmac` and `sha2` crates the check used.

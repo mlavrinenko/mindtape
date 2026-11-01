@@ -54,6 +54,30 @@ const UPDATE: &str =
     "update skills/mindtape/evals/evals.json (evals 0-3) and its README.md in the same commit";
 
 #[test]
+fn the_fixture_template_has_the_slots_eval_one_names() {
+    let slots = support::describe_slot_names(&fixture());
+    for name in [
+        "title",
+        "difficulty",
+        "tags",
+        "src-files",
+        "as-is",
+        "to-be",
+        "changes",
+        "out-of-scope",
+    ] {
+        assert!(
+            slots.iter().any(|slot| slot == name),
+            "eval 1 says the default template has the `{name}` slot: {slots:?}; {UPDATE}"
+        );
+    }
+    assert!(
+        !slots.iter().any(|slot| slot == "problem"),
+        "eval 1 says the default template names no `problem` slot: {slots:?}; {UPDATE}"
+    );
+}
+
+#[test]
 fn the_fixture_has_the_task_counts_the_evals_state() {
     assert_eq!(
         ids("").len(),

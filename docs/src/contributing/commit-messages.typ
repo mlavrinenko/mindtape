@@ -48,7 +48,7 @@ were checked on their own, and its index repeats the merged branch. Pass
 - `flip-with-work` checks each task a commit moves into `wip` or `done`. The
   commit's `Refs:` must name the task, and the commit must change a file
   outside the task root. Three commits are exempt from the second half: one
-  that retires another task with `mt rm`, one for a task tagged `decision`,
+  that retires another task with `mt rm`, one for a task of kind `decision`,
   which has no code to commit with it, and one for a milestone, which ends
   through its leaves.
 - `named-tasks-finish-at-the-tip` is a `scope = "tip"` rule, which runs only

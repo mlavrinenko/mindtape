@@ -52,7 +52,7 @@ mt add -f - <<'EOF'
 title: Sign in with Google and GitHub
 difficulty: 6
 src-files: 7
-problem: |
+as-is: |
   + Open `/login`.
   + 🔴 It offers only a password form. A user who signed up with Google has to make a password first.
 to-be: |
@@ -76,7 +76,7 @@ mt add -f - <<'EOF'
 title: Rename the User type to Account
 difficulty: 1
 src-files: 12
-problem: |
+as-is: |
   + Grep `src/` for `User`.
   + 🔴 The type is `User`, while the API, the database and the UI say account.
 to-be: |
@@ -90,14 +90,14 @@ CMD
 )"
 
 # Require a task shape: the template refuses a task with sections left out,
-# and the rule pack refuses a Problem written as prose.
+# and the rule pack refuses an `AS-IS` written as prose.
 api_copy P
 capture --exit 2 --expect 'missing required slot' require-a-task-shape "$P" "$(
     cat <<'CMD'
 mt add -f - <<'EOF'
 title: Paginate the audit log endpoint
 src-files: 2
-problem: GET /audit returns every row, and on production the response is 40 MB.
+as-is: GET /audit returns every row, and on production the response is 40 MB.
 EOF
 CMD
 )"
@@ -106,7 +106,7 @@ capture --exit 1 --expect 'problem-is-numbered-steps' require-a-task-shape "$P" 
 mt add -f - <<'EOF'
 title: Paginate the audit log endpoint
 src-files: 2
-problem: GET /audit returns every row, and on production the response is 40 MB.
+as-is: GET /audit returns every row, and on production the response is 40 MB.
 to-be: |
   - 🟢 `GET /audit` returns 100 rows and a `next` cursor for the page after them.
 changes: |
@@ -127,7 +127,7 @@ capture_prep "$P" "$(
     cat <<'CMD'
 cat >sections.yaml <<'EOF'
 src-files: 1
-problem: |
+as-is: |
   + Log in from `/settings`.
   + 🔴 It lands on `/`, not back on `/settings`.
 to-be: |

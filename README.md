@@ -13,7 +13,7 @@ Here's a real task.
 
 [`examples/api-service/tasks/throttle-failed-logins-per-ip.typ`](https://github.com/mlavrinenko/mindtape/blob/main/examples/api-service/tasks/throttle-failed-logins-per-ip.typ)
 
-```typ
+````typ
 #import "@local/mindtape:0.2.0": *
 #show: task.with(
   title: "Throttle failed logins per IP",
@@ -21,6 +21,7 @@ Here's a real task.
   priority: ice(impact: 7, confidence: 0.7, ease: 4),
   status: proposed(2026, 9, 28),
   estimate: (src-files: 2),
+  tags: ("stateless",),
   links: depends-on("add-redis-client.typ"),
 )
 
@@ -31,6 +32,13 @@ Here's a real task.
 == TO-BE
 - 🟢 After 10 failed logins from one IP in 10 minutes, `/login` returns `429` with a `Retry-After` header.
 
+```sh
+$ for i in $(seq 11); do curl -so /dev/null -w '%{http_code} ' -d user=ada -d password=x localhost:8080/login; done
+401 401 401 401 401 401 401 401 401 401 429
+$ curl -si -d user=ada -d password=x localhost:8080/login | grep -i '^retry-after:'
+retry-after: 600
+```
+
 == Changes
 - `src/auth/limiter.rs`, new: count failures per IP in Redis, each count expiring after 10 minutes.
 - `src/auth/login.rs`: ask the limiter before checking the password, and record each failure.
@@ -40,7 +48,7 @@ Here's a real task.
 
 == Out of scope
 - Locking accounts by username, which needs its own unlock flow.
-```
+````
 
 And here’s how `mt ls` lists it, with the rest of the backlog.
 
@@ -67,7 +75,7 @@ No rule is hardcoded in Mindtape. Every check is a few lines of config, either y
 | Recipe | What it does | What `mt` prints |
 | --- | --- | --- |
 | [Split oversized tasks](https://mlavrinenko.github.io/mindtape/split-oversized-tasks/) | Cap how many source files a task may touch when it takes judgment, so a big design gets split before it’s filed. | `error: <new task from template 'task'>:2: rules.judgment-stays-small: split the decision from the mechanical edits, so each task touches 5 source files or fewer` |
-| [Require a task shape](https://mlavrinenko.github.io/mindtape/require-a-task-shape/) | Refuse a task that doesn’t say how to reproduce the problem, what done looks like and which files change. | `error: missing required slots: 'to-be', 'changes', 'out-of-scope'` |
+| [Require a task shape](https://mlavrinenko.github.io/mindtape/require-a-task-shape/) | Refuse a task that doesn’t say where it starts, what done looks like and which files change. | `error: missing required slots: 'to-be', 'changes', 'out-of-scope'` |
 | [Start titles with a verb](https://mlavrinenko.github.io/mindtape/start-titles-with-a-verb/) | Refuse a task whose title doesn’t start with a verb, so each line of a list says what the task does. | `error: <new task from template 'task'>:2: rules.imperative-title: start the title with an imperative verb` |
 | [Tie work to your goals](https://mlavrinenko.github.io/mindtape/tie-work-to-goals/) | Make each milestone say how it serves your goals, and refuse one that helps none of them. | `error: <new task from template 'milestone'>:3: rules.goals: it helps no goal, so name one it helps or drop it` |
 | [Limit work in progress](https://mlavrinenko.github.io/mindtape/limit-work-in-progress/) | Allow one milestone and one task in progress, and refuse to start a task before the tasks it depends on are done. | `error: tasks/add-redis-client.typ:2: rules.one-task: finish the task in progress before you start another` |

@@ -324,11 +324,14 @@ way.
 = The rules in `mindtape:tasks`
 
 `extends = ["mindtape:tasks"]` gives you the task shape #mindtape's own
-backlog uses. Each open task has four sections in order: Problem, TO-BE,
-Changes and Out of scope. A `fix`, `feat`, `docs` or `dev` task adds one more
-section of its own. The pack also declares the `kind` field the rules read,
-with `feat`, `fix`, `refactor`, `docs`, `test`, `dev` and `milestone`, and
-requires it of an open task, and it forbids a comment in a task file. The
+backlog uses. Each open task has four sections in order: `AS-IS`, `TO-BE`,
+Changes and Out of scope. A `fix` adds Environment, a `feat` or a `decision`
+adds Alternatives, a `docs` task adds Source of truth, and a task tagged
+`stateful` adds Rollback. The pack also declares the `kind` field the rules
+read, with `feat`, `fix`, `refactor`, `docs`, `test`, `dev`, `decision` and
+`milestone`, and requires it of an open task, and it forbids a comment in a
+task file. The `statefulness` and `examples` parameters, both off, gate the
+tag rule and the two fenced-example rules; a project turns them on in `with`. The
 tables below are read from
 #link(REPO + "/blob/main/crates/mindtape/src/packs/tasks.toml")[the
   pack file], and each message is the text `mt check` prints. The

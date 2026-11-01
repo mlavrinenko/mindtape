@@ -6,6 +6,7 @@
   priority: ice(impact: 7, confidence: 0.7, ease: 4),
   status: proposed(2026, 9, 28),
   estimate: (src-files: 2),
+  tags: ("stateless",),
   links: depends-on("add-redis-client.typ"),
 )
 
@@ -15,6 +16,13 @@
 
 == TO-BE
 - 🟢 After 10 failed logins from one IP in 10 minutes, `/login` returns `429` with a `Retry-After` header.
+
+```sh
+$ for i in $(seq 11); do curl -so /dev/null -w '%{http_code} ' -d user=ada -d password=x localhost:8080/login; done
+401 401 401 401 401 401 401 401 401 401 429
+$ curl -si -d user=ada -d password=x localhost:8080/login | grep -i '^retry-after:'
+retry-after: 600
+```
 
 == Changes
 - `src/auth/limiter.rs`, new: count failures per IP in Redis, each count expiring after 10 minutes.

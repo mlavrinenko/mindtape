@@ -11,6 +11,12 @@
     default: 3,
     prompt: "How much judgment it takes, 0 to 9. A rename is 1, a design call 3 and up",
   ),
+  tags: slot(
+    "tags",
+    kind: "list",
+    prompt: "Service tags, and `stateful` or `stateless`",
+    default: ("stateless",),
+  ),
   estimate: (
     src-files: slot(
       "src-files",
@@ -23,7 +29,7 @@
 
 == Problem
 #slot(
-  "problem",
+  "as-is",
   kind: "raw",
   prompt: "Numbered steps that reproduce it. Open the failing step with 🔴.",
   example: ```typ

@@ -247,5 +247,5 @@ voice. The rules are in
 - A new domain capability goes in `crates/mindtape`, re-exported from its
   `lib.rs`. Keep task concepts out of `typst-harvest`, which is a general
   Typst crate other tools use.
-- Record an architectural or tooling decision as a task under `truth/tasks/`
-  tagged `decision`. There are no ADRs.
+- Record an architectural or tooling decision as a `decision` task under
+  `truth/tasks/`. There are no ADRs.

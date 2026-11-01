@@ -5,7 +5,7 @@
   priority: ice(impact: 5, confidence: 0.7, ease: 8),
   status: proposed(2026, 9, 30),
   estimate: (src-files: 1),
-  tags: ("billing", "docs"),
+  tags: ("billing", "docs", "stateless"),
   due: on(2026, 10, 3),
 )
 

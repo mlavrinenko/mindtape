@@ -5,6 +5,7 @@
   priority: ice(impact: 7, confidence: 0.8, ease: 6),
   status: proposed(2026, 9, 25),
   estimate: (src-files: 3),
+  tags: ("stateless",),
 )
 
 == Problem
@@ -13,6 +14,11 @@
 
 == TO-BE
 - 🟢 Handlers reach a pooled Redis connection through `AppState`.
+
+```rust
+let redis = ConnectionManager::new(&config.redis_url).await?;
+let state = AppState { db, redis };
+```
 
 == Changes
 - `Cargo.toml`: add the `redis` crate with its `tokio-comp` and `connection-manager` features.

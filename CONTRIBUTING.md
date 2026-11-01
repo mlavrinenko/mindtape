@@ -120,4 +120,4 @@ Edit a doc’s Typst source, rewrite a file whole when you touch it, state each 
 
 - A new CLI command is a module under `crates/mindtape-cli/src/cmd/` with an `Args` struct and a `run` function, wired into `cli/mod.rs`. Use `cmd/add/` as a model.
 - A new domain capability goes in `crates/mindtape`, re-exported from its `lib.rs`. Keep task concepts out of `typst-harvest`, which is a general Typst crate other tools use.
-- Record an architectural or tooling decision as a task under `truth/tasks/` tagged `decision`. There are no ADRs.
+- Record an architectural or tooling decision as a `decision` task under `truth/tasks/`. There are no ADRs.

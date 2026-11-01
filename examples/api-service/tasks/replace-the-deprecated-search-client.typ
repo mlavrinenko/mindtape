@@ -5,7 +5,7 @@
   priority: ice(impact: 5, confidence: 0.5, ease: 3),
   status: proposed(2026, 8, 20),
   estimate: (src-files: 3),
-  tags: ("search",),
+  tags: ("search", "stateless"),
   due: on(2026, 10, 20),
 )
 
@@ -15,6 +15,11 @@
 
 == TO-BE
 - 🟢 Search runs on the vendor's supported client and the build prints no deprecation warning.
+
+```sh
+$ cargo build
+    Finished dev [unoptimized + debuginfo] target(s) in 8.42s
+```
 
 == Changes
 - `Cargo.toml`: swap the `elasticsearch` crate for `opensearch`.

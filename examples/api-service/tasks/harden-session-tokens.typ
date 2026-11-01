@@ -6,7 +6,7 @@
   priority: ice(impact: 7, confidence: 0.8, ease: 5),
   status: wip(2026, 9, 29),
   estimate: (src-files: 0),
-  tags: ("auth", "security"),
+  tags: ("auth", "security", "stateless"),
   x-goals: (
     secure: helps[an expired session can't mint a new token],
     fast: neutral,

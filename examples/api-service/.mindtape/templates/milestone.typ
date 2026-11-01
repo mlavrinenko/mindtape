@@ -7,6 +7,12 @@
     example: "Harden session tokens",
   ),
   kind: "milestone",
+  tags: slot(
+    "tags",
+    kind: "list",
+    prompt: "Service tags, and `stateful` or `stateless`",
+    default: ("stateless",),
+  ),
   estimate: (src-files: 0),
   x-goals: (
     secure: slot(

@@ -38,7 +38,7 @@ It is when `.mindtape/config.toml` exists. Run `mt` at or below the directory th
 | List the rules | `mt rules` |
 | List the tags | `mt tags` |
 
-Run `mt <cmd> --help` for every flag. Never guess the project’s statuses, link kinds, priority scale or tags: read them from `mt tags`, `mt config show`, the merged config, or the statuses from `mt flip --list`. Read the words a dictionary accepts, such as the verbs a title may start with, from `mt dicts <name>`. Before you file, flip or commit, run `mt tags --for <step>` and `mt rules --for <step>` (`add`, `flip` or `commit`). For what no `--help` covers, read [https://mlavrinenko.github.io/mindtape/llms.txt](https://mlavrinenko.github.io/mindtape/llms.txt), which lists every docs page as Markdown.
+Run `mt <cmd> --help` for every flag. Never guess the project’s statuses, link kinds, priority scale or tags: read them from `mt tags`, `mt config show` or `mt flip --list`. Read a dictionary’s words, such as the verbs a title may start with, from `mt dicts <name>`. Before you flip or commit, run `mt tags --for <step>` and `mt rules --for <step>`. For more, read [https://mlavrinenko.github.io/mindtape/llms.txt](https://mlavrinenko.github.io/mindtape/llms.txt), every docs page as Markdown.
 
 A `<task>` is a stem, a path, or the stem hash `mt ls` prints in its `slug#` column. A hash changes only when `mt mv` renames the stem, and `mt` refuses one that several tasks share. Link a task’s file path when you name it to a person.
 
@@ -50,7 +50,7 @@ Common filters are `ready` (open, with every `depends-on` target finished and ev
 
 ## Filing tasks
 
-`mt add <title…>` names the file from the title, checks the task, and writes it under the first root. `mt add --list` lists the templates, and `mt add --describe` lists a template’s slots. Pass a value you type as `--set key=value`, and values you generate as YAML on stdin with `-f -`, which needs no shell quoting. `--print` shows the task without writing it.
+`mt add <title…>` names the file from the title, checks the task, and writes it under the first root. Before you file, run `mt tags --for add`: it names the tags the shape rules read, including the opt-outs `no-repro` and `no-ui-ux`. `mt add --list` lists the templates, and `mt add --describe` lists a template’s slots. Pass a typed value as `--set key=value`, and a generated one as YAML on stdin with `-f -`, which needs no quoting. `--print` shows the task without writing it.
 
 A key names a template slot, which need not be a field: a framework priority takes its inputs (`--set impact=8`). `mt add` refuses an unknown slot and lists the known ones. For a field the template has no slot for, file the task, then `mt set` it. A `text` slot escapes Typst markup, so a code span in it lands as literal backticks, and `mt add` warns naming the slot. Read `references/add-slots.md` before you fill an unfamiliar template.
 
