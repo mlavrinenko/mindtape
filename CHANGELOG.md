@@ -17,11 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   carries the same map under `schema_version`.
 - **`mindtape:tasks` gates sections by property, not commit type.** `decision`
   joins the kinds and closes in a task-only commit, `Alternatives` follows a
-  `feat` or a `decision`, and `AS-IS` joins `Problem` with the same content
-  rules. A `stateful` task requires one Rollback section, and any task without
-  the tag must carry none. The tag-required rule and the fenced AS-IS repro and
-  TO-BE example sit behind the pack's `statefulness` and `examples`
-  parameters, both off.
+  `feat` or a `decision`, and `AS-IS` carries the numbered-steps and
+  defect-marker content rules. A `stateful` task requires one Rollback
+  section, and any task without the tag must carry none. The tag-required rule
+  and the fenced AS-IS repro and TO-BE example sit behind the pack's
+  `statefulness` and `examples` parameters, both off.
 
 ### Fixed
 
@@ -32,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`mindtape:tasks` refuses a `Problem` heading.** `AS-IS` is the only
+  accepted name for the first section, the Environment message says where the
+  AS-IS reproduces, and the rules that only named Problem are gone.
 - **`mt` folds repeated Typst warnings into one line.** A warning with the
   same message prints once in `mt check`, `mt ls` and a set's report, with its
   hint, its count and the files it sits in; pass `-v` to list every site.

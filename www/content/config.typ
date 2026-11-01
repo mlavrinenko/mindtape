@@ -69,7 +69,7 @@ through `sh -c`, or `cmd /C` on Windows, or an array such as
 #link(u("/hooks/#trust-and-portability"))[Flip hooks] says when to pick which.
 
 Write a rule's `message` as the next step: an imperative in lower case, with no
-trailing period or em dash, such as `move Environment after Problem`. `mt check`
+trailing period or em dash, such as `move Environment after AS-IS`. `mt check`
 prints it after the rule's name, so it should tell the author what to do, not
 what is wrong.
 

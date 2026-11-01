@@ -11,7 +11,7 @@
 # The set came out of the 2026-09-15 backlog review and the research it was
 # checked against:
 #
-# - Problem: numbered steps anyone can follow, commands in backticks, and the
+# - AS-IS: numbered steps anyone can follow, commands in backticks, and the
 #   step that shows the defect opening with 🔴. Reproduction scripts raise
 #   agent solve rates while narrative steps add little (arXiv 2607.07593);
 #   developers rank steps to reproduce first (Bettenburg et al., FSE 2008).
@@ -25,19 +25,17 @@
 # - Out of scope: what not to touch, so the diff stays one change.
 #
 # A kind carries one more section where the research names a gap: a fix says
-# where its Problem reproduces (Environment, the version and platform block of
+# where its AS-IS reproduces (Environment, the version and platform block of
 # GitHub's bug form), a feat or a decision which designs it rejected
 # (Alternatives, essential in Google design docs and Rust RFCs), and a docs
 # change what its prose must match (Source of truth). Rollback follows state,
 # not kind: a task tagged `stateful` carries one, and a task without that tag
 # carries none.
 #
-# `Problem` and `AS-IS` are both accepted during the rename, and `AS-IS` gets
-# the same rules as `Problem` under names of its own. The optional rule groups
-# sit behind `[params]`: `statefulness` makes every task name `stateful` or
-# `stateless`, and `examples` asks AS-IS for a fenced repro and TO-BE for a
-# fenced example. Both are off, so a project turns them on when its corpus is
-# ready.
+# The optional rule groups sit behind `[params]`: `statefulness` makes every
+# task name `stateful` or `stateless`, and `examples` asks AS-IS for a fenced
+# repro and TO-BE for a fenced example. Both are off, so a project turns them
+# on when its corpus is ready.
 #
 # Headings and lists carry weight on their own: stripping them lowers solve
 # rates with the content intact, and so does length (arXiv 2607.07593). Hence
@@ -88,7 +86,7 @@ policy = "forbid"
 name = "section-allowlist"
 action = "allowlist"
 allowed = [
-  { match = "^(Problem|AS-IS|Environment|TO-BE|Source of truth|Changes|Alternatives|Rollback|Out of scope)$" },
+  { match = "^(AS-IS|Environment|TO-BE|Source of truth|Changes|Alternatives|Rollback|Out of scope)$" },
 ]
 when = "!terminal"
 message = "limit an open task to AS-IS, TO-BE, Changes and Out of scope, plus its kind's own section"
@@ -98,7 +96,7 @@ name = "environment-for-fix"
 path = ["Environment"]
 action = "unique"
 when = '!terminal && kind == "fix"'
-message = "add one Environment section saying where the Problem reproduces"
+message = "add one Environment section saying where the AS-IS reproduces"
 
 [[tasks.body.headers.rules]]
 name = "alternatives-for-design"
@@ -151,22 +149,6 @@ message = "remove the Rollback section; only a stateful task has one"
 
 # Order rules. Each passes while either side is absent, so a pair binds only
 # the kinds that carry both sections.
-[[tasks.body.headers.rules]]
-name = "environment-after-problem"
-action = "order"
-before = ["Problem"]
-after = ["Environment"]
-when = "!terminal"
-message = "move Environment after Problem"
-
-[[tasks.body.headers.rules]]
-name = "to-be-after-problem"
-action = "order"
-before = ["Problem"]
-after = ["TO-BE"]
-when = "!terminal"
-message = "move TO-BE after Problem"
-
 [[tasks.body.headers.rules]]
 name = "environment-after-as-is"
 action = "order"
@@ -249,10 +231,10 @@ message = "move Out of scope after Rollback"
 
 [[tasks.body.headers.rules]]
 name = "one-as-is-section"
-path = [{ match = "^(Problem|AS-IS)$" }]
+path = ["AS-IS"]
 action = "unique"
 when = "!terminal"
-message = "keep exactly one AS-IS section, under either heading"
+message = "keep exactly one AS-IS section"
 
 [[tasks.body.headers.rules]]
 name = "one-to-be-section"
@@ -289,20 +271,6 @@ message = "remove the subsections, or split the task; a section takes none"
 # Section-content rules: the heading rules above prove the sections exist;
 # these prove each one says what its heading promises. Regexes run over the
 # section's source text.
-[[tasks.body.content.rules]]
-name = "problem-is-numbered-steps"
-path = ["Problem"]
-assert = { must-match = "(?m)^\\s*(\\+|\\d+\\.)\\s" }
-when = "!terminal"
-message = "write the Problem as numbered steps anyone can follow"
-
-[[tasks.body.content.rules]]
-name = "problem-marks-the-defect"
-path = ["Problem"]
-assert = { must-match = "(?m)^\\s*(\\+|\\d+\\.)\\s+🔴" }
-when = "!terminal"
-message = "open the step that shows the defect with 🔴"
-
 [[tasks.body.content.rules]]
 name = "as-is-is-numbered-steps"
 path = ["AS-IS"]
@@ -374,7 +342,7 @@ message = "write the state the change starts from, or remove the section"
 [[tasks.body.content.rules]]
 name = "section-word-cap"
 path = [
-  { match = "^(Problem|Environment|TO-BE|Source of truth|Alternatives|Rollback|Out of scope)$" },
+  { match = "^(Environment|TO-BE|Source of truth|Alternatives|Rollback|Out of scope)$" },
 ]
 assert = { max-words = 120 }
 when = "!terminal"
@@ -414,7 +382,7 @@ message = "keep one em dash per paragraph at most; use a comma, a colon or a sec
 
 # A question left in the sections that say what to build is a decision the
 # implementer makes alone halfway through. Density skips code, so a `?` in a
-# quoted command passes, and Problem stays free to quote output that has one.
+# quoted command passes, and AS-IS stays free to quote output that has one.
 [[tasks.body.content.rules]]
 name = "no-open-questions"
 path = [{ match = "TO-BE|Changes|Out of scope|Dogfood" }]

@@ -1,7 +1,7 @@
 //! The shipped `mindtape:tasks` pack's `no-open-questions` refuses an open
 //! task whose TO-BE, Changes, Out of scope or Dogfood asks a question
 //! (`truth/tasks/refuse-a-task-that-leaves-a-question-open.typ`). A `?` in
-//! code, or in Problem, is no question.
+//! code, or in AS-IS, is no question.
 #![allow(clippy::unwrap_used)]
 
 use mindtape::test_support::write_file;
@@ -12,8 +12,8 @@ const ADVICE: &str = "body.content.rules.no-open-questions: \
      ask the user and write the answer in, since a task leaves no question open";
 
 /// `mt check`'s exit code and stderr for one open task under the pack alone,
-/// with `problem` and `to_be` as its Problem and TO-BE bullets.
-fn check(problem: &str, to_be: &str) -> (Option<i32>, String) {
+/// with `as_is` and `to_be` as its AS-IS and TO-BE bullets.
+fn check(as_is: &str, to_be: &str) -> (Option<i32>, String) {
     let dir =
         support::scaffold_project("extends = [\"mindtape:tasks\"]\n[tasks]\nroots = [\"tasks\"]\n");
     write_file(
@@ -22,7 +22,7 @@ fn check(problem: &str, to_be: &str) -> (Option<i32>, String) {
         format!(
             "#import \"@local/mindtape:0.2.0\": *\n\n\
              #show: task.with(\n  title: \"Cover the board\",\n  kind: \"refactor\",\n  status: wip(2026, 6, 1),\n)\n\n\
-             == Problem\n\n+ Run `mt board`.\n+ 🔴 {problem}\n\n\
+             == AS-IS\n\n+ Run `mt board`.\n+ 🔴 {as_is}\n\n\
              == TO-BE\n\n- 🟢 It lists the tasks.\n{to_be}\n\n\
              == Changes\n\n- `src/board.rs`: list the tasks.\n\n\
              == Out of scope\n\n- The other views.\n"
@@ -45,7 +45,7 @@ fn a_question_in_to_be_fails_with_the_advice_and_the_sentence() {
 }
 
 #[test]
-fn a_question_mark_in_code_or_in_problem_passes() {
+fn a_question_mark_in_code_or_in_as_is_passes() {
     let (code, stderr) = check(
         "Why does it list nothing?",
         "- 🟢 `mt board ? --help` names the flag.\n\n```sh\nmt board ? --help\n```",

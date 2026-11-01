@@ -5,10 +5,10 @@ groups:
     source:
       crates/mindtape/src/packs/budget.toml: 54739bb1028bba904c3516de51e486da9ac50a3fc1ac819abebdab1b8a52867a
       crates/mindtape/src/packs/commits.toml: 8e61b32e0f6686d7bf6012e0f457d7f0e88a7ac555735ccdd6db8eeb5c0c5c36
-      crates/mindtape/src/packs/dogfood.toml: 53351a97b73f01e93c671b36cefd64ee1e993e57406599585bcacbde3f1cf594
+      crates/mindtape/src/packs/dogfood.toml: a5bff1f8a99c2c89da8b992a203bd303bf08d2cec7ba06affb7e318e0c0b30b9
       crates/mindtape/src/packs/flow.toml: 13627963544f7dcf27b69d791f158202970181d7127581329783107fc254c6e8
       crates/mindtape/src/packs/ice.toml: fc82bc4388152c8d755244c532f7311481f6333dbbc9ee3498220abdc5b35e1a
-      crates/mindtape/src/packs/tasks.toml: fbd6dbacd967031db7e9d17842c73991d49ea3a501636cc8d2104ac595c4b81e
+      crates/mindtape/src/packs/tasks.toml: 4aa5bedc0edb043fc463c76a4c5bd03d83f338db0effca566edd541ee97ae8fc
       crates/mindtape/src/packs/tweaks.toml: 3f5c1612deb1f9c5a11ec5580f9bc48ed0b256e54960082c4441fdea43e1278e
       crates/mindtape/src/packs/wip-caps.toml: 5dc4ccb78198701f7c04354fbfc636eec497500513ebab981ebeb6832aa0ce9a
       examples/api-service/.mindtape/config.toml: 2772704ac06e53ebd56294237c7377381bf143c0ee071c2ceab60c00d627e1d5

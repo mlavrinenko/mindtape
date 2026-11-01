@@ -19,7 +19,7 @@ fn check(extra: &str, tail: &str) -> (bool, String) {
             "#import \"@local/mindtape:0.2.0\": *\n\n\
              #show: task.with(\n  title: \"Cover the board\",\n  status: wip(2026, 6, 1),\n  \
              {extra}\n)\n\n\
-             == Problem\n\n+ Run `mt board`.\n+ 🔴 It lists nothing.\n\n\
+             == AS-IS\n\n+ Run `mt board`.\n+ 🔴 It lists nothing.\n\n\
              == TO-BE\n\n- 🟢 It lists the tasks.\n\n\
              == Changes\n\n- `src/board.rs`: list the tasks.\n\n\
              == Out of scope\n\n- The other views.\n{tail}"

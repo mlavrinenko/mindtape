@@ -1,7 +1,7 @@
 //! End-to-end proof that the embedded `mindtape:tasks` pack, extended alone
 //! (no local rules layered over it), enforces the task practice it ships:
 //! a well-formed body passes every header/content rule the pack declares, an
-//! empty body — the task's own Problem step — is refused, and the AS-IS,
+//! empty body — the task's own AS-IS step — is refused, and the AS-IS,
 //! decision, statefulness and example rules follow the task's properties.
 //! Split out of `config/packs_tests.rs`, which was already at the linecop
 //! cap, per `CONTRIBUTING.md`'s `just fix-check`/ejectest convention.
@@ -98,7 +98,7 @@ fn assert_task_breaches(config: &Config, kind: &str, source: &str, rule: &str) {
 /// it asks for it, each with its markers — the shape `mindtape:tasks`
 /// exists to require.
 const WELL_FORMED: &str = "\
-== Problem
+== AS-IS
 
 + Run the command.
 + 🔴 It does the wrong thing.
@@ -116,9 +116,9 @@ const WELL_FORMED: &str = "\
 - Everything not touched by the fix above.
 ";
 
-/// The same body under the heading the transition accepts beside `Problem`.
+/// The well-formed body, owned, so a test can splice into it.
 fn as_is() -> String {
-    WELL_FORMED.replace("== Problem", "== AS-IS")
+    WELL_FORMED.to_owned()
 }
 
 /// `as_is()` with `heading` and `body` spliced in before Out of scope.
@@ -177,10 +177,8 @@ fn fenced(body: &str) -> String {
 fn a_well_formed_body_passes_under_the_pack_alone() {
     let (_tmp, config) = config_extending_the_real_pack();
 
-    for source in [WELL_FORMED.to_owned(), as_is()] {
-        let violations = violations_for(&config, &source);
-        assert!(violations.is_empty(), "{violations:?}");
-    }
+    let violations = violations_for(&config, WELL_FORMED);
+    assert!(violations.is_empty(), "{violations:?}");
 }
 
 #[test]
@@ -195,7 +193,7 @@ fn an_empty_body_is_refused_under_the_pack_alone() {
 }
 
 #[test]
-fn as_is_takes_the_same_content_rules_as_problem() {
+fn as_is_takes_the_content_rules() {
     let (_tmp, config) = config_extending_the_real_pack();
     let prose = as_is().replace(
         "+ Run the command.\n+ 🔴 It does the wrong thing.",
@@ -205,6 +203,24 @@ fn as_is_takes_the_same_content_rules_as_problem() {
     let violations = violations_for(&config, &prose);
     assert_breaches(&violations, "body.content.rules.as-is-is-numbered-steps");
     assert_breaches(&violations, "body.content.rules.as-is-marks-the-defect");
+}
+
+#[test]
+fn a_problem_heading_is_refused() {
+    let (_tmp, config) = config_extending_the_real_pack();
+    let source = WELL_FORMED.replace("== AS-IS", "== Problem");
+
+    let violations = violations_for(&config, &source);
+    assert_breaches(&violations, "body.headers.rules.section-allowlist");
+    let refusal = violations
+        .iter()
+        .find(|violation| violation.field == "body.headers.rules.section-allowlist")
+        .unwrap();
+    assert!(
+        refusal.message.contains("AS-IS"),
+        "the refusal must name AS-IS: {}",
+        refusal.message
+    );
 }
 
 #[test]
