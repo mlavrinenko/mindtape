@@ -1,0 +1,64 @@
+#import "@local/mindtape:0.2.0": *
+#import "../lib.typ": *
+
+#show: task.with(
+  title: "Turn on the statefulness and example rules after the migration",
+  kind: "dev",
+  priority: ice(
+    impact: 5,
+    confidence: 0.9,
+    ease: 9,
+  ),
+  difficulty: 2,
+  tags: ("mt",),
+  estimate: (src-files: 1),
+  x-goals: (
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[the switch is explicit and the rules turn on together],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+    ),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
+    ),
+  ),
+  assignee: "agent",
+  status: proposed(2026, 11, 1),
+  links: depends-on("task-shape-docs.typ") + depends-on("as-is-sweep.typ"),
+)
+
+== Problem
+
++ Run `mt tags --for add` and read the statefulness and example rules.
++ 🔴 Both are parameter-gated off, so a new task can still omit the statefulness tag and the example fence.
++ 🔴 The templates and fixtures pass only because the rules are off.
+
+== TO-BE
+
+- 🟢 The project's `extends` sets `statefulness` and `examples` true.
+- 🟢 The templates, fixtures and filed tasks pass with the rules on.
+- 🟢 `mt tags --for add` lists the statefulness and example rules.
+
+```toml
+extends = [{ pack = "mindtape:tasks", with = { statefulness = true, examples = true } }]
+```
+
+== Changes
+
+- `.mindtape/config.toml`: the two `with` values and the tags the rules require.
+
+== Rollback
+
+- Revert the config; the rules are off again.
+
+== Out of scope
+
+- The pack rules in `task-section-rules`, the templates in `task-templates` and the docs in `task-shape-docs`.
+
+== Dogfood
+
+This repo's own tasks are the first to carry the statefulness tags and example fences.
