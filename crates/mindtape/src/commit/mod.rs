@@ -23,7 +23,8 @@
 //!
 //! # Files
 //!
-//! - `amend.rs`: which commit a `commit-msg` hook's index becomes the child of.
+//! - `amend.rs`: which commit a `commit-msg` hook's index becomes the child
+//!   of, and whether that commit is a merge.
 //! - `expr.rs`: the expression language of a `scope = "commit"` rule.
 //! - `range.rs`: a range of past commits, read the way the commit being written is.
 //! - `refs.rs`: which tasks shaped a file, from the trailers of its commits.
@@ -32,6 +33,7 @@
 //! - `tip.rs`: the `scope = "tip"` rules of a range, run over its newest commit's tasks.
 
 pub(crate) mod amend;
+pub use amend::writing_a_merge;
 pub mod expr;
 pub mod range;
 pub mod refs;
@@ -40,7 +42,7 @@ pub mod tasks;
 pub mod tip;
 
 use std::path::Path;
-use std::process::Command;
+use std::process::{Command, Output};
 
 use thiserror::Error;
 
@@ -269,21 +271,44 @@ pub(crate) fn renamed_sources(root: &Path, revs: &[&str]) -> Result<Vec<String>,
     Ok(sources)
 }
 
-/// Run one read-only git command in `root` and return its stdout.
-pub(crate) fn git(root: &Path, args: &[&str]) -> Result<String, CommitMsgError> {
-    let output = Command::new("git")
+/// Run one read-only git command in `root`.
+fn run_git(root: &Path, args: &[&str]) -> Result<Output, CommitMsgError> {
+    Ok(Command::new("git")
         .arg("--no-optional-locks")
         .arg("-C")
         .arg(root)
         .args(args)
-        .output()?;
+        .output()?)
+}
+
+/// Why one git command failed.
+fn git_error(args: &[&str], output: &Output) -> CommitMsgError {
+    CommitMsgError::Git {
+        command: args.first().copied().unwrap_or_default().to_owned(),
+        stderr: String::from_utf8_lossy(&output.stderr).trim().to_owned(),
+    }
+}
+
+/// Run one read-only git command in `root`; `None` when git exits 1, its
+/// answer for a `--verify` that found nothing.
+pub(crate) fn git_optional(root: &Path, args: &[&str]) -> Result<Option<String>, CommitMsgError> {
+    let output = run_git(root, args)?;
+    if output.status.success() {
+        return Ok(Some(String::from_utf8_lossy(&output.stdout).into_owned()));
+    }
+    if output.status.code() == Some(1) {
+        return Ok(None);
+    }
+    Err(git_error(args, &output))
+}
+
+/// Run one read-only git command in `root` and return its stdout.
+pub(crate) fn git(root: &Path, args: &[&str]) -> Result<String, CommitMsgError> {
+    let output = run_git(root, args)?;
     if output.status.success() {
         Ok(String::from_utf8_lossy(&output.stdout).into_owned())
     } else {
-        Err(CommitMsgError::Git {
-            command: args.first().copied().unwrap_or_default().to_owned(),
-            stderr: String::from_utf8_lossy(&output.stderr).trim().to_owned(),
-        })
+        Err(git_error(args, &output))
     }
 }
 
@@ -318,6 +343,9 @@ pub struct CommitRecord {
     /// `in_range`: the commit was read from a range (`mt check --commits`),
     /// not from a message being written (`mt check --commit-msg`).
     pub in_range: bool,
+    /// `is_merge`: the commit has more than one parent. A `commit-msg` check
+    /// sets it for the merge being written, an amend of a merge included.
+    pub is_merge: bool,
     /// The stems a `scope = "task"` rule runs for: every task file the commit
     /// changes, then every ref, each once. Not an expression field.
     pub tasks: Vec<String>,
@@ -372,6 +400,7 @@ impl CommitRecord {
             renamed_from: changed.renamed_from.clone(),
             tasks_only,
             in_range: false,
+            is_merge: false,
             tasks: subjects,
             trailers: message.trailer_lines.clone(),
         };

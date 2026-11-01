@@ -1,11 +1,13 @@
 //! A range of past commits, read the way `mt check --commit-msg` reads the
 //! commit being written, so the same `[[commits.rules]]` hold them.
 //!
-//! Each commit is checked against its first parent only, a merge included:
-//! the message is its `%B`, the files are what it changes against that
-//! parent, and its [`StatePlan`] puts the commit's tree as `staged` and the
-//! parent's as `head`, with no working tree. A root commit's parent is the
-//! empty tree.
+//! Each commit is checked against its first parent only: the message is its
+//! `%B`, the files are what it changes against that parent, and its
+//! [`StatePlan`] puts the commit's tree as `staged` and the parent's as `head`,
+//! with no working tree. A root commit's parent is the empty tree. A merge is
+//! marked [`RangeCommit::is_merge`], so the CLI can skip it by default: it
+//! joins commits that were checked on their own, and its first-parent diff
+//! repeats them. `--check-merges` reads it like any other commit.
 //!
 //! The states are still overlays of the one working-tree load
 //! ([`crate::commit::tasks`]), so each lists every path at which its revision
@@ -29,6 +31,8 @@ pub struct RangeCommit {
     pub short: String,
     /// The first parent; `None` for a root commit.
     pub parent: Option<String>,
+    /// Whether the commit has more than one parent.
+    pub is_merge: bool,
 }
 
 /// A range's commits, oldest first, and what every commit's plan shares.
@@ -77,13 +81,14 @@ impl CommitRange {
             .lines()
             .filter_map(|line| {
                 let mut ids = line.split(' ');
+                let id = ids.next()?.to_owned();
+                let short = ids.next()?.to_owned();
+                let parents: Vec<&str> = ids.filter(|id| !id.is_empty()).collect();
                 Some(RangeCommit {
-                    id: ids.next()?.to_owned(),
-                    short: ids.next()?.to_owned(),
-                    parent: ids
-                        .next()
-                        .filter(|id| !id.is_empty())
-                        .map(ToOwned::to_owned),
+                    id,
+                    short,
+                    parent: parents.first().map(|id| (*id).to_owned()),
+                    is_merge: parents.len() > 1,
                 })
             })
             .collect();

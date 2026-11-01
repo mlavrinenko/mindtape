@@ -23,11 +23,10 @@ nix develop          # dev shell with the toolchain and the git hooks
 just check           # run before every commit
 ```
 
-Run `just` recipes, not raw `cargo`: they carry the right flags and
-environment. In the dev shell, `mt` is `target/mt-dev/debug/mt`. #just.build-mt() builds it, and the worktrunk hooks in
-`.config/wt.toml` run it when #just.fork() makes a worktree and after
-#just.land() lands in a checkout. Between those builds, `mt` can be older than
-the code beside it.
+Run `just`, not raw `cargo`: it carries the right flags and environment.
+#just.build-mt() builds `mt` at `target/mt-dev/debug/mt`; the worktrunk hooks
+in `.config/wt.toml` rebuild it on #just.fork() and #just.land(). Between
+builds, `mt` can be older than the code beside it.
 
 This file holds the rules, the `docs/contributing/*.md` deep dives explain
 why, and `AGENTS.md` says what #mindtape is.
@@ -57,12 +56,12 @@ gate fails on any violation. These limits shape the code most:
   which quotes it.
 - Pick the kind, not the exit code: `Diag::usage` exits 2, `Diag::refused`
   and `Diag::failed` exit 1. `main` prints the error and exits with its code.
-- Every command returns `Result<_, Diag>`, and the `mt` binary has no
-  `anyhow`. clippy refuses `eprintln!`, `eprint!` and `std::io::stderr`
-  outside `diag/`, so no line reaches stderr unrendered.
+- Every command returns `Result<_, Diag>`; the `mt` binary has no `anyhow`.
+  clippy refuses `eprintln!`, `eprint!` and `std::io::stderr` outside
+  `diag/`, so no line reaches stderr unrendered.
 - If callers match on a library error type, derive `thiserror::Error` for it,
   as `RecurError`, `ConfigError` and `FilterError` do, and convert it in
-  `diag/from_lib.rs` with a match on every variant.
+  `diag/from_lib.rs` matching every variant.
 - Say a count with `mindtape::count(n, "task")`, which prints `1 task` or
   `12 tasks`. #just.lint-plural() refuses `task(s)` in a string outside
   tests.
@@ -130,10 +129,10 @@ just fork <slug> --base=@  # the same, from the current commit, not main
 just land                  # in the worktree: gate, wip check, fast-forward, remove
 ```
 
-A worktree only gets commits, never your working tree, so commit first and
-branch before you flip a task: run `mt wip <stem>` inside the worktree. Don't
-`git stash` in a worktree: all worktrees share one stash list, so a `pop` can
-apply another's work. Make a WIP commit instead.
+A worktree gets commits, not your working tree, so commit before you flip a
+task and run `mt wip <stem>` inside the worktree. Don't `git stash` there: all
+worktrees share one stash list, so a `pop` can apply another's work. Make a WIP
+commit instead.
 
 `.config/wt.toml` holds the hooks, so a clone with nix and direnv needs no
 worktrunk config of its own. Before the fast-forward they run #just.check() and
@@ -146,7 +145,7 @@ still-`wip` task in `Refs:`.
 - End the message with a `Refs: <stem>` footer naming the task the commit
   works on. You can omit it only when the commit changes nothing but task
   files under `truth/tasks/`. Any other file needs it, `.mindtape/config.toml`
-  included.
+  included. A merge commit needs none. `mt check` skips merges by default.
 - File a task in its own `task:` commit, with no `Refs:`. The exception is a
   change to one source file that's too small to plan: file it with
   `mt add -t tweak`, which files it done, in the commit that makes the
@@ -183,8 +182,8 @@ scoring are in
 file, the files that restate it.
 
 - After you edit a source, update its dependents, run
-  #just.outdatty-update("<group>") and commit `.config/outdatty.lock`. If the
-  dependents all still hold and the commit edits none of them, add a
+  #just.outdatty-update("<group>") and commit `.config/outdatty.lock`. If
+  every dependent still holds and the commit edits none, add a
   `Docs-Unaffected: <group>` footer, one line per group you read. The
   commit-msg hook refuses the commit without it and lists the files to read.
 - After you edit only a dependent, record that one file in the same commit

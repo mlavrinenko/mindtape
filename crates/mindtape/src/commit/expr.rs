@@ -15,6 +15,8 @@
 //! - `in_range` — a boolean, bare or called: the commit is read from a range
 //!   (`mt check --commits`), false for the message `mt check --commit-msg`
 //!   checks.
+//! - `is_merge` — a boolean, bare or called: the commit has more than one
+//!   parent. The CLI skips it unless `--check-merges` asks for it.
 //!
 //! Functions: `has(field)` / `miss(field)` (a non-empty subject, at least one
 //! ref or file) and `matches(field, "regex")` — over a list, whether ANY entry
@@ -54,7 +56,7 @@ use crate::model::fields::FieldValue;
 use crate::problem::Problem;
 
 /// The field names a commit expression reads, for the refusal message.
-const COMMIT_FIELDS: &str = "subject, refs, files, trailers, tasks_only, in_range";
+const COMMIT_FIELDS: &str = "subject, refs, files, trailers, tasks_only, in_range, is_merge";
 
 /// A parsed commit-scope expression.
 #[derive(Debug, Clone)]
@@ -260,11 +262,12 @@ fn count_files(
 }
 
 /// A boolean field of the commit, read bare or called: `tasks_only`,
-/// `in_range`.
+/// `in_range`, `is_merge`.
 fn commit_flag(name: &str, commit: &CommitRecord) -> Option<bool> {
     match name {
         "tasks_only" => Some(commit.tasks_only),
         "in_range" => Some(commit.in_range),
+        "is_merge" => Some(commit.is_merge),
         _ => None,
     }
 }
@@ -291,6 +294,7 @@ fn function(
                 &[
                     "tasks_only",
                     "in_range",
+                    "is_merge",
                     "named",
                     "retires_other",
                     "head",

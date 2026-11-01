@@ -13,16 +13,33 @@ fn commit() -> CommitRecord {
         renamed_from: Vec::new(),
         tasks_only: false,
         in_range: false,
+        is_merge: false,
         tasks: Vec::new(),
         trailers: vec!["Changelog: none".to_owned(), "Refs: parser".to_owned()],
     }
 }
 
 fn eval(expr: &str) -> bool {
+    eval_commit(expr, &commit())
+}
+
+fn eval_commit(expr: &str, record: &CommitRecord) -> bool {
     CommitExpr::parse(expr)
         .unwrap()
-        .matches(&commit(), &Config::default())
+        .matches(record, &Config::default())
         .unwrap()
+}
+
+/// Evaluate `expr` over the fixture commit with the two range flags set.
+fn eval_with(expr: &str, in_range: bool, is_merge: bool) -> bool {
+    eval_commit(
+        expr,
+        &CommitRecord {
+            in_range,
+            is_merge,
+            ..commit()
+        },
+    )
 }
 
 fn problem_of(expr: &str) -> Option<String> {
@@ -100,22 +117,23 @@ fn a_named_path_set_is_read_where_a_glob_is() {
 
 #[test]
 fn in_range_is_true_only_for_a_commit_read_from_a_range() {
-    let eval_in = |expr: &str, in_range: bool| {
-        let record = CommitRecord {
-            in_range,
-            ..commit()
-        };
-        CommitExpr::parse(expr)
-            .unwrap()
-            .matches(&record, &Config::default())
-            .unwrap()
-    };
-    assert!(eval_in("in_range", true) && eval_in("in_range()", true));
-    assert!(!eval_in("in_range", false) && !eval_in("in_range()", false));
-    assert!(eval_in("!in_range", false));
+    assert!(eval_with("in_range", true, false) && eval_with("in_range()", true, false));
+    assert!(!eval_with("in_range", false, false) && !eval_with("in_range()", false, false));
+    assert!(eval_with("!in_range", false, false));
     assert!(problem_of("in_range").is_none());
     let refused = problem_of("status == \"wip\"").unwrap();
-    assert!(refused.contains("tasks_only, in_range;"), "{refused}");
+    assert!(
+        refused.contains("tasks_only, in_range, is_merge;"),
+        "{refused}"
+    );
+}
+
+#[test]
+fn is_merge_is_true_only_for_a_merge() {
+    assert!(eval_with("is_merge", false, true) && eval_with("is_merge()", false, true));
+    assert!(!eval_with("is_merge", false, false) && !eval_with("is_merge()", false, false));
+    assert!(eval_with("!is_merge", false, false));
+    assert!(problem_of("is_merge").is_none());
 }
 
 #[test]

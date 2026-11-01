@@ -71,16 +71,16 @@ groups:
       www/utils/cli-notes.typ: f4f3fdc25dd45b7465220811f822300fe7ebeefde4ed1e476f63d24e46397621
   cli-check-docs:
     source:
-      crates/mindtape-cli/src/cmd/check/commit.rs: 25a081704e891a7f29a709e8d1fd888941d64d3c8aa9f789f5258743ff88617e
-      crates/mindtape-cli/src/cmd/check/mod.rs: 007717df53c54cdae9a2de34b793c1da53c6f3960f79cb4f429cf31deacb235f
-      crates/mindtape-cli/src/cmd/check/range.rs: 1d363f9ee3d27fa6344ef72abb43cc9266eb14d2c2fd1d9d91f71da5a86eb69c
+      crates/mindtape-cli/src/cmd/check/commit.rs: d6e4b301bc4d223f1dc86de65da3e967ba80ce6b02c5f8498f2adfffd3a1bbef
+      crates/mindtape-cli/src/cmd/check/mod.rs: 73535247077762d39149015ba2944f4f28df741c38355a18645bc2b755c58805
+      crates/mindtape-cli/src/cmd/check/range.rs: b979d14149659765c2cb9518a9366ae4cd1ca45b8245b1c736042f52059a58e0
       crates/mindtape-cli/src/cmd/check/templates.rs: a55401f063117f1fec045debbb3b267c8396dd3cc0133bbb8adda19735151359
     dependents:
       skills/mindtape/evals/evals.json: 481bb4f0168826d9ee4086ee6f4f4f74c4c31ed3b46792871532da8372b56460
       www/content/agents.typ: f0240344a64911b167203d705e4a679fe6d64fb4e5d0824af52d68588ff71648
-      www/content/cli/check.typ: 51365c05069ccbed558249b027b20f8aad011d82746ce69aa830b31e3bd825a3
-      www/content/commit-rules.typ: 0867dd7fbfa5be2bc1256018c1ad24b18e6597a28b6b1e4184bb398198aee6a5
-      www/content/quickstart.typ: 09b26451dd0518acb8ff21d00389a586b21b78855ee75cc5a2b0f9f7c12e8d9e
+      www/content/cli/check.typ: b2a09da1d8394e3058533f3793a615e55f7a1ca4be92a77d4ca8175d15296c81
+      www/content/commit-rules.typ: a6afac2137d30117367909c9ad5f57bbe2e11ee6ab4fe75bf6ad684a4b0bf31f
+      www/content/quickstart.typ: e648924e5f5d9ce48a89e75a4ef846310072e141cf699af29f6dc5c4ae9df3ec
       www/content/templates.typ: 80425a9a3ea60fbf1c2a09d1becd393db0645cdc87a3a55ec57121f5a8345c5d
   cli-completion-docs:
     source:
@@ -411,14 +411,14 @@ groups:
       docs/src/contributing/gates.typ: ba77fb07445b62e6143695f0c2f6c75f4c55cf38c6a21104853b6bb6bcb90c89
   githooks-docs:
     source:
-      .githooks/commit-msg: 09f9ee77fd56bc939bf4f81e7fc2a473140ca1308079479a164c4b6a3c69da4c
+      .githooks/commit-msg: 1c604ca4d47e883190d199c33be24d1c47707948131379b9d46bd02d07ce5a90
       .githooks/local-paths: 3fed9f65a80f886ec6fa219ac250234b875faa01a6aab6ecc229cc83264e205e
       .githooks/pre-commit: 1c90991ad20b8c1ee1134ff32bc187821b14dc9855a107c56b4d1c9fe2212737
       .just/scripts/outdatty-review-trailer.sh: 091bd9a4e7d90059a71e4863c80c90af4eda0bb216ab96db13b1ca07a542d456
     dependents:
-      docs/src/contributing.typ: f31eaeb39b2e56382ae4e8202178606cccc1bef8076f5c8f5e7c722508898f19
-      docs/src/contributing/commit-messages.typ: bc2c229a59ad5225cc719c7eea8513c0c0cc761adac5567f33ad829f9389e9e1
-      docs/src/contributing/gates.typ: da1f8374cdcf7a6ab215414f499bda4fbfbfd17a89e88f4d83b8679b2d5c4348
+      docs/src/contributing.typ: 7d33e30a847a1559b3042076a147fccf8fca15e860019deb711e17425353033c
+      docs/src/contributing/commit-messages.typ: 00b2cd0fe9aa3b390db98a451795df858e0a3b37f7683372b2f302bfe347fe93
+      docs/src/contributing/gates.typ: ba77fb07445b62e6143695f0c2f6c75f4c55cf38c6a21104853b6bb6bcb90c89
   link-kinds-docs:
     source:
       crates/mindtape/src/link/mod.rs: 06f509c4bf8b98e5085ba92ec59c5bbb15e9310155c9ec4013c7d9a96b98d94b

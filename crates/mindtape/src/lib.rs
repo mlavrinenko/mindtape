@@ -58,7 +58,7 @@ pub use commit::tasks::{CommitStates, ProjectState, StatePlan, StateSource};
 pub use commit::tip::check_tip;
 pub use commit::{
     ChangedFiles, CommitMessage, CommitMsgError, CommitRecord, RefProblem, TrailerValue,
-    parse_message, staged_files,
+    parse_message, staged_files, writing_a_merge,
 };
 pub use config::active_rules::{ActiveRule, RuleSection, active_rules};
 pub use config::comments::{CommentsConfig, CommentsError, CommentsPolicy, check_comments};

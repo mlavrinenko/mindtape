@@ -346,9 +346,16 @@ pub fn describe_slot_kind(dir: &Path, name: &str) -> String {
 /// `mt check --commit-msg` over `message`, as a hook would run it: its
 /// combined output, and whether it exited zero.
 pub fn check_commit_msg(dir: &Path, message: &str) -> (bool, String) {
+    check_commit_msg_with(dir, message, &[])
+}
+
+/// [`check_commit_msg`] with extra `check` flags, such as `--check-merges`.
+pub fn check_commit_msg_with(dir: &Path, message: &str, flags: &[&str]) -> (bool, String) {
     let file = dir.join("COMMIT_MSG");
     std::fs::write(&file, message).unwrap();
-    run_text(dir, &["check", "--commit-msg", file.to_str().unwrap()])
+    let mut args = vec!["check", "--commit-msg", file.to_str().unwrap()];
+    args.extend_from_slice(flags);
+    run_text(dir, &args)
 }
 
 /// [`check_commit_msg`] for a message the check must refuse: asserts the

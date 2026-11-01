@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`mt check` skips merge commits by default.** A merge joins commits that
+  were checked on their own, so `--commit-msg` and `--commits` no longer judge
+  its index or first-parent diff. Pass `--check-merges` to check one, and read
+  `is_merge` in a commit rule to target or exempt it. `--commits` still reads
+  the newest commit's tree for `scope = "tip"` rules, merge or not.
+
 ## [0.3.1] - 2026-10-29
 
 ### Fixed

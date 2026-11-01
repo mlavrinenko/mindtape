@@ -395,7 +395,7 @@
       "oneOf": [
         {
           "const": "commit",
-          "description": "Once per commit, over its `subject`, `refs`, `files`, `trailers`, `tasks_only` and `in_range`.",
+          "description": "Once per commit, over its `subject`, `refs`, `files`, `trailers`,\n`tasks_only`, `in_range` and `is_merge`.",
           "type": "string"
         },
         {

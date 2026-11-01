@@ -25,6 +25,15 @@ const FLIP_WITH_WORK: &str = "[commits]\ntrailer = \"Refs\"\n\n\
      message = \"start or close a task in a commit that carries its work\"\n\
      severity = \"error\"\n";
 
+/// A rule a merge message with no `Refs:` would break.
+const WORK_NAMES_A_TASK: &str = "[commits]\ntrailer = \"Refs\"\n\n\
+     [[commits.rules]]\n\
+     name = \"work-names-a-task\"\n\
+     when = '!tasks_only'\n\
+     assert = 'has(refs)'\n\
+     message = \"name the task this commit works on\"\n\
+     severity = \"error\"\n";
+
 fn parser(status: &str) -> String {
     format!(
         "#import \"@local/mindtape:0.2.0\": *\n\n\
@@ -46,6 +55,16 @@ fn commit(dir: &Path, args: &[&str]) -> (bool, String) {
     support::text_of(&command.output().unwrap())
 }
 
+/// Write `file` with `work`, stage it and commit it with `message`.
+fn commit_file(path: &Path, file: &str, message: &str) {
+    let full = path.join(file);
+    std::fs::create_dir_all(full.parent().unwrap()).unwrap();
+    write_file(path, file, "work\n");
+    git(path, &["add", file]);
+    let (ok, text) = commit(path, &["-m", message]);
+    assert!(ok, "{text}");
+}
+
 /// A repository whose `HEAD` is a work commit naming `parser`, parent of it a
 /// commit that filed `parser` as proposed, with the `commit-msg` hook in.
 fn work_commit_repo() -> tempfile::TempDir {
@@ -55,11 +74,7 @@ fn work_commit_repo() -> tempfile::TempDir {
     git(path, &["add", "-A"]);
     let (ok, text) = commit(path, &["-m", "task: file the parser"]);
     assert!(ok, "{text}");
-    std::fs::create_dir_all(path.join("src")).unwrap();
-    write_file(path, "src/lib.rs", "work\n");
-    git(path, &["add", "-A"]);
-    let (ok, text) = commit(path, &["-m", "feat: parse\n\nRefs: parser"]);
-    assert!(ok, "{text}");
+    commit_file(path, "src/lib.rs", "feat: parse\n\nRefs: parser");
     install_hook(path);
     dir
 }
@@ -147,5 +162,43 @@ fn an_amend_of_a_flip_only_commit_still_refuses_that_flip() {
     assert!(
         !ok,
         "HEAD's own flip, with no work, is what the amend holds: {text}"
+    );
+}
+
+/// A repository whose `HEAD` is a `--no-ff` merge of `side`, with a product
+/// file on each branch.
+fn merge_repo() -> tempfile::TempDir {
+    let dir = commit_repo(WORK_NAMES_A_TASK);
+    let path = dir.path();
+    git(path, &["checkout", "-q", "-b", "side"]);
+    commit_file(path, "src/side.rs", "feat: side\n\nRefs: parser");
+    git(path, &["checkout", "-q", "-"]);
+    commit_file(path, "src/main.rs", "feat: main\n\nRefs: parser");
+    git(
+        path,
+        &[
+            "-c",
+            "commit.gpgsign=false",
+            "merge",
+            "-q",
+            "--no-ff",
+            "-m",
+            "Merge side",
+            "side",
+        ],
+    );
+    dir
+}
+
+#[test]
+fn an_amend_of_a_merge_commit_is_skipped() {
+    let dir = merge_repo();
+    let path = dir.path();
+    install_hook(path);
+    let (ok, text) = commit(path, &["--amend", "--no-edit"]);
+    assert!(ok, "an amend of a merge is still a merge: {text}");
+    assert!(
+        text.contains("ok: merge commit, commit rules skipped"),
+        "{text}"
     );
 }

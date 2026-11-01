@@ -9,15 +9,18 @@ use std::path::Path;
 
 use crate::diag::Result;
 use mindtape::{
-    CommitBreach, CommitRange, CommitRecord, CommitStates, ProjectState, RangeCommit, RefProblem,
-    check_commit, check_tip, parse_message,
+    CommitBreach, CommitRange, CommitRecord, CommitStates, PastCommit, ProjectState, RangeCommit,
+    RefProblem, check_commit, check_tip, parse_message,
 };
 
 use crate::cmd::check::commit::{breach_diag, failing, in_commit, warn_state_errors};
 use crate::diag::{Diag, Kind, Note};
 use crate::util;
 
-/// Check every commit `range` names, oldest first.
+/// Check every commit `range` names, oldest first. A merge is skipped unless
+/// `check_merges` asks for it: it joins commits checked on their own, and its
+/// first-parent diff repeats them. The newest commit still supplies the tip
+/// state, merge or not.
 ///
 /// A rule reading the working tree is skipped, and said so once: a past
 /// commit has none. A `scope = "tip"` rule runs after the commits, once per
@@ -26,7 +29,12 @@ use crate::util;
 /// # Errors
 /// Fails when git cannot read the range, or when any commit carries a trailer
 /// naming no task or breaks an error-severity rule.
-pub(crate) fn run(project: &util::Project, range: &str, quiet: bool) -> Result<()> {
+pub(crate) fn run(
+    project: &util::Project,
+    range: &str,
+    quiet: bool,
+    check_merges: bool,
+) -> Result<()> {
     let config = &project.config;
     for (index, spec) in config.commits.rules.iter().enumerate() {
         if spec.reads_worktree() {
@@ -44,7 +52,17 @@ pub(crate) fn run(project: &util::Project, range: &str, quiet: bool) -> Result<(
     let mut broke = 0;
     let mut named = BTreeSet::new();
     let mut tip = ProjectState::default();
-    for commit in &commits.commits {
+    let mut skipped = 0;
+    for (index, commit) in commits.commits.iter().enumerate() {
+        if commit.is_merge && !check_merges {
+            skipped += 1;
+            // The newest commit's tree is still the tip, even when its own
+            // message and first-parent diff are not checked.
+            if index + 1 == commits.commits.len() {
+                tip = tip_state(project, &commits, commit)?;
+            }
+            continue;
+        }
         let one = check_one(project, &commits, commit)?;
         broke += usize::from(one.broke);
         named.extend(one.refs);
@@ -58,9 +76,15 @@ pub(crate) fn run(project: &util::Project, range: &str, quiet: bool) -> Result<(
         return Err(Diag::commits_broke_rules(broke, failing(&left)));
     }
     if !quiet {
+        let checked = commits.commits.len() - skipped;
+        let suffix = if skipped == 0 {
+            String::new()
+        } else {
+            format!(" ({} skipped)", mindtape::count(skipped, "merge"))
+        };
         println!(
-            "ok: commit rules pass on {}",
-            mindtape::count(commits.commits.len(), "commit")
+            "ok: commit rules pass on {}{suffix}",
+            mindtape::count(checked, "commit")
         );
     }
     Ok(())
@@ -76,6 +100,37 @@ struct Checked {
     tip: ProjectState,
 }
 
+/// Read `commit` and the task states it holds.
+fn read_past(
+    project: &util::Project,
+    range: &CommitRange,
+    commit: &RangeCommit,
+) -> Result<(PastCommit, CommitStates)> {
+    let read = |err| {
+        Diag::failed("can't read commit")
+            .value(commit.short.clone())
+            .cause(&err)
+    };
+    let past = range.commit(&project.root, commit).map_err(read)?;
+    let states = CommitStates::load(
+        &project.root,
+        &project.outcome.tasks,
+        &project.config,
+        &past.plan,
+    )
+    .map_err(read)?;
+    Ok((past, states))
+}
+
+/// The project as `commit` holds it, for the tip rules.
+fn tip_state(
+    project: &util::Project,
+    range: &CommitRange,
+    commit: &RangeCommit,
+) -> Result<ProjectState> {
+    Ok(read_past(project, range, commit)?.1.staged)
+}
+
 /// Hold `commit` to `[commits]`, printing what it breaks.
 fn check_one(
     project: &util::Project,
@@ -83,19 +138,13 @@ fn check_one(
     commit: &RangeCommit,
 ) -> Result<Checked> {
     let config = &project.config;
-    let read = |err| {
-        Diag::failed("can't read commit")
-            .value(commit.short.clone())
-            .cause(&err)
-    };
-    let past = range.commit(&project.root, commit).map_err(read)?;
-    let states = CommitStates::load(&project.root, &project.outcome.tasks, config, &past.plan)
-        .map_err(read)?;
+    let (past, states) = read_past(project, range, commit)?;
     let message = parse_message(&past.message, &config.commits.trailer);
     // Trailers resolve against the tasks the commit itself holds.
     let (mut record, problems) =
         CommitRecord::build(&message, &past.changed, &states.staged.tasks, config);
     record.in_range = true;
+    record.is_merge = commit.is_merge;
     let breaches = check_commit(&record, Some(&states), config);
     let has_errors = states.head.errors.len() + states.staged.errors.len() > 0;
     if !(problems.is_empty() && breaches.is_empty() && !has_errors) {

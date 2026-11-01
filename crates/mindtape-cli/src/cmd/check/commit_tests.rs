@@ -67,7 +67,7 @@ fn the_failure_count_sums_trailer_problems_and_rule_breaches() {
     let message = dir.path().join("COMMIT_MSG");
     std::fs::write(&message, "feat: x\n\nRefs: parsr\n").unwrap();
 
-    let result = run(&project, &message, true);
+    let result = run(&project, &message, true, false);
     assert!(
         result.is_err(),
         "one bad trailer plus one breached rule must fail: {result:?}"
@@ -91,7 +91,7 @@ fn quiet_suppresses_the_ok_line() {
     commit_all(dir.path());
     let message = dir.path().join("COMMIT_MSG");
     std::fs::write(&message, "feat: x\n\nRefs: parser\n").unwrap();
-    run(&project, &message, true).unwrap();
+    run(&project, &message, true, false).unwrap();
 }
 
 const WARN_CHILD: &str = "_MT_CHECK_COMMIT_WARN_CHILD";

@@ -1,4 +1,5 @@
-//! Which commit a `commit-msg` hook's index becomes the child of.
+//! Which commit a `commit-msg` hook's index becomes the child of, and whether
+//! it is a merge.
 //!
 //! A new commit follows `HEAD`. `git commit --amend` replaces `HEAD`, so the
 //! commit it makes follows `HEAD^` and the index is judged against that.
@@ -19,7 +20,7 @@
 use std::path::Path;
 use std::process::Command;
 
-use crate::commit::{CommitMsgError, git};
+use crate::commit::{CommitMsgError, git, git_optional};
 
 /// How far up the process tree to look for the `git commit` that runs the hook.
 const MAX_DEPTH: usize = 12;
@@ -41,8 +42,36 @@ pub(crate) fn base_rev(root: &Path) -> Result<String, CommitMsgError> {
     }
 }
 
+/// Whether the commit a `commit-msg` check is judging is a merge: a merge is
+/// in progress (`MERGE_HEAD`), or `git commit --amend` replaces a commit with
+/// more than one parent. An amend has no `MERGE_HEAD`, since the merge it
+/// replaces is already committed.
+///
+/// # Errors
+/// [`CommitMsgError::NotGit`] when `root` is not inside a git working tree;
+/// [`CommitMsgError::Git`] / [`CommitMsgError::Spawn`] when git fails.
+pub fn writing_a_merge(root: &Path) -> Result<bool, CommitMsgError> {
+    let merge_head = git_optional(root, &["rev-parse", "-q", "--verify", "MERGE_HEAD"]).map_err(
+        |err| match err {
+            CommitMsgError::Git { .. } => CommitMsgError::NotGit(crate::display_path(root)),
+            other => other,
+        },
+    )?;
+    if merge_head.is_some() {
+        return Ok(true);
+    }
+    if !amending() {
+        return Ok(false);
+    }
+    match git_optional(root, &["rev-list", "--parents", "-n", "1", "HEAD"]) {
+        Ok(Some(line)) => Ok(line.split_whitespace().count() > 2),
+        Ok(None) | Err(CommitMsgError::Git { .. }) => Ok(false),
+        Err(other) => Err(other),
+    }
+}
+
 /// Whether the `git commit` running this hook was given `--amend`.
-fn amending() -> bool {
+pub(crate) fn amending() -> bool {
     let mut chain = Vec::new();
     let mut pid = std::process::id();
     for _ in 0..MAX_DEPTH {

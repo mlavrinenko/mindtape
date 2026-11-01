@@ -7,7 +7,7 @@ use std::path::Path;
 use crate::diag::Result;
 use mindtape::{
     CommitBreach, CommitMsgError, CommitRecord, CommitStates, StatePlan, check_commit,
-    parse_message, staged_files,
+    parse_message, staged_files, writing_a_merge,
 };
 
 use crate::diag::{Diag, Kind, Note};
@@ -90,19 +90,35 @@ pub(crate) fn failing(breaches: &[CommitBreach]) -> usize {
         .count()
 }
 
-/// Check the message in `file` and the index it will be committed with.
+/// Check the message in `file` and the index it will be committed with. A
+/// merge is skipped unless `check_merges` asks for it: it joins commits that
+/// were checked on their own.
 ///
 /// # Errors
 /// Fails when the file cannot be read, the project is not in a git
 /// repository, a trailer value is a path or names no task, or an
 /// error-severity rule breaks.
-pub(crate) fn run(project: &util::Project, file: &Path, quiet: bool) -> Result<()> {
+pub(crate) fn run(
+    project: &util::Project,
+    file: &Path,
+    quiet: bool,
+    check_merges: bool,
+) -> Result<()> {
     let text = std::fs::read_to_string(file).map_err(|err| Diag::cannot_read(file, &err))?;
+    let merge = writing_a_merge(&project.root)
+        .map_err(|err| git_failed("can't read the git repository", &err))?;
+    if merge && !check_merges {
+        if !quiet {
+            println!("ok: merge commit, commit rules skipped");
+        }
+        return Ok(());
+    }
     let changed =
         staged_files(&project.root).map_err(|err| git_failed("can't read the git index", &err))?;
     let message = parse_message(&text, &project.config.commits.trailer);
-    let (record, ref_problems) =
+    let (mut record, ref_problems) =
         CommitRecord::build(&message, &changed, &project.outcome.tasks, &project.config);
+    record.is_merge = merge;
     for problem in &ref_problems {
         let diag = Diag::verbatim(Kind::Refused, &problem.message)
             .at(file, problem.value.line, None)

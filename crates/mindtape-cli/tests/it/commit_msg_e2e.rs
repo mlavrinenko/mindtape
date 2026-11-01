@@ -8,7 +8,7 @@ use std::path::Path;
 
 use crate::support;
 
-use support::{check_commit_msg, commit_repo, git, project_with_tasks};
+use support::{check_commit_msg, check_commit_msg_with, commit_repo, git, project_with_tasks};
 
 /// The rule the task ships as its worked example: every commit carrying work
 /// names the task it works on.
@@ -158,6 +158,77 @@ fn outside_a_git_repository_the_check_fails_naming_why() {
     let dir = project_with_tasks(&[("parser.typ", "Write the parser")]);
     let text = support::commit_msg_refusal(dir.path(), "feat: parse\n\nRefs: parser\n");
     assert!(text.contains("not a git repository"), "got: {text}");
+}
+
+/// A repository stopped in a `--no-ff` merge of `side`, with the
+/// `work-names-a-task` rule in force and a product file on each branch.
+fn merge_in_progress() -> tempfile::TempDir {
+    let dir = commit_repo(WORK_NAMES_A_TASK);
+    let path = dir.path();
+    git(path, &["checkout", "-q", "-b", "side"]);
+    stage(path, "src/side.rs");
+    git(
+        path,
+        &[
+            "-c",
+            "commit.gpgsign=false",
+            "commit",
+            "-q",
+            "-m",
+            "feat: side\n\nRefs: parser",
+        ],
+    );
+    git(path, &["checkout", "-q", "-"]);
+    stage(path, "src/main.rs");
+    git(
+        path,
+        &[
+            "-c",
+            "commit.gpgsign=false",
+            "commit",
+            "-q",
+            "-m",
+            "feat: main\n\nRefs: parser",
+        ],
+    );
+    git(
+        path,
+        &[
+            "-c",
+            "commit.gpgsign=false",
+            "merge",
+            "-q",
+            "--no-ff",
+            "--no-commit",
+            "side",
+        ],
+    );
+    dir
+}
+
+/// The message git wrote for the merge `dir` is in.
+fn merge_message(dir: &Path) -> String {
+    std::fs::read_to_string(dir.join(".git/MERGE_MSG")).unwrap()
+}
+
+#[test]
+fn a_merge_commit_is_skipped_by_default() {
+    let dir = merge_in_progress();
+    let (ok, text) = check_commit_msg(dir.path(), &merge_message(dir.path()));
+    assert!(ok, "a merge joins commits checked on their own: {text}");
+    assert!(
+        text.contains("ok: merge commit, commit rules skipped"),
+        "{text}"
+    );
+}
+
+#[test]
+fn check_merges_checks_a_merge_message() {
+    let dir = merge_in_progress();
+    let (ok, text) =
+        check_commit_msg_with(dir.path(), &merge_message(dir.path()), &["--check-merges"]);
+    assert!(!ok, "the opt-in must judge the merge: {text}");
+    assert!(text.contains("commits.rules.work-names-a-task"), "{text}");
 }
 
 /// A commit repo whose config extends the shipped `mindtape:tasks` pack.

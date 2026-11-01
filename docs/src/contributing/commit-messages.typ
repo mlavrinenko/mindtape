@@ -32,6 +32,10 @@ checkout, as the pre-commit hook refuses such a file
 per-commit `[[commits.rules]]` of the `mindtape:tasks` pack
 (`crates/mindtape/src/packs/tasks.toml`).
 
+`mt check` skips a merge commit by default. A merge only joins commits that
+were checked on their own, and its index repeats the merged branch. Pass
+`--check-merges` to check one anyway.
+
 - `work-names-a-task` refuses a commit with no `Refs:` trailer, unless every
   file it changes is a `.typ` file under a task root. This repo's only task
   root is `truth/tasks/`, so a change to `.mindtape/config.toml` or any other

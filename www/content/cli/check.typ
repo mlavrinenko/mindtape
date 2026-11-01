@@ -14,6 +14,7 @@ the prelude catches and which `mt check` catches, and
 message instead, run `mt check --commit-msg <file>` from a `commit-msg` hook.
 It checks the message against the project's
 #link(u("/commit-rules/"))[commit rules]. In CI, `mt check --commits <range>`
-checks every commit in a range.
+checks every commit in a range. Both skip merge commits unless
+`--check-merges` is passed.
 
 #cli-command("check")

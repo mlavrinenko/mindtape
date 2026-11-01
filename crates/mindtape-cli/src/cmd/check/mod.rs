@@ -42,6 +42,13 @@ pub struct CheckArgs {
     /// For CI: `mt check --commits origin/main..HEAD`.
     #[arg(long, value_name = "RANGE")]
     pub commits: Option<String>,
+    /// Check merge commits too.
+    ///
+    /// A merge joins commits already checked on their own, so `--commit-msg`
+    /// and `--commits` skip one by default. With this flag, a merge is checked
+    /// like any other commit, and `is_merge` tells its rules that it is one.
+    #[arg(long)]
+    pub check_merges: bool,
     /// Print the problems as JSON on stdout instead of text on stderr.
     ///
     /// The exit code is the same.
@@ -63,10 +70,10 @@ pub fn run(args: &CheckArgs) -> Result<()> {
 
 pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> {
     if let Some(file) = &args.commit_msg {
-        return crate::cmd::check::commit::run(project, file, args.quiet);
+        return crate::cmd::check::commit::run(project, file, args.quiet, args.check_merges);
     }
     if let Some(range) = &args.commits {
-        return crate::cmd::check::range::run(project, range, args.quiet);
+        return crate::cmd::check::range::run(project, range, args.quiet, args.check_merges);
     }
     let mut report = Report::new(args.json);
     report.extend(util::load_problems(

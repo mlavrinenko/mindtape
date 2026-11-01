@@ -50,6 +50,10 @@ The hook is one line. Git passes the message file as its first argument:
 
 #terminal("commit-hook")
 
+A merge commit is skipped. It joins commits that were checked on their own,
+so `mt check` does not judge the merged branch as one commit. Pass
+`--check-merges` to check one anyway.
+
 Outside a git repository, `mt check --commit-msg` fails with
 `not a git repository`.
 
@@ -91,6 +95,10 @@ rule once per commit, over these fields:
   [`in_range`],
   [Whether the commit is read from a range: true under
     `mt check --commits`, false under `mt check --commit-msg`.],
+
+  [`is_merge`],
+  [Whether the commit has more than one parent. A merge is skipped unless
+    `--check-merges` asks for it.],
 )
 
 The operators come from the #link(u("/filters/"))[filter language]. The
@@ -202,13 +210,16 @@ push carries in CI too. `mt check --commits <range>` checks every commit
 `git rev-list` lists for the range, oldest first, with the same trailer check
 and rules. The one difference is `in_range`, which is true here.
 
-Each commit is read against its first parent, a merge included. `subject` and
-`refs` come from its message, and `files` from what it changes against that
-parent. `staged(...)` reads the commit's tree and `head(...)` the parent's. A
-trailer must name a task the commit's tree holds. A past commit has no working
-tree, so `mt` skips a rule that calls `worktree(...)` or `changed(...)`, and
-says so once. `count(files, …)` reads the commit's own files, so it still
-runs. Only commits with something to report are listed, each with its lines
-indented below it:
+Each commit is read against its first parent. A merge is skipped by default.
+It joins commits checked on their own, and its first-parent diff repeats
+them. Pass `--check-merges` to read it like any other commit. The newest
+commit still supplies the tip state when it is a merge, so the tip rules hold
+the tree the range ends on. `subject` and `refs` come from the message, and
+`files` from what the commit changes against its first parent. `staged(...)`
+reads the commit's tree and `head(...)` the parent's. A trailer must name a
+task the commit's tree holds. A past commit has no working tree, so `mt` skips
+a rule that calls `worktree(...)` or `changed(...)`, and says so once.
+`count(files, …)` reads the commit's own files, so it still runs. Only commits
+with something to report are listed, each with its lines indented below it:
 
 #terminal("commit-range")
