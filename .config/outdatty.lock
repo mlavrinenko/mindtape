@@ -8,7 +8,7 @@ groups:
       crates/mindtape/src/packs/dogfood.toml: 53351a97b73f01e93c671b36cefd64ee1e993e57406599585bcacbde3f1cf594
       crates/mindtape/src/packs/flow.toml: 13627963544f7dcf27b69d791f158202970181d7127581329783107fc254c6e8
       crates/mindtape/src/packs/ice.toml: fc82bc4388152c8d755244c532f7311481f6333dbbc9ee3498220abdc5b35e1a
-      crates/mindtape/src/packs/tasks.toml: 3479113c9ce79285373ae359b031d18bca36370630e1ad27e5c4d778698127d7
+      crates/mindtape/src/packs/tasks.toml: fbd6dbacd967031db7e9d17842c73991d49ea3a501636cc8d2104ac595c4b81e
       crates/mindtape/src/packs/tweaks.toml: 3f5c1612deb1f9c5a11ec5580f9bc48ed0b256e54960082c4441fdea43e1278e
       crates/mindtape/src/packs/wip-caps.toml: 5dc4ccb78198701f7c04354fbfc636eec497500513ebab981ebeb6832aa0ce9a
       examples/api-service/.mindtape/config.toml: ddecbcb1595a34935139e5a363dafea58a83a97367d52c900d9a1dee322a66ce

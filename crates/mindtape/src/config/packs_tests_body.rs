@@ -129,6 +129,50 @@ fn with_section(heading: &str, body: &str) -> String {
     )
 }
 
+/// `as_is()` with `text` inserted before the `heading` section.
+fn before(heading: &str, text: &str) -> String {
+    as_is().replace(&format!("== {heading}"), &format!("{text}\n\n== {heading}"))
+}
+
+/// The shape a docs task needs beside the shared sections.
+fn docs_body() -> String {
+    before(
+        "Changes",
+        "== Source of truth\n\n- `src/thing.rs`: the code.",
+    )
+}
+
+/// The shape a feat or decision task needs beside the shared sections.
+fn design_body() -> String {
+    with_section("Alternatives", "- Another design, which lost.")
+}
+
+/// The shape a fix task needs beside the shared sections.
+fn fix_body() -> String {
+    before("TO-BE", "== Environment\n\n- Linux, `mt` from `main`.")
+}
+
+/// `body` with a fenced block after `anchor`.
+fn with_fence(body: &str, anchor: &str, command: &str) -> String {
+    body.replace(anchor, &format!("{anchor}\n\n```sh\n{command}\n```"))
+}
+
+fn with_as_is_fence(body: &str) -> String {
+    with_fence(body, "+ 🔴 It does the wrong thing.", "mt thing")
+}
+
+fn with_to_be_fence(body: &str) -> String {
+    with_fence(
+        body,
+        "- 🟢 It does the right thing instead.",
+        "mt thing --right",
+    )
+}
+
+fn fenced(body: &str) -> String {
+    with_to_be_fence(&with_as_is_fence(body))
+}
+
 #[test]
 fn a_well_formed_body_passes_under_the_pack_alone() {
     let (_tmp, config) = config_extending_the_real_pack();
@@ -210,7 +254,7 @@ fn a_decision_without_alternatives_is_refused() {
         &config,
         "decision",
         &as_is(),
-        "body.headers.rules.alternatives-for-feat",
+        "body.headers.rules.alternatives-for-design",
     );
 }
 
@@ -223,7 +267,7 @@ fn only_a_feat_or_decision_carries_alternatives() {
         &config,
         "refactor",
         &source,
-        "body.headers.rules.alternatives-only-for-feat",
+        "body.headers.rules.alternatives-only-for-design",
     );
 }
 
@@ -280,37 +324,74 @@ fn turning_statefulness_on_requires_a_tag() {
 fn the_example_rules_are_off_by_default() {
     let (_tmp, config) = config_extending_the_real_pack();
 
-    let violations = violations_for(&config, &as_is());
+    let violations = violations_for_task(&config, &task("fix", &[]), &fix_body());
     let names = breached(&violations);
     assert!(!names.contains(&"body.content.rules.as-is-has-a-repro"));
     assert!(!names.contains(&"body.content.rules.to-be-has-an-example"));
 }
 
 #[test]
-fn turning_examples_on_requires_a_fence_in_as_is_and_to_be() {
+fn examples_on_only_require_the_fences_their_kind_carries() {
     let (_tmp, config) = config_with(false, true);
 
-    let violations = violations_for(&config, &as_is());
-    assert_breaches(&violations, "body.content.rules.as-is-has-a-repro");
-    assert_breaches(&violations, "body.content.rules.to-be-has-an-example");
+    for (kind, source) in [
+        ("refactor", as_is()),
+        ("docs", docs_body()),
+        ("decision", design_body()),
+    ] {
+        let violations = violations_for_task(&config, &task(kind, &[]), &source);
+        assert!(violations.is_empty(), "{kind}: {violations:?}");
+    }
 
-    let fenced = as_is().replace(
-        "+ 🔴 It does the wrong thing.",
-        "+ 🔴 It does the wrong thing.\n\n```sh\nmt thing\n```",
-    );
-    let fenced = fenced.replace(
-        "- 🟢 It does the right thing instead.",
-        "- 🟢 It does the right thing instead.\n\n```sh\nmt thing --right\n```",
-    );
-    let violations = violations_for(&config, &fenced);
-    assert!(violations.is_empty(), "{violations:?}");
+    let fix = violations_for_task(&config, &task("fix", &[]), &fix_body());
+    assert_breaches(&fix, "body.content.rules.as-is-has-a-repro");
+    let feat = violations_for_task(&config, &task("feat", &[]), &design_body());
+    assert_breaches(&feat, "body.content.rules.to-be-has-an-example");
+    assert!(!breached(&feat).contains(&"body.content.rules.as-is-has-a-repro"));
+    let dev = violations_for_task(&config, &task("dev", &[]), &as_is());
+    assert_breaches(&dev, "body.content.rules.to-be-has-an-example");
+    assert!(!breached(&dev).contains(&"body.content.rules.as-is-has-a-repro"));
 }
 
 #[test]
-fn no_repro_and_no_ui_ux_waive_the_example_rules() {
+fn a_fix_needs_both_fences_and_a_feat_or_dev_needs_the_to_be_one() {
     let (_tmp, config) = config_with(false, true);
 
-    let violations =
-        violations_for_task(&config, &task("dev", &["no-repro", "no-ui-ux"]), &as_is());
+    assert_task_breaches(
+        &config,
+        "fix",
+        &with_as_is_fence(&fix_body()),
+        "body.content.rules.to-be-has-an-example",
+    );
+
+    let fix = violations_for_task(&config, &task("fix", &[]), &fenced(&fix_body()));
+    assert!(fix.is_empty(), "{fix:?}");
+
+    for (kind, source) in [
+        ("feat", with_to_be_fence(&design_body())),
+        ("dev", with_to_be_fence(&as_is())),
+    ] {
+        let violations = violations_for_task(&config, &task(kind, &[]), &source);
+        assert!(violations.is_empty(), "{kind}: {violations:?}");
+    }
+}
+
+#[test]
+fn the_example_waivers_follow_the_kinds_they_apply_to() {
+    let (_tmp, config) = config_with(false, true);
+
+    let waived = with_to_be_fence(&fix_body());
+    let violations = violations_for_task(&config, &task("fix", &["no-repro"]), &waived);
     assert!(violations.is_empty(), "{violations:?}");
+
+    let violations = violations_for_task(&config, &task("fix", &["no-repro"]), &fix_body());
+    assert_breaches(&violations, "body.content.rules.to-be-has-an-example");
+
+    for (kind, source) in [("feat", design_body()), ("dev", as_is())] {
+        let violations = violations_for_task(&config, &task(kind, &["no-ui-ux"]), &source);
+        assert!(violations.is_empty(), "{kind}: {violations:?}");
+    }
+
+    let violations = violations_for_task(&config, &task("fix", &["no-ui-ux"]), &fix_body());
+    assert_breaches(&violations, "body.content.rules.as-is-has-a-repro");
 }

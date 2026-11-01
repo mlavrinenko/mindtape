@@ -101,7 +101,7 @@ when = '!terminal && kind == "fix"'
 message = "add one Environment section saying where the Problem reproduces"
 
 [[tasks.body.headers.rules]]
-name = "alternatives-for-feat"
+name = "alternatives-for-design"
 path = ["Alternatives"]
 action = "unique"
 when = '!terminal && (kind == "feat" || kind == "decision")'
@@ -129,7 +129,7 @@ when = '!terminal && kind != "fix"'
 message = "remove the Environment section; only fix tasks have one"
 
 [[tasks.body.headers.rules]]
-name = "alternatives-only-for-feat"
+name = "alternatives-only-for-design"
 action = "forbid"
 path = ["Alternatives"]
 when = '!terminal && kind != "feat" && kind != "decision"'
@@ -321,7 +321,7 @@ message = "open the step that shows the defect with 🔴"
 name = "as-is-has-a-repro"
 path = ["AS-IS"]
 assert = { must-match = "[`]{3}" }
-when = '!terminal && param("examples") && !has_tag("no-repro")'
+when = '!terminal && param("examples") && kind == "fix" && !has_tag("no-repro")'
 message = "show the bug in one fenced block you can run, or tag the task `no-repro`"
 
 [[tasks.body.content.rules]]
@@ -342,7 +342,7 @@ message = "open every TO-BE bullet with 🟢"
 name = "to-be-has-an-example"
 path = ["TO-BE"]
 assert = { must-match = "[`]{3}" }
-when = '!terminal && param("examples") && !has_tag("no-ui-ux")'
+when = '!terminal && param("examples") && (kind == "feat" || kind == "fix" || kind == "dev") && !has_tag("no-ui-ux")'
 message = "show the proposed shape in a fenced example, or tag the task `no-ui-ux`"
 
 [[tasks.body.content.rules]]
