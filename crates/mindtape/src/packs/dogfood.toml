@@ -21,10 +21,10 @@
 name = "section-allowlist"
 action = "allowlist"
 allowed = [
-  { match = "^(Problem|Environment|TO-BE|Source of truth|Changes|Alternatives|Rollback|Out of scope|Dogfood)$" },
+  { match = "^(Problem|AS-IS|Environment|TO-BE|Source of truth|Changes|Alternatives|Rollback|Out of scope|Dogfood)$" },
 ]
 when = "!terminal"
-message = "limit an open task to Problem, TO-BE, Changes, Out of scope and Dogfood, plus its kind's own section"
+message = "limit an open task to AS-IS, TO-BE, Changes, Out of scope and Dogfood, plus its kind's own section"
 # docs:end
 
 [[tasks.body.headers.rules]]

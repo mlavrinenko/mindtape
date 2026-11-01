@@ -24,12 +24,20 @@
 #   not a script.
 # - Out of scope: what not to touch, so the diff stays one change.
 #
-# Four kinds carry one more section where the research names a gap in those
-# four: a fix says where its Problem reproduces (Environment, the version and
-# platform block of GitHub's bug form), a feat which designs it rejected
-# (Alternatives, essential in Google design docs and Rust RFCs), a docs
-# change what its prose must match (Source of truth), and a dev chore how to
-# undo it (Rollback).
+# A kind carries one more section where the research names a gap: a fix says
+# where its Problem reproduces (Environment, the version and platform block of
+# GitHub's bug form), a feat or a decision which designs it rejected
+# (Alternatives, essential in Google design docs and Rust RFCs), and a docs
+# change what its prose must match (Source of truth). Rollback follows state,
+# not kind: a task tagged `stateful` carries one, and a task without that tag
+# carries none.
+#
+# `Problem` and `AS-IS` are both accepted during the rename, and `AS-IS` gets
+# the same rules as `Problem` under names of its own. The optional rule groups
+# sit behind `[params]`: `statefulness` makes every task name `stateful` or
+# `stateless`, and `examples` asks AS-IS for a fenced repro and TO-BE for a
+# fenced example. Both are off, so a project turns them on when its corpus is
+# ready.
 #
 # Headings and lists carry weight on their own: stripping them lowers solve
 # rates with the content intact, and so does length (arXiv 2607.07593). Hence
@@ -42,14 +50,22 @@
 # close gate. The WIP caps, the size budget, tweaks and the commit rules are
 # packs of their own. Add the rest in the extending layer.
 
+[params]
+# Require every open task to name `stateful` or `stateless`.
+statefulness = false
+# Require a fenced repro in AS-IS and a fenced example in TO-BE.
+examples = false
+
 # What kind of work a task is. The leaf kinds are commit types, so a task names
 # the commit that will close it. `dev` stands where Conventional Commits puts
 # `chore`, which names no kind of work: it changes the harness around the repo —
 # gates, scripts, the backlog's own config and spec — to improve the development
-# experience or enable a process. `milestone` is the one kind no commit closes:
-# it ends through its leaves, and a WIP cap can count it separately. The rules
-# below read `kind`, and a misspelled kind would silently fall out of them,
-# which is why the list is closed.
+# experience or enable a process. `decision` settles an architectural or tooling
+# call in the body and changes nothing itself, so it closes in a task-only
+# commit (`flip-with-work` reads `staged(kind == "decision")`). `milestone` is
+# the other kind no commit closes: it ends through its leaves, and a WIP cap can
+# count it separately. The rules below read `kind`, and a misspelled kind would
+# silently fall out of them, which is why the list is closed.
 #
 # `required = "!terminal"`: an open task names its kind, a closed one is
 # exempt, so history predating the field is not backfilled.
@@ -58,7 +74,7 @@
 # `feat`, `fix`, `docs` or `dev` needs a section of its own that a generic
 # template does not carry.
 [tasks.fields.kind]
-values = ["feat", "fix", "refactor", "docs", "test", "dev", "milestone"]
+values = ["feat", "fix", "refactor", "docs", "test", "dev", "decision", "milestone"]
 required = "!terminal"
 example = "test"
 
@@ -72,10 +88,10 @@ policy = "forbid"
 name = "section-allowlist"
 action = "allowlist"
 allowed = [
-  { match = "^(Problem|Environment|TO-BE|Source of truth|Changes|Alternatives|Rollback|Out of scope)$" },
+  { match = "^(Problem|AS-IS|Environment|TO-BE|Source of truth|Changes|Alternatives|Rollback|Out of scope)$" },
 ]
 when = "!terminal"
-message = "limit an open task to Problem, TO-BE, Changes and Out of scope, plus its kind's own section"
+message = "limit an open task to AS-IS, TO-BE, Changes and Out of scope, plus its kind's own section"
 
 [[tasks.body.headers.rules]]
 name = "environment-for-fix"
@@ -88,7 +104,7 @@ message = "add one Environment section saying where the Problem reproduces"
 name = "alternatives-for-feat"
 path = ["Alternatives"]
 action = "unique"
-when = '!terminal && kind == "feat"'
+when = '!terminal && (kind == "feat" || kind == "decision")'
 message = "add one Alternatives section naming the designs you rejected"
 
 [[tasks.body.headers.rules]]
@@ -99,10 +115,10 @@ when = '!terminal && kind == "docs"'
 message = "add one Source of truth section naming what the prose must match"
 
 [[tasks.body.headers.rules]]
-name = "rollback-for-dev"
+name = "rollback-for-stateful"
 path = ["Rollback"]
 action = "unique"
-when = '!terminal && kind == "dev"'
+when = '!terminal && has_tag("stateful")'
 message = "add one Rollback section saying how to undo the change"
 
 [[tasks.body.headers.rules]]
@@ -116,8 +132,8 @@ message = "remove the Environment section; only fix tasks have one"
 name = "alternatives-only-for-feat"
 action = "forbid"
 path = ["Alternatives"]
-when = '!terminal && kind != "feat"'
-message = "remove the Alternatives section; only feat tasks have one"
+when = '!terminal && kind != "feat" && kind != "decision"'
+message = "remove the Alternatives section; only feat and decision tasks have one"
 
 [[tasks.body.headers.rules]]
 name = "source-of-truth-only-for-docs"
@@ -127,11 +143,11 @@ when = '!terminal && kind != "docs"'
 message = "remove the Source of truth section; only docs tasks have one"
 
 [[tasks.body.headers.rules]]
-name = "rollback-only-for-dev"
+name = "rollback-only-for-stateful"
 action = "forbid"
 path = ["Rollback"]
-when = '!terminal && kind != "dev"'
-message = "remove the Rollback section; only dev tasks have one"
+when = '!terminal && !has_tag("stateful")'
+message = "remove the Rollback section; only a stateful task has one"
 
 # Order rules. Each passes while either side is absent, so a pair binds only
 # the kinds that carry both sections.
@@ -150,6 +166,22 @@ before = ["Problem"]
 after = ["TO-BE"]
 when = "!terminal"
 message = "move TO-BE after Problem"
+
+[[tasks.body.headers.rules]]
+name = "environment-after-as-is"
+action = "order"
+before = ["AS-IS"]
+after = ["Environment"]
+when = "!terminal"
+message = "move Environment after AS-IS"
+
+[[tasks.body.headers.rules]]
+name = "to-be-after-as-is"
+action = "order"
+before = ["AS-IS"]
+after = ["TO-BE"]
+when = "!terminal"
+message = "move TO-BE after AS-IS"
 
 [[tasks.body.headers.rules]]
 name = "source-of-truth-after-to-be"
@@ -216,11 +248,11 @@ when = "!terminal"
 message = "move Out of scope after Rollback"
 
 [[tasks.body.headers.rules]]
-name = "one-problem-section"
-path = ["Problem"]
+name = "one-as-is-section"
+path = [{ match = "^(Problem|AS-IS)$" }]
 action = "unique"
 when = "!terminal"
-message = "keep exactly one Problem section"
+message = "keep exactly one AS-IS section, under either heading"
 
 [[tasks.body.headers.rules]]
 name = "one-to-be-section"
@@ -272,6 +304,27 @@ when = "!terminal"
 message = "open the step that shows the defect with 🔴"
 
 [[tasks.body.content.rules]]
+name = "as-is-is-numbered-steps"
+path = ["AS-IS"]
+assert = { must-match = "(?m)^\\s*(\\+|\\d+\\.)\\s" }
+when = "!terminal"
+message = "write AS-IS as numbered steps anyone can follow"
+
+[[tasks.body.content.rules]]
+name = "as-is-marks-the-defect"
+path = ["AS-IS"]
+assert = { must-match = "(?m)^\\s*(\\+|\\d+\\.)\\s+🔴" }
+when = "!terminal"
+message = "open the step that shows the defect with 🔴"
+
+[[tasks.body.content.rules]]
+name = "as-is-has-a-repro"
+path = ["AS-IS"]
+assert = { must-match = "[`]{3}" }
+when = '!terminal && param("examples") && !has_tag("no-repro")'
+message = "show the bug in one fenced block you can run, or tag the task `no-repro`"
+
+[[tasks.body.content.rules]]
 name = "to-be-has-green-bullets"
 path = ["TO-BE"]
 assert = { must-match = "(?m)^\\s*- 🟢" }
@@ -284,6 +337,13 @@ path = ["TO-BE"]
 assert = { must-not-match = "(?m)^\\s*- [^🟢]" }
 when = "!terminal"
 message = "open every TO-BE bullet with 🟢"
+
+[[tasks.body.content.rules]]
+name = "to-be-has-an-example"
+path = ["TO-BE"]
+assert = { must-match = "[`]{3}" }
+when = '!terminal && param("examples") && !has_tag("no-ui-ux")'
+message = "show the proposed shape in a fenced example, or tag the task `no-ui-ux`"
 
 [[tasks.body.content.rules]]
 name = "changes-name-files"
@@ -301,6 +361,13 @@ assert = "non-empty"
 when = "!terminal"
 message = "write what belongs under the heading, or why nothing does, or remove it"
 
+[[tasks.body.content.rules]]
+name = "as-is-non-empty"
+path = ["AS-IS"]
+assert = "non-empty"
+when = "!terminal"
+message = "write the state the change starts from, or remove the section"
+
 # Word caps, provisional: set on 2026-09-15 with headroom over the rewritten
 # open tasks in Mindtape's own backlog. A section over its cap is a task that
 # should have been two.
@@ -309,6 +376,13 @@ name = "section-word-cap"
 path = [
   { match = "^(Problem|Environment|TO-BE|Source of truth|Alternatives|Rollback|Out of scope)$" },
 ]
+assert = { max-words = 120 }
+when = "!terminal"
+message = "cut this section to under 120 words, or split the task in two"
+
+[[tasks.body.content.rules]]
+name = "as-is-word-cap"
+path = ["AS-IS"]
 assert = { max-words = 120 }
 when = "!terminal"
 message = "cut this section to under 120 words, or split the task in two"
@@ -347,6 +421,16 @@ path = [{ match = "TO-BE|Changes|Out of scope|Dogfood" }]
 assert = { density = { pattern = '\?(\s|$)', max = 0, per = "sentence" } }
 when = "!terminal"
 message = "ask the user and write the answer in, since a task leaves no question open"
+
+# The statefulness tag names the property the Rollback rules read. It is off
+# by default (`[params] statefulness`) so a corpus can adopt it after its tasks
+# carry the tag; a decision has no state to name, so it is exempt.
+[[tasks.rules]]
+name = "statefulness-tag"
+when = '!terminal && param("statefulness") && kind != "decision"'
+assert = 'has_tag("stateful") || has_tag("stateless")'
+message = "tag the task `stateful` or `stateless`, so the Rollback rule knows which applies"
+severity = "error"
 
 # A title's grammatical shape is a convention `mt check` can hold once there
 # is a vocabulary to ask against: `verbs` unions both dictionaries `mt` ships
@@ -398,12 +482,10 @@ severity = "error"
 # the task into `wip` or `done`, not on every commit that merely touches it.
 # `named` demands the `Refs:` trailer this same pack's `work-names-a-task`
 # already requires; `!tasks_only` is the escape hatch for a task that closes
-# with no code of its own — a pure decision, `has_tag("decision")` in the
-# STAGED state, so the tag on the commit that does the closing is what is
-# read, not a stale one from before. The extending layer's own tag vocabulary
-# decides whether `"decision"` is ever a legal tag at all; where it is not, no
-# task-only close can ever satisfy this half, which is a stricter policy, not
-# a broken one — see `.mindtape/config.toml` for this repo's own call.
+# with no code of its own — a pure decision, `kind == "decision"` in the
+# STAGED state, so the kind on the commit that does the closing is what is
+# read, not a stale one from before. The kind is the task's own field, so a
+# decision needs no tag to close alone.
 # `retires_other` is the second escape hatch: a close whose work is retiring
 # other tasks (`mt rm`) touches nothing but task files, yet it is work. A
 # flip beside mere edits to other tasks' files still counts as none. The third
@@ -414,7 +496,7 @@ severity = "error"
 name = "flip-with-work"
 scope = "task"
 when = 'into("wip") || into("done")'
-assert = 'named && (!tasks_only || retires_other || staged(has_tag("decision")) || staged(kind == "milestone"))'
+assert = 'named && (!tasks_only || retires_other || staged(kind == "decision") || staged(kind == "milestone"))'
 message = "start or close a task in a commit that carries its work"
 severity = "error"
 

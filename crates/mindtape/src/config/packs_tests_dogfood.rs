@@ -57,11 +57,19 @@ fn the_tasks_pack_declares_the_kind_its_rules_read() {
             "docs",
             "test",
             "dev",
+            "decision",
             "milestone"
         ]
     );
     assert_eq!(kind.example, Some(FieldExample::One("test".to_owned())));
     assert_eq!(config.tasks.comments.policy, CommentsPolicy::Forbid);
+}
+
+#[test]
+fn the_tasks_pack_ships_its_optional_rules_off() {
+    let pack = pack("tasks");
+    assert_eq!(pack["params"]["statefulness"].as_bool(), Some(false));
+    assert_eq!(pack["params"]["examples"].as_bool(), Some(false));
 }
 
 #[test]

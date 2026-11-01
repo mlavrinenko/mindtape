@@ -12,7 +12,7 @@
 # actors, the path sets and the close gate.
 # docs:slice packs/extends
 extends = [
-  "mindtape:tasks",
+  { pack = "mindtape:tasks", with = { statefulness = false, examples = false } },
   "mindtape:dogfood",
   "mindtape:flow",
   "mindtape:ice",
@@ -100,13 +100,16 @@ allowed = [
   "docs",
   "tooling",
   "gating",
-  # A task the ADR process retired into: an architectural or tooling call
-  # settled in the body, with no code deliverable of its own — see
-  # Extending Mindtape in CONTRIBUTING.md. `flip-with-work`
-  # (`mindtape:tasks`) reads it to let one close in a task-only commit,
-  # `staged(has_tag("decision"))`, an exemption from riding its close in
-  # the work it names, as a milestone's is.
-  "decision",
+  # What a change does to state, not how far it reaches: `stateful` requires a
+  # Rollback section, and a task without it must carry none. `stateless` says
+  # so explicitly; the pack's `statefulness` parameter, off here, makes one of
+  # the two required.
+  "stateful",
+  "stateless",
+  # Waivers for the pack's optional example rules: `no-repro` waives the
+  # fenced repro in AS-IS, `no-ui-ux` the fenced example in TO-BE.
+  "no-repro",
+  "no-ui-ux",
   # Provenance, written by `just ask-refactoring` (contrib/ask-refactoring.sh)
   # and by nothing else. `swept` marks a task the sweep filed rather than a
   # human; the signal tags say which advisory tool noticed it: linecop

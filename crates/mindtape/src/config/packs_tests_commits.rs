@@ -57,6 +57,18 @@ fn commits_ships_both_commit_rules() {
 }
 
 #[test]
+fn flip_with_work_reads_the_decision_kind_not_a_tag() {
+    let config = load("extends = [\"mindtape:tasks\"]\n");
+    let rule = commit_rule(&config, "flip-with-work");
+    assert!(
+        rule.assertion.contains(r#"staged(kind == "decision")"#),
+        "{}",
+        rule.assertion
+    );
+    assert!(!rule.assertion.contains("has_tag"), "{}", rule.assertion);
+}
+
+#[test]
 fn a_projects_product_set_replaces_the_packs() {
     let config = load(
         "extends = [\"mindtape:commits\"]\n\n[dicts.product]\nvalues = [\"crates/**\", \"!**/*_tests.rs\"]\n",

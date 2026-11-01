@@ -10,7 +10,7 @@
 //! a stack overflow.
 const MAX_VIEW_DEPTH: usize = 64;
 
-use evalexpr::{DefaultNumericTypes, Node, Operator};
+use evalexpr::{DefaultNumericTypes, Node, Operator, Value};
 
 use crate::filter::expr::{describe, extract_identifier, extract_literal, restore_name};
 use crate::filter::predicates::{contains_call, is_stale, present};
@@ -177,6 +177,9 @@ pub(crate) fn eval_bool(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<b
             function(&restore_name(identifier), node, ctx)
         }
         Operator::VariableIdentifierRead { identifier } => nullary(&restore_name(identifier), ctx),
+        Operator::Const {
+            value: Value::Boolean(flag),
+        } => Ok(*flag),
         Operator::Const { .. } => Err(FilterError::Unsupported(format!(
             "{} on its own isn't a condition",
             describe(node)

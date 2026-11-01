@@ -3,14 +3,14 @@
 
 #show: task.with(
   title: "Replace the task section rules with property gates",
-  kind: "dev",
+  kind: "decision",
   priority: ice(
     impact: 8,
     confidence: 0.9,
     ease: 6,
   ),
   difficulty: 6,
-  tags: ("mt", "docs", "decision"),
+  tags: ("mt", "docs"),
   estimate: (src-files: 3),
   x-goals: (
     product: (
@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 1),
+  status: wip(2026, 11, 1),
   links: depends-on("add-mt-tags.typ"),
 )
 
@@ -52,9 +52,10 @@
 - `.mindtape/config.toml`: the tag list, the `decision` tag removal, and the two params set false.
 - `truth/tasks/*.typ`: the filed tasks' `stateless` tags and this task's own Rollback removal.
 
-== Rollback
+== Alternatives
 
-- Revert the commit; the old section rules return.
+- Gate by commit type, as today: a `dev` chore carries a Rollback for a default revert, and a decision cannot carry Alternatives until it is a feat.
+- Turn every rule on at once: the templates, the api-service fixture and the open jscpd task fail the gate before the corpus is migrated.
 
 == Out of scope
 

@@ -13264,8 +13264,8 @@
       "function": "type_name",
       "line": 200,
       "cyclomatic": 8.0,
-      "coverage": 50.0,
-      "crap": 16.0,
+      "coverage": 60.0,
+      "crap": 12.096,
       "crate": "mindtape"
     },
     {
@@ -14711,7 +14711,7 @@
     {
       "file": "crates/mindtape/src/filter/eval.rs",
       "function": "binary",
-      "line": 206,
+      "line": 209,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -14721,9 +14721,9 @@
       "file": "crates/mindtape/src/filter/eval.rs",
       "function": "eval_bool",
       "line": 158,
-      "cyclomatic": 15.0,
-      "coverage": 91.30434782608695,
-      "crap": 15.147941152297198,
+      "cyclomatic": 16.0,
+      "coverage": 92.0,
+      "crap": 16.131072,
       "crate": "mindtape"
     },
     {
@@ -14738,7 +14738,7 @@
     {
       "file": "crates/mindtape/src/filter/eval.rs",
       "function": "function",
-      "line": 217,
+      "line": 220,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -14747,7 +14747,7 @@
     {
       "file": "crates/mindtape/src/filter/eval.rs",
       "function": "in_view",
-      "line": 225,
+      "line": 228,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -14783,7 +14783,7 @@
     {
       "file": "crates/mindtape/src/filter/eval.rs",
       "function": "nullary",
-      "line": 193,
+      "line": 196,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -14792,7 +14792,7 @@
     {
       "file": "crates/mindtape/src/filter/eval.rs",
       "function": "single_identifier",
-      "line": 245,
+      "line": 248,
       "cyclomatic": 3.0,
       "coverage": 87.5,
       "crap": 3.017578125,
@@ -14801,7 +14801,7 @@
     {
       "file": "crates/mindtape/src/filter/eval.rs",
       "function": "single_literal",
-      "line": 255,
+      "line": 258,
       "cyclomatic": 3.0,
       "coverage": 87.5,
       "crap": 3.017578125,

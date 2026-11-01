@@ -15,6 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   no rule reads shows as an area label. `--for add`, `--for flip` and
   `--for commit` keep only the tags that step's rules read, and `--json`
   carries the same map under `schema_version`.
+- **`mindtape:tasks` gates sections by property, not commit type.** `decision`
+  joins the kinds and closes in a task-only commit, `Alternatives` follows a
+  `feat` or a `decision`, and `AS-IS` joins `Problem` with the same content
+  rules. A `stateful` task requires one Rollback section, and any task without
+  the tag must carry none. The tag-required rule and the fenced AS-IS repro and
+  TO-BE example sit behind the pack's `statefulness` and `examples`
+  parameters, both off.
 
 ### Fixed
 

@@ -48,10 +48,21 @@ fn sample() -> Task {
 }
 
 fn hit(expr: &str, task: &Task) -> bool {
-    Filter::parse(expr)
-        .unwrap()
-        .matches(task, &Config::default())
-        .unwrap()
+    let filter = Filter::parse(expr).unwrap();
+    filter.matches(task, &Config::default()).unwrap()
+}
+
+#[test]
+fn boolean_literals_are_conditions() {
+    let task = sample();
+    for (expr, expected) in [
+        ("true", true),
+        ("false", false),
+        ("!false", true),
+        ("false || !terminal", true),
+    ] {
+        assert_eq!(hit(expr, &task), expected, "{expr}");
+    }
 }
 
 #[test]
