@@ -21,17 +21,30 @@ const FLIP_WITH_WORK: &str = "[[commits.rules]]\n\
      message = \"start or close a task in a commit that carries its work\"\n\
      severity = \"error\"\n";
 
-/// Rewrite `tasks/parser.typ` with `status`.
-fn write_parser(dir: &Path, status: &str) {
+/// Rewrite `tasks/parser.typ` with `status`, importing the prelude at
+/// `version`.
+fn write_parser_version(dir: &Path, status: &str, version: &str) {
     write_file(
         dir,
         "tasks/parser.typ",
         format!(
-            "#import \"@local/mindtape:0.3.0\": *\n\n\
+            "#import \"@local/mindtape:{version}\": *\n\n\
              #show: task.with(\n  title: \"Write the parser\",\n  status: {status},\n  \
              priority: 3,\n)\n"
         ),
     );
+}
+
+/// Rewrite `tasks/parser.typ` with `status`, importing the current prelude.
+fn write_parser(dir: &Path, status: &str) {
+    write_parser_version(dir, status, mindtape::PRELUDE_VERSION);
+}
+
+/// The `typst.toml` a `mindtape` package at `version` carries.
+fn manifest(version: &str) -> String {
+    format!(
+        "[package]\nname = \"mindtape\"\nversion = \"{version}\"\nentrypoint = \"prelude.typ\"\n"
+    )
 }
 
 /// Write `path` under `dir` and stage it.
@@ -114,6 +127,89 @@ fn a_range_with_one_offending_commit_fails_naming_it() {
 
     let (ok, text) = check_range(dir, "HEAD~2..HEAD~1");
     assert!(ok, "the work commit alone passes: {text}");
+}
+
+#[test]
+fn a_range_across_a_prelude_bump_loads_each_tree_against_its_own_version() {
+    let dir = parent_loads_repo();
+    let dir = dir.path();
+    let range = "HEAD~1..HEAD";
+
+    // The parent commit holds 0.2.0: the package manifest and the task import
+    // that names it.
+    write_file(dir, "lib/typst.toml", manifest("0.2.0"));
+    write_parser_version(dir, "wip(2026, 6, 1)", "0.2.0");
+    git(dir, &["add", "lib/typst.toml", "tasks/parser.typ"]);
+    commit(dir, "feat: parse with the old prelude\n\nRefs: parser");
+
+    // The tip commit bumps both to 0.3.0, the version the local pin holds.
+    write_file(dir, "lib/typst.toml", manifest("0.3.0"));
+    write_parser(dir, "wip(2026, 6, 1)");
+    git(dir, &["add", "lib/typst.toml", "tasks/parser.typ"]);
+    commit(dir, "feat: bump the prelude\n\nRefs: parser");
+
+    // Only the tip's 0.3.0 is installed: the parent state must load its own
+    // 0.2.0 `lib/`, which the range reads from the parent commit.
+    let (ok, text) = check_range(dir, range);
+    assert!(ok, "{text}");
+    assert!(
+        !text.contains("warning:"),
+        "the parent's 0.2.0 import must resolve its own tree: {text}"
+    );
+}
+
+/// A rule that refuses a commit whose parent state cannot load the task it
+/// changes, so a range check proves the parent tree's own package resolved.
+const PARENT_LOADS: &str = "[[commits.rules]]\n\
+     name = \"parent-loads\"\n\
+     scope = \"task\"\n\
+     assert = 'head(exists)'\n\
+     severity = \"error\"\n";
+
+/// A repository whose only commit rule refuses a commit whose parent state
+/// cannot load the task it changes.
+fn parent_loads_repo() -> tempfile::TempDir {
+    commit_repo(PARENT_LOADS)
+}
+
+#[test]
+fn a_subproject_range_reads_its_own_package_tree() {
+    let repo = mindtape::test_support::tempdir();
+    let root = repo.path();
+    let sub = root.join("sub");
+    std::fs::create_dir_all(sub.join(".mindtape")).unwrap();
+    std::fs::create_dir_all(sub.join("tasks")).unwrap();
+    mindtape::test_support::write_lib_package(&sub, mindtape::test_support::PRELUDE);
+    write_file(
+        &sub,
+        ".mindtape/config.toml",
+        format!(
+            "[tasks]\nroots = [\"tasks\"]\n{}{PARENT_LOADS}",
+            mindtape::test_support::LIB_ENTRY
+        ),
+    );
+    write_parser(&sub, "wip(2026, 6, 1)");
+    support::git_commit_all(root);
+
+    // The parent commit holds 0.2.0; the tip bumps both to 0.3.0.
+    write_file(&sub, "lib/typst.toml", manifest("0.2.0"));
+    write_parser_version(&sub, "wip(2026, 6, 1)", "0.2.0");
+    git(root, &["add", "sub/lib/typst.toml", "sub/tasks/parser.typ"]);
+    commit(root, "feat: parse with the old prelude\n\nRefs: parser");
+    write_file(&sub, "lib/typst.toml", manifest("0.3.0"));
+    write_parser(&sub, "wip(2026, 6, 1)");
+    git(root, &["add", "sub/lib/typst.toml", "sub/tasks/parser.typ"]);
+    commit(root, "feat: bump the prelude\n\nRefs: parser");
+
+    // No package root: the state overlay and the working tree's pin must
+    // resolve the package without the machine's install.
+    let mut command = support::mt(root);
+    command.env(mindtape::DATA_HOME_ENV, "");
+    command.env("TYPST_PACKAGE_PATH", "");
+    command.args(["check", "-w", "sub", "--commits", "HEAD~1..HEAD"]);
+    let (ok, text) = support::text_of(&command.output().unwrap());
+    assert!(ok, "{text}");
+    assert!(!text.contains("warning:"), "{text}");
 }
 
 /// A repository whose `HEAD` is a `--no-ff` merge of `side` into its first
