@@ -28,7 +28,8 @@ use crate::util;
 ///
 /// # Errors
 /// Fails when git cannot read the range, or when any commit carries a trailer
-/// naming no task or breaks an error-severity rule.
+/// naming no task and matching no external pattern, or breaks an error-severity
+/// rule.
 pub(crate) fn run(
     project: &util::Project,
     range: &str,
@@ -156,9 +157,17 @@ fn check_one(
             &config.commits.trailer,
         );
     }
+    // Tip rules read tasks the trailers name, not external refs that happen
+    // to match a task stem later.
+    let refs = record
+        .refs
+        .iter()
+        .filter(|ref_| record.tasks.contains(ref_))
+        .cloned()
+        .collect();
     Ok(Checked {
         broke: !problems.is_empty() || failing(&breaches) > 0,
-        refs: record.refs,
+        refs,
         tip: states.staged,
     })
 }

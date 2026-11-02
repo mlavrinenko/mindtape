@@ -165,3 +165,45 @@ fn a_clean_range_prints_the_success_summary() {
         "--quiet suppresses the summary: {text}"
     );
 }
+
+#[test]
+fn an_external_ref_does_not_name_a_later_task_for_tip_rules() {
+    let config = format!(
+        "{NO_RULES}\n[commits]\nexternal-refs = [\"^abc$\"]\n\
+         [[commits.rules]]\nname = \"tip-not-wip\"\nscope = \"tip\"\n\
+         assert = '!(status == \"wip\")'\nseverity = \"error\"\n"
+    );
+    let (_dir, root) = scaffold(&[("seed.txt", "seed\n")], &config);
+    write_file(&root, "src/lib.rs", "work\n");
+    git(&root, &["add", "src/lib.rs"]);
+    git(
+        &root,
+        &[
+            "-c",
+            "commit.gpgsign=false",
+            "commit",
+            "-q",
+            "-m",
+            "feat: work\n\nRefs: abc",
+        ],
+    );
+    write_file(&root, "tasks/abc.typ", VALID);
+    git(&root, &["add", "tasks/abc.typ"]);
+    git(
+        &root,
+        &[
+            "-c",
+            "commit.gpgsign=false",
+            "commit",
+            "-q",
+            "-m",
+            "task: file abc",
+        ],
+    );
+
+    let (ok, text) = check(&root, "HEAD~1..HEAD", false);
+    assert!(
+        ok,
+        "an external ref must not name a task created later: {text}"
+    );
+}

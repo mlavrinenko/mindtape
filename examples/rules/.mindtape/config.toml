@@ -130,6 +130,7 @@ allow-pattern = "^TODO:"
 # docs:slice commit-rules/trailer
 [commits]
 trailer = "Refs"
+external-refs = ["^r#[0-9]+$"]
 # docs:end
 
 # docs:slice commit-rules/commit-scope

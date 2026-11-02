@@ -250,7 +250,8 @@ These sections have a page of their own:
 - `[templates]` and `[add]`: #link(u("/templates/"))[Templates & slots].
 - `extends`, `disable` and `[pack-sources.<name>]`:
   #link(u("/packs/"))[Packs].
-- `[commits]`: #link(u("/commit-rules/"))[Commit rules].
+- `[commits]`: #link(u("/commit-rules/"))[Commit rules]. Its `external-refs`
+  lists regexes for trailer values that name work outside the backlog.
 - `[ls]` and `[rm]` filters: #link(u("/filters/"))[Filter language].
 - `[[ls.rules]]`, `[ls.columns.<name>]` and `[ls] hyperlinks`:
   #link(u("/cli/ls/"))[`mt ls`].

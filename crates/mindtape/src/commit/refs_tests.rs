@@ -1,13 +1,32 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use super::{CommitRefs, Read, cache_path, parse_log, resolve};
-use crate::config::parse_config;
+use super::{CommitRefs, Read, Touched, cache_path, parse_log, resolve};
+use crate::config::{Config, parse_config};
+use crate::model::Task;
 use crate::test_support::bare_task;
 
 /// One commit of `git log --format=%x1e%B%x1f --name-status -z` output.
 fn commit(message: &str, records: &[&str]) -> String {
     let files: String = records.iter().map(|record| format!("{record}\0")).collect();
     format!("\x1e{message}\n\x1f\0\n{files}")
+}
+
+/// Resolve the refs a commit at `src/x.rs` names against `tasks`.
+fn resolved(config: &Config, refs: &[&str], tasks: &[Task]) -> Touched {
+    let touched = [(
+        "src/x.rs".to_owned(),
+        refs.iter().map(|ref_| (*ref_).to_owned()).collect(),
+    )]
+    .into_iter()
+    .collect();
+    let read = Read {
+        refs: CommitRefs {
+            touched,
+            renames: Vec::new(),
+        },
+        root_prefix: String::new(),
+    };
+    resolve(&read, "src/x.rs", config, Some(tasks))
 }
 
 #[test]
@@ -22,8 +41,11 @@ fn a_trailer_value_indexes_every_path_its_commit_changed_by_stem() {
     ]
     .concat();
     let refs = parse_log(&log, "Refs");
-    assert_eq!(refs.touched["src/a.rs"], ["one", "two"]);
-    assert_eq!(refs.touched["src/b.rs"], ["one"]);
+    assert_eq!(
+        refs.touched["src/a.rs"],
+        ["truth/tasks/one.typ", "two", "one"]
+    );
+    assert_eq!(refs.touched["src/b.rs"], ["truth/tasks/one.typ"]);
     assert!(
         !refs.touched.contains_key("src/c.rs"),
         "a commit naming no task indexes nothing"
@@ -92,6 +114,50 @@ fn cache_path_needs_both_a_root_and_an_enabled_cache() {
         assert!(
             cache_path(std::path::Path::new("")).is_none(),
             "an empty root has no place to put the cache"
+        );
+    }
+}
+
+#[test]
+fn a_trailer_line_indexes_every_ref_it_lists() {
+    let log = commit("feat: a\n\nRefs: one, two r#3", &["M", "src/a.rs"]);
+    let refs = parse_log(&log, "Refs");
+    assert_eq!(refs.touched["src/a.rs"], ["one", "two", "r#3"]);
+}
+
+#[test]
+fn an_external_ref_is_neither_a_task_nor_a_retired_stem() {
+    let config =
+        parse_config("[tasks]\nroots = [\"tasks\"]\n[commits]\nexternal-refs = [\"^r#[0-9]+$\"]\n")
+            .unwrap();
+    let tasks = [bare_task("parser")];
+    let resolved = resolved(&config, &["parser", "r#45782"], &tasks);
+    assert!(resolved.stems.contains("parser"), "{:?}", resolved.stems);
+    assert_eq!(resolved.stems.len(), 1, "{:?}", resolved.stems);
+    assert!(
+        resolved.retired.is_empty(),
+        "an external ref is not retired: {:?}",
+        resolved.retired
+    );
+}
+
+#[test]
+fn a_ref_matching_an_external_pattern_but_naming_a_task_is_a_task() {
+    let config =
+        parse_config("[tasks]\nroots = [\"tasks\"]\n[commits]\nexternal-refs = [\".*\"]\n")
+            .unwrap();
+    let tasks = [bare_task("parser")];
+    for token in ["parser", "tasks/parser.typ"] {
+        let resolved = resolved(&config, &[token], &tasks);
+        assert!(
+            resolved.stems.contains("parser"),
+            "{token}: {:?}",
+            resolved.stems
+        );
+        assert!(
+            resolved.retired.is_empty(),
+            "{token}: {:?}",
+            resolved.retired
         );
     }
 }

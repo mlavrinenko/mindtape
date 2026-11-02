@@ -6,7 +6,8 @@
 //! The fields are the commit's:
 //!
 //! - `subject` — the message's first line; compares against a literal.
-//! - `refs` — the stems the task trailer names.
+//! - `refs` — the refs the task trailer names: task stems and external refs
+//!   as written.
 //! - `files` — every path the commit changes, repository-relative.
 //! - `trailers` — every trailer line of the message as `Key: value`, whatever
 //!   its key: `matches(trailers, "^Changelog: none$")`.

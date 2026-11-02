@@ -96,8 +96,8 @@ pub(crate) fn failing(breaches: &[CommitBreach]) -> usize {
 ///
 /// # Errors
 /// Fails when the file cannot be read, the project is not in a git
-/// repository, a trailer value is a path or names no task, or an
-/// error-severity rule breaks.
+/// repository, a trailer value names no task and matches no external pattern,
+/// or an error-severity rule breaks.
 pub(crate) fn run(
     project: &util::Project,
     file: &Path,

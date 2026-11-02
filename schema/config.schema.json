@@ -412,8 +412,16 @@
     },
     "CommitsConfig": {
       "additionalProperties": false,
-      "description": "How commits name the tasks they work on, and the rules a commit is checked\nagainst.",
+      "description": "How commits name the tasks they work on, or the work they track elsewhere,\nand the rules a commit is checked against.",
       "properties": {
+        "external-refs": {
+          "default": [],
+          "description": "Regexes for trailer values that name work outside the backlog, such as\na tracker issue (`^r#[0-9]+$`). A value that names a task is a task\nref; else one that matches a pattern is an external ref, kept opaque;\nelse it is refused. A value may hold several refs, split on commas or\nwhitespace; a ref that holds either goes in double quotes or escapes it\nwith a backslash.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "rules": {
           "description": "Assertions every checked commit must satisfy.",
           "items": {
@@ -423,7 +431,7 @@
         },
         "trailer": {
           "default": "Refs",
-          "description": "The trailer key whose values name tasks by stem (`Refs: <stem>`).\nMatched case-insensitively. A value that is a path, or names no task,\nis always refused.",
+          "description": "The trailer key whose values name tasks by stem (`Refs: <stem>`) or\nexternal work matching `external-refs`. Matched case-insensitively. A\nvalue that names no task and matches no external pattern is refused.",
           "type": "string"
         }
       },
@@ -2395,7 +2403,7 @@
     },
     "commits": {
       "$ref": "#/$defs/CommitsConfig",
-      "description": "The task trailer, and the rules `mt check --commit-msg` checks a commit\nagainst."
+      "description": "The commit trailer, its external refs, and the rules\n`mt check --commit-msg` checks a commit against."
     },
     "dicts": {
       "additionalProperties": {

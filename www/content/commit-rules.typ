@@ -60,12 +60,22 @@ Outside a git repository, `mt check --commit-msg` fails with
 = The trailer
 
 `[commits] trailer`, `Refs` by default, names the trailer whose values are
-tasks, one #link(u("/concepts/#identity"))[stem] per line. Whatever the rules
-say, `mt` refuses a value that's a path, or a stem no task has. Why stems? A
-path changes when its task moves to another folder, and a stem is unique in
-the project:
+tasks, one #link(u("/concepts/#identity"))[stem] per line. A line may list
+several refs, split on commas or whitespace, and the trailer may repeat.
+Whatever the rules say, `mt` refuses a value that names no task and matches
+no external pattern. A path that names a task is refused too, and the message
+asks for its stem. Why stems? A path changes when its task moves to another
+folder, and a stem is unique in the project:
 
 #terminal("commit-refs-path")
+
+A repo that tracks work elsewhere keeps `Refs:` as its one trailer.
+`[commits] external-refs` lists regexes. A ref that names a task is a task ref;
+else one matching a pattern is an external ref, kept opaque; else it is
+refused. The config above accepts `r#45782`. A ref that holds a comma or a
+space goes in double quotes, as in `Refs: "redesign one"`, or escapes that
+one character with a backslash. `touches()` and a `scope = "task"` rule ignore
+external refs.
 
 = Commit rules
 
@@ -77,7 +87,10 @@ rule once per commit, over these fields:
   columns: 2,
   table.header([Field], [Holds]),
   [`subject`], [The message's first line.],
-  [`refs`], [The trailer's values, as stems.],
+  [`refs`],
+  [The trailer's refs: task stems, and external refs as written. A line may
+    hold several, split on commas or whitespace.],
+
   [`trailers`],
   [Every trailer line of the message, whatever its key, as `Key: value`.
     `matches(trailers, "^Changelog: none$")` finds one.],
@@ -216,7 +229,7 @@ them. Pass `--check-merges` to read it like any other commit. The newest
 commit still supplies the tip state when it is a merge, so the tip rules hold
 the tree the range ends on. `subject` and `refs` come from the message, and
 `files` from what the commit changes against its first parent. `staged(...)`
-reads the commit's tree and `head(...)` the parent's. A trailer must name a
+reads the commit's tree and `head(...)` the parent's. A task ref must name a
 task the commit's tree holds. A past commit has no working tree, so `mt` skips
 a rule that calls `worktree(...)` or `changed(...)`, and says so once.
 `count(files, …)` reads the commit's own files, so it still runs. Only commits

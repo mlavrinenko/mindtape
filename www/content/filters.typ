@@ -261,7 +261,9 @@ A trailer may name a task by #link(u("/concepts/#identity"))[stem]
 (`Refs: parser`) or by path (`Refs: tasks/parser.typ`). A task `mt mv` renamed
 still matches its old stem, through the renames git records. A stem no loaded
 task answers to belongs to a retired task. It matches nothing, and
-`mt ls --json` lists it under `retired`.
+`mt ls --json` lists it under `retired`. A ref that only matches
+#link(u("/commit-rules/#the-trailer"))[`[commits] external-refs`] names no task,
+so `touches()` ignores it.
 
 The first `touches()` in a command reads the history with one `git log`. `mt`
 caches the result in `.mindtape/cache/` until `HEAD` or the trailer key

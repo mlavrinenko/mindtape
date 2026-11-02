@@ -71,15 +71,15 @@ groups:
       www/utils/cli-notes.typ: f4f3fdc25dd45b7465220811f822300fe7ebeefde4ed1e476f63d24e46397621
   cli-check-docs:
     source:
-      crates/mindtape-cli/src/cmd/check/commit.rs: d6e4b301bc4d223f1dc86de65da3e967ba80ce6b02c5f8498f2adfffd3a1bbef
+      crates/mindtape-cli/src/cmd/check/commit.rs: 71f52c90e29fd12ff18a6433c8ec5ba119f58ca18aa7c565bbd060609ad5a19f
       crates/mindtape-cli/src/cmd/check/mod.rs: a6b534eb7b136cce75a7427b1833fdbb4fc4d1e98cc06228face15834ef2bf08
-      crates/mindtape-cli/src/cmd/check/range.rs: b979d14149659765c2cb9518a9366ae4cd1ca45b8245b1c736042f52059a58e0
+      crates/mindtape-cli/src/cmd/check/range.rs: b20e8338784e17c9b33ca0ae4790ad090ca41ae43a540d9e4024b55d192c8c13
       crates/mindtape-cli/src/cmd/check/templates.rs: 18ffc5be3e1db5a756a44dfeedbe5c1b49940947b59ac1f5f39c3d9fdd089fdb
     dependents:
-      skills/mindtape/evals/evals.json: 481bb4f0168826d9ee4086ee6f4f4f74c4c31ed3b46792871532da8372b56460
-      www/content/agents.typ: f0240344a64911b167203d705e4a679fe6d64fb4e5d0824af52d68588ff71648
+      skills/mindtape/evals/evals.json: 30cf7329118dc87b78164b1f425b6bc114f509d6ed4112cd0c174438b9ecc826
+      www/content/agents.typ: d0d98ebce6f001845351e6832602b9851283a556952492c8c7c42db91ae00b3a
       www/content/cli/check.typ: 34af1f6401c812f44ff4d6bf6fd9e06ca4a822b61f824ac2a206c514761880ec
-      www/content/commit-rules.typ: a6afac2137d30117367909c9ad5f57bbe2e11ee6ab4fe75bf6ad684a4b0bf31f
+      www/content/commit-rules.typ: 6172e17e9d8f3bf5ff5dcffa3f14ab98a6b0e5e6e67c9439965c088a056a52ff
       www/content/quickstart.typ: e648924e5f5d9ce48a89e75a4ef846310072e141cf699af29f6dc5c4ae9df3ec
       www/content/templates.typ: 24e76292a8e092d2f99e393e871cb7b8451b69db987fc022ab566d03f2c58a8b
   cli-completion-docs:

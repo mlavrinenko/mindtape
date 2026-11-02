@@ -225,8 +225,8 @@ pub struct Config {
     /// declared, never equal-compared — see [`crate::git::state::GitCache`].
     #[serde(skip)]
     pub(crate) git: crate::git::state::GitCache,
-    /// The task trailer, and the rules `mt check --commit-msg` checks a commit
-    /// against.
+    /// The commit trailer, its external refs, and the rules
+    /// `mt check --commit-msg` checks a commit against.
     pub commits: crate::config::commits::CommitsConfig,
     /// Status-transition hooks (`[[on.flip]]`), run only by `mt flip`.
     pub on: crate::config::hooks::OnConfig,

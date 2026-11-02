@@ -33,7 +33,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 2),
+  status: done(
+    2026,
+    11,
+    3,
+  )[external refs and split trailers accepted; touches and task scope read task refs only],
 )
 
 == AS-IS
@@ -71,12 +75,14 @@ Refs: r#45782
 
 == Changes
 
-- `crates/mindtape/src/commit/tests.rs`: red tests first for a stem, an external ref, both, comma, space and repeated lines.
+- `crates/mindtape/src/commit/tests.rs`, `trailer_tests.rs`: red tests first for a stem, an external ref, both, comma, space, repeated lines and the quote escape.
 - `crates/mindtape/src/config/commits.rs`: `external-refs`, its schema description and load-time regex validation.
-- `crates/mindtape/src/commit/mod.rs`: split each trailer value, classify every token, and keep external refs out of the task lookup.
+- `crates/mindtape/src/commit/trailer.rs`: split a trailer value on commas and whitespace, with the quote and backslash escapes, and compile the external patterns.
+- `crates/mindtape/src/commit/mod.rs`: classify every token, and keep external refs out of the task lookup.
 - `crates/mindtape/src/commit/refs.rs`: `touches()` splits the same way and indexes task refs only.
+- `crates/mindtape-cli/src/cmd/check/range.rs`: tip rules read task refs only.
 - `crates/mindtape-cli/tests/it/commit_msg_e2e.rs`: the end-to-end check for all three forms.
-- `www/content/config.typ`, `docs/src/contributing/commit-messages.typ`, `schema/config.schema.json`, `CHANGELOG.md`: the key, the forms and the one-line escape for a ref containing a separator.
+- `www/content/config.typ`, `www/content/commit-rules.typ`, `docs/src/contributing/commit-messages.typ`, `schema/config.schema.json`, `CHANGELOG.md`: the key, the forms and the one-line escape for a ref containing a separator.
 
 
 == Alternatives

@@ -63,15 +63,22 @@ use crate::model::Task;
 use crate::problem::Problem;
 use crate::validate::severity::Severity;
 
-/// How commits name the tasks they work on, and the rules a commit is checked
-/// against.
+/// How commits name the tasks they work on, or the work they track elsewhere,
+/// and the rules a commit is checked against.
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
-#[serde(default, deny_unknown_fields)]
+#[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
 pub struct CommitsConfig {
-    /// The trailer key whose values name tasks by stem (`Refs: <stem>`).
-    /// Matched case-insensitively. A value that is a path, or names no task,
-    /// is always refused.
+    /// The trailer key whose values name tasks by stem (`Refs: <stem>`) or
+    /// external work matching `external-refs`. Matched case-insensitively. A
+    /// value that names no task and matches no external pattern is refused.
     pub trailer: String,
+    /// Regexes for trailer values that name work outside the backlog, such as
+    /// a tracker issue (`^r#[0-9]+$`). A value that names a task is a task
+    /// ref; else one that matches a pattern is an external ref, kept opaque;
+    /// else it is refused. A value may hold several refs, split on commas or
+    /// whitespace; a ref that holds either goes in double quotes or escapes it
+    /// with a backslash.
+    pub external_refs: Vec<String>,
     /// Assertions every checked commit must satisfy.
     pub rules: Vec<CommitRuleSpec>,
 }
@@ -80,6 +87,7 @@ impl Default for CommitsConfig {
     fn default() -> Self {
         Self {
             trailer: "Refs".to_owned(),
+            external_refs: Vec::new(),
             rules: Vec::new(),
         }
     }
@@ -305,6 +313,13 @@ pub(crate) fn validate_commits(config: &Config) -> Vec<Problem> {
     let mut problems = Vec::new();
     if config.commits.trailer.trim().is_empty() {
         problems.push("commits.trailer: must name a trailer key".into());
+    }
+    for (index, pattern) in config.commits.external_refs.iter().enumerate() {
+        if let Err(err) = regex::Regex::new(pattern) {
+            problems.push(
+                format!("commits.external-refs[{index}]: invalid regex `{pattern}`: {err}").into(),
+            );
+        }
     }
     for (index, spec) in config.commits.rules.iter().enumerate() {
         let path = format!("commits.rules[{index}]");

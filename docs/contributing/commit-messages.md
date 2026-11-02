@@ -26,7 +26,7 @@ The `mindtape:commits` pack (`crates/mindtape/src/packs/commits.toml`) adds one 
 
 - `refs-task-is-started` refuses a commit whose `Refs:` task is neither `wip` nor terminal in the staged tree. A task still `proposed` fails it, and so does a flip you left unstaged. The rule refuses early because the repair afterwards means rewriting commits. A decision that closes in a task-only commit passes, since its staged status is `done`.
 
-`mt check --commit-msg` also refuses a `Refs:` value that’s a path or names no task.
+`mt check --commit-msg` also refuses a `Refs:` value that’s a path to a task, or names no task. A repo that tracks work elsewhere can accept the second kind instead: `[commits] external-refs` lists regexes, and a value that names no task but matches one is an external ref, kept opaque. A value may list several refs, split on commas or whitespace, and a ref that holds either goes in double quotes or escapes that character with a backslash.
 
 Last, `.just/scripts/outdatty-review-trailer.sh` holds a re-record to the `Docs-Unaffected:` footer CONTRIBUTING.md’s Dependency Drift section asks for. It refuses a commit whose staged `.config/outdatty.lock` moves a group’s source hash while the commit changes none of that group’s dependents, unless a footer names the group. A dependent hash the re-record carried along doesn’t count, since nobody edited that file. A merge commit passes, because the merged commits carried their own footers, and a rebase pick runs no hook at all.
 

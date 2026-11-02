@@ -9,10 +9,13 @@
 //! - [`staged_files`] reads the index with git; the paths a past commit
 //!   changed come in the same [`ChangedFiles`] shape
 //!   ([`crate::commit::range`]).
-//! - [`CommitRecord::build`] joins the two against the loaded tasks: trailer
-//!   values become stems, and a value that is a path or names no task becomes
-//!   a [`RefProblem`] instead — refused whatever rules a project declares,
-//!   since a trailer that names nothing is never what its author meant.
+//! - [`CommitRecord::build`] joins the two against the loaded tasks: a trailer
+//!   value splits on commas and whitespace into refs. A ref that names a task
+//!   becomes a stem; one matching `[commits] external-refs` stays external and
+//!   opaque; a path to a task, or a value that names no task and matches no
+//!   external pattern, becomes a [`RefProblem`] instead — refused whatever
+//!   rules a project declares, since a trailer that names nothing is never what
+//!   its author meant.
 //!
 //! Trailers are parsed here rather than by `git interpret-trailers`, so the
 //! parse is a pure function a test can pin: the last paragraph of the message
@@ -40,6 +43,11 @@ pub mod refs;
 pub mod task_expr;
 pub mod tasks;
 pub mod tip;
+mod trailer;
+
+pub(crate) use trailer::{
+    external_matchers, is_path_form, matches_external, ref_text, split_refs, value_stem,
+};
 
 use std::path::Path;
 use std::process::{Command, Output};
@@ -329,8 +337,8 @@ pub struct RefProblem {
 pub struct CommitRecord {
     /// `subject`: the message's first line.
     pub subject: String,
-    /// `refs`: the stems the configured trailer names, one per value, a path
-    /// read as its stem.
+    /// `refs`: the refs the configured trailer names, one per token: a task
+    /// stem, a path read as its stem, or an external ref as written.
     pub refs: Vec<String>,
     /// `files`: every changed path, repository-relative.
     pub files: Vec<String>,
@@ -347,7 +355,8 @@ pub struct CommitRecord {
     /// sets it for the merge being written, an amend of a merge included.
     pub is_merge: bool,
     /// The stems a `scope = "task"` rule runs for: every task file the commit
-    /// changes, then every ref, each once. Not an expression field.
+    /// changes, then every task ref, each once. An external ref is not a task.
+    /// Not an expression field.
     pub tasks: Vec<String>,
     /// `trailers`: every trailer line of the message, whatever its key, as
     /// `Key: value`.
@@ -356,8 +365,8 @@ pub struct CommitRecord {
 
 impl CommitRecord {
     /// Join a read message and its changed files against the loaded `tasks`.
-    /// Returns the record, plus one [`RefProblem`] per trailer value that is a
-    /// path or names no task.
+    /// Returns the record, plus one [`RefProblem`] per ref that is a path to a
+    /// task, or names no task and matches no external pattern.
     #[must_use]
     pub fn build(
         message: &CommitMessage,
@@ -366,19 +375,34 @@ impl CommitRecord {
         config: &Config,
     ) -> (Self, Vec<RefProblem>) {
         let stems: Vec<String> = tasks.iter().map(task_stem).collect();
+        let matchers = external_matchers(&config.commits.external_refs);
         let mut problems = Vec::new();
         let mut refs = Vec::new();
+        let mut task_refs = Vec::new();
         for trailer in &message.trailers {
-            let stem = value_stem(&trailer.value);
-            if let Some(found) = ref_problem(&trailer.value, &stem, &stems, &config.commits.trailer)
-            {
-                problems.push(RefProblem {
-                    value: trailer.clone(),
-                    message: found.text,
-                    unknown: found.unknown,
-                });
+            for token in split_refs(&trailer.value) {
+                let stem = value_stem(&token);
+                let path = is_path_form(&token);
+                let names_task = if path {
+                    is_task_file(&token, &changed.root_prefix, config) && stems.contains(&stem)
+                } else {
+                    stems.contains(&stem)
+                };
+                let found = if names_task {
+                    path.then(|| ref_problem(&token, &stem, &stems, &config.commits.trailer))
+                        .flatten()
+                } else if matches_external(&token, &matchers) {
+                    refs.push(token);
+                    continue;
+                } else {
+                    ref_problem(&token, &stem, &stems, &config.commits.trailer)
+                };
+                if let Some(found) = found {
+                    problems.push(ref_problem_at(token, trailer.line, found));
+                }
+                refs.push(stem.clone());
+                task_refs.push(stem);
             }
-            refs.push(stem);
         }
         let tasks_only = !changed.paths.is_empty()
             && changed
@@ -390,7 +414,7 @@ impl CommitRecord {
             .iter()
             .filter(|path| is_task_file(path, &changed.root_prefix, config))
             .map(|path| value_stem(path))
-            .chain(refs.iter().cloned())
+            .chain(task_refs)
             .collect();
         dedup_keeping_order(&mut subjects);
         let record = Self {
@@ -422,20 +446,13 @@ pub(crate) fn task_stem(task: &Task) -> String {
     )
 }
 
-/// The stem a trailer value names: a bare value as written, a path's file stem.
-pub(crate) fn value_stem(value: &str) -> String {
-    if !is_path_form(value) {
-        return value.to_owned();
+/// One ref's problem, at the line of the trailer that holds it.
+fn ref_problem_at(token: String, line: usize, found: Problem) -> RefProblem {
+    RefProblem {
+        value: TrailerValue { value: token, line },
+        message: found.text,
+        unknown: found.unknown,
     }
-    Path::new(value).file_stem().map_or_else(
-        || value.to_owned(),
-        |stem| stem.to_string_lossy().into_owned(),
-    )
-}
-
-/// Whether a trailer value is a path, not a bare stem.
-fn is_path_form(value: &str) -> bool {
-    value.contains(['/', '\\']) || value.ends_with(".typ")
 }
 
 /// What is wrong with one trailer value, if anything.
@@ -443,9 +460,9 @@ fn ref_problem(value: &str, stem: &str, stems: &[String], key: &str) -> Option<P
     let known = stems.iter().any(|known| known == stem);
     if is_path_form(value) {
         let fix = if known {
-            format!("write the stem: `{key}: {stem}`")
+            format!("write the stem: `{key}: {}`", ref_text(stem))
         } else {
-            format!("write a stem, and `{stem}` names no task")
+            format!("write a stem, and `{}` names no task", ref_text(stem))
         };
         return Some(format!("`{value}` is a path; {fix}").into());
     }

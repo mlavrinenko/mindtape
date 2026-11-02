@@ -260,3 +260,36 @@ fn the_pack_still_refuses_a_plain_commit_without_refs() {
     let text = support::commit_msg_refusal(dir.path(), "feat: fixup! is not a prefix here\n");
     assert!(text.contains("work-names-a-task"), "{text}");
 }
+
+/// A trailer whose values may name a task or an external ref, with a rule
+/// that needs at least one of either.
+const EXTERNAL_REFS: &str = "[commits]\ntrailer = \"Refs\"\n\
+     external-refs = [\"^r#[0-9]+$\"]\n\n\
+     [[commits.rules]]\n\
+     name = \"work-names-a-task\"\n\
+     scope = \"commit\"\n\
+     when = '!tasks_only'\n\
+     assert = 'has(refs)'\n\
+     message = \"name the task this commit works on\"\n\
+     severity = \"error\"\n";
+
+#[test]
+fn a_trailer_names_a_task_an_external_ref_or_both() {
+    let dir = commit_repo(EXTERNAL_REFS);
+    stage(dir.path(), "src/lib.rs");
+    for message in [
+        "feat: parse\n\nRefs: parser\n",
+        "feat: parse\n\nRefs: r#45782\n",
+        "feat: parse\n\nRefs: parser r#45782\n",
+        "feat: parse\n\nRefs: parser, r#45782\n",
+        "feat: parse\n\nRefs: parser\nRefs: r#45782\n",
+    ] {
+        let (ok, text) = check_commit_msg(dir.path(), message);
+        assert!(ok, "{message:?} must pass: {text}");
+    }
+    let text = support::commit_msg_refusal(dir.path(), "feat: parse\n\nRefs: parsr\n");
+    assert!(
+        text.contains("parsr") && text.contains("names no task"),
+        "a value matching no external pattern is still refused: {text}"
+    );
+}

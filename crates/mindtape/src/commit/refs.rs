@@ -4,17 +4,19 @@
 //!
 //! One `git log -M --name-status` over the whole history of `HEAD` yields,
 //! per commit, its message and the paths it changed. [`parse_log`] indexes
-//! every changed path by the stems its trailer names, through the same
-//! trailer parse `mt check --commit-msg` uses ([`crate::commit`]), so a
-//! path-form value (`Refs: truth/tasks/<stem>.typ`) and a stem-form one
-//! (`Refs: <stem>`) index the same stem. A rename indexes both of its sides.
+//! every changed path by the refs its trailer names, through the same split
+//! `mt check --commit-msg` uses ([`crate::commit`]), so a path-form value
+//! (`Refs: truth/tasks/<stem>.typ`) and a stem-form one (`Refs: <stem>`)
+//! resolve to the same task. A value that only matches a
+//! `[commits] external-refs` pattern names no task and is skipped. A rename
+//! indexes both of its sides.
 //!
 //! A stem names the task by its name when the trailer was written; `mt mv`
 //! has renamed some since. Every `.typ` rename is recorded, and the ones
 //! under the task roots resolve a stem to the task it is now
-//! ([`RefsCache::touching`]). A stem no loaded task answers to, even through
-//! a rename, belongs to a retired task: it matches nothing, and is kept so
-//! `mt ls --json` can list it.
+//! ([`RefsCache::touching`]). A token no loaded task answers to, even through
+//! a rename, and matching no external pattern belongs to a retired task: it
+//! matches nothing, and is kept so `mt ls --json` can list it.
 //!
 //! The index depends only on `HEAD` and the trailer key, so it is cached in
 //! `<root>/.mindtape/cache/commit-refs.json` keyed by both, rebuilt whenever
@@ -26,13 +28,16 @@ use std::sync::{Arc, Mutex, OnceLock, PoisonError};
 
 use serde::{Deserialize, Serialize};
 
-use crate::commit::{is_task_file, parse_message, task_stem, value_stem};
+use crate::commit::{
+    external_matchers, is_path_form, is_task_file, matches_external, parse_message, split_refs,
+    task_stem, value_stem,
+};
 use crate::config::Config;
 use crate::git::state::git;
 use crate::model::Task;
 
 /// Bump when the cached shape changes: a mismatch is a miss.
-const FORMAT_VERSION: u32 = 1;
+const FORMAT_VERSION: u32 = 2;
 
 /// The cache file's name inside `<root>/.mindtape/cache/`.
 const CACHE_FILE: &str = "commit-refs.json";
@@ -46,24 +51,24 @@ const MESSAGE_END: char = '\x1f';
 /// What the history says, before any stem is resolved against the tasks.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CommitRefs {
-    /// Every path a commit naming a task changed, repository-relative, mapped
-    /// to the stems those commits' trailers name — oldest first, each once.
+    /// Every path a commit naming a ref changed, repository-relative, mapped
+    /// to the refs those commits' trailers name — oldest first, each once.
     pub touched: BTreeMap<String, Vec<String>>,
     /// Every `.typ` rename, `(from, to)`, oldest first.
     pub renames: Vec<(String, String)>,
 }
 
 /// Index `git log --reverse -M --name-status -z --format=%x1e%B%x1f` output
-/// by the stems each commit's `key` trailer names.
+/// by the refs each commit's `key` trailer names.
 #[must_use]
 pub fn parse_log(text: &str, key: &str) -> CommitRefs {
     let mut refs = CommitRefs::default();
     for record in text.split(RECORD).filter(|record| !record.is_empty()) {
         let (message, files) = record.split_once(MESSAGE_END).unwrap_or((record, ""));
-        let stems: Vec<String> = parse_message(message, key)
+        let tokens: Vec<String> = parse_message(message, key)
             .trailers
             .iter()
-            .map(|trailer| value_stem(&trailer.value))
+            .flat_map(|trailer| split_refs(&trailer.value))
             .collect();
         let mut fields = files
             .split('\0')
@@ -78,11 +83,11 @@ pub fn parse_log(text: &str, key: &str) -> CommitRefs {
             {
                 refs.renames.push(((*from).to_owned(), (*to).to_owned()));
             }
-            for path in paths.into_iter().filter(|_| !stems.is_empty()) {
+            for path in paths.into_iter().filter(|_| !tokens.is_empty()) {
                 let indexed = refs.touched.entry(path.to_owned()).or_default();
-                for stem in &stems {
-                    if !indexed.contains(stem) {
-                        indexed.push(stem.clone());
+                for token in &tokens {
+                    if !indexed.contains(token) {
+                        indexed.push(token.clone());
                     }
                 }
             }
@@ -170,9 +175,10 @@ fn lock<T>(mutex: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
     mutex.lock().unwrap_or_else(PoisonError::into_inner)
 }
 
-/// Resolve the stems the commits changing `path` name.
+/// Resolve the refs the commits changing `path` name.
 fn resolve(read: &Read, path: &str, config: &Config, set: Option<&[Task]>) -> Touched {
     let current: Option<HashSet<String>> = set.map(|tasks| tasks.iter().map(task_stem).collect());
+    let matchers = external_matchers(&config.commits.external_refs);
     let renamed: HashMap<String, String> = read
         .refs
         .renames
@@ -185,15 +191,46 @@ fn resolve(read: &Read, path: &str, config: &Config, set: Option<&[Task]>) -> To
         .filter(|(from, to)| from != to)
         .collect();
     let mut touched = Touched::default();
-    for stem in read.refs.touched.get(path).into_iter().flatten() {
-        match current_name(stem, &renamed, current.as_ref()) {
+    for token in read.refs.touched.get(path).into_iter().flatten() {
+        let external = matches_external(token, &matchers);
+        let resolved = if external {
+            // A token that names a task is a task ref, even when a pattern
+            // also matches; an external path or URL names no task file.
+            if current.is_some() {
+                task_name(token, read, config, &renamed, current.as_ref())
+            } else {
+                None
+            }
+        } else {
+            current_name(&value_stem(token), &renamed, current.as_ref())
+        };
+        match resolved {
             Some(name) => {
                 touched.stems.insert(name);
             }
-            None => touched.retired.push(stem.clone()),
+            None if external => {}
+            None => touched.retired.push(value_stem(token)),
         }
     }
     touched
+}
+
+/// The task `token` names, when it is a bare stem or a path under a task
+/// root; an external path or URL names none.
+fn task_name(
+    token: &str,
+    read: &Read,
+    config: &Config,
+    renamed: &HashMap<String, String>,
+    current: Option<&HashSet<String>>,
+) -> Option<String> {
+    if is_path_form(token) {
+        if !is_task_file(token, &read.root_prefix, config) {
+            return None;
+        }
+        return current_name(&value_stem(token), renamed, current);
+    }
+    current_name(token, renamed, current)
 }
 
 /// The name `stem` goes by now: the first along its renames a task in

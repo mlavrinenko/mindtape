@@ -147,3 +147,15 @@ fn a_tip_rule_reads_task_fields_and_is_dry_run_at_load() {
         .unwrap_err();
     assert!(problems.contains("commits.rules[0].assert"), "{problems}");
 }
+
+#[test]
+fn external_refs_load_and_are_validated() {
+    let config = parse_config("[commits]\nexternal-refs = [\"^r#[0-9]+$\"]\n").unwrap();
+    assert_eq!(config.commits.external_refs, ["^r#[0-9]+$"]);
+    config.validate().unwrap();
+
+    let bad = parse_config("[commits]\nexternal-refs = [\"^(r#\"]\n").unwrap();
+    let problems = bad.validate().unwrap_err();
+    assert!(problems.contains("commits.external-refs[0]"), "{problems}");
+    assert!(problems.contains("invalid regex"), "{problems}");
+}

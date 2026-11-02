@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A commit trailer accepts external refs.** `[commits] external-refs` lists
+  regexes for values that name work outside the backlog, such as `r#45782`.
+  A matching value is kept opaque instead of refused as a missing task, and a
+  `Refs:` line may list several refs split on commas or whitespace, quoted or
+  backslash-escaped when a ref holds one. `touches()` and `scope = "task"`
+  rules still read task refs only.
 - **`mt tags` lists the tags a project allows and the rules that read them.**
   Each tag shows every rule whose `when` or `assert` names
   `has_tag("<tag>")`, with the message a breach prints. Without `--for`, a tag

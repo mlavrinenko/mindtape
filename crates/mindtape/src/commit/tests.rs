@@ -13,6 +13,20 @@ fn values(text: &str) -> Vec<String> {
         .collect()
 }
 
+/// Build a record from `text` with no changed files.
+fn build(
+    config: &crate::config::Config,
+    tasks: &[crate::model::Task],
+    text: &str,
+) -> (CommitRecord, Vec<super::RefProblem>) {
+    CommitRecord::build(
+        &parse_message(text, "Refs"),
+        &ChangedFiles::default(),
+        tasks,
+        config,
+    )
+}
+
 #[test]
 fn the_subject_is_the_first_uncommented_line() {
     let message = parse_message("# a comment\n\n  feat: parse  \n\nbody\n", "Refs");
@@ -212,4 +226,77 @@ fn a_dotted_stem_trailer_names_its_task() {
         CommitRecord::build(&message, &ChangedFiles::default(), &tasks, &config);
     assert!(problems.is_empty(), "{problems:?}");
     assert_eq!(record.refs, ["foo.task-261023"]);
+}
+
+#[test]
+fn a_ref_is_a_task_then_an_external_ref_then_refused() {
+    let tasks = [bare_task("parser")];
+    let config =
+        parse_config("[commits]\nexternal-refs = [\"^r#[0-9]+$\", \"^[A-Z][A-Z0-9]+-[0-9]+$\"]\n")
+            .unwrap();
+    let (record, problems) = build(
+        &config,
+        &tasks,
+        "x\n\nRefs: parser\nRefs: r#45782\nRefs: ABC-12\n",
+    );
+    assert!(problems.is_empty(), "{problems:?}");
+    assert_eq!(record.refs, ["parser", "r#45782", "ABC-12"]);
+    assert_eq!(
+        record.tasks,
+        ["parser"],
+        "an external ref runs no task-scope rule"
+    );
+
+    for value in ["parser r#45782", "parser, r#45782"] {
+        let (record, problems) = build(&config, &tasks, &format!("x\n\nRefs: {value}\n"));
+        assert!(problems.is_empty(), "{value:?}: {problems:?}");
+        assert_eq!(record.refs, ["parser", "r#45782"], "{value:?}");
+        assert_eq!(record.tasks, ["parser"], "{value:?}");
+    }
+
+    let wins = parse_config("[commits]\nexternal-refs = [\".*\"]\n").unwrap();
+    let (record, problems) = build(&wins, &tasks, "x\n\nRefs: parser\n");
+    assert!(problems.is_empty(), "{problems:?}");
+    assert_eq!(record.refs, ["parser"]);
+    assert_eq!(record.tasks, ["parser"]);
+
+    let (record, problems) = build(&wins, &tasks, "x\n\nRefs: tasks/parser.typ\n");
+    assert_eq!(record.tasks, ["parser"], "a task path is still a task ref");
+    assert_eq!(problems.len(), 1, "but the path itself is refused");
+    assert!(problems[0].message.contains("is a path"), "{problems:?}");
+
+    let (record, problems) = build(&config, &tasks, "x\n\nRefs: parsr\n");
+    assert_eq!(record.refs, ["parsr"]);
+    assert_eq!(problems.len(), 1);
+    assert!(
+        problems[0].message.contains("names no task"),
+        "{problems:?}"
+    );
+
+    let spaced = parse_config("[commits]\nexternal-refs = [\"^r#[0-9 ]+$\"]\n").unwrap();
+    let (record, problems) = build(&spaced, &[], "x\n\nRefs: \"r#45 782\"\n");
+    assert!(problems.is_empty(), "{problems:?}");
+    assert_eq!(record.refs, ["r#45 782"]);
+}
+
+#[test]
+fn an_external_ref_that_looks_like_a_path_is_kept_opaque() {
+    let config = parse_config("[commits]\nexternal-refs = [\"^https://\"]\n").unwrap();
+    let message = parse_message("x\n\nRefs: https://tracker.example/issue/7\n", "Refs");
+    let (record, problems) = CommitRecord::build(&message, &ChangedFiles::default(), &[], &config);
+    assert!(problems.is_empty(), "{problems:?}");
+    assert_eq!(record.refs, ["https://tracker.example/issue/7"]);
+    assert!(record.tasks.is_empty());
+}
+
+#[test]
+fn a_path_to_a_stem_with_a_separator_suggests_a_quoted_stem() {
+    let config = parse_config("").unwrap();
+    let tasks = [bare_task("write docs")];
+    let (_, problems) = build(&config, &tasks, "x\n\nRefs: \"tasks/write docs.typ\"\n");
+    assert_eq!(problems.len(), 1);
+    assert!(
+        problems[0].message.contains("`Refs: \"write docs\"`"),
+        "{problems:?}"
+    );
 }

@@ -42,7 +42,8 @@ commit changes only task files or starts with `fixup!`, `squash!` or `amend!`.
 The pack's `no-unsquashed-fixup` rule refuses such a commit once it sits in a
 range, so `mt check --commits` catches a fixup nobody squashed.
 `mt check --commit-msg` also refuses a stem
-that no task has. #link(u("/commit-rules/"))[Commit rules] covers the rule
+that no task has and that matches no
+#link(u("/commit-rules/#the-trailer"))[`[commits] external-refs`] pattern. #link(u("/commit-rules/"))[Commit rules] covers the rule
 fields, and #link(u("/packs/"))[Packs] shows how to drop the rule.
 
 Anyone can skip a hook with `--no-verify`, so run `mt check --commits` in CI
