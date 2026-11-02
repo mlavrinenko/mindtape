@@ -192,7 +192,7 @@ emit_mutants() {
         --set "ease=$ease"
         --set "difficulty=$difficulty"
         --set "estimate=(src-files: 1)"
-        --set 'tags+=swept' --set 'tags+=mutants'
+        --set 'tags+=swept' --set 'tags+=mutants' --set 'tags+=stateless'
     )
 
     local advice; advice=$(printf '%s\n' 'the stem is taken, so this mutant was filed before and closed' 'without being killed — reopen it, or add it to' '`.config/mutants.toml` `exclude_re` with its reason')

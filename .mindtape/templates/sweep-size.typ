@@ -49,18 +49,33 @@
     example: ("swept", "size", "stateless"),
   ),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      slot("product-goals", kind: "raw", default: (:)),
+      ..slot(
+        "product-neutral",
+        kind: "list",
+        default: (
+          "readable-tasks",
+          "implementable-tasks",
+          "enforced-practice",
+          "cheap-adoption",
+          "typst-over-markdown",
+          "plain-files",
+        ),
+      ),
     ),
-    process: (
-      sound-codebase: helps[a file under its cap changes without reading its
-        neighbors],
-      docs-match-code: neutral,
+    process: verdicts(
+      slot(
+        "process-goals",
+        kind: "raw",
+        default: (sound-codebase: helps[a file under its cap changes without reading its neighbors],),
+        example: "(sound-codebase: helps[a file under its cap changes without reading its neighbors],)",
+      ),
+      ..slot(
+        "process-neutral",
+        kind: "list",
+        default: ("docs-match-code",),
+      ),
     ),
   ),
 )

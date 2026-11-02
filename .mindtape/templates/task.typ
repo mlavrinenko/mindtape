@@ -17,37 +17,31 @@
   tags: slot("tags", kind: "list", default: ("stateless",)),
   estimate: slot("estimate", kind: "text", default: "(src-files: 2)"),
   x-goals: (
-    product: (
-      readable-tasks: slot(
-        "readable-tasks",
+    product: verdicts(
+      slot(
+        "product-goals",
         kind: "raw",
-        default: "neutral",
-        example: "helps[a listing sorted by due shows what is due first]",
+        default: (:),
+        example: "(readable-tasks: helps[a listing sorted by due shows what is due first],)",
       ),
-      implementable-tasks: slot(
-        "implementable-tasks",
-        kind: "raw",
-        default: "neutral",
+      ..slot(
+        "product-neutral",
+        kind: "list",
+        default: (
+          "implementable-tasks",
+          "enforced-practice",
+          "cheap-adoption",
+          "typst-over-markdown",
+          "plain-files",
+        ),
       ),
-      enforced-practice: slot(
-        "enforced-practice",
-        kind: "raw",
-        default: "neutral",
-      ),
-      cheap-adoption: slot("cheap-adoption", kind: "raw", default: "neutral"),
-      typst-over-markdown: slot(
-        "typst-over-markdown",
-        kind: "raw",
-        default: "neutral",
-      ),
-      plain-files: slot("plain-files", kind: "raw", default: "neutral"),
     ),
-    process: (
-      sound-codebase: slot("sound-codebase", kind: "raw", default: "neutral"),
-      docs-match-code: slot(
-        "docs-match-code",
-        kind: "raw",
-        default: "neutral",
+    process: verdicts(
+      slot("process-goals", kind: "raw", default: (:)),
+      ..slot(
+        "process-neutral",
+        kind: "list",
+        default: ("sound-codebase", "docs-match-code"),
       ),
     ),
   ),
@@ -70,10 +64,16 @@
 #slot(
   "to-be",
   kind: "raw",
-  prompt: "Bullets opening with 🟢: how it should work, behave and feel once this lands",
-  example: ```typ
+  prompt: "Bullets opening with 🟢: how it should work, behave and feel once this lands, plus a fenced example",
+  example: ````typ
   - 🟢 A task without a `due` sorts after every dated task, in either direction.
-  ```,
+
+  ```
+  $ mt ls --sort due:asc
+  dated-task  due: 2026-11-03
+  undated-task
+  ```
+  ````,
 )
 
 == Changes

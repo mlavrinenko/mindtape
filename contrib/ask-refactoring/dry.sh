@@ -143,7 +143,7 @@ $listed"
         --set "ease=$ease"
         --set "difficulty=2"
         --set "estimate=(src-files: $((files + 1)))"
-        --set 'tags+=swept' --set 'tags+=dry'
+        --set 'tags+=swept' --set 'tags+=dry' --set 'tags+=stateless'
     )
     local advice
     advice="$(printf '%s\n' \

@@ -236,7 +236,7 @@ emit_undertested() {
         # `coverage`, not a further signal tag: the tag says which advisory tool
         # noticed the finding (see the `[tasks.tags]` comment in the config),
         # and that is llvm-cov.
-        --set 'tags+=swept' --set 'tags+=coverage'
+        --set 'tags+=swept' --set 'tags+=coverage' --set 'tags+=stateless'
     )
 
     local advice; advice=$(printf '%s\n' 'the stem is taken, so this function was filed before and closed' 'without its coverage rising — reopen it, or exclude the file in' '`CRAP_EXCLUDES` in .just/crap.just with a written reason')

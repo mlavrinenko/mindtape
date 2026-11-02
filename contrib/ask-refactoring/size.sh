@@ -208,7 +208,7 @@ emit_size() {
     # the literal ones after the slot and the Scope reads as one list.
     remedy="$(remedy_for "$kind")"
 
-    local tags=(--set 'tags+=swept' --set 'tags+=size')
+    local tags=(--set 'tags+=swept' --set 'tags+=size' --set 'tags+=stateless')
     [ "$flavour" = test ] && tags+=(--set 'tags+=tests')
 
     local args=(
