@@ -3,14 +3,12 @@
 // `check-goals` on that field.
 
 // docs:slice goals
+#import "@local/mindtape:0.3.0": helps, hurts, neutral, verdicts
+
 #let goals = (
   secure: "Only the owner of a session can use it",
   fast: "Every endpoint answers within 100 ms",
 )
-
-#let helps(why) = (effect: "helps", why: why)
-#let hurts(why) = (effect: "hurts", why: why)
-#let neutral = (effect: "neutral")
 
 // Returns one message per problem, and `mt` reports each of them.
 #let check-goals(ratings) = {
@@ -29,4 +27,12 @@
   }
   messages
 }
+// docs:end
+
+// docs:slice goals-short
+// A task names the goals it helps, then lists the rest once.
+#let example-goals = verdicts(
+  (secure: helps[an expired session can't mint a new token]),
+  "fast",
+)
 // docs:end

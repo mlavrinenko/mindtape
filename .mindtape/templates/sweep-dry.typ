@@ -68,7 +68,9 @@
       slot(
         "process-goals",
         kind: "raw",
-        default: (sound-codebase: helps[a clone the gate tolerates lives in one helper, or carries a comment saying why it matches, so the baseline shrinks],),
+        default: (
+          sound-codebase: helps[a clone the gate tolerates lives in one helper, or carries a comment saying why it matches, so the baseline shrinks],
+        ),
         example: "(sound-codebase: helps[a clone the gate tolerates lives in one helper, or carries a comment saying why it matches, so the baseline shrinks],)",
       ),
       ..slot(

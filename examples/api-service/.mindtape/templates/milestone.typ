@@ -1,5 +1,4 @@
 #import "@local/mindtape:0.3.0": *
-#import "../goals.typ": helps, hurts, neutral
 #show: task.with(
   title: slot(
     "title",
@@ -14,19 +13,21 @@
     default: ("stateless",),
   ),
   estimate: (src-files: 0),
-  x-goals: (
-    secure: slot(
-      "secure",
-      kind: "raw",
-      default: "neutral",
-      prompt: "helps[how], hurts[how] or neutral",
-      example: "helps[an expired session can't mint a new token]",
-    ),
-    fast: slot(
-      "fast",
-      kind: "raw",
-      default: "neutral",
-      prompt: "helps[how], hurts[how] or neutral",
+  x-goals: verdicts(
+    (
+      secure: slot(
+        "secure",
+        kind: "raw",
+        default: "neutral",
+        prompt: "helps[how], hurts[how] or neutral",
+        example: "helps[an expired session can't mint a new token]",
+      ),
+      fast: slot(
+        "fast",
+        kind: "raw",
+        default: "neutral",
+        prompt: "helps[how], hurts[how] or neutral",
+      ),
     ),
   ),
 )

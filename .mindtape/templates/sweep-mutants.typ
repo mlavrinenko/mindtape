@@ -68,7 +68,9 @@
       slot(
         "process-goals",
         kind: "raw",
-        default: (sound-codebase: helps[a line that decides something gets a test that fails when it breaks],),
+        default: (
+          sound-codebase: helps[a line that decides something gets a test that fails when it breaks],
+        ),
         example: "(sound-codebase: helps[a line that decides something gets a test that fails when it breaks],)",
       ),
       ..slot(

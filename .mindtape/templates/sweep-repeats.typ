@@ -68,7 +68,9 @@
       slot(
         "process-goals",
         kind: "raw",
-        default: (sound-codebase: helps[a snippet pasted everywhere lives in one helper, so a fix lands once],),
+        default: (
+          sound-codebase: helps[a snippet pasted everywhere lives in one helper, so a fix lands once],
+        ),
         example: "(sound-codebase: helps[a snippet pasted everywhere lives in one helper, so a fix lands once],)",
       ),
       ..slot(

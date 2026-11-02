@@ -68,7 +68,9 @@
       slot(
         "process-goals",
         kind: "raw",
-        default: (sound-codebase: helps[a file under its cap changes without reading its neighbors],),
+        default: (
+          sound-codebase: helps[a file under its cap changes without reading its neighbors],
+        ),
         example: "(sound-codebase: helps[a file under its cap changes without reading its neighbors],)",
       ),
       ..slot(

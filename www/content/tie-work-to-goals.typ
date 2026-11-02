@@ -26,6 +26,14 @@ function next to the goals it checks:
 
 #fixture-slice("goals")
 
+A task names the goals it helps, and lists the rest once.
+`verdicts(given, ..neutral-names)` gives every listed name a `neutral` verdict,
+then merges `given` last, so an explicit verdict wins over its neutral slot.
+Naming a goal both ways is a mistake, and the helper asserts instead of letting
+one side win:
+
+#fixture-slice("goals-short")
+
 = Behavior
 
 The milestone template rates each goal `neutral` unless you answer for it. So
@@ -41,7 +49,7 @@ says how it helps:
 every problem at once. #link(u("/self-validating-tasks/"))[Self-validating
   tasks] covers check functions and `x-` fields.
 
-The #link(REPO + "/blob/main/examples/api-service/.mindtape/templates/milestone.typ")[milestone template] imports `helps`, `hurts` and `neutral` and asks for one
+The #link(REPO + "/blob/main/examples/api-service/.mindtape/templates/milestone.typ")[milestone template] uses `verdicts` from the package and asks for one
 rating per goal. Add a goal, and `mt check` names every open milestone that
 doesn't rate it yet.
 

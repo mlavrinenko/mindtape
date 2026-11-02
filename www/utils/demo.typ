@@ -21,7 +21,11 @@
 // The fixture's Typst slices: the task README opens with, and the goals
 // module the tie-work-to-goals recipe quotes.
 #let _fact = json("../generated/api-service.json")
-#let _slices = checked-slices(_fact, "api-service", ("showcase", "goals"))
+#let _slices = checked-slices(
+  _fact,
+  "api-service",
+  ("showcase", "goals", "goals-short"),
+)
 
 // Slice `id` under a link to the file it comes from.
 #let fixture-slice(id) = {

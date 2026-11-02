@@ -39,8 +39,8 @@ It is when `.mindtape/config.toml` exists. Run `mt` at or below the directory th
 holds `.mindtape/`. For another project, pass `-w <path>`, or put a name
 that `mt at` lists, such as `@name`, right after `mt`. `mt at <name>` shows
 whether a name is one project or a set. On a set, #set-command-list() read
-every project, and a bare `mt @name` runs `board`. Every other command, every
-write included, refuses a set: put one project's `@name` there instead.
+every project, and a bare `mt @name` runs `board`. Writes and other commands
+refuse a set: name one project instead.
 
 = Commands
 
@@ -70,9 +70,9 @@ start with, from `mt dicts <name>`. Before you flip or commit, run
 `mt tags --for <step>` and `mt rules --for <step>`. For more, read #www-llms,
 every docs page as Markdown.
 
-A `<task>` is a stem, a path, or the stem hash `mt ls` prints in its `slug#`
-column. A hash changes only when `mt mv` renames the stem, and `mt` refuses one
-that several tasks share. Link a task's file path when you name it to a person.
+A `<task>` is a stem, a path, or the `slug#` hash `mt ls` prints. The hash
+changes only when `mt mv` renames the stem; `mt` refuses one shared by several
+tasks. Link a task's file path when you name it to a person.
 
 = Finding tasks
 
@@ -91,20 +91,21 @@ read `references/filters.md`.
 
 = Filing tasks
 
-`mt add <title…>` names the file from the title, checks the task, and writes
-it under the first root. Before you file, run `mt tags --for add`: it names
-the tags the shape rules read, including the opt-outs `no-repro` and
-`no-ui-ux`. `mt add --list` lists the templates, and `mt add --describe` lists
-a template's slots. Pass a typed value as `--set key=value`, and a generated
-one as YAML on stdin with `-f -`, which needs no quoting. `--print` shows the
-task without writing it.
+`mt add <title…>` names the file, checks the task, and writes it under the
+first root. Before you file, run `mt tags --for add` for the tags the shape
+rules read, including the `no-repro` and `no-ui-ux` opt-outs. Write `x-goals`
+with `verdicts((secure: helps[why],), "fast")`: the task's verdicts, then
+every neutral goal by name. A goal named both ways fails. `mt add --list`
+lists templates and `mt add --describe` their slots. Pass a typed value as
+`--set key=value`, or YAML on stdin with `-f -`. `--print` shows the task
+without writing it.
 
-A key names a template slot, which need not be a field: a framework priority
-takes its inputs (`--set impact=8`). `mt add` refuses an unknown slot and lists
-the known ones. For a field the template has no slot for, file the task,
-then `mt set` it. A `text` slot escapes Typst markup,
-so a code span in it lands as literal backticks, and `mt add` warns naming the
-slot. Read `references/add-slots.md` before you fill an unfamiliar template.
+A slot need not be a field: a framework priority takes its inputs
+(`--set impact=8`). `mt add` refuses an unknown slot and lists the known ones.
+For a field with no slot, file the task then `mt set` it. A `text` slot
+escapes markup, so a code span lands as literal backticks and `mt add` warns
+naming the slot. Read `references/add-slots.md` before filling an unfamiliar
+template.
 
 Read `references/import.md` before `mt import` files a batch.
 
@@ -113,7 +114,7 @@ Read `references/import.md` before `mt import` files a batch.
 `mt <status> <task…>` is short for `mt flip <status> <task…>`. It stamps the
 status with today's date, and `-m "…"` sets the note. A refused flip names its
 reason: the legend forbids the transition, the task has an unfinished
-dependency, or it is a parent with an unfinished child. Fix the reason.
+dependency, or a parent has an unfinished child. Fix the reason.
 `--force` overrides the refusal and waives a failing `[[on.flip]]` gate; use it
 only to fix a mistake. Exit 127 from a gate means `mt` ran outside the dev
 shell, so flip from inside it.
@@ -121,7 +122,7 @@ shell, so flip from inside it.
 `mt ls blocked --columns title,why` shows what each blocked task waits on. A
 legend may have no `blocked` status, so check `mt flip --list` first. For an
 external blocker, read `references/blocking.md`. Never mark a blocked task
-`wip`: that says someone is on it and counts against a WIP cap.
+`wip`: that counts against a WIP cap.
 
 `mt` runs no command from the config, neither a `[[tasks.waits]]` checker, an
 `[[on.flip]]` `run` nor a `[go]` or `[add]` editor, until the user allows them.
