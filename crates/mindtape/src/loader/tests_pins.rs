@@ -91,8 +91,9 @@ fn a_pin_with_no_manifest_still_names_its_own_path() {
     let world =
         super::pins::with_packages_at(world, &overrides, Some(packages.path().to_path_buf()));
     let err = harvest(&world).unwrap_err().to_string();
+    let manifest = crate::display_path("lib/typst.toml");
     assert!(
-        err.contains("lib/typst.toml"),
+        err.contains(&manifest),
         "the pin's manifest is named: {err}"
     );
 }

@@ -62,13 +62,15 @@ fn a_repeated_warning_lists_every_site_when_verbose() {
     let diags = fold_warnings(&warnings, true);
 
     assert_eq!(diags.len(), 2);
+    let a = mindtape::display_path("tasks/a.typ");
+    let b = mindtape::display_path("tasks/b.typ");
     assert!(
         plain(diags.first().unwrap())
-            .starts_with("warning: tasks/a.typ:6:1: no text within stars\n")
+            .starts_with(&format!("warning: {a}:6:1: no text within stars\n"))
     );
     assert!(
         plain(diags.get(1).unwrap())
-            .starts_with("warning: tasks/b.typ:7:1: no text within stars\n")
+            .starts_with(&format!("warning: {b}:7:1: no text within stars\n"))
     );
 }
 
@@ -79,9 +81,10 @@ fn a_single_warning_keeps_its_place_without_a_count() {
     let diags = fold_warnings(&warnings, false);
 
     assert_eq!(diags.len(), 1);
+    let a = mindtape::display_path("tasks/a.typ");
     assert_eq!(
         plain(diags.first().unwrap()),
-        "warning: tasks/a.typ:6:1: no text within stars\nhint: hint\n"
+        format!("warning: {a}:6:1: no text within stars\nhint: hint\n")
     );
 }
 
@@ -111,9 +114,10 @@ fn load_problems_folds_warnings_for_every_reporting_command() {
     let diags = crate::util::load_problems(&outcome, Kind::Warning);
 
     assert_eq!(diags.len(), 1);
+    let a = mindtape::display_path("tasks/a.typ");
     assert!(
         plain(diags.first().unwrap())
-            .starts_with("warning: no text within stars: 2 times in tasks/a.typ\n"),
+            .starts_with(&format!("warning: no text within stars: 2 times in {a}\n")),
         "{diags:?}"
     );
 }
