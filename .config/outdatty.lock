@@ -207,15 +207,15 @@ groups:
       www/utils/cli-notes.typ: f4f3fdc25dd45b7465220811f822300fe7ebeefde4ed1e476f63d24e46397621
   cli-name:
     source:
-      crates/mindtape-cli/Cargo.toml: 44d767ecc3b7ecdc4cc6ec2bf35050927729394706e08c831de698fed08cd3f4
+      crates/mindtape-cli/Cargo.toml: 8c60814d586a3ea5e53bd9e9002e41ef88f1b6720135fafe46e1156e28b0700e
       crates/mindtape-cli/src/cli/mod.rs: f91c4da7beeb7e05555c26e6e3e1d03112ca86ac45f31f2699d5f1f0c3107bff
     dependents:
-      CHANGELOG.md: 8062d2c64348bf024320c1e1b5d9e3361ebd2a1844c074709c711d0f915d9a3f
+      CHANGELOG.md: c6ab91ffe2f5a006b54a67a21feead1e478f3865085d104cac6285c56bfabf60
       docs/src/agents.typ: 14f84f4a49f0f115c78cadbad34b4d7afa25503dc2bd5fa2c3db2e297679badb
-      docs/src/contributing.typ: 7d33e30a847a1559b3042076a147fccf8fca15e860019deb711e17425353033c
+      docs/src/contributing.typ: 4f27aaa82e89c84bf054372c0b5ce92aaec757856883e2cc937451949f232e53
       docs/src/contributing/command-semantics.typ: 5b3219c6991e68607914d12d1386f39913d500ddb3f7d0eca2b91232789df32f
       docs/src/readme.typ: 9e3bd7c84f8dab0339286acc8544ef83a93c05fce6df0b4c2e3573d9a87a5254
-      docs/src/skill.typ: 7a20ee15598df882309eb6d8fb0988d852682b4d11b5289f512d5cff925bd6e7
+      docs/src/skill.typ: f132951817dff24403c5b9f1c7096f8a42333b6d68f983aaa612576191fd7318
       www/content/cli.typ: 92c068e1f731acc31c81897fcb327f57028a09e660fcdbdf8d1ffb1ef7c3569c
       www/content/index.typ: 2237937279fb72b8035aa8a0df8e050f5f9e0312df997023a8dd940ddc512621
       www/content/quickstart.typ: e648924e5f5d9ce48a89e75a4ef846310072e141cf699af29f6dc5c4ae9df3ec
@@ -479,9 +479,9 @@ groups:
       docs/src/contributing/release.typ: 5aa1e70e3a3872c8b689e31dc213dee1b5fada273e6f8dc3489589edd14792a2
   release-notes:
     source:
-      Cargo.toml: 98d4165242b052f297da8fe986a066aefdb92c8c73e09b652927b1affe9ba41b
+      Cargo.toml: c88d46a092158fe095e7e059f4989589aa27dbdbba8f7021050faec1cca68336
     dependents:
-      CHANGELOG.md: 8062d2c64348bf024320c1e1b5d9e3361ebd2a1844c074709c711d0f915d9a3f
+      CHANGELOG.md: c6ab91ffe2f5a006b54a67a21feead1e478f3865085d104cac6285c56bfabf60
   scripts-no-doc:
     source:
       .just/scripts/_doc-blocks-control.sh: 066258f034694487e0a94bba355457293697ff06ca7b974884ba3d5ca24ae7da
