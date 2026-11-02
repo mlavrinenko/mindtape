@@ -15,17 +15,21 @@
   estimate: (files: 2),
   assignee: "agent",
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[an eval asserting behavior the binary refuses grades a correct agent as failing],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[an eval asserting behavior the binary refuses grades a correct agent as failing],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[the skill's test suite states what the binary does],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[the skill's test suite states what the binary does],
+      ),
+      "docs-match-code",
     ),
   ),
 )

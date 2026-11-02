@@ -13,17 +13,21 @@
   tags: ("cli", "docs"),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: helps[an agent reads the rules in the time it takes to read a short list],
-      implementable-tasks: neutral,
-      enforced-practice: helps[an agent or user learns the rules before a refusal, not from it],
-      cheap-adoption: helps[a project that extends a pack sees which rules it got, with its overrides applied],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[an agent reads the rules in the time it takes to read a short list],
+        enforced-practice: helps[an agent or user learns the rules before a refusal, not from it],
+        cheap-adoption: helps[a project that extends a pack sees which rules it got, with its overrides applied],
+      ),
+      "implementable-tasks",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[SKILL.md and AGENTS.md point at the command, not at a copy of the rules],
+    process: verdicts(
+      (
+        docs-match-code: helps[SKILL.md and AGENTS.md point at the command, not at a copy of the rules],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

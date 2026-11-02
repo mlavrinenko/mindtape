@@ -13,17 +13,20 @@
   tags: ("docs", "tooling"),
   estimate: (src-files: 25),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[a doc page renders the name from one constant, and a gate refuses a typed one],
+    process: verdicts(
+      (
+        docs-match-code: helps[a doc page renders the name from one constant, and a gate refuses a typed one],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

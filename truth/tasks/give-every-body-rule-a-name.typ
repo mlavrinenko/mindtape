@@ -15,17 +15,20 @@
   assignee: "agent",
   status: done(2026, 9, 16),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a named rule can be switched off alone instead of dropping a whole pack],
-      cheap-adoption: helps[rule-by-rule overrides are what make a one-line `extends` safe to adopt],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[a named rule can be switched off alone instead of dropping a whole pack],
+        cheap-adoption: helps[rule-by-rule overrides are what make a one-line `extends` safe to adopt],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
 )

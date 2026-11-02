@@ -13,17 +13,20 @@
   tags: ("mt", "gating"),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: helps[the implementer reads the fan-out from queries anyone can re-run, not from a guess],
-      enforced-practice: helps[a judgment cap measures the code the task will touch, and trips again at `mt wip` when the fan-out grew],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        implementable-tasks: helps[the implementer reads the fan-out from queries anyone can re-run, not from a guess],
+        enforced-practice: helps[a judgment cap measures the code the task will touch, and trips again at `mt wip` when the fan-out grew],
+      ),
+      "readable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

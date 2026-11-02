@@ -13,17 +13,20 @@
   tags: ("tooling", "tests"),
   estimate: (src-files: 1),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[a stale outcomes file cannot hide a survivor the suite fails to pin],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[a stale outcomes file cannot hide a survivor the suite fails to pin],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

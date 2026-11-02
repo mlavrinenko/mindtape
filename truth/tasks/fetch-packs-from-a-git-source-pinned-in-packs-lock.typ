@@ -13,17 +13,20 @@
   tags: ("mt", "gating", "decision"),
   estimate: (src-files: 0),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[a team adopts its own packs from one repository, pinned, without a submodule or a copy per project],
-      typst-over-markdown: neutral,
-      plain-files: hurts[a fetched pack lives outside the repo, though `mt packs install` restores it from the committed lock],
+    product: verdicts(
+      (
+        cheap-adoption: helps[a team adopts its own packs from one repository, pinned, without a submodule or a copy per project],
+        plain-files: hurts[a fetched pack lives outside the repo, though `mt packs install` restores it from the committed lock],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

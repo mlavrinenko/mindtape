@@ -16,17 +16,20 @@
   status: done(2026, 9, 16),
   links: depends-on("move-goal-verdicts-into-x-goals.typ"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[an engineer sees the reason to switch before the install steps],
-      typst-over-markdown: helps[the first screen shows what only a Typst task can say],
-      plain-files: neutral,
+    product: verdicts(
+      (
+        cheap-adoption: helps[an engineer sees the reason to switch before the install steps],
+        typst-over-markdown: helps[the first screen shows what only a Typst task can say],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
 )

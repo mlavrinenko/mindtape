@@ -16,18 +16,21 @@
   status: done(2026, 9, 16),
   links: depends-on("add-a-density-content-assert.typ"),
   x-goals: (
-    product: (
-      readable-tasks: helps[a cap of one em-dash per paragraph keeps task prose plain],
-      implementable-tasks: neutral,
-      enforced-practice: helps[the density rule is refused by `mt check` instead of
-        living in a style note],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[a cap of one em-dash per paragraph keeps task prose plain],
+        enforced-practice: helps[the density rule is refused by `mt check` instead of
+          living in a style note],
+      ),
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
 )

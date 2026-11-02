@@ -13,17 +13,21 @@
   tags: ("mt",),
   estimate: (files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a WIP cap becomes a rule expression a project writes],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[a WIP cap becomes a rule expression a project writes],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[set-level checks stop needing their own config tables],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[set-level checks stop needing their own config tables],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

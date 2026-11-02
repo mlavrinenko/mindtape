@@ -13,17 +13,20 @@
   estimate: (src-files: 7),
   tags: ("found", "cli"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the help and the schema name the column the table prints, on the commands that print it],
+    process: verdicts(
+      (
+        docs-match-code: helps[the help and the schema name the column the table prints, on the commands that print it],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

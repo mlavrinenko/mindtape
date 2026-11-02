@@ -13,17 +13,20 @@
   estimate: (src-files: 1),
   tags: ("found", "tooling"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[an edit to a command page leaves a review record like every other dependent],
+    process: verdicts(
+      (
+        docs-match-code: helps[an edit to a command page leaves a review record like every other dependent],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

@@ -17,17 +17,20 @@
   links: depends-on("let-a-config-extend-rule-packs.typ")
     + depends-on("move-goal-verdicts-into-x-goals.typ"),
   x-goals: (
-    product: (
-      readable-tasks: helps[every adopting repo's tasks share one skimmable shape],
-      implementable-tasks: helps[every adopting repo's tasks carry reproduction steps and named files],
-      enforced-practice: neutral,
-      cheap-adoption: helps[a repo gets the flagship task practice from one line, and later fixes with the binary],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[every adopting repo's tasks share one skimmable shape],
+        implementable-tasks: helps[every adopting repo's tasks carry reproduction steps and named files],
+        cheap-adoption: helps[a repo gets the flagship task practice from one line, and later fixes with the binary],
+      ),
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
 )

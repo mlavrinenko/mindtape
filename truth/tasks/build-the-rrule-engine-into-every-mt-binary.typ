@@ -13,17 +13,21 @@
   tags: ("mt", "tooling"),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[a calendar rule works in the binary a user installs, with no rebuild],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        cheap-adoption: helps[a calendar rule works in the binary a user installs, with no rebuild],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[one build and one test run instead of a feature arm, its stub and its CI job],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[one build and one test run instead of a feature arm, its stub and its CI job],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

@@ -13,17 +13,20 @@
   tags: ("tooling",),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[the Windows job tests the hooks, the editor and the completion hint instead of the test's own shell],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[the Windows job tests the hooks, the editor and the completion hint instead of the test's own shell],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

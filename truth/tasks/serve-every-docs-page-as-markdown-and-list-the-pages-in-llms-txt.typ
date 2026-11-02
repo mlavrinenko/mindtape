@@ -13,17 +13,21 @@
   tags: ("www", "docs"),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[an agent reads the docs at a sixth of the bytes and finds every page from one index],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        cheap-adoption: helps[an agent reads the docs at a sixth of the bytes and finds every page from one index],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the Markdown renders from the same Typst sources as the HTML, so the two cannot disagree],
+    process: verdicts(
+      (
+        docs-match-code: helps[the Markdown renders from the same Typst sources as the HTML, so the two cannot disagree],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

@@ -13,17 +13,20 @@
   tags: ("tooling",),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a dry run and a write agree on what the project's rules accept],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[a dry run and a write agree on what the project's rules accept],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

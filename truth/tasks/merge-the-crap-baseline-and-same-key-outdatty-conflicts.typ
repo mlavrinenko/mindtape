@@ -13,17 +13,20 @@
   tags: ("tooling",),
   estimate: (src-files: 4),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[parallel worktrees land without hand-resolving the CRAP baseline or the outdatty lock],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[parallel worktrees land without hand-resolving the CRAP baseline or the outdatty lock],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

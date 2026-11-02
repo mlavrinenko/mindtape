@@ -13,17 +13,20 @@
   tags: ("mt",),
   estimate: (src-files: 2),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: helps[a `Refs:` trailer names the task it works on, whatever its stem holds],
-      enforced-practice: helps[`mt check --commits` stops refusing a trailer that names a real task],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        implementable-tasks: helps[a `Refs:` trailer names the task it works on, whatever its stem holds],
+        enforced-practice: helps[`mt check --commits` stops refusing a trailer that names a real task],
+      ),
+      "readable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

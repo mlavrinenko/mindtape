@@ -13,17 +13,20 @@
   estimate: (src-files: 3),
   tags: ("found", "mt"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a task whose work is retiring other tasks closes without padding its commit],
-      cheap-adoption: helps[an adopter's cleanup task closes under the shipped pack without a workaround],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[a task whose work is retiring other tasks closes without padding its commit],
+        cheap-adoption: helps[an adopter's cleanup task closes under the shipped pack without a workaround],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

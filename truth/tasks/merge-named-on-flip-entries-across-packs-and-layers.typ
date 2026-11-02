@@ -13,17 +13,20 @@
   tags: ("mt", "gating"),
   estimate: (src-files: 4),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[a pack's flip gates apply beside the project's own, and the project replaces or drops one by name],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        cheap-adoption: helps[a pack's flip gates apply beside the project's own, and the project replaces or drops one by name],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

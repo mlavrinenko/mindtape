@@ -13,17 +13,21 @@
   tags: ("mt", "cli"),
   estimate: (src-files: 4),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[a name `mt at` prints works after `@`, so two same-named repos need no extra at.toml entry],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        cheap-adoption: helps[a name `mt at` prints works after `@`, so two same-named repos need no extra at.toml entry],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[a member name and the token that selects it go through one suffix rule],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[a member name and the token that selects it go through one suffix rule],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

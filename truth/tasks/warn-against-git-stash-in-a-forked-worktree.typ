@@ -13,17 +13,20 @@
   estimate: (src-files: 2),
   tags: ("found", "tooling"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[parallel forks cannot pick up each other's half-done work],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[parallel forks cannot pick up each other's half-done work],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

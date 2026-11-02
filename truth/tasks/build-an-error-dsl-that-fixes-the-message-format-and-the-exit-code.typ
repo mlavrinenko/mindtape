@@ -13,17 +13,20 @@
   tags: ("cli",),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[the compiler and clippy hold the error format, not a review],
-      cheap-adoption: helps[every error says what failed and what to try, in one shape],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[the compiler and clippy hold the error format, not a review],
+        cheap-adoption: helps[every error says what failed and what to try, in one shape],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

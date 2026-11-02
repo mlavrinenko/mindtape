@@ -13,17 +13,20 @@
   estimate: (src-files: 1),
   tags: ("found", "cli"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the header lists the files the folder holds],
+    process: verdicts(
+      (
+        docs-match-code: helps[the header lists the files the folder holds],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

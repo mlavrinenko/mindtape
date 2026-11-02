@@ -13,17 +13,21 @@
   tags: ("docs", "www"),
   estimate: (src-files: 3),
   x-goals: (
-    product: (
-      readable-tasks: helps[a reader of `mt @name` sees why a project with no open task is missing from the board],
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[a reader of `mt @name` sees why a project with no open task is missing from the board],
+      ),
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the pages show the file `mt` reads, so a changed default changes them],
+    process: verdicts(
+      (
+        docs-match-code: helps[the pages show the file `mt` reads, so a changed default changes them],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

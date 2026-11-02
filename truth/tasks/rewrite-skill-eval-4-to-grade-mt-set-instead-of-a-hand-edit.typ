@@ -13,17 +13,21 @@
   estimate: (files: 1),
   tags: ("found", "docs"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[the graded recovery goes through the validator instead of around it],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[the graded recovery goes through the validator instead of around it],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the eval stops asserting a fact that stopped being true],
+    process: verdicts(
+      (
+        docs-match-code: helps[the eval stops asserting a fact that stopped being true],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

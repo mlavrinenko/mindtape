@@ -15,17 +15,21 @@
   estimate: (files: 12),
   assignee: "agent",
   x-goals: (
-    product: (
-      readable-tasks: helps[an example the checker runs cannot drift from the checker],
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[an example the checker runs cannot drift from the checker],
+      ),
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[config blocks shown on the site come out of checked fixtures],
+    process: verdicts(
+      (
+        docs-match-code: helps[config blocks shown on the site come out of checked fixtures],
+      ),
+      "sound-codebase",
     ),
   ),
 )

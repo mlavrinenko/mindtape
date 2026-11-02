@@ -12,17 +12,21 @@
   tags: ("mt", "tests"),
   estimate: (files: 1),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[the origin column is how a repo checks which pack supplied a rule, so its labels have to be pinned],
-      cheap-adoption: helps[a repo adopting a pack trusts the merge only as far as it can see where each rule came from],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[the origin column is how a repo checks which pack supplied a rule, so its labels have to be pinned],
+        cheap-adoption: helps[a repo adopting a pack trusts the merge only as far as it can see where each rule came from],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[the one function over the CRAP threshold goes back under it],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[the one function over the CRAP threshold goes back under it],
+      ),
+      "docs-match-code",
     ),
   ),
   kind: "test",

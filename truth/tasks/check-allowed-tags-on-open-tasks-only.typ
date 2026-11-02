@@ -13,17 +13,20 @@
   tags: ("mt",),
   estimate: (files: 1),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[the tag list governs the work still to do, not finished history],
-      cheap-adoption: helps[a project renames or drops a tag without touching finished tasks],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[the tag list governs the work still to do, not finished history],
+        cheap-adoption: helps[a project renames or drops a tag without touching finished tasks],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

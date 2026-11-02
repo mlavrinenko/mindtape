@@ -20,17 +20,20 @@
   )[verdicts landed in x-goals across every open task and template; check-goals is the only place they're checked now],
   links: depends-on("check-a-task-field-with-a-typst-function.typ"),
   x-goals: (
-    product: (
-      readable-tasks: helps[the body runs from Problem straight to TO-BE, and the verdicts sit beside status and links],
-      implementable-tasks: neutral,
-      enforced-practice: helps[a skipped goal becomes a named `rules.goals` error that `mt add` refuses, not an eval panic],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[the body runs from Problem straight to TO-BE, and the verdicts sit beside status and links],
+        enforced-practice: helps[a skipped goal becomes a named `rules.goals` error that `mt add` refuses, not an eval panic],
+      ),
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
 )

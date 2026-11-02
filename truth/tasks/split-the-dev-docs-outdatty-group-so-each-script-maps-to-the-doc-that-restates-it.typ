@@ -13,17 +13,20 @@
   estimate: (src-files: 4),
   tags: ("found", "tooling"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[a flagged dependent is one that restates the changed script],
+    process: verdicts(
+      (
+        docs-match-code: helps[a flagged dependent is one that restates the changed script],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

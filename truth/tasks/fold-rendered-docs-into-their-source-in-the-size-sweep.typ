@@ -13,17 +13,20 @@
   tags: ("size", "tooling"),
   estimate: (src-files: 4),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[one rule says how a near-cap prose file is fixed, and the sweep files one task per artifact],
-      docs-match-code: helps[the sweep's remedy and `.linecop.yaml` link to the rule instead of contradicting it],
+    process: verdicts(
+      (
+        sound-codebase: helps[one rule says how a near-cap prose file is fixed, and the sweep files one task per artifact],
+        docs-match-code: helps[the sweep's remedy and `.linecop.yaml` link to the rule instead of contradicting it],
+      ),
     ),
   ),
   assignee: "agent",

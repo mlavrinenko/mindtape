@@ -13,17 +13,20 @@
   estimate: (src-files: 1),
   tags: ("found", "mt"),
   x-goals: (
-    product: (
-      readable-tasks: helps[a dry run that reports what it would do never claims it wrote tasks],
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[a dry run that reports what it would do never claims it wrote tasks],
+      ),
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

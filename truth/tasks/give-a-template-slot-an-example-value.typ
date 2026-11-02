@@ -13,17 +13,20 @@
   tags: ("mt",),
   estimate: (src-files: 3),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: helps[a template shows a filled-in value for each slot, so a caller sees what a good answer looks like],
-      enforced-practice: helps[the template check fills each slot with its example and counts every breach, instead of guessing which ones the caller will fix],
-      cheap-adoption: neutral,
-      typst-over-markdown: helps[a body slot's example is a Typst raw block, highlighted and written as markup],
-      plain-files: neutral,
+    product: verdicts(
+      (
+        implementable-tasks: helps[a template shows a filled-in value for each slot, so a caller sees what a good answer looks like],
+        enforced-practice: helps[the template check fills each slot with its example and counts every breach, instead of guessing which ones the caller will fix],
+        typst-over-markdown: helps[a body slot's example is a Typst raw block, highlighted and written as markup],
+      ),
+      "readable-tasks",
+      "cheap-adoption",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

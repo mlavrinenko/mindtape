@@ -13,17 +13,21 @@
   tags: ("tooling",),
   estimate: (src-files: 3),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[the Refs rule is checked on every commit here],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[the Refs rule is checked on every commit here],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[CONTRIBUTING states the rule the hook enforces],
+    process: verdicts(
+      (
+        docs-match-code: helps[CONTRIBUTING states the rule the hook enforces],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

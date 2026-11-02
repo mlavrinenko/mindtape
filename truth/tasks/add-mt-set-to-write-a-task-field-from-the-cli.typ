@@ -13,17 +13,21 @@
   tags: ("cli", "mt"),
   estimate: (files: 8),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a field change goes through the validator instead of around it],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[a field change goes through the validator instead of around it],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[one writer, already tested, replaces a hand edit nothing checks],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[one writer, already tested, replaces a hand edit nothing checks],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

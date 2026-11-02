@@ -13,17 +13,21 @@
   tags: ("tooling",),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[a Windows user's tasks in a folder load at all],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        cheap-adoption: helps[a Windows user's tasks in a folder load at all],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[one constructor builds every task file's Typst world],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[one constructor builds every task file's Typst world],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

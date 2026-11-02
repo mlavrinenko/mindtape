@@ -13,17 +13,21 @@
   tags: ("tooling",),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[every refusal the release script made still stops a release, now through cargo-release or its hook],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[every refusal the release script made still stops a release, now through cargo-release or its hook],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[a maintained tool owns the version bump, the CHANGELOG dating, the commit and the tag, where a 120-line shell script did],
-      docs-match-code: helps[CONTRIBUTING and the Justfile describe the same release steps],
+    process: verdicts(
+      (
+        sound-codebase: helps[a maintained tool owns the version bump, the CHANGELOG dating, the commit and the tag, where a 120-line shell script did],
+        docs-match-code: helps[CONTRIBUTING and the Justfile describe the same release steps],
+      ),
     ),
   ),
   assignee: "agent",

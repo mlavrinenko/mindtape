@@ -13,17 +13,20 @@
   tags: ("tooling", "docs"),
   estimate: (src-files: 1),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[a group fires only for prose that restates its source, so a re-record names a review that happened],
+    process: verdicts(
+      (
+        docs-match-code: helps[a group fires only for prose that restates its source, so a re-record names a review that happened],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

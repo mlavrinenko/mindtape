@@ -13,17 +13,21 @@
   tags: ("cli", "mt"),
   estimate: (files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[a new user reaches the project's own stems and statuses without reading the config first],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        cheap-adoption: helps[a new user reaches the project's own stems and statuses without reading the config first],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[nothing is generated and committed, so nothing can go stale],
-      docs-match-code: helps[a completion arm has to name its value source or fail a gate],
+    process: verdicts(
+      (
+        sound-codebase: helps[nothing is generated and committed, so nothing can go stale],
+        docs-match-code: helps[a completion arm has to name its value source or fail a gate],
+      ),
     ),
   ),
   assignee: "agent",

@@ -13,17 +13,21 @@
   estimate: (src-files: 4),
   tags: ("found", "tests"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a new script test cannot skip the hermetic shell],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[a new script test cannot skip the hermetic shell],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[one door replaces three hand-rolled env strips],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[one door replaces three hand-rolled env strips],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

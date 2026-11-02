@@ -13,17 +13,20 @@
   tags: ("mt", "gating", "cli"),
   estimate: (src-files: 4),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a pack update prints every rule and `run` line it changes before the lock commits it],
-      cheap-adoption: helps[taking a pack's next fix is one command whose output says what the fix changes],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[a pack update prints every rule and `run` line it changes before the lock commits it],
+        cheap-adoption: helps[taking a pack's next fix is one command whose output says what the fix changes],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

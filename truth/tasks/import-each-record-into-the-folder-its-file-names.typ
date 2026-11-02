@@ -13,17 +13,21 @@
   estimate: (src-files: 4),
   tags: ("found", "cli"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[a project with subfolders exports and imports back whole],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        cheap-adoption: helps[a project with subfolders exports and imports back whole],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the round-trip page's claim holds for nested projects],
+    process: verdicts(
+      (
+        docs-match-code: helps[the round-trip page's claim holds for nested projects],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

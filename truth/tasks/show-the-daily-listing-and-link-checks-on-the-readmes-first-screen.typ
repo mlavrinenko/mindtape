@@ -13,17 +13,20 @@
   tags: ("docs", "www"),
   estimate: (src-files: 3),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[a reader sees the listing they'd read every day before they scroll],
-      typst-over-markdown: helps[the Typst list says why a link can't rot],
-      plain-files: neutral,
+    product: verdicts(
+      (
+        cheap-adoption: helps[a reader sees the listing they'd read every day before they scroll],
+        typst-over-markdown: helps[the Typst list says why a link can't rot],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

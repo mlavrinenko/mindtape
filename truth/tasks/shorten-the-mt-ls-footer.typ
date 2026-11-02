@@ -13,17 +13,21 @@
   tags: ("cli", "www"),
   estimate: (src-files: 2),
   x-goals: (
-    product: (
-      readable-tasks: helps[the line under a listing names the view and the sort rule, nothing more],
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[the line under a listing names the view and the sort rule, nothing more],
+      ),
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the ls page quotes the footer the code prints],
+    process: verdicts(
+      (
+        docs-match-code: helps[the ls page quotes the footer the code prints],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

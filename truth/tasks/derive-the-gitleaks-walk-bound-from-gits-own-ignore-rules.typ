@@ -13,17 +13,21 @@
   tags: ("gating",),
   estimate: (files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[the bound can no longer drift from what git ignores],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[the bound can no longer drift from what git ignores],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[deletes a hand copy and the gate that policed it],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[deletes a hand copy and the gate that policed it],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

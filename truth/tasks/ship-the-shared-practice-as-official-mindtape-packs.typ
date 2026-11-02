@@ -13,17 +13,20 @@
   tags: ("mt", "gating", "decision"),
   estimate: (src-files: 0),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[the WIP caps, budgets and commit rules run the same way in every project that adopts them],
-      cheap-adoption: helps[the practice nine projects copy by hand becomes `extends` lines that receive every later fix],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[the WIP caps, budgets and commit rules run the same way in every project that adopts them],
+        cheap-adoption: helps[the practice nine projects copy by hand becomes `extends` lines that receive every later fix],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

@@ -13,17 +13,21 @@
   tags: ("mt", "cli"),
   estimate: (src-files: 2),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[a new project starts on the shared packs and gets their fixes on upgrade, not a frozen copy],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        cheap-adoption: helps[a new project starts on the shared packs and gets their fixes on upgrade, not a frozen copy],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[the strict ICE answer reads the one copy in `mindtape:ice`, not a second one in `axes.rs`],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[the strict ICE answer reads the one copy in `mindtape:ice`, not a second one in `axes.rs`],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

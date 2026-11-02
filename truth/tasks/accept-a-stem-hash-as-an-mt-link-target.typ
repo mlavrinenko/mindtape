@@ -13,17 +13,21 @@
   estimate: (src-files: 2),
   tags: ("found", "cli"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: helps[an agent links tasks by the handles mt ls prints],
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        implementable-tasks: helps[an agent links tasks by the handles mt ls prints],
+      ),
+      "readable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[one resolver reads every task reference, so the readers cannot drift],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[one resolver reads every task reference, so the readers cannot drift],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

@@ -19,17 +19,21 @@
     18,
   )[CONTRIBUTING states the rule, docs/contributing/documentation.md carries the arguments, and just dup-prose reports cross-file repeats; the page waves follow],
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a touched doc file is refactored whole under a written rule, not patched until a cap turns green],
-      cheap-adoption: neutral,
-      typst-over-markdown: helps[pages move to real Typst examples read back as data, so the medium carries the explanation instead of prose about it],
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[a touched doc file is refactored whole under a written rule, not patched until a cap turns green],
+        typst-over-markdown: helps[pages move to real Typst examples read back as data, so the medium carries the explanation instead of prose about it],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[one home per fact plus a reproducible duplicate report; repeated prose is found by a recipe instead of by a reader who trips over it],
+    process: verdicts(
+      (
+        docs-match-code: helps[one home per fact plus a reproducible duplicate report; repeated prose is found by a recipe instead of by a reader who trips over it],
+      ),
+      "sound-codebase",
     ),
   ),
 )

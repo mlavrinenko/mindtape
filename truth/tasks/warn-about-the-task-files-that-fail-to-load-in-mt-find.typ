@@ -13,17 +13,20 @@
   estimate: (src-files: 1),
   tags: ("found", "cli"),
   x-goals: (
-    product: (
-      readable-tasks: helps[mt find names a task file it could not read, as mt ls does],
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[a newcomer whose search skips a broken task file learns which file broke],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[mt find names a task file it could not read, as mt ls does],
+        cheap-adoption: helps[a newcomer whose search skips a broken task file learns which file broke],
+      ),
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

@@ -13,17 +13,21 @@
   tags: ("tooling",),
   estimate: (src-files: 20),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[a Windows user sees C:\ paths, not \\?\ ones, and pack errors relative to the project],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        cheap-adoption: helps[a Windows user sees C:\ paths, not \\?\ ones, and pack errors relative to the project],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[one helper resolves every path, and clippy refuses a bare canonicalize],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[one helper resolves every path, and clippy refuses a bare canonicalize],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

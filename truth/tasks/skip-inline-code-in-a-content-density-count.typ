@@ -13,17 +13,20 @@
   tags: ("mt", "gating"),
   estimate: (src-files: 1),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: helps[a density rule counts what the author wrote, not the commands they quote],
-      enforced-practice: helps[a prose rule can hold without a false hit on every code span],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        implementable-tasks: helps[a density rule counts what the author wrote, not the commands they quote],
+        enforced-practice: helps[a prose rule can hold without a false hit on every code span],
+      ),
+      "readable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

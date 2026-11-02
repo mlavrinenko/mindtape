@@ -13,17 +13,20 @@
   estimate: (src-files: 10),
   tags: ("found", "www"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[a page that shows a refusal shows the refusal its prose explains],
+    process: verdicts(
+      (
+        docs-match-code: helps[a page that shows a refusal shows the refusal its prose explains],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

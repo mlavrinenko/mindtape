@@ -13,17 +13,20 @@
   tags: ("mt", "cli"),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: helps[an agent in a fresh clone gets a warning to pass on, not a command it never chose to run],
-      enforced-practice: helps[a changed `run` line needs a fresh approval before it runs],
-      cheap-adoption: hurts[every clone and every changed command asks once before checkers answer],
-      typst-over-markdown: neutral,
-      plain-files: helps[the approval lives outside the repo, so no file in a clone can approve its own commands],
+    product: verdicts(
+      (
+        implementable-tasks: helps[an agent in a fresh clone gets a warning to pass on, not a command it never chose to run],
+        enforced-practice: helps[a changed `run` line needs a fresh approval before it runs],
+        cheap-adoption: hurts[every clone and every changed command asks once before checkers answer],
+        plain-files: helps[the approval lives outside the repo, so no file in a clone can approve its own commands],
+      ),
+      "readable-tasks",
+      "typst-over-markdown",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

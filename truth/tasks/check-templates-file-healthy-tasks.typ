@@ -13,17 +13,21 @@
   tags: ("mt", "gating"),
   estimate: (src-files: 3),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a config change that strands a template fails mt check at once, not the next mt add weeks later],
-      cheap-adoption: helps[an adopting repo learns its templates are stale from the gate it already runs],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[a config change that strands a template fails mt check at once, not the next mt add weeks later],
+        cheap-adoption: helps[an adopting repo learns its templates are stale from the gate it already runs],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[this repo's own eleven templates are held to the config the gate already holds the backlog to],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[this repo's own eleven templates are held to the config the gate already holds the backlog to],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

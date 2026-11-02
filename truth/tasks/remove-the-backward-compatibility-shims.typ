@@ -15,17 +15,20 @@
   assignee: "agent",
   status: done(2026, 9, 16),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[less code to keep correct, and an old spelling fails plainly instead of through a special case],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[less code to keep correct, and an old spelling fails plainly instead of through a special case],
+      ),
+      "docs-match-code",
     ),
   ),
 )

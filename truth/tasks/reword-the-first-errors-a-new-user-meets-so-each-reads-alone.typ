@@ -13,17 +13,20 @@
   tags: ("cli",),
   estimate: (src-files: 10),
   x-goals: (
-    product: (
-      readable-tasks: helps[a refusal says what to do next in words that need no other line],
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[a new user's first refusals explain themselves],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[a refusal says what to do next in words that need no other line],
+        cheap-adoption: helps[a new user's first refusals explain themselves],
+      ),
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

@@ -13,17 +13,20 @@
   tags: ("mt", "cli"),
   estimate: (files: 4),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: helps[an agent with a small context pages through a backlog instead of guessing a filter],
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        implementable-tasks: helps[an agent with a small context pages through a backlog instead of guessing a filter],
+      ),
+      "readable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

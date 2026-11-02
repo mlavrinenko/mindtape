@@ -15,17 +15,21 @@
   estimate: (files: 6),
   assignee: "agent",
   x-goals: (
-    product: (
-      readable-tasks: helps[a table that cannot drift is worth more than a hand-typed one],
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[a table that cannot drift is worth more than a hand-typed one],
+      ),
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[framework inputs, score formulas and difficulty anchors come off the source that declares them],
+    process: verdicts(
+      (
+        docs-match-code: helps[framework inputs, score formulas and difficulty anchors come off the source that declares them],
+      ),
+      "sound-codebase",
     ),
   ),
 )

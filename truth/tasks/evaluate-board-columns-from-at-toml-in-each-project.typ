@@ -13,17 +13,20 @@
   tags: ("cli",),
   estimate: (src-files: 4),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: helps[the board's columns are filter expressions in one TOML file, evaluated over plain task files],
+    product: verdicts(
+      (
+        plain-files: helps[the board's columns are filter expressions in one TOML file, evaluated over plain task files],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

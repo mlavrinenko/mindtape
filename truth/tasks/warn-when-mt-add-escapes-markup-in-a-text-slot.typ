@@ -13,17 +13,21 @@
   tags: ("cli",),
   estimate: (src-files: 4),
   x-goals: (
-    product: (
-      readable-tasks: helps[a body filed with code spans reads as code, not as backslashes],
-      implementable-tasks: neutral,
-      enforced-practice: helps[the filer hears about the escaping at the moment it happens, not after 197 tasks],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[a body filed with code spans reads as code, not as backslashes],
+        enforced-practice: helps[the filer hears about the escaping at the moment it happens, not after 197 tasks],
+      ),
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the templates page and the skill say what `mt add` prints],
+    process: verdicts(
+      (
+        docs-match-code: helps[the templates page and the skill say what `mt add` prints],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

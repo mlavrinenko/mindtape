@@ -13,17 +13,20 @@
   estimate: (src-files: 1),
   tags: ("found", "tests"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[the test passes on a host where /tmp/x.toml exists],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[the test passes on a host where /tmp/x.toml exists],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

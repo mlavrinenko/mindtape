@@ -13,17 +13,21 @@
   tags: ("docs",),
   estimate: (src-files: 1),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: helps[the skill tells agents to act on the stem hash any listing prints],
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        implementable-tasks: helps[the skill tells agents to act on the stem hash any listing prints],
+      ),
+      "readable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the skill and changelog match the stem hash],
+    process: verdicts(
+      (
+        docs-match-code: helps[the skill and changelog match the stem hash],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

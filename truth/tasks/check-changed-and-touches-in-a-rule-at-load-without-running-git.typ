@@ -13,17 +13,20 @@
   estimate: (src-files: 2),
   tags: ("found", "mt"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[a load-time check that reads git is a side effect of loading a config],
-      docs-match-code: helps[/filters/ and /estimates/ can say a rule reading git is skipped outside a repository],
+    process: verdicts(
+      (
+        sound-codebase: helps[a load-time check that reads git is a side effect of loading a config],
+        docs-match-code: helps[/filters/ and /estimates/ can say a rule reading git is skipped outside a repository],
+      ),
     ),
   ),
   assignee: "agent",

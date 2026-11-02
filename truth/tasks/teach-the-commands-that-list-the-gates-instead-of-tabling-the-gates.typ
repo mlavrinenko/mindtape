@@ -13,17 +13,20 @@
   tags: ("docs",),
   estimate: (src-files: 3),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[a gate list read from `just` never drifts from the Justfile],
+    process: verdicts(
+      (
+        docs-match-code: helps[a gate list read from `just` never drifts from the Justfile],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

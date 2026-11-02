@@ -13,17 +13,21 @@
   tags: ("docs",),
   estimate: (src-files: 1),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[a newcomer reads the release notes in minutes],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        cheap-adoption: helps[a newcomer reads the release notes in minutes],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the release notes say what 0.3.0 ships, once per feature],
+    process: verdicts(
+      (
+        docs-match-code: helps[the release notes say what 0.3.0 ships, once per feature],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

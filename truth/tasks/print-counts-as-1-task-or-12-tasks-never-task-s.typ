@@ -13,17 +13,21 @@
   tags: ("cli", "gating"),
   estimate: (src-files: 14),
   x-goals: (
-    product: (
-      readable-tasks: helps[`mt check` and `mt rm` say 1 task or 12 tasks, the way a person would],
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[`mt check` and `mt rm` say 1 task or 12 tasks, the way a person would],
+      ),
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[one helper owns the plural, and a gate refuses a new `(s)`],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[one helper owns the plural, and a gate refuses a new `(s)`],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

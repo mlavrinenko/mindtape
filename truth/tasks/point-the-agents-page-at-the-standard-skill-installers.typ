@@ -13,17 +13,21 @@
   tags: ("www", "docs"),
   estimate: (src-files: 0),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[a reader installs the skill with a tool they may already have, and mt ships no installer of its own],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        cheap-adoption: helps[a reader installs the skill with a tool they may already have, and mt ships no installer of its own],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[each install command on the page was run against this repo's layout before it was written down],
+    process: verdicts(
+      (
+        docs-match-code: helps[each install command on the page was run against this repo's layout before it was written down],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

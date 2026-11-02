@@ -16,17 +16,21 @@
   status: done(2026, 9, 16),
   links: depends-on("move-goal-verdicts-into-x-goals.typ"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[readers see a rule enforced by the task files themselves, with no linter to maintain],
-      cheap-adoption: neutral,
-      typst-over-markdown: helps[the page proves the claim with a live refusal instead of prose],
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[readers see a rule enforced by the task files themselves, with no linter to maintain],
+        typst-over-markdown: helps[the page proves the claim with a live refusal instead of prose],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the page quotes a live capture, never a hand-typed transcript],
+    process: verdicts(
+      (
+        docs-match-code: helps[the page quotes a live capture, never a hand-typed transcript],
+      ),
+      "sound-codebase",
     ),
   ),
 )

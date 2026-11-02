@@ -13,17 +13,21 @@
   tags: ("mt",),
   estimate: (src-files: 8),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[every estimate check is a rule the project can read, override and switch off],
-      cheap-adoption: helps[no check fires that a project did not write or inherit from a pack],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[every estimate check is a rule the project can read, override and switch off],
+        cheap-adoption: helps[no check fires that a project did not write or inherit from a pack],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[about 1,400 lines of bespoke checker and tests go],
-      docs-match-code: helps[the estimates page describes rules, not a special-cased unit],
+    process: verdicts(
+      (
+        sound-codebase: helps[about 1,400 lines of bespoke checker and tests go],
+        docs-match-code: helps[the estimates page describes rules, not a special-cased unit],
+      ),
     ),
   ),
   assignee: "agent",

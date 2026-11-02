@@ -13,17 +13,20 @@
   estimate: (src-files: 4),
   tags: ("found", "tooling"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[`just install` puts the lib where `mt` loads it],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[`just install` puts the lib where `mt` loads it],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

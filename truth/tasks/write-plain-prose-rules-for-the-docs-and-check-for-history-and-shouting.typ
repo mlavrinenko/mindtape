@@ -13,17 +13,21 @@
   tags: ("docs", "tooling"),
   estimate: (src-files: 8),
   x-goals: (
-    product: (
-      readable-tasks: helps[the same plain-prose rules apply to task bodies written in this repo],
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[the same plain-prose rules apply to task bodies written in this repo],
+      ),
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[a page states the current behaviour; history stays in git log],
+    process: verdicts(
+      (
+        docs-match-code: helps[a page states the current behaviour; history stays in git log],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

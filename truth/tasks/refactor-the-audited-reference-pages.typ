@@ -19,17 +19,21 @@
   estimate: (files: 10),
   assignee: "agent",
   x-goals: (
-    product: (
-      readable-tasks: helps[a page stating a fact the code contradicts teaches the wrong thing],
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[a page stating a fact the code contradicts teaches the wrong thing],
+      ),
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the JSON schema page matches canonical.rs and the ICE formula it prints],
+    process: verdicts(
+      (
+        docs-match-code: helps[the JSON schema page matches canonical.rs and the ICE formula it prints],
+      ),
+      "sound-codebase",
     ),
   ),
 )

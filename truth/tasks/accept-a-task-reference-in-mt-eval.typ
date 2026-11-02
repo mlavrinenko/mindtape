@@ -13,17 +13,21 @@
   tags: ("mt", "cli"),
   estimate: (files: 3),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: helps[the skill's documented `mt eval <task>` works as written],
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        implementable-tasks: helps[the skill's documented `mt eval <task>` works as written],
+      ),
+      "readable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the skill and the CLI agree on what `<task>` is],
+    process: verdicts(
+      (
+        docs-match-code: helps[the skill and the CLI agree on what `<task>` is],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

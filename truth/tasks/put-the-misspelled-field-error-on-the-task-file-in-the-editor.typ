@@ -13,17 +13,20 @@
   estimate: (src-files: 2),
   tags: ("found", "mt"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: helps[the editor marks the misspelled field where it is written],
-      plain-files: neutral,
+    product: verdicts(
+      (
+        typst-over-markdown: helps[the editor marks the misspelled field where it is written],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

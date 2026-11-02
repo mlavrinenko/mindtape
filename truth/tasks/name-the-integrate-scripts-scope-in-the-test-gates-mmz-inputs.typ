@@ -13,17 +13,20 @@
   estimate: (src-files: 1),
   tags: ("found", "tooling"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[an edit to integrate.sh re-runs the test that runs it],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[an edit to integrate.sh re-runs the test that runs it],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

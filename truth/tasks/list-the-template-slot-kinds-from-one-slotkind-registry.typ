@@ -13,17 +13,21 @@
   tags: ("docs", "www", "cli"),
   estimate: (src-files: 6),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: helps[a template author who misspells a kind reads every kind `mt add` accepts],
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        implementable-tasks: helps[a template author who misspells a kind reads every kind `mt add` accepts],
+      ),
+      "readable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the templates page and both refusals read the kinds off the enum that parses them],
+    process: verdicts(
+      (
+        docs-match-code: helps[the templates page and both refusals read the kinds off the enum that parses them],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

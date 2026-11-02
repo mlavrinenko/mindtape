@@ -19,17 +19,21 @@
   estimate: (files: 9),
   assignee: "agent",
   x-goals: (
-    product: (
-      readable-tasks: helps[a page that retells a topic makes the reader choose which copy is true],
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[quickstart keeps the walkthrough and drops the flag catalog],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[a page that retells a topic makes the reader choose which copy is true],
+        cheap-adoption: helps[quickstart keeps the walkthrough and drops the flag catalog],
+      ),
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the caption matches its capture and the escape list matches status_value.rs],
+    process: verdicts(
+      (
+        docs-match-code: helps[the caption matches its capture and the escape list matches status_value.rs],
+      ),
+      "sound-codebase",
     ),
   ),
 )

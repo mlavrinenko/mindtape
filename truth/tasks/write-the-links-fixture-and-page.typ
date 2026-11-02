@@ -19,17 +19,21 @@
     18,
   )[examples/links is checked and sliced into www/generated/links.json, and /links/ renders the slices; /recurring/ follows in its own task],
   x-goals: (
-    product: (
-      readable-tasks: helps[the link reference is real task files read back as data, so a reader sees the DSL as files rather than as prose examples],
-      implementable-tasks: neutral,
-      enforced-practice: helps[a slice that stops matching the fixture fails the build, and the fixture itself is validated by check-examples],
-      cheap-adoption: helps[a small SWE-shaped example is readable in one sitting and adds no tooling to adopt],
-      typst-over-markdown: helps[the explanation is Typst task files, sliced by a script, not fenced pseudocode that only looks like the DSL],
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[the link reference is real task files read back as data, so a reader sees the DSL as files rather than as prose examples],
+        enforced-practice: helps[a slice that stops matching the fixture fails the build, and the fixture itself is validated by check-examples],
+        cheap-adoption: helps[a small SWE-shaped example is readable in one sitting and adds no tooling to adopt],
+        typst-over-markdown: helps[the explanation is Typst task files, sliced by a script, not fenced pseudocode that only looks like the DSL],
+      ),
+      "implementable-tasks",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the page can only show what a checked fixture contains, so a DSL change breaks the gate instead of silently outdating a code block],
+    process: verdicts(
+      (
+        docs-match-code: helps[the page can only show what a checked fixture contains, so a DSL change breaks the gate instead of silently outdating a code block],
+      ),
+      "sound-codebase",
     ),
   ),
 )

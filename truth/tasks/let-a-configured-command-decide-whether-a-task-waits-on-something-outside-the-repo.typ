@@ -13,17 +13,20 @@
   tags: ("mt", "cli"),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: helps[the `why` column names the outside condition a task waits on, in the checker's own words],
-      implementable-tasks: helps[an agent picking from `mt ls ready` never starts work an upstream fix still blocks],
-      enforced-practice: helps[a waiting task leaves `blocked` the moment the checker says so, not when someone remembers to look],
-      cheap-adoption: helps[any tool that answers by exit code plugs in with one config entry, no MindTape release per tool],
-      typst-over-markdown: neutral,
-      plain-files: hurts[readiness can depend on a command's answer, not only on files; the command must read local state so `mt` stays offline],
+    product: verdicts(
+      (
+        readable-tasks: helps[the `why` column names the outside condition a task waits on, in the checker's own words],
+        implementable-tasks: helps[an agent picking from `mt ls ready` never starts work an upstream fix still blocks],
+        enforced-practice: helps[a waiting task leaves `blocked` the moment the checker says so, not when someone remembers to look],
+        cheap-adoption: helps[any tool that answers by exit code plugs in with one config entry, no MindTape release per tool],
+        plain-files: hurts[readiness can depend on a command's answer, not only on files; the command must read local state so `mt` stays offline],
+      ),
+      "typst-over-markdown",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

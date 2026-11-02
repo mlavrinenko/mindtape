@@ -13,17 +13,21 @@
   tags: ("mt", "cli", "gating"),
   estimate: (src-files: 9),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a merge no longer needs a hand-written exemption],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[a merge no longer needs a hand-written exemption],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the docs say merges are skipped],
+    process: verdicts(
+      (
+        docs-match-code: helps[the docs say merges are skipped],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

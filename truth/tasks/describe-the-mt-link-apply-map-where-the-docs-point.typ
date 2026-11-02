@@ -13,17 +13,20 @@
   estimate: (src-files: 2),
   tags: ("found", "docs"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the page a reader is sent to for the adjacency map describes it],
+    process: verdicts(
+      (
+        docs-match-code: helps[the page a reader is sent to for the adjacency map describes it],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

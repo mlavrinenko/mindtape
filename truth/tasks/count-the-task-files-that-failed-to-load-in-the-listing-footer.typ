@@ -13,17 +13,20 @@
   estimate: (src-files: 2),
   tags: ("found", "cli"),
   x-goals: (
-    product: (
-      readable-tasks: helps[the footer accounts for every task file under the roots],
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[a newcomer whose task file broke sees it in the count, not only in a warning that scrolled away],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[the footer accounts for every task file under the roots],
+        cheap-adoption: helps[a newcomer whose task file broke sees it in the count, not only in a warning that scrolled away],
+      ),
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

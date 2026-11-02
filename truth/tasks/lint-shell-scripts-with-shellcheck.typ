@@ -13,17 +13,21 @@
   tags: ("gating", "tooling"),
   estimate: (src-files: 4),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a shell syntax error or quoting bug fails locally, before git runs the script],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[a shell syntax error or quoting bug fails locally, before git runs the script],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[every tracked shell script is linted, not just the workflow ones],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[every tracked shell script is linted, not just the workflow ones],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

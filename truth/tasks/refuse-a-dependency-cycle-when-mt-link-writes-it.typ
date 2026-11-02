@@ -13,17 +13,21 @@
   tags: ("mt", "cli"),
   estimate: (files: 3),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: helps[agents linking tasks get the refusal at the write, not a poisoned neighbour later],
-      enforced-practice: helps[a write can no longer land a graph `mt check` rejects],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        implementable-tasks: helps[agents linking tasks get the refusal at the write, not a poisoned neighbour later],
+        enforced-practice: helps[a write can no longer land a graph `mt check` rejects],
+      ),
+      "readable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[the pre-write seam checks what the write breaks, not only the file it writes],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[the pre-write seam checks what the write breaks, not only the file it writes],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

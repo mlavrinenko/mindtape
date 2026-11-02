@@ -13,17 +13,21 @@
   tags: ("docs", "www", "tooling"),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: helps[each solver is shown by `mt` refusing a bad task or flip, which a YAML file cannot do],
-      plain-files: neutral,
+    product: verdicts(
+      (
+        typst-over-markdown: helps[each solver is shown by `mt` refusing a bad task or flip, which a YAML file cannot do],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[each solver's demo is a real run on every build],
+    process: verdicts(
+      (
+        docs-match-code: helps[each solver's demo is a real run on every build],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

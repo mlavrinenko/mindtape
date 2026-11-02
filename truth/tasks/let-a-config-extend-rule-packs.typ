@@ -16,17 +16,20 @@
   status: done(2026, 9, 16),
   links: depends-on("give-every-body-rule-a-name.typ"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a repo that extends a pack is policed by every rule in it, with no copy to fall behind],
-      cheap-adoption: helps[adopting shared practice becomes one `extends` line plus overrides],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[a repo that extends a pack is policed by every rule in it, with no copy to fall behind],
+        cheap-adoption: helps[adopting shared practice becomes one `extends` line plus overrides],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
 )

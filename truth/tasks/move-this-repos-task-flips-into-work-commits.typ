@@ -13,17 +13,20 @@
   tags: ("tooling",),
   estimate: (src-files: 3),
   x-goals: (
-    product: (
-      readable-tasks: helps[git log stops carrying one flip-only commit per start and close],
-      implementable-tasks: neutral,
-      enforced-practice: helps[the flip-with-work rule holds the convention, not memory],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[git log stops carrying one flip-only commit per start and close],
+        enforced-practice: helps[the flip-with-work rule holds the convention, not memory],
+      ),
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

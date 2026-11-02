@@ -12,17 +12,21 @@
   tags: ("docs", "www"),
   estimate: (src-files: 0),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: helps[the first screen shows a typed task that `mt` enforces],
-      plain-files: neutral,
+    product: verdicts(
+      (
+        typst-over-markdown: helps[the first screen shows a typed task that `mt` enforces],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[code blocks and transcripts can only come from checked fixtures and real runs],
+    process: verdicts(
+      (
+        docs-match-code: helps[code blocks and transcripts can only come from checked fixtures and real runs],
+      ),
+      "sound-codebase",
     ),
   ),
   kind: "milestone",

@@ -13,17 +13,20 @@
   tags: ("mt", "cli"),
   estimate: (src-files: 3),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a gate the user never allowed refuses the flip instead of running or passing],
-      cheap-adoption: hurts[a fresh clone asks once before `mt done` runs its gate],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[a gate the user never allowed refuses the flip instead of running or passing],
+        cheap-adoption: hurts[a fresh clone asks once before `mt done` runs its gate],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

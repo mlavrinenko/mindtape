@@ -13,17 +13,20 @@
   tags: ("tooling", "gating"),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[a push gets its verdict in about 5.5 minutes, not 9],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[a push gets its verdict in about 5.5 minutes, not 9],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

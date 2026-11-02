@@ -13,17 +13,20 @@
   tags: ("mt", "gating"),
   estimate: (src-files: 4),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a commit names a started task and a product change carries a changelog entry wherever the packs are adopted],
-      cheap-adoption: helps[the tweak and commit rules adopt in one line each instead of a copy per project],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[a commit names a started task and a product change carries a changelog entry wherever the packs are adopted],
+        cheap-adoption: helps[the tweak and commit rules adopt in one line each instead of a copy per project],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

@@ -13,17 +13,21 @@
   tags: ("cli",),
   estimate: (src-files: 10),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[the preset and the wizard's workflow choice share one name, and `mt init --list-presets` says in plain words what each preset gives],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        cheap-adoption: helps[the preset and the wizard's workflow choice share one name, and `mt init --list-presets` says in plain words what each preset gives],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[each preset description states what its config.toml really enforces],
+    process: verdicts(
+      (
+        docs-match-code: helps[each preset description states what its config.toml really enforces],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

@@ -13,17 +13,20 @@
   tags: ("mt", "stateless"),
   estimate: (src-files: 14),
   x-goals: (
-    product: (
-      readable-tasks: helps[a task file lists each goal once],
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[a task file lists each goal once],
+      ),
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",
@@ -50,7 +53,7 @@ x-goals: (
     (enforced-practice: helps[the rule names its waiver],),
     "readable-tasks", "implementable-tasks", "cheap-adoption", "typst-over-markdown", "plain-files",
   ),
-  process: verdicts((), "sound-codebase", "docs-match-code"),
+  process: verdicts((:), "sound-codebase", "docs-match-code"),
 )
 ```
 

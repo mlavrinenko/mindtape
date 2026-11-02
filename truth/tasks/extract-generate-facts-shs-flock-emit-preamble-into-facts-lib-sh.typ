@@ -13,17 +13,20 @@
   estimate: (files: 2),
   tags: ("found", "www", "tooling"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[a shared preamble stops living in the one file it also grows past, and generate-facts.sh gets room for its next artifact without a re-cap],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[a shared preamble stops living in the one file it also grows past, and generate-facts.sh gets room for its next artifact without a re-cap],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

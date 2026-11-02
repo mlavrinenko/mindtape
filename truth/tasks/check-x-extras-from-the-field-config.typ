@@ -13,17 +13,20 @@
   tags: ("mt", "gating"),
   estimate: (src-files: 4),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a project's x- field is held to its configured values and required rule by mt check and every write command, not by a Typst function someone has to ship],
-      cheap-adoption: helps[an adopting repo declares an x- enum in one [tasks.fields] table instead of writing and maintaining a Typst check],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[a project's x- field is held to its configured values and required rule by mt check and every write command, not by a Typst function someone has to ship],
+        cheap-adoption: helps[an adopting repo declares an x- enum in one [tasks.fields] table instead of writing and maintaining a Typst check],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

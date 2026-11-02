@@ -13,17 +13,21 @@
   tags: ("mt",),
   estimate: (src-files: 2),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: helps[a template names a field's example without copying the field's allowed values, and the caller still sees the list],
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        implementable-tasks: helps[a template names a field's example without copying the field's allowed values, and the caller still sees the list],
+      ),
+      "readable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[the template check no longer depends on the order of a config list],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[the template check no longer depends on the order of a config list],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

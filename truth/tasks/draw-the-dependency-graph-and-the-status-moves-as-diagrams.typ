@@ -13,17 +13,21 @@
   tags: ("www", "docs"),
   estimate: (src-files: 4),
   x-goals: (
-    product: (
-      readable-tasks: helps[the shape of blocked work and of a status legend reads at a glance instead of from a list],
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[the shape of blocked work and of a status legend reads at a glance instead of from a list],
+      ),
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[both diagrams are drawn from captured output each build, so they cannot drift],
+    process: verdicts(
+      (
+        docs-match-code: helps[both diagrams are drawn from captured output each build, so they cannot drift],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

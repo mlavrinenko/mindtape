@@ -13,17 +13,21 @@
   tags: ("mt",),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: helps[a skipped rule opens at the entry that is at fault],
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[a skipped rule opens at the entry that is at fault],
+      ),
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[one origin record answers where a rule is declared, in place of a second line scan],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[one origin record answers where a rule is declared, in place of a second line scan],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

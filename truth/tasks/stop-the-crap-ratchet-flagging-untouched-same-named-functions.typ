@@ -13,17 +13,21 @@
   estimate: (src-files: 2),
   tags: ("found", "gating"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a CRAP failure names a function the branch changed],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[a CRAP failure names a function the branch changed],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[a re-mint stops hiding real regressions behind line shifts],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[a re-mint stops hiding real regressions behind line shifts],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

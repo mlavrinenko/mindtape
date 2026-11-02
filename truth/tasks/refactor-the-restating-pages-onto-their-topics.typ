@@ -19,17 +19,21 @@
     18,
   )[13 pairs left, all on README/AGENTS/skill; wave 4 switches README to the shared partial],
   x-goals: (
-    product: (
-      readable-tasks: helps[a reader lands on one page per fact instead of four that disagree by inches],
-      implementable-tasks: neutral,
-      enforced-practice: helps[the audit pairs are closed by making a page delegate, and the same recipe proves each rewrite],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[a reader lands on one page per fact instead of four that disagree by inches],
+        enforced-practice: helps[the audit pairs are closed by making a page delegate, and the same recipe proves each rewrite],
+      ),
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[six cross-file duplicate pairs get one home each; a fact moved to its topic cannot keep a second copy behind],
+    process: verdicts(
+      (
+        docs-match-code: helps[six cross-file duplicate pairs get one home each; a fact moved to its topic cannot keep a second copy behind],
+      ),
+      "sound-codebase",
     ),
   ),
 )

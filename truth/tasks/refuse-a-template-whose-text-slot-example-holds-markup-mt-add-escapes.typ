@@ -13,17 +13,20 @@
   tags: ("mt",),
   estimate: (src-files: 3),
   x-goals: (
-    product: (
-      readable-tasks: helps[a code span in a filed task renders as code, not as backslashed backticks],
-      implementable-tasks: neutral,
-      enforced-practice: helps[a template can no longer teach input its own slot mangles],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[a code span in a filed task renders as code, not as backslashed backticks],
+        enforced-practice: helps[a template can no longer teach input its own slot mangles],
+      ),
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

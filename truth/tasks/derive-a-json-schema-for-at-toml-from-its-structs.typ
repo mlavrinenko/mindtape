@@ -13,17 +13,21 @@
   tags: ("cli", "docs"),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[an editor completes and checks at.toml keys, so naming projects takes no trip to the docs],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        cheap-adoption: helps[an editor completes and checks at.toml keys, so naming projects takes no trip to the docs],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the at.toml keys get a machine-readable source the docs gate can read],
+    process: verdicts(
+      (
+        docs-match-code: helps[the at.toml keys get a machine-readable source the docs gate can read],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

@@ -13,17 +13,20 @@
   tags: ("mt",),
   estimate: (src-files: 11),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: helps[an agent estimates the one number that predicts design spread],
-      enforced-practice: helps[the drift warning fires on source growth, not on the docs every task touches],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        implementable-tasks: helps[an agent estimates the one number that predicts design spread],
+        enforced-practice: helps[the drift warning fires on source growth, not on the docs every task touches],
+      ),
+      "readable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

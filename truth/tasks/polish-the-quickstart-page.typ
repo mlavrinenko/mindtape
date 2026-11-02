@@ -13,17 +13,21 @@
   tags: ("www", "docs"),
   estimate: (src-files: 1),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[a newcomer reads the Quickstart in plain words, with no legend, slot or default view to learn first],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        cheap-adoption: helps[a newcomer reads the Quickstart in plain words, with no legend, slot or default view to learn first],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the completion paragraph matches the line `mt install` now prints],
+    process: verdicts(
+      (
+        docs-match-code: helps[the completion paragraph matches the line `mt install` now prints],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

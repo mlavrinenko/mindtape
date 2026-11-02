@@ -13,17 +13,21 @@
   estimate: (src-files: 1),
   tags: ("found", "tests"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[the integrate refusal tests judge the mt under test, not the host's],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[the integrate refusal tests judge the mt under test, not the host's],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[a green integrate e2e run says something about the code],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[a green integrate e2e run says something about the code],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

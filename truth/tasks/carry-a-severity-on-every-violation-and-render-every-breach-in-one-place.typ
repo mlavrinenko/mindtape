@@ -13,17 +13,21 @@
   estimate: (src-files: 5),
   tags: ("found", "mt"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a breach's label always matches whether it fails the command],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[a breach's label always matches whether it fails the command],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[five call sites stop choosing the severity label on their own],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[five call sites stop choosing the severity label on their own],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

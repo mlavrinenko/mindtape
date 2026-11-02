@@ -13,17 +13,21 @@
   estimate: (src-files: 4),
   tags: ("found", "gating", "www"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a quoted error line in the docs is checked against a real run],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[a quoted error line in the docs is checked against a real run],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[a changed diagnostic cannot leave its old text on a docs page],
+    process: verdicts(
+      (
+        docs-match-code: helps[a changed diagnostic cannot leave its old text on a docs page],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

@@ -12,17 +12,20 @@
   tags: ("tooling",),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[a drifted fmt list or a relinking build fails by name],
-      docs-match-code: helps[two hand-kept facts become gate-checked],
+    process: verdicts(
+      (
+        sound-codebase: helps[a drifted fmt list or a relinking build fails by name],
+        docs-match-code: helps[two hand-kept facts become gate-checked],
+      ),
     ),
   ),
   kind: "dev",

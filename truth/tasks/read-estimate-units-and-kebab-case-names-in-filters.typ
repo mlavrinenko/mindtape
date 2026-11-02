@@ -13,17 +13,21 @@
   tags: ("mt",),
   estimate: (files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a bound or budget on any unit is one rule expression, not a Rust checker],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[a bound or budget on any unit is one rule expression, not a Rust checker],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[filters name fields the way the task files spell them],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[filters name fields the way the task files spell them],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

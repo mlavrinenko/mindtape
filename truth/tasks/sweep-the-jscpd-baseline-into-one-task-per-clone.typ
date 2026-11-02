@@ -13,17 +13,20 @@
   tags: ("tooling",),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[each clone the gate tolerates reaches the backlog as a task with its own scope, so the baseline shrinks instead of aging],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[each clone the gate tolerates reaches the backlog as a task with its own scope, so the baseline shrinks instead of aging],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

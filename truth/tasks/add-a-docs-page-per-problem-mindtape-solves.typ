@@ -13,17 +13,20 @@
   tags: ("docs", "www"),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[an engineer finds the config for their problem on one page],
-      typst-over-markdown: helps[each page ends on `mt` refusing a bad task, which a Markdown tracker cannot do],
-      plain-files: neutral,
+    product: verdicts(
+      (
+        cheap-adoption: helps[an engineer finds the config for their problem on one page],
+        typst-over-markdown: helps[each page ends on `mt` refusing a bad task, which a Markdown tracker cannot do],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

@@ -13,17 +13,21 @@
   tags: ("mt", "tests"),
   estimate: (files: 1),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[the gate fails on a defect in the code, never on the backlog being finished],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[the gate fails on a defect in the code, never on the backlog being finished],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[a full run stays green whatever the backlog holds],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[a full run stays green whatever the backlog holds],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

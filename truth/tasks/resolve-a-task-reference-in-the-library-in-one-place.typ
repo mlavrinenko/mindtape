@@ -13,17 +13,21 @@
   estimate: (src-files: 5),
   tags: ("found", "mt"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: helps[every command and tool accepts the same task references],
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        implementable-tasks: helps[every command and tool accepts the same task references],
+      ),
+      "readable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[a new reference form or command touches one resolver],
-      docs-match-code: helps[every <task> argument shares one help text],
+    process: verdicts(
+      (
+        sound-codebase: helps[a new reference form or command touches one resolver],
+        docs-match-code: helps[every <task> argument shares one help text],
+      ),
     ),
   ),
   assignee: "agent",

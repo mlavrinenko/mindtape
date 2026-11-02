@@ -13,17 +13,20 @@
   tags: ("mt",),
   estimate: (src-files: 4),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a branch can't land with a task it worked on still marked wip, and no repo needs a shell script for it],
-      cheap-adoption: helps[every repo's worktrunk pre-merge hook becomes one `mt check --commits` line],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[a branch can't land with a task it worked on still marked wip, and no repo needs a shell script for it],
+        cheap-adoption: helps[every repo's worktrunk pre-merge hook becomes one `mt check --commits` line],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

@@ -13,17 +13,21 @@
   tags: ("cli", "mt"),
   estimate: (files: 7),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a rename goes through the resolver rather than a find-and-replace],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: helps[identity stays the filename, and changing it stays a supported move],
+    product: verdicts(
+      (
+        enforced-practice: helps[a rename goes through the resolver rather than a find-and-replace],
+        plain-files: helps[identity stays the filename, and changing it stays a supported move],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
     ),
-    process: (
-      sound-codebase: helps[the link-rewriting path gets a second caller and a second test],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[the link-rewriting path gets a second caller and a second test],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

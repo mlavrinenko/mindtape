@@ -13,17 +13,20 @@
   tags: ("tooling",),
   estimate: (src-files: 3),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[the Windows job runs its whole suite again instead of stopping on a line-ending diff],
-      docs-match-code: helps[windows.md says the Windows checkout is CRLF and how a byte-compared file opts out],
+    process: verdicts(
+      (
+        sound-codebase: helps[the Windows job runs its whole suite again instead of stopping on a line-ending diff],
+        docs-match-code: helps[windows.md says the Windows checkout is CRLF and how a byte-compared file opts out],
+      ),
     ),
   ),
   assignee: "agent",

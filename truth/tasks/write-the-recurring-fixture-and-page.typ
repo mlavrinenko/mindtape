@@ -19,17 +19,21 @@
     18,
   )[examples/recurring is checked by just check-rrule, the page reads its slices through the shared www/utils/slices.typ, and /dsl/ delegates; the feature-build race that moved the arm out of check-examples is argued in the Justfile],
   x-goals: (
-    product: (
-      readable-tasks: helps[the recurrence reference is real tasks read back as data, including the pair a spawn leaves behind],
-      implementable-tasks: neutral,
-      enforced-practice: helps[the rrule arm runs with the cargo feature enabled, so the escape hatch is proven rather than described],
-      cheap-adoption: helps[a small ops-shaped example shows the whole recurrence surface in one page],
-      typst-over-markdown: helps[every() and rrule() are shown as they are authored, with the configured policy floor beside them],
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[the recurrence reference is real tasks read back as data, including the pair a spawn leaves behind],
+        enforced-practice: helps[the rrule arm runs with the cargo feature enabled, so the escape hatch is proven rather than described],
+        cheap-adoption: helps[a small ops-shaped example shows the whole recurrence surface in one page],
+        typst-over-markdown: helps[every() and rrule() are shown as they are authored, with the configured policy floor beside them],
+      ),
+      "implementable-tasks",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the page's blocks are slices of a checked fixture, and the old DSL section cannot keep its own copy],
+    process: verdicts(
+      (
+        docs-match-code: helps[the page's blocks are slices of a checked fixture, and the old DSL section cannot keep its own copy],
+      ),
+      "sound-codebase",
     ),
   ),
 )

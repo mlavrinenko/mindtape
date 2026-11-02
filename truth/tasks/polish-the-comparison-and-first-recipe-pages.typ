@@ -13,17 +13,20 @@
   tags: ("www",),
   estimate: (src-files: 11),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[each page states only what the captures and the packs show],
+    process: verdicts(
+      (
+        docs-match-code: helps[each page states only what the captures and the packs show],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

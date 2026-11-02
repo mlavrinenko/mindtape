@@ -13,17 +13,20 @@
   tags: ("tooling",),
   estimate: (src-files: 4),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[the gate and wip check run on every merge from one shared hook, not a script only this repo carries],
-      cheap-adoption: helps[a contributor needs only the wt they already use],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[the gate and wip check run on every merge from one shared hook, not a script only this repo carries],
+        cheap-adoption: helps[a contributor needs only the wt they already use],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

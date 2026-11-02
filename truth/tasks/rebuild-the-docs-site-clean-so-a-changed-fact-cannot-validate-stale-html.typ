@@ -13,17 +13,20 @@
   tags: ("www", "tooling", "docs"),
   estimate: (files: 3),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[the gate over the derived pages stops passing on output no source produced],
-      docs-match-code: helps[a fact change reaches the page the gate reads],
+    process: verdicts(
+      (
+        sound-codebase: helps[the gate over the derived pages stops passing on output no source produced],
+        docs-match-code: helps[a fact change reaches the page the gate reads],
+      ),
     ),
   ),
   assignee: "agent",

@@ -13,17 +13,21 @@
   tags: ("cli", "mt"),
   estimate: (src-files: 40),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[the Windows test job passes, so a Windows user gets the paths the docs show],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        cheap-adoption: helps[the Windows test job passes, so a Windows user gets the paths the docs show],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[a clippy guard refuses an ad hoc `Path::display` in output, so a new message can't mix separators],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[a clippy guard refuses an ad hoc `Path::display` in output, so a new message can't mix separators],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

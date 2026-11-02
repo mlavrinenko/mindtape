@@ -13,17 +13,21 @@
   tags: ("tooling",),
   estimate: (src-files: 2),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[the git hooks and just modules get a size cap like every other script],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[the git hooks and just modules get a size cap like every other script],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[the size config carries no dummy base and no stale belief about linecop],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[the size config carries no dummy base and no stale belief about linecop],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

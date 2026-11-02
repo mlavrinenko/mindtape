@@ -13,17 +13,21 @@
   tags: ("docs", "www"),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: helps[an agent writing a filter reads the fields and which of them sort off the code that resolves them],
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        implementable-tasks: helps[an agent writing a filter reads the fields and which of them sort off the code that resolves them],
+      ),
+      "readable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[a field added, renamed or made sortable changes the page in the same build],
+    process: verdicts(
+      (
+        docs-match-code: helps[a field added, renamed or made sortable changes the page in the same build],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

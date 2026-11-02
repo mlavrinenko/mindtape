@@ -13,17 +13,20 @@
   tags: ("tooling",),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[the gate and the wip check before a merge travel with the repo, not with one machine],
-      cheap-adoption: helps[a fresh clone with nix and direnv forks and lands work the same way the maintainer does],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        enforced-practice: helps[the gate and the wip check before a merge travel with the repo, not with one machine],
+        cheap-adoption: helps[a fresh clone with nix and direnv forks and lands work the same way the maintainer does],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

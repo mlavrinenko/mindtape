@@ -13,17 +13,21 @@
   tags: ("www", "docs"),
   estimate: (src-files: 3),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[a newcomer reads the model and the DSL without tripping on wrong claims],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        cheap-adoption: helps[a newcomer reads the model and the DSL without tripping on wrong claims],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[each claim on these pages matches the code],
+    process: verdicts(
+      (
+        docs-match-code: helps[each claim on these pages matches the code],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

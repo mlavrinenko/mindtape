@@ -13,17 +13,20 @@
   tags: ("docs", "www"),
   estimate: (src-files: 3),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: helps[the first screen tells an engineer which of their problems MindTape solves],
-      typst-over-markdown: helps[the first screen shows a typed task and `mt` enforcing it, with no strawman beside it],
-      plain-files: neutral,
+    product: verdicts(
+      (
+        cheap-adoption: helps[the first screen tells an engineer which of their problems MindTape solves],
+        typst-over-markdown: helps[the first screen shows a typed task and `mt` enforcing it, with no strawman beside it],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

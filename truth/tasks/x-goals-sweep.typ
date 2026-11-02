@@ -13,21 +13,24 @@
   tags: ("mt", "stateless"),
   estimate: (src-files: 0),
   x-goals: (
-    product: (
-      readable-tasks: helps[one x-goals form across the backlog],
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[one x-goals form across the backlog],
+      ),
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 1),
+  status: done(2026, 11, 2),
   links: depends-on("as-is-sweep.typ", "verdicts-templates.typ"),
 )
 
@@ -47,6 +50,7 @@
 == Changes
 
 - `truth/tasks/*.typ`: the `x-goals` block in the current-shape files, open tasks included.
+- `contrib/rewrite-x-goals.py`: the scanner that rewrites a block or refuses it.
 
 == Out of scope
 

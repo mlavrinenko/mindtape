@@ -13,17 +13,21 @@
   tags: ("www", "docs"),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: helps[a reader learns how to make every title in a list say what the task does],
-      implementable-tasks: neutral,
-      enforced-practice: helps[the recipe shows mt refusing a title that starts with no verb],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[a reader learns how to make every title in a list say what the task does],
+        enforced-practice: helps[the recipe shows mt refusing a title that starts with no verb],
+      ),
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the page's refusal and config come from a live capture of examples/api-service],
+    process: verdicts(
+      (
+        docs-match-code: helps[the page's refusal and config come from a live capture of examples/api-service],
+      ),
+      "sound-codebase",
     ),
   ),
   assignee: "agent",

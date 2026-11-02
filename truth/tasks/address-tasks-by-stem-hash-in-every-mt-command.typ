@@ -13,17 +13,21 @@
   tags: ("mt", "cli"),
   estimate: (src-files: 5),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: helps[an agent acts on the stem hash any listing prints],
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        implementable-tasks: helps[an agent acts on the stem hash any listing prints],
+      ),
+      "readable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[the ordinal, the check letter and their config go],
-      docs-match-code: helps[the CLI and config pages describe one stable handle],
+    process: verdicts(
+      (
+        sound-codebase: helps[the ordinal, the check letter and their config go],
+        docs-match-code: helps[the CLI and config pages describe one stable handle],
+      ),
     ),
   ),
   assignee: "agent",

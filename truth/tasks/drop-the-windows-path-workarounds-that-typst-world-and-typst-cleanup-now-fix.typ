@@ -13,17 +13,20 @@
   tags: ("tooling",),
   estimate: (src-files: 10),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[Mindtape stops carrying code that compensates for its own dependencies],
-      docs-match-code: neutral,
+    process: verdicts(
+      (
+        sound-codebase: helps[Mindtape stops carrying code that compensates for its own dependencies],
+      ),
+      "docs-match-code",
     ),
   ),
   assignee: "agent",

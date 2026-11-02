@@ -13,17 +13,20 @@
   estimate: (src-files: 2),
   tags: ("found", "mt"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[a warm read returns what a cold eval returns],
-      docs-match-code: helps[internals.typ's cache promise holds for tasks that import a module],
+    process: verdicts(
+      (
+        sound-codebase: helps[a warm read returns what a cold eval returns],
+        docs-match-code: helps[internals.typ's cache promise holds for tasks that import a module],
+      ),
     ),
   ),
   assignee: "agent",

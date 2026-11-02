@@ -15,17 +15,20 @@
   assignee: "agent",
   status: done(2026, 9, 16),
   x-goals: (
-    product: (
-      readable-tasks: helps[a malformed task never lands for a reader to skim],
-      implementable-tasks: neutral,
-      enforced-practice: helps[a task breaking a section rule is refused where it is written, not a commit later],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (
+        readable-tasks: helps[a malformed task never lands for a reader to skim],
+        enforced-practice: helps[a task breaking a section rule is refused where it is written, not a commit later],
+      ),
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
     ),
   ),
 )

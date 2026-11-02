@@ -13,17 +13,20 @@
   estimate: (src-files: 5),
   tags: ("found", "tooling"),
   x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
     ),
-    process: (
-      sound-codebase: helps[a doc gate can no longer pass by misreading a fence],
-      docs-match-code: helps[the span and recipe gates read every span a page renders],
+    process: verdicts(
+      (
+        sound-codebase: helps[a doc gate can no longer pass by misreading a fence],
+        docs-match-code: helps[the span and recipe gates read every span a page renders],
+      ),
     ),
   ),
   assignee: "agent",
