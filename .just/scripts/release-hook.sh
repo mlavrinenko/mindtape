@@ -18,6 +18,7 @@ set -euo pipefail
 cd "$WORKSPACE_ROOT"
 version="$NEW_VERSION"
 tag="v$version"
+publish_dir=""
 refuse() {
     echo "error: $1" >&2; shift
     for h in "$@"; do echo "hint: $h" >&2; done
@@ -60,7 +61,7 @@ entries=$(sed -n "/^## \[${heading//./\\.}\]/,/^## \[/p" CHANGELOG.md | sed '1d;
 # shell's copy, which can be older than this tree.
 msg=$(mktemp) \
     || refuse "can't make a temp file for the release commit message" "check \$TMPDIR, then re-run"
-trap 'rm -f "$msg"' EXIT
+trap 'rm -f "$msg"; [ -z "$publish_dir" ] || rm -rf "$publish_dir"' EXIT
 subject=$(sed -n 's/^pre-release-commit-message = "\(.*\)"$/\1/p' .config/release.toml)
 [ -n "$subject" ] \
     || refuse "can't read pre-release-commit-message from .config/release.toml" "restore the key, then re-run"
@@ -80,6 +81,33 @@ if [ "$DRY_RUN" != true ]; then
 fi
 just check || refuse "just check failed on this tree" "fix what it reports above, then commit"
 just nix-build || refuse "the flake doesn't build in a clean sandbox" "fix what just nix-build reports above"
-# --allow-dirty: on a real run the bump is not committed yet.
-cargo publish --dry-run --locked --allow-dirty --workspace --quiet \
-    || refuse "cargo publish --dry-run failed" "fix the packaging error above"
+# A dry run leaves the manifests at the old version, so a verifier would build
+# the new CLI against the published `mindtape` at that old version, which may
+# lack its new API. It verifies a throwaway copy bumped to $version instead.
+publish_check() {
+    local current target_dir
+    current=$(sed -n 's/^version = "\([0-9][0-9.]*\)"/\1/p' Cargo.toml | head -1)
+    [ -n "$current" ] \
+        || refuse "can't read the workspace version" "restore Cargo.toml, then re-run"
+    target_dir="$PWD/target"
+    if [ "$current" = "$version" ]; then
+        # --allow-dirty: on a real run the bump is not committed yet.
+        cargo publish --dry-run --locked --allow-dirty --workspace --quiet
+        return
+    fi
+    publish_dir=$(mktemp -d) \
+        || refuse "can't make a temp dir for the publish check" "check \$TMPDIR, then re-run"
+    git archive HEAD | tar -x -C "$publish_dir" \
+        || refuse "can't copy HEAD for the publish check" "check git and \$TMPDIR, then re-run"
+    sed -i "s/^version = \"$current\"/version = \"$version\"/" "$publish_dir/Cargo.toml" \
+        || refuse "can't bump the copy's workspace version" "check sed, then re-run"
+    sed -i "s/mindtape = { version = \"$current\", path = \"..\/mindtape\" }/mindtape = { version = \"$version\", path = \"..\/mindtape\" }/" \
+        "$publish_dir/crates/mindtape-cli/Cargo.toml" \
+        || refuse "can't bump the copy's mindtape dependency" "check sed, then re-run"
+    (
+        cd "$publish_dir"
+        CARGO_TARGET_DIR="$target_dir" \
+            cargo publish --dry-run --allow-dirty --workspace --quiet
+    ) || refuse "cargo publish --dry-run failed on a copy bumped to $version" "fix the packaging error above"
+}
+publish_check

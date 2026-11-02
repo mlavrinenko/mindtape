@@ -472,11 +472,11 @@ groups:
   release-docs:
     source:
       .config/release.toml: df72343747c303c3246bf302016d27869a1a51e9667dd6bea6c25c4cc8632cea
-      .just/scripts/release-hook.sh: deea3532a4ad060b38bc7f17443f4bd145e6e1b725002df70ef20d6a70a79dcf
+      .just/scripts/release-hook.sh: c6a66d24ad150cbc7f262ddbda27fc8950df9d7935586b76ce610dbb1cfd5a34
       .just/scripts/release.sh: bc50191c0b8652ac12cec5a35927bebcbb47a92f3740ced7889bcdf0ab709f5d
     dependents:
-      docs/src/contributing.typ: 7d33e30a847a1559b3042076a147fccf8fca15e860019deb711e17425353033c
-      docs/src/contributing/release.typ: 2293b30bb4fa5ca831132702359eea83f59d657f9479d9f498d0434663ee1a13
+      docs/src/contributing.typ: 4f27aaa82e89c84bf054372c0b5ce92aaec757856883e2cc937451949f232e53
+      docs/src/contributing/release.typ: 5aa1e70e3a3872c8b689e31dc213dee1b5fada273e6f8dc3489589edd14792a2
   release-notes:
     source:
       Cargo.toml: 98d4165242b052f297da8fe986a066aefdb92c8c73e09b652927b1affe9ba41b

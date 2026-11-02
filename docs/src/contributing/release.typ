@@ -30,7 +30,9 @@ The tag push is the only publish path, so don't run `cargo publish` or push
 + The recipe pushes `main`, so CI runs on the release tree.
 + It tags only once that commit's `ci.yml` run is green.
 
-`--dry-run` checks and pushes nothing.
+`--dry-run` checks and pushes nothing. Its publish check verifies a throwaway
+copy bumped to the new version, since the working tree still carries the old
+one.
 
 = After a failure
 

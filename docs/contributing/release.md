@@ -11,7 +11,7 @@ What `just release VERSION` runs, and how to finish a release that failed. The t
 3. The recipe pushes `main`, so CI runs on the release tree.
 4. It tags only once that commit’s `ci.yml` run is green.
 
-`--dry-run` checks and pushes nothing.
+`--dry-run` checks and pushes nothing. Its publish check verifies a throwaway copy bumped to the new version, since the working tree still carries the old one.
 
 ## After a failure
 
