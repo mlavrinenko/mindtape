@@ -25,11 +25,7 @@ msg_file="$1"
 root="$(git rev-parse --show-toplevel)"
 
 "$root/.githooks/local-paths" "$msg_file"
-# Stopgap for an `mt` older than its merge skip: a merge's index repeats the
-# merged branch, so judging it would fail on work the branch commits carry.
-if ! git rev-parse -q --verify MERGE_HEAD >/dev/null; then
-    direnv exec "$root" cargo run -q -p mindtape-cli --bin mt --target-dir target/mt-dev -- check --commit-msg "$msg_file"
-fi
+direnv exec "$root" cargo run -q -p mindtape-cli --bin mt --target-dir target/mt-dev -- check --commit-msg "$msg_file"
 direnv exec "$root" bash "$root/.just/scripts/outdatty-review-trailer.sh" "$msg_file"
 
 scope="${MINDTAPE_GATE_SCOPE:-}"

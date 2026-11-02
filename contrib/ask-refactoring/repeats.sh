@@ -144,7 +144,7 @@ emit_repeats() {
     local measured="+ 🔴 This snippet repeats $copies times across $files $([ "$files" -eq 1 ] && echo file || echo files), $tokens jscpd tokens each. Extracting it saves about $gain tokens net of the helper and its calls.
 $listed"
 
-    local remedy="- \`$path\` and every other file the Problem lists: extract a helper and call it from each copy, or mark the copies as intended with \`// jscpd:ignore-start\` and \`// jscpd:ignore-end\` and a comment saying why the repetition is a coincidence."
+    local remedy="- \`$path\` and every other file the AS-IS lists: extract a helper and call it from each copy, or mark the copies as intended with \`// jscpd:ignore-start\` and \`// jscpd:ignore-end\` and a comment saying why the repetition is a coincidence."
 
     local args=(
         add "extract the snippet $path:$line repeats $copies times"

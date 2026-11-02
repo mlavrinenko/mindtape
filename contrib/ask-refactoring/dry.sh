@@ -129,7 +129,7 @@ emit_dry() {
     local measured="+ 🔴 $shape $copies times across $files $([ "$files" -eq 1 ] && echo file || echo files), $tokens jscpd tokens at most. Extracting it saves about $gain tokens net of the helper and its calls.
 $listed"
 
-    local remedy="- \`$path\` and every other file the Problem lists: extract a helper and call it from each copy, or mark the copies as intended with \`// jscpd:ignore-start\` and \`// jscpd:ignore-end\` and a comment saying why the match is a coincidence. Either way, re-mint the baseline with \`just lint::dry-baseline\` in the same commit."
+    local remedy="- \`$path\` and every other file the AS-IS lists: extract a helper and call it from each copy, or mark the copies as intended with \`// jscpd:ignore-start\` and \`// jscpd:ignore-end\` and a comment saying why the match is a coincidence. Either way, re-mint the baseline with \`just lint::dry-baseline\` in the same commit."
 
     local args=(
         add "extract the clone at $path:$line ($copies copies)"

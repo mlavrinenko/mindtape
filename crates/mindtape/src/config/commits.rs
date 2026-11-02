@@ -115,8 +115,8 @@ pub enum CommitScope {
     /// plus `named` and the task as of `head(...)`, `staged(...)` and
     /// `worktree(...)`.
     Task,
-    /// Once per task any commit of a range names, over the task as the
-    /// range's newest commit holds it, in the filter language of
+    /// Once per task each checked commit of a range names, over the task as
+    /// the range's newest commit holds it, in the filter language of
     /// `[[tasks.rules]]`. Only `mt check --commits` runs it; a task the tip
     /// lacks is skipped.
     Tip,

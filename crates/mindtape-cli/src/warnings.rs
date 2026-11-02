@@ -1,8 +1,8 @@
 //! Folding the Typst warnings a project load reports.
 //!
-//! `mt check` folds a warning with one message into a single line: its count,
-//! the files it sits in, and each distinct hint once. A command that reports
-//! warnings alongside what did load keeps every site, and so does `-v`.
+//! Every command folds a warning with one message into a single line: its
+//! count, the files it sits in, and each distinct hint once. `-v` keeps every
+//! site.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;

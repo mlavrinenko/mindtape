@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Upgrading from 0.3
+
+- The Typst package is `@local/mindtape:0.3.0`. Change every task import;
+  `mt install` writes the package, and the binary carries a copy.
+- `mindtape:tasks` accepts `AS-IS`, not `Problem`, as the first section.
+  Rename it where the pack applies.
+- `mt check` skips merge commits by default. Pass `--check-merges` to judge
+  one.
+
 ### Added
 
 - **A commit trailer accepts external refs.** `[commits] external-refs` lists
@@ -41,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `lib/`, so a range across a prelude bump no longer reads the parent's old
   imports through the working tree's new pin. A local-package pin also serves
   only the version its `typst.toml` declares, falling through to the installed
-  package otherwise.
+  copy, or the one built into `mt`.
 - **`mt check` holds a template's sample task to an empty working tree.** A
   budget rule such as `changed(...) <= estimate.src-files` no longer warns on a
   built-in or project template, which is no one's work. Every other rule still

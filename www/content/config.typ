@@ -150,8 +150,9 @@ resolves the package from a path in the project instead:
 
 `path` is relative to the project root and may point outside it. An entry
 wins over the machine directory for the version its `typst.toml` declares; a
-file importing another version reads the machine's copy instead. It works for
-any `@local/<name>` a task file or an `x-<ns>` helper imports. This repository
+file importing another version falls through to the machine's copy, or the
+prelude built into `mt` where none is installed. It works for any
+`@local/<name>` a task file or an `x-<ns>` helper imports. This repository
 pins its own prelude to its `lib/` with one.
 
 `mt install` still writes the machine directory. Your editor's Typst language

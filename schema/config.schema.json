@@ -405,7 +405,7 @@
         },
         {
           "const": "tip",
-          "description": "Once per task any commit of a range names, over the task as the\nrange's newest commit holds it, in the filter language of\n`[[tasks.rules]]`. Only `mt check --commits` runs it; a task the tip\nlacks is skipped.",
+          "description": "Once per task each checked commit of a range names, over the task as\nthe range's newest commit holds it, in the filter language of\n`[[tasks.rules]]`. Only `mt check --commits` runs it; a task the tip\nlacks is skipped.",
           "type": "string"
         }
       ]

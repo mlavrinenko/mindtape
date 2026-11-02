@@ -74,7 +74,7 @@ mutants_available() {
 # outcomes.json itself. Read on a task filed weeks later, this is what stops a
 # single-file `-f` run from reading like a verdict on the workspace.
 #
-# The file list is capped at six names. It lands in the task's `Problem`
+# The file list is capped at six names. It lands in the task's `AS-IS`
 # section, whose word cap is 120, and a full-sweep outcomes.json holds a run
 # across every file — spelling all of them out pushed the section over the cap
 # and `mt add` refused the whole sweep with nothing filed. Six names carry the

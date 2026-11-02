@@ -75,7 +75,7 @@ size_meta() {
 }
 
 # `$1` is `size_meta`'s map, `{}` when absent. Rows are grouped by source, the
-# tightest member scores the group, and `measured` holds one Problem line per
+# tightest member scores the group, and `measured` holds one AS-IS line per
 # member, with newlines escaped by @tsv.
 score_size() {
     local meta="${1:-}"

@@ -20,7 +20,7 @@
   // docs:end
 )
 
-= Problem
+= AS-IS
 
 After login, the app sends every user to `/home`, even one who asked for
 `/settings`.
@@ -29,7 +29,7 @@ After login, the app sends every user to `/home`, even one who asked for
 + Log in.
 + The app shows `/home`.
 
-= Fix
+= TO-BE
 
 Keep the requested path in the session and redirect to it after login.
 // docs:slice hash

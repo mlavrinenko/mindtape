@@ -196,9 +196,10 @@ file, but only the code is staged:
 = Tip scope
 
 A branch that works on a task should finish it. `scope = "tip"` runs the rule
-once for each task any commit of a range names in its trailer, over the task as
-the range's newest commit, the tip, holds it. Only `mt check --commits` runs
-it, since `mt check --commit-msg` checks one commit with no range. A tip rule
+once for each task a checked commit of a range names in its trailer, over the
+task as the range's newest commit, the tip, holds it. Only
+`mt check --commits` runs it, since `mt check --commit-msg` checks one commit
+with no range. A tip rule
 is an ordinary #link(u("/filters/"))[filter expression], like a
 `[[tasks.rules]]` one: `status`, `ready` and `count(...)` read the tip's tasks,
 and there are no commit fields or state wrappers. The `mindtape:tasks` pack
