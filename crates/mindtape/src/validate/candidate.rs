@@ -28,7 +28,7 @@ use typst_world::project_file_id;
 use crate::body::{BodyRules, check_body_rules};
 use crate::config::Config;
 use crate::link::acyclic_kinds;
-use crate::loader::LoadError;
+use crate::loader::{LoadError, StatePackages};
 use crate::model::Task;
 use crate::validate::Violation;
 
@@ -278,9 +278,22 @@ pub(crate) fn harvest_source(
     config: &Config,
     candidate: Candidate<'_>,
 ) -> Result<Option<Task>, LoadError> {
-    Ok(eval_marker(root, config, candidate)?.map(|marker| {
-        crate::loader::task_at(root, config, candidate.rel, &marker, candidate.source)
-    }))
+    harvest_source_with(root, config, candidate, None)
+}
+
+/// [`harvest_source`] with a commit state's own package files tried first, so
+/// a past tree's imports resolve against that tree's `lib/`.
+pub(crate) fn harvest_source_with(
+    root: &Path,
+    config: &Config,
+    candidate: Candidate<'_>,
+    packages: Option<StatePackages>,
+) -> Result<Option<Task>, LoadError> {
+    Ok(
+        eval_marker(root, config, candidate, packages)?.map(|marker| {
+            crate::loader::task_at(root, config, candidate.rel, &marker, candidate.source)
+        }),
+    )
 }
 
 /// Evaluate the candidate source and return its first `mindtape.task` marker.
@@ -288,6 +301,7 @@ fn eval_marker(
     root: &Path,
     config: &Config,
     candidate: Candidate<'_>,
+    packages: Option<StatePackages>,
 ) -> Result<Option<HVal>, LoadError> {
     let fail = |message: String| LoadError {
         file: candidate.rel.to_path_buf(),
@@ -298,8 +312,11 @@ fn eval_marker(
     let id = project_file_id(&root_abs, &root_abs.join(candidate.rel))
         .map_err(|err| fail(err.to_string()))?;
     let world = HarvestWorld::with_main_source(id, root_abs, candidate.source);
-    let world =
-        crate::loader::with_packages(world, &crate::loader::package_overrides(root, config));
+    let overrides = crate::loader::package_overrides(root, config);
+    let world = match packages {
+        Some(packages) => crate::loader::with_packages_and(world, &overrides, packages),
+        None => crate::loader::with_packages(world, &overrides),
+    };
 
     let harvested = harvest(&world)
         .map_err(|err| LoadError::harvest(candidate.rel.to_path_buf(), &err, candidate.source))?;

@@ -1,9 +1,29 @@
 #![allow(clippy::unwrap_used)]
 
+use std::path::Path;
+
 use super::{StatePlan, parse_batch, read_blobs};
 use crate::test_support::tempdir;
 use crate::test_support::write_file;
 use crate::test_support::{git_as_tester as git, git_init};
+
+#[test]
+fn a_package_path_resolves_against_the_repository_root() {
+    let cases = [
+        ("examples/rules/", "../../lib", Some("lib")),
+        ("examples/rules/", "lib", Some("examples/rules/lib")),
+        ("", "lib", Some("lib")),
+        ("examples/rules/", "../../../lib", None),
+        ("", "/lib", None),
+    ];
+    for (prefix, pkg, expected) in cases {
+        assert_eq!(
+            super::repo_path(prefix, Path::new(pkg)).as_deref(),
+            expected,
+            "{prefix:?} + {pkg:?}"
+        );
+    }
+}
 
 #[test]
 fn a_batch_splits_into_objects_and_misses_in_order() {
@@ -18,6 +38,12 @@ fn a_batch_splits_into_objects_and_misses_in_order() {
 fn a_short_batch_pads_with_misses() {
     assert_eq!(parse_batch(b"", 2), [None, None]);
     assert_eq!(parse_batch(b"HEAD:a b.typ missing\n", 1), [None]);
+}
+
+#[test]
+fn a_batch_keeps_bytes_that_are_not_utf8() {
+    let out = b"abc blob 2\n\xff\x00\n";
+    assert_eq!(super::parse_batch_bytes(out, 1), [Some(vec![0xff, 0x00])]);
 }
 
 /// A repository with `kept.typ` and `moved.typ` committed, then `kept.typ`

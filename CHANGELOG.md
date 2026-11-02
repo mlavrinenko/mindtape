@@ -30,6 +30,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt check --commits` reads a past tree's package version.** A commit
+  state's task files now resolve `@local` packages against that commit's own
+  `lib/`, so a range across a prelude bump no longer reads the parent's old
+  imports through the working tree's new pin. A local-package pin also serves
+  only the version its `typst.toml` declares, falling through to the installed
+  package otherwise.
 - **`mt check` holds a template's sample task to an empty working tree.** A
   budget rule such as `changed(...) <= estimate.src-files` no longer warns on a
   built-in or project template, which is no one's work. Every other rule still

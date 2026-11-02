@@ -30,7 +30,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 2),
+  status: wip(2026, 11, 2),
 )
 
 == AS-IS
@@ -65,7 +65,7 @@ ok: commit rules pass on 2 commits
 
 - `crates/mindtape/src/commit/tasks.rs`: resolve an overlaid tree's package imports against its own version, or overlay its config.
 - `crates/mindtape/src/loader/mod.rs`: let a version-mismatched local-package pin fall through.
-- `crates/mindtape/src/loader/tests.rs`: the mixed-version range case.
+- `crates/mindtape/src/loader/tests_pins.rs`: the mixed-version cases.
 
 
 == Out of scope

@@ -2,10 +2,10 @@
 
 use std::path::Path;
 
-use typst_harvest::{HVal, HarvestWorld, harvest};
+use typst_harvest::{HarvestWorld, harvest};
 
 use super::{PRELUDE, PRELUDE_VERSION, package_provider};
-use crate::loader::first_task_marker;
+use crate::loader::tests::first_task_title;
 
 /// The title of the one task `main` declares, evaluated with `@local`
 /// packages read under `package_root` and the embedded prelude behind it.
@@ -16,11 +16,7 @@ fn title_under(package_root: &Path, main: &str) -> Option<String> {
         .unwrap()
         .with_file_provider(package_provider(Some(package_root.to_path_buf())));
     let harvest = harvest(&world).unwrap();
-    first_task_marker(&harvest.markers)
-        .and_then(|marker| marker.get("fields"))
-        .and_then(|fields| fields.get("title"))
-        .and_then(HVal::as_str)
-        .map(str::to_owned)
+    first_task_title(&harvest.markers)
 }
 
 fn task_file() -> String {

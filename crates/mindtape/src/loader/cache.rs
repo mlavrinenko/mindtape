@@ -17,7 +17,9 @@
 //! (its `[[typst.local-packages]]` overrides steer package resolution), and the
 //! prelude/`lib` contents. Any build-key change routes reads to a fresh (empty)
 //! directory, so the whole cache busts at once and the stale directories are
-//! pruned.
+//! pruned. An installed package directory is folded by path, not contents, so
+//! rewriting a version's files in place is not a cache miss; bump the version
+//! rather than edit one already published.
 //!
 //! # Imports
 //!

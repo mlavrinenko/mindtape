@@ -8,6 +8,7 @@ use super::{find_root, find_root_bounded, load_project};
 use crate::config::Config;
 use crate::model::numeric::NumValue;
 use crate::parse_config;
+use typst_harvest::HVal;
 
 pub(super) const TASK_BODY: &str = "#metadata((
   marker: \"mindtape.task\",
@@ -272,6 +273,16 @@ fn config_registers_extra_local_package() {
     assert_eq!(outcome.errors, Vec::new());
     assert_eq!(outcome.tasks.len(), 1);
     assert_eq!(outcome.tasks.first().unwrap().title, "Hi");
+}
+
+/// The title of the first `mindtape.task` marker in `markers`, if it carries
+/// one. Shared with `embedded_tests`, which reads a harvested title back too.
+pub(crate) fn first_task_title(markers: &[typst_harvest::Marker]) -> Option<String> {
+    super::first_task_marker(markers)
+        .and_then(|marker| marker.get("fields"))
+        .and_then(|fields| fields.get("title"))
+        .and_then(HVal::as_str)
+        .map(str::to_owned)
 }
 
 #[test]

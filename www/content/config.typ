@@ -149,9 +149,10 @@ resolves the package from a path in the project instead:
 )
 
 `path` is relative to the project root and may point outside it. An entry
-wins over the machine directory, and it works for any `@local/<name>` a task
-file or an `x-<ns>` helper imports. This repository pins its own prelude to
-its `lib/` with one.
+wins over the machine directory for the version its `typst.toml` declares; a
+file importing another version reads the machine's copy instead. It works for
+any `@local/<name>` a task file or an `x-<ns>` helper imports. This repository
+pins its own prelude to its `lib/` with one.
 
 `mt install` still writes the machine directory. Your editor's Typst language
 server, `typst compile` and every project without an entry read it.
