@@ -99,6 +99,14 @@ impl RootSpec {
         }
     }
 
+    /// [`Self::path`] normalized for matching a project-relative path: no
+    /// leading `./`, no trailing slash, and `"."` means the project root.
+    #[must_use]
+    pub fn dir(&self) -> &str {
+        let path = self.path().trim_start_matches("./").trim_end_matches('/');
+        if path == "." { "" } else { path }
+    }
+
     /// The tag emitted for the root itself: the configured `name`, else the
     /// path's last segment.
     #[must_use]

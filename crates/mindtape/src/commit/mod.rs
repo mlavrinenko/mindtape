@@ -35,7 +35,9 @@
 //! - `tasks.rs`: the project as `HEAD`, the index and the working tree see it.
 //! - `tip.rs`: the `scope = "tip"` rules of a range, run over its newest commit's tasks.
 //! - `packages.rs`: a commit state's pinned package files and their fingerprint.
+//! - `state_loader.rs`: the evaluation cache shared across a range and the hook.
 //! - `tree.rs`: a commit state's git tree — its task files and config.
+//! - `tree_io.rs`: git listings, blob reads, symlink resolution and path arithmetic.
 
 pub(crate) mod amend;
 pub use amend::writing_a_merge;
@@ -43,11 +45,13 @@ pub mod expr;
 pub(crate) mod packages;
 pub mod range;
 pub mod refs;
+pub(crate) mod state_loader;
 pub mod task_expr;
 pub mod tasks;
 pub mod tip;
 mod trailer;
 pub(crate) mod tree;
+pub(crate) mod tree_io;
 
 pub(crate) use trailer::{
     external_matchers, is_path_form, matches_external, ref_text, split_refs, value_stem,
@@ -485,10 +489,8 @@ pub(crate) fn is_task_file(path: &str, root_prefix: &str, config: &Config) -> bo
     };
     rel.ends_with(".typ")
         && config.tasks.roots.iter().any(|root| {
-            let dir = root.path().trim_start_matches("./").trim_end_matches('/');
-            dir.is_empty()
-                || dir == "."
-                || rel.strip_prefix(dir).is_some_and(|r| r.starts_with('/'))
+            let dir = root.dir();
+            dir.is_empty() || rel.strip_prefix(dir).is_some_and(|r| r.starts_with('/'))
         })
 }
 

@@ -29,9 +29,6 @@ pub struct RangeCommit {
     pub short: String,
     /// The first parent; `None` for a root commit.
     pub parent: Option<String>,
-    /// The abbreviated first parent, for a report that names the parent
-    /// state; `None` for a root commit.
-    pub parent_short: Option<String>,
     /// Whether the commit has more than one parent.
     pub is_merge: bool,
 }
@@ -76,7 +73,7 @@ impl CommitRange {
                 "--",
             ],
         )?;
-        let mut commits: Vec<RangeCommit> = listing
+        let commits: Vec<RangeCommit> = listing
             .lines()
             .filter_map(|line| {
                 let mut ids = line.split(' ');
@@ -87,20 +84,10 @@ impl CommitRange {
                     id,
                     short,
                     parent: parents.first().map(|id| (*id).to_owned()),
-                    parent_short: None,
                     is_merge: parents.len() > 1,
                 })
             })
             .collect();
-        for commit in &mut commits {
-            if let Some(parent) = &commit.parent {
-                commit.parent_short = Some(
-                    git(root, &["rev-parse", "--short", parent])?
-                        .trim()
-                        .to_owned(),
-                );
-            }
-        }
         Ok(Self {
             commits,
             root_prefix: git(root, &["rev-parse", "--show-prefix"])?

@@ -16,6 +16,8 @@
 mod fs;
 mod process;
 
+#[cfg(unix)]
+pub use fs::symlink_repo;
 pub use fs::{
     LIB_ENTRY, PRELUDE, commit_files, git_as_tester, git_init, git_stdout, git_tempdir,
     home_and_project, tempdir, tempdir_with_config, tempdir_with_dirs, tempdir_with_files,

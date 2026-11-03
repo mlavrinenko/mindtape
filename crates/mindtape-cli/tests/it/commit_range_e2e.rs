@@ -453,31 +453,36 @@ fn a_range_state_reads_an_ancestor_layer_for_its_roots_and_pin() {
     let dir = mindtape::test_support::tempdir();
     let root = dir.path();
 
-    // The project has a config, but its task root and pin live in the ancestor
-    // defaults layer beside it, the layer `load_config` already applies.
-    write_file(root, "lib/typst.toml", manifest("0.3.0"));
-    write_file(root, "lib/prelude.typ", mindtape::test_support::PRELUDE);
+    // The past commit has no project config: its root and pin must come from
+    // the ancestor defaults layer, the layer `load_config` already applies.
+    write_file(root, "lib/typst.toml", manifest("0.2.0"));
+    write_file(root, "lib/prelude.typ", titled_prelude("Ancestor pin"));
     write_file(
         root,
         ".mindtape/defaults.toml",
-        "[tasks]\nroots = [\"backlog\"]\n\n         [[typst.local-packages]]\nname = \"mindtape\"\npath = \"lib\"\n",
-    );
-    write_file(
-        root,
-        ".mindtape/config.toml",
-        "[[commits.rules]]\nname = \"parent-loads\"\nscope = \"task\"\n\
-         when = 'named'\nassert = 'head(exists) && staged(exists)'\nseverity = \"error\"\n",
+        "[tasks]\nroots = [\"backlog\"]\n\n\
+         [[typst.local-packages]]\nname = \"mindtape\"\npath = \"lib\"\n",
     );
     write_file(
         root,
         "backlog/parser.typ",
-        "#import \"@local/mindtape:0.3.0\": *\n\n         #show: task.with(title: \"Write the parser\", status: wip(2026, 6, 1))\n",
+        "#import \"@local/mindtape:0.2.0\": *\n\n\
+         #show: task.with(title: \"Write the parser\")\n",
     );
     support::git_commit_all(root);
 
+    // The tip adds a project config with its own root and a rule that reads
+    // the parent state's task, which only the ancestor layer can supply.
+    write_file(
+        root,
+        ".mindtape/config.toml",
+        "[tasks]\nroots = [\"tasks\"]\n\n\
+         [[commits.rules]]\nname = \"parent-loads\"\nscope = \"task\"\n\
+         when = 'named'\nassert = 'head(exists)'\nseverity = \"error\"\n",
+    );
     stage_file(root, "src/lib.rs");
     commit(root, "feat: work\n\nRefs: parser");
 
     let (ok, text) = check_range(root, "HEAD~1..HEAD");
-    assert!(ok, "the ancestor layer's roots and pin must load: {text}");
+    assert!(ok, "the missing config keeps the ancestor layer: {text}");
 }

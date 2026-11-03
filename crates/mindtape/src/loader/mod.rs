@@ -27,6 +27,7 @@ pub use embedded::{PRELUDE, PRELUDE_VERSION, prelude_manifest};
 pub use errors::{LoadError, LoadWarning};
 pub use many::{Loaded, load_many, map_parallel};
 
+use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
 use typst_harvest::{HVal, Harvest, HarvestError, HarvestWorld, SourceSnapshot, batch_harvest};
@@ -160,7 +161,7 @@ pub fn load_one(root: &Path, config: &Config, path: &Path) -> Result<Option<Task
         .tasks
         .roots
         .iter()
-        .any(|spec| rel.strip_prefix(spec.path()).is_ok());
+        .any(|spec| spec.dir().is_empty() || rel.strip_prefix(spec.dir()).is_ok());
     if !in_a_root || rel.extension().and_then(|ext| ext.to_str()) != Some("typ") {
         return Err(LoadError {
             file: rel.to_path_buf(),
@@ -286,15 +287,7 @@ pub(crate) fn task_at(
 /// a file written outside the roots would carry once it landed there, which is
 /// nothing.
 fn item_at(root: &Path, config: &Config, rel: &Path) -> LoadItem {
-    let derived = config.tasks.roots.iter().find_map(|spec| {
-        let rel_within = rel.strip_prefix(spec.path()).ok()?;
-        let deriver = RootDeriver::new(spec, &config.tasks.derive_tags);
-        Some((
-            deriver.tags_for(rel_within),
-            crate::loader::derive::depth(rel_within),
-        ))
-    });
-    let (folder_tags, depth) = derived.unwrap_or_default();
+    let (folder_tags, depth) = derivation(config, rel);
     LoadItem {
         file: root.join(rel),
         rel: rel.to_path_buf(),
@@ -303,12 +296,37 @@ fn item_at(root: &Path, config: &Config, rel: &Path) -> LoadItem {
     }
 }
 
+/// The folder-derived tags and nesting depth [`item_at`] would give a file at
+/// project-relative `rel`: the first configured root that contains it, with
+/// the root path normalized, or neither when no root does.
+pub(crate) fn derivation(config: &Config, rel: &Path) -> (Vec<String>, u8) {
+    config
+        .tasks
+        .roots
+        .iter()
+        .find_map(|spec| {
+            let dir = spec.dir();
+            let rel_within = if dir.is_empty() {
+                rel
+            } else {
+                rel.strip_prefix(dir).ok()?
+            };
+            let deriver = RootDeriver::new(spec, &config.tasks.derive_tags);
+            Some((
+                deriver.tags_for(rel_within),
+                crate::loader::derive::depth(rel_within),
+            ))
+        })
+        .unwrap_or_default()
+}
+
 /// Every `.typ` file under the configured roots, paired with its
 /// project-relative path and the tags its folder location derives.
 fn collect_items(root: &Path, config: &Config) -> Vec<LoadItem> {
     let mut items = Vec::new();
+    let mut seen = HashSet::new();
     for spec in &config.tasks.roots {
-        let dir = root.join(spec.path());
+        let dir = root.join(spec.dir());
         let deriver = RootDeriver::new(spec, &config.tasks.derive_tags);
         let mut files = Vec::new();
         collect_typ_files(&dir, &mut files);
@@ -318,6 +336,11 @@ fn collect_items(root: &Path, config: &Config) -> Vec<LoadItem> {
             let folder_tags = deriver.tags_for(rel_within);
             let depth = crate::loader::derive::depth(rel_within);
             let rel = file.strip_prefix(root).unwrap_or(&file).to_path_buf();
+            // Overlapping roots name one file once, and the first root that
+            // contains it wins, matching `item_at` and a commit state's list.
+            if !seen.insert(rel.clone()) {
+                continue;
+            }
             items.push(LoadItem {
                 file,
                 rel,

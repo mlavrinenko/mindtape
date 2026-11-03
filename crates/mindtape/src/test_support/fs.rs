@@ -206,6 +206,25 @@ pub fn git_tempdir() -> tempfile::TempDir {
     dir
 }
 
+/// A repository holding `files`, then each `(link, target)` symlink committed.
+///
+/// # Panics
+/// Panics if a file, symlink or commit cannot be made, a test-harness bug.
+#[cfg(unix)]
+#[allow(clippy::unwrap_used)]
+pub fn symlink_repo(files: &[(&str, &str)], links: &[(&str, &str)]) -> tempfile::TempDir {
+    let dir = git_tempdir();
+    commit_files(dir.path(), files, "seed");
+    for (link, target) in links {
+        let path = dir.path().join(link);
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::os::unix::fs::symlink(target, path).unwrap();
+    }
+    git_as_tester(dir.path(), &["add", "-A"]);
+    git_as_tester(dir.path(), &["commit", "-q", "-m", "links"]);
+    dir
+}
+
 /// Write each `(rel, contents)` under `root`, stage everything, and commit it
 /// with `message` as a throwaway identity.
 ///

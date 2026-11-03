@@ -182,7 +182,7 @@ fn report_commit(
 ) {
     let id = Some((commit.short.as_str(), subject));
     let labels = StateLabels {
-        head: commit.parent_short.as_deref().unwrap_or("the empty tree"),
+        head: commit.parent.as_deref().unwrap_or("the empty tree"),
         staged: &commit.short,
     };
     warn_state_errors(states, labels, id);

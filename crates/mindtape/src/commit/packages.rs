@@ -19,25 +19,28 @@ pub(crate) type PackageBlob = (String, Vec<u8>);
 /// One package's spec and files, when a pin tree holds a readable manifest.
 type CachedPackage = Option<(PackageSpec, Vec<PackageBlob>)>;
 
-/// Package files read once per distinct pin tree, so a range's states reuse
-/// the same pin while its tree is unchanged.
+/// The last package files read for each pin name. A range walks commits in
+/// order, so a pin's previous tree is the only other one it can need; keeping
+/// every historical tree would hold a long prelude history in memory.
 #[derive(Default)]
 pub(crate) struct PackageCache {
-    entries: HashMap<(String, String), CachedPackage>,
+    entries: HashMap<String, (String, CachedPackage)>,
 }
 
 impl PackageCache {
-    /// The package at `name` and pin `tree`, when this cache has read it.
+    /// The package at `name` and pin `tree`, when this cache holds that tree.
     pub(crate) fn get(&self, name: &str, tree: &str) -> Option<CachedPackage> {
         self.entries
-            .get(&(name.to_owned(), tree.to_owned()))
-            .cloned()
+            .get(name)
+            .filter(|(found_tree, _)| found_tree == tree)
+            .map(|(_, found)| found.clone())
     }
 
-    /// Record the package at `name` and pin `tree`.
+    /// Record the package at `name` and pin `tree`, replacing that pin's
+    /// previous tree.
     pub(crate) fn insert(&mut self, name: &str, tree: &str, found: CachedPackage) {
         self.entries
-            .insert((name.to_owned(), tree.to_owned()), found);
+            .insert(name.to_owned(), (tree.to_owned(), found));
     }
 }
 
@@ -89,8 +92,9 @@ impl PackageSet {
     }
 }
 
-/// The package files the working tree's pins hold, built exactly as a state's
-/// are so their fingerprints compare. `None` when a pin cannot be read, which
+/// The package files the working tree's pins hold, fingerprinted by the same
+/// recipe as a state's so the two compare. The bytes come from the working
+/// tree, not the state's git tree. `None` when a pin cannot be read, which
 /// disables the reuse path rather than guessing.
 pub(crate) fn working_packages(root: &Path, config: &Config) -> Option<StatePackages> {
     let mut set = PackageSet::default();
@@ -114,3 +118,7 @@ pub(crate) fn working_packages(root: &Path, config: &Config) -> Option<StatePack
     }
     set.finish()
 }
+
+#[cfg(test)]
+#[path = "packages_tests.rs"]
+mod tests;

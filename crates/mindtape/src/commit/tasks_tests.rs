@@ -2,10 +2,11 @@
 
 use crate::test_support::commit_files;
 use crate::test_support::git_as_tester as git;
+use crate::test_support::git_stdout;
 use crate::test_support::git_tempdir;
 use crate::test_support::write_file;
 
-use super::{CommitStates, StatePlan};
+use super::{CommitStates, StateLoader, StatePlan};
 use crate::config::{Config, parse_config};
 
 /// A raw task marker needing no prelude package.
@@ -70,6 +71,22 @@ fn revisions(head: &str, staged: &str) -> StatePlan {
     }
 }
 
+/// A plan whose project root sits in `sub/`.
+fn sub_plan() -> StatePlan {
+    let mut plan = revisions("HEAD", "HEAD");
+    plan.root_prefix = "sub/".to_owned();
+    plan
+}
+
+/// A loader whose config discovery ends at `repo`, for a subproject.
+fn sub_loader<'a>(
+    root: &'a std::path::Path,
+    config: &'a Config,
+    repo: &std::path::Path,
+) -> StateLoader<'a> {
+    StateLoader::with_layers(root, &[], config, (Some(repo.to_path_buf()), None, None))
+}
+
 #[test]
 fn a_malformed_state_config_falls_back_and_is_reported() {
     let dir = git_tempdir();
@@ -81,7 +98,7 @@ fn a_malformed_state_config_falls_back_and_is_reported() {
     );
     let config = parse_config("[tasks]\nroots = [\"tasks\"]\n").unwrap();
     let plan = revisions("HEAD", "HEAD");
-    let states = CommitStates::load(root, &[], &config, &plan).unwrap();
+    let states = load(root, &config, &plan);
     assert_eq!(
         states.head.tasks.len(),
         1,
@@ -166,9 +183,8 @@ fn a_state_loads_its_unchanged_task_against_its_own_pin() {
 
     let config = parse_config(&pin_config("lib")).unwrap();
     let plan = revisions("HEAD~1", "HEAD");
-    let states = CommitStates::load(root, &[], &config, &plan).unwrap();
-    assert_eq!(states.head.tasks[0].title, "Old pin");
-    assert_eq!(states.staged.tasks[0].title, "New pin");
+    let states = load(root, &config, &plan);
+    assert_pin_titles(&states);
     assert!(states.head.errors.is_empty(), "{:?}", states.head.errors);
     assert!(
         states.staged.errors.is_empty(),
@@ -203,4 +219,208 @@ fn an_index_state_loads_its_own_config_pin() {
         "{:?}",
         states.staged.errors
     );
+}
+
+/// A source that fails evaluation.
+const BROKEN: &str = "#let x = (\n";
+
+#[test]
+fn a_seeded_task_keeps_the_state_root_choice_clean_or_dirty() {
+    let cases = [
+        (
+            "[tasks]\nroots = [\"tasks\", \"tasks/sub\"]\n[tasks.derive-tags]\nenabled = true\n",
+            vec!["tasks", "sub"],
+        ),
+        (
+            "[tasks]\nroots = [\"./tasks\"]\n[tasks.derive-tags]\nenabled = true\n",
+            vec!["tasks", "sub"],
+        ),
+    ];
+    for (text, expected) in cases {
+        let dir = git_tempdir();
+        let root = dir.path();
+        commit_files(
+            root,
+            &[(".mindtape/config.toml", text), ("tasks/sub/x.typ", MARKER)],
+            "seed",
+        );
+        let config = parse_config(text).unwrap();
+        let plan = StatePlan::index(root).unwrap();
+        let clean_base = crate::loader::load_project(root, &config).tasks;
+        let clean = CommitStates::load(root, &clean_base, &config, &plan).unwrap();
+
+        // A working-tree edit that stays out of the index: the state bytes do
+        // not change, so a seeded state must not depend on it.
+        write_file(root, "tasks/sub/x.typ", format!("{MARKER}// dirty\n"));
+        let dirty_base = crate::loader::load_project(root, &config).tasks;
+        let dirty = CommitStates::load(root, &dirty_base, &config, &plan).unwrap();
+
+        assert_eq!(
+            clean.staged.tasks[0].derived_tags, expected,
+            "the first root wins: {text}"
+        );
+        assert_eq!(
+            dirty.staged.tasks[0].derived_tags,
+            clean.staged.tasks[0].derived_tags
+        );
+        assert_eq!(dirty.staged.tasks[0].depth, clean.staged.tasks[0].depth);
+    }
+}
+
+#[test]
+fn a_missing_state_config_keeps_ancestor_layers() {
+    let dir = git_tempdir();
+    let repo = dir.path();
+    let root = repo.join("sub");
+    commit_files(
+        repo,
+        &[
+            (
+                ".mindtape/defaults.toml",
+                "[tasks]\nroots = [\"backlog\"]\n",
+            ),
+            ("sub/backlog/parser.typ", MARKER),
+        ],
+        "seed",
+    );
+    let config = parse_config("").unwrap();
+    let mut plan = revisions("HEAD", "HEAD");
+    plan.root_prefix = "sub/".to_owned();
+    let mut loader =
+        StateLoader::with_layers(&root, &[], &config, (Some(repo.to_path_buf()), None, None));
+    let states = loader.load(&plan).unwrap();
+    assert_eq!(states.staged.tasks[0].id, "parser");
+}
+
+#[test]
+fn a_state_config_overrides_an_ancestor_root_and_pin() {
+    let dir = git_tempdir();
+    let repo = dir.path();
+    let root = repo.join("sub");
+    let old = titled_prelude("Ancestor pin");
+    let new = titled_prelude("Project pin");
+    commit_files(
+        repo,
+        &[
+            (
+                ".mindtape/defaults.toml",
+                "[tasks]\nroots = [\"backlog\"]\n\n\
+                 [[typst.local-packages]]\nname = \"mindtape\"\npath = \"old-lib\"\n",
+            ),
+            ("sub/old-lib/typst.toml", PIN_MANIFEST),
+            ("sub/old-lib/prelude.typ", &old),
+            ("sub/lib/typst.toml", PIN_MANIFEST),
+            ("sub/lib/prelude.typ", &new),
+            ("sub/.mindtape/config.toml", &pin_config("lib")),
+            ("sub/tasks/x.typ", PINNED_TASK),
+            ("sub/backlog/y.typ", MARKER),
+        ],
+        "seed",
+    );
+    let config = parse_config("").unwrap();
+    let plan = sub_plan();
+    let mut loader = sub_loader(&root, &config, repo);
+    let states = loader.load(&plan).unwrap();
+    assert_eq!(states.staged.tasks.len(), 1);
+    assert_eq!(
+        (
+            states.staged.tasks[0].id.as_str(),
+            states.staged.tasks[0].title.as_str()
+        ),
+        ("x", "Project pin")
+    );
+}
+
+#[test]
+fn a_state_config_reading_a_moved_dictionary_warns_and_falls_back() {
+    let dir = git_tempdir();
+    let root = dir.path();
+    commit_files(
+        root,
+        &[
+            (
+                ".mindtape/config.toml",
+                "[tasks]\nroots = [\"tasks\"]\n\n[dicts.words]\npath = \"words.txt\"\n",
+            ),
+            ("words.txt", "alpha\n"),
+            ("tasks/a.typ", MARKER),
+        ],
+        "seed",
+    );
+    // The state tree still holds words.txt; the working tree does not.
+    std::fs::remove_file(root.join("words.txt")).unwrap();
+    let config = parse_config("[tasks]\nroots = [\"tasks\"]\n").unwrap();
+    let plan = revisions("HEAD", "HEAD");
+    let states = load(root, &config, &plan);
+    assert_eq!(states.head.tasks[0].id, "a");
+    let error = states
+        .head
+        .errors
+        .first()
+        .expect("the moved dictionary is reported");
+    assert_eq!(
+        error.file,
+        std::path::PathBuf::from(".mindtape/config.toml")
+    );
+}
+
+#[test]
+fn the_state_file_cache_reuses_hits_and_never_stores_errors() {
+    let dir = git_tempdir();
+    let root = dir.path();
+    let config_text = "[tasks]\nroots = [\"tasks\"]\n";
+    commit_files(
+        root,
+        &[
+            (".mindtape/config.toml", config_text),
+            ("tasks/a.typ", MARKER),
+            ("tasks/b.typ", MARKER),
+            ("tasks/broken.typ", BROKEN),
+        ],
+        "one",
+    );
+    let config = parse_config(config_text).unwrap();
+    let one = git_stdout(root, &["rev-parse", "HEAD"]);
+    let mut loader = StateLoader::new(root, &[], &config);
+    loader.load(&revisions(&one, &one)).unwrap();
+    assert_eq!(
+        loader.evaluations(),
+        3,
+        "two tasks and the failed file are evaluated once"
+    );
+
+    commit_files(
+        root,
+        &[("tasks/b.typ", &format!("{MARKER}// new\n"))],
+        "two",
+    );
+    let parent = git_stdout(root, &["rev-parse", "HEAD~1"]);
+    let tip = git_stdout(root, &["rev-parse", "HEAD"]);
+    loader.load(&revisions(&parent, &tip)).unwrap();
+    assert_eq!(
+        loader.evaluations(),
+        5,
+        "only the changed file and the failed file are evaluated again"
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn a_state_follows_a_symlinked_task_file() {
+    let config_text = "[tasks]\nroots = [\"tasks\"]\n";
+    let dir = crate::test_support::symlink_repo(
+        &[
+            (".mindtape/config.toml", config_text),
+            ("shared/real.typ", MARKER),
+        ],
+        &[("tasks/a.typ", "../shared/real.typ")],
+    );
+    let root = dir.path();
+
+    let config = parse_config(config_text).unwrap();
+    let plan = revisions("HEAD", "HEAD");
+    let states = load(root, &config, &plan);
+    assert_eq!(states.head.tasks[0].id, "a");
+    assert_eq!(states.head.tasks[0].title, "Build");
+    assert!(states.head.errors.is_empty(), "{:?}", states.head.errors);
 }

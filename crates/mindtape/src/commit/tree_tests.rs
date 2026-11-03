@@ -2,11 +2,14 @@
 
 use std::path::{Path, PathBuf};
 
-use super::{StateConfig, StateTree, parse_batch_bytes, read_blobs, repo_path};
+use super::{StateConfig, StateTree};
 use crate::commit::tasks::{StatePlan, StateSource};
+use crate::commit::tree_io::{parse_batch_bytes, read_blobs, repo_path};
 use crate::config::{Config, parse_config};
 use crate::test_support::commit_files;
 use crate::test_support::git_tempdir;
+#[cfg(unix)]
+use crate::test_support::symlink_repo;
 use crate::test_support::write_file;
 
 /// A git repository holding `committed`, then each `staged` file written and
@@ -97,7 +100,8 @@ fn plan(rev: &str) -> StatePlan {
 fn config_at(root: &Path, rev: &str) -> StateConfig {
     let state_plan = plan(rev);
     let tree = StateTree::new(root, &state_plan, &state_plan.head);
-    tree.config().unwrap()
+    let text = tree.config_text().unwrap().unwrap_or_default();
+    tree.parse_config_in(&text, Some(root), None, None)
 }
 
 /// The task files `rev` holds under the roots `config` declares.
@@ -166,7 +170,7 @@ fn a_missing_or_malformed_state_config_is_reported_not_read() {
     let root = dir.path();
     commit_files(root, &[("tasks/a.typ", "a\n")], "no config");
     let missing = config_at(root, "HEAD");
-    assert!(missing.config.is_none() && missing.error.is_none());
+    assert!(missing.config.is_some() && missing.error.is_none());
 
     commit_files(
         root,
@@ -237,4 +241,61 @@ fn a_states_packages_carry_the_versions_its_manifests_declare() {
     let tree = StateTree::new(root, &state_plan, &state_plan.head);
     let packages = tree.packages(&config).unwrap().unwrap();
     assert_eq!(packages.specs[0].version.to_string(), "0.2.0");
+}
+
+/// A task entry for repository-relative `path` with `mode`.
+fn entry(path: &str, mode: &str) -> super::TaskEntry {
+    super::TaskEntry {
+        repo: path.to_owned(),
+        rel: PathBuf::from(path),
+        oid: "0".to_owned(),
+        mode: mode.to_owned(),
+    }
+}
+
+/// The source the `rev` state resolves for `path` with `mode`.
+fn source_at(root: &Path, rev: &str, path: &str, mode: &str) -> super::TaskSource {
+    let state_plan = plan(rev);
+    let tree = StateTree::new(root, &state_plan, &state_plan.head);
+    tree.task_source(&entry(path, mode)).unwrap()
+}
+
+#[test]
+fn a_missing_regular_task_blob_is_missing() {
+    let dir = git_tempdir();
+    let root = dir.path();
+    commit_files(root, &[("seed.txt", "seed\n")], "seed");
+    assert!(matches!(
+        source_at(root, "HEAD", "tasks/gone.typ", "100644"),
+        super::TaskSource::Missing
+    ));
+}
+
+#[cfg(unix)]
+#[test]
+fn a_symlink_outside_the_repository_is_unsupported() {
+    let dir = symlink_repo(&[("seed.txt", "seed\n")], &[("tasks/a.typ", "/etc/passwd")]);
+    assert!(matches!(
+        source_at(dir.path(), "HEAD", "tasks/a.typ", "120000"),
+        super::TaskSource::Unsupported(_)
+    ));
+}
+
+#[cfg(unix)]
+#[test]
+fn a_symlink_cycle_or_missing_target_is_unsupported() {
+    let dir = symlink_repo(
+        &[("seed.txt", "seed\n")],
+        &[
+            ("tasks/a.typ", "b.typ"),
+            ("tasks/b.typ", "a.typ"),
+            ("tasks/c.typ", "missing.typ"),
+        ],
+    );
+    for path in ["tasks/a.typ", "tasks/c.typ"] {
+        assert!(matches!(
+            source_at(dir.path(), "HEAD", path, "120000"),
+            super::TaskSource::Unsupported(_)
+        ));
+    }
 }

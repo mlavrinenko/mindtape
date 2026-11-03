@@ -73,7 +73,7 @@ groups:
     source:
       crates/mindtape-cli/src/cmd/check/commit.rs: 7125f543757eba9dbefeeb54bd1cf34de03c21731ec1470b7d9051100bc36527
       crates/mindtape-cli/src/cmd/check/mod.rs: a6b534eb7b136cce75a7427b1833fdbb4fc4d1e98cc06228face15834ef2bf08
-      crates/mindtape-cli/src/cmd/check/range.rs: 4795d43ea0988180faa86aad350db4eab3284eb5a9feba6b9656fa1c8e235171
+      crates/mindtape-cli/src/cmd/check/range.rs: 99fd4e598d7bb0611d061fb0426a59b4829f59352d5300ec8ddaa7a4a9127e94
       crates/mindtape-cli/src/cmd/check/templates.rs: 18ffc5be3e1db5a756a44dfeedbe5c1b49940947b59ac1f5f39c3d9fdd089fdb
     dependents:
       skills/mindtape/evals/evals.json: 30cf7329118dc87b78164b1f425b6bc114f509d6ed4112cd0c174438b9ecc826
@@ -553,8 +553,8 @@ groups:
     dependents:
       crates/mindtape-cli/src/cmd/init/presets/gated/templates/task.typ: 387fba01f69f2c71b690e4d8f25ab4ce5581b1aeb695b0e31a762353408c5909
       crates/mindtape/src/loader/embedded.rs: 614397ac5841e624924bf9db900ba1507a42ef72d8b450f8c44341ed401e4631
-      crates/mindtape/src/test_support/fs.rs: 0eb71a847d7acd2161144e966936d5ef62012c975817b8f39dab165af0910c1f
-      crates/mindtape/src/test_support/mod.rs: 435e98bc6f0d400621c0a4e01379473a5035007a2309742b7326686eecf4384a
+      crates/mindtape/src/test_support/fs.rs: 5e271c901826a771a291bede35523edfc67ca269662672e0b8ae4f327a6b5627
+      crates/mindtape/src/test_support/mod.rs: aa75f3a5d6c3ca456d391b81a12d497cee96c6ed6dcb3fc2e9bdcf773e7b939f
       examples/dsl/tasks/add-a-session-store.typ: 745ca47d38d210a10ca9fd053a8d39e8afa5beba0bb277fe29c09b331bf80f30
       examples/dsl/tasks/fix-the-login-redirect.typ: f378977f77cdfa526b39b8ce156ef425d8a726fef1436f0983aa55dff0c80691
       examples/estimates/tasks/rename-the-status-glyphs.typ: fbb609f55dd8ca0faf63da1d895c1a0e9f038e86437eb1bada5508c784609ea5

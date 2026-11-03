@@ -337,7 +337,7 @@ pub(crate) fn load_config_with_project(
 
 /// [`load_config_with_project`] with every environment-derived directory
 /// injected, for tests that must not read the running machine.
-fn load_config_with_project_in(
+pub(crate) fn load_config_with_project_in(
     root: &Path,
     project_text: &str,
     home: Option<&Path>,
