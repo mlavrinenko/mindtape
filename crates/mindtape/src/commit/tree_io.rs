@@ -12,6 +12,7 @@ pub(crate) struct GitEntry {
     pub(crate) path: String,
     pub(crate) oid: String,
     pub(crate) mode: String,
+    pub(crate) kind: String,
 }
 
 /// Resolve a symlink `target` relative to repository-relative `link`, or
@@ -22,6 +23,15 @@ pub(crate) fn resolve_link(link: &str, target: &str) -> Option<String> {
     }
     let base = Path::new(link).parent().unwrap_or(Path::new(""));
     lexical_path(base.components().chain(Path::new(target).components()))
+}
+
+/// The object kind a git file mode names.
+fn kind_of(mode: &str) -> &'static str {
+    match mode {
+        "040000" => "tree",
+        "160000" => "commit",
+        _ => "blob",
+    }
 }
 
 /// Which git listing `parse_git_entries` is reading.
@@ -45,15 +55,16 @@ pub(crate) fn parse_git_entries(out: &[u8], listing: Listing) -> Vec<GitEntry> {
             let mode = fields.next()?;
             let second = fields.next()?;
             let third = fields.next()?;
-            let oid = match listing {
-                Listing::Tree if second == "blob" => third,
-                Listing::Index if third == "0" => second,
-                _ => return None,
+            let (kind, oid) = match listing {
+                Listing::Tree => (second, third),
+                Listing::Index if third == "0" => (kind_of(mode), second),
+                Listing::Index => return None,
             };
             Some(GitEntry {
                 path: path.to_owned(),
                 oid: oid.to_owned(),
                 mode: mode.to_owned(),
+                kind: kind.to_owned(),
             })
         })
         .collect()

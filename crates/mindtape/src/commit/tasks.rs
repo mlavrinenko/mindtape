@@ -10,8 +10,9 @@
 //! pins resolve against that tree's files, so an unchanged task file still
 //! resolves `@local` against that tree's `lib/`.
 //!
-//! [`StateLoader`] caches evaluations by task-file blob id, package-tree
-//! fingerprint and the config facts a harvest reads. A range reuses one loader
+//! [`StateLoader`] caches evaluations by resolved source identity (a regular
+//! file's blob, or a symlink's final target blob), package-tree fingerprint
+//! and the config facts a harvest reads. A range reuses one loader
 //! across commits, and a `commit-msg` hook seeds it from the loaded working
 //! tree, so only files whose bytes or package/config environment changed are
 //! evaluated again.
@@ -155,3 +156,7 @@ impl CommitStates {
 #[cfg(test)]
 #[path = "tasks_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "tasks_tests_cache.rs"]
+mod tests_cache;

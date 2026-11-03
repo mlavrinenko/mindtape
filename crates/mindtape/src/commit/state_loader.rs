@@ -1,42 +1,27 @@
 //! Caches for loading commit states across a range or a `commit-msg` hook.
 //!
 //! A linear range only needs the previous state: its unchanged tasks are
-//! reused by blob id, and changed files are evaluated again. The working-tree
-//! load seeds the same reuse map for a hook, so a clean index does not
-//! re-evaluate the whole backlog.
+//! reused by source identity, and changed files are evaluated again. A regular
+//! file's identity is its blob id; a symlink's is the final target's blob id,
+//! so a target change cannot reuse a stale task. The working-tree load seeds
+//! the same reuse map for a hook, so a clean index does not re-evaluate the
+//! whole backlog.
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use sha1::{Digest, Sha1};
-
 use crate::commit::CommitMsgError;
 use crate::commit::packages::{PackageCache, working_packages};
+use crate::commit::state_cache::{
+    Build, Outcome, Parts, Reuse, Seen, SeenFile, load_env, lookup, record, working_oid,
+};
 use crate::commit::tasks::{CommitStates, ProjectState, StatePlan, StateSource};
 use crate::commit::tree::{StateConfig, StateTree, TaskEntry, TaskSource};
 use crate::config::Config;
 use crate::loader::{LoadError, StatePackages};
 use crate::model::Task;
 use crate::validate::candidate::{Candidate, harvest_source_with};
-
-/// What one task file produced in a state.
-#[derive(Clone, Copy)]
-enum Outcome {
-    /// The index of its task in the state's task list.
-    Task(usize),
-    /// It evaluated cleanly to no task marker.
-    Missing,
-    /// It failed to evaluate, and so is never reused.
-    Failed,
-}
-
-/// One task file's blob and outcome in a state.
-struct SeenFile {
-    oid: String,
-    mode: String,
-    outcome: Outcome,
-}
 
 /// Config discovery directories a test injects instead of reading the machine.
 struct ConfigDirs {
@@ -58,27 +43,6 @@ type LastState = (
 struct StateKey {
     root_prefix: String,
     rev: String,
-}
-
-/// The tasks and file outcomes a state may reuse.
-struct Reuse<'a> {
-    tasks: &'a [Task],
-    files: &'a HashMap<PathBuf, SeenFile>,
-    /// True for the working-tree load, whose root choice must be checked.
-    seeded: bool,
-}
-
-/// One evaluated task file in a new state.
-struct Seen {
-    entry: TaskEntry,
-    outcome: Outcome,
-}
-
-/// The result of evaluating one state's files.
-struct Build {
-    tasks: Vec<Task>,
-    errors: Vec<LoadError>,
-    seen: Vec<Seen>,
 }
 
 /// What a new state needs to evaluate its files.
@@ -183,7 +147,10 @@ impl<'a> StateLoader<'a> {
         };
         // An index state is never cached: its revision is empty and the index
         // can change between calls.
-        if !source.rev.is_empty()
+        // `HEAD` is a moving name, so only a resolved revision may hit the
+        // state cache; the hook's literal name is loaded once and dropped.
+        let cacheable = !source.rev.is_empty() && source.rev != "HEAD";
+        if cacheable
             && let Some((key, found, _, _)) = &self.last_state
             && *key == state_key
         {
@@ -202,7 +169,7 @@ impl<'a> StateLoader<'a> {
             reuse,
         })?;
         let state = ProjectState::new(build.tasks, state_config, self.root, build.errors);
-        if !source.rev.is_empty() {
+        if cacheable {
             let indices: HashMap<PathBuf, usize> = state
                 .tasks
                 .iter()
@@ -223,7 +190,7 @@ impl<'a> StateLoader<'a> {
                     (
                         seen.entry.rel,
                         SeenFile {
-                            oid: seen.entry.oid,
+                            source: seen.source,
                             mode: seen.entry.mode,
                             outcome,
                         },
@@ -293,28 +260,36 @@ impl<'a> StateLoader<'a> {
         let config = state.config.as_ref().unwrap_or(self.config);
         let mut tasks = Vec::new();
         let mut errors: Vec<LoadError> = state.error.clone().into_iter().collect();
-        let mut seen = Vec::new();
-        let mut regular = Vec::new();
-        let mut links = Vec::new();
+        let (mut seen, mut regular, mut links) = (Vec::new(), Vec::new(), Vec::new());
         for entry in tree.task_entries(config)? {
+            let resolved = if entry.mode == "120000" {
+                Some(tree.task_source(&entry)?)
+            } else {
+                None
+            };
+            let source = resolved
+                .as_ref()
+                .map_or_else(|| entry.oid.clone(), |source| source.source().to_owned());
             match reuse
                 .as_ref()
-                .and_then(|reuse| lookup(reuse, &entry, config))
+                .and_then(|reuse| lookup(reuse, &entry, &source, config))
             {
                 Some(Some(task)) => {
                     tasks.push(task);
                     seen.push(Seen {
                         entry,
+                        source,
                         outcome: Outcome::Task(0),
                     });
                 }
                 Some(None) => seen.push(Seen {
                     entry,
+                    source,
                     outcome: Outcome::Missing,
                 }),
                 None => {
-                    if entry.mode == "120000" {
-                        links.push(entry);
+                    if let Some(source) = resolved {
+                        links.push((entry, source));
                     } else {
                         regular.push(entry);
                     }
@@ -329,26 +304,55 @@ impl<'a> StateLoader<'a> {
                 None => Ok(None),
             };
             let outcome = record(found, &mut tasks, &mut errors);
-            seen.push(Seen { entry, outcome });
+            seen.push(Seen {
+                source: entry.oid.clone(),
+                entry,
+                outcome,
+            });
         }
-        for entry in links {
-            let found = match tree.task_source(&entry)? {
-                TaskSource::Text(text) => self.evaluate(config, packages, &entry.rel, &text),
-                TaskSource::Missing => Ok(None),
-                TaskSource::Unsupported(message) => Err(LoadError {
-                    file: entry.rel.clone(),
-                    message,
-                    ..LoadError::default()
-                }),
-            };
-            let outcome = record(found, &mut tasks, &mut errors);
-            seen.push(Seen { entry, outcome });
-        }
+        let mut parts = Parts {
+            tasks: &mut tasks,
+            errors: &mut errors,
+        };
+        seen.extend(self.evaluate_links(links, config, packages, &mut parts));
         Ok(Build {
             tasks,
             errors,
             seen,
         })
+    }
+
+    /// Evaluate the symlinked entries already resolved against the tree.
+    fn evaluate_links(
+        &self,
+        links: Vec<(TaskEntry, TaskSource)>,
+        config: &Config,
+        packages: Option<&StatePackages>,
+        parts: &mut Parts<'_>,
+    ) -> Vec<Seen> {
+        links
+            .into_iter()
+            .map(|(entry, source)| {
+                let identity = source.source().to_owned();
+                let found = match source {
+                    TaskSource::Text { text, .. } => {
+                        self.evaluate(config, packages, &entry.rel, &text)
+                    }
+                    TaskSource::Missing { .. } => Ok(None),
+                    TaskSource::Unsupported { message, .. } => Err(LoadError {
+                        file: entry.rel.clone(),
+                        message,
+                        ..LoadError::default()
+                    }),
+                };
+                let outcome = record(found, parts.tasks, parts.errors);
+                Seen {
+                    entry,
+                    source: identity,
+                    outcome,
+                }
+            })
+            .collect()
     }
 
     /// Harvest `text` as the task at project-relative `rel`.
@@ -387,11 +391,18 @@ impl<'a> StateLoader<'a> {
         let mut files = HashMap::new();
         for (index, task) in self.base.iter().enumerate() {
             if let Some(oid) = working_oid(self.root, &task.file) {
+                let mode = if std::fs::symlink_metadata(self.root.join(&task.file))
+                    .is_ok_and(|meta| meta.file_type().is_symlink())
+                {
+                    "120000"
+                } else {
+                    "100644"
+                };
                 files.insert(
                     task.file.clone(),
                     SeenFile {
-                        oid,
-                        mode: "100644".to_owned(),
+                        source: oid,
+                        mode: mode.to_owned(),
                         outcome: Outcome::Task(index),
                     },
                 );
@@ -399,71 +410,4 @@ impl<'a> StateLoader<'a> {
         }
         self.working_seed = Some((env, files));
     }
-}
-
-/// Look up `entry` in `reuse`, validating a seeded task's root choice.
-fn lookup(reuse: &Reuse<'_>, entry: &TaskEntry, config: &Config) -> Option<Option<Task>> {
-    let seen = reuse.files.get(&entry.rel)?;
-    if seen.oid != entry.oid || seen.mode != entry.mode {
-        return None;
-    }
-    match seen.outcome {
-        Outcome::Task(index) => {
-            let task = reuse.tasks.get(index)?;
-            if reuse.seeded && !fits(task, config, &entry.rel) {
-                return None;
-            }
-            Some(Some(task.clone()))
-        }
-        Outcome::Missing => Some(None),
-        Outcome::Failed => None,
-    }
-}
-
-/// Add one evaluation to the state, recording its outcome.
-fn record(
-    found: Result<Option<Task>, LoadError>,
-    tasks: &mut Vec<Task>,
-    errors: &mut Vec<LoadError>,
-) -> Outcome {
-    match found {
-        Ok(Some(task)) => {
-            let index = tasks.len();
-            tasks.push(task);
-            Outcome::Task(index)
-        }
-        Ok(None) => Outcome::Missing,
-        Err(err) => {
-            errors.push(err);
-            Outcome::Failed
-        }
-    }
-}
-
-/// Whether a seeded task's folder-derived tags and depth still match what the
-/// state's own root choice gives this path.
-fn fits(task: &Task, config: &Config, rel: &Path) -> bool {
-    let (tags, depth) = crate::loader::derivation(config, rel);
-    task.derived_tags == tags && task.depth == depth
-}
-
-/// The config facts a harvest reads, plus the exact package bytes it resolves.
-fn load_env(config: &Config, packages: Option<&StatePackages>) -> String {
-    format!(
-        "{:?}\0{:?}\0{:?}\0{}",
-        config.tasks.roots,
-        config.tasks.derive_tags,
-        config.typst.local_packages,
-        packages.map_or("", |packages| packages.fingerprint.as_str()),
-    )
-}
-
-/// The git blob id of `rel`'s working-tree bytes, as `git hash-object` would
-/// report it. `None` when the file cannot be read.
-fn working_oid(root: &Path, rel: &Path) -> Option<String> {
-    let bytes = std::fs::read(root.join(rel)).ok()?;
-    let mut hasher = Sha1::new();
-    hasher.update(format!("blob {}\0", bytes.len()).as_bytes());
-    hasher.update(&bytes);
-    Some(crate::loader::cache::hex(&hasher.finalize()))
 }

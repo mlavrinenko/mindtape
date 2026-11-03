@@ -157,11 +157,10 @@ pub fn load_project(root: &Path, config: &Config) -> LoadOutcome {
 /// differ from its [`load_project`] task.
 pub fn load_one(root: &Path, config: &Config, path: &Path) -> Result<Option<Task>, LoadError> {
     let rel = path.strip_prefix(root).unwrap_or(path);
-    let in_a_root = config
-        .tasks
-        .roots
-        .iter()
-        .any(|spec| spec.dir().is_empty() || rel.strip_prefix(spec.dir()).is_ok());
+    let in_a_root = config.tasks.roots.iter().any(|spec| {
+        let dir = spec.dir();
+        dir.is_empty() || rel.strip_prefix(&dir).is_ok()
+    });
     if !in_a_root || rel.extension().and_then(|ext| ext.to_str()) != Some("typ") {
         return Err(LoadError {
             file: rel.to_path_buf(),
@@ -309,7 +308,7 @@ pub(crate) fn derivation(config: &Config, rel: &Path) -> (Vec<String>, u8) {
             let rel_within = if dir.is_empty() {
                 rel
             } else {
-                rel.strip_prefix(dir).ok()?
+                rel.strip_prefix(&dir).ok()?
             };
             let deriver = RootDeriver::new(spec, &config.tasks.derive_tags);
             Some((

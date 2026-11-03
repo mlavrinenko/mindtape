@@ -99,12 +99,31 @@ impl RootSpec {
         }
     }
 
-    /// [`Self::path`] normalized for matching a project-relative path: no
-    /// leading `./`, no trailing slash, and `"."` means the project root.
+    /// [`Self::path`] normalized for matching a project-relative path: `.`
+    /// components and interior `..` are resolved lexically, leading `./` and
+    /// trailing `/` are dropped, and `"."` means the project root.
     #[must_use]
-    pub fn dir(&self) -> &str {
-        let path = self.path().trim_start_matches("./").trim_end_matches('/');
-        if path == "." { "" } else { path }
+    pub fn dir(&self) -> String {
+        let mut parts: Vec<&str> = Vec::new();
+        for component in Path::new(self.path()).components() {
+            match component {
+                std::path::Component::CurDir => {}
+                std::path::Component::ParentDir => {
+                    if parts.last().is_some_and(|part| *part != "..") {
+                        parts.pop();
+                    } else {
+                        parts.push("..");
+                    }
+                }
+                std::path::Component::Normal(name) => {
+                    parts.push(name.to_str().unwrap_or_default());
+                }
+                std::path::Component::RootDir | std::path::Component::Prefix(_) => {
+                    return self.path().to_owned();
+                }
+            }
+        }
+        parts.join("/")
     }
 
     /// The tag emitted for the root itself: the configured `name`, else the

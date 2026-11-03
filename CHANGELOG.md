@@ -16,10 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `.mindtape/config.toml` on top. An unchanged task file therefore resolves
   `@local` across a pin path or version move, including a root or pin an
   ancestor layer supplies. A symlinked task file follows its target when the
-  target is inside the repository. The loader reuses evaluations by file blob
-  and package fingerprint, so a range stays fast; `StateSource::differs` is
-  retained but now always empty. A repository's first commit reads an empty
-  `HEAD`.
+  target is inside the repository, and a target change invalidates the reused
+  task. The loader reuses evaluations by resolved source identity and package
+  fingerprint, so a range stays fast; `StateSource::differs` is retained but
+  now always empty. A repository's first commit reads the empty tree.
 
 ## [0.4.0] - 2026-11-02
 

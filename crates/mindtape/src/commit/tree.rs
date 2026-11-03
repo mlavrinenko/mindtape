@@ -57,12 +57,24 @@ pub(crate) struct TaskEntry {
 
 /// What a task entry's blob resolves to in a state.
 pub(crate) enum TaskSource {
-    /// The Typst source to evaluate at the entry's path.
-    Text(String),
+    /// The Typst source to evaluate at the entry's path, and the final blob
+    /// identity that source came from.
+    Text { text: String, source: String },
     /// The state holds no blob at the entry.
-    Missing,
+    Missing { source: String },
     /// A symlink the state tree cannot resolve.
-    Unsupported(String),
+    Unsupported { message: String, source: String },
+}
+
+impl TaskSource {
+    /// The identity of the bytes (or absence) this source names.
+    pub(crate) fn source(&self) -> &str {
+        match self {
+            Self::Text { source, .. }
+            | Self::Missing { source }
+            | Self::Unsupported { source, .. } => source,
+        }
+    }
 }
 
 /// One state's tree, read through git.
@@ -86,17 +98,6 @@ impl<'a> StateTree<'a> {
             prefix: &plan.root_prefix,
             rev: &source.rev,
         }
-    }
-
-    /// The state's own `.mindtape/config.toml`, layered over the embedded,
-    /// XDG and ancestor-default layers a working-tree load uses. A missing
-    /// file leaves both fields empty; a config that cannot load leaves the
-    /// config empty and carries the reason, so the caller can fall back to the
-    /// working tree's config and still say why.
-    #[cfg(test)]
-    pub(crate) fn config(&self) -> Result<StateConfig, CommitMsgError> {
-        let text = self.config_text()?.unwrap_or_default();
-        Ok(self.parse_config(&text))
     }
 
     /// Build [`StateConfig`] from `text`, the state's project config layer.
@@ -140,7 +141,8 @@ impl<'a> StateTree<'a> {
     pub(crate) fn task_entries(&self, config: &Config) -> Result<Vec<TaskEntry>, CommitMsgError> {
         let mut entries = BTreeMap::new();
         for spec in &config.tasks.roots {
-            let Some(prefix) = repo_path(self.prefix, Path::new(spec.path())) else {
+            let root = spec.dir();
+            let Some(prefix) = repo_path(self.prefix, Path::new(&root)) else {
                 continue;
             };
             for entry in self.list_entries(&prefix)? {
@@ -185,36 +187,60 @@ impl<'a> StateTree<'a> {
     pub(crate) fn task_source(&self, entry: &TaskEntry) -> Result<TaskSource, CommitMsgError> {
         if entry.mode != "120000" {
             return Ok(match self.read(&[entry.repo.as_str()])?.pop().flatten() {
-                Some(text) => TaskSource::Text(text),
-                None => TaskSource::Missing,
+                Some(text) => TaskSource::Text {
+                    text,
+                    source: entry.oid.clone(),
+                },
+                None => TaskSource::Missing {
+                    source: entry.oid.clone(),
+                },
             });
         }
         let mut seen = HashSet::new();
         let mut path = entry.repo.clone();
         loop {
             if !seen.insert(path.clone()) {
-                return Ok(TaskSource::Unsupported(format!(
-                    "symlinked task file cycles at '{path}'"
-                )));
+                return Ok(TaskSource::Unsupported {
+                    message: format!("symlinked task file cycles at '{path}'"),
+                    source: format!("cycle:{path}"),
+                });
             }
             let Some(target) = self.read(&[path.as_str()])?.pop().flatten() else {
-                return Ok(TaskSource::Missing);
+                return Ok(TaskSource::Missing {
+                    source: format!("missing-link:{path}"),
+                });
             };
             let target = target.trim_end_matches(['\n', '\r']);
             let Some(resolved) = resolve_link(&path, target) else {
-                return Ok(TaskSource::Unsupported(format!(
-                    "symlinked task file '{path}' points outside the repository"
-                )));
+                return Ok(TaskSource::Unsupported {
+                    message: format!("symlinked task file '{path}' points outside the repository"),
+                    source: format!("outside:{path}:{target}"),
+                });
             };
-            if self.mode_at(&resolved)?.as_deref() == Some("120000") {
+            let Some(found) = self.entry_at(&resolved)? else {
+                return Ok(TaskSource::Unsupported {
+                    message: format!("symlinked task file '{path}' target '{resolved}' is missing"),
+                    source: format!("missing:{resolved}"),
+                });
+            };
+            if found.mode == "120000" {
                 path = resolved;
                 continue;
             }
+            if found.kind != "blob" {
+                return Ok(TaskSource::Unsupported {
+                    message: format!(
+                        "symlinked task file '{path}' target '{resolved}' is not a blob"
+                    ),
+                    source: format!("not-blob:{resolved}:{}", found.mode),
+                });
+            }
+            let source = found.oid;
             return Ok(match self.read(&[resolved.as_str()])?.pop().flatten() {
-                Some(text) => TaskSource::Text(text),
-                None => TaskSource::Unsupported(format!(
-                    "symlinked task file '{path}' target '{resolved}' is missing"
-                )),
+                Some(text) => TaskSource::Text { text, source },
+                None => TaskSource::Missing {
+                    source: format!("missing:{resolved}"),
+                },
             });
         }
     }
@@ -360,18 +386,14 @@ impl<'a> StateTree<'a> {
         Ok(Some((spec, blobs)))
     }
 
-    /// The git mode repository-relative `path` holds in this state.
-    fn mode_at(&self, path: &str) -> Result<Option<String>, CommitMsgError> {
+    /// The git entry repository-relative `path` holds in this state.
+    fn entry_at(&self, path: &str) -> Result<Option<GitEntry>, CommitMsgError> {
         let args = if self.rev.is_empty() {
             vec!["ls-files", "-s", "-z", "--full-name", "--"]
         } else {
             vec!["ls-tree", "-z", self.rev, "--"]
         };
-        Ok(self
-            .entries(&args, path)?
-            .into_iter()
-            .next()
-            .map(|entry| entry.mode))
+        Ok(self.entries(&args, path)?.into_iter().next())
     }
 
     /// Every repository-relative blob this state holds under `prefix`, with
@@ -383,7 +405,11 @@ impl<'a> StateTree<'a> {
         } else {
             vec!["ls-tree", "-r", "-z", self.rev, "--"]
         };
-        self.entries(&args, pathspec)
+        Ok(self
+            .entries(&args, pathspec)?
+            .into_iter()
+            .filter(|entry| entry.kind == "blob")
+            .collect())
     }
 
     /// Run one git listing with `args` and `pathspec`, and parse its entries.

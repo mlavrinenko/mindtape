@@ -7,6 +7,8 @@ use crate::commit::tasks::{StatePlan, StateSource};
 use crate::commit::tree_io::{parse_batch_bytes, read_blobs, repo_path};
 use crate::config::{Config, parse_config};
 use crate::test_support::commit_files;
+use crate::test_support::git_as_tester as git;
+use crate::test_support::git_stdout;
 use crate::test_support::git_tempdir;
 #[cfg(unix)]
 use crate::test_support::symlink_repo;
@@ -199,7 +201,11 @@ fn a_subproject_state_reads_its_prefix_config() {
     state_plan.root_prefix = "sub/".to_owned();
     let sub = root.join("sub");
     let tree = StateTree::new(&sub, &state_plan, &state_plan.head);
-    let config = tree.config().unwrap().config.unwrap();
+    let text = tree.config_text().unwrap().unwrap_or_default();
+    let config = tree
+        .parse_config_in(&text, Some(&sub), None, None)
+        .config
+        .unwrap();
     assert_eq!(config.typst.local_packages[0].path, "lib");
     let files = tree.task_files(&config).unwrap();
     assert_eq!(files.len(), 1);
@@ -267,7 +273,7 @@ fn a_missing_regular_task_blob_is_missing() {
     commit_files(root, &[("seed.txt", "seed\n")], "seed");
     assert!(matches!(
         source_at(root, "HEAD", "tasks/gone.typ", "100644"),
-        super::TaskSource::Missing
+        super::TaskSource::Missing { .. }
     ));
 }
 
@@ -277,7 +283,7 @@ fn a_symlink_outside_the_repository_is_unsupported() {
     let dir = symlink_repo(&[("seed.txt", "seed\n")], &[("tasks/a.typ", "/etc/passwd")]);
     assert!(matches!(
         source_at(dir.path(), "HEAD", "tasks/a.typ", "120000"),
-        super::TaskSource::Unsupported(_)
+        super::TaskSource::Unsupported { .. }
     ));
 }
 
@@ -295,7 +301,90 @@ fn a_symlink_cycle_or_missing_target_is_unsupported() {
     for path in ["tasks/a.typ", "tasks/c.typ"] {
         assert!(matches!(
             source_at(dir.path(), "HEAD", path, "120000"),
-            super::TaskSource::Unsupported(_)
+            super::TaskSource::Unsupported { .. }
         ));
     }
+}
+
+#[cfg(unix)]
+#[test]
+fn a_symlink_to_a_directory_is_unsupported() {
+    let dir = symlink_repo(
+        &[("seed.txt", "seed\n"), ("dir/keep.txt", "x\n")],
+        &[("tasks/a.typ", "../dir")],
+    );
+    assert!(matches!(
+        source_at(dir.path(), "HEAD", "tasks/a.typ", "120000"),
+        super::TaskSource::Unsupported { .. }
+    ));
+}
+
+#[cfg(unix)]
+#[test]
+fn a_symlink_chain_resolves_to_its_final_blob() {
+    let dir = symlink_repo(
+        &[("shared/real.typ", "marker\n")],
+        &[
+            ("tasks/a.typ", "b.typ"),
+            ("tasks/b.typ", "../shared/real.typ"),
+        ],
+    );
+    assert!(matches!(
+        source_at(dir.path(), "HEAD", "tasks/a.typ", "120000"),
+        super::TaskSource::Text { text, .. } if text.contains("marker")
+    ));
+}
+
+#[cfg(unix)]
+#[test]
+fn a_relative_symlink_outside_the_repository_is_unsupported() {
+    let dir = symlink_repo(
+        &[("seed.txt", "seed\n")],
+        &[("tasks/a.typ", "../../outside")],
+    );
+    assert!(matches!(
+        source_at(dir.path(), "HEAD", "tasks/a.typ", "120000"),
+        super::TaskSource::Unsupported { .. }
+    ));
+}
+
+#[cfg(unix)]
+#[test]
+fn an_absolute_symlink_inside_the_repository_is_unsupported() {
+    let dir = git_tempdir();
+    let root = dir.path();
+    commit_files(
+        root,
+        &[("seed.txt", "seed\n"), ("shared/real.typ", "marker\n")],
+        "seed",
+    );
+    std::fs::create_dir_all(root.join("tasks")).unwrap();
+    std::os::unix::fs::symlink(root.join("shared/real.typ"), root.join("tasks/a.typ")).unwrap();
+    git(root, &["add", "-A"]);
+    git(root, &["commit", "-q", "-m", "absolute link"]);
+    assert!(matches!(
+        source_at(root, "HEAD", "tasks/a.typ", "120000"),
+        super::TaskSource::Unsupported { .. }
+    ));
+}
+
+#[test]
+fn an_index_gitlink_is_not_a_task_file() {
+    let dir = git_tempdir();
+    let root = dir.path();
+    commit_files(root, &[("seed.txt", "seed\n")], "seed");
+    let head = git_stdout(root, &["rev-parse", "HEAD"]);
+    git(
+        root,
+        &[
+            "update-index",
+            "--add",
+            "--cacheinfo",
+            &format!("160000,{head},tasks/sub.typ"),
+        ],
+    );
+    let config = parse_config("[tasks]\nroots = [\"tasks\"]\n").unwrap();
+    let state_plan = plan("");
+    let tree = StateTree::new(root, &state_plan, &state_plan.head);
+    assert!(tree.task_files(&config).unwrap().is_empty());
 }

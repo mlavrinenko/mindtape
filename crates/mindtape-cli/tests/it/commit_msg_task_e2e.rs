@@ -255,3 +255,30 @@ fn a_subproject_index_state_reads_its_own_config_and_package() {
         "the subproject index state reads its own prefix: {text}"
     );
 }
+
+/// A raw task marker with `title`.
+fn title_marker(title: &str) -> String {
+    format!("#metadata((marker: \"mindtape.task\", fields: (title: \"{title}\"), extras: (:)))\n")
+}
+
+#[cfg(unix)]
+#[test]
+fn a_symlink_target_change_in_the_index_is_not_reused() {
+    let config = "[tasks]\nroots = [\"tasks\"]\n\n\
+         [[commits.rules]]\nname = \"target\"\nscope = \"task\"\nwhen = 'named'\n\
+         assert = 'staged(title == \"Old\")'\nseverity = \"error\"\n";
+    let dir = mindtape::test_support::symlink_repo(
+        &[
+            (".mindtape/config.toml", config),
+            ("shared/real.typ", &title_marker("Old")),
+        ],
+        &[("tasks/a.typ", "../shared/real.typ")],
+    );
+    let root = dir.path();
+
+    // The working target is New, but only Old is staged. The hook must read
+    // the index's target, not reuse the working task through the link.
+    write_file(root, "shared/real.typ", title_marker("New"));
+    let (ok, text) = check_commit_msg(root, "feat: target\n\nRefs: a\n");
+    assert!(ok, "the index target is not the working target: {text}");
+}
