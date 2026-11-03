@@ -266,7 +266,7 @@ fn title_marker(title: &str) -> String {
 fn a_symlink_target_change_in_the_index_is_not_reused() {
     let config = "[tasks]\nroots = [\"tasks\"]\n\n\
          [[commits.rules]]\nname = \"target\"\nscope = \"task\"\nwhen = 'named'\n\
-         assert = 'staged(title == \"Old\")'\nseverity = \"error\"\n";
+         assert = 'staged(title == \"New\")'\nseverity = \"error\"\n";
     let dir = mindtape::test_support::symlink_repo(
         &[
             (".mindtape/config.toml", config),
@@ -276,9 +276,10 @@ fn a_symlink_target_change_in_the_index_is_not_reused() {
     );
     let root = dir.path();
 
-    // The working target is New, but only Old is staged. The hook must read
-    // the index's target, not reuse the working task through the link.
+    // HEAD holds Old; the index stages New. The hook must read the index's
+    // target, not reuse HEAD or the working task through the unchanged link.
     write_file(root, "shared/real.typ", title_marker("New"));
+    git(root, &["add", "shared/real.typ"]);
     let (ok, text) = check_commit_msg(root, "feat: target\n\nRefs: a\n");
-    assert!(ok, "the index target is not the working target: {text}");
+    assert!(ok, "the staged target is New: {text}");
 }

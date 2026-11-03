@@ -10922,7 +10922,7 @@
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "StateTree::config_oid",
-      "line": 126,
+      "line": 127,
       "cyclomatic": 3.0,
       "coverage": 80.0,
       "crap": 3.072,
@@ -10931,7 +10931,7 @@
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "StateTree::config_text",
-      "line": 134,
+      "line": 135,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -10940,7 +10940,7 @@
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "StateTree::entries",
-      "line": 416,
+      "line": 435,
       "cyclomatic": 4.0,
       "coverage": 94.44444444444444,
       "crap": 4.002743484224966,
@@ -10949,16 +10949,16 @@
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "StateTree::entry_at",
-      "line": 390,
-      "cyclomatic": 3.0,
+      "line": 393,
+      "cyclomatic": 5.0,
       "coverage": 100.0,
-      "crap": 3.0,
+      "crap": 5.0,
       "crate": "mindtape"
     },
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "StateTree::list_entries",
-      "line": 401,
+      "line": 420,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -10967,7 +10967,7 @@
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "StateTree::new",
-      "line": 94,
+      "line": 95,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -10976,7 +10976,7 @@
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "StateTree::object_oid",
-      "line": 328,
+      "line": 329,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -10985,7 +10985,7 @@
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "StateTree::package",
-      "line": 340,
+      "line": 341,
       "cyclomatic": 5.0,
       "coverage": 87.8048780487805,
       "crap": 5.0453417681113155,
@@ -10994,7 +10994,7 @@
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "StateTree::package_cached",
-      "line": 299,
+      "line": 300,
       "cyclomatic": 5.0,
       "coverage": 94.44444444444444,
       "crap": 5.004286694101509,
@@ -11003,7 +11003,7 @@
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "StateTree::packages",
-      "line": 290,
+      "line": 291,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -11012,7 +11012,7 @@
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "StateTree::packages_cached",
-      "line": 269,
+      "line": 270,
       "cyclomatic": 4.0,
       "coverage": 93.75,
       "crap": 4.00390625,
@@ -11021,7 +11021,7 @@
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "StateTree::parse_config",
-      "line": 104,
+      "line": 105,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -11030,7 +11030,7 @@
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "StateTree::parse_config_in",
-      "line": 112,
+      "line": 113,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -11039,7 +11039,7 @@
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "StateTree::project_text",
-      "line": 259,
+      "line": 260,
       "cyclomatic": 2.0,
       "coverage": 80.0,
       "crap": 2.032,
@@ -11048,7 +11048,7 @@
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "StateTree::read",
-      "line": 250,
+      "line": 251,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -11057,7 +11057,7 @@
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "StateTree::task_entries",
-      "line": 141,
+      "line": 142,
       "cyclomatic": 5.0,
       "coverage": 86.95652173913044,
       "crap": 5.055477932111449,
@@ -11066,7 +11066,7 @@
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "StateTree::task_files",
-      "line": 174,
+      "line": 175,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -11075,7 +11075,7 @@
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "StateTree::task_source",
-      "line": 187,
+      "line": 188,
       "cyclomatic": 14.0,
       "coverage": 81.13207547169812,
       "crap": 15.31652303579465,
@@ -11084,7 +11084,7 @@
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "StateTree::tree_oid",
-      "line": 320,
+      "line": 321,
       "cyclomatic": 2.0,
       "coverage": 83.33333333333334,
       "crap": 2.0185185185185186,
@@ -11093,7 +11093,7 @@
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "TaskSource::source",
-      "line": 71,
+      "line": 72,
       "cyclomatic": 2.0,
       "coverage": 83.33333333333334,
       "crap": 2.0185185185185186,
@@ -11102,7 +11102,7 @@
     {
       "file": "crates/mindtape/src/commit/tree.rs",
       "function": "state_config",
-      "line": 444,
+      "line": 463,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -11111,7 +11111,7 @@
     {
       "file": "crates/mindtape/src/commit/tree_io.rs",
       "function": "git_failed",
-      "line": 121,
+      "line": 124,
       "cyclomatic": 1.0,
       "coverage": 0.0,
       "crap": 2.0,
@@ -11120,7 +11120,7 @@
     {
       "file": "crates/mindtape/src/commit/tree_io.rs",
       "function": "kind_of",
-      "line": 29,
+      "line": 30,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -11129,16 +11129,16 @@
     {
       "file": "crates/mindtape/src/commit/tree_io.rs",
       "function": "lexical_path",
-      "line": 95,
+      "line": 98,
       "cyclomatic": 8.0,
-      "coverage": 90.0,
-      "crap": 8.064,
+      "coverage": 100.0,
+      "crap": 8.0,
       "crate": "mindtape"
     },
     {
       "file": "crates/mindtape/src/commit/tree_io.rs",
       "function": "parse_batch_bytes",
-      "line": 183,
+      "line": 186,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -11147,7 +11147,7 @@
     {
       "file": "crates/mindtape/src/commit/tree_io.rs",
       "function": "parse_git_entries",
-      "line": 48,
+      "line": 51,
       "cyclomatic": 1.0,
       "coverage": 95.65217391304348,
       "crap": 1.000082189529054,
@@ -11156,7 +11156,7 @@
     {
       "file": "crates/mindtape/src/commit/tree_io.rs",
       "function": "project_rel",
-      "line": 75,
+      "line": 78,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -11165,7 +11165,7 @@
     {
       "file": "crates/mindtape/src/commit/tree_io.rs",
       "function": "project_repo_path",
-      "line": 81,
+      "line": 84,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -11174,7 +11174,7 @@
     {
       "file": "crates/mindtape/src/commit/tree_io.rs",
       "function": "read_blobs",
-      "line": 130,
+      "line": 133,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -11183,7 +11183,7 @@
     {
       "file": "crates/mindtape/src/commit/tree_io.rs",
       "function": "read_objects",
-      "line": 144,
+      "line": 147,
       "cyclomatic": 8.0,
       "coverage": 94.11764705882352,
       "crap": 8.013026663952779,
@@ -11192,7 +11192,7 @@
     {
       "file": "crates/mindtape/src/commit/tree_io.rs",
       "function": "repo_path",
-      "line": 89,
+      "line": 92,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -11201,7 +11201,7 @@
     {
       "file": "crates/mindtape/src/commit/tree_io.rs",
       "function": "repo_root",
-      "line": 112,
+      "line": 115,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -11210,7 +11210,7 @@
     {
       "file": "crates/mindtape/src/commit/tree_io.rs",
       "function": "resolve_link",
-      "line": 20,
+      "line": 21,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -14018,7 +14018,7 @@
     {
       "file": "crates/mindtape/src/config/roots.rs",
       "function": "RootSpec::derive_tags",
-      "line": 143,
+      "line": 145,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -14027,7 +14027,7 @@
     {
       "file": "crates/mindtape/src/config/roots.rs",
       "function": "RootSpec::dir",
-      "line": 106,
+      "line": 108,
       "cyclomatic": 7.0,
       "coverage": 81.25,
       "crap": 7.322998046875,
@@ -14036,7 +14036,7 @@
     {
       "file": "crates/mindtape/src/config/roots.rs",
       "function": "RootSpec::name",
-      "line": 132,
+      "line": 134,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -14045,7 +14045,7 @@
     {
       "file": "crates/mindtape/src/config/roots.rs",
       "function": "RootSpec::path",
-      "line": 95,
+      "line": 97,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -14054,7 +14054,7 @@
     {
       "file": "crates/mindtape/src/config/roots.rs",
       "function": "last_segment",
-      "line": 151,
+      "line": 153,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,

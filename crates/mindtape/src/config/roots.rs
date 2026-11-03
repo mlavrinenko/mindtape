@@ -90,7 +90,9 @@ pub enum Collector {
 }
 
 impl RootSpec {
-    /// The root directory path, relative to the project root.
+    /// The root directory path, relative to the project root. A path outside
+    /// the project (`../shared/tasks`) loads in the working tree only; a
+    /// commit state cannot list it.
     #[must_use]
     pub fn path(&self) -> &str {
         match self {

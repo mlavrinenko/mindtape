@@ -11,8 +11,9 @@
 //! working-tree load discovers, so roots and pins those layers declare still
 //! apply. The state's project config text, task file bytes (following an
 //! in-repository symlink) and pinned package files come from its git tree.
-//! A task file's relative imports outside a pin, and files a config layer
-//! names such as packs and dictionary paths, still read the working tree.
+//! A task file's relative imports outside a pin, files a config layer names
+//! such as packs and dictionary paths, and task roots outside the project
+//! still read the working tree; a state cannot list them.
 
 use std::collections::{BTreeMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -386,14 +387,32 @@ impl<'a> StateTree<'a> {
         Ok(Some((spec, blobs)))
     }
 
-    /// The git entry repository-relative `path` holds in this state.
+    /// The git entry repository-relative `path` holds in this state. An index
+    /// has no directory entries, so a path that only prefixes tracked files is
+    /// returned as a synthetic tree entry.
     fn entry_at(&self, path: &str) -> Result<Option<GitEntry>, CommitMsgError> {
+        if path.is_empty() {
+            return Ok(None);
+        }
         let args = if self.rev.is_empty() {
             vec!["ls-files", "-s", "-z", "--full-name", "--"]
         } else {
             vec!["ls-tree", "-z", self.rev, "--"]
         };
-        Ok(self.entries(&args, path)?.into_iter().next())
+        let entries = self.entries(&args, path)?;
+        if let Some(found) = entries.iter().find(|entry| entry.path == path) {
+            return Ok(Some(found.clone()));
+        }
+        let prefix = format!("{path}/");
+        Ok(entries
+            .iter()
+            .any(|entry| entry.path.starts_with(&prefix))
+            .then(|| GitEntry {
+                path: path.to_owned(),
+                oid: String::new(),
+                mode: "040000".to_owned(),
+                kind: "tree".to_owned(),
+            }))
     }
 
     /// Every repository-relative blob this state holds under `prefix`, with

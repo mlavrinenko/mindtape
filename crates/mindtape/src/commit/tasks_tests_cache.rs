@@ -298,7 +298,20 @@ fn the_same_oid_under_two_paths_loads_two_tasks() {
     let config = parse_config(config_text).unwrap();
     let one = git_stdout(root, &["rev-parse", "HEAD"]);
     let states = load(root, &config, &revisions(&one, &one));
-    assert_eq!(states.staged.tasks.len(), 2);
+    let ids: Vec<&str> = states
+        .staged
+        .tasks
+        .iter()
+        .map(|task| task.id.as_str())
+        .collect();
+    let files: Vec<String> = states
+        .staged
+        .tasks
+        .iter()
+        .map(|task| crate::slash_path(&task.file))
+        .collect();
+    assert_eq!(ids, ["a", "b"]);
+    assert_eq!(files, ["tasks/a.typ", "tasks/b.typ"]);
 }
 
 #[test]
@@ -363,5 +376,48 @@ fn a_state_config_resolves_a_pack_and_its_disable() {
         states.staged.errors.is_empty(),
         "{:?}",
         states.staged.errors
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn a_chain_target_change_invalidates_reuse() {
+    let config_text = "[tasks]\nroots = [\"tasks\"]\n";
+    let dir = crate::test_support::symlink_repo(
+        &[
+            (".mindtape/config.toml", config_text),
+            ("shared/real.typ", &title_marker("Old")),
+        ],
+        &[
+            ("tasks/a.typ", "b.typ"),
+            ("tasks/b.typ", "../shared/real.typ"),
+        ],
+    );
+    let root = dir.path();
+    let config = parse_config(config_text).unwrap();
+    let first = git_stdout(root, &["rev-parse", "HEAD"]);
+    let mut loader =
+        StateLoader::with_layers(root, &[], &config, (Some(root.to_path_buf()), None, None));
+    assert_eq!(
+        loader
+            .load(&revisions(&first, &first))
+            .unwrap()
+            .staged
+            .tasks[0]
+            .title,
+        "Old"
+    );
+    write_file(root, "shared/real.typ", title_marker("New"));
+    git(root, &["add", "shared/real.typ"]);
+    git(root, &["commit", "-q", "-m", "chain target"]);
+    let second = git_stdout(root, &["rev-parse", "HEAD"]);
+    assert_eq!(
+        loader
+            .load(&revisions(&first, &second))
+            .unwrap()
+            .staged
+            .tasks[0]
+            .title,
+        "New"
     );
 }

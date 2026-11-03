@@ -8,6 +8,7 @@ use std::process::{Command, Stdio};
 use crate::commit::CommitMsgError;
 
 /// One path in a git listing, with its mode and blob id.
+#[derive(Clone)]
 pub(crate) struct GitEntry {
     pub(crate) path: String,
     pub(crate) oid: String,
@@ -43,8 +44,10 @@ pub(crate) enum Listing {
     Index,
 }
 
-/// Split a NUL-delimited git listing into `(path, oid)` pairs, keeping tree
-/// blobs and stage-zero index entries.
+/// Split a NUL-delimited git listing into entries of every kind: blobs,
+/// trees and commits from `ls-tree`, and stage-zero index entries with their
+/// mode-derived kind. [`crate::commit::tree::StateTree`] filters to blobs when
+/// it lists task or package files.
 pub(crate) fn parse_git_entries(out: &[u8], listing: Listing) -> Vec<GitEntry> {
     out.split(|byte| *byte == 0)
         .filter(|entry| !entry.is_empty())

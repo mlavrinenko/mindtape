@@ -308,15 +308,39 @@ fn a_symlink_cycle_or_missing_target_is_unsupported() {
 
 #[cfg(unix)]
 #[test]
-fn a_symlink_to_a_directory_is_unsupported() {
+fn a_symlink_to_a_directory_is_unsupported_in_tree_and_index() {
     let dir = symlink_repo(
         &[("seed.txt", "seed\n"), ("dir/keep.txt", "x\n")],
         &[("tasks/a.typ", "../dir")],
     );
-    assert!(matches!(
-        source_at(dir.path(), "HEAD", "tasks/a.typ", "120000"),
-        super::TaskSource::Unsupported { .. }
-    ));
+    for rev in ["HEAD", ""] {
+        assert!(matches!(
+            source_at(dir.path(), rev, "tasks/a.typ", "120000"),
+            super::TaskSource::Unsupported { .. }
+        ));
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn empty_resolved_symlink_targets_are_unsupported_in_tree_and_index() {
+    let dir = symlink_repo(
+        &[("seed.txt", "seed\n")],
+        &[
+            ("tasks/a.typ", ".."),
+            ("tasks/b.typ", "."),
+            ("tasks/d.typ", "e.typ"),
+            ("tasks/e.typ", ".."),
+        ],
+    );
+    for path in ["tasks/a.typ", "tasks/b.typ", "tasks/d.typ"] {
+        for rev in ["HEAD", ""] {
+            assert!(matches!(
+                source_at(dir.path(), rev, path, "120000"),
+                super::TaskSource::Unsupported { .. }
+            ));
+        }
+    }
 }
 
 #[cfg(unix)]
@@ -329,9 +353,10 @@ fn a_symlink_chain_resolves_to_its_final_blob() {
             ("tasks/b.typ", "../shared/real.typ"),
         ],
     );
+    let expected = git_stdout(dir.path(), &["rev-parse", "HEAD:shared/real.typ"]);
     assert!(matches!(
         source_at(dir.path(), "HEAD", "tasks/a.typ", "120000"),
-        super::TaskSource::Text { text, .. } if text.contains("marker")
+        super::TaskSource::Text { text, source } if text.contains("marker") && source == expected
     ));
 }
 
@@ -387,4 +412,35 @@ fn an_index_gitlink_is_not_a_task_file() {
     let state_plan = plan("");
     let tree = StateTree::new(root, &state_plan, &state_plan.head);
     assert!(tree.task_files(&config).unwrap().is_empty());
+}
+
+#[test]
+fn an_empty_symlink_blob_is_unsupported_in_tree_and_index() {
+    let dir = git_tempdir();
+    let root = dir.path();
+    commit_files(root, &[("seed.txt", "seed\n")], "seed");
+    // The empty blob as a `120000` entry: a symlink whose target text is empty.
+    let out = std::process::Command::new("git")
+        .current_dir(root)
+        .args(["hash-object", "-w", "-t", "blob", "--stdin"])
+        .stdin(std::process::Stdio::null())
+        .output()
+        .unwrap();
+    let empty = String::from_utf8_lossy(&out.stdout).trim().to_owned();
+    git(
+        root,
+        &[
+            "update-index",
+            "--add",
+            "--cacheinfo",
+            &format!("120000,{empty},tasks/a.typ"),
+        ],
+    );
+    git(root, &["commit", "-q", "-m", "empty link"]);
+    for rev in ["HEAD", ""] {
+        assert!(matches!(
+            source_at(root, rev, "tasks/a.typ", "120000"),
+            super::TaskSource::Unsupported { .. }
+        ));
+    }
 }
