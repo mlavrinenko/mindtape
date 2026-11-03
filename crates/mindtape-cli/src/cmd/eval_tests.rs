@@ -23,20 +23,46 @@ fn eval(file: &std::path::Path, json: bool) -> crate::diag::Result<()> {
     })
 }
 
-#[test]
-fn eval_valid_file_table_succeeds() {
+/// Evaluate `source` as `task.typ` under a fresh tempdir.
+fn eval_source(source: &str, json: bool) -> crate::diag::Result<()> {
     let dir = tempdir();
     let file = dir.path().join("task.typ");
-    std::fs::write(&file, TASK).unwrap();
-    assert!(eval(&file, false).is_ok());
+    std::fs::write(&file, source).unwrap();
+    eval(&file, json)
+}
+
+/// The refusal text for `source`, which must fail to evaluate.
+fn eval_error_text(source: &str) -> String {
+    crate::diag::plain(&eval_source(source, false).unwrap_err())
+}
+
+/// Assert that an unsupported-prelude refusal names `version`, the set and the
+/// hint that fits the version's side of the current one.
+fn assert_unsupported_prelude(text: &str, version: &str) {
+    let hint = if mindtape::prelude_is_older(version) {
+        format!(
+            "rewrite the import to @local/mindtape:{}",
+            mindtape::PRELUDE_VERSION
+        )
+    } else {
+        format!("upgrade mt to read @local/mindtape:{version}")
+    };
+    assert!(
+        text.contains(&format!("imports @local/mindtape:{version}")),
+        "{text}"
+    );
+    assert!(text.contains(&hint), "{text}");
+    assert!(text.contains("note: supported: 0.2.0, 0.3.0"), "{text}");
+}
+
+#[test]
+fn eval_valid_file_table_succeeds() {
+    assert!(eval_source(TASK, false).is_ok());
 }
 
 #[test]
 fn eval_valid_file_json_succeeds() {
-    let dir = tempdir();
-    let file = dir.path().join("task.typ");
-    std::fs::write(&file, TASK).unwrap();
-    assert!(eval(&file, true).is_ok());
+    assert!(eval_source(TASK, true).is_ok());
 }
 
 #[test]
@@ -49,11 +75,23 @@ fn eval_missing_file_returns_err() {
 }
 
 #[test]
+fn eval_refuses_an_unsupported_prelude_with_the_supported_set() {
+    let text =
+        eval_error_text("#import \"@local/mindtape:0.1.0\": *\n#show: task.with(title: \"Old\")\n");
+    assert_unsupported_prelude(&text, "0.1.0");
+}
+
+#[test]
+fn eval_asks_to_upgrade_mt_for_a_newer_prelude() {
+    let text = eval_error_text(
+        "#import \"@local/mindtape:99.99.99\": *\n#show: task.with(title: \"Future\")\n",
+    );
+    assert_unsupported_prelude(&text, "99.99.99");
+}
+
+#[test]
 fn eval_file_without_marker_returns_err() {
-    let dir = tempdir();
-    let file = dir.path().join("notes.typ");
-    std::fs::write(&file, "= Just notes\n\nNo marker here.\n").unwrap();
-    assert!(eval(&file, false).is_err());
+    assert!(eval_source("= Just notes\n\nNo marker here.\n", false).is_err());
 }
 
 #[test]
@@ -66,14 +104,17 @@ fn build_world_missing_file_returns_err() {
 /// A `@local` package on disk: manifest plus the entrypoint it names. The
 /// stub emits a `mindtape.task` marker directly, so a task importing it
 /// harvests without the real prelude.
-fn write_pkg(root: &std::path::Path, dir_rel: &str, name: &str) {
+fn write_pkg(root: &std::path::Path, dir_rel: &str, name: &str, version: &str) {
     let pkg = root.join(dir_rel);
     std::fs::create_dir_all(&pkg).unwrap();
     std::fs::write(
         pkg.join("typst.toml"),
-        // A version no install would ship, so these stay hermetic whatever the
+        // A version the gate accepts for `mindtape`, and one no install would
+        // ship for any other package, so these stay hermetic whatever the
         // machine has under its own local-package directory.
-        format!("[package]\nname = \"{name}\"\nversion = \"99.99.99\"\nentrypoint = \"lib.typ\"\n"),
+        format!(
+            "[package]\nname = \"{name}\"\nversion = \"{version}\"\nentrypoint = \"lib.typ\"\n"
+        ),
     )
     .unwrap();
     write_file(
@@ -84,12 +125,12 @@ fn write_pkg(root: &std::path::Path, dir_rel: &str, name: &str) {
 }
 
 /// Write a task file importing `@local/mindtape` under `root`, returning it.
-fn write_importing_task(root: &std::path::Path) -> std::path::PathBuf {
+fn write_importing_task(root: &std::path::Path, version: &str) -> std::path::PathBuf {
     let file = root.join("tasks").join("t.typ");
     std::fs::create_dir_all(file.parent().unwrap()).unwrap();
     std::fs::write(
         &file,
-        "#import \"@local/mindtape:99.99.99\": *\n#mk(\"Hi\")\n",
+        format!("#import \"@local/mindtape:{version}\": *\n#mk(\"Hi\")\n"),
     )
     .unwrap();
     file
@@ -101,15 +142,15 @@ fn eval_resolves_mindtape_from_the_projects_entry() {
     // `[[typst.local-packages]]` entry points `@local/mindtape` elsewhere:
     // `mt eval` resolves the import where the entry says, as the loader does.
     let dir = tempdir();
-    write_pkg(dir.path(), "lib", "other");
-    write_pkg(dir.path(), "vendor/mindtape", "mindtape");
+    write_pkg(dir.path(), "lib", "other", "99.99.99");
+    write_pkg(dir.path(), "vendor/mindtape", "mindtape", "0.3.0");
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
     std::fs::write(
         dir.path().join(".mindtape").join("config.toml"),
         "[[typst.local-packages]]\nname = \"mindtape\"\npath = \"vendor/mindtape\"\n",
     )
     .unwrap();
-    let file = write_importing_task(dir.path());
+    let file = write_importing_task(dir.path(), "0.3.0");
     assert!(eval(&file, true).is_ok());
 }
 

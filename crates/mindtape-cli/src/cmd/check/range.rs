@@ -14,6 +14,7 @@ use mindtape::{
 };
 
 use crate::cmd::check::commit::{StateLabels, breach_diag, failing, in_commit, warn_state_errors};
+use crate::cmd::install::hint::skipped_prelude_commit_diag;
 use crate::diag::{Diag, Kind, Note};
 use crate::util;
 
@@ -36,7 +37,28 @@ pub(crate) fn run(
     quiet: bool,
     check_merges: bool,
 ) -> Result<()> {
-    let config = &project.config;
+    skip_worktree_rules(&project.config);
+    let commits = read_range(project, range)?;
+    let found = check_commits(project, &commits, check_merges)?;
+    if !found.tip_skipped
+        && let Some(newest) = commits.commits.last()
+    {
+        report_tip(newest, &found.tip_breaches);
+    }
+    if found.broke > 0 || failing(&found.tip_breaches) > 0 {
+        return Err(Diag::commits_broke_rules(
+            found.broke,
+            failing(&found.tip_breaches),
+        ));
+    }
+    if !quiet {
+        println!("{}", summary(&found, commits.commits.len()));
+    }
+    Ok(())
+}
+
+/// Say once that every rule reading the working tree is skipped in a range.
+fn skip_worktree_rules(config: &mindtape::Config) {
     for (index, spec) in config.commits.rules.iter().enumerate() {
         if spec.reads_worktree() {
             println!(
@@ -45,51 +67,106 @@ pub(crate) fn run(
             );
         }
     }
-    let commits = CommitRange::read(&project.root, range).map_err(|err| {
+}
+
+/// Read `range` against `project`'s root.
+fn read_range(project: &util::Project, range: &str) -> Result<CommitRange> {
+    CommitRange::read(&project.root, range).map_err(|err| {
         Diag::failed("can't read commit range")
             .value(range)
             .cause(&err)
-    })?;
+    })
+}
+
+/// What walking a range found.
+#[derive(Default)]
+struct RangeFound {
+    /// Commits that broke a rule or a trailer.
+    broke: usize,
+    /// The tip rules' breaches.
+    tip_breaches: Vec<CommitBreach>,
+    /// Merge commits skipped.
+    merges: usize,
+    /// Commits skipped for an unsupported prelude.
+    prelude_skips: usize,
+    /// Whether the newest commit's tree was skipped, so the tip rules did not
+    /// run.
+    tip_skipped: bool,
+}
+
+/// Check every commit of `range`, oldest first, and the tip rules over the
+/// newest state that was not skipped.
+fn check_commits(
+    project: &util::Project,
+    commits: &CommitRange,
+    check_merges: bool,
+) -> Result<RangeFound> {
+    let config = &project.config;
     let mut loader = StateLoader::new(&project.root, &project.outcome.tasks, config);
-    let mut broke = 0;
+    let mut found = RangeFound::default();
     let mut named = BTreeSet::new();
     let mut tip = ProjectState::default();
-    let mut skipped = 0;
     for (index, commit) in commits.commits.iter().enumerate() {
+        let newest = index + 1 == commits.commits.len();
         if commit.is_merge && !check_merges {
-            skipped += 1;
+            found.merges += 1;
             // The newest commit's tree is still the tip, even when its own
             // message and first-parent diff are not checked.
-            if index + 1 == commits.commits.len() {
-                tip = tip_state(project, &commits, commit, &mut loader)?;
+            if newest {
+                match tip_state(project, commits, commit, &mut loader)? {
+                    Some(state) => {
+                        tip = state;
+                        found.tip_skipped = false;
+                    }
+                    None => found.tip_skipped = true,
+                }
             }
             continue;
         }
-        let one = check_one(project, &commits, commit, &mut loader)?;
-        broke += usize::from(one.broke);
+        let one = check_one(project, commits, commit, &mut loader)?;
+        if one.skipped {
+            found.prelude_skips += 1;
+            found.tip_skipped = newest;
+            continue;
+        }
+        found.tip_skipped = false;
+        found.broke += usize::from(one.broke);
         named.extend(one.refs);
         tip = one.tip;
     }
-    let left = check_tip(named.iter().map(String::as_str), &tip, config);
-    if let Some(newest) = commits.commits.last() {
-        report_tip(newest, &left);
+    found.tip_breaches = if found.tip_skipped {
+        Vec::new()
+    } else {
+        check_tip(named.iter().map(String::as_str), &tip, config)
+    };
+    Ok(found)
+}
+
+/// The `ok:` line, with each way a commit was left out.
+fn summary(found: &RangeFound, total: usize) -> String {
+    let checked = total - found.merges - found.prelude_skips;
+    let mut reasons = Vec::new();
+    if found.merges > 0 {
+        reasons.push(format!(
+            "{} skipped",
+            mindtape::count(found.merges, "merge")
+        ));
     }
-    if broke > 0 || failing(&left) > 0 {
-        return Err(Diag::commits_broke_rules(broke, failing(&left)));
+    if found.prelude_skips > 0 {
+        reasons.push(format!(
+            "{} skipped for an unsupported prelude",
+            mindtape::count(found.prelude_skips, "commit")
+        ));
     }
-    if !quiet {
-        let checked = commits.commits.len() - skipped;
-        let suffix = if skipped == 0 {
-            String::new()
-        } else {
-            format!(" ({} skipped)", mindtape::count(skipped, "merge"))
-        };
-        println!(
-            "ok: commit rules pass on {}{suffix}",
-            mindtape::count(checked, "commit")
-        );
-    }
-    Ok(())
+    let suffix = if reasons.is_empty() {
+        String::new()
+    } else {
+        format!(" ({})", reasons.join(", "))
+    };
+    format!(
+        "ok: commit rules pass on {}{suffix}",
+        mindtape::count(checked, "commit")
+    )
 }
 
 /// What checking one commit of a range found.
@@ -100,6 +177,9 @@ struct Checked {
     refs: Vec<String>,
     /// The project as the commit holds it.
     tip: ProjectState,
+    /// The commit's tree holds a prelude this `mt` cannot read, so the commit
+    /// was skipped instead of reported.
+    skipped: bool,
 }
 
 /// Read `commit` and the task states it holds.
@@ -119,14 +199,20 @@ fn read_past(
     Ok((past, states))
 }
 
-/// The project as `commit` holds it, for the tip rules.
+/// The project as `commit` holds it, for the tip rules, or `None` when its
+/// prelude is unsupported and the tip rules must be skipped with it.
 fn tip_state(
     project: &util::Project,
     range: &CommitRange,
     commit: &RangeCommit,
     loader: &mut StateLoader<'_>,
-) -> Result<ProjectState> {
-    Ok(read_past(project, range, commit, loader)?.1.staged)
+) -> Result<Option<ProjectState>> {
+    let (past, states) = read_past(project, range, commit, loader)?;
+    if let Some((version, file)) = unsupported_prelude(&states.staged) {
+        warn_skipped(commit, &past.message, version, file);
+        return Ok(None);
+    }
+    Ok(Some(states.staged))
 }
 
 /// Hold `commit` to `[commits]`, printing what it breaks.
@@ -138,6 +224,15 @@ fn check_one(
 ) -> Result<Checked> {
     let config = &project.config;
     let (past, states) = read_past(project, range, commit, loader)?;
+    if let Some((version, file)) = unsupported_prelude(&states.staged) {
+        warn_skipped(commit, &past.message, version, file);
+        return Ok(Checked {
+            broke: false,
+            refs: Vec::new(),
+            tip: ProjectState::default(),
+            skipped: true,
+        });
+    }
     let message = parse_message(&past.message, &config.commits.trailer);
     // Trailers resolve against the tasks the commit itself holds.
     let (mut record, problems) =
@@ -167,7 +262,28 @@ fn check_one(
         broke: !problems.is_empty() || failing(&breaches) > 0,
         refs,
         tip: states.staged,
+        skipped: false,
     })
+}
+
+/// The first unsupported prelude a state holds, with its version and file.
+fn unsupported_prelude(state: &ProjectState) -> Option<(&str, &Path)> {
+    state.errors.iter().find_map(|error| {
+        mindtape::unsupported_prelude_version(&error.message)
+            .map(|version| (version, error.file.as_path()))
+    })
+}
+
+/// Warn that `commit`'s tree holds an unsupported prelude, naming the commit,
+/// the version, the first file and the set.
+fn warn_skipped(commit: &RangeCommit, message: &str, version: &str, file: &Path) {
+    let subject = message.lines().next().unwrap_or_default();
+    crate::diag::emit(&skipped_prelude_commit_diag(
+        &commit.short,
+        subject,
+        version,
+        file,
+    ));
 }
 
 /// Print what one commit of the range breaks: its task files that did not

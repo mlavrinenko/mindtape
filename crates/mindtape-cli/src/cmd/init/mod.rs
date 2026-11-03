@@ -33,9 +33,6 @@ use self::preset::Preset;
 use self::wizard::{Estimate, Headers, Organization, Priority, Recurrence, Required, Workflow};
 use crate::diag::{Diag, Hint, Result};
 
-/// The Typst package version `mt install` installs.
-const TYPST_PKG_VERSION: &str = mindtape::PRELUDE_VERSION;
-
 /// The `#:schema` directive controls, grouped so they travel together — the
 /// two are one decision, and splitting them across the parent's flag list
 /// makes it read like four unrelated toggles.
@@ -291,18 +288,28 @@ fn with_schema_directive(template: &str, args: &SchemaArgs) -> Result<String> {
     Ok(format!("#:schema {value}\n{template}"))
 }
 
-/// Write the `@local/mindtape` package this binary embeds.
+/// Write every `@local/mindtape` package this binary embeds.
 ///
 /// A package dir that is a symlink, such as one a developer points at a
 /// checkout's `lib/`, stays as it is unless `force`: written through, it would
 /// rewrite that checkout with this binary's prelude. `force` replaces the link
-/// with a plain copy and leaves its target alone.
+/// with a plain copy and leaves its target alone. Each version decides on its
+/// own link.
 pub(crate) fn install_lib(force: bool) -> Result<()> {
-    let dir = package_dir()?;
+    for snapshot in mindtape::PRELUDE_SNAPSHOTS {
+        install_prelude(snapshot, force)?;
+    }
+    Ok(())
+}
+
+/// Write one embedded prelude and its manifest at [`package_dir_for`].
+fn install_prelude(snapshot: &mindtape::PreludeSnapshot, force: bool) -> Result<()> {
+    let dir = package_dir_for(snapshot.version)?;
     if let Ok(target) = std::fs::read_link(&dir) {
         if !force {
             println!(
-                "kept @local/mindtape:{TYPST_PKG_VERSION} -> {}, a link to {}; --force replaces it with this mt's copy",
+                "kept @local/mindtape:{} -> {}, a link to {}; --force replaces it with this mt's copy",
+                snapshot.version,
                 mindtape::display_path(&dir),
                 mindtape::display_path(&target)
             );
@@ -311,17 +318,18 @@ pub(crate) fn install_lib(force: bool) -> Result<()> {
         remove_link(&dir)?;
     }
     std::fs::create_dir_all(&dir).map_err(|err| Diag::cannot_write(&dir, &err))?;
-    let manifest = mindtape::prelude_manifest();
+    let manifest = snapshot.manifest();
     for (name, text) in [
         ("typst.toml", manifest.as_str()),
-        ("prelude.typ", mindtape::PRELUDE),
+        ("prelude.typ", snapshot.source),
     ] {
         let path = dir.join(name);
         mindtape::write_atomic(&path, text.as_bytes())
             .map_err(|err| Diag::cannot_write(&path, &err))?;
     }
     println!(
-        "installed @local/mindtape:{TYPST_PKG_VERSION} -> {}",
+        "installed @local/mindtape:{} -> {}",
+        snapshot.version,
         mindtape::display_path(&dir)
     );
     Ok(())
@@ -336,18 +344,18 @@ fn remove_link(link: &Path) -> Result<()> {
         .map_err(|err| Diag::cannot_write(link, &err))
 }
 
-/// Where `mt install` writes the `@local/mindtape` package: under
-/// [`mindtape::package_root`], the directory every task file's import
+/// Where `mt install` writes the `@local/mindtape` package at `version`:
+/// under [`mindtape::package_root`], the directory every task file's import
 /// resolves from and, unless `$MINDTAPE_DATA_HOME` moves it, the one Typst and
 /// tinymist read.
-pub(crate) fn package_dir() -> Result<PathBuf> {
+fn package_dir_for(version: &str) -> Result<PathBuf> {
     let mut path = mindtape::package_root().ok_or_else(|| {
         Diag::failed("can't find the Typst package directory")
             .hint(Hint::new("set MINDTAPE_DATA_HOME to a directory"))
     })?;
     path.push("local");
     path.push("mindtape");
-    path.push(TYPST_PKG_VERSION);
+    path.push(version);
     Ok(path)
 }
 

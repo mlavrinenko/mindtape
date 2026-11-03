@@ -391,3 +391,16 @@ pub fn native_in(text: &str, paths: &[&str]) -> String {
         text.replace(path, &native(path))
     })
 }
+
+/// Assert that `stderr` names `version` and the supported set, the shape every
+/// unsupported-prelude diagnostic shares.
+pub fn assert_unsupported_prelude(stderr: &str, version: &str) {
+    assert!(
+        stderr.contains(&format!("@local/mindtape:{version}")),
+        "the version is named:\n{stderr}"
+    );
+    assert!(
+        stderr.contains("supported: 0.2.0, 0.3.0"),
+        "the set is named:\n{stderr}"
+    );
+}

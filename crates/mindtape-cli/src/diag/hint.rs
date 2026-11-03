@@ -23,6 +23,7 @@ enum Shape {
     Typst(String),
     Example(&'static str),
     AsIn(&'static str, String),
+    Naming(&'static str, String),
     Project(String),
     NotInDict(mindtape::DictMiss),
 }
@@ -60,6 +61,12 @@ impl Hint {
     /// `hint: to match text, quote it, as in status == "wip"`.
     pub(crate) fn as_in(text: &'static str, example: String) -> Self {
         Self(Shape::AsIn(text, example))
+    }
+
+    /// A next step in words and the bare name it ends in:
+    /// `hint: rewrite the import to @local/mindtape:0.3.0`.
+    pub(crate) fn naming(text: &'static str, name: impl Into<String>) -> Self {
+        Self(Shape::Naming(text, name.into()))
     }
 
     /// The known name nearest to what the user typed:
@@ -103,6 +110,7 @@ impl Hint {
             | Shape::Typst(_)
             | Shape::Example(_)
             | Shape::AsIn(..)
+            | Shape::Naming(..)
             | Shape::Project(_)
             | Shape::NotInDict(_)) => shape,
         })
@@ -121,6 +129,7 @@ impl fmt::Display for Hint {
             Shape::OneOf(names) => write!(formatter, "use one of: {}", names.join(", ")),
             Shape::Example(example) => write!(formatter, "for example: {example}"),
             Shape::AsIn(text, example) => write!(formatter, "{text}, as in {example}"),
+            Shape::Naming(text, name) => write!(formatter, "{text} {name}"),
             Shape::NotInDict(miss) => not_in_dict(formatter, miss),
         }
     }

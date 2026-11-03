@@ -2,6 +2,7 @@
 //! `[commits]`: its task trailers name live tasks by stem, and it passes every
 //! `[[commits.rules]]` entry.
 
+use std::collections::BTreeSet;
 use std::path::Path;
 
 use crate::diag::Result;
@@ -64,7 +65,22 @@ pub(crate) fn warn_state_errors(
     commit: Option<(&str, &str)>,
 ) {
     for (name, state) in [(labels.head, &states.head), (labels.staged, &states.staged)] {
+        let mut said = BTreeSet::new();
         for error in &state.errors {
+            if let Some(version) = mindtape::unsupported_prelude_version(&error.message) {
+                if said.insert(version.to_owned()) {
+                    let diag = Diag::verbatim(
+                        Kind::Warning,
+                        format!(
+                            "{} as {name}: imports @local/mindtape:{version}, which this mt does not support",
+                            error.place()
+                        ),
+                    )
+                    .note(Note::new("supported").name(mindtape::PRELUDE_SUPPORTED.join(", ")));
+                    crate::diag::emit(&in_commit(diag, commit));
+                }
+                continue;
+            }
             let diag = Diag::verbatim(
                 Kind::Warning,
                 format!("{} as {name}: {}", error.place(), error.message),

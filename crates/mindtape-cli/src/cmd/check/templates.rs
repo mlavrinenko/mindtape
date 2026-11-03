@@ -10,7 +10,7 @@
 //! task set ([`mindtape::reads_set_breach`]) is one the template cannot fix, so
 //! it is dropped.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use crate::diag::Result;
@@ -21,7 +21,7 @@ use mindtape::{
 
 use crate::cmd::add::values::{list_templates, resolve_template, template_path};
 use crate::cmd::add::{inject_header, minted_stem, splice_config_slots};
-use crate::cmd::install::hint::{names_prelude_package, prelude_diag};
+use crate::cmd::install::hint::{names_prelude_package, prelude_diag, unsupported_prelude_diag};
 use crate::diag::{Diag, Kind};
 use crate::task_edit::filing_status;
 use crate::util::{self, Project};
@@ -51,9 +51,9 @@ impl Filed {
     }
 }
 
-/// A template's load failure, with the failing message when it names the
-/// missing prelude.
-type Failure = (Option<String>, Diag);
+/// A template's load failure, with the one diagnostic a repeated prelude
+/// failure folds into: a key that groups the repeats, and the replacement.
+type Failure = (Option<(String, Diag)>, Diag);
 
 /// What the template pass found: the breaches of every listed template, in
 /// template order, and the templates that did not load at all, each already a
@@ -123,26 +123,51 @@ pub(crate) fn breaches(project: &Project, body_rules: BodyRules<'_>) -> Result<F
                 at_severity(found, template.file.is_none(), fallback)
             })
             .collect(),
-        load_failures: one_prelude_failure(load_failures),
-        load_warnings: one_prelude_failure(load_warnings),
+        load_failures: one_prelude_failure(load_failures, &already_said(project)),
+        load_warnings: one_prelude_failure(load_warnings, &already_said(project)),
     })
 }
 
-/// `failures` with the unresolved-prelude error said once: every template
-/// fails the same way when the package is missing.
-fn one_prelude_failure(failures: Vec<Failure>) -> Vec<Diag> {
-    let mut said = false;
-    failures
-        .into_iter()
-        .filter_map(|(prelude, diag)| match prelude {
-            None => Some(diag),
-            Some(_) if said => None,
-            Some(message) => {
-                said = true;
-                Some(prelude_diag(diag.kind(), &message))
-            }
+/// The prelude failures the project load already printed, so the template pass
+/// does not repeat one for the same unsupported version.
+fn already_said(project: &Project) -> BTreeSet<String> {
+    project
+        .outcome
+        .errors
+        .iter()
+        .filter_map(|error| {
+            mindtape::unsupported_prelude_version(&error.message)
+                .map(|version| format!("unsupported:{version}"))
         })
         .collect()
+}
+
+/// `failures` with each prelude problem said once: a missing package once,
+/// and an unsupported version once per version, however many templates import
+/// it and however many task files already named it.
+fn one_prelude_failure(failures: Vec<Failure>, said: &BTreeSet<String>) -> Vec<Diag> {
+    let mut said = said.clone();
+    failures
+        .into_iter()
+        .filter_map(|(fold, diag)| match fold {
+            Some((key, replacement)) => said.insert(key).then_some(replacement),
+            None => Some(diag),
+        })
+        .collect()
+}
+
+/// The fold a prelude load failure asks for, or `None` for a failure that is
+/// its own.
+fn prelude_failure(template: &Filed, err: &LoadError, kind: Kind) -> Option<(String, Diag)> {
+    if names_prelude_package(&err.message) {
+        return Some(("missing".to_owned(), prelude_diag(kind, &err.message)));
+    }
+    let version = mindtape::unsupported_prelude_version(&err.message)?;
+    let label = template_label(template);
+    Some((
+        format!("unsupported:{version}"),
+        unsupported_prelude_diag(kind, version, Path::new(&label)),
+    ))
 }
 
 /// The stem `mt add` mints for `name` from its title slot's example, else its
@@ -175,9 +200,9 @@ fn judge(
             Ok(checked) => match check_alone(project, template, checked, body_rules) {
                 Ok(found) => found,
                 Err(err) => {
-                    let prelude = names_prelude_package(&err.message).then(|| err.message.clone());
                     let kind = failure_kind(template, project.config.templates.fallback_severity);
-                    failures.push((prelude, load_failure(template, checked, &err, kind)));
+                    let fold = prelude_failure(template, &err, kind);
+                    failures.push((fold, load_failure(template, checked, &err, kind)));
                     Vec::new()
                 }
             },
@@ -201,10 +226,7 @@ fn failure_kind(template: &Filed, fallback: FallbackSeverity) -> Kind {
 /// that very line, else at its `task.with(…)` call.
 fn load_failure(template: &Filed, checked: &str, err: &LoadError, kind: Kind) -> Diag {
     let diag = Diag::verbatim(kind, &err.message).typst_hints(err.hints.iter().cloned());
-    let label = template.file.as_ref().map_or_else(
-        || format!("built-in template {}", template.name),
-        |file| file.to_string_lossy().into_owned(),
-    );
+    let label = template_label(template);
     let spans = TaskCallSpans::parse(&template.authored);
     let line = err
         .line
@@ -220,6 +242,15 @@ fn load_failure(template: &Filed, checked: &str, err: &LoadError, kind: Kind) ->
             .is_some_and(|(wanted, found)| wanted == found)
     });
     diag.at(Path::new(&label), line, err.column.filter(|_| same_line))
+}
+
+/// How a template that did not load is named: its file, or the built-in
+/// template's name.
+fn template_label(template: &Filed) -> String {
+    template.file.as_ref().map_or_else(
+        || format!("built-in template {}", template.name),
+        |file| file.to_string_lossy().into_owned(),
+    )
 }
 
 /// The breaches of one filed template, checked with no other task around it,

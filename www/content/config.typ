@@ -117,8 +117,11 @@ variable.
 
 A task file imports the DSL as `@local/mindtape`, and Typst resolves a
 `@local` package from one directory per machine. `mt install` fills that
-directory, and `mt`, `typst` and tinymist all read it. Where it lacks the
-prelude version `mt` ships, `mt` reads the copy built into it.
+directory with every prelude version `mt` reads, and `mt`, `typst` and
+tinymist all read it. This `mt` reads `0.2.0` and `0.3.0`, and its copy of
+each ships in the binary, so a task file loads where the directory holds
+neither. An import at any other version is refused at load with the supported
+set and the hint that fits.
 
 #table(
   columns: 2,
@@ -150,13 +153,14 @@ resolves the package from a path in the project instead:
 
 `path` is relative to the project root and may point outside it. An entry
 wins over the machine directory for the version its `typst.toml` declares; a
-file importing another version falls through to the machine's copy, or the
-prelude built into `mt` where none is installed. It works for any
+file importing a supported version the entry does not hold falls through to
+the machine's copy, or the matching copy built into `mt`. It works for any
 `@local/<name>` a task file or an `x-<ns>` helper imports. This repository
 pins its own prelude to its `lib/` with one.
 
-`mt install` still writes the machine directory. Your editor's Typst language
-server, `typst compile` and every project without an entry read it.
+`mt install` still writes every supported version to the machine directory.
+Your editor's Typst language server, `typst compile` and every project
+without an entry read it.
 
 = Editor schema
 

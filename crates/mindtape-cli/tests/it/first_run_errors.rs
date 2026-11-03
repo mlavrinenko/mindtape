@@ -34,10 +34,9 @@ fn fresh_project() -> (tempfile::TempDir, std::path::PathBuf) {
     (home, project)
 }
 
-/// Point `project`'s default template at a prelude version this `mt` doesn't
-/// embed, as a project pinned to another release does, so only an installed
-/// copy could serve it.
-fn pin_an_unembedded_prelude(project: &Path) {
+/// Point `project`'s default template at a prelude version this `mt` does not
+/// support, as a project pinned to another release does.
+fn pin_an_unsupported_prelude(project: &Path) {
     const BUILTIN: &str = include_str!("../../src/cmd/add/templates/task.typ");
     let pinned = BUILTIN.replacen("@local/mindtape:0.3.0", "@local/mindtape:0.1.0", 1);
     assert_ne!(
@@ -56,48 +55,6 @@ fn add_on_a_fresh_machine_files_the_task_on_the_embedded_prelude() {
     let (checked, stderr) = run_fresh(&project, &["check"]);
     assert!(checked, "{stderr}");
     assert!(!stderr.contains("prelude"), "{stderr}");
-}
-
-/// A project template whose prelude doesn't resolve fails the check with one
-/// error naming the remedy.
-#[test]
-fn check_names_mt_install_once_for_a_template_whose_prelude_is_missing() {
-    let (_home, project) = fresh_project();
-    pin_an_unembedded_prelude(&project);
-
-    let (ok, stderr) = run_fresh(&project, &["check"]);
-
-    assert!(!ok, "{stderr}");
-    assert_eq!(
-        stderr.matches("can't find the prelude package").count(),
-        1,
-        "{stderr}"
-    );
-    assert!(
-        stderr.contains("hint: install it once per machine: mt install"),
-        "{stderr}"
-    );
-}
-
-#[test]
-fn add_without_the_prelude_names_mt_install_and_the_local_package_pin() {
-    let (_home, project) = fresh_project();
-    pin_an_unembedded_prelude(&project);
-
-    let (ok, stderr) = run_fresh(&project, &["add", "Fix login"]);
-
-    assert!(!ok, "{stderr}");
-    assert!(stderr.contains("did not load"), "{stderr}");
-    assert_eq!(
-        stderr
-            .matches(
-                "hint: install it once per machine: mt install\n\
-                 hint: or pin a copy under [[typst.local-packages]] in the config\n"
-            )
-            .count(),
-        1,
-        "{stderr}"
-    );
 }
 
 #[test]
@@ -249,4 +206,37 @@ fn a_syntax_error_in_a_path_pack_names_the_pack_file() {
 /// An expected message, each task path in it in the separator `mt` shows.
 fn shown(text: &str) -> String {
     support::native_in(text, &[".mindtape/config.toml"])
+}
+
+#[test]
+fn add_names_the_supported_set_for_a_template_on_an_old_prelude() {
+    let (_home, project) = fresh_project();
+    pin_an_unsupported_prelude(&project);
+
+    let (ok, stderr) = run_fresh(&project, &["add", "Fix login"]);
+
+    assert!(!ok && stderr.contains("did not load"), "{stderr}");
+    support::assert_unsupported_prelude(&stderr, "0.1.0");
+}
+
+/// A project template on a prelude version this `mt` does not support fails
+/// the check with one error naming the set and the rewrite.
+#[test]
+fn check_names_the_supported_set_once_for_a_template_on_an_old_prelude() {
+    let (_home, project) = fresh_project();
+    pin_an_unsupported_prelude(&project);
+
+    let (ok, stderr) = run_fresh(&project, &["check"]);
+
+    assert!(!ok, "{stderr}");
+    assert_eq!(
+        stderr.matches("imports @local/mindtape:0.1.0").count(),
+        1,
+        "{stderr}"
+    );
+    support::assert_unsupported_prelude(&stderr, "0.1.0");
+    assert!(
+        stderr.contains("rewrite the import to @local/mindtape:0.3.0"),
+        "{stderr}"
+    );
 }

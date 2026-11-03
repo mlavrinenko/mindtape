@@ -6,7 +6,7 @@ use crate::diag::Result;
 use mindtape::{Config, StemHashes, Task, find_root, load_config, load_project};
 use typst_harvest::{HarvestWorld, harvest};
 
-use crate::diag::{Diag, Hint};
+use crate::diag::{Diag, Hint, Kind};
 use crate::render::RenderCtx;
 use crate::render::output::{OutputFormat, render, task_to_json};
 use crate::util::Project;
@@ -32,8 +32,7 @@ pub fn run(args: &EvalArgs) -> Result<()> {
         .as_ref()
         .map(|project| (project.root.clone(), project.hyperlinks));
     let world = build_world(&file)?;
-    let result =
-        harvest(&world).map_err(|err| Diag::failed("can't evaluate").at_file(&file).cause(&err))?;
+    let result = harvest(&world).map_err(|err| evaluate_error(&file, &err))?;
     let marker = result.with_marker("mindtape.task").next().ok_or_else(|| {
         Diag::failed("not a task file: it holds no task.with(…) call")
             .at_file(&file)
@@ -55,6 +54,16 @@ pub fn run(args: &EvalArgs) -> Result<()> {
         print!("{}", breakdown(&task));
         Ok(())
     }
+}
+
+/// The refusal for a file that did not harvest, using the prelude diagnostic
+/// when the failure is an unsupported `@local/mindtape` version.
+fn evaluate_error(file: &Path, err: &typst_harvest::HarvestError) -> Diag {
+    let message = err.to_string();
+    if let Some(version) = mindtape::unsupported_prelude_version(&message) {
+        return crate::cmd::install::hint::unsupported_prelude_diag(Kind::Failed, version, file);
+    }
+    Diag::failed("can't evaluate").at_file(file).cause(err)
 }
 
 /// The file `reference` names, and the project that resolved it. Anything

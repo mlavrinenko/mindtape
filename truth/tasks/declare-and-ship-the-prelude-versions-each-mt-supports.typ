@@ -30,7 +30,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 3),
+  status: wip(2026, 11, 4),
   links: depends-on(
     "resolve-unchanged-task-files-against-a-past-trees-package-pin.typ",
   ),

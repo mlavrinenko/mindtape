@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`mt` declares and ships the prelude versions it supports.**
+  `PRELUDE_SUPPORTED` lists `0.2.0` and `0.3.0`, and each ships as an
+  immutable snapshot under `crates/mindtape/src/loader/preludes/<version>/`,
+  so either pin loads with no package directory and `mt install` writes both.
+  A supported old pin loads silently.
+
 ### Fixed
 
 - **A commit state loads every task file from its own tree.** `mt check

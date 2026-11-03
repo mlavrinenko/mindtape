@@ -214,7 +214,8 @@ three.
   migration.
 - The Typst library's version is `version` in `lib/typst.toml`, independent of
   the crates. The `typst-pkg-version` outdatty group lists every file that
-  repeats it.
+  repeats it. #link("docs/contributing/release.md")[Releases] archive it
+  under `crates/mindtape/src/loader/preludes/`.
 - `mindtape-cli` depends on `mindtape` by version and path, since crates.io
   refuses a path-only dependency. Bump it with the workspace version in
   `[workspace.package]`.

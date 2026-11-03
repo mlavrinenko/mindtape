@@ -107,8 +107,10 @@ pub use loader::app_dirs::{
 };
 pub use loader::derive::RootDeriver;
 pub use loader::{
-    LoadError, LoadOutcome, LoadWarning, PRELUDE, PRELUDE_VERSION, find_root, load_project,
-    package_overrides, package_root, prelude_manifest, with_packages,
+    LoadError, LoadOutcome, LoadWarning, PRELUDE, PRELUDE_SNAPSHOTS, PRELUDE_SUPPORTED,
+    PRELUDE_VERSION, PreludeSnapshot, find_root, load_project, package_overrides, package_root,
+    prelude_is_older, prelude_manifest, prelude_snapshot, prelude_supports,
+    unsupported_prelude_version, with_packages,
 };
 pub use loader::{Loaded, load_many, load_one, map_parallel};
 pub use model::canonical::{CanonicalTask, SCHEMA_VERSION};

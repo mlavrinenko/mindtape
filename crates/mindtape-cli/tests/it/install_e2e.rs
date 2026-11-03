@@ -42,12 +42,19 @@ fn schemas(home: &Path) -> [(PathBuf, String); 2] {
     ]
 }
 
+/// One installed prelude version's package directory under `home`'s data
+/// home.
+fn package_dir(home: &Path, version: &str) -> PathBuf {
+    home.join("data/typst/packages/local/mindtape")
+        .join(version)
+}
+
 fn lib_typst_toml(home: &Path) -> PathBuf {
-    home.join("data/typst/packages/local/mindtape/0.3.0/typst.toml")
+    package_dir(home, "0.3.0").join("typst.toml")
 }
 
 fn lib_prelude(home: &Path) -> PathBuf {
-    home.join("data/typst/packages/local/mindtape/0.3.0/prelude.typ")
+    package_dir(home, "0.3.0").join("prelude.typ")
 }
 
 /// Seed an existing XDG `defaults.toml` (sentinel content) under `home`,
@@ -103,6 +110,30 @@ fn each_skip_flag_skips_only_its_part() {
                 assert_eq!(path.exists(), part != flag, "{flag}: {path:?}");
             }
         }
+    }
+}
+
+/// `mt install` writes every prelude this binary supports, each with its own
+/// manifest and source, so an old pin needs no download.
+#[test]
+fn install_writes_every_supported_prelude() {
+    let home = tempdir();
+    run_install(home.path(), &["install"]).success();
+
+    for snapshot in mindtape::PRELUDE_SNAPSHOTS {
+        let dir = package_dir(home.path(), snapshot.version);
+        assert_eq!(
+            std::fs::read_to_string(dir.join("typst.toml")).unwrap(),
+            snapshot.manifest(),
+            "{}",
+            snapshot.version
+        );
+        assert_eq!(
+            std::fs::read_to_string(dir.join("prelude.typ")).unwrap(),
+            snapshot.source,
+            "{}",
+            snapshot.version
+        );
     }
 }
 
@@ -216,17 +247,16 @@ fn project_without_a_lib() -> tempfile::TempDir {
     dir
 }
 
-/// A project whose one task imports a prelude version this `mt` doesn't embed,
-/// as a project pinned to another release does, so only an installed copy
-/// could serve it.
-fn project_on_an_unembedded_prelude() -> tempfile::TempDir {
+/// A project whose one task imports a prelude version this `mt` does not
+/// support, as a project pinned to another release does.
+fn project_on_an_unsupported_prelude() -> tempfile::TempDir {
     let dir = tempdir();
     mindtape::test_support::write_bare_project(dir.path());
-    write_file(dir.path(), "tasks/only.typ", UNEMBEDDED_TASK);
+    write_file(dir.path(), "tasks/only.typ", UNSUPPORTED_TASK);
     dir
 }
 
-const UNEMBEDDED_TASK: &str =
+const UNSUPPORTED_TASK: &str =
     "#import \"@local/mindtape:0.1.0\": *\n#show: task.with(title: \"Only task\")\n";
 
 /// `mt ls` in `project`, with the data home pointed at `data` (verbatim, so an
@@ -241,6 +271,16 @@ fn ls_with_data_home(project: &Path, data: &std::ffi::OsStr) -> assert_cmd::asse
         .assert()
 }
 
+/// `mt ls` that succeeded, as `(stdout, stderr)`.
+fn ls_output(project: &Path, data: &std::ffi::OsStr) -> (String, String) {
+    let assert = ls_with_data_home(project, data).success();
+    let output = assert.get_output();
+    (
+        String::from_utf8(output.stdout.clone()).unwrap(),
+        String::from_utf8(output.stderr.clone()).unwrap(),
+    )
+}
+
 /// The install and the read must name the same directory. `$MINDTAPE_DATA_HOME`
 /// moved where `mt install` WRITES the `@local/mindtape` package long before it
 /// moved where the loader READS it — resolution went through `typst-world`,
@@ -249,36 +289,33 @@ fn ls_with_data_home(project: &Path, data: &std::ffi::OsStr) -> assert_cmd::asse
 /// task file kept importing the machine's own package.
 ///
 /// The pair is what makes this a test rather than a coincidence: a data home
-/// that HAS the package loads the task, and a second one that does not fails
-/// naming its own path. Before the fix both answers came from the machine, so
-/// they were identical whichever way the variable pointed.
+/// that HAS the package loads the task, and a second one that does not still
+/// loads it from the copy in the binary.
 #[test]
 fn ls_resolves_the_prelude_from_the_configured_data_home() {
     let home = tempdir();
     run_install(home.path(), &["install", "--no-defaults", "--no-schema"]).success();
     let project = project_without_a_lib();
 
-    let assert = ls_with_data_home(project.path(), home.path().join("data").as_os_str()).success();
-    let stdout = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
+    let (stdout, _) = ls_output(project.path(), home.path().join("data").as_os_str());
     assert!(stdout.contains("Only task"), "{stdout}");
 }
 
+/// An unsupported prelude is refused before any package directory is
+/// searched: a working `0.1.0` copy under the data home cannot serve it.
 #[test]
-fn ls_fails_against_a_data_home_the_package_was_not_installed_into() {
-    let installed = tempdir();
-    run_install(
-        installed.path(),
-        &["install", "--no-defaults", "--no-schema"],
-    )
-    .success();
-    let elsewhere = tempdir();
-    let project = project_on_an_unembedded_prelude();
+fn ls_refuses_an_unsupported_prelude_whatever_the_data_home_holds() {
+    let data = tempdir();
+    let old = data.path().join("typst/packages/local/mindtape/0.1.0");
+    mindtape::test_support::write_package_version(&old, "0.1.0", mindtape::test_support::PRELUDE);
+    let project = project_on_an_unsupported_prelude();
 
-    let assert = ls_with_data_home(project.path(), elsewhere.path().as_os_str());
-    let stderr = String::from_utf8(assert.get_output().stderr.clone()).unwrap();
+    let (stdout, stderr) = ls_output(project.path(), data.path().as_os_str());
+    assert!(!stdout.contains("Only task"), "{stdout}");
+    crate::support::assert_unsupported_prelude(&stderr, "0.1.0");
     assert!(
-        stderr.contains(&elsewhere.path().display().to_string()),
-        "the failure must name the data home that was searched:\n{stderr}"
+        !stderr.contains("searched at"),
+        "the gate runs before the disk:\n{stderr}"
     );
 }
 
@@ -289,97 +326,103 @@ fn an_uninstalled_data_home_reads_the_embedded_prelude() {
     let project = project_without_a_lib();
     let empty = tempdir();
 
-    let assert = ls_with_data_home(project.path(), empty.path().as_os_str()).success();
-    let stdout = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
+    let (stdout, _) = ls_output(project.path(), empty.path().as_os_str());
     assert!(stdout.contains("Only task"), "{stdout}");
 }
 
 /// Set but empty is `app_dirs`'s "no such directory", and a read honours it the
-/// same way a write does: no global package resolves at all, even on a machine
-/// that has one installed.
+/// same way a write does: no global package resolves at all, so the task
+/// reads the copy in the binary.
 #[test]
-fn an_empty_data_home_resolves_no_global_package() {
-    let project = project_on_an_unembedded_prelude();
+fn an_empty_data_home_reads_the_embedded_prelude() {
+    let project = project_without_a_lib();
 
-    let assert = ls_with_data_home(project.path(), std::ffi::OsStr::new(""));
-    let stderr = String::from_utf8(assert.get_output().stderr.clone()).unwrap();
-    assert!(
-        stderr.contains("@local/mindtape"),
-        "the failure must name the unresolved package:\n{stderr}"
-    );
+    let (stdout, _) = ls_output(project.path(), std::ffi::OsStr::new(""));
+    assert!(stdout.contains("Only task"), "{stdout}");
 }
 
-/// A prelude that does not resolve fails every task file the same way. The
-/// listing says so once, naming the command and the config key, not once per
-/// file.
+/// A prelude this `mt` does not support fails every task file the same way.
+/// The listing says so once per version, naming the first file, the set and
+/// the rewrite, not once per file.
 #[test]
-fn a_missing_prelude_is_one_error_however_many_tasks_fail() {
-    let project = project_on_an_unembedded_prelude();
+fn an_unsupported_prelude_is_one_error_however_many_tasks_fail() {
+    let project = project_on_an_unsupported_prelude();
     write_file(
         project.path(),
         "tasks/second.typ",
-        UNEMBEDDED_TASK.replace("Only", "Second"),
+        UNSUPPORTED_TASK.replace("Only", "Second"),
     );
 
-    let assert = ls_with_data_home(project.path(), std::ffi::OsStr::new(""));
-    let stderr = String::from_utf8(assert.get_output().stderr.clone()).unwrap();
+    let (_, stderr) = ls_output(project.path(), std::ffi::OsStr::new(""));
     assert_eq!(
-        stderr.matches("can't find the prelude package").count(),
+        stderr.matches("imports @local/mindtape:0.1.0").count(),
         1,
         "{stderr}"
     );
+    crate::support::assert_unsupported_prelude(&stderr, "0.1.0");
     assert!(
-        stderr.contains("hint: install it once per machine: mt install"),
+        stderr.contains("rewrite the import to @local/mindtape:0.3.0"),
         "{stderr}"
     );
-    assert!(stderr.contains("[[typst.local-packages]]"), "{stderr}");
 }
 
-/// A package dir that links elsewhere, such as a checkout's `lib/`, under
-/// `home`, with a sentinel prelude at the link's target. Returns the target's
-/// prelude path.
+/// A package dir at `version` that links elsewhere, such as a checkout's
+/// `lib/`, under `home`, with a sentinel prelude at the link's target.
+/// Returns the target's prelude path.
 #[cfg(unix)]
-fn link_package_dir(home: &Path) -> PathBuf {
-    let checkout = home.join("checkout/lib");
+fn link_package_dir(home: &Path, version: &str) -> PathBuf {
+    let checkout = home.join(format!("checkout-{version}/lib"));
     std::fs::create_dir_all(&checkout).unwrap();
     std::fs::write(checkout.join("prelude.typ"), "// dev").unwrap();
-    let link = lib_prelude(home).parent().unwrap().to_path_buf();
+    let link = package_dir(home, version);
     std::fs::create_dir_all(link.parent().unwrap()).unwrap();
     std::os::unix::fs::symlink(&checkout, &link).unwrap();
     checkout.join("prelude.typ")
 }
 
-/// `mt install` leaves a symlinked package dir alone and says where it links,
-/// so an older binary never rewrites the checkout a developer linked in.
+/// `mt install` leaves a symlinked package dir alone at every version and says
+/// where it links, so an older binary never rewrites the checkout a developer
+/// linked in.
 #[cfg(unix)]
 #[test]
-fn install_keeps_a_symlinked_package_dir() {
+fn install_keeps_a_symlinked_package_dir_per_version() {
     let home = tempdir();
-    let target = link_package_dir(home.path());
+    let targets: Vec<(&str, PathBuf)> = mindtape::PRELUDE_SUPPORTED
+        .iter()
+        .map(|version| (*version, link_package_dir(home.path(), version)))
+        .collect();
     let assert = run_install(home.path(), &["install", "--no-defaults", "--no-schema"]).success();
     let stdout = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
-    assert_eq!(std::fs::read_to_string(&target).unwrap(), "// dev");
-    assert!(stdout.contains("kept @local/mindtape:0.3.0"), "{stdout}");
-    assert!(stdout.contains("checkout/lib"), "{stdout}");
+    for (version, target) in targets {
+        assert_eq!(std::fs::read_to_string(&target).unwrap(), "// dev");
+        assert!(
+            stdout.contains(&format!("kept @local/mindtape:{version}")),
+            "{stdout}"
+        );
+    }
 }
 
-/// `--force` replaces the link with this binary's own copy and leaves the
-/// link's target as it was.
+/// `--force` replaces the link with this binary's own copy at every version
+/// and leaves each link's target as it was.
 #[cfg(unix)]
 #[test]
-fn install_force_replaces_a_symlinked_package_dir() {
-    let home = tempdir();
-    let target = link_package_dir(home.path());
-    run_install(
-        home.path(),
-        &["install", "--no-defaults", "--no-schema", "--force"],
-    )
-    .success();
-    let dir = lib_prelude(home.path()).parent().unwrap().to_path_buf();
-    assert!(!dir.symlink_metadata().unwrap().is_symlink());
-    assert_eq!(
-        std::fs::read_to_string(lib_prelude(home.path())).unwrap(),
-        mindtape::test_support::PRELUDE
-    );
-    assert_eq!(std::fs::read_to_string(&target).unwrap(), "// dev");
+fn install_force_replaces_a_symlinked_package_dir_per_version() {
+    for version in mindtape::PRELUDE_SUPPORTED {
+        let home = tempdir();
+        let target = link_package_dir(home.path(), version);
+        run_install(
+            home.path(),
+            &["install", "--no-defaults", "--no-schema", "--force"],
+        )
+        .success();
+        let dir = package_dir(home.path(), version);
+        assert!(!dir.symlink_metadata().unwrap().is_symlink(), "{version}");
+        let snapshot = mindtape::prelude_snapshot(version).unwrap();
+        assert_eq!(
+            std::fs::read_to_string(dir.join("prelude.typ")).unwrap(),
+            snapshot.source,
+            "{version}"
+        );
+        assert_eq!(std::fs::read_to_string(&target).unwrap(), "// dev");
+    }
 }

@@ -31,12 +31,23 @@ pub const LIB_ENTRY: &str = "\n[[typst.local-packages]]\nname = \"mindtape\"\npa
 ///
 /// # Panics
 /// Panics if writing the package files fails, a test-harness bug.
-#[allow(clippy::unwrap_used)]
 pub fn write_package(pkg: &Path, prelude: &str) {
+    write_package_version(pkg, "0.3.0", prelude);
+}
+
+/// [`write_package`] at `version`, for a test that needs a version this build
+/// does not install.
+///
+/// # Panics
+/// Panics if writing the package files fails, a test-harness bug.
+#[allow(clippy::unwrap_used)]
+pub fn write_package_version(pkg: &Path, version: &str, prelude: &str) {
     std::fs::create_dir_all(pkg).unwrap();
     std::fs::write(
         pkg.join("typst.toml"),
-        "[package]\nname = \"mindtape\"\nversion = \"0.3.0\"\nentrypoint = \"prelude.typ\"\n",
+        format!(
+            "[package]\nname = \"mindtape\"\nversion = \"{version}\"\nentrypoint = \"prelude.typ\"\n"
+        ),
     )
     .unwrap();
     std::fs::write(pkg.join("prelude.typ"), prelude).unwrap();

@@ -23,7 +23,7 @@ const FLIP_WITH_WORK: &str = "[[commits.rules]]\n\
 
 /// Rewrite `tasks/parser.typ` with `status`, importing the prelude at
 /// `version`.
-fn write_parser_version(dir: &Path, status: &str, version: &str) {
+pub(crate) fn write_parser_version(dir: &Path, status: &str, version: &str) {
     write_file(
         dir,
         "tasks/parser.typ",
@@ -36,12 +36,21 @@ fn write_parser_version(dir: &Path, status: &str, version: &str) {
 }
 
 /// Rewrite `tasks/parser.typ` with `status`, importing the current prelude.
-fn write_parser(dir: &Path, status: &str) {
+pub(crate) fn write_parser(dir: &Path, status: &str) {
     write_parser_version(dir, status, mindtape::PRELUDE_VERSION);
 }
 
+/// Rewrite `tasks/parser.typ` at `version`, stage it with `work`, and commit
+/// it with `subject`.
+pub(crate) fn commit_parser(dir: &Path, status: &str, version: &str, subject: &str, work: &str) {
+    write_parser_version(dir, status, version);
+    git(dir, &["add", "tasks/parser.typ"]);
+    stage_file(dir, work);
+    commit(dir, subject);
+}
+
 /// The `typst.toml` a `mindtape` package at `version` carries.
-fn manifest(version: &str) -> String {
+pub(crate) fn manifest(version: &str) -> String {
     format!(
         "[package]\nname = \"mindtape\"\nversion = \"{version}\"\nentrypoint = \"prelude.typ\"\n"
     )

@@ -104,7 +104,7 @@ A rebase or merge joins the two branches’ locks key by key through outdatty’
 ## Version Management
 
 - There’s no backward compatibility before the first public release. A rename lands whole, callers and configs included, with no alias or migration.
-- The Typst library’s version is `version` in `lib/typst.toml`, independent of the crates. The `typst-pkg-version` outdatty group lists every file that repeats it.
+- The Typst library’s version is `version` in `lib/typst.toml`, independent of the crates. The `typst-pkg-version` outdatty group lists every file that repeats it. [Releases](docs/contributing/release.md) archive it under `crates/mindtape/src/loader/preludes/`.
 - `mindtape-cli` depends on `mindtape` by version and path, since crates.io refuses a path-only dependency. Bump it with the workspace version in `[workspace.package]`.
 - `just release VERSION` is the whole release, and its tag push the only publish path: don’t run `cargo publish` or push `main` by hand. Keep the release’s entries under `[Unreleased]`; the recipe dates them. [docs/contributing/release.md](docs/contributing/release.md) says what it runs and how to finish a failed release.
 

@@ -233,7 +233,11 @@ the tree the range ends on. `subject` and `refs` come from the message, and
 reads the commit's tree and `head(...)` the parent's. A task ref must name a
 task the commit's tree holds. A past commit has no working tree, so `mt` skips
 a rule that calls `worktree(...)` or `changed(...)`, and says so once.
-`count(files, …)` reads the commit's own files, so it still runs. Only commits
-with something to report are listed, each with its lines indented below it:
+`count(files, …)` reads the commit's own files, so it still runs. A commit
+whose tree imports a prelude version this `mt` does not support is skipped
+with one warning naming the version and the set, and its refs never reach the
+rules. A parent tree on an unsupported prelude is named once and the commit
+still runs. A skipped tip state also skips the tip rules. Only commits with
+something to report are listed, each with its lines indented below it:
 
 #terminal("commit-range")

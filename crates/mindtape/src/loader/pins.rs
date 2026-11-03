@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use typst::diag::{FileError, FileResult};
+use typst::diag::{FileError, FileResult, PackageError};
 use typst::foundations::Bytes;
 use typst::syntax::package::{PackageManifest, PackageSpec, PackageVersion};
 use typst::syntax::{FileId, VirtualRoot};
@@ -19,6 +19,45 @@ use typst_harvest::HarvestWorld;
 use typst_world::{FileProvider, ProviderCtx};
 
 use super::embedded;
+
+/// The marker a gate refusal puts in its `FileError`, so the CLI can fold the
+/// per-file failures without matching Typst's wording, which can change.
+const UNSUPPORTED_PRELUDE: &str = "@local/mindtape:";
+const UNSUPPORTED_PRELUDE_END: &str = " is not supported";
+
+/// The version an error says this `mt` does not support, when the gate raised
+/// it. `None` for every other load failure.
+#[must_use]
+pub fn unsupported_prelude_version(message: &str) -> Option<&str> {
+    let (_, tail) = message.split_once(UNSUPPORTED_PRELUDE)?;
+    let (version, _) = tail.split_once(UNSUPPORTED_PRELUDE_END)?;
+    version.parse::<PackageVersion>().ok().map(|_| version)
+}
+
+/// The refusal for `@local/mindtape` at a version this binary does not read.
+/// The set is in the message too, so a surface that has no fold point still
+/// names what does work.
+fn unsupported_prelude_error(version: &PackageVersion) -> FileError {
+    FileError::Package(PackageError::Other(Some(
+        format!(
+            "{UNSUPPORTED_PRELUDE}{version}{UNSUPPORTED_PRELUDE_END} by this mt; supported: {}",
+            embedded::PRELUDE_SUPPORTED.join(", ")
+        )
+        .into(),
+    )))
+}
+
+/// Refuse an unsupported `@local/mindtape` spec before a state package, a pin
+/// or the disk can answer it. The check is exact, on the parsed version.
+fn gate(spec: &PackageSpec) -> FileResult<()> {
+    if spec.namespace.as_str() == "local"
+        && spec.name.as_str() == "mindtape"
+        && !embedded::prelude_supports(&spec.version.to_string())
+    {
+        return Err(unsupported_prelude_error(&spec.version));
+    }
+    Ok(())
+}
 
 /// One commit state's own `@local` package files, keyed by the versions its
 /// manifests declare. The files come from the state's git tree, so a task file
@@ -129,6 +168,7 @@ struct Pins {
 impl FileProvider for Pins {
     fn read(&self, id: FileId, ctx: &ProviderCtx<'_>) -> FileResult<Bytes> {
         if let VirtualRoot::Package(spec) = id.root() {
+            gate(spec)?;
             if let Some(state) = &self.state
                 && state.specs.contains(spec)
             {

@@ -98,17 +98,43 @@ fn a_pin_with_no_manifest_still_names_its_own_path() {
     );
 }
 
+/// The title a task importing `version` loads as through a project pin at
+/// that version, with no package directory.
+fn title_with_pin_version(version: &str) -> Option<String> {
+    let dir = setup();
+    write_pkg(dir.path(), "lib", "mindtape", version, PRELUDE_STUB);
+    write_file(dir.path(), "tasks/t.typ", task_importing(version));
+    let overrides = super::package_overrides(dir.path(), &lib_config());
+    title_under(dir.path(), &overrides, None)
+}
+
 #[test]
 fn a_pin_serves_a_task_without_a_package_root() {
     // The provider has no package root of its own; the pin's files still serve
     // the task. The no-platform-root dependency path is covered end to end by
     // the subproject range test.
+    assert_eq!(title_with_pin_version("0.3.0"), Some("Hi".to_owned()));
+}
+
+#[test]
+fn a_pin_cannot_serve_an_unsupported_mindtape_version() {
+    // The pin's directory holds a working prelude at 0.1.0, so a version
+    // check after the pin would load it. The gate refuses first.
     let dir = setup();
-    write_pkg(dir.path(), "lib", "mindtape", "0.3.0", PRELUDE_STUB);
-    write_file(dir.path(), "tasks/t.typ", task_importing("0.3.0"));
+    write_pkg(dir.path(), "lib", "mindtape", "0.1.0", PRELUDE_STUB);
+    write_file(dir.path(), "tasks/t.typ", task_importing("0.1.0"));
     let overrides = super::package_overrides(dir.path(), &lib_config());
+    let world = HarvestWorld::with_root(&dir.path().join("tasks/t.typ"), dir.path()).unwrap();
+    let world = super::pins::with_packages_at(world, &overrides, None);
+    let err = harvest(&world).unwrap_err().to_string();
     assert_eq!(
-        title_under(dir.path(), &overrides, None),
-        Some("Hi".to_owned())
+        crate::loader::unsupported_prelude_version(&err),
+        Some("0.1.0"),
+        "{err}"
     );
+}
+
+#[test]
+fn a_supported_old_pin_loads_with_no_package_directory() {
+    assert_eq!(title_with_pin_version("0.2.0"), Some("Hi".to_owned()));
 }

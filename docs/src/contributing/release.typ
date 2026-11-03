@@ -34,6 +34,20 @@ The tag push is the only publish path, so don't run `cargo publish` or push
 copy bumped to the new version, since the working tree still carries the old
 one.
 
+= Prelude versions
+
+Before a release bumps `lib/typst.toml`, archive the outgoing prelude. Copy
+`lib/prelude.typ` to
+`crates/mindtape/src/loader/preludes/<old-version>/prelude.typ`, add
+`<old-version>` to `PRELUDE_SUPPORTED` in
+`crates/mindtape/src/loader/embedded.rs`, and keep a fixture that loads it.
+The snapshot is immutable. The current version's snapshot equals
+`lib/prelude.typ`, and a test holds the two together.
+
+A release drops a version on purpose by removing it from `PRELUDE_SUPPORTED`
+and deleting its snapshot and fixture. That release stops reading the version
+everywhere, including a past commit in `mt check --commits`.
+
 = After a failure
 
 After a red CI, fix `main` and re-run the recipe: the bump and the dating stay

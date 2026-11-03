@@ -5,9 +5,8 @@
 //! - `app_dirs.rs`: where `mt` keeps its per-user state.
 //! - `cache.rs`: the persistent content-hash task cache.
 //! - `derive.rs`: folder-derived virtual tags.
-//! - `embedded.rs`, `embedded_tests.rs`: the prelude package this crate embeds,
-//!   served where none is installed. `prelude.typ` is its copy of
-//!   `lib/prelude.typ`.
+//! - `embedded.rs`, `embedded_tests.rs`: the prelude packages this crate
+//!   embeds, one immutable copy per supported version under `preludes/`.
 //! - `errors.rs`: the per-file failures and Typst warnings a load reports.
 //! - `many.rs`, `many_tests.rs`: several projects loaded at once, each on its
 //!   own thread.
@@ -23,9 +22,13 @@ mod pins;
 pub(crate) use pins::StatePackages;
 
 pub use app_dirs::package_root;
-pub use embedded::{PRELUDE, PRELUDE_VERSION, prelude_manifest};
+pub use embedded::{
+    PRELUDE, PRELUDE_SNAPSHOTS, PRELUDE_SUPPORTED, PRELUDE_VERSION, PreludeSnapshot,
+    prelude_is_older, prelude_manifest, prelude_snapshot, prelude_supports,
+};
 pub use errors::{LoadError, LoadWarning};
 pub use many::{Loaded, load_many, map_parallel};
+pub use pins::unsupported_prelude_version;
 
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};

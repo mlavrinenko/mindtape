@@ -1,6 +1,6 @@
 //! Shared project discovery for the CLI commands.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
@@ -11,7 +11,9 @@ use mindtape::{
     config_path, find_root, load_config, load_project, write_atomic,
 };
 
-use crate::cmd::install::hint::{RegionHints, names_prelude_package, prelude_diag};
+use crate::cmd::install::hint::{
+    RegionHints, names_prelude_package, prelude_diag, unsupported_prelude_diag,
+};
 use crate::diag::{Command, Diag, Hint, Kind, Note, emit};
 use crate::render::link::HyperlinkChoice;
 
@@ -387,8 +389,15 @@ pub(crate) fn folded_load_problems(outcome: &LoadOutcome, kind: Kind, verbose: b
 fn load_errors(outcome: &LoadOutcome, kind: Kind) -> Vec<Diag> {
     let mut out = Vec::new();
     let mut prelude_missing = false;
+    let mut unsupported = BTreeSet::new();
     let mut region_hints = RegionHints::default();
     for error in &outcome.errors {
+        if let Some(version) = mindtape::unsupported_prelude_version(&error.message) {
+            if unsupported.insert(version.to_owned()) {
+                out.push(unsupported_prelude_diag(kind, version, &error.file));
+            }
+            continue;
+        }
         if names_prelude_package(&error.message) {
             if !prelude_missing {
                 out.push(prelude_diag(kind, &error.message));

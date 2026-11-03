@@ -19,6 +19,8 @@
 //! [`RegionHints`] picks between the last two by where the error falls
 //! against the `task.with(…)` call, and gives each once per run.
 
+use std::path::Path;
+
 use mindtape::LoadError;
 use mindtape::model::task_spans::CallRegion;
 
@@ -89,6 +91,50 @@ pub(crate) fn prelude_hints(diag: Diag) -> Diag {
     .hint(Hint::new(
         "or pin a copy under [[typst.local-packages]] in the config",
     ))
+}
+
+/// The one diagnostic for a task file importing a prelude version this `mt`
+/// does not support: the file, the version, the set, and the hint that fits
+/// the version's side of the current one.
+pub(crate) fn unsupported_prelude_diag(kind: Kind, version: &str, file: &Path) -> Diag {
+    let diag = Diag::verbatim(
+        kind,
+        format!("imports @local/mindtape:{version}, which this mt does not support"),
+    )
+    .at_file(file)
+    .note(Note::new("supported").name(mindtape::PRELUDE_SUPPORTED.join(", ")));
+    diag.hint(prelude_version_hint(version))
+}
+
+/// The way out of an unsupported version: rewrite an older import to the
+/// current one, or upgrade `mt` when the import is newer than this build.
+fn prelude_version_hint(version: &str) -> Hint {
+    if mindtape::prelude_is_older(version) {
+        return Hint::naming(
+            "rewrite the import to",
+            format!("@local/mindtape:{}", mindtape::PRELUDE_VERSION),
+        );
+    }
+    Hint::naming("upgrade mt to read", format!("@local/mindtape:{version}"))
+}
+
+/// The warning for a past commit or tree `mt check --commits` skips because
+/// its prelude is no longer supported: the commit, the version, the first file
+/// that failed and the set.
+pub(crate) fn skipped_prelude_commit_diag(
+    commit: &str,
+    subject: &str,
+    version: &str,
+    file: &Path,
+) -> Diag {
+    Diag::verbatim(
+        Kind::Warning,
+        format!("imports @local/mindtape:{version}, which this mt does not support; skipped"),
+    )
+    .at_file(Path::new(commit))
+    .note(Note::new("file").value(mindtape::display_path(file)))
+    .note(Note::new("supported").name(mindtape::PRELUDE_SUPPORTED.join(", ")))
+    .note(Note::new("commit").value(subject))
 }
 
 /// The hint for a body whose prose was read as markup. Names both remedies,
