@@ -194,6 +194,31 @@ pub fn git_stdout(dir: &Path, args: &[&str]) -> String {
     String::from_utf8(output.stdout).unwrap().trim().to_owned()
 }
 
+/// A fresh [`tempdir`] holding an initialized, empty git repository.
+///
+/// # Panics
+/// Panics if git cannot be initialized, a test-harness bug.
+#[allow(clippy::unwrap_used)]
+#[must_use]
+pub fn git_tempdir() -> tempfile::TempDir {
+    let dir = tempdir();
+    git_init(dir.path());
+    dir
+}
+
+/// Write each `(rel, contents)` under `root`, stage everything, and commit it
+/// with `message` as a throwaway identity.
+///
+/// # Panics
+/// Panics if a file cannot be written or git fails, a test-harness bug.
+pub fn commit_files(root: &Path, files: &[(&str, &str)], message: &str) {
+    for (rel, contents) in files {
+        write_file(root, rel, contents);
+    }
+    git_as_tester(root, &["add", "-A"]);
+    git_as_tester(root, &["commit", "-q", "-m", message]);
+}
+
 /// Run `git <args>` in `root` as a throwaway identity with signing off,
 /// asserting success — the committing half of [`git_init`] for tests that
 /// build a history.

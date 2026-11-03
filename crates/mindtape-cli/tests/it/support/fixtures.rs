@@ -108,6 +108,22 @@ pub fn git(dir: &Path, args: &[&str]) {
     assert!(status.success(), "git {args:?} failed");
 }
 
+/// Write `path` under `dir` with its own name as the content, and stage it.
+pub fn stage_file(dir: &Path, path: &str) {
+    let file = dir.join(path);
+    std::fs::create_dir_all(file.parent().unwrap()).unwrap();
+    std::fs::write(&file, format!("{path}\n")).unwrap();
+    git(dir, &["add", path]);
+}
+
+/// Commit everything staged with `message`.
+pub fn commit(dir: &Path, message: &str) {
+    git(
+        dir,
+        &["-c", "commit.gpgsign=false", "commit", "-q", "-m", message],
+    );
+}
+
 /// Turn `dir` into a committed-clean git repository: init, a local identity so
 /// the commit does not depend on the developer's own, and one seed commit of
 /// everything present. `commit.gpgsign=false` keeps a signing setup out of it.

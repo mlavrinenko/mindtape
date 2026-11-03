@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **A commit state loads every task file from its own tree.** `mt check
+  --commits` and `--commit-msg` now read each task file a state holds, not
+  only the files the state differs at, and read that state's own
+  `.mindtape/config.toml` for its task roots and `[[typst.local-packages]]`
+  pins. An unchanged task file therefore resolves `@local` across a pin path
+  or version move. A repository's first commit reads an empty `HEAD`.
+
 ## [0.4.0] - 2026-11-02
 
 ### Upgrading from 0.3

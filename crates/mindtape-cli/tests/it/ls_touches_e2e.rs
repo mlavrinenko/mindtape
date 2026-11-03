@@ -12,18 +12,13 @@ use std::path::Path;
 
 use crate::support;
 
-use support::{git, git_commit_all, mt, project_with_tasks};
+use support::{commit, git, git_commit_all, mt, project_with_tasks};
 
-/// Write `path` under `dir` and commit it with `message`.
+/// Write `path` under `dir` with `message` as its contents, and commit it.
 fn commit_file(dir: &Path, path: &str, message: &str) {
-    let file = dir.join(path);
-    std::fs::create_dir_all(file.parent().unwrap()).unwrap();
-    std::fs::write(&file, format!("{message}\n")).unwrap();
+    mindtape::test_support::write_file(dir, path, message);
     git(dir, &["add", path]);
-    git(
-        dir,
-        &["-c", "commit.gpgsign=false", "commit", "-q", "-m", message],
-    );
+    commit(dir, message);
 }
 
 /// `mt ls <expr> --json`, parsed.

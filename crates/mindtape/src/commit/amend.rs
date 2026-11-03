@@ -26,20 +26,27 @@ use crate::commit::{CommitMsgError, git, git_optional};
 const MAX_DEPTH: usize = 12;
 
 /// The revision the index is diffed against: `HEAD`, or while amending the
-/// parent of `HEAD`, or the empty tree when the amended commit is a root.
+/// parent of `HEAD`, or the empty tree when the commit it follows is a root or
+/// the repository has no commit yet.
 pub(crate) fn base_rev(root: &Path) -> Result<String, CommitMsgError> {
     if !amending() {
-        return Ok("HEAD".to_owned());
+        return match git_optional(root, &["rev-parse", "--verify", "--quiet", "HEAD"])? {
+            Some(_) => Ok("HEAD".to_owned()),
+            None => empty_tree(root),
+        };
     }
     match git(root, &["rev-parse", "--verify", "--quiet", "HEAD^"]) {
         Ok(parent) => Ok(parent.trim().to_owned()),
-        Err(CommitMsgError::Git { .. }) => {
-            Ok(git(root, &["hash-object", "-t", "tree", "--stdin"])?
-                .trim()
-                .to_owned())
-        }
+        Err(CommitMsgError::Git { .. }) => empty_tree(root),
         Err(other) => Err(other),
     }
+}
+
+/// The empty tree's object id, the parent a root commit is read against.
+fn empty_tree(root: &Path) -> Result<String, CommitMsgError> {
+    Ok(git(root, &["hash-object", "-t", "tree", "--stdin"])?
+        .trim()
+        .to_owned())
 }
 
 /// Whether the commit a `commit-msg` check is judging is a merge: a merge is

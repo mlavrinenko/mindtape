@@ -3,10 +3,12 @@
 //! through `head(...)`, `staged(...)` and `worktree(...)`.
 //!
 //! One load, three views. The loaded project is the working tree; each other
-//! state is that load with the task files it differs at swapped for its own
-//! versions, read from git in one `git cat-file --batch` and evaluated like a
-//! file that is not on disk ([`crate::validate::candidate`]). A file the state lacks is
-//! absent from it, so `exists` reads false there.
+//! state loads every task file from its own git tree — the index for an empty
+//! revision — through one `git cat-file --batch` and evaluates it like a file
+//! that is not on disk ([`crate::validate::candidate`]). A file the state lacks
+//! is absent from it, so `exists` reads false there. The state's own
+//! `.mindtape/config.toml` names its task roots and package pins, so an
+//! unchanged task file still resolves `@local` against that tree's `lib/`.
 //!
 //! Where a state's versions come from is a [`StateSource`]: a git revision and
 //! the paths it may differ at. [`StatePlan::index`] builds the hook's plan —
@@ -16,19 +18,14 @@
 //! the same [`CommitStates::load`].
 
 use std::collections::BTreeSet;
-use std::io::{Read, Write};
-use std::path::{Component, Path, PathBuf};
-use std::process::{Command, Stdio};
-use std::sync::Arc;
+use std::path::Path;
 
-use typst::syntax::package::{PackageManifest, PackageSpec};
-use typst_world::{BytesProvider, local_package_file_id};
-
-use crate::commit::{CommitMsgError, changed_paths, git, task_stem};
+use crate::commit::tree::StateTree;
+use crate::commit::{CommitMsgError, changed_paths, git, git_optional, task_stem};
 use crate::config::Config;
 use crate::git::state::GitStatus;
 use crate::graph::ready::Readiness;
-use crate::loader::{LoadError, StatePackages, package_overrides};
+use crate::loader::LoadError;
 use crate::model::Task;
 use crate::validate::candidate::{Candidate, harvest_source_with};
 
@@ -39,7 +36,8 @@ pub struct StateSource {
     /// index (`:<path>`).
     pub rev: String,
     /// Every repository-relative path at which this state may differ from the
-    /// loaded working tree. A path that is not a task file is ignored.
+    /// loaded working tree. The plan records it, though a state reads its whole
+    /// tree rather than only these paths.
     pub differs: Vec<String>,
 }
 
@@ -74,7 +72,11 @@ impl StatePlan {
         // `HEAD`, or its parent while `git commit --amend` replaces it; the
         // paths where that differs from `HEAD` join the ones `status` names.
         let base = crate::commit::amend::base_rev(root)?;
-        let behind_head = if base == "HEAD" {
+        // No `HEAD` before the first commit: the base is the empty tree, and
+        // there is no `HEAD` to diff it against.
+        let head_exists =
+            git_optional(root, &["rev-parse", "--verify", "--quiet", "HEAD"])?.is_some();
+        let behind_head = if base == "HEAD" || !head_exists {
             Vec::new()
         } else {
             changed_paths(root, &[&base, "HEAD"])?
@@ -168,8 +170,8 @@ pub struct CommitStates {
 }
 
 impl CommitStates {
-    /// Build every state `plan` names as overlays of `base`, the loaded
-    /// working tree.
+    /// Build every state `plan` names from its own tree, and the working tree
+    /// from `base`, the loaded project.
     ///
     /// # Errors
     /// [`CommitMsgError`] when git cannot read a state's files.
@@ -179,7 +181,7 @@ impl CommitStates {
         config: &Config,
         plan: &StatePlan,
     ) -> Result<Self, CommitMsgError> {
-        let overlay = |source: &StateSource| overlay(root, base, config, plan, source);
+        let overlay = |source: &StateSource| overlay(root, config, plan, source);
         Ok(Self {
             head: overlay(&plan.head)?,
             staged: overlay(&plan.staged)?,
@@ -190,259 +192,32 @@ impl CommitStates {
     }
 }
 
-/// `base` with every task file `source` differs at replaced by the version
-/// `source` holds, or dropped where it holds none.
+/// Every task file `source`'s tree holds, evaluated against that tree's own
+/// config pins and package files rather than the working tree's.
 fn overlay(
     root: &Path,
-    base: &[Task],
     config: &Config,
     plan: &StatePlan,
     source: &StateSource,
 ) -> Result<ProjectState, CommitMsgError> {
-    let files: Vec<(&str, PathBuf)> = source
-        .differs
-        .iter()
-        .filter(|path| crate::commit::is_task_file(path, &plan.root_prefix, config))
-        .filter_map(|path| {
-            let rel = path.strip_prefix(&plan.root_prefix)?;
-            Some((path.as_str(), PathBuf::from(rel)))
-        })
-        .collect();
-    let mut tasks: Vec<Task> = base
-        .iter()
-        .filter(|task| !files.iter().any(|(_, rel)| *rel == task.file))
-        .cloned()
-        .collect();
-    let specs: Vec<String> = files
-        .iter()
-        .map(|(path, _)| format!("{}:{path}", source.rev))
-        .collect();
-    let packages = state_packages(root, config, plan, source)?;
-    let mut errors = Vec::new();
-    for ((_, rel), blob) in files.iter().zip(read_blobs(root, &specs)?) {
+    let tree = StateTree::new(root, plan, source);
+    let state = tree.config()?;
+    let state_config = state.config.as_ref().unwrap_or(config);
+    let files = tree.task_files(state_config)?;
+    let paths: Vec<&str> = files.iter().map(|(path, _)| path.as_str()).collect();
+    let packages = tree.packages(state_config)?;
+    let mut tasks = Vec::new();
+    let mut errors: Vec<LoadError> = state.error.into_iter().collect();
+    for ((_, rel), blob) in files.iter().zip(tree.read(&paths)?) {
         let Some(text) = blob else { continue };
         let candidate = Candidate { rel, source: &text };
-        match harvest_source_with(root, config, candidate, packages.clone()) {
+        match harvest_source_with(root, state_config, candidate, packages.clone()) {
             Ok(Some(task)) => tasks.push(task),
             Ok(None) => {}
             Err(err) => errors.push(err),
         }
     }
     Ok(ProjectState::new(tasks, config, root, errors))
-}
-
-/// The `@local` package files `source`'s tree holds, keyed by the version each
-/// manifest declares, so that tree's task files resolve against its own `lib/`
-/// rather than the working tree's pin or the machine's install. The pin paths
-/// come from the working tree's config, so a commit that moved a pin's path
-/// falls back to the working tree's pin.
-fn state_packages(
-    root: &Path,
-    config: &Config,
-    plan: &StatePlan,
-    source: &StateSource,
-) -> Result<Option<StatePackages>, CommitMsgError> {
-    if source.rev.is_empty() {
-        return Ok(None);
-    }
-    let mut specs = Vec::new();
-    let mut files = BytesProvider::new();
-    let repo = repo_root(root, &plan.root_prefix);
-    for (name, dir) in package_overrides(root, config) {
-        let rel = dir.strip_prefix(root).unwrap_or(&dir);
-        let Some(prefix) = repo_path(&plan.root_prefix, rel) else {
-            continue;
-        };
-        let paths = list_tree(&repo, &source.rev, &prefix)?;
-        let manifest_path = if prefix.is_empty() {
-            "typst.toml".to_owned()
-        } else {
-            format!("{prefix}/typst.toml")
-        };
-        let Some(manifest_at) = paths.iter().position(|path| *path == manifest_path) else {
-            continue;
-        };
-        let read_specs: Vec<String> = paths
-            .iter()
-            .map(|path| format!("{}:{path}", source.rev))
-            .collect();
-        let objects = read_objects(root, &read_specs)?;
-        let Some(Some(manifest)) = objects.get(manifest_at) else {
-            continue;
-        };
-        let Ok(manifest) = std::str::from_utf8(manifest) else {
-            continue;
-        };
-        let Ok(manifest) = toml::from_str::<PackageManifest>(manifest) else {
-            continue;
-        };
-        let version = manifest.package.version;
-        let spec = PackageSpec {
-            namespace: "local".into(),
-            name: name.as_str().into(),
-            version,
-        };
-        let version_text = version.to_string();
-        for (path, bytes) in paths.iter().zip(objects) {
-            let Some(bytes) = bytes else { continue };
-            let vpath = path
-                .strip_prefix(&prefix)
-                .map_or(path.as_str(), |rest| rest.trim_start_matches('/'));
-            let Ok(id) = local_package_file_id(&name, &version_text, vpath) else {
-                continue;
-            };
-            files = files.with_file(id, bytes);
-        }
-        specs.push(spec);
-    }
-    if specs.is_empty() {
-        return Ok(None);
-    }
-    Ok(Some(StatePackages {
-        specs,
-        files: Arc::new(files),
-    }))
-}
-
-/// The repository-relative path of `pkg` under `root_prefix`, or `None` when
-/// it is absolute or escapes the repository. `.` and `..` are resolved
-/// lexically, since a package may sit outside the project but inside the repo.
-fn repo_path(root_prefix: &str, pkg: &Path) -> Option<String> {
-    let mut parts: Vec<&str> = Vec::new();
-    for component in Path::new(root_prefix).components().chain(pkg.components()) {
-        match component {
-            Component::CurDir => {}
-            Component::ParentDir => {
-                parts.pop()?;
-            }
-            Component::Normal(name) => parts.push(name.to_str()?),
-            Component::RootDir | Component::Prefix(_) => return None,
-        }
-    }
-    Some(parts.join("/"))
-}
-
-/// The repository root above `root`, whose path within the repo is
-/// `root_prefix`.
-fn repo_root(root: &Path, root_prefix: &str) -> PathBuf {
-    let mut repo = root.to_path_buf();
-    for _ in Path::new(root_prefix).components() {
-        repo.pop();
-    }
-    repo
-}
-
-/// The error for a git command that failed, carrying its stderr.
-fn git_failed(command: &str, output: &std::process::Output) -> CommitMsgError {
-    CommitMsgError::Git {
-        command: command.to_owned(),
-        stderr: String::from_utf8_lossy(&output.stderr).trim().to_owned(),
-    }
-}
-
-/// Every repository-relative path in `rev` under `prefix`, through one
-/// `git ls-tree` run at the repository root `repo`.
-fn list_tree(repo: &Path, rev: &str, prefix: &str) -> Result<Vec<String>, CommitMsgError> {
-    let output = Command::new("git")
-        .arg("--no-optional-locks")
-        .arg("-C")
-        .arg(repo)
-        .args(["ls-tree", "-r", "--name-only", "-z", rev, "--"])
-        .arg(if prefix.is_empty() { "." } else { prefix })
-        .output()?;
-    if !output.status.success() {
-        return Err(git_failed("ls-tree", &output));
-    }
-    Ok(output
-        .stdout
-        .split(|byte| *byte == 0)
-        .filter(|path| !path.is_empty())
-        .map(|path| String::from_utf8_lossy(path).into_owned())
-        .collect())
-}
-
-/// Each object `specs` names, in order, through one `git cat-file --batch`:
-/// its text, or `None` where the revision holds no such path.
-fn read_blobs(root: &Path, specs: &[String]) -> Result<Vec<Option<String>>, CommitMsgError> {
-    Ok(read_objects(root, specs)?
-        .into_iter()
-        .map(|blob| blob.map(|bytes| String::from_utf8_lossy(&bytes).into_owned()))
-        .collect())
-}
-
-/// Each object `specs` names, in order, through one `git cat-file --batch`:
-/// its bytes, or `None` where the revision holds no such path. A package may
-/// carry images or fonts, so this keeps the bytes a task file would read as
-/// text.
-fn read_objects(root: &Path, specs: &[String]) -> Result<Vec<Option<Vec<u8>>>, CommitMsgError> {
-    if specs.is_empty() {
-        return Ok(Vec::new());
-    }
-    let mut child = Command::new("git")
-        .arg("--no-optional-locks")
-        .arg("-C")
-        .arg(root)
-        .args(["cat-file", "--batch"])
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?;
-    let input: String = specs.iter().map(|spec| format!("{spec}\n")).collect();
-    let mut stdin = child.stdin.take();
-    // Written from its own thread: git answers as it reads, so a large batch
-    // written inline would fill the output pipe before the input drains.
-    let writer = std::thread::spawn(move || {
-        stdin
-            .as_mut()
-            .map_or(Ok(()), |pipe| pipe.write_all(input.as_bytes()))
-    });
-    let mut out = Vec::new();
-    if let Some(mut stdout) = child.stdout.take() {
-        stdout.read_to_end(&mut out)?;
-    }
-    let output = child.wait_with_output()?;
-    writer.join().unwrap_or(Ok(()))?;
-    if !output.status.success() {
-        return Err(git_failed("cat-file", &output));
-    }
-    Ok(parse_batch_bytes(&out, specs.len()))
-}
-
-/// Split `git cat-file --batch` output into `count` objects: `<oid> <type>
-/// <size>\n<content>\n` each, or `<spec> missing\n` for an absent one.
-fn parse_batch_bytes(mut out: &[u8], count: usize) -> Vec<Option<Vec<u8>>> {
-    let mut blobs = Vec::with_capacity(count);
-    while blobs.len() < count {
-        let Some(end) = out.iter().position(|byte| *byte == b'\n') else {
-            break;
-        };
-        let header = String::from_utf8_lossy(out.get(..end).unwrap_or_default());
-        out = out.get(end + 1..).unwrap_or_default();
-        let size = header
-            .rsplit(' ')
-            .next()
-            .and_then(|size| size.parse::<usize>().ok())
-            .filter(|_| header.split(' ').count() == 3);
-        let Some(size) = size else {
-            blobs.push(None);
-            continue;
-        };
-        let body = out.get(..size).unwrap_or_default();
-        blobs.push(Some(body.to_vec()));
-        out = out.get(size + 1..).unwrap_or_default();
-    }
-    blobs.resize(count, None);
-    blobs
-}
-
-/// [`parse_batch_bytes`] with each object read as text. The production reader
-/// takes bytes; this is the test-side view of the same batch.
-#[cfg(test)]
-fn parse_batch(out: &[u8], count: usize) -> Vec<Option<String>> {
-    parse_batch_bytes(out, count)
-        .into_iter()
-        .map(|blob| blob.map(|bytes| String::from_utf8_lossy(&bytes).into_owned()))
-        .collect()
 }
 
 #[cfg(test)]

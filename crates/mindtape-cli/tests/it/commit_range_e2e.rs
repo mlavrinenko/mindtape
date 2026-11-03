@@ -10,7 +10,7 @@ use std::path::Path;
 
 use crate::support;
 
-use support::{commit_repo, git};
+use support::{commit, commit_repo, git, stage_file};
 
 /// The flip-with-work rule `commit_msg_task_e2e.rs` pins for the hook.
 const FLIP_WITH_WORK: &str = "[[commits.rules]]\n\
@@ -47,24 +47,8 @@ fn manifest(version: &str) -> String {
     )
 }
 
-/// Write `path` under `dir` and stage it.
-fn stage_file(dir: &Path, path: &str) {
-    let file = dir.join(path);
-    std::fs::create_dir_all(file.parent().unwrap()).unwrap();
-    std::fs::write(&file, format!("{path}\n")).unwrap();
-    git(dir, &["add", path]);
-}
-
-/// Commit everything staged with `message`.
-fn commit(dir: &Path, message: &str) {
-    git(
-        dir,
-        &["-c", "commit.gpgsign=false", "commit", "-q", "-m", message],
-    );
-}
-
 /// The abbreviated id of `rev`.
-fn short(dir: &Path, rev: &str) -> String {
+pub(crate) fn short(dir: &Path, rev: &str) -> String {
     let out = std::process::Command::new("git")
         .current_dir(dir)
         .args(["rev-parse", "--short", rev])
@@ -74,7 +58,7 @@ fn short(dir: &Path, rev: &str) -> String {
 }
 
 /// The tip-rule breach for `parser`, led by `rev`'s id.
-fn tip_breach(dir: &Path, rev: &str) -> String {
+pub(crate) fn tip_breach(dir: &Path, rev: &str) -> String {
     format!(
         "error: {}: commits.rules.named-tasks-finish-at-the-tip: parser:",
         short(dir, rev)
@@ -82,12 +66,12 @@ fn tip_breach(dir: &Path, rev: &str) -> String {
 }
 
 /// `mt check --commits <range>`: whether it exited zero, and its output.
-fn check_range(dir: &Path, range: &str) -> (bool, String) {
+pub(crate) fn check_range(dir: &Path, range: &str) -> (bool, String) {
     check_range_with(dir, range, &[])
 }
 
 /// [`check_range`] with extra `check` flags, such as `--check-merges`.
-fn check_range_with(dir: &Path, range: &str, flags: &[&str]) -> (bool, String) {
+pub(crate) fn check_range_with(dir: &Path, range: &str, flags: &[&str]) -> (bool, String) {
     let mut args = vec!["check", "--commits", range];
     args.extend_from_slice(flags);
     support::run_text(dir, &args)
@@ -212,96 +196,6 @@ fn a_subproject_range_reads_its_own_package_tree() {
     assert!(!text.contains("warning:"), "{text}");
 }
 
-/// A repository whose `HEAD` is a `--no-ff` merge of `side` into its first
-/// parent, with `side` and `main` as the branch commit messages. Both branches
-/// add a file, so the merge changes both against either parent.
-fn merged_with(dir: &Path, side: &str, main: &str) {
-    git(dir, &["checkout", "-q", "-b", "side"]);
-    stage_file(dir, "src/b.rs");
-    commit(dir, side);
-    git(dir, &["checkout", "-q", "-"]);
-    stage_file(dir, "src/a.rs");
-    commit(dir, main);
-    git(
-        dir,
-        &[
-            "-c",
-            "commit.gpgsign=false",
-            "merge",
-            "-q",
-            "--no-ff",
-            "-m",
-            "merge side",
-            "side",
-        ],
-    );
-}
-
-/// [`merged_with`] with plain `feat: b` and `feat: a` messages.
-fn merged(dir: &Path) {
-    merged_with(dir, "feat: b", "feat: a");
-}
-
-/// A rule that fails every merge, so the skip is visible.
-const MERGES_FAIL: &str = "[[commits.rules]]\n\
-     name = \"merges-fail\"\n\
-     when = 'matches(subject, \"^merge\")'\n\
-     assert = 'matches(subject, \"^never\")'\n\
-     severity = \"error\"\n";
-
-/// A rule a merge passes only when read against its first parent.
-const MERGE_FIRST_PARENT: &str = "[[commits.rules]]\n\
-     name = \"merge-leaves-a-alone\"\n\
-     when = 'matches(subject, \"^merge\")'\n\
-     assert = '!matches(files, \"^src/a\")'\n\
-     severity = \"error\"\n";
-
-/// A repository with `rules` and a merge at `HEAD`.
-fn merged_repo(rules: &str) -> tempfile::TempDir {
-    let dir = commit_repo(rules);
-    merged(dir.path());
-    dir
-}
-
-#[test]
-fn a_merge_is_skipped_unless_check_merges_asks_for_it() {
-    let dir = merged_repo(MERGES_FAIL);
-    let (ok, text) = check_range(dir.path(), "HEAD~1..HEAD");
-    assert!(ok, "a merge joins commits checked on their own: {text}");
-    assert!(text.contains("1 merge skipped"), "{text}");
-    let (ok, text) = check_range_with(dir.path(), "HEAD~1..HEAD", &["--check-merges"]);
-    assert!(!ok, "the opt-in must judge the merge: {text}");
-    assert!(text.contains("merges-fail"), "{text}");
-}
-
-#[test]
-fn check_merges_reads_a_merge_against_its_first_parent_only() {
-    let dir = commit_repo(MERGE_FIRST_PARENT);
-    merged(dir.path());
-    let (ok, text) = check_range_with(dir.path(), "HEAD~1..HEAD", &["--check-merges"]);
-    assert!(
-        ok,
-        "against its first parent the merge adds only src/b: {text}"
-    );
-}
-
-#[test]
-fn a_skipped_merge_still_supplies_the_tip_state() {
-    let dir = commit_repo(FINISH_AT_THE_TIP);
-    let dir = dir.path();
-    merged_with(
-        dir,
-        "feat: side\n\nRefs: parser",
-        "feat: main\n\nRefs: parser",
-    );
-    let (ok, text) = check_range(dir, "HEAD~1..HEAD");
-    assert!(!ok, "the task is still wip at the merge: {text}");
-    assert!(
-        text.contains(&tip_breach(dir, "HEAD")),
-        "the tip rule names the merge, whose tree it read: {text}"
-    );
-}
-
 #[test]
 fn a_rule_reading_the_working_tree_is_skipped_and_reported() {
     let rules = "[[commits.rules]]\n\
@@ -384,7 +278,7 @@ fn each_state_holds_a_task_once() {
 }
 
 /// The rule `mindtape:tasks` ships for the tip of a range.
-const FINISH_AT_THE_TIP: &str = "[[commits.rules]]\n\
+pub(crate) const FINISH_AT_THE_TIP: &str = "[[commits.rules]]\n\
      name = \"named-tasks-finish-at-the-tip\"\n\
      scope = \"tip\"\n\
      assert = '!(status == \"wip\")'\n\
@@ -497,4 +391,56 @@ fn the_pack_lets_a_fixup_through_the_hook_and_refuses_it_in_a_range() {
     assert!(!ok, "the range must refuse the fixup: {text}");
     assert!(text.contains("no-unsquashed-fixup"), "{text}");
     assert!(text.contains("git rebase -i --autosquash"), "{text}");
+}
+
+/// A prelude stub whose marker always carries `title`, so a loaded task's
+/// title says which package tree served it.
+fn titled_prelude(title: &str) -> String {
+    format!(
+        "#let task(body, ..meta) = [#metadata((marker: \"mindtape.task\", \
+         fields: (title: \"{title}\"), extras: (:))) <mindtape>]\n"
+    )
+}
+
+/// A config pinning `@local/mindtape` to `path`, with a rule that reads the
+/// parent state's title and the tip's.
+fn pin_move_config(path: &str) -> String {
+    format!(
+        "[tasks]\nroots = [\"tasks\"]\n\n\
+         [[typst.local-packages]]\nname = \"mindtape\"\npath = \"{path}\"\n\n\
+         [[commits.rules]]\nname = \"parent-pin\"\nscope = \"task\"\nwhen = 'named'\n\
+         assert = 'head(title == \"Old pin\") && staged(title == \"New pin\")'\n\
+         severity = \"error\"\n"
+    )
+}
+
+#[test]
+fn a_range_across_a_pin_move_loads_an_unchanged_task_from_its_own_tree() {
+    let dir = mindtape::test_support::tempdir();
+    let root = dir.path();
+
+    // The parent tree pins the package at `old-lib`, and its task file is the
+    // one the range leaves untouched.
+    write_file(root, "old-lib/typst.toml", manifest("0.3.0"));
+    write_file(root, "old-lib/prelude.typ", titled_prelude("Old pin"));
+    write_file(root, ".mindtape/config.toml", pin_move_config("old-lib"));
+    write_file(
+        root,
+        "tasks/parser.typ",
+        "#import \"@local/mindtape:0.3.0\": *\n\n#show: task.with(title: \"Write the parser\")\n",
+    );
+    support::git_commit_all(root);
+
+    // The tip moves the pin to `lib` and changes no task file.
+    write_file(root, "lib/typst.toml", manifest("0.3.0"));
+    write_file(root, "lib/prelude.typ", titled_prelude("New pin"));
+    write_file(root, ".mindtape/config.toml", pin_move_config("lib"));
+    git(root, &["add", "-A"]);
+    commit(root, "feat: move the prelude pin\n\nRefs: parser");
+
+    let (ok, text) = check_range(root, "HEAD~1..HEAD");
+    assert!(
+        ok,
+        "the unchanged task must resolve against the parent's own pin: {text}"
+    );
 }

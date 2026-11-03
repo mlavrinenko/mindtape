@@ -31,6 +31,7 @@ mod commit_msg_e2e;
 mod commit_msg_task_e2e;
 mod commit_packs_e2e;
 mod commit_range_e2e;
+mod commit_range_merge_e2e;
 mod commit_refs_started_e2e;
 mod commit_retire_e2e;
 mod completion_e2e;
