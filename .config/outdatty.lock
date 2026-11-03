@@ -210,7 +210,7 @@ groups:
       crates/mindtape-cli/Cargo.toml: 8c60814d586a3ea5e53bd9e9002e41ef88f1b6720135fafe46e1156e28b0700e
       crates/mindtape-cli/src/cli/mod.rs: f91c4da7beeb7e05555c26e6e3e1d03112ca86ac45f31f2699d5f1f0c3107bff
     dependents:
-      CHANGELOG.md: ef8da26489195672250d34396e80351c5c65145b973f325c886609ca6b341053
+      CHANGELOG.md: 69927e755224a70068fec42d1c9bf0c223057fc95855fdd1ffecf3523a230115
       docs/src/agents.typ: 6591b22c7cb4514b063107be081b55f4657f3c5241a13cb803bd91a4267c2682
       docs/src/contributing.typ: eddeeabed532aeee31385ade6f5697dac7fb4bf0065d7e6a99fc78c4e8c19dfe
       docs/src/contributing/command-semantics.typ: 5b3219c6991e68607914d12d1386f39913d500ddb3f7d0eca2b91232789df32f
@@ -481,7 +481,7 @@ groups:
     source:
       Cargo.toml: c88d46a092158fe095e7e059f4989589aa27dbdbba8f7021050faec1cca68336
     dependents:
-      CHANGELOG.md: ef8da26489195672250d34396e80351c5c65145b973f325c886609ca6b341053
+      CHANGELOG.md: 69927e755224a70068fec42d1c9bf0c223057fc95855fdd1ffecf3523a230115
   scripts-no-doc:
     source:
       .just/scripts/_doc-blocks-control.sh: 066258f034694487e0a94bba355457293697ff06ca7b974884ba3d5ca24ae7da

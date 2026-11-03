@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   immutable snapshot under `crates/mindtape/src/loader/preludes/<version>/`,
   so either pin loads with no package directory and `mt install` writes both.
   A supported old pin loads silently.
+- **An unsupported prelude fails once, and a commit range skips it.**
+  An unsupported version such as `0.1.0` fails with one diagnostic naming the
+  file, the version and the set, plus a rewrite hint for an older version and
+  an upgrade hint for a newer one. `mt check --commits` warns and skips a past
+  commit or tip state whose prelude is unsupported, without reporting its
+  skipped tasks as missing refs. A release archives the outgoing prelude under
+  `preludes/<version>/`, adds it to the set with a fixture, and drops a version
+  by deleting its snapshot and fixture.
 
 ### Fixed
 
