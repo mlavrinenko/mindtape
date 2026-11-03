@@ -6,7 +6,7 @@ use crate::test_support::git_tempdir;
 use crate::test_support::write_file;
 
 use super::{CommitStates, StatePlan};
-use crate::config::parse_config;
+use crate::config::{Config, parse_config};
 
 /// A raw task marker needing no prelude package.
 const MARKER: &str =
@@ -86,19 +86,6 @@ fn revisions(head: &str, staged: &str) -> StatePlan {
 }
 
 #[test]
-fn a_state_without_a_config_uses_the_working_trees_roots() {
-    let dir = git_tempdir();
-    let root = dir.path();
-    commit_files(root, &[("tasks/a.typ", MARKER)], "no config");
-    let config = parse_config("[tasks]\nroots = [\"tasks\"]\n").unwrap();
-    let plan = revisions("HEAD", "HEAD");
-    let states = CommitStates::load(root, &[], &config, &plan).unwrap();
-    assert_eq!(states.head.tasks.len(), 1);
-    assert_eq!(states.head.tasks[0].id, "a");
-    assert!(states.head.errors.is_empty(), "{:?}", states.head.errors);
-}
-
-#[test]
 fn a_malformed_state_config_falls_back_and_is_reported() {
     let dir = git_tempdir();
     let root = dir.path();
@@ -131,45 +118,94 @@ fn a_malformed_state_config_falls_back_and_is_reported() {
     );
 }
 
-#[test]
-fn a_state_loads_its_unchanged_task_against_its_own_pin() {
+/// The `typst.toml` every stub package carries.
+const PIN_MANIFEST: &str =
+    "[package]\nname = \"mindtape\"\nversion = \"0.3.0\"\nentrypoint = \"prelude.typ\"\n";
+
+/// A config with one `mindtape` pin at `path`.
+fn pin_config(path: &str) -> String {
+    format!(
+        "[tasks]\nroots = [\"tasks\"]\n\n\
+         [[typst.local-packages]]\nname = \"mindtape\"\npath = \"{path}\"\n"
+    )
+}
+
+/// Load a plan over `config` with no working-tree tasks.
+fn load(root: &std::path::Path, config: &Config, plan: &StatePlan) -> CommitStates {
+    CommitStates::load(root, &[], config, plan).unwrap()
+}
+
+/// Assert the unchanged task resolved against the old pin in `head` and the
+/// new one in `staged`.
+fn assert_pin_titles(states: &CommitStates) {
+    assert_eq!(states.head.tasks[0].title, "Old pin");
+    assert_eq!(states.staged.tasks[0].title, "New pin");
+}
+
+/// A repository at the `old-lib` pin, its task importing the prelude.
+fn old_pin_repo() -> tempfile::TempDir {
     let dir = git_tempdir();
     let root = dir.path();
-    let manifest =
-        "[package]\nname = \"mindtape\"\nversion = \"0.3.0\"\nentrypoint = \"prelude.typ\"\n";
     let old = titled_prelude("Old pin");
-    let old_config = "[tasks]\nroots = [\"tasks\"]\n\n[[typst.local-packages]]\nname = \"mindtape\"\npath = \"old-lib\"\n";
     commit_files(
         root,
         &[
-            ("old-lib/typst.toml", manifest),
+            ("old-lib/typst.toml", PIN_MANIFEST),
             ("old-lib/prelude.typ", &old),
-            (".mindtape/config.toml", old_config),
+            (".mindtape/config.toml", &pin_config("old-lib")),
             ("tasks/parser.typ", PINNED_TASK),
         ],
         "old pin",
     );
+    dir
+}
+
+#[test]
+fn a_state_loads_its_unchanged_task_against_its_own_pin() {
+    let dir = old_pin_repo();
+    let root = dir.path();
     let new = titled_prelude("New pin");
-    let new_config = "[tasks]\nroots = [\"tasks\"]\n\n[[typst.local-packages]]\nname = \"mindtape\"\npath = \"lib\"\n";
     commit_files(
         root,
         &[
-            ("lib/typst.toml", manifest),
+            ("lib/typst.toml", PIN_MANIFEST),
             ("lib/prelude.typ", &new),
-            (".mindtape/config.toml", new_config),
+            (".mindtape/config.toml", &pin_config("lib")),
         ],
         "move pin",
     );
 
-    let config = parse_config(
-        "[tasks]\nroots = [\"tasks\"]\n\n[[typst.local-packages]]\nname = \"mindtape\"\npath = \"lib\"\n",
-    )
-    .unwrap();
+    let config = parse_config(&pin_config("lib")).unwrap();
     let plan = revisions("HEAD~1", "HEAD");
     let states = CommitStates::load(root, &[], &config, &plan).unwrap();
     assert_eq!(states.head.tasks[0].title, "Old pin");
     assert_eq!(states.staged.tasks[0].title, "New pin");
     assert!(states.head.errors.is_empty(), "{:?}", states.head.errors);
+    assert!(
+        states.staged.errors.is_empty(),
+        "{:?}",
+        states.staged.errors
+    );
+}
+
+#[test]
+fn an_index_state_loads_its_own_config_pin() {
+    let dir = old_pin_repo();
+    let root = dir.path();
+
+    // The index moves the pin to `lib`, while the working tree stays on the
+    // old one. The staged state must read the index's config and package.
+    let new = titled_prelude("New pin");
+    write_file(root, "lib/typst.toml", PIN_MANIFEST);
+    write_file(root, "lib/prelude.typ", &new);
+    write_file(root, ".mindtape/config.toml", pin_config("lib"));
+    git(root, &["add", "-A"]);
+    write_file(root, ".mindtape/config.toml", pin_config("old-lib"));
+
+    let config = parse_config(&pin_config("old-lib")).unwrap();
+    let plan = StatePlan::index(root).unwrap();
+    let states = load(root, &config, &plan);
+    assert_pin_titles(&states);
     assert!(
         states.staged.errors.is_empty(),
         "{:?}",
