@@ -128,5 +128,5 @@ fn warn_state_errors_reports_each_state() {
         message: "broken".to_owned(),
         ..mindtape::LoadError::default()
     });
-    warn_state_errors(&states, None);
+    warn_state_errors(&states, super::StateLabels::default(), None);
 }

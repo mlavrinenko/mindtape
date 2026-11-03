@@ -4,12 +4,12 @@
 //! the working tree through `head(...)`, `staged(...)` and `worktree(...)`.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
-use mindtape::test_support::write_file;
+use mindtape::test_support::{tempdir, write_file};
 use std::path::Path;
 
 use crate::support;
 
-use support::{check_commit_msg, commit_repo, git};
+use support::{check_commit_msg, commit_repo, git, git_commit_all, run_text, scaffold_project};
 
 /// The task's worked example: a start or a close rides with the work it
 /// claims, unless the commit is a decision's own.
@@ -165,4 +165,93 @@ fn into_naming_no_status_is_refused_at_load() {
     let dir = commit_repo(rules);
     let text = support::commit_msg_refusal(dir.path(), "feat: x\n");
     assert!(text.contains("dnoe"), "{text}");
+}
+
+/// A prelude stub whose marker always carries `title`, so a loaded task's
+/// title says which package tree served it.
+fn titled_prelude(title: &str) -> String {
+    format!(
+        "#let task(body, ..meta) = [#metadata((marker: \"mindtape.task\", \
+         fields: (title: \"{title}\"), extras: (:))) <mindtape>]\n"
+    )
+}
+
+#[test]
+fn a_first_commit_with_a_pin_passes() {
+    let rules = "[[commits.rules]]\n\
+         name = \"staged-loads\"\nscope = \"task\"\nwhen = 'named'\n\
+         assert = 'staged(exists)'\nseverity = \"error\"\n";
+    let dir = scaffold_project(&format!("[tasks]\nroots = [\"tasks\"]\n{rules}"));
+    write_file(
+        dir.path(),
+        "tasks/parser.typ",
+        "#import \"@local/mindtape:0.3.0\": *\n\n         #show: task.with(title: \"Write the parser\", status: wip(2026, 6, 1))\n",
+    );
+    git(dir.path(), &["init", "-q"]);
+    git(dir.path(), &["add", "-A"]);
+    let message = dir.path().join("COMMIT_MSG");
+    std::fs::write(&message, "feat: start\n\nRefs: parser\n").unwrap();
+
+    let (ok, text) = run_text(
+        dir.path(),
+        &["check", "--commit-msg", message.to_str().unwrap()],
+    );
+    assert!(ok, "a first commit reads an empty HEAD: {text}");
+}
+
+#[test]
+fn a_subproject_index_state_reads_its_own_config_and_package() {
+    let dir = tempdir();
+    let root = dir.path();
+    let sub = root.join("sub");
+    let manifest =
+        "[package]\nname = \"mindtape\"\nversion = \"0.3.0\"\nentrypoint = \"prelude.typ\"\n";
+    let old = titled_prelude("Old pin");
+    let old_config = "[tasks]\nroots = [\"tasks\"]\n\n[[typst.local-packages]]\nname = \"mindtape\"\npath = \"old-lib\"\n";
+    write_file(&sub, "old-lib/typst.toml", manifest);
+    write_file(&sub, "old-lib/prelude.typ", &old);
+    write_file(&sub, ".mindtape/config.toml", old_config);
+    write_file(
+        &sub,
+        "tasks/parser.typ",
+        "#import \"@local/mindtape:0.3.0\": *\n\n#show: task.with(title: \"Parser\")\n",
+    );
+    git_commit_all(root);
+
+    // The index moves the pin to `lib` and carries the rule; the working tree
+    // keeps different bytes behind that pin's path.
+    let new = titled_prelude("New pin");
+    let rule = "[[commits.rules]]\n\
+         name = \"pinned\"\nscope = \"task\"\nwhen = 'named'\n\
+         assert = 'head(title == \"Old pin\") && staged(title == \"New pin\")'\n\
+         severity = \"error\"\n";
+    write_file(&sub, "lib/typst.toml", manifest);
+    write_file(&sub, "lib/prelude.typ", &new);
+    write_file(
+        &sub,
+        ".mindtape/config.toml",
+        format!(
+            "[tasks]\nroots = [\"tasks\"]\n\n\
+             [[typst.local-packages]]\nname = \"mindtape\"\npath = \"lib\"\n{rule}"
+        ),
+    );
+    git(root, &["add", "-A"]);
+    write_file(&sub, "lib/prelude.typ", titled_prelude("Working pin"));
+
+    let message = root.join("COMMIT_MSG");
+    std::fs::write(&message, "feat: move\n\nRefs: parser\n").unwrap();
+    let (ok, text) = run_text(
+        root,
+        &[
+            "check",
+            "-w",
+            "sub",
+            "--commit-msg",
+            message.to_str().unwrap(),
+        ],
+    );
+    assert!(
+        ok,
+        "the subproject index state reads its own prefix: {text}"
+    );
 }

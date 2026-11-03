@@ -9,18 +9,16 @@
 //! joins commits that were checked on their own, and its first-parent diff
 //! repeats them. `--check-merges` reads it like any other commit.
 //!
-//! The states are still overlays of the one working-tree load
-//! ([`crate::commit::tasks`]), so each lists every path at which its revision
-//! may differ from the working tree: where the parent differs from `HEAD`,
-//! where `HEAD` differs from the working tree, and — for the commit — what the
-//! commit changes. Listing a path that turns out not to differ costs a
-//! re-read, never a wrong answer.
+//! Each state reads its whole tree ([`crate::commit::tasks`]), and a range
+//! shares one [`crate::StateLoader`] across its commits, so an unchanged task
+//! file is not evaluated again and a linear range reuses the previous commit's
+//! `staged` state as the next commit's `head`. A [`StateSource::differs`] list
+//! is no longer needed; the field stays empty for API compatibility.
 
 use std::path::Path;
 
 use crate::commit::tasks::{StatePlan, StateSource};
 use crate::commit::{ChangedFiles, CommitMsgError, changed_paths, git, renamed_sources};
-use crate::git::state::GitStatus;
 
 /// One commit of a range.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -31,6 +29,9 @@ pub struct RangeCommit {
     pub short: String,
     /// The first parent; `None` for a root commit.
     pub parent: Option<String>,
+    /// The abbreviated first parent, for a report that names the parent
+    /// state; `None` for a root commit.
+    pub parent_short: Option<String>,
     /// Whether the commit has more than one parent.
     pub is_merge: bool,
 }
@@ -41,8 +42,6 @@ pub struct CommitRange {
     /// Every commit `git rev-list <range>` lists, oldest first.
     pub commits: Vec<RangeCommit>,
     root_prefix: String,
-    /// Every path at which the working tree differs from `HEAD`.
-    dirty: Vec<String>,
     /// The empty tree's id: a root commit's parent.
     empty_tree: String,
 }
@@ -77,7 +76,7 @@ impl CommitRange {
                 "--",
             ],
         )?;
-        let commits = listing
+        let mut commits: Vec<RangeCommit> = listing
             .lines()
             .filter_map(|line| {
                 let mut ids = line.split(' ');
@@ -88,24 +87,25 @@ impl CommitRange {
                     id,
                     short,
                     parent: parents.first().map(|id| (*id).to_owned()),
+                    parent_short: None,
                     is_merge: parents.len() > 1,
                 })
             })
             .collect();
-        let status = GitStatus::read_unpaired(root).map_err(|stderr| CommitMsgError::Git {
-            command: "status".to_owned(),
-            stderr,
-        })?;
+        for commit in &mut commits {
+            if let Some(parent) = &commit.parent {
+                commit.parent_short = Some(
+                    git(root, &["rev-parse", "--short", parent])?
+                        .trim()
+                        .to_owned(),
+                );
+            }
+        }
         Ok(Self {
             commits,
             root_prefix: git(root, &["rev-parse", "--show-prefix"])?
                 .trim()
                 .to_owned(),
-            dirty: status
-                .entries()
-                .iter()
-                .map(|entry| entry.path.clone())
-                .collect(),
             empty_tree: git(root, &["hash-object", "-t", "tree", "--stdin"])?
                 .trim()
                 .to_owned(),
@@ -130,15 +130,6 @@ impl CommitRange {
         )?;
         let paths = changed_paths(root, &[parent, &commit.id])?;
         let renamed_from = renamed_sources(root, &[parent, &commit.id])?;
-        let mut head = changed_paths(root, &[parent, "HEAD"])?;
-        head.extend(self.dirty.iter().cloned());
-        let mut staged = head.clone();
-        staged.extend(paths.iter().cloned());
-        // A path listed twice would be overlaid, and so loaded, twice.
-        for differs in [&mut head, &mut staged] {
-            differs.sort_unstable();
-            differs.dedup();
-        }
         Ok(PastCommit {
             message,
             changed: ChangedFiles {
@@ -150,11 +141,11 @@ impl CommitRange {
                 root_prefix: self.root_prefix.clone(),
                 head: StateSource {
                     rev: parent.to_owned(),
-                    differs: head,
+                    differs: Vec::new(),
                 },
                 staged: StateSource {
                     rev: commit.id.clone(),
-                    differs: staged,
+                    differs: Vec::new(),
                 },
                 worktree: false,
             },

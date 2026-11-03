@@ -9,7 +9,7 @@
 
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
-use mindtape::test_support::write_file;
+use mindtape::test_support::{git_stdout, write_file};
 use std::path::Path;
 
 use assert_cmd::Command;
@@ -78,16 +78,27 @@ const NO_RULES: &str = "[tasks]\nroots = [\"tasks\"]\n";
 // the first test has an error on one side only, so a `*` mutant reads zero and
 // silently skips the commit.
 
-#[test]
-fn one_sided_state_error_still_reports_the_commit() {
-    let (_dir, root) = scaffold(
+/// Commit each `(contents, message)` and check the range it leaves.
+fn broken_range(root: &Path, commits: &[(&str, &str)]) -> (bool, String) {
+    for (contents, message) in commits {
+        commit_bad(root, contents, message);
+    }
+    check(root, "HEAD~1..HEAD", false)
+}
+
+/// A repository whose one task is the `bad` fixture.
+fn error_repo() -> (tempfile::TempDir, std::path::PathBuf) {
+    scaffold(
         &[("tasks/bad.typ", VALID), ("seed.txt", "seed\n")],
         NO_RULES,
-    );
-    commit_bad(&root, &broken("staged only"), "break: staged");
+    )
+}
 
-    let (ok, text) = check(&root, "HEAD~1..HEAD", false);
-
+#[test]
+fn state_load_errors_report_the_commit_without_breaking_the_range() {
+    // One state errors: the commit is still reported, and the range passes.
+    let (_one, one) = error_repo();
+    let (ok, text) = broken_range(&one, &[(&broken("staged only"), "break: staged")]);
     assert!(
         ok,
         "a state load error alone does not break the range: {text}"
@@ -96,19 +107,16 @@ fn one_sided_state_error_still_reports_the_commit() {
         text.contains("warning:") && text.contains("break: staged"),
         "the commit holding an unevaluable task must be reported: {text}"
     );
-}
 
-#[test]
-fn errors_in_both_states_still_report_the_commit() {
-    let (_dir, root) = scaffold(
-        &[("tasks/bad.typ", VALID), ("seed.txt", "seed\n")],
-        NO_RULES,
+    // Both states error: still reported, still not a broken rule.
+    let (_both, both) = error_repo();
+    let (ok, text) = broken_range(
+        &both,
+        &[
+            (&broken("parent"), "break: parent"),
+            (&broken("commit"), "break: commit"),
+        ],
     );
-    commit_bad(&root, &broken("parent"), "break: parent");
-    commit_bad(&root, &broken("commit"), "break: commit");
-
-    let (ok, text) = check(&root, "HEAD~1..HEAD", false);
-
     assert!(ok, "{text}");
     assert!(
         text.contains("warning:") && text.contains("break: commit"),
@@ -205,5 +213,27 @@ fn an_external_ref_does_not_name_a_later_task_for_tip_rules() {
     assert!(
         ok,
         "an external ref must not name a task created later: {text}"
+    );
+}
+
+#[test]
+fn a_parent_state_error_names_the_parent_commit_not_head() {
+    let (_dir, root) = error_repo();
+    commit_bad(&root, &broken("in parent"), "break: parent");
+    commit_bad(&root, VALID, "fix: parent");
+
+    let (ok, text) = check(&root, "HEAD~1..HEAD", false);
+
+    assert!(ok, "{text}");
+    let parent = git_stdout(&root, &["rev-parse", "--short", "HEAD~1"]);
+    let tip = git_stdout(&root, &["rev-parse", "--short", "HEAD"]);
+    assert!(
+        text.contains(&format!("warning: {tip}: tasks/bad.typ:"))
+            && text.contains(&format!(" as {parent}: ")),
+        "the warning names the parent commit: {text}"
+    );
+    assert!(
+        !text.contains("as HEAD:"),
+        "HEAD is not a past state: {text}"
     );
 }

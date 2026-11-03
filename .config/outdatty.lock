@@ -71,9 +71,9 @@ groups:
       www/utils/cli-notes.typ: f4f3fdc25dd45b7465220811f822300fe7ebeefde4ed1e476f63d24e46397621
   cli-check-docs:
     source:
-      crates/mindtape-cli/src/cmd/check/commit.rs: 71f52c90e29fd12ff18a6433c8ec5ba119f58ca18aa7c565bbd060609ad5a19f
+      crates/mindtape-cli/src/cmd/check/commit.rs: 7125f543757eba9dbefeeb54bd1cf34de03c21731ec1470b7d9051100bc36527
       crates/mindtape-cli/src/cmd/check/mod.rs: a6b534eb7b136cce75a7427b1833fdbb4fc4d1e98cc06228face15834ef2bf08
-      crates/mindtape-cli/src/cmd/check/range.rs: b20e8338784e17c9b33ca0ae4790ad090ca41ae43a540d9e4024b55d192c8c13
+      crates/mindtape-cli/src/cmd/check/range.rs: 4795d43ea0988180faa86aad350db4eab3284eb5a9feba6b9656fa1c8e235171
       crates/mindtape-cli/src/cmd/check/templates.rs: 18ffc5be3e1db5a756a44dfeedbe5c1b49940947b59ac1f5f39c3d9fdd089fdb
     dependents:
       skills/mindtape/evals/evals.json: 30cf7329118dc87b78164b1f425b6bc114f509d6ed4112cd0c174438b9ecc826

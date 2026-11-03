@@ -73,13 +73,25 @@ fn discover_layers_with_xdg(
     home: Option<&Path>,
     xdg_config_dir: Option<&Path>,
 ) -> Vec<Layer> {
+    discover_layers_with_project(root, home, xdg_config_dir, project_layer(root))
+}
+
+/// [`discover_layers_with_xdg`] with the project layer supplied by the
+/// caller, so a commit state can put its own `.mindtape/config.toml` above the
+/// same embedded, XDG and ancestor-default layers a working-tree load uses.
+fn discover_layers_with_project(
+    root: &Path,
+    home: Option<&Path>,
+    xdg_config_dir: Option<&Path>,
+    project: Option<Layer>,
+) -> Vec<Layer> {
     let mut layers = vec![Layer {
         source: LayerSource::Embedded,
         text: EMBEDDED_DEFAULTS.to_owned(),
     }];
     layers.extend(xdg_layer(xdg_config_dir));
     layers.extend(dir_layers(root, home));
-    layers.extend(project_layer(root));
+    layers.extend(project);
     layers
 }
 
@@ -296,6 +308,48 @@ fn name_file(err: ConfigError, sources: &Sources, root: &Path) -> ConfigError {
         }
         other => other,
     }
+}
+
+/// The config `root` would load if its own `.mindtape/config.toml` held
+/// `project_text` instead of the file on disk.
+///
+/// The embedded floor, XDG defaults and ancestor `.mindtape/defaults.toml`
+/// layers are the same ones [`load_config_layered`] discovers, and the
+/// project layer is `project_text`, so a commit state keeps the roots, pins
+/// and packs a working-tree load would have read. Files a layer references
+/// (packs, dictionary paths) still come from the working tree; a past tree's
+/// own copies are not virtualized.
+///
+/// # Errors
+/// As [`load_config_layered`].
+pub(crate) fn load_config_with_project(
+    root: &Path,
+    project_text: &str,
+) -> Result<Config, ConfigError> {
+    load_config_with_project_in(
+        root,
+        project_text,
+        dirs::home_dir().as_deref(),
+        crate::loader::app_dirs::config_home().as_deref(),
+        crate::config::pack_sources::cache_root().as_deref(),
+    )
+}
+
+/// [`load_config_with_project`] with every environment-derived directory
+/// injected, for tests that must not read the running machine.
+fn load_config_with_project_in(
+    root: &Path,
+    project_text: &str,
+    home: Option<&Path>,
+    xdg_config_dir: Option<&Path>,
+    pack_cache: Option<&Path>,
+) -> Result<Config, ConfigError> {
+    let project = Layer {
+        source: LayerSource::Project(config_path(root)),
+        text: project_text.to_owned(),
+    };
+    let layers = discover_layers_with_project(root, home, xdg_config_dir, Some(project));
+    build_config(&layers, root, pack_cache).map(|(config, _)| config)
 }
 
 /// Assemble the full layered config for `root`: discover every layer, merge

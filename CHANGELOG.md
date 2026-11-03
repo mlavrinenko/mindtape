@@ -11,10 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **A commit state loads every task file from its own tree.** `mt check
   --commits` and `--commit-msg` now read each task file a state holds, not
-  only the files the state differs at, and read that state's own
-  `.mindtape/config.toml` for its task roots and `[[typst.local-packages]]`
-  pins. An unchanged task file therefore resolves `@local` across a pin path
-  or version move. A repository's first commit reads an empty `HEAD`.
+  only the files the state differs at, and build that state's config over the
+  embedded, XDG and ancestor-default layers with its own
+  `.mindtape/config.toml` on top. An unchanged task file therefore resolves
+  `@local` across a pin path or version move, including a root or pin an
+  ancestor layer supplies. The loader reuses evaluations by file blob and
+  package fingerprint, so a range stays fast. A repository's first commit
+  reads an empty `HEAD`.
 
 ## [0.4.0] - 2026-11-02
 

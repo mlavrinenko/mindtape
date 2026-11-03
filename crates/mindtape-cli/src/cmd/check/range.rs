@@ -10,10 +10,10 @@ use std::path::Path;
 use crate::diag::Result;
 use mindtape::{
     CommitBreach, CommitRange, CommitRecord, CommitStates, PastCommit, ProjectState, RangeCommit,
-    RefProblem, check_commit, check_tip, parse_message,
+    RefProblem, StateLoader, check_commit, check_tip, parse_message,
 };
 
-use crate::cmd::check::commit::{breach_diag, failing, in_commit, warn_state_errors};
+use crate::cmd::check::commit::{StateLabels, breach_diag, failing, in_commit, warn_state_errors};
 use crate::diag::{Diag, Kind, Note};
 use crate::util;
 
@@ -50,6 +50,7 @@ pub(crate) fn run(
             .value(range)
             .cause(&err)
     })?;
+    let mut loader = StateLoader::new(&project.root, &project.outcome.tasks, config);
     let mut broke = 0;
     let mut named = BTreeSet::new();
     let mut tip = ProjectState::default();
@@ -60,11 +61,11 @@ pub(crate) fn run(
             // The newest commit's tree is still the tip, even when its own
             // message and first-parent diff are not checked.
             if index + 1 == commits.commits.len() {
-                tip = tip_state(project, &commits, commit)?;
+                tip = tip_state(project, &commits, commit, &mut loader)?;
             }
             continue;
         }
-        let one = check_one(project, &commits, commit)?;
+        let one = check_one(project, &commits, commit, &mut loader)?;
         broke += usize::from(one.broke);
         named.extend(one.refs);
         tip = one.tip;
@@ -106,6 +107,7 @@ fn read_past(
     project: &util::Project,
     range: &CommitRange,
     commit: &RangeCommit,
+    loader: &mut StateLoader<'_>,
 ) -> Result<(PastCommit, CommitStates)> {
     let read = |err| {
         Diag::failed("can't read commit")
@@ -113,13 +115,7 @@ fn read_past(
             .cause(&err)
     };
     let past = range.commit(&project.root, commit).map_err(read)?;
-    let states = CommitStates::load(
-        &project.root,
-        &project.outcome.tasks,
-        &project.config,
-        &past.plan,
-    )
-    .map_err(read)?;
+    let states = loader.load(&past.plan).map_err(read)?;
     Ok((past, states))
 }
 
@@ -128,8 +124,9 @@ fn tip_state(
     project: &util::Project,
     range: &CommitRange,
     commit: &RangeCommit,
+    loader: &mut StateLoader<'_>,
 ) -> Result<ProjectState> {
-    Ok(read_past(project, range, commit)?.1.staged)
+    Ok(read_past(project, range, commit, loader)?.1.staged)
 }
 
 /// Hold `commit` to `[commits]`, printing what it breaks.
@@ -137,9 +134,10 @@ fn check_one(
     project: &util::Project,
     range: &CommitRange,
     commit: &RangeCommit,
+    loader: &mut StateLoader<'_>,
 ) -> Result<Checked> {
     let config = &project.config;
-    let (past, states) = read_past(project, range, commit)?;
+    let (past, states) = read_past(project, range, commit, loader)?;
     let message = parse_message(&past.message, &config.commits.trailer);
     // Trailers resolve against the tasks the commit itself holds.
     let (mut record, problems) =
@@ -183,7 +181,11 @@ fn report_commit(
     trailer: &str,
 ) {
     let id = Some((commit.short.as_str(), subject));
-    warn_state_errors(states, id);
+    let labels = StateLabels {
+        head: commit.parent_short.as_deref().unwrap_or("the empty tree"),
+        staged: &commit.short,
+    };
+    warn_state_errors(states, labels, id);
     for problem in problems {
         let diag = Diag::verbatim(Kind::Refused, &problem.message).rule(trailer.to_owned());
         crate::diag::emit(&in_commit(diag, id));

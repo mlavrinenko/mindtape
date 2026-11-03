@@ -274,7 +274,7 @@ fn hash_dir(hasher: &mut Sha1, dir: &Path) {
 
 /// Collect `(relative_path, full_path)` for every regular file under `dir`,
 /// recursively. `rel` accumulates the path relative to the walk's origin.
-fn collect_files(dir: &Path, rel: &Path, out: &mut Vec<(PathBuf, PathBuf)>) {
+pub(crate) fn collect_files(dir: &Path, rel: &Path, out: &mut Vec<(PathBuf, PathBuf)>) {
     let Ok(entries) = std::fs::read_dir(dir) else {
         return;
     };

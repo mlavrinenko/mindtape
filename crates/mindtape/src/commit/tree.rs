@@ -5,33 +5,48 @@
 //! [`crate::commit::tasks`] turns what it reads into a project state, so a
 //! task file the state leaves unchanged still resolves against that state's
 //! own package tree rather than the working tree's.
+//!
+//! The state's `.mindtape/config.toml` is the top layer over the embedded
+//! floor, XDG defaults and ancestor `.mindtape/defaults.toml` files that a
+//! working-tree load discovers, so roots and pins those layers declare still
+//! apply. Packs, dictionary paths and other files a layer names are read from
+//! the working tree: only the project config text and the files under the
+//! task roots and package pins come from the state's git tree.
 
 use std::collections::BTreeMap;
 use std::io::{Read, Write};
 use std::path::{Component, Path, PathBuf};
 use std::process::{Command, Stdio};
-use std::sync::Arc;
-
 use typst::syntax::package::{PackageManifest, PackageSpec};
-use typst_world::{BytesProvider, local_package_file_id};
 
-use crate::commit::CommitMsgError;
+use crate::commit::packages::{PackageBlob, PackageCache, PackageSet};
 use crate::commit::tasks::{StatePlan, StateSource};
+use crate::commit::{CommitMsgError, git_optional};
 use crate::config::Config;
 use crate::loader::{LoadError, StatePackages, package_overrides};
 
 /// The config a state's tree declares, or the reason it could not be used.
+#[derive(Clone)]
 pub(crate) struct StateConfig {
     /// The state's own config, absent when the tree holds none or it did not
-    /// parse.
+    /// load.
     pub(crate) config: Option<Config>,
     /// Why the tree's config went unused, reported with the state's load
     /// errors.
     pub(crate) error: Option<LoadError>,
 }
 
-/// One package file: its path within the package and its bytes.
-type PackageBlob = (String, Vec<u8>);
+/// One task file in a state: its repository path, project-relative path and
+/// blob id.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct TaskEntry {
+    /// Repository-relative path, as git reports it.
+    pub(crate) repo: String,
+    /// Project-relative path.
+    pub(crate) rel: PathBuf,
+    /// The blob object id the state holds.
+    pub(crate) oid: String,
+}
 
 /// One state's tree, read through git.
 pub(crate) struct StateTree<'a> {
@@ -56,18 +71,25 @@ impl<'a> StateTree<'a> {
         }
     }
 
-    /// The state's own `.mindtape/config.toml`, parsed over the embedded
-    /// floor. A missing file leaves both fields empty; a malformed one leaves
-    /// the config empty and carries the reason, so the caller can fall back to
-    /// the working tree's config and still say why.
+    /// The state's own `.mindtape/config.toml`, layered over the embedded,
+    /// XDG and ancestor-default layers a working-tree load uses. A missing
+    /// file leaves both fields empty; a config that cannot load leaves the
+    /// config empty and carries the reason, so the caller can fall back to the
+    /// working tree's config and still say why.
+    #[cfg(test)]
     pub(crate) fn config(&self) -> Result<StateConfig, CommitMsgError> {
-        let Some(text) = self.project_text(Path::new(".mindtape/config.toml"))? else {
+        let Some(text) = self.config_text()? else {
             return Ok(StateConfig {
                 config: None,
                 error: None,
             });
         };
-        Ok(match crate::config::parse_config(&text) {
+        Ok(self.parse_config(&text))
+    }
+
+    /// Build [`StateConfig`] from `text`, the state's project config layer.
+    pub(crate) fn parse_config(&self, text: &str) -> StateConfig {
+        match crate::config::layers::load_config_with_project(self.root, text) {
             Ok(config) => StateConfig {
                 config: Some(config),
                 error: None,
@@ -80,32 +102,60 @@ impl<'a> StateTree<'a> {
                     ..LoadError::default()
                 }),
             },
-        })
+        }
     }
 
-    /// Every `.typ` task file under the roots `config` declares, as its
-    /// repository path and its project-relative path. A file under two
+    /// The blob id of the state's `.mindtape/config.toml`, or `None` when the
+    /// tree holds none.
+    pub(crate) fn config_oid(&self) -> Result<Option<String>, CommitMsgError> {
+        match project_repo_path(self.prefix, Path::new(CONFIG_PATH)) {
+            Some(path) => self.object_oid(&path),
+            None => Ok(None),
+        }
+    }
+
+    /// The text of the state's `.mindtape/config.toml`, if it holds one.
+    pub(crate) fn config_text(&self) -> Result<Option<String>, CommitMsgError> {
+        self.project_text(Path::new(CONFIG_PATH))
+    }
+
+    /// Every `.typ` task file under the roots `config` declares, with the blob
+    /// ids that identify unchanged files between states. A file under two
     /// overlapping roots is listed once.
-    pub(crate) fn task_files(
-        &self,
-        config: &Config,
-    ) -> Result<Vec<(String, PathBuf)>, CommitMsgError> {
-        let mut files = BTreeMap::new();
+    pub(crate) fn task_entries(&self, config: &Config) -> Result<Vec<TaskEntry>, CommitMsgError> {
+        let mut entries = BTreeMap::new();
         for spec in &config.tasks.roots {
             let Some(prefix) = repo_path(self.prefix, Path::new(spec.path())) else {
                 continue;
             };
-            for path in self.list(&prefix)? {
+            for (path, oid) in self.list_entries(&prefix)? {
                 if !path.ends_with(".typ") {
                     continue;
                 }
                 let Some(rel) = project_rel(self.prefix, &path) else {
                     continue;
                 };
-                files.insert(rel, path);
+                entries.insert(rel, (path, oid));
             }
         }
-        Ok(files.into_iter().map(|(rel, path)| (path, rel)).collect())
+        Ok(entries
+            .into_iter()
+            .map(|(rel, (repo, oid))| TaskEntry { repo, rel, oid })
+            .collect())
+    }
+
+    /// [`Self::task_entries`] without the blob ids, for a caller that only
+    /// wants the paths.
+    #[cfg(test)]
+    pub(crate) fn task_files(
+        &self,
+        config: &Config,
+    ) -> Result<Vec<(String, PathBuf)>, CommitMsgError> {
+        Ok(self
+            .task_entries(config)?
+            .into_iter()
+            .map(|entry| (entry.repo, entry.rel))
+            .collect())
     }
 
     /// Each `paths` object as text, in order, through one `cat-file --batch`;
@@ -127,37 +177,74 @@ impl<'a> StateTree<'a> {
     }
 
     /// The `@local` package files this tree holds at the paths `config` pins,
-    /// keyed by the version each manifest declares.
-    pub(crate) fn packages(
+    /// keyed by the version each manifest declares. A package whose pin tree
+    /// `cache` already holds is not read again.
+    pub(crate) fn packages_cached(
         &self,
         config: &Config,
+        cache: &mut PackageCache,
     ) -> Result<Option<StatePackages>, CommitMsgError> {
-        let mut specs = Vec::new();
-        let mut files = BytesProvider::new();
+        let mut set = PackageSet::default();
         for (name, dir) in package_overrides(self.root, config) {
             let rel = dir.strip_prefix(self.root).unwrap_or(&dir);
             let Some(prefix) = repo_path(self.prefix, rel) else {
                 continue;
             };
-            let Some((spec, blobs)) = self.package(&name, &prefix)? else {
-                continue;
-            };
-            let version = spec.version.to_string();
-            for (vpath, bytes) in blobs {
-                let Ok(id) = local_package_file_id(&name, &version, &vpath) else {
-                    continue;
-                };
-                files = files.with_file(id, bytes);
+            let pairs = self.package_cached(&name, &prefix, cache)?;
+            if let Some((spec, blobs)) = pairs {
+                set.add(spec, blobs);
             }
-            specs.push(spec);
         }
-        if specs.is_empty() {
+        Ok(set.finish())
+    }
+
+    /// [`Self::packages_cached`] with a fresh cache.
+    #[cfg(test)]
+    pub(crate) fn packages(
+        &self,
+        config: &Config,
+    ) -> Result<Option<StatePackages>, CommitMsgError> {
+        self.packages_cached(config, &mut PackageCache::default())
+    }
+
+    /// The package at `name` and repository path `prefix`, from `cache` when
+    /// the pin tree is unchanged.
+    fn package_cached(
+        &self,
+        name: &str,
+        prefix: &str,
+        cache: &mut PackageCache,
+    ) -> Result<Option<(PackageSpec, Vec<PackageBlob>)>, CommitMsgError> {
+        if self.rev.is_empty() {
+            return self.package(name, prefix);
+        }
+        let Some(tree) = self.tree_oid(prefix)? else {
+            return Ok(None);
+        };
+        if let Some(found) = cache.get(name, &tree) {
+            return Ok(found);
+        }
+        let found = self.package(name, prefix)?;
+        cache.insert(name, &tree, found.clone());
+        Ok(found)
+    }
+
+    /// The tree id `prefix` names in this revision, when it is a tree.
+    fn tree_oid(&self, prefix: &str) -> Result<Option<String>, CommitMsgError> {
+        if self.rev.is_empty() {
             return Ok(None);
         }
-        Ok(Some(StatePackages {
-            specs,
-            files: Arc::new(files),
-        }))
+        self.object_oid(prefix)
+    }
+
+    /// The object id repository-relative `path` names in this revision.
+    fn object_oid(&self, path: &str) -> Result<Option<String>, CommitMsgError> {
+        let spec = format!("{}:{path}", self.rev);
+        Ok(
+            git_optional(self.root, &["rev-parse", "--verify", "--quiet", &spec])?
+                .map(|oid| oid.trim().to_owned())
+                .filter(|oid| !oid.is_empty()),
+        )
     }
 
     /// The package at repository path `prefix`: its spec and every file's
@@ -168,7 +255,11 @@ impl<'a> StateTree<'a> {
         name: &str,
         prefix: &str,
     ) -> Result<Option<(PackageSpec, Vec<PackageBlob>)>, CommitMsgError> {
-        let paths = self.list(prefix)?;
+        let paths: Vec<String> = self
+            .list_entries(prefix)?
+            .into_iter()
+            .map(|(path, _)| path)
+            .collect();
         let manifest_path = if prefix.is_empty() {
             "typst.toml".to_owned()
         } else {
@@ -208,20 +299,17 @@ impl<'a> StateTree<'a> {
         Ok(Some((spec, blobs)))
     }
 
-    /// Every repository-relative path this state holds under `prefix`, through
-    /// one `git ls-tree`, or `git ls-files` for the index.
-    fn list(&self, prefix: &str) -> Result<Vec<String>, CommitMsgError> {
+    /// Every repository-relative blob this state holds under `prefix`, with
+    /// its object id, through one `git ls-tree` or `git ls-files`.
+    fn list_entries(&self, prefix: &str) -> Result<Vec<(String, String)>, CommitMsgError> {
         let pathspec = if prefix.is_empty() { "." } else { prefix };
         let (command, args) = if self.rev.is_empty() {
             (
                 "ls-files",
-                vec!["ls-files", "-z", "--cached", "--full-name", "--"],
+                vec!["ls-files", "-s", "-z", "--cached", "--full-name", "--"],
             )
         } else {
-            (
-                "ls-tree",
-                vec!["ls-tree", "-r", "--name-only", "-z", self.rev, "--"],
-            )
+            ("ls-tree", vec!["ls-tree", "-r", "-z", self.rev, "--"])
         };
         let output = Command::new("git")
             .arg("--no-optional-locks")
@@ -233,13 +321,49 @@ impl<'a> StateTree<'a> {
         if !output.status.success() {
             return Err(git_failed(command, &output));
         }
-        Ok(output
-            .stdout
-            .split(|byte| *byte == 0)
-            .filter(|path| !path.is_empty())
-            .map(|path| String::from_utf8_lossy(path).into_owned())
-            .collect())
+        Ok(parse_git_entries(
+            &output.stdout,
+            if self.rev.is_empty() {
+                Listing::Index
+            } else {
+                Listing::Tree
+            },
+        ))
     }
+}
+
+/// The config file a state may override.
+const CONFIG_PATH: &str = ".mindtape/config.toml";
+
+/// Which git listing `parse_git_entries` is reading.
+#[derive(Clone, Copy)]
+enum Listing {
+    /// `git ls-tree -r -z`: `<mode> <type> <oid>\t<path>`.
+    Tree,
+    /// `git ls-files -s -z`: `<mode> <oid> <stage>\t<path>`.
+    Index,
+}
+
+/// Split a NUL-delimited git listing into `(path, oid)` pairs, keeping tree
+/// blobs and stage-zero index entries.
+fn parse_git_entries(out: &[u8], listing: Listing) -> Vec<(String, String)> {
+    out.split(|byte| *byte == 0)
+        .filter(|entry| !entry.is_empty())
+        .filter_map(|entry| {
+            let text = String::from_utf8_lossy(entry);
+            let (meta, path) = text.split_once('\t')?;
+            let mut fields = meta.split_whitespace();
+            let _mode = fields.next()?;
+            let second = fields.next()?;
+            let third = fields.next()?;
+            let oid = match listing {
+                Listing::Tree if second == "blob" => third,
+                Listing::Index if third == "0" => second,
+                _ => return None,
+            };
+            Some((path.to_owned(), oid.to_owned()))
+        })
+        .collect()
 }
 
 /// The project-relative path `path` names under `prefix`, or `None` when it

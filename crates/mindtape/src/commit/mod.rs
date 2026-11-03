@@ -34,11 +34,13 @@
 //! - `task_expr.rs`: the task half of a `scope = "task"` rule's expression.
 //! - `tasks.rs`: the project as `HEAD`, the index and the working tree see it.
 //! - `tip.rs`: the `scope = "tip"` rules of a range, run over its newest commit's tasks.
-//! - `tree.rs`: a commit state's git tree — its task files, config and pinned packages.
+//! - `packages.rs`: a commit state's pinned package files and their fingerprint.
+//! - `tree.rs`: a commit state's git tree — its task files and config.
 
 pub(crate) mod amend;
 pub use amend::writing_a_merge;
 pub mod expr;
+pub(crate) mod packages;
 pub mod range;
 pub mod refs;
 pub mod task_expr;

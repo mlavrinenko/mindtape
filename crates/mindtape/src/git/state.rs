@@ -110,9 +110,8 @@ impl GitStatus {
     }
 
     /// [`Self::read`] with every rename split into its two sides — the source
-    /// deleted, the destination added — for a reader that needs every path a
-    /// state differs at, not the path the tree now holds
-    /// ([`crate::commit::tasks`]).
+    /// deleted, the destination added — for a caller that needs both paths
+    /// rather than the path the tree now holds.
     ///
     /// # Errors
     /// As [`Self::read`].

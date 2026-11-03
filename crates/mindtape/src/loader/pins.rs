@@ -27,6 +27,9 @@ use super::embedded;
 pub(crate) struct StatePackages {
     pub(crate) specs: Vec<PackageSpec>,
     pub(crate) files: Arc<dyn FileProvider>,
+    /// A digest of the specs and every file's bytes, so a loader can tell when
+    /// two states resolve imports identically.
+    pub(crate) fingerprint: String,
 }
 
 /// [`super::with_packages`] with the installed-package root named, so a test

@@ -34,15 +34,36 @@ fn task_states(project: &util::Project) -> Result<Option<CommitStates>> {
         &plan,
     )
     .map_err(|err| git_failed("can't read the staged and HEAD task files", &err))?;
-    warn_state_errors(&states, None);
+    warn_state_errors(&states, StateLabels::default(), None);
     Ok(Some(states))
+}
+
+/// What to call each state in a warning: `HEAD` and `staged` for the hook, the
+/// parent and commit ids for a range.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct StateLabels<'a> {
+    pub(crate) head: &'a str,
+    pub(crate) staged: &'a str,
+}
+
+impl Default for StateLabels<'_> {
+    fn default() -> Self {
+        Self {
+            head: "HEAD",
+            staged: "staged",
+        }
+    }
 }
 
 /// Report every task file a state holds but cannot evaluate, as a warning on
 /// stderr. In a range, `commit` (id and subject) leads the message with the
-/// commit's id.
-pub(crate) fn warn_state_errors(states: &CommitStates, commit: Option<(&str, &str)>) {
-    for (name, state) in [("HEAD", &states.head), ("staged", &states.staged)] {
+/// commit's id, and `labels` names the parent and commit states.
+pub(crate) fn warn_state_errors(
+    states: &CommitStates,
+    labels: StateLabels<'_>,
+    commit: Option<(&str, &str)>,
+) {
+    for (name, state) in [(labels.head, &states.head), (labels.staged, &states.staged)] {
         for error in &state.errors {
             let diag = Diag::verbatim(
                 Kind::Warning,

@@ -434,6 +434,9 @@ fn a_range_across_a_pin_move_loads_an_unchanged_task_from_its_own_tree() {
     // The tip moves the pin to `lib` and changes no task file.
     write_file(root, "lib/typst.toml", manifest("0.3.0"));
     write_file(root, "lib/prelude.typ", titled_prelude("New pin"));
+    // The old path stays behind at a third title, so the parent must read its
+    // own tree's bytes rather than the working tree's copy.
+    write_file(root, "old-lib/prelude.typ", titled_prelude("Moved pin"));
     write_file(root, ".mindtape/config.toml", pin_move_config("lib"));
     git(root, &["add", "-A"]);
     commit(root, "feat: move the prelude pin\n\nRefs: parser");
@@ -443,4 +446,38 @@ fn a_range_across_a_pin_move_loads_an_unchanged_task_from_its_own_tree() {
         ok,
         "the unchanged task must resolve against the parent's own pin: {text}"
     );
+}
+
+#[test]
+fn a_range_state_reads_an_ancestor_layer_for_its_roots_and_pin() {
+    let dir = mindtape::test_support::tempdir();
+    let root = dir.path();
+
+    // The project has a config, but its task root and pin live in the ancestor
+    // defaults layer beside it, the layer `load_config` already applies.
+    write_file(root, "lib/typst.toml", manifest("0.3.0"));
+    write_file(root, "lib/prelude.typ", mindtape::test_support::PRELUDE);
+    write_file(
+        root,
+        ".mindtape/defaults.toml",
+        "[tasks]\nroots = [\"backlog\"]\n\n         [[typst.local-packages]]\nname = \"mindtape\"\npath = \"lib\"\n",
+    );
+    write_file(
+        root,
+        ".mindtape/config.toml",
+        "[[commits.rules]]\nname = \"parent-loads\"\nscope = \"task\"\n\
+         when = 'named'\nassert = 'head(exists) && staged(exists)'\nseverity = \"error\"\n",
+    );
+    write_file(
+        root,
+        "backlog/parser.typ",
+        "#import \"@local/mindtape:0.3.0\": *\n\n         #show: task.with(title: \"Write the parser\", status: wip(2026, 6, 1))\n",
+    );
+    support::git_commit_all(root);
+
+    stage_file(root, "src/lib.rs");
+    commit(root, "feat: work\n\nRefs: parser");
+
+    let (ok, text) = check_range(root, "HEAD~1..HEAD");
+    assert!(ok, "the ancestor layer's roots and pin must load: {text}");
 }
