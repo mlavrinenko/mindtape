@@ -267,3 +267,44 @@ fn a_count_under_no_project_says_its_unit_takes_a_plain_number() {
         "estimate.src-files: `src-files` takes a plain number; name its path set under [tasks.estimate.queries] to count files\n"
     );
 }
+
+/// A collector spec whose `when` reads the whole set.
+fn set_when_config(when: &str) -> mindtape::Config {
+    let mut config = mindtape::Config::default();
+    config.tasks.collectors.push(mindtape::CollectorSpec {
+        name: "changes".to_owned(),
+        when: Some(when.to_owned()),
+        query: mindtape::CollectorQuery::Regex(mindtape::RegexQuery {
+            section: mindtape::SectionSpec::Name("Changes".to_owned()),
+            pattern: "x".to_owned(),
+            group: None,
+        }),
+        returns: mindtape::CollectorType::List(Box::new(mindtape::CollectorType::Atom(
+            mindtape::CollectorAtom::Path,
+        ))),
+    });
+    config
+}
+
+#[test]
+fn a_when_that_reads_the_set_is_refused_without_a_project() {
+    let config = set_when_config("count(status == \"wip\") > 0");
+    let err = super::refuse_set_when(&config).unwrap_err();
+    assert!(crate::diag::plain(&err).contains("reads the task set"));
+    assert!(super::refuse_set_when(&set_when_config("!terminal")).is_ok());
+    assert!(super::refuse_set_when(&mindtape::Config::default()).is_ok());
+}
+
+#[test]
+fn a_file_under_no_project_is_hashed_alone() {
+    let dir = tempdir();
+    let file = dir.path().join("solo.typ");
+    std::fs::write(&file, TASK).unwrap();
+    let task = mindtape::Task {
+        id: "solo".to_owned(),
+        file: file.clone(),
+        ..mindtape::Task::default()
+    };
+    let hashes = super::hashes_for(&file, &task, None);
+    assert!(hashes.hash_of("solo").is_some());
+}

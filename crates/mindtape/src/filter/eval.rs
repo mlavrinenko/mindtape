@@ -50,7 +50,7 @@ const fn word(name: &'static str, arity: Arity, run: Run) -> FilterFunction {
 /// and [`function`] dispatch through it, [`Filter::names_term`] reads its
 /// names, and `mt _cli --json` carries it so the docs gate can check that
 /// each name is documented.
-pub(crate) const FUNCTIONS: [FilterFunction; 17] = [
+pub(crate) const FUNCTIONS: [FilterFunction; 19] = [
     word("ready", exactly(0), |_, ctx| {
         Ok(ctx.readiness.is_ready(ctx.task))
     }),
@@ -117,6 +117,18 @@ pub(crate) const FUNCTIONS: [FilterFunction; 17] = [
         Err(FilterError::call(
             "count() is a number, not a condition",
             "count(status == \"wip\") <= 1",
+        ))
+    }),
+    word("len", exactly(1), |_, _| {
+        Err(FilterError::call(
+            "len() is a number, not a condition",
+            "len(derived.changes) <= 5",
+        ))
+    }),
+    word("count_paths", Arity { min: 1, max: None }, |_, _| {
+        Err(FilterError::call(
+            "count_paths() is a number, not a condition",
+            "count_paths(derived.changes, \"@source\") <= 5",
         ))
     }),
     word("stale", exactly(1), |args, ctx| {

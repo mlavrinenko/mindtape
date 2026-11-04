@@ -4,7 +4,7 @@
 
 use std::cmp::Ordering;
 
-use crate::config::Config;
+use crate::config::{CollectorSpec, Config};
 use crate::graph::ready::{Readiness, ReadyState};
 use crate::model::Task;
 use crate::model::fields::{self as fields, FieldValue};
@@ -31,6 +31,17 @@ pub fn is_sort_field(name: &str) -> bool {
     name == "ready" || fields::get(name).is_some() || fields::is_extra(name)
 }
 
+/// [`is_sort_field`] over a project's collectors too: a scalar derived field
+/// sorts, while a list or record does not.
+#[must_use]
+pub fn is_sort_field_with(name: &str, collectors: &[CollectorSpec]) -> bool {
+    if fields::is_derived(name) {
+        return fields::derived_type_in(collectors, name)
+            .is_some_and(crate::config::CollectorType::is_scalar);
+    }
+    is_sort_field(name)
+}
+
 /// Validate a single sort spec (`"field"`, `"field:asc"`, or `"field:desc"`).
 ///
 /// # Errors
@@ -38,10 +49,31 @@ pub fn is_sort_field(name: &str) -> bool {
 /// `:` suffix is anything but `asc`/`desc`. A misspelled direction used to
 /// mean ascending, silently.
 pub fn validate_sort_spec(spec: &str) -> Result<(), Problem> {
+    validate_sort_spec_with(spec, &[])
+}
+
+/// [`validate_sort_spec`] over a project's collectors too. A derived list or
+/// record is refused with its type, since only a scalar orders.
+///
+/// # Errors
+/// As [`validate_sort_spec`].
+pub fn validate_sort_spec_with(spec: &str, collectors: &[CollectorSpec]) -> Result<(), Problem> {
     let (field, direction) = spec
         .split_once(':')
         .map_or((spec, None), |(field, direction)| (field, Some(direction)));
-    if !is_sort_field(field) {
+    if fields::is_derived(field) {
+        match fields::derived_type_in(collectors, field) {
+            Some(ty) if ty.is_scalar() => {}
+            Some(ty) => {
+                return Err(Problem::new(format!(
+                    "sort field {} is {}; only a scalar sorts",
+                    crate::config::quote(field),
+                    ty.describe()
+                )));
+            }
+            None => return Err(unknown_sort_field(field)),
+        }
+    } else if !is_sort_field(field) {
         return Err(unknown_sort_field(field));
     }
     match direction {
@@ -60,6 +92,20 @@ pub fn validate_sort_spec(spec: &str) -> Result<(), Problem> {
 pub fn sort_fields() -> Vec<&'static str> {
     let mut names: Vec<&str> = fields::FIELDS.iter().map(|def| def.name).collect();
     names.push("ready");
+    names
+}
+
+/// [`sort_fields`] plus every scalar derived field's name, for a did-you-mean
+/// that can suggest one.
+#[must_use]
+pub fn sort_fields_with(collectors: &[CollectorSpec]) -> Vec<String> {
+    let mut names: Vec<String> = sort_fields().into_iter().map(str::to_owned).collect();
+    names.extend(
+        collectors
+            .iter()
+            .filter(|spec| spec.returns.is_scalar())
+            .map(|spec| format!("derived.{}", spec.name)),
+    );
     names
 }
 
@@ -92,7 +138,7 @@ pub fn sort_by_specs(
     readiness: &Readiness,
 ) -> Result<(), String> {
     for spec in specs.iter().rev() {
-        validate_sort_spec(spec).map_err(|problem| problem.text)?;
+        validate_sort_spec_with(spec, &config.tasks.collectors).map_err(|problem| problem.text)?;
         let (field, descending) = parse_spec(spec);
         tasks.sort_by(|l, r| {
             let ord = compare_field(l, r, field, config, readiness);
@@ -147,6 +193,9 @@ fn compare_field(
 /// unreachable via `--sort`, since `sort_by_specs` validates every spec first
 /// and the one other sort name, `ready`, is intercepted in [`compare_field`].
 fn registry_value(task: &Task, field: &str, config: &Config) -> FieldValue {
+    if fields::is_derived(field) {
+        return fields::derived(task, field, config).unwrap_or(FieldValue::Missing);
+    }
     if fields::is_extra(field) {
         return fields::extra(task, field);
     }

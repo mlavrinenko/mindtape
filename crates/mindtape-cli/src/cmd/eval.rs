@@ -3,7 +3,9 @@
 use std::path::{Path, PathBuf};
 
 use crate::diag::Result;
-use mindtape::{Config, StemHashes, Task, find_root, load_config, load_project};
+use mindtape::{
+    Config, Filter, StemHashes, Task, TaskCallSpans, find_root, load_config, load_project,
+};
 use typst_harvest::{HarvestWorld, harvest};
 
 use crate::diag::{Diag, Hint, Kind};
@@ -31,23 +33,11 @@ pub fn run(args: &EvalArgs) -> Result<()> {
     let origin = project
         .as_ref()
         .map(|project| (project.root.clone(), project.hyperlinks));
-    let world = build_world(&file)?;
-    let result = harvest(&world).map_err(|err| evaluate_error(&file, &err))?;
-    let marker = result.with_marker("mindtape.task").next().ok_or_else(|| {
-        Diag::failed("not a task file: it holds no task.with(…) call")
-            .at_file(&file)
-            .hint(Hint::new("start the file with #show: task.with(...)"))
-    })?;
-
-    let id = file
-        .file_stem()
-        .map(|stem| stem.to_string_lossy().into_owned())
-        .unwrap_or_default();
-    let mut task = Task::from_marker(id, file.clone(), &marker.value);
+    let mut task = load_task(&file, project.as_ref())?;
     resolve_counts(&mut task, &file, project.as_ref());
 
     if args.json {
-        print_json(&task)
+        print_json(&task, project.as_ref())
     } else {
         print_table(&task, &hashes_for(&file, &task, project), origin)?;
         // The table already ends in a blank line.
@@ -78,7 +68,7 @@ fn evaluate_error(file: &Path, err: &typst_harvest::HarvestError) -> Diag {
 fn locate(reference: &str) -> Result<(PathBuf, Option<Project>)> {
     let path = Path::new(reference);
     if path.is_file() {
-        return Ok((path.to_path_buf(), None));
+        return Ok((path.to_path_buf(), enclosing_project(path)?));
     }
     if mindtape::is_path_ref(reference) {
         return Err(Diag::failed("no such file").value(reference));
@@ -86,6 +76,96 @@ fn locate(reference: &str) -> Result<(PathBuf, Option<Project>)> {
     let project = crate::util::open()?;
     let (_, abs) = crate::util::resolve_task(&project, reference)?;
     Ok((abs, Some(project)))
+}
+
+/// The project enclosing `file`, loaded, when one is found. A file under no
+/// `.mindtape/` project stays a bare path, evaluated against an empty set.
+fn enclosing_project(file: &Path) -> Result<Option<Project>> {
+    let Some(parent) = mindtape::canonical(file)
+        .ok()
+        .and_then(|abs| abs.parent().map(Path::to_path_buf))
+    else {
+        return Ok(None);
+    };
+    let Some(root) = find_root(&parent) else {
+        return Ok(None);
+    };
+    let root = mindtape::canonical(&root).unwrap_or(root);
+    let config = load_config(&root)?;
+    let outcome = load_project(&root, &config);
+    Ok(Some(Project {
+        hyperlinks: crate::util::hyperlinks_for(&config),
+        root,
+        config,
+        outcome,
+    }))
+}
+
+/// The task `file` reads as: its loaded copy when the enclosing project
+/// already has it, else a fresh harvest with its body filled and its
+/// collectors run. Outside a project, a `when` that reads the whole set is
+/// refused, since there is no set to read.
+fn load_task(file: &Path, project: Option<&Project>) -> Result<Task> {
+    if let Some(project) = project {
+        let rel = mindtape::canonical(file)
+            .ok()
+            .and_then(|abs| abs.strip_prefix(&project.root).ok().map(Path::to_path_buf))
+            .unwrap_or_else(|| file.to_path_buf());
+        if let Some(task) = project.outcome.tasks.iter().find(|task| task.file == rel) {
+            return Ok(task.clone());
+        }
+        let task = harvest_task(file)?;
+        let mut set = project.outcome.tasks.clone();
+        set.push(task.clone());
+        mindtape::collect::annotate(&mut set, &project.config);
+        return Ok(set.pop().unwrap_or(task));
+    }
+    refuse_set_when(&Config::default())?;
+    let mut task = harvest_task(file)?;
+    mindtape::collect::annotate(std::slice::from_mut(&mut task), &Config::default());
+    Ok(task)
+}
+
+/// Refuse a collector `when` that needs a loaded set when there is none.
+fn refuse_set_when(config: &Config) -> Result<()> {
+    for spec in &config.tasks.collectors {
+        let reads_set = spec
+            .when
+            .as_deref()
+            .and_then(|source| Filter::parse(source).ok())
+            .is_some_and(|filter| filter.reads_set());
+        if reads_set {
+            return Err(Diag::failed(
+                "a collector's when reads the task set, and this file is under no project",
+            )
+            .value(format!("derived.{}", spec.name))
+            .hint(Hint::new(
+                "run mt eval inside the project, or drop the set predicate",
+            )));
+        }
+    }
+    Ok(())
+}
+
+/// Evaluate one file and build the task it holds, with its body and spans
+/// filled.
+fn harvest_task(file: &Path) -> Result<Task> {
+    let world = build_world(file)?;
+    let result = harvest(&world).map_err(|err| evaluate_error(file, &err))?;
+    let marker = result.with_marker("mindtape.task").next().ok_or_else(|| {
+        Diag::failed("not a task file: it holds no task.with(…) call")
+            .at_file(file)
+            .hint(Hint::new("start the file with #show: task.with(...)"))
+    })?;
+    let id = file
+        .file_stem()
+        .map(|stem| stem.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let source = std::fs::read_to_string(file).unwrap_or_default();
+    let mut task = Task::from_marker(id, file.to_path_buf(), &marker.value);
+    task.spans = TaskCallSpans::parse(&source);
+    task.body = task.spans.body(&source);
+    Ok(task)
 }
 
 /// Resolve `task`'s `count(...)` units against the project enclosing `file`:
@@ -151,10 +231,11 @@ fn breakdown(task: &Task) -> String {
 ///
 /// # Errors
 /// Returns an error if the task will not serialize.
-fn print_json(task: &Task) -> Result<()> {
+fn print_json(task: &Task, project: Option<&Project>) -> Result<()> {
+    let config = project.map_or_else(Config::default, |project| project.config.clone());
     println!(
         "{}",
-        serde_json::to_string_pretty(&task_to_json(task, &Config::default()))?
+        serde_json::to_string_pretty(&task_to_json(task, &config))?
     );
     Ok(())
 }

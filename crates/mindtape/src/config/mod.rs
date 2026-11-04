@@ -16,6 +16,7 @@
 //! - `actors.rs`: `[[actors]]` and `[[roles]]`, the actor registry.
 //! - `add.rs`: `[add]`, the interactive editor fill for `mt add`.
 //! - `assignee.rs`: `[tasks.assignee]` constraints.
+//! - `collect.rs`: `[[tasks.collectors]]`, the derived-field queries.
 //! - `comments.rs`: `[tasks.comments]`, policy over review comments.
 //! - `commits.rs`: `[commits]` and `[[commits.rules]]`.
 //! - `defaults.toml`: the embedded floor every config layers over.
@@ -60,6 +61,7 @@ pub mod active_rules;
 pub(crate) mod actors;
 pub(crate) mod add;
 pub(crate) mod assignee;
+pub mod collect;
 pub mod comments;
 pub mod commits;
 pub(crate) mod dicts;
@@ -115,6 +117,10 @@ pub use crate::body::content::{
 };
 pub use crate::body::headers::{HeaderAction, HeaderPathSegment, HeaderRuleConfig, HeadersConfig};
 pub use crate::config::add::{AddConfig, InteractiveMode};
+pub use crate::config::collect::{
+    CollectorAtom, CollectorQuery, CollectorSpec, CollectorType, RegexQuery, SectionSpec,
+    returns_of,
+};
 pub use crate::config::dicts::{
     BUILTIN_PREFIX, Dict, DictCache, DictCase, DictSpec, Dicts, builtin_dict_names, compile_dicts,
     validate_dicts,
@@ -215,6 +221,10 @@ pub struct Config {
     /// [`crate::config::locate::Provenance`].
     #[serde(skip)]
     pub(crate) provenance: crate::config::locate::Provenance,
+    /// Where each `[[tasks.collectors]]` entry is declared. Derived, never
+    /// declared, never equal-compared.
+    #[serde(skip)]
+    pub(crate) collector_origins: crate::config::collect::CollectorOrigins,
     /// The editor commands the user's own config layer sets, which `mt allow`
     /// does not ask about. Derived at load, never declared, never
     /// equal-compared — see [`crate::allow::UserCommands`].
@@ -373,10 +383,8 @@ impl Config {
         self.provenance.place_of(&warning.text)
     }
 
-    /// A copy of this config whose `changed()` reads an empty change set: no
-    /// path is staged or changed in the working tree, and git is not run. A
-    /// caller checking a source no one wrote yet, such as a template's sample
-    /// task, holds it to a change set of its own this way.
+    /// A copy whose `changed()` reads an empty change set, without running
+    /// git: a caller checking a source no one wrote yet holds it this way.
     #[must_use]
     pub fn with_empty_change_set(&self) -> Self {
         let mut config = self.clone();
@@ -386,40 +394,37 @@ impl Config {
         config
     }
 
-    /// The leaf keys some pack set, each with the pack or layer whose value
-    /// won, by dotted path. Empty for a config built from one string.
+    /// Where each merged collector is declared, in declaration order.
+    #[must_use]
+    pub fn collector_origins(&self) -> &[crate::config::pack_registry::RuleOriginEntry] {
+        &self.collector_origins.0
+    }
+
+    /// The leaf keys some pack set, with the source whose value won.
     pub fn key_origins(&self) -> impl Iterator<Item = KeyOrigin> + '_ {
         self.provenance.key_origins()
     }
 
-    /// Each pack parameter, with its value and whether an `extends` entry's
-    /// `with` set it, in the order the layers named their packs.
+    /// Each pack parameter with its value, in the order layers named packs.
     pub fn param_origins(&self) -> impl Iterator<Item = &ParamOrigin> {
         self.provenance.param_origins().iter()
     }
 
-    /// The compiled `[dicts.<name>]` sets, plus the built-ins, which are always
-    /// present — so `in_dict("mindtape-verbs", ...)` resolves against a project
-    /// declaring no `[dicts]` section at all. A name absent here is an unknown
-    /// dictionary, reported by the caller that wrote it
-    /// ([`crate::filter::FilterError::UnknownDict`]), never a silent miss.
+    /// The compiled `[dicts.<name>]` sets plus the built-ins; an absent name
+    /// is reported by its caller, never a silent miss.
     #[must_use]
     pub fn compiled_dicts(&self) -> &Dicts {
         self.dict_cache.dicts()
     }
 
-    /// The stems this command's `touches()` calls met that no task answers
-    /// to, even through a rename — see [`crate::commit::refs`].
+    /// The stems `touches()` met that no task answers to, even renamed.
     #[must_use]
     pub fn retired_refs(&self) -> Vec<String> {
         self.git.retired_refs()
     }
 
-    /// The view that drives the default `mt ls` listing when the caller passes
-    /// no filter: `[ls] default-view` by name if set, else the implicit
-    /// `[views.default]` view, else `None` (match-all). `Some` here supplies the
-    /// default listing's filter, sort, and columns as a bundle. Validated at
-    /// load, so a set `default-view` name always resolves.
+    /// The view driving a bare `mt ls`: `[ls] default-view`, else
+    /// `[views.default]`, else `None` (match-all).
     #[must_use]
     pub fn ls_default_view(&self) -> Option<&ViewSpec> {
         let name = self.ls.default_view.as_deref().unwrap_or("default");

@@ -132,7 +132,7 @@ pub fn check_candidates(
     candidates: &[Candidate<'_>],
     body_rules: BodyRules<'_>,
 ) -> Vec<Result<Checked, LoadError>> {
-    let harvested: Vec<Result<Task, LoadError>> = candidates
+    let mut harvested: Vec<Result<Task, LoadError>> = candidates
         .iter()
         .map(|candidate| harvest_candidate(root, config, *candidate))
         .collect();
@@ -153,6 +153,14 @@ pub fn check_candidates(
     crate::graph::dep_rank::annotate(&mut tasks, config);
     crate::waits::annotate(&mut tasks, config, root);
     crate::estimate_queries::annotate(&mut tasks, config, root);
+    crate::collect::annotate(&mut tasks, config);
+    for result in &mut harvested {
+        if let Ok(task) = result
+            && let Some(annotated) = tasks.iter().find(|candidate| candidate.file == task.file)
+        {
+            task.derived.clone_from(&annotated.derived);
+        }
+    }
     let violations = crate::validate::validate(&tasks, config);
     let ids: HashSet<&str> = harvested
         .iter()

@@ -78,7 +78,7 @@ fn string_field(task: &Task, name: &str, config: &Config) -> Result<Option<Strin
     }
     match field_value(task, name, config)? {
         FieldValue::Str(text) => Ok(Some(text)),
-        FieldValue::Missing | FieldValue::List(_) => Ok(None),
+        FieldValue::Missing | FieldValue::List(_) | FieldValue::Record => Ok(None),
         FieldValue::Num(_) => Err(FilterError::Invalid(format!(
             "'{name}' is a number; word(), matches() and in_dict() read text fields"
         ))),

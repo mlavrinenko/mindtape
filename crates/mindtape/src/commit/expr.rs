@@ -41,6 +41,8 @@
 //! never fires. Load dry-runs every expression against [`CommitRecord::default`],
 //! so the refusal is one config error.
 
+use std::collections::BTreeSet;
+
 use evalexpr::{DefaultNumericTypes, Node, Operator, build_operator_tree};
 use regex::Regex;
 
@@ -131,6 +133,17 @@ impl CommitExpr {
             config: scope.config,
             task: Some(scope),
         })
+    }
+
+    /// Every bare name the expression reads, in sorted order — a commit field,
+    /// or a task field inside a state wrapper.
+    #[must_use]
+    pub fn names(&self) -> BTreeSet<String> {
+        self.tree
+            .iter()
+            .flat_map(Node::iter_variable_identifiers)
+            .map(restore_name)
+            .collect()
     }
 
     /// Whether the expression calls the function `name` anywhere, nested

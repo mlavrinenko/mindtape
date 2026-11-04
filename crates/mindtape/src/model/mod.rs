@@ -128,6 +128,11 @@ pub struct Task {
     pub recur: Option<crate::recur::Recur>,
     /// Opaque consumer extensions, keyed by `x-<ns>` slot.
     pub extras: BTreeMap<String, HVal>,
+    /// Fields `[[tasks.collectors]]` computed, keyed by the collector's name
+    /// and read as `derived.<name>`. Never authored and never cached: the
+    /// loader fills it from the task's source and the project's config, and
+    /// `mt import` ignores it.
+    pub derived: BTreeMap<String, HVal>,
     /// Core fields — and elements inside them — present in the marker but the
     /// wrong Typst shape: coerced to empty/absent same as an absent field, but
     /// flagged here so `check` can report it instead of staying silent. Each
@@ -224,6 +229,7 @@ impl Task {
             reviewed: field_str(fields, "reviewed", &mut errors),
             recur,
             extras,
+            derived: BTreeMap::new(),
             shape_errors: errors,
             body: String::new(),
             spans: crate::model::task_spans::TaskCallSpans::default(),

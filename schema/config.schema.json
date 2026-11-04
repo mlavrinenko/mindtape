@@ -286,6 +286,75 @@
         }
       ]
     },
+    "CollectorQuery": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RegexQuery",
+          "description": "A regex over one or more body sections."
+        }
+      ],
+      "description": "The query a collector runs."
+    },
+    "CollectorSpec": {
+      "additionalProperties": false,
+      "description": "One `[[tasks.collectors]]` entry.",
+      "properties": {
+        "name": {
+          "description": "The derived field's name: the collector is read as `derived.<name>`.",
+          "type": "string"
+        },
+        "query": {
+          "$ref": "#/$defs/CollectorQuery",
+          "description": "What the collector reads."
+        },
+        "returns": {
+          "$ref": "#/$defs/CollectorType",
+          "description": "The type of the value the collector produces."
+        },
+        "when": {
+          "default": null,
+          "description": "Filter expression gating which tasks the collector runs on. Absent\nmeans every task. A task the filter excludes carries no field.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-expression": "filter"
+        }
+      },
+      "required": [
+        "name",
+        "query",
+        "returns"
+      ],
+      "type": "object"
+    },
+    "CollectorType": {
+      "description": "A `returns` type expression: one of `bool`, `int`, `number`, `string`, `path` and `date`; a one-element array `[T]` for a list; or a table `{ field = T }` for a record.",
+      "oneOf": [
+        {
+          "enum": [
+            "bool",
+            "int",
+            "number",
+            "string",
+            "path",
+            "date"
+          ],
+          "type": "string"
+        },
+        {
+          "description": "A list of one type, written `[T]`.",
+          "maxItems": 1,
+          "minItems": 1,
+          "type": "array"
+        },
+        {
+          "additionalProperties": true,
+          "description": "A record of named fields, written `{ field = T }`.",
+          "type": "object"
+        }
+      ]
+    },
     "ColumnConfig": {
       "additionalProperties": false,
       "description": "Display settings for one column.",
@@ -1914,6 +1983,35 @@
       },
       "type": "object"
     },
+    "RegexQuery": {
+      "additionalProperties": false,
+      "description": "A regex query: the first capture group (or the whole match) of every match\nin every selected section's content.",
+      "properties": {
+        "group": {
+          "default": null,
+          "description": "The capture group to take, counting from 0. Absent takes the first\ncapture group when the pattern has one, else the whole match.",
+          "format": "uint",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "pattern": {
+          "description": "The regex to run over each selected section's content.",
+          "type": "string"
+        },
+        "section": {
+          "$ref": "#/$defs/SectionSpec",
+          "description": "The body section to read: a heading path, or one heading name."
+        }
+      },
+      "required": [
+        "section",
+        "pattern"
+      ],
+      "type": "object"
+    },
     "Requirement": {
       "description": "Whether a field is required. `false` means never and `true` means always. A filter expression matches exactly the tasks that must carry it, such as `\"!terminal\"` for every task not yet in a terminal status.",
       "oneOf": [
@@ -2131,6 +2229,22 @@
         }
       ]
     },
+    "SectionSpec": {
+      "anyOf": [
+        {
+          "description": "One exact heading name, matched as a direct child of the body root.",
+          "type": "string"
+        },
+        {
+          "description": "A path through the heading tree, each step a heading segment.",
+          "items": {
+            "$ref": "#/$defs/HeaderPathSegment"
+          },
+          "type": "array"
+        }
+      ],
+      "description": "A body section selector: one heading name, or a path through the heading\ntree."
+    },
     "Severity": {
       "description": "How a breached config-declared constraint reports.",
       "oneOf": [
@@ -2231,6 +2345,13 @@
         "body": {
           "$ref": "#/$defs/TaskBodyConfig",
           "description": "Rules over a task body's headings and section content."
+        },
+        "collectors": {
+          "description": "Derived fields, each a query run over every task and read as\n`derived.<name>`. A collector a pack or a lower layer declared merges\nby name, as a rule does.",
+          "items": {
+            "$ref": "#/$defs/CollectorSpec"
+          },
+          "type": "array"
         },
         "comments": {
           "$ref": "#/$defs/CommentsConfig",

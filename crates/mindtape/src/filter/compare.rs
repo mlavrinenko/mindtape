@@ -23,6 +23,8 @@ pub(crate) fn comparison(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<
         return Err(FilterError::Invalid("the filter is incomplete".to_owned()));
     };
     let op = node.operator();
+    crate::filter::predicates::refuse_derived_collection(lhs, ctx.config)?;
+    crate::filter::predicates::refuse_derived_collection(rhs, ctx.config)?;
     if let Some(right) = operand(rhs, ctx)? {
         return Ok(compare_values(op, &left_operand(lhs, ctx)?, &right));
     }
@@ -102,6 +104,14 @@ fn operand(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<Option<FieldVa
         Operator::FunctionIdentifier { identifier } if identifier == "count" => {
             count(node.children(), ctx).map(|total| Some(FieldValue::Num(total)))
         }
+        Operator::FunctionIdentifier { identifier } if identifier == "len" => {
+            crate::filter::predicates::len_value(node.children(), ctx)
+                .map(|total| Some(FieldValue::Num(total)))
+        }
+        Operator::FunctionIdentifier { identifier } if identifier == "count_paths" => {
+            crate::filter::predicates::count_paths_value(node.children(), ctx)
+                .map(|total| Some(FieldValue::Num(total)))
+        }
         _ => Ok(None),
     }
 }
@@ -180,7 +190,9 @@ pub(crate) fn compare(
     literal: &str,
 ) -> bool {
     match value {
-        FieldValue::Missing | FieldValue::List(_) => matches!(op, Operator::Neq),
+        FieldValue::Missing | FieldValue::List(_) | FieldValue::Record => {
+            matches!(op, Operator::Neq)
+        }
         FieldValue::Str(text) => compare_ordering(op, Some(text.as_str().cmp(literal))),
         FieldValue::Num(num) => match literal.parse::<f64>() {
             Ok(rhs) => compare_ordering(op, num.partial_cmp(&rhs)),
@@ -199,8 +211,10 @@ pub(crate) fn compare_values(
 ) -> bool {
     match (left, right) {
         (FieldValue::Num(lhs), FieldValue::Num(rhs)) => compare_ordering(op, lhs.partial_cmp(rhs)),
-        (_, FieldValue::Missing | FieldValue::List(_))
-        | (FieldValue::Missing | FieldValue::List(_), _) => matches!(op, Operator::Neq),
+        (_, FieldValue::Missing | FieldValue::List(_) | FieldValue::Record)
+        | (FieldValue::Missing | FieldValue::List(_) | FieldValue::Record, _) => {
+            matches!(op, Operator::Neq)
+        }
         (_, FieldValue::Str(text)) => compare(op, left, text),
         (_, FieldValue::Num(num)) => compare(op, left, &format_num(*num)),
     }

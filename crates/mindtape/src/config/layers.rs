@@ -22,6 +22,7 @@
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
+use crate::config::collect::CollectorOrigins;
 use crate::config::locate::{Provenance, Sources};
 use crate::config::pack_registry::RuleOriginEntry;
 use crate::config::packs::merge_layers_with_packs;
@@ -170,6 +171,7 @@ fn merge_doc(
     Ok(MergedDoc {
         table: merged.table,
         rule_origins: merged.rule_origins,
+        collector_origins: merged.collector_origins,
         sources: merged.sources,
     })
 }
@@ -178,6 +180,7 @@ fn merge_doc(
 struct MergedDoc {
     table: toml::Table,
     rule_origins: Vec<RuleOriginEntry>,
+    collector_origins: Vec<RuleOriginEntry>,
     sources: Sources,
 }
 
@@ -220,21 +223,29 @@ fn build_config(
     let MergedDoc {
         table,
         rule_origins,
+        collector_origins,
         sources,
     } = merge_doc(layers, root, pack_cache)?;
     let sources = Provenance::new(sources);
-    build_typed(table, rule_origins, layers, root, &sources)
-        .map_err(|err| name_file(err, &sources, root))
+    build_typed(
+        table,
+        (rule_origins, collector_origins),
+        layers,
+        root,
+        &sources,
+    )
+    .map_err(|err| name_file(err, &sources, root))
 }
 
 /// The typed half of [`build_config`], its errors not yet placed.
 fn build_typed(
     doc: toml::Table,
-    rule_origins: Vec<RuleOriginEntry>,
+    origins: (Vec<RuleOriginEntry>, Vec<RuleOriginEntry>),
     layers: &[Layer],
     root: &Path,
     sources: &Provenance,
 ) -> Result<(Config, Vec<RuleOriginEntry>), ConfigError> {
+    let (rule_origins, collector_origins) = origins;
     let mut config: Config = toml::Value::Table(doc)
         .try_into()
         .map_err(|merged| sources.blame(merged))?;
@@ -252,6 +263,7 @@ fn build_typed(
     // agree on an ordering that only exists to satisfy this line.
     config.rules_root.set(root);
     config.rule_sites = crate::rules::sites::RuleSites::from_origins(&rule_origins, root);
+    config.collector_origins = CollectorOrigins(collector_origins);
     config.user_commands = crate::allow::UserCommands::from_layers(layers);
     config.git.set_root(root);
     config.validate().map_err(ConfigError::invalid)?;

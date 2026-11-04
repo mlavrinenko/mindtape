@@ -85,6 +85,12 @@ fn string_float_and_boolean_values_become_their_literals() {
 const EVERY_KEY: &str = r#"[params]
 p = 7
 
+[[tasks.collectors]]
+name = "changes"
+when = 'y == param("p")'
+query = { section = "Changes", pattern = "x" }
+returns = ["string"]
+
 [[tasks.rules]]
 name = "r"
 when = 'a == param("p")'

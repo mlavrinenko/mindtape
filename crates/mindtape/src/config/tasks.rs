@@ -16,6 +16,7 @@ use serde::{Deserialize, Deserializer};
 
 use crate::body::content::ContentConfig;
 use crate::body::headers::HeadersConfig;
+use crate::config::collect::CollectorSpec;
 use crate::config::dicts::Dicts;
 use crate::config::estimate::EstimateConfig;
 use crate::config::priority::PriorityConfig;
@@ -67,6 +68,10 @@ pub struct TasksConfig {
     /// Assertions every selected task must satisfy. `mt check` enforces them,
     /// and so does every write command before it writes.
     pub rules: Vec<crate::rules::RuleSpec>,
+    /// Derived fields, each a query run over every task and read as
+    /// `derived.<name>`. A collector a pack or a lower layer declared merges
+    /// by name, as a rule does.
+    pub collectors: Vec<CollectorSpec>,
     /// Commands a `waits-on` entry names: each answers by exit code whether a
     /// task still waits on something outside the repo.
     pub waits: Vec<crate::waits::Checker>,
@@ -98,6 +103,7 @@ impl Default for TasksConfig {
             links: crate::link::LinksConfig::default(),
             recur: crate::recur::RecurConfig::default(),
             rules: Vec::new(),
+            collectors: Vec::new(),
             waits: Vec::new(),
             comments: crate::config::comments::CommentsConfig::default(),
         }

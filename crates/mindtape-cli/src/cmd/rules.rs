@@ -4,7 +4,7 @@
 //! `mt config show --origin` prints it, and the message a breach prints.
 //! `--for` keeps the rules the command at one moment enforces.
 
-use mindtape::{ActiveRule, RuleSection, active_rules, load_config};
+use mindtape::{ActiveRule, DerivedField, RuleSection, active_derived, active_rules, load_config};
 
 use crate::diag::Result;
 use crate::render::widest;
@@ -50,6 +50,12 @@ impl Moment {
             RuleSection::OnFlip => matches!(self, Self::Flip),
         }
     }
+
+    /// Whether this moment lists the derived fields. A commit rule cannot
+    /// read `derived.` in v1, so `--for commit` hides them.
+    const fn shows_derived(self) -> bool {
+        !matches!(self, Self::Commit)
+    }
 }
 
 /// Run the `rules` command.
@@ -65,36 +71,62 @@ pub fn run(args: &RulesArgs) -> Result<()> {
                 .is_none_or(|moment| moment.enforces(rule.section))
         })
         .collect();
+    let derived: Vec<DerivedField> = if args.moment.is_none_or(Moment::shows_derived) {
+        active_derived(&config)
+    } else {
+        Vec::new()
+    };
     if args.json {
         let document = serde_json::json!({
             "schema_version": mindtape::SCHEMA_VERSION,
             "rules": rules,
+            "derived": derived,
         });
         println!("{}", serde_json::to_string_pretty(&document)?);
     } else {
-        print!("{}", render(&rules));
+        print!("{}", render(&rules, &derived));
     }
     Ok(())
 }
 
 /// One line per rule, `<severity>  <name>  <message>`, the first two padded
-/// to their widest, or one line saying no rule applies.
-fn render(rules: &[ActiveRule]) -> String {
-    if rules.is_empty() {
+/// to their widest, then a `derived fields` block. One line saying no rule
+/// applies when the project declares neither.
+fn render(rules: &[ActiveRule], derived: &[DerivedField]) -> String {
+    if rules.is_empty() && derived.is_empty() {
         return "no rules apply\n".to_owned();
     }
-    let width = widest(rules.iter().map(|rule| rule.name.as_str()));
-    rules
-        .iter()
-        .map(|rule| {
-            format!(
+    let mut out = String::new();
+    if !rules.is_empty() {
+        let width = widest(rules.iter().map(|rule| rule.name.as_str()));
+        for rule in rules {
+            out.push_str(&format!(
                 "{:<5}  {:<width$}  {}\n",
                 rule.severity.label(),
                 rule.name,
                 message(rule)
-            )
-        })
-        .collect()
+            ));
+        }
+    }
+    if !derived.is_empty() {
+        if !out.is_empty() {
+            out.push('\n');
+        }
+        out.push_str("derived fields\n");
+        let width = widest(derived.iter().map(|field| field.returns.as_str()));
+        for field in derived {
+            let readers = if field.readers.is_empty() {
+                "no rule".to_owned()
+            } else {
+                field.readers.join(", ")
+            };
+            out.push_str(&format!(
+                "  {:<width$}  {}  {} from {}  read by {}\n",
+                field.returns, field.name, field.kind, field.origin, readers
+            ));
+        }
+    }
+    out
 }
 
 /// The message a breach prints, or who words it when each breach words its

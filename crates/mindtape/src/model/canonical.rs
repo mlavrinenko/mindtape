@@ -34,6 +34,7 @@
 //! | `body`          | authored | raw Typst source after `#show: task.with(...)`       |
 //! | `recur`         | authored | `{rule, anchor, until, count, materialize}`, null when the task does not recur |
 //! | `extras`        | authored | opaque `x-<ns>` consumer extension slots             |
+//! | `derived`       | computed | `[[tasks.collectors]]` results, keyed by collector name |
 //!
 //! ## Priority parity
 //!
@@ -145,6 +146,10 @@ pub struct CanonicalTask {
     /// Opaque consumer extensions, keyed by `x-<ns>` slot.
     #[serde(default)]
     pub extras: BTreeMap<String, HVal>,
+    /// Fields `[[tasks.collectors]]` computed, keyed by the collector's name.
+    /// Read-only: `mt import` ignores them and writes no collector.
+    #[serde(default)]
+    pub derived: BTreeMap<String, HVal>,
 }
 
 /// `status:` in the canonical schema.
@@ -321,6 +326,7 @@ impl CanonicalTask {
             body: task.body.clone(),
             recur: task.recur.as_ref().map(crate::recur::Recur::to_canonical),
             extras: task.extras.clone(),
+            derived: task.derived.clone(),
         }
     }
 }

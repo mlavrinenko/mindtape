@@ -17,6 +17,7 @@
 pub mod allow;
 pub mod at;
 pub mod body;
+pub mod collect;
 pub mod commit;
 pub mod config;
 mod date;
@@ -61,7 +62,9 @@ pub use commit::{
     ChangedFiles, CommitMessage, CommitMsgError, CommitRecord, RefProblem, TrailerValue,
     parse_message, staged_files, writing_a_merge,
 };
-pub use config::active_rules::{ActiveRule, RuleSection, active_rules};
+pub use config::active_rules::{
+    ActiveRule, DerivedField, RuleSection, active_derived, active_rules,
+};
 pub use config::comments::{CommentsConfig, CommentsError, CommentsPolicy, check_comments};
 pub use config::commits::{CommitBreach, CommitRuleSpec, CommitScope, CommitsConfig, check_commit};
 pub use config::layers::{
@@ -71,13 +74,14 @@ pub use config::layers::{
 pub use config::pack_registry::{PackOrigin, RuleOrigin, RuleOriginEntry};
 pub use config::schema::{SCHEMA_URL, config_schema_json};
 pub use config::{
-    Actor, ActorKind, AddConfig, AssigneeConfig, BUILTIN_PREFIX, Collector, ColumnConfig, Config,
-    ConfigError, DeriveConfig, DeriveTags, Dict, DictCase, DictSpec, Dicts, EstimateConfig, Facet,
-    FallbackSeverity, FormatConfig, GoConfig, HyperlinkChoice, ImportView, InteractiveMode,
-    LS_COLUMNS, LocalPackage, LsRule, PriorityConfig, ReadyConfig, RetireConfig, RmConfig,
-    RmStrategy, Role, RootConfig, RootSpec, TemplatesConfig, TypstConfig, ViewSpec,
-    builtin_dict_names, compile_dicts, config_path, embedded_defaults, load_config, parse_config,
-    parse_import_view, roles_of, validate_dicts, validate_views,
+    Actor, ActorKind, AddConfig, AssigneeConfig, BUILTIN_PREFIX, Collector, CollectorAtom,
+    CollectorQuery, CollectorSpec, CollectorType, ColumnConfig, Config, ConfigError, DeriveConfig,
+    DeriveTags, Dict, DictCase, DictSpec, Dicts, EstimateConfig, Facet, FallbackSeverity,
+    FormatConfig, GoConfig, HyperlinkChoice, ImportView, InteractiveMode, LS_COLUMNS, LocalPackage,
+    LsRule, PriorityConfig, ReadyConfig, RegexQuery, RetireConfig, RmConfig, RmStrategy, Role,
+    RootConfig, RootSpec, SectionSpec, TemplatesConfig, TypstConfig, ViewSpec, builtin_dict_names,
+    compile_dicts, config_path, embedded_defaults, load_config, parse_config, parse_import_view,
+    returns_of, roles_of, validate_dicts, validate_views,
 };
 pub use config::{KeyOrigin, ParamOrigin};
 pub use date::pin::{DateOverrideError, init_pinned_today};

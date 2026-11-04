@@ -4,6 +4,7 @@
 //! --origin` prints. [`crate::config::pack_resolve`] looks a `<source>:<pack>`
 //! entry up here; [`crate::config::packs`] folds what it returns.
 
+use std::fmt;
 use std::path::{Path, PathBuf};
 
 use crate::config::layers::LayerSource;
@@ -104,6 +105,18 @@ pub enum RuleOrigin {
     Layer(LayerSource),
     /// Pulled in through `extends`.
     Pack(PackOrigin),
+}
+
+impl fmt::Display for RuleOrigin {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Pack(pack) => formatter.write_str(&pack.label()),
+            Self::Layer(LayerSource::Embedded) => formatter.write_str("built-in"),
+            Self::Layer(
+                LayerSource::Xdg(path) | LayerSource::Dir(path) | LayerSource::Project(path),
+            ) => formatter.write_str(&crate::display_path(path)),
+        }
+    }
 }
 
 /// One rule's provenance in a merged array: its report-style label

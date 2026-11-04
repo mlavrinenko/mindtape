@@ -85,6 +85,7 @@ pub fn bare_task(id: &str) -> Task {
         reviewed: None,
         recur: None,
         extras: BTreeMap::new(),
+        derived: BTreeMap::new(),
         shape_errors: Vec::new(),
         body: String::new(),
         spans: crate::model::task_spans::TaskCallSpans::default(),

@@ -72,10 +72,11 @@ const RULE_ARRAY_PATHS: [&[&str]; RULE_ARRAYS] = [
     &["tasks", "body", "content", "rules"],
     &["commits", "rules"],
     &["on", "flip"],
+    &["tasks", "collectors"],
 ];
 
-/// How many rule arrays merge by name.
-const RULE_ARRAYS: usize = 5;
+/// How many arrays merge by name.
+const RULE_ARRAYS: usize = 6;
 
 /// The dotted report prefix for each of [`RULE_ARRAY_PATHS`], in the same
 /// order.
@@ -85,6 +86,7 @@ const RULE_ARRAY_PREFIXES: [&str; RULE_ARRAYS] = [
     "tasks.body.content.rules",
     "commits.rules",
     "on.flip",
+    "tasks.collectors",
 ];
 
 /// The merged document plus every rule's provenance, [`merge_layers_with_packs`]'s
@@ -96,6 +98,8 @@ pub(crate) struct PackMerge {
     pub table: toml::Table,
     /// One entry per final rule, across every rule array, in array order.
     pub rule_origins: Vec<RuleOriginEntry>,
+    /// One entry per final collector, in declaration order.
+    pub collector_origins: Vec<RuleOriginEntry>,
     /// The text of every layer and pack file, in merge precedence, so an
     /// error can name the file it comes from.
     pub sources: Sources,
@@ -183,6 +187,7 @@ fn merge_with(
     append_template_dirs(&mut doc, &pack_dirs)?;
 
     let mut rule_origins = Vec::new();
+    let mut collector_origins = Vec::new();
     for ((accumulator, path), prefix) in accumulators
         .into_iter()
         .zip(RULE_ARRAY_PATHS)
@@ -194,12 +199,18 @@ fn merge_with(
             origins.iter().map(|(_, origin, line)| (origin, *line)),
         );
         write_array(&mut doc, path, values)?;
-        rule_origins.extend(labeled_origins(prefix, origins));
+        let labeled = labeled_origins(prefix, origins);
+        if prefix == "tasks.collectors" {
+            collector_origins.extend(labeled);
+        } else {
+            rule_origins.extend(labeled);
+        }
     }
 
     Ok(PackMerge {
         table: doc,
         rule_origins,
+        collector_origins,
         sources: files,
     })
 }

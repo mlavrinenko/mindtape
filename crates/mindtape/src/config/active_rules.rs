@@ -14,6 +14,7 @@ use crate::body::headers::rule_label;
 use crate::config::Config;
 use crate::config::commits::CommitRuleSpec;
 use crate::config::hooks::{FlipAction, FlipHook};
+use crate::filter::Filter;
 use crate::rules::{CheckSpec, RuleSpec};
 use crate::validate::severity::Severity;
 
@@ -80,6 +81,72 @@ pub struct ActiveRule {
     pub assertion: Option<String>,
     /// The Typst function a `check` rule calls.
     pub check: Option<CheckSpec>,
+}
+
+/// One derived field a project declares, as `mt rules` prints it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct DerivedField {
+    /// The field's name, `derived.<name>`.
+    pub name: String,
+    /// The query kind, `regex` or `typst`.
+    pub kind: String,
+    /// The declared `returns` type.
+    pub returns: String,
+    /// The layer or pack that declared the collector.
+    pub origin: String,
+    /// The `[[tasks.rules]]` entries that read the field, by report label.
+    pub readers: Vec<String>,
+}
+
+/// Every derived field `config` declares, in declaration order, with the
+/// rules that read it.
+#[must_use]
+pub fn active_derived(config: &Config) -> Vec<DerivedField> {
+    let origins = config.collector_origins();
+    config
+        .tasks
+        .collectors
+        .iter()
+        .enumerate()
+        .map(|(index, spec)| {
+            let name = format!("derived.{}", spec.name);
+            DerivedField {
+                readers: readers_of(config, &name),
+                name,
+                kind: spec.query.kind().to_owned(),
+                returns: spec.returns.describe(),
+                origin: origins
+                    .get(index)
+                    .map_or_else(|| "config".to_owned(), |entry| entry.origin.to_string()),
+            }
+        })
+        .collect()
+}
+
+/// The labels of the `[[tasks.rules]]` entries whose `assert` or `when` reads
+/// `name`, directly or through one of its record fields.
+fn readers_of(config: &Config, name: &str) -> Vec<String> {
+    let reads = |source: &Option<String>| {
+        source
+            .as_deref()
+            .and_then(|source| Filter::parse(source).ok())
+            .is_some_and(|filter| {
+                filter.names().iter().any(|read| {
+                    read == name
+                        || read
+                            .strip_prefix(name)
+                            .is_some_and(|rest| rest.starts_with('.'))
+                })
+            })
+    };
+    config
+        .tasks
+        .rules
+        .iter()
+        .enumerate()
+        .filter(|(_, rule)| reads(&rule.assertion) || reads(&rule.when))
+        .map(|(index, rule)| rule.label(index))
+        .collect()
 }
 
 /// Every rule `config` applies, in the order `mt config show --origin` lists

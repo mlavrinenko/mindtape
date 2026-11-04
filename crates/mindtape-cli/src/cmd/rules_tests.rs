@@ -14,7 +14,7 @@ fn a_rule_with_no_fixed_message_says_who_words_its_breaches() {
     .unwrap();
 
     assert_eq!(
-        render(&active_rules(&config)),
+        render(&active_rules(&config), &[]),
         "\
 error  tasks.rules.goals            (messages from check-goals in truth/lib.typ)
 error  tasks.body.content.rules[0]  (no message set)
@@ -32,14 +32,14 @@ fn pads_the_name_column_by_characters() {
     .unwrap();
 
     assert_eq!(
-        render(&active_rules(&config)),
+        render(&active_rules(&config), &[]),
         "warn   tasks.rules.ñ   a\nwarn   tasks.rules.ab  b\n"
     );
 }
 
 #[test]
 fn says_so_when_the_list_is_empty() {
-    assert_eq!(render(&[]), "no rules apply\n");
+    assert_eq!(render(&[], &[]), "no rules apply\n");
 }
 
 #[test]

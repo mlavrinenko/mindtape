@@ -323,6 +323,21 @@ pub(crate) fn validate_commits(config: &Config) -> Vec<Problem> {
     }
     for (index, spec) in config.commits.rules.iter().enumerate() {
         let path = format!("commits.rules[{index}]");
+        for (key, source) in [
+            ("assert", Some(&spec.assertion)),
+            ("when", spec.when.as_ref()),
+        ] {
+            let Some(source) = source else { continue };
+            let derived = crate::commit::expr::CommitExpr::parse(source)
+                .ok()
+                .is_some_and(|expr| expr.names().iter().any(|name| name.starts_with("derived.")));
+            if derived {
+                problems.push(
+                    format!("{path}.{key}: `derived.` fields are not available to commit rules")
+                        .into(),
+                );
+            }
+        }
         let problem = |source: &str| match spec.scope {
             CommitScope::Commit => commit_expr_problem(source, config),
             CommitScope::Task => task_expr_problem(source, config),

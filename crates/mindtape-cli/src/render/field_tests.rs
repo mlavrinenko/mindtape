@@ -318,6 +318,7 @@ fn stub_task() -> Task {
         reviewed: None,
         recur: None,
         extras: Default::default(),
+        derived: Default::default(),
         shape_errors: Vec::new(),
         body: String::new(),
         spans: mindtape::TaskCallSpans::default(),

@@ -7,6 +7,8 @@
 //! `exists` alone reads the `Ctx`, for the commit state it carries. The
 //! dispatcher itself (`filter::function`) stays put and calls into these.
 
+use std::collections::BTreeSet;
+
 use evalexpr::{DefaultNumericTypes, Node, Operator};
 use typst_harvest::HVal;
 
@@ -56,6 +58,19 @@ pub(crate) fn has_call(
 /// equals it, a dict-valued field (`estimate`, an `x-<ns>` slot) has it as a
 /// key. A missing field holds nothing.
 fn holds(task: &Task, name: &str, value: &str, config: &Config) -> Result<bool, FilterError> {
+    if fields::is_derived(name) {
+        return Ok(match fields::derived_hval(task, name) {
+            Some(HVal::Dict(entries)) => entries.contains_key(value),
+            Some(HVal::Array(_)) => match field_value(task, name, config)? {
+                FieldValue::List(items) => {
+                    items.iter().any(|item| compare(&Operator::Eq, item, value))
+                }
+                _ => false,
+            },
+            Some(_) => compare(&Operator::Eq, &field_value(task, name, config)?, value),
+            None => false,
+        });
+    }
     match fields::held(task, name) {
         Some(HVal::Dict(entries)) => return Ok(entries.contains_key(value)),
         Some(list @ HVal::Array(_)) => {
@@ -202,7 +217,7 @@ fn contains_ci(value: &FieldValue, needle: &str) -> bool {
     let haystack = match value {
         FieldValue::Str(text) => text.clone(),
         FieldValue::Num(num) => format_num(*num),
-        FieldValue::Missing | FieldValue::List(_) => return false,
+        FieldValue::Missing | FieldValue::List(_) | FieldValue::Record => return false,
     };
     haystack.to_lowercase().contains(&needle.to_lowercase())
 }
@@ -322,3 +337,130 @@ mod changed_tests;
 #[cfg(test)]
 #[path = "predicates_touches_tests.rs"]
 mod touches_tests;
+
+/// `len(field)`: how many items a list field holds. A missing field counts
+/// zero, so a gated collector and an empty section read alike.
+pub(crate) fn len_value(
+    children: &[Node<DefaultNumericTypes>],
+    ctx: &Ctx,
+) -> Result<f64, FilterError> {
+    let name = one_field(children, "len")?;
+    if name == "tags" {
+        return Ok(ctx.task.all_tags().len() as f64);
+    }
+    match field_value(ctx.task, &name, ctx.config)? {
+        FieldValue::List(items) => Ok(items.len() as f64),
+        FieldValue::Missing => Ok(0.0),
+        _ => Err(FilterError::call(
+            "len() reads a list field",
+            "len(derived.changes) <= 5",
+        )),
+    }
+}
+
+/// `count_paths(field, ...sets)`: how many distinct, normalized paths a
+/// `[path]` derived field holds inside the path sets. A missing field counts
+/// zero.
+pub(crate) fn count_paths_value(
+    children: &[Node<DefaultNumericTypes>],
+    ctx: &Ctx,
+) -> Result<f64, FilterError> {
+    let args = call_args(children);
+    let Some((field, sets)) = args.split_first() else {
+        return Err(FilterError::call(
+            "count_paths() needs a path field",
+            "count_paths(derived.changes, \"@source\")",
+        ));
+    };
+    let name = extract_identifier(field)
+        .map_err(|err| FilterError::Invalid(format!("count_paths(): {err}")))?;
+    let ty = fields::derived_type(ctx.config, &name)
+        .ok_or_else(|| FilterError::UnknownField(name.clone()))?;
+    if !ty.is_path_list() {
+        return Err(FilterError::call(
+            "count_paths() reads a [path] field",
+            "count_paths(derived.changes, \"@source\")",
+        ));
+    }
+    let globs = sets
+        .iter()
+        .map(|node| extract_literal(node))
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|err| FilterError::Invalid(format!("count_paths(): {err}")))?;
+    let admitted = PathFilter::resolve(&globs, ctx.config.compiled_dicts())
+        .map_err(|err| path_set_error(err, "count_paths():"))?;
+    if ctx.dry {
+        return Ok(0.0);
+    }
+    let Some(value) = fields::derived_hval(ctx.task, &name) else {
+        return Ok(0.0);
+    };
+    let HVal::Array(items) = value else {
+        return Ok(0.0);
+    };
+    let paths: BTreeSet<String> = items
+        .iter()
+        .filter_map(HVal::as_str)
+        .map(normalize_path)
+        .collect();
+    Ok(admitted.count(paths.iter().map(String::as_str), &[]) as f64)
+}
+
+/// Refuse a comparison against a list or record derived field: only a scalar
+/// compares. `has()`, `len()` and `count_paths()` still read the collection.
+pub(crate) fn refuse_derived_collection(
+    node: &Node<DefaultNumericTypes>,
+    config: &Config,
+) -> Result<(), FilterError> {
+    let Ok(name) = extract_identifier(node) else {
+        return Ok(());
+    };
+    if !fields::is_derived(&name) {
+        return Ok(());
+    }
+    let Some(ty) = fields::derived_type(config, &name) else {
+        return Ok(());
+    };
+    if ty.is_scalar() {
+        return Ok(());
+    }
+    Err(FilterError::Invalid(format!(
+        "`{name}` is {}; use len(), count_paths(), or has() instead of comparing it",
+        ty.describe()
+    )))
+}
+
+/// The one field identifier a function takes.
+fn one_field(
+    children: &[Node<DefaultNumericTypes>],
+    function: &str,
+) -> Result<String, FilterError> {
+    let args = call_args(children);
+    let [field] = args.as_slice() else {
+        return Err(FilterError::Invalid(format!(
+            "{function}() needs one field"
+        )));
+    };
+    extract_identifier(field).map_err(FilterError::Invalid)
+}
+
+/// A path as the path sets read it: `\` becomes `/`, `.` components drop,
+/// `..` folds lexically, and repeated separators collapse.
+fn normalize_path(path: &str) -> String {
+    let mut parts: Vec<&str> = Vec::new();
+    let path = path.trim().replace('\\', "/");
+    for part in path.split('/') {
+        match part {
+            "" | "." => {}
+            ".." => {
+                if parts.last().is_some_and(|last| *last != "..") {
+                    parts.pop();
+                } else {
+                    parts.push("..");
+                }
+            }
+            other => parts.push(other),
+        }
+    }
+    parts.join("/")
+}

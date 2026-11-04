@@ -10,12 +10,13 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
+use crate::config::CollectorSpec;
 use crate::config::ls::LS_COLUMNS;
 use crate::config::ls_columns::unknown_column;
 use crate::config::name_cycle::find_cycle;
 use crate::filter::Filter;
 use crate::problem::Problem;
-use crate::sort::validate_sort_spec;
+use crate::sort::validate_sort_spec_with;
 use crate::suggest::Unknown;
 
 /// One named query bundle.
@@ -42,6 +43,16 @@ pub struct ViewSpec {
 /// no cycle. Returns one message per problem.
 #[must_use]
 pub fn validate_views(views: &BTreeMap<String, ViewSpec>) -> Vec<Problem> {
+    validate_views_with(views, &[])
+}
+
+/// [`validate_views`] over a project's collectors too, so a view's sort may
+/// name a scalar derived field and a list or record is refused at load.
+#[must_use]
+pub fn validate_views_with(
+    views: &BTreeMap<String, ViewSpec>,
+    collectors: &[CollectorSpec],
+) -> Vec<Problem> {
     let mut problems = Vec::new();
     let mut refs: BTreeMap<&str, Vec<String>> = BTreeMap::new();
     for (name, spec) in views {
@@ -67,7 +78,7 @@ pub fn validate_views(views: &BTreeMap<String, ViewSpec>) -> Vec<Problem> {
             Err(err) => problems.push(format!("views.{name}.filter: {err}").into()),
         }
         for spec_str in &spec.sort {
-            if let Err(msg) = validate_sort_spec(spec_str) {
+            if let Err(msg) = validate_sort_spec_with(spec_str, collectors) {
                 problems.push(msg.under(&format!("views.{name}.sort")));
             }
         }

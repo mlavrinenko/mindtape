@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`[[tasks.collectors]]` publish derived task fields.** A collector's `name`
+  is the field name, read as `derived.<name>` by filters, `--sort`, `mt eval`
+  and `mt ls --json`. A regex query reads a body section and returns
+  `["string"]` or `["path"]`; `returns` is a type expression over `bool`,
+  `int`, `number`, `string`, `path` and `date`, a one-element list or a
+  record. `len(field)` counts any list and `count_paths(field, ...sets)` counts
+  distinct normalized paths in a `["path"]` field. Collectors merge by name
+  across layers and packs, `disable` drops one, and `mt rules` lists each one
+  with its origin, kind, type and readers. `mt eval` now loads the enclosing
+  project set and fills the task body.
 - **`mt add` fills a `links` slot from YAML or JSON.** A template can declare
   `kind: "links"`, and `-f` or `--edit` supplies a list of `{kind, task, note}`
   mappings. The slot renders the same edge dicts the DSL helpers write, an

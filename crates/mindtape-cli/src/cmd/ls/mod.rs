@@ -353,20 +353,21 @@ pub(crate) fn sort_tasks(
         return Ok(());
     }
     for spec in specs {
-        check_sort_spec(spec)?;
+        check_sort_spec(spec, config)?;
     }
     sort_by_specs(tasks, specs, config, readiness).map_err(|msg| Diag::verbatim(Kind::Usage, msg))
 }
 
 /// `spec` (`field`, `field:asc` or `field:desc`) as a usage error naming the
 /// part that is wrong, with the nearest field for a misspelt one.
-fn check_sort_spec(spec: &str) -> std::result::Result<(), Diag> {
+fn check_sort_spec(spec: &str, config: &Config) -> std::result::Result<(), Diag> {
     let (field, direction) = spec
         .split_once(':')
         .map_or((spec, None), |(field, direction)| (field, Some(direction)));
-    if !mindtape::sort::is_sort_field(field) {
+    if !mindtape::sort::is_sort_field_with(field, &config.tasks.collectors) {
         let diag = Diag::usage("unknown sort field").value(field);
-        let known = mindtape::sort::sort_fields();
+        let known = mindtape::sort::sort_fields_with(&config.tasks.collectors);
+        let known: Vec<&str> = known.iter().map(String::as_str).collect();
         return Err(diag.did_you_mean_or(
             field,
             &known,

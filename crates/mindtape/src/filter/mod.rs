@@ -148,6 +148,7 @@ impl Filter {
     pub fn names_term(word: &str, config: &Config) -> bool {
         eval::is_word(word)
             || fields::get(word).is_some()
+            || (fields::is_derived(word) && fields::derived_type(config, word).is_some())
             || config.views.contains_key(word)
             || config.dicts.contains_key(word)
             || config.tasks.fields.contains_key(word)
@@ -396,6 +397,10 @@ pub(crate) fn field_value(
     if let Some(value) = crate::filter::predicates::estimate_unit(task, name, config) {
         return value;
     }
+    if fields::is_derived(name) {
+        return fields::derived(task, name, config)
+            .ok_or_else(|| FilterError::UnknownField(name.to_owned()));
+    }
     if fields::is_extra(name) {
         return crate::filter::predicates::extra_value(task, name);
     }
@@ -418,3 +423,7 @@ pub const fn functions() -> &'static [FilterFunction] {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+#[path = "derived_tests.rs"]
+mod derived_tests;

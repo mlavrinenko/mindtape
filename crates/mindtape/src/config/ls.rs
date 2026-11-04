@@ -10,10 +10,11 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Deserializer};
 
+use crate::config::CollectorSpec;
 use crate::config::ls_columns::{ColumnConfig, unknown_column};
 use crate::config::views::ViewSpec;
 use crate::problem::Problem;
-use crate::sort::validate_sort_spec;
+use crate::sort::validate_sort_spec_with;
 use crate::suggest::Unknown;
 
 /// Canonical `mt ls` column names, in built-in render order. The single
@@ -283,6 +284,17 @@ pub fn parse_import_view(entry: &str) -> Result<ImportView, String> {
 /// views-only graph is acyclic, which is all the acyclicity this needs.
 #[must_use]
 pub fn validate_ls_rules(rules: &[LsRule], views: &BTreeMap<String, ViewSpec>) -> Vec<Problem> {
+    validate_ls_rules_with(rules, views, &[])
+}
+
+/// [`validate_ls_rules`] over a project's collectors too, so a rule's sort
+/// may name a scalar derived field.
+#[must_use]
+pub fn validate_ls_rules_with(
+    rules: &[LsRule],
+    views: &BTreeMap<String, ViewSpec>,
+    collectors: &[CollectorSpec],
+) -> Vec<Problem> {
     let mut problems = Vec::new();
     for (index, rule) in rules.iter().enumerate() {
         let prefix = format!("ls.rules[{index}]");
@@ -294,7 +306,7 @@ pub fn validate_ls_rules(rules: &[LsRule], views: &BTreeMap<String, ViewSpec>) -
             "sort",
             &rule.sort,
             views,
-            validate_sort_spec,
+            |spec| validate_sort_spec_with(spec, collectors),
         ));
         problems.extend(validate_view_spliced(
             &prefix,

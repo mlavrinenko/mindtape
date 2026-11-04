@@ -48,6 +48,7 @@ fn the_schema_tags_every_expression_key_with_its_language() {
         ("tasks.assignee.values-when", true),
         ("tasks.body.content.rules.*.when", true),
         ("tasks.body.headers.rules.*.when", true),
+        ("tasks.collectors.*.when", true),
         ("tasks.difficulty.required", true),
         ("tasks.estimate.required", true),
         ("tasks.fields.*.required", true),

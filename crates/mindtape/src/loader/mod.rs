@@ -139,16 +139,15 @@ pub fn load_project(root: &Path, config: &Config) -> LoadOutcome {
     // every load and never cached.
     crate::waits::annotate(&mut outcome.tasks, config, root);
     crate::estimate_queries::annotate(&mut outcome.tasks, config, root);
+    crate::collect::annotate(&mut outcome.tasks, config);
     outcome
 }
 
 /// Load the one task file at `path`, project-relative or absolute, under
 /// `config`, through the same content-hash cache [`load_project`] uses, with
-/// its waits annotated as [`load_project`] does.
-///
-/// The task equals the one [`load_project`] gives that file, except that the
-/// fields which need the whole set (`topo`, `blocks`, `children`, `progress`)
-/// stay empty: no other task is loaded to derive them from.
+/// its waits and collectors annotated as [`load_project`] does. The fields
+/// which need the whole set (`topo`, `blocks`, `children`, `progress`) stay
+/// empty: no other task is loaded to derive them from.
 ///
 /// `Ok(None)` is a file with no `task.with` call, which [`load_project`] skips
 /// silently. A load failure is the [`LoadError`] [`load_project`] would list.
@@ -176,6 +175,7 @@ pub fn load_one(root: &Path, config: &Config, path: &Path) -> Result<Option<Task
         return Err(error);
     }
     crate::waits::annotate(&mut outcome.tasks, config, root);
+    crate::collect::annotate(&mut outcome.tasks, config);
     Ok(outcome.tasks.into_iter().next())
 }
 

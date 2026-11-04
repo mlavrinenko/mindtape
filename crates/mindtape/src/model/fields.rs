@@ -68,10 +68,14 @@ use crate::model::numeric::NumValue;
 /// is unequal to every filter literal (see `filter::compare`) and, for sort,
 /// orders after every present value. `List` is an `x-<ns>` array: it equals
 /// and orders against nothing, and `has(field, value)` reads its elements.
+#[derive(Debug, Clone, PartialEq)]
 pub enum FieldValue {
     Str(String),
     Num(f64),
     List(Vec<FieldValue>),
+    /// A record value. Presence and membership read it, but it neither
+    /// compares nor sorts.
+    Record,
     Missing,
 }
 
@@ -268,6 +272,88 @@ pub fn extra(task: &Task, name: &str) -> FieldValue {
         .get(name)
         .and_then(from_extra)
         .unwrap_or(FieldValue::Missing)
+}
+
+/// Whether `name` names a derived field: `derived.<collector>` or a record
+/// path inside one.
+#[must_use]
+pub fn is_derived(name: &str) -> bool {
+    name.starts_with("derived.")
+}
+
+/// The declared type of `name`, when it is a derived field. `None` for an
+/// undeclared collector or an undeclared record field, so a filter naming one
+/// fails load.
+#[must_use]
+pub fn derived_type<'a>(
+    config: &'a Config,
+    name: &str,
+) -> Option<&'a crate::config::CollectorType> {
+    derived_type_in(&config.tasks.collectors, name)
+}
+
+/// [`derived_type`] over the collectors alone, for a caller that holds no
+/// whole config (sort validation).
+#[must_use]
+pub fn derived_type_in<'a>(
+    collectors: &'a [crate::config::CollectorSpec],
+    name: &str,
+) -> Option<&'a crate::config::CollectorType> {
+    let rest = name.strip_prefix("derived.")?;
+    let (collector, sub) = split_derived(rest);
+    let spec = collectors.iter().find(|spec| spec.name == collector)?;
+    let mut ty = &spec.returns;
+    if let Some(sub) = sub {
+        for field in sub.split('.') {
+            ty = ty.field(field)?;
+        }
+    }
+    Some(ty)
+}
+
+/// The raw value of a derived field on `task`, or `None` when the task is
+/// gated out, the collector is undeclared, or the record path misses.
+#[must_use]
+pub fn derived_hval<'a>(task: &'a Task, name: &str) -> Option<&'a HVal> {
+    let rest = name.strip_prefix("derived.")?;
+    let (collector, sub) = split_derived(rest);
+    let mut value = task.derived.get(collector)?;
+    if let Some(sub) = sub {
+        for field in sub.split('.') {
+            value = value.get(field)?;
+        }
+    }
+    Some(value)
+}
+
+/// A derived field as a [`FieldValue`]: a scalar, a list, a record, or
+/// missing.
+#[must_use]
+pub fn derived(task: &Task, name: &str, config: &Config) -> Option<FieldValue> {
+    derived_type(config, name)?;
+    Some(derived_hval(task, name).map_or(FieldValue::Missing, from_hval))
+}
+
+/// Split `rest` (a name after `derived.`) into its collector and an optional
+/// record path.
+fn split_derived(rest: &str) -> (&str, Option<&str>) {
+    rest.split_once('.')
+        .map_or((rest, None), |(name, sub)| (name, Some(sub)))
+}
+
+/// Any harvested value as a [`FieldValue`]. A dict is a record, not a list.
+fn from_hval(value: &HVal) -> FieldValue {
+    match value {
+        HVal::Null => FieldValue::Missing,
+        HVal::Bool(flag) => FieldValue::Str(flag.to_string()),
+        // An authored integer is far below 2^52, so the conversion is exact.
+        #[allow(clippy::cast_precision_loss)]
+        HVal::Int(num) => FieldValue::Num(*num as f64),
+        HVal::Float(num) => FieldValue::Num(*num),
+        HVal::Str(text) | HVal::Date(text) => FieldValue::Str(text.clone()),
+        HVal::Array(items) => FieldValue::List(items.iter().map(from_hval).collect()),
+        HVal::Dict(_) => FieldValue::Record,
+    }
 }
 
 /// A task's value for one of the fields a [`Descriptor`] describes, as the

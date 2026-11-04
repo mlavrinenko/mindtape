@@ -3,9 +3,9 @@
 
 use crate::config::Config;
 use crate::config::dicts::validate_dicts;
-use crate::config::ls::validate_ls_rules;
+use crate::config::ls::validate_ls_rules_with;
 use crate::config::ls_columns::validate_ls_columns;
-use crate::config::views::{validate_view_statuses, validate_views};
+use crate::config::views::{validate_view_statuses, validate_views_with};
 use crate::problem::Problem;
 use crate::suggest::Unknown;
 
@@ -26,17 +26,18 @@ impl Config {
         problems.extend(self.tasks.status.transition_problems());
         problems.extend(plain(crate::loader::derive::validate_root_globs(self)));
         for spec in &self.ls.default_sort {
-            if let Err(msg) = crate::sort::validate_sort_spec(spec) {
+            if let Err(msg) = crate::sort::validate_sort_spec_with(spec, &self.tasks.collectors) {
                 problems.push(msg.under("ls.default-sort"));
             }
         }
         problems.extend(validate_ls_columns(&self.ls));
-        problems.extend(validate_views(&self.views));
+        problems.extend(validate_views_with(&self.views, &self.tasks.collectors));
         problems.extend(validate_view_statuses(&self.views, &self.tasks.status));
         problems.extend(validate_dicts(&self.dicts));
         problems.extend(plain(crate::config::tasks::validate_field_names(
             &self.tasks,
         )));
+        problems.extend(crate::config::collect::validate_collectors(self));
         problems.extend(crate::config::required::validate_requirements(self));
         problems.extend(crate::config::required::validate_values_when(self));
         problems.extend(plain(crate::config::links_validate::validate_link_kinds(
@@ -58,7 +59,11 @@ impl Config {
         )));
         problems.extend(plain(crate::waits::validate_checkers(self)));
         problems.extend(plain(crate::estimate_queries::validate_config(self)));
-        problems.extend(validate_ls_rules(&self.ls.rules, &self.views));
+        problems.extend(validate_ls_rules_with(
+            &self.ls.rules,
+            &self.views,
+            &self.tasks.collectors,
+        ));
         if let Some(status) = &self.retire.status
             && !self.tasks.status.contains(status)
         {
