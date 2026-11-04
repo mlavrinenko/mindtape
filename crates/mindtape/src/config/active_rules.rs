@@ -90,6 +90,9 @@ pub struct DerivedField {
     pub name: String,
     /// The query kind, `regex` or `typst`.
     pub kind: String,
+    /// The Typst module and function, `module::function`, for a Typst query.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub detail: Option<String>,
     /// The declared `returns` type.
     pub returns: String,
     /// The layer or pack that declared the collector.
@@ -114,6 +117,12 @@ pub fn active_derived(config: &Config) -> Vec<DerivedField> {
                 readers: readers_of(config, &name),
                 name,
                 kind: spec.query.kind().to_owned(),
+                detail: match &spec.query {
+                    crate::config::CollectorQuery::Typst(query) => {
+                        Some(format!("{}::{}", query.typst, query.function))
+                    }
+                    crate::config::CollectorQuery::Regex(_) => None,
+                },
                 returns: spec.returns.describe(),
                 origin: origins
                     .get(index)

@@ -108,10 +108,10 @@ groups:
       www/content/named-sets.typ: 32193f399664b8339c9a9ace4e614ed26f8fa1e742f4887df0d632c7b4b38720
   cli-eval-docs:
     source:
-      crates/mindtape-cli/src/cmd/eval.rs: 4dcb10923ce2ded2af18e75321964a3c040d3466c3aae6eb46504fc7258e3aa6
+      crates/mindtape-cli/src/cmd/eval.rs: 88fdc75db95eeb084c33abc657753b1a32fdfebea763b9bfd6f053ea8ae36fdf
     dependents:
       www/content/agents.typ: d0d98ebce6f001845351e6832602b9851283a556952492c8c7c42db91ae00b3a
-      www/content/schema.typ: b2b3d2d1180496f4345c2c93e23db8fadbb86b88e00381eecf74402bddd3936f
+      www/content/schema.typ: b8699683b1a40f4e6bb90ed7b60bb7988566f0141d8fe9ca3b8b803415b01945
   cli-find-docs:
     source:
       crates/mindtape-cli/src/cmd/find.rs: 440b4fac7b04cd723a775ee4361122867c1826e6006f222e8518a56a80378fd1
@@ -261,13 +261,13 @@ groups:
       www/utils/cli-notes.typ: f4f3fdc25dd45b7465220811f822300fe7ebeefde4ed1e476f63d24e46397621
   cli-rules-docs:
     source:
-      crates/mindtape-cli/src/cmd/rules.rs: 218da38f9a4e5c4aa8d3b7d80756f30c5f8771e7c78a0942c2a3e6431fbb014c
+      crates/mindtape-cli/src/cmd/rules.rs: db097654d8e9bb75167943a453f23ac385cf9ff0e7a1122d22db33dff449060b
     dependents:
       docs/src/skill.typ: f132951817dff24403c5b9f1c7096f8a42333b6d68f983aaa612576191fd7318
       www/content/agents.typ: d0d98ebce6f001845351e6832602b9851283a556952492c8c7c42db91ae00b3a
-      www/content/cli/rules.typ: 63e5e1e8d06a812430f80f7c710931852c309d105c682d8af4b52ec82001b4b2
-      www/content/packs.typ: 483b2e3baca804cb7af8852d5f713dd8aeba025cc742e9c4d7bcf893a5403c08
-      www/content/rules.typ: d47e08ce00d457da6cf20547675cd1ffdbd2488ddc9bfdf233ce78c3700d0a51
+      www/content/cli/rules.typ: dda680f3b51eb1aa96500bc06a21ca3e4a4dd29e88a24aa62bc16a49a5f9dc17
+      www/content/packs.typ: 258793f5ba02f40cd23df7d1a112869995bee4c8da4bdfc07f21fafd73ec7456
+      www/content/rules.typ: 86266ceacd53eb266437a6dcf6b79e17443d5ac8e957e4e52755e5a627671b2f
   cli-set-docs:
     source:
       crates/mindtape-cli/src/cmd/set.rs: 579b616b0a2d469ca1be5496ad6d25fc4974f655c4d244c968fd25bc46e8232d

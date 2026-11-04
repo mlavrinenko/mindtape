@@ -149,8 +149,13 @@ message = "split the decision from the mechanical fan-out"
 severity = "error"
 ```
 
+A Typst collector is the escape hatch for a structure a regex cannot read: it
+calls a project function over the task, or over one field, and the rule reads
+the value it returns. A failed call is a `Collector` violation at
+`derived.<name>`, so it fails `mt check` like any other breach.
+
 `mt rules` lists the collectors under the rules, each with its origin, kind,
-type and readers. `--for commit` omits them, since a commit rule cannot read a
+type and readers; a Typst collector also names its module and function. `--for commit` omits them, since a commit rule cannot read a
 derived field in this version. A rule whose filter names an undeclared
 `derived.<name>` fails config load, so a renamed collector cannot leave a rule
 reading nothing.

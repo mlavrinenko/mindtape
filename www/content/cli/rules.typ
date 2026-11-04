@@ -17,7 +17,8 @@ it.
 
 Under the rules, `mt rules` lists every derived field a
 #link(u("/config/#derived-fields"))[collector] computes: its type, its
-`derived.<name>`, its kind and origin, and the rules that read it. `--for
+`derived.<name>`, its kind and origin, and the rules that read it. A Typst
+collector also names its module and function. `--for
 commit` omits that block, since a commit rule cannot read a derived field.
 
 `--for` keeps the rules one step checks. `add` lists what `mt add` checks

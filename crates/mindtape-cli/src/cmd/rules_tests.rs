@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use mindtape::{RuleSection, active_rules, parse_config};
+use mindtape::{DerivedField, RuleSection, active_rules, parse_config};
 
 use super::{Moment, render};
 
@@ -60,4 +60,19 @@ fn each_moment_enforces_the_sections_its_command_checks() {
         let got = sections.map(|section| moment.enforces(section));
         assert_eq!(got, expected, "{moment:?}");
     }
+}
+
+#[test]
+fn a_typst_collector_line_names_its_module_and_function() {
+    let derived = DerivedField {
+        name: "derived.title".to_owned(),
+        kind: "typst".to_owned(),
+        detail: Some("lib.typ::title".to_owned()),
+        returns: "string".to_owned(),
+        origin: "config".to_owned(),
+        readers: Vec::new(),
+    };
+    let text = render(&[], std::slice::from_ref(&derived));
+    assert!(text.contains("typst lib.typ::title"), "{text}");
+    assert!(text.contains("derived.title"), "{text}");
 }

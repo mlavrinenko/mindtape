@@ -292,6 +292,23 @@ counting from 0. The section's text is everything under its heading down to the
 next heading of the same or a higher level, the same slice a content rule
 reads. A missing section yields an empty list.
 
+A Typst query calls a function from a project module instead:
+
+// docs:hand-typed the Typst collector shape is a sketch until a fixture carries one
+```toml
+[[tasks.collectors]]
+name = "summary"
+query = { typst = "lib.typ", function = "summarize", field = "body" }
+returns = { count = "number", files = ["path"] }
+```
+
+The function receives the whole task, in the shape `mt eval --json` prints, or
+the field `field` names, such as `body` or an `x-<ns>` slot. A pack's collector
+resolves `typst` from the pack's own directory. The module must exist and
+export the function when the config loads. An eval error, a `panic()` or a
+value that does not match `returns` is a `Collector` violation at
+`derived.<name>`, which `mt check` reports and `mt eval` prints.
+
 `returns` is a type expression. The atoms are `bool`, `int`, `number`,
 `string`, `path` and `date`. Wrap one in a one-element array for a list, as in
 `["path"]`, or write a record such as `{ count = "number", files = ["path"] }`.
@@ -301,7 +318,7 @@ carries no field at all.
 Collectors merge by name across layers and packs, exactly as rules do, and
 `disable` drops one by name. Two collectors with the same name in one source
 are a config error. `mt rules` lists each one with its origin, kind, type and
-the rules that read it.
+the rules that read it; a Typst collector also names its module and function.
 
 = Actors
 

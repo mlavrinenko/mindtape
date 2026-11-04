@@ -108,6 +108,11 @@ A field is #strong[authored] when it holds a value written in the task file.
   [computed],
   [Each #link(u("/config/#derived-fields"))[collector]'s result, keyed by
     its name. `mt import` ignores it.],
+
+  [`collector_problems`],
+  [computed],
+  [Why a collector produced no value, one message per failure. `mt check`
+    reports each as a `Collector` violation at `derived.<name>`.],
 )
 
 A record read by `mt import` needs only `title`. A missing key reads as

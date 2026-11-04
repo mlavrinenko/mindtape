@@ -115,18 +115,28 @@ fn render(rules: &[ActiveRule], derived: &[DerivedField]) -> String {
         out.push_str("derived fields\n");
         let width = widest(derived.iter().map(|field| field.returns.as_str()));
         for field in derived {
-            let readers = if field.readers.is_empty() {
-                "no rule".to_owned()
-            } else {
-                field.readers.join(", ")
-            };
-            out.push_str(&format!(
-                "  {:<width$}  {}  {} from {}  read by {}\n",
-                field.returns, field.name, field.kind, field.origin, readers
-            ));
+            out.push_str(&derived_line(field, width));
         }
     }
     out
+}
+
+/// One line of the derived block: its type, field, kind, origin and readers.
+/// A Typst collector's kind carries its module and function.
+fn derived_line(field: &DerivedField, width: usize) -> String {
+    let readers = if field.readers.is_empty() {
+        "no rule".to_owned()
+    } else {
+        field.readers.join(", ")
+    };
+    let kind = match &field.detail {
+        Some(detail) => format!("{} {detail}", field.kind),
+        None => field.kind.clone(),
+    };
+    format!(
+        "  {:<width$}  {}  {kind} from {}  read by {readers}\n",
+        field.returns, field.name, field.origin
+    )
 }
 
 /// The message a breach prints, or who words it when each breach words its
