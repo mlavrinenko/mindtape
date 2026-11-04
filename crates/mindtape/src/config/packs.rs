@@ -1,5 +1,5 @@
 //! `extends`/`disable`: folding each layer's packs in just below it, and
-//! resolving the five arrays that merge by name, `[[tasks.rules]]`,
+//! resolving the six arrays that merge by name, `[[tasks.rules]]`,
 //! `[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]`,
 //! `[[commits.rules]]` and `[[on.flip]]`, across every layer and pack.
 //!
@@ -41,7 +41,7 @@
 //! [`crate::body::headers::validate_header_rules`] /
 //! [`crate::body::content::validate_content_rules`] as a duplicate-name error
 //! instead of silently collapsing. `disable` then drops every entry (in any of
-//! the five arrays) carrying a listed name, erroring on a name matching
+//! the six arrays) carrying a listed name, erroring on a name matching
 //! none.
 
 use std::collections::{BTreeSet, HashMap, HashSet};

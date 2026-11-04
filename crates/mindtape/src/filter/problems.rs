@@ -93,3 +93,29 @@ pub(crate) fn expr_problem_in_set(source: &str, probe: &Task, config: &Config) -
             .map(|err| problem_of(&err)),
     }
 }
+
+/// The first `derived.<name>` a filter reads that no collector declares, as a
+/// load-time problem. Empty for an expression that does not parse, since
+/// another check reports the syntax error.
+///
+/// `has(derived.x, value)` and `len(derived.x)` read a field without
+/// comparing it, so the dry run alone would not reach every saved filter;
+/// this scan covers body rules, views, `[[ls.rules]]` and `[rm]` too.
+#[must_use]
+pub(crate) fn unknown_derived(source: &str, config: &Config) -> Option<Problem> {
+    let filter = Filter::parse(source).ok()?;
+    let name = filter
+        .names()
+        .into_iter()
+        .find(|name| fields::is_derived(name) && fields::derived_type(config, name).is_none())?;
+    let known: Vec<String> = config
+        .tasks
+        .collectors
+        .iter()
+        .map(|spec| format!("derived.{}", spec.name))
+        .collect();
+    Some(
+        Problem::new(format!("unknown derived field: {name}"))
+            .with(Unknown::among(&name, known.iter().map(String::as_str))),
+    )
+}

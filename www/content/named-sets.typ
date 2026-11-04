@@ -64,8 +64,9 @@ names.
 #terminal("named-sets-views")
 
 `mt` checks every view when it loads the config. Each `filter` must parse,
-each `sort` and `columns` entry must exist, each `@name` must name a view, and
-no view may reach itself through `@name`.
+each `sort` and `columns` entry must name a known field or view, including a
+scalar `derived.<name>`, each `@name` must name a view, and no
+view may reach itself through `@name`.
 
 = Dictionaries
 

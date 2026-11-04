@@ -128,14 +128,23 @@ fn eval_a_file_outside_the_roots_harvests_it_and_runs_collectors() {
 }
 
 #[test]
-fn eval_a_file_under_no_project_still_reads_body_and_hashes_alone() {
+fn eval_a_file_under_no_project_reads_the_global_config() {
     let dir = mindtape::test_support::tempdir();
     support::install_lib(dir.path());
     write_file(dir.path(), "solo.typ", TASK);
+    let config_home = dir.path().join("no-global-config");
+    write_file(
+        &config_home,
+        "mindtape/defaults.toml",
+        "[[tasks.collectors]]\nname = \"changes\"\n\
+         query = { section = \"Changes\", pattern = \"(?m)^\\\\s*-\\\\s+`([^`]+)`\" }\n\
+         returns = [\"path\"]\n",
+    );
     let task = json(&stdout(dir.path(), &["eval", "solo.typ", "--json"]));
     assert!(
         task["body"].as_str().unwrap().contains("== Changes"),
         "{task}"
     );
     assert_eq!(task["id"], "solo", "{task}");
+    assert_eq!(task["derived"]["changes"][0], "src/a.rs", "{task}");
 }

@@ -125,6 +125,36 @@ line below is the breach on the task already in flight, reported against the
 The capped set can be any filter, so the same rule caps a view
 (`when = '@stuck'`), a #link(u("/priority/"))[priority band] or a `kind`.
 
+= Derived fields
+
+Some fields are cheaper to compute than to write twice. A
+#link(u("/config/#derived-fields"))[collector] reads the task and publishes the
+result as `derived.<name>`, and a rule reads it like any other field. A regex
+collector reads a body section, so a size cap can read the files a task's
+Changes section names instead of a separate estimate:
+
+// docs:hand-typed the collector and rule shape is a sketch until a fixture carries one
+```toml
+[[tasks.collectors]]
+name = "changes"
+when = "!terminal"
+query = { section = "Changes", pattern = "(?m)^\\s*-\\s+`([^`]+)`" }
+returns = ["path"]
+
+[[tasks.rules]]
+name = "judgment-stays-small"
+when = '!terminal && difficulty >= 3'
+assert = 'count_paths(derived.changes, "@source") <= 5'
+message = "split the decision from the mechanical fan-out"
+severity = "error"
+```
+
+`mt rules` lists the collectors under the rules, each with its origin, kind,
+type and readers. `--for commit` omits them, since a commit rule cannot read a
+derived field in this version. A rule whose filter names an undeclared
+`derived.<name>` fails config load, so a renamed collector cannot leave a rule
+reading nothing.
+
 = Typst checks
 
 The filter language reads an `x-<ns>` field's text, number or list, but

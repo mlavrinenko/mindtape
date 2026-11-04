@@ -98,7 +98,7 @@ fn eval_file_without_marker_returns_err() {
 fn build_world_missing_file_returns_err() {
     let dir = tempdir();
     let file = dir.path().join("no_such_file.typ");
-    assert!(super::build_world(&file).is_err());
+    assert!(super::build_world_and_config(&file).is_err());
 }
 
 /// A `@local` package on disk: manifest plus the entrypoint it names. The
@@ -307,4 +307,18 @@ fn a_file_under_no_project_is_hashed_alone() {
     };
     let hashes = super::hashes_for(&file, &task, None);
     assert!(hashes.hash_of("solo").is_some());
+}
+
+#[test]
+fn a_set_reading_view_in_a_when_is_refused_without_a_project() {
+    let mut config = set_when_config("@setview");
+    config.views.insert(
+        "setview".to_owned(),
+        mindtape::ViewSpec {
+            filter: "count(status == \"wip\") > 0".to_owned(),
+            ..mindtape::ViewSpec::default()
+        },
+    );
+    let err = super::refuse_set_when(&config).unwrap_err();
+    assert!(crate::diag::plain(&err).contains("reads the task set"));
 }

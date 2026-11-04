@@ -45,9 +45,10 @@ whole, so your `[[tasks.status]]` replaces the floor's
 #link(u("/statuses/"))[status legend]. An empty array removes the floor's
 value, so `[tasks] status = []` leaves the status field unconstrained.
 
-Five arrays work differently. `[[tasks.rules]]`,
+Six arrays work differently. `[[tasks.rules]]`,
 `[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]`,
-`[[commits.rules]]` and `[[on.flip]]` collect the entries of every layer and of every
+`[[commits.rules]]`, `[[on.flip]]` and `[[tasks.collectors]]` collect the entries
+of every layer and of every
 #link(u("/packs/"))[pack] a layer adopts. An entry replaces a lower
 layer's entry with the same `name`, in its place, so you can change one
 inherited rule and keep the rest. Two entries with the same `name` in one
@@ -213,6 +214,7 @@ leaves out.
   ("tasks.derive-tags", "[tasks.derive-tags]"),
   ("tasks.tags", "[tasks.tags]"),
   ("tasks.rules", "[[tasks.rules]]"),
+  ("tasks.collectors", "[[tasks.collectors]]"),
   ("tasks.waits", "[[tasks.waits]]"),
   ("commits", "[commits]"),
   ("extends", "extends"),
@@ -241,8 +243,9 @@ leaves out.
 These sections have a page of their own:
 
 - `[[tasks.status]]`: #link(u("/statuses/"))[Statuses].
-- `[[tasks.rules]]`, `[tasks.body.headers]`, `[tasks.body.content]`,
-  `[tasks.comments]` and every `required` key: #link(u("/rules/"))[Rules].
+- `[[tasks.rules]]`, `[[tasks.collectors]]`, `[tasks.body.headers]`,
+  `[tasks.body.content]`, `[tasks.comments]` and every `required` key:
+  #link(u("/rules/"))[Rules].
 - `[[tasks.links.kinds]]`: #link(u("/links/"))[Task links].
 - `[tasks] roots` and `[tasks.derive-tags]`:
   #link(u("/derived-tags/"))[Derived tags].
@@ -265,6 +268,40 @@ These sections have a page of their own:
   #link(u("/cli/ls/"))[`mt ls`].
 
 The sections below have no other page.
+
+= Derived fields
+
+A `[[tasks.collectors]]` entry computes a field from the task itself instead of
+asking the author to write it twice. The collector's `name` is the field name,
+read as `derived.<name>` everywhere a filter, a `--sort`, `mt eval --json` and
+`mt ls --json` read a field.
+
+// docs:hand-typed the collector shape is a sketch until a fixture carries one
+```toml
+[[tasks.collectors]]
+name = "changes"
+when = "!terminal"
+query = { section = "Changes", pattern = "(?m)^\\s*-\\s+`([^`]+)`" }
+returns = ["path"]
+```
+
+`query` names what to read. A regex query takes `section`, one heading name or
+a heading path, and `pattern`. Each match yields its first capture group, or
+the whole match when the pattern has none; `group` picks one explicitly,
+counting from 0. The section's text is everything under its heading down to the
+next heading of the same or a higher level, the same slice a content rule
+reads. A missing section yields an empty list.
+
+`returns` is a type expression. The atoms are `bool`, `int`, `number`,
+`string`, `path` and `date`. Wrap one in a one-element array for a list, as in
+`["path"]`, or write a record such as `{ count = "number", files = ["path"] }`.
+A regex query returns `["string"]` or `["path"]`. A task the `when` excludes
+carries no field at all.
+
+Collectors merge by name across layers and packs, exactly as rules do, and
+`disable` drops one by name. Two collectors with the same name in one source
+are a config error. `mt rules` lists each one with its origin, kind, type and
+the rules that read it.
 
 = Actors
 

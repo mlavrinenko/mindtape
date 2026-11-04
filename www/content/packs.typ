@@ -198,7 +198,7 @@ pack's rule by name. The built-in packs name no files.
 = Drop a rule
 
 To turn off a rule you don't want, list its name in `disable`. It drops the
-rule from any of the five arrays, whichever pack or layer declared it, a
+rule or collector from any of the six arrays, whichever pack or layer declared it, a
 named #link(u("/hooks/"))[flip hook] included. A name that matches no rule is a
 config error, so a typo can't leave a rule running:
 
@@ -274,8 +274,9 @@ the layer's value wins anyway. Equal values agree, so two packs can both carry
 the same dictionary. Packs adopted by two different layers never clash: the
 higher layer wins.
 
-Five arrays merge by name instead: `[[tasks.rules]]`, the two body rule
-arrays, `[[commits.rules]]` and `[[on.flip]]`. Each takes the entries of the
+Six arrays merge by name instead: `[[tasks.rules]]`, the two body rule
+arrays, `[[commits.rules]]`, `[[on.flip]]` and `[[tasks.collectors]]`. Each
+takes the entries of the
 layer's packs in `extends` order, then the layer's own, and an entry replaces
 an earlier one with the same `name` in its place. A flip hook with no `name`
 appends and nothing can replace it, so a pack's hook that the project should

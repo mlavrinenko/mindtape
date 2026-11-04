@@ -38,6 +38,7 @@ impl Config {
             &self.tasks,
         )));
         problems.extend(crate::config::collect::validate_collectors(self));
+        problems.extend(unknown_derived_refs(self));
         problems.extend(crate::config::required::validate_requirements(self));
         problems.extend(crate::config::required::validate_values_when(self));
         problems.extend(plain(crate::config::links_validate::validate_link_kinds(
@@ -83,4 +84,38 @@ impl Config {
             Err(Problem::join(problems))
         }
     }
+}
+
+/// The first undeclared `derived.<name>` each saved task filter reads, one
+/// problem per expression. The dry runs cover `[[tasks.rules]]`, `required`
+/// and `[[on.flip]]`; these are the filters only parsed elsewhere.
+fn unknown_derived_refs(config: &Config) -> Vec<Problem> {
+    let mut problems = Vec::new();
+    let mut check = |at: String, source: &str| {
+        if let Some(problem) = crate::filter::unknown_derived(source, config) {
+            problems.push(problem.under(&at));
+        }
+    };
+    for (index, rule) in config.tasks.body.headers.rules.iter().enumerate() {
+        if let Some(when) = &rule.when {
+            check(format!("tasks.body.headers.rules[{index}].when"), when);
+        }
+    }
+    for (index, rule) in config.tasks.body.content.rules.iter().enumerate() {
+        if let Some(when) = &rule.when {
+            check(format!("tasks.body.content.rules[{index}].when"), when);
+        }
+    }
+    for (name, view) in &config.views {
+        check(format!("views.{name}.filter"), &view.filter);
+    }
+    for (index, rule) in config.ls.rules.iter().enumerate() {
+        if let Some(filter) = &rule.filter {
+            check(format!("ls.rules[{index}].filter"), filter);
+        }
+    }
+    if let Some(filter) = &config.rm.default_filter {
+        check("rm.default-filter".to_owned(), filter);
+    }
+    problems
 }

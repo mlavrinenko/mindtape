@@ -103,6 +103,11 @@ A field is #strong[authored] when it holds a value written in the task file.
     doesn't #link(u("/recurring/"))[recur].],
 
   [`extras`], [authored], [Each `x-<ns>` field, keyed by its name.],
+
+  [`derived`],
+  [computed],
+  [Each #link(u("/config/#derived-fields"))[collector]'s result, keyed by
+    its name. `mt import` ignores it.],
 )
 
 A record read by `mt import` needs only `title`. A missing key reads as

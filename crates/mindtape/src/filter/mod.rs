@@ -96,7 +96,9 @@ pub(crate) mod expr;
 pub(crate) mod links;
 pub(crate) mod parse_error;
 mod problems;
-pub(crate) use problems::{expr_problem, expr_problem_in_set, problem_of, undeclared_extras};
+pub(crate) use problems::{
+    expr_problem, expr_problem_in_set, problem_of, undeclared_extras, unknown_derived,
+};
 pub(crate) mod predicates;
 pub(crate) mod strings;
 pub use strings::DictMiss;
@@ -219,6 +221,32 @@ impl Filter {
             || self.tree.as_ref().is_some_and(calls_count)
     }
 
+    /// [`Self::reads_set`], following `in_view` into the named views. A view
+    /// that calls `count(...)` makes the filter reading it set-aware too.
+    #[must_use]
+    pub fn reads_set_in(&self, config: &Config) -> bool {
+        let mut seen = BTreeSet::new();
+        self.reads_set_through(config, &mut seen)
+    }
+
+    fn reads_set_through(&self, config: &Config, seen: &mut BTreeSet<String>) -> bool {
+        if self.reads_set() {
+            return true;
+        }
+        for view in self.view_refs() {
+            if !seen.insert(view.clone()) {
+                continue;
+            }
+            if let Some(spec) = config.views.get(&view)
+                && Filter::parse(&spec.filter)
+                    .is_ok_and(|filter| filter.reads_set_through(config, seen))
+            {
+                return true;
+            }
+        }
+        false
+    }
+
     /// Whether `task` satisfies the filter, resolving framework scores against
     /// `config`. The `ready` / `blocked` predicates are unavailable here (no
     /// task-set context); use [`matches_with`](Self::matches_with) for those.
@@ -274,6 +302,36 @@ impl Filter {
                     exists: None,
                 },
             ),
+        }
+    }
+}
+
+/// Every bare name a saved expression reads, following `in_view` into the
+/// named views. Empty for an expression that does not parse.
+#[must_use]
+pub(crate) fn names_in(source: &str, config: &Config) -> BTreeSet<String> {
+    let mut names = BTreeSet::new();
+    let mut seen = BTreeSet::new();
+    collect_names(source, config, &mut names, &mut seen);
+    names
+}
+
+fn collect_names(
+    source: &str,
+    config: &Config,
+    names: &mut BTreeSet<String>,
+    seen: &mut BTreeSet<String>,
+) {
+    let Ok(filter) = Filter::parse(source) else {
+        return;
+    };
+    names.extend(filter.names());
+    for view in filter.view_refs() {
+        if !seen.insert(view.clone()) {
+            continue;
+        }
+        if let Some(spec) = config.views.get(&view) {
+            collect_names(&spec.filter, config, names, seen);
         }
     }
 }

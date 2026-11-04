@@ -55,7 +55,7 @@ skips a file whose bytes are unchanged.
   version this binary reads, `0.2.0` and `0.3.0` today.
 - `truth/tasks/` — #mindtape's own backlog, read with the in-tree `lib/`.
   Change a task with `mt` commands, as `skills/mindtape/SKILL.md` says, and
-  list the rules each task and commit must pass with `mt rules`, and the tags
+  list the rules and derived fields with `mt rules`, and the tags
   they read with `mt tags`. Edit the file
   by hand only for the body, a framework priority, `estimate` and `x-goals`,
   then run `mt check`.

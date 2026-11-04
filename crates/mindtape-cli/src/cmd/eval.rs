@@ -114,15 +114,15 @@ fn load_task(file: &Path, project: Option<&Project>) -> Result<Task> {
         if let Some(task) = project.outcome.tasks.iter().find(|task| task.file == rel) {
             return Ok(task.clone());
         }
-        let task = harvest_task(file)?;
+        let (task, _) = harvest_task(file)?;
         let mut set = project.outcome.tasks.clone();
         set.push(task.clone());
         mindtape::collect::annotate(&mut set, &project.config);
         return Ok(set.pop().unwrap_or(task));
     }
-    refuse_set_when(&Config::default())?;
-    let mut task = harvest_task(file)?;
-    mindtape::collect::annotate(std::slice::from_mut(&mut task), &Config::default());
+    let (mut task, config) = harvest_task(file)?;
+    refuse_set_when(&config)?;
+    mindtape::collect::annotate(std::slice::from_mut(&mut task), &config);
     Ok(task)
 }
 
@@ -133,7 +133,7 @@ fn refuse_set_when(config: &Config) -> Result<()> {
             .when
             .as_deref()
             .and_then(|source| Filter::parse(source).ok())
-            .is_some_and(|filter| filter.reads_set());
+            .is_some_and(|filter| filter.reads_set_in(config));
         if reads_set {
             return Err(Diag::failed(
                 "a collector's when reads the task set, and this file is under no project",
@@ -148,9 +148,9 @@ fn refuse_set_when(config: &Config) -> Result<()> {
 }
 
 /// Evaluate one file and build the task it holds, with its body and spans
-/// filled.
-fn harvest_task(file: &Path) -> Result<Task> {
-    let world = build_world(file)?;
+/// filled, plus the config its world resolved.
+fn harvest_task(file: &Path) -> Result<(Task, Config)> {
+    let (world, config) = build_world_and_config(file)?;
     let result = harvest(&world).map_err(|err| evaluate_error(file, &err))?;
     let marker = result.with_marker("mindtape.task").next().ok_or_else(|| {
         Diag::failed("not a task file: it holds no task.with(…) call")
@@ -165,7 +165,7 @@ fn harvest_task(file: &Path) -> Result<Task> {
     let mut task = Task::from_marker(id, file.to_path_buf(), &marker.value);
     task.spans = TaskCallSpans::parse(&source);
     task.body = task.spans.body(&source);
-    Ok(task)
+    Ok((task, config))
 }
 
 /// Resolve `task`'s `count(...)` units against the project enclosing `file`:
@@ -309,7 +309,11 @@ fn hashes_for(file: &Path, task: &Task, resolved: Option<Project>) -> StemHashes
 /// # Errors
 /// Returns an error if the file does not exist, the world cannot be built, or
 /// the project's config does not parse.
-pub(crate) fn build_world(file: &Path) -> Result<HarvestWorld> {
+/// Build the world one file evaluates in, plus the config whose package
+/// overrides it applied. A file under no project still reads the XDG and
+/// ancestor layers, so its collectors and their `when` are the config a
+/// project would see.
+fn build_world_and_config(file: &Path) -> Result<(HarvestWorld, Config)> {
     if !file.is_file() {
         return Err(Diag::failed("no such file").value(mindtape::display_path(file)));
     }
@@ -321,9 +325,9 @@ pub(crate) fn build_world(file: &Path) -> Result<HarvestWorld> {
     // config and so no `[[typst.local-packages]]` entry.
     let root = find_root(world.root()).unwrap_or_else(|| world.root().to_path_buf());
     let config = load_config(&root)?;
-    Ok(mindtape::with_packages(
-        world,
-        &mindtape::package_overrides(&root, &config),
+    Ok((
+        mindtape::with_packages(world, &mindtape::package_overrides(&root, &config)),
+        config,
     ))
 }
 

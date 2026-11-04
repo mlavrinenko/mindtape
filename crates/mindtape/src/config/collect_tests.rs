@@ -361,3 +361,49 @@ returns = ["string"]
     let problem = config.validate().unwrap_err();
     assert!(problem.text.contains("query.section"), "{problem}");
 }
+
+#[test]
+fn an_undeclared_derived_field_fails_in_every_parsed_filter() {
+    for (label, text) in [
+        (
+            "a view",
+            format!("{CHANGES}\n[views.bad]\nfilter = 'has(derived.nope)'\n"),
+        ),
+        (
+            "a body rule",
+            format!(
+                "{CHANGES}\n[[tasks.body.content.rules]]\npath = [\"Changes\"]\nassert = \"non-empty\"\nwhen = 'has(derived.nope)'\n"
+            ),
+        ),
+        (
+            "an ls rule",
+            format!("{CHANGES}\n[[ls.rules]]\nfilter = 'has(derived.nope)'\n"),
+        ),
+        (
+            "rm",
+            format!("{CHANGES}\n[rm]\ndefault-filter = 'has(derived.nope)'\n"),
+        ),
+    ] {
+        let config = config(&text);
+        let problem = config.validate().unwrap_err();
+        assert!(problem.text.contains("derived.nope"), "{label}: {problem}");
+    }
+}
+
+#[test]
+fn a_when_reading_its_own_field_through_a_view_is_refused() {
+    let config = config(
+        r#"
+[[tasks.collectors]]
+name = "changes"
+when = "@self"
+query = { section = "Changes", pattern = "x" }
+returns = ["path"]
+
+[views.self]
+filter = "has(derived.changes)"
+"#,
+    );
+    let problem = config.validate().unwrap_err();
+    assert!(problem.text.contains("declaration order"), "{problem}");
+}

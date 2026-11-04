@@ -59,6 +59,9 @@ pub(crate) fn has_call(
 /// key. A missing field holds nothing.
 fn holds(task: &Task, name: &str, value: &str, config: &Config) -> Result<bool, FilterError> {
     if fields::is_derived(name) {
+        if fields::derived_type(config, name).is_none() {
+            return Err(FilterError::UnknownField(name.to_owned()));
+        }
         return Ok(match fields::derived_hval(task, name) {
             Some(HVal::Dict(entries)) => entries.contains_key(value),
             Some(HVal::Array(_)) => match field_value(task, name, config)? {

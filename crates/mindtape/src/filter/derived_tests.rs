@@ -190,3 +190,11 @@ fn a_derived_name_is_a_term() {
     assert!(Filter::names_term("derived.changes", &config));
     assert!(!Filter::names_term("derived.nope", &config));
 }
+
+#[test]
+fn has_with_a_value_refuses_an_undeclared_derived_field() {
+    let config = config();
+    let subject = subject_with(BTreeMap::new());
+    let err = matches("has(derived.nope, \"x\")", &subject, &config).unwrap_err();
+    assert!(err.to_string().contains("derived.nope"), "{err}");
+}

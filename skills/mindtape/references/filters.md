@@ -27,6 +27,9 @@ save it in config, because `mt ls` shows what it selects.
   `[[actors]]`, and `role != "reviewer"` matches every other task.
 - `estimate.<unit>` is one unit of the `estimate` dict, as a number.
 - `estimate` and `tags` take `has()` and `miss()` only: `has(tags, "frontend")`, `has(estimate, "days")`.
+- `derived.<name>` is a field a `[[tasks.collectors]]` entry computes. A
+  scalar compares and sorts; a list or record does not. `derived.<name>.<field>`
+  reads one record field.
 - An `x-<ns>` slot reads whether or not `[tasks.fields]` declares it. Text, a
   number or a boolean compares like any field: `x-machine == "alpha"`. A list
   equals nothing, so `has(x-machine, "alpha")` tests membership. A dict such
@@ -40,9 +43,10 @@ A field the task does not carry is unequal to every literal, so
 `kind != "bug"` matches a task with no `kind`. Use `miss(kind)` to select
 absence.
 
-`--sort` takes every field above except `role`, `estimate.<unit>`, `estimate`
-and `tags`. It also takes `ready`, which sorts ready tasks before blocked ones
-and finished ones last. Bare `status` sorts by legend position.
+`--sort` takes every field above except `role`, `estimate.<unit>`, `estimate`,
+`tags` and a list or record `derived.<name>`. It also takes `ready`, which
+sorts ready tasks before blocked ones and finished ones last. Bare `status`
+sorts by legend position.
 
 ## Operators
 
@@ -79,6 +83,7 @@ and finished ones last. Bare `status` sorts by legend position.
   from the `mindtape:tasks` pack. Without the pack, use the built-in
   `mindtape-verbs` or declare `[dicts.verbs]`. `mt dicts d` lists the entries
   of `d`.
+- `len(f)` counts the items of a list field, and a missing field counts 0.
 - `touches("path")` matches the tasks named in the `Refs:` trailers of commits
   that changed that file. `[commits] trailer` sets the trailer key. Run
   `mt ls 'touches("<path>")'` before you edit a file.
@@ -89,6 +94,8 @@ A count is a number, so it goes in a comparison.
 
 - `count(expr)` counts the loaded tasks that match `expr`, whatever the rest
   of the filter selects: `count(status == "wip") <= 1`.
+- `count_paths(f, "@set", "!glob", …)` counts distinct, normalized paths a
+  `["path"]` derived field holds inside the path sets.
 - `changed("states", "glob", "!glob", …)` counts the paths git reports
   changed. The states are `staged`, `worktree` or `staged+worktree`. Globs are
   relative to the repository root, and a `!` glob excludes:

@@ -66,6 +66,12 @@ backend project's backlog:
     ))
     .flatten(),
 
+  [`derived.<name>`],
+  [A field a #link(u("/config/#derived-fields"))[collector] computes. A scalar
+    compares and sorts. A list or record does not; read a list's length with
+    `len()` or its paths with `count_paths()`, and read a record field as
+    `derived.<name>.<field>`.],
+
   [`x-<ns>`],
   [An extension field, whether or not `[tasks.fields]` declares it. Text, a number or a boolean compares like any field. A list equals nothing, so use `has(field, value)` to read it. A dict takes only `has()` and `miss()`. If a filter in the config names an undeclared one while `[tasks.fields]` declares others, `mt` warns at load and suggests the nearest declared name.],
 )
@@ -134,6 +140,19 @@ same date, which `MINDTAPE_NOW` pins (see
 
   [`ready`, `blocked`, `terminal`],
   [Described below. Write them bare or as `ready()`.],
+
+  [`len(field)`],
+  [How many items a list field holds. A missing field counts zero.],
+
+  [`count_paths(field, ...sets)`],
+  [How many distinct, normalized paths a `["path"]` field holds inside the
+    path sets, which are globs or `@name` sets as in `changed()`.],
+
+  [`changed("states", ...globs)`],
+  [How many distinct paths git reports changed in those states, inside the
+    globs. A count, so it appears in a comparison.],
+
+  [`count(expr)`], [How many loaded tasks match the expression. A count too.],
 )
 
 #commands("filters-functions")

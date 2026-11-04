@@ -10,6 +10,10 @@ a limit, or an `@name` #link(u("/named-sets/"))[view] that sets all three. A
 bare `mt ls` uses the first matching `[[ls.rules]]` entry, described below, or
 else the default view. `mt ls ''` lists every task.
 
+`--sort` also takes a scalar `derived.<name>` a project's
+#link(u("/config/#derived-fields"))[collector] computes. A list or record one
+is refused.
+
 A listing has three facets: filter, sort and columns. An `[[ls.rules]]` entry,
 a view and a command-line argument each set only the facets they name. A
 filter argument replaces the filter and keeps the sort and columns of the rule

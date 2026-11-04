@@ -238,7 +238,7 @@ fn an_undeclared_derived_field_is_unknown() {
 }
 
 #[test]
-fn a_declared_collector_may_be_named_in_its_own_when() {
+fn a_collector_cannot_read_its_own_field_in_its_when() {
     let spec = CollectorSpec {
         name: "changes".to_owned(),
         when: Some("has(derived.changes)".to_owned()),
@@ -251,5 +251,36 @@ fn a_declared_collector_may_be_named_in_its_own_when() {
     };
     let mut config = Config::default();
     config.tasks.collectors.push(spec);
+    let problem = config.validate().unwrap_err();
+    assert!(problem.text.contains("declaration order"), "{problem}");
+}
+
+#[test]
+fn a_later_collector_may_read_an_earlier_field_but_not_the_reverse() {
+    let mut config = Config::default();
+    config.tasks.collectors.push(CollectorSpec {
+        name: "changes".to_owned(),
+        when: None,
+        query: crate::config::CollectorQuery::Regex(RegexQuery {
+            section: SectionSpec::Name("Changes".to_owned()),
+            pattern: "x".to_owned(),
+            group: None,
+        }),
+        returns: CollectorType::List(Box::new(CollectorType::Atom(CollectorAtom::Path))),
+    });
+    config.tasks.collectors.push(CollectorSpec {
+        name: "summary".to_owned(),
+        when: Some("len(derived.changes) > 0".to_owned()),
+        query: crate::config::CollectorQuery::Regex(RegexQuery {
+            section: SectionSpec::Name("Changes".to_owned()),
+            pattern: "x".to_owned(),
+            group: None,
+        }),
+        returns: CollectorType::List(Box::new(CollectorType::Atom(CollectorAtom::Path))),
+    });
     assert!(config.validate().is_ok(), "{:?}", config.validate());
+    let mut reversed = config.clone();
+    reversed.tasks.collectors.reverse();
+    let problem = reversed.validate().unwrap_err();
+    assert!(problem.text.contains("declaration order"), "{problem}");
 }

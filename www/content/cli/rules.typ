@@ -15,6 +15,11 @@ for `[[tasks.rules]]` and `[[commits.rules]]`, and `error` for a body rule. A
 rule with no `message` shows the text a breach prints instead, or who words
 it.
 
+Under the rules, `mt rules` lists every derived field a
+#link(u("/config/#derived-fields"))[collector] computes: its type, its
+`derived.<name>`, its kind and origin, and the rules that read it. `--for
+commit` omits that block, since a commit rule cannot read a derived field.
+
 `--for` keeps the rules one step checks. `add` lists what `mt add` checks
 before it writes, `flip` adds the flip actions to that, and `commit` lists
 your #link(u("/commit-rules/"))[commit rules]. `--json` adds each rule's

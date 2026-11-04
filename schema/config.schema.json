@@ -313,7 +313,7 @@
         },
         "when": {
           "default": null,
-          "description": "Filter expression gating which tasks the collector runs on. Absent\nmeans every task. A task the filter excludes carries no field.",
+          "description": "Filter gating the collector; a task it excludes carries no field.",
           "type": [
             "string",
             "null"
@@ -344,12 +344,17 @@
         },
         {
           "description": "A list of one type, written `[T]`.",
+          "items": {
+            "$ref": "#/$defs/CollectorType"
+          },
           "maxItems": 1,
           "minItems": 1,
           "type": "array"
         },
         {
-          "additionalProperties": true,
+          "additionalProperties": {
+            "$ref": "#/$defs/CollectorType"
+          },
           "description": "A record of named fields, written `{ field = T }`.",
           "type": "object"
         }

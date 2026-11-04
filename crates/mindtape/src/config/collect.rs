@@ -1,14 +1,9 @@
-//! `[[tasks.collectors]]`: derived task fields, declared as a query over the
-//! task and read as `derived.<name>`.
+//! `[[tasks.collectors]]`: derived task fields, read as `derived.<name>`.
 //!
-//! A collector names its derived field, an optional `when` filter gating it,
-//! a `query` and a `returns` type expression. The regex query reads a body
-//! section and returns a list of strings or paths. The collection itself lives
-//! in [`crate::collect`]; this module is config shape and load-time checks.
-//!
-//! Collectors merge by name across layers and packs exactly as the rule arrays
-//! do ([`crate::config::packs`]), so a project overrides a shipped collector by
-//! redeclaring its name or drops it with `disable`.
+//! A collector names its field, an optional `when`, a `query` and a `returns`
+//! type expression. The collection itself lives in [`crate::collect`]; this
+//! module is config shape and load-time checks. Collectors merge by name across
+//! layers and packs exactly as the rule arrays do ([`crate::config::packs`]).
 
 use std::collections::BTreeMap;
 use std::fmt;
@@ -21,9 +16,7 @@ use crate::config::Config;
 use crate::config::pack_registry::RuleOriginEntry;
 use crate::problem::Problem;
 
-/// Where each merged collector was declared, recorded by
-/// [`crate::config::layers::build_config`]. Derived, never declared, never
-/// equal-compared — the same reading [`crate::rules::sites::RuleSites`] takes.
+/// Where each merged collector was declared, recorded at load.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct CollectorOrigins(pub(crate) Vec<RuleOriginEntry>);
 
@@ -39,8 +32,7 @@ impl PartialEq for CollectorOrigins {
 pub struct CollectorSpec {
     /// The derived field's name: the collector is read as `derived.<name>`.
     pub name: String,
-    /// Filter expression gating which tasks the collector runs on. Absent
-    /// means every task. A task the filter excludes carries no field.
+    /// Filter gating the collector; a task it excludes carries no field.
     #[serde(default)]
     #[schemars(extend("x-expression" = "filter"))]
     pub when: Option<String>,
@@ -319,7 +311,8 @@ impl schemars::JsonSchema for CollectorType {
         "mindtape::config::collect::CollectorType".into()
     }
 
-    fn json_schema(_generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+    fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        let inner = generator.subschema_for::<CollectorType>();
         schemars::json_schema!({
             "description": "A `returns` type expression: one of `bool`, `int`, \
                 `number`, `string`, `path` and `date`; a one-element array `[T]` \
@@ -333,12 +326,13 @@ impl schemars::JsonSchema for CollectorType {
                     "type": "array",
                     "minItems": 1,
                     "maxItems": 1,
+                    "items": inner.clone(),
                     "description": "A list of one type, written `[T]`."
                 },
                 {
                     "type": "object",
                     "description": "A record of named fields, written `{ field = T }`.",
-                    "additionalProperties": true
+                    "additionalProperties": inner
                 }
             ]
         })
@@ -379,10 +373,11 @@ pub(crate) fn validate_collectors(config: &Config) -> Vec<Problem> {
                 validate_regex(query, spec, &path, &mut problems);
             }
         }
-        if let Some(when) = &spec.when
-            && let Some(problem) = crate::filter::expr_problem_in_set(when, &probe, config)
-        {
-            problems.push(problem.under(&format!("{path}.when")));
+        if let Some(when) = &spec.when {
+            if let Some(problem) = crate::filter::expr_problem_in_set(when, &probe, config) {
+                problems.push(problem.under(&format!("{path}.when")));
+            }
+            warn_on_later_reads(when, index, &path, config, &mut problems);
         }
     }
     problems.extend(
@@ -437,6 +432,33 @@ fn validate_regex(
             "{path}.returns: a regex query returns [\"string\"] or [\"path\"], not {}",
             spec.returns.describe()
         )));
+    }
+}
+
+/// A `when` may read only a field an earlier collector produced.
+fn warn_on_later_reads(
+    when: &str,
+    index: usize,
+    path: &str,
+    config: &Config,
+    problems: &mut Vec<Problem>,
+) {
+    for name in crate::filter::names_in(when, config) {
+        let Some(rest) = name.strip_prefix("derived.") else {
+            continue;
+        };
+        let collector = rest.split('.').next().unwrap_or(rest);
+        let position = config
+            .tasks
+            .collectors
+            .iter()
+            .position(|spec| spec.name == collector);
+        if position.is_some_and(|position| position >= index) {
+            problems.push(Problem::new(format!(
+                "{path}.when: reads `{name}`, which is declared at or after this collector; \
+                 collectors run in declaration order"
+            )));
+        }
     }
 }
 
