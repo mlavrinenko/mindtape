@@ -427,11 +427,11 @@ fn real_prelude_carries_a_count_estimate_and_renders_it() {
     assert_eq!(
         count.queries,
         vec![
-            crate::estimate_queries::Query::Grep {
+            crate::query::Query::Grep {
                 regex: "fn \\w+".to_owned(),
                 glob: Some("src/**".to_owned()),
             },
-            crate::estimate_queries::Query::Glob {
+            crate::query::Query::Glob {
                 pattern: "a.rs".to_owned(),
             },
         ]

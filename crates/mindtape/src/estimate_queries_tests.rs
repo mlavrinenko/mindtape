@@ -4,8 +4,9 @@ use std::collections::BTreeMap;
 
 use typst_harvest::HVal;
 
-use super::{CountEstimate, Query, annotate, parse_estimate, validate_config};
+use super::{CountEstimate, annotate, parse_estimate, validate_config};
 use crate::config::parse_config;
+use crate::query::Query;
 use crate::test_support::{bare_task, git_init, tempdir, write_file};
 
 fn dict(pairs: &[(&str, HVal)]) -> HVal {

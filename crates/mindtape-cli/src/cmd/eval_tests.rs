@@ -180,7 +180,8 @@ fn locate_refuses_a_missing_typ_path() {
 /// A task whose `src-files` resolved to 2 manual plus 3 files, from a grep
 /// that matched 3 and a glob that matched none.
 fn counted() -> mindtape::Task {
-    use mindtape::estimate_queries::{CountEstimate, Query};
+    use mindtape::estimate_queries::CountEstimate;
+    use mindtape::query::Query;
     let mut task = mindtape::test_support::bare_task("t");
     task.estimate.insert("src-files".to_owned(), 5.0);
     task.estimate.insert("hours".to_owned(), 1.0);

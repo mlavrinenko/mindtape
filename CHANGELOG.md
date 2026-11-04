@@ -60,6 +60,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The estimate query engine is a shared module.** `Query`, its parse and
+  compile step, the git-listed file walk, path-set resolution and the
+  per-process tree and match caches live in `crates/mindtape/src/query/`, and
+  `estimate_queries` resolves its units through it. `ast-grep-core` and
+  `ast-grep-language` are pinned with only the Rust grammar, so a later shape
+  query reuses the same engine.
 - **`mindtape:budget` sizes a task from its Changes section.** The pack ships
   a `changes` collector that reads the first backticked path on every Changes
   bullet, and both rules read `count_paths(derived.changes, "@source")`.

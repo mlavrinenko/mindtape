@@ -61,10 +61,11 @@ use serde_json::Value;
 use typst_harvest::HVal;
 
 use crate::config::Config;
-use crate::estimate_queries::{CountEstimate, Query};
+use crate::estimate_queries::CountEstimate;
 use crate::link::Link;
 use crate::model::numeric::{InputValue, NumValue};
 use crate::model::{Status, Task};
+use crate::query::Query;
 
 /// Schema version for [`CanonicalTask`]. Bump when the JSON shape changes in
 /// a way that could break `mt import` or an external `jq` consumer.

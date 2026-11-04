@@ -27,9 +27,10 @@ use std::collections::BTreeMap;
 
 use crate::date::parse_ymd;
 use crate::emit::status_value::status_value;
-use crate::estimate_queries::{CountEstimate, Query};
+use crate::estimate_queries::CountEstimate;
 use crate::model::numeric::{InputValue, NumValue, format_num};
 use crate::model::{Status, Task};
+use crate::query::Query;
 use crate::recur::{Recur, Rule};
 use format::{hval_to_typ, typ_array, typ_str};
 

@@ -51,6 +51,14 @@ and `PRELUDE_SNAPSHOTS` and deleting its snapshot and fixture. That release
 stops reading the version everywhere, including a past commit in
 `mt check --commits`.
 
+= Build hosts
+
+The Rust grammar behind an ast-grep query is C, compiled through `cc` at build
+time, so every build host needs a C compiler, the Windows cross check included.
+`ast-grep-language`'s default `builtin-parser` feature would pull every
+grammar, so `crates/mindtape/Cargo.toml` keeps default features off and enables
+one grammar crate per language. Measure the binary before adding another.
+
 = After a failure
 
 After a red CI, fix `main` and re-run the recipe: the bump and the dating stay

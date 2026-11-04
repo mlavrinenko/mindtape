@@ -486,12 +486,12 @@ groups:
       .just/scripts/release.sh: bc50191c0b8652ac12cec5a35927bebcbb47a92f3740ced7889bcdf0ab709f5d
     dependents:
       docs/src/contributing.typ: eddeeabed532aeee31385ade6f5697dac7fb4bf0065d7e6a99fc78c4e8c19dfe
-      docs/src/contributing/release.typ: 1fdc9f80b2db115e4d6c1cb4068306e9a54dd38ff2036a3522cf381df8b16eb4
+      docs/src/contributing/release.typ: 44d6067cc0cb5f96701053e526cf09fa0322a64f3c352ec92df4d9661e460ae1
   release-notes:
     source:
       Cargo.toml: c88d46a092158fe095e7e059f4989589aa27dbdbba8f7021050faec1cca68336
     dependents:
-      CHANGELOG.md: ee1de2d16fa2318e06f397a0a493b1a5e4fd15d2e63afb82114203671a2b5cb1
+      CHANGELOG.md: fb3243eb8487a97802a553f3485ddb6946054559ec2982f036a7d884c9479b38
   scripts-no-doc:
     source:
       .just/scripts/_doc-blocks-control.sh: 066258f034694487e0a94bba355457293697ff06ca7b974884ba3d5ca24ae7da

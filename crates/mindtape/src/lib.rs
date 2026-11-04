@@ -38,6 +38,7 @@ pub mod path_text;
 pub mod plural;
 pub mod prelude_import;
 pub mod problem;
+pub mod query;
 pub mod recur;
 pub mod rules;
 pub mod shell;
@@ -131,6 +132,7 @@ pub use model::{Status, Task, is_history_pointer, normalize_link, relative_targe
 pub use path_text::{display_path, init_path_separator, slash_path};
 pub use plural::{count, plural};
 pub use problem::Problem;
+pub use query::Query;
 pub use rules::{CheckSpec, RuleSpec};
 pub use sort::{default_order, default_order_with, difficulty_value, sort_by_specs};
 pub use suggest::{Unknown, nearest};

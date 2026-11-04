@@ -48,6 +48,13 @@ typstyle-core = "0.15.0"
 # splice into generated `framework("f", input: …)` calls (`framework/validate.rs`).
 # Same 0.15 already pinned via typstyle-core, so no second typst crate.
 typst-syntax = "0.15"
+# The shared query engine's shape matcher (`crates/mindtape/src/query/`). The
+# language crate's `builtin-parser` default pulls every grammar, each a C
+# parser compiled through `cc`, so default features stay off and this build
+# carries only the Rust one. A new language opts into its own grammar crate;
+# measure the binary before adding another.
+ast-grep-core = "0.50"
+ast-grep-language = { version = "0.50", default-features = false, features = ["tree-sitter-rust"] }
 artifact-gate = "0.2.0"
 swhid-mint = { version = "0.1.1", default-features = false }
 # Already in the tree at this version, under `typst-harvest`. Names the `Bytes`

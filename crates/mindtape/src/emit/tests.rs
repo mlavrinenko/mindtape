@@ -364,7 +364,8 @@ fn emits_deterministic_field_order() {
 /// authored half is compared.
 #[test]
 fn round_trips_a_count_estimate() {
-    use crate::estimate_queries::{CountEstimate, Query};
+    use crate::estimate_queries::CountEstimate;
+    use crate::query::Query;
     let grep = |regex: &str, glob: Option<&str>| Query::Grep {
         regex: regex.to_owned(),
         glob: glob.map(str::to_owned),
