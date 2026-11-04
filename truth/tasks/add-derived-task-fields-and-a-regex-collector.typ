@@ -87,7 +87,7 @@ returns = ["path"]
 
 - A Typst function collector: `add-a-typst-function-collector.typ`, which depends on this task.
 - The `estimate.src-files` migration: `replace-estimate-src-files-with-a-collected-changes-count.typ`.
-- ast-grep file queries: the milestone `add-ast-grep-file-queries-to-estimates.typ`.
+- ast-grep file queries: the milestone `add-ast-grep-queries-as-a-shared-query-engine.typ`.
 - Regex over a field other than a section; the Typst kind covers those.
 - Commit-scope rules reading derived fields; v1 refuses the name at load.
 - A unified `mt info` command over rules, tags and views.

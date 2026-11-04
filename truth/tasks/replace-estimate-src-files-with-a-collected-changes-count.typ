@@ -84,7 +84,7 @@ returns = ["path"]
 - Expanding a glob in Changes into its matching files; a bullet names one path and a glob counts once.
 - `examples/estimates` and `examples/rules`, which keep their estimate examples to document the optional field.
 - A Typst function collector: `add-a-typst-function-collector.typ`.
-- ast-grep file queries: the milestone `add-ast-grep-file-queries-to-estimates.typ`.
+- ast-grep file queries: the milestone `add-ast-grep-queries-as-a-shared-query-engine.typ`.
 
 
 == Dogfood

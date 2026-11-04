@@ -83,7 +83,7 @@ returns = ["path"]
 
 == Out of scope
 
-- ast-grep queries: the milestone `add-ast-grep-file-queries-to-estimates.typ`.
+- ast-grep queries: the milestone `add-ast-grep-queries-as-a-shared-query-engine.typ`.
 - Changing `check` to return values: rules keep the array-of-strings contract.
 - Caching Typst results across commands: measure first.
 
