@@ -206,6 +206,15 @@ fn the_archived_snapshot_checksum_normalizes_crlf() {
 const ARCHIVED_0_2_0_SHA256: &str =
     "e9bec1519fe6778cbfbdfb7d5897d616261661ecd529246faf4126b8050b7b10";
 
+/// The current snapshot carries the helper a 0.4.0 task authors.
+#[test]
+fn the_current_snapshot_carries_the_ast_grep_helper() {
+    assert!(
+        PRELUDE.contains("#let ast_grep("),
+        "0.4.0 must ship `ast_grep`"
+    );
+}
+
 /// The archived 0.3.0 snapshot predates `ast_grep(...)`, so a later edit that
 /// back-fills the helper into it must fail even when the DSL otherwise agrees.
 #[test]
