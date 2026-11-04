@@ -124,12 +124,15 @@ fn prelude_version_hint(version: &str) -> Hint {
 pub(crate) fn skipped_prelude_commit_diag(
     commit: &str,
     subject: &str,
+    tree: &str,
     version: &str,
     file: &Path,
 ) -> Diag {
     Diag::verbatim(
         Kind::Warning,
-        format!("imports @local/mindtape:{version}, which this mt does not support; skipped"),
+        format!(
+            "{tree} imports @local/mindtape:{version}, which this mt does not support; skipped"
+        ),
     )
     .at_file(Path::new(commit))
     .note(Note::new("file").value(mindtape::display_path(file)))

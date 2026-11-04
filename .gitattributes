@@ -14,3 +14,8 @@
 # writes, which is LF. Without this, Windows checks them out as CRLF and both
 # `schema_matches_golden` tests fail there.
 schema/*.json text eol=lf
+# The prelude snapshots are immutable and hashed byte for byte, and the current
+# snapshot is compared byte for byte with lib/prelude.typ. A Windows checkout
+# with core.autocrlf would turn them into CRLF; force LF so the bytes match.
+crates/mindtape/src/loader/preludes/**/*.typ text eol=lf
+lib/prelude.typ text eol=lf

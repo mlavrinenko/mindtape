@@ -8,8 +8,7 @@ use super::{
     PRELUDE, PRELUDE_SNAPSHOTS, PRELUDE_SUPPORTED, PRELUDE_VERSION, prelude_snapshot,
     prelude_supports,
 };
-use crate::config::Config;
-use crate::loader::load_project;
+use crate::loader::first_task_marker;
 use crate::loader::tests::first_task_title;
 use crate::loader::unsupported_prelude_version;
 use crate::model::numeric::NumValue;
@@ -154,23 +153,22 @@ fn the_embedded_prelude_is_the_in_tree_prelude() {
 /// title-only fixture.
 #[test]
 fn every_supported_snapshot_carries_the_task_fields() {
+    let empty = tempfile::tempdir().unwrap();
     for snapshot in PRELUDE_SNAPSHOTS {
-        let dir = tempfile::tempdir().unwrap();
-        std::fs::create_dir_all(dir.path().join("tasks")).unwrap();
-        std::fs::write(
-            dir.path().join("tasks/t.typ"),
-            format!(
-                "#import \"@local/mindtape:{}\": *\n\
-                 #show: task.with(\n  title: \"Snapshot\",\n  status: wip(2026, 6, 14)[reproduced],\n  \
-                 priority: 8,\n  estimate: (days: 2),\n  links: depends-on(\"other.typ\"),\n  \
-                 tags: (\"backend\",),\n  x-test: (ok: true),\n)\n",
-                snapshot.version
-            ),
-        )
-        .unwrap();
-        let outcome = load_project(dir.path(), &Config::default());
-        assert_eq!(outcome.errors, Vec::new(), "{}", snapshot.version);
-        let task = outcome.tasks.first().unwrap();
+        let source = format!(
+            "#import \"@local/mindtape:{}\": *\n\
+             #show: task.with(\n  title: \"Snapshot\",\n  status: wip(2026, 6, 14)[reproduced],\n  \
+             priority: 8,\n  estimate: (days: 2),\n  links: depends-on(\"other.typ\"),\n  \
+             tags: (\"backend\",),\n  x-test: (ok: true),\n)\n",
+            snapshot.version
+        );
+        let harvest = harvest_under(empty.path(), &source).unwrap();
+        let marker = first_task_marker(&harvest.markers).unwrap();
+        let task = crate::model::Task::from_marker(
+            "snapshot".to_owned(),
+            std::path::PathBuf::from("snapshot.typ"),
+            marker,
+        );
         assert_eq!(task.title, "Snapshot", "{}", snapshot.version);
         let status = task.status.as_ref().unwrap();
         assert_eq!(status.name, "wip", "{}", snapshot.version);
@@ -190,12 +188,28 @@ fn every_supported_snapshot_carries_the_task_fields() {
 /// with the same DSL, fails until support is deliberately dropped.
 #[test]
 fn the_archived_0_2_0_snapshot_is_immutable() {
-    use sha2::Digest;
     let snapshot = prelude_snapshot("0.2.0").unwrap();
-    assert_eq!(
-        crate::loader::cache::hex(&sha2::Sha256::digest(snapshot.source.as_bytes())),
-        "e9bec1519fe6778cbfbdfb7d5897d616261661ecd529246faf4126b8050b7b10"
-    );
+    assert_eq!(snapshot_digest(snapshot.source), ARCHIVED_0_2_0_SHA256);
+}
+
+/// The checksum reads LF even where a checkout or an editor hands the test
+/// CRLF, so the same fixture passes on Windows.
+#[test]
+fn the_archived_snapshot_checksum_normalizes_crlf() {
+    let snapshot = prelude_snapshot("0.2.0").unwrap();
+    let crlf = snapshot.source.replace('\n', "\r\n");
+    assert_ne!(crlf, snapshot.source);
+    assert_eq!(snapshot_digest(&crlf), ARCHIVED_0_2_0_SHA256);
+}
+
+const ARCHIVED_0_2_0_SHA256: &str =
+    "e9bec1519fe6778cbfbdfb7d5897d616261661ecd529246faf4126b8050b7b10";
+
+/// The SHA-256 of a prelude snapshot with CRLF collapsed to LF.
+fn snapshot_digest(source: &str) -> String {
+    use sha2::Digest;
+    let lf = source.replace("\r\n", "\n");
+    crate::loader::cache::hex(&sha2::Sha256::digest(lf.as_bytes()))
 }
 
 /// `PRELUDE_VERSION` and `lib/typst.toml` name one version; a bump that

@@ -71,9 +71,9 @@ groups:
       www/utils/cli-notes.typ: f4f3fdc25dd45b7465220811f822300fe7ebeefde4ed1e476f63d24e46397621
   cli-check-docs:
     source:
-      crates/mindtape-cli/src/cmd/check/commit.rs: d813b3b72843876b441531bffb82061154fb75c76f65ad7ed46f4734e6c883ff
+      crates/mindtape-cli/src/cmd/check/commit.rs: 299910c3a0d410d35936b1cec808e8734e009f68c45c8d3e6a6e327a638a1621
       crates/mindtape-cli/src/cmd/check/mod.rs: a6b534eb7b136cce75a7427b1833fdbb4fc4d1e98cc06228face15834ef2bf08
-      crates/mindtape-cli/src/cmd/check/range.rs: 88736cbcc76b45977410231e849c09b7eeeaeb6beb947c59362946ac0f7a6e3e
+      crates/mindtape-cli/src/cmd/check/range.rs: 1e94bf07177b355e75adee8f3cd2bc6a5496b792ce922328ebd47e2c5f8e4092
       crates/mindtape-cli/src/cmd/check/templates.rs: 27e3dde799fa1977d8c92c91e43d4c26fb1110fe3e06907edf2a87a1900ca1c2
     dependents:
       skills/mindtape/evals/evals.json: 30cf7329118dc87b78164b1f425b6bc114f509d6ed4112cd0c174438b9ecc826
@@ -436,7 +436,7 @@ groups:
       www/utils/link-kind-notes.typ: fa45efd35cebb66df1d06a55dae739d9e7ba9d509588900b76791b690cded928
   lock-merge-docs:
     source:
-      .gitattributes: e71a1da6017b02854dda72d61aa45228575c807f2d307625d43adf75a2d4392f
+      .gitattributes: c7587f5ee485d3acbd80f3f310d9da1e3d5f78a509a61cbc70161dc82deeeaa5
       .just/scripts/crap-baseline-merge.sh: 007f29683e4e2351cf7fda5d108699da8d3b434bd0fff4f6a92f6a45b3858ed8
     dependents:
       docs/src/contributing.typ: eddeeabed532aeee31385ade6f5697dac7fb4bf0065d7e6a99fc78c4e8c19dfe

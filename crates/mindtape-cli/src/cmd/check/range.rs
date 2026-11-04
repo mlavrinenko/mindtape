@@ -224,7 +224,11 @@ fn tip_state(
     let (past, states) = read_past(project, range, commit, loader)?;
     let unsupported = unsupported_versions(&states.staged);
     if !unsupported.is_empty() {
-        warn_skipped(commit, &past.message, &unsupported);
+        let versions: Vec<_> = unsupported
+            .into_iter()
+            .map(|(version, file)| (version, file, false))
+            .collect();
+        warn_skipped(commit, &past.message, &versions);
         return Ok(None);
     }
     Ok(Some(states.staged))
@@ -243,10 +247,13 @@ fn check_one(
     let head_unsupported = unsupported_versions(&states.head);
     if !(staged_unsupported.is_empty() && head_unsupported.is_empty()) {
         let staged_skipped = !staged_unsupported.is_empty();
-        let mut all = staged_unsupported;
-        for found in head_unsupported {
-            if !all.iter().any(|(version, _)| *version == found.0) {
-                all.push(found);
+        let mut all: Vec<(&str, &Path, bool)> = staged_unsupported
+            .into_iter()
+            .map(|(version, file)| (version, file, false))
+            .collect();
+        for (version, file) in head_unsupported {
+            if !all.iter().any(|(found, _, _)| *found == version) {
+                all.push((version, file, true));
             }
         }
         warn_skipped(commit, &past.message, &all);
@@ -292,12 +299,18 @@ fn check_one(
 
 /// Warn for each unsupported prelude version a compared tree holds, naming the
 /// commit, the version, the first file and the set.
-fn warn_skipped(commit: &RangeCommit, message: &str, versions: &[(&str, &Path)]) {
+fn warn_skipped(commit: &RangeCommit, message: &str, versions: &[(&str, &Path, bool)]) {
     let subject = message.lines().next().unwrap_or_default();
-    for (version, file) in versions {
+    for (version, file, parent) in versions {
+        let tree = if *parent {
+            "its parent tree"
+        } else {
+            "its own tree"
+        };
         crate::diag::emit(&skipped_prelude_commit_diag(
             &commit.short,
             subject,
+            tree,
             version,
             file,
         ));

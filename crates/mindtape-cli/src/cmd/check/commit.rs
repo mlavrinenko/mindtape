@@ -89,10 +89,15 @@ pub(crate) fn warn_state_errors(
         for error in &state.errors {
             if let Some(version) = mindtape::unsupported_prelude_version(&error.message) {
                 if said.insert(version.to_owned()) {
+                    let tree = if name == labels.head {
+                        "its parent tree"
+                    } else {
+                        "its own tree"
+                    };
                     let diag = Diag::verbatim(
                         Kind::Warning,
                         format!(
-                            "{} as {name}: imports @local/mindtape:{version}, which this mt does not support",
+                            "{} as {name}: {tree} imports @local/mindtape:{version}, which this mt does not support",
                             error.place()
                         ),
                     )

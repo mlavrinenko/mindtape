@@ -27,6 +27,14 @@ fn repo_with_old_parser(rules: &str, subject: &str, work: &str) -> tempfile::Tem
 /// Assert a skipped-prelude report did not run the `head(exists)` rule.
 fn assert_parent_rule_skipped(text: &str) {
     assert_unsupported_prelude(text, "0.1.0");
+    assert!(
+        text.contains("its parent tree imports @local/mindtape:0.1.0"),
+        "the warning names the parent tree: {text}"
+    );
+    assert!(
+        !text.contains("its own tree imports @local/mindtape:0.1.0"),
+        "the child does not import the old version: {text}"
+    );
     assert!(!text.contains("parent-loads"), "{text}");
 }
 
@@ -60,6 +68,10 @@ fn a_range_skips_a_tree_whose_prelude_is_not_supported() {
 
     assert!(ok, "an unsupported past prelude is skipped: {text}");
     assert!(text.contains("warning:"), "{text}");
+    assert!(
+        text.contains("its own tree imports @local/mindtape:0.1.0"),
+        "the warning names the commit's own tree: {text}"
+    );
     assert_unsupported_prelude(&text, "0.1.0");
     for absent in ["Refs: `parser`", "named-tasks-finish-at-the-tip"] {
         assert!(
@@ -174,5 +186,41 @@ fn a_range_skips_a_state_whose_own_pin_is_unsupported() {
     assert!(
         !text.contains("Refs: `parser`"),
         "the skipped task is not a missing ref: {text}"
+    );
+}
+
+/// A skipped migration commit still supplies the tip state when its own tree
+/// loaded, so a tip rule reads the newest supported tasks, not an empty set.
+#[test]
+fn a_supported_newest_stage_supplies_the_tip_state_after_an_unsupported_parent() {
+    let dir = commit_repo(FINISH_AT_THE_TIP);
+    let dir = dir.path();
+    commit_parser(
+        dir,
+        "wip(2026, 6, 1)",
+        mindtape::PRELUDE_VERSION,
+        "feat: start the parser\n\nRefs: parser",
+        "src/a.rs",
+    );
+    commit_parser(
+        dir,
+        "wip(2026, 6, 1)",
+        "0.1.0",
+        "feat: use an old prelude\n\nRefs: parser",
+        "src/b.rs",
+    );
+    commit_parser(
+        dir,
+        "wip(2026, 6, 2)",
+        mindtape::PRELUDE_VERSION,
+        "feat: migrate the prelude\n\nRefs: parser",
+        "src/c.rs",
+    );
+
+    let (ok, text) = check_range(dir, "HEAD~3..HEAD");
+
+    assert!(
+        !ok && text.contains("named-tasks-finish-at-the-tip") && text.contains("parser"),
+        "the tip rule runs against the newest supported stage: {text}"
     );
 }

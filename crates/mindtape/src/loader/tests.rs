@@ -240,11 +240,11 @@ fn in_tree_local_package_needs_a_local_packages_entry() {
     // name is not `mindtape`, which the binary embeds and the prelude gate
     // checks first.
     let dir = setup();
-    write_pkg(dir.path(), "lib", "helper", "1.0.0", PRELUDE_STUB);
+    write_pkg(dir.path(), "lib", "helper", "99.99.99", PRELUDE_STUB);
     write_file(
         dir.path(),
         "tasks/t.typ",
-        "#import \"@local/helper:1.0.0\": *\n#show: task.with(title: \"Hi\")\n= Body\n",
+        "#import \"@local/helper:99.99.99\": *\n#show: task.with(title: \"Hi\")\n= Body\n",
     );
     let outcome = load_project(dir.path(), &Config::default());
     assert!(outcome.tasks.is_empty(), "{:?}", outcome.tasks);
