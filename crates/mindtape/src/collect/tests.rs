@@ -248,6 +248,7 @@ fn a_collector_cannot_read_its_own_field_in_its_when() {
             group: None,
         }),
         returns: CollectorType::List(Box::new(CollectorType::Atom(CollectorAtom::Path))),
+        root: None,
     };
     let mut config = Config::default();
     config.tasks.collectors.push(spec);
@@ -267,6 +268,7 @@ fn a_later_collector_may_read_an_earlier_field_but_not_the_reverse() {
             group: None,
         }),
         returns: CollectorType::List(Box::new(CollectorType::Atom(CollectorAtom::Path))),
+        root: None,
     });
     config.tasks.collectors.push(CollectorSpec {
         name: "summary".to_owned(),
@@ -277,6 +279,7 @@ fn a_later_collector_may_read_an_earlier_field_but_not_the_reverse() {
             group: None,
         }),
         returns: CollectorType::List(Box::new(CollectorType::Atom(CollectorAtom::Path))),
+        root: None,
     });
     assert!(config.validate().is_ok(), "{:?}", config.validate());
     let mut reversed = config.clone();

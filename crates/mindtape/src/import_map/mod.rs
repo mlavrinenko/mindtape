@@ -105,6 +105,7 @@ pub fn map_canonical(canonical: &CanonicalTask, config: &Config, opts: &MapOptio
         recur: canonical.recur.as_ref().map(CanonicalRecur::to_recur),
         extras,
         derived: std::collections::BTreeMap::new(),
+        collector_problems: Vec::new(),
         shape_errors: Vec::new(),
         body,
         spans: crate::model::task_spans::TaskCallSpans::default(),

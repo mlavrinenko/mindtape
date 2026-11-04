@@ -167,6 +167,7 @@ fn a_scalar_derived_field_sorts() {
             group: None,
         }),
         returns: CollectorType::Atom(CollectorAtom::Number),
+        root: None,
     };
     assert!(crate::sort::validate_sort_spec_with("derived.summary", &[spec]).is_ok());
 }
@@ -254,6 +255,7 @@ fn every_type_atom_describes_itself() {
             group: None,
         }),
         returns: record,
+        root: None,
     };
     assert_eq!(crate::returns_of(&spec), "{ count = number }");
 }
@@ -406,4 +408,41 @@ filter = "has(derived.changes)"
     );
     let problem = config.validate().unwrap_err();
     assert!(problem.text.contains("declaration order"), "{problem}");
+}
+
+#[test]
+fn a_typst_collector_parses_and_accepts_every_return_type() {
+    let config = config(
+        r#"
+[[tasks.collectors]]
+name = "title"
+query = { typst = "lib.typ", function = "title", field = "title" }
+returns = "string"
+
+[[tasks.collectors]]
+name = "summary"
+query = { typst = "lib.typ", function = "summary" }
+returns = { count = "int", files = ["path"] }
+"#,
+    );
+    assert_eq!(config.tasks.collectors[0].query.kind(), "typst");
+    assert!(config.validate().is_ok(), "{:?}", config.validate());
+}
+
+#[test]
+fn an_empty_typst_module_or_function_is_refused() {
+    let config = config(
+        r#"
+[[tasks.collectors]]
+name = "x"
+query = { typst = "", function = "" }
+returns = "string"
+"#,
+    );
+    let problem = config.validate().unwrap_err();
+    assert!(
+        problem.text.contains("must name a Typst module"),
+        "{problem}"
+    );
+    assert!(problem.text.contains("must name a function"), "{problem}");
 }

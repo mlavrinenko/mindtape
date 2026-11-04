@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A collector can call a project Typst function.** `query = { typst,
+  function, field }` runs an exported function over the whole task or one field
+  and publishes its value as `derived.<name>`. The value is checked against
+  `returns`; a missing export fails config load, and an eval error, a panic or a
+  wrong-typed value becomes a `Collector` violation at `derived.<name>`. A pack
+  collector resolves its module from the pack directory. `mt eval` prints the
+  problem and `mt ls --json` carries `collector_problems`.
 - **`[[tasks.collectors]]` publish derived task fields.** A collector's `name`
   is the field name, read as `derived.<name>` by filters, `--sort`, `mt eval`
   and `mt ls --json`. A regex query reads a body section and returns

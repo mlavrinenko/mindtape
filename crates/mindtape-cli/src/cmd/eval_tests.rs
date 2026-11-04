@@ -271,18 +271,18 @@ fn a_count_under_no_project_says_its_unit_takes_a_plain_number() {
 /// A collector spec whose `when` reads the whole set.
 fn set_when_config(when: &str) -> mindtape::Config {
     let mut config = mindtape::Config::default();
-    config.tasks.collectors.push(mindtape::CollectorSpec {
-        name: "changes".to_owned(),
-        when: Some(when.to_owned()),
-        query: mindtape::CollectorQuery::Regex(mindtape::RegexQuery {
+    config.tasks.collectors.push(mindtape::CollectorSpec::new(
+        "changes",
+        Some(when.to_owned()),
+        mindtape::CollectorQuery::Regex(mindtape::RegexQuery {
             section: mindtape::SectionSpec::Name("Changes".to_owned()),
             pattern: "x".to_owned(),
             group: None,
         }),
-        returns: mindtape::CollectorType::List(Box::new(mindtape::CollectorType::Atom(
+        mindtape::CollectorType::List(Box::new(mindtape::CollectorType::Atom(
             mindtape::CollectorAtom::Path,
         ))),
-    });
+    ));
     config
 }
 

@@ -62,6 +62,7 @@ pub(crate) mod actors;
 pub(crate) mod add;
 pub(crate) mod assignee;
 pub mod collect;
+pub(crate) mod collect_type;
 pub mod comments;
 pub mod commits;
 pub(crate) mod dicts;
@@ -119,7 +120,7 @@ pub use crate::body::headers::{HeaderAction, HeaderPathSegment, HeaderRuleConfig
 pub use crate::config::add::{AddConfig, InteractiveMode};
 pub use crate::config::collect::{
     CollectorAtom, CollectorQuery, CollectorSpec, CollectorType, RegexQuery, SectionSpec,
-    returns_of,
+    TypstQuery, returns_of,
 };
 pub use crate::config::dicts::{
     BUILTIN_PREFIX, Dict, DictCache, DictCase, DictSpec, Dicts, builtin_dict_names, compile_dicts,

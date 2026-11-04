@@ -124,6 +124,9 @@ pub enum ViolationKind {
     /// A `[[tasks.rules]]` rule skipped because git could not answer. The
     /// fault is the config's, and it is reported once at the rule's entry.
     SkippedRule,
+    /// A collector could not produce its field: an eval error, a panic or a
+    /// value that does not match `returns`.
+    Collector,
 }
 
 /// A single validation failure.

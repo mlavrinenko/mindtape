@@ -19,6 +19,7 @@ fn config() -> Config {
             group: None,
         }),
         returns: CollectorType::List(Box::new(CollectorType::Atom(CollectorAtom::Path))),
+        root: None,
     });
     config.tasks.collectors.push(CollectorSpec {
         name: "summary".to_owned(),
@@ -38,6 +39,7 @@ fn config() -> Config {
                 CollectorType::Atom(CollectorAtom::String),
             ),
         ])),
+        root: None,
     });
     config
 }

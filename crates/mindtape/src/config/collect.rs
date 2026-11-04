@@ -5,14 +5,14 @@
 //! module is config shape and load-time checks. Collectors merge by name across
 //! layers and packs exactly as the rule arrays do ([`crate::config::packs`]).
 
-use std::collections::BTreeMap;
-use std::fmt;
+use std::path::PathBuf;
 
 use regex::Regex;
-use serde::{Deserialize, Deserializer};
+use serde::Deserialize;
 
 use crate::body::headers::HeaderPathSegment;
 use crate::config::Config;
+pub use crate::config::collect_type::{CollectorAtom, CollectorType};
 use crate::config::pack_registry::RuleOriginEntry;
 use crate::problem::Problem;
 
@@ -40,6 +40,30 @@ pub struct CollectorSpec {
     pub query: CollectorQuery,
     /// The type of the value the collector produces.
     pub returns: CollectorType,
+    /// The directory a pack-declared collector's `typst` module resolves from.
+    /// `None` means the project root. Set at load, never read from config.
+    #[serde(skip)]
+    pub(crate) root: Option<PathBuf>,
+}
+
+impl CollectorSpec {
+    /// A collector with no pack root, for a test or a caller building config in
+    /// code. Config loading stamps a pack collector's root separately.
+    #[must_use]
+    pub fn new(
+        name: impl Into<String>,
+        when: Option<String>,
+        query: CollectorQuery,
+        returns: CollectorType,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            when,
+            query,
+            returns,
+            root: None,
+        }
+    }
 }
 
 /// The query a collector runs.
@@ -48,6 +72,8 @@ pub struct CollectorSpec {
 pub enum CollectorQuery {
     /// A regex over one or more body sections.
     Regex(RegexQuery),
+    /// A project Typst function over the whole task or one of its fields.
+    Typst(TypstQuery),
 }
 
 impl CollectorQuery {
@@ -56,8 +82,25 @@ impl CollectorQuery {
     pub const fn kind(&self) -> &'static str {
         match self {
             Self::Regex(_) => "regex",
+            Self::Typst(_) => "typst",
         }
     }
+}
+
+/// A Typst query: call a project function over the canonical task, or over
+/// one field of it, and return its value.
+#[derive(Debug, Clone, PartialEq, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "kebab-case", deny_unknown_fields)]
+pub struct TypstQuery {
+    /// Path to the Typst module exporting `function`, relative to the project
+    /// root or to the pack directory that declared the collector.
+    pub typst: String,
+    /// Name of the exported function to call.
+    pub function: String,
+    /// The field whose value the function receives. Absent means the whole
+    /// task, in the shape `mt eval --json` prints.
+    #[serde(default)]
+    pub field: Option<String>,
 }
 
 /// A regex query: the first capture group (or the whole match) of every match
@@ -97,254 +140,6 @@ impl SectionSpec {
     }
 }
 
-/// A `returns` type expression: an atom, a one-element list `[T]`, or a record
-/// `{ field = T }`.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum CollectorType {
-    /// A scalar type.
-    Atom(CollectorAtom),
-    /// A list of one type, written `[T]`.
-    List(Box<CollectorType>),
-    /// A record of named fields, written `{ field = T }`.
-    Record(BTreeMap<String, CollectorType>),
-}
-
-/// One atom of a [`CollectorType`].
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CollectorAtom {
-    /// `true` or `false`.
-    Bool,
-    /// A whole number.
-    Int,
-    /// A whole or fractional number.
-    Number,
-    /// Text.
-    String,
-    /// A path, read as text but counted by `count_paths()`.
-    Path,
-    /// A `YYYY-MM-DD` date.
-    Date,
-}
-
-impl CollectorAtom {
-    /// Parse one atom name.
-    ///
-    /// # Errors
-    /// A message naming the unknown atom and the known ones.
-    pub fn parse(text: &str) -> Result<Self, String> {
-        match text {
-            "bool" => Ok(Self::Bool),
-            "int" => Ok(Self::Int),
-            "number" => Ok(Self::Number),
-            "string" => Ok(Self::String),
-            "path" => Ok(Self::Path),
-            "date" => Ok(Self::Date),
-            other => Err(format!(
-                "unknown type: {}; use bool, int, number, string, path or date",
-                crate::config::quote(other)
-            )),
-        }
-    }
-
-    /// The atom as a config spells it.
-    #[must_use]
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            Self::Bool => "bool",
-            Self::Int => "int",
-            Self::Number => "number",
-            Self::String => "string",
-            Self::Path => "path",
-            Self::Date => "date",
-        }
-    }
-}
-
-impl CollectorType {
-    /// The type as a config spells it, for `mt rules`.
-    #[must_use]
-    pub fn describe(&self) -> String {
-        match self {
-            Self::Atom(atom) => atom.as_str().to_owned(),
-            Self::List(inner) => format!("[{}]", inner.describe()),
-            Self::Record(fields) => {
-                let fields: Vec<String> = fields
-                    .iter()
-                    .map(|(name, ty)| format!("{name} = {}", ty.describe()))
-                    .collect();
-                format!("{{ {} }}", fields.join(", "))
-            }
-        }
-    }
-
-    /// Whether this is a scalar, which a filter may compare and `--sort` may
-    /// order.
-    #[must_use]
-    pub fn is_scalar(&self) -> bool {
-        matches!(self, Self::Atom(_))
-    }
-
-    /// The type of one record field, or `None` for a non-record or an unknown
-    /// field.
-    #[must_use]
-    pub fn field(&self, name: &str) -> Option<&Self> {
-        match self {
-            Self::Record(fields) => fields.get(name),
-            _ => None,
-        }
-    }
-
-    /// Whether this is the output of a regex query: `["string"]` or
-    /// `["path"]`.
-    #[must_use]
-    pub fn is_regex_output(&self) -> bool {
-        matches!(
-            self,
-            Self::List(inner)
-                if matches!(
-                    inner.as_ref(),
-                    Self::Atom(CollectorAtom::String | CollectorAtom::Path)
-                )
-        )
-    }
-
-    /// Whether this is a list of paths, which `count_paths()` reads.
-    #[must_use]
-    pub fn is_path_list(&self) -> bool {
-        matches!(
-            self,
-            Self::List(inner) if matches!(inner.as_ref(), Self::Atom(CollectorAtom::Path))
-        )
-    }
-
-    /// Whether `value` matches this type.
-    #[must_use]
-    pub fn accepts(&self, value: &typst_harvest::HVal) -> bool {
-        use typst_harvest::HVal;
-        match self {
-            Self::Atom(atom) => match (atom, value) {
-                (CollectorAtom::Bool, HVal::Bool(_))
-                | (CollectorAtom::Int, HVal::Int(_))
-                | (CollectorAtom::Number, HVal::Int(_) | HVal::Float(_))
-                | (CollectorAtom::String | CollectorAtom::Path, HVal::Str(_))
-                | (CollectorAtom::Date, HVal::Date(_)) => true,
-                (CollectorAtom::Date, HVal::Str(text)) => crate::date::parse_ymd(text).is_some(),
-                _ => false,
-            },
-            Self::List(inner) => match value {
-                HVal::Array(items) => items.iter().all(|item| inner.accepts(item)),
-                _ => false,
-            },
-            Self::Record(fields) => match value {
-                HVal::Dict(entries) => {
-                    entries.len() == fields.len()
-                        && fields.iter().all(|(name, ty)| {
-                            entries.get(name).is_some_and(|value| ty.accepts(value))
-                        })
-                }
-                _ => false,
-            },
-        }
-    }
-}
-
-impl<'de> Deserialize<'de> for CollectorType {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        struct TypeVisitor;
-
-        impl<'de> serde::de::Visitor<'de> for TypeVisitor {
-            type Value = CollectorType;
-
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                f.write_str("a type name, a one-element array `[T]`, or a record `{ field = T }`")
-            }
-
-            fn visit_str<E: serde::de::Error>(self, value: &str) -> Result<Self::Value, E> {
-                CollectorAtom::parse(value)
-                    .map(CollectorType::Atom)
-                    .map_err(serde::de::Error::custom)
-            }
-
-            fn visit_seq<A: serde::de::SeqAccess<'de>>(
-                self,
-                mut seq: A,
-            ) -> Result<Self::Value, A::Error> {
-                let inner: Option<CollectorType> = seq.next_element()?;
-                let Some(inner) = inner else {
-                    return Err(serde::de::Error::custom(
-                        "a list type takes exactly one element: [T]",
-                    ));
-                };
-                if seq.next_element::<CollectorType>()?.is_some() {
-                    return Err(serde::de::Error::custom(
-                        "a list type takes exactly one element: [T]",
-                    ));
-                }
-                Ok(CollectorType::List(Box::new(inner)))
-            }
-
-            fn visit_map<M: serde::de::MapAccess<'de>>(
-                self,
-                mut map: M,
-            ) -> Result<Self::Value, M::Error> {
-                let mut fields = BTreeMap::new();
-                while let Some((name, ty)) = map.next_entry::<String, CollectorType>()? {
-                    fields.insert(name, ty);
-                }
-                Ok(CollectorType::Record(fields))
-            }
-        }
-
-        deserializer.deserialize_any(TypeVisitor)
-    }
-}
-
-impl schemars::JsonSchema for CollectorType {
-    fn schema_name() -> std::borrow::Cow<'static, str> {
-        "CollectorType".into()
-    }
-
-    fn schema_id() -> std::borrow::Cow<'static, str> {
-        "mindtape::config::collect::CollectorType".into()
-    }
-
-    fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
-        let inner = generator.subschema_for::<CollectorType>();
-        schemars::json_schema!({
-            "description": "A `returns` type expression: one of `bool`, `int`, \
-                `number`, `string`, `path` and `date`; a one-element array `[T]` \
-                for a list; or a table `{ field = T }` for a record.",
-            "oneOf": [
-                {
-                    "type": "string",
-                    "enum": ["bool", "int", "number", "string", "path", "date"]
-                },
-                {
-                    "type": "array",
-                    "minItems": 1,
-                    "maxItems": 1,
-                    "items": inner.clone(),
-                    "description": "A list of one type, written `[T]`."
-                },
-                {
-                    "type": "object",
-                    "description": "A record of named fields, written `{ field = T }`.",
-                    "additionalProperties": inner
-                }
-            ]
-        })
-    }
-}
-
-impl fmt::Display for CollectorType {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str(&self.describe())
-    }
-}
-
 /// The type expression `mt rules` prints for one collector.
 #[must_use]
 pub fn returns_of(spec: &CollectorSpec) -> String {
@@ -369,9 +164,8 @@ pub(crate) fn validate_collectors(config: &Config) -> Vec<Problem> {
             )));
         }
         match &spec.query {
-            CollectorQuery::Regex(query) => {
-                validate_regex(query, spec, &path, &mut problems);
-            }
+            CollectorQuery::Regex(query) => validate_regex(query, spec, &path, &mut problems),
+            CollectorQuery::Typst(query) => validate_typst(query, &path, &mut problems),
         }
         if let Some(when) = &spec.when {
             if let Some(problem) = crate::filter::expr_problem_in_set(when, &probe, config) {
@@ -393,6 +187,19 @@ pub(crate) fn validate_collectors(config: &Config) -> Vec<Problem> {
         .map(Problem::from),
     );
     problems
+}
+
+fn validate_typst(query: &TypstQuery, path: &str, problems: &mut Vec<Problem>) {
+    if query.typst.trim().is_empty() {
+        problems.push(Problem::new(format!(
+            "{path}.query.typst: must name a Typst module"
+        )));
+    }
+    if query.function.trim().is_empty() {
+        problems.push(Problem::new(format!(
+            "{path}.query.function: must name a function"
+        )));
+    }
 }
 
 fn validate_regex(

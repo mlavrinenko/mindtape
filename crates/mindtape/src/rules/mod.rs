@@ -113,7 +113,7 @@ impl RulesRoot {
         self.0 = root.to_owned();
     }
 
-    fn as_path(&self) -> &Path {
+    pub(crate) fn as_path(&self) -> &Path {
         &self.0
     }
 }

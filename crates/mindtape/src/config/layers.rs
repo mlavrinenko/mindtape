@@ -251,6 +251,10 @@ fn build_typed(
         .map_err(|merged| sources.blame(merged))?;
     config.provenance = sources.clone();
     crate::config::pack_files::stamp_check_roots(&mut config.tasks.rules, &rule_origins);
+    crate::config::pack_files::stamp_collector_roots(
+        &mut config.tasks.collectors,
+        &collector_origins,
+    );
     config.dict_cache = crate::config::compile_dicts(&config.dicts, root)
         .map_err(ConfigError::invalid)?
         .into();
@@ -279,6 +283,7 @@ fn build_typed(
     // other — `rules_root` carries no provenance, only the one project root
     // `build_config` was ever called with.
     crate::rules::typst::validate_load(&config, root).map_err(ConfigError::invalid)?;
+    crate::rules::typst::validate_collector_load(&config, root).map_err(ConfigError::invalid)?;
     Ok((config, rule_origins))
 }
 

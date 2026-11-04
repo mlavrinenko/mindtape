@@ -119,7 +119,7 @@ impl CompiledCheck {
     /// breach: empty means the task passes.
     pub(crate) fn evaluate(&self, task: &Task, config: &Config) -> Vec<String> {
         let value = field_value(task, config, self.field.as_deref());
-        let Some((id, source)) = self.probe(&value) else {
+        let Some((id, source)) = self.probe(&value, "mindtape.check") else {
             return vec!["internal error: could not build a check probe".to_owned()];
         };
         let world = HarvestWorld::with_main_source(id, self.root_abs.clone(), source)
@@ -131,20 +131,44 @@ impl CompiledCheck {
         }
     }
 
+    /// Call this rule's function over `task` and return its harvested value,
+    /// for a collector that publishes it rather than reading breach strings.
+    /// The same probe, world and shared snapshot as [`Self::evaluate`].
+    pub(crate) fn evaluate_value(&self, task: &Task, config: &Config) -> Result<HVal, String> {
+        let value = field_value(task, config, self.field.as_deref());
+        let Some((id, source)) = self.probe(&value, "mindtape.value") else {
+            return Err("internal error: could not build a value probe".to_owned());
+        };
+        let world = HarvestWorld::with_main_source(id, self.root_abs.clone(), source)
+            .with_shared_sources(&self.snapshot);
+        let world = crate::loader::with_packages(world, &self.overrides);
+        let result = harvest(&world).map_err(|err| err.to_string())?;
+        value_from(&result)
+    }
+
     /// A fresh, project-rooted virtual path and the synthetic source it backs:
     /// `#import` `function` from `typst_path` and call it on `value`, wrapped
-    /// in a labelled marker [`breaches_from`] reads back out.
-    fn probe(&self, value: &HVal) -> Option<(typst_syntax::FileId, String)> {
+    /// in `label` for the caller to read back out.
+    fn probe(&self, value: &HVal, label: &str) -> Option<(typst_syntax::FileId, String)> {
         let index = self.counter.fetch_add(1, Ordering::Relaxed);
         let id = root_file_id(&format!(".mindtape/check-probe/{index}.typ")).ok()?;
         let source = format!(
-            "#import \"/{}\": {name}\n#metadata({name}({arg})) <mindtape.check>\n",
+            "#import \"/{}\": {name}\n#metadata({name}({arg})) <{label}>\n",
             self.typst_path,
             name = self.function,
             arg = value.to_typst(),
         );
         Some((id, source))
     }
+}
+
+/// The value a `mindtape.value` marker carries.
+fn value_from(result: &Harvest) -> Result<HVal, String> {
+    result
+        .with_label("mindtape.value")
+        .next()
+        .map(|marker| marker.value.clone())
+        .ok_or_else(|| "the function produced no value".to_owned())
 }
 
 /// Root-aware load-time validation for every `[[tasks.rules]] check` entry:
@@ -157,6 +181,28 @@ impl CompiledCheck {
 /// # Errors
 /// Returns one joined message, one problem per offending rule, prefixed with
 /// its dotted TOML path.
+pub(crate) fn validate_collector_load(config: &Config, root: &Path) -> Result<(), String> {
+    let mut problems = Vec::new();
+    for (index, spec) in config.tasks.collectors.iter().enumerate() {
+        if let crate::config::CollectorQuery::Typst(query) = &spec.query
+            && let Err(problem) = validate_module(
+                root,
+                config,
+                &query.typst,
+                &query.function,
+                spec.root.as_deref(),
+            )
+        {
+            problems.push(format!("tasks.collectors[{index}].query: {problem}"));
+        }
+    }
+    if problems.is_empty() {
+        Ok(())
+    } else {
+        Err(problems.join("\n"))
+    }
+}
+
 pub(crate) fn validate_load(config: &Config, root: &Path) -> Result<(), String> {
     let mut problems = Vec::new();
     for (index, spec) in config.tasks.rules.iter().enumerate() {
@@ -181,26 +227,41 @@ pub(crate) fn validate_load(config: &Config, root: &Path) -> Result<(), String> 
 /// no call, since a function that only errors for some inputs must not fail
 /// config load over a value it was never asked to handle.
 fn check_module(root: &Path, config: &Config, check: &CheckSpec) -> Result<(), String> {
-    let check_root = check.root.as_deref().unwrap_or(root);
-    let module = check_root.join(&check.typst);
-    if check.root.is_some() && !crate::config::pack_dirs::stays_inside(check_root, &module) {
-        return Err(format!("`{}` is outside the pack's directory", check.typst));
+    validate_module(
+        root,
+        config,
+        &check.typst,
+        &check.function,
+        check.root.as_deref(),
+    )
+}
+
+/// Whether `typst` exists under `module_root` (or the project root) and
+/// exports `function`.
+fn validate_module(
+    root: &Path,
+    config: &Config,
+    typst: &str,
+    function: &str,
+    module_root: Option<&Path>,
+) -> Result<(), String> {
+    let check_root = module_root.unwrap_or(root);
+    let module = check_root.join(typst);
+    if module_root.is_some() && !crate::config::pack_dirs::stays_inside(check_root, &module) {
+        return Err(format!("`{typst}` is outside the pack's directory"));
     }
     if !module.is_file() {
-        return Err(format!("`{}` does not exist", check.typst));
+        return Err(format!("`{typst}` does not exist"));
     }
     let root_abs = canonical(check_root);
     let id = root_file_id(".mindtape/check-probe/load.typ").map_err(|err| err.to_string())?;
-    let source = format!("#import \"/{}\": {}\n", check.typst, check.function);
+    let source = format!("#import \"/{typst}\": {function}\n");
     let world = HarvestWorld::with_main_source(id, root_abs, source);
     let world =
         crate::loader::with_packages(world, &crate::loader::package_overrides(root, config));
-    harvest(&world).map(|_| ()).map_err(|err| {
-        format!(
-            "`{}` does not export `{}`: {err}",
-            check.typst, check.function
-        )
-    })
+    harvest(&world)
+        .map(|_| ())
+        .map_err(|err| format!("`{typst}` does not export `{function}`: {err}"))
 }
 
 /// The value `check.function` receives for `task`: the raw extras value when

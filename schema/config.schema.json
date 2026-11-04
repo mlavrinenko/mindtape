@@ -291,6 +291,10 @@
         {
           "$ref": "#/$defs/RegexQuery",
           "description": "A regex over one or more body sections."
+        },
+        {
+          "$ref": "#/$defs/TypstQuery",
+          "description": "A project Typst function over the whole task or one of its fields."
         }
       ],
       "description": "The query a collector runs."
@@ -2471,6 +2475,33 @@
           "type": "array"
         }
       },
+      "type": "object"
+    },
+    "TypstQuery": {
+      "additionalProperties": false,
+      "description": "A Typst query: call a project function over the canonical task, or over\none field of it, and return its value.",
+      "properties": {
+        "field": {
+          "default": null,
+          "description": "The field whose value the function receives. Absent means the whole\ntask, in the shape `mt eval --json` prints.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "function": {
+          "description": "Name of the exported function to call.",
+          "type": "string"
+        },
+        "typst": {
+          "description": "Path to the Typst module exporting `function`, relative to the project\nroot or to the pack directory that declared the collector.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "typst",
+        "function"
+      ],
       "type": "object"
     },
     "ViewSpec": {

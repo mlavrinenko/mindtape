@@ -12,6 +12,7 @@
 
 use std::path::Path;
 
+use crate::config::collect::CollectorSpec;
 use crate::config::pack_dirs::{absolute, stays_inside};
 use crate::config::pack_registry::{PackOrigin, RuleOrigin, RuleOriginEntry};
 use crate::config::{ConfigError, quote};
@@ -59,6 +60,16 @@ pub(crate) fn stamp_check_roots(rules: &mut [RuleSpec], origins: &[RuleOriginEnt
     for (spec, entry) in rules.iter_mut().zip(origins) {
         if let (Some(check), RuleOrigin::Pack(pack)) = (&mut spec.check, &entry.origin) {
             check.root = pack.root().map(Path::to_path_buf);
+        }
+    }
+}
+
+/// Set the root of each collector a pack declared, to that pack's directory.
+/// `origins` is the collector array's own provenance, in declaration order.
+pub(crate) fn stamp_collector_roots(collectors: &mut [CollectorSpec], origins: &[RuleOriginEntry]) {
+    for (spec, entry) in collectors.iter_mut().zip(origins) {
+        if let RuleOrigin::Pack(pack) = &entry.origin {
+            spec.root = pack.root().map(Path::to_path_buf);
         }
     }
 }

@@ -79,9 +79,9 @@ pub use config::{
     DeriveTags, Dict, DictCase, DictSpec, Dicts, EstimateConfig, Facet, FallbackSeverity,
     FormatConfig, GoConfig, HyperlinkChoice, ImportView, InteractiveMode, LS_COLUMNS, LocalPackage,
     LsRule, PriorityConfig, ReadyConfig, RegexQuery, RetireConfig, RmConfig, RmStrategy, Role,
-    RootConfig, RootSpec, SectionSpec, TemplatesConfig, TypstConfig, ViewSpec, builtin_dict_names,
-    compile_dicts, config_path, embedded_defaults, load_config, parse_config, parse_import_view,
-    returns_of, roles_of, validate_dicts, validate_views,
+    RootConfig, RootSpec, SectionSpec, TemplatesConfig, TypstConfig, TypstQuery, ViewSpec,
+    builtin_dict_names, compile_dicts, config_path, embedded_defaults, load_config, parse_config,
+    parse_import_view, returns_of, roles_of, validate_dicts, validate_views,
 };
 pub use config::{KeyOrigin, ParamOrigin};
 pub use date::pin::{DateOverrideError, init_pinned_today};

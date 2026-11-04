@@ -47,6 +47,7 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
     let described = crate::model::field_descriptor::descriptors(config);
     for task in tasks {
         check_shape(task, &mut out);
+        check_collector_problems(task, &mut out);
         check_id_format(task, config, &mut out);
         check_status(task, config, &mut out);
         for field in &described {
@@ -72,6 +73,29 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
     crate::validate::links::check_all(tasks, config, &mut out);
     crate::rules::check_all(tasks, config, &mut out);
     out
+}
+
+/// One error per collector that could not produce its field, at the task's
+/// marker line and `derived.<name>`.
+fn check_collector_problems(task: &Task, out: &mut Vec<Violation>) {
+    for problem in &task.collector_problems {
+        let (field, message) = problem.text.split_once(": ").map_or(
+            ("derived".to_owned(), problem.text.clone()),
+            |(field, message)| (field.to_owned(), message.to_owned()),
+        );
+        out.push(Violation {
+            task_id: task.id.clone(),
+            field: field.clone(),
+            message,
+            location: task.marker_location(),
+            severity: Severity::Error,
+            kind: crate::validate::violation::ViolationKind::Collector,
+            reads: Some(crate::validate::violation::reads_of_field(&field)),
+            unknown: problem.unknown.clone(),
+            detail: None,
+            dict_miss: None,
+        });
+    }
 }
 
 /// A field the marker held with the wrong Typst shape (coerced to

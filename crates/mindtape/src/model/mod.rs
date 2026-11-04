@@ -133,6 +133,10 @@ pub struct Task {
     /// loader fills it from the task's source and the project's config, and
     /// `mt import` ignores it.
     pub derived: BTreeMap<String, HVal>,
+    /// Why a collector could not produce its field: an eval error, a panic or
+    /// a value that does not match `returns`. `mt check` reports each as a
+    /// `Collector` violation at `derived.<name>`, and `mt eval` prints it.
+    pub collector_problems: Vec<crate::problem::Problem>,
     /// Core fields — and elements inside them — present in the marker but the
     /// wrong Typst shape: coerced to empty/absent same as an absent field, but
     /// flagged here so `check` can report it instead of staying silent. Each
@@ -230,6 +234,7 @@ impl Task {
             recur,
             extras,
             derived: BTreeMap::new(),
+            collector_problems: Vec::new(),
             shape_errors: errors,
             body: String::new(),
             spans: crate::model::task_spans::TaskCallSpans::default(),

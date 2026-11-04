@@ -35,6 +35,7 @@
 //! | `recur`         | authored | `{rule, anchor, until, count, materialize}`, null when the task does not recur |
 //! | `extras`        | authored | opaque `x-<ns>` consumer extension slots             |
 //! | `derived`       | computed | `[[tasks.collectors]]` results, keyed by collector name |
+//! | `collector_problems` | computed | why a collector produced no field |
 //!
 //! ## Priority parity
 //!
@@ -150,6 +151,9 @@ pub struct CanonicalTask {
     /// Read-only: `mt import` ignores them and writes no collector.
     #[serde(default)]
     pub derived: BTreeMap<String, HVal>,
+    /// Why a collector produced no field, one message per failure.
+    #[serde(default)]
+    pub collector_problems: Vec<String>,
 }
 
 /// `status:` in the canonical schema.
@@ -327,6 +331,11 @@ impl CanonicalTask {
             recur: task.recur.as_ref().map(crate::recur::Recur::to_canonical),
             extras: task.extras.clone(),
             derived: task.derived.clone(),
+            collector_problems: task
+                .collector_problems
+                .iter()
+                .map(ToString::to_string)
+                .collect(),
         }
     }
 }

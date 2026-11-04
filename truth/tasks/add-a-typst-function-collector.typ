@@ -33,7 +33,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 4),
+  status: wip(2026, 11, 5),
   links: depends-on("add-derived-task-fields-and-a-regex-collector.typ"),
 )
 

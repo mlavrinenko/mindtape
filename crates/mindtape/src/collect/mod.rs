@@ -22,30 +22,44 @@ use regex::Regex;
 use typst_cst::{parse_headings, tree};
 use typst_harvest::HVal;
 
-use crate::config::collect::{CollectorSpec, CollectorType, RegexQuery};
+use crate::config::collect::{CollectorSpec, RegexQuery};
 use crate::config::{CollectorQuery, Config};
 use crate::filter::Filter;
 use crate::graph::ready::Readiness;
 use crate::model::Task;
 
+mod typst;
+use typst::CompiledTypst;
+
 /// A collector compiled once for a run: the spec, its parsed `when`, and the
-/// compiled regex of a regex query.
+/// compiled query.
 struct Compiled<'a> {
     spec: &'a CollectorSpec,
     when: Option<Filter>,
-    regex: Option<Regex>,
+    query: Option<CompiledQuery>,
+}
+
+/// A compiled regex or Typst query.
+enum CompiledQuery {
+    Regex(Regex),
+    Typst(Box<CompiledTypst>),
 }
 
 impl<'a> Compiled<'a> {
-    fn new(spec: &'a CollectorSpec) -> Self {
+    fn new(spec: &'a CollectorSpec, root: &std::path::Path, config: &Config) -> Self {
         let when = spec
             .when
             .as_deref()
             .and_then(|source| Filter::parse(source).ok());
-        let regex = match &spec.query {
-            CollectorQuery::Regex(query) => Regex::new(&query.pattern).ok(),
+        let query = match &spec.query {
+            CollectorQuery::Regex(query) => {
+                Regex::new(&query.pattern).ok().map(CompiledQuery::Regex)
+            }
+            CollectorQuery::Typst(query) => Some(CompiledQuery::Typst(Box::new(
+                CompiledTypst::new(spec, query, root, config),
+            ))),
         };
-        Self { spec, when, regex }
+        Self { spec, when, query }
     }
 
     fn applies(&self, task: &Task, config: &Config, readiness: &Readiness) -> bool {
@@ -56,12 +70,21 @@ impl<'a> Compiled<'a> {
         })
     }
 
-    fn value(&self, task: &Task) -> Option<HVal> {
-        match &self.spec.query {
-            CollectorQuery::Regex(query) => {
-                let regex = self.regex.as_ref()?;
+    fn value(&self, task: &mut Task, config: &Config) -> Option<HVal> {
+        match (&self.spec.query, &self.query) {
+            (CollectorQuery::Regex(query), Some(CompiledQuery::Regex(regex))) => {
                 Some(HVal::Array(regex_values(task, query, regex)))
             }
+            (CollectorQuery::Typst(_), Some(CompiledQuery::Typst(compiled))) => {
+                match compiled.evaluate(task, config) {
+                    Ok(value) => Some(value),
+                    Err(problem) => {
+                        task.collector_problems.push(problem);
+                        None
+                    }
+                }
+            }
+            _ => None,
         }
     }
 }
@@ -73,17 +96,27 @@ impl<'a> Compiled<'a> {
 /// set sees every task of the load. A task the collector's `when` excludes
 /// keeps no field for that collector.
 pub fn annotate(tasks: &mut [Task], config: &Config) {
+    for task in tasks.iter_mut() {
+        task.derived.clear();
+        task.collector_problems.clear();
+    }
     if config.tasks.collectors.is_empty() {
         return;
     }
-    let compiled: Vec<Compiled<'_>> = config.tasks.collectors.iter().map(Compiled::new).collect();
+    let root = config.rules_root.as_path();
+    let compiled: Vec<Compiled<'_>> = config
+        .tasks
+        .collectors
+        .iter()
+        .map(|spec| Compiled::new(spec, root, config))
+        .collect();
     let readiness = Readiness::compute(tasks, config);
     for task in tasks.iter_mut() {
         for collector in &compiled {
             if !collector.applies(task, config, &readiness) {
                 continue;
             }
-            if let Some(value) = collector.value(task) {
+            if let Some(value) = collector.value(task, config) {
                 task.derived.insert(collector.spec.name.clone(), value);
             }
         }
@@ -117,12 +150,10 @@ fn regex_values(task: &Task, query: &RegexQuery, regex: &Regex) -> Vec<HVal> {
     values
 }
 
-/// Whether `value` matches the collector's declared `returns` type.
-#[must_use]
-pub fn matches_type(returns: &CollectorType, value: &HVal) -> bool {
-    returns.accepts(value)
-}
-
 #[cfg(test)]
 #[path = "tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "typst_tests.rs"]
+mod typst_tests;

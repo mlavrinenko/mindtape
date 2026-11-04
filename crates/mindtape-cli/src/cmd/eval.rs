@@ -42,6 +42,9 @@ pub fn run(args: &EvalArgs) -> Result<()> {
         print_table(&task, &hashes_for(&file, &task, project), origin)?;
         // The table already ends in a blank line.
         print!("{}", breakdown(&task));
+        for problem in &task.collector_problems {
+            println!("{problem}");
+        }
         Ok(())
     }
 }
