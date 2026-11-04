@@ -57,8 +57,10 @@ so a task file loads anywhere. `mt install` puts both there for your editor
 and `typst`, as the #link(u("/quickstart/"))[Quickstart] shows. An import at
 any other version fails once per version, naming the file, the version and
 the set, with a rewrite hint for an older version and an upgrade hint for a
-newer one. To point the import at a prelude in the project's own tree instead,
-see #link(u("/config/"))[Configuration].
+newer one. `mt fix` rewrites an older unsupported pin in your task roots and
+template dirs, and `mt fix --all --check` exits 1 while one remains, so CI can
+gate it. A supported older pin is kept. To point the import at a prelude in
+the project's own tree instead, see #link(u("/config/"))[Configuration].
 
 = The show rule
 

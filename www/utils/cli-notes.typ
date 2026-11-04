@@ -187,6 +187,7 @@
   "init": (
     examples: "init-examples",
   ),
+  "fix": (:),
   "install": (
     prose: [`--no-lib`, `--no-defaults`, `--no-schema` and `--no-completions`
       each skip one part. `--force` overwrites an existing defaults file,

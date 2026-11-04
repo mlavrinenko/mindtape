@@ -258,6 +258,19 @@ groups:
       - www/content/quickstart.typ
       - www/content/config.typ
 
+  # `mt fix`: the fixer names, the version-only rewrite, the default scope and
+  # `--all`, the all-or-nothing preflight, and the `--check` report.
+  - name: cli-fix-docs
+    source:
+      - crates/mindtape/src/prelude_import.rs
+      - crates/mindtape-cli/src/cmd/fix/mod.rs
+      - crates/mindtape-cli/src/cmd/fix/scope.rs
+    dependents:
+      - www/content/cli/fix.typ
+      - www/utils/cli-notes.typ
+      - www/content/task-files.typ
+      - www/content/config.typ
+
   # `mt link`: how a target is named and written, the merge, `--replace`, and
   # the `--apply` map, whose shape `cmd/link/input.rs` parses. `edit.rs` and
   # `plan.rs` decide nothing the prose restates.

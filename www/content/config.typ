@@ -160,7 +160,10 @@ pins its own prelude to its `lib/` with one.
 
 `mt install` still writes every supported version to the machine directory.
 Your editor's Typst language server, `typst compile` and every project
-without an entry read it.
+without an entry read it. `mt fix` never edits a project-local pin. When the
+pin declares the same unsupported version an import names, `mt fix` reports
+that import unfixable, because rewriting it would change which prelude the
+project reads.
 
 = Editor schema
 
