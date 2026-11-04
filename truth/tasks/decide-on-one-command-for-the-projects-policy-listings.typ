@@ -47,10 +47,10 @@
 
 == TO-BE
 
-- 🟢 `mt explain` is the one command, with `rules`, `tags`, `collectors`, `views` and `dicts` as subcommands.
-- 🟢 A bare `mt explain` prints the project's policy overview, and `--json` carries the same entries.
-- 🟢 `--for add|flip|commit` still filters the rules a step enforces.
-- 🟢 Each entry names its kind, origin and readers, so one command answers what the old four answered in pieces.
+- 🟢 `mt explain` is the name. It absorbs `mt rules` and `mt tags`; `mt explain rules` keeps the derived-fields block.
+- 🟢 A bare `mt explain` prints both listings under one header, and `--json` keeps each listing's current keys.
+- 🟢 `--for add|flip|commit` keeps filtering rules and tags; `mt explain tags` keeps its reader line.
+- 🟢 `mt views` and `mt dicts` stay separate named-set lookups, so the command covers policy, not every listing.
 
 ```text
 $ mt explain rules
@@ -66,19 +66,19 @@ error  judgment-stays-small  split the decision from the mechanical fan-out
 == Alternatives
 
 - `mt info`: too generic, and it names the input rather than the answer.
-- `mt describe`: clear, but longer to type and less direct than `explain`.
-- `mt policy`: covers rules and tags, but not views and dictionaries.
-- `mt show`: collides with `mt config show` and `mt views`.
-- Keep four commands: the friction is remembering which one holds the answer.
+- `mt describe`: clear, but longer to type; `explain` is the same call in one word.
+- `mt policy`: covers rules and tags, but not the derived fields a rule reads.
+- `mt show`: collides with `mt config show`.
+- Absorb `mt views` and `mt dicts` too: they are named-set lookups with names, not policy.
+- Keep two commands: the friction is remembering which one holds the answer.
 
 
 == Out of scope
 
-- The implementation; a follow-up task moves `mt rules` and `mt tags` under the chosen name and keeps their JSON shapes.
-- A plugin system for new listing kinds.
+- The implementation; a follow-up `fold-mt-rules-and-mt-tags-into-mt-explain.typ` moves them and keeps the JSON shapes.
+- A richer entry with origin and readers; `mt config show --origin` stays the source for origins.
 
 
 == Dogfood
 
-This repo runs `mt explain rules` and `mt explain tags` instead of two commands, and its docs point at one policy surface.
-
+After this lands, this repo runs `mt explain rules` and `mt explain tags` instead of two commands, and its docs point at one policy surface.
