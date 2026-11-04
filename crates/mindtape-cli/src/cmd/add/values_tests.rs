@@ -7,7 +7,7 @@
 use mindtape::test_support::tempdir;
 use std::collections::BTreeMap;
 
-use mindtape::{RawValue, discover_slots};
+use mindtape::{LinkValue, RawValue, discover_slots};
 
 use super::{
     BUILTIN_TASK, collect_values, parse_sniffed_source, parse_source, reject_unknown_keys,
@@ -90,6 +90,59 @@ fn collect_reads_json_array_as_list() {
         values.get("tags"),
         Some(&RawValue::List(vec!["a".to_owned(), "b".to_owned()]))
     );
+}
+
+#[test]
+fn collect_reads_json_array_of_link_mappings() {
+    let dir = tempdir();
+    let path = dir.path().join("v.json");
+    std::fs::write(
+        &path,
+        r#"{"links":[{"kind":"surfaced-by","task":"origin.typ"},{"kind":"related","task":"other.typ","note":"why"}]}"#,
+    )
+    .unwrap();
+    let values = collect_values(&[path.to_string_lossy().into_owned()], &[], &[]).unwrap();
+    assert_eq!(
+        values.get("links"),
+        Some(&RawValue::Links(vec![
+            LinkValue {
+                task: "origin.typ".to_owned(),
+                kind: "surfaced-by".to_owned(),
+                note: None,
+            },
+            LinkValue {
+                task: "other.typ".to_owned(),
+                kind: "related".to_owned(),
+                note: Some("why".to_owned()),
+            },
+        ]))
+    );
+}
+
+#[test]
+fn collect_rejects_a_mixed_json_list() {
+    let dir = tempdir();
+    let path = dir.path().join("v.json");
+    std::fs::write(
+        &path,
+        r#"{"links":["a",{"kind":"related","task":"other.typ"}]}"#,
+    )
+    .unwrap();
+    let err = collect_values(&[path.to_string_lossy().into_owned()], &[], &[])
+        .unwrap_err()
+        .to_string();
+    assert!(err.contains("strings or link mappings"), "{err}");
+}
+
+#[test]
+fn collect_rejects_a_json_link_without_a_kind() {
+    let dir = tempdir();
+    let path = dir.path().join("v.json");
+    std::fs::write(&path, r#"{"links":[{"task":"other.typ"}]}"#).unwrap();
+    let err = collect_values(&[path.to_string_lossy().into_owned()], &[], &[])
+        .unwrap_err()
+        .to_string();
+    assert!(err.contains("a link needs a kind"), "{err}");
 }
 
 #[test]

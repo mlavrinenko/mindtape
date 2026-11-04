@@ -413,6 +413,16 @@ impl From<FillError> for Diag {
                         .arg(format!("{slot}+=value")),
                 ))
                 .hint(Hint::new("or pass a JSON or YAML array with -f")),
+            FillError::Type {
+                slot,
+                want: SlotKind::Links,
+                got,
+            } => Diag::usage("slot expects links")
+                .value(slot)
+                .reason(format!("got {got}"))
+                .hint(Hint::new(
+                    "pass a YAML list of {kind, task, note} mappings with -f",
+                )),
             FillError::Type { slot, want, got } => Diag::usage("slot has the wrong type")
                 .value(slot)
                 .reason(format!("expects {}, got {got}", want.as_str())),

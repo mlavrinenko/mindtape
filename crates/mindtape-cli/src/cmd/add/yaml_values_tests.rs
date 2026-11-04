@@ -1,7 +1,7 @@
 //! Tests for the shared YAML mapping -> `RawValue` converter.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use mindtape::RawValue;
+use mindtape::{LinkValue, RawValue};
 
 use super::parse_mapping;
 
@@ -40,6 +40,84 @@ fn parses_sequence_of_strings() {
         values["tags"],
         Some(RawValue::List(vec!["a".to_owned(), "b".to_owned()]))
     );
+}
+
+#[test]
+fn parses_sequence_of_link_mappings() {
+    let values = parse(
+        "links:\n  - kind: surfaced-by\n    task: origin.typ\n  - kind: related\n    task: other.typ\n    note: why\n",
+    )
+    .unwrap();
+    assert_eq!(
+        values["links"],
+        Some(RawValue::Links(vec![
+            LinkValue {
+                task: "origin.typ".to_owned(),
+                kind: "surfaced-by".to_owned(),
+                note: None,
+            },
+            LinkValue {
+                task: "other.typ".to_owned(),
+                kind: "related".to_owned(),
+                note: Some("why".to_owned()),
+            },
+        ]))
+    );
+}
+
+#[test]
+fn an_empty_sequence_stays_an_empty_list() {
+    let values = parse("links: []\n").unwrap();
+    assert_eq!(values["links"], Some(RawValue::List(Vec::new())));
+}
+
+#[test]
+fn a_mixed_sequence_errors() {
+    assert_eq!(
+        refusal("links:\n  - a\n  - kind: related\n    task: other.typ\n"),
+        "error: list items must be strings or link mappings: 'links'\n"
+    );
+}
+
+#[test]
+fn a_link_needs_a_task() {
+    assert_eq!(
+        refusal("links:\n  - kind: related\n"),
+        "error: a link needs a task: 'links'\n"
+    );
+}
+
+#[test]
+fn a_link_needs_a_kind() {
+    assert_eq!(
+        refusal("links:\n  - task: other.typ\n"),
+        "error: a link needs a kind: 'links'\n"
+    );
+}
+
+#[test]
+fn an_unknown_link_key_errors() {
+    assert_eq!(
+        refusal("links:\n  - kind: related\n    task: other.typ\n    why: x\n"),
+        "error: unknown link key: 'why' in slot 'links'\n"
+    );
+}
+
+#[test]
+fn a_non_string_link_field_errors() {
+    assert_eq!(
+        refusal("links:\n  - kind: 3\n    task: other.typ\n"),
+        "error: a link field must be a string: 'kind' in slot 'links'\n"
+    );
+}
+
+#[test]
+fn a_null_note_is_no_note() {
+    let values = parse("links:\n  - kind: related\n    task: other.typ\n    note: ~\n").unwrap();
+    let Some(RawValue::Links(links)) = &values["links"] else {
+        panic!("expected links, got {:?}", values["links"]);
+    };
+    assert_eq!(links[0].note, None);
 }
 
 #[test]

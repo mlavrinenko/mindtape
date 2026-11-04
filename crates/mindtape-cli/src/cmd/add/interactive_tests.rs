@@ -6,7 +6,7 @@
 
 use std::collections::BTreeMap;
 
-use mindtape::{AddConfig, RawValue, discover_slots};
+use mindtape::{AddConfig, LinkValue, RawValue, discover_slots};
 
 use super::{parse_buffer, scaffold};
 
@@ -152,6 +152,41 @@ fn scaffold_renders_empty_list_default_as_bracket_pair() {
     // Left untouched, it parses back to an empty list (not dropped as null).
     let values = parse_buffer(&buffer).unwrap();
     assert_eq!(values["tags"], RawValue::List(Vec::new()));
+}
+
+#[test]
+fn scaffold_renders_links_as_a_yaml_list() {
+    let specs =
+        discover_slots("#show: task.with(links: slot(\"links\", kind: \"links\", default: ()))");
+    let buffer = scaffold(&AddConfig::default(), &specs, &BTreeMap::new());
+    assert!(buffer.contains("links: []"), "{buffer}");
+    assert_eq!(
+        parse_buffer(&buffer).unwrap()["links"],
+        RawValue::List(Vec::new())
+    );
+
+    let seed = BTreeMap::from([(
+        "links".to_owned(),
+        RawValue::Links(vec![
+            LinkValue {
+                task: "origin.typ".to_owned(),
+                kind: "surfaced-by".to_owned(),
+                note: None,
+            },
+            LinkValue {
+                task: "other.typ".to_owned(),
+                kind: "related".to_owned(),
+                note: Some("why".to_owned()),
+            },
+        ]),
+    )]);
+    let buffer = scaffold(&AddConfig::default(), &specs, &seed);
+    assert!(
+        buffer.contains("links:\n  - kind: \"surfaced-by\"\n    task: \"origin.typ\"\n"),
+        "{buffer}"
+    );
+    let values = parse_buffer(&buffer).unwrap();
+    assert_eq!(values["links"], seed["links"]);
 }
 
 #[test]

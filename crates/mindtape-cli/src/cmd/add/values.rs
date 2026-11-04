@@ -4,10 +4,11 @@ use std::collections::BTreeMap;
 use std::io::Read;
 use std::path::Path;
 
-use mindtape::{Config, RawValue, SlotSpec};
+use mindtape::{Config, LinkValue, RawValue, SlotSpec};
 
 use crate::cmd::add::tokens::apply_token;
 use crate::cmd::add::yaml_values;
+use crate::cmd::add::yaml_values::LinkFields;
 use crate::diag::{Command, Diag, Hint, Note};
 
 type Result<T> = std::result::Result<T, Diag>;
@@ -294,6 +295,14 @@ fn json_to_raw(key: &str, value: &serde_json::Value) -> Result<Option<RawValue>>
             || RawValue::Float(num.as_f64().unwrap_or_default()),
             RawValue::Int,
         ),
+        serde_json::Value::Array(items) if items.iter().any(serde_json::Value::is_object) => {
+            if !items.iter().all(serde_json::Value::is_object) {
+                return Err(Diag::usage("list items must be strings or link mappings").value(key));
+            }
+            let links: Result<Vec<LinkValue>> =
+                items.iter().map(|item| json_link(key, item)).collect();
+            RawValue::Links(links?)
+        }
         serde_json::Value::Array(items) => {
             let mut list = Vec::with_capacity(items.len());
             for item in items {
@@ -309,6 +318,26 @@ fn json_to_raw(key: &str, value: &serde_json::Value) -> Result<Option<RawValue>>
         }
     };
     Ok(Some(raw))
+}
+
+fn json_link(key: &str, value: &serde_json::Value) -> Result<LinkValue> {
+    let object = value
+        .as_object()
+        .ok_or_else(|| Diag::usage("list items must be strings or link mappings").value(key))?;
+    let mut fields = LinkFields::default();
+    for (name, value) in object {
+        let text = match value {
+            serde_json::Value::Null => None,
+            serde_json::Value::String(text) => Some(text.clone()),
+            _ => {
+                return Err(Diag::usage("a link field must be a string")
+                    .value(name)
+                    .context("in slot", key));
+            }
+        };
+        fields.set(key, name, text)?;
+    }
+    fields.finish(key)
 }
 
 /// Render a template's slots for `--describe`.

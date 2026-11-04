@@ -11,6 +11,7 @@ mod add_e2e;
 mod add_file_operator_e2e;
 mod add_format_e2e;
 mod add_inherited_choices_e2e;
+mod add_links_e2e;
 mod add_markup_e2e;
 mod add_template_hint_e2e;
 mod allow_e2e;

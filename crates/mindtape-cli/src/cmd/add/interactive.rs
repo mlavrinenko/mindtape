@@ -8,7 +8,7 @@ use std::collections::BTreeMap;
 use std::io::Write;
 use std::process::Command;
 
-use mindtape::{AddConfig, InteractiveMode, RawValue, SlotKind, SlotSpec};
+use mindtape::{AddConfig, InteractiveMode, LinkValue, RawValue, SlotKind, SlotSpec};
 
 use crate::cmd::add::yaml_values::parse_mapping;
 use crate::diag::{Diag, Hint};
@@ -238,6 +238,8 @@ enum Entry {
     Block(String),
     /// A YAML sequence of strings.
     List(Vec<String>),
+    /// A YAML sequence of typed edges.
+    Links(Vec<LinkValue>),
 }
 
 fn push_entry(out: &mut String, spec: &SlotSpec, seed: Option<&RawValue>) {
@@ -245,6 +247,7 @@ fn push_entry(out: &mut String, spec: &SlotSpec, seed: Option<&RawValue>) {
         Some(Entry::Scalar(text)) => out.push_str(&format!("{}: {text}\n", spec.name)),
         Some(Entry::Block(body)) => push_block(out, &spec.name, &body),
         Some(Entry::List(items)) => push_list(out, &spec.name, &items),
+        Some(Entry::Links(items)) => push_links(out, &spec.name, &items),
         // Trailing space leaves the cursor at the value position (and pre-places
         // the `: ` YAML mappings require) when the editor jumps to the tail.
         None => out.push_str(&format!("{}: \n", spec.name)),
@@ -273,9 +276,7 @@ fn seed_entry(kind: SlotKind, raw: &RawValue) -> Entry {
         RawValue::Float(value) => Entry::Scalar(value.to_string()),
         RawValue::Bool(value) => Entry::Scalar(value.to_string()),
         RawValue::List(items) => Entry::List(items.clone()),
-        // A seed links value cannot reach the editor until the value sources
-        // parse one; the scaffold for it lands with those sources.
-        RawValue::Links(_) => Entry::List(Vec::new()),
+        RawValue::Links(items) => Entry::Links(items.clone()),
     }
 }
 
@@ -295,6 +296,7 @@ fn default_entry(spec: &SlotSpec) -> Option<Entry> {
         SlotKind::List | SlotKind::MultiChoice if is_empty_list_default(spec) => {
             Some(Entry::List(Vec::new()))
         }
+        SlotKind::Links if is_empty_list_default(spec) => Some(Entry::Links(Vec::new())),
         _ => None,
     }
 }
@@ -320,15 +322,37 @@ fn push_block(out: &mut String, name: &str, body: &str) {
     }
 }
 
-fn push_list(out: &mut String, name: &str, items: &[String]) {
-    if items.is_empty() {
-        out.push_str(&format!("{name}: []\n"));
+fn push_links(out: &mut String, name: &str, links: &[LinkValue]) {
+    if !push_sequence_start(out, name, links.is_empty()) {
         return;
     }
-    out.push_str(&format!("{name}:\n"));
+    for link in links {
+        out.push_str(&format!("  - kind: {}\n", quote(&link.kind)));
+        out.push_str(&format!("    task: {}\n", quote(&link.task)));
+        if let Some(note) = &link.note {
+            out.push_str(&format!("    note: {}\n", quote(note)));
+        }
+    }
+}
+
+fn push_list(out: &mut String, name: &str, items: &[String]) {
+    if !push_sequence_start(out, name, items.is_empty()) {
+        return;
+    }
     for item in items {
         out.push_str(&format!("  - {}\n", quote(item)));
     }
+}
+
+/// Open a YAML sequence entry, or write `[]` and return `false` when it has no
+/// items. The links and string-list scaffolds share the shape.
+fn push_sequence_start(out: &mut String, name: &str, empty: bool) -> bool {
+    if empty {
+        out.push_str(&format!("{name}: []\n"));
+        return false;
+    }
+    out.push_str(&format!("{name}:\n"));
+    true
 }
 
 /// Encode `text` as a YAML double-quoted scalar.

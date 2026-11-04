@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt add` fills a `links` slot from YAML or JSON.** A template can declare
+  `kind: "links"`, and `-f` or `--edit` supplies a list of `{kind, task, note}`
+  mappings. The slot renders the same edge dicts the DSL helpers write, an
+  empty list files no edges, and `--set` refuses one token with a hint to use
+  `-f`.
 - **`mt fix` rewrites an unsupported prelude import.** The
   `prelude-import` fixer parses each Typst file and changes only the version
   bytes of an older `@local/mindtape` import this binary no longer reads, so

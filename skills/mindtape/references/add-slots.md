@@ -65,6 +65,26 @@ For tags, pass `+word` positionals, which fill the `tags` slot
 `--set tags+=backend --set tags+=auth`. `mt add` refuses
 `--set tags=backend,auth`: a `list` slot needs `+=`, or an array through `-f`.
 
+## A `links` slot holds typed edges
+
+A `links` slot takes a YAML or JSON list of `{kind, task, note}` mappings.
+`task` is the path from the new task to the target, `kind` is a link kind
+built into `mt` or declared by the project, and `note` is optional. `--set`
+refuses it because one token is one string.
+
+```yaml
+links:
+  - kind: surfaced-by
+    task: origin.typ
+  - kind: related
+    task: other.typ
+    note: why it relates
+```
+
+An empty list is valid, and a template can leave the slot optional. A missing
+`kind` or `task`, an unknown key, or a mixed list fails before anything is
+written.
+
 ## Write plain prose in a `text` slot
 
 `mt add` escapes every `text` slot value as Typst markup before it writes the
