@@ -34,12 +34,6 @@
     prompt: "0-9 on the judgment scale",
     example: 1,
   ),
-  estimate: slot(
-    "estimate",
-    kind: "text",
-    prompt: "(src-files: N)",
-    example: "(src-files: 1)",
-  ),
   links: slot(
     "links",
     kind: "links",

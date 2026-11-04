@@ -58,6 +58,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `lib/typst.toml`. A version leaves by deleting its snapshot, table entry and
   fixture.
 
+### Changed
+
+- **`mindtape:budget` sizes a task from its Changes section.** The pack ships
+  a `changes` collector that reads the first backticked path on every Changes
+  bullet, and both rules read `count_paths(derived.changes, "@source")`.
+  `src-budget` gates on `status == "wip"` rather than a filed estimate. The
+  pack keeps `[tasks.estimate] units = ["src-files"]`, and the templates drop
+  their estimate slot; `.mindtape/config.toml` and `examples/api-service` set
+  `required = false`, so no open task needs a backfill.
+
 ### Fixed
 
 - **`mt tags` reads both spellings of a tag call.** A rule that reads a tag

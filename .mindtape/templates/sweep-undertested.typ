@@ -34,12 +34,6 @@
     prompt: "0-9 on the judgment scale",
     example: 2,
   ),
-  estimate: slot(
-    "estimate",
-    kind: "text",
-    prompt: "(src-files: N)",
-    example: "(src-files: 2)",
-  ),
   assignee: "agent",
   tags: slot(
     "tags",
@@ -99,13 +93,13 @@ much as that measurement still is.
 
 == Changes
 
-- Pick the remedy, then do it: exercise the paths nothing reaches, or exclude
-  the file from scoring in `CRAP_EXCLUDES` in `.just/crap.just`, with the reason
-  beside it.
-- If you test, take the branches that decide something first; `just mutants::sweep -f`
-  on the same file says whether the new tests actually pin behavior.
-- An exclusion is file-shaped, with no per-function suppression, so its reason
-  has to be good enough to drop the file from the `just crap::check` gate too.
+- `crates/**/*_tests.rs`: exercise the paths nothing reaches. Take the branches
+  that decide something first; `just mutants::sweep -f` on the same file says
+  whether the new tests actually pin behavior.
+- `.just/crap.just`: exclude the file from scoring in `CRAP_EXCLUDES`, with the
+  reason beside it. An exclusion is file-shaped, with no per-function
+  suppression, so its reason has to be good enough to drop the file from the
+  `just crap::check` gate too.
 
 == Out of scope
 

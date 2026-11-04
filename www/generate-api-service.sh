@@ -51,7 +51,6 @@ capture --exit 1 --expect 'rules\.judgment-stays-small' split-oversized-tasks "$
 mt add -f - <<'EOF'
 title: Sign in with Google and GitHub
 difficulty: 6
-src-files: 7
 as-is: |
   + Open `/login`.
   + 🔴 It offers only a password form. A user who signed up with Google has to make a password first.
@@ -75,7 +74,6 @@ capture split-oversized-tasks "$P" "$(
 mt add -f - <<'EOF'
 title: Rename the User type to Account
 difficulty: 1
-src-files: 12
 as-is: |
   + Grep `src/` for `User`.
   + 🔴 The type is `User`, while the API, the database and the UI say account.
@@ -96,7 +94,6 @@ capture --exit 2 --expect 'missing required slot' require-a-task-shape "$P" "$(
     cat <<'CMD'
 mt add -f - <<'EOF'
 title: Paginate the audit log endpoint
-src-files: 2
 as-is: GET /audit returns every row, and on production the response is 40 MB.
 EOF
 CMD
@@ -105,7 +102,6 @@ capture --exit 1 --expect 'as-is-is-numbered-steps' require-a-task-shape "$P" "$
     cat <<'CMD'
 mt add -f - <<'EOF'
 title: Paginate the audit log endpoint
-src-files: 2
 as-is: GET /audit returns every row, and on production the response is 40 MB.
 to-be: |
   - 🟢 `GET /audit` returns 100 rows and a `next` cursor for the page after them.
@@ -126,7 +122,6 @@ api_copy P
 capture_prep "$P" "$(
     cat <<'CMD'
 cat >sections.yaml <<'EOF'
-src-files: 1
 as-is: |
   + Log in from `/settings`.
   + 🔴 It lands on `/`, not back on `/settings`.

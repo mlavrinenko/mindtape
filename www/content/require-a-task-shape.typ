@@ -23,6 +23,8 @@ wrong and you build the wrong thing.
   "as-is-is-numbered-steps",
   "to-be-has-green-bullets",
   "changes-name-files",
+  "changes-bullets-start-with-a-path",
+  "changes-non-empty",
 )))
 
 = Behavior
@@ -74,7 +76,7 @@ and Out of scope, in that order. A `fix` also carries Environment, a `feat`
 or a `decision` carries Alternatives, a `docs` task carries Source of truth,
 and a task tagged `stateful` carries Rollback. `AS-IS` must be numbered steps,
 with 🔴 on the step that shows the bug. Each `TO-BE` bullet opens with 🟢, and
-each Changes bullet names a file. A question left in `TO-BE`, Changes or Out of
+each Changes bullet starts with one backticked path. Changes is never empty. A question left in `TO-BE`, Changes or Out of
 scope fails, so ask it before you file, while a `?` in code passes. If you edit
 a task by hand, `mt check` runs the same rules on it. #link(u("/packs/"))[Packs]
 lists every rule in the pack and shows how to drop one, and

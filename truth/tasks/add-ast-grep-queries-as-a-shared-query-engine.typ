@@ -60,12 +60,12 @@ estimate: (src-files: count(0, ast_grep("rust", "parse_task($$$ARGS)", "crates/*
 
 == Changes
 
-- Leaf 1, spike and seam: `crates/mindtape/Cargo.toml` pins `ast-grep-core` with `ast-grep-language` and `tree-sitter-rust`; `crates/mindtape/src/query/mod.rs` (new) extracts `Query`, compile, file walk, path filter and cache from `estimate_queries`; a size/cross-build note in `docs/src/contributing/release.typ`.
-- Leaf 2, helper and prelude: `lib/prelude.typ`, `lib/typst.toml`, `crates/mindtape/src/loader/preludes/0.4.0/prelude.typ`, `embedded.rs`, `embedded_tests.rs`, `emit/mod.rs`, `test_support/fs.rs`, `crates/mindtape-cli/tests/it/support/fixtures.rs`: `ast_grep(...)`, `_fmt-query`, and the 0.4.0 version bump.
-- Leaf 3, estimate query: `crates/mindtape/src/query/mod.rs`, `estimate_queries/mod.rs`: the `Query::AstGrep` variant with canonical tag `ast-grep`, label, compile, match, optional glob and distinct files.
-- Leaf 4, forms: `crates/mindtape/src/model/canonical.rs`, `emit/mod.rs`, `import_map/mod.rs`: keep the source form through `mt ls --json` and `mt import`, and update the version lists in `docs/src/agents.typ`, `www/content/config.typ`, `task-files.typ`.
-- Leaf 5, collector consumer: `crates/mindtape/src/config/collect.rs`, `collect/astgrep.rs`: a `query = { ast_grep = ... }` variant that reuses the engine; decide the task-side input and whether a Typst grammar is needed. Depends on the derived-fields task.
-- Leaf 6, tests and docs: `crates/mindtape-cli/tests/it/estimate_queries_e2e.rs`, `www/content/estimates.typ`, `CHANGELOG.md`, `www/generated/*`.
+- `crates/mindtape/Cargo.toml`: leaf 1, spike and seam, pins `ast-grep-core` with `ast-grep-language` and `tree-sitter-rust`; `crates/mindtape/src/query/mod.rs` (new) extracts `Query`, compile, file walk, path filter and cache from `estimate_queries`; a size/cross-build note in `docs/src/contributing/release.typ`.
+- `lib/prelude.typ`: leaf 2, helper and prelude, plus `lib/typst.toml`, `crates/mindtape/src/loader/preludes/0.4.0/prelude.typ`, `embedded.rs`, `embedded_tests.rs`, `emit/mod.rs`, `test_support/fs.rs`, `crates/mindtape-cli/tests/it/support/fixtures.rs`: `ast_grep(...)`, `_fmt-query`, and the 0.4.0 version bump.
+- `crates/mindtape/src/query/mod.rs`: leaf 3, estimate query, plus `estimate_queries/mod.rs`: the `Query::AstGrep` variant with canonical tag `ast-grep`, label, compile, match, optional glob and distinct files.
+- `crates/mindtape/src/model/canonical.rs`: leaf 4, forms, plus `emit/mod.rs`, `import_map/mod.rs`: keep the source form through `mt ls --json` and `mt import`, and update the version lists in `docs/src/agents.typ`, `www/content/config.typ`, `task-files.typ`.
+- `crates/mindtape/src/config/collect.rs`: leaf 5, collector consumer, plus `collect/astgrep.rs`: a `query = { ast_grep = ... }` variant that reuses the engine; decide the task-side input and whether a Typst grammar is needed. Depends on the derived-fields task.
+- `crates/mindtape-cli/tests/it/estimate_queries_e2e.rs`: leaf 6, tests and docs, plus `www/content/estimates.typ`, `CHANGELOG.md`, `www/generated/*`.
 
 
 == Out of scope

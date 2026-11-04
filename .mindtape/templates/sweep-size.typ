@@ -34,12 +34,6 @@
     prompt: "0-9 on the judgment scale",
     example: 2,
   ),
-  estimate: slot(
-    "estimate",
-    kind: "text",
-    prompt: "(src-files: N)",
-    example: "(src-files: 2)",
-  ),
   assignee: "agent",
   tags: slot(
     "tags",
@@ -116,11 +110,11 @@ so the task is worth only as much as that measurement still is.
   kind: "raw",
   prompt: "the two language-specific bullets: what a remedy is here, and what a split has to be",
   example: ```typ
-  - Carve the header injection into its own module, or re-cap the file in `.config/linecop.yaml`.
-  - A split moves whole functions with their doc comments, so each file reads on its own.
+  - `crates/mindtape-cli/src/cmd/ls.rs`: carve the header injection into its own module, or re-cap the file in `.config/linecop.yaml`.
+  - `crates/mindtape-cli/src/cmd/ls.rs` and the module it sheds: a split moves whole functions with their doc comments, so each file reads on its own.
   ```,
 )
-- If you re-cap, write the reason next to the pattern in `.config/linecop.yaml`,
+- `.config/linecop.yaml`: if you re-cap, write the reason next to the pattern,
   in the style its `SKILL.md` / `AGENTS.md` / `CONTRIBUTING.md` entries already
   use. A written reason is the only thing that suppresses this finding on the
   next sweep; there is no ignore list anywhere else, deliberately.

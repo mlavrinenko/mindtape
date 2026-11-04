@@ -34,12 +34,6 @@
     prompt: "0-9 on the judgment scale",
     example: 2,
   ),
-  estimate: slot(
-    "estimate",
-    kind: "text",
-    prompt: "(src-files: N)",
-    example: "(src-files: 8)",
-  ),
   assignee: "agent",
   tags: slot(
     "tags",
@@ -128,8 +122,8 @@ neighboring window of the same snippet.
   - `crates/mindtape-cli/src/cmd/go.rs` and every other file the AS-IS lists: extract a helper and call it from each copy, or mark the copies as intended with `// jscpd:ignore-start` and `// jscpd:ignore-end` and a comment saying why the repetition is a coincidence.
   ```,
 )
-- In tests, a fixture or setup function is the helper. A test still reads top
-  to bottom when the helper's name says what it sets up.
+- `crates/**/*_tests.rs`: in tests, a fixture or setup function is the helper.
+  A test still reads top to bottom when the helper's name says what it sets up.
 
 == Out of scope
 

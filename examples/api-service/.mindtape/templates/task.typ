@@ -17,14 +17,6 @@
     prompt: "Service tags, and `stateful` or `stateless`",
     default: ("stateless",),
   ),
-  estimate: (
-    src-files: slot(
-      "src-files",
-      kind: "int",
-      prompt: "How many source files the change touches",
-      example: 2,
-    ),
-  ),
 )
 
 == AS-IS

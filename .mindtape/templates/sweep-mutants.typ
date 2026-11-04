@@ -34,12 +34,6 @@
     prompt: "0-9 on the judgment scale",
     example: 2,
   ),
-  estimate: slot(
-    "estimate",
-    kind: "text",
-    prompt: "(src-files: N)",
-    example: "(src-files: 2)",
-  ),
   assignee: "agent",
   tags: slot(
     "tags",
@@ -105,14 +99,13 @@ every run, so the task is worth only as much as that measurement still is.
 
 == Changes
 
-- Pick the remedy, then do it: write the assertion that kills the mutant, or
-  declare it uninteresting in `.config/mutants.toml` with a reason. The
-  assertion has to be one a reader would want anyway.
-- If you assert, assert on the behavior the mutated line decides, not on the
-  literal it was replaced with.
-- If you exclude, write the reason next to the entry in `.config/mutants.toml`.
-  A written reason is the only thing that suppresses this finding on the next
-  sweep; there is no ignore list anywhere else, deliberately.
+- `crates/**/*_tests.rs`: write the assertion that kills the mutant, and assert
+  on the behavior the mutated line decides, not on the literal it was replaced
+  with. The assertion has to be one a reader would want anyway.
+- `.config/mutants.toml`: declare the mutant uninteresting with a reason next to
+  the entry instead. A written reason is the only thing that suppresses this
+  finding on the next sweep; there is no ignore list anywhere else,
+  deliberately.
 
 == Out of scope
 

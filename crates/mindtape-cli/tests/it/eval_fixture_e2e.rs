@@ -60,7 +60,6 @@ fn the_fixture_template_has_the_slots_eval_one_names() {
         "title",
         "difficulty",
         "tags",
-        "src-files",
         "as-is",
         "to-be",
         "changes",

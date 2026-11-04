@@ -15,7 +15,6 @@
   ),
   difficulty: slot("difficulty", kind: "int", default: 3),
   tags: slot("tags", kind: "list", default: ("stateless",)),
-  estimate: slot("estimate", kind: "text", default: "(src-files: 2)"),
   x-goals: (
     product: verdicts(
       slot(

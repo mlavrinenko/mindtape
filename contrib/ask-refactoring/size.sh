@@ -35,12 +35,6 @@
 #   difficulty tracks `move` on the config's judgment rubric (3 = one obvious
 #   extraction, 5 = several defensible seams), +1 for a test module.
 #
-#   estimate is the split path, in `src-files`: the file, the module it sheds,
-#   the parent that declares it — 4 when the carve is big enough to want two
-#   new homes. Prose is flat 2: the page and the one it sheds. There is no
-#   third file, because nothing declares a page the way a `mod` line declares
-#   a module, and a render is regenerated, not written.
-#
 # A test module is reported only from 97% of its cap. The first sweep's lanes
 # split six test files at 90..95% and called it busywork: a test file grows by
 # whole cases, its seams are arbitrary, and nothing reads it end to end.
@@ -102,8 +96,6 @@ score_size() {
       | ((9 - (($move / 20) | round)) - (if $is_test then 2 else 0 end) | clamp(1; 10)) as $ease
       | ((if $move <= 20 then 3 elif $move <= 40 then 4 else 5 end)
           + (if $is_test then 1 else 0 end))                as $difficulty
-      | (if $kind == "prose" then 2
-         elif $move > 40 then 4 else 3 end)                 as $files
       | [
           $path,
           $kind,
@@ -112,8 +104,7 @@ score_size() {
           ($impact | tostring),
           ($confidence | tostring),
           ($ease | tostring),
-          ($difficulty | tostring),
-          ($files | tostring)
+          ($difficulty | tostring)
         ]
       | @tsv
     '
@@ -156,38 +147,40 @@ seam_for() {
 # Prose is a different remedy, not the Rust one reworded. Its rule lives once,
 # in docs/contributing/documentation.md, so this links to it.
 remedy_for() {
-    case "$1" in
+    local kind="$1" path="$2"
+    case "$kind" in
         Rust)
-            cat <<'EOF'
-- Pick the remedy, then do it. Either carve the file along a seam that means
-  something, or raise its cap in `.config/linecop.yaml` with an override that
+            cat <<EOF
+- \`$path\`: pick the remedy, then do it. Either carve the file along a seam that means
+  something, or raise its cap in \`.config/linecop.yaml\` with an override that
   names a new sane number and says why. Both are correct answers. A split for its own
   sake is not: the cap is there to push back on scope growth, not on accuracy.
-- If you split, the extracted module has to stand on its own and be named for
-  what it does. An arbitrary bottom half moved into a `_more.rs` clears linecop
-  and misses the point entirely.
+- \`$path\` and the module it sheds: if you split, the extracted module has to
+  stand on its own and be named for what it does. An arbitrary bottom half moved
+  into a \`_more.rs\` clears linecop and misses the point entirely.
 EOF
             ;;
         prose)
-            cat <<'EOF'
-- Follow "Rewrite the whole file" in `docs/contributing/documentation.md`:
+            cat <<EOF
+- \`$path\`: follow "Rewrite the whole file" in \`docs/contributing/documentation.md\`:
   rewrite the source whole for its reader, or move an argument where a reader
-  reaches it deliberately, such as a deep dive or a skill's `references/`.
+  reaches it deliberately, such as a deep dive or a skill's \`references/\`.
   Trimming words to fit is not a fix.
-- Re-cap only a file no session loads whole. The `.config/linecop.yaml`
+- \`$path\`: re-cap only a file no session loads whole. The \`.config/linecop.yaml\`
   override of an always-loaded file says it is rewritten, never raised.
 EOF
             ;;
         *)
-            cat <<'EOF'
-- Pick the remedy, then do it. Either move a self-contained part of this file
-  somewhere it stands on its own, or raise its cap in `.config/linecop.yaml`
+            cat <<EOF
+- \`$path\`: pick the remedy, then do it. Either move a self-contained part of this file
+  somewhere it stands on its own, or raise its cap in \`.config/linecop.yaml\`
   with an override that names a new sane number and says why. Both are correct
   answers.
   A split for its own sake is not: the cap is there to push back on scope
   growth, not on accuracy.
-- If you split, what comes out has to be nameable for what it does. A cut made
-  where the line count happens to land clears linecop and misses the point.
+- \`$path\` and what it sheds: if you split, what comes out has to be nameable
+  for what it does. A cut made where the line count happens to land clears
+  linecop and misses the point.
 EOF
             ;;
     esac
@@ -195,7 +188,7 @@ EOF
 
 emit_size() {
     local path="$1" kind="$2" measured="$3" flavour="$4"
-    local impact="$5" confidence="$6" ease="$7" difficulty="$8" files="$9"
+    local impact="$5" confidence="$6" ease="$7" difficulty="$8"
 
     local title="split or re-cap $path"
     [ "$kind" = prose ] && title="rewrite $path under its cap"
@@ -206,7 +199,7 @@ emit_size() {
     seam="$(seam_for "$kind" "$flavour")"
     # Trailing newline stripped by the substitution, so the spliced bullets abut
     # the literal ones after the slot and the Scope reads as one list.
-    remedy="$(remedy_for "$kind")"
+    remedy="$(remedy_for "$kind" "$path")"
 
     local tags=(--set 'tags+=swept' --set 'tags+=size' --set 'tags+=stateless')
     [ "$flavour" = test ] && tags+=(--set 'tags+=tests')
@@ -222,7 +215,6 @@ emit_size() {
         --set "confidence=$confidence"
         --set "ease=$ease"
         --set "difficulty=$difficulty"
-        --set "estimate=(src-files: $files)"
         "${tags[@]}"
     )
 

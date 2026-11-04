@@ -34,12 +34,6 @@
     prompt: "0-9 on the judgment scale",
     example: 2,
   ),
-  estimate: slot(
-    "estimate",
-    kind: "text",
-    prompt: "(src-files: N)",
-    example: "(src-files: 8)",
-  ),
   assignee: "agent",
   tags: slot(
     "tags",
@@ -129,8 +123,8 @@ shared location, so a location may belong to a neighboring window.
   - `crates/mindtape-cli/src/cmd/add/tests_subprocess.rs` and every other file the AS-IS lists: extract a helper and call it from each copy, or mark the copies as intended with `// jscpd:ignore-start` and `// jscpd:ignore-end` and a comment saying why the match is a coincidence. Either way, re-mint the baseline with `just lint::dry-baseline` in the same commit.
   ```,
 )
-- In tests, a fixture or setup function is the helper. A test still reads top
-  to bottom when the helper's name says what it sets up.
+- `crates/**/*_tests.rs`: in tests, a fixture or setup function is the helper.
+  A test still reads top to bottom when the helper's name says what it sets up.
 
 == Out of scope
 

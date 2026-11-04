@@ -12,7 +12,6 @@
     prompt: "Service tags, and `stateful` or `stateless`",
     default: ("stateless",),
   ),
-  estimate: (src-files: 0),
   x-goals: verdicts(
     (
       secure: slot(

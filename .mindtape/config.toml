@@ -63,14 +63,13 @@ derive-tags = true
 required = "!terminal"
 example = 3
 
-# A task estimates how many non-test SOURCE FILES it means to touch — not how
-# long it will take, and not the docs, tests and `CHANGELOG.md` every task
-# touches by process. A duration is a guess a model will happily invent; a
-# source-file count is plannable up front, is the same information good file
-# guidance already carries, and is checkable against git while the work runs.
-# See truth/tasks/move-open-tasks-and-templates-to-a-src-files-estimate.typ.
+# An estimate is optional here. The size rules read `derived.changes`, the
+# first backticked path on every Changes bullet, so a new task declares its
+# plan once. `units` stays so a task filed before that collector keeps its
+# `estimate.src-files`, and `required = false` keeps every open task valid
+# without a backfill. See `crates/mindtape/src/packs/budget.toml`.
 [tasks.estimate]
-required = "!terminal"
+required = false
 example = { src-files = 1 }
 
 # Goal verdicts moved out of the body into `x-goals:`, beside status and

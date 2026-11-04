@@ -90,6 +90,14 @@ fn assert_body_breaches(config: &Config, source: &str, rule: &str) {
     assert_breaches(&violations_for(config, source), rule);
 }
 
+/// The well-formed body with `from` replaced by `to` breaches `rule`.
+fn assert_changes_breach(from: &str, to: &str, rule: &str) {
+    let (_tmp, config) = config_extending_the_real_pack();
+    let source = as_is().replace(from, to);
+    let violations = violations_for(&config, &source);
+    assert_breaches(&violations, rule);
+}
+
 fn assert_task_breaches(config: &Config, kind: &str, source: &str, rule: &str) {
     assert_breaches(&violations_for_task(config, &task(kind, &[]), source), rule);
 }
@@ -189,6 +197,24 @@ fn an_empty_body_is_refused_under_the_pack_alone() {
     assert!(
         !violations.is_empty(),
         "an empty body must breach the pack's own section rules"
+    );
+}
+
+#[test]
+fn changes_bullets_must_start_with_one_backticked_path() {
+    assert_changes_breach(
+        "- `src/thing.rs`: fix the wrong thing.",
+        "- `src/thing.rs`: fix the wrong thing.\n- and cover it with a test.",
+        "body.content.rules.changes-bullets-start-with-a-path",
+    );
+}
+
+#[test]
+fn changes_must_not_be_empty() {
+    assert_changes_breach(
+        "- `src/thing.rs`: fix the wrong thing.",
+        "",
+        "body.content.rules.changes-non-empty",
     );
 }
 

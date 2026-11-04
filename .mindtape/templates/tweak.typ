@@ -8,7 +8,6 @@
   ),
   status: done(2026, 10, 4),
   tags: ("tweak",),
-  estimate: (src-files: 1),
 )
 
 #slot(

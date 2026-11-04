@@ -74,7 +74,7 @@ No rule is hardcoded in Mindtape. Every check is a few lines of config, either y
 
 | Recipe | What it does | What `mt` prints |
 | --- | --- | --- |
-| [Split oversized tasks](https://mlavrinenko.github.io/mindtape/split-oversized-tasks/) | Cap how many source files a task may touch when it takes judgment, so a big design gets split before it’s filed. | `error: <new task from template 'task'>:2: rules.judgment-stays-small: split the decision from the mechanical edits, so each task touches 5 source files or fewer` |
+| [Split oversized tasks](https://mlavrinenko.github.io/mindtape/split-oversized-tasks/) | Cap how many source files a task may touch when it takes judgment, so a big design gets split before it’s filed. | `error: <new task from template 'task'>:2: rules.judgment-stays-small: split the decision from the mechanical edits, so each task plans 5 source files or fewer` |
 | [Require a task shape](https://mlavrinenko.github.io/mindtape/require-a-task-shape/) | Refuse a task that doesn’t say where it starts, what done looks like and which files change. | `error: missing required slots: 'to-be', 'changes', 'out-of-scope'` |
 | [Start titles with a verb](https://mlavrinenko.github.io/mindtape/start-titles-with-a-verb/) | Refuse a task whose title doesn’t start with a verb, so each line of a list says what the task does. | `error: <new task from template 'task'>:2: rules.imperative-title: start the title with an imperative verb` |
 | [Tie work to your goals](https://mlavrinenko.github.io/mindtape/tie-work-to-goals/) | Make each milestone say how it serves your goals, and refuse one that helps none of them. | `error: <new task from template 'milestone'>:2: rules.goals: it helps no goal, so name one it helps or drop it` |

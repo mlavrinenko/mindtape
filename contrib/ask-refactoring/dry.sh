@@ -41,8 +41,6 @@
 #
 #   ease = 9 - round(files / 10), clamped 1..10, difficulty = 2
 #     Naming the helper is the one decision, the rest is fan-out.
-#     estimate is the files holding a copy, plus one when the helper needs a
-#     home.
 
 score_dry() {
     jq -r --argjson min_gain "$DRY_GAIN" '
@@ -142,7 +140,6 @@ $listed"
         --set "confidence=0.6"
         --set "ease=$ease"
         --set "difficulty=2"
-        --set "estimate=(src-files: $((files + 1)))"
         --set 'tags+=swept' --set 'tags+=dry' --set 'tags+=stateless'
     )
     local advice

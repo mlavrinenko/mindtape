@@ -178,8 +178,9 @@ fn files_at_the_status_the_template_names() {
 }
 
 /// The real `.mindtape/templates/task.typ` this repo ships, so a drift in its
-/// `estimate` slot default (e.g. drifting over the configured cap) fails
-/// this test rather than only surfacing at dogfood `mt check` time.
+/// shape fails this test rather than only surfacing at dogfood `mt check`
+/// time. It has no `estimate` slot: a required estimate is spliced in from
+/// `[tasks.estimate] example`.
 const PRODUCTION_TEMPLATE: &str = include_str!("../../../../.mindtape/templates/task.typ");
 
 /// The template imports `../lib.typ` beside the tasks root. A stub that
@@ -188,18 +189,20 @@ const PRODUCTION_TEMPLATE: &str = include_str!("../../../../.mindtape/templates/
 const GOALS_STUB: &str =
     "#let helps(reason) = reason\n#let hurts(reason) = reason\n#let neutral = none\n";
 
-/// Mirrors the dogfood config's `[tasks.estimate]`: required on every
-/// non-terminal task, capped at 5 `src-files` by a rule, no minimum.
+/// Mirrors a project's `[tasks.estimate]`: required on every non-terminal
+/// task, capped at 5 `src-files` by a rule, no minimum, and an example that
+/// fills the spliced slot.
 const ESTIMATE_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
      [tasks.priority]\nframework = \"ice\"\n\
      [tasks.estimate]\nunits = [\"src-files\"]\nrequired = \"!terminal\"\n\
+     example = { src-files = 2 }\n\
      [[tasks.rules]]\nassert = \"estimate.src-files <= 5\"\nseverity = \"error\"\n";
 
-/// `estimate` required with no explicit `--set estimate=...`: the production
-/// template's slot default must fill in a dict inside the configured cap,
-/// not leave a task that fails `check` the moment it lands.
+/// A required estimate the production template omits is spliced in, and the
+/// caller fills it with a dict inside the cap, so the task passes `check` the
+/// moment it lands.
 #[test]
-fn add_with_no_explicit_estimate_defaults_to_a_valid_task() {
+fn add_splices_a_required_estimate_into_the_production_template() {
     let dir = support::scaffold_project(ESTIMATE_REQUIRED_CONFIG);
     std::fs::create_dir_all(dir.path().join(".mindtape/templates")).unwrap();
     write_file(
@@ -209,12 +212,19 @@ fn add_with_no_explicit_estimate_defaults_to_a_valid_task() {
     );
     write_file(dir.path(), "lib.typ", GOALS_STUB);
 
+    assert!(
+        support::describe_slot_names(dir.path())
+            .iter()
+            .any(|name| name == "estimate"),
+        "a required estimate is spliced into the production template"
+    );
+
     let written = support::add_and_read(
         dir.path(),
-        "no-estimate",
+        "with-estimate",
         &[
             "--set",
-            "title=No estimate",
+            "title=With estimate",
             "--set",
             "as-is=+ A step.",
             "--set",
@@ -227,6 +237,8 @@ fn add_with_no_explicit_estimate_defaults_to_a_valid_task() {
             "dogfood=Not applicable.",
             "--set",
             "kind=test",
+            "--set",
+            "estimate=(src-files: 2)",
         ],
     );
     assert!(written.contains("estimate: (src-files: 2)"), "{written}");

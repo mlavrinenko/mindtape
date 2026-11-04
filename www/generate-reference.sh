@@ -33,7 +33,7 @@ COMMIT='git -c user.name=docs -c user.email=docs@example.com -c commit.gpgsign=f
 # --- the home page hero and /filters/ -----------------------------------------
 capture hero-ls "$API" 'mt ls'
 capture filters-open "$API" "mt ls '!terminal'"
-capture filters-operators "$API" "mt ls 'kind == \"fix\" || (kind == \"feat\" && estimate.src-files <= 2)'"
+capture filters-operators "$API" "mt ls 'kind == \"fix\" || (kind == \"feat\" && count_paths(derived.changes, \"@source\") <= 2)'"
 capture_lines filters-missing "$API" <<'EOF'
 mt ls 'estimate.src-files > 2'
 mt ls '!(estimate.src-files <= 2)'

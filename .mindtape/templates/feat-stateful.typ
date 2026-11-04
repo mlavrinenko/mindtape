@@ -20,7 +20,6 @@
     prompt: "Area tags; this template defaults `stateful`",
     default: ("stateful",),
   ),
-  estimate: slot("estimate", kind: "text", default: "(src-files: 2)"),
   x-goals: (
     product: verdicts(
       slot(

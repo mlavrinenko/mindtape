@@ -119,10 +119,9 @@ non-verdict, not a pass" else "" end)
 #     before the branch is even reachable — the template's "how far the mutant
 #     sits from a seam", measured by the only proxy the data carries.
 #
-#   difficulty tracks the same length on the config's judgment rubric, and the
-#   estimate is a flat `(src-files: 1)`: the test module gains a case, or
-#   `.config/mutants.toml` gains an exclusion. Both remedies touch one file, so a
-#   varying number here would be invented rather than measured.
+#   difficulty tracks the same length on the config's judgment rubric. The
+#   remedy is one file either way: the test module gains a case, or
+#   `.config/mutants.toml` gains an exclusion.
 score_mutants() {
     jq -r '
       def clamp($lo; $hi): [[., $lo] | max, $hi] | min;
@@ -191,7 +190,6 @@ emit_mutants() {
         --set "confidence=$confidence"
         --set "ease=$ease"
         --set "difficulty=$difficulty"
-        --set "estimate=(src-files: 1)"
         --set 'tags+=swept' --set 'tags+=mutants' --set 'tags+=stateless'
     )
 

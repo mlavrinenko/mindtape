@@ -60,7 +60,6 @@
 #     touches.
 #
 #   difficulty = 2: naming the helper is the one decision, the rest is fan-out.
-#   estimate is the files holding a copy, plus one when the helper needs a home.
 REPEATS_TOKENS=15
 
 score_repeats() {
@@ -157,7 +156,6 @@ $listed"
         --set "confidence=0.7"
         --set "ease=$ease"
         --set "difficulty=2"
-        --set "estimate=(src-files: $((files + 1)))"
         --set 'tags+=swept' --set 'tags+=repeats' --set 'tags+=stateless'
     )
     local advice; advice=$(printf '%s\n' 'the stem is taken, so this snippet was filed before and closed' 'without the repetition going — reopen it, or mark the copies with' '`jscpd:ignore-start` and a comment saying why')

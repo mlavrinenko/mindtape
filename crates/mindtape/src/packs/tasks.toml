@@ -316,9 +316,23 @@ message = "show the proposed shape in a fenced example, or tag the task `no-ui-u
 [[tasks.body.content.rules]]
 name = "changes-name-files"
 path = ["Changes"]
-assert = { must-match = "(?m)^\\s*- .*`" }
+assert = { must-match = "(?m)^[ \\t]*-[ \\t]+`[^`]+`" }
 when = "!terminal"
 message = "list Changes as bullets naming the `path` each one touches"
+
+[[tasks.body.content.rules]]
+name = "changes-bullets-start-with-a-path"
+path = ["Changes"]
+assert = { must-not-match = "(?m)^[ \\t]*-[ \\t]+[^`\\n]" }
+when = "!terminal"
+message = "start every Changes bullet with one backticked path, then what changes there"
+
+[[tasks.body.content.rules]]
+name = "changes-non-empty"
+path = ["Changes"]
+assert = "non-empty"
+when = "!terminal"
+message = "write the plan under Changes, one backticked path per bullet"
 
 [[tasks.body.content.rules]]
 name = "named-sections-non-empty"

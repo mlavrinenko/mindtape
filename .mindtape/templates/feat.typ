@@ -20,7 +20,6 @@
     prompt: "Area tags, and `stateful` or `stateless`",
     default: ("stateless",),
   ),
-  estimate: slot("estimate", kind: "text", default: "(src-files: 2)"),
   x-goals: (
     product: verdicts(
       slot(

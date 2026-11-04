@@ -1,11 +1,14 @@
 //! The `mindtape:wip-caps` and `mindtape:budget` packs, loaded through the
 //! real registry: their rules with each parameter's default and with a `with`
-//! value, the estimate unit and path set `budget` sets, and the project's
+//! value, the Changes collector and path set `budget` ships, and the project's
 //! own keys that merge over them.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use crate::config::Config;
 use crate::config::layers::load_config_layered_from;
+use crate::config::{CollectorQuery, SectionSpec};
+use crate::filter::Filter;
+use crate::model::Task;
 use crate::test_support::home_and_project;
 
 /// The config a project holding `own` as its `.mindtape/config.toml` loads.
@@ -66,15 +69,55 @@ fn budget_ships_both_rules_with_their_defaults() {
         rule(&config, "judgment-stays-small"),
         (
             r#"!terminal && kind != "milestone" && difficulty >= 3"#.to_owned(),
-            "estimate.src-files <= 5".to_owned()
+            r#"count_paths(derived.changes, "@source") <= 5"#.to_owned()
         )
     );
     assert_eq!(
         rule(&config, "src-budget"),
         (
-            r#"status == "wip" && has(estimate.src-files)"#.to_owned(),
-            r#"changed("staged+worktree", "@source") <= estimate.src-files"#.to_owned()
+            r#"status == "wip""#.to_owned(),
+            r#"changed("staged+worktree", "@source") <= count_paths(derived.changes, "@source")"#
+                .to_owned()
         )
+    );
+}
+
+#[test]
+fn budget_collects_the_changes_section_as_paths() {
+    let config = load("extends = [\"mindtape:budget\"]\n");
+    let spec = config
+        .tasks
+        .collectors
+        .iter()
+        .find(|spec| spec.name == "changes")
+        .expect("the budget pack declares the changes collector");
+    assert_eq!(spec.when.as_deref(), Some("!terminal"));
+    assert!(spec.returns.is_path_list());
+    assert!(
+        matches!(&spec.query, CollectorQuery::Regex(query)
+            if query.section == SectionSpec::Name("Changes".to_owned())
+                && query.pattern == r"(?m)^\s*-\s+`([^`]+)`"),
+        "{:?}",
+        spec.query
+    );
+
+    let mut task = Task {
+        id: "t".to_owned(),
+        body: "== Changes\n\n- `src/a.rs`: one\n- `src/b.rs`: two\n".to_owned(),
+        ..Task::default()
+    };
+    crate::collect::annotate(std::slice::from_mut(&mut task), &config);
+    assert_eq!(
+        task.derived["changes"].as_array().unwrap().len(),
+        2,
+        "{:?}",
+        task.derived
+    );
+    assert!(
+        Filter::parse(r#"count_paths(derived.changes, "@source") == 2"#)
+            .unwrap()
+            .matches(&task, &config)
+            .unwrap()
     );
 }
 
@@ -85,7 +128,7 @@ fn budget_takes_the_cap_and_the_difficulty_floor_as_parameters() {
     );
     let (when, assertion) = rule(&config, "judgment-stays-small");
     assert!(when.ends_with("difficulty >= 4"), "{when}");
-    assert_eq!(assertion, "estimate.src-files <= 8");
+    assert_eq!(assertion, r#"count_paths(derived.changes, "@source") <= 8"#);
 }
 
 #[test]
@@ -93,7 +136,6 @@ fn budget_sizes_in_source_files_over_every_path() {
     let config = load("extends = [\"mindtape:budget\"]\n");
     assert_eq!(config.tasks.estimate.units, ["src-files"]);
     assert_eq!(config.dicts["source"].values, ["**"]);
-    assert_eq!(config.tasks.estimate.queries["src-files"], "@source");
 }
 
 #[test]
@@ -105,8 +147,8 @@ fn a_projects_queries_and_source_set_merge_over_the_packs() {
          [dicts.source]\nvalues = [\"!docs/**\"]\n",
     );
     assert_eq!(config.tasks.estimate.units, ["src-files", "hunks"]);
-    assert_eq!(config.tasks.estimate.queries["src-files"], "@source");
     assert_eq!(config.tasks.estimate.queries["hunks"], "@source");
+    assert!(!config.tasks.estimate.queries.contains_key("src-files"));
     assert_eq!(config.dicts["source"].values, ["!docs/**"]);
 }
 

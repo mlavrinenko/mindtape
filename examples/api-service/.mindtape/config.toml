@@ -39,19 +39,26 @@ check = { typst = "goals.typ", function = "check-goals", field = "x-goals" }
 severity = "error"
 # docs:end
 
-# Split oversized tasks: a task that takes judgment, difficulty 3 and up, is
-# refused over 5 source files. Mechanical work has no cap.
+# Split oversized tasks: a judgment task is refused when its Changes section
+# names more than 5 source files. The `changes` collector reads one path per
+# bullet, so the rule sees the plan, not a second estimate.
 # docs:slice api-service/split-oversized-tasks
 [[tasks.rules]]
 name = "judgment-stays-small"
 when = "!terminal && difficulty >= 3"
-assert = "estimate.src-files <= 5"
-message = "split the decision from the mechanical edits, so each task touches 5 source files or fewer"
+assert = 'count_paths(derived.changes, "@source") <= 5'
+message = "split the decision from the mechanical edits, so each task plans 5 source files or fewer"
 severity = "error"
+
+[[tasks.collectors]]
+name = "changes"
+when = "!terminal"
+query = { section = "Changes", pattern = "(?m)^\\s*-\\s+`([^`]+)`" }
+returns = ["path"]
 
 [tasks.estimate]
 units = ["src-files"]
-required = "!terminal"
+required = false
 # docs:end
 
 # Rank the work: an ICE score on a 0..9 scale, and a band that names each score.
@@ -103,17 +110,9 @@ allow-pattern = "^docs:"
 [tasks.fields.kind]
 required = false
 
-# Run the tests before a task closes. `mt done` refuses while `scripts/test`
-# fails.
-[[on.flip]]
-when = 'into("done")'
-actions = [{ run = "scripts/test", gate = true }]
-
-# Trace commits to tasks: each commit names its task in a `Refs:` trailer.
-# docs:slice api-service/trace-commits-to-tasks
-[commits]
-trailer = "Refs"
-# docs:end
+[dicts.source]
+case = "exact"
+values = ["**"]
 
 # Name the services once. A task tag and a rule can both read the set. It joins
 # inline `values` with a `path` file (one entry per line), and `case` sets how
@@ -130,6 +129,18 @@ case = "fold"
 [dicts.verbs]
 include = ["mindtape-verbs", "mindtape-dev-verbs"]
 values = ["backport", "dockerize"]
+# docs:end
+
+# Run the tests before a task closes. `mt done` refuses while `scripts/test`
+# fails.
+[[on.flip]]
+when = 'into("done")'
+actions = [{ run = "scripts/test", gate = true }]
+
+# Trace commits to tasks: each commit names its task in a `Refs:` trailer.
+# docs:slice api-service/trace-commits-to-tasks
+[commits]
+trailer = "Refs"
 # docs:end
 
 # List what is open and due to start. A bare `mt ls` applies the default view.
