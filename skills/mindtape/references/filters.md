@@ -99,7 +99,7 @@ A count is a number, so it goes in a comparison.
 - `changed("states", "glob", "!glob", …)` counts the paths git reports
   changed. The states are `staged`, `worktree` or `staged+worktree`. Globs are
   relative to the repository root, and a `!` glob excludes:
-  `changed("staged+worktree", "src/**") <= estimate.src-files`.
+  `changed("staged+worktree", "@source") <= count_paths(derived.changes, "@source")`.
   A rename counts once, at its new path. A glob written `"@name"` stands for
   the entries of the `[dicts.name]` set, which declares `case = "exact"`.
 

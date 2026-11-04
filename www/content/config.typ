@@ -320,6 +320,12 @@ Collectors merge by name across layers and packs, exactly as rules do, and
 are a config error. `mt rules` lists each one with its origin, kind, type and
 the rules that read it; a Typst collector also names its module and function.
 
+`mindtape:budget` ships a `changes` collector over a task's Changes section,
+and its rules read `count_paths(derived.changes, "@source")`. A project that
+sizes work that way sets `[tasks.estimate] required = false`; an estimate
+stays optional, and #link(u("/split-oversized-tasks/"))[Split oversized tasks]
+shows the rule.
+
 = Actors
 
 `[[actors]]` lists who works on tasks, people and language models, and

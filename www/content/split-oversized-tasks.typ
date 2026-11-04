@@ -29,7 +29,11 @@ The `changes` collector reads the first backticked path on every Changes
 bullet, so `derived.changes` is the plan the task already carries.
 `judgment-stays-small` counts the paths that fall inside the `source` set:
 
-#recipe-config("split-oversized-tasks")
+// docs:hand-typed the `[dicts.source]` block that makes `@source` resolve
+#recipe-config(
+  "split-oversized-tasks",
+  after: "[dicts.source]\ncase = \"exact\"\nvalues = [\"**\"]",
+)
 
 = Behavior
 

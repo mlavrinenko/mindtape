@@ -183,16 +183,18 @@ example = "agent"
 # `[views.default]` view. Redeclare `[views.default]` here to add a
 # sort/columns bundle.
 
-# `mt check` warns (never fails) once the working tree outgrows what the
-# in-flight task declared. Only source counts, so every other path is a `!`
-# exclude below. Nobody hand-edits generated output — `docs-md-check` /
-# `docs-check` fail the build if anyone tries — and everything else excluded is
-# touched by every task by process (a status flip, a docs page, a test,
-# `CHANGELOG.md`), never by the design decision the estimate is meant to size.
-# Counting either against a task's declared budget turns a truthful estimate
-# into a number an author has to inflate just to keep an advisory warning
-# quiet, which trains everyone to stop reading it. For the same reason a
-# filed estimate is never raised: it records the decomposition as planned.
+# `mt check` warns (never fails) once the working tree outgrows the paths the
+# in-flight task's Changes section names. `src-budget` counts the distinct
+# paths in that plan inside the `source` set below. Only source counts, so
+# every other path is a `!` exclude. Nobody hand-edits generated output —
+# `docs-md-check` / `docs-check` fail the build if anyone tries — and
+# everything else excluded is touched by every task by process (a status flip,
+# a docs page, a test, `CHANGELOG.md`), never by the design decision the plan
+# is meant to size. Counting either against a task's plan turns a truthful
+# Changes section into one an author has to inflate just to keep an advisory
+# warning quiet, which trains everyone to stop reading it. For the same reason
+# a filed Changes section is not rewritten: it records the decomposition as
+# planned.
 #
 # - README.md, CONTRIBUTING.md, AGENTS.md, skills/mindtape/SKILL.md and
 #   docs/contributing/*.md: rendered from docs/src/**.typ by `just docs-md`.

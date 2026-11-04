@@ -42,9 +42,11 @@
 A task's estimate is a dict of units to numbers, such as
 `estimate: (files: 5)`. Pick units you can check: files changed, say, rather
 than hours. `[tasks.estimate] units` lists the unit names you allow, and
-`required` says which tasks must carry an estimate. `mt` checks `units` on
-open tasks only, so a finished task keeps its unit after you drop it from the
-list.
+`required` says which tasks must carry an estimate. An estimate is optional
+when `required` is false, as this repo and `examples/api-service` set it:
+their size rules read the paths a task's Changes section names, and
+#link(u("/split-oversized-tasks/"))[Split oversized tasks] shows the rule. `mt` checks `units` on open tasks only, so a finished task
+keeps its unit after you drop it from the list.
 
 `mt` doesn't check any quantity on its own. A cap or a budget is a
 #link(u("/rules/"))[`[[tasks.rules]]`] entry that reads one unit as a number,
@@ -120,7 +122,10 @@ For `mt add` refusing a task over a cap, see
 A file count is an estimate a rule can compare with git, so you find out
 when a task grows past its plan. #link(u("/filters/"))[`changed()`] counts the
 paths git reports changed, and the rule compares that count with the estimate
-of each task in progress:
+of each task in progress. The shipped `mindtape:budget` compares it with
+`count_paths(derived.changes, "@source")` instead, the paths the Changes
+section names; this example keeps an estimate-based rule to document the
+field.
 
 #raw(
   render-slices(slices, parts.slice(2, 3), comment: "#"),

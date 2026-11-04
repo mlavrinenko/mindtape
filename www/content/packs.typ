@@ -399,28 +399,29 @@ is refused. Each cap is a parameter, read from
 
 = The rules in `mindtape:budget`
 
-`extends = ["mindtape:budget"]` holds a task's size to a number of source
-files. A task estimates the files it means to touch in `estimate.src-files`.
-`judgment-stays-small` refuses an open task of judgment work, and a milestone
-is exempt, that estimates more than `max-files`. `src-budget` warns when the
-working tree has changed more files than the task in progress estimated.
+`extends = ["mindtape:budget"]` holds a task's size to the number of source
+files its Changes section names. A `changes` collector reads the first
+backticked path on every bullet, so `derived.changes` is a list of paths, and
+a glob counts once. `judgment-stays-small` refuses an open task of judgment
+work, and a milestone is exempt, whose Changes section names more than
+`max-files` source files. `src-budget` warns when the working tree has changed
+more files than the task in progress plans.
 
 #let budget = toml("../generated/packs/budget.toml")
 
 #param-table(budget.params, (
-  max-files: "The most source files a judgment task may estimate.",
+  max-files: "The most source files a judgment task may plan.",
   min-difficulty: "The lowest difficulty that counts as judgment work.",
 ))
 
 #rule-table(budget.tasks.rules)
 
-The pack also sets `[tasks.estimate] units = ["src-files"]`, a query that
-counts a task's `grep` matches inside the `source` path set, and a `[dicts.source]`
-of `**`, so every file counts. Keys merge key by key, so your own
-`[tasks.estimate.queries]` adds to the pack's. An array replaces it, so a
-`[dicts.source]` of yours with `!` globs for docs and generated files replaces
-the pack's `**`, as #mindtape's own does. A parameter reaches expressions only,
-never the unit, so a project that sizes in `files` overrides both rules by name.
+The pack also sets `[tasks.estimate] units = ["src-files"]`, so a task filed
+with an `estimate.src-files` stays valid, and a `[dicts.source]` of `**`, so
+every file counts. An array replaces it, so a `[dicts.source]` of yours with
+`!` globs for docs and generated files replaces the pack's `**`, as
+#mindtape's own does. A parameter reaches expressions only, never the unit, so
+a project that sizes in `files` overrides both rules by name.
 
 = The rules in `mindtape:tweaks`
 

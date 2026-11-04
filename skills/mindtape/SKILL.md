@@ -50,7 +50,7 @@ Common filters are `ready` (open, with every `depends-on` target finished and ev
 
 ## Filing tasks
 
-`mt add <title…>` names the file, checks the task, and writes it under the first root. Before you file, run `mt tags --for add` for the tags the shape rules read, including the `no-repro` and `no-ui-ux` opt-outs. Write `x-goals` with `verdicts((secure: helps[why],), "fast")`: the task’s verdicts, then every neutral goal by name. A goal named both ways fails. `mt add --list` lists templates and `mt add --describe` their slots. Pass a typed value as `--set key=value`, or YAML on stdin with `-f -`. `--print` shows the task without writing it.
+`mt add <title…>` names the file, checks the task, and writes it under the first root. Before you file, run `mt tags --for add` for the tags the shape rules read, including the `no-repro` and `no-ui-ux` opt-outs. Write `x-goals` with `verdicts((secure: helps[why],), "fast")`: the task’s verdicts, then every neutral goal by name. A goal named both ways fails. Start every Changes bullet with one backticked path; `derived.changes` is that list. `mt add --list` lists templates and `mt add --describe` their slots. Pass a typed value as `--set key=value`, or YAML on stdin with `-f -`. `--print` shows the task without writing it.
 
 A slot need not be a field: a framework priority takes its inputs (`--set impact=8`). `mt add` refuses an unknown slot and lists the known ones. For a field with no slot, file the task then `mt set` it. A `text` slot escapes markup, so a code span lands as literal backticks and `mt add` warns naming the slot. Read `references/add-slots.md` before filling an unfamiliar template.
 

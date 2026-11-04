@@ -66,7 +66,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `src-budget` gates on `status == "wip"` rather than a filed estimate. The
   pack keeps `[tasks.estimate] units = ["src-files"]`, and the templates drop
   their estimate slot; `.mindtape/config.toml` and `examples/api-service` set
-  `required = false`, so no open task needs a backfill.
+  `required = false`, so no open task needs a backfill. `mindtape:tasks` now
+  requires every Changes bullet to open with one backticked path and Changes
+  to be non-empty, so an open task with prose-only Changes fails `mt check`
+  until it names its paths.
 
 ### Fixed
 

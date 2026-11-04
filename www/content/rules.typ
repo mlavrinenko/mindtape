@@ -133,7 +133,7 @@ result as `derived.<name>`, and a rule reads it like any other field. A regex
 collector reads a body section, so a size cap can read the files a task's
 Changes section names instead of a separate estimate:
 
-// docs:hand-typed the collector and rule shape is a sketch until a fixture carries one
+// docs:hand-typed the collector and rule shape is a sketch until examples/rules carries one
 ```toml
 [[tasks.collectors]]
 name = "changes"
@@ -147,6 +147,10 @@ when = '!terminal && difficulty >= 3'
 assert = 'count_paths(derived.changes, "@source") <= 5'
 message = "split the decision from the mechanical fan-out"
 severity = "error"
+
+[dicts.source]
+case = "exact"
+values = ["**"]
 ```
 
 A Typst collector is the escape hatch for a structure a regex cannot read: it

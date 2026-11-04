@@ -46,8 +46,8 @@ Here's the template in `examples/api-service/.mindtape/templates/task.typ`:
 
 #raw(read("../generated/api-service-template.typ"), lang: "typ", block: true)
 
-A slot can stand for a field value, a value inside a dictionary such as
-`estimate`, or a section of the body. `slot(name, ...)` takes these optional
+A slot can stand for a field value, a value inside a call such as a framework
+input, or a section of the body. `slot(name, ...)` takes these optional
 arguments:
 
 #table(
@@ -145,10 +145,10 @@ agent.
   table.header([Source], [Example]),
   [A values file, YAML or JSON], [`mt add -f values.yaml`],
   [Values on stdin], [`mt add -f -`],
-  [A token], [`mt add --set src-files=2`, or `mt add -- src-files=2`],
+  [A token], [`mt add --set difficulty=2`, or `mt add -- difficulty=2`],
   [Title words], [`mt add Log slow database queries`],
-  [An environment variable], [`MINDTAPE_ADD_SRC_FILES=2 mt add`],
-  [The slot's `default`], [`slot("src-files", kind: "int", default: 1)`],
+  [An environment variable], [`MINDTAPE_ADD_DIFFICULTY=2 mt add`],
+  [The slot's `default`], [`slot("difficulty", kind: "int", default: 1)`],
 )
 
 When two sources set the same slot, the later one wins. `mt add` reads `-f`
@@ -201,7 +201,9 @@ earlier one, and `null` clears it.
   Otherwise the file name is the task's identity.
 - Required fields the template leaves out. If the config requires
   `priority`, `difficulty`, `kind`, `assignee`, `estimate` or an `x-<ns>`
-  field and the template doesn't set it, `mt add` adds a slot for it. The slot
+  field and the template doesn't set it, `mt add` adds a slot for it. A
+  project that sets `[tasks.estimate] required = false`, as this repo and
+  `examples/api-service` do, gets no estimate slot. The slot
   shows up in `--describe` and the editor. The `assignee` slot reads the
   `MINDTAPE_PRINCIPAL` environment variable. When a requirement depends only
   on the status, `mt add` checks it against the status the task is filed at.

@@ -33,7 +33,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 11, 5),
+  status: done(2026, 11, 5),
   links: depends-on("add-derived-task-fields-and-a-regex-collector.typ"),
 )
 
@@ -65,10 +65,10 @@ returns = ["path"]
 
 == Changes
 
-- `crates/mindtape/src/packs/budget.toml`: declare the `changes` collector; both rules read `count_paths(derived.changes, "@source")`; `src-budget` gates on `status == "wip"`; keep `units`; rewrite the comments and message.
+- `crates/mindtape/src/packs/budget.toml`: declare the `changes` collector; both rules read `count_paths(derived.changes, "@source")`; `src-budget` gates on `status == "wip"`; keep `units` and drop the obsolete `src-files` query; rewrite the comments and message.
 - `crates/mindtape/src/packs/tasks.toml`: require a leading backticked path on every Changes bullet with `must-not-match`, and add a non-empty rule.
 - `.mindtape/config.toml`: set `[tasks.estimate] required = false`; rewrite the comment.
-- `.mindtape/templates/*.typ`: drop every estimate slot and the literal estimate in `tweak.typ`.
+- `.mindtape/templates/*.typ`: drop every estimate slot and the literal estimate in `tweak.typ`, and start each Changes example with one backticked path.
 - `examples/api-service/.mindtape/config.toml`, `.../templates/*.typ`, `www/generate-api-service.sh`, `www/generate-guides.sh`: declare a local `changes` collector, add `[dicts.source]`, set `required = false`, and stop passing `src-files`.
 - `contrib/ask-refactoring/*.sh`: stop passing `estimate=(src-files: ...)`; make each generated Changes bullet start with one path.
 - `crates/mindtape/src/config/packs_tests_budget.rs`, `www/content/packs.typ`: update the expected rules and prose.

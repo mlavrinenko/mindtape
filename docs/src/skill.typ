@@ -95,7 +95,8 @@ read `references/filters.md`.
 first root. Before you file, run `mt tags --for add` for the tags the shape
 rules read, including the `no-repro` and `no-ui-ux` opt-outs. Write `x-goals`
 with `verdicts((secure: helps[why],), "fast")`: the task's verdicts, then
-every neutral goal by name. A goal named both ways fails. `mt add --list`
+every neutral goal by name. A goal named both ways fails. Start every Changes
+bullet with one backticked path; `derived.changes` is that list. `mt add --list`
 lists templates and `mt add --describe` their slots. Pass a typed value as
 `--set key=value`, or YAML on stdin with `-f -`. `--print` shows the task
 without writing it.
