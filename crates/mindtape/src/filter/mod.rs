@@ -102,10 +102,14 @@ pub(crate) mod strings;
 pub use strings::DictMiss;
 pub(crate) mod views;
 
-use evalexpr::{DefaultNumericTypes, Node, build_operator_tree};
+use std::collections::BTreeSet;
+
+use evalexpr::{DefaultNumericTypes, Node, Operator, build_operator_tree};
 
 use crate::config::Config;
-use crate::filter::expr::{join_kebab_names, restore_name};
+use crate::filter::expr::{
+    call_args, extract_identifier, extract_literal, join_kebab_names, restore_name, unwrap_root,
+};
 use crate::filter::views::{collect_view_refs, desugar_view_refs};
 use crate::graph::ready::Readiness;
 use crate::model::Task;
@@ -170,11 +174,7 @@ impl Filter {
     /// traversal order (may contain duplicates). Empty for the match-all filter.
     #[must_use]
     pub fn view_refs(&self) -> Vec<String> {
-        let mut out = Vec::new();
-        if let Some(tree) = &self.tree {
-            collect_view_refs(tree, &mut out);
-        }
-        out
+        self.collect_with(collect_view_refs)
     }
 
     /// Every bare name the filter reads — a field, or a predicate written bare
@@ -186,6 +186,24 @@ impl Filter {
             .flat_map(Node::iter_variable_identifiers)
             .map(restore_name)
             .collect()
+    }
+
+    /// Every tag the filter reads through `has_tag("name")` or
+    /// `has(tags, "name")`, however either call is spaced, in sorted order.
+    /// Empty for the match-all filter.
+    #[must_use]
+    pub fn tag_reads(&self) -> BTreeSet<String> {
+        self.collect_with(collect_tag_reads)
+    }
+
+    /// Fill a fresh collection with whatever `walk` gathers from this filter's
+    /// parsed tree. Empty for the match-all filter.
+    fn collect_with<T: Default>(&self, walk: fn(&Node<DefaultNumericTypes>, &mut T)) -> T {
+        let mut out = T::default();
+        if let Some(tree) = &self.tree {
+            walk(tree, &mut out);
+        }
+        out
     }
 
     /// Whether the filter reads the whole task set rather than one task: it
@@ -268,6 +286,35 @@ const SET_FIELDS: [&str; 6] = ["ready", "blocked", "blocks", "topo", "children",
 fn calls_count(node: &Node<DefaultNumericTypes>) -> bool {
     matches!(node.operator(), evalexpr::Operator::FunctionIdentifier { identifier } if identifier == "count")
         || node.children().iter().any(calls_count)
+}
+
+/// Collect every tag `node` reads through `has_tag("name")` or
+/// `has(tags, "name")` into `tags`. A call whose tag argument is not a
+/// literal counts for nothing, and so does `has()` on any other field.
+fn collect_tag_reads(node: &Node<DefaultNumericTypes>, tags: &mut BTreeSet<String>) {
+    let node = unwrap_root(node);
+    if let Operator::FunctionIdentifier { identifier } = node.operator() {
+        let args = call_args(node.children());
+        match (identifier.as_str(), args.as_slice()) {
+            ("has_tag", [tag]) => push_tag(tag, tags),
+            ("has", [field, tag]) if names_tags(field) => push_tag(tag, tags),
+            _ => {}
+        }
+    }
+    for child in node.children() {
+        collect_tag_reads(child, tags);
+    }
+}
+
+/// Whether `field` is the `tags` field `has(field, value)` tests.
+fn names_tags(field: &Node<DefaultNumericTypes>) -> bool {
+    extract_identifier(field).is_ok_and(|name| name == "tags")
+}
+
+fn push_tag(tag: &Node<DefaultNumericTypes>, tags: &mut BTreeSet<String>) {
+    if let Ok(tag) = extract_literal(tag) {
+        tags.insert(tag);
+    }
 }
 
 /// Shared context threaded through the filter walk: the task under test, the

@@ -1,11 +1,12 @@
 //! `mt tags` — list the allowed tags and the rules that read them.
 //!
 //! Read-only. Each allowed tag is followed by every rule whose `when` or
-//! `assert` mentions `has_tag("<tag>")`, and by that rule's message. A tag no
-//! rule reads prints as an area label, so the listing covers the whole
-//! vocabulary. `--for` keeps the rules the command at one moment enforces.
+//! `assert` reads it through `has_tag("<tag>")` or `has(tags, "<tag>")`, and by
+//! that rule's message. A tag no rule reads prints as an area label, so the
+//! listing covers the whole vocabulary. `--for` keeps the rules the command at
+//! one moment enforces.
 
-use mindtape::{ActiveRule, Config, active_rules, load_config};
+use mindtape::{ActiveRule, Config, Filter, active_rules, load_config};
 
 use crate::cmd::rules::{Moment, message};
 use crate::diag::Result;
@@ -80,13 +81,14 @@ fn entries(config: &Config, moment: Option<Moment>) -> Vec<TagEntry> {
     entries
 }
 
-/// Whether a rule's `when` or `assert` names `tag` as `has_tag("<tag>")`.
+/// Whether a rule's `when` or `assert` reads `tag` through `has_tag(...)` or
+/// `has(tags, ...)`, however either is spelled or spaced.
 fn reads(rule: &ActiveRule, tag: &str) -> bool {
-    let needle = format!("has_tag(\"{tag}\")");
     [&rule.when, &rule.assertion]
         .into_iter()
         .flatten()
-        .any(|text| text.contains(&needle))
+        .filter_map(|text| Filter::parse(text).ok())
+        .any(|filter| filter.tag_reads().contains(tag))
 }
 
 /// One rule as the tag listing shows it.

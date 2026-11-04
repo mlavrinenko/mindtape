@@ -196,3 +196,18 @@ fn an_unknown_kebab_name_is_reported_as_written() {
         .unwrap_err();
     assert_eq!(err.to_string(), "unknown field in filter: no-such-field");
 }
+
+/// `mt tags` asks a parsed filter which tags it reads: both spellings count,
+/// and a string or a `has()` on another field does not.
+#[test]
+fn tag_reads_finds_both_spellings_and_not_other_has_calls() {
+    let reads = |expr: &str| Filter::parse(expr).unwrap().tag_reads();
+    let names = |expr: &str| reads(expr).into_iter().collect::<Vec<_>>();
+
+    assert_eq!(
+        names(r#"has_tag("bug") || has(tags, "api") || has_tag ("ui")"#),
+        ["api", "bug", "ui"]
+    );
+    assert!(reads(r#"has(x-machine, "api") && has(kind, "bug")"#).is_empty());
+    assert!(reads(r#"contains("has_tag(\"bug\")")"#).is_empty());
+}

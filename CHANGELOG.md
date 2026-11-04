@@ -38,6 +38,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt tags` reads both spellings of a tag call.** A rule that reads a tag
+  through `has(tags, "tag")`, or through `has_tag ("tag")` with a space, now
+  lists under that tag as `has_tag("tag")` does. The scan parses the rule's
+  filter instead of matching its bytes.
 - **A commit state loads every task file from its own tree.** `mt check
   --commits` and `--commit-msg` now read each task file a state holds, not
   only the files the state differs at, and build that state's config over the

@@ -4,9 +4,10 @@
 #show: cli-page.with("tags")
 
 `mt tags` lists every tag `[tasks.tags] allowed` permits, with the rules that
-read it. A rule reads a tag when its `when` or `assert` names
-`has_tag("<tag>")`, so a new rule needs no registration. Each rule shows the
-message a breach prints, the same line `mt rules` gives it.
+read it. A rule reads a tag when its `when` or `assert` reads
+`has_tag("<tag>")` or `has(tags, "<tag>")`, however either is spaced, so a new
+rule needs no registration. Each rule shows the message a breach prints, the
+same line `mt rules` gives it.
 
 Without `--for`, a tag that no rule reads is still a legal tag, so the listing
 shows it with `area label` rather than dropping it. That covers tags a view or

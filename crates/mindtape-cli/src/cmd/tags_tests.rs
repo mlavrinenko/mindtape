@@ -84,6 +84,39 @@ fn a_rule_reads_tags_in_its_when_and_its_assert_only() {
 }
 
 #[test]
+fn reads_a_tag_through_has_tags_and_a_spaced_has_tag() {
+    let mut toml = String::from(
+        "[tasks.tags]\n\
+         allowed = [\"cli\", \"ui\", \"space tag\", \"kind\", \"bug\"]\n",
+    );
+    for (name, when) in [
+        ("cli-only", "has(tags, \"cli\")"),
+        ("ui-only", "has_tag (\"ui\")"),
+        ("space-tag", "has_tag(\"space tag\")"),
+        ("kind-is-cli", "has(kind, \"cli\")"),
+        ("mentions-bug", "contains(\"has_tag(\\\"bug\\\")\")"),
+    ] {
+        toml.push_str(&format!(
+            "[[tasks.rules]]\nname = \"{name}\"\nwhen = '{when}'\n\
+             assert = 'has(title)'\nmessage = \"{name}\"\n"
+        ));
+    }
+    let config = parse_config(&toml).unwrap();
+
+    let entries = entries(&config, None);
+
+    for (tag, expected) in [
+        ("cli", &["tasks.rules.cli-only"][..]),
+        ("ui", &["tasks.rules.ui-only"][..]),
+        ("space tag", &["tasks.rules.space-tag"][..]),
+        ("kind", &[][..]),
+        ("bug", &[][..]),
+    ] {
+        assert_eq!(names(&entries, tag), expected, "{tag}");
+    }
+}
+
+#[test]
 fn keeps_only_the_rules_a_moment_enforces() {
     for (moment, expected) in [
         (Moment::Add, &["tasks.rules.bugs-need-repro"][..]),
