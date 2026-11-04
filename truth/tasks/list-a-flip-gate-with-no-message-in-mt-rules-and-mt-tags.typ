@@ -54,8 +54,8 @@ cli  on.flip[1].actions[0]
 The first still refuses at flip time, through `runless_gate` with `DEFAULT_ADVICE`:
 
 ```
-active_rules.rs:187: let Some(message) = &action.message else {
-active_rules.rs:188:     continue;
+active_rules.rs:191: let Some(message) = &action.message else {
+active_rules.rs:192:     continue;
 ```
 
 
@@ -67,6 +67,7 @@ left in a closing report no one rereads. It belongs in
 
 - 🟢 `mt rules --for flip` lists every action with `gate = true`, message or not, as `(no message set)` when it has none.
 - 🟢 `mt tags --for flip` names the tags that gate's `when` reads.
+- 🟢 `mt rules --for flip --json` keeps `"message": null` for a gate with no message.
 
 ```
 $ mt rules --for flip
@@ -82,14 +83,17 @@ cli   on.flip[1].actions[0]
 
 == Changes
 
-- `crates/mindtape/src/config/active_rules.rs`: list an action when `gate = true` or it carries a `message`, not only when it carries a `message`.
-- `crates/mindtape/src/config/active_rules_tests.rs`: pin a message-less gate in the listing and keep a message-less show or non-gating run out.
+- `crates/mindtape/src/config/active_rules.rs`: list an action when `gate = true` or it carries a `message`, and update the module, `ActiveRule.message`, `active_rules` and `flip_actions` docs that say only message-carrying actions list.
+- `crates/mindtape/src/config/active_rules_tests.rs`: rename and re-document the existing test, then pin a run-less gate and a gating `run` with no message, while a message-less `show` and non-gating `run` stay out.
+- `crates/mindtape-cli/src/cmd/tags_tests.rs`: pin that `--for flip` lists the tag read by a message-less gate. The rules table's `(no message set)` render is already covered.
+- `www/content/cli/rules.typ`: say a flip gate lists with or without a `message`, and another action lists only when it carries one.
+- `www/content/cli/tags.typ`: say each rule shows the message `mt rules` gives it, `(no message set)` included.
 
 
 == Out of scope
 
-- Which message a gate with none shows. It reuses `(no message set)`, as a body rule without one already does.
-- The `[[on.flip]]` execution in `cmd/flip/hooks.rs`; it already refuses a message-less gate with `DEFAULT_ADVICE`.
+- The text `mt rules` prints for a rule with no message. It stays `(no message set)`, as a body rule without one already shows.
+- The `[[on.flip]]` refusal text in `cmd/flip/hooks.rs`. A run-less gate keeps `DEFAULT_ADVICE`, and a gating `run` with no message keeps its current text.
 
 
 == Dogfood
