@@ -47,7 +47,7 @@
 
 == TO-BE
 
-- 🟢 `mt explain` is the name. It absorbs `mt rules` and `mt tags`; `mt explain rules` keeps the derived-fields block.
+- 🟢 `mt explain` is the name. It is a verb, collides with no existing command, and covers policy listings rather than named-set lookups; it absorbs `mt rules` and `mt tags`, and `mt explain rules` keeps the derived-fields block.
 - 🟢 A bare `mt explain` prints both listings under one header, and `--json` keeps each listing's current keys.
 - 🟢 `--for add|flip|commit` keeps filtering rules and tags; `mt explain tags` keeps its reader line.
 - 🟢 `mt views` and `mt dicts` stay separate named-set lookups, so the command covers policy, not every listing.
