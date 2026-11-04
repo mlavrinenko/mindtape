@@ -35,6 +35,8 @@ fn parses_each_query_tag() {
         })
     );
     assert_eq!(parse(&hval(&[("query", "other")])), None);
+    assert_eq!(parse(&hval(&[("query", "grep")])), None);
+    assert_eq!(parse(&hval(&[("query", "glob")])), None);
 }
 
 #[test]
