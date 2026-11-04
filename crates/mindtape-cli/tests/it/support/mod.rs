@@ -404,3 +404,8 @@ pub fn assert_unsupported_prelude(stderr: &str, version: &str) {
         "the set is named:\n{stderr}"
     );
 }
+
+/// A prelude stub whose task title is `Installed`, so a listing tells the
+/// installed copy from the one embedded in the binary.
+pub const INSTALLED_PRELUDE: &str = "#let task(body, ..meta) = \
+    [#metadata((marker: \"mindtape.task\", fields: (title: \"Installed\"), extras: (:))) <mindtape>]\n";

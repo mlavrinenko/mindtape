@@ -93,6 +93,8 @@ fn ls_reads_the_prelude_from_typsts_package_path() {
         .assert()
         .success();
     let packages = staged.path().join("typst").join("packages");
+    let installed = packages.join("local/mindtape/0.3.0/prelude.typ");
+    std::fs::write(&installed, crate::support::INSTALLED_PRELUDE).unwrap();
     let project = tempdir();
     mindtape::test_support::write_bare_project(project.path());
     write_file(
@@ -102,9 +104,20 @@ fn ls_reads_the_prelude_from_typsts_package_path() {
     );
 
     let assert = mt_with_package_path(project.path(), project.path(), &packages, &["ls"]).success();
-
     let stdout = stdout_of(&assert);
-    assert!(stdout.contains("Only task"), "{stdout}");
+    assert!(
+        stdout.contains("Installed"),
+        "the package path's copy is the one read: {stdout}"
+    );
+
+    let elsewhere = tempdir();
+    let assert =
+        mt_with_package_path(project.path(), project.path(), elsewhere.path(), &["ls"]).success();
+    let stdout = stdout_of(&assert);
+    assert!(
+        stdout.contains("Only task"),
+        "a package path without the package falls back to the embedded copy: {stdout}"
+    );
 }
 
 /// Set but empty, the data home names no package directory, and it wins over

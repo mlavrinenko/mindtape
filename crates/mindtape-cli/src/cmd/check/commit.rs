@@ -7,8 +7,8 @@ use std::path::Path;
 
 use crate::diag::Result;
 use mindtape::{
-    CommitBreach, CommitMsgError, CommitRecord, CommitStates, StatePlan, check_commit,
-    parse_message, staged_files, writing_a_merge,
+    CommitBreach, CommitMsgError, CommitRecord, CommitStates, ProjectState, StatePlan,
+    check_commit, parse_message, staged_files, writing_a_merge,
 };
 
 use crate::diag::{Diag, Kind, Note};
@@ -36,7 +36,27 @@ fn task_states(project: &util::Project) -> Result<Option<CommitStates>> {
     )
     .map_err(|err| git_failed("can't read the staged and HEAD task files", &err))?;
     warn_state_errors(&states, StateLabels::default(), None);
+    if (!unsupported_versions(&states.staged).is_empty())
+        || (!unsupported_versions(&states.head).is_empty())
+    {
+        return Ok(None);
+    }
     Ok(Some(states))
+}
+
+/// The first file a state holds for each unsupported prelude version, in
+/// error order, once per version.
+pub(crate) fn unsupported_versions(state: &ProjectState) -> Vec<(&str, &Path)> {
+    let mut out = Vec::new();
+    let mut said = BTreeSet::new();
+    for error in &state.errors {
+        if let Some(version) = mindtape::unsupported_prelude_version(&error.message)
+            && said.insert(version.to_owned())
+        {
+            out.push((version, error.file.as_path()));
+        }
+    }
+    out
 }
 
 /// What to call each state in a warning: `HEAD` and `staged` for the hook, the

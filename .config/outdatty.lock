@@ -71,15 +71,15 @@ groups:
       www/utils/cli-notes.typ: f4f3fdc25dd45b7465220811f822300fe7ebeefde4ed1e476f63d24e46397621
   cli-check-docs:
     source:
-      crates/mindtape-cli/src/cmd/check/commit.rs: c8b65f19aaeced73efcd8a07d18953789b720d8ac194cae24ce306f2646a733e
+      crates/mindtape-cli/src/cmd/check/commit.rs: d813b3b72843876b441531bffb82061154fb75c76f65ad7ed46f4734e6c883ff
       crates/mindtape-cli/src/cmd/check/mod.rs: a6b534eb7b136cce75a7427b1833fdbb4fc4d1e98cc06228face15834ef2bf08
-      crates/mindtape-cli/src/cmd/check/range.rs: 4621f55426a35601e7cfa727c4b2e2618eb629afe7d24c4adaaa0412008b1f28
+      crates/mindtape-cli/src/cmd/check/range.rs: 88736cbcc76b45977410231e849c09b7eeeaeb6beb947c59362946ac0f7a6e3e
       crates/mindtape-cli/src/cmd/check/templates.rs: 27e3dde799fa1977d8c92c91e43d4c26fb1110fe3e06907edf2a87a1900ca1c2
     dependents:
       skills/mindtape/evals/evals.json: 30cf7329118dc87b78164b1f425b6bc114f509d6ed4112cd0c174438b9ecc826
       www/content/agents.typ: d0d98ebce6f001845351e6832602b9851283a556952492c8c7c42db91ae00b3a
       www/content/cli/check.typ: 34af1f6401c812f44ff4d6bf6fd9e06ca4a822b61f824ac2a206c514761880ec
-      www/content/commit-rules.typ: 699c845c1c036deaf0bbeec187130441d7c35529b79a745df4742fe2a2412309
+      www/content/commit-rules.typ: 1ffe224a06112b032b465f9e7b2812df1246be2ee01141e204211358fb56f150
       www/content/quickstart.typ: e648924e5f5d9ce48a89e75a4ef846310072e141cf699af29f6dc5c4ae9df3ec
       www/content/templates.typ: 24e76292a8e092d2f99e393e871cb7b8451b69db987fc022ab566d03f2c58a8b
   cli-completion-docs:
@@ -210,7 +210,7 @@ groups:
       crates/mindtape-cli/Cargo.toml: 8c60814d586a3ea5e53bd9e9002e41ef88f1b6720135fafe46e1156e28b0700e
       crates/mindtape-cli/src/cli/mod.rs: f91c4da7beeb7e05555c26e6e3e1d03112ca86ac45f31f2699d5f1f0c3107bff
     dependents:
-      CHANGELOG.md: 69927e755224a70068fec42d1c9bf0c223057fc95855fdd1ffecf3523a230115
+      CHANGELOG.md: ee1de2d16fa2318e06f397a0a493b1a5e4fd15d2e63afb82114203671a2b5cb1
       docs/src/agents.typ: 6591b22c7cb4514b063107be081b55f4657f3c5241a13cb803bd91a4267c2682
       docs/src/contributing.typ: eddeeabed532aeee31385ade6f5697dac7fb4bf0065d7e6a99fc78c4e8c19dfe
       docs/src/contributing/command-semantics.typ: 5b3219c6991e68607914d12d1386f39913d500ddb3f7d0eca2b91232789df32f
@@ -476,12 +476,12 @@ groups:
       .just/scripts/release.sh: bc50191c0b8652ac12cec5a35927bebcbb47a92f3740ced7889bcdf0ab709f5d
     dependents:
       docs/src/contributing.typ: eddeeabed532aeee31385ade6f5697dac7fb4bf0065d7e6a99fc78c4e8c19dfe
-      docs/src/contributing/release.typ: f9a74cbd4d2efa7b87c84fed61e5b199ceddb8e0b989506cdd9f5339c84493f9
+      docs/src/contributing/release.typ: 1fdc9f80b2db115e4d6c1cb4068306e9a54dd38ff2036a3522cf381df8b16eb4
   release-notes:
     source:
       Cargo.toml: c88d46a092158fe095e7e059f4989589aa27dbdbba8f7021050faec1cca68336
     dependents:
-      CHANGELOG.md: 69927e755224a70068fec42d1c9bf0c223057fc95855fdd1ffecf3523a230115
+      CHANGELOG.md: ee1de2d16fa2318e06f397a0a493b1a5e4fd15d2e63afb82114203671a2b5cb1
   scripts-no-doc:
     source:
       .just/scripts/_doc-blocks-control.sh: 066258f034694487e0a94bba355457293697ff06ca7b974884ba3d5ca24ae7da

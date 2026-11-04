@@ -15,9 +15,9 @@ What `just release VERSION` runs, and how to finish a release that failed. The t
 
 ## Prelude versions
 
-Before a release bumps `lib/typst.toml`, archive the outgoing prelude. Copy `lib/prelude.typ` to `crates/mindtape/src/loader/preludes/<old-version>/prelude.typ`, add `<old-version>` to `PRELUDE_SUPPORTED` in `crates/mindtape/src/loader/embedded.rs`, and keep a fixture that loads it. The snapshot is immutable. The current version’s snapshot equals `lib/prelude.typ`, and a test holds the two together.
+Before a release bumps the prelude, archive the outgoing current. Copy `lib/prelude.typ` to `crates/mindtape/src/loader/preludes/<old-version>/prelude.typ`, add a `PreludeSnapshot` entry for `<old-version>` to `PRELUDE_SNAPSHOTS` and `<old-version>` to `PRELUDE_SUPPORTED` in `crates/mindtape/src/loader/embedded.rs`, and keep a fixture that loads it. Then bump both `PRELUDE_VERSION` and `lib/typst.toml` to the new version. The snapshot is immutable: a checksum test holds an archived copy, and a test keeps the current snapshot equal to `lib/prelude.typ`.
 
-A release drops a version on purpose by removing it from `PRELUDE_SUPPORTED` and deleting its snapshot and fixture. That release stops reading the version everywhere, including a past commit in `mt check --commits`.
+A release drops a version on purpose by removing it from `PRELUDE_SUPPORTED` and `PRELUDE_SNAPSHOTS` and deleting its snapshot and fixture. That release stops reading the version everywhere, including a past commit in `mt check --commits`.
 
 ## After a failure
 

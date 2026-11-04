@@ -36,22 +36,14 @@ fn eval_error_text(source: &str) -> String {
     crate::diag::plain(&eval_source(source, false).unwrap_err())
 }
 
-/// Assert that an unsupported-prelude refusal names `version`, the set and the
-/// hint that fits the version's side of the current one.
-fn assert_unsupported_prelude(text: &str, version: &str) {
-    let hint = if mindtape::prelude_is_older(version) {
-        format!(
-            "rewrite the import to @local/mindtape:{}",
-            mindtape::PRELUDE_VERSION
-        )
-    } else {
-        format!("upgrade mt to read @local/mindtape:{version}")
-    };
+/// Assert that an unsupported-prelude refusal names `version`, the set and
+/// `hint`, which the caller spells out so inverting the hint predicate fails.
+fn assert_unsupported_prelude(text: &str, version: &str, hint: &str) {
     assert!(
         text.contains(&format!("imports @local/mindtape:{version}")),
         "{text}"
     );
-    assert!(text.contains(&hint), "{text}");
+    assert!(text.contains(hint), "{text}");
     assert!(text.contains("note: supported: 0.2.0, 0.3.0"), "{text}");
 }
 
@@ -78,7 +70,11 @@ fn eval_missing_file_returns_err() {
 fn eval_refuses_an_unsupported_prelude_with_the_supported_set() {
     let text =
         eval_error_text("#import \"@local/mindtape:0.1.0\": *\n#show: task.with(title: \"Old\")\n");
-    assert_unsupported_prelude(&text, "0.1.0");
+    assert_unsupported_prelude(
+        &text,
+        "0.1.0",
+        "rewrite the import to @local/mindtape:0.3.0",
+    );
 }
 
 #[test]
@@ -86,7 +82,11 @@ fn eval_asks_to_upgrade_mt_for_a_newer_prelude() {
     let text = eval_error_text(
         "#import \"@local/mindtape:99.99.99\": *\n#show: task.with(title: \"Future\")\n",
     );
-    assert_unsupported_prelude(&text, "99.99.99");
+    assert_unsupported_prelude(
+        &text,
+        "99.99.99",
+        "upgrade mt to read @local/mindtape:99.99.99",
+    );
 }
 
 #[test]

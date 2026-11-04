@@ -13,7 +13,9 @@ use mindtape::{
     RefProblem, StateLoader, check_commit, check_tip, parse_message,
 };
 
-use crate::cmd::check::commit::{StateLabels, breach_diag, failing, in_commit, warn_state_errors};
+use crate::cmd::check::commit::{
+    StateLabels, breach_diag, failing, in_commit, unsupported_versions, warn_state_errors,
+};
 use crate::cmd::install::hint::skipped_prelude_commit_diag;
 use crate::diag::{Diag, Kind, Note};
 use crate::util;
@@ -126,13 +128,23 @@ fn check_commits(
         let one = check_one(project, commits, commit, &mut loader)?;
         if one.skipped {
             found.prelude_skips += 1;
-            found.tip_skipped = newest;
+            if newest {
+                match one.tip {
+                    Some(state) => {
+                        tip = state;
+                        found.tip_skipped = false;
+                    }
+                    None => found.tip_skipped = true,
+                }
+            }
             continue;
         }
         found.tip_skipped = false;
         found.broke += usize::from(one.broke);
         named.extend(one.refs);
-        tip = one.tip;
+        if let Some(state) = one.tip {
+            tip = state;
+        }
     }
     found.tip_breaches = if found.tip_skipped {
         Vec::new()
@@ -175,9 +187,11 @@ struct Checked {
     broke: bool,
     /// The stems its trailer names.
     refs: Vec<String>,
-    /// The project as the commit holds it.
-    tip: ProjectState,
-    /// The commit's tree holds a prelude this `mt` cannot read, so the commit
+    /// The project as the commit holds it, when its own tree loaded. A skipped
+    /// commit still offers this when only its parent tree was unsupported, so
+    /// a supported newest tree supplies the tip state.
+    tip: Option<ProjectState>,
+    /// A compared state holds a prelude this `mt` cannot read, so the commit
     /// was skipped instead of reported.
     skipped: bool,
 }
@@ -208,8 +222,9 @@ fn tip_state(
     loader: &mut StateLoader<'_>,
 ) -> Result<Option<ProjectState>> {
     let (past, states) = read_past(project, range, commit, loader)?;
-    if let Some((version, file)) = unsupported_prelude(&states.staged) {
-        warn_skipped(commit, &past.message, version, file);
+    let unsupported = unsupported_versions(&states.staged);
+    if !unsupported.is_empty() {
+        warn_skipped(commit, &past.message, &unsupported);
         return Ok(None);
     }
     Ok(Some(states.staged))
@@ -224,12 +239,21 @@ fn check_one(
 ) -> Result<Checked> {
     let config = &project.config;
     let (past, states) = read_past(project, range, commit, loader)?;
-    if let Some((version, file)) = unsupported_prelude(&states.staged) {
-        warn_skipped(commit, &past.message, version, file);
+    let staged_unsupported = unsupported_versions(&states.staged);
+    let head_unsupported = unsupported_versions(&states.head);
+    if !(staged_unsupported.is_empty() && head_unsupported.is_empty()) {
+        let staged_skipped = !staged_unsupported.is_empty();
+        let mut all = staged_unsupported;
+        for found in head_unsupported {
+            if !all.iter().any(|(version, _)| *version == found.0) {
+                all.push(found);
+            }
+        }
+        warn_skipped(commit, &past.message, &all);
         return Ok(Checked {
             broke: false,
             refs: Vec::new(),
-            tip: ProjectState::default(),
+            tip: (!staged_skipped).then_some(states.staged),
             skipped: true,
         });
     }
@@ -261,29 +285,23 @@ fn check_one(
     Ok(Checked {
         broke: !problems.is_empty() || failing(&breaches) > 0,
         refs,
-        tip: states.staged,
+        tip: Some(states.staged),
         skipped: false,
     })
 }
 
-/// The first unsupported prelude a state holds, with its version and file.
-fn unsupported_prelude(state: &ProjectState) -> Option<(&str, &Path)> {
-    state.errors.iter().find_map(|error| {
-        mindtape::unsupported_prelude_version(&error.message)
-            .map(|version| (version, error.file.as_path()))
-    })
-}
-
-/// Warn that `commit`'s tree holds an unsupported prelude, naming the commit,
-/// the version, the first file and the set.
-fn warn_skipped(commit: &RangeCommit, message: &str, version: &str, file: &Path) {
+/// Warn for each unsupported prelude version a compared tree holds, naming the
+/// commit, the version, the first file and the set.
+fn warn_skipped(commit: &RangeCommit, message: &str, versions: &[(&str, &Path)]) {
     let subject = message.lines().next().unwrap_or_default();
-    crate::diag::emit(&skipped_prelude_commit_diag(
-        &commit.short,
-        subject,
-        version,
-        file,
-    ));
+    for (version, file) in versions {
+        crate::diag::emit(&skipped_prelude_commit_diag(
+            &commit.short,
+            subject,
+            version,
+            file,
+        ));
+    }
 }
 
 /// Print what one commit of the range breaks: its task files that did not

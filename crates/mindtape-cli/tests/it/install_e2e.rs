@@ -295,10 +295,22 @@ fn ls_output(project: &Path, data: &std::ffi::OsStr) -> (String, String) {
 fn ls_resolves_the_prelude_from_the_configured_data_home() {
     let home = tempdir();
     run_install(home.path(), &["install", "--no-defaults", "--no-schema"]).success();
+    let installed = package_dir(home.path(), "0.3.0").join("prelude.typ");
+    std::fs::write(&installed, crate::support::INSTALLED_PRELUDE).unwrap();
     let project = project_without_a_lib();
 
     let (stdout, _) = ls_output(project.path(), home.path().join("data").as_os_str());
-    assert!(stdout.contains("Only task"), "{stdout}");
+    assert!(
+        stdout.contains("Installed"),
+        "the data home's copy is the one read: {stdout}"
+    );
+
+    let elsewhere = tempdir();
+    let (stdout, _) = ls_output(project.path(), elsewhere.path().as_os_str());
+    assert!(
+        stdout.contains("Only task"),
+        "a data home without the package falls back to the embedded copy: {stdout}"
+    );
 }
 
 /// An unsupported prelude is refused before any package directory is

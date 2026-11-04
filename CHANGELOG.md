@@ -20,8 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   an upgrade hint for a newer one. `mt check --commits` warns and skips a past
   commit or tip state whose prelude is unsupported, without reporting its
   skipped tasks as missing refs. A release archives the outgoing prelude under
-  `preludes/<version>/`, adds it to the set with a fixture, and drops a version
-  by deleting its snapshot and fixture.
+  `preludes/<version>/`, adds it to `PRELUDE_SNAPSHOTS` and
+  `PRELUDE_SUPPORTED` with a fixture, and bumps `PRELUDE_VERSION` with
+  `lib/typst.toml`. A version leaves by deleting its snapshot, table entry and
+  fixture.
 
 ### Fixed
 
