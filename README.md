@@ -14,7 +14,7 @@ Here's a real task.
 [`examples/api-service/tasks/throttle-failed-logins-per-ip.typ`](https://github.com/mlavrinenko/mindtape/blob/main/examples/api-service/tasks/throttle-failed-logins-per-ip.typ)
 
 ````typ
-#import "@local/mindtape:0.3.0": *
+#import "@local/mindtape:0.4.0": *
 #show: task.with(
   title: "Throttle failed logins per IP",
   kind: "feat",

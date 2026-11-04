@@ -25,14 +25,14 @@ pub fn write_lib_package(dir: &Path, prelude: &str) {
 /// [`write_lib_package`] writes. Append it to a config text.
 pub const LIB_ENTRY: &str = "\n[[typst.local-packages]]\nname = \"mindtape\"\npath = \"lib\"\n";
 
-/// Write the `mindtape` package at version 0.3.0 into `pkg`, which becomes
+/// Write the `mindtape` package at version 0.4.0 into `pkg`, which becomes
 /// the package directory itself: a project's `lib/`, or the
-/// `local/mindtape/0.3.0` an install writes under a package root.
+/// `local/mindtape/0.4.0` an install writes under a package root.
 ///
 /// # Panics
 /// Panics if writing the package files fails, a test-harness bug.
 pub fn write_package(pkg: &Path, prelude: &str) {
-    write_package_version(pkg, "0.3.0", prelude);
+    write_package_version(pkg, "0.4.0", prelude);
 }
 
 /// [`write_package`] at `version`, for a test that needs a version this build

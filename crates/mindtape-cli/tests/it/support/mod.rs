@@ -400,7 +400,7 @@ pub fn assert_unsupported_prelude(stderr: &str, version: &str) {
         "the version is named:\n{stderr}"
     );
     assert!(
-        stderr.contains("supported: 0.2.0, 0.3.0"),
+        stderr.contains("supported: 0.2.0, 0.3.0, 0.4.0"),
         "the set is named:\n{stderr}"
     );
 }

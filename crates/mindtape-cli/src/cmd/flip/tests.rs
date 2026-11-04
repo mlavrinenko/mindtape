@@ -102,7 +102,7 @@ fn flips_status_by_slug() {
 #[test]
 fn flip_formats_body_drift_by_default() {
     let drift = format!(
-        "#import \"@local/mindtape:0.3.0\": *\n#show: task.with(\n  \
+        "#import \"@local/mindtape:0.4.0\": *\n#show: task.with(\n  \
          title: \"Drifty\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\n{}drift line\n",
         " ".repeat(40)
     );
@@ -127,7 +127,7 @@ fn flip_formats_body_drift_by_default() {
 fn flip_preserves_drift_when_format_disabled() {
     let indent = " ".repeat(40);
     let drift = format!(
-        "#import \"@local/mindtape:0.3.0\": *\n#show: task.with(\n  \
+        "#import \"@local/mindtape:0.4.0\": *\n#show: task.with(\n  \
          title: \"Drifty\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\n{indent}drift line\n"
     );
     let config = format!("{LEGEND_CONFIG}[format]\nenabled = false\n");

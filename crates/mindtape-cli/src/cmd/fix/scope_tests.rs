@@ -9,7 +9,7 @@ use super::collect;
 fn write_typ(root: &Path, rel: &str) {
     let path = root.join(rel);
     std::fs::create_dir_all(path.parent().unwrap()).unwrap();
-    std::fs::write(path, "#import \"@local/mindtape:0.3.0\": *\n").unwrap();
+    std::fs::write(path, "#import \"@local/mindtape:0.4.0\": *\n").unwrap();
 }
 
 fn shown(files: &[PathBuf], root: &Path) -> Vec<String> {

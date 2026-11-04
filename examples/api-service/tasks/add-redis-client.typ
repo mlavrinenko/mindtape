@@ -1,4 +1,4 @@
-#import "@local/mindtape:0.3.0": *
+#import "@local/mindtape:0.4.0": *
 #show: task.with(
   title: "Add a Redis client to the app state",
   kind: "feat",

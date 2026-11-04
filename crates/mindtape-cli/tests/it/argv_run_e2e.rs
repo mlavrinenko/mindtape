@@ -37,7 +37,7 @@ fn project(extra: &str, waits_on: &str) -> tempfile::TempDir {
         dir.path(),
         "tasks/alpha.typ",
         format!(
-            "#import \"@local/mindtape:0.3.0\": *\n\n\
+            "#import \"@local/mindtape:0.4.0\": *\n\n\
              #show: task.with(\n  title: \"Alpha\",\n  status: wip(2026, 6, 1),\n  \
              waits-on: {waits_on},\n)\n"
         ),

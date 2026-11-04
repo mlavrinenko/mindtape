@@ -34,7 +34,7 @@ const TASKS: &[(&str, &str)] = &[
 
 fn task_typ(title: &str, assignee: &str) -> String {
     format!(
-        "#import \"@local/mindtape:0.3.0\": *\n\n#show: task.with(\n  \
+        "#import \"@local/mindtape:0.4.0\": *\n\n#show: task.with(\n  \
          title: \"{title}\",\n  \
          status: wip(2026, 6, 1),\n  \
          assignee: \"{assignee}\",\n)\n"

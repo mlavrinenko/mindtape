@@ -32,7 +32,7 @@ fn project(rules: &str, title: &str) -> tempfile::TempDir {
         dir.path(),
         "tasks/subject.typ",
         format!(
-            "#import \"@local/mindtape:0.3.0\": *\n\n\
+            "#import \"@local/mindtape:0.4.0\": *\n\n\
              #show: task.with(\n  title: \"{title}\",\n  status: wip(2026, 6, 1),\n)\n"
         ),
     );
@@ -334,7 +334,7 @@ fn check_project(rules: &str, title: &str) -> tempfile::TempDir {
         dir.path(),
         "tasks/subject.typ",
         format!(
-            "#import \"@local/mindtape:0.3.0\": *\n\n\
+            "#import \"@local/mindtape:0.4.0\": *\n\n\
              #show: task.with(\n  title: \"{title}\",\n  status: wip(2026, 6, 1),\n)\n"
         ),
     );
@@ -448,7 +448,7 @@ fn a_packs_check_file_and_dict_file_resolve_from_the_pack_directory() {
             dir.path(),
             format!("tasks/{stem}.typ"),
             format!(
-                "#import \"@local/mindtape:0.3.0\": *\n\n\
+                "#import \"@local/mindtape:0.4.0\": *\n\n\
                  #show: task.with(\n  title: \"{title}\",\n  status: wip(2026, 6, 1),\n)\n"
             ),
         );

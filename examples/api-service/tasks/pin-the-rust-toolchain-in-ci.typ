@@ -1,4 +1,4 @@
-#import "@local/mindtape:0.3.0": *
+#import "@local/mindtape:0.4.0": *
 #show: task.with(
   title: "Pin the Rust toolchain in CI",
   kind: "dev",

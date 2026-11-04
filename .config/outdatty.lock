@@ -12,27 +12,27 @@ groups:
       crates/mindtape/src/packs/tweaks.toml: 3f5c1612deb1f9c5a11ec5580f9bc48ed0b256e54960082c4441fdea43e1278e
       crates/mindtape/src/packs/wip-caps.toml: 5dc4ccb78198701f7c04354fbfc636eec497500513ebab981ebeb6832aa0ce9a
       examples/api-service/.mindtape/config.toml: 3aa02653acf1b6ab416c892afa0557454a20bd84e92e5bb75102637e8355b4f0
-      examples/api-service/.mindtape/templates/milestone.typ: e384d65399eb6eb3fa9142b7df0977f6767805932548e6cc87d5e754f1f900ee
-      examples/api-service/.mindtape/templates/task.typ: 460978a253275fbe51afad878d4a37a0e3e83ae4ec668d6902ccdecf364254ef
+      examples/api-service/.mindtape/templates/milestone.typ: 0e94a0284b7337bca16ebe4b48dc97489c180b3def828981fc042dea31506d4a
+      examples/api-service/.mindtape/templates/task.typ: 1ea69ba6d749b4562a5b81b32885bf7b5949e8d10a639e36787180eeb6b3d524
       examples/api-service/Cargo.lock: fb82d06c279532ad92269838be453a3ed883dcd8cf12daaad8fdd0e26f854805
       examples/api-service/dicts/services.txt: 25d2e5ae4c8231bfd16b9d15dfa934c5fcac55a1bd176572f20466164163c39a
-      examples/api-service/goals.typ: 15473adef4c1770ce8c6c0c233c1221dda61b5e436eeb29f14310af201bb230b
+      examples/api-service/goals.typ: 088cfad9e3e745af6326294749cffade5e9c15b2fde0c261458c5d7d1c9d82a0
       examples/api-service/scripts/locked: b3e770216763ddae63d751d7e5fafcab424a8a32628689f6b3cc859e8e7c49d5
       examples/api-service/scripts/test: 490e2b2adafd0151a29e903fbd21a77229c0f94ea7724a1ddf7aabc5561f79cc
-      examples/api-service/tasks/add-redis-client.typ: 2a02a5022d3488d151d4347f71e59db281666bc5c5862a1538d14c4e91b43032
-      examples/api-service/tasks/add-request-ids-to-log-lines.typ: 8fcbc629febe273dcb25c65a03b6ae3f81aaaab673c963907341bd84d7810c93
-      examples/api-service/tasks/document-the-webhook-retry-policy.typ: 6ba8b167e4763590968c152ae14186660446190112aa8a7cea333e7b7556d301
-      examples/api-service/tasks/fix-the-404-page-typo.typ: c596ad26b4bd286caba448191cea1fe4855bcaed0ec1e27f86ee32c2a36184ed
-      examples/api-service/tasks/harden-session-tokens.typ: b0c81fc0b0fbf7eb96676d10f45bd413583829c01f344150100500c8840b0c3f
-      examples/api-service/tasks/index-the-orders-by-customer.typ: f19d670150889e4e8963a296613704dcfe548c8c5a132b4a10c9062082f08e86
-      examples/api-service/tasks/pin-the-rust-toolchain-in-ci.typ: d5b0623b06bc611456e366c16b543025f3edd6ec12d60e87b6e336fb24a561a3
-      examples/api-service/tasks/reject-expired-sessions-on-token-refresh.typ: cde6014be05a7c75b35185509d4b8e2b8d171547e5e3dabad1bcae23a64fc3fa
-      examples/api-service/tasks/replace-the-deprecated-search-client.typ: bd7d095ab9ea30e186ec69ffb7e8dfd00da5913aefec2bed947150af66cd6427
-      examples/api-service/tasks/rotate-the-jwt-signing-key.typ: b6401d26cee1aac36e087b8c7bce9e88adcf43ce949de5b95ea2d3dce886d622
-      examples/api-service/tasks/send-a-welcome-email-after-signup.typ: 63f9b5c821b8277a61f4347c74668d4f71bbccdcda9d0d4c6013c9210f9e0865
-      examples/api-service/tasks/throttle-failed-logins-per-ip.typ: 0ccd1150416447833e7c408d5c3b3e7054444ef7625120482146314f4503a588
-      examples/api-service/tasks/upgrade-the-axum-web-framework.typ: 1d6992358322579d3ae1b5a9885f4053969fbfeba87126b94be59b4c4dafc6ef
-      examples/api-service/tasks/verify-webhooks-with-the-acme-pay-sdk.typ: 4980fdc921ea0f2af3d190c1cf8218e9100e8bd22d610f5a86d3b797d1041d4c
+      examples/api-service/tasks/add-redis-client.typ: 2781e2ebb032691496d9c9dd3c598321960505d0ca610d8f4deb6ac785f78dea
+      examples/api-service/tasks/add-request-ids-to-log-lines.typ: d05a24e42757226a787f456e8f1edd4fff8fe49cd047718bdea29a76fcbe4b89
+      examples/api-service/tasks/document-the-webhook-retry-policy.typ: 8f8e7466e59cd3277988faac4356f2f3d75e1e8791903674c94a08aa8f9b6730
+      examples/api-service/tasks/fix-the-404-page-typo.typ: f8733af1ea3184a0347f939d5d63809e4cd0645aa0a24fc3988b4d2d990c1267
+      examples/api-service/tasks/harden-session-tokens.typ: b08b1ef658aafc7455b5385f2e578c9274e86ce51ecf3ca2d03fff8c11d9e7dd
+      examples/api-service/tasks/index-the-orders-by-customer.typ: abb42e711d38c0cd4e68e20bc69f80dad3605f493a0c74c2d24d2637fcf27809
+      examples/api-service/tasks/pin-the-rust-toolchain-in-ci.typ: 6164ca0bd81193ebca2d7f79da0e6441ecb2bbd91da3ca51519d51ad0613a92f
+      examples/api-service/tasks/reject-expired-sessions-on-token-refresh.typ: 8bc7ff0ae8776bdbf6cd5083ccfaff847424e26849d4f059a14e2c8bf30f92fc
+      examples/api-service/tasks/replace-the-deprecated-search-client.typ: 0deb8389fa19201a99c9fe163e9686baa36f902310643c1f7cb028493c2c20c3
+      examples/api-service/tasks/rotate-the-jwt-signing-key.typ: 5e2ce9c9c600a5bac6d27eb1615336931e6a95ed07b71cfdf10ca194093be42b
+      examples/api-service/tasks/send-a-welcome-email-after-signup.typ: 5798f2c0450150f663a00f923ca9a777fcc95f1a86d91a0b7afa0b9a017207ac
+      examples/api-service/tasks/throttle-failed-logins-per-ip.typ: a7b6331faad86ae3476d69b000c1b1af919eaa5af60b551b701facb291f118f1
+      examples/api-service/tasks/upgrade-the-axum-web-framework.typ: d16290949063e916e74e75d8308401b93fec29e12e824b0dd75f936e1d0803a7
+      examples/api-service/tasks/verify-webhooks-with-the-acme-pay-sdk.typ: 5edd783761d8c71e6a68ff9975234dde517eb8803f07b4be7d75caf5df4ed573
       www/generate-api-service.sh: 3aad4b570fe94b74c5a7b9de65532df05769f0a013ab0a78bcb0903f57e4350d
     dependents:
       skills/mindtape/evals/README.md: b451b8b388e4a1c8e95f876258e9c3425355a7bf9c1cfa0f04ec1a0c57b3bd6a
@@ -462,18 +462,18 @@ groups:
       docs/src/contributing/signal-sweep.typ: 471350cebc9b82602b8ee48d162e4f3365368284a001782e4e2c7f6cb4857146
   prelude-docs:
     source:
-      lib/prelude.typ: ec326bbe15e083fd7198a3b3d0e2ceabcefb970d895716c76e194150a215e433
+      lib/prelude.typ: cc34496632536cd3d9202151d1394869b9b1cd0d8ab8ea31be4eac4a73d4c7a6
     dependents:
-      docs/src/agents.typ: 6591b22c7cb4514b063107be081b55f4657f3c5241a13cb803bd91a4267c2682
-      docs/src/skill.typ: f7c1b5803fe1844b19e6c057fb2f3d6f55168bfe10f43be76573b92f8e88ecb2
-      skills/mindtape/references/add-slots.md: 40f2d1cf845f44fbaf8293465be7ff4c6d6dd30c75347bf866fe673a3e3682cf
+      docs/src/agents.typ: dd9c9b152648bbd1176194bc2003172aba8531c77e9c56dcc22b6462b1e46f6f
+      docs/src/skill.typ: 40713552a6cf52a9f30ee49bea968b97b6178eaf63bd8b23b171a62bf794844c
+      skills/mindtape/references/add-slots.md: e0957c17f3cdb82e59de5b270ac35144f4bd0d71defd09d3a759657e4d2c29cd
       www/content/concepts.typ: c27baa666da3eaa762af463adc529ed39b6a36cecb64b0d65e963eda148b34ec
       www/content/dsl.typ: 86321a98fa0a0305c3b6eb1b74a73d2a40415f0728aee7648feb19d4fb457b6a
       www/content/index.typ: 2237937279fb72b8035aa8a0df8e050f5f9e0312df997023a8dd940ddc512621
       www/content/links.typ: 4f6f04305d7f5f369370f4ff22b831e1460a982decebb249db2a34a97694d020
       www/content/priority.typ: 1ebfd3e5600097552a9750d2b119d9a9fc82effa71dd2bd00013939dff5cff7f
       www/content/recurring.typ: 9bb8e9b0b10dca758a092fd67776c376a2f44f4c3bff264025cd12482275f3d5
-      www/content/templates.typ: 24e76292a8e092d2f99e393e871cb7b8451b69db987fc022ab566d03f2c58a8b
+      www/content/templates.typ: 138a1dfc510ca0982555f53e5d28a8b488e9862cdec740f940c41ae06bd109f5
   priority-frameworks:
     source:
       crates/mindtape/src/framework/frameworks.toml: 7ace56205f2fa3bc5973eba8cbb94b47b30b70d564fc278a81e35d6615cfdcbb
@@ -534,12 +534,12 @@ groups:
       www/content/agents.typ: 6abf42d103d52885cd8144658561a0a843e941c264e46c14fbb687522e53ccc1
   sweep-templates:
     source:
-      .mindtape/templates/sweep-size.typ: a6aed648556821469b9499b550eaac028c226f004c6f797286cdeefa0a468eca
+      .mindtape/templates/sweep-size.typ: af9f04495b246ef3eb72f7b9e57a43a4b1db107550136842ba1757d51782dcbf
     dependents:
-      .mindtape/templates/sweep-dry.typ: 069f9788ee86cf057470e5583c4f7bb649ec7599dd1acf2173a0ab1e64f5e8b3
-      .mindtape/templates/sweep-mutants.typ: e793317c8522bfa7eeb7e6e47902aee017e8a4d6864a555037a218fa56bca4d8
-      .mindtape/templates/sweep-repeats.typ: d641e26ae93e9d9d1adac275d612b1856148c59a7a257040fd8ff7bd24c02d0d
-      .mindtape/templates/sweep-undertested.typ: 459843b0926dc8b5c37dabfae5e3844eb9b6bcd2c7827a5c89a5be82aa10e1b0
+      .mindtape/templates/sweep-dry.typ: f17a3e69225680a3aab8cb95577f53b67a697d4daba63d04a9a20045e2d48695
+      .mindtape/templates/sweep-mutants.typ: 670def06d6097648acd40fdfe697a17dfe68a5c34d1265226e3c85ec42d19f6a
+      .mindtape/templates/sweep-repeats.typ: be9f6af8fb2dd7f1797c71e1df27dd92e461fd287459f79be011bcf958694a6b
+      .mindtape/templates/sweep-undertested.typ: 814ab6cb69997d65910e17c28a22e1be43acb65b396bc5648602e3d5dc931964
       contrib/ask-refactoring/dry.sh: f98e003a44fc53948c6230eda1454182df727fa8ff0376a7ffd6ca370fe2b02e
       contrib/ask-refactoring/mutants.sh: 30bc2aee7a2d88b32c442cf1226b5f29d0318f04da0ac674d562618ea393e37a
       contrib/ask-refactoring/repeats.sh: 15c9f7c2e9f10a6ec68e55272d24487d11990eb257c5c051c8ad54296db854bb
@@ -547,75 +547,75 @@ groups:
       contrib/ask-refactoring/undertested.sh: d73dae06a38fca0ad59877c794d974b8bfc7e3c479a49ddb7f2b067b0467b1d7
   task-templates:
     source:
-      .mindtape/templates/task.typ: d861f0e906be405f8aaa89cb18b8ce1a7e78ac6f09c5a4220c06930c25dfb77d
+      .mindtape/templates/task.typ: fd925cfeab62e109f3cbcd68fd5d681b138eb53a2d4037e63b9cdc62e423e66f
     dependents:
-      .mindtape/templates/decision.typ: 9df6f30e8d9b326e64518b0b5ffb531438367a372267dc511cdeda320d4c2592
-      .mindtape/templates/dev-stateful.typ: ed9f21dd5a06cbd9f0c3771260d0d43d812a692736a5b65633d6d142b29417be
-      .mindtape/templates/dev.typ: 377c4ddaaff45d1e292847c2c63b4d1d4c8d3d7af88cb881ab3a67dbf331fba1
-      .mindtape/templates/docs.typ: a005e52ce376674ff2f96c6c918710937c02d07fc501c424bfb5654152ce6f4f
-      .mindtape/templates/feat-stateful.typ: 0f27a3b8208063c214393f0689c2c575e235844bb3c86fba0fa672a575e22677
-      .mindtape/templates/feat.typ: 18a80b1bf6ed138790d733f6dcab6575c9eff1f60fe65009fce997b5c049f7a0
-      .mindtape/templates/fix-stateful.typ: c975a7428723b5a80edc993f1ccc629f9123a3821706e9f1bbb49f138a9a0a2a
-      .mindtape/templates/fix.typ: 424c71fcf813f55ac0d4c4f7b322d33ecf7eb6bdee8d79fc6cfc264d478b5c0e
+      .mindtape/templates/decision.typ: cac225caed895b39a23dc25357857d8cf43e44dd524791abff31d2c1ca05bf41
+      .mindtape/templates/dev-stateful.typ: 9f19553b9179569873124df33d0977d7f657826729bc72cd2da8e685f97296ec
+      .mindtape/templates/dev.typ: 6b7dd619f91f36d2e6d4f11aa6739b938df32271dc1ae9b9f99e0d205950732c
+      .mindtape/templates/docs.typ: f45a4ce8fe98c4856260cfd66b9040e20d8bdf6ce0392f7f096414981dcabffc
+      .mindtape/templates/feat-stateful.typ: d05ef8f8eb043d69e18a00a2cecfbaad4e37b230b2eeb2401268b5e1d5f4bf55
+      .mindtape/templates/feat.typ: edfc903703639a1ffb4e6b06f23a07879e5b75a2d46a8643ac7fb4be1681d4fe
+      .mindtape/templates/fix-stateful.typ: 5fb40284297489c58baea704e7b0c11bea348334e29e516d5e13629ce9ce85ef
+      .mindtape/templates/fix.typ: 5c2ea6997e542da056f858458da38021dc4212245f7db43f9769a9ea97b8091f
   typst-pkg-version:
     source:
-      lib/typst.toml: 53c51a40307b8b7009a923f3ebd36c770121fdbf2b6ed7446cb6c67c436bc188
+      lib/typst.toml: 2a5837c51f4f9ed4b670d79dd7a1860301db050368a12b7b8a6bfabe1726bc68
     dependents:
-      crates/mindtape-cli/src/cmd/init/presets/gated/templates/task.typ: 387fba01f69f2c71b690e4d8f25ab4ce5581b1aeb695b0e31a762353408c5909
-      crates/mindtape/src/loader/embedded.rs: 9c547ccee3c6b840883b0a2a5ad0a0a391c9cf6a4ed480199f4448f09f1a5d9a
-      crates/mindtape/src/test_support/fs.rs: 5e271c901826a771a291bede35523edfc67ca269662672e0b8ae4f327a6b5627
-      crates/mindtape/src/test_support/mod.rs: aa75f3a5d6c3ca456d391b81a12d497cee96c6ed6dcb3fc2e9bdcf773e7b939f
-      examples/dsl/tasks/add-a-session-store.typ: 745ca47d38d210a10ca9fd053a8d39e8afa5beba0bb277fe29c09b331bf80f30
-      examples/dsl/tasks/fix-the-login-redirect.typ: f378977f77cdfa526b39b8ce156ef425d8a726fef1436f0983aa55dff0c80691
-      examples/estimates/tasks/rename-the-status-glyphs.typ: fbb609f55dd8ca0faf63da1d895c1a0e9f038e86437eb1bada5508c784609ea5
-      examples/estimates/tasks/rewrite-loader.typ: 03746583c1bfeb04612e4359abb2ccb66372e5eaa17e2db49b96509aab51a763
-      examples/links/tasks/auth-epic.typ: 3ad7627a9fc242acb2b88ea0af260a166e4917d76e4c3af66da196ebf6673e43
-      examples/links/tasks/drop-legacy-cli.typ: ccd47438c1fe10b03a02bd2d8f7477d3d30f46d6245d85dcd6e9f630dd8ffd3d
-      examples/links/tasks/legacy-cli.typ: 70bd6c546211e46eb163cf1bd95e9896162ab9eb4101b9d22f6a615913a33f5c
-      examples/links/tasks/pick-a-provider.typ: 3b20b472ce33f579a532fccff3b709a706edb7ca8a265c67d789d923682f9b43
-      examples/links/tasks/search-too-slow.typ: 0ba804e7543018cd1764fa04a9d2dd9be111efa8420889552d184fc71dfe211c
-      examples/links/tasks/speed-up-search.typ: f293b21429cef21601e2c335c261a53c5dc444be68c0fdd50e3af2b1a4767aa0
-      examples/links/tasks/wire-oauth.typ: 8d03ff76e60d4c79d8e7d4d3b371dced86654db1df6fe76ee27e7fb6ca719439
-      examples/links/tasks/write-docs.typ: 6696d2280ac9e4c91ac24bcc7058385ceb7f0945354f4090ea1b96b9efc13d67
-      examples/minimal/tasks/add-dark-mode.typ: 94129284ad36e87e1b1e5ef139d1be4d3f9154cc61a3b0f045bcf9f8b306567d
-      examples/minimal/tasks/fix-login-bug.typ: 9c4665e41c68fa6e6ca34b038cf1627b321320ba45783c549f77d1c38a1daa93
-      examples/minimal/tasks/refactor-auth.typ: 75cf9fa0319d55fc7a19ae950e921409ce7cc2cc17585d1770466981de74e557
-      examples/minimal/tasks/setup-ci.typ: 9511a0f19d54ab4ab40ff9f300313e4a4813e5598b1ae874c83af4e76e936725
-      examples/minimal/tasks/write-docs.typ: f986262699c4ec6e933a8038b7cbabee5ad88d69286b2dd1f1969194bf80ae5f
-      examples/named-sets/tasks/fix-the-refund-rounding.typ: 95693fb9ec7856e6cd6ad134b84ce6755164509c4aab0a81603dc87e98111bd9
-      examples/named-sets/tasks/retry-failed-invoice-payments.typ: b85e14ebf20254577a8dab43c5b6e598ec86ea483d8593fba79d245c15f5eb0f
-      examples/named-sets/tasks/rotate-the-signing-keys.typ: b77f37e7179bdd94c98bcd6cafe35526d6ff7061e3c539b137e50dd6f9619feb
-      examples/priority/tasks/add-rate-limits-to-the-public-api.typ: 8325ec289e98bf4e31531d3d26ee1d8079796cdcde15a0b01e015b71f0073de7
-      examples/priority/tasks/fix-the-signup-email-typo.typ: 421979c5f652f95cdbef0b34f0458c1b5bafe911741e96a7ba35a45b6a746ff0
-      examples/priority/tasks/rename-the-billing-tables.typ: 22f6a7d77f1bb270431d4e7329610daa3251115477a23a8fcfe89464d500b47b
-      examples/recurring/tasks/annual-certificate-rotation.typ: 7b2eb4cf8abf200ec83a57b9ca5fa12705fbe3b1557420a4ca7773ef47e78777
-      examples/recurring/tasks/monthly-cost-report.typ: cf92c00c9cb1411a31449320b81c286630d388df6500891e8767e42472991476
-      examples/recurring/tasks/nightly-dependency-audit.typ: 250896490824e11637697aada71950c23f5ee79a0c528b315fdcfff46f5d14b3
-      examples/recurring/tasks/quarterly-access-audit.typ: 4c149cf7ac5e684e93666c1f3eaec30ab22aa82305871617c6a3ea0c449a6bf0
-      examples/recurring/tasks/standup-notes-2026-09-14.typ: 28ff650d46c85e357859df5a551396b8c1e1ac0412f2b9c80b0757c5eff2229f
-      examples/recurring/tasks/standup-notes-2026-09-15.typ: c73a9574e144ec109a8bf42bd72bafe52447631d0aabd8f6a4218722974a4251
-      examples/recurring/tasks/weekly-backlog-grooming.typ: f83948dac0154773fe51eecdea0faa1b5027d22504a1c0f1f995593bcd27a886
-      examples/rules/tasks/add-csv-export.typ: f1aaa3c51dfd8d44c39ac612d2d2501c5860dc36eb5507b92c58f41ed2097828
-      examples/rules/tasks/drop-the-v1-api.typ: e9057ce0dec33b8d0bcbd9fc10a5b083f99ef74803458651d17969343a047490
-      examples/rules/tasks/fix-the-session-timeout.typ: e2ff91ce71449a1bbcdfe22fb3c6a1910291c789c34c5724e09de1c55f1aaa8f
-      examples/self-validating/tasks/export-report-as-csv.typ: b4d1b2c63ae6d73ecd5ad1ab54d3be293d31b23ec92f97375763de53e668c04b
-      examples/self-validating/tasks/ship-onboarding-checklist.typ: 769b92438471be354835c6286f760a87a4fe9501d69135b61110030c46f3371f
-      examples/statuses/tasks/add-a-dry-run-flag.typ: 3feb6beccd8c2b45a7c39f22efcc687c730406bd38853fbb85690c0e1f69f9cb
-      examples/statuses/tasks/import-xlsx-files.typ: fe4c771f4b76c5d33efc0c34ba41d6fab1080d0becfdf6be499d490e8ad73a57
-      examples/statuses/tasks/map-csv-columns.typ: 101eb2d025150617d1f943543be7fc7e0d2ce5f48b0726ca4eca2dd854172964
-      examples/statuses/tasks/parse-csv-rows.typ: 3a2da94462440fe2ff5c720af8e673ff12f7edcca5db5fbeb4349c2ac5bdad03
-      examples/statuses/tasks/ship-the-csv-importer.typ: 116b411a741cb13ce165c0648e03893c072f8a21607e7e6704754a6f130d5031
-      examples/statuses/tasks/stream-large-files.typ: 85494e11f25331c6a5f113a77d008b9a5ea2540300a013162ad5e351bda696bf
-      examples/statuses/tasks/vendor-the-csv-parser.typ: ab55ab1c56b37bc8fa039c6df89d4fc21253a251fd1320632c5098f3be9a1f30
-      examples/task-files/invalid/dictionary-in-braces.typ: def412ef67432e138f8db27fcf00694fc130dddd7f155a09ede19dbe036f5255
-      examples/task-files/invalid/hash-in-the-body.typ: 9c66a295c6bd4ec0008c3039be667e2e2186b84d5bd1e34413f91ab7c64ce21b
-      examples/task-files/invalid/links-joined-with-a-comma.typ: 09c3741663819aa060f9047adabb58c3c78e56906e03b22c60b8855c1ef27203
-      examples/task-files/invalid/missing-comma.typ: f0b51fbc192bfd900461767aac68e4523732f4a538afa7ff82c6f88e2908ba84
-      examples/task-files/invalid/note-as-a-string.typ: 4cef078fa5fc8886b5e96443b2b1a678957e5d2c828e05c2b75756a8a0a02d8c
-      examples/task-files/invalid/one-tag-without-a-comma.typ: 23701d5962f0e7d142faad57aac1845bdf8cd5e73797c4d9357656757bbca925
-      examples/task-files/tasks/add-a-session-store.typ: f2f6be3d566fa89790c6f69a2f8796bd42647ad0235074d61ee23f5046b6847d
-      examples/task-files/tasks/fix-the-login-redirect.typ: da9c1d282eb164ed1c72da4ebe32b1953d10916374d5f795a16732d69a395276
-      examples/task-files/tasks/log-failed-logins.typ: bab9c76fb3c837a888026170fb84c92430c6b2e069307faebef32ce15c19c678
+      crates/mindtape-cli/src/cmd/init/presets/gated/templates/task.typ: c56fd7e1ebd978178f41ad9c70b8b5d90ecf075c19f02eb79170e3f167df3767
+      crates/mindtape/src/loader/embedded.rs: 05bda1bc098849ccee72f9e67079d01193fe4cddfdf29b4c56065acb0141f04d
+      crates/mindtape/src/test_support/fs.rs: ac58d088bdd48e731bccf907bf39a336bb8b6def97ab94b3327e5bff1d94a590
+      crates/mindtape/src/test_support/mod.rs: 55ada9b4096c1546fda57e4e5416b443499f315fc5daf4b152863d3a9c940fb8
+      examples/dsl/tasks/add-a-session-store.typ: 791b6e46a0eabd5d10d4f816df9be527cdb4b4949bb3cfdf8a92c56be16b8559
+      examples/dsl/tasks/fix-the-login-redirect.typ: 72e729ce4fc689861619af4419de4776d73740f0bf93d33e0907f660f7f2e7d6
+      examples/estimates/tasks/rename-the-status-glyphs.typ: 38e05ecf54bf20a0d61d2f98e83c37934a2623fb72018cbc65fcad9c8192116f
+      examples/estimates/tasks/rewrite-loader.typ: 4e0ebfe474bcb1af53d71753cb9fb67ba9f0948e978885556aa211b821d8e9a7
+      examples/links/tasks/auth-epic.typ: ff3d3f7356e57937d07d0ff8a5c28ee596d9a0f54b1a2653ef8182df468c3f78
+      examples/links/tasks/drop-legacy-cli.typ: 14f8d5d8fb5ea8c4701ab02e77cbf68b84e94b655c524ced4de448a389e2bf14
+      examples/links/tasks/legacy-cli.typ: 9bc66af7c9b1856bd8e92956a22c9f6286eb8caa6b590be4c57ca6bb913ce987
+      examples/links/tasks/pick-a-provider.typ: 867c182f006d652945afbcc66cac963503fc07f5cf6d8021527d9999d64d7159
+      examples/links/tasks/search-too-slow.typ: 95cb8dccbd854162f60ce1f4e9c15fc8d4cb14d221c7f79724762e093762b6d7
+      examples/links/tasks/speed-up-search.typ: 3c180602d26da8d3e36089e566dee2a46b64f020a9001135abe0e2b42138dbe0
+      examples/links/tasks/wire-oauth.typ: ceeb36ca31c551f076e196667e02d27823fd604bcc6ed715b874d107e0edb998
+      examples/links/tasks/write-docs.typ: 92a49ce8f5eca5b9f549035eea0451a8a91604d5a2f1674c443fdd00b9e9c7c9
+      examples/minimal/tasks/add-dark-mode.typ: 58760548fb62f97df59f36e6faf0c0281e4bcc68f2ec735d64c5d3973ab1cb26
+      examples/minimal/tasks/fix-login-bug.typ: 07876634940aed90411c4b3e7ac1ed6f2780fc23f0e5737a99a1dfec9e947664
+      examples/minimal/tasks/refactor-auth.typ: c468b2690d4f8311832a615628008dc1b16f4d947c1ae01806fcb5a2111e9fdc
+      examples/minimal/tasks/setup-ci.typ: 5bd9858bf56f6b205c286de2030880ba0642c63e5db386483b44f6de20ad7fb4
+      examples/minimal/tasks/write-docs.typ: 13cee4f54f9448f88cb5bc757a82073ed2d38e4efce54ea534e418daabf21cda
+      examples/named-sets/tasks/fix-the-refund-rounding.typ: af03ba6c75e49e057169d9444544ce59084c9a6cad217e57f0ff9c5b6cff0e55
+      examples/named-sets/tasks/retry-failed-invoice-payments.typ: 905167f5380cfe6b6be9c5a4ca6aaa5630305dc323f0ad9c0f847ddce618ebeb
+      examples/named-sets/tasks/rotate-the-signing-keys.typ: cd1e9a5d4eeee07aa48ba1d4c6d147b43b2b12260b92e148e8ee2dc86b3e8970
+      examples/priority/tasks/add-rate-limits-to-the-public-api.typ: 9cefada01633d2e02ab5a333a3eeeee75759dee9c9bf31d64d6dbdac5da22cfb
+      examples/priority/tasks/fix-the-signup-email-typo.typ: ae5b011bb9559803e2b920388a49300deeb0e617cf86bbf8354f0903fa20b744
+      examples/priority/tasks/rename-the-billing-tables.typ: d638acdfab6a161a99eca239a39bf89af0d53314db47adab09b68e3a868367e2
+      examples/recurring/tasks/annual-certificate-rotation.typ: b6cb6a3efa3798631701128a8af58cd26e558bf557e29ca3c32dae71c7e2b1a7
+      examples/recurring/tasks/monthly-cost-report.typ: 5f1aba4c02d9fe4d28a2c9d425fba2c613e80b31326b0f40339de4be0658483f
+      examples/recurring/tasks/nightly-dependency-audit.typ: b88d6f4ded3061ec1e6c5bb1d5e2f18e139d0b1a89620f45e8ba62149ec05f70
+      examples/recurring/tasks/quarterly-access-audit.typ: 89be236ea447c3fcb24e04e6964089c087f2437a94c59bc4c8444bf004cbffdb
+      examples/recurring/tasks/standup-notes-2026-09-14.typ: 7d7ce36dac66fb4444c27aefc806f228c1ea9a2a8847c2c750ea1a39a5d79139
+      examples/recurring/tasks/standup-notes-2026-09-15.typ: efdeecdeccc8313910ecba98cced8edfa029df09f664792c15a4a7384c76a988
+      examples/recurring/tasks/weekly-backlog-grooming.typ: 108e8fba5542846761cc7133b5ac09dbc01a767be4df57d89237172a8d0b235e
+      examples/rules/tasks/add-csv-export.typ: 4fd592eb21c7a578dfbccc87b533a114fcb56e76311ad51fc4846cae94d1fcf9
+      examples/rules/tasks/drop-the-v1-api.typ: 900176cd1caad6de5cd837c6665a2cebfbb505019bb24c27734d39e4f31d0bb2
+      examples/rules/tasks/fix-the-session-timeout.typ: 8f3c86eeb44d321a72e334f4d90815869f62f2a8f124c2a11043eb039c9bc832
+      examples/self-validating/tasks/export-report-as-csv.typ: c639ec4fbb3f3b98e327adabc645ea37b8d5eb0ee3e0b0862f31fb8bad01ae88
+      examples/self-validating/tasks/ship-onboarding-checklist.typ: b3b2cc6c5a93202b854e3a82a360cdbf27c38c07a37223ee10c46a64e2cde017
+      examples/statuses/tasks/add-a-dry-run-flag.typ: 9bde5fc1b75ecb9caa0943dac6d05c6ebe20ec25180eb175114f1b64516a125c
+      examples/statuses/tasks/import-xlsx-files.typ: 9e09827a75e3c615e950a9b5a80da8ad4d02bbc2e50d04b175e8dcfcd45c1039
+      examples/statuses/tasks/map-csv-columns.typ: 134be555ce023dc8e36da9bd1584a70593d44fb992376bc0263a17c9e2e7d49d
+      examples/statuses/tasks/parse-csv-rows.typ: 47eb94a8189ac9987bfa511ca11945217f8966ac2dd1f5cb4d96c2bc506acf02
+      examples/statuses/tasks/ship-the-csv-importer.typ: 714eed7563f591ef4c6d6e2f2199fde6e4651a36a93198391fa778ff2bbb5ee8
+      examples/statuses/tasks/stream-large-files.typ: ef983b4654c5dcb483b38a4afcbefbe9bb6638125f7c81dc7f42d4b42aeb15f9
+      examples/statuses/tasks/vendor-the-csv-parser.typ: a2dd76125af0b798f856a852962ac76eec61bf4e04183cfb1ed86b4ba4a684a2
+      examples/task-files/invalid/dictionary-in-braces.typ: d2afc07b39b41b54a31bf4c902cbfb644c29bc266e2493f13e9bd4c05d7df2a3
+      examples/task-files/invalid/hash-in-the-body.typ: a1e2425c0ee92b2c4bae355d8df3a1467af031bf6ed338645b641beb4c076378
+      examples/task-files/invalid/links-joined-with-a-comma.typ: 3198380887f7eb993296baa7796fc3d80fa69de5f48cfb186917da9268f5b6a7
+      examples/task-files/invalid/missing-comma.typ: de02c28eddcb3ba7dfa2c4248555ec07972879f9d6b6d3cc4d9b40ab173839e2
+      examples/task-files/invalid/note-as-a-string.typ: 901e999373b882a337941c5c0b94fb40ce4568a59903039a8327feae4ad25114
+      examples/task-files/invalid/one-tag-without-a-comma.typ: 7afb74425d266369553fac10f1ad56fe0a11b83cac45315fd7caab8741096682
+      examples/task-files/tasks/add-a-session-store.typ: 26a6fcf08909ed4d3fb5d879fbfe2e124f6719ce9a31db1f772b1503697b340d
+      examples/task-files/tasks/fix-the-login-redirect.typ: 3c48c3d926cae5fcca6d50a43794e297c3dd8c525d6bdfc3d15c35027ac717b2
+      examples/task-files/tasks/log-failed-logins.typ: 30d1a0f50122d56da2a3039c3f3987f34f044d06e09dc840a36fdbd537adcb73
   waits-docs:
     source:
       crates/mindtape/src/graph/ready.rs: 308fd9d84a4925246cb6f23698cd64e04c6912a99787c0e2ef80e24b5455ed2b

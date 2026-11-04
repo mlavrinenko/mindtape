@@ -27,7 +27,7 @@ fn write_parser(dir: &Path, status: &str, extra: &str) {
         dir,
         "tasks/parser.typ",
         format!(
-            "#import \"@local/mindtape:0.3.0\": *\n\n\
+            "#import \"@local/mindtape:0.4.0\": *\n\n\
              #show: task.with(\n  title: \"Write the parser\",\n  status: {status},\n  \
              priority: 3,\n{extra})\n"
         ),
@@ -185,7 +185,7 @@ fn a_first_commit_with_a_pin_passes() {
     write_file(
         dir.path(),
         "tasks/parser.typ",
-        "#import \"@local/mindtape:0.3.0\": *\n\n         #show: task.with(title: \"Write the parser\", status: wip(2026, 6, 1))\n",
+        "#import \"@local/mindtape:0.4.0\": *\n\n         #show: task.with(title: \"Write the parser\", status: wip(2026, 6, 1))\n",
     );
     git(dir.path(), &["init", "-q"]);
     git(dir.path(), &["add", "-A"]);

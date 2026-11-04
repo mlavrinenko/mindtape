@@ -50,11 +50,11 @@ fn package_dir(home: &Path, version: &str) -> PathBuf {
 }
 
 fn lib_typst_toml(home: &Path) -> PathBuf {
-    package_dir(home, "0.3.0").join("typst.toml")
+    package_dir(home, "0.4.0").join("typst.toml")
 }
 
 fn lib_prelude(home: &Path) -> PathBuf {
-    package_dir(home, "0.3.0").join("prelude.typ")
+    package_dir(home, "0.4.0").join("prelude.typ")
 }
 
 /// Seed an existing XDG `defaults.toml` (sentinel content) under `home`,
@@ -295,7 +295,7 @@ fn ls_output(project: &Path, data: &std::ffi::OsStr) -> (String, String) {
 fn ls_resolves_the_prelude_from_the_configured_data_home() {
     let home = tempdir();
     run_install(home.path(), &["install", "--no-defaults", "--no-schema"]).success();
-    let installed = package_dir(home.path(), "0.3.0").join("prelude.typ");
+    let installed = package_dir(home.path(), "0.4.0").join("prelude.typ");
     std::fs::write(&installed, crate::support::INSTALLED_PRELUDE).unwrap();
     let project = project_without_a_lib();
 
@@ -373,7 +373,7 @@ fn an_unsupported_prelude_is_one_error_however_many_tasks_fail() {
     );
     crate::support::assert_unsupported_prelude(&stderr, "0.1.0");
     assert!(
-        stderr.contains("run mt fix to rewrite it to @local/mindtape:0.3.0"),
+        stderr.contains("run mt fix to rewrite it to @local/mindtape:0.4.0"),
         "{stderr}"
     );
 }

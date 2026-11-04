@@ -97,12 +97,12 @@ fn rewrites_an_unsupported_pin_and_ends_with_check() {
         dir.path(),
         &["fix"],
         &[
-            "rewrite tasks/old.typ  0.1.0 -> 0.3.0",
+            "rewrite tasks/old.typ  0.1.0 -> 0.4.0",
             "rewrote 1 import",
             "ok: 1 task",
         ],
     );
-    assert_eq!(read(dir.path(), "tasks/old.typ"), task("0.3.0", "Old task"));
+    assert_eq!(read(dir.path(), "tasks/old.typ"), task("0.4.0", "Old task"));
 }
 
 #[test]
@@ -131,7 +131,7 @@ fn dry_run_prints_the_edit_and_writes_nothing() {
         dir.path(),
         &["fix", "--dry-run"],
         &[
-            "rewrite tasks/old.typ  0.1.0 -> 0.3.0",
+            "rewrite tasks/old.typ  0.1.0 -> 0.4.0",
             "would rewrite 1 import",
         ],
     );
@@ -151,8 +151,8 @@ fn check_reports_one_diagnostic_per_unsupported_version() {
         &stderr,
         &[
             "error: tasks/a-old.typ: imports @local/mindtape:0.1.0, which this mt does not support",
-            "supported: 0.2.0, 0.3.0",
-            "run mt fix to rewrite it to @local/mindtape:0.3.0",
+            "supported: 0.2.0, 0.3.0, 0.4.0",
+            "run mt fix to rewrite it to @local/mindtape:0.4.0",
             "upgrade mt to read @local/mindtape:99.99.99",
         ],
     );
@@ -193,7 +193,7 @@ fn a_malformed_spec_is_reported() {
 #[cfg(unix)]
 #[test]
 fn a_symlinked_file_with_an_edit_is_reported() {
-    let (dir, _) = project_with("0.3.0");
+    let (dir, _) = project_with("0.4.0");
     let target = tempdir();
     let before = put(target.path(), "old.typ", "0.1.0", "Linked");
     link(
@@ -230,9 +230,9 @@ fn all_scans_past_the_default_scope() {
     fixed_has(
         dir.path(),
         &["fix", "--all"],
-        &["rewrite notes.typ  0.1.0 -> 0.3.0"],
+        &["rewrite notes.typ  0.1.0 -> 0.4.0"],
     );
-    assert_eq!(read(dir.path(), "notes.typ"), task("0.3.0", "Elsewhere"));
+    assert_eq!(read(dir.path(), "notes.typ"), task("0.4.0", "Elsewhere"));
 }
 
 #[cfg(unix)]

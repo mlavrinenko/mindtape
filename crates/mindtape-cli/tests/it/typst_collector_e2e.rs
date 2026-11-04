@@ -19,7 +19,7 @@ const LIB: &str = r#"
 #let boom(task) = panic("boom")
 "#;
 
-const TASK: &str = "#import \"@local/mindtape:0.3.0\": *\n\n\
+const TASK: &str = "#import \"@local/mindtape:0.4.0\": *\n\n\
 #show: task.with(\n  title: \"A typed task\",\n  status: wip(2026, 11, 4),\n)\n\n\
 == Changes\n\n- `src/a.rs`\n";
 

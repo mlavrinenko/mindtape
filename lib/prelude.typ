@@ -306,10 +306,12 @@
 
 // Query-backed estimates. `count(n, ..queries)` is a unit's manual count `n`
 // plus the files its queries match: `grep(regex, glob)` reads file contents,
-// narrowed to an optional glob, and `glob(pattern)` reads paths. A regex may be a raw block
-// (`` `fn \w+` ``), so it needs no string escapes. Each builds a plain dict;
-// the Rust layer lists the files, runs the queries and adds them up, and only
-// for a unit the project names under `[tasks.estimate.queries]`.
+// narrowed to an optional glob, `glob(pattern)` reads paths, and
+// `ast_grep(language, pattern, glob)` reads the shape of Rust source. A regex
+// or pattern may be a raw block (`` `fn \w+` ``), so it needs no string
+// escapes. Each builds a plain dict; the Rust layer lists the files, runs the
+// queries and adds them up, and only for a unit the project names under
+// `[tasks.estimate.queries]`.
 #let _text(v) = if type(v) == content and v.func() == raw { v.text } else { v }
 #let grep(regex, ..scope) = {
   assert(
@@ -319,10 +321,22 @@
   (query: "grep", regex: _text(regex), glob: scope.pos().at(0, default: none))
 }
 #let glob(pattern) = (query: "glob", pattern: pattern)
+#let ast_grep(language, pattern, ..scope) = {
+  assert(
+    scope.named().len() == 0 and scope.pos().len() <= 1,
+    message: "ast_grep() takes a language, a pattern and then at most one glob",
+  )
+  (
+    query: "ast-grep",
+    language: _text(language),
+    pattern: _text(pattern),
+    glob: scope.pos().at(0, default: none),
+  )
+}
 #let count(n, ..queries) = {
   assert(
     queries.named().len() == 0,
-    message: "count() takes a number and then grep(...) or glob(...) queries",
+    message: "count() takes a number and then grep(...), glob(...) or ast_grep(...) queries",
   )
   (count: n, queries: queries.pos())
 }
@@ -463,7 +477,8 @@
 // A kind pill, if set.
 #let _kind-pill(k) = if type(k) == str and k != "" { _pill(k) } else { none }
 
-// One `count(...)` query as text: `grep fn \w+ in src/**` or `glob docs/*`.
+// One `count(...)` query as text: `grep fn \w+ in src/**`, `glob docs/*` or
+// `ast-grep rust parse_task($$$ARGS) in crates/**`.
 #let _fmt-query(q) = if type(q) != dictionary { _scalar(q) } else if (
   q.at("query", default: none) == "grep"
 ) {
@@ -471,6 +486,17 @@
   (
     "grep "
       + _scalar(q.at("regex", default: ""))
+      + if scope != none {
+        " in " + _scalar(scope)
+      } else { "" }
+  )
+} else if q.at("query", default: none) == "ast-grep" {
+  let scope = q.at("glob", default: none)
+  (
+    "ast-grep "
+      + _scalar(q.at("language", default: ""))
+      + " "
+      + _scalar(q.at("pattern", default: ""))
       + if scope != none {
         " in " + _scalar(scope)
       } else { "" }

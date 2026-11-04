@@ -42,8 +42,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   kept, a newer one is refused with an upgrade hint, and a project-local pin is
   never edited. Any refusal aborts the run before a file changes, and a
   successful write ends with `mt check`.
+- **The prelude offers `ast_grep(...)` and ships as `0.4.0`.** The helper
+  takes a language, a pattern and an optional glob, keeps the dict tag
+  `ast-grep`, and renders a card as `ast-grep rust <pattern> in <glob>`. The
+  0.3.0 snapshot stays frozen without the helper.
 - **`mt` declares and ships the prelude versions it supports.**
-  `PRELUDE_SUPPORTED` lists `0.2.0` and `0.3.0`, and each ships as an
+  `PRELUDE_SUPPORTED` lists `0.2.0`, `0.3.0` and `0.4.0`, and each ships as an
   immutable snapshot under `crates/mindtape/src/loader/preludes/<version>/`,
   so either pin loads with no package directory and `mt install` writes both.
   A supported old pin loads silently.

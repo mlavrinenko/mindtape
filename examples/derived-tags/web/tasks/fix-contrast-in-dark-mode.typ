@@ -1,4 +1,4 @@
-#import "@local/mindtape:0.3.0": *
+#import "@local/mindtape:0.4.0": *
 #show: task.with(
   title: "Fix contrast in dark mode",
   status: done(2026, 9, 18),

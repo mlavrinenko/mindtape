@@ -1,4 +1,4 @@
-#import "@local/mindtape:0.3.0": *
+#import "@local/mindtape:0.4.0": *
 #show: task.with(
   title: "Fix login redirect bug",
   status: wip(2026, 6, 25)[reproduced on staging],

@@ -310,7 +310,7 @@ fn run_prints_graph_from_disk() {
         write_file(
             dir.path(),
             "lib/typst.toml",
-            "[package]\nname = \"mindtape\"\nversion = \"0.3.0\"\nentrypoint = \"prelude.typ\"\n",
+            "[package]\nname = \"mindtape\"\nversion = \"0.4.0\"\nentrypoint = \"prelude.typ\"\n",
         );
         write_file(
             dir.path(),

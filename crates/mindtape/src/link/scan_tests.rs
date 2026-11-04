@@ -12,7 +12,7 @@ fn raws(source: &str) -> Vec<String> {
 
 /// Wrap `links` into a minimal task marker so the scan runs on realistic source.
 fn task(links: &str) -> String {
-    format!("#import \"@local/mindtape:0.3.0\": *\n#show: task.with(\n  links: {links},\n)\n")
+    format!("#import \"@local/mindtape:0.4.0\": *\n#show: task.with(\n  links: {links},\n)\n")
 }
 
 #[test]

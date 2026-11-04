@@ -27,7 +27,7 @@ message = "name the files in Changes"
 severity = "error"
 "#;
 
-const TASK: &str = "#import \"@local/mindtape:0.3.0\": *\n\n\
+const TASK: &str = "#import \"@local/mindtape:0.4.0\": *\n\n\
 #show: task.with(\n  title: \"Collect me\",\n  status: wip(2026, 11, 4),\n)\n\n\
 == Changes\n\n- `src/a.rs`\n- `src/b.rs`\n";
 

@@ -486,15 +486,14 @@ pub fn first_task_marker(markers: &[typst_harvest::Marker]) -> Option<&HVal> {
 
 #[cfg(test)]
 mod tests;
-
-#[cfg(test)]
-mod tests_pins;
-
 #[cfg(test)]
 mod tests_cache;
-
-#[cfg(test)]
-mod tests_prelude;
-
 #[cfg(test)]
 mod tests_eval_line;
+#[cfg(test)]
+mod tests_pins;
+#[cfg(test)]
+mod tests_prelude;
+#[cfg(test)]
+#[path = "tests_prelude_ast_grep.rs"]
+mod tests_prelude_ast_grep;

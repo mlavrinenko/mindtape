@@ -3,7 +3,7 @@
 // `check-goals` on that field.
 
 // docs:slice goals
-#import "@local/mindtape:0.3.0": helps, hurts, neutral, verdicts
+#import "@local/mindtape:0.4.0": helps, hurts, neutral, verdicts
 
 #let goals = (
   secure: "Only the owner of a session can use it",

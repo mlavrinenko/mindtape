@@ -44,7 +44,10 @@ fn assert_unsupported_prelude(text: &str, version: &str, hint: &str) {
         "{text}"
     );
     assert!(text.contains(hint), "{text}");
-    assert!(text.contains("note: supported: 0.2.0, 0.3.0"), "{text}");
+    assert!(
+        text.contains("note: supported: 0.2.0, 0.3.0, 0.4.0"),
+        "{text}"
+    );
 }
 
 #[test]
@@ -73,7 +76,7 @@ fn eval_refuses_an_unsupported_prelude_with_the_supported_set() {
     assert_unsupported_prelude(
         &text,
         "0.1.0",
-        "run mt fix to rewrite it to @local/mindtape:0.3.0",
+        "run mt fix to rewrite it to @local/mindtape:0.4.0",
     );
 }
 
@@ -143,14 +146,14 @@ fn eval_resolves_mindtape_from_the_projects_entry() {
     // `mt eval` resolves the import where the entry says, as the loader does.
     let dir = tempdir();
     write_pkg(dir.path(), "lib", "other", "99.99.99");
-    write_pkg(dir.path(), "vendor/mindtape", "mindtape", "0.3.0");
+    write_pkg(dir.path(), "vendor/mindtape", "mindtape", "0.4.0");
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
     std::fs::write(
         dir.path().join(".mindtape").join("config.toml"),
         "[[typst.local-packages]]\nname = \"mindtape\"\npath = \"vendor/mindtape\"\n",
     )
     .unwrap();
-    let file = write_importing_task(dir.path(), "0.3.0");
+    let file = write_importing_task(dir.path(), "0.4.0");
     assert!(eval(&file, true).is_ok());
 }
 

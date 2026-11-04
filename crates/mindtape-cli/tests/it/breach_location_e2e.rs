@@ -166,7 +166,7 @@ fn a_hash_in_a_body_gets_the_escape_hint_once() {
 fn a_typst_warning_on_a_file_that_loads_is_its_own_warning_line() {
     let text = ls_stderr(
         "<orphan>\n\
-         #import \"@local/mindtape:0.3.0\": *\n\
+         #import \"@local/mindtape:0.4.0\": *\n\
          #show: task.with(title: \"Set up CI\")\n",
     );
     assert!(

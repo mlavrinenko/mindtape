@@ -93,7 +93,7 @@ fn ls_reads_the_prelude_from_typsts_package_path() {
         .assert()
         .success();
     let packages = staged.path().join("typst").join("packages");
-    let installed = packages.join("local/mindtape/0.3.0/prelude.typ");
+    let installed = packages.join("local/mindtape/0.4.0/prelude.typ");
     std::fs::write(&installed, crate::support::INSTALLED_PRELUDE).unwrap();
     let project = tempdir();
     mindtape::test_support::write_bare_project(project.path());

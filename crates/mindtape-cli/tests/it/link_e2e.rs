@@ -17,7 +17,7 @@ const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
 
 fn task(title: &str) -> String {
     format!(
-        "#import \"@local/mindtape:0.3.0\": *\n\n\
+        "#import \"@local/mindtape:0.4.0\": *\n\n\
          #show: task.with(\n  title: \"{title}\",\n  status: wip(2026, 6, 1),\n)\n"
     )
 }

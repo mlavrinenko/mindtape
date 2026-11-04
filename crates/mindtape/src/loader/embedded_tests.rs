@@ -94,13 +94,14 @@ fn the_supported_set_lists_every_snapshot_and_ends_at_the_current_version() {
 }
 
 #[test]
-fn the_supported_set_names_the_two_versions_this_release_reads() {
-    assert_eq!(PRELUDE_SUPPORTED, ["0.2.0", "0.3.0"]);
+fn the_supported_set_names_the_three_versions_this_release_reads() {
+    assert_eq!(PRELUDE_SUPPORTED, ["0.2.0", "0.3.0", "0.4.0"]);
     assert!(prelude_supports("0.2.0"));
     assert!(prelude_supports("0.3.0"));
+    assert!(prelude_supports("0.4.0"));
     assert!(!prelude_supports("0.1.0"));
     assert!(!prelude_supports("99.99.99"));
-    assert!(!prelude_supports("0.3"));
+    assert!(!prelude_supports("0.4"));
 }
 
 /// An unsupported version is one stable, typed refusal the CLI can fold,
@@ -115,7 +116,7 @@ fn an_unsupported_prelude_names_the_version_and_the_supported_set() {
         Some("0.1.0"),
         "{message}"
     );
-    assert!(message.contains("0.2.0, 0.3.0"), "{message}");
+    assert!(message.contains("0.2.0, 0.3.0, 0.4.0"), "{message}");
 }
 
 /// The gate runs before any package directory: a working `0.1.0` install
@@ -204,6 +205,21 @@ fn the_archived_snapshot_checksum_normalizes_crlf() {
 
 const ARCHIVED_0_2_0_SHA256: &str =
     "e9bec1519fe6778cbfbdfb7d5897d616261661ecd529246faf4126b8050b7b10";
+
+/// The archived 0.3.0 snapshot predates `ast_grep(...)`, so a later edit that
+/// back-fills the helper into it must fail even when the DSL otherwise agrees.
+#[test]
+fn the_archived_0_3_0_snapshot_stays_without_ast_grep() {
+    let snapshot = prelude_snapshot("0.3.0").unwrap();
+    assert!(
+        !snapshot.source.contains("ast_grep"),
+        "the 0.3.0 snapshot must stay as shipped"
+    );
+    assert_eq!(snapshot_digest(snapshot.source), ARCHIVED_0_3_0_SHA256);
+}
+
+const ARCHIVED_0_3_0_SHA256: &str =
+    "ca44a906e39cdec0215bbb0564fa19995123ad6a54e2c9466d714006b33dd67f";
 
 /// The SHA-256 of a prelude snapshot with CRLF collapsed to LF.
 fn snapshot_digest(source: &str) -> String {

@@ -38,10 +38,10 @@ fn fresh_project() -> (tempfile::TempDir, std::path::PathBuf) {
 /// support, as a project pinned to another release does.
 fn pin_an_unsupported_prelude(project: &Path) {
     const BUILTIN: &str = include_str!("../../src/cmd/add/templates/task.typ");
-    let pinned = BUILTIN.replacen("@local/mindtape:0.3.0", "@local/mindtape:0.1.0", 1);
+    let pinned = BUILTIN.replacen("@local/mindtape:0.4.0", "@local/mindtape:0.1.0", 1);
     assert_ne!(
         pinned, BUILTIN,
-        "the built-in template no longer imports 0.3.0"
+        "the built-in template no longer imports 0.4.0"
     );
     write_file(project, ".mindtape/templates/task.typ", &pinned);
 }
@@ -132,7 +132,7 @@ fn import_skipped_for_another_reason_prints_no_install_note() {
     write_file(&project, "in.json", ONE_RECORD);
     // Installed where `run_fresh` points the data home, as `mt install` would.
     mindtape::test_support::write_package(
-        &project.join("empty-data/typst/packages/local/mindtape/0.3.0"),
+        &project.join("empty-data/typst/packages/local/mindtape/0.4.0"),
         mindtape::test_support::PRELUDE,
     );
 
@@ -236,7 +236,7 @@ fn check_names_the_supported_set_once_for_a_template_on_an_old_prelude() {
     );
     support::assert_unsupported_prelude(&stderr, "0.1.0");
     assert!(
-        stderr.contains("run mt fix to rewrite it to @local/mindtape:0.3.0"),
+        stderr.contains("run mt fix to rewrite it to @local/mindtape:0.4.0"),
         "{stderr}"
     );
 }

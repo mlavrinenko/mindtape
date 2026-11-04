@@ -36,7 +36,7 @@ const WORK_NAMES_A_TASK: &str = "[commits]\ntrailer = \"Refs\"\n\n\
 
 fn parser(status: &str) -> String {
     format!(
-        "#import \"@local/mindtape:0.3.0\": *\n\n\
+        "#import \"@local/mindtape:0.4.0\": *\n\n\
          #show: task.with(\n  title: \"Write the parser\",\n  status: {status},\n  \
          priority: 3,\n)\n"
     )

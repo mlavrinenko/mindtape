@@ -16,7 +16,7 @@ fn check(extra: &str, tail: &str) -> (bool, String) {
         dir.path(),
         "tasks/board.typ",
         format!(
-            "#import \"@local/mindtape:0.3.0\": *\n\n\
+            "#import \"@local/mindtape:0.4.0\": *\n\n\
              #show: task.with(\n  title: \"Cover the board\",\n  status: wip(2026, 6, 1),\n  \
              {extra}\n)\n\n\
              == AS-IS\n\n+ Run `mt board`.\n+ 🔴 It lists nothing.\n\n\

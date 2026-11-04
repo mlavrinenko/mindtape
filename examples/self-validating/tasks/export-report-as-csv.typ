@@ -1,5 +1,5 @@
 // docs:slice export-report-as-csv
-#import "@local/mindtape:0.3.0": *
+#import "@local/mindtape:0.4.0": *
 #show: task.with(
   title: "Export the report as CSV",
   status: wip(2026, 7, 1),

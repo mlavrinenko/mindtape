@@ -19,9 +19,9 @@ use crate::test_support::PRELUDE;
 /// Load one file authored against the real prelude, under a config that
 /// resolves it from the project's `lib/`.
 /// The `TempDir` rides along in the return so the caller keeps it alive.
-fn load_real_prelude(source: &str) -> (tempfile::TempDir, LoadOutcome) {
+pub(super) fn load_real_prelude(source: &str) -> (tempfile::TempDir, LoadOutcome) {
     let dir = setup();
-    write_pkg(dir.path(), "lib", "mindtape", "0.3.0", PRELUDE);
+    write_pkg(dir.path(), "lib", "mindtape", "0.4.0", PRELUDE);
     write_file(dir.path(), "tasks/t.typ", source);
     let outcome = load_project(dir.path(), &lib_config());
     (dir, outcome)
@@ -37,9 +37,9 @@ fn prelude_world(dir: &std::path::Path) -> HarvestWorld {
 /// Load one task authored with a single `task.with` field and return the first
 /// load-error message. Used by the assertion tests, which all expect the file
 /// to fail eval and produce no task at all.
-fn prelude_eval_error(field: &str) -> String {
+pub(super) fn prelude_eval_error(field: &str) -> String {
     let source = format!(
-        "#import \"@local/mindtape:0.3.0\": *\n\
+        "#import \"@local/mindtape:0.4.0\": *\n\
          #show: task.with(title: \"T\", {field})\n"
     );
     let (_dir, outcome) = load_real_prelude(&source);
@@ -59,7 +59,7 @@ fn prelude_eval_error(field: &str) -> String {
 /// that claim, rather than three tests that merely happen to agree.
 fn task_with_links(links: &str) -> Task {
     let source = format!(
-        "#import \"@local/mindtape:0.3.0\": *\n\
+        "#import \"@local/mindtape:0.4.0\": *\n\
          #show: task.with(title: \"T\", links: {links})\n"
     );
     let (_dir, outcome) = load_real_prelude(&source);
@@ -215,7 +215,7 @@ fn real_prelude_places_the_unknown_slot_error_on_the_name_in_the_task_file() {
     let source =
         crate::typst_task!("(\n  titel: \"typo\",\n  x-speconaut: (spec: \"s.typ\"),\n)\n");
     let dir = setup();
-    write_pkg(dir.path(), "lib", "mindtape", "0.3.0", PRELUDE);
+    write_pkg(dir.path(), "lib", "mindtape", "0.4.0", PRELUDE);
     write_file(dir.path(), "tasks/t.typ", source);
 
     let Err(HarvestError::Eval { error, .. }) = harvest(&prelude_world(dir.path())) else {
@@ -243,7 +243,7 @@ fn real_prelude_still_takes_every_extension_slot_it_took() {
     ];
     for (fields, keys) in cases {
         let (_dir, outcome) = load_real_prelude(&format!(
-            "#import \"@local/mindtape:0.3.0\": *\n\
+            "#import \"@local/mindtape:0.4.0\": *\n\
              #show: task.with(title: \"T\", {fields})\n"
         ));
         assert_eq!(outcome.errors, Vec::new(), "`{fields}` failed to load");
@@ -381,7 +381,7 @@ fn real_prelude_carries_a_wrong_typed_element_to_the_rust_shape_error() {
     ];
     for (field, path, message) in cases {
         let source = format!(
-            "#import \"@local/mindtape:0.3.0\": *\n\
+            "#import \"@local/mindtape:0.4.0\": *\n\
              #show: task.with(title: \"T\", {field})\n"
         );
         let (_dir, outcome) = load_real_prelude(&source);

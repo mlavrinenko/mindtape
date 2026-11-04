@@ -20,7 +20,7 @@ fn rewrites_only_the_version_of_an_unsupported_import() {
     assert_eq!(import.action, PreludeImportAction::Rewrite);
     assert_eq!(
         apply_rewrites(source, &[import]).as_deref(),
-        Some("#import \"@local/mindtape:0.3.0\": *\n#import \"../lib.typ\": *\n")
+        Some("#import \"@local/mindtape:0.4.0\": *\n#import \"../lib.typ\": *\n")
     );
 }
 
@@ -33,7 +33,7 @@ fn keeps_a_supported_older_pin() {
 
 #[test]
 fn says_nothing_about_the_current_version() {
-    let import = only("#import \"@local/mindtape:0.3.0\": *\n", None);
+    let import = only("#import \"@local/mindtape:0.4.0\": *\n", None);
     assert_eq!(import.action, PreludeImportAction::Current);
 }
 
@@ -111,7 +111,7 @@ fn preserves_every_byte_outside_the_version() {
         out,
         "\
 // keep this comment exactly\r
-#import  \"@local/mindtape:0.3.0\"  : *\r
+#import  \"@local/mindtape:0.4.0\"  : *\r
 #let x = \"0.1.0\"\r
 "
     );

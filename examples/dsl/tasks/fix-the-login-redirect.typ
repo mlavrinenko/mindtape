@@ -1,5 +1,5 @@
 // docs:slice task
-#import "@local/mindtape:0.3.0": *
+#import "@local/mindtape:0.4.0": *
 #show: task.with(
   title: "Fix the login redirect",
   status: wip(2026, 6, 14)[reproduced on staging], // the status, the date it was set, and a note
