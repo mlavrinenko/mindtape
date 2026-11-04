@@ -28,23 +28,23 @@ The workspace `Cargo.toml` sets its clippy lints to `deny`, so the `clippy` gate
 
 - Build every error the user sees as a `Diag` from `crates/mindtape-cli/src/diag/`, such as `Diag::usage("unknown field").value(name).hint(..)`. Its module docs hold the format. The text is a `&'static str`, so a value goes through `.value()`, which quotes it.
 - Pick the kind, not the exit code: `Diag::usage` exits 2, `Diag::refused` and `Diag::failed` exit 1. `main` prints the error and exits with its code.
-- Every command returns `Result<_, Diag>`; the `mt` binary has no `anyhow`. clippy refuses `eprintln!`, `eprint!` and `std::io::stderr` outside `diag/`, so no line reaches stderr unrendered.
+- Every command returns `Result<_, Diag>`; the `mt` binary has no `anyhow`. clippy refuses `eprintln!`, `eprint!` and `std::io::stderr` outside `diag/`, so no line reaches stderr raw.
 - If callers match on a library error type, derive `thiserror::Error` for it, as `RecurError`, `ConfigError` and `FilterError` do, and convert it in `diag/from_lib.rs` matching every variant.
 - Say a count with `mindtape::count(n, "task")`, which prints `1 task` or `12 tasks`. `just lint plural` refuses `task(s)` in a string outside tests.
 - Keep `main.rs` thin and put the logic in library modules.
 
 ## Testing
 
-- Put unit tests in `#[cfg(test)] mod tests` beside the code, or in a sibling `_tests.rs` loaded with `#[path]`.
-- Put tests that run the `mt` binary (`assert_cmd::cargo_bin`) in `tests/it/`, which each crate links as one binary: declare a new file in `tests/it/main.rs`. Only integration tests get `CARGO_BIN_EXE_mt`.
+- Put unit tests beside the code, or in a sibling `_tests.rs` loaded with `#[path]`.
+- Put tests that run the `mt` binary (`assert_cmd::cargo_bin`) in `tests/it/`, which each crate links as one binary: declare a new file in `tests/it/main.rs`. Only they get `CARGO_BIN_EXE_mt`.
 - When a file nears its linecop cap, run `just fix-check`. It moves the file’s inline tests into a `_tests.rs` sibling (`tests.rs` for a `mod.rs`) with [ejectest](https://github.com/mlavrinenko/ejectest).
 - Run the suite with `just test` and count it with `just count-tests`.
 - If your code runs a process or joins paths, the Windows CI job runs it too. See [docs/contributing/windows.md](docs/contributing/windows.md).
-- Before a PR, run `just mutants diff` and triage every survivor. A run over 100 mutants, about 20 minutes, needs the owner’s approval, so an agent stops and asks instead of setting `MINDTAPE_MUTANTS_APPROVED=1` itself. The triage classes are in [docs/contributing/mutation-testing.md](docs/contributing/mutation-testing.md).
+- Before a PR, run `just mutants diff` and triage every survivor. A run over 100 mutants, about 20 minutes, needs the owner’s approval; an agent stops and asks instead of setting `MINDTAPE_MUTANTS_APPROVED=1`. The triage classes are in [docs/contributing/mutation-testing.md](docs/contributing/mutation-testing.md).
 
 ## Quality Gates (run by `just check`)
 
-The pre-commit hook refuses your commit unless every gate passed against the current tree. To see the gates and their state:
+The pre-commit hook refuses a commit unless every gate passed against the current tree. To see the gates:
 
 ```bash
 just --list --list-submodules  # every gate under [gate], with what it checks
@@ -61,7 +61,7 @@ In a delegated worktree, you can skip the hook’s freshness check with `MINDTAP
 
 ## Worktrees
 
-Work in parallel in a sibling worktree: `just fork` makes one and `just land` merges it back. Both wrap [worktrunk](https://worktrunk.dev) (`wt`, from the dev shell) with the flags this repo needs, because a bare `wt merge` squashes away each commit’s `Refs:` footer and commits a dirty tree.
+Work in parallel in a sibling worktree: `just fork` makes one and `just land` merges it back. Both wrap [worktrunk](https://worktrunk.dev) (`wt`, from the dev shell) with this repo’s flags, because a bare `wt merge` squashes away each commit’s `Refs:` footer and commits a dirty tree.
 
 ```bash
 just fork <slug>           # ../mindtape-<slug> on a new branch, its mt built
@@ -69,7 +69,7 @@ just fork <slug> --base=@  # the same, from the current commit, not main
 just land                  # in the worktree: gate, wip check, fast-forward, remove
 ```
 
-A worktree gets commits, not your working tree, so commit before you flip a task and run `mt wip <stem>` inside the worktree. Don’t `git stash` there: all worktrees share one stash list, so a `pop` can apply another’s work. Make a WIP commit instead.
+A worktree gets commits, not your working tree. Commit before you flip a task and run `mt wip <stem>` there. Don’t `git stash` there: all worktrees share one stash list, so a `pop` can apply another’s work. Make a WIP commit instead.
 
 `.config/wt.toml` holds the hooks, so a clone with nix and direnv needs no worktrunk config of its own. Before the fast-forward they run `just check` and `mt check --commits main..HEAD`, which refuses a branch that names a still-`wip` task in `Refs:`.
 
@@ -86,7 +86,7 @@ A worktree gets commits, not your working tree, so commit before you flip a task
 
 ## Findings and the Signal Sweep
 
-When you see a real problem outside your task, file it with `mt add --template finding` (tag `found`) before you report, and don’t fix it in passing.
+When you see a real problem outside your task, file it with `mt add --template finding` (tag `found`) before you report, and don’t fix it in passing. The template asks for a `surfaced-by` link to the task that surfaced the finding.
 
 `just ask-refactoring` reads the quality signals that no gate enforces and prints one task per finding. Add `--write` to file them. The arms and their scoring are in [docs/contributing/signal-sweep.md](docs/contributing/signal-sweep.md).
 

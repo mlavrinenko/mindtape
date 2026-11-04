@@ -88,6 +88,27 @@ when = "!terminal"
 check = { typst = "truth/lib.typ", function = "check-goals", field = "x-goals" }
 severity = "error"
 
+# A finding names the task that surfaced it. The template makes the slot
+# required; this rule holds a hand-edited, imported or copied finding to the
+# same bar while it is open, and a template that files one. Closed findings
+# are history, so `!terminal` keeps them out of the backfill.
+[[tasks.rules]]
+name = "finding-has-surfaced-by"
+when = '!terminal && has_tag("found")'
+assert = 'links("surfaced-by")'
+message = "link the finding to the task that surfaced it with `mt link <finding> surfaced-by <task>`"
+severity = "error"
+
+# The edge a finding carries. Not `parent`: a parent waits for its children to
+# close, and an out-of-scope finding may never close. `max = 1` because one
+# piece of work surfaced it; other relations use `related` or `depends-on`.
+[[tasks.links.kinds]]
+name = "surfaced-by"
+max = 1
+blocking = false
+acyclic = true
+validate = "local-task-path"
+
 [tasks.tags]
 # Area labels for the backlog. Empty would accept any tag.
 allowed = [
@@ -124,7 +145,8 @@ allowed = [
   "dry",
   # Provenance for the human/agent channel: `found` marks a task filed with
   # `mt add --template finding` — an out-of-scope observation, not a signal
-  # a script emitted. `mt ls 'has_tag("found")'` is the whole outstanding list.
+  # a script emitted. `mt ls 'has_tag("found")'` is the whole outstanding list,
+  # and `mt check` holds each open one to a `surfaced-by` edge.
   "found",
   # Written by `mt add --template tweak` and by nothing else: a change too
   # small to plan, filed done in the commit that makes it. `tweak-lands-done`

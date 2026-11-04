@@ -32,6 +32,10 @@
   ),
   assignee: "agent",
   status: proposed(2026, 11, 4),
+  links: edge(
+    "surfaced-by",
+    "read-has-tags-and-spaced-has-tag-calls-in-mt-tags.typ",
+  ),
 )
 
 == AS-IS
@@ -98,4 +102,3 @@ cli   on.flip[1].actions[0]
 == Dogfood
 
 Any project that writes `gate = true` without a `message` sees it in `mt rules --for flip` and `mt tags --for flip`. This repo's shipped flow gate carries a message, so its own listing does not change.
-

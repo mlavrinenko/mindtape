@@ -40,6 +40,17 @@
     prompt: "(src-files: N)",
     example: "(src-files: 1)",
   ),
+  links: slot(
+    "links",
+    kind: "links",
+    prompt: "one `surfaced-by` edge to the task that surfaced this finding, plus any others",
+    example: (
+      (
+        kind: "surfaced-by",
+        task: "route-an-out-of-scope-finding-into-a-filed-task.typ",
+      ),
+    ),
+  ),
   tags: slot(
     "tags",
     kind: "list",
@@ -104,9 +115,6 @@
   ```
   ````,
 )
-
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads.
 
 == TO-BE
 

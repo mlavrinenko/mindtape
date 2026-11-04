@@ -10,9 +10,14 @@
 // dict a task does without copying this file; this module re-exports them and
 // keeps only what is true of this repo.
 
-#import "@local/mindtape:0.3.0": helps, hurts, neutral
+#import "@local/mindtape:0.3.0": edge, helps, hurts, neutral
 #import "goals.typ": goals as product-goals
 #import "process-goals.typ": goals as process-goals
+
+// A finding points at the task that surfaced it. The kind is declared in
+// `.mindtape/config.toml`; this helper is the project-side spelling of
+// `edge("surfaced-by", ...)`, beside the goal check every task imports.
+#let surfaced-by(..args) = edge("surfaced-by", ..args)
 
 #let _choices = "helps[...], hurts[...] or neutral"
 

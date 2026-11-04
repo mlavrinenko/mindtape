@@ -58,7 +58,7 @@ gate fails on any violation. These limits shape the code most:
   and `Diag::failed` exit 1. `main` prints the error and exits with its code.
 - Every command returns `Result<_, Diag>`; the `mt` binary has no `anyhow`.
   clippy refuses `eprintln!`, `eprint!` and `std::io::stderr` outside
-  `diag/`, so no line reaches stderr unrendered.
+  `diag/`, so no line reaches stderr raw.
 - If callers match on a library error type, derive `thiserror::Error` for it,
   as `RecurError`, `ConfigError` and `FilterError` do, and convert it in
   `diag/from_lib.rs` matching every variant.
@@ -69,26 +69,27 @@ gate fails on any violation. These limits shape the code most:
 
 = Testing
 
-- Put unit tests in `#[cfg(test)] mod tests` beside the code, or in a sibling
-  `_tests.rs` loaded with `#[path]`.
+- Put unit tests beside the code, or in a sibling `_tests.rs` loaded with
+  `#[path]`.
 - Put tests that run the `mt` binary (`assert_cmd::cargo_bin`) in `tests/it/`,
   which each crate links as one binary: declare a new file in
-  `tests/it/main.rs`. Only integration tests get `CARGO_BIN_EXE_mt`.
+  `tests/it/main.rs`. Only they get `CARGO_BIN_EXE_mt`.
 - When a file nears its linecop cap, run #just.fix-check(). It moves the
   file's inline tests into a `_tests.rs` sibling (`tests.rs` for a `mod.rs`)
   with #link("https://github.com/mlavrinenko/ejectest")[ejectest].
 - Run the suite with #just.test() and count it with #just.count-tests().
 - If your code runs a process or joins paths, the Windows CI job runs it too.
   See #link("docs/contributing/windows.md")[docs/contributing/windows.md].
-- Before a PR, run #just.mutants-diff() and triage every survivor. A run over 100 mutants, about 20
-  minutes, needs the owner's approval, so an agent stops and asks instead of
-  setting `MINDTAPE_MUTANTS_APPROVED=1` itself. The triage classes are in
+- Before a PR, run #just.mutants-diff() and triage every survivor. A run over
+  100 mutants, about 20 minutes, needs the owner's approval; an agent stops
+  and asks instead of setting `MINDTAPE_MUTANTS_APPROVED=1`. The triage
+  classes are in
   #link("docs/contributing/mutation-testing.md")[docs/contributing/mutation-testing.md].
 
 = Quality Gates (run by #just.check())
 
-The pre-commit hook refuses your commit unless every gate passed against the
-current tree. To see the gates and their state:
+The pre-commit hook refuses a commit unless every gate passed against the
+current tree. To see the gates:
 
 // docs:hand-typed the commands that list the gates, run against the live Justfile
 ```bash
@@ -119,8 +120,8 @@ fast-forwards. Never scope a commit to get past a failing gate.
 
 Work in parallel in a sibling worktree: #just.fork() makes one and #just.land()
 merges it back. Both wrap #link("https://worktrunk.dev")[worktrunk] (`wt`, from
-the dev shell) with the flags this repo needs, because a bare `wt merge`
-squashes away each commit's `Refs:` footer and commits a dirty tree.
+the dev shell) with this repo's flags, because a bare `wt merge` squashes away
+each commit's `Refs:` footer and commits a dirty tree.
 
 // docs:hand-typed a worktree session that no fixture can run
 ```bash
@@ -129,8 +130,8 @@ just fork <slug> --base=@  # the same, from the current commit, not main
 just land                  # in the worktree: gate, wip check, fast-forward, remove
 ```
 
-A worktree gets commits, not your working tree, so commit before you flip a
-task and run `mt wip <stem>` inside the worktree. Don't `git stash` there: all
+A worktree gets commits, not your working tree. Commit before you flip a task
+and run `mt wip <stem>` there. Don't `git stash` there: all
 worktrees share one stash list, so a `pop` can apply another's work. Make a WIP
 commit instead.
 
@@ -169,7 +170,8 @@ says what checks these rules, and why `Refs:` names a stem.
 
 When you see a real problem outside your task, file it with
 `mt add --template finding` (tag `found`) before you report, and don't fix it
-in passing.
+in passing. The template asks for a `surfaced-by` link to the task that
+surfaced the finding.
 
 #just.ask-refactoring() reads the quality signals that no gate enforces and
 prints one task per finding. Add `--write` to file them. The arms and their
