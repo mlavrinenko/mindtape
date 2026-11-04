@@ -117,5 +117,4 @@ fn an_unknown_kind_lists_every_registered_kind() {
             spellings.join(", ")
         )
     );
-    assert!(plain(&diag).contains("choice, multichoice"));
 }

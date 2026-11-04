@@ -10,7 +10,7 @@
 use std::collections::BTreeMap;
 
 use super::tests::wrap;
-use super::{FillError, RawValue, SlotKind, fill};
+use super::{FillError, LinkValue, RawValue, SlotKind, fill};
 
 fn values(pairs: &[(&str, RawValue)]) -> BTreeMap<String, RawValue> {
     pairs
@@ -123,6 +123,75 @@ fn empty_list_renders_unit() {
         &[("tags", RawValue::List(vec![]))],
         "tags: ()",
     );
+}
+
+#[test]
+fn fills_links_with_edge_dicts() {
+    let edges = vec![
+        LinkValue {
+            task: "origin.typ".to_owned(),
+            kind: "surfaced-by".to_owned(),
+            note: None,
+        },
+        LinkValue {
+            task: "other.typ".to_owned(),
+            kind: "related".to_owned(),
+            note: Some("why \"it\" relates".to_owned()),
+        },
+    ];
+    assert_fills(
+        r#"links: slot("links", kind: "links")"#,
+        &[("links", RawValue::Links(edges))],
+        r#"links: ((task: "origin.typ", kind: "surfaced-by", note: none), (task: "other.typ", kind: "related", note: "why \"it\" relates"),)"#,
+    );
+}
+
+#[test]
+fn empty_links_renders_unit() {
+    assert_fills(
+        r#"links: slot("links", kind: "links", default: ())"#,
+        &[],
+        "links: ()",
+    );
+    assert_fills(
+        r#"links: slot("links", kind: "links")"#,
+        &[("links", RawValue::List(vec![]))],
+        "links: ()",
+    );
+}
+
+#[test]
+fn a_string_list_is_not_a_links_value() {
+    let err = fill_wrapped(
+        r#"links: slot("links", kind: "links")"#,
+        &[("links", RawValue::List(vec!["other.typ".to_owned()]))],
+    )
+    .unwrap_err();
+    assert!(matches!(
+        err,
+        FillError::Type {
+            want: SlotKind::Links,
+            got: "list",
+            ..
+        }
+    ));
+}
+
+#[test]
+fn a_string_into_links_slot_errors() {
+    let err = fill_wrapped(
+        r#"links: slot("links", kind: "links")"#,
+        &[("links", RawValue::Str("other.typ".to_owned()))],
+    )
+    .unwrap_err();
+    assert!(matches!(
+        err,
+        FillError::Type {
+            want: SlotKind::Links,
+            got: "string",
+            ..
+        }
+    ));
 }
 
 #[test]

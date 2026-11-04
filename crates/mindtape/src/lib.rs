@@ -135,7 +135,9 @@ pub use template::check::{
     TemplateHome, TemplateSources, code_span_examples, template_breaches, template_failure,
     unfillable_slots,
 };
-pub use template::{FillError, RawValue, SlotKind, SlotSpec, discover_slots, fill, fill_examples};
+pub use template::{
+    FillError, LinkValue, RawValue, SlotKind, SlotSpec, discover_slots, fill, fill_examples,
+};
 pub use validate::candidate::{
     Candidate, Checked, check_candidate, check_candidates, harvest_candidate, reads_set_breach,
 };

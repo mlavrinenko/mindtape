@@ -98,5 +98,5 @@ fn unknown_kind_message_names_every_registered_kind() {
     for kind in SlotKind::ALL {
         assert!(msg.contains(kind.as_str()), "{msg} lacks {}", kind.as_str());
     }
-    assert!(msg.ends_with("choice, multichoice"), "{msg}");
+    assert!(msg.ends_with(&SlotKind::spellings()), "{msg}");
 }

@@ -273,6 +273,9 @@ fn seed_entry(kind: SlotKind, raw: &RawValue) -> Entry {
         RawValue::Float(value) => Entry::Scalar(value.to_string()),
         RawValue::Bool(value) => Entry::Scalar(value.to_string()),
         RawValue::List(items) => Entry::List(items.clone()),
+        // A seed links value cannot reach the editor until the value sources
+        // parse one; the scaffold for it lands with those sources.
+        RawValue::Links(_) => Entry::List(Vec::new()),
     }
 }
 

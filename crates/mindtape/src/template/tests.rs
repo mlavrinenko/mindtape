@@ -86,6 +86,7 @@ fn slotkind_as_str_returns_correct_spelling() {
     assert_eq!(SlotKind::Text.as_str(), "text");
     assert_eq!(SlotKind::Raw.as_str(), "raw");
     assert_eq!(SlotKind::Choice.as_str(), "choice");
+    assert_eq!(SlotKind::Links.as_str(), "links");
 }
 
 #[test]
@@ -231,9 +232,10 @@ fn all_lists_each_kind_once_and_parse_reads_each_back() {
             | SlotKind::Text
             | SlotKind::Raw
             | SlotKind::Choice
-            | SlotKind::MultiChoice => true,
+            | SlotKind::MultiChoice
+            | SlotKind::Links => true,
         };
         assert!(listed);
     }
-    assert_eq!(SlotKind::ALL.len(), 11);
+    assert_eq!(SlotKind::ALL.len(), 12);
 }

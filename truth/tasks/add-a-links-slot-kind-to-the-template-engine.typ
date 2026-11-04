@@ -11,7 +11,7 @@
   ),
   difficulty: 3,
   tags: ("mt", "cli", "stateless"),
-  estimate: (src-files: 4),
+  estimate: (src-files: 5),
   x-goals: (
     product: verdicts(
       (
@@ -33,7 +33,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 4),
+  status: done(2026, 11, 4),
 )
 
 == AS-IS

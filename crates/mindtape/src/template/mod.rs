@@ -31,7 +31,7 @@ use typst_edit::{Call, find_calls};
 /// Coercion, rendering, and the source rewrite; split out to keep this file
 /// under its line budget. See [`fill`].
 mod fill;
-pub use fill::{FillError, RawValue, fill, fill_examples};
+pub use fill::{FillError, LinkValue, RawValue, fill, fill_examples};
 
 /// What kind of value a slot holds; drives how a filled value renders to Typst.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -79,13 +79,16 @@ pub enum SlotKind {
     Choice,
     /// A list of strings, each one of the slot's `choices`.
     MultiChoice,
+    /// A list of typed edges, each a `task`, `kind` and optional `note`,
+    /// rendered as the dicts the DSL's `links:` helpers build.
+    Links,
 }
 
 impl SlotKind {
     /// Every kind once, in the order a refusal and the docs list them. `parse`
     /// reads the spelling of each from here, so a kind missing from this list
     /// can't be declared.
-    pub const ALL: [Self; 11] = [
+    pub const ALL: [Self; 12] = [
         Self::String,
         Self::Int,
         Self::Float,
@@ -97,6 +100,7 @@ impl SlotKind {
         Self::Raw,
         Self::Choice,
         Self::MultiChoice,
+        Self::Links,
     ];
 
     /// The config/DSL spelling of this kind.
@@ -114,6 +118,7 @@ impl SlotKind {
             Self::Raw => "raw",
             Self::Choice => "choice",
             Self::MultiChoice => "multichoice",
+            Self::Links => "links",
         }
     }
 

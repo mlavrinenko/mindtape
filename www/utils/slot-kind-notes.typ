@@ -20,4 +20,5 @@
   "raw": [body markup pasted in as written, which `mt add` refuses if it doesn't parse],
   "choice": [one of the slot's `choices`],
   "multichoice": [a list whose items are each one of the slot's `choices`],
+  "links": [a list of typed edges, each a `{kind, task, note}` mapping],
 )

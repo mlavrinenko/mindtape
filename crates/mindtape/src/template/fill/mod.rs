@@ -23,6 +23,19 @@ use super::{SlotKind, SlotSpec, discover_slots};
 /// under its line budget. See [`markup::render_raw`].
 mod markup;
 
+/// One edge in a [`RawValue::Links`] value. Mirrors the dict the prelude's
+/// `edge(...)` helper writes into `links:`: a target task path, a kind, and an
+/// optional note.
+#[derive(Debug, Clone, PartialEq)]
+pub struct LinkValue {
+    /// Path from the filed task to the target task.
+    pub task: String,
+    /// Link kind, built-in or project-declared.
+    pub kind: String,
+    /// Optional edge note.
+    pub note: Option<String>,
+}
+
 /// A caller-supplied fill value, before coercion to a slot's kind. Mirrors the
 /// JSON scalar/array shapes a CLI front-end produces, keeping this crate free of
 /// any JSON dependency.
@@ -38,6 +51,8 @@ pub enum RawValue {
     Bool(bool),
     /// An array of strings.
     List(Vec<String>),
+    /// A list of typed edges.
+    Links(Vec<LinkValue>),
 }
 
 impl RawValue {
@@ -50,6 +65,7 @@ impl RawValue {
             Self::Float(_) => "float",
             Self::Bool(_) => "bool",
             Self::List(_) => "list",
+            Self::Links(_) => "links",
         }
     }
 }
@@ -119,6 +135,15 @@ impl fmt::Display for FillError {
                 f,
                 "slot {slot:?} expects a list; use --set {slot}+=value (repeatable) or \
                  -f/--values with a JSON/YAML array, got {got}"
+            ),
+            Self::Type {
+                slot,
+                want: SlotKind::Links,
+                got,
+            } => write!(
+                f,
+                "slot {slot:?} expects links; use -f/--values with a list of \
+                 kind, task and note mappings, got {got}"
             ),
             Self::Type { slot, want, got } => {
                 write!(f, "slot {slot:?} expects {}, got {got}", want.as_str())
@@ -269,6 +294,7 @@ fn render(spec: &SlotSpec, value: &RawValue) -> Result<String, FillError> {
         SlotKind::Date => render_date(spec, &coerce_str(spec, value)?),
         SlotKind::List => Ok(render_list(&coerce_list(spec, value)?)),
         SlotKind::MultiChoice => render_multi_choice(spec, value),
+        SlotKind::Links => Ok(render_links(&coerce_links(spec, value)?)),
     }
 }
 
@@ -308,12 +334,35 @@ fn render_date(spec: &SlotSpec, text: &str) -> Result<String, FillError> {
     Ok(format!("on({year}, {month}, {day})"))
 }
 
+fn render_links(items: &[LinkValue]) -> String {
+    let rendered: Vec<String> = items
+        .iter()
+        .map(|link| {
+            let note = link
+                .note
+                .as_deref()
+                .map_or_else(|| "none".to_owned(), quote);
+            format!(
+                "(task: {}, kind: {}, note: {note})",
+                quote(&link.task),
+                quote(&link.kind)
+            )
+        })
+        .collect();
+    render_sequence(&rendered)
+}
+
 fn render_list(items: &[String]) -> String {
+    let rendered: Vec<String> = items.iter().map(|item| quote(item)).collect();
+    render_sequence(&rendered)
+}
+
+/// Join already-rendered elements as a Typst array, with the trailing comma.
+fn render_sequence(items: &[String]) -> String {
     if items.is_empty() {
         return "()".to_owned();
     }
-    let rendered: Vec<String> = items.iter().map(|item| quote(item)).collect();
-    format!("({},)", rendered.join(", "))
+    format!("({},)", items.join(", "))
 }
 
 fn render_float(value: f64) -> String {
@@ -330,7 +379,7 @@ fn coerce_str(spec: &SlotSpec, value: &RawValue) -> Result<String, FillError> {
         RawValue::Int(num) => Ok(num.to_string()),
         RawValue::Float(num) => Ok(render_float(*num)),
         RawValue::Bool(flag) => Ok(flag.to_string()),
-        RawValue::List(_) => Err(type_error(spec, value)),
+        RawValue::List(_) | RawValue::Links(_) => Err(type_error(spec, value)),
     }
 }
 
@@ -362,6 +411,14 @@ fn coerce_bool(spec: &SlotSpec, value: &RawValue) -> Result<bool, FillError> {
 fn coerce_list(spec: &SlotSpec, value: &RawValue) -> Result<Vec<String>, FillError> {
     match value {
         RawValue::List(items) => Ok(items.clone()),
+        _ => Err(type_error(spec, value)),
+    }
+}
+
+fn coerce_links(spec: &SlotSpec, value: &RawValue) -> Result<Vec<LinkValue>, FillError> {
+    match value {
+        RawValue::Links(items) => Ok(items.clone()),
+        RawValue::List(items) if items.is_empty() => Ok(Vec::new()),
         _ => Err(type_error(spec, value)),
     }
 }
