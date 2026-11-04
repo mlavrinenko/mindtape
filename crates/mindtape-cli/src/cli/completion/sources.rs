@@ -124,6 +124,14 @@ pub(super) fn templates() -> Vec<CompletionCandidate> {
     })
 }
 
+/// The fixers `mt fix` can run, exactly the set `--list` prints.
+pub(super) fn fixers() -> Vec<CompletionCandidate> {
+    crate::cmd::fix::Fixer::ALL
+        .iter()
+        .map(|fixer| CompletionCandidate::new(fixer.name()).help(help(fixer.about())))
+        .collect()
+}
+
 /// Edge kinds this project accepts, exactly the set `mt link` validates against.
 pub(super) fn link_kinds() -> Vec<CompletionCandidate> {
     from_project(|project| {

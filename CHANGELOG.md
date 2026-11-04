@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt fix` rewrites an unsupported prelude import.** The
+  `prelude-import` fixer parses each Typst file and changes only the version
+  bytes of an older `@local/mindtape` import this binary no longer reads, so
+  every other byte stays as authored. It scans task roots and project template
+  dirs by default and the whole tree with `--all`, skips symlinked directories,
+  and reports a symlinked file with an edit instead of writing through it.
+  `--dry-run` prints every edit, `--list` names the fixers, and `--check`
+  exits 1 while an unsupported pin remains, for CI. A supported old pin is
+  kept, a newer one is refused with an upgrade hint, and a project-local pin is
+  never edited. Any refusal aborts the run before a file changes, and a
+  successful write ends with `mt check`.
 - **`mt` declares and ships the prelude versions it supports.**
   `PRELUDE_SUPPORTED` lists `0.2.0` and `0.3.0`, and each ships as an
   immutable snapshot under `crates/mindtape/src/loader/preludes/<version>/`,

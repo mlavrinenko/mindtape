@@ -373,7 +373,7 @@ fn an_unsupported_prelude_is_one_error_however_many_tasks_fail() {
     );
     crate::support::assert_unsupported_prelude(&stderr, "0.1.0");
     assert!(
-        stderr.contains("rewrite the import to @local/mindtape:0.3.0"),
+        stderr.contains("run mt fix to rewrite it to @local/mindtape:0.3.0"),
         "{stderr}"
     );
 }

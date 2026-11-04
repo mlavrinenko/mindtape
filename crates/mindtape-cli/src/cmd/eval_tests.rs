@@ -73,7 +73,7 @@ fn eval_refuses_an_unsupported_prelude_with_the_supported_set() {
     assert_unsupported_prelude(
         &text,
         "0.1.0",
-        "rewrite the import to @local/mindtape:0.3.0",
+        "run mt fix to rewrite it to @local/mindtape:0.3.0",
     );
 }
 

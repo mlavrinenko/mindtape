@@ -127,20 +127,29 @@ fn walk(cmd: &clap::Command, path: &str, visit: &mut impl FnMut(&str, &clap::Arg
 /// placeholder return leaves the reflection wrong for every argument.
 #[test]
 fn source_labels_are_the_reflected_names() {
-    assert_eq!(Source::Stems.label(), Some("stems"));
-    assert_eq!(Source::Statuses.label(), Some("statuses"));
-    assert_eq!(Source::Views.label(), Some("views"));
-    assert_eq!(Source::ViewRefs.label(), Some("view-refs"));
-    assert_eq!(Source::Dicts.label(), Some("dicts"));
-    assert_eq!(Source::Templates.label(), Some("templates"));
-    assert_eq!(Source::LinkKinds.label(), Some("link-kinds"));
-    assert_eq!(Source::PackSources.label(), Some("pack-sources"));
-    assert_eq!(Source::Presets.label(), Some("presets"));
-    assert_eq!(Source::Assignment.label(), Some("assignment"));
-    assert_eq!(Source::TagToken.label(), Some("tag-token"));
-    assert_eq!(Source::FilePath.label(), Some("file-path"));
-    assert_eq!(Source::DirPath.label(), Some("dir-path"));
-    assert_eq!(Source::None("no project value fits").label(), None);
+    // jscpd:ignore-start
+    // A table of (source, label) rows: rows of one shape are the data.
+    let expected = [
+        (Source::Stems, Some("stems")),
+        (Source::Statuses, Some("statuses")),
+        (Source::Views, Some("views")),
+        (Source::ViewRefs, Some("view-refs")),
+        (Source::Dicts, Some("dicts")),
+        (Source::Templates, Some("templates")),
+        (Source::LinkKinds, Some("link-kinds")),
+        (Source::Fixers, Some("fixers")),
+        (Source::PackSources, Some("pack-sources")),
+        (Source::Presets, Some("presets")),
+        (Source::Assignment, Some("assignment")),
+        (Source::TagToken, Some("tag-token")),
+        (Source::FilePath, Some("file-path")),
+        (Source::DirPath, Some("dir-path")),
+        (Source::None("no project value fits"), None),
+    ];
+    // jscpd:ignore-end
+    for (source, label) in expected {
+        assert_eq!(source.label(), label);
+    }
 }
 
 /// Env marker gating the inner side of the `requested` tests below. The

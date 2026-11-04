@@ -317,3 +317,13 @@ fn packs_update_offers_the_declared_sources_of_a_stale_lock() {
     let candidates = complete(dir.path(), &["mt", "packs", "update", ""]);
     assert!(candidates.contains(&"acme".to_owned()), "{candidates:?}");
 }
+
+/// `mt fix <TAB>` offers the fixers `--list` prints.
+#[test]
+fn fix_offers_the_fixer_names() {
+    let candidates = complete(&example("minimal"), &["mt", "fix", ""]);
+    assert!(
+        candidates.contains(&"prelude-import".to_owned()),
+        "fixers: {candidates:?}"
+    );
+}

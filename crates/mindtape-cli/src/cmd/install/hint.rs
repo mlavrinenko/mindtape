@@ -111,7 +111,7 @@ pub(crate) fn unsupported_prelude_diag(kind: Kind, version: &str, file: &Path) -
 fn prelude_version_hint(version: &str) -> Hint {
     if mindtape::prelude_is_older(version) {
         return Hint::naming(
-            "rewrite the import to",
+            "run mt fix to rewrite it to",
             format!("@local/mindtape:{}", mindtape::PRELUDE_VERSION),
         );
     }

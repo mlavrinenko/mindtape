@@ -35,6 +35,7 @@ pub mod loader;
 pub mod model;
 pub mod path_text;
 pub mod plural;
+pub mod prelude_import;
 pub mod problem;
 pub mod recur;
 pub mod rules;

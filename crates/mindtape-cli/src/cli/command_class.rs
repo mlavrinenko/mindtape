@@ -65,6 +65,7 @@ pub const CLASSIFICATION: &[(&str, Class)] = &[
     ("at", Class::Read(Reach::One)),
     ("board", Class::Read(Reach::Set)),
     ("check", Class::Read(Reach::Set)),
+    ("fix", Class::Write),
     ("allow", Class::Write),
     ("config show", Class::Read(Reach::One)),
     ("config schema", Class::Read(Reach::One)),

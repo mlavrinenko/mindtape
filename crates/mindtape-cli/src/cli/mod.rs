@@ -24,9 +24,9 @@ use crate::render::color::ColorChoice;
 use crate::render::link::HyperlinkChoice;
 use crate::{
     cmd::add, cmd::allow, cmd::at, cmd::board, cmd::check, cmd::config as config_cmd, cmd::dicts,
-    cmd::eval, cmd::find, cmd::flip, cmd::go, cmd::graph, cmd::import, cmd::init, cmd::install,
-    cmd::link as link_cmd, cmd::ls, cmd::mv, cmd::packs, cmd::preset as preset_cmd, cmd::recur,
-    cmd::review, cmd::rm, cmd::rules, cmd::set, cmd::tags, cmd::views,
+    cmd::eval, cmd::find, cmd::fix, cmd::flip, cmd::go, cmd::graph, cmd::import, cmd::init,
+    cmd::install, cmd::link as link_cmd, cmd::ls, cmd::mv, cmd::packs, cmd::preset as preset_cmd,
+    cmd::recur, cmd::review, cmd::rm, cmd::rules, cmd::set, cmd::tags, cmd::views,
 };
 
 /// Mindtape keeps your tasks as Typst files and checks them against your rules.
@@ -106,6 +106,13 @@ enum Command {
     ///
     /// A template is checked by the task it would file.
     Check(check::CheckArgs),
+    /// Rewrite the files an mt upgrade left behind.
+    ///
+    /// `prelude-import` rewrites an older `@local/mindtape` import this mt no
+    /// longer reads to the current version, changing only the version bytes.
+    /// `--dry-run` prints every edit, `--check` exits 1 while an unsupported
+    /// import remains, and `--all` scans the whole project tree.
+    Fix(fix::FixArgs),
     /// Change one field of a task: `mt set <task> <field>=<value>`.
     #[command(long_about = set::long_about())]
     Set(set::SetArgs),
@@ -229,43 +236,59 @@ impl Cli {
     /// # Errors
     /// Propagates the command's failure.
     pub fn run(self) -> Result<()> {
-        // jscpd:ignore-start
-        // One arm per command, `Command::X(args) => x::run(&args)`: the match is the
-        // dispatch table, and a helper would only hide which module runs which verb.
-        match self.command {
-            Command::Add(args) => add::run(&args),
-            Command::Import(args) => import::run(&args),
-            Command::Ls(args) => ls::run(&args),
-            Command::Find(args) => find::run(&args),
-            Command::Graph(args) => graph::run(&args),
-            Command::Views(args) => views::run(&args),
-            Command::Dicts(args) => dicts::run(&args),
-            Command::At(args) => at::run(&args),
-            Command::Board(args) => board::run(&args),
-            Command::Check(args) => check::run(&args),
-            Command::Allow(args) => allow::run(&args),
-            Command::Config(args) => config_cmd::run(&args),
-            Command::Rules(args) => rules::run(&args),
-            Command::Tags(args) => tags::run(&args),
-            Command::Preset(args) => preset_cmd::run(&args),
-            Command::Init(args) => init::run(&args),
-            Command::Install(args) => install::run(&args),
-            Command::Packs(args) => packs::run(&args),
-            Command::Eval(args) => eval::run(&args),
-            Command::Go(args) => go::run(&args),
-            Command::Rm(args) => rm::run(&args),
-            Command::Mv(args) => mv::run(&args),
-            Command::Set(args) => set::run(&args),
-            Command::Review(args) => review::run(&args),
-            Command::Flip(args) => flip::run(&args),
-            Command::Recur(args) => recur::run(&args),
-            Command::Link(args) => link_cmd::run(&args),
-            Command::CliDump(args) => tree_json::run(&args),
-            Command::Status(argv) => flip::run_external(&argv),
-        }
-        // jscpd:ignore-end
+        dispatch(self.command)
     }
 }
+
+// jscpd:ignore-start
+// One arm per command, `Command::X(args) => x::run(&args)`: the matches are the
+// dispatch table, and a helper would only hide which module runs which verb.
+/// Run one command. The table is split in two so each half stays under the
+/// cognitive-complexity limit as commands are added.
+fn dispatch(command: Command) -> Result<()> {
+    match command {
+        Command::Add(args) => add::run(&args),
+        Command::Import(args) => import::run(&args),
+        Command::Ls(args) => ls::run(&args),
+        Command::Find(args) => find::run(&args),
+        Command::Graph(args) => graph::run(&args),
+        Command::Views(args) => views::run(&args),
+        Command::Dicts(args) => dicts::run(&args),
+        Command::At(args) => at::run(&args),
+        Command::Board(args) => board::run(&args),
+        Command::Check(args) => check::run(&args),
+        Command::Fix(args) => fix::run(&args),
+        Command::Allow(args) => allow::run(&args),
+        Command::Config(args) => config_cmd::run(&args),
+        Command::Rules(args) => rules::run(&args),
+        Command::Tags(args) => tags::run(&args),
+        command => dispatch_more(command),
+    }
+}
+
+/// The second half of the dispatch table. [`dispatch`] sends every command
+/// this match does not list here, so the trailing arm is never reached.
+fn dispatch_more(command: Command) -> Result<()> {
+    match command {
+        Command::Preset(args) => preset_cmd::run(&args),
+        Command::Init(args) => init::run(&args),
+        Command::Install(args) => install::run(&args),
+        Command::Packs(args) => packs::run(&args),
+        Command::Eval(args) => eval::run(&args),
+        Command::Go(args) => go::run(&args),
+        Command::Rm(args) => rm::run(&args),
+        Command::Mv(args) => mv::run(&args),
+        Command::Set(args) => set::run(&args),
+        Command::Review(args) => review::run(&args),
+        Command::Flip(args) => flip::run(&args),
+        Command::Recur(args) => recur::run(&args),
+        Command::Link(args) => link_cmd::run(&args),
+        Command::CliDump(args) => tree_json::run(&args),
+        Command::Status(argv) => flip::run_external(&argv),
+        _ => Ok(()),
+    }
+}
+// jscpd:ignore-end
 
 /// Built-in subcommand names, for detecting legend values that shadow them.
 pub fn builtin_subcommand_names() -> Vec<String> {

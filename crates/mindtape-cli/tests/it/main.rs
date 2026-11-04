@@ -50,6 +50,7 @@ mod eval_e2e;
 mod eval_fixture_e2e;
 mod find_e2e;
 mod first_run_errors;
+mod fix_e2e;
 mod flip_chain_e2e;
 mod flip_e2e;
 mod flip_hooks_e2e;

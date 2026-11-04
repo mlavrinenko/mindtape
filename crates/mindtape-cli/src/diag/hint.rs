@@ -64,7 +64,7 @@ impl Hint {
     }
 
     /// A next step in words and the bare name it ends in:
-    /// `hint: rewrite the import to @local/mindtape:0.3.0`.
+    /// `hint: run mt fix to rewrite it to @local/mindtape:0.3.0`.
     pub(crate) fn naming(text: &'static str, name: impl Into<String>) -> Self {
         Self(Shape::Naming(text, name.into()))
     }

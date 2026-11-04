@@ -11,6 +11,7 @@
 //! - `graph/`, `import/`, `install/`, `link/`, `ls/`, `packs/`, `recur/`,
 //!   `rm/` — the commands split over helper files, or with subcommands of
 //!   their own.
+//! - `fix/` — `mt fix`, which rewrites an unsupported prelude import.
 //! - `allow.rs`, `config.rs`, `dicts.rs`, `eval.rs`, `find.rs`, `go.rs`, `mv.rs`,
 //!   `preset.rs`, `review.rs`, `rules.rs`, `set.rs`, `tags.rs`, `views.rs`,
 //!   `at.rs`, `board.rs` —
@@ -25,6 +26,7 @@ pub(crate) mod config;
 pub(crate) mod dicts;
 pub(crate) mod eval;
 pub(crate) mod find;
+pub(crate) mod fix;
 pub(crate) mod flip;
 pub(crate) mod go;
 pub(crate) mod graph;

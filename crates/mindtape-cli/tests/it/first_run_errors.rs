@@ -236,7 +236,7 @@ fn check_names_the_supported_set_once_for_a_template_on_an_old_prelude() {
     );
     support::assert_unsupported_prelude(&stderr, "0.1.0");
     assert!(
-        stderr.contains("rewrite the import to @local/mindtape:0.3.0"),
+        stderr.contains("run mt fix to rewrite it to @local/mindtape:0.3.0"),
         "{stderr}"
     );
 }

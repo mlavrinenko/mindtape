@@ -18,9 +18,10 @@
 //! new completable argument therefore fails a gate until it says where its
 //! values come from.
 //!
-//! An argument whose values are a `ValueEnum` is deliberately absent: clap
-//! already completes a `possible_values` list from the parser itself, and
-//! restating one here would be the committed-script mistake in miniature.
+//! An argument whose values are a `ValueEnum` is deliberately absent, because
+//! clap already completes a `possible_values` list from the parser itself. The
+//! exception is `mt fix`'s fixer, whose candidates need a help line, so
+//! [`Source::Fixers`] takes over a list clap would otherwise complete alone.
 //!
 //! ## Failing quietly
 //!
@@ -50,8 +51,8 @@ use clap_complete::engine::{ArgValueCandidates, ArgValueCompleter};
 
 use self::sources::dict_names;
 use self::sources::{
-    assignment, link_kinds, pack_sources, presets_in, statuses, stems, tag_token, templates,
-    view_names,
+    assignment, fixers, link_kinds, pack_sources, presets_in, statuses, stems, tag_token,
+    templates, view_names,
 };
 use crate::cli::Cli;
 use crate::util;
@@ -76,6 +77,8 @@ pub enum Source {
     Presets,
     /// Edge kinds: the six built-ins plus `[[tasks.links.kinds]]`.
     LinkKinds,
+    /// The fixers `mt fix` can run.
+    Fixers,
     /// Pack source names: `[pack-sources]`.
     PackSources,
     /// `mt set`'s `<field>=<value>`: the fields it writes, then this project's
@@ -137,6 +140,7 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
         Source::None("`text` or `json`, a literal of this flag's own and not a project value"),
     ),
     ("check", "commit_msg", Source::FilePath),
+    ("fix", "fixer", Source::Fixers),
     (
         "check",
         "commits",
@@ -226,8 +230,6 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
         Source::None("the new preset's name, which no existing value predicts"),
     ),
 ];
-// jscpd:ignore-end
-
 /// The source declared for `(path, id)`, or `None` when the table does not
 /// name the argument at all — the state `just docs::facts` fails on.
 #[must_use]
@@ -238,6 +240,7 @@ pub fn lookup(path: &str, id: &str) -> Option<Source> {
         .map(|(_, _, source)| *source)
 }
 
+// One row per source: the two matches are dispatch tables, not copied logic.
 impl Source {
     /// Hang this source's completer on `arg`.
     fn attach(self, arg: Arg) -> Arg {
@@ -249,6 +252,7 @@ impl Source {
             Self::Dicts => arg.add(ArgValueCandidates::new(dict_names)),
             Self::Templates => arg.add(ArgValueCandidates::new(templates)),
             Self::LinkKinds => arg.add(ArgValueCandidates::new(link_kinds)),
+            Self::Fixers => arg.add(ArgValueCandidates::new(fixers)),
             Self::PackSources => arg.add(ArgValueCandidates::new(pack_sources)),
             Self::Presets => arg.add(ArgValueCandidates::new(|| {
                 presets_in(crate::cmd::init::preset::user_preset_dir().as_deref())
@@ -273,6 +277,7 @@ impl Source {
             Self::Dicts => "dicts",
             Self::Templates => "templates",
             Self::LinkKinds => "link-kinds",
+            Self::Fixers => "fixers",
             Self::PackSources => "pack-sources",
             Self::Presets => "presets",
             Self::Assignment => "assignment",
@@ -283,6 +288,7 @@ impl Source {
         })
     }
 }
+// jscpd:ignore-end
 
 /// Answer a completion request and exit, or return and let `main` carry on.
 ///
