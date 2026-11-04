@@ -106,8 +106,7 @@
 )
 
 This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
-#raw(slot("carrier", prompt: "the file that would carry the fix", example: "Justfile")).
+left in a closing report no one rereads.
 
 == TO-BE
 

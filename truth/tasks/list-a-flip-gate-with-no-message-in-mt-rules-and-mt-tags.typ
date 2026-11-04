@@ -10,7 +10,7 @@
     ease: 8,
   ),
   difficulty: 1,
-  estimate: (src-files: 2),
+  estimate: (src-files: 1),
   tags: ("found", "cli", "stateless"),
   x-goals: (
     product: verdicts(
@@ -60,8 +60,7 @@ active_rules.rs:192:     continue;
 
 
 This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
-#raw("crates/mindtape/src/config/active_rules.rs").
+left in a closing report no one rereads.
 
 == TO-BE
 
