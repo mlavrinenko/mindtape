@@ -2,7 +2,7 @@
 #import "../lib.typ": *
 
 #show: task.with(
-  title: "Decide on one command for the project's policy listings",
+  title: "Decide on one command for the project's listings",
   kind: "decision",
   priority: ice(
     impact: 5,
@@ -47,14 +47,15 @@
 
 == TO-BE
 
-- 🟢 `mt explain` is the name. It is a verb, collides with no existing command, and covers policy listings rather than named-set lookups; it absorbs `mt rules` and `mt tags`, and `mt explain rules` keeps the derived-fields block.
-- 🟢 A bare `mt explain` prints both listings under one header, and `--json` keeps each listing's current keys.
-- 🟢 `--for add|flip|commit` keeps filtering rules and tags; `mt explain tags` keeps its reader line.
-- 🟢 `mt views` and `mt dicts` stay separate named-set lookups, so the command covers policy, not every listing.
+- 🟢 `mt explain` is the name. It is a verb, collides with no existing command, and is the umbrella for the project's listings.
+- 🟢 It absorbs `mt rules`, `mt tags`, `mt views` and `mt dicts`; `mt explain rules` keeps the derived-fields block.
+- 🟢 A bare `mt explain` may show an aggregate overview, and a subcommand reaches one listing. The exact split is a follow-up.
+- 🟢 `--json` keeps each listing's current keys, and `--for add|flip|commit` keeps filtering rules and tags.
 
 ```text
 $ mt explain rules
-error  judgment-stays-small  split the decision from the mechanical fan-out
+$ mt explain views
+$ mt explain dicts
 ```
 
 
@@ -67,18 +68,17 @@ error  judgment-stays-small  split the decision from the mechanical fan-out
 
 - `mt info`: too generic, and it names the input rather than the answer.
 - `mt describe`: clear, but longer to type; `explain` is the same call in one word.
-- `mt policy`: covers rules and tags, but not the derived fields a rule reads.
+- `mt policy`: covers rules and tags, but not views and dicts.
 - `mt show`: collides with `mt config show`.
-- Absorb `mt views` and `mt dicts` too: they are named-set lookups with names, not policy.
-- Keep two commands: the friction is remembering which one holds the answer.
+- Keep four commands: the friction is remembering which one holds the answer.
 
 
 == Out of scope
 
-- The implementation; a follow-up `fold-mt-rules-and-mt-tags-into-mt-explain.typ` moves them and keeps the JSON shapes.
+- The implementation, including the exact subcommand split and the bare overview; the follow-up `fold-the-project-listings-into-mt-explain.typ` settles them and keeps the JSON shapes.
 - A richer entry with origin and readers; `mt config show --origin` stays the source for origins.
 
 
 == Dogfood
 
-After this lands, this repo runs `mt explain rules` and `mt explain tags` instead of two commands, and its docs point at one policy surface.
+After this lands, this repo runs `mt explain rules`, `mt tags`, `mt views` and `mt dicts` under one command, and its docs point at one listing surface.
