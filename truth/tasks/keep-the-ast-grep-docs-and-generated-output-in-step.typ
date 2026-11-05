@@ -32,7 +32,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 5),
+  status: done(2026, 11, 5),
   links: parent("add-ast-grep-queries-as-a-shared-query-engine.typ")
     + depends-on("expose-ast-grep-through-the-collector-consumer.typ"),
 )

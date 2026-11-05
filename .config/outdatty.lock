@@ -277,7 +277,7 @@ groups:
       skills/mindtape/references/blocking.md: fbbff6964dde2f9f7299fc0e9ed33d3e8d1099b90e9456472782cc5e6bdb24c4
       skills/mindtape/references/hand-editing.md: 5590368d84f407a3a8eeb1fbf85992318fb1c36a8e55caeabe90fe2b4c74d033
       www/content/cli/mv.typ: 7b1e53503cf9ad86e400df8153d6744ac8c7feb810ceff6f29d0ea59ecbe27d9
-      www/content/estimates.typ: ab54b8cdd85ba3aeec9c9ead2d44e40385ce3fc01c2eb4b27d39e95fe0947683
+      www/content/estimates.typ: d460eefed4d40e379588ce6368f05999ed13f3135d1f9e50960d778c4dbd1825
       www/utils/cli-notes.typ: 8cae2ec0d00665b34b57193614b7631f6845b923b2a52d35ca0678a377f72521
   cli-tags-docs:
     source:

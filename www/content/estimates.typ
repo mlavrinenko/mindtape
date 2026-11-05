@@ -28,7 +28,7 @@
 #let task-slices = checked-slices(
   json("../generated/estimates.json"),
   "estimates",
-  ("count",),
+  ("count", "shape"),
 )
 
 #let slices = checked-slices(
@@ -107,12 +107,20 @@ or its alias `rs`. Write the pattern in
 as a raw block so a backslash needs no escape. The optional glob or `@name`
 set narrows the unit's paths, as it does for `grep`.
 
-// docs:hand-typed the estimates fixture carries no shape query
 #raw(
-  "count(1, ast_grep(\"rust\", `parse_task($$$ARGS)`, \"crates/**\"))",
+  render-slices(
+    task-slices,
+    (("shape", "one new call site, plus every file that already calls it"),),
+  ),
   lang: "typ",
   block: true,
 )
+
+The fixture's `src/` holds three `warm(...)` calls across two files, two of
+them in `main.rs`. The unit reads 3: the manual 1, plus the 2 distinct files
+its query matches. `mt eval` shows the breakdown:
+
+#terminal("estimates-shape-eval")
 
 A file counts once however many call sites it holds, so the unit reads the
 number of distinct files. A pattern the grammar refuses, or a language this
