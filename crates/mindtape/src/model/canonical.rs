@@ -68,8 +68,10 @@ use crate::model::{Status, Task};
 use crate::query::Query;
 
 /// Schema version for [`CanonicalTask`]. Bump when the JSON shape changes in
-/// a way that could break `mt import` or an external `jq` consumer.
-pub const SCHEMA_VERSION: u32 = 1;
+/// a way that could break `mt import` or an external `jq` consumer. Version 2
+/// adds the `ast-grep` query tag under `estimate_counts`, which an older
+/// importer's `CanonicalQuery` enum refuses.
+pub const SCHEMA_VERSION: u32 = 2;
 
 /// One task, projected into the canonical JSON schema. See the module doc for
 /// the authored/computed field contract.
