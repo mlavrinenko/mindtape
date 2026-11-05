@@ -151,8 +151,8 @@ impl CollectorQuery {
 }
 
 /// An ast-grep query: `{ ast_grep = { language, pattern, glob? } }`. The
-/// shared engine runs it over the files git lists, so the collector names no
-/// path set of its own.
+/// shared engine runs it over the files of its language that git lists,
+/// narrowed by the optional glob or path set the query names.
 #[derive(Debug, Clone, PartialEq, Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct AstGrepQuery {

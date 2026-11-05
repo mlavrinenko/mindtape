@@ -174,7 +174,7 @@
     },
     "AstGrepQuery": {
       "additionalProperties": false,
-      "description": "An ast-grep query: `{ ast_grep = { language, pattern, glob? } }`. The\nshared engine runs it over the files git lists, so the collector names no\npath set of its own.",
+      "description": "An ast-grep query: `{ ast_grep = { language, pattern, glob? } }`. The\nshared engine runs it over the files of its language that git lists,\nnarrowed by the optional glob or path set the query names.",
       "properties": {
         "ast_grep": {
           "$ref": "#/$defs/AstGrepFields",

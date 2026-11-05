@@ -91,7 +91,10 @@ Two queries build the count:
   optional glob, or `@name` set, narrows it to the paths that admits.
 - `glob(pattern)` matches the files whose path matches `pattern`.
 
-A file several queries match counts once. Queries read the files git lists:
+A file several queries match counts once. When queries overlap, the breakdown
+adds a `distinct across all queries` row counting the files the unit adds, so
+the total reads as the manual part plus that row. Queries read the files git
+lists:
 tracked ones and untracked ones `.gitignore` doesn't hide, with paths relative
 to the repository root, as `changed()` reads them. `mt` matches them itself
 and runs no shell, so the count comes out the same on every machine. A unit

@@ -88,7 +88,7 @@ pub struct ActiveRule {
 pub struct DerivedField {
     /// The field's name, `derived.<name>`.
     pub name: String,
-    /// The query kind, `regex` or `typst`.
+    /// The query kind, `regex`, `typst` or `ast-grep`.
     pub kind: String,
     /// A Typst query's module and function, `module::function`, or an
     /// ast-grep query's language, pattern and optional glob, such as

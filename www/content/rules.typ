@@ -181,9 +181,9 @@ rule bound a file count the way it bounds a Changes list:
 )
 
 The query's optional `glob`, a glob or `@name` path set, narrows the files it
-reads; without one it reads every file git lists. Paths are relative to the
-repository root, as `changed()` reads them, so a nested project prefixes its
-directory, as in `sub/src/**`. A file query needs a git working tree: outside
+reads; without one it reads every file of that language git lists. Paths are
+relative to the repository root, as `changed()` reads them, so a nested project
+prefixes its directory, as in `sub/src/**`. A file query needs a git working tree: outside
 one, `mt check` reports the collector problem, and the error names `git init`
 as the fix. A file counts once however many matches it holds, so the rule
 bounds a file count, not a call-site count.
@@ -194,10 +194,11 @@ the rule reads the value it returns. A failed call is a `Collector` violation
 at `derived.<name>`, so it fails `mt check` like any other breach.
 
 `mt rules` lists the collectors under the rules, each with its origin, kind,
-type and readers; a Typst collector also names its module and function. `--for commit` omits them, since a commit rule cannot read a
-derived field in this version. A rule whose filter names an undeclared
-`derived.<name>` fails config load, so a renamed collector cannot leave a rule
-reading nothing.
+type and readers. A Typst collector names its module and function; an ast-grep
+collector names its language, pattern and optional glob. `--for commit` omits
+them, since a commit rule cannot read a derived field in this version. A rule
+whose filter names an undeclared `derived.<name>` fails config load, so a
+renamed collector cannot leave a rule reading nothing.
 
 = Typst checks
 

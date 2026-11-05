@@ -331,9 +331,10 @@ uses:
 `.rs` files. `pattern` is an
 #link("https://ast-grep.github.io/guide/pattern-syntax.html")[ast-grep pattern],
 and `glob` is optional, a glob or a path-set name that narrows the files the
-query reads; without one it reads every file git lists. Each matching file
-contributes its path once, so a rule reads `count_paths(derived.callers,
-"@source")` over a file count as it does for any path list. Paths are relative
+query reads; without one it reads every file of that language git lists. Each
+matching file contributes its path once, so a rule reads
+`count_paths(derived.callers, "@source")` over a file count as it does for any
+path list. Paths are relative
 to the repository root, as `changed()` reads them, and the walk needs a git
 working tree. Outside one, `mt check` reports the collector problem and names
 `git init` as the fix. A bad pattern, an unknown language, a bad glob or a
@@ -348,7 +349,8 @@ A regex query returns `["string"]` or `["path"]`, and an ast-grep query returns
 Collectors merge by name across layers and packs, exactly as rules do, and
 `disable` drops one by name. Two collectors with the same name in one source
 are a config error. `mt rules` lists each one with its origin, kind, type and
-the rules that read it; a Typst collector also names its module and function.
+the rules that read it. A Typst collector names its module and function; an
+ast-grep collector names its language, pattern and optional glob.
 
 `mindtape:budget` ships a `changes` collector over a task's Changes section,
 and its rules read `count_paths(derived.changes, "@source")`. A project that
