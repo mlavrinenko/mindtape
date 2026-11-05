@@ -42,6 +42,7 @@ pub fn run(args: &EvalArgs) -> Result<()> {
         print_table(&task, &hashes_for(&file, &task, project), origin)?;
         // The table already ends in a blank line.
         print!("{}", breakdown(&task));
+        print!("{}", shape_errors(&task));
         for problem in &task.collector_problems {
             println!("{problem}");
         }
@@ -235,6 +236,16 @@ fn breakdown(task: &Task) -> String {
         }
     }
     out
+}
+
+/// Each shape error as `mt check` reports it, one line apiece, so a query the
+/// projection dropped cannot pass for a manual count. Empty when there is
+/// none.
+fn shape_errors(task: &Task) -> String {
+    task.shape_errors
+        .iter()
+        .map(|error| format!("error: {}: {}\n", error.field, error.message))
+        .collect()
 }
 
 /// Print one harvested task as a bare JSON object — no envelope, since there

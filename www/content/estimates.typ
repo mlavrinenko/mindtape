@@ -127,7 +127,8 @@ A file counts once however many call sites it holds, so the unit reads the
 number of distinct files. A pattern the grammar refuses, or a language this
 build does not carry, leaves the unit unresolved. `mt check` reports why and
 `mt eval` prints the problem instead of a number. A glob that isn't a string
-is a shape error at `estimate.<unit>.queries[i]`, which `mt check` reports. An
+is a shape error at `estimate.<unit>.queries[i]`, which `mt check` and
+`mt eval` report. An
 export keeps the query under the `ast-grep` JSON tag, so `mt import` writes the
 same call back.
 

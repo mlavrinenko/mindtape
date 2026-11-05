@@ -290,6 +290,24 @@ fn a_plain_estimate_prints_no_breakdown() {
 }
 
 #[test]
+fn a_shape_error_prints_its_field_and_message() {
+    let mut task = counted();
+    task.shape_errors.push(mindtape::ShapeError {
+        field: "estimate.src-files.queries[0]".to_owned(),
+        message: "glob must be a string".to_owned(),
+    });
+    assert_eq!(
+        super::shape_errors(&task),
+        "error: estimate.src-files.queries[0]: glob must be a string\n"
+    );
+}
+
+#[test]
+fn no_shape_error_prints_nothing() {
+    assert_eq!(super::shape_errors(&counted()), "");
+}
+
+#[test]
 fn the_json_breakdown_sits_beside_the_resolved_number() {
     let json = crate::render::output::task_to_json(&counted(), &mindtape::Config::default());
     assert_eq!(json["estimate"]["src-files"], serde_json::json!(5.0));
