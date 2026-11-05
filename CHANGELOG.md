@@ -42,6 +42,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   kept, a newer one is refused with an upgrade hint, and a project-local pin is
   never edited. Any refusal aborts the run before a file changes, and a
   successful write ends with `mt check`.
+- **An estimate counts files by their Rust shape.** `ast_grep(language, pattern,
+  glob?)` compiles through the shared query engine with the Rust grammar, so
+  only `rust` and its alias `rs` are languages in this wave. A file once,
+  however many call sites it holds, is the count, and the unit's path set plus
+  the optional glob bound the files. A bad pattern or an unknown language is a
+  problem, never a panic, and `mt eval` prints the query with its file count.
 - **The prelude offers `ast_grep(...)` and ships as `0.4.0`.** The helper
   takes a language, a pattern and an optional glob, keeps the dict tag
   `ast-grep`, and renders a card as `ast-grep rust <pattern> in <glob>`. The

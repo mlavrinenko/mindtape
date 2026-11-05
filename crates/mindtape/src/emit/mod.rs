@@ -196,28 +196,44 @@ fn emit_estimate(task: &Task) -> Option<String> {
     Some(format!("estimate: ({})", parts.join(", ")))
 }
 
-/// `count(n, grep(...), glob(...))`. A regex is a raw block, as an author
-/// writes it, unless it holds a backtick or a line break, or is empty.
+/// `count(n, grep(...), glob(...), ast_grep(...))`. A regex or pattern is a
+/// raw block, as an author writes it, unless it holds a backtick or a line
+/// break, or is empty.
 fn emit_count(count: &CountEstimate) -> String {
     let mut args = vec![format_num(count.manual)];
     for query in &count.queries {
         args.push(match query {
-            Query::Grep { regex, glob } => {
-                let raw = !regex.is_empty() && !regex.contains(['`', '\n', '\r']);
-                let regex = if raw {
-                    format!("`{regex}`")
-                } else {
-                    typ_str(regex)
-                };
-                match glob {
-                    Some(glob) => format!("grep({regex}, {})", typ_str(glob)),
-                    None => format!("grep({regex})"),
-                }
-            }
+            Query::Grep { regex, glob } => match glob {
+                Some(glob) => format!("grep({}, {})", raw_block(regex), typ_str(glob)),
+                None => format!("grep({})", raw_block(regex)),
+            },
             Query::Glob { pattern } => format!("glob({})", typ_str(pattern)),
+            Query::AstGrep {
+                language,
+                pattern,
+                glob,
+            } => match glob {
+                Some(glob) => format!(
+                    "ast_grep({}, {}, {})",
+                    typ_str(language),
+                    raw_block(pattern),
+                    typ_str(glob)
+                ),
+                None => format!("ast_grep({}, {})", typ_str(language), raw_block(pattern)),
+            },
         });
     }
     format!("count({})", args.join(", "))
+}
+
+/// A regex or ast-grep pattern as an author writes it: a raw block unless it
+/// holds a backtick or a line break, or is empty.
+fn raw_block(pattern: &str) -> String {
+    if !pattern.is_empty() && !pattern.contains(['`', '\n', '\r']) {
+        format!("`{pattern}`")
+    } else {
+        typ_str(pattern)
+    }
 }
 
 /// `recur: every(...)` for a period rule, `recur: rrule(...)` for the escape

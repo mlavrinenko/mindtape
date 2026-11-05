@@ -97,7 +97,7 @@ fn parse_count(value: &HVal, at: &str, errors: &mut Vec<ShapeError>) -> Option<C
             Some(query) => queries.push(query),
             None => errors.push(shape_message(
                 &format!("{at}.queries[{index}]"),
-                "expected grep(...) or glob(...)",
+                "expected grep(...), glob(...) or ast_grep(...)",
             )),
         }
     }

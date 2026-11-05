@@ -347,6 +347,38 @@ fn emits_unnamed_framework_with_inputs_via_the_generic_escape_hatch() {
     );
 }
 
+/// An ast-grep query keeps its language, raw-block pattern and optional glob.
+#[test]
+fn emits_an_ast_grep_query() {
+    use crate::estimate_queries::CountEstimate;
+    use crate::query::Query;
+    let count = CountEstimate {
+        manual: 1.0,
+        queries: vec![
+            Query::AstGrep {
+                language: "rust".to_owned(),
+                pattern: "parse_task($$$ARGS)".to_owned(),
+                glob: Some("crates/**".to_owned()),
+            },
+            Query::AstGrep {
+                language: "rs".to_owned(),
+                pattern: "a`b".to_owned(),
+                glob: None,
+            },
+        ],
+        matches: Vec::new(),
+        problem: None,
+    };
+    let mut task = bare_task("grep-shaped");
+    task.estimate_counts.insert("files".to_owned(), count);
+    let source = emit_task(&task);
+    assert!(
+        source.contains("ast_grep(\"rust\", `parse_task($$$ARGS)`, \"crates/**\")"),
+        "{source}"
+    );
+    assert!(source.contains("ast_grep(\"rs\", \"a`b\")"), "{source}");
+}
+
 #[test]
 fn emits_deterministic_field_order() {
     let mut task = bare_task("deterministic");

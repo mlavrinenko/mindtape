@@ -253,6 +253,20 @@ pub enum CanonicalQuery {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         files: Option<usize>,
     },
+    /// `ast_grep(language, pattern, glob)`.
+    #[serde(rename = "ast-grep")]
+    AstGrep {
+        /// The language name, `rust` or its alias `rs`.
+        language: String,
+        /// The pattern, in ast-grep syntax.
+        pattern: String,
+        /// The optional glob or `@name` set.
+        #[serde(default)]
+        glob: Option<String>,
+        /// Files matched (read-only).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        files: Option<usize>,
+    },
 }
 
 impl CanonicalCount {
@@ -268,6 +282,16 @@ impl CanonicalCount {
                 match query.clone() {
                     Query::Grep { regex, glob } => CanonicalQuery::Grep { regex, glob, files },
                     Query::Glob { pattern } => CanonicalQuery::Glob { pattern, files },
+                    Query::AstGrep {
+                        language,
+                        pattern,
+                        glob,
+                    } => CanonicalQuery::AstGrep {
+                        language,
+                        pattern,
+                        glob,
+                        files,
+                    },
                 }
             })
             .collect();
@@ -287,6 +311,16 @@ impl CanonicalCount {
             .map(|query| match query.clone() {
                 CanonicalQuery::Grep { regex, glob, .. } => Query::Grep { regex, glob },
                 CanonicalQuery::Glob { pattern, .. } => Query::Glob { pattern },
+                CanonicalQuery::AstGrep {
+                    language,
+                    pattern,
+                    glob,
+                    ..
+                } => Query::AstGrep {
+                    language,
+                    pattern,
+                    glob,
+                },
             })
             .collect();
         CountEstimate {

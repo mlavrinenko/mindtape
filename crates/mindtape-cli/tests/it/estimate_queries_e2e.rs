@@ -183,3 +183,76 @@ fn mt_ls_json_and_mt_import_give_back_the_count() {
     );
     assert_eq!(resolved(root), serde_json::json!(5.0));
 }
+
+/// A git working copy whose files call `parse_task`: `src/a.rs` twice,
+/// `src/b.rs` once, `src/c.rs` once, and `src/gen/d.rs` once outside
+/// `@source`.
+fn ast_grep_fixture(estimate: &str) -> tempfile::TempDir {
+    let dir = support::scaffold_project(&config("src-files = \"@source\"", ""));
+    let root = dir.path();
+    git_init(root);
+    write_file(root, "tasks/rename.typ", task(estimate));
+    write_file(
+        root,
+        "src/a.rs",
+        "fn a() { parse_task(1); parse_task(2); }\n",
+    );
+    write_file(root, "src/b.rs", "fn b() { parse_task(3); }\n");
+    write_file(root, "src/c.rs", "fn c() { parse_task(4); }\n");
+    write_file(root, "src/gen/d.rs", "fn d() { parse_task(5); }\n");
+    dir
+}
+
+#[test]
+fn an_ast_grep_count_reads_real_call_sites_once_per_file() {
+    let dir = ast_grep_fixture("count(1, ast_grep(\"rust\", \"parse_task($$$ARGS)\", \"src/**\"))");
+    assert_eq!(
+        support::at(
+            &support::task_json(dir.path(), "rename"),
+            "/estimate/src-files"
+        ),
+        &serde_json::json!(4.0)
+    );
+    let (ok, json) = support::run_text(dir.path(), &["eval", "rename", "--json"]);
+    assert!(ok, "{json}");
+    let json: serde_json::Value = serde_json::from_str(&json).unwrap();
+    assert_eq!(
+        json["estimate_counts"]["src-files"]["queries"][0]["files"],
+        serde_json::json!(3)
+    );
+}
+
+/// Assert the estimate `estimate` fails `mt check` with `message`.
+fn assert_ast_grep_problem(estimate: &str, message: &str) {
+    let dir = ast_grep_fixture(estimate);
+    support::assert_check_fails(dir.path(), message);
+}
+
+#[test]
+fn a_bad_ast_grep_pattern_is_a_violation() {
+    assert_ast_grep_problem(
+        "count(1, ast_grep(\"rust\", \"fn (\"))",
+        "estimate.src-files: ast-grep rust `fn (` isn't a pattern: ",
+    );
+}
+
+#[test]
+fn an_unknown_ast_grep_language_names_the_supported_set() {
+    assert_ast_grep_problem(
+        "count(1, ast_grep(\"python\", \"x = 1\"))",
+        "estimate.src-files: ast-grep language `python` isn't supported; supported: rust (alias rs)",
+    );
+}
+
+#[test]
+fn mt_eval_shows_the_ast_grep_breakdown() {
+    let dir = ast_grep_fixture("count(1, ast_grep(\"rust\", \"parse_task($$$ARGS)\", \"src/**\"))");
+    let (ok, text) = support::run_text(dir.path(), &["eval", "rename"]);
+    assert!(ok, "{text}");
+    assert!(
+        text.contains(
+            "estimate.src-files = 4\n  1        manual\n  3 files  ast-grep rust `parse_task($$$ARGS)` in `src/**`\n"
+        ),
+        "{text}"
+    );
+}
