@@ -100,6 +100,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A file query outside git names the fix.** The shared query engine's
+  "not a git repository" failure now ends with a hint to run `git init` and
+  make the project a working tree, so a collector or an estimate in a fresh
+  project says how to make the file walk work.
 - **`mt tags` reads both spellings of a tag call.** A rule that reads a tag
   through `has(tags, "tag")`, or through `has_tag ("tag")` with a space, now
   lists under that tag as `has_tag("tag")` does. The scan parses the rule's

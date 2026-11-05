@@ -183,8 +183,10 @@ rule bound a file count the way it bounds a Changes list:
 The query's optional `glob`, a glob or `@name` path set, narrows the files it
 reads; without one it reads every file git lists. Paths are relative to the
 repository root, as `changed()` reads them, so a nested project prefixes its
-directory, as in `sub/src/**`. A file counts once however many matches it
-holds, so the rule bounds a file count, not a call-site count.
+directory, as in `sub/src/**`. A file query needs a git working tree: outside
+one, `mt check` reports the collector problem, and the error names `git init`
+as the fix. A file counts once however many matches it holds, so the rule
+bounds a file count, not a call-site count.
 
 A Typst collector is the escape hatch for a structure a regex or a pattern
 cannot read: it calls a project function over the task, or over one field, and

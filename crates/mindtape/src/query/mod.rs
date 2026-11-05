@@ -182,7 +182,14 @@ fn path_from_bytes(bytes: &[u8]) -> PathBuf {
 
 /// Ask git for `root`'s repository root and listed files.
 fn list(root: &Path) -> Result<Tree, String> {
-    let fail = |reason: String| format!("can't list files for a query: {reason}");
+    let fail = |reason: String| {
+        let hint = if reason.contains("not a git repository") {
+            "; run `git init` to make this project a working tree"
+        } else {
+            ""
+        };
+        format!("can't list files for a query: {reason}{hint}")
+    };
     let top = git(root, &["rev-parse", "--show-toplevel"]).map_err(fail)?;
     let listed = git_bytes(
         root,

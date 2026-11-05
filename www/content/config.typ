@@ -334,8 +334,10 @@ and `glob` is optional, a glob or a path-set name that narrows the files the
 query reads; without one it reads every file git lists. Each matching file
 contributes its path once, so a rule reads `count_paths(derived.callers,
 "@source")` over a file count as it does for any path list. Paths are relative
-to the repository root, as `changed()` reads them. A bad pattern, an unknown
-language, a bad glob or a `returns` other than `["path"]` is a config error.
+to the repository root, as `changed()` reads them, and the walk needs a git
+working tree. Outside one, `mt check` reports the collector problem and names
+`git init` as the fix. A bad pattern, an unknown language, a bad glob or a
+`returns` other than `["path"]` is a config error.
 
 `returns` is a type expression. The atoms are `bool`, `int`, `number`,
 `string`, `path` and `date`. Wrap one in a one-element array for a list, as in

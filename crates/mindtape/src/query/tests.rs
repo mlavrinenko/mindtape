@@ -4,7 +4,7 @@ use typst_harvest::HVal;
 
 use super::{Query, parse, path_filter};
 use crate::config::parse_config;
-use crate::test_support::{git_tempdir, write_file};
+use crate::test_support::{git_tempdir, tempdir, write_file};
 
 fn hval(pairs: &[(&str, &str)]) -> HVal {
     HVal::Dict(
@@ -112,6 +112,23 @@ fn matched(files: &[(&str, &[u8])], query: &Query) -> Result<Vec<String>, crate:
             .map(|path| path.to_string_lossy().into_owned())
             .collect()
     })
+}
+
+#[test]
+fn a_file_query_outside_git_says_to_run_git_init() {
+    let dir = tempdir();
+    let config = parse_config("").unwrap();
+    let dicts = config.compiled_dicts();
+    let admitted = path_filter("**", dicts).unwrap();
+    let query = Query::Glob {
+        pattern: "**/*.rs".to_owned(),
+    };
+    let problem = super::matches(dir.path(), "", &query, &admitted, dicts).unwrap_err();
+    assert!(problem.contains("not a git repository"), "{problem}");
+    assert!(
+        problem.ends_with("; run `git init` to make this project a working tree"),
+        "{problem}"
+    );
 }
 
 #[test]
