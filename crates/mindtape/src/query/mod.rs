@@ -19,8 +19,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, PoisonError};
 
-use ast_grep_core::Pattern;
-use ast_grep_language::LanguageExt;
+use ast_grep_core::{Language, Pattern};
+use ast_grep_language::{LanguageExt, SupportLang};
 use typst_harvest::HVal;
 
 use crate::config::dicts::Dicts;
@@ -109,14 +109,14 @@ pub(crate) fn path_filter(glob: &str, dicts: &Dicts) -> Result<PathFilter, Strin
 
 /// Whether `language` names a grammar this build ships, with no file walk.
 pub(crate) fn check_language(language: &str) -> Result<(), String> {
-    rust_language(language).map(|_| ())
+    grammar(language).map(|_| ())
 }
 
 /// Whether `pattern` compiles for `language`, with no file walk: the check a
 /// config makes so a bad pattern is one config error, not one problem per task.
 pub(crate) fn check_pattern(language: &str, pattern: &str) -> Result<(), String> {
-    let rust = rust_language(language)?;
-    compile_pattern(pattern, rust).map(|_| ())
+    let grammar = grammar(language)?;
+    compile_pattern(pattern, grammar).map(|_| ())
 }
 
 /// The files the query matches inside `admitted`, under one process cache key
@@ -195,8 +195,13 @@ enum Compiled {
     Grep(regex::bytes::Regex),
     /// The path alone.
     Paths,
-    /// An ast-grep pattern over Rust source.
-    AstGrep(Pattern),
+    /// An ast-grep grammar and its compiled pattern.
+    AstGrep {
+        /// The grammar whose file extensions a candidate must carry.
+        grammar: SupportLang,
+        /// The compiled pattern, built for `grammar`.
+        pattern: Pattern,
+    },
 }
 
 /// Run `query` over the tree's files that `admitted` lets in.
@@ -235,16 +240,16 @@ fn compile(query: &Query, label: &str) -> Result<Compiled, String> {
         Query::AstGrep {
             language, pattern, ..
         } => {
-            let rust = rust_language(language)?;
-            let compiled =
-                compile_pattern(pattern, rust).map_err(|err| format!("{label} {err}"))?;
-            Ok(Compiled::AstGrep(compiled))
+            let grammar = grammar(language)?;
+            let pattern =
+                compile_pattern(pattern, grammar).map_err(|err| format!("{label} {err}"))?;
+            Ok(Compiled::AstGrep { grammar, pattern })
         }
     }
 }
 
 /// Compile an ast-grep `pattern` for one grammar, or say why it doesn't.
-fn compile_pattern(pattern: &str, language: ast_grep_language::Rust) -> Result<Pattern, String> {
+fn compile_pattern(pattern: &str, language: SupportLang) -> Result<Pattern, String> {
     let compiled = Pattern::try_new(pattern, language)
         .map_err(|err| format!("isn't a pattern: {}", last_line(&err.to_string())))?;
     if compiled.has_error() {
@@ -254,9 +259,9 @@ fn compile_pattern(pattern: &str, language: ast_grep_language::Rust) -> Result<P
 }
 
 /// The one grammar this wave ships, named as a task may write it.
-fn rust_language(language: &str) -> Result<ast_grep_language::Rust, String> {
+fn grammar(language: &str) -> Result<SupportLang, String> {
     match language {
-        "rust" | "rs" => Ok(ast_grep_language::Rust),
+        "rust" | "rs" => Ok(SupportLang::Rust),
         other => Err(format!(
             "ast-grep language `{other}` isn't supported; supported: rust (alias rs)"
         )),
@@ -270,13 +275,13 @@ fn matches_file(tree: &Tree, path: &str, compiled: &Compiled) -> bool {
     match compiled {
         Compiled::Grep(regex) => std::fs::read(&file).is_ok_and(|bytes| regex.is_match(&bytes)),
         Compiled::Paths => file.is_file(),
-        Compiled::AstGrep(pattern) => std::fs::read_to_string(&file).is_ok_and(|source| {
-            ast_grep_language::Rust
-                .ast_grep(source)
-                .root()
-                .find(pattern)
-                .is_some()
-        }),
+        Compiled::AstGrep { grammar, pattern } => {
+            if SupportLang::from_path(Path::new(path)) != Some(*grammar) {
+                return false;
+            }
+            std::fs::read_to_string(&file)
+                .is_ok_and(|source| grammar.ast_grep(source).root().find(pattern).is_some())
+        }
     }
 }
 

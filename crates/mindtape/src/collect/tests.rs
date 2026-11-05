@@ -264,9 +264,38 @@ fn ast_project(config: &str, files: &[(&str, &str)]) -> (tempfile::TempDir, Conf
     (dir, config)
 }
 
+/// The one task `config` annotates over a git project holding `files`.
+fn collected(config: &str, files: &[(&str, &str)]) -> Task {
+    let (_dir, config) = ast_project(config, files);
+    let mut tasks = vec![task("")];
+    crate::collect::annotate(&mut tasks, &config);
+    let task = tasks.pop().unwrap();
+    assert!(
+        task.collector_problems.is_empty(),
+        "{:?}",
+        task.collector_problems
+    );
+    task
+}
+
+/// `source` under one Rust name and two names the Rust grammar must skip.
+fn rust_and_decoys(source: &str) -> [(&str, &str); 3] {
+    [
+        ("src/a.rs", source),
+        ("src/notes.md", source),
+        ("tasks/t.typ", source),
+    ]
+}
+
+#[test]
+fn an_ast_grep_collector_skips_files_outside_the_languages_extensions() {
+    let task = collected(CALLERS, &rust_and_decoys("fn a() { parse_task(1); }\n"));
+    assert_eq!(strings(&task, "callers"), ["src/a.rs"]);
+}
+
 #[test]
 fn an_ast_grep_collector_publishes_each_matching_path() {
-    let (_dir, config) = ast_project(
+    let task = collected(
         CALLERS,
         &[
             ("src/a.rs", "fn a() { parse_task(1); }\n"),
@@ -274,14 +303,7 @@ fn an_ast_grep_collector_publishes_each_matching_path() {
             ("docs/c.rs", "fn c() { parse_task(3); }\n"),
         ],
     );
-    let mut tasks = vec![task("")];
-    crate::collect::annotate(&mut tasks, &config);
-    assert!(
-        tasks[0].collector_problems.is_empty(),
-        "{:?}",
-        tasks[0].collector_problems
-    );
-    assert_eq!(strings(&tasks[0], "callers"), ["docs/c.rs", "src/a.rs"]);
+    assert_eq!(strings(&task, "callers"), ["docs/c.rs", "src/a.rs"]);
 }
 
 #[test]
@@ -290,16 +312,14 @@ fn an_ast_grep_glob_narrows_the_collected_paths() {
         r#"pattern = "parse_task($$$ARGS)" }"#,
         r#"pattern = "parse_task($$$ARGS)", glob = "src/**" }"#,
     );
-    let (_dir, config) = ast_project(
+    let task = collected(
         &config,
         &[
             ("src/a.rs", "fn a() { parse_task(1); }\n"),
             ("docs/c.rs", "fn c() { parse_task(3); }\n"),
         ],
     );
-    let mut tasks = vec![task("")];
-    crate::collect::annotate(&mut tasks, &config);
-    assert_eq!(strings(&tasks[0], "callers"), ["src/a.rs"]);
+    assert_eq!(strings(&task, "callers"), ["src/a.rs"]);
 }
 
 #[test]

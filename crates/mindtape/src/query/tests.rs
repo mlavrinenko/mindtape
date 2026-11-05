@@ -180,3 +180,15 @@ fn a_non_utf8_file_matches_nothing() {
             .is_empty()
     );
 }
+
+#[test]
+fn an_ast_grep_query_reads_only_the_languages_files() {
+    let source = b"fn a() { parse_task(1); }\n".as_slice();
+    let files = [
+        ("src/a.rs", source),
+        ("src/notes.md", source),
+        ("src/task.typ", source),
+    ];
+    let query = ast_grep("rust", "parse_task($$$ARGS)", None);
+    assert_eq!(matched(&files, &query).unwrap(), ["src/a.rs"]);
+}

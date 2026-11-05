@@ -155,3 +155,20 @@ fn annotate_outside_git_records_why_and_leaves_the_unit_out() {
         "{problem}"
     );
 }
+
+#[test]
+fn an_ast_grep_count_reads_only_files_the_language_claims() {
+    let dir = tempdir();
+    git_init(dir.path());
+    let source = "fn a() { parse_task(1); }\n";
+    write_file(dir.path(), "src/a.rs", source);
+    write_file(dir.path(), "src/notes.md", source);
+    write_file(dir.path(), "src/task.typ", source);
+    let query = Query::AstGrep {
+        language: "rust".to_owned(),
+        pattern: "parse_task($$$ARGS)".to_owned(),
+        glob: None,
+    };
+    let task = annotated(dir.path(), query);
+    assert_eq!(task.estimate.get("files"), Some(&2.0));
+}

@@ -20399,7 +20399,7 @@
     {
       "file": "crates/mindtape/src/query/mod.rs",
       "function": "compile",
-      "line": 229,
+      "line": 234,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -20408,7 +20408,16 @@
     {
       "file": "crates/mindtape/src/query/mod.rs",
       "function": "compile_pattern",
-      "line": 247,
+      "line": 252,
+      "cyclomatic": 3.0,
+      "coverage": 100.0,
+      "crap": 3.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/query/mod.rs",
+      "function": "grammar",
+      "line": 262,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -20417,7 +20426,7 @@
     {
       "file": "crates/mindtape/src/query/mod.rs",
       "function": "last_line",
-      "line": 285,
+      "line": 290,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -20444,10 +20453,10 @@
     {
       "file": "crates/mindtape/src/query/mod.rs",
       "function": "matches_file",
-      "line": 268,
-      "cyclomatic": 4.0,
+      "line": 273,
+      "cyclomatic": 5.0,
       "coverage": 100.0,
-      "crap": 4.0,
+      "crap": 5.0,
       "crate": "mindtape"
     },
     {
@@ -20471,19 +20480,10 @@
     {
       "file": "crates/mindtape/src/query/mod.rs",
       "function": "run",
-      "line": 203,
+      "line": 208,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/query/mod.rs",
-      "function": "rust_language",
-      "line": 257,
-      "cyclomatic": 3.0,
-      "coverage": 100.0,
-      "crap": 3.0,
       "crate": "mindtape"
     },
     {
