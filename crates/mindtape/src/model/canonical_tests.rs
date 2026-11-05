@@ -1,11 +1,13 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use crate::config::{Config, parse_config};
+use crate::estimate_queries::CountEstimate;
 use crate::model::numeric::NumValue;
+use crate::query::Query;
 use crate::recur::{CanonicalRule, PeriodUnit, Recur, Rule};
 use crate::test_support::{bare_task, ice_priority};
 
-use super::{CanonicalNum, CanonicalTask};
+use super::{CanonicalCount, CanonicalNum, CanonicalTask};
 
 #[test]
 fn framework_priority_serializes_with_framework_inputs_and_score() {
@@ -201,4 +203,28 @@ fn children_and_progress_serialize_as_count_and_fraction() {
     .unwrap();
     assert_eq!(leaf["children"], 0);
     assert!(leaf["progress"].is_null());
+}
+
+#[test]
+fn an_ast_grep_query_serializes_with_the_hyphenated_tag_and_round_trips() {
+    let count = CountEstimate {
+        manual: 1.0,
+        queries: vec![Query::AstGrep {
+            language: "rust".to_owned(),
+            pattern: "parse_task($$$ARGS)".to_owned(),
+            glob: Some("crates/**".to_owned()),
+        }],
+        matches: vec![3],
+        problem: None,
+    };
+    let canonical = CanonicalCount::from_count(&count);
+    let value = serde_json::to_value(&canonical).unwrap();
+    assert_eq!(value["queries"][0]["query"], "ast-grep");
+    assert_eq!(value["queries"][0]["language"], "rust");
+    assert_eq!(value["queries"][0]["pattern"], "parse_task($$$ARGS)");
+    assert_eq!(value["queries"][0]["glob"], "crates/**");
+    assert_eq!(value["queries"][0]["files"], 3);
+    let back = canonical.to_count();
+    assert_eq!(back.manual, count.manual);
+    assert_eq!(back.queries, count.queries);
 }

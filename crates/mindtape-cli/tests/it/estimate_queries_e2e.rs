@@ -156,6 +156,31 @@ fn mt_eval_shows_where_a_count_comes_from() {
     );
 }
 
+/// `mt eval <task>` output, asserted to succeed.
+fn eval_text(root: &Path, task: &str) -> String {
+    let (ok, text) = support::run_text(root, &["eval", task]);
+    assert!(ok, "{text}");
+    text
+}
+
+/// The `ls --json` export of `root`, as its text and parsed value.
+fn export(root: &Path) -> (String, serde_json::Value) {
+    let (ok, text) = support::run_text(root, &["ls", "", "--json"]);
+    assert!(ok, "{text}");
+    let json = serde_json::from_str(&text).unwrap();
+    (text, json)
+}
+
+/// Re-import `export` after removing the task file, then return what
+/// `mt import` wrote back.
+fn reimport(root: &Path, export: &str) -> String {
+    write_file(root, "export.json", export);
+    std::fs::remove_file(root.join("tasks/rename.typ")).unwrap();
+    let (ok, text) = support::run_text(root, &["import", "export.json"]);
+    assert!(ok, "{text}");
+    std::fs::read_to_string(root.join("tasks/rename.typ")).unwrap()
+}
+
 #[test]
 fn mt_ls_json_and_mt_import_give_back_the_count() {
     let dir = fixture(
@@ -163,20 +188,14 @@ fn mt_ls_json_and_mt_import_give_back_the_count() {
         "count(2, grep(`parse_task`), glob(\"src/c.rs\"))",
     );
     let root = dir.path();
-    let (ok, export) = support::run_text(root, &["ls", "", "--json"]);
-    assert!(ok, "{export}");
-    let json: serde_json::Value = serde_json::from_str(&export).unwrap();
+    let (export, json) = export(root);
     let task = &json["tasks"][0];
     assert_eq!(task["estimate"]["src-files"], serde_json::json!(5.0));
     assert_eq!(
         task["estimate_counts"]["src-files"]["count"],
         serde_json::json!(2.0)
     );
-    write_file(root, "export.json", &export);
-    std::fs::remove_file(root.join("tasks/rename.typ")).unwrap();
-    let (ok, text) = support::run_text(root, &["import", "export.json"]);
-    assert!(ok, "{text}");
-    let written = std::fs::read_to_string(root.join("tasks/rename.typ")).unwrap();
+    let written = reimport(root, &export);
     assert!(
         written.contains("src-files: count(2, grep(`parse_task`), glob(\"src/c.rs\"))"),
         "{written}"
@@ -247,12 +266,29 @@ fn an_unknown_ast_grep_language_names_the_supported_set() {
 #[test]
 fn mt_eval_shows_the_ast_grep_breakdown() {
     let dir = ast_grep_fixture("count(1, ast_grep(\"rust\", \"parse_task($$$ARGS)\", \"src/**\"))");
-    let (ok, text) = support::run_text(dir.path(), &["eval", "rename"]);
-    assert!(ok, "{text}");
+    let text = eval_text(dir.path(), "rename");
     assert!(
         text.contains(
             "estimate.src-files = 4\n  1        manual\n  3 files  ast-grep rust `parse_task($$$ARGS)` in `src/**`\n"
         ),
         "{text}"
     );
+}
+
+#[test]
+fn mt_ls_json_and_mt_import_keep_an_ast_grep_query() {
+    let dir = ast_grep_fixture("count(1, ast_grep(\"rust\", \"parse_task($$$ARGS)\", \"src/**\"))");
+    let root = dir.path();
+    let (export, json) = export(root);
+    let query = &json["tasks"][0]["estimate_counts"]["src-files"]["queries"][0];
+    assert_eq!(query["query"], "ast-grep");
+    assert_eq!(query["language"], "rust");
+    assert_eq!(query["pattern"], "parse_task($$$ARGS)");
+    assert_eq!(query["glob"], "src/**");
+    let written = reimport(root, &export);
+    assert!(
+        written.contains("ast_grep(\"rust\", `parse_task($$$ARGS)`, \"src/**\")"),
+        "{written}"
+    );
+    assert_eq!(resolved(root), serde_json::json!(4.0));
 }

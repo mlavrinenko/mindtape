@@ -32,7 +32,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 5),
+  status: wip(2026, 11, 5),
   links: parent("add-ast-grep-queries-as-a-shared-query-engine.typ")
     + depends-on("add-the-ast-grep-estimate-query.typ"),
 )
@@ -64,10 +64,9 @@
 
 == Changes
 
-- `crates/mindtape/src/model/canonical.rs`: the `AstGrep` variant, its serde tag and both conversions.
+- `crates/mindtape/src/model/canonical.rs`: the `AstGrep` variant, its serde tag and both conversions, which `import_map` reads to rebuild the query.
 - `crates/mindtape/src/emit/mod.rs`: write `ast_grep(...)` back.
 - `crates/mindtape/src/emit/tests.rs`: red round-trip test for the authored form.
-- `crates/mindtape/src/import_map/mod.rs`: rebuild the variant on import.
 - `crates/mindtape-cli/tests/it/estimate_queries_e2e.rs`: `ls --json | import` keeps the shape query.
 - `docs/src/agents.typ`: the prelude version list.
 - `www/content/config.typ`: the prelude version list.

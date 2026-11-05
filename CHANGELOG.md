@@ -42,6 +42,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   kept, a newer one is refused with an upgrade hint, and a project-local pin is
   never edited. Any refusal aborts the run before a file changes, and a
   successful write ends with `mt check`.
+- **An ast-grep query survives JSON and import.** `mt ls --json` writes the
+  canonical query with the `ast-grep` tag and its `language`, `pattern`,
+  optional `glob` and read-only `files`, and `mt import` rebuilds the authored
+  `ast_grep(...)` call, so an export round trip keeps the shape query.
 - **An estimate counts files by their Rust shape.** `ast_grep(language, pattern,
   glob?)` compiles through the shared query engine with the Rust grammar, so
   only `rust` and its alias `rs` are languages in this wave. A file once,

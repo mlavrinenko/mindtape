@@ -347,38 +347,6 @@ fn emits_unnamed_framework_with_inputs_via_the_generic_escape_hatch() {
     );
 }
 
-/// An ast-grep query keeps its language, raw-block pattern and optional glob.
-#[test]
-fn emits_an_ast_grep_query() {
-    use crate::estimate_queries::CountEstimate;
-    use crate::query::Query;
-    let count = CountEstimate {
-        manual: 1.0,
-        queries: vec![
-            Query::AstGrep {
-                language: "rust".to_owned(),
-                pattern: "parse_task($$$ARGS)".to_owned(),
-                glob: Some("crates/**".to_owned()),
-            },
-            Query::AstGrep {
-                language: "rs".to_owned(),
-                pattern: "a`b".to_owned(),
-                glob: None,
-            },
-        ],
-        matches: Vec::new(),
-        problem: None,
-    };
-    let mut task = bare_task("grep-shaped");
-    task.estimate_counts.insert("files".to_owned(), count);
-    let source = emit_task(&task);
-    assert!(
-        source.contains("ast_grep(\"rust\", `parse_task($$$ARGS)`, \"crates/**\")"),
-        "{source}"
-    );
-    assert!(source.contains("ast_grep(\"rs\", \"a`b\")"), "{source}");
-}
-
 #[test]
 fn emits_deterministic_field_order() {
     let mut task = bare_task("deterministic");
@@ -390,10 +358,10 @@ fn emits_deterministic_field_order() {
     assert_eq!(first, second);
 }
 
-/// A `count(...)` unit writes back as the count: a plain regex as a raw block,
-/// one holding a backtick or a line break as an escaped string, and a glob's
-/// quote escaped. What resolves is the loader's business, so only the
-/// authored half is compared.
+/// A `count(...)` unit writes back as the count: a plain regex or ast-grep
+/// pattern as a raw block, one holding a backtick or a line break as an
+/// escaped string, and a glob's quote escaped. What resolves is the loader's
+/// business, so only the authored half is compared.
 #[test]
 fn round_trips_a_count_estimate() {
     use crate::estimate_queries::CountEstimate;
@@ -410,6 +378,16 @@ fn round_trips_a_count_estimate() {
             Query::Glob {
                 pattern: "docs/\"q\"*".to_owned(),
             },
+            Query::AstGrep {
+                language: "rust".to_owned(),
+                pattern: "parse_task($$$ARGS)".to_owned(),
+                glob: Some("crates/**".to_owned()),
+            },
+            Query::AstGrep {
+                language: "rs".to_owned(),
+                pattern: "a`b".to_owned(),
+                glob: None,
+            },
         ],
         matches: Vec::new(),
         problem: None,
@@ -424,6 +402,11 @@ fn round_trips_a_count_estimate() {
         source.contains(r#"count(2, grep(`fn \w+\(`, "src/**"), grep("a`b"#),
         "{source}"
     );
+    assert!(
+        source.contains("ast_grep(\"rust\", `parse_task($$$ARGS)`, \"crates/**\")"),
+        "{source}"
+    );
+    assert!(source.contains("ast_grep(\"rs\", \"a`b\")"), "{source}");
     let dir = tempdir();
     let outcome = setup(
         dir.path(),

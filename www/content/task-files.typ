@@ -52,8 +52,8 @@ name the prelude defines: `task`, the status functions such as `wip`, and the
 link functions such as `depends-on`.
 
 `@local` means the Typst packages installed on this machine. This `mt` reads
-the prelude at `0.2.0` and `0.3.0`, and its copy of each ships in the binary,
-so a task file loads anywhere. `mt install` puts both there for your editor
+the prelude at `0.2.0`, `0.3.0` and `0.4.0`, and its copy of each ships in the binary,
+so a task file loads anywhere. `mt install` puts all three there for your editor
 and `typst`, as the #link(u("/quickstart/"))[Quickstart] shows. An import at
 any other version fails once per version, naming the file, the version and
 the set, with a rewrite hint for an older version and an upgrade hint for a

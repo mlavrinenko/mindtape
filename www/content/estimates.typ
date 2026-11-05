@@ -98,6 +98,27 @@ and runs no shell, so the count comes out the same on every machine. A unit
 with no `[tasks.estimate.queries]` entry takes a plain number only, and
 `mt check` refuses a count there.
 
+== Matching a Rust shape
+
+Text cannot see a call site a macro produces, so `ast_grep(language, pattern,
+glob?)` matches the syntax tree instead. In this wave the language is `rust`,
+or its alias `rs`. Write the pattern in
+#link("https://ast-grep.github.io/guide/pattern-syntax.html")[ast-grep syntax],
+as a raw block so a backslash needs no escape. The optional glob or `@name`
+set narrows the unit's paths, as it does for `grep`.
+
+// docs:hand-typed the estimates fixture carries no shape query
+#raw(
+  "count(1, ast_grep(\"rust\", `parse_task($$$ARGS)`, \"crates/**\"))",
+  lang: "typ",
+  block: true,
+)
+
+A file counts once however many call sites it holds, so the unit reads the
+number of distinct files. A pattern the grammar refuses, or a language this
+build does not carry, leaves the unit unresolved. `mt check` reports why and
+`mt eval` prints the problem instead of a number.
+
 = Caps
 
 #raw(
