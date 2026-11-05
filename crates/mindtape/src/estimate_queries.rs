@@ -34,6 +34,7 @@ use typst_harvest::HVal;
 use crate::config::Config;
 use crate::model::Task;
 use crate::model::marker::{ShapeError, shape_error, shape_message};
+use crate::problem::Problem;
 use crate::query::{self, Query};
 
 /// An estimate unit written as `count(n, ..queries)`.
@@ -157,15 +158,28 @@ fn resolve(
         )
     })?;
     let dicts = config.compiled_dicts();
-    let admitted = query::path_filter(set, dicts)?;
+    let admitted = query::path_filter(set, dicts).map_err(problem_text)?;
     let mut union = std::collections::BTreeSet::new();
     let mut each = Vec::new();
     for query in &count.queries {
-        let matched = query::matches(root, set, query, &admitted, dicts)?;
+        let matched = query::matches(root, set, query, &admitted, dicts).map_err(problem_text)?;
         each.push(matched.len());
         union.extend(matched.iter().cloned());
     }
     Ok((union.len(), each))
+}
+
+/// A query problem as the one-line text an estimate keeps, with the nearest
+/// path-set name appended where a `Problem` would carry it as a hint.
+fn problem_text(problem: Problem) -> String {
+    match problem
+        .unknown
+        .as_ref()
+        .and_then(|unknown| unknown.nearest.as_deref())
+    {
+        Some(nearest) => format!("{problem}; did you mean `@{nearest}`?"),
+        None => problem.text,
+    }
 }
 
 /// Config-load problems in `[tasks.estimate.queries]`: a unit outside a

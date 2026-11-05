@@ -27,6 +27,7 @@ use typst_harvest::HVal;
 
 use crate::config::dicts::Dicts;
 use crate::git::state::{PathFilter, PathSetError, git, git_bytes};
+use crate::problem::Problem;
 
 /// One file query inside `count(...)`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -102,10 +103,12 @@ pub(crate) fn parse(value: &HVal) -> Option<Query> {
 }
 
 /// `glob` compiled as a one-entry path set.
-pub(crate) fn path_filter(glob: &str, dicts: &Dicts) -> Result<PathFilter, String> {
+pub(crate) fn path_filter(glob: &str, dicts: &Dicts) -> Result<PathFilter, Problem> {
     PathFilter::resolve(&[glob.to_owned()], dicts).map_err(|err| match err {
-        PathSetError::Unknown { name, .. } => format!("no path set is named `@{name}`"),
-        PathSetError::Invalid(message) => message,
+        PathSetError::Unknown { name, unknown } => {
+            Problem::new(format!("no path set is named `@{name}`")).with(unknown)
+        }
+        PathSetError::Invalid(message) => Problem::new(message),
     })
 }
 
@@ -129,7 +132,7 @@ pub(crate) fn matches(
     query: &Query,
     admitted: &PathFilter,
     dicts: &Dicts,
-) -> Result<Arc<[PathBuf]>, String> {
+) -> Result<Arc<[PathBuf]>, Problem> {
     let tree = tree(root)?;
     let key = (root.to_path_buf(), scope.to_owned(), query.clone());
     let mut memo = MATCHES.lock().unwrap_or_else(PoisonError::into_inner);
@@ -152,7 +155,7 @@ static TREES: Mutex<BTreeMap<PathBuf, Result<Arc<Tree>, String>>> = Mutex::new(B
 
 /// Every query run so far, keyed by project root, unit path set and query.
 type MatchKey = (PathBuf, String, Query);
-type Matched = Result<Arc<[PathBuf]>, String>;
+type Matched = Result<Arc<[PathBuf]>, Problem>;
 static MATCHES: Mutex<BTreeMap<MatchKey, Matched>> = Mutex::new(BTreeMap::new());
 
 /// The files git lists under `root`, read once per process.
@@ -225,7 +228,7 @@ fn run(
     admitted: &PathFilter,
     query: &Query,
     dicts: &Dicts,
-) -> Result<Vec<PathBuf>, String> {
+) -> Result<Vec<PathBuf>, Problem> {
     let label = query.label();
     let scope = match query {
         Query::Grep { glob, .. } | Query::AstGrep { glob, .. } => glob.as_deref(),
@@ -234,7 +237,7 @@ fn run(
     let scope = scope
         .map(|glob| path_filter(glob, dicts))
         .transpose()
-        .map_err(|err| format!("{label}: {err}"))?;
+        .map_err(|problem| problem.under(&label))?;
     let compiled = compile(query, &label)?;
     let candidates = tree.files.iter().filter(|path| {
         admitted.admits_path(path) && scope.as_ref().is_none_or(|scope| scope.admits_path(path))

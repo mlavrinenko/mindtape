@@ -66,18 +66,39 @@ fn labels_a_grep_with_its_optional_scope() {
     );
 }
 
+/// The problem `glob` raises against a config declaring only `source`.
+fn path_set_problem(glob: &str) -> crate::problem::Problem {
+    let config = parse_config("[dicts.source]\nvalues = [\"src/**\"]\n").unwrap();
+    path_filter(glob, config.compiled_dicts()).unwrap_err()
+}
+
 #[test]
 fn an_unknown_path_set_is_a_problem() {
-    let config = parse_config("[dicts.source]\nvalues = [\"src/**\"]\n").unwrap();
     assert_eq!(
-        path_filter("@sources", config.compiled_dicts()).unwrap_err(),
+        path_set_problem("@sources"),
         "no path set is named `@sources`"
     );
 }
 
+#[test]
+fn a_typo_path_set_carries_the_nearest_name_as_a_hint() {
+    let problem = path_set_problem("@sorce");
+    assert_eq!(problem.text, "no path set is named `@sorce`");
+    let unknown = problem.unknown.unwrap();
+    assert_eq!(unknown.nearest.as_deref(), Some("source"));
+    assert!(unknown.names.iter().any(|name| name == "source"));
+}
+
+#[test]
+fn a_far_miss_path_set_carries_no_nearest_name() {
+    let problem = path_set_problem("@zzz");
+    assert_eq!(problem.text, "no path set is named `@zzz`");
+    assert_eq!(problem.unknown.unwrap().nearest, None);
+}
+
 /// The files `query` matches inside `src/**`, over a git tempdir holding
 /// `files`.
-fn matched(files: &[(&str, &[u8])], query: &Query) -> Result<Vec<String>, String> {
+fn matched(files: &[(&str, &[u8])], query: &Query) -> Result<Vec<String>, crate::problem::Problem> {
     let dir = git_tempdir();
     for (path, contents) in files {
         write_file(dir.path(), path, contents);

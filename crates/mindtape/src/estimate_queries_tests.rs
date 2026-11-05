@@ -143,6 +143,33 @@ fn annotate_writes_the_resolved_count_and_clears_nothing_else() {
 }
 
 #[test]
+fn a_typo_path_set_names_the_nearest_set_in_the_problem() {
+    let config = parse_config(
+        "[tasks.estimate.queries]\nfiles = \"@sorce\"\n\n[dicts.source]\nvalues = [\"src/**\"]\n",
+    )
+    .unwrap();
+    let mut task = bare_task("t");
+    task.estimate_counts.insert(
+        "files".to_owned(),
+        CountEstimate {
+            manual: 1.0,
+            queries: vec![Query::Glob {
+                pattern: "src/*".to_owned(),
+            }],
+            matches: Vec::new(),
+            problem: None,
+        },
+    );
+    let mut tasks = vec![task];
+    annotate(&mut tasks, &config, std::path::Path::new("."));
+    let count = tasks.first().unwrap().estimate_counts.get("files").unwrap();
+    assert_eq!(
+        count.problem.as_deref(),
+        Some("no path set is named `@sorce`; did you mean `@source`?")
+    );
+}
+
+#[test]
 fn annotate_outside_git_records_why_and_leaves_the_unit_out() {
     let dir = tempdir();
     let pattern = "src/*".to_owned();

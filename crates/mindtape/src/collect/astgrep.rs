@@ -36,15 +36,10 @@ pub(crate) fn values(
         &PathFilter::all(),
         config.compiled_dicts(),
     )
-    .map_err(|err| fail(name, &err))?;
+    .map_err(|problem| problem.under(&format!("derived.{name}")))?;
     let paths: std::collections::BTreeSet<String> = files
         .iter()
         .map(|path| path.to_string_lossy().into_owned())
         .collect();
     Ok(paths.into_iter().map(HVal::Str).collect())
-}
-
-/// One problem naming the derived field and why the engine refused.
-fn fail(name: &str, message: &str) -> Problem {
-    Problem::new(format!("derived.{name}: {message}"))
 }

@@ -399,3 +399,29 @@ fn a_collector_publishes_one_path_per_lossy_spelling() {
     crate::collect::annotate(&mut tasks, &config);
     assert_eq!(strings(&tasks[0], "callers").len(), 1);
 }
+
+/// `problem` names a missing `@sorce` and carries the nearest `source`.
+fn assert_nearest_source(problem: &crate::problem::Problem) {
+    assert!(problem.text.contains("no path set"), "{problem}");
+    assert_eq!(
+        problem.unknown.as_ref().unwrap().nearest.as_deref(),
+        Some("source")
+    );
+}
+
+#[test]
+fn a_collector_keeps_the_nearest_path_set_name_as_a_hint() {
+    let config = format!("{CALLERS}\n[dicts.source]\ncase = \"exact\"\nvalues = [\"src/**\"]\n")
+        .replace(
+            r#"pattern = "parse_task($$$ARGS)" }"#,
+            r#"pattern = "parse_task($$$ARGS)", glob = "@sorce" }"#,
+        );
+    let dir = git_tempdir();
+    write_file(dir.path(), "src/a.rs", "fn a() { parse_task(1); }\n");
+    let mut config = parse_config(&config).unwrap();
+    config.rules_root.set(dir.path());
+    assert_nearest_source(&config.validate().unwrap_err());
+    let mut tasks = vec![task("")];
+    crate::collect::annotate(&mut tasks, &config);
+    assert_nearest_source(&tasks[0].collector_problems[0]);
+}

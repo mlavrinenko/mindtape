@@ -353,9 +353,9 @@ fn validate_ast_grep(
         problems.push(Problem::new(format!("{at}.pattern: {err}")));
     }
     if let Some(glob) = &ast.glob
-        && let Err(err) = crate::query::path_filter(glob, config.compiled_dicts())
+        && let Err(problem) = crate::query::path_filter(glob, config.compiled_dicts())
     {
-        problems.push(Problem::new(format!("{at}.glob: {err}")));
+        problems.push(problem.under(&format!("{at}.glob")));
     }
     if !spec.returns.is_path_list() {
         problems.push(Problem::new(format!(
