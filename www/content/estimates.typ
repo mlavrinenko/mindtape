@@ -117,7 +117,8 @@ set narrows the unit's paths, as it does for `grep`.
 A file counts once however many call sites it holds, so the unit reads the
 number of distinct files. A pattern the grammar refuses, or a language this
 build does not carry, leaves the unit unresolved. `mt check` reports why and
-`mt eval` prints the problem instead of a number.
+`mt eval` prints the problem instead of a number. An export keeps the query
+under the `ast-grep` JSON tag, so `mt import` writes the same call back.
 
 = Caps
 

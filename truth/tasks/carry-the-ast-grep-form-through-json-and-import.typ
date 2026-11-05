@@ -32,7 +32,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 11, 5),
+  status: done(2026, 11, 5),
   links: parent("add-ast-grep-queries-as-a-shared-query-engine.typ")
     + depends-on("add-the-ast-grep-estimate-query.typ"),
 )

@@ -10600,8 +10600,8 @@
       "function": "amending",
       "line": 81,
       "cyclomatic": 2.0,
-      "coverage": 100.0,
-      "crap": 2.0,
+      "coverage": 90.0,
+      "crap": 2.004,
       "crate": "mindtape"
     },
     {
@@ -19069,8 +19069,8 @@
       "function": "CanonicalCount::to_count",
       "line": 307,
       "cyclomatic": 1.0,
-      "coverage": 66.66666666666666,
-      "crap": 1.0370370370370372,
+      "coverage": 100.0,
+      "crap": 1.0,
       "crate": "mindtape"
     },
     {
