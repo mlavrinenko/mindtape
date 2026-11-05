@@ -320,13 +320,15 @@ query = { ast_grep = { language = "rust", pattern = "parse_task($$$ARGS)", glob 
 returns = ["path"]
 ```
 
-`language` is `rust` or its alias `rs` in this version, `pattern` is an
+`language` is `rust` or its alias `rs` in this version, and a query reads only
+`.rs` files. `pattern` is an
 #link("https://ast-grep.github.io/guide/pattern-syntax.html")[ast-grep pattern],
-and `glob` is optional, a glob or a path-set name. Each matching file
-contributes its path once. The collector names no path set of its own, so a
-rule reads `count_paths(derived.callers, "@source")` as it does for any path
-list. A bad pattern, an unknown language, a bad glob or a `returns` other than
-`["path"]` is a config error.
+and `glob` is optional, a glob or a path-set name that narrows the files the
+query reads; without one it reads every file git lists. Each matching file
+contributes its path once, so a rule reads `count_paths(derived.callers,
+"@source")` over a file count as it does for any path list. Paths are relative
+to the repository root, as `changed()` reads them. A bad pattern, an unknown
+language, a bad glob or a `returns` other than `["path"]` is a config error.
 
 `returns` is a type expression. The atoms are `bool`, `int`, `number`,
 `string`, `path` and `date`. Wrap one in a one-element array for a list, as in

@@ -14,7 +14,7 @@ what `mt` stamps, slugs, injects, resolves and validates.
 A task file is Typst. Edit the fields inside `task.with(...)`:
 
 ```typ
-#import "@local/mindtape:0.3.0": *
+#import "@local/mindtape:0.4.0": *
 #show: task.with(
   title: "Fix login bug",
   status: wip(2026, 6, 28)[started investigation],  // (name, y, m, d)[note]

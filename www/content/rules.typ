@@ -153,9 +153,9 @@ case = "exact"
 values = ["**"]
 ```
 
-An ast-grep collector reads code shape instead. It matches Rust files through
-the shared query engine, publishes each path, and lets a rule bound a call-site
-count the way it bounds a Changes list:
+An ast-grep collector reads code shape instead. It matches Rust files (`.rs`)
+through the shared query engine, publishes each matching path once, and lets a
+rule bound a file count the way it bounds a Changes list:
 
 // docs:hand-typed the collector and rule shape is a sketch until examples/rules carries one
 ```toml
@@ -172,6 +172,12 @@ assert = 'count_paths(derived.callers, "@source") <= 3'
 message = "keep the parse-task fan-out small"
 severity = "error"
 ```
+
+The query's optional `glob`, a glob or `@name` path set, narrows the files it
+reads; without one it reads every file git lists. Paths are relative to the
+repository root, as `changed()` reads them, so a nested project prefixes its
+directory, as in `sub/src/**`. A file counts once however many matches it
+holds, so the rule bounds a file count, not a call-site count.
 
 A Typst collector is the escape hatch for a structure a regex or a pattern
 cannot read: it calls a project function over the task, or over one field, and

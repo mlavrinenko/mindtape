@@ -2,9 +2,10 @@
 //! matching path per file as `derived.<name>`.
 //!
 //! The query reuses [`crate::query`] — the same git-listed file walk, Rust
-//! grammar and per-process caches an estimate's `ast_grep(...)` uses. No path
-//! set narrows a collector, so every listed file is admitted unless the query
-//! carries its own `glob`. A failed walk or a query the engine refuses is one
+//! grammar and per-process caches an estimate's `ast_grep(...)` uses. The
+//! query's optional `glob`, a glob or `@name` path set, narrows the files it
+//! reads; without one every listed file is admitted. A failed walk or a query
+//! the engine refuses is one
 //! [`Problem`] naming the field, which [`crate::validate`] reports as a
 //! `Collector` violation at `derived.<name>`.
 

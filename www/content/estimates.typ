@@ -100,9 +100,10 @@ with no `[tasks.estimate.queries]` entry takes a plain number only, and
 
 == Matching a Rust shape
 
-Text cannot see a call site a macro produces, so `ast_grep(language, pattern,
-glob?)` matches the syntax tree instead. In this wave the language is `rust`,
-or its alias `rs`. Write the pattern in
+`ast_grep(language, pattern, glob?)` reads source shape instead of text. It
+tells a call from a definition, a comment or a string, and it sees no code a
+macro expands to. In this wave the language is `rust`, or its alias `rs`, and
+a query reads only `.rs` files. Write the pattern in
 #link("https://ast-grep.github.io/guide/pattern-syntax.html")[ast-grep syntax],
 as a raw block so a backslash needs no escape. The optional glob or `@name`
 set narrows the unit's paths, as it does for `grep`.
@@ -125,8 +126,10 @@ its query matches. `mt eval` shows the breakdown:
 A file counts once however many call sites it holds, so the unit reads the
 number of distinct files. A pattern the grammar refuses, or a language this
 build does not carry, leaves the unit unresolved. `mt check` reports why and
-`mt eval` prints the problem instead of a number. An export keeps the query
-under the `ast-grep` JSON tag, so `mt import` writes the same call back.
+`mt eval` prints the problem instead of a number. A glob that isn't a string
+is a shape error at `estimate.<unit>.queries[i]`, which `mt check` reports. An
+export keeps the query under the `ast-grep` JSON tag, so `mt import` writes the
+same call back.
 
 = Caps
 
