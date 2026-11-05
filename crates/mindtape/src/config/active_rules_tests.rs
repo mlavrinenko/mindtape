@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use super::{ActiveRule, RuleSection, active_rules};
+use super::{ActiveRule, RuleSection, active_derived, active_rules};
 use crate::config::parse_config;
 use crate::rules::CheckSpec;
 use crate::validate::severity::Severity;
@@ -198,6 +198,29 @@ fn a_section_serializes_as_its_dotted_path() {
             "\"on.flip\"",
         ]
     );
+}
+
+#[test]
+fn an_ast_grep_collector_lists_its_kind_and_readers() {
+    let config = parse_config(
+        r#"
+[[tasks.collectors]]
+name = "callers"
+query = { ast_grep = { language = "rust", pattern = "parse_task($$$ARGS)" } }
+returns = ["path"]
+
+[[tasks.rules]]
+name = "small-fanout"
+assert = 'len(derived.callers) <= 5'
+message = "keep the fan-out small"
+"#,
+    )
+    .unwrap();
+    let derived = active_derived(&config);
+    assert_eq!(derived.len(), 1);
+    assert_eq!(derived[0].kind, "ast-grep");
+    assert_eq!(derived[0].detail, None);
+    assert_eq!(derived[0].readers, ["rules.small-fanout"]);
 }
 
 #[test]

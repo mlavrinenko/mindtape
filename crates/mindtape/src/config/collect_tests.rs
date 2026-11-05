@@ -12,6 +12,9 @@ fn config(text: &str) -> crate::config::Config {
     parse_config(text).unwrap()
 }
 
+fn refusal(text: &str) -> crate::problem::Problem {
+    config(text).validate().unwrap_err()
+}
 const CHANGES: &str = r#"
 [[tasks.collectors]]
 name = "changes"
@@ -427,6 +430,55 @@ returns = { count = "int", files = ["path"] }
     );
     assert_eq!(config.tasks.collectors[0].query.kind(), "typst");
     assert!(config.validate().is_ok(), "{:?}", config.validate());
+}
+
+#[test]
+fn an_ast_grep_collector_parses() {
+    let config = config(
+        r#"
+[[tasks.collectors]]
+name = "callers"
+query = { ast_grep = { language = "rust", pattern = "parse_task($$$ARGS)", glob = "src/**" } }
+returns = ["path"]
+"#,
+    );
+    let spec = &config.tasks.collectors[0];
+    assert_eq!(spec.query.kind(), "ast-grep");
+    assert!(matches!(
+        &spec.query,
+        CollectorQuery::AstGrep(query)
+            if query.ast_grep.language == "rust"
+                && query.ast_grep.pattern == "parse_task($$$ARGS)"
+                && query.ast_grep.glob.as_deref() == Some("src/**")
+    ));
+    assert!(config.validate().is_ok(), "{:?}", config.validate());
+}
+
+#[test]
+fn an_ast_grep_collector_takes_only_a_path_list() {
+    for returns in [r#""string""#, r#"["string"]"#, r#""path""#] {
+        let problem = refusal(&format!(
+            "[[tasks.collectors]]\nname = \"x\"\nquery = {{ ast_grep = {{ language = \"rust\", pattern = \"fn $N()\" }} }}\nreturns = {returns}\n"
+        ));
+        assert!(problem.text.contains("returns"), "{returns}: {problem}");
+    }
+}
+
+#[test]
+fn an_ast_grep_pattern_language_and_glob_are_checked_at_load() {
+    for (field, body) in [
+        ("pattern", r#"language = "rust", pattern = "fn (""#),
+        ("language", r#"language = "python", pattern = "x = 1""#),
+        (
+            "glob",
+            r#"language = "rust", pattern = "fn $N()", glob = "[""#,
+        ),
+    ] {
+        let problem = refusal(&format!(
+            "[[tasks.collectors]]\nname = \"x\"\nquery = {{ ast_grep = {{ {body} }} }}\nreturns = [\"path\"]\n"
+        ));
+        assert!(problem.text.contains(field), "{field}: {problem}");
+    }
 }
 
 #[test]

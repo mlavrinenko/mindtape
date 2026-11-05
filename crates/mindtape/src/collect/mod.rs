@@ -5,18 +5,20 @@
 //! known, because its `when` may read `ready`, `blocked` or `count(...)`. A
 //! regex collector reads a body section and returns one string per match: the
 //! pattern's first capture group when it has one, else the whole match, or the
-//! capture group `group` names. A missing section is an empty list. A task the
-//! `when` excludes carries no field at all.
+//! capture group `group` names. A missing section is an empty list. An
+//! ast-grep collector reuses [`crate::query`] and returns one path per file it
+//! matches. A task the `when` excludes carries no field at all.
 //!
 //! The section slice is the one [`crate::body::content_gate`] uses: everything
 //! from the end of the heading down to the next heading of the same or higher
 //! level. Collectors run in declaration order, so a later collector's `when`
 //! may read an earlier one's field.
 //!
-//! A per-task failure — the Typst kind's evaluation error or a wrong-typed
-//! result — is recorded on the task and reported as a `Collector` violation by
-//! [`crate::validate`]. The regex kind fails only at load, where its pattern,
-//! group and `returns` are checked ([`crate::config::collect`]).
+//! A per-task failure — the Typst kind's evaluation error, a wrong-typed
+//! result or a file query that cannot run — is recorded on the task and
+//! reported as a `Collector` violation by [`crate::validate`]. The regex and
+//! ast-grep kinds fail at load, where their pattern, group, language, glob and
+//! `returns` are checked ([`crate::config::collect`]).
 
 use regex::Regex;
 use typst_cst::{parse_headings, tree};
@@ -28,6 +30,7 @@ use crate::filter::Filter;
 use crate::graph::ready::Readiness;
 use crate::model::Task;
 
+mod astgrep;
 mod typst;
 use typst::CompiledTypst;
 
@@ -39,10 +42,12 @@ struct Compiled<'a> {
     query: Option<CompiledQuery>,
 }
 
-/// A compiled regex or Typst query.
+/// A compiled regex or Typst query, or the marker for an ast-grep query the
+/// shared engine caches itself.
 enum CompiledQuery {
     Regex(Regex),
     Typst(Box<CompiledTypst>),
+    AstGrep,
 }
 
 impl<'a> Compiled<'a> {
@@ -58,6 +63,7 @@ impl<'a> Compiled<'a> {
             CollectorQuery::Typst(query) => Some(CompiledQuery::Typst(Box::new(
                 CompiledTypst::new(spec, query, root, config),
             ))),
+            CollectorQuery::AstGrep(_) => Some(CompiledQuery::AstGrep),
         };
         Self { spec, when, query }
     }
@@ -78,6 +84,15 @@ impl<'a> Compiled<'a> {
             (CollectorQuery::Typst(_), Some(CompiledQuery::Typst(compiled))) => {
                 match compiled.evaluate(task, config) {
                     Ok(value) => Some(value),
+                    Err(problem) => {
+                        task.collector_problems.push(problem);
+                        None
+                    }
+                }
+            }
+            (CollectorQuery::AstGrep(query), Some(CompiledQuery::AstGrep)) => {
+                match astgrep::values(&self.spec.name, query, config) {
+                    Ok(values) => Some(HVal::Array(values)),
                     Err(problem) => {
                         task.collector_problems.push(problem);
                         None

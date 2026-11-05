@@ -4,12 +4,15 @@ use std::collections::BTreeMap;
 
 use typst_harvest::HVal;
 
+use crate::config::layers::load_config_layered_from;
 use crate::config::{
     CollectorAtom, CollectorSpec, CollectorType, Config, RegexQuery, SectionSpec, parse_config,
 };
 use crate::filter::Filter;
 use crate::model::Task;
 use crate::sort::{sort_by_specs, validate_sort_spec_with};
+use crate::test_support::{git_tempdir, tempdir, write_file};
+use crate::validate::{ViolationKind, validate};
 
 fn config(text: &str) -> Config {
     parse_config(text).unwrap()
@@ -237,11 +240,94 @@ fn an_undeclared_derived_field_is_unknown() {
     assert!(err.to_string().contains("derived.nope"), "{err}");
 }
 
+const CALLERS: &str = r#"
+[tasks]
+roots = ["tasks"]
+
+[[tasks.collectors]]
+name = "callers"
+query = { ast_grep = { language = "rust", pattern = "parse_task($$$ARGS)" } }
+returns = ["path"]
+"#;
+
+/// Load `config` from a git repository holding `files`, so the shared query
+/// engine has a working tree to list.
+fn ast_project(config: &str, files: &[(&str, &str)]) -> (tempfile::TempDir, Config) {
+    let dir = git_tempdir();
+    for (path, contents) in files {
+        write_file(dir.path(), path, contents);
+    }
+    write_file(dir.path(), ".mindtape/config.toml", config);
+    let config = load_config_layered_from(dir.path(), Some(dir.path()), None)
+        .unwrap()
+        .0;
+    (dir, config)
+}
+
 #[test]
-fn a_collector_cannot_read_its_own_field_in_its_when() {
-    let spec = CollectorSpec {
-        name: "changes".to_owned(),
-        when: Some("has(derived.changes)".to_owned()),
+fn an_ast_grep_collector_publishes_each_matching_path() {
+    let (_dir, config) = ast_project(
+        CALLERS,
+        &[
+            ("src/a.rs", "fn a() { parse_task(1); }\n"),
+            ("src/b.rs", "fn b() { other(2); }\n"),
+            ("docs/c.rs", "fn c() { parse_task(3); }\n"),
+        ],
+    );
+    let mut tasks = vec![task("")];
+    crate::collect::annotate(&mut tasks, &config);
+    assert!(
+        tasks[0].collector_problems.is_empty(),
+        "{:?}",
+        tasks[0].collector_problems
+    );
+    assert_eq!(strings(&tasks[0], "callers"), ["docs/c.rs", "src/a.rs"]);
+}
+
+#[test]
+fn an_ast_grep_glob_narrows_the_collected_paths() {
+    let config = CALLERS.replace(
+        r#"pattern = "parse_task($$$ARGS)" }"#,
+        r#"pattern = "parse_task($$$ARGS)", glob = "src/**" }"#,
+    );
+    let (_dir, config) = ast_project(
+        &config,
+        &[
+            ("src/a.rs", "fn a() { parse_task(1); }\n"),
+            ("docs/c.rs", "fn c() { parse_task(3); }\n"),
+        ],
+    );
+    let mut tasks = vec![task("")];
+    crate::collect::annotate(&mut tasks, &config);
+    assert_eq!(strings(&tasks[0], "callers"), ["src/a.rs"]);
+}
+
+#[test]
+fn a_query_the_engine_cannot_run_is_a_collector_problem() {
+    let dir = tempdir();
+    write_file(dir.path(), ".mindtape/config.toml", CALLERS);
+    let config = load_config_layered_from(dir.path(), Some(dir.path()), None)
+        .unwrap()
+        .0;
+    let mut tasks = vec![task("")];
+    crate::collect::annotate(&mut tasks, &config);
+    assert!(!tasks[0].derived.contains_key("callers"));
+    let problem = tasks[0].collector_problems[0].text.clone();
+    assert!(problem.contains("derived.callers"), "{problem}");
+    let violations = validate(&tasks, &config);
+    let violation = violations
+        .iter()
+        .find(|violation| violation.kind == ViolationKind::Collector)
+        .unwrap();
+    assert_eq!(violation.field, "derived.callers");
+    assert!(violation.is_fatal());
+}
+
+/// A regex collector over Changes, for tests that only need a valid spec.
+fn regex_spec(name: &str, when: Option<&str>) -> CollectorSpec {
+    CollectorSpec {
+        name: name.to_owned(),
+        when: when.map(str::to_owned),
         query: crate::config::CollectorQuery::Regex(RegexQuery {
             section: SectionSpec::Name("Changes".to_owned()),
             pattern: "x".to_owned(),
@@ -249,9 +335,16 @@ fn a_collector_cannot_read_its_own_field_in_its_when() {
         }),
         returns: CollectorType::List(Box::new(CollectorType::Atom(CollectorAtom::Path))),
         root: None,
-    };
+    }
+}
+
+#[test]
+fn a_collector_cannot_read_its_own_field_in_its_when() {
     let mut config = Config::default();
-    config.tasks.collectors.push(spec);
+    config
+        .tasks
+        .collectors
+        .push(regex_spec("changes", Some("has(derived.changes)")));
     let problem = config.validate().unwrap_err();
     assert!(problem.text.contains("declaration order"), "{problem}");
 }
@@ -259,28 +352,11 @@ fn a_collector_cannot_read_its_own_field_in_its_when() {
 #[test]
 fn a_later_collector_may_read_an_earlier_field_but_not_the_reverse() {
     let mut config = Config::default();
-    config.tasks.collectors.push(CollectorSpec {
-        name: "changes".to_owned(),
-        when: None,
-        query: crate::config::CollectorQuery::Regex(RegexQuery {
-            section: SectionSpec::Name("Changes".to_owned()),
-            pattern: "x".to_owned(),
-            group: None,
-        }),
-        returns: CollectorType::List(Box::new(CollectorType::Atom(CollectorAtom::Path))),
-        root: None,
-    });
-    config.tasks.collectors.push(CollectorSpec {
-        name: "summary".to_owned(),
-        when: Some("len(derived.changes) > 0".to_owned()),
-        query: crate::config::CollectorQuery::Regex(RegexQuery {
-            section: SectionSpec::Name("Changes".to_owned()),
-            pattern: "x".to_owned(),
-            group: None,
-        }),
-        returns: CollectorType::List(Box::new(CollectorType::Atom(CollectorAtom::Path))),
-        root: None,
-    });
+    config.tasks.collectors.push(regex_spec("changes", None));
+    config
+        .tasks
+        .collectors
+        .push(regex_spec("summary", Some("len(derived.changes) > 0")));
     assert!(config.validate().is_ok(), "{:?}", config.validate());
     let mut reversed = config.clone();
     reversed.tasks.collectors.reverse();

@@ -107,6 +107,18 @@ pub(crate) fn path_filter(glob: &str, dicts: &Dicts) -> Result<PathFilter, Strin
     })
 }
 
+/// Whether `language` names a grammar this build ships, with no file walk.
+pub(crate) fn check_language(language: &str) -> Result<(), String> {
+    rust_language(language).map(|_| ())
+}
+
+/// Whether `pattern` compiles for `language`, with no file walk: the check a
+/// config makes so a bad pattern is one config error, not one problem per task.
+pub(crate) fn check_pattern(language: &str, pattern: &str) -> Result<(), String> {
+    let rust = rust_language(language)?;
+    compile_pattern(pattern, rust).map(|_| ())
+}
+
 /// The files the query matches inside `admitted`, under one process cache key
 /// shared by every consumer of `root`'s `scope`.
 pub(crate) fn matches(
@@ -224,17 +236,21 @@ fn compile(query: &Query, label: &str) -> Result<Compiled, String> {
             language, pattern, ..
         } => {
             let rust = rust_language(language)?;
-            let compiled = Pattern::try_new(pattern, rust).map_err(|err| {
-                format!("{label} isn't a pattern: {}", last_line(&err.to_string()))
-            })?;
-            if compiled.has_error() {
-                return Err(format!(
-                    "{label} isn't a pattern: the grammar reports an error"
-                ));
-            }
+            let compiled =
+                compile_pattern(pattern, rust).map_err(|err| format!("{label} {err}"))?;
             Ok(Compiled::AstGrep(compiled))
         }
     }
+}
+
+/// Compile an ast-grep `pattern` for one grammar, or say why it doesn't.
+fn compile_pattern(pattern: &str, language: ast_grep_language::Rust) -> Result<Pattern, String> {
+    let compiled = Pattern::try_new(pattern, language)
+        .map_err(|err| format!("isn't a pattern: {}", last_line(&err.to_string())))?;
+    if compiled.has_error() {
+        return Err("isn't a pattern: the grammar reports an error".to_owned());
+    }
+    Ok(compiled)
 }
 
 /// The one grammar this wave ships, named as a task may write it.

@@ -309,11 +309,30 @@ export the function when the config loads. An eval error, a `panic()` or a
 value that does not match `returns` is a `Collector` violation at
 `derived.<name>`, which `mt check` reports and `mt eval` prints.
 
+An ast-grep query reads code shape through the same query engine an estimate
+uses:
+
+// docs:hand-typed the ast-grep collector shape is a sketch until a fixture carries one
+```toml
+[[tasks.collectors]]
+name = "callers"
+query = { ast_grep = { language = "rust", pattern = "parse_task($$$ARGS)", glob = "crates/**" } }
+returns = ["path"]
+```
+
+`language` is `rust` or its alias `rs` in this version, `pattern` is an
+#link("https://ast-grep.github.io/guide/pattern-syntax.html")[ast-grep pattern],
+and `glob` is optional, a glob or a path-set name. Each matching file
+contributes its path once. The collector names no path set of its own, so a
+rule reads `count_paths(derived.callers, "@source")` as it does for any path
+list. A bad pattern, an unknown language, a bad glob or a `returns` other than
+`["path"]` is a config error.
+
 `returns` is a type expression. The atoms are `bool`, `int`, `number`,
 `string`, `path` and `date`. Wrap one in a one-element array for a list, as in
 `["path"]`, or write a record such as `{ count = "number", files = ["path"] }`.
-A regex query returns `["string"]` or `["path"]`. A task the `when` excludes
-carries no field at all.
+A regex query returns `["string"]` or `["path"]`, and an ast-grep query returns
+`["path"]`. A task the `when` excludes carries no field at all.
 
 Collectors merge by name across layers and packs, exactly as rules do, and
 `disable` drops one by name. Two collectors with the same name in one source

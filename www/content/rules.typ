@@ -153,10 +153,30 @@ case = "exact"
 values = ["**"]
 ```
 
-A Typst collector is the escape hatch for a structure a regex cannot read: it
-calls a project function over the task, or over one field, and the rule reads
-the value it returns. A failed call is a `Collector` violation at
-`derived.<name>`, so it fails `mt check` like any other breach.
+An ast-grep collector reads code shape instead. It matches Rust files through
+the shared query engine, publishes each path, and lets a rule bound a call-site
+count the way it bounds a Changes list:
+
+// docs:hand-typed the collector and rule shape is a sketch until examples/rules carries one
+```toml
+[[tasks.collectors]]
+name = "callers"
+when = "!terminal"
+query = { ast_grep = { language = "rust", pattern = "parse_task($$$ARGS)", glob = "crates/**" } }
+returns = ["path"]
+
+[[tasks.rules]]
+name = "callers-stay-local"
+when = '!terminal && difficulty >= 3'
+assert = 'count_paths(derived.callers, "@source") <= 3'
+message = "keep the parse-task fan-out small"
+severity = "error"
+```
+
+A Typst collector is the escape hatch for a structure a regex or a pattern
+cannot read: it calls a project function over the task, or over one field, and
+the rule reads the value it returns. A failed call is a `Collector` violation
+at `derived.<name>`, so it fails `mt check` like any other breach.
 
 `mt rules` lists the collectors under the rules, each with its origin, kind,
 type and readers; a Typst collector also names its module and function. `--for commit` omits them, since a commit rule cannot read a

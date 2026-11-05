@@ -119,8 +119,8 @@ pub use crate::body::content::{
 pub use crate::body::headers::{HeaderAction, HeaderPathSegment, HeaderRuleConfig, HeadersConfig};
 pub use crate::config::add::{AddConfig, InteractiveMode};
 pub use crate::config::collect::{
-    CollectorAtom, CollectorQuery, CollectorSpec, CollectorType, RegexQuery, SectionSpec,
-    TypstQuery, returns_of,
+    AstGrepFields, AstGrepQuery, CollectorAtom, CollectorQuery, CollectorSpec, CollectorType,
+    RegexQuery, SectionSpec, TypstQuery, returns_of,
 };
 pub use crate::config::dicts::{
     BUILTIN_PREFIX, Dict, DictCache, DictCase, DictSpec, Dicts, builtin_dict_names, compile_dicts,

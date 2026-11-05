@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A collector can count code shape.** `query = { ast_grep = { language,
+  pattern, glob } }` runs the shared query engine and publishes each matching
+  file as a `["path"]` field, so a rule reads
+  `count_paths(derived.<name>, "@source")`. A bad pattern, an unknown language,
+  a bad glob or a non-path `returns` fails config load; a query that cannot run
+  becomes a `Collector` violation at `derived.<name>`. `mt rules` shows the
+  `ast-grep` kind and the rules that read it.
 - **A collector can call a project Typst function.** `query = { typst,
   function, field }` runs an exported function over the whole task or one field
   and publishes its value as `derived.<name>`. The value is checked against

@@ -193,6 +193,15 @@ pub struct PathFilter {
 }
 
 impl PathFilter {
+    /// The filter that admits every path, for a consumer with no path set.
+    #[must_use]
+    pub(crate) const fn all() -> Self {
+        Self {
+            include: None,
+            exclude: None,
+        }
+    }
+
     /// Compile `globs`, a leading `!` marking an exclude.
     ///
     /// # Errors

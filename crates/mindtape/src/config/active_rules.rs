@@ -121,7 +121,8 @@ pub fn active_derived(config: &Config) -> Vec<DerivedField> {
                     crate::config::CollectorQuery::Typst(query) => {
                         Some(format!("{}::{}", query.typst, query.function))
                     }
-                    crate::config::CollectorQuery::Regex(_) => None,
+                    crate::config::CollectorQuery::Regex(_)
+                    | crate::config::CollectorQuery::AstGrep(_) => None,
                 },
                 returns: spec.returns.describe(),
                 origin: origins

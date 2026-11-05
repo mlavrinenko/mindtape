@@ -63,16 +63,35 @@ fn each_moment_enforces_the_sections_its_command_checks() {
 }
 
 #[test]
-fn a_typst_collector_line_names_its_module_and_function() {
-    let derived = DerivedField {
-        name: "derived.title".to_owned(),
-        kind: "typst".to_owned(),
-        detail: Some("lib.typ::title".to_owned()),
-        returns: "string".to_owned(),
-        origin: "config".to_owned(),
-        readers: Vec::new(),
-    };
-    let text = render(&[], std::slice::from_ref(&derived));
-    assert!(text.contains("typst lib.typ::title"), "{text}");
-    assert!(text.contains("derived.title"), "{text}");
+fn a_collector_line_names_its_kind_detail_and_readers() {
+    let cases = [
+        (
+            DerivedField {
+                name: "derived.title".to_owned(),
+                kind: "typst".to_owned(),
+                detail: Some("lib.typ::title".to_owned()),
+                returns: "string".to_owned(),
+                origin: "config".to_owned(),
+                readers: Vec::new(),
+            },
+            ["typst lib.typ::title", "derived.title"],
+        ),
+        (
+            DerivedField {
+                name: "derived.callers".to_owned(),
+                kind: "ast-grep".to_owned(),
+                detail: None,
+                returns: "[path]".to_owned(),
+                origin: "config".to_owned(),
+                readers: vec!["tasks.rules.small-fanout".to_owned()],
+            },
+            ["ast-grep", "read by tasks.rules.small-fanout"],
+        ),
+    ];
+    for (derived, expected) in cases {
+        let text = render(&[], std::slice::from_ref(&derived));
+        for part in expected {
+            assert!(text.contains(part), "{part}: {text}");
+        }
+    }
 }

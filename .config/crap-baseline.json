@@ -10533,9 +10533,27 @@
       "crate": "mindtape"
     },
     {
+      "file": "crates/mindtape/src/collect/astgrep.rs",
+      "function": "fail",
+      "line": 44,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/collect/astgrep.rs",
+      "function": "values",
+      "line": 21,
+      "cyclomatic": 2.0,
+      "coverage": 100.0,
+      "crap": 2.0,
+      "crate": "mindtape"
+    },
+    {
       "file": "crates/mindtape/src/collect/mod.rs",
       "function": "Compiled::applies",
-      "line": 65,
+      "line": 71,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -10544,25 +10562,25 @@
     {
       "file": "crates/mindtape/src/collect/mod.rs",
       "function": "Compiled::new",
-      "line": 49,
-      "cyclomatic": 3.0,
+      "line": 54,
+      "cyclomatic": 4.0,
       "coverage": 100.0,
-      "crap": 3.0,
+      "crap": 4.0,
       "crate": "mindtape"
     },
     {
       "file": "crates/mindtape/src/collect/mod.rs",
       "function": "Compiled::value",
-      "line": 73,
-      "cyclomatic": 6.0,
-      "coverage": 91.66666666666666,
-      "crap": 6.020833333333333,
+      "line": 79,
+      "cyclomatic": 9.0,
+      "coverage": 94.44444444444444,
+      "crap": 9.01388888888889,
       "crate": "mindtape"
     },
     {
       "file": "crates/mindtape/src/collect/mod.rs",
       "function": "annotate",
-      "line": 98,
+      "line": 113,
       "cyclomatic": 7.0,
       "coverage": 100.0,
       "crap": 7.0,
@@ -10571,7 +10589,7 @@
     {
       "file": "crates/mindtape/src/collect/mod.rs",
       "function": "regex_values",
-      "line": 128,
+      "line": 143,
       "cyclomatic": 4.0,
       "coverage": 95.23809523809523,
       "crap": 4.001727675197063,
@@ -11867,7 +11885,7 @@
     {
       "file": "crates/mindtape/src/config/active_rules.rs",
       "function": "active_rules",
-      "line": 166,
+      "line": 167,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -11876,7 +11894,7 @@
     {
       "file": "crates/mindtape/src/config/active_rules.rs",
       "function": "body_rule",
-      "line": 246,
+      "line": 247,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -11885,7 +11903,7 @@
     {
       "file": "crates/mindtape/src/config/active_rules.rs",
       "function": "commit_rule",
-      "line": 212,
+      "line": 213,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -11894,7 +11912,7 @@
     {
       "file": "crates/mindtape/src/config/active_rules.rs",
       "function": "flip_actions",
-      "line": 262,
+      "line": 263,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -11903,7 +11921,7 @@
     {
       "file": "crates/mindtape/src/config/active_rules.rs",
       "function": "flip_severity",
-      "line": 290,
+      "line": 291,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -11912,7 +11930,7 @@
     {
       "file": "crates/mindtape/src/config/active_rules.rs",
       "function": "hook_label",
-      "line": 286,
+      "line": 287,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -11921,7 +11939,7 @@
     {
       "file": "crates/mindtape/src/config/active_rules.rs",
       "function": "readers_of",
-      "line": 137,
+      "line": 138,
       "cyclomatic": 1.0,
       "coverage": 86.95652173913044,
       "crap": 1.002219117284458,
@@ -11930,7 +11948,7 @@
     {
       "file": "crates/mindtape/src/config/active_rules.rs",
       "function": "task_rule",
-      "line": 230,
+      "line": 231,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -11975,7 +11993,7 @@
     {
       "file": "crates/mindtape/src/config/collect.rs",
       "function": "CollectorQuery::kind",
-      "line": 82,
+      "line": 84,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -11993,7 +12011,7 @@
     {
       "file": "crates/mindtape/src/config/collect.rs",
       "function": "SectionSpec::path",
-      "line": 135,
+      "line": 163,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -12002,7 +12020,7 @@
     {
       "file": "crates/mindtape/src/config/collect.rs",
       "function": "last_line",
-      "line": 284,
+      "line": 349,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -12011,7 +12029,7 @@
     {
       "file": "crates/mindtape/src/config/collect.rs",
       "function": "returns_of",
-      "line": 145,
+      "line": 173,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -12020,7 +12038,7 @@
     {
       "file": "crates/mindtape/src/config/collect.rs",
       "function": "valid_name",
-      "line": 274,
+      "line": 339,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -12028,8 +12046,8 @@
     },
     {
       "file": "crates/mindtape/src/config/collect.rs",
-      "function": "validate_collectors",
-      "line": 154,
+      "function": "validate_ast_grep",
+      "line": 279,
       "cyclomatic": 7.0,
       "coverage": 100.0,
       "crap": 7.0,
@@ -12037,8 +12055,17 @@
     },
     {
       "file": "crates/mindtape/src/config/collect.rs",
+      "function": "validate_collectors",
+      "line": 182,
+      "cyclomatic": 8.0,
+      "coverage": 100.0,
+      "crap": 8.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/config/collect.rs",
       "function": "validate_regex",
-      "line": 205,
+      "line": 236,
       "cyclomatic": 8.0,
       "coverage": 100.0,
       "crap": 8.0,
@@ -12047,7 +12074,7 @@
     {
       "file": "crates/mindtape/src/config/collect.rs",
       "function": "validate_typst",
-      "line": 192,
+      "line": 223,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -12056,7 +12083,7 @@
     {
       "file": "crates/mindtape/src/config/collect.rs",
       "function": "warn_on_later_reads",
-      "line": 246,
+      "line": 311,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -15800,7 +15827,7 @@
     {
       "file": "crates/mindtape/src/estimate_queries.rs",
       "function": "annotate",
-      "line": 114,
+      "line": 115,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -15809,7 +15836,7 @@
     {
       "file": "crates/mindtape/src/estimate_queries.rs",
       "function": "parse_count",
-      "line": 85,
+      "line": 86,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -15818,7 +15845,7 @@
     {
       "file": "crates/mindtape/src/estimate_queries.rs",
       "function": "parse_estimate",
-      "line": 56,
+      "line": 57,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -15827,7 +15854,7 @@
     {
       "file": "crates/mindtape/src/estimate_queries.rs",
       "function": "resolve",
-      "line": 136,
+      "line": 137,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -15836,7 +15863,7 @@
     {
       "file": "crates/mindtape/src/estimate_queries.rs",
       "function": "validate_config",
-      "line": 161,
+      "line": 162,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -17420,7 +17447,7 @@
     {
       "file": "crates/mindtape/src/git/state.rs",
       "function": "GitCache::eq",
-      "line": 295,
+      "line": 304,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17429,7 +17456,7 @@
     {
       "file": "crates/mindtape/src/git/state.rs",
       "function": "GitCache::retired_refs",
-      "line": 344,
+      "line": 353,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17438,15 +17465,6 @@
     {
       "file": "crates/mindtape/src/git/state.rs",
       "function": "GitCache::set_root",
-      "line": 302,
-      "cyclomatic": 1.0,
-      "coverage": 100.0,
-      "crap": 1.0,
-      "crate": "mindtape"
-    },
-    {
-      "file": "crates/mindtape/src/git/state.rs",
-      "function": "GitCache::set_status",
       "line": 311,
       "cyclomatic": 1.0,
       "coverage": 100.0,
@@ -17455,8 +17473,17 @@
     },
     {
       "file": "crates/mindtape/src/git/state.rs",
+      "function": "GitCache::set_status",
+      "line": 320,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/git/state.rs",
       "function": "GitCache::status",
-      "line": 319,
+      "line": 328,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17465,7 +17492,7 @@
     {
       "file": "crates/mindtape/src/git/state.rs",
       "function": "GitCache::touching",
-      "line": 332,
+      "line": 341,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17519,7 +17546,7 @@
     {
       "file": "crates/mindtape/src/git/state.rs",
       "function": "PathFilter::admits",
-      "line": 246,
+      "line": 255,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -17527,8 +17554,17 @@
     },
     {
       "file": "crates/mindtape/src/git/state.rs",
+      "function": "PathFilter::all",
+      "line": 198,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/git/state.rs",
       "function": "PathFilter::count",
-      "line": 254,
+      "line": 263,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17537,7 +17573,7 @@
     {
       "file": "crates/mindtape/src/git/state.rs",
       "function": "PathFilter::new",
-      "line": 200,
+      "line": 209,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -17546,7 +17582,7 @@
     {
       "file": "crates/mindtape/src/git/state.rs",
       "function": "PathFilter::resolve",
-      "line": 223,
+      "line": 232,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -17573,7 +17609,7 @@
     {
       "file": "crates/mindtape/src/git/state.rs",
       "function": "git",
-      "line": 353,
+      "line": 362,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -17582,7 +17618,7 @@
     {
       "file": "crates/mindtape/src/git/state.rs",
       "function": "glob_set",
-      "line": 267,
+      "line": 276,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -18212,7 +18248,7 @@
     {
       "file": "crates/mindtape/src/lib.rs",
       "function": "select",
-      "line": 160,
+      "line": 161,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -20309,7 +20345,7 @@
     {
       "file": "crates/mindtape/src/query/mod.rs",
       "function": "Query::label",
-      "line": 59,
+      "line": 60,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -20317,17 +20353,44 @@
     },
     {
       "file": "crates/mindtape/src/query/mod.rs",
+      "function": "check_language",
+      "line": 111,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/query/mod.rs",
+      "function": "check_pattern",
+      "line": 117,
+      "cyclomatic": 2.0,
+      "coverage": 100.0,
+      "crap": 2.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/query/mod.rs",
       "function": "compile",
-      "line": 216,
-      "cyclomatic": 7.0,
-      "coverage": 88.88888888888889,
-      "crap": 7.06721536351166,
+      "line": 229,
+      "cyclomatic": 6.0,
+      "coverage": 100.0,
+      "crap": 6.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/query/mod.rs",
+      "function": "compile_pattern",
+      "line": 247,
+      "cyclomatic": 3.0,
+      "coverage": 100.0,
+      "crap": 3.0,
       "crate": "mindtape"
     },
     {
       "file": "crates/mindtape/src/query/mod.rs",
       "function": "last_line",
-      "line": 268,
+      "line": 285,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -20336,7 +20399,7 @@
     {
       "file": "crates/mindtape/src/query/mod.rs",
       "function": "list",
-      "line": 153,
+      "line": 166,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -20345,7 +20408,7 @@
     {
       "file": "crates/mindtape/src/query/mod.rs",
       "function": "matches",
-      "line": 111,
+      "line": 124,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -20354,7 +20417,7 @@
     {
       "file": "crates/mindtape/src/query/mod.rs",
       "function": "matches_file",
-      "line": 251,
+      "line": 268,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -20363,7 +20426,7 @@
     {
       "file": "crates/mindtape/src/query/mod.rs",
       "function": "parse",
-      "line": 82,
+      "line": 83,
       "cyclomatic": 10.0,
       "coverage": 100.0,
       "crap": 10.0,
@@ -20372,16 +20435,16 @@
     {
       "file": "crates/mindtape/src/query/mod.rs",
       "function": "path_filter",
-      "line": 102,
+      "line": 103,
       "cyclomatic": 1.0,
-      "coverage": 83.33333333333334,
-      "crap": 1.0046296296296295,
+      "coverage": 100.0,
+      "crap": 1.0,
       "crate": "mindtape"
     },
     {
       "file": "crates/mindtape/src/query/mod.rs",
       "function": "run",
-      "line": 190,
+      "line": 203,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -20390,7 +20453,7 @@
     {
       "file": "crates/mindtape/src/query/mod.rs",
       "function": "rust_language",
-      "line": 240,
+      "line": 257,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -20399,7 +20462,7 @@
     {
       "file": "crates/mindtape/src/query/mod.rs",
       "function": "tree",
-      "line": 144,
+      "line": 157,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,

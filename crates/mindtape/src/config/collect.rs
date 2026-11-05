@@ -74,17 +74,45 @@ pub enum CollectorQuery {
     Regex(RegexQuery),
     /// A project Typst function over the whole task or one of its fields.
     Typst(TypstQuery),
+    /// An ast-grep pattern over the working tree, through the shared engine.
+    AstGrep(AstGrepQuery),
 }
 
 impl CollectorQuery {
     /// The query's kind, as `mt rules` prints it.
     #[must_use]
     pub const fn kind(&self) -> &'static str {
-        match self {
-            Self::Regex(_) => "regex",
-            Self::Typst(_) => "typst",
+        if matches!(self, Self::Regex(_)) {
+            "regex"
+        } else if matches!(self, Self::Typst(_)) {
+            "typst"
+        } else {
+            "ast-grep"
         }
     }
+}
+
+/// An ast-grep query: `{ ast_grep = { language, pattern, glob? } }`. The
+/// shared engine runs it over the files git lists, so the collector names no
+/// path set of its own.
+#[derive(Debug, Clone, PartialEq, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct AstGrepQuery {
+    /// The language, pattern and optional glob the engine compiles.
+    pub ast_grep: AstGrepFields,
+}
+
+/// The body of an `ast_grep` query.
+#[derive(Debug, Clone, PartialEq, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "kebab-case", deny_unknown_fields)]
+pub struct AstGrepFields {
+    /// The grammar to parse with: `rust` or its alias `rs` in this wave.
+    pub language: String,
+    /// The pattern, in ast-grep syntax.
+    pub pattern: String,
+    /// A glob or `@name` path set a matched file must also fall in.
+    #[serde(default)]
+    pub glob: Option<String>,
 }
 
 /// A Typst query: call a project function over the canonical task, or over
@@ -166,6 +194,9 @@ pub(crate) fn validate_collectors(config: &Config) -> Vec<Problem> {
         match &spec.query {
             CollectorQuery::Regex(query) => validate_regex(query, spec, &path, &mut problems),
             CollectorQuery::Typst(query) => validate_typst(query, &path, &mut problems),
+            CollectorQuery::AstGrep(query) => {
+                validate_ast_grep(query, spec, &path, config, &mut problems);
+            }
         }
         if let Some(when) = &spec.when {
             if let Some(problem) = crate::filter::expr_problem_in_set(when, &probe, config) {
@@ -237,6 +268,40 @@ fn validate_regex(
     if !spec.returns.is_regex_output() {
         problems.push(Problem::new(format!(
             "{path}.returns: a regex query returns [\"string\"] or [\"path\"], not {}",
+            spec.returns.describe()
+        )));
+    }
+}
+
+/// An ast-grep query compiles through the shared engine at load, so a bad
+/// pattern, language or glob is one config error rather than one collector
+/// problem per task. Its only possible result is a list of paths.
+fn validate_ast_grep(
+    query: &AstGrepQuery,
+    spec: &CollectorSpec,
+    path: &str,
+    config: &Config,
+    problems: &mut Vec<Problem>,
+) {
+    let ast = &query.ast_grep;
+    let at = format!("{path}.query.ast_grep");
+    let language = crate::query::check_language(&ast.language);
+    if let Err(err) = &language {
+        problems.push(Problem::new(format!("{at}.language: {err}")));
+    }
+    if language.is_ok()
+        && let Err(err) = crate::query::check_pattern(&ast.language, &ast.pattern)
+    {
+        problems.push(Problem::new(format!("{at}.pattern: {err}")));
+    }
+    if let Some(glob) = &ast.glob
+        && let Err(err) = crate::query::path_filter(glob, config.compiled_dicts())
+    {
+        problems.push(Problem::new(format!("{at}.glob: {err}")));
+    }
+    if !spec.returns.is_path_list() {
+        problems.push(Problem::new(format!(
+            "{path}.returns: an ast-grep query returns [\"path\"], not {}",
             spec.returns.describe()
         )));
     }

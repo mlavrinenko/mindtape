@@ -145,6 +145,47 @@
       },
       "type": "object"
     },
+    "AstGrepFields": {
+      "additionalProperties": false,
+      "description": "The body of an `ast_grep` query.",
+      "properties": {
+        "glob": {
+          "default": null,
+          "description": "A glob or `@name` path set a matched file must also fall in.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "language": {
+          "description": "The grammar to parse with: `rust` or its alias `rs` in this wave.",
+          "type": "string"
+        },
+        "pattern": {
+          "description": "The pattern, in ast-grep syntax.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "language",
+        "pattern"
+      ],
+      "type": "object"
+    },
+    "AstGrepQuery": {
+      "additionalProperties": false,
+      "description": "An ast-grep query: `{ ast_grep = { language, pattern, glob? } }`. The\nshared engine runs it over the files git lists, so the collector names no\npath set of its own.",
+      "properties": {
+        "ast_grep": {
+          "$ref": "#/$defs/AstGrepFields",
+          "description": "The language, pattern and optional glob the engine compiles."
+        }
+      },
+      "required": [
+        "ast_grep"
+      ],
+      "type": "object"
+    },
     "Band": {
       "additionalProperties": false,
       "description": "One contiguous labeled range in a band classification.",
@@ -295,6 +336,10 @@
         {
           "$ref": "#/$defs/TypstQuery",
           "description": "A project Typst function over the whole task or one of its fields."
+        },
+        {
+          "$ref": "#/$defs/AstGrepQuery",
+          "description": "An ast-grep pattern over the working tree, through the shared engine."
         }
       ],
       "description": "The query a collector runs."
