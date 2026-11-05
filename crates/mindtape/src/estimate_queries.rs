@@ -5,9 +5,10 @@
 //! ```
 //!
 //! The prelude's `count(n, ..queries)` builds a `(count, queries)` dict, and
-//! `grep(regex, glob)` and `glob(pattern)` build one query each. A
-//! unit takes `count(...)` only when `[tasks.estimate.queries]` names the path
-//! set its matches must fall in:
+//! `grep(regex, glob)`, `glob(pattern)` and
+//! `ast_grep(language, pattern, glob)` build one query each. A unit takes
+//! `count(...)` only when `[tasks.estimate.queries]` names the path set its
+//! matches must fall in:
 //!
 //! ```toml
 //! [tasks.estimate.queries]

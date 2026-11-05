@@ -3,7 +3,8 @@
 //!
 //! Each [`Query`] names files git lists in the working tree: tracked ones, and
 //! untracked ones `.gitignore` doesn't hide. Matching is native, `regex` over
-//! file bytes and `globset` over paths, and never runs a shell. Paths are
+//! file bytes, `globset` over paths and the pinned ast-grep grammar over Rust
+//! source, and never runs a shell. Paths are
 //! relative to the repository root, as `changed()` reads them. Each project
 //! root lists its files once per process, and each distinct query runs once.
 //!
