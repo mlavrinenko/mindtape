@@ -22,7 +22,17 @@
 #let slices = checked-slices(
   json("../generated/rules-config.json"),
   "rules-config",
-  ("required", "assert", "wip-cap", "check", "headers", "content", "comments"),
+  (
+    "required",
+    "assert",
+    "wip-cap",
+    "ast-grep",
+    "ast-grep-source",
+    "check",
+    "headers",
+    "content",
+    "comments",
+  ),
 )
 
 Rules are how you tell `mt` what a good task looks like in your project.
@@ -157,21 +167,18 @@ An ast-grep collector reads code shape instead. It matches Rust files (`.rs`)
 through the shared query engine, publishes each matching path once, and lets a
 rule bound a file count the way it bounds a Changes list:
 
-// docs:hand-typed the collector and rule shape is a sketch until examples/rules carries one
-```toml
-[[tasks.collectors]]
-name = "callers"
-when = "!terminal"
-query = { ast_grep = { language = "rust", pattern = "parse_task($$$ARGS)", glob = "crates/**" } }
-returns = ["path"]
-
-[[tasks.rules]]
-name = "callers-stay-local"
-when = '!terminal && difficulty >= 3'
-assert = 'count_paths(derived.callers, "@source") <= 3'
-message = "keep the parse-task fan-out small"
-severity = "error"
-```
+#raw(
+  render-slices(
+    slices,
+    (
+      ("ast-grep", "the collector and the rule that reads it"),
+      ("ast-grep-source", "the @source set both read"),
+    ),
+    comment: "#",
+  ),
+  lang: "toml",
+  block: true,
+)
 
 The query's optional `glob`, a glob or `@name` path set, narrows the files it
 reads; without one it reads every file git lists. Paths are relative to the

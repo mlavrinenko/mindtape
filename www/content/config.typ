@@ -14,13 +14,15 @@
 
 #show: page.with(..meta)
 
-// Both TOML blocks are slices of checked fixtures, examples/statuses/ and
-// examples/rules/, which `just check-examples` validates.
+// The TOML blocks are slices of checked fixtures, examples/statuses/ and
+// examples/rules/, which `just check-examples` validates. /rules/ renders the
+// full ast-grep collector from the same fact and asserts its whole key set.
 #let slices = checked-slices(
   json("../generated/config-config.json"),
   "config-config",
   ("local-packages", "actors"),
 )
+#let rule-slices = json("../generated/rules-config.json").slices
 
 A project's config lives in `.mindtape/config.toml` at its root. Every key is
 optional. Any key you leave out takes its value from the floor, the defaults
@@ -312,13 +314,18 @@ value that does not match `returns` is a `Collector` violation at
 An ast-grep query reads code shape through the same query engine an estimate
 uses:
 
-// docs:hand-typed the ast-grep collector shape is a sketch until a fixture carries one
-```toml
-[[tasks.collectors]]
-name = "callers"
-query = { ast_grep = { language = "rust", pattern = "parse_task($$$ARGS)", glob = "crates/**" } }
-returns = ["path"]
-```
+#raw(
+  render-slices(
+    rule-slices,
+    (
+      ("ast-grep", "the collector and the rule that reads it"),
+      ("ast-grep-source", "the @source set both read"),
+    ),
+    comment: "#",
+  ),
+  lang: "toml",
+  block: true,
+)
 
 `language` is `rust` or its alias `rs` in this version, and a query reads only
 `.rs` files. `pattern` is an

@@ -37,6 +37,9 @@ capture --exit 1 --expect 'requires an unblocked task' statuses-unblocked "$S" '
   | jq -r -f "$REPO/www/status-moves.jq" | render_dot statuses-moves
 
 capture_copy R examples/rules
+# The ast-grep collector reads a git working tree, so the copy needs one even
+# though no task here writes a Rust file.
+git -C "$R" init -q
 capture --exit 1 --expect 'rules\.one-task-in-flight' rules-wip-cap "$R" 'mt flip wip add-csv-export'
 capture --exit 1 --expect 'rules\.bugs-outrank-the-low-band' rules-assert "$R" 'mt set fix-the-session-timeout priority=1'
 capture --exit 1 --expect 'required field is missing' rules-required "$R" 'mt set add-csv-export kind=bug'

@@ -4,7 +4,8 @@
 #
 # Its one job is the checks a project declares beyond the field shapes:
 # required fields, `[[tasks.rules]]` in both shapes, a work-in-progress cap,
-# the two body rule families, the review-comment policy and two commit rules,
+# an ast-grep collector, the two body rule families, the review-comment policy
+# and two commit rules,
 # which /commit-rules/ runs against a git copy of this project. The actor
 # registry is here because the required assignee needs one. Its three tasks
 # and its task template satisfy every rule here, so `just check-examples`
@@ -55,6 +56,23 @@ required = 'kind == "bug"'
 [tasks.assignee]
 allowed = ["ada", "lin"]
 required = "!terminal"
+# docs:end
+
+# The ast-grep collector is valid and empty: this fixture has no Rust source
+# under the repository-root `src/**` its @source path set names.
+# docs:slice rules/ast-grep
+[[tasks.collectors]]
+name = "callers"
+when = "!terminal"
+query = { ast_grep = { language = "rust", pattern = "parse_task($$$ARGS)", glob = "@source" } }
+returns = ["path"]
+
+[[tasks.rules]]
+name = "callers-stay-local"
+when = "!terminal && difficulty >= 3"
+assert = 'count_paths(derived.callers, "@source") <= 3'
+message = "keep the parse-task fan-out small"
+severity = "error"
 # docs:end
 
 # docs:slice rules/assert
@@ -125,6 +143,12 @@ message = "cut the paragraph to one em-dash at most"
 [tasks.comments]
 policy = "forbid"
 allow-pattern = "^TODO:"
+# docs:end
+
+# docs:slice rules/ast-grep-source
+[dicts.source]
+case = "exact"
+values = ["src/**"]
 # docs:end
 
 # docs:slice commit-rules/trailer
