@@ -8,7 +8,7 @@
 use std::path::PathBuf;
 
 use regex::Regex;
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 
 use crate::body::headers::HeaderPathSegment;
 use crate::config::Config;
@@ -67,7 +67,7 @@ impl CollectorSpec {
 }
 
 /// The query a collector runs.
-#[derive(Debug, Clone, PartialEq, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, schemars::JsonSchema)]
 #[serde(untagged)]
 pub enum CollectorQuery {
     /// A regex over one or more body sections.
@@ -76,6 +76,64 @@ pub enum CollectorQuery {
     Typst(TypstQuery),
     /// An ast-grep pattern over the working tree, through the shared engine.
     AstGrep(AstGrepQuery),
+}
+
+/// The keys that tell a collector query's kind apart, in the order tried.
+const QUERY_KEYS: [&str; 3] = ["section", "typst", "ast_grep"];
+
+/// Dispatch on the query's own key and let its struct read the table, rather
+/// than derive an untagged enum: serde's untagged error erases the field, while
+/// the struct keeps its `deny_unknown_fields` and missing-field messages. The
+/// table is buffered first because TOML key order is not the declared order.
+impl<'de> Deserialize<'de> for CollectorQuery {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let table = toml::Table::deserialize(deserializer)?;
+        if table.contains_key("section") {
+            parse_query(table, Self::Regex)
+        } else if table.contains_key("typst") {
+            parse_query(table, Self::Typst)
+        } else if table.contains_key("ast_grep") {
+            parse_query(table, Self::AstGrep)
+        } else if let Some(key) = table.keys().next() {
+            Err(serde::de::Error::unknown_field(key, &QUERY_KEYS))
+        } else {
+            Err(serde::de::Error::custom(
+                "a collector query needs a `section`, `typst` or `ast_grep` key",
+            ))
+        }
+    }
+}
+
+/// One variant's struct read from the buffered table, its error naming the
+/// field at fault.
+fn parse_query<T, E>(
+    table: toml::Table,
+    variant: fn(T) -> CollectorQuery,
+) -> Result<CollectorQuery, E>
+where
+    T: serde::de::DeserializeOwned,
+    E: serde::de::Error,
+{
+    T::deserialize(toml::Value::Table(table))
+        .map(variant)
+        .map_err(|err| delegated(&err))
+}
+
+/// A delegated struct's error, carrying the field it names. Unknown, missing
+/// and duplicate field messages already name it; a type mismatch says only
+/// what type it found, so the buffered table's key path is kept for those.
+fn delegated<E: serde::de::Error>(err: &toml::de::Error) -> E {
+    let named = ["unknown field `", "missing field `", "duplicate field `"]
+        .iter()
+        .any(|prefix| err.message().starts_with(prefix));
+    E::custom(if named {
+        err.message().to_owned()
+    } else {
+        err.to_string()
+    })
 }
 
 impl CollectorQuery {
@@ -359,3 +417,7 @@ fn last_line(text: &str) -> String {
 #[cfg(test)]
 #[path = "collect_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "collect_query_tests.rs"]
+mod query_tests;
