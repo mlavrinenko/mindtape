@@ -248,6 +248,21 @@ fn overlapping_queries_print_the_distinct_union() {
 }
 
 #[test]
+fn a_fractional_manual_count_prints_an_integer_distinct_union() {
+    let mut task = counted_greps(2.3, [2, 2]);
+    task.estimate_counts.get_mut("src-files").unwrap().manual = 0.3;
+    let text = super::breakdown(&task);
+    assert!(
+        text.contains("estimate.src-files = 2.3\n  0.3      manual\n"),
+        "{text}"
+    );
+    assert!(
+        text.ends_with("  2 files  distinct across all queries\n"),
+        "{text}"
+    );
+}
+
+#[test]
 fn disjoint_queries_print_no_distinct_union() {
     assert_eq!(
         super::breakdown(&counted_greps(3.0, [1, 1])),
