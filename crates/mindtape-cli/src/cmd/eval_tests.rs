@@ -209,6 +209,55 @@ fn counted() -> mindtape::Task {
     task
 }
 
+/// A task whose `src-files` resolved to `total`, from two greps over the same
+/// files when `matches` overlap, else over different ones.
+fn counted_greps(total: f64, matches: [usize; 2]) -> mindtape::Task {
+    use mindtape::estimate_queries::CountEstimate;
+    use mindtape::query::Query;
+    let mut task = mindtape::test_support::bare_task("t");
+    task.estimate.insert("src-files".to_owned(), total);
+    let count = CountEstimate {
+        manual: 1.0,
+        queries: vec![
+            Query::Grep {
+                regex: "warm".to_owned(),
+                glob: None,
+            },
+            Query::Grep {
+                regex: "fn".to_owned(),
+                glob: Some("src/**".to_owned()),
+            },
+        ],
+        matches: matches.to_vec(),
+        problem: None,
+    };
+    task.estimate_counts.insert("src-files".to_owned(), count);
+    task
+}
+
+#[test]
+fn overlapping_queries_print_the_distinct_union() {
+    assert_eq!(
+        super::breakdown(&counted_greps(3.0, [2, 2])),
+        "estimate.src-files = 3\n\
+         \x20 1        manual\n\
+         \x20 2 files  grep `warm`\n\
+         \x20 2 files  grep `fn` in `src/**`\n\
+         \x20 2 files  distinct across all queries\n"
+    );
+}
+
+#[test]
+fn disjoint_queries_print_no_distinct_union() {
+    assert_eq!(
+        super::breakdown(&counted_greps(3.0, [1, 1])),
+        "estimate.src-files = 3\n\
+         \x20 1       manual\n\
+         \x20 1 file  grep `warm`\n\
+         \x20 1 file  grep `fn` in `src/**`\n"
+    );
+}
+
 #[test]
 fn a_count_estimate_prints_its_manual_part_each_query_and_the_total() {
     assert_eq!(

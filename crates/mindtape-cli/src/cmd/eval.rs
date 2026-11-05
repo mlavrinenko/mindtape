@@ -195,8 +195,9 @@ fn resolve_counts(task: &mut Task, file: &Path, project: Option<&Project>) {
 
 /// Where each `count(...)` unit's number comes from: the resolved total, the
 /// manual part, and each query with the files it matched, aligned in two
-/// columns. A unit that didn't resolve prints why instead. Empty for a task
-/// with no count.
+/// columns. When the queries overlap, one note follows the rows with the
+/// distinct union, `total - manual`. A unit that didn't resolve prints why
+/// instead. Empty for a task with no count.
 fn breakdown(task: &Task) -> String {
     let mut out = String::new();
     for (unit, count) in &task.estimate_counts {
@@ -213,6 +214,13 @@ fn breakdown(task: &Task) -> String {
                 .zip(&count.matches)
                 .map(|(query, files)| (mindtape::count(*files, "file"), query.label())),
         );
+        let union = total - count.manual;
+        if count.matches.iter().sum::<usize>() as f64 > union {
+            rows.push((
+                mindtape::count(union, "file"),
+                "distinct across all queries".to_owned(),
+            ));
+        }
         let width = rows
             .iter()
             .map(|(left, _)| left.chars().count())

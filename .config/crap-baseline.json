@@ -2381,16 +2381,16 @@
     {
       "file": "crates/mindtape-cli/src/cmd/eval.rs",
       "function": "breakdown",
-      "line": 200,
-      "cyclomatic": 3.0,
+      "line": 201,
+      "cyclomatic": 4.0,
       "coverage": 100.0,
-      "crap": 3.0,
+      "crap": 4.0,
       "crate": "mindtape-cli"
     },
     {
       "file": "crates/mindtape-cli/src/cmd/eval.rs",
       "function": "build_world_and_config",
-      "line": 319,
+      "line": 327,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -2426,7 +2426,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/eval.rs",
       "function": "hashes_for",
-      "line": 283,
+      "line": 291,
       "cyclomatic": 3.0,
       "coverage": 52.94117647058824,
       "crap": 3.9379198046000408,
@@ -2453,7 +2453,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/eval.rs",
       "function": "print_json",
-      "line": 237,
+      "line": 245,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -2462,7 +2462,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/eval.rs",
       "function": "print_table",
-      "line": 258,
+      "line": 266,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,

@@ -108,7 +108,7 @@ groups:
       www/content/named-sets.typ: 32193f399664b8339c9a9ace4e614ed26f8fa1e742f4887df0d632c7b4b38720
   cli-eval-docs:
     source:
-      crates/mindtape-cli/src/cmd/eval.rs: 88fdc75db95eeb084c33abc657753b1a32fdfebea763b9bfd6f053ea8ae36fdf
+      crates/mindtape-cli/src/cmd/eval.rs: a8cc2ade8765b96407c57ea25ceba3d731dd73f227b340a8567e01bbb6781497
     dependents:
       www/content/agents.typ: d0d98ebce6f001845351e6832602b9851283a556952492c8c7c42db91ae00b3a
       www/content/schema.typ: b8699683b1a40f4e6bb90ed7b60bb7988566f0141d8fe9ca3b8b803415b01945
