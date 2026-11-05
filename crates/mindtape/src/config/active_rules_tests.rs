@@ -1,7 +1,10 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use super::{ActiveRule, RuleSection, active_derived, active_rules};
-use crate::config::parse_config;
+use crate::config::{
+    AstGrepFields, AstGrepQuery, CollectorAtom, CollectorQuery, CollectorSpec, CollectorType,
+    Config, parse_config,
+};
 use crate::rules::CheckSpec;
 use crate::validate::severity::Severity;
 
@@ -219,8 +222,33 @@ message = "keep the fan-out small"
     let derived = active_derived(&config);
     assert_eq!(derived.len(), 1);
     assert_eq!(derived[0].kind, "ast-grep");
-    assert_eq!(derived[0].detail, None);
+    assert_eq!(
+        derived[0].detail.as_deref(),
+        Some("rust `parse_task($$$ARGS)`")
+    );
     assert_eq!(derived[0].readers, ["rules.small-fanout"]);
+}
+
+#[test]
+fn an_ast_grep_collector_with_a_glob_names_it_in_the_detail() {
+    let mut config = Config::default();
+    config.tasks.collectors.push(CollectorSpec::new(
+        "callers",
+        None,
+        CollectorQuery::AstGrep(AstGrepQuery {
+            ast_grep: AstGrepFields {
+                language: "rust".to_owned(),
+                pattern: "warm($$$ARGS)".to_owned(),
+                glob: Some("src/**".to_owned()),
+            },
+        }),
+        CollectorType::List(Box::new(CollectorType::Atom(CollectorAtom::Path))),
+    ));
+    let derived = active_derived(&config);
+    assert_eq!(
+        derived[0].detail.as_deref(),
+        Some("rust `warm($$$ARGS)` in `src/**`")
+    );
 }
 
 #[test]

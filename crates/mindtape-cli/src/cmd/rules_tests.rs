@@ -80,12 +80,15 @@ fn a_collector_line_names_its_kind_detail_and_readers() {
             DerivedField {
                 name: "derived.callers".to_owned(),
                 kind: "ast-grep".to_owned(),
-                detail: None,
+                detail: Some("rust `warm($$$ARGS)` in `src/**`".to_owned()),
                 returns: "[path]".to_owned(),
                 origin: "config".to_owned(),
                 readers: vec!["tasks.rules.small-fanout".to_owned()],
             },
-            ["ast-grep", "read by tasks.rules.small-fanout"],
+            [
+                "ast-grep rust `warm($$$ARGS)` in `src/**`",
+                "read by tasks.rules.small-fanout",
+            ],
         ),
     ];
     for (derived, expected) in cases {
@@ -94,4 +97,34 @@ fn a_collector_line_names_its_kind_detail_and_readers() {
             assert!(text.contains(part), "{part}: {text}");
         }
     }
+}
+
+/// An ast-grep [`DerivedField`] with `detail`, as `active_derived` builds it.
+fn ast_grep_field(name: &str, detail: &str) -> DerivedField {
+    DerivedField {
+        name: name.to_owned(),
+        kind: "ast-grep".to_owned(),
+        detail: Some(detail.to_owned()),
+        returns: "[path]".to_owned(),
+        origin: "config".to_owned(),
+        readers: Vec::new(),
+    }
+}
+
+#[test]
+fn two_ast_grep_collectors_render_different_lines() {
+    let fields = [
+        ast_grep_field("derived.callers-a", "rust `parse_task($$$ARGS)`"),
+        ast_grep_field("derived.callers-b", "rust `warm($$$ARGS)` in `src/**`"),
+    ];
+
+    let text = render(&[], &fields);
+    assert!(
+        text.contains("derived.callers-a  ast-grep rust `parse_task($$$ARGS)`"),
+        "{text}"
+    );
+    assert!(
+        text.contains("derived.callers-b  ast-grep rust `warm($$$ARGS)` in `src/**`"),
+        "{text}"
+    );
 }

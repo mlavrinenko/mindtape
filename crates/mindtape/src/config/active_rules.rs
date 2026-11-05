@@ -90,7 +90,9 @@ pub struct DerivedField {
     pub name: String,
     /// The query kind, `regex` or `typst`.
     pub kind: String,
-    /// The Typst module and function, `module::function`, for a Typst query.
+    /// A Typst query's module and function, `module::function`, or an
+    /// ast-grep query's language, pattern and optional glob, such as
+    /// ``rust `parse_task($$$ARGS)` ``.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub detail: Option<String>,
     /// The declared `returns` type.
@@ -121,8 +123,16 @@ pub fn active_derived(config: &Config) -> Vec<DerivedField> {
                     crate::config::CollectorQuery::Typst(query) => {
                         Some(format!("{}::{}", query.typst, query.function))
                     }
-                    crate::config::CollectorQuery::Regex(_)
-                    | crate::config::CollectorQuery::AstGrep(_) => None,
+                    crate::config::CollectorQuery::AstGrep(query) => {
+                        let ast = &query.ast_grep;
+                        Some(match &ast.glob {
+                            Some(glob) => {
+                                format!("{} `{}` in `{glob}`", ast.language, ast.pattern)
+                            }
+                            None => format!("{} `{}`", ast.language, ast.pattern),
+                        })
+                    }
+                    crate::config::CollectorQuery::Regex(_) => None,
                 },
                 returns: spec.returns.describe(),
                 origin: origins
