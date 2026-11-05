@@ -77,7 +77,7 @@ fn an_unknown_path_set_is_a_problem() {
 
 /// The files `query` matches inside `src/**`, over a git tempdir holding
 /// `files`.
-fn matched(files: &[(&str, &str)], query: &Query) -> Result<Vec<String>, String> {
+fn matched(files: &[(&str, &[u8])], query: &Query) -> Result<Vec<String>, String> {
     let dir = git_tempdir();
     for (path, contents) in files {
         write_file(dir.path(), path, contents);
@@ -93,7 +93,7 @@ fn a_glob_query_reads_the_listed_paths_inside_its_set() {
     let query = Query::Glob {
         pattern: "**/*.rs".to_owned(),
     };
-    let matched = matched(&[("src/a.rs", ""), ("docs/a.rs", "")], &query).unwrap();
+    let matched = matched(&[("src/a.rs", b""), ("docs/a.rs", b"")], &query).unwrap();
     assert_eq!(matched, ["src/a.rs"]);
 }
 
@@ -150,7 +150,7 @@ fn labels_an_ast_grep_query_with_its_language_and_scope() {
 
 #[test]
 fn a_bad_pattern_or_unknown_language_is_a_problem() {
-    let files = [("src/a.rs", "fn a() { parse_task(1); }\n")];
+    let files = [("src/a.rs", b"fn a() { parse_task(1); }\n".as_slice())];
     let problem = matched(&files, &ast_grep("rust", "fn (", None)).unwrap_err();
     assert!(problem.contains("isn't a pattern"), "{problem}");
     let problem = matched(&files, &ast_grep("python", "x = 1", None)).unwrap_err();
@@ -160,10 +160,23 @@ fn a_bad_pattern_or_unknown_language_is_a_problem() {
 #[test]
 fn a_file_matching_twice_counts_once_inside_the_ast_grep_glob() {
     let files = [
-        ("src/a.rs", "fn a() { parse_task(1); parse_task(2); }"),
-        ("src/b.rs", "fn b() { other(); }\n"),
-        ("lib/c.rs", "fn c() { parse_task(3); }\n"),
+        (
+            "src/a.rs",
+            b"fn a() { parse_task(1); parse_task(2); }".as_slice(),
+        ),
+        ("src/b.rs", b"fn b() { other(); }\n".as_slice()),
+        ("lib/c.rs", b"fn c() { parse_task(3); }\n".as_slice()),
     ];
     let query = ast_grep("rs", "parse_task($$$ARGS)", Some("src/*.rs"));
     assert_eq!(matched(&files, &query).unwrap(), ["src/a.rs"]);
+}
+
+#[test]
+fn a_non_utf8_file_matches_nothing() {
+    let query = ast_grep("rust", "fn $NAME()", None);
+    assert!(
+        matched(&[("src/a.rs", &[0xff, 0xfe])], &query)
+            .unwrap()
+            .is_empty()
+    );
 }
