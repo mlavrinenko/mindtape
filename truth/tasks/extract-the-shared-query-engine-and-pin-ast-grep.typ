@@ -74,5 +74,5 @@ ast-grep-language = { version = "0.50", default-features = false, features = ["t
 
 == Dogfood
 
-This repo's estimate units keep resolving, and the later leaves reuse this engine.
+This repo's estimate units keep resolving, and the later leaves reuse this engine. The Windows cross check passes with the C grammar built.
 
