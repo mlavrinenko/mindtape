@@ -85,7 +85,12 @@ fn matched(files: &[(&str, &[u8])], query: &Query) -> Result<Vec<String>, String
     let config = parse_config("").unwrap();
     let dicts = config.compiled_dicts();
     let admitted = path_filter("src/**", dicts).unwrap();
-    super::matches(dir.path(), "src/**", query, &admitted, dicts).map(|files| files.to_vec())
+    super::matches(dir.path(), "src/**", query, &admitted, dicts).map(|files| {
+        files
+            .iter()
+            .map(|path| path.to_string_lossy().into_owned())
+            .collect()
+    })
 }
 
 #[test]
@@ -191,4 +196,28 @@ fn an_ast_grep_query_reads_only_the_languages_files() {
     ];
     let query = ast_grep("rust", "parse_task($$$ARGS)", None);
     assert_eq!(matched(&files, &query).unwrap(), ["src/a.rs"]);
+}
+
+#[cfg(unix)]
+#[test]
+fn a_non_utf8_name_stays_in_the_file_list() {
+    use std::ffi::OsStr;
+    use std::os::unix::ffi::OsStrExt;
+
+    let dir = git_tempdir();
+    write_file(dir.path(), "src/ok.rs", "fn a() { parse_task(1); }\n");
+    let bad = std::path::Path::new("src").join(OsStr::from_bytes(b"bad\xffname.rs"));
+    write_file(dir.path(), &bad, "fn b() { parse_task(2); }\n");
+
+    let config = parse_config("").unwrap();
+    let dicts = config.compiled_dicts();
+    let admitted = path_filter("src/**", dicts).unwrap();
+    let query = ast_grep("rust", "parse_task($$$ARGS)", None);
+    let files = super::matches(dir.path(), "src/**", &query, &admitted, dicts).unwrap();
+    assert_eq!(files.len(), 2, "{files:?}");
+    assert!(
+        files
+            .iter()
+            .any(|path| path.as_os_str() == OsStr::from_bytes(b"src/bad\xffname.rs"))
+    );
 }

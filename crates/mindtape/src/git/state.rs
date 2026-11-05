@@ -253,6 +253,12 @@ impl PathFilter {
     /// Whether `path` counts.
     #[must_use]
     pub fn admits(&self, path: &str) -> bool {
+        self.admits_path(Path::new(path))
+    }
+
+    /// Whether `path` counts, without turning it into text.
+    #[must_use]
+    pub fn admits_path(&self, path: &Path) -> bool {
         self.include.as_ref().is_none_or(|set| set.is_match(path))
             && !self.exclude.as_ref().is_some_and(|set| set.is_match(path))
     }
@@ -360,6 +366,15 @@ impl GitCache {
 /// # Errors
 /// Git's own first stderr line on a non-zero exit, or why it could not start.
 pub(crate) fn git(root: &Path, args: &[&str]) -> Result<String, String> {
+    git_bytes(root, args).map(|stdout| String::from_utf8_lossy(&stdout).into_owned())
+}
+
+/// Run one read-only git command in `root` and return its stdout bytes, for a
+/// caller that must keep a path git printed raw.
+///
+/// # Errors
+/// Git's own first stderr line on a non-zero exit, or why it could not start.
+pub(crate) fn git_bytes(root: &Path, args: &[&str]) -> Result<Vec<u8>, String> {
     let output = Command::new("git")
         .arg("--no-optional-locks")
         .arg("-C")
@@ -368,7 +383,7 @@ pub(crate) fn git(root: &Path, args: &[&str]) -> Result<String, String> {
         .output()
         .map_err(|err| format!("can't run git: {err}"))?;
     if output.status.success() {
-        return Ok(String::from_utf8_lossy(&output.stdout).into_owned());
+        return Ok(output.stdout);
     }
     let stderr = String::from_utf8_lossy(&output.stderr);
     let reason = stderr.lines().next().unwrap_or("git failed").trim();

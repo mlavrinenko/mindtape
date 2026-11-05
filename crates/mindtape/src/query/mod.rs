@@ -16,6 +16,8 @@
 //! - `tests.rs`: query parsing, labels and the engine's match rules.
 
 use std::collections::{BTreeMap, BTreeSet};
+#[cfg(unix)]
+use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, PoisonError};
 
@@ -24,7 +26,7 @@ use ast_grep_language::{LanguageExt, SupportLang};
 use typst_harvest::HVal;
 
 use crate::config::dicts::Dicts;
-use crate::git::state::{PathFilter, PathSetError, git};
+use crate::git::state::{PathFilter, PathSetError, git, git_bytes};
 
 /// One file query inside `count(...)`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -127,7 +129,7 @@ pub(crate) fn matches(
     query: &Query,
     admitted: &PathFilter,
     dicts: &Dicts,
-) -> Result<Arc<[String]>, String> {
+) -> Result<Arc<[PathBuf]>, String> {
     let tree = tree(root)?;
     let key = (root.to_path_buf(), scope.to_owned(), query.clone());
     let mut memo = MATCHES.lock().unwrap_or_else(PoisonError::into_inner);
@@ -142,7 +144,7 @@ struct Tree {
     /// The repository root the paths are relative to.
     top: PathBuf,
     /// Tracked and untracked-but-not-ignored files under the project root.
-    files: Vec<String>,
+    files: Vec<PathBuf>,
 }
 
 /// Every working tree listed so far, keyed by project root.
@@ -150,7 +152,7 @@ static TREES: Mutex<BTreeMap<PathBuf, Result<Arc<Tree>, String>>> = Mutex::new(B
 
 /// Every query run so far, keyed by project root, unit path set and query.
 type MatchKey = (PathBuf, String, Query);
-type Matched = Result<Arc<[String]>, String>;
+type Matched = Result<Arc<[PathBuf]>, String>;
 static MATCHES: Mutex<BTreeMap<MatchKey, Matched>> = Mutex::new(BTreeMap::new());
 
 /// The files git lists under `root`, read once per process.
@@ -162,11 +164,24 @@ fn tree(root: &Path) -> Result<Arc<Tree>, String> {
         .clone()
 }
 
+/// A path git printed raw, kept as the bytes the filesystem holds.
+fn path_from_bytes(bytes: &[u8]) -> PathBuf {
+    #[cfg(unix)]
+    {
+        use std::os::unix::ffi::OsStrExt;
+        PathBuf::from(OsStr::from_bytes(bytes))
+    }
+    #[cfg(not(unix))]
+    {
+        PathBuf::from(String::from_utf8_lossy(bytes).into_owned())
+    }
+}
+
 /// Ask git for `root`'s repository root and listed files.
 fn list(root: &Path) -> Result<Tree, String> {
     let fail = |reason: String| format!("can't list files for a query: {reason}");
     let top = git(root, &["rev-parse", "--show-toplevel"]).map_err(fail)?;
-    let listed = git(
+    let listed = git_bytes(
         root,
         &[
             "ls-files",
@@ -178,10 +193,10 @@ fn list(root: &Path) -> Result<Tree, String> {
         ],
     )
     .map_err(fail)?;
-    let files: BTreeSet<String> = listed
-        .split('\0')
+    let files: BTreeSet<PathBuf> = listed
+        .split(|byte| *byte == 0)
         .filter(|path| !path.is_empty())
-        .map(str::to_owned)
+        .map(path_from_bytes)
         .collect();
     Ok(Tree {
         top: PathBuf::from(top.trim_end_matches(['\n', '\r'])),
@@ -210,7 +225,7 @@ fn run(
     admitted: &PathFilter,
     query: &Query,
     dicts: &Dicts,
-) -> Result<Vec<String>, String> {
+) -> Result<Vec<PathBuf>, String> {
     let label = query.label();
     let scope = match query {
         Query::Grep { glob, .. } | Query::AstGrep { glob, .. } => glob.as_deref(),
@@ -222,7 +237,7 @@ fn run(
         .map_err(|err| format!("{label}: {err}"))?;
     let compiled = compile(query, &label)?;
     let candidates = tree.files.iter().filter(|path| {
-        admitted.admits(path) && scope.as_ref().is_none_or(|scope| scope.admits(path))
+        admitted.admits_path(path) && scope.as_ref().is_none_or(|scope| scope.admits_path(path))
     });
     Ok(candidates
         .filter(|path| matches_file(tree, path, &compiled))
@@ -270,13 +285,13 @@ fn grammar(language: &str) -> Result<SupportLang, String> {
 
 /// Whether `path` matches the compiled query. A tracked file deleted from the
 /// working tree is still listed; it matches nothing.
-fn matches_file(tree: &Tree, path: &str, compiled: &Compiled) -> bool {
+fn matches_file(tree: &Tree, path: &Path, compiled: &Compiled) -> bool {
     let file = tree.top.join(path);
     match compiled {
         Compiled::Grep(regex) => std::fs::read(&file).is_ok_and(|bytes| regex.is_match(&bytes)),
         Compiled::Paths => file.is_file(),
         Compiled::AstGrep { grammar, pattern } => {
-            if SupportLang::from_path(Path::new(path)) != Some(*grammar) {
+            if SupportLang::from_path(path) != Some(*grammar) {
                 return false;
             }
             std::fs::read_to_string(&file)

@@ -383,3 +383,19 @@ fn a_later_collector_may_read_an_earlier_field_but_not_the_reverse() {
     let problem = reversed.validate().unwrap_err();
     assert!(problem.text.contains("declaration order"), "{problem}");
 }
+
+#[cfg(unix)]
+#[test]
+fn a_collector_publishes_one_path_per_lossy_spelling() {
+    use std::ffi::OsStr;
+    use std::os::unix::ffi::OsStrExt;
+
+    let (dir, config) = ast_project(CALLERS, &[]);
+    for name in [b"bad\xffname.rs".as_slice(), b"bad\xfename.rs".as_slice()] {
+        let path = std::path::Path::new("src").join(OsStr::from_bytes(name));
+        write_file(dir.path(), &path, "fn a() { parse_task(1); }\n");
+    }
+    let mut tasks = vec![task("")];
+    crate::collect::annotate(&mut tasks, &config);
+    assert_eq!(strings(&tasks[0], "callers").len(), 1);
+}

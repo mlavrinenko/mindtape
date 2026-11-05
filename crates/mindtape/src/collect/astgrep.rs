@@ -37,7 +37,11 @@ pub(crate) fn values(
         config.compiled_dicts(),
     )
     .map_err(|err| fail(name, &err))?;
-    Ok(files.iter().cloned().map(HVal::Str).collect())
+    let paths: std::collections::BTreeSet<String> = files
+        .iter()
+        .map(|path| path.to_string_lossy().into_owned())
+        .collect();
+    Ok(paths.into_iter().map(HVal::Str).collect())
 }
 
 /// One problem naming the derived field and why the engine refused.
