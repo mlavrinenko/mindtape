@@ -148,3 +148,27 @@ fn eval_a_file_under_no_project_reads_the_global_config() {
     assert_eq!(task["id"], "solo", "{task}");
     assert_eq!(task["derived"]["changes"][0], "src/a.rs", "{task}");
 }
+
+#[test]
+fn rules_lists_an_ast_grep_collector_and_its_reader() {
+    let dir = scaffold_project(
+        r#"[tasks]
+roots = ["tasks"]
+
+[[tasks.collectors]]
+name = "callers"
+query = { ast_grep = { language = "rust", pattern = "parse_task($$$ARGS)" } }
+returns = ["path"]
+
+[[tasks.rules]]
+name = "small-fanout"
+assert = 'len(derived.callers) <= 2'
+message = "keep the fan-out small"
+severity = "error"
+"#,
+    );
+    let text = stdout(dir.path(), &["rules"]);
+    for part in ["ast-grep", "derived.callers", "read by rules.small-fanout"] {
+        assert!(text.contains(part), "{part}: {text}");
+    }
+}
