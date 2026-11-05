@@ -123,7 +123,7 @@ fn an_unknown_path_set_in_a_commit_rule_carries_the_nearest_dict() {
         .unknown
         .clone()
         .expect("the problem carries the dicts");
-    assert_eq!(unknown.nearest.as_deref(), Some("verbs"));
+    assert_eq!(unknown.nearest.as_deref(), Some("@verbs"));
 }
 
 #[test]

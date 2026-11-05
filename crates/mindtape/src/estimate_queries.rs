@@ -170,30 +170,32 @@ fn resolve(
 }
 
 /// A query problem as the one-line text an estimate keeps, with the nearest
-/// path-set name appended where a `Problem` would carry it as a hint.
+/// `@name` path set appended where a `Problem` would carry it as a hint.
 fn problem_text(problem: Problem) -> String {
     match problem
         .unknown
         .as_ref()
         .and_then(|unknown| unknown.nearest.as_deref())
     {
-        Some(nearest) => format!("{problem}; did you mean `@{nearest}`?"),
+        Some(nearest) => format!("{problem}; did you mean `{nearest}`?"),
         None => problem.text,
     }
 }
 
 /// Config-load problems in `[tasks.estimate.queries]`: a unit outside a
 /// declared `units` list, or a path set that doesn't resolve.
-pub(crate) fn validate_config(config: &Config) -> Vec<String> {
+pub(crate) fn validate_config(config: &Config) -> Vec<Problem> {
     let estimate = &config.tasks.estimate;
     let mut problems = Vec::new();
     for (unit, set) in &estimate.queries {
         let at = format!("tasks.estimate.queries.{unit}");
         if !estimate.units.is_empty() && !estimate.units.contains(unit) {
-            problems.push(format!("{at}: `{unit}` is not an allowed estimate unit"));
+            problems.push(Problem::new(format!(
+                "{at}: `{unit}` is not an allowed estimate unit"
+            )));
         }
         if let Err(problem) = query::path_filter(set, config.compiled_dicts()) {
-            problems.push(format!("{at}: {problem}"));
+            problems.push(problem.under(&at));
         }
     }
     problems

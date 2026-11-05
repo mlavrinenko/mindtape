@@ -59,7 +59,7 @@ impl Config {
             "on.flip",
         )));
         problems.extend(plain(crate::waits::validate_checkers(self)));
-        problems.extend(plain(crate::estimate_queries::validate_config(self)));
+        problems.extend(crate::estimate_queries::validate_config(self));
         problems.extend(validate_ls_rules_with(
             &self.ls.rules,
             &self.views,

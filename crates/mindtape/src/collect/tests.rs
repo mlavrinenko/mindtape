@@ -400,12 +400,12 @@ fn a_collector_publishes_one_path_per_lossy_spelling() {
     assert_eq!(strings(&tasks[0], "callers").len(), 1);
 }
 
-/// `problem` names a missing `@sorce` and carries the nearest `source`.
+/// `problem` names a missing `@sorce` and carries the nearest `@source`.
 fn assert_nearest_source(problem: &crate::problem::Problem) {
     assert!(problem.text.contains("no path set"), "{problem}");
     assert_eq!(
         problem.unknown.as_ref().unwrap().nearest.as_deref(),
-        Some("source")
+        Some("@source")
     );
 }
 

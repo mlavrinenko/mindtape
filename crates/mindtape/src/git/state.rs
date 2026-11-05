@@ -236,9 +236,12 @@ impl PathFilter {
                 expanded.push(glob.clone());
                 continue;
             };
-            let dict = dicts.get(name).ok_or_else(|| PathSetError::Unknown {
-                name: name.to_owned(),
-                unknown: Unknown::among(name, dicts.names()),
+            let dict = dicts.get(name).ok_or_else(|| {
+                let known: Vec<String> = dicts.names().map(|known| format!("@{known}")).collect();
+                PathSetError::Unknown {
+                    name: name.to_owned(),
+                    unknown: Unknown::among(&format!("@{name}"), known.iter().map(String::as_str)),
+                }
             })?;
             if dict.case() != DictCase::Exact {
                 return Err(PathSetError::Invalid(format!(

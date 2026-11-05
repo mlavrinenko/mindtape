@@ -85,8 +85,8 @@ fn a_typo_path_set_carries_the_nearest_name_as_a_hint() {
     let problem = path_set_problem("@sorce");
     assert_eq!(problem.text, "no path set is named `@sorce`");
     let unknown = problem.unknown.unwrap();
-    assert_eq!(unknown.nearest.as_deref(), Some("source"));
-    assert!(unknown.names.iter().any(|name| name == "source"));
+    assert_eq!(unknown.nearest.as_deref(), Some("@source"));
+    assert!(unknown.names.iter().any(|name| name == "@source"));
 }
 
 #[test]

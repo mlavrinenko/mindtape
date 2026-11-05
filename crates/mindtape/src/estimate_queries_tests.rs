@@ -95,18 +95,39 @@ fn a_count_without_a_number_is_a_shape_error() {
     assert!(plain.is_empty() && counts.is_empty());
 }
 
+/// The one problem validating the config `source` parses to.
+fn one_problem(source: &str) -> crate::problem::Problem {
+    let problems = validate_config(&parse_config(source).unwrap());
+    assert_eq!(problems.len(), 1, "{problems:?}");
+    problems.into_iter().next().unwrap()
+}
+
 #[test]
 fn a_queries_unit_outside_the_allow_list_is_a_config_problem() {
-    let config = parse_config(
+    let problem = one_problem(
         "[tasks.estimate]\nunits = [\"files\"]\n\n[tasks.estimate.queries]\nfiles = \"src/**\"\nhours = \"src/**\"\n",
-    )
-    .unwrap();
-    assert_eq!(
-        validate_config(&config),
-        vec!["tasks.estimate.queries.hours: `hours` is not an allowed estimate unit".to_owned()]
     );
+    assert_eq!(
+        problem.text,
+        "tasks.estimate.queries.hours: `hours` is not an allowed estimate unit"
+    );
+    assert!(problem.unknown.is_none());
     let config = parse_config("[tasks.estimate.queries]\nfiles = \"src/**\"\n").unwrap();
     assert!(validate_config(&config).is_empty());
+}
+
+#[test]
+fn a_config_path_set_typo_carries_the_nearest_name_as_a_hint() {
+    let problem = one_problem(
+        "[tasks.estimate.queries]\nfiles = \"@sorce\"\n\n[dicts.source]\nvalues = [\"src/**\"]\n",
+    );
+    assert_eq!(
+        problem.text,
+        "tasks.estimate.queries.files: no path set is named `@sorce`"
+    );
+    let unknown = problem.unknown.unwrap();
+    assert_eq!(unknown.nearest.as_deref(), Some("@source"));
+    assert!(unknown.names.contains(&"@source".to_owned()));
 }
 
 /// A task estimating `hours: 2` and `files: count(1, query)`, resolved under
