@@ -94,6 +94,17 @@ fn parse_count(value: &HVal, at: &str, errors: &mut Vec<ShapeError>) -> Option<C
         .unwrap_or_default();
     let mut queries = Vec::new();
     for (index, item) in items.iter().enumerate() {
+        if item
+            .get("glob")
+            .filter(|glob| !glob.is_null())
+            .is_some_and(|glob| glob.as_str().is_none())
+        {
+            errors.push(shape_message(
+                &format!("{at}.queries[{index}]"),
+                "glob must be a string",
+            ));
+            continue;
+        }
         match query::parse(item) {
             Some(query) => queries.push(query),
             None => errors.push(shape_message(

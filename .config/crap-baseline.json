@@ -15854,7 +15854,7 @@
     {
       "file": "crates/mindtape/src/estimate_queries.rs",
       "function": "annotate",
-      "line": 115,
+      "line": 126,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -15864,9 +15864,9 @@
       "file": "crates/mindtape/src/estimate_queries.rs",
       "function": "parse_count",
       "line": 86,
-      "cyclomatic": 4.0,
+      "cyclomatic": 5.0,
       "coverage": 100.0,
-      "crap": 4.0,
+      "crap": 5.0,
       "crate": "mindtape"
     },
     {
@@ -15881,7 +15881,7 @@
     {
       "file": "crates/mindtape/src/estimate_queries.rs",
       "function": "resolve",
-      "line": 137,
+      "line": 148,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -15890,7 +15890,7 @@
     {
       "file": "crates/mindtape/src/estimate_queries.rs",
       "function": "validate_config",
-      "line": 162,
+      "line": 173,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,

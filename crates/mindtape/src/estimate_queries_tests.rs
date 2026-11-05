@@ -172,3 +172,47 @@ fn an_ast_grep_count_reads_only_files_the_language_claims() {
     let task = annotated(dir.path(), query);
     assert_eq!(task.estimate.get("files"), Some(&2.0));
 }
+
+#[test]
+fn a_non_string_glob_is_a_shape_error_naming_glob() {
+    let cases = [
+        (
+            "ast_grep",
+            dict(&[
+                ("query", text("ast-grep")),
+                ("language", text("rust")),
+                ("pattern", text("warm($$$ARGS)")),
+                ("glob", HVal::Int(42)),
+            ]),
+        ),
+        (
+            "grep list",
+            dict(&[
+                ("query", text("grep")),
+                ("regex", text("fn")),
+                ("glob", HVal::Array(vec![text("src/**")])),
+            ]),
+        ),
+        (
+            "grep boolean",
+            dict(&[
+                ("query", text("grep")),
+                ("regex", text("fn")),
+                ("glob", HVal::Bool(true)),
+            ]),
+        ),
+    ];
+    for (name, query) in cases {
+        let value = dict(&[("files", count(1, vec![query]))]);
+        let mut errors = Vec::new();
+        let (_, counts) = parse_estimate(Some(&value), &mut errors);
+        assert_eq!(errors.len(), 1, "{name}: {errors:?}");
+        let error = errors.first().unwrap();
+        assert_eq!(error.field, "estimate.files.queries[0]", "{name}");
+        assert_eq!(error.message, "glob must be a string", "{name}");
+        assert!(
+            counts.get("files").unwrap().queries.is_empty(),
+            "{name}: the bad query must not widen the count"
+        );
+    }
+}
