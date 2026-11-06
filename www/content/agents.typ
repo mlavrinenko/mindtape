@@ -25,8 +25,8 @@ sample backend project.
 
 The #mindtape repository ships an agent skill in
 #link(REPO + "/tree/main/skills/mindtape")[`skills/mindtape/`]. Its `SKILL.md`
-tells an agent which `mt` command does what and when to use it, and the agent
-reads the files in `references/` when a task needs them. The skill uses the
+points an agent at `mt --help`, `mt explain` and the files in `references/`
+instead of repeating what the CLI says. The skill uses the
 #link("https://agentskills.io")[Agent Skills] format, so any agent that
 supports the format can load it.
 
