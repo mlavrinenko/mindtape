@@ -62,7 +62,7 @@ groups:
       crates/mindtape-cli/src/cmd/allow.rs: 611f0b153ee59bcc3aee3725b1317b6b3febfb92438ce53da127fa809f6d9a81
       crates/mindtape/src/allow.rs: 3d1473859e78256180ba546b96853f6d4d7b0fe677b2fe55d0e0dd2376fead04
     dependents:
-      docs/src/skill.typ: efbf73c5a7fb68ecb18c2c395dba7ffb1b3c0edf9d1d449d85cecd655ff35852
+      docs/src/skill.typ: b434fa0a7bee5bcf26f80ce8beac6595e0e1bd9def126dbc698b0cf54e06f92d
       skills/mindtape/evals/README.md: b451b8b388e4a1c8e95f876258e9c3425355a7bf9c1cfa0f04ec1a0c57b3bd6a
       skills/mindtape/evals/evals.json: 481bb4f0168826d9ee4086ee6f4f4f74c4c31ed3b46792871532da8372b56460
       www/content/cli/allow.typ: b4339d36cae71e4f3d4db1b5d3abe55c09c9725938ac1a5f610acd7c8263bd31
@@ -117,8 +117,8 @@ groups:
       crates/mindtape-cli/src/cmd/explain/index.rs: 226316cd67417b40a1500159e3611568ffca7f45e27beabe6df92b3a06533df9
       crates/mindtape-cli/src/cmd/explain/mod.rs: e83ab450db9693709e99c72af9f02a552097739e935d15ad5306d5e1a73b8a66
     dependents:
-      docs/src/skill.typ: 4edd5fc436c9466cdc4f53a68130afaa5bf8558d1b0791a164cfa8e294953c9b
-      www/content/agents.typ: 50137e889c4151c596a4abde8b98294294fb81b95cd6c6092dc41913caaefd20
+      docs/src/skill.typ: b434fa0a7bee5bcf26f80ce8beac6595e0e1bd9def126dbc698b0cf54e06f92d
+      www/content/agents.typ: 401f157da479ad1dd7567bb0b6e4eb3d271eef6e84875c863c3db05254d1b4c4
       www/content/cli/explain.typ: 1dd3b3e2bcfae99386c4ae8818ba61638f3138ec56f8fa76d4123facd6cb4a29
   cli-find-docs:
     source:
@@ -143,7 +143,7 @@ groups:
       crates/mindtape-cli/src/cmd/flip/hooks_cmd.rs: 55cc3a05f52d6be1279c63cee5a288b47838838e6fc7f29470cb1c290e233632
       crates/mindtape-cli/src/cmd/flip/mod.rs: cbb17d6aba16ddad88abc1e63859b68a1210dfc81951203c5d1eb15965b511a0
     dependents:
-      docs/src/skill.typ: efbf73c5a7fb68ecb18c2c395dba7ffb1b3c0edf9d1d449d85cecd655ff35852
+      docs/src/skill.typ: b434fa0a7bee5bcf26f80ce8beac6595e0e1bd9def126dbc698b0cf54e06f92d
       skills/mindtape/evals/evals.json: 481bb4f0168826d9ee4086ee6f4f4f74c4c31ed3b46792871532da8372b56460
       www/content/cli/flip.typ: e2a040fa7c9bc827bbd7c58510205c6dcf8639cb5d4ac534d77aedf8a4715cd3
       www/content/hooks.typ: eafa7bbbedc26f726431d6936bcb03de5a6e5b0bc153f05efb3576eb54d7ca40
@@ -155,7 +155,7 @@ groups:
     source:
       crates/mindtape-cli/src/cli/mod.rs: 7a38724a1c1eb1cbc4c83d2f93138a3a124cff07b2ee515212c2644d10d4b162
     dependents:
-      docs/src/skill.typ: d1994c12ec2072346b9b9ffc292b3e3b1b4910acddd23781eb4d011646992595
+      docs/src/skill.typ: b434fa0a7bee5bcf26f80ce8beac6595e0e1bd9def126dbc698b0cf54e06f92d
       www/content/agents.typ: 50137e889c4151c596a4abde8b98294294fb81b95cd6c6092dc41913caaefd20
       www/content/cli/ls.typ: 5ba107ebc84ab2f340ad9adf2eb85ed1f319e97d11fdfd8828f0602c5c280441
       www/content/config.typ: 0843f7b41bb46e303e49a388320901af55f4c9c72d78601cb0a0f0ed1d4e2379
@@ -198,7 +198,7 @@ groups:
       crates/mindtape-cli/src/cmd/link/mod.rs: f0c8cb75b4e36d40c66ed844750187a8322571215259c077b0f7fd5beb0f4416
     dependents:
       docs/src/skill.typ: 920c27780c83ec9565ed73f25152afb80703c2bc3dfc2950620d3b6392e4f221
-      skills/mindtape/references/hand-editing.md: 5590368d84f407a3a8eeb1fbf85992318fb1c36a8e55caeabe90fe2b4c74d033
+      skills/mindtape/references/hand-editing.md: 4cd235947ca44eb3650a59c82584155c22131c08545a0415560144bf14d2f9dc
       www/content/cli/link.typ: ac3ee85ac4177d19f47fa0d46886017b4ea676370b2021ec53f5475aa5f573e9
       www/content/links.typ: 3706f53e509443ebbd03aeca7066a7de887906856fa1d31d6627535d3eccb92e
       www/utils/cli-notes.typ: 8cae2ec0d00665b34b57193614b7631f6845b923b2a52d35ca0678a377f72521
@@ -210,7 +210,7 @@ groups:
       docs/src/skill.typ: f132951817dff24403c5b9f1c7096f8a42333b6d68f983aaa612576191fd7318
       skills/mindtape/evals/README.md: b451b8b388e4a1c8e95f876258e9c3425355a7bf9c1cfa0f04ec1a0c57b3bd6a
       skills/mindtape/evals/evals.json: 30cf7329118dc87b78164b1f425b6bc114f509d6ed4112cd0c174438b9ecc826
-      skills/mindtape/references/filters.md: 8449850153beda9b086f0f0793b77775fe9c01265c181ac63f9c8739e40f04eb
+      skills/mindtape/references/filters.md: 0f6098e42c5bdc8a76127554472fdc5eb59f8893a198736399003b255f527c98
       www/content/agents.typ: d0d98ebce6f001845351e6832602b9851283a556952492c8c7c42db91ae00b3a
       www/content/cli/ls.typ: 5ba107ebc84ab2f340ad9adf2eb85ed1f319e97d11fdfd8828f0602c5c280441
       www/content/filters.typ: 568d16f5277bcdb4cd7478c1e3295583009719b6d9897499ac0ca9810f1ff03e
@@ -233,7 +233,7 @@ groups:
       docs/src/contributing.typ: 5bdfcd6b7a92038197bc0bf1a2e2bdea25d90e805907cce4158d3a5a5d9f5562
       docs/src/contributing/command-semantics.typ: fc757fc67ce402f425edefd7cb6b637b16f3c619b865ccabdbf54679af2f9a35
       docs/src/readme.typ: 9e3bd7c84f8dab0339286acc8544ef83a93c05fce6df0b4c2e3573d9a87a5254
-      docs/src/skill.typ: d1994c12ec2072346b9b9ffc292b3e3b1b4910acddd23781eb4d011646992595
+      docs/src/skill.typ: b434fa0a7bee5bcf26f80ce8beac6595e0e1bd9def126dbc698b0cf54e06f92d
       www/content/cli.typ: 4b2e525ab7d8cee77847e5950832d84f5aa7ae19288bef9461390ca4790bd211
       www/content/index.typ: 2237937279fb72b8035aa8a0df8e050f5f9e0312df997023a8dd940ddc512621
       www/content/quickstart.typ: e648924e5f5d9ce48a89e75a4ef846310072e141cf699af29f6dc5c4ae9df3ec
@@ -271,7 +271,7 @@ groups:
     source:
       crates/mindtape-cli/src/cmd/explain/rules.rs: f0d97763bb6780052f9d63c04415eeea5e8cefdeab5866729379b9219fb91e4b
     dependents:
-      docs/src/skill.typ: d1994c12ec2072346b9b9ffc292b3e3b1b4910acddd23781eb4d011646992595
+      docs/src/skill.typ: b434fa0a7bee5bcf26f80ce8beac6595e0e1bd9def126dbc698b0cf54e06f92d
       www/content/agents.typ: 50137e889c4151c596a4abde8b98294294fb81b95cd6c6092dc41913caaefd20
       www/content/cli/explain.typ: 1dd3b3e2bcfae99386c4ae8818ba61638f3138ec56f8fa76d4123facd6cb4a29
       www/content/packs.typ: e0756e3a8268f9729bc32acba0e7a0c0bca9634c4328385a930e0d60b3b2d15d
@@ -282,8 +282,8 @@ groups:
     dependents:
       docs/src/skill.typ: 920c27780c83ec9565ed73f25152afb80703c2bc3dfc2950620d3b6392e4f221
       skills/mindtape/evals/evals.json: 481bb4f0168826d9ee4086ee6f4f4f74c4c31ed3b46792871532da8372b56460
-      skills/mindtape/references/blocking.md: fbbff6964dde2f9f7299fc0e9ed33d3e8d1099b90e9456472782cc5e6bdb24c4
-      skills/mindtape/references/hand-editing.md: 5590368d84f407a3a8eeb1fbf85992318fb1c36a8e55caeabe90fe2b4c74d033
+      skills/mindtape/references/blocking.md: 8972a45c32132a4a51859c0e2a2757249bba5f147886ba659e7243b84ad4c80b
+      skills/mindtape/references/hand-editing.md: 4cd235947ca44eb3650a59c82584155c22131c08545a0415560144bf14d2f9dc
       www/content/cli/mv.typ: 7b1e53503cf9ad86e400df8153d6744ac8c7feb810ceff6f29d0ea59ecbe27d9
       www/content/estimates.typ: d460eefed4d40e379588ce6368f05999ed13f3135d1f9e50960d778c4dbd1825
       www/utils/cli-notes.typ: 8cae2ec0d00665b34b57193614b7631f6845b923b2a52d35ca0678a377f72521
@@ -292,7 +292,7 @@ groups:
       crates/mindtape-cli/src/cmd/explain/tags.rs: 7dcee92f7e773205f8dbc6842120d0ec47cd4661afed313dda4b84c212ebecbe
     dependents:
       docs/src/agents.typ: c238d2e162539c9d80fc6bb6883537c6d518ee6bfc1cc198cbae515afa3ca364
-      docs/src/skill.typ: d1994c12ec2072346b9b9ffc292b3e3b1b4910acddd23781eb4d011646992595
+      docs/src/skill.typ: b434fa0a7bee5bcf26f80ce8beac6595e0e1bd9def126dbc698b0cf54e06f92d
       www/content/agents.typ: 50137e889c4151c596a4abde8b98294294fb81b95cd6c6092dc41913caaefd20
       www/content/cli/explain.typ: 1dd3b3e2bcfae99386c4ae8818ba61638f3138ec56f8fa76d4123facd6cb4a29
       www/content/rules.typ: 18733ef5080351b5a645135943d15afe81a86e06c44db453dbdfec5317ca8b8f
@@ -400,13 +400,13 @@ groups:
       crates/mindtape/src/filter/strings.rs: eb2068ed0a8ae094660e9acfcb5e1ba29ab9029770311e80cf523fd2c0d15d6b
       crates/mindtape/src/filter/views.rs: 193400a7845d0b1834f741e3fcaa2e212eb71797d26b47d838e45669688b5c6a
     dependents:
-      skills/mindtape/references/filters.md: 8449850153beda9b086f0f0793b77775fe9c01265c181ac63f9c8739e40f04eb
+      skills/mindtape/references/filters.md: 0f6098e42c5bdc8a76127554472fdc5eb59f8893a198736399003b255f527c98
       www/content/filters.typ: 568d16f5277bcdb4cd7478c1e3295583009719b6d9897499ac0ca9810f1ff03e
   filter-fields-docs:
     source:
       crates/mindtape/src/model/fields.rs: df58ec71a2e34682e7e86d79c40a63ef8fa144f7a6dab0459edda7e441462615
     dependents:
-      skills/mindtape/references/filters.md: 8449850153beda9b086f0f0793b77775fe9c01265c181ac63f9c8739e40f04eb
+      skills/mindtape/references/filters.md: 0f6098e42c5bdc8a76127554472fdc5eb59f8893a198736399003b255f527c98
       www/content/cli/ls.typ: 5ba107ebc84ab2f340ad9adf2eb85ed1f319e97d11fdfd8828f0602c5c280441
       www/utils/filter-field-notes.typ: bc81a5393f0550be0e96e19112b94c1cd51dcd3a8979de628ab1cdf1f74cc0a1
   flow-preset-docs:
@@ -629,7 +629,7 @@ groups:
       crates/mindtape/src/graph/ready.rs: 308fd9d84a4925246cb6f23698cd64e04c6912a99787c0e2ef80e24b5455ed2b
       crates/mindtape/src/waits.rs: a2cfcc32f7c61f03f252f41df256bc53fca8a3edbc41fe53aeed4725a02f372d
     dependents:
-      docs/src/skill.typ: efbf73c5a7fb68ecb18c2c395dba7ffb1b3c0edf9d1d449d85cecd655ff35852
+      docs/src/skill.typ: b434fa0a7bee5bcf26f80ce8beac6595e0e1bd9def126dbc698b0cf54e06f92d
       skills/mindtape/references/filters.md: a28105db579ae1fbf2041ccfb18cc597c2c377075ceca5665eafc187c0c1aa80
       www/content/filters.typ: 75268ee14b7cbefda65c4f66a2cd63732c1e760a77eee00892af8b62bdd9ca8c
       www/content/wait-on-upstream.typ: 01b830b45bf8c0fd2ab1da8992fcf1fab2accb7c3d6ddf2eb65d53296f068737

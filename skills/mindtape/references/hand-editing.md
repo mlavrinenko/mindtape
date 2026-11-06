@@ -5,6 +5,14 @@ command writes: the body, a framework priority, the `estimate` dict or an
 `x-<ns>` slot. Change everything else with `mt` commands. A hand edit skips
 what `mt` stamps, slugs, injects, resolves and validates.
 
+## Naming a task
+
+Every command takes a task by stem, by path from the working directory, or by
+the `slug#` hash `mt ls` prints. A stem or a hash finds the task in any folder.
+The hash changes when `mt mv` renames the stem, and it grows when a new task
+shares its prefix, so `mt` refuses a hash several tasks share rather than pick
+one. Link a task's file path when you name it to a person.
+
 | To change | Run |
 |-----------|-----|
 | `links:` | `mt link`, one typed edge at a time or from an adjacency map. It checks the kind, the target and the note rule before it writes. |
@@ -40,7 +48,10 @@ Rules:
 - Name a custom field `x-<ns>`, such as `x-speconaut: ...`. Every other field
   name is a declared parameter of `task`, so a typo fails instead of becoming
   an extension: a field written `titel:` fails with
-  `unexpected argument: titel`.
+  `unexpected argument: titel`. A project whose rules rate goals writes
+  `x-goals: verdicts((secure: helps[why],), "fast")`: the verdicts first, then
+  every neutral goal by name. `hurts[why]` and `neutral` build the other two
+  verdicts, and naming a goal both ways fails.
 - Pass an edge helper plain path strings, never `link("a.typ")`. That is
   content and reads as the trailing note. A `link(...)`, a second note, a named
   argument or a non-string is an eval error naming the helper, never a dropped

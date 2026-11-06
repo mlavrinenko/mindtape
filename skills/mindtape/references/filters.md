@@ -4,6 +4,14 @@ Reference for the mindtape skill. Read this when you write a filter for
 `mt ls`, `mt rm`, a view or a config rule. Try a filter with `mt ls` before you
 save it in config, because `mt ls` shows what it selects.
 
+## In a listing
+
+Bare `mt ls` applies the first `[[ls.rules]]` entry whose condition holds,
+else the project's default view, and the line under the table names which, as
+in `default view · 3 of 12 tasks`. A filter argument replaces only the filter;
+that rule's or view's sort and columns still apply. `-n N` keeps the first N
+rows after the sort, and `mt ls @view` uses one of `mt explain views`.
+
 ## Fields
 
 - `status`, `kind`, `title`, `id` and `assignee` are strings. A `status`
