@@ -464,7 +464,10 @@ pub fn unknown_view_error(name: &str, views: &BTreeMap<String, ViewSpec>) -> Dia
     diag.did_you_mean_or(
         name,
         &known,
-        Hint::run(Command::mt().word("views"), "to see the views"),
+        Hint::run(
+            Command::mt().word("explain").word("views"),
+            "to see the views",
+        ),
     )
 }
 

@@ -43,9 +43,9 @@ on this page. Rules from an ancestor directory's defaults and from rule packs
 add to your project's own, as #link(u("/config/"))[Configuration] describes.
 To share one set of rules between projects, see
 #link(u("/packs/"))[Packs]. To list the rules your project ends up
-with, one line each, run #link(u("/cli/rules/"))[`mt rules`]. To see which tags
+with, one line each, run #link(u("/cli/explain/#rules"))[`mt explain rules`]. To see which tags
 those rules read, and the message each prints, run
-#link(u("/cli/tags/"))[`mt tags`].
+#link(u("/cli/explain/#tags"))[`mt explain tags`].
 
 = Required fields
 
@@ -193,7 +193,7 @@ cannot read: it calls a project function over the task, or over one field, and
 the rule reads the value it returns. A failed call is a `Collector` violation
 at `derived.<name>`, so it fails `mt check` like any other breach.
 
-`mt rules` lists the collectors under the rules, each with its origin, kind,
+`mt explain rules` lists the collectors under the rules, each with its origin, kind,
 type and readers. A Typst collector names its module and function; an ast-grep
 collector names its language, pattern and optional glob. `--for commit` omits
 them, since a commit rule cannot read a derived field in this version. A rule

@@ -32,7 +32,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 5),
+  status: done(2026, 11, 7),
   links: depends-on(
     "decide-on-one-command-for-the-projects-policy-listings.typ",
   ),

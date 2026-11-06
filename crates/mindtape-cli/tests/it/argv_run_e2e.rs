@@ -103,7 +103,7 @@ fn an_array_checker_fills_its_id_into_one_argument() {
         mt_argv(&["help", "{id}"])
     );
 
-    let known = project(&checker, "(\"cmd:dicts\",)");
+    let known = project(&checker, "(\"cmd:explain\",)");
     let unknown = project(&checker, "(\"cmd:no-such-command\",)");
 
     let ready = support::stdout(known.path(), &["ls", "ready"]);

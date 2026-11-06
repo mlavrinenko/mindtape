@@ -40,7 +40,7 @@ Neither refusal writes a file. A missing slot exits
 
 = Tags
 
-Four tags tune the shape. Run `mt tags --for add` to print them with the rule
+Four tags tune the shape. Run `mt explain tags --for add` to print them with the rule
 each one reads:
 
 #table(

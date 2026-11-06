@@ -81,6 +81,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The four policy listings live under `mt explain`.** Bare `mt explain`
+  prints an index of the rules grouped by section, the derived fields, and the
+  tags, views and dictionaries with their entry counts. `mt explain rules`,
+  `tags`, `views` and `dicts` print one listing unchanged, `--for
+  add|flip|commit` still filters the rules and tags, and `--json` keeps each
+  listing's keys. The index's JSON is new and carries a `schema_version`. The
+  `mt rules`, `mt tags`, `mt views` and `mt dicts` commands are removed, with
+  no aliases, and every hint and doc names the new spelling.
 - **The estimate query engine is a shared module.** `Query`, its parse and
   compile step, the git-listed file walk, path-set resolution and the
   per-process tree and match caches live in `crates/mindtape/src/query/`, and

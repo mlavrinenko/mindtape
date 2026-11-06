@@ -23,10 +23,10 @@ use log::LevelFilter;
 use crate::render::color::ColorChoice;
 use crate::render::link::HyperlinkChoice;
 use crate::{
-    cmd::add, cmd::allow, cmd::at, cmd::board, cmd::check, cmd::config as config_cmd, cmd::dicts,
-    cmd::eval, cmd::find, cmd::fix, cmd::flip, cmd::go, cmd::graph, cmd::import, cmd::init,
+    cmd::add, cmd::allow, cmd::at, cmd::board, cmd::check, cmd::config as config_cmd, cmd::eval,
+    cmd::explain, cmd::find, cmd::fix, cmd::flip, cmd::go, cmd::graph, cmd::import, cmd::init,
     cmd::install, cmd::link as link_cmd, cmd::ls, cmd::mv, cmd::packs, cmd::preset as preset_cmd,
-    cmd::recur, cmd::review, cmd::rm, cmd::rules, cmd::set, cmd::tags, cmd::views,
+    cmd::recur, cmd::review, cmd::rm, cmd::set,
 };
 
 /// Mindtape keeps your tasks as Typst files and checks them against your rules.
@@ -146,10 +146,6 @@ enum Command {
     Recur(recur::RecurArgs),
     /// Draw tasks and the links between them, as Graphviz DOT or Mermaid.
     Graph(graph::GraphArgs),
-    /// List your saved views, or show one.
-    Views(views::ViewsArgs),
-    /// List your dictionaries, or the entries of one.
-    Dicts(dicts::DictsArgs),
     /// Import tasks from JSON (the `mt ls --json` format), checking them all first.
     ///
     /// The whole batch is checked against your project's rules before mt
@@ -171,17 +167,13 @@ enum Command {
     Packs(packs::PacksArgs),
     /// Show the config mt uses.
     Config(config_cmd::ConfigArgs),
-    /// List the rules your project checks, one line each.
+    /// List the project's rules, tags, views and dictionaries, or one in full.
     ///
-    /// Each line is a rule's severity, its name as `mt config show --origin`
-    /// prints it, and the message a breach prints, after packs, overrides and
-    /// `disable` apply. A flip action that carries a message is listed too.
-    Rules(rules::RulesArgs),
-    /// List the tags your project allows and the rules that read them.
-    ///
-    /// A tag no rule reads is an area label. `--for` keeps the rules one step
-    /// enforces, as `mt rules --for` does.
-    Tags(tags::TagsArgs),
+    /// Bare prints an index: the rules grouped by section, the derived fields,
+    /// and the tags, views and dictionaries this project declares. A listing
+    /// prints one in full, with `--for` on the rules and tags and `--json` on
+    /// every one.
+    Explain(explain::ExplainArgs),
     /// Trust the commands your config runs in this repo.
     ///
     /// Those are its `[[tasks.waits]]` checkers and `[[on.flip]]` `run`
@@ -252,16 +244,13 @@ fn dispatch(command: Command) -> Result<()> {
         Command::Ls(args) => ls::run(&args),
         Command::Find(args) => find::run(&args),
         Command::Graph(args) => graph::run(&args),
-        Command::Views(args) => views::run(&args),
-        Command::Dicts(args) => dicts::run(&args),
         Command::At(args) => at::run(&args),
         Command::Board(args) => board::run(&args),
         Command::Check(args) => check::run(&args),
         Command::Fix(args) => fix::run(&args),
         Command::Allow(args) => allow::run(&args),
         Command::Config(args) => config_cmd::run(&args),
-        Command::Rules(args) => rules::run(&args),
-        Command::Tags(args) => tags::run(&args),
+        Command::Explain(args) => explain::run(&args),
         command => dispatch_more(command),
     }
 }

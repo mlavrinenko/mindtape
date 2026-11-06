@@ -145,9 +145,22 @@
     outputs: ("link",),
   ),
 
-  // ── Views ───────────────────────────────────────────────────────────────────
-  "views": (outputs: ("views",)),
-  "dicts": (outputs: ("dicts",)),
+  // ── Explain ─────────────────────────────────────────────────────────────────
+  "explain": (
+    prose: [Bare, it prints the project's index: the rules grouped by config
+      section, the derived fields, the tags, views and dictionaries, and each
+      dictionary's entry count. `default` leads the view and tag lists when the
+      project declares it. Each listing keeps the output it had before it moved
+      under this command, and `--json` keeps its keys.],
+    outputs: ("explain",),
+  ),
+  "explain.rules": (
+    outputs: ("rules-commit",),
+    examples: "rules-examples",
+  ),
+  "explain.tags": (:),
+  "explain.views": (outputs: ("views",)),
+  "explain.dicts": (outputs: ("dicts",)),
 
   // ── Status ──────────────────────────────────────────────────────────────────
   "flip": (
@@ -165,11 +178,6 @@
 
   // ── Validate & inspect config ───────────────────────────────────────────────
   "check": (outputs: ("check",)),
-  "rules": (
-    outputs: ("rules-commit",),
-    examples: "rules-examples",
-  ),
-  "tags": (:),
   "config": (
     outputs: ("config-origin",),
     examples: "config-examples",

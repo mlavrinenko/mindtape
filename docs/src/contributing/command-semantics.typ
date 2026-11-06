@@ -24,10 +24,17 @@ class, and the lists below read the same data.
   commands
     .map(c => {
       let name = if prefix == none { c.name } else { prefix + " " + c.name }
-      if c.subcommands.len() == 0 {
+      // A leaf is classified, and so is a parent that runs itself (`explain`
+      // with no listing). A container such as `config` carries no class.
+      let classed = if c.subcommands.len() == 0 or c.class != none {
         ((name: name, class: c.class),)
       } else {
-        cli-leaves(c.subcommands, prefix: name)
+        ()
+      }
+      if c.subcommands.len() == 0 {
+        classed
+      } else {
+        classed + cli-leaves(c.subcommands, prefix: name)
       }
     })
     .flatten()

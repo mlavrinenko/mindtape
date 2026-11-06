@@ -59,16 +59,15 @@ refuse a set: name one project instead.
   [Rename a task], [`mt mv <task> <new-stem>`],
   [Retire a task], [`mt rm <task or folder…>`],
   [Validate], [`mt check`],
-  [List the rules], [`mt rules`],
-  [List the tags], [`mt tags`],
+  [List the rules, tags, views and dicts], [`mt explain`],
 )
 
-Run `mt <cmd> --help` for every flag. Never guess the project's statuses, link
-kinds, priority scale or tags: read them from `mt tags`, `mt config show` or
-`mt flip --list`. Read a dictionary's words, such as the verbs a title may
-start with, from `mt dicts <name>`. Before you flip or commit, run
-`mt tags --for <step>` and `mt rules --for <step>`. For more, read #www-llms,
-every docs page as Markdown.
+Run `mt explain` first: it names this project's rules, tags, views and
+dicts. `mt <cmd> --help` lists every flag. Read statuses, link kinds
+and priorities from `mt config show` or `mt flip --list`, and a dictionary's
+words from `mt explain dicts <name>`. Before a flip or commit, run
+`mt explain tags --for <step>` and `mt explain rules --for <step>`. More: read
+#www-llms, every docs page as Markdown.
 
 A `<task>` is a stem, a path, or the `slug#` hash `mt ls` prints. The hash
 changes only when `mt mv` renames the stem; `mt` refuses one shared by several
@@ -84,7 +83,7 @@ first N rows after the sort.
 
 Common filters are `ready` (open, with every `depends-on` target finished and
 every `waits-on` checker answering that the wait is over), `blocked`,
-`status == "wip"`, `has_tag("t")`, `contains("text")` and `due < now()`. `mt ls @<view>` applies a view that `mt views` lists. Before you
+`status == "wip"`, `has_tag("t")`, `contains("text")` and `due < now()`. `mt ls @<view>` applies a view that `mt explain views` lists. Before you
 edit a file, run `mt ls 'touches("<path>")'` to read the tasks named in the
 `Refs:` trailers of commits that changed it. For every field and function,
 read `references/filters.md`.
@@ -92,7 +91,7 @@ read `references/filters.md`.
 = Filing tasks
 
 `mt add <title…>` names the file, checks the task, and writes it under the
-first root. Before you file, run `mt tags --for add` for the tags the shape
+first root. Before you file, run `mt explain tags --for add` for the tags the shape
 rules read, including the `no-repro` and `no-ui-ux` opt-outs. Write `x-goals`
 with `verdicts((secure: helps[why],), "fast")`: the task's verdicts, then
 every neutral goal by name. A goal named both ways fails. Start every Changes

@@ -362,7 +362,7 @@ import-views = ["ghost"]
     let msg = crate::diag::plain(&err);
     assert_eq!(
         msg,
-        "error: unknown view: 'ghost'\nhint: run mt views to see the views\n"
+        "error: unknown view: 'ghost'\nhint: run mt explain views to see the views\n"
     );
 }
 

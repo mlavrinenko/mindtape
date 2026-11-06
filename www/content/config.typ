@@ -348,7 +348,7 @@ A regex query returns `["string"]` or `["path"]`, and an ast-grep query returns
 
 Collectors merge by name across layers and packs, exactly as rules do, and
 `disable` drops one by name. Two collectors with the same name in one source
-are a config error. `mt rules` lists each one with its origin, kind, type and
+are a config error. `mt explain rules` lists each one with its origin, kind, type and
 the rules that read it. A Typst collector names its module and function; an
 ast-grep collector names its language, pattern and optional glob.
 

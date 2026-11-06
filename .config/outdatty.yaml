@@ -160,13 +160,13 @@ groups:
       - www/content/agents.typ
       - docs/src/skill.typ
 
-  # `mt dicts`: the listing's count and case, and one dictionary's merged
+  # `mt explain dicts`: the listing's count and case, and one dictionary's merged
   # entries.
   - name: cli-dicts-docs
     source:
-      - crates/mindtape-cli/src/cmd/dicts.rs
+      - crates/mindtape-cli/src/cmd/explain/dicts.rs
     dependents:
-      - www/content/cli/dicts.typ
+      - www/content/cli/explain.typ
       - www/content/named-sets.typ
       - www/content/agents.typ
       - docs/src/skill.typ
@@ -377,25 +377,36 @@ groups:
       - www/content/cli/ls.typ
       - docs/src/skill.typ
 
-  # `mt rules`: the line each rule prints, the severity and message it shows
+  # `mt explain`: the bare index's grouping, its default-first lists, and its
+  # JSON envelope. The four listings keep their own groups below.
+  - name: cli-explain-index-docs
+    source:
+      - crates/mindtape-cli/src/cmd/explain/mod.rs
+      - crates/mindtape-cli/src/cmd/explain/index.rs
+    dependents:
+      - www/content/cli/explain.typ
+      - www/content/agents.typ
+      - docs/src/skill.typ
+
+  # `mt explain rules`: the line each rule prints, the severity and message it shows
   # when a rule sets none, and which rules `--for` keeps.
   - name: cli-rules-docs
     source:
-      - crates/mindtape-cli/src/cmd/rules.rs
+      - crates/mindtape-cli/src/cmd/explain/rules.rs
     dependents:
-      - www/content/cli/rules.typ
+      - www/content/cli/explain.typ
       - www/content/rules.typ
       - www/content/packs.typ
       - www/content/agents.typ
       - docs/src/skill.typ
 
-  # `mt tags`: the tag-to-rules scan, the message it shows, the `--for` filter
+  # `mt explain tags`: the tag-to-rules scan, the message it shows, the `--for` filter
   # and the area label a tag no rule reads prints.
   - name: cli-tags-docs
     source:
-      - crates/mindtape-cli/src/cmd/tags.rs
+      - crates/mindtape-cli/src/cmd/explain/tags.rs
     dependents:
-      - www/content/cli/tags.typ
+      - www/content/cli/explain.typ
       - www/content/rules.typ
       - www/content/agents.typ
       - www/utils/cli-notes.typ
@@ -416,12 +427,12 @@ groups:
       - skills/mindtape/references/blocking.md
       - skills/mindtape/evals/evals.json
 
-  # `mt views`: the listing, and one view's description.
+  # `mt explain views`: the listing, and one view's description.
   - name: cli-views-docs
     source:
-      - crates/mindtape-cli/src/cmd/views.rs
+      - crates/mindtape-cli/src/cmd/explain/views.rs
     dependents:
-      - www/content/cli/views.typ
+      - www/content/cli/explain.typ
       - www/content/named-sets.typ
       - docs/src/skill.typ
 
@@ -494,7 +505,7 @@ groups:
   # The two word lists `mt` ships as the `mindtape-verbs` and
   # `mindtape-dev-verbs` dictionaries. The pages restate them by hand: the
   # 500-verb count, sample words such as `refactor` and `rate-limit`, and the
-  # words ("Backport") that neither list holds. The `mt dicts` output they
+  # words ("Backport") that neither list holds. The `mt explain dicts` output they
   # capture is generated, so only this prose can drift.
   - name: dict-words-docs
     source:

@@ -11,10 +11,16 @@
 //! carries the CQRS split for `docs/src/contributing.typ` and
 //! `tests/it/read_no_write_e2e.rs` to read, instead of either retyping it. A
 //! node with subcommands (`config`, `preset`) carries `class: null`: it is
-//! not a leaf, only its children are classified. A leaf also carries
+//! not a leaf, only its children are classified. A parent that runs itself
+//! carries its class and reach too: `explain` with no listing prints the
+//! index. A leaf, and a runnable parent the registry names, also carries
 //! `runs_on_set`, whether the registry marks it as running on a set, so the
 //! docs list the set commands from the table `main` refuses a set by; a node
-//! with subcommands carries `runs_on_set: null`.
+//! with subcommands and no class carries `runs_on_set: null`.
+//!
+//! A global argument is hoisted once to the root, except one a subcommand
+//! declares for its own subtree (`mt explain --json`), which rides on that
+//! node so the docs show the flag where it is typed.
 //!
 //! Refs: `truth/tasks/structured-cli-reference-from-command-dump.typ`,
 //! `truth/tasks/gate-the-cqrs-split-against-the-command-tree.typ`.
@@ -71,6 +77,11 @@ fn dump_json() -> Result<String> {
 /// The top-level document: about, version, the once-captured globals, and the
 /// recursive command tree.
 fn dump(root: &Command) -> Value {
+    let global_ids: Vec<clap::Id> = root
+        .get_arguments()
+        .filter(|a| a.is_global_set())
+        .map(|a| a.get_id().clone())
+        .collect();
     let globals: Vec<Value> = root
         .get_arguments()
         .filter(|a| a.is_global_set())
@@ -85,7 +96,7 @@ fn dump(root: &Command) -> Value {
         "about": opt_str(root.get_about()),
         "after_help": opt_str(root.get_after_help()),
         "globals": globals,
-        "commands": subcommands(root, ""),
+        "commands": subcommands(root, "", &global_ids),
         "filter_functions": filter_functions(),
         "date_tokens": date_tokens(),
         "slot_kinds": slot_kinds(),
@@ -154,33 +165,36 @@ fn link_kinds() -> Vec<Value> {
 /// Visible, non-`help` child commands, each reflected recursively. `prefix` is
 /// the flattened path of `cmd` itself (empty at the root), threaded down so
 /// each child can compute its own [`flattened_name`].
-fn subcommands(cmd: &Command, prefix: &str) -> Vec<Value> {
+fn subcommands(cmd: &Command, prefix: &str, global_ids: &[clap::Id]) -> Vec<Value> {
     cmd.get_subcommands()
         // clap's synthetic `help` pseudo-command and any `hide = true` command
         // (`_cli` itself) never appear in the reference.
         .filter(|c| c.get_name() != "help" && !c.is_hide_set())
-        .map(|c| command_json(c, prefix))
+        .map(|c| command_json(c, prefix, global_ids))
         .collect()
 }
 
 /// One command node: name, both about levels, visible aliases, local args,
 /// read/write `class`, `runs_on_set`, and nested subcommands. Global args are dropped here —
 /// they live once at the top.
-fn command_json(cmd: &Command, prefix: &str) -> Value {
+fn command_json(cmd: &Command, prefix: &str, global_ids: &[clap::Id]) -> Value {
     let name = cmd.get_name();
     let path = flattened_name(prefix, name);
     let args: Vec<Value> = cmd
         .get_arguments()
-        .filter(|a| !a.is_global_set())
+        // A root global is shown once at the top; a global a subcommand
+        // declares (`mt explain --json`) belongs to that subtree.
+        .filter(|a| !(a.is_global_set() && global_ids.contains(a.get_id())))
         // clap's auto `-h/--help` and `-V/--version` are formatter artifacts,
         // not real args; the reference synthesizes its own affordances.
         .filter(|a| !matches!(a.get_id().as_str(), "help" | "version"))
         .map(|arg| arg_json(arg, &path))
         .collect();
-    let subs = subcommands(cmd, &path);
-    // Only a leaf is classified — `config`/`preset` are containers, not
-    // commands in their own right; their children carry the class instead.
-    let (class, runs_on_set) = if subs.is_empty() {
+    let subs = subcommands(cmd, &path, global_ids);
+    // A leaf is classified, and so is a parent that runs itself (`explain`
+    // with no listing). `config` and `preset` are containers and carry null.
+    let runnable = !cmd.is_subcommand_required_set();
+    let (class, runs_on_set) = if subs.is_empty() || (runnable && has_class(&path)) {
         (
             class_json(&path),
             Value::Bool(command_class::runs_on_set(&path)),
@@ -209,6 +223,12 @@ fn flattened_name(prefix: &str, name: &str) -> String {
     } else {
         format!("{prefix} {name}")
     }
+}
+
+/// Whether the registry names `path` at all, so a runnable parent can carry
+/// the entry it declares.
+fn has_class(path: &str) -> bool {
+    command_class::classify(path).is_some()
 }
 
 /// A leaf's classification as JSON: `"read"`/`"write"`, or `{"kind":

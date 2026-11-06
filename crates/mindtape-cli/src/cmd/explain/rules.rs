@@ -1,4 +1,5 @@
-//! `mt rules` — list the rules the merged config applies, one line each.
+//! `mt explain rules` — list the rules the merged config applies, one line
+//! each.
 //!
 //! Read-only. Each line is the rule's severity, its name as
 //! `mt config show --origin` prints it, and the message a breach prints.
@@ -10,16 +11,12 @@ use crate::diag::Result;
 use crate::render::widest;
 use crate::util;
 
-/// Arguments for `rules`.
+/// Arguments for `mt explain rules`.
 #[derive(Debug, clap::Args)]
 pub struct RulesArgs {
     /// List only the rules mt enforces at this moment.
     #[arg(long = "for", value_name = "MOMENT", value_enum)]
     pub moment: Option<Moment>,
-
-    /// Print JSON.
-    #[arg(long)]
-    pub json: bool,
 }
 
 /// A moment whose command enforces a set of rules.
@@ -58,11 +55,11 @@ impl Moment {
     }
 }
 
-/// Run the `rules` command.
+/// Run `mt explain rules`.
 ///
 /// # Errors
 /// Returns an error if no project is found or its config fails to load.
-pub fn run(args: &RulesArgs) -> Result<()> {
+pub fn run(args: &RulesArgs, as_json: bool) -> Result<()> {
     let config = load_config(&util::resolve_root()?)?;
     let rules: Vec<ActiveRule> = active_rules(&config)
         .into_iter()
@@ -76,7 +73,7 @@ pub fn run(args: &RulesArgs) -> Result<()> {
     } else {
         Vec::new()
     };
-    if args.json {
+    if as_json {
         let document = serde_json::json!({
             "schema_version": mindtape::SCHEMA_VERSION,
             "rules": rules,

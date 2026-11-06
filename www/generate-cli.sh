@@ -32,13 +32,14 @@ init_scratch() {
 # --- read commands, in place ------------------------------------------------
 capture version "$FIX" 'mt --version'
 capture ls "$FIX" 'mt ls'
-capture views "$FIX" 'mt views'
-capture dicts "$FIX" 'mt dicts'
+capture explain "$FIX" 'mt explain'
+capture views "$FIX" 'mt explain views'
+capture dicts "$FIX" 'mt explain dicts'
 capture check "$FIX" 'mt check'
 capture flip-list "$FIX" 'mt flip --list'
 capture eval "$FIX" 'mt eval tasks/throttle-failed-logins-per-ip.typ'
 capture config-origin "$FIX" 'mt config show --origin'
-capture rules-commit "$FIX" 'mt rules --for commit'
+capture rules-commit "$FIX" 'mt explain rules --for commit'
 capture ls-default "$FIX" "mt ls 'has_tag(\"billing\")' --columns @default --sort @default"
 capture ls-cut "$FIX" "mt ls '' -n 5"
 capture ls-file-when "$FIX" "mt config show --defaults | grep -A1 '^\[ls.columns.file\]'"
@@ -76,9 +77,9 @@ mt config show --defaults   # the embedded floor alone
 mt config show --json       # effective config as JSON
 EOF
 capture_lines rules-examples "$FIX" <<'EOF'
-mt rules                    # every rule, one line each
-mt rules --for add          # what mt add checks before it writes
-mt rules --json             # with each rule's section, when and assert
+mt explain rules            # every rule, one line each
+mt explain rules --for add  # what mt add checks before it writes
+mt explain rules --json     # with each rule's section, when and assert
 EOF
 capture_lines graph-examples "$REPO/examples/links" <<'EOF'
 mt graph                                # every task, Graphviz DOT

@@ -1,5 +1,5 @@
 //! End-to-end tests for `[[tasks.collectors]]` and the derived fields they
-//! produce: `mt ls --json`, `mt eval --json`, `mt rules` and `mt import`.
+//! produce: `mt ls --json`, `mt eval --json`, `mt explain rules` and `mt import`.
 #![allow(
     clippy::unwrap_used,
     clippy::indexing_slicing,
@@ -71,7 +71,7 @@ fn a_filter_may_count_a_derived_list() {
 #[test]
 fn rules_lists_the_derived_field_and_its_reader() {
     let dir = project();
-    let text = stdout(dir.path(), &["rules"]);
+    let text = stdout(dir.path(), &["explain", "rules"]);
     assert!(text.contains("derived fields"), "{text}");
     assert!(text.contains("derived.changes"), "{text}");
     assert!(text.contains("regex"), "{text}");
@@ -81,7 +81,7 @@ fn rules_lists_the_derived_field_and_its_reader() {
 #[test]
 fn rules_for_commit_hides_the_derived_block() {
     let dir = project();
-    let text = stdout(dir.path(), &["rules", "--for", "commit"]);
+    let text = stdout(dir.path(), &["explain", "rules", "--for", "commit"]);
     assert!(!text.contains("derived fields"), "{text}");
     assert_eq!(text, "no rules apply\n");
 }
@@ -167,7 +167,7 @@ message = "keep the fan-out small"
 severity = "error"
 "#,
     );
-    let text = stdout(dir.path(), &["rules"]);
+    let text = stdout(dir.path(), &["explain", "rules"]);
     for part in ["ast-grep", "derived.callers", "read by rules.small-fanout"] {
         assert!(text.contains(part), "{part}: {text}");
     }

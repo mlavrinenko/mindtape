@@ -76,13 +76,13 @@ EOF
 
 # --- /named-sets/ -------------------------------------------------------------
 capture_lines named-sets-views "$SETS" <<'EOF'
-mt views
-mt views waiting
+mt explain views
+mt explain views waiting
 mt ls @waiting
 EOF
 capture_lines named-sets-dicts "$SETS" <<'EOF'
-mt dicts
-mt dicts areas
+mt explain dicts
+mt explain dicts areas
 EOF
 capture --exit 1 --expect 'is not an allowed tag' named-sets-allowed "$SETS" 'mt set fix-the-refund-rounding tags+=payments'
 

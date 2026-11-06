@@ -202,13 +202,16 @@ fn graph_leaves_tree_untouched() {
 #[test]
 fn views_leaves_tree_untouched() {
     let dir = build_fixture();
-    assert_read_untouched(dir.path(), &["views"]);
+    assert_read_untouched(dir.path(), &["explain", "views"]);
 }
 
 #[test]
 fn dicts_name_json_leaves_tree_untouched() {
     let dir = build_fixture();
-    assert_read_untouched(dir.path(), &["dicts", "mindtape-verbs", "--json"]);
+    assert_read_untouched(
+        dir.path(),
+        &["explain", "dicts", "mindtape-verbs", "--json"],
+    );
 }
 
 #[test]
@@ -245,8 +248,9 @@ pub(crate) fn read_leaves() -> Vec<(String, serde_json::Value)> {
     out
 }
 
-/// Recurse into a node with subcommands (`config`, `preset`); collect a leaf
-/// whose `class.kind` is `"read"`, flattening its path the same way
+/// Recurse into a node with subcommands (`config`, `preset`, `explain`);
+/// collect a node whose `class.kind` is `"read"` — a leaf, or a runnable
+/// parent like `explain` — flattening its path the same way
 /// `cli/tree_json.rs`'s `flattened_name` does.
 fn collect_read_leaves(
     commands: &[serde_json::Value],
@@ -264,14 +268,13 @@ fn collect_read_leaves(
             .get("subcommands")
             .and_then(serde_json::Value::as_array)
             .unwrap();
-        if subs.is_empty() {
-            let kind = cmd
-                .pointer("/class/kind")
-                .and_then(serde_json::Value::as_str);
-            if kind == Some("read") {
-                out.push((path, cmd.clone()));
-            }
-        } else {
+        let kind = cmd
+            .pointer("/class/kind")
+            .and_then(serde_json::Value::as_str);
+        if kind == Some("read") {
+            out.push((path.clone(), cmd.clone()));
+        }
+        if !subs.is_empty() {
             collect_read_leaves(subs, &path, out);
         }
     }

@@ -215,7 +215,7 @@ at 5 files and the project raises the cap to 8:
 #terminal("packs-params")
 
 `mt` writes each value into the pack's expressions when it loads the config,
-so `mt check`, `mt rules` and `mt config show` all see `8`. It works in every
+so `mt check`, `mt explain rules` and `mt config show` all see `8`. It works in every
 expression the pack holds, from a rule's `when` and `assert` to a view's
 `filter`, an `[[on.flip]]` `when` or `list`, each `required` and the `[ls]`
 and `[rm]` filters. A `param()` inside a string literal stays as written, and so does
@@ -307,7 +307,7 @@ reads `pack mindtape:flow`, and the repository's own rule `goals` and its
 `gates-fresh` hook read `project` because only the project declares them. Keys
 that aren't rules read the same way, such as `key tasks.status` for
 `pack mindtape:flow`. To read each rule's
-severity and message as well, run #link(u("/cli/rules/"))[`mt rules`].
+severity and message as well, run #link(u("/cli/explain/#rules"))[`mt explain rules`].
 
 After the rules come the other keys a pack set, as `key <dotted path>:
 <origin>`, and the parameters packs declare, as `param <name> = <value>: <set

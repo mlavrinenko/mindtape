@@ -43,7 +43,7 @@ fn the_hint_joins_the_nearest_entries_in_order() {
             &Diag::from(&breach(nearest)),
             &format!(
                 "{REFUSED}hint: 'Rote' is not in dict verbs{tail}\n\
-                 hint: run mt dicts verbs to see its entries\n"
+                 hint: run mt explain dicts verbs to see its entries\n"
             ),
         );
     }
@@ -61,7 +61,7 @@ fn the_word_is_quoted_and_the_command_pastes() {
         &Diag::from(&violation),
         &format!(
             "{REFUSED}hint: 'it'\\''s' is not in dict my verbs\n\
-             hint: run mt dicts 'my verbs' to see its entries\n"
+             hint: run mt explain dicts 'my verbs' to see its entries\n"
         ),
     );
 }

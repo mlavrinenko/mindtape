@@ -197,7 +197,7 @@ fn an_unknown_kebab_name_is_reported_as_written() {
     assert_eq!(err.to_string(), "unknown field in filter: no-such-field");
 }
 
-/// `mt tags` asks a parsed filter which tags it reads: both spellings count,
+/// `mt explain tags` asks a parsed filter which tags it reads: both spellings count,
 /// and a string or a `has()` on another field does not.
 #[test]
 fn tag_reads_finds_both_spellings_and_not_other_has_calls() {

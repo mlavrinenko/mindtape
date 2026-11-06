@@ -313,7 +313,7 @@ impl Diag {
             return self;
         };
         let list = Hint::run(
-            Command::mt().word("dicts").arg(&miss.dict),
+            Command::mt().word("explain").word("dicts").arg(&miss.dict),
             "to see its entries",
         );
         [Hint::not_in_dict(miss.clone()), list]

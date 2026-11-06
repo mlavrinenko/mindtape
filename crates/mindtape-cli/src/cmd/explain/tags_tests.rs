@@ -4,7 +4,7 @@ use mindtape::{Config, parse_config};
 
 use super::{TagEntry, entries, json, render};
 
-use crate::cmd::rules::Moment;
+use crate::cmd::explain::rules::Moment;
 
 /// Four allowed tags: `bug` read by a task rule and a commit rule, `api` read
 /// by a body rule, `ship` read by a flip action, and `cli` read by none.

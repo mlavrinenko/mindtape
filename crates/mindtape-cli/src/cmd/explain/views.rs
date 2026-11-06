@@ -1,4 +1,4 @@
-//! `mt views` — list or inspect named views (`[views]`).
+//! `mt explain views` — list or inspect named views (`[views]`).
 
 use std::collections::BTreeMap;
 
@@ -7,22 +7,18 @@ use mindtape::ViewSpec;
 
 use crate::util;
 
-/// Arguments for `views`.
+/// Arguments for `mt explain views`.
 #[derive(Debug, clap::Args)]
 pub struct ViewsArgs {
     /// Show this view's full definition instead of the list.
     pub name: Option<String>,
-
-    /// Print JSON.
-    #[arg(long)]
-    pub json: bool,
 }
 
-/// Run the `views` command.
+/// Run `mt explain views`.
 ///
 /// # Errors
 /// Returns an error if the project cannot be opened or a named view is unknown.
-pub fn run(args: &ViewsArgs) -> Result<()> {
+pub fn run(args: &ViewsArgs, as_json: bool) -> Result<()> {
     let project = util::open()?;
     let views = &project.config.views;
 
@@ -30,7 +26,7 @@ pub fn run(args: &ViewsArgs) -> Result<()> {
         let spec = views
             .get(name)
             .ok_or_else(|| util::unknown_view_error(name, views))?;
-        if args.json {
+        if as_json {
             println!("{}", serde_json::to_string_pretty(spec)?);
         } else {
             print_detail(name, spec);
@@ -38,7 +34,7 @@ pub fn run(args: &ViewsArgs) -> Result<()> {
         return Ok(());
     }
 
-    if args.json {
+    if as_json {
         println!("{}", serde_json::to_string_pretty(views)?);
     } else if views.is_empty() {
         println!("no views defined (add a [views.<name>] table to .mindtape/config.toml)");

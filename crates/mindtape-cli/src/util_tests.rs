@@ -349,7 +349,7 @@ fn unknown_view_error_far_miss_says_where_to_list_views() {
     let msg = crate::diag::plain(&unknown_view_error("zzz", &known));
     assert_eq!(
         msg,
-        "error: unknown view: 'zzz'\nhint: run mt views to see the views\n"
+        "error: unknown view: 'zzz'\nhint: run mt explain views to see the views\n"
     );
 }
 

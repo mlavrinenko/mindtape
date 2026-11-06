@@ -74,7 +74,7 @@ pub struct FlipHook {
     /// Optional name. A later entry with the same name, from a nearer layer
     /// or a pack, replaces an earlier one in place, and `disable` drops it by
     /// name. An unnamed entry always appends and is never replaced. Also the
-    /// label `mt rules` and `mt config show --origin` print.
+    /// label `mt explain rules` and `mt config show --origin` print.
     pub name: Option<String>,
     /// Filter over the task being flipped, plus `into("status")` for the status
     /// being stamped. Empty fires on every flip.

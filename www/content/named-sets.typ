@@ -52,7 +52,7 @@ you can ask for the listing by name:
 Every key is optional. `filter` is a filter expression, and an empty one
 matches every task. `sort` takes the same specs as `--sort`, and `columns` the
 same column names as `--columns`. The #link(u("/cli/ls/"))[`mt ls` page]
-lists both. `mt views <name>` prints the `description`.
+lists both. `mt explain views <name>` prints the `description`.
 
 `mt ls @name` applies the view's filter, sort and columns. Inside a larger
 expression, `@name` is just the view's filter, as in
@@ -101,8 +101,8 @@ An included dictionary's entries compare under the including dictionary's
 Your own dictionary names can't start with `mindtape-`, because that prefix
 is for the built-ins.
 
-`mt dicts` lists every dictionary with its entry count and case, the
-built-ins included. `mt dicts <name>` prints one dictionary's entries, one per
+`mt explain dicts` lists every dictionary with its entry count and case, the
+built-ins included. `mt explain dicts <name>` prints one dictionary's entries, one per
 line, after `include`, `values` and `path` are merged. That's the list a rule
 reading the dictionary accepts, and a `fold` dictionary prints it lowercase:
 
@@ -132,7 +132,7 @@ outside the list and exits #exit-code("named-sets-allowed"):
 When a rule refuses a task because `in_dict()` missed, the refusal says which
 word the dictionary lacks and names up to three of its nearest entries, as in
 #capture-line("start-titles-with-a-verb", "^hint: '"). A second hint runs
-`mt dicts` on that dictionary, so you can read the whole list.
+`mt explain dicts` on that dictionary, so you can read the whole list.
 
 `mt` checks every dictionary when it loads the config. Each must have a
 source and resolve to at least one entry. Each `path` must be readable. Each

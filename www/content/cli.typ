@@ -80,10 +80,6 @@ in ripgrep and fd. What a program reads keeps its `/`.
 
 #cli-group(CLI, CLI_GROUPS, "Links")
 
-= Views and dictionaries
-
-#cli-group(CLI, CLI_GROUPS, "Views & dictionaries")
-
 = Status
 
 #cli-group(CLI, CLI_GROUPS, "Status")

@@ -12,7 +12,7 @@
 //!
 //! # Files
 //!
-//! - `active_rules.rs`: every rule the merged config applies, for `mt rules`.
+//! - `active_rules.rs`: every rule the merged config applies, for `mt explain rules`.
 //! - `actors.rs`: `[[actors]]` and `[[roles]]`, the actor registry.
 //! - `add.rs`: `[add]`, the interactive editor fill for `mt add`.
 //! - `assignee.rs`: `[tasks.assignee]` constraints.

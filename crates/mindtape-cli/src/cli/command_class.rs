@@ -6,13 +6,13 @@
 //! retyping them, and `tests/it/read_no_write_e2e.rs` generates a per-command
 //! read test from the same JSON.
 //!
-//! A command's key is its bare top-level name (`"ls"`), or — for a command
-//! that only exists as a leaf under a parent with subcommands — the
-//! space-joined path (`"config show"`, `"preset save"`), the same
-//! flattening `cli/tree_json.rs` uses when it computes a node's path. `config`
-//! and `preset` carry no entry of their own: neither is a leaf itself, only
-//! their children are, and `preset`'s two children land in different
-//! classes, so classifying the parent could not even be precise.
+//! A command's key is its bare top-level name (`"ls"`), or the space-joined
+//! path for a command under a parent with subcommands (`"explain rules"`,
+//! `"config show"`), the same flattening `cli/tree_json.rs` uses when it
+//! computes a node's path. A parent that runs itself with no listing carries
+//! an entry of its own (`"explain"`); `config` and `preset` carry none,
+//! because neither is a command in its own right and `preset`'s two children
+//! land in different classes.
 //!
 //! Exhaustiveness — every visible leaf classified, and no stale entry left
 //! behind by a removed command — is asserted in `cli/tree_json.rs`'s own tests,
@@ -60,8 +60,6 @@ pub const CLASSIFICATION: &[(&str, Class)] = &[
     ("ls", Class::Read(Reach::Set)),
     ("find", Class::Read(Reach::Set)),
     ("graph", Class::Read(Reach::One)),
-    ("views", Class::Read(Reach::One)),
-    ("dicts", Class::Read(Reach::One)),
     ("at", Class::Read(Reach::One)),
     ("board", Class::Read(Reach::Set)),
     ("check", Class::Read(Reach::Set)),
@@ -69,8 +67,11 @@ pub const CLASSIFICATION: &[(&str, Class)] = &[
     ("allow", Class::Write),
     ("config show", Class::Read(Reach::One)),
     ("config schema", Class::Read(Reach::One)),
-    ("rules", Class::Read(Reach::One)),
-    ("tags", Class::Read(Reach::One)),
+    ("explain", Class::Read(Reach::One)),
+    ("explain rules", Class::Read(Reach::One)),
+    ("explain tags", Class::Read(Reach::One)),
+    ("explain views", Class::Read(Reach::One)),
+    ("explain dicts", Class::Read(Reach::One)),
     ("preset save", Class::Write),
     ("preset ls", Class::Read(Reach::One)),
     ("init", Class::Write),

@@ -1,4 +1,4 @@
-//! `mt tags` — list the allowed tags and the rules that read them.
+//! `mt explain tags` — list the allowed tags and the rules that read them.
 //!
 //! Read-only. Each allowed tag is followed by every rule whose `when` or
 //! `assert` reads it through `has_tag("<tag>")` or `has(tags, "<tag>")`, and by
@@ -8,21 +8,17 @@
 
 use mindtape::{ActiveRule, Config, Filter, active_rules, load_config};
 
-use crate::cmd::rules::{Moment, message};
+use crate::cmd::explain::rules::{Moment, message};
 use crate::diag::Result;
 use crate::render::widest;
 use crate::util;
 
-/// Arguments for `tags`.
+/// Arguments for `mt explain tags`.
 #[derive(Debug, clap::Args)]
 pub struct TagsArgs {
     /// List only the tags rules enforce at this moment.
     #[arg(long = "for", value_name = "MOMENT", value_enum)]
     pub moment: Option<Moment>,
-
-    /// Print JSON.
-    #[arg(long)]
-    pub json: bool,
 }
 
 /// One allowed tag and the rules that read it.
@@ -39,14 +35,14 @@ pub(crate) struct TagRule {
     pub(crate) message: String,
 }
 
-/// Run the `tags` command.
+/// Run `mt explain tags`.
 ///
 /// # Errors
 /// Returns an error if no project is found or its config fails to load.
-pub fn run(args: &TagsArgs) -> Result<()> {
+pub fn run(args: &TagsArgs, as_json: bool) -> Result<()> {
     let config = load_config(&util::resolve_root()?)?;
     let entries = entries(&config, args.moment);
-    if args.json {
+    if as_json {
         println!("{}", serde_json::to_string_pretty(&json(&entries))?);
     } else {
         print!("{}", render(&entries, args.moment));

@@ -199,6 +199,36 @@ fn a_leaf_carries_the_set_mark_and_a_parent_carries_none() {
     assert!(command(&t, "config").get("runs_on_set").unwrap().is_null());
 }
 
+/// `explain` runs bare, so it carries the same class and reach as its
+/// listings. `config` runs too, but has no entry of its own.
+#[test]
+fn a_runnable_parent_the_registry_names_carries_its_class_and_reach() {
+    let t = tree();
+    let explain = command(&t, "explain");
+    assert_eq!(field(explain.get("class").unwrap(), "kind"), "read");
+    assert_eq!(
+        explain.get("runs_on_set"),
+        Some(&Value::Bool(false)),
+        "explain refuses a set"
+    );
+    let rules = arr(explain, "subcommands")
+        .iter()
+        .find(|c| field(c, "name") == "rules")
+        .unwrap();
+    assert_eq!(field(rules.get("class").unwrap(), "kind"), "read");
+    assert!(command(&t, "config").get("class").unwrap().is_null());
+}
+
+/// A global flag a subcommand declares rides on that node, because it only
+/// applies under it; the root globals stay at the top.
+#[test]
+fn a_subcommand_global_flag_rides_on_its_own_node() {
+    let t = tree();
+    let explain = command(&t, "explain");
+    assert!(longs(arr(explain, "args")).contains(&"json"));
+    assert!(!longs(arr(command(&t, "ls"), "args")).contains(&"worktree"));
+}
+
 #[test]
 fn go_carries_an_exempt_class_with_a_reason() {
     let t = tree();
@@ -208,12 +238,12 @@ fn go_carries_an_exempt_class_with_a_reason() {
     assert!(!field(class, "reason").is_empty());
 }
 
-/// Every leaf's `(flattened path, class)` under `commands`, recursing
-/// into any node that itself has subcommands (`config`, `preset`) — the
-/// same tree `www/generated/cli.json` ships, walked back for the
-/// exhaustiveness tests below rather than re-derived from `Cli::command()`
-/// a second, possibly-diverging way.
-fn leaf_paths(commands: &[Value], prefix: &str, out: &mut Vec<(String, Value)>) {
+/// Every visible command's `(flattened path, class, is_leaf)` under
+/// `commands`, recursing into any node with subcommands (`config`, `preset`,
+/// `explain`) — the same tree `www/generated/cli.json` ships, walked back for
+/// the exhaustiveness tests below rather than re-derived from
+/// `Cli::command()` a second, possibly-diverging way.
+fn visible_paths(commands: &[Value], prefix: &str, out: &mut Vec<(String, Value, bool)>) {
     for cmd in commands {
         let name = field(cmd, "name");
         let path = if prefix.is_empty() {
@@ -222,10 +252,13 @@ fn leaf_paths(commands: &[Value], prefix: &str, out: &mut Vec<(String, Value)>) 
             format!("{prefix} {name}")
         };
         let subs = arr(cmd, "subcommands");
-        if subs.is_empty() {
-            out.push((path, cmd.get("class").cloned().unwrap_or(Value::Null)));
-        } else {
-            leaf_paths(subs, &path, out);
+        out.push((
+            path.clone(),
+            cmd.get("class").cloned().unwrap_or(Value::Null),
+            subs.is_empty(),
+        ));
+        if !subs.is_empty() {
+            visible_paths(subs, &path, out);
         }
     }
 }
@@ -238,13 +271,13 @@ fn leaf_paths(commands: &[Value], prefix: &str, out: &mut Vec<(String, Value)>) 
 #[test]
 fn every_visible_leaf_is_classified_and_no_entry_is_stale() {
     let t = tree();
-    let mut leaves = Vec::new();
-    leaf_paths(arr(&t, "commands"), "", &mut leaves);
+    let mut visible = Vec::new();
+    visible_paths(arr(&t, "commands"), "", &mut visible);
 
-    let unclassified: Vec<&str> = leaves
+    let unclassified: Vec<&str> = visible
         .iter()
-        .filter(|(_, class)| class.is_null())
-        .map(|(name, _)| name.as_str())
+        .filter(|(_, class, is_leaf)| *is_leaf && class.is_null())
+        .map(|(name, _, _)| name.as_str())
         .collect();
     assert!(
         unclassified.is_empty(),
@@ -252,11 +285,11 @@ fn every_visible_leaf_is_classified_and_no_entry_is_stale() {
          command_class::CLASSIFICATION: {unclassified:?}"
     );
 
-    let visible: Vec<&str> = leaves.iter().map(|(name, _)| name.as_str()).collect();
+    let paths: Vec<&str> = visible.iter().map(|(name, _, _)| name.as_str()).collect();
     let stale: Vec<&str> = command_class::CLASSIFICATION
         .iter()
         .map(|(name, _)| *name)
-        .filter(|name| !visible.contains(name))
+        .filter(|name| !paths.contains(name))
         .collect();
     assert!(
         stale.is_empty(),
@@ -327,29 +360,29 @@ fn completion_json_reflects_the_source_table() {
 /// already prints JSON and is the one exemption.
 #[test]
 fn every_read_command_takes_json() {
-    fn walk(node: &Value, prefix: &str, missing: &mut Vec<String>) {
+    // A global `--json` on an ancestor reaches the subcommand too, so it
+    // counts as this node taking it.
+    fn walk(node: &Value, prefix: &str, inherited_json: bool, missing: &mut Vec<String>) {
         let name = field(node, "name");
         let path = flattened_name(prefix, name);
         let subs = arr(node, "subcommands");
+        let takes_json = longs(arr(node, "args")).contains(&"json");
         let is_read = node
             .get("class")
             .and_then(|class| class.get("kind"))
             .and_then(Value::as_str)
             == Some("read");
-        if subs.is_empty()
-            && is_read
-            && path != "config schema"
-            && !longs(arr(node, "args")).contains(&"json")
+        if subs.is_empty() && is_read && path != "config schema" && !(takes_json || inherited_json)
         {
             missing.push(path.clone());
         }
         for sub in subs {
-            walk(sub, &path, missing);
+            walk(sub, &path, inherited_json || takes_json, missing);
         }
     }
     let mut missing = Vec::new();
     for top in arr(&tree(), "commands") {
-        walk(top, "", &mut missing);
+        walk(top, "", false, &mut missing);
     }
     assert!(
         missing.is_empty(),

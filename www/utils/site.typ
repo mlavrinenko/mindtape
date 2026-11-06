@@ -165,10 +165,9 @@
   ("Listing", ("ls", "find", "board")),
   ("Graph", ("graph",)),
   ("Links", ("link",)),
-  ("Views & dictionaries", ("views", "dicts")),
   ("Status", ("flip", "review")),
   ("Recurring tasks", ("recur",)),
-  ("Validate & inspect config", ("check", "rules", "tags", "config")),
+  ("Validate & inspect config", ("check", "explain", "config")),
   ("Retire", ("rm",)),
   ("Setup", ("init", "install", "fix", "packs", "allow", "at", "preset")),
 )

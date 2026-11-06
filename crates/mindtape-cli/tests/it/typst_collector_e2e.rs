@@ -65,9 +65,9 @@ returns = "string"
     );
     let evaluated = json(&stdout(dir.path(), &["eval", "subject", "--json"]));
     assert_eq!(evaluated["derived"]["title"], "A typed task", "{evaluated}");
-    let rules = stdout(dir.path(), &["rules"]);
+    let rules = stdout(dir.path(), &["explain", "rules"]);
     assert!(rules.contains("typst lib.typ::title"), "{rules}");
-    let rules = json(&stdout(dir.path(), &["rules", "--json"]));
+    let rules = json(&stdout(dir.path(), &["explain", "rules", "--json"]));
     assert_eq!(rules["derived"][0]["detail"], "lib.typ::title", "{rules}");
 }
 

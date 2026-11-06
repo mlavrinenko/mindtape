@@ -35,10 +35,9 @@ It is when `.mindtape/config.toml` exists. Run `mt` at or below the directory th
 | Rename a task | `mt mv <task> <new-stem>` |
 | Retire a task | `mt rm <task or folder…>` |
 | Validate | `mt check` |
-| List the rules | `mt rules` |
-| List the tags | `mt tags` |
+| List the rules, tags, views and dicts | `mt explain` |
 
-Run `mt <cmd> --help` for every flag. Never guess the project’s statuses, link kinds, priority scale or tags: read them from `mt tags`, `mt config show` or `mt flip --list`. Read a dictionary’s words, such as the verbs a title may start with, from `mt dicts <name>`. Before you flip or commit, run `mt tags --for <step>` and `mt rules --for <step>`. For more, read [https://mlavrinenko.github.io/mindtape/llms.txt](https://mlavrinenko.github.io/mindtape/llms.txt), every docs page as Markdown.
+Run `mt explain` first: it names this project’s rules, tags, views and dicts. `mt <cmd> --help` lists every flag. Read statuses, link kinds and priorities from `mt config show` or `mt flip --list`, and a dictionary’s words from `mt explain dicts <name>`. Before a flip or commit, run `mt explain tags --for <step>` and `mt explain rules --for <step>`. More: read [https://mlavrinenko.github.io/mindtape/llms.txt](https://mlavrinenko.github.io/mindtape/llms.txt), every docs page as Markdown.
 
 A `<task>` is a stem, a path, or the `slug#` hash `mt ls` prints. The hash changes only when `mt mv` renames the stem; `mt` refuses one shared by several tasks. Link a task’s file path when you name it to a person.
 
@@ -46,11 +45,11 @@ A `<task>` is a stem, a path, or the `slug#` hash `mt ls` prints. The hash chang
 
 Bare `mt ls` applies the first `[[ls.rules]]` entry whose condition holds, else the project’s default view, and the line under the table names which, as in `default view · 3 of 12 tasks`. A filter argument replaces only the filter; that rule’s or view’s sort and columns still apply. `-n N` keeps the first N rows after the sort.
 
-Common filters are `ready` (open, with every `depends-on` target finished and every `waits-on` checker answering that the wait is over), `blocked`, `status == "wip"`, `has_tag("t")`, `contains("text")` and `due < now()`. `mt ls @<view>` applies a view that `mt views` lists. Before you edit a file, run `mt ls 'touches("<path>")'` to read the tasks named in the `Refs:` trailers of commits that changed it. For every field and function, read `references/filters.md`.
+Common filters are `ready` (open, with every `depends-on` target finished and every `waits-on` checker answering that the wait is over), `blocked`, `status == "wip"`, `has_tag("t")`, `contains("text")` and `due < now()`. `mt ls @<view>` applies a view that `mt explain views` lists. Before you edit a file, run `mt ls 'touches("<path>")'` to read the tasks named in the `Refs:` trailers of commits that changed it. For every field and function, read `references/filters.md`.
 
 ## Filing tasks
 
-`mt add <title…>` names the file, checks the task, and writes it under the first root. Before you file, run `mt tags --for add` for the tags the shape rules read, including the `no-repro` and `no-ui-ux` opt-outs. Write `x-goals` with `verdicts((secure: helps[why],), "fast")`: the task’s verdicts, then every neutral goal by name. A goal named both ways fails. Start every Changes bullet with one backticked path; `derived.changes` is that list. `mt add --list` lists templates and `mt add --describe` their slots. Pass a typed value as `--set key=value`, or YAML on stdin with `-f -`. `--print` shows the task without writing it.
+`mt add <title…>` names the file, checks the task, and writes it under the first root. Before you file, run `mt explain tags --for add` for the tags the shape rules read, including the `no-repro` and `no-ui-ux` opt-outs. Write `x-goals` with `verdicts((secure: helps[why],), "fast")`: the task’s verdicts, then every neutral goal by name. A goal named both ways fails. Start every Changes bullet with one backticked path; `derived.changes` is that list. `mt add --list` lists templates and `mt add --describe` their slots. Pass a typed value as `--set key=value`, or YAML on stdin with `-f -`. `--print` shows the task without writing it.
 
 A slot need not be a field: a framework priority takes its inputs (`--set impact=8`). `mt add` refuses an unknown slot and lists the known ones. For a field with no slot, file the task then `mt set` it. A `text` slot escapes markup, so a code span lands as literal backticks and `mt add` warns naming the slot. Read `references/add-slots.md` before filling an unfamiliar template.
 

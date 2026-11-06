@@ -1,32 +1,28 @@
-//! `mt dicts`: list the project's dictionaries (`[dicts]` and the built-ins),
-//! or the entries of one, as `in_dict()` and `@<dict>` read them.
+//! `mt explain dicts`: list the project's dictionaries (`[dicts]` and the
+//! built-ins), or the entries of one, as `in_dict()` and `@<dict>` read them.
 
 use mindtape::{Dict, Dicts, Unknown};
 
 use crate::diag::{Diag, Result};
 use crate::util;
 
-/// Arguments for `dicts`.
+/// Arguments for `mt explain dicts`.
 #[derive(Debug, clap::Args)]
 pub struct DictsArgs {
     /// List this dictionary's entries instead of the dictionaries.
     pub name: Option<String>,
-
-    /// Print JSON.
-    #[arg(long)]
-    pub json: bool,
 }
 
-/// Run the `dicts` command.
+/// Run `mt explain dicts`.
 ///
 /// # Errors
 /// Returns an error if the project cannot be opened or the named dictionary is
 /// unknown.
-pub fn run(args: &DictsArgs) -> Result<()> {
+pub fn run(args: &DictsArgs, as_json: bool) -> Result<()> {
     let project = util::open()?;
     let dicts = project.config.compiled_dicts();
     let Some(name) = &args.name else {
-        if args.json {
+        if as_json {
             println!("{}", serde_json::to_string_pretty(&list_json(dicts))?);
         } else {
             print!("{}", list(dicts));
@@ -34,7 +30,7 @@ pub fn run(args: &DictsArgs) -> Result<()> {
         return Ok(());
     };
     let dict = dicts.get(name).ok_or_else(|| unknown_dict(name, dicts))?;
-    if args.json {
+    if as_json {
         println!(
             "{}",
             serde_json::to_string_pretty(&detail_json(name, dict))?

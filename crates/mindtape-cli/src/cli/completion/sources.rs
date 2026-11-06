@@ -71,7 +71,7 @@ pub(super) fn statuses() -> Vec<CompletionCandidate> {
     })
 }
 
-/// View names under `prefix` — empty for `mt views <name>`, `@` for every
+/// View names under `prefix` — empty for `mt explain views <name>`, `@` for every
 /// argument that takes the reference sugar.
 pub(super) fn view_names(prefix: &str) -> Vec<CompletionCandidate> {
     from_project(|project| {
@@ -87,7 +87,7 @@ pub(super) fn view_names(prefix: &str) -> Vec<CompletionCandidate> {
     })
 }
 
-/// Dictionary names, exactly the set `mt dicts` lists.
+/// Dictionary names, exactly the set `mt explain dicts` lists.
 pub(super) fn dict_names() -> Vec<CompletionCandidate> {
     from_project(|project| {
         (project.config.compiled_dicts().names())

@@ -67,7 +67,7 @@ fn read_commands_run_no_flip_action() {
         &["ls"],
         &["ls", "--json"],
         &["ls", "--format", "csv"],
-        &["views"],
+        &["explain", "views"],
         &["graph"],
         &["config", "show"],
         &["eval", "tasks/alpha.typ"],

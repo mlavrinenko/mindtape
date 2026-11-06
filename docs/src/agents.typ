@@ -55,10 +55,9 @@ skips a file whose bytes are unchanged.
   version this binary reads, `0.2.0`, `0.3.0` and `0.4.0` today.
 - `truth/tasks/` — #mindtape's own backlog, read with the in-tree `lib/`.
   Change a task with `mt` commands, as `skills/mindtape/SKILL.md` says, and
-  list the rules and derived fields with `mt rules`, and the tags
-  they read with `mt tags`. Edit the file
-  by hand only for the body, a framework priority, `estimate` and `x-goals`,
-  then run `mt check`.
+  run `mt explain` for the rules, tags, views and dictionaries this repo
+  declares. Edit the file by hand only for the body, a framework priority,
+  `estimate` and `x-goals`, then run `mt check`.
 - `truth/goals.typ` and `truth/process-goals.typ` — the product and process
   goals. Each open task rates every goal in `x-goals`, which the `goals` rule
   checks.

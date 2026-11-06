@@ -40,7 +40,7 @@ above it and the #link(u("/packs/"))[packs] it adopts, and a hook that has a
 name can be changed from a nearer layer. A later hook with the same `name`
 replaces the earlier one where it stood, and `disable = ["<name>"]` drops it.
 A hook with no `name` always joins the list and nothing replaces it.
-`mt config show --origin` and #link(u("/cli/rules/"))[`mt rules`] label a
+`mt config show --origin` and #link(u("/cli/explain/#rules"))[`mt explain rules`] label a
 named hook `on.flip.<name>`, and the others `on.flip[<index>]`. Two hooks in
 one file can't share a name.
 
