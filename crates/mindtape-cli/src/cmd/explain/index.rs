@@ -4,7 +4,7 @@
 
 use mindtape::{Config, RuleSection, active_derived, active_rules, load_config};
 
-use crate::diag::Result;
+use crate::diag::{Command, Result, next_line};
 use crate::util;
 
 /// The order the index prints rule groups in, the same order the config
@@ -144,6 +144,11 @@ fn render(index: &Index, width: usize) -> String {
         .map(|(name, count)| format!("{name} ({count})"))
         .collect();
     labelled(&mut out, "dicts", &dicts, width, "  ");
+    out.push_str(&next_line(format!(
+        "run {} for your work, or mt <command> --help for flags",
+        Command::mt().word("ls")
+    )));
+    out.push('\n');
     out
 }
 
@@ -300,6 +305,7 @@ derived fields: changes
 tags: cli, default, mt
 views: default
 dicts: source (16)
+next: run mt ls for your work, or mt <command> --help for flags
 "
         );
     }
@@ -322,7 +328,17 @@ tags: alpha, beta,
   gamma
 views: none
 dicts: none
+next: run mt ls for your work, or mt <command> --help for flags
 "
+        );
+    }
+
+    #[test]
+    fn the_index_ends_on_the_command_to_run_next() {
+        let text = render(&collect(&config()), 100);
+        assert!(
+            text.ends_with("next: run mt ls for your work, or mt <command> --help for flags\n"),
+            "{text}"
         );
     }
 

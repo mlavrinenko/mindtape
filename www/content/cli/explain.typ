@@ -6,7 +6,9 @@
 `mt explain` answers what this project enforces. Bare, it prints an index:
 every rule grouped by its config section, the derived fields, and the tags,
 views and dictionaries the project declares. A dictionary carries its entry
-count, and `default` leads the view and tag lists when it exists.
+count, and `default` leads the view and tag lists when it exists. The index
+ends on a `next:` line. It names `mt ls` for your work and `mt <command>
+--help` for the flags of a command you have not met.
 
 #cli-command("explain")
 

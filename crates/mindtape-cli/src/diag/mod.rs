@@ -86,6 +86,19 @@ pub(crate) use render::{
 };
 pub(crate) use summary::dedupe_notes;
 
+/// The `next:` line a command prints on stdout when it names the command to run
+/// next, as `mt init` does. A successful command is not a [`Diag`], so this
+/// returns the line for its caller to print.
+pub(crate) fn next_line(text: impl fmt::Display) -> String {
+    format!("next: {text}")
+}
+
+/// The `hint:` line a read command prints on stdout at a dead end, quoting a
+/// command the same way a refusal's hint does.
+pub(crate) fn hint_line(text: impl fmt::Display) -> String {
+    format!("hint: {text}")
+}
+
 /// What a command returns: its result, or the [`Diag`] `main` prints.
 pub(crate) type Result<T, E = Diag> = std::result::Result<T, E>;
 

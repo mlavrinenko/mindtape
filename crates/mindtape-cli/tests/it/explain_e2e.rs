@@ -122,6 +122,20 @@ fn bare_lists_every_listing_grouped() {
     );
 }
 
+/// The index ends on the first command to run, and the JSON envelope carries
+/// no prose line.
+#[test]
+fn bare_ends_on_the_next_command() {
+    let dir = project();
+    let text = stdout(dir.path(), &["explain"]);
+    assert!(
+        text.ends_with("next: run mt ls for your work, or mt <command> --help for flags\n"),
+        "{text}"
+    );
+    let value = json(dir.path(), &["explain", "--json"]);
+    assert!(value.get("next").is_none(), "{value}");
+}
+
 /// The index JSON carries the same groups under a `schema_version`, while each
 /// listing keeps its own envelope.
 #[test]
