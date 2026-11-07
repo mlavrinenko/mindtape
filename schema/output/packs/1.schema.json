@@ -1,0 +1,54 @@
+{
+  "$defs": {
+    "InstalledJson": {
+      "description": "One locked source after `install`: its name, commit, tree hash and whether\nthis run fetched it.",
+      "properties": {
+        "commit": {
+          "description": "The commit the lock pins.",
+          "type": "string"
+        },
+        "fetched": {
+          "description": "Whether this run fetched the tree into the cache.",
+          "type": "boolean"
+        },
+        "sha256": {
+          "description": "The root tree's SHA-256.",
+          "type": "string"
+        },
+        "source": {
+          "description": "The source's name in `[pack-sources]`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "commit",
+        "sha256",
+        "fetched"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/packs/1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The object `mt packs install --json` prints: each locked source, its commit and tree hash, and whether this run fetched it.",
+  "properties": {
+    "$schema": {
+      "description": "The URL of the schema this object conforms to.",
+      "type": "string"
+    },
+    "sources": {
+      "description": "Each declared source with a lock entry.",
+      "items": {
+        "$ref": "#/$defs/InstalledJson"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "$schema",
+    "sources"
+  ],
+  "title": "Mindtape pack install",
+  "type": "object"
+}

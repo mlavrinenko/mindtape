@@ -1,4 +1,4 @@
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use mindtape::test_support::{tempdir_with_config, tempdir_with_dirs};
 use std::path::PathBuf;
@@ -32,9 +32,16 @@ fn effective_config_json_round_trips_to_same_shape_as_toml() {
 
     let from_toml = parse_config(&toml_text).unwrap();
     let json_value: serde_json::Value = serde_json::from_str(&json_text).unwrap();
-    // Round the JSON value back through a TOML table so the same typed
-    // `Config` deserialization applies to both encodings.
-    let table: toml::Table = serde_json::from_value(json_value).unwrap();
+    assert!(
+        json_value["$schema"]
+            .as_str()
+            .unwrap_or_default()
+            .ends_with("/config-show/1.schema.json"),
+        "{json_value}"
+    );
+    // Round the merged table back through the same typed `Config`
+    // deserialization the TOML encoding gets.
+    let table: toml::Table = serde_json::from_value(json_value["config"].clone()).unwrap();
     let from_json: Config = toml::Value::Table(table).try_into().unwrap();
     assert_eq!(from_toml, from_json);
 }

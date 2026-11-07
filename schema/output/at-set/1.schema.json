@@ -1,0 +1,59 @@
+{
+  "$defs": {
+    "AtMemberJson": {
+      "description": "One project of a set.",
+      "properties": {
+        "fork": {
+          "description": "Whether it is a linked git worktree.",
+          "type": "boolean"
+        },
+        "name": {
+          "description": "Its directory name, or its shortest unique path suffix on a clash.",
+          "type": "string"
+        },
+        "path": {
+          "description": "Its directory.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "path",
+        "fork"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/at-set/1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The object `mt at <name> --json` prints for a set: its name, the `set` kind and its members.",
+  "properties": {
+    "$schema": {
+      "description": "The URL of the schema this object conforms to.",
+      "type": "string"
+    },
+    "kind": {
+      "description": "Always `\"set\"`.",
+      "type": "string"
+    },
+    "members": {
+      "description": "The projects the set holds, in include order.",
+      "items": {
+        "$ref": "#/$defs/AtMemberJson"
+      },
+      "type": "array"
+    },
+    "name": {
+      "description": "The name `@name` selects.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "$schema",
+    "name",
+    "kind",
+    "members"
+  ],
+  "title": "Mindtape at set",
+  "type": "object"
+}

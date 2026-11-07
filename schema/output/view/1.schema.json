@@ -1,0 +1,46 @@
+{
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/view/1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The object `mt explain views <name> --json` prints: one view's filter, sort, columns and description.",
+  "properties": {
+    "$schema": {
+      "description": "The URL of the schema this object conforms to.",
+      "type": "string"
+    },
+    "columns": {
+      "default": [],
+      "description": "Column set applied when this view drives columns (bundle mode or\n`--columns @name`). Empty means the default column set.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "description": {
+      "default": null,
+      "description": "Human description, shown by `mt explain views`.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "filter": {
+      "default": "",
+      "description": "Filter expression (the filter facet). May reference other views via\n`in_view(\"other\")` or the `@other` sugar. Empty means match-all.",
+      "type": "string",
+      "x-expression": "filter"
+    },
+    "sort": {
+      "default": [],
+      "description": "Sort chain applied when this view drives sort (bundle mode or\n`--sort @name`). Same spec grammar as `--sort`; empty means the default\norder.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "$schema"
+  ],
+  "title": "Mindtape view",
+  "type": "object"
+}

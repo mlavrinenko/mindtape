@@ -185,7 +185,15 @@ fn a_failed_cell_prints_a_question_mark_and_a_note_naming_its_project() {
 fn json_prints_every_row_with_its_cells() {
     let fx = setup("");
     let (text, _) = board(&fx, &["@bad", "board", "--json"], 1);
-    let rows: serde_json::Value = serde_json::from_str(&text).unwrap();
+    let document: serde_json::Value = serde_json::from_str(&text).unwrap();
+    assert!(
+        document["$schema"]
+            .as_str()
+            .unwrap_or_default()
+            .ends_with("/board/1.schema.json"),
+        "{document}"
+    );
+    let rows = document["projects"].as_array().unwrap();
     let alpha = &rows[0];
     assert_eq!(alpha["project"], name(&fx.alpha));
     assert_eq!(alpha["hidden"], false);
@@ -196,5 +204,5 @@ fn json_prints_every_row_with_its_cells() {
     assert_eq!(broken["project"], name(&fx.broken));
     let error = broken["error"].as_str().unwrap();
     assert!(error.contains("config.toml"), "{error}");
-    assert_eq!(rows.as_array().map(Vec::len), Some(2));
+    assert_eq!(rows.len(), 2);
 }

@@ -5,11 +5,14 @@ use std::io::Read;
 use std::path::Path;
 
 use mindtape::{Config, LinkValue, RawValue, SlotSpec};
+use serde::Serialize;
 
 use crate::cmd::add::tokens::apply_token;
 use crate::cmd::add::yaml_values;
 use crate::cmd::add::yaml_values::LinkFields;
+use crate::cmd::schema::DESCRIBE;
 use crate::diag::{Command, Diag, Hint, Note};
+use crate::render::envelope::Envelope;
 
 type Result<T> = std::result::Result<T, Diag>;
 
@@ -22,7 +25,7 @@ pub const BUILTIN_TASK: &str = include_str!("templates/task.typ");
 pub enum DescribeFormat {
     /// One human-readable line per slot.
     Text,
-    /// A JSON array of slot objects.
+    /// A `$schema` envelope whose `slots` hold a slot object each.
     Json,
 }
 
@@ -389,23 +392,55 @@ fn example_of(spec: &SlotSpec) -> Option<&str> {
     spec.example_string.as_deref().or(spec.example.as_deref())
 }
 
+/// The object `mt add --describe=json` prints: the template's slots.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct DescribePayload {
+    /// The template's slots, in declaration order.
+    pub slots: Vec<SlotJson>,
+}
+
+/// One template slot.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct SlotJson {
+    /// The slot's name.
+    pub name: String,
+    /// Its value kind, such as `string` or `choice`.
+    pub kind: String,
+    /// Whether a value must be supplied when no default is present.
+    pub required: bool,
+    /// The default expression's source, or `null`.
+    pub default: Option<String>,
+    /// A sample value, or `null`.
+    pub example: Option<String>,
+    /// The prompt the editor and `--describe` show, or `null`.
+    pub prompt: Option<String>,
+    /// The environment variable the slot reads, or `null`.
+    pub env: Option<String>,
+    /// The values a `choice` slot accepts, or `null`.
+    pub choices: Option<Vec<String>>,
+}
+
+impl SlotJson {
+    /// One slot as its JSON shape.
+    fn new(spec: &SlotSpec) -> Self {
+        Self {
+            name: spec.name.clone(),
+            kind: spec.kind.as_str().to_owned(),
+            required: spec.required && spec.default.is_none(),
+            default: spec.default.clone(),
+            example: example_of(spec).map(ToOwned::to_owned),
+            prompt: spec.prompt.clone(),
+            env: spec.env.clone(),
+            choices: spec.choices.clone(),
+        }
+    }
+}
+
 fn describe_json(specs: &[SlotSpec]) -> Result<String> {
-    let rows: Vec<serde_json::Value> = specs
-        .iter()
-        .map(|spec| {
-            serde_json::json!({
-                "name": spec.name,
-                "kind": spec.kind.as_str(),
-                "required": spec.required && spec.default.is_none(),
-                "default": spec.default,
-                "example": example_of(spec),
-                "prompt": spec.prompt,
-                "env": spec.env,
-                "choices": spec.choices,
-            })
-        })
-        .collect();
-    serde_json::to_string_pretty(&rows)
+    let payload = DescribePayload {
+        slots: specs.iter().map(SlotJson::new).collect(),
+    };
+    serde_json::to_string_pretty(&Envelope::new(DESCRIBE, payload))
         .map_err(|err| Diag::failed("can't serialize the slot description").cause(&err))
 }
 

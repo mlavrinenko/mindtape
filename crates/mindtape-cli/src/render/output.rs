@@ -5,15 +5,16 @@ use std::path::Path;
 use crate::diag::{Diag, Result};
 use mindtape::config::Config;
 use mindtape::model::numeric::{NumValue, format_num};
-use mindtape::{CanonicalTask, Readiness, ReadyState, SCHEMA_VERSION, Task};
-use serde_json::{Value, json};
+use mindtape::{CanonicalTask, Readiness, ReadyState, Task};
+use serde::Serialize;
+use serde_json::Value;
 
-use crate::cmd::schema::LS;
+use crate::cmd::schema::{LS, SET_LS};
 use crate::render::RenderCtx;
 use crate::render::columns::{ColumnId, joined_rows};
 use crate::render::envelope::Envelope;
-pub(crate) use crate::render::payload::{JsonContext, LsPayload};
-use crate::render::payload::{canonical_tasks, ls_payload};
+pub(crate) use crate::render::payload::JsonContext;
+use crate::render::payload::{AppliedJson, TruncatedJson, canonical_tasks, ls_payload};
 
 /// Output format for `list` and `eval`.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
@@ -174,35 +175,70 @@ pub fn render_set(groups: &[SetGroup<'_>], format: OutputFormat) -> Result<Strin
     }
 }
 
+/// The object `mt @set ls --json` prints: one listing per project.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct SetLsPayload {
+    /// One listing per project, in set order.
+    pub projects: Vec<ProjectListingJson>,
+}
+
+/// One project's part of a set's JSON listing: the `mt ls --json` document
+/// plus the project's name and the error that kept it from listing.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct ProjectListingJson {
+    /// The project's name.
+    pub project: String,
+    /// The selected task records, empty when the project failed.
+    pub tasks: Vec<CanonicalTask>,
+    /// Which rule and view won each facet, or `null` when it failed.
+    pub applied: Option<AppliedJson>,
+    /// What `--limit` cut, or `null`.
+    pub truncated: Option<TruncatedJson>,
+    /// The stems a `touches()` call met that no task answers to.
+    pub retired: Vec<String>,
+    /// Why the project did not list, or `null` when it did.
+    pub error: Option<String>,
+}
+
 /// `mt @set ls --json`: one envelope per project, as [`render_set`] says.
 fn render_set_json(groups: &[SetGroup<'_>]) -> Result<String> {
-    let objects: Vec<Value> = groups
-        .iter()
-        .map(|group| {
-            let mut object = match group.listed {
-                Ok(listed) => json_value(
-                    listed.tasks,
-                    listed.ctx.config,
-                    listed.ctx.readiness,
-                    Some(listed.envelope),
-                ),
-                Err(_) => json!({
-                    "schema_version": SCHEMA_VERSION,
-                    "tasks": [],
-                    "applied": null,
-                    "truncated": null,
-                    "retired": [],
-                }),
-            };
-            if let Value::Object(map) = &mut object {
-                map.insert("project".to_owned(), json!(group.project));
-                let error = group.listed.err().map(ToString::to_string);
-                map.insert("error".to_owned(), json!(error));
+    let payload = SetLsPayload {
+        projects: groups.iter().map(project_listing).collect(),
+    };
+    Ok(serde_json::to_string_pretty(&Envelope::new(
+        SET_LS, payload,
+    ))?)
+}
+
+/// One group as its share of a set's JSON document.
+fn project_listing(group: &SetGroup<'_>) -> ProjectListingJson {
+    let project = group.project.to_owned();
+    match group.listed {
+        Ok(listed) => {
+            let listing = ls_payload(
+                listed.tasks,
+                listed.ctx.config,
+                listed.ctx.readiness,
+                listed.envelope,
+            );
+            ProjectListingJson {
+                project,
+                tasks: listing.tasks,
+                applied: Some(listing.applied),
+                truncated: listing.truncated,
+                retired: listing.retired,
+                error: None,
             }
-            object
-        })
-        .collect();
-    Ok(serde_json::to_string_pretty(&objects)?)
+        }
+        Err(diag) => ProjectListingJson {
+            project,
+            tasks: Vec::new(),
+            applied: None,
+            truncated: None,
+            retired: Vec::new(),
+            error: Some(diag.to_string()),
+        },
+    }
 }
 
 /// `path` format: one task path per line, joined (not trailing) — the caller

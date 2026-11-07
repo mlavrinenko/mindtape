@@ -2,9 +2,12 @@
 
 use std::collections::BTreeMap;
 
-use crate::diag::Result;
 use mindtape::ViewSpec;
+use serde::Serialize;
 
+use crate::cmd::schema::{VIEW, VIEWS};
+use crate::diag::Result;
+use crate::render::envelope::Envelope;
 use crate::util;
 
 /// Arguments for `mt explain views`.
@@ -27,7 +30,10 @@ pub fn run(args: &ViewsArgs, as_json: bool) -> Result<()> {
             .get(name)
             .ok_or_else(|| util::unknown_view_error(name, views))?;
         if as_json {
-            println!("{}", serde_json::to_string_pretty(spec)?);
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&Envelope::new(VIEW, spec.clone()))?
+            );
         } else {
             print_detail(name, spec);
         }
@@ -35,13 +41,26 @@ pub fn run(args: &ViewsArgs, as_json: bool) -> Result<()> {
     }
 
     if as_json {
-        println!("{}", serde_json::to_string_pretty(views)?);
+        let payload = ViewsPayload {
+            views: views.clone(),
+        };
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&Envelope::new(VIEWS, payload))?
+        );
     } else if views.is_empty() {
         println!("no views defined (add a [views.<name>] table to .mindtape/config.toml)");
     } else {
         print_list(views);
     }
     Ok(())
+}
+
+/// The object `mt explain views --json` prints: every named view.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct ViewsPayload {
+    /// Each view's spec, by name.
+    pub views: BTreeMap<String, ViewSpec>,
 }
 
 /// The filter as shown to a human; empty means match-all.

@@ -12,14 +12,22 @@ use clap::Args;
 use serde_json::Value;
 
 use crate::cmd::add::output::AddReport;
+use crate::cmd::add::values::DescribePayload;
+use crate::cmd::at::{AtListPayload, AtProjectJson, AtSetJson};
+use crate::cmd::board::BoardPayload;
+use crate::cmd::config::ConfigShowPayload;
+use crate::cmd::explain::dicts::{DictDetailJson, DictsPayload};
+use crate::cmd::explain::views::ViewsPayload;
+use crate::cmd::packs::PacksPayload;
 use crate::diag::{Diag, Hint, Result};
 use crate::render::envelope::Envelope;
 use crate::render::objects::{
     CheckPayload, CheckSetPayload, ExplainIndexPayload, GraphPayload, PresetsPayload, RulesPayload,
     TagsPayload,
 };
-use crate::render::output::LsPayload;
-use mindtape::CanonicalTask;
+use crate::render::output::SetLsPayload;
+use crate::render::payload::LsPayload;
+use mindtape::{CanonicalTask, ViewSpec};
 
 /// The base a working instance names in `$schema` unless
 /// `MINDTAPE_SCHEMA_BASE` overrides it.
@@ -182,6 +190,33 @@ const EVAL_DESCRIPTION: &str =
 const ADD_TITLE: &str = "Mindtape add report";
 const ADD_DESCRIPTION: &str =
     "The object `mt add --json` prints: what the run did, the task's path and its stem hash.";
+const BOARD_TITLE: &str = "Mindtape board";
+const BOARD_DESCRIPTION: &str = "The object `mt board --json` prints: one row per project, its cells, or the error that kept it from loading.";
+const AT_TITLE: &str = "Mindtape at entries";
+const AT_DESCRIPTION: &str = "The object `mt at --json` prints: every `at.toml` entry, its include and exclude patterns and its forks policy.";
+const AT_PROJECT_TITLE: &str = "Mindtape at project";
+const AT_PROJECT_DESCRIPTION: &str = "The object `mt at <name> --json` prints for a project: its name, the `project` kind and its path.";
+const AT_SET_TITLE: &str = "Mindtape at set";
+const AT_SET_DESCRIPTION: &str =
+    "The object `mt at <name> --json` prints for a set: its name, the `set` kind and its members.";
+const SET_LS_TITLE: &str = "Mindtape set listing";
+const SET_LS_DESCRIPTION: &str = "The object `mt @set ls --json` prints: one `mt ls --json` listing per project, with its name and error.";
+const PACKS_TITLE: &str = "Mindtape pack install";
+const PACKS_DESCRIPTION: &str = "The object `mt packs install --json` prints: each locked source, its commit and tree hash, and whether this run fetched it.";
+const DESCRIBE_TITLE: &str = "Mindtape template slots";
+const DESCRIBE_DESCRIPTION: &str = "The object `mt add --describe=json` prints: the template's slots, each with its kind, default and choices.";
+const VIEWS_TITLE: &str = "Mindtape views";
+const VIEWS_DESCRIPTION: &str =
+    "The object `mt explain views --json` prints: every named view's spec, by name.";
+const VIEW_TITLE: &str = "Mindtape view";
+const VIEW_DESCRIPTION: &str = "The object `mt explain views <name> --json` prints: one view's filter, sort, columns and description.";
+const DICTS_TITLE: &str = "Mindtape dictionaries";
+const DICTS_DESCRIPTION: &str =
+    "The object `mt explain dicts --json` prints: each dictionary's case and entry count, by name.";
+const DICT_TITLE: &str = "Mindtape dictionary";
+const DICT_DESCRIPTION: &str = "The object `mt explain dicts <name> --json` prints: one dictionary's name, case, count and entries.";
+const CONFIG_SHOW_TITLE: &str = "Mindtape effective config";
+const CONFIG_SHOW_DESCRIPTION: &str = "The object `mt config show --json` prints: the merged config under `config`, shaped as `.mindtape/config.toml`.";
 // jscpd:ignore-end
 
 /// One registered output schema.
@@ -274,6 +309,78 @@ pub const SCHEMAS: &[Schema] = &[
         title: EVAL_TITLE,
         description: EVAL_DESCRIPTION,
         schema: || schemars::schema_for!(Envelope<CanonicalTask>),
+    },
+    Schema {
+        id: BOARD,
+        title: BOARD_TITLE,
+        description: BOARD_DESCRIPTION,
+        schema: || schemars::schema_for!(Envelope<BoardPayload>),
+    },
+    Schema {
+        id: AT,
+        title: AT_TITLE,
+        description: AT_DESCRIPTION,
+        schema: || schemars::schema_for!(Envelope<AtListPayload>),
+    },
+    Schema {
+        id: AT_PROJECT,
+        title: AT_PROJECT_TITLE,
+        description: AT_PROJECT_DESCRIPTION,
+        schema: || schemars::schema_for!(Envelope<AtProjectJson>),
+    },
+    Schema {
+        id: AT_SET,
+        title: AT_SET_TITLE,
+        description: AT_SET_DESCRIPTION,
+        schema: || schemars::schema_for!(Envelope<AtSetJson>),
+    },
+    Schema {
+        id: SET_LS,
+        title: SET_LS_TITLE,
+        description: SET_LS_DESCRIPTION,
+        schema: || schemars::schema_for!(Envelope<SetLsPayload>),
+    },
+    Schema {
+        id: PACKS,
+        title: PACKS_TITLE,
+        description: PACKS_DESCRIPTION,
+        schema: || schemars::schema_for!(Envelope<PacksPayload>),
+    },
+    Schema {
+        id: DESCRIBE,
+        title: DESCRIBE_TITLE,
+        description: DESCRIBE_DESCRIPTION,
+        schema: || schemars::schema_for!(Envelope<DescribePayload>),
+    },
+    Schema {
+        id: VIEWS,
+        title: VIEWS_TITLE,
+        description: VIEWS_DESCRIPTION,
+        schema: || schemars::schema_for!(Envelope<ViewsPayload>),
+    },
+    Schema {
+        id: VIEW,
+        title: VIEW_TITLE,
+        description: VIEW_DESCRIPTION,
+        schema: || schemars::schema_for!(Envelope<ViewSpec>),
+    },
+    Schema {
+        id: DICTS,
+        title: DICTS_TITLE,
+        description: DICTS_DESCRIPTION,
+        schema: || schemars::schema_for!(Envelope<DictsPayload>),
+    },
+    Schema {
+        id: DICT,
+        title: DICT_TITLE,
+        description: DICT_DESCRIPTION,
+        schema: || schemars::schema_for!(Envelope<DictDetailJson>),
+    },
+    Schema {
+        id: CONFIG_SHOW,
+        title: CONFIG_SHOW_TITLE,
+        description: CONFIG_SHOW_DESCRIPTION,
+        schema: || schemars::schema_for!(Envelope<ConfigShowPayload>),
     },
 ];
 // jscpd:ignore-end

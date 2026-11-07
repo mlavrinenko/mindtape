@@ -1,4 +1,5 @@
 //! `mt packs install`: fetch what the lock pins.
+#![allow(clippy::indexing_slicing)]
 
 use std::path::Path;
 
@@ -50,10 +51,20 @@ fn install_json_names_each_source_and_whether_it_fetched() {
     let (code, stdout, stderr) = mt_in(dir.path(), dir.path(), &["packs", "install", "--json"]);
 
     assert_eq!(code, Some(0), "{stderr}");
-    let json: serde_json::Value = serde_json::from_str(&stdout).unwrap();
-    let expected = serde_json::json!([
-        {"source": "acme", "commit": commit, "sha256": sha, "fetched": true}
-    ]);
+    let mut json: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    assert!(
+        json["$schema"]
+            .as_str()
+            .unwrap_or_default()
+            .ends_with("/packs/1.schema.json"),
+        "{stdout}"
+    );
+    json.as_object_mut().unwrap().remove("$schema");
+    let expected = serde_json::json!({
+        "sources": [
+            {"source": "acme", "commit": commit, "sha256": sha, "fetched": true}
+        ]
+    });
     assert_eq!(json, expected, "{stdout}");
 }
 

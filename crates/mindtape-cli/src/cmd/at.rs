@@ -14,10 +14,13 @@
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
-use mindtape::{AtConfig, AtError, DiskFs, Member, Target};
+use mindtape::{AtConfig, AtEntry, AtError, DiskFs, Member, Target};
+use serde::Serialize;
 
+use crate::cmd::schema::{AT, AT_PROJECT, AT_SET};
 use crate::diag::{Diag, Hint, Note, Result};
 use crate::project_set::{HeldSet, init_held_set};
+use crate::render::envelope::Envelope;
 
 /// Arguments for `mt at`.
 #[derive(Debug, clap::Args)]
@@ -51,18 +54,13 @@ fn show_all(config: &AtConfig, path: Option<&Path>, json: bool) {
         .filter_map(|name| config.entry(name).map(|entry| (name, entry)))
         .collect();
     if json {
-        let items: Vec<serde_json::Value> = entries
-            .iter()
-            .map(|(name, entry)| {
-                serde_json::json!({
-                    "name": name,
-                    "include": entry.include,
-                    "exclude": entry.exclude,
-                    "forks": forks_word(entry.forks),
-                })
-            })
-            .collect();
-        print_json(&serde_json::Value::Array(items));
+        let payload = AtListPayload {
+            entries: entries
+                .iter()
+                .map(|(name, entry)| AtEntryJson::new(name, entry))
+                .collect(),
+        };
+        print_json(&Envelope::new(AT, payload));
         return;
     }
     if entries.is_empty() {
@@ -85,13 +83,23 @@ fn show_one(config: &AtConfig, path: Option<&Path>, name: &str, json: bool) -> R
     let target = resolve(config, name, |pick| format!("mt at {pick}"))?
         .ok_or_else(|| unknown_name(name, config, path))?;
     match target {
-        Target::Project(root) if json => print_json(&serde_json::json!({
-            "name": name, "kind": "project", "path": mindtape::slash_path(&root),
-        })),
+        Target::Project(root) if json => print_json(&Envelope::new(
+            AT_PROJECT,
+            AtProjectJson {
+                name: name.to_owned(),
+                kind: "project".to_owned(),
+                path: mindtape::slash_path(&root),
+            },
+        )),
         Target::Project(root) => println!("@{name} → {}", mindtape::display_path(&root)),
-        Target::Set(members) if json => print_json(&serde_json::json!({
-            "name": name, "kind": "set", "members": members.iter().map(member_json).collect::<Vec<_>>(),
-        })),
+        Target::Set(members) if json => print_json(&Envelope::new(
+            AT_SET,
+            AtSetJson {
+                name: name.to_owned(),
+                kind: "set".to_owned(),
+                members: members.iter().map(AtMemberJson::new).collect(),
+            },
+        )),
         Target::Set(members) => {
             println!(
                 "@{name} holds {}",
@@ -134,12 +142,83 @@ fn shown_path(path: &Path, home: Option<&Path>) -> String {
     }
 }
 
-fn member_json(member: &Member) -> serde_json::Value {
-    serde_json::json!({
-        "name": member.name, "path": mindtape::slash_path(&member.path), "fork": member.fork,
-    })
+/// The object `mt at --json` prints: every entry of `at.toml`.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct AtListPayload {
+    /// The entries, sorted by name.
+    pub entries: Vec<AtEntryJson>,
 }
 
+/// One `[at.<name>]` entry.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct AtEntryJson {
+    /// The name `@name` selects.
+    pub name: String,
+    /// The paths, globs and `@name`s the set includes.
+    pub include: Vec<String>,
+    /// The paths, globs and `@name`s it excludes.
+    pub exclude: Vec<String>,
+    /// Whether linked git worktrees join: `"false"`, `"true"` or `"only"`.
+    pub forks: String,
+}
+
+impl AtEntryJson {
+    /// One entry as its JSON shape.
+    fn new(name: &str, entry: &AtEntry) -> Self {
+        Self {
+            name: name.to_owned(),
+            include: entry.include.clone(),
+            exclude: entry.exclude.clone(),
+            forks: forks_word(entry.forks).to_owned(),
+        }
+    }
+}
+
+/// What `mt at <name> --json` prints for a project.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct AtProjectJson {
+    /// The name `@name` selects.
+    pub name: String,
+    /// Always `"project"`.
+    pub kind: String,
+    /// The project's directory.
+    pub path: String,
+}
+
+/// What `mt at <name> --json` prints for a set.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct AtSetJson {
+    /// The name `@name` selects.
+    pub name: String,
+    /// Always `"set"`.
+    pub kind: String,
+    /// The projects the set holds, in include order.
+    pub members: Vec<AtMemberJson>,
+}
+
+/// One project of a set.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct AtMemberJson {
+    /// Its directory name, or its shortest unique path suffix on a clash.
+    pub name: String,
+    /// Its directory.
+    pub path: String,
+    /// Whether it is a linked git worktree.
+    pub fork: bool,
+}
+
+impl AtMemberJson {
+    /// One member as its JSON shape.
+    fn new(member: &Member) -> Self {
+        Self {
+            name: member.name.clone(),
+            path: mindtape::slash_path(&member.path),
+            fork: member.fork,
+        }
+    }
+}
+
+/// The config spelling of a `forks` value.
 fn forks_word(forks: mindtape::Forks) -> &'static str {
     match forks {
         mindtape::Forks::Skip => "false",
@@ -148,7 +227,7 @@ fn forks_word(forks: mindtape::Forks) -> &'static str {
     }
 }
 
-fn print_json(value: &serde_json::Value) {
+fn print_json<T: Serialize>(value: &Envelope<T>) {
     println!(
         "{}",
         serde_json::to_string_pretty(value).unwrap_or_default()

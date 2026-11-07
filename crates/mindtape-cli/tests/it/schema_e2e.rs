@@ -16,7 +16,7 @@ fn repo_root() -> PathBuf {
 }
 
 /// Every registered output, in `mt schema` order.
-const NAMES: [&str; 11] = [
+const NAMES: [&str; 23] = [
     "ls",
     "task",
     "add",
@@ -28,6 +28,18 @@ const NAMES: [&str; 11] = [
     "rules",
     "tags",
     "eval",
+    "board",
+    "at",
+    "at-project",
+    "at-set",
+    "set-ls",
+    "packs",
+    "describe",
+    "views",
+    "view",
+    "dicts",
+    "dict",
+    "config-show",
 ];
 
 #[test]
@@ -174,4 +186,29 @@ fn live_add_output_validates_against_the_recorded_schema() {
     let text = support::add_wired_json(dir.path());
     let value: serde_json::Value = serde_json::from_str(&text).unwrap();
     validate("add", &value);
+}
+
+#[test]
+fn live_collection_outputs_validate_against_their_schemas() {
+    let dir = support::project_with_tasks(&[("a.typ", "Alpha")]);
+    let config = dir.path().join(".mindtape/config.toml");
+    let mut text = std::fs::read_to_string(&config).unwrap();
+    text.push_str(
+        "\n[views.hot]\nfilter = 'priority > 2'\n\n\
+         [dicts.labels]\nvalues = [\"bug\", \"feat\"]\n",
+    );
+    std::fs::write(&config, text).unwrap();
+
+    for (name, args) in [
+        ("board", &["board", "--json"][..]),
+        ("at", &["at", "--json"][..]),
+        ("describe", &["add", "--describe=json"][..]),
+        ("views", &["explain", "views", "--json"][..]),
+        ("view", &["explain", "views", "hot", "--json"][..]),
+        ("dicts", &["explain", "dicts", "--json"][..]),
+        ("dict", &["explain", "dicts", "labels", "--json"][..]),
+        ("config-show", &["config", "show", "--json"][..]),
+    ] {
+        validate(name, &support::json(dir.path(), args));
+    }
 }

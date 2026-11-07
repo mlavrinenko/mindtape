@@ -167,14 +167,22 @@ fn a_broken_member_exits_1_after_the_rest_print() {
     let (stdout, _) = set.failing_beta(&["ls", "", "--json"]);
     let json: serde_json::Value = serde_json::from_str(&stdout).unwrap();
     let at = |pointer: &str| json.pointer(pointer).unwrap().clone();
-    assert_eq!(json.as_array().unwrap().len(), 2, "{stdout}");
-    assert_eq!(at("/0/project"), set.alpha().as_str());
-    assert_eq!(at("/0/tasks").as_array().unwrap().len(), 2);
-    assert!(at("/0/applied").is_object(), "{stdout}");
-    assert!(at("/0/error").is_null(), "{stdout}");
-    assert_eq!(at("/1/project"), set.beta().as_str());
-    assert!(at("/1/error").is_string(), "{stdout}");
-    assert_eq!(at("/1/tasks"), serde_json::json!([]));
+    assert!(
+        at("/$schema")
+            .as_str()
+            .unwrap_or_default()
+            .ends_with("/set-ls/1.schema.json"),
+        "{stdout}"
+    );
+    assert_eq!(at("/projects").as_array().unwrap().len(), 2, "{stdout}");
+    assert_eq!(at("/projects/0/project"), set.alpha().as_str());
+    assert_eq!(at("/projects/0/tasks").as_array().unwrap().len(), 2);
+    assert!(at("/projects/0/applied").is_object(), "{stdout}");
+    assert!(at("/projects/0/error").is_null(), "{stdout}");
+    assert_eq!(at("/projects/1/project"), set.beta().as_str());
+    assert!(at("/projects/1/error").is_string(), "{stdout}");
+    assert_eq!(at("/projects/1/tasks"), serde_json::json!([]));
+    assert!(at("/projects/1/applied").is_null(), "{stdout}");
 }
 
 #[test]

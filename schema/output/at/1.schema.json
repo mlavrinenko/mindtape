@@ -1,0 +1,60 @@
+{
+  "$defs": {
+    "AtEntryJson": {
+      "description": "One `[at.<name>]` entry.",
+      "properties": {
+        "exclude": {
+          "description": "The paths, globs and `@name`s it excludes.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "forks": {
+          "description": "Whether linked git worktrees join: `\"false\"`, `\"true\"` or `\"only\"`.",
+          "type": "string"
+        },
+        "include": {
+          "description": "The paths, globs and `@name`s the set includes.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "name": {
+          "description": "The name `@name` selects.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "include",
+        "exclude",
+        "forks"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/at/1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The object `mt at --json` prints: every `at.toml` entry, its include and exclude patterns and its forks policy.",
+  "properties": {
+    "$schema": {
+      "description": "The URL of the schema this object conforms to.",
+      "type": "string"
+    },
+    "entries": {
+      "description": "The entries, sorted by name.",
+      "items": {
+        "$ref": "#/$defs/AtEntryJson"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "$schema",
+    "entries"
+  ],
+  "title": "Mindtape at entries",
+  "type": "object"
+}

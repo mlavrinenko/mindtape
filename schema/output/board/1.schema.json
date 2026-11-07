@@ -1,0 +1,152 @@
+{
+  "$defs": {
+    "BoardCellErrorJson": {
+      "description": "A failed cell's error.",
+      "properties": {
+        "error": {
+          "description": "Why the column's filter failed.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "error"
+      ],
+      "type": "object"
+    },
+    "BoardCellJson": {
+      "anyOf": [
+        {
+          "description": "A `filter` column's count.",
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "$ref": "#/$defs/BoardTopJson",
+          "description": "A `top` column's first matching task."
+        },
+        {
+          "description": "A `top` column no task matched.",
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/BoardCellErrorJson",
+          "description": "A column whose filter failed."
+        }
+      ],
+      "description": "One cell's value."
+    },
+    "BoardFailedJson": {
+      "description": "A failed project's row: `project`, `path` and `error`.",
+      "properties": {
+        "error": {
+          "description": "Why its config would not load.",
+          "type": "string"
+        },
+        "path": {
+          "description": "The directory it lives in.",
+          "type": "string"
+        },
+        "project": {
+          "description": "The project's name.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project",
+        "path",
+        "error"
+      ],
+      "type": "object"
+    },
+    "BoardLoadedJson": {
+      "description": "A loaded project's row: `project`, `path`, `hidden` and `cells` by column\nname.",
+      "properties": {
+        "cells": {
+          "additionalProperties": {
+            "$ref": "#/$defs/BoardCellJson"
+          },
+          "description": "Each column's value, by column name.",
+          "type": "object"
+        },
+        "hidden": {
+          "description": "Whether the board's `hide` filter leaves the row out of the table.",
+          "type": "boolean"
+        },
+        "path": {
+          "description": "The directory it lives in.",
+          "type": "string"
+        },
+        "project": {
+          "description": "The project's name.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project",
+        "path",
+        "hidden",
+        "cells"
+      ],
+      "type": "object"
+    },
+    "BoardRowJson": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BoardLoadedJson",
+          "description": "A project whose config loaded."
+        },
+        {
+          "$ref": "#/$defs/BoardFailedJson",
+          "description": "A project whose config failed."
+        }
+      ],
+      "description": "One project's row: its cells, or why its config would not load."
+    },
+    "BoardTopJson": {
+      "description": "A `top` cell's task.",
+      "properties": {
+        "file": {
+          "description": "Its file.",
+          "type": "string"
+        },
+        "id": {
+          "description": "The task's stem.",
+          "type": "string"
+        },
+        "title": {
+          "description": "Its title.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "file"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/board/1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The object `mt board --json` prints: one row per project, its cells, or the error that kept it from loading.",
+  "properties": {
+    "$schema": {
+      "description": "The URL of the schema this object conforms to.",
+      "type": "string"
+    },
+    "projects": {
+      "description": "One row per project, in board order.",
+      "items": {
+        "$ref": "#/$defs/BoardRowJson"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "$schema",
+    "projects"
+  ],
+  "title": "Mindtape board",
+  "type": "object"
+}

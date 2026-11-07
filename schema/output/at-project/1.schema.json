@@ -1,0 +1,31 @@
+{
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/at-project/1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The object `mt at <name> --json` prints for a project: its name, the `project` kind and its path.",
+  "properties": {
+    "$schema": {
+      "description": "The URL of the schema this object conforms to.",
+      "type": "string"
+    },
+    "kind": {
+      "description": "Always `\"project\"`.",
+      "type": "string"
+    },
+    "name": {
+      "description": "The name `@name` selects.",
+      "type": "string"
+    },
+    "path": {
+      "description": "The project's directory.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "$schema",
+    "name",
+    "kind",
+    "path"
+  ],
+  "title": "Mindtape at project",
+  "type": "object"
+}

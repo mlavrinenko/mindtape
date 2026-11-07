@@ -339,6 +339,50 @@ fn views_lists_and_inspects_a_named_view() {
     assert!(!simple.contains("cols:"), "{simple}");
 }
 
+/// The map `mt explain <listing> --json` wraps in `$schema`.
+fn listed_map(dir: &std::path::Path, listing: &str) -> serde_json::Value {
+    let value = json(dir, &["explain", listing, "--json"]);
+    support::assert_schema(&value, listing);
+    value[listing].clone()
+}
+
+/// One named view's JSON, without the envelope key.
+fn view_without_schema(dir: &std::path::Path, name: &str) -> serde_json::Value {
+    let value = json(dir, &["explain", "views", name, "--json"]);
+    support::assert_schema(&value, "view");
+    support::without_schema(value)
+}
+
+/// `mt explain views --json` wraps the map in `views`, and one named view
+/// stays flat under `$schema`.
+#[test]
+fn views_json_wraps_the_map_and_a_named_view_stays_flat() {
+    let dir = scaffold_project(
+        "[tasks]\nroots = [\"tasks\"]\n\n\
+         [views.hot]\nfilter = 'priority > 5'\nsort = ['priority:desc']\n",
+    );
+    let hot = listed_map(dir.path(), "views");
+    assert_eq!(
+        hot["hot"],
+        serde_json::json!({
+            "filter": "priority > 5",
+            "sort": ["priority:desc"],
+            "columns": [],
+            "description": null,
+        })
+    );
+
+    assert_eq!(
+        view_without_schema(dir.path(), "hot"),
+        serde_json::json!({
+            "filter": "priority > 5",
+            "sort": ["priority:desc"],
+            "columns": [],
+            "description": null,
+        })
+    );
+}
+
 #[test]
 fn views_unknown_name_suggests_the_near_miss() {
     let dir = scaffold_project("[tasks]\nroots = [\"tasks\"]\n\n[views.hot]\nfilter = ''\n");
@@ -368,16 +412,18 @@ fn dicts_lists_counts_and_entries() {
         stdout(dir.path(), &["explain", "dicts", "labels"]),
         "Auth\nBILLING\n"
     );
-    let listed = json(dir.path(), &["explain", "dicts", "--json"]);
+    let dicts = listed_map(dir.path(), "dicts");
     assert_eq!(
-        listed["labels"],
+        dicts["labels"],
         serde_json::json!({"case": "exact", "count": 2})
     );
     assert_eq!(
-        listed["verbs"],
+        dicts["verbs"],
         serde_json::json!({"case": "fold", "count": 3})
     );
     let value = json(dir.path(), &["explain", "dicts", "labels", "--json"]);
+    support::assert_schema(&value, "dict");
+    let value = support::without_schema(value);
     assert_eq!(
         value,
         serde_json::json!({

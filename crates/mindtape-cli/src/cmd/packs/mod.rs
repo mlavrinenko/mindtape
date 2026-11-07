@@ -19,8 +19,30 @@ mod update;
 use std::path::PathBuf;
 
 use mindtape::config::pack_sources;
+use serde::Serialize;
 
 use crate::diag::{Diag, Hint, Result};
+
+/// The object `mt packs install --json` prints: one entry per locked source.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct PacksPayload {
+    /// Each declared source with a lock entry.
+    pub sources: Vec<InstalledJson>,
+}
+
+/// One locked source after `install`: its name, commit, tree hash and whether
+/// this run fetched it.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct InstalledJson {
+    /// The source's name in `[pack-sources]`.
+    pub source: String,
+    /// The commit the lock pins.
+    pub commit: String,
+    /// The root tree's SHA-256.
+    pub sha256: String,
+    /// Whether this run fetched the tree into the cache.
+    pub fetched: bool,
+}
 
 /// Arguments for `packs`.
 #[derive(Debug, clap::Args)]

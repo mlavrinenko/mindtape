@@ -2,7 +2,11 @@
 //! `[tasks.assignee] required` is set: `--describe` surfaces it, `--set` fills
 //! it, `$MINDTAPE_PRINCIPAL` fills it silently, and an unset or out-of-list
 //! principal fails loudly instead of writing an empty or wrong worker.
-#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
+#![allow(
+    clippy::unwrap_used,
+    clippy::disallowed_methods,
+    clippy::indexing_slicing
+)]
 
 use std::path::Path;
 
@@ -25,8 +29,7 @@ fn describe_slot_names(dir: &Path) -> Vec<String> {
         .get_output()
         .stdout
         .clone();
-    serde_json::from_slice::<serde_json::Value>(&output)
-        .unwrap()
+    serde_json::from_slice::<serde_json::Value>(&output).unwrap()["slots"]
         .as_array()
         .unwrap()
         .iter()

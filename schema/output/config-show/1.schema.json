@@ -1,0 +1,2717 @@
+{
+  "$defs": {
+    "Actor": {
+      "additionalProperties": false,
+      "description": "One named worker in the project.",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/ActorKind",
+          "description": "What the actor is."
+        },
+        "name": {
+          "description": "Unique actor name; the value an `assignee:` field (or a\n`[tasks.assignee] allowed` entry) references.",
+          "type": "string"
+        },
+        "roles": {
+          "default": [],
+          "description": "Roles the actor holds, each naming a declared `[[roles]]` entry.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "kind"
+      ],
+      "type": "object"
+    },
+    "ActorKind": {
+      "description": "What an actor is.",
+      "oneOf": [
+        {
+          "const": "human",
+          "description": "A person.",
+          "type": "string"
+        },
+        {
+          "const": "llm",
+          "description": "A language model.",
+          "type": "string"
+        }
+      ]
+    },
+    "AddConfig": {
+      "additionalProperties": false,
+      "description": "Settings for the interactive editor fill of `mt add`.",
+      "properties": {
+        "comments": {
+          "default": true,
+          "description": "Whether the scaffold carries explanatory `#` comments. These are the header\nblock and the per-slot annotations (kind, required/optional, choices,\ndefault). `true` (default) keeps them. `false` strips every comment and\nleaves a bare mapping of slot names to values.",
+          "type": "boolean"
+        },
+        "editor": {
+          "default": null,
+          "description": "Editor command override. Falls back to `$VISUAL`, then `$EDITOR`, then a\nbuilt-in default. May carry arguments (split on whitespace).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "header": {
+          "default": null,
+          "description": "Scaffold header override. Absent uses the built-in instructions; an empty\n(or all-blank) string disables the header; any other text replaces it,\ncomment-prefixed so it stays valid YAML. Ignored when `comments = false`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "interactive": {
+          "$ref": "#/$defs/InteractiveMode",
+          "description": "When the interactive editor opens."
+        }
+      },
+      "type": "object"
+    },
+    "Anchor": {
+      "additionalProperties": false,
+      "description": "One labeled point in an anchor classification.",
+      "properties": {
+        "color": {
+          "default": null,
+          "description": "Optional color: a named ANSI color or `#RRGGBB`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "glyph": {
+          "default": null,
+          "description": "Optional decorative glyph.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "label": {
+          "default": "",
+          "description": "Display label.",
+          "type": "string"
+        },
+        "value": {
+          "default": 0.0,
+          "description": "The point on the scale this label names.",
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "AssigneeConfig": {
+      "additionalProperties": false,
+      "description": "Who may be named as assignee, and whether a task must name one.",
+      "properties": {
+        "allowed": {
+          "default": [],
+          "description": "Allowed assignees (the project's actors). Empty = accept any value.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "example": {
+          "default": null,
+          "description": "The assignee `mt check` files a spliced slot with. A required assignee\nwith no `example` leaves that slot unfillable.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "required": {
+          "$ref": "#/$defs/Requirement",
+          "description": "Whether an assignee must be set.",
+          "x-expression": "filter"
+        },
+        "values-when": {
+          "default": null,
+          "description": "A filter naming the tasks held to `allowed`; every other task keeps\nwhatever it carries. Absent holds every task.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-expression": "filter"
+        }
+      },
+      "type": "object"
+    },
+    "AstGrepFields": {
+      "additionalProperties": false,
+      "description": "The body of an `ast_grep` query.",
+      "properties": {
+        "glob": {
+          "default": null,
+          "description": "A glob or `@name` path set a matched file must also fall in.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "language": {
+          "description": "The grammar to parse with: `rust` or its alias `rs` in this wave.",
+          "type": "string"
+        },
+        "pattern": {
+          "description": "The pattern, in ast-grep syntax.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "language",
+        "pattern"
+      ],
+      "type": "object"
+    },
+    "AstGrepQuery": {
+      "additionalProperties": false,
+      "description": "An ast-grep query: `{ ast_grep = { language, pattern, glob? } }`. The\nshared engine runs it over the files of its language that git lists,\nnarrowed by the optional glob or path set the query names.",
+      "properties": {
+        "ast_grep": {
+          "$ref": "#/$defs/AstGrepFields",
+          "description": "The language, pattern and optional glob the engine compiles."
+        }
+      },
+      "required": [
+        "ast_grep"
+      ],
+      "type": "object"
+    },
+    "Band": {
+      "additionalProperties": false,
+      "description": "One contiguous labeled range in a band classification.",
+      "properties": {
+        "color": {
+          "default": null,
+          "description": "Optional color: a named ANSI color or `#RRGGBB`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "glyph": {
+          "default": null,
+          "description": "Optional decorative glyph.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "label": {
+          "default": "",
+          "description": "Display label.",
+          "type": "string"
+        },
+        "max": {
+          "default": 0.0,
+          "description": "Upper bound (inclusive for int and the last real band; else exclusive).",
+          "format": "double",
+          "type": "number"
+        },
+        "min": {
+          "default": 0.0,
+          "description": "Inclusive lower bound.",
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "Category": {
+      "additionalProperties": false,
+      "description": "One category: the expression that selects it, its score and its display.",
+      "properties": {
+        "color": {
+          "default": null,
+          "description": "Optional color: a named ANSI color or `#RRGGBB`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "glyph": {
+          "default": null,
+          "description": "Optional decorative glyph.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "label": {
+          "default": null,
+          "description": "Display label; falls back to empty when absent.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "score": {
+          "default": 0.0,
+          "description": "Score of a task in this category, used for bands and sorting.",
+          "format": "double",
+          "type": "number"
+        },
+        "when": {
+          "default": "",
+          "description": "Boolean expression over the inputs. A task falls in this category\nwhen it is true.",
+          "type": "string",
+          "x-expression": "formula"
+        }
+      },
+      "type": "object"
+    },
+    "CheckSpec": {
+      "additionalProperties": false,
+      "description": "Call a Typst function instead of evaluating an `assert` expression, with\n`check = { typst, function, field }`.",
+      "properties": {
+        "field": {
+          "default": null,
+          "description": "Field whose value the function receives (`none` when the task omits\nit). Absent means the function receives the whole task, in the shape\n`mt eval --json` prints.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "function": {
+          "description": "Name of the function `typst` exports that this rule calls.",
+          "type": "string"
+        },
+        "typst": {
+          "description": "Path to the Typst module exporting `function`, relative to the project\nroot (the directory holding `.mindtape/`), or to the directory of the\npack that declares the rule.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "typst",
+        "function"
+      ],
+      "type": "object"
+    },
+    "Checker": {
+      "additionalProperties": false,
+      "description": "One `[[tasks.waits]]` entry: a named command that answers whether a task\nstill waits.",
+      "properties": {
+        "name": {
+          "default": "",
+          "description": "The name a `waits-on` entry writes before its colon.",
+          "type": "string"
+        },
+        "run": {
+          "$ref": "#/$defs/ConfigCommand",
+          "description": "The command, with `{id}` standing for the entry's id: a line that runs\nthrough `sh -c`, or `cmd /C` on Windows, or an array whose program runs\nwith no shell and whose every item gets `{id}` filled. It runs from the\nproject root. Exit 0 means the wait is over, 1 means it goes on,\nanything else is unknown."
+        }
+      },
+      "type": "object"
+    },
+    "Collector": {
+      "description": "A folder-derived-tag collector strategy.",
+      "oneOf": [
+        {
+          "const": "segments",
+          "description": "Each folder name as an independent flat tag (`backend`, `auth`).",
+          "type": "string"
+        },
+        {
+          "const": "breadcrumbs",
+          "description": "Cumulative path prefixes joined by the separator (`backend`,\n`backend:auth`).",
+          "type": "string"
+        }
+      ]
+    },
+    "CollectorQuery": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RegexQuery",
+          "description": "A regex over one or more body sections."
+        },
+        {
+          "$ref": "#/$defs/TypstQuery",
+          "description": "A project Typst function over the whole task or one of its fields."
+        },
+        {
+          "$ref": "#/$defs/AstGrepQuery",
+          "description": "An ast-grep pattern over the working tree, through the shared engine."
+        }
+      ],
+      "description": "The query a collector runs."
+    },
+    "CollectorSpec": {
+      "additionalProperties": false,
+      "description": "One `[[tasks.collectors]]` entry.",
+      "properties": {
+        "name": {
+          "description": "The derived field's name: the collector is read as `derived.<name>`.",
+          "type": "string"
+        },
+        "query": {
+          "$ref": "#/$defs/CollectorQuery",
+          "description": "What the collector reads."
+        },
+        "returns": {
+          "$ref": "#/$defs/CollectorType",
+          "description": "The type of the value the collector produces."
+        },
+        "when": {
+          "default": null,
+          "description": "Filter gating the collector; a task it excludes carries no field.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-expression": "filter"
+        }
+      },
+      "required": [
+        "name",
+        "query",
+        "returns"
+      ],
+      "type": "object"
+    },
+    "CollectorType": {
+      "description": "A `returns` type expression: one of `bool`, `int`, `number`, `string`, `path` and `date`; a one-element array `[T]` for a list; or a table `{ field = T }` for a record.",
+      "oneOf": [
+        {
+          "enum": [
+            "bool",
+            "int",
+            "number",
+            "string",
+            "path",
+            "date"
+          ],
+          "type": "string"
+        },
+        {
+          "description": "A list of one type, written `[T]`.",
+          "items": {
+            "$ref": "#/$defs/CollectorType"
+          },
+          "maxItems": 1,
+          "minItems": 1,
+          "type": "array"
+        },
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/CollectorType"
+          },
+          "description": "A record of named fields, written `{ field = T }`.",
+          "type": "object"
+        }
+      ]
+    },
+    "ColumnConfig": {
+      "additionalProperties": false,
+      "description": "Display settings for one column.",
+      "properties": {
+        "when": {
+          "default": null,
+          "description": "Condition under which this column renders. It takes the `[[ls.rules]]`\ncondition grammar (`tty()`, `format()`, `env()`, `on_branch()`,\n`now()`, `weekday()`, `true`, `false`) plus four listing predicates:\n`nonempty()`, `contested()`, `named()` and `blocked()`. Absent means\nthe column never renders.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-expression": "condition"
+        }
+      },
+      "type": "object"
+    },
+    "CommentsConfig": {
+      "additionalProperties": false,
+      "description": "Policy for review comments anywhere in a task's source file.",
+      "properties": {
+        "allow-pattern": {
+          "default": null,
+          "description": "Regex that permits a deliberate comment form even under `warn` or\n`forbid`. It matches the comment's stripped, trimmed inner text.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "policy": {
+          "$ref": "#/$defs/CommentsPolicy",
+          "description": "Whether a comment is unconstrained, reported, or fails `mt check`."
+        }
+      },
+      "type": "object"
+    },
+    "CommentsPolicy": {
+      "description": "How `mt check` treats a comment found in a task's source.",
+      "oneOf": [
+        {
+          "const": "allow",
+          "description": "Comments are unconstrained. The default.",
+          "type": "string"
+        },
+        {
+          "const": "warn",
+          "description": "A comment is reported but `mt check` still succeeds.",
+          "type": "string"
+        },
+        {
+          "const": "forbid",
+          "description": "A comment is reported and fails `mt check`.",
+          "type": "string"
+        }
+      ]
+    },
+    "CommitRuleSpec": {
+      "additionalProperties": false,
+      "description": "One assertion a checked commit must satisfy.",
+      "properties": {
+        "assert": {
+          "description": "Commit expression that must hold for every commit the rule applies to.",
+          "type": "string",
+          "x-expression": "commit"
+        },
+        "message": {
+          "default": null,
+          "description": "What a breach tells the author, in place of the default advice naming\nthe `assert` expression.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "default": null,
+          "description": "The name a report shows for the rule (`commits.rules.<name>`). The same\nname overrides or `disable`s the rule across packs. Optional: an\nunnamed rule reports by its position (`commits.rules[0]`).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "scope": {
+          "$ref": "#/$defs/CommitScope",
+          "description": "What the rule is evaluated over. Default `commit`."
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity",
+          "default": "warn",
+          "description": "Whether a breach fails the check or only reports. Default `warn`."
+        },
+        "when": {
+          "default": null,
+          "description": "Commit expression gating which commits the rule applies to. Absent\nmeans every commit.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-expression": "commit"
+        }
+      },
+      "required": [
+        "assert"
+      ],
+      "type": "object"
+    },
+    "CommitScope": {
+      "description": "What a commit rule is evaluated over.",
+      "oneOf": [
+        {
+          "const": "commit",
+          "description": "Once per commit, over its `subject`, `refs`, `files`, `trailers`,\n`tasks_only`, `in_range` and `is_merge`.",
+          "type": "string"
+        },
+        {
+          "const": "task",
+          "description": "Once per task the commit changes or names, over the commit's fields\nplus `named` and the task as of `head(...)`, `staged(...)` and\n`worktree(...)`.",
+          "type": "string"
+        },
+        {
+          "const": "tip",
+          "description": "Once per task each checked commit of a range names, over the task as\nthe range's newest commit holds it, in the filter language of\n`[[tasks.rules]]`. Only `mt check --commits` runs it; a task the tip\nlacks is skipped.",
+          "type": "string"
+        }
+      ]
+    },
+    "CommitsConfig": {
+      "additionalProperties": false,
+      "description": "How commits name the tasks they work on, or the work they track elsewhere,\nand the rules a commit is checked against.",
+      "properties": {
+        "external-refs": {
+          "default": [],
+          "description": "Regexes for trailer values that name work outside the backlog, such as\na tracker issue (`^r#[0-9]+$`). A value that names a task is a task\nref; else one that matches a pattern is an external ref, kept opaque;\nelse it is refused. A value may hold several refs, split on commas or\nwhitespace; a ref that holds either goes in double quotes or escapes it\nwith a backslash.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "rules": {
+          "description": "Assertions every checked commit must satisfy.",
+          "items": {
+            "$ref": "#/$defs/CommitRuleSpec"
+          },
+          "type": "array"
+        },
+        "trailer": {
+          "default": "Refs",
+          "description": "The trailer key whose values name tasks by stem (`Refs: <stem>`) or\nexternal work matching `external-refs`. Matched case-insensitively. A\nvalue that names no task and matches no external pattern is refused.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Config": {
+      "additionalProperties": false,
+      "description": "Top-level project configuration.",
+      "properties": {
+        "actors": {
+          "description": "The project's actor registry (`[[actors]]`): named workers (people and\nlanguage models) that `assignee:` values may reference.",
+          "items": {
+            "$ref": "#/$defs/Actor"
+          },
+          "type": "array"
+        },
+        "add": {
+          "$ref": "#/$defs/AddConfig",
+          "description": "`add` interactive-fill settings (editor, when it opens)."
+        },
+        "commits": {
+          "$ref": "#/$defs/CommitsConfig",
+          "description": "The commit trailer, its external refs, and the rules\n`mt check --commit-msg` checks a commit against."
+        },
+        "dicts": {
+          "additionalProperties": {
+            "$ref": "#/$defs/DictSpec"
+          },
+          "default": {},
+          "description": "Named string sets (`[dicts.<name>]`), so a vocabulary two rules share is\none list rather than two that drift. Each unions `values`, `path` and\n`include` into one set, compiled and checked once at config load. The\n`mindtape-` prefix is reserved for the built-in dictionaries.",
+          "type": "object"
+        },
+        "disable": {
+          "default": [],
+          "description": "Rule names to drop once every pack and layer has added its rules. A\nname that matches no rule is a config error.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "extends": {
+          "default": [],
+          "description": "Packs this config builds on, in any config layer. An entry with a path\nseparator is a TOML pack file, or a directory pack, a folder holding\n`pack.toml` and an optional `templates/`, relative to the file that\ndeclares it. A directory's `templates/` joins `templates.dirs`.\nAny other entry is `<source>:<pack>`, and `mindtape` is the one source\nknown without a declaration: `mindtape:tasks` is a pack built into\n`mt`. A pack holds any config key but `extends`, `disable`,\n`pack-sources`, `project.code`, `tasks.roots`, `templates.dirs` and\n`[typst]`. Its\nkeys merge just below this layer's own, table by table, and its rules\ncome ahead of this layer's, where a rule with the same name replaces\nit. Two packs here that set one value differently are an error,\nunless this layer sets that key too. An entry `{ pack, with }` sets\nthe pack's parameters, which its expressions read as\n`param(\"name\")`.",
+          "items": {
+            "$ref": "#/$defs/PackEntry"
+          },
+          "type": "array"
+        },
+        "format": {
+          "$ref": "#/$defs/FormatConfig",
+          "description": "Whether `mt` reformats the Typst source it writes (`[format]`)."
+        },
+        "go": {
+          "$ref": "#/$defs/GoConfig",
+          "description": "`go` (open in editor) settings."
+        },
+        "ls": {
+          "$ref": "#/$defs/LsConfig",
+          "description": "`mt ls` defaults."
+        },
+        "on": {
+          "$ref": "#/$defs/OnConfig",
+          "description": "Status-transition hooks (`[[on.flip]]`), run only by `mt flip`."
+        },
+        "pack-sources": {
+          "additionalProperties": {
+            "$ref": "#/$defs/PackSource"
+          },
+          "description": "Git repositories the project takes packs from, each a\n`[pack-sources.<name>]` table of `git`, the repository, and `ref`, a\ntag, branch or commit. An `extends` entry `<name>:<pack>` names a pack\nin one. Only the project's own `.mindtape/config.toml` declares a\nsource, and `mindtape` is taken. `.mindtape/packs.lock` pins each\nsource to a commit, and a config load refuses a source the lock\ndoesn't pin from the `git` and `ref` declared here.",
+          "type": "object"
+        },
+        "project": {
+          "$ref": "#/$defs/ProjectConfig",
+          "description": "Project-level settings (code, etc.)."
+        },
+        "retire": {
+          "$ref": "#/$defs/RetireConfig",
+          "description": "Settings for the gitless `rm` strategy's tombstone."
+        },
+        "rm": {
+          "$ref": "#/$defs/RmConfig",
+          "description": "`rm` (task removal) defaults."
+        },
+        "roles": {
+          "description": "Role names (`[[roles]]`) that actors may hold. A role carries no\nsettings; a harness keys its own config by role name.",
+          "items": {
+            "$ref": "#/$defs/Role"
+          },
+          "type": "array"
+        },
+        "tasks": {
+          "$ref": "#/$defs/TasksConfig",
+          "description": "Task discovery, status lifecycle, and field constraints."
+        },
+        "templates": {
+          "$ref": "#/$defs/TemplatesConfig",
+          "description": "`add` (task creation) template discovery."
+        },
+        "typst": {
+          "$ref": "#/$defs/TypstConfig",
+          "description": "Typst evaluation settings (local-package overrides)."
+        },
+        "views": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ViewSpec"
+          },
+          "default": {},
+          "description": "Named query bundles (`[views.<name>]`), referenced by `@name`.",
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "ConfigCommand": {
+      "anyOf": [
+        {
+          "description": "A command line for the platform shell: `sh -c`, or `cmd /C` on Windows.",
+          "type": "string"
+        },
+        {
+          "description": "A program and its arguments, run directly with no shell, the same on\nevery platform. The program is found on `PATH`.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      ],
+      "description": "A command a config asks `mt` to run: a `run` key's value."
+    },
+    "ContentAssert": {
+      "description": "The assertion made over a matched section's content: the string `\"non-empty\"`, or a one-key table `{ min-words = N }`, `{ max-words = N }`, `{ must-match = \"regex\" }`, `{ must-not-match = \"regex\" }`, or `{ density = { pattern = \"regex\", max = N, per = \"section\" } }`.",
+      "oneOf": [
+        {
+          "enum": [
+            "non-empty"
+          ],
+          "type": "string"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "min-words": {
+              "description": "The section must contain at least this many words.",
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "min-words"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "max-words": {
+              "description": "The section must contain at most this many words.",
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "max-words"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "must-match": {
+              "description": "Rust regex the section's source text must match.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "must-match"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "must-not-match": {
+              "description": "Rust regex the section's source text must not match.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "must-not-match"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "density": {
+              "$ref": "#/$defs/DensitySpec"
+            }
+          },
+          "required": [
+            "density"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "ContentConfig": {
+      "additionalProperties": false,
+      "description": "Rules for what a body section must contain.",
+      "properties": {
+        "rules": {
+          "description": "Ordered list of section-content gating rules.",
+          "items": {
+            "$ref": "#/$defs/ContentRuleConfig"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "ContentRuleConfig": {
+      "additionalProperties": false,
+      "description": "One entry in `[[tasks.body.content.rules]]`.\n\n`path` selects sections by heading path, the same way a header rule does.\n`assert` is checked against each matched section's content. Like a header\nrule, it takes an optional `when` filter and `message` override.",
+      "properties": {
+        "assert": {
+          "$ref": "#/$defs/ContentAssert",
+          "description": "The assertion made over each matched section's content."
+        },
+        "message": {
+          "description": "Override for the default violation message.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "default": null,
+          "description": "The name a report shows for the rule (`body.content.rules.<name>`).\nOptional: an unnamed rule reports by its position instead\n(`body.content.rules[0]`). Two rules in this array sharing a name is a\nconfig error naming both.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "path": {
+          "description": "Path through the heading tree selecting the sections to assert over.",
+          "items": {
+            "$ref": "#/$defs/HeaderPathSegment"
+          },
+          "type": "array"
+        },
+        "when": {
+          "description": "Optional filter expression gating this rule to matching tasks only.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-expression": "filter"
+        }
+      },
+      "required": [
+        "path",
+        "assert"
+      ],
+      "type": "object"
+    },
+    "DedupMode": {
+      "description": "`mt add`'s collision policy when the destination stem already exists: `fail` bails before writing, `skip` exits 0 without writing and reports the existing path, `add-suffix` mints `-2`, `-3`, … until a free stem turns up. `mt add --dedup` overrides this for one run; see `[tasks.naming] dedup` for the unset default.",
+      "enum": [
+        "fail",
+        "skip",
+        "add-suffix"
+      ],
+      "type": "string"
+    },
+    "DensitySpec": {
+      "additionalProperties": false,
+      "description": "Fails when one unit of the section carries more than `max` matches of\n`pattern`, as in `{ density = { pattern, max, per } }`.",
+      "properties": {
+        "max": {
+          "description": "The most matches of `pattern` a single unit may carry.",
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "pattern": {
+          "description": "Rust regex counted within each unit.",
+          "type": "string"
+        },
+        "per": {
+          "$ref": "#/$defs/DensityUnit",
+          "description": "Unit to count matches in: `section` (the default), `paragraph` or\n`sentence`."
+        }
+      },
+      "required": [
+        "pattern",
+        "max"
+      ],
+      "type": "object"
+    },
+    "DensityUnit": {
+      "description": "Unit a `density` assert counts matches in: `section` (the default), `paragraph` or `sentence`.",
+      "enum": [
+        "section",
+        "paragraph",
+        "sentence"
+      ],
+      "type": "string"
+    },
+    "DeriveConfig": {
+      "additionalProperties": false,
+      "description": "Project-wide policy for folder-derived tags.",
+      "properties": {
+        "breadcrumb-root": {
+          "default": false,
+          "description": "Whether breadcrumb tags start with the root name (`mt`, `mt:backend`,\n…).",
+          "type": "boolean"
+        },
+        "collect": {
+          "description": "Collectors to run. Both may run at once; their tags are merged\nwithout duplicates.",
+          "items": {
+            "$ref": "#/$defs/Collector"
+          },
+          "type": "array"
+        },
+        "enabled": {
+          "default": false,
+          "description": "Default derivation switch for roots that set no `derive-tags` of their own.",
+          "type": "boolean"
+        },
+        "separator": {
+          "default": ":",
+          "description": "Breadcrumb join separator.",
+          "type": "string"
+        },
+        "slugify": {
+          "default": true,
+          "description": "Normalize folder names to tag form.",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "DeriveTags": {
+      "anyOf": [
+        {
+          "description": "Enable or disable for every file under the root.",
+          "type": "boolean"
+        },
+        {
+          "description": "Enable only for files matching this glob.",
+          "type": "string"
+        },
+        {
+          "description": "Enable only for files matching any of these globs.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      ],
+      "description": "Per-root tag derivation: a bool, a file glob, or a list of globs. `true` or\n`false` turns derivation on or off for every file under the root. A glob\nturns it on only for files whose path, relative to the root, matches."
+    },
+    "DictCase": {
+      "description": "How a compiled dictionary compares a lookup against its entries.",
+      "oneOf": [
+        {
+          "const": "fold",
+          "description": "ASCII-case-insensitive: a capitalised title word matches a lowercase\nentry. The default.",
+          "type": "string"
+        },
+        {
+          "const": "exact",
+          "description": "Byte equality.",
+          "type": "string"
+        }
+      ]
+    },
+    "DictSpec": {
+      "additionalProperties": false,
+      "description": "One named string set, as declared in config.",
+      "properties": {
+        "case": {
+          "$ref": "#/$defs/DictCase",
+          "default": "fold",
+          "description": "How a lookup compares against the entries: `fold` (the default) is\nASCII-case-insensitive, `exact` is byte equality."
+        },
+        "include": {
+          "default": [],
+          "description": "Other dictionaries, project or built-in, whose entries are unioned in.\nThe entries arrive raw, and this dict's own `case` decides how they compare.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "path": {
+          "default": null,
+          "description": "A file of entries, one per line, relative to the project root, or to\nthe directory of the pack that declares the dictionary. Blank\nlines and lines whose first non-blank character is `#` are skipped, and\neach entry is trimmed. May leave the root (`../shared/verbs.txt`), the\nsame rule `[[typst.local-packages]] path` follows.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "values": {
+          "default": [],
+          "description": "Entries written inline.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "EstimateConfig": {
+      "additionalProperties": false,
+      "description": "The legal estimate units, and whether a task must carry one.",
+      "properties": {
+        "example": {
+          "additionalProperties": {
+            "format": "double",
+            "type": "number"
+          },
+          "default": null,
+          "description": "The estimate `mt check` files a spliced slot with, as `unit = quantity`\npairs. A required estimate with no `example` leaves that slot\nunfillable.",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "queries": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "The units that take `count(n, ..queries)`, each naming the path set,\na glob or an `@name` set, its matched files must fall in. A unit\nmissing here takes only a plain number.",
+          "type": "object"
+        },
+        "required": {
+          "$ref": "#/$defs/Requirement",
+          "description": "Whether an estimate must be set.",
+          "x-expression": "filter"
+        },
+        "units": {
+          "default": [],
+          "description": "Allowed unit names. Empty = any unit.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "FallbackSeverity": {
+      "description": "How severely a breach of the built-in template is reported.",
+      "oneOf": [
+        {
+          "const": "warning",
+          "description": "Print the breach; `mt check` still succeeds. The default.",
+          "type": "string"
+        },
+        {
+          "const": "error",
+          "description": "Print the breach and fail `mt check`.",
+          "type": "string"
+        }
+      ]
+    },
+    "FieldConfig": {
+      "additionalProperties": false,
+      "description": "Allowed values, default and requirement for `kind` or one `x-<ns>`\nextension field.",
+      "properties": {
+        "default": {
+          "default": null,
+          "description": "Value `mt add` fills in when the field is required and neither the\ntemplate nor the caller sets it. `mt check` never applies it.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "example": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FieldExample"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The value `mt check` files a spliced slot for this field with: a string,\nor a list of strings for a `multiple` field. A required field with no\n`example` and no `default` leaves that slot unfillable, so\n`mt check` names this table."
+        },
+        "multiple": {
+          "default": false,
+          "description": "Whether an `x-<ns>` field holds a list of strings rather than one\nstring. `mt check` refuses a string in such a field, and a list in a\nfield with `values` that does not declare it. `mt add` offers the field\nas a multi-choice slot.",
+          "type": "boolean"
+        },
+        "required": {
+          "$ref": "#/$defs/Requirement",
+          "description": "Whether the field must be set.",
+          "x-expression": "filter"
+        },
+        "values": {
+          "default": [],
+          "description": "Allowed values. Empty accepts any value, and a non-empty list takes a\nstring, or a list of distinct strings for an `x-<ns>` field. An entry `@<dict>` stands for every entry of\n`[dicts.<dict>]`, so the list may mix literal values and dictionaries.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "values-when": {
+          "default": null,
+          "description": "A filter naming the tasks held to `values`; every other task keeps\nwhatever it carries. Absent holds every task.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-expression": "filter"
+        }
+      },
+      "type": "object"
+    },
+    "FieldExample": {
+      "anyOf": [
+        {
+          "description": "The example of a single-valued field.",
+          "type": "string"
+        },
+        {
+          "description": "The example of a `multiple` field.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      ],
+      "description": "A `[tasks.fields.<name>] example`: one string, or a list for a `multiple`\nfield."
+    },
+    "FlipAction": {
+      "additionalProperties": false,
+      "description": "One action of an `[[on.flip]]` entry. Set exactly one of `show`, `list`\nand `run`, or set `gate = true` with no `run`.",
+      "properties": {
+        "gate": {
+          "default": false,
+          "description": "Whether a non-zero exit from `run` refuses the flip. With no `run`, the\ngate refuses every flip the entry's `when` matches. Applies to a `run`\naction or a gate with no `run`.",
+          "type": "boolean"
+        },
+        "list": {
+          "default": null,
+          "description": "Print the matching tasks with `{ list = \"filter or @view\" }`.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-expression": "filter"
+        },
+        "message": {
+          "default": null,
+          "description": "Explanation printed when `run` exits non-zero, or when a gate with no\n`run` refuses the flip.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "run": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConfigCommand"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Run a command with `{ run = \"command\" }`, through the platform shell\n(`sh -c`, or `cmd /C` on Windows), or with `{ run = [\"program\", \"arg\"] }`,\ndirectly with no shell. A gating action may omit it, and then the gate\nrefuses the flip whenever the entry's `when` matches."
+        },
+        "show": {
+          "default": null,
+          "description": "Print a message with `{ show = \"text\" }`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "default": null,
+          "description": "Heading printed above a `list`'s table.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "FlipHook": {
+      "additionalProperties": false,
+      "description": "One `[[on.flip]]` entry: which transitions it fires on, and what it does.",
+      "properties": {
+        "actions": {
+          "description": "Actions to run, in declaration order.",
+          "items": {
+            "$ref": "#/$defs/FlipAction"
+          },
+          "type": "array"
+        },
+        "name": {
+          "default": null,
+          "description": "Optional name. A later entry with the same name, from a nearer layer\nor a pack, replaces an earlier one in place, and `disable` drops it by\nname. An unnamed entry always appends and is never replaced. Also the\nlabel `mt explain rules` and `mt config show --origin` print.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "when": {
+          "default": "",
+          "description": "Filter over the task being flipped, plus `into(\"status\")` for the status\nbeing stamped. Empty fires on every flip.",
+          "type": "string",
+          "x-expression": "filter"
+        }
+      },
+      "type": "object"
+    },
+    "FormatConfig": {
+      "additionalProperties": false,
+      "description": "How `mt` canonicalizes task source before writing it.",
+      "properties": {
+        "enabled": {
+          "default": true,
+          "description": "Whether `mt` runs typstyle over the Typst source it writes (`add`,\n`flip`, `review`, `recur`, `import`), so every write leaves the file in\none formatted shape. `true` by default. With `false`, `mt` changes only\nthe bytes it edits: diffs stay smaller, and stray body indentation can\nbuild up.",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "Framework": {
+      "additionalProperties": false,
+      "description": "One scoring framework: typed inputs, plus either a `score` formula or a\nlist of categories.",
+      "properties": {
+        "category": {
+          "description": "Categories to classify a task into. For any input values, exactly one\ncategory's `when` must be true. Cannot be combined with `score`.",
+          "items": {
+            "$ref": "#/$defs/Category"
+          },
+          "type": "array"
+        },
+        "inputs": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Input"
+          },
+          "description": "Inputs by name. `score` and each category's `when` refer to them by\nthese names.",
+          "type": "object"
+        },
+        "score": {
+          "default": null,
+          "description": "Arithmetic expression over the inputs that computes the score, such as\n`impact * confidence * ease`. Cannot be combined with `category`.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-expression": "formula"
+        }
+      },
+      "type": "object"
+    },
+    "GoConfig": {
+      "additionalProperties": false,
+      "description": "Settings for `mt go`.",
+      "properties": {
+        "editor": {
+          "default": null,
+          "description": "Editor command. `mt go` replaces a `{task}` token with the task's file\npath, or appends the path when there is no token. Falls back to\n`$VISUAL`, then `$EDITOR`; `mt go` fails when none is set. May carry\narguments, split on whitespace.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "HeaderAction": {
+      "description": "What a heading rule checks: `require`, `forbid` or `unique` over `path`, `order` of `before` and `after`, or an `allowlist` of headings.",
+      "enum": [
+        "require",
+        "forbid",
+        "unique",
+        "order",
+        "allowlist"
+      ],
+      "type": "string"
+    },
+    "HeaderPathSegment": {
+      "description": "One step in a heading path: an exact string (direct-child match) or `{ match = \"regex\", recursive = bool }`.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "match": {
+              "description": "Rust regex matched against heading text.",
+              "type": "string"
+            },
+            "recursive": {
+              "description": "Match any descendant (true) or only direct children (false).",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "match"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "HeaderRuleConfig": {
+      "additionalProperties": false,
+      "description": "One heading rule for a task body.\n\n`action` selects what the rule checks and which fields apply.\n- `require`, `forbid` and `unique` count how many headings `path` matches.\n- `order` makes `before` headings come ahead of `after` headings.\n- `allowlist` lets only the `allowed` headings appear under `scope` (the top\n  level when omitted).",
+      "properties": {
+        "action": {
+          "$ref": "#/$defs/HeaderAction",
+          "description": "Whether the target headings must exist, must not, or must be unique, or\nwhether this is an `order`/`allowlist` rule."
+        },
+        "after": {
+          "description": "Path whose headings must come after (`order`).",
+          "items": {
+            "$ref": "#/$defs/HeaderPathSegment"
+          },
+          "type": "array"
+        },
+        "allowed": {
+          "description": "The permitted headings (`allowlist`).",
+          "items": {
+            "$ref": "#/$defs/HeaderPathSegment"
+          },
+          "type": "array"
+        },
+        "before": {
+          "description": "Path whose headings must come first (`order`).",
+          "items": {
+            "$ref": "#/$defs/HeaderPathSegment"
+          },
+          "type": "array"
+        },
+        "message": {
+          "description": "Override for the default violation message.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "default": null,
+          "description": "The name a report shows for the rule (`body.headers.rules.<name>`).\nOptional: an unnamed rule reports by its position instead\n(`body.headers.rules[0]`). Two rules in this array sharing a name is a\nconfig error naming both.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "path": {
+          "description": "Path through the heading tree (`require`, `forbid`, `unique`).",
+          "items": {
+            "$ref": "#/$defs/HeaderPathSegment"
+          },
+          "type": "array"
+        },
+        "scope": {
+          "description": "Path selecting scopes whose children are constrained (`allowlist`);\nomit to constrain top-level headings.",
+          "items": {
+            "$ref": "#/$defs/HeaderPathSegment"
+          },
+          "type": "array"
+        },
+        "when": {
+          "description": "Optional filter expression gating this rule to matching tasks only.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-expression": "filter"
+        }
+      },
+      "required": [
+        "action"
+      ],
+      "type": "object"
+    },
+    "HeadersConfig": {
+      "additionalProperties": false,
+      "description": "Rules for the headings a task body must or must not have.",
+      "properties": {
+        "rules": {
+          "description": "Ordered list of heading gating rules.",
+          "items": {
+            "$ref": "#/$defs/HeaderRuleConfig"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "HyperlinkChoice": {
+      "description": "Whether the `slug#` and `file` cells carry OSC 8 hyperlinks to the row's\n`hyperlink-target`. The `--hyperlinks` flag takes the same values.\n\nA terminal without OSC 8 support can print the escape sequence as visible\ntext, and no terminal reports whether it supports OSC 8. That is why the\ndefault is `never`.",
+      "oneOf": [
+        {
+          "const": "auto",
+          "description": "Enable hyperlinks only when stdout is a TTY and `TERM` is not `dumb`.",
+          "type": "string"
+        },
+        {
+          "const": "always",
+          "description": "Always emit OSC 8 hyperlink sequences.",
+          "type": "string"
+        },
+        {
+          "const": "never",
+          "description": "Never emit hyperlink sequences.",
+          "type": "string"
+        }
+      ]
+    },
+    "IdConfig": {
+      "additionalProperties": false,
+      "description": "Format constraint on a task's identity.",
+      "properties": {
+        "format": {
+          "$ref": "#/$defs/IdFormat",
+          "description": "Format an explicit `id:` must have. The default, `string`, accepts any\nnon-empty string."
+        }
+      },
+      "type": "object"
+    },
+    "IdFormat": {
+      "description": "Format requirement for an explicit task `id:` field.",
+      "enum": [
+        "string",
+        "uuid-v4",
+        "uuid-v7"
+      ],
+      "type": "string"
+    },
+    "Input": {
+      "additionalProperties": false,
+      "description": "One declared input: its type and bounds (numbers) or allowed values (enums).",
+      "properties": {
+        "max": {
+          "default": null,
+          "description": "Inclusive upper bound (number inputs).",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "min": {
+          "default": null,
+          "description": "Inclusive lower bound (number inputs).",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "type": {
+          "$ref": "#/$defs/InputKind",
+          "description": "Input type."
+        },
+        "values": {
+          "default": [],
+          "description": "Allowed values (enum inputs).",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "InputKind": {
+      "description": "The type of a framework input.",
+      "oneOf": [
+        {
+          "const": "number",
+          "description": "A bounded number.",
+          "type": "string"
+        },
+        {
+          "const": "bool",
+          "description": "A boolean.",
+          "type": "string"
+        },
+        {
+          "const": "enum",
+          "description": "A string from a fixed set of values.",
+          "type": "string"
+        }
+      ]
+    },
+    "InteractiveMode": {
+      "description": "When `mt add` opens the interactive editor.",
+      "oneOf": [
+        {
+          "const": "auto",
+          "description": "Open in a terminal when a required slot is still unfilled (default).",
+          "type": "string"
+        },
+        {
+          "const": "always",
+          "description": "Always open in a terminal; error when stdin/stdout is not a TTY.",
+          "type": "string"
+        },
+        {
+          "const": "never",
+          "description": "Never open; behave as the non-interactive pipeline.",
+          "type": "string"
+        }
+      ]
+    },
+    "Legend": {
+      "description": "The status legend: the legal status values, in lifecycle order.\n\nEach entry gives a value its glyph, color, label and `terminal` flag. An\nempty legend (`status = []`) accepts any status. Omitting\n`[[tasks.status]]` takes the shipped six-status legend.",
+      "items": {
+        "$ref": "#/$defs/LegendEntry"
+      },
+      "type": "array"
+    },
+    "LegendEntry": {
+      "additionalProperties": false,
+      "description": "One `[[tasks.status]]` entry: a value plus its display attributes.",
+      "properties": {
+        "color": {
+          "default": null,
+          "description": "Optional color: a named ANSI color or `#RRGGBB`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "glyph": {
+          "default": null,
+          "description": "Optional decorative glyph (emoji or ASCII).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "label": {
+          "default": null,
+          "description": "Optional display label; falls back to `value`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "note": {
+          "$ref": "#/$defs/NoteRule",
+          "description": "Whether a move into this status needs a note: `required` or\n`optional` (the default). With `required`, `mt flip` refuses the move\nwithout `-m`, and `mt check` flags a task here with no note.\n`forbidden` is accepted but not enforced for a status."
+        },
+        "terminal": {
+          "default": false,
+          "description": "Whether this status ends a task. The `terminal` filter matches tasks in\nit, and `mt` does not check their tags or estimate units.",
+          "type": "boolean"
+        },
+        "to": {
+          "default": [],
+          "description": "Statuses a task may move to from this one. While no entry sets `to`,\nany move is allowed. Once any entry sets it, `mt flip` refuses a move\nthe legend does not list, and an entry with no `to` allows only a\nsame-status re-stamp. A terminal status reopens by listing the status\nto reopen into.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "unblocked": {
+          "default": false,
+          "description": "Whether a task must be unblocked to enter this status. `mt flip`\nrefuses the move while a direct blocking target is unfinished, and\n`--force` overrides. On a terminal status, every child must be\nfinished too. `mt check` warns about a blocked task already here. Off\nby default. Set it where work starts or finishes, and leave it off\nstatuses that blocked work must still reach, such as `cancelled`.",
+          "type": "boolean"
+        },
+        "value": {
+          "default": "",
+          "description": "The status name, as written in a task's `status:` field.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "LinkKind": {
+      "additionalProperties": false,
+      "description": "One custom link kind.",
+      "properties": {
+        "acyclic": {
+          "default": false,
+          "description": "Whether edges of this kind must not form a cycle. Applies only when\n`validate` is `local-task-path`, because only edges between tasks can\nform one.",
+          "type": "boolean"
+        },
+        "blocking": {
+          "default": false,
+          "description": "Whether an unfinished target keeps the task from being ready. Applies\nonly when `validate` is `local-task-path`, because only a task can be\nunfinished.",
+          "type": "boolean"
+        },
+        "max": {
+          "default": null,
+          "description": "Most edges of this kind one task may carry. Absent means no limit.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "name": {
+          "default": "",
+          "description": "Kind name, matched against an edge's `kind`.",
+          "type": "string"
+        },
+        "note": {
+          "$ref": "#/$defs/NoteRule",
+          "description": "Note requirement for edges of this kind."
+        },
+        "regex": {
+          "default": null,
+          "description": "Regex a target must match when `validate = \"regex\"`. That validator\nrequires it, and every other validator rejects it. A missing or invalid\npattern is a config error.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "validate": {
+          "$ref": "#/$defs/TargetValidator",
+          "description": "What this kind's targets are. The default, `local-task-path`, is a\npath from the linking task's file to another task's file. Any other value makes the targets something outside the\nbacklog, such as a commit, a pull request or a build."
+        }
+      },
+      "type": "object"
+    },
+    "LinksConfig": {
+      "additionalProperties": false,
+      "description": "The link kinds a task's `links:` edges may use.",
+      "properties": {
+        "kinds": {
+          "description": "Custom link kinds, added to the built-in ones. A built-in kind cannot\nbe redefined.",
+          "items": {
+            "$ref": "#/$defs/LinkKind"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "LocalPackage": {
+      "additionalProperties": false,
+      "description": "One `@local/<name>` package loaded from a project directory.",
+      "properties": {
+        "name": {
+          "default": "",
+          "description": "The `@local/<name>` package name.",
+          "type": "string"
+        },
+        "path": {
+          "default": "",
+          "description": "Directory holding the package's `typst.toml`, relative to the project root.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "LsConfig": {
+      "additionalProperties": false,
+      "description": "Defaults for `mt ls`.",
+      "properties": {
+        "columns": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ColumnConfig"
+          },
+          "description": "Per-column display settings, keyed by column name. The shipped\ndefaults set `when` on every column; a column with no `when` never\nrenders.",
+          "type": "object"
+        },
+        "columns-order": {
+          "default": [],
+          "description": "Explicit column order and selection: when set, only the listed\ncolumns render, in that order. Empty (the default) keeps the built-in\ncolumn set and order.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "contains-fields": {
+          "default": [],
+          "description": "Fields that `contains()` searches when a call names none, in order.\nTakes any filter field name, plus `body`, `note` and `tags`. Empty (the\ndefault) searches `title`, `id` and `body`. A call that names its\nfield, such as `contains(\"x\", note)`, ignores this key. An unknown name\nis a config error.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "date-format": {
+          "default": null,
+          "description": "Date format for every date column. Tokens, longest match first: `YYYY`\n4-digit year, `YY` 2-digit year, `MMMM` full month name, `MMM`\nabbreviated month, `MM` zero-padded month, `M` bare month, `DD`\nzero-padded day, `D` bare day. Other characters print as written.\nAbsent prints ISO `YYYY-MM-DD`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "default-sort": {
+          "default": [],
+          "description": "Default sort chain for `mt ls` when the caller passes no `--sort`.\nSame spec grammar as `--sort`: `\"field\"` or `\"field:asc\"` / `\"field:desc\"`.\nValidated at config load. When absent the shipped built-in chain applies.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "default-view": {
+          "default": null,
+          "description": "Name of the view that drives the default `mt ls` listing when the\ncaller passes no filter: falls back to the `[views.default]` view when\nthis is unset, or matches every task when neither is declared.\nValidated at config load.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hyperlink-target": {
+          "default": null,
+          "description": "URI that a row's `slug#` and `file` cells link to. `mt` replaces `{abs}`\nwith the task's absolute path as it follows `file://`, such as\n`/C:/proj/tasks/a.typ`, and `{rel}` with the path the `file` column\nshows. Both use `/` and percent-encode a space or any other character a\nURI can't hold. Defaults to `file://{abs}`. Point it at another scheme,\nsuch as an editor's URI handler, to open the task there.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hyperlinks": {
+          "$ref": "#/$defs/HyperlinkChoice",
+          "description": "Whether the `slug#` and `file` cells carry terminal hyperlinks: `auto`,\n`always`, or `never` (the default). `--hyperlinks` overrides it for one\nrun."
+        },
+        "overdue-color": {
+          "default": null,
+          "description": "Color for the overdue due-date accent. Defaults to `\"red\"`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ready": {
+          "$ref": "#/$defs/ReadyConfig",
+          "description": "Glyph, color and label for the ready and blocked states in the `READY`\ncolumn. An unset key takes the shipped default."
+        },
+        "rules": {
+          "description": "Ordered auto-activation rules applied to a bare `mt ls` (no CLI\nfilter, no `@view`): the first rule whose condition holds (or that\nhas none) wins and supplies its filter, sort, and columns.",
+          "items": {
+            "$ref": "#/$defs/LsRule"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "LsRule": {
+      "additionalProperties": false,
+      "description": "One `[[ls.rules]]` entry.\n\nThe first rule (top to bottom) whose `condition` holds, or that omits\n`condition` entirely, drives the default `mt ls` listing. Its effective\nfacets are `import-views` composed left to right (per-facet last wins),\nthen any manual `filter`, `sort` or `columns` override (highest\nprecedence). All fields are optional. A rule with none of them still\nmatches (by an absent `condition`) but contributes no facets.",
+      "properties": {
+        "columns": {
+          "default": [],
+          "description": "Manual column list. It has the highest precedence for the columns facet.\nAn entry may reference a view's columns with `@view`.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "condition": {
+          "default": null,
+          "description": "Condition expression over environment predicates such as\n`on_branch`, `env`, `weekday`, and `now`. Absent means the rule always\nmatches.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-expression": "condition"
+        },
+        "filter": {
+          "default": null,
+          "description": "Manual filter override. It has the highest precedence for the filter facet.\nSame grammar as `[views]`; may use `@view` / `in_view`.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-expression": "filter"
+        },
+        "import-views": {
+          "default": [],
+          "description": "Ordered list of views to import facets from, composed left-to-right\n(later entries win on conflict). Each entry is a view name (`\"view\"`,\nimporting its filter, sort, and columns) or a scoped form\n(`\"view(filter, sort)\"`) naming just the facets to import.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "name": {
+          "default": null,
+          "description": "Shown in the trailer and the JSON envelope's `applied.rule`; falls\nback to the condition text when unset.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sort": {
+          "default": [],
+          "description": "Manual sort override. It has the highest precedence for the sort facet.\nSame spec grammar as `--sort`; an entry may splice `@view`.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "NamingConfig": {
+      "additionalProperties": false,
+      "description": "How `mt add` and `mt recur` name a new task's file, and what `mt add` does\nwhen that name is taken (`dedup`).",
+      "properties": {
+        "dedup": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DedupMode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "What `mt add` does when the stem is taken; `--dedup` overrides it for\none run. Unset means `add-suffix` when `stem` is set, else `fail`."
+        },
+        "stem": {
+          "default": null,
+          "description": "Filename stem template. Macros: `{slug}`, `{date}`, `{date:FMT}`,\n`{yy}`, `{mm}`, `{dd}`, `{n}` and `{n:0N}`. Unset means `{slug}`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "NoteRule": {
+      "description": "Note requirement for an edge kind.",
+      "oneOf": [
+        {
+          "const": "required",
+          "description": "A non-empty note is required, as on the built-in `related` kind.",
+          "type": "string"
+        },
+        {
+          "const": "optional",
+          "description": "A note is allowed but not required (the default).",
+          "type": "string"
+        },
+        {
+          "const": "forbidden",
+          "description": "A note is rejected.",
+          "type": "string"
+        }
+      ]
+    },
+    "NumericField": {
+      "additionalProperties": false,
+      "description": "A numeric scalar field with a `[min, max]` scale and, optionally, one\nclassification style, either contiguous bands or labeled anchor points.\nDefaults to an integer `0..9` scale with no classification.",
+      "properties": {
+        "anchors": {
+          "description": "Anchor classification (mutually exclusive with `bands`).",
+          "items": {
+            "$ref": "#/$defs/Anchor"
+          },
+          "type": "array"
+        },
+        "bands": {
+          "description": "Band classification (mutually exclusive with `anchors`).",
+          "items": {
+            "$ref": "#/$defs/Band"
+          },
+          "type": "array"
+        },
+        "example": {
+          "default": null,
+          "description": "The value `mt check` files a spliced slot with. A required field with\nno `example` leaves that slot unfillable.",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "kind": {
+          "$ref": "#/$defs/ScaleKind",
+          "description": "Whether the scale is integer or real."
+        },
+        "max": {
+          "default": 9.0,
+          "description": "Inclusive scale maximum.",
+          "format": "double",
+          "type": "number"
+        },
+        "min": {
+          "default": 0.0,
+          "description": "Inclusive scale minimum.",
+          "format": "double",
+          "type": "number"
+        },
+        "required": {
+          "$ref": "#/$defs/Requirement",
+          "description": "Whether the field must be set.",
+          "x-expression": "filter"
+        }
+      },
+      "type": "object"
+    },
+    "OnConfig": {
+      "additionalProperties": false,
+      "description": "Hooks keyed by the event that fires them.",
+      "properties": {
+        "flip": {
+          "description": "`[[on.flip]]` entries, in declaration order.",
+          "items": {
+            "$ref": "#/$defs/FlipHook"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "PackEntry": {
+      "anyOf": [
+        {
+          "description": "A pack name, `<source>:<pack>`, or a path to a TOML pack file. Every\nparameter of the pack keeps its default.",
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/PackWith",
+          "description": "A pack and the values of some of its parameters."
+        }
+      ],
+      "description": "One `extends` entry: a pack's name, or a table naming the pack and the\nvalues of its parameters."
+    },
+    "PackSource": {
+      "additionalProperties": false,
+      "description": "One `[pack-sources.<name>]` entry.",
+      "properties": {
+        "git": {
+          "description": "The repository, as any URL or path `git fetch` takes.",
+          "type": "string"
+        },
+        "ref": {
+          "description": "The tag, branch or commit to lock.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "git",
+        "ref"
+      ],
+      "type": "object"
+    },
+    "PackWith": {
+      "additionalProperties": false,
+      "description": "An `extends` entry that sets a pack's parameters: `{ pack = \"./team.toml\",\nwith = { max-files = 8 } }`.",
+      "properties": {
+        "pack": {
+          "description": "The pack, named as in a bare entry.",
+          "type": "string"
+        },
+        "with": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ParamValue"
+          },
+          "default": {},
+          "description": "A value for each parameter to change, keyed by the name the pack's\n`[params]` declares. A value takes the type of the parameter's\ndefault.",
+          "type": "object"
+        }
+      },
+      "required": [
+        "pack"
+      ],
+      "type": "object"
+    },
+    "ParamValue": {
+      "anyOf": [
+        {
+          "description": "`true` or `false`.",
+          "type": "boolean"
+        },
+        {
+          "description": "A whole number.",
+          "format": "int64",
+          "type": "integer"
+        },
+        {
+          "description": "A number with a fraction.",
+          "format": "double",
+          "type": "number"
+        },
+        {
+          "description": "A string, written into the expression as a quoted literal.",
+          "type": "string"
+        }
+      ],
+      "description": "One parameter value: a string, a number or a boolean."
+    },
+    "PriorityConfig": {
+      "additionalProperties": false,
+      "description": "The priority scale and its scoring frameworks.\n\nIt takes the same scale, bands and anchors as `[tasks.difficulty]`. When\n`framework` names a framework, `mt` computes a task's priority from that\nframework's inputs. `allow-manual` decides whether a raw integer is still\naccepted. `frameworks` holds the built-in frameworks merged with any the\nproject declares.",
+      "properties": {
+        "allow-manual": {
+          "default": true,
+          "description": "Whether a raw integer is accepted while a framework is active.",
+          "type": "boolean"
+        },
+        "anchors": {
+          "description": "Anchor classification (mutually exclusive with `bands`).",
+          "items": {
+            "$ref": "#/$defs/Anchor"
+          },
+          "type": "array"
+        },
+        "bands": {
+          "description": "Band classification (mutually exclusive with `anchors`).",
+          "items": {
+            "$ref": "#/$defs/Band"
+          },
+          "type": "array"
+        },
+        "example": {
+          "default": null,
+          "description": "The value `mt check` files a spliced slot with. A required field with\nno `example` leaves that slot unfillable.",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "framework": {
+          "default": null,
+          "description": "Name of the framework that computes priority, a key of `frameworks`.\nAbsent means priority is a raw number.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "frameworks": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Framework"
+          },
+          "description": "Scoring frameworks by name: the built-in ones merged with any declared\nhere.",
+          "type": "object"
+        },
+        "kind": {
+          "$ref": "#/$defs/ScaleKind",
+          "description": "Whether the scale is integer or real."
+        },
+        "max": {
+          "default": 9.0,
+          "description": "Inclusive scale maximum.",
+          "format": "double",
+          "type": "number"
+        },
+        "min": {
+          "default": 0.0,
+          "description": "Inclusive scale minimum.",
+          "format": "double",
+          "type": "number"
+        },
+        "required": {
+          "$ref": "#/$defs/Requirement",
+          "description": "Whether the field must be set.",
+          "x-expression": "filter"
+        }
+      },
+      "type": "object"
+    },
+    "ProjectConfig": {
+      "additionalProperties": false,
+      "description": "Project-level settings.",
+      "properties": {
+        "code": {
+          "default": null,
+          "description": "Short project qualifier. Falls back to the root directory name when absent.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "ReadyConfig": {
+      "additionalProperties": false,
+      "description": "Glyph, color and label for the ready and blocked states in the `READY`\ncolumn. An omitted key takes the shipped default.",
+      "properties": {
+        "blocked-color": {
+          "default": null,
+          "description": "Color for the blocked state: a named ANSI color or `#RRGGBB`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "blocked-glyph": {
+          "default": null,
+          "description": "Glyph shown for a blocked task.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "blocked-label": {
+          "default": null,
+          "description": "Display label for the blocked state.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ready-color": {
+          "default": null,
+          "description": "Color for the ready state: a named ANSI color or `#RRGGBB`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ready-glyph": {
+          "default": null,
+          "description": "Glyph shown for a ready (unblocked, non-terminal) task.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ready-label": {
+          "default": null,
+          "description": "Display label for the ready state.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "RecurConfig": {
+      "additionalProperties": false,
+      "description": "Whether recurring tasks are enabled, and the values a `recur` field may\ntake.",
+      "properties": {
+        "anchors": {
+          "default": [
+            "completion",
+            "due"
+          ],
+          "description": "Allowed anchors. Empty = any.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "default-anchor": {
+          "default": "completion",
+          "description": "Anchor used when a task's `recur` omits one.",
+          "type": "string"
+        },
+        "enabled": {
+          "default": true,
+          "description": "Whether the recurrence feature is enabled. `false` rejects any\nauthored `recur` field outright, at both `mt check` and `mt recur`.",
+          "type": "boolean"
+        },
+        "materialize": {
+          "default": "spawn",
+          "description": "Materialize model used when a task's `recur` omits one.",
+          "type": "string"
+        },
+        "max-advance": {
+          "default": 52,
+          "description": "Largest `N` that `mt recur --advance N` accepts.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "rrule": {
+          "default": false,
+          "description": "Whether a `recur` field may use `rrule(...)`. Off by default. Without\nit, `mt` rejects an `rrule(...)` with an error.",
+          "type": "boolean"
+        },
+        "units": {
+          "default": [
+            "days",
+            "weeks",
+            "months",
+            "years"
+          ],
+          "description": "Allowed period units. Empty = any.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "RegexQuery": {
+      "additionalProperties": false,
+      "description": "A regex query: the first capture group (or the whole match) of every match\nin every selected section's content.",
+      "properties": {
+        "group": {
+          "default": null,
+          "description": "The capture group to take, counting from 0. Absent takes the first\ncapture group when the pattern has one, else the whole match.",
+          "format": "uint",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "pattern": {
+          "description": "The regex to run over each selected section's content.",
+          "type": "string"
+        },
+        "section": {
+          "$ref": "#/$defs/SectionSpec",
+          "description": "The body section to read: a heading path, or one heading name."
+        }
+      },
+      "required": [
+        "section",
+        "pattern"
+      ],
+      "type": "object"
+    },
+    "Requirement": {
+      "description": "Whether a field is required. `false` means never and `true` means always. A filter expression matches exactly the tasks that must carry it, such as `\"!terminal\"` for every task not yet in a terminal status.",
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "RetireConfig": {
+      "additionalProperties": false,
+      "description": "The gitless `rm` tombstone. It keeps the file and flips its status to a\nterminal one.",
+      "properties": {
+        "rename": {
+          "default": null,
+          "description": "Move the retired task file into a sibling folder of this name, such as\n`.archive`. Omitted keeps the file where it is.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "default": null,
+          "description": "The terminal status the retired task flips to; defaults to the legend's first terminal status (an error if the legend declares none).",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "RmConfig": {
+      "additionalProperties": false,
+      "description": "Defaults for the `rm` task-removal command.",
+      "properties": {
+        "default-filter": {
+          "default": null,
+          "description": "Filter selecting which tasks a bare `mt rm` (no target given) retires.\nDefaults to `\"terminal\"`, sweeping every task in a terminal status.\nAn explicit ref or filter argument on the command line overrides it.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-expression": "filter"
+        },
+        "strategy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RmStrategy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "How inbound references to a removed task are handled; defaults to `\"git-tombstone\"` in a git repository, `\"reject\"` without one."
+        }
+      },
+      "type": "object"
+    },
+    "RmStrategy": {
+      "description": "How `mt rm` handles links from other tasks to a removed task.",
+      "oneOf": [
+        {
+          "const": "git-tombstone",
+          "description": "Mint a git-pinned SWHID tombstone and rewrite inbound edges onto it (the default in a git repo).",
+          "type": "string"
+        },
+        {
+          "const": "retire",
+          "description": "Keep the task file and flip it to a terminal status. This is a tombstone\nwithout git.",
+          "type": "string"
+        },
+        {
+          "const": "unlink",
+          "description": "Strip each inbound edge from the surviving tasks, then delete.",
+          "type": "string"
+        },
+        {
+          "const": "reject",
+          "description": "Refuse, listing every surviving task that references a removed task.",
+          "type": "string"
+        }
+      ]
+    },
+    "Role": {
+      "additionalProperties": false,
+      "description": "One role name an actor can hold. A role carries no settings, and a harness\nkeys its own config by role name.",
+      "properties": {
+        "name": {
+          "description": "Unique role name.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "RootConfig": {
+      "additionalProperties": false,
+      "description": "The table form of a task root.",
+      "properties": {
+        "derive-tags": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DeriveTags"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Tag derivation for this root. Absent takes `[tasks.derive-tags] enabled`."
+        },
+        "name": {
+          "default": null,
+          "description": "Tag emitted for the root itself. Defaults to the path's last segment.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "path": {
+          "default": "",
+          "description": "Directory (relative to the project root) holding one task per file.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "RootSpec": {
+      "anyOf": [
+        {
+          "description": "Path shorthand, e.g. `\"tasks\"`.",
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/RootConfig",
+          "description": "Full form: `{ path, name, derive-tags }`."
+        }
+      ],
+      "description": "One `[[tasks.roots]]` entry: a bare path string, or a table with a root\ntag name and a per-root tag derivation rule. A list may mix both forms."
+    },
+    "RuleSpec": {
+      "additionalProperties": false,
+      "description": "One assertion or check that every selected task must satisfy. Set exactly one\nof `assert` and `check`.",
+      "properties": {
+        "assert": {
+          "default": null,
+          "description": "Filter expression that must evaluate true for every task the rule\napplies to. Exactly one of this and `check` is set.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-expression": "filter"
+        },
+        "check": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CheckSpec"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A Typst function to call instead of an `assert` expression. Exactly\none of this and `assert` is set."
+        },
+        "message": {
+          "default": null,
+          "description": "What an `assert` breach tells the author to do, in place of the\ndefault advice naming the `assert` expression. A `check` rule ignores\nit and prints each string its function returns.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "default": null,
+          "description": "The name a report shows for the rule (`rules.<name>`). Optional: an\nunnamed rule reports by its position instead (`rules[0]`).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity",
+          "default": "warn",
+          "description": "Whether a breach fails the command or only reports. Default `warn`."
+        },
+        "when": {
+          "default": null,
+          "description": "Filter expression gating which tasks the rule applies to. Absent means\nevery task.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-expression": "filter"
+        }
+      },
+      "type": "object"
+    },
+    "ScaleKind": {
+      "description": "Whether the scale carries integers or reals.",
+      "oneOf": [
+        {
+          "const": "int",
+          "description": "Whole numbers; bands are inclusive and contiguous.",
+          "type": "string"
+        },
+        {
+          "const": "real",
+          "description": "Real numbers; bands are half-open, the last one closed.",
+          "type": "string"
+        }
+      ]
+    },
+    "SectionSpec": {
+      "anyOf": [
+        {
+          "description": "One exact heading name, matched as a direct child of the body root.",
+          "type": "string"
+        },
+        {
+          "description": "A path through the heading tree, each step a heading segment.",
+          "items": {
+            "$ref": "#/$defs/HeaderPathSegment"
+          },
+          "type": "array"
+        }
+      ],
+      "description": "A body section selector: one heading name, or a path through the heading\ntree."
+    },
+    "Severity": {
+      "description": "How a breached config-declared constraint reports.",
+      "oneOf": [
+        {
+          "const": "warn",
+          "description": "Print the breach; the command still succeeds. The default.",
+          "type": "string"
+        },
+        {
+          "const": "error",
+          "description": "Print the breach and fail the command.",
+          "type": "string"
+        }
+      ]
+    },
+    "TagsConfig": {
+      "additionalProperties": false,
+      "description": "Optional tag allow-list.",
+      "properties": {
+        "allowed": {
+          "default": [],
+          "description": "Allowed tag names. Empty accepts any tag. The loader derives folder tags\nagain on every load, so a moved file gets its new folder's tags. An entry\n`@<dict>` stands for every entry of `[dicts.<dict>]`.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "values-when": {
+          "default": null,
+          "description": "A filter naming the tasks held to `allowed`. Absent means `!terminal`,\nso a closed task keeps a tag dropped from the list.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-expression": "filter"
+        }
+      },
+      "type": "object"
+    },
+    "TargetValidator": {
+      "description": "What shape a link kind's targets take. It is the `validate` key of\n`[[tasks.links.kinds]]`.",
+      "oneOf": [
+        {
+          "const": "local-task-path",
+          "description": "A path from the linking task's file to another task's file (the\ndefault, and the only validator whose edges join the task graph).",
+          "type": "string"
+        },
+        {
+          "const": "url",
+          "description": "An RFC 3986 URI: a scheme, then only URI-legal characters.",
+          "type": "string"
+        },
+        {
+          "const": "git-sha",
+          "description": "A hexadecimal git object name of 7 to 64 characters, from an abbreviated\nSHA-1 up to a full SHA-256.",
+          "type": "string"
+        },
+        {
+          "const": "uuid",
+          "description": "A UUID, hyphenated, as 32 bare hex digits, in braces, or with a\n`urn:uuid:` prefix.",
+          "type": "string"
+        },
+        {
+          "const": "regex",
+          "description": "A project-supplied pattern, taken from the kind's sibling `regex` key.",
+          "type": "string"
+        },
+        {
+          "const": "any",
+          "description": "Any non-empty text, with no shape check.",
+          "type": "string"
+        }
+      ]
+    },
+    "TaskBodyConfig": {
+      "additionalProperties": false,
+      "description": "Constraints on the shape of a task body.",
+      "properties": {
+        "content": {
+          "$ref": "#/$defs/ContentConfig",
+          "description": "Section-content gating rules."
+        },
+        "headers": {
+          "$ref": "#/$defs/HeadersConfig",
+          "description": "Section-heading gating rules."
+        }
+      },
+      "type": "object"
+    },
+    "TasksConfig": {
+      "additionalProperties": false,
+      "description": "Where tasks live and how they are constrained.",
+      "properties": {
+        "assignee": {
+          "$ref": "#/$defs/AssigneeConfig",
+          "description": "Which actors `assignee:` may name, and whether it is required."
+        },
+        "body": {
+          "$ref": "#/$defs/TaskBodyConfig",
+          "description": "Rules over a task body's headings and section content."
+        },
+        "collectors": {
+          "description": "Derived fields, each a query run over every task and read as\n`derived.<name>`. A collector a pack or a lower layer declared merges\nby name, as a rule does.",
+          "items": {
+            "$ref": "#/$defs/CollectorSpec"
+          },
+          "type": "array"
+        },
+        "comments": {
+          "$ref": "#/$defs/CommentsConfig",
+          "description": "Review-comment policy over a task's whole source file (`mt check`)."
+        },
+        "derive-tags": {
+          "$ref": "#/$defs/DeriveConfig",
+          "description": "Project-wide folder-derived-tag policy."
+        },
+        "difficulty": {
+          "$ref": "#/$defs/NumericField",
+          "description": "The difficulty scale and its labeled anchors or bands."
+        },
+        "estimate": {
+          "$ref": "#/$defs/EstimateConfig",
+          "description": "Allowed estimate units, and whether an estimate is required."
+        },
+        "fields": {
+          "additionalProperties": {
+            "$ref": "#/$defs/FieldConfig"
+          },
+          "description": "Allowed values, default and requirement for `kind` and for each\n`x-<ns>` extension field, keyed by field name. Any other key fails\nconfig load.",
+          "type": "object"
+        },
+        "id": {
+          "$ref": "#/$defs/IdConfig",
+          "description": "Task id format."
+        },
+        "links": {
+          "$ref": "#/$defs/LinksConfig",
+          "description": "Custom link kinds that `links:` edges may use, beside the built-in ones."
+        },
+        "naming": {
+          "$ref": "#/$defs/NamingConfig",
+          "description": "The filename stem template `mt add` and `mt recur` use, and what\n`mt add` does when the stem is taken (`dedup`)."
+        },
+        "priority": {
+          "$ref": "#/$defs/PriorityConfig",
+          "description": "The priority scale, its bands, and an optional scoring framework that\ncomputes priority from inputs."
+        },
+        "recur": {
+          "$ref": "#/$defs/RecurConfig",
+          "description": "Whether recurring tasks are enabled, and the units, anchors and limits\n`mt recur` accepts."
+        },
+        "roots": {
+          "description": "Directories (relative to the project root) holding one task per file.",
+          "items": {
+            "$ref": "#/$defs/RootSpec"
+          },
+          "type": "array"
+        },
+        "rules": {
+          "description": "Assertions every selected task must satisfy. `mt check` enforces them,\nand so does every write command before it writes.",
+          "items": {
+            "$ref": "#/$defs/RuleSpec"
+          },
+          "type": "array"
+        },
+        "status": {
+          "$ref": "#/$defs/Legend",
+          "description": "Status legend: legal values in lifecycle order, plus per-value display\n(glyph, color, label) and the `terminal` flag."
+        },
+        "tags": {
+          "$ref": "#/$defs/TagsConfig",
+          "description": "Tag allow-list, checked on open tasks only."
+        },
+        "waits": {
+          "description": "Commands a `waits-on` entry names: each answers by exit code whether a\ntask still waits on something outside the repo.",
+          "items": {
+            "$ref": "#/$defs/Checker"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "TemplatesConfig": {
+      "additionalProperties": false,
+      "description": "Where `mt add` finds task templates.",
+      "properties": {
+        "default": {
+          "default": "task",
+          "description": "Template stem `mt add` uses when none is named.",
+          "type": "string"
+        },
+        "dirs": {
+          "default": [
+            ".mindtape/templates"
+          ],
+          "description": "Directories, relative to the project root, holding `*.typ` task templates.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "fallback-severity": {
+          "$ref": "#/$defs/FallbackSeverity",
+          "description": "How `mt check` reports a breach of the built-in template, which `mt add`\nfalls back to when no template dir holds `task.typ`. A project's own\ntemplates always report errors."
+        }
+      },
+      "type": "object"
+    },
+    "TypstConfig": {
+      "additionalProperties": false,
+      "description": "Typst evaluation settings.",
+      "properties": {
+        "local-packages": {
+          "description": "`@local/<name>` packages to load from a directory in the project, so a\ntask can import a package that is not installed globally. `mt`\nregisters `@local/mindtape` itself when `<root>/lib` holds the\n`mindtape` package; list any other package here.",
+          "items": {
+            "$ref": "#/$defs/LocalPackage"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "TypstQuery": {
+      "additionalProperties": false,
+      "description": "A Typst query: call a project function over the canonical task, or over\none field of it, and return its value.",
+      "properties": {
+        "field": {
+          "default": null,
+          "description": "The field whose value the function receives. Absent means the whole\ntask, in the shape `mt eval --json` prints.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "function": {
+          "description": "Name of the exported function to call.",
+          "type": "string"
+        },
+        "typst": {
+          "description": "Path to the Typst module exporting `function`, relative to the project\nroot or to the pack directory that declared the collector.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "typst",
+        "function"
+      ],
+      "type": "object"
+    },
+    "ViewSpec": {
+      "additionalProperties": false,
+      "description": "One named query bundle.",
+      "properties": {
+        "columns": {
+          "default": [],
+          "description": "Column set applied when this view drives columns (bundle mode or\n`--columns @name`). Empty means the default column set.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "description": {
+          "default": null,
+          "description": "Human description, shown by `mt explain views`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "filter": {
+          "default": "",
+          "description": "Filter expression (the filter facet). May reference other views via\n`in_view(\"other\")` or the `@other` sugar. Empty means match-all.",
+          "type": "string",
+          "x-expression": "filter"
+        },
+        "sort": {
+          "default": [],
+          "description": "Sort chain applied when this view drives sort (bundle mode or\n`--sort @name`). Same spec grammar as `--sort`; empty means the default\norder.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/config-show/1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The object `mt config show --json` prints: the merged config under `config`, shaped as `.mindtape/config.toml`.",
+  "properties": {
+    "$schema": {
+      "description": "The URL of the schema this object conforms to.",
+      "type": "string"
+    },
+    "config": {
+      "$ref": "#/$defs/Config",
+      "description": "The merged table, shaped as `.mindtape/config.toml`. The schema\ndescribes it through [`mindtape::Config`], the type it deserializes to."
+    }
+  },
+  "required": [
+    "$schema",
+    "config"
+  ],
+  "title": "Mindtape effective config",
+  "type": "object"
+}

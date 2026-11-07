@@ -7,13 +7,17 @@
 //! config fails is a `⚠` row naming the error, and the command exits 1 after
 //! the others print. A failed cell is `?`, with a note under the table.
 
+use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use mindtape::{Board, Cell, StemHashes};
+use serde::Serialize;
 
 use crate::cmd::at::load_at;
+use crate::cmd::schema::BOARD;
 use crate::diag::{Diag, Kind, Result};
 use crate::project_set::{held_set, open_set_warned};
+use crate::render::envelope::Envelope;
 use crate::render::width::{display_width, pad_to_width, truncate_to_width};
 use crate::util::{self, Project};
 
@@ -234,45 +238,131 @@ fn cell_text(cell: &Cell, hashes: &StemHashes) -> String {
     }
 }
 
-/// Every row as JSON: `project`, `path`, `hidden` and `cells` by column name,
-/// or `error` for a project that failed to load.
+/// The object `mt board --json` prints: one row per project.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct BoardPayload {
+    /// One row per project, in board order.
+    pub projects: Vec<BoardRowJson>,
+}
+
+/// One project's row: its cells, or why its config would not load.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+#[serde(untagged)]
+pub enum BoardRowJson {
+    /// A project whose config loaded.
+    Loaded(BoardLoadedJson),
+    /// A project whose config failed.
+    Failed(BoardFailedJson),
+}
+
+/// A loaded project's row: `project`, `path`, `hidden` and `cells` by column
+/// name.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct BoardLoadedJson {
+    /// The project's name.
+    pub project: String,
+    /// The directory it lives in.
+    pub path: String,
+    /// Whether the board's `hide` filter leaves the row out of the table.
+    pub hidden: bool,
+    /// Each column's value, by column name.
+    pub cells: BTreeMap<String, BoardCellJson>,
+}
+
+/// A failed project's row: `project`, `path` and `error`.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct BoardFailedJson {
+    /// The project's name.
+    pub project: String,
+    /// The directory it lives in.
+    pub path: String,
+    /// Why its config would not load.
+    pub error: String,
+}
+
+/// One cell's value.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+#[serde(untagged)]
+pub enum BoardCellJson {
+    /// A `filter` column's count.
+    Count(usize),
+    /// A `top` column's first matching task.
+    Top(BoardTopJson),
+    /// A `top` column no task matched.
+    Empty,
+    /// A column whose filter failed.
+    Failed(BoardCellErrorJson),
+}
+
+/// A `top` cell's task.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct BoardTopJson {
+    /// The task's stem.
+    pub id: String,
+    /// Its title.
+    pub title: String,
+    /// Its file.
+    pub file: String,
+}
+
+/// A failed cell's error.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct BoardCellErrorJson {
+    /// Why the column's filter failed.
+    pub error: String,
+}
+
+/// Every row as JSON under the board envelope.
 fn print_json(board: &Board, rows: &[Row]) {
-    let items: Vec<serde_json::Value> = rows
-        .iter()
-        .map(|row| {
-            let (project, path) = (&row.name, mindtape::slash_path(&row.root));
-            match &row.body {
-                Err(message) => serde_json::json!({
-                    "project": project, "path": path, "error": message,
-                }),
-                Ok(loaded) => {
-                    let cells: serde_json::Map<String, serde_json::Value> = board
-                        .columns()
-                        .iter()
-                        .zip(&loaded.cells)
-                        .map(|(column, cell)| (column.name.clone(), cell_json(cell)))
-                        .collect();
-                    serde_json::json!({
-                        "project": project, "path": path, "hidden": loaded.hidden, "cells": cells,
-                    })
-                }
-            }
-        })
-        .collect();
+    let payload = BoardPayload {
+        projects: rows.iter().map(|row| row_json(board, row)).collect(),
+    };
     println!(
         "{}",
-        serde_json::to_string_pretty(&serde_json::Value::Array(items)).unwrap_or_default()
+        serde_json::to_string_pretty(&Envelope::new(BOARD, payload)).unwrap_or_default()
     );
 }
 
-fn cell_json(cell: &Cell) -> serde_json::Value {
-    match cell {
-        Cell::Count(count) => (*count).into(),
-        Cell::Top(Some(top)) => serde_json::json!({
-            "id": top.id, "title": top.title, "file": mindtape::slash_path(&top.file),
+/// One row as its JSON shape.
+fn row_json(board: &Board, row: &Row) -> BoardRowJson {
+    let project = row.name.clone();
+    let path = mindtape::slash_path(&row.root);
+    match &row.body {
+        Err(message) => BoardRowJson::Failed(BoardFailedJson {
+            project,
+            path,
+            error: message.clone(),
         }),
-        Cell::Top(None) => serde_json::Value::Null,
-        Cell::Failed(message) => serde_json::json!({ "error": message }),
+        Ok(loaded) => {
+            let cells = board
+                .columns()
+                .iter()
+                .zip(&loaded.cells)
+                .map(|(column, cell)| (column.name.clone(), cell_json(cell)))
+                .collect();
+            BoardRowJson::Loaded(BoardLoadedJson {
+                project,
+                path,
+                hidden: loaded.hidden,
+                cells,
+            })
+        }
+    }
+}
+
+/// One cell as its JSON shape.
+fn cell_json(cell: &Cell) -> BoardCellJson {
+    match cell {
+        Cell::Count(count) => BoardCellJson::Count(*count),
+        Cell::Top(Some(top)) => BoardCellJson::Top(BoardTopJson {
+            id: top.id.clone(),
+            title: top.title.clone(),
+            file: mindtape::slash_path(&top.file),
+        }),
+        Cell::Top(None) => BoardCellJson::Empty,
+        Cell::Failed(message) => BoardCellJson::Failed(BoardCellErrorJson {
+            error: message.clone(),
+        }),
     }
 }
 

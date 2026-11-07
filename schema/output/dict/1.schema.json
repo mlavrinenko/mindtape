@@ -1,0 +1,41 @@
+{
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/dict/1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The object `mt explain dicts <name> --json` prints: one dictionary's name, case, count and entries.",
+  "properties": {
+    "$schema": {
+      "description": "The URL of the schema this object conforms to.",
+      "type": "string"
+    },
+    "case": {
+      "description": "`fold` or `exact`.",
+      "type": "string"
+    },
+    "count": {
+      "description": "How many entries it resolved to.",
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "entries": {
+      "description": "Its entries, as stored and sorted.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "name": {
+      "description": "The dictionary's name.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "$schema",
+    "name",
+    "case",
+    "count",
+    "entries"
+  ],
+  "title": "Mindtape dictionary",
+  "type": "object"
+}

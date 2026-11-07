@@ -52,7 +52,7 @@ fn describe_json_lists_builtin_slots() {
     let specs = discover_slots(BUILTIN_TASK);
     let json = describe(&specs, DescribeFormat::Json).unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
-    let names: Vec<&str> = parsed
+    let names: Vec<&str> = parsed["slots"]
         .as_array()
         .unwrap()
         .iter()
@@ -123,7 +123,7 @@ fn describe_surfaces_declared_env() {
 
     let json = describe(&specs, DescribeFormat::Json).unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
-    assert_eq!(parsed.as_array().unwrap()[0]["env"], "MINDTAPE_PRINCIPAL");
+    assert_eq!(parsed["slots"][0]["env"], "MINDTAPE_PRINCIPAL");
 
     // A slot without `env` stays quiet in both formats.
     let plain = discover_slots(BUILTIN_TASK);
@@ -131,7 +131,7 @@ fn describe_surfaces_declared_env() {
     assert!(!text.contains("env:"));
     let json = describe(&plain, DescribeFormat::Json).unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
-    assert!(parsed.as_array().unwrap()[0]["env"].is_null());
+    assert!(parsed["slots"][0]["env"].is_null());
 }
 
 #[test]
@@ -197,8 +197,8 @@ fn describe_shows_each_slot_s_example() {
     assert!(text.contains("\n    e.g. + one\n         + two"), "{text}");
     let json = super::describe(&specs, super::DescribeFormat::Json).unwrap();
     let rows: serde_json::Value = serde_json::from_str(&json).unwrap();
-    assert_eq!(rows[0]["example"], "Retry failed payments");
-    assert_eq!(rows[1]["example"], "+ one\n+ two");
+    assert_eq!(rows["slots"][0]["example"], "Retry failed payments");
+    assert_eq!(rows["slots"][1]["example"], "+ one\n+ two");
 }
 
 #[test]

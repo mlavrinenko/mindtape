@@ -7,7 +7,12 @@
 //! process builder in `shell.rs`; the `mt` spawns and read-backs stay here.
 //! Only Unix e2e modules use `merge_driver.rs` and `shell.rs`, so both build on
 //! Unix alone.
-#![allow(clippy::unwrap_used, clippy::disallowed_methods, dead_code)]
+#![allow(
+    clippy::unwrap_used,
+    clippy::disallowed_methods,
+    clippy::indexing_slicing,
+    dead_code
+)]
 
 use std::path::{Path, PathBuf};
 
@@ -214,18 +219,38 @@ pub fn isolate<'a>(
 /// `<a>`/`@at` silently evaluate away.
 pub const MARKUP_HAZARDS: &str = "create-*star* _u_ $x$ #h [b] <a> >g @at";
 
-/// The canonical-JSON row `mt ls --json` reports for task `id` in `dir`. Reading
-/// a value back through the harvest is the only way to tell text that survived a
-/// write from text Typst quietly interpreted on the way in.
-pub fn task_json(dir: &Path, id: &str) -> serde_json::Value {
+/// `value["$schema"]` must name the `name` output.
+pub fn assert_schema(value: &serde_json::Value, name: &str) {
+    let schema = value["$schema"].as_str().unwrap_or_default();
+    assert!(
+        schema.ends_with(&format!("/{name}/1.schema.json")),
+        "{value}"
+    );
+}
+
+/// `value` without its `$schema` key, for comparing a payload whole.
+pub fn without_schema(mut value: serde_json::Value) -> serde_json::Value {
+    value.as_object_mut().unwrap().remove("$schema");
+    value
+}
+
+/// `mt <args>` in `dir`, parsed as JSON; the run must succeed.
+fn json_output(dir: &Path, args: &[&str]) -> serde_json::Value {
     let output = mt(dir)
-        .args(["ls", "--json"])
+        .args(args)
         .assert()
         .success()
         .get_output()
         .stdout
         .clone();
-    let parsed: serde_json::Value = serde_json::from_slice(&output).unwrap();
+    serde_json::from_slice(&output).unwrap()
+}
+
+/// The canonical-JSON row `mt ls --json` reports for task `id` in `dir`. Reading
+/// a value back through the harvest is the only way to tell text that survived a
+/// write from text Typst quietly interpreted on the way in.
+pub fn task_json(dir: &Path, id: &str) -> serde_json::Value {
+    let parsed = json_output(dir, &["ls", "--json"]);
     parsed
         .get("tasks")
         .and_then(serde_json::Value::as_array)
@@ -320,16 +345,10 @@ pub fn add_then_ls_and_check(dir: &Path, name: &str, extra_set: &[&str]) {
     check_ok(dir);
 }
 
-/// Parsed `add --describe=json` schema rows run in `dir`.
+/// The slot rows from `add --describe=json` run in `dir`.
 pub fn describe_slots(dir: &Path) -> serde_json::Value {
-    let output = mt(dir)
-        .args(["add", "--describe=json"])
-        .assert()
-        .success()
-        .get_output()
-        .stdout
-        .clone();
-    serde_json::from_slice(&output).unwrap()
+    let document = json_output(dir, &["add", "--describe=json"]);
+    document["slots"].clone()
 }
 
 /// Slot names from `add --describe=json` run in `dir`.

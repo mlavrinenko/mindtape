@@ -206,7 +206,11 @@ fn strict_framework_priority_answer_set_scaffolds() {
     assert!(config.contains("extends = [\"mindtape:ice\"]"), "{config}");
     let shown = support::stdout(dir.path(), &["config", "show", "--json"]);
     let shown: serde_json::Value = serde_json::from_str(&shown).unwrap();
-    let key = |name: &str| shown.pointer(&format!("/tasks/priority/{name}")).cloned();
+    let key = |name: &str| {
+        shown
+            .pointer(&format!("/config/tasks/priority/{name}"))
+            .cloned()
+    };
     assert_eq!(key("framework"), Some("ice".into()), "{shown}");
     assert_eq!(key("allow-manual"), Some(false.into()), "{shown}");
     assert_eq!(key("required"), Some("!terminal".into()), "{shown}");

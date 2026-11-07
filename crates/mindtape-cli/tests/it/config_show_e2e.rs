@@ -4,7 +4,11 @@
 //! `render_origin` directly with an explicit root, bypassing `run()`'s own
 //! `cwd`-driven `util::resolve_root` and its `ConfigAction` dispatch — these
 //! need a real `cwd` and a real (or missing/broken) project on disk.
-#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
+#![allow(
+    clippy::unwrap_used,
+    clippy::disallowed_methods,
+    clippy::indexing_slicing
+)]
 
 use mindtape::test_support::{tempdir, tempdir_with_config};
 
@@ -38,6 +42,23 @@ fn bare_config_defaults_to_show() {
         "{}",
         String::from_utf8_lossy(&bare)
     );
+}
+
+#[test]
+fn config_show_json_wraps_the_merged_table() {
+    let dir = tempdir_with_config("[project]\ncode = \"demo\"\n");
+
+    let text = support::stdout(dir.path(), &["config", "show", "--json"]);
+    let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+
+    assert!(
+        value["$schema"]
+            .as_str()
+            .unwrap_or_default()
+            .ends_with("/config-show/1.schema.json"),
+        "{value}"
+    );
+    assert_eq!(value["config"]["project"]["code"], "demo");
 }
 
 #[test]

@@ -1,6 +1,10 @@
 //! `mt @name` and `mt at`, end to end: a project is `-w <path>`, a set is held
 //! and refused by a command that runs on one project.
-#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
+#![allow(
+    clippy::unwrap_used,
+    clippy::disallowed_methods,
+    clippy::indexing_slicing
+)]
 
 use std::path::Path;
 
@@ -52,6 +56,40 @@ fn a_set_name_is_refused_by_a_one_project_command() {
         stderr.contains("hint: name one project, as in mt @"),
         "{stderr}"
     );
+}
+
+/// Run `mt at ... --json` in `cfg`'s config home, requiring success.
+fn at_json(cfg: &Path, args: &[&str]) -> serde_json::Value {
+    let (ok, text) = support::text_of(&run(cfg, args));
+    assert!(ok, "{text}");
+    serde_json::from_str(&text).unwrap()
+}
+
+/// `mt at --json` wraps the entries in `entries`, and a named target keeps
+/// its `project` or `set` shape flat under `$schema`.
+#[test]
+fn mt_at_json_wraps_entries_and_keeps_a_named_target_flat() {
+    let (_alpha, _beta, cfg) = setup();
+
+    let value = at_json(cfg.path(), &["at", "--json"]);
+    support::assert_schema(&value, "at");
+    let names: Vec<&str> = value["entries"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|entry| entry["name"].as_str())
+        .collect();
+    assert_eq!(names, ["alpha", "both"], "{value}");
+
+    let value = at_json(cfg.path(), &["at", "alpha", "--json"]);
+    support::assert_schema(&value, "at-project");
+    assert_eq!(value["kind"], "project");
+    assert!(value["path"].is_string(), "{value}");
+
+    let value = at_json(cfg.path(), &["at", "both", "--json"]);
+    support::assert_schema(&value, "at-set");
+    assert_eq!(value["kind"], "set");
+    assert_eq!(value["members"].as_array().unwrap().len(), 2, "{value}");
 }
 
 #[test]

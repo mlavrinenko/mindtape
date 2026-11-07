@@ -102,6 +102,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mt eval --json` points at its own `eval/1` schema and keeps the task record
   flat. A consumer that read `schema_version` on these outputs must read
   `$schema` instead.
+- **Every collection JSON output now leads with `$schema`.** `mt board --json`,
+  `mt at --json`, `mt @set ls --json`, `mt packs install --json`,
+  `mt add --describe=json`, `mt explain views --json`,
+  `mt explain dicts --json` and `mt config show --json` print an object whose
+  first key is `$schema` and whose payload moves unchanged under a named key.
+  One `jq` segment fixes each reader: `.projects` for `mt board --json` and
+  `mt @set ls --json`, `.entries` for `mt at --json`, `.sources` for
+  `mt packs install --json`, `.slots` for `mt add --describe=json`, `.views`
+  for `mt explain views --json`, `.dicts` for `mt explain dicts --json` and
+  `.config` for `mt config show --json`. `mt @set ls --json` also drops the
+  `schema_version` its error object carried, and each shape has a recorded
+  schema under `schema/output/`. One named view or dictionary prints flat
+  under `$schema`.
 - **Bare `mt explain` ends on the command to run next.** A blank line sets off
   the `next:` line naming the optional category and JSON flag:
   `mt explain [<rules|tags|views|dicts>] [--json]`.

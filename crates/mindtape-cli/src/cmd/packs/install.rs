@@ -4,8 +4,10 @@ use std::path::Path;
 
 use mindtape::config::pack_sources::{self, LockedSource, PackSources};
 
-use super::{cache_root, short};
+use super::{InstalledJson, PacksPayload, cache_root, short};
+use crate::cmd::schema::PACKS;
 use crate::diag::{Diag, Result};
+use crate::render::envelope::Envelope;
 use crate::util;
 
 /// One declared source after `install`.
@@ -45,8 +47,13 @@ pub(super) fn run(json: bool) -> Result<()> {
         });
     }
     if json {
-        let rows: Vec<serde_json::Value> = report.iter().map(Installed::json).collect();
-        println!("{}", serde_json::to_string_pretty(&rows)?);
+        let payload = PacksPayload {
+            sources: report.iter().map(Installed::json).collect(),
+        };
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&Envelope::new(PACKS, payload))?
+        );
         return Ok(());
     }
     let cached = report.iter().filter(|source| !source.fetched).count();
@@ -57,13 +64,13 @@ pub(super) fn run(json: bool) -> Result<()> {
 }
 
 impl Installed<'_> {
-    fn json(&self) -> serde_json::Value {
-        serde_json::json!({
-            "source": self.source,
-            "commit": self.commit,
-            "sha256": self.sha256,
-            "fetched": self.fetched,
-        })
+    fn json(&self) -> InstalledJson {
+        InstalledJson {
+            source: self.source.to_owned(),
+            commit: self.commit.to_owned(),
+            sha256: self.sha256.to_owned(),
+            fetched: self.fetched,
+        }
     }
 }
 

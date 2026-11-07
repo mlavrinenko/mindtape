@@ -15,7 +15,10 @@ use mindtape::{
     LayerSource, PackOrigin, ParamOrigin, RuleOrigin, config_schema_json, embedded_defaults,
     load_config_layered,
 };
+use serde::Serialize;
 
+use crate::cmd::schema::CONFIG_SHOW;
+use crate::render::envelope::Envelope;
 use crate::util;
 
 /// Arguments for `config`.
@@ -89,11 +92,21 @@ pub fn run(args: &ConfigArgs) -> Result<()> {
     Ok(())
 }
 
-/// Render the effective merged config for `root` as TOML (or, with `json`,
-/// pretty-printed JSON) text. Emits the merged `toml::Table` directly (the
-/// same document that feeds `Config`'s typed deserialization) rather than
-/// serializing `Config` itself, since the config structs derive only
-/// `Deserialize`.
+/// The object `mt config show --json` prints: the merged config under
+/// `config`.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct ConfigShowPayload {
+    /// The merged table, shaped as `.mindtape/config.toml`. The schema
+    /// describes it through [`mindtape::Config`], the type it deserializes to.
+    #[schemars(with = "mindtape::Config")]
+    pub config: toml::Table,
+}
+
+/// Render the effective merged config for `root` as TOML (or, with `json`, a
+/// `$schema` envelope whose `config` holds pretty-printed JSON) text. Emits
+/// the merged `toml::Table` directly (the same document that feeds `Config`'s
+/// typed deserialization) rather than serializing `Config` itself, since the
+/// config structs derive only `Deserialize`.
 ///
 /// # Errors
 /// Returns an error if any config layer fails to load or the table fails to
@@ -101,10 +114,13 @@ pub fn run(args: &ConfigArgs) -> Result<()> {
 pub(crate) fn render_effective(root: &Path, json: bool) -> Result<String> {
     let table = mindtape::merged_config_table(root)?;
     if json {
-        Ok(format!("{}\n", serde_json::to_string_pretty(&table)?))
-    } else {
-        Ok(toml::to_string(&table)?)
+        let payload = ConfigShowPayload { config: table };
+        return Ok(format!(
+            "{}\n",
+            serde_json::to_string_pretty(&Envelope::new(CONFIG_SHOW, payload))?
+        ));
     }
+    Ok(toml::to_string(&table)?)
 }
 
 /// Render the contributing layers for `root`, one per line, in the same

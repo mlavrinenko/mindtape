@@ -1,9 +1,14 @@
 //! `mt explain dicts`: list the project's dictionaries (`[dicts]` and the
 //! built-ins), or the entries of one, as `in_dict()` and `@<dict>` read them.
 
-use mindtape::{Dict, Dicts, Unknown};
+use std::collections::BTreeMap;
 
+use mindtape::{Dict, Dicts, Unknown};
+use serde::Serialize;
+
+use crate::cmd::schema::{DICT, DICTS};
 use crate::diag::{Diag, Result};
+use crate::render::envelope::Envelope;
 use crate::util;
 
 /// Arguments for `mt explain dicts`.
@@ -23,7 +28,11 @@ pub fn run(args: &DictsArgs, as_json: bool) -> Result<()> {
     let dicts = project.config.compiled_dicts();
     let Some(name) = &args.name else {
         if as_json {
-            println!("{}", serde_json::to_string_pretty(&list_json(dicts))?);
+            let payload = list_json(dicts);
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&Envelope::new(DICTS, payload))?
+            );
         } else {
             print!("{}", list(dicts));
         }
@@ -33,7 +42,7 @@ pub fn run(args: &DictsArgs, as_json: bool) -> Result<()> {
     if as_json {
         println!(
             "{}",
-            serde_json::to_string_pretty(&detail_json(name, dict))?
+            serde_json::to_string_pretty(&Envelope::new(DICT, detail_json(name, dict)))?
         );
     } else {
         dict.entries().for_each(|entry| println!("{entry}"));
@@ -56,26 +65,60 @@ fn list(dicts: &Dicts) -> String {
         .collect()
 }
 
+/// The object `mt explain dicts --json` prints: every dictionary's case and
+/// entry count.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct DictsPayload {
+    /// Each dictionary's summary, by name.
+    pub dicts: BTreeMap<String, DictSummaryJson>,
+}
+
+/// One dictionary's case and entry count.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct DictSummaryJson {
+    /// `fold` or `exact`.
+    pub case: String,
+    /// How many entries it resolved to.
+    pub count: usize,
+}
+
+/// The object `mt explain dicts <name> --json` prints: one dictionary.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct DictDetailJson {
+    /// The dictionary's name.
+    pub name: String,
+    /// `fold` or `exact`.
+    pub case: String,
+    /// How many entries it resolved to.
+    pub count: usize,
+    /// Its entries, as stored and sorted.
+    pub entries: Vec<String>,
+}
+
 /// Each dictionary's name mapped to its case and entry count.
-fn list_json(dicts: &Dicts) -> serde_json::Value {
-    dicts
-        .iter()
-        .map(|(name, dict)| {
-            let summary = serde_json::json!({"case": case(dict), "count": dict.len()});
-            (name.to_owned(), summary)
-        })
-        .collect::<serde_json::Map<_, _>>()
-        .into()
+fn list_json(dicts: &Dicts) -> DictsPayload {
+    DictsPayload {
+        dicts: dicts
+            .iter()
+            .map(|(name, dict)| {
+                let summary = DictSummaryJson {
+                    case: case(dict).to_owned(),
+                    count: dict.len(),
+                };
+                (name.to_owned(), summary)
+            })
+            .collect(),
+    }
 }
 
 /// One dictionary with its entries, as `in_dict()` compares them.
-fn detail_json(name: &str, dict: &Dict) -> serde_json::Value {
-    serde_json::json!({
-        "name": name,
-        "case": case(dict),
-        "count": dict.len(),
-        "entries": dict.entries().collect::<Vec<_>>(),
-    })
+fn detail_json(name: &str, dict: &Dict) -> DictDetailJson {
+    DictDetailJson {
+        name: name.to_owned(),
+        case: case(dict).to_owned(),
+        count: dict.len(),
+        entries: dict.entries().map(ToOwned::to_owned).collect(),
+    }
 }
 
 /// The `case` value as config spells it.
