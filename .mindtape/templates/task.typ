@@ -32,6 +32,7 @@
           "cheap-adoption",
           "typst-over-markdown",
           "plain-files",
+          "self-describing",
         ),
       ),
     ),
