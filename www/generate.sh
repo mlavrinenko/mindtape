@@ -41,6 +41,10 @@ export MINDTAPE_NOW=2026-07-06
 # An empty value drops the user config layer, so a builder's own defaults.toml
 # neither changes a capture nor appears in `config show --origin`.
 export MINDTAPE_CONFIG_HOME=
+# A capture shows the URL a reader's `mt` names, not this worktree's: pin the
+# canonical `$schema` base so no transcript carries a `file://` path under
+# $REPO, which the machine-path check below would reject.
+export MINDTAPE_SCHEMA_BASE=
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
