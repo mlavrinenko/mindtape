@@ -287,6 +287,11 @@ pub fn add_and_read(dir: &Path, name: &str, args: &[&str]) -> String {
     std::fs::read_to_string(dir.join("tasks").join(format!("{name}.typ"))).unwrap()
 }
 
+/// Run `mt` in `dir`, assert it succeeds, and parse its stdout as JSON.
+pub fn json(dir: &Path, args: &[&str]) -> serde_json::Value {
+    serde_json::from_str(&stdout(dir, args)).unwrap()
+}
+
 /// Run `mt` in `dir`, assert it succeeds, and return its stdout — [`run_ok`]
 /// for the tests that assert on what was printed rather than only that it was.
 pub fn stdout(dir: &Path, args: &[&str]) -> String {

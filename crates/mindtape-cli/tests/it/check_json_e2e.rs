@@ -26,8 +26,8 @@ fn task(title: &str) -> String {
     )
 }
 
-fn run(dir: &Path, args: &[&str]) -> (Option<i32>, serde_json::Value, String) {
-    let out = mt(dir).args(args).output().unwrap();
+fn check(dir: &Path) -> (Option<i32>, serde_json::Value, String) {
+    let out = mt(dir).args(["check", "--json"]).output().unwrap();
     let stdout = String::from_utf8(out.stdout).unwrap();
     let json = serde_json::from_str(&stdout).unwrap_or_else(|err| panic!("{err}: {stdout:?}"));
     (
@@ -44,10 +44,10 @@ fn an_error_and_a_warning_are_two_objects_and_the_exit_code_is_one() {
     write_file(dir.path(), "tasks/polish.typ", task("Fix Loader polishing"));
     write_file(dir.path(), "tasks/warned.typ", task("Loader polishing"));
 
-    let (code, json, stderr) = run(dir.path(), &["check", "--json"]);
+    let (code, json, stderr) = check(dir.path());
 
     assert_eq!(code, Some(1), "{stderr}");
-    assert_eq!(json["schema_version"], mindtape::SCHEMA_VERSION);
+    mindtape::test_support::assert_schema(&json, "check");
     let problems = json["problems"].as_array().unwrap();
     let error = problems
         .iter()
@@ -73,8 +73,9 @@ fn a_clean_project_prints_an_empty_list_and_exits_zero() {
     let dir = scaffold_project(CONFIG);
     write_file(dir.path(), "tasks/fine.typ", task("Fix Loader"));
 
-    let (code, json, stderr) = run(dir.path(), &["check", "--json"]);
+    let (code, json, stderr) = check(dir.path());
 
+    mindtape::test_support::assert_schema(&json, "check");
     assert_eq!(code, Some(0), "{stderr} {json}");
     assert_eq!(json["problems"], serde_json::json!([]));
 }
@@ -84,8 +85,9 @@ fn a_warning_alone_exits_zero() {
     let dir = scaffold_project(CONFIG);
     write_file(dir.path(), "tasks/warned.typ", task("Loader polishing"));
 
-    let (code, json, _) = run(dir.path(), &["check", "--json"]);
+    let (code, json, _) = check(dir.path());
 
     assert_eq!(code, Some(0));
+    mindtape::test_support::assert_schema(&json, "check");
     assert_eq!(json["problems"][0]["severity"], "warning");
 }

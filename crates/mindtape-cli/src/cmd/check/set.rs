@@ -1,13 +1,13 @@
 //! `mt @name check` on a set: check every member, hold each report, and
 //! print them in set order, each problem naming its project.
 
-use mindtape::SCHEMA_VERSION;
-use serde_json::json;
-
 use super::{CheckArgs, Findings, gather};
-use crate::diag::{Diag, Hint, Kind, Result, emit};
+use crate::cmd::schema::SET_CHECK;
+use crate::diag::{Diag, Hint, Kind, ProblemJson, Result, emit};
 use crate::pre_write::with_body_rules;
 use crate::project_set::{HeldSet, Member, member_load_problems_folded, open_set};
+use crate::render::envelope::Envelope;
+use crate::render::objects::{CheckSetPayload, ProjectCheckJson};
 
 /// One member's report: its problems in print order, and whether it failed.
 struct MemberReport {
@@ -124,18 +124,16 @@ fn failure(name: String, diag: Diag) -> MemberReport {
 }
 
 fn print_json(reports: &[MemberReport]) -> Result<()> {
-    let projects: Vec<_> = reports
+    let projects: Vec<ProjectCheckJson> = reports
         .iter()
-        .map(|report| {
-            json!({
-                "project": report.name,
-                "ok": !report.failed,
-                "tasks": report.tasks,
-                "problems": report.diags.iter().map(Diag::to_json).collect::<Vec<_>>(),
-            })
+        .map(|report| ProjectCheckJson {
+            project: report.name.clone(),
+            ok: !report.failed,
+            tasks: report.tasks,
+            problems: report.diags.iter().map(ProblemJson::from).collect(),
         })
         .collect();
-    let document = json!({ "schema_version": SCHEMA_VERSION, "projects": projects });
+    let document = Envelope::new(SET_CHECK, CheckSetPayload { projects });
     println!("{}", serde_json::to_string_pretty(&document)?);
     Ok(())
 }

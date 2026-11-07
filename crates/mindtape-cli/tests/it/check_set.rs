@@ -73,7 +73,7 @@ fn json_prints_one_object_per_project() {
     let out = run(cfg.path(), &["@both", "check", "--json"]);
     assert_eq!(out.status.code(), Some(1));
     let json: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
-    assert_eq!(json["schema_version"], mindtape::SCHEMA_VERSION);
+    mindtape::test_support::assert_schema(&json, "set-check");
     let projects = json["projects"].as_array().unwrap();
     assert_eq!(projects.len(), 2);
     let name = |dir: &Path| dir.file_name().unwrap().to_str().unwrap().to_owned();

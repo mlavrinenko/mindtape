@@ -9,7 +9,7 @@
 //! (`truth/tasks/collapse-column-visibility-onto-a-single-when-expression.typ`).
 //! `mt eval` reads the floor instead, and these pin that from the outside —
 //! stdout, not a resolved column list.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use crate::support;
 
@@ -39,8 +39,9 @@ fn eval_json_emits_the_task_object() {
     let text = stdout(dir.path(), &["eval", "tasks/test.typ", "--json"]);
     let task: serde_json::Value = serde_json::from_str(&text).unwrap();
 
-    // A bare object, not the `ls` envelope: one file is not a listing, so there
-    // is nothing for `applied` or `truncated` to describe.
+    // The `eval` envelope, with the task record flat: one file is not a
+    // listing, so there is nothing for `applied` or `truncated` to describe.
+    mindtape::test_support::assert_schema(&task, "eval");
     assert_eq!(support::at(&task, "/title").as_str(), Some("Evaluate me"));
     assert_eq!(support::at(&task, "/id").as_str(), Some("test"));
     assert!(

@@ -98,8 +98,8 @@ fn status_name(task: &Task) -> String {
 /// `applied`, `truncated` and `retired`
 /// (`truth/tasks/conditional-ls-rules.typ`,
 /// `truth/tasks/generate-a-schema-for-every-json-output.typ`,
-/// `truth/tasks/ls-limit-flag.typ`); `None` (e.g. `mt eval --json`, which has
-/// no rule/view context) keeps the bare array.
+/// `truth/tasks/ls-limit-flag.typ`); `None`, a caller with no rule or view
+/// context, keeps the bare array.
 ///
 /// `Table`, `CSV`, `Path` and `Path0` ignore `envelope`: the table's
 /// attribution and truncation lines are printed under it by the caller

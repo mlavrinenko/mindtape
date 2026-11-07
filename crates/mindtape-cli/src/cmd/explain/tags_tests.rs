@@ -1,8 +1,8 @@
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use mindtape::{Config, parse_config};
 
-use super::{TagEntry, entries, json, render};
+use super::{TagEntry, document, entries, render};
 
 use crate::cmd::explain::rules::Moment;
 
@@ -177,24 +177,19 @@ fn says_so_when_no_tag_is_read_at_the_moment() {
         render(&entries, Some(Moment::Add)),
         "no tags are read at this moment\n"
     );
-    assert_eq!(
-        json(&entries),
-        serde_json::json!({
-            "schema_version": mindtape::SCHEMA_VERSION,
-            "tags": {},
-        })
-    );
+    let value = serde_json::to_value(document(&entries)).unwrap();
+    mindtape::test_support::assert_schema(&value, "tags");
+    assert_eq!(value["tags"], serde_json::json!({}));
 }
 
 #[test]
-fn json_carries_the_same_map_under_schema_version() {
-    let document = json(&entries(&config(), None));
+fn json_carries_the_same_map_under_its_schema() {
+    let document = serde_json::to_value(document(&entries(&config(), None))).unwrap();
 
+    mindtape::test_support::assert_schema(&document, "tags");
     assert_eq!(
-        document,
+        document["tags"],
         serde_json::json!({
-            "schema_version": mindtape::SCHEMA_VERSION,
-            "tags": {
                 "bug": [
                     {
                         "rule": "tasks.rules.bugs-need-repro",
@@ -217,28 +212,25 @@ fn json_carries_the_same_map_under_schema_version() {
                         "message": "ship it",
                     },
                 ],
-                "cli": [],
-            },
+            "cli": [],
         })
     );
 }
 
 #[test]
 fn json_under_a_moment_holds_only_the_tags_that_step_reads() {
-    let document = json(&entries(&config(), Some(Moment::Commit)));
+    let document =
+        serde_json::to_value(document(&entries(&config(), Some(Moment::Commit)))).unwrap();
 
     assert_eq!(
-        document,
+        document["tags"],
         serde_json::json!({
-            "schema_version": mindtape::SCHEMA_VERSION,
-            "tags": {
-                "bug": [
-                    {
-                        "rule": "commits.rules.bugfix-names-bug",
-                        "message": "name the bug in the commit",
-                    },
-                ],
-            },
+            "bug": [
+                {
+                    "rule": "commits.rules.bugfix-names-bug",
+                    "message": "name the bug in the commit",
+                },
+            ],
         })
     );
 }

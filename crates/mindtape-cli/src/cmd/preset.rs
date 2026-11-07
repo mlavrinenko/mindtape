@@ -13,7 +13,10 @@ use std::path::{Path, PathBuf};
 use crate::diag::Result;
 
 use crate::cmd::init::preset;
+use crate::cmd::schema::PRESET_LS;
 use crate::diag::{Command, Diag, Hint, Note};
+use crate::render::envelope::Envelope;
+use crate::render::objects::{PresetJson, PresetsPayload};
 use crate::util;
 
 /// Arguments for `preset`.
@@ -205,37 +208,42 @@ pub(crate) fn render_ls(user_dir: Option<&Path>) -> Result<String> {
     Ok(out)
 }
 
-/// `mt preset ls --json`: a `schema_version` envelope with one `presets` entry
-/// per built-in then per user preset: `name`, `origin` (`built-in` or `user`),
-/// `description` (`null` for a user preset), `default`, and `shadows` (a user
-/// preset hiding a built-in) or `shadowed` (a built-in a user preset hides).
+/// `mt preset ls --json`: one `presets` entry per built-in then per user
+/// preset: `name`, `origin` (`built-in` or `user`), `description` (`null` for
+/// a user preset), `default`, and `shadows` (a user preset hiding a built-in)
+/// or `shadowed` (a built-in a user preset hides), inside its `$schema`
+/// envelope.
 ///
 /// # Errors
 /// Returns an error if the user preset directory exists but cannot be read.
-pub(crate) fn ls_json(user_dir: Option<&Path>) -> Result<serde_json::Value> {
+pub(crate) fn ls_json(user_dir: Option<&Path>) -> Result<Envelope<PresetsPayload>> {
     let builtins = preset::list_builtins();
     let user_names = match user_dir {
         Some(dir) => preset::list_user_presets(dir)?,
         None => Vec::new(),
     };
-    let built_in = builtins.iter().map(|(name, description)| {
-        serde_json::json!({
-            "name": name, "origin": "built-in", "description": description,
-            "default": *name == preset::DEFAULT_PRESET,
-            "shadowed": user_names.iter().any(|user| user == name),
-        })
+    let built_in = builtins.iter().map(|(name, description)| PresetJson {
+        name: (*name).to_owned(),
+        origin: "built-in".to_owned(),
+        description: Some((*description).to_owned()),
+        default: *name == preset::DEFAULT_PRESET,
+        shadows: None,
+        shadowed: Some(user_names.iter().any(|user| user == name)),
     });
-    let user = user_names.iter().map(|name| {
-        serde_json::json!({
-            "name": name, "origin": "user", "description": null,
-            "default": name == preset::DEFAULT_PRESET,
-            "shadows": builtins.iter().any(|(builtin, _)| builtin == name),
-        })
+    let user = user_names.iter().map(|name| PresetJson {
+        name: name.clone(),
+        origin: "user".to_owned(),
+        description: None,
+        default: name == preset::DEFAULT_PRESET,
+        shadows: Some(builtins.iter().any(|(builtin, _)| builtin == name)),
+        shadowed: None,
     });
-    Ok(serde_json::json!({
-        "schema_version": mindtape::SCHEMA_VERSION,
-        "presets": built_in.chain(user).collect::<Vec<_>>(),
-    }))
+    Ok(Envelope::new(
+        PRESET_LS,
+        PresetsPayload {
+            presets: built_in.chain(user).collect(),
+        },
+    ))
 }
 
 /// `" (a, b)"` for non-empty markers, else `""`.

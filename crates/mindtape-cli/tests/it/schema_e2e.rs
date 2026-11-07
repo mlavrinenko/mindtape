@@ -1,6 +1,10 @@
 //! `mt schema` holds the recorded output schemas to the binary, and the live
 //! `mt ls --json` output validates against its recorded schema.
-#![allow(clippy::unwrap_used, clippy::indexing_slicing)]
+#![allow(
+    clippy::unwrap_used,
+    clippy::indexing_slicing,
+    clippy::disallowed_methods
+)]
 
 use std::path::{Path, PathBuf};
 
@@ -30,11 +34,23 @@ fn schema_lists_every_registered_output() {
     let root = repo_root();
     let text = support::stdout(&root, &["schema"]);
     let lines: Vec<&str> = text.lines().collect();
-    assert_eq!(lines.len(), 2, "{text}");
-    assert!(lines[0].starts_with("ls  1  "), "{text}");
-    assert!(lines[1].starts_with("task  1  "), "{text}");
-    assert!(lines[0].ends_with("/ls/1.schema.json"), "{text}");
-    assert!(lines[1].ends_with("/task/1.schema.json"), "{text}");
+    let expected = [
+        "ls",
+        "task",
+        "check",
+        "set-check",
+        "graph",
+        "preset-ls",
+        "explain",
+        "rules",
+        "tags",
+        "eval",
+    ];
+    assert_eq!(lines.len(), expected.len(), "{text}");
+    for (line, name) in lines.iter().zip(expected) {
+        assert!(line.starts_with(&format!("{name}  1  ")), "{text}");
+        assert!(line.ends_with(&format!("/{name}/1.schema.json")), "{text}");
+    }
 }
 
 /// `mt schema` in `dir` with `MINDTAPE_SCHEMA_BASE` set to `base`.
@@ -67,8 +83,23 @@ fn schema_urls_follow_the_instance_base() {
 fn schema_writes_and_checks_a_project_independent_copy() {
     let dir = tempfile::tempdir().unwrap();
     let text = support::stdout(dir.path(), &["schema", "--write"]);
-    assert!(text.contains("schema/output/ls/1.schema.json"), "{text}");
-    assert!(text.contains("schema/output/task/1.schema.json"), "{text}");
+    for name in [
+        "ls",
+        "task",
+        "check",
+        "set-check",
+        "graph",
+        "preset-ls",
+        "explain",
+        "rules",
+        "tags",
+        "eval",
+    ] {
+        assert!(
+            text.contains(&format!("schema/output/{name}/1.schema.json")),
+            "{text}"
+        );
+    }
     support::stdout(dir.path(), &["schema", "--check"]);
 }
 
@@ -95,20 +126,52 @@ fn schema_refuses_an_unknown_name() {
     assert!(stderr.contains("unknown schema"), "{stderr}");
 }
 
-#[test]
-fn live_ls_output_validates_against_the_recorded_schema() {
+/// Validate `value` against the recorded schema `name` and check that its
+/// `$schema` names that same file.
+fn validate(name: &str, value: &serde_json::Value) {
     let root = repo_root();
-    let schema_text = std::fs::read_to_string(root.join("schema/output/ls/1.schema.json")).unwrap();
+    let schema_text =
+        std::fs::read_to_string(root.join(format!("schema/output/{name}/1.schema.json"))).unwrap();
     let schema: serde_json::Value = serde_json::from_str(&schema_text).unwrap();
     let validator = jsonschema::validator_for(&schema).unwrap();
 
-    let dir = support::project_with_tasks(&[("a.typ", "Alpha")]);
-    let text = support::stdout(dir.path(), &["ls", "", "--json"]);
-    let value: serde_json::Value = serde_json::from_str(&text).unwrap();
-
     let schema_url = value["$schema"].as_str().unwrap();
-    assert!(schema_url.ends_with("/ls/1.schema.json"), "{schema_url}");
-    if let Some(error) = validator.iter_errors(&value).next() {
-        panic!("{error}");
+    assert!(
+        schema_url.ends_with(&format!("/{name}/1.schema.json")),
+        "{schema_url}"
+    );
+    if let Some(error) = validator.iter_errors(value).next() {
+        panic!("{name}: {error}");
     }
+}
+
+#[test]
+fn live_object_outputs_validate_against_their_recorded_schemas() {
+    let dir = support::project_with_tasks(&[("a.typ", "Alpha")]);
+    for (name, args) in [
+        ("ls", &["ls", "", "--json"][..]),
+        ("check", &["check", "--json"][..]),
+        ("preset-ls", &["preset", "ls", "--json"][..]),
+        ("explain", &["explain", "--json"][..]),
+        ("rules", &["explain", "rules", "--json"][..]),
+        ("tags", &["explain", "tags", "--json"][..]),
+        ("eval", &["eval", "a", "--json"][..]),
+    ] {
+        validate(name, &support::json(dir.path(), args));
+    }
+}
+
+#[test]
+fn live_set_check_output_validates_against_the_recorded_schema() {
+    let (_alpha, _beta, cfg) = crate::at_e2e::setup();
+    let out = crate::at_e2e::run(cfg.path(), &["@both", "check", "--json"]);
+    assert!(out.status.success(), "{out:?}");
+    let value: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    validate("set-check", &value);
+}
+
+#[test]
+fn live_graph_output_validates_against_the_recorded_schema() {
+    let dir = support::project_with_tasks(&[("a.typ", "Alpha")]);
+    validate("graph", &support::json(dir.path(), &["graph", "--json"]));
 }

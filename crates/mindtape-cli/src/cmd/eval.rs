@@ -4,13 +4,16 @@ use std::path::{Path, PathBuf};
 
 use crate::diag::Result;
 use mindtape::{
-    Config, Filter, StemHashes, Task, TaskCallSpans, find_root, load_config, load_project,
+    CanonicalTask, Config, Filter, StemHashes, Task, TaskCallSpans, find_root, load_config,
+    load_project,
 };
 use typst_harvest::{HarvestWorld, harvest};
 
+use crate::cmd::schema::EVAL;
 use crate::diag::{Diag, Hint, Kind};
 use crate::render::RenderCtx;
-use crate::render::output::{OutputFormat, render, task_to_json};
+use crate::render::envelope::Envelope;
+use crate::render::output::{OutputFormat, render};
 use crate::util::Project;
 
 /// Arguments for `eval`.
@@ -248,17 +251,15 @@ fn shape_errors(task: &Task) -> String {
         .collect()
 }
 
-/// Print one harvested task as a bare JSON object — no envelope, since there
-/// is no listing here for `applied` or `truncated` to describe.
+/// Print one harvested task inside its `$schema` envelope: the task record
+/// stays flat, and `why` stays empty because one file has no set context.
 ///
 /// # Errors
 /// Returns an error if the task will not serialize.
 fn print_json(task: &Task, project: Option<&Project>) -> Result<()> {
     let config = project.map_or_else(Config::default, |project| project.config.clone());
-    println!(
-        "{}",
-        serde_json::to_string_pretty(&task_to_json(task, &config))?
-    );
+    let document = Envelope::new(EVAL, CanonicalTask::from_task(task, &config));
+    println!("{}", serde_json::to_string_pretty(&document)?);
     Ok(())
 }
 

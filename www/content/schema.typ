@@ -157,6 +157,13 @@ version, bumped only when that output's shape changes. `mt import` accepts
 input without `$schema`, such as a bare array of records, and ignores a
 top-level `schema_version`.
 
+Every object output names its schema the same way, with `$schema` first and
+the payload keys flat beside it: `mt check --json`, a set's
+`mt @name check --json`, `mt graph --json`, `mt preset ls --json`,
+`mt explain [<rules|tags>] --json` and `mt eval --json`. `mt eval --json` wraps
+one task record under its own `eval` schema; the `task` schema describes the
+bare record `mt ls` puts in `tasks`.
+
 `applied` says which #link(u("/named-sets/"))[view] or
 #link(u("/cli/ls/#conditional-rules"))[`[[ls.rules]]` entry] shaped the
 listing. `rule` is the label of the matching `[[ls.rules]]` entry, or `null`.

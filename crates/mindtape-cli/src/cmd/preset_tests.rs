@@ -1,4 +1,4 @@
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use super::{PresetAction, PresetArgs, SaveArgs, render_ls, save};
 use crate::cmd::init::preset::{self, DEFAULT_PRESET};
@@ -285,7 +285,8 @@ fn ls_json_marks_a_user_preset_and_its_shadowing() {
         ("zzz-not-a-builtin.toml", "[tasks]\nroots = [\"mine\"]\n"),
     ]);
 
-    let json = super::ls_json(Some(user_dir.path())).unwrap();
+    let json = serde_json::to_value(super::ls_json(Some(user_dir.path())).unwrap()).unwrap();
+    mindtape::test_support::assert_schema(&json, "preset-ls");
     let presets = json
         .get("presets")
         .and_then(serde_json::Value::as_array)
@@ -360,7 +361,7 @@ fn force_reports_a_flat_preset_it_cannot_remove() {
 /// none of them is marked shadowed.
 #[test]
 fn ls_json_without_a_user_dir_lists_only_builtins() {
-    let json = super::ls_json(None).unwrap();
+    let json = serde_json::to_value(super::ls_json(None).unwrap()).unwrap();
     let presets = json
         .get("presets")
         .and_then(serde_json::Value::as_array)

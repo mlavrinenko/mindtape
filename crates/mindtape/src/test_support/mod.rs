@@ -30,6 +30,19 @@ pub use process::{
 
 use std::collections::BTreeMap;
 
+/// Assert that `value` is a JSON object whose first key is `$schema`, naming
+/// the `<name>/1.schema.json` schema.
+///
+/// # Panics
+/// Panics when `value` is not such an object or carries no `$schema` string, a
+/// test fixture bug.
+#[allow(clippy::unwrap_used, clippy::indexing_slicing)]
+pub fn assert_schema(value: &serde_json::Value, name: &str) {
+    assert_eq!(value.as_object().unwrap().keys().next().unwrap(), "$schema");
+    let url = value["$schema"].as_str().unwrap();
+    assert!(url.ends_with(&format!("/{name}/1.schema.json")), "{url}");
+}
+
 /// Typst source opening with the `@local/mindtape` import line, then
 /// `$part`s, string literals. It expands to one literal, so a `const` can hold
 /// it, and a test names the package version only here.

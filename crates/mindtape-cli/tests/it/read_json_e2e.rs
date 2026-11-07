@@ -7,13 +7,7 @@
 
 use crate::support;
 
-use support::{mt, project_with_tasks};
-
-fn json(dir: &std::path::Path, args: &[&str]) -> serde_json::Value {
-    let out = mt(dir).args(args).output().unwrap();
-    assert!(out.status.success(), "{out:?}");
-    serde_json::from_slice(&out.stdout).unwrap()
-}
+use support::project_with_tasks;
 
 #[test]
 fn graph_json_lists_nodes_and_typed_edges() {
@@ -26,9 +20,9 @@ fn graph_json_lists_nodes_and_typed_edges() {
     )
     .unwrap();
 
-    let value = json(dir.path(), &["graph", "--json"]);
+    let value = support::json(dir.path(), &["graph", "--json"]);
 
-    assert_eq!(value["schema_version"], mindtape::SCHEMA_VERSION);
+    mindtape::test_support::assert_schema(&value, "graph");
     let ids: Vec<_> = value["nodes"]
         .as_array()
         .unwrap()
@@ -49,8 +43,9 @@ fn graph_json_lists_nodes_and_typed_edges() {
 fn preset_ls_json_names_each_preset_with_origin_and_description() {
     let dir = project_with_tasks(&[]);
 
-    let value = json(dir.path(), &["preset", "ls", "--json"]);
+    let value = support::json(dir.path(), &["preset", "ls", "--json"]);
 
+    mindtape::test_support::assert_schema(&value, "preset-ls");
     let presets = value["presets"].as_array().unwrap();
     let default = presets.iter().find(|p| p["default"] == true).unwrap();
     assert_eq!(default["origin"], "built-in");

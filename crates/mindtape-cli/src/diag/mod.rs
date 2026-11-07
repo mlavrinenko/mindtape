@@ -80,6 +80,7 @@ use std::path::{Path, PathBuf};
 
 pub(crate) use from_lib::filter;
 pub(crate) use hint::{Command, Hint, Note};
+pub(crate) use json::ProblemJson;
 pub(crate) use prompt::confirm;
 pub(crate) use render::{
     emit, emit_note, emit_text, line, quote, report, shell_word, stderr_is_terminal,

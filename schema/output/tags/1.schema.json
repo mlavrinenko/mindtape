@@ -1,0 +1,47 @@
+{
+  "$defs": {
+    "TagRuleJson": {
+      "description": "One rule that reads a tag.",
+      "properties": {
+        "message": {
+          "description": "The message a breach prints.",
+          "type": "string"
+        },
+        "rule": {
+          "description": "The rule's name as `mt config show --origin` prints it.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rule",
+        "message"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/tags/1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The object `mt explain tags --json` prints: each allowed tag and the rules that read it.",
+  "properties": {
+    "$schema": {
+      "description": "The URL of the schema this object conforms to.",
+      "type": "string"
+    },
+    "tags": {
+      "additionalProperties": {
+        "items": {
+          "$ref": "#/$defs/TagRuleJson"
+        },
+        "type": "array"
+      },
+      "description": "Each allowed tag and the rules that read it.",
+      "type": "object"
+    }
+  },
+  "required": [
+    "$schema",
+    "tags"
+  ],
+  "title": "Mindtape tags",
+  "type": "object"
+}

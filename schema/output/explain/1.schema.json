@@ -1,0 +1,61 @@
+{
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/explain/1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The object `mt explain --json` prints: the rules by section, the derived fields, and the tag, view and dictionary names.",
+  "properties": {
+    "$schema": {
+      "description": "The URL of the schema this object conforms to.",
+      "type": "string"
+    },
+    "derived": {
+      "description": "Every derived field's name, without the `derived.` prefix.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "dicts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "description": "Each dictionary's entry count, `default` first.",
+      "type": "object"
+    },
+    "rules": {
+      "additionalProperties": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "description": "Each config section's rule names, by section path.",
+      "type": "object"
+    },
+    "tags": {
+      "description": "The allowed tags, `default` first.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "views": {
+      "description": "The declared views, `default` first.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "$schema",
+    "rules",
+    "derived",
+    "tags",
+    "views",
+    "dicts"
+  ],
+  "title": "Mindtape explain index",
+  "type": "object"
+}

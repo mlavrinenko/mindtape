@@ -19,7 +19,10 @@ use std::collections::BTreeSet;
 use clap::Args;
 use mindtape::{BodyRules, Violation, check_body_rules, check_comments, validate};
 
-use crate::diag::{Diag, Result};
+use crate::cmd::schema::CHECK;
+use crate::diag::{Diag, ProblemJson, Result};
+use crate::render::envelope::Envelope;
+use crate::render::objects::CheckPayload;
 use crate::util;
 
 /// Arguments for `mt check`.
@@ -115,11 +118,10 @@ impl Report {
     /// The JSON document on stdout, when asked for.
     fn finish(&self) -> Result<()> {
         if self.json {
-            let problems: Vec<_> = self.held.iter().map(Diag::to_json).collect();
-            let document = serde_json::json!({
-                "schema_version": mindtape::SCHEMA_VERSION,
-                "problems": problems,
-            });
+            let payload = CheckPayload {
+                problems: self.held.iter().map(ProblemJson::from).collect(),
+            };
+            let document = Envelope::new(CHECK, payload);
             println!("{}", serde_json::to_string_pretty(&document)?);
         }
         Ok(())

@@ -1,0 +1,70 @@
+{
+  "$defs": {
+    "PresetJson": {
+      "description": "One preset, built-in or user.",
+      "properties": {
+        "default": {
+          "description": "Whether `mt init` picks this preset with no `-p`.",
+          "type": "boolean"
+        },
+        "description": {
+          "description": "The built-in's description; `null` for a user preset.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "description": "The preset's name.",
+          "type": "string"
+        },
+        "origin": {
+          "description": "`built-in` or `user`.",
+          "type": "string"
+        },
+        "shadowed": {
+          "description": "Present on a built-in a user preset hides.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "shadows": {
+          "description": "Present on a user preset that hides a built-in of the same name.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "origin",
+        "default"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/preset-ls/1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The object `mt preset ls --json` prints: every built-in and user preset, with the shadowing between them.",
+  "properties": {
+    "$schema": {
+      "description": "The URL of the schema this object conforms to.",
+      "type": "string"
+    },
+    "presets": {
+      "description": "Every built-in, then every user preset.",
+      "items": {
+        "$ref": "#/$defs/PresetJson"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "$schema",
+    "presets"
+  ],
+  "title": "Mindtape presets",
+  "type": "object"
+}

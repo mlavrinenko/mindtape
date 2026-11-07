@@ -7,7 +7,10 @@
 
 use mindtape::{ActiveRule, DerivedField, RuleSection, active_derived, active_rules, load_config};
 
+use crate::cmd::schema::RULES;
 use crate::diag::Result;
+use crate::render::envelope::Envelope;
+use crate::render::objects::RulesPayload;
 use crate::render::widest;
 use crate::util;
 
@@ -74,11 +77,7 @@ pub fn run(args: &RulesArgs, as_json: bool) -> Result<()> {
         Vec::new()
     };
     if as_json {
-        let document = serde_json::json!({
-            "schema_version": mindtape::SCHEMA_VERSION,
-            "rules": rules,
-            "derived": derived,
-        });
+        let document = Envelope::new(RULES, RulesPayload { rules, derived });
         println!("{}", serde_json::to_string_pretty(&document)?);
     } else {
         print!("{}", render(&rules, &derived));

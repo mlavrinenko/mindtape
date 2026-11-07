@@ -1,0 +1,125 @@
+{
+  "$defs": {
+    "EdgeJson": {
+      "description": "One edge between two graph nodes.",
+      "properties": {
+        "from": {
+          "description": "The linking task's id.",
+          "type": "string"
+        },
+        "kind": {
+          "description": "The edge kind, such as `depends-on`.",
+          "type": "string"
+        },
+        "note": {
+          "description": "The edge's note, or `null`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "to": {
+          "description": "The linked task's id.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "from",
+        "to",
+        "kind"
+      ],
+      "type": "object"
+    },
+    "ExternalJson": {
+      "description": "One link whose kind points outside the backlog.",
+      "properties": {
+        "from": {
+          "description": "The linking task's id.",
+          "type": "string"
+        },
+        "kind": {
+          "description": "The edge kind, such as `discharged-by`.",
+          "type": "string"
+        },
+        "target": {
+          "description": "The target as authored, never resolved against the task set.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "from",
+        "kind",
+        "target"
+      ],
+      "type": "object"
+    },
+    "NodeJson": {
+      "description": "One graph node: a task and its readiness.",
+      "properties": {
+        "id": {
+          "description": "The task's stable id.",
+          "type": "string"
+        },
+        "state": {
+          "description": "`ready`, `blocked` or `settled`.",
+          "type": "string"
+        },
+        "status": {
+          "description": "The status name, or `null` when unset.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "description": "The task's title.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "state"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/graph/1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The object `mt graph --json` prints: its task nodes, the typed edges between them, and the links whose kind points outside the backlog.",
+  "properties": {
+    "$schema": {
+      "description": "The URL of the schema this object conforms to.",
+      "type": "string"
+    },
+    "edges": {
+      "description": "The typed links among those nodes.",
+      "items": {
+        "$ref": "#/$defs/EdgeJson"
+      },
+      "type": "array"
+    },
+    "external": {
+      "description": "The links whose kind points outside the backlog.",
+      "items": {
+        "$ref": "#/$defs/ExternalJson"
+      },
+      "type": "array"
+    },
+    "nodes": {
+      "description": "The tasks the filter selected.",
+      "items": {
+        "$ref": "#/$defs/NodeJson"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "$schema",
+    "nodes",
+    "edges",
+    "external"
+  ],
+  "title": "Mindtape graph",
+  "type": "object"
+}

@@ -54,9 +54,10 @@ impl Serialize for RuleSection {
 }
 
 /// One rule as the engine applies it.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, schemars::JsonSchema)]
 pub struct ActiveRule {
     /// The array the rule comes from.
+    #[schemars(with = "String")]
     pub section: RuleSection,
     /// The dotted name `mt config show --origin` prints, such as
     /// `tasks.rules.imperative-title` or `tasks.rules[3]` for an unnamed
@@ -84,7 +85,7 @@ pub struct ActiveRule {
 }
 
 /// One derived field a project declares, as `mt explain rules` prints it.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, schemars::JsonSchema)]
 pub struct DerivedField {
     /// The field's name, `derived.<name>`.
     pub name: String,

@@ -136,13 +136,13 @@ fn bare_ends_on_the_next_command() {
     assert!(value.get("next").is_none(), "{value}");
 }
 
-/// The index JSON carries the same groups under a `schema_version`, while each
-/// listing keeps its own envelope.
+/// The index JSON carries the same groups inside its `$schema` envelope, while
+/// each listing keeps its own envelope.
 #[test]
 fn json_index_groups_and_listings_keep_their_keys() {
     let dir = project();
     let index = json(dir.path(), &["explain", "--json"]);
-    assert_eq!(index["schema_version"], mindtape::SCHEMA_VERSION);
+    mindtape::test_support::assert_schema(&index, "explain");
     assert_eq!(
         index["rules"]["tasks.rules"],
         serde_json::json!(["verb-title", "[1]"])
@@ -154,8 +154,10 @@ fn json_index_groups_and_listings_keep_their_keys() {
     assert_eq!(index["dicts"]["source"], 2);
 
     let rules = json(dir.path(), &["explain", "rules", "--json"]);
+    mindtape::test_support::assert_schema(&rules, "rules");
     assert!(rules["rules"].is_array() && rules["derived"].is_array());
     let tags = json(dir.path(), &["explain", "tags", "--json"]);
+    mindtape::test_support::assert_schema(&tags, "tags");
     assert!(tags["tags"].is_object());
 }
 
@@ -245,7 +247,7 @@ fn rules_for_keeps_the_rules_that_moment_checks() {
 fn rules_json_carries_the_section_when_and_assert() {
     let dir = project();
     let value = json(dir.path(), &["explain", "rules", "--json"]);
-    assert_eq!(value["schema_version"], mindtape::SCHEMA_VERSION);
+    mindtape::test_support::assert_schema(&value, "rules");
     let rules = value["rules"].as_array().unwrap();
     assert_eq!(rules.len(), 5, "{value}");
     assert_eq!(

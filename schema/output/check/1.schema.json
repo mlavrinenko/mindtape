@@ -1,0 +1,90 @@
+{
+  "$defs": {
+    "ProblemJson": {
+      "description": "One problem as `mt check --json` prints it.",
+      "properties": {
+        "file": {
+          "description": "The file the problem sits in, `/`-separated, or `null`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hints": {
+          "description": "The next steps the report names.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "line": {
+          "description": "The line in that file, or `null`.",
+          "format": "uint",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "message": {
+          "description": "The problem's message, without its place or rule.",
+          "type": "string"
+        },
+        "notes": {
+          "description": "The context the report adds.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "place": {
+          "description": "The text the plain report starts with, `/`-separated like `file`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rule": {
+          "description": "The rule that refused the task, or `null`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "severity": {
+          "description": "`error` or `warning`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "severity",
+        "message",
+        "hints",
+        "notes"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/check/1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The object `mt check --json` prints: the problems it found, in print order.",
+  "properties": {
+    "$schema": {
+      "description": "The URL of the schema this object conforms to.",
+      "type": "string"
+    },
+    "problems": {
+      "description": "The problems in print order, each as the text report shows it.",
+      "items": {
+        "$ref": "#/$defs/ProblemJson"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "$schema",
+    "problems"
+  ],
+  "title": "Mindtape check",
+  "type": "object"
+}

@@ -12,9 +12,9 @@ JSON flag: `mt explain [<rules|tags|views|dicts>] [--json]`.
 
 #cli-command("explain")
 
-`--json` prints the index under a `schema_version`. Each listing keeps the
-keys it printed under its old command, and the sections below say what they
-hold.
+`--json` prints the index as one object whose first key is `$schema`, the URL
+of the schema for that object. Each listing keeps the keys it printed under its
+old command, and the sections below say what they hold.
 
 = Rules
 
@@ -39,8 +39,8 @@ commit rule cannot read a derived field.
 
 `--for` keeps the rules one step checks. `add` lists what `mt add` checks
 before it writes, `flip` adds the flip actions to that, and `commit` lists
-your #link(u("/commit-rules/"))[commit rules]. `--json` adds each rule's
-section, `when` and `assert`.
+your #link(u("/commit-rules/"))[commit rules]. `--json` names its schema in
+`$schema`, then adds each rule's section, `when` and `assert`.
 
 = Tags
 
@@ -58,7 +58,7 @@ a person reads, such as the area labels a project keeps for grouping.
 `mt explain rules --for` uses. `add` keeps the tags read by the rules `mt add`
 checks before it writes, `flip` adds the flip actions, and `commit` keeps the
 commit rules. `--json` returns a `tags` map, each kept tag to its rules and
-their messages, under `schema_version`.
+their messages, with its own `$schema`.
 
 = Views
 

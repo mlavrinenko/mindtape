@@ -89,6 +89,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   drift with `--check`. `mt import` now ignores a top-level `schema_version`,
   so an export from an older `mt` still imports. A consumer that read
   `schema_version` must read `$schema` instead.
+- **Every object JSON output names its schema and drops `schema_version`.**
+  `mt check --json`, `mt @name check --json`, `mt graph --json`,
+  `mt preset ls --json`, `mt explain [rules|tags] --json` and
+  `mt eval --json` now print `$schema` as their first key, naming a schema
+  under `schema/output/`, and their payload keys stay at the top level.
+  `mt eval --json` points at its own `eval/1` schema and keeps the task record
+  flat. A consumer that read `schema_version` on these outputs must read
+  `$schema` instead.
 - **Bare `mt explain` ends on the command to run next.** A blank line sets off
   the `next:` line naming the optional category and JSON flag:
   `mt explain [<rules|tags|views|dicts>] [--json]`.

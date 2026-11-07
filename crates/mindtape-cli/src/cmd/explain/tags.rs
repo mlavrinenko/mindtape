@@ -9,7 +9,10 @@
 use mindtape::{ActiveRule, Config, Filter, active_rules, load_config};
 
 use crate::cmd::explain::rules::{Moment, message};
+use crate::cmd::schema::TAGS;
 use crate::diag::Result;
+use crate::render::envelope::Envelope;
+use crate::render::objects::{TagRuleJson, TagsPayload};
 use crate::render::widest;
 use crate::util;
 
@@ -43,7 +46,7 @@ pub fn run(args: &TagsArgs, as_json: bool) -> Result<()> {
     let config = load_config(&util::resolve_root()?)?;
     let entries = entries(&config, args.moment);
     if as_json {
-        println!("{}", serde_json::to_string_pretty(&json(&entries))?);
+        println!("{}", serde_json::to_string_pretty(&document(&entries))?);
     } else {
         print!("{}", render(&entries, args.moment));
     }
@@ -120,28 +123,23 @@ fn render(entries: &[TagEntry], moment: Option<Moment>) -> String {
     out
 }
 
-/// The same map as `render`, under a `schema_version` envelope.
-fn json(entries: &[TagEntry]) -> serde_json::Value {
-    let tags: serde_json::Map<String, serde_json::Value> = entries
+/// The same map as `render`, inside its `$schema` envelope.
+fn document(entries: &[TagEntry]) -> Envelope<TagsPayload> {
+    let tags = entries
         .iter()
         .map(|entry| {
-            let rules: Vec<serde_json::Value> = entry
+            let rules = entry
                 .rules
                 .iter()
-                .map(|rule| {
-                    serde_json::json!({
-                        "rule": rule.name,
-                        "message": rule.message,
-                    })
+                .map(|rule| TagRuleJson {
+                    rule: rule.name.clone(),
+                    message: rule.message.clone(),
                 })
                 .collect();
-            (entry.tag.clone(), serde_json::Value::Array(rules))
+            (entry.tag.clone(), rules)
         })
         .collect();
-    serde_json::json!({
-        "schema_version": mindtape::SCHEMA_VERSION,
-        "tags": tags,
-    })
+    Envelope::new(TAGS, TagsPayload { tags })
 }
 
 #[cfg(test)]

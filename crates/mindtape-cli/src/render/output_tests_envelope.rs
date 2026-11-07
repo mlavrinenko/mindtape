@@ -46,8 +46,8 @@ fn envelope(applied: &Applied) -> JsonContext<'_> {
 #[test]
 fn json_with_applied_wraps_tasks_in_envelope() {
     // `mt ls --json` (an `applied` present) is the breaking envelope
-    // shape (`truth/tasks/conditional-ls-rules.typ`); `mt eval --json`
-    // (no `applied`) stays a bare array, as covered below.
+    // shape (`truth/tasks/conditional-ls-rules.typ`); a caller with no
+    // `applied` stays a bare array, as covered below.
     let applied = Applied {
         rule: Some("release".to_owned()),
         rule_superseded: false,
@@ -173,7 +173,7 @@ fn json_reports_a_complete_listing_as_a_null_truncation() {
 
 #[test]
 fn json_without_an_envelope_carries_no_truncation_key() {
-    // `mt eval --json` has no limit and no envelope; the bare array must not
+    // A caller with no envelope has no limit either; the bare array must not
     // grow a document-level field.
     assert!(!json_out(None).contains("truncated"));
 }

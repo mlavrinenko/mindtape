@@ -9,8 +9,9 @@ use crate::render::output::Truncation;
 
 /// The document-level facts `mt ls --json` wraps its records in: which rule
 /// and view won each facet ([`Applied`]), what `--limit` cut
-/// ([`Truncation`]), and the retired stems a `touches()` met. `mt eval --json` and the flip-hook table have neither
-/// context and pass `None` to the JSON renderer, keeping the bare array.
+/// ([`Truncation`]), and the retired stems a `touches()` met. A caller with
+/// no rule or view context passes `None` to the JSON renderer, keeping the
+/// bare array.
 #[derive(Debug, Clone, Copy)]
 pub struct JsonContext<'a> {
     pub applied: &'a Applied,

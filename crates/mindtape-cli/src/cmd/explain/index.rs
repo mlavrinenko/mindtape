@@ -4,7 +4,10 @@
 
 use mindtape::{Config, RuleSection, active_derived, active_rules, load_config};
 
+use crate::cmd::schema::EXPLAIN;
 use crate::diag::{Command, Result, next_line};
+use crate::render::envelope::Envelope;
+use crate::render::objects::ExplainIndexPayload;
 use crate::util;
 
 /// The order the index prints rule groups in, the same order the config
@@ -38,7 +41,7 @@ pub fn run(as_json: bool) -> Result<()> {
     let config = load_config(&util::resolve_root()?)?;
     let index = collect(&config);
     if as_json {
-        println!("{}", serde_json::to_string_pretty(&json(&index))?);
+        println!("{}", serde_json::to_string_pretty(&document(&index))?);
     } else {
         print!("{}", render(&index, width()));
     }
@@ -184,26 +187,24 @@ fn labelled(out: &mut String, label: &str, items: &[String], width: usize, conti
     out.push('\n');
 }
 
-/// The same index as `render`, grouped under a `schema_version` envelope.
-fn json(index: &Index) -> serde_json::Value {
-    let rules: serde_json::Map<String, serde_json::Value> = index
+/// The same index as `render`, inside its `$schema` envelope.
+fn document(index: &Index) -> Envelope<ExplainIndexPayload> {
+    let rules = index
         .rules
         .iter()
-        .map(|(section, names)| (section.path().to_owned(), serde_json::json!(names)))
+        .map(|(section, names)| (section.path().to_owned(), names.clone()))
         .collect();
-    let dicts: serde_json::Map<String, serde_json::Value> = index
-        .dicts
-        .iter()
-        .map(|(name, count)| (name.clone(), serde_json::json!(count)))
-        .collect();
-    serde_json::json!({
-        "schema_version": mindtape::SCHEMA_VERSION,
-        "rules": rules,
-        "derived": index.derived,
-        "tags": index.tags,
-        "views": index.views,
-        "dicts": dicts,
-    })
+    let dicts = index.dicts.iter().cloned().collect();
+    Envelope::new(
+        EXPLAIN,
+        ExplainIndexPayload {
+            rules,
+            derived: index.derived.clone(),
+            tags: index.tags.clone(),
+            views: index.views.clone(),
+            dicts,
+        },
+    )
 }
 
 #[cfg(test)]
@@ -213,7 +214,7 @@ mod tests {
 
     use mindtape::RuleSection;
 
-    use super::{Index, bare_name, collect, default_first, json, render};
+    use super::{Index, bare_name, collect, default_first, document, render};
 
     const NEXT: &str = "next: mt explain [<rules|tags|views|dicts>] [--json]";
 
@@ -351,8 +352,8 @@ dicts: none
 
     #[test]
     fn json_carries_the_same_grouping() {
-        let value = json(&collect(&config()));
-        assert_eq!(value["schema_version"], mindtape::SCHEMA_VERSION);
+        let value = serde_json::to_value(document(&collect(&config()))).unwrap();
+        mindtape::test_support::assert_schema(&value, "explain");
         assert_eq!(
             value["rules"]["tasks.rules"],
             serde_json::json!(["verb-title", "[1]"])
