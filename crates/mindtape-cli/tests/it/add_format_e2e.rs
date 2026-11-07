@@ -204,17 +204,22 @@ fn print_ignores_format_and_previews_source_instead() {
     assert!(!dir.path().join("tasks/preview.typ").exists());
 }
 
-/// The slug hash the text report ends with, so the task can be named at once.
+/// The slug hash the text report names on its first line, so the task can be
+/// named at once.
 fn reported_hash(stdout: &str) -> String {
-    let inner = stdout.trim().rsplit_once(" (").map(|(_, tail)| tail);
-    inner
+    let first = stdout.lines().next().unwrap_or_default();
+    first
+        .rsplit_once(" (")
+        .map(|(_, tail)| tail)
         .and_then(|tail| tail.strip_suffix(')'))
         .unwrap_or_default()
         .to_owned()
 }
 
+/// The text report names the hash that `mt eval` resolves, then ends on that
+/// very command.
 #[test]
-fn text_report_names_the_slug_hash_that_mt_eval_resolves() {
+fn text_report_names_the_slug_hash_and_ends_on_the_command_that_reads_it() {
     let dir = support::scaffold();
 
     let stdout = support::stdout(
@@ -227,8 +232,51 @@ fn text_report_names_the_slug_hash_that_mt_eval_resolves() {
         stdout.starts_with(&shown("wrote tasks/wired.typ (")),
         "path is cwd-relative: {stdout}"
     );
+    let next = format!("next: mt eval {hash}");
+    assert_eq!(stdout.lines().last(), Some(next.as_str()), "{stdout}");
     let evaluated = support::stdout(dir.path(), &["eval", &hash]);
     assert!(evaluated.contains("Wired up"), "{hash}: {evaluated}");
+}
+
+/// `path`, `path0` and `json` are records a program parses, so none carries
+/// the prose line.
+#[test]
+fn machine_formats_do_not_carry_the_next_line() {
+    for format in ["path", "path0", "json"] {
+        let dir = support::scaffold();
+        let name = format!("wired-{format}");
+        let out = support::mt(dir.path())
+            .args([
+                "add", "--name", &name, "--set", "title=T", "--format", format,
+            ])
+            .assert()
+            .success()
+            .get_output()
+            .stdout
+            .clone();
+        assert!(
+            !out.windows(b"next:".len()).any(|window| window == b"next:"),
+            "{format}: {out:?}"
+        );
+    }
+}
+
+/// The hint restates the `-w` that picked the project, so it runs where it
+/// printed.
+#[test]
+fn the_next_line_keeps_the_worktree_flag() {
+    let dir = support::scaffold();
+    let here = tempfile::tempdir().unwrap();
+    let path = dir.path().to_str().unwrap();
+    let stdout = support::stdout(
+        here.path(),
+        &["-w", path, "add", "--name", "wired", "--set", "title=T"],
+    );
+    let wire = reported_hash(&stdout);
+    assert!(
+        stdout.ends_with(&format!("\nnext: mt -w {path} eval {wire}\n")),
+        "{stdout}"
+    );
 }
 
 #[test]

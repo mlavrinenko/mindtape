@@ -72,6 +72,20 @@ fn writes_a_scalar_field_of_each_shape() {
     support::check_ok(dir.path());
 }
 
+/// A written field ends on the command that reads the task back.
+#[test]
+fn a_set_write_ends_on_the_command_that_reads_the_task() {
+    let dir = scaffold();
+    let stdout = support::stdout(dir.path(), &["set", "wire-oauth", "priority=8"]);
+    assert_eq!(
+        stdout.lines().last(),
+        Some("next: mt eval wire-oauth"),
+        "{stdout}"
+    );
+    let evaluated = support::stdout(dir.path(), &["eval", "wire-oauth"]);
+    assert!(evaluated.contains("Wire OAuth"), "{evaluated}");
+}
+
 /// A field already present is replaced, not doubled.
 #[test]
 fn replaces_an_existing_value() {

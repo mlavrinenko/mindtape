@@ -87,6 +87,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **A listing that selects nothing names the way out.** A `mt ls` table with no
   row adds a `hint:` line naming `mt ls ''` for every task and
   `mt explain views` for a saved view.
+- **A successful write says how to read the task.** `mt add`'s text report,
+  `mt set` and `mt review` end on `next: mt eval <slug>`, carrying the `@name`
+  or `-w` that picked the project. `mt add`'s `path`, `path0` and `json`
+  formats stay record-only.
 - **The four policy listings live under `mt explain`.** Bare `mt explain`
   prints an index of the rules grouped by section, the derived fields, and the
   tags, views and dictionaries with their entry counts. `mt explain rules`,

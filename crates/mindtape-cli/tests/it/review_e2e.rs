@@ -66,6 +66,18 @@ fn reviewing_twice_the_same_day_is_a_no_op_after_the_first() {
     );
 }
 
+/// A stamp ends on the command that reads the task back.
+#[test]
+fn a_review_ends_on_the_command_that_reads_the_task() {
+    let dir = scaffold();
+    let stdout = support::stdout(dir.path(), &["review", "wire-oauth"]);
+    assert_eq!(
+        stdout.lines().last(),
+        Some("next: mt eval wire-oauth"),
+        "{stdout}"
+    );
+}
+
 /// A stamp that would leave the task invalid is refused before the write, and
 /// the file is byte-identical afterwards. Refusing is the whole answer to
 /// "should a rejected rewrite be restored": there is nothing to restore,

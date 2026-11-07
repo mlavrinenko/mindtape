@@ -13,6 +13,7 @@ use std::path::{Path, PathBuf};
 
 use serde_json::json;
 
+use crate::diag::{Command, next_line};
 use crate::render::file_path;
 use crate::util;
 
@@ -126,13 +127,23 @@ fn render_json(outcome: &Outcome, handle: &Handle) -> String {
 }
 
 /// Print `outcome` in `format` to stdout, honouring `Path0`'s no-trailing-
-/// newline contract.
+/// newline contract. A text report ends on the command that reads the task it
+/// named, carrying this run's `@name` or `-w`; the machine formats end on
+/// their own record.
 pub fn emit(outcome: &Outcome, handle: &Handle, format: Format) {
     let rendered = render(outcome, handle, format);
     if format == Format::Path0 {
         print!("{rendered}");
     } else {
         println!("{rendered}");
+    }
+    if format == Format::Text {
+        let reference = if handle.hash.is_empty() {
+            handle.shown.as_str()
+        } else {
+            handle.hash.as_str()
+        };
+        println!("{}", next_line(Command::mt().word("eval").arg(reference)));
     }
 }
 

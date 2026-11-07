@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use serde_json::json;
 
-use super::{Format, Handle, Outcome, render};
+use super::{Format, Handle, Outcome, emit, render};
 
 fn handle() -> Handle {
     Handle {
@@ -97,4 +97,15 @@ fn outcome_path_is_exposed_for_every_kind() {
     assert_eq!(Outcome::Wrote(path()).path(), path());
     assert_eq!(Outcome::Skipped(path()).path(), path());
     assert_eq!(Outcome::Suffixed(path()).path(), path());
+}
+
+/// A handle whose stem hash did not resolve still ends the text report on a
+/// command that works, the shown path.
+#[test]
+fn emit_falls_back_to_the_shown_path_without_a_hash() {
+    let handle = Handle {
+        hash: String::new(),
+        shown: "tasks/foo.typ".to_owned(),
+    };
+    emit(&Outcome::Wrote(path()), &handle, Format::Text);
 }

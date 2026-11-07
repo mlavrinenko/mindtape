@@ -29,7 +29,9 @@
       #link(u("/config/"))[`[tasks.naming] dedup`]. If it doesn't, the default
       is `add-suffix` when a `stem` template is set and `fail` otherwise.
       `--format` prints the result as `text`, `path`, `path0` or `json`, and
-      the JSON says whether `mt` wrote, skipped or suffixed the task. `mt`
+      the JSON says whether `mt` wrote, skipped or suffixed the task. A `text`
+      report ends on `next: mt eval <slug>`, the command that reads the task it
+      named; the other formats carry no prose. `mt`
       checks the task before it writes, so a refused add leaves no file.
       `--no-verify` skips the check.],
     outputs: ("add",),
@@ -64,7 +66,8 @@
       #link(u("/priority/"))[framework priority] such as `ice(...)` and an
       #link(u("/estimates/"))[`estimate`] aren't single values, so `mt set`
       doesn't write them. Edit those in the file. Adding a value a list
-      already holds writes nothing, so you can safely run it again.],
+      already holds writes nothing, so you can safely run it again. A write
+      ends on `next: mt eval <task>`, the command that reads it back.],
     outputs: ("set",),
   ),
   "eval": (
@@ -170,6 +173,8 @@
     examples: "flip-examples",
   ),
   "review": (
+    prose: [A stamp ends on `next: mt eval <task>`, the command that reads the
+      task back.],
     examples: "review-examples",
   ),
 

@@ -31,7 +31,7 @@ use clap::Args;
 use mindtape::{RawValue, Task, format_num, parse_ymd, typ_array, typ_str};
 
 use crate::cmd::add::tokens::apply_token;
-use crate::diag::{Command, Diag, Hint};
+use crate::diag::{Command, Diag, Hint, next_line};
 use crate::pre_write;
 use crate::task_edit::rewrite_field;
 use crate::util;
@@ -193,6 +193,7 @@ pub fn run(args: &SetArgs) -> Result<()> {
     let updated = rewrite_field(&abs, field.name, &value_text)?;
     pre_write::write_checked(&project, &abs, updated)?;
     util::report_change("set", &task, &format!("{}: {value_text}", field.name));
+    println!("{}", next_line(Command::mt().word("eval").arg(&task.id)));
     Ok(())
 }
 

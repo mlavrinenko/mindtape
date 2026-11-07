@@ -11,7 +11,7 @@ use crate::diag::Result;
 use clap::Args;
 use mindtape::{parse_ymd, today_iso};
 
-use crate::diag::{Diag, Hint};
+use crate::diag::{Command, Diag, Hint, next_line};
 use crate::pre_write;
 use crate::task_edit::rewrite_field;
 use crate::util;
@@ -48,6 +48,7 @@ pub fn run(args: &ReviewArgs) -> Result<()> {
     let updated = rewrite_field(&abs, "reviewed", &on_date(&today)?)?;
     pre_write::write_checked(&project, &abs, updated)?;
     util::report_change("reviewed", &task, &today);
+    println!("{}", next_line(Command::mt().word("eval").arg(&task.id)));
     Ok(())
 }
 

@@ -56,7 +56,7 @@ groups:
       www/content/config.typ: b53abdf2e21fa0febf6f628e4e07475a8e9fd0f975cf1857695fa6ceab781376
       www/content/quickstart.typ: 09b26451dd0518acb8ff21d00389a586b21b78855ee75cc5a2b0f9f7c12e8d9e
       www/content/templates.typ: 80425a9a3ea60fbf1c2a09d1becd393db0645cdc87a3a55ec57121f5a8345c5d
-      www/utils/cli-notes.typ: f4f3fdc25dd45b7465220811f822300fe7ebeefde4ed1e476f63d24e46397621
+      www/utils/cli-notes.typ: ad356e5ab425c035f0644d337ef13e2f015991e486122954a78e0e29bbbfe8bf
   cli-allow-docs:
     source:
       crates/mindtape-cli/src/cmd/allow.rs: 611f0b153ee59bcc3aee3725b1317b6b3febfb92438ce53da127fa809f6d9a81
@@ -278,15 +278,15 @@ groups:
       www/content/rules.typ: 18733ef5080351b5a645135943d15afe81a86e06c44db453dbdfec5317ca8b8f
   cli-set-docs:
     source:
-      crates/mindtape-cli/src/cmd/set.rs: 579b616b0a2d469ca1be5496ad6d25fc4974f655c4d244c968fd25bc46e8232d
+      crates/mindtape-cli/src/cmd/set.rs: 9624d71caa5128046f87561d9371b78d39d176772b11ea80cc6565b4af56c215
     dependents:
-      docs/src/skill.typ: 920c27780c83ec9565ed73f25152afb80703c2bc3dfc2950620d3b6392e4f221
-      skills/mindtape/evals/evals.json: 481bb4f0168826d9ee4086ee6f4f4f74c4c31ed3b46792871532da8372b56460
+      docs/src/skill.typ: b434fa0a7bee5bcf26f80ce8beac6595e0e1bd9def126dbc698b0cf54e06f92d
+      skills/mindtape/evals/evals.json: 79309eb845f4aa06bc45dcbfd73dcc96372bc6b508d959c3ca004fd97142f48f
       skills/mindtape/references/blocking.md: 8972a45c32132a4a51859c0e2a2757249bba5f147886ba659e7243b84ad4c80b
       skills/mindtape/references/hand-editing.md: 4cd235947ca44eb3650a59c82584155c22131c08545a0415560144bf14d2f9dc
       www/content/cli/mv.typ: 7b1e53503cf9ad86e400df8153d6744ac8c7feb810ceff6f29d0ea59ecbe27d9
-      www/content/estimates.typ: d460eefed4d40e379588ce6368f05999ed13f3135d1f9e50960d778c4dbd1825
-      www/utils/cli-notes.typ: 8cae2ec0d00665b34b57193614b7631f6845b923b2a52d35ca0678a377f72521
+      www/content/estimates.typ: 9a9feeb5a27a79085ad88ce362237b7dde8590b762bdefb3c44239b9e5462df6
+      www/utils/cli-notes.typ: ad356e5ab425c035f0644d337ef13e2f015991e486122954a78e0e29bbbfe8bf
   cli-tags-docs:
     source:
       crates/mindtape-cli/src/cmd/explain/tags.rs: 7dcee92f7e773205f8dbc6842120d0ec47cd4661afed313dda4b84c212ebecbe
