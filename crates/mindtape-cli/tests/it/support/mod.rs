@@ -300,6 +300,14 @@ pub fn stdout(dir: &Path, args: &[&str]) -> String {
     String::from_utf8_lossy(&out.stdout).into_owned()
 }
 
+/// Run `mt add --name wired --set title=T --json` in `dir`, returning stdout.
+pub fn add_wired_json(dir: &Path) -> String {
+    stdout(
+        dir,
+        &["add", "--name", "wired", "--set", "title=T", "--json"],
+    )
+}
+
 /// File a task in `dir` via `mt add --name <name> --set title=T <extra_set…>`,
 /// then assert `mt ls` and `mt check` both succeed against it. Shared by the
 /// `init` e2e batteries that prove a scaffolded preset or answer set is usable

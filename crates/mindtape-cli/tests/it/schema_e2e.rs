@@ -171,10 +171,7 @@ fn live_graph_output_validates_against_the_recorded_schema() {
 #[test]
 fn live_add_output_validates_against_the_recorded_schema() {
     let dir = support::scaffold();
-    let text = support::stdout(
-        dir.path(),
-        &["add", "--name", "wired", "--set", "title=T", "--json"],
-    );
+    let text = support::add_wired_json(dir.path());
     let value: serde_json::Value = serde_json::from_str(&text).unwrap();
     validate("add", &value);
 }

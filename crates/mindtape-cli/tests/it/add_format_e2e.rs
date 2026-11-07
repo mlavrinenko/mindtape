@@ -35,6 +35,28 @@ fn add_json(dir: &std::path::Path, args: &[&str]) -> serde_json::Value {
     serde_json::from_slice(&output.get_output().stdout).unwrap()
 }
 
+/// Run `mt add` with `args`, then check its JSON report names `outcome` and
+/// the path this run would write `rel` to.
+fn assert_json_report(
+    dir: &std::path::Path,
+    args: &[&str],
+    outcome: &str,
+    rel: &str,
+) -> serde_json::Value {
+    let value = add_json(dir, args);
+    assert_eq!(
+        support::at(&value, "/outcome").as_str(),
+        Some(outcome),
+        "{value}"
+    );
+    assert_eq!(
+        support::at(&value, "/path").as_str(),
+        Some(expected_path(dir, rel).as_str()),
+        "{value}"
+    );
+    value
+}
+
 #[test]
 fn text_format_is_the_default_wrote_prose() {
     let dir = support::scaffold();
@@ -92,16 +114,13 @@ fn path0_format_is_nul_terminated() {
 fn json_format_reports_the_wrote_outcome() {
     let dir = support::scaffold();
 
-    let value = add_json(
+    let value = assert_json_report(
         dir.path(),
         &[
             "add", "--name", "wired", "--set", "title=T", "--format", "json",
         ],
-    );
-    assert_eq!(support::at(&value, "/outcome").as_str(), Some("wrote"));
-    assert_eq!(
-        support::at(&value, "/path").as_str(),
-        Some(expected_path(dir.path(), "wired.typ").as_str())
+        "wrote",
+        "wired.typ",
     );
     assert!(
         support::at(&value, "/$schema")
@@ -115,10 +134,7 @@ fn json_format_reports_the_wrote_outcome() {
 #[test]
 fn json_flag_prints_the_same_report_as_format_json() {
     let dir = support::scaffold();
-    let via_flag = support::stdout(
-        dir.path(),
-        &["add", "--name", "wired", "--set", "title=T", "--json"],
-    );
+    let via_flag = support::add_wired_json(dir.path());
     std::fs::remove_file(dir.path().join("tasks/wired.typ")).unwrap();
     let via_format = support::stdout(
         dir.path(),
@@ -134,54 +150,36 @@ fn json_flag_prints_the_same_report_as_format_json() {
 fn json_flag_wins_over_format_path() {
     let dir = support::scaffold();
 
-    let value = add_json(
+    assert_json_report(
         dir.path(),
         &[
             "add", "--name", "wired", "--set", "title=T", "--format", "path", "--json",
         ],
-    );
-    assert_eq!(support::at(&value, "/outcome").as_str(), Some("wrote"));
-}
-
-#[test]
-fn json_format_reports_the_skipped_outcome() {
-    let dir = scaffold_with_existing_dup();
-
-    let value = add_json(
-        dir.path(),
-        &[
-            "add", "--name", "dup", "--set", "title=T", "--dedup", "skip", "--format", "json",
-        ],
-    );
-    assert_eq!(support::at(&value, "/outcome").as_str(), Some("skipped"));
-    assert_eq!(
-        support::at(&value, "/path").as_str(),
-        Some(expected_path(dir.path(), "dup.typ").as_str())
+        "wrote",
+        "wired.typ",
     );
 }
 
 #[test]
-fn json_format_reports_the_suffixed_outcome_with_the_minted_path() {
+fn json_format_reports_the_skipped_and_suffixed_outcomes() {
     let dir = scaffold_with_existing_dup();
 
-    let value = add_json(
-        dir.path(),
-        &[
-            "add",
-            "--name",
-            "dup",
-            "--set",
-            "title=T",
-            "--dedup",
-            "add-suffix",
-            "--format",
-            "json",
-        ],
-    );
-    assert_eq!(support::at(&value, "/outcome").as_str(), Some("suffixed"));
-    assert_eq!(
-        support::at(&value, "/path").as_str(),
-        Some(expected_path(dir.path(), "dup-2.typ").as_str())
+    for (dedup, rel, outcome) in [
+        ("skip", "dup.typ", "skipped"),
+        ("add-suffix", "dup-2.typ", "suffixed"),
+    ] {
+        assert_json_report(
+            dir.path(),
+            &[
+                "add", "--name", "dup", "--set", "title=T", "--dedup", dedup, "--format", "json",
+            ],
+            outcome,
+            rel,
+        );
+    }
+    assert!(
+        dir.path().join("tasks/dup-2.typ").exists(),
+        "add-suffix must write the suffixed task"
     );
 }
 

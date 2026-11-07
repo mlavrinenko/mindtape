@@ -11,7 +11,7 @@ use super::{ADD, LS, SCHEMAS, TASK, check_all, find, write_all};
 #[test]
 fn every_schema_is_stamped_with_its_canonical_id() {
     for schema in SCHEMAS {
-        let value: Value = serde_json::from_str(&(schema.json)()).unwrap();
+        let value: Value = serde_json::from_str(&schema.json()).unwrap();
         assert_eq!(value["$id"], schema.id.canonical_url());
         assert!(value["title"].is_string(), "{value}");
         assert!(value["description"].is_string(), "{value}");

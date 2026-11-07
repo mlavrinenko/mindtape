@@ -29,7 +29,9 @@
       #link(u("/config/"))[`[tasks.naming] dedup`]. If it doesn't, the default
       is `add-suffix` when a `stem` template is set and `fail` otherwise.
       `--format` prints the result as `text`, `path`, `path0` or `json`, and
-      the JSON says whether `mt` wrote, skipped or suffixed the task. A `text`
+      `--json` is the shorthand for `--format json` and wins when both are
+      given. The JSON says whether `mt` wrote, skipped or suffixed the task,
+      and opens with the URL of its schema. A `text`
       report ends on `next: mt eval <slug>`, the command that reads the task it
       named; the other formats carry no prose. `mt`
       checks the task before it writes, so a refused add leaves no file.

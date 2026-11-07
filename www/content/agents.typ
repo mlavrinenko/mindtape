@@ -108,9 +108,10 @@ empty fails the add, and the error names every missing slot:
 #terminal("api-service-add-refused")
 
 It exits with code #exit-code("api-service-add-refused") and writes nothing.
-With `--format json`, a successful add prints an object whose `outcome` is
-`wrote`, `skipped` or `suffixed`, whose `path` is the task file and whose `slug`
-is its stem hash, the short name every command accepts.
+With `--json`, the shorthand for `--format json`, a successful add prints an
+object whose first key is `$schema`, then `outcome` (`wrote`, `skipped` or
+`suffixed`), `path` and `slug`, its stem hash, the short name every command
+accepts. `--format path` and `--format path0` still print just the path.
 
 = Trust the exit code
 
