@@ -57,7 +57,7 @@ capture rules-warn "$R" "mt set add-csv-export 'title=Add CSV export to the repo
 capture_scratch F
 mkdir -p "$F/.mindtape"
 : >"$F/.mindtape/config.toml"
-"$MT" -w "$F" config show --json | jq '.tasks.status' >"$OUT/floor-legend.json"
+"$MT" -w "$F" config show --json | jq '.config.tasks.status' >"$OUT/floor-legend.json"
 
 # Copied so the page can read() it: the site builds under --root www, and
 # Typst refuses a read outside the root.

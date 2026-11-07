@@ -43,7 +43,7 @@ printf 'extends = ["./team.toml"]\n\n[tasks.priority]\nallow-manual = true\n' \
 printf '[tasks.priority]\nframework = "ice"\nallow-manual = false\n' >"$merge/team.toml"
 capture packs-merge "$merge" 'head .mindtape/config.toml team.toml'
 capture packs-merge "$merge" \
-  "mt config show --json | jq -c '.tasks.priority | {framework, \"allow-manual\", min, max}'"
+  "mt config show --json | jq -c '.config.tasks.priority | {framework, \"allow-manual\", min, max}'"
 
 # A directory pack: its `pack.toml` is the pack, and the template beside it
 # reaches `mt add --list`.
@@ -66,7 +66,7 @@ printf '[params]\nmax-files = 5\n\n[[tasks.rules]]\nname = "small"\nassert = %s\
   "'estimate.src-files <= param(\"max-files\")'" >"$params/team.toml"
 capture packs-params "$params" 'head .mindtape/config.toml team.toml'
 capture packs-params "$params" \
-  "mt config show --json | jq -r '.tasks.rules[] | select(.name == \"small\") | .assert'"
+  "mt config show --json | jq -r '.config.tasks.rules[] | select(.name == \"small\") | .assert'"
 
 # Ten projects whose config `mt` refuses. Each record shows the
 # config, then the refusal, which must match <expect>.

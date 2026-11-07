@@ -135,8 +135,8 @@ prompt:
 
 #terminal("api-service-describe")
 
-`--describe=json` prints the same thing as a JSON array, for a script or an
-agent.
+`--describe=json` prints the same thing for a script or an agent, in one
+object whose `slots` key holds the array.
 
 = Fill the slots
 

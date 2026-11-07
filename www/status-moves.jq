@@ -7,7 +7,7 @@
 # pauses. A legend in which no entry declares `to` allows every move, and a
 # graph of that is a complete graph that says nothing, so the program fails on
 # one rather than draw an empty graph.
-.tasks.status as $legend
+.config.tasks.status as $legend
 | if ($legend | length) == 0 or all($legend[]; has("to") | not) then
     error("status-moves.jq: the legend declares no `to`, so it has no moves to draw")
   else . end

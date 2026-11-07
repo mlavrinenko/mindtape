@@ -13,8 +13,9 @@ JSON flag: `mt explain [<rules|tags|views|dicts>] [--json]`.
 #cli-command("explain")
 
 `--json` prints the index as one object whose first key is `$schema`, the URL
-of the schema for that object. Each listing keeps the keys it printed under its
-old command, and the sections below say what they hold.
+of the schema for that object. It keeps the fields each listing printed under
+its old command; views and dicts sit under `views` and `dicts`. The sections
+below say what they hold.
 
 = Rules
 
@@ -62,13 +63,16 @@ their messages, with its own `$schema`.
 
 = Views
 
-`mt explain views` lists the project's views, or shows one by name. To define a
-view, or to see what `@name` means in a listing, read
+`mt explain views` lists the project's views, or shows one by name. `--json`
+wraps the list in `views` under `$schema`; one named view prints flat under
+`$schema`. To define a view, or to see what `@name` means in a listing, read
 #link(u("/named-sets/"))[Views and dictionaries].
 
 = Dictionaries
 
 `mt explain dicts` lists the project's dictionaries, or one dictionary's
-entries by name. That's the list a rule reading the dictionary accepts. To
-declare a dictionary, or to see how its entries merge, read
+entries by name. `--json` wraps the list in `dicts`, each with its `case` and
+`count`, under `$schema`; one named dictionary prints flat under `$schema`.
+That's the list a rule reading the dictionary accepts. To declare a
+dictionary, or to see how its entries merge, read
 #link(u("/named-sets/#dictionaries"))[Views and dictionaries].

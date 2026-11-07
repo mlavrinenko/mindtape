@@ -95,8 +95,9 @@ Each project brings its own default listing, sort and columns, and the table
 shows every column any of them shows. `--sort` sorts inside each project, and
 `-n` and `--skip` count per project, so `-n 1` gives you each project's top
 task. `--format csv` adds a `project` column. A project that fails to list
-prints its error after the others, and `mt` exits 1. For a script,
-`--json` has the #link(u("/schema/#many-projects"))[keys a set adds].
+prints its error after the others, and `mt` exits 1. For a script, `--json`
+wraps the listings under `projects`, each with the
+#link(u("/schema/#many-projects"))[keys a set adds].
 
 = Check every project
 

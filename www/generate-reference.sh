@@ -123,8 +123,8 @@ mt @work ls ready -n 1
 mt @work find email
 EOF
     capture across-check "$Q" 'mt @work check'
-    capture schema-set-ls "$Q" "mt @work ls --json | jq 'map(del(.applied) | .tasks |= map(.id))'"
-    capture schema-set-board "$Q" 'mt @work board --json'
+    capture schema-set-ls "$Q" "mt @work ls --json | jq '.projects | map(del(.applied) | .tasks |= map(.id))'"
+    capture schema-set-board "$Q" "mt @work board --json | jq '.projects'"
     capture --exit 1 --expect 'runs on one project' across-write "$Q" 'mt @work add fix the coupon field'
     capture_lines across-forks "$Q" <<'EOF'
 mt at all

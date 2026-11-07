@@ -44,7 +44,7 @@ trap 'rm -rf "$tmp"' EXIT
 for d in . examples/*/; do
     [ -d "$d/.mindtape" ] || continue
     MINDTAPE_CONFIG_HOME='' MINDTAPE_DATA_HOME='' "$mt" -w "$d" config show --json
-done | jq -s -r '[.[].tasks.status[]?.value] | unique | join(",")' >"$tmp/statuses"
+done | jq -s -r '[.[].config.tasks.status[]?.value] | unique | join(",")' >"$tmp/statuses"
 git ls-files | sed 's|.*/||' | sort -u | jq -R . | jq -s . >"$tmp/files.json"
 
 # Prints `<file>\t<line>\t<span>` for every inline span the extractor finds

@@ -156,8 +156,10 @@
       section, the derived fields, the tags, views and dictionaries, and each
       dictionary's entry count. `default` leads the view and tag lists when the
       project declares it. Each listing keeps the output it had before it moved
-      under this command, and `--json` keeps its keys. A blank line separates
-      the index from a `next:` line naming the optional category and JSON flag:
+      under this command. `--json` leads with `$schema`: the rules, tags and
+      index keep their keys, and views and dicts sit under `views` and
+      `dicts`. A blank line separates the index from a `next:` line naming the
+      optional category and JSON flag:
       `mt explain [<rules|tags|views|dicts>] [--json]`.],
     outputs: ("explain",),
   ),
