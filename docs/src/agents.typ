@@ -59,8 +59,8 @@ skips a file whose bytes are unchanged.
   declares. Edit the file by hand only for the body, a framework priority,
   `estimate` and `x-goals`, then run `mt check`.
 - `truth/goals.typ` and `truth/process-goals.typ` — the product and process
-  goals. Each open task rates every goal in `x-goals`, which the `goals` rule
-  checks.
+  goals. Each open task rates every goal in `x-goals`; `give-every-goal-verdict`
+  checks that.
 - `www/content/*.typ` — the docs site, built with tola.
 - `docs/src/*.typ` — the sources of README.md, AGENTS.md, CONTRIBUTING.md,
   SKILL.md and the `docs/contributing/*.md` deep dives.

@@ -19,8 +19,9 @@
 # unfinished; on the terminal `done` it also refuses closing a parent over an
 # unfinished child.
 #
-# `stale-wip`: picking a task up is when its scope gets re-read. A task that
-# sat untouched for `days` days (no `mt review`, no status change) has drifted
+# `review-stale-task-before-starting`: picking a task up is when its scope gets
+# re-read. A task that sat untouched for `days` days (no `mt review`, no status
+# change) has drifted
 # from the code and the backlog around it — a Scope counting "the five open
 # tasks" when there are now twenty — so starting it is refused until someone
 # re-reads it, fixes what went stale, and stamps `mt review`. The default of
@@ -81,7 +82,7 @@ to = ["wip"]
 
 # docs:slice hooks/stale-gate
 [[on.flip]]
-name = "stale-wip"
+name = "review-stale-task-before-starting"
 when = 'into("wip") && stale(param("days"))'
 actions = [
   { gate = true, message = "re-read the scope against today's code, fix what went stale, run `mt review`, then start again" },

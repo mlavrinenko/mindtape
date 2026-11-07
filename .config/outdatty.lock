@@ -3,15 +3,15 @@ algorithm: blake3
 groups:
   api-service-recipes:
     source:
-      crates/mindtape/src/packs/budget.toml: 29729e2f12063f5e9b275e88b1e156580cb316dae00c6dff77759c8c11eec9b5
-      crates/mindtape/src/packs/commits.toml: 8e61b32e0f6686d7bf6012e0f457d7f0e88a7ac555735ccdd6db8eeb5c0c5c36
-      crates/mindtape/src/packs/dogfood.toml: a5bff1f8a99c2c89da8b992a203bd303bf08d2cec7ba06affb7e318e0c0b30b9
-      crates/mindtape/src/packs/flow.toml: 13627963544f7dcf27b69d791f158202970181d7127581329783107fc254c6e8
+      crates/mindtape/src/packs/budget.toml: d69ef301bd7a8b804ac156a80d33ca03b790497647d4d22fcfbb212ec5910369
+      crates/mindtape/src/packs/commits.toml: 45b2a10729e70f2ede390fe796a6e784a3d8b7c5b7ac37b784adc96bfb090e04
+      crates/mindtape/src/packs/dogfood.toml: 8acb5cef099aee65d483cf4786370606d1a1b28ed95fad9f74bd08b37af2e430
+      crates/mindtape/src/packs/flow.toml: 96c1d26471d5181de48eedbfb1f8c5769e539fd73198555471905114ded6d76e
       crates/mindtape/src/packs/ice.toml: fc82bc4388152c8d755244c532f7311481f6333dbbc9ee3498220abdc5b35e1a
-      crates/mindtape/src/packs/tasks.toml: 3dbdb2743038fd9ad7617cdd48338fd978d7d3692cdbf00f890209211ff65874
-      crates/mindtape/src/packs/tweaks.toml: 3f5c1612deb1f9c5a11ec5580f9bc48ed0b256e54960082c4441fdea43e1278e
-      crates/mindtape/src/packs/wip-caps.toml: 5dc4ccb78198701f7c04354fbfc636eec497500513ebab981ebeb6832aa0ce9a
-      examples/api-service/.mindtape/config.toml: 3aa02653acf1b6ab416c892afa0557454a20bd84e92e5bb75102637e8355b4f0
+      crates/mindtape/src/packs/tasks.toml: 64fcdf9c465cb7f1916051af5a0b4086e46836a79c27f5e62ec6af4786856690
+      crates/mindtape/src/packs/tweaks.toml: 540d051dabcb38b215d5459108733ff797dd5dfb7bad6df396e2e4249978e8d9
+      crates/mindtape/src/packs/wip-caps.toml: ff0253e57a07c3e5c533da5eed72afadaa09d87918155db03d3dfde055a1615d
+      examples/api-service/.mindtape/config.toml: f47ecb8a9fe075a140a8cb9f3f2f2bea6679cdab8751c5125b5f94c58374af0b
       examples/api-service/.mindtape/templates/milestone.typ: 0e94a0284b7337bca16ebe4b48dc97489c180b3def828981fc042dea31506d4a
       examples/api-service/.mindtape/templates/task.typ: 1ea69ba6d749b4562a5b81b32885bf7b5949e8d10a639e36787180eeb6b3d524
       examples/api-service/Cargo.lock: fb82d06c279532ad92269838be453a3ed883dcd8cf12daaad8fdd0e26f854805
@@ -33,16 +33,16 @@ groups:
       examples/api-service/tasks/throttle-failed-logins-per-ip.typ: a7b6331faad86ae3476d69b000c1b1af919eaa5af60b551b701facb291f118f1
       examples/api-service/tasks/upgrade-the-axum-web-framework.typ: d16290949063e916e74e75d8308401b93fec29e12e824b0dd75f936e1d0803a7
       examples/api-service/tasks/verify-webhooks-with-the-acme-pay-sdk.typ: 5edd783761d8c71e6a68ff9975234dde517eb8803f07b4be7d75caf5df4ed573
-      www/generate-api-service.sh: 3aad4b570fe94b74c5a7b9de65532df05769f0a013ab0a78bcb0903f57e4350d
+      www/generate-api-service.sh: 3c2d36afc0c8da6c97c935f002a039a72c556278de9f0f51909eb90ea3aa08fa
     dependents:
       skills/mindtape/evals/README.md: 3208fe03d8f040112121fb09b145f54eeeb1ab2c261b6793b54a4391a1874304
       skills/mindtape/evals/evals.json: e75bfe7de9f6e5a1979653030404cf30907b166036e8bd2c1c835dc74b9570b4
       www/content/limit-work-in-progress.typ: c8bf092555288cd46fa02bc7ba8392bce040aa3b4276835caac2426e91143f42
-      www/content/require-a-task-shape.typ: c3f4af459b1384d8b83889eb3fb6834c42122f3fedd34e49d12c9bb63f1c4f85
+      www/content/require-a-task-shape.typ: 67ce7df426b542abdba2bcb76cb251bbb17d75e8103ca2cc87c83d3bcd0131b6
       www/content/split-oversized-tasks.typ: bfdad89f093d2998f51609e7ecd20d6e43f71a2be1bca54751e30be74709e95e
-      www/content/start-titles-with-a-verb.typ: d2106fa0bc14f2bca4ccf9fa6fd44a72474b3ba90639a380e630596ae6b10bf8
+      www/content/start-titles-with-a-verb.typ: 5d606ee91c9c8c833293ef0bd61f983413d65e1c2d4d9e69c22888876e89c74f
       www/content/tie-work-to-goals.typ: 9df53f15b3753ff326f39ae5dda71dbb7d6207e5372cc74d63e0d79812cca541
-      www/content/trace-commits-to-tasks.typ: 4a7d06488d11e84c66efd273907b28a8a70617a02d5c8f8d3951dd98dffa9dc1
+      www/content/trace-commits-to-tasks.typ: 1aaf804fffcdc505f33548ad5d3d2f69a44ba0c7f7987eac7f2477b80829fd16
       www/content/wait-on-upstream.typ: 01b830b45bf8c0fd2ab1da8992fcf1fab2accb7c3d6ddf2eb65d53296f068737
   cli-add-docs:
     source:
@@ -114,7 +114,7 @@ groups:
       www/content/schema.typ: 07fb424f0431ffed2de744b4169bd2412386072e22d819a558e6cbee34ba67c2
   cli-explain-index-docs:
     source:
-      crates/mindtape-cli/src/cmd/explain/index.rs: 40a78e87e942c68ed5dae3cbbaabc04a199c7deee81c976f234ab7f2901e64ef
+      crates/mindtape-cli/src/cmd/explain/index.rs: ccc055bed541b4229368742ee75c31192ed6686f3544441b12694dc6e3f5c3cb
       crates/mindtape-cli/src/cmd/explain/mod.rs: e83ab450db9693709e99c72af9f02a552097739e935d15ad5306d5e1a73b8a66
     dependents:
       docs/src/skill.typ: b434fa0a7bee5bcf26f80ce8beac6595e0e1bd9def126dbc698b0cf54e06f92d
@@ -449,13 +449,13 @@ groups:
       docs/src/contributing/gates.typ: ba77fb07445b62e6143695f0c2f6c75f4c55cf38c6a21104853b6bb6bcb90c89
   githooks-docs:
     source:
-      .githooks/commit-msg: 66ee10190d627e4183cf27698f78f8c791f075b59f4fd88e8201eb15665280dd
+      .githooks/commit-msg: ecaf43984bbefd17cbc968cbc805c9f7b3db77f40f742f46213797d9b2c2df71
       .githooks/local-paths: 3fed9f65a80f886ec6fa219ac250234b875faa01a6aab6ecc229cc83264e205e
       .githooks/pre-commit: 1c90991ad20b8c1ee1134ff32bc187821b14dc9855a107c56b4d1c9fe2212737
       .just/scripts/outdatty-review-trailer.sh: 091bd9a4e7d90059a71e4863c80c90af4eda0bb216ab96db13b1ca07a542d456
     dependents:
       docs/src/contributing.typ: a8a8e429a01de4f56b40b8eac2270d8faa52c47b79e33d992c0d7253c7d7d927
-      docs/src/contributing/commit-messages.typ: 1709db5f1a4d3d3e7a327c576f9b39a94a9dc404cc4b139e78016efd17269883
+      docs/src/contributing/commit-messages.typ: 0699a2b8c6b58e5d5c56e99e595dfd3cb837d8b6030da2b332a722cf4da7e87e
       docs/src/contributing/gates.typ: ba77fb07445b62e6143695f0c2f6c75f4c55cf38c6a21104853b6bb6bcb90c89
   link-kinds-docs:
     source:

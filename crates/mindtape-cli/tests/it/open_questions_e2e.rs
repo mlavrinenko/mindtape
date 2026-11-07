@@ -1,4 +1,4 @@
-//! The shipped `mindtape:tasks` pack's `no-open-questions` refuses an open
+//! The shipped `mindtape:tasks` pack's `leave-no-question-open` refuses an open
 //! task whose TO-BE, Changes, Out of scope or Dogfood asks a question
 //! (`truth/tasks/refuse-a-task-that-leaves-a-question-open.typ`). A `?` in
 //! code, or in AS-IS, is no question.
@@ -8,7 +8,7 @@ use mindtape::test_support::write_file;
 
 use crate::support;
 
-const ADVICE: &str = "body.content.rules.no-open-questions: \
+const ADVICE: &str = "body.content.rules.leave-no-question-open: \
      ask the user and write the answer in, since a task leaves no question open";
 
 /// `mt check`'s exit code and stderr for one open task under the pack alone,

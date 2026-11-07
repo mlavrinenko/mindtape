@@ -26,14 +26,14 @@ milestones = 1
 leaves = 1
 
 [[tasks.rules]]
-name = "milestone-wip-cap"
+name = "keep-one-milestone-in-progress"
 when = 'status == "wip" && kind == "milestone"'
 assert = 'count(status == "wip" && kind == "milestone") <= param("milestones")'
 message = "close or split the open milestone before opening another"
 severity = "error"
 
 [[tasks.rules]]
-name = "leaf-wip-cap"
+name = "keep-one-task-in-progress"
 when = 'status == "wip" && kind != "milestone"'
 assert = 'count(status == "wip" && kind != "milestone") <= param("leaves")'
 message = "finish the open task, or split off what is done and close that, before starting another"

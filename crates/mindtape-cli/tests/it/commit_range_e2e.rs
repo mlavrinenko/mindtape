@@ -12,9 +12,9 @@ use crate::support;
 
 use support::{commit, commit_repo, git, stage_file};
 
-/// The flip-with-work rule `commit_msg_task_e2e.rs` pins for the hook.
+/// The flip-task-with-its-work rule `commit_msg_task_e2e.rs` pins for the hook.
 const FLIP_WITH_WORK: &str = "[[commits.rules]]\n\
-     name = \"flip-with-work\"\n\
+     name = \"flip-task-with-its-work\"\n\
      scope = \"task\"\n\
      when = 'into(\"wip\") || into(\"done\")'\n\
      assert = 'named && !tasks_only'\n\
@@ -69,7 +69,7 @@ pub(crate) fn short(dir: &Path, rev: &str) -> String {
 /// The tip-rule breach for `parser`, led by `rev`'s id.
 pub(crate) fn tip_breach(dir: &Path, rev: &str) -> String {
     format!(
-        "error: {}: commits.rules.named-tasks-finish-at-the-tip: parser:",
+        "error: {}: commits.rules.finish-named-task-at-tip: parser:",
         short(dir, rev)
     )
 }
@@ -101,7 +101,7 @@ fn a_range_with_one_offending_commit_fails_naming_it() {
     let (ok, text) = check_range(dir, "HEAD~2..HEAD");
     assert!(!ok, "the close-only commit must fail the range: {text}");
     let offender = format!(
-        "error: {}: commits.rules.flip-with-work: parser: start or close",
+        "error: {}: commits.rules.flip-task-with-its-work: parser: start or close",
         short(dir, "HEAD")
     );
     assert!(text.contains(&offender), "names the commit: {text}");
@@ -259,7 +259,7 @@ fn a_root_commit_is_read_against_the_empty_tree() {
     let (ok, text) = check_range(dir.path(), "HEAD");
     assert!(!ok, "{text}");
     assert!(
-        text.contains(": commits.rules.flip-with-work: parser:")
+        text.contains(": commits.rules.flip-task-with-its-work: parser:")
             && text.contains("note: commit: 'seed'"),
         "{text}"
     );
@@ -288,7 +288,7 @@ fn each_state_holds_a_task_once() {
 
 /// The rule `mindtape:tasks` ships for the tip of a range.
 pub(crate) const FINISH_AT_THE_TIP: &str = "[[commits.rules]]\n\
-     name = \"named-tasks-finish-at-the-tip\"\n\
+     name = \"finish-named-task-at-tip\"\n\
      scope = \"tip\"\n\
      assert = '!(status == \"wip\")'\n\
      message = \"run `mt done` and commit it with the task's last work\"\n\
@@ -307,7 +307,7 @@ fn a_range_naming_a_task_left_wip_fails_with_its_stem() {
     assert!(!ok, "a task still wip at the tip refuses the range: {text}");
     assert!(
         text.contains(&format!(
-            "error: {}: commits.rules.named-tasks-finish-at-the-tip: parser: run `mt done`",
+            "error: {}: commits.rules.finish-named-task-at-tip: parser: run `mt done`",
             short(dir, "HEAD")
         )),
         "names the tip, the rule, the stem and the advice: {text}"
@@ -358,8 +358,7 @@ fn a_stem_named_in_two_commits_is_reported_once() {
     let (ok, text) = check_range(dir, "HEAD~2..HEAD");
     assert!(!ok, "{text}");
     assert_eq!(
-        text.matches("named-tasks-finish-at-the-tip: parser:")
-            .count(),
+        text.matches("finish-named-task-at-tip: parser:").count(),
         1,
         "{text}"
     );
@@ -398,7 +397,7 @@ fn the_pack_lets_a_fixup_through_the_hook_and_refuses_it_in_a_range() {
     commit(dir, message);
     let (ok, text) = check_range(dir, "HEAD~1..HEAD");
     assert!(!ok, "the range must refuse the fixup: {text}");
-    assert!(text.contains("no-unsquashed-fixup"), "{text}");
+    assert!(text.contains("squash-every-autosquash-commit"), "{text}");
     assert!(text.contains("git rebase -i --autosquash"), "{text}");
 }
 

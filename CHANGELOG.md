@@ -86,6 +86,79 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Every shipped and project rule name now says what it checks.** The bare
+  `mt explain` index reads as a list of checks, without opening a message or
+  the pack docs. Behavior, assertions, messages and severities are unchanged.
+  Rename every `disable` entry, same-name override and `pack-rule` reference
+  with this map. The `dogfood` allowlist and the project's
+  `name-task-in-refs-trailer` override are load-bearing: a stale name there
+  drops the wrong rule or leaves the pack rule running.
+
+  ```text
+  statefulness-tag -> tag-task-stateful-or-stateless
+  imperative-title -> start-title-with-verb
+  section-allowlist -> allow-only-declared-sections
+  environment-for-fix -> require-environment-for-fix
+  alternatives-for-design -> require-alternatives-for-design
+  source-of-truth-for-docs -> require-source-of-truth-for-docs
+  rollback-for-stateful -> require-rollback-for-stateful-change
+  environment-only-for-fix -> allow-environment-only-for-fix
+  alternatives-only-for-design -> allow-alternatives-only-for-design
+  source-of-truth-only-for-docs -> allow-source-of-truth-only-for-docs
+  rollback-only-for-stateful -> allow-rollback-only-for-stateful-change
+  environment-after-as-is -> put-environment-after-as-is
+  to-be-after-as-is -> put-to-be-after-as-is
+  source-of-truth-after-to-be -> put-source-of-truth-after-to-be
+  changes-after-to-be -> put-changes-after-to-be
+  changes-after-source-of-truth -> put-changes-after-source-of-truth
+  alternatives-after-changes -> put-alternatives-after-changes
+  rollback-after-changes -> put-rollback-after-changes
+  out-of-scope-after-changes -> put-out-of-scope-after-changes
+  out-of-scope-after-alternatives -> put-out-of-scope-after-alternatives
+  out-of-scope-after-rollback -> put-out-of-scope-after-rollback
+  one-as-is-section -> keep-one-as-is-section
+  one-to-be-section -> keep-one-to-be-section
+  one-changes-section -> keep-one-changes-section
+  one-out-of-scope-section -> keep-one-out-of-scope-section
+  no-subsections -> keep-sections-flat
+  as-is-is-numbered-steps -> write-as-is-as-numbered-steps
+  as-is-marks-the-defect -> mark-defect-step-with-red
+  as-is-has-a-repro -> add-fenced-repro-to-as-is
+  to-be-has-green-bullets -> open-to-be-bullet-with-green
+  to-be-bullets-all-green -> open-every-to-be-bullet-with-green
+  to-be-has-an-example -> add-fenced-example-to-to-be
+  changes-name-files -> name-path-in-changes
+  changes-bullets-start-with-a-path -> start-every-changes-bullet-with-path
+  changes-non-empty -> write-changes-plan
+  named-sections-non-empty -> leave-no-listed-section-empty
+  as-is-non-empty -> write-as-is-section
+  section-word-cap -> cap-every-listed-section-at-120-words
+  as-is-word-cap -> cap-as-is-at-120-words
+  changes-word-cap -> cap-changes-at-220-words
+  show-shape-when-gating -> show-proposed-shape-when-gating
+  no-em-dash-pileup -> keep-at-most-one-em-dash-per-paragraph
+  no-open-questions -> leave-no-question-open
+  work-names-a-task -> name-task-in-refs-trailer
+  no-unsquashed-fixup -> squash-every-autosquash-commit
+  flip-with-work -> flip-task-with-its-work
+  named-tasks-finish-at-the-tip -> finish-named-task-at-tip
+  milestone-wip-cap -> keep-one-milestone-in-progress
+  leaf-wip-cap -> keep-one-task-in-progress
+  judgment-stays-small -> cap-judgment-work-at-max-source-files
+  src-budget -> keep-work-inside-changes-plan
+  tweak-lands-done -> file-tweak-done
+  tweak-stays-one-file -> keep-tweak-to-one-source-file
+  changelog-with-product-change -> add-changelog-entry-for-product-change
+  refs-task-is-started -> start-named-task-in-its-commit
+  stale-wip -> review-stale-task-before-starting
+  gates-fresh -> close-only-on-fresh-gate
+  goals -> give-every-goal-verdict
+  finding-has-surfaced-by -> link-finding-to-what-surfaced-it
+  one-dogfood-section -> keep-one-dogfood-section
+  dogfood-after-out-of-scope -> put-dogfood-after-out-of-scope
+  dogfood-non-empty -> write-dogfood-section
+  dogfood-word-cap -> cap-dogfood-at-120-words
+  ```
 - **`mt install` writes every output schema.** The schema page lists each
   machine output and the URL its `$schema` names, with the installed copy for
   offline editors, and a docs gate fails on a URL whose file is missing.

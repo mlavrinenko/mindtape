@@ -60,10 +60,10 @@ pub struct ActiveRule {
     #[schemars(with = "String")]
     pub section: RuleSection,
     /// The dotted name `mt config show --origin` prints, such as
-    /// `tasks.rules.imperative-title` or `tasks.rules[3]` for an unnamed
+    /// `tasks.rules.start-title-with-verb` or `tasks.rules[3]` for an unnamed
     /// rule. A flip action takes its hook's, followed by its slot, so it
-    /// reads `on.flip.stale-wip.actions[1]`, or `on.flip[0].actions[1]` for an
-    /// unnamed hook.
+    /// reads `on.flip.review-stale-task-before-starting.actions[1]`, or
+    /// `on.flip[0].actions[1]` for an unnamed hook.
     pub name: String,
     /// The severity a breach reports at: the rule's own, else the level the
     /// engine applies to its section.

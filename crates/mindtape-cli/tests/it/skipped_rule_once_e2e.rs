@@ -17,7 +17,7 @@ fn a_pack_rule_skipped_outside_git_is_reported_once() {
     write_file(
         dir.path(),
         "pack.toml",
-        "[[tasks.rules]]\nname = \"src-budget\"\nassert = 'changed(\"worktree\") <= 3'\n",
+        "[[tasks.rules]]\nname = \"keep-work-inside-changes-plan\"\nassert = 'changed(\"worktree\") <= 3'\n",
     );
     let (_, text) = support::run_text(dir.path(), &["check"]);
     assert_eq!(text.matches("skipped").count(), 1, "{text}");

@@ -1,6 +1,6 @@
-//! The shipped `mindtape:tasks` pack's `flip-with-work` lets a milestone close
+//! The shipped `mindtape:tasks` pack's `flip-task-with-its-work` lets a milestone close
 //! in a task-only commit (`truth/tasks/exempt-a-milestones-close-from-the-
-//! flip-with-work-rule.typ`): it ends through its leaves and carries no work of
+//! flip-task-with-its-work-rule.typ`): it ends through its leaves and carries no work of
 //! its own, so its flip is the whole commit. A leaf's bare close stays refused.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
@@ -56,5 +56,8 @@ fn a_milestone_closes_in_a_task_only_commit() {
 #[test]
 fn a_leaf_closing_alone_is_still_refused() {
     let (ok, text) = close_alone("leaf");
-    assert!(!ok && text.contains("flip-with-work: leaf"), "{text}");
+    assert!(
+        !ok && text.contains("flip-task-with-its-work: leaf"),
+        "{text}"
+    );
 }

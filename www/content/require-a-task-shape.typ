@@ -20,11 +20,11 @@ wrong and you build the wrong thing.
 = Config
 
 #recipe-config("require-a-task-shape", after: pack-excerpt((
-  "as-is-is-numbered-steps",
-  "to-be-has-green-bullets",
-  "changes-name-files",
-  "changes-bullets-start-with-a-path",
-  "changes-non-empty",
+  "write-as-is-as-numbered-steps",
+  "open-to-be-bullet-with-green",
+  "name-path-in-changes",
+  "start-every-changes-bullet-with-path",
+  "write-changes-plan",
 )))
 
 = Behavior

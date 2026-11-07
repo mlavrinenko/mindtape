@@ -22,12 +22,11 @@ walks through the whole setup, from a refused commit to `touches()`.
 
 The examples run in a git copy of `examples/rules/`, whose config holds the
 three commit rules below. The rules the `mindtape:tasks` pack ships,
-`work-names-a-task`, `no-unsquashed-fixup`, `flip-with-work` and
-`named-tasks-finish-at-the-tip`, are
-listed on
+`name-task-in-refs-trailer`, `squash-every-autosquash-commit`,
+`flip-task-with-its-work` and `finish-named-task-at-tip`, are listed on
 #link(u("/packs/"))[Packs], with the commit rules of `mindtape:commits`
-(`changelog-with-product-change`, `refs-task-is-started`) and
-`mindtape:tweaks` (`tweak-stays-one-file`).
+(`add-changelog-entry-for-product-change`, `start-named-task-in-its-commit`) and
+`mindtape:tweaks` (`keep-tweak-to-one-source-file`).
 
 #let parts = (
   ("trailer", "the trailer that names tasks"),
@@ -136,9 +135,9 @@ A breach names the message file and the rule. Here a migration has no
 #terminal("commit-scope-breach")
 
 `subject` is also how a rule exempts a commit autosquash will drop. The
-`mindtape:tasks` pack's `work-names-a-task` adds
+`mindtape:tasks` pack's `name-task-in-refs-trailer` adds
 `!matches(subject, "^(fixup|squash|amend)! ")` to its `when`, so a
-`git commit --fixup` needs no `Refs:`. The pack's `no-unsquashed-fixup` is
+`git commit --fixup` needs no `Refs:`. The pack's `squash-every-autosquash-commit` is
 the other half. It reads `in_range`, so the hook lets a fixup through and
 `mt check --commits` refuses one that nobody squashed.
 
@@ -182,7 +181,7 @@ nobody reading the rule could tell which state it means.
 `into("s")` means `staged(status == "s") && !head(status == "s")`: the commit
 moves the task into status `s`.
 
-The `mindtape:tasks` pack's `flip-with-work` uses `retires_other` so that a
+The `mindtape:tasks` pack's `flip-task-with-its-work` uses `retires_other` so that a
 cleanup task closes in the commit that runs `mt rm` on other tasks, though
 that commit stages nothing but task files. It also lets a task of
 `kind: "milestone"` close alone, because a milestone ends through its leaves
@@ -203,7 +202,7 @@ with no range. A tip rule
 is an ordinary #link(u("/filters/"))[filter expression], like a
 `[[tasks.rules]]` one: `status`, `ready` and `count(...)` read the tip's tasks,
 and there are no commit fields or state wrappers. The `mindtape:tasks` pack
-ships `named-tasks-finish-at-the-tip`, which asserts `!(status == "wip")`, and
+ships `finish-named-task-at-tip`, which asserts `!(status == "wip")`, and
 the config above has the same rule as `finish-named-tasks`. A task named in several commits is checked once, and a
 breach leads with the tip's id and names the task. Here a branch starts a task
 and never finishes it:

@@ -73,7 +73,7 @@ fn a_range_skips_a_tree_whose_prelude_is_not_supported() {
         "the warning names the commit's own tree: {text}"
     );
     assert_unsupported_prelude(&text, "0.1.0");
-    for absent in ["Refs: `parser`", "named-tasks-finish-at-the-tip"] {
+    for absent in ["Refs: `parser`", "finish-named-task-at-tip"] {
         assert!(
             !text.contains(absent),
             "unexpected in a skipped range: {absent}\n{text}"
@@ -220,7 +220,7 @@ fn a_supported_newest_stage_supplies_the_tip_state_after_an_unsupported_parent()
     let (ok, text) = check_range(dir, "HEAD~3..HEAD");
 
     assert!(
-        !ok && text.contains("named-tasks-finish-at-the-tip") && text.contains("parser"),
+        !ok && text.contains("finish-named-task-at-tip") && text.contains("parser"),
         "the tip rule runs against the newest supported stage: {text}"
     );
 }

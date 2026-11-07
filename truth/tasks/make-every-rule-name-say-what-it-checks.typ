@@ -31,7 +31,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 6),
+  status: done(2026, 11, 8),
   links: depends-on("fold-the-project-listings-into-mt-explain.typ"),
 )
 
@@ -51,8 +51,8 @@
 
 ```text
 tasks.rules.keep-one-task-in-progress
-tasks.body.headers.rules.allow-only-the-declared-sections
-commits.rules.name-the-task-in-a-reflog-footer
+tasks.body.headers.rules.allow-only-declared-sections
+commits.rules.name-task-in-refs-trailer
 ```
 
 

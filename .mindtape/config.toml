@@ -8,8 +8,8 @@
 # (`mindtape:dogfood`), the status legend and the stale-WIP gate
 # (`mindtape:flow`), ICE priority (`mindtape:ice`), the WIP caps, the size
 # budget, tweaks and the commit rules. What stays local is only what is true
-# of THIS repo: the goal verdicts (the `goals` rule, below), the tag list, the
-# actors, the path sets and the close gate.
+# of THIS repo: the goal verdicts (the `give-every-goal-verdict` rule, below),
+# the tag list, the actors, the path sets and the close gate.
 # docs:slice packs/extends
 extends = [
   { pack = "mindtape:tasks", with = { statefulness = true, examples = true } },
@@ -82,7 +82,7 @@ example = { src-files = 1 }
 # truth/goals.typ and truth/process-goals.typ, and a task that helps no goal is
 # refused, so nothing unjustified gets filed.
 [[tasks.rules]]
-name = "goals"
+name = "give-every-goal-verdict"
 when = "!terminal"
 check = { typst = "truth/lib.typ", function = "check-goals", field = "x-goals" }
 severity = "error"
@@ -92,7 +92,7 @@ severity = "error"
 # same bar while it is open, and a template that files one. Closed findings
 # are history, so `!terminal` keeps them out of the backfill.
 [[tasks.rules]]
-name = "finding-has-surfaced-by"
+name = "link-finding-to-what-surfaced-it"
 when = '!terminal && has_tag("found")'
 assert = 'links("surfaced-by")'
 message = "link the finding to the task that surfaced it with `mt link <finding> surfaced-by <task>`"
@@ -148,9 +148,9 @@ allowed = [
   # and `mt check` holds each open one to a `surfaced-by` edge.
   "found",
   # Written by `mt add --template tweak` and by nothing else: a change too
-  # small to plan, filed done in the commit that makes it. `tweak-lands-done`
-  # holds it to that and `tweak-stays-one-file` caps its commit at one source
-  # file.
+  # small to plan, filed done in the commit that makes it. `file-tweak-done`
+  # holds it to that and `keep-tweak-to-one-source-file` caps its commit at one
+  # source file.
   "tweak",
 ]
 
@@ -184,8 +184,9 @@ example = "agent"
 # sort/columns bundle.
 
 # `mt check` warns (never fails) once the working tree outgrows the paths the
-# in-flight task's Changes section names. `src-budget` counts the distinct
-# paths in that plan inside the `source` set below. Only source counts, so
+# in-flight task's Changes section names. `keep-work-inside-changes-plan`
+# counts the distinct paths in that plan inside the `source` set below. Only
+# source counts, so
 # every other path is a `!` exclude. Nobody hand-edits generated output —
 # `docs-md-check` / `docs-check` fail the build if anyone tries — and
 # everything else excluded is touched by every task by process (a status flip,
@@ -210,8 +211,9 @@ example = "agent"
 #   `just crap::baseline` and `just lint::dry-baseline` re-mint as the code
 #   moves.
 #
-# The list is the `source` path set below, which `tweak-stays-one-file` reads
-# too, so the two rules agree on what a source file is.
+# The list is the `source` path set below, which
+# `keep-tweak-to-one-source-file` reads too, so the two rules agree on what a
+# source file is.
 [dicts.source]
 case = "exact"
 values = [
@@ -315,7 +317,7 @@ description = "Blocked tasks and what each waits on"
 # it stands BEFORE the write, so a bare `terminal` would test the status being
 # left, not the one being entered.
 [[on.flip]]
-name = "gates-fresh"
+name = "close-only-on-fresh-gate"
 when = 'into("done") || into("cancelled") || into("failed")'
 actions = [
   { run = "mmz --is-fresh --tag gate", gate = true, message = "run `just check`, then flip again" },
@@ -325,7 +327,7 @@ actions = [
 # makes, whose subject is set in .config/release.toml. It dates CHANGELOG.md
 # and bumps the version, which is work on no task.
 [[commits.rules]]
-name = "work-names-a-task"
+name = "name-task-in-refs-trailer"
 scope = "commit"
 when = '!tasks_only && !matches(subject, "^(fixup|squash|amend)! ") && !matches(subject, "^chore\\(release\\): [0-9]+\\.[0-9]+\\.[0-9]+$")'
 assert = "has(refs)"

@@ -24,7 +24,7 @@ tells you what to do before you open anything.
 #recipe-config(
   "start-titles-with-a-verb",
   before: pack-rule(
-    "imperative-title",
+    "start-title-with-verb",
   ),
 )
 

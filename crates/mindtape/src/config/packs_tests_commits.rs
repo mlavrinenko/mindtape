@@ -28,8 +28,8 @@ fn has_task_rule(config: &Config, name: &str) -> bool {
 #[test]
 fn tweaks_ships_the_task_rule_and_the_commit_rule() {
     let config = load("extends = [\"mindtape:tweaks\"]\n");
-    assert!(has_task_rule(&config, "tweak-lands-done"));
-    let rule = commit_rule(&config, "tweak-stays-one-file");
+    assert!(has_task_rule(&config, "file-tweak-done"));
+    let rule = commit_rule(&config, "keep-tweak-to-one-source-file");
     assert_eq!(rule.assertion, r#"count(files, "@source") <= 1"#);
     assert_eq!(config.dicts["source"].values, ["**"]);
 }
@@ -38,20 +38,23 @@ fn tweaks_ships_the_task_rule_and_the_commit_rule() {
 fn tweaks_and_budget_agree_on_the_source_set() {
     let config = load("extends = [\"mindtape:tweaks\", \"mindtape:budget\"]\n");
     assert_eq!(config.dicts["source"].values, ["**"]);
-    assert!(has_task_rule(&config, "judgment-stays-small"));
-    commit_rule(&config, "tweak-stays-one-file");
+    assert!(has_task_rule(
+        &config,
+        "cap-judgment-work-at-max-source-files"
+    ));
+    commit_rule(&config, "keep-tweak-to-one-source-file");
 }
 
 #[test]
 fn commits_ships_both_commit_rules() {
     let config = load("extends = [\"mindtape:commits\"]\n");
-    let changelog = commit_rule(&config, "changelog-with-product-change");
+    let changelog = commit_rule(&config, "add-changelog-entry-for-product-change");
     let when = changelog.when.as_deref().unwrap();
     assert!(when.contains(r#"count(files, "@product") >= 1"#), "{when}");
     assert!(when.contains("fixup|squash|amend"), "{when}");
     assert!(when.contains("Changelog: none"), "{when}");
     assert_eq!(changelog.assertion, r#"matches(files, "^CHANGELOG[.]md$")"#);
-    let refs = commit_rule(&config, "refs-task-is-started");
+    let refs = commit_rule(&config, "start-named-task-in-its-commit");
     assert_eq!(refs.assertion, r#"staged(status == "wip" || terminal)"#);
     assert_eq!(config.dicts["product"].values, ["**"]);
 }
@@ -59,7 +62,7 @@ fn commits_ships_both_commit_rules() {
 #[test]
 fn flip_with_work_reads_the_decision_kind_not_a_tag() {
     let config = load("extends = [\"mindtape:tasks\"]\n");
-    let rule = commit_rule(&config, "flip-with-work");
+    let rule = commit_rule(&config, "flip-task-with-its-work");
     assert!(
         rule.assertion.contains(r#"staged(kind == "decision")"#),
         "{}",
@@ -85,7 +88,7 @@ fn every_flagship_pack_adopts_together() {
         "extends = [\"mindtape:tasks\", \"mindtape:wip-caps\", \"mindtape:budget\", \
          \"mindtape:tweaks\", \"mindtape:commits\"]\n",
     );
-    commit_rule(&config, "tweak-stays-one-file");
-    commit_rule(&config, "refs-task-is-started");
-    commit_rule(&config, "flip-with-work");
+    commit_rule(&config, "keep-tweak-to-one-source-file");
+    commit_rule(&config, "start-named-task-in-its-commit");
+    commit_rule(&config, "flip-task-with-its-work");
 }

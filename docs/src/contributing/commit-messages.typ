@@ -36,32 +36,34 @@ per-commit `[[commits.rules]]` of the `mindtape:tasks` pack
 were checked on their own, and its index repeats the merged branch. Pass
 `--check-merges` to check one anyway.
 
-- `work-names-a-task` refuses a commit with no `Refs:` trailer, unless every
-  file it changes is a `.typ` file under a task root. This repo's only task
+- `name-task-in-refs-trailer` refuses a commit with no `Refs:` trailer, unless
+  every file it changes is a `.typ` file under a task root. This repo's only task
   root is `truth/tasks/`, so a change to `.mindtape/config.toml` or any other
   file needs `Refs:`. A `fixup!`, `squash!` or `amend!` subject is exempt, as
-  is the `changelog-with-product-change` rule of `mindtape:commits`, because
-  autosquash drops its message.
-  `no-unsquashed-fixup` refuses a range that still carries one, under
+  is the `add-changelog-entry-for-product-change` rule of `mindtape:commits`,
+  because autosquash drops its message.
+  `squash-every-autosquash-commit` refuses a range that still carries one, under
   `mt check --commits` only, so run `git rebase -i --autosquash` before
   #just.land().
-- `flip-with-work` checks each task a commit moves into `wip` or `done`. The
-  commit's `Refs:` must name the task, and the commit must change a file
+- `flip-task-with-its-work` checks each task a commit moves into `wip` or
+  `done`. The commit's `Refs:` must name the task, and the commit must change
+  a file
   outside the task root. Three commits are exempt from the second half: one
   that retires another task with `mt rm`, one for a task of kind `decision`,
   which has no code to commit with it, and one for a milestone, which ends
   through its leaves.
-- `named-tasks-finish-at-the-tip` is a `scope = "tip"` rule, which runs only
+- `finish-named-task-at-tip` is a `scope = "tip"` rule, which runs only
   under `mt check --commits <range>`. It refuses a range whose commits name a
-  task that's still `wip` in the newest commit, and prints the stems. So you put
-  the `done` flip in the task's last commit. The `pre-merge` hook of #just.land() runs
+  task that's still `wip` in the newest commit, and prints the stems. So you
+  put the `done` flip in the task's last commit. The `pre-merge` hook of
+  #just.land() runs
   `mt check --commits main..HEAD` to hold a branch to it.
 
 The `mindtape:commits` pack (`crates/mindtape/src/packs/commits.toml`) adds
 one more rule:
 
-- `refs-task-is-started` refuses a commit whose `Refs:` task is neither `wip`
-  nor terminal in the staged tree. A task still `proposed` fails it, and so
+- `start-named-task-in-its-commit` refuses a commit whose `Refs:` task is
+  neither `wip` nor terminal in the staged tree. A task still `proposed` fails it, and so
   does a flip you left unstaged. The rule refuses early because the repair
   afterwards means rewriting commits. A decision that closes in a task-only
   commit passes, since its staged status is `done`.

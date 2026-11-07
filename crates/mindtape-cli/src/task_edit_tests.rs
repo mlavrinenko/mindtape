@@ -166,12 +166,12 @@ fn verify_written_reports_a_load_error_on_the_file() {
     );
 }
 
-/// A project whose config carries an `imperative-title` rule at `severity`
+/// A project whose config carries an `start-title-with-verb` rule at `severity`
 /// plus one task that breaches it, under the in-tree prelude.
 fn rules_project(severity: &str) -> (TempDir, std::path::PathBuf) {
     let config = format!(
         "{CONFIG}\n[[tasks.rules]]\n\
-         name = \"imperative-title\"\n\
+         name = \"start-title-with-verb\"\n\
          assert = 'matches(title, \"^Refactor\")'\n\
          message = \"start the title with an imperative verb\"\n\
          severity = \"{severity}\"\n"
@@ -196,13 +196,13 @@ fn verify_written_prefixes_each_issue_by_its_severity() {
         assert!(
             stderr.contains("error: ")
                 && stderr.contains("bad.typ:")
-                && stderr.contains(": rules.imperative-title"),
+                && stderr.contains(": rules.start-title-with-verb"),
             "a fatal rule breach prints as an error: {stderr}"
         );
         assert!(
             stderr.contains("warning: ")
                 && stderr.contains("bad.typ:")
-                && stderr.contains(": rules.imperative-title"),
+                && stderr.contains(": rules.start-title-with-verb"),
             "a warn rule breach prints as a warning: {stderr}"
         );
         return;

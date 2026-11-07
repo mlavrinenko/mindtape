@@ -152,7 +152,7 @@ query = { section = "Changes", pattern = "(?m)^\\s*-\\s+`([^`]+)`" }
 returns = ["path"]
 
 [[tasks.rules]]
-name = "judgment-stays-small"
+name = "cap-judgment-work-at-max-source-files"
 when = '!terminal && difficulty >= 3'
 assert = 'count_paths(derived.changes, "@source") <= 5'
 message = "split the decision from the mechanical fan-out"

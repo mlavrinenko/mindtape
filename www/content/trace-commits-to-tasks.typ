@@ -37,10 +37,10 @@ task's file name without `.typ`, as #link(u("/concepts/#identity"))[Concepts]
 explains. The project also extends the `mindtape:tasks`
 #link(u("/packs/"))[rule pack], as
 #link(u("/require-a-task-shape/"))[Require a task shape] shows. The pack's
-`work-names-a-task` rule refuses a commit that names no task, unless the
+`name-task-in-refs-trailer` rule refuses a commit that names no task, unless the
 commit changes only task files or starts with `fixup!`, `squash!` or `amend!`.
-The pack's `no-unsquashed-fixup` rule refuses such a commit once it sits in a
-range, so `mt check --commits` catches a fixup nobody squashed.
+The pack's `squash-every-autosquash-commit` rule refuses such a commit once it
+sits in a range, so `mt check --commits` catches a fixup nobody squashed.
 `mt check --commit-msg` also refuses a stem
 that no task has and that matches no
 #link(u("/commit-rules/#the-trailer"))[`[commits] external-refs`] pattern. #link(u("/commit-rules/"))[Commit rules] covers the rule

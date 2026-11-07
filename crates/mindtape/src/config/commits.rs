@@ -6,7 +6,7 @@
 //! trailer = "Refs"
 //!
 //! [[commits.rules]]
-//! name    = "work-names-a-task"
+//! name    = "name-task-in-refs-trailer"
 //! scope   = "commit"
 //! when    = '!tasks_only'
 //! assert  = 'has(refs)'
@@ -21,7 +21,7 @@
 //!
 //! ```toml
 //! [[commits.rules]]
-//! name    = "flip-with-work"
+//! name    = "flip-task-with-its-work"
 //! scope   = "task"
 //! when    = 'into("wip") || into("done")'
 //! assert  = 'named && !tasks_only'
@@ -36,7 +36,7 @@
 //!
 //! ```toml
 //! [[commits.rules]]
-//! name    = "named-tasks-finish-at-the-tip"
+//! name    = "finish-named-task-at-tip"
 //! scope   = "tip"
 //! assert  = '!(status == "wip")'
 //! message = "run `mt done <stem>` and commit it with the task's last work"

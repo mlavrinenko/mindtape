@@ -205,7 +205,7 @@ fn changes_bullets_must_start_with_one_backticked_path() {
     assert_changes_breach(
         "- `src/thing.rs`: fix the wrong thing.",
         "- `src/thing.rs`: fix the wrong thing.\n- and cover it with a test.",
-        "body.content.rules.changes-bullets-start-with-a-path",
+        "body.content.rules.start-every-changes-bullet-with-path",
     );
 }
 
@@ -214,7 +214,7 @@ fn changes_must_not_be_empty() {
     assert_changes_breach(
         "- `src/thing.rs`: fix the wrong thing.",
         "",
-        "body.content.rules.changes-non-empty",
+        "body.content.rules.write-changes-plan",
     );
 }
 
@@ -227,8 +227,11 @@ fn as_is_takes_the_content_rules() {
     );
 
     let violations = violations_for(&config, &prose);
-    assert_breaches(&violations, "body.content.rules.as-is-is-numbered-steps");
-    assert_breaches(&violations, "body.content.rules.as-is-marks-the-defect");
+    assert_breaches(
+        &violations,
+        "body.content.rules.write-as-is-as-numbered-steps",
+    );
+    assert_breaches(&violations, "body.content.rules.mark-defect-step-with-red");
 }
 
 #[test]
@@ -237,10 +240,13 @@ fn a_problem_heading_is_refused() {
     let source = WELL_FORMED.replace("== AS-IS", "== Problem");
 
     let violations = violations_for(&config, &source);
-    assert_breaches(&violations, "body.headers.rules.section-allowlist");
+    assert_breaches(
+        &violations,
+        "body.headers.rules.allow-only-declared-sections",
+    );
     let refusal = violations
         .iter()
-        .find(|violation| violation.field == "body.headers.rules.section-allowlist")
+        .find(|violation| violation.field == "body.headers.rules.allow-only-declared-sections")
         .unwrap();
     assert!(
         refusal.message.contains("AS-IS"),
@@ -255,8 +261,8 @@ fn as_is_is_unique_and_says_something() {
     let twice = with_section("AS-IS", "+ Again.\n+ 🔴 Again.");
     let empty = as_is().replace("+ Run the command.\n+ 🔴 It does the wrong thing.", "");
 
-    assert_body_breaches(&config, &twice, "body.headers.rules.one-as-is-section");
-    assert_body_breaches(&config, &empty, "body.content.rules.as-is-non-empty");
+    assert_body_breaches(&config, &twice, "body.headers.rules.keep-one-as-is-section");
+    assert_body_breaches(&config, &empty, "body.content.rules.write-as-is-section");
 }
 
 #[test]
@@ -274,9 +280,13 @@ fn as_is_keeps_the_section_order_and_word_cap() {
     assert_body_breaches(
         &config,
         &out_of_order,
-        "body.headers.rules.to-be-after-as-is",
+        "body.headers.rules.put-to-be-after-as-is",
     );
-    assert_body_breaches(&config, &padded, "body.content.rules.as-is-word-cap");
+    assert_body_breaches(
+        &config,
+        &padded,
+        "body.content.rules.cap-as-is-at-120-words",
+    );
 }
 
 #[test]
@@ -296,7 +306,7 @@ fn a_decision_without_alternatives_is_refused() {
         &config,
         "decision",
         &as_is(),
-        "body.headers.rules.alternatives-for-design",
+        "body.headers.rules.require-alternatives-for-design",
     );
 }
 
@@ -309,7 +319,7 @@ fn only_a_feat_or_decision_carries_alternatives() {
         &config,
         "refactor",
         &source,
-        "body.headers.rules.alternatives-only-for-design",
+        "body.headers.rules.allow-alternatives-only-for-design",
     );
 }
 
@@ -321,12 +331,12 @@ fn the_rollback_policy_follows_statefulness() {
         (
             "stateful",
             &as_is(),
-            Some("body.headers.rules.rollback-for-stateful"),
+            Some("body.headers.rules.require-rollback-for-stateful-change"),
         ),
         (
             "stateless",
             &rollback,
-            Some("body.headers.rules.rollback-only-for-stateful"),
+            Some("body.headers.rules.allow-rollback-only-for-stateful-change"),
         ),
         ("stateful", &rollback, None),
         ("stateless", &as_is(), None),
@@ -347,7 +357,10 @@ fn the_statefulness_tag_rule_is_off_by_default() {
 
     let violations = task_rule_violations(&config, &task("dev", &[]));
     let names = breached(&violations);
-    assert!(!names.contains(&"rules.statefulness-tag"), "{names:?}");
+    assert!(
+        !names.contains(&"rules.tag-task-stateful-or-stateless"),
+        "{names:?}"
+    );
 }
 
 #[test]
@@ -357,9 +370,9 @@ fn turning_statefulness_on_requires_a_tag() {
     let untagged = task_rule_violations(&config, &task("dev", &[]));
     let tagged = task_rule_violations(&config, &task("dev", &["stateless"]));
     let decision = task_rule_violations(&config, &task("decision", &[]));
-    assert_breaches(&untagged, "rules.statefulness-tag");
-    assert!(!breached(&tagged).contains(&"rules.statefulness-tag"));
-    assert!(!breached(&decision).contains(&"rules.statefulness-tag"));
+    assert_breaches(&untagged, "rules.tag-task-stateful-or-stateless");
+    assert!(!breached(&tagged).contains(&"rules.tag-task-stateful-or-stateless"));
+    assert!(!breached(&decision).contains(&"rules.tag-task-stateful-or-stateless"));
 }
 
 #[test]
@@ -368,8 +381,8 @@ fn the_example_rules_are_off_by_default() {
 
     let violations = violations_for_task(&config, &task("fix", &[]), &fix_body());
     let names = breached(&violations);
-    assert!(!names.contains(&"body.content.rules.as-is-has-a-repro"));
-    assert!(!names.contains(&"body.content.rules.to-be-has-an-example"));
+    assert!(!names.contains(&"body.content.rules.add-fenced-repro-to-as-is"));
+    assert!(!names.contains(&"body.content.rules.add-fenced-example-to-to-be"));
 }
 
 #[test]
@@ -386,13 +399,13 @@ fn examples_on_only_require_the_fences_their_kind_carries() {
     }
 
     let fix = violations_for_task(&config, &task("fix", &[]), &fix_body());
-    assert_breaches(&fix, "body.content.rules.as-is-has-a-repro");
+    assert_breaches(&fix, "body.content.rules.add-fenced-repro-to-as-is");
     let feat = violations_for_task(&config, &task("feat", &[]), &design_body());
-    assert_breaches(&feat, "body.content.rules.to-be-has-an-example");
-    assert!(!breached(&feat).contains(&"body.content.rules.as-is-has-a-repro"));
+    assert_breaches(&feat, "body.content.rules.add-fenced-example-to-to-be");
+    assert!(!breached(&feat).contains(&"body.content.rules.add-fenced-repro-to-as-is"));
     let dev = violations_for_task(&config, &task("dev", &[]), &as_is());
-    assert_breaches(&dev, "body.content.rules.to-be-has-an-example");
-    assert!(!breached(&dev).contains(&"body.content.rules.as-is-has-a-repro"));
+    assert_breaches(&dev, "body.content.rules.add-fenced-example-to-to-be");
+    assert!(!breached(&dev).contains(&"body.content.rules.add-fenced-repro-to-as-is"));
 }
 
 #[test]
@@ -403,7 +416,7 @@ fn a_fix_needs_both_fences_and_a_feat_or_dev_needs_the_to_be_one() {
         &config,
         "fix",
         &with_as_is_fence(&fix_body()),
-        "body.content.rules.to-be-has-an-example",
+        "body.content.rules.add-fenced-example-to-to-be",
     );
 
     let fix = violations_for_task(&config, &task("fix", &[]), &fenced(&fix_body()));
@@ -427,7 +440,10 @@ fn the_example_waivers_follow_the_kinds_they_apply_to() {
     assert!(violations.is_empty(), "{violations:?}");
 
     let violations = violations_for_task(&config, &task("fix", &["no-repro"]), &fix_body());
-    assert_breaches(&violations, "body.content.rules.to-be-has-an-example");
+    assert_breaches(
+        &violations,
+        "body.content.rules.add-fenced-example-to-to-be",
+    );
 
     for (kind, source) in [("feat", design_body()), ("dev", as_is())] {
         let violations = violations_for_task(&config, &task(kind, &["no-ui-ux"]), &source);
@@ -435,5 +451,5 @@ fn the_example_waivers_follow_the_kinds_they_apply_to() {
     }
 
     let violations = violations_for_task(&config, &task("fix", &["no-ui-ux"]), &fix_body());
-    assert_breaches(&violations, "body.content.rules.as-is-has-a-repro");
+    assert_breaches(&violations, "body.content.rules.add-fenced-repro-to-as-is");
 }

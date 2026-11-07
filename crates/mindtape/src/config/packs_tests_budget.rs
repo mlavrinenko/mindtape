@@ -38,14 +38,14 @@ fn rule(config: &Config, name: &str) -> (String, String) {
 fn wip_caps_ships_both_caps_at_one() {
     let config = load("extends = [\"mindtape:wip-caps\"]\n");
     assert_eq!(
-        rule(&config, "milestone-wip-cap"),
+        rule(&config, "keep-one-milestone-in-progress"),
         (
             r#"status == "wip" && kind == "milestone""#.to_owned(),
             r#"count(status == "wip" && kind == "milestone") <= 1"#.to_owned()
         )
     );
     assert_eq!(
-        rule(&config, "leaf-wip-cap"),
+        rule(&config, "keep-one-task-in-progress"),
         (
             r#"status == "wip" && kind != "milestone""#.to_owned(),
             r#"count(status == "wip" && kind != "milestone") <= 1"#.to_owned()
@@ -58,22 +58,30 @@ fn wip_caps_takes_each_cap_as_a_parameter() {
     let config = load(
         "extends = [{ pack = \"mindtape:wip-caps\", with = { milestones = 2, leaves = 3 } }]\n",
     );
-    assert!(rule(&config, "milestone-wip-cap").1.ends_with("<= 2"));
-    assert!(rule(&config, "leaf-wip-cap").1.ends_with("<= 3"));
+    assert!(
+        rule(&config, "keep-one-milestone-in-progress")
+            .1
+            .ends_with("<= 2")
+    );
+    assert!(
+        rule(&config, "keep-one-task-in-progress")
+            .1
+            .ends_with("<= 3")
+    );
 }
 
 #[test]
 fn budget_ships_both_rules_with_their_defaults() {
     let config = load("extends = [\"mindtape:budget\"]\n");
     assert_eq!(
-        rule(&config, "judgment-stays-small"),
+        rule(&config, "cap-judgment-work-at-max-source-files"),
         (
             r#"!terminal && kind != "milestone" && difficulty >= 3"#.to_owned(),
             r#"count_paths(derived.changes, "@source") <= 5"#.to_owned()
         )
     );
     assert_eq!(
-        rule(&config, "src-budget"),
+        rule(&config, "keep-work-inside-changes-plan"),
         (
             r#"status == "wip""#.to_owned(),
             r#"changed("staged+worktree", "@source") <= count_paths(derived.changes, "@source")"#
@@ -126,7 +134,7 @@ fn budget_takes_the_cap_and_the_difficulty_floor_as_parameters() {
     let config = load(
         "extends = [{ pack = \"mindtape:budget\", with = { max-files = 8, min-difficulty = 4 } }]\n",
     );
-    let (when, assertion) = rule(&config, "judgment-stays-small");
+    let (when, assertion) = rule(&config, "cap-judgment-work-at-max-source-files");
     assert!(when.ends_with("difficulty >= 4"), "{when}");
     assert_eq!(assertion, r#"count_paths(derived.changes, "@source") <= 8"#);
 }
@@ -159,10 +167,10 @@ fn both_packs_adopt_together_without_a_clash() {
          { pack = \"mindtape:budget\", with = { max-files = 8 } }]\n",
     );
     for name in [
-        "milestone-wip-cap",
-        "leaf-wip-cap",
-        "judgment-stays-small",
-        "src-budget",
+        "keep-one-milestone-in-progress",
+        "keep-one-task-in-progress",
+        "cap-judgment-work-at-max-source-files",
+        "keep-work-inside-changes-plan",
     ] {
         rule(&config, name);
     }

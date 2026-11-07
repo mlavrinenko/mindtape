@@ -1,5 +1,5 @@
 //! The `mindtape:flow` and `mindtape:ice` packs, loaded through the real
-//! registry: the status legend with its edges, the `stale-wip` gate and its
+//! registry: the status legend with its edges, the `review-stale-task-before-starting` gate and its
 //! `days` parameter, the ICE priority over the floor's scale, and a project's
 //! own legend replacing the pack's whole. How a flip moves through the graph
 //! is the CLI tests' business (`flow_pack_e2e.rs`).
@@ -57,7 +57,10 @@ fn flow_restates_the_six_statuses_with_their_edges() {
 fn flow_ships_the_stale_gate_at_thirty_days() {
     let config = load("extends = [\"mindtape:flow\"]\n");
     let hook = &config.on.flip[0];
-    assert_eq!(hook.name.as_deref(), Some("stale-wip"));
+    assert_eq!(
+        hook.name.as_deref(),
+        Some("review-stale-task-before-starting")
+    );
     assert_eq!(hook.when, r#"into("wip") && stale(30)"#);
     assert!(hook.actions[0].gate);
     assert!(hook.actions[0].run.is_none());
@@ -87,7 +90,7 @@ fn a_legend_without_wip_leaves_the_stale_gate_naming_a_status_it_lacks() {
     std::fs::write(project.join(".mindtape").join("config.toml"), own).unwrap();
     let err = load_config_layered_from(&project, Some(&home), None).unwrap_err();
     assert!(err.to_string().contains("unknown status: 'wip'"), "{err}");
-    let disabled = format!("disable = [\"stale-wip\"]\n{own}");
+    let disabled = format!("disable = [\"review-stale-task-before-starting\"]\n{own}");
     assert!(load(&disabled).on.flip.is_empty());
 }
 

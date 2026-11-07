@@ -15,7 +15,7 @@ fn rules(toml: &str) -> Vec<ActiveRule> {
 #[test]
 fn a_check_rule_lists_its_function_and_no_message() {
     let listed = rules(
-        "[[tasks.rules]]\nname = \"goals\"\nmessage = \"ignored\"\nseverity = \"error\"\n\
+        "[[tasks.rules]]\nname = \"give-every-goal-verdict\"\nmessage = \"ignored\"\nseverity = \"error\"\n\
          check = { typst = \"lib.typ\", function = \"check-goals\", field = \"x-goals\" }\n",
     );
 
@@ -23,7 +23,7 @@ fn a_check_rule_lists_its_function_and_no_message() {
         listed,
         [ActiveRule {
             section: RuleSection::TasksRules,
-            name: "tasks.rules.goals".to_owned(),
+            name: "tasks.rules.give-every-goal-verdict".to_owned(),
             severity: Severity::Error,
             message: None,
             when: None,
@@ -268,10 +268,13 @@ fn a_severity_labels_and_serializes_as_its_config_word() {
 fn a_named_flip_hook_lists_by_its_name() {
     let listed = rules(
         "[[on.flip]]\nwhen = ''\nactions = [{ show = \"hi\" }]\n\
-         [[on.flip]]\nname = \"stale-wip\"\nwhen = 'into(\"wip\")'\n\
+         [[on.flip]]\nname = \"review-stale-task-before-starting\"\nwhen = 'into(\"wip\")'\n\
          actions = [{ gate = true, message = \"re-read the scope\" }]\n",
     );
 
     let names: Vec<_> = listed.iter().map(|rule| rule.name.as_str()).collect();
-    assert_eq!(names, ["on.flip.stale-wip.actions[0]"]);
+    assert_eq!(
+        names,
+        ["on.flip.review-stale-task-before-starting.actions[0]"]
+    );
 }

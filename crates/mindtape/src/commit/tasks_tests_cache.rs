@@ -361,7 +361,7 @@ fn an_xdg_layer_supplies_a_state_root() {
 fn a_state_config_resolves_a_pack_and_its_disable() {
     let dir = git_tempdir();
     let root = dir.path();
-    let text = "extends = [\"mindtape:tasks\"]\ndisable = [\"section-allowlist\"]\n\
+    let text = "extends = [\"mindtape:tasks\"]\ndisable = [\"allow-only-declared-sections\"]\n\
                 [tasks]\nroots = [\"tasks\"]\n";
     commit_files(
         root,

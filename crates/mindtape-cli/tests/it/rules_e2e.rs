@@ -43,7 +43,7 @@ fn project(rules: &str, title: &str) -> tempfile::TempDir {
 fn imperative_rule(severity: &str) -> String {
     format!(
         "[[tasks.rules]]\n\
-         name = \"imperative-title\"\n\
+         name = \"start-title-with-verb\"\n\
          assert = 'in_dict(\"mindtape-dev-verbs\", word(title, 1))'\n\
          message = \"start the title with an imperative verb\"\n\
          severity = \"{severity}\"\n"
@@ -65,7 +65,7 @@ fn an_assert_that_holds_leaves_check_green() {
         !text
             .lines()
             .any(|line| line.contains(&shown("tasks/subject.typ"))
-                && line.contains("imperative-title")),
+                && line.contains("start-title-with-verb")),
         "got: {text}"
     );
 }
@@ -80,7 +80,7 @@ fn a_breach_names_the_file_the_rule_and_its_message() {
     );
     assert!(
         text.contains(&shown(
-            "error: tasks/subject.typ:3: rules.imperative-title: \
+            "error: tasks/subject.typ:3: rules.start-title-with-verb: \
              start the title with an imperative verb"
         )),
         "a breach reports at the task's marker line, prefixed by its \
@@ -95,7 +95,7 @@ fn a_warn_breach_prints_and_passes() {
     assert!(ok, "warn is a report, not a failure: {text}");
     assert!(
         text.contains(&shown(
-            "warning: tasks/subject.typ:3: rules.imperative-title:"
+            "warning: tasks/subject.typ:3: rules.start-title-with-verb:"
         )),
         "got: {text}"
     );
@@ -104,7 +104,7 @@ fn a_warn_breach_prints_and_passes() {
 #[test]
 fn severity_defaults_to_warn() {
     let rule = "[[tasks.rules]]\n\
-                name = \"imperative-title\"\n\
+                name = \"start-title-with-verb\"\n\
                 assert = 'in_dict(\"mindtape-dev-verbs\", word(title, 1))'\n";
     let dir = project(rule, "Loader refactoring");
     let (ok, text) = check(dir.path());
@@ -115,13 +115,13 @@ fn severity_defaults_to_warn() {
 #[test]
 fn a_rule_with_no_message_names_its_own_assert() {
     let rule = "[[tasks.rules]]\n\
-                name = \"imperative-title\"\n\
+                name = \"start-title-with-verb\"\n\
                 assert = 'matches(title, \"^Refactor\")'\n\
                 severity = \"error\"\n";
     let dir = project(rule, "Loader refactoring");
     support::assert_check_fails(
         dir.path(),
-        "rules.imperative-title: must satisfy `matches(title, \"^Refactor\")`",
+        "rules.start-title-with-verb: must satisfy `matches(title, \"^Refactor\")`",
     );
 }
 
@@ -150,7 +150,7 @@ fn a_rule_reaches_a_project_dict() {
     let rules = "[dicts.verbs]\n\
                  values = [\"refactor\", \"ship\"]\n\n\
                  [[tasks.rules]]\n\
-                 name = \"imperative-title\"\n\
+                 name = \"start-title-with-verb\"\n\
                  assert = 'in_dict(\"verbs\", word(title, 1))'\n\
                  severity = \"error\"\n";
     let held = project(rules, "Refactor the loader");
@@ -160,7 +160,7 @@ fn a_rule_reaches_a_project_dict() {
     let breached = project(rules, "Loader refactoring");
     let (failed, text) = check(breached.path());
     assert!(!failed, "got: {text}");
-    assert!(text.contains("rules.imperative-title"), "got: {text}");
+    assert!(text.contains("rules.start-title-with-verb"), "got: {text}");
 }
 
 #[test]
@@ -199,7 +199,7 @@ fn mt_add_refuses_a_write_that_breaches_an_error_rule() {
     assert!(!out.status.success(), "an error rule must refuse the write");
     let stderr = String::from_utf8_lossy(&out.stderr);
     assert!(
-        stderr.contains("error: <new task from template 'task'>:3: rules.imperative-title"),
+        stderr.contains("error: <new task from template 'task'>:3: rules.start-title-with-verb"),
         "a blocking problem reports as an error: {stderr}"
     );
     assert!(
@@ -222,7 +222,7 @@ fn mt_add_lets_a_warn_rule_through() {
     assert!(out.status.success(), "a warn rule lets the write land");
     let stderr = String::from_utf8_lossy(&out.stderr);
     assert!(
-        stderr.contains("warning: <new task from template 'task'>:3: rules.imperative-title"),
+        stderr.contains("warning: <new task from template 'task'>:3: rules.start-title-with-verb"),
         "a non-blocking breach reports as a warning: {stderr}"
     );
     assert!(
@@ -271,7 +271,7 @@ fn mt_flip_lets_a_warn_rule_through() {
     let stderr = String::from_utf8_lossy(&out.stderr);
     assert!(
         stderr.contains(&shown(
-            "warning: tasks/subject.typ:3: rules.imperative-title"
+            "warning: tasks/subject.typ:3: rules.start-title-with-verb"
         )),
         "the warn breach reports as a warning: {stderr}"
     );
@@ -284,7 +284,7 @@ fn mt_flip_lets_a_warn_rule_through() {
 /// The mechanism above is proven against a synthetic project. This checks the
 /// ADOPTION itself
 /// (truth/tasks/enforce-an-imperative-verb-at-the-start-of-task-titles.typ):
-/// that `imperative-title` reaches this repo's own backlog at `error`. It loads
+/// that `start-title-with-verb` reaches this repo's own backlog at `error`. It loads
 /// the committed config rather than re-deriving it from a scaffold, so a config
 /// edit that drops the rule or loosens its severity fails here even though the
 /// mechanism itself still works.
@@ -293,13 +293,13 @@ fn find_imperative_title_rule(config: &mindtape::Config) -> &mindtape::RuleSpec 
         .tasks
         .rules
         .iter()
-        .find(|rule| rule.name.as_deref() == Some("imperative-title"))
-        .expect("the imperative-title rule must be declared")
+        .find(|rule| rule.name.as_deref() == Some("start-title-with-verb"))
+        .expect("the start-title-with-verb rule must be declared")
 }
 
 /// This repo's own `.mindtape/config.toml`
 /// (`truth/tasks/ship-the-task-practice-as-the-mindtape-tasks-pack.typ`) no
-/// longer declares `imperative-title` itself — it inherits it from the
+/// longer declares `start-title-with-verb` itself — it inherits it from the
 /// embedded `mindtape:tasks` pack via `extends`. `parse_config` cannot prove
 /// that (it never resolves `extends`/`disable`; see `crate::config::packs`),
 /// so this loads the full layered config against the real repo root instead,

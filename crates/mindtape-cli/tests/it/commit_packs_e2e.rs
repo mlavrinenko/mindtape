@@ -36,7 +36,10 @@ fn a_product_change_without_a_changelog_entry_is_refused() {
     let dir = repo_extending(COMMITS);
     stage_work(dir.path(), &["src/lib.rs"]);
     let text = commit_msg_refusal(dir.path(), "feat: parse\n");
-    assert!(text.contains("changelog-with-product-change"), "{text}");
+    assert!(
+        text.contains("add-changelog-entry-for-product-change"),
+        "{text}"
+    );
 }
 
 #[test]
@@ -62,7 +65,7 @@ fn work_naming_a_task_still_proposed_is_refused() {
     let dir = repo_extending("extends = [\"mindtape:commits\"]\n");
     stage_task(dir.path(), |text| text.replace("wip(2026", "proposed(2026"));
     let text = commit_msg_refusal(dir.path(), "task: reword\n\nRefs: parser\n");
-    assert!(text.contains("refs-task-is-started"), "{text}");
+    assert!(text.contains("start-named-task-in-its-commit"), "{text}");
 }
 
 #[test]
@@ -74,7 +77,7 @@ fn a_tweak_changing_two_source_files_is_refused() {
     });
     stage_work(dir.path(), &["src/a.rs", "src/b.rs"]);
     let text = commit_msg_refusal(dir.path(), "fix: two files\n\nRefs: parser\n");
-    assert!(text.contains("tweak-stays-one-file"), "{text}");
+    assert!(text.contains("keep-tweak-to-one-source-file"), "{text}");
 }
 
 #[test]

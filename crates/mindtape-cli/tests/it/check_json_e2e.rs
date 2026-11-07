@@ -13,7 +13,7 @@ use crate::support;
 
 use support::{mt, scaffold_project};
 
-const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n[[tasks.rules]]\nname = \"imperative-title\"\n\
+const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n[[tasks.rules]]\nname = \"start-title-with-verb\"\n\
     assert = 'title != \"Loader refactoring\"'\n\
     message = \"start the title with an imperative verb\"\nseverity = \"error\"\n\n\
     [[tasks.rules]]\nname = \"no-wip-note\"\nassert = 'title != \"Loader polishing\"'\n\
@@ -54,7 +54,7 @@ fn an_error_and_a_warning_are_two_objects_and_the_exit_code_is_one() {
         .find(|p| p["severity"] == "error" && p["file"] == "tasks/subject.typ")
         .unwrap_or_else(|| panic!("{json}"));
     assert_eq!(error["line"], 3);
-    assert_eq!(error["rule"], "rules.imperative-title");
+    assert_eq!(error["rule"], "rules.start-title-with-verb");
     assert_eq!(error["message"], "start the title with an imperative verb");
     assert_eq!(error["hints"], serde_json::json!([]));
     let warning = problems
@@ -63,7 +63,7 @@ fn an_error_and_a_warning_are_two_objects_and_the_exit_code_is_one() {
         .unwrap_or_else(|| panic!("{json}"));
     assert_eq!(warning["rule"], "rules.no-wip-note");
     assert!(
-        !stderr.contains("rules.imperative-title"),
+        !stderr.contains("rules.start-title-with-verb"),
         "problems go to stdout: {stderr}"
     );
 }

@@ -946,7 +946,7 @@ groups:
   # and llvm-cov only ever report Rust, so a slot in those templates would have
   # exactly one filler and would hide the prose from the reader for nothing.
   # sweep-repeats.typ has a `remedy` slot for another reason: the repo's
-  # changes-name-files rule wants a path on each Changes bullet, and the path
+  # name-path-in-changes rule wants a path on each Changes bullet, and the path
   # is the finding's own.
   - name: sweep-templates
     source:

@@ -8,7 +8,7 @@ use mindtape::test_support::write_file;
 use crate::support;
 
 const QUESTIONS: &str = "[tasks]\nroots = [\"tasks\"]\n\n\
-     [[tasks.body.content.rules]]\nname = \"no-open-questions\"\npath = [\"TO-BE\"]\n\
+     [[tasks.body.content.rules]]\nname = \"leave-no-question-open\"\npath = [\"TO-BE\"]\n\
      assert = { density = { pattern = '\\?(\\s|$)', max = 0, per = \"sentence\" } }\n\
      when = \"!terminal\"\n";
 
@@ -17,7 +17,7 @@ const ADVICE: &str = "message = \"ask the user and write the answer in\"\n";
 /// The breach's place and rule, its task file as `mt` shows it.
 fn breach() -> String {
     support::native_in(
-        "error: tasks/board.typ:8: body.content.rules.no-open-questions: ",
+        "error: tasks/board.typ:8: body.content.rules.leave-no-question-open: ",
         &["tasks/board.typ"],
     )
 }

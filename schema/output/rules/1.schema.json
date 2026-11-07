@@ -29,7 +29,7 @@
           ]
         },
         "name": {
-          "description": "The dotted name `mt config show --origin` prints, such as\n`tasks.rules.imperative-title` or `tasks.rules[3]` for an unnamed\nrule. A flip action takes its hook's, followed by its slot, so it\nreads `on.flip.stale-wip.actions[1]`, or `on.flip[0].actions[1]` for an\nunnamed hook.",
+          "description": "The dotted name `mt config show --origin` prints, such as\n`tasks.rules.start-title-with-verb` or `tasks.rules[3]` for an unnamed\nrule. A flip action takes its hook's, followed by its slot, so it\nreads `on.flip.review-stale-task-before-starting.actions[1]`, or\n`on.flip[0].actions[1]` for an unnamed hook.",
           "type": "string"
         },
         "section": {

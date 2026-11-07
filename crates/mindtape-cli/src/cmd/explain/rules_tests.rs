@@ -7,7 +7,7 @@ use super::{Moment, render};
 #[test]
 fn a_rule_with_no_fixed_message_says_who_words_its_breaches() {
     let config = parse_config(
-        "[[tasks.rules]]\nname = \"goals\"\nseverity = \"error\"\n\
+        "[[tasks.rules]]\nname = \"give-every-goal-verdict\"\nseverity = \"error\"\n\
          check = { typst = \"truth/lib.typ\", function = \"check-goals\" }\n\
          [[tasks.body.content.rules]]\npath = [\"Problem\"]\nassert = \"non-empty\"\n",
     )
@@ -16,8 +16,8 @@ fn a_rule_with_no_fixed_message_says_who_words_its_breaches() {
     assert_eq!(
         render(&active_rules(&config), &[]),
         "\
-error  tasks.rules.goals            (messages from check-goals in truth/lib.typ)
-error  tasks.body.content.rules[0]  (no message set)
+error  tasks.rules.give-every-goal-verdict  (messages from check-goals in truth/lib.typ)
+error  tasks.body.content.rules[0]          (no message set)
 "
     );
 }

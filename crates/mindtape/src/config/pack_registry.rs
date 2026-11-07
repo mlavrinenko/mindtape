@@ -125,7 +125,7 @@ impl fmt::Display for RuleOrigin {
 /// came from. Backs `mt config show --origin`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RuleOriginEntry {
-    /// e.g. `tasks.rules.imperative-title` or `tasks.body.headers.rules[2]`.
+    /// e.g. `tasks.rules.start-title-with-verb` or `tasks.body.headers.rules[2]`.
     pub label: String,
     /// The pack or layer this entry's current content came from.
     pub origin: RuleOrigin,

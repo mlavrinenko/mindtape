@@ -15,10 +15,10 @@ use crate::support;
 
 use support::{commit_repo, git, isolated_env};
 
-/// This repository's `flip-with-work`, over the one-task fixture.
+/// This repository's `flip-task-with-its-work`, over the one-task fixture.
 const FLIP_WITH_WORK: &str = "[commits]\ntrailer = \"Refs\"\n\n\
      [[commits.rules]]\n\
-     name = \"flip-with-work\"\n\
+     name = \"flip-task-with-its-work\"\n\
      scope = \"task\"\n\
      when = 'into(\"wip\") || into(\"done\")'\n\
      assert = 'named && !tasks_only'\n\
@@ -28,7 +28,7 @@ const FLIP_WITH_WORK: &str = "[commits]\ntrailer = \"Refs\"\n\n\
 /// A rule a merge message with no `Refs:` would break.
 const WORK_NAMES_A_TASK: &str = "[commits]\ntrailer = \"Refs\"\n\n\
      [[commits.rules]]\n\
-     name = \"work-names-a-task\"\n\
+     name = \"name-task-in-refs-trailer\"\n\
      when = '!tasks_only'\n\
      assert = 'has(refs)'\n\
      message = \"name the task this commit works on\"\n\
@@ -122,7 +122,7 @@ fn a_flip_in_a_new_commit_on_top_of_the_work_is_still_refused() {
     let dir = work_commit_repo();
     let (ok, text) = close_parser(dir.path(), &["-m", "task: close\n\nRefs: parser"]);
     assert!(!ok, "a flip alone is not carried by HEAD's work: {text}");
-    assert!(text.contains("flip-with-work"), "{text}");
+    assert!(text.contains("flip-task-with-its-work"), "{text}");
 }
 
 #[test]

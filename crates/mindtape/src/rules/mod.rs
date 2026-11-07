@@ -9,7 +9,7 @@
 //!
 //!   ```toml
 //!   [[tasks.rules]]
-//!   name = "imperative-title"
+//!   name = "start-title-with-verb"
 //!   assert = 'in_dict("verbs", word(title, 1))'
 //!   when = '!terminal'
 //!   message = "start the title with an imperative verb"
@@ -21,7 +21,7 @@
 //!
 //!   ```toml
 //!   [[tasks.rules]]
-//!   name = "goals"
+//!   name = "give-every-goal-verdict"
 //!   when = "!terminal"
 //!   check = { typst = "truth/lib.typ", function = "check-goals", field = "x-goals" }
 //!   severity = "error"
@@ -40,7 +40,7 @@
 //! A breach reports at the task's marker line, prefixed by its severity:
 //!
 //! ```text
-//! error: tasks/rewrite-loader.typ:3: rules.imperative-title: start the title with an imperative verb
+//! error: tasks/rewrite-loader.typ:3: rules.start-title-with-verb: start the title with an imperative verb
 //! ```
 //!
 //! `warn` (the default) prints and lets the command through; `error` fails it,

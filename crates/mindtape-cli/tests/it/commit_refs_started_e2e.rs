@@ -13,7 +13,7 @@ use support::{check_commit_msg, commit_repo, git};
 
 /// The same entry `.mindtape/config.toml` declares.
 const REFS_TASK_STARTED: &str = "[[commits.rules]]\n\
-     name = \"refs-task-is-started\"\n\
+     name = \"start-named-task-in-its-commit\"\n\
      scope = \"task\"\n\
      when = 'named && staged(exists)'\n\
      assert = 'staged(status == \"wip\" || terminal)'\n\
@@ -47,7 +47,7 @@ fn work_naming_a_task_still_proposed_is_refused() {
     let (ok, text) = check_commit_msg(dir.path(), "feat: parse\n\nRefs: parser\n");
     assert!(!ok, "a proposed task cannot be worked on: {text}");
     assert!(
-        text.contains("commits.rules.refs-task-is-started: parser: flip the task to wip"),
+        text.contains("commits.rules.start-named-task-in-its-commit: parser: flip the task to wip"),
         "{text}"
     );
 }

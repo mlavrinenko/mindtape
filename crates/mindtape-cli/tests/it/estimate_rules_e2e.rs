@@ -29,7 +29,7 @@ fn config(rules: &str) -> String {
 }
 
 /// The working-tree budget, counting everything but `gen/**`.
-const BUDGET: &str = "[[tasks.rules]]\nname = \"src-budget\"\n\
+const BUDGET: &str = "[[tasks.rules]]\nname = \"keep-work-inside-changes-plan\"\n\
      when = 'status == \"wip\"'\n\
      assert = 'changed(\"staged+worktree\", \"!gen/**\") <= estimate.src-files'\n\
      message = \"split the remaining work into a new task\"\n";
@@ -87,7 +87,7 @@ fn an_outgrown_working_tree_warns_through_the_budget_rule() {
     assert!(ok, "a warn rule leaves `mt check` green: {stdout}");
     assert!(
         stdout.contains(&shown(
-            "warning: tasks/budgeted.typ:1: rules.src-budget: split the remaining work"
+            "warning: tasks/budgeted.typ:1: rules.keep-work-inside-changes-plan: split the remaining work"
         )),
         "the breach names the rule and its advice: {stdout}"
     );
@@ -101,9 +101,8 @@ fn a_template_meets_an_empty_working_tree() {
     let (ok, stdout) = check(dir.path());
     assert!(ok, "{stdout}");
     assert!(
-        !stdout
-            .lines()
-            .any(|line| line.contains("built-in template") && line.contains("rules.src-budget")),
+        !stdout.lines().any(|line| line.contains("built-in template")
+            && line.contains("rules.keep-work-inside-changes-plan")),
         "the budget must not fire on a template: {stdout}"
     );
 }
@@ -115,7 +114,9 @@ fn an_excluded_path_does_not_spend_the_budget() {
     let (ok, stdout) = check(dir.path());
     assert!(ok, "{stdout}");
     assert!(
-        !stdout.contains(&shown("tasks/budgeted.typ:1: rules.src-budget")),
+        !stdout.contains(&shown(
+            "tasks/budgeted.typ:1: rules.keep-work-inside-changes-plan"
+        )),
         "{stdout}"
     );
 }

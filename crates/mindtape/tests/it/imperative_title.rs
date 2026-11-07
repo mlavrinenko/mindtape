@@ -1,4 +1,4 @@
-//! The `imperative-title` rule the `mindtape:tasks` pack ships, run against
+//! The `start-title-with-verb` rule the `mindtape:tasks` pack ships, run against
 //! titles an engineer files. The rule is loaded through `extends`, so the
 //! assertion under test is the one a project inherits, over the dictionaries
 //! the binary embeds.
@@ -6,7 +6,7 @@
 
 use mindtape::{Filter, Task};
 
-/// Does the pack's `imperative-title` assertion accept `title`?
+/// Does the pack's `start-title-with-verb` assertion accept `title`?
 fn accepted(title: &str) -> bool {
     let dir = tempfile::tempdir().unwrap();
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
@@ -22,7 +22,7 @@ fn accepted(title: &str) -> bool {
         .tasks
         .rules
         .iter()
-        .find(|rule| rule.name.as_deref() == Some("imperative-title"))
+        .find(|rule| rule.name.as_deref() == Some("start-title-with-verb"))
         .unwrap();
     let task = Task {
         id: "subject".to_owned(),

@@ -1,6 +1,6 @@
-//! The shipped `mindtape:tasks` pack's `flip-with-work` counts retiring
+//! The shipped `mindtape:tasks` pack's `flip-task-with-its-work` counts retiring
 //! another task as work (`truth/tasks/count-retiring-other-tasks-as-work-in-
-//! the-flip-with-work-rule.typ`): a close that deletes other task files
+//! the-flip-task-with-its-work-rule.typ`): a close that deletes other task files
 //! passes, while a bare flip, or a flip beside edits to other tasks, is
 //! still refused.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
@@ -47,7 +47,7 @@ fn a_close_alone_is_still_refused() {
     let dir = pack_repo();
     stage_close(dir.path());
     let text = support::commit_msg_refusal(dir.path(), MESSAGE);
-    assert!(text.contains("flip-with-work: parser"), "{text}");
+    assert!(text.contains("flip-task-with-its-work: parser"), "{text}");
 }
 
 #[test]
@@ -59,5 +59,5 @@ fn a_close_beside_an_edit_to_another_task_is_still_refused() {
     std::fs::write(&path, text.replace("\"Other\"", "\"Other, reworded\"")).unwrap();
     git(dir.path(), &["add", "tasks/other.typ"]);
     let text = support::commit_msg_refusal(dir.path(), MESSAGE);
-    assert!(text.contains("flip-with-work: parser"), "{text}");
+    assert!(text.contains("flip-task-with-its-work: parser"), "{text}");
 }

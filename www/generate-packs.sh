@@ -11,9 +11,10 @@
 #
 # Unlike every other capture in generate.sh, this one runs `mt` against the
 # real repo, not a fixture: the packs' dogfood use — one pack replacing
-# another's rule by name (`section-allowlist`, in `mindtape:dogfood`), and a
-# project-only rule no pack has an opinion on (`goals`) — is the worked example
-# the page quotes, and only this repo's own config shows it. `config show --origin` is read-only (see
+# another's rule by name (`allow-only-declared-sections`, in
+# `mindtape:dogfood`), and a project-only rule no pack has an opinion on
+# (`give-every-goal-verdict`) — is the worked example the page quotes, and only
+# this repo's own config shows it. `config show --origin` is read-only (see
 # CONTRIBUTING.md's command-class table), so running it here mutates
 # nothing.
 set -eo pipefail

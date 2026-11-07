@@ -41,10 +41,10 @@ fn sole_breach(tasks: &[Task], config: &Config) -> Violation {
     found.into_iter().next().unwrap()
 }
 
-/// The `imperative-title` rule at `error`, over the built-in dev-verb dict.
+/// The `start-title-with-verb` rule at `error`, over the built-in dev-verb dict.
 const IMPERATIVE: &str = "\
 [[tasks.rules]]
-name = \"imperative-title\"
+name = \"start-title-with-verb\"
 assert = 'in_dict(\"mindtape-dev-verbs\", word(title, 1))'
 message = \"start the title with an imperative verb\"
 severity = \"error\"
@@ -67,7 +67,7 @@ fn a_breach_carries_the_label_message_location_and_severity() {
     let tasks = vec![task("a", "Loader refactoring", "wip")];
     let breach = sole_breach(&tasks, &config(IMPERATIVE));
     assert_eq!(breach.task_id, "a");
-    assert_eq!(breach.field, "rules.imperative-title");
+    assert_eq!(breach.field, "rules.start-title-with-verb");
     assert_eq!(breach.message, "start the title with an imperative verb");
     assert_eq!(breach.severity, Severity::Error);
     assert!(breach.is_fatal());
@@ -125,14 +125,14 @@ fn an_unnamed_rule_is_labelled_by_its_index() {
 #[test]
 fn label_prefers_the_name_over_the_index() {
     let named = RuleSpec {
-        name: Some("imperative-title".to_owned()),
+        name: Some("start-title-with-verb".to_owned()),
         assertion: Some("true".to_owned()),
         check: None,
         when: None,
         message: None,
         severity: Severity::Warn,
     };
-    assert_eq!(named.label(7), "rules.imperative-title");
+    assert_eq!(named.label(7), "rules.start-title-with-verb");
     let anonymous = RuleSpec {
         name: None,
         ..named
@@ -311,7 +311,7 @@ fn a_rule_reading_changed_outside_git_is_skipped_once_never_an_error() {
     let mut config = config(
         "\
 [[tasks.rules]]
-name = \"src-budget\"
+name = \"keep-work-inside-changes-plan\"
 assert = 'changed(\"staged+worktree\", \"src/**\") <= 3'
 severity = \"error\"
 ",
@@ -319,7 +319,7 @@ severity = \"error\"
     config.git.set_root(dir.path());
     let tasks = vec![task("a", "Refactor it", "wip"), task("b", "Fix it", "wip")];
     let skip = sole_breach(&tasks, &config);
-    assert_eq!(skip.field, "rules.src-budget");
+    assert_eq!(skip.field, "rules.keep-work-inside-changes-plan");
     assert_eq!(skip.severity, Severity::Warn);
     assert!(skip.message.starts_with("skipped: "), "{}", skip.message);
     assert!(

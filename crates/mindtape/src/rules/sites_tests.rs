@@ -38,7 +38,7 @@ fn skip_report(root: &Path, xdg: Option<&Path>) -> Violation {
 fn a_skipped_project_rule_is_located_at_its_header() {
     let dir = tempdir_with_config(&format!(
         "[tasks]\nroots = [\"tasks\"]\n\n{}",
-        skipping_rule("src-budget")
+        skipping_rule("keep-work-inside-changes-plan")
     ));
     let skip = skip_report(dir.path(), None);
     assert_eq!(skip.severity, Severity::Warn);
@@ -48,7 +48,10 @@ fn a_skipped_project_rule_is_located_at_its_header() {
 #[test]
 fn a_skipped_path_pack_rule_is_located_in_the_pack_file() {
     let dir = tempdir_with_config("extends = [\"./pack.toml\"]\n");
-    let pack = format!("# a pack\n\n{}", skipping_rule("src-budget"));
+    let pack = format!(
+        "# a pack\n\n{}",
+        skipping_rule("keep-work-inside-changes-plan")
+    );
     write_file(dir.path(), "pack.toml", &pack);
     let skip = skip_report(dir.path(), None);
     assert_eq!(skip.location, Location::at("pack.toml", 3));
@@ -60,7 +63,7 @@ fn a_skipped_global_layer_rule_is_located_in_that_layer() {
     let xdg = tempdir();
     let defaults = xdg.path().join("mindtape/defaults.toml");
     std::fs::create_dir_all(defaults.parent().unwrap()).unwrap();
-    std::fs::write(&defaults, skipping_rule("src-budget")).unwrap();
+    std::fs::write(&defaults, skipping_rule("keep-work-inside-changes-plan")).unwrap();
     let skip = skip_report(dir.path(), Some(xdg.path()));
     assert_eq!(skip.location, Location::at(defaults, 1));
 }
@@ -69,9 +72,13 @@ fn a_skipped_global_layer_rule_is_located_in_that_layer() {
 fn a_rule_the_project_overrides_by_name_is_located_where_it_won() {
     let dir = tempdir_with_config(&format!(
         "extends = [\"./pack.toml\"]\n\n{}",
-        skipping_rule("src-budget")
+        skipping_rule("keep-work-inside-changes-plan")
     ));
-    write_file(dir.path(), "pack.toml", skipping_rule("src-budget"));
+    write_file(
+        dir.path(),
+        "pack.toml",
+        skipping_rule("keep-work-inside-changes-plan"),
+    );
     let skip = skip_report(dir.path(), None);
     assert_eq!(skip.location, Location::at(".mindtape/config.toml", 3));
 }
@@ -79,12 +86,12 @@ fn a_rule_the_project_overrides_by_name_is_located_where_it_won() {
 #[test]
 fn a_built_in_pack_rule_is_located_by_pack_name_and_line() {
     let entry = RuleOriginEntry {
-        label: "tasks.rules.imperative-title".to_owned(),
+        label: "tasks.rules.start-title-with-verb".to_owned(),
         origin: RuleOrigin::Pack(PackOrigin::Embedded("mindtape:tasks".to_owned())),
         line: Some(17),
     };
     let sites = RuleSites::from_origins(&[entry], Path::new("/project"));
-    let site = sites.get("rules.imperative-title").unwrap();
+    let site = sites.get("rules.start-title-with-verb").unwrap();
     assert_eq!(site.to_string(), "pack mindtape:tasks:17");
     assert_eq!(site.file(), None);
 }

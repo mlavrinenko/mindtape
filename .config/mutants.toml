@@ -80,7 +80,8 @@ minimum_test_timeout = 120
 # Benchmarked ~20% faster per mutant; picked up by every `cargo mutants` call.
 profile = "mutants"
 # Copy .git into every mutant's scratch tree. `dogfood_check` loads this repo's
-# own config over truth/tasks, and the `src-budget` rule's `changed()` reads git;
-# without a repository the baseline fails before any mutant runs. ~13 MB added
+# own config over truth/tasks, and the `keep-work-inside-changes-plan` rule's
+# `changed()` reads git; without a repository the baseline fails before any
+# mutant runs. ~13 MB added
 # to the ~17 MB tree copy cargo-mutants makes per mutant.
 copy_vcs = true

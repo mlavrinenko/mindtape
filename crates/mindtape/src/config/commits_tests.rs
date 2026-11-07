@@ -19,7 +19,7 @@ fn record(refs: &[&str], tasks_only: bool) -> CommitRecord {
     }
 }
 
-const RULE: &str = "[[commits.rules]]\nname = \"work-names-a-task\"\n\
+const RULE: &str = "[[commits.rules]]\nname = \"name-task-in-refs-trailer\"\n\
      when = '!tasks_only'\nassert = 'has(refs)'\nmessage = \"name it\"\n";
 
 #[test]
@@ -50,7 +50,7 @@ fn a_breach_carries_the_label_message_and_severity() {
     let config = parse_config(RULE).unwrap();
     let breaches = check_commit(&record(&[], false), None, &config);
     assert_eq!(breaches.len(), 1);
-    assert_eq!(breaches[0].label, "commits.rules.work-names-a-task");
+    assert_eq!(breaches[0].label, "commits.rules.name-task-in-refs-trailer");
     assert_eq!(breaches[0].message, "name it");
     assert_eq!(breaches[0].severity, Severity::Warn);
 }

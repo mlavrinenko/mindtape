@@ -14,7 +14,7 @@ use support::{check_commit_msg, commit_repo, git, git_commit_all, run_text, scaf
 /// The task's worked example: a start or a close rides with the work it
 /// claims, unless the commit is a decision's own.
 const FLIP_WITH_WORK: &str = "[[commits.rules]]\n\
-     name = \"flip-with-work\"\n\
+     name = \"flip-task-with-its-work\"\n\
      scope = \"task\"\n\
      when = 'into(\"wip\") || into(\"done\")'\n\
      assert = 'named && (!tasks_only || staged(has_tag(\"decision\")))'\n\
@@ -53,7 +53,7 @@ fn a_close_only_commit_is_refused_naming_the_task() {
     stage_close(dir.path(), "");
     let text = support::commit_msg_refusal(dir.path(), "task: close the parser\n");
     assert!(
-        text.contains("commits.rules.flip-with-work: parser: start or close"),
+        text.contains("commits.rules.flip-task-with-its-work: parser: start or close"),
         "the breach names the rule, the task and the message: {text}"
     );
 }

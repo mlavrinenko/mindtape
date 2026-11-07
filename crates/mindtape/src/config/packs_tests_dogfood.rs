@@ -1,5 +1,5 @@
 //! `mindtape:tasks` declaring the `kind` field and the comment policy its own
-//! rules read, and `mindtape:dogfood`: its four rules, its `section-allowlist`
+//! rules read, and `mindtape:dogfood`: its four rules, its `allow-only-declared-sections`
 //! replacing the tasks pack's by name, and the drift test that keeps the two
 //! allowlists one `Dogfood` apart.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
@@ -18,7 +18,7 @@ fn header_names(config: &Config) -> Vec<Option<&str>> {
 fn allowlist_index(config: &Config) -> usize {
     header_names(config)
         .iter()
-        .position(|name| *name == Some("section-allowlist"))
+        .position(|name| *name == Some("allow-only-declared-sections"))
         .unwrap()
 }
 
@@ -31,7 +31,7 @@ fn pack(name: &str) -> toml::Table {
     text.parse().unwrap()
 }
 
-/// The `section-allowlist` entry of the pack's `[[tasks.body.headers.rules]]`.
+/// The `allow-only-declared-sections` entry of the pack's `[[tasks.body.headers.rules]]`.
 fn allowlist(name: &str) -> toml::Table {
     let pack = pack(name);
     let rules = pack["tasks"]["body"]["headers"]["rules"]
@@ -39,7 +39,7 @@ fn allowlist(name: &str) -> toml::Table {
         .unwrap();
     let rule = rules
         .iter()
-        .find(|rule| rule["name"].as_str() == Some("section-allowlist"))
+        .find(|rule| rule["name"].as_str() == Some("allow-only-declared-sections"))
         .unwrap();
     rule.as_table().unwrap().clone()
 }
@@ -77,9 +77,9 @@ fn the_dogfood_pack_ships_four_rules_and_the_allowlist() {
     let config = load("extends = [\"mindtape:dogfood\"]\n");
     let names = header_names(&config);
     for name in [
-        "section-allowlist",
-        "one-dogfood-section",
-        "dogfood-after-out-of-scope",
+        "allow-only-declared-sections",
+        "keep-one-dogfood-section",
+        "put-dogfood-after-out-of-scope",
     ] {
         assert!(names.contains(&Some(name)), "{names:?}");
     }
@@ -88,7 +88,10 @@ fn the_dogfood_pack_ships_four_rules_and_the_allowlist() {
         .iter()
         .filter_map(|rule| rule.name.as_deref())
         .collect();
-    assert_eq!(content, ["dogfood-non-empty", "dogfood-word-cap"]);
+    assert_eq!(
+        content,
+        ["write-dogfood-section", "cap-dogfood-at-120-words"]
+    );
 }
 
 #[test]
@@ -101,7 +104,7 @@ fn listed_after_the_tasks_pack_the_dogfood_allowlist_replaces_it_in_place() {
     assert_eq!(
         header_names(&both)
             .iter()
-            .filter(|name| **name == Some("section-allowlist"))
+            .filter(|name| **name == Some("allow-only-declared-sections"))
             .count(),
         1
     );

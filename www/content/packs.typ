@@ -29,15 +29,15 @@ packs `mt` ships: `mindtape:tasks`, `mindtape:dogfood`, `mindtape:flow`,
 that layer adopts. If the layer declares a rule with the same `name` as a
 pack's rule, it replaces that rule where the pack put it. #mindtape's own
 `.mindtape/config.toml` adopts `mindtape:tasks` and, after it,
-`mindtape:dogfood`, whose `section-allowlist` replaces the tasks pack's to
-allow one more section, `Dogfood`. It adopts the other packs below too,
-`mindtape:budget` with `max-files` set to 5, and keeps only its tag list, its
+`mindtape:dogfood`, whose `allow-only-declared-sections` replaces the tasks
+pack's rule to allow one more section, `Dogfood`. It adopts the other packs
+below too, `mindtape:budget` with `max-files` set to 5, and keeps only its tag list, its
 actors, its path sets, its goal check and its close gate:
 
 #let parts = (
   ("extends", "the adoption, at the top of the file"),
   (
-    "section-allowlist",
+    "allow-only-declared-sections",
     "the replacement, in the dogfood pack: the name matches, so it takes the place of the tasks pack's rule",
   ),
 )
@@ -298,16 +298,18 @@ Here's the output in the #mindtape repository:
 #terminal("packs-origin")
 
 Every rule from a pack reads `pack <name>`: the two caps read
-`pack mindtape:wip-caps`, `judgment-stays-small` and `src-budget` read
-`pack mindtape:budget`, `tweak-lands-done` reads `pack mindtape:tweaks`, and
-the rest of the task rules read `pack mindtape:tasks`. The exception is
-`section-allowlist` and the Dogfood rules, which read `pack mindtape:dogfood`,
-because that pack replaced the tasks pack's allowlist. The `stale-wip` hook
-reads `pack mindtape:flow`, and the repository's own rule `goals` and its
-`gates-fresh` hook read `project` because only the project declares them. Keys
-that aren't rules read the same way, such as `key tasks.status` for
-`pack mindtape:flow`. To read each rule's
-severity and message as well, run #link(u("/cli/explain/#rules"))[`mt explain rules`].
+`pack mindtape:wip-caps`, `cap-judgment-work-at-max-source-files` and
+`keep-work-inside-changes-plan` read `pack mindtape:budget`, `file-tweak-done`
+reads `pack mindtape:tweaks`, and the rest of the task rules read
+`pack mindtape:tasks`. The exception is `allow-only-declared-sections` and the
+Dogfood rules, which read `pack mindtape:dogfood`, because that pack replaced
+the tasks pack's allowlist. The `review-stale-task-before-starting` hook reads
+`pack mindtape:flow`, and the repository's own rule
+`give-every-goal-verdict` and its `close-only-on-fresh-gate` hook read
+`project` because only the project declares them. Keys that aren't rules read
+the same way, such as `key tasks.status` for `pack mindtape:flow`. To read
+each rule's severity and message as well, run
+#link(u("/cli/explain/#rules"))[`mt explain rules`].
 
 After the rules come the other keys a pack set, as `key <dotted path>:
 <origin>`, and the parameters packs declare, as `param <name> = <value>: <set
@@ -336,8 +338,8 @@ tag rule and the two fenced-example rules; a project turns them on in `with`. Th
 tables below are read from
 #link(REPO + "/blob/main/crates/mindtape/src/packs/tasks.toml")[the
   pack file], and each message is the text `mt check` prints. The
-`imperative-title` rule reads the `verbs` dictionary, which the pack builds
-from the two word lists `mt` ships.
+`start-title-with-verb` rule reads the `verbs` dictionary, which the pack
+builds from the two word lists `mt` ships.
 
 #let pack = toml("../generated/packs/tasks.toml")
 
@@ -402,10 +404,10 @@ is refused. Each cap is a parameter, read from
 `extends = ["mindtape:budget"]` holds a task's size to the number of source
 files its Changes section names. A `changes` collector reads the first
 backticked path on every bullet, so `derived.changes` is a list of paths, and
-a glob counts once. `judgment-stays-small` refuses an open task of judgment
-work, and a milestone is exempt, whose Changes section names more than
-`max-files` source files. `src-budget` warns when the working tree has changed
-more files than the task in progress plans.
+a glob counts once. `cap-judgment-work-at-max-source-files` refuses an open
+task of judgment work, and a milestone is exempt, whose Changes section names
+more than `max-files` source files. `keep-work-inside-changes-plan` warns when
+the working tree has changed more files than the task in progress plans.
 
 #let budget = toml("../generated/packs/budget.toml")
 
@@ -427,9 +429,9 @@ a project that sizes in `files` overrides both rules by name.
 
 A tweak is a change too small to plan: `mt add -t tweak` files it done, in the
 commit that makes the change. `extends = ["mindtape:tweaks"]` holds a project
-to that. `tweak-lands-done` refuses a tweak that isn't terminal, and
-`tweak-stays-one-file` refuses a commit that closes a tweak and changes more
-than one file of the `source` path set. The pack leaves the `tweak` tag to the
+to that. `file-tweak-done` refuses a tweak that isn't terminal, and
+`keep-tweak-to-one-source-file` refuses a commit that closes a tweak and
+changes more than one file of the `source` path set. The pack leaves the `tweak` tag to the
 project: list it in `[tasks.tags]` if that table limits the tags. It sets
 `[dicts.source]` to `**`, the same as `mindtape:budget`, so a project adopts
 both and the two agree. Your own `[dicts.source]` replaces it for both.
@@ -443,12 +445,13 @@ both and the two agree. Your own `[dicts.source]` replaces it for both.
 = The rules in `mindtape:commits`
 
 `extends = ["mindtape:commits"]` holds each commit to two rules, and both
-are #link(u("/commit-rules/"))[commit rules]. `changelog-with-product-change`
-asks a commit that changes a file of the `product` path set for a
-`CHANGELOG.md` entry. A `Changelog: none` trailer says there's nothing to
+are #link(u("/commit-rules/"))[commit rules].
+`add-changelog-entry-for-product-change` asks a commit that changes a file of
+the `product` path set for a `CHANGELOG.md` entry. A `Changelog: none` trailer says there's nothing to
 announce, and a `fixup!`, `squash!` or `amend!` subject is exempt, since
-autosquash folds it into a commit that has one. `refs-task-is-started`
-refuses a commit whose `Refs:` task isn't `wip` or terminal in the staged tree.
+autosquash folds it into a commit that has one.
+`start-named-task-in-its-commit` refuses a commit whose `Refs:` task isn't
+`wip` or terminal in the staged tree.
 
 The pack sets `[dicts.product]` to `**`, so every file counts as product.
 Replace it with your own `[dicts.product]`, such as `crates/**` and
@@ -465,9 +468,9 @@ A project that builds with its own tool can ask each task how it will use the
 change itself. `extends = ["mindtape:tasks", "mindtape:dogfood"]` adds a
 Dogfood section after Out of scope. It must exist once, hold something ("Not
 applicable" and a reason counts) and stay under 120 words. List it after
-`mindtape:tasks`, since its `section-allowlist` replaces that pack's rule of
-the same name, with `Dogfood` allowed, and a test keeps the two lists one name
-apart.
+`mindtape:tasks`, since its `allow-only-declared-sections` replaces that
+pack's rule of the same name, with `Dogfood` allowed, and a test keeps the two
+lists one name apart.
 
 #let dogfood = toml("../generated/packs/dogfood.toml")
 
@@ -481,8 +484,8 @@ apart.
 moves between them. A task goes `proposed`, `accepted`, `wip`, then `done`,
 `cancelled` or `failed`, and a closed task reopens into `wip`. `wip` and `done`
 refuse a task whose `depends-on` target is unfinished. The pack also adds the
-`stale-wip` hook, which refuses to start a task untouched for `days` days
-until `mt review` stamps it. The default is 30 days.
+`review-stale-task-before-starting` hook, which refuses to start a task
+untouched for `days` days until `mt review` stamps it. The default is 30 days.
 
 #let flow = toml("../generated/packs/flow.toml")
 
@@ -505,8 +508,8 @@ until `mt review` stamps it. The default is 30 days.
 )
 
 A `[[tasks.status]]` of yours replaces the legend whole. The hook names `wip`,
-so a legend with no `wip` is a config error until you list `stale-wip` in
-`disable`. The pack leaves a close gate to the project: it would run a tool
+so a legend with no `wip` is a config error until you list
+`review-stale-task-before-starting` in `disable`. The pack leaves a close gate to the project: it would run a tool
 your project may lack. See #link(u("/hooks/"))[Hooks] for writing one.
 
 = The rules in `mindtape:ice`

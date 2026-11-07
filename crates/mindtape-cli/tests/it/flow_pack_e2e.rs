@@ -1,5 +1,5 @@
 //! The shipped `mindtape:flow` pack: its transition graph refuses a move the
-//! legend does not list, and its `stale-wip` gate refuses to start a task
+//! legend does not list, and its `review-stale-task-before-starting` gate refuses to start a task
 //! nobody has reviewed in a month until `mt review` stamps it.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 

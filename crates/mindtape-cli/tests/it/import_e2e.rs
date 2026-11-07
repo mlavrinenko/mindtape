@@ -134,7 +134,7 @@ fn a_skipped_record_keeps_the_content_rule_detail_under_its_breach() {
     let dir = support::scaffold_project(
         "[tasks]\nroots = [\"tasks\"]\n\
          [[tasks.status]]\nvalue = \"wip\"\n\
-         [[tasks.body.content.rules]]\nname = \"no-open-questions\"\npath = [\"TO-BE\"]\n\
+         [[tasks.body.content.rules]]\nname = \"leave-no-question-open\"\npath = [\"TO-BE\"]\n\
          assert = { density = { pattern = '\\?(\\s|$)', max = 0, per = \"sentence\" } }\n\
          message = \"ask the user and write the answer in\"\n",
     );

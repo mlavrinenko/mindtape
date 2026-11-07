@@ -14,7 +14,7 @@ use support::{check_commit_msg, check_commit_msg_with, commit_repo, git, project
 /// names the task it works on.
 const WORK_NAMES_A_TASK: &str = "[commits]\ntrailer = \"Refs\"\n\n\
      [[commits.rules]]\n\
-     name = \"work-names-a-task\"\n\
+     name = \"name-task-in-refs-trailer\"\n\
      scope = \"commit\"\n\
      when = '!tasks_only'\n\
      assert = 'has(refs)'\n\
@@ -43,7 +43,7 @@ fn a_work_commit_with_no_trailer_breaks_the_rule() {
     stage(dir.path(), "src/lib.rs");
     let text = support::commit_msg_refusal(dir.path(), "feat: parse\n\nNo trailer here.\n");
     assert!(
-        text.contains("commits.rules.work-names-a-task"),
+        text.contains("commits.rules.name-task-in-refs-trailer"),
         "the breach names its rule: {text}"
     );
     assert!(
@@ -161,7 +161,7 @@ fn outside_a_git_repository_the_check_fails_naming_why() {
 }
 
 /// A repository stopped in a `--no-ff` merge of `side`, with the
-/// `work-names-a-task` rule in force and a product file on each branch.
+/// `name-task-in-refs-trailer` rule in force and a product file on each branch.
 fn merge_in_progress() -> tempfile::TempDir {
     let dir = commit_repo(WORK_NAMES_A_TASK);
     let path = dir.path();
@@ -228,7 +228,10 @@ fn check_merges_checks_a_merge_message() {
     let (ok, text) =
         check_commit_msg_with(dir.path(), &merge_message(dir.path()), &["--check-merges"]);
     assert!(!ok, "the opt-in must judge the merge: {text}");
-    assert!(text.contains("commits.rules.work-names-a-task"), "{text}");
+    assert!(
+        text.contains("commits.rules.name-task-in-refs-trailer"),
+        "{text}"
+    );
 }
 
 /// A commit repo whose config extends the shipped `mindtape:tasks` pack.
@@ -258,7 +261,7 @@ fn the_pack_still_refuses_a_plain_commit_without_refs() {
     let dir = pack_repo();
     stage(dir.path(), "src/lib.rs");
     let text = support::commit_msg_refusal(dir.path(), "feat: fixup! is not a prefix here\n");
-    assert!(text.contains("work-names-a-task"), "{text}");
+    assert!(text.contains("name-task-in-refs-trailer"), "{text}");
 }
 
 /// A trailer whose values may name a task or an external ref, with a rule
@@ -266,7 +269,7 @@ fn the_pack_still_refuses_a_plain_commit_without_refs() {
 const EXTERNAL_REFS: &str = "[commits]\ntrailer = \"Refs\"\n\
      external-refs = [\"^r#[0-9]+$\"]\n\n\
      [[commits.rules]]\n\
-     name = \"work-names-a-task\"\n\
+     name = \"name-task-in-refs-trailer\"\n\
      scope = \"commit\"\n\
      when = '!tasks_only'\n\
      assert = 'has(refs)'\n\

@@ -31,10 +31,14 @@ fn hooks(named: &[(&str, &str, &str)]) -> String {
         .collect()
 }
 
-/// An ancestor's `stale-wip` gate saying `message`, then its `close` gate.
+/// An ancestor's `review-stale-task-before-starting` gate saying `message`, then its `close` gate.
 fn ancestor_hooks(message: &str) -> String {
     hooks(&[
-        ("stale-wip", "into(\"wip\")", message),
+        (
+            "review-stale-task-before-starting",
+            "into(\"wip\")",
+            message,
+        ),
         ("close", "into(\"done\")", "close gate"),
     ])
 }
@@ -71,14 +75,18 @@ fn named(name: &str, message: &str) -> (Option<String>, Option<String>) {
 #[test]
 fn an_ancestors_gate_fires_beside_the_projects_own() {
     let (config, _) = load_with(
-        &hook("stale-wip", "into(\"wip\")", "re-read the scope"),
+        &hook(
+            "review-stale-task-before-starting",
+            "into(\"wip\")",
+            "re-read the scope",
+        ),
         &hook("", "into(\"done\")", "run the checks"),
     );
 
     assert_eq!(
         summary(&config.unwrap()),
         [
-            named("stale-wip", "re-read the scope"),
+            named("review-stale-task-before-starting", "re-read the scope"),
             (None, Some("run the checks".to_owned()))
         ]
     );
@@ -90,13 +98,17 @@ fn a_later_entry_with_the_same_name_replaces_the_earlier_one_in_place() {
 
     let (config, _) = load_with(
         &ancestor,
-        &hook("stale-wip", "into(\"wip\")", "from the project"),
+        &hook(
+            "review-stale-task-before-starting",
+            "into(\"wip\")",
+            "from the project",
+        ),
     );
 
     assert_eq!(
         summary(&config.unwrap()),
         [
-            named("stale-wip", "from the project"),
+            named("review-stale-task-before-starting", "from the project"),
             named("close", "close gate")
         ]
     );
@@ -106,7 +118,10 @@ fn a_later_entry_with_the_same_name_replaces_the_earlier_one_in_place() {
 fn disable_drops_a_named_flip_entry() {
     let ancestor = ancestor_hooks("re-read the scope");
 
-    let (config, _) = load_with(&ancestor, "disable = [\"stale-wip\"]\n");
+    let (config, _) = load_with(
+        &ancestor,
+        "disable = [\"review-stale-task-before-starting\"]\n",
+    );
 
     assert_eq!(summary(&config.unwrap()), [named("close", "close gate")]);
 }
@@ -136,7 +151,7 @@ fn two_entries_of_one_file_sharing_a_name_are_a_config_error() {
 #[test]
 fn a_gate_is_labelled_by_its_name_or_its_position() {
     let (_, origins) = load_with(
-        &hook("stale-wip", "into(\"wip\")", "a"),
+        &hook("review-stale-task-before-starting", "into(\"wip\")", "a"),
         &hook("", "into(\"done\")", "b"),
     );
 
@@ -145,7 +160,10 @@ fn a_gate_is_labelled_by_its_name_or_its_position() {
         .filter(|entry| entry.label.starts_with("on.flip"))
         .map(|entry| entry.label.as_str())
         .collect();
-    assert_eq!(labels, ["on.flip.stale-wip", "on.flip[1]"]);
+    assert_eq!(
+        labels,
+        ["on.flip.review-stale-task-before-starting", "on.flip[1]"]
+    );
     assert!(matches!(
         origins.last().unwrap().origin,
         RuleOrigin::Layer(_)
@@ -158,7 +176,11 @@ fn a_packs_gate_applies_beside_the_projects_and_the_project_replaces_it_by_name(
     write_file(
         &home,
         "team.toml",
-        hook("stale-wip", "into(\"wip\")", "from the pack"),
+        hook(
+            "review-stale-task-before-starting",
+            "into(\"wip\")",
+            "from the pack",
+        ),
     );
     write_file(
         &root,
@@ -167,7 +189,11 @@ fn a_packs_gate_applies_beside_the_projects_and_the_project_replaces_it_by_name(
             "extends = [\"../team.toml\"]\n{}",
             hooks(&[
                 ("close", "into(\"done\")", "close gate"),
-                ("stale-wip", "into(\"wip\")", "from the project"),
+                (
+                    "review-stale-task-before-starting",
+                    "into(\"wip\")",
+                    "from the project"
+                ),
             ])
         ),
     );
@@ -179,7 +205,7 @@ fn a_packs_gate_applies_beside_the_projects_and_the_project_replaces_it_by_name(
     assert_eq!(
         summary(&config),
         [
-            named("stale-wip", "from the project"),
+            named("review-stale-task-before-starting", "from the project"),
             named("close", "close gate")
         ]
     );
@@ -187,7 +213,7 @@ fn a_packs_gate_applies_beside_the_projects_and_the_project_replaces_it_by_name(
 
 /// Mindtape's own embedded packs declare no command, so a project that
 /// extends one runs nothing it must `mt allow` first, on any OS. A gate a pack
-/// ships is a filter condition, as `stale-wip` is. A user's own pack may
+/// ships is a filter condition, as `review-stale-task-before-starting` is. A user's own pack may
 /// declare any `run`: this holds the embedded ones alone to the rule.
 #[test]
 fn no_embedded_pack_declares_a_command() {

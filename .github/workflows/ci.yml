@@ -101,13 +101,15 @@ jobs:
       # The floor bounds a range from below, so history up to it stays exempt
       # even when one push carries it. That history holds path-form `Refs:`
       # trailers the trailer check refuses and every flip-only
-      # `task: start`/`task: close` commit that `flip-with-work` refuses. The
-      # floor is the last commit before `flip-with-work` turned on. A new
-      # branch (`before` all zeros), `workflow_dispatch` and a force-push
+      # `task: start`/`task: close` commit that `flip-task-with-its-work`
+      # refuses. The floor is the last commit before `flip-task-with-its-work`
+      # turned on. A new branch (`before` all zeros), `workflow_dispatch` and
+      # a force-push
       # whose `before` is gone have no range and skip, saying so.
       #
-      # `changelog-with-product-change` raises the floor to the commit that
-      # added it, found by `git log -S` rather than by hash, so a rebase before
+      # `add-changelog-entry-for-product-change` raises the floor to the commit
+      # that added it, found by `git log -S` rather than by hash, so a rebase
+      # before
       # integration cannot stale it. Product commits made before the rule
       # carry no entry, and only commits after it are judged.
       - name: Commit rules (pushed range)

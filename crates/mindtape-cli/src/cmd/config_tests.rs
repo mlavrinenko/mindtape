@@ -346,7 +346,7 @@ fn origin_labels_an_embedded_packs_rule_as_pack_name() {
 
     let text = render_origin(dir.path()).unwrap();
     assert!(
-        text.contains("rule tasks.rules.imperative-title: pack mindtape:tasks"),
+        text.contains("rule tasks.rules.start-title-with-verb: pack mindtape:tasks"),
         "{text}"
     );
 }

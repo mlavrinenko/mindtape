@@ -225,7 +225,7 @@ mod tests {
              [[tasks.rules]]\nassert = 'has(title)'\n\
              [[tasks.body.content.rules]]\nname = \"as-is\"\npath = [\"AS-IS\"]\nassert = \"non-empty\"\n\
              [[commits.rules]]\nname = \"names-a-task\"\nassert = 'has(refs)'\n\
-             [[on.flip]]\nname = \"stale-wip\"\nwhen = 'into(\"wip\")'\n\
+             [[on.flip]]\nname = \"review-stale-task-before-starting\"\nwhen = 'into(\"wip\")'\n\
              actions = [{ list = \"@wip\", message = \"already in flight\" }, \
              { run = \"echo hi\", message = \"and this one too\" }]\n\
              [[tasks.collectors]]\nname = \"changes\"\nreturns = [\"path\"]\n\
@@ -251,7 +251,7 @@ mod tests {
             ]
         );
         assert_eq!(index.rules[0].1, ["verb-title", "[1]"]);
-        assert_eq!(index.rules[3].1, ["stale-wip"]);
+        assert_eq!(index.rules[3].1, ["review-stale-task-before-starting"]);
     }
 
     #[test]
@@ -262,8 +262,11 @@ mod tests {
         );
         assert_eq!(bare_name(RuleSection::TasksRules, "tasks.rules[2]"), "[2]");
         assert_eq!(
-            bare_name(RuleSection::OnFlip, "on.flip.stale-wip.actions[1]"),
-            "stale-wip"
+            bare_name(
+                RuleSection::OnFlip,
+                "on.flip.review-stale-task-before-starting.actions[1]"
+            ),
+            "review-stale-task-before-starting"
         );
         assert_eq!(
             bare_name(RuleSection::OnFlip, "on.flip[0].actions[0]"),
@@ -294,7 +297,10 @@ mod tests {
     #[test]
     fn renders_every_group_and_wraps_a_long_list() {
         let index = Index {
-            rules: vec![(RuleSection::OnFlip, vec!["stale-wip".to_owned()])],
+            rules: vec![(
+                RuleSection::OnFlip,
+                vec!["review-stale-task-before-starting".to_owned()],
+            )],
             derived: vec!["changes".to_owned()],
             tags: vec!["cli".to_owned(), "default".to_owned(), "mt".to_owned()],
             views: vec!["default".to_owned()],
@@ -306,7 +312,7 @@ mod tests {
             format!(
                 "\
 rules:
-  on.flip: stale-wip
+  on.flip: review-stale-task-before-starting
 derived fields: changes
 tags: cli, default, mt
 views: default

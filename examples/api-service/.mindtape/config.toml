@@ -122,7 +122,7 @@ values = ["auth", "billing"]
 path = "dicts/services.txt"
 case = "fold"
 
-# Start titles with a verb: the pack's imperative-title rule looks up a title's
+# Start titles with a verb: the pack's start-title-with-verb rule looks up a title's
 # first word in [dicts.verbs]. This dictionary replaces the pack's by name, so
 # it includes both shipped word lists and adds the project's own words.
 # docs:slice api-service/start-titles-with-a-verb

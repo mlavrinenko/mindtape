@@ -98,7 +98,7 @@ as-is: GET /audit returns every row, and on production the response is 40 MB.
 EOF
 CMD
 )"
-capture --exit 1 --expect 'as-is-is-numbered-steps' require-a-task-shape "$P" "$(
+capture --exit 1 --expect 'write-as-is-as-numbered-steps' require-a-task-shape "$P" "$(
     cat <<'CMD'
 mt add -f - <<'EOF'
 title: Paginate the audit log endpoint
@@ -134,7 +134,7 @@ out-of-scope: |
 EOF
 CMD
 )"
-capture --exit 1 --expect 'rules\.imperative-title' start-titles-with-a-verb "$P" \
+capture --exit 1 --expect 'rules\.start-title-with-verb' start-titles-with-a-verb "$P" \
     'mt add Login redirect broken -f sections.yaml'
 capture start-titles-with-a-verb "$P" 'mt add Fix the login redirect -f sections.yaml'
 capture start-titles-with-a-verb "$P" 'mt add Backport the login redirect fix to v1 -f sections.yaml'
@@ -226,7 +226,7 @@ EOF
 CMD
 )"
 capture trace-commits-to-tasks "$P" 'chmod +x .git/hooks/commit-msg'
-capture --exit 1 --expect 'work-names-a-task' trace-commits-to-tasks "$P" \
+capture --exit 1 --expect 'name-task-in-refs-trailer' trace-commits-to-tasks "$P" \
     'git commit -am "fix(auth): reject expired sessions on token refresh"'
 capture trace-commits-to-tasks "$P" \
     'git commit -am "fix(auth): reject expired sessions on token refresh" -m "Refs: reject-expired-sessions-on-token-refresh"'
