@@ -22,6 +22,7 @@
         "enforced-practice",
         "typst-over-markdown",
         "plain-files",
+        "self-describing",
       ),
     ),
     process: verdicts(
@@ -32,7 +33,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 7),
+  status: wip(2026, 11, 7),
   links: depends-on(
     "cut-the-skill-to-an-index-of-what-mt-cannot-say.typ",
     "name-the-next-command-in-every-mt-dead-end.typ",

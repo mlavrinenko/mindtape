@@ -11,8 +11,8 @@
   ),
   implementable-tasks: (
     title: "Tasks guide the implementer",
-    acid-test: [An agent in a fresh session, given only the task file, lands the
-      change without asking where to start or what done looks like.],
+    acid-test: [An implementer in a fresh session, given only the task file,
+      lands the change without asking where to start or what done looks like.],
   ),
   enforced-practice: (
     title: "Checks run where work happens",
@@ -34,5 +34,11 @@
     title: "Plain files, no infrastructure",
     acid-test: [`mt` binary is the whole setup: no daemon, no database,
       no index,and nothing outside the repo to lose.],
+  ),
+  self-describing: (
+    title: "The CLI explains itself",
+    acid-test: [A newcomer in a fresh session, given a project and `mt` but no
+      external documentation, can list, file and flip a task, and every refusal
+      names the command that fixes it.],
   ),
 )
