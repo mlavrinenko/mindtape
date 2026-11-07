@@ -81,9 +81,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Bare `mt explain` ends on the command to run next.** The index closes on a
-  `next:` line naming `mt ls` for your work and `mt <command> --help` for the
-  flags of a command you have not met.
+- **Bare `mt explain` ends on the command to run next.** A blank line sets off
+  the `next:` line naming `mt ls` for your work,
+  `mt explain <rules|tags|views|dicts>` for one category in full, and `--json`
+  for the listing as data.
 - **A listing that selects nothing names the way out.** A `mt ls` table with no
   row adds a `hint:` line naming `mt ls ''` for every task and
   `mt explain views` for a saved view.

@@ -154,9 +154,10 @@
       section, the derived fields, the tags, views and dictionaries, and each
       dictionary's entry count. `default` leads the view and tag lists when the
       project declares it. Each listing keeps the output it had before it moved
-      under this command, and `--json` keeps its keys. The index ends on a
-      `next:` line naming `mt ls` for your work and `mt <command> --help` for
-      the flags of a command you have not met.],
+      under this command, and `--json` keeps its keys. A blank line separates
+      the index from a `next:` line naming `mt ls` for your work,
+      `mt explain <rules|tags|views|dicts>` for one category in full, and
+      `--json` for the listing as data.],
     outputs: ("explain",),
   ),
   "explain.rules": (

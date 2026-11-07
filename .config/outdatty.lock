@@ -114,12 +114,12 @@ groups:
       www/content/schema.typ: b8699683b1a40f4e6bb90ed7b60bb7988566f0141d8fe9ca3b8b803415b01945
   cli-explain-index-docs:
     source:
-      crates/mindtape-cli/src/cmd/explain/index.rs: 214ada103d7c6c91a136d96bf6df531d490ab1dd2fc24eff4caedd8c95a52e55
+      crates/mindtape-cli/src/cmd/explain/index.rs: 5252f24d18418468cb553a087460f93af204c83a3bba64e9f3d1557b820db37a
       crates/mindtape-cli/src/cmd/explain/mod.rs: e83ab450db9693709e99c72af9f02a552097739e935d15ad5306d5e1a73b8a66
     dependents:
       docs/src/skill.typ: b434fa0a7bee5bcf26f80ce8beac6595e0e1bd9def126dbc698b0cf54e06f92d
       www/content/agents.typ: 401f157da479ad1dd7567bb0b6e4eb3d271eef6e84875c863c3db05254d1b4c4
-      www/content/cli/explain.typ: 6dd2a6fb03ef2810f2ba4ca4fbd36955438c69e223a22a1de415cc54d8da7a50
+      www/content/cli/explain.typ: a2d79db931242e19152afaf90fee62308dfd08c4e93c235889841262549800e4
   cli-find-docs:
     source:
       crates/mindtape-cli/src/cmd/find.rs: 440b4fac7b04cd723a775ee4361122867c1826e6006f222e8518a56a80378fd1

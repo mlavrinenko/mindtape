@@ -144,8 +144,9 @@ fn render(index: &Index, width: usize) -> String {
         .map(|(name, count)| format!("{name} ({count})"))
         .collect();
     labelled(&mut out, "dicts", &dicts, width, "  ");
+    out.push('\n');
     out.push_str(&next_line(format!(
-        "run {} for your work, or mt <command> --help for flags",
+        "run {} for your work; mt explain <rules|tags|views|dicts> opens one category, and --json prints a listing as data",
         Command::mt().word("ls")
     )));
     out.push('\n');
@@ -210,8 +211,15 @@ fn json(index: &Index) -> serde_json::Value {
 mod tests {
     use mindtape::parse_config;
 
-    use super::{Index, bare_name, collect, default_first, json, render};
     use mindtape::RuleSection;
+
+    use super::{Index, bare_name, collect, default_first, json, render};
+
+    const NEXT: &str = concat!(
+        "next: run mt ls for your work; ",
+        "mt explain <rules|tags|views|dicts> opens one category, ",
+        "and --json prints a listing as data",
+    );
 
     fn config() -> mindtape::Config {
         parse_config(
@@ -298,15 +306,18 @@ mod tests {
         let text = render(&index, 24);
         assert_eq!(
             text,
-            "\
+            format!(
+                "\
 rules:
   on.flip: stale-wip
 derived fields: changes
 tags: cli, default, mt
 views: default
 dicts: source (16)
-next: run mt ls for your work, or mt <command> --help for flags
+
+{NEXT}
 "
+            )
         );
     }
 
@@ -321,25 +332,25 @@ next: run mt ls for your work, or mt <command> --help for flags
         };
         assert_eq!(
             render(&index, 18),
-            "\
+            format!(
+                "\
 rules: none
 derived fields: none
 tags: alpha, beta,
   gamma
 views: none
 dicts: none
-next: run mt ls for your work, or mt <command> --help for flags
+
+{NEXT}
 "
+            )
         );
     }
 
     #[test]
     fn the_index_ends_on_the_command_to_run_next() {
         let text = render(&collect(&config()), 100);
-        assert!(
-            text.ends_with("next: run mt ls for your work, or mt <command> --help for flags\n"),
-            "{text}"
-        );
+        assert!(text.ends_with(&format!("\n{NEXT}\n")), "{text}");
     }
 
     #[test]
