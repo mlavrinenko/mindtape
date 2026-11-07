@@ -1,10 +1,10 @@
 //! `mt schema` — the JSON Schema of each machine output, printed or recorded.
 //!
 //! Every schema comes from the same Rust types the output serializes, so the
-//! committed copies cannot drift from the binary. A schema's version bumps
-//! only when that output's shape changes. The command works outside a
-//! project: it reads and writes only `schema/output/` under the current
-//! directory.
+//! committed copies cannot drift from the binary. A schema's version changes
+//! only when a change could break an earlier consumer; a compatible addition
+//! updates the current file. The command works outside a project: it reads
+//! and writes only `schema/output/` under the current directory.
 
 use std::path::Path;
 
@@ -33,7 +33,8 @@ const OUTPUT_DIR: &str = "schema/output";
 pub struct SchemaId {
     /// The output's identity, such as `ls`.
     pub name: &'static str,
-    /// The shape version, bumped only when the output changes.
+    /// The shape version. Bump it only when a change could break an earlier
+    /// consumer; a compatible addition updates the current version's file.
     pub version: u32,
 }
 

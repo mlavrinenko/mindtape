@@ -75,7 +75,7 @@ https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/ls/1.s
 
 == Alternatives
 
-- Point `$schema` at the release tag: the tag is unknown while developing, so the committed `$id` would need a release-time rewrite. A stable `main` URL plus an immutable versioned filename gives the same guarantee with a normal drift test.
+- Point `$schema` at the release tag: the tag is unknown while developing, so the committed `$id` would need a release-time rewrite. A stable `main` URL plus a versioned filename, where only an incompatible change gets a new version, gives the same guarantee with a normal drift test.
 - Carry `schema_version` beside `$schema`: two versions can disagree, which is the bug this replaces.
 - Hand-write the schemas: the config schema is already derived from its structs, so output schemas should be too.
 

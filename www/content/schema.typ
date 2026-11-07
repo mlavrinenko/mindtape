@@ -184,8 +184,10 @@ It's `[]` when no filter calls `touches()`.
 #terminal("schema-list")
 
 The URL ends in `/schema/output/<name>/<version>.schema.json`. The version
-bumps only when that output's shape changes, and the old file stays published,
-so a stored URL keeps resolving after an upgrade. `task` describes one record.
+changes only when a change could break an earlier consumer. A compatible
+addition updates the file in place; an incompatible one adds a new version and
+leaves the old file, so a stored URL keeps resolving after an upgrade. `task`
+describes one record.
 Every command output has its own file. The odd names map to their command:
 `preset-ls` is `mt preset ls --json`, `set-ls` is `mt @set ls --json`,
 `set-check` is `mt @name check --json`, `at-project` and `at-set` are the two
