@@ -40,7 +40,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 5),
+  status: cancelled(
+    2026,
+    11,
+    7,
+  )[superseded by a versioned \$schema URL per output; output no longer carries schema\_version],
 )
 
 == AS-IS
