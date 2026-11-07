@@ -7,15 +7,7 @@ use crate::query::Query;
 use crate::recur::{CanonicalRule, PeriodUnit, Recur, Rule};
 use crate::test_support::{bare_task, ice_priority};
 
-use super::{CanonicalCount, CanonicalNum, CanonicalTask, SCHEMA_VERSION};
-
-/// The `ast-grep` query tag is why the canonical schema is version 2: an
-/// importer older than the tag would fail in its enum instead of the version
-/// check. `truth/tasks/bump-the-canonical-schema-for-the-ast-grep-tag.typ`.
-#[test]
-fn schema_version_is_two_for_the_ast_grep_query_tag() {
-    assert_eq!(SCHEMA_VERSION, 2);
-}
+use super::{CanonicalCount, CanonicalNum, CanonicalTask};
 
 #[test]
 fn framework_priority_serializes_with_framework_inputs_and_score() {

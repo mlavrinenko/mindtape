@@ -67,12 +67,6 @@ use crate::model::numeric::{InputValue, NumValue};
 use crate::model::{Status, Task};
 use crate::query::Query;
 
-/// Schema version for [`CanonicalTask`]. Bump when the JSON shape changes in
-/// a way that could break `mt import` or an external `jq` consumer. Version 2
-/// adds the `ast-grep` query tag under `estimate_counts`, which an older
-/// importer's `CanonicalQuery` enum refuses.
-pub const SCHEMA_VERSION: u32 = 2;
-
 /// One task, projected into the canonical JSON schema. See the module doc for
 /// the authored/computed field contract.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
@@ -139,12 +133,9 @@ pub struct CanonicalTask {
     #[serde(default)]
     pub body: String,
     /// Recurrence rule + policy (`every(...)`/`rrule(...)`), or `null` when
-    /// the task does not recur. Additive relative to `SCHEMA_VERSION` 1 (an
-    /// absent key parses to `None` via `#[serde(default)]`, and no consumer
-    /// reading the earlier field set can trip over a new one appearing) —
-    /// see `mindtape-cli::output::truncated_to_json`'s "additive, no
-    /// `SCHEMA_VERSION` bump" precedent for envelope fields; this is the
-    /// same rule applied to a task field.
+    /// the task does not recur. Additive: an absent key parses to `None` via
+    /// `#[serde(default)]`, and no consumer reading an earlier field set
+    /// trips over a new one appearing.
     #[serde(default)]
     pub recur: Option<crate::recur::CanonicalRecur>,
     /// Opaque consumer extensions, keyed by `x-<ns>` slot.

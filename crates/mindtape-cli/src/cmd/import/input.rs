@@ -1,8 +1,8 @@
 //! Read and parse canonical task-JSON input: a file arg or stdin (`-`), as a
 //! bare array (`mt ls --json`'s default shape) or the `{ "tasks": [...] }` /
 //! `{ "tasks": ..., "applied": ... }` envelope (`mt ls --json`'s rule-applied
-//! shape). `applied` is ignored either way. A top-level `schema_version` is
-//! ignored as an unknown key, so an export from an older `mt` still imports.
+//! shape). `applied` is ignored either way, and an unknown top-level key is
+//! ignored so an export from an older `mt` still imports.
 
 use std::io::Read as _;
 
@@ -68,7 +68,7 @@ pub(super) fn parse_records(source: &str, raw: &str) -> Result<Vec<CanonicalTask
 }
 
 /// Pull the record array out of either accepted top-level shape. An unknown
-/// top-level key, `schema_version` included, is ignored.
+/// top-level key is ignored.
 fn extract_array(value: Value) -> Result<Vec<Value>, Diag> {
     match value {
         Value::Array(items) => Ok(items),
@@ -115,8 +115,8 @@ mod tests {
     }
 
     #[test]
-    fn a_top_level_schema_version_is_ignored() {
-        let raw = r#"{"schema_version": 99, "tasks": [{"title": "Solo"}]}"#;
+    fn a_top_level_unknown_key_is_ignored() {
+        let raw = r#"{"nonsense": 99, "tasks": [{"title": "Solo"}]}"#;
         let records = parse_records("t.json", raw).expect("the key is unknown, not checked");
         assert_eq!(records.len(), 1);
     }

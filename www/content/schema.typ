@@ -154,8 +154,7 @@ The first key is `$schema`, a URL to the schema for this object. `mt schema ls`
 prints the same schema, and the committed copy is generated from the same Rust
 types, so a program can check the URL it read. A schema's path ends in its
 version, bumped only when that output's shape changes. `mt import` accepts
-input without `$schema`, such as a bare array of records, and ignores a
-top-level `schema_version`.
+input without `$schema`, such as a bare array of records.
 
 Every object output names its schema the same way, with `$schema` first and
 the payload keys flat beside it: `mt check --json`, a set's

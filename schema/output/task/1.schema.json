@@ -513,7 +513,7 @@
         }
       ],
       "default": null,
-      "description": "Recurrence rule + policy (`every(...)`/`rrule(...)`), or `null` when\nthe task does not recur. Additive relative to `SCHEMA_VERSION` 1 (an\nabsent key parses to `None` via `#[serde(default)]`, and no consumer\nreading the earlier field set can trip over a new one appearing) —\nsee `mindtape-cli::output::truncated_to_json`'s \"additive, no\n`SCHEMA_VERSION` bump\" precedent for envelope fields; this is the\nsame rule applied to a task field."
+      "description": "Recurrence rule + policy (`every(...)`/`rrule(...)`), or `null` when\nthe task does not recur. Additive: an absent key parses to `None` via\n`#[serde(default)]`, and no consumer reading an earlier field set\ntrips over a new one appearing."
     },
     "reviewed": {
       "description": "Last re-affirmation date, `YYYY-MM-DD`.",

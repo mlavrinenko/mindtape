@@ -120,7 +120,7 @@ pub use loader::{
     unsupported_prelude_version, with_packages,
 };
 pub use loader::{Loaded, load_many, load_one, map_parallel};
-pub use model::canonical::{CanonicalTask, SCHEMA_VERSION};
+pub use model::canonical::CanonicalTask;
 pub use model::fields::field_names;
 pub use model::handle::{Resolution, StemHashes};
 pub use model::marker::ShapeError;
