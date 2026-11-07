@@ -354,7 +354,8 @@ groups:
   # recorded copies `--write` and `--check` read.
   - name: cli-schema-docs
     source:
-      - crates/mindtape-cli/src/cmd/schema.rs
+      - crates/mindtape-cli/src/cmd/schema/mod.rs
+      - crates/mindtape-cli/src/cmd/schema/registry.rs
       - crates/mindtape-cli/src/render/envelope.rs
     dependents:
       - www/content/cli/schema.typ

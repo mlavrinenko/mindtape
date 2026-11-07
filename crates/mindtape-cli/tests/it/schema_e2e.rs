@@ -149,20 +149,28 @@ fn validate(name: &str, value: &serde_json::Value) {
     }
 }
 
+/// Validate each `(schema name, argv)` case's JSON output in `dir`.
+fn validate_cases(dir: &Path, cases: &[(&str, &[&str])]) {
+    for (name, args) in cases {
+        validate(name, &support::json(dir, args));
+    }
+}
+
 #[test]
 fn live_object_outputs_validate_against_their_recorded_schemas() {
     let dir = support::project_with_tasks(&[("a.typ", "Alpha")]);
-    for (name, args) in [
-        ("ls", &["ls", "", "--json"][..]),
-        ("check", &["check", "--json"][..]),
-        ("preset-ls", &["preset", "ls", "--json"][..]),
-        ("explain", &["explain", "--json"][..]),
-        ("rules", &["explain", "rules", "--json"][..]),
-        ("tags", &["explain", "tags", "--json"][..]),
-        ("eval", &["eval", "a", "--json"][..]),
-    ] {
-        validate(name, &support::json(dir.path(), args));
-    }
+    validate_cases(
+        dir.path(),
+        &[
+            ("ls", &["ls", "", "--json"][..]),
+            ("check", &["check", "--json"][..]),
+            ("preset-ls", &["preset", "ls", "--json"][..]),
+            ("explain", &["explain", "--json"][..]),
+            ("rules", &["explain", "rules", "--json"][..]),
+            ("tags", &["explain", "tags", "--json"][..]),
+            ("eval", &["eval", "a", "--json"][..]),
+        ],
+    );
 }
 
 #[test]
@@ -199,16 +207,17 @@ fn live_collection_outputs_validate_against_their_schemas() {
     );
     std::fs::write(&config, text).unwrap();
 
-    for (name, args) in [
-        ("board", &["board", "--json"][..]),
-        ("at", &["at", "--json"][..]),
-        ("describe", &["add", "--describe=json"][..]),
-        ("views", &["explain", "views", "--json"][..]),
-        ("view", &["explain", "views", "hot", "--json"][..]),
-        ("dicts", &["explain", "dicts", "--json"][..]),
-        ("dict", &["explain", "dicts", "labels", "--json"][..]),
-        ("config-show", &["config", "show", "--json"][..]),
-    ] {
-        validate(name, &support::json(dir.path(), args));
-    }
+    validate_cases(
+        dir.path(),
+        &[
+            ("board", &["board", "--json"][..]),
+            ("at", &["at", "--json"][..]),
+            ("describe", &["add", "--describe=json"][..]),
+            ("views", &["explain", "views", "--json"][..]),
+            ("view", &["explain", "views", "hot", "--json"][..]),
+            ("dicts", &["explain", "dicts", "--json"][..]),
+            ("dict", &["explain", "dicts", "labels", "--json"][..]),
+            ("config-show", &["config", "show", "--json"][..]),
+        ],
+    );
 }
