@@ -230,7 +230,7 @@ groups:
     dependents:
       CHANGELOG.md: 637f11038359d6c6771e1a667bcd1ffccd393692aa156ff07dc370b8fc3e498a
       docs/src/agents.typ: c238d2e162539c9d80fc6bb6883537c6d518ee6bfc1cc198cbae515afa3ca364
-      docs/src/contributing.typ: 5bdfcd6b7a92038197bc0bf1a2e2bdea25d90e805907cce4158d3a5a5d9f5562
+      docs/src/contributing.typ: 6716c2f9db08484c8e4d482631cebef64937e8fcf84f1564f3cf46549d8e317e
       docs/src/contributing/command-semantics.typ: fc757fc67ce402f425edefd7cb6b637b16f3c619b865ccabdbf54679af2f9a35
       docs/src/readme.typ: 9e3bd7c84f8dab0339286acc8544ef83a93c05fce6df0b4c2e3573d9a87a5254
       docs/src/skill.typ: b434fa0a7bee5bcf26f80ce8beac6595e0e1bd9def126dbc698b0cf54e06f92d
@@ -347,13 +347,13 @@ groups:
       .just/scripts/check-examples.sh: c35573a106d22c9168c8182f4ff689a6a84bd9dd70a0fa70d787f4407a4e4856
       .just/scripts/clippy.sh: d586661b1bca816bcdf145d4fdd785125624d5b79e78f493b65811c66fb87df4
       .just/scripts/wt-carry-lcov.sh: a4d4b96d24cee1d76f8d19ddcc10b6f4b99a1cb9f7c8ec3143cf487f2bb9861c
-      Justfile: 17a3f46588cf5d265c36263ca9ef3f578904866ccf6e415e09796f0ae235b313
+      Justfile: ef7731b9a30e4fb6c9ef3e1cd781c8ae91f2a1a2d684dd3b9b1ebf62c2c73c37
       flake.nix: 325112feb8cc629198bd6721f88d54efc933a1aebbf80d9a2e32f5f5ffc3cbc0
       nix/dev/flake.nix: 4272c7e414ff67f94e9ed6917f7b9155beecdcbcb0adc0b1f563e7641a0fd30b
       nix/dev/shell.nix: a101a16316de79b0e0ce368d0e8620c89220c216ab35641d78c98f1186e4c287
     dependents:
       docs/src/agents.typ: c238d2e162539c9d80fc6bb6883537c6d518ee6bfc1cc198cbae515afa3ca364
-      docs/src/contributing.typ: 5bdfcd6b7a92038197bc0bf1a2e2bdea25d90e805907cce4158d3a5a5d9f5562
+      docs/src/contributing.typ: 6716c2f9db08484c8e4d482631cebef64937e8fcf84f1564f3cf46549d8e317e
       docs/src/contributing/coverage-crap.typ: 04666555d5eb876d5baed3f598e509794a12051227c352183c232475645e7432
       docs/src/contributing/crap-baseline.typ: e7254b2b9736613cc3c7a2f31a7f7f25ddf72dce913311f13b89221cca05cd09
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
@@ -444,7 +444,7 @@ groups:
       .githooks/pre-commit: 1c90991ad20b8c1ee1134ff32bc187821b14dc9855a107c56b4d1c9fe2212737
       .just/scripts/outdatty-review-trailer.sh: 091bd9a4e7d90059a71e4863c80c90af4eda0bb216ab96db13b1ca07a542d456
     dependents:
-      docs/src/contributing.typ: eddeeabed532aeee31385ade6f5697dac7fb4bf0065d7e6a99fc78c4e8c19dfe
+      docs/src/contributing.typ: 6716c2f9db08484c8e4d482631cebef64937e8fcf84f1564f3cf46549d8e317e
       docs/src/contributing/commit-messages.typ: 1709db5f1a4d3d3e7a327c576f9b39a94a9dc404cc4b139e78016efd17269883
       docs/src/contributing/gates.typ: ba77fb07445b62e6143695f0c2f6c75f4c55cf38c6a21104853b6bb6bcb90c89
   link-kinds-docs:
@@ -457,7 +457,7 @@ groups:
       .gitattributes: c7587f5ee485d3acbd80f3f310d9da1e3d5f78a509a61cbc70161dc82deeeaa5
       .just/scripts/crap-baseline-merge.sh: 007f29683e4e2351cf7fda5d108699da8d3b434bd0fff4f6a92f6a45b3858ed8
     dependents:
-      docs/src/contributing.typ: eddeeabed532aeee31385ade6f5697dac7fb4bf0065d7e6a99fc78c4e8c19dfe
+      docs/src/contributing.typ: 6716c2f9db08484c8e4d482631cebef64937e8fcf84f1564f3cf46549d8e317e
   mutation-scripts-docs:
     source:
       .just/scripts/_mutants-env.sh: 7f3c51e2199e8a2f8543ffb256ddbece9a10f3a7d3b7fa0a4a3603604be245de
@@ -465,7 +465,7 @@ groups:
       .just/scripts/mutants-status.sh: 777881a59742c603da8d0bf6b456f146bb1e531c2b902b6b06827c8322711cd7
       .just/scripts/mutants.sh: f3b42a3323ba39de4b38872c4b46c290d4c3a80a10079aea88f8d2a6b425264e
     dependents:
-      docs/src/contributing.typ: eddeeabed532aeee31385ade6f5697dac7fb4bf0065d7e6a99fc78c4e8c19dfe
+      docs/src/contributing.typ: 6716c2f9db08484c8e4d482631cebef64937e8fcf84f1564f3cf46549d8e317e
       docs/src/contributing/mutation-testing.typ: 6a7b5cf5a51a025ebd6b8b991da6b2cc8494a2e96cf6d5a7f9608d00a497f7e5
       docs/src/contributing/signal-sweep.typ: 471350cebc9b82602b8ee48d162e4f3365368284a001782e4e2c7f6cb4857146
   prelude-docs:
@@ -493,7 +493,7 @@ groups:
       .just/scripts/release-hook.sh: c6a66d24ad150cbc7f262ddbda27fc8950df9d7935586b76ce610dbb1cfd5a34
       .just/scripts/release.sh: bc50191c0b8652ac12cec5a35927bebcbb47a92f3740ced7889bcdf0ab709f5d
     dependents:
-      docs/src/contributing.typ: eddeeabed532aeee31385ade6f5697dac7fb4bf0065d7e6a99fc78c4e8c19dfe
+      docs/src/contributing.typ: 6716c2f9db08484c8e4d482631cebef64937e8fcf84f1564f3cf46549d8e317e
       docs/src/contributing/release.typ: 44d6067cc0cb5f96701053e526cf09fa0322a64f3c352ec92df4d9661e460ae1
   release-notes:
     source:
@@ -509,7 +509,6 @@ groups:
       .just/scripts/_typst-package.sh: 6d480eba3bc42fd4e0b4a74249c57f3c115863f2dd9885ebd22582583f38616c
       .just/scripts/install-bin.sh: d9f35240a8e5306bf943c5569cf73bf18080877df9278f3f005ba7dfdaf9211f
       .just/scripts/install-lib.sh: ddf51e6e5573b2d9248727efc32fc186facc03087e53560e43190623b72ece1e
-      .just/scripts/install.sh: 5e9cefe19ec7b94b7002a952d56ed59081730f96449623a072726f7a5a6e257f
       .just/scripts/skill-evals-check.sh: db4837ef0d8f095b8c42f2aca70bb2c1b7cc0fbb0ba36bb1775867bbaade8505
       .just/scripts/smoke-flake.sh: a1a55a8f4db6410a7398902ce4cf15c3bbcfaf0c57274797f5b187656ee36cfd
       .just/scripts/uninstall-lib.sh: 37c4a93bd69f7192428ad440fb177e5341c255e4867b7e9389ea86c800d409c1
@@ -541,6 +540,12 @@ groups:
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
       docs/src/skill.typ: 9fa2858586b9a91632717140ef85c6185e10923d112297541a983c67a6a811b9
       www/content/agents.typ: 6abf42d103d52885cd8144658561a0a843e941c264e46c14fbb687522e53ccc1
+  skill-install-docs:
+    source:
+      .just/scripts/check-skill-drift.sh: 15d999189636d2373f72d9dd3c9ce8202b7951d7925766e40d791783a9d1dbab
+      .just/scripts/install.sh: d74d5f891a895731d9ac4d4f39b9d9f338e498faf1a9444dba7b876ebd96deb6
+    dependents:
+      docs/src/contributing.typ: 6716c2f9db08484c8e4d482631cebef64937e8fcf84f1564f3cf46549d8e317e
   sweep-templates:
     source:
       .mindtape/templates/sweep-size.typ: af9f04495b246ef3eb72f7b9e57a43a4b1db107550136842ba1757d51782dcbf

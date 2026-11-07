@@ -11,13 +11,13 @@ nix develop          # dev shell with the toolchain and the git hooks
 just check           # run before every commit
 ```
 
-Run `just`, not raw `cargo`: it carries the right flags and environment. `just build-mt` builds `mt` at `target/mt-dev/debug/mt`; the worktrunk hooks in `.config/wt.toml` rebuild it on `just fork` and `just land`. Between builds, `mt` can be older than the code beside it.
+Run `just`, not raw `cargo`: it has the right flags and environment. `just build-mt` builds `mt` at `target/mt-dev/debug/mt`; the worktrunk hooks rebuild it on `just fork` and `just land`. Between builds, `mt` can be older than the code beside it.
 
 This file holds the rules, the `docs/contributing/*.md` deep dives explain why, and `AGENTS.md` says what Mindtape is.
 
 ## Code Style
 
-The workspace `Cargo.toml` sets its clippy lints to `deny`, so the `clippy` gate fails on any violation. These limits shape the code most:
+The workspace `Cargo.toml` denies every clippy violation. These limits shape the code most:
 
 - No `unwrap()` or `expect()` outside tests. Use `?` with a `Diag` in the `mt` binary and `thiserror` in the library.
 - No `todo!()`, `unimplemented!()`, `unreachable!()`, `unsafe` or wildcard imports.
@@ -26,7 +26,7 @@ The workspace `Cargo.toml` sets its clippy lints to `deny`, so the `clippy` gate
 
 ## Error Handling
 
-- Build every error the user sees as a `Diag` from `crates/mindtape-cli/src/diag/`, such as `Diag::usage("unknown field").value(name).hint(..)`. Its module docs hold the format. The text is a `&'static str`, so a value goes through `.value()`, which quotes it.
+- Build every error as a `Diag` from `crates/mindtape-cli/src/diag/`, such as `Diag::usage("unknown field").value(name).hint(..)`. Its module docs hold the format. The text is a `&'static str`, so a value goes through `.value()`, which quotes it.
 - Pick the kind, not the exit code: `Diag::usage` exits 2, `Diag::refused` and `Diag::failed` exit 1. `main` prints the error and exits with its code.
 - Every command returns `Result<_, Diag>`; the `mt` binary has no `anyhow`. clippy refuses `eprintln!`, `eprint!` and `std::io::stderr` outside `diag/`, so no line reaches stderr raw.
 - If callers match on a library error type, derive `thiserror::Error` for it, as `RecurError`, `ConfigError` and `FilterError` do, and convert it in `diag/from_lib.rs` matching every variant.
@@ -40,7 +40,7 @@ The workspace `Cargo.toml` sets its clippy lints to `deny`, so the `clippy` gate
 - When a file nears its linecop cap, run `just fix-check`. It moves the file’s inline tests into a `_tests.rs` sibling (`tests.rs` for a `mod.rs`) with [ejectest](https://github.com/mlavrinenko/ejectest).
 - Run the suite with `just test` and count it with `just count-tests`.
 - If your code runs a process or joins paths, the Windows CI job runs it too. See [docs/contributing/windows.md](docs/contributing/windows.md).
-- Before a PR, run `just mutants diff` and triage every survivor. A run over 100 mutants, about 20 minutes, needs the owner’s approval; an agent stops and asks instead of setting `MINDTAPE_MUTANTS_APPROVED=1`. The triage classes are in [docs/contributing/mutation-testing.md](docs/contributing/mutation-testing.md).
+- Before a PR, run `just mutants diff` and triage every survivor. A run over 100 mutants, about 20 minutes, needs the owner’s approval; stop and ask instead of setting `MINDTAPE_MUTANTS_APPROVED=1`. The triage classes are in [docs/contributing/mutation-testing.md](docs/contributing/mutation-testing.md).
 
 ## Quality Gates (run by `just check`)
 
@@ -51,13 +51,13 @@ just --list --list-submodules  # every gate under [gate], with what it checks
 mmz --status --tag gate        # which gates are fresh, stale or failed
 ```
 
-[docs/contributing/gates.md](docs/contributing/gates.md) covers how `just check` orders the gates, how it skips unchanged work, and the formatter path lists. When you add a TOML file or a Typst directory, add it to its `*_FMT_PATHS` list in the `Justfile`. `just fmt` and `just fmt-check` both read those lists.
+[docs/contributing/gates.md](docs/contributing/gates.md) covers how `just check` orders the gates, skips unchanged work, and the formatter path lists. When you add a TOML file or a Typst directory, add it to its `*_FMT_PATHS` list in the `Justfile`. `just fmt` and `just fmt-check` both read those lists.
 
 If you add a function or complexity, run `just crap baseline` in the same commit. The thresholds and their reasons are in [docs/contributing/coverage-crap.md](docs/contributing/coverage-crap.md).
 
 If you touch `flake.nix`, `nix/dev/` or `.cargo/config.toml`, run `just nix-build`, and for the flake `just smoke-flake` too.
 
-In a delegated worktree, you can skip the hook’s freshness check with `MINDTAPE_GATE_SCOPE=<reason> git commit`, with a matching `Gate-Scope: <reason>` footer in the message. That’s safe there because `just land` runs `just check` on the branch’s final tree before it fast-forwards. Never scope a commit to get past a failing gate.
+In a delegated worktree, skip the hook’s freshness check with `MINDTAPE_GATE_SCOPE=<reason> git commit` and a matching `Gate-Scope: <reason>` footer. That’s safe because `just land` runs `just check` on the branch’s final tree before it fast-forwards. Never scope a commit to get past a failing gate.
 
 ## Worktrees
 
@@ -69,17 +69,19 @@ just fork <slug> --base=@  # the same, from the current commit, not main
 just land                  # in the worktree: gate, wip check, fast-forward, remove
 ```
 
-A worktree gets commits, not your working tree. Commit before you flip a task and run `mt wip <stem>` there. Don’t `git stash` there: all worktrees share one stash list, so a `pop` can apply another’s work. Make a WIP commit instead.
+A worktree gets commits, not your working tree. Commit before you flip a task and run `mt wip <stem>` there. Don’t `git stash`: all worktrees share one stash list, so a `pop` can apply another’s work. Make a WIP commit instead.
 
 `.config/wt.toml` holds the hooks, so a clone with nix and direnv needs no worktrunk config of its own. Before the fast-forward they run `just check` and `mt check --commits main..HEAD`, which refuses a branch that names a still-`wip` task in `Refs:`.
+
+`just install all` stamps each installed skill with `.mindtape-source-hash`, a hash of its `skills/<name>` source, and `just check` fails when the two differ. No installed copy means nothing to check.
 
 ## Commit Messages
 
 - Use Conventional Commits, in the language of the earlier commits.
-- End the message with a `Refs: <stem>` footer naming the task the commit works on. You can omit it only when the commit changes nothing but task files under `truth/tasks/`. Any other file needs it, `.mindtape/config.toml` included. A merge commit needs none. `mt check` skips merges by default.
+- End the message with a `Refs: <stem>` footer naming the task the commit works on. You can omit it only when the commit changes nothing but task files under `truth/tasks/`. Any other file needs it, `.mindtape/config.toml` too. A merge commit needs none. `mt check` skips merges by default.
 - File a task in its own `task:` commit, with no `Refs:`. The exception is a change to one source file that’s too small to plan: file it with `mt add -t tweak`, which files it done, in the commit that makes the change, and name it in `Refs:`.
 - Stage a status flip with the work it claims: `mt wip` with the first work commit, `mt done` with the last. A commit holding only a flip is refused, and so is one naming a task that isn’t `wip` in the staged tree.
-- If a commit changes product code (`crates/**` and `lib/**`, tests excepted), it also adds an entry under `[Unreleased]` in `CHANGELOG.md`. If there’s nothing to announce, add a `Changelog: none` trailer instead. The commit-msg hook and CI refuse the commit otherwise, whatever its type.
+- If a commit changes product code (`crates/**` and `lib/**`, tests excepted), it also adds an entry under `[Unreleased]` in `CHANGELOG.md`. If there’s nothing to announce, add a `Changelog: none` trailer instead. The commit-msg hook and CI refuse it otherwise, whatever its type.
 - A `decision` task or a milestone has no code of its own. It can close in a commit that changes only task files, with a `Refs:` footer naming it.
 
 [docs/contributing/commit-messages.md](docs/contributing/commit-messages.md) says what checks these rules, and why `Refs:` names a stem.
@@ -94,12 +96,12 @@ When you see a real problem outside your task, file it with `mt add --template f
 
 [`.config/outdatty.yaml`](.config/outdatty.yaml) lists, for each source file, the files that restate it.
 
-- After you edit a source, update its dependents, run `just outdatty update <group>` and commit `.config/outdatty.lock`. If every dependent still holds and the commit edits none, add a `Docs-Unaffected: <group>` footer, one line per group you read. The commit-msg hook refuses the commit without it and lists the files to read.
+- After you edit a source, update its dependents, run `just outdatty update <group>` and commit `.config/outdatty.lock`. If every dependent still holds and the commit edits none, add a `Docs-Unaffected: <group>` footer, one line per group you read. The commit-msg hook refuses a commit without it and lists the files to read.
 - After you edit only a dependent, record that one file in the same commit with `just outdatty update <group> <path>`.
 - A recorded hash says someone reviewed the dependents. So run `just outdatty update-all` only after you’ve reviewed every group.
 - A new file that a glob dependent matches needs a hash of its own. `just outdatty check` fails until the lock holds it.
 
-A rebase or merge joins the two branches’ locks key by key through outdatty’s own merge driver, `outdatty merge-lock`. When both branches edited one source and re-recorded it, its hash comes out as zeros, so `just outdatty check` reports that group until you review it and commit the re-record, which owes the footer like any other. A group one branch dropped stays dropped, so a split or a rename leaves no orphan hashes, and `just outdatty check` fails on one that got in anyway. `.config/jscpd-baseline.json` merges fingerprint by fingerprint through `jscpd --merge-baseline`. `.config/crap-baseline.json` merges function by function through `.just/scripts/crap-baseline-merge.sh`, which keeps the stricter score when both sides re-scored one, and `just crap check` on the merged tree decides. The dev shell registers all three.
+A rebase or merge joins the two branches’ locks key by key through `outdatty merge-lock`. When both branches edited one source and re-recorded it, its hash comes out as zeros, so `just outdatty check` reports that group until you review it and commit the re-record, which owes the footer too. A group one branch dropped stays dropped, so a split or rename leaves no orphan hashes, and `just outdatty check` fails on one that got in anyway. `.config/jscpd-baseline.json` merges fingerprint by fingerprint through `jscpd --merge-baseline`. `.config/crap-baseline.json` merges function by function through `.just/scripts/crap-baseline-merge.sh`, which keeps the stricter score when both sides re-scored one, and `just crap check` decides. The dev shell registers all three.
 
 ## Version Management
 

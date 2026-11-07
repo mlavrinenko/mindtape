@@ -868,12 +868,20 @@ groups:
       - docs/src/contributing/gates.typ
       - docs/src/contributing/commit-messages.typ
 
+  # The skill install and its drift check, which contributing.typ's Worktrees
+  # section restates as the stamp and the warning.
+  - name: skill-install-docs
+    source:
+      - .just/scripts/install.sh
+      - .just/scripts/check-skill-drift.sh
+    dependents:
+      - docs/src/contributing.typ
+
   # The scripts no doc restates: editing one flags nothing. Each entry says why.
   - name: scripts-no-doc
     source:
       # A machine install is read off `just --list` and run, and no doc
       # describes what it puts on a machine.
-      - .just/scripts/install.sh
       - .just/scripts/install-bin.sh
       - .just/scripts/install-lib.sh
       - .just/scripts/uninstall-lib.sh
