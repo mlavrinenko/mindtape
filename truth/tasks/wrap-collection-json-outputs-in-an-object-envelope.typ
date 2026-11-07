@@ -49,6 +49,8 @@ $ mt board --json | jq 'type'
 
 - 🟢 Each prints an object whose first key is `$schema` and whose payload sits under a named key: `projects`, `entries`, `sources`, `views`, `dicts`, `slots`, `config`.
 - 🟢 The old array or map moves under that key unchanged, so only the top-level path changes.
+- 🟢 A named `at` target, view or dictionary prints flat under its own schema: `at-project`, `at-set`, `view`, `dict`. The list shapes keep `at`, `views`, `dicts`.
+- 🟢 `mt @set ls --json` wraps its listings in `projects` under `set-ls/1`; `mt board --json` uses one `board/1` shape for a project or a set.
 - 🟢 `CHANGELOG.md` names the break and the one-line `jq` fix.
 
 ```
@@ -59,19 +61,21 @@ mindtape
 == Changes
 
 - `crates/mindtape-cli/src/cmd/board.rs`: wrap the rows in `projects`.
-- `crates/mindtape-cli/src/cmd/at.rs`: wrap the list in `entries`; a named target stays flat with `$schema`.
-- `crates/mindtape-cli/src/cmd/ls/set.rs`: wrap the per-project listings in `projects`.
+- `crates/mindtape-cli/src/cmd/at.rs`: wrap the list in `entries`; a named project and a named set print flat under `at-project/1` and `at-set/1`.
+- `crates/mindtape-cli/src/render/output.rs`: wrap the set listings in `projects` under `set-ls/1`.
 - `crates/mindtape-cli/src/cmd/packs/install.rs`: wrap the report in `sources`.
-- `crates/mindtape-cli/src/cmd/explain/views.rs`, `crates/mindtape-cli/src/cmd/explain/dicts.rs`: wrap the maps in `views` and `dicts`.
+- `crates/mindtape-cli/src/cmd/explain/views.rs`: wrap the list in `views`; one named view prints flat under `view/1`.
+- `crates/mindtape-cli/src/cmd/explain/dicts.rs`: wrap the list in `dicts`; one named dictionary prints flat under `dict/1`.
 - `crates/mindtape-cli/src/cmd/add/values.rs`: wrap the slot list in `slots`.
-- `crates/mindtape-cli/src/cmd/config.rs`: wrap the effective config in `config`.
-- `www/generate-*.sh`, `www/content/*.typ`, `skills/mindtape/references/*.md`: update the `jq` paths.
-- `schema/output/{board,at,set-ls,set-board,packs,views,dicts,describe,config}/1.schema.json`: new goldens.
+- `crates/mindtape-cli/src/cmd/config.rs`: wrap the effective config in `config` under `config-show/1`.
+- `www/generate-*.sh`, `www/status-moves.jq`, `www/content/*.typ`, `skills/mindtape/references/*.md`: update the `jq` paths.
+- `schema/output/{board,at,at-project,at-set,set-ls,packs,describe,views,view,dicts,dict,config-show}/1.schema.json`: new goldens.
 
 == Alternatives
 
 - Keep arrays and maps bare: a top-level array has nowhere to put `$schema`, so the uniform rule would have an exception per command.
 - Add a synthetic `$schema` element to each array: it changes every consumer that loops over the elements.
+- One `oneOf` schema per command: a list and a named detail have different shapes, and a per-shape URL validates each exactly.
 
 == Out of scope
 
@@ -80,4 +84,4 @@ mindtape
 
 == Dogfood
 
-This repo's docs captures, skill examples and `www/generate-*.sh` jq programs use `.projects`, `.views` and `.dicts`.
+This repo's docs captures, skill examples and `www/generate-*.sh` jq programs use `.projects`, `.views`, `.dicts` and `.config`.

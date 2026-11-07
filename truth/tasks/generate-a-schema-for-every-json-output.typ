@@ -51,28 +51,32 @@ null
 == TO-BE
 
 - 🟢 One `Envelope<T>` writes `$schema` first and flattens its payload, so the JSON stays flat.
-- 🟢 `mt schema <name>` prints the schema generated from the same Rust types, and `schema/output/<name>/<version>.schema.json` is the committed copy.
-- 🟢 A release build points at `https://raw.githubusercontent.com/mlavrinenko/mindtape/<tag>/schema/output/<name>/<version>.schema.json`; a working-tree build points at the local `schema/output` through `MINDTAPE_SCHEMA_BASE`, so local output never names a missing URL.
-- 🟢 `schema_version` leaves the output; the URL carries the version, and `mt import` still accepts the field on input.
-- 🟢 A test validates live output against the committed schema.
+- 🟢 `mt schema` lists every output, `mt schema <name>` prints one schema generated from the same Rust types, and `schema/output/<name>/<version>.schema.json` is the committed copy. `--write` records the copies and `--check` fails when one differs.
+- 🟢 A released binary points at `https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/<name>/<version>.schema.json`. A working-tree build points at its checkout through `MINDTAPE_SCHEMA_BASE`, which the dev shell sets to `file://$mt_root/schema/output`, so local output never names a missing URL.
+- 🟢 The URL carries the version; `schema_version` leaves the output, and `mt import` no longer checks one. An unknown top-level key is ignored.
+- 🟢 A test runs `mt schema --check`, and live output validates against the committed schema.
 
 ```
 $ mt schema ls | jq -r '.$id'
-https://raw.githubusercontent.com/mlavrinenko/mindtape/<tag>/schema/output/ls/1.schema.json
+https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/ls/1.schema.json
 ```
 
 == Changes
 
 - `crates/mindtape-cli/src/render/envelope.rs` (new): `Envelope<T>`, `$schema`, the base URL, and flattened serialization.
-- `crates/mindtape-cli/src/cmd/schema.rs` (new): `mt schema <name>`, the registry, and `--write` for the `schema/output/<name>/<version>.schema.json` goldens.
+- `crates/mindtape-cli/src/render/payload.rs` (new): the `ls` payload, the first one.
+- `crates/mindtape-cli/src/cmd/schema/mod.rs` and `cmd/schema/registry.rs` (new): `mt schema` (list, `<name>`, `--write`, `--check`), the registry, and the stamping helper.
 - `crates/mindtape-cli/src/cmd/ls/mod.rs`: the first `Envelope<T>` payload.
-- `crates/mindtape/src/model/canonical.rs`: derive `schemars::JsonSchema` for the task record.
-- `crates/mindtape-cli/tests/it/schema_e2e.rs`: validate live output and pin the dev `$schema` base.
+- `crates/mindtape/src/model/canonical.rs`: derive `schemars::JsonSchema` for the task record and its nested types.
+- `nix/dev/shell.nix`: export `MINDTAPE_SCHEMA_BASE=file://$mt_root/schema/output`.
+- `crates/mindtape-cli/src/cmd/import/input.rs`: drop the `schema_version` check.
+- `crates/mindtape-cli/tests/it/schema_e2e.rs`: run `mt schema --check` and validate live output against `schema/output/ls/1.schema.json`.
+- `schema/output/{ls,task}/1.schema.json`: the first goldens.
 
 == Alternatives
 
-- Keep `schema_version` beside `$schema`: two versions can disagree, which is the bug this replaces.
-- Keep every old schema under `main`: release tags already hold them, and the working tree should hold one copy per output.
+- Point `$schema` at the release tag: the tag is unknown while developing, so the committed `$id` would need a release-time rewrite. A stable `main` URL plus an immutable versioned filename gives the same guarantee with a normal drift test.
+- Carry `schema_version` beside `$schema`: two versions can disagree, which is the bug this replaces.
 - Hand-write the schemas: the config schema is already derived from its structs, so output schemas should be too.
 
 == Out of scope
