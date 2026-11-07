@@ -82,25 +82,41 @@ the grader instead of the skill.
 
 ## Baseline
 
-Recorded 2026-11-07 for eval 0 (`ready-priority-triage`) on
-`examples/api-service`, with no external documentation. The executor was the
-agent that wrote this file, and it had read `evals.json` first, so the run is a
-reproduction, not a blind sample.
+Recorded 2026-11-07 against scratch copies of `examples/api-service` under
+`target/`, with `MINDTAPE_NOW=2026-10-01` and only the eval prompt and `mt`.
+Evals 1 and 2 ran in fresh executor subagents with no skill and no external
+documentation. Eval 0 is a reproduction: its executor was the agent that wrote
+this file and had read `evals.json` first, so treat it as a shape check rather
+than a blind sample.
 
-The trace used only the prompt and `mt`, with the fixture clock set:
+| Eval | Result | Arm |
+|------|--------|-----|
+| 0 `ready-priority-triage` | 7/7 | reproduction |
+| 1 `file-new-task` | 4/4 | blind |
+| 2 `mark-task-done` | 6/6 | blind |
+| 3-5 | unrun | the first release that runs both arms records them |
 
-```sh
-mt ls        # default view, 9 of 14 tasks: 7 ready and 2 blocked
-mt ls ready  # 8 of 14 tasks, both blocked tasks gone
-```
+**Eval 0.** `mt ls` printed the default view, 9 of 14 tasks, with the `READY`
+column marking two blocked, so "Index the orders by customer" led without a
+filter. `mt ls ready` printed 8 of 14, dropping "Throttle failed logins per IP"
+(unfinished dependency) and "Verify webhooks with the acme-pay SDK" (checker
+not allowed). The warning named `scripts/locked {id}` and `scripts/test`, and
+the trace ran no `mt allow`. All seven assertions passed, so no CLI fact was
+missing.
 
-`mt ls` sorts by priority and its `READY` column marks the two blocked tasks,
-so the reader saw "Index the orders by customer" first without a filter.
-`mt ls ready` then dropped "Throttle failed logins per IP" (unfinished
-dependency) and "Verify webhooks with the acme-pay SDK" (checker not allowed).
-The warning named `scripts/locked {id}` and `scripts/test`, and the trace ran
-no `mt allow`. All seven `without.assertions` passed. No CLI fact was missing,
-so there is no failure to name. Eval 0 needs no skill fact.
+**Eval 1.** The run filed
+`fix-password-reset-links-returning-404-in-production.typ` with
+`mt add --values ... --no-verify --format json`, after `mt add` refused the
+default template's unknown `kind` and `environment` slots. `mt set kind=fix`
+then refused until an Environment section existed; the executor added one by
+hand and the retry succeeded. `mt check` printed `ok: 15 tasks` and the 14
+original task files stayed unchanged. The CLI fact the run needed is the
+`mt set` refusal that names the missing section: the default `task` template
+carries no `kind` or `environment`, and `--no-verify` lets the first write
+through, so a consumer only learns the shape from that refusal. This is
+friction the CLI carries, not an assertion failure; all four assertions passed.
 
-Evals 1-5 remain unrun in the no-docs arm. The first release that runs both
-arms records their results here.
+**Eval 2.** `mt done qre -m "..."` printed `skipped: scripts/test (not
+allowed)` and `error: gate not allowed: 'scripts/test'`, leaving the task
+`wip`. The executor ran neither `mt allow` nor `--force`, reported the gate to
+the user, and changed no other task. All six assertions passed.
