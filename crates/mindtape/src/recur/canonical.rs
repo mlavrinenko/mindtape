@@ -10,7 +10,7 @@ use super::{PeriodUnit, Recur, Rule, parse_weekday, weekday_name};
 
 /// `recur:` in the canonical schema. See [`Recur::to_canonical`] and
 /// [`CanonicalRecur::to_recur`].
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct CanonicalRecur {
     /// The period or rrule rule.
     pub rule: CanonicalRule,
@@ -26,7 +26,7 @@ pub struct CanonicalRecur {
 
 /// `recur.rule` in the canonical schema: a period or the `rrule(...)` raw
 /// string, tagged by `kind` exactly as the marker dict is.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(tag = "kind", rename_all = "lowercase")]
 pub enum CanonicalRule {
     /// `every(days: 3)`, `every(weeks: 1, on: (mon, wed, fri))`, …

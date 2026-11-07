@@ -81,6 +81,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`mt ls --json` names its schema and drops `schema_version`.** The first
+  key is `$schema`, a URL to
+  `schema/output/ls/1.schema.json`, and the committed copy is generated from
+  the same Rust types. The new `mt schema` command lists the registered
+  outputs, prints one by name, records the goldens with `--write` and fails on
+  drift with `--check`. `mt import` now ignores a top-level `schema_version`,
+  so an export from an older `mt` still imports. A consumer that read
+  `schema_version` must read `$schema` instead.
 - **Bare `mt explain` ends on the command to run next.** A blank line sets off
   the `next:` line naming the optional category and JSON flag:
   `mt explain [<rules|tags|views|dicts>] [--json]`.

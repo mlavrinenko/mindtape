@@ -51,8 +51,8 @@ use clap_complete::engine::{ArgValueCandidates, ArgValueCompleter};
 
 use self::sources::dict_names;
 use self::sources::{
-    assignment, fixers, link_kinds, pack_sources, presets_in, statuses, stems, tag_token,
-    templates, view_names,
+    assignment, fixers, link_kinds, pack_sources, presets_in, schema_names, statuses, stems,
+    tag_token, templates, view_names,
 };
 use crate::cli::Cli;
 use crate::util;
@@ -81,6 +81,8 @@ pub enum Source {
     Fixers,
     /// Pack source names: `[pack-sources]`.
     PackSources,
+    /// The registered output names `mt schema` prints.
+    Schemas,
     /// `mt set`'s `<field>=<value>`: the fields it writes, then this project's
     /// tags once the token names `tags`.
     Assignment,
@@ -184,6 +186,7 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
     ("init", "preset", Source::Presets),
     ("packs update", "sources", Source::PackSources),
     ("init", "schema", Source::FilePath),
+    ("schema", "name", Source::Schemas),
     ("eval", "task", Source::Stems),
     ("go", "task", Source::Stems),
     ("rm", "targets", Source::Stems),
@@ -254,6 +257,7 @@ impl Source {
             Self::LinkKinds => arg.add(ArgValueCandidates::new(link_kinds)),
             Self::Fixers => arg.add(ArgValueCandidates::new(fixers)),
             Self::PackSources => arg.add(ArgValueCandidates::new(pack_sources)),
+            Self::Schemas => arg.add(ArgValueCandidates::new(schema_names)),
             Self::Presets => arg.add(ArgValueCandidates::new(|| {
                 presets_in(crate::cmd::init::preset::user_preset_dir().as_deref())
             })),
@@ -279,6 +283,7 @@ impl Source {
             Self::LinkKinds => "link-kinds",
             Self::Fixers => "fixers",
             Self::PackSources => "pack-sources",
+            Self::Schemas => "schemas",
             Self::Presets => "presets",
             Self::Assignment => "assignment",
             Self::TagToken => "tag-token",

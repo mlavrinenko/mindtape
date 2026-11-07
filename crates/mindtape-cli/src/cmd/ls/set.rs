@@ -13,7 +13,7 @@ use crate::cmd::ls::rules::{broken_part, footer_sources};
 use crate::diag::{Diag, Hint, Kind, Result, emit};
 use crate::project_set::HeldSet;
 use crate::render::color::{Painter, is_color_active};
-use crate::render::output::{Envelope, Listed, OutputFormat, SetGroup, Truncation, render_set};
+use crate::render::output::{JsonContext, Listed, OutputFormat, SetGroup, Truncation, render_set};
 use crate::util;
 
 /// One project of the set, by name, with its listing or why it has none.
@@ -93,7 +93,7 @@ fn render_groups(groups: &[Group], format: OutputFormat) -> Result<String> {
                     project: Some(&group.name),
                     ..listing.render_ctx()
                 },
-                envelope: Envelope {
+                envelope: JsonContext {
                     applied: &listing.applied,
                     truncated: listing.truncated,
                     retired,

@@ -446,6 +446,17 @@ pub fn report_change(verb: &str, task: &mindtape::Task, detail: &str) {
     println!("{verb} {} ({}): {detail}", task.id, task.title);
 }
 
+/// Write `body` to `path`, creating its parent directory first.
+///
+/// # Errors
+/// Returns an error when the directory or file cannot be written.
+pub(crate) fn write_creating_parent(path: &Path, body: &str) -> Result<()> {
+    if let Some(dir) = path.parent() {
+        std::fs::create_dir_all(dir).map_err(|err| Diag::cannot_write(path, &err))?;
+    }
+    write_atomic(path, body.as_bytes()).map_err(|err| Diag::cannot_write(path, &err))
+}
+
 /// [`canonical_source`], then write the result to `path`.
 ///
 /// # Errors

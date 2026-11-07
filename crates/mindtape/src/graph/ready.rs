@@ -40,7 +40,7 @@ pub enum ReadyState {
 
 /// What a blocked task waits on: one unfinished direct blocking-kind target,
 /// or one `waits-on` entry whose checker did not say the wait is over.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct Blocker {
     /// The target's stem, or the edge's own target stem when it names no
     /// loaded task. For a `waits-on` entry, the entry itself.

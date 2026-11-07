@@ -2,19 +2,17 @@
 //! bare array (`mt ls --json`'s default shape) or the `{ "tasks": [...] }` /
 //! `{ "tasks": ..., "applied": ... }` envelope (`mt ls --json`'s rule-applied
 //! shape). `applied` is ignored either way. A top-level `schema_version` is
-//! checked when present (`model/canonical.rs`'s [`SCHEMA_VERSION`]); absence is
-//! tolerated for hand-written or jq-produced records
-//! (`truth/tasks/emit-schema-version-in-the-ls-json-envelope.typ`).
+//! ignored as an unknown key, so an export from an older `mt` still imports.
 
 use std::io::Read as _;
 
 use std::path::Path;
 
 use crate::diag::Result;
-use mindtape::{CanonicalTask, SCHEMA_VERSION};
+use mindtape::CanonicalTask;
 use serde_json::Value;
 
-use crate::diag::{Diag, Hint, Kind, Note};
+use crate::diag::{Diag, Hint, Kind};
 
 /// Read `source` to a string: `-` reads stdin, anything else is a file path.
 ///
@@ -69,20 +67,17 @@ pub(super) fn parse_records(source: &str, raw: &str) -> Result<Vec<CanonicalTask
         .collect()
 }
 
-/// Pull the record array out of either accepted top-level shape, checking a
-/// document-level `schema_version` first when the input is an object.
+/// Pull the record array out of either accepted top-level shape. An unknown
+/// top-level key, `schema_version` included, is ignored.
 fn extract_array(value: Value) -> Result<Vec<Value>, Diag> {
     match value {
         Value::Array(items) => Ok(items),
-        Value::Object(mut map) => {
-            check_schema_version(map.get("schema_version"))?;
-            match map.remove("tasks") {
-                Some(Value::Array(items)) => Ok(items),
-                Some(_) => Err(Diag::failed("`tasks` must be a JSON array")),
-                None => Err(Diag::failed("expected a JSON array or a tasks envelope")
-                    .hint(Hint::example(r#"{"tasks": [...]}"#))),
-            }
-        }
+        Value::Object(mut map) => match map.remove("tasks") {
+            Some(Value::Array(items)) => Ok(items),
+            Some(_) => Err(Diag::failed("`tasks` must be a JSON array")),
+            None => Err(Diag::failed("expected a JSON array or a tasks envelope")
+                .hint(Hint::example(r#"{"tasks": [...]}"#))),
+        },
         other => Err(Diag::failed("expected a JSON array or object").value(json_kind(&other))),
     }
 }
@@ -97,34 +92,6 @@ fn json_kind(value: &Value) -> &'static str {
         Value::Array(_) => "array",
         Value::Object(_) => "object",
     }
-}
-
-/// Check an envelope's optional `schema_version` against the version this
-/// binary understands ([`SCHEMA_VERSION`]). Absent is fine (older,
-/// hand-written, or jq-produced input never carries it); present-and-no-newer
-/// is fine (this schema is a superset of every earlier one so far); a version
-/// newer than this binary knows is rejected outright, naming both versions,
-/// rather than risk silently mis-parsing a shape this binary has never seen.
-///
-/// # Errors
-/// Returns an error when `version` is present but not a non-negative
-/// integer, or is an integer greater than [`SCHEMA_VERSION`].
-fn check_schema_version(version: Option<&Value>) -> Result<(), Diag> {
-    let Some(version) = version else {
-        return Ok(());
-    };
-    let found = version.as_u64().ok_or_else(|| {
-        Diag::failed("`schema_version` must be a non-negative integer").value(version.to_string())
-    })?;
-    if found > u64::from(SCHEMA_VERSION) {
-        return Err(
-            Diag::refused("schema_version is newer than mt import supports")
-                .value(found.to_string())
-                .note(Note::new("the newest supported is").name(SCHEMA_VERSION.to_string()))
-                .hint(Hint::new("upgrade mt to import this input")),
-        );
-    }
-    Ok(())
 }
 
 #[cfg(test)]
@@ -148,34 +115,10 @@ mod tests {
     }
 
     #[test]
-    fn envelope_with_current_schema_version_parses() {
-        let raw = format!(
-            r#"{{"schema_version": {}, "tasks": [{{"title": "Solo"}}]}}"#,
-            super::SCHEMA_VERSION
-        );
-        let records = parse_records("t.json", &raw).expect("the current version must be accepted");
+    fn a_top_level_schema_version_is_ignored() {
+        let raw = r#"{"schema_version": 99, "tasks": [{"title": "Solo"}]}"#;
+        let records = parse_records("t.json", raw).expect("the key is unknown, not checked");
         assert_eq!(records.len(), 1);
-    }
-
-    #[test]
-    fn envelope_with_newer_schema_version_is_rejected() {
-        let too_new = u64::from(super::SCHEMA_VERSION) + 1;
-        let raw = format!(r#"{{"schema_version": {too_new}, "tasks": []}}"#);
-        let err = match parse_records("t.json", &raw) {
-            Ok(records) => panic!("expected rejection, got {} records", records.len()),
-            Err(err) => crate::diag::plain(&err),
-        };
-        assert!(err.contains(&too_new.to_string()), "{err}");
-        assert!(err.contains(&super::SCHEMA_VERSION.to_string()), "{err}");
-    }
-
-    #[test]
-    fn schema_version_must_be_a_non_negative_integer() {
-        let err = match parse_records("t.json", r#"{"schema_version": "one", "tasks": []}"#) {
-            Ok(records) => panic!("expected rejection, got {} records", records.len()),
-            Err(err) => err.to_string(),
-        };
-        assert!(err.contains("schema_version"), "{err}");
     }
 
     #[test]

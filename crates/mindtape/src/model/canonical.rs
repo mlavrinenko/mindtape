@@ -75,7 +75,7 @@ pub const SCHEMA_VERSION: u32 = 2;
 
 /// One task, projected into the canonical JSON schema. See the module doc for
 /// the authored/computed field contract.
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct CanonicalTask {
     /// Stable identity: the file stem, or an explicit authored `id:`.
     #[serde(default)]
@@ -149,10 +149,12 @@ pub struct CanonicalTask {
     pub recur: Option<crate::recur::CanonicalRecur>,
     /// Opaque consumer extensions, keyed by `x-<ns>` slot.
     #[serde(default)]
+    #[schemars(with = "serde_json::Value")]
     pub extras: BTreeMap<String, HVal>,
     /// Fields `[[tasks.collectors]]` computed, keyed by the collector's name.
     /// Read-only: `mt import` ignores them and writes no collector.
     #[serde(default)]
+    #[schemars(with = "serde_json::Value")]
     pub derived: BTreeMap<String, HVal>,
     /// Why a collector produced no field, one message per failure.
     #[serde(default)]
@@ -160,7 +162,7 @@ pub struct CanonicalTask {
 }
 
 /// `status:` in the canonical schema.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct CanonicalStatus {
     /// Lifecycle name, e.g. `proposed`, `wip`, `done`.
     pub name: String,
@@ -171,7 +173,7 @@ pub struct CanonicalStatus {
 }
 
 /// `links:` edge in the canonical schema.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct CanonicalLink {
     /// Raw target path/stem, as authored.
     pub task: String,
@@ -184,7 +186,7 @@ pub struct CanonicalLink {
 /// A plain numeric-field value in the canonical schema: a scale point or a
 /// band/anchor label. Used for `difficulty`, and for `priority`'s
 /// non-framework arm.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(untagged)]
 pub enum CanonicalNum {
     /// A raw number on the scale.
@@ -196,7 +198,7 @@ pub enum CanonicalNum {
 /// `priority:` in the canonical schema: either a plain numeric-field value
 /// (see [`CanonicalNum`]) or an authored framework invocation. See the module
 /// doc's "Priority parity" section.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(untagged)]
 pub enum CanonicalPriority {
     /// A raw number on the scale.
@@ -219,7 +221,7 @@ pub enum CanonicalPriority {
 
 /// One `count(...)` estimate unit: its manual part, its queries, and why it
 /// didn't resolve (read-only, `null` once it did).
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct CanonicalCount {
     /// The manual part, `n`.
     pub count: f64,
@@ -233,7 +235,7 @@ pub struct CanonicalCount {
 
 /// One query of a [`CanonicalCount`], tagged by `query`. `files` is how many
 /// files it matched (read-only), absent before the unit resolves.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(tag = "query", rename_all = "lowercase")]
 pub enum CanonicalQuery {
     /// `grep(regex, glob)`.

@@ -33,7 +33,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 7),
+  status: wip(2026, 11, 7),
 )
 
 == AS-IS

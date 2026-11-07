@@ -26,7 +26,7 @@ use crate::{
     cmd::add, cmd::allow, cmd::at, cmd::board, cmd::check, cmd::config as config_cmd, cmd::eval,
     cmd::explain, cmd::find, cmd::fix, cmd::flip, cmd::go, cmd::graph, cmd::import, cmd::init,
     cmd::install, cmd::link as link_cmd, cmd::ls, cmd::mv, cmd::packs, cmd::preset as preset_cmd,
-    cmd::recur, cmd::review, cmd::rm, cmd::set,
+    cmd::recur, cmd::review, cmd::rm, cmd::schema, cmd::set,
 };
 
 /// Mindtape keeps your tasks as Typst files and checks them against your rules.
@@ -167,6 +167,13 @@ enum Command {
     Packs(packs::PacksArgs),
     /// Show the config mt uses.
     Config(config_cmd::ConfigArgs),
+    /// Print or check the JSON Schema for a machine output.
+    ///
+    /// Bare, it lists each output, its version and the URL its `$schema`
+    /// names. `mt schema <name>` prints one schema, `--write` records the
+    /// copies under `schema/output/`, and `--check` fails when one differs.
+    /// It works outside a project.
+    Schema(schema::SchemaArgs),
     /// List the project's rules, tags, views and dictionaries, or one in full.
     ///
     /// Bare prints an index: the rules grouped by section, the derived fields,
@@ -250,6 +257,7 @@ fn dispatch(command: Command) -> Result<()> {
         Command::Fix(args) => fix::run(&args),
         Command::Allow(args) => allow::run(&args),
         Command::Config(args) => config_cmd::run(&args),
+        Command::Schema(args) => schema::run(&args),
         Command::Explain(args) => explain::run(&args),
         command => dispatch_more(command),
     }

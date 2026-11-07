@@ -98,6 +98,7 @@ mod release_workflow_e2e;
 mod review_e2e;
 mod rm_e2e;
 mod rules_e2e;
+mod schema_e2e;
 mod set_e2e;
 mod skipped_rule_once_e2e;
 mod status_note_paragraphs_e2e;

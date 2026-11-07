@@ -26,7 +26,7 @@ use crate::diag::quote as shell_quote;
 use crate::render::RenderCtx;
 use crate::render::color::{Painter, is_color_active};
 use crate::render::link::HyperlinksArg;
-use crate::render::output::{Envelope, OutputFormat, Truncation, render};
+use crate::render::output::{JsonContext, OutputFormat, Truncation, render};
 use crate::util;
 
 /// Arguments for `ls`.
@@ -112,7 +112,7 @@ pub(crate) fn run_with(args: &LsArgs, project: util::Project) -> Result<()> {
 
     let format = effective_format(args);
     let retired = listing.config.retired_refs();
-    let envelope = Envelope {
+    let envelope = JsonContext {
         applied: &listing.applied,
         truncated: listing.truncated,
         retired: &retired,

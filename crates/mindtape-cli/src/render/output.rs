@@ -8,9 +8,12 @@ use mindtape::model::numeric::{NumValue, format_num};
 use mindtape::{CanonicalTask, Readiness, ReadyState, SCHEMA_VERSION, Task};
 use serde_json::{Value, json};
 
-use crate::cmd::ls::rules::Applied;
+use crate::cmd::schema::LS;
 use crate::render::RenderCtx;
 use crate::render::columns::{ColumnId, joined_rows};
+use crate::render::envelope::Envelope;
+pub(crate) use crate::render::payload::{JsonContext, LsPayload};
+use crate::render::payload::{canonical_tasks, ls_payload};
 
 /// Output format for `list` and `eval`.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
@@ -81,20 +84,6 @@ impl Truncation {
     }
 }
 
-/// The document-level envelope `mt ls --json` wraps its records in: which rule
-/// and view won each facet ([`Applied`]), what `--limit` cut
-/// ([`Truncation`]), and the retired stems a `touches()` met. `mt eval --json` and the flip-hook table have neither
-/// context and pass `None` to [`render`], keeping the bare array —
-/// `schema_version` is an envelope marker, not a per-task field.
-#[derive(Debug, Clone, Copy)]
-pub struct Envelope<'a> {
-    pub applied: &'a Applied,
-    pub truncated: Option<Truncation>,
-    /// Every stem a `touches()` call met that no task answers to, even
-    /// through a rename ([`mindtape::config::Config::retired_refs`]).
-    pub retired: &'a [String],
-}
-
 fn status_name(task: &Task) -> String {
     task.status
         .as_ref()
@@ -104,15 +93,13 @@ fn status_name(task: &Task) -> String {
 /// Render `tasks` in the chosen `format`. `ctx` carries the config, the
 /// readiness driving the table's dependency column, and the environment a
 /// column's conditional visibility evaluates against; only `JSON` reads
-/// `envelope` at all. When it is `Some`,
-/// `JSON` wraps the task array in the `{"schema_version": ..., "tasks": ...,
-/// "applied": ..., "truncated": ...}` envelope
+/// `envelope` at all. When it is `Some`, `JSON` wraps the task array in the
+/// [`Envelope`] whose `$schema` names the `ls` schema, carrying `tasks`,
+/// `applied`, `truncated` and `retired`
 /// (`truth/tasks/conditional-ls-rules.typ`,
-/// `truth/tasks/emit-schema-version-in-the-ls-json-envelope.typ`,
+/// `truth/tasks/generate-a-schema-for-every-json-output.typ`,
 /// `truth/tasks/ls-limit-flag.typ`); `None` (e.g. `mt eval --json`, which has
-/// no rule/view context) keeps the bare array — `schema_version` is a
-/// document-level envelope marker, not a per-task field, so a bare array
-/// carries none.
+/// no rule/view context) keeps the bare array.
 ///
 /// `Table`, `CSV`, `Path` and `Path0` ignore `envelope`: the table's
 /// attribution and truncation lines are printed under it by the caller
@@ -129,7 +116,7 @@ pub fn render(
     tasks: &[Task],
     format: OutputFormat,
     ctx: RenderCtx<'_>,
-    envelope: Option<Envelope<'_>>,
+    envelope: Option<JsonContext<'_>>,
 ) -> Result<String> {
     match format {
         OutputFormat::Table => crate::render::table::render(tasks, ctx),
@@ -153,7 +140,7 @@ pub struct SetGroup<'a> {
 pub struct Listed<'a> {
     pub tasks: &'a [Task],
     pub ctx: RenderCtx<'a>,
-    pub envelope: Envelope<'a>,
+    pub envelope: JsonContext<'a>,
 }
 
 /// Render a set's listing in the chosen `format`, the projects in order. The
@@ -249,10 +236,17 @@ fn render_json(
     tasks: &[Task],
     config: &Config,
     readiness: &Readiness,
-    envelope: Option<Envelope<'_>>,
+    envelope: Option<JsonContext<'_>>,
 ) -> Result<String> {
-    let body = json_value(tasks, config, readiness, envelope);
-    Ok(serde_json::to_string_pretty(&body)?)
+    match envelope {
+        Some(context) => {
+            let payload = ls_payload(tasks, config, readiness, context);
+            Ok(serde_json::to_string_pretty(&Envelope::new(LS, payload))?)
+        }
+        None => Ok(serde_json::to_string_pretty(&json_value(
+            tasks, config, readiness, None,
+        ))?),
+    }
 }
 
 /// [`render_json`]'s document, before it is printed.
@@ -260,60 +254,21 @@ fn json_value(
     tasks: &[Task],
     config: &Config,
     readiness: &Readiness,
-    envelope: Option<Envelope<'_>>,
+    envelope: Option<JsonContext<'_>>,
 ) -> Value {
-    let array: Vec<Value> = tasks
-        .iter()
-        .map(|task| {
-            let mut canonical = CanonicalTask::from_task(task, config);
-            canonical.why = readiness.blockers(task).to_vec();
-            serde_json::to_value(canonical).unwrap_or(Value::Null)
-        })
-        .collect();
     match envelope {
-        Some(envelope) => json!({
-            "schema_version": SCHEMA_VERSION,
-            "tasks": array,
-            "applied": applied_to_json(envelope.applied),
-            "truncated": truncated_to_json(envelope.truncated),
-            "retired": envelope.retired,
-        }),
-        None => Value::Array(array),
+        Some(context) => serde_json::to_value(Envelope::new(
+            LS,
+            ls_payload(tasks, config, readiness, context),
+        ))
+        .unwrap_or(Value::Null),
+        None => Value::Array(
+            canonical_tasks(tasks, config, readiness)
+                .into_iter()
+                .map(|canonical| serde_json::to_value(canonical).unwrap_or(Value::Null))
+                .collect(),
+        ),
     }
-}
-
-/// `mt ls --json`'s `truncated` envelope field: `null` on a complete listing,
-/// else `shown`/`total` plus `next_skip` — the `--skip` value that continues
-/// from here, so a caller pages forward by copying a field rather than adding
-/// `shown` to whatever `--skip` it already passed. Always present, so a
-/// consumer reads one key rather than testing for its existence — an
-/// additive envelope key no `mt import` or `jq` consumer can trip over, hence
-/// no `SCHEMA_VERSION` bump.
-fn truncated_to_json(truncated: Option<Truncation>) -> Value {
-    truncated.map_or(
-        Value::Null,
-        |cut| json!({"shown": cut.shown, "total": cut.total, "next_skip": cut.next_skip()}),
-    )
-}
-
-/// `mt ls --json`'s `applied` envelope field: which rule (if any) fired,
-/// whether anything of it survived, and each facet's winning source plus
-/// effective value.
-///
-/// `superseded` is how a consumer tells a rule that matched and lost every
-/// facet from one that never matched — both leave the facets pointing
-/// elsewhere, and only the flag separates them. Additive, so no
-/// `SCHEMA_VERSION` bump.
-fn applied_to_json(applied: &Applied) -> Value {
-    json!({
-        "rule": applied.rule,
-        "superseded": applied.rule_superseded,
-        "facets": {
-            "filter": {"from": applied.filter_from, "value": applied.filter_value},
-            "sort": {"from": applied.sort_from, "value": applied.sort_value},
-            "columns": {"from": applied.columns_from, "value": applied.columns_value},
-        },
-    })
 }
 
 /// Render CSV over the same resolved column set/order the table renderer

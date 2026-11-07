@@ -1,0 +1,577 @@
+{
+  "$defs": {
+    "Blocker": {
+      "description": "What a blocked task waits on: one unfinished direct blocking-kind target,\nor one `waits-on` entry whose checker did not say the wait is over.",
+      "properties": {
+        "kind": {
+          "description": "The blocking edge kind, or `waits-on`.",
+          "type": "string"
+        },
+        "status": {
+          "description": "The target's status name; `None` when the target is not loaded or\ncarries no status. For a `waits-on` entry, the checker's reason.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stem": {
+          "description": "The target's stem, or the edge's own target stem when it names no\nloaded task. For a `waits-on` entry, the entry itself.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stem",
+        "kind"
+      ],
+      "type": "object"
+    },
+    "CanonicalCount": {
+      "description": "One `count(...)` estimate unit: its manual part, its queries, and why it\ndidn't resolve (read-only, `null` once it did).",
+      "properties": {
+        "count": {
+          "description": "The manual part, `n`.",
+          "format": "double",
+          "type": "number"
+        },
+        "problem": {
+          "default": null,
+          "description": "Why the unit didn't resolve (read-only).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "queries": {
+          "default": [],
+          "description": "The queries, in authored order.",
+          "items": {
+            "$ref": "#/$defs/CanonicalQuery"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "count"
+      ],
+      "type": "object"
+    },
+    "CanonicalLink": {
+      "description": "`links:` edge in the canonical schema.",
+      "properties": {
+        "kind": {
+          "description": "Edge kind (e.g. `depends-on`, `related`).",
+          "type": "string"
+        },
+        "note": {
+          "description": "Free-form note; kind-dependent requirement.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "task": {
+          "description": "Raw target path/stem, as authored.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "task",
+        "kind"
+      ],
+      "type": "object"
+    },
+    "CanonicalNum": {
+      "anyOf": [
+        {
+          "description": "A raw number on the scale.",
+          "format": "double",
+          "type": "number"
+        },
+        {
+          "description": "A band/anchor label, or a framework's bare name (fallback only).",
+          "type": "string"
+        }
+      ],
+      "description": "A plain numeric-field value in the canonical schema: a scale point or a\nband/anchor label. Used for `difficulty`, and for `priority`'s\nnon-framework arm."
+    },
+    "CanonicalPriority": {
+      "anyOf": [
+        {
+          "description": "A raw number on the scale.",
+          "format": "double",
+          "type": "number"
+        },
+        {
+          "description": "A band/anchor label.",
+          "type": "string"
+        },
+        {
+          "description": "An authored priority-framework invocation.",
+          "properties": {
+            "framework": {
+              "description": "Framework name, matched against the configured registry.",
+              "type": "string"
+            },
+            "inputs": {
+              "additionalProperties": true,
+              "default": {},
+              "description": "Named inputs, as authored.",
+              "type": "object"
+            },
+            "score": {
+              "default": null,
+              "description": "Read-side computed score (`config.tasks.priority.resolve`);\n`null`/absent when unresolvable. Ignored on import.",
+              "format": "double",
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "framework"
+          ],
+          "type": "object"
+        }
+      ],
+      "description": "`priority:` in the canonical schema: either a plain numeric-field value\n(see [`CanonicalNum`]) or an authored framework invocation. See the module\ndoc's \"Priority parity\" section."
+    },
+    "CanonicalQuery": {
+      "description": "One query of a [`CanonicalCount`], tagged by `query`. `files` is how many\nfiles it matched (read-only), absent before the unit resolves.",
+      "oneOf": [
+        {
+          "description": "`grep(regex, glob)`.",
+          "properties": {
+            "files": {
+              "description": "Files matched (read-only).",
+              "format": "uint",
+              "minimum": 0,
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "glob": {
+              "default": null,
+              "description": "The optional glob or `@name` set.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "query": {
+              "const": "grep",
+              "type": "string"
+            },
+            "regex": {
+              "description": "The pattern.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "query",
+            "regex"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "`glob(pattern)`.",
+          "properties": {
+            "files": {
+              "description": "Files matched (read-only).",
+              "format": "uint",
+              "minimum": 0,
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "pattern": {
+              "description": "The glob or `@name` set.",
+              "type": "string"
+            },
+            "query": {
+              "const": "glob",
+              "type": "string"
+            }
+          },
+          "required": [
+            "query",
+            "pattern"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "`ast_grep(language, pattern, glob)`.",
+          "properties": {
+            "files": {
+              "description": "Files matched (read-only).",
+              "format": "uint",
+              "minimum": 0,
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "glob": {
+              "default": null,
+              "description": "The optional glob or `@name` set.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "language": {
+              "description": "The language name, `rust` or its alias `rs`.",
+              "type": "string"
+            },
+            "pattern": {
+              "description": "The pattern, in ast-grep syntax.",
+              "type": "string"
+            },
+            "query": {
+              "const": "ast-grep",
+              "type": "string"
+            }
+          },
+          "required": [
+            "query",
+            "language",
+            "pattern"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "CanonicalRecur": {
+      "description": "`recur:` in the canonical schema. See [`Recur::to_canonical`] and\n[`CanonicalRecur::to_recur`].",
+      "properties": {
+        "anchor": {
+          "description": "`\"completion\"` or `\"due\"`; `None` = the project's `default-anchor`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "count": {
+          "description": "Remaining occurrence budget; `None` = unbounded.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "materialize": {
+          "description": "`\"spawn\"` or `\"mutate\"`; `None` = the project's `materialize` default.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rule": {
+          "$ref": "#/$defs/CanonicalRule",
+          "description": "The period or rrule rule."
+        },
+        "until": {
+          "description": "Series end date (`YYYY-MM-DD`); `None` = unbounded.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "rule"
+      ],
+      "type": "object"
+    },
+    "CanonicalRule": {
+      "description": "`recur.rule` in the canonical schema: a period or the `rrule(...)` raw\nstring, tagged by `kind` exactly as the marker dict is.",
+      "oneOf": [
+        {
+          "description": "`every(days: 3)`, `every(weeks: 1, on: (mon, wed, fri))`, …",
+          "properties": {
+            "kind": {
+              "const": "period",
+              "type": "string"
+            },
+            "on": {
+              "description": "Weekday names (`\"mon\"`, …); empty when unnarrowed.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "start": {
+              "description": "The `start:` date (`YYYY-MM-DD`) fixing a weekday series' week parity.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "unit": {
+              "description": "`\"days\"`, `\"weeks\"`, `\"months\"`, or `\"years\"`.",
+              "type": "string"
+            },
+            "value": {
+              "description": "The unit multiple.",
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "kind",
+            "unit",
+            "value"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "`rrule(\"FREQ=MONTHLY;BYDAY=1MO\")`.",
+          "properties": {
+            "kind": {
+              "const": "rrule",
+              "type": "string"
+            },
+            "raw": {
+              "description": "The raw rule string, verbatim.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "raw"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "CanonicalStatus": {
+      "description": "`status:` in the canonical schema.",
+      "properties": {
+        "date": {
+          "description": "Date the status was set, `YYYY-MM-DD`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "description": "Lifecycle name, e.g. `proposed`, `wip`, `done`.",
+          "type": "string"
+        },
+        "note": {
+          "description": "Free-form note.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/task/1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "One task record as `mt ls --json` prints it and `mt import` reads it.",
+  "properties": {
+    "assignee": {
+      "description": "The actor currently working the task.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "body": {
+      "default": "",
+      "description": "Raw Typst source after the `#show: task.with(...)` marker.",
+      "type": "string"
+    },
+    "children": {
+      "default": 0,
+      "description": "How many tasks name this one with a `parent` edge (read-only).",
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "collector_problems": {
+      "default": [],
+      "description": "Why a collector produced no field, one message per failure.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "derived": {
+      "default": {},
+      "description": "Fields `[[tasks.collectors]]` computed, keyed by the collector's name.\nRead-only: `mt import` ignores them and writes no collector."
+    },
+    "derived_tags": {
+      "default": [],
+      "description": "Folder-derived virtual tags (read-only; never authored).",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "difficulty": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CanonicalNum"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Difficulty: a bare number or label string."
+    },
+    "due": {
+      "description": "Due date, `YYYY-MM-DD`.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "estimate": {
+      "additionalProperties": {
+        "format": "double",
+        "type": "number"
+      },
+      "default": {},
+      "description": "Opaque `unit -> quantity` estimate map.",
+      "type": "object"
+    },
+    "estimate_counts": {
+      "additionalProperties": {
+        "$ref": "#/$defs/CanonicalCount"
+      },
+      "default": {},
+      "description": "The units written as `count(...)`, in source form. On import a unit\nhere wins over its resolved number in [`Self::estimate`].",
+      "type": "object"
+    },
+    "extras": {
+      "default": {},
+      "description": "Opaque consumer extensions, keyed by `x-<ns>` slot."
+    },
+    "file": {
+      "default": "",
+      "description": "Path to the source file, relative to the project root and\n`/`-separated on every platform ([`Task::file_key`]).",
+      "type": "string"
+    },
+    "id": {
+      "default": "",
+      "description": "Stable identity: the file stem, or an explicit authored `id:`.",
+      "type": "string"
+    },
+    "kind": {
+      "description": "Kind enum value.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "links": {
+      "default": [],
+      "description": "Typed `links:` edges.",
+      "items": {
+        "$ref": "#/$defs/CanonicalLink"
+      },
+      "type": "array"
+    },
+    "priority": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CanonicalPriority"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Priority: authored framework object, or a bare scalar/label. See the\nmodule doc's \"Priority parity\" section."
+    },
+    "progress": {
+      "default": null,
+      "description": "Terminal children over all children, `0..1` — the fraction the filter\nlanguage compares, where the table renders `3/5`; `null` with no\nchildren (read-only).",
+      "format": "double",
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "recur": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CanonicalRecur"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Recurrence rule + policy (`every(...)`/`rrule(...)`), or `null` when\nthe task does not recur. Additive relative to `SCHEMA_VERSION` 1 (an\nabsent key parses to `None` via `#[serde(default)]`, and no consumer\nreading the earlier field set can trip over a new one appearing) —\nsee `mindtape-cli::output::truncated_to_json`'s \"additive, no\n`SCHEMA_VERSION` bump\" precedent for envelope fields; this is the\nsame rule applied to a task field."
+    },
+    "reviewed": {
+      "description": "Last re-affirmation date, `YYYY-MM-DD`.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "start": {
+      "description": "Start date, `YYYY-MM-DD`.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CanonicalStatus"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Lifecycle status, or `null` when unset."
+    },
+    "tags": {
+      "default": [],
+      "description": "Authored tags, exactly as written in the file.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "title": {
+      "description": "Human-readable title.",
+      "type": "string"
+    },
+    "waits_on": {
+      "default": [],
+      "description": "What the task waits on outside the repo, as `checker:id` entries.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "why": {
+      "default": [],
+      "description": "What the task waits on: its unfinished direct blocking-kind targets\n(read-only). Needs the whole task set, so [`Self::from_task`] leaves\nit empty and a listing fills it from its [`crate::Readiness`].",
+      "items": {
+        "$ref": "#/$defs/Blocker"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "title": "Mindtape task",
+  "type": "object"
+}

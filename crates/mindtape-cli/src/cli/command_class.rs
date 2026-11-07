@@ -67,6 +67,10 @@ pub const CLASSIFICATION: &[(&str, Class)] = &[
     ("allow", Class::Write),
     ("config show", Class::Read(Reach::One)),
     ("config schema", Class::Read(Reach::One)),
+    (
+        "schema",
+        Class::Exempt("prints schemas; --write records the goldens"),
+    ),
     ("explain", Class::Read(Reach::One)),
     ("explain rules", Class::Read(Reach::One)),
     ("explain tags", Class::Read(Reach::One)),

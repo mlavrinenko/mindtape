@@ -372,7 +372,11 @@ fn every_read_command_takes_json() {
             .and_then(|class| class.get("kind"))
             .and_then(Value::as_str)
             == Some("read");
-        if subs.is_empty() && is_read && path != "config schema" && !(takes_json || inherited_json)
+        if subs.is_empty()
+            && is_read
+            && path != "config schema"
+            && path != "schema"
+            && !(takes_json || inherited_json)
         {
             missing.push(path.clone());
         }

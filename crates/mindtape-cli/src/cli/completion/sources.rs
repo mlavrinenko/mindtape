@@ -114,6 +114,14 @@ pub(super) fn pack_sources_in(root: Option<&Path>) -> Vec<CompletionCandidate> {
         .unwrap_or_default()
 }
 
+/// The registered output names `mt schema` prints.
+pub(super) fn schema_names() -> Vec<CompletionCandidate> {
+    crate::cmd::schema::SCHEMAS
+        .iter()
+        .map(|schema| CompletionCandidate::new(schema.id.name))
+        .collect()
+}
+
 /// Template stems, exactly the set `mt add --list` prints.
 pub(super) fn templates() -> Vec<CompletionCandidate> {
     from_project(|project| {

@@ -17,7 +17,9 @@
 //! # Files
 //!
 //! - `breach.rs` — one rendered line per rule breach.
+//! - `envelope.rs` — the `$schema` wrapper every object output carries.
 //! - `output.rs` — rendering tasks as a table, JSON or CSV.
+//! - `payload.rs` — the `mt ls --json` document and its `$schema` context.
 //! - `stdout.rs` — closed-pipe-safe `print!` and `println!` writers.
 //!
 //! The submodules expose infrastructure that will be consumed by command modules
@@ -25,7 +27,9 @@
 //! the `#[allow(dead_code)]` on the `mod render` declaration in `main.rs`.
 
 pub(crate) mod breach;
+pub(crate) mod envelope;
 pub(crate) mod output;
+pub(crate) mod payload;
 pub(crate) mod stdout;
 
 use std::path::Path;

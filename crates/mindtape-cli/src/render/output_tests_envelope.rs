@@ -1,8 +1,8 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 //! Envelope-side `output` tests: the document-level wrapper `mt ls --json`
-//! puts around its records — `schema_version`, `applied`, `truncated` — and
-//! the bare array every caller without that context (`mt eval --json`) keeps.
+//! puts around its records — `$schema`, `applied`, `truncated` — and the bare
+//! array every caller without that context (`mt eval --json`) keeps.
 //! Split out of `render/output_tests.rs` to keep both files under the size gate;
 //! sibling of `render/output_tests.rs`, which covers the record and non-JSON formats.
 //!
@@ -10,15 +10,16 @@
 //! field, only on where the envelope puts the records and what it says
 //! alongside them.
 
+use crate::cmd::ls::rules::Applied;
 use crate::render::TestCtx;
 use mindtape::test_support::bare_task;
 
-use super::{Applied, Envelope, OutputFormat, Truncation, render};
+use super::{JsonContext, OutputFormat, Truncation, render};
 
 /// Render one bare task as `--format json` under `envelope`, sharing the
 /// render boilerplate across the tests below (jscpd flags it as a clone once
 /// duplicated three times over).
-fn json_out(envelope: Option<Envelope<'_>>) -> String {
+fn json_out(envelope: Option<JsonContext<'_>>) -> String {
     render(
         &[bare_task("t1")],
         OutputFormat::Json,
@@ -29,13 +30,13 @@ fn json_out(envelope: Option<Envelope<'_>>) -> String {
 }
 
 /// [`json_out`], parsed back into a [`serde_json::Value`].
-fn json_value(envelope: Option<Envelope<'_>>) -> serde_json::Value {
+fn json_value(envelope: Option<JsonContext<'_>>) -> serde_json::Value {
     serde_json::from_str(&json_out(envelope)).unwrap()
 }
 
 /// The envelope an untruncated `mt ls --json` carries: attribution only.
-fn envelope(applied: &Applied) -> Envelope<'_> {
-    Envelope {
+fn envelope(applied: &Applied) -> JsonContext<'_> {
+    JsonContext {
         applied,
         truncated: None,
         retired: &[],
@@ -91,19 +92,20 @@ fn json_reports_a_rule_that_matched_and_lost_every_facet() {
 }
 
 #[test]
-fn json_with_applied_carries_schema_version() {
-    // The envelope is document-level, so `schema_version` sits alongside
-    // `tasks`/`applied`, not on each task record
-    // (`truth/tasks/emit-schema-version-in-the-ls-json-envelope.typ`).
+fn json_with_applied_carries_the_schema_url() {
+    // The envelope is document-level: `$schema` sits beside `tasks` and
+    // `applied`, not on each task record.
     let value = json_value(Some(envelope(&Applied::default())));
-    assert_eq!(value["schema_version"], mindtape::SCHEMA_VERSION);
-    assert!(value["tasks"][0]["schema_version"].is_null());
+    let schema = value["$schema"].as_str().unwrap();
+    assert!(schema.ends_with("/ls/1.schema.json"), "{schema}");
+    assert!(value.get("schema_version").is_none(), "{value}");
+    assert!(value["tasks"][0].get("schema_version").is_none());
 }
 
 #[test]
-fn json_without_applied_stays_a_bare_array_with_no_schema_version() {
+fn json_without_applied_stays_a_bare_array_with_no_schema() {
     let out = json_out(None);
-    assert!(!out.contains("schema_version"));
+    assert!(!out.contains("$schema"));
     let value: serde_json::Value = serde_json::from_str(&out).unwrap();
     assert!(value.is_array());
 }
@@ -122,18 +124,23 @@ fn json_with_no_rule_matched_reports_null_rule() {
 
 // --- truncation (`truth/tasks/ls-limit-flag.typ`) --------------------------
 
+/// [`json_value`] for a listing cut by `truncated`.
+fn json_with_cut(truncated: Option<Truncation>) -> serde_json::Value {
+    let applied = Applied::default();
+    json_value(Some(JsonContext {
+        applied: &applied,
+        truncated,
+        retired: &[],
+    }))
+}
+
 #[test]
 fn json_reports_a_truncated_listing_in_the_envelope() {
     // `--json` is structured, so the truncation goes IN the document rather
     // than after it: an agent that asked for a bounded listing reads whether
     // it saw everything from the same parse, not from a footer it would have
     // to strip back off.
-    let applied = Applied::default();
-    let value = json_value(Some(Envelope {
-        applied: &applied,
-        truncated: Truncation::new(Some(10), 0, 47),
-        retired: &[],
-    }));
+    let value = json_with_cut(Truncation::new(Some(10), 0, 47));
     assert_eq!(value["truncated"]["shown"], 10);
     assert_eq!(value["truncated"]["total"], 47);
     // `next_skip` is what a caller pages forward with — `0` (this run's own
@@ -147,12 +154,7 @@ fn json_advances_next_skip_past_an_existing_skip() {
     // Page two of a `-n 20` listing (`--skip 20`) must hand back `--skip 40`,
     // not `--skip 20` again — `next_skip` adds the shown count to the `skip`
     // this run already applied, never to `0`.
-    let applied = Applied::default();
-    let value = json_value(Some(Envelope {
-        applied: &applied,
-        truncated: Truncation::new(Some(20), 20, 143),
-        retired: &[],
-    }));
+    let value = json_with_cut(Truncation::new(Some(20), 20, 143));
     assert_eq!(value["truncated"]["shown"], 20);
     assert_eq!(value["truncated"]["next_skip"], 40);
 }
