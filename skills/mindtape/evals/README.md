@@ -82,24 +82,26 @@ the grader instead of the skill.
 
 ## Baseline
 
-Recorded 2026-11-07 against scratch copies of `examples/api-service` under
-`target/`, with `MINDTAPE_NOW=2026-10-01` and only the eval prompt and `mt`.
-Evals 1 and 2 ran in fresh executor subagents with no skill and no external
-documentation. Eval 0 is a reproduction: its executor was the agent that wrote
-this file and had read `evals.json` first, so treat it as a shape check rather
-than a blind sample.
+Recorded 2026-11-07 against scratch copies of `examples/api-service` and
+`examples/minimal` under `target/`, with `MINDTAPE_NOW=2026-10-01` and only the
+eval prompt and `mt`. Evals 1-5 ran in fresh executor subagents with no skill
+and no external documentation. Eval 0 is a reproduction: its executor was the
+agent that wrote this file and had read `evals.json` first, so treat it as a
+shape check rather than a blind sample.
 
 This baseline is the proof the `self-describing` goal in `truth/goals.typ`
-depends on. The blind evals below list, file and flip a task from `mt` alone,
-so a later no-docs run that stalls for want of a page is evidence against that
-goal.
+depends on. The blind evals below list, file, flip and record a blocker from
+`mt` alone, so a later no-docs run that stalls for want of a page is evidence
+against that goal.
 
 | Eval | Result | Arm |
 |------|--------|-----|
 | 0 `ready-priority-triage` | 7/7 | reproduction |
 | 1 `file-new-task` | 4/4 | blind |
 | 2 `mark-task-done` | 6/6 | blind |
-| 3-5 | unrun | the first release that runs both arms records them |
+| 3 `list-everything-no-all-flag` | 4/4 | blind |
+| 4 `add-with-priority-slot-trap` | 6/6 | blind, assertion widened after the run |
+| 5 `external-blocker-no-blocked-status` | 5/5 | blind |
 
 **Eval 0.** `mt ls` printed the default view, 9 of 14 tasks, with the `READY`
 column marking two blocked, so "Index the orders by customer" led without a
@@ -125,3 +127,24 @@ friction the CLI carries, not an assertion failure; all four assertions passed.
 allowed)` and `error: gate not allowed: 'scripts/test'`, leaving the task
 `wip`. The executor ran neither `mt allow` nor `--force`, reported the gate to
 the user, and changed no other task. All six assertions passed.
+
+**Eval 3.** `mt ls --help` pointed at the empty filter. `mt ls ''` listed all 14
+tasks, including the four done ones, and the executor did not try `--all`. No
+task file changed, and all four assertions passed.
+
+**Eval 4.** The executor read `mt add --describe`, saw the built-in template's
+only slot is `title`, filed `upgrade-the-postgres-driver`, and ran
+`mt set upgrade-the-postgres-driver priority=8`. The task carries `priority: 8`,
+`mt check` printed `ok: 6 tasks`, and the five original task files stayed
+unchanged. It did not exercise `--set priority=8`, so the original
+path-specific assertion failed. The CLI refusal was verified separately:
+`mt add "Probe" --set priority=8` exits non-zero with
+`error: unknown slot: 'priority'` and writes nothing. The assertion accepts either
+path, because the property is that the slot is not silently dropped.
+All six pass.
+
+**Eval 5.** `mt flip --list` showed the legend has no `blocked` status. The
+executor filed `upstream-design-system-release.typ` and linked `add-dark-mode`
+to it with `depends-on("upstream-design-system-release.typ")[the release has not
+shipped yet]`. `mt check` printed `ok: 6 tasks`, `mt ls` marks `add-dark-mode`
+blocked, and no status was invented. All five assertions passed.

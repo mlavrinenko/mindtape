@@ -224,7 +224,7 @@
             "text": "Filed a task about upgrading the Postgres driver"
           },
           {
-            "text": "Treated `--set priority=8` as an error to recover from: it exits non-zero naming `priority` as an unknown slot, not a silent drop"
+            "text": "Did not silently drop `priority`: `mt add --set priority=8` exits non-zero naming `priority` as an unknown slot, or `mt add --describe` showed no priority slot and the agent wrote it with `mt set`"
           },
           {
             "text": "The filed task carries `priority: 8`"
