@@ -35,8 +35,8 @@ groups:
       examples/api-service/tasks/verify-webhooks-with-the-acme-pay-sdk.typ: 5edd783761d8c71e6a68ff9975234dde517eb8803f07b4be7d75caf5df4ed573
       www/generate-api-service.sh: 3aad4b570fe94b74c5a7b9de65532df05769f0a013ab0a78bcb0903f57e4350d
     dependents:
-      skills/mindtape/evals/README.md: b451b8b388e4a1c8e95f876258e9c3425355a7bf9c1cfa0f04ec1a0c57b3bd6a
-      skills/mindtape/evals/evals.json: 79309eb845f4aa06bc45dcbfd73dcc96372bc6b508d959c3ca004fd97142f48f
+      skills/mindtape/evals/README.md: ad4ac68c804f22fe53fd56896c1ba26fa18ae0e6725c257b39f4e39eaadd3027
+      skills/mindtape/evals/evals.json: faeb43a95df4998423df8082df9e5fbee35ef52ed5c87a6c9c7529506d3b2612
       www/content/limit-work-in-progress.typ: c8bf092555288cd46fa02bc7ba8392bce040aa3b4276835caac2426e91143f42
       www/content/require-a-task-shape.typ: 4fd27013ec11b45de0c6ef0b789c61e7ca42ddc318b6056a0996f43437da5826
       www/content/split-oversized-tasks.typ: bfdad89f093d2998f51609e7ecd20d6e43f71a2be1bca54751e30be74709e95e
@@ -49,8 +49,8 @@ groups:
       crates/mindtape-cli/src/cmd/add/mod.rs: 8a509b9e3d71882c4075b79e35db2058a1bc440d771167a7700540557562bec7
     dependents:
       docs/src/skill.typ: efbf73c5a7fb68ecb18c2c395dba7ffb1b3c0edf9d1d449d85cecd655ff35852
-      skills/mindtape/evals/README.md: b451b8b388e4a1c8e95f876258e9c3425355a7bf9c1cfa0f04ec1a0c57b3bd6a
-      skills/mindtape/evals/evals.json: 481bb4f0168826d9ee4086ee6f4f4f74c4c31ed3b46792871532da8372b56460
+      skills/mindtape/evals/README.md: ad4ac68c804f22fe53fd56896c1ba26fa18ae0e6725c257b39f4e39eaadd3027
+      skills/mindtape/evals/evals.json: faeb43a95df4998423df8082df9e5fbee35ef52ed5c87a6c9c7529506d3b2612
       skills/mindtape/references/add-slots.md: 40f2d1cf845f44fbaf8293465be7ff4c6d6dd30c75347bf866fe673a3e3682cf
       www/content/agents.typ: f0240344a64911b167203d705e4a679fe6d64fb4e5d0824af52d68588ff71648
       www/content/config.typ: b53abdf2e21fa0febf6f628e4e07475a8e9fd0f975cf1857695fa6ceab781376
@@ -63,8 +63,8 @@ groups:
       crates/mindtape/src/allow.rs: 3d1473859e78256180ba546b96853f6d4d7b0fe677b2fe55d0e0dd2376fead04
     dependents:
       docs/src/skill.typ: b434fa0a7bee5bcf26f80ce8beac6595e0e1bd9def126dbc698b0cf54e06f92d
-      skills/mindtape/evals/README.md: b451b8b388e4a1c8e95f876258e9c3425355a7bf9c1cfa0f04ec1a0c57b3bd6a
-      skills/mindtape/evals/evals.json: 481bb4f0168826d9ee4086ee6f4f4f74c4c31ed3b46792871532da8372b56460
+      skills/mindtape/evals/README.md: ad4ac68c804f22fe53fd56896c1ba26fa18ae0e6725c257b39f4e39eaadd3027
+      skills/mindtape/evals/evals.json: faeb43a95df4998423df8082df9e5fbee35ef52ed5c87a6c9c7529506d3b2612
       www/content/cli/allow.typ: b4339d36cae71e4f3d4db1b5d3abe55c09c9725938ac1a5f610acd7c8263bd31
       www/content/hooks.typ: 5143d987a57b698ebe0b84a5e0ccce841981f7bda8886d3284d199cbbe1881e6
       www/content/wait-on-upstream.typ: af5dc39a862ddc877f0c6d1137765f606f8f3fdb3fef860f86cf4861be05a5fe
@@ -76,7 +76,7 @@ groups:
       crates/mindtape-cli/src/cmd/check/range.rs: 1e94bf07177b355e75adee8f3cd2bc6a5496b792ce922328ebd47e2c5f8e4092
       crates/mindtape-cli/src/cmd/check/templates.rs: 27e3dde799fa1977d8c92c91e43d4c26fb1110fe3e06907edf2a87a1900ca1c2
     dependents:
-      skills/mindtape/evals/evals.json: 30cf7329118dc87b78164b1f425b6bc114f509d6ed4112cd0c174438b9ecc826
+      skills/mindtape/evals/evals.json: faeb43a95df4998423df8082df9e5fbee35ef52ed5c87a6c9c7529506d3b2612
       www/content/agents.typ: d0d98ebce6f001845351e6832602b9851283a556952492c8c7c42db91ae00b3a
       www/content/cli/check.typ: 34af1f6401c812f44ff4d6bf6fd9e06ca4a822b61f824ac2a206c514761880ec
       www/content/commit-rules.typ: 1ffe224a06112b032b465f9e7b2812df1246be2ee01141e204211358fb56f150
@@ -144,7 +144,7 @@ groups:
       crates/mindtape-cli/src/cmd/flip/mod.rs: cbb17d6aba16ddad88abc1e63859b68a1210dfc81951203c5d1eb15965b511a0
     dependents:
       docs/src/skill.typ: b434fa0a7bee5bcf26f80ce8beac6595e0e1bd9def126dbc698b0cf54e06f92d
-      skills/mindtape/evals/evals.json: 481bb4f0168826d9ee4086ee6f4f4f74c4c31ed3b46792871532da8372b56460
+      skills/mindtape/evals/evals.json: faeb43a95df4998423df8082df9e5fbee35ef52ed5c87a6c9c7529506d3b2612
       www/content/cli/flip.typ: e2a040fa7c9bc827bbd7c58510205c6dcf8639cb5d4ac534d77aedf8a4715cd3
       www/content/hooks.typ: eafa7bbbedc26f726431d6936bcb03de5a6e5b0bc153f05efb3576eb54d7ca40
       www/content/links.typ: 4f6f04305d7f5f369370f4ff22b831e1460a982decebb249db2a34a97694d020
@@ -208,8 +208,8 @@ groups:
       crates/mindtape-cli/src/cmd/ls/rules.rs: 889d0091d5b7d039652a01c538bf9529f69d67af133156fa60e53fea4e76fe30
     dependents:
       docs/src/skill.typ: b434fa0a7bee5bcf26f80ce8beac6595e0e1bd9def126dbc698b0cf54e06f92d
-      skills/mindtape/evals/README.md: b451b8b388e4a1c8e95f876258e9c3425355a7bf9c1cfa0f04ec1a0c57b3bd6a
-      skills/mindtape/evals/evals.json: 79309eb845f4aa06bc45dcbfd73dcc96372bc6b508d959c3ca004fd97142f48f
+      skills/mindtape/evals/README.md: ad4ac68c804f22fe53fd56896c1ba26fa18ae0e6725c257b39f4e39eaadd3027
+      skills/mindtape/evals/evals.json: faeb43a95df4998423df8082df9e5fbee35ef52ed5c87a6c9c7529506d3b2612
       skills/mindtape/references/filters.md: 0f6098e42c5bdc8a76127554472fdc5eb59f8893a198736399003b255f527c98
       www/content/agents.typ: 401f157da479ad1dd7567bb0b6e4eb3d271eef6e84875c863c3db05254d1b4c4
       www/content/cli/ls.typ: 9a0b58d2280480542f13504a4a80dc716e71029b43012e68c00d93fe9a23fd31
@@ -281,7 +281,7 @@ groups:
       crates/mindtape-cli/src/cmd/set.rs: 9624d71caa5128046f87561d9371b78d39d176772b11ea80cc6565b4af56c215
     dependents:
       docs/src/skill.typ: b434fa0a7bee5bcf26f80ce8beac6595e0e1bd9def126dbc698b0cf54e06f92d
-      skills/mindtape/evals/evals.json: 79309eb845f4aa06bc45dcbfd73dcc96372bc6b508d959c3ca004fd97142f48f
+      skills/mindtape/evals/evals.json: faeb43a95df4998423df8082df9e5fbee35ef52ed5c87a6c9c7529506d3b2612
       skills/mindtape/references/blocking.md: 8972a45c32132a4a51859c0e2a2757249bba5f147886ba659e7243b84ad4c80b
       skills/mindtape/references/hand-editing.md: 4cd235947ca44eb3650a59c82584155c22131c08545a0415560144bf14d2f9dc
       www/content/cli/mv.typ: 7b1e53503cf9ad86e400df8153d6744ac8c7feb810ceff6f29d0ea59ecbe27d9
@@ -347,13 +347,13 @@ groups:
       .just/scripts/check-examples.sh: c35573a106d22c9168c8182f4ff689a6a84bd9dd70a0fa70d787f4407a4e4856
       .just/scripts/clippy.sh: d586661b1bca816bcdf145d4fdd785125624d5b79e78f493b65811c66fb87df4
       .just/scripts/wt-carry-lcov.sh: a4d4b96d24cee1d76f8d19ddcc10b6f4b99a1cb9f7c8ec3143cf487f2bb9861c
-      Justfile: c7c78364e14e65e39b643d7d028ba5af045415801a030468c4b62b00d7c9e584
+      Justfile: 17a3f46588cf5d265c36263ca9ef3f578904866ccf6e415e09796f0ae235b313
       flake.nix: 325112feb8cc629198bd6721f88d54efc933a1aebbf80d9a2e32f5f5ffc3cbc0
       nix/dev/flake.nix: 4272c7e414ff67f94e9ed6917f7b9155beecdcbcb0adc0b1f563e7641a0fd30b
       nix/dev/shell.nix: a101a16316de79b0e0ce368d0e8620c89220c216ab35641d78c98f1186e4c287
     dependents:
-      docs/src/agents.typ: 6591b22c7cb4514b063107be081b55f4657f3c5241a13cb803bd91a4267c2682
-      docs/src/contributing.typ: eddeeabed532aeee31385ade6f5697dac7fb4bf0065d7e6a99fc78c4e8c19dfe
+      docs/src/agents.typ: c238d2e162539c9d80fc6bb6883537c6d518ee6bfc1cc198cbae515afa3ca364
+      docs/src/contributing.typ: 5bdfcd6b7a92038197bc0bf1a2e2bdea25d90e805907cce4158d3a5a5d9f5562
       docs/src/contributing/coverage-crap.typ: 04666555d5eb876d5baed3f598e509794a12051227c352183c232475645e7432
       docs/src/contributing/crap-baseline.typ: e7254b2b9736613cc3c7a2f31a7f7f25ddf72dce913311f13b89221cca05cd09
       docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
@@ -510,6 +510,7 @@ groups:
       .just/scripts/install-bin.sh: d9f35240a8e5306bf943c5569cf73bf18080877df9278f3f005ba7dfdaf9211f
       .just/scripts/install-lib.sh: ddf51e6e5573b2d9248727efc32fc186facc03087e53560e43190623b72ece1e
       .just/scripts/install.sh: 5e9cefe19ec7b94b7002a952d56ed59081730f96449623a072726f7a5a6e257f
+      .just/scripts/skill-evals-check.sh: db4837ef0d8f095b8c42f2aca70bb2c1b7cc0fbb0ba36bb1775867bbaade8505
       .just/scripts/smoke-flake.sh: a1a55a8f4db6410a7398902ce4cf15c3bbcfaf0c57274797f5b187656ee36cfd
       .just/scripts/uninstall-lib.sh: 37c4a93bd69f7192428ad440fb177e5341c255e4867b7e9389ea86c800d409c1
     dependents: {}

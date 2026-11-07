@@ -140,6 +140,11 @@ scopes:
     - ".config/outdatty.yaml"
     - ".config/outdatty.lock"
 
+  # The skill's eval manifest, read by `just skill-evals-check`. Its fixture
+  # paths point into the `examples` scope, which the rule names separately.
+  skill-evals:
+    - "skills/mindtape/evals/**"
+
   # The example projects `just check-examples` validates. Keep this list and
   # that recipe in step: a fixture outside the scope goes false-fresh and stops
   # being gated without anyone noticing. It is not an `examples/*` glob,
@@ -425,6 +430,8 @@ scopes:
     - ".just/scripts/fmt-fixture-check.sh"
   script-check-examples:
     - ".just/scripts/check-examples.sh"
+  script-skill-evals-check:
+    - ".just/scripts/skill-evals-check.sh"
   script-clippy:
     - ".just/scripts/clippy.sh"
   script-install:
@@ -602,6 +609,14 @@ commands:
   - name: just check-examples
     tags: [gate]
     inputs: [rust, policy, examples, gates-meta, script-check-examples]
+
+  # Every eval carries a no-docs assertion block and a live fixture path.
+  # Static jq, no model: the manual loop stays skill-creator's, so this rule
+  # reads only the manifest (`skill-evals`) and the fixture trees its paths
+  # point into (`examples`).
+  - name: just skill-evals-check
+    tags: [gate]
+    inputs: [skill-evals, examples, gates-meta, script-skill-evals-check]
 
   # Set-differences `mt _cli --json`'s reflected command names (built binary,
   # so `rust`) against www/utils/cli-notes.typ's dict keys (`docs`) — a new

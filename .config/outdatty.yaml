@@ -884,6 +884,9 @@ groups:
       # The flake smoke test, which its recipe's doc line describes and no doc
       # restates step by step.
       - .just/scripts/smoke-flake.sh
+      # Shape-checks the skill's eval manifest; README.md describes the arms
+      # but restates none of the validation.
+      - .just/scripts/skill-evals-check.sh
       # The controls hold fixtures that no doc names. The readers they drive are
       # sources of the groups above.
       - .just/scripts/_script-graph-control.sh

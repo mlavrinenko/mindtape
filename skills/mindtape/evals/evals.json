@@ -35,7 +35,32 @@
         {
           "text": "Did not mutate any task files"
         }
-      ]
+      ],
+      "without": {
+        "assertions": [
+          {
+            "text": "Used `mt ls` to list tasks (drove the CLI rather than hand-reading task files)"
+          },
+          {
+            "text": "Excluded 'Throttle failed logins per IP', whose depends-on target is unfinished, from the ready set"
+          },
+          {
+            "text": "Excluded 'Verify webhooks with the acme-pay SDK', whose `waits-on` checker has not been allowed to run"
+          },
+          {
+            "text": "Did not run `mt allow`; passed the warning that `scripts/locked {id}` and `scripts/test` await the user's approval on to the user"
+          },
+          {
+            "text": "Led with 'Index the orders by customer', the highest-priority ready task"
+          },
+          {
+            "text": "Ordered by priority: no green task above an amber one, and the red task first"
+          },
+          {
+            "text": "Did not mutate any task files"
+          }
+        ]
+      }
     },
     {
       "id": 1,
@@ -57,7 +82,23 @@
         {
           "text": "The 14 original task files are unchanged"
         }
-      ]
+      ],
+      "without": {
+        "assertions": [
+          {
+            "text": "Used `mt add` to file the task (did not hand-author a .typ file)"
+          },
+          {
+            "text": "Filed a task whose title names the password-reset link's 404"
+          },
+          {
+            "text": "`mt check` printed `ok: 15 tasks`"
+          },
+          {
+            "text": "The 14 original task files are unchanged"
+          }
+        ]
+      }
     },
     {
       "id": 2,
@@ -85,7 +126,29 @@
         {
           "text": "No other task's status was changed"
         }
-      ]
+      ],
+      "without": {
+        "assertions": [
+          {
+            "text": "Identified `reject-expired-sessions-on-token-refresh`"
+          },
+          {
+            "text": "Tried to close it with an `mt` command (`mt flip done` or `mt done`), not a hand edit of the status line"
+          },
+          {
+            "text": "Left it `wip`, because the `scripts/test` gate was not allowed to run"
+          },
+          {
+            "text": "Did not run `mt allow` and did not pass `--force`"
+          },
+          {
+            "text": "Told the user that the `scripts/test` gate waits for their approval"
+          },
+          {
+            "text": "Changed no other task's status"
+          }
+        ]
+      }
     },
     {
       "id": 3,
@@ -107,7 +170,23 @@
         {
           "text": "Did not mutate any task files"
         }
-      ]
+      ],
+      "without": {
+        "assertions": [
+          {
+            "text": "Listed all 14 tasks, including the 4 terminal ones"
+          },
+          {
+            "text": "Used an empty filter (`mt ls ''`) or another match-all filter, not a `--all` flag"
+          },
+          {
+            "text": "Did not stop at an `--all` clap error; if tried, recovered with the empty filter"
+          },
+          {
+            "text": "Did not mutate any task files"
+          }
+        ]
+      }
     },
     {
       "id": 4,
@@ -135,7 +214,29 @@
         {
           "text": "The 5 original task files are unchanged"
         }
-      ]
+      ],
+      "without": {
+        "assertions": [
+          {
+            "text": "Used `mt add` to file the task (did not hand-author the .typ file)"
+          },
+          {
+            "text": "Filed a task about upgrading the Postgres driver"
+          },
+          {
+            "text": "Treated `--set priority=8` as an error to recover from: it exits non-zero naming `priority` as an unknown slot, not a silent drop"
+          },
+          {
+            "text": "The filed task carries `priority: 8`"
+          },
+          {
+            "text": "`mt check` printed `ok: 6 tasks`"
+          },
+          {
+            "text": "The 5 original task files are unchanged"
+          }
+        ]
+      }
     },
     {
       "id": 5,
@@ -160,7 +261,26 @@
         {
           "text": "`mt check` prints `ok:` with the task count"
         }
-      ]
+      ],
+      "without": {
+        "assertions": [
+          {
+            "text": "Wrote no `blocked` or other status the legend does not declare"
+          },
+          {
+            "text": "Read the legend from `mt` (`mt flip --list` or `mt config show`) before choosing a status, or used a path that needs no new status"
+          },
+          {
+            "text": "Recorded the blocker durably: a `depends-on` edge from `add-dark-mode.typ` to a filed upstream-release task, or a note on `add-dark-mode.typ` naming the upstream dependency"
+          },
+          {
+            "text": "Did not leave `add-dark-mode.typ` unchanged with the answer only in chat"
+          },
+          {
+            "text": "`mt check` printed `ok:` with the task count"
+          }
+        ]
+      }
     }
   ]
 }
