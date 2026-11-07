@@ -145,6 +145,12 @@ scopes:
   skill-evals:
     - "skills/mindtape/evals/**"
 
+  # The skill source trees `just skill-drift` hashes and compares with the
+  # stamps in the installed copies. `docs` names `skills/**` too, for the docs
+  # build, but a rule that leaned on it would re-run drift on every doc edit.
+  skill-source:
+    - "skills/**"
+
   # The example projects `just check-examples` validates. Keep this list and
   # that recipe in step: a fixture outside the scope goes false-fresh and stops
   # being gated without anyone noticing. It is not an `examples/*` glob,
@@ -432,6 +438,8 @@ scopes:
     - ".just/scripts/check-examples.sh"
   script-skill-evals-check:
     - ".just/scripts/skill-evals-check.sh"
+  script-check-skill-drift:
+    - ".just/scripts/check-skill-drift.sh"
   script-clippy:
     - ".just/scripts/clippy.sh"
   script-install:
@@ -617,6 +625,15 @@ commands:
   - name: just skill-evals-check
     tags: [gate]
     inputs: [skill-evals, examples, gates-meta, script-skill-evals-check]
+
+  # `just skill-drift` hashes each `skills/<name>` tree and compares it with
+  # the stamp `just install` wrote into the installed copy. It reads the source
+  # trees (`skill-source`) and its own body. The installed copies live outside
+  # the repo, so no scope can hash them: a source edit is what busts this rule,
+  # which is the case that matters (edit a skill, forget to install it).
+  - name: just skill-drift
+    tags: [gate]
+    inputs: [skill-source, gates-meta, script-check-skill-drift]
 
   # Set-differences `mt _cli --json`'s reflected command names (built binary,
   # so `rust`) against www/utils/cli-notes.typ's dict keys (`docs`) — a new

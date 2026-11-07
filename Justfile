@@ -54,7 +54,7 @@ _check-stages: _check-fast _check-build _check-cover
 
 [parallel]
 [private]
-_check-fast: (mmz "fmt-check") (mmz "clippy") (mmz "lint::machete") (mmz "lint::workflows") (mmz "lint::shellcheck") (mmz "lint::size") (mmz "lint::dry") (mmz "lint::secrets") (mmz "outdatty::check") (mmz "docs::recipes") (mmz "docs::blocks") (mmz "meta::fmt-fixture") (mmz "outdatty::trailer-fixture") (mmz "meta::arg-pattern") (mmz "meta::positional-args") (mmz "meta::script-attr") (mmz "lint::path-attr") (mmz "lint::plural") (mmz "meta::size-fixture") (mmz "meta::script-scope") (mmz "crap::baseline-check") (mmz "meta::gate-drift") (mmz "skill-evals-check")
+_check-fast: (mmz "fmt-check") (mmz "clippy") (mmz "lint::machete") (mmz "lint::workflows") (mmz "lint::shellcheck") (mmz "lint::size") (mmz "lint::dry") (mmz "lint::secrets") (mmz "outdatty::check") (mmz "docs::recipes") (mmz "docs::blocks") (mmz "meta::fmt-fixture") (mmz "outdatty::trailer-fixture") (mmz "meta::arg-pattern") (mmz "meta::positional-args") (mmz "meta::script-attr") (mmz "lint::path-attr") (mmz "lint::plural") (mmz "meta::size-fixture") (mmz "meta::script-scope") (mmz "crap::baseline-check") (mmz "meta::gate-drift") (mmz "skill-evals-check") (mmz "skill-drift")
 
 [parallel]
 [private]
@@ -175,6 +175,11 @@ check-examples:
 [group("gate")]
 skill-evals-check:
     bash .just/scripts/skill-evals-check.sh
+
+[doc("Fail when an installed skill differs from its source stamp")]
+[group("gate")]
+skill-drift:
+    bash .just/scripts/check-skill-drift.sh
 
 [arg('PCT', pattern='(100|[1-9]?[0-9])', help='linecop baseline percentage (0-100) — files at or above it get ejected')]
 [doc("Eject inline tests from Rust files nearing the linecop cap")]

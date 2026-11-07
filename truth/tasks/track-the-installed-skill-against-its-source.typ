@@ -32,7 +32,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 7),
+  status: wip(2026, 11, 7),
   links: depends-on("cut-the-skill-to-an-index-of-what-mt-cannot-say.typ"),
 )
 
