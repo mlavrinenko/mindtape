@@ -59,13 +59,11 @@ $ rg -n 'acid-test' truth/goals.typ
 - 🟢 `self-describing` is a product goal. Its acid test reads "A newcomer in a fresh session, given a project and `mt` but no external documentation, can list, file and flip a task, and every refusal names the command that fixes it."
 - 🟢 `implementable-tasks` says "An implementer", not "An agent".
 - 🟢 Every open task and every template rates the new goal, and `mt check` is green.
-- 🟢 A task filed later sees the goal in `mt explain` and in its `x-goals` template.
+- 🟢 A task filed later rates the goal in its `x-goals` slot default, and `truth/goals.typ` lists it.
 
 ```
-$ mt explain
-...
-goals: readable-tasks, implementable-tasks, enforced-practice, cheap-adoption,
-  typst-over-markdown, plain-files, self-describing
+$ mt add --describe -t task | rg self-describing
+          "self-describing",
 ```
 
 
