@@ -73,7 +73,7 @@ A worktree gets commits, not your working tree. Commit before you flip a task an
 
 `.config/wt.toml` holds the hooks, so a clone with nix and direnv needs no worktrunk config of its own. Before the fast-forward they run `just check` and `mt check --commits main..HEAD`, which refuses a branch that names a still-`wip` task in `Refs:`.
 
-`just install all` stamps each installed skill with `.mindtape-source-hash`, a hash of its `skills/<name>` source, and `just check` fails when the two differ. No installed copy means nothing to check.
+`just install all` stamps each installed skill with `.mindtape-source-hash`, a hash of its `skills/<name>` source. `just check` fails when a stamp differs or is missing, and stays quiet when no copy exists.
 
 ## Commit Messages
 

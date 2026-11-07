@@ -542,10 +542,10 @@ groups:
       www/content/agents.typ: 6abf42d103d52885cd8144658561a0a843e941c264e46c14fbb687522e53ccc1
   skill-install-docs:
     source:
-      .just/scripts/check-skill-drift.sh: 15d999189636d2373f72d9dd3c9ce8202b7951d7925766e40d791783a9d1dbab
+      .just/scripts/check-skill-drift.sh: 0f22e29a661d913b788b41ebf01e2677b44fa334880a6be794e1357a1d533558
       .just/scripts/install.sh: d74d5f891a895731d9ac4d4f39b9d9f338e498faf1a9444dba7b876ebd96deb6
     dependents:
-      docs/src/contributing.typ: 6716c2f9db08484c8e4d482631cebef64937e8fcf84f1564f3cf46549d8e317e
+      docs/src/contributing.typ: a8a8e429a01de4f56b40b8eac2270d8faa52c47b79e33d992c0d7253c7d7d927
   sweep-templates:
     source:
       .mindtape/templates/sweep-size.typ: af9f04495b246ef3eb72f7b9e57a43a4b1db107550136842ba1757d51782dcbf

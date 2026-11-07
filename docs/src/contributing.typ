@@ -138,8 +138,8 @@ worktrunk config of its own. Before the fast-forward they run #just.check() and
 still-`wip` task in `Refs:`.
 
 #just.install-all() stamps each installed skill with `.mindtape-source-hash`,
-a hash of its `skills/<name>` source, and #just.check() fails when the two
-differ. No installed copy means nothing to check.
+a hash of its `skills/<name>` source. #just.check() fails when a stamp differs
+or is missing, and stays quiet when no copy exists.
 
 = Commit Messages
 
