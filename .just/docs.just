@@ -36,6 +36,7 @@ serve: gen
 [working-directory("www")]
 check:
     cd .. && mkdir -p target && flock target/www-generated.lock env MINDTAPE_GENERATED_LOCK=1 mmz just docs::gen
+    cd .. && bash .just/scripts/check-schema-urls.sh
     out=$(tola build --clean 2>&1) || { printf '%s\n' "$out"; exit 1; }
     pagefind --site public/mindtape --silent
     bash generate-md.sh

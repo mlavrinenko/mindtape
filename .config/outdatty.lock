@@ -187,7 +187,7 @@ groups:
       www/content/quickstart.typ: e648924e5f5d9ce48a89e75a4ef846310072e141cf699af29f6dc5c4ae9df3ec
   cli-install-docs:
     source:
-      crates/mindtape-cli/src/cmd/install/mod.rs: c3913802d4e06eb10467ec031a95dd43958a9e9db368fa5380977ce62fdef3af
+      crates/mindtape-cli/src/cmd/install/mod.rs: 6e8cdfe844d7da5b40cc9b97b11556bb51b7e87d97bd148809ff2d17a895882b
     dependents:
       www/content/config.typ: 0843f7b41bb46e303e49a388320901af55f4c9c72d78601cb0a0f0ed1d4e2379
       www/content/quickstart.typ: e648924e5f5d9ce48a89e75a4ef846310072e141cf699af29f6dc5c4ae9df3ec
@@ -348,7 +348,7 @@ groups:
       .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
       .just/bench.just: 537461a4aecca375d05e7cd460ec36d1eaaff5167e5a698f065a9c8f61e976c1
       .just/crap.just: bbd5c5afd5c0949810cb7647c8dc495836f5b3ea3edd1d2ddba77703317caa6c
-      .just/docs.just: 2f7338970bce328e1f3513b0c5e3f80655c8689f6998e190d516d902f8608594
+      .just/docs.just: 65924cf131f47bb9ff56e34282d974fcd50a8bad357ac1a9ca988e5180f72455
       .just/install.just: d5b6fa1381014bf12de6551f5356a832667bd0d107998cbe86c03ce7eee16989
       .just/lint.just: 4d96dcdc5682b0e9a1cde360b500cef1029e0d25c80e27322adbf4e5632a893a
       .just/meta.just: 17f3c67395d11fe1ed06ad6067c77a2e0939fdf7f95706df3bbed76d3e59a368
@@ -362,7 +362,7 @@ groups:
       nix/dev/flake.nix: 4272c7e414ff67f94e9ed6917f7b9155beecdcbcb0adc0b1f563e7641a0fd30b
       nix/dev/shell.nix: d532544728f6c910eb3e49c1b2f7e5127dc01b66a9243921955b266208875bf3
     dependents:
-      docs/src/agents.typ: c238d2e162539c9d80fc6bb6883537c6d518ee6bfc1cc198cbae515afa3ca364
+      docs/src/agents.typ: 2cc865c62f9113a20e9e82adf99176bfe53995f7f2130d788631700081ebc0b4
       docs/src/contributing.typ: a8a8e429a01de4f56b40b8eac2270d8faa52c47b79e33d992c0d7253c7d7d927
       docs/src/contributing/coverage-crap.typ: 04666555d5eb876d5baed3f598e509794a12051227c352183c232475645e7432
       docs/src/contributing/crap-baseline.typ: e7254b2b9736613cc3c7a2f31a7f7f25ddf72dce913311f13b89221cca05cd09
@@ -510,6 +510,11 @@ groups:
       Cargo.toml: c88d46a092158fe095e7e059f4989589aa27dbdbba8f7021050faec1cca68336
     dependents:
       CHANGELOG.md: ff0e04d5e7a9da996bc1bbf20001923d7541513d42c7227254654cc42efeed7c
+  schema-url-docs:
+    source:
+      .just/scripts/check-schema-urls.sh: abd63a3d33b487ecb1e42666e238d3fbdce2c8cef7bc3390e7caace6d69acc01
+    dependents:
+      www/content/schema.typ: eeef7305d40f56eb644cb5de1a0627003ca9803def5dc13ef432547af58cfe38
   scripts-no-doc:
     source:
       .just/scripts/_doc-blocks-control.sh: 066258f034694487e0a94bba355457293697ff06ca7b974884ba3d5ca24ae7da

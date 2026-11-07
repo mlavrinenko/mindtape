@@ -86,8 +86,11 @@ mt ls '' --json | jq '[.tasks[] | {
 EOF
 
 # --- /schema/ -----------------------------------------------------------------
-# One full record, the two shapes of `priority` from examples/dsl/, which
-# configures the ICE framework, and the envelope with its records counted.
+# The output index, one full record, the two shapes of `priority` from
+# examples/dsl/, which configures the ICE framework, and the envelope with its
+# records counted. www/generate.sh pins MINDTAPE_SCHEMA_BASE empty, so the
+# index names the canonical URL a released binary prints.
+capture schema-list "$SRC" 'mt schema'
 capture schema-record "$SRC" "mt ls 'id == \"expire-idle-sessions\"' --json | jq '.tasks[0]'"
 capture schema-priority "$REPO/examples/dsl" "mt ls '' --json | jq -c '.tasks[] | {id, priority}'"
 capture schema-envelope "$SRC" "mt ls -n 1 --json | jq '.tasks |= length'"

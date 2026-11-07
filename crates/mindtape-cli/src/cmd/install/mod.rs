@@ -38,8 +38,7 @@ pub struct InstallArgs {
     #[arg(long)]
     pub no_defaults: bool,
 
-    /// Skip installing the JSON Schemas for `.mindtape/config.toml`, `at.toml`
-    /// and every machine output.
+    /// Skip the JSON Schemas for config, `at.toml` and machine outputs.
     #[arg(long)]
     pub no_schema: bool,
 

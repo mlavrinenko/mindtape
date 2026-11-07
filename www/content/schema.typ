@@ -6,7 +6,7 @@
   route: "/schema/",
   label: "Canonical schema",
   title: "Canonical schema",
-  summary: "The task JSON that `mt ls --json` prints and `mt import` reads, for `jq` programs to code against.",
+  summary: "The task records `mt ls --json` prints, what `mt import` reads, and every machine output's schema.",
 )
 #metadata(meta) <page-meta>
 
@@ -14,7 +14,7 @@
 
 Writing a script or a `jq` program against your tasks? `mt ls --json` prints
 each task as one JSON record, and `mt import` reads the same records back and
-writes `.typ` files. So a program written against this page works in both
+writes `.typ` files, so a program written against this page works in both
 directions. `CanonicalTask` in `crates/mindtape/src/model/canonical.rs` is the
 Rust type behind it.
 
@@ -150,18 +150,13 @@ with their count:
 
 #terminal("schema-envelope")
 
-The first key is `$schema`, a URL to the schema for this object. `mt schema ls`
-prints the same schema, and the committed copy is generated from the same Rust
-types, so a program can check the URL it read. A schema's path ends in its
-version, bumped only when that output's shape changes. `mt import` accepts
-input without `$schema`, such as a bare array of records.
+The first key is `$schema`, a URL to this object's schema. `mt schema ls`
+prints the same bytes, so a program can check the URL it read. `mt import`
+accepts input without `$schema`, such as a bare array of records.
 
-Every object output names its schema the same way, with `$schema` first and
-the payload keys flat beside it: `mt check --json`, a set's
-`mt @name check --json`, `mt graph --json`, `mt preset ls --json`,
-`mt explain [<rules|tags>] --json` and `mt eval --json`. `mt eval --json` wraps
-one task record under its own `eval` schema; the `task` schema describes the
-bare record `mt ls` puts in `tasks`.
+Every object output leads with `$schema` and keeps its payload keys flat
+beside it. `mt eval --json` wraps one task record under its own `eval` schema;
+the `task` schema describes the bare record `mt ls` puts in `tasks`.
 
 `applied` says which #link(u("/named-sets/"))[view] or
 #link(u("/cli/ls/#conditional-rules"))[`[[ls.rules]]` entry] shaped the
@@ -180,6 +175,40 @@ command line overrode them all.
 `retired` lists the stems that a #link(u("/filters/"))[`touches()`] call
 found in commit trailers and that no task has, such as tasks `mt rm` removed.
 It's `[]` when no filter calls `touches()`.
+
+= Every output
+
+`mt schema` lists each machine output with its version and the URL its
+`$schema` names:
+
+#terminal("schema-list")
+
+The URL ends in `/schema/output/<name>/<version>.schema.json`. The version
+bumps only when that output's shape changes, and the old file stays published,
+so a stored URL keeps resolving after an upgrade. `task` describes one record.
+Every command output has its own file. The odd names map to their command:
+`preset-ls` is `mt preset ls --json`, `set-ls` is `mt @set ls --json`,
+`set-check` is `mt @name check --json`, `at-project` and `at-set` are the two
+`mt at <name> --json` shapes, `describe` is `mt add --describe=json`,
+`config-show` is `mt config show --json`, `view` is
+`mt explain views <name> --json`, and `dict` is
+`mt explain dicts <name> --json`. The rest are named after their command: `ls`,
+`add`, `check`, `graph`, `explain`, `rules`, `tags`, `eval`, `board`, `at`,
+`packs`, `views` and `dicts`.
+
+A released binary names
+`https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/...`,
+so the URL always points at the newest published copy. A working-tree build
+names its checkout through `MINDTAPE_SCHEMA_BASE`, which the dev shell sets to
+`file://$mt_root/schema/output`. `mt install` writes the same files under the
+config directory, `~/.config/mindtape/schema/output/...` (or
+`$MINDTAPE_CONFIG_HOME/mindtape/...`), so an offline editor can point at the
+installed copy.
+
+`mt schema --write` records every current schema under `schema/output/`, and
+`mt schema --check` fails, naming each missing or changed file. The test suite
+runs that check, and the docs gate fails when a doc or a capture names a schema
+URL with no file, so a stale link cannot land.
 
 = Many projects
 

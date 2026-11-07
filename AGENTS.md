@@ -44,6 +44,8 @@ The Typst plumbing comes from seven crates.io dependencies, whose source sits un
 - `evalexpr` parses the filter language, and Mindtape evaluates the parsed tree itself.
 - `clap` for the CLI, `serde` and `toml` for config, `serde_json` and `csv` for output, and a hand-rolled table renderer in `crates/mindtape-cli/src/render/`.
 
+`schema/output/` holds the committed schema of every `--json` output, generated from the Rust types. A shape change bumps that output’s version and runs `mt schema --write`; `mt schema --check` runs in the gates.
+
 ## Task DSL (lib/prelude.typ)
 
 ```typ

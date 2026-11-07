@@ -31,7 +31,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 11, 8),
+  status: done(2026, 11, 8),
   links: depends-on("generate-a-schema-for-every-json-output.typ")
     + depends-on("add-schema-pointer-to-object-json-outputs.typ")
     + depends-on("wrap-collection-json-outputs-in-an-object-envelope.typ"),

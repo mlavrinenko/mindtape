@@ -842,6 +842,14 @@ groups:
       - docs/src/contributing/documentation.typ
       - docs/src/contributing/generated-docs.typ
 
+  # The docs arm that maps every recorded schema URL to its committed file,
+  # which the schema page states.
+  - name: schema-url-docs
+    source:
+      - .just/scripts/check-schema-urls.sh
+    dependents:
+      - www/content/schema.typ
+
   # The gates that police the other gates, and the secret scan. gates.typ
   # explains how each runs.
   - name: gate-scripts-docs

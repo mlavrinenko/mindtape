@@ -126,6 +126,10 @@ dependencies, whose source sits under `~/.cargo/registry/src/` at the versions
   #dep("serde_json") and #dep("csv") for output, and a hand-rolled table
   renderer in `crates/mindtape-cli/src/render/`.
 
+`schema/output/` holds the committed schema of every `--json` output,
+generated from the Rust types. A shape change bumps that output's version and
+runs `mt schema --write`; `mt schema --check` runs in the gates.
+
 = Task DSL (lib/prelude.typ)
 
 #let dsl = checked-slices(fact("dsl"), "dsl", ("task",))
