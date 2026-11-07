@@ -6,7 +6,7 @@
 
 use crate::cmd::ls::rules::tests::{args, project, project_with_config, resolve};
 
-use super::{Applied, MATCH_ALL, footer};
+use super::{Applied, MATCH_ALL, empty_hint, footer};
 
 /// An `Applied` whose facets came from `filter`, `sort` and `columns`, with
 /// `rule` matched.
@@ -87,6 +87,23 @@ fn footer_leaves_an_overridden_rule_to_the_json() {
         ..applied(Some("release"), "manual", MATCH_ALL, MATCH_ALL)
     };
     assert_eq!(footer(&applied, 1, 4, 0), "your filter · 1 of 4 tasks");
+}
+
+#[test]
+fn empty_hint_widens_a_filter_that_matched_nothing() {
+    assert_eq!(
+        empty_hint(0, 941).as_deref(),
+        Some(
+            "hint: no task matches; run mt ls '' for every task, \
+             or mt explain views for a saved view"
+        )
+    );
+}
+
+#[test]
+fn empty_hint_says_nothing_when_a_row_showed_or_the_project_is_empty() {
+    assert_eq!(empty_hint(1, 941), None);
+    assert_eq!(empty_hint(0, 0), None);
 }
 
 #[test]

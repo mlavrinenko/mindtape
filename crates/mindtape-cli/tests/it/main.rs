@@ -74,6 +74,7 @@ mod interactive_e2e;
 mod jscpd_baseline_merge_e2e;
 mod link_e2e;
 mod ls_broken_e2e;
+mod ls_empty_e2e;
 mod ls_error_format_e2e;
 mod ls_limit_e2e;
 mod ls_newline_e2e;

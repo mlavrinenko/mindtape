@@ -180,7 +180,10 @@ fn print_footer(args: &LsArgs, listing: &Listing) {
         listing.project_total,
         listing.broken,
     );
-    let lines = std::iter::once(footer).chain(next_page);
+    let empty = (args.flags.skip.unwrap_or(0) == 0 && listing.truncated.is_none())
+        .then(|| rules_applied::empty_hint(listing.tasks.len(), listing.project_total))
+        .flatten();
+    let lines = std::iter::once(footer).chain(empty).chain(next_page);
     // The table body ends in its own newline, so this blank line is the
     // footer's separator, not a leftover of the body's print.
     println!();

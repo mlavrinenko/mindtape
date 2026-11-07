@@ -167,8 +167,10 @@ The line under a table says where the rows came from and how many of the
 project's tasks it shows, as in `default view · 3 of 12 tasks`. When a rule
 sets the sort, its name follows, as in `inbox view · release sort · 3 of 12 tasks`.
 A filter you typed reads `your filter · 1 of 4 tasks`, and `mt ls --json`
-says where each facet came from. In `examples/api-service` no rule matches, so
-a bare `mt ls` applies the default view:
+says where each facet came from. A listing that shows no row adds a `hint:`
+line. It names `mt ls ''` for every task and `mt explain views` for a saved
+view. In `examples/api-service` no rule matches, so a bare `mt ls` applies the
+default view:
 
 #terminal("ls")
 

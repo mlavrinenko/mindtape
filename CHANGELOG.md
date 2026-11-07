@@ -84,6 +84,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Bare `mt explain` ends on the command to run next.** The index closes on a
   `next:` line naming `mt ls` for your work and `mt <command> --help` for the
   flags of a command you have not met.
+- **A listing that selects nothing names the way out.** A `mt ls` table with no
+  row adds a `hint:` line naming `mt ls ''` for every task and
+  `mt explain views` for a saved view.
 - **The four policy listings live under `mt explain`.** Bare `mt explain`
   prints an index of the rules grouped by section, the derived fields, and the
   tags, views and dictionaries with their entry counts. `mt explain rules`,

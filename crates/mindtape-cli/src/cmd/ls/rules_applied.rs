@@ -12,6 +12,8 @@
 //! [`crate::cmd::ls::rules`] does the resolving; this file records and renders the
 //! outcome.
 
+use crate::diag::{Command, hint_line};
+
 /// The source label meaning "nothing applied here — the built-in default".
 pub const MATCH_ALL: &str = "match-all";
 /// The source label for an explicit CLI argument: the filter positional,
@@ -104,6 +106,22 @@ pub fn footer(applied: &Applied, shown: usize, total: usize, broken: usize) -> S
 #[must_use]
 pub fn broken_part(broken: usize) -> Option<String> {
     (broken > 0).then(|| format!("{broken} broken"))
+}
+
+/// The line under a listing that selected nothing: how to widen the filter to
+/// every task, or where a saved view is listed. `None` when a row showed, and
+/// when the project holds no task to widen to. The commands carry this run's
+/// `@name` or `-w`, so the line pastes where it printed.
+#[must_use]
+pub fn empty_hint(shown: usize, total: usize) -> Option<String> {
+    if shown > 0 || total == 0 {
+        return None;
+    }
+    let every = Command::mt().word("ls").arg("");
+    let views = Command::mt().word("explain").word("views");
+    Some(hint_line(format!(
+        "no task matches; run {every} for every task, or {views} for a saved view"
+    )))
 }
 
 /// [`footer`]'s parts before the count: `["inbox view", "release sort"]`,
