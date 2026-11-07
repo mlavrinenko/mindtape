@@ -33,7 +33,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 11, 7),
+  status: done(2026, 11, 7),
   links: depends-on(
     "cut-the-skill-to-an-index-of-what-mt-cannot-say.typ",
     "name-the-next-command-in-every-mt-dead-end.typ",

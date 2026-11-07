@@ -89,6 +89,11 @@ documentation. Eval 0 is a reproduction: its executor was the agent that wrote
 this file and had read `evals.json` first, so treat it as a shape check rather
 than a blind sample.
 
+This baseline is the proof the `self-describing` goal in `truth/goals.typ`
+depends on. The blind evals below list, file and flip a task from `mt` alone,
+so a later no-docs run that stalls for want of a page is evidence against that
+goal.
+
 | Eval | Result | Arm |
 |------|--------|-----|
 | 0 `ready-priority-triage` | 7/7 | reproduction |
