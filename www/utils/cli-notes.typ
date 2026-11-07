@@ -155,9 +155,8 @@
       dictionary's entry count. `default` leads the view and tag lists when the
       project declares it. Each listing keeps the output it had before it moved
       under this command, and `--json` keeps its keys. A blank line separates
-      the index from a `next:` line naming `mt ls` for your work,
-      `mt explain <rules|tags|views|dicts>` for one category in full, and
-      `--json` for the listing as data.],
+      the index from a `next:` line naming the optional category and JSON flag:
+      `mt explain [<rules|tags|views|dicts>] [--json]`.],
     outputs: ("explain",),
   ),
   "explain.rules": (

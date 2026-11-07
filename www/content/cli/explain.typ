@@ -7,9 +7,8 @@
 every rule grouped by its config section, the derived fields, and the tags,
 views and dictionaries the project declares. A dictionary carries its entry
 count, and `default` leads the view and tag lists when it exists. A blank line
-separates the index from a `next:` line. It names `mt ls` for your work,
-`mt explain <rules|tags|views|dicts>` for one category in full, and `--json`
-for the listing as data.
+separates the index from a `next:` line naming the optional category and the
+JSON flag: `mt explain [<rules|tags|views|dicts>] [--json]`.
 
 #cli-command("explain")
 
