@@ -22,7 +22,7 @@
           "description": "The Typst function a `check` rule calls."
         },
         "message": {
-          "description": "What a breach prints, when that text is fixed: the rule's `message`,\nelse for an `assert` rule the engine's `must satisfy` advice. `None`\nwhen each breach words its own: a `check` rule prints what its\nfunction returns, and a body rule with no `message` prints its gate's\ntext for the heading at fault.",
+          "description": "What a breach prints, when that text is fixed: the rule's `message`,\nelse for an `assert` rule the engine's `must satisfy` advice. `None`\nwhen each breach words its own: a `check` rule prints what its\nfunction returns, a body rule with no `message` prints its gate's text\nfor the heading at fault, and a flip gate with none leaves the advice\nto `mt flip`.",
           "type": [
             "string",
             "null"

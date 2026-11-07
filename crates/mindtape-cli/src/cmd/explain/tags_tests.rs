@@ -116,6 +116,34 @@ fn reads_a_tag_through_has_tags_and_a_spaced_has_tag() {
     }
 }
 
+/// A run-less gate refuses a flip whether or not it sets a `message`, so the
+/// tags its `when` reads list at that moment too.
+#[test]
+fn a_flip_gate_with_no_message_reads_its_tags() {
+    let config = parse_config(
+        "[tasks.tags]\nallowed = [\"ship\"]\n\
+         [[on.flip]]\nwhen = 'into(\"done\") && has_tag(\"ship\")'\n\
+         actions = [{ gate = true }]\n",
+    )
+    .unwrap();
+
+    let entries = entries(&config, Some(Moment::Flip));
+
+    assert_eq!(names(&entries, "ship"), ["on.flip[0].actions[0]"]);
+    assert_eq!(
+        render(&entries, Some(Moment::Flip)),
+        "ship  on.flip[0].actions[0]\n      (no message set)\n"
+    );
+    let document = serde_json::to_value(document(&entries)).unwrap();
+    assert_eq!(
+        document["tags"]["ship"],
+        serde_json::json!([{
+            "rule": "on.flip[0].actions[0]",
+            "message": "(no message set)",
+        }])
+    );
+}
+
 #[test]
 fn keeps_only_the_rules_a_moment_enforces() {
     for (moment, expected) in [

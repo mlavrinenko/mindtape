@@ -107,15 +107,17 @@ fn body_rules_report_as_errors_with_their_own_message_or_none() {
     assert!(listed.iter().all(|rule| rule.assertion.is_none()));
 }
 
-/// A gate refuses the flip and a plain `run` only warns. An action with no
-/// message is not listed, and an empty `when` lists as none.
+/// A gate refuses the flip and a plain `run` only warns. Every gate lists,
+/// message or none; any other action lists only when it carries a message. An
+/// empty `when` lists as none.
 #[test]
-fn flip_actions_with_a_message_list_by_their_path() {
+fn flip_actions_list_gates_and_message_carriers_by_their_path() {
     let listed = rules(
         "[[on.flip]]\nwhen = ''\nactions = [{ show = \"hi\" }]\n\
          [[on.flip]]\nwhen = 'into(\"done\")'\nactions = [\
          { run = \"true\" }, { run = \"make\", message = \"fix the build\" }, \
-         { gate = true, message = \"not yet\" }]\n\
+         { gate = true, message = \"not yet\" }, { gate = true }, \
+         { run = \"check\", gate = true }]\n\
          [[on.flip]]\nwhen = ''\nactions = [{ run = \"lint\", gate = true, message = \"lint\" }]\n",
     );
 
@@ -143,6 +145,18 @@ fn flip_actions_with_a_message_list_by_their_path() {
                 "on.flip[1].actions[2]",
                 Severity::Error,
                 Some("not yet"),
+                Some("into(\"done\")"),
+            ),
+            (
+                "on.flip[1].actions[3]",
+                Severity::Error,
+                None,
+                Some("into(\"done\")"),
+            ),
+            (
+                "on.flip[1].actions[4]",
+                Severity::Error,
+                None,
                 Some("into(\"done\")"),
             ),
             ("on.flip[2].actions[0]", Severity::Error, Some("lint"), None),

@@ -23,8 +23,9 @@ below say what they hold.
 holds the rule's severity, its name as `mt config show --origin` prints it, and
 the message a breach prints. It lists what's left after packs, overrides and
 `disable`, so a project that extends a #link(u("/packs/"))[rule pack] sees the
-rules it actually got. A flip action that carries a `message` shows up too,
-named by its place in `[[on.flip]]`.
+rules it actually got. A flip gate shows up with or without a `message`, and
+any other flip action shows up only when it carries one. Each is named by its
+place in `[[on.flip]]`.
 
 A rule with no `severity` shows the level `mt` applies to it. That's `warn`
 for `[[tasks.rules]]` and `[[commits.rules]]`, and `error` for a body rule. A
@@ -48,8 +49,8 @@ your #link(u("/commit-rules/"))[commit rules]. `--json` names its schema in
 `mt explain tags` lists every tag `[tasks.tags] allowed` permits, with the
 rules that read it. A rule reads a tag when its `when` or `assert` reads
 `has_tag("<tag>")` or `has(tags, "<tag>")`, however either is spaced, so a new
-rule needs no registration. Each rule shows the message a breach prints, the
-same line `mt explain rules` gives it.
+rule needs no registration. Each rule shows the message `mt explain rules`
+gives it, `(no message set)` included.
 
 Without `--for`, a tag that no rule reads is still a legal tag, so the listing
 shows it with `area label` rather than dropping it. That covers tags a view or

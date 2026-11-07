@@ -32,7 +32,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 4),
+  status: done(2026, 11, 8),
   links: edge(
     "surfaced-by",
     "read-has-tags-and-spaced-has-tag-calls-in-mt-tags.typ",
@@ -92,6 +92,8 @@ cli   on.flip[1].actions[0]
 - `crates/mindtape/src/config/active_rules_tests.rs`: rename and re-document the existing test, then pin a run-less gate and a gating `run` with no message, while a message-less `show` and non-gating `run` stay out.
 - `crates/mindtape-cli/src/cmd/explain/tags_tests.rs`: pin that `--for flip` lists the tag read by a message-less gate. The rules table's `(no message set)` render is already covered.
 - `www/content/cli/explain.typ`: say a flip gate lists with or without a `message`, and another action lists only when it carries one; say a tag's rule shows the message `mt explain rules` gives it, `(no message set)` included.
+- `schema/output/rules/1.schema.json`: re-record the `message` description after `ActiveRule.message` names a message-less flip gate.
+- `CHANGELOG.md`: an `[Unreleased] Fixed` entry naming the gate that now lists.
 
 
 == Out of scope

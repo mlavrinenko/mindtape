@@ -248,6 +248,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   failed range. The loader reuses evaluations by resolved source identity and package
   fingerprint, so a range stays fast; `StateSource::differs` is retained but
   now always empty. A repository's first commit reads the empty tree.
+- **A flip gate with no message lists in `mt explain`.** `mt explain rules
+  --for flip` and `mt explain tags --for flip` now include a `gate = true`
+  action that sets no `message`, showing `(no message set)`, while an action
+  that neither gates nor carries a message stays out.
 
 ## [0.4.0] - 2026-11-02
 
