@@ -23,6 +23,7 @@
         "enforced-practice",
         "typst-over-markdown",
         "plain-files",
+        "self-describing",
       ),
     ),
     process: verdicts(
