@@ -1,6 +1,7 @@
 //! `mt install` — set up the USER ENVIRONMENT: the `@local/mindtape` Typst
 //! package, the XDG global `defaults.toml` app-config layer, the JSON Schemas
-//! for `.mindtape/config.toml` and `at.toml`, and the shell completion hooks.
+//! for `.mindtape/config.toml`, `at.toml` and every machine output, and the
+//! shell completion hooks.
 //!
 //! Distinct from `mt init`, which scaffolds a PROJECT's `.mindtape/config.toml`.
 //! By default performs all four installs; `--no-lib`/`--no-defaults`/
@@ -37,8 +38,8 @@ pub struct InstallArgs {
     #[arg(long)]
     pub no_defaults: bool,
 
-    /// Skip installing the JSON Schemas for `.mindtape/config.toml` and
-    /// `at.toml`.
+    /// Skip installing the JSON Schemas for `.mindtape/config.toml`, `at.toml`
+    /// and every machine output.
     #[arg(long)]
     pub no_schema: bool,
 
@@ -221,7 +222,7 @@ fn write_seed(dir: &Path, name: &str, content: &str, force: bool) -> Result<()> 
         );
         return Ok(());
     }
-    write_announced(dir, &path, content)
+    write_announced(path.parent().unwrap_or(dir), &path, content)
 }
 
 /// Write the XDG global `defaults.toml` in `dir`, seeded from the embedded
@@ -242,12 +243,17 @@ pub(crate) fn xdg_schema_path() -> Result<PathBuf> {
     Ok(xdg_defaults_dir()?.join(SCHEMA_FILE_NAME))
 }
 
-/// Write the two JSON Schemas in `dir`, each generated from its structs, so a
-/// schema-aware TOML editor (tombi, Taplo) assists filling values.
+/// Write the two editor schemas and every machine-output schema in `dir`, so
+/// a schema-aware TOML editor (tombi, Taplo) assists filling values and an
+/// offline editor can resolve a `$schema` URL.
+///
 /// `config.schema.json` ([`mindtape::config_schema_json`]) is what the
 /// `#:schema` directive `mt init` scaffolds points at. `at.schema.json`
 /// ([`mindtape::at::schema_json`]) sits beside `at.toml`, which you write
-/// yourself. Leaves an existing file alone unless `force`.
+/// yourself. Each output schema lands at
+/// `schema/output/<name>/<version>.schema.json`, the same bytes
+/// [`crate::cmd::schema::SCHEMAS`] prints. Leaves an existing file alone
+/// unless `force`.
 pub(crate) fn write_schema(dir: &Path, force: bool) -> Result<()> {
     write_seed(
         dir,
@@ -260,7 +266,11 @@ pub(crate) fn write_schema(dir: &Path, force: bool) -> Result<()> {
         AT_SCHEMA_FILE_NAME,
         &mindtape::at::schema_json(),
         force,
-    )
+    )?;
+    for schema in crate::cmd::schema::SCHEMAS {
+        write_seed(dir, &schema.id.relative_path(), &schema.json(), force)?;
+    }
+    Ok(())
 }
 
 #[cfg(test)]

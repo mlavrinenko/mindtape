@@ -31,7 +31,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 7),
+  status: wip(2026, 11, 8),
   links: depends-on("generate-a-schema-for-every-json-output.typ")
     + depends-on("add-schema-pointer-to-object-json-outputs.typ")
     + depends-on("wrap-collection-json-outputs-in-an-object-envelope.typ"),
@@ -40,27 +40,29 @@
 == AS-IS
 
 + Run `mt install --force` and read `www/content/schema.typ`.
-+ 🔴 Install writes only `config.schema.json` and `at.schema.json`; the page documents the task record but names no output schema or `$schema` URL; the release workflow never builds the output schemas.
++ 🔴 Install writes only `config.schema.json` and `at.schema.json`; the page documents the task record but names no output schema or `$schema` URL; no docs gate checks a `$schema` URL against a file.
 
 == TO-BE
 
 - 🟢 `mt install` writes the current output schemas beside the two editor schemas, and `mt schema <name>` prints any of them.
-- 🟢 `www/content/schema.typ` lists every `mt --json` output, its `$schema` URL and the version in that URL, plus how a local install resolves when offline.
-- 🟢 The release workflow regenerates the tagged schemas and refuses a tag when a committed schema differs; a docs gate fails when a `$schema` URL has no matching file.
+- 🟢 `www/content/schema.typ` lists every `mt --json` output, its stable `main` URL and the version in that URL, plus how a local install resolves when offline.
+- 🟢 A working-tree build names its checkout through `MINDTAPE_SCHEMA_BASE`; a released binary names the canonical `main` base.
+- 🟢 `mt schema --check` runs in the test suite and CI, so a committed schema that differs fails the build; `just docs::check` fails when a `$schema` URL has no matching file.
 
 ```
 $ mt schema ls | jq -r '.$id'
-https://raw.githubusercontent.com/mlavrinenko/mindtape/v0.5.0/schema/output/ls/1.schema.json
+https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/ls/1.schema.json
 ```
 
 == Changes
 
-- `crates/mindtape-cli/src/cmd/install/mod.rs`: write the output schemas under the XDG schema directory, still with `--no-schema` and `--force`.
-- `www/content/schema.typ`: the output table, the `$schema` rule and the local fallback.
-- `www/generate.sh`: capture the schema list, and pin `MINDTAPE_SCHEMA_BASE` for stable docs output.
-- `.github/workflows/release.yml`: run `mt schema --write` and fail on a diff before tagging.
-- `.just/scripts/check-schema-urls.sh` (new): map each `$schema` URL to `schema/output/...` and fail when the file is missing.
+- `crates/mindtape-cli/src/cmd/install/mod.rs` and `tests.rs`: write the output schemas under the XDG schema directory, with `--no-schema` and `--force`, and pin their bytes to `SCHEMAS`.
+- `www/content/schema.typ`: the output list from a real `mt schema` capture, the `$schema` URL rule and the local fallback.
+- `www/generate-import-export.sh`: capture `mt schema`; `www/generate.sh` keeps `MINDTAPE_SCHEMA_BASE` pinned empty so the transcript names the released URL.
+- `.just/scripts/check-schema-urls.sh` (new), wired into `docs::check`: map each registered schema and each docs URL to `schema/output/...` and fail when the file is missing.
 - `docs/src/agents.typ`, `CHANGELOG.md`: the new contract.
+
+No release-hook schema write and no `release.yml` schema step. `schema_e2e::recorded_schemas_match_the_binary` runs `mt schema --check`, `ci.yml` runs `just check`, and `release.yml` requires a green run on the tag's commit, so drift fails a normal gate.
 
 == Out of scope
 

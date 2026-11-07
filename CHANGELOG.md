@@ -86,6 +86,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`mt install` writes every output schema.** The schema page lists each
+  machine output and the URL its `$schema` names, with the installed copy for
+  offline editors, and a docs gate fails on a URL whose file is missing.
 - **`mt ls --json` names its schema and drops `schema_version`.** The first
   key is `$schema`, a URL to
   `schema/output/ls/1.schema.json`, and the committed copy is generated from

@@ -187,7 +187,7 @@ groups:
       www/content/quickstart.typ: e648924e5f5d9ce48a89e75a4ef846310072e141cf699af29f6dc5c4ae9df3ec
   cli-install-docs:
     source:
-      crates/mindtape-cli/src/cmd/install/mod.rs: c7f31444930bff928223e6c51f1235db57b827ef6cea6c30c5ede0143c627f5f
+      crates/mindtape-cli/src/cmd/install/mod.rs: c3913802d4e06eb10467ec031a95dd43958a9e9db368fa5380977ce62fdef3af
     dependents:
       www/content/config.typ: 0843f7b41bb46e303e49a388320901af55f4c9c72d78601cb0a0f0ed1d4e2379
       www/content/quickstart.typ: e648924e5f5d9ce48a89e75a4ef846310072e141cf699af29f6dc5c4ae9df3ec

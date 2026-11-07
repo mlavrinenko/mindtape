@@ -4,6 +4,8 @@ use mindtape::test_support::tempdir;
 use mindtape::test_support::write_file;
 use std::path::Path;
 
+use crate::cmd::schema::{LS, SCHEMAS};
+
 use super::{
     HOOKS, completion_hint, completions_dir, quote_path, shell_from_env, write_completions,
     write_defaults, write_schema, xdg_schema_path,
@@ -118,6 +120,32 @@ fn write_schema_skips_an_existing_at_schema_without_force() {
 #[test]
 fn write_schema_overwrites_the_at_schema_with_force() {
     assert_overwrites("at.schema.json", write_schema, &mindtape::at::schema_json());
+}
+
+/// The `ls` machine output's schema lands under `schema/output/ls/`, with
+/// the exact bytes `mt schema ls` prints.
+#[test]
+fn write_schema_writes_the_output_schemas() {
+    let dir = tempdir();
+    let target = dir.path().join("mindtape");
+    write_schema(&target, false).unwrap();
+    let ls = SCHEMAS.iter().find(|schema| schema.id == LS).unwrap();
+    assert_eq!(ls.id.relative_path(), "schema/output/ls/1.schema.json");
+    assert_eq!(
+        std::fs::read_to_string(target.join("schema/output/ls/1.schema.json")).unwrap(),
+        ls.json()
+    );
+}
+
+#[test]
+fn write_schema_skips_an_existing_output_schema_without_force() {
+    assert_skips_existing("schema/output/ls/1.schema.json", write_schema);
+}
+
+#[test]
+fn write_schema_overwrites_an_output_schema_with_force() {
+    let ls = SCHEMAS.iter().find(|schema| schema.id == LS).unwrap();
+    assert_overwrites("schema/output/ls/1.schema.json", write_schema, &ls.json());
 }
 
 /// `xdg_schema_path` returns a path ending with `config.schema.json`,
