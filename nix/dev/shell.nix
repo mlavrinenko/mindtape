@@ -139,6 +139,9 @@
           # Prepended idempotently: direnv reloads a shell it has already
           # loaded, and a second copy would only grow PATH.
           mt_root=$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")
+          # A working-tree build points `$schema` at this checkout's copies,
+          # so a local run never names a raw URL that may not exist yet.
+          export MINDTAPE_SCHEMA_BASE="file://$mt_root/schema/output"
           case ":$PATH:" in
             *":$mt_root/target/mt-dev/debug:"*) ;;
             *) export PATH="$mt_root/target/mt-dev/debug:$PATH" ;;

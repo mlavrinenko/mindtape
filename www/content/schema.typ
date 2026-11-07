@@ -150,10 +150,12 @@ with their count:
 
 #terminal("schema-envelope")
 
-`schema_version` changes only when the record or this object changes in a
-way that could break `mt import` or a `jq` program. `mt import` accepts input
-without it, such as a bare array of records. It refuses a version newer than
-its own and names both.
+The first key is `$schema`, a URL to the schema for this object. `mt schema ls`
+prints the same schema, and the committed copy is generated from the same Rust
+types, so a program can check the URL it read. A schema's path ends in its
+version, bumped only when that output's shape changes. `mt import` accepts
+input without `$schema`, such as a bare array of records, and ignores a
+top-level `schema_version`.
 
 `applied` says which #link(u("/named-sets/"))[view] or
 #link(u("/cli/ls/#conditional-rules"))[`[[ls.rules]]` entry] shaped the

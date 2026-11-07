@@ -167,7 +167,7 @@
   ("Links", ("link",)),
   ("Status", ("flip", "review")),
   ("Recurring tasks", ("recur",)),
-  ("Validate & inspect config", ("check", "explain", "config")),
+  ("Validate & inspect config", ("check", "explain", "config", "schema")),
   ("Retire", ("rm",)),
   ("Setup", ("init", "install", "fix", "packs", "allow", "at", "preset")),
 )

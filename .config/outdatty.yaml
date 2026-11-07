@@ -342,12 +342,24 @@ groups:
   - name: cli-output-docs
     source:
       - crates/mindtape-cli/src/render/output.rs
+      - crates/mindtape-cli/src/render/payload.rs
     dependents:
       - www/content/schema.typ
       - www/content/cli/ls.typ
       - www/content/agents.typ
       - www/content/import-export.typ
       - www/content/read-many-projects.typ
+
+  # `mt schema`: the registry, the URL base every `$schema` names, and the
+  # recorded copies `--write` and `--check` read.
+  - name: cli-schema-docs
+    source:
+      - crates/mindtape-cli/src/cmd/schema.rs
+      - crates/mindtape-cli/src/render/envelope.rs
+    dependents:
+      - www/content/cli/schema.typ
+      - www/utils/cli-notes.typ
+      - www/content/schema.typ
 
   # `mt preset ls --json`, in the agents page's list of JSON commands.
   - name: cli-preset-docs

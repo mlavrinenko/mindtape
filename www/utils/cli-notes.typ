@@ -185,6 +185,14 @@
 
   // ── Validate & inspect config ───────────────────────────────────────────────
   "check": (outputs: ("check",)),
+  "schema": (
+    prose: [`mt schema` prints the JSON Schema of a machine output. Bare, it
+      lists each output, its version and the URL its `$schema` names.
+      `mt schema <name>` prints one, and `--write` records every schema under
+      `schema/output/` in the current directory. `--check` fails, names every
+      missing or changed copy, and writes nothing. It works outside a
+      project.],
+  ),
   "config": (
     outputs: ("config-origin",),
     examples: "config-examples",

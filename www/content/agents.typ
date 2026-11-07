@@ -87,9 +87,9 @@ Every read command prints JSON with `--json`: `mt ls`, `mt eval <task>`,
 its filter, sort and columns, came from. `-n` keeps the reply short.
 `truncated` says how many tasks matched and where the next page starts, so
 `mt ls ready -n 1 --skip 1 --json` returns the next task. `truncated` is
-`null` when the list is complete. An agent that sees a `schema_version` it
-doesn't know should stop, not guess. #link(u("/schema/"))[The JSON schema]
-describes every field.
+`null` when the list is complete. Its first key is `$schema`, a URL to the
+schema that describes every field, so an agent can fetch the shape before it
+reads one. #link(u("/schema/"))[The JSON schema] describes every field.
 
 `mt _cli --json` prints every command with its flags, defaults and accepted
 values, so an agent can learn the CLI without parsing `--help`.
