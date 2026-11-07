@@ -1,0 +1,31 @@
+{
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/add/1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The object `mt add --json` prints: what the run did, the task's path and its stem hash.",
+  "properties": {
+    "$schema": {
+      "description": "The URL of the schema this object conforms to.",
+      "type": "string"
+    },
+    "outcome": {
+      "description": "What the run did: `wrote`, `skipped` or `suffixed`.",
+      "type": "string"
+    },
+    "path": {
+      "description": "The task file's path, with `/` on every platform.",
+      "type": "string"
+    },
+    "slug": {
+      "description": "The task's stem hash, the short name every command accepts.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "$schema",
+    "outcome",
+    "path",
+    "slug"
+  ],
+  "title": "Mindtape add report",
+  "type": "object"
+}

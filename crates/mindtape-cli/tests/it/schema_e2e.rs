@@ -1,5 +1,5 @@
-//! `mt schema` holds the recorded output schemas to the binary, and the live
-//! `mt ls --json` output validates against its recorded schema.
+//! `mt schema` holds the recorded output schemas to the binary, and live
+//! `--json` output validates against its recorded schema.
 #![allow(
     clippy::unwrap_used,
     clippy::indexing_slicing,
@@ -14,6 +14,21 @@ use crate::support;
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
+
+/// Every registered output, in `mt schema` order.
+const NAMES: [&str; 11] = [
+    "ls",
+    "task",
+    "add",
+    "check",
+    "set-check",
+    "graph",
+    "preset-ls",
+    "explain",
+    "rules",
+    "tags",
+    "eval",
+];
 
 #[test]
 fn recorded_schemas_match_the_binary() {
@@ -34,20 +49,8 @@ fn schema_lists_every_registered_output() {
     let root = repo_root();
     let text = support::stdout(&root, &["schema"]);
     let lines: Vec<&str> = text.lines().collect();
-    let expected = [
-        "ls",
-        "task",
-        "check",
-        "set-check",
-        "graph",
-        "preset-ls",
-        "explain",
-        "rules",
-        "tags",
-        "eval",
-    ];
-    assert_eq!(lines.len(), expected.len(), "{text}");
-    for (line, name) in lines.iter().zip(expected) {
+    assert_eq!(lines.len(), NAMES.len(), "{text}");
+    for (line, name) in lines.iter().zip(NAMES) {
         assert!(line.starts_with(&format!("{name}  1  ")), "{text}");
         assert!(line.ends_with(&format!("/{name}/1.schema.json")), "{text}");
     }
@@ -83,18 +86,7 @@ fn schema_urls_follow_the_instance_base() {
 fn schema_writes_and_checks_a_project_independent_copy() {
     let dir = tempfile::tempdir().unwrap();
     let text = support::stdout(dir.path(), &["schema", "--write"]);
-    for name in [
-        "ls",
-        "task",
-        "check",
-        "set-check",
-        "graph",
-        "preset-ls",
-        "explain",
-        "rules",
-        "tags",
-        "eval",
-    ] {
+    for name in NAMES {
         assert!(
             text.contains(&format!("schema/output/{name}/1.schema.json")),
             "{text}"
@@ -174,4 +166,15 @@ fn live_set_check_output_validates_against_the_recorded_schema() {
 fn live_graph_output_validates_against_the_recorded_schema() {
     let dir = support::project_with_tasks(&[("a.typ", "Alpha")]);
     validate("graph", &support::json(dir.path(), &["graph", "--json"]));
+}
+
+#[test]
+fn live_add_output_validates_against_the_recorded_schema() {
+    let dir = support::scaffold();
+    let text = support::stdout(
+        dir.path(),
+        &["add", "--name", "wired", "--set", "title=T", "--json"],
+    );
+    let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+    validate("add", &value);
 }

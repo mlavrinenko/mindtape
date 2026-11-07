@@ -6,7 +6,7 @@ use std::path::Path;
 
 use serde_json::Value;
 
-use super::{LS, SCHEMAS, TASK, check_all, find, write_all};
+use super::{ADD, LS, SCHEMAS, TASK, check_all, find, write_all};
 
 #[test]
 fn every_schema_is_stamped_with_its_canonical_id() {
@@ -36,6 +36,7 @@ fn registered_ids_are_unique_and_start_at_version_one() {
     assert_eq!(names.len(), before, "duplicate schema name");
     assert_eq!((LS.name, LS.version), ("ls", 1));
     assert_eq!((TASK.name, TASK.version), ("task", 1));
+    assert_eq!((ADD.name, ADD.version), ("add", 1));
 }
 
 #[test]

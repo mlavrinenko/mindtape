@@ -5,10 +5,31 @@
 //! cwd, or capturable stderr — none of which can be asserted from inside the
 //! shared test process. Pure-helper tests live in `cmd/add/tests.rs`.
 
-use super::super::{fill_title_from_stdin, run, warn_if_outside_roots};
+use super::super::{effective_format, fill_title_from_stdin, run, warn_if_outside_roots};
 use super::*;
 use mindtape::test_support::tempdir;
 use mindtape::test_support::write_file;
+
+// ── effective_format tests ──
+
+/// `--json` wins over `--format`, as in `mt ls`.
+#[test]
+fn json_flag_wins_over_format() {
+    let mut args = bare_args();
+    args.json = true;
+    args.format = Format::Path;
+    assert_eq!(effective_format(&args), Format::Json);
+}
+
+/// Without `--json`, `--format` keeps its value, `path0` included.
+#[test]
+fn format_is_kept_without_the_json_flag() {
+    let mut args = bare_args();
+    args.format = Format::Path0;
+    assert_eq!(effective_format(&args), Format::Path0);
+    args.format = Format::Text;
+    assert_eq!(effective_format(&args), Format::Text);
+}
 
 // ── fill_title_from_stdin tests (survivors: body→Ok(||), ||→&&, ==→!=) ──
 
@@ -211,6 +232,7 @@ fn run_with_no_verify_skips_validation() {
             no_verify: true,
             dedup: None,
             format: Format::Text,
+            json: false,
         };
         let result = run(&args);
         assert!(
@@ -275,6 +297,7 @@ fn run_fills_slot_from_declared_env() {
             no_verify: false,
             dedup: None,
             format: Format::Text,
+            json: false,
         };
         run(&args).expect("run should fill the slot from its declared env");
         let written =

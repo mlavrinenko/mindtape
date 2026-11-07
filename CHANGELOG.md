@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt add --json` prints the same report as `--format json`.** The report is
+  a flat object led by `$schema`, which names
+  `schema/output/add/1.schema.json`, then `outcome`, `path` and `slug`. `--json`
+  wins when both flags are given, and `--format path`/`path0` still print a bare
+  path.
 - **A collector can count code shape.** `query = { ast_grep = { language,
   pattern, glob } }` runs the shared query engine and publishes each matching
   file as a `["path"]` field, so a rule reads

@@ -103,6 +103,44 @@ fn json_format_reports_the_wrote_outcome() {
         support::at(&value, "/path").as_str(),
         Some(expected_path(dir.path(), "wired.typ").as_str())
     );
+    assert!(
+        support::at(&value, "/$schema")
+            .as_str()
+            .is_some_and(|url| url.ends_with("/add/1.schema.json")),
+        "{value}"
+    );
+}
+
+/// `--json` prints the same report as `--format json`, byte for byte.
+#[test]
+fn json_flag_prints_the_same_report_as_format_json() {
+    let dir = support::scaffold();
+    let via_flag = support::stdout(
+        dir.path(),
+        &["add", "--name", "wired", "--set", "title=T", "--json"],
+    );
+    std::fs::remove_file(dir.path().join("tasks/wired.typ")).unwrap();
+    let via_format = support::stdout(
+        dir.path(),
+        &[
+            "add", "--name", "wired", "--set", "title=T", "--format", "json",
+        ],
+    );
+    assert_eq!(via_flag, via_format);
+}
+
+/// `--json` wins when `--format` names another shape, as in `mt ls`.
+#[test]
+fn json_flag_wins_over_format_path() {
+    let dir = support::scaffold();
+
+    let value = add_json(
+        dir.path(),
+        &[
+            "add", "--name", "wired", "--set", "title=T", "--format", "path", "--json",
+        ],
+    );
+    assert_eq!(support::at(&value, "/outcome").as_str(), Some("wrote"));
 }
 
 #[test]

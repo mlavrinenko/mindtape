@@ -49,6 +49,7 @@ fn bare_args() -> AddArgs {
         no_verify: false,
         dedup: None,
         format: Format::Text,
+        json: false,
     }
 }
 

@@ -11,9 +11,11 @@
 
 use std::path::{Path, PathBuf};
 
-use serde_json::json;
+use serde::Serialize;
 
+use crate::cmd::schema::ADD;
 use crate::diag::{Command, next_line};
+use crate::render::envelope::Envelope;
 use crate::render::file_path;
 use crate::util;
 
@@ -28,7 +30,8 @@ pub enum Format {
     /// The path, ending in a NUL byte instead of a newline.
     #[value(name = "path0")]
     Path0,
-    /// A JSON object with `outcome` (`wrote`, `skipped` or `suffixed`), `path` and `slug`.
+    /// A JSON object with `$schema`, then `outcome` (`wrote`, `skipped` or
+    /// `suffixed`), `path` and `slug`.
     Json,
 }
 
@@ -62,6 +65,17 @@ impl Outcome {
             Self::Suffixed(_) => "suffixed",
         }
     }
+}
+
+/// What `mt add --json` prints beside its schema URL.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, schemars::JsonSchema)]
+pub struct AddReport {
+    /// What the run did: `wrote`, `skipped` or `suffixed`.
+    pub outcome: String,
+    /// The task file's path, with `/` on every platform.
+    pub path: String,
+    /// The task's stem hash, the short name every command accepts.
+    pub slug: String,
 }
 
 /// How the task is named to a reader: its slug hash, which every command
@@ -118,12 +132,12 @@ fn render_text(outcome: &Outcome, handle: &Handle) -> String {
 }
 
 fn render_json(outcome: &Outcome, handle: &Handle) -> String {
-    let value = json!({
-        "outcome": outcome.label(),
-        "path": mindtape::slash_path(outcome.path()),
-        "slug": handle.hash,
-    });
-    serde_json::to_string_pretty(&value).unwrap_or_default()
+    let report = AddReport {
+        outcome: outcome.label().to_owned(),
+        path: mindtape::slash_path(outcome.path()),
+        slug: handle.hash.clone(),
+    };
+    serde_json::to_string_pretty(&Envelope::new(ADD, report)).unwrap_or_default()
 }
 
 /// Print `outcome` in `format` to stdout, honouring `Path0`'s no-trailing-

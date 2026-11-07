@@ -11,12 +11,13 @@ use std::path::Path;
 use clap::Args;
 use serde_json::Value;
 
+use crate::cmd::add::output::AddReport;
 use crate::diag::{Diag, Hint, Result};
-use crate::render::envelope::Envelope;
 use crate::render::objects::{
     CheckPayload, CheckSetPayload, ExplainIndexPayload, GraphPayload, PresetsPayload, RulesPayload,
     TagsPayload,
 };
+use crate::render::envelope::Envelope;
 use crate::render::output::LsPayload;
 use mindtape::CanonicalTask;
 
@@ -79,10 +80,6 @@ fn instance_base() -> String {
     }
 }
 
-// jscpd:ignore-start
-// A registry of ids and generated functions: one entry per output, with no
-// helper to extract. The comment in `.just/lint.just` covers these lists.
-
 /// `mt ls --json`.
 pub const LS: SchemaId = SchemaId {
     name: "ls",
@@ -143,9 +140,12 @@ pub const EVAL: SchemaId = SchemaId {
     version: 1,
 };
 
-// jscpd:ignore-end
+/// `mt add --json`.
+pub const ADD: SchemaId = SchemaId {
+    name: "add",
+    version: 1,
+};
 
-// jscpd:ignore-start
 const LS_TITLE: &str = "Mindtape listing";
 const LS_DESCRIPTION: &str = "The object `mt ls --json` prints: its schema URL, the task records, and how the listing was shaped, cut and matched against retired stems.";
 const TASK_TITLE: &str = "Mindtape task";
@@ -172,62 +172,95 @@ const TAGS_DESCRIPTION: &str =
 const EVAL_TITLE: &str = "Mindtape eval";
 const EVAL_DESCRIPTION: &str =
     "The object `mt eval --json` prints: one task record inside its `$schema` envelope.";
-// jscpd:ignore-end
+const ADD_TITLE: &str = "Mindtape add report";
+const ADD_DESCRIPTION: &str =
+    "The object `mt add --json` prints: what the run did, the task's path and its stem hash.";
 
 /// One registered output schema.
 #[derive(Debug)]
 pub struct Schema {
     /// The output's name and version.
     pub id: SchemaId,
+    /// The schema's title. The generator stamps the same text, so the tests
+    /// read it back from there rather than from this field.
+    #[allow(dead_code, reason = "the schema generator stamps the same text")]
+    pub title: &'static str,
+    /// The schema's description, kept beside the title for the same reason.
+    #[allow(dead_code, reason = "the schema generator stamps the same text")]
+    pub description: &'static str,
     /// The generated schema, as pretty JSON with a trailing newline.
     pub json: fn() -> String,
 }
 
-// jscpd:ignore-start
 /// Every registered schema, in the order `mt schema` lists them.
 pub const SCHEMAS: &[Schema] = &[
     Schema {
         id: LS,
+        title: LS_TITLE,
+        description: LS_DESCRIPTION,
         json: ls_json,
     },
     Schema {
         id: TASK,
+        title: TASK_TITLE,
+        description: TASK_DESCRIPTION,
         json: task_json,
     },
     Schema {
+        id: ADD,
+        title: ADD_TITLE,
+        description: ADD_DESCRIPTION,
+        json: add_json,
+    },
+    Schema {
         id: CHECK,
+        title: CHECK_TITLE,
+        description: CHECK_DESCRIPTION,
         json: check_json,
     },
     Schema {
         id: SET_CHECK,
+        title: SET_CHECK_TITLE,
+        description: SET_CHECK_DESCRIPTION,
         json: set_check_json,
     },
     Schema {
         id: GRAPH,
+        title: GRAPH_TITLE,
+        description: GRAPH_DESCRIPTION,
         json: graph_json,
     },
     Schema {
         id: PRESET_LS,
+        title: PRESET_LS_TITLE,
+        description: PRESET_LS_DESCRIPTION,
         json: preset_ls_json,
     },
     Schema {
         id: EXPLAIN,
+        title: EXPLAIN_TITLE,
+        description: EXPLAIN_DESCRIPTION,
         json: explain_json,
     },
     Schema {
         id: RULES,
+        title: RULES_TITLE,
+        description: RULES_DESCRIPTION,
         json: rules_json,
     },
     Schema {
         id: TAGS,
+        title: TAGS_TITLE,
+        description: TAGS_DESCRIPTION,
         json: tags_json,
     },
     Schema {
         id: EVAL,
+        title: EVAL_TITLE,
+        description: EVAL_DESCRIPTION,
         json: eval_json,
     },
 ];
-// jscpd:ignore-end
 
 /// Arguments for `mt schema`.
 #[derive(Debug, Args)]
@@ -342,61 +375,114 @@ fn check_all(root: &Path) -> Result<()> {
         .hint(Hint::new("run mt schema --write")))
 }
 
-// jscpd:ignore-start
 /// `mt schema ls`: the `ls` output schema.
 fn ls_json() -> String {
-    registered::<Envelope<LsPayload>>(LS, LS_TITLE, LS_DESCRIPTION)
+    stamped(
+        schemars::schema_for!(Envelope<LsPayload>),
+        LS,
+        LS_TITLE,
+        LS_DESCRIPTION,
+    )
 }
 
 /// `mt schema task`: the bare canonical task record.
 fn task_json() -> String {
-    registered::<CanonicalTask>(TASK, TASK_TITLE, TASK_DESCRIPTION)
+    stamped(
+        schemars::schema_for!(CanonicalTask),
+        TASK,
+        TASK_TITLE,
+        TASK_DESCRIPTION,
+    )
 }
 
 /// `mt schema check`: the `mt check --json` object.
 fn check_json() -> String {
-    registered::<Envelope<CheckPayload>>(CHECK, CHECK_TITLE, CHECK_DESCRIPTION)
+    stamped(
+        schemars::schema_for!(Envelope<CheckPayload>),
+        CHECK,
+        CHECK_TITLE,
+        CHECK_DESCRIPTION,
+    )
 }
 
 /// `mt schema set-check`: the set check's object.
 fn set_check_json() -> String {
-    registered::<Envelope<CheckSetPayload>>(SET_CHECK, SET_CHECK_TITLE, SET_CHECK_DESCRIPTION)
+    stamped(
+        schemars::schema_for!(Envelope<CheckSetPayload>),
+        SET_CHECK,
+        SET_CHECK_TITLE,
+        SET_CHECK_DESCRIPTION,
+    )
 }
 
 /// `mt schema graph`: the graph object.
 fn graph_json() -> String {
-    registered::<Envelope<GraphPayload>>(GRAPH, GRAPH_TITLE, GRAPH_DESCRIPTION)
+    stamped(
+        schemars::schema_for!(Envelope<GraphPayload>),
+        GRAPH,
+        GRAPH_TITLE,
+        GRAPH_DESCRIPTION,
+    )
 }
 
 /// `mt schema preset-ls`: the preset listing object.
 fn preset_ls_json() -> String {
-    registered::<Envelope<PresetsPayload>>(PRESET_LS, PRESET_LS_TITLE, PRESET_LS_DESCRIPTION)
+    stamped(
+        schemars::schema_for!(Envelope<PresetsPayload>),
+        PRESET_LS,
+        PRESET_LS_TITLE,
+        PRESET_LS_DESCRIPTION,
+    )
 }
 
 /// `mt schema explain`: the explain index object.
 fn explain_json() -> String {
-    registered::<Envelope<ExplainIndexPayload>>(EXPLAIN, EXPLAIN_TITLE, EXPLAIN_DESCRIPTION)
+    stamped(
+        schemars::schema_for!(Envelope<ExplainIndexPayload>),
+        EXPLAIN,
+        EXPLAIN_TITLE,
+        EXPLAIN_DESCRIPTION,
+    )
 }
 
 /// `mt schema rules`: the rules listing object.
 fn rules_json() -> String {
-    registered::<Envelope<RulesPayload>>(RULES, RULES_TITLE, RULES_DESCRIPTION)
+    stamped(
+        schemars::schema_for!(Envelope<RulesPayload>),
+        RULES,
+        RULES_TITLE,
+        RULES_DESCRIPTION,
+    )
 }
 
 /// `mt schema tags`: the tags listing object.
 fn tags_json() -> String {
-    registered::<Envelope<TagsPayload>>(TAGS, TAGS_TITLE, TAGS_DESCRIPTION)
+    stamped(
+        schemars::schema_for!(Envelope<TagsPayload>),
+        TAGS,
+        TAGS_TITLE,
+        TAGS_DESCRIPTION,
+    )
 }
 
 /// `mt schema eval`: one task record inside the eval envelope.
 fn eval_json() -> String {
-    registered::<Envelope<CanonicalTask>>(EVAL, EVAL_TITLE, EVAL_DESCRIPTION)
+    stamped(
+        schemars::schema_for!(Envelope<CanonicalTask>),
+        EVAL,
+        EVAL_TITLE,
+        EVAL_DESCRIPTION,
+    )
 }
-// jscpd:ignore-end
 
-/// `type`'s schema stamped with `id`'s canonical URL, title and description.
-fn registered<T: schemars::JsonSchema>(id: SchemaId, title: &str, description: &str) -> String {
-    stamped(schemars::schema_for!(T), id, title, description)
+/// `mt schema add`: the `mt add --json` report schema.
+fn add_json() -> String {
+    stamped(
+        schemars::schema_for!(Envelope<AddReport>),
+        ADD,
+        ADD_TITLE,
+        ADD_DESCRIPTION,
+    )
 }
 
 /// `schema` stamped with its `$id`, title and description as pretty JSON with

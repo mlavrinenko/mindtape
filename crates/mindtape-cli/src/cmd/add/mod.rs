@@ -3,7 +3,8 @@
 //!
 //! # Files
 //!
-//! - `dedup.rs`, `target.rs`, `output.rs` — `--dedup`, destination and stem, `--format`.
+//! - `dedup.rs`, `target.rs`, `output.rs` — `--dedup`, destination and stem,
+//!   `--format`/`--json`.
 //! - `values.rs`, `tokens.rs`, `yaml_values.rs`, `templates/` — value sources, `--set`, YAML.
 //! - `interactive.rs`, `hint.rs`, `notes.rs`, `title.rs` — editor fill, refusal hint, fill note,
 //!   title from words or stdin.
@@ -147,6 +148,16 @@ pub struct AddArgs {
     /// How to report what `mt add` did.
     #[arg(long, value_enum, default_value_t)]
     pub format: Format,
+
+    /// Same as `--format json`.
+    #[arg(long)]
+    pub json: bool,
+}
+
+/// The format this run reports in: `--json` is shorthand for `--format json`
+/// and wins, otherwise `--format` (which has its own default).
+fn effective_format(args: &AddArgs) -> Format {
+    if args.json { Format::Json } else { args.format }
 }
 
 /// Run the `add` command.
@@ -291,7 +302,11 @@ fn commit(
         .and_then(|mut handle| handle.write_all(filled.as_bytes()))
         .map_err(|err| Diag::cannot_write(file, &err))?;
     warn_if_outside_roots(project, dest);
-    output::emit(outcome, &output::handle(project, outcome), args.format);
+    output::emit(
+        outcome,
+        &output::handle(project, outcome),
+        effective_format(args),
+    );
 
     if !checked {
         crate::task_edit::verify_written(&project.root, file).map_err(|err| kept(err, file))?;

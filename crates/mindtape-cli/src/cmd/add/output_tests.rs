@@ -5,6 +5,7 @@ use std::path::PathBuf;
 use serde_json::json;
 
 use super::{Format, Handle, Outcome, emit, render};
+use crate::cmd::schema::ADD;
 
 fn handle() -> Handle {
     Handle {
@@ -60,6 +61,28 @@ fn path0_format_is_nul_terminated_not_newline_terminated() {
     let out = render(&Outcome::Wrote(path()), &handle(), Format::Path0);
     assert_eq!(out, mindtape::display_path("tasks/foo.typ\0"));
     assert!(!out.ends_with('\n'));
+}
+
+/// The report is the `$schema` envelope, flat and schema-first.
+#[test]
+fn json_format_leads_with_the_schema_url_and_stays_flat() {
+    let rendered = render(&Outcome::Wrote(path()), &handle(), Format::Json);
+    let first_key = rendered
+        .lines()
+        .map(str::trim)
+        .find(|line| line.starts_with('"'));
+    let expected = format!(r#""$schema": "{}","#, ADD.url());
+    assert_eq!(first_key, Some(expected.as_str()), "{rendered}");
+    let value: serde_json::Value = serde_json::from_str(&rendered).unwrap();
+    let mut keys: Vec<&str> = value
+        .as_object()
+        .unwrap()
+        .keys()
+        .map(String::as_str)
+        .collect();
+    keys.sort_unstable();
+    assert_eq!(keys, ["$schema", "outcome", "path", "slug"], "{rendered}");
+    assert_eq!(value.get("slug"), Some(&json!("ksr")), "{rendered}");
 }
 
 #[test]
