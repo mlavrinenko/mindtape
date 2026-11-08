@@ -1,5 +1,4 @@
-#import "@local/mindtape:0.4.0": *
-#import "../lib.typ": *
+#import "/truth/prelude/1/lib.typ": *
 
 #show: task.with(
   title: slot(

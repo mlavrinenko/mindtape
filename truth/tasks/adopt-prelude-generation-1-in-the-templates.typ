@@ -30,7 +30,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 8),
+  status: done(2026, 11, 8),
   links: related(
     "give-each-project-one-prelude-module.typ",
   )[implements the decision],

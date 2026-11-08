@@ -183,11 +183,11 @@ fn files_at_the_status_the_template_names() {
 /// `[tasks.estimate] example`.
 const PRODUCTION_TEMPLATE: &str = include_str!("../../../../.mindtape/templates/task.typ");
 
-/// The template imports `../lib.typ` beside the tasks root. A stub that
-/// accepts every verdict keeps this test about the estimate default, not about
-/// which goals the repo currently holds.
-const GOALS_STUB: &str =
-    "#let helps(reason) = reason\n#let hurts(reason) = reason\n#let neutral = none\n";
+/// The generation prelude the production template imports, copied beside the
+/// template's destination so the test evaluates the real pair. The temp
+/// project already resolves `@local/mindtape:0.4.0` through
+/// [`super::fixtures::install_lib`].
+const PRODUCTION_PRELUDE: &str = include_str!("../../../../truth/prelude/1/lib.typ");
 
 /// Mirrors a project's `[tasks.estimate]`: required on every non-terminal
 /// task, capped at 5 `src-files` by a rule, no minimum, and an example that
@@ -210,7 +210,7 @@ fn add_splices_a_required_estimate_into_the_production_template() {
         ".mindtape/templates/task.typ",
         PRODUCTION_TEMPLATE,
     );
-    write_file(dir.path(), "lib.typ", GOALS_STUB);
+    write_file(dir.path(), "truth/prelude/1/lib.typ", PRODUCTION_PRELUDE);
 
     assert!(
         support::describe_slot_names(dir.path())
