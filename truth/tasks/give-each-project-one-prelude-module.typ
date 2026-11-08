@@ -34,36 +34,36 @@
       ..(),
     ),
   ),
-  assignee: "max",
+  assignee: "agent",
   status: proposed(2026, 11, 4),
 )
 
 == AS-IS
 
-+ Open any task file in this repo. It imports `@local/mindtape:0.3.0` and `../lib.typ`; a task in a nested folder needs a different `../` depth.
-+ 🔴 The version string repeats in 908 tasks and 16 templates. A prelude bump rewrites every file, and a project helper such as `surfaced-by(...)` has no single module of its own.
-+ A template or task that needs a shared helper copies an import line or reaches into `truth/lib.typ`, whose path depends on the task's folder.
++ Open any template file in this repo. It imports `@local/mindtape:0.4.0` and `../lib.typ`; a nested folder needs a different `../` depth.
++ 🔴 The library version repeats in every template, and a library bump rewrites each one, while a helper such as `surfaced-by(...)` has no task-facing module of its own.
++ Old tasks keep their literal pins, so the tree already carries three DSL versions.
 
 ```
-$ head -2 truth/tasks/list-a-flip-gate-with-no-message-in-mt-rules-and-mt-tags.typ
-#import "@local/mindtape:0.3.0": *
+$ head -2 .mindtape/templates/task.typ
+#import "@local/mindtape:0.4.0": *
 #import "../lib.typ": *
 ```
 
 == TO-BE
 
-- 🟢 Every task and template imports one project module, so the library and the project's helpers arrive together.
-- 🟢 `prelude.typ` re-exports the `@local/mindtape` prelude and every project helper, so `surfaced-by(...)` and `check-goals(...)` share one import.
-- 🟢 The library version appears once, in the prelude, so a bump edits one file.
-- 🟢 A flat task root imports `../prelude.typ`; a nested folder or a second root imports the prelude through a `[[typst.local-packages]]` package spec, so the path does not depend on depth.
+- 🟢 A numbered generation under `truth/prelude/<n>/lib.typ` is the task-facing module: it pins one `@local/mindtape:<version>` and owns the helpers that generation exposes.
+- 🟢 Tasks and templates import it root-absolutely, so the path does not depend on folder depth.
+- 🟢 A compatible change edits the newest generation in place; an incompatible change adds the next generation and rewires the templates.
+- 🟢 Old tasks keep the literal pin they were written against; the repo never migrates history just to follow a bump.
 
-```
-# prelude.typ
-#import "@local/mindtape:0.3.0": *
-#import "lib.typ": *
+```typ
+// truth/prelude/1/lib.typ
+#import "@local/mindtape:0.4.0": *
+#let surfaced-by(..args) = edge("surfaced-by", ..args)
 
-// A task file
-#import "../prelude.typ": *
+// a task
+#import "/truth/prelude/1/lib.typ": *
 ```
 
 == Changes
@@ -72,15 +72,16 @@ $ head -2 truth/tasks/list-a-flip-gate-with-no-message-in-mt-rules-and-mt-tags.t
 
 == Alternatives
 
-- Keep the two imports in every file: 908 tasks repeat the version and the helper path.
-- A pack ships the helper: a pack declares config and templates, but its files are not importable by tasks, and a git pack lives under a cache hash.
-- A relative `../prelude.typ` for every task: a nested folder changes the `../` depth, so the import is not one line.
+- One prelude for every task: a library bump moves closed tasks to the new DSL too, and the generation number is the compatibility record.
+- `@project/prelude:2`: Typst requires `2.0.0`, a project pin is `mt`-only, and commit states hardcode the `local` namespace.
+- A relative `../prelude.typ` for every task: a nested folder changes the `../` depth.
 
 == Out of scope
 
-- The migration of 908 tasks and 16 templates. A later task rewrites them once the prelude exists.
-- `mt fix`: it rewrites `@local/mindtape` imports today, and a prelude changes the file it targets. A later task updates it.
+- Old task files. Each keeps the literal pin it was written against; a generation does not migrate history.
+- Rust, schema, config and `mt fix`: a prelude is a project convention, not an `mt` concept.
+- Product docs and scaffolding for preludes; another project may choose a different layout.
 
 == Dogfood
 
-This repo's next task and template import one prelude, and a prelude bump changes one line instead of 900.
+The next task and template this repo files import `truth/prelude/1/lib.typ`.
