@@ -227,8 +227,9 @@ fn a_parent_state_error_names_the_parent_commit_not_head() {
     assert!(ok, "{text}");
     let parent = git_stdout(&root, &["rev-parse", "HEAD~1"]);
     let tip = git_stdout(&root, &["rev-parse", "--short", "HEAD"]);
+    let bad = format!("tasks{}bad.typ", std::path::MAIN_SEPARATOR);
     assert!(
-        text.contains(&format!("warning: {tip}: tasks/bad.typ:"))
+        text.contains(&format!("warning: {tip}: {bad}:"))
             && text.contains(&format!(" as {parent}: ")),
         "the warning names the parent commit: {text}"
     );

@@ -139,10 +139,8 @@ fn schema_writes_and_checks_a_project_independent_copy() {
     let dir = tempfile::tempdir().unwrap();
     let text = support::stdout(dir.path(), &["schema", "--write"]);
     for name in NAMES {
-        assert!(
-            text.contains(&format!("schema/output/{name}/1.schema.json")),
-            "{text}"
-        );
+        let path = support::native(&format!("schema/output/{name}/1.schema.json"));
+        assert!(text.contains(&path), "{text}");
     }
     support::stdout(dir.path(), &["schema", "--check"]);
 }

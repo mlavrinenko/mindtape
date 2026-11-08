@@ -56,10 +56,12 @@ fn refused(dir: &Path, args: &[&str]) -> String {
     stderr
 }
 
-/// Every `needle` appears in `text`.
+/// Every `needle` appears in `text`. A needle naming a path is written with
+/// `/` and compared in the platform separator `mt` prints it with.
 fn has(text: &str, needles: &[&str]) {
     for needle in needles {
-        assert!(text.contains(needle), "missing {needle:?}: {text}");
+        let needle = support::native(needle);
+        assert!(text.contains(&needle), "missing {needle:?}: {text}");
     }
 }
 
