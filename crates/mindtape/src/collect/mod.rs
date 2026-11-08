@@ -16,7 +16,7 @@
 //!
 //! A per-task failure — the Typst kind's evaluation error, a wrong-typed
 //! result or a file query that cannot run — is recorded on the task and
-//! reported as a `Collector` violation by [`crate::validate`]. The regex and
+//! reported as a `Collector` violation by [`crate::validate()`]. The regex and
 //! ast-grep kinds fail at load, where their pattern, group, language, glob and
 //! `returns` are checked ([`crate::config::collect`]).
 

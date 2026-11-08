@@ -269,7 +269,7 @@ impl Listing {
     }
 }
 
-/// Resolve the effective bundle ([`cmd::ls::rules::resolve`]), apply it, select and
+/// Resolve the effective bundle ([`crate::cmd::ls::rules::resolve`]), apply it, select and
 /// sort the tasks, and truncate. Consumes `project.outcome.tasks`. Readiness
 /// is computed over the full set — before the filter narrows it — so a
 /// terminal dependency hidden by the effective filter still counts as

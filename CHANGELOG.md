@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Upgrading from 0.4
+
+- The four policy listings moved under `mt explain`: `mt rules`, `mt tags`,
+  `mt views` and `mt dicts` are gone, with no aliases. Put the listing after
+  `explain`: `mt explain rules`.
+- JSON consumers read `$schema` instead of `schema_version`. The collection
+  outputs under Changed also wrap their payload under one named key; that
+  entry names each key.
+- Every shipped and project rule now has a name that says what it checks.
+  Rename `disable` entries, same-name overrides and `pack-rule` references with
+  the map under Changed.
+- The `mindtape` library no longer exports `SCHEMA_VERSION`. Read the `$schema`
+  URL of an output, or `schema/output/task/1.schema.json` for one record.
+- New tasks pin the prelude at `0.4.0`. `0.2.0` and `0.3.0` still load from the
+  snapshots built into `mt`; run `mt fix` to move an older unsupported pin.
+
 ### Added
 
 - **`mt add --json` prints the same report as `--format json`.** The report is
@@ -19,8 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   file as a `["path"]` field, so a rule reads
   `count_paths(derived.<name>, "@source")`. A bad pattern, an unknown language,
   a bad glob or a non-path `returns` fails config load; a query that cannot run
-  becomes a `Collector` violation at `derived.<name>`. `mt rules` shows the
-  `ast-grep` kind and the rules that read it.
+  becomes a `Collector` violation at `derived.<name>`. `mt explain rules` shows
+  the `ast-grep` kind and the rules that read it.
 - **A collector can call a project Typst function.** `query = { typst,
   function, field }` runs an exported function over the whole task or one field
   and publishes its value as `derived.<name>`. The value is checked against
@@ -35,9 +51,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `int`, `number`, `string`, `path` and `date`, a one-element list or a
   record. `len(field)` counts any list and `count_paths(field, ...sets)` counts
   distinct normalized paths in a `["path"]` field. Collectors merge by name
-  across layers and packs, `disable` drops one, and `mt rules` lists each one
-  with its origin, kind, type and readers. `mt eval` now loads the enclosing
-  project set and fills the task body.
+  across layers and packs, `disable` drops one, and `mt explain rules` lists
+  each one with its origin, kind, type and readers. `mt eval` now loads the
+  enclosing project set and fills the task body.
 - **`mt add` fills a `links` slot from YAML or JSON.** A template can declare
   `kind: "links"`, and `-f` or `--edit` supplies a list of `{kind, task, note}`
   mappings. The slot renders the same edge dicts the DSL helpers write, an
@@ -73,12 +89,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   immutable snapshot under `crates/mindtape/src/loader/preludes/<version>/`,
   so either pin loads with no package directory and `mt install` writes both.
   A supported old pin loads silently.
-- **An unsupported prelude fails once, and a commit range skips it.**
+- **An unsupported prelude fails once, and a commit check skips it.**
   An unsupported version such as `0.1.0` fails with one diagnostic naming the
   file, the version and the set, plus a rewrite hint for an older version and
   an upgrade hint for a newer one. `mt check --commits` warns and skips a past
   commit or tip state whose prelude is unsupported, without reporting its
-  skipped tasks as missing refs. A release archives the outgoing prelude under
+  skipped tasks as missing refs. `mt check --commit-msg` warns the same way and
+  skips the `scope = "task"` commit rules when either compared state holds
+  one, while its trailer check and `scope = "commit"` rules still run. A
+  release archives the outgoing prelude under
   `preludes/<version>/`, adds it to `PRELUDE_SNAPSHOTS` and
   `PRELUDE_SUPPORTED` with a fixture, and bumps `PRELUDE_VERSION` with
   `lib/typst.toml`. A version leaves by deleting its snapshot, table entry and
@@ -161,7 +180,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ```
 - **`mt install` writes every output schema.** The schema page lists each
   machine output and the URL its `$schema` names, with the installed copy for
-  offline editors, and a docs gate fails on a URL whose file is missing.
+  offline editors, and a docs gate fails on a URL whose file is missing. Each
+  install refreshes the generated schemas, so a compatible change reaches the
+  installed copy without `--force`.
 - **`mt ls --json` names its schema and drops `schema_version`.** The first
   key is `$schema`, a URL to
   `schema/output/ls/1.schema.json`, and the committed copy is generated from
@@ -206,7 +227,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tags, views and dictionaries with their entry counts. `mt explain rules`,
   `tags`, `views` and `dicts` print one listing unchanged, `--for
   add|flip|commit` still filters the rules and tags, and `--json` keeps each
-  listing's keys. The index's JSON is new and carries a `schema_version`. The
+  listing's keys. The index's JSON is new and carries a `$schema` URL. The
   `mt rules`, `mt tags`, `mt views` and `mt dicts` commands are removed, with
   no aliases, and every hint and doc names the new spelling.
 - **The estimate query engine is a shared module.** `Query`, its parse and
@@ -232,9 +253,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   "not a git repository" failure now ends with a hint to run `git init` and
   make the project a working tree, so a collector or an estimate in a fresh
   project says how to make the file walk work.
-- **`mt tags` reads both spellings of a tag call.** A rule that reads a tag
-  through `has(tags, "tag")`, or through `has_tag ("tag")` with a space, now
-  lists under that tag as `has_tag("tag")` does. The scan parses the rule's
+- **`mt explain tags` reads both spellings of a tag call.** A rule that reads
+  a tag through `has(tags, "tag")`, or through `has_tag ("tag")` with a space,
+  now lists under that tag as `has_tag("tag")` does. The scan parses the rule's
   filter instead of matching its bytes.
 - **A commit state loads every task file from its own tree.** `mt check
   --commits` and `--commit-msg` now read each task file a state holds, not

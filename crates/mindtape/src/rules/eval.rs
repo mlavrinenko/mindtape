@@ -1,11 +1,11 @@
 //! The engine behind `[[tasks.rules]]`: compile each declared entry into a
-//! [`CompiledRule`] and ask it about every task, collecting the breaches.
+//! `CompiledRule` and ask it about every task, collecting the breaches.
 //!
 //! Split out of `rules/mod.rs` to stay under the line budget: that file
 //! owns the declared shape — [`RuleSpec`], [`CheckSpec`], [`RulesRoot`] — and
 //! the load-time checks over it; this one owns what a valid declaration does
 //! at validation time. Both shapes of rule meet here: an `assert` compiles to
-//! a [`Filter`] and a `check` to a [`CompiledCheck`], and [`check_all`] builds
+//! a [`crate::filter::Filter`] and a `check` to a [`crate::rules::typst::CompiledCheck`], and [`check_all`] builds
 //! neither when the project declares no rules.
 
 use std::collections::BTreeSet;
@@ -65,7 +65,7 @@ impl CompiledRule {
     /// A broken half drops the whole rule rather than half of it: an
     /// unparseable `when` left in place would silently widen the rule to every
     /// task, and an unparseable `assert` would fail every task the `when`
-    /// admits. [`validate_rules`] rejects both at config load, so a `None` here
+    /// admits. [`super::validate_rules`] rejects both at config load, so a `None` here
     /// only covers a hand-built config that never went through `load_config` —
     /// and a rule that cannot be evaluated constrains nothing, the same reading
     /// `required` and `[[tasks.body.headers.rules]] when` already take.

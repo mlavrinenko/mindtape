@@ -204,7 +204,7 @@ pub struct Config {
     #[serde(skip)]
     pub(crate) dict_cache: DictCache,
     /// The project root this config was built for, resolved once by
-    /// [`crate::config::layers::build_config`]. Derived, never declared: like
+    /// `crate::config::layers::build_config`. Derived, never declared: like
     /// [`Config::dict_cache`], it carries no TOML key, no schema property, and
     /// is never equal-compared. Read by a `[[tasks.rules]] check` entry
     /// ([`crate::rules::typst`]) instead of taking `root` as a parameter
@@ -212,12 +212,12 @@ pub struct Config {
     #[serde(skip)]
     pub(crate) rules_root: crate::rules::RulesRoot,
     /// Where each `[[tasks.rules]]` entry is declared, recorded by
-    /// [`crate::config::layers::build_config`]. Derived, never declared, never
+    /// `crate::config::layers::build_config`. Derived, never declared, never
     /// equal-compared — see [`crate::rules::sites::RuleSites`].
     #[serde(skip)]
     pub(crate) rule_sites: crate::rules::sites::RuleSites,
     /// The text of every layer and pack the config merged, and the origin of
-    /// each key and parameter, kept by [`crate::config::layers::build_config`].
+    /// each key and parameter, kept by `crate::config::layers::build_config`.
     /// Derived, never declared, never equal-compared — see
     /// [`crate::config::locate::Provenance`].
     #[serde(skip)]

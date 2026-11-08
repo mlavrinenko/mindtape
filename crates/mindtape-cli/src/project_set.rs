@@ -88,7 +88,7 @@ pub struct Member {
 /// Load every `(name, root)` of a set in parallel ([`mindtape::load_many`]),
 /// in the order given. Each member's config warnings and held-back commands
 /// print as warnings that name it; its load errors are left to the caller, as
-/// [`open`] leaves them, and a config that fails is that member's error.
+/// [`crate::util::open`] leaves them, and a config that fails is that member's error.
 #[must_use]
 pub fn open_set(members: &[(String, PathBuf)]) -> Vec<Member> {
     let roots: Vec<PathBuf> = members.iter().map(|(_, root)| root.clone()).collect();

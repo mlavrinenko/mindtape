@@ -281,8 +281,8 @@ fn print_preview(
 ///
 /// The pre-write check needs a project-relative path to evaluate the candidate
 /// at, which `mt add --into /somewhere/else` does not have. That case alone
-/// falls back to the old order — write, then [`verify_written`] — and its error
-/// still carries [`kept_note`], because there the file really is on disk.
+/// falls back to the old order — write, then [`crate::task_edit::verify_written`] — and its error
+/// still carries [`kept`], because there the file really is on disk.
 fn commit(
     args: &AddArgs,
     project: &util::Project,

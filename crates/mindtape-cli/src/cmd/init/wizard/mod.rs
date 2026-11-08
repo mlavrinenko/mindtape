@@ -24,7 +24,7 @@ use crate::diag::{Diag, Kind, Note};
 
 /// One configuration axis: a menu of choices, each carrying its config fragment.
 ///
-/// Implemented once per axis by the [`axis!`] macro, which also derives the
+/// Implemented once per axis by the `axis!` macro, which also derives the
 /// `clap::ValueEnum` that backs the axis's `mt init` flag.
 trait Axis: Copy + Sized + PartialEq + 'static {
     /// The question title shown above the choices.

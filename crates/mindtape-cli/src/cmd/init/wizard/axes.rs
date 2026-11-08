@@ -3,7 +3,7 @@
 //!
 //! This is the declaration half. The walk that asks a user over these axes —
 //! and the composing of their answers — lives in [`super`]; the
-//! shared contract between the two is [`super::Axis`]. The [`super::axis!`]
+//! shared contract between the two is [`super::Axis`]. The `super::axis!`
 //! macro, textually in scope here because this module is declared after it,
 //! generates each enum, its [`super::Axis`] impl and its `clap::ValueEnum`.
 

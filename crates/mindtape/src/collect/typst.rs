@@ -7,7 +7,7 @@
 //! `query.field` names, exactly as a check does. A missing export is refused
 //! at config load ([`crate::rules::typst::validate_collector_load`]); an eval
 //! error, a `panic()` or a value that does not match `returns` is one
-//! [`Problem`] naming the module and function, which [`crate::validate`]
+//! [`Problem`] naming the module and function, which [`crate::validate()`]
 //! reports as a `Collector` violation at `derived.<name>`.
 
 use std::path::Path;

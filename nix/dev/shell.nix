@@ -52,6 +52,11 @@
             # The release bump, CHANGELOG dating, commit and tag behind
             # `just release`; .config/release.toml configures it.
             cargo-release
+            # The release hook's yanked-dependency check. It is not a `just
+            # check` arm: a crate can be yanked with no commit here, so an
+            # all-PR gate would turn unrelated trees red on someone else's
+            # timetable. A release is the moment a fresh install must work.
+            cargo-audit
             cargo-mutants
             # cargo-nextest is a GATE dependency, not a dev aid: `just test`
             # and `just cover` both run through it, so a second runner is

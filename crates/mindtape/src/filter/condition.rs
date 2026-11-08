@@ -36,7 +36,7 @@
 //!
 //! Purity: this module never reads the clock or the filesystem itself.
 //! [`ConditionEnv`] carries every fact it needs (mirrors
-//! [`crate::worktrees`]'s injected-fs pattern); the CLI populates it from
+//! [`crate::at`]'s injected-fs pattern); the CLI populates it from
 //! `std::env`, [`crate::current_branch`], and [`crate::today_iso`], and the
 //! render layer supplies [`ColumnFacts`] per column.
 

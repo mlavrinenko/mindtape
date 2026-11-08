@@ -24,7 +24,7 @@ use crate::util;
 /// otherwise, carrying the exact path to write.
 ///
 /// # Errors
-/// Propagates [`cmd::add::dedup::resolve`]'s `fail`/exhausted-`add-suffix` errors.
+/// Propagates [`crate::cmd::add::dedup::resolve`]'s `fail`/exhausted-`add-suffix` errors.
 pub(super) fn resolve_outcome(
     args: &AddArgs,
     project: &util::Project,

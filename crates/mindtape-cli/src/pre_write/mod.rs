@@ -19,7 +19,7 @@
 //! - what `mt check` would refuse is refused here too. [`check`] compiles the
 //!   project's header and content body rules
 //!   ([`mindtape::body::gate`], [`mindtape::body::content_gate`]) once per batch and runs
-//!   them over each candidate beside [`mindtape::validate`], so a task
+//!   them over each candidate beside [`mindtape::validate()`], so a task
 //!   `mt check` would reject never lands in the first place.
 //!
 //! What this seam deliberately does NOT do is restore. A rewrite that fails
@@ -204,7 +204,7 @@ impl Verdict {
 /// Compiles `project.config`'s header (`[[tasks.body.headers.rules]]`) and
 /// content (`[[tasks.body.content.rules]]`) body rules once for the whole
 /// batch and checks every candidate against them beside
-/// [`mindtape::validate`] — the same two gates `mt check` runs, so a task
+/// [`mindtape::validate()`] — the same two gates `mt check` runs, so a task
 /// `mt check` would reject is never written.
 ///
 /// # Errors

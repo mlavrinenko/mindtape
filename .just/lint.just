@@ -62,6 +62,11 @@ secrets:
 path-attr:
     bash .just/scripts/path-attr-check.sh
 
+[doc("Fail on a broken or ambiguous intra-doc link")]
+[group("gate")]
+rustdoc:
+    RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --document-private-items --quiet
+
 [doc("Refuse task(s) and the like in a string outside tests; use mindtape::count")]
 [group("gate")]
 plural:

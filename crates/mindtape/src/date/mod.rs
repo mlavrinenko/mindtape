@@ -241,7 +241,7 @@ fn epoch_days_to_ymd(epoch_days: u64) -> (i32, u8, u8) {
 /// Convert Gregorian `(year, month, day)` to days since the Unix epoch
 /// (1970-01-01). The inverse of [`epoch_days_to_ymd`] (same Howard Hinnant
 /// civil calendar algorithm and source). Negative for a date before
-/// 1970-01-01; [`crate::date_pin`] clamps that to epoch 0 rather than
+/// 1970-01-01; [`crate::date::pin`] clamps that to epoch 0 rather than
 /// wrapping, since nothing in this domain predates it.
 pub(crate) fn days_from_civil(year: i32, month: u8, day: u8) -> i64 {
     let y = i64::from(year) - i64::from(month <= 2);

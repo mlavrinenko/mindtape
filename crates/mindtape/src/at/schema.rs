@@ -5,7 +5,7 @@
 //! `Deserialize`, which schemars cannot read, so [`forks`] spells out the
 //! values it takes. `mt install` writes the result beside
 //! `config.schema.json`, and the shipped `schema/at.schema.json` is this
-//! output, held to it by [`tests`].
+//! output, held to it by `tests`.
 
 use schemars::{Schema, SchemaGenerator, json_schema};
 

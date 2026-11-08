@@ -308,7 +308,7 @@ fn json_value(
 }
 
 /// Render CSV over the same resolved column set/order the table renderer
-/// uses ([`resolve_order`]: `[ls] columns-order` + each column's `when`
+/// uses ([`crate::render::columns::resolve_order`]: `[ls] columns-order` + each column's `when`
 /// against [`mindtape::LS_COLUMNS`]), so `--format csv` and the default table
 /// never disagree on which columns appear or in what sequence.
 ///

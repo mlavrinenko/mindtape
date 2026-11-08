@@ -14,6 +14,9 @@ use super::{
 /// A file installer under test: `(dir, force) -> Result`.
 type Writer = fn(&Path, bool) -> crate::diag::Result<()>;
 
+/// A generated installer under test: `dir -> Result`.
+type GeneratedWriter = fn(&Path) -> crate::diag::Result<()>;
+
 /// `writer` creates `dir/name` with exactly `expected` when absent.
 fn assert_writes_content(name: &str, writer: Writer, expected: &str) {
     let dir = tempdir();
@@ -45,6 +48,24 @@ fn assert_overwrites(name: &str, writer: Writer, expected: &str) {
     std::fs::create_dir_all(&target).unwrap();
     write_file(&target, name, "# old");
     writer(&target, true).unwrap();
+    assert_eq!(
+        std::fs::read_to_string(target.join(name)).unwrap(),
+        expected
+    );
+}
+
+/// `writer` creates `dir/name` with exactly `expected` when absent, and
+/// replaces stale content on a second run without a force flag.
+fn assert_refreshes(name: &str, writer: GeneratedWriter, expected: &str) {
+    let dir = tempdir();
+    let target = dir.path().join("mindtape");
+    writer(&target).unwrap();
+    assert_eq!(
+        std::fs::read_to_string(target.join(name)).unwrap(),
+        expected
+    );
+    write_file(&target, name, "# stale");
+    writer(&target).unwrap();
     assert_eq!(
         std::fs::read_to_string(target.join(name)).unwrap(),
         expected
@@ -84,21 +105,7 @@ fn write_defaults_overwrites_with_force() {
 
 #[test]
 fn write_schema_content_matches_generated_schema() {
-    assert_writes_content(
-        "config.schema.json",
-        write_schema,
-        &mindtape::config_schema_json(),
-    );
-}
-
-#[test]
-fn write_schema_skips_existing_without_force() {
-    assert_skips_existing("config.schema.json", write_schema);
-}
-
-#[test]
-fn write_schema_overwrites_with_force() {
-    assert_overwrites(
+    assert_refreshes(
         "config.schema.json",
         write_schema,
         &mindtape::config_schema_json(),
@@ -109,43 +116,16 @@ fn write_schema_overwrites_with_force() {
 /// so an `at.toml` can point its `#:schema` line at `./at.schema.json`.
 #[test]
 fn write_schema_writes_the_at_schema_beside_it() {
-    assert_writes_content("at.schema.json", write_schema, &mindtape::at::schema_json());
-}
-
-#[test]
-fn write_schema_skips_an_existing_at_schema_without_force() {
-    assert_skips_existing("at.schema.json", write_schema);
-}
-
-#[test]
-fn write_schema_overwrites_the_at_schema_with_force() {
-    assert_overwrites("at.schema.json", write_schema, &mindtape::at::schema_json());
+    assert_refreshes("at.schema.json", write_schema, &mindtape::at::schema_json());
 }
 
 /// The `ls` machine output's schema lands under `schema/output/ls/`, with
 /// the exact bytes `mt schema ls` prints.
 #[test]
 fn write_schema_writes_the_output_schemas() {
-    let dir = tempdir();
-    let target = dir.path().join("mindtape");
-    write_schema(&target, false).unwrap();
     let ls = SCHEMAS.iter().find(|schema| schema.id == LS).unwrap();
     assert_eq!(ls.id.relative_path(), "schema/output/ls/1.schema.json");
-    assert_eq!(
-        std::fs::read_to_string(target.join("schema/output/ls/1.schema.json")).unwrap(),
-        ls.json()
-    );
-}
-
-#[test]
-fn write_schema_skips_an_existing_output_schema_without_force() {
-    assert_skips_existing("schema/output/ls/1.schema.json", write_schema);
-}
-
-#[test]
-fn write_schema_overwrites_an_output_schema_with_force() {
-    let ls = SCHEMAS.iter().find(|schema| schema.id == LS).unwrap();
-    assert_overwrites("schema/output/ls/1.schema.json", write_schema, &ls.json());
+    assert_refreshes("schema/output/ls/1.schema.json", write_schema, &ls.json());
 }
 
 /// `xdg_schema_path` returns a path ending with `config.schema.json`,

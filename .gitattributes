@@ -12,8 +12,10 @@
 .config/crap-baseline.json merge=crap-baseline
 # The schema goldens are compared byte for byte with what the generator
 # writes, which is LF. Without this, Windows checks them out as CRLF and both
-# `schema_matches_golden` tests fail there.
+# `schema_matches_golden` tests fail there. `schema/output/` holds the machine
+# output goldens, compared the same way by `mt schema --check`.
 schema/*.json text eol=lf
+schema/output/**/*.json text eol=lf
 # The prelude snapshots are immutable and hashed byte for byte, and the current
 # snapshot is compared byte for byte with lib/prelude.typ. A Windows checkout
 # with core.autocrlf would turn them into CRLF; force LF so the bytes match.

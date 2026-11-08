@@ -14,11 +14,11 @@
 //! - `mod.rs`: `[pack-sources]`, [`read_raw`] and the load-time checks.
 //! - `diff.rs`, `diff_tests.rs`: [`diff_trees`], what moving a source from
 //!   one tree to another changes, pack by pack.
-//! - `fetch.rs`, `fetch_tests.rs`: [`fetch`], one locked source into the
+//! - `fetch.rs`, `fetch_tests.rs`: [`fetch()`], one locked source into the
 //!   cache, and [`locate`], the repository a declared `git` names.
 //! - `git.rs`, `git_tests.rs`: git run apart from the caller's git state,
 //!   and the blobs streamed out of it.
-//! - `hash.rs`, `hash_tests.rs`: [`hash`], the framed tree hash a lock pins.
+//! - `hash.rs`, `hash_tests.rs`: [`hash()`], the framed tree hash a lock pins.
 //! - `listing.rs`, `listing_tests.rs`: the blobs of a commit's tree, and
 //!   the paths no platform may write differently.
 //! - `lock.rs`: `.mindtape/packs.lock`, its entries, and [`write_lock`].

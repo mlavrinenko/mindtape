@@ -3,7 +3,7 @@
 //! The doc gate `just docs::spans` finds `mt ...` command lines in the
 //! docs and hands each to this check, so a doc span is accepted or refused by
 //! the parser that runs it. The line goes through the same steps as a real
-//! run: [`cmd::at::desugar_argv`]'s `@name` rewrite, then clap, then the
+//! run: [`crate::cmd::at::desugar_argv`]'s `@name` rewrite, then clap, then the
 //! status-verb parser for a shortcut such as `mt done`. A line that only lacks
 //! a required argument passes, because a doc span shows part of a command.
 //!

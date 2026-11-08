@@ -5,7 +5,7 @@
 //!
 //! Split out of `cmd/flip/mod.rs`: everything left there is about deciding and
 //! performing one write, everything here is about reporting on all of them at
-//! once. `mt link` shares [`after_batch`], since it writes a batch of task
+//! once. `mt link` shares [`after_batch_diags`], since it writes a batch of task
 //! files too and owes the same revalidation.
 
 use std::collections::HashSet;

@@ -77,8 +77,11 @@ summary, so an agent can find the page it needs from one file.
 
 = Read tasks as JSON
 
-Every read command prints JSON with `--json`: `mt ls`, `mt eval <task>`,
-`mt check`, `mt graph`, `mt explain`, `mt preset ls`, `mt config show`, `mt at` and `mt add --describe=json`. Here's
+Every command that reports a list or an object prints it as JSON with
+`--json`: `mt ls`, `mt find`, `mt eval <task>`, `mt check`, `mt graph`,
+`mt board`, `mt at`, `mt explain`, `mt preset ls`, `mt config show`,
+`mt @set ls` and `mt packs install`. `mt add --describe=json` prints a
+template's slots, and `mt add --json` reports a write. Here's
 `mt ls ready -n 1 --json`:
 
 #raw(read("../generated/api-service-ls-ready.json"), lang: "json", block: true)

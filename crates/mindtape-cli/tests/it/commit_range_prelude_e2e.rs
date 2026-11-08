@@ -133,6 +133,10 @@ fn a_migration_commit_message_after_an_unsupported_parent_skips_task_rules() {
         "the hook skips task rules when a compared state is unsupported: {text}"
     );
     assert_parent_rule_skipped(&text);
+    assert!(
+        text.contains("skipped commit rules with scope \"task\""),
+        "the hook says the task rules are skipped: {text}"
+    );
 }
 
 /// Two unsupported imports in one tree are two diagnostics, each naming its

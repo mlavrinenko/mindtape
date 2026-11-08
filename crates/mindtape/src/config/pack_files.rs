@@ -7,7 +7,7 @@
 //! A dictionary keeps no origin once the packs merge, so [`rebase_dict_paths`]
 //! turns each `path` into an absolute one while the pack is still its own
 //! table, and `dicts.rs` reads an absolute path as it is. A rule does keep its
-//! origin, so [`stamp_check_roots`] sets [`CheckSpec::root`] on each `check`
+//! origin, so [`stamp_check_roots`] sets [`crate::rules::CheckSpec::root`] on each `check`
 //! rule a pack declared, after the config is typed.
 
 use std::path::Path;

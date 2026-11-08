@@ -356,7 +356,7 @@ fn from_hval(value: &HVal) -> FieldValue {
     }
 }
 
-/// A task's value for one of the fields a [`Descriptor`] describes, as the
+/// A task's value for one of the fields a [`crate::model::field_descriptor::Descriptor`] describes, as the
 /// marker held it: `kind` and `assignee` as text, `tags` (authored and
 /// derived) as an array of text, `estimate` as a dict of its units, and an
 /// `x-<ns>` slot as authored. `None` for an unset `kind`, `assignee` or slot,

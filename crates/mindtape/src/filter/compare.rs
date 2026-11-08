@@ -175,11 +175,11 @@ fn role_field(task: &Task, config: &Config, literal: &str) -> FieldValue {
 /// literal and orders against none — `!=` holds, `==` / `<` / `>` / `<=` / `>=`
 /// are all false. So `kind != "umbrella"` matches a task with no `kind` at all,
 /// and the pair `kind == "umbrella"` / `kind != "umbrella"` partitions the whole
-/// set with no third case. `[[tasks.limits]]`
-/// ([`crate::config_limits`]) rests on that: one limit over each half of such a
-/// pair caps every task by construction, including the ones leaving the field
-/// unset. Pinned by `missing_field_is_unequal_to_every_literal` in
-/// `tests.rs` — do not relax it without revisiting that rule.
+/// set with no third case. A `[[tasks.rules]]` assertion that counts each half
+/// of such a pair with `count(...)` rests on that: each count covers every
+/// task by construction, including the ones leaving the field unset. Pinned by
+/// `missing_field_is_unequal_to_every_literal` in `tests.rs` — do not relax it
+/// without revisiting that rule.
 ///
 /// A list follows the same rule: `x-machine == "alpha"` selects the tasks
 /// whose value is exactly `"alpha"`, and `has(x-machine, "alpha")` every task

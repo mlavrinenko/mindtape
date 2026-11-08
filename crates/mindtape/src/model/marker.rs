@@ -3,7 +3,7 @@
 //!
 //! Every read here is total. A value that does not match the Typst shape the
 //! field projects into becomes a [`ShapeError`] on the task instead of an
-//! absent value, and [`crate::validate`] fails `check` on any of them
+//! absent value, and [`crate::validate()`] fails `check` on any of them
 //! regardless of project config. That covers the half of the authoring surface
 //! the prelude cannot police: everything that reaches the marker intact is the
 //! Rust layer's to validate, and reading it as "unset" is the one answer that

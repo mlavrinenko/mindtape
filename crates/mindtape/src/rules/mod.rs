@@ -45,13 +45,13 @@
 //!
 //! `warn` (the default) prints and lets the command through; `error` fails it,
 //! and on a write refuses it before anything lands. That distinction is the
-//! [`Severity`] `[[tasks.limits]]` already uses, and it travels out of the pass
-//! on [`Violation::severity`] — the one place a violation's fatality is a
-//! project's choice rather than Mindtape's.
+//! [`Severity`] every config-declared rule carries, and it travels out of the
+//! pass on [`crate::validate::Violation::severity`] — the one place a
+//! violation's fatality is a project's choice rather than Mindtape's.
 //!
 //! An `assert` rule's expression is dry-run once at config load
-//! ([`validate_rules`]), the way `required` and `[[tasks.limits]]` are, so a
-//! malformed one is one config error rather than one violation per artifact. A
+//! ([`validate_rules`]), the way `required` is, so a malformed one is one
+//! config error rather than one violation per artifact. A
 //! `check` rule's Typst module is checked for existence and export the same
 //! way, but needs the project root to read it — see
 //! [`crate::rules::typst::validate_load`], run from
@@ -79,7 +79,7 @@ use crate::problem::Problem;
 use crate::validate::severity::Severity;
 
 /// The project root a loaded [`Config`] was built for, resolved once by
-/// [`crate::config::layers::build_config`] and carried on the config itself —
+/// `crate::config::layers::build_config` and carried on the config itself —
 /// the same reason [`Config::compiled_dicts`] resolves `[dicts]` `path`
 /// entries at load rather than making every downstream filter evaluation
 /// take a `root` parameter to re-read the section with. A `[[tasks.rules]]
@@ -108,7 +108,7 @@ impl PartialEq for RulesRoot {
 
 impl RulesRoot {
     /// Set the resolved project root. Called once, from
-    /// [`crate::config::layers::build_config`].
+    /// `crate::config::layers::build_config`.
     pub(crate) fn set(&mut self, root: &Path) {
         self.0 = root.to_owned();
     }
@@ -274,7 +274,7 @@ pub(crate) fn validate_rule_names(config: &Config) -> Vec<String> {
 }
 
 /// Every `[[tasks.rules]]` entry's report label (`rules.<name>` or
-/// `rules[<index>]`), for [`crate::validate::candidate::elsewhere_violations`] to
+/// `rules[<index>]`), for `crate::validate::candidate::elsewhere_violations` to
 /// recognize a rule breach among the violations it attributes across a batch.
 ///
 /// A set-aware rule — one asserting `count(...)`, or reading the `links:`

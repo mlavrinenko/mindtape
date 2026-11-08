@@ -189,7 +189,7 @@ fn compare_field(
 }
 
 /// A field's value via the shared [`crate::model::fields`] registry, or an `x-<ns>`
-/// slot's through [`model::fields::extra`]; `Missing` when `field` is neither —
+/// slot's through [`crate::model::fields::extra`]; `Missing` when `field` is neither —
 /// unreachable via `--sort`, since `sort_by_specs` validates every spec first
 /// and the one other sort name, `ready`, is intercepted in [`compare_field`].
 fn registry_value(task: &Task, field: &str, config: &Config) -> FieldValue {

@@ -1,7 +1,7 @@
 //! Fill-time validation for `raw`-kind slots.
 //!
 //! `kind: "raw"` is the template author's own assertion that a slot's filler
-//! is trusted content, so [`super::fill`] splices it verbatim — no escaping
+//! is trusted content, so [`super::fill()`] splices it verbatim — no escaping
 //! (see [`super::SlotKind::Raw`]). Trusted does not mean well-formed, though:
 //! a `--set`/`-f` value can still be broken markup, so this checks it parses
 //! before it is ever spliced in, and names the slot in the error rather than

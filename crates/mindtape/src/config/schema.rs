@@ -11,7 +11,7 @@
 //! scaffolds a project config carrying a `#:schema` comment directive that
 //! points at it, so a TOML-schema-aware editor (tombi, Taplo) assists filling
 //! values. The shipped `schema/config.schema.json` is exactly this output,
-//! gate-checked for drift by [`tests`].
+//! gate-checked for drift by `tests`.
 
 use std::borrow::Cow;
 

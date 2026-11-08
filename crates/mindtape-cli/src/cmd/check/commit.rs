@@ -39,6 +39,10 @@ fn task_states(project: &util::Project) -> Result<Option<CommitStates>> {
     if (!unsupported_versions(&states.staged).is_empty())
         || (!unsupported_versions(&states.head).is_empty())
     {
+        crate::diag::emit(&Diag::verbatim(
+            Kind::Warning,
+            "skipped commit rules with scope \"task\": a compared state's prelude is unsupported",
+        ));
         return Ok(None);
     }
     Ok(Some(states))

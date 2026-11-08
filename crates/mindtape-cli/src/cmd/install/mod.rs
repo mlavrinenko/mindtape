@@ -48,9 +48,10 @@ pub struct InstallArgs {
 
     /// Overwrite files that already exist.
     ///
-    /// Those are your `defaults.toml`, the JSON Schemas and the completion
-    /// hooks. The package is written on every install, unless its directory
-    /// is a symlink: `--force` replaces the link with this binary's copy.
+    /// Those are your `defaults.toml` and the completion hooks. The JSON
+    /// Schemas are generated from this binary and refreshed on every install.
+    /// The package is written on every install, unless its directory is a
+    /// symlink: `--force` replaces the link with this binary's copy.
 
     #[arg(long)]
     pub force: bool,
@@ -64,9 +65,6 @@ const SCHEMA_FILE_NAME: &str = "config.schema.json";
 /// file's `#:schema ./at.schema.json` line finds it.
 const AT_SCHEMA_FILE_NAME: &str = "at.schema.json";
 
-/// One installer of a file under the config dir: `(dir, force)`.
-type ConfigWriter = fn(&Path, bool) -> Result<()>;
-
 /// Run the `install` command.
 ///
 /// # Errors
@@ -75,15 +73,7 @@ pub fn run(args: &InstallArgs) -> Result<()> {
     if !args.no_lib {
         install_lib(args.force)?;
     }
-    let config_writers: [(bool, ConfigWriter); 2] = [
-        (args.no_defaults, write_defaults),
-        (args.no_schema, write_schema),
-    ];
-    for (skip, write) in config_writers {
-        if !skip {
-            write(&xdg_defaults_dir()?, args.force)?;
-        }
-    }
+    write_config(args)?;
     if !args.no_completions {
         let dir = completions_dir()?;
         write_completions(&dir, args.force)?;
@@ -92,6 +82,27 @@ pub fn run(args: &InstallArgs) -> Result<()> {
             "{}",
             completion_hint(shell_from_env(shell.as_deref()), &dir)
         );
+    }
+    Ok(())
+}
+
+/// Write the global `defaults.toml` and the JSON Schemas, unless both are
+/// skipped. The config home is resolved only when one of them is wanted, so a
+/// run that skips every config-home part works where it cannot be found.
+///
+/// # Errors
+/// Returns an error if the directory cannot be resolved or a file cannot be
+/// written.
+fn write_config(args: &InstallArgs) -> Result<()> {
+    if args.no_defaults && args.no_schema {
+        return Ok(());
+    }
+    let dir = xdg_defaults_dir()?;
+    if !args.no_defaults {
+        write_defaults(&dir, args.force)?;
+    }
+    if !args.no_schema {
+        write_schema(&dir)?;
     }
     Ok(())
 }
@@ -198,7 +209,7 @@ pub(crate) fn write_completions(dir: &Path, force: bool) -> Result<()> {
 }
 
 /// `<config home>/mindtape` — the directory holding the XDG global
-/// `defaults.toml`. Mirrors [`crate::config::layers::discover_layers`]'s XDG
+/// `defaults.toml`. Mirrors `mindtape::config::layers::discover_layers`'s XDG
 /// layer resolution (`mindtape` crate) — one `mindtape::config_home()`, so
 /// `$MINDTAPE_CONFIG_HOME` moves what `install` writes and what the loader
 /// reads together.
@@ -221,6 +232,14 @@ fn write_seed(dir: &Path, name: &str, content: &str, force: bool) -> Result<()> 
         );
         return Ok(());
     }
+    write_generated(dir, name, content)
+}
+
+/// Write `dir/name` unconditionally, creating its parent directories, and
+/// announce it. Unlike [`write_seed`], this leaves no existing file alone:
+/// the caller's content is generated from this binary and never hand-edited.
+fn write_generated(dir: &Path, name: &str, content: &str) -> Result<()> {
+    let path = dir.join(name);
     write_announced(path.parent().unwrap_or(dir), &path, content)
 }
 
@@ -251,23 +270,20 @@ pub(crate) fn xdg_schema_path() -> Result<PathBuf> {
 /// ([`mindtape::at::schema_json`]) sits beside `at.toml`, which you write
 /// yourself. Each output schema lands at
 /// `schema/output/<name>/<version>.schema.json`, the same bytes
-/// [`crate::cmd::schema::SCHEMAS`] prints. Leaves an existing file alone
-/// unless `force`.
-pub(crate) fn write_schema(dir: &Path, force: bool) -> Result<()> {
-    write_seed(
-        dir,
-        SCHEMA_FILE_NAME,
-        &mindtape::config_schema_json(),
-        force,
-    )?;
-    write_seed(
-        dir,
-        AT_SCHEMA_FILE_NAME,
-        &mindtape::at::schema_json(),
-        force,
-    )?;
+/// [`crate::cmd::schema::SCHEMAS`] prints.
+///
+/// Every file is generated from this binary and no one edits it by hand, so
+/// each install refreshes it: a schema that changed compatibly in the new
+/// binary must replace the installed copy without `--force`.
+pub(crate) fn write_schema(dir: &Path) -> Result<()> {
+    for (name, body) in [
+        (SCHEMA_FILE_NAME, mindtape::config_schema_json()),
+        (AT_SCHEMA_FILE_NAME, mindtape::at::schema_json()),
+    ] {
+        write_generated(dir, name, &body)?;
+    }
     for schema in crate::cmd::schema::SCHEMAS {
-        write_seed(dir, &schema.id.relative_path(), &schema.json(), force)?;
+        write_generated(dir, &schema.id.relative_path(), &schema.json())?;
     }
     Ok(())
 }

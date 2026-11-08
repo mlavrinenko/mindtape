@@ -29,6 +29,13 @@ debug = false
 unsafe_code = "deny"
 unused_must_use = "deny"
 
+# A broken intra-doc link is a broken link in the API docs. Private docs may
+# link to private items: they are the maintainer's map, and rustdoc renders the
+# name without a link where a reader lacks access.
+[workspace.lints.rustdoc]
+broken_intra_doc_links = "deny"
+private_intra_doc_links = "allow"
+
 [workspace.lints.clippy]
 # --- Layout ---
 # `foo.rs` beside `foo/` is refused: an area is `foo/mod.rs` (path-attr-check.sh

@@ -6,7 +6,7 @@
 //! Split from `template/mod.rs` along the module's own two verbs (see its doc
 //! comment): that file turns template source into [`super::SlotSpec`]s
 //! ("discover"), this one turns `SlotSpec`s plus caller values into
-//! rewritten source ("fill"). [`fill`] is the sole entry point the parent
+//! rewritten source ("fill"). [`fill()`] is the sole entry point the parent
 //! module re-exports.
 
 use std::collections::BTreeMap;

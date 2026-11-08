@@ -7,7 +7,7 @@
 //! rendering, the dedupe and the report are written once.
 //!
 //! Batch semantics mirror `mt rm` and `mt flip`: the whole plan is computed in
-//! memory before a byte is written ([`cmd::link::plan::build`]), so `--dry-run`
+//! memory before a byte is written ([`crate::cmd::link::plan::build`]), so `--dry-run`
 //! reports exactly what a real run would do; then the valid entries land and a
 //! per-entry failure is reported without rolling the others back.
 //!

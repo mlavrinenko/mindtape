@@ -4,14 +4,14 @@
 //! A template is an ordinary task artifact whose authored values are `slot(...)`
 //! calls (see the prelude helper). This module finds each call on the parse plane
 //! (`typst_edit::find_calls` — no eval, no `World`), reads its literal arguments
-//! into a [`SlotSpec`], and [`fill`]s the source: each slot is replaced by a
+//! into a [`SlotSpec`], and [`fill()`]s the source: each slot is replaced by a
 //! rendered literal so the filed task holds plain values and never calls `slot`.
 //!
 //! Slot arguments must be literals; this engine never evaluates the template.
 //!
 //! Split along those same two verbs to stay under the line budget: this file
 //! is discovery only, turning `slot(...)` calls into [`SlotSpec`]s. Coercion,
-//! rendering, and the source rewrite itself — [`fill`], [`FillError`],
+//! rendering, and the source rewrite itself — [`fill()`], [`FillError`],
 //! [`RawValue`] — live in `template/fill/mod.rs` and are re-exported here so the
 //! public API is unchanged.
 //!
@@ -29,7 +29,7 @@ use std::ops::Range;
 use typst_edit::{Call, find_calls};
 
 /// Coercion, rendering, and the source rewrite; split out to keep this file
-/// under its line budget. See [`fill`].
+/// under its line budget. See [`fill()`].
 mod fill;
 pub use fill::{FillError, LinkValue, RawValue, fill, fill_examples};
 
@@ -69,7 +69,7 @@ pub enum SlotKind {
     /// slot's filler is safe to splice.
     ///
     /// What IS checked is narrow, and the name is honest about it. A value
-    /// that fails to parse as Typst markup is rejected at [`fill`] time,
+    /// that fails to parse as Typst markup is rejected at [`fill()`] time,
     /// naming the slot; that catches a markup-position slot, which is what
     /// the kind is for. It cannot catch a slot spliced into an argument
     /// position, where the value is an expression and parens are not markup —
@@ -183,7 +183,7 @@ pub struct SlotSpec {
     ///
     /// Discovery cannot fail — it returns a `Vec`, and a template with one bad
     /// slot still has to describe its good ones — so the bad spelling is
-    /// carried here and rejected by [`fill`] instead. Defaulting it to
+    /// carried here and rejected by [`fill()`] instead. Defaulting it to
     /// [`SlotKind::String`] silently, as this once did, turns a renamed kind
     /// into a quoted, escaped string with no diagnostic anywhere.
     pub unknown_kind: Option<String>,

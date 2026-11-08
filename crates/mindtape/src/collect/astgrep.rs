@@ -6,7 +6,7 @@
 //! query's optional `glob`, a glob or `@name` path set, narrows the files it
 //! reads; without one every listed file is admitted. A failed walk or a query
 //! the engine refuses is one
-//! [`Problem`] naming the field, which [`crate::validate`] reports as a
+//! [`Problem`] naming the field, which [`crate::validate()`] reports as a
 //! `Collector` violation at `derived.<name>`.
 
 use typst_harvest::HVal;

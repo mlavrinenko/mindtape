@@ -809,6 +809,14 @@ commands:
     tags: [gate]
     inputs: [rust, gates-meta, script-plural-check]
 
+  # `cargo doc` over the workspace with rustdoc warnings denied. `rust` is the
+  # source tree and manifests it reads; `gates-meta` is the Justfile line and
+  # the dev-shell toolchain. The lint levels live in the workspace manifest
+  # ([workspace.lints.rustdoc]), which `rust` already covers.
+  - name: just lint::rustdoc
+    tags: [gate]
+    inputs: [rust, gates-meta]
+
   # Scan-scope self-test: an oversized shell script at `.just/scripts/` inside
   # a replica tree must be reported by linecop reading this repo's config, and
   # must go unreported with `include_hidden` deleted. `file-size-config` is the

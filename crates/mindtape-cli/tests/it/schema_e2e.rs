@@ -15,6 +15,46 @@ fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
 
+/// Every golden this suite and `mt schema --check` compare byte for byte is
+/// checked out with LF. Git's `core.autocrlf` would otherwise turn it into
+/// CRLF on Windows, and the comparison would fail only there. New schema files
+/// and prelude snapshots are covered by the walk, so a new golden cannot ship
+/// without the attribute.
+#[test]
+fn byte_compared_goldens_are_pinned_to_lf() {
+    let root = repo_root();
+    let listed = std::process::Command::new("git")
+        .current_dir(&root)
+        .args([
+            "ls-files",
+            "-z",
+            "--cached",
+            "--others",
+            "--exclude-standard",
+            "--",
+            "schema",
+            "crates/mindtape/src/loader/preludes",
+        ])
+        .output()
+        .unwrap();
+    assert!(listed.status.success(), "{listed:?}");
+    let files = String::from_utf8(listed.stdout).unwrap();
+    assert!(!files.is_empty(), "the golden walk found no files");
+    for file in files.split('\0').filter(|file| !file.is_empty()) {
+        let attr = std::process::Command::new("git")
+            .current_dir(&root)
+            .args(["check-attr", "eol", "--", file])
+            .output()
+            .unwrap();
+        assert!(attr.status.success(), "{attr:?}");
+        let attr = String::from_utf8(attr.stdout).unwrap();
+        assert!(
+            attr.trim_end().ends_with(": eol: lf"),
+            "{file} is not pinned to LF by .gitattributes: {attr}"
+        );
+    }
+}
+
 /// Every registered output, in `mt schema` order.
 const NAMES: [&str; 23] = [
     "ls",

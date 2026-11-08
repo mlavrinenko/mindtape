@@ -113,6 +113,26 @@ fn each_skip_flag_skips_only_its_part() {
     }
 }
 
+/// Skipping every config-home part never resolves that directory, so a capture
+/// run with `MINDTAPE_CONFIG_HOME` empty (the docs build does this) succeeds.
+#[test]
+fn skipping_every_config_part_needs_no_config_home() {
+    let home = tempdir();
+    assert_cmd::Command::cargo_bin("mt")
+        .unwrap()
+        .env(mindtape::CONFIG_HOME_ENV, "")
+        .env(mindtape::DATA_HOME_ENV, home.path().join("data"))
+        .args([
+            "install",
+            "--no-lib",
+            "--no-defaults",
+            "--no-schema",
+            "--no-completions",
+        ])
+        .assert()
+        .success();
+}
+
 /// `mt install` writes every prelude this binary supports, each with its own
 /// manifest and source, so an old pin needs no download.
 #[test]
@@ -137,27 +157,29 @@ fn install_writes_every_supported_prelude() {
     }
 }
 
-/// An existing `config.schema.json` survives a bare `mt install`, and `--force`
-/// rewrites it.
+/// A bare `mt install` refreshes an existing generated schema, including the
+/// output schemas, so a compatible change reaches the installed copy without
+/// `--force`.
 #[test]
-fn schema_force_interplay() {
+fn schema_refreshes_without_force() {
     let home = tempdir();
+    write_file(home.path(), "config/mindtape/config.schema.json", "{}");
+    write_file(
+        home.path(),
+        "config/mindtape/schema/output/ls/1.schema.json",
+        "{}",
+    );
     let path = schema_path(home.path());
-    std::fs::create_dir_all(path.parent().unwrap()).unwrap();
-    std::fs::write(&path, "{}").unwrap();
+    let output = home
+        .path()
+        .join("config/mindtape/schema/output/ls/1.schema.json");
 
     run_install(home.path(), &["install", "--no-lib", "--no-defaults"]).success();
-    assert_eq!(std::fs::read_to_string(&path).unwrap(), "{}");
-
-    run_install(
-        home.path(),
-        &["install", "--no-lib", "--no-defaults", "--force"],
-    )
-    .success();
     assert_eq!(
         std::fs::read_to_string(&path).unwrap(),
         mindtape::config_schema_json()
     );
+    assert!(std::fs::read_to_string(&output).unwrap().contains("$id"));
 }
 
 /// An existing XDG `defaults.toml` survives a bare `mt install`.

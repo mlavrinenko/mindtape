@@ -77,7 +77,7 @@ fn render_inner(tasks: &[Task], ctx: RenderCtx<'_>, highlighted: &[bool]) -> Res
 
 /// Render several listings as one table, each listing's rows in a block, in
 /// order: a set's projects, each with its own [`RenderCtx`]. The columns are
-/// every column any listing resolves visible ([`union_order`]), and each cell
+/// every column any listing resolves visible ([`crate::render::columns::union_order`]), and each cell
 /// is built by its own listing's context.
 ///
 /// A listing whose context turns hyperlinks off gets no OSC 8 wrap on its

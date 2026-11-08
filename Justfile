@@ -58,7 +58,7 @@ _check-fast: (mmz "fmt-check") (mmz "clippy") (mmz "lint::machete") (mmz "lint::
 
 [parallel]
 [private]
-_check-build: (mmz "test") (mmz "check-examples") (mmz "docs::coverage") (mmz "docs::facts") (mmz "docs::spans") (mmz "docs::prose") (mmz "docs::check") (mmz "docs::md-check") (mmz "docs::pages-fixture")
+_check-build: (mmz "test") (mmz "lint::rustdoc") (mmz "check-examples") (mmz "docs::coverage") (mmz "docs::facts") (mmz "docs::spans") (mmz "docs::prose") (mmz "docs::check") (mmz "docs::md-check") (mmz "docs::pages-fixture")
 
 [private]
 _check-cover: (mmz "cover") (mmz "crap::check")

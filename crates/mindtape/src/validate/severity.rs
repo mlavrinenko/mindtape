@@ -1,10 +1,10 @@
 //! How loudly a config-declared breach reports: `warn` or `error`.
 //!
-//! Shared by the two sections that let a project choose — `[[tasks.limits]]`
-//! (see [`crate::config_limits`]) and `[[tasks.rules]]` (see
-//! [`crate::rules`]). Both spell the same two words in TOML and both
-//! mean the same two things by them, so they read one enum rather than two
-//! that would have to be kept in step by hand.
+//! Shared by every config section that lets a project choose a level:
+//! `[[tasks.rules]]` (see [`crate::rules`]), `[[commits.rules]]` and
+//! `[tasks.comments]`. All spell the same two words in TOML and mean the same
+//! two things by them, so they read one enum rather than several that would
+//! have to be kept in step by hand.
 //!
 //! Every [`crate::Violation`] carries one. A malformed artifact — a status
 //! outside the legend, an unresolvable edge, a value off its scale — is always

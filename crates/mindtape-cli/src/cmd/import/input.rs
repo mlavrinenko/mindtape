@@ -1,8 +1,8 @@
-//! Read and parse canonical task-JSON input: a file arg or stdin (`-`), as a
-//! bare array (`mt ls --json`'s default shape) or the `{ "tasks": [...] }` /
-//! `{ "tasks": ..., "applied": ... }` envelope (`mt ls --json`'s rule-applied
-//! shape). `applied` is ignored either way, and an unknown top-level key is
-//! ignored so an export from an older `mt` still imports.
+//! Read and parse canonical task-JSON input: a file arg or stdin (`-`), as the
+//! `{ "tasks": [...] }` envelope `mt ls --json` prints, or as a bare array an
+//! older export or a hand-written file may hold. `applied` is ignored either
+//! way, and so is any other unknown top-level key, so an export from an older
+//! `mt` still imports.
 
 use std::io::Read as _;
 
@@ -35,8 +35,8 @@ fn place_of(source: &str) -> &Path {
 }
 
 /// Parse `raw`, which was read from `source`, into the canonical records it
-/// holds: a bare JSON array, or the `{ "tasks": [...] }` / `{ "tasks": ...,
-/// "applied": ... }` envelope.
+/// holds: the `{ "tasks": [...] }` envelope, or a bare JSON array from an
+/// older export or a hand-written file.
 ///
 /// # Errors
 /// Returns an error if `raw` is not valid JSON, is neither an array nor an

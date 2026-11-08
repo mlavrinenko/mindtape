@@ -205,7 +205,8 @@ names its checkout through `MINDTAPE_SCHEMA_BASE`, which the dev shell sets to
 `file://$mt_root/schema/output`. `mt install` writes the same files under the
 config directory, `~/.config/mindtape/schema/output/...` (or
 `$MINDTAPE_CONFIG_HOME/mindtape/...`), so an offline editor can point at the
-installed copy.
+installed copy. Each later install refreshes them, so a newer binary's schema
+replaces the installed copy without `--force`.
 
 `mt schema --write` records every current schema under `schema/output/`, and
 `mt schema --check` fails, naming each missing or changed file. The test suite

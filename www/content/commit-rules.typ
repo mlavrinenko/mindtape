@@ -181,6 +181,12 @@ nobody reading the rule could tell which state it means.
 `into("s")` means `staged(status == "s") && !head(status == "s")`: the commit
 moves the task into status `s`.
 
+If either compared state imports a prelude this `mt` does not support, the
+hook warns and skips every `scope = "task"` rule; the `Refs` trailer check and
+`scope = "commit"` rules still run. `mt check --commits` skips the whole
+commit when its own or its parent tree is unsupported, because a task rule
+cannot read a state whose prelude does not load.
+
 The `mindtape:tasks` pack's `flip-task-with-its-work` uses `retires_other` so that a
 cleanup task closes in the commit that runs `mt rm` on other tasks, though
 that commit stages nothing but task files. It also lets a task of

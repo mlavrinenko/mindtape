@@ -9,7 +9,7 @@
 //! per-record report says which did, and the run exits 1 once it has printed it
 //! if any was skipped. What it no longer does is land the bad
 //! one first — the whole batch is validated before a byte is written, so a
-//! rejected record is never created. That discipline lives in [`write`]; input
+//! rejected record is never created. That discipline lives in [`mod@write`]; input
 //! parsing lives in [`input`].
 //!
 //! No `--from`/`--via` source selector: sources are jq adapters, upstream of

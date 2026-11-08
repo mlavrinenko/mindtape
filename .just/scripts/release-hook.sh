@@ -27,7 +27,7 @@ refuse() {
     fi
     exit 1
 }
-for tool in git cargo curl gh; do
+for tool in git cargo cargo-audit curl gh jq; do
     command -v "$tool" >/dev/null \
         || refuse "'$tool' is not on PATH" "run inside the dev shell"
 done
@@ -49,6 +49,23 @@ for crate in mindtape mindtape-cli; do
         *) refuse "crates.io answered HTTP '${status:-nothing}' for '$crate $version'" "retry once crates.io is reachable" ;;
     esac
 done
+# A yanked crate keeps an existing Cargo.lock buildable but is refused to new
+# installs, and `cargo publish --dry-run` only warns about it. `--deny yanked`
+# would make the advisories this tree carries fatal too, so read the JSON report
+# and fail on the yanked list alone.
+audit_err=$(mktemp) \
+    || refuse "can't make a temp file for the dependency audit" "check \$TMPDIR, then re-run"
+trap 'rm -f "$audit_err"' EXIT
+audit=$(cargo audit --json --quiet 2>"$audit_err") || true
+if ! jq -e . >/dev/null 2>&1 <<<"$audit"; then
+    cat "$audit_err" >&2
+    refuse "cargo audit printed no JSON report" "check the network and the RustSec advisory database, then re-run"
+fi
+yanked=$(jq -r '.warnings.yanked // [] | length' <<<"$audit")
+if [ "$yanked" -ne 0 ]; then
+    jq -r '.warnings.yanked[] | "  \(.package.name) \(.package.version)"' <<<"$audit" >&2
+    refuse "Cargo.lock pins $yanked yanked crate(s)" "run cargo update, then re-run"
+fi
 # The replacement dates [Unreleased] under the new version; a dry run, or a re-run
 # after it, finds the entries under whichever heading holds them.
 heading="Unreleased"
@@ -61,7 +78,7 @@ entries=$(sed -n "/^## \[${heading//./\\.}\]/,/^## \[/p" CHANGELOG.md | sed '1d;
 # shell's copy, which can be older than this tree.
 msg=$(mktemp) \
     || refuse "can't make a temp file for the release commit message" "check \$TMPDIR, then re-run"
-trap 'rm -f "$msg"; [ -z "$publish_dir" ] || rm -rf "$publish_dir"' EXIT
+trap 'rm -f "$audit_err" "$msg"; [ -z "$publish_dir" ] || rm -rf "$publish_dir"' EXIT
 subject=$(sed -n 's/^pre-release-commit-message = "\(.*\)"$/\1/p' .config/release.toml)
 [ -n "$subject" ] \
     || refuse "can't read pre-release-commit-message from .config/release.toml" "restore the key, then re-run"

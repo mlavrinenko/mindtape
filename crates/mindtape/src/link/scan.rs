@@ -7,7 +7,7 @@
 //! `World`), so it can splice the exact quoted string literal and leave
 //! everything else — notes, sibling edges, prose — byte-for-byte intact.
 //!
-//! Unlike [`crate::parse_links`], which projects the *evaluated* `links:` value
+//! Unlike [`crate::link::parse_links`], which projects the *evaluated* `links:` value
 //! into the model, this reads *source text* and reports ranges: a rewriter needs
 //! spans, not values. And unlike a bare `typst_edit::find_link_targets` (which
 //! sees only `link("…")`), it also covers the edge helpers, whose targets are

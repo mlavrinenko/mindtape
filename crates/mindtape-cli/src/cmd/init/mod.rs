@@ -258,7 +258,7 @@ fn print_preset_list() {
 /// Prepend the `#:schema` comment directive to the scaffold, unless
 /// `--no-schema`.
 ///
-/// Defaults to the published [`SCHEMA_URL`]. `.mindtape/config.toml` is a
+/// Defaults to the published [`mindtape::SCHEMA_URL`]. `.mindtape/config.toml` is a
 /// checked-in file, and the previous default — a `file://` URL into the running
 /// user's XDG dir — was meaningless to anyone who cloned the repo, so every
 /// scaffold started life needing a hand edit. An editor fetches and caches the

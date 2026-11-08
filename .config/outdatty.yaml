@@ -233,6 +233,9 @@ groups:
   - name: cli-import-docs
     source:
       - crates/mindtape-cli/src/cmd/import/mod.rs
+      # The accepted input shapes, which schema.typ restates as "a bare array
+      # of records" and the round-trip section reads back from `mt ls --json`.
+      - crates/mindtape-cli/src/cmd/import/input.rs
     dependents:
       - www/content/import-export.typ
       - www/content/schema.typ

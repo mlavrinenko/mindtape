@@ -195,7 +195,7 @@ fn report_issues(issues: &[Violation]) -> Result<()> {
 /// Validate a rendered task *before* it is written, so a rejected write leaves
 /// nothing on disk. `source` is checked as if it already sat at `file`, against
 /// the project's already-loaded tasks — the same load and the same
-/// [`validate`] pass [`verify_written`] runs, in the other order.
+/// [`validate()`] pass [`verify_written`] runs, in the other order.
 ///
 /// Returns `false` when `file` lies outside the project root (`mt add --into
 /// /elsewhere`), where there is no project-relative path to evaluate the

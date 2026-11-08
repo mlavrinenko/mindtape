@@ -222,7 +222,7 @@ pub struct TagsConfig {
 
 /// Expand every `@<dict>` reference in `[tasks.tags] allowed` and each
 /// `[tasks.fields.<name>] values` against `dicts`, in place. Run once, at
-/// config load ([`crate::config::layers::build_config`]), after `[dicts]`
+/// config load (`crate::config::layers::build_config`), after `[dicts]`
 /// itself has compiled — never per task — so every downstream reader
 /// (validation, `mt add` slot completion, the generated schema) sees a plain,
 /// already-resolved list and needs no change of its own.

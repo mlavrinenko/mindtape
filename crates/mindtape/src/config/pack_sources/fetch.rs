@@ -1,7 +1,7 @@
 //! Fetching one locked source into the cache: `git fetch` of its `ref` into
 //! a temporary repository inside the cache root, the locked commit's files
 //! written from the objects themselves, the tree hashed with
-//! [`crate::config::pack_sources::hash`], and the result renamed to
+//! [`crate::config::pack_sources::hash()`], and the result renamed to
 //! `<cache root>/<sha256>/`.
 //!
 //! The files come from `git ls-tree` and `git cat-file --batch`, not a

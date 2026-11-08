@@ -3,7 +3,7 @@
 //!
 //! [`crate::config::packs`] already records which layer or pack each merged rule
 //! came from, for `mt config show --origin`, and the line of its table header.
-//! [`crate::config::layers::build_config`] turns that record into one
+//! `crate::config::layers::build_config` turns that record into one
 //! [`Location`] per rule and keeps it on the loaded [`crate::config::Config`],
 //! because the validation passes that report a skipped rule take a `Config`
 //! and nothing else. A rule from the project config, a global layer, a path

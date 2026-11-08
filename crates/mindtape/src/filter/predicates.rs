@@ -89,7 +89,7 @@ fn holds(task: &Task, name: &str, value: &str, config: &Config) -> Result<bool, 
     })
 }
 
-/// `x-<ns>`: an extension slot's value through [`model::fields::from_extra`],
+/// `x-<ns>`: an extension slot's value through [`crate::model::fields::from_extra`],
 /// declared in `[tasks.fields]` or not. An unset slot is
 /// [`FieldValue::Missing`]; a dict has no value to compare, so reading one is
 /// an error that points at `has()`.
@@ -237,8 +237,8 @@ const DEFAULT_CONTAINS_FIELDS: [&str; 3] = ["title", "id", fields::BODY_FIELD];
 
 /// The default `contains()` haystack: the project's `[ls] contains-fields`
 /// when set, else [`DEFAULT_CONTAINS_FIELDS`] unchanged. Config load already
-/// validated a configured list against [`model::fields::is_contains_field`]
-/// ([`crate::config::ls::deserialize_contains_fields`]), so every name here is
+/// validated a configured list against [`crate::model::fields::is_contains_field`]
+/// (`crate::config::ls::deserialize_contains_fields`), so every name here is
 /// trusted.
 fn default_contains_fields(config: &Config) -> Vec<String> {
     if config.ls.contains_fields.is_empty() {
@@ -291,7 +291,7 @@ pub(crate) fn contains_call(
 
 /// Resolve `name`'s `contains()` haystack on `task`: a text-only field through
 /// [`text_only_value`], anything else through [`field_value`]. Errors outside
-/// [`model::fields::is_contains_field`]'s vocabulary.
+/// [`crate::model::fields::is_contains_field`]'s vocabulary.
 fn contains_value(task: &Task, name: &str, config: &Config) -> Result<FieldValue, FilterError> {
     if !fields::is_contains_field(name) {
         return Err(FilterError::UnknownField(name.to_owned()));

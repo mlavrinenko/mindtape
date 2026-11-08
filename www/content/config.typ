@@ -171,9 +171,10 @@ project reads.
 = Editor schema
 
 `mt install` writes a JSON Schema for `.mindtape/config.toml` into the config
-directory. `mt init` starts the config with a `#:schema` line that points at
-the published copy, so an editor with tombi or Taplo completes keys and checks
-values as you type. `mt` reads that line as a TOML comment.
+directory, and each later install refreshes it. `mt init` starts the config
+with a `#:schema` line that points at the published copy, so an editor with
+tombi or Taplo completes keys and checks values as you type. `mt` reads that
+line as a TOML comment.
 #link(u("/cli/init/"))[`mt init`]'s `--schema` and `--no-schema` flags change
 it.
 

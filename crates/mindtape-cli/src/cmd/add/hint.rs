@@ -77,7 +77,7 @@ impl RefusalContext<'_> {
 
     /// One hint per other template pinning a slot-filled field to the value
     /// the caller passed for it. `fields` holds the task fields the refusal is
-    /// about ([`Refused::reads`]).
+    /// about ([`Diag::reads`]).
     fn template_hints(&self, fields: Option<&BTreeSet<String>>) -> Vec<Hint> {
         let Some(slotted) = slotted_fields(self.sources, self.explicit, fields)
             .filter(|slotted| !slotted.is_empty())

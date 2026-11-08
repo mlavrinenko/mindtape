@@ -20,7 +20,7 @@
 //! that number into [`Task::estimate`]. So a rule reads `estimate.src-files`
 //! as it reads a plain number. A query that can't run leaves the unit out of
 //! [`Task::estimate`] and records why in [`CountEstimate::problem`], which
-//! [`crate::validate`] reports.
+//! [`crate::validate()`] reports.
 //!
 //! The files come from [`crate::query`], the shared engine this module is the
 //! first consumer of. It lists the files git sees, narrows each query to the

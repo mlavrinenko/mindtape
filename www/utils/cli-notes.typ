@@ -217,8 +217,10 @@
   "fix": (:),
   "install": (
     prose: [`--no-lib`, `--no-defaults`, `--no-schema` and `--no-completions`
-      each skip one part. `--force` overwrites an existing defaults file,
-      schema or hook. It also replaces a package directory that is a symlink,
+      each skip one part. The generated JSON Schemas are refreshed on every
+      install, so a newer binary's schema reaches the installed copy without a
+      flag. `--force` overwrites an existing defaults file or hook. It also
+      replaces a package directory that is a symlink,
       which `mt install` otherwise leaves alone, so it never writes into the
       checkout the link points at. `mt` writes one completion hook per shell under
       `~/.config/mindtape/completions/`. Source the one for your shell from

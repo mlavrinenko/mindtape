@@ -1,13 +1,13 @@
 //! What a check reports: one violation, and where in the source it points.
 //!
-//! Separate from [`crate::validate`], which is the checks themselves. Every
+//! Separate from [`mod@crate::validate`], which is the checks themselves. Every
 //! pass that can fail a task builds one of these — the core field checks, the
 //! body-shape gates ([`crate::body::gate`], [`crate::body::content_gate`]), the comment
 //! scan ([`crate::config::comments`]) and the config-declared rules
 //! ([`crate::rules`]) — and every consumer reads exactly these fields,
 //! so the report type outliving any one pass is the point.
 //!
-//! Both types are re-exported from [`crate::validate`], where callers have
+//! Both types are re-exported from [`mod@crate::validate`], where callers have
 //! always found them.
 
 use std::collections::BTreeSet;

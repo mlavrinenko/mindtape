@@ -47,13 +47,13 @@ pre-commit hook asserts it, and so does `mt flip` into a terminal status,
 through an `[[on.flip]]` hook.
 
 A passing #just.check() prints one line, such as
-`check: 28 gates passed (3 run, 25 cached)`. An agent usually reads the
-output once the run ends, and every line costs it context. A gate's progress
-and its report on a clean tree tell that reader nothing a pass doesn't. A
-failing run prints the full log of each failed gate, then a verdict naming
-them, such as `check: 1 of 28 gates failed: just clippy`, and exits non-zero.
-The verdict ends with `(10 not run)` when a red stage stopped the run before
-later stages.
+`check: <n> gates passed (<ran> run, <cached> cached)`. An agent usually reads
+the output once the run ends, and every line costs it context. A gate's
+progress and its report on a clean tree tell that reader nothing a pass
+doesn't. A failing run prints the full log of each failed gate, then a verdict
+naming them, such as `check: 1 of <n> gates failed: just clippy`, and exits
+non-zero. The verdict ends with `(10 not run)` when a red stage stopped the run
+before later stages.
 
 `.just/scripts/mmz-arm.sh` does the capture once for every arm, so no tool
 needs a quiet flag. It writes each arm's output to `target/check/<gate>.log`,
