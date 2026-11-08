@@ -56,12 +56,13 @@ fn refused(dir: &Path, args: &[&str]) -> String {
     stderr
 }
 
-/// Every `needle` appears in `text`. A needle naming a path is written with
-/// `/` and compared in the platform separator `mt` prints it with.
+/// Every `needle` appears in `text`. Printed paths are compared with `/` on
+/// every platform; a package spec such as `@local/mindtape` has no separator
+/// and stays as written.
 fn has(text: &str, needles: &[&str]) {
+    let text = text.replace('\\', "/");
     for needle in needles {
-        let needle = support::native(needle);
-        assert!(text.contains(&needle), "missing {needle:?}: {text}");
+        assert!(text.contains(needle), "missing {needle:?}: {text}");
     }
 }
 
