@@ -27,8 +27,8 @@
 
 #typst-section(site-link)
 
-Here's how #link("https://myriad-dreamin.github.io/tinymist/")[tinymist] helps
-with autocompletion and highlights issues:
+#link("https://myriad-dreamin.github.io/tinymist/")[tinymist] helps with
+autocompletion and highlights issues:
 
 #lsp-demo()
 

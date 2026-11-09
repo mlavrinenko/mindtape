@@ -16,8 +16,8 @@
 Someone files "Sign in with Google and GitHub" as one task. The change touches
 the config, the routes, the auth module and a migration. The diff is too big to
 review, and when a test fails, you can't tell which part broke it. A task that
-touches a few files gives you a diff you can read, and a failing test points at
-that diff.
+touches a few files gives you a diff you can read, and a failing test shows
+which part of that diff broke.
 
 A rename is different. It touches every file that names the type, but it's one
 decision, and splitting it only copies that decision into several tasks. So
@@ -26,7 +26,7 @@ the cap only applies to work that takes judgment.
 = Config
 
 The `changes` collector reads the first backticked path on every Changes
-bullet, so `derived.changes` is the plan the task already carries.
+bullet, so `derived.changes` is the plan the task already has.
 `judgment-stays-small` counts the paths that fall inside the `source` set:
 
 // docs:hand-typed the `[dicts.source]` block that makes `@source` resolve
@@ -50,15 +50,15 @@ file.
 = Deep dive
 
 `difficulty` rates how much judgment a task takes, from 0 for a mechanical edit
-to 9 for an open question. The template asks for it and fills in 3 when
-nobody answers, so a task filed without a rating gets the cap. #link(u("/priority/#difficulty"))[Priority]
+to 9 for an open question. The template asks for it and fills in 3 when you
+give no rating, so a task filed without one gets the cap. #link(u("/priority/#difficulty"))[Priority]
 covers the scale.
 
 The `judgment-stays-small` rule reads
 `count_paths(derived.changes, "@source")`: the distinct paths in the Changes
 section that fall inside the project's `source` path set. Its `when` picks the
 open tasks rated 3 and up, so a closed task is not collected and a mechanical
-one has no cap. Want a ladder? Add a rule for each rung, such as
+one has no cap. For a ladder, add a rule for each rung, such as
 `difficulty >= 6` with a cap of 2. With `severity = "error"`, every command
 that writes a task refuses one that breaks a rule. If you edit a task file by
 hand, `mt check` fails on it instead. #link(u("/rules/"))[Rules] covers the
@@ -67,7 +67,7 @@ rule keys, and #link(u("/filters/"))[Filter language] covers the expressions.
 `[tasks.estimate]` allows one unit, `src-files`, and leaves it optional. The
 unit stays so a task filed with `estimate.src-files` remains valid, while a
 new task declares its plan once, in Changes. Every Changes bullet starts
-with one backticked path, and a glob counts once. A terminal status, such as
+with one backticked path. A terminal status, such as
 `done`, ends a task. #link(u("/statuses/"))[Statuses] says which statuses are
 terminal, and #link(u("/estimates/"))[Estimates] lists the other estimate
 keys.

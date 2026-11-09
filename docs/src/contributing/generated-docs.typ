@@ -28,12 +28,13 @@ a debug build of `mt`, because `www/generate.sh` captures real `mt` output.
 `www/generate-site-pages.sh` compiles every site page to build the page
 manifest, and the pages read those captures. Inside #just.check() the four
 gates that read `www/generated/` share one run: the first to take the lock
-regenerates, and mmz finds the record fresh for the rest. Each source is
-rendered with typlite, from nixpkgs' `tinymist` package.
+regenerates, and mmz finds the record fresh for the rest.
+
+Each source is rendered with typlite, from nixpkgs' `tinymist` package.
 
 The site pages under `www/content/` are a separate render path. They open
 with `#show: page.with(...)`, import `@tola` and target HTML. A `docs/src`
-source has neither, so typlite can render it alone. Why the site always
+source does none of these, so typlite can render it alone. Why the site always
 rebuilds clean, and how typlite renders each site page's Markdown copy, is in
 #link("docs/contributing/docs-site-build.md")[docs/contributing/docs-site-build.md].
 
@@ -54,7 +55,7 @@ list. For each source it reads `output`, runs typlite and writes the result
 there. Adding a source changes no other file.
 
 `skills/mindtape/SKILL.md` needs YAML frontmatter, which typlite can't emit,
-so its block carries a `frontmatter` dict beside `output`:
+so its block has a `frontmatter` dict beside `output`:
 
 ```typ
 #metadata((
@@ -86,14 +87,14 @@ committed file as it is, so a wrong file fails by name.
 naming file and line on a `|` inside a code span in a table row, a backtick
 with no closing backtick on its line, an escaped backtick, and `-\>` outside a
 code span. It also scans `docs/src` for a `;` right after a
-`#link(...)[...]`. Each is a trap listed below.
+`#link(...)[...]`.
 
 == What typlite can and can't do
 
 Checked against the tinymist this flake pins and the typst 0.14.2 inside it.
 That typst is separate from the `typst` and `typst-eval` crates mindtape links
 (0.15.0, in `www/generated/crate-map.json`), so recheck this table when a
-nixpkgs bump moves tinymist.
+nixpkgs bump updates tinymist.
 
 #table(
   columns: 2,

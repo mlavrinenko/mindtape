@@ -12,11 +12,10 @@
 
 #show: page.with(..meta)
 
-Moving from another tracker, or need your tasks somewhere else? `mt import`
-reads tasks as JSON in the #link(u("/schema/"))[canonical schema] and writes
-one `.typ` file for each. `mt ls '' --json` prints every task in the same
-schema. A `jq` program turns another tracker's export into that schema, or the
-schema into another tracker's format. The recipes below run in the docs build,
+`mt import` moves tasks from another tracker: it reads tasks as JSON in the
+#link(u("/schema/"))[canonical schema] and writes one `.typ` file for each.
+`mt ls '' --json` prints every task in the same schema. A `jq` program turns another tracker's export into that schema, or
+the schema into another tracker's format. The recipes below run in the docs build,
 so each output on this page is what the command printed.
 
 = Import
@@ -24,12 +23,12 @@ so each output on this page is what the command printed.
 `mt import` reads a file, or standard input if you don't give one. It checks
 each record against this project's config: the
 #link(u("/statuses/"))[status legend], the priority scale, the `kind` values
-and the allowed tags. It checks the whole batch as one set, so records that
-link to each other resolve. Then it writes the records that pass. A record
+and the allowed tags. It checks the batch as one set, so records that link
+to each other resolve. Then it writes the records that pass. A record
 that fails is reported and not written, and the rest are still written.
 
 The report on standard error names each record, `filed` or `skipped`, with the
-reason for a skip. When a content rule's `message` replaced the check's own
+reason for a skip. When a content rule's `message` replaces the check's own
 words, they follow on an indented `note:` line, as `mt check` prints them. It also lists each change made to fit the config: `mapped`,
 `defaulted`, `dropped` or `violated`. `mt import` writes the records that
 pass, prints the report, then exits 1 if it skipped any record, so a script
@@ -86,7 +85,7 @@ JSON array of lines. `contrib/jq/todo.txt.jq` reshapes the array:
 A line that starts with `x ` becomes `done`, and any other line `proposed`.
 Priority `(A)`, `(B)` and `(C)` become 8, 5 and 2. A `+project` word becomes a
 tag and a `due:` value the due date. The title keeps `@context` words and any
-other `key:value` word. The `x-todotxt` field holds them too, with the
+other `key:value` word. The `x-todotxt` field contains them too, with the
 priority letter. Adjust the patterns in the adapter to the parts of the format
 your file uses.
 
@@ -94,10 +93,10 @@ your file uses.
 
 An export imports back whole. `mt import` names each file from the record's
 `id`, so a link to a task still resolves. A record with no `id`, like the ones
-the jq adapters emit, or an `id` holding a `/` or a `.`, is named from its title, the way `mt add` names it. With
-neither `--into` nor `--to`, a record lands in the folder its `file` names if
-that folder is under a task root, so an export of several folders imports back
-as the same folders. If a name is taken anywhere in the project, it gets a
+the jq adapters emit, or an `id` containing a `/` or a `.`, is named from its
+title, the way `mt add` names it. With neither `--into` nor `--to`, a record is
+written to the folder its `file` names if that folder is under a task root, so
+an export of several folders imports back as the same folders. If a name is taken anywhere in the project, it gets a
 `-2` suffix and the report says `alpha: filed as alpha-2`. A link to it
 doesn't follow the rename.
 

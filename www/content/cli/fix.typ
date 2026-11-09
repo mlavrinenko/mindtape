@@ -3,7 +3,7 @@
 
 #show: cli-page.with("fix")
 
-`mt fix` rewrites the files an `mt` upgrade left behind. Today one fixer,
+`mt fix` rewrites the files an `mt` upgrade left behind. One fixer,
 `prelude-import`, changes an import of `@local/mindtape` at a version this
 binary does not read to the current version. It parses the Typst, changes
 only the version string, and leaves every other byte alone. `mt fix --list`
@@ -24,7 +24,7 @@ it with `mt fix --all --check`.
 An import of a supported older version, such as `0.2.0`, is kept and reported.
 A newer version is refused with an upgrade hint. A malformed spec, an
 unreadable file or a symlinked file with an edit is reported, and any of them
-stops the whole run before a file changes. A project-local
+stops the run before a file changes. A project-local
 `[[typst.local-packages]]` pin is never edited. When it declares the imported
 unsupported version, the import is reported unfixable. A successful write ends
 with `mt check`.

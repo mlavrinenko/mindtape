@@ -7,7 +7,7 @@
   route: "/estimates/",
   label: "Estimates",
   title: "Estimates",
-  summary: "Estimate units, file counts that queries back, and the rules that cap an estimate and compare it with git.",
+  summary: "Estimate units, file counts from queries, and the rules that cap an estimate and compare it with git.",
 )
 #metadata(meta) <page-meta>
 
@@ -42,7 +42,7 @@
 A task's estimate is a dict of units to numbers, such as
 `estimate: (files: 5)`. Pick units you can check: files changed, say, rather
 than hours. `[tasks.estimate] units` lists the unit names you allow, and
-`required` says which tasks must carry an estimate. An estimate is optional
+`required` says which tasks must have an estimate. An estimate is optional
 when `required` is false, as this repo and `examples/api-service` set it:
 their size rules read the paths a task's Changes section names, and
 #link(u("/split-oversized-tasks/"))[Split oversized tasks] shows the rule. `mt` checks `units` on open tasks only, so a finished task
@@ -54,11 +54,10 @@ keeps its unit after you drop it from the list.
 
 = Counting files with queries
 
-A file count you guess is still a guess. `count(n, ..queries)` adds the files
-your queries match to the `n` you'd write by hand, so the estimate tracks the
-code as it is today. `[tasks.estimate.queries]` names the units that take it,
-each with the path set its files must fall in, a glob or a
-#link(u("/named-sets/"))[`@name` set]:
+`count(n, ..queries)` adds the files your queries match to the `n` you'd
+write by hand, so the estimate tracks the code as it is today.
+`[tasks.estimate.queries]` names the units that take it, each with the path
+set its files must fall in, a glob or a #link(u("/named-sets/"))[`@name` set]:
 
 #raw(
   render-slices(slices, parts.slice(1, 2), comment: "#"),
@@ -80,7 +79,7 @@ you can check a query that matches nothing before you start:
 
 #terminal("estimates-eval")
 
-The judgment cap below holds it to 5, so when the type
+The judgment cap below caps it at 5, so when the type
 spreads to a fourth file, `mt check` refuses the task before you start it.
 
 Two queries build the count:
@@ -88,7 +87,7 @@ Two queries build the count:
 - `grep(regex, glob)` matches the files whose text matches `regex`,
   in #link("https://docs.rs/regex/latest/regex/#syntax")[Rust regex syntax].
   Write the regex as a raw block, so a backslash needs no escape. The
-  optional glob, or `@name` set, narrows it to the paths that admits.
+  optional glob, or `@name` set, narrows it to the paths it admits.
 - `glob(pattern)` matches the files whose path matches `pattern`.
 
 A file several queries match counts once. When queries overlap, the breakdown
@@ -101,12 +100,12 @@ and runs no shell, so the count comes out the same on every machine. A unit
 with no `[tasks.estimate.queries]` entry takes a plain number only, and
 `mt check` refuses a count there.
 
-== Matching a Rust shape
+== Matching Rust structure
 
-`ast_grep(language, pattern, glob?)` reads source shape instead of text. It
-tells a call from a definition, a comment or a string, and it sees no code a
-macro expands to. In this wave the language is `rust`, or its alias `rs`, and
-a query reads only `.rs` files. Write the pattern in
+`ast_grep(language, pattern, glob?)` matches code structure rather than text.
+It distinguishes a call from a definition, a comment or a string, and it sees
+no code a macro expands to. This build supports `rust` (alias `rs`), and a
+query reads only `.rs` files. Write the pattern in
 #link("https://ast-grep.github.io/guide/pattern-syntax.html")[ast-grep syntax],
 as a raw block so a backslash needs no escape. The optional glob or `@name`
 set narrows the unit's paths, as it does for `grep`.
@@ -128,12 +127,11 @@ its query matches. `mt eval` shows the breakdown:
 
 A file counts once however many call sites it holds, so the unit reads the
 number of distinct files. A pattern the grammar refuses, or a language this
-build does not carry, leaves the unit unresolved. `mt check` reports why and
+build does not support, leaves the unit unresolved. `mt check` reports why and
 `mt eval` prints the problem instead of a number. A glob that isn't a string
 is a shape error at `estimate.<unit>.queries[i]`, which `mt check` and
-`mt eval` report. An
-export keeps the query under the `ast-grep` JSON tag, so `mt import` writes the
-same call back.
+`mt eval` report. An export keeps the query under the `ast-grep` JSON tag, so
+`mt import` writes the same call back.
 
 = Caps
 
@@ -158,11 +156,11 @@ For `mt add` refusing a task over a cap, see
 
 A file count is an estimate a rule can compare with git, so you find out
 when a task grows past its plan. #link(u("/filters/"))[`changed()`] counts the
-paths git reports changed, and the rule compares that count with the estimate
-of each task in progress. The shipped `mindtape:budget` compares it with
-`count_paths(derived.changes, "@source")` instead, the paths the Changes
-section names; this example keeps an estimate-based rule to document the
-field.
+paths git reports changed. The example rule compares that count with the
+estimate of each task in progress. The shipped `mindtape:budget` does not use
+the estimate. It compares the changed-path count with
+`count_paths(derived.changes, "@source")`, the paths the Changes section
+names. This example keeps an estimate-based rule to document the field.
 
 #raw(
   render-slices(slices, parts.slice(2, 3), comment: "#"),
@@ -176,7 +174,7 @@ relative to the repository root. `has(estimate.files)` keeps the rule off a
 task with no estimate.
 
 Git reports one set of changes, and nothing in it says which file belongs to
-which task. So the rule compares the whole set with each task in progress.
+which task. So the rule compares that set with each task in progress.
 That's only exact when one task is in progress at a time (see
 #link(u("/rules/"))[work-in-progress caps]). At `severity = "warn"` a breach
 prints a warning and `mt check` still exits 0, because an unplanned file is

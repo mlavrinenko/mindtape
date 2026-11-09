@@ -22,9 +22,9 @@ The `windows` job in `.github/workflows/ci.yml` runs `cargo build` and
 behave the same on every platform. Windows has no Nix, so
 `taiki-e/install-action` installs nextest there. The job covers the code that
 differs by platform: `cmd /C` against `sh -c` for an `[[on.flip]]` `run`, the
-config, data and cache paths from `dirs`, and path separators. Windows runs
-rarely, so nextest runs there with `--no-fail-fast` and one red run lists every
-failure.
+config, data and cache paths from `dirs`, and path separators. The Windows
+job runs rarely, so nextest runs there with `--no-fail-fast` and one red run
+lists every failure.
 
 A test of a config command passes on Windows only if it's portable. A string
 `run` must mean the same to `sh -c` and `cmd /C`, as the stub checkers in
@@ -40,8 +40,8 @@ there, though every line matches. So such a file gets `text eol=lf` in
 `.gitattributes`, as the `schema/*.json` goldens do.
 
 On Windows, `dirs` reads the data path from a system API that no environment
-variable moves. A test that sets `XDG_DATA_HOME` would test a path `mt` never
-reads there. That's why `MINDTAPE_CONFIG_HOME`, `MINDTAPE_DATA_HOME` and
+variable overrides. A test that sets `XDG_DATA_HOME` would test a path `mt`
+never reads there. That's why `MINDTAPE_CONFIG_HOME`, `MINDTAPE_DATA_HOME` and
 `MINDTAPE_CACHE_HOME` exist, and why `support::isolated_env` sets all three.
 `tests/it/packs_cache_e2e.rs` fills the pack cache under the last one.
 `tests/it/install_e2e.rs` sets them to check both where `mt install`
@@ -67,9 +67,9 @@ any other way. A path that stays a path, such as a template directory the
 config passes on, keeps its own form through `to_string_lossy`.
 
 A test that pins how a path reads passes `--path-separator` a `\`, so a Linux
-run takes the route Windows takes by default. A test about something else
-that prints a path wraps the expected path in `support::native`, which writes
-the platform's separator.
+run formats the path the way Windows does by default. A test about something
+else that prints a path wraps the expected path in `support::native`, which
+writes the platform's separator.
 
 = The pty tests are Unix-only
 
@@ -97,5 +97,5 @@ Windows standard library. `pkgsCross.mingwW64` supplies a rustc on the same
 pinned #rust-channel channel with the standard library for both targets.
 
 It isn't a #just.check() arm, because it needs a separate toolchain and its
-own `target/` tree. The Windows CI job still tests runtime behavior and the
+own `target/` tree. The Windows CI job tests runtime behavior and the
 `-msvc` target.

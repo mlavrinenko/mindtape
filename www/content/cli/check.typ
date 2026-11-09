@@ -6,7 +6,7 @@
 `mt check` checks every
 #link(u("/concepts/#which-files-count-as-tasks"))[task source]: field values,
 required fields, numeric bounds, links and dependency cycles. It also checks
-the task each template files with its defaults, as
+the task each template would file with its defaults, as
 #link(u("/templates/"))[Templates & slots] describes. It
 prints each problem it finds and exits non-zero if there's at least one. Run
 it after you edit a task file by hand. A Typst warning repeated in the same

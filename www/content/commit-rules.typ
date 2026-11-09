@@ -13,14 +13,13 @@
 
 #show: page.with(..meta)
 
-Want every commit to say which task it works on? `mt check --commit-msg
-<file>` checks the commit you're writing against the project's `[commits]`
-config. Run it from a `commit-msg` hook and git refuses a commit that breaks a
+`mt check --commit-msg <file>` checks the commit you're writing against the
+project's `[commits]` config. Run it from a `commit-msg` hook and git refuses a commit that breaks a
 rule. `mt check --commits <range>` runs the same checks over commits already
 made. #link(u("/trace-commits-to-tasks/"))[Trace commits to tasks]
-walks through the whole setup, from a refused commit to `touches()`.
+walks through the setup, from a refused commit to `touches()`.
 
-The examples run in a git copy of `examples/rules/`, whose config holds the
+The examples run in a git copy of `examples/rules/`, whose config has the
 three commit rules below. The rules the `mindtape:tasks` pack ships,
 `name-task-in-refs-trailer`, `squash-every-autosquash-commit`,
 `flip-task-with-its-work` and `finish-named-task-at-tip`, are listed on
@@ -59,19 +58,19 @@ Outside a git repository, `mt check --commit-msg` fails with
 = The trailer
 
 `[commits] trailer`, `Refs` by default, names the trailer whose values are
-tasks, one #link(u("/concepts/#identity"))[stem] per line. A line may list
+task stems, one #link(u("/concepts/#identity"))[stem] per line. A line may list
 several refs, split on commas or whitespace, and the trailer may repeat.
 Whatever the rules say, `mt` refuses a value that names no task and matches
 no external pattern. A path that names a task is refused too, and the message
-asks for its stem. Why stems? A path changes when its task moves to another
-folder, and a stem is unique in the project:
+asks for its stem. A path changes when a task moves to another folder, and a
+stem stays unique in the project:
 
 #terminal("commit-refs-path")
 
 A repo that tracks work elsewhere keeps `Refs:` as its one trailer.
 `[commits] external-refs` lists regexes. A ref that names a task is a task ref;
 else one matching a pattern is an external ref, kept opaque; else it is
-refused. The config above accepts `r#45782`. A ref that holds a comma or a
+refused. The config above accepts `r#45782`. A ref with a comma or a
 space goes in double quotes, as in `Refs: "redesign one"`, or escapes that
 one character with a backslash. `touches()` and a `scope = "task"` rule ignore
 external refs.
@@ -88,7 +87,7 @@ rule once per commit, over these fields:
   [`subject`], [The message's first line.],
   [`refs`],
   [The trailer's refs: task stems, and external refs as written. A line may
-    hold several, split on commas or whitespace.],
+    list several, split on commas or whitespace.],
 
   [`trailers`],
   [Every trailer line of the message, whatever its key, as `Key: value`.
@@ -148,7 +147,7 @@ A breach names the message file and the rule. Here a migration has no
 `!matches(subject, "^(fixup|squash|amend)! ")` to its `when`, so a
 `git commit --fixup` needs no `Refs:`. The pack's `squash-every-autosquash-commit` is
 the other half. It reads `in_range`, so the hook lets a fixup through and
-`mt check --commits` refuses one that nobody squashed.
+`mt check --commits` refuses one that was not squashed.
 
 Rules merge by `name` across #link(u("/config/#layers"))[config layers] and
 #link(u("/packs/"))[rule packs], like `[[tasks.rules]]`. To replace a
@@ -168,31 +167,31 @@ task in one of three states:
   [The task as of `HEAD`, before the commit, or of `HEAD^` under `git commit --amend`.],
 
   [`staged(<expr>)`],
-  [The task as the index holds it, which the commit records.],
+  [The task as it stands in the index, which the commit records.],
 
-  [`worktree(<expr>)`], [The task as the file on disk holds it.],
+  [`worktree(<expr>)`], [The task as it stands on disk.],
   [`named`], [Whether the trailer names the task.],
   [`retires_other`],
-  [Whether the commit retires a task other than this one: `HEAD` holds it and
+  [Whether the commit retires a task other than this one: `HEAD` has it and
     the index doesn't, as after `mt rm`. Edits to other tasks' files don't
     count.],
 )
 
 A wrapper takes any #link(u("/filters/"))[filter expression] and evaluates it
-against the whole project in that state, so `ready`, `blocked` and
+against the project in that state, so `ready`, `blocked` and
 `count(...)` read the tasks as they stand there. Inside a wrapper, `exists` is
 false if the state has no file for the task, so
 `head(exists) && !staged(exists)` is a deletion. As one side of a comparison,
 a wrapper is the field's value in that state, as in
 `worktree(status) == staged(status)`. `mt` refuses a bare task field, because
-nobody reading the rule could tell which state it means.
+a reader could not tell which state the rule means.
 
 `into("s")` means `staged(status == "s") && !head(status == "s")`: the commit
 moves the task into status `s`.
 
 If either compared state imports a prelude this `mt` does not support, the
 hook warns and skips every `scope = "task"` rule; the `Refs` trailer check and
-`scope = "commit"` rules still run. `mt check --commits` skips the whole
+`scope = "commit"` rules still run. `mt check --commits` skips the
 commit when its own or its parent tree is unsupported, because a task rule
 cannot read a state whose prelude does not load.
 
@@ -202,7 +201,7 @@ that commit stages nothing but task files. It also lets a task of
 `kind: "milestone"` close alone, because a milestone ends through its leaves
 and has no work of its own.
 
-A breach names the task after the rule. Here `mt done` changed the task
+A breach names the rule, then the task. Here `mt done` changed the task
 file, but only the code is staged:
 
 #terminal("commit-task-scope")
@@ -211,7 +210,7 @@ file, but only the code is staged:
 
 A branch that works on a task should finish it. `scope = "tip"` runs the rule
 once for each task a checked commit of a range names in its trailer, over the
-task as the range's newest commit, the tip, holds it. Only
+task as it stands at the tip, the range's newest commit. Only
 `mt check --commits` runs it, since `mt check --commit-msg` checks one commit
 with no range. A tip rule
 is an ordinary #link(u("/filters/"))[filter expression], like a
@@ -234,15 +233,14 @@ To refuse a branch at merge time, run `mt check --commits main..HEAD` in the
 = Check a range
 
 A hook doesn't run under `git commit --no-verify`, so check the commits a
-push carries in CI too. `mt check --commits <range>` checks every commit
+push contains in CI too. `mt check --commits <range>` checks every commit
 `git rev-list` lists for the range, oldest first, with the same trailer check
-and rules. The one difference is `in_range`, which is true here.
+and rules. The only difference is `in_range`, which is true here.
 
-Each commit is read against its first parent. A merge is skipped by default.
-It joins commits checked on their own, and its first-parent diff repeats
-them. Pass `--check-merges` to read it like any other commit. The newest
-commit still supplies the tip state when it is a merge, so the tip rules hold
-the tree the range ends on. `subject` and `refs` come from the message, and
+Each commit is read against its first parent. A merge is skipped by default,
+as above; pass `--check-merges` to read it like any other commit. The newest
+commit still supplies the tip state when it is a merge, so the tip rules apply
+to the tree the range ends on. `subject` and `refs` come from the message, and
 `files` from what the commit changes against its first parent. `staged(...)`
 reads the commit's tree and `head(...)` the parent's. A task ref must name a
 task the commit's tree holds. A past commit has no working tree, so `mt` skips

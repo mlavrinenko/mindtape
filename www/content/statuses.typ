@@ -66,7 +66,7 @@ is legal.
 
 = Writing a status
 
-A task's `status:` holds a value, the date it was set, and an optional note.
+A task's `status:` has a value, the date it was set, and an optional note.
 The prelude has a constructor for common values such as `wip` and `done`,
 which takes the note as a trailing block. For any other value, use
 `status(...)`, which takes the note as its `note` argument:
@@ -88,8 +88,7 @@ field.
 
 #config-keys-table(schema, "tasks.status")
 
-The legend below sets `to`, `note` and `unblocked`. The rest of this page
-explains each one:
+The legend below sets `to`, `note` and `unblocked`:
 
 #raw(
   render-slices(
@@ -107,9 +106,9 @@ explains each one:
 
 = Transitions
 
-`to` lists the statuses a task can move to from this one. Here are the moves
-the whole legend of `examples/statuses/` allows. A terminal status has a
-double border:
+`to` lists the statuses a task can move to from this one. The legend of
+`examples/statuses/` allows these moves. A terminal status has a double
+border:
 
 #diagram("statuses-moves", [The moves `to` allows in `examples/statuses/`])
 
@@ -142,9 +141,9 @@ without `-m`/`--note`:
 
 `mt check` reports a task already in that status whose note is missing or
 blank. Require a note on statuses that need a reason nothing else records,
-such as `on-hold` and `failed` above. The default is `optional`. `mt` never
-refuses a status note for being there, so `forbidden` does nothing on a status
-entry.
+such as `on-hold` and `failed` above. The default is `optional`. The schema
+accepts `forbidden`, but it has no effect on a status entry: `mt` never rejects
+a status note for being present.
 
 = Unblocked statuses
 
@@ -161,7 +160,7 @@ dependant there. Set `unblocked` on the statuses where work starts or ends,
 like `wip` and `done`. Leave it off statuses that blocked work must still
 reach, like `cancelled`.
 
-On a status that's also terminal, `unblocked` also requires every child to be
+On a status that's also terminal, `unblocked` requires every child to be
 finished: every task whose `parent` edge names this one. A child in a terminal
 status counts as finished. `mt flip` names each unfinished child, `--force`
 overrides, and `mt check` warns about a parent already closed over an

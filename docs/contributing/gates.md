@@ -2,11 +2,11 @@
 
 # Quality gates
 
-How `just check` runs its gates, what stops two gates from breaking each other, and what the pre-commit hook asserts. The rules you follow are in CONTRIBUTING.md.
+The rules you follow are in CONTRIBUTING.md.
 
 ## How check runs
 
-`just check` runs its gates in three stages, in order, and stops at the first stage with a failing gate. The fast stage builds nothing, so you see a lint error in seconds. The build stage holds every gate that builds or runs `mt`, and they share one build. The last stage runs `just cover` and then `just crap check`, because coverage pays for an instrumented clean rebuild. Within a stage the gates run in parallel. Name stages to run only those, such as `just check fast build`. CI does that to run `cover` in a job of its own, since it shares no build with the other two. To see the gates, ask `just` and mmz rather than a doc:
+`just check` runs its gates in three stages, in order, and stops at the first stage with a failing gate. The fast stage builds nothing, so you see a lint error in seconds. The build stage contains every gate that builds or runs `mt`, and they share one build. The last stage runs `just cover` and then `just crap check`, because coverage pays for an instrumented clean rebuild. Within a stage the gates run in parallel. Name stages to run only those, such as `just check fast build`. CI does that to run `cover` in a job of its own, since it shares no build with the other two. To see the gates, ask `just` and mmz rather than a doc:
 
 ```bash
 just --show _check-stages      # the stage recipes, in order
@@ -17,17 +17,17 @@ mmz --status --tag gate        # which gates are fresh, stale or failed
 
 Each arm is `just mmz <gate>`, which runs `mmz just <gate>`, so mmz caches each gate under the recipe’s name. mmz skips an arm whose declared inputs haven’t changed since its last pass. `.mmz/config.yaml` declares the inputs and tags every gate `gate`. Then `mmz --is-fresh --tag gate` asserts that every gate passed against the current tree, without running any of them. The pre-commit hook asserts it, and so does `mt flip` into a terminal status, through an `[[on.flip]]` hook.
 
-A passing `just check` prints one line, such as `check: <n> gates passed (<ran> run, <cached> cached)`. An agent usually reads the output once the run ends, and every line costs it context. A gate’s progress and its report on a clean tree tell that reader nothing a pass doesn’t. A failing run prints the full log of each failed gate, then a verdict naming them, such as `check: 1 of <n> gates failed: just clippy`, and exits non-zero. The verdict ends with `(10 not run)` when a red stage stopped the run before later stages.
+A passing `just check` prints one line, such as `check: <n> gates passed (<ran> run, <cached> cached)`. An agent usually reads the output once the run ends, and every line costs it context. For a reader that only sees the final output, a gate’s progress lines and clean-tree report add nothing to the pass summary. A failing run prints the full log of each failed gate, then a verdict naming them, such as `check: 1 of <n> gates failed: just clippy`, and exits non-zero. The verdict ends with `(10 not run)` when a red stage stopped the run before later stages.
 
 `.just/scripts/mmz-arm.sh` does the capture once for every arm, so no tool needs a quiet flag. It writes each arm’s output to `target/check/<gate>.log`, and the log stays there after a pass. A cache hit prints nothing (`on_hit: ""` in `.mmz/config.yaml`), so the arm counts itself as run or cached from the `skipped` or `ran` mmz writes to the file `MMZ_REPORT` names. Outside `just check`, `just mmz <gate>` streams its output. `just test <filter>` runs outside mmz, so a filtered run never records a pass for the full suite.
 
-Every rule reads the `gates-meta` scope, which includes every justfile, so a justfile edit re-runs every arm. Each script under `.just/scripts/` has a scope of its own, so editing one re-runs the arms that reach it and the few that read the whole directory. The same goes for outdatty: `outdatty::check` reads every file `.config/outdatty.yaml` lists, and `just meta script-scope` fails naming a listed file that its scopes miss.
+Every rule reads the `gates-meta` scope, which includes every justfile, so a justfile edit re-runs every arm. `outdatty::check` reads every file `.config/outdatty.yaml` lists. `just meta script-scope` fails naming a listed file that its scopes miss.
 
 ### Inputs a plain glob can’t name
 
 `just crap check` reads `target/coverage/lcov.info`, which git ignores. mmz drops ignored paths from a scope, so the `lcov` scope sets `gitignore: false`. With the lcov in its inputs, the arm re-runs when `just cover` writes a new one.
 
-`just lint secrets` scans the whole tree, but no gate may name `truth/tasks/**`. `mt flip` writes the task file it gates, so such an input would make the gate stale in the middle of the flip. So the `secrets-tree` scope is `**` with `exclude: ["truth/tasks"]`. The scan still reads the task files. A change to one just doesn’t re-run the arm.
+`just lint secrets` scans the tree, but no gate may name `truth/tasks/**`. `mt flip` writes the task file it gates, so such an input would make the gate stale in the middle of the flip. So the `secrets-tree` scope is `**` with `exclude: ["truth/tasks"]`. The scan still reads the task files. A change to one doesn’t re-run the arm.
 
 ### Arms must not read what another arm writes
 
@@ -64,8 +64,8 @@ just’s `--fmt` flag alone formats the root `Justfile` and skips every `mod` fi
 
 `.githooks/pre-commit` runs `mmz --is-fresh --tag gate`, then `.githooks/local-paths`, `typstyle --check truth` and `mt check`. It refuses the commit when any of them fails.
 
-`.githooks/local-paths` refuses a staged file that names your `$HOME`, the checkout or the primary checkout. Such a path rides in on a pasted error or log, and only your machine knows it’s local, so no gate in CI can catch it. Write `<repo>`, `<worktree>` or `~` in its place. `.githooks/commit-msg` runs the same scan over the message.
+`.githooks/local-paths` refuses a staged file that names your `$HOME`, the checkout or the primary checkout. Such a path arrives in a pasted error or log, and it is local only to your machine, so no gate in CI can catch it. Write `<repo>`, `<worktree>` or `~` in its place. `.githooks/commit-msg` runs the same scan over the message.
 
-`MINDTAPE_GATE_SCOPE=<reason>` skips the first assertion only. The other three still run, and `.githooks/commit-msg` refuses the commit unless its message carries a matching `Gate-Scope: <reason>` trailer. So `git log` shows which commits skipped the gate. CONTRIBUTING.md says when you may use it.
+`MINDTAPE_GATE_SCOPE=<reason>` skips the first assertion only. The other three still run, and `.githooks/commit-msg` refuses the commit unless its message has a matching `Gate-Scope: <reason>` trailer. So `git log` shows which commits skipped the gate. CONTRIBUTING.md says when you may use it.
 
-A commit that stages only files under `truth/tasks/` skips the first assertion too, with no trailer. No gate reads those files, so the assertion could only fail where the gates never ran, such as a fresh `just fork` filing its task.
+A commit that stages only files under `truth/tasks/` skips the first assertion too, with no trailer. No gate reads those files. So the assertion could only fail where the gates never ran, such as a fresh `just fork` filing its task.

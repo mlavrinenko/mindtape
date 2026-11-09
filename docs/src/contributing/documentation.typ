@@ -31,7 +31,7 @@ prose line with its file and line, so a fence inside a string hides nothing.
 The same file lists the sources the gates read, and fails when an entry
 matches no file.
 
-The span gate hands each `mt` command line it finds in a span to
+The span gate passes each `mt` command line it finds in a span to
 `mt _cli --check-argv`. It finds them after a `$ ` prompt, `VAR=value` words
 or `&&`. That runs the `@name` rewrite, clap and the status-verb parser that
 `mt` itself runs, so the gate holds no copy of the command grammar. A missing
@@ -80,7 +80,8 @@ drift. A hand-written sentence can. Two pages state the same fact in
 different words, one of them changes, and no gate fails. So state a fact on
 one page and link to it from the others. Content that both render paths
 show, like the tagline, the recipe table and the Typst section in README and
-on the site root, lives once in a module both call (`www/utils/demo.typ`).
+on the site root, is defined once in a module both call
+(`www/utils/demo.typ`).
 
 The #just.docs-dup-prose() audit reports two kinds of repeat that are deliberate:
 
@@ -138,7 +139,7 @@ reader may work alone, with agents, or both.
 
 - Bad: "Each task is a Typst file in your repository. `mt` checks every task
   and commit against the rules your team writes in `.mindtape/config.toml`."
-- Good: "Your tasks live in the repo, one Typst file each. Rules go in
+- Good: "Your tasks are Typst files in the repo, one per task. Rules go in
   `.mindtape/config.toml`, and `mt` refuses any edit or commit that breaks
   them."
 
@@ -170,7 +171,7 @@ few lines as it takes.
   - Good: "Keep the recipe and the mmz `examples` scope in step, because mmz
     re-runs this gate only when a file in that scope changes."
 + *Leave out history.* The reader needs today's behavior, and `git log`
-  holds how it got there.
+  records how it got there.
   - Bad: "the word-splitting that `[positional-arguments]` used to guard that
     recipe against, refused at dispatch now instead."
   - Good: "a value containing a space, which the pattern refuses at dispatch,
@@ -181,12 +182,14 @@ few lines as it takes.
     cannot be tidied away"
   - Good: "`.just/docs.just` keeps its own even though none of its recipes
     uses it yet"
+  - Bad: "The first line lands in `why`."
+  - Good: "The first line becomes the `why` value."
 + *Make the actor the subject.* Files, fields and values don't know, want or
   own anything. Name the program or person that acts.
   - Bad: "against what git knows"
   - Good: "against the TOML files git lists, tracked or not yet added"
 + *Drop the "not Y" half when no reader asked about Y.* It makes the reader
-  hold Y in mind only to discard it.
+  remember Y only to discard it.
   - Bad: "this recipe is only the enforcement point, not a separate lint
     surface."
   - Good: "this recipe runs them."
@@ -200,6 +203,20 @@ few lines as it takes.
   Emphasis on many lines teaches the reader to skip it.
   - Bad: "An unknown bare name is refused naming what IS available"
   - Good: "An unknown bare name is refused with a list of the available packs"
++ *Open with the fact.* A question, a preview or a staged scene makes the
+  reader wait for the point. Start with the rule, the command or the result.
+  - Bad: "Wondering how statuses work? Imagine a task that moves from
+    proposed to done."
+  - Good: "`mt` moves a task between the statuses your legend allows."
++ *Keep the fact at its real size.* Cut claims that one part is the whole
+  thing, the only part or the most important part. Name what it does and let
+  the reader judge.
+  - Bad: "The baseline is the whole gate."
+  - Good: "The baseline catches a score that rose."
++ *Stop when the point is made.* A closing sentence that restates the section
+  adds nothing. End on the last rule, command or consequence.
++ *Use a list for parallel cases.* Three or more cases in one sentence are
+  harder to scan than a list.
 
 #just.docs-prose() enforces two of these rules and two of its own. It
 fails on the history words `now`, `used to`, `no longer`, `anymore` and
@@ -224,7 +241,7 @@ text a reader sees, and on the product's name typed out.
 - It applies the same rules to the full-line `#` comments of every shell
   script, YAML file, Justfile and `.just` module that git lists, tracked or
   not yet added, and to every `description` in `schema/config.schema.json` and
-  `schema/at.schema.json`. So it reads a new script the day it lands, and a new violation fails the
+  `schema/at.schema.json`. So it reads a new script the day it is added, and a new violation fails the
   gate outright.
 
 The word lists are in `.just/scripts/_doc-prose-lib.sh`, and what the scan skips is argued in `.just/scripts/check-doc-prose.sh`.
@@ -233,6 +250,6 @@ The word lists are in `.just/scripts/_doc-prose-lib.sh`, and what the scan skips
 
 #just.docs-dup-prose() reads the doc sources, strips markup and code, and reports
 sentences that two files share, worst pair first. It's advisory, because the
-threshold is a judgment call and you decide where each fact lives. Run it
+threshold is a judgment call and you decide where each fact belongs. Run it
 before and after a refactor. The algorithm, its settings and why it's
 written in jq are in `contrib/dup-prose.jq`.

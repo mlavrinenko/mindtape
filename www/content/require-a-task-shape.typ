@@ -47,10 +47,9 @@ each one reads:
   columns: (auto, 1fr),
   table.header([Tag], [What it says]),
   [raw("stateful")],
-  [The change keeps state, so the task carries one Rollback section saying how to undo it.],
+  [The change keeps state, so the task has one Rollback section saying how to undo it.],
 
-  [raw("stateless")],
-  [The change keeps no state, so the task carries no Rollback.],
+  [raw("stateless")], [The change keeps no state, so the task has no Rollback.],
 
   [raw("no-repro")],
   [The `AS-IS` has no runnable repro, so the fenced block is waived.],
@@ -72,9 +71,9 @@ and an example. #link(u("/templates/"))[Templates & slots] covers both.
 
 `extends` adopts the `mindtape:tasks` #link(u("/packs/"))[rule pack], a
 set of rules that ships with `mt`. Its rules require `AS-IS`, `TO-BE`, Changes
-and Out of scope, in that order. A `fix` also carries Environment, a `feat`
-or a `decision` carries Alternatives, a `docs` task carries Source of truth,
-and a task tagged `stateful` carries Rollback. `AS-IS` must be numbered steps,
+and Out of scope, in that order. A `fix` also has Environment, a `feat`
+or a `decision` includes Alternatives, a `docs` task has Source of truth,
+and a task tagged `stateful` has Rollback. `AS-IS` must be numbered steps,
 with 🔴 on the step that shows the bug. Each `TO-BE` bullet opens with 🟢, and
 each Changes bullet starts with one backticked path. Changes is never empty. A question left in `TO-BE`, Changes or Out of
 scope fails, so ask it before you file, while a `?` in code passes. If you edit

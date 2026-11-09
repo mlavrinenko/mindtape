@@ -15,17 +15,16 @@
 // The `owner/repo` both skill installers take, cut from the repository URL.
 #let repo-slug = REPO.split("github.com/").last()
 
-Want a coding agent to work through your backlog? It uses the same `mt`
-commands you do. Tasks are files in your repo, so an agent reads and edits
-them with the tools it already has, and `mt check` tells it when an edit
-breaks a rule. The examples below run against `examples/api-service/`, a
-sample backend project.
+A coding agent works through your backlog with the same `mt` commands you
+use. Tasks are files in your repo, so an agent reads and edits them with the
+tools it already has, and `mt check` tells it when an edit breaks a rule. The
+examples below run against `examples/api-service/`, a sample backend project.
 
 = Give your agent the skill
 
 The #mindtape repository ships an agent skill in
 #link(REPO + "/tree/main/skills/mindtape")[`skills/mindtape/`]. Its `SKILL.md`
-points an agent at `mt --help`, `mt explain` and the files in `references/`
+tells an agent to use `mt --help`, `mt explain` and the files in `references/`
 instead of repeating what the CLI says. The skill uses the
 #link("https://agentskills.io")[Agent Skills] format, so any agent that
 supports the format can load it.
@@ -81,8 +80,8 @@ Every command that reports a list or an object prints it as JSON with
 `--json`: `mt ls`, `mt find`, `mt eval <task>`, `mt check`, `mt graph`,
 `mt board`, `mt at`, `mt explain`, `mt preset ls`, `mt config show`,
 `mt @set ls` and `mt packs install`. `mt add --describe=json` prints a
-template's slots, and `mt add --json` reports a write. Here's
-`mt ls ready -n 1 --json`:
+template's slots, and `mt add --json` reports a write.
+`mt ls ready -n 1 --json` prints:
 
 #raw(read("../generated/api-service-ls-ready.json"), lang: "json", block: true)
 
@@ -90,9 +89,9 @@ template's slots, and `mt add --json` reports a write. Here's
 its filter, sort and columns, came from. `-n` keeps the reply short.
 `truncated` says how many tasks matched and where the next page starts, so
 `mt ls ready -n 1 --skip 1 --json` returns the next task. `truncated` is
-`null` when the list is complete. Its first key is `$schema`, a URL to the
-schema that describes every field, so an agent can fetch the shape before it
-reads one. #link(u("/schema/"))[The JSON schema] describes every field.
+`null` when the list is complete. Its first key is `$schema`, a URL to
+#link(u("/schema/"))[the JSON schema], which describes every field, so an
+agent can fetch the schema before it reads one.
 
 `mt _cli --json` prints every command with its flags, defaults and accepted
 values, so an agent can learn the CLI without parsing `--help`.

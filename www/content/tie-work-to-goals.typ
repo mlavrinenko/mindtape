@@ -14,14 +14,14 @@
 
 #show: page.with(..meta)
 
-A teammate opens a milestone to rewrite the logging. It's tidy work, but it
-serves none of your goals, and nobody asks why until a week has gone into it.
+Someone opens a milestone to rewrite the logging. The work is tidy, but the
+milestone serves none of your goals, and a week passes before anyone asks why.
 
 = Config
 
 #recipe-config("tie-work-to-goals")
 
-The rule hands each open milestone's `x-goals` field to `check-goals`, a Typst
+The rule passes each open milestone's `x-goals` field to `check-goals`, a Typst
 function next to the goals it checks:
 
 #fixture-slice("goals")

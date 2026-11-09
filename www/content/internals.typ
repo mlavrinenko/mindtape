@@ -34,9 +34,9 @@ A #crate-map.workspace.len()-crate `cargo` workspace (edition
   - #raw(c.name) #raw(c.version): #crate-notes.at(c.name)
 ]
 
-#crate-map.substrate.len() general-purpose crates sit underneath. They're
-published separately, and none of them knows what a task is, so a tool that
-reads Typst files as data can use them without the task model.
+The workspace has #crate-map.substrate.len() general-purpose dependencies.
+They're published separately, and none of them depends on the task model, so
+a tool that reads Typst files as data can use them without it.
 
 #for c in crate-map.substrate [
   - #raw(c.name) #raw(c.version): #crate-notes.at(c.name)
@@ -49,7 +49,7 @@ backlog. So each project keeps one cache in `.mindtape/cache/`, keyed by each
 file's content hash, and `mt` evaluates only the files whose bytes changed
 since the last run. A file that imports a module also counts as changed when
 that module's bytes did. `mt` writes a `.gitignore` into that directory, so git
-never sees the cache. On a generated backlog of 2000 tasks:
+does not track the cache. On a generated backlog of 2000 tasks:
 
 #table(
   columns: 3,
@@ -88,6 +88,6 @@ directories, the Typst local-package path, editor lookup, and the path
 separators in derived tags and links. The Windows CI job tests it.
 
 #callout("note")[
-  Building on #mindtape? #link(u("/agents/"))[For AI agents] covers the JSON
-  output and the schemas a tool reads.
+  #link(u("/agents/"))[For AI agents] covers the JSON output and the schemas a
+  tool reads.
 ]

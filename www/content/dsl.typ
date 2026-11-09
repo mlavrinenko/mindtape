@@ -7,7 +7,7 @@
   route: "/dsl/",
   label: "Task DSL",
   title: "Task DSL",
-  summary: "Every field a task file can set, how to write a status, and what the body can hold.",
+  summary: "Every field a task file can set, how to write a status, and what the body can contain.",
 )
 #metadata(meta) <page-meta>
 
@@ -21,7 +21,7 @@
 #let facts = json("../generated/dsl-fields.json")
 
 A task file imports the prelude and passes its fields to `task.with(...)`.
-Here's one from `examples/dsl/` that sets most of them:
+A task from `examples/dsl/` sets most of them:
 
 #raw(sketch.task.code, lang: "typ", block: true)
 
@@ -70,12 +70,12 @@ commands such as `mt wip` write the field for you.
 
 = Links and recurrence
 
-`links:` holds the task's typed edges to other tasks. See
+`links:` lists the task's typed edges to other tasks. See
 #link(u("/links/"))[Task links] for the kinds. `recur:` makes the task repeat.
 See #link(u("/recurring/"))[Recurring tasks] for the rules.
 
 = Task bodies
 
 Everything below `task.with(...)` is the body, in Typst markup.
-#link(u("/task-files/"))[Task files] shows what the markup holds and how to
+#link(u("/task-files/"))[Task files] shows what the markup contains and how to
 write a literal `#` in it.

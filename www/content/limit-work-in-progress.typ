@@ -13,9 +13,9 @@
 
 #show: page.with(..meta)
 
-You start three tasks and finish none. The working tree holds parts of all
-three, and no commit can name just one. Or you start a task whose dependency is
-still open, and write code against a client that doesn't exist yet.
+Three tasks in progress at once leave parts of all three in the working tree,
+and no commit can name just one. Starting a task while its dependency is open
+means writing code against a client that doesn't exist yet.
 
 = Config
 
@@ -32,7 +32,7 @@ on an open dependency, and `mt ls blocked` tells you which one:
 = Deep dive
 
 A milestone groups tasks and stays open until they're done, often across
-several sessions, so it gets a cap of its own. The `one-milestone` rule uses
+several sessions, so it has a cap of its own. The `one-milestone` rule uses
 `count()` to count the milestones in `wip`, and fails when there's more than
 one. `one-task` does the same for every other task, one with no `kind`
 included, because a missing field equals no value. Every command that writes
@@ -44,9 +44,9 @@ A task names its milestone with a `parent` link, and `mt ls` counts a
 milestone's tasks in its `children` and `progress` columns.
 #link(u("/links/"))[Task links] covers the edge kinds.
 
-`tasks.status` lists the statuses a task may hold. `terminal = true` marks
+`tasks.status` lists the statuses a task may have. `terminal = true` marks
 `done` as the status that ends a task. `unblocked = true` on `wip` makes
-`mt wip` refuse a task while a `depends-on` edge points at a task that isn't
+`mt wip` refuse a task while a `depends-on` edge links to a task that isn't
 done. On `done`, it makes `mt done` refuse a milestone with an open child.
 `--force` overrides both. `mt ls blocked` and its `why` column list each
 waiting task and what it waits on. #link(u("/statuses/"))[Statuses] covers

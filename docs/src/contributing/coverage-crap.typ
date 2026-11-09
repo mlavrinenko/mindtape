@@ -25,22 +25,22 @@ command code they run. The recipe writes `target/coverage/lcov.info` for
 #just.crap-check() and fails below 90% of lines. `main.rs` is excluded, so keep it
 thin.
 
-The workspace total can stay green while one file sinks, so the recipe also
-gates each production file. It fails a file below 88% line coverage that has 5
-or more uncovered lines, and names it with its percentage and its unreached
-line count. Test files don't count as production. The recipe reads each
-record's `LF` and `LH` from the lcov, not `cargo llvm-cov report --json`,
-whose summary counts a line once per compiled copy of the `mt` crate and shows
-a fully covered file at 75%.
+The workspace total can stay green while one file's coverage drops, so the
+recipe also gates each production file. It fails a file below 88% line
+coverage that has 5 or more uncovered lines, and names it with its percentage
+and its unreached line count. Test files don't count as production. The recipe
+reads each record's `LF` and `LH` from the lcov, not
+`cargo llvm-cov report --json`, whose summary counts a line once per compiled
+copy of the `mt` crate and shows a fully covered file at 75%.
 
-88% sits about 1.5 standard deviations under the per-file mean (95.97%, sd 5.32
-over 125 files when measured). That flags a real tail, not the scatter of files
-a point or two under the average. The 5-line minimum keeps a small file out of
-the gate when 3 lines of tty or stdio wiring sink its percentage. The fix is a
-test. If the lines can't be tested, add the file to `ignore` in
+88% is about 1.5 standard deviations below the per-file mean (95.97%, sd 5.32
+over 125 files when measured). That flags the files far below the mean, while a
+file a point or two under the average passes. The 5-line minimum keeps a small
+file out of the gate when 3 lines of tty or stdio wiring lower its percentage.
+The fix is a test. If the lines can't be tested, add the file to `ignore` in
 `.just/scripts/cover.sh` with the reason beside it.
 
-The output level lives in `.config/nextest.toml`, because
+The output level is set in `.config/nextest.toml`, because
 `cargo llvm-cov nextest` accepts `--status-level fail` and ignores it. With
 the flag alone, a green run prints one `PASS` line per test, over 2000 lines.
 #just.test() and #just.cover() both read the profile, so they print the same
@@ -55,8 +55,8 @@ feature sets and other commits. It then reports coverage the current source
 can't produce. cargo-llvm-cov documents the clean as the precondition for
 merging runs.
 
-Inflated coverage hides exactly what #just.crap-check() and the sweep's undertested
-arm exist to find. Measured here, a session's leftover profiles put a
+Inflated coverage hides the functions #just.crap-check() and the sweep's
+undertested arm look for. Measured here, a session's leftover profiles put a
 function that no test can call at 84% covered. A baseline minted from such an
 lcov fails dozens of functions on the next clean run. Don't remove the clean
 to save time.
@@ -66,27 +66,29 @@ to save time.
 #just.crap-check() runs after #just.cover() over the same `lcov.info`, in the same
 CI job. CRAP is `CC² × uncovered³ + CC`, and the gate fails a function that
 scores above 30. It refuses an lcov older than any source file, so run
-#just.cover() first. It skips test modules (`*_tests.rs`, `tests.rs` and
+#just.cover() first.
+
+It skips test modules (`*_tests.rs`, `tests.rs` and
 ejectest's `*_tests_*.rs` and `tests_*.rs`). llvm-cov emits no coverage for
 them, so they'd score as undertested production code.
 `.just/scripts/crap.sh` lists every exclude and why each is spelled `**/…`.
 
 Above about 90% coverage the cubed term vanishes, and a function scores its
-own cyclomatic complexity. That's why a flat dispatcher sits near the
+own cyclomatic complexity. That's why a flat dispatcher scores near the
 threshold. If you add an arm to one, cover it in the same change.
 
-So the threshold isn't the whole gate. #just.crap-check() also compares every
-function against `.config/crap-baseline.json`, a committed score per
-function, and fails any function whose score rose. A rise means complexity went up or
-coverage went down, at any score. That catches a complex, undertested
-function that scores well under 30. It also fails a function the baseline
-doesn't list, and names it. Otherwise a new function stays unheld until
-someone re-mints, and that mint buries one real rise among every function
-added since.
+The threshold does not catch every regression. #just.crap-check() also
+compares every function against `.config/crap-baseline.json`, a committed
+score per function, and fails any function whose score rose. A rise means
+complexity went up or coverage went down, at any score. That catches a
+complex, undertested function that scores well under 30. It also fails a
+function the baseline doesn't list, and names it. Otherwise a new function
+stays unchecked until someone re-mints. That mint buries one real rise among
+every function added since.
 
 When you add a function or add complexity on purpose, run
-#just.crap-baseline() in the same commit, so the new score lands beside the
-reason for it.
+#just.crap-baseline() in the same commit, so the new score is recorded beside
+the reason for it.
 #link("docs/contributing/crap-baseline.md")[docs/contributing/crap-baseline.md]
 covers the baseline file.
 
@@ -94,18 +96,18 @@ covers the baseline file.
 
 A function in a file written after the lcov has no coverage record. With
 `--missing` at its default, `pessimistic`, it scores as 0% covered. On a
-10-day-old lcov that gave 28 failures, 27 of them false. A gate that reports
-false failures is worse than none, so #just.crap-check() refuses a stale lcov and
-names the recipe that refreshes it. Stale means a source is newer than the
-lcov and #just.cover() is not fresh for its content, so a checkout or rebase
-that leaves the bytes alone does not refuse.
+10-day-old lcov, that default gave 28 failures, 27 of them false. A gate that
+reports false failures is worse than none, so #just.crap-check() refuses a
+stale lcov and names the recipe that refreshes it. Stale means a source is
+newer than the lcov, and #just.cover() is not fresh for its content. A checkout
+or rebase that leaves the bytes alone does not make the lcov stale.
 
 = Why the sweep has no CRAP arm
 
-A CRAP band below 30 would point the wrong way. Of the 15 functions here that
-score from 15 to 30, 11 are at least 90% covered. Of the 16 that are complex
-and undertested, 12 score below 15. So #just.ask-refactoring() has no CRAP
-arm.
+A CRAP band below 30 would flag the wrong functions. Of the 15 functions here
+that score from 15 to 30, 11 are at least 90% covered. Of the 16 that are
+complex and undertested, 12 score below 15. So #just.ask-refactoring() has no
+CRAP arm.
 
 = Why both run in every check
 

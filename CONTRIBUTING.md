@@ -13,11 +13,9 @@ just check           # run before every commit
 
 Run `just`, not raw `cargo`: it has the right flags and environment. `just build-mt` builds `mt` at `target/mt-dev/debug/mt`; the worktrunk hooks rebuild it on `just fork` and `just land`. Between builds, `mt` can be older than the code beside it.
 
-This file holds the rules, the `docs/contributing/*.md` deep dives explain why, and `AGENTS.md` says what Mindtape is.
-
 ## Code Style
 
-The workspace `Cargo.toml` denies every clippy violation. These limits shape the code most:
+The workspace `Cargo.toml` denies every clippy violation. These limits affect the code you write:
 
 - No `unwrap()` or `expect()` outside tests. Use `?` with a `Diag` in the `mt` binary and `thiserror` in the library.
 - No `todo!()`, `unimplemented!()`, `unreachable!()`, `unsafe` or wildcard imports.
@@ -40,7 +38,7 @@ The workspace `Cargo.toml` denies every clippy violation. These limits shape the
 - When a file nears its linecop cap, run `just fix-check`. It moves the file’s inline tests into a `_tests.rs` sibling (`tests.rs` for a `mod.rs`) with [ejectest](https://github.com/mlavrinenko/ejectest).
 - Run the suite with `just test` and count it with `just count-tests`.
 - If your code runs a process or joins paths, the Windows CI job runs it too. See [docs/contributing/windows.md](docs/contributing/windows.md).
-- Before a PR, run `just mutants diff` and triage every survivor. A run over 100 mutants, about 20 minutes, needs the owner’s approval; stop and ask instead of setting `MINDTAPE_MUTANTS_APPROVED=1`. The triage classes are in [docs/contributing/mutation-testing.md](docs/contributing/mutation-testing.md).
+- Before a PR, run `just mutants diff` and triage every survivor. A run over 100 mutants, about 20 minutes, needs the owner’s approval. Stop and ask instead of setting `MINDTAPE_MUTANTS_APPROVED=1`. The triage classes are in [docs/contributing/mutation-testing.md](docs/contributing/mutation-testing.md).
 
 ## Quality Gates (run by `just check`)
 
@@ -51,7 +49,7 @@ just --list --list-submodules  # every gate under [gate], with what it checks
 mmz --status --tag gate        # which gates are fresh, stale or failed
 ```
 
-[docs/contributing/gates.md](docs/contributing/gates.md) covers how `just check` orders the gates, skips unchanged work, and the formatter path lists. When you add a TOML file or a Typst directory, add it to its `*_FMT_PATHS` list in the `Justfile`. `just fmt` and `just fmt-check` both read those lists.
+[docs/contributing/gates.md](docs/contributing/gates.md) covers how `just check` orders the gates and skips unchanged work. It also describes the formatter path lists. When you add a TOML file or a Typst directory, add it to its `*_FMT_PATHS` list in the `Justfile`. `just fmt` and `just fmt-check` both read those lists.
 
 If you add a function or complexity, run `just crap baseline` in the same commit. The thresholds and their reasons are in [docs/contributing/coverage-crap.md](docs/contributing/coverage-crap.md).
 
@@ -79,16 +77,16 @@ A worktree gets commits, not your working tree. Commit before you flip a task an
 
 - Use Conventional Commits, in the language of the earlier commits.
 - End the message with a `Refs: <stem>` footer naming the task the commit works on. You can omit it only when the commit changes nothing but task files under `truth/tasks/`. Any other file needs it, `.mindtape/config.toml` too. A merge commit needs none. `mt check` skips merges by default.
-- File a task in its own `task:` commit, with no `Refs:`. The exception is a change to one source file that’s too small to plan: file it with `mt add -t tweak`, which files it done, in the commit that makes the change, and name it in `Refs:`.
+- File a task in its own `task:` commit, with no `Refs:`. The exception is a change to one source file that’s too small to plan. Use `mt add -t tweak` in the commit that makes the change, so the task is created as done. Name the task in `Refs:`.
 - Stage a status flip with the work it claims: `mt wip` with the first work commit, `mt done` with the last. A commit holding only a flip is refused, and so is one naming a task that isn’t `wip` in the staged tree.
-- If a commit changes product code (`crates/**` and `lib/**`, tests excepted), it also adds an entry under `[Unreleased]` in `CHANGELOG.md`. If there’s nothing to announce, add a `Changelog: none` trailer instead. The commit-msg hook and CI refuse it otherwise, whatever its type.
+- If a commit changes product code (`crates/**` and `lib/**`, tests excepted), it also adds an entry under `[Unreleased]` in `CHANGELOG.md`. If there’s nothing to announce, add a `Changelog: none` trailer instead. The commit-msg hook and CI refuse the commit otherwise, whatever its type.
 - A `decision` task or a milestone has no code of its own. It can close in a commit that changes only task files, with a `Refs:` footer naming it.
 
 [docs/contributing/commit-messages.md](docs/contributing/commit-messages.md) says what checks these rules, and why `Refs:` names a stem.
 
 ## Findings and the Signal Sweep
 
-When you see a real problem outside your task, file it with `mt add --template finding` (tag `found`) before you report, and don’t fix it in passing. The template asks for a `surfaced-by` link to the task that surfaced the finding.
+When you see a real problem outside your task, file it with `mt add --template finding` (tag `found`) before you report, and don’t fix it in passing. The template asks for a `surfaced-by` link to the task where you found it.
 
 `just ask-refactoring` reads the quality signals that no gate enforces and prints one task per finding. Add `--write` to file them. The arms and their scoring are in [docs/contributing/signal-sweep.md](docs/contributing/signal-sweep.md).
 
@@ -96,19 +94,19 @@ When you see a real problem outside your task, file it with `mt add --template f
 
 [`.config/outdatty.yaml`](.config/outdatty.yaml) lists, for each source file, the files that restate it.
 
-- After you edit a source, update its dependents, run `just outdatty update <group>` and commit `.config/outdatty.lock`. If every dependent still holds and the commit edits none, add a `Docs-Unaffected: <group>` footer, one line per group you read. The commit-msg hook refuses a commit without it and lists the files to read.
+- After you edit a source, update its dependents, run `just outdatty update <group>` and commit `.config/outdatty.lock`. If every dependent still matches and the commit edits none, add a `Docs-Unaffected: <group>` footer, one line per group you read. The commit-msg hook refuses a commit without it and lists the files to read.
 - After you edit only a dependent, record that one file in the same commit with `just outdatty update <group> <path>`.
-- A recorded hash says someone reviewed the dependents. So run `just outdatty update-all` only after you’ve reviewed every group.
+- A recorded hash means you reviewed the dependents, so run `just outdatty update-all` only after reviewing every group.
 - A new file that a glob dependent matches needs a hash of its own. `just outdatty check` fails until the lock holds it.
 
-A rebase or merge joins the two branches’ locks key by key through `outdatty merge-lock`. When both branches edited one source and re-recorded it, its hash comes out as zeros, so `just outdatty check` reports that group until you review it and commit the re-record, which owes the footer too. A group one branch dropped stays dropped, so a split or rename leaves no orphan hashes, and `just outdatty check` fails on one that got in anyway. `.config/jscpd-baseline.json` merges fingerprint by fingerprint through `jscpd --merge-baseline`. `.config/crap-baseline.json` merges function by function through `.just/scripts/crap-baseline-merge.sh`, which keeps the stricter score when both sides re-scored one, and `just crap check` decides. The dev shell registers all three.
+A rebase or merge joins the two branches’ locks key by key through `outdatty merge-lock`. When both branches edited one source and re-recorded it, its hash comes out as zeros. `just outdatty check` reports that group until you review it and commit the re-record with a `Docs-Unaffected: <group>` footer. A group one branch dropped stays dropped, so a split or rename leaves no orphan hashes. `just outdatty check` fails on one that got in anyway. `.config/jscpd-baseline.json` merges fingerprint by fingerprint through `jscpd --merge-baseline`. `.config/crap-baseline.json` merges function by function through `.just/scripts/crap-baseline-merge.sh`, which keeps the stricter score when both sides re-scored a function. `just crap check` decides whether the merged tree passes. The dev shell registers all three merge drivers: `outdatty`, `jscpd-baseline` and `crap-baseline`.
 
 ## Version Management
 
-- There’s no backward compatibility before the first public release. A rename lands whole, callers and configs included, with no alias or migration.
+- There’s no backward compatibility before the first public release. A rename updates every caller and config at once, with no alias or migration.
 - The Typst library’s version is `version` in `lib/typst.toml`, independent of the crates. The `typst-pkg-version` outdatty group lists every file that repeats it. [Releases](docs/contributing/release.md) archive it under `crates/mindtape/src/loader/preludes/`.
-- `mindtape-cli` depends on `mindtape` by version and path, since crates.io refuses a path-only dependency. Bump it with the workspace version in `[workspace.package]`.
-- `just release VERSION` is the whole release, and its tag push the only publish path: don’t run `cargo publish` or push `main` by hand. Keep the release’s entries under `[Unreleased]`; the recipe dates them. [docs/contributing/release.md](docs/contributing/release.md) says what it runs and how to finish a failed release.
+- `mindtape-cli` depends on `mindtape` by version and path, since crates.io refuses a path-only dependency. Bump that dependency with the workspace version in `[workspace.package]`.
+- `just release VERSION` runs every release step, and its tag push is the only publish path: don’t run `cargo publish` or push `main` by hand. Keep the release’s entries under `[Unreleased]`. The recipe dates them. [docs/contributing/release.md](docs/contributing/release.md) says what it runs and how to finish a failed release.
 
 ## Command Semantics
 

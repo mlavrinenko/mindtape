@@ -3,17 +3,17 @@
 // www/generated/set-commands.json, which www/generate-facts.sh reads off the
 // `runs_on_set` mark that `CLASSIFICATION` in
 // crates/mindtape-cli/src/cli/command_class.rs gives each command, the same
-// mark `main` refuses a set by. So this dictionary holds only what a command
-// does on a set. `just docs::facts` fails on a marked command with no
+// mark `main` uses to refuse a set. So this dictionary holds only what a
+// command does on a set. `just docs::facts` fails on a marked command with no
 // entry here, and `set-commands` below fails the build on the same gap. Both
 // readers below are functions, so importing the dictionary alone reads no
 // generated file.
 
 #let set-command-notes = (
-  "ls": [`mt @work ls` prints one table for the whole set, a `PROJECT` column first.],
+  "ls": [`mt @work ls` prints one table for the set, a `PROJECT` column first.],
   "find": [`mt @work find` searches every project and prints one table, a `PROJECT` column first.],
-  "board": [A bare `mt @work` runs it, one row per project.],
-  "check": [`mt @work check` checks each project under its own rules and ends with one line for the set.],
+  "board": [A bare `mt @work` runs the board, one row per project.],
+  "check": [`mt @work check` checks each project under that project's rules and ends with one line for the set.],
 )
 
 // The commands that run on a set, in the order `mt --help` lists them.

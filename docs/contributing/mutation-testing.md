@@ -11,10 +11,10 @@ Coverage shows that a line ran. Mutation testing shows that a test fails when th
 ## How to run it
 
 - Before a PR, run `just mutants diff`. It mutates only the code your branch changed, new files included, so it takes minutes.
-- Both recipes count the mutants first, at about 13 s each. Over 100, they refuse until the owner reruns them with `MINDTAPE_MUTANTS_APPROVED=1`. A full sweep is always over, so it always needs that approval.
+- Both recipes count the mutants first, at about 13 s each. Over 100, they refuse until the owner reruns them with `MINDTAPE_MUTANTS_APPROVED=1`. A full sweep is always over that count, so it always needs that approval.
 - To sweep one whole file, run `just mutants sweep -f <file>`.
 - To sweep the whole workspace, run `just mutants sweep`. It takes hours and writes `mutants.out`.
-- A scoped run writes `target/mutants-scoped`, so it never overwrites `mutants.out`. The sweep’s mutants arm reads whichever ran last.
+- A scoped run writes `target/mutants-scoped`, so it never overwrites `mutants.out`. The signal sweep’s mutants arm reads whichever ran last.
 - To see a running sweep’s progress and ETA, run `just mutants status`. It reads `mutants.out` unless you name another directory.
 
 `.config/mutants.toml` sets the file set, the excludes and the `mutants` build profile without debug info. cargo-mutants looks for its config in `.cargo/` only, so the recipes pass this one with `--config`, and a bare `cargo mutants` runs without it.
@@ -27,7 +27,7 @@ A timeout that repeats is a finding: a mutant reached an unbounded loop. Bound s
 
 ## Why CI doesn’t run it
 
-Every mutant re-runs a suite with subprocess and PTY tests, and a shared CI runner is where `TIMEOUT` verdicts are least reliable. An advisory check with unreliable verdicts teaches people to ignore it, and a cold build on two runner cores would make it the slowest job. Run it locally, where a timeout means something.
+Every mutant re-runs a suite with subprocess and PTY tests, and a shared CI runner is where `TIMEOUT` verdicts are least reliable. People learn to ignore an advisory check with unreliable verdicts, and a cold build on two runner cores would make it the slowest job. Run it locally, where a timeout means something.
 
 ## Triage
 
@@ -38,7 +38,7 @@ Every survivor is a real gap or an equivalent mutant.
 
 The classes:
 
-- type-tautology: a comparison the type already decides, such as `>= 0` on a `usize`. Exclude it. In review, prefer `x != 0` to `x > 0` on an unsigned count, because its mutants stay killable. No lint catches this class, because the equivalence lies between the mutant and the source.
+- type-tautology: a comparison the type already determines, such as `>= 0` on a `usize`. Exclude it. In review, prefer `x != 0` to `x > 0` on an unsigned count, because its mutants stay killable. No lint catches this class, because the equivalence lies between the mutant and the source.
 - pure-memoisation: a guard that only skips repeated work, so deleting it changes the running time and never the answer. Exclude it.
 - discarded-effect: extra work a later step throws away, such as one more loop pass whose result a final `resize` drops. Exclude it, or rewrite the source so the extra step can’t happen.
 - aliased-input: two inputs that name the same thing, such as `""` and `"."` for the current directory. Exclude it.
@@ -47,4 +47,4 @@ The classes:
 - platform-specific: the difference exists on another OS only. Exclude it, or gate a test to that platform.
 - entry-point: a thin `main.rs` with no logic to check. Exclude the file.
 
-Leave no survivor untriaged. The sweep is worth running because every name left on its list has a stated reason.
+Every name left on the sweep’s list has a stated reason, so leave no survivor untriaged.

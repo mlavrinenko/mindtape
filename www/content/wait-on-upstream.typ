@@ -13,10 +13,10 @@
 
 #show: page.with(..meta)
 
-Imagine you have a workaround for a bug in an external library, and the fix
-ships in the next release. The task that drops the workaround looks ready, so an agent picks it
-up, finds the old version still locked and burns an hour proving it. Or nobody
-looks again, and the workaround outlives the bug by a year.
+Your code has a workaround for a bug in an external library, and the fix ships
+in the next release. The task that drops the workaround looks ready, so an
+agent picks it up, finds the old version still locked and wastes an hour
+proving it. Or the workaround stays for a year after the bug is fixed.
 
 = Config
 
@@ -42,8 +42,8 @@ Each `[[tasks.waits]]` entry names a checker command. A task lists
 project root with `{id}` filled in. A `run` is a shell line or an array, as in
 a #link(u("/hooks/#trust-and-portability"))[flip hook]. Exit 0 means the wait is over. Exit 1
 means the task still waits. Any other exit means `mt` can't tell, and the task
-stays blocked. The first line the command prints lands in `why`. Add an entry
-with `mt set <task> waits-on+=locked:acme-pay@2.4.0`.
+stays blocked. The first line the command prints becomes the `why` value. Add
+an entry with `mt set <task> waits-on+=locked:acme-pay@2.4.0`.
 
 Every command that reads readiness runs checkers, `mt ls` included. So a
 checker answers from local state, and fast. `mt` runs each distinct command
@@ -58,11 +58,11 @@ another `mt`, and so on forever. It doesn't. Every checker runs with
 all. Its waits read `unknown: asked inside a checker`, and the outer `mt` gets
 its answer in one hop.
 
-In a string `run`, `{id}` lands in a shell line as is, so `mt check` refuses
-an id that a shell could read as more than a word. An id starts with a letter
-or digit and holds letters, digits and `._@/#:+-`. An array such as
+In a string `run`, `{id}` is inserted into a shell line as is, so `mt check`
+refuses an id that a shell could read as more than a word. An id starts with a letter
+or digit and allows letters, digits and `._@/#:+-`. An array such as
 `run = ["scripts/locked", "{id}"]` fills `{id}` into each item on its own, and
-no shell reads it. The same id rule holds there, so an entry works under
+no shell reads it. The same id rule applies there, so an entry works under
 either form.
 
 A checker runs with your full rights, like a `Justfile` recipe, and `mt ls`
@@ -70,7 +70,7 @@ would run it the moment you clone. So `mt` runs none until
 #link(u("/cli/allow/"))[`mt allow`] records the config's commands for the
 repo. Until then each command warns once and lists them, every wait reads
 `unknown: not allowed`, and `mt wip --force` still starts a task. The approval
-lives outside the repo and covers each of its worktrees. Change a `run`
+is stored outside the repo and covers each of its worktrees. Change a `run`
 and `mt` asks again.
 
 #link(u("/links/"))[Task links] covers `depends-on`, the blocker that waits on

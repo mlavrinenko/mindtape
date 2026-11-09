@@ -46,7 +46,7 @@
 // Every block is a capture www/generate-reference.sh makes in
 // examples/api-service, or in a git copy of it for touches().
 
-A filter picks tasks. It's a boolean expression over task fields. You pass
+A filter is a boolean expression over task fields. You pass
 one to `mt ls` and `mt rm`, and write one in config for
 #link(u("/named-sets/#views"))[views], `[[tasks.rules]]` and `[[on.flip]]`
 hooks. The examples on this page ran in `examples/api-service`, a sample
@@ -115,10 +115,10 @@ same date, which `MINDTAPE_NOW` pins (see
   table.header([Function], [Matches]),
   [`has(field)`, `miss(field)`], [The task has the field, or doesn't.],
   [`has(field, value)`],
-  [The field's list holds the value, its scalar equals it, or its dict has it as a key. `tags` and `estimate` read this way too.],
+  [The field's list contains the value, its scalar equals it, or its dict has it as a key. `tags` and `estimate` read this way too.],
 
   [`exists`],
-  [Inside `head(...)`, `staged(...)` or `worktree(...)` in a #link(u("/commit-rules/#task-scope"))[task-scope commit rule]: the commit state holds the task's file. Any other filter refuses it.],
+  [Inside `head(...)`, `staged(...)` or `worktree(...)` in a #link(u("/commit-rules/#task-scope"))[task-scope commit rule]: the commit state includes the task's file. Any other filter refuses it.],
 
   [`has_tag("name")`],
   [The task has the tag, written or #link(u("/derived-tags/"))[derived].],
@@ -142,10 +142,10 @@ same date, which `MINDTAPE_NOW` pins (see
   [Described below. Write them bare or as `ready()`.],
 
   [`len(field)`],
-  [How many items a list field holds. A missing field counts zero.],
+  [How many items a list field contains. A missing field counts zero.],
 
   [`count_paths(field, ...sets)`],
-  [How many distinct, normalized paths a `["path"]` field holds inside the
+  [How many distinct, normalized paths a `["path"]` field has inside the
     path sets, which are globs or `@name` sets as in `changed()`.],
 
   [`changed("states", ...globs)`],
@@ -157,7 +157,7 @@ same date, which `MINDTAPE_NOW` pins (see
 
 #commands("filters-functions")
 
-One field may hold `"alpha"` on one task and `("alpha", "gamma")` on
+One field may have `"alpha"` on one task and `("alpha", "gamma")` on
 another. `x-machine == "alpha"` matches only the first, and
 `has(x-machine, "alpha")` matches both.
 
@@ -176,7 +176,7 @@ argument. `matches(field, "regex")` matches a Rust `regex` pattern anywhere in
 the text. `in_dict("name", text)` matches when the text is in the named
 #link(u("/named-sets/"))[dictionary]. Both `matches()` and `in_dict()` take a
 field or `word(...)` as their text. Like `contains()`, they also read `body`,
-`note` and `tags`, so the last example finds a task that still holds a
+`note` and `tags`, so the last example finds a task that still has a
 template's placeholder line:
 
 #commands("filters-strings")
@@ -185,7 +185,7 @@ template's placeholder line:
 which declares the `verbs` dictionary. Without the pack, use the built-in
 `mindtape-verbs`, or declare your own `[dicts.verbs]`.
 
-`word()` splits on whitespace and knows nothing about Typst markup. A title
+`word()` splits on whitespace and ignores Typst markup. A title
 that opens with a code span, such as #raw("`mt ls` prints paths"), has `mt`
 as its first word, so the last example above lets `matches()` accept it.
 
@@ -218,15 +218,15 @@ The `why` column lists what each blocked task waits on:
 #terminal("filters-blocked")
 
 `count(expr)` is how many loaded tasks match `expr`. It's a number, so it
-appears in a comparison. It counts the whole loaded set, whatever the rest of
+appears in a comparison. It counts every loaded task, whatever the rest of
 the filter selects, so a rule such as a
 #link(u("/rules/"))[work-in-progress cap] can compare it on every task.
-`count()` works where `mt` loads the whole set: `mt ls`, `mt rm`, views,
+`count()` works where `mt` loads the full set: `mt ls`, `mt rm`, views,
 `[[tasks.rules]]` and `[[on.flip]]`. A `required` filter can't use it, and
 `mt` refuses one that does when it loads the config.
 
 `topo` is a task's level in the dependency graph. A task with no dependency
-in the loaded set is at level 0, and any other task sits one level above its
+in the loaded set is at level 0, and any other task is one level above its
 deepest dependency. `topo` ignores status, so ascending `topo` is an order in
 which every task comes after what it depends on. Unrelated tasks share a
 level.
@@ -266,11 +266,10 @@ commit rule can share one path list.
 
 Globs match paths from the repository root, and `**` crosses folders. With
 no glob, every path counts. A glob starting with `!` excludes paths another
-glob admits. A renamed file counts at its new path.
+glob admits.
 
 = Commits that touched a file
 
-Before you edit a file, you may want to know which tasks shaped it.
 `touches("path")` matches the tasks named by the
 #link(u("/commit-rules/"))[`[commits] trailer`] of any commit that changed the
 path. The path is relative to the repository root:

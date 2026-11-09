@@ -14,7 +14,7 @@ No gate finds duplicated prose or a page that doesn’t help its reader. The rul
 
 The span, recipe, prose and block gates read the Typst sources through one extractor in `.just/scripts/_doc-blocks-lib.sh`. It parses each file with `typstyle --ast` and prints each inline raw, block raw line, comment line and prose line with its file and line, so a fence inside a string hides nothing. The same file lists the sources the gates read, and fails when an entry matches no file.
 
-The span gate hands each `mt` command line it finds in a span to `mt _cli --check-argv`. It finds them after a `$ ` prompt, `VAR=value` words or `&&`. That runs the `@name` rewrite, clap and the status-verb parser that `mt` itself runs, so the gate holds no copy of the command grammar. A missing required argument passes, because a span shows part of a command.
+The span gate passes each `mt` command line it finds in a span to `mt _cli --check-argv`. It finds them after a `$ ` prompt, `VAR=value` words or `&&`. That runs the `@name` rewrite, clap and the status-verb parser that `mt` itself runs, so the gate holds no copy of the command grammar. A missing required argument passes, because a span shows part of a command.
 
 It reads a config key span, such as `[ls] hyperlinks`, against `schema/config.schema.json`, or against `schema/at.schema.json` when the span’s first segment is an `at.toml` key such as `[board]` or `[at.<name>]`. A key that neither schema has fails with the closest one.
 
@@ -39,7 +39,7 @@ The docs never mention a bug or a workaround. When writing a page turns up behav
 
 ## State each fact once
 
-A generated fact (`www/generated/*.json`, read by both render paths) can’t drift. A hand-written sentence can. Two pages state the same fact in different words, one of them changes, and no gate fails. So state a fact on one page and link to it from the others. Content that both render paths show, like the tagline, the recipe table and the Typst section in README and on the site root, lives once in a module both call (`www/utils/demo.typ`).
+A generated fact (`www/generated/*.json`, read by both render paths) can’t drift. A hand-written sentence can. Two pages state the same fact in different words, one of them changes, and no gate fails. So state a fact on one page and link to it from the others. Content that both render paths show, like the tagline, the recipe table and the Typst section in README and on the site root, is defined once in a module both call (`www/utils/demo.typ`).
 
 The `just docs dup-prose` audit reports two kinds of repeat that are deliberate:
 
@@ -65,7 +65,7 @@ To quote one line of what a capture printed, such as an `error:` or `hint:` line
 Write the way an engineer explains a tool to a peer: say “you”, use contractions, open with what the reader wants to do, show the command and what it prints, and say what a choice costs. Don’t assume a team, because the reader may work alone, with agents, or both.
 
 - Bad: “Each task is a Typst file in your repository. `mt` checks every task and commit against the rules your team writes in `.mindtape/config.toml`.”
-- Good: “Your tasks live in the repo, one Typst file each. Rules go in `.mindtape/config.toml`, and `mt` refuses any edit or commit that breaks them.”
+- Good: “Your tasks are Typst files in the repo, one per task. Rules go in `.mindtape/config.toml`, and `mt` refuses any edit or commit that breaks them.”
 
 Each kind of reader gets its own register:
 
@@ -81,16 +81,18 @@ Write for a busy engineer who reads each sentence once. The rules apply to comme
 1. **State the rule and its reason.** A reader who knows the reason can apply the rule to a case it doesn’t name.
    - Bad: “Keep the recipe and the mmz `examples` scope in step.”
    - Good: “Keep the recipe and the mmz `examples` scope in step, because mmz re-runs this gate only when a file in that scope changes.”
-2. **Leave out history.** The reader needs today’s behavior, and `git log` holds how it got there.
+2. **Leave out history.** The reader needs today’s behavior, and `git log` records how it got there.
    - Bad: “the word-splitting that `[positional-arguments]` used to guard that recipe against, refused at dispatch now instead.”
    - Good: “a value containing a space, which the pattern refuses at dispatch, so the recipe never word-splits it.”
 3. **Use the literal word.** A reader has to translate a figure of speech, and two readers translate it differently.
    - Bad: “`.just/docs.just`’s currently userless one is load-bearing and cannot be tidied away”
    - Good: “`.just/docs.just` keeps its own even though none of its recipes uses it yet”
+   - Bad: “The first line lands in `why`.”
+   - Good: “The first line becomes the `why` value.”
 4. **Make the actor the subject.** Files, fields and values don’t know, want or own anything. Name the program or person that acts.
    - Bad: “against what git knows”
    - Good: “against the TOML files git lists, tracked or not yet added”
-5. **Drop the “not Y” half when no reader asked about Y.** It makes the reader hold Y in mind only to discard it.
+5. **Drop the “not Y” half when no reader asked about Y.** It makes the reader remember Y only to discard it.
    - Bad: “this recipe is only the enforcement point, not a separate lint surface.”
    - Good: “this recipe runs them.”
 6. **Put one idea in each sentence.** A reader takes in one idea at a time, so split a sentence at its semicolons and at a colon that announces a claim.
@@ -99,6 +101,14 @@ Write for a busy engineer who reads each sentence once. The rules apply to comme
 7. **Don’t shout.** All-caps words and adverbs like “crucially” add emphasis. Emphasis on many lines teaches the reader to skip it.
    - Bad: “An unknown bare name is refused naming what IS available”
    - Good: “An unknown bare name is refused with a list of the available packs”
+8. **Open with the fact.** A question, a preview or a staged scene makes the reader wait for the point. Start with the rule, the command or the result.
+   - Bad: “Wondering how statuses work? Imagine a task that moves from proposed to done.”
+   - Good: “`mt` moves a task between the statuses your legend allows.”
+9. **Keep the fact at its real size.** Cut claims that one part is the whole thing, the only part or the most important part. Name what it does and let the reader judge.
+   - Bad: “The baseline is the whole gate.”
+   - Good: “The baseline catches a score that rose.”
+10. **Stop when the point is made.** A closing sentence that restates the section adds nothing. End on the last rule, command or consequence.
+11. **Use a list for parallel cases.** Three or more cases in one sentence are harder to scan than a list.
 
 `just docs prose` enforces two of these rules and two of its own. It fails on the history words `now`, `used to`, `no longer`, `anymore` and `formerly`, on an all-caps word outside its acronym list, on an em dash in text a reader sees, and on the product’s name typed out.
 
@@ -106,10 +116,10 @@ Write for a busy engineer who reads each sentence once. The rules apply to comme
 - A shell constant passes only as `$NAME`, `${NAME}` or `NAME=`. A lone capital beside an all-caps word counts as shouting, so wrap a constant’s bare name in backticks.
 - An em dash fails in the rendered prose and the string literals of `www/content` and `www/utils`, in every schema `description` and in every help string of `mt _cli --json`, and the hit names the file and line, or the key path. A code comment, AGENTS.md, the skill and the page build errors in `www/utils/page.typ` and `site.typ` are not that text, so they may keep one. Split the sentence, or use a comma, a colon in a list or parentheses.
 - It skips raw spans, fenced blocks and double-quoted text, so a quoted bad example passes.
-- It applies the same rules to the full-line `#` comments of every shell script, YAML file, Justfile and `.just` module that git lists, tracked or not yet added, and to every `description` in `schema/config.schema.json` and `schema/at.schema.json`. So it reads a new script the day it lands, and a new violation fails the gate outright.
+- It applies the same rules to the full-line `#` comments of every shell script, YAML file, Justfile and `.just` module that git lists, tracked or not yet added, and to every `description` in `schema/config.schema.json` and `schema/at.schema.json`. So it reads a new script the day it is added, and a new violation fails the gate outright.
 
 The word lists are in `.just/scripts/_doc-prose-lib.sh`, and what the scan skips is argued in `.just/scripts/check-doc-prose.sh`.
 
 ## The duplicate-prose audit
 
-`just docs dup-prose` reads the doc sources, strips markup and code, and reports sentences that two files share, worst pair first. It’s advisory, because the threshold is a judgment call and you decide where each fact lives. Run it before and after a refactor. The algorithm, its settings and why it’s written in jq are in `contrib/dup-prose.jq`.
+`just docs dup-prose` reads the doc sources, strips markup and code, and reports sentences that two files share, worst pair first. It’s advisory, because the threshold is a judgment call and you decide where each fact belongs. Run it before and after a refactor. The algorithm, its settings and why it’s written in jq are in `contrib/dup-prose.jq`.

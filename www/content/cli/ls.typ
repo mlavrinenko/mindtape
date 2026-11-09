@@ -18,17 +18,22 @@ untracked ignored file does not.
 defines the set.
 
 `--sort` also takes a scalar `derived.<name>` a project's
-#link(u("/config/#derived-fields"))[collector] computes. A list or record one
-is refused.
+#link(u("/config/#derived-fields"))[collector] computes. A derived field that
+is a list or a record is refused.
 
 A listing has three facets: filter, sort and columns. An `[[ls.rules]]` entry,
-a view and a command-line argument each set only the facets they name. A
-filter argument replaces the filter and keeps the sort and columns of the rule
-or view underneath. `--sort` and `--columns` each replace their own facet. A
-bare `@view` argument replaces each facet that view sets. `@default` stands
-for the default view's facets. Those are empty unless your project changes
-the default view, so `--columns @default --sort @default` gets you the
-built-in columns and sort:
+a view and a command-line argument each set only the facets they name.
+
+- A filter argument replaces the filter and keeps the sort and columns of the
+  rule or view underneath.
+- `--sort` replaces the sort.
+- `--columns` replaces the columns.
+- A bare `@view` argument replaces each facet that view sets.
+- `@default` stands for the default view's facets.
+
+The default view's facets are empty unless your project changes that view,
+so `--columns @default --sort @default` gets you the built-in columns and
+sort:
 
 #terminal("ls-default")
 
@@ -44,7 +49,7 @@ flags kept and `--skip` advanced. It also keeps how you picked the project, an
 
 #terminal("ls-cut")
 
-`--json` carries the same facts in `truncated`: `shown`, `total` and
+`--json` reports the same facts in `truncated`: `shown`, `total` and
 `next_skip`, or `null` for a complete listing. #link(u("/schema/"))[Schema]
 describes the JSON, and #link(u("/agents/"))[For AI agents] shows how to page
 through it.
@@ -65,7 +70,7 @@ column doesn't show it. Set `[ls.columns.assignee] when = 'true'` for that.
 `why`, `children` and `progress` are `named()`, so they show only when you ask
 for them. `why` lists the unfinished blocking targets each task waits on, with
 their status. `mt ls blocked --columns title,why` tells you what to unblock
-without reading any links, and `--json` carries `why` on every task.
+without reading any links, and `--json` includes `why` on every task.
 `children` counts a task's `parent` children, and `progress` shows how many of
 them are finished, as `3/5`. See #link(u("/links/"))[Parents and progress].
 
@@ -89,16 +94,16 @@ each task's stem and hash.
 `file` is the task's path, relative to the working directory and in your
 platform's #link(u("/cli/#paths"))[separator]. Its cell is
 never empty, so `nonempty()` can't hide it. It shows when stdout isn't a
-terminal, because a saved stem hash can turn ambiguous once a new task's hash
-shares its prefix. On a terminal it shows when you name it, as in
+terminal, because a saved stem hash could become ambiguous once a new task's
+hash shares its prefix. On a terminal it shows when you name it, as in
 `--columns slug#,title,file`:
 
 #terminal("ls-file-when")
 
 `file` is for display, and a filter can't read it. The
-#link(u("/filters/"))[`path`] field holds the path from the project root.
+#link(u("/filters/"))[`path`] field gives the path from the project root.
 `--format path` prints the same cell as `file`, and
-#link(u("/schema/"))[Schema] describes what the JSON and CSV formats carry.
+#link(u("/schema/"))[Schema] describes what the JSON and CSV formats contain.
 
 `--hyperlinks always`, or `[ls] hyperlinks`, turns the `slug#` column, and
 `file` when shown, into OSC 8 links to `[ls] hyperlink-target` (default

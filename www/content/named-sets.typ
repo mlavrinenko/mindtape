@@ -63,10 +63,10 @@ names.
 
 #terminal("named-sets-views")
 
-`mt` checks every view when it loads the config. Each `filter` must parse,
-each `sort` and `columns` entry must name a known field or view, including a
-scalar `derived.<name>`, each `@name` must name a view, and no
-view may reach itself through `@name`.
+`mt` checks every view when it loads the config. Each `filter` must parse.
+Each `sort` and `columns` entry must name a known field or view, including a
+scalar `derived.<name>`. Each `@name` must name a view, and no view may
+reference itself through `@name`.
 
 = Dictionaries
 
@@ -132,10 +132,10 @@ outside the list and exits #exit-code("named-sets-allowed"):
 When a rule refuses a task because `in_dict()` missed, the refusal says which
 word the dictionary lacks and names up to three of its nearest entries, as in
 #capture-line("start-titles-with-a-verb", "^hint: '"). A second hint runs
-`mt explain dicts` on that dictionary, so you can read the whole list.
+`mt explain dicts` on that dictionary, so you can read every entry.
 
 `mt` checks every dictionary when it loads the config. Each must have a
 source and resolve to at least one entry. Each `path` must be readable. Each
-`include` and `@<dict>` must name a dictionary, and for an unknown name `mt`
+`include` and `@<dict>` must name a dictionary. For an unknown name, `mt`
 suggests the closest match. No dictionary may include itself, directly or
 through others.

@@ -13,10 +13,9 @@
 
 #show: page.with(..meta)
 
-Running several projects the same way? Put the shared config in a pack. A
-pack is a TOML file in config syntax that a project adopts by name: its rules,
-its priority framework, its views, whatever you'd otherwise copy around. Each
-project can still change any of it locally.
+A pack is a TOML file in config syntax that a project adopts by name: its
+rules, its priority framework, its views, whatever you'd otherwise copy around.
+Each project can still change any of it locally.
 #link(u("/config/"))[Configuration] lists the `extends` and `disable` keys.
 This page covers how `mt` finds and merges a pack, and lists the rules of the
 packs `mt` ships: `mindtape:tasks`, `mindtape:dogfood`, `mindtape:flow`,
@@ -29,10 +28,10 @@ packs `mt` ships: `mindtape:tasks`, `mindtape:dogfood`, `mindtape:flow`,
 that layer adopts. If the layer declares a rule with the same `name` as a
 pack's rule, it replaces that rule where the pack put it. #mindtape's own
 `.mindtape/config.toml` adopts `mindtape:tasks` and, after it,
-`mindtape:dogfood`, whose `allow-only-declared-sections` replaces the tasks
-pack's rule to allow one more section, `Dogfood`. It adopts the other packs
-below too, `mindtape:budget` with `max-files` set to 5, and keeps only its tag list, its
-actors, its path sets, its goal check and its close gate:
+`mindtape:dogfood`. The dogfood pack's `allow-only-declared-sections` replaces
+the tasks pack's rule to allow one more section, `Dogfood`. It adopts the other
+packs below too, `mindtape:budget` with `max-files` set to 5. It keeps only its
+tag list, its actors, its path sets, its goal check and its close gate:
 
 #let parts = (
   ("extends", "the adoption, at the top of the file"),
@@ -66,18 +65,15 @@ names the pack and the key:
 
 #terminal("packs-shape")
 
-`[params]` is the one key a pack holds that a layer doesn't. It declares the
+`[params]` is the one key a pack has that a layer doesn't. It declares the
 pack's parameters, which `mt` writes into the pack's expressions and never
 merges into the config.
 
 = Where a pack comes from
 
 An `extends` entry with no `/` in it is `<source>:<pack>`. `mindtape` is the
-one source `mt` knows without a declaration, and it holds the packs built into
-`mt`: `mindtape:tasks`, `mindtape:dogfood`, `mindtape:flow`, `mindtape:ice`,
-`mindtape:wip-caps`, `mindtape:budget`, `mindtape:tweaks` and
-`mindtape:commits`. `mt` refuses an unknown name and lists the packs
-the source has:
+one source `mt` knows without a declaration. It holds the built-in packs listed
+above. `mt` refuses an unknown name and lists the packs that source has:
 
 #terminal("packs-unknown")
 
@@ -94,7 +90,7 @@ Linux. `mt` refuses a missing file and prints the path it resolved.
 
 = Packs from a git source
 
-Your team's packs can live in a git repository of their own. Declare it as
+Your team's packs can be in a git repository of their own. Declare it as
 `[pack-sources.<name>]` in the project's `.mindtape/config.toml`, with `git`
 for the repository and `ref` for a tag, branch or commit, and adopt a pack
 from it as `<name>:<pack>`. Only the project config declares a source or adopts
@@ -144,9 +140,9 @@ says.
 Every load hashes the cached tree again and refuses one that doesn't match the
 lock, naming its directory, so a file edited by hand there can't slip in. It
 hashes each source once, however many of its packs you adopt. Every command
-pays for that hash, so keep a pack source small, a repository that holds
-packs and nothing else. A
-pack from a source names its dictionary files only inside the source's tree.
+computes that hash, so keep a pack source small: a repository that holds
+packs and nothing else. A pack from a source names its dictionary files only
+inside the source's tree.
 Only `mt packs` touches the network, so every other command refuses a source
 the cache lacks, with a hint to fetch it:
 
@@ -164,7 +160,7 @@ In CI, run `mt packs install && mt check`.
 
 = A pack in a directory
 
-A pack that carries files needs a folder. Name the folder in `extends`, and
+A pack with files needs a folder. Name the folder in `extends`, and
 `mt` reads `pack.toml` inside it. The folder's `templates/` joins
 `[templates] dirs` behind your own directories, so `mt add -t feat` finds a
 template the pack ships, and a template of yours with the same name wins.
@@ -186,13 +182,14 @@ Write `"./team.toml"` to read the file.
 A pack can name files of its own: a rule's Typst `check`, or a
 #link(u("/named-sets/"))[dictionary] `path`. Both resolve from the pack's
 directory, which is the folder of a directory pack, or the one holding a pack
-file. So a pack that sits in `team/` finds `team/check.typ` and
-`team/words.txt` wherever the project lives, with nothing copied across.
+file. So a pack in `team/` finds `team/check.typ` and
+`team/words.txt` wherever the project is, with nothing copied across.
 
 A pack's check file runs in a Typst world rooted at that directory. It imports
 the pack's other files and `@local` packages, and it can't import a file of
-the project. So `mt` refuses a `check` path that leaves the pack's directory. A rule and a dictionary that the project declares itself resolve
-from the project root, as they always did, and so does a rule that replaces a
+the project. So `mt` refuses a `check` path that leaves the pack's directory.
+A rule and a dictionary that the project declares itself resolve
+from the project root, and so does a rule that replaces a
 pack's rule by name. The built-in packs name no files.
 
 = Drop a rule
@@ -215,8 +212,8 @@ at 5 files and the project raises the cap to 8:
 #terminal("packs-params")
 
 `mt` writes each value into the pack's expressions when it loads the config,
-so `mt check`, `mt explain rules` and `mt config show` all see `8`. It works in every
-expression the pack holds, from a rule's `when` and `assert` to a view's
+so `mt check`, `mt explain rules` and `mt config show` all see `8`. It works in
+every expression in the pack, from a rule's `when` and `assert` to a view's
 `filter`, an `[[on.flip]]` `when` or `list`, each `required` and the `[ls]`
 and `[rm]` filters. A `param()` inside a string literal stays as written, and so does
 one in a rule's `message`, which is text and no expression. A bare entry like `"./team.toml"` keeps every
@@ -237,7 +234,7 @@ parameters.
 
 = A mistake in a pack
 
-An error names the file that holds the mistake, with the line, so you open
+An error names the file that contains the mistake, with the line, so you open
 the pack and not your own config. That goes for a path pack, a directory pack,
 a source's pack and the `defaults.toml` of a parent folder alike. An unknown
 key:
@@ -270,7 +267,7 @@ packs:
 #terminal("packs-conflict")
 
 Set that key in the layer that adopts both packs and the clash is gone, since
-the layer's value wins anyway. Equal values agree, so two packs can both carry
+the layer's value wins anyway. Equal values agree, so two packs can both set
 the same dictionary. Packs adopted by two different layers never clash: the
 higher layer wins.
 
@@ -293,7 +290,7 @@ merge order: `rule <label>: <origin>`. `<label>` is the rule's array and name, s
 with no name.
 `mt check` names a broken rule without the leading `tasks.`. `<origin>` is a
 layer (`embedded`, `xdg`, `dir` or `project`), or `pack <name>` for a pack.
-Here's the output in the #mindtape repository:
+The output in the #mindtape repository:
 
 #terminal("packs-origin")
 
@@ -316,7 +313,7 @@ After the rules come the other keys a pack set, as `key <dotted path>:
 by>, for pack <pack>`. A key names the layer instead of the pack when the layer
 replaced the value, as `dicts.product.values` shows. `<set by>` is the layer
 whose `with` set the parameter, such as `project` for `max-files`, or
-`default` for a parameter nobody set.
+`default` for a parameter no one set.
 
 When `mt` reports a problem with a rule itself, not with a task, it points at
 the rule's own `[[tasks.rules]]` header, whichever layer or pack declared it.
@@ -332,7 +329,7 @@ Changes and Out of scope. A `fix` adds Environment, a `feat` or a `decision`
 adds Alternatives, a `docs` task adds Source of truth, and a task tagged
 `stateful` adds Rollback. The pack also declares the `kind` field the rules
 read, with `feat`, `fix`, `refactor`, `docs`, `test`, `dev`, `decision` and
-`milestone`, and requires it of an open task, and it forbids a comment in a
+`milestone`. It requires the field of an open task and forbids a comment in a
 task file. The `statefulness` and `examples` parameters, both off, gate the
 tag rule and the two fenced-example rules; a project turns them on in `with`. The
 tables below are read from
@@ -401,12 +398,12 @@ is refused. Each cap is a parameter, read from
 
 = The rules in `mindtape:budget`
 
-`extends = ["mindtape:budget"]` holds a task's size to the number of source
+`extends = ["mindtape:budget"]` caps a task's size at the number of source
 files its Changes section names. A `changes` collector reads the first
 backticked path on every bullet, so `derived.changes` is a list of paths, and
 a glob counts once. `cap-judgment-work-at-max-source-files` refuses an open
-task of judgment work, and a milestone is exempt, whose Changes section names
-more than `max-files` source files. `keep-work-inside-changes-plan` warns when
+task of judgment work whose Changes section names more than `max-files` source
+files. A milestone is exempt. `keep-work-inside-changes-plan` warns when
 the working tree has changed more files than the task in progress plans.
 
 #let budget = toml("../generated/packs/budget.toml")
@@ -428,8 +425,8 @@ a project that sizes in `files` overrides both rules by name.
 = The rules in `mindtape:tweaks`
 
 A tweak is a change too small to plan: `mt add -t tweak` files it done, in the
-commit that makes the change. `extends = ["mindtape:tweaks"]` holds a project
-to that. `file-tweak-done` refuses a tweak that isn't terminal, and
+commit that makes the change. `extends = ["mindtape:tweaks"]` enforces that on
+a project. `file-tweak-done` refuses a tweak that isn't terminal, and
 `keep-tweak-to-one-source-file` refuses a commit that closes a tweak and
 changes more than one file of the `source` path set. The pack leaves the `tweak` tag to the
 project: list it in `[tasks.tags]` if that table limits the tags. It sets
@@ -444,7 +441,7 @@ both and the two agree. Your own `[dicts.source]` replaces it for both.
 
 = The rules in `mindtape:commits`
 
-`extends = ["mindtape:commits"]` holds each commit to two rules, and both
+`extends = ["mindtape:commits"]` applies two rules to each commit, and both
 are #link(u("/commit-rules/"))[commit rules].
 `add-changelog-entry-for-product-change` asks a commit that changes a file of
 the `product` path set for a `CHANGELOG.md` entry. A `Changelog: none` trailer says there's nothing to
@@ -466,7 +463,7 @@ changelog elsewhere overrides the rule by name.
 
 A project that builds with its own tool can ask each task how it will use the
 change itself. `extends = ["mindtape:tasks", "mindtape:dogfood"]` adds a
-Dogfood section after Out of scope. It must exist once, hold something ("Not
+Dogfood section after Out of scope. It must exist once, contain something ("Not
 applicable" and a reason counts) and stay under 120 words. List it after
 `mindtape:tasks`, since its `allow-only-declared-sections` replaces that
 pack's rule of the same name, with `Dogfood` allowed, and a test keeps the two

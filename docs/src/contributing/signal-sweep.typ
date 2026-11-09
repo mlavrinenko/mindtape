@@ -17,8 +17,7 @@
 
 To turn the quality signals no gate enforces into backlog tasks, run
 #just.ask-refactoring(). It runs `contrib/ask-refactoring.sh`, which files one
-task per finding. A gate fails a commit. The sweep files tasks for signals
-that fail nothing yet, such as a file at 90% of its size cap.
+task per finding. It reads signals that fail nothing yet, such as a file at 90% of its size cap.
 
 By default it prints each arm's finding count and its three findings with the
 highest ICE score, and writes those tasks' bodies to `target/ask-refactoring/`,
@@ -41,7 +40,7 @@ threshold flag, such as `--cc-floor 12`, changes that arm for one run.
 
 #let fixed-value = sweep-flags.filter(f => f.value != none)
 #let thresholds = sweep-flags.filter(f => f.value == none)
-The defaults live in the recipe's `[arg(...)]` attributes and nowhere else.
+The defaults are in the recipe's `[arg(...)]` attributes and nowhere else.
 `contrib/ask-refactoring.sh` requires all #num-word(sweep-flags.len()) flags
 and defaults none, and just's `--usage` flag prints the same set.
 #for f in fixed-value [
@@ -49,9 +48,9 @@ and defaults none, and just's `--usage` flag prints the same set.
 ]
 
 The sweep has #num-word(thresholds.len()) thresholds, one per measurement,
-because a flag shared by two arms would move both at once. The undertested
-arm takes two, because a function must be both complex and undertested to be
-worth a task. Each number's argument sits beside its constant in the arm
+because a flag shared by two arms would change both at once. The undertested
+arm takes two: it files a task only for a function that is both complex and
+undertested. Each number's argument sits beside its constant in the arm
 script that applies it.
 
 The repeats arm reads jscpd's clone classes at 15 tokens, each a snippet with
@@ -59,7 +58,7 @@ every copy listed once, and files the ones whose extraction saves the most
 code.
 
 The dry arm files the clones #just.lint-dry() tolerates. It runs jscpd with
-the gate's flags and keeps the clone classes the baseline already holds. It
+the gate's flags and keeps the clone classes the baseline already lists. It
 files a class only when extracting it saves `--dry-gain` tokens or more. A
 task closes by extracting the clone, or by a `jscpd:ignore` marker whose
 comment says why the match is a coincidence. Either way the commit re-mints
@@ -81,8 +80,8 @@ shared `stem_for` and the driver. Each arm is one file under
 `.mindtape/templates/sweep-*.typ` template. The tags and the guard are
 declared already, so it needs no config change.
 
-The templates share one shape, and the `sweep-templates` outdatty group keeps
-them in step. They don't share it through a Typst `#import`, because the
+The templates have the same structure, and the `sweep-templates` outdatty group
+keeps them in step. They don't share it through a Typst `#import`, because the
 import would end up in every task the sweep writes and tie a tracked task
 file to a path outside the tasks root.
 
@@ -96,7 +95,7 @@ file to a path outside the tasks root.
   refresh its input refuses a stale one. An arm that can't, such as the
   hours-long mutation sweep, skips with a message naming the refresh command.
   A missing measurement never reads as a clean one.
-- One task per finding. Each task goes to its own agent and carries its own
+- One task per finding. Each task goes to its own agent and has its own
   scope and remedy.
 - No two arms file the same finding, because a duplicate pair would block the
   next sweep until both close.
@@ -107,13 +106,13 @@ file to a path outside the tasks root.
   answers: do the work, or write the override that says why not.
 
 The sweep isn't an mmz arm or part of #just.check(). It has to read the tree
-fresh on every run, and a cached result is the one answer it must never give.
+fresh on every run, so it never uses a cached result.
 
 `[views.ask-refactoring]` in `.mindtape/config.toml`
 (`has_tag("swept") && !terminal`) is the re-run guard. While a task the sweep
 filed is still open, the sweep refuses and prints the count, so you finish one
 batch of mechanical work before the next is filed. The sweep files into
 `truth/tasks/swept/`, so a finished batch goes with
-`mt rm truth/tasks/swept` once every task in it is closed. Every filed task carries
+`mt rm truth/tasks/swept` once every task in it is closed. Every filed task has
 the tag `swept` and one tag naming the tool that found it. The guard selects
 on `swept` alone, so a new arm needs no change to it.

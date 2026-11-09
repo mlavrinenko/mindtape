@@ -6,16 +6,16 @@ What `just release VERSION` runs, and how to finish a release that failed. The t
 
 ## What the recipe runs
 
-1. It runs [cargo-release](https://github.com/crate-ci/cargo-release) (`.config/release.toml`), which refuses a dirty tree or a branch other than `main`, bumps the version, dates the entries under `[Unreleased]` and commits.
-2. Between the bump and the commit, cargo-release runs `.just/scripts/release-hook.sh`. The hook re-records the outdatty groups whose sources are the Cargo manifests, since the release commit reviews the bump, holds the release commit’s message to `mt check --commit-msg`, refuses a `Cargo.lock` pin to a yanked crate, and refuses every other state a release has failed from.
+1. It runs [cargo-release](https://github.com/crate-ci/cargo-release) (`.config/release.toml`), which refuses a dirty tree or a branch other than `main`. cargo-release bumps the version, dates the entries under `[Unreleased]` and commits.
+2. Between the bump and the commit, cargo-release runs `.just/scripts/release-hook.sh`. The hook re-records the outdatty groups whose sources are the Cargo manifests, since the release commit reviews the bump. It runs `mt check --commit-msg` on the release commit’s message. It refuses a `Cargo.lock` pin to a yanked crate and the other failure states seen in earlier releases.
 3. The recipe pushes `main`, so CI runs on the release tree.
 4. It tags only once that commit’s `ci.yml` run is green.
 
-`--dry-run` checks and pushes nothing. Its publish check verifies a throwaway copy bumped to the new version, since the working tree still carries the old one.
+`--dry-run` checks and pushes nothing. Its publish check verifies a throwaway copy bumped to the new version, since the working tree still has the old one.
 
 ## Prelude versions
 
-Before a release bumps the prelude, archive the outgoing current. Copy `lib/prelude.typ` to `crates/mindtape/src/loader/preludes/<old-version>/prelude.typ`, add a `PreludeSnapshot` entry for `<old-version>` to `PRELUDE_SNAPSHOTS` and `<old-version>` to `PRELUDE_SUPPORTED` in `crates/mindtape/src/loader/embedded.rs`, and keep a fixture that loads it. Then bump both `PRELUDE_VERSION` and `lib/typst.toml` to the new version. The snapshot is immutable: a checksum test holds an archived copy, and a test keeps the current snapshot equal to `lib/prelude.typ`.
+Before a release bumps the prelude, archive the outgoing current. Copy `lib/prelude.typ` to `crates/mindtape/src/loader/preludes/<old-version>/prelude.typ`, add a `PreludeSnapshot` entry for `<old-version>` to `PRELUDE_SNAPSHOTS` and `<old-version>` to `PRELUDE_SUPPORTED` in `crates/mindtape/src/loader/embedded.rs`, and keep a fixture that loads it. Then bump both `PRELUDE_VERSION` and `lib/typst.toml` to the new version. The snapshot is immutable: a checksum test pins an archived copy, and a test keeps the current snapshot equal to `lib/prelude.typ`.
 
 A release drops a version on purpose by removing it from `PRELUDE_SUPPORTED` and `PRELUDE_SNAPSHOTS` and deleting its snapshot and fixture. That release stops reading the version everywhere, including a past commit in `mt check --commits`.
 

@@ -81,7 +81,7 @@ Each cell runs under its project's own config, so shop's `todo` and blog's
 covers the hidden rows and the `⚠` row of a project whose config won't load.
 
 Projects with the most ready tasks come first, and a project with nothing open
-drops off. Want other columns or another order? Override the board in
+drops off. For other columns or another order, override the board in
 `at.toml`, as #link(u("/cli/board/"))[`mt board`] shows.
 
 = List tasks across projects

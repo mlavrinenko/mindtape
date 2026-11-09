@@ -1,7 +1,7 @@
 // Hand-written rationale, one entry per `just ask-refactoring` flag, keyed by
 // the flag's long name. The flag list, each flag's help text and each default
 // come from www/generated/sweep-flags.json (www/generate-facts.sh, reading
-// `just --dump`); this dict carries only what a machine cannot state: why the
+// `just --dump`); this dict contains only what a machine cannot state: why the
 // number is its own number rather than one band shared across the sweep's
 // arms. An entry must never restate the help text or the default:
 // docs/src/contributing/signal-sweep.typ renders both alongside, derived, so a
@@ -10,9 +10,9 @@
 //
 // The full argument for each band — the distributions, the counts, what each
 // edge rejects and why it stops where it does — stays in the arm script that
-// applies it (`contrib/ask-refactoring/*.sh`), deliberately: it is the most
-// valuable thing in the arm, and prose that lived away from the constants it
-// explains would drift away from them. These entries point there.
+// applies it (`contrib/ask-refactoring/*.sh`), deliberately: prose written
+// away from the constants it explains would fall out of date with them. These
+// entries refer to that script.
 //
 // Two entries below cross-reference other gates (`just cover`, `just crap::check`)
 // to explain what those measure that this sweep's own arms do not, so those
@@ -35,42 +35,43 @@
   "write": [
     The one flag that is not a threshold: it decides whether a finding is
     printed or filed, never which findings there are. Dry is the default
-    because the sweep is a proposal. The remedy is the refactorer's call, and
-    a proposal you have to read before it becomes a task is how that stays
-    true.
+    because the sweep is a proposal: you read one before it becomes a task,
+    and the remedy stays the refactorer's call.
   ],
   "baseline": [
     A percentage of each file's own cap, not a line count: the caps differ per
     language and per override, so the one number that means the same thing
-    everywhere is how much of a file's own budget is spent. Sits above
+    everywhere is how much of a file's own budget is spent. It sits above
     linecop's own `--baseline 85` reporting band, so the sweep files a task
     strictly later than the number a contributor is told to watch.
   ],
   "cc-floor": [
-    Half of a conjunction with `--fn-coverage-floor`, and the half that is not
-    a complexity judgment. #just.crap-check() gates complexity, at its own
-    threshold against a committed baseline. This floor is what makes the
-    coverage number mean something: below it, a low percentage says one line
-    is unhit; at or above it, it says decisions are unexercised.
+    It pairs with `--fn-coverage-floor`: the sweep reports only functions at
+    or above this cyclomatic complexity and below the coverage floor.
+    #just.crap-check() gates complexity separately, at its own threshold
+    against a committed baseline. Below the floor, one uncovered line can
+    account for most of a low percentage; at or above it, whole branches went
+    untested.
   ],
   "fn-coverage-floor": [
-    The other half, per function rather than per file, and stricter than
-    #just.cover()'s 88% per-file floor on purpose: a function is small enough
-    that one unreached line moves its percentage by tens of points, so the tail
-    starts further out. Two edges rather than one shared number is the point of
-    the pair, because a function has to be both complex enough and undertested
-    enough.
+    The other half of the pair, measured per function rather than per file. It
+    is stricter than #just.cover()'s 88% per-file floor on purpose: a function
+    is small enough that one unreached line moves its percentage by tens of
+    points, so the low-coverage tail starts further out. The pair has two edges
+    rather than one shared number because a function must be both complex
+    enough and undertested enough.
   ],
   "repeat-gain": [
-    Tokens an extraction removes, net of the helper and its calls, so one bar
-    weighs copies against size: a big block clears it with two copies, a
-    one-liner only once it is everywhere. A count or a size alone would file
-    the common short call and miss the pasted setup. The number is set so a
-    batch stays small enough to empty before the next sweep.
+    Tokens an extraction removes, net of the helper and its calls, so the same
+    threshold covers both copy count and size: a big block clears it with two
+    copies, a one-liner clears it only at many copies. A count or a size alone
+    would file the common short call and miss the pasted setup. The number is
+    set so a batch stays small enough to work through before the next sweep.
   ],
   "dry-gain": [
     The same measure as `--repeat-gain`, over the clones the jscpd baseline
     tolerates rather than the ones under its floor. Its own flag because the
-    two populations differ: lowering one bar should not flood the other arm.
+    two populations differ: lowering one threshold should not add many
+    findings to the other arm.
   ],
 )

@@ -35,9 +35,8 @@
   ),
 )
 
-Rules are how you tell `mt` what a good task looks like in your project.
-`mt check` and every command that writes a task file run the same checks. They
-check each field against the config, such as a status against the
+Rules are the checks that `mt check` and every command that writes a task file
+run. They check each field against the config, such as a status against the
 #link(u("/statuses/"))[status legend], plus any checks you add with the keys
 on this page. Rules from an ancestor directory's defaults and from rule packs
 add to your project's own, as #link(u("/config/"))[Configuration] describes.
@@ -79,7 +78,7 @@ gives you one error that names the field.
 = Assertions
 
 A `[[tasks.rules]]` entry with `assert` checks every task it selects against
-a filter expression. Unlike `required`, it can test what a field holds:
+a filter expression. Unlike `required`, it can test a field's value:
 
 #raw(
   render-slices(
@@ -163,7 +162,7 @@ case = "exact"
 values = ["**"]
 ```
 
-An ast-grep collector reads code shape instead. It matches Rust files (`.rs`)
+An ast-grep collector matches code structure instead. It matches Rust files (`.rs`)
 through the shared query engine, publishes each matching path once, and lets a
 rule bound a file count the way it bounds a Changes list:
 
@@ -185,7 +184,7 @@ reads; without one it reads every file of that language git lists. Paths are
 relative to the repository root, as `changed()` reads them, so a nested project
 prefixes its directory, as in `sub/src/**`. A file query needs a git working tree: outside
 one, `mt check` reports the collector problem, and the error names `git init`
-as the fix. A file counts once however many matches it holds, so the rule
+as the fix. A file counts once however many matches it contains, so the rule
 bounds a file count, not a call-site count.
 
 A Typst collector is the escape hatch for a structure a regex or a pattern
@@ -204,9 +203,9 @@ renamed collector cannot leave a rule reading nothing.
 
 The filter language reads an `x-<ns>` field's text, number or list, but
 can't look inside a dictionary. `[tasks.fields.x-<ns>]` only covers a list of
-strings and a `required` rule. For any other shape, write a rule with `check`
+strings and a `required` rule. For anything else, write a rule with `check`
 instead of `assert`. It calls a Typst function you ship in the project, with
-one field's value or the whole task:
+one field's value or the task:
 
 #raw(
   render-slices(
@@ -227,8 +226,8 @@ is one breach, reported like an `assert` breach at the rule's `severity`:
 
 The value arrives as a Typst literal, and a content block in it as its plain
 text. A date in a `field` value arrives as a `datetime`. Without `field`, the
-task arrives in the shape `mt eval --json` prints, where a date is a
-`YYYY-MM-DD` string. A Typst error, a `panic()` in the function, or a return
+function receives the same task object that `mt eval --json` prints, where a
+date is a `YYYY-MM-DD` string. A Typst error, a `panic()` in the function, or a return
 that isn't an array of strings counts as one breach with the message, and the
 rest of the project still loads.
 
@@ -240,7 +239,7 @@ through a complete example.
 
 = Body rules
 
-To make every task carry, say, a Summary and acceptance criteria, check its
+To require every task to have, say, a Summary and acceptance criteria, check its
 body. Two rule families do that. Both pick sections by a path through the
 heading tree. A bare string matches a heading's text exactly, and only among
 the direct children of the previous step. `{ match = "regex" }` matches
@@ -287,7 +286,7 @@ down to the next heading of the same or a higher level, subsections included.
 - `{ must-match = "regex" }` and `{ must-not-match = "regex" }`: the regex runs
   against the section's source text, markup included.
 - `{ density = { pattern = "regex", max = N, per = "section" } }`: no single
-  unit carries more than `max` matches. `per` is `section` (the default),
+  unit contains more than `max` matches. `per` is `section` (the default),
   `paragraph` or `sentence`. Paragraphs split at blank lines and at each list
   item. Sentences split after a `.`, `!` or `?` followed by a space or the
   end. Code is removed first, fenced or inline, so a match inside a code
@@ -297,8 +296,8 @@ down to the next heading of the same or a higher level, subsections included.
 `mt check` reports a body violation at the heading's line, or at the
 `task.with(…)` line if a required section is missing, named
 `body.headers.rules.<name>` or `body.content.rules.<name>`. A content rule's
-`message` takes the line, and the check's own words move to a `note:` under it,
-so you still see which paragraph or sentence broke the rule. `--json` lists them
+`message` takes the line, and the check's default text is printed as a
+`note:` below it, so you still see which paragraph or sentence broke the rule. `--json` lists them
 in `notes`.
 
 #terminal("rules-content-detail")
@@ -306,7 +305,7 @@ in `notes`.
 = Review comments
 
 If you or a reviewer leave comments in task files, you may want them cleared
-before work moves on. `[tasks.comments]` sets what `mt check` does with a
+before work continues. `[tasks.comments]` sets what `mt check` does with a
 comment anywhere in a task file, inside `task.with(…)` or in the body:
 
 #raw(

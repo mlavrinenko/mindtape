@@ -6,11 +6,12 @@ save it in config, because `mt ls` shows what it selects.
 
 ## In a listing
 
-Bare `mt ls` applies the first `[[ls.rules]]` entry whose condition holds,
-else the project's default view, and the line under the table names which, as
-in `default view · 3 of 12 tasks`. A filter argument replaces only the filter;
-that rule's or view's sort and columns still apply. `-n N` keeps the first N
-rows after the sort, and `mt ls @view` uses one of `mt explain views`.
+With no filter, `mt ls` applies the first `[[ls.rules]]` entry whose condition
+holds; if none matches, it applies the project's default view. The line under
+the table says which one ran, as in `default view · 3 of 12 tasks`. A filter
+argument replaces only the filter; that rule's or view's sort and columns still
+apply. `-n N` keeps the first N rows after the sort, and `mt ls @view` uses one
+of `mt explain views`.
 
 ## Fields
 
@@ -25,12 +26,14 @@ rows after the sort, and `mt ls @view` uses one of `mt explain views`.
 - `path` is the task file's path from the project root, with `/` separators.
   `file` is a column only, and a filter on it is an error.
 - `depth` is the folder depth under the root, 0 for a task in the root itself.
-- `topo` is 0 for a task nothing blocks, else one more than its deepest
-  dependency. Ascending `topo` is a valid working order.
+- `topo` is 0 for a task with no blocking dependency in the loaded set, else
+  one more than its deepest dependency. Ascending `topo` is a valid working
+  order.
 - `blocks` counts the unfinished tasks that wait on this one, directly or
   through other tasks.
 - `children` counts the task's `parent`-edge children. `progress` is the
-  finished share of them, from 0 to 1, and a task with no children has none.
+  finished share of them, from 0 to 1, and a task with no children has no
+  `progress` value.
 - `role == "reviewer"` matches a task whose assignee holds that role in
   `[[actors]]`, and `role != "reviewer"` matches every other task.
 - `estimate.<unit>` is one unit of the `estimate` dict, as a number.
@@ -40,16 +43,16 @@ rows after the sort, and `mt ls @view` uses one of `mt explain views`.
   reads one record field.
 - An `x-<ns>` slot reads whether or not `[tasks.fields]` declares it. Text, a
   number or a boolean compares like any field: `x-machine == "alpha"`. A list
-  equals nothing, so `has(x-machine, "alpha")` tests membership. A dict such
-  as `x-goals` takes `has()` and `miss()` only. A config filter naming an
+  never equals a literal, so `has(x-machine, "alpha")` tests membership. A dict
+  such as `x-goals` takes `has()` and `miss()` only. A config filter naming an
   undeclared `x-` slot warns at load while other slots are declared.
 
 A name keeps its hyphens, as in the task file: `x-goals`,
 `estimate.src-files`.
 
-A field the task does not carry is unequal to every literal, so
-`kind != "bug"` matches a task with no `kind`. Use `miss(kind)` to select
-absence.
+A field the task lacks never equals a literal, so
+`kind != "bug"` matches a task with no `kind`. Use `miss(kind)` to match tasks
+that lack the field.
 
 `--sort` takes every field above except `role`, `estimate.<unit>`, `estimate`,
 `tags` and a list or record `derived.<name>`. It also takes `ready`, which
@@ -67,7 +70,7 @@ sorts by legend position.
   unfinished target, or with a checker that exits anything else. A link kind
   the config marks `blocking` counts as `depends-on` does.
 - `terminal` matches a task whose status the legend marks terminal.
-- `has(f)` and `miss(f)` test whether the task carries field `f`.
+- `has(f)` and `miss(f)` test whether the task has field `f`.
   `has(f, "v")` matches when `f`'s list holds `v`, its scalar equals `v`, or
   its dict has the key `v`.
 - `exists` matches inside `head(...)`, `staged(...)` or `worktree(...)` of a

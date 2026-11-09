@@ -17,8 +17,8 @@
 
 Your task files are plain text, and you can edit them in any editor. `mt`
 does the fiddly parts for you: it stamps status dates, writes link paths,
-fills template slots and checks every task. Each command prints only what you
-need, and its exit code tells you whether it did what you asked.
+fills template slots and checks every task. Each command prints its result, and
+its exit code reports whether it succeeded.
 
 The build generates these pages from the binary: the commands and flags come
 from `mt`'s own argument parser (#link(u("/agents/"))[`mt _cli --json`]).
@@ -46,14 +46,14 @@ Every command takes these flags:
 == Paths
 
 `mt` shows you each path in your platform's own separator, `\` on Windows and
-`/` everywhere else. That's the `file` column, `--format path`, the place an
-error points at, and every path in a message, so you can paste any of them
+`/` everywhere else. That's the `file` column, `--format path`, the location an
+error names, and every path in a message, so you can paste any of them
 straight into your shell.
 
 A path a program reads uses `/` on every platform. That's the `file` field of
 `--json` and `--format csv`, the `file` and `place` of `mt check --json`, and
 every link `mt` writes into a task. A script reads the same output on every
-machine, and a task file reads the same in every checkout.
+machine, and a task file has the same paths in every checkout.
 
 `--path-separator` picks the separator of the paths shown to you, as it does
 in ripgrep and fd. What a program reads keeps its `/`.

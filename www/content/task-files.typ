@@ -40,10 +40,8 @@
 
 A task is one Typst file, placed where `mt` looks for one:
 #link(u("/concepts/#which-files-count-as-tasks"))[Which files count as tasks].
-You can write it in any editor, and you don't need any Typst beyond what's on
-this page. Here's a whole task file. Below it, each
-part is explained, then each mistake the syntax invites and what `mt check`
-prints for it.
+Here is a complete task file. The sections below explain each part, then the
+mistakes the syntax invites and what `mt check` prints for each.
 
 #raw(read("../generated/task-files-source.typ"), lang: "typ", block: true)
 
@@ -54,24 +52,24 @@ name the prelude defines: `task`, the status functions such as `wip`, and the
 link functions such as `depends-on`.
 
 `@local` means the Typst packages installed on this machine. This `mt` reads
-the prelude at `0.2.0`, `0.3.0` and `0.4.0`, and its copy of each ships in the binary,
-so a task file loads anywhere. `mt install` puts all three there for your editor
-and `typst`, as the #link(u("/quickstart/"))[Quickstart] shows. An import at
-any other version fails once per version, naming the file, the version and
-the set, with a rewrite hint for an older version and an upgrade hint for a
-newer one. `mt fix` rewrites an older unsupported pin in your task roots and
-template dirs, and `mt fix --all --check` exits 1 while one remains, so CI can
-gate it. A supported older pin is kept. To point the import at a prelude in
-the project's own tree instead, see #link(u("/config/"))[Configuration].
+the prelude at `0.2.0`, `0.3.0` and `0.4.0`, and its copy of each ships in the
+binary, so a task file loads anywhere. `mt install` puts all three there for
+your editor and `typst`, as the #link(u("/quickstart/"))[Quickstart] shows. An
+import at any other version fails once per version, naming the file, the
+version and the set. The error gives a rewrite hint for an older version and
+an upgrade hint for a newer one. `mt fix` rewrites an older unsupported pin in
+your task roots and template dirs. `mt fix --all --check` exits 1 while one
+remains, so CI can gate it. A supported older pin is kept. To point the import
+at a prelude in the project's own tree instead, see
+#link(u("/config/"))[Configuration].
 
 = The show rule
 
 In Typst markup, `#` starts code, and the code runs to the end of the
-expression. `#show: task.with(...)` hands the rest of the file to the function
-`task`. `task.with(...)` sets `task`'s named arguments, which are the fields,
-and Typst passes the rest of the file in as the body. `task` records the
-fields for `mt` to read, and lays the task out as a card when Typst compiles
-the file.
+expression. `#show: task.with(...)` applies `task` to the rest of the file: the
+named arguments become the task's fields, and the remaining content becomes
+its body. `task` records the fields for `mt` to read, and lays the task out as
+a card when Typst compiles the file.
 
 Each field is `name: value`, with a comma before the next one. A value is a
 string in double quotes, a number, a function call such as `wip(...)`, an
@@ -88,7 +86,7 @@ the markup.
 = Mistakes and what `mt check` prints
 
 Each block below shows lines from the file above, then the same lines broken.
-`mt check` reads every task file, names each one that fails at the line at
+`mt check` reads every task file, reports each file that fails and the line at
 fault, and exits 1. Every other command warns about a file that fails and
 leaves its task out.
 

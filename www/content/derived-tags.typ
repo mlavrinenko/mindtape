@@ -7,16 +7,16 @@
   route: "/derived-tags/",
   label: "Derived tags",
   title: "Derived tags",
-  summary: "How `mt` tags each task with its root and the folders it sits in, without writing the tags to the file.",
+  summary: "How `mt` tags each task with its root and the folders that contain it, without writing the tags to the file.",
 )
 #metadata(meta) <page-meta>
 
 #show: page.with(..meta)
 
-If your folders already say what a task is about, you don't have to repeat it
-in tags. `mt` can tag each task by where its file sits: the name of its
-#link(u("/concepts/#a-task-is-a-file"))[task root] and the folders between the
-root and the file. File a task under `api/tasks/auth/` and it matches
+If your folder names already describe what a task is about, you don't have to
+repeat it in tags. `mt` can tag each task from its file's location: the name of
+its #link(u("/concepts/#a-task-is-a-file"))[task root] and the folders between
+the root and the file. File a task under `api/tasks/auth/` and it matches
 `has_tag("auth")` with no tag written in it.
 
 The examples below come from `examples/derived-tags/`, a repo with one task
@@ -73,7 +73,7 @@ names as they are.
 
 = Filter on them
 
-A filter sees derived tags as tags:
+A filter treats derived tags as tags:
 
 #terminal("derived-tags-ls-auth")
 
@@ -87,7 +87,7 @@ the language.
 the file. Move a file to another folder and its tags change with it.
 
 If `[tasks.tags] allowed` lists the permitted tags, `mt check` refuses an open
-task whose folders give it a tag that isn't on the list. Closed tasks aren't
+task with a derived tag that isn't on the list. Closed tasks aren't
 checked, so you can drop a tag from the list without editing every closed task
 that has it. That's `values-when = "!terminal"`, the default for tags. Set
 your own filter there to change which tasks the list applies to.

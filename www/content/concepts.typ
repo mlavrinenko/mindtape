@@ -22,7 +22,7 @@
 
 Each task is one `.typ` file. The file imports the #mindtape prelude and passes
 the task's fields to `task.with(...)` in a show rule. Everything below that
-line is the task's body, in Typst markup. Here's a task from
+line is the task's body, in Typst markup. A task from
 `examples/api-service/`:
 
 #raw(read("../generated/concepts-task.typ"), lang: "typ", block: true)
@@ -38,32 +38,33 @@ every field.
 
 A task source is a regular `.typ` file under a configured `[[tasks.roots]]`
 entry, outside every reserved component and template directory below. `mt`
-judges a path lexically: it folds `.` and `..` without touching the
-filesystem, so a root needs no trailing slash and a file counts by where its
-path lands. These rules narrow that base:
+handles a path as text: it folds `.` and `..` without touching the
+filesystem. A root needs no trailing slash, and whether a file is a task
+depends only on its resolved path. These rules narrow that base:
 
 - The extension is `.typ`, case-sensitive, so `TASK.TYP` is not a task.
 - No path component may be `.mindtape` or `.git`, in any ASCII case. The
-  project's metadata directory never holds a task.
+  project's metadata directory never contains a task.
 - A file under a `[templates] dirs` entry is a template, not a task. A
   #link(u("/templates/"))[template] is a `.typ` file with `slot(...)` calls,
   and `mt check` checks it on its own.
 - The entry at the path must be a regular file. A symlink is never a task
-  source, even one whose target is a regular `.typ` file, and no scan follows
-  a directory symlink.
+  source, even one whose target is a regular `.typ` file. No scan follows a
+  directory symlink.
 
-A working-tree config whose root sits under `.mindtape` or `.git`, or whose
-template directory holds a root or the project root, is refused when it
+A working-tree config whose root is under `.mindtape` or `.git`, or whose
+template directory contains a root or the project root, is refused when it
 loads, because it could never yield a task.
 
-In a Git work tree, `mt` asks Git which paths the working tree holds: every
+In a Git work tree, `mt` asks Git which paths are in the working tree: every
 tracked regular file and every untracked file Git does not ignore. That keeps
 `mt ls` in step with the commit states. A tracked file stays a task when an
 ignore pattern matches it, and an untracked ignored file is not a task. A
 tracked file deleted from the working tree is not a task there, though a
 commit state still lists it. An ignored task root lists only its tracked
-files, and the load warns once that the root's untracked files are invisible;
-unignore the root to load them.
+files, and the load warns once that the root's untracked files are invisible.
+Unignore the root to load them.
+
 Git's rules are the repository's `.gitignore` files, `.git/info/exclude` and
 your global excludes file. The last two are machine-local, so two people can
 see different tasks in one clone.
@@ -82,24 +83,27 @@ on disk with the same extension, reserved-name and template rules. The walk
 consults no ignore rules and does not follow a directory symlink. Any other
 Git failure stops the load with an error naming the root.
 
-Two examples. A project whose only root is `.` holds its backlog across the
-whole tree. Its template at `.mindtape/templates/task.typ` sits under a
-reserved component and a template directory, so the template is not a task,
-while a real task can sit beside the code it changes. A tracked
-`tasks/old.typ` that a `.gitignore` line matches stays a task, because Git
-still tracks it; `git rm --cached tasks/old.typ` drops it from the listing
-without touching the file. A task file that becomes a symlink, such as
-`tasks/alias.typ -> ../shared/task.typ`, stops being a source even when the
-target is a regular `.typ` file, and `mt add` refuses a destination that is
-itself a symlink.
+Four examples.
+
+- A project whose only root is `.` keeps its backlog across the tree. Its template at
+  `.mindtape/templates/task.typ` sits under a reserved component and a
+  template directory, so the template is not a task, while a real task can sit
+  beside the code it changes.
+- A tracked `tasks/old.typ` that a `.gitignore` line matches stays a task,
+  because Git still tracks it. `git rm --cached tasks/old.typ` drops it from
+  the listing without touching the file.
+- A task file that becomes a symlink, such as
+  `tasks/alias.typ -> ../shared/task.typ`, stops being a source even when the
+  target is a regular `.typ` file.
+- `mt add` refuses a destination that is itself a symlink.
 
 = Every command reads the files
 
 There's no daemon, database or index. Each `mt` command evaluates the task
 files under the roots with the Typst compiler, then applies the project's
-config to what they hold. So a change counts the moment the file is saved,
-whoever made it. That's you in your editor, a script, an agent or `mt` itself.
-Git versions the backlog with the code, and each branch carries its own tasks.
+config to what they contain. So the next command sees a saved change, whether
+it came from your editor, a script, an agent or `mt` itself. Git versions the
+backlog with the code, and each branch has its own tasks.
 
 To keep this fast, `mt` caches each file's result in `.mindtape/cache/`, keyed
 by a hash of the file's bytes, and skips a file that hasn't changed.
@@ -135,11 +139,11 @@ writes the path for you.
 
 = Extension fields
 
-A field named `x-<ns>` holds a field of your own, such as `x-team`, or data
-for a tool built on #mindtape, such as `x-speconaut`. `mt ls --json` passes it
-through unchanged under `extras`.
+An `x-<ns>` field, such as `x-team`, stores your own data, or data for a tool
+built on #mindtape, such as `x-speconaut`. `mt ls --json` passes it through
+unchanged under `extras`.
 
-Want `mt` to check one? Declare it in `[tasks.fields.x-<ns>]`.
+To have `mt` check one, declare it in `[tasks.fields.x-<ns>]`.
 #link(u("/config/#extension-fields"))[Configuration] covers the rest.
 
 = Where a mistake is caught
@@ -151,11 +155,11 @@ refuses a value it can't hold, like a status note that isn't a content block.
 `mt check` checks everything else against the project's config: the
 #link(u("/statuses/"))[status legend], the priority and difficulty scales,
 `kind`, required fields, links, recurrence and the type of every value. It
-names the field and where the wrong value sits, such as `tags[1]`.
+names the field and shows where the wrong value is, such as `tags[1]`.
 
 = Configuration
 
-`.mindtape/config.toml` holds only what you change from the defaults built
+`.mindtape/config.toml` contains only what you change from the defaults built
 into `mt`. #link(u("/config/"))[Configuration] covers which config files `mt`
 merges, in what order, and every section.
 

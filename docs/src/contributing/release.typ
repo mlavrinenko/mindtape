@@ -20,19 +20,19 @@ The tag push is the only publish path, so don't run `cargo publish` or push
 
 + It runs #link("https://github.com/crate-ci/cargo-release")[cargo-release]
   (`.config/release.toml`), which refuses a dirty tree or a branch other than
-  `main`, bumps the version, dates the entries under `[Unreleased]` and
-  commits.
+  `main`. cargo-release bumps the version, dates the entries under
+  `[Unreleased]` and commits.
 + Between the bump and the commit, cargo-release runs
   `.just/scripts/release-hook.sh`. The hook re-records the outdatty groups
   whose sources are the Cargo manifests, since the release commit reviews the
-  bump, holds the release commit's message to `mt check --commit-msg`, refuses
-  a `Cargo.lock` pin to a yanked crate, and refuses every other state a
-  release has failed from.
+  bump. It runs `mt check --commit-msg` on the release commit's message. It
+  refuses a `Cargo.lock` pin to a yanked crate and the other failure states
+  seen in earlier releases.
 + The recipe pushes `main`, so CI runs on the release tree.
 + It tags only once that commit's `ci.yml` run is green.
 
 `--dry-run` checks and pushes nothing. Its publish check verifies a throwaway
-copy bumped to the new version, since the working tree still carries the old
+copy bumped to the new version, since the working tree still has the old
 one.
 
 = Prelude versions
@@ -44,7 +44,7 @@ Before a release bumps the prelude, archive the outgoing current. Copy
 `<old-version>` to `PRELUDE_SUPPORTED` in
 `crates/mindtape/src/loader/embedded.rs`, and keep a fixture that loads it.
 Then bump both `PRELUDE_VERSION` and `lib/typst.toml` to the new version. The
-snapshot is immutable: a checksum test holds an archived copy, and a test
+snapshot is immutable: a checksum test pins an archived copy, and a test
 keeps the current snapshot equal to `lib/prelude.typ`.
 
 A release drops a version on purpose by removing it from `PRELUDE_SUPPORTED`

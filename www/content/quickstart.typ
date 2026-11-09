@@ -37,8 +37,8 @@ Or run it from the flake without installing:
 nix run github:mlavrinenko/mindtape -- --help
 ```
 
-Or put `mt` in a project's Nix dev shell. The easy way is
-#link("https://github.com/mlavrinenko/qahq")[qahq], a flake that bundles `mt`
+Or put `mt` in a project's Nix dev shell.
+#link("https://github.com/mlavrinenko/qahq")[qahq] is a flake that bundles `mt`
 with the other checks a repo runs, so one input brings them all:
 
 // docs:hand-typed the build does not fetch qahq from GitHub
@@ -76,7 +76,7 @@ nix.settings = {
 Leave qahq's `nixpkgs` alone. Point it at yours and every tool gets a new
 hash, so the cache misses and Nix compiles them all.
 
-No qahq? Take #mindtape's own flake as an input. It adds four nodes to your
+Without qahq, take #mindtape's own flake as an input. It adds four nodes to your
 `flake.lock` and nothing else, since its dev tooling sits in a lock of its own:
 
 #raw(read("../generated/nix-adopter-flake.nix"), lang: "nix", block: true)
@@ -85,7 +85,7 @@ Following #mindtape's `nixpkgs` keeps the build the one its CI pushes to
 `https://mlavrinenko.cachix.org`, whose key is
 `mlavrinenko.cachix.org-1:vNcY3Nf5Y1J0D30uNAwrw44CBHbHDd1tGiA18ANz4XY=`.
 
-Or build it from source with a Rust toolchain. The binary lands in
+Or build it from source with a Rust toolchain. The binary is written to
 `target/release/mt`:
 
 // docs:hand-typed the build does not clone the repository it runs in
@@ -96,7 +96,7 @@ cd mindtape && cargo build --release
 
 = Set up the environment
 
-Task files import a Typst prelude. `mt` carries its own copy, so a CI runner
+Task files import a Typst prelude. `mt` has its own copy, so a CI runner
 or a fresh clone needs no setup. Your editor and `typst` look for the prelude
 on the machine, and `mt install` puts it there. Run it once per machine:
 
@@ -119,7 +119,7 @@ Then set up a project, once per repository:
 Plain `mt init` asks a few questions first. `--no-input` skips them and writes
 the default preset, `flow`. `mt init --list-presets` lists the others. The
 #link(u("/cli/init/"))[`mt init` page] covers the questions and the presets,
-and #link(u("/config/"))[Configuration] covers what the file can hold.
+and #link(u("/config/"))[Configuration] covers what the file can contain.
 
 = File your first task
 
@@ -129,7 +129,7 @@ title:
 
 #terminal("qs-add")
 
-Here's the file it wrote:
+`mt add` wrote this file:
 
 #raw(read("../generated/qs-written.typ"), lang: "typ", block: true)
 
@@ -157,8 +157,8 @@ formats for other programs. To search by text, use
 
 = Change status
 
-Your project decides which statuses exist and which moves between them are
-allowed. It all lives in `.mindtape/config.toml`. Each status is also a
+Your project's config sets which statuses exist and which transitions between
+them are allowed. It is all in `.mindtape/config.toml`. Each status is also a
 command that sets the status and stamps today's date. The `flow` preset won't
 let you jump from proposed straight to done:
 
@@ -169,7 +169,7 @@ Start the task, then finish it:
 #terminal("qs-flip")
 
 `mt done x` is short for `mt flip done x`.
-#link(u("/statuses/"))[Statuses] covers the moves and the notes a
+#link(u("/statuses/"))[Statuses] covers the transitions and the notes a
 status can require. The #link(u("/cli/"))[CLI reference] lists every command.
 
 = Validate
@@ -178,15 +178,15 @@ status can require. The #link(u("/cli/"))[CLI reference] lists every command.
 
 #terminal("qs-check")
 
-It names any violation and exits non-zero, so you can run it from a
+It reports any violation and exits non-zero, so you can run it from a
 pre-commit hook or CI. The #link(u("/cli/check/"))[`mt check` page] lists
 what it checks, and #link(u("/rules/"))[Rules] covers the checks you add
 yourself.
 
 #callout("note")[
-  Curious why a task is a file and how `mt` reads them? Take a look at
-  #link(u("/concepts/"))[Concepts].
+  #link(u("/concepts/"))[Concepts] explains why a task is a file and how `mt`
+  reads them.
 ]
 
-Got more than one repo? #link(u("/read-many-projects/"))[Read many projects]
+For more than one repo, #link(u("/read-many-projects/"))[Read many projects]
 shows how one `mt @name` reads them all.

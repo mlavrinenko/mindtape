@@ -1,8 +1,8 @@
 // What each built-in link kind means, keyed by the kind's spelling. The
 // /links/ page reads the kinds and their rules (`max`, `blocking`, `acyclic`)
 // from www/generated/link-kinds.json, which www/generate-facts.sh reads off
-// `BUILTIN_KINDS` in crates/mindtape/src/link/mod.rs, so this dictionary holds
-// only the meaning and never restates a rule the code holds. `just
+// `BUILTIN_KINDS` in crates/mindtape/src/link/mod.rs, so this dictionary has
+// only the meaning and never restates a rule the code defines. `just
 // docs::facts` fails on a kind in that list with no entry here, and the
 // page fails to build on the same gap.
 

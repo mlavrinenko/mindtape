@@ -2,8 +2,9 @@
 
 Reference for the mindtape skill. Read this only when a task needs what no
 command writes: the body, a framework priority, the `estimate` dict or an
-`x-<ns>` slot. Change everything else with `mt` commands. A hand edit skips
-what `mt` stamps, slugs, injects, resolves and validates.
+`x-<ns>` slot. Change everything else with `mt` commands. A hand edit bypasses
+the work `mt` commands perform: status stamping, slug and hash assignment, link
+injection and resolution, and field validation.
 
 ## Naming a task
 
@@ -52,10 +53,10 @@ Rules:
   `x-goals: verdicts((secure: helps[why],), "fast")`: the verdicts first, then
   every neutral goal by name. `hurts[why]` and `neutral` build the other two
   verdicts, and naming a goal both ways fails.
-- Pass an edge helper plain path strings, never `link("a.typ")`. That is
-  content and reads as the trailing note. A `link(...)`, a second note, a named
-  argument or a non-string is an eval error naming the helper, never a dropped
-  edge.
+- Pass an edge helper plain path strings, never `link("a.typ")`. A `link(...)`
+  is content, so the helper treats it as the trailing note. A `link(...)`, a
+  second note, a named argument or a non-string is an eval error naming the
+  helper, and the edge is never silently dropped.
 - Write the body as Typst. A bare `//` starts a line comment and swallows the
   rest of the line, and under `[tasks.comments] policy = "forbid"` `mt check`
   rejects the file. `https://…` is safe, because Typst links it. Put

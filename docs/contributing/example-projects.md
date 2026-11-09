@@ -2,7 +2,7 @@
 
 # The gated example projects
 
-Why `just check-examples` validates every example project, and how it makes each one validate against this checkout’s own prelude.
+How `just check-examples` validates every example project against this checkout’s own prelude.
 
 ## Why the examples are gated
 
@@ -12,6 +12,6 @@ When you add an example, add it to the list in `.just/scripts/check-examples.sh`
 
 ## Why each example validates against this checkout
 
-A task file imports `@local/mindtape`. Typst resolves that import from one directory per machine, which `mt install` fills from whichever checkout ran it last. A worktree’s example would then validate against another checkout’s prelude. It would pass while testing nothing, in exactly the case where a prelude change needs it.
+A task file imports `@local/mindtape`. Typst resolves that import from one directory per machine, which `mt install` fills from whichever checkout ran it last. A worktree’s example would then validate against another checkout’s prelude. The check would pass while testing nothing, in the case where a prelude change needs that validation.
 
-So each example’s config points the import at this checkout’s `lib/` with a `[[typst.local-packages]]` entry. The recipe also sets `MINDTAPE_DATA_HOME` to an empty value, which `mt` reads as no directory, so no machine-wide package resolves at all. An example that lost its entry then reads the prelude built into `mt`, which a test keeps equal to `lib/`, and never another checkout’s. `XDG_DATA_HOME` wouldn’t work, because `dirs` reads it on Linux only.
+So each example’s config points the import at this checkout’s `lib/` with a `[[typst.local-packages]]` entry. The recipe also sets `MINDTAPE_DATA_HOME` to an empty value, which `mt` reads as no directory, so no machine-wide package resolves at all. An example that lost its entry then reads the prelude built into `mt`. A test keeps that prelude equal to `lib/`, so the example never reads another checkout’s. `XDG_DATA_HOME` wouldn’t work, because `dirs` reads it on Linux only.

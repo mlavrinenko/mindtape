@@ -10,9 +10,9 @@
   output: "docs/contributing/validation-seam.md",
 )) <mindtape-md>
 
-#doc-title[Where validation lives]
+#doc-title[Where validation belongs]
 
-You're adding a check on a task. Here's which layer it belongs in:
+Four layers can validate a task. A check in the wrong one never runs:
 
 - The prelude checks structure only: one task per file, the `x-<ns>` field
   names, and the argument shapes it refuses before it writes the marker (edge
@@ -32,5 +32,5 @@ You're adding a check on a task. Here's which layer it belongs in:
 - A consumer validates its own `x-<ns>` fields. #mindtape passes them through
   unchanged.
 
-So a check on a value goes in Rust and config, and a check on the call's
-shape goes in the prelude. Put it in the other layer and it never fires.
+A check on a value goes in Rust and config; a check on how the call is
+written goes in the prelude.

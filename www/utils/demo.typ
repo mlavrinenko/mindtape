@@ -136,7 +136,7 @@
       the way you like.
     + #strong[Computed fields.] Fill a field with an expression, like
       `due: release - duration(days: 14)`. Change `release` in your shared
-      module, and every deadline moves.
+      module, and every deadline changes.
     + #strong[Links that don't rot.] A link is a path `mt check` resolves, so a
       dead one fails the check. `mt mv` renames a task and rewrites every link
       to it.

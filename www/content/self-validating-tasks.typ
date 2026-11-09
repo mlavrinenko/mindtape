@@ -14,9 +14,8 @@
 #show: page.with(..meta)
 
 You can give your tasks a field #mindtape doesn't know about, and check it
-with a Typst function you write. `mt check` runs the function on every task,
-and every command that writes a task runs it before writing. You don't need a
-separate linter, and the check lives in the repo next to the tasks.
+with a Typst function you write. `mt check` runs the function on every task.
+The check is a file in the repo beside the tasks.
 
 Every block below is a slice of `examples/self-validating/`, a project with
 two tasks.
@@ -34,7 +33,7 @@ two tasks.
 
 = Write the function
 
-Say your project has goals, and you want every task to say how it serves
+If your project has goals, you can require every task to say how it serves
 each one. List the goals in a Typst module. Each task answers in an `x-goals`
 field. #mindtape keeps any field named `x-<name>` as written and checks nothing
 in it on its own.

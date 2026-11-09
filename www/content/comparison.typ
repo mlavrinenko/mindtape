@@ -6,9 +6,9 @@
   route: "/comparison/",
   label: "Comparison",
   title: "Comparison",
-  summary: "Let's see how "
+  summary: "How "
     + mindtape
-    + " compares to other local task trackers and which one may fit you better.",
+    + " compares with other local task trackers, and which tool fits which use.",
 )
 #metadata(meta) <page-meta>
 
@@ -208,8 +208,8 @@
 
 = Where #mindtape fits
 
-- #strong[Tasks change with the code.] A task is a file in your working tree,
-  so the commit or pull request that does the work also closes the task, and
+- #strong[Tasks change with the code.] A task is a file in your working tree.
+  The commit or pull request that makes the change also closes the task, and
   whoever reviews it sees both. Backlog.md, Org-mode and todo.txt can keep
   tasks in the repo too, but none of them checks a hand-edited task against
   your rules.
@@ -218,13 +218,12 @@
   units, and #link(u("/rules/"))[rules] you write as filter expressions or
   Typst functions. `mt check` applies them in CI, and every command that writes
   a task applies them first.
-- #strong[Priority from inputs.] ICE, RICE, WSJF, Eisenhower and MoSCoW turn a
-  task's inputs into a priority (#link(u("/priority/"))[Priority]).
-  Taskwarrior's urgency is computed too, from the due date, tags, age and your
-  own attributes, with coefficients you tune.
-- #strong[A task is Typst.] A task can import a shared module and call your
-  own functions. See #link(u("/self-validating-tasks/"))[Self-validating
-    tasks].
+- #strong[Priority from inputs.] ICE, RICE, WSJF, Eisenhower and MoSCoW compute
+  the priority (#link(u("/priority/"))[Priority]). Taskwarrior's urgency is
+  computed too, from the due date, tags, age and your own attributes, with
+  coefficients you tune.
+- #strong[A task is Typst.] It can import a shared module and call your own
+  functions. See #link(u("/self-validating-tasks/"))[Self-validating tasks].
 
 = Where another tool fits better
 

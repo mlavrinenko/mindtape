@@ -22,17 +22,16 @@
     shaky it is.
   ],
   "rice": [
-    ICE with reach in front and effort below. A small change that reaches
-    every user can outrank a large one that reaches few.
+    ICE with reach multiplied in and effort divided out. A small change that
+    reaches every user can outrank a large one that reaches few.
   ],
   "wsjf": [
     Weighted shortest job first: value per unit of size. Of two equally
     valuable tasks, the smaller one ranks higher.
   ],
   "eisenhower": [
-    Urgency and importance are independent, so their four combinations are
-    four categories. The category is the answer, and its score only places it
-    on the scale.
+    The four combinations of urgency and importance make four categories. The
+    category sets the priority. The score only places it on the numeric scale.
   ],
   "moscow": [
     A commitment level: `must` blocks the release and `wont` records a

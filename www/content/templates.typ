@@ -17,9 +17,9 @@
 
 You can write a task file by hand, but `mt add` saves you the boilerplate. It
 writes a new task from a template, so every task starts with the same fields
-and sections. A template is a `.typ` file shaped like a task, whose values are
-`slot(...)` calls, and it sits in a template directory rather than a task
-root. #link(u("/concepts/#which-files-count-as-tasks"))[Which files count as tasks]
+and sections. A template is a `.typ` file with the same fields as a task, and
+its values are `slot(...)` calls. It is in a template directory rather than a
+task root. #link(u("/concepts/#which-files-count-as-tasks"))[Which files count as tasks]
 says why a template is not a task source. `mt add` fills the slots, sets the
 status, checks the task against your rules and writes it only if it passes. If
 `mt add` refuses, it leaves no file behind.
@@ -44,7 +44,7 @@ that template:
 #capture-line("add-template-hint", "^hint: "). Each matching
 template gets its own line.
 
-Here's the template in `examples/api-service/.mindtape/templates/task.typ`:
+The template in `examples/api-service/.mindtape/templates/task.typ`:
 
 #raw(read("../generated/api-service-template.typ"), lang: "typ", block: true)
 
@@ -73,18 +73,18 @@ arguments:
 )
 
 A `text` slot escapes its value, so `#`, `*`, `_`, `[` and the other markup
-characters print as typed. A `raw` slot pastes its value in as Typst markup,
+characters print as typed. A `raw` slot writes its value as Typst markup,
 and `mt add` refuses a value that doesn't parse as markup. Use `raw` for body
 sections that hold lists and code, like the template above.
 
-A backtick in a `text` slot almost always means a code span, which escaping
-files as literal backslashes. So `mt add` still files the task, but warns and
+A backtick in a `text` slot usually means a code span, but `text` escaping
+writes it as a literal backslash. `mt add` still writes the task, but warns and
 names the slot:
 
 #terminal("add-text-slot-span")
 
-Only the backtick warns. A path's `_` or a plain `a < b` is literal text, and
-files quietly.
+Only the backtick warns. A path's `_` or a plain `a < b` is literal text, and is
+written without a warning.
 
 The `default` and `example` of a `text` or `raw` slot can be a raw block as
 well as a string, so a body section's example reads as markup, as in the
@@ -97,7 +97,7 @@ fence's line included, and ignores the language tag.
 change breaks a template, you find out from `mt check` right away, not at the
 next `mt add`.
 
-It fills each template as `mt add` would, with every slot holding its
+It fills each template as `mt add` would, with every slot set to its
 `example`, else its `default`. Then it checks the result like a task, alone,
 against an empty backlog and an empty working tree, under the file name
 `mt add` would give it. A rule reading `changed()` sees no changes, so a
@@ -114,7 +114,7 @@ A slot with neither an `example` nor a `default` leaves nothing to fill, so
 config: the `example` key of `[tasks.fields.<name>]`, `[tasks.assignee]`,
 `[tasks.estimate]`, `[tasks.priority]` or `[tasks.difficulty]`, else the
 field's `default`. If a required field has neither, the slot can't be filled,
-and `mt check` names the table that should carry the key. A `multiple` field
+and `mt check` names the table that should have the key. A `multiple` field
 takes a list, and an estimate takes a table such as `{ days = 1 }`. A
 framework input keeps the example its range gives. A template that doesn't
 evaluate is reported once, with the Typst error.
@@ -140,7 +140,7 @@ prompt:
 `--describe=json` prints the same thing for a script or an agent, in one
 object whose `slots` key holds the array.
 
-= Fill the slots
+= Fill the slots from values
 
 #table(
   columns: 2,
@@ -179,7 +179,7 @@ doesn't have, `mt add` refuses and lists the slots it does have.
 
 For long values, use `-f`. A YAML block scalar (`|`) keeps line breaks and
 needs no shell quoting, so a `raw` section reads the same here as in the task.
-Here's `values.yaml`:
+`values.yaml`:
 
 #raw(read("../generated/api-service-values.yaml"), lang: "yaml", block: true)
 

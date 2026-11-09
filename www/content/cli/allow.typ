@@ -8,7 +8,7 @@ A config can name commands for `mt` to run. A
 reads, a #link(u("/hooks/"))[`[[on.flip]]`] `run` action runs when
 `mt flip` changes a status, and the `[go] editor` and `[add] editor` programs
 open when you ask for an editor. `mt` runs none of them in a repo until you run
-`mt allow` there. Read them first. They run with your rights. An editor in your
-own `mindtape/defaults.toml` is yours already, so it needs no approval.
+`mt allow` there. Read them first. They run with your rights. An editor declared in your
+own `mindtape/defaults.toml` needs no approval.
 
 #cli-command("allow")

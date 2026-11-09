@@ -15,8 +15,8 @@
 
 `git blame` shows you a line and the subject "fix(auth): reject expired
 sessions". Nothing says which task asked for the change, what problem it fixed
-or what it left out. An agent about to edit the file has the same question and
-no way to answer it.
+or what it left out. An agent about to edit the file cannot answer any of
+them.
 
 = Config
 
@@ -32,7 +32,7 @@ refuses a commit without a `Refs:` trailer and accepts it with one, and
 
 = Deep dive
 
-`[commits] trailer` names the trailer that holds task stems. A stem is the
+`[commits] trailer` sets the trailer that names task stems. A stem is the
 task's file name without `.typ`, as #link(u("/concepts/#identity"))[Concepts]
 explains. The project also extends the `mindtape:tasks`
 #link(u("/packs/"))[rule pack], as
@@ -44,14 +44,14 @@ commit changes only
 path and a symlink do not make a commit task-only, while a markerless `.typ`
 under a task root does.
 The pack's `squash-every-autosquash-commit` rule refuses such a commit once it
-sits in a range, so `mt check --commits` catches a fixup nobody squashed.
+is in a range, so `mt check --commits` catches a fixup that was not squashed.
 `mt check --commit-msg` also refuses a stem
 that no task has and that matches no
 #link(u("/commit-rules/#the-trailer"))[`[commits] external-refs`] pattern. #link(u("/commit-rules/"))[Commit rules] covers the rule
 fields, and #link(u("/packs/"))[Packs] shows how to drop the rule.
 
 Anyone can skip a hook with `--no-verify`, so run `mt check --commits` in CI
-on the commits a push carries. #link(u("/commit-rules/"))[Commit rules] shows
+on the commits a push contains. #link(u("/commit-rules/"))[Commit rules] shows
 how.
 
 `touches("<path>")` matches each task named in the trailer of a commit that

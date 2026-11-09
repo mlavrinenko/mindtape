@@ -7,7 +7,7 @@
 so you don't type the date yourself. Each status in the
 #link(u("/statuses/"))[status legend], the project's list of allowed statuses,
 is also a command, so `mt done x` is `mt flip done x`. The legend sets which
-changes are allowed and which need a note. `mt flip` is the only command that
-runs #link(u("/hooks/"))[`[[on.flip]]` hooks].
+changes are allowed and which need a note. Only `mt flip` and its status
+commands run #link(u("/hooks/"))[`[[on.flip]]` hooks].
 
 #cli-command("flip")

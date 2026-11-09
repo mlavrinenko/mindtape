@@ -24,7 +24,7 @@
 )
 #let rule-slices = json("../generated/rules-config.json").slices
 
-A project's config lives in `.mindtape/config.toml` at its root. Every key is
+A project's config is in `.mindtape/config.toml` at its root. Every key is
 optional. Any key you leave out takes its value from the floor, the defaults
 built into `mt`. To see what `mt` ends up with, `mt config show` prints the
 merged config as TOML, and `--origin` lists the files it came from (see
@@ -61,10 +61,11 @@ which adopt a pack and drop a rule, are on #link(u("/packs/"))[Packs].
 `[go] editor` and `[add] editor` name a program that `mt` runs, as a checker
 or a flip `run` does. They wait for #link(u("/cli/allow/"))[`mt allow`], so a
 clone can't start a program before you have read it. Until then `mt` tries
-`$VISUAL`, then `$EDITOR`, and warns once with the held command. With neither
-set, `mt go` fails and `mt add` opens `vi` (`notepad` on Windows). An editor in
+`$VISUAL`, then `$EDITOR`, and warns once with the command it is waiting to
+run. With neither set, `mt go` fails and `mt add` opens `vi` (`notepad` on
+Windows). An editor in
 your own `mindtape/defaults.toml` needs no approval. An ancestor's
-`.mindtape/defaults.toml` does, since it can live inside a clone.
+`.mindtape/defaults.toml` does, since it can be inside a clone.
 
 A `run` in `[[tasks.waits]]` or `[[on.flip]]` takes a string, which runs
 through `sh -c`, or `cmd /C` on Windows, or an array such as
@@ -73,8 +74,7 @@ through `sh -c`, or `cmd /C` on Windows, or an array such as
 
 Write a rule's `message` as the next step: an imperative in lower case, with no
 trailing period or em dash, such as `move Environment after AS-IS`. `mt check`
-prints it after the rule's name, so it should tell the author what to do, not
-what is wrong.
+prints it after the rule's name, so phrase it as the action to take.
 
 = Environment variables
 
@@ -112,7 +112,7 @@ each example project reads the prelude beside it.
 
 With `MINDTAPE_NOW` unset or empty, today is the system clock's local date,
 using `TZ` on Unix and the system time zone on Windows. A local date keeps a
-task filed at 01:00 on the day it was filed. A date in a task file carries no
+task filed at 01:00 on the day it was filed. A date in a task file has no
 time zone. A `MINDTAPE_NOW` that isn't a date is an error naming the
 variable.
 
@@ -122,8 +122,8 @@ A task file imports the DSL as `@local/mindtape`, and Typst resolves a
 `@local` package from one directory per machine. `mt install` fills that
 directory with every prelude version `mt` reads, and `mt`, `typst` and
 tinymist all read it. This `mt` reads `0.2.0`, `0.3.0` and `0.4.0`, and its copy of
-each ships in the binary, so a task file loads where the directory holds
-neither. An import at any other version is refused at load with the supported
+each ships in the binary, so a task file loads where the directory has none of
+them. An import at any other version is refused at load with the supported
 set and the hint that fits.
 
 #table(
@@ -156,7 +156,7 @@ resolves the package from a path in the project instead:
 
 `path` is relative to the project root and may point outside it. An entry
 wins over the machine directory for the version its `typst.toml` declares; a
-file importing a supported version the entry does not hold falls through to
+file importing a supported version the entry does not have falls through to
 the machine's copy, or the matching copy built into `mt`. It works for any
 `@local/<name>` a task file or an `x-<ns>` helper imports. This repository
 pins its own prelude to its `lib/` with one.
@@ -181,7 +181,7 @@ it.
 = Presets
 
 `mt init --preset <name>` writes a preset as the project's config. A preset
-may carry an `[overlay]` table, which `mt init` merges over the rest of the
+may have an `[overlay]` table, which `mt init` merges over the rest of the
 preset. Tables merge key by key, and any other value in the overlay replaces
 the preset's. You get one file, with no comments and no `[overlay]`.
 
@@ -193,7 +193,7 @@ writes `extends = ["mindtape:ice"]`, so the project gets the pack's fixes when
 
 = Sections
 
-Here's every top-level section, with the description `mt config schema`
+The table lists every top-level section, with the description `mt config schema`
 prints for it. The docs build fails if the schema has a section the table
 leaves out.
 
@@ -270,7 +270,7 @@ These sections have a page of their own:
 - `[[ls.rules]]`, `[ls.columns.<name>]` and `[ls] hyperlinks`:
   #link(u("/cli/ls/"))[`mt ls`].
 
-A `[tasks] roots` entry names where task sources live;
+A `[tasks] roots` entry names where task sources are;
 #link(u("/concepts/#which-files-count-as-tasks"))[Which files count as tasks]
 says which files under a root `mt` reads.
 
@@ -309,14 +309,14 @@ query = { typst = "lib.typ", function = "summarize", field = "body" }
 returns = { count = "number", files = ["path"] }
 ```
 
-The function receives the whole task, in the shape `mt eval --json` prints, or
-the field `field` names, such as `body` or an `x-<ns>` slot. A pack's collector
+The function receives the task object that `mt eval --json` prints, or the
+field `field` names, such as `body` or an `x-<ns>` slot. A pack's collector
 resolves `typst` from the pack's own directory. The module must exist and
 export the function when the config loads. An eval error, a `panic()` or a
 value that does not match `returns` is a `Collector` violation at
 `derived.<name>`, which `mt check` reports and `mt eval` prints.
 
-An ast-grep query reads code shape through the same query engine an estimate
+An ast-grep query matches code structure through the same query engine an estimate
 uses:
 
 #raw(
@@ -349,7 +349,7 @@ working tree. Outside one, `mt check` reports the collector problem and names
 `string`, `path` and `date`. Wrap one in a one-element array for a list, as in
 `["path"]`, or write a record such as `{ count = "number", files = ["path"] }`.
 A regex query returns `["string"]` or `["path"]`, and an ast-grep query returns
-`["path"]`. A task the `when` excludes carries no field at all.
+`["path"]`. A task the `when` excludes has no field at all.
 
 Collectors merge by name across layers and packs, exactly as rules do, and
 `disable` drops one by name. Two collectors with the same name in one source

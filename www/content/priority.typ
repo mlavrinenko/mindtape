@@ -33,10 +33,11 @@
 )
 
 A task's `priority` is a number on a scale. `mt` labels each number with the
-band it falls in, and sorts and filters on the number. You can set the number
+band it falls in, and sorts and filters by the number. You can set the number
 by hand, such as `priority: 7`, or let a framework compute it from inputs like
-impact and effort. A number is quick. A framework takes longer to fill in, but
-two tasks scored the same way compare fairly.
+impact and effort. A hand-set number takes seconds. A framework takes more
+input, but it scores every task on the same scale, so their scores can be
+compared.
 
 = Scale and bands
 
@@ -63,7 +64,7 @@ bands. A value between two anchors takes the lower anchor's label:
 = Frameworks
 
 A framework computes the priority from inputs you fill in on the task. This
-project turns on ICE:
+project enables ICE:
 
 #raw(
   render-slices(
@@ -89,8 +90,8 @@ filter such as `priority >= 7` read the score:
 #terminal("priority-ls")
 
 `allow-manual` decides whether a raw number is still accepted while a
-framework is on. It defaults to `true`. With `false`, every task must call the
-framework, so `mt` refuses a raw number and exits
+framework is enabled. It defaults to `true`. With `false`, every task must
+call the framework, so `mt` refuses a raw number and exits
 #exit-code("priority-strict"):
 
 #terminal("priority-strict")

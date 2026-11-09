@@ -12,15 +12,14 @@
 
 #show: page.with(..meta)
 
-Writing a script or a `jq` program against your tasks? `mt ls --json` prints
-each task as one JSON record, and `mt import` reads the same records back and
-writes `.typ` files, so a program written against this page works in both
-directions. `CanonicalTask` in `crates/mindtape/src/model/canonical.rs` is the
-Rust type behind it.
+`mt ls --json` prints each task as one JSON record, and `mt import` reads the
+same records back and writes `.typ` files, so a program written against this
+page works in both directions. `CanonicalTask` in
+`crates/mindtape/src/model/canonical.rs` is the Rust type behind it.
 
 = Fields
 
-A field is #strong[authored] when it holds a value written in the task file.
+A field is #strong[authored] when it has a value written in the task file.
 `mt import` writes each authored field back into the file it creates. A
 #strong[computed] field is derived from the file or the project, and
 `mt import` ignores it.
@@ -39,7 +38,7 @@ A field is #strong[authored] when it holds a value written in the task file.
     column shows the path from the working directory instead, in your
     platform's #link(u("/cli/#paths"))[separator].],
 
-  [`title`], [authored], [The only field a record must carry.],
+  [`title`], [authored], [The only field a record must have.],
   [`status`], [authored], [`{name, date, note}`, or `null` when unset.],
   [`priority`], [authored], [A number, a label, or a framework object.],
   [`difficulty`],
@@ -50,13 +49,13 @@ A field is #strong[authored] when it holds a value written in the task file.
   [`assignee`], [authored], [],
   [`estimate`],
   [authored],
-  [A map from unit to quantity. A `count(...)` unit holds the number it
+  [A map from unit to quantity. A `count(...)` unit contains the number it
     resolved to.],
 
   [`estimate_counts`],
   [authored],
   [Each `count(...)` unit as `{count, queries, problem}`. Each query
-    carries the files it matched as `files`, and `problem` says why the unit
+    lists the files it matched as `files`, and `problem` says why the unit
     didn't resolve, or is `null`. `mt import` writes the unit back as the
     `count(...)` from `count` and `queries`, and ignores the rest.],
 
@@ -125,7 +124,7 @@ and says when a name changes.
 
 = A record
 
-Here's one task from `examples/round-trip/`:
+A task from `examples/round-trip/`:
 
 #terminal("schema-record")
 
@@ -154,14 +153,14 @@ The first key is `$schema`, a URL to this object's schema. `mt schema ls`
 prints the same bytes, so a program can check the URL it read. `mt import`
 accepts input without `$schema`, such as a bare array of records.
 
-Every object output leads with `$schema` and keeps its payload keys flat
+Every object output has `$schema` first, with its payload keys flat
 beside it. `mt eval --json` wraps one task record under its own `eval` schema;
 the `task` schema describes the bare record `mt ls` puts in `tasks`.
 
 `applied` says which #link(u("/named-sets/"))[view] or
-#link(u("/cli/ls/#conditional-rules"))[`[[ls.rules]]` entry] shaped the
+#link(u("/cli/ls/#conditional-rules"))[`[[ls.rules]]` entry] set the
 listing. `rule` is the label of the matching `[[ls.rules]]` entry, or `null`.
-`facets` holds the listing's three #link(u("/cli/ls/"))[facets], `filter`,
+`facets` contains the listing's three #link(u("/cli/ls/"))[facets], `filter`,
 `sort` and `columns`, each as `{from, value}`. `value` is what the listing
 used, and `from` says where it came from: a view, a rule label, `manual` for a
 value given on the command line, or `match-all` for the built-in default.
@@ -186,7 +185,7 @@ It's `[]` when no filter calls `touches()`.
 The URL ends in `/schema/output/<name>/<version>.schema.json`. The version
 changes only when a change could break an earlier consumer. A compatible
 addition updates the file in place; an incompatible one adds a new version and
-leaves the old file, so a stored URL keeps resolving after an upgrade. `task`
+leaves the old file, so a stored URL still resolves after an upgrade. `task`
 describes one record.
 Every command output has its own file. The odd names map to their command:
 `preset-ls` is `mt preset ls --json`, `set-ls` is `mt @set ls --json`,
@@ -200,25 +199,25 @@ Every command output has its own file. The odd names map to their command:
 
 A released binary names
 `https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/...`,
-so the URL always points at the newest published copy. A working-tree build
+so the URL always resolves to the newest published copy. A working-tree build
 names its checkout through `MINDTAPE_SCHEMA_BASE`, which the dev shell sets to
 `file://$mt_root/schema/output`. `mt install` writes the same files under the
 config directory, `~/.config/mindtape/schema/output/...` (or
-`$MINDTAPE_CONFIG_HOME/mindtape/...`), so an offline editor can point at the
+`$MINDTAPE_CONFIG_HOME/mindtape/...`), so an offline editor can use the
 installed copy. Each later install refreshes them, so a newer binary's schema
 replaces the installed copy without `--force`.
 
 `mt schema --write` records every current schema under `schema/output/`, and
 `mt schema --check` fails, naming each missing or changed file. The test suite
 runs that check, and the docs gate fails when a doc or a capture names a schema
-URL with no file, so a stale link cannot land.
+URL with no file, so a stale link cannot resolve.
 
 = Many projects
 
 A #link(u("/read-many-projects/"))[set] such as `@work` reads every project it
-holds. `mt @work ls --json` prints one object whose first key is `$schema` and
-whose `projects` key holds one listing object per project, in set order. Each
-listing has the keys above, plus `project`, the name `mt at <name>` shows, and
+contains. `mt @work ls --json` prints one object whose first key is `$schema`
+and whose `projects` key contains one listing object per project, in set
+order. Each listing has the keys above, plus `project`, the name `mt at <name>` shows, and
 `error`. `error` is `null` when the project listed, and the message when it
 failed, in which case `tasks` is `[]` and `applied` is `null`. Here `jq` cuts
 each listing down to its task ids:
@@ -231,12 +230,12 @@ it to that array:
 
 #terminal("schema-set-board")
 
-- `project` is the project's name and `path` the directory it lives in.
+- `project` is the project's name and `path` its directory.
 - `hidden` is `true` for a row the board's `hide` filter leaves out of the
-  table. The `projects` array still holds it.
-- `cells` maps each column name to its value. A `filter` column holds a count,
-  and a `top` column holds `{id, title, file}` for the first task it ranks, or
-  `null` when no task matches. A column that fails to run holds
+  table. The `projects` array still includes it.
+- `cells` maps each column name to its value. A `filter` column contains a
+  count, and a `top` column contains `{id, title, file}` for the first task it
+  ranks, or `null` when no task matches. A column that fails to run contains
   `{error}` in place of either.
 - A project whose config won't load has `project`, `path` and `error`, and no
   `cells` or `hidden`.

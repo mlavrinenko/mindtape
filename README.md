@@ -88,7 +88,7 @@ Why pick [Typst](https://typst.app/) over Markdown to power a local task tracker
 
 1. **Language server autocompletion.** `task` declares every field as a named parameter, so your editor completes field names and flags a misspelled one.
 2. **Shared helpers.** `#import` your own Typst module to fill tasks the way you like.
-3. **Computed fields.** Fill a field with an expression, like `due: release - duration(days: 14)`. Change `release` in your shared module, and every deadline moves.
+3. **Computed fields.** Fill a field with an expression, like `due: release - duration(days: 14)`. Change `release` in your shared module, and every deadline changes.
 4. **Links that don’t rot.** A link is a path `mt check` resolves, so a dead one fails the check. `mt mv` renames a task and rewrites every link to it.
 5. **Custom validators.** Bring your own checks by writing a Typst function. See [Self-validating tasks](https://mlavrinenko.github.io/mindtape/self-validating-tasks/).
 

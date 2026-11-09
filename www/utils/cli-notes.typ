@@ -1,4 +1,4 @@
-// Prose and captures for the CLI page, which `mt _cli --json` does not carry.
+// Prose and captures for the CLI page, which `mt _cli --json` does not include.
 // cli-ref.typ merges each entry into the command tree by dotted path
 // (`command`, `command.arg-id`, `nested.command.arg-id`), and cli-gate()
 // fails the build on a key that names no command or argument.
@@ -33,7 +33,7 @@
       given. The JSON says whether `mt` wrote, skipped or suffixed the task,
       and opens with the URL of its schema. A `text`
       report ends on `next: mt eval <slug>`, the command that reads the task it
-      named; the other formats carry no prose. `mt`
+      named. The other formats contain no prose. `mt`
       checks the task before it writes, so a refused add leaves no file.
       `--no-verify` skips the check.],
     outputs: ("add",),
@@ -49,14 +49,14 @@
     prose: [`NEW_STEM` is a bare stem. `mt` drops a trailing `.typ` and
       refuses a path separator. `mt mv` renames a task in place, because
       moving it to another folder would change its
-      #link(u("/derived-tags/"))[derived tags]. Before anything moves, it
+      #link(u("/derived-tags/"))[derived tags]. Before it renames anything, it
       refuses a stem another task already has, or a file that already exists.
       Inside a git repository it renames with `git mv`, so the rename is
       staged and git keeps the file's history. Outside git, or for an
       untracked file, it renames the file directly. `mt mv` rewrites every
       edge that points at the task in the same pass, and each edge keeps its
       relative prefix: `../sub/old.typ` becomes `../sub/new.typ`. `mt` checks
-      the whole set before it writes.],
+      every change before it writes.],
     outputs: ("mv",),
   ),
   // ── Fields ──────────────────────────────────────────────────────────────────
@@ -74,10 +74,10 @@
   ),
   "eval": (
     outputs: ("eval",),
-    prose: [A `count(...)` estimate prints under the table as its manual part,
-      each query with the files it matched, and the total. `--json` carries
-      the same under `estimate_counts`, beside the resolved number in
-      `estimate`. See #link(u("/estimates/"))[Estimates].],
+    prose: [When an estimate uses `count(...)`, `mt eval` prints the manual
+      count, then each query with the files it matched, then the total.
+      `--json` puts the same data under `estimate_counts`, beside the
+      resolved number in `estimate`. See #link(u("/estimates/"))[Estimates].],
   ),
   "go": (
     prose: [`mt go` finds the task's file and opens it with `[go] editor`, or
@@ -142,8 +142,8 @@
       #link(u("/concepts/#identity"))[stem] to kind to targets, shown on
       #link(u("/links/#the-apply-map"))[Task links]. Both forms merge. An edge with the same
       kind and target isn't added twice, so running either again writes
-      nothing new. With `--apply`, `--replace` makes the map the whole edge
-      set of each stem it names. `mt` checks the kind and the target before it
+      nothing new. With `--apply`, `--replace` uses the map as the edge set
+      of each stem in the map. `mt` checks the kind and the target before it
       writes. A kind that requires a note, such as the built-in `related`, is
       refused without one. When one entry fails, `mt` reports it and writes
       the rest. `--dry-run` prints the plan instead.],
@@ -155,8 +155,7 @@
     prose: [Bare, it prints the project's index: the rules grouped by config
       section, the derived fields, the tags, views and dictionaries, and each
       dictionary's entry count. `default` leads the view and tag lists when the
-      project declares it. Each listing keeps the output it had before it moved
-      under this command. `--json` leads with `$schema`: the rules, tags and
+      project declares it. `--json` leads with `$schema`: the rules, tags and
       index keep their keys, and views and dicts sit under `views` and
       `dicts`. A blank line separates the index from a `next:` line naming the
       optional category and JSON flag:
@@ -259,7 +258,8 @@
       `.mindtape/packs.lock` pins and your cache lacks. It refuses a lock
       that disagrees with `[pack-sources]`, so a clone or a CI job gets the
       packs you reviewed. It writes only the cache, never your project.
-      `mt packs update` moves each source to the commit its `ref` points to
+      `mt packs update` sets each source's lock entry to the commit its `ref`
+      points to
       and rewrites the lock, the one file it writes.],
   ),
 )

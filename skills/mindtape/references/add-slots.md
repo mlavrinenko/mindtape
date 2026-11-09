@@ -25,7 +25,7 @@ mt add "Practice arpeggios" -- summary@notes.txt
   holding one.
 
 When you generate values instead of typing them, pass YAML with `-f -`. It is
-one structured channel with no shell quoting, and a block scalar carries a
+one structured channel with no shell quoting, and a block scalar supplies a
 prose slot verbatim:
 
 ```sh
@@ -90,7 +90,7 @@ written.
 `mt add` escapes every `text` slot value as Typst markup before it writes the
 file, whatever the source: `-f`, `--set`, `--edit`, a positional or the
 environment, JSON or YAML. Escaping runs after parsing. A literal `` ` ``,
-`*`, `_`, `#`, `[`, `]`, `@` or `<` lands as `` \` ``, `\*` and so on: safe,
+`*`, `_`, `#`, `[`, `]`, `@` or `<` is written as `` \` ``, `\*` and so on: safe,
 never live Typst.
 
 - Do not write code spans or emphasis in a `text` slot such as `summary` or
@@ -114,10 +114,10 @@ template declares the kind. A `--set`, `-f` or environment value never skips
 escaping because it looks like markup: the same value fills a `text` slot
 escaped and a `raw` slot verbatim.
 
-The value is pasted, not read. Declare `raw` for a slot that holds formatted
-body content, such as `summary` or `body`. `mt check` refuses a `text` slot
-whose example shows a code span, because a filler who copies that example
-gets backslashes.
+`mt add` pastes a `raw` value into the body verbatim. Declare `raw` for a
+slot that holds formatted body content, such as `summary` or `body`. `mt check`
+refuses a `text` slot whose example shows a code span, because anyone who
+copies that example gets escaped backslashes.
 
 - `mt add` parses a `raw` value as Typst markup and fails before writing
   anything, naming the slot, when it does not parse. That check covers a
@@ -140,8 +140,8 @@ mt add "Practice arpeggios" -- summary@notes.txt    # text slot: escaped
 mt add "Split or re-cap ls.rs" -- remedy@remedy.typ # raw slot: verbatim
 ```
 
-- Do not pass a `.md` file to a `text` slot. Its headings and code spans land
-  as literal `#` and backticks, because nothing converts Markdown to Typst.
+- Do not pass a `.md` file to a `text` slot. Its headings and code spans become
+  literal `#` and backticks, because nothing converts Markdown to Typst.
   Pass `.txt` for prose and `.typ` for a `raw` slot.
 - Every other kind reads the file too: `weight@score.txt` fills an `int`. A
   file that does not fit fails naming the slot, with the error the same value
@@ -150,7 +150,7 @@ mt add "Split or re-cap ls.rs" -- remedy@remedy.typ # raw slot: verbatim
   `--set "key=$(cat path)"`.
 - There is no `key+@path`, because a file is one value. Pass a list through
   `-f` as an array. There is no `key@-` either: `-f -` is the stdin channel,
-  where a YAML block scalar carries a prose slot verbatim.
+  described above.
 
 Use `@` when the file exists already, above all a `.typ` you wrote and
 checked before filing the task. When you generate values in-process, use

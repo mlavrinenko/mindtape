@@ -77,7 +77,7 @@ trailing note. A helper returns an array, so you join several with `+`:
       "depends-on-related",
       "three kinds joined with +, and the note related requires",
     ),
-    ("duplicates", "the duplicate points at the task it repeats"),
+    ("duplicates", "the duplicate targets the task it repeats"),
   )),
   lang: "typ",
   block: true,
@@ -112,7 +112,7 @@ such as one you declare in config, use `edge("<kind>", ...)`:
 
 = Parents and progress
 
-Each task gets two computed fields from the `parent` edges that point at it.
+Each task gets two computed fields from the `parent` edges that target it.
 `children` counts those tasks. `progress` is the share of them in a
 #link(u("/statuses/#the-default-legend"))[terminal] status, so a cancelled
 child counts as finished. In the table, the `progress` column shows the
@@ -147,7 +147,7 @@ To add many edges at once, `mt link --apply <file>` merges a map of task to
 kind to targets, from YAML or JSON. Pass `-` to read it from stdin. A target
 is a stem string, or a `target` and `note` mapping when the edge needs a
 note. A kind with one target takes the bare string, and several take a
-list. Here's a map and its run:
+list. A map and its run:
 
 #terminal("links-apply")
 
@@ -166,7 +166,7 @@ writes one with `edge("<kind>", ...)`, like the `discharged-by` edge above.
     (
       (
         "kinds",
-        "three kinds whose targets live outside the backlog, and one that allows a task one edge",
+        "three kinds whose targets are outside the backlog, and one that allows a task one edge",
       ),
     ),
     comment: "#",
@@ -181,12 +181,12 @@ writes one with `edge("<kind>", ...)`, like the `discharged-by` edge above.
 
 #config-values-table(schema, "TargetValidator")
 
-A kind whose `validate` isn't `local-task-path` points outside the backlog,
-at a URL, a commit or a ticket. `mt check` reports a target that doesn't fit
-the validator, and names the kind, the validator and the value. `mt` never
-resolves such a target to a task. It leaves it out of `max`, of cycle checks
-and of readiness, even when the kind sets `blocking`. `mt graph` draws each
-such target as a leaf node.
+A kind whose `validate` isn't `local-task-path` accepts a target outside the
+backlog: a URL, a commit or a ticket. `mt check` reports a target that
+doesn't fit the validator, and names the kind, the validator and the value.
+`mt` never resolves such a target to a task. It leaves it out of `max`, of
+cycle checks and of readiness, even when the kind sets `blocking`. `mt graph`
+draws each such target as a leaf node.
 
 = The graph
 
@@ -194,7 +194,7 @@ To see the edges, `mt graph` prints the tasks as a Graphviz DOT graph, or as
 a Mermaid flowchart with `--format mermaid`. Pass a filter to graph only the
 tasks that match, and `--no-terminal` to leave out the finished ones. Each
 node shows a task's title and status. A ready task is green, a blocked one red
-and a finished one gray. Here's the graph of `examples/links/`, the project
-this page quotes:
+and a finished one gray. The graph of `examples/links/`, the project this
+page quotes:
 
 #diagram("links-graph", [`mt graph` on `examples/links/`, drawn by Graphviz])

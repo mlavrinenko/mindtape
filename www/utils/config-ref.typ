@@ -114,8 +114,8 @@
   n
 }
 
-// A schema default as it would be written in TOML; none when the schema
-// carries no default or the default is null.
+// A schema default as it would be written in TOML. None when the schema has
+// no default, or the default is null.
 #let _toml-value(v) = {
   if v == none { none } else if type(v) == str { "\"" + v + "\"" } else if (
     type(v) == bool

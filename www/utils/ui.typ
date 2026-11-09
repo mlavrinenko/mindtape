@@ -110,8 +110,8 @@
 
 // The exit code of the refusal a capture shows: the last command that exited
 // non-zero. A session can end on a command that passes, such as the filing
-// that follows a refusal, so the last command's code would call a success a
-// refusal. The build fails when every command passed.
+// that follows a refusal, so the last command's code would report a success
+// as a refusal. The build fails when every command passed.
 //
 // A capture that shows two refusals names one with `step`, the command's
 // index from 0. The build fails when the capture has no such command, or when
@@ -196,7 +196,7 @@
 
 // The line that leads into the typeset card.
 #let _typeset-intro = [
-  It's Typst, so the same file also typesets into a tidy document.
+  The same file also typesets as a document.
 ]
 
 // The task file, then how `mt ls` lists it, each under its own line. Both
