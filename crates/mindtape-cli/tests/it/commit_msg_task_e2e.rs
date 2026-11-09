@@ -21,6 +21,33 @@ const FLIP_WITH_WORK: &str = "[[commits.rules]]\n\
      message = \"start or close a task in a commit that carries its work\"\n\
      severity = \"error\"\n";
 
+/// The shipped rule: a commit that carries work outside task files names the
+/// task it works on in the configured trailer.
+const NAME_TASK: &str = "[commits]\ntrailer = \"Refs\"\n\n\
+     [[commits.rules]]\n\
+     name = \"name-task-in-refs-trailer\"\n\
+     scope = \"commit\"\n\
+     when = '!tasks_only'\n\
+     assert = 'has(refs)'\n\
+     message = \"name the task this commit works on in a `Refs: <stem>` footer\"\n\
+     severity = \"error\"\n";
+
+/// A committed repository with `config` and each `(path, source)` file.
+fn raw_repo(config: &str, files: &[(&str, &str)]) -> tempfile::TempDir {
+    let dir = tempdir();
+    write_file(dir.path(), ".mindtape/config.toml", config);
+    for (path, source) in files {
+        write_file(dir.path(), path, source);
+    }
+    git_commit_all(dir.path());
+    dir
+}
+
+/// A root-`.` config naming `templates` as its template directory.
+fn root_dot_config(templates: &str) -> String {
+    format!("[tasks]\nroots = [\".\"]\n\n[templates]\ndirs = [\"{templates}\"]\n\n{NAME_TASK}")
+}
+
 /// Rewrite `tasks/parser.typ` with `status` and any `extra` fields.
 fn write_parser(dir: &Path, status: &str, extra: &str) {
     write_file(
@@ -45,6 +72,48 @@ fn stage_work(dir: &Path) {
     std::fs::create_dir_all(dir.join("src")).unwrap();
     write_file(dir, "src/lib.rs", "work\n");
     git(dir, &["add", "src/lib.rs"]);
+}
+
+#[test]
+fn an_unsupported_head_still_classifies_the_index_state() {
+    let config = format!(
+        "[tasks]\nroots = [\"tasks\"]\n\n{NAME_TASK}\n\n\
+         [[commits.rules]]\nname = \"task-rule\"\nscope = \"task\"\n\
+         assert = 'named'\nseverity = \"error\"\n"
+    );
+    let old = "#import \"@local/mindtape:0.1.0\": *\n\n\
+               #show: task.with(title: \"Old\", status: wip(2026, 6, 1))\n";
+    let dir = raw_repo(&config, &[("tasks/old.typ", old)]);
+    write_file(
+        dir.path(),
+        "tasks/fresh.typ",
+        "#metadata((marker: \"mindtape.task\", fields: (title: \"Fresh\"), extras: (:)))\n",
+    );
+    git(dir.path(), &["add", "tasks/fresh.typ"]);
+    stage_work(dir.path());
+
+    let (ok, text) = check_commit_msg(dir.path(), "feat: fresh\n\nRefs: fresh\n");
+    assert!(
+        ok,
+        "the index state, not the unsupported HEAD state, classifies the commit: {text}"
+    );
+}
+
+#[test]
+fn the_index_trailer_key_parses_the_message() {
+    let dir = commit_repo(NAME_TASK);
+    let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml"))
+        .unwrap()
+        .replace("trailer = \"Refs\"", "trailer = \"Task\"");
+    write_file(dir.path(), ".mindtape/config.toml", &config);
+    git(dir.path(), &["add", ".mindtape/config.toml"]);
+    stage_work(dir.path());
+
+    let (ok, text) = check_commit_msg(dir.path(), "feat: parse\n\nTask: parser\n");
+    assert!(
+        ok,
+        "the index names `Task`, so the message's `Task:` trailer is read: {text}"
+    );
 }
 
 #[test]
@@ -263,23 +332,88 @@ fn title_marker(title: &str) -> String {
 
 #[cfg(unix)]
 #[test]
-fn a_symlink_target_change_in_the_index_is_not_reused() {
-    let config = "[tasks]\nroots = [\"tasks\"]\n\n\
-         [[commits.rules]]\nname = \"target\"\nscope = \"task\"\nwhen = 'named'\n\
-         assert = 'staged(title == \"New\")'\nseverity = \"error\"\n";
+fn a_symlink_task_file_is_not_a_task() {
+    let config = "[tasks]\nroots = [\"tasks\"]\n";
     let dir = mindtape::test_support::symlink_repo(
         &[
             (".mindtape/config.toml", config),
-            ("shared/real.typ", &title_marker("Old")),
+            ("shared/real.typ", &title_marker("Linked")),
         ],
         &[("tasks/a.typ", "../shared/real.typ")],
     );
-    let root = dir.path();
+    // T1 stopped treating a symlinked `.typ` as a task source, so the index
+    // state holds no `a` for the trailer to name.
+    let text = support::commit_msg_refusal(dir.path(), "feat: link\n\nRefs: a\n");
+    assert!(text.contains("`a` names no task"), "{text}");
+}
 
-    // HEAD holds Old; the index stages New. The hook must read the index's
-    // target, not reuse HEAD or the working task through the unchanged link.
-    write_file(root, "shared/real.typ", title_marker("New"));
-    git(root, &["add", "shared/real.typ"]);
-    let (ok, text) = check_commit_msg(root, "feat: target\n\nRefs: a\n");
-    assert!(ok, "the staged target is New: {text}");
+#[test]
+fn a_template_only_commit_classifies_with_the_index_config() {
+    let index = root_dot_config("templates");
+    let dir = raw_repo(&index, &[("tasks/parser.typ", &title_marker("Parser"))]);
+    let root = dir.path();
+    write_file(root, "templates/task.typ", title_marker("Template"));
+    git(root, &["add", "templates/task.typ"]);
+    // The worktree names no `templates/` directory; the index still does, so
+    // the indexed template change is not a task-only commit.
+    write_file(
+        root,
+        ".mindtape/config.toml",
+        root_dot_config("other-templates"),
+    );
+    let text = support::commit_msg_refusal(root, "feat: template\n");
+    assert!(
+        text.contains("name the task this commit works on"),
+        "{text}"
+    );
+}
+
+#[test]
+fn a_rename_into_a_template_directory_needs_a_ref() {
+    let config = root_dot_config("templates");
+    let dir = raw_repo(&config, &[("tasks/parser.typ", &title_marker("Parser"))]);
+    let root = dir.path();
+    std::fs::create_dir_all(root.join("templates")).unwrap();
+    git(root, &["mv", "tasks/parser.typ", "templates/parser.typ"]);
+    let text = support::commit_msg_refusal(root, "refactor: move the parser\n");
+    assert!(
+        text.contains("name the task this commit works on"),
+        "a rename into a template dir is not task-only: {text}"
+    );
+}
+
+#[test]
+fn a_tracked_deleted_task_is_still_a_task_only_commit() {
+    let config = root_dot_config("templates");
+    let dir = raw_repo(&config, &[("tasks/parser.typ", &title_marker("Parser"))]);
+    let root = dir.path();
+    git(root, &["rm", "-q", "tasks/parser.typ"]);
+    let (ok, text) = check_commit_msg(root, "task: drop the parser\n");
+    assert!(ok, "a deleted task path stays a commit-state task: {text}");
+}
+
+#[test]
+fn a_staged_only_task_file_is_a_commit_state_task() {
+    let config = "[tasks]\nroots = [\"tasks\"]\n\n\
+         [[commits.rules]]\nname = \"staged-exists\"\nscope = \"task\"\nwhen = 'named'\n\
+         assert = 'staged(exists)'\nseverity = \"error\"\n";
+    let dir = raw_repo(config, &[]);
+    let root = dir.path();
+    write_file(root, "tasks/fresh.typ", title_marker("Fresh"));
+    git(root, &["add", "tasks/fresh.typ"]);
+    std::fs::remove_file(root.join("tasks/fresh.typ")).unwrap();
+    let (ok, text) = check_commit_msg(root, "feat: fresh\n\nRefs: fresh\n");
+    assert!(ok, "the index holds the only copy of the task: {text}");
+}
+
+#[test]
+fn a_path_form_naming_no_task_contributes_no_ref() {
+    let dir = commit_repo(NAME_TASK);
+    stage_work(dir.path());
+    let text = support::commit_msg_refusal(dir.path(), "feat: parse\n\nRefs: tasks/gone.typ\n");
+    assert!(text.contains("names no task"), "{text}");
+    assert!(
+        text.contains("commits.rules.name-task-in-refs-trailer"),
+        "the path must contribute no ref, so the rule sees none: {text}"
+    );
 }

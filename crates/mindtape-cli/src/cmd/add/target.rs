@@ -15,16 +15,22 @@ use super::AddArgs;
 use crate::cmd::add::dedup;
 use crate::cmd::add::output::{self, Outcome};
 use crate::cmd::add::values::slug;
+use crate::cmd::write_guard::{self, Mode};
 use crate::diag::{Diag, Hint, emit};
 use crate::util;
 
 /// Resolve the destination collision against `--dedup`/`[tasks.naming]
-/// dedup`, and report a `skip` outcome immediately (nothing is written for
-/// it). Returns `None` for `skip` (the caller's cue to stop); `Some(outcome)`
-/// otherwise, carrying the exact path to write.
+/// dedup`, then guard the final path, and report a `skip` outcome immediately
+/// (nothing is written for it). Returns `None` for `skip` (the caller's cue to
+/// stop); `Some(outcome)` otherwise, carrying the exact path to write.
+///
+/// The guard runs on the path this resolution chose, suffix included: a
+/// suffix can change which ignore rule matches, and a `skip` collision writes
+/// nothing at all, so it needs no guard.
 ///
 /// # Errors
-/// Propagates [`crate::cmd::add::dedup::resolve`]'s `fail`/exhausted-`add-suffix` errors.
+/// Propagates [`crate::cmd::add::dedup::resolve`]'s `fail`/exhausted-`add-suffix` errors
+/// and the destination guard's refusal.
 pub(super) fn resolve_outcome(
     args: &AddArgs,
     project: &util::Project,
@@ -38,14 +44,19 @@ pub(super) fn resolve_outcome(
         dest.join(format!("{candidate}.typ")).exists()
     })?;
     Ok(match collision {
-        dedup::Collision::None => Some(Outcome::Wrote(file)),
+        dedup::Collision::None => {
+            write_guard::check(project, &file, Mode::Add)?;
+            Some(Outcome::Wrote(file))
+        }
         dedup::Collision::Skipped => {
             let outcome = Outcome::Skipped(file);
             output::emit(&outcome, &output::handle(project, &outcome), args.format);
             None
         }
         dedup::Collision::Suffixed(suffixed_stem) => {
-            Some(Outcome::Suffixed(dest.join(format!("{suffixed_stem}.typ"))))
+            let file = dest.join(format!("{suffixed_stem}.typ"));
+            write_guard::check(project, &file, Mode::Add)?;
+            Some(Outcome::Suffixed(file))
         }
     })
 }
@@ -151,9 +162,7 @@ fn base_dir(into: &str, project: &util::Project) -> Result<PathBuf> {
 /// Warn when `dest` lands outside every configured root, since recursive loading
 /// only sees files under a root.
 pub(crate) fn warn_if_outside_roots(project: &util::Project, dest: &Path) {
-    let Ok(dest_abs) = mindtape::canonical(dest) else {
-        return;
-    };
+    let dest_abs = write_guard::resolve(dest);
     if !project.holds(&dest_abs) {
         emit(
             &Diag::warning("the task directory is outside the configured roots")

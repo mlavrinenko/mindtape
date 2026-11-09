@@ -270,6 +270,10 @@ These sections have a page of their own:
 - `[[ls.rules]]`, `[ls.columns.<name>]` and `[ls] hyperlinks`:
   #link(u("/cli/ls/"))[`mt ls`].
 
+A `[tasks] roots` entry names where task sources live;
+#link(u("/concepts/#which-files-count-as-tasks"))[Which files count as tasks]
+says which files under a root `mt` reads.
+
 The sections below have no other page.
 
 = Derived fields

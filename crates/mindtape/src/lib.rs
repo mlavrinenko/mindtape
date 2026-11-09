@@ -44,6 +44,7 @@ pub mod rules;
 pub mod shell;
 pub mod sort;
 pub mod suggest;
+pub mod task_source;
 pub mod template;
 #[cfg(any(test, feature = "test-support"))]
 pub mod test_support;
@@ -114,10 +115,11 @@ pub use loader::app_dirs::{
 };
 pub use loader::derive::RootDeriver;
 pub use loader::{
-    LoadError, LoadOutcome, LoadWarning, PRELUDE, PRELUDE_SNAPSHOTS, PRELUDE_SUPPORTED,
+    LoadError, LoadOutcome, LoadWarning, NotVisible, PRELUDE, PRELUDE_SNAPSHOTS, PRELUDE_SUPPORTED,
     PRELUDE_VERSION, PreludeSnapshot, find_root, load_project, package_overrides, package_root,
-    prelude_is_older, prelude_manifest, prelude_snapshot, prelude_supports,
-    unsupported_prelude_version, with_packages,
+    prelude_is_older, prelude_manifest, prelude_snapshot, prelude_supports, project_is_worktree,
+    root_task_sources, unsupported_prelude_version, visible_task_sources, visible_typ_files,
+    with_packages, would_be_visible,
 };
 pub use loader::{Loaded, load_many, load_one, map_parallel};
 pub use model::canonical::CanonicalTask;
@@ -137,6 +139,7 @@ pub use query::Query;
 pub use rules::{CheckSpec, RuleSpec};
 pub use sort::{default_order, default_order_with, difficulty_value, sort_by_specs};
 pub use suggest::{Unknown, nearest};
+pub use task_source::{TaskPath, TaskPathKind, TaskSource};
 pub use template::add_slots::{RequiredSlot, inherit_field_choices, required_core_slots};
 pub use template::check::{
     TemplateHome, TemplateSources, code_span_examples, template_breaches, template_failure,

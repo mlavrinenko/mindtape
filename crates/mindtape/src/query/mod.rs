@@ -141,6 +141,61 @@ pub(crate) fn matches(
         .clone()
 }
 
+/// The `git ls-files` arguments every working-tree listing shares: tracked
+/// files (`--cached`) plus untracked files Git does not ignore
+/// (`--others --exclude-standard`), NUL-separated (`-z`) and named from the
+/// repository root (`--full-name`).
+pub(crate) const LS_FILES: [&str; 6] = [
+    "ls-files",
+    "-z",
+    "--cached",
+    "--others",
+    "--exclude-standard",
+    "--full-name",
+];
+
+/// Why a read-only Git command did not answer.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum GitFailure {
+    /// The `git` executable could not be started.
+    Unavailable,
+    /// The directory is not inside a Git work tree.
+    NotAWorkTree,
+    /// Git ran and failed for another reason: its first stderr line.
+    Other(String),
+}
+
+impl GitFailure {
+    /// Classify the message [`crate::git::state::git_bytes`] returned.
+    #[must_use]
+    pub(crate) fn classify(message: &str) -> Self {
+        if message.starts_with("can't run git:") {
+            Self::Unavailable
+        } else if message.contains("not a git repository") {
+            Self::NotAWorkTree
+        } else {
+            Self::Other(message.to_owned())
+        }
+    }
+
+    /// Whether discovery may fall back to a filesystem walk: only a missing
+    /// `git` or a directory outside every work tree is a fallback.
+    #[must_use]
+    pub(crate) const fn permits_fallback(&self) -> bool {
+        matches!(self, Self::Unavailable | Self::NotAWorkTree)
+    }
+
+    /// Git's reason, for an error that cannot fall back.
+    #[must_use]
+    pub(crate) fn reason(&self) -> &str {
+        match self {
+            Self::Unavailable => "can't run git",
+            Self::NotAWorkTree => "not a git repository",
+            Self::Other(reason) => reason,
+        }
+    }
+}
+
 /// The files git lists in one working tree.
 #[derive(Debug)]
 struct Tree {
@@ -168,7 +223,7 @@ fn tree(root: &Path) -> Result<Arc<Tree>, String> {
 }
 
 /// A path git printed raw, kept as the bytes the filesystem holds.
-fn path_from_bytes(bytes: &[u8]) -> PathBuf {
+pub(crate) fn path_from_bytes(bytes: &[u8]) -> PathBuf {
     #[cfg(unix)]
     {
         use std::os::unix::ffi::OsStrExt;
@@ -180,10 +235,20 @@ fn path_from_bytes(bytes: &[u8]) -> PathBuf {
     }
 }
 
+/// Split NUL-separated `git ls-files -z` output into paths, keeping the bytes
+/// the filesystem holds. Empty records (a trailing NUL) are dropped.
+pub(crate) fn nul_paths(bytes: &[u8]) -> Vec<PathBuf> {
+    bytes
+        .split(|byte| *byte == 0)
+        .filter(|path| !path.is_empty())
+        .map(path_from_bytes)
+        .collect()
+}
+
 /// Ask git for `root`'s repository root and listed files.
 fn list(root: &Path) -> Result<Tree, String> {
     let fail = |reason: String| {
-        let hint = if reason.contains("not a git repository") {
+        let hint = if GitFailure::classify(&reason) == GitFailure::NotAWorkTree {
             "; run `git init` to make this project a working tree"
         } else {
             ""
@@ -191,23 +256,8 @@ fn list(root: &Path) -> Result<Tree, String> {
         format!("can't list files for a query: {reason}{hint}")
     };
     let top = git(root, &["rev-parse", "--show-toplevel"]).map_err(fail)?;
-    let listed = git_bytes(
-        root,
-        &[
-            "ls-files",
-            "-z",
-            "--cached",
-            "--others",
-            "--exclude-standard",
-            "--full-name",
-        ],
-    )
-    .map_err(fail)?;
-    let files: BTreeSet<PathBuf> = listed
-        .split(|byte| *byte == 0)
-        .filter(|path| !path.is_empty())
-        .map(path_from_bytes)
-        .collect();
+    let listed = git_bytes(root, &LS_FILES).map_err(fail)?;
+    let files: BTreeSet<PathBuf> = nul_paths(&listed).into_iter().collect();
     Ok(Tree {
         top: PathBuf::from(top.trim_end_matches(['\n', '\r'])),
         files: files.into_iter().collect(),

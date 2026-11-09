@@ -17,10 +17,12 @@
 
 You can write a task file by hand, but `mt add` saves you the boilerplate. It
 writes a new task from a template, so every task starts with the same fields
-and sections. A template is a task file whose values are `slot(...)` calls.
-`mt add` fills the slots, sets the status, checks the task against your rules
-and writes it only if it passes. If `mt add` refuses, it leaves no file
-behind.
+and sections. A template is a `.typ` file shaped like a task, whose values are
+`slot(...)` calls, and it sits in a template directory rather than a task
+root. #link(u("/concepts/#which-files-count-as-tasks"))[Which files count as tasks]
+says why a template is not a task source. `mt add` fills the slots, sets the
+status, checks the task against your rules and writes it only if it passes. If
+`mt add` refuses, it leaves no file behind.
 
 The examples below run against `examples/api-service/`, a sample backend
 project.

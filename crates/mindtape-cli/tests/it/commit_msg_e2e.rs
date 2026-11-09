@@ -8,7 +8,12 @@ use std::path::Path;
 
 use crate::support;
 
-use support::{check_commit_msg, check_commit_msg_with, commit_repo, git, project_with_tasks};
+use mindtape::test_support::write_file;
+
+use support::{
+    check_commit_msg, check_commit_msg_with, commit_repo, git, git_commit_all, project_with_tasks,
+    scaffold_project,
+};
 
 /// The rule the task ships as its worked example: every commit carrying work
 /// names the task it works on.
@@ -294,5 +299,76 @@ fn a_trailer_names_a_task_an_external_ref_or_both() {
     assert!(
         text.contains("parsr") && text.contains("names no task"),
         "a value matching no external pattern is still refused: {text}"
+    );
+}
+
+/// A commit rule with no task-scope rule: the hook still reads the state the
+/// commit carries.
+const NO_TASK_RULES: &str = "[tasks]\nroots = [\"tasks\"]\n\n\
+     [commits]\ntrailer = \"Refs\"\n\n\
+     [[commits.rules]]\n\
+     name = \"name-task-in-refs-trailer\"\n\
+     scope = \"commit\"\n\
+     when = '!tasks_only'\n\
+     assert = 'has(refs)'\n\
+     message = \"name the task this commit works on\"\n\
+     severity = \"error\"\n";
+
+/// A real task source titled `title`.
+fn task(title: &str) -> String {
+    format!(
+        "#import \"@local/mindtape:0.4.0\": *\n\n\
+         #show: task.with(title: \"{title}\", status: wip(2026, 6, 1))\n"
+    )
+}
+
+/// Without a task-scope rule the hook used to skip the states and build the
+/// record from the working tree. The index's task and config must win instead.
+#[test]
+fn a_commit_with_no_task_rule_reads_the_staged_tasks_and_config() {
+    let dir = scaffold_project(NO_TASK_RULES);
+    write_file(dir.path(), "tasks/parser.typ", task("Write the parser"));
+    git_commit_all(dir.path());
+    let working = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
+
+    // The index admits an external ref and holds a task the working tree lacks.
+    let staged = working.replace(
+        "trailer = \"Refs\"\n",
+        "trailer = \"Refs\"\nexternal-refs = [\"^EXT-[0-9]+$\"]\n",
+    );
+    write_file(dir.path(), ".mindtape/config.toml", &staged);
+    write_file(dir.path(), "tasks/fresh.typ", task("Fresh"));
+    stage(dir.path(), "src/lib.rs");
+    git(dir.path(), &["add", "-A"]);
+    write_file(dir.path(), ".mindtape/config.toml", &working);
+    std::fs::remove_file(dir.path().join("tasks/fresh.typ")).unwrap();
+
+    let (ok, text) = check_commit_msg(dir.path(), "feat: x\n\nRefs: parser fresh EXT-7\n");
+    assert!(
+        ok,
+        "the index's task and config must classify the commit: {text}"
+    );
+}
+
+/// A staged config that cannot load keeps its error and the working config
+/// still classifies the commit, as before.
+#[test]
+fn a_broken_staged_config_falls_back_to_the_working_config_and_warns() {
+    let dir = commit_repo(WORK_NAMES_A_TASK);
+    let working = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
+    write_file(dir.path(), ".mindtape/config.toml", "[typst");
+    git(dir.path(), &["add", ".mindtape/config.toml"]);
+    write_file(dir.path(), ".mindtape/config.toml", &working);
+    stage(dir.path(), "src/lib.rs");
+
+    let (ok, text) = check_commit_msg(dir.path(), "feat: parse\n\nRefs: parser\n");
+    assert!(ok, "the working config still classifies the commit: {text}");
+    assert!(
+        text.contains(".mindtape/config.toml as staged:"),
+        "the broken state config is reported: {text}"
+    );
+    assert!(
+        text.contains("the working tree's config is used for this state"),
+        "the warning names the fallback: {text}"
     );
 }

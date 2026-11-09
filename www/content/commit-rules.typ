@@ -102,7 +102,10 @@ rule once per commit, over these fields:
 
   [`tasks_only`],
   [Whether the commit stages at least one file and every staged file is a
-    `.typ` file under a `[tasks] roots` entry.],
+    task file: a regular `.typ` file under a `[tasks] roots` entry, outside
+    every reserved `.mindtape`/`.git` component and template dir. It is
+    decided by path, so a markerless `.typ` counts, a tracked-deleted path
+    counts, and a symlink does not.],
 
   [`in_range`],
   [Whether the commit is read from a range: true under
@@ -112,6 +115,12 @@ rule once per commit, over these fields:
   [Whether the commit has more than one parent. A merge is skipped unless
     `--check-merges` asks for it.],
 )
+
+Commit classification reads the state's own config and task files: the index
+for `mt check --commit-msg`, and each commit's tree for
+`mt check --commits`. A path is a task file when
+#link(u("/concepts/#which-files-count-as-tasks"))[Which files count as tasks]
+admits it under that state's `[[tasks.roots]]` and `[templates] dirs`.
 
 The operators come from the #link(u("/filters/"))[filter language]. The
 functions are `has(field)`, `miss(field)` and `matches(field, "regex")`. Over a

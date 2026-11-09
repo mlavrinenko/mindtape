@@ -19,13 +19,13 @@ pub(crate) fn git_failed(what: &'static str, err: &CommitMsgError) -> Diag {
     Diag::failed(what).cause(err)
 }
 
-/// The project as of `HEAD`, the index and the working tree — loaded only
-/// when a `scope = "task"` rule will read it. A task file a state holds but
-/// cannot evaluate is reported, and reads as absent there.
-fn task_states(project: &util::Project) -> Result<Option<CommitStates>> {
-    if !project.config.commits.has_task_rules() {
-        return Ok(None);
-    }
+/// The project as of `HEAD`, the index and the working tree, and whether the
+/// commit rules may run over them. The staged state is loaded even when no
+/// `scope = "task"` rule will read it, because the commit's record is built
+/// from the config and tasks that state carries. A task file a state holds but
+/// cannot evaluate is reported, and reads as absent there; a state whose
+/// config cannot load keeps its error and uses the working config.
+fn task_states(project: &util::Project) -> Result<(CommitStates, bool)> {
     let plan = StatePlan::index(&project.root)
         .map_err(|err| git_failed("can't read the git index", &err))?;
     let states = CommitStates::load(
@@ -36,16 +36,19 @@ fn task_states(project: &util::Project) -> Result<Option<CommitStates>> {
     )
     .map_err(|err| git_failed("can't read the staged and HEAD task files", &err))?;
     warn_state_errors(&states, StateLabels::default(), None);
-    if (!unsupported_versions(&states.staged).is_empty())
-        || (!unsupported_versions(&states.head).is_empty())
-    {
+    let task_rules = project.config.commits.has_task_rules();
+    let staged_unsupported = !unsupported_versions(&states.staged).is_empty();
+    let head_unsupported = !unsupported_versions(&states.head).is_empty();
+    // Only a task rule reads the head state, so an unsupported head does not
+    // stop the record from reading the staged state when no rule will run.
+    let skip_rules = staged_unsupported || (task_rules && head_unsupported);
+    if skip_rules && task_rules {
         crate::diag::emit(&Diag::verbatim(
             Kind::Warning,
             "skipped commit rules with scope \"task\": a compared state's prelude is unsupported",
         ));
-        return Ok(None);
     }
-    Ok(Some(states))
+    Ok((states, skip_rules))
 }
 
 /// The first file a state holds for each unsupported prelude version, in
@@ -181,19 +184,24 @@ pub(crate) fn run(
     }
     let changed =
         staged_files(&project.root).map_err(|err| git_failed("can't read the git index", &err))?;
-    let message = parse_message(&text, &project.config.commits.trailer);
+    let (states, skip_rules) = task_states(project)?;
+    // The record reads the state the commit carries; a state whose own config
+    // failed to load already carries the working config. The trailer key is
+    // part of that state's config.
+    let (tasks, record_config) = (states.staged_tasks(), states.staged_config());
+    let message = parse_message(&text, &record_config.commits.trailer);
     let (mut record, ref_problems) =
-        CommitRecord::build(&message, &changed, &project.outcome.tasks, &project.config);
+        CommitRecord::build(&message, &changed, tasks, record_config, &project.root);
     record.is_merge = merge;
     for problem in &ref_problems {
         let diag = Diag::verbatim(Kind::Refused, &problem.message)
             .at(file, problem.value.line, None)
-            .rule(project.config.commits.trailer.clone())
+            .rule(record_config.commits.trailer.clone())
             .unknown(problem.unknown.as_ref());
         crate::diag::emit(&diag);
     }
-    let states = task_states(project)?;
-    let breaches = check_commit(&record, states.as_ref(), &project.config);
+    let rule_states = (!skip_rules).then_some(&states);
+    let breaches = check_commit(&record, rule_states, &project.config);
     for breach in &breaches {
         crate::diag::emit(&breach_diag(breach, file));
     }

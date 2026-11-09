@@ -31,6 +31,7 @@ use mindtape::{Task, today_ymd};
 use crate::cmd::recur::edit::{
     OccurrenceDates, apply_counted, due_start_edits, set_recurred_from, status_due_start_edits,
 };
+use crate::cmd::write_guard::{self, Mode};
 use crate::diag::{Diag, Hint, Kind, Note};
 use crate::pre_write;
 use crate::render::file_path;
@@ -232,6 +233,7 @@ fn do_spawn(
         },
     )?;
     let file = dir.join(format!("{stem}.typ"));
+    write_guard::check(project, &file, Mode::Recur)?;
 
     let occurrence_dates = OccurrenceDates {
         today: today_ymd(),
@@ -302,8 +304,11 @@ fn shown(project: &Project, file: &Path) -> String {
     )
 }
 
-/// Write an in-place rewrite over `abs`, or on a dry run leave it be. Returns
-/// the verb to report: `verbs` holds the dry-run one, then the written one.
+/// Write an in-place rewrite over `abs`, or on a dry run leave it be. The
+/// destination guard asks whether the loader would still see the file, for a
+/// preview as much as for a write — a preview that exits 0 while the write it
+/// previews is refused would stop being a preflight. Returns the verb to
+/// report: `verbs` holds the dry-run one, then the written one.
 fn land(
     project: &Project,
     abs: &Path,
@@ -311,6 +316,7 @@ fn land(
     dry_run: bool,
     verbs: [&'static str; 2],
 ) -> Result<&'static str> {
+    write_guard::check(project, abs, Mode::Recur)?;
     if dry_run {
         return Ok(verbs[0]);
     }

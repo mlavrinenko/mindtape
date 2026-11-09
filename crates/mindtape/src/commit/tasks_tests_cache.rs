@@ -208,7 +208,7 @@ fn the_state_file_cache_reuses_hits_and_never_stores_errors() {
 
 #[cfg(unix)]
 #[test]
-fn a_state_follows_a_symlinked_task_file() {
+fn a_state_ignores_a_symlinked_task_file() {
     let config_text = "[tasks]\nroots = [\"tasks\"]\n";
     let dir = crate::test_support::symlink_repo(
         &[
@@ -222,62 +222,12 @@ fn a_state_follows_a_symlinked_task_file() {
     let config = parse_config(config_text).unwrap();
     let plan = revisions("HEAD", "HEAD");
     let states = load(root, &config, &plan);
-    assert_eq!(states.head.tasks[0].id, "a");
-    assert_eq!(states.head.tasks[0].title, "Build");
+    assert!(
+        states.head.tasks.is_empty(),
+        "a 120000 entry is not a task source"
+    );
+    assert!(states.staged.tasks.is_empty());
     assert!(states.head.errors.is_empty(), "{:?}", states.head.errors);
-}
-
-/// A raw task marker with `title`.
-fn title_marker(title: &str) -> String {
-    format!("#metadata((marker: \"mindtape.task\", fields: (title: \"{title}\"), extras: (:)))\n")
-}
-
-#[cfg(unix)]
-#[test]
-fn a_symlink_target_change_invalidates_reuse() {
-    let config_text = "[tasks]\nroots = [\"tasks\"]\n";
-    let dir = crate::test_support::symlink_repo(
-        &[
-            (".mindtape/config.toml", config_text),
-            ("shared/real.typ", &title_marker("Old")),
-        ],
-        &[("tasks/a.typ", "../shared/real.typ")],
-    );
-    let root = dir.path();
-    let config = parse_config(config_text).unwrap();
-    let first = git_stdout(root, &["rev-parse", "HEAD"]);
-    let mut loader =
-        StateLoader::with_layers(root, &[], &config, (Some(root.to_path_buf()), None, None));
-    let states = loader.load(&revisions(&first, &first)).unwrap();
-    assert_eq!(states.staged.tasks[0].title, "Old");
-
-    write_file(root, "shared/real.typ", title_marker("New"));
-    git(root, &["add", "shared/real.typ"]);
-    git(root, &["commit", "-q", "-m", "new target"]);
-    let second = git_stdout(root, &["rev-parse", "HEAD"]);
-    let states = loader.load(&revisions(&first, &second)).unwrap();
-    assert_eq!(states.staged.tasks[0].title, "New");
-
-    std::fs::remove_file(root.join("shared/real.typ")).unwrap();
-    git(root, &["add", "-A"]);
-    git(root, &["commit", "-q", "-m", "drop target"]);
-    let third = git_stdout(root, &["rev-parse", "HEAD"]);
-    let states = loader.load(&revisions(&second, &third)).unwrap();
-    assert!(
-        states.staged.tasks.is_empty(),
-        "a removed target has no task"
-    );
-    assert!(
-        !states.staged.errors.is_empty(),
-        "the broken link is reported"
-    );
-
-    write_file(root, "shared/real.typ", title_marker("Back"));
-    git(root, &["add", "shared/real.typ"]);
-    git(root, &["commit", "-q", "-m", "restore target"]);
-    let fourth = git_stdout(root, &["rev-parse", "HEAD"]);
-    let states = loader.load(&revisions(&third, &fourth)).unwrap();
-    assert_eq!(states.staged.tasks[0].title, "Back");
 }
 
 #[cfg(unix)]
@@ -376,48 +326,5 @@ fn a_state_config_resolves_a_pack_and_its_disable() {
         states.staged.errors.is_empty(),
         "{:?}",
         states.staged.errors
-    );
-}
-
-#[cfg(unix)]
-#[test]
-fn a_chain_target_change_invalidates_reuse() {
-    let config_text = "[tasks]\nroots = [\"tasks\"]\n";
-    let dir = crate::test_support::symlink_repo(
-        &[
-            (".mindtape/config.toml", config_text),
-            ("shared/real.typ", &title_marker("Old")),
-        ],
-        &[
-            ("tasks/a.typ", "b.typ"),
-            ("tasks/b.typ", "../shared/real.typ"),
-        ],
-    );
-    let root = dir.path();
-    let config = parse_config(config_text).unwrap();
-    let first = git_stdout(root, &["rev-parse", "HEAD"]);
-    let mut loader =
-        StateLoader::with_layers(root, &[], &config, (Some(root.to_path_buf()), None, None));
-    assert_eq!(
-        loader
-            .load(&revisions(&first, &first))
-            .unwrap()
-            .staged
-            .tasks[0]
-            .title,
-        "Old"
-    );
-    write_file(root, "shared/real.typ", title_marker("New"));
-    git(root, &["add", "shared/real.typ"]);
-    git(root, &["commit", "-q", "-m", "chain target"]);
-    let second = git_stdout(root, &["rev-parse", "HEAD"]);
-    assert_eq!(
-        loader
-            .load(&revisions(&first, &second))
-            .unwrap()
-            .staged
-            .tasks[0]
-            .title,
-        "New"
     );
 }

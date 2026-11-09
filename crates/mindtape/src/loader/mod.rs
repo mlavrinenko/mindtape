@@ -8,16 +8,21 @@
 //! - `embedded.rs`, `embedded_tests.rs`: the prelude packages this crate
 //!   embeds, one immutable copy per supported version under `preludes/`.
 //! - `errors.rs`: the per-file failures and Typst warnings a load reports.
-//! - `many.rs`, `many_tests.rs`: several projects loaded at once, each on its
-//!   own thread.
-//! - `pins.rs`: the version-aware `[[typst.local-packages]]` provider.
+//! - `many.rs`, `many_tests.rs`: several projects loaded at once, each on its own thread.
+//! - `packages.rs`, `pins.rs`: `@local` resolution and the version-aware provider.
+//! - `visible.rs`, `visible_git.rs`, `visible_project.rs`, `visible_tests.rs`:
+//!   Git's working-tree view, the fallback walk and the destination probe.
 
 pub mod app_dirs;
 pub mod derive;
 mod embedded;
 mod errors;
 mod many;
+mod packages;
 mod pins;
+mod visible;
+mod visible_git;
+mod visible_project;
 
 pub(crate) use pins::StatePackages;
 
@@ -28,7 +33,15 @@ pub use embedded::{
 };
 pub use errors::{LoadError, LoadWarning};
 pub use many::{Loaded, load_many, map_parallel};
+pub(crate) use packages::with_packages_and;
+pub use packages::{package_overrides, with_packages};
 pub use pins::unsupported_prelude_version;
+pub use visible::{
+    NotVisible, project_is_worktree, root_task_sources, visible_task_sources, visible_typ_files,
+    would_be_visible,
+};
+
+use visible::VisibleFiles;
 
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -40,6 +53,7 @@ use crate::loader::derive::RootDeriver;
 use crate::model::Task;
 use crate::model::task_spans::TaskCallSpans;
 use crate::slash_path;
+use crate::task_source::{TaskPath, TaskSource};
 
 // The persistent task cache is a loader implementation detail with no public
 // API, so it lives as a private submodule here rather than on the crate's
@@ -117,6 +131,12 @@ struct Miss<'a> {
 
 /// Load every task under the configured roots.
 ///
+/// Discovery uses Git's working-tree listing for each root: tracked files,
+/// and untracked files Git does not ignore. A root outside a work tree, or a
+/// machine without `git`, falls back to the policy walk; any other Git failure
+/// is reported in [`LoadOutcome::errors`] against that root. An ignored root
+/// contributes its tracked files and one warning.
+///
 /// The warm path stats and content-hashes each file and serves unchanged files
 /// straight from the on-disk [`TaskCache`], skipping Typst evaluation entirely.
 /// Only the cache misses (new or edited files) are live-evaluated, in parallel
@@ -124,7 +144,12 @@ struct Miss<'a> {
 /// prelude is parsed once and evaluation fans out across cores.
 #[must_use]
 pub fn load_project(root: &Path, config: &Config) -> LoadOutcome {
-    let mut outcome = harvest_items(&collect_items(root, config), root, config);
+    let visible = VisibleFiles::new(root, config);
+    let (items, reserved) = collect_items(config, &visible);
+    let mut outcome = harvest_items(&items, root, config);
+    outcome.warnings.extend(reserved);
+    outcome.warnings.extend(visible.warnings());
+    outcome.errors.extend(visible.errors().cloned());
     outcome.tasks.sort_by(|left, right| left.id.cmp(&right.id));
     outcome
         .warnings
@@ -154,23 +179,21 @@ pub fn load_project(root: &Path, config: &Config) -> LoadOutcome {
 ///
 /// # Errors
 ///
-/// The file's load failure, or a path that is not a `.typ` file inside a
-/// configured task root: a file there would carry no folder tags and so
-/// differ from its [`load_project`] task.
+/// The file's load failure; a path that is not a `.typ` file inside a
+/// configured task root (a file there would carry no folder tags and so differ
+/// from its [`load_project`] task); or a source Git does not expose in the
+/// working tree, such as an untracked ignored file.
 pub fn load_one(root: &Path, config: &Config, path: &Path) -> Result<Option<Task>, LoadError> {
-    let rel = path.strip_prefix(root).unwrap_or(path);
-    let in_a_root = config.tasks.roots.iter().any(|spec| {
-        let dir = spec.dir();
-        dir.is_empty() || rel.strip_prefix(&dir).is_ok()
-    });
-    if !in_a_root || rel.extension().and_then(|ext| ext.to_str()) != Some("typ") {
-        return Err(LoadError {
-            file: rel.to_path_buf(),
-            message: "not a `.typ` file inside a task root".to_owned(),
-            ..LoadError::default()
-        });
+    let source = TaskSource::new(root, config);
+    let task_path = source.task_path(path);
+    if !source.is_source(&task_path) {
+        return Err(not_a_source(root, path));
     }
-    let mut outcome = harvest_items(&[item_at(root, config, rel)], root, config);
+    let visible = VisibleFiles::new(root, config);
+    if let Err(refusal) = visible.admits(&task_path) {
+        return Err(refused(&task_path, refusal));
+    }
+    let mut outcome = harvest_items(&[item_at(root, config, task_path.rel())], root, config);
     if let Some(error) = outcome.errors.into_iter().next() {
         return Err(error);
     }
@@ -322,36 +345,70 @@ pub(crate) fn derivation(config: &Config, rel: &Path) -> (Vec<String>, u8) {
         .unwrap_or_default()
 }
 
-/// Every `.typ` file under the configured roots, paired with its
-/// project-relative path and the tags its folder location derives.
-fn collect_items(root: &Path, config: &Config) -> Vec<LoadItem> {
+/// Every task source under the configured roots, paired with its
+/// project-relative path and the tags its folder location derives, and one
+/// warning per reserved `.typ` file that holds a `task.with` call.
+fn collect_items(config: &Config, visible: &VisibleFiles) -> (Vec<LoadItem>, Vec<LoadWarning>) {
+    let source = visible.source();
     let mut items = Vec::new();
+    let mut warnings = Vec::new();
     let mut seen = HashSet::new();
-    for spec in &config.tasks.roots {
-        let dir = root.join(spec.dir());
+    let mut warned = HashSet::new();
+    for (spec, view) in config.tasks.roots.iter().zip(visible.roots()) {
         let deriver = RootDeriver::new(spec, &config.tasks.derive_tags);
-        let mut files = Vec::new();
-        collect_typ_files(&dir, &mut files);
-        files.sort();
-        for file in files {
-            let rel_within = file.strip_prefix(&dir).unwrap_or(&file);
+        for file in &view.candidates {
+            let path = source.task_path(file);
+            if !source.is_source(&path) {
+                if warned.insert(path.rel().to_path_buf())
+                    && let Some(warning) = source.reserved_warning_for_file(&path)
+                {
+                    warnings.push(warning);
+                }
+                continue;
+            }
+            let rel_within = path.abs().strip_prefix(&view.dir).unwrap_or(path.abs());
             let folder_tags = deriver.tags_for(rel_within);
             let depth = crate::loader::derive::depth(rel_within);
-            let rel = file.strip_prefix(root).unwrap_or(&file).to_path_buf();
+            let rel = path.rel().to_path_buf();
             // Overlapping roots name one file once, and the first root that
             // contains it wins, matching `item_at` and a commit state's list.
             if !seen.insert(rel.clone()) {
                 continue;
             }
             items.push(LoadItem {
-                file,
+                file: path.abs().to_path_buf(),
                 rel,
                 folder_tags,
                 depth,
             });
         }
     }
-    items
+    (items, warnings)
+}
+
+/// The error a path the policy never accepts earns.
+fn not_a_source(root: &Path, path: &Path) -> LoadError {
+    LoadError {
+        file: path.strip_prefix(root).unwrap_or(path).to_path_buf(),
+        message: "not a `.typ` file inside a task root".to_owned(),
+        ..LoadError::default()
+    }
+}
+
+/// The error a source the working tree does not expose earns.
+fn refused(path: &TaskPath, refusal: NotVisible) -> LoadError {
+    let message = match refusal {
+        NotVisible::Ignored => {
+            "ignored by git and not tracked; an ignored untracked file is not a task".to_owned()
+        }
+        NotVisible::Git(reason) => reason,
+        other => other.to_string(),
+    };
+    LoadError {
+        file: path.rel().to_path_buf(),
+        message,
+        ..LoadError::default()
+    }
 }
 
 /// Fold one harvested miss into `outcome` and update the cache. A clean harvest
@@ -411,68 +468,9 @@ fn build_world(
     Ok(with_packages(world, overrides))
 }
 
-/// `world` resolving `@local` packages the way every world Mindtape builds
-/// does: under [`package_root`], with `overrides` (from [`package_overrides`])
-/// pinning a package to an in-tree directory for the version its manifest
-/// declares, and the installed or embedded copy where the pin does not hold
-/// that version.
-///
-/// A pin is authoritative only for its own version. A task file importing
-/// another version falls through to the package directory, so a commit range
-/// across a prelude bump reads each tree's imports against the version that
-/// tree names while the working tree keeps its pin.
-#[must_use]
-pub fn with_packages(world: HarvestWorld, overrides: &[(String, PathBuf)]) -> HarvestWorld {
-    pins::with_packages_at(world, overrides, package_root())
-}
-
-/// [`with_packages`] with a commit state's own package files tried first, so
-/// a past tree's task files resolve against that tree's `lib/` rather than the
-/// working tree's pin or the machine's install.
-#[must_use]
-pub(crate) fn with_packages_and(
-    world: HarvestWorld,
-    overrides: &[(String, PathBuf)],
-    state: StatePackages,
-) -> HarvestWorld {
-    pins::with_packages_and(world, overrides, package_root(), Some(state))
-}
-
-/// The `@local/<name>` → in-tree overrides for this project: its
-/// `[[typst.local-packages]]` entries, and nothing else. The core names no
-/// directory of its own, so Mindtape's own repository pins its `lib/` with an
-/// entry like any other project. A pin serves only the version its
-/// `typst.toml` declares; [`with_packages`] applies that rule.
-///
-/// Public because it is the project's single answer to "which `@local`
-/// packages resolve here", and every world Mindtape builds, `mt eval`'s
-/// included, has to give the same one.
-pub fn package_overrides(root: &Path, config: &Config) -> Vec<(String, PathBuf)> {
-    config
-        .typst
-        .local_packages
-        .iter()
-        .map(|pkg| (pkg.name.clone(), root.join(&pkg.path)))
-        .collect()
-}
-
 fn file_stem(file: &Path) -> String {
     file.file_stem()
         .map_or_else(String::new, |stem| stem.to_string_lossy().into_owned())
-}
-
-fn collect_typ_files(dir: &Path, out: &mut Vec<PathBuf>) {
-    let Ok(entries) = std::fs::read_dir(dir) else {
-        return;
-    };
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if path.is_dir() {
-            collect_typ_files(&path, out);
-        } else if path.extension().and_then(|ext| ext.to_str()) == Some("typ") {
-            out.push(path);
-        }
-    }
 }
 
 /// The first `mindtape.task` marker value in a harvest, if any.
@@ -497,3 +495,5 @@ mod tests_prelude;
 #[cfg(test)]
 #[path = "tests_prelude_ast_grep.rs"]
 mod tests_prelude_ast_grep;
+#[cfg(test)]
+mod tests_visible;

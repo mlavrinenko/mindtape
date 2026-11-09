@@ -24,6 +24,7 @@ use std::path::PathBuf;
 use crate::diag::Result;
 use mindtape::ImportReport;
 
+use crate::cmd::write_guard::{self, Mode};
 use crate::diag::Diag;
 use crate::pre_write::{self, Pending, Problem};
 use crate::util::Project;
@@ -55,11 +56,15 @@ pub(crate) struct TaskOutcome {
 /// remove and no window in which a half-valid file is on disk.
 ///
 /// A record's folder is created only once it has actually earned a write: a
-/// batch rejected end to end leaves not even an empty directory behind.
+/// batch rejected end to end leaves not even an empty directory behind. The
+/// destination guard runs first, for the same reason: a destination no later
+/// command would load is refused before its folder exists.
 ///
 /// # Errors
-/// Returns an error if a folder cannot be created or a file cannot be written.
+/// Returns an error if a destination would be invisible, a folder cannot be
+/// created or a file cannot be written.
 pub(crate) fn land(project: &Project, staged: Vec<StagedTask>) -> Result<Vec<TaskOutcome>> {
+    guard_staged(project, &staged)?;
     let mut warned = HashSet::new();
     for task in &staged {
         if warned.insert(task.dest.clone()) {
@@ -83,17 +88,32 @@ pub(crate) fn land(project: &Project, staged: Vec<StagedTask>) -> Result<Vec<Tas
     Ok(pair_outcomes(staged, problems))
 }
 
-/// Preview `staged` without touching a destination: exactly [`land`]'s check, minus
-/// the write. A candidate is validated without a file either way, so the two
-/// paths ask the identical question and no temp mirror of the project has to
-/// be built to ask it.
+/// Preview `staged` without touching a destination: exactly [`land`]'s checks,
+/// the destination guard included, minus the write. A candidate is validated
+/// without a file either way, so the two paths ask the identical question and
+/// no temp mirror of the project has to be built to ask it. The guard itself
+/// creates nothing, so a refused preview leaves no directory behind.
 ///
 /// # Errors
-/// Returns an error if the project's configured body rules do not compile
-/// (see [`crate::pre_write::check`]).
+/// Returns an error if a destination would be invisible, or if the project's
+/// configured body rules do not compile (see [`crate::pre_write::check`]).
 pub(crate) fn preview(project: &Project, staged: Vec<StagedTask>) -> Result<Vec<TaskOutcome>> {
+    guard_staged(project, &staged)?;
     let problems = check_staged(project, &staged)?;
     Ok(pair_outcomes(staged, problems))
+}
+
+/// Refuse the batch when any record's final destination would be invisible,
+/// naming that record's resolved path and the reason the loader gave.
+///
+/// # Errors
+/// The first refusal, which creates nothing.
+fn guard_staged(project: &Project, staged: &[StagedTask]) -> Result<()> {
+    for task in staged {
+        let file = task.dest.join(format!("{}.typ", task.stem));
+        write_guard::check(project, &file, Mode::Import)?;
+    }
+    Ok(())
 }
 
 /// The problems attributed to each staged record, in input order — empty means

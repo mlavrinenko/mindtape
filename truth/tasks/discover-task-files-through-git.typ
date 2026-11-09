@@ -31,7 +31,7 @@
   ),
   assignee: "agent",
   links: depends-on("define-and-export-one-task-source-policy.typ"),
-  status: proposed(2026, 11, 9),
+  status: done(2026, 11, 10),
 )
 
 == AS-IS

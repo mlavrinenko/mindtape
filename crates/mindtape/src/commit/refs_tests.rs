@@ -4,6 +4,7 @@ use super::{CommitRefs, Read, Touched, cache_path, parse_log, resolve};
 use crate::config::{Config, parse_config};
 use crate::model::Task;
 use crate::test_support::bare_task;
+use crate::test_support::tempdir;
 
 /// One commit of `git log --format=%x1e%B%x1f --name-status -z` output.
 fn commit(message: &str, records: &[&str]) -> String {
@@ -26,7 +27,8 @@ fn resolved(config: &Config, refs: &[&str], tasks: &[Task]) -> Touched {
         },
         root_prefix: String::new(),
     };
-    resolve(&read, "src/x.rs", config, Some(tasks))
+    let root = tempdir();
+    resolve(&read, root.path(), "src/x.rs", config, Some(tasks))
 }
 
 #[test]
@@ -93,13 +95,29 @@ fn a_rename_resolves_only_when_both_sides_are_task_files() {
         root_prefix: String::new(),
     };
     let tasks = [bare_task("new")];
-    let resolved = resolve(&read, "src/x.rs", &config, Some(&tasks));
+    let root = tempdir();
+    let resolved = resolve(&read, root.path(), "src/x.rs", &config, Some(&tasks));
     assert!(
         resolved.stems.is_empty(),
         "a rename with a side outside the task roots resolves nothing: {:?}",
         resolved.stems
     );
     assert_eq!(resolved.retired, ["old"]);
+}
+
+#[test]
+fn a_path_form_ref_outside_the_policy_names_no_task() {
+    let config =
+        parse_config("[tasks]\nroots = [\"tasks\"]\n[templates]\ndirs = [\"templates\"]\n")
+            .unwrap();
+    let tasks = [bare_task("parser")];
+    let resolved = resolved(&config, &["templates/parser.typ"], &tasks);
+    assert!(resolved.stems.is_empty(), "{:?}", resolved.stems);
+    assert!(
+        resolved.retired.is_empty(),
+        "a template path names no task to retire: {:?}",
+        resolved.retired
+    );
 }
 
 #[test]

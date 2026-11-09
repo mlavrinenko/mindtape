@@ -115,12 +115,13 @@ impl CommitRange {
                 &commit.id,
             ],
         )?;
-        let paths = changed_paths(root, &[parent, &commit.id])?;
+        let (paths, symlinks) = changed_paths(root, &[parent, &commit.id])?;
         let renamed_from = renamed_sources(root, &[parent, &commit.id])?;
         Ok(PastCommit {
             message,
             changed: ChangedFiles {
                 paths,
+                symlinks,
                 renamed_from,
                 root_prefix: self.root_prefix.clone(),
             },

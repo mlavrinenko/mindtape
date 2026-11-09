@@ -9,8 +9,8 @@
 //! The state's `.mindtape/config.toml` is the top layer over the embedded
 //! floor, XDG defaults and ancestor `.mindtape/defaults.toml` files that a
 //! working-tree load discovers, so roots and pins those layers declare still
-//! apply. The state's project config text, task file bytes (following an
-//! in-repository symlink) and pinned package files come from its git tree.
+//! apply. The state's project config text, task file bytes and pinned package
+//! files come from its git tree.
 //! A task file's relative imports outside a pin, files a config layer names
 //! such as packs and dictionary paths, and task roots outside the project
 //! still read the working tree; a state cannot list them.
@@ -29,6 +29,7 @@ use crate::commit::tree_io::{
 use crate::commit::{CommitMsgError, git_optional};
 use crate::config::Config;
 use crate::loader::{LoadError, StatePackages, package_overrides};
+use crate::task_source::TaskSource as TaskSourcePolicy;
 
 /// The config a state's tree declares, or the reason it could not be used.
 #[derive(Clone)]
@@ -51,8 +52,8 @@ pub(crate) struct TaskEntry {
     pub(crate) rel: PathBuf,
     /// The blob object id the state holds.
     pub(crate) oid: String,
-    /// The git file mode, so a `120000` symlink is followed rather than read
-    /// as Typst source.
+    /// The git file mode. [`StateTree::task_entries`] drops a `120000`
+    /// symlink: it is never a task source.
     pub(crate) mode: String,
 }
 
@@ -136,10 +137,15 @@ impl<'a> StateTree<'a> {
         self.project_text(Path::new(CONFIG_PATH))
     }
 
-    /// Every `.typ` task file under the roots `config` declares, with the blob
-    /// ids that identify unchanged files between states. A file under two
-    /// overlapping roots is listed once.
+    /// Every task file under the roots `config` declares, with the blob ids
+    /// that identify unchanged files between states. Classification is the
+    /// shared [`crate::task_source::TaskSource`] policy, so a template dir,
+    /// reserved component or path outside every root is not an entry. It is
+    /// lexical: a tracked file the working tree lacks is still listed, and a
+    /// `120000` symlink entry is not a source. A file under two overlapping
+    /// roots is listed once.
     pub(crate) fn task_entries(&self, config: &Config) -> Result<Vec<TaskEntry>, CommitMsgError> {
+        let policy = TaskSourcePolicy::new(self.root, config);
         let mut entries = BTreeMap::new();
         for spec in &config.tasks.roots {
             let root = spec.dir();
@@ -147,12 +153,15 @@ impl<'a> StateTree<'a> {
                 continue;
             };
             for entry in self.list_entries(&prefix)? {
-                if !entry.path.ends_with(".typ") {
+                if entry.mode == "120000" {
                     continue;
                 }
                 let Some(rel) = project_rel(self.prefix, &entry.path) else {
                     continue;
                 };
+                if !policy.would_be_source(&policy.task_path(&rel)) {
+                    continue;
+                }
                 // The first root that contains a file wins, matching
                 // `loader::item_at` and `collect_items`.
                 entries.entry(rel).or_insert(entry);

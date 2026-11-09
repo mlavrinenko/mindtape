@@ -16,6 +16,8 @@
 //! - `allow.rs`, `config.rs`, `eval.rs`, `find.rs`, `go.rs`, `mv.rs`,
 //!   `preset.rs`, `review.rs`, `schema.rs`, `set.rs`, `at.rs`, `board.rs` —
 //!   one file each.
+//! - `write_guard.rs` — the destination guard `mt add`, `mt import` and
+//!   `mt recur` share before they create a file.
 
 pub(crate) mod add;
 pub(crate) mod allow;
@@ -43,3 +45,4 @@ pub(crate) mod review;
 pub(crate) mod rm;
 pub(crate) mod schema;
 pub(crate) mod set;
+pub(crate) mod write_guard;

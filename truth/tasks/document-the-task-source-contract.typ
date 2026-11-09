@@ -39,7 +39,7 @@
     "reject-reserved-task-roots.typ",
     "align-mt-fix-with-task-discovery.typ",
   ),
-  status: proposed(2026, 11, 9),
+  status: done(2026, 11, 10),
 )
 
 == AS-IS

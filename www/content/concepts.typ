@@ -27,9 +27,71 @@ line is the task's body, in Typst markup. Here's a task from
 
 #raw(read("../generated/concepts-task.typ"), lang: "typ", block: true)
 
-`mt` reads every `.typ` file under the roots you list in `[tasks] roots`. A
+`mt` reads the task sources under the roots you list in `[[tasks.roots]]`. A
 root can be a backlog folder or the source tree itself, so a task can sit next
-to the code it changes. The #link(u("/dsl/"))[Task DSL] lists every field.
+to the code it changes.
+#link(u("/concepts/#which-files-count-as-tasks"))[Which files count as tasks]
+says which files under a root qualify. The #link(u("/dsl/"))[Task DSL] lists
+every field.
+
+== Which files count as tasks
+
+A task source is a regular `.typ` file under a configured `[[tasks.roots]]`
+entry, outside every reserved component and template directory below. `mt`
+judges a path lexically: it folds `.` and `..` without touching the
+filesystem, so a root needs no trailing slash and a file counts by where its
+path lands. These rules narrow that base:
+
+- The extension is `.typ`, case-sensitive, so `TASK.TYP` is not a task.
+- No path component may be `.mindtape` or `.git`, in any ASCII case. The
+  project's metadata directory never holds a task.
+- A file under a `[templates] dirs` entry is a template, not a task. A
+  #link(u("/templates/"))[template] is a `.typ` file with `slot(...)` calls,
+  and `mt check` checks it on its own.
+- The entry at the path must be a regular file. A symlink is never a task
+  source, even one whose target is a regular `.typ` file, and no scan follows
+  a directory symlink.
+
+A working-tree config whose root sits under `.mindtape` or `.git`, or whose
+template directory holds a root or the project root, is refused when it
+loads, because it could never yield a task.
+
+In a Git work tree, `mt` asks Git which paths the working tree holds: every
+tracked regular file and every untracked file Git does not ignore. That keeps
+`mt ls` in step with the commit states. A tracked file stays a task when an
+ignore pattern matches it, and an untracked ignored file is not a task. A
+tracked file deleted from the working tree is not a task there, though a
+commit state still lists it. An ignored task root lists only its tracked
+files, and the load warns once that the root's untracked files are invisible;
+unignore the root to load them.
+Git's rules are the repository's `.gitignore` files, `.git/info/exclude` and
+your global excludes file. The last two are machine-local, so two people can
+see different tasks in one clone.
+
+An untracked ignored path is not scanned at all. When an ignore rule starts
+matching an untracked task file, that task leaves the listing and its links
+resolve as missing, but the file stays where it is: `mt` does not delete it.
+A tracked file is unaffected.
+
+A root outside the project is working-tree only. `mt` finds its files for
+`mt ls`, `mt check` and `mt fix`, and a commit state cannot list them, so
+commit classification reads only paths inside the project.
+
+Outside a Git work tree, or on a machine without `git`, `mt` walks each root
+on disk with the same extension, reserved-name and template rules. The walk
+consults no ignore rules and does not follow a directory symlink. Any other
+Git failure stops the load with an error naming the root.
+
+Two examples. A project whose only root is `.` holds its backlog across the
+whole tree. Its template at `.mindtape/templates/task.typ` sits under a
+reserved component and a template directory, so the template is not a task,
+while a real task can sit beside the code it changes. A tracked
+`tasks/old.typ` that a `.gitignore` line matches stays a task, because Git
+still tracks it; `git rm --cached tasks/old.typ` drops it from the listing
+without touching the file. A task file that becomes a symlink, such as
+`tasks/alias.typ -> ../shared/task.typ`, stops being a source even when the
+target is a regular `.typ` file, and `mt add` refuses a destination that is
+itself a symlink.
 
 = Every command reads the files
 

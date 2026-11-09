@@ -22,6 +22,7 @@ use super::{
     plan_next, plan_step, shown, spawn_source, stem_of,
 };
 use crate::cmd::recur::edit::OccurrenceDates;
+use crate::cmd::write_guard::{self, Mode};
 use crate::diag::{self, Diag, Hint, Kind, Note};
 use crate::pre_write::{self, Pending};
 use crate::util::{self, Project};
@@ -154,6 +155,10 @@ pub(super) fn build_advance_chain(
 
 /// Print a preview (dry-run), or check the whole chain and write it.
 ///
+/// The destination guard runs over every member first, for a preview as much
+/// as for a write: each occurrence lands beside its predecessor, so one
+/// invisible member refuses the batch before its folder exists.
+///
 /// The check is all-or-nothing, and the chain is why: every occurrence's source
 /// is the previous one rewritten, and each names its predecessor through a
 /// `recurred-from` edge. So the members are only valid as a set — a lone
@@ -166,6 +171,9 @@ pub(super) fn write_advance_chain(
     spawned: &[(PathBuf, NaiveDate, String)],
     dry_run: bool,
 ) -> Result<()> {
+    for (file, _, _) in spawned {
+        write_guard::check(project, file, Mode::Recur)?;
+    }
     if dry_run {
         for (file, next, _) in spawned {
             println!(

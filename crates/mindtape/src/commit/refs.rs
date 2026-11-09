@@ -35,6 +35,7 @@ use crate::commit::{
 use crate::config::Config;
 use crate::git::state::git;
 use crate::model::Task;
+use crate::task_source::TaskSource;
 
 /// Bump when the cached shape changes: a mismatch is a miss.
 const FORMAT_VERSION: u32 = 2;
@@ -158,7 +159,7 @@ impl RefsCache {
             .get_or_init(|| read(root, &config.commits.trailer))
             .as_ref()
             .map_err(Clone::clone)?;
-        let touched = Arc::new(resolve(read, &path, config, set));
+        let touched = Arc::new(resolve(read, root, &path, config, set));
         lock(&self.retired).extend(touched.retired.iter().cloned());
         lock(&self.answers).insert(key, Arc::clone(&touched));
         Ok(touched)
@@ -176,7 +177,8 @@ fn lock<T>(mutex: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
 }
 
 /// Resolve the refs the commits changing `path` name.
-fn resolve(read: &Read, path: &str, config: &Config, set: Option<&[Task]>) -> Touched {
+fn resolve(read: &Read, root: &Path, path: &str, config: &Config, set: Option<&[Task]>) -> Touched {
+    let source = TaskSource::new(root, config);
     let current: Option<HashSet<String>> = set.map(|tasks| tasks.iter().map(task_stem).collect());
     let matchers = external_matchers(&config.commits.external_refs);
     let renamed: HashMap<String, String> = read
@@ -184,8 +186,8 @@ fn resolve(read: &Read, path: &str, config: &Config, set: Option<&[Task]>) -> To
         .renames
         .iter()
         .filter(|(from, to)| {
-            is_task_file(from, &read.root_prefix, config)
-                && is_task_file(to, &read.root_prefix, config)
+            is_task_file(from, &read.root_prefix, &source)
+                && is_task_file(to, &read.root_prefix, &source)
         })
         .map(|(from, to)| (value_stem(from), value_stem(to)))
         .filter(|(from, to)| from != to)
@@ -197,18 +199,33 @@ fn resolve(read: &Read, path: &str, config: &Config, set: Option<&[Task]>) -> To
             // A token that names a task is a task ref, even when a pattern
             // also matches; an external path or URL names no task file.
             if current.is_some() {
-                task_name(token, read, config, &renamed, current.as_ref())
+                task_name(
+                    token,
+                    &read.root_prefix,
+                    &renamed,
+                    current.as_ref(),
+                    &source,
+                )
             } else {
                 None
             }
         } else {
-            current_name(&value_stem(token), &renamed, current.as_ref())
+            // A path-form ref names a task only under the policy; a bare stem
+            // resolves as it always did.
+            task_name(
+                token,
+                &read.root_prefix,
+                &renamed,
+                current.as_ref(),
+                &source,
+            )
         };
         match resolved {
             Some(name) => {
                 touched.stems.insert(name);
             }
             None if external => {}
+            None if is_path_form(token) && !is_task_file(token, &read.root_prefix, &source) => {}
             None => touched.retired.push(value_stem(token)),
         }
     }
@@ -219,13 +236,13 @@ fn resolve(read: &Read, path: &str, config: &Config, set: Option<&[Task]>) -> To
 /// root; an external path or URL names none.
 fn task_name(
     token: &str,
-    read: &Read,
-    config: &Config,
+    root_prefix: &str,
     renamed: &HashMap<String, String>,
     current: Option<&HashSet<String>>,
+    source: &TaskSource,
 ) -> Option<String> {
     if is_path_form(token) {
-        if !is_task_file(token, &read.root_prefix, config) {
+        if !is_task_file(token, root_prefix, source) {
             return None;
         }
         return current_name(&value_stem(token), renamed, current);

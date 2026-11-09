@@ -7,6 +7,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Upgrading from 0.5
+
+- Not every `.typ` file under a `[[tasks.roots]]` entry is a task. A file in a
+  `[templates] dirs` entry, under a `.mindtape` or `.git` component, or at a
+  symlink is not a task source. A project with `path = "."` stops listing
+  `.mindtape/templates/task.typ`; check that each `.typ` file you mean as a
+  task sits outside those paths.
+- Discovery asks Git: tracked files and untracked files Git does not ignore
+  are visible. An untracked file under an ignore rule is not a task, so
+  `mt ls` and `mt check` leave it out; track it with `git add -f` to restore
+  it. A tracked file under an ignore rule stays visible.
+- A symlinked task file is not a task source. Replace the link with the file
+  it points at, or move the task to a regular file.
+- An ignored task root lists only its tracked files. `mt` warns once; unignore
+  the root to load its untracked files.
+- Outside a Git work tree, discovery keeps the filesystem walk, with the same
+  reserved-name and template-dir rules and no directory symlinks.
+- `mt add`, `mt import` and `mt recur` refuse a destination the loader would
+  not read back, including a new file under an ignore rule. Choose another
+  `--into`/`--to`, move the task, or unignore its path.
+- Commit classification reads each state's own config and task files, so
+  `tasks_only` and task refs see the index under `mt check --commit-msg` and
+  each commit's tree under `mt check --commits`.
+- `mt fix` scans the visible task sources and template dirs by default, and
+  every Git-visible `.typ` file with `--all`. An untracked ignored file is in
+  neither scope, and a tracked ignored task is in both.
+
+### Changed
+
+- **Templates, reserved paths and symlinks are not task sources.** The
+  loader, commit states and `mt fix` apply one path policy: a regular `.typ`
+  file under a `[[tasks.roots]]` entry, outside every `.mindtape` or `.git`
+  component and `[templates] dirs` entry. A root-`.` project stops listing
+  `.mindtape/templates/task.typ`, and a commit of template files alone is not
+  task-only. A markerless `.typ` under a root still counts; a symlink does
+  not.
+- **Git-ignored untracked files are not scanned.** Discovery lists tracked
+  files and untracked files Git does not ignore. An untracked ignored `.typ`
+  file is not a task, while a tracked file under an ignore rule stays one.
+- **A symlinked task file is not a source.** The policy reads the kind of the
+  entry, so a link is not a task even when it points at a regular `.typ`
+  file, and no scan follows a directory symlink.
+- **An ignored root shows only its tracked files.** The load warns once, and
+  an untracked file under the root stays invisible until the root is
+  unignored.
+- **A non-Git project keeps the policy walk.** A root outside a work tree, or
+  a machine without `git`, walks the filesystem with the same reserved-name
+  and template-dir skips and no directory symlinks.
+- **Write commands refuse an invisible destination.** `mt add`, `mt import`
+  and `mt recur` refuse a template path, a reserved `.mindtape` or `.git`
+  path, a destination that is itself a symlink, and a new file under an
+  ignore rule.
+- **Commit classification uses each state's config.** `tasks_only`, the task
+  refs and the task scope read the index's config and task files under
+  `mt check --commit-msg`, and each commit's own under `mt check --commits`.
+- **`mt fix` scopes follow visible sources.** The default scope is the visible
+  task sources plus every in-project template dir. `--all` is every
+  Git-visible `.typ` file. An untracked ignored file is in neither scope, and
+  a tracked ignored task is in both.
+
 ## [0.5.0] - 2026-11-08
 
 ### Upgrading from 0.4

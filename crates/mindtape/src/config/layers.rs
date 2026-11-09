@@ -425,6 +425,12 @@ pub fn load_config_layered_in(
     let layers = discover_layers_with_xdg(root, home, xdg_config_dir);
     let sources = layers.iter().map(|layer| layer.source.clone()).collect();
     let (config, rule_origins) = build_config(&layers, root, pack_cache)?;
+    // Working-tree loads only: a commit state's config (`load_config_with_project`)
+    // and `mt config show`'s raw merged table (`merged_config_table`) call
+    // `build_config`/`merge_doc` directly, so a historical state and the raw
+    // view keep reading what the tree declares.
+    crate::config::roots::validate_task_sources(&config, root)
+        .map_err(|err| name_file(err, &config.provenance, root))?;
     Ok((config, sources, rule_origins))
 }
 

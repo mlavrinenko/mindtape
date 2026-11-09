@@ -142,7 +142,7 @@ pub fn run(args: &FixArgs) -> Result<()> {
     let root = util::resolve_root()?;
     let config = mindtape::load_config(&root)?;
     let pin = project_prelude_pin_version(&root, &config);
-    let paths = scope::collect(&root, &config, args.all);
+    let paths = scope::collect(&root, &config, args.all)?;
     let scan = read_all(&root, &paths, pin.as_deref());
     if args.check {
         return scan.check();

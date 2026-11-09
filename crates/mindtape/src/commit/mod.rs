@@ -30,6 +30,7 @@
 //!   of, and whether that commit is a merge.
 //! - `expr.rs`: the expression language of a `scope = "commit"` rule.
 //! - `range.rs`: a range of past commits, read the way the commit being written is.
+//! - `record.rs`: the record a `scope = "commit"` rule reads and its ref helpers.
 //! - `refs.rs`: which tasks shaped a file, from the trailers of its commits.
 //! - `task_expr.rs`: the task half of a `scope = "task"` rule's expression.
 //! - `tasks.rs`: the project as `HEAD`, the index and the working tree see it.
@@ -45,6 +46,7 @@ pub use amend::writing_a_merge;
 pub mod expr;
 pub(crate) mod packages;
 pub mod range;
+mod record;
 pub mod refs;
 pub(crate) mod state_cache;
 pub(crate) mod state_loader;
@@ -56,8 +58,13 @@ pub(crate) mod tree;
 pub(crate) mod tree_io;
 
 pub(crate) use trailer::{
-    external_matchers, is_path_form, matches_external, ref_text, split_refs, value_stem,
+    external_matchers, is_path_form, matches_external, split_refs, value_stem,
 };
+
+pub use record::CommitRecord;
+pub(crate) use record::{is_task_change, is_task_file, task_stem};
+
+use record::{ref_problem, ref_problem_at};
 
 use std::path::Path;
 use std::process::{Command, Output};
@@ -65,9 +72,7 @@ use std::process::{Command, Output};
 use thiserror::Error;
 
 use crate::config::Config;
-use crate::model::Task;
-use crate::problem::Problem;
-use crate::suggest::Unknown;
+use crate::task_source::TaskSource;
 
 /// Why a commit could not be read.
 #[derive(Debug, Error)]
@@ -201,6 +206,9 @@ pub struct ChangedFiles {
     /// Every changed path, repository-relative, `/`-separated. A rename is
     /// its two sides: the old path deleted and the new one added.
     pub paths: Vec<String>,
+    /// Every changed path that is a symlink on the side the commit holds, or
+    /// on the side it deletes from. Such a path is not a task file.
+    pub symlinks: Vec<String>,
     /// The old path of every rename among `paths`: the sides a count of
     /// changed files leaves out, so a rename counts once.
     pub renamed_from: Vec<String>,
@@ -229,8 +237,10 @@ pub fn staged_files(root: &Path) -> Result<ChangedFiles, CommitMsgError> {
     })?;
     let revs = index_revs(root)?;
     let revs: Vec<&str> = revs.iter().map(String::as_str).collect();
+    let (paths, symlinks) = changed_paths(root, &revs)?;
     Ok(ChangedFiles {
-        paths: changed_paths(root, &revs)?,
+        paths,
+        symlinks,
         renamed_from: renamed_sources(root, &revs)?,
         root_prefix: root_prefix.trim().to_owned(),
     })
@@ -248,18 +258,38 @@ pub(crate) fn index_revs(root: &Path) -> Result<Vec<String>, CommitMsgError> {
     })
 }
 
-/// The repository-relative paths `git diff <revs>` names: renames split into
-/// their two sides, top-level-relative whatever the root's prefix is, so
-/// `files` reads the same from any project inside the repository.
-pub(crate) fn changed_paths(root: &Path, revs: &[&str]) -> Result<Vec<String>, CommitMsgError> {
-    let mut args = vec!["diff", "--name-only", "--no-renames", "--no-relative", "-z"];
+/// The repository-relative paths `git diff <revs>` changes, and the subset
+/// that is a symlink on either relevant side: renames split into their two
+/// sides, top-level-relative whatever the root's prefix is, so `files` reads
+/// the same from any project inside the repository.
+pub(crate) fn changed_paths(
+    root: &Path,
+    revs: &[&str],
+) -> Result<(Vec<String>, Vec<String>), CommitMsgError> {
+    let mut args = vec!["diff", "--raw", "--no-renames", "--no-relative", "-z"];
     args.extend_from_slice(revs);
     args.extend_from_slice(&["--", ":/"]);
-    Ok(git(root, &args)?
-        .split('\0')
-        .filter(|path| !path.is_empty())
-        .map(ToOwned::to_owned)
-        .collect())
+    let out = git(root, &args)?;
+    let mut paths = Vec::new();
+    let mut symlinks = Vec::new();
+    let mut fields = out.split('\0').filter(|field| !field.is_empty());
+    while let Some(header) = fields.next() {
+        let Some(path) = fields.next() else {
+            break;
+        };
+        let Some(meta) = header.strip_prefix(':') else {
+            continue;
+        };
+        let mut parts = meta.split_ascii_whitespace();
+        let (Some(old), Some(new)) = (parts.next(), parts.next()) else {
+            continue;
+        };
+        if new == "120000" || (new == "000000" && old == "120000") {
+            symlinks.push(path.to_owned());
+        }
+        paths.push(path.to_owned());
+    }
+    Ok((paths, symlinks))
 }
 
 /// The old path of every rename `git diff -M <revs>` detects, top-level
@@ -341,160 +371,62 @@ pub struct RefProblem {
     pub unknown: Option<crate::suggest::Unknown>,
 }
 
-/// The commit a `scope = "commit"` rule reads — the fields its expressions
-/// name.
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
-pub struct CommitRecord {
-    /// `subject`: the message's first line.
-    pub subject: String,
-    /// `refs`: the refs the configured trailer names, one per token: a task
-    /// stem, a path read as its stem, or an external ref as written.
-    pub refs: Vec<String>,
-    /// `files`: every changed path, repository-relative.
-    pub files: Vec<String>,
-    /// The old path of each rename among `files`; `count(files, …)` skips
-    /// them, `has` and `matches` still see them.
-    pub renamed_from: Vec<String>,
-    /// `tasks_only`: the commit changes at least one file, and every one is a
-    /// task file (a `.typ` under a `[tasks] roots` entry).
-    pub tasks_only: bool,
-    /// `in_range`: the commit was read from a range (`mt check --commits`),
-    /// not from a message being written (`mt check --commit-msg`).
-    pub in_range: bool,
-    /// `is_merge`: the commit has more than one parent. A `commit-msg` check
-    /// sets it for the merge being written, an amend of a merge included.
-    pub is_merge: bool,
-    /// The stems a `scope = "task"` rule runs for: every task file the commit
-    /// changes, then every task ref, each once. An external ref is not a task.
-    /// Not an expression field.
-    pub tasks: Vec<String>,
-    /// `trailers`: every trailer line of the message, whatever its key, as
-    /// `Key: value`.
-    pub trailers: Vec<String>,
+/// The refs a message names: stems for the tasks it names, values as written
+/// for external refs, and one problem per value that needs rewriting.
+#[derive(Default)]
+struct RefLists {
+    refs: Vec<String>,
+    tasks: Vec<String>,
+    problems: Vec<RefProblem>,
 }
 
-impl CommitRecord {
-    /// Join a read message and its changed files against the loaded `tasks`.
-    /// Returns the record, plus one [`RefProblem`] per ref that is a path to a
-    /// task, or names no task and matches no external pattern.
-    #[must_use]
-    pub fn build(
-        message: &CommitMessage,
-        changed: &ChangedFiles,
-        tasks: &[Task],
-        config: &Config,
-    ) -> (Self, Vec<RefProblem>) {
-        let stems: Vec<String> = tasks.iter().map(task_stem).collect();
-        let matchers = external_matchers(&config.commits.external_refs);
-        let mut problems = Vec::new();
-        let mut refs = Vec::new();
-        let mut task_refs = Vec::new();
-        for trailer in &message.trailers {
-            for token in split_refs(&trailer.value) {
-                let stem = value_stem(&token);
-                let path = is_path_form(&token);
-                let names_task = if path {
-                    is_task_file(&token, &changed.root_prefix, config) && stems.contains(&stem)
-                } else {
-                    stems.contains(&stem)
-                };
-                let found = if names_task {
-                    path.then(|| ref_problem(&token, &stem, &stems, &config.commits.trailer))
-                        .flatten()
-                } else if matches_external(&token, &matchers) {
-                    refs.push(token);
-                    continue;
-                } else {
-                    ref_problem(&token, &stem, &stems, &config.commits.trailer)
-                };
-                if let Some(found) = found {
-                    problems.push(ref_problem_at(token, trailer.line, found));
+/// Resolve every trailer value against `stems` and the task-source policy
+/// `source`. A path-form value naming no task contributes no stem; a bare
+/// value behaves as it always did.
+fn classify_refs(
+    message: &CommitMessage,
+    stems: &[String],
+    changed: &ChangedFiles,
+    config: &Config,
+    source: &TaskSource,
+) -> RefLists {
+    let matchers = external_matchers(&config.commits.external_refs);
+    let mut lists = RefLists::default();
+    for trailer in &message.trailers {
+        for token in split_refs(&trailer.value) {
+            let stem = value_stem(&token);
+            let path = is_path_form(&token);
+            let names_task = stems.contains(&stem)
+                && (!path
+                    || is_task_change(&token, &changed.root_prefix, source, &changed.symlinks));
+            if names_task {
+                if let Some(found) = ref_problem(&token, &stem, stems, &config.commits.trailer) {
+                    lists
+                        .problems
+                        .push(ref_problem_at(token, trailer.line, found));
                 }
-                refs.push(stem.clone());
-                task_refs.push(stem);
+                lists.refs.push(stem.clone());
+                lists.tasks.push(stem);
+            } else if matches_external(&token, &matchers) {
+                lists.refs.push(token);
+            } else {
+                if let Some(found) = ref_problem(&token, &stem, stems, &config.commits.trailer) {
+                    lists
+                        .problems
+                        .push(ref_problem_at(token, trailer.line, found));
+                }
+                if !path {
+                    lists.refs.push(stem.clone());
+                    lists.tasks.push(stem);
+                }
             }
         }
-        let tasks_only = !changed.paths.is_empty()
-            && changed
-                .paths
-                .iter()
-                .all(|path| is_task_file(path, &changed.root_prefix, config));
-        let mut subjects: Vec<String> = changed
-            .paths
-            .iter()
-            .filter(|path| is_task_file(path, &changed.root_prefix, config))
-            .map(|path| value_stem(path))
-            .chain(task_refs)
-            .collect();
-        dedup_keeping_order(&mut subjects);
-        let record = Self {
-            subject: message.subject.clone(),
-            refs,
-            files: changed.paths.clone(),
-            renamed_from: changed.renamed_from.clone(),
-            tasks_only,
-            in_range: false,
-            is_merge: false,
-            tasks: subjects,
-            trailers: message.trailer_lines.clone(),
-        };
-        (record, problems)
     }
-}
-
-/// Drop every repeat of an earlier entry.
-fn dedup_keeping_order(values: &mut Vec<String>) {
-    let mut seen = std::collections::HashSet::new();
-    values.retain(|value| seen.insert(value.clone()));
-}
-
-/// A task's stem: its file name without `.typ` — the identity a trailer names.
-pub(crate) fn task_stem(task: &Task) -> String {
-    task.file.file_stem().map_or_else(
-        || task.id.clone(),
-        |stem| stem.to_string_lossy().into_owned(),
-    )
-}
-
-/// One ref's problem, at the line of the trailer that holds it.
-fn ref_problem_at(token: String, line: usize, found: Problem) -> RefProblem {
-    RefProblem {
-        value: TrailerValue { value: token, line },
-        message: found.text,
-        unknown: found.unknown,
-    }
-}
-
-/// What is wrong with one trailer value, if anything.
-fn ref_problem(value: &str, stem: &str, stems: &[String], key: &str) -> Option<Problem> {
-    let known = stems.iter().any(|known| known == stem);
-    if is_path_form(value) {
-        let fix = if known {
-            format!("write the stem: `{key}: {}`", ref_text(stem))
-        } else {
-            format!("write a stem, and `{}` names no task", ref_text(stem))
-        };
-        return Some(format!("`{value}` is a path; {fix}").into());
-    }
-    (!known).then(|| {
-        Problem::new(format!("`{value}` names no task")).with(Unknown::near(
-            value,
-            &stems.iter().map(String::as_str).collect::<Vec<_>>(),
-        ))
-    })
-}
-
-/// Whether repository-relative `path` is a task file of this project.
-pub(crate) fn is_task_file(path: &str, root_prefix: &str, config: &Config) -> bool {
-    let Some(rel) = path.strip_prefix(root_prefix) else {
-        return false;
-    };
-    rel.ends_with(".typ")
-        && config.tasks.roots.iter().any(|root| {
-            let dir = root.dir();
-            dir.is_empty() || rel.strip_prefix(&dir).is_some_and(|r| r.starts_with('/'))
-        })
+    lists
 }
 
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+#[path = "tests_state.rs"]
+mod tests_state;

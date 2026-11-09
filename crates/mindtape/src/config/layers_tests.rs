@@ -1,5 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+use std::path::PathBuf;
+
 use super::{LayerSource, build_config, discover_layers_with_xdg, merged_config_table};
 use crate::config::parse_config;
 use crate::test_support::home_and_project;
@@ -386,4 +388,108 @@ fn a_project_error_other_than_the_merged_one_is_not_borrowed() {
     let error = parse_failure(Some("[aaa]\nx = 1\n"), "\n\n[zzz]\nx = 1\n");
     assert!(error.message().contains("unknown field `aaa`"), "{error}");
     assert_eq!(error.span(), Some(1..4), "{error}");
+}
+
+// --- reserved roots and template dirs: working-tree loads only ---
+
+/// The place an invalid-config error carries.
+fn place(err: crate::config::ConfigError) -> crate::config::ConfigPlace {
+    let crate::config::ConfigError::Invalid { place, .. } = err else {
+        panic!("expected an invalid config, got {err}");
+    };
+    place.unwrap_or_else(|| panic!("the error names no place"))
+}
+
+/// A reserved root in the project's own config fails the working-tree load,
+/// naming the key and the layer that declared it.
+#[test]
+fn a_reserved_root_in_the_project_config_names_that_file() {
+    let (_tmp, home, project) = project_with_config("[tasks]\nroots = [\".mindtape/templates\"]\n");
+
+    let err = super::load_config_layered_from(&project, Some(&home), None).unwrap_err();
+    let rendered = err.to_string();
+    assert!(
+        rendered.contains(
+            "tasks.roots: `.mindtape/templates` is reserved for project metadata and templates"
+        ),
+        "{rendered}"
+    );
+    let config = crate::display_path(".mindtape/config.toml");
+    assert!(
+        rendered.contains(&format!("declared in {config}")),
+        "{rendered}"
+    );
+
+    let place = place(err);
+    assert_eq!(place.file, PathBuf::from(&config));
+    assert_eq!(place.line, 2);
+}
+
+/// A reserved root an ancestor's `defaults.toml` declares is charged to that
+/// file, not to the project config beside it.
+#[test]
+fn a_reserved_root_in_an_ancestor_defaults_names_that_file() {
+    let (_tmp, home, project) = home_and_project();
+    std::fs::create_dir_all(home.join(".mindtape")).unwrap();
+    std::fs::write(
+        home.join(".mindtape").join("defaults.toml"),
+        "[tasks]\nroots = [\".mindtape/templates\"]\n",
+    )
+    .unwrap();
+
+    let err = super::load_config_layered_from(&project, Some(&home), None).unwrap_err();
+    let rendered = err.to_string();
+    assert!(rendered.contains("defaults.toml"), "{rendered}");
+    assert!(
+        rendered.contains("tasks.roots: `.mindtape/templates` is reserved"),
+        "{rendered}"
+    );
+
+    let place = place(err);
+    assert!(
+        place.file.ends_with(".mindtape/defaults.toml"),
+        "{:?}",
+        place.file
+    );
+    assert_eq!(place.line, 2);
+}
+
+/// A template dir at the project root fails the load, naming the template key
+/// and its declaring layer.
+#[test]
+fn a_reserved_template_dir_in_the_project_config_names_that_file() {
+    let (_tmp, home, project) =
+        project_with_config("[tasks]\nroots = [\"tasks\"]\n\n[templates]\ndirs = [\".\"]\n");
+
+    let err = super::load_config_layered_from(&project, Some(&home), None).unwrap_err();
+    let rendered = err.to_string();
+    assert!(
+        rendered.contains("templates.dirs: `.` is at or above the project root"),
+        "{rendered}"
+    );
+    let config = crate::display_path(".mindtape/config.toml");
+    assert!(
+        rendered.contains(&format!("declared in {config}")),
+        "{rendered}"
+    );
+
+    let place = place(err);
+    assert_eq!(place.file, PathBuf::from(&config));
+    assert_eq!(place.line, 5);
+}
+
+/// `mt config show`'s raw merged table is assembled before the typed config,
+/// so a reserved root still appears in it as declared.
+#[test]
+fn the_raw_merged_table_keeps_a_reserved_root() {
+    let (_tmp, home, project) = project_with_config("[tasks]\nroots = [\".mindtape/templates\"]\n");
+
+    let layers = super::discover_layers_with_xdg(&project, Some(&home), None);
+    let table = super::merge_doc(&layers, &project, None).unwrap().table;
+    let roots = table
+        .get("tasks")
+        .and_then(|tasks| tasks.get("roots"))
+        .and_then(toml::Value::as_array)
+        .unwrap();
+    assert_eq!(roots[0].as_str(), Some(".mindtape/templates"));
 }

@@ -1,6 +1,6 @@
-//! The project as a commit sees it: its tasks as of `HEAD`, the index and the
-//! working tree — the three states a `scope = "task"` commit rule reads
-//! through `head(...)`, `staged(...)` and `worktree(...)`.
+//! The project as a commit sees it: its config and tasks as of `HEAD`, the
+//! index and the working tree — the three states a `scope = "task"` commit
+//! rule reads through `head(...)`, `staged(...)` and `worktree(...)`.
 //!
 //! A state loads every task file from its own git tree — the index for an
 //! empty revision — and evaluates it like a file that is not on disk
@@ -77,16 +77,20 @@ impl StatePlan {
     }
 }
 
-/// One state of the project: its tasks, and the readiness computed over them
-/// for `ready`, `blocked` and `count(...)`.
+/// One state of the project: its own config, its tasks, and the readiness
+/// computed over them for `ready`, `blocked` and `count(...)`.
 #[derive(Debug, Clone, Default)]
 pub struct ProjectState {
+    /// The config this state's tasks were loaded and classified with. When the
+    /// state's own config failed to load, this is the working tree's config,
+    /// and [`Self::errors`] carries the failure.
+    pub config: Config,
     /// Every task the state holds, in id order.
     pub tasks: Vec<Task>,
     /// Readiness over [`Self::tasks`].
     pub readiness: Readiness,
     /// Task files of this state that failed to evaluate — absent from
-    /// [`Self::tasks`].
+    /// [`Self::tasks`], as is a config that failed to load.
     pub errors: Vec<LoadError>,
 }
 
@@ -94,7 +98,8 @@ impl ProjectState {
     /// A state holding `tasks`, ranked and classified as a load would, with
     /// each open task's `waits-on` checkers asked from `root`. `config` is the
     /// state's own config, so readiness and query annotations read the same
-    /// status legend and rules as the harvest did.
+    /// status legend and rules as the harvest did, and the state keeps it for
+    /// callers that build the commit's record from it.
     pub(crate) fn new(
         mut tasks: Vec<Task>,
         config: &Config,
@@ -107,6 +112,7 @@ impl ProjectState {
         crate::graph::dep_rank::annotate(&mut tasks, config);
         let readiness = Readiness::compute(&tasks, config);
         Self {
+            config: config.clone(),
             tasks,
             readiness,
             errors,
@@ -126,18 +132,44 @@ impl ProjectState {
     }
 }
 
-/// The states a commit is checked against.
+/// The states a commit is checked against, each with its own config and
+/// tasks.
 #[derive(Debug, Clone, Default)]
 pub struct CommitStates {
-    /// The project before the commit.
+    /// The project before the commit, with its own config and tasks.
     pub head: ProjectState,
-    /// The project the commit records.
+    /// The project the commit records, with its own config and tasks.
     pub staged: ProjectState,
     /// The project on disk, when there is one to read.
     pub worktree: Option<ProjectState>,
 }
 
 impl CommitStates {
+    /// The config of the project before the commit.
+    #[must_use]
+    pub fn head_config(&self) -> &Config {
+        &self.head.config
+    }
+
+    /// The config the commit itself carries: the index state's, or the working
+    /// config when that state's own config failed to load.
+    #[must_use]
+    pub fn staged_config(&self) -> &Config {
+        &self.staged.config
+    }
+
+    /// The working tree's config, when a working tree was loaded.
+    #[must_use]
+    pub fn worktree_config(&self) -> Option<&Config> {
+        self.worktree.as_ref().map(|state| &state.config)
+    }
+
+    /// The tasks the commit itself carries, in id order.
+    #[must_use]
+    pub fn staged_tasks(&self) -> &[Task] {
+        &self.staged.tasks
+    }
+
     /// Build every state `plan` names from its own tree, and the working tree
     /// from `base`, the loaded project.
     ///

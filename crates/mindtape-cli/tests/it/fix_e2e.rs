@@ -66,6 +66,14 @@ fn has(text: &str, needles: &[&str]) {
     }
 }
 
+/// No `needle` appears in `text`.
+fn lacks(text: &str, needles: &[&str]) {
+    let text = text.replace('\\', "/");
+    for needle in needles {
+        assert!(!text.contains(needle), "unexpected {needle:?}: {text}");
+    }
+}
+
 fn fixed_has(dir: &Path, args: &[&str], needles: &[&str]) -> String {
     let text = fixed(dir, args);
     has(&text, needles);
@@ -195,7 +203,7 @@ fn a_malformed_spec_is_reported() {
 
 #[cfg(unix)]
 #[test]
-fn a_symlinked_file_with_an_edit_is_reported() {
+fn a_symlinked_file_is_reported_only_in_the_all_scope() {
     let (dir, _) = project_with("0.4.0");
     let target = tempdir();
     let before = put(target.path(), "old.typ", "0.1.0", "Linked");
@@ -204,7 +212,12 @@ fn a_symlinked_file_with_an_edit_is_reported() {
         &dir.path().join("tasks/linked.typ"),
     );
 
-    refused_has(dir.path(), &["fix"], &["symlinked file"]);
+    fixed_has(dir.path(), &["fix", "--dry-run"], &["nothing to rewrite"]);
+    refused_has(
+        dir.path(),
+        &["fix", "--all", "--dry-run"],
+        &["symlinked file"],
+    );
     assert_eq!(read(target.path(), "old.typ"), before, "target changed");
 }
 
@@ -238,6 +251,175 @@ fn all_scans_past_the_default_scope() {
     assert_eq!(read(dir.path(), "notes.typ"), task("0.4.0", "Elsewhere"));
 }
 
+#[test]
+fn a_tracked_ignored_task_source_is_in_both_scopes() {
+    let dir = project();
+    write_file(dir.path(), ".gitignore", "tasks/generated.typ\n");
+    put(dir.path(), "tasks/generated.typ", "0.1.0", "Generated");
+    put(dir.path(), "tasks/real.typ", "0.1.0", "Real");
+    support::git_commit_all(dir.path());
+    support::git(dir.path(), &["add", "-f", "tasks/generated.typ"]);
+    support::commit(dir.path(), "track generated");
+
+    for args in [
+        &["fix", "--dry-run"][..],
+        &["fix", "--all", "--dry-run"][..],
+    ] {
+        fixed_has(
+            dir.path(),
+            args,
+            &[
+                "rewrite tasks/generated.typ",
+                "rewrite tasks/real.typ",
+                "0.1.0 -> 0.4.0",
+            ],
+        );
+    }
+}
+
+#[test]
+fn an_untracked_ignored_task_source_is_in_neither_scope() {
+    let dir = project();
+    write_file(dir.path(), ".gitignore", "tasks/generated.typ\n");
+    put(dir.path(), "tasks/real.typ", "0.1.0", "Real");
+    support::git_commit_all(dir.path());
+    put(dir.path(), "tasks/generated.typ", "0.1.0", "Generated");
+
+    for args in [
+        &["fix", "--dry-run"][..],
+        &["fix", "--all", "--dry-run"][..],
+    ] {
+        let text = fixed_has(
+            dir.path(),
+            args,
+            &["rewrite tasks/real.typ", "0.1.0 -> 0.4.0"],
+        );
+        lacks(&text, &["tasks/generated.typ"]);
+    }
+}
+
+#[test]
+fn all_includes_non_task_typ_files() {
+    let dir = project();
+    put(dir.path(), "tasks/real.typ", "0.1.0", "Real");
+    put(dir.path(), "lib/notes.typ", "0.1.0", "Library");
+    put(dir.path(), "docs/guide.typ", "0.1.0", "Docs");
+    support::git_commit_all(dir.path());
+
+    let text = fixed_has(
+        dir.path(),
+        &["fix", "--dry-run"],
+        &["rewrite tasks/real.typ", "0.1.0 -> 0.4.0"],
+    );
+    lacks(&text, &["lib/notes.typ", "docs/guide.typ"]);
+
+    fixed_has(
+        dir.path(),
+        &["fix", "--all", "--dry-run"],
+        &[
+            "rewrite docs/guide.typ",
+            "rewrite lib/notes.typ",
+            "rewrite tasks/real.typ",
+            "0.1.0 -> 0.4.0",
+        ],
+    );
+}
+
+#[test]
+fn a_non_git_all_skips_target_and_includes_templates() {
+    let dir = project();
+    put(dir.path(), "target/generated.typ", "0.1.0", "Generated");
+    put(
+        dir.path(),
+        ".mindtape/templates/task.typ",
+        "0.1.0",
+        "Template",
+    );
+    put(dir.path(), "notes.typ", "0.1.0", "Notes");
+
+    let text = fixed_has(
+        dir.path(),
+        &["fix", "--all", "--dry-run"],
+        &[
+            "rewrite .mindtape/templates/task.typ",
+            "rewrite notes.typ",
+            "0.1.0 -> 0.4.0",
+        ],
+    );
+    lacks(&text, &["target/generated.typ"]);
+
+    let text = fixed_has(
+        dir.path(),
+        &["fix", "--dry-run"],
+        &["rewrite .mindtape/templates/task.typ", "0.1.0 -> 0.4.0"],
+    );
+    lacks(&text, &["notes.typ", "target/generated.typ"]);
+}
+
+#[test]
+fn a_tracked_deleted_task_source_is_never_scanned() {
+    let dir = project();
+    put(dir.path(), "tasks/gone.typ", "0.1.0", "Gone");
+    put(dir.path(), "tasks/real.typ", "0.1.0", "Real");
+    support::git_commit_all(dir.path());
+    std::fs::remove_file(dir.path().join("tasks/gone.typ")).unwrap();
+
+    for args in [
+        &["fix", "--dry-run"][..],
+        &["fix", "--all", "--dry-run"][..],
+    ] {
+        let text = fixed_has(
+            dir.path(),
+            args,
+            &["rewrite tasks/real.typ", "0.1.0 -> 0.4.0"],
+        );
+        lacks(&text, &["tasks/gone.typ"]);
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn all_does_not_follow_a_symlinked_directory() {
+    let dir = project();
+    let outside = tempdir();
+    let before = put(outside.path(), "hidden.typ", "0.1.0", "Hidden");
+    link(outside.path(), &dir.path().join("tasks/linked"));
+    put(dir.path(), "tasks/real.typ", "0.4.0", "Real");
+
+    for args in [
+        &["fix", "--dry-run"][..],
+        &["fix", "--all", "--dry-run"][..],
+    ] {
+        let text = fixed(dir.path(), args);
+        lacks(&text, &["hidden.typ"]);
+    }
+    assert_eq!(read(outside.path(), "hidden.typ"), before, "target changed");
+}
+
+#[test]
+fn a_directory_packs_templates_join_the_default_scope() {
+    let dir = project();
+    write_file(dir.path(), "team/pack.toml", "");
+    put(
+        dir.path(),
+        "team/templates/feat.typ",
+        "0.1.0",
+        "Pack template",
+    );
+    let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
+    write_file(
+        dir.path(),
+        ".mindtape/config.toml",
+        format!("extends = [\"./team\"]\n{config}"),
+    );
+
+    fixed_has(
+        dir.path(),
+        &["fix", "--dry-run"],
+        &["rewrite team/templates/feat.typ", "0.1.0 -> 0.4.0"],
+    );
+}
+
 #[cfg(unix)]
 #[test]
 fn an_unreadable_file_aborts_the_write() {
@@ -249,7 +431,7 @@ fn an_unreadable_file_aborts_the_write() {
 
     refused_unchanged(
         dir.path(),
-        &["fix"],
+        &["fix", "--all"],
         &["can't read"],
         "tasks/old.typ",
         &before,

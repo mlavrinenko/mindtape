@@ -10,6 +10,13 @@ a limit, or an `@name` #link(u("/named-sets/"))[view] that sets all three. A
 bare `mt ls` uses the first matching `[[ls.rules]]` entry, described below, or
 else the default view. `mt ls ''` lists every task.
 
+`mt ls` lists task sources, so a file in a template directory, under a
+reserved `.mindtape` or `.git` component, or at a symlink is not in the
+listing. A tracked file stays listed when an ignore rule matches it, and an
+untracked ignored file does not.
+#link(u("/concepts/#which-files-count-as-tasks"))[Which files count as tasks]
+defines the set.
+
 `--sort` also takes a scalar `derived.<name>` a project's
 #link(u("/config/#derived-fields"))[collector] computes. A list or record one
 is refused.

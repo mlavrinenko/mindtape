@@ -264,10 +264,15 @@ fn check_one(
             skipped: true,
         });
     }
-    let message = parse_message(&past.message, &config.commits.trailer);
-    // Trailers resolve against the tasks the commit itself holds.
-    let (mut record, problems) =
-        CommitRecord::build(&message, &past.changed, &states.staged.tasks, config);
+    let message = parse_message(&past.message, &states.staged.config.commits.trailer);
+    // Trailers resolve against the config and tasks the commit itself holds.
+    let (mut record, problems) = CommitRecord::build(
+        &message,
+        &past.changed,
+        &states.staged.tasks,
+        &states.staged.config,
+        &project.root,
+    );
     record.in_range = true;
     record.is_merge = commit.is_merge;
     let breaches = check_commit(&record, Some(&states), config);
@@ -278,7 +283,7 @@ fn check_one(
             &message.subject,
             &states,
             (&problems, &breaches),
-            &config.commits.trailer,
+            &states.staged.config.commits.trailer,
         );
     }
     // Tip rules read tasks the trailers name, not external refs that happen

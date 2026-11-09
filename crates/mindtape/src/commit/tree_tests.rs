@@ -213,6 +213,46 @@ fn a_subproject_state_reads_its_prefix_config() {
 }
 
 #[test]
+fn a_root_dot_state_skips_templates_and_reserved_directories() {
+    let dir = git_tempdir();
+    let root = dir.path();
+    commit_files(
+        root,
+        &[
+            ("tasks/a.typ", "a\n"),
+            ("templates/task.typ", "template\n"),
+            (".mindtape/extra.typ", "metadata\n"),
+            ("notes.md", "not a task\n"),
+        ],
+        "seed",
+    );
+    let config =
+        parse_config("[tasks]\nroots = [\".\"]\n\n[templates]\ndirs = [\"templates\"]\n").unwrap();
+    let files = task_files_at(root, "HEAD", &config);
+    let rels: Vec<String> = files
+        .iter()
+        .map(|(_, rel)| crate::slash_path(rel))
+        .collect();
+    assert_eq!(rels, ["tasks/a.typ"]);
+}
+
+#[cfg(unix)]
+#[test]
+fn a_symlink_entry_is_not_a_task_file() {
+    let dir = symlink_repo(
+        &[("shared/real.typ", "marker\n")],
+        &[("tasks/a.typ", "../shared/real.typ")],
+    );
+    let config = parse_config("[tasks]\nroots = [\"tasks\"]\n").unwrap();
+    for rev in ["HEAD", ""] {
+        assert!(
+            task_files_at(dir.path(), rev, &config).is_empty(),
+            "a 120000 entry is not a task source in {rev:?}"
+        );
+    }
+}
+
+#[test]
 fn an_index_state_lists_the_task_files_the_index_holds() {
     let dir = repo_with(&[("tasks/a.typ", "a\n")], &[("tasks/b.typ", "b\n")]);
     let root = dir.path();

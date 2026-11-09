@@ -69,6 +69,12 @@ impl Sources {
         }));
     }
 
+    /// The source that set one merged leaf key, of any kind, and whose value
+    /// won. `None` when no source set it.
+    pub(crate) fn key_origin(&self, key: &str) -> Option<&RuleOrigin> {
+        self.keys.get(key).map(|slot| &slot.origin)
+    }
+
     /// The keys a pack set, each with the source that won it, by path.
     pub(crate) fn key_origins(&self) -> impl Iterator<Item = KeyOrigin> + '_ {
         self.keys

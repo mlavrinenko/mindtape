@@ -4,10 +4,27 @@
 //! name and per-root derivation rule. `[tasks.derive-tags]` holds the
 //! project-wide policy (collectors, separator, slugify). The derivation
 //! algorithm itself lives in [`crate::loader::derive`]; this module is config shape only.
+//!
+//! [`validate_task_sources`] is the one check that refuses a working-tree
+//! config whose roots or template dirs can never hold a task source. It reads
+//! the normalized forms of [`crate::task_source::TaskSource`], never
+//! [`RootSpec::dir`]'s match keys, and names the config key and declaring
+//! layer in its error.
 
-use std::path::Path;
+use std::path::{Component, Path, PathBuf};
 
 use serde::Deserialize;
+
+use crate::config::layers::LayerSource;
+use crate::config::pack_registry::RuleOrigin;
+use crate::config::{Config, ConfigError};
+use crate::task_source::{TaskSource, has_reserved_component};
+
+/// The config key that declares task roots.
+const ROOTS_KEY: &str = "tasks.roots";
+
+/// The config key that declares template dirs.
+const TEMPLATES_KEY: &str = "templates.dirs";
 
 /// One `[[tasks.roots]]` entry: a bare path string, or a table with a root
 /// tag name and a per-root tag derivation rule. A list may mix both forms.
@@ -148,6 +165,39 @@ impl RootSpec {
             Self::Short(_) => None,
         }
     }
+
+    /// [`Self::path`] as a normalized [`PathBuf`]: `.` components are dropped
+    /// and interior `..` is resolved lexically, without touching the
+    /// filesystem. An absolute path stays absolute.
+    ///
+    /// This is the task-source policy's separate root form;
+    /// [`Self::dir`] keeps its string match-key semantics for commit and tag
+    /// derivation.
+    #[must_use]
+    pub fn normalized(&self) -> PathBuf {
+        normalize_path(Path::new(self.path()))
+    }
+}
+
+/// `path` with `.` components dropped and `..` resolved lexically, retaining
+/// an absolute path's root. The filesystem is never read.
+#[must_use]
+pub(crate) fn normalize_path(path: &Path) -> PathBuf {
+    let mut clean = PathBuf::new();
+    for component in path.components() {
+        match component {
+            Component::CurDir => {}
+            Component::ParentDir => {
+                if clean.file_name().is_some() {
+                    clean.pop();
+                } else if !clean.has_root() {
+                    clean.push("..");
+                }
+            }
+            other => clean.push(other.as_os_str()),
+        }
+    }
+    clean
 }
 
 fn last_segment(path: &str) -> String {
@@ -155,3 +205,107 @@ fn last_segment(path: &str) -> String {
         .file_name()
         .map_or_else(|| path.to_owned(), |s| s.to_string_lossy().into_owned())
 }
+
+/// Refuse a working-tree config whose task roots or template dirs contradict
+/// the task-source policy.
+///
+/// A root inside `.mindtape` or `.git` can never hold a source, and a template
+/// dir at or above the project root or a task root would reserve every source
+/// under it. Paths are compared in the policy's normalized absolute forms, so
+/// `./tasks/../tasks` and `tasks` are one root.
+///
+/// # Errors
+/// Returns [`ConfigError::Invalid`] naming the offending key, path, reason and
+/// declaring layer for the first root or template dir that cannot yield a
+/// source.
+pub(crate) fn validate_task_sources(config: &Config, root: &Path) -> Result<(), ConfigError> {
+    let source = TaskSource::new(root, config);
+    for (spec, dir) in config.tasks.roots.iter().zip(source.roots()) {
+        let task_path = source.task_path(dir);
+        if let Some(component) = reserved_component(task_path.rel()) {
+            let message = metadata_problem(spec.path(), component);
+            return Err(refuse(config, root, ROOTS_KEY, message));
+        }
+    }
+    for (shown, template) in config.templates.dirs.iter().zip(source.templates()) {
+        if let Some(message) = template_problem(config, &source, shown, template) {
+            return Err(refuse(config, root, TEMPLATES_KEY, message));
+        }
+    }
+    Ok(())
+}
+
+/// The `.mindtape` or `.git` component of `path`, in the case its message
+/// names it. `None` when the policy sees no reserved component.
+fn reserved_component(path: &Path) -> Option<&'static str> {
+    if !has_reserved_component(path) {
+        return None;
+    }
+    (path.components()).find_map(|component| match component {
+        Component::Normal(name) if name.eq_ignore_ascii_case(".mindtape") => Some(".mindtape"),
+        Component::Normal(name) if name.eq_ignore_ascii_case(".git") => Some(".git"),
+        _ => None,
+    })
+}
+
+/// The error text for a root under `component`.
+fn metadata_problem(root: &str, component: &str) -> String {
+    if component == ".mindtape" {
+        format!("{ROOTS_KEY}: `{root}` is reserved for project metadata and templates")
+    } else {
+        format!("{ROOTS_KEY}: `{root}` is inside `.git`, reserved for git metadata")
+    }
+}
+
+/// The error text for `template` when it contains the project root or a task
+/// root, else `None`.
+fn template_problem(
+    config: &Config,
+    source: &TaskSource,
+    shown: &str,
+    template: &Path,
+) -> Option<String> {
+    if source.root().starts_with(template) {
+        return Some(format!(
+            "{TEMPLATES_KEY}: `{shown}` is at or above the project root, \
+             so every task under it would be reserved"
+        ));
+    }
+    let root = contained_root(config, source, template)?;
+    Some(format!(
+        "{TEMPLATES_KEY}: `{shown}` is at or above task root `{root}`, \
+         so every task there would be reserved"
+    ))
+}
+
+/// The configured task root `template` contains, if any.
+fn contained_root<'a>(config: &'a Config, source: &TaskSource, template: &Path) -> Option<&'a str> {
+    let index = (source.roots().iter()).position(|root| root.starts_with(template))?;
+    config.tasks.roots.get(index).map(RootSpec::path)
+}
+
+/// `message` with the layer that set `key`, when the provenance knows it.
+fn refuse(config: &Config, root: &Path, key: &str, message: String) -> ConfigError {
+    let Some(origin) = config.provenance.key_origin(key) else {
+        return ConfigError::invalid(message);
+    };
+    ConfigError::invalid(format!(
+        "{message} (declared in {})",
+        origin_label(origin, root)
+    ))
+}
+
+/// How an error names `origin` to a reader at `root`.
+fn origin_label(origin: &RuleOrigin, root: &Path) -> String {
+    match origin {
+        RuleOrigin::Layer(LayerSource::Embedded) => "the built-in defaults".to_owned(),
+        RuleOrigin::Layer(
+            LayerSource::Xdg(path) | LayerSource::Dir(path) | LayerSource::Project(path),
+        ) => crate::display_path(crate::relative_to(path, root)),
+        RuleOrigin::Pack(pack) => pack.label(),
+    }
+}
+
+#[cfg(test)]
+#[path = "roots_tests.rs"]
+mod tests;

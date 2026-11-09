@@ -6,6 +6,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
+use mindtape::test_support::write_file;
 
 fn scaffold() -> tempfile::TempDir {
     support::scaffold_project(
@@ -16,6 +17,21 @@ fn scaffold() -> tempfile::TempDir {
 }
 
 const ONE_TASK_JSON: &str = r#"[{"id":"","file":"","title":"Wire import","status":{"name":"wip","date":"2026-06-01","note":null},"priority":null,"difficulty":null,"kind":null,"estimate":{},"links":[],"tags":[],"derived_tags":[],"due":null,"start":null,"reviewed":null,"body":"","extras":{}}]"#;
+
+/// [`scaffold`] with `.` as the only task root, so a path below the project
+/// stays under a root while reserved or ignored.
+fn root_scaffold() -> tempfile::TempDir {
+    support::scaffold_project(
+        "[tasks]\nroots = [\".\"]\n\
+         [[tasks.status]]\nvalue = \"wip\"\n\
+         [[tasks.status]]\nvalue = \"done\"\nterminal = true\n",
+    )
+}
+
+/// The path `mt` shows for `rel` under `dir`, in the native separator.
+fn shown(dir: &std::path::Path, rel: &str) -> String {
+    mindtape::display_path(dir.join(rel))
+}
 
 #[test]
 fn imports_from_stdin() {
@@ -30,6 +46,100 @@ fn imports_from_stdin() {
     let written = std::fs::read_to_string(dir.path().join("tasks/wire-import.typ")).unwrap();
     assert!(written.contains("title: \"Wire import\""), "{written}");
     assert!(written.contains("status: wip("), "{written}");
+}
+
+#[test]
+fn an_ignored_destination_is_refused_and_writes_nothing() {
+    let dir = root_scaffold();
+    write_file(dir.path(), ".gitignore", "target/\n");
+    support::git(dir.path(), &["init", "-q"]);
+
+    let output = support::mt(dir.path())
+        .args(["import", "--to", "target"])
+        .write_stdin(ONE_TASK_JSON)
+        .assert()
+        .failure()
+        .get_output()
+        .clone();
+
+    assert!(
+        !dir.path().join("target").exists(),
+        "a refused destination must not be created"
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains(&shown(dir.path(), "target/wire-import.typ")),
+        "the refusal must name the final path: {stderr}"
+    );
+    assert!(stderr.contains("would be invisible"), "{stderr}");
+    assert!(
+        stderr.contains("--into"),
+        "the fix must offer another destination: {stderr}"
+    );
+}
+
+#[test]
+fn a_reserved_destination_is_refused_and_writes_nothing() {
+    let dir = root_scaffold();
+
+    let output = support::mt(dir.path())
+        .args(["import", "--to", ".mindtape/templates"])
+        .write_stdin(ONE_TASK_JSON)
+        .assert()
+        .failure()
+        .get_output()
+        .clone();
+
+    assert!(
+        !dir.path()
+            .join(".mindtape/templates/wire-import.typ")
+            .exists(),
+        "a refused destination must not be created"
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains(&shown(dir.path(), ".mindtape/templates/wire-import.typ")),
+        "the refusal must name the final path: {stderr}"
+    );
+    assert!(stderr.contains("reserved"), "{stderr}");
+}
+
+/// A dry run previews exactly what a real run would land, including the
+/// destination guard's refusal, and writes nothing either way.
+#[test]
+fn a_preview_still_guards_and_writes_nothing() {
+    let dir = root_scaffold();
+    write_file(dir.path(), ".gitignore", "target/\n");
+    support::git(dir.path(), &["init", "-q"]);
+
+    support::mt(dir.path())
+        .args(["import", "--dry-run", "--to", "target"])
+        .write_stdin(ONE_TASK_JSON)
+        .assert()
+        .failure()
+        .stderr(predicates::str::contains("would be invisible"));
+
+    assert!(!dir.path().join("target").exists());
+}
+
+/// An outside-root destination stays what it always was: a write with a
+/// warning, not a refusal.
+#[test]
+fn an_outside_root_destination_still_only_warns() {
+    let dir = scaffold();
+    let outside = mindtape::test_support::tempdir();
+
+    let output = support::mt(dir.path())
+        .args(["import", "--into", outside.path().to_str().unwrap()])
+        .write_stdin(ONE_TASK_JSON)
+        .assert()
+        .success()
+        .get_output()
+        .clone();
+
+    assert!(outside.path().join("wire-import.typ").exists());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("outside the configured roots"), "{stderr}");
 }
 
 #[test]

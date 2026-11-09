@@ -4,6 +4,8 @@ use super::{ChangedFiles, CommitRecord, parse_message, staged_files};
 use crate::config::parse_config;
 use crate::test_support::bare_task;
 use crate::test_support::tempdir;
+#[cfg(unix)]
+use crate::test_support::{commit_files, git_as_tester, git_tempdir};
 
 fn values(text: &str) -> Vec<String> {
     parse_message(text, "Refs")
@@ -19,12 +21,24 @@ fn build(
     tasks: &[crate::model::Task],
     text: &str,
 ) -> (CommitRecord, Vec<super::RefProblem>) {
+    let root = tempdir();
     CommitRecord::build(
         &parse_message(text, "Refs"),
         &ChangedFiles::default(),
         tasks,
         config,
+        root.path(),
     )
+}
+
+/// A `ChangedFiles` for repository-relative `paths` under `prefix`.
+fn changed(paths: &[&str], prefix: &str) -> ChangedFiles {
+    ChangedFiles {
+        paths: paths.iter().map(|path| (*path).to_owned()).collect(),
+        symlinks: Vec::new(),
+        renamed_from: Vec::new(),
+        root_prefix: prefix.to_owned(),
+    }
 }
 
 #[test]
@@ -64,12 +78,14 @@ fn every_trailer_line_is_kept_as_written_for_the_trailers_field() {
 
 #[test]
 fn a_record_carries_the_trailer_lines() {
+    let root = tempdir();
     let message = parse_message("x\n\nChangelog: none\n", "Refs");
     let (record, _) = CommitRecord::build(
         &message,
         &ChangedFiles::default(),
         &[],
         &crate::config::Config::default(),
+        root.path(),
     );
     assert_eq!(record.trailers, ["Changelog: none"]);
 }
@@ -101,9 +117,20 @@ fn a_record_resolves_stems_and_refuses_paths_and_unknown_values() {
         "feat: x\n\nRefs: parser\nRefs: tasks/parser.typ\nRefs: parsr\nRefs: gone/old.typ\n",
         "Refs",
     );
-    let (record, problems) =
-        CommitRecord::build(&message, &ChangedFiles::default(), &tasks, &config);
-    assert_eq!(record.refs, ["parser", "parser", "parsr", "old"]);
+    let root = tempdir();
+    let (record, problems) = CommitRecord::build(
+        &message,
+        &ChangedFiles::default(),
+        &tasks,
+        &config,
+        root.path(),
+    );
+    assert_eq!(record.refs, ["parser", "parser", "parsr"]);
+    assert_eq!(
+        record.tasks,
+        ["parser", "parsr"],
+        "a path naming no task contributes no stem"
+    );
     let messages: Vec<&str> = problems.iter().map(|p| p.message.as_str()).collect();
     assert_eq!(messages.len(), 3, "{messages:?}");
     assert!(
@@ -124,15 +151,17 @@ fn a_record_resolves_stems_and_refuses_paths_and_unknown_values() {
 #[test]
 fn tasks_only_needs_every_changed_file_under_a_task_root() {
     let config = parse_config("[tasks]\nroots = [\"truth/tasks\", \"./more/\"]\n").unwrap();
+    let root = tempdir();
     let only = |paths: &[&str], prefix: &str| {
-        let changed = ChangedFiles {
-            paths: paths.iter().map(|p| (*p).to_owned()).collect(),
-            renamed_from: Vec::new(),
-            root_prefix: prefix.to_owned(),
-        };
-        CommitRecord::build(&parse_message("x", "Refs"), &changed, &[], &config)
-            .0
-            .tasks_only
+        CommitRecord::build(
+            &parse_message("x", "Refs"),
+            &changed(paths, prefix),
+            &[],
+            &config,
+            root.path(),
+        )
+        .0
+        .tasks_only
     };
     assert!(only(&["truth/tasks/a.typ", "more/b/c.typ"], ""));
     assert!(!only(&["truth/tasks/a.typ", "src/lib.rs"], ""));
@@ -142,16 +171,114 @@ fn tasks_only_needs_every_changed_file_under_a_task_root() {
     assert!(only(&["sub/truth/tasks/a.typ"], "sub/"));
     assert!(!only(&["truth/tasks/a.typ"], "sub/"), "outside the project");
     let everywhere = parse_config("[tasks]\nroots = [\".\"]\n").unwrap();
+    assert!(
+        CommitRecord::build(
+            &parse_message("x", "Refs"),
+            &changed(&["a.typ"], ""),
+            &[],
+            &everywhere,
+            root.path(),
+        )
+        .0
+        .tasks_only
+    );
+}
+
+#[test]
+fn a_template_or_reserved_path_under_a_root_dot_is_not_a_task_file() {
+    let config =
+        parse_config("[tasks]\nroots = [\".\"]\n\n[templates]\ndirs = [\"templates\"]\n").unwrap();
+    let root = tempdir();
+    let record = |paths: &[&str]| {
+        CommitRecord::build(
+            &parse_message("x", "Refs"),
+            &changed(paths, ""),
+            &[],
+            &config,
+            root.path(),
+        )
+        .0
+    };
+    let template = record(&["templates/task.typ"]);
+    assert!(!template.tasks_only);
+    assert!(template.tasks.is_empty());
+    assert!(
+        !record(&[".mindtape/tasks/a.typ"]).tasks_only,
+        "a reserved component is never a task file"
+    );
+    let task = record(&["tasks/a.typ"]);
+    assert!(task.tasks_only);
+    assert_eq!(task.tasks, ["a"]);
+}
+
+#[test]
+fn a_tracked_deleted_path_is_still_a_task_file() {
+    let config = parse_config("[tasks]\nroots = [\"tasks\"]\n").unwrap();
+    let root = tempdir();
+    let (record, problems) = CommitRecord::build(
+        &parse_message("x", "Refs"),
+        &changed(&["tasks/gone.typ"], ""),
+        &[],
+        &config,
+        root.path(),
+    );
+    assert!(problems.is_empty(), "{problems:?}");
+    assert!(
+        record.tasks_only,
+        "classification is lexical, not by existence"
+    );
+    assert_eq!(record.tasks, ["gone"]);
+}
+
+#[test]
+fn a_symlink_path_is_not_a_task_file() {
+    let config = parse_config("[tasks]\nroots = [\"tasks\"]\n").unwrap();
+    let root = tempdir();
     let changed = ChangedFiles {
-        paths: vec!["a.typ".to_owned()],
+        paths: vec!["tasks/a.typ".to_owned()],
+        symlinks: vec!["tasks/a.typ".to_owned()],
         renamed_from: Vec::new(),
         root_prefix: String::new(),
     };
-    assert!(
-        CommitRecord::build(&parse_message("x", "Refs"), &changed, &[], &everywhere)
-            .0
-            .tasks_only
+
+    let (record, _) = CommitRecord::build(
+        &parse_message("x", "Refs"),
+        &changed,
+        &[bare_task("a")],
+        &config,
+        root.path(),
     );
+    assert!(!record.tasks_only, "a symlink is not a task file");
+    assert!(record.tasks.is_empty(), "{:?}", record.tasks);
+}
+
+#[test]
+fn a_root_outside_the_project_is_not_a_commit_task_file() {
+    let project = tempdir();
+    let sub = project.path().join("sub");
+    let config = parse_config("[tasks]\nroots = [\"../shared/tasks\"]\n").unwrap();
+    let (record, _) = CommitRecord::build(
+        &parse_message("x", "Refs"),
+        &changed(&["shared/tasks/a.typ"], "sub/"),
+        &[],
+        &config,
+        &sub,
+    );
+    assert!(!record.tasks_only);
+    assert!(record.tasks.is_empty());
+}
+
+#[cfg(unix)]
+#[test]
+fn staged_files_marks_a_symlink_entry() {
+    let dir = git_tempdir();
+    commit_files(dir.path(), &[("tasks/a.typ", "")], "seed");
+    std::os::unix::fs::symlink("a.typ", dir.path().join("tasks/link.typ")).unwrap();
+    git_as_tester(dir.path(), &["add", "tasks/link.typ"]);
+
+    let changed = staged_files(dir.path()).unwrap();
+    assert_eq!(changed.paths, ["tasks/link.typ"]);
+    assert_eq!(changed.symlinks, ["tasks/link.typ"]);
 }
 
 #[test]
@@ -180,8 +307,15 @@ fn a_hyphenated_trailer_key_is_a_trailer_line() {
 fn a_value_that_is_a_path_or_ends_in_typ_is_refused() {
     let config = parse_config("").unwrap();
     let tasks = [bare_task("parser")];
+    let root = tempdir();
     let message = parse_message("x\n\nRefs: tasks/parser\nRefs: parser.typ\n", "Refs");
-    let (_, problems) = CommitRecord::build(&message, &ChangedFiles::default(), &tasks, &config);
+    let (_, problems) = CommitRecord::build(
+        &message,
+        &ChangedFiles::default(),
+        &tasks,
+        &config,
+        root.path(),
+    );
     let messages: Vec<&str> = problems.iter().map(|p| p.message.as_str()).collect();
     assert_eq!(messages.len(), 2, "{messages:?}");
     assert!(
@@ -199,11 +333,13 @@ fn tasks_dedup_keeping_order() {
             "truth/tasks/parser.typ".to_owned(),
             "truth/tasks/lexer.typ".to_owned(),
         ],
+        symlinks: Vec::new(),
         renamed_from: Vec::new(),
         root_prefix: String::new(),
     };
+    let root = tempdir();
     let message = parse_message("x\n\nRefs: parser\nRefs: lexer\nRefs: parser\n", "Refs");
-    let (record, _) = CommitRecord::build(&message, &changed, &tasks, &config);
+    let (record, _) = CommitRecord::build(&message, &changed, &tasks, &config, root.path());
     assert_eq!(record.tasks, ["parser", "lexer"]);
 }
 
@@ -222,8 +358,14 @@ fn a_dotted_stem_trailer_names_its_task() {
     let config = parse_config("").unwrap();
     let tasks = [bare_task("foo.task-261023")];
     let message = parse_message("x\n\nRefs: foo.task-261023\n", "Refs");
-    let (record, problems) =
-        CommitRecord::build(&message, &ChangedFiles::default(), &tasks, &config);
+    let root = tempdir();
+    let (record, problems) = CommitRecord::build(
+        &message,
+        &ChangedFiles::default(),
+        &tasks,
+        &config,
+        root.path(),
+    );
     assert!(problems.is_empty(), "{problems:?}");
     assert_eq!(record.refs, ["foo.task-261023"]);
 }
@@ -282,8 +424,15 @@ fn a_ref_is_a_task_then_an_external_ref_then_refused() {
 #[test]
 fn an_external_ref_that_looks_like_a_path_is_kept_opaque() {
     let config = parse_config("[commits]\nexternal-refs = [\"^https://\"]\n").unwrap();
+    let root = tempdir();
     let message = parse_message("x\n\nRefs: https://tracker.example/issue/7\n", "Refs");
-    let (record, problems) = CommitRecord::build(&message, &ChangedFiles::default(), &[], &config);
+    let (record, problems) = CommitRecord::build(
+        &message,
+        &ChangedFiles::default(),
+        &[],
+        &config,
+        root.path(),
+    );
     assert!(problems.is_empty(), "{problems:?}");
     assert_eq!(record.refs, ["https://tracker.example/issue/7"]);
     assert!(record.tasks.is_empty());

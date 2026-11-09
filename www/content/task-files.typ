@@ -38,8 +38,10 @@
   block: true,
 )
 
-A task is one Typst file. You can write it in any editor, and you don't need
-any Typst beyond what's on this page. Here's a whole task file. Below it, each
+A task is one Typst file, placed where `mt` looks for one:
+#link(u("/concepts/#which-files-count-as-tasks"))[Which files count as tasks].
+You can write it in any editor, and you don't need any Typst beyond what's on
+this page. Here's a whole task file. Below it, each
 part is explained, then each mistake the syntax invites and what `mt check`
 prints for it.
 

@@ -1,5 +1,7 @@
 //! `[templates]` config: where `mt add` finds task templates.
 
+use std::path::{Path, PathBuf};
+
 use serde::Deserialize;
 
 /// Where `mt add` finds task templates.
@@ -38,5 +40,17 @@ impl Default for TemplatesConfig {
             default: "task".to_owned(),
             fallback_severity: FallbackSeverity::Warning,
         }
+    }
+}
+
+impl TemplatesConfig {
+    /// The template directories as normalized [`PathBuf`]s, each still
+    /// relative to the project root unless it is absolute: `.` components are
+    /// dropped and interior `..` is resolved lexically.
+    #[must_use]
+    pub fn normalized_dirs(&self) -> Vec<PathBuf> {
+        (self.dirs.iter())
+            .map(|dir| crate::config::roots::normalize_path(Path::new(dir)))
+            .collect()
     }
 }

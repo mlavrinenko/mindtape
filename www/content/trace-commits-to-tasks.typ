@@ -38,7 +38,11 @@ explains. The project also extends the `mindtape:tasks`
 #link(u("/packs/"))[rule pack], as
 #link(u("/require-a-task-shape/"))[Require a task shape] shows. The pack's
 `name-task-in-refs-trailer` rule refuses a commit that names no task, unless the
-commit changes only task files or starts with `fixup!`, `squash!` or `amend!`.
+commit changes only
+#link(u("/concepts/#which-files-count-as-tasks"))[task sources] or starts with
+`fixup!`, `squash!` or `amend!`. A template, a reserved `.mindtape` or `.git`
+path and a symlink do not make a commit task-only, while a markerless `.typ`
+under a task root does.
 The pack's `squash-every-autosquash-commit` rule refuses such a commit once it
 sits in a range, so `mt check --commits` catches a fixup nobody squashed.
 `mt check --commit-msg` also refuses a stem

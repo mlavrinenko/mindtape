@@ -3,10 +3,82 @@
 //! that composes with another program without a `jq` dependency.
 #![allow(clippy::unwrap_used)]
 
+use std::path::Path;
+use std::process::Command;
+
 use crate::support;
 
 fn scaffold() -> tempfile::TempDir {
     support::project_with_tasks(&[("a.typ", "Alpha"), ("b.typ", "Beta")])
+}
+
+/// Run `git <args>` in `dir` with this fixture's own configuration only, so a
+/// developer's global excludes cannot decide what the test calls ignored.
+fn git(dir: &Path, args: &[&str]) {
+    let output = Command::new("git")
+        .args([
+            "-c",
+            "user.name=t",
+            "-c",
+            "user.email=t@t",
+            "-c",
+            "commit.gpgsign=false",
+        ])
+        .args(args)
+        .current_dir(dir)
+        .env("GIT_CONFIG_NOSYSTEM", "1")
+        .env("GIT_CONFIG_GLOBAL", dir.join("no-global-git-config"))
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "git {args:?} failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+/// The task's working-tree contract end to end: `mt ls` lists a tracked task
+/// even when an ignore rule matches it, lists an untracked task Git does not
+/// ignore, and leaves an untracked ignored file out entirely.
+#[test]
+fn ls_lists_tracked_and_untracked_tasks_but_not_untracked_ignored_ones() {
+    let dir = support::project_with_tasks(&[("a.typ", "Alpha"), ("b.typ", "Beta")]);
+    let config = format!(
+        "[tasks]\nroots = [\".\"]\n{}",
+        mindtape::test_support::LIB_ENTRY
+    );
+    mindtape::test_support::write_file(dir.path(), ".mindtape/config.toml", config);
+    let task = mindtape::typst_task!("(title: \"Tracked\", status: wip(2026, 6, 1))");
+    mindtape::test_support::write_file(dir.path(), "target/tracked.typ", task);
+    mindtape::test_support::write_file(dir.path(), "tasks/skip.typ", task);
+    mindtape::test_support::write_file(dir.path(), ".gitignore", "target/\ntasks/skip.typ\n");
+    git(dir.path(), &["init", "-q"]);
+    git(dir.path(), &["add", ".gitignore", "tasks/a.typ"]);
+    git(dir.path(), &["add", "-f", "target/tracked.typ"]);
+    git(dir.path(), &["commit", "-q", "-m", "seed"]);
+    mindtape::test_support::write_file(dir.path(), "tasks/new.typ", task);
+    mindtape::test_support::write_file(dir.path(), "target/generated.typ", task);
+
+    let out = support::mt(dir.path())
+        .env("GIT_CONFIG_NOSYSTEM", "1")
+        .env("GIT_CONFIG_GLOBAL", dir.path().join("no-global-git-config"))
+        .args(["ls", "", "--format", "path"])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{out:?}");
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    let mut lines: Vec<&str> = stdout.lines().collect();
+    lines.sort_unstable();
+    assert_eq!(
+        lines,
+        [
+            "target/tracked.typ",
+            "tasks/a.typ",
+            "tasks/b.typ",
+            "tasks/new.typ",
+        ]
+        .map(support::native)
+    );
 }
 
 #[test]

@@ -151,6 +151,26 @@ fn a_healthy_template_passes() {
     assert!(ok, "{text}");
 }
 
+/// A project whose root is `.` reaches the template dir as a subtree. The
+/// template is not listed as a task, and checking the backlog passes once its
+/// own slots are valid.
+#[test]
+fn a_root_dot_project_lists_only_the_real_task_and_passes() {
+    let config = "[tasks]\nroots = [\".\"]\n[tasks.fields.kind]\nvalues = [\"fix\"]\n";
+    let dir = scaffold_with(config, &template("slot(\"kind\", example: \"fix\")"));
+    add_task(dir.path(), "dev/real-task", "Real task");
+
+    let listing = support::stdout(dir.path(), &["ls", "", "--format", "path"]);
+    assert_eq!(
+        listing.lines().collect::<Vec<_>>(),
+        [support::native("tasks/dev/real-task.typ")]
+    );
+
+    let (ok, text) = check(dir.path());
+    assert!(ok, "{text}");
+    assert!(text.contains("ok: 1 task"), "{text}");
+}
+
 #[test]
 fn a_template_that_fails_to_evaluate_is_one_breach() {
     let dir = scaffold(&template("no-such-helper()"));

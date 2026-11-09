@@ -74,6 +74,122 @@ fn due_of(source: &str) -> String {
     rest.split_once(')').unwrap().0.to_owned()
 }
 
+/// A project whose Git work tree ignores `tasks/hidden/`, with `stem`'s task
+/// source at `tasks/hidden/<stem>.typ` force-tracked, so the loader sees it
+/// while a new sibling there would be invisible.
+fn tracked_ignored(stem: &str, source: &str) -> tempfile::TempDir {
+    let dir = scaffold(&[]);
+    write_file(dir.path(), ".gitignore", "tasks/hidden/\n");
+    let file = format!("tasks/hidden/{stem}.typ");
+    write_file(dir.path(), &file, source);
+    mindtape::test_support::git_init(dir.path());
+    support::git(dir.path(), &["config", "user.email", "t@example.com"]);
+    support::git(dir.path(), &["config", "user.name", "t"]);
+    support::git(dir.path(), &["add", "-A"]);
+    support::git(dir.path(), &["add", "-f", &file]);
+    support::commit(dir.path(), "seed");
+    dir
+}
+
+/// The filenames in `tasks/hidden`, sorted.
+fn hidden_entries(dir: &Path) -> Vec<String> {
+    let mut names: Vec<String> = std::fs::read_dir(dir.join("tasks/hidden"))
+        .unwrap()
+        .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+        .collect();
+    names.sort();
+    names
+}
+
+/// Mutating an existing tracked file under an ignore rule changes it in place;
+/// the task is visible because the loader lists tracked files whichever way the
+/// ignore rules read.
+#[test]
+fn mutate_allows_a_tracked_ignored_task() {
+    let dir = tracked_ignored("standup", WEEKLY_MUTATE);
+
+    support::run_ok(dir.path(), &["recur", "standup"]);
+
+    let refreshed = std::fs::read_to_string(dir.path().join("tasks/hidden/standup.typ")).unwrap();
+    assert!(refreshed.contains("status: proposed("), "{refreshed}");
+    assert_eq!(hidden_entries(dir.path()), vec!["standup.typ".to_owned()]);
+}
+
+/// Skipping rewrites the tracked-ignored task's own file, which is visible.
+#[test]
+fn skip_allows_a_tracked_ignored_task() {
+    let dir = tracked_ignored("water-plants", WEEKLY_SPAWN);
+
+    support::run_ok(dir.path(), &["recur", "water-plants", "--skip"]);
+
+    let skipped =
+        std::fs::read_to_string(dir.path().join("tasks/hidden/water-plants.typ")).unwrap();
+    assert!(skipped.contains("due: on("), "{skipped}");
+    assert_eq!(
+        hidden_entries(dir.path()),
+        vec!["water-plants.typ".to_owned()]
+    );
+}
+
+/// The predecessor may be visible as a tracked file, but the sibling a spawn
+/// would create is new and ignored, so the guard refuses before writing.
+#[test]
+fn spawn_refuses_a_new_sibling_in_an_ignored_directory() {
+    let dir = tracked_ignored("water-plants", WEEKLY_SPAWN);
+
+    let output = mt(dir.path())
+        .args(["recur", "water-plants"])
+        .assert()
+        .failure();
+
+    let stderr = support::stderr_of(&output);
+    assert!(stderr.contains("would be invisible"), "{stderr}");
+    assert!(
+        stderr.contains(&mindtape::display_path(dir.path().join("tasks/hidden"))),
+        "the refusal must name the occurrence's path: {stderr}"
+    );
+    assert_eq!(
+        hidden_entries(dir.path()),
+        vec!["water-plants.typ".to_owned()]
+    );
+}
+
+/// `--advance` plans a whole chain in memory; the guard checks every member
+/// before the batch writes any of them.
+#[test]
+fn advance_refuses_a_chain_in_an_ignored_directory() {
+    let dir = tracked_ignored("water-plants", WEEKLY_SPAWN);
+
+    mt(dir.path())
+        .args(["recur", "water-plants", "--advance", "2"])
+        .assert()
+        .failure()
+        .stderr(predicates::str::contains("would be invisible"));
+
+    assert_eq!(
+        hidden_entries(dir.path()),
+        vec!["water-plants.typ".to_owned()]
+    );
+}
+
+/// A dry run previews what a real run would write, so it asks the same guard
+/// and creates nothing.
+#[test]
+fn a_dry_run_still_guards_an_ignored_occurrence() {
+    let dir = tracked_ignored("water-plants", WEEKLY_SPAWN);
+
+    mt(dir.path())
+        .args(["recur", "water-plants", "--dry-run"])
+        .assert()
+        .failure()
+        .stderr(predicates::str::contains("would be invisible"));
+
+    assert_eq!(
+        hidden_entries(dir.path()),
+        vec!["water-plants.typ".to_owned()]
+    );
+}
+
 #[test]
 fn spawn_writes_a_new_file_linked_back_to_the_predecessor() {
     let dir = scaffold(&[("water-plants.typ", WEEKLY_SPAWN)]);

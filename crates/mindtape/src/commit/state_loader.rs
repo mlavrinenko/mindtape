@@ -135,7 +135,8 @@ impl<'a> StateLoader<'a> {
     }
 
     /// The project `source` names in `plan`, evaluated against its own config
-    /// and packages.
+    /// and packages. The returned state carries that config, so a caller builds
+    /// the commit's record from the same config the state loaded with.
     fn state(
         &mut self,
         plan: &StatePlan,
@@ -222,7 +223,8 @@ impl<'a> StateLoader<'a> {
         })
     }
 
-    /// The state's config, built once per distinct project-config blob.
+    /// The state's config, built once per distinct project-config blob and kept
+    /// for the state that carries it.
     fn config_for(&mut self, tree: &StateTree<'_>) -> Result<Arc<StateConfig>, CommitMsgError> {
         let oid = tree.config_oid()?;
         let key = oid.clone().unwrap_or_default();
