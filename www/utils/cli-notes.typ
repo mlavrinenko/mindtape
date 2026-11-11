@@ -61,10 +61,10 @@
   ),
   // ── Fields ──────────────────────────────────────────────────────────────────
   "set": (
-    prose: [`mt set` uses the same syntax as `mt add --set`. A field that has
-      its own command is refused, and the error names that command: `status`
-      (`flip`), `links` (`link`), `reviewed` (`review`), `recur` (`recur`) and
-      the id (`mv`). A
+    prose: [`mt set` uses the same syntax as `mt add --set`. A name that has
+      its own command or add flag is refused, and the error names it: `status`
+      (`flip`), `links` (`link`), `reviewed` (`review`), `recur` (`recur`),
+      `dir` (`--dir` when adding) and the id (`mv`). A
       #link(u("/priority/"))[framework priority] such as `ice(...)` and an
       #link(u("/estimates/"))[`estimate`] aren't single values, so `mt set`
       doesn't write them. Edit those in the file. Adding a value a list

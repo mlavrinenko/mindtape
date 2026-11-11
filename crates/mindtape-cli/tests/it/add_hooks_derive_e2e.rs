@@ -63,7 +63,7 @@ actions = [{ derive = { typst = "add.typ", function = "bad-tags", field = "tags"
         stderr.contains("a derive returned a value the field cannot hold"),
         "{stderr}"
     );
-    assert!(stderr.contains("tags via add.typ:bad-tags"), "{stderr}");
+    assert!(stderr.contains("'tags' via 'add.typ:bad-tags'"), "{stderr}");
     assert!(!dir.path().join("tasks/bad.typ").exists());
 }
 

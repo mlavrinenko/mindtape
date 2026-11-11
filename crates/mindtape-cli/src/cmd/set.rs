@@ -20,9 +20,10 @@
 //!   refuses never reaches the file and there is nothing to repair.
 //!
 //! What it deliberately does not write is [`mindtape::model::writable::ELSEWHERE`]:
-//! a field with a command of its own, whose argument shape carries more than a
-//! value (a dated status, a typed edge, a renamed stem), and `estimate`, whose
-//! unit dict has no unambiguous `<field>=<value>` spelling to give it.
+//! a name with its own command or add flag, whose shape carries more than a
+//! value (a dated status, a typed edge, a renamed stem, a destination), and
+//! `estimate`, whose unit dict has no unambiguous `<field>=<value>` spelling to
+//! give it.
 
 use clap::Args;
 use mindtape::FieldOp;
@@ -136,9 +137,9 @@ pub(crate) fn long_about() -> String {
 /// The writable field `name` names.
 ///
 /// # Errors
-/// A field written by another command (named, with a hint to that command), or
-/// an unknown one (named, with a nearest-match hint and a pointer to the
-/// writable fields).
+/// A name another command or add flag owns (named, with a hint to it), or an
+/// unknown one (named, with a nearest-match hint and a pointer to the writable
+/// fields).
 fn writable(name: &str) -> Result<&'static WritableField, Diag> {
     if let Some(field) = writable::get(name) {
         return Ok(field);

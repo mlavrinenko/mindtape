@@ -10,6 +10,8 @@ use mindtape::model::writable::{self, Shape};
 use mindtape::{Config, Task};
 use typst_harvest::HVal;
 
+use crate::diag::Kind;
+
 use super::{
     Derivation, Outcome, Run, expand, field, field_derive, field_error, field_value, fires,
     macro_value,
@@ -27,10 +29,14 @@ fn run<'a>(config: &'a Config, explicit: &'a BTreeSet<String>) -> Run<'a> {
 }
 
 #[test]
-fn a_derive_writes_nothing_without_a_field_or_past_an_explicit_set() {
-    for (field, explicit) in [
-        (None, BTreeSet::new()),
-        (Some("kind".to_owned()), BTreeSet::from(["kind".to_owned()])),
+fn a_derive_without_a_field_is_refused_and_an_explicit_set_wins() {
+    for (field, explicit, refused) in [
+        (None, BTreeSet::new(), true),
+        (
+            Some("kind".to_owned()),
+            BTreeSet::from(["kind".to_owned()]),
+            false,
+        ),
     ] {
         let config = Config::default();
         let run = run(&config, &explicit);
@@ -41,7 +47,13 @@ fn a_derive_writes_nothing_without_a_field_or_past_an_explicit_set() {
             function: "classify".to_owned(),
             field,
         };
-        field_derive(&derive, &run, &mut task, &mut outcome).unwrap();
+        let result = field_derive(&derive, &run, &mut task, &mut outcome);
+        if refused {
+            let err = result.unwrap_err();
+            assert!(crate::diag::plain(&err).contains("a derive action needs a field"));
+        } else {
+            result.unwrap();
+        }
         assert!(outcome.touched.is_empty());
         assert_eq!(task.kind, None);
     }
@@ -104,42 +116,59 @@ fn an_unknown_field_is_refused_by_name() {
     assert!(crate::diag::plain(&err).contains("nope"), "{err}");
 }
 
-fn assert_hook_error(diag: &crate::diag::Diag, needle: &str) {
-    let text = crate::diag::plain(diag);
-    assert!(text.starts_with("error: on.add fixes: "), "{diag}");
-    assert!(text.contains(needle), "{diag}");
-}
-
 #[test]
 fn the_error_wordings_name_the_field_and_hook() {
     let call = Derivation::of("add.typ", "classify");
-    assert_hook_error(&call.type_error("tags", "fixes"), "tags");
+    crate::diag::assert_plain(
+        &call.type_error("tags", "fixes"),
+        "error: on.add fixes: a derive returned a value the field cannot hold: \
+         'tags' via 'add.typ:classify'\n",
+    );
 
     let write = field_error(
         writable::WritableError::NotANumber {
             field: "priority",
             value: "high".to_owned(),
         },
-        "priority",
         "fixes",
     );
-    assert_hook_error(&write, "priority");
-    assert_hook_error(&call.fail("boom", "fixes"), "boom");
+    crate::diag::assert_plain(
+        &write,
+        "error: on.add fixes: a number is expected: 'high' for field 'priority'\n",
+    );
+    assert_eq!(write.kind(), Kind::Failed);
+
+    crate::diag::assert_plain(
+        &call.fail("boom", "fixes"),
+        "error: on.add fixes: add.typ:classify: boom\n",
+    );
 }
 
 #[test]
 fn a_malformed_when_is_refused_by_the_hook_label() {
-    let config = Config::default();
-    let explicit = BTreeSet::new();
-    let run = run(&config, &explicit);
-    let task = Task::default();
-    let hook = mindtape::config::add_hooks::AddHook {
-        name: Some("fixes".to_owned()),
-        when: "template".to_owned(),
-        actions: Vec::new(),
-    };
-    let err = fires(&hook, &task, &task, &run).unwrap_err();
-    assert!(crate::diag::plain(&err).contains("fixes"), "{err}");
+    for (when, label, needle) in [
+        ("template", "fixes", "fixes"),
+        ("kind ==", "broken", "incomplete"),
+    ] {
+        let config = Config::default();
+        let explicit = BTreeSet::new();
+        let mut run = run(&config, &explicit);
+        run.label = label;
+        let task = Task::default();
+        let hook = mindtape::config::add_hooks::AddHook {
+            name: Some(label.to_owned()),
+            when: when.to_owned(),
+            actions: Vec::new(),
+        };
+        let err = fires(&hook, &task, &task, &run).unwrap_err();
+        let text = crate::diag::plain(&err);
+        assert!(
+            text.starts_with(&format!("error: on.add {label}: ")),
+            "{text}"
+        );
+        assert!(text.contains(needle), "{text}");
+        assert_eq!(err.kind(), Kind::Failed);
+    }
 }
 
 #[test]
@@ -158,12 +187,16 @@ fn a_dir_macro_reads_text_and_refuses_a_list() {
 }
 
 #[test]
-fn a_derived_write_error_names_the_hook() {
+fn a_derived_write_error_names_the_hook_and_the_call() {
     let call = Derivation::of("add.typ", "classify");
     let diag = call.field_error(
         writable::WritableError::ManyValues { field: "tags" },
-        "tags",
         "fixes",
     );
-    assert_hook_error(&diag, "tags");
+    crate::diag::assert_plain(
+        &diag,
+        "error: on.add fixes: one value is expected: 'tags'\n\
+         note: derived by: 'add.typ:classify'\n",
+    );
+    assert_eq!(diag.kind(), Kind::Failed);
 }

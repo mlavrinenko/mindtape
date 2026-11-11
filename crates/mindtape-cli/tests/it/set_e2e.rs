@@ -290,16 +290,17 @@ fn every_writable_field_can_be_set() {
     }
 }
 
-/// A directory is not a field: a filed task's folder changes only through
-/// `mt mv`, and `mt set` says so rather than treating `dir` as a typo.
+/// A directory is not a field: `mt mv` only renames a filed task, and only
+/// `--dir` chooses a folder when adding, so `mt set` says so rather than
+/// treating `dir` as a typo.
 #[test]
-fn dir_is_refused_with_the_rename_or_dir_hint() {
+fn dir_is_refused_with_the_add_or_rename_hint() {
     let dir = scaffold();
     let before = read(dir.path());
 
     let stderr = set_err(dir.path(), "dir=elsewhere");
     assert!(stderr.contains("--dir"), "{stderr}");
-    assert!(stderr.contains("mt mv"), "{stderr}");
+    assert!(stderr.contains("mt mv only renames"), "{stderr}");
     assert_eq!(read(dir.path()), before, "a refused write must not land");
 }
 

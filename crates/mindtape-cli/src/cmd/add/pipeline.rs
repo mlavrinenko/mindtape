@@ -287,7 +287,7 @@ pub(super) fn render(input: &Input<'_>) -> Result<Rendered> {
         target::refuse_outside_explicit(args.dir.as_deref(), project)?;
     }
     let mut task = draft::build(project, source, values, specs, status)?;
-    draft::apply_fields(&mut task.task, &fields, project)?;
+    draft::apply_fields(&mut task.task, &fields)?;
     let outcome = if hooks_on {
         let hooked_explicit = hook_explicit(source, explicit);
         let hook_input = hooks::Input {

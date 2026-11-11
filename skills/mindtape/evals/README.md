@@ -127,8 +127,10 @@ missing.
 
 **Eval 1.** The run filed
 `fix-password-reset-links-returning-404-in-production.typ` with
-`mt add --values ... --no-verify --format json`, after `mt add` refused the
-default template's unknown `kind` and `environment` slots. `mt set kind=fix`
+`mt add --values ... --no-verify --format json`, after the run refused the
+default template's unknown `kind` and `environment` slots. The shared field
+writer landed after that run: `kind` is a writable field and would be inserted,
+while `environment` still names no field or slot. `mt set kind=fix`
 then refused until an Environment section existed; the executor added one by
 hand and the retry succeeded. `mt check` printed `ok: 15 tasks` and the 14
 original task files stayed unchanged. The CLI fact the run needed is the

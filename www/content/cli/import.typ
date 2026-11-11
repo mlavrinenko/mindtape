@@ -9,8 +9,9 @@ destination that is itself a symlink, and a new file under a Git ignore rule.
 #link(u("/concepts/#which-files-count-as-tasks"))[Which files count as tasks]
 defines the paths that qualify.
 
-`--dir <path>` sends the whole batch there, resolved from the project root.
-Without it, each record keeps the folder its `file` field names. The removed
-`--into` and `--to` are refused with a hint to `--dir`.
+`--dir <path>` sends the whole batch there: a relative path resolves from the
+project root, and an absolute one is taken as-is. Without it, each record keeps
+the folder its `file` field names. The removed `--into` and `--to` are refused
+with a hint to `--dir`.
 
 #cli-command("import")

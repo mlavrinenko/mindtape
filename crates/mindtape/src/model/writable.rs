@@ -4,15 +4,14 @@
 //! A field is writable when its value is one unambiguous Typst literal: a
 //! quoted string, a bare number, an `on(y, m, d)` call, or an array of quoted
 //! strings. Everything with a richer argument shape — a dated status, a typed
-//! edge, a renamed stem, an estimate's unit dict — keeps its own command, and
-//! [`ELSEWHERE`] names that command instead of reporting a typo.
+//! edge, a renamed stem, an estimate's unit dict or a destination — keeps its
+//! own command or flag, and [`ELSEWHERE`] names it instead of reporting a typo.
 //!
 //! The rendering lives here, not in the CLI, so the value `mt set` writes and
 //! the value `mt add` inserts cannot drift: both call [`render_op`], and both
 //! use [`apply_op`] when they need the value reflected in a [`Task`] before
 //! rendering.
 
-use crate::config::Config;
 use crate::date::parse_ymd;
 use crate::emit::format::{typ_array, typ_str};
 use crate::model::Task;
@@ -88,9 +87,9 @@ pub const WRITABLE: &[WritableField] = &[
     },
 ];
 
-/// Core fields no generic writer sets, and the hint that says what to do
-/// instead. Refused by name rather than as unknown: `status` is not a typo for
-/// `start`, and a message that suggested so would teach the wrong CLI.
+/// Names no generic writer sets, and the hint that says what to do instead.
+/// Refused by name rather than as unknown: `status` is not a typo for `start`,
+/// and a message that suggested so would teach the wrong CLI.
 pub const ELSEWHERE: &[(&str, &str)] = &[
     (
         "status",
@@ -118,7 +117,7 @@ pub const ELSEWHERE: &[(&str, &str)] = &[
     ),
     (
         "dir",
-        "a directory is not a field; use mt mv <task> <new-stem> for a filed task, or --dir when adding",
+        "a directory is not a field; --dir chooses it when adding, and mt mv only renames a filed task",
     ),
 ];
 
@@ -231,19 +230,11 @@ pub fn render_op(
 /// does. Used by `mt add` after it evaluates the draft task, so a field the
 /// template omits can be inserted with its authored value.
 ///
-/// `config` is accepted for the callers that resolve a field against the
-/// project's own scales later; this module's shapes need none of it yet.
-///
 /// # Errors
 /// The same refusals as [`render_op`]: an append to a scalar field, a non-number
 /// for a numeric one, a non-date for a date one, or a value shape the field
 /// cannot hold.
-pub fn apply_op(
-    task: &mut Task,
-    field: &WritableField,
-    op: &FieldOp,
-    _config: &Config,
-) -> Result<(), WritableError> {
+pub fn apply_op(task: &mut Task, field: &WritableField, op: &FieldOp) -> Result<(), WritableError> {
     match op {
         FieldOp::Set(value) => set(task, field, value),
         FieldOp::Append(item) => append_to_task(task, field, item),

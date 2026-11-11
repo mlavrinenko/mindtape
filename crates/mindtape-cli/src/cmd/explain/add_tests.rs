@@ -10,7 +10,7 @@ fn config(hooks: &str) -> mindtape::Config {
 }
 
 #[test]
-fn a_hook_prints_its_name_when_actions_and_origin() {
+fn a_hook_prints_its_label_when_actions_and_origin() {
     let config = config(
         r#"
 [[on.add]]
@@ -21,10 +21,14 @@ actions = [{ dir = "tasks/fixes" }]
     );
     let hooks = active_add(&config, &[]);
     let text = render(&hooks);
-    assert!(text.contains("fixes"), "{text}");
-    assert!(text.contains("template == \"task\""), "{text}");
-    assert!(text.contains("dir = \"tasks/fixes\""), "{text}");
-    assert!(text.contains("built-in"), "{text}");
+    for needle in [
+        "on.add.fixes",
+        "template == \"task\"",
+        "dir = \"tasks/fixes\"",
+        "built-in",
+    ] {
+        assert!(text.contains(needle), "{needle}: {text}");
+    }
 }
 
 #[test]

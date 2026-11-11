@@ -138,7 +138,8 @@ same date, which `MINDTAPE_NOW` pins (see
   [`old("field")`],
   [The field's value before any `[[on.add]]` hook ran, read as a value. It can
     appear inside `matches()`, `word()` or `in_dict()`, and only an add hook's
-    `when` has one. It refuses `id`, `path` and `dir`.],
+    `when` has one. It refuses every field the draft cannot answer, such as
+    `id`, `path`, `dir`, `file` and `derived.<name>`.],
 
   [`stale(N)`],
   [The task wasn't reviewed in the last N days. With no `reviewed` date, its status date counts.],
@@ -173,11 +174,11 @@ check folds case like `contains()`. A mixed-case needle matches too.
 
 #terminal("filters-starts-with")
 
-Two more tests exist only in an #link(u("/hooks/#add-hooks"))[add hook]'s
+Two more test forms exist only in an #link(u("/hooks/#add-hooks"))[add hook]'s
 `when`. `template == "name"` and `template != "name"` compare the template
 `mt add` used, `from_template("name")` is the same test as `==`, and
-`old("field")` reads the task before any add hook ran. The first two are
-config errors anywhere else; `old()` refuses outside an add `when`.
+`old("field")` reads the task before any add hook ran. The three template
+tests are config errors anywhere else; `old()` refuses outside an add `when`.
 
 One field may have `"alpha"` on one task and `("alpha", "gamma")` on
 another. `x-machine == "alpha"` matches only the first, and

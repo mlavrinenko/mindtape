@@ -16,8 +16,10 @@
 //! (`-f` sources, the environment, the template's defaults) — so the grammar
 //! itself has one home to read, and the sources file keeps room to grow.
 
+#[cfg(test)]
 use std::collections::BTreeMap;
 
+#[cfg(test)]
 use mindtape::RawValue;
 
 use crate::diag::{Diag, Hint};
@@ -154,9 +156,9 @@ fn read_slot_file(name: &str, path: &str, token: &str) -> Result<String, Diag> {
 
 /// Append `item` to slot `name`'s list value (the `name+=item` shape),
 /// creating the list on first use. A slot already set to a non-list value is
-/// replaced outright — the last shape written wins. Kept for the tests' merged
-/// map view; the `+tag` sugar now reaches `mt add` as an ordered append.
-#[allow(dead_code)]
+/// replaced outright — the last shape written wins. Test-only: the `+tag`
+/// sugar reaches `mt add` as an ordered append.
+#[cfg(test)]
 pub fn append_list_value(values: &mut BTreeMap<String, RawValue>, name: &str, item: String) {
     match values
         .entry(name.to_owned())

@@ -24,10 +24,10 @@ use mindtape::config::add_hooks::{
 };
 use mindtape::model::writable::{self, FieldOp, Shape, WritableField};
 use mindtape::rules::typst::{self, TypstCall};
-use mindtape::{Config, Filter, RawValue, Readiness, Task};
+use mindtape::{Config, Filter, FilterError, RawValue, Readiness, Task};
 use typst_harvest::HVal;
 
-use crate::diag::{Diag, Kind, Result, emit_text};
+use crate::diag::{Diag, Kind, Note, Result, emit_text};
 
 /// What the hook list chose: the last `dir`, and every field an action wrote.
 #[derive(Debug, Default)]
@@ -92,10 +92,17 @@ fn label(index: usize, hook: &AddHook) -> String {
 fn fires(hook: &AddHook, draft: &Task, old: &Task, run: &Run<'_>) -> Result<bool> {
     let when = desugar_add_when(&hook.when, run.template)
         .map_err(|message| error(run.label, format!("can't read the when: {message}")))?;
-    let filter = Filter::parse(&when).map_err(Diag::from)?;
+    let filter = Filter::parse(&when).map_err(|err| filter_error(err, run.label))?;
     filter
         .matches_add(draft, old, run.config, &Readiness::empty())
-        .map_err(Diag::from)
+        .map_err(|err| filter_error(err, run.label))
+}
+
+/// A `when` that cannot parse or evaluate, placed on the hook that holds it.
+fn filter_error(err: FilterError, label: &str) -> Diag {
+    Diag::from(err)
+        .reclassified(Kind::Failed)
+        .rule(format!("on.add {label}"))
 }
 
 /// What every action of one hook run needs, grouped so `apply` stays under the
@@ -144,8 +151,8 @@ fn set(
         ));
         return Ok(());
     }
-    writable::apply_op(draft, field, &FieldOp::Set(value.raw()), run.config)
-        .map_err(|err| field_error(err, name, run.label))?;
+    writable::apply_op(draft, field, &FieldOp::Set(value.raw()))
+        .map_err(|err| field_error(err, run.label))?;
     outcome.touched.insert(name.to_owned());
     emit_text(&format!("on.add {}: set {name}\n", run.label));
     Ok(())
@@ -161,8 +168,8 @@ fn append(
 ) -> Result<()> {
     let field = field(name, run.label)?;
     for item in items {
-        writable::apply_op(draft, field, &FieldOp::Append(item.clone()), run.config)
-            .map_err(|err| field_error(err, name, run.label))?;
+        writable::apply_op(draft, field, &FieldOp::Append(item.clone()))
+            .map_err(|err| field_error(err, run.label))?;
     }
     outcome.touched.insert(name.to_owned());
     emit_text(&format!("on.add {}: append {name}\n", run.label));
@@ -178,7 +185,7 @@ fn field_derive(
     outcome: &mut Outcome,
 ) -> Result<()> {
     let Some(name) = derive.field.as_deref() else {
-        return Ok(());
+        return Err(error(run.label, "a derive action needs a field"));
     };
     let field = field(name, run.label)?;
     if run.explicit_set.contains(name) {
@@ -191,8 +198,8 @@ fn field_derive(
     let call = Derivation::of(&derive.typst, &derive.function);
     let value = call.evaluate(run, draft)?;
     let raw = field_value(field, &value).ok_or_else(|| call.type_error(name, run.label))?;
-    writable::apply_op(draft, field, &FieldOp::Set(raw), run.config)
-        .map_err(|err| call.field_error(err, name, run.label))?;
+    writable::apply_op(draft, field, &FieldOp::Set(raw))
+        .map_err(|err| call.field_error(err, run.label))?;
     outcome.touched.insert(name.to_owned());
     emit_text(&format!("on.add {}: derive {name} via {call}\n", run.label));
     Ok(())
@@ -232,10 +239,12 @@ fn error(label: &str, message: impl fmt::Display) -> Diag {
     Diag::verbatim(Kind::Failed, format!("on.add {label}: {message}"))
 }
 
-/// An action's write refusal, placed on the hook that asked for it.
-fn field_error(err: writable::WritableError, name: &str, label: &str) -> Diag {
-    let diag = Diag::from(err).rule(format!("on.add {label}"));
-    diag.value(format!("{name}: {label}"))
+/// An action's write refusal, placed on the hook that asked for it. The shared
+/// writer's message already names the field and the value.
+fn field_error(err: writable::WritableError, label: &str) -> Diag {
+    Diag::from(err)
+        .reclassified(Kind::Failed)
+        .rule(format!("on.add {label}"))
 }
 
 /// A derived value as the writer's input shape. A list field takes a Typst
@@ -305,15 +314,18 @@ impl<'a> Derivation<'a> {
     /// A value the field cannot hold, naming the hook, field and function.
     fn type_error(&self, name: &str, label: &str) -> Diag {
         Diag::failed("a derive returned a value the field cannot hold")
-            .value(format!("{name} via {self}"))
+            .value(name)
+            .context("via", self.to_string())
             .rule(format!("on.add {label}"))
     }
 
-    /// A write the shared writer refused, named like [`Self::type_error`].
-    fn field_error(&self, err: writable::WritableError, name: &str, label: &str) -> Diag {
+    /// A write the shared writer refused, with the function that returned the
+    /// value as a note under the writer's own message.
+    fn field_error(&self, err: writable::WritableError, label: &str) -> Diag {
         Diag::from(err)
-            .value(format!("{name} via {self}"))
+            .reclassified(Kind::Failed)
             .rule(format!("on.add {label}"))
+            .note(Note::new("derived by").value(self.to_string()))
     }
 
     /// A failed call in the hook's words, keeping Typst's message.

@@ -41,6 +41,7 @@ fn the_schema_tags_every_expression_key_with_its_language() {
         ("ls.columns.*.when", false),
         ("ls.rules.*.condition", false),
         ("ls.rules.*.filter", true),
+        ("on.add.*.when", true),
         ("on.flip.*.actions.*.list", true),
         ("on.flip.*.when", true),
         ("rm.default-filter", true),
@@ -67,7 +68,6 @@ fn the_schema_tags_every_expression_key_with_its_language() {
         .iter()
         .map(|(path, joins)| ((*path).to_owned(), *joins))
         .collect();
-    expected.push(("on.add.*.when".to_owned(), true));
     expected.sort();
     assert_eq!(listed, expected);
 }

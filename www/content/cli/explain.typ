@@ -20,10 +20,12 @@ below say what they contain.
 = Add hooks
 
 `mt explain add` lists the #link(u("/hooks/#add-hooks"))[`[[on.add]]`] hooks
-your project runs, in declaration order. Each line gives the hook's name, its
-`when`, its actions and the layer or pack that supplied it. A hook a nearer
-layer replaced or `disable` dropped is absent, so the list is what `mt add`
-actually runs. `--json` wraps the hooks in `hooks` under `$schema`.
+your project runs, in declaration order. Each line gives the hook's label
+(`on.add.<name>`, or `on.add[<index>]` when unnamed), its `when`, its actions
+and the layer or pack that supplied it. A hook a nearer layer replaced or
+`disable` dropped is absent, so the list is what `mt add` actually runs.
+`--json` wraps the hooks in `hooks` under `$schema`, each with the same
+`label` beside its `name`.
 
 = Rules
 

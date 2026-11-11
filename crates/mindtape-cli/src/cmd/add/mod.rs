@@ -77,14 +77,15 @@ pub struct AddArgs {
     /// Set a slot or a core field, as `key=value`, `key+=value` or `key@path`.
     ///
     /// `key+=value` adds to a list, and `key@path` reads the value from a
-    /// file. It wins over `--values`.
+    /// file. These apply after `--values`, so a `key=value` wins on a shared
+    /// key and a `key+=value` appends to the merged list.
     #[arg(long = "set", value_name = "KEY=VALUE")]
     pub set: Vec<String>,
 
-    /// Slots to set after `--`, written as for `--set`.
+    /// Slots or core fields to set after `--`, written as for `--set`.
     ///
     /// For example `mt add "Fix login" -- tags+=auth summary@notes.txt`. They
-    /// win over `--set`.
+    /// apply after `--set`.
     #[arg(last = true, value_name = "KEY=VALUE")]
     pub tokens: Vec<String>,
 

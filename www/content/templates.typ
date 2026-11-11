@@ -105,8 +105,9 @@ budget on the work in progress never fires on a template. A problem the
 template can fix counts, and the error names the template file and the line
 of the field:
 #capture-line("check-template-stale", "^error: .*bug.typ").
-A problem about the backlog doesn't count: a `count()` cap, a rule on `ready`
-or `blocked`, a link cycle, or a link to a task that isn't there.
+A problem about the backlog or the file's place doesn't count: a `count()` cap,
+a rule on `ready`, `blocked`, `path` or `dir`, a link cycle, or a link to a
+task that isn't there.
 
 A slot with neither an `example` nor a `default` leaves nothing to fill, so
 `mt check` reports the slot and checks nothing else in that template. When
@@ -133,7 +134,8 @@ errors.
 
 To see what a template asks for, `mt add --describe` lists each slot with its
 kind, whether it's required, the values a `choice` slot accepts, and its
-prompt:
+prompt. When the project declares `[[on.add]]` hooks, a blank line and a
+`hooks` heading separate them from the slots:
 
 #terminal("api-service-describe")
 
@@ -154,11 +156,12 @@ project's #link(u("/hooks/#add-hooks"))[`[[on.add]]`] hooks.
   [The slot's `default`], [`slot("difficulty", kind: "int", default: 1)`],
 )
 
-When two sources set the same slot, the later one wins. `mt add` reads `-f`
-files first, left to right, then `--set` tokens, then the tokens after `--`.
-Title words, environment variables and defaults fill only the slots still
-empty, in that order. A slot reads the variable its `env` names, or else
-`MINDTAPE_ADD_` plus its name in capitals, with `-` turned into `_`.
+When two sources set the same slot with `=`, the later one wins; a later `+=`
+appends to what the earlier source set. `mt add` reads `-f` files first, left
+to right, then `--set` tokens, then the tokens after `--`. Title words,
+environment variables and defaults fill only the slots still empty, in that
+order. A slot reads the variable its `env` names, or else `MINDTAPE_ADD_` plus
+its name in capitals, with `-` turned into `_`.
 
 A token takes one of three forms:
 
@@ -175,21 +178,22 @@ title `a@b`. A list slot takes one value as a one-item list, so `tags=bug`
 files that single tag. A title word that starts with `+`, as in
 `mt add Fix login +auth`, goes
 to the `tags` slot if the template has one. If you name neither a slot nor a
-core field, `mt add` refuses and lists the slots it does have.
+core field, `mt add` refuses and points at `mt add --describe`.
 
 A token may also name a core field the template has no slot for.
 `mt add --set due=2026-12-01` inserts `due` in the filed task, and
 `--set tags+=bug` appends to the tags the template already writes, or to a
-`tags` slot's `default`. These are the fields `mt set` writes: `title`,
+`tags` slot's `default`, or inserts the list when the template writes none.
+These are the fields `mt set` writes: `title`,
 `priority`, `difficulty`, `kind`, `assignee`, `waits-on`, `tags`, `due` and
 `start`. A `+=` on a single-valued field is refused. `dir` is not a field:
 `mt add --set dir=…` refuses and points at `--dir`.
 
 When the template fills a core field through a whole-value slot under another
 name, as in `kind: slot("type")`, a core-field token or flag fills that slot.
-The slot name and the core name count as one field, so passing both is the
-same-field-twice refusal. A positional title fills an aliased title slot the
-same way, and the file stem still comes from the title.
+The slot name and the core name count as one field, so a direct flag plus a
+`--set` token for either spelling is refused. A positional title fills an
+aliased title slot the same way, and the file stem still comes from the title.
 
 The scalar fields also have direct flags: `--due`, `--start`, `--assignee`,
 `--kind`, `--priority` and `--difficulty`. Each is an alias for
@@ -248,9 +252,10 @@ removed; `--dir` names the one destination. If a file with that name exists,
 (write `<name>-2.typ`).
 
 A project's #link(u("/hooks/#add-hooks"))[`[[on.add]]`] hooks may fill fields
-and choose the destination. An explicit value (a `--set`, a positional title or
-an edit in `--edit`) wins over a hook `set`, `--dir` wins over a hook `dir`,
-and `--no-hooks` skips the hook list entirely.
+and choose the destination. An explicit `=` value (a `--set`, a positional
+title or an edit in `--edit`) wins over a hook `set`, `--dir` wins over a hook
+`dir`, and `--no-hooks` skips the hook list entirely. An explicit `+=` appends
+and leaves a later hook `set` free to replace the list.
 
 = Fill the slots in an editor
 

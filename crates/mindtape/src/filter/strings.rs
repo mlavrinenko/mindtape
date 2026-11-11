@@ -135,7 +135,8 @@ fn old_string(
 /// action ran, as a comparable string.
 ///
 /// # Errors
-/// A wrong argument count, a non-literal field name, an unknown field, or no
+/// A wrong argument count, a non-literal field name, an unknown field, a field
+/// the draft cannot answer (`id`, `path`, a `derived.<name>` record), or no
 /// pre-hook draft (an `old()` outside an add hook's `when`).
 pub(crate) fn old_value(
     children: &[Node<DefaultNumericTypes>],
@@ -149,7 +150,10 @@ pub(crate) fn old_value(
     };
     let name = extract_literal(arg)
         .map_err(|_| FilterError::call("old() takes its field name in double quotes", EXAMPLE))?;
-    if crate::rules::typst::add_unsafe(&name) {
+    // A record field (`derived.changes`) is only answerable through its root's
+    // capability, the same way an add `when` checks a read.
+    let root = name.split(['.', '[']).next().unwrap_or(&name);
+    if crate::rules::typst::add_unsafe(root) {
         return Err(FilterError::call(
             format!("old(\"{name}\") reads a value the add cannot know until the task is filed"),
             EXAMPLE,

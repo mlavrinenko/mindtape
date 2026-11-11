@@ -143,7 +143,7 @@ fn a_root_outside_the_project_is_refused_naming_tasks_roots() {
 }
 
 #[test]
-fn add_refuses_dir_with_the_rename_or_dir_hint() {
+fn add_refuses_dir_with_the_add_or_rename_hint() {
     let dir = support::scaffold();
 
     let output = support::mt(dir.path())
@@ -163,6 +163,6 @@ fn add_refuses_dir_with_the_rename_or_dir_hint() {
 
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("--dir"), "{stderr}");
-    assert!(stderr.contains("mt mv"), "{stderr}");
+    assert!(stderr.contains("mt mv only renames"), "{stderr}");
     assert!(!dir.path().join("tasks/hidden.typ").exists());
 }

@@ -68,11 +68,10 @@ pub(super) fn build(
 pub(super) fn apply_fields(
     task: &mut Task,
     fields: &[(&'static writable::WritableField, Vec<writable::FieldOp>)],
-    project: &Project,
 ) -> Result<()> {
     for (field, ops) in fields {
         for op in ops {
-            writable::apply_op(task, field, op, &project.config).map_err(Diag::from)?;
+            writable::apply_op(task, field, op).map_err(Diag::from)?;
         }
     }
     Ok(())
@@ -105,7 +104,7 @@ fn draft_rel(project: &Project) -> Result<PathBuf> {
 /// path. Naming the config key rather than the raw path is what tells a reader
 /// where the fix belongs.
 fn outside_root(root: &str) -> Diag {
-    Diag::usage("the first tasks root must lie under the project root")
+    Diag::failed("the first tasks root must lie under the project root")
         .value("tasks.roots")
         .hint(Hint::naming(
             "the draft is evaluated under the first root, and this one is",

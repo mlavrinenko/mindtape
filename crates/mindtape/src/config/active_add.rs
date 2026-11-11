@@ -45,12 +45,19 @@ pub fn active_add<'a>(
             let entry = entries.next();
             ActiveAddHook {
                 hook,
-                label: entry
-                    .map_or_else(|| format!("on.add[{index}]"), |entry| entry.label.clone()),
+                label: entry.map_or_else(|| hook_label(hook, index), |entry| entry.label.clone()),
                 origin: entry.map_or(&FALLBACK_ORIGIN, |entry| &entry.origin),
             }
         })
         .collect()
+}
+
+/// How `mt config show --origin` labels a hook with no recorded origin.
+fn hook_label(hook: &AddHook, index: usize) -> String {
+    hook.name.as_ref().map_or_else(
+        || format!("on.add[{index}]"),
+        |name| format!("on.add.{name}"),
+    )
 }
 
 /// The origin used for a config with no recorded layer: the embedded floor,

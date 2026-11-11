@@ -74,6 +74,22 @@ fn old_numeric_fields_compare_as_numbers() {
 }
 
 #[test]
+fn old_refuses_a_derived_field() {
+    let config = parse_config(
+        "[[tasks.collectors]]\nname = \"changes\"\n\
+         query = { section = \"Changes\", pattern = \"x\" }\nreturns = [\"path\"]\n",
+    )
+    .unwrap();
+    let task = titled("Fix the login");
+    let filter = Filter::parse(r#"old("derived.changes") != "x""#).unwrap();
+    let err = filter
+        .matches_add(&task, &task, &config, &crate::Readiness::empty())
+        .unwrap_err();
+    assert!(err.to_string().contains("derived.changes"), "{err}");
+    assert!(err.to_string().contains("cannot know"), "{err}");
+}
+
+#[test]
 fn old_refuses_the_drafts_identity_and_place() {
     let config = parse_config("").unwrap();
     let task = titled("Fix the login");

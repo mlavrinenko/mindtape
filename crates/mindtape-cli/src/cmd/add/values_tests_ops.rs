@@ -37,7 +37,7 @@ fn reject_unknown_keys_errors_naming_the_key_and_known_slots() {
 }
 
 #[test]
-fn dir_is_refused_with_the_mv_or_dir_hint() {
+fn dir_is_refused_with_the_add_or_rename_hint() {
     let specs = discover_slots(BUILTIN_TASK);
     let err =
         crate::diag::plain(&reject_unknown_keys(&ops(&[("dir", "fixes")]), &specs).unwrap_err());

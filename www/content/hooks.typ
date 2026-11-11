@@ -146,8 +146,9 @@ when = 'template == "fix"'
 actions = [{ set = { due = "2026-12-01" }, dir = "tasks/fixes" }]
 ```
 
-`set` writes writable field names, `append` adds items to a list field, and one
-field can't appear in both. `set.dir` is refused: `dir` is a destination, not a
+`set` writes writable field names, `append` adds items to a list field, and a
+`derive` returns a field's value. One action cannot name the same field in more
+than one of the three. `set.dir` is refused: `dir` is a destination, not a
 field. `when` is a #link(u("/filters/"))[filter expression] over the new task.
 `template == "name"`, `template != "name"` and `from_template("name")` test
 the template `mt add` used, and the name must be a known template. A bare
@@ -157,11 +158,13 @@ config errors. An empty `when` fires on every add.
 `dir` is a project-root-relative template. `{template}` expands to the template
 name, and `{title}`, `{priority}`, `{difficulty}`, `{kind}`, `{assignee}`,
 `{due}` and `{start}` expand to the task's fields, after the action's `set` and
-`append`. The literal `""` is the project root, and a hooked add refuses it
-unless a configured root covers the project root. An unknown macro, an absolute
-path, or an empty, `.` or `..` component is a config error. A hook `dir` outside
-every configured root is refused when the task is added, and so is an explicit
-`--dir` outside every root when hooks are enabled.
+`append`. A macro's value must be one path component, so a title with a `/` is
+refused when the task is added. The literal `""` is the project root, and a
+hooked add refuses it unless a configured root covers the project root. An
+unknown macro, an absolute path, or an empty, `.` or `..` component is a config
+error. A hook `dir` outside every configured root is refused at add time once
+the hook fires, and so is an explicit `--dir` outside every root when hooks are
+enabled.
 
 Add hooks merge across packs and layers like `[[on.flip]]`. A later hook with
 the same `name` replaces the earlier one in place, `disable` drops it by name,
@@ -189,9 +192,10 @@ actions = [
 ]
 ```
 
-The function receives the task as it stands, minus its id, path, derived tags
-and the values a load computes from the set, plus `template`. A field value
-that does not fit the field, or a derived `dir` outside every root, is refused.
+The function receives the task as it stands, minus every field the draft cannot
+answer (its `id` and `file`, its `path` and `dir`, the graph facts and the
+derived values), plus `template`. A field value that does not fit the field, or
+a derived `dir` outside every root, is refused.
 
 A `when` reads the same draft, so it refuses those unsafe fields too. It also
 refuses `ready()`, `blocked()` and `count(...)`: their answer depends on the
@@ -200,7 +204,8 @@ reads the task before any hook ran, so a later hook can test what an earlier
 one changed. It is read-only, works wherever a value is expected
 (`matches(old("title"), …)` too), and exists only in an `[[on.add]]` `when`.
 It refuses every field the draft cannot answer, including `id`, `path`, `dir`,
-`file`, `depth`, `topo`, `blocks`, `children` and `progress`.
+`file`, `depth`, `topo`, `blocks`, `children`, `progress` and every
+`derived.<name>`.
 
 `mt add` prints each action it applies on stderr, naming the hook. Pass
 `--no-hooks` to skip every hook; explicit `--set` values still apply. A
@@ -210,10 +215,10 @@ It refuses every field the draft cannot answer, including `id`, `path`, `dir`,
 = Trust and portability
 
 #callout("warn")[
-  A `run` command is as trusted as a `Justfile` recipe or a git hook. It comes
-  from the project's config and runs with your permissions. A string runs
-  through `sh -c`, or `cmd /C` on Windows, and an array runs its program
-  directly. Nothing sandboxes it. So `mt` runs none until you
+  A flip hook's `run` command is as trusted as a `Justfile` recipe or a git
+  hook. It comes from the project's config and runs with your permissions. A
+  string runs through `sh -c`, or `cmd /C` on Windows, and an array runs its
+  program directly. Nothing sandboxes it. So `mt` runs none until you
   read the config's commands and run #link(u("/cli/allow/"))[`mt allow`] in
   the repo.
 ]

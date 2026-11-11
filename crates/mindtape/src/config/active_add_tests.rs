@@ -20,6 +20,6 @@ actions = [{ set = { kind = "feat" } }]
     let hooks = active_add(&config, &[]);
     assert_eq!(hooks.len(), 2);
     assert_eq!(hooks[0].label, "on.add[0]");
-    assert_eq!(hooks[1].label, "on.add[1]");
+    assert_eq!(hooks[1].label, "on.add.second");
     assert_eq!(hooks[1].origin.to_string(), "built-in");
 }

@@ -41,18 +41,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Typst function, or sets `dir`, a project-root-relative path template. Hooks
   merge by name across layers and packs, `when` reads the draft as earlier
   hooks left it, `template == "name"`/`from_template("name")` test the chosen
-  template, and `old("field")` reads the pre-hook value. An explicit value, a
-  `--set`, a positional title or an `--edit` change, wins over a hook `set`;
-  `--no-hooks` skips the list. A `when` cannot read the draft's identity or
-  place (`id`, `path`, `dir`, `depth`, the graph fields), which the add has
-  not chosen yet. `mt explain add` lists the hooks in effect and their origin.
+  template, and `old("field")` reads the pre-hook value. An explicit `=`
+  value, a positional title or an `--edit` change wins over a hook `set`;
+  `--no-hooks` skips the list. A `when` cannot read the draft's identity or place (`id`,
+  `path`, `dir`, `depth`, the graph fields), which the add has not chosen yet.
+  `mt explain add` lists the hooks in effect and their origin.
 - **`mt add --dir` names one destination.** A relative path resolves from the
   project root, so the same command lands in the same place from any
   subdirectory. `--into` and `--to` are removed, and `mt import` takes `--dir`
   too.
-- **Every scalar writable field has a direct `mt add` flag.** `--priority`,
-  `--difficulty`, `--kind`, `--assignee`, `--due` and `--start` are aliases
-  for `--set`, and `mt add` refuses a field named by both.
+- **Every scalar writable field but the title has a direct `mt add` flag.**
+  `--priority`, `--difficulty`, `--kind`, `--assignee`, `--due` and `--start`
+  are aliases for `--set`, and `mt add` refuses a field named by both.
 - **`starts_with("text", field)` matches a case-insensitive prefix**, and
   `dir` is a filter/sort field holding the folder part of `path`. A template
   check ignores rules that read `path` or `dir`.
@@ -99,7 +99,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **An add hook cannot read an answer the filed set supplies.** A `when` now
   refuses `ready()`, `blocked()` and `count(...)` as well as the bare fields,
   and `old()` refuses the same unsafe fields (`file`, `depth`, `topo`, the
-  graph counts and derived tags) instead of reading the synthetic draft.
+  graph counts, derived tags and `derived.<name>` records) instead of reading
+  the synthetic draft.
 - **A core-field flag or token fills a template's aliased slot.** With
   `kind: slot("type")`, `--kind fix` and `--set kind=fix` fill `type` instead of
   replacing the slot, and a flag plus `--set type=…` is the same-field-twice

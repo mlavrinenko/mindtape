@@ -346,7 +346,7 @@ fn canonical_hval(task: &Task, config: &Config) -> HVal {
         .unwrap_or(HVal::Null)
 }
 
-/// Fields an `[[on.add]]` derive may not read off the draft: the identity, the
+/// Fields an `[[on.add]]` hook may not read off the draft: the identity, the
 /// destination, and every value a load computes from either.
 const ADD_UNSAFE: &[&str] = &[
     "id",

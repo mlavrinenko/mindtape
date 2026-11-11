@@ -17,8 +17,9 @@
 //! evaluator stays unaware of them.
 //!
 //! Each action sets at least one of `set`, `append`, `derive` and `dir`. The
-//! first two name writable fields ([`crate::model::writable`]) and are
-//! validated through the same writer `mt set` uses; `dir` is not a field, so
+//! first two name writable fields ([`crate::model::writable`]): a `set` value
+//! is checked through the same writer `mt set` uses, and an `append` must name
+//! a list field and carry at least one item. `dir` is not a field, so
 //! `set.dir` is refused by name. `dir` is a project-root-relative template over
 //! `{template}` and the add-safe scalar fields, expanded by the add pipeline
 //! with [`DirTemplate::expand`]; an unknown macro or an absolute path is a
@@ -43,6 +44,8 @@ use std::path::Path;
 use serde::Deserialize;
 
 use crate::config::Config;
+use crate::config::add_hooks_dir::validate_dir;
+pub use crate::config::add_hooks_dir::{DirTemplate, validate_component, validate_derived_dir};
 pub use crate::config::add_hooks_when::{desugar_add_when, when_templates};
 use crate::model::Task;
 use crate::model::writable::{self, FieldOp, Shape};
@@ -198,9 +201,6 @@ pub fn template_names(config: &Config, root: &Path) -> Vec<String> {
     names.into_iter().collect()
 }
 
-use crate::config::add_hooks_dir::validate_dir;
-pub use crate::config::add_hooks_dir::{DirTemplate, validate_component, validate_derived_dir};
-
 /// Whether `name` is a writable scalar a `dir` template may expand: `text`,
 /// number and date fields, except the ones that come from a file's location.
 #[must_use]
@@ -331,6 +331,7 @@ impl Checker<'_> {
         for (name, items) in &action.append {
             self.append(name, items, at);
         }
+
         for name in action.append.keys() {
             if action.set.contains_key(name) {
                 self.problems
@@ -409,8 +410,9 @@ impl Checker<'_> {
         }
     }
 
-    /// Validate one `append` entry: a writable list field, each item through
-    /// the shared writer.
+    /// Validate one `append` entry: a writable list field with at least one
+    /// item. A list field has no further failure mode, so the shape check is
+    /// the whole rule.
     fn append(&mut self, name: &str, items: &[String], at: &str) {
         let Some(field) = writable::get(name) else {
             self.problems
@@ -422,11 +424,10 @@ impl Checker<'_> {
                 .push(format!("{at}.append.{name}: += appends to a list field"));
             return;
         }
-        // A list field's append has no failure mode the shape check above did
-        // not already name; the call still goes through the shared writer so
-        // the validator and the runtime read one renderer.
-        for item in items {
-            let _ = writable::render_op(field, &FieldOp::Append(item.clone()), &self.probe);
+        if items.is_empty() {
+            self.problems.push(format!(
+                "{at}.append.{name}: append needs at least one item"
+            ));
         }
     }
 }

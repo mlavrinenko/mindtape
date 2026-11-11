@@ -87,10 +87,11 @@ sorts by legend position.
   case. It takes exactly one field, which may be any field `contains()`
   searches, including `body`, `note` and `tags`. There is no default haystack.
 - `old("f")` reads field `f` from the task before any `[[on.add]]` hook ran.
-  It reads as a value, so `matches(old("title"), …)` works, and it refuses
-  `id`, `path` and `dir`. Only an add hook's `when` accepts it. `template == "name"`,
-  `template != "name"` and `from_template("name")` test the template `mt add`
-  used, also only in an add hook.
+  It reads as a value, so `matches(old("title"), …)` works. It refuses every
+  field the draft cannot answer, such as `id`, `path`, `dir`, `file` and
+  `derived.<name>`. Only an add hook's `when` accepts it.
+  `template == "name"`, `template != "name"` and `from_template("name")` test
+  the template `mt add` used, also only in an add hook.
 - `stale(N)` matches a task whose `reviewed` date, or else status date, is
   more than N days old. A task with neither date is stale too.
 - `in_view("v")`, written `@v` for short, matches when view `v`'s filter does.

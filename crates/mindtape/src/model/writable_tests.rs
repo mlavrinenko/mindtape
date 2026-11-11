@@ -129,50 +129,29 @@ fn an_append_to_a_scalar_names_the_field() {
 #[test]
 fn apply_sets_and_appends_the_task_fields() {
     let mut task = bare_task("subject");
-    let config = crate::Config::default();
 
-    apply_op(
-        &mut task,
-        field("title"),
-        &FieldOp::Set(RawValue::Str("Renamed".to_owned())),
-        &config,
-    )
-    .unwrap();
-    apply_op(
-        &mut task,
-        field("priority"),
-        &FieldOp::Set(RawValue::Str("8".to_owned())),
-        &config,
-    )
-    .unwrap();
-    apply_op(
-        &mut task,
-        field("due"),
-        &FieldOp::Set(RawValue::Str("2026-12-01".to_owned())),
-        &config,
-    )
-    .unwrap();
-    apply_op(
-        &mut task,
-        field("tags"),
-        &FieldOp::Set(RawValue::List(vec!["backend".to_owned()])),
-        &config,
-    )
-    .unwrap();
-    apply_op(
-        &mut task,
-        field("tags"),
-        &FieldOp::Append("auth".to_owned()),
-        &config,
-    )
-    .unwrap();
-    apply_op(
-        &mut task,
-        field("tags"),
-        &FieldOp::Append("auth".to_owned()),
-        &config,
-    )
-    .unwrap();
+    for (field, op) in [
+        (
+            field("title"),
+            FieldOp::Set(RawValue::Str("Renamed".to_owned())),
+        ),
+        (
+            field("priority"),
+            FieldOp::Set(RawValue::Str("8".to_owned())),
+        ),
+        (
+            field("due"),
+            FieldOp::Set(RawValue::Str("2026-12-01".to_owned())),
+        ),
+        (
+            field("tags"),
+            FieldOp::Set(RawValue::List(vec!["backend".to_owned()])),
+        ),
+        (field("tags"), FieldOp::Append("auth".to_owned())),
+        (field("tags"), FieldOp::Append("auth".to_owned())),
+    ] {
+        apply_op(&mut task, field, &op).unwrap();
+    }
 
     assert_eq!(task.title, "Renamed");
     assert_eq!(
@@ -186,13 +165,11 @@ fn apply_sets_and_appends_the_task_fields() {
 #[test]
 fn apply_refuses_a_bad_date_and_a_label_on_a_numeric_field() {
     let mut task = bare_task("subject");
-    let config = crate::Config::default();
     assert!(matches!(
         apply_op(
             &mut task,
             field("due"),
             &FieldOp::Set(RawValue::Str("soon".to_owned())),
-            &config,
         ),
         Err(super::WritableError::NotADate { .. })
     ));
@@ -201,7 +178,6 @@ fn apply_refuses_a_bad_date_and_a_label_on_a_numeric_field() {
             &mut task,
             field("priority"),
             &FieldOp::Set(RawValue::Str("high".to_owned())),
-            &config,
         ),
         Err(super::WritableError::NotANumber { .. })
     ));
@@ -261,11 +237,11 @@ fn current_raw_and_current_literal_read_what_the_task_holds() {
 }
 
 #[test]
-fn dir_is_refused_with_the_rename_or_dir_hint() {
+fn dir_is_refused_with_the_add_or_rename_hint() {
     assert!(get("dir").is_none());
     let hint = super::elsewhere("dir").unwrap();
-    assert!(hint.contains("mt mv"));
     assert!(hint.contains("--dir"));
+    assert!(hint.contains("mt mv only renames"));
 }
 
 #[test]

@@ -17,6 +17,8 @@ use crate::util;
 /// The JSON shape of one listed hook.
 #[derive(Debug, Serialize, schemars::JsonSchema)]
 pub struct AddHookJson {
+    /// `on.add.<name>`, or `on.add[<index>]` when unnamed.
+    pub label: String,
     /// The hook's name, or `null` when unnamed.
     pub name: Option<String>,
     /// Its `when`, or the empty string when it fires every add.
@@ -58,6 +60,7 @@ pub fn run(as_json: bool) -> Result<()> {
 
 fn hook_json(hook: &ActiveAddHook<'_>) -> AddHookJson {
     AddHookJson {
+        label: hook.label.clone(),
         name: hook.hook.name.clone(),
         when: hook.hook.when.clone(),
         actions: hook.hook.actions.iter().map(action_summary).collect(),
@@ -65,29 +68,25 @@ fn hook_json(hook: &ActiveAddHook<'_>) -> AddHookJson {
     }
 }
 
-/// One row per hook, aligned: name, `when`, actions, origin.
+/// One row per hook, aligned: label, `when`, actions, origin.
 fn render(hooks: &[ActiveAddHook<'_>]) -> String {
     if hooks.is_empty() {
         return "no add hooks apply\n".to_owned();
     }
-    let name_width = widest(hooks.iter().map(|hook| hook_name(hook)));
+    let label_width = widest(hooks.iter().map(|hook| hook.label.as_str()));
     let when_width = widest(hooks.iter().map(|hook| when(hook)));
     let mut out = String::new();
     for hook in hooks {
         let actions: Vec<String> = hook.hook.actions.iter().map(action_summary).collect();
         out.push_str(&format!(
-            "{:<name_width$}  {:<when_width$}  {}  {}\n",
-            hook_name(hook),
+            "{:<label_width$}  {:<when_width$}  {}  {}\n",
+            hook.label,
             when(hook),
             actions.join(", "),
             hook.origin,
         ));
     }
     out
-}
-
-fn hook_name<'a>(hook: &ActiveAddHook<'a>) -> &'a str {
-    hook.hook.name.as_deref().unwrap_or("-")
 }
 
 fn when<'a>(hook: &ActiveAddHook<'a>) -> &'a str {

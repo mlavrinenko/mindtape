@@ -80,6 +80,10 @@ fn action_fields_are_checked_by_the_shared_writer() {
             "on.add[0].actions[0].append.due: += appends to a list field",
         ),
         (
+            "{ append = { tags = [] } }",
+            "on.add[0].actions[0].append.tags: append needs at least one item",
+        ),
+        (
             "{ set = { dir = \"tasks\" } }",
             "on.add[0].actions[0].set.dir: dir is a destination, not a field",
         ),

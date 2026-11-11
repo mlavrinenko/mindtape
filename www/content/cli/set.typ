@@ -7,7 +7,7 @@
 `start`. It shares the field table, the `=`/`+=` grammar and the renderer with
 `mt add --set`, so a value means the same on a filed task and a new one.
 `+=` appends to a list field, and `=` replaces it. A directory is not a field:
-`mt set dir=…` refuses and points at `mt mv` for a renamed task, or `--dir`
-when adding.
+`mt set dir=…` refuses, because `mt mv` only renames a filed task and `--dir`
+chooses the folder only when adding.
 
 #cli-command("set")

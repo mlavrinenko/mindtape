@@ -139,7 +139,8 @@ pub(crate) struct Eval<'a> {
     pub(crate) dry: bool,
 }
 
-/// empty or whitespace-only expression, e.g. `mt ls ''`).
+/// A parsed filter expression, or the match-all filter for an empty or
+/// whitespace-only expression, e.g. `mt ls ''`.
 #[derive(Debug, Clone)]
 pub struct Filter {
     tree: Option<Node<DefaultNumericTypes>>,

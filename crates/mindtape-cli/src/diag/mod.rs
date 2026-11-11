@@ -378,6 +378,14 @@ impl Diag {
     pub(crate) fn kind(&self) -> Kind {
         self.0.kind
     }
+
+    /// The same message under another kind, for a value that came from the
+    /// project rather than the command line: a config hook's bad value is a
+    /// failed write, not a usage error.
+    pub(crate) fn reclassified(mut self, kind: Kind) -> Self {
+        self.0.kind = kind;
+        self
+    }
 }
 
 impl fmt::Display for Diag {

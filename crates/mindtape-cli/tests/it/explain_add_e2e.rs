@@ -79,8 +79,10 @@ fn explain_add_json_uses_its_schema_and_names_actions() {
     mindtape::test_support::assert_schema(&json, "explain-add");
     let hooks = json["hooks"].as_array().unwrap();
     assert_eq!(hooks.len(), 3, "{json}");
+    assert_eq!(hooks[0]["label"], "on.add.default");
     assert_eq!(hooks[0]["name"], "default");
     assert_eq!(hooks[0]["actions"][0], "dir = \"tasks/project\"");
+    assert_eq!(hooks[2]["label"], "on.add.fixes");
     assert_eq!(hooks[2]["name"], "fixes");
 }
 

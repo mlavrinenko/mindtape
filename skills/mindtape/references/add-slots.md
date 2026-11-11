@@ -76,14 +76,16 @@ Pass one field once: a flag plus a `--set` token naming it is refused.
 
 When a template fills a core field through a whole-value slot under another
 name, as in `kind: slot("type")`, a core-field flag or token fills that slot.
-The slot name and the core name count as one field, so passing both is the
-same-field-twice refusal. A positional title fills an aliased title slot too,
-and the file stem still comes from the title.
+The slot name and the core name count as one field, so a direct flag plus a
+`--set` token for either spelling is refused. A positional title fills an
+aliased title slot too, and the file stem still comes from the title.
 
 A project may declare `[[on.add]]` hooks that fill a field or choose the
-directory after your values are read. An explicit `--set`, a positional title
-or an `--edit` change wins over a hook `set`, `--dir` wins over a hook `dir`,
-and `--no-hooks` skips them. Run `mt explain add` to see the hooks in effect.
+directory after your values are read. An explicit `=` value (a `--set`, a
+positional title or an `--edit` change) wins over a hook `set`, `--dir` wins
+over a hook `dir`, and `--no-hooks` skips them. An explicit `+=` appends and
+leaves a later hook `set` free to replace the list. Run `mt explain add` to see
+the hooks in effect.
 
 ## A `links` slot holds typed edges
 

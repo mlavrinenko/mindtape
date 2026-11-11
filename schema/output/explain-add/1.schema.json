@@ -10,6 +10,10 @@
           },
           "type": "array"
         },
+        "label": {
+          "description": "`on.add.<name>`, or `on.add[<index>]` when unnamed.",
+          "type": "string"
+        },
         "name": {
           "description": "The hook's name, or `null` when unnamed.",
           "type": [
@@ -27,6 +31,7 @@
         }
       },
       "required": [
+        "label",
         "when",
         "actions",
         "origin"
