@@ -428,6 +428,10 @@ when = 'blocked'
 assert = 'has(title)'
 
 [[tasks.rules]]
+name = \"ready-call\"
+assert = 'ready()'
+
+[[tasks.rules]]
 assert = 'has(title)'
 
 [[tasks.rules]]
@@ -438,7 +442,9 @@ assert = 'kind != \"fix\"'
     let names = set_labels(&config);
     assert_eq!(
         names,
-        ["rules.cap", "rules.gated"].map(str::to_owned).into()
+        ["rules.cap", "rules.gated", "rules.ready-call"]
+            .map(str::to_owned)
+            .into()
     );
 }
 

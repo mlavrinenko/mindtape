@@ -5,7 +5,7 @@
 //! [`add_hooks`](crate::config::add_hooks) re-exports [`desugar_add_when`] and
 //! [`when_templates`], its public surface.
 
-use crate::config::hooks::{ALWAYS, NEVER, is_ident_char, scan_call, scan_expression};
+use crate::config::hooks::{ALWAYS, NEVER, is_ident_char, parse_named_call, scan_expression};
 
 /// Rewrite a hook's `when` for the template `mt add` used: every
 /// `from_template("name")` and `template ==` / `template !=` test becomes a
@@ -34,49 +34,25 @@ pub fn when_templates(when: &str) -> Result<Vec<String>, String> {
     Ok(unique)
 }
 
-/// [`desugar_add_when`] plus the names it saw, before deduplication.
+/// The rewritten `when` and the template names it saw, in source order. The
+/// add-hook validator needs both, so it scans once and keeps the one error.
+pub(crate) fn rewrite(when: &str) -> Result<(String, Vec<String>), String> {
+    rewrite_when(when, "")
+}
+
+/// [`desugar_add_when`] plus the names it saw, in source order.
 fn rewrite_when(when: &str, template: &str) -> Result<(String, Vec<String>), String> {
-    let calls = scan_call(when, "from_template", &|name: &str| {
-        constant(name == template).to_owned()
-    });
-    let compared = scan_comparisons(&calls.rewritten, template)?;
-    let mut names = calls.targets;
-    names.extend(compared.names);
-    Ok((compared.rewritten, names))
-}
-
-/// [`ALWAYS`] when `matched`, else [`NEVER`].
-fn constant(matched: bool) -> &'static str {
-    if matched { ALWAYS } else { NEVER }
-}
-
-/// One `template == "name"` or `template != "name"` test.
-struct Comparison {
-    name: String,
-    negated: bool,
-    /// Bytes the test occupies, including any whitespace around the operator.
-    len: usize,
-}
-
-/// The result of rewriting every comparison in one `when`.
-struct ComparisonScan {
-    rewritten: String,
-    names: Vec<String>,
-}
-
-/// Rewrite every `template == "name"` / `template != "name"` test in `when`
-/// into a constant, leaving the rest of the expression alone. Any other use of
-/// `template` — bare, another operator, or a non-literal name — is an error.
-fn scan_comparisons(when: &str, template: &str) -> Result<ComparisonScan, String> {
-    let mut scan = ComparisonScan {
-        rewritten: String::with_capacity(when.len()),
-        names: Vec::new(),
-    };
+    let mut rewritten = String::with_capacity(when.len());
+    let mut names = Vec::new();
     let mut error = None;
-    let ComparisonScan { rewritten, names } = &mut scan;
-    scan_expression(when, rewritten, &mut |rest, out| {
+    scan_expression(when, &mut rewritten, &mut |rest, out| {
         if error.is_some() {
             return None;
+        }
+        if let Some((name, len)) = parse_named_call(rest, "from_template") {
+            out.push_str(constant(name == template));
+            names.push(name);
+            return Some(len);
         }
         match parse_template_comparison(rest) {
             Ok(Some(comparison)) => {
@@ -107,12 +83,26 @@ fn scan_comparisons(when: &str, template: &str) -> Result<ComparisonScan, String
     });
     match error {
         Some(message) => Err(message),
-        None => Ok(scan),
+        None => Ok((rewritten, names)),
     }
+}
+
+/// [`ALWAYS`] when `matched`, else [`NEVER`].
+fn constant(matched: bool) -> &'static str {
+    if matched { ALWAYS } else { NEVER }
+}
+
+/// One `template == "name"` or `template != "name"` test.
+struct Comparison {
+    name: String,
+    negated: bool,
+    /// Bytes the test occupies, including any whitespace around the operator.
+    len: usize,
 }
 
 /// Parse a `template` comparison at the start of `rest`, if one opens there.
 fn parse_template_comparison(rest: &str) -> Result<Option<Comparison>, String> {
+    const LITERAL: &str = "template compares with a string literal";
     let Some(after) = rest.strip_prefix("template") else {
         return Ok(None);
     };
@@ -130,16 +120,10 @@ fn parse_template_comparison(rest: &str) -> Result<Option<Comparison>, String> {
         return Ok(None);
     };
     let Some(literal) = tail.trim_start().strip_prefix('"') else {
-        return Err("template compares with a string literal".to_owned());
+        return Err(LITERAL.to_owned());
     };
-    let Some(end) = literal.find('"') else {
-        return Err("template compares with a string literal".to_owned());
-    };
-    let Some(name) = literal.get(..end) else {
-        return Err("template compares with a string literal".to_owned());
-    };
-    let Some(consumed) = literal.get(end + 1..) else {
-        return Err("template compares with a string literal".to_owned());
+    let Some((name, consumed)) = literal.split_once('"') else {
+        return Err(LITERAL.to_owned());
     };
     Ok(Some(Comparison {
         name: name.to_owned(),

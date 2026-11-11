@@ -142,31 +142,23 @@ pub(crate) fn old_value(
     old: Option<&Task>,
     config: &Config,
 ) -> Result<FieldValue, FilterError> {
+    const EXAMPLE: &str = "old(\"kind\") == \"feat\"";
     let args = call_args(children);
     let [arg] = args.as_slice() else {
-        return Err(FilterError::call(
-            "old() takes one field name",
-            "old(\"kind\") == \"feat\"",
-        ));
+        return Err(FilterError::call("old() takes one field name", EXAMPLE));
     };
-    let name = extract_literal(arg).map_err(|_| {
-        FilterError::call(
-            "old() takes its field name in double quotes",
-            "old(\"kind\") == \"feat\"",
-        )
-    })?;
-    if matches!(name.as_str(), "id" | "path" | "dir") {
+    let name = extract_literal(arg)
+        .map_err(|_| FilterError::call("old() takes its field name in double quotes", EXAMPLE))?;
+    if crate::rules::typst::add_unsafe(&name) {
         return Err(FilterError::call(
-            format!(
-                "old(\"{name}\") reads the draft's identity or place, which an add has not filed yet"
-            ),
-            "old(\"kind\") == \"feat\"",
+            format!("old(\"{name}\") reads a value the add cannot know until the task is filed"),
+            EXAMPLE,
         ));
     }
     let Some(task) = old else {
         return Err(FilterError::call(
             "old() reads the draft before the add hooks, and only an [[on.add]] when has one",
-            "old(\"kind\") == \"feat\"",
+            EXAMPLE,
         ));
     };
     if let Some(text) = text_only_value(task, &name) {

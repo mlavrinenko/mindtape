@@ -187,3 +187,12 @@ fn a_bracket_suffixed_key_is_an_ordinary_key() {
         Some(&RawValue::Str("docs".to_owned()))
     );
 }
+
+#[test]
+fn apply_token_appends_to_a_list() {
+    let out = applied("tags+=docs");
+    assert_eq!(
+        out.get("tags"),
+        Some(&RawValue::List(vec!["docs".to_owned()]))
+    );
+}

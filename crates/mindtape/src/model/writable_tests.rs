@@ -277,3 +277,81 @@ fn the_table_has_no_duplicate_names() {
     assert_eq!(seen.len(), total);
     assert_eq!(seen.len(), WRITABLE.len());
 }
+
+/// Every shape a scalar field can be handed, and the two a scalar refuses.
+#[test]
+fn scalar_text_renders_each_value_and_refuses_arrays() {
+    let title = field("title");
+    assert_eq!(super::scalar_text(title, &RawValue::Int(3)).unwrap(), "3");
+    assert_eq!(
+        super::scalar_text(title, &RawValue::Float(2.5)).unwrap(),
+        "2.5"
+    );
+    assert_eq!(
+        super::scalar_text(title, &RawValue::Bool(true)).unwrap(),
+        "true"
+    );
+    assert!(matches!(
+        super::scalar_text(title, &RawValue::List(Vec::new())),
+        Err(super::WritableError::ManyValues { .. })
+    ));
+    assert!(matches!(
+        super::scalar_text(title, &RawValue::Links(Vec::new())),
+        Err(super::WritableError::WrongShape { .. })
+    ));
+}
+
+/// A list field accepts a whole array or one scalar, never a link list.
+#[test]
+fn list_items_accepts_arrays_and_scalars_but_refuses_links() {
+    let tags = field("tags");
+    assert_eq!(
+        super::list_items(tags, &RawValue::List(vec!["a".to_owned()])).unwrap(),
+        ["a"]
+    );
+    assert_eq!(
+        super::list_items(tags, &RawValue::Str("a".to_owned())).unwrap(),
+        ["a"]
+    );
+    assert!(matches!(
+        super::list_items(tags, &RawValue::Links(Vec::new())),
+        Err(super::WritableError::WrongShape { .. })
+    ));
+}
+
+/// A writable field table entry the writer has no task slot for is a shape
+/// error, not a silent no-op.
+#[test]
+fn a_field_the_writer_does_not_know_is_a_shape_error() {
+    const UNKNOWN: super::WritableField = super::WritableField {
+        name: "nope",
+        shape: super::Shape::Text,
+    };
+    let mut task = bare_task("subject");
+    assert!(matches!(
+        super::set(&mut task, &UNKNOWN, &RawValue::Str("x".to_owned())),
+        Err(super::WritableError::WrongShape { .. })
+    ));
+    assert!(super::list_mut(&mut task, "nope").is_none());
+    assert!(super::text_field(&UNKNOWN, &task).is_none());
+    assert!(super::num_field(&UNKNOWN, &task).is_none());
+    assert!(super::date_field(&UNKNOWN, &task).is_none());
+}
+
+/// A `+=` on a scalar is refused by name; a framework number renders as its
+/// label in both the raw and the Typst form.
+#[test]
+fn appending_to_a_scalar_and_framework_numbers_are_named() {
+    let mut task = bare_task("subject");
+    assert!(matches!(
+        super::append_to_task(&mut task, field("title"), "x"),
+        Err(super::WritableError::AppendToScalar { field: "title" })
+    ));
+
+    let framework = crate::model::numeric::NumValue::Framework {
+        name: "ice".to_owned(),
+        inputs: std::collections::BTreeMap::new(),
+    };
+    assert_eq!(super::num_raw(&framework), RawValue::Str("ice".to_owned()));
+    assert_eq!(super::num_literal(&framework), "\"ice\"");
+}

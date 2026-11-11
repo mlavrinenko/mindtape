@@ -30,8 +30,8 @@ Evals run against the tracked example projects, not a fixture of their own:
 
 `examples/minimal` is the smallest config, with its own four-status legend
 (`todo`, `wip`, `done`, `cancelled`). Its two absences are the test: no
-`blocked` in the legend, and no template, so `--set priority=8` is refused by
-name.
+`blocked` in the legend, and no template, so `--set priority=8` uses the field
+writer and inserts `priority: 8` after the slots.
 
 `just check-examples` validates both projects, so a config change cannot leave
 them stale. An unvalidated fixture can drift through several config changes and

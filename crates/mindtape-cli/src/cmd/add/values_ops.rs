@@ -137,7 +137,7 @@ fn append_to_scalar(spec: &SlotSpec) -> Diag {
 
 /// A value from an explicit `=`. A string for a list slot is one item, the
 /// same spelling `mt set tags=bug` writes.
-fn base_value(spec: &SlotSpec, value: &RawValue) -> RawValue {
+pub(super) fn base_value(spec: &SlotSpec, value: &RawValue) -> RawValue {
     if !is_list_slot(spec) {
         return value.clone();
     }
@@ -158,7 +158,7 @@ pub(super) fn scalar_text(value: &RawValue) -> String {
     }
 }
 
-fn append_item(value: &mut RawValue, item: &str) {
+pub(super) fn append_item(value: &mut RawValue, item: &str) {
     match value {
         RawValue::List(items) => {
             if !items.iter().any(|held| held == item) {

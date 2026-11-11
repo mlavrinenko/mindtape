@@ -455,3 +455,23 @@ fn shown(text: &str) -> String {
     ];
     crate::test_util::native_in(text, &paths)
 }
+
+#[test]
+fn a_writable_fields_many_values_and_wrong_shape_are_usage_errors() {
+    use mindtape::WritableError;
+
+    for (err, expected) in [
+        (
+            WritableError::ManyValues { field: "title" },
+            "error: one value is expected: 'title'\n",
+        ),
+        (
+            WritableError::WrongShape { field: "tags" },
+            "error: this value shape does not fit the field: 'tags'\n",
+        ),
+    ] {
+        let diag: Diag = err.into();
+        assert_eq!(diag.kind(), Kind::Usage);
+        assert_eq!(plain(&diag), expected);
+    }
+}

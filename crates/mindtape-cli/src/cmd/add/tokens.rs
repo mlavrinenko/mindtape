@@ -70,12 +70,11 @@ pub fn parse_token(token: &str) -> Result<(String, TokenOp), Diag> {
     Ok((name.to_owned(), op))
 }
 
-/// Apply one `key OP value` token to the fill map.
+/// The field a `key OP value` token assigns, without its `+=` suffix.
 ///
 /// # Errors
-/// Returns an error when the token carries no operator, tries to append a
-/// file, or names a file that cannot be read.
-#[allow(dead_code)] // kept for callers that need the merged map, not the op
+/// Returns an error when the token carries no operator, or when a `@` file
+/// token names a file that cannot be read.
 pub fn token_name(token: &str) -> Result<&str, Diag> {
     let (key, _, _) = split_token(token)?;
     Ok(key.strip_suffix('+').unwrap_or(key))

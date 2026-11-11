@@ -263,7 +263,7 @@ pub fn run(args: &AddArgs) -> Result<()> {
         &ready.explicit,
         &ready.env_keys,
         &ready.touched,
-    )?;
+    );
 
     // Resolve the path the write would land at before the `--print` return:
     // it is the candidate the pre-write check validates, and a preview must

@@ -94,6 +94,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Git-visible `.typ` file. An untracked ignored file is in neither scope, and
   a tracked ignored task is in both.
 
+### Fixed
+
+- **An add hook cannot read an answer the filed set supplies.** A `when` now
+  refuses `ready()`, `blocked()` and `count(...)` as well as the bare fields,
+  and `old()` refuses the same unsafe fields (`file`, `depth`, `topo`, the
+  graph counts and derived tags) instead of reading the synthetic draft.
+- **A core-field flag or token fills a template's aliased slot.** With
+  `kind: slot("type")`, `--kind fix` and `--set kind=fix` fill `type` instead of
+  replacing the slot, and a flag plus `--set type=…` is the same-field-twice
+  refusal. A positional title fills an aliased title slot and still names the
+  file.
+- **A static hook `dir` rejects empty, `.` and `..` components at config
+  load**, matching a derived dir's add-time rule. `mt add --describe` prints
+  its slots and hooks under separate headings.
+
 ## [0.5.0] - 2026-11-08
 
 ### Upgrading from 0.4

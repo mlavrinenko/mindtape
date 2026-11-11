@@ -46,16 +46,16 @@ groups:
       www/content/wait-on-upstream.typ: 01b830b45bf8c0fd2ab1da8992fcf1fab2accb7c3d6ddf2eb65d53296f068737
   cli-add-docs:
     source:
-      crates/mindtape-cli/src/cmd/add/mod.rs: ce524cf9b86762e989c96126f98ba3963fe8f9db243ba9823a47097a05730b1f
+      crates/mindtape-cli/src/cmd/add/mod.rs: ddede000a085666374ba4e80a3611cb7c198a0008435abaf01d6042dcd0710c9
     dependents:
       docs/src/skill.typ: 9e790916ff28f845f8c65bab5e7d49953ff7ebdac5ef494e6d3e351c2edc495d
-      skills/mindtape/evals/README.md: 5e1977e343b779279447ad57319b797d8081d7a4497f56b842a29ee826fb0f2b
+      skills/mindtape/evals/README.md: e010b7a41dd0e8a141c9152e4fb9281209cc5ccfb0ff06866b67108156fadaed
       skills/mindtape/evals/evals.json: 658cdbd32c6a2c9671be99a6e9da99a0651b9ddedf59413004deca0e88d0004a
-      skills/mindtape/references/add-slots.md: 5ff5d1d4e47d0a8a83b3341aa55e42f40af62cab49c3de86eeba5647bec12449
+      skills/mindtape/references/add-slots.md: 0d6697ddc09bde429e616495eee78f418511c9d891337a07ab267090f04086b4
       www/content/agents.typ: 6392b947bff983a3eb337c2c3d3559d99ab1c762708bac24717fefb2f871cd9f
       www/content/config.typ: 7f5f7fad0de1553e50dcb21c4541e15175b41ba6362fa351ee957eb9592b5564
       www/content/quickstart.typ: 3fc069137714bfbe0735b03b5d1800aa7f2c7df60df0fc1c5400cc50bce91f23
-      www/content/templates.typ: b5ec6e1506f6bf6ee3619f208337d0fb187f6dd6389ab6a384dd95359aecaba7
+      www/content/templates.typ: 8fdfce8fde2e4ac78208fadf568a526f8aea6b1df326d873a000f72d34832cd7
       www/utils/cli-notes.typ: 675d6356e1f4f31fb8a21ad722035d688e46a752c033295255c736dfd2bec757
   cli-allow-docs:
     source:
@@ -328,7 +328,7 @@ groups:
       www/content/templates.typ: 17003927e9fda9c491f5bbb52d6f3dfb4cad094a297953637655db250ce5ce6b
   coverage-test-re:
     source:
-      .just/scripts/cover.sh: 73d1a1789544c06df4258a636c4584c086036bb1150420f219366b0b4987dcad
+      .just/scripts/cover.sh: 3e6223a0d3ad01990b4894f4c89da86de6db27ff3cf4804f3a01687bf472c8cf
     dependents:
       contrib/ask-refactoring/undertested.sh: d73dae06a38fca0ad59877c794d974b8bfc7e3c479a49ddb7f2b067b0467b1d7
   crap-scripts-docs:
@@ -336,13 +336,13 @@ groups:
       .just/scripts/_crap-ratchet-control.sh: 0b915c3332609d6fe240a29ac89dfacbf32c1973b8f0fe5c851e76e44c204c57
       .just/scripts/_crap-ratchet-lib.sh: f16ff185d1794ab0d8e030b044f2209e74269f2bf6b145af692a1680719a5a18
       .just/scripts/_lcov-stale-reason.sh: 39e955b133973bd603f0a40caea2856e053c8a46bf88e1d0afe6fd827409656a
-      .just/scripts/cover.sh: 73d1a1789544c06df4258a636c4584c086036bb1150420f219366b0b4987dcad
+      .just/scripts/cover.sh: 3e6223a0d3ad01990b4894f4c89da86de6db27ff3cf4804f3a01687bf472c8cf
       .just/scripts/crap-baseline-check.sh: 1946e69e5b82a9b2ff6a688fc8346bd3ee2ebe2074443bc5cfbef1a2913b3401
       .just/scripts/crap-baseline.sh: fe12fdee1be3417766a675f50bb06a3064869b1ef821407ce6fe05a058003e84
       .just/scripts/crap.sh: ef8fc355c937dc81b228b4abfedf20db86e682143104bf88f3d2216c59e0c8ad
     dependents:
-      docs/src/contributing/coverage-crap.typ: 04666555d5eb876d5baed3f598e509794a12051227c352183c232475645e7432
-      docs/src/contributing/crap-baseline.typ: e7254b2b9736613cc3c7a2f31a7f7f25ddf72dce913311f13b89221cca05cd09
+      docs/src/contributing/coverage-crap.typ: 99083836fd299023aee51504a8eadf3b610c25083c89695465e32da35b7987a8
+      docs/src/contributing/crap-baseline.typ: 47b261527cc3f8311ac91857162385b2b3bf6ab1d0ba85f214fbabd0f6c220a1
   dev-shell-docs:
     source:
       .config/nextest.toml: d1353c6139c6bf51cb8664747c93f2ca9c721bd6c8e54b2c2c646ebefc17d5fc
@@ -361,19 +361,19 @@ groups:
       Justfile: 514ef4db3490d5e20d49e8abc99a6a0a05631aae21e4d992eb0287ff6a9686f1
       flake.nix: 325112feb8cc629198bd6721f88d54efc933a1aebbf80d9a2e32f5f5ffc3cbc0
       nix/dev/flake.nix: 4272c7e414ff67f94e9ed6917f7b9155beecdcbcb0adc0b1f563e7641a0fd30b
-      nix/dev/shell.nix: a029c9f288b8505dc45e409397e3c8d30e3b47fad4fd9c82d3182270c5b5fcaf
+      nix/dev/shell.nix: a77131b69f9a44a3bd8008ace91287ec739ec1ee6b3b9f9aee17eb38f4533514
     dependents:
-      docs/src/agents.typ: d8e03841055f54c9ceba13b3ed37ae584ca77f8d8b7d5eddc6519459c2c29141
-      docs/src/contributing.typ: a8a8e429a01de4f56b40b8eac2270d8faa52c47b79e33d992c0d7253c7d7d927
-      docs/src/contributing/coverage-crap.typ: 04666555d5eb876d5baed3f598e509794a12051227c352183c232475645e7432
-      docs/src/contributing/crap-baseline.typ: e7254b2b9736613cc3c7a2f31a7f7f25ddf72dce913311f13b89221cca05cd09
-      docs/src/contributing/docs-site-build.typ: abdfa7199f74d493cc9d7204c017ea97d64e706d4fb54e8e67ddc38d8228a1db
-      docs/src/contributing/documentation.typ: a5287b1b2d1c80780fdf7790a358d2fed9eebb3d2d0ebb04851b615e84291cb5
-      docs/src/contributing/example-projects.typ: 13c47f927dfd8dbdd92844f18863c3e1ce9c1422ef843e661aabee551d89a738
-      docs/src/contributing/gates.typ: d5ceae51d1ad1e1da1070811f3f75c45cc6bc2f78c111dd99610fedad09eb1cf
-      docs/src/contributing/mutation-testing.typ: 6a7b5cf5a51a025ebd6b8b991da6b2cc8494a2e96cf6d5a7f9608d00a497f7e5
-      docs/src/contributing/signal-sweep.typ: cdae0265949212c4f748fb6a85be3348b4a48db19ccce1267446180894378e49
-      docs/src/contributing/windows.typ: 2d6b5853dc4d667af28a509e677293a15cd07f9617b854fc016b880e1a8fa1e4
+      docs/src/agents.typ: c869122d27ea069c5855a8f65c3b6d0329adfeca231c220cb3762c8e901cf41b
+      docs/src/contributing.typ: 72fe5b5848940707a8754e218b5388d6a5108bd98a85dd077800d36b04872ded
+      docs/src/contributing/coverage-crap.typ: 99083836fd299023aee51504a8eadf3b610c25083c89695465e32da35b7987a8
+      docs/src/contributing/crap-baseline.typ: 47b261527cc3f8311ac91857162385b2b3bf6ab1d0ba85f214fbabd0f6c220a1
+      docs/src/contributing/docs-site-build.typ: e2b04abdf3e32e8ecfd9dff0b4c6c2c0f172c4ed6863f49562f4a0c2636b8f0e
+      docs/src/contributing/documentation.typ: c997939cf37dbd38a6750f75408cd7409e94efbaf08c5dadb854c00ebbb877c8
+      docs/src/contributing/example-projects.typ: f2be6fc1fb614aeae0133b4dc809574da293662f6d981b8b82fb9894cb6a7a04
+      docs/src/contributing/gates.typ: c313dcc6c5dab34407e16925cb0db58a23eff59aca33c85b2d281f19c35182ec
+      docs/src/contributing/mutation-testing.typ: 4921e1fc49e5b9b2415746b79889e3eea675bb5ea8346532cf64037fd38a3f83
+      docs/src/contributing/signal-sweep.typ: 39f9e4679964b636a89a3146911b593395570f86127123b2f7a0b9956ce1e01f
+      docs/src/contributing/windows.typ: d6d52acad9556c456ec278d33444580636b483ab155714546b24233899c50fd2
   dict-words-docs:
     source:
       crates/mindtape/src/dicts/dev-verbs.txt: 1d44018123133b9cd533d473d9f9df0f24a44131e77961178424f7311782d648
@@ -404,11 +404,11 @@ groups:
     source:
       crates/mindtape/src/filter/aggregate.rs: c781da697621b135445c41f5dd2f5baf80f538397725888aba3851cb580d8f68
       crates/mindtape/src/filter/compare.rs: f2031add91ce61387bd6c51e5ab2c20ac73ed8ede0186ee6d4adb7dec5f7f4d0
-      crates/mindtape/src/filter/eval.rs: 548fea78e738e9046a8637cc14456133a68ea1ae343f9f4df98771d0d68754c3
+      crates/mindtape/src/filter/eval.rs: de1db195d3e7358be7d99d9ecf6e765e55ca9634209b25826ee40342e86718d7
       crates/mindtape/src/filter/links.rs: ddecf3d32138064c5f7a5ce92d71706eb106dd19fc1c8d34f62c87aa4b46d3c1
-      crates/mindtape/src/filter/mod.rs: 47d2f635830d1b2cfade598494cc05e2b14a3d342f6292dad79522cb1153099d
+      crates/mindtape/src/filter/mod.rs: 77819217fc770f21676dfc901f52f020837368d5cd0b7da7084f0640a430d106
       crates/mindtape/src/filter/predicates.rs: aa7c5eed98d69e9e88815295dcc8284e9d26ba23ec53c015e7d19199693e4e7c
-      crates/mindtape/src/filter/strings.rs: e6c6d799c67430d2e373f7b176e042dfcbe5bd9fd62ce22317fc9d357acddab5
+      crates/mindtape/src/filter/strings.rs: b889d88ee2d02b5486d8326e8d133e703eca2fdd19c97b14b702274255228b09
       crates/mindtape/src/filter/views.rs: 193400a7845d0b1834f741e3fcaa2e212eb71797d26b47d838e45669688b5c6a
     dependents:
       skills/mindtape/references/filters.md: fd2c5393b242352eef536a137dce87046e31f7c2adb3ec1f044401d55b4b35d5

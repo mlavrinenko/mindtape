@@ -40,6 +40,16 @@ file out of the gate when 3 lines of tty or stdio wiring lower its percentage.
 The fix is a test. If the lines can't be tested, add the file to `ignore` in
 `.just/scripts/cover.sh` with the reason beside it.
 
+= Changed lines
+
+#just.cover() also gates the lines changed since `main`. `diff-cover` reads the
+same lcov and fails when any added or edited line is uncovered, so a branch
+cannot sit above both absolute floors while its new guards are untested. The
+diff is `git diff main`, not `main...HEAD`, so staged and working-tree lines
+count too. On `main` itself the diff is empty and the check is inert; a
+checkout without the ref skips it with a note. Set `MINDTAPE_COVER_BASE` to
+compare against another ref.
+
 The output level is set in `.config/nextest.toml`, because
 `cargo llvm-cov nextest` accepts `--status-level fail` and ignores it. With
 the flag alone, a green run prints one `PASS` line per test, over 2000 lines.

@@ -234,7 +234,7 @@ fn error(label: &str, message: impl fmt::Display) -> Diag {
 
 /// An action's write refusal, placed on the hook that asked for it.
 fn field_error(err: writable::WritableError, name: &str, label: &str) -> Diag {
-    let diag = Diag::from(err);
+    let diag = Diag::from(err).rule(format!("on.add {label}"));
     diag.value(format!("{name}: {label}"))
 }
 
@@ -276,10 +276,7 @@ fn macro_value(name: &str, template: &str, draft: &Task) -> Option<String> {
     let field = writable::get(name)?;
     match writable::current_raw(field, draft)? {
         RawValue::Str(text) => Some(text),
-        RawValue::Int(number) => Some(number.to_string()),
-        RawValue::Float(number) => Some(mindtape::format_num(number)),
-        RawValue::Bool(flag) => Some(flag.to_string()),
-        RawValue::List(_) | RawValue::Links(_) => None,
+        _ => None,
     }
 }
 
@@ -309,19 +306,19 @@ impl<'a> Derivation<'a> {
     fn type_error(&self, name: &str, label: &str) -> Diag {
         Diag::failed("a derive returned a value the field cannot hold")
             .value(format!("{name} via {self}"))
-            .context("in", label)
+            .rule(format!("on.add {label}"))
     }
 
     /// A write the shared writer refused, named like [`Self::type_error`].
     fn field_error(&self, err: writable::WritableError, name: &str, label: &str) -> Diag {
         Diag::from(err)
             .value(format!("{name} via {self}"))
-            .context("in", label)
+            .rule(format!("on.add {label}"))
     }
 
     /// A failed call in the hook's words, keeping Typst's message.
     fn fail(&self, message: &str, label: &str) -> Diag {
-        Diag::verbatim(Kind::Failed, format!("{label}: {self}: {message}"))
+        error(label, format!("{self}: {message}"))
     }
 }
 

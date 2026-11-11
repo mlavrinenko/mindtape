@@ -147,6 +147,9 @@ fn add_unsafe_fields_are_refused_in_a_when() {
         (r#"dir == "tasks/fixes""#, "dir"),
         (r#"id == "x""#, "id"),
         ("derived.changes > 0", "derived"),
+        ("ready", "ready"),
+        ("ready()", "ready"),
+        ("!blocked()", "blocked"),
     ] {
         refuses(
             &hook(when, "{ set = { kind = \"fix\" } }"),
@@ -211,6 +214,13 @@ fn dir_templates_are_checked() {
             None,
             "dir must be relative to the project root",
         );
+    }
+    for (bad, needle) in [
+        ("../outside", "dir must not hold `.` or `..`"),
+        ("tasks/./bug", "dir must not hold `.` or `..`"),
+        ("tasks//bug", "dir holds an empty path component"),
+    ] {
+        refuses(&hook("", &format!("{{ dir = \"{bad}\" }}")), None, needle);
     }
     accepts(&hook("", "{ dir = \"\" }"), None);
 }
@@ -359,6 +369,18 @@ fn desugar_rewrites_both_forms_to_constants() {
     }
 }
 
+#[test]
+fn when_templates_keeps_source_order_across_both_forms() {
+    assert_eq!(
+        when_templates(r#"template == "zzz" && from_template("yyy")"#).unwrap(),
+        ["zzz", "yyy"]
+    );
+    assert_eq!(
+        when_templates(r#"from_template("yyy") || template != "zzz""#).unwrap(),
+        ["yyy", "zzz"]
+    );
+}
+
 /// `-` and `.` continue an identifier in the filter language, so a field
 /// named `x-template` or a `derived.template` value is no `template` test.
 #[test]
@@ -429,4 +451,43 @@ fn writer_and_filter_errors_are_validation_errors() {
         None,
         "tags is in both derive and append",
     );
+}
+
+#[test]
+fn a_malformed_when_reaches_the_validation_error() {
+    for (when, needle) in [
+        (
+            "from_template(kind)",
+            "from_template(...) takes a template name",
+        ),
+        ("kind ==", "the filter is incomplete"),
+    ] {
+        refuses(&hook(when, "{ set = { kind = \"fix\" } }"), None, needle);
+    }
+}
+
+#[test]
+fn an_empty_dir_macro_is_refused() {
+    let err = DirTemplate::parse("tasks/{}").unwrap_err();
+    assert!(err.contains("empty `{}` macro"), "{err}");
+}
+
+#[test]
+fn template_comparison_scanner_stops_at_a_longer_name() {
+    assert_eq!(
+        desugar_add_when(r#"templateX == "fix""#, "fix").unwrap(),
+        r#"templateX == "fix""#
+    );
+    let err = when_templates(r#"template == "unterminated"#).unwrap_err();
+    assert!(err.contains("string literal"), "{err}");
+}
+
+#[test]
+fn a_when_through_a_view_cycle_is_refused_not_looped() {
+    let text = "[views.a]\nfilter = '@b'\n\n[views.b]\nfilter = '@a'\n\n\
+                [[on.add]]\nwhen = '@a'\nactions = [{ set = { kind = \"fix\" } }]\n";
+    let (_dir, root) = project(None);
+    let config = parse_config(text).unwrap();
+    let err = validate_add_hooks(&config, &root).unwrap_err();
+    assert!(err.contains("nested too deep"), "{err}");
 }

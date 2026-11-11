@@ -456,8 +456,17 @@ fn reads_set_for_a_count_call_or_a_set_field_only() {
     for field in ["ready", "blocked", "blocks", "children", "progress"] {
         assert!(reads(&format!("{field} == 1")), "{field}");
     }
+    assert!(reads("ready()"), "the call form of a set predicate");
+    assert!(reads("!blocked()"), "the negated call form");
     assert!(!reads("kind != \"fix\" && priority > 2"));
     assert!(!reads(""));
+}
+
+#[test]
+fn reads_set_in_survives_a_view_cycle() {
+    let config =
+        crate::parse_config("[views.a]\nfilter = '@b'\n[views.b]\nfilter = '@a'\n").unwrap();
+    assert!(!Filter::parse("@a").unwrap().reads_set_in(&config));
 }
 
 #[test]
@@ -476,4 +485,9 @@ fn an_operator_or_value_the_language_lacks_is_named_as_written() {
             "{expr}: {err:?}"
         );
     }
+}
+
+#[test]
+fn an_unparsable_add_when_becomes_a_problem() {
+    assert!(crate::filter::expr_problem_add(")", &Task::default(), &Config::default()).is_some());
 }

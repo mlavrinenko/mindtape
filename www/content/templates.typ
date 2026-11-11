@@ -185,6 +185,12 @@ A token may also name a core field the template has no slot for.
 `start`. A `+=` on a single-valued field is refused. `dir` is not a field:
 `mt add --set dir=…` refuses and points at `--dir`.
 
+When the template fills a core field through a whole-value slot under another
+name, as in `kind: slot("type")`, a core-field token or flag fills that slot.
+The slot name and the core name count as one field, so passing both is the
+same-field-twice refusal. A positional title fills an aliased title slot the
+same way, and the file stem still comes from the title.
+
 The scalar fields also have direct flags: `--due`, `--start`, `--assignee`,
 `--kind`, `--priority` and `--difficulty`. Each is an alias for
 `--set <field>=<value>`, so it appears in `mt add --help`. Naming one field

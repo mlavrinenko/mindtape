@@ -25,22 +25,33 @@ pub(super) fn split_positional(args: &AddArgs, specs: &[SlotSpec]) -> (Vec<Strin
     }
 }
 
-/// Seed the `title` slot from the positional `title_words`, joined with spaces.
-/// A higher-precedence `title` (`-f`/`--set`) wins; blank input sets nothing.
-/// Returns whether it set one, so the caller can count it as explicit input.
+/// Seed a template's title slot from the positional `title_words`, joined with
+/// spaces. A higher-precedence value for that slot (`-f`/`--set`) wins; blank
+/// input sets nothing. Returns the slot it filled, so the caller can count it
+/// as explicit input. An aliased slot also keeps the core `title` value the
+/// filename stem is minted from.
+#[cfg(test)]
 pub(super) fn fill_title_from_args(
     values: &mut BTreeMap<String, RawValue>,
     title_words: &[String],
 ) -> bool {
-    if values.contains_key("title") || title_words.is_empty() {
-        return false;
+    fill_title_from_args_in(values, title_words, "title").is_some()
+}
+
+pub(super) fn fill_title_from_args_in(
+    values: &mut BTreeMap<String, RawValue>,
+    title_words: &[String],
+    title_slot: &str,
+) -> Option<String> {
+    if values.contains_key(title_slot) || title_words.is_empty() {
+        return None;
     }
     let title = title_words.join(" ");
     if title.trim().is_empty() {
-        return false;
+        return None;
     }
-    values.insert("title".to_owned(), RawValue::Str(title));
-    true
+    insert_title(values, title_slot, title);
+    Some(title_slot.to_owned())
 }
 
 /// Split `+tag` words out of the positional title, in order. A bare `+` (no
@@ -57,26 +68,46 @@ fn split_tag_sugar(words: &[String]) -> (Vec<String>, Vec<String>) {
     (title_words, tags)
 }
 
-/// Read a piped title from stdin into the `title` slot. Gated to the
+/// Read a piped title from stdin into the template's title slot. Gated to the
 /// non-interactive pipe case: a TTY (no pipe) would block, and `-f -` already
-/// claims stdin as JSON. A higher-precedence `title` (`--set`/`-f`/env) wins.
+/// claims stdin as JSON. A higher-precedence value for that slot
+/// (`--set`/`-f`/env) wins.
+#[cfg(test)]
 pub(super) fn fill_title_from_stdin(
     values: &mut BTreeMap<String, RawValue>,
     args: &AddArgs,
 ) -> Result<bool> {
-    if values.contains_key("title")
+    Ok(fill_title_from_stdin_in(values, args, "title")?.is_some())
+}
+
+pub(super) fn fill_title_from_stdin_in(
+    values: &mut BTreeMap<String, RawValue>,
+    args: &AddArgs,
+    title_slot: &str,
+) -> Result<Option<String>> {
+    if values.contains_key(title_slot)
         || std::io::stdin().is_terminal()
         || args.values.iter().any(|source| source == "-")
     {
-        return Ok(false);
+        return Ok(None);
     }
     let mut raw = String::new();
     std::io::stdin()
         .read_to_string(&mut raw)
         .map_err(|err| Diag::failed("can't read the title from stdin").io(&err))?;
     let Some(title) = stdin_title(&raw) else {
-        return Ok(false);
+        return Ok(None);
     };
-    values.insert("title".to_owned(), RawValue::Str(title));
-    Ok(true)
+    insert_title(values, title_slot, title);
+    Ok(Some(title_slot.to_owned()))
+}
+
+/// Put `title` in `slot`, plus the core `title` key a stem mint reads when the
+/// slot is aliased.
+fn insert_title(values: &mut BTreeMap<String, RawValue>, slot: &str, title: String) {
+    let value = RawValue::Str(title);
+    if slot != "title" {
+        values.insert("title".to_owned(), value.clone());
+    }
+    values.insert(slot.to_owned(), value);
 }

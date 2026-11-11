@@ -41,6 +41,19 @@ fn stdin_title_takes_first_nonblank_line() {
 }
 
 #[test]
+fn add_values_render_each_toml_shape() {
+    use mindtape::config::add_hooks::AddValue;
+
+    assert_eq!(super::add_value(&AddValue::Int(3)), "3");
+    assert_eq!(super::add_value(&AddValue::Float(2.5)), "2.5");
+    assert_eq!(super::add_value(&AddValue::Bool(true)), "true");
+    assert_eq!(
+        super::add_value(&AddValue::List(vec!["a".to_owned()])),
+        "[\"a\"]"
+    );
+}
+
+#[test]
 fn describe_format_parses() {
     assert_eq!(DescribeFormat::parse("text").unwrap(), DescribeFormat::Text);
     assert_eq!(DescribeFormat::parse("json").unwrap(), DescribeFormat::Json);
@@ -199,6 +212,23 @@ fn describe_shows_each_slot_s_example() {
     let rows: serde_json::Value = serde_json::from_str(&json).unwrap();
     assert_eq!(rows["slots"][0]["example"], "Retry failed payments");
     assert_eq!(rows["slots"][1]["example"], "+ one\n+ two");
+}
+
+fn describe_hooks(hooks: &str) -> String {
+    let config = mindtape::parse_config(hooks).unwrap();
+    let hooks: Vec<&mindtape::config::add_hooks::AddHook> = config.on.add.iter().collect();
+    let specs = discover_slots(r#"#f(t: slot("title"))"#);
+    super::describe_with(&hooks, &specs, super::DescribeFormat::Text).unwrap()
+}
+
+#[test]
+fn describe_text_separates_slots_from_hooks() {
+    let text = describe_hooks(
+        "[[on.add]]\nname = \"ready-hook\"\nactions = [{ set = { assignee = \"x\" } }]\n",
+    );
+    assert!(text.starts_with("slots\n"), "{text}");
+    assert!(text.contains("\n\nhooks\n"), "{text}");
+    assert!(text.contains("ready-hook"), "{text}");
 }
 
 #[test]

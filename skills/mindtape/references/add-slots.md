@@ -74,6 +74,12 @@ The scalar fields also have direct flags, which mean the same as `--set`:
 `--priority`, `--difficulty`, `--kind`, `--assignee`, `--due` and `--start`.
 Pass one field once: a flag plus a `--set` token naming it is refused.
 
+When a template fills a core field through a whole-value slot under another
+name, as in `kind: slot("type")`, a core-field flag or token fills that slot.
+The slot name and the core name count as one field, so passing both is the
+same-field-twice refusal. A positional title fills an aliased title slot too,
+and the file stem still comes from the title.
+
 A project may declare `[[on.add]]` hooks that fill a field or choose the
 directory after your values are read. An explicit `--set`, a positional title
 or an `--edit` change wins over a hook `set`, `--dir` wins over a hook `dir`,

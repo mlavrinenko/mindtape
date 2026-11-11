@@ -318,3 +318,17 @@ fn a_view_and_a_required_filter_warn_too() {
         "{warnings:?}"
     );
 }
+
+#[test]
+fn the_builtin_template_name_lives_in_one_constant() {
+    use crate::config::add_hooks::BUILTIN_TEMPLATE;
+
+    assert_eq!(
+        crate::config::templates::TemplatesConfig::default().default,
+        BUILTIN_TEMPLATE
+    );
+    assert_eq!(
+        parse_config("").unwrap().templates.default,
+        BUILTIN_TEMPLATE
+    );
+}

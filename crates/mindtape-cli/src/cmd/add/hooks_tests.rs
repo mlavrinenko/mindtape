@@ -104,14 +104,16 @@ fn an_unknown_field_is_refused_by_name() {
     assert!(crate::diag::plain(&err).contains("nope"), "{err}");
 }
 
+fn assert_hook_error(diag: &crate::diag::Diag, needle: &str) {
+    let text = crate::diag::plain(diag);
+    assert!(text.starts_with("error: on.add fixes: "), "{diag}");
+    assert!(text.contains(needle), "{diag}");
+}
+
 #[test]
 fn the_error_wordings_name_the_field_and_hook() {
     let call = Derivation::of("add.typ", "classify");
-    let type_error = call.type_error("tags", "fixes");
-    assert!(
-        crate::diag::plain(&type_error).contains("tags"),
-        "{type_error}"
-    );
+    assert_hook_error(&call.type_error("tags", "fixes"), "tags");
 
     let write = field_error(
         writable::WritableError::NotANumber {
@@ -121,10 +123,8 @@ fn the_error_wordings_name_the_field_and_hook() {
         "priority",
         "fixes",
     );
-    assert!(crate::diag::plain(&write).contains("priority"), "{write}");
-
-    let fail = call.fail("boom", "fixes");
-    assert!(crate::diag::plain(&fail).contains("boom"), "{fail}");
+    assert_hook_error(&write, "priority");
+    assert_hook_error(&call.fail("boom", "fixes"), "boom");
 }
 
 #[test]
@@ -140,4 +140,30 @@ fn a_malformed_when_is_refused_by_the_hook_label() {
     };
     let err = fires(&hook, &task, &task, &run).unwrap_err();
     assert!(crate::diag::plain(&err).contains("fixes"), "{err}");
+}
+
+#[test]
+fn a_dir_macro_reads_text_and_refuses_a_list() {
+    let task = Task {
+        kind: Some("bug".to_owned()),
+        tags: vec!["backend".to_owned()],
+        ..Task::default()
+    };
+    assert_eq!(
+        macro_value("template", "fix", &task).as_deref(),
+        Some("fix")
+    );
+    assert_eq!(macro_value("kind", "fix", &task).as_deref(), Some("bug"));
+    assert_eq!(macro_value("tags", "fix", &task), None);
+}
+
+#[test]
+fn a_derived_write_error_names_the_hook() {
+    let call = Derivation::of("add.typ", "classify");
+    let diag = call.field_error(
+        writable::WritableError::ManyValues { field: "tags" },
+        "tags",
+        "fixes",
+    );
+    assert_hook_error(&diag, "tags");
 }

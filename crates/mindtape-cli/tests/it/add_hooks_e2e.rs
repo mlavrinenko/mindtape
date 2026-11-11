@@ -231,9 +231,17 @@ fn an_unknown_dir_macro_is_a_config_error() {
 }
 
 #[test]
-fn a_hooked_add_refuses_a_destination_outside_every_root() {
+fn a_static_dir_with_a_dot_segment_is_a_config_error() {
     let dir = project("[[on.add]]\nname = \"escape\"\nactions = [{ dir = \"../outside\" }]\n");
     let (_, stderr, ok) = add(dir.path(), &["add", "--name", "escape", "Escape"]);
+    assert!(!ok, "{stderr}");
+    assert!(stderr.contains("dir must not hold `.` or `..`"), "{stderr}");
+}
+
+#[test]
+fn a_hook_dir_outside_every_root_is_refused() {
+    let dir = project("[[on.add]]\nname = \"outside\"\nactions = [{ dir = \"outside\" }]\n");
+    let (_, stderr, ok) = add(dir.path(), &["add", "--name", "outside", "Outside"]);
     assert!(!ok, "{stderr}");
     assert!(stderr.contains("outside the configured roots"), "{stderr}");
 }
@@ -321,37 +329,6 @@ fn a_hook_set_of_a_number_reaches_an_int_slot() {
     let (_, stderr, ok) = add(dir.path(), &["add", "--name", "numbered", "Numbered"]);
     assert!(ok, "{stderr}");
     assert!(read(dir.path(), "tasks/numbered.typ").contains("priority: 3"));
-}
-
-/// A template that names a core field through a slot under another name
-/// (`kind: slot("type")`): the caller's explicit value owns the field by its
-/// core name too, so a hook `set kind` keeps its hands off.
-#[test]
-fn an_explicit_value_under_an_aliased_slot_owns_the_field() {
-    let dir =
-        project("[[on.add]]\nname = \"classify\"\nactions = [{ set = { kind = \"feat\" } }]\n");
-    std::fs::write(
-        dir.path().join(".mindtape/templates/task.typ"),
-        mindtape::typst_task!(
-            r#"(
-  title: slot("title"),
-  kind: slot("type"),
-)
-"#
-        ),
-    )
-    .unwrap();
-
-    let (_, stderr, ok) = add(
-        dir.path(),
-        &["add", "--name", "aliased", "--set", "type=bug", "Aliased"],
-    );
-
-    assert!(ok, "{stderr}");
-    assert!(stderr.contains("kind keeps the explicit value"), "{stderr}");
-    let written = read(dir.path(), "tasks/aliased.typ");
-    assert!(written.contains("kind: \"bug\""), "{written}");
-    assert!(!written.contains("kind: \"feat\""), "{written}");
 }
 
 /// A hook append into a composite tags expression replaces the whole argument,

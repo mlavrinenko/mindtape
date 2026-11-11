@@ -213,6 +213,17 @@ impl Filter {
             .collect()
     }
 
+    /// Every function the filter calls, as written. Empty for the match-all
+    /// filter. A call is not a bare name, so [`Self::names`] misses it.
+    #[must_use]
+    pub fn calls(&self) -> BTreeSet<String> {
+        let mut calls = BTreeSet::new();
+        for name in self.tree.iter().flat_map(Node::iter_function_identifiers) {
+            calls.insert(restore_name(name));
+        }
+        calls
+    }
+
     /// Every tag the filter reads through `has_tag("name")` or
     /// `has(tags, "name")`, however either call is spaced, in sorted order.
     /// Empty for the match-all filter.
@@ -240,7 +251,10 @@ impl Filter {
         self.names()
             .iter()
             .any(|name| SET_FIELDS.contains(&name.as_str()))
-            || self.tree.as_ref().is_some_and(calls_count)
+            || self
+                .calls()
+                .iter()
+                .any(|name| crate::filter::is_set_function(name))
     }
 
     /// Whether the filter reads where the task's file lives (`path` or `dir`,
@@ -252,15 +266,6 @@ impl Filter {
         self.names()
             .iter()
             .any(|name| dependent.iter().any(|field| *field == name))
-    }
-
-    /// [`Self::reads_path`], following `in_view` into the named views. A view
-    /// that reads `path` or `dir` makes the filter reading it path-dependent
-    /// too.
-    #[must_use]
-    pub fn reads_path_in(&self, config: &Config) -> bool {
-        let mut seen = BTreeSet::new();
-        self.any_through(config, &mut seen, Filter::reads_path)
     }
 
     /// [`Self::reads_set`], following `in_view` into the named views. A view
@@ -394,36 +399,14 @@ impl Filter {
 /// named views. Empty for an expression that does not parse.
 #[must_use]
 pub(crate) fn names_in(source: &str, config: &Config) -> BTreeSet<String> {
-    let mut names = BTreeSet::new();
-    let mut seen = BTreeSet::new();
-    collect_names(source, config, &mut names, &mut seen);
-    names
-}
-
-fn collect_names(
-    source: &str,
-    config: &Config,
-    names: &mut BTreeSet<String>,
-    seen: &mut BTreeSet<String>,
-) {
-    let Ok(filter) = Filter::parse(source) else {
-        return;
-    };
-    names.extend(filter.names());
-    for view in filter.view_refs() {
-        if !seen.insert(view.clone()) {
-            continue;
-        }
-        if let Some(spec) = config.views.get(&view) {
-            collect_names(&spec.filter, config, names, seen);
-        }
-    }
+    set::reads_in(source, config, Filter::names)
 }
 
 /// The names a filter takes from the whole task set; split out to keep this
 /// file under its line budget. See [`Filter::reads_set`].
 mod set;
-use set::{SET_FIELDS, calls_count};
+use set::SET_FIELDS;
+pub(crate) use set::calls_in;
 
 /// Collect every tag `node` reads through `has_tag("name")` or
 /// `has(tags, "name")` into `tags`. A call whose tag argument is not a
@@ -464,6 +447,12 @@ pub use eval::{Arity, FilterFunction};
 #[must_use]
 pub const fn functions() -> &'static [FilterFunction] {
     &eval::FUNCTIONS
+}
+
+/// Whether `name` calls a function whose answer depends on the whole task set.
+#[must_use]
+pub(crate) fn is_set_function(name: &str) -> bool {
+    set::is_set_function(name)
 }
 
 #[cfg(test)]

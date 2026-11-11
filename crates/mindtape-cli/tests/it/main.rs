@@ -13,6 +13,7 @@ mod add_file_operator_e2e;
 mod add_flags_e2e;
 mod add_format_e2e;
 mod add_guard_e2e;
+mod add_hooks_alias_e2e;
 mod add_hooks_derive_e2e;
 mod add_hooks_e2e;
 mod add_hooks_support;

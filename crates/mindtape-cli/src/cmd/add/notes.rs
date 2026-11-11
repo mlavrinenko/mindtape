@@ -6,7 +6,6 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::diag::Result;
 use mindtape::{RawValue, RequiredSlot, SlotKind, SlotSpec, discover_slots};
 
 use crate::diag::{Diag, Hint, Note, emit, emit_note};
@@ -21,11 +20,13 @@ pub(super) fn report_injected(
     explicit: &BTreeSet<String>,
     env_keys: &BTreeSet<String>,
     touched: &BTreeSet<String>,
-) -> Result<()> {
+) {
     if injected.is_empty() {
-        return Ok(());
+        return;
     }
-    let call = task_with(filled)?;
+    let Ok(call) = task_with(filled) else {
+        return;
+    };
     for slot in injected {
         if supplied(slot, explicit) || supplied(slot, touched) {
             continue;
@@ -50,7 +51,6 @@ pub(super) fn report_injected(
             slot.field, slot.field
         )));
     }
-    Ok(())
 }
 
 /// Whether `names` already supplied this field itself, by `--set`/`-f`/`--` or
@@ -94,3 +94,7 @@ pub(super) fn report_escaped_spans(values: &BTreeMap<String, RawValue>, specs: &
         }
     }
 }
+
+#[cfg(test)]
+#[path = "notes_tests.rs"]
+mod tests;

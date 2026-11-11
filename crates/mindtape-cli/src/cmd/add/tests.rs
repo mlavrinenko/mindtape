@@ -157,6 +157,13 @@ fn title_arg_joins_words_when_unset() {
 }
 
 #[test]
+fn a_blank_title_word_list_sets_nothing() {
+    let mut values = BTreeMap::new();
+    assert!(!fill_title_from_args(&mut values, &[String::new()]));
+    assert!(values.is_empty());
+}
+
+#[test]
 fn title_arg_yields_to_higher_precedence_title() {
     let mut args = bare_args();
     args.title = vec!["positional".to_owned()];
@@ -413,6 +420,46 @@ fn outside_root_failure_names_the_file_kept_on_disk() {
         err.contains("hint: fix or delete it before the next command\n"),
         "{err}"
     );
+}
+
+#[test]
+fn field_aliases_skip_a_source_without_a_task_call_or_an_unnamed_arg() {
+    assert!(super::pipeline::field_aliases("not a task").is_empty());
+    let source = mindtape::typst_task!(r#"("positional", kind: slot("type"))"#);
+    let aliases = super::pipeline::field_aliases(source);
+    assert_eq!(aliases.get("type").map(String::as_str), Some("kind"));
+}
+
+#[test]
+fn field_aliases_find_whole_value_slots_only() {
+    let source = mindtape::typst_task!(
+        r#"(title: slot("headline"), kind: slot("type"), tags: ("base",) + slot("tags"))"#
+    );
+    let aliases = super::pipeline::field_aliases(source);
+    assert_eq!(aliases.get("headline").map(String::as_str), Some("title"));
+    assert_eq!(aliases.get("type").map(String::as_str), Some("kind"));
+    assert!(!aliases.contains_key("tags"), "{aliases:?}");
+}
+
+#[test]
+fn routing_fills_an_aliased_slot_by_its_core_name() {
+    use mindtape::model::writable::FieldOp;
+
+    let source = mindtape::typst_task!(r#"(title: slot("headline"), kind: slot("type"))"#);
+    let aliases = super::pipeline::field_aliases(source);
+    let mut ops = vec![
+        (
+            "kind".to_owned(),
+            FieldOp::Set(RawValue::Str("fix".to_owned())),
+        ),
+        (
+            "title".to_owned(),
+            FieldOp::Set(RawValue::Str("Fix it".to_owned())),
+        ),
+    ];
+    super::pipeline::route_ops(&mut ops, &aliases);
+    let names: Vec<&str> = ops.iter().map(|(name, _)| name.as_str()).collect();
+    assert_eq!(names, ["type", "headline"]);
 }
 
 #[path = "tests_subprocess.rs"]

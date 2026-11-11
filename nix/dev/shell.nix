@@ -49,6 +49,9 @@
             cargo
             cargo-machete
             cargo-llvm-cov
+            # The changed-line floor in `.just/scripts/cover.sh`. nixpkgs
+            # exposes diff-cover through python3Packages, not top-level.
+            python3Packages.diff-cover
             # The release bump, CHANGELOG dating, commit and tag behind
             # `just release`; .config/release.toml configures it.
             cargo-release

@@ -158,10 +158,10 @@ config errors. An empty `when` fires on every add.
 name, and `{title}`, `{priority}`, `{difficulty}`, `{kind}`, `{assignee}`,
 `{due}` and `{start}` expand to the task's fields, after the action's `set` and
 `append`. The literal `""` is the project root, and a hooked add refuses it
-unless a configured root covers the project root. An unknown macro or an
-absolute path is a config error. A hook `dir` outside every configured root is
-refused when the task is added, and so is an explicit `--dir` outside every
-root when hooks are enabled.
+unless a configured root covers the project root. An unknown macro, an absolute
+path, or an empty, `.` or `..` component is a config error. A hook `dir` outside
+every configured root is refused when the task is added, and so is an explicit
+`--dir` outside every root when hooks are enabled.
 
 Add hooks merge across packs and layers like `[[on.flip]]`. A later hook with
 the same `name` replaces the earlier one in place, `disable` drops it by name,
@@ -193,11 +193,14 @@ The function receives the task as it stands, minus its id, path, derived tags
 and the values a load computes from the set, plus `template`. A field value
 that does not fit the field, or a derived `dir` outside every root, is refused.
 
-An `old("field")` in `when` reads the task before any hook ran, so a later hook
-can test what an earlier one changed. It is read-only, works wherever a value
-is expected (`matches(old("title"), …)` too), and exists only in an
-`[[on.add]]` `when`. It refuses `id`, `path` and `dir`, which an add has not
-chosen yet.
+A `when` reads the same draft, so it refuses those unsafe fields too. It also
+refuses `ready()`, `blocked()` and `count(...)`: their answer depends on the
+filed set, which does not include the task yet. An `old("field")` in `when`
+reads the task before any hook ran, so a later hook can test what an earlier
+one changed. It is read-only, works wherever a value is expected
+(`matches(old("title"), …)` too), and exists only in an `[[on.add]]` `when`.
+It refuses every field the draft cannot answer, including `id`, `path`, `dir`,
+`file`, `depth`, `topo`, `blocks`, `children` and `progress`.
 
 `mt add` prints each action it applies on stderr, naming the hook. Pass
 `--no-hooks` to skip every hook; explicit `--set` values still apply. A

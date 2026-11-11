@@ -47,6 +47,16 @@ const fn word(name: &'static str, arity: Arity, run: Run) -> FilterFunction {
     FilterFunction { name, arity, run }
 }
 
+/// A word that is a value, never a condition: calling it in boolean position
+/// names the type and points at the comparison that reads it.
+macro_rules! non_boolean {
+    ($make:ident, $name:literal, $arity:expr, $message:literal, $example:literal) => {
+        $make($name, $arity, |_, _| {
+            Err(FilterError::call($message, $example))
+        })
+    };
+}
+
 /// The one registry of the language's predicates and functions. [`nullary`]
 /// and [`function`] dispatch through it, [`Filter::names_term`] reads its
 /// names, and `mt _cli --json` carries it so the docs gate can check that
@@ -111,36 +121,41 @@ pub(crate) const FUNCTIONS: [FilterFunction; 21] = [
     word("word", exactly(2), |_, _| {
         Err(crate::filter::strings::word_is_not_boolean())
     }),
-    word("changed", exactly(1), |_, _| {
-        Err(FilterError::call(
-            "changed() is a count, not a condition",
-            "changed(\"worktree\") <= estimate.files",
-        ))
-    }),
-    word("count", Arity { min: 1, max: None }, |_, _| {
-        Err(FilterError::call(
-            "count() is a number, not a condition",
-            "count(status == \"wip\") <= 1",
-        ))
-    }),
-    word("len", exactly(1), |_, _| {
-        Err(FilterError::call(
-            "len() is a number, not a condition",
-            "len(derived.changes) <= 5",
-        ))
-    }),
-    word("count_paths", Arity { min: 1, max: None }, |_, _| {
-        Err(FilterError::call(
-            "count_paths() is a number, not a condition",
-            "count_paths(derived.changes, \"@source\") <= 5",
-        ))
-    }),
-    word("old", exactly(1), |_, _| {
-        Err(FilterError::call(
-            "old() gives a value, not a condition",
-            "old(\"kind\") == \"feat\"",
-        ))
-    }),
+    non_boolean!(
+        word,
+        "changed",
+        exactly(1),
+        "changed() is a count, not a condition",
+        "changed(\"worktree\") <= estimate.files"
+    ),
+    non_boolean!(
+        word,
+        "count",
+        Arity { min: 1, max: None },
+        "count() is a number, not a condition",
+        "count(status == \"wip\") <= 1"
+    ),
+    non_boolean!(
+        word,
+        "len",
+        exactly(1),
+        "len() is a number, not a condition",
+        "len(derived.changes) <= 5"
+    ),
+    non_boolean!(
+        word,
+        "count_paths",
+        Arity { min: 1, max: None },
+        "count_paths() is a number, not a condition",
+        "count_paths(derived.changes, \"@source\") <= 5"
+    ),
+    non_boolean!(
+        word,
+        "old",
+        exactly(1),
+        "old() gives a value, not a condition",
+        "old(\"kind\") == \"feat\""
+    ),
     word("stale", exactly(1), |args, ctx| {
         let count_str = single_literal(args, "stale")?;
         let count: u64 = count_str.parse().map_err(|_| {

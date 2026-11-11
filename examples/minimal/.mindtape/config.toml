@@ -13,10 +13,10 @@
 #     `links: depends-on` edge (write-docs waits on add-dark-mode) — so an agent
 #     that reaches for `mt flip blocked` has invented a status.
 #   - No `[templates]`, so `mt add` falls back to the built-in task template
-#     whose only slot is `title`. `mt add … --set priority=8` is therefore
-#     refused by name: non-zero exit, `error: unknown slot:
-#     'priority'`. A skill that does not warn about that ships agents
-#     into a dead end they read as a tool bug rather than a missing slot.
+#     whose only slot is `title`. A writable field with no slot, such as
+#     `priority`, still lands: `mt add … --set priority=8` inserts
+#     `priority: 8` after the slots are filled. The fixture teaches the field
+#     writer, not a refusal.
 #
 # Keep both absences. Fixing them here would quietly delete the eval coverage
 # they exist to provide.

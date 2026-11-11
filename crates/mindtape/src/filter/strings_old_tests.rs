@@ -77,7 +77,19 @@ fn old_numeric_fields_compare_as_numbers() {
 fn old_refuses_the_drafts_identity_and_place() {
     let config = parse_config("").unwrap();
     let task = titled("Fix the login");
-    for field in ["id", "path", "dir"] {
+    for field in [
+        "id",
+        "path",
+        "dir",
+        "file",
+        "depth",
+        "topo",
+        "blocks",
+        "children",
+        "progress",
+        "derived_tags",
+        "derived",
+    ] {
         let filter = Filter::parse(&format!(r#"old("{field}") != "x""#)).unwrap();
         let err = filter
             .matches_add(&task, &task, &config, &crate::Readiness::empty())
@@ -119,6 +131,65 @@ fn old_on_an_unset_field_is_missing() {
     let filter = Filter::parse(r#"old("assignee") != "ada""#).unwrap();
     assert!(
         filter
+            .matches_add(&task, &task, &config, &crate::Readiness::empty())
+            .unwrap()
+    );
+}
+
+#[test]
+fn old_refuses_the_wrong_argument_shape() {
+    let config = parse_config("").unwrap();
+    let task = titled("Fix the login");
+    for expr in [r#"old() == "x""#, r#"old(kind) == "feat""#] {
+        let filter = Filter::parse(expr).unwrap();
+        let err = filter
+            .matches_add(&task, &task, &config, &crate::Readiness::empty())
+            .unwrap_err();
+        assert!(err.to_string().contains("old() takes"), "{expr}: {err}");
+    }
+}
+
+#[test]
+fn old_refuses_a_number_in_a_text_position() {
+    use crate::model::numeric::NumValue;
+
+    let config = parse_config("").unwrap();
+    let mut task = titled("Fix the login");
+    task.priority = Some(NumValue::Num(3.0));
+    let filter = Filter::parse(r#"matches(old("priority"), "^3")"#).unwrap();
+    let err = filter
+        .matches_add(&task, &task, &config, &crate::Readiness::empty())
+        .unwrap_err();
+    assert!(err.to_string().contains("reads a number"), "{err}");
+}
+
+#[test]
+fn old_reads_a_text_field_as_a_comparable_value() {
+    let config = parse_config("").unwrap();
+    let task = titled("Fix the login");
+    let filter = Filter::parse(r#"old("title") == "Fix the login""#).unwrap();
+    assert!(
+        filter
+            .matches_add(&task, &task, &config, &crate::Readiness::empty())
+            .unwrap()
+    );
+}
+
+#[test]
+fn old_reads_a_text_only_field_and_a_missing_field_in_string_position() {
+    let config = parse_config("").unwrap();
+    let mut task = titled("Fix the login");
+    task.tags = vec!["backend".to_owned()];
+
+    let tags = Filter::parse(r#"matches(old("tags"), "^backend$")"#).unwrap();
+    assert!(
+        tags.matches_add(&task, &task, &config, &crate::Readiness::empty())
+            .unwrap()
+    );
+
+    let missing = Filter::parse(r#"matches(old("assignee"), "^ada$")"#).unwrap();
+    assert!(
+        !missing
             .matches_add(&task, &task, &config, &crate::Readiness::empty())
             .unwrap()
     );

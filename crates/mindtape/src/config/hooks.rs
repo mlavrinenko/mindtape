@@ -387,10 +387,9 @@ pub(crate) fn parse_named_call(rest: &str, call: &str) -> Option<(String, usize)
     let after_name = rest.strip_prefix(call)?;
     let open = after_name.trim_start().strip_prefix('(')?;
     let literal = open.trim_start().strip_prefix('"')?;
-    let end = literal.find('"')?;
-    let name = literal.get(..end)?.to_owned();
-    let closed = literal.get(end + 1..)?.trim_start().strip_prefix(')')?;
-    Some((name, rest.len() - closed.len()))
+    let (name, consumed) = literal.split_once('"')?;
+    let closed = consumed.trim_start().strip_prefix(')')?;
+    Some((name.to_owned(), rest.len() - closed.len()))
 }
 
 /// Whether `ch` can appear inside a filter-language identifier.

@@ -49,7 +49,7 @@ use crate::model::writable::{self, FieldOp, Shape};
 use crate::template::RawValue;
 
 /// The built-in template every project has, even with no `templates.dirs`.
-const BUILTIN_TEMPLATE: &str = "task";
+pub const BUILTIN_TEMPLATE: &str = "task";
 
 /// One `[[on.add]]` entry: when it fires, and what it does.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
@@ -266,8 +266,8 @@ impl Checker<'_> {
     /// Validate the `when`: its template names, then the filter itself.
     fn when(&mut self, hook: &AddHook, at: &str) {
         let when_at = format!("{at}.when");
-        let names = match when_templates(&hook.when) {
-            Ok(names) => names,
+        let (desugared, names) = match crate::config::add_hooks_when::rewrite(&hook.when) {
+            Ok(pair) => pair,
             Err(message) => {
                 self.problems.push(format!("{when_at}: {message}"));
                 return;
@@ -281,18 +281,12 @@ impl Checker<'_> {
                 ));
             }
         }
-        match desugar_add_when(&hook.when, "") {
-            Ok(desugared) => {
-                // Read the source, not the rewrite: a template test desugars
-                // to `has(id)`/`miss(id)`, which would read as unsafe.
-                self.add_unsafe(&hook.when, &when_at);
-                if let Some(problem) =
-                    crate::filter::expr_problem_add(&desugared, &self.probe, self.config)
-                {
-                    self.problems.push(problem.under(&when_at).to_string());
-                }
-            }
-            Err(message) => self.problems.push(format!("{when_at}: {message}")),
+        // Read the source, not the rewrite: a template test desugars to
+        // `has(id)`/`miss(id)`, which would read as unsafe.
+        self.add_unsafe(&hook.when, &when_at);
+        if let Some(problem) = crate::filter::expr_problem_add(&desugared, &self.probe, self.config)
+        {
+            self.problems.push(problem.under(&when_at).to_string());
         }
     }
 
@@ -305,6 +299,11 @@ impl Checker<'_> {
                 && crate::rules::typst::add_unsafe(root)
             {
                 roots.insert(root.to_owned());
+            }
+        }
+        for name in crate::filter::calls_in(source, self.config) {
+            if crate::filter::is_set_function(&name) {
+                roots.insert(name);
             }
         }
         for root in roots {

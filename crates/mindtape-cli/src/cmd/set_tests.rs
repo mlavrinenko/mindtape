@@ -192,3 +192,8 @@ fn the_long_help_names_every_writable_field() {
         assert!(help.contains(&format!("`{field}`")), "{field}: {help}");
     }
 }
+
+#[test]
+fn a_non_string_set_renders_as_no_text() {
+    assert_eq!(op_text(&FieldOp::Set(mindtape::RawValue::Int(3))), "");
+}

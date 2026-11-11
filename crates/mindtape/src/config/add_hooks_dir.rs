@@ -41,17 +41,17 @@ impl<'a> DirTemplate<'a> {
             if !literal.is_empty() {
                 segments.push(DirSegment::Literal(literal));
             }
-            let Some(close) = after.find('}') else {
-                return Err("unclosed `{` in dir template".to_owned());
-            };
-            let Some(name) = after.get(1..close) else {
+            let Some((name, tail)) = after
+                .strip_prefix('{')
+                .and_then(|body| body.split_once('}'))
+            else {
                 return Err("unclosed `{` in dir template".to_owned());
             };
             if name.is_empty() {
                 return Err("empty `{}` macro in dir template".to_owned());
             }
             segments.push(DirSegment::Macro(name));
-            rest = after.get(close + 1..).unwrap_or_default();
+            rest = tail;
         }
         if !rest.is_empty() {
             segments.push(DirSegment::Literal(rest));
@@ -112,11 +112,9 @@ pub fn validate_component(value: &str) -> Result<(), String> {
 /// # Errors
 /// Returns a message for an absolute path or an unknown macro.
 pub(super) fn validate_dir(text: &str) -> Result<(), String> {
+    validate_relative_dir(text, "dir")?;
     if text.is_empty() {
         return Ok(());
-    }
-    if is_absolute(text) {
-        return Err("dir must be relative to the project root".to_owned());
     }
     let template = DirTemplate::parse(text)?;
     for name in template.macros() {
@@ -135,18 +133,25 @@ pub(super) fn validate_dir(text: &str) -> Result<(), String> {
 /// # Errors
 /// Returns a message naming what the path violates.
 pub fn validate_derived_dir(text: &str) -> Result<(), String> {
+    validate_relative_dir(text, "a derived dir")
+}
+
+/// Check a relative directory template: no absolute path, and no empty, `.` or
+/// `..` component. The static and derived `dir` forms share this rule, so a
+/// path one accepts cannot escape the project through the other.
+fn validate_relative_dir(text: &str, noun: &str) -> Result<(), String> {
     if text.is_empty() {
         return Ok(());
     }
     if is_absolute(text) {
-        return Err("a derived dir must be relative to the project root".to_owned());
+        return Err(format!("{noun} must be relative to the project root"));
     }
     let parts: Vec<&str> = text.split(['/', '\\']).collect();
     if parts.iter().any(|part| part.is_empty()) {
-        return Err("a derived dir holds an empty path component".to_owned());
+        return Err(format!("{noun} holds an empty path component"));
     }
     if parts.iter().any(|part| *part == "." || *part == "..") {
-        return Err("a derived dir must not hold `.` or `..`".to_owned());
+        return Err(format!("{noun} must not hold `.` or `..`"));
     }
     Ok(())
 }

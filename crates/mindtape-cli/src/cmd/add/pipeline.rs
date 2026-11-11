@@ -16,7 +16,7 @@ use crate::diag::{Diag, Hint, Result};
 use crate::task_edit::task_with;
 use crate::util::Project;
 
-use super::title::{fill_title_from_args, fill_title_from_stdin, split_positional};
+use super::title::{fill_title_from_args_in, fill_title_from_stdin_in, split_positional};
 use super::values::{Collected, collect_values, layer_env, reject_unknown_keys};
 use super::{draft, field_values, hooks, inject_header, interactive, markup_safe, target};
 
@@ -43,6 +43,8 @@ pub(super) fn collect_and_render(
 ) -> Result<Ready> {
     let config = &project.config;
     let specs = discover_slots(source);
+    let aliases = field_aliases(source);
+    let title_slot = title_slot(&aliases);
     let (title_words, tags) = split_positional(args, &specs);
     let mut collected = collect_values(&args.values, &args.set, &args.tokens)?;
     let tag_ops = tags
@@ -50,13 +52,17 @@ pub(super) fn collect_and_render(
         .map(|tag| ("tags".to_owned(), FieldOp::Append(tag)));
     collected.ops.splice(0..0, tag_ops);
     let flags = flag_ops(args);
-    refuse_flag_and_set(args, &flags)?;
+    refuse_flag_and_set(args, &flags, &aliases)?;
+    route_ops(&mut collected.ops, &aliases);
+    let mut flags = flags;
+    route_ops(&mut flags, &aliases);
     collected.ops.extend(flags);
     let mut explicit = super::explicit_sets(&collected.ops);
     reject_unknown_keys(&collected.ops, &specs)?;
     let mut values = collected.slot_values(&specs)?;
-    if fill_title_from_args(&mut values, &title_words) {
+    if let Some(slot) = fill_title_from_args_in(&mut values, &title_words, &title_slot) {
         explicit.insert("title".to_owned());
+        explicit.insert(slot);
     }
     let before_env: BTreeSet<String> = values.keys().cloned().collect();
     layer_env(&mut values, &specs, |key| std::env::var(key).ok());
@@ -65,8 +71,9 @@ pub(super) fn collect_and_render(
         .filter(|key| !before_env.contains(*key))
         .cloned()
         .collect();
-    if fill_title_from_stdin(&mut values, args)? {
+    if let Some(slot) = fill_title_from_stdin_in(&mut values, args, &title_slot)? {
         explicit.insert("title".to_owned());
+        explicit.insert(slot);
     }
     let tty = std::io::stdin().is_terminal() && std::io::stdout().is_terminal();
     let interactive = interactive::should_open(args.edit, &config.add, &specs, &values, tty)?;
@@ -77,6 +84,7 @@ pub(super) fn collect_and_render(
         explicit.extend(edited.changed);
         values = edited.values;
     }
+    ensure_title_value(&mut values, &aliases);
     let input = Input {
         args,
         project,
@@ -122,14 +130,19 @@ fn flag_ops(args: &super::AddArgs) -> Vec<(String, FieldOp)> {
 }
 
 /// Refuse a scalar flag and a `--set`/after-`--` token naming the same field:
-/// two spellings of one value is a caller mistake, not a precedence rule.
-fn refuse_flag_and_set(args: &super::AddArgs, flags: &[(String, FieldOp)]) -> Result<()> {
+/// two spellings of one value is a caller mistake, not a precedence rule. A
+/// slot name and its core field (`type` and `kind`) are one field here.
+fn refuse_flag_and_set(
+    args: &super::AddArgs,
+    flags: &[(String, FieldOp)],
+    aliases: &BTreeMap<String, String>,
+) -> Result<()> {
     for (name, _) in flags {
-        let repeated = args
-            .set
-            .iter()
-            .chain(&args.tokens)
-            .any(|token| super::tokens::token_name(token).is_ok_and(|token| token == name));
+        let repeated = args.set.iter().chain(&args.tokens).any(|token| {
+            super::tokens::token_name(token).is_ok_and(|token| {
+                canonical_field(token, aliases) == canonical_field(name, aliases)
+            })
+        });
         if repeated {
             return Err(Diag::usage("the same field is set twice")
                 .value(name.clone())
@@ -137,6 +150,78 @@ fn refuse_flag_and_set(args: &super::AddArgs, flags: &[(String, FieldOp)]) -> Re
         }
     }
     Ok(())
+}
+
+/// The core field a name addresses: a slot alias maps back to the field it
+/// fills, and a core name maps to itself.
+fn canonical_field<'a>(name: &'a str, aliases: &'a BTreeMap<String, String>) -> &'a str {
+    aliases.get(name).map_or(name, String::as_str)
+}
+
+/// The template's whole-value slot for a core field, keyed by the slot name:
+/// `kind: slot("type")` yields `type`, not `kind`.
+pub(super) fn field_aliases(source: &str) -> BTreeMap<String, String> {
+    let mut aliases = BTreeMap::new();
+    let Ok(call) = task_with(source) else {
+        return aliases;
+    };
+    for arg in &call.args {
+        let Some(name) = arg.name.as_deref() else {
+            continue;
+        };
+        if writable::get(name).is_none() {
+            continue;
+        }
+        let value = source.get(arg.value_range.clone()).unwrap_or_default();
+        let hashed = format!("#{value}");
+        let whole: Vec<SlotSpec> = discover_slots(&hashed)
+            .into_iter()
+            .filter(|slot| slot.range.start == 1 && slot.range.end == hashed.len())
+            .collect();
+        if let [slot] = whole.as_slice() {
+            aliases.insert(slot.name.clone(), name.to_owned());
+        }
+    }
+    aliases
+}
+
+/// Rewrite a core field name to the slot that fills it: `--kind feat` against
+/// `kind: slot("type")` becomes a write of `type`, so the slot keeps its value
+/// and the field writer does not replace the whole argument.
+pub(super) fn route_ops(ops: &mut [(String, FieldOp)], aliases: &BTreeMap<String, String>) {
+    let by_field: BTreeMap<&str, &str> = aliases
+        .iter()
+        .map(|(slot, field)| (field.as_str(), slot.as_str()))
+        .collect();
+    for (name, _) in ops {
+        if let Some(slot) = by_field.get(name.as_str()) {
+            *name = (*slot).to_owned();
+        }
+    }
+}
+
+/// The slot a template uses for the core `title` field, or `title` itself when
+/// it has no aliased title slot.
+fn title_slot(aliases: &BTreeMap<String, String>) -> String {
+    aliases
+        .iter()
+        .find(|(_, field)| field.as_str() == "title")
+        .map_or_else(|| "title".to_owned(), |(slot, _)| slot.clone())
+}
+
+/// Keep the core `title` value the stem is minted from when the template fills
+/// it through an aliased slot. `fill` ignores the extra key: no slot reads it.
+fn ensure_title_value(values: &mut BTreeMap<String, RawValue>, aliases: &BTreeMap<String, String>) {
+    if values.contains_key("title") {
+        return;
+    }
+    let slot = title_slot(aliases);
+    if slot == "title" {
+        return;
+    }
+    if let Some(value) = values.get(&slot).cloned() {
+        values.insert("title".to_owned(), value);
+    }
 }
 
 /// The final source, the slot values it was filled from, and the hook-chosen
@@ -226,26 +311,9 @@ pub(super) fn render(input: &Input<'_>) -> Result<Rendered> {
 /// token names stay as written for the caller-facing hints.
 fn hook_explicit(source: &str, explicit: &BTreeSet<String>) -> BTreeSet<String> {
     let mut expanded = explicit.clone();
-    let Ok(call) = task_with(source) else {
-        return expanded;
-    };
-    for arg in &call.args {
-        let Some(name) = arg.name.as_deref() else {
-            continue;
-        };
-        if writable::get(name).is_none() {
-            continue;
-        }
-        let value = source.get(arg.value_range.clone()).unwrap_or_default();
-        let hashed = format!("#{value}");
-        let whole: Vec<SlotSpec> = discover_slots(&hashed)
-            .into_iter()
-            .filter(|slot| slot.range.start == 1 && slot.range.end == hashed.len())
-            .collect();
-        if let [slot] = whole.as_slice()
-            && explicit.contains(&slot.name)
-        {
-            expanded.insert(name.to_owned());
+    for (slot, field) in field_aliases(source) {
+        if explicit.contains(&slot) || explicit.contains(&field) {
+            expanded.insert(field);
         }
     }
     expanded

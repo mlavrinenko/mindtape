@@ -4,6 +4,8 @@ use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
 
+use crate::config::add_hooks::BUILTIN_TEMPLATE;
+
 /// Where `mt add` finds task templates.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
@@ -37,7 +39,7 @@ impl Default for TemplatesConfig {
     fn default() -> Self {
         Self {
             dirs: vec![".mindtape/templates".to_owned()],
-            default: "task".to_owned(),
+            default: BUILTIN_TEMPLATE.to_owned(),
             fallback_severity: FallbackSeverity::Warning,
         }
     }

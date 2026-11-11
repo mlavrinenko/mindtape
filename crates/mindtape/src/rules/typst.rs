@@ -353,6 +353,8 @@ const ADD_UNSAFE: &[&str] = &[
     "file",
     "path",
     "dir",
+    "ready",
+    "blocked",
     "depth",
     "topo",
     "blocks",
@@ -379,11 +381,10 @@ pub(crate) fn add_unsafe(name: &str) -> bool {
 /// the destination is exactly what the hook is about to choose.
 #[must_use]
 pub fn add_argument(task: &Task, config: &Config, template: &str) -> HVal {
-    let Ok(serde_json::Value::Object(mut draft)) =
-        serde_json::to_value(CanonicalTask::from_task(task, config))
-    else {
-        return HVal::Null;
-    };
+    let mut draft = serde_json::to_value(CanonicalTask::from_task(task, config))
+        .ok()
+        .and_then(|value| value.as_object().cloned())
+        .unwrap_or_default();
     for key in ADD_UNSAFE {
         draft.remove(*key);
     }

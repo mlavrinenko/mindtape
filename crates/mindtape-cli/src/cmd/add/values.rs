@@ -55,7 +55,7 @@ pub fn resolve_template(config: &Config, root: &Path, name: &str) -> Result<Stri
     if let Some(path) = template_path(config, root, name) {
         return std::fs::read_to_string(&path).map_err(|err| Diag::cannot_read(&path, &err));
     }
-    if name == "task" {
+    if name == mindtape::config::add_hooks::BUILTIN_TEMPLATE {
         return Ok(BUILTIN_TASK.to_owned());
     }
     Err(unknown_template(config, root, name))
@@ -286,6 +286,9 @@ fn describe_with(
 
 fn describe_text(specs: &[SlotSpec], hooks: &[&mindtape::config::add_hooks::AddHook]) -> String {
     let mut lines = Vec::new();
+    if !hooks.is_empty() && !specs.is_empty() {
+        lines.push("slots".to_owned());
+    }
     for spec in specs {
         let need = if spec.required && spec.default.is_none() {
             "required"
@@ -312,6 +315,12 @@ fn describe_text(specs: &[SlotSpec], hooks: &[&mindtape::config::add_hooks::AddH
             ));
         }
         lines.push(line);
+    }
+    if !hooks.is_empty() {
+        if !lines.is_empty() {
+            lines.push(String::new());
+        }
+        lines.push("hooks".to_owned());
     }
     for hook in hooks {
         let name = hook.name.as_deref().unwrap_or("-");

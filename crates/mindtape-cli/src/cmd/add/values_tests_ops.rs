@@ -210,3 +210,26 @@ fn a_scalar_value_renders_every_shape() {
     assert_eq!(scalar_text(&RawValue::List(vec!["x".to_owned()])), "");
     assert_eq!(scalar_text(&RawValue::Links(Vec::new())), "");
 }
+
+#[test]
+fn a_list_slot_accepts_an_array_or_one_scalar() {
+    let spec = discover_slots(r#"#f(tags: slot("tags", kind: "list"))"#)
+        .into_iter()
+        .next()
+        .unwrap();
+    assert_eq!(
+        crate::cmd::add::values_ops::base_value(&spec, &RawValue::List(vec!["a".to_owned()])),
+        RawValue::List(vec!["a".to_owned()])
+    );
+    assert_eq!(
+        crate::cmd::add::values_ops::base_value(&spec, &RawValue::Int(3)),
+        RawValue::List(vec!["3".to_owned()])
+    );
+}
+
+#[test]
+fn appending_to_a_non_list_value_starts_a_list() {
+    let mut value = RawValue::Str("a".to_owned());
+    crate::cmd::add::values_ops::append_item(&mut value, "b");
+    assert_eq!(value, RawValue::List(vec!["b".to_owned()]));
+}

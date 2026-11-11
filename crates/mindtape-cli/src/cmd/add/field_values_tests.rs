@@ -4,7 +4,7 @@
 
 use mindtape::{FieldOp, RawValue, discover_slots};
 
-use super::touched;
+use super::{touched, upsert};
 use crate::cmd::add::values::Collected;
 
 fn collected(ops: &[(&str, FieldOp)]) -> Collected {
@@ -37,4 +37,19 @@ fn a_field_the_template_exposes_as_a_slot_is_not_touched() {
     let specs = discover_slots(r#"#f(tags: slot("tags", kind: "list"))"#);
     let values = collected(&[("tags", FieldOp::Append("a".to_owned()))]);
     assert!(touched(&values, &specs).is_empty());
+}
+
+#[test]
+fn upsert_skips_a_field_the_task_does_not_hold() {
+    let source = mindtape::typst_task!(r#"(title: "Do thing")"#);
+    let task = mindtape::Task::default();
+    assert_eq!(
+        upsert(
+            source,
+            &[mindtape::model::writable::get("kind").unwrap()],
+            &task
+        )
+        .unwrap(),
+        source
+    );
 }

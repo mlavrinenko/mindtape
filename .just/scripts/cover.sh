@@ -74,3 +74,22 @@ if [ -n "$below" ]; then
     echo "fix: add a test, or add the file to \`ignore\` in .just/scripts/cover.sh with the reason beside it"
     exit 1
 fi
+
+# The changed-line floor: a branch can sit above every absolute floor while its
+# new guards are untested. `git diff` rather than `--compare-branch` so staged
+# and working-tree lines count too; a plain `git diff <ref>` includes both.
+# `main` itself has an empty diff and passes; a checkout without the ref (a
+# shallow CI clone) says so rather than failing on git.
+base="${MINDTAPE_COVER_BASE:-${GITHUB_BASE_REF:-main}}"
+if git rev-parse --verify --quiet "$base" >/dev/null; then
+    diff_file=target/coverage/changed.diff
+    git diff "$base" -- > "$diff_file"
+    if [ -s "$diff_file" ] &&
+        ! diff-cover target/coverage/lcov.info --diff-file "$diff_file" \
+            --exclude '*_tests*.rs' 'tests*.rs' --fail-under=100; then
+        echo "cover: new or changed lines must be covered; add a test for the lines named above"
+        exit 1
+    fi
+else
+    echo "cover: no '$base' ref; skipping the changed-line floor (set MINDTAPE_COVER_BASE)" >&2
+fi

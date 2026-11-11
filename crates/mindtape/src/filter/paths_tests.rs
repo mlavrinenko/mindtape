@@ -28,18 +28,3 @@ fn reads_path_ignores_a_filter_about_the_task_s_own_fields() {
         assert!(!Filter::parse(expr).unwrap().reads_path(), "{expr}");
     }
 }
-
-#[test]
-fn reads_path_in_follows_a_view_that_reads_dir() {
-    let config = crate::parse_config("[views.fixes]\nfilter = 'dir == \"tasks/fixes\"'\n").unwrap();
-    let filter = Filter::parse("@fixes").unwrap();
-    assert!(!filter.reads_path());
-    assert!(filter.reads_path_in(&config));
-}
-
-#[test]
-fn reads_path_in_survives_a_view_cycle() {
-    let config =
-        crate::parse_config("[views.a]\nfilter = '@b'\n[views.b]\nfilter = '@a'\n").unwrap();
-    assert!(!Filter::parse("@a").unwrap().reads_path_in(&config));
-}
