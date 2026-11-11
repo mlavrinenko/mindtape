@@ -4,17 +4,18 @@
 //! byte-identical — is `tests/it/set_e2e.rs`'s.
 #![allow(clippy::unwrap_used)]
 
+use mindtape::model::writable::{self as writer, FieldOp};
 use mindtape::test_support::bare_task;
 use mindtape::test_support::tempdir;
 
-use super::{Assigned, parse_assignment, render, writable, writable_fields};
+use super::{op_text, parse_assignment, writable, writable_fields};
 
 /// Render one assignment against a task carrying `tags`, the way `run` does.
 fn rendered(token: &str, tags: &[&str]) -> Result<Option<String>, crate::diag::Diag> {
     let mut task = bare_task("subject");
     task.tags = tags.iter().map(|tag| (*tag).to_owned()).collect();
     let (name, assigned) = parse_assignment(token)?;
-    render(writable(&name)?, &assigned, &task)
+    writer::render_op(writable(&name)?, &assigned, &task).map_err(crate::diag::Diag::from)
 }
 
 #[test]
@@ -160,8 +161,13 @@ fn a_token_with_no_operator_is_refused() {
 /// for both operators — not a rendered literal and not a placeholder.
 #[test]
 fn an_assignment_quotes_back_the_value_as_typed() {
-    assert_eq!(Assigned::Set("Wire OAuth".to_owned()).text(), "Wire OAuth");
-    assert_eq!(Assigned::Append("auth".to_owned()).text(), "auth");
+    assert_eq!(
+        op_text(&FieldOp::Set(mindtape::RawValue::Str(
+            "Wire OAuth".to_owned()
+        ))),
+        "Wire OAuth"
+    );
+    assert_eq!(op_text(&FieldOp::Append("auth".to_owned())), "auth");
 }
 
 /// `parse_assignment` splits the name off the operator for both carriers.
@@ -171,7 +177,7 @@ fn both_operators_parse_to_the_same_field_name() {
     let (append, value) = parse_assignment("tags+=b").unwrap();
     assert_eq!(set, "tags");
     assert_eq!(append, "tags");
-    assert!(matches!(value, Assigned::Append(ref item) if item == "b"));
+    assert!(matches!(value, FieldOp::Append(ref item) if item == "b"));
 }
 
 /// `mt set --help` names every field the command writes, so the list can't

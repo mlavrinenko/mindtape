@@ -24,6 +24,27 @@ use std::path::Path;
 
 use crate::support;
 
+/// `--json` is shorthand for `--format json` on every outcome, including the
+/// `--dedup skip` path that reports before a write.
+#[test]
+fn a_skipped_dedup_reports_json_under_the_json_flag() {
+    let dir = support::scaffold();
+    write_file(dir.path(), "tasks/existing.typ", "existing");
+
+    let report = support::json(
+        dir.path(),
+        &[
+            "add", "--json", "--dedup", "skip", "--name", "existing", "--set", "title=T",
+        ],
+    );
+
+    assert_eq!(
+        report.get("outcome").and_then(serde_json::Value::as_str),
+        Some("skipped"),
+        "{report}"
+    );
+}
+
 /// A pre-existing `dup.typ` with recognisable content, so a test can prove
 /// `--dedup` left it untouched (`skip`) or wrote alongside it (`add-suffix`).
 fn scaffold_with_existing_dup() -> tempfile::TempDir {

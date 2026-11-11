@@ -94,6 +94,27 @@ pub(crate) fn expr_problem_in_set(source: &str, probe: &Task, config: &Config) -
     }
 }
 
+/// [`expr_problem_in_set`] for an `[[on.add]]` `when`: the dry run binds the
+/// probe as its own pre-hook draft, so `old("field")` resolves instead of
+/// refusing as add-only outside a hook.
+#[must_use]
+pub(crate) fn expr_problem_add(source: &str, probe: &Task, config: &Config) -> Option<Problem> {
+    let set = Readiness::compute(std::slice::from_ref(probe), config);
+    match Filter::parse(source) {
+        Err(err) => Some(problem_of(&err)),
+        Ok(filter) => filter
+            .eval_with_old(super::Eval {
+                task: probe,
+                old: Some(probe),
+                config,
+                readiness: &set,
+                dry: true,
+            })
+            .err()
+            .map(|err| problem_of(&err)),
+    }
+}
+
 /// The first `derived.<name>` a filter reads that no collector declares, as a
 /// load-time problem. Empty for an expression that does not parse, since
 /// another check reports the syntax error.

@@ -28,11 +28,17 @@
 //! still gets its own [`typst_world::World`] — [`typst::World::main`] is fixed
 //! at construction, so one `World` cannot serve two different synthetic
 //! sources across calls without its private source cache serving the first
-//! one's text back for the second's id — but every `World` [`CompiledCheck`]
-//! builds for one rule shares one [`SourceSnapshot`], so `typst`'s own file
-//! (and every file it imports) is read and parsed exactly once no matter how
-//! many tasks ask for it. This is the same pattern [`crate::loader`] uses for
-//! its own batch harvest.
+//! one's text back for the second's id — but every `World` one call builds
+//! shares one [`SourceSnapshot`], so `typst`'s own file (and every file it
+//! imports) is read and parsed exactly once no matter how many tasks ask for
+//! it. This is the same pattern [`crate::loader`] uses for its own batch
+//! harvest.
+//!
+//! [`TypstCall`] is that reusable state on its own, so a caller outside the
+//! rule engine — an `[[on.add]] derive` — calls the same module through the
+//! same loader, and [`CompiledCheck`] is one `TypstCall` plus the field it
+//! reads. [`validate_call`] is the shared load-time check that the module
+//! exists and exports the function.
 //!
 //! # Value literal
 //!
@@ -67,7 +73,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use serde::Deserialize as _;
-use typst_harvest::{HVal, Harvest, HarvestWorld, SourceSnapshot, harvest};
+use typst_harvest::{HVal, HarvestWorld, SourceSnapshot, harvest};
 use typst_world::root_file_id;
 
 use crate::config::Config;
@@ -85,17 +91,8 @@ fn canonical(path: &Path) -> PathBuf {
 /// [`SourceSnapshot`] that lets every per-task [`typst_world::World`] this
 /// rule builds share one parse of `typst`'s own source.
 pub(crate) struct CompiledCheck {
-    typst_path: String,
-    function: String,
+    call: TypstCall,
     field: Option<String>,
-    root_abs: PathBuf,
-    overrides: Vec<(String, PathBuf)>,
-    snapshot: SourceSnapshot,
-    /// Mints a fresh virtual path per task, so each gets its own [`typst::syntax::FileId`]
-    /// — required because a [`typst_world::World`]'s `main` id is fixed at
-    /// construction, and its private source cache would otherwise serve the
-    /// first task's synthetic text back for every one after it.
-    counter: AtomicU64,
 }
 
 impl CompiledCheck {
@@ -104,14 +101,14 @@ impl CompiledCheck {
     /// [`Self::evaluate`] call, so a rule declared but never reached (a `when`
     /// that excludes every task) still pays nothing.
     pub(crate) fn new(spec: &CheckSpec, root: &Path, config: &Config) -> Self {
+        let call = TypstCall::new(config, root, &spec.typst, &spec.function);
+        let call = match spec.root.as_deref() {
+            Some(module_root) => call.rooted_at(module_root),
+            None => call,
+        };
         Self {
-            typst_path: spec.typst.clone(),
-            function: spec.function.clone(),
+            call,
             field: spec.field.clone(),
-            root_abs: canonical(spec.root.as_deref().unwrap_or(root)),
-            overrides: crate::loader::package_overrides(root, config),
-            snapshot: SourceSnapshot::new(),
-            counter: AtomicU64::new(0),
         }
     }
 
@@ -119,15 +116,9 @@ impl CompiledCheck {
     /// breach: empty means the task passes.
     pub(crate) fn evaluate(&self, task: &Task, config: &Config) -> Vec<String> {
         let value = field_value(task, config, self.field.as_deref());
-        let Some((id, source)) = self.probe(&value, "mindtape.check") else {
-            return vec!["internal error: could not build a check probe".to_owned()];
-        };
-        let world = HarvestWorld::with_main_source(id, self.root_abs.clone(), source)
-            .with_shared_sources(&self.snapshot);
-        let world = crate::loader::with_packages(world, &self.overrides);
-        match harvest(&world) {
-            Ok(result) => breaches_from(&result),
-            Err(err) => vec![err.to_string()],
+        match self.call.call(&value, "mindtape.check") {
+            Ok(value) => breaches_from(&value),
+            Err(message) => vec![message],
         }
     }
 
@@ -136,39 +127,85 @@ impl CompiledCheck {
     /// The same probe, world and shared snapshot as [`Self::evaluate`].
     pub(crate) fn evaluate_value(&self, task: &Task, config: &Config) -> Result<HVal, String> {
         let value = field_value(task, config, self.field.as_deref());
-        let Some((id, source)) = self.probe(&value, "mindtape.value") else {
-            return Err("internal error: could not build a value probe".to_owned());
-        };
-        let world = HarvestWorld::with_main_source(id, self.root_abs.clone(), source)
-            .with_shared_sources(&self.snapshot);
-        let world = crate::loader::with_packages(world, &self.overrides);
-        let result = harvest(&world).map_err(|err| err.to_string())?;
-        value_from(&result)
+        self.call.call(&value, "mindtape.value")
+    }
+}
+
+/// The reusable state behind one project Typst call: the module, the function,
+/// the world's root and every resolved `@local` package override, with one
+/// [`SourceSnapshot`] shared across calls.
+///
+/// [`CompiledCheck`] is one of these plus the field it reads, and an
+/// `[[on.add]] derive` builds one per call, so both reach a project's own
+/// function through the same loader and the same world.
+pub struct TypstCall {
+    typst_path: String,
+    function: String,
+    root_abs: PathBuf,
+    overrides: Vec<(String, PathBuf)>,
+    snapshot: SourceSnapshot,
+    /// Mints a fresh virtual path per call, so each gets its own
+    /// [`typst::syntax::FileId`] — required because a [`typst_world::World`]'s
+    /// `main` id is fixed at construction, and its private source cache would
+    /// otherwise serve the first call's synthetic text back for every one
+    /// after it.
+    counter: AtomicU64,
+}
+
+impl TypstCall {
+    /// Build the reusable state for calling `function` from `typst`. `root` is
+    /// the project root: the module resolves from it, and so does every
+    /// `@local` package override.
+    ///
+    /// Does no IO and no Typst evaluation itself, so a call that never happens
+    /// pays nothing.
+    #[must_use]
+    pub fn new(config: &Config, root: &Path, typst: &str, function: &str) -> Self {
+        Self {
+            typst_path: typst.to_owned(),
+            function: function.to_owned(),
+            root_abs: canonical(root),
+            overrides: crate::loader::package_overrides(root, config),
+            snapshot: SourceSnapshot::new(),
+            counter: AtomicU64::new(0),
+        }
     }
 
-    /// A fresh, project-rooted virtual path and the synthetic source it backs:
-    /// `#import` `function` from `typst_path` and call it on `value`, wrapped
-    /// in `label` for the caller to read back out.
-    fn probe(&self, value: &HVal, label: &str) -> Option<(typst_syntax::FileId, String)> {
+    /// Resolve the module from `root` instead of the project root: a rule a
+    /// pack declared reads from the pack's own directory. The `@local`
+    /// overrides still come from the project.
+    #[must_use]
+    pub fn rooted_at(mut self, root: &Path) -> Self {
+        self.root_abs = canonical(root);
+        self
+    }
+
+    /// Call the function on `arg`, returning the value its
+    /// `#metadata(…) <label>` marker carries.
+    ///
+    /// # Errors
+    /// A Typst eval error, a function that calls `panic()`, or a call whose
+    /// marker never came back.
+    pub fn call(&self, arg: &HVal, label: &str) -> Result<HVal, String> {
         let index = self.counter.fetch_add(1, Ordering::Relaxed);
-        let id = root_file_id(&format!(".mindtape/check-probe/{index}.typ")).ok()?;
+        let id = root_file_id(&format!(".mindtape/check-probe/{index}.typ"))
+            .map_err(|err| err.to_string())?;
         let source = format!(
             "#import \"/{}\": {name}\n#metadata({name}({arg})) <{label}>\n",
             self.typst_path,
             name = self.function,
-            arg = value.to_typst(),
+            arg = arg.to_typst(),
         );
-        Some((id, source))
+        let world = HarvestWorld::with_main_source(id, self.root_abs.clone(), source)
+            .with_shared_sources(&self.snapshot);
+        let world = crate::loader::with_packages(world, &self.overrides);
+        let result = harvest(&world).map_err(|err| err.to_string())?;
+        result
+            .with_label(label)
+            .next()
+            .map(|marker| marker.value.clone())
+            .ok_or_else(|| "the function produced no value".to_owned())
     }
-}
-
-/// The value a `mindtape.value` marker carries.
-fn value_from(result: &Harvest) -> Result<HVal, String> {
-    result
-        .with_label("mindtape.value")
-        .next()
-        .map(|marker| marker.value.clone())
-        .ok_or_else(|| "the function produced no value".to_owned())
 }
 
 /// Root-aware load-time validation for every `[[tasks.rules]] check` entry:
@@ -217,6 +254,22 @@ pub(crate) fn validate_load(config: &Config, root: &Path) -> Result<(), String> 
     } else {
         Err(problems.join("\n"))
     }
+}
+
+/// Whether `typst` exists under `root` and exports `function`, for a caller
+/// that is not a `[[tasks.rules]] check` entry: an `[[on.add]] derive` validates
+/// its call through this, so a hook and a rule share one loader and one set of
+/// messages.
+///
+/// # Errors
+/// Returns why the module or function cannot be loaded.
+pub fn validate_call(
+    config: &Config,
+    root: &Path,
+    typst: &str,
+    function: &str,
+) -> Result<(), String> {
+    validate_module(root, config, typst, function, None)
 }
 
 /// Whether `check.typst` exists and exports `check.function`. A pack's
@@ -293,16 +346,61 @@ fn canonical_hval(task: &Task, config: &Config) -> HVal {
         .unwrap_or(HVal::Null)
 }
 
-/// Read the harvested `mindtape.check` marker back into a breach list: an
+/// Fields an `[[on.add]]` derive may not read off the draft: the identity, the
+/// destination, and every value a load computes from either.
+const ADD_UNSAFE: &[&str] = &[
+    "id",
+    "file",
+    "path",
+    "dir",
+    "depth",
+    "topo",
+    "blocks",
+    "children",
+    "children_done",
+    "progress",
+    "derived_tags",
+    "derived",
+];
+
+/// Whether `name` is an [`ADD_UNSAFE`] field. An `[[on.add]]` `when` reads the
+/// same synthetic draft a derive does, so it must refuse these too.
+#[must_use]
+pub(crate) fn add_unsafe(name: &str) -> bool {
+    ADD_UNSAFE.contains(&name)
+}
+
+/// The value an `[[on.add]] derive` function receives: the draft's canonical
+/// task minus [`ADD_UNSAFE`], plus `template`.
+///
+/// The clean shape is the one `mt eval --json` prints, routed through
+/// [`CanonicalTask`], so a hook's function and a rule's `check` read the same
+/// field names and shapes. What it cannot see is the draft's synthetic path:
+/// the destination is exactly what the hook is about to choose.
+#[must_use]
+pub fn add_argument(task: &Task, config: &Config, template: &str) -> HVal {
+    let Ok(serde_json::Value::Object(mut draft)) =
+        serde_json::to_value(CanonicalTask::from_task(task, config))
+    else {
+        return HVal::Null;
+    };
+    for key in ADD_UNSAFE {
+        draft.remove(*key);
+    }
+    draft.insert(
+        "template".to_owned(),
+        serde_json::Value::String(template.to_owned()),
+    );
+    HVal::deserialize(serde_json::Value::Object(draft)).unwrap_or(HVal::Null)
+}
+
+/// Read the harvested `mindtape.check` value back into a breach list: an
 /// array projects element by element (a string element verbatim, any other
 /// shape by its own literal repr — total rather than erroring on a function
 /// that returned the wrong element type); anything else is one breach naming
 /// what came back.
-fn breaches_from(result: &Harvest) -> Vec<String> {
-    let Some(marker) = result.with_label("mindtape.check").next() else {
-        return vec!["the check produced no result".to_owned()];
-    };
-    match &marker.value {
+fn breaches_from(value: &HVal) -> Vec<String> {
+    match value {
         HVal::Array(items) => items.iter().map(string_or_literal).collect(),
         other => vec![format!("returned {}", other.to_typst())],
     }

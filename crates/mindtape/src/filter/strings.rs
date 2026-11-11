@@ -1,9 +1,9 @@
-//! String-valued arguments in the filter language: `word()`, `matches()` and
-//! `in_dict()`.
+//! String-valued arguments in the filter language: `word()`, `matches()`,
+//! `in_dict()` and `old("field")` in string position.
 //!
 //! Every other function in [`crate::filter`] takes a bare identifier or a
 //! literal and answers a boolean, so the walk needed one return type. These
-//! three are the seam where an argument may itself be a computed string —
+//! functions are the seam where an argument may itself be a computed string —
 //! `in_dict("verbs", word(title, 1))` — which is what [`string_value`] adds: a
 //! second resolution, over the same [`Node`]s, that yields text instead of a
 //! verdict.
@@ -26,14 +26,16 @@ use evalexpr::{DefaultNumericTypes, Node, Operator};
 use regex::Regex;
 
 use crate::config::{Config, Dict};
-use crate::filter::expr::{call_args, describe, extract_literal, restore_name, unwrap_root};
+use crate::filter::expr::{
+    call_args, describe, extract_literal, restore_name, two_args, unwrap_root,
+};
 use crate::filter::predicates::text_only_value;
 use crate::filter::{FilterError, field_value};
 use crate::model::Task;
 use crate::model::fields::FieldValue;
 
 /// Resolve a node standing where a string is expected: a literal, a field
-/// identifier, or a nested string-valued call.
+/// identifier, or a call that gives text (`word(...)`, `old("field")`).
 ///
 /// `Ok(None)` is "there is no such value" — a field the task does not carry, a
 /// word index past the end — which every caller reads as a non-match.
@@ -45,6 +47,7 @@ use crate::model::fields::FieldValue;
 pub(crate) fn string_value(
     node: &Node<DefaultNumericTypes>,
     task: &Task,
+    old: Option<&Task>,
     config: &Config,
 ) -> Result<Option<String>, FilterError> {
     let node = unwrap_root(node);
@@ -55,11 +58,15 @@ pub(crate) fn string_value(
         Operator::VariableIdentifierRead { identifier } => {
             string_field(task, &restore_name(identifier), config)
         }
-        Operator::FunctionIdentifier { identifier } => {
-            string_call(&restore_name(identifier), node.children(), task, config)
-        }
+        Operator::FunctionIdentifier { identifier } => string_call(
+            &restore_name(identifier),
+            node.children(),
+            task,
+            old,
+            config,
+        ),
         _ => Err(FilterError::Invalid(format!(
-            "expected a string, a field or word(...), got {}",
+            "expected a string, a field, word(...) or old(...), got {}",
             describe(node)
         ))),
     }
@@ -85,21 +92,90 @@ fn string_field(task: &Task, name: &str, config: &Config) -> Result<Option<Strin
     }
 }
 
-/// The calls that yield a string. Only `word()` does today; every other
-/// function in the language answers a boolean, so naming one here is a type
-/// error rather than an unknown name.
+/// The calls that yield a string: `word()`, and `old()` in string position.
+/// Every other function in the language answers a boolean, so naming one here
+/// is a type error rather than an unknown name.
 fn string_call(
     name: &str,
     children: &[Node<DefaultNumericTypes>],
     task: &Task,
+    old: Option<&Task>,
     config: &Config,
 ) -> Result<Option<String>, FilterError> {
     match name {
-        "word" => word_call(children, task, config),
+        "word" => word_call(children, task, old, config),
+        "old" => old_string(children, old, config),
         other => Err(FilterError::call(
-            format!("'{other}(...)' is a condition, not text; only word(...) gives text"),
+            format!(
+                "'{other}(...)' is a condition, not text; only word(...) and old(...) give text"
+            ),
             "in_dict(\"verbs\", word(title, 1))",
         )),
+    }
+}
+
+/// `old("field")` where a string is expected: the pre-hook value when it is
+/// text. A number is refused, as it is for a field read in string position.
+fn old_string(
+    children: &[Node<DefaultNumericTypes>],
+    old: Option<&Task>,
+    config: &Config,
+) -> Result<Option<String>, FilterError> {
+    match old_value(children, old, config)? {
+        FieldValue::Str(text) => Ok(Some(text)),
+        FieldValue::Num(_) => Err(FilterError::Invalid(
+            "old() reads a number here; word(), matches() and in_dict() read text fields"
+                .to_owned(),
+        )),
+        FieldValue::Missing | FieldValue::List(_) | FieldValue::Record => Ok(None),
+    }
+}
+
+/// `old("field")`: the field's value on the draft from before any `[[on.add]]`
+/// action ran, as a comparable string.
+///
+/// # Errors
+/// A wrong argument count, a non-literal field name, an unknown field, or no
+/// pre-hook draft (an `old()` outside an add hook's `when`).
+pub(crate) fn old_value(
+    children: &[Node<DefaultNumericTypes>],
+    old: Option<&Task>,
+    config: &Config,
+) -> Result<FieldValue, FilterError> {
+    let args = call_args(children);
+    let [arg] = args.as_slice() else {
+        return Err(FilterError::call(
+            "old() takes one field name",
+            "old(\"kind\") == \"feat\"",
+        ));
+    };
+    let name = extract_literal(arg).map_err(|_| {
+        FilterError::call(
+            "old() takes its field name in double quotes",
+            "old(\"kind\") == \"feat\"",
+        )
+    })?;
+    if matches!(name.as_str(), "id" | "path" | "dir") {
+        return Err(FilterError::call(
+            format!(
+                "old(\"{name}\") reads the draft's identity or place, which an add has not filed yet"
+            ),
+            "old(\"kind\") == \"feat\"",
+        ));
+    }
+    let Some(task) = old else {
+        return Err(FilterError::call(
+            "old() reads the draft before the add hooks, and only an [[on.add]] when has one",
+            "old(\"kind\") == \"feat\"",
+        ));
+    };
+    if let Some(text) = text_only_value(task, &name) {
+        return Ok(FieldValue::Str(text));
+    }
+    match field_value(task, &name, config)? {
+        FieldValue::Str(text) => Ok(FieldValue::Str(text)),
+        FieldValue::Num(number) => Ok(FieldValue::Num(number)),
+        FieldValue::Missing | FieldValue::List(_) | FieldValue::Record => Ok(FieldValue::Missing),
     }
 }
 
@@ -114,14 +190,12 @@ fn string_call(
 fn word_call(
     children: &[Node<DefaultNumericTypes>],
     task: &Task,
+    old: Option<&Task>,
     config: &Config,
 ) -> Result<Option<String>, FilterError> {
-    let args = call_args(children);
-    let [value, index] = args.as_slice() else {
-        return Err(arity("word", "word(title, 1)"));
-    };
+    let [value, index] = call_pair(children, "word", "word(title, 1)")?;
     let position = word_index(index)?;
-    let Some(text) = string_value(value, task, config)? else {
+    let Some(text) = string_value(value, task, old, config)? else {
         return Ok(None);
     };
     Ok(nth_word(&text, position))
@@ -162,12 +236,10 @@ fn word_index(node: &Node<DefaultNumericTypes>) -> Result<usize, FilterError> {
 pub(crate) fn matches_call(
     children: &[Node<DefaultNumericTypes>],
     task: &Task,
+    old: Option<&Task>,
     config: &Config,
 ) -> Result<bool, FilterError> {
-    let args = call_args(children);
-    let [value, pattern] = args.as_slice() else {
-        return Err(arity("matches", "matches(title, \"^Add \")"));
-    };
+    let [value, pattern] = call_pair(children, "matches", "matches(title, \"^Add \")")?;
     let pattern = extract_literal(pattern).map_err(|_| {
         FilterError::call(
             "matches() takes its pattern second, as a quoted string",
@@ -179,7 +251,7 @@ pub(crate) fn matches_call(
             "matches() was given a bad regex '{pattern}': {err}"
         ))
     })?;
-    Ok(string_value(value, task, config)?.is_some_and(|text| regex.is_match(&text)))
+    Ok(string_value(value, task, old, config)?.is_some_and(|text| regex.is_match(&text)))
 }
 
 /// The two arguments of `in_dict("name", <string expr>)`: the dictionary's
@@ -196,12 +268,10 @@ pub(crate) fn matches_call(
 fn in_dict_lookup<'c>(
     children: &[Node<DefaultNumericTypes>],
     task: &Task,
+    old: Option<&Task>,
     config: &'c Config,
 ) -> Result<(String, &'c Dict, Option<String>), FilterError> {
-    let args = call_args(children);
-    let [name, value] = args.as_slice() else {
-        return Err(arity("in_dict", "in_dict(\"verbs\", word(title, 1))"));
-    };
+    let [name, value] = call_pair(children, "in_dict", "in_dict(\"verbs\", word(title, 1))")?;
     let name = extract_literal(name).map_err(|_| {
         FilterError::call(
             "in_dict() takes the dictionary name first, as a quoted string",
@@ -213,7 +283,7 @@ fn in_dict_lookup<'c>(
         unknown: crate::suggest::Unknown::among(&name, dicts.names()),
         name: name.clone(),
     })?;
-    Ok((name, dict, string_value(value, task, config)?))
+    Ok((name, dict, string_value(value, task, old, config)?))
 }
 
 /// `in_dict("name", <string expr>)`: membership in a configured or built-in
@@ -224,9 +294,10 @@ fn in_dict_lookup<'c>(
 pub(crate) fn in_dict_call(
     children: &[Node<DefaultNumericTypes>],
     task: &Task,
+    old: Option<&Task>,
     config: &Config,
 ) -> Result<bool, FilterError> {
-    let (_, dict, word) = in_dict_lookup(children, task, config)?;
+    let (_, dict, word) = in_dict_lookup(children, task, old, config)?;
     Ok(word.is_some_and(|text| dict.contains(&text)))
 }
 
@@ -263,7 +334,7 @@ pub(crate) fn dict_miss(
             .iter()
             .find_map(|child| dict_miss(child, task, config)),
         Operator::FunctionIdentifier { identifier } if identifier == "in_dict" => {
-            let (dict, entries, word) = in_dict_lookup(node.children(), task, config).ok()?;
+            let (dict, entries, word) = in_dict_lookup(node.children(), task, None, config).ok()?;
             let word = word.filter(|word| !entries.contains(word))?;
             Some(DictMiss {
                 nearest: entries.nearest(&word, NEAREST_ENTRIES),
@@ -288,6 +359,21 @@ fn arity(name: &str, example: &'static str) -> FilterError {
     FilterError::call(format!("{name}() takes two arguments"), example)
 }
 
+/// The two arguments of a two-argument call, or the call's arity error. Every
+/// two-argument predicate reads its arguments through here, so the count and
+/// the error are stated once.
+pub(crate) fn call_pair<'n>(
+    children: &'n [Node<DefaultNumericTypes>],
+    name: &str,
+    example: &'static str,
+) -> Result<[&'n Node<DefaultNumericTypes>; 2], FilterError> {
+    two_args(children).ok_or_else(|| arity(name, example))
+}
+
 #[cfg(test)]
 #[path = "strings_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "strings_old_tests.rs"]
+mod old_tests;

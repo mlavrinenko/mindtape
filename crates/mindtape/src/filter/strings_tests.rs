@@ -358,7 +358,8 @@ fn an_operator_in_string_position_errors() {
     let plus = err("matches(title + id, \"x\")", &titled("Add auth"), &cfg);
     assert!(
         matches!(&plus, FilterError::Invalid(text)
-            if text.contains("expected a string, a field or word(...)") && text.contains("'+'")),
+            if text.contains("expected a string, a field, word(...) or old(...)")
+                && text.contains("'+'")),
         "{plus:?}"
     );
     let neg = err("matches(-title, \"x\")", &titled("Add auth"), &cfg);

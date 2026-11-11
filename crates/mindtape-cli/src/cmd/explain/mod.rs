@@ -7,6 +7,7 @@
 
 use crate::diag::Result;
 
+pub(crate) mod add;
 pub(crate) mod dicts;
 pub(crate) mod index;
 pub(crate) mod rules;
@@ -30,6 +31,8 @@ pub struct ExplainArgs {
 /// One listing `mt explain <listing>` prints in full.
 #[derive(Debug, clap::Subcommand)]
 pub enum Listing {
+    /// List the `[[on.add]]` hooks, in the order `mt add` runs them.
+    Add,
     /// List the rules and derived fields, one line each.
     ///
     /// Each line is a rule's severity, its name as `mt config show --origin`
@@ -54,6 +57,7 @@ pub enum Listing {
 pub fn run(args: &ExplainArgs) -> Result<()> {
     match &args.listing {
         None => index::run(args.json),
+        Some(Listing::Add) => add::run(args.json),
         Some(Listing::Rules(rules)) => rules::run(rules, args.json),
         Some(Listing::Tags(tags)) => tags::run(tags, args.json),
         Some(Listing::Views(views)) => views::run(views, args.json),

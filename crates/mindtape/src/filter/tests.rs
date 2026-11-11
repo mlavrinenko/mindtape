@@ -418,6 +418,15 @@ mod contains;
 #[path = "predicates_tests.rs"]
 mod predicates;
 
+// `starts_with()`'s required needle-then-field grammar and its shared field
+// reader likewise.
+#[path = "prefix_tests.rs"]
+mod prefix;
+
+// Reading `path`/`dir` and the shared `path_dependent_fields` list likewise.
+#[path = "paths_tests.rs"]
+mod paths;
+
 // `in_view()`/`@name` predicate evaluation, the `view_refs` collector, and
 // the cyclic view guard likewise.
 #[path = "in_view_tests.rs"]

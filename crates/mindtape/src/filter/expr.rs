@@ -196,6 +196,18 @@ pub(crate) fn call_args(children: &[Node<DefaultNumericTypes>]) -> Vec<&Node<Def
     }
 }
 
+/// The arguments of a call that takes exactly two, in order. `None` when the
+/// call has any other count, so the caller gives its own arity error naming
+/// the call.
+pub(crate) fn two_args(
+    children: &[Node<DefaultNumericTypes>],
+) -> Option<[&Node<DefaultNumericTypes>; 2]> {
+    match call_args(children).as_slice() {
+        [first, second] => Some([*first, *second]),
+        _ => None,
+    }
+}
+
 /// The boolean connectives every expression walker shares — a root wrapper,
 /// `&&`, `||` and `!` — evaluating each child through `eval`. Both sides of a
 /// binary connective are evaluated, never short-circuited, so a load-time dry

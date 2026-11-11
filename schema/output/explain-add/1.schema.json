@@ -1,0 +1,59 @@
+{
+  "$defs": {
+    "AddHookJson": {
+      "description": "The JSON shape of one listed hook.",
+      "properties": {
+        "actions": {
+          "description": "Each action in its one-line form.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "name": {
+          "description": "The hook's name, or `null` when unnamed.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "origin": {
+          "description": "The layer or pack that supplied the hook.",
+          "type": "string"
+        },
+        "when": {
+          "description": "Its `when`, or the empty string when it fires every add.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "when",
+        "actions",
+        "origin"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/explain-add/1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The object `mt explain add --json` prints: every merged `[[on.add]]` hook, its `when`, its actions and its origin.",
+  "properties": {
+    "$schema": {
+      "description": "The URL of the schema this object conforms to.",
+      "type": "string"
+    },
+    "hooks": {
+      "description": "Every hook in merged order.",
+      "items": {
+        "$ref": "#/$defs/AddHookJson"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "$schema",
+    "hooks"
+  ],
+  "title": "Mindtape add hooks",
+  "type": "object"
+}

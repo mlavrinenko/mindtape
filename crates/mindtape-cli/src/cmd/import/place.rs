@@ -1,10 +1,10 @@
 //! Where each imported record lands, and which stems are already taken.
 //!
-//! With neither `--into` nor `--to`, a record lands in the folder its `file`
-//! names when that folder lies under a configured root, so an export of a
-//! tree imports back as the same tree. Either flag sends the whole batch to
-//! one destination, and a record whose `file` is empty, absolute, climbs out
-//! with `..` or leaves every root lands in that destination too.
+//! Without `--dir`, a record lands in the folder its `file` names when that
+//! folder lies under a configured root, so an export of a tree imports back as
+//! the same tree. `--dir` sends the whole batch to one destination, and a
+//! record whose `file` is empty, absolute, climbs out with `..` or leaves every
+//! root lands in that destination too.
 //!
 //! A stem is taken when any loaded task, or any `.typ` file in a destination,
 //! already uses it, so `mt import` suffixes it (`-2`) instead of writing a
@@ -13,7 +13,6 @@
 use std::collections::HashSet;
 use std::path::{Component, Path, PathBuf};
 
-use crate::diag::Result;
 use mindtape::CanonicalTask;
 
 use super::ImportArgs;
@@ -32,12 +31,8 @@ pub(super) struct Placement<'a> {
 impl<'a> Placement<'a> {
     /// The placement for `args` in `project`: every loaded task's stem is
     /// taken from the start.
-    pub(super) fn new(project: &'a Project, args: &ImportArgs) -> Result<Self> {
-        let fallback = dest_dir(
-            args.into.as_deref().unwrap_or("."),
-            args.to.as_deref(),
-            project,
-        )?;
+    pub(super) fn new(project: &'a Project, args: &ImportArgs) -> Self {
+        let fallback = dest_dir(args.dir.as_deref(), project);
         let taken = project
             .outcome
             .tasks
@@ -45,13 +40,13 @@ impl<'a> Placement<'a> {
             .filter_map(|task| task.file.file_stem())
             .map(|stem| stem.to_string_lossy().into_owned())
             .collect();
-        Ok(Self {
+        Self {
             project,
             fallback,
-            by_file: args.into.is_none() && args.to.is_none(),
+            by_file: args.dir.is_none(),
             taken,
             scanned: HashSet::new(),
-        })
+        }
     }
 
     /// The folder `record` lands in, with its on-disk stems marked taken.

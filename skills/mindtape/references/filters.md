@@ -24,7 +24,8 @@ of `mt explain views`.
 - `status.name` is the same value as `status`. `status.note` is the status
   note, and `status.index` is the status's 0-based position in the legend.
 - `path` is the task file's path from the project root, with `/` separators.
-  `file` is a column only, and a filter on it is an error.
+  `dir` is its folder part, empty in a root itself. `file` is a column only,
+  and a filter on it is an error.
 - `depth` is the folder depth under the root, 0 for a task in the root itself.
 - `topo` is 0 for a task with no blocking dependency in the loaded set, else
   one more than its deepest dependency. Ascending `topo` is a valid working
@@ -82,11 +83,20 @@ sorts by legend position.
   and the body, or over the fields in `[ls] contains-fields` when the project
   sets it. `contains("s", f, …)` searches the named fields: any field above,
   `body`, `note` (the link notes) or `tags`.
+- `starts_with("s", f)` matches when field `f` starts with `s`, ignoring
+  case. It takes exactly one field, which may be any field `contains()`
+  searches, including `body`, `note` and `tags`. There is no default haystack.
+- `old("f")` reads field `f` from the task before any `[[on.add]]` hook ran.
+  It reads as a value, so `matches(old("title"), …)` works, and it refuses
+  `id`, `path` and `dir`. Only an add hook's `when` accepts it. `template == "name"`,
+  `template != "name"` and `from_template("name")` test the template `mt add`
+  used, also only in an add hook.
 - `stale(N)` matches a task whose `reviewed` date, or else status date, is
   more than N days old. A task with neither date is stale too.
 - `in_view("v")`, written `@v` for short, matches when view `v`'s filter does.
 - `matches(f, "re")` matches when the text of field `f`, which may be `body`,
-  `note` or `tags`, matches the unanchored regular expression.
+  `note` or `tags`, matches the unanchored regular expression. `f` may also be
+  `word(...)` or an add hook's `old(...)`.
 - `in_dict("d", s)` matches when string `s` is in dictionary `d`, a
   `[dicts.d]` section or a built-in. `word(f, n)` gives the n-th word of a
   string field, counting from 1, and works only as an argument here or in

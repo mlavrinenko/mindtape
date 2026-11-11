@@ -9,7 +9,7 @@ use crate::support;
 use mindtape::test_support::write_file;
 
 /// `mt add`'s reported path is the exact `dest.join(...)` it wrote to — under
-/// the default `--into .`, that is `<project root>/tasks/<rel>` in full,
+/// the default destination, that is `<project root>/tasks/<rel>` in full,
 /// mirroring today's `wrote <path>` prose (never shortened to a cwd-relative
 /// form the way `mt ls --format path` shows a task's `file`).
 fn expected_path(dir: &std::path::Path, rel: &str) -> String {

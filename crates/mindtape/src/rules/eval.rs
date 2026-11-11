@@ -30,18 +30,21 @@ enum RuleKind {
     Check(CompiledCheck),
 }
 
-/// The names a rule reads: its `when` and `assert`, or the `field` its `check`
-/// receives. A `check` handed the whole task, or an expression reaching
-/// through a view, may be about any field.
-fn rule_reads(spec: &RuleSpec, when: Option<&Filter>, kind: &RuleKind) -> Option<BTreeSet<String>> {
-    let mut reads = crate::validate::violation::reads_of(when)?;
-    match kind {
-        RuleKind::Assert { filter, .. } => {
-            reads.extend(crate::validate::violation::reads_of([filter])?);
-        }
-        RuleKind::Check(_) => {
-            reads.insert(spec.check.as_ref()?.field.clone()?);
-        }
+/// The names a rule reads: its `when` and `assert`, following a view either
+/// names, or the `field` its `check` receives. A `check` handed the whole task
+/// may be about any field, so it has no name set at all.
+pub(super) fn rule_reads(
+    when: Option<&str>,
+    assertion: Option<&str>,
+    check: Option<&crate::rules::CheckSpec>,
+    config: &Config,
+) -> Option<BTreeSet<String>> {
+    let mut reads = BTreeSet::new();
+    for expression in [when, assertion].into_iter().flatten() {
+        reads.extend(crate::filter::names_in(expression, config));
+    }
+    if let Some(check) = check {
+        reads.insert(check.field.clone()?);
     }
     Some(reads)
 }
@@ -83,7 +86,12 @@ impl CompiledRule {
             )),
             (Some(_), Some(_)) | (None, None) => return None,
         };
-        let reads = rule_reads(spec, when.as_ref(), &kind);
+        let reads = rule_reads(
+            spec.when.as_deref(),
+            spec.assertion.as_deref(),
+            spec.check.as_ref(),
+            config,
+        );
         Some(Self {
             label: spec.label(index),
             when,

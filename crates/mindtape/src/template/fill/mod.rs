@@ -269,6 +269,29 @@ pub fn fill(source: &str, values: &BTreeMap<String, RawValue>) -> Result<String,
     apply(source, edits).map_err(|err| FillError::Edit(err.to_string()))
 }
 
+/// Fill only the slots present in `values`, leaving every other `slot(...)`
+/// call in place. A draft task built from the result still evaluates — an
+/// unfilled slot returns its `default` at eval time — so `mt add` can run its
+/// hooks over a task that is not fully filled yet, then [`fill`] the rest.
+///
+/// # Errors
+/// Returns [`FillError`] when a supplied value mismatches its slot kind, a slot
+/// declares an unknown kind, or the resulting changeset is invalid.
+pub fn fill_partial(
+    source: &str,
+    values: &BTreeMap<String, RawValue>,
+) -> Result<String, FillError> {
+    let specs = discover_slots(source);
+    reject_unknown_kind(&specs)?;
+    let mut edits = Vec::new();
+    for spec in &specs {
+        if let Some(value) = values.get(&spec.name) {
+            edits.push(Edit::new(edit_range(spec, source), render(spec, value)?));
+        }
+    }
+    apply(source, edits).map_err(|err| FillError::Edit(err.to_string()))
+}
+
 /// The byte range to replace for a slot. A markup `text`/`raw` slot extends
 /// over the leading `#` so the spliced body markup stands alone.
 fn edit_range(spec: &SlotSpec, source: &str) -> Range<usize> {

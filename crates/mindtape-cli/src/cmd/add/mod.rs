@@ -5,50 +5,50 @@
 //!
 //! - `dedup.rs`, `target.rs`, `output.rs` — `--dedup`, destination and stem,
 //!   `--format`/`--json`.
-//! - `values.rs`, `tokens.rs`, `yaml_values.rs`, `templates/` — value sources, `--set`, YAML.
+//! - `values.rs`, `values_ops.rs`, `tokens.rs`, `field_values.rs`, `yaml_values.rs`, `templates/` — value sources, ordered `--set` operations, non-slot field writes, YAML.
+//! - `draft.rs`, `hooks.rs`, `pipeline.rs` — the partially filled task, `[[on.add]]` execution and the render order.
 //! - `interactive.rs`, `hint.rs`, `notes.rs`, `title.rs` — editor fill, refusal hint, fill note,
 //!   title from words or stdin.
 
 pub(crate) mod dedup;
+mod draft;
+mod hooks;
 pub(crate) mod interactive;
 pub(crate) mod output;
+mod pipeline;
 pub(crate) mod tokens;
 pub(crate) mod values;
+mod values_ops;
 pub(crate) mod yaml_values;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::File;
-use std::io::{IsTerminal, Write as _};
+use std::io::Write as _;
 use std::path::Path;
 
 use crate::diag::Result;
 use clap::Args;
-use mindtape::{
-    Config, RawValue, RequiredSlot, SlotKind, SlotSpec, discover_slots, escape_markup, fill,
-    status_value, today_ymd,
-};
-use typst_edit::apply;
+use mindtape::{Config, FieldOp, RawValue, SlotKind, SlotSpec, discover_slots, escape_markup};
 
 use self::output::Format;
 use crate::cmd::add::dedup::DedupArg;
-use crate::cmd::add::values::{
-    DescribeFormat, collect_values, describe, layer_env, list_templates, reject_unknown_keys,
-    resolve_template,
-};
+use crate::cmd::add::values::{DescribeFormat, describe_for, list_templates, resolve_template};
 use crate::diag::{Diag, Hint, Note};
-use crate::task_edit::{filing_status, initial_status, task_with, upsert_named_arg};
+use crate::task_edit::filing_status;
 use crate::util;
 
 mod hint;
 use hint::Rescue;
+mod field_values;
+mod header;
+pub(crate) use header::{inject_header, splice_config_slots};
 mod notes;
 mod target;
 mod title;
-use notes::{report_escaped_spans, report_injected};
+use notes::report_injected;
 pub(crate) use target::minted_stem;
-pub(crate) use target::{dest_dir, warn_if_outside_roots};
-use target::{output_stem, resolve_outcome};
-use title::{fill_title_from_args, fill_title_from_stdin};
+pub(crate) use target::{dest_dir, refuse_legacy, warn_if_outside_roots};
+use target::{output_stem, resolve_dir, resolve_outcome};
 
 /// Arguments for `mt add`.
 // A clap flag struct: each `--flag` is an independent boolean toggle.
@@ -74,7 +74,7 @@ pub struct AddArgs {
     #[arg(long = "values", short = 'f', value_name = "PATH")]
     pub values: Vec<String>,
 
-    /// Set a slot, as `key=value`, `key+=value` or `key@path`.
+    /// Set a slot or a core field, as `key=value`, `key+=value` or `key@path`.
     ///
     /// `key+=value` adds to a list, and `key@path` reads the value from a
     /// file. It wins over `--values`.
@@ -90,15 +90,43 @@ pub struct AddArgs {
 
     /// The directory to write the task in.
     ///
-    /// `.` means the first root in your config.
-    #[arg(long, value_name = "DIR", default_value = ".")]
-    pub into: String,
+    /// A relative path resolves from the project root; an absolute one is
+    /// taken as-is. Without it, an `[[on.add]]` hook may choose the directory,
+    /// else mt writes to the first configured root.
+    #[arg(long, value_name = "DIR")]
+    pub dir: Option<String>,
 
-    /// A subfolder of `--into` to put the task in, such as `--to shopping`.
-    ///
-    /// If your project tags tasks by folder, the task gets that folder's tags.
-    #[arg(long = "to", value_name = "SUBDIR")]
+    /// Removed. Use `--dir`.
+    #[arg(long, hide = true, value_name = "DIR")]
+    pub into: Option<String>,
+
+    /// Removed. Use `--dir`.
+    #[arg(long = "to", hide = true, value_name = "SUBDIR")]
     pub to: Option<String>,
+
+    /// The priority, as a number.
+    #[arg(long, value_name = "VALUE")]
+    pub priority: Option<String>,
+
+    /// The difficulty, as a number.
+    #[arg(long, value_name = "VALUE")]
+    pub difficulty: Option<String>,
+
+    /// The kind of work, such as `feat` or `fix`.
+    #[arg(long, value_name = "VALUE")]
+    pub kind: Option<String>,
+
+    /// Who is working on the task.
+    #[arg(long, value_name = "NAME")]
+    pub assignee: Option<String>,
+
+    /// The due date, as YYYY-MM-DD.
+    #[arg(long, value_name = "DATE")]
+    pub due: Option<String>,
+
+    /// The start date, as YYYY-MM-DD.
+    #[arg(long, value_name = "DATE")]
+    pub start: Option<String>,
 
     /// The file name, without `.typ`.
     ///
@@ -120,9 +148,10 @@ pub struct AddArgs {
     #[arg(long)]
     pub edit: bool,
 
-    /// Print the template's slots instead of filing a task.
+    /// Print the template's slots and the project's add hooks instead of
+    /// filing a task.
     ///
-    /// `--describe=json` prints them as JSON.
+    /// `--describe=json` prints the same list, hooks included, as JSON.
     #[arg(long, value_name = "FORMAT", num_args = 0..=1, require_equals = true, default_missing_value = "text")]
     pub describe: Option<String>,
 
@@ -137,6 +166,10 @@ pub struct AddArgs {
     /// Don't check the new task against your project's rules.
     #[arg(long = "no-verify")]
     pub no_verify: bool,
+
+    /// Don't run the project's `[[on.add]]` hooks.
+    #[arg(long = "no-hooks")]
+    pub no_hooks: bool,
 
     /// What to do when a task with that file name exists.
     ///
@@ -160,19 +193,51 @@ fn effective_format(args: &AddArgs) -> Format {
     if args.json { Format::Json } else { args.format }
 }
 
+/// The fields with an explicit `=` from the caller: an append does not count,
+/// since a later hook may still set the field.
+fn explicit_sets(ops: &[(String, FieldOp)]) -> BTreeSet<String> {
+    ops.iter()
+        .filter(|(_, op)| matches!(op, FieldOp::Set(_)))
+        .map(|(name, _)| name.clone())
+        .collect()
+}
+
+/// `mt add --list`: every template stem, one per line.
+fn print_templates(config: &Config, root: &Path) {
+    for name in list_templates(config, root) {
+        println!("{name}");
+    }
+}
+
+/// `mt add --describe`: the template's slots and the project's add hooks.
+fn print_describe(
+    args: &AddArgs,
+    config: &Config,
+    root: &Path,
+    source: &str,
+    format: &str,
+) -> Result<()> {
+    hint::refuse_title_beside_describe(&args.title, config, root)?;
+    let specs = discover_slots(source);
+    println!(
+        "{}",
+        describe_for(config, &specs, DescribeFormat::parse(format)?)?
+    );
+    Ok(())
+}
+
 /// Run the `add` command.
 ///
 /// # Errors
 /// Returns an error if the template/values are invalid, a slot is unfilled, the
 /// target identity collides, or the file cannot be written.
 pub fn run(args: &AddArgs) -> Result<()> {
+    refuse_legacy(args.into.as_ref(), args.to.as_ref())?;
     let project = util::open()?;
     let config = &project.config;
 
     if args.list {
-        for name in list_templates(config, &project.root) {
-            println!("{name}");
-        }
+        print_templates(config, &project.root);
         return Ok(());
     }
 
@@ -185,46 +250,29 @@ pub fn run(args: &AddArgs) -> Result<()> {
     let (source, injected) = splice_config_slots(&source, config, status.as_deref())?;
 
     if let Some(format) = &args.describe {
-        hint::refuse_title_beside_describe(&args.title, config, &project.root)?;
-        let specs = discover_slots(&source);
-        println!("{}", describe(&specs, DescribeFormat::parse(format)?)?);
+        print_describe(args, config, &project.root, &source, format)?;
         return Ok(());
     }
 
-    let mut values = collect_values(&args.values, &args.set, &args.tokens)?;
-    let explicit: BTreeSet<String> = values.keys().cloned().collect();
-    let specs = discover_slots(&source);
-    reject_unknown_keys(&values, &specs)?;
-    fill_title_from_args(&mut values, args, &specs);
-    let before_env: BTreeSet<String> = values.keys().cloned().collect();
-    layer_env(&mut values, &specs, |key| std::env::var(key).ok());
-    let env_keys: BTreeSet<String> = values
-        .keys()
-        .filter(|key| !before_env.contains(*key))
-        .cloned()
-        .collect();
-    fill_title_from_stdin(&mut values, args)?;
-    let tty = std::io::stdin().is_terminal() && std::io::stdout().is_terminal();
-    let interactive = interactive::should_open(args.edit, &config.add, &specs, &values, tty)?;
-    if interactive {
-        let editor =
-            mindtape::allow::runnable_editor(&project.root, config, config.add.editor.as_deref());
-        values = interactive::run(&config.add, editor.as_deref(), &specs, &values)?;
-    }
-    let filled = fill(&source, &markup_safe(&values, &specs)).map_err(Diag::from)?;
-    let filled = inject_header(&filled, config, status.as_deref())?;
-    let filled = util::canonical_source(config, filled);
-    report_injected(&filled, &injected, &explicit, &env_keys)?;
-    report_escaped_spans(&values, &specs);
+    let ready =
+        pipeline::collect_and_render(args, &project, &template_name, &source, status.as_deref())?;
+    let filled = util::canonical_source(config, ready.filled);
+    report_injected(
+        &filled,
+        &injected,
+        &ready.explicit,
+        &ready.env_keys,
+        &ready.touched,
+    )?;
 
     // Resolve the path the write would land at before the `--print` return:
     // it is the candidate the pre-write check validates, and a preview must
     // clear the same check, or a dry run stops being a preflight.
-    let dest = dest_dir(&args.into, args.to.as_deref(), &project)?;
-    let stem = output_stem(args, &values, config)?;
+    let dest = resolve_dir(args, &project, ready.dir.as_deref())?;
+    let stem = output_stem(args, &ready.values, config)?;
     let file = dest.join(format!("{stem}.typ"));
 
-    let rescue = Rescue::new(&template_name, interactive);
+    let rescue = Rescue::new(&template_name, ready.interactive);
     let written = if args.print {
         print_preview(args, &project, &file, &filled, &rescue)
     } else {
@@ -235,7 +283,7 @@ pub fn run(args: &AddArgs) -> Result<()> {
         root: &project.root,
         template: &template_name,
         sources: (&source, &filled),
-        explicit: &explicit,
+        explicit: &ready.explicit,
     };
     written.map_err(|err| context.decorate(err, rescue.parked.take()))
 }
@@ -280,7 +328,7 @@ fn print_preview(
 /// still say no has already said it.
 ///
 /// The pre-write check needs a project-relative path to evaluate the candidate
-/// at, which `mt add --into /somewhere/else` does not have. That case alone
+/// at, which `mt add --dir /somewhere/else` does not have. That case alone
 /// falls back to the old order — write, then [`crate::task_edit::verify_written`] — and its error
 /// still carries [`kept`], because there the file really is on disk.
 fn commit(
@@ -363,7 +411,8 @@ fn park(source: &str) -> Option<std::path::PathBuf> {
 /// `MINDTAPE_ADD_*` environment, and the `--edit` buffer all converge on this
 /// map, so the trust decision is enforced in exactly one place.
 ///
-/// The escaped copy feeds [`fill`] only; the caller keeps the authored values so
+/// The escaped copy feeds `mindtape::fill` only; the caller keeps the authored
+/// values so
 /// the filename slug is minted from the text the user actually typed.
 fn markup_safe(
     values: &BTreeMap<String, RawValue>,
@@ -401,64 +450,5 @@ fn kept(err: Diag, file: &Path) -> Diag {
     }
 }
 
-/// Splice slot-bearing values for config-required core fields the template
-/// omits, so their slots surface in the fill scaffold, `--describe`, and the
-/// written task. A field already set by the template (literal or slot) is left
-/// untouched, except that a slot which is its whole value inherits the field's
-/// config `values` as choices ([`mindtape::inherit_field_choices`]). Runs
-/// before discovery, so a spliced value may itself nest slots — a
-/// strict-framework priority splices `framework("ice", impact: slot(…), …)`.
-///
-/// Returns the fields actually spliced (the template omitted them), so the
-/// caller can report the values it filled that the template never mentioned.
-pub(crate) fn splice_config_slots(
-    source: &str,
-    config: &Config,
-    status: Option<&str>,
-) -> Result<(String, Vec<RequiredSlot>)> {
-    let source =
-        mindtape::inherit_field_choices(source, config).map_err(|err| edit_failed(&err))?;
-    let call = task_with(&source)?;
-    let mut edits = Vec::new();
-    let mut injected = Vec::new();
-    for slot in mindtape::required_core_slots(config, status) {
-        if call.named(&slot.field).is_none() {
-            edits.push(upsert_named_arg(&source, &call, &slot.field, &slot.call)?);
-            injected.push(slot);
-        }
-    }
-    let spliced = apply(&source, edits).map_err(|err| edit_failed(&err))?;
-    Ok((spliced, injected))
-}
-
-/// Inject the add-owned `status` (and `id` when the config generates one) into
-/// `task.with(…)`.
-pub(crate) fn inject_header(
-    source: &str,
-    config: &Config,
-    status_override: Option<&str>,
-) -> Result<String> {
-    let call = task_with(source)?;
-    let mut edits = Vec::new();
-
-    let status_name = status_override
-        .map(ToOwned::to_owned)
-        .or_else(|| initial_status(config));
-    if let Some(status_name) = status_name {
-        let value = status_value(&status_name, today_ymd(), None);
-        edits.push(upsert_named_arg(source, &call, "status", &value)?);
-    }
-
-    if let Some(id) = config.tasks.id.format.generate() {
-        edits.push(upsert_named_arg(source, &call, "id", &format!("\"{id}\""))?);
-    }
-
-    apply(source, edits).map_err(|err| edit_failed(&err))
-}
-
-/// The template's edits overlapped or ran out of bounds.
-fn edit_failed(err: &typst_edit::EditError) -> Diag {
-    Diag::failed("can't rewrite the template").cause(err)
-}
 #[cfg(test)]
 mod tests;

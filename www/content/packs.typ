@@ -195,9 +195,9 @@ pack's rule by name. The built-in packs name no files.
 = Drop a rule
 
 To turn off a rule you don't want, list its name in `disable`. It drops the
-rule or collector from any of the six arrays, whichever pack or layer declared it, a
-named #link(u("/hooks/"))[flip hook] included. A name that matches no rule is a
-config error, so a typo can't leave a rule running:
+rule or collector from any of the seven arrays, whichever pack or layer
+declared it, a named #link(u("/hooks/"))[flip or add hook] included. A name
+that matches no rule is a config error, so a typo can't leave a rule running:
 
 #terminal("packs-disable")
 
@@ -214,10 +214,10 @@ at 5 files and the project raises the cap to 8:
 `mt` writes each value into the pack's expressions when it loads the config,
 so `mt check`, `mt explain rules` and `mt config show` all see `8`. It works in
 every expression in the pack, from a rule's `when` and `assert` to a view's
-`filter`, an `[[on.flip]]` `when` or `list`, each `required` and the `[ls]`
-and `[rm]` filters. A `param()` inside a string literal stays as written, and so does
-one in a rule's `message`, which is text and no expression. A bare entry like `"./team.toml"` keeps every
-default.
+`filter`, an `[[on.flip]]` `when` or `list`, an `[[on.add]]` `when`, each
+`required` and the `[ls]` and `[rm]` filters. A `param()` inside a string
+literal stays as written, and so does one in a rule's `message`, which is text
+and no expression. A bare entry like `"./team.toml"` keeps every default.
 
 A value is a string, a number or a boolean, of the same type as its default.
 The parameters belong to their pack, so two packs can each have a
@@ -271,13 +271,13 @@ the layer's value wins anyway. Equal values agree, so two packs can both set
 the same dictionary. Packs adopted by two different layers never clash: the
 higher layer wins.
 
-Six arrays merge by name instead: `[[tasks.rules]]`, the two body rule
-arrays, `[[commits.rules]]`, `[[on.flip]]` and `[[tasks.collectors]]`. Each
-takes the entries of the
+Seven arrays merge by name instead: `[[tasks.rules]]`, the two body rule
+arrays, `[[commits.rules]]`, `[[on.flip]]`, `[[on.add]]` and
+`[[tasks.collectors]]`. Each takes the entries of the
 layer's packs in `extends` order, then the layer's own, and an entry replaces
-an earlier one with the same `name` in its place. A flip hook with no `name`
-appends and nothing can replace it, so a pack's hook that the project should
-be able to change needs one. After every layer
+an earlier one with the same `name` in its place. A flip or add hook with no
+`name` appends and nothing can replace it, so a pack's hook that the project
+should be able to change needs one. After every layer
 is merged, `mt` drops the rules named in any layer's `disable`. A name listed
 in two layers is dropped once.
 
@@ -285,9 +285,10 @@ in two layers is dropped once.
 
 To see where each rule, key and parameter came from, run `mt config show
 --origin`. It prints the layers that contributed, then one line per rule in
-merge order: `rule <label>: <origin>`. `<label>` is the rule's array and name, such as
-`tasks.rules.<name>` or `on.flip.<name>`, or `tasks.rules[<index>]` for a rule
-with no name.
+merge order: `rule <label>: <origin>`. `<label>` is the rule's array and name,
+such as `tasks.rules.<name>`, `on.flip.<name>` or `on.add.<name>`, or
+`tasks.rules[<index>]` for a rule with no name. An unnamed add hook reads
+`on.add[<index>]`.
 `mt check` names a broken rule without the leading `tasks.`. `<origin>` is a
 layer (`embedded`, `xdg`, `dir` or `project`), or `pack <name>` for a pack.
 The output in the #mindtape repository:

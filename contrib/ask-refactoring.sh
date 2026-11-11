@@ -155,7 +155,7 @@ file_finding() {
     local arm="$1" stem="$2" summary="$3" advice="$4"
     shift 4
     # Every batch lands in one folder, so `mt ls swept` lists it.
-    set -- "$@" --to swept
+    set -- "$@" --dir truth/tasks/swept
     if [ "$WRITE" -eq 1 ]; then
         local out outcome dest
         out="$("$MT" "$@" --dedup skip --format json)"

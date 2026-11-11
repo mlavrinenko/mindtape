@@ -1,20 +1,16 @@
 //! `.mindtape/config.toml` loading and the configurable task schema.
 //!
 //! The config is a white-list: Mindtape constrains only what is declared here
-//! (directly or through the embedded floor, `defaults.toml`). A handful of
-//! sections carry an opinionated shipped default — the status legend, the
-//! priority/difficulty scale and classification, `roots`, `[templates]`,
-//! `[rm]`/`[ls]` default filters — and omitting one of those inherits the
-//! floor rather than going unconstrained. Set it explicitly empty (`status =
-//! []`, `[tasks.priority] bands = []`) to unconstrain it instead. Every other
-//! section (estimate units, tag allow-list, body headers, derive-tags) stays
-//! unconstrained when omitted, as before.
+//! or in the embedded floor, `defaults.toml`, plus a shipped default for the
+//! status legend, priority/difficulty scale, `roots`, `[templates]` and
+//! `[rm]`/`[ls]`. Omit one to inherit the floor; set it empty (`status = []`)
+//! to unconstrain it. Every other section stays unconstrained when omitted.
 //!
 //! # Files
 //!
-//! - `active_rules.rs`: every rule the merged config applies, for `mt explain rules`.
+//! - `active_add.rs`/`active_rules.rs`: hooks and rules for `mt explain`.
 //! - `actors.rs`: `[[actors]]` and `[[roles]]`, the actor registry.
-//! - `add.rs`: `[add]`, the interactive editor fill for `mt add`.
+//! - `add.rs`: `[add]`; `add_hooks*.rs`: `[[on.add]]` defaults, tests and destinations.
 //! - `assignee.rs`: `[tasks.assignee]` constraints.
 //! - `collect.rs`: `[[tasks.collectors]]`, the derived-field queries.
 //! - `comments.rs`: `[tasks.comments]`, policy over review comments.
@@ -57,9 +53,13 @@
 //! - `views.rs`: `[views]`, named query bundles.
 //! - `warnings.rs`: load-time warnings about a config that loads but looks wrong.
 
+pub mod active_add;
 pub mod active_rules;
 pub(crate) mod actors;
 pub(crate) mod add;
+pub mod add_hooks;
+pub(crate) mod add_hooks_dir;
+pub(crate) mod add_hooks_when;
 pub(crate) mod assignee;
 pub mod collect;
 pub(crate) mod collect_type;
@@ -239,7 +239,8 @@ pub struct Config {
     /// The commit trailer, its external refs, and the rules
     /// `mt check --commit-msg` checks a commit against.
     pub commits: crate::config::commits::CommitsConfig,
-    /// Status-transition hooks (`[[on.flip]]`), run only by `mt flip`.
+    /// Hooks keyed by event: `[[on.flip]]` on a status change and
+    /// `[[on.add]]` on a new task.
     pub on: crate::config::hooks::OnConfig,
     /// The project's actor registry (`[[actors]]`): named workers (people and
     /// language models) that `assignee:` values may reference.

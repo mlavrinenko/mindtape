@@ -63,10 +63,12 @@ fn the_schema_tags_every_expression_key_with_its_language() {
     ];
     let mut listed = listed();
     listed.sort();
-    let expected: Vec<(String, bool)> = expected
+    let mut expected: Vec<(String, bool)> = expected
         .iter()
         .map(|(path, joins)| ((*path).to_owned(), *joins))
         .collect();
+    expected.push(("on.add.*.when".to_owned(), true));
+    expected.sort();
     assert_eq!(listed, expected);
 }
 

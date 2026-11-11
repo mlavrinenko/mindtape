@@ -8,7 +8,7 @@ use std::collections::BTreeMap;
 
 use mindtape::{AddConfig, LinkValue, RawValue, discover_slots};
 
-use super::{parse_buffer, scaffold};
+use super::{changed_keys, parse_buffer, scaffold};
 
 pub(super) const TEMPLATE: &str = mindtape::typst_task!(
     r#"(
@@ -262,6 +262,31 @@ fn round_trip_scaffold_then_parse() {
 #[test]
 fn parse_back_rejects_non_mapping() {
     assert!(parse_buffer("- a\n- b\n").is_err());
+}
+
+// ── changed_keys: a scaffold default the editor left alone is not input ──
+
+#[test]
+fn changed_keys_ignores_defaults_the_scaffold_prefilled() {
+    let buffer = scaffold(&AddConfig::default(), &specs(), &BTreeMap::new());
+    let baseline = parse_buffer(&buffer).unwrap();
+    let saved = parse_buffer(&buffer).unwrap();
+
+    assert!(changed_keys(&baseline, &saved).is_empty());
+}
+
+#[test]
+fn changed_keys_counts_a_value_that_differs_from_the_scaffold() {
+    let buffer = scaffold(&AddConfig::default(), &specs(), &BTreeMap::new());
+    let baseline = parse_buffer(&buffer).unwrap();
+    let saved =
+        parse_buffer("title: \"Edited\"\npriority: 5\ntags: []\nsummary: |-\n  Body\n").unwrap();
+
+    let changed = changed_keys(&baseline, &saved);
+
+    assert!(changed.contains("title"), "{changed:?}");
+    assert!(changed.contains("summary"), "{changed:?}");
+    assert!(!changed.contains("priority"), "{changed:?}");
 }
 
 // ── commentify: either condition alone triggers the comment prefix ──

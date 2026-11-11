@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use super::{CompiledCheck, validate_load};
+use super::{CompiledCheck, add_argument, validate_load};
 use crate::config::Config;
 use crate::model::Task;
 use crate::parse_config;
@@ -8,6 +8,27 @@ use crate::rules::CheckSpec;
 use crate::test_support::tempdir;
 use crate::test_support::write_file;
 use crate::test_support::{bare_task, write_bare_project};
+use typst_harvest::HVal;
+
+/// The value an add `derive` reads never carries the draft's synthetic
+/// identity, place or folder-derived tags.
+#[test]
+fn an_add_argument_drops_the_identity_and_derived_values() {
+    let config = parse_config("").unwrap();
+    let task = Task {
+        id: "draft-id".to_owned(),
+        file: "tasks/__draft__.typ".into(),
+        derived_tags: vec!["sandbox".to_owned()],
+        ..Task::default()
+    };
+    let HVal::Dict(draft) = add_argument(&task, &config, "task") else {
+        panic!("a draft is a dict");
+    };
+    for key in ["id", "file", "derived_tags", "derived"] {
+        assert!(!draft.contains_key(key), "{key} must be dropped");
+    }
+    assert_eq!(draft.get("template"), Some(&HVal::Str("task".to_owned())));
+}
 
 /// A `check` spec naming `function` in `check.typ` at the project root, with
 /// no `field` — the whole task.

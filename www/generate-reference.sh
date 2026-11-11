@@ -46,6 +46,7 @@ mt ls 'links("depends-on")'
 mt ls 'stale(7) && !terminal'
 mt ls '@default && kind == "feat"'
 EOF
+capture filters-starts-with "$API" "mt ls 'starts_with(\"FiX\", title)'"
 capture_lines filters-strings "$API" <<'EOF'
 mt ls 'in_dict("verbs", word(title, 1))'
 mt ls '!matches(word(title, 1), "ing$")'

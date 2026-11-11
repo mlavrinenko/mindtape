@@ -13,25 +13,24 @@
 //! - the token grammar is `mt add --set`'s, parsed by [`crate::cmd::add::tokens`]
 //!   itself rather than re-spelled, so `tags+=auth` means here what it means
 //!   there and a third operator can never appear on only one of them;
-//! - the value becomes a Typst literal through the same [`mindtape::typ_str`]
-//!   and [`mindtape::typ_array`] the task emitter uses, so a quote, a
-//!   backslash or a one-element array is escaped once, in one place;
+//! - the field table and the literal each value renders to live in
+//!   [`mindtape::model::writable`], the same ones `mt add --set` uses, so the
+//!   two commands cannot drift on a field name, a shape or an escaping rule;
 //! - the write goes through [`crate::pre_write`], so a value the project
 //!   refuses never reaches the file and there is nothing to repair.
 //!
-//! What it deliberately does not write is [`ELSEWHERE`]: a field with a
-//! command of its own, whose argument shape carries more than a value (a
-//! dated status, a typed edge, a renamed stem), and `estimate`, whose unit
-//! dict has no unambiguous `<field>=<value>` spelling to give it.
+//! What it deliberately does not write is [`mindtape::model::writable::ELSEWHERE`]:
+//! a field with a command of its own, whose argument shape carries more than a
+//! value (a dated status, a typed edge, a renamed stem), and `estimate`, whose
+//! unit dict has no unambiguous `<field>=<value>` spelling to give it.
 
-use std::collections::BTreeMap;
-
-use crate::diag::Result;
 use clap::Args;
-use mindtape::{RawValue, Task, format_num, parse_ymd, typ_array, typ_str};
+use mindtape::FieldOp;
+use mindtape::RawValue;
+use mindtape::model::writable::{self, Shape, WritableField};
 
-use crate::cmd::add::tokens::apply_token;
-use crate::diag::{Command, Diag, Hint, next_line};
+use crate::cmd::add::tokens::{TokenOp, parse_token};
+use crate::diag::{Command, Diag, Hint, Result, next_line};
 use crate::pre_write;
 use crate::task_edit::rewrite_field;
 use crate::util;
@@ -48,125 +47,6 @@ pub struct SetArgs {
     pub assignment: String,
 }
 
-/// What a writable field's value looks like once rendered as Typst.
-#[derive(Debug, Clone, Copy)]
-enum Shape {
-    /// A quoted, escaped string literal.
-    Text,
-    /// A bare number: the raw form of `priority`/`difficulty`. Whether it is
-    /// in bounds, or on the configured scale at all, is the validator's call
-    /// at [`crate::pre_write`], not this module's.
-    Num,
-    /// A `YYYY-MM-DD` argument, rendered as the prelude's `on(y, m, d)`.
-    Date,
-    /// An array literal. The accessor reads the field's current items, which
-    /// `+=` appends to; naming it per field is what stops a second list field
-    /// from silently appending to `tags`.
-    List(fn(&Task) -> &[String]),
-}
-
-/// One field `mt set` writes.
-#[derive(Debug)]
-struct Writable {
-    /// The field's name, as the task DSL spells it.
-    name: &'static str,
-    /// The literal its value renders to.
-    shape: Shape,
-}
-
-/// Every field `mt set` writes, in the task emitter's own field order: the
-/// scalars and lists whose Typst literal is unambiguous. `priority` is the raw
-/// numeric form only — a framework priority (`ice(impact: 8, …)`) is a call
-/// with its own inputs, and packing those into one `=<value>` token would
-/// invent a spelling nothing else in the CLI uses.
-const WRITABLE: &[Writable] = &[
-    Writable {
-        name: "title",
-        shape: Shape::Text,
-    },
-    Writable {
-        name: "priority",
-        shape: Shape::Num,
-    },
-    Writable {
-        name: "difficulty",
-        shape: Shape::Num,
-    },
-    Writable {
-        name: "kind",
-        shape: Shape::Text,
-    },
-    Writable {
-        name: "assignee",
-        shape: Shape::Text,
-    },
-    Writable {
-        name: "waits-on",
-        shape: Shape::List(|task| &task.waits_on),
-    },
-    Writable {
-        name: "tags",
-        shape: Shape::List(|task| &task.tags),
-    },
-    Writable {
-        name: "due",
-        shape: Shape::Date,
-    },
-    Writable {
-        name: "start",
-        shape: Shape::Date,
-    },
-];
-
-/// Core fields `mt set` does not write, and the hint that says what to do
-/// instead. Refused by name rather than as an unknown field: `status` is not a typo for
-/// `start`, and a message that suggested so would teach the wrong CLI.
-const ELSEWHERE: &[(&str, &str)] = &[
-    (
-        "status",
-        "use mt flip <status> <task>, which dates it and follows the legend's transitions",
-    ),
-    (
-        "links",
-        "use mt link <task> <kind> <target>, which writes typed edges and checks each target",
-    ),
-    (
-        "reviewed",
-        "use mt review <task>, which stamps today's date",
-    ),
-    (
-        "recur",
-        "use mt recur <task>, the only command that advances a recurrence",
-    ),
-    (
-        "estimate",
-        "an estimate is a unit dict, not a scalar, so edit it by hand and run mt check",
-    ),
-    (
-        "id",
-        "use mt mv <task> <new-stem>, which renames it and retargets every inbound edge",
-    ),
-];
-
-/// One parsed assignment: a value to set, or one item to append.
-#[derive(Debug)]
-enum Assigned {
-    /// `<field>=<value>` (or `<field>@<path>`).
-    Set(String),
-    /// `<field>+=<value>`.
-    Append(String),
-}
-
-impl Assigned {
-    /// The value as the caller typed it — what a refusal or a no-op quotes
-    /// back, before any Typst literal was rendered from it.
-    fn text(&self) -> &str {
-        match self {
-            Self::Set(text) | Self::Append(text) => text,
-        }
-    }
-}
-
 /// Run the `set` command.
 ///
 /// # Errors
@@ -178,13 +58,13 @@ pub fn run(args: &SetArgs) -> Result<()> {
     let project = util::open_warned()?;
 
     let (task, abs) = util::resolve_task(&project, &args.task.task)?;
-    let (name, assigned) = parse_assignment(&args.assignment)?;
+    let (name, op) = parse_assignment(&args.assignment)?;
     let field = writable(&name)?;
-    let Some(value_text) = render(field, &assigned, &task)? else {
+    let Some(value_text) = writable::render_op(field, &op, &task).map_err(Diag::from)? else {
         println!(
             "unchanged: {} already carries {:?} in {}",
             task.id,
-            assigned.text(),
+            op_text(&op),
             field.name
         );
         return Ok(());
@@ -200,44 +80,40 @@ pub fn run(args: &SetArgs) -> Result<()> {
 /// Parse one assignment through `mt add --set`'s own token parser, so the two
 /// carriers cannot drift into two grammars.
 ///
-/// [`apply_token`] writes exactly one entry, and from a command line only ever
-/// a [`RawValue::Str`] (a `=` or `@` token) or a one-item [`RawValue::List`] (a
-/// `+=` one); the richer shapes belong to the `-f` values files `mt set` does
-/// not read.
-///
 /// # Errors
-/// A token carrying no operator, an unreadable `@` file, or a value shape no
-/// command line produces.
-fn parse_assignment(token: &str) -> Result<(String, Assigned), Diag> {
-    let mut values = BTreeMap::new();
-    apply_token(&mut values, token)?;
-    let not_an_assignment = || Diag::usage("not a <field>=<value> assignment").value(token);
-    let (name, value) = values.into_iter().next().ok_or_else(not_an_assignment)?;
-    let assigned = match value {
-        RawValue::Str(text) => Assigned::Set(text),
-        RawValue::List(items) => items
-            .into_iter()
-            .next_back()
-            .map(Assigned::Append)
-            .ok_or_else(not_an_assignment)?,
-        _ => return Err(not_an_assignment()),
+/// A token carrying no operator, an unreadable `@` file, or the `+@` operator
+/// no command line produces.
+fn parse_assignment(token: &str) -> Result<(String, FieldOp), Diag> {
+    let (name, op) = parse_token(token)?;
+    let op = match op {
+        TokenOp::Set(text) | TokenOp::File(text) => FieldOp::Set(RawValue::Str(text)),
+        TokenOp::Append(item) => FieldOp::Append(item),
     };
-    Ok((name, assigned))
+    Ok((name, op))
+}
+
+/// The value as the caller typed it — what a refusal or a no-op quotes back,
+/// before any Typst literal was rendered from it.
+fn op_text(op: &FieldOp) -> &str {
+    match op {
+        FieldOp::Set(RawValue::Str(text)) | FieldOp::Append(text) => text,
+        FieldOp::Set(_) => "",
+    }
 }
 
 /// Every field this command writes, in the emitter's field order.
 ///
 /// Exposed for [`crate::cli::completion`]: the completer for `<field>=<value>` and
-/// the refusal below read the same [`WRITABLE`] table, so a tab press can
-/// never offer a field this command would then name as unknown.
+/// the refusal below read the same [`writable::WRITABLE`] table, so a tab press
+/// can never offer a field this command would then name as unknown.
 pub(crate) fn writable_fields() -> impl Iterator<Item = &'static str> {
-    WRITABLE.iter().map(|field| field.name)
+    writable::names()
 }
 
-/// The long help of `mt set`, its field list read from [`WRITABLE`] so the
-/// help names exactly the fields this command writes.
+/// The long help of `mt set`, its field list read from [`writable::WRITABLE`]
+/// so the help names exactly the fields this command writes.
 pub(crate) fn long_about() -> String {
-    let names: Vec<String> = WRITABLE
+    let names: Vec<String> = writable::WRITABLE
         .iter()
         .map(|field| match field.shape {
             Shape::Num => format!("`{}` (as a number)", field.name),
@@ -263,88 +139,22 @@ pub(crate) fn long_about() -> String {
 /// A field written by another command (named, with a hint to that command), or
 /// an unknown one (named, with a nearest-match hint and a pointer to the
 /// writable fields).
-fn writable(name: &str) -> Result<&'static Writable, Diag> {
-    if let Some(field) = WRITABLE.iter().find(|field| field.name == name) {
+fn writable(name: &str) -> Result<&'static WritableField, Diag> {
+    if let Some(field) = writable::get(name) {
         return Ok(field);
     }
-    if let Some((_, owner)) = ELSEWHERE.iter().find(|(field, _)| *field == name) {
+    if let Some(owner) = writable::elsewhere(name) {
         return Err(Diag::usage("mt set does not write this field")
             .value(name)
             .hint(Hint::new(owner)));
     }
-    let known: Vec<&str> = WRITABLE.iter().map(|field| field.name).collect();
+    let known: Vec<&str> = writable::names().collect();
     let diag = Diag::usage("unknown field").value(name);
     let diag = diag.did_you_mean(name, &known);
     Err(diag.hint(Hint::run(
         Command::mt().word("set").word("--help"),
         "to see the fields you can set",
     )))
-}
-
-/// The Typst literal to write, or `None` when the task already says it — a
-/// re-run then writes nothing at all, the way a second `mt review` on the same
-/// day does.
-///
-/// # Errors
-/// A `+=` on a field that holds no list, or a value the field's shape cannot
-/// be made from — refused here, before the file is even read, so the error
-/// names the field rather than arriving as a Typst type error later.
-fn render(field: &Writable, assigned: &Assigned, task: &Task) -> Result<Option<String>, Diag> {
-    match (field.shape, assigned) {
-        (Shape::List(current), Assigned::Append(item)) => Ok(append(current(task), item)),
-        (Shape::List(_), Assigned::Set(text)) => Ok(Some(typ_array(&[typ_str(text)]))),
-        (_, Assigned::Append(_)) => Err(Diag::usage("+= appends to a list field")
-            .value(field.name)
-            .hint(Hint::new("replace the value with <field>=<value>"))),
-        (Shape::Text, Assigned::Set(text)) => Ok(Some(typ_str(text))),
-        (Shape::Num, Assigned::Set(text)) => number(field.name, text).map(Some),
-        (Shape::Date, Assigned::Set(text)) => date(field.name, text).map(Some),
-    }
-}
-
-/// `+=`: the field's current items plus `item`, or `None` when it already
-/// holds it. Deduping here rather than writing a repeated entry keeps the
-/// command re-runnable — a script that appends a tag twice is not a script
-/// that meant to tag it twice.
-fn append(current: &[String], item: &str) -> Option<String> {
-    if current.iter().any(|held| held == item) {
-        return None;
-    }
-    let mut items: Vec<String> = current.iter().map(|held| typ_str(held)).collect();
-    items.push(typ_str(item));
-    Some(typ_array(&items))
-}
-
-/// A bare numeric literal, rendered the way the task emitter renders one.
-///
-/// # Errors
-/// A value that is not a finite number — which no scale could accept either,
-/// and is the only numeric mistake this layer can name better than the
-/// validator can.
-fn number(name: &str, text: &str) -> Result<String, Diag> {
-    let value: f64 = text
-        .parse()
-        .ok()
-        .filter(|num: &f64| num.is_finite())
-        .ok_or_else(|| {
-            Diag::usage("a number is expected")
-                .value(text)
-                .context("for field", name)
-        })?;
-    Ok(format_num(value))
-}
-
-/// A date argument as the prelude's `on(y, m, d)` call.
-///
-/// # Errors
-/// A value that is not a `YYYY-MM-DD` date.
-fn date(name: &str, text: &str) -> Result<String, Diag> {
-    let (year, month, day) = parse_ymd(text).ok_or_else(|| {
-        Diag::usage("a YYYY-MM-DD date is expected")
-            .value(text)
-            .context("for field", name)
-    })?;
-    Ok(format!("on({year}, {month}, {day})"))
 }
 
 #[cfg(test)]

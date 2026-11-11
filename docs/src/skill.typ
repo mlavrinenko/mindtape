@@ -30,7 +30,8 @@ It is when `.mindtape/config.toml` exists. Run `mt` at or below the directory
 that holds it, or pass `-w <path>`. Run `mt explain` first: it names this
 project's rules, tags, views and dicts. `mt <cmd> --help` lists every flag, and
 `mt explain rules --for <step>` or `mt explain tags --for <step>` lists what an
-add, flip or commit checks.
+add, flip or commit checks, and `mt explain add` lists the `[[on.add]]` hooks
+that fill a new task or choose its folder.
 
 = What the config runs
 

@@ -3,7 +3,7 @@
 //! (`mindtape::map_canonical`), emit it (`mindtape::emit_task`), land the
 //! whole batch, validate it as a set, and report. "`mt add` without a
 //! template, from a full record" — reuses `mt add`'s destination resolution
-//! (`--into`/`--to`) and dedupe.
+//! (`--dir`) and dedupe.
 //!
 //! One bad record does not refuse the batch: the rest still land, and the
 //! per-record report says which did, and the run exits 1 once it has printed it
@@ -50,13 +50,18 @@ pub struct ImportArgs {
 
     /// The directory to write every task in.
     ///
-    /// `.` means the first root in your config. Without it, each task goes
-    /// where its `file` field says, or to the first root.
+    /// A relative path resolves from the project root; an absolute one is
+    /// taken as-is. Without it, each task goes where its `file` field says, or
+    /// to the first root.
     #[arg(long, value_name = "DIR")]
+    pub dir: Option<String>,
+
+    /// Removed. Use `--dir`.
+    #[arg(long, hide = true, value_name = "DIR")]
     pub into: Option<String>,
 
-    /// A subfolder of `--into` for every task, whatever its `file` field says.
-    #[arg(long = "to", value_name = "SUBDIR")]
+    /// Removed. Use `--dir`.
+    #[arg(long = "to", hide = true, value_name = "SUBDIR")]
     pub to: Option<String>,
 
     /// Show what would be imported without writing anything.
@@ -88,6 +93,7 @@ pub struct ImportArgs {
 /// Returns an error if the project cannot be opened, the input cannot be read,
 /// or `--map` is malformed.
 pub fn run(args: &ImportArgs) -> Result<()> {
+    crate::cmd::add::refuse_legacy(args.into.as_ref(), args.to.as_ref())?;
     run_with(&util::open()?, args)
 }
 
@@ -127,7 +133,7 @@ fn fail_on_skips(outcomes: &[TaskOutcome], dry_run: bool) -> Result<()> {
 fn import_records(project: &Project, args: &ImportArgs, raw: &str) -> Result<Vec<TaskOutcome>> {
     let config = &project.config;
     let records = input::parse_records(&args.input, raw)?;
-    let mut placement = Placement::new(project, args)?;
+    let mut placement = Placement::new(project, args);
     let opts = map_options(args)?;
 
     let mut staged = Vec::with_capacity(records.len());

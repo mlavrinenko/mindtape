@@ -47,7 +47,7 @@ fn check_status(
     legend: &Legend,
 ) -> Result<(), FilterError> {
     let reads_status =
-        extract_identifier(lhs).is_ok_and(|name| name == "status" || name == "status.name");
+        comparison_field(lhs).is_some_and(|name| name == "status" || name == "status.name");
     let declared = |value: &str| legend.entries.iter().any(|entry| entry.value == value);
     if !reads_status || legend.entries.is_empty() || declared(literal) {
         return Ok(());
@@ -61,6 +61,20 @@ fn check_status(
         value: literal.to_owned(),
         unknown: crate::suggest::Unknown::among(literal, known),
     })
+}
+
+/// The field a comparison side reads: a bare identifier, or the literal field
+/// name of an `old("field")` call.
+fn comparison_field(node: &Node<DefaultNumericTypes>) -> Option<String> {
+    let node = unwrap_root(node);
+    if let Operator::FunctionIdentifier { identifier } = node.operator()
+        && identifier == "old"
+        && let [arg] = call_args(node.children())[..]
+        && let Ok(field) = extract_literal(arg)
+    {
+        return Some(field);
+    }
+    extract_identifier(node).ok()
 }
 
 /// [`check_status`] over every comparison under `node`.
@@ -96,6 +110,9 @@ fn operand(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<Option<FieldVa
     match node.operator() {
         Operator::VariableIdentifierRead { identifier } => {
             field_value(ctx.task, &restore_name(identifier), ctx.config).map(Some)
+        }
+        Operator::FunctionIdentifier { identifier } if identifier == "old" => {
+            crate::filter::strings::old_value(node.children(), ctx.old, ctx.config).map(Some)
         }
         Operator::FunctionIdentifier { identifier } if identifier == "changed" => {
             changed_count(node.children(), ctx.config, ctx.dry)

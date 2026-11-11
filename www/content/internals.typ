@@ -76,8 +76,8 @@ file.
 
 Every tagged release ships a prebuilt binary for each supported platform,
 listed in the #link(u("/quickstart/"))[Quickstart]. CI runs the tests on Linux
-and Windows. Two things differ by platform. #link(u("/hooks/"))[Flip hooks]
-says which shell runs a hook's `run` command, and
+and Windows. Two things differ by platform. #link(u("/hooks/"))[Hooks]
+says which shell runs a flip hook's `run` command, and
 #link(
   REPO + "/blob/main/docs/contributing/windows.md",
 )[docs/contributing/windows.md]

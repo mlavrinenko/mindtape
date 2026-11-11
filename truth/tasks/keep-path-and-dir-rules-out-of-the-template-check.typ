@@ -30,7 +30,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 10),
+  status: done(2026, 11, 11),
   links: depends-on("unify-mt-add-and-mt-import-destinations-under-dir.typ"),
 )
 

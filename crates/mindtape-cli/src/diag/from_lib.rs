@@ -7,7 +7,7 @@ use mindtape::config::{ConfigError, ConfigPlace};
 use mindtape::recur::dates::RecurError;
 use mindtape::{
     ConditionError, DateOverrideError, DictMiss, FillError, FilterError, Location, RefError,
-    Severity, SlotKind, Unknown, Violation,
+    Severity, SlotKind, Unknown, Violation, WritableError,
 };
 
 use super::{Command, Diag, Hint, Note};
@@ -379,6 +379,30 @@ fn reference(err: &RefError) -> Diag {
 impl From<RefError> for Diag {
     fn from(err: RefError) -> Self {
         reference(&err)
+    }
+}
+
+impl From<WritableError> for Diag {
+    fn from(err: WritableError) -> Self {
+        match err {
+            WritableError::AppendToScalar { field } => Diag::usage("+= appends to a list field")
+                .value(field)
+                .hint(Hint::new("replace the value with <field>=<value>")),
+            WritableError::NotANumber { field, value } => Diag::usage("a number is expected")
+                .value(value)
+                .context("for field", field),
+            WritableError::NotADate { field, value } => {
+                Diag::usage("a YYYY-MM-DD date is expected")
+                    .value(value)
+                    .context("for field", field)
+            }
+            WritableError::ManyValues { field } => {
+                Diag::usage("one value is expected").value(field)
+            }
+            WritableError::WrongShape { field } => {
+                Diag::usage("this value shape does not fit the field").value(field)
+            }
+        }
     }
 }
 

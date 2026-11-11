@@ -1,5 +1,5 @@
 //! End-to-end tests for the `add` command that shell out to the `mt` binary:
-//! core wiring (positional title, `--to` nesting, YAML stdin), the slot
+//! core wiring (positional title, `--dir` nesting, YAML stdin), the slot
 //! schema, error surfaces (collisions, unknown keys, a body-rule breach),
 //! and the kept-on-verification-failure contract. Markup-hazard coverage
 //! lives in `add_markup_e2e.rs`.
@@ -45,10 +45,62 @@ fn end_to_end_files_from_positional_title() {
 fn end_to_end_nests_into_subfolder() {
     let dir = support::scaffold();
 
-    support::run_ok(dir.path(), &["add", "--to", "shopping", "Potatoes"]);
+    support::run_ok(dir.path(), &["add", "--dir", "tasks/shopping", "Potatoes"]);
 
     let written = std::fs::read_to_string(dir.path().join("tasks/shopping/potatoes.typ")).unwrap();
     assert!(written.contains("title: \"Potatoes\""), "{written}");
+}
+
+/// `--dir` is project-root-relative, so the same command from a nested
+/// directory writes to the same place.
+#[test]
+fn a_relative_dir_lands_from_the_project_root_not_the_cwd() {
+    let dir = support::scaffold();
+    let nested = dir.path().join("tasks/nested");
+    std::fs::create_dir_all(&nested).unwrap();
+
+    support::run_ok(
+        &nested,
+        &[
+            "add",
+            "--dir",
+            "tasks/fixes",
+            "--name",
+            "rooted",
+            "--set",
+            "title=Rooted",
+        ],
+    );
+
+    assert!(dir.path().join("tasks/fixes/rooted.typ").exists());
+    assert!(!nested.join("tasks/fixes/rooted.typ").exists());
+}
+
+/// The removed flags still parse, and are refused with the replacement named,
+/// rather than falling through to clap's unknown-argument error.
+#[test]
+fn the_old_destination_flags_are_refused_with_a_dir_hint() {
+    for (flag, value) in [("--into", "tasks"), ("--to", "shopping")] {
+        let dir = support::scaffold();
+        let output = support::mt(dir.path())
+            .args([
+                "add",
+                flag,
+                value,
+                "--name",
+                "legacy",
+                "--set",
+                "title=Legacy",
+            ])
+            .assert()
+            .failure()
+            .get_output()
+            .clone();
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(stderr.contains(flag), "{flag}: {stderr}");
+        assert!(stderr.contains("--dir"), "{flag}: {stderr}");
+        assert!(!dir.path().join("tasks/legacy.typ").exists(), "{stderr}");
+    }
 }
 
 #[test]

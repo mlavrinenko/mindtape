@@ -129,7 +129,7 @@ fn bare_ends_on_the_next_command() {
     let dir = project();
     let text = stdout(dir.path(), &["explain"]);
     assert!(
-        text.ends_with("\nnext: mt explain [<rules|tags|views|dicts>] [--json]\n"),
+        text.ends_with("\nnext: mt explain [<add|rules|tags|views|dicts>] [--json]\n"),
         "{text}"
     );
     let value = json(dir.path(), &["explain", "--json"]);

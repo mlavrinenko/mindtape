@@ -30,7 +30,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 10),
+  status: done(2026, 11, 11),
   links: depends-on(
     "add-the-on-add-hook-shape-validation-and-merge.typ",
     "share-one-writable-field-writer-across-mt-set-and-mt-add.typ",

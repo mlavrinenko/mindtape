@@ -111,6 +111,10 @@ when = 'f == param("p")'
 when = 'g == param("p")'
 actions = [{ list = 'h == param("p")' }]
 
+[[on.add]]
+when = 'z == param("p")'
+actions = [{ set = { kind = "x" } }]
+
 [views.mine]
 filter = 'i == param("p")'
 

@@ -55,7 +55,7 @@ fn an_ignored_destination_is_refused_and_writes_nothing() {
     support::git(dir.path(), &["init", "-q"]);
 
     let output = support::mt(dir.path())
-        .args(["import", "--to", "target"])
+        .args(["import", "--dir", "target"])
         .write_stdin(ONE_TASK_JSON)
         .assert()
         .failure()
@@ -73,7 +73,7 @@ fn an_ignored_destination_is_refused_and_writes_nothing() {
     );
     assert!(stderr.contains("would be invisible"), "{stderr}");
     assert!(
-        stderr.contains("--into"),
+        stderr.contains("--dir"),
         "the fix must offer another destination: {stderr}"
     );
 }
@@ -83,7 +83,7 @@ fn a_reserved_destination_is_refused_and_writes_nothing() {
     let dir = root_scaffold();
 
     let output = support::mt(dir.path())
-        .args(["import", "--to", ".mindtape/templates"])
+        .args(["import", "--dir", ".mindtape/templates"])
         .write_stdin(ONE_TASK_JSON)
         .assert()
         .failure()
@@ -113,7 +113,7 @@ fn a_preview_still_guards_and_writes_nothing() {
     support::git(dir.path(), &["init", "-q"]);
 
     support::mt(dir.path())
-        .args(["import", "--dry-run", "--to", "target"])
+        .args(["import", "--dry-run", "--dir", "target"])
         .write_stdin(ONE_TASK_JSON)
         .assert()
         .failure()
@@ -130,7 +130,7 @@ fn an_outside_root_destination_still_only_warns() {
     let outside = mindtape::test_support::tempdir();
 
     let output = support::mt(dir.path())
-        .args(["import", "--into", outside.path().to_str().unwrap()])
+        .args(["import", "--dir", outside.path().to_str().unwrap()])
         .write_stdin(ONE_TASK_JSON)
         .assert()
         .success()
@@ -297,18 +297,43 @@ fn a_two_folder_export_imports_back_whole() {
 }
 
 #[test]
-fn an_explicit_destination_overrides_the_record_file() {
+fn an_explicit_destination_overrides_the_record_file_for_the_whole_batch() {
     let dir = scaffold();
-    let batch = format!("[{}]", record("alpha", "tasks/a/alpha.typ", None));
+    let batch = format!(
+        "[{},{}]",
+        record("alpha", "tasks/a/alpha.typ", None),
+        record("beta", "tasks/b/beta.typ", None),
+    );
 
     support::mt(dir.path())
-        .args(["import", "--to", "moved"])
+        .args(["import", "--dir", "tasks/moved"])
         .write_stdin(batch)
         .assert()
         .success();
 
     assert!(dir.path().join("tasks/moved/alpha.typ").exists());
+    assert!(dir.path().join("tasks/moved/beta.typ").exists());
     assert!(!dir.path().join("tasks/a").exists());
+    assert!(!dir.path().join("tasks/b").exists());
+}
+
+/// The removed flags still parse, and are refused with the replacement named.
+#[test]
+fn the_old_destination_flags_are_refused_with_a_dir_hint() {
+    for (flag, value) in [("--into", "tasks"), ("--to", "target")] {
+        let dir = root_scaffold();
+        let output = support::mt(dir.path())
+            .args(["import", flag, value])
+            .write_stdin(ONE_TASK_JSON)
+            .assert()
+            .failure()
+            .get_output()
+            .clone();
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(stderr.contains(flag), "{flag}: {stderr}");
+        assert!(stderr.contains("--dir"), "{flag}: {stderr}");
+        assert!(!dir.path().join("tasks/wire-import.typ").exists());
+    }
 }
 
 #[test]

@@ -124,11 +124,16 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
     ("add", "values", Source::FilePath),
     ("add", "set", Source::TagToken),
     ("add", "tokens", Source::TagToken),
-    ("add", "into", Source::DirPath),
+    ("add", "dir", Source::DirPath),
+    (
+        "add",
+        "into",
+        Source::None("a removed flag whose replacement is `--dir`"),
+    ),
     (
         "add",
         "to",
-        Source::None("a subfolder under `--into`, which may itself be typed later on the line"),
+        Source::None("a removed flag whose replacement is `--dir`"),
     ),
     (
         "add",
@@ -136,6 +141,24 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
         Source::None("the new task's stem: its identity, which no existing value predicts"),
     ),
     ("add", "status", Source::Statuses),
+    (
+        "add",
+        "priority",
+        Source::None("a value on the project's numeric scale"),
+    ),
+    (
+        "add",
+        "difficulty",
+        Source::None("a value on the project's numeric scale"),
+    ),
+    ("add", "kind", Source::None("a kind the project declares")),
+    (
+        "add",
+        "assignee",
+        Source::None("a name from the project's actors"),
+    ),
+    ("add", "due", Source::None("a YYYY-MM-DD date")),
+    ("add", "start", Source::None("a YYYY-MM-DD date")),
     (
         "add",
         "describe",
@@ -149,11 +172,16 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
         Source::None("a git revision range, which no project value predicts"),
     ),
     ("import", "input", Source::FilePath),
-    ("import", "into", Source::DirPath),
+    ("import", "dir", Source::DirPath),
+    (
+        "import",
+        "into",
+        Source::None("a removed flag whose replacement is `--dir`"),
+    ),
     (
         "import",
         "to",
-        Source::None("a subfolder under `--into`; see `mt add --to`"),
+        Source::None("a removed flag whose replacement is `--dir`"),
     ),
     ("import", "status", Source::Statuses),
     ("import", "map", Source::FilePath),

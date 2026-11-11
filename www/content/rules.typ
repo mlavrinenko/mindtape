@@ -46,6 +46,19 @@ with, one line each, run #link(u("/cli/explain/#rules"))[`mt explain rules`]. To
 those rules read, and the message each prints, run
 #link(u("/cli/explain/#tags"))[`mt explain tags`].
 
+A new check on an added task is a config expression, not Rust code. Write a
+`[[tasks.rules]]` assertion when the value must be checked, or an
+#link(u("/hooks/"))[`[[on.add]]`] action when it must have a default. A `dir`
+assertion holds the folder layout a hook chooses:
+
+// docs:hand-typed a sketch of a rule no fixture here declares
+```toml
+[[tasks.rules]]
+name = "fixes-live-in-their-dir"
+when = 'kind == "fix"'
+assert = 'dir == "tasks/fixes"'
+```
+
 = Required fields
 
 `required` takes `true`, `false`, or a #link(u("/filters/"))[filter
@@ -106,6 +119,13 @@ always find the entry. `mt` runs each `assert` and `when` once against a
 sample task when it loads the config. So a rule that names an unknown field,
 #link(u("/named-sets/"))[view or dictionary] gives you one config error, not
 one breach per task.
+
+`mt check` also files each #link(u("/templates/"))[template] with its example
+and checks the result as a task. A filled example is not a task file, though,
+so two kinds of rule have no answer for it. A rule that reads the whole set,
+such as a `count(...)` cap, and a rule that reads where the file lives, through
+`path` or `dir`, are left out of the template report. A rule about the
+template's own fields still reports, so a stale template cannot slip through.
 
 = Work-in-progress caps
 

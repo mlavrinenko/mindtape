@@ -27,9 +27,9 @@ use mindtape::NotVisible;
 /// Which command is writing, for the fix its refusal names.
 #[derive(Clone, Copy)]
 pub(crate) enum Mode {
-    /// `mt add`: another `--into`/`--to`.
+    /// `mt add`: another `--dir`.
     Add,
-    /// `mt import`: another `--into`/`--to`.
+    /// `mt import`: another `--dir`.
     Import,
     /// `mt recur`: move the task, or unignore its path.
     Recur,
@@ -39,7 +39,7 @@ impl Mode {
     /// The hint a refusal of this mode carries.
     fn hint(self) -> Hint {
         match self {
-            Self::Add | Self::Import => Hint::new("choose another --into/--to"),
+            Self::Add | Self::Import => Hint::new("choose another --dir"),
             Self::Recur => Hint::new("move the task, or unignore its path"),
         }
     }
@@ -86,6 +86,18 @@ pub(crate) fn resolve(path: &Path) -> PathBuf {
     let mut resolved = resolve_dir(parent);
     resolved.push(name);
     resolved
+}
+
+/// `path` as the filesystem reaches it when it names a directory: the nearest
+/// existing ancestor canonicalized, then the components below it appended.
+///
+/// Unlike [`resolve`], the final component is resolved too when it already is
+/// a directory (or a symlink to one), so a root reached through a symlink names
+/// the directory it reaches. A path that does not exist yet keeps its missing
+/// tail, as [`resolve`] does.
+pub(crate) fn resolve_directory(path: &Path) -> PathBuf {
+    let absolute = std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf());
+    resolve_dir(&absolute)
 }
 
 /// `dir` as the filesystem reaches it: the nearest existing ancestor

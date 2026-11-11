@@ -38,12 +38,16 @@ summary: |
 YAML
 ```
 
-## Use slot names as keys
+## Use slot names or writable fields as keys
 
-A `--set` or `-f` key must name a slot of the active template. `mt add`
-refuses an unknown key and writes nothing:
-`mt add fix bug --set priority=3` fails with
-`error: unknown slot: 'priority'` and a `hint:` to run `mt add --describe`.
+A `--set` or `-f` key must name a slot of the active template, or a core
+field `mt set` writes: `title`, `priority`, `difficulty`, `kind`, `assignee`,
+`waits-on`, `tags`, `due` and `start`. A field the template has no slot for is
+inserted after fill, so `mt add fix bug --set priority=3` writes
+`priority: 3`. Any other key is refused and nothing is written:
+`mt add fix bug --set duee=2026-01-01` fails with
+`error: unknown slot or field: 'duee'` and a `hint:` to run
+`mt add --describe`.
 
 - Run `mt add --describe`, with `-t <template>` for a non-default template,
   to list the slot names.
@@ -62,8 +66,18 @@ nests inside a call.
 
 For tags, pass `+word` positionals, which fill the `tags` slot
 (`mt add fix login +backend +auth`), or repeat the append operator:
-`--set tags+=backend --set tags+=auth`. `mt add` refuses
-`--set tags=backend,auth`: a `list` slot needs `+=`, or an array through `-f`.
+`--set tags+=backend --set tags+=auth`. A `tags` slot's default is the base a
+`+=` appends to. `--set tags=backend` is one item and replaces the list, so
+`--set tags=backend,auth` names one tag with a comma, not two.
+
+The scalar fields also have direct flags, which mean the same as `--set`:
+`--priority`, `--difficulty`, `--kind`, `--assignee`, `--due` and `--start`.
+Pass one field once: a flag plus a `--set` token naming it is refused.
+
+A project may declare `[[on.add]]` hooks that fill a field or choose the
+directory after your values are read. An explicit `--set`, a positional title
+or an `--edit` change wins over a hook `set`, `--dir` wins over a hook `dir`,
+and `--no-hooks` skips them. Run `mt explain add` to see the hooks in effect.
 
 ## A `links` slot holds typed edges
 

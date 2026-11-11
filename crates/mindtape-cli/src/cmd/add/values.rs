@@ -7,12 +7,13 @@ use std::path::Path;
 use mindtape::{Config, LinkValue, RawValue, SlotSpec};
 use serde::Serialize;
 
-use crate::cmd::add::tokens::apply_token;
 use crate::cmd::add::yaml_values;
 use crate::cmd::add::yaml_values::LinkFields;
 use crate::cmd::schema::DESCRIBE;
-use crate::diag::{Command, Diag, Hint, Note};
+use crate::diag::{Command, Diag, Hint};
 use crate::render::envelope::Envelope;
+
+pub use super::values_ops::{Collected, collect_values, reject_unknown_keys};
 
 type Result<T> = std::result::Result<T, Diag>;
 
@@ -86,101 +87,14 @@ pub fn template_path(config: &Config, root: &Path, name: &str) -> Option<std::pa
 }
 
 /// Available template stems: every `*.typ` under the configured dirs plus the
-/// built-in `task`, deduplicated and sorted.
+/// built-in `task`, deduplicated and sorted. Delegates to the library list the
+/// `[[on.add]]` validator reads, so the two cannot drift.
 #[must_use]
 pub fn list_templates(config: &Config, root: &Path) -> Vec<String> {
-    let mut names = std::collections::BTreeSet::new();
-    names.insert("task".to_owned());
-    for dir in &config.templates.dirs {
-        let Ok(entries) = std::fs::read_dir(root.join(dir)) else {
-            continue;
-        };
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.extension().and_then(|ext| ext.to_str()) == Some("typ")
-                && let Some(stem) = path.file_stem().and_then(|stem| stem.to_str())
-            {
-                names.insert(stem.to_owned());
-            }
-        }
-    }
-    names.into_iter().collect()
+    mindtape::config::add_hooks::template_names(config, root)
 }
 
-/// Merge `--values` sources (paths; `-` = stdin; JSON or YAML, see
-/// [`parse_source`]), then apply the `key OP value` tokens — `--set` entries
-/// first, then the bare arguments after `--` — into a typed fill map. The
-/// token grammar itself (`=`, `+=`, `@`) lives in [`crate::cmd::add::tokens`].
-///
-/// Sources are applied left to right, key by key: a later source's value for
-/// a key replaces an earlier one, and an explicit `null`/`~` in a later
-/// source unsets a key an earlier source set (rather than being silently
-/// skipped) — the same "last source wins" rule extended to an explicit
-/// unset, uniformly across JSON and YAML sources.
-///
-/// # Errors
-/// Returns an error when a source is unreadable, not a JSON object or YAML
-/// mapping, holds an unsupported value shape, or a token is not a valid
-/// assignment (see [`apply_token`]).
-pub fn collect_values(
-    values: &[String],
-    sets: &[String],
-    tokens: &[String],
-) -> Result<BTreeMap<String, RawValue>> {
-    let mut out = BTreeMap::new();
-    for source in values {
-        let text = read_source(source)?;
-        let patch = parse_source(source, &text)?;
-        for (key, value) in patch {
-            match value {
-                Some(raw) => {
-                    out.insert(key, raw);
-                }
-                None => {
-                    out.remove(&key);
-                }
-            }
-        }
-    }
-    for token in sets.iter().chain(tokens) {
-        apply_token(&mut out, token)?;
-    }
-    Ok(out)
-}
-
-/// Reject any `values` key that names no slot in `specs` — a `--set`/`-f`
-/// typo would otherwise silently vanish (the template default fills in
-/// instead) with nothing in the output to notice. Mirrors the existing
-/// list-slot-misuse hard error: a caller mistake fails loudly, naming the
-/// fix, rather than filing a task with the wrong value.
-///
-/// # Errors
-/// Returns an error listing the unknown key(s) and the template's known slot
-/// names when any `values` key matches no discovered slot.
-pub fn reject_unknown_keys(values: &BTreeMap<String, RawValue>, specs: &[SlotSpec]) -> Result<()> {
-    let known: Vec<&str> = specs.iter().map(|spec| spec.name.as_str()).collect();
-    let unknown: Vec<&str> = values
-        .keys()
-        .map(String::as_str)
-        .filter(|key| !known.contains(key))
-        .collect();
-    if unknown.is_empty() {
-        return Ok(());
-    }
-    let mut keys = unknown.into_iter();
-    let first = keys.next().unwrap_or_default();
-    let diag = Diag::usage("unknown slot").value(first);
-    let diag = diag.did_you_mean(first, &known);
-    let diag = keys.fold(diag, |diag, key| {
-        diag.note(Note::new("also unknown").value(key))
-    });
-    Err(diag.hint(Hint::run(
-        Command::mt().word("add").word("--describe"),
-        "to see the slots",
-    )))
-}
-
-fn read_source(source: &str) -> Result<String> {
+pub(super) fn read_source(source: &str) -> Result<String> {
     if source == "-" {
         let mut text = String::new();
         std::io::stdin()
@@ -196,7 +110,7 @@ fn read_source(source: &str) -> Result<String> {
 /// patch. Dispatch is per source: `.yaml`/`.yml` and `.json` extensions pick
 /// their parser outright; stdin (`-`) and any other extension sniff the
 /// content instead, since neither carries a filename extension to trust.
-fn parse_source(source: &str, text: &str) -> Result<BTreeMap<String, Option<RawValue>>> {
+pub(super) fn parse_source(source: &str, text: &str) -> Result<BTreeMap<String, Option<RawValue>>> {
     if source == "-" {
         return parse_sniffed_source(source, text);
     }
@@ -347,14 +261,30 @@ fn json_link(key: &str, value: &serde_json::Value) -> Result<LinkValue> {
 ///
 /// # Errors
 /// Returns an error only when JSON serialization fails.
+#[cfg(test)]
 pub fn describe(specs: &[SlotSpec], format: DescribeFormat) -> Result<String> {
+    describe_with(&[], specs, format)
+}
+
+/// The slot description plus the project's `[[on.add]]` hooks, which `mt add`
+/// applies to the filed task after the slots are filled.
+pub fn describe_for(config: &Config, specs: &[SlotSpec], format: DescribeFormat) -> Result<String> {
+    let hooks: Vec<&mindtape::config::add_hooks::AddHook> = config.on.add.iter().collect();
+    describe_with(&hooks, specs, format)
+}
+
+fn describe_with(
+    hooks: &[&mindtape::config::add_hooks::AddHook],
+    specs: &[SlotSpec],
+    format: DescribeFormat,
+) -> Result<String> {
     match format {
-        DescribeFormat::Text => Ok(describe_text(specs)),
-        DescribeFormat::Json => describe_json(specs),
+        DescribeFormat::Text => Ok(describe_text(specs, hooks)),
+        DescribeFormat::Json => describe_json(specs, hooks),
     }
 }
 
-fn describe_text(specs: &[SlotSpec]) -> String {
+fn describe_text(specs: &[SlotSpec], hooks: &[&mindtape::config::add_hooks::AddHook]) -> String {
     let mut lines = Vec::new();
     for spec in specs {
         let need = if spec.required && spec.default.is_none() {
@@ -383,7 +313,68 @@ fn describe_text(specs: &[SlotSpec]) -> String {
         }
         lines.push(line);
     }
+    for hook in hooks {
+        let name = hook.name.as_deref().unwrap_or("-");
+        let when = if hook.when.is_empty() {
+            "-"
+        } else {
+            hook.when.as_str()
+        };
+        let actions: Vec<String> = hook.actions.iter().map(action_summary).collect();
+        lines.push(format!("{name}  {when}  {}", actions.join(", ")));
+    }
     lines.join("\n")
+}
+
+/// One hook value as TOML spells it in the config.
+fn add_value(value: &mindtape::config::add_hooks::AddValue) -> String {
+    use mindtape::config::add_hooks::AddValue;
+    match value {
+        AddValue::Text(text) => format!("{text:?}"),
+        AddValue::Int(number) => number.to_string(),
+        AddValue::Float(number) => mindtape::format_num(*number),
+        AddValue::Bool(flag) => flag.to_string(),
+        AddValue::List(items) => format!("{items:?}"),
+    }
+}
+
+/// One hook action as the one-line description `--describe` and `mt explain
+/// add` print.
+pub(crate) fn action_summary(action: &mindtape::config::add_hooks::AddAction) -> String {
+    use mindtape::config::add_hooks::DirValue;
+    let mut parts = Vec::new();
+    if !action.set.is_empty() {
+        let fields: Vec<String> = action
+            .set
+            .iter()
+            .map(|(name, value)| format!("{name} = {}", add_value(value)))
+            .collect();
+        parts.push(format!("set {{ {} }}", fields.join(", ")));
+    }
+    if !action.append.is_empty() {
+        let fields: Vec<String> = action
+            .append
+            .iter()
+            .map(|(name, items)| format!("{name} = {items:?}"))
+            .collect();
+        parts.push(format!("append {{ {} }}", fields.join(", ")));
+    }
+    if let Some(derive) = &action.derive {
+        parts.push(derive_summary(derive));
+    }
+    if let Some(dir) = &action.dir {
+        parts.push(match dir {
+            DirValue::Path(text) => format!("dir = {text:?}"),
+            DirValue::Derived { derive } => format!("dir via {}:{}", derive.typst, derive.function),
+        });
+    }
+    parts.join(", ")
+}
+
+/// One `derive` action as `--describe` prints it, naming the function.
+fn derive_summary(derive: &mindtape::config::add_hooks::DeriveAction) -> String {
+    let field = derive.field.as_deref().unwrap_or("-");
+    format!("derive {field} via {}:{}", derive.typst, derive.function)
 }
 
 /// A slot's example as a caller would type it: a string's or raw block's
@@ -392,11 +383,34 @@ fn example_of(spec: &SlotSpec) -> Option<&str> {
     spec.example_string.as_deref().or(spec.example.as_deref())
 }
 
-/// The object `mt add --describe=json` prints: the template's slots.
+/// The object `mt add --describe=json` prints: the template's slots, each with its kind, default and choices, and the project's `[[on.add]]` hooks.
 #[derive(Debug, Serialize, schemars::JsonSchema)]
 pub struct DescribePayload {
     /// The template's slots, in declaration order.
     pub slots: Vec<SlotJson>,
+    /// The project's `[[on.add]]` hooks, in merged order.
+    pub hooks: Vec<HookJson>,
+}
+
+/// One `[[on.add]]` hook as `--describe=json` prints it.
+#[derive(Debug, Serialize, schemars::JsonSchema)]
+pub struct HookJson {
+    /// The hook's name, or `null` when unnamed.
+    pub name: Option<String>,
+    /// Its `when`, or the empty string when it fires every add.
+    pub when: String,
+    /// Each action, in the one-line form the text output uses.
+    pub actions: Vec<String>,
+}
+
+impl HookJson {
+    fn new(hook: &mindtape::config::add_hooks::AddHook) -> Self {
+        Self {
+            name: hook.name.clone(),
+            when: hook.when.clone(),
+            actions: hook.actions.iter().map(action_summary).collect(),
+        }
+    }
 }
 
 /// One template slot.
@@ -436,9 +450,13 @@ impl SlotJson {
     }
 }
 
-fn describe_json(specs: &[SlotSpec]) -> Result<String> {
+fn describe_json(
+    specs: &[SlotSpec],
+    hooks: &[&mindtape::config::add_hooks::AddHook],
+) -> Result<String> {
     let payload = DescribePayload {
         slots: specs.iter().map(SlotJson::new).collect(),
+        hooks: hooks.iter().map(|hook| HookJson::new(hook)).collect(),
     };
     serde_json::to_string_pretty(&Envelope::new(DESCRIBE, payload))
         .map_err(|err| Diag::failed("can't serialize the slot description").cause(&err))
@@ -455,6 +473,10 @@ pub fn slug(text: &str) -> String {
 #[cfg(test)]
 #[path = "values_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "values_tests_ops.rs"]
+mod tests_ops;
 
 #[cfg(test)]
 #[path = "values_tests_env.rs"]

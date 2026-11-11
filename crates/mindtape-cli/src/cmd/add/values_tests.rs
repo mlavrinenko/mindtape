@@ -1,5 +1,6 @@
 //! Tests for `add` value sources: `--set`/`-f` merging, the JSON/YAML `-f`
-//! dispatch (extension-driven and sniffed), and unknown-key rejection.
+//! dispatch (extension-driven and sniffed), slot resolution and unknown-key
+//! rejection.
 //! Env-var layering lives in `cmd/add/values_tests_env.rs`; template resolution
 //! and describe/slug output in `cmd/add/values_tests_templates.rs`.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
@@ -7,11 +8,30 @@
 use mindtape::test_support::tempdir;
 use std::collections::BTreeMap;
 
-use mindtape::{LinkValue, RawValue, discover_slots};
+use mindtape::{FieldOp, LinkValue, RawValue};
 
-use super::{
-    BUILTIN_TASK, collect_values, parse_sniffed_source, parse_source, reject_unknown_keys,
-};
+use super::{collect_values, parse_sniffed_source, parse_source};
+
+/// The final map the old merged view exposed, rebuilt from the ordered ops.
+fn collect_map(
+    values: &[String],
+    sets: &[String],
+    tokens: &[String],
+) -> BTreeMap<String, RawValue> {
+    let collected = collect_values(values, sets, tokens).unwrap();
+    let mut out = BTreeMap::new();
+    for (name, op) in &collected.ops {
+        match op {
+            FieldOp::Set(value) => {
+                out.insert(name.clone(), value.clone());
+            }
+            FieldOp::Append(item) => {
+                crate::cmd::add::tokens::append_list_value(&mut out, name, item.clone());
+            }
+        }
+    }
+    out
+}
 
 /// Write `text` to `dir`/`name` and return the JSON/YAML `-f` value:
 /// `collect_values` reads a path from disk, so extension-driven dispatch
@@ -27,12 +47,11 @@ fn collect_set_overrides_json() {
     let dir = tempdir();
     let path = dir.path().join("v.json");
     std::fs::write(&path, r#"{"title":"From JSON","impact":8,"flag":true}"#).unwrap();
-    let values = collect_values(
+    let values = collect_map(
         &[path.to_string_lossy().into_owned()],
         &["title=Override".to_owned()],
         &[],
-    )
-    .unwrap();
+    );
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("Override".to_owned()))
@@ -43,7 +62,7 @@ fn collect_set_overrides_json() {
 
 #[test]
 fn collect_append_operator_accumulates_into_list() {
-    let values = collect_values(
+    let values = collect_map(
         &[],
         &[
             "tags+=a".to_owned(),
@@ -51,8 +70,7 @@ fn collect_append_operator_accumulates_into_list() {
             "tags+=b,c".to_owned(),
         ],
         &[],
-    )
-    .unwrap();
+    );
     assert_eq!(
         values.get("tags"),
         Some(&RawValue::List(vec![
@@ -68,12 +86,11 @@ fn collect_append_operator_appends_to_json_list() {
     let dir = tempdir();
     let path = dir.path().join("v.json");
     std::fs::write(&path, r#"{"tags":["a"]}"#).unwrap();
-    let values = collect_values(
+    let values = collect_map(
         &[path.to_string_lossy().into_owned()],
         &["tags+=b".to_owned()],
         &[],
-    )
-    .unwrap();
+    );
     assert_eq!(
         values.get("tags"),
         Some(&RawValue::List(vec!["a".to_owned(), "b".to_owned()]))
@@ -85,7 +102,7 @@ fn collect_reads_json_array_as_list() {
     let dir = tempdir();
     let path = dir.path().join("v.json");
     std::fs::write(&path, r#"{"tags":["a","b"]}"#).unwrap();
-    let values = collect_values(&[path.to_string_lossy().into_owned()], &[], &[]).unwrap();
+    let values = collect_map(&[path.to_string_lossy().into_owned()], &[], &[]);
     assert_eq!(
         values.get("tags"),
         Some(&RawValue::List(vec!["a".to_owned(), "b".to_owned()]))
@@ -101,7 +118,7 @@ fn collect_reads_json_array_of_link_mappings() {
         r#"{"links":[{"kind":"surfaced-by","task":"origin.typ"},{"kind":"related","task":"other.typ","note":"why"}]}"#,
     )
     .unwrap();
-    let values = collect_values(&[path.to_string_lossy().into_owned()], &[], &[]).unwrap();
+    let values = collect_map(&[path.to_string_lossy().into_owned()], &[], &[]);
     assert_eq!(
         values.get("links"),
         Some(&RawValue::Links(vec![
@@ -159,7 +176,7 @@ fn collect_rejects_non_object_json() {
 fn dot_yaml_extension_parses_as_yaml() {
     let dir = tempdir();
     let path = values_file(dir.path(), "v.yaml", "title: From YAML\nimpact: 8\n");
-    let values = collect_values(&[path], &[], &[]).unwrap();
+    let values = collect_map(&[path], &[], &[]);
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("From YAML".to_owned()))
@@ -171,7 +188,7 @@ fn dot_yaml_extension_parses_as_yaml() {
 fn dot_yml_extension_parses_as_yaml() {
     let dir = tempdir();
     let path = values_file(dir.path(), "v.yml", "title: From Yml\n");
-    let values = collect_values(&[path], &[], &[]).unwrap();
+    let values = collect_map(&[path], &[], &[]);
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("From Yml".to_owned()))
@@ -206,7 +223,7 @@ fn sniff_picks_json_for_brace_content() {
 fn unknown_extension_sniffs_like_stdin() {
     let dir = tempdir();
     let path = values_file(dir.path(), "v.values", "title: Unknown Extension\n");
-    let values = collect_values(&[path], &[], &[]).unwrap();
+    let values = collect_map(&[path], &[], &[]);
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("Unknown Extension".to_owned()))
@@ -239,7 +256,7 @@ fn tab_indented_json_still_parses() {
     // using serde_json, which accepts it.
     let dir = tempdir();
     let path = values_file(dir.path(), "v.json", "{\n\t\"title\": \"Tabbed\"\n}\n");
-    let values = collect_values(&[path], &[], &[]).unwrap();
+    let values = collect_map(&[path], &[], &[]);
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("Tabbed".to_owned()))
@@ -261,7 +278,7 @@ fn empty_string_survives_a_yaml_values_file() {
     // file's `""` is a real value that must reach the fill map unchanged.
     let dir = tempdir();
     let path = values_file(dir.path(), "v.yaml", "note: \"\"\n");
-    let values = collect_values(&[path], &[], &[]).unwrap();
+    let values = collect_map(&[path], &[], &[]);
     assert_eq!(values.get("note"), Some(&RawValue::Str(String::new())));
 }
 
@@ -269,7 +286,7 @@ fn empty_string_survives_a_yaml_values_file() {
 fn empty_string_survives_a_json_values_file() {
     let dir = tempdir();
     let path = values_file(dir.path(), "v.json", r#"{"note":""}"#);
-    let values = collect_values(&[path], &[], &[]).unwrap();
+    let values = collect_map(&[path], &[], &[]);
     assert_eq!(values.get("note"), Some(&RawValue::Str(String::new())));
 }
 
@@ -339,7 +356,7 @@ fn later_yaml_null_unsets_an_earlier_set_key() {
     let dir = tempdir();
     let first = values_file(dir.path(), "a.json", r#"{"title":"First","impact":8}"#);
     let second = values_file(dir.path(), "b.yaml", "impact: ~\n");
-    let values = collect_values(&[first, second], &[], &[]).unwrap();
+    let values = collect_map(&[first, second], &[], &[]);
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("First".to_owned()))
@@ -351,68 +368,26 @@ fn later_yaml_null_unsets_an_earlier_set_key() {
 }
 
 #[test]
-fn reject_unknown_keys_allows_known_slots() {
-    let specs = discover_slots(BUILTIN_TASK); // one `title` slot
-    let mut values = BTreeMap::new();
-    values.insert("title".to_owned(), RawValue::Str("Fine".to_owned()));
-    assert!(reject_unknown_keys(&values, &specs).is_ok());
-}
-
-#[test]
-fn reject_unknown_keys_errors_naming_the_key_and_known_slots() {
-    let specs = discover_slots(BUILTIN_TASK); // one `title` slot
-    let mut values = BTreeMap::new();
-    values.insert("title".to_owned(), RawValue::Str("Fine".to_owned()));
-    values.insert("priority".to_owned(), RawValue::Str("3".to_owned()));
-    let err = crate::diag::plain(&reject_unknown_keys(&values, &specs).unwrap_err());
+fn later_values_source_wins_over_an_earlier_one() {
+    let dir = tempdir();
+    let first = values_file(dir.path(), "a.yaml", "title: First\n");
+    let second = values_file(dir.path(), "b.yaml", "title: Second\n");
+    let values = collect_map(&[first, second], &[], &[]);
     assert_eq!(
-        err,
-        "error: unknown slot: 'priority'\nhint: run mt add --describe to see the slots\n"
+        values.get("title"),
+        Some(&RawValue::Str("Second".to_owned()))
     );
 }
-
-// --- suggest wiring for an unknown `--set`/`-f` key
-// (`truth/tasks/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`) --
-
-#[test]
-fn reject_unknown_keys_near_miss_offers_a_suggestion() {
-    let specs = discover_slots(BUILTIN_TASK); // one `title` slot
-    let mut values = BTreeMap::new();
-    values.insert("titel".to_owned(), RawValue::Str("Typo".to_owned()));
-    let err = crate::diag::plain(&reject_unknown_keys(&values, &specs).unwrap_err());
-    assert!(err.contains("hint: did you mean title?\n"), "{err}");
-}
-
-#[test]
-fn reject_unknown_keys_far_miss_omits_the_suggestion() {
-    let specs = discover_slots(BUILTIN_TASK); // one `title` slot
-    let mut values = BTreeMap::new();
-    values.insert("zzzzzzzz".to_owned(), RawValue::Str("Nope".to_owned()));
-    let err = crate::diag::plain(&reject_unknown_keys(&values, &specs).unwrap_err());
-    assert!(!err.contains("did you mean"), "{err}");
-}
-
-#[test]
-fn reject_unknown_keys_with_no_slots_omits_the_suggestion() {
-    let specs: Vec<mindtape::SlotSpec> = Vec::new();
-    let mut values = BTreeMap::new();
-    values.insert("anything".to_owned(), RawValue::Str("x".to_owned()));
-    let err = crate::diag::plain(&reject_unknown_keys(&values, &specs).unwrap_err());
-    assert!(!err.contains("did you mean"), "{err}");
-    assert!(err.contains("hint: run mt add --describe"), "{err}");
-}
-
 /// The `--` tokens and `--set` reach the same parser, so both operators have
 /// to behave identically whichever carrier delivered them. Asserting only the
 /// `--set` path would let the shorthand drift into a second grammar.
 #[test]
 fn trailing_tokens_parse_as_set_entries_do() {
-    let values = collect_values(
+    let values = collect_map(
         &[],
         &[],
         &["title=From tokens".to_owned(), "tags+=docs".to_owned()],
-    )
-    .unwrap();
+    );
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("From tokens".to_owned()))
@@ -425,12 +400,11 @@ fn trailing_tokens_parse_as_set_entries_do() {
 
 #[test]
 fn trailing_tokens_apply_after_set() {
-    let values = collect_values(
+    let values = collect_map(
         &[],
         &["title=From set".to_owned()],
         &["title=From tokens".to_owned()],
-    )
-    .unwrap();
+    );
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("From tokens".to_owned()))
@@ -441,7 +415,7 @@ fn trailing_tokens_apply_after_set() {
 /// replacing, so the carrier a token arrived through cannot reset the list.
 #[test]
 fn append_operator_accumulates_across_both_carriers() {
-    let values = collect_values(&[], &["tags+=a".to_owned()], &["tags+=b".to_owned()]).unwrap();
+    let values = collect_map(&[], &["tags+=a".to_owned()], &["tags+=b".to_owned()]);
     assert_eq!(
         values.get("tags"),
         Some(&RawValue::List(vec!["a".to_owned(), "b".to_owned()]))
@@ -451,21 +425,7 @@ fn append_operator_accumulates_across_both_carriers() {
 /// The pre-release `key[]=value` append spelling carries no diagnostic of its
 /// own any more: `collect_values` accepts the bracketed text as an ordinary
 /// key, and it fails downstream exactly as any other unknown key does — an
-/// `unknown slot` error naming it, with no pointer back to `+=`.
-#[test]
-fn bracket_append_spelling_is_an_unknown_key_like_any_other() {
-    let values = collect_values(&[], &["tags[]=docs".to_owned()], &[]).unwrap();
-    assert_eq!(
-        values.get("tags[]"),
-        Some(&RawValue::Str("docs".to_owned()))
-    );
-    let specs = discover_slots(BUILTIN_TASK); // one `title` slot, no `tags[]`
-    let err = reject_unknown_keys(&values, &specs)
-        .unwrap_err()
-        .to_string();
-    assert!(err.contains("tags[]"), "{err}");
-}
-
+/// `unknown slot or field` error naming it, with no pointer back to `+=`.
 #[test]
 fn token_without_an_equals_errors_naming_the_token() {
     let err = collect_values(&[], &[], &["tags".to_owned()])
@@ -478,21 +438,8 @@ fn token_without_an_equals_errors_naming_the_token() {
 /// Several unknown keys come out as one error: the first is the value, the
 /// rest are notes, so none is lost to the first re-run.
 #[test]
-fn reject_unknown_keys_names_every_unknown_key() {
-    let specs = discover_slots(BUILTIN_TASK);
-    let mut values = BTreeMap::new();
-    values.insert("alpha".to_owned(), RawValue::Str("1".to_owned()));
-    values.insert("beta".to_owned(), RawValue::Str("2".to_owned()));
-    let err = crate::diag::plain(&reject_unknown_keys(&values, &specs).unwrap_err());
-    assert!(err.starts_with("error: unknown slot: 'alpha'\n"), "{err}");
-    assert!(err.contains("note: also unknown: 'beta'\n"), "{err}");
-}
-
-/// A value may hold `=`; only the FIRST one separates. Splitting on the last
-/// would corrupt any value carrying one.
-#[test]
 fn only_the_first_equals_separates() {
-    let values = collect_values(&[], &[], &["summary=a=b=c".to_owned()]).unwrap();
+    let values = collect_map(&[], &[], &["summary=a=b=c".to_owned()]);
     assert_eq!(
         values.get("summary"),
         Some(&RawValue::Str("a=b=c".to_owned()))

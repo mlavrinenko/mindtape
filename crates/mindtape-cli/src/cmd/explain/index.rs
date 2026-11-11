@@ -149,7 +149,7 @@ fn render(index: &Index, width: usize) -> String {
     labelled(&mut out, "dicts", &dicts, width, "  ");
     out.push('\n');
     out.push_str(&next_line(format!(
-        "{} [<rules|tags|views|dicts>] [--json]",
+        "{} [<add|rules|tags|views|dicts>] [--json]",
         Command::mt().word("explain")
     )));
     out.push('\n');
@@ -216,7 +216,7 @@ mod tests {
 
     use super::{Index, bare_name, collect, default_first, document, render};
 
-    const NEXT: &str = "next: mt explain [<rules|tags|views|dicts>] [--json]";
+    const NEXT: &str = "next: mt explain [<add|rules|tags|views|dicts>] [--json]";
 
     fn config() -> mindtape::Config {
         parse_config(

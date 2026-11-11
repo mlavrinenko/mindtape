@@ -43,6 +43,7 @@ use serde::Deserialize;
 use thiserror::Error;
 
 use crate::config::Config;
+use crate::config::add_hooks::AddHook;
 use crate::filter::{Filter, FilterError};
 use crate::graph::ready::Readiness;
 use crate::model::Task;
@@ -53,18 +54,21 @@ use crate::suggest::Unknown;
 /// A filter atom matching every task: `id` is a plain `String` on [`Task`] and
 /// is never absent, so `has(id)` is a tautology by construction. Used as the
 /// value an `into(...)` call rewrites to when the transition matches.
-const ALWAYS: &str = "has(id)";
+pub(crate) const ALWAYS: &str = "has(id)";
 
 /// The complement of [`ALWAYS`]: matches no task. What an `into(...)` call
 /// rewrites to when the transition does not match.
-const NEVER: &str = "miss(id)";
+pub(crate) const NEVER: &str = "miss(id)";
 
 /// Hooks keyed by the event that fires them.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct OnConfig {
     /// `[[on.flip]]` entries, in declaration order.
     pub flip: Vec<FlipHook>,
+    /// `[[on.add]]` entries, in declaration order. Their shape and validation
+    /// live in the add-hook config module.
+    pub add: Vec<AddHook>,
 }
 
 /// One `[[on.flip]]` entry: which transitions it fires on, and what it does.
@@ -277,7 +281,7 @@ pub fn desugar_into(when: &str, target: &str) -> String {
 /// through untouched, and `into` is recognised only as a whole identifier.
 #[must_use]
 pub fn rewrite_into(when: &str, replace: impl Fn(&str) -> String) -> String {
-    scan_into(when, &replace).rewritten
+    scan_call(when, "into", &replace).rewritten
 }
 
 /// Every status named by an `into(...)` call in `when`, in source order (may
@@ -286,58 +290,76 @@ pub fn rewrite_into(when: &str, replace: impl Fn(&str) -> String) -> String {
 /// never fires.
 #[must_use]
 pub fn into_targets(when: &str) -> Vec<String> {
-    scan_into(when, &|_: &str| String::new()).targets
+    scan_call(when, "into", &|_: &str| String::new()).targets
 }
 
 /// The result of one pass over a `when` expression.
-struct IntoScan {
-    /// `when` with every `into(...)` call replaced.
-    rewritten: String,
-    /// The status names those calls referenced.
-    targets: Vec<String>,
+pub(crate) struct CallScan {
+    /// `when` with every `<call>(...)` call replaced.
+    pub(crate) rewritten: String,
+    /// The names those calls referenced.
+    pub(crate) targets: Vec<String>,
 }
 
-/// Single pass over `when`: rewrite `into(...)` calls through `replace` and
-/// collect the names they reference. String literals are copied through
-/// untouched, and `into` is only recognised as a whole identifier — `zinto("x")`
-/// and `into_view("x")` pass through.
-fn scan_into(when: &str, replace: &dyn Fn(&str) -> String) -> IntoScan {
-    let mut scan = IntoScan {
+/// Single pass over `when`: rewrite `<call>("name")` calls through `replace`
+/// and collect the names they reference. String literals are copied through
+/// untouched, and `call` is only recognised as a whole identifier —
+/// `zinto("x")` and `into_view("x")` pass through. Shared by `into(...)` and
+/// `from_template(...)`.
+pub(crate) fn scan_call(when: &str, call: &str, replace: &dyn Fn(&str) -> String) -> CallScan {
+    let mut scan = CallScan {
         rewritten: String::with_capacity(when.len()),
         targets: Vec::new(),
     };
+    let CallScan { rewritten, targets } = &mut scan;
+    scan_expression(when, rewritten, &mut |rest, out| {
+        parse_named_call(rest, call).map(|(name, len)| {
+            out.push_str(&replace(&name));
+            targets.push(name);
+            len
+        })
+    });
+    scan
+}
+
+/// Walk `when` once, copying string literals verbatim, and let `rewrite`
+/// consume a code span at the start of `rest`: it returns the bytes consumed
+/// and appends the replacement, or `None` to copy one character.
+///
+/// A `for` over a fixed bound, not `while cursor < when.len()`: every mutant of
+/// the cursor advance (`+=` -> `-=`/`*=`, a `copy_in_string` that returns 0, a
+/// rewrite reporting length 0) otherwise spins forever, pushing another char
+/// onto `rewritten` each turn — measured on 2026-09-29 at 45 GB RSS before the
+/// host's earlyoom killed the whole sweep. Correct code consumes at least one
+/// byte per turn, so the bound is never reached; a mutant returns a wrong scan.
+pub(crate) fn scan_expression(
+    when: &str,
+    rewritten: &mut String,
+    rewrite: &mut dyn FnMut(&str, &mut String) -> Option<usize>,
+) {
     let mut cursor = 0;
     let mut in_string = false;
     let mut after_ident = false;
-    // A `for` over a fixed bound, not `while cursor < when.len()`: every mutant
-    // of the cursor advance below (`+=` -> `-=`/`*=`, a `copy_in_string` that
-    // returns 0, a `parse_into_call` that reports length 0) otherwise spins
-    // forever, and each turn pushes another char onto `rewritten` — measured
-    // on 2026-09-29 at 45 GB RSS before the host's earlyoom killed the whole
-    // sweep. Correct code consumes at least one byte per turn, so the bound is
-    // never reached; a mutant now just returns a wrong scan.
     for _ in 0..when.len().saturating_add(1) {
         let Some(rest) = when.get(cursor..) else {
             break;
         };
         let Some(ch) = rest.chars().next() else { break };
         if in_string {
-            cursor += copy_in_string(rest, ch, &mut scan.rewritten, &mut in_string);
+            cursor += copy_in_string(rest, ch, rewritten, &mut in_string);
             continue;
         }
-        if !after_ident && let Some((name, len)) = parse_into_call(rest) {
-            scan.rewritten.push_str(&replace(&name));
-            scan.targets.push(name);
+        if !after_ident && let Some(len) = rewrite(rest, rewritten) {
             cursor += len;
             after_ident = false;
             continue;
         }
         in_string = ch == '"';
-        after_ident = is_ident_char(ch);
-        scan.rewritten.push(ch);
+        // `@view` is one token: the name after the sigil is not a bare word.
+        after_ident = ch == '@' || is_ident_char(ch);
+        rewritten.push(ch);
         cursor += ch.len_utf8();
     }
-    scan
 }
 
 /// Copy one character of a string literal through verbatim, consuming the
@@ -359,10 +381,10 @@ fn copy_in_string(rest: &str, ch: char, out: &mut String, in_string: &mut bool) 
     width
 }
 
-/// Parse an `into("name")` call at the start of `rest`, returning the name and
+/// Parse a `<call>("name")` call at the start of `rest`, returning the name and
 /// how many bytes the call occupies. `None` when `rest` does not open one.
-fn parse_into_call(rest: &str) -> Option<(String, usize)> {
-    let after_name = rest.strip_prefix("into")?;
+pub(crate) fn parse_named_call(rest: &str, call: &str) -> Option<(String, usize)> {
+    let after_name = rest.strip_prefix(call)?;
     let open = after_name.trim_start().strip_prefix('(')?;
     let literal = open.trim_start().strip_prefix('"')?;
     let end = literal.find('"')?;
@@ -372,8 +394,12 @@ fn parse_into_call(rest: &str) -> Option<(String, usize)> {
 }
 
 /// Whether `ch` can appear inside a filter-language identifier.
-fn is_ident_char(ch: char) -> bool {
-    ch.is_ascii_alphanumeric() || ch == '_'
+///
+/// `-` joins a kebab-case field name (`x-template`) and `.` walks into a
+/// record (`derived.template`), so a scan for a bare name must treat both as
+/// part of the word, or `x-template` would read as the `template` test.
+pub(crate) fn is_ident_char(ch: char) -> bool {
+    ch.is_ascii_alphanumeric() || matches!(ch, '_' | '-' | '.')
 }
 
 /// Check every `[[on.flip]]` entry at config load, returning one message per

@@ -204,6 +204,44 @@ fn resolve_root_no_override_is_canonical_through_a_symlink() {
     assert_eq!(root, mindtape::canonical(&dir.path().join("real")).unwrap());
 }
 
+fn stub_project_at(root: &Path) -> Project {
+    Project {
+        root: root.to_path_buf(),
+        config: Config::default(),
+        outcome: LoadOutcome::default(),
+        hyperlinks: false,
+    }
+}
+
+/// A root reached through a symlink is still the root a destination under the
+/// link lands in.
+#[cfg(unix)]
+#[test]
+fn a_symlinked_root_holds_a_destination_under_it() {
+    let dir = tempdir();
+    std::fs::create_dir_all(dir.path().join("real-tasks/fixes")).unwrap();
+    std::os::unix::fs::symlink(dir.path().join("real-tasks"), dir.path().join("tasks")).unwrap();
+    let project = stub_project_at(dir.path());
+
+    assert!(project.holds(&dir.path().join("tasks/fixes")));
+    assert!(project.holds(&dir.path().join("tasks/fixes/new.typ")));
+}
+
+/// A destination symlink that leaves the root is outside it, though its
+/// lexical path sits under the root.
+#[cfg(unix)]
+#[test]
+fn a_symlinked_destination_outside_the_root_is_refused() {
+    let dir = tempdir();
+    let outside = tempdir();
+    std::fs::create_dir_all(dir.path().join("tasks")).unwrap();
+    std::os::unix::fs::symlink(outside.path(), dir.path().join("tasks/away")).unwrap();
+    let project = stub_project_at(dir.path());
+
+    assert!(!project.holds(&dir.path().join("tasks/away")));
+    assert!(!project.holds(&dir.path().join("tasks/away/new.typ")));
+}
+
 // --- Subprocess tests (process-global `OnceLock` isolation) -----------
 //
 // `init_worktree` sets a process-global `WORKTREE` exactly once, and

@@ -159,9 +159,10 @@
       index keep their keys, and views and dicts sit under `views` and
       `dicts`. A blank line separates the index from a `next:` line naming the
       optional category and JSON flag:
-      `mt explain [<rules|tags|views|dicts>] [--json]`.],
+      `mt explain [<add|rules|tags|views|dicts>] [--json]`.],
     outputs: ("explain",),
   ),
+  "explain.add": (:),
   "explain.rules": (
     outputs: ("rules-commit",),
     examples: "rules-examples",

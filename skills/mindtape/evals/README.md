@@ -114,7 +114,7 @@ goal.
 | 1 `file-new-task` | 4/4 | blind |
 | 2 `mark-task-done` | 6/6 | blind |
 | 3 `list-everything-no-all-flag` | 4/4 | blind |
-| 4 `add-with-priority-slot-trap` | 6/6 | blind, assertion widened after the run |
+| 4 `add-priority-without-slot` | not rerun | blind, expectations updated for the field writer |
 | 5 `external-blocker-no-blocked-status` | 5/5 | blind |
 
 **Eval 0.** `mt ls` printed the default view, 9 of 14 tasks, with the `READY`
@@ -146,16 +146,10 @@ the user, and changed no other task. All six assertions passed.
 tasks, including the four done ones, and the executor did not try `--all`. No
 task file changed, and all four assertions passed.
 
-**Eval 4.** The executor read `mt add --describe`, saw the built-in template's
-only slot is `title`, filed `upgrade-the-postgres-driver`, and ran
-`mt set upgrade-the-postgres-driver priority=8`. The task has `priority: 8`,
-`mt check` printed `ok: 6 tasks`, and the five original task files stayed
-unchanged. It did not exercise `--set priority=8`, so the original
-path-specific assertion failed. The CLI refusal was verified separately:
-`mt add "Probe" --set priority=8` exits non-zero with
-`error: unknown slot: 'priority'` and writes nothing. The assertion accepts either
-path, because the property is that the slot is not silently dropped.
-All six pass.
+**Eval 4.** The built-in template's only slot is `title`, but the field writer
+accepts `--set priority=8` and inserts `priority: 8` after fill, so the
+eval expects that path. The assertions were updated with the shared field
+writer; the eval has not been rerun.
 
 **Eval 5.** `mt flip --list` showed the legend has no `blocked` status. The
 executor filed `upstream-design-system-release.typ` and linked `add-dark-mode`

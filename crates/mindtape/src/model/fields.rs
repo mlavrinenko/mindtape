@@ -47,6 +47,9 @@
 //! so a filter saved in `.mindtape/config.toml` means the same thing wherever
 //! `mt` runs from.
 //!
+//! `dir` is `path`'s parent directory, `""` for a task in a root itself, so a
+//! rule about placement reads one field instead of splitting a path.
+//!
 //! `depth`, `topo`, `blocks`, `children` and `progress` are *derived*
 //! entries: nothing authors them, the loader computes them (folder nesting;
 //! dependency level, transitive leverage, and the `parent`-edge child count
@@ -155,6 +158,10 @@ pub const FIELDS: &[FieldDef] = &[
     FieldDef {
         name: "path",
         get: |task, _config| FieldValue::Str(task.file_key()),
+    },
+    FieldDef {
+        name: "dir",
+        get: dir_field,
     },
     FieldDef {
         name: "assignee",
@@ -383,6 +390,17 @@ pub fn held(task: &Task, name: &str) -> Option<HVal> {
 
 fn opt_str(value: Option<String>) -> FieldValue {
     value.map_or(FieldValue::Missing, FieldValue::Str)
+}
+
+/// `key`'s parent directory, `""` when it names a file in a root itself.
+fn parent_dir(key: &str) -> String {
+    key.rsplit_once('/')
+        .map_or_else(String::new, |(dir, _)| dir.to_owned())
+}
+
+/// The `dir` field: [`parent_dir`] of the task's [`Task::file_key`].
+fn dir_field(task: &Task, _config: &Config) -> FieldValue {
+    FieldValue::Str(parent_dir(&task.file_key()))
 }
 
 /// A numeric scalar field (`priority`/`difficulty`) as a comparable value: a

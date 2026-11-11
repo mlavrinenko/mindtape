@@ -58,6 +58,10 @@ impl Config {
             self.on.flip.iter().map(|hook| hook.name.as_deref()),
             "on.flip",
         )));
+        problems.extend(plain(crate::body::headers::duplicate_rule_names(
+            self.on.add.iter().map(|hook| hook.name.as_deref()),
+            "on.add",
+        )));
         problems.extend(plain(crate::waits::validate_checkers(self)));
         problems.extend(crate::estimate_queries::validate_config(self));
         problems.extend(validate_ls_rules_with(

@@ -138,7 +138,8 @@ prompt:
 #terminal("api-service-describe")
 
 `--describe=json` prints the same thing for a script or an agent, in one
-object whose `slots` key holds the array.
+object whose `slots` key holds the array and whose `hooks` key lists the
+project's #link(u("/hooks/#add-hooks"))[`[[on.add]]`] hooks.
 
 = Fill the slots from values
 
@@ -170,10 +171,24 @@ A token takes one of three forms:
 )
 
 The first `=` or `@` in a token ends the slot name, so `title=a@b` sets the
-title `a@b`. A `list` slot refuses `key=value`, because one string isn't a
-list. A title word that starts with `+`, as in `mt add Fix login +auth`, goes
-to the `tags` slot if the template has one. If you name a slot the template
-doesn't have, `mt add` refuses and lists the slots it does have.
+title `a@b`. A list slot takes one value as a one-item list, so `tags=bug`
+files that single tag. A title word that starts with `+`, as in
+`mt add Fix login +auth`, goes
+to the `tags` slot if the template has one. If you name neither a slot nor a
+core field, `mt add` refuses and lists the slots it does have.
+
+A token may also name a core field the template has no slot for.
+`mt add --set due=2026-12-01` inserts `due` in the filed task, and
+`--set tags+=bug` appends to the tags the template already writes, or to a
+`tags` slot's `default`. These are the fields `mt set` writes: `title`,
+`priority`, `difficulty`, `kind`, `assignee`, `waits-on`, `tags`, `due` and
+`start`. A `+=` on a single-valued field is refused. `dir` is not a field:
+`mt add --set dir=…` refuses and points at `--dir`.
+
+The scalar fields also have direct flags: `--due`, `--start`, `--assignee`,
+`--kind`, `--priority` and `--difficulty`. Each is an alias for
+`--set <field>=<value>`, so it appears in `mt add --help`. Naming one field
+with both a flag and a `--set` token is refused.
 
 = Values from a file
 
@@ -218,10 +233,18 @@ earlier one, and `null` clears it.
 `mt add` writes to the first
 #link(u("/concepts/#a-task-is-a-file"))[task root] and names the file after
 the title: `log-slow-database-queries.typ`. `--name <stem>` sets the name.
-`--to <folder>` files the task in a folder under the root, where it can pick
-up #link(u("/derived-tags/"))[derived tags]. `--into <dir>` writes to another
-directory. If a file with that name exists, `--dedup` decides: `fail`, `skip`
-(write nothing and exit 0) or `add-suffix` (write `<name>-2.typ`).
+`--dir <path>` writes to another directory. A relative path resolves from the
+project root, so the same command lands in the same place from any
+subdirectory, and an absolute path is taken as-is. A folder under a root can
+pick up #link(u("/derived-tags/"))[derived tags]. `--into` and `--to` are
+removed; `--dir` names the one destination. If a file with that name exists,
+`--dedup` decides: `fail`, `skip` (write nothing and exit 0) or `add-suffix`
+(write `<name>-2.typ`).
+
+A project's #link(u("/hooks/#add-hooks"))[`[[on.add]]`] hooks may fill fields
+and choose the destination. An explicit value (a `--set`, a positional title or
+an edit in `--edit`) wins over a hook `set`, `--dir` wins over a hook `dir`,
+and `--no-hooks` skips the hook list entirely.
 
 = Fill the slots in an editor
 

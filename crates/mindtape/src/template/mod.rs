@@ -31,7 +31,7 @@ use typst_edit::{Call, find_calls};
 /// Coercion, rendering, and the source rewrite; split out to keep this file
 /// under its line budget. See [`fill()`].
 mod fill;
-pub use fill::{FillError, LinkValue, RawValue, fill, fill_examples};
+pub use fill::{FillError, LinkValue, RawValue, fill, fill_examples, fill_partial};
 
 /// What kind of value a slot holds; drives how a filled value renders to Typst.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -269,7 +269,10 @@ fn arg_raw<'a>(source: &'a str, arg: &typst_edit::Arg) -> &'a str {
 
 /// Pull the string literals out of an array source like `("a", "b")`. A
 /// literals-only scan: collects each `"…"` segment, honouring `\"` escapes.
-fn parse_string_array(source: &str) -> Vec<String> {
+/// Public because a `+=` on a list slot appends to the slot's `default`, which
+/// discovery leaves as raw source.
+#[must_use]
+pub fn parse_string_array(source: &str) -> Vec<String> {
     let mut out = Vec::new();
     let mut chars = source.chars();
     while let Some(ch) = chars.next() {

@@ -33,6 +33,7 @@ pub(super) fn setup_dest() -> (tempfile::TempDir, Project) {
 pub(super) fn bare_args() -> ImportArgs {
     ImportArgs {
         input: "-".to_owned(),
+        dir: None,
         into: None,
         to: None,
         dry_run: false,

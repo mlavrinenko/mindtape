@@ -42,6 +42,53 @@
         }
       ]
     },
+    "AddAction": {
+      "additionalProperties": false,
+      "description": "One action of an `[[on.add]]` entry. Set at least one of `set`, `append`,\n`derive` and `dir`.",
+      "properties": {
+        "append": {
+          "additionalProperties": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "default": {},
+          "description": "List fields to append to, by writable name.",
+          "type": "object"
+        },
+        "derive": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DeriveAction"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "A field to replace with a value a Typst function returns."
+        },
+        "dir": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DirValue"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Where the task's file goes, as a project-root-relative template or a\nderived path."
+        },
+        "set": {
+          "additionalProperties": {
+            "$ref": "#/$defs/AddValue"
+          },
+          "description": "Fields to set, by writable name. `dir` is not a field and is refused.",
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
     "AddConfig": {
       "additionalProperties": false,
       "description": "Settings for the interactive editor fill of `mt add`.",
@@ -73,6 +120,64 @@
         }
       },
       "type": "object"
+    },
+    "AddHook": {
+      "additionalProperties": false,
+      "description": "One `[[on.add]]` entry: when it fires, and what it does.",
+      "properties": {
+        "actions": {
+          "description": "Actions to apply, in declaration order.",
+          "items": {
+            "$ref": "#/$defs/AddAction"
+          },
+          "type": "array"
+        },
+        "name": {
+          "default": null,
+          "description": "Optional name. A later entry with the same name, from a nearer layer or\na pack, replaces an earlier one in place, and `disable` drops it by\nname. An unnamed entry always appends. Also the label\n`mt config show --origin` prints.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "when": {
+          "default": "",
+          "description": "Filter over the task being added, plus the two template tests. Empty\nfires on every add.",
+          "type": "string",
+          "x-expression": "filter"
+        }
+      },
+      "type": "object"
+    },
+    "AddValue": {
+      "anyOf": [
+        {
+          "description": "A string, including a date.",
+          "type": "string"
+        },
+        {
+          "description": "An integer.",
+          "format": "int64",
+          "type": "integer"
+        },
+        {
+          "description": "A float.",
+          "format": "double",
+          "type": "number"
+        },
+        {
+          "description": "A boolean, rendered as `true` or `false`.",
+          "type": "boolean"
+        },
+        {
+          "description": "An array of strings.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      ],
+      "description": "A value a hook sets: the scalar shapes a TOML config writes naturally."
     },
     "Anchor": {
       "additionalProperties": false,
@@ -755,6 +860,33 @@
       ],
       "type": "string"
     },
+    "DeriveAction": {
+      "additionalProperties": false,
+      "description": "`derive = { typst, function, field }`: call `function` from the `typst`\nmodule and replace `field` with its value. A list field takes the whole\nreturned array, which must hold only strings.",
+      "properties": {
+        "field": {
+          "default": null,
+          "description": "The writable field the returned value replaces.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "function": {
+          "description": "Name of the function the module exports.",
+          "type": "string"
+        },
+        "typst": {
+          "description": "Path to the module exporting `function`, relative to the project root.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "typst",
+        "function"
+      ],
+      "type": "object"
+    },
     "DeriveConfig": {
       "additionalProperties": false,
       "description": "Project-wide policy for folder-derived tags.",
@@ -809,6 +941,25 @@
       ],
       "description": "Per-root tag derivation: a bool, a file glob, or a list of globs. `true` or\n`false` turns derivation on or off for every file under the root. A glob\nturns it on only for files whose path, relative to the root, matches."
     },
+    "DerivedDir": {
+      "additionalProperties": false,
+      "description": "`dir = { derive = { typst, function } }`: call `function` from the `typst`\nmodule and use the relative path it returns. It takes no `field`; the\ndestination is the value.",
+      "properties": {
+        "function": {
+          "description": "Name of the function the module exports.",
+          "type": "string"
+        },
+        "typst": {
+          "description": "Path to the module exporting `function`, relative to the project root.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "typst",
+        "function"
+      ],
+      "type": "object"
+    },
     "DictCase": {
       "description": "How a compiled dictionary compares a lookup against its entries.",
       "oneOf": [
@@ -859,6 +1010,28 @@
         }
       },
       "type": "object"
+    },
+    "DirValue": {
+      "anyOf": [
+        {
+          "description": "A project-root-relative template.",
+          "type": "string"
+        },
+        {
+          "description": "A destination computed by a Typst function.",
+          "properties": {
+            "derive": {
+              "$ref": "#/$defs/DerivedDir",
+              "description": "The function to call."
+            }
+          },
+          "required": [
+            "derive"
+          ],
+          "type": "object"
+        }
+      ],
+      "description": "A `dir` action's value: a static template, or a path a Typst function\nderives."
     },
     "EstimateConfig": {
       "additionalProperties": false,
@@ -1751,6 +1924,13 @@
       "additionalProperties": false,
       "description": "Hooks keyed by the event that fires them.",
       "properties": {
+        "add": {
+          "description": "`[[on.add]]` entries, in declaration order. Their shape and validation\nlive in the add-hook config module.",
+          "items": {
+            "$ref": "#/$defs/AddHook"
+          },
+          "type": "array"
+        },
         "flip": {
           "description": "`[[on.flip]]` entries, in declaration order.",
           "items": {
@@ -2645,7 +2825,7 @@
     },
     "on": {
       "$ref": "#/$defs/OnConfig",
-      "description": "Status-transition hooks (`[[on.flip]]`), run only by `mt flip`."
+      "description": "Hooks keyed by event: `[[on.flip]]` on a status change and\n`[[on.add]]` on a new task."
     },
     "pack-sources": {
       "additionalProperties": {

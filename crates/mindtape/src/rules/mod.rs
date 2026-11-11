@@ -66,7 +66,7 @@
 //! - `typst.rs`: `check = { typst, ... }` rules, calling a project's own Typst function.
 
 pub(crate) mod sites;
-pub(crate) mod typst;
+pub mod typst;
 
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -295,8 +295,8 @@ pub(crate) fn labels(config: &Config) -> HashSet<String> {
 }
 
 /// The labels of the rules whose `assert` or `when` reads the whole task set
-/// ([`crate::Filter::reads_set`]): a cap on `count(...)`, or a test of
-/// `ready`, `blocked`, `blocks` or `topo`.
+/// ([`crate::Filter::reads_set_in`], directly or through a view): a cap on
+/// `count(...)`, or a test of `ready`, `blocked`, `blocks` or `topo`.
 ///
 /// A task cannot fix such a breach alone, so a check of one task apart from
 /// its backlog drops them ([`crate::reads_set_breach`]).
@@ -305,7 +305,7 @@ pub(crate) fn set_labels(config: &Config) -> HashSet<String> {
         source
             .as_deref()
             .and_then(|expr| crate::Filter::parse(expr).ok())
-            .is_some_and(|filter| filter.reads_set())
+            .is_some_and(|filter| filter.reads_set_in(config))
     };
     (config.tasks.rules.iter().enumerate())
         .filter(|(_, spec)| reads_set(&spec.assertion) || reads_set(&spec.when))

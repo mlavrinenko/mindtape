@@ -99,8 +99,10 @@ values, so an agent can learn the CLI without parsing `--help`.
 = File a task without prompts
 
 `mt add --describe=json` lists the template's slots under `slots`: each one's
-name, kind, whether it's required, its default and its prompt. The agent writes
-the values as YAML or JSON and passes them with `-f -` on stdin.
+name, kind, whether it's required, its default and its prompt. The same object
+carries the project's `[[on.add]]` hooks under `hooks`, with the action each
+one applies. The agent writes the values as YAML or JSON and passes them with
+`-f -` on stdin, or passes a scalar field as its own flag such as `--due`.
 #link(u("/templates/"))[Templates & slots] covers the slots and the other ways
 to fill them.
 

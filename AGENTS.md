@@ -24,7 +24,7 @@ Mindtape is a file-based task tracker. Each task is one Typst file (`#show: task
   - `large`: a 2000-task benchmark whose gitignored tasks `just bench gen` writes.
   - `nix-adopter`: a flake that takes `mt` into its dev shell, which `just smoke-flake` locks against the working tree.
 
-Before you write about a feature, read the `www/content/` page that covers it: `dsl.typ` for task fields, edge kinds and `recur`, `templates.typ` for `mt add` and slots, `derived-tags.typ`, `priority.typ`, `filters.typ`, and `config.typ` for every config key.
+Before writing about a feature, read the `www/content/` page for it: `dsl.typ` for task fields, edge kinds and `recur`, `templates.typ` for `mt add` and slots, `hooks.typ` for hooks, `derived-tags.typ`, `priority.typ`, `filters.typ`, and `config.typ` for every config key.
 
 ## Workspace
 

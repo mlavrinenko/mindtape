@@ -10,13 +10,35 @@ use std::collections::BTreeMap;
 
 use mindtape::RawValue;
 
-use super::apply_token;
+use super::{TokenOp, apply_token, parse_token};
 
 /// Apply one token to a fresh map and unwrap the result.
 fn applied(token: &str) -> BTreeMap<String, RawValue> {
     let mut out = BTreeMap::new();
     apply_token(&mut out, token).unwrap();
     out
+}
+
+#[test]
+fn parse_token_keeps_set_and_append_apart() {
+    assert_eq!(
+        parse_token("title=a=b").unwrap(),
+        ("title".to_owned(), TokenOp::Set("a=b".to_owned()))
+    );
+    assert_eq!(
+        parse_token("tags+=docs").unwrap(),
+        ("tags".to_owned(), TokenOp::Append("docs".to_owned()))
+    );
+}
+
+#[test]
+fn parse_token_reads_a_file_into_the_file_operation() {
+    let dir = tempdir();
+    let path = file(&dir, "title.txt", "From a file\n");
+    assert_eq!(
+        parse_token(&format!("title@{path}")).unwrap(),
+        ("title".to_owned(), TokenOp::File("From a file".to_owned()))
+    );
 }
 
 /// Apply one token to a fresh map and render its error.

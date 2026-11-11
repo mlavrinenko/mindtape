@@ -47,15 +47,15 @@ whole, so your `[[tasks.status]]` replaces the floor's
 #link(u("/statuses/"))[status legend]. An empty array removes the floor's
 value, so `[tasks] status = []` leaves the status field unconstrained.
 
-Six arrays work differently. `[[tasks.rules]]`,
+Seven arrays work differently. `[[tasks.rules]]`,
 `[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]`,
-`[[commits.rules]]`, `[[on.flip]]` and `[[tasks.collectors]]` collect the entries
-of every layer and of every
+`[[commits.rules]]`, `[[on.flip]]`, `[[on.add]]` and `[[tasks.collectors]]`
+collect the entries of every layer and of every
 #link(u("/packs/"))[pack] a layer adopts. An entry replaces a lower
 layer's entry with the same `name`, in its place, so you can change one
 inherited rule and keep the rest. Two entries with the same `name` in one
-layer's array are a config error that names both. An `[[on.flip]]` entry with
-no `name` always appends. `extends` and `disable`,
+layer's array are a config error that names both. An `[[on.flip]]` or
+`[[on.add]]` entry with no `name` always appends. `extends` and `disable`,
 which adopt a pack and drop a rule, are on #link(u("/packs/"))[Packs].
 
 `[go] editor` and `[add] editor` name a program that `mt` runs, as a checker
@@ -70,7 +70,7 @@ your own `mindtape/defaults.toml` needs no approval. An ancestor's
 A `run` in `[[tasks.waits]]` or `[[on.flip]]` takes a string, which runs
 through `sh -c`, or `cmd /C` on Windows, or an array such as
 `["cargo", "test"]`, which runs its program with no shell.
-#link(u("/hooks/#trust-and-portability"))[Flip hooks] says when to pick which.
+#link(u("/hooks/#trust-and-portability"))[Trust and portability] says when to pick which.
 
 Write a rule's `message` as the next step: an imperative in lower case, with no
 trailing period or em dash, such as `move Environment after AS-IS`. `mt check`
@@ -232,7 +232,7 @@ leaves out.
   ("retire", "[retire]"),
   ("views", "[views.<name>]"),
   ("dicts", "[dicts.<name>]"),
-  ("on", "[[on.flip]]"),
+  ("on", "[[on.flip]], [[on.add]]"),
   ("templates", "[templates]"),
   ("add", "[add]"),
   ("go", "[go]"),
@@ -259,7 +259,7 @@ These sections have a page of their own:
 - `[tasks.recur]`: #link(u("/recurring/"))[Recurring tasks].
 - `[views.<name>]` and `[dicts.<name>]`:
   #link(u("/named-sets/"))[Views & dictionaries].
-- `[[on.flip]]`: #link(u("/hooks/"))[Flip hooks].
+- `[[on.flip]]` and `[[on.add]]`: #link(u("/hooks/"))[Hooks].
 - `[[tasks.waits]]`: #link(u("/wait-on-upstream/"))[Wait on upstream].
 - `[templates]` and `[add]`: #link(u("/templates/"))[Templates & slots].
 - `extends`, `disable` and `[pack-sources.<name>]`:

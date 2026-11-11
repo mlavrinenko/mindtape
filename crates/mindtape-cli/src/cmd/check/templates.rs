@@ -7,8 +7,9 @@
 //! Each template is checked alone, against an empty backlog, at the stem
 //! `mt add` would mint from its example title: the backlog's state, and a task
 //! named like a template, cannot fail a template. A breach that reads the whole
-//! task set ([`mindtape::reads_set_breach`]) is one the template cannot fix, so
-//! it is dropped.
+//! task set ([`mindtape::reads_set_breach`]) or where the file lives
+//! ([`mindtape::filter::path_dependent_fields`]) is one the template cannot
+//! fix, so it is dropped.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
@@ -74,7 +75,7 @@ pub(crate) struct Found {
 /// Returns an error when a listed template cannot be read, or the destination
 /// `mt add` would write to cannot be resolved.
 pub(crate) fn breaches(project: &Project, body_rules: BodyRules<'_>) -> Result<Found> {
-    let dest = crate::cmd::add::dest_dir(".", None, project)?;
+    let dest = crate::cmd::add::dest_dir(None, project);
     let Ok(dest) = dest.strip_prefix(&project.root) else {
         // The first root lies outside the project: there is no
         // project-relative path to evaluate a candidate at, as for `mt add`.
@@ -279,13 +280,24 @@ fn check_alone(
                 checked,
             };
             let own = (answer.violations.into_iter())
-                .filter(|violation| !mindtape::reads_set_breach(&config, violation))
+                .filter(|violation| {
+                    !mindtape::reads_set_breach(&config, violation) && !reads_path(violation)
+                })
                 .collect();
             Ok(mindtape::template_breaches(sources, own))
         }
         Some(Err(err)) => Err(err),
         None => Ok(Vec::new()),
     }
+}
+
+/// Whether `violation`'s check reads where a task file lives. A template's
+/// filled example is not a task file, so a rule reading `path` or `dir` cannot
+/// hold for it.
+fn reads_path(violation: &Violation) -> bool {
+    violation.reads.as_ref().is_some_and(|reads| {
+        (mindtape::filter::path_dependent_fields().iter()).any(|field| reads.contains(*field))
+    })
 }
 
 /// A built-in template's breaches at `[templates] fallback-severity`; a

@@ -8,7 +8,7 @@ every rule grouped by its config section, the derived fields, and the tags,
 views and dictionaries the project declares. A dictionary shows its entry
 count, and `default` comes first in the view and tag lists when it exists. A blank line
 separates the index from a `next:` line naming the optional category and the
-JSON flag: `mt explain [<rules|tags|views|dicts>] [--json]`.
+JSON flag: `mt explain [<add|rules|tags|views|dicts>] [--json]`.
 
 #cli-command("explain")
 
@@ -16,6 +16,14 @@ JSON flag: `mt explain [<rules|tags|views|dicts>] [--json]`.
 of the schema for that object. It keeps the fields each listing printed under
 its old command; views and dicts sit under `views` and `dicts`. The sections
 below say what they contain.
+
+= Add hooks
+
+`mt explain add` lists the #link(u("/hooks/#add-hooks"))[`[[on.add]]`] hooks
+your project runs, in declaration order. Each line gives the hook's name, its
+`when`, its actions and the layer or pack that supplied it. A hook a nearer
+layer replaced or `disable` dropped is absent, so the list is what `mt add`
+actually runs. `--json` wraps the hooks in `hooks` under `$schema`.
 
 = Rules
 

@@ -14,6 +14,7 @@ use evalexpr::{DefaultNumericTypes, Node, Operator, Value};
 
 use crate::filter::expr::{describe, extract_identifier, extract_literal, restore_name};
 use crate::filter::predicates::{contains_call, is_stale, present};
+use crate::filter::prefix::starts_with_call;
 use crate::filter::{Ctx, Filter, FilterError};
 
 type Run = fn(&[Node<DefaultNumericTypes>], &Ctx) -> Result<bool, FilterError>;
@@ -50,7 +51,7 @@ const fn word(name: &'static str, arity: Arity, run: Run) -> FilterFunction {
 /// and [`function`] dispatch through it, [`Filter::names_term`] reads its
 /// names, and `mt _cli --json` carries it so the docs gate can check that
 /// each name is documented.
-pub(crate) const FUNCTIONS: [FilterFunction; 19] = [
+pub(crate) const FUNCTIONS: [FilterFunction; 21] = [
     word("ready", exactly(0), |_, ctx| {
         Ok(ctx.readiness.is_ready(ctx.task))
     }),
@@ -97,12 +98,15 @@ pub(crate) const FUNCTIONS: [FilterFunction; 19] = [
     word("contains", Arity { min: 1, max: None }, |args, ctx| {
         contains_call(args, ctx.task, ctx.config)
     }),
+    word("starts_with", exactly(2), |args, ctx| {
+        starts_with_call(args, ctx)
+    }),
     word("touches", exactly(1), crate::filter::predicates::touches),
     word("matches", exactly(2), |args, ctx| {
-        crate::filter::strings::matches_call(args, ctx.task, ctx.config)
+        crate::filter::strings::matches_call(args, ctx.task, ctx.old, ctx.config)
     }),
     word("in_dict", exactly(2), |args, ctx| {
-        crate::filter::strings::in_dict_call(args, ctx.task, ctx.config)
+        crate::filter::strings::in_dict_call(args, ctx.task, ctx.old, ctx.config)
     }),
     word("word", exactly(2), |_, _| {
         Err(crate::filter::strings::word_is_not_boolean())
@@ -129,6 +133,12 @@ pub(crate) const FUNCTIONS: [FilterFunction; 19] = [
         Err(FilterError::call(
             "count_paths() is a number, not a condition",
             "count_paths(derived.changes, \"@source\") <= 5",
+        ))
+    }),
+    word("old", exactly(1), |_, _| {
+        Err(FilterError::call(
+            "old() gives a value, not a condition",
+            "old(\"kind\") == \"feat\"",
         ))
     }),
     word("stale", exactly(1), |args, ctx| {

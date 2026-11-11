@@ -5,7 +5,8 @@
 //! cwd, or capturable stderr — none of which can be asserted from inside the
 //! shared test process. Pure-helper tests live in `cmd/add/tests.rs`.
 
-use super::super::{effective_format, fill_title_from_stdin, run, warn_if_outside_roots};
+use super::super::title::fill_title_from_stdin;
+use super::super::{effective_format, run, warn_if_outside_roots};
 use super::*;
 use mindtape::test_support::tempdir;
 use mindtape::test_support::write_file;
@@ -221,15 +222,23 @@ fn run_with_no_verify_skips_validation() {
             values: vec![],
             set: vec!["title=Test".to_owned()],
             tokens: vec![],
-            into: ".".to_owned(),
+            dir: None,
+            into: None,
             to: None,
             name: Some("no-verify-test".to_owned()),
             status: None,
+            priority: None,
+            difficulty: None,
+            kind: None,
+            assignee: None,
+            due: None,
+            start: None,
             edit: false,
             describe: None,
             list: false,
             print: false,
             no_verify: true,
+            no_hooks: false,
             dedup: None,
             format: Format::Text,
             json: false,
@@ -286,15 +295,23 @@ fn run_fills_slot_from_declared_env() {
             values: vec![],
             set: vec![],
             tokens: vec![],
-            into: ".".to_owned(),
+            dir: None,
+            into: None,
             to: None,
             name: Some("env-fill-test".to_owned()),
             status: None,
+            priority: None,
+            difficulty: None,
+            kind: None,
+            assignee: None,
+            due: None,
+            start: None,
             edit: false,
             describe: None,
             list: false,
             print: false,
             no_verify: false,
+            no_hooks: false,
             dedup: None,
             format: Format::Text,
             json: false,

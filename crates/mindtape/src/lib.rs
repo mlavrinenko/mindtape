@@ -64,6 +64,7 @@ pub use commit::{
     ChangedFiles, CommitMessage, CommitMsgError, CommitRecord, RefProblem, TrailerValue,
     parse_message, staged_files, writing_a_merge,
 };
+pub use config::active_add::{ActiveAddHook, active_add};
 pub use config::active_rules::{
     ActiveRule, DerivedField, RuleSection, active_derived, active_rules,
 };
@@ -131,6 +132,7 @@ pub use model::numeric::{
 };
 pub use model::reference::{Base, RefError, Resolved, Via, is_path_ref, resolve_ref};
 pub use model::task_spans::TaskCallSpans;
+pub use model::writable::{self, FieldOp, Shape, WritableError, WritableField};
 pub use model::{Status, Task, is_history_pointer, normalize_link, relative_target};
 pub use path_text::{display_path, init_path_separator, slash_path};
 pub use plural::{count, plural};
@@ -147,6 +149,7 @@ pub use template::check::{
 };
 pub use template::{
     FillError, LinkValue, RawValue, SlotKind, SlotSpec, discover_slots, fill, fill_examples,
+    fill_partial, parse_string_array,
 };
 pub use validate::candidate::{
     Candidate, Checked, check_candidate, check_candidates, harvest_candidate, reads_set_breach,

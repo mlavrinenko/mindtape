@@ -1,0 +1,123 @@
+{
+  "$defs": {
+    "HookJson": {
+      "description": "One `[[on.add]]` hook as `--describe=json` prints it.",
+      "properties": {
+        "actions": {
+          "description": "Each action, in the one-line form the text output uses.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "name": {
+          "description": "The hook's name, or `null` when unnamed.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "when": {
+          "description": "Its `when`, or the empty string when it fires every add.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "when",
+        "actions"
+      ],
+      "type": "object"
+    },
+    "SlotJson": {
+      "description": "One template slot.",
+      "properties": {
+        "choices": {
+          "description": "The values a `choice` slot accepts, or `null`.",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
+        "default": {
+          "description": "The default expression's source, or `null`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "env": {
+          "description": "The environment variable the slot reads, or `null`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "example": {
+          "description": "A sample value, or `null`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "description": "Its value kind, such as `string` or `choice`.",
+          "type": "string"
+        },
+        "name": {
+          "description": "The slot's name.",
+          "type": "string"
+        },
+        "prompt": {
+          "description": "The prompt the editor and `--describe` show, or `null`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "required": {
+          "description": "Whether a value must be supplied when no default is present.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "kind",
+        "required"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/describe/2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The object `mt add --describe=json` prints: the template's slots, each with its kind, default and choices, and the project's `[[on.add]]` hooks.",
+  "properties": {
+    "$schema": {
+      "description": "The URL of the schema this object conforms to.",
+      "type": "string"
+    },
+    "hooks": {
+      "description": "The project's `[[on.add]]` hooks, in merged order.",
+      "items": {
+        "$ref": "#/$defs/HookJson"
+      },
+      "type": "array"
+    },
+    "slots": {
+      "description": "The template's slots, in declaration order.",
+      "items": {
+        "$ref": "#/$defs/SlotJson"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "$schema",
+    "slots",
+    "hooks"
+  ],
+  "title": "Mindtape template slots and add hooks",
+  "type": "object"
+}

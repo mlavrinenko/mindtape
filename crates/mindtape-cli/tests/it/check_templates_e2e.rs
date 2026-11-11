@@ -229,6 +229,16 @@ fn rule(name: &str, assert: &str) -> String {
     )
 }
 
+/// `config` checked against `template` fails on `reported` and stays silent on
+/// `dropped`: a rule the template cannot fix is left out of the report.
+fn assert_reports(reported: &str, dropped: &str, config: &str, template: &str) {
+    let dir = scaffold_with(config, template);
+    let (ok, text) = check(dir.path());
+    assert!(!ok, "{text}");
+    assert!(text.contains(reported), "{text}");
+    assert!(!text.contains(dropped), "{text}");
+}
+
 /// Every breach of the filled template counts, a rule's included.
 #[test]
 fn a_rule_breach_on_an_example_counts() {
@@ -342,11 +352,53 @@ fn a_rule_that_reads_no_set_still_counts_beside_a_set_rule() {
         "{}[[tasks.rules]]\nname = \"no-fix\"\nassert = 'kind != \"fix\"'\nseverity = \"error\"\n",
         rule("open-cap", "count(!terminal) <= 0")
     );
-    let dir = scaffold_with(&config, &template("\"fix\""));
+    assert_reports(
+        "rules.no-fix",
+        "rules.open-cap",
+        &config,
+        &template("\"fix\""),
+    );
+}
+
+/// A rule about where a task lives reads `path`, which a template's filled
+/// example has no real value for: the example is not a task file, so the
+/// template pass drops the rule. A rule about the template's own shape still
+/// reports, so a stale template cannot hide behind the drop.
+#[test]
+fn a_path_rule_is_dropped_but_a_shape_rule_still_reports() {
+    let rules = "\
+[[tasks.rules]]
+name = \"fixes-live-under-fixes\"
+when = 'kind == \"fix\"'
+assert = 'matches(path, \"^tasks/fixes/\")'
+severity = \"error\"
+
+[[tasks.rules]]
+name = \"titles-start-with-bug\"
+assert = 'starts_with(\"Bug\", title)'
+severity = \"error\"
+";
+    assert_reports(
+        "rules.titles-start-with-bug",
+        "rules.fixes-live-under-fixes",
+        &format!("{CONFIG}{rules}"),
+        &template("slot(\"kind\", example: \"fix\")"),
+    );
+}
+
+/// A path rule reached through a view is still a path rule: the view's own
+/// names are part of what the rule reads, so the template pass drops it too.
+#[test]
+fn a_path_rule_reached_through_a_view_is_dropped() {
+    let rules = "[views.all]\nfilter = 'kind == \"fix\"'\n\
+                 [[tasks.rules]]\nname = \"live-under-fixes\"\nwhen = '@all'\n\
+                 assert = 'dir == \"tasks/fixes\"'\nseverity = \"error\"\n";
+    let dir = scaffold_with(
+        &format!("{CONFIG}{rules}"),
+        &template("slot(\"kind\", example: \"fix\")"),
+    );
     let (ok, text) = check(dir.path());
-    assert!(!ok, "{text}");
-    assert!(text.contains("rules.no-fix"), "{text}");
-    assert!(!text.contains("rules.open-cap"), "{text}");
+    assert!(ok, "{text}");
 }
 
 /// The candidate is named from the example title, where `mt add` would write

@@ -11,6 +11,7 @@
 //! - `numeric.rs`: the numeric-field primitive: scale, classification, resolve and display.
 //! - `reference.rs`: task references, and the one resolver that reads them.
 //! - `task_spans.rs`: where a task file's `task.with(...)` call and its arguments sit.
+//! - `writable.rs`: the fields a generic write command may set, and their literals.
 
 pub mod canonical;
 pub(crate) mod field_descriptor;
@@ -21,6 +22,7 @@ pub mod naming;
 pub mod numeric;
 pub mod reference;
 pub mod task_spans;
+pub mod writable;
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};

@@ -1,7 +1,8 @@
 //! `extends`/`disable`: folding each layer's packs in just below it, and
-//! resolving the six arrays that merge by name, `[[tasks.rules]]`,
+//! resolving the seven arrays that merge by name, `[[tasks.rules]]`,
 //! `[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]`,
-//! `[[commits.rules]]` and `[[on.flip]]`, across every layer and pack.
+//! `[[commits.rules]]`, `[[on.flip]]`, `[[on.add]]` and `[[tasks.collectors]]`,
+//! across every layer and pack.
 //!
 //! A pack is a config-syntax fragment. `<source>:<pack>` resolves to one
 //! compiled into the binary ([`EMBEDDED_PACKS`], under `mindtape`) or to one
@@ -41,7 +42,7 @@
 //! [`crate::body::headers::validate_header_rules`] /
 //! [`crate::body::content::validate_content_rules`] as a duplicate-name error
 //! instead of silently collapsing. `disable` then drops every entry (in any of
-//! the six arrays) carrying a listed name, erroring on a name matching
+//! the seven arrays) carrying a listed name, erroring on a name matching
 //! none.
 
 use std::collections::{BTreeSet, HashMap, HashSet};
@@ -72,11 +73,12 @@ const RULE_ARRAY_PATHS: [&[&str]; RULE_ARRAYS] = [
     &["tasks", "body", "content", "rules"],
     &["commits", "rules"],
     &["on", "flip"],
+    &["on", "add"],
     &["tasks", "collectors"],
 ];
 
 /// How many arrays merge by name.
-const RULE_ARRAYS: usize = 6;
+const RULE_ARRAYS: usize = 7;
 
 /// The dotted report prefix for each of [`RULE_ARRAY_PATHS`], in the same
 /// order.
@@ -86,6 +88,7 @@ const RULE_ARRAY_PREFIXES: [&str; RULE_ARRAYS] = [
     "tasks.body.content.rules",
     "commits.rules",
     "on.flip",
+    "on.add",
     "tasks.collectors",
 ];
 
@@ -412,6 +415,10 @@ fn layer_base_dir(source: &LayerSource, root: &Path) -> PathBuf {
 #[cfg(test)]
 #[path = "packs_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "packs_tests_add.rs"]
+mod tests_add;
 
 #[cfg(test)]
 #[path = "packs_tests_body.rs"]

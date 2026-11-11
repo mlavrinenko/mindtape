@@ -83,6 +83,10 @@ fn parse_separator(text: &str) -> std::result::Result<char, String> {
 
 // The order here is the order `mt --help` lists: the commands a newcomer runs
 // first, then everyday edits, then reading, then setup.
+// `AddArgs` carries every add flag, so it is the widest variant. One enum value
+// is parsed per process and dropped before the command runs; boxing it would
+// only add an allocation to that one value.
+#[allow(clippy::large_enum_variant)]
 #[derive(Subcommand)]
 enum Command {
     /// Create `.mindtape/config.toml` in the current directory.

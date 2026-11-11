@@ -15,11 +15,11 @@ use std::path::{Path, PathBuf};
 
 use mindtape::{Config, RawValue, SlotSpec};
 
-use super::{
-    AddArgs, dest_dir, fill_title_from_args, initial_status, inject_header, markup_safe,
-    output_stem,
-};
+use super::header::inject_header;
+use super::title::{fill_title_from_args, split_positional};
+use super::{AddArgs, dest_dir, markup_safe, output_stem};
 use crate::cmd::add::output::Format;
+use crate::task_edit::initial_status;
 use crate::util::Project;
 
 const HEADER: &str = mindtape::typst_task!(
@@ -38,15 +38,23 @@ fn bare_args() -> AddArgs {
         values: vec![],
         set: vec![],
         tokens: vec![],
-        into: ".".to_owned(),
+        dir: None,
+        into: None,
         to: None,
         name: None,
         status: None,
+        priority: None,
+        difficulty: None,
+        kind: None,
+        assignee: None,
+        due: None,
+        start: None,
         edit: false,
         describe: None,
         list: false,
         print: false,
         no_verify: false,
+        no_hooks: false,
         dedup: None,
         format: Format::Text,
         json: false,
@@ -138,8 +146,10 @@ fn tags_slot() -> SlotSpec {
 fn title_arg_joins_words_when_unset() {
     let mut args = bare_args();
     args.title = vec!["cleanup".to_owned(), "kitchen".to_owned()];
+    let (words, tags) = split_positional(&args, &[]);
     let mut values = BTreeMap::new();
-    fill_title_from_args(&mut values, &args, &[]);
+    assert!(fill_title_from_args(&mut values, &words));
+    assert!(tags.is_empty());
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("cleanup kitchen".to_owned()))
@@ -150,9 +160,10 @@ fn title_arg_joins_words_when_unset() {
 fn title_arg_yields_to_higher_precedence_title() {
     let mut args = bare_args();
     args.title = vec!["positional".to_owned()];
+    let (words, _) = split_positional(&args, &[]);
     let mut values = BTreeMap::new();
     values.insert("title".to_owned(), RawValue::Str("explicit".to_owned()));
-    fill_title_from_args(&mut values, &args, &[]);
+    assert!(!fill_title_from_args(&mut values, &words));
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("explicit".to_owned()))
@@ -168,27 +179,24 @@ fn plus_tag_words_move_to_tags_when_slot_present() {
         "+backend".to_owned(),
         "+auth".to_owned(),
     ];
+    let (words, tags) = split_positional(&args, &[tags_slot()]);
     let mut values = BTreeMap::new();
-    fill_title_from_args(&mut values, &args, &[tags_slot()]);
+    assert!(fill_title_from_args(&mut values, &words));
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("fix login".to_owned()))
     );
-    assert_eq!(
-        values.get("tags"),
-        Some(&RawValue::List(vec![
-            "backend".to_owned(),
-            "auth".to_owned()
-        ]))
-    );
+    assert_eq!(tags, ["backend", "auth"]);
 }
 
 #[test]
 fn plus_tag_words_stay_in_title_without_tags_slot() {
     let mut args = bare_args();
     args.title = vec!["fix".to_owned(), "+backend".to_owned()];
+    let (words, tags) = split_positional(&args, &[]);
     let mut values = BTreeMap::new();
-    fill_title_from_args(&mut values, &args, &[]);
+    fill_title_from_args(&mut values, &words);
+    assert!(tags.is_empty());
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("fix +backend".to_owned()))
@@ -197,30 +205,13 @@ fn plus_tag_words_stay_in_title_without_tags_slot() {
 }
 
 #[test]
-fn plus_tag_sugar_appends_to_existing_tags() {
-    let mut args = bare_args();
-    args.title = vec!["fix".to_owned(), "+auth".to_owned()];
-    let mut values = BTreeMap::new();
-    values.insert(
-        "tags".to_owned(),
-        RawValue::List(vec!["backend".to_owned()]),
-    );
-    fill_title_from_args(&mut values, &args, &[tags_slot()]);
-    assert_eq!(
-        values.get("tags"),
-        Some(&RawValue::List(vec![
-            "backend".to_owned(),
-            "auth".to_owned()
-        ]))
-    );
-}
-
-#[test]
 fn bare_plus_stays_in_title_when_tags_slot_present() {
     let mut args = bare_args();
     args.title = vec!["fix".to_owned(), "+".to_owned(), "login".to_owned()];
+    let (words, tags) = split_positional(&args, &[tags_slot()]);
     let mut values = BTreeMap::new();
-    fill_title_from_args(&mut values, &args, &[tags_slot()]);
+    fill_title_from_args(&mut values, &words);
+    assert!(tags.is_empty());
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("fix + login".to_owned())),
@@ -289,60 +280,26 @@ fn project_with_root(dir: &Path, root: &str) -> Project {
 fn dest_default_is_first_root() {
     let dir = tempdir();
     let project = project_with_root(dir.path(), "truth/tasks");
-    assert_eq!(
-        dest_dir(".", None, &project).unwrap(),
-        dir.path().join("truth/tasks")
-    );
+    assert_eq!(dest_dir(None, &project), dir.path().join("truth/tasks"));
 }
 
 #[test]
-fn dest_to_nests_subfolder_under_root() {
+fn a_relative_dir_resolves_from_the_project_root() {
     let dir = tempdir();
     let project = project_with_root(dir.path(), "truth/tasks");
     assert_eq!(
-        dest_dir(".", Some("shopping"), &project).unwrap(),
-        dir.path().join("truth/tasks/shopping")
-    );
-    // Nested subpaths are allowed.
-    assert_eq!(
-        dest_dir(".", Some("shopping/weekly"), &project).unwrap(),
-        dir.path().join("truth/tasks/shopping/weekly")
+        dest_dir(Some("truth/tasks/fixes"), &project),
+        dir.path().join("truth/tasks/fixes")
     );
 }
 
 #[test]
-fn dest_to_rejects_absolute_subfolder() {
-    let dir = tempdir();
-    let project = project_with_root(dir.path(), "tasks");
-    assert!(dest_dir(".", Some("/etc"), &project).is_err());
-}
-
-/// `\etc` and `C:etc` are not absolute on Windows, yet joining either drops
-/// the destination root, so `--to` refuses them too.
-#[cfg(windows)]
-#[test]
-fn dest_to_rejects_a_rooted_or_drive_relative_subfolder() {
-    let dir = tempdir();
-    let project = project_with_root(dir.path(), "tasks");
-    assert!(dest_dir(".", Some("\\etc"), &project).is_err());
-    assert!(dest_dir(".", Some("C:etc"), &project).is_err());
-}
-
-#[test]
-fn dest_into_an_absolute_path_is_taken_as_is() {
+fn an_absolute_dir_is_taken_as_is() {
     let dir = tempdir();
     let project = project_with_root(dir.path(), "tasks");
     let elsewhere = dir.path().join("elsewhere");
-    let into = elsewhere.to_str().unwrap();
-    assert_eq!(dest_dir(into, None, &project).unwrap(), elsewhere);
-}
-
-#[test]
-fn dest_into_a_relative_path_resolves_against_the_working_directory() {
-    let dir = tempdir();
-    let project = project_with_root(dir.path(), "tasks");
-    let expected = std::env::current_dir().unwrap().join("sub/dir");
-    assert_eq!(dest_dir("sub/dir", None, &project).unwrap(), expected);
+    let dir = elsewhere.to_str().unwrap();
+    assert_eq!(dest_dir(Some(dir), &project), elsewhere);
 }
 
 #[test]
@@ -460,3 +417,23 @@ fn outside_root_failure_names_the_file_kept_on_disk() {
 
 #[path = "tests_subprocess.rs"]
 mod subprocess;
+
+#[test]
+fn inject_header_writes_a_generated_id() {
+    let config = mindtape::parse_config("[tasks.id]\nformat = \"uuid-v4\"\n").unwrap();
+    let out = inject_header(HEADER, &config, None).unwrap();
+    assert!(out.contains("id: \""), "{out}");
+}
+
+#[test]
+fn a_failed_header_edit_is_reported() {
+    let err = typst_edit::EditError::OutOfBounds {
+        range: 0..1,
+        len: 0,
+    };
+    let diag = super::header::edit_failed(&err);
+    assert!(
+        crate::diag::plain(&diag).contains("can't rewrite the template"),
+        "{diag}"
+    );
+}

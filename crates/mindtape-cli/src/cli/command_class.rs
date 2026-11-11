@@ -72,6 +72,7 @@ pub const CLASSIFICATION: &[(&str, Class)] = &[
         Class::Exempt("prints schemas; --write records the goldens"),
     ),
     ("explain", Class::Read(Reach::One)),
+    ("explain add", Class::Read(Reach::One)),
     ("explain rules", Class::Read(Reach::One)),
     ("explain tags", Class::Read(Reach::One)),
     ("explain views", Class::Read(Reach::One)),

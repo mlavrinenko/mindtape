@@ -226,14 +226,14 @@ fn run_parses_editor_output() {
     let dir = tempdir();
     let editor = editor_script(dir.path(), "x: \"ParsedTitle\"");
     let specs = discover_slots("#show: task.with(x: slot(\"x\"))");
-    let values = run(
+    let edited = run(
         &AddConfig::default(),
         Some(&editor),
         &specs,
         &BTreeMap::new(),
     )
     .unwrap();
-    assert_eq!(values["x"], RawValue::Str("ParsedTitle".to_owned()));
+    assert_eq!(edited.values["x"], RawValue::Str("ParsedTitle".to_owned()));
 }
 
 /// An editor command that overwrites the file it is handed with `line`.

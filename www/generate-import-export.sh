@@ -38,7 +38,7 @@ cp "$JQ/fixtures/github.in.json" "$P/issues.json"
 jq -r '.[]' "$JQ/fixtures/todo.txt.in.json" >"$P/todo.txt"
 
 capture import-taskwarrior "$P" 'jq -f contrib/jq/taskwarrior.jq taskwarrior.json | mt import'
-capture import-github "$P" 'jq -f contrib/jq/github.jq issues.json | mt import --to github'
+capture import-github "$P" 'jq -f contrib/jq/github.jq issues.json | mt import --dir tasks/github'
 capture_one import-todotxt "$P" <<'EOF'
 jq -R -s 'split("\n") | map(select(length > 0))' todo.txt \
   | jq -f contrib/jq/todo.txt.jq | mt import

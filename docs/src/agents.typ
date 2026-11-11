@@ -76,9 +76,10 @@ skips a file whose bytes are unchanged.
   - `nix-adopter`: a flake that takes `mt` into its dev shell, which
     #just.smoke-flake() locks against the working tree.
 
-Before you write about a feature, read the `www/content/` page that covers
-it: #page-src("dsl") for task fields, edge kinds and `recur`,
-#page-src("templates") for `mt add` and slots, #page-src("derived-tags"),
+Before writing about a feature, read the `www/content/` page for it:
+#page-src("dsl") for task fields, edge kinds and `recur`,
+#page-src("templates") for `mt add` and slots, #page-src("hooks") for hooks,
+#page-src("derived-tags"),
 #page-src("priority"), #page-src("filters"), and #page-src("config") for every
 config key.
 

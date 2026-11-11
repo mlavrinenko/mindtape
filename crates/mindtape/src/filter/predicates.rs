@@ -222,7 +222,13 @@ fn contains_ci(value: &FieldValue, needle: &str) -> bool {
         FieldValue::Num(num) => format_num(*num),
         FieldValue::Missing | FieldValue::List(_) | FieldValue::Record => return false,
     };
-    haystack.to_lowercase().contains(&needle.to_lowercase())
+    fold_case(&haystack).contains(&fold_case(needle))
+}
+
+/// The case fold every case-insensitive text predicate shares, so `contains()`
+/// and `starts_with()` can never disagree on which spellings match.
+pub(crate) fn fold_case(text: &str) -> String {
+    text.to_lowercase()
 }
 
 /// Shipped default `contains()` haystack when no field is named, and no
@@ -289,10 +295,15 @@ pub(crate) fn contains_call(
     Ok(values.iter().any(|value| contains_ci(value, &needle)))
 }
 
-/// Resolve `name`'s `contains()` haystack on `task`: a text-only field through
-/// [`text_only_value`], anything else through [`field_value`]. Errors outside
+/// Resolve `name`'s haystack on `task`, for `contains()` and `starts_with()`:
+/// a text-only field through [`text_only_value`], anything else through
+/// [`field_value`]. Errors outside
 /// [`crate::model::fields::is_contains_field`]'s vocabulary.
-fn contains_value(task: &Task, name: &str, config: &Config) -> Result<FieldValue, FilterError> {
+pub(crate) fn contains_value(
+    task: &Task,
+    name: &str,
+    config: &Config,
+) -> Result<FieldValue, FilterError> {
     if !fields::is_contains_field(name) {
         return Err(FilterError::UnknownField(name.to_owned()));
     }

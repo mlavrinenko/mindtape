@@ -45,6 +45,8 @@
 //! punctuation-trimmed), `matches(field, "regex")`, and `in_dict("name", <string
 //! expr>)` — membership in a `[dicts.<name>]` set or a built-in one, under that
 //! dictionary's `case`. Canonically: `in_dict("verbs", word(title, 1))`.
+//! `old("field")` also gives text there, so `matches(old("title"), "^Add")`
+//! reads the draft before the hook's actions ran.
 //!
 //! `changed("<states>", "<glob>"…)` counts the distinct paths git reports
 //! changed in `staged`, `worktree`, or both joined with `+`, narrowed by
@@ -77,6 +79,9 @@
 //! - `aggregate.rs`: `count`, `all` and `any` over the loaded set.
 //! - `links.rs`: the `links` predicate and edge-kind lookup.
 //! - `predicates.rs`: `has`, `miss`, `stale`, `changed`, `touches` and the field readers.
+//! - `prefix.rs`: `starts_with` and its one-field prefix check.
+//! - `paths.rs`: the fields a task's file location supplies (`path`, `dir`).
+//! - `set.rs`: the fields a filter takes from the whole task set.
 //! - `strings.rs`: `contains` and the other string predicates.
 //! - `views.rs`: `in_view` and the `@name` sugar.
 //! - `expr.rs`: the AST helpers and the kebab-name rewrite.
@@ -88,6 +93,8 @@
 
 pub(crate) mod aggregate;
 pub(crate) mod compare;
+mod context;
+pub(crate) use context::{Ctx, field_value};
 pub mod condition;
 pub mod condition_env;
 mod error;
@@ -97,9 +104,13 @@ pub(crate) mod links;
 pub(crate) mod parse_error;
 mod problems;
 pub(crate) use problems::{
-    expr_problem, expr_problem_in_set, problem_of, undeclared_extras, unknown_derived,
+    expr_problem, expr_problem_add, expr_problem_in_set, problem_of, undeclared_extras,
+    unknown_derived,
 };
+pub mod paths;
+pub use paths::path_dependent_fields;
 pub(crate) mod predicates;
+pub(crate) mod prefix;
 pub(crate) mod strings;
 pub use strings::DictMiss;
 pub(crate) mod views;
@@ -115,7 +126,18 @@ use crate::filter::expr::{
 use crate::filter::views::{collect_view_refs, desugar_view_refs};
 use crate::graph::ready::Readiness;
 use crate::model::Task;
-use crate::model::fields::{self as fields, FieldValue};
+use crate::model::fields::{self as fields};
+
+/// The inputs one filter evaluation reads, grouped to keep the internal
+/// `eval_with_old` seam under the argument limit.
+#[derive(Clone, Copy)]
+pub(crate) struct Eval<'a> {
+    pub(crate) task: &'a Task,
+    pub(crate) old: Option<&'a Task>,
+    pub(crate) config: &'a Config,
+    pub(crate) readiness: &'a Readiness,
+    pub(crate) dry: bool,
+}
 
 /// empty or whitespace-only expression, e.g. `mt ls ''`).
 #[derive(Debug, Clone)]
@@ -221,16 +243,43 @@ impl Filter {
             || self.tree.as_ref().is_some_and(calls_count)
     }
 
+    /// Whether the filter reads where the task's file lives (`path` or `dir`,
+    /// [`path_dependent_fields`]). A task with no file yet, such as a filled
+    /// template example, has no value for either.
+    #[must_use]
+    pub fn reads_path(&self) -> bool {
+        let dependent = path_dependent_fields();
+        self.names()
+            .iter()
+            .any(|name| dependent.iter().any(|field| *field == name))
+    }
+
+    /// [`Self::reads_path`], following `in_view` into the named views. A view
+    /// that reads `path` or `dir` makes the filter reading it path-dependent
+    /// too.
+    #[must_use]
+    pub fn reads_path_in(&self, config: &Config) -> bool {
+        let mut seen = BTreeSet::new();
+        self.any_through(config, &mut seen, Filter::reads_path)
+    }
+
     /// [`Self::reads_set`], following `in_view` into the named views. A view
     /// that calls `count(...)` makes the filter reading it set-aware too.
     #[must_use]
     pub fn reads_set_in(&self, config: &Config) -> bool {
         let mut seen = BTreeSet::new();
-        self.reads_set_through(config, &mut seen)
+        self.any_through(config, &mut seen, Filter::reads_set)
     }
 
-    fn reads_set_through(&self, config: &Config, seen: &mut BTreeSet<String>) -> bool {
-        if self.reads_set() {
+    /// Whether this filter or any view it reaches, directly or through another
+    /// view, satisfies `holds`. `seen` breaks a view cycle.
+    fn any_through(
+        &self,
+        config: &Config,
+        seen: &mut BTreeSet<String>,
+        holds: fn(&Filter) -> bool,
+    ) -> bool {
+        if holds(self) {
             return true;
         }
         for view in self.view_refs() {
@@ -239,7 +288,7 @@ impl Filter {
             }
             if let Some(spec) = config.views.get(&view)
                 && Filter::parse(&spec.filter)
-                    .is_ok_and(|filter| filter.reads_set_through(config, seen))
+                    .is_ok_and(|filter| filter.any_through(config, seen, holds))
             {
                 return true;
             }
@@ -272,6 +321,29 @@ impl Filter {
         self.eval(task, config, readiness, false)
     }
 
+    /// Whether `task` satisfies the filter, with `old` answering the `old()`
+    /// predicate: the task before an `[[on.add]]` hook's actions ran. Only an
+    /// add hook has such a draft, so every other caller uses
+    /// [`Self::matches_with`].
+    ///
+    /// # Errors
+    /// Returns [`FilterError`] on an unknown field or unsupported operator.
+    pub fn matches_add(
+        &self,
+        task: &Task,
+        old: &Task,
+        config: &Config,
+        readiness: &Readiness,
+    ) -> Result<bool, FilterError> {
+        self.eval_with_old(Eval {
+            task,
+            old: Some(old),
+            config,
+            readiness,
+            dry: false,
+        })
+    }
+
     /// Why the filter read false for `task`: the first `in_dict()` call
     /// outside any `!` whose dictionary lacks its word (see
     /// [`strings::dict_miss`]). `None` when no such call missed.
@@ -289,17 +361,29 @@ impl Filter {
         readiness: &Readiness,
         dry: bool,
     ) -> Result<bool, FilterError> {
+        self.eval_with_old(Eval {
+            task,
+            old: None,
+            config,
+            readiness,
+            dry,
+        })
+    }
+
+    /// [`Self::eval`] with the pre-hook draft `old()` reads, when one exists.
+    pub(crate) fn eval_with_old(&self, eval: Eval<'_>) -> Result<bool, FilterError> {
         match &self.tree {
             None => Ok(true),
             Some(tree) => eval_bool(
                 tree,
                 &Ctx {
-                    task,
-                    config,
-                    readiness,
+                    task: eval.task,
+                    config: eval.config,
+                    readiness: eval.readiness,
                     depth: 0,
-                    dry,
+                    dry: eval.dry,
                     exists: None,
+                    old: eval.old,
                 },
             ),
         }
@@ -336,16 +420,10 @@ fn collect_names(
     }
 }
 
-/// The names a task takes from the tasks around it: the `links:` graph through
-/// `ready`, `blocked`, `blocks` and `topo`, and its children's `children` and
-/// `progress`.
-const SET_FIELDS: [&str; 6] = ["ready", "blocked", "blocks", "topo", "children", "progress"];
-
-/// Whether `node` or any node under it calls `count(...)`.
-fn calls_count(node: &Node<DefaultNumericTypes>) -> bool {
-    matches!(node.operator(), evalexpr::Operator::FunctionIdentifier { identifier } if identifier == "count")
-        || node.children().iter().any(calls_count)
-}
+/// The names a filter takes from the whole task set; split out to keep this
+/// file under its line budget. See [`Filter::reads_set`].
+mod set;
+use set::{SET_FIELDS, calls_count};
 
 /// Collect every tag `node` reads through `has_tag("name")` or
 /// `has(tags, "name")` into `tags`. A call whose tag argument is not a
@@ -374,97 +452,6 @@ fn push_tag(tag: &Node<DefaultNumericTypes>, tags: &mut BTreeSet<String>) {
     if let Ok(tag) = extract_literal(tag) {
         tags.insert(tag);
     }
-}
-
-/// Shared context threaded through the filter walk: the task under test, the
-/// config (framework scores, terminal set, view lookup), the readiness oracle
-/// (`ready` / `blocked`), the current `in_view` recursion depth, and whether
-/// this is the load-time dry run (see [`expr_problem`]).
-pub(crate) struct Ctx<'a> {
-    pub(crate) task: &'a Task,
-    pub(crate) config: &'a Config,
-    pub(crate) readiness: &'a Readiness,
-    depth: usize,
-    pub(crate) dry: bool,
-    /// Whether the task exists in the commit state being read — `Some` only
-    /// under a task-scope commit rule's `head(...)` / `staged(...)` /
-    /// `worktree(...)`, where `exists` means something.
-    pub(crate) exists: Option<bool>,
-}
-
-impl<'a> Ctx<'a> {
-    /// A context reading `task` as one commit state holds it
-    /// ([`crate::commit::task_expr`]): `exists` answers whether the state holds
-    /// the file at all, `readiness` is computed over that state's task set.
-    pub(crate) fn in_state(
-        task: &'a Task,
-        config: &'a Config,
-        readiness: &'a Readiness,
-        exists: bool,
-        dry: bool,
-    ) -> Self {
-        Ctx {
-            task,
-            config,
-            readiness,
-            depth: 0,
-            dry,
-            exists: Some(exists),
-        }
-    }
-
-    /// The same context evaluating `task` instead — what `count` hands its
-    /// argument for each task it counts.
-    pub(crate) fn over<'b>(&self, task: &'b Task) -> Ctx<'b>
-    where
-        'a: 'b,
-    {
-        Ctx {
-            task,
-            config: self.config,
-            readiness: self.readiness,
-            depth: self.depth,
-            dry: self.dry,
-            // Every task of a state's set is present in it.
-            exists: self.exists.map(|_| true),
-        }
-    }
-
-    /// The same context one `in_view` level deeper.
-    fn deeper(&self) -> Ctx<'a> {
-        Ctx {
-            task: self.task,
-            config: self.config,
-            readiness: self.readiness,
-            depth: self.depth + 1,
-            dry: self.dry,
-            exists: self.exists,
-        }
-    }
-}
-
-/// Resolve a field name to its value on `task`, via the shared
-/// [`crate::model::fields`] registry — the single place every generically comparable
-/// field is wired, so a field usable here is usable in `--sort` too. `pub(crate)`
-/// so [`crate::filter::predicates`]'s `present`/`contains_value` can share it.
-pub(crate) fn field_value(
-    task: &Task,
-    name: &str,
-    config: &Config,
-) -> Result<FieldValue, FilterError> {
-    if let Some(value) = crate::filter::predicates::estimate_unit(task, name, config) {
-        return value;
-    }
-    if fields::is_derived(name) {
-        return fields::derived(task, name, config)
-            .ok_or_else(|| FilterError::UnknownField(name.to_owned()));
-    }
-    if fields::is_extra(name) {
-        return crate::filter::predicates::extra_value(task, name);
-    }
-    fields::get(name)
-        .map(|def| (def.get)(task, config))
-        .ok_or_else(|| FilterError::UnknownField(name.to_owned()))
 }
 
 /// The tree walk; split out to keep this file under its line budget. See

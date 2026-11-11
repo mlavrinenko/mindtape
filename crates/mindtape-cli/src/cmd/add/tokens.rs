@@ -7,6 +7,11 @@
 //! token reaching this parser, so the shorthand can never drift into a second
 //! grammar with its own rules.
 //!
+//! [`parse_token`] is that grammar: it returns the field name and one ordered
+//! operation, which is what a writer needs to preserve `+=` all the way to the
+//! value it appends. `apply_token` is the map-shaped wrapper the tests keep
+//! for callers that only need the merged value.
+//!
 //! Split out of `cmd/add/values.rs` — which is about where values come FROM
 //! (`-f` sources, the environment, the template's defaults) — so the grammar
 //! itself has one home to read, and the sources file keeps room to grow.
@@ -17,7 +22,18 @@ use mindtape::RawValue;
 
 use crate::diag::{Diag, Hint};
 
-/// Which operator a token carries.
+/// Which operator a token carries, with a file's contents already read.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TokenOp {
+    /// `=` — the value is the rest of the token.
+    Set(String),
+    /// `+=` — one item to append to a list.
+    Append(String),
+    /// `@` — the contents of the file the rest of the token named.
+    File(String),
+}
+
+/// Which operator a token carries, before its file is read.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Op {
     /// `=` — the value is the rest of the token.
@@ -26,12 +42,12 @@ enum Op {
     File,
 }
 
-/// Apply one `key OP value` token to the fill map.
+/// Parse `token` into the field it names and the ordered operation it carries.
 ///
 /// # Errors
 /// Returns an error when the token carries no operator, tries to append a
 /// file, or names a file that cannot be read.
-pub fn apply_token(out: &mut BTreeMap<String, RawValue>, token: &str) -> Result<(), Diag> {
+pub fn parse_token(token: &str) -> Result<(String, TokenOp), Diag> {
     let (key, op, rest) = split_token(token)?;
     let append = key.ends_with('+');
     let name = key.strip_suffix('+').unwrap_or(key);
@@ -46,10 +62,33 @@ pub fn apply_token(out: &mut BTreeMap<String, RawValue>, token: &str) -> Result<
         Op::Set => rest.to_owned(),
         Op::File => read_slot_file(name, rest, token)?,
     };
-    if append {
-        append_list_value(out, name, value);
-    } else {
-        out.insert(name.to_owned(), RawValue::Str(value));
+    let op = match (append, op) {
+        (true, _) => TokenOp::Append(value),
+        (false, Op::Set) => TokenOp::Set(value),
+        (false, Op::File) => TokenOp::File(value),
+    };
+    Ok((name.to_owned(), op))
+}
+
+/// Apply one `key OP value` token to the fill map.
+///
+/// # Errors
+/// Returns an error when the token carries no operator, tries to append a
+/// file, or names a file that cannot be read.
+#[allow(dead_code)] // kept for callers that need the merged map, not the op
+pub fn token_name(token: &str) -> Result<&str, Diag> {
+    let (key, _, _) = split_token(token)?;
+    Ok(key.strip_suffix('+').unwrap_or(key))
+}
+
+#[cfg(test)]
+pub fn apply_token(out: &mut BTreeMap<String, RawValue>, token: &str) -> Result<(), Diag> {
+    let (name, op) = parse_token(token)?;
+    match op {
+        TokenOp::Set(value) | TokenOp::File(value) => {
+            out.insert(name, RawValue::Str(value));
+        }
+        TokenOp::Append(item) => append_list_value(out, &name, item),
     }
     Ok(())
 }
@@ -114,9 +153,11 @@ fn read_slot_file(name: &str, path: &str, token: &str) -> Result<String, Diag> {
     Ok(text.trim_end_matches(['\r', '\n']).to_owned())
 }
 
-/// Append `item` to slot `name`'s list value (the `name+=item`/`+tag` shape),
+/// Append `item` to slot `name`'s list value (the `name+=item` shape),
 /// creating the list on first use. A slot already set to a non-list value is
-/// replaced outright — the last shape written wins.
+/// replaced outright — the last shape written wins. Kept for the tests' merged
+/// map view; the `+tag` sugar now reaches `mt add` as an ordered append.
+#[allow(dead_code)]
 pub fn append_list_value(values: &mut BTreeMap<String, RawValue>, name: &str, item: String) {
     match values
         .entry(name.to_owned())

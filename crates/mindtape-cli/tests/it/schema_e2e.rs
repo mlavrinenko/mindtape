@@ -56,7 +56,7 @@ fn byte_compared_goldens_are_pinned_to_lf() {
 }
 
 /// Every registered output, in `mt schema` order.
-const NAMES: [&str; 23] = [
+const NAMES: [&str; 24] = [
     "ls",
     "task",
     "add",
@@ -64,6 +64,7 @@ const NAMES: [&str; 23] = [
     "set-check",
     "graph",
     "preset-ls",
+    "explain-add",
     "explain",
     "rules",
     "tags",
@@ -103,8 +104,8 @@ fn schema_lists_every_registered_output() {
     let lines: Vec<&str> = text.lines().collect();
     assert_eq!(lines.len(), NAMES.len(), "{text}");
     for (line, name) in lines.iter().zip(NAMES) {
-        assert!(line.starts_with(&format!("{name}  1  ")), "{text}");
-        assert!(line.ends_with(&format!("/{name}/1.schema.json")), "{text}");
+        assert!(line.starts_with(name), "{text}");
+        assert!(line.contains(&format!("/{name}/")), "{text}");
     }
 }
 
@@ -139,7 +140,7 @@ fn schema_writes_and_checks_a_project_independent_copy() {
     let dir = tempfile::tempdir().unwrap();
     let text = support::stdout(dir.path(), &["schema", "--write"]);
     for name in NAMES {
-        let path = support::native(&format!("schema/output/{name}/1.schema.json"));
+        let path = support::native(&format!("schema/output/{name}/"));
         assert!(text.contains(&path), "{text}");
     }
     support::stdout(dir.path(), &["schema", "--check"]);
@@ -172,16 +173,15 @@ fn schema_refuses_an_unknown_name() {
 /// `$schema` names that same file.
 fn validate(name: &str, value: &serde_json::Value) {
     let root = repo_root();
-    let schema_text =
-        std::fs::read_to_string(root.join(format!("schema/output/{name}/1.schema.json"))).unwrap();
+    let schema_url = value["$schema"].as_str().unwrap();
+    let tail = schema_url.split_once("/schema/output/").map_or_else(
+        || panic!("unexpected $schema {schema_url}"),
+        |(_, tail)| tail,
+    );
+    assert!(tail.starts_with(&format!("{name}/")), "{schema_url}");
+    let schema_text = std::fs::read_to_string(root.join("schema/output").join(tail)).unwrap();
     let schema: serde_json::Value = serde_json::from_str(&schema_text).unwrap();
     let validator = jsonschema::validator_for(&schema).unwrap();
-
-    let schema_url = value["$schema"].as_str().unwrap();
-    assert!(
-        schema_url.ends_with(&format!("/{name}/1.schema.json")),
-        "{schema_url}"
-    );
     if let Some(error) = validator.iter_errors(value).next() {
         panic!("{name}: {error}");
     }

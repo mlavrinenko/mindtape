@@ -26,13 +26,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reserved-name and template-dir rules and no directory symlinks.
 - `mt add`, `mt import` and `mt recur` refuse a destination the loader would
   not read back, including a new file under an ignore rule. Choose another
-  `--into`/`--to`, move the task, or unignore its path.
+  `--dir`, move the task, or unignore its path.
 - Commit classification reads each state's own config and task files, so
   `tasks_only` and task refs see the index under `mt check --commit-msg` and
   each commit's tree under `mt check --commits`.
 - `mt fix` scans the visible task sources and template dirs by default, and
   every Git-visible `.typ` file with `--all`. An untracked ignored file is in
   neither scope, and a tracked ignored task is in both.
+
+### Added
+
+- **`[[on.add]]` fills a new task and chooses its directory.** An action sets
+  a writable field, appends to a list field, derives a value with a project
+  Typst function, or sets `dir`, a project-root-relative path template. Hooks
+  merge by name across layers and packs, `when` reads the draft as earlier
+  hooks left it, `template == "name"`/`from_template("name")` test the chosen
+  template, and `old("field")` reads the pre-hook value. An explicit value, a
+  `--set`, a positional title or an `--edit` change, wins over a hook `set`;
+  `--no-hooks` skips the list. A `when` cannot read the draft's identity or
+  place (`id`, `path`, `dir`, `depth`, the graph fields), which the add has
+  not chosen yet. `mt explain add` lists the hooks in effect and their origin.
+- **`mt add --dir` names one destination.** A relative path resolves from the
+  project root, so the same command lands in the same place from any
+  subdirectory. `--into` and `--to` are removed, and `mt import` takes `--dir`
+  too.
+- **Every scalar writable field has a direct `mt add` flag.** `--priority`,
+  `--difficulty`, `--kind`, `--assignee`, `--due` and `--start` are aliases
+  for `--set`, and `mt add` refuses a field named by both.
+- **`starts_with("text", field)` matches a case-insensitive prefix**, and
+  `dir` is a filter/sort field holding the folder part of `path`. A template
+  check ignores rules that read `path` or `dir`.
+- **`mt add --set` writes a field the template never declared**, and a list
+  `+=` appends to the slot's default or the explicit base. A positional `+tag`
+  is that base too, so a later `--set tags=…` replaces it and a repeated
+  `+=` does not add the same tag twice.
 
 ### Changed
 

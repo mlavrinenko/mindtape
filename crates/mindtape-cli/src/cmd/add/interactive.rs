@@ -4,7 +4,7 @@
 //! in the user's editor, and parses the saved buffer back into fill values. The
 //! `mindtape` library stays format-blind; this glue lives in the CLI.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::io::Write;
 use std::process::Command;
 
@@ -57,10 +57,21 @@ fn has_unfilled_required(specs: &[SlotSpec], seed: &BTreeMap<String, RawValue>) 
         .any(|spec| is_unfilled_required(spec) && !seed.contains_key(&spec.name))
 }
 
+/// What one editor session leaves: the values it saved, and the keys whose
+/// value differs from the scaffold's own baseline. The scaffold pre-fills every
+/// slot default, so a default the user left untouched is not their input and
+/// must not stop a hook from filling the field.
+pub struct Edited {
+    /// The saved fill values.
+    pub values: BTreeMap<String, RawValue>,
+    /// The keys the editor changed or added.
+    pub changed: BTreeSet<String>,
+}
+
 /// Open the editor on a scaffold for `specs` pre-filled from `seed`, returning
-/// the values the user saved. `editor` is the `[add] editor` to run, `None`
-/// when it is unset or not yet allowed (`mt allow`), which falls back to
-/// `$VISUAL`.
+/// the values the user saved and the keys they changed. `editor` is the
+/// `[add] editor` to run, `None` when it is unset or not yet allowed
+/// (`mt allow`), which falls back to `$VISUAL`.
 ///
 /// # Errors
 /// Returns an error when no editor can be spawned, the editor exits without
@@ -70,11 +81,27 @@ pub fn run(
     editor: Option<&str>,
     specs: &[SlotSpec],
     seed: &BTreeMap<String, RawValue>,
-) -> Result<BTreeMap<String, RawValue>> {
+) -> Result<Edited> {
     let buffer = scaffold(config, specs, seed);
+    let baseline = parse_buffer(&buffer)?;
     let command = editor_command(editor);
     let edited = open_in_editor(&command, &buffer)?;
-    parse_buffer(&edited)
+    let values = parse_buffer(&edited)?;
+    let changed = changed_keys(&baseline, &values);
+    Ok(Edited { values, changed })
+}
+
+/// The keys whose saved value differs from `baseline`, including a key only
+/// the saved map holds.
+fn changed_keys(
+    baseline: &BTreeMap<String, RawValue>,
+    saved: &BTreeMap<String, RawValue>,
+) -> BTreeSet<String> {
+    saved
+        .iter()
+        .filter(|(key, value)| baseline.get(*key).is_none_or(|seeded| seeded != *value))
+        .map(|(key, _)| key.clone())
+        .collect()
 }
 
 /// Last-resort editor when neither `[add] editor` nor `$VISUAL`/`$EDITOR` says

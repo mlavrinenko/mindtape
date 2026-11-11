@@ -27,6 +27,7 @@
   "start": [ISO dates, compared as text, as in `due < now()`.],
   "reviewed": [ISO dates, compared as text, as in `due < now()`.],
   "path": [The task file's path from the project root, with `/` on every platform.],
+  "dir": [The folder part of `path`, from the project root with `/` on every platform. Empty only for a task at the project root itself.],
   "depth": [How many folders deep the file sits under its root, 0 in the root itself.],
   "role": [Matches when the assignee has that role in `[[actors]]`.],
   "topo": [The task's place in the dependency graph, described below.],

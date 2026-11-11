@@ -383,11 +383,28 @@ fn a_rule_breach_reads_the_names_its_expressions_read() {
 }
 
 #[test]
-fn a_rule_through_a_view_or_a_whole_task_check_may_be_about_any_field() {
+fn a_rule_through_a_view_reads_the_views_names() {
     let tasks = vec![task("a", "T", "wip")];
     let view = "[views.mine]\nfilter = 'assignee == \"ada\"'\n\
                 [[tasks.rules]]\nassert = '@mine'\n";
-    assert_eq!(sole_breach(&tasks, &config(view)).reads, None);
+    assert_eq!(
+        sole_breach(&tasks, &config(view)).reads,
+        Some(fields(&["assignee"]))
+    );
+}
+
+#[test]
+fn a_whole_task_check_may_be_about_any_field() {
+    let check = crate::rules::CheckSpec {
+        typst: "check.typ".to_owned(),
+        function: "f".to_owned(),
+        field: None,
+        root: None,
+    };
+    assert_eq!(
+        super::eval::rule_reads(None, None, Some(&check), &Config::default()),
+        None
+    );
 }
 
 #[test]
@@ -423,4 +440,20 @@ assert = 'kind != \"fix\"'
         names,
         ["rules.cap", "rules.gated"].map(str::to_owned).into()
     );
+}
+
+#[test]
+fn set_labels_follows_a_view_that_reads_the_whole_set() {
+    let config = config(
+        "\
+[views.none-terminal]
+filter = 'count(!terminal) <= 0'
+
+[[tasks.rules]]
+name = \"no-terminal\"
+assert = '@none-terminal'
+",
+    );
+    let names = set_labels(&config);
+    assert_eq!(names, ["rules.no-terminal"].map(str::to_owned).into());
 }

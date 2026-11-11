@@ -17,7 +17,8 @@ use crate::support;
 const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n\
 [tasks.priority]\nkind = \"int\"\nmin = 0\nmax = 9\n\n\
 [[tasks.status]]\nvalue = \"wip\"\n\n\
-[[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
+[[tasks.status]]\nvalue = \"done\"\nterminal = true\n\n\
+[[tasks.waits]]\nname = \"ci\"\nrun = [\"true\"]\n";
 
 /// The subject every arm writes to: a title, a status, and one tag already in
 /// place, so both the insert and the replace path have something to act on.
@@ -266,6 +267,40 @@ fn a_task_with_an_aliased_call_is_refused_and_left_untouched() {
         "{stderr}"
     );
     assert_eq!(read(dir.path()), body, "a refused write must not land");
+}
+
+/// Every field in the shared writable table accepts its own literal shape
+/// through the one `mt set` path.
+#[test]
+fn every_writable_field_can_be_set() {
+    let dir = scaffold();
+    for (token, expected) in [
+        ("title=Renamed", "title: \"Renamed\""),
+        ("priority=7", "priority: 7"),
+        ("difficulty=3", "difficulty: 3"),
+        ("kind=feat", "kind: \"feat\""),
+        ("assignee=ada", "assignee: \"ada\""),
+        ("waits-on=ci:abc", "waits-on: (\"ci:abc\",)"),
+        ("tags+=auth", "tags: (\"backend\", \"auth\")"),
+        ("due=2026-07-01", "due: on(2026, 7, 1)"),
+        ("start=2026-07-02", "start: on(2026, 7, 2)"),
+    ] {
+        let written = set_ok(dir.path(), token);
+        assert!(written.contains(expected), "{token}: {written}");
+    }
+}
+
+/// A directory is not a field: a filed task's folder changes only through
+/// `mt mv`, and `mt set` says so rather than treating `dir` as a typo.
+#[test]
+fn dir_is_refused_with_the_rename_or_dir_hint() {
+    let dir = scaffold();
+    let before = read(dir.path());
+
+    let stderr = set_err(dir.path(), "dir=elsewhere");
+    assert!(stderr.contains("--dir"), "{stderr}");
+    assert!(stderr.contains("mt mv"), "{stderr}");
+    assert_eq!(read(dir.path()), before, "a refused write must not land");
 }
 
 /// An expected message, each task path in it in the separator `mt` shows.

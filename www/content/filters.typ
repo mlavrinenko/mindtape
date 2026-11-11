@@ -48,9 +48,9 @@
 
 A filter is a boolean expression over task fields. You pass
 one to `mt ls` and `mt rm`, and write one in config for
-#link(u("/named-sets/#views"))[views], `[[tasks.rules]]` and `[[on.flip]]`
-hooks. The examples on this page ran in `examples/api-service`, a sample
-backend project's backlog:
+#link(u("/named-sets/#views"))[views], `[[tasks.rules]]`, `[[on.flip]]` and
+`[[on.add]]` hooks. The examples on this page ran in `examples/api-service`, a
+sample backend project's backlog:
 
 #terminal-ansi("filters-open")
 
@@ -81,7 +81,9 @@ A field name may contain `-` between two letters or digits, as in
 `[tasks.estimate] units`, a filter may name only those units.
 
 `mt ls` shows a `file` column, but `file` isn't a field, and a filter that
-names it fails. Use `path`.
+names it fails. Use `path`. `dir` is the folder part of `path`, from the
+project root with `/` on every platform. It is empty only for a task at the
+project root itself.
 
 = Operators
 
@@ -129,6 +131,15 @@ same date, which `MINDTAPE_NOW` pins (see
   [`contains("text", field, ...)`],
   [The text appears in one of the named fields. `note` (every link note) and `tags` are searchable too.],
 
+  [`starts_with("text", field)`],
+  [The named text field starts with the text, ignoring case. It takes exactly
+    one field, with no default haystack.],
+
+  [`old("field")`],
+  [The field's value before any `[[on.add]]` hook ran, read as a value. It can
+    appear inside `matches()`, `word()` or `in_dict()`, and only an add hook's
+    `when` has one. It refuses `id`, `path` and `dir`.],
+
   [`stale(N)`],
   [The task wasn't reviewed in the last N days. With no `reviewed` date, its status date counts.],
 
@@ -157,6 +168,17 @@ same date, which `MINDTAPE_NOW` pins (see
 
 #commands("filters-functions")
 
+`starts_with("text", field)` names one field, and the text must open it. The
+check folds case like `contains()`. A mixed-case needle matches too.
+
+#terminal("filters-starts-with")
+
+Two more tests exist only in an #link(u("/hooks/#add-hooks"))[add hook]'s
+`when`. `template == "name"` and `template != "name"` compare the template
+`mt add` used, `from_template("name")` is the same test as `==`, and
+`old("field")` reads the task before any add hook ran. The first two are
+config errors anywhere else; `old()` refuses outside an add `when`.
+
 One field may have `"alpha"` on one task and `("alpha", "gamma")` on
 another. `x-machine == "alpha"` matches only the first, and
 `has(x-machine, "alpha")` matches both.
@@ -169,15 +191,15 @@ task-scope commit rule reads.
 
 = Text functions
 
-Three functions read text. `word(field, n)` is the n-th word of a text field,
-counting from 1, with punctuation trimmed from both ends, so `"Fix: the slug"`
-has `Fix` as its first word. It returns text, so it only appears as an
-argument. `matches(field, "regex")` matches a Rust `regex` pattern anywhere in
-the text. `in_dict("name", text)` matches when the text is in the named
-#link(u("/named-sets/"))[dictionary]. Both `matches()` and `in_dict()` take a
-field or `word(...)` as their text. Like `contains()`, they also read `body`,
-`note` and `tags`, so the last example finds a task that still has a
-template's placeholder line:
+Three functions read text, and each takes a field, `word(...)` or an add
+hook's `old("field")` as its text. `word(value, n)` is the n-th word of a text
+value, counting from 1, with punctuation trimmed from both ends, so
+`"Fix: the slug"` has `Fix` as its first word. It returns text, so it only
+appears as an argument. `matches(value, "regex")` matches a Rust `regex`
+pattern anywhere in the text. `in_dict("name", text)` matches when the text
+is in the named #link(u("/named-sets/"))[dictionary]. Like `contains()`,
+`matches()` and `in_dict()` also read `body`, `note` and `tags`, so the last
+example finds a task that still has a template's placeholder line:
 
 #commands("filters-strings")
 

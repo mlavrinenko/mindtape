@@ -27,7 +27,7 @@ fn an_ignored_destination_is_refused_and_creates_nothing() {
     let output = support::mt(dir.path())
         .args([
             "add",
-            "--to",
+            "--dir",
             "target",
             "--name",
             "hidden",
@@ -50,7 +50,7 @@ fn an_ignored_destination_is_refused_and_creates_nothing() {
     );
     assert!(stderr.contains("would be invisible"), "{stderr}");
     assert!(
-        stderr.contains("--into"),
+        stderr.contains("--dir"),
         "the fix must offer another destination: {stderr}"
     );
 }
@@ -62,7 +62,7 @@ fn a_reserved_destination_is_refused_and_creates_nothing() {
     let output = support::mt(dir.path())
         .args([
             "add",
-            "--to",
+            "--dir",
             ".mindtape/templates",
             "--name",
             "hidden",
@@ -99,7 +99,7 @@ fn a_symlinked_dot_dot_escape_into_an_ignored_directory_is_refused() {
     let output = support::mt(dir.path())
         .args([
             "add",
-            "--to",
+            "--dir",
             "link/..",
             "--name",
             "hidden",
@@ -133,7 +133,7 @@ fn no_verify_does_not_bypass_the_destination_guard() {
         .args([
             "add",
             "--no-verify",
-            "--to",
+            "--dir",
             "target",
             "--name",
             "hidden",
@@ -158,7 +158,7 @@ fn an_outside_root_destination_still_only_warns() {
         .args([
             "add",
             "--no-verify",
-            "--into",
+            "--dir",
             outside.path().to_str().unwrap(),
             "--name",
             "outside-task",

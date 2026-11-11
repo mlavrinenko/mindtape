@@ -35,12 +35,11 @@ pass, prints the report, then exits 1 if it skipped any record, so a script
 can tell a partial import from a whole one.
 
 If the source's status names differ from your legend, `--map old=new` renames
-a status before the check. `--to <dir>` writes the batch into a subfolder of
-the first #link(u("/concepts/#a-task-is-a-file"))[task root], and
-`--into <dir>` into a directory, instead of each record's `file`. `--dry-run`
-checks the batch and writes nothing. Its report says `would file` for each
-record that would be written and ends with `dry run: nothing written`. The
-#link(u("/cli/import/"))[`mt import` page] lists every flag.
+a status before the check. `--dir <path>` sends the whole batch to one
+directory instead of each record's `file`, resolved from the project root.
+`--dry-run` checks the batch and writes nothing. Its report says `would file`
+for each record that would be written and ends with `dry run: nothing
+written`. The #link(u("/cli/import/"))[`mt import` page] lists every flag.
 
 The adapters in `contrib/jq/` read only the tracker's own export, not your
 config. They emit the status names of the legend `mt init` writes by default:
@@ -72,7 +71,7 @@ saves a repository's issues. `gh` fetches 30 unless you pass `--limit`.
 
 An open issue becomes `proposed` and a closed one `done`. Labels become tags,
 and the creation date becomes `start`. The issue number, URL and assignees go
-into the `x-gh` field. `--to github` writes the batch to `tasks/github/`. If
+into the `x-gh` field. `--dir tasks/github` writes the batch to `tasks/github/`. If
 the project derives tags from folders, each task gets a `github` tag.
 
 == From todo.txt
@@ -94,7 +93,7 @@ your file uses.
 An export imports back whole. `mt import` names each file from the record's
 `id`, so a link to a task still resolves. A record with no `id`, like the ones
 the jq adapters emit, or an `id` containing a `/` or a `.`, is named from its
-title, the way `mt add` names it. With neither `--into` nor `--to`, a record is
+title, the way `mt add` names it. Without `--dir`, a record is
 written to the folder its `file` names if that folder is under a task root, so
 an export of several folders imports back as the same folders. If a name is taken anywhere in the project, it gets a
 `-2` suffix and the report says `alpha: filed as alpha-2`. A link to it

@@ -8,6 +8,7 @@ use crate::cmd::add::values::DescribePayload;
 use crate::cmd::at::{AtListPayload, AtProjectJson, AtSetJson};
 use crate::cmd::board::BoardPayload;
 use crate::cmd::config::ConfigShowPayload;
+use crate::cmd::explain::add::AddPayload;
 use crate::cmd::explain::dicts::{DictDetailJson, DictsPayload};
 use crate::cmd::explain::views::ViewsPayload;
 use crate::cmd::packs::PacksPayload;
@@ -61,6 +62,11 @@ pub const PRESET_LS: SchemaId = SchemaId {
 };
 
 /// `mt explain --json`.
+pub const EXPLAIN_ADD: SchemaId = SchemaId {
+    name: "explain-add",
+    version: 1,
+};
+
 pub const EXPLAIN: SchemaId = SchemaId {
     name: "explain",
     version: 1,
@@ -129,7 +135,7 @@ pub const PACKS: SchemaId = SchemaId {
 /// `mt add --describe=json`.
 pub const DESCRIBE: SchemaId = SchemaId {
     name: "describe",
-    version: 1,
+    version: 2,
 };
 
 /// `mt explain views --json`.
@@ -180,6 +186,8 @@ const GRAPH_TITLE: &str = "Mindtape graph";
 const GRAPH_DESCRIPTION: &str = "The object `mt graph --json` prints: its task nodes, the typed edges between them, and the links whose kind points outside the backlog.";
 const PRESET_LS_TITLE: &str = "Mindtape presets";
 const PRESET_LS_DESCRIPTION: &str = "The object `mt preset ls --json` prints: every built-in and user preset, with the shadowing between them.";
+const EXPLAIN_ADD_TITLE: &str = "Mindtape add hooks";
+const EXPLAIN_ADD_DESCRIPTION: &str = "The object `mt explain add --json` prints: every merged `[[on.add]]` hook, its `when`, its actions and its origin.";
 const EXPLAIN_TITLE: &str = "Mindtape explain index";
 const EXPLAIN_DESCRIPTION: &str = "The object `mt explain --json` prints: the rules by section, the derived fields, and the tag, view and dictionary names.";
 const RULES_TITLE: &str = "Mindtape rules";
@@ -207,8 +215,8 @@ const SET_LS_TITLE: &str = "Mindtape set listing";
 const SET_LS_DESCRIPTION: &str = "The object `mt @set ls --json` prints: one `mt ls --json` listing per project, with its name and error.";
 const PACKS_TITLE: &str = "Mindtape pack install";
 const PACKS_DESCRIPTION: &str = "The object `mt packs install --json` prints: each locked source, its commit and tree hash, and whether this run fetched it.";
-const DESCRIBE_TITLE: &str = "Mindtape template slots";
-const DESCRIBE_DESCRIPTION: &str = "The object `mt add --describe=json` prints: the template's slots, each with its kind, default and choices.";
+const DESCRIBE_TITLE: &str = "Mindtape template slots and add hooks";
+const DESCRIBE_DESCRIPTION: &str = "The object `mt add --describe=json` prints: the template's slots, each with its kind, default and choices, and the project's `[[on.add]]` hooks.";
 const VIEWS_TITLE: &str = "Mindtape views";
 const VIEWS_DESCRIPTION: &str =
     "The object `mt explain views --json` prints: every named view's spec, by name.";
@@ -289,6 +297,12 @@ pub const SCHEMAS: &[Schema] = &[
         title: PRESET_LS_TITLE,
         description: PRESET_LS_DESCRIPTION,
         schema: || schemars::schema_for!(Envelope<PresetsPayload>),
+    },
+    Schema {
+        id: EXPLAIN_ADD,
+        title: EXPLAIN_ADD_TITLE,
+        description: EXPLAIN_ADD_DESCRIPTION,
+        schema: || schemars::schema_for!(Envelope<AddPayload>),
     },
     Schema {
         id: EXPLAIN,

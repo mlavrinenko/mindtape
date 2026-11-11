@@ -12,21 +12,22 @@ use mindtape::{RawValue, RequiredSlot, SlotKind, SlotSpec, discover_slots};
 use crate::diag::{Diag, Hint, Note, emit, emit_note};
 use crate::task_edit::task_with;
 
-/// Print one note per config-spliced core field the caller did not set, naming
-/// the value, its origin, and how to override it. Goes to stderr, so `--print`'s
-/// Typst on stdout and `--format json` stay machine-clean.
+/// Print one note per config-spliced core field neither the caller nor a hook
+/// set, naming the value, its origin, and how to override it. Goes to stderr,
+/// so `--print`'s Typst on stdout and `--format json` stay machine-clean.
 pub(super) fn report_injected(
     filled: &str,
     injected: &[RequiredSlot],
     explicit: &BTreeSet<String>,
     env_keys: &BTreeSet<String>,
+    touched: &BTreeSet<String>,
 ) -> Result<()> {
     if injected.is_empty() {
         return Ok(());
     }
     let call = task_with(filled)?;
     for slot in injected {
-        if explicitly_set(slot, explicit) {
+        if supplied(slot, explicit) || supplied(slot, touched) {
             continue;
         }
         let Some(arg) = call.named(&slot.field) else {
@@ -52,14 +53,15 @@ pub(super) fn report_injected(
     Ok(())
 }
 
-/// Whether the caller supplied this field itself, by `--set`/`-f`/`--`. A
-/// strict-framework priority has no scalar `priority=` key; supplying any of
-/// its leaves counts as taking it over, so the note stays quiet.
-fn explicitly_set(slot: &RequiredSlot, explicit: &BTreeSet<String>) -> bool {
-    explicit.contains(&slot.field)
+/// Whether `names` already supplied this field itself, by `--set`/`-f`/`--` or
+/// as a hook's field. A strict-framework priority has no scalar `priority=`
+/// key; supplying any of its leaves counts as taking it over, so the note stays
+/// quiet.
+fn supplied(slot: &RequiredSlot, names: &BTreeSet<String>) -> bool {
+    names.contains(&slot.field)
         || discover_slots(&slot.call)
             .iter()
-            .any(|leaf| explicit.contains(&leaf.name))
+            .any(|leaf| names.contains(&leaf.name))
 }
 
 /// A filled argument's source, with a plain string literal's quotes stripped

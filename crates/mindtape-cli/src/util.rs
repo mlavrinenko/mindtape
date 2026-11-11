@@ -34,12 +34,18 @@ pub struct Project {
 }
 
 impl Project {
-    /// Whether the canonical path `abs` is a task root or lies inside one.
+    /// Whether `abs` is a task root or lies inside one.
+    ///
+    /// Both sides resolve as directories through the nearest existing
+    /// ancestor, so a root directory that does not exist yet is still the root
+    /// a first add lands under, a symlinked root names its target, and a
+    /// symlink on either side cannot make it look outside.
     #[must_use]
     pub fn holds(&self, abs: &Path) -> bool {
+        let abs = crate::cmd::write_guard::resolve_directory(abs);
         self.config.tasks.roots.iter().any(|root| {
-            mindtape::canonical(&self.root.join(root.path()))
-                .is_ok_and(|root_abs| abs.starts_with(root_abs))
+            let root_abs = crate::cmd::write_guard::resolve_directory(&self.root.join(root.path()));
+            abs.starts_with(root_abs)
         })
     }
 }

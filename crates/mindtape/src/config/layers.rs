@@ -284,6 +284,10 @@ fn build_typed(
     // `build_config` was ever called with.
     crate::rules::typst::validate_load(&config, root).map_err(ConfigError::invalid)?;
     crate::rules::typst::validate_collector_load(&config, root).map_err(ConfigError::invalid)?;
+    // Root-aware for the same reason: an add hook's `when` names a template
+    // stem and its `dir` is a project-root-relative template, and both
+    // resolve against `root`.
+    crate::config::add_hooks::validate_add_hooks(&config, root).map_err(ConfigError::invalid)?;
     Ok((config, rule_origins))
 }
 
