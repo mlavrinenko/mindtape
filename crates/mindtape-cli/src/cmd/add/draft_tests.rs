@@ -50,7 +50,7 @@ fn a_load_failure_is_placed_and_keeps_its_hints() {
         ..mindtape::LoadError::default()
     };
     let text = crate::diag::plain(&draft_error(&err));
-    let place = std::path::Path::new("tasks/add.typ").display();
+    let place = "tasks/add.typ".replace('/', std::path::MAIN_SEPARATOR_STR);
     assert!(text.contains(&format!("{place}:3:2")), "{text}");
     assert!(text.contains("boom"), "{text}");
     assert!(text.contains("try this"), "{text}");
