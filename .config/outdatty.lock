@@ -226,11 +226,11 @@ groups:
       www/utils/cli-notes.typ: 252241c3af9ad2287614e5b492c8c70cb4d3a96967f5be113d5340abc190adef
   cli-name:
     source:
-      crates/mindtape-cli/Cargo.toml: 26b5e53f66b4f207af3667491f66a1f85d350db40f410d6d2e14e2cf687ee194
+      crates/mindtape-cli/Cargo.toml: 1fb9c8e9792c6d1fd88c5faf38bb9439850c189d421d07a8c69344e53256e398
       crates/mindtape-cli/src/cli/mod.rs: d71810fedef94bbb1708552d1ab946ed39e9e0ac09bf7d00d95bcb0788d94ff4
     dependents:
-      CHANGELOG.md: 0064257d260d5005b4739c5521b145a29f949dea86d46202fbb0b617ca2288b0
-      docs/src/agents.typ: 3017a9d3677685e4a4a35ade23b470c6b5962765045d81327a7ec435fb2fd10f
+      CHANGELOG.md: f8a4ae72621f7d2aa3c475d90178cc20681f12b71a940d20fb83a63d983b455c
+      docs/src/agents.typ: c869122d27ea069c5855a8f65c3b6d0329adfeca231c220cb3762c8e901cf41b
       docs/src/contributing.typ: 72fe5b5848940707a8754e218b5388d6a5108bd98a85dd077800d36b04872ded
       docs/src/contributing/command-semantics.typ: 52a0d2fc04df741ea5540adde25a6b13abb19fbfe86525049c4509b65df76281
       docs/src/readme.typ: 9e3bd7c84f8dab0339286acc8544ef83a93c05fce6df0b4c2e3573d9a87a5254
@@ -508,9 +508,9 @@ groups:
       docs/src/contributing/release.typ: 20be747039d0df76014bb79824c176f67bb9de706b61958bac2bced915123e60
   release-notes:
     source:
-      Cargo.toml: 5b5bdd74a32fb4a7391a7a603f3586222c2b2ab951deb191ff7022565c7b516e
+      Cargo.toml: 028ecd8833f86a620e2275b87a20ec2d74030ca7ca8bbc173df400997f707a65
     dependents:
-      CHANGELOG.md: 0a9a558a27a42aa053d92e82768ce78804af82eb350655c963b9846e9464e1c4
+      CHANGELOG.md: f8a4ae72621f7d2aa3c475d90178cc20681f12b71a940d20fb83a63d983b455c
   schema-url-docs:
     source:
       .just/scripts/check-schema-urls.sh: abd63a3d33b487ecb1e42666e238d3fbdce2c8cef7bc3390e7caace6d69acc01
