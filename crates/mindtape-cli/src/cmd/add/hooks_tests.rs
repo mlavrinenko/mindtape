@@ -103,6 +103,26 @@ fn dir_macros_read_the_template_and_scalars() {
     assert_eq!(macro_value("nope", "task", &task), None);
 }
 
+/// A date macro reads the process's pinned or system date, never the draft.
+#[test]
+fn a_dir_date_macro_reads_the_process_date() {
+    let task = Task::default();
+    let (year, month, day) = mindtape::today_ymd();
+    assert_eq!(
+        macro_value("date", "task", &task),
+        Some(format!("{year:04}-{month:02}-{day:02}"))
+    );
+    assert_eq!(
+        macro_value("date:YYYY-MM", "task", &task),
+        Some(format!("{year:04}-{month:02}"))
+    );
+    assert_eq!(
+        macro_value("yy", "task", &task),
+        Some(format!("{:02}", year % 100))
+    );
+    assert_eq!(macro_value("dd", "task", &task), Some(format!("{day:02}")));
+}
+
 #[test]
 fn an_unclosed_dir_macro_is_refused() {
     let task = Task::default();

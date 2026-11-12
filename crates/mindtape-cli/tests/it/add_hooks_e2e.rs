@@ -7,7 +7,9 @@
     clippy::indexing_slicing
 )]
 
-use super::add_hooks_support::{BASE, FILL_AND_DIR, TEMPLATE, add, project, read};
+use super::add_hooks_support::{
+    BASE, FILL_AND_DIR, TEMPLATE, add, add_pinned, assert_refused, project, read,
+};
 use crate::support;
 #[test]
 fn hooks_fill_fields_and_choose_the_destination_in_order() {
@@ -65,11 +67,9 @@ fn a_hook_append_reaches_a_slot_the_caller_set() {
 #[test]
 fn a_missing_required_title_is_refused_with_hooks_on() {
     let dir = project(FILL_AND_DIR);
-    let (_, stderr, ok) = add(dir.path(), &["add", "--name", "untitled"]);
-    assert!(!ok, "{stderr}");
-    assert!(
-        stderr.contains("missing a required slot: 'title'"),
-        "{stderr}"
+    assert_refused(
+        add(dir.path(), &["add", "--name", "untitled"]),
+        "missing a required slot: 'title'",
     );
     assert!(!dir.path().join("tasks/bug/untitled.typ").exists());
 }
@@ -213,37 +213,69 @@ assert = 'dir == \"tasks/fixes\"'
 #[test]
 fn a_path_like_expansion_is_refused() {
     let dir = project("[[on.add]]\nname = \"by-kind\"\nactions = [{ dir = \"tasks/{kind}\" }]\n");
-    let (_, stderr, ok) = add(
-        dir.path(),
-        &["add", "--name", "slash", "--set", "kind=a/b", "Slash"],
+    assert_refused(
+        add(
+            dir.path(),
+            &["add", "--name", "slash", "--set", "kind=a/b", "Slash"],
+        ),
+        "path separator",
     );
-    assert!(!ok, "{stderr}");
-    assert!(stderr.contains("path separator"), "{stderr}");
     assert!(!dir.path().join("tasks/slash.typ").exists());
 }
 
+/// Both a name no macro holds and a path that climbs out of the project fail
+/// the whole config, before any add runs.
 #[test]
-fn an_unknown_dir_macro_is_a_config_error() {
-    let dir = project("[[on.add]]\nname = \"bad\"\nactions = [{ dir = \"tasks/{nope}\" }]\n");
-    let (_, stderr, ok) = add(dir.path(), &["add", "--name", "bad", "Bad"]);
-    assert!(!ok, "{stderr}");
-    assert!(stderr.contains("unknown dir macro"), "{stderr}");
+fn a_malformed_static_dir_is_a_config_error() {
+    for (template, needle) in [
+        ("tasks/{nope}", "unknown dir macro"),
+        ("../outside", "dir must not hold `.` or `..`"),
+    ] {
+        let dir = project(&format!(
+            "[[on.add]]\nname = \"bad\"\nactions = [{{ dir = \"{template}\" }}]\n"
+        ));
+        assert_refused(add(dir.path(), &["add", "--name", "bad", "Bad"]), needle);
+    }
 }
 
+/// A date macro in a static `dir` reads the pinned date, so the folder is
+/// chosen from the clock rather than derived by a Typst function.
 #[test]
-fn a_static_dir_with_a_dot_segment_is_a_config_error() {
-    let dir = project("[[on.add]]\nname = \"escape\"\nactions = [{ dir = \"../outside\" }]\n");
-    let (_, stderr, ok) = add(dir.path(), &["add", "--name", "escape", "Escape"]);
-    assert!(!ok, "{stderr}");
-    assert!(stderr.contains("dir must not hold `.` or `..`"), "{stderr}");
+fn date_macros_in_a_hook_dir_land_in_the_pinned_month() {
+    let dir = project(
+        "[[on.add]]\nname = \"by-month\"\nactions = [{ dir = \"tasks/{date:YYYY}-{date:MM}\" }]\n",
+    );
+    let (_, stderr, ok) = add_pinned(
+        dir.path(),
+        "2026-11-13",
+        &["add", "--name", "filed", "Filed"],
+    );
+    assert!(ok, "{stderr}");
+    let written = read(dir.path(), "tasks/2026-11/filed.typ");
+    assert!(written.contains("title: \"Filed\""), "{written}");
+}
+
+/// A format that carries a separator expands to more than one path component,
+/// so the add is refused before it writes anything.
+#[test]
+fn a_date_format_with_a_separator_is_refused_before_the_write() {
+    let dir =
+        project("[[on.add]]\nname = \"bad\"\nactions = [{ dir = \"tasks/{date:YYYY/MM}\" }]\n");
+    let stderr = assert_refused(
+        add_pinned(dir.path(), "2026-11-13", &["add", "--name", "bad", "Bad"]),
+        "path separator",
+    );
+    assert!(stderr.contains("{date:YYYY/MM}"), "{stderr}");
+    assert!(!dir.path().join("tasks/bad.typ").exists());
 }
 
 #[test]
 fn a_hook_dir_outside_every_root_is_refused() {
     let dir = project("[[on.add]]\nname = \"outside\"\nactions = [{ dir = \"outside\" }]\n");
-    let (_, stderr, ok) = add(dir.path(), &["add", "--name", "outside", "Outside"]);
-    assert!(!ok, "{stderr}");
-    assert!(stderr.contains("outside the configured roots"), "{stderr}");
+    assert_refused(
+        add(dir.path(), &["add", "--name", "outside", "Outside"]),
+        "outside the configured roots",
+    );
 }
 
 #[test]

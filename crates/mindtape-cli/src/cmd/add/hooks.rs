@@ -6,7 +6,8 @@
 //! the shared writable writer ([`mindtape::model::writable`]); `derive` calls a
 //! project Typst function over the sanitized draft ([`mindtape::rules::typst`])
 //! and writes its value back; `dir` is expanded after them in the same action,
-//! over the draft's scalar values, and the last hook that names one wins.
+//! over the draft's scalar values and the process date, and the last hook that
+//! names one wins.
 //!
 //! An explicit `=` from the caller owns its field: a hook `set` or `derive` on
 //! it is skipped and reported, while an explicit `+=` does not block a later
@@ -19,12 +20,12 @@ use std::fmt;
 use std::path::Path;
 
 use mindtape::config::add_hooks::{
-    AddAction, AddHook, AddValue, DeriveAction, DirTemplate, DirValue, desugar_add_when,
-    validate_derived_dir,
+    AddAction, AddHook, AddValue, DeriveAction, DirTemplate, DirValue, date_macro_value,
+    desugar_add_when, validate_derived_dir,
 };
 use mindtape::model::writable::{self, FieldOp, Shape, WritableField};
 use mindtape::rules::typst::{self, TypstCall};
-use mindtape::{Config, Filter, FilterError, RawValue, Readiness, Task};
+use mindtape::{Config, Filter, FilterError, RawValue, Readiness, Task, today_ymd};
 use typst_harvest::HVal;
 
 use crate::diag::{Diag, Kind, Note, Result, emit_text};
@@ -277,10 +278,14 @@ fn expand(text: &str, template: &str, draft: &Task, label: &str) -> Result<Strin
         .map_err(|message| error(label, format!("can't choose the task directory: {message}")))
 }
 
-/// One `dir` macro's value: the template name, or a writable scalar's text.
+/// One `dir` macro's value: the template name, a date macro from the process's
+/// pinned or system date, or a writable scalar's text.
 fn macro_value(name: &str, template: &str, draft: &Task) -> Option<String> {
     if name == "template" {
         return Some(template.to_owned());
+    }
+    if let Some(value) = date_macro_value(name, today_ymd()) {
+        return Some(value);
     }
     let field = writable::get(name)?;
     match writable::current_raw(field, draft)? {

@@ -56,12 +56,36 @@ pub(super) fn project(extra: &str) -> tempfile::TempDir {
 
 /// Run `mt add` in `dir` with `args`, returning stdout, stderr and success.
 pub(super) fn add(dir: &Path, args: &[&str]) -> (String, String, bool) {
-    let output = support::mt(dir).args(args).output().unwrap();
+    run_add(dir, None, args)
+}
+
+/// [`add`] with `$MINDTAPE_NOW` pinned to `now`: the date every date macro and
+/// dated write reads.
+pub(super) fn add_pinned(dir: &Path, now: &str, args: &[&str]) -> (String, String, bool) {
+    run_add(dir, Some(now), args)
+}
+
+/// The shared spawn behind [`add`] and [`add_pinned`].
+fn run_add(dir: &Path, now: Option<&str>, args: &[&str]) -> (String, String, bool) {
+    let mut command = support::mt(dir);
+    if let Some(now) = now {
+        command.env("MINDTAPE_NOW", now);
+    }
+    let output = command.args(args).output().unwrap();
     (
         String::from_utf8_lossy(&output.stdout).into_owned(),
         String::from_utf8_lossy(&output.stderr).into_owned(),
         output.status.success(),
     )
+}
+
+/// Assert a finished add failed and its stderr names `needle`, returning the
+/// stderr for any further check.
+pub(super) fn assert_refused(run: (String, String, bool), needle: &str) -> String {
+    let (_, stderr, ok) = run;
+    assert!(!ok, "{stderr}");
+    assert!(stderr.contains(needle), "{stderr}");
+    stderr
 }
 
 pub(super) fn read(dir: &Path, rel: &str) -> String {

@@ -21,9 +21,10 @@
 //! is checked through the same writer `mt set` uses, and an `append` must name
 //! a list field and carry at least one item. `dir` is not a field, so
 //! `set.dir` is refused by name. `dir` is a project-root-relative template over
-//! `{template}` and the add-safe scalar fields, expanded by the add pipeline
-//! with [`DirTemplate::expand`]; an unknown macro or an absolute path is a
-//! config error, and the empty string is the project root.
+//! `{template}`, the add-safe scalar fields and the date macros `{date}`,
+//! `{date:FMT}`, `{yy}`, `{mm}` and `{dd}`, expanded by the add pipeline with
+//! [`DirTemplate::expand`]; an unknown macro or an absolute path is a config
+//! error, and the empty string is the project root.
 //!
 //! `derive = { typst, function, field }` calls a project's own Typst function
 //! and replaces `field` with what it returns, the same call a rule's `check`
@@ -45,7 +46,9 @@ use serde::Deserialize;
 
 use crate::config::Config;
 use crate::config::add_hooks_dir::validate_dir;
-pub use crate::config::add_hooks_dir::{DirTemplate, validate_component, validate_derived_dir};
+pub use crate::config::add_hooks_dir::{
+    DirTemplate, date_macro_value, is_date_macro, validate_component, validate_derived_dir,
+};
 pub use crate::config::add_hooks_when::{desugar_add_when, when_templates};
 use crate::model::Task;
 use crate::model::writable::{self, FieldOp, Shape};

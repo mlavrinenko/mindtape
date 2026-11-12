@@ -2,16 +2,47 @@
 //! file-size gate.
 //!
 //! A `dir` is project-root-relative text with `{macro}` placeholders. A static
-//! template may name `{template}` and any add-safe scalar field; a value a
-//! derive function returns is a plain path and skips macro expansion, but must
-//! still stay relative and free of `.`/`..`.
+//! template may name `{template}`, any add-safe scalar field, and the date
+//! macros `{date}`, `{date:FMT}`, `{yy}`, `{mm}` and `{dd}`, all in the
+//! `[tasks.naming] stem` grammar; a value a derive function returns is a plain
+//! path and skips macro expansion, but must still stay relative and free of
+//! `.`/`..`.
 
 use std::path::Path;
 
 use crate::config::add_hooks::is_add_safe;
+use crate::date::format_iso;
 
 /// The one non-field macro a `dir` template takes.
 pub(super) const TEMPLATE_MACRO: &str = "template";
+
+/// The date a [`is_date_macro`] probe formats with: only the name's shape is
+/// asked about, never the value.
+const PROBE_DATE: (i32, u8, u8) = (2000, 1, 1);
+
+/// One date macro's value for `date`: `{date}` in ISO, `{date:FMT}` through
+/// [`format_iso`]'s token grammar, and `{yy}`, `{mm}`, `{dd}` as `YY`, `MM`,
+/// `DD`. `None` for any other name, so the accepted names and the expansion
+/// share one match.
+#[must_use]
+pub fn date_macro_value(name: &str, date: (i32, u8, u8)) -> Option<String> {
+    let (year, month, day) = date;
+    let iso = format!("{year:04}-{month:02}-{day:02}");
+    match name {
+        "date" => Some(iso),
+        "yy" => Some(format_iso(&iso, "YY")),
+        "mm" => Some(format_iso(&iso, "MM")),
+        "dd" => Some(format_iso(&iso, "DD")),
+        _ => name.strip_prefix("date:").map(|fmt| format_iso(&iso, fmt)),
+    }
+}
+
+/// Whether `name` is one of the date macros a `dir` template takes, in the same
+/// grammar as `[tasks.naming] stem`.
+#[must_use]
+pub fn is_date_macro(name: &str) -> bool {
+    date_macro_value(name, PROBE_DATE).is_some()
+}
 
 /// One piece of a `dir` template.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -118,7 +149,7 @@ pub(super) fn validate_dir(text: &str) -> Result<(), String> {
     }
     let template = DirTemplate::parse(text)?;
     for name in template.macros() {
-        if name != TEMPLATE_MACRO && !is_add_safe(name) {
+        if name != TEMPLATE_MACRO && !is_add_safe(name) && !is_date_macro(name) {
             return Err(format!("unknown dir macro: {{{name}}}"));
         }
     }
@@ -164,3 +195,7 @@ fn is_absolute(text: &str) -> bool {
         || Path::new(text).is_absolute()
         || matches!(text.as_bytes(), [drive, b':', ..] if drive.is_ascii_alphabetic())
 }
+
+#[cfg(test)]
+#[path = "add_hooks_dir_tests.rs"]
+mod tests;

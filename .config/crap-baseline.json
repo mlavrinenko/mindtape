@@ -824,7 +824,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "Derivation::evaluate",
-      "line": 307,
+      "line": 312,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -833,7 +833,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "Derivation::fail",
-      "line": 332,
+      "line": 337,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -842,7 +842,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "Derivation::field_error",
-      "line": 324,
+      "line": 329,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -851,7 +851,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "Derivation::fmt",
-      "line": 338,
+      "line": 343,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -860,7 +860,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "Derivation::of",
-      "line": 302,
+      "line": 307,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -869,7 +869,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "Derivation::type_error",
-      "line": 315,
+      "line": 320,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -878,7 +878,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "append",
-      "line": 162,
+      "line": 163,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -887,7 +887,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "apply",
-      "line": 120,
+      "line": 121,
       "cyclomatic": 10.0,
       "coverage": 100.0,
       "crap": 10.0,
@@ -896,7 +896,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "apply_dir",
-      "line": 210,
+      "line": 211,
       "cyclomatic": 7.0,
       "coverage": 100.0,
       "crap": 7.0,
@@ -905,7 +905,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "error",
-      "line": 238,
+      "line": 239,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -914,7 +914,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "expand",
-      "line": 272,
+      "line": 273,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -923,7 +923,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "field",
-      "line": 232,
+      "line": 233,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -932,7 +932,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "field_derive",
-      "line": 181,
+      "line": 182,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -941,7 +941,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "field_error",
-      "line": 244,
+      "line": 245,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -950,7 +950,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "field_value",
-      "line": 253,
+      "line": 254,
       "cyclomatic": 8.0,
       "coverage": 100.0,
       "crap": 8.0,
@@ -959,7 +959,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "filter_error",
-      "line": 102,
+      "line": 103,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -968,7 +968,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "fires",
-      "line": 92,
+      "line": 93,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -977,7 +977,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "label",
-      "line": 85,
+      "line": 86,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -986,16 +986,16 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "macro_value",
-      "line": 281,
-      "cyclomatic": 6.0,
+      "line": 283,
+      "cyclomatic": 7.0,
       "coverage": 100.0,
-      "crap": 6.0,
+      "crap": 7.0,
       "crate": "mindtape-cli"
     },
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "run",
-      "line": 61,
+      "line": 62,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -1004,7 +1004,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/add/hooks.rs",
       "function": "set",
-      "line": 139,
+      "line": 140,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -13145,7 +13145,7 @@
     {
       "file": "crates/mindtape/src/config/add_hooks.rs",
       "function": "AddValue::raw",
-      "line": 124,
+      "line": 127,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -13154,7 +13154,7 @@
     {
       "file": "crates/mindtape/src/config/add_hooks.rs",
       "function": "Checker::action",
-      "line": 318,
+      "line": 321,
       "cyclomatic": 11.0,
       "coverage": 100.0,
       "crap": 11.0,
@@ -13163,7 +13163,7 @@
     {
       "file": "crates/mindtape/src/config/add_hooks.rs",
       "function": "Checker::add_unsafe",
-      "line": 295,
+      "line": 298,
       "cyclomatic": 7.0,
       "coverage": 100.0,
       "crap": 7.0,
@@ -13172,7 +13172,7 @@
     {
       "file": "crates/mindtape/src/config/add_hooks.rs",
       "function": "Checker::append",
-      "line": 416,
+      "line": 419,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -13181,7 +13181,7 @@
     {
       "file": "crates/mindtape/src/config/add_hooks.rs",
       "function": "Checker::call",
-      "line": 392,
+      "line": 395,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -13190,7 +13190,7 @@
     {
       "file": "crates/mindtape/src/config/add_hooks.rs",
       "function": "Checker::derive",
-      "line": 351,
+      "line": 354,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -13199,7 +13199,7 @@
     {
       "file": "crates/mindtape/src/config/add_hooks.rs",
       "function": "Checker::dir",
-      "line": 375,
+      "line": 378,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -13208,7 +13208,7 @@
     {
       "file": "crates/mindtape/src/config/add_hooks.rs",
       "function": "Checker::hook",
-      "line": 256,
+      "line": 259,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -13217,7 +13217,7 @@
     {
       "file": "crates/mindtape/src/config/add_hooks.rs",
       "function": "Checker::set",
-      "line": 397,
+      "line": 400,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -13226,7 +13226,7 @@
     {
       "file": "crates/mindtape/src/config/add_hooks.rs",
       "function": "Checker::when",
-      "line": 267,
+      "line": 270,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -13235,7 +13235,7 @@
     {
       "file": "crates/mindtape/src/config/add_hooks.rs",
       "function": "DirValue::derived",
-      "line": 173,
+      "line": 176,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -13244,7 +13244,7 @@
     {
       "file": "crates/mindtape/src/config/add_hooks.rs",
       "function": "DirValue::template",
-      "line": 164,
+      "line": 167,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -13253,7 +13253,7 @@
     {
       "file": "crates/mindtape/src/config/add_hooks.rs",
       "function": "is_add_safe",
-      "line": 207,
+      "line": 210,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -13262,7 +13262,7 @@
     {
       "file": "crates/mindtape/src/config/add_hooks.rs",
       "function": "template_names",
-      "line": 185,
+      "line": 188,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -13271,7 +13271,7 @@
     {
       "file": "crates/mindtape/src/config/add_hooks.rs",
       "function": "validate_add_hooks",
-      "line": 225,
+      "line": 228,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -13280,7 +13280,7 @@
     {
       "file": "crates/mindtape/src/config/add_hooks_dir.rs",
       "function": "DirTemplate::expand",
-      "line": 75,
+      "line": 106,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -13289,7 +13289,7 @@
     {
       "file": "crates/mindtape/src/config/add_hooks_dir.rs",
       "function": "DirTemplate::macros",
-      "line": 63,
+      "line": 94,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -13298,7 +13298,7 @@
     {
       "file": "crates/mindtape/src/config/add_hooks_dir.rs",
       "function": "DirTemplate::parse",
-      "line": 36,
+      "line": 67,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -13306,8 +13306,17 @@
     },
     {
       "file": "crates/mindtape/src/config/add_hooks_dir.rs",
+      "function": "date_macro_value",
+      "line": 28,
+      "cyclomatic": 6.0,
+      "coverage": 100.0,
+      "crap": 6.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/config/add_hooks_dir.rs",
       "function": "is_absolute",
-      "line": 161,
+      "line": 192,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -13315,8 +13324,17 @@
     },
     {
       "file": "crates/mindtape/src/config/add_hooks_dir.rs",
+      "function": "is_date_macro",
+      "line": 43,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/config/add_hooks_dir.rs",
       "function": "validate_component",
-      "line": 97,
+      "line": 128,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -13325,7 +13343,7 @@
     {
       "file": "crates/mindtape/src/config/add_hooks_dir.rs",
       "function": "validate_derived_dir",
-      "line": 135,
+      "line": 166,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -13334,16 +13352,16 @@
     {
       "file": "crates/mindtape/src/config/add_hooks_dir.rs",
       "function": "validate_dir",
-      "line": 114,
-      "cyclomatic": 7.0,
+      "line": 145,
+      "cyclomatic": 8.0,
       "coverage": 100.0,
-      "crap": 7.0,
+      "crap": 8.0,
       "crate": "mindtape"
     },
     {
       "file": "crates/mindtape/src/config/add_hooks_dir.rs",
       "function": "validate_relative_dir",
-      "line": 142,
+      "line": 173,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,

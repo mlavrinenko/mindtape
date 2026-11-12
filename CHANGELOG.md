@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **An `[[on.add]]` `dir` takes date macros.** `{date}`, `{date:FMT}`, `{yy}`,
+  `{mm}` and `{dd}` expand from the pinned or system date, with the same tokens
+  as `[tasks.naming] stem`, so `dir = "tasks/{date:YYYY}-{date:MM}"` files a new
+  task in its month folder. An unknown macro, or a format that expands to a path
+  separator, is still refused.
+
 ## [0.6.0] - 2026-11-12
 
 ### Upgrading from 0.5

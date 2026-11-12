@@ -32,7 +32,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 13),
+  status: wip(2026, 11, 13),
 )
 
 == AS-IS
@@ -73,9 +73,13 @@ wrote tasks/2026-11/file-the-task.typ (abc)
 
 == Changes
 
-- `crates/mindtape/src/config/add_hooks_dir.rs`: accept the date macro family in a static `dir`, and validate `{date:FMT}` against the shared token grammar.
-- `crates/mindtape-cli/src/cmd/add/hooks.rs`: expand each date macro from `today_ymd()` and `format_iso`.
+- `crates/mindtape/src/config/add_hooks_dir.rs`: accept the date macro family in a static `dir`, and expand each one from a given date through `format_iso`'s tokens.
+- `crates/mindtape/src/config/add_hooks_dir_tests.rs`: the accepted family, the refused near miss, the parsed macro names and each expansion.
+- `crates/mindtape/src/config/add_hooks.rs`: re-export the date macro helpers and name them in the `dir` docs.
+- `crates/mindtape-cli/src/cmd/add/hooks.rs`: expand each date macro from `today_ymd()`.
+- `crates/mindtape-cli/src/cmd/add/hooks_tests.rs`: a date macro reads the process date, not the draft.
 - `crates/mindtape-cli/tests/it/add_hooks_e2e.rs`: a pinned clock lands a task in the month folder, and a separator in a format is refused.
+- `crates/mindtape-cli/tests/it/add_hooks_support.rs`: an `add` that pins `MINDTAPE_NOW`.
 - `www/content/hooks.typ`: document the macros beside `{template}` and the field macros.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 
