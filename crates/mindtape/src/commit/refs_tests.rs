@@ -1,6 +1,9 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use super::{CommitRefs, Read, Touched, cache_path, parse_log, resolve};
+use std::collections::HashSet;
+use std::sync::{Arc, OnceLock};
+
+use super::{CommitRefs, Read, RefsCache, Touched, cache_path, parse_log, resolve};
 use crate::config::{Config, parse_config};
 use crate::model::Task;
 use crate::test_support::bare_task;
@@ -29,6 +32,84 @@ fn resolved(config: &Config, refs: &[&str], tasks: &[Task]) -> Touched {
     };
     let root = tempdir();
     resolve(&read, root.path(), "src/x.rs", config, Some(tasks))
+}
+
+/// An index naming `old` at `src/x.rs`, with the rename that moves it to
+/// `new`.
+fn read_with_a_rename() -> Read {
+    let touched = [("src/x.rs".to_owned(), vec!["old".to_owned()])]
+        .into_iter()
+        .collect();
+    Read {
+        refs: CommitRefs {
+            touched,
+            renames: vec![("tasks/old.typ".to_owned(), "tasks/new.typ".to_owned())],
+        },
+        root_prefix: String::new(),
+    }
+}
+
+/// A cache whose history is already read, so the answer path runs no git.
+fn seeded_cache(read: Read) -> RefsCache {
+    RefsCache {
+        read: Arc::new(OnceLock::from(Ok(read))),
+        ..RefsCache::default()
+    }
+}
+
+#[test]
+fn an_answer_is_keyed_by_the_task_set_it_resolved_against() {
+    let config = parse_config("[tasks]\nroots = [\"tasks\"]\n").unwrap();
+    let root = tempdir();
+    let new_tasks = [bare_task("new")];
+    let old_tasks = [bare_task("old")];
+    for (first, second, first_stem, second_stem) in [
+        (&new_tasks, &old_tasks, "new", "old"),
+        (&old_tasks, &new_tasks, "old", "new"),
+    ] {
+        let cache = seeded_cache(read_with_a_rename());
+        let one = cache
+            .touching(root.path(), "src/x.rs", &config, Some(first))
+            .unwrap();
+        let other = cache
+            .touching(root.path(), "src/x.rs", &config, Some(second))
+            .unwrap();
+        assert_eq!(
+            one.stems,
+            HashSet::from([first_stem.to_owned()]),
+            "the answer for the first set"
+        );
+        assert_eq!(
+            other.stems,
+            HashSet::from([second_stem.to_owned()]),
+            "a second set over one path must not reuse the first set's answer"
+        );
+    }
+}
+
+#[test]
+fn a_missing_task_set_answers_apart_from_an_empty_one() {
+    let config = parse_config("[tasks]\nroots = [\"tasks\"]\n").unwrap();
+    let root = tempdir();
+    let cache = seeded_cache(read_with_a_rename());
+    let unset = cache
+        .touching(root.path(), "src/x.rs", &config, None)
+        .unwrap();
+    assert_eq!(
+        unset.stems,
+        HashSet::from(["new".to_owned()]),
+        "without a set, a stem follows its renames to the last name"
+    );
+    let empty: [Task; 0] = [];
+    let retired = cache
+        .touching(root.path(), "src/x.rs", &config, Some(&empty))
+        .unwrap();
+    assert!(
+        retired.stems.is_empty(),
+        "an empty set answers no task: {:?}",
+        retired.stems
+    );
+    assert_eq!(retired.retired, ["old"]);
 }
 
 #[test]

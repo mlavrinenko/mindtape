@@ -27,6 +27,7 @@ use std::path::Path;
 use std::sync::{Arc, Mutex, OnceLock, PoisonError};
 
 use serde::{Deserialize, Serialize};
+use sha1::{Digest, Sha1};
 
 use crate::commit::{
     external_matchers, is_path_form, is_task_file, matches_external, parse_message, split_refs,
@@ -150,7 +151,7 @@ impl RefsCache {
         set: Option<&[Task]>,
     ) -> Result<Arc<Touched>, String> {
         let path = path.trim_start_matches("./").replace('\\', "/");
-        let key = format!("{}\0{path}", set.is_some());
+        let key = answer_key(&path, set);
         if let Some(hit) = lock(&self.answers).get(&key) {
             return Ok(Arc::clone(hit));
         }
@@ -174,6 +175,27 @@ impl RefsCache {
 fn lock<T>(mutex: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
     // A poisoned lock still holds only finished answers.
     mutex.lock().unwrap_or_else(PoisonError::into_inner)
+}
+
+/// The key one answer is cached under: `path` and a digest of every task in
+/// `set`. The states a commit is checked against hold different sets, so one
+/// state's answer must never satisfy another's question. No set and an empty
+/// one differ too: without a set a stem resolves to the last name along its
+/// renames, with an empty one every stem is retired.
+fn answer_key(path: &str, set: Option<&[Task]>) -> String {
+    let Some(tasks) = set else {
+        return format!("no-set\0{path}");
+    };
+    let mut hasher = Sha1::new();
+    for task in tasks {
+        // A task's file names the stem `resolve` reads; an id covers a file
+        // that names none. Hashing both keeps every set's answer its own.
+        hasher.update(task.file.as_os_str().as_encoded_bytes());
+        hasher.update(b"\0");
+        hasher.update(task.id.as_bytes());
+        hasher.update(b"\0");
+    }
+    format!("{}\0{path}", crate::loader::cache::hex(&hasher.finalize()))
 }
 
 /// Resolve the refs the commits changing `path` name.

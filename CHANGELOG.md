@@ -96,6 +96,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`touches()` answers for the task set it read.** A task-scope commit rule
+  that compares `head(touches("src/x.rs"))` with `staged(touches("src/x.rs"))`
+  now gets each state's own answer, whichever state the expression reads
+  first. Before, the second state reused the first state's cached answer.
 - **An add hook cannot read an answer the filed set supplies.** A `when` now
   refuses `ready()`, `blocked()` and `count(...)` as well as the bare fields,
   and `old()` refuses the same unsafe fields (`file`, `depth`, `topo`, the
