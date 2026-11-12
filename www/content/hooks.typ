@@ -158,13 +158,17 @@ config errors. An empty `when` fires on every add.
 `dir` is a project-root-relative template. `{template}` expands to the template
 name, and `{title}`, `{priority}`, `{difficulty}`, `{kind}`, `{assignee}`,
 `{due}` and `{start}` expand to the task's fields, after the action's `set` and
-`append`. A macro's value must be one path component, so a title with a `/` is
-refused when the task is added. The literal `""` is the project root, and a
-hooked add refuses it unless a configured root covers the project root. An
-unknown macro, an absolute path, or an empty, `.` or `..` component is a config
-error. A hook `dir` outside every configured root is refused at add time once
-the hook fires, and so is an explicit `--dir` outside every root when hooks are
-enabled.
+`append`. `{date}`, `{date:FMT}`, `{yy}`, `{mm}` and `{dd}` expand to the date,
+in the same #link(u("/config/#task-file-names"))[format as `[tasks.naming] stem`].
+That date is today's, or the one `MINDTAPE_NOW` pins, so
+`dir = "tasks/{date:YYYY}-{date:MM}"` files a task under its month. A macro's
+value must be one path component, so a title with a `/` is refused when the task
+is added, and a date format with one, such as `{date:YYYY/MM}`, is refused the
+same way. The literal `""` is the project root, and a hooked add refuses it
+unless a configured root covers the project root. An unknown macro, an absolute
+path, or an empty, `.` or `..` component is a config error. A hook `dir` outside
+every configured root is refused at add time once the hook fires, and so is an
+explicit `--dir` outside every root when hooks are enabled.
 
 Add hooks merge across packs and layers like `[[on.flip]]`. A later hook with
 the same `name` replaces the earlier one in place, `disable` drops it by name,
