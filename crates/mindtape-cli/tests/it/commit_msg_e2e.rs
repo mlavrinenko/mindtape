@@ -11,8 +11,8 @@ use crate::support;
 use mindtape::test_support::write_file;
 
 use support::{
-    check_commit_msg, check_commit_msg_with, commit_repo, git, git_commit_all, project_with_tasks,
-    scaffold_project,
+    check_commit_msg, check_commit_msg_with, commit_repo, git, git_commit_all, native,
+    project_with_tasks, scaffold_project,
 };
 
 /// The rule the task ships as its worked example: every commit carrying work
@@ -363,8 +363,9 @@ fn a_broken_staged_config_falls_back_to_the_working_config_and_warns() {
 
     let (ok, text) = check_commit_msg(dir.path(), "feat: parse\n\nRefs: parser\n");
     assert!(ok, "the working config still classifies the commit: {text}");
+    let config = native(".mindtape/config.toml");
     assert!(
-        text.contains(".mindtape/config.toml as staged:"),
+        text.contains(&format!("{config} as staged:")),
         "the broken state config is reported: {text}"
     );
     assert!(
