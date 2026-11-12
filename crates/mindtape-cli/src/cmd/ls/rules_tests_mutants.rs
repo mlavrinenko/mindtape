@@ -114,7 +114,7 @@ fn explicit_filter_keeps_the_default_views_columns_value() {
 }
 
 // --- suggest wiring for a `--columns` spec
-// (`truth/tasks/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`) --
+// (`truth/tasks/2026-09/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`) --
 
 #[test]
 fn resolve_columns_near_miss_offers_a_suggestion() {
@@ -149,7 +149,7 @@ fn the_column_hint_lists_every_column() {
 }
 
 // --- the escape hatch the CLI docs promise
-// (`truth/tasks/ls-rules-lose-their-sort-and-columns-facets-under-an-explicit-filter.typ`) --
+// (`truth/tasks/2026-09/ls-rules-lose-their-sort-and-columns-facets-under-an-explicit-filter.typ`) --
 
 #[test]
 fn splicing_the_default_view_over_both_facets_drops_a_rules_presentation() {

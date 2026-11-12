@@ -264,7 +264,7 @@ fn no_limit_reports_no_truncation() {
     );
 }
 
-// --- --skip (`truth/tasks/add-skip-and-a-next-command-hint-to-ls-paging.typ`)
+// --- --skip (`truth/tasks/2026-09/add-skip-and-a-next-command-hint-to-ls-paging.typ`)
 
 #[test]
 fn skip_drops_rows_after_the_sort() {

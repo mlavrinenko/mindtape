@@ -1,5 +1,5 @@
 //! End-to-end tests for the jq source adapters (`contrib/jq/*.jq`,
-//! `truth/tasks/jq-source-adapters.typ`): shells `jq -f` on a fixture (real
+//! `truth/tasks/2026-07/jq-source-adapters.typ`): shells `jq -f` on a fixture (real
 //! subprocess stdin/stdout, same reasoning `import_e2e.rs` gives for
 //! shelling `mt` itself), then pipes the adapter's output into `mt import`
 //! and validates the imported project with `mt check`.

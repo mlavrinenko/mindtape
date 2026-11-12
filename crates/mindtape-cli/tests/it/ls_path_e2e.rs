@@ -1,5 +1,5 @@
 //! End-to-end tests for `mt ls --format path` / `path0`
-//! (`truth/tasks/emit-a-plain-path-list-from-ls.typ`): the plain path list
+//! (`truth/tasks/2026-08/emit-a-plain-path-list-from-ls.typ`): the plain path list
 //! that composes with another program without a `jq` dependency.
 #![allow(clippy::unwrap_used)]
 
@@ -171,7 +171,7 @@ fn path_format_matches_the_table_file_column_exactly() {
 /// field compares — while the table and `--format path` show `../tasks/a.typ`
 /// for the same task. Before this, CSV rendered the display and the two
 /// machine formats disagreed by whichever directory the producer stood in
-/// (`truth/tasks/csv-and-json-disagree-about-what-the-file-field-means.typ`).
+/// (`truth/tasks/2026-09/csv-and-json-disagree-about-what-the-file-field-means.typ`).
 #[test]
 fn csv_and_json_report_the_same_root_relative_file_from_a_subdirectory() {
     let dir = scaffold();
@@ -215,7 +215,7 @@ fn csv_and_json_report_the_same_root_relative_file_from_a_subdirectory() {
 /// standing) while the filter still compares the root-relative
 /// `tasks/a.typ` — so a view or `[[ls.rules]]` entry means the same thing
 /// wherever `mt` runs from
-/// (`truth/tasks/the-file-filter-field-and-the-file-column-name-different-paths.typ`).
+/// (`truth/tasks/2026-09/the-file-filter-field-and-the-file-column-name-different-paths.typ`).
 #[test]
 fn the_path_field_stays_root_relative_while_the_display_follows_the_cwd() {
     let dir = scaffold();

@@ -1,0 +1,75 @@
+#import "@local/mindtape:0.3.0": *
+#import "/truth/lib.typ": *
+
+#show: task.with(
+  title: "Configure worktrunk in the repo so a fresh clone needs no host setup",
+  kind: "dev",
+  priority: ice(
+    impact: 7,
+    confidence: 0.8,
+    ease: 5,
+  ),
+  difficulty: 4,
+  tags: ("tooling",),
+  estimate: (src-files: 5),
+  x-goals: (
+    product: verdicts(
+      (
+        enforced-practice: helps[the gate and the wip check before a merge travel with the repo, not with one machine],
+        cheap-adoption: helps[a fresh clone with nix and direnv forks and lands work the same way the maintainer does],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "typst-over-markdown",
+      "plain-files",
+    ),
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
+    ),
+  ),
+  assignee: "agent",
+  status: done(2026, 10, 11),
+)
+
+== AS-IS
+
++ On a machine without the maintainer's ~/.nix, clone mindtape and run `wt switch --create x`, commit, then `wt merge`.
++ 🔴 worktrunk's defaults squash the branch into one commit, losing each commit's `Refs:` footer, and commit a dirty tree. No gate runs, because the gate, the wip check and the gate-record carry are user hooks in ~/.nix (`apps/worktrunk.nix`, helpers `wt-tasks-done`, `wt-carry-gate`).
++ 🔴 `wt` isn't in this repo's dev shell either.
+
+
+== TO-BE
+
+- 🟢 `worktrunk` comes from `flake.nix`'s dev shell.
+- 🟢 `.config/wt.toml` holds every hook: `pre-start` (direnv allow and load, `just build-mt`), `[[pre-merge]]` gate (`just check`) then the wip check, `pre-remove` gate-record and lcov carry, `post-merge` `just build-mt`.
+- 🟢 Project config can't set merge defaults, so `just fork <slug>` runs `wt switch --create <slug> --yes` and `just land` runs `wt merge --no-squash --no-commit --yes`.
+- 🟢 With nix and direnv alone, a clone delegates and lands like the maintainer.
+
+
+== Changes
+
+- `flake.nix`: `worktrunk` in the dev shell.
+- `.config/wt.toml`: the hooks above. Today it holds only `just build-mt`.
+- `.just/scripts/wt-tasks-done.sh`, `.just/scripts/wt-carry-gate.sh`: ported from the two `writeShellApplication`s in ~/.nix/apps/worktrunk.nix.
+- `Justfile`: `fork` and `land`.
+- AGENTS.md and the contributing docs: delegate with `just fork`, land with `just land`, regenerated through the docs recipes.
+
+
+== Rollback
+
+Revert the commit; the ~/.nix user hooks still cover the maintainer's machine until ~/.nix drops them.
+
+
+== Out of scope
+
+- Removing the ~/.nix user hooks: ~/.nix's own task, after this lands, so no hook runs twice.
+- canibump and cratemplate, which follow this repo's result.
+- The wip check as an `mt` rule (task `refuse-a-commit-range-that-leaves-a-task-it-names-in-progress-at-its-tip`) and the carry as `mmz --import` (~/projects/home/mmz, task `import-gate-records-from-another-checkout-of-the-same-repo`). If either has landed, call it from `.config/wt.toml` and drop that script.
+
+
+== Dogfood
+
+The next delegated task here forks with `just fork` and lands with `just land`; a scratch clone under a clean HOME proves the no-host-setup claim.
+

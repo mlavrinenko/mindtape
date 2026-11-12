@@ -66,7 +66,7 @@ fn config() -> Config {
 
 /// The Problem's own rule: `x-goals` reaches a Typst function instead of the
 /// filter language, which cannot name an `x-` field or a nested dict at all
-/// (`truth/tasks/check-a-task-field-with-a-typst-function.typ`'s Problem
+/// (`truth/tasks/2026-09/check-a-task-field-with-a-typst-function.typ`'s Problem
 /// section). A task carrying the goal verdicts the task file's example gives
 /// passes; the function only rejects a `neutral` verdict on a goal named
 /// `readable-tasks`.

@@ -244,7 +244,7 @@ fn path_format_reads_the_root_of_its_own_context() {
 /// `file_path::cell_text`, so the list you paste into the next command spells
 /// each path the way the listing you read it from did. CSV is not part of
 /// that pair: it is a record format, and pins the pairing to the wrong side
-/// (`truth/tasks/csv-and-json-disagree-about-what-the-file-field-means.typ`).
+/// (`truth/tasks/2026-09/csv-and-json-disagree-about-what-the-file-field-means.typ`).
 #[test]
 fn path_format_matches_the_table_file_column_cell() {
     let mut task = sample();

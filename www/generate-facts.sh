@@ -227,7 +227,7 @@ jq -f "$SCRIPT_DIR/gates.jq" <<<"$JUST_DUMP" | emit gates.json
 # jq program below with halt_error, naming both, rather than one silently
 # shadowing the other.
 #
-# A module recipe (truth/tasks/split-the-justfile-into-modules.typ) is walked
+# A module recipe (truth/tasks/2026-08/split-the-justfile-into-modules.typ) is walked
 # via the same recursive all_recipes() the gates.jq program uses, keyed by its
 # `namepath` (just's own dump already qualifies it, e.g. "docs::check"). The
 # rendered command swaps `::` for a space — `just docs check`, matching how

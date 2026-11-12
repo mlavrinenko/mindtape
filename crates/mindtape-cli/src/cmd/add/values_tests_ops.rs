@@ -60,7 +60,7 @@ fn an_append_to_a_scalar_writable_field_is_refused_by_name() {
 }
 
 // --- suggest wiring for an unknown `--set`/`-f` key
-// (`truth/tasks/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`) --
+// (`truth/tasks/2026-09/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`) --
 
 #[test]
 fn reject_unknown_keys_near_miss_offers_a_suggestion() {

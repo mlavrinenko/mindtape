@@ -1,5 +1,5 @@
 //! End-to-end tests for `[[tasks.rules]]`
-//! (`truth/tasks/validate-every-task-against-config-declared-rules.typ`): a
+//! (`truth/tasks/2026-09/validate-every-task-against-config-declared-rules.typ`): a
 //! project-declared assertion in the filter language, evaluated inside the
 //! validation pass every command shares.
 //!
@@ -283,7 +283,7 @@ fn mt_flip_lets_a_warn_rule_through() {
 
 /// The mechanism above is proven against a synthetic project. This checks the
 /// ADOPTION itself
-/// (truth/tasks/enforce-an-imperative-verb-at-the-start-of-task-titles.typ):
+/// (truth/tasks/2026-09/enforce-an-imperative-verb-at-the-start-of-task-titles.typ):
 /// that `start-title-with-verb` reaches this repo's own backlog at `error`. It loads
 /// the committed config rather than re-deriving it from a scaffold, so a config
 /// edit that drops the rule or loosens its severity fails here even though the
@@ -298,7 +298,7 @@ fn find_imperative_title_rule(config: &mindtape::Config) -> &mindtape::RuleSpec 
 }
 
 /// This repo's own `.mindtape/config.toml`
-/// (`truth/tasks/ship-the-task-practice-as-the-mindtape-tasks-pack.typ`) no
+/// (`truth/tasks/2026-09/ship-the-task-practice-as-the-mindtape-tasks-pack.typ`) no
 /// longer declares `start-title-with-verb` itself — it inherits it from the
 /// embedded `mindtape:tasks` pack via `extends`. `parse_config` cannot prove
 /// that (it never resolves `extends`/`disable`; see `crate::config::packs`),
@@ -315,7 +315,7 @@ fn this_repos_own_config_carries_the_rule_at_error() {
 }
 
 /// `check = { typst, function, field }`
-/// (`truth/tasks/check-a-task-field-with-a-typst-function.typ`): a rule that
+/// (`truth/tasks/2026-09/check-a-task-field-with-a-typst-function.typ`): a rule that
 /// names a Typst function instead of a filter expression, for a structure
 /// (an `x-<ns>` extras dict) the filter language has no way to reach.
 ///

@@ -1,5 +1,5 @@
 //! `[[ls.rules]]` cascade resolution for bare `mt ls`
-//! (`truth/tasks/conditional-ls-rules.typ`).
+//! (`truth/tasks/2026-07/conditional-ls-rules.typ`).
 //!
 //! [`resolve`] is the single source `cmd/ls/mod.rs` (one-shot and `--interactive`)
 //! calls. The cascade
@@ -13,7 +13,7 @@
 //! Every layer is per facet, so narrowing a listing keeps the presentation the
 //! layer beneath chose — filter answers "which tasks", sort and columns answer
 //! "how do I read them"
-//! (`truth/tasks/ls-rules-lose-their-sort-and-columns-facets-under-an-explicit-filter.typ`).
+//! (`truth/tasks/2026-09/ls-rules-lose-their-sort-and-columns-facets-under-an-explicit-filter.typ`).
 //! [`resolve_bare`] is the cascade without the CLI-argument layers.
 
 use std::io::IsTerminal;

@@ -1,5 +1,5 @@
 //! End-to-end proof that an estimate budget and cap are plain `[[tasks.rules]]`
-//! entries (`truth/tasks/retire-the-drift-check-and-estimate-bounds-in-favour-of-rules.typ`).
+//! entries (`truth/tasks/2026-09/retire-the-drift-check-and-estimate-bounds-in-favour-of-rules.typ`).
 //!
 //! Drives a real git working copy so `changed()` reads a real change set. No
 //! estimate check runs unless a rule asks for it: a project declaring an

@@ -5,7 +5,7 @@
 //! against a hand-built `Config` only — nothing exercised it through TOML
 //! parsing, project loading and `mt ls`/`mt check` until the 2026-08-07
 //! manual session that surfaced the gap
-//! (`truth/tasks/cover-the-actors-filters-end-to-end.typ`). This file closes
+//! (`truth/tasks/2026-08/cover-the-actors-filters-end-to-end.typ`). This file closes
 //! it.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 

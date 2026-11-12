@@ -1,0 +1,65 @@
+#import "@local/mindtape:0.3.0": *
+#import "/truth/lib.typ": *
+
+#show: task.with(
+  title: "Cut every short repeated snippet the repeats arm reports",
+  kind: "dev",
+  priority: ice(
+    impact: 4,
+    confidence: 0.8,
+    ease: 5,
+  ),
+  difficulty: 2,
+  tags: ("tooling",),
+  estimate: (src-files: 40),
+  x-goals: (
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
+    ),
+    process: verdicts(
+      (
+        sound-codebase: helps[each setup line lives in one test helper, so a change to it is one edit],
+      ),
+      "docs-match-code",
+    ),
+  ),
+  assignee: "agent",
+  status: done(2026, 10, 13),
+)
+
+== AS-IS
+
++ Source `contrib/ask-refactoring/repeats.sh`, run jscpd at 15 tokens over `crates` and pipe its report through `score_repeats` with `REPEAT_GAIN=300`.
++ 🔴 It prints 12 groups. The biggest is `let dir = tempfile::tempdir().unwrap();`, 395 copies in 107 files. The rest are test setups pasted 8 to 58 times: an `mt add` run and read-back, a `Condition::parse` assert, a link-edge fixture, a self-test re-exec, a rules-test project and a template const.
+
+== TO-BE
+
+- 🟢 The repeats arm reports no group at its default `--repeat-gain 300`.
+- 🟢 Each extracted snippet is one test helper. No clippy lock: both crate roots exempt test code from `disallowed-methods`, so the repeats arm is what catches a new copy.
+
+== Changes
+
+- `crates/mindtape/src/test_support.rs`: `tempdir` and its `_with_dirs`, `_with_files` and `_with_config` forms, `write_file`, `linked_task`, the `typst_import!` and `typst_task!` macros, and `rerun_isolated`, which re-runs a test in a child by its thread's name.
+- `crates/mindtape/Cargo.toml`: `test-support` pulls `tempfile` as an optional dependency.
+- `crates/mindtape-cli/src/test_util.rs`, `crates/mindtape-cli/tests/it/support/mod.rs`: project fixtures own their tempdir; `add_and_read`.
+- `crates/**/*_tests.rs`, `crates/**/tests.rs`, `crates/mindtape-cli/tests/it/*.rs`: the copies call the helpers.
+- `outdatty.yaml`: `test_support.rs` joins `typst-pkg-version`.
+
+== Rollback
+
+- Revert the commits. Only test code and the `test-support` feature change.
+
+== Out of scope
+
+- Groups under the gain bar, which the arm says are not worth a helper.
+- Clones of 50 tokens and up, which `just check-dry` and its baseline own.
+
+== Dogfood
+
+This repo's `just ask-refactoring` files no repeats task.

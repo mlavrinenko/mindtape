@@ -5,11 +5,11 @@
 //! `(rule, anchor, until, count, materialize)` dict via `every()`/`rrule()`,
 //! with no date math. This module owns the marker parse and [`check_policy`];
 //! the next-date arithmetic lives in [`crate::recur::dates`]. Only `mt recur`
-//! acts on a [`Recur`]; see `truth/tasks/recurring-tasks.typ`.
+//! acts on a [`Recur`]; see `truth/tasks/2026-07/recurring-tasks.typ`.
 //!
 //! `rrule(...)` shares the dict shape (a [`Rule::Rrule`] variant carrying the
 //! raw rule string), gated by `[tasks.recur] rrule`; see
-//! `truth/tasks/rrule-escape-hatch.typ`. `check_policy` grammar-checks the raw
+//! `truth/tasks/2026-07/rrule-escape-hatch.typ`. `check_policy` grammar-checks the raw
 //! string at parse time and rejects `anchor: "completion"` on it, since it is
 //! date-anchored only.
 //!

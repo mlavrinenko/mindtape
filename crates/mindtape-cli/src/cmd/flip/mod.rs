@@ -383,7 +383,7 @@ fn report_flip(task: &mindtape::Task, status: &str, restamp: bool) {
 /// After a successful flip to a terminal status, notice a recurring task
 /// rather than staying silent: `mt done` stays a pure close — it never
 /// strips `recur` or advances anything (see
-/// `truth/tasks/command-semantics-cqrs.typ`) — but a `spawn` series still has
+/// `truth/tasks/2026-07/command-semantics-cqrs.typ`) — but a `spawn` series still has
 /// a next occurrence to materialize, so point at `mt recur`; a `mutate`
 /// series has no further file to advance, so note that this closes it.
 fn notice_recur(

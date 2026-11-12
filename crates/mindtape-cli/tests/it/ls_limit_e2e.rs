@@ -1,6 +1,6 @@
 //! End-to-end tests for `mt ls -n / --limit / --skip`
-//! (`truth/tasks/ls-limit-flag.typ`,
-//! `truth/tasks/add-skip-and-a-next-command-hint-to-ls-paging.typ`): the
+//! (`truth/tasks/2026-08/ls-limit-flag.typ`,
+//! `truth/tasks/2026-09/add-skip-and-a-next-command-hint-to-ls-paging.typ`): the
 //! native truncation path, `--skip` paging past what a prior page showed, and
 //! what a truncated listing says about the rows it hid.
 //!

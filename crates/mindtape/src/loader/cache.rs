@@ -1,5 +1,5 @@
 //! Persistent content-hash task cache
-//! (`truth/tasks/persistent-content-hash-task-cache.typ`).
+//! (`truth/tasks/2026-07/persistent-content-hash-task-cache.typ`).
 //!
 //! Warm `mt ls` / `mt check` over a mostly-static backlog re-stat and re-hash
 //! each task file, then read its harvested marker straight from

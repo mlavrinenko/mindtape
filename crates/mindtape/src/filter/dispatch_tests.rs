@@ -118,7 +118,7 @@ fn path_field_equality_matches_the_full_root_relative_path() {
 /// out of the `file` COLUMN and writes `file` into a filter used to get an
 /// empty listing, which is also what a correct filter over an empty result
 /// set looks like
-/// (`truth/tasks/the-file-filter-field-and-the-file-column-name-different-paths.typ`).
+/// (`truth/tasks/2026-09/the-file-filter-field-and-the-file-column-name-different-paths.typ`).
 /// It is simply not a filter field — `path` is — so it fails as any other
 /// unknown field would, with no pointer back to the replacement.
 #[test]

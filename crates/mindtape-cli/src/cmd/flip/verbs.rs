@@ -12,7 +12,7 @@ use crate::diag::{Command, Diag, Hint};
 /// Configured legend values as `&str`, for a nearest-match suggestion shared
 /// by the unknown-status and shortcut-verb-miss sites — both reject against
 /// this same set
-/// (`truth/tasks/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`).
+/// (`truth/tasks/2026-09/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`).
 pub(super) fn legend_values(legend: &Legend) -> Vec<&str> {
     legend.entries.iter().map(|e| e.value.as_str()).collect()
 }

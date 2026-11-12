@@ -362,7 +362,7 @@ fn resolve_path_with_slash_is_path_not_slug() {
 }
 
 // --- unknown_view_error: shared hint composition for every CLI view lookup
-// (`truth/tasks/suggest-a-nearest-match-on-an-unknown-view-name.typ`) -------
+// (`truth/tasks/2026-09/suggest-a-nearest-match-on-an-unknown-view-name.typ`) -------
 
 fn views(names: &[&str]) -> std::collections::BTreeMap<String, mindtape::ViewSpec> {
     names

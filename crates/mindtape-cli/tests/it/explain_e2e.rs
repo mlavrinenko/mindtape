@@ -1,7 +1,7 @@
 //! End-to-end tests for `mt explain`: the bare index, the four listings, and
 //! the removal of the four commands it replaces.
 //!
-//! `truth/tasks/fold-the-project-listings-into-mt-explain.typ` is the change
+//! `truth/tasks/2026-11/fold-the-project-listings-into-mt-explain.typ` is the change
 //! these pin. The rules engine itself, and the breach each rule prints, stay
 //! in `rules_e2e.rs`; this file is about the reading surface.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]

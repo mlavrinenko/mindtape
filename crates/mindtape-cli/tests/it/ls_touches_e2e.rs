@@ -1,5 +1,5 @@
 //! End-to-end tests for `touches("<path>")` through `mt ls`
-//! (`truth/tasks/add-a-touches-filter-over-the-files-a-tasks-commits-changed.typ`):
+//! (`truth/tasks/2026-09/add-a-touches-filter-over-the-files-a-tasks-commits-changed.typ`):
 //! the tasks named by the trailers of the commits that changed a path, and
 //! the retired stems met, in the `--json` envelope.
 #![allow(

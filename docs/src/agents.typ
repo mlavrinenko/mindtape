@@ -53,7 +53,8 @@ skips a file whose bytes are unchanged.
   DSL.
 - `crates/mindtape/src/loader/preludes/`: one immutable snapshot per prelude
   version this binary reads, `0.2.0`, `0.3.0` and `0.4.0` today.
-- `truth/tasks/`: #mindtape's own backlog, read with the in-tree `lib/`.
+- `truth/tasks/`: #mindtape's own backlog, one folder per filing month plus
+  the `swept/` inbox, read with the in-tree `lib/`.
   Change a task with `mt` commands, as `skills/mindtape/SKILL.md` says, and
   run `mt explain` for the rules, tags, views and dictionaries this repo
   declares. Edit the file by hand only for the body, a framework priority,

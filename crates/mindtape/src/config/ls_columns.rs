@@ -114,7 +114,7 @@ fn validate_column_when(name: &str, column: &ColumnConfig, problems: &mut Vec<Pr
 /// the similarity floor. Shared by every `[ls]` column-name validation site
 /// (`[[ls.rules]]` entries and `[ls.columns]` / `[ls] columns-order`) so the
 /// wording and the suggestion wiring live once
-/// (`truth/tasks/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`).
+/// (`truth/tasks/2026-09/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`).
 #[must_use]
 pub(crate) fn unknown_column(name: &str) -> Problem {
     Problem::new(format!("unknown column: {}", crate::config::quote(name)))

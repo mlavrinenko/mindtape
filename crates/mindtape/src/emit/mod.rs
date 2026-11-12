@@ -1,12 +1,12 @@
 //! Serialize a [`Task`] back to `#show: task.with(...)` Typst source — the
-//! one new primitive `mt import` needs (`truth/tasks/task-to-typ-emitter.typ`).
+//! one new primitive `mt import` needs (`truth/tasks/2026-07/task-to-typ-emitter.typ`).
 //! Pure: no IO, no config policy — the caller has already mapped values onto
 //! the project's config before calling in. Field order is fixed (see
 //! [`emit_task`]), so two calls on an unchanged `Task` agree byte-for-byte.
 //!
 //! `recur` emits `every(...)` for a period rule and `rrule(...)` for the
 //! escape hatch, mirroring the prelude's two constructors — see
-//! `truth/tasks/carry-recur-through-the-canonical-task-json-round-trip.typ`.
+//! `truth/tasks/2026-09/carry-recur-through-the-canonical-task-json-round-trip.typ`.
 //!
 //! Split into two helper submodules to stay under the file-size gate:
 //! `format` (Typst literal rendering: strings, numbers, arrays, `HVal`) and

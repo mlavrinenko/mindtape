@@ -1,5 +1,5 @@
 //! End-to-end tests for `scope = "task"` commit rules
-//! (`truth/tasks/evaluate-task-scope-commit-rules.typ`): a rule run per task
+//! (`truth/tasks/2026-09/evaluate-task-scope-commit-rules.typ`): a rule run per task
 //! the commit changes or names, reading that task as of `HEAD`, the index and
 //! the working tree through `head(...)`, `staged(...)` and `worktree(...)`.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]

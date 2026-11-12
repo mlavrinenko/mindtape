@@ -1,6 +1,6 @@
 //! The shipped `mindtape:tasks` pack's `leave-no-question-open` refuses an open
 //! task whose TO-BE, Changes, Out of scope or Dogfood asks a question
-//! (`truth/tasks/refuse-a-task-that-leaves-a-question-open.typ`). A `?` in
+//! (`truth/tasks/2026-10/refuse-a-task-that-leaves-a-question-open.typ`). A `?` in
 //! code, or in AS-IS, is no question.
 #![allow(clippy::unwrap_used)]
 

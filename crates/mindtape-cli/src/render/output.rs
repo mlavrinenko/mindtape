@@ -40,10 +40,10 @@ pub enum OutputFormat {
 /// the rows the filter actually matched. Only ever constructed when the limit
 /// bit, so `shown < total` holds by construction and a consumer never
 /// re-derives whether anything was hidden — absent *is* "this listing is
-/// complete" (`truth/tasks/ls-limit-flag.typ`). `skip` is the `--skip` this
+/// complete" (`truth/tasks/2026-08/ls-limit-flag.typ`). `skip` is the `--skip` this
 /// run applied before `-n` (`0` when the flag was absent), carried along so
 /// [`Self::next_skip`] can advance it rather than restate it
-/// (`truth/tasks/add-skip-and-a-next-command-hint-to-ls-paging.typ`).
+/// (`truth/tasks/2026-09/add-skip-and-a-next-command-hint-to-ls-paging.typ`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Truncation {
     pub shown: usize,
@@ -97,9 +97,9 @@ fn status_name(task: &Task) -> String {
 /// `envelope` at all. When it is `Some`, `JSON` wraps the task array in the
 /// [`Envelope`] whose `$schema` names the `ls` schema, carrying `tasks`,
 /// `applied`, `truncated` and `retired`
-/// (`truth/tasks/conditional-ls-rules.typ`,
-/// `truth/tasks/generate-a-schema-for-every-json-output.typ`,
-/// `truth/tasks/ls-limit-flag.typ`); `None`, a caller with no rule or view
+/// (`truth/tasks/2026-07/conditional-ls-rules.typ`,
+/// `truth/tasks/2026-11/generate-a-schema-for-every-json-output.typ`,
+/// `truth/tasks/2026-08/ls-limit-flag.typ`); `None`, a caller with no rule or view
 /// context, keeps the bare array.
 ///
 /// `Table`, `CSV`, `Path` and `Path0` ignore `envelope`: the table's
@@ -107,7 +107,7 @@ fn status_name(task: &Task) -> String {
 /// (`crate::cmd::ls`), and the three machine formats are record streams with
 /// nowhere to put a document-level fact — no header, no colour, no
 /// hyperlinks, no envelope, so a `csv` reader and `xargs -0` get records and
-/// nothing else (`truth/tasks/emit-a-plain-path-list-from-ls.typ`).
+/// nothing else (`truth/tasks/2026-08/emit-a-plain-path-list-from-ls.typ`).
 ///
 /// # Errors
 /// Returns an error if JSON or CSV serialization fails, or if a column's
@@ -328,7 +328,7 @@ fn json_value(
 ///   emits `task.file` — the project-root-relative path, byte-identical to
 ///   `--format json`'s `file` key and to what the `path` filter field
 ///   compares, so the two machine formats never disagree by cwd
-///   (`truth/tasks/csv-and-json-disagree-about-what-the-file-field-means.typ`).
+///   (`truth/tasks/2026-09/csv-and-json-disagree-about-what-the-file-field-means.typ`).
 ///   Rendering that path from where the reader stands is `--format path`'s
 ///   whole job, and the table's.
 ///

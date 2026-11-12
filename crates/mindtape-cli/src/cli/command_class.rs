@@ -25,8 +25,8 @@
 //! exports the mark as `runs_on_set`, so the docs list the set commands from
 //! this table.
 //!
-//! Refs: `truth/tasks/gate-the-cqrs-split-against-the-command-tree.typ`,
-//! `truth/tasks/mark-the-commands-that-run-on-a-set-in-the-command-registry.typ`.
+//! Refs: `truth/tasks/2026-08/gate-the-cqrs-split-against-the-command-tree.typ`,
+//! `truth/tasks/2026-10/mark-the-commands-that-run-on-a-set-in-the-command-registry.typ`.
 
 /// A command's read/write classification.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

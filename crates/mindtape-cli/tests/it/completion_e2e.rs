@@ -11,7 +11,7 @@
 //! whole claim is "this project's values, not a baked list", and only two real
 //! projects whose configs disagree can witness it.
 //!
-//! Refs: `truth/tasks/emit-shell-completions-from-the-binary-that-answers-them.typ`
+//! Refs: `truth/tasks/2026-09/emit-shell-completions-from-the-binary-that-answers-them.typ`
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use mindtape::test_support::{tempdir, tempdir_with_config};

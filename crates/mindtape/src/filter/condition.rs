@@ -1,5 +1,5 @@
 //! The condition mini-language for `[[ls.rules]]` and `[ls.columns.<name>]
-//! when` (`truth/tasks/conditional-ls-rules.typ`).
+//! when` (`truth/tasks/2026-07/conditional-ls-rules.typ`).
 //!
 //! Same `evalexpr` parser and operator set as [`crate::filter`] (`==`, `!=`,
 //! `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`, parens, bare-or-call predicates) —

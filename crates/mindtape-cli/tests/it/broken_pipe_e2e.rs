@@ -1,5 +1,5 @@
 //! End-to-end tests for what `mt` does when its reader walks away
-//! (`truth/tasks/mt-exits-141-on-sigpipe-about-one-call-in-ten.typ`).
+//! (`truth/tasks/2026-08/mt-exits-141-on-sigpipe-about-one-call-in-ten.typ`).
 //!
 //! Staged the only way a broken pipe can be staged honestly: spawn `mt` with a
 //! piped stdout and close the read end before it writes. Redirecting to a

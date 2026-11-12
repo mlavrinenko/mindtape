@@ -7,7 +7,7 @@
 //! past its terms; the moment it did, it would become a second query engine
 //! that drifts from the filter language, the failure `crate::model::fields`
 //! (`mindtape::model::fields`) was created to end (see
-//! `truth/tasks/mt-find-as-sugar-over-contains.typ`).
+//! `truth/tasks/2026-08/mt-find-as-sugar-over-contains.typ`).
 
 use crate::diag::Result;
 

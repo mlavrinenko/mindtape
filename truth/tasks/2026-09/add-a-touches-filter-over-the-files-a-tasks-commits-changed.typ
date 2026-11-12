@@ -1,0 +1,81 @@
+#import "@local/mindtape:0.3.0": *
+#import "/truth/lib.typ": *
+
+#show: task.with(
+  title: "Add a touches filter over the files a task's commits changed",
+  kind: "feat",
+  priority: ice(
+    impact: 6,
+    confidence: 0.7,
+    ease: 4,
+  ),
+  difficulty: 4,
+  tags: ("mt", "cli"),
+  estimate: (src-files: 3),
+  x-goals: (
+    product: verdicts(
+      (
+        implementable-tasks: helps[before editing a file, an agent reads which tasks shaped it],
+        plain-files: helps[the link from code to task is derived from git, never hand-kept in the task],
+      ),
+      "readable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+    ),
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
+    ),
+  ),
+  assignee: "agent",
+  status: done(2026, 9, 28),
+  links: depends-on("check-commit-messages-against-commit-rules.typ"),
+)
+
+== AS-IS
+
++ An agent is about to edit `crates/mindtape/src/ready.rs`.
++ 🔴 No command answers which tasks shaped that file; the only route is `git log` on it and reading each `Refs:` trailer by hand.
+
+
+== TO-BE
+
+- 🟢 `touches("<path>")` matches tasks named by the `[commits] trailer` of any commit that changed the path:
+
+```
+$ mt ls 'touches("crates/mindtape/src/ready.rs")'
+#  TITLE                                  STATUS
+—  Derive ready from the links graph      ✅ done
+```
+
+- 🟢 A value resolves by its stem, written as a stem or a legacy path.
+- 🟢 A stem renamed by `mt mv` resolves to the current task through git renames under the task roots (`git log -M --diff-filter=R`).
+- 🟢 A stem retired by `mt rm` matches nothing; `--json` lists the retired stems met, for git archaeology.
+- 🟢 Outside a git repository `touches()` fails naming the reason; every other command keeps working.
+
+
+== Changes
+
+- `crates/mindtape/src/commit_refs.rs` (new, tests first): trailers and renames from `git log`, cached by `HEAD`. A stem a loaded task bears wins over a rename.
+- `crates/mindtape/src/filter_predicates.rs`: `touches()`.
+- `crates/mindtape-cli/src/output.rs`: the retired stems in `--json`, as the envelope's `retired` key. Deviation: planned in `canonical.rs`, but a retired stem belongs to no task record, so it is a document-level fact.
+- `www/content/filters.typ`: document it.
+
+
+== Alternatives
+
+- A hand-kept `modifiedFiles` field as in Backlog.md: drifts from what was committed.
+- A `formerly:` field written by `mt mv`: `mt rm` deletes tasks, so resolution needs git history anyway.
+
+
+== Out of scope
+
+- Line-level attribution: file level first.
+
+
+== Dogfood
+
+Agents here run `touches()` on a file before editing it.
+

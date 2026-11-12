@@ -8,7 +8,7 @@
 //! fails: a tab press lands on a command line the user is still typing, so a
 //! diagnostic there reads as a broken shell rather than a broken project.
 //!
-//! Refs: `truth/tasks/emit-shell-completions-from-the-binary-that-answers-them.typ`
+//! Refs: `truth/tasks/2026-09/emit-shell-completions-from-the-binary-that-answers-them.typ`
 
 use std::collections::BTreeSet;
 use std::ffi::OsStr;

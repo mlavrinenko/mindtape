@@ -2,7 +2,7 @@
 # shared by www/generated/'s writers.
 #
 # Extracted verbatim out of www/generate-facts.sh
-# (truth/tasks/extract-generate-facts-shs-flock-emit-preamble-into-facts-lib-sh.typ):
+# (truth/tasks/2026-09/extract-generate-facts-shs-flock-emit-preamble-into-facts-lib-sh.typ):
 # that script sat at 298 of its 300-line linecop cap with no room for its next
 # artifact. `source`d, not executed — a caller sets $SCRIPT_DIR/$REPO/$OUT
 # first, since the guard and both helpers read them.

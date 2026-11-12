@@ -7,7 +7,7 @@
 # and www/generate-facts.sh has no linecop budget to spend on one.
 #
 # Subject: the baked-in priority frameworks and the scales they land on
-# (truth/tasks/derive-the-built-in-priority-tables.typ). /priority/ used to
+# (truth/tasks/2026-09/derive-the-built-in-priority-tables.typ). /priority/ used to
 # hand-type the five names, their input lists, and the shipped difficulty
 # anchors, so adding, renaming or re-ranging any of them shipped a page that
 # still described the old one. Everything MECHANICAL is derived here — names,

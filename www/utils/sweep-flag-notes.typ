@@ -27,7 +27,7 @@
 // its whole run or read no generated file at all, the way crate-notes.typ
 // and dsl-field-notes.typ do.
 //
-// Refs: truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-attributes.typ
+// Refs: truth/tasks/2026-08/derive-the-ask-refactoring-flag-table-from-arg-attributes.typ
 
 #import "../generated/just.typ" as just
 

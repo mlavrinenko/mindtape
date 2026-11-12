@@ -45,7 +45,7 @@ fn check_rule(rule: &Rule, anchor: Option<&str>, config: &RecurConfig, out: &mut
 
 /// The `rrule(...)` gates, in order: the config flag, the date-anchored-only
 /// restriction (RFC 5545 has no completion-relative primitive —
-/// `truth/tasks/rrule-escape-hatch.typ`), then the rule's own grammar
+/// `truth/tasks/2026-07/rrule-escape-hatch.typ`), then the rule's own grammar
 /// (parse-time).
 fn check_rrule_rule(raw: &str, anchor: Option<&str>, config: &RecurConfig, out: &mut Vec<String>) {
     if !config.rrule {

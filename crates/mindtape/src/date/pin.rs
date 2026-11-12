@@ -1,5 +1,5 @@
 //! Env-driven override for "today", resolved once per process (see
-//! `truth/tasks/pinnable-clock-for-reproducible-output.typ`).
+//! `truth/tasks/2026-07/pinnable-clock-for-reproducible-output.typ`).
 //!
 //! `$MINDTAPE_NOW` pins "today" — a `YYYY-MM-DD` date or an RFC 3339 timestamp
 //! (the date part is used verbatim, split on `'T'`: a trailing offset shifts

@@ -47,7 +47,7 @@ pub struct LsArgs {
 /// itself. Flattened into both so a flag can never exist on one and not the
 /// other — the drift `crate::model::fields` was created to end after `filter/mod.rs` and
 /// `sort.rs` disagreed about which fields exist (see
-/// `truth/tasks/mt-find-as-sugar-over-contains.typ`).
+/// `truth/tasks/2026-08/mt-find-as-sugar-over-contains.typ`).
 #[derive(Debug, Clone, clap::Args)]
 pub struct LsFlags {
     /// Output format.

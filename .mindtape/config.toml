@@ -32,13 +32,18 @@ path = "lib"
 
 [tasks]
 
-# Mindtape's own backlog lives here, one task per file. The `mt` root name is
-# emitted as a derived tag on every task (the tree is flat today, so no folder
-# tags yet); nest tasks into folders and the folder names join in.
+# Mindtape's own backlog lives here, one task per file, in the folder named by
+# the month git first added it (`2026-11/`) or in `swept/` for a sweep batch.
+# The `mt` root name is emitted as a derived tag on every task; the folder names
+# say when a task was filed, not what it is about, so `collect = []` keeps them
+# out of the tags.
 [[tasks.roots]]
 path = "truth/tasks"
 name = "mt"
 derive-tags = true
+
+[tasks.derive-tags]
+collect = []
 
 # Difficulty says which model tier and reasoning effort a task wants, before
 # anyone starts it. The scale and its junior/mid/senior/staff anchors come from

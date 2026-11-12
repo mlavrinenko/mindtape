@@ -6,7 +6,7 @@
 //! writing; `--advance N` pre-materializes `N` future spawns without closing
 //! the current instance; `--skip` advances the anchor/`count` in place
 //! without materializing anything. `mt ls`/`mt check` never call into this
-//! module — see `truth/tasks/command-semantics-cqrs.typ`.
+//! module — see `truth/tasks/2026-07/command-semantics-cqrs.typ`.
 //!
 //! # Files
 //!

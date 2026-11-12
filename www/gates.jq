@@ -5,7 +5,7 @@
 # `contrib/jq/*.jq` already uses for the import cookbook.
 #
 # Gate membership + row order both come from the Justfile: every gate recipe
-# carries `[group("gate")]` (truth/tasks/tag-just-recipes-with-groups.typ).
+# carries `[group("gate")]` (truth/tasks/2026-08/tag-just-recipes-with-groups.typ).
 # The JSON dump sorts recipes alphabetically and carries no source order, so
 # row order is read back from `_check-stages`'s dependency list instead — see the
 # "row order" paragraph below for why that changed from the prior derivation.

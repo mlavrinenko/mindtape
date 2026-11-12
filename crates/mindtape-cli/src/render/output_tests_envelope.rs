@@ -46,7 +46,7 @@ fn envelope(applied: &Applied) -> JsonContext<'_> {
 #[test]
 fn json_with_applied_wraps_tasks_in_envelope() {
     // `mt ls --json` (an `applied` present) is the breaking envelope
-    // shape (`truth/tasks/conditional-ls-rules.typ`); a caller with no
+    // shape (`truth/tasks/2026-07/conditional-ls-rules.typ`); a caller with no
     // `applied` stays a bare array, as covered below.
     let applied = Applied {
         rule: Some("release".to_owned()),
@@ -79,7 +79,7 @@ fn json_with_applied_wraps_tasks_in_envelope() {
 fn json_reports_a_rule_that_matched_and_lost_every_facet() {
     // The facets alone cannot say this: a rule overridden everywhere points
     // them all elsewhere, exactly as a listing no rule matched does
-    // (`truth/tasks/ls-rules-lose-their-sort-and-columns-facets-under-an-explicit-filter.typ`).
+    // (`truth/tasks/2026-09/ls-rules-lose-their-sort-and-columns-facets-under-an-explicit-filter.typ`).
     let applied = Applied {
         rule: Some("release".to_owned()),
         rule_superseded: true,
@@ -122,7 +122,7 @@ fn json_with_no_rule_matched_reports_null_rule() {
     assert_eq!(value["applied"]["facets"]["filter"]["from"], "match-all");
 }
 
-// --- truncation (`truth/tasks/ls-limit-flag.typ`) --------------------------
+// --- truncation (`truth/tasks/2026-08/ls-limit-flag.typ`) --------------------------
 
 /// [`json_value`] for a listing cut by `truncated`.
 fn json_with_cut(truncated: Option<Truncation>) -> serde_json::Value {
@@ -145,7 +145,7 @@ fn json_reports_a_truncated_listing_in_the_envelope() {
     assert_eq!(value["truncated"]["total"], 47);
     // `next_skip` is what a caller pages forward with — `0` (this run's own
     // `--skip`) plus the 10 rows it just showed
-    // (`truth/tasks/add-skip-and-a-next-command-hint-to-ls-paging.typ`).
+    // (`truth/tasks/2026-09/add-skip-and-a-next-command-hint-to-ls-paging.typ`).
     assert_eq!(value["truncated"]["next_skip"], 10);
 }
 

@@ -4,7 +4,7 @@
 //! `file` column shows a path relative to the process's working directory —
 //! the form an IDE-integrated terminal (Zed, VS Code, `JetBrains`) turns into
 //! a ctrl-click with no escape sequences involved
-//! (`truth/tasks/opt-in-file-column-for-mt-ls.typ`). [`relativize`] is the
+//! (`truth/tasks/2026-07/opt-in-file-column-for-mt-ls.typ`). [`relativize`] is the
 //! pure core; the root comes from [`super::RenderCtx`], so one process can
 //! render several projects, and the working directory is read once ([`cwd`]).
 //!
@@ -13,7 +13,7 @@
 //! a command from the cwd that produced them. The record formats do not —
 //! `--format json` and `--format csv` both carry `task.file` unchanged, so a
 //! stored record means the same thing whatever directory produced it
-//! (`truth/tasks/csv-and-json-disagree-about-what-the-file-field-means.typ`).
+//! (`truth/tasks/2026-09/csv-and-json-disagree-about-what-the-file-field-means.typ`).
 
 use std::path::{Component, Path, PathBuf};
 use std::sync::OnceLock;

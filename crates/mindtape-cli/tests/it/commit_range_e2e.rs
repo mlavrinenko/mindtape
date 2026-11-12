@@ -1,5 +1,5 @@
 //! End-to-end tests for `mt check --commits <range>`
-//! (`truth/tasks/check-commit-rules-over-a-commit-range.typ`): every
+//! (`truth/tasks/2026-09/check-commit-rules-over-a-commit-range.typ`): every
 //! `[[commits.rules]]` rule run on each commit of a range, reading the
 //! message, the files and the task versions from the commit and its first
 //! parent.

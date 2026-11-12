@@ -6,7 +6,7 @@
 //! different places: an explicit filter argument answers "which tasks" while a
 //! matching `[[ls.rules]]` entry goes on answering "how do I read this branch's
 //! listing", so one listing routinely owes its facets to two sources at once
-//! (`truth/tasks/ls-rules-lose-their-sort-and-columns-facets-under-an-explicit-filter.typ`).
+//! (`truth/tasks/2026-09/ls-rules-lose-their-sort-and-columns-facets-under-an-explicit-filter.typ`).
 //! The `mt ls --json` envelope carries every facet's source; the footer names
 //! only the rows' source and a rule that set the sort.
 //! [`crate::cmd::ls::rules`] does the resolving; this file records and renders the

@@ -1,5 +1,5 @@
 //! A commit may name a task only once the committed tree holds it started or
-//! finished (`truth/tasks/refuse-a-commit-whose-refs-task-is-not-started-and-an-integrate-that-leaves-one-wip.typ`).
+//! finished (`truth/tasks/2026-10/refuse-a-commit-whose-refs-task-is-not-started-and-an-integrate-that-leaves-one-wip.typ`).
 //! The rule is this repository's own `[[commits.rules]]` entry, written with
 //! the task-scope language and nothing added to it.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]

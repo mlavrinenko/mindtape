@@ -13,7 +13,7 @@
 //! parsing lives in [`input`].
 //!
 //! No `--from`/`--via` source selector: sources are jq adapters, upstream of
-//! the pipe (`truth/tasks/import-tasks-from-other-trackers.typ`).
+//! the pipe (`truth/tasks/2026-07/import-tasks-from-other-trackers.typ`).
 //!
 //! # Files
 //!

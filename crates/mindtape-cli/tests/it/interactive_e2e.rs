@@ -145,7 +145,7 @@ const FRAME_POLL_INTERVAL: Duration = Duration::from_millis(20);
 /// Block until `frame` contains `needle` at or after byte offset `from`,
 /// polling instead of sleeping a fixed span so a busy machine only makes this
 /// slower, never flaky — the fix for the two tests
-/// `truth/tasks/isolate-the-interactive-pty-tests-from-concurrent-load.typ`
+/// `truth/tasks/2026-09/isolate-the-interactive-pty-tests-from-concurrent-load.typ`
 /// describes, which raced a fixed wait against however long the TUI actually
 /// took to reach the state being asserted. Returns the offset just past the
 /// match, so a caller can wait for a later signal in order. Panics naming the
@@ -186,7 +186,7 @@ fn wait_for_frame(frame: &Frame, needle: &str) {
 /// The wait before `keys` is always a poll for the rendered task table
 /// ([`TASK_TITLE`]), never a fixed sleep: `keys` sent before the event loop is
 /// actually reading them is exactly the race
-/// `truth/tasks/isolate-the-interactive-pty-tests-from-concurrent-load.typ`
+/// `truth/tasks/2026-09/isolate-the-interactive-pty-tests-from-concurrent-load.typ`
 /// files. The wait after `keys` polls too when the caller has something to
 /// wait for; a caller with nothing to observe (a keystroke that should open
 /// nothing) still gives the loop a moment to settle before quitting.
@@ -410,7 +410,7 @@ fn opening_a_task_holds_a_project_editor_and_falls_back_to_editor() {
     assert!(stdout.contains(&command), "{stdout}");
 }
 
-/// The risk `truth/tasks/hyperlink-the-handle-column.typ` exists to guard:
+/// The risk `truth/tasks/2026-07/hyperlink-the-handle-column.typ` exists to guard:
 /// the `slug#` column's cells now carry an OSC 8 wrap (and, once a row is typed,
 /// an invert-colour wrap on top of that), but the key loop reads real key
 /// events off the terminal (crossterm), never the rendered screen — so typing

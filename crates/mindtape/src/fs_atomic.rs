@@ -1,5 +1,5 @@
 //! The one write primitive every authored file goes through
-//! (`truth/tasks/write-every-authored-file-through-one-atomic-writer.typ`).
+//! (`truth/tasks/2026-09/write-every-authored-file-through-one-atomic-writer.typ`).
 //!
 //! `std::fs::write` truncates then writes: a process killed between the two
 //! (Ctrl-C, OOM, a full disk) leaves an empty or torn file, and a concurrent

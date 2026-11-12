@@ -1,4 +1,4 @@
-//! End-to-end tests for `mt find` (`truth/tasks/mt-find-as-sugar-over-contains.typ`):
+//! End-to-end tests for `mt find` (`truth/tasks/2026-08/mt-find-as-sugar-over-contains.typ`):
 //! sugar over `contains()` that shares `mt ls`'s code path — every flag
 //! forwards, and the desugared filter surfaces in the `applied` facet like
 //! any manual `mt ls '...'` filter would.

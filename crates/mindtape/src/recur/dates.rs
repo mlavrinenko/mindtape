@@ -4,7 +4,7 @@
 //! `mt recur` (`crates/mindtape-cli`) passes today's date and the task's
 //! current `due`. `chrono` gives calendar-correct period arithmetic
 //! (month/year-end clamping via [`Months`]); the weekday-set path is a plain
-//! forward scan. See `truth/tasks/recurring-tasks.typ`'s "Anchor" section.
+//! forward scan. See `truth/tasks/2026-07/recurring-tasks.typ`'s "Anchor" section.
 
 use chrono::{Datelike, Days, Months, NaiveDate, Weekday};
 use thiserror::Error;
@@ -40,7 +40,7 @@ pub enum RecurError {
 /// `[tasks.recur] default-anchor` when omitted.
 ///
 /// `rrule(...)` is date-anchored only (RFC 5545 has no completion-relative
-/// primitive — see `truth/tasks/rrule-escape-hatch.typ`): an omitted anchor
+/// primitive — see `truth/tasks/2026-07/rrule-escape-hatch.typ`): an omitted anchor
 /// always resolves to `"due"` for it, even when the project's
 /// `default-anchor` is `"completion"`. [`crate::recur::check_policy`] rejects
 /// an *explicit* `anchor: "completion"` on an `rrule(...)` task outright, so

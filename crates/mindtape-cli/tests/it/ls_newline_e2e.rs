@@ -1,6 +1,6 @@
 //! A listing's last byte: every `mt ls --format` ends in exactly the
 //! terminator its format calls for, the empty listing included
-//! (`truth/tasks/print-one-newline-at-the-end-of-an-mt-ls-csv-listing.typ`).
+//! (`truth/tasks/2026-10/print-one-newline-at-the-end-of-an-mt-ls-csv-listing.typ`).
 #![allow(clippy::unwrap_used)]
 
 use crate::support;

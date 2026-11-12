@@ -411,7 +411,7 @@ fn no_verify_writes_a_task_that_would_be_refused() {
 
 /// A project-configured content rule (this repo's own "every `TO-BE` bullet
 /// opens with 🟢") — mirroring
-/// `truth/tasks/validate-body-rules-before-mt-add-writes-a-task.typ`'s own
+/// `truth/tasks/2026-09/validate-body-rules-before-mt-add-writes-a-task.typ`'s own
 /// Problem: `mt check` already refuses this shape, but a filled task used to
 /// reach disk anyway and wait for that later check to catch it.
 const TO_BE_CONTENT_RULE_CONFIG: &str = r#"[tasks]

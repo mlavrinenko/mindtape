@@ -25,7 +25,7 @@ fn marker_with_body(status: &str, body: &str) -> String {
 }
 
 /// The Problem this task exists to fix
-/// (`truth/tasks/validate-body-rules-before-mt-add-writes-a-task.typ`): a
+/// (`truth/tasks/2026-09/validate-body-rules-before-mt-add-writes-a-task.typ`): a
 /// content rule `mt check` already enforces — this repo's own "every TO-BE
 /// bullet opens with 🟢" — is broken by one candidate and satisfied by
 /// another, so the candidate seam is proven to constrain bullets that violate

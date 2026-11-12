@@ -1,5 +1,5 @@
 //! End-to-end proof that `mt ls --json | mt import` preserves `recur` —
-//! `truth/tasks/carry-recur-through-the-canonical-task-json-round-trip.typ`.
+//! `truth/tasks/2026-09/carry-recur-through-the-canonical-task-json-round-trip.typ`.
 //! `examples/recurring` is both the fixture and the dogfood: `mt ls --json`
 //! reads it directly (a pure command; the export needs no scratch copy), and
 //! the export is piped into a scratch project sharing its `[tasks.recur]`

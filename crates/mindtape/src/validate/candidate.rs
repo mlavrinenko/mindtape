@@ -1,5 +1,5 @@
 //! Validate a rendered task *before* it is written
-//! (`truth/tasks/mt-add-writes-an-invalid-task-before-it-validates-one.typ`).
+//! (`truth/tasks/2026-09/mt-add-writes-an-invalid-task-before-it-validates-one.typ`).
 //!
 //! [`load_project`](crate::load_project) answers "what do the files on disk
 //! say"; this module answers "what would they say if this one more file

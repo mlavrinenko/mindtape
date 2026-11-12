@@ -1,0 +1,74 @@
+#import "@local/mindtape:0.3.0": *
+#import "/truth/lib.typ": *
+
+#show: task.with(
+  title: "Retire task limits in favour of count rules",
+  kind: "feat",
+  priority: ice(
+    impact: 4,
+    confidence: 0.8,
+    ease: 6,
+  ),
+  difficulty: 2,
+  tags: ("mt",),
+  estimate: (src-files: 7),
+  x-goals: (
+    product: verdicts(
+      (
+        enforced-practice: helps[a WIP cap is a rule like any other, overridable by name],
+      ),
+      "readable-tasks",
+      "implementable-tasks",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
+    ),
+    process: verdicts(
+      (
+        sound-codebase: helps[about 430 lines of limits config and tests go],
+      ),
+      "docs-match-code",
+    ),
+  ),
+  assignee: "agent",
+  status: done(2026, 9, 28),
+  links: depends-on("add-a-count-aggregate-to-filters.typ"),
+)
+
+== AS-IS
+
++ `.mindtape/config.toml` declares two `[[tasks.limits]]` WIP caps.
++ 🔴 `[[tasks.limits]]` is its own table and checker (`crates/mindtape/src/config_limits.rs`) for what `count(status == "wip") <= 1` says as a rule, and it cannot be merged by name across packs like a rule.
+
+
+== TO-BE
+
+- 🟢 `[[tasks.limits]]` is gone, with no alias; a WIP cap is a `[[tasks.rules]]` entry over `count(...)`, refusing a flip at `error` exactly as the limit did.
+- 🟢 A breach names the tasks in the counted set, as the limit report did.
+
+
+== Changes
+
+- `crates/mindtape-cli/tests/flip_hooks_e2e.rs` or a new `wip_cap_e2e.rs` (red first): a flip over a `count` rule refused, listing the set.
+- `crates/mindtape/src/config_limits.rs`, `config_limits_tests.rs`: delete.
+- `crates/mindtape/src/config.rs`, `lib.rs`, `crates/mindtape-cli/src/check.rs`, `flip.rs`: drop the limits pass.
+- `.mindtape/config.toml`, `examples/learn-piano/.mindtape/config.toml`: the rules.
+- `www/content/config.typ`, `docs/src/skill.typ`: rules instead of limits.
+- `CHANGELOG.md`: the removal.
+
+Deviations as built: `flip.rs` never called `check_limits`, only `mt check` did, so there was no limits pass to drop there; the WIP cap already gated `mt flip` through the validation pass every write command runs. `examples/learn-piano/.mindtape/config.toml` declared no `[[tasks.limits]]`, so nothing to port there, and `examples/large` plus every other example config carried none either. Naming the tasks in the counted set needed one real change: `crates/mindtape/src/candidate.rs`'s link-cycle attribution (`cycles_closed_elsewhere`, now `elsewhere_violations`) generalized to any `[[tasks.rules]]` breach a batch opens or closes on a task it never touches, not only an acyclic-kind cycle, since a set-aware `assert` (`count(...)`, or `ready`/`blocked`/`blocks`/`topo`) is the only kind that can and widening it costs a purely per-task rule nothing. The red-first test is `crates/mindtape-cli/tests/wip_cap_e2e.rs`.
+
+== Alternatives
+
+- Keep limits as sugar over rules: two spellings of one check.
+
+
+== Out of scope
+
+- Other set-level checks: they arrive as rules when needed.
+
+
+== Dogfood
+
+This repo's two caps move to rules in the same commit.
+

@@ -2,7 +2,7 @@
 
 //! Hyperlink-wrap tests for `table.rs`: width accounting, which columns get
 //! wrapped, the `slug#`/`file` shared-target invariant
-//! (`truth/tasks/hyperlink-the-handle-column.typ`), and highlight+link
+//! (`truth/tasks/2026-07/hyperlink-the-handle-column.typ`), and highlight+link
 //! composition for the interactive picker. Split out of
 //! `table_tests_layout.rs` to keep both files clear of the size gate.
 

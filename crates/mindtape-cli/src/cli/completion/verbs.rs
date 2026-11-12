@@ -9,7 +9,7 @@
 //! and a config adding a status gets its verb and its completion together.
 //! The dispatch is untouched: only a completion run ever sees the grafts.
 //!
-//! Refs: `truth/tasks/complete-a-status-shortcut-verbs-task-argument.typ`
+//! Refs: `truth/tasks/2026-09/complete-a-status-shortcut-verbs-task-argument.typ`
 
 use clap::Command;
 

@@ -1,5 +1,5 @@
 //! The dogfood project (this repo's own `.mindtape/config.toml` +
-//! `truth/tasks/*.typ`) must pass full task validation, not just the
+//! `truth/tasks/**/*.typ`) must pass full task validation, not just the
 //! JSON-schema shape check `config_schema_validate.rs` runs — otherwise a
 //! required field like `estimate` could be flipped on in config while the
 //! actual backlog silently fails only via the git pre-commit hook, never

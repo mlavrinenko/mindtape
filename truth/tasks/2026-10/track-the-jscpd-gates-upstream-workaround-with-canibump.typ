@@ -1,0 +1,73 @@
+#import "@local/mindtape:0.3.0": *
+#import "/truth/lib.typ": *
+
+#show: task.with(
+  title: "Track the jscpd gate's upstream workaround with canibump",
+  kind: "dev",
+  priority: ice(
+    impact: 3,
+    confidence: 0.8,
+    ease: 8,
+  ),
+  difficulty: 2,
+  tags: ("tooling",),
+  estimate: (src-files: 2),
+  x-goals: (
+    product: verdicts(
+      (:),
+      "readable-tasks",
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
+    ),
+    process: verdicts(
+      (
+        sound-codebase: helps[a workaround that waits on upstream says when it can go, instead of outliving its reason],
+      ),
+      "docs-match-code",
+    ),
+  ),
+  assignee: "agent",
+  status: cancelled(
+    2026,
+    10,
+    28,
+  )[the jscpd fork's --new-only removed the filter this blocker was to track],
+  links: depends-on(
+    "gate-on-new-jscpd-clones-renamed-and-near-miss-copies-included.typ",
+  )
+    + depends-on("track-the-sweeps-repeats-arm-with-canibump.typ"),
+)
+
+== AS-IS
+
++ Read `.just/scripts/lint-dry.sh`.
++ 🔴 It filters jscpd's JSON report down to the new clones with `jq`, because under `--baseline` every reporter prints all clones, old ones included. Nothing says when upstream fixes that, so the filter stays after its reason is gone.
+
+
+== TO-BE
+
+- 🟢 `.config/canibump.toml` holds a blocker on the upstream jscpd issue for new-only reports, and `just canibump` says when the filter can go.
+
+
+== Changes
+
+- `.config/canibump.toml`: the blocker, beside the one the repeats arm waits on.
+- `.just/scripts/lint-dry.sh`: a link to the issue in its header comment, which canibump's scan then finds listed.
+
+
+== Rollback
+
+- Revert the commit. The filter stays, untracked.
+
+
+== Out of scope
+
+- Posting the upstream issue, which the maintainer does from the draft in `var/`. File this task's blocker once that issue exists.
+
+
+== Dogfood
+
+This repo's `just canibump` reports the jscpd blocker.

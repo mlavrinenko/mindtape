@@ -41,7 +41,7 @@
 //! diverge under `-w <other-project>` — where a filter copied from the
 //! listing matched nothing, silently, an empty listing being also what a
 //! correct filter over an empty result set looks like
-//! (`truth/tasks/the-file-filter-field-and-the-file-column-name-different-paths.typ`).
+//! (`truth/tasks/2026-09/the-file-filter-field-and-the-file-column-name-different-paths.typ`).
 //! Display stays working-directory-relative (the only form openable from
 //! where the reader is standing); the comparable value stays root-relative,
 //! so a filter saved in `.mindtape/config.toml` means the same thing wherever

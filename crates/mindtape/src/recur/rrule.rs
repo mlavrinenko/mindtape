@@ -5,7 +5,7 @@
 //! [`crate::recur::check_policy`]); [`next_after`] expands it for
 //! [`crate::recur::dates::advance_once`]. DTSTART is always the reference date
 //! the caller passes in (the task's `due`, or a catch-up cursor mid-loop) —
-//! see `truth/tasks/rrule-escape-hatch.typ`'s "DTSTART is seeded from the
+//! see `truth/tasks/2026-07/rrule-escape-hatch.typ`'s "DTSTART is seeded from the
 //! task's `due`" decision. This module never reads the clock.
 
 use chrono::{DateTime, Duration, NaiveDate, TimeZone};

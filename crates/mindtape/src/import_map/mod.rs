@@ -1,6 +1,6 @@
 //! The config-aware middle layer between the canonical task-JSON schema
 //! (`model/canonical.rs`) and a project's `.mindtape/config.toml` policy —
-//! `truth/tasks/canonical-json-to-task-mapping.typ`.
+//! `truth/tasks/2026-07/canonical-json-to-task-mapping.typ`.
 //!
 //! The jq adapter upstream has already done the *structural* map (foreign
 //! tracker → canonical, config-blind); [`map_canonical`] does the *policy*

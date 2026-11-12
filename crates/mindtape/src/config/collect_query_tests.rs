@@ -3,7 +3,7 @@
 use crate::config::parse_config;
 
 /// A bad collector query names the key at fault, not serde's untagged-enum
-/// message. `truth/tasks/name-the-bad-field-in-a-collector-query-error.typ`.
+/// message. `truth/tasks/2026-11/name-the-bad-field-in-a-collector-query-error.typ`.
 #[test]
 fn a_bad_collector_query_names_the_field() {
     for (label, query, field) in [

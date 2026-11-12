@@ -67,7 +67,7 @@ COVERAGE_TEST_RE='(^|/)([^/]*_)?tests(_[^/]*)?\.rs$'
 # one — never the CRAP score that combines them. CRAP is CC^2*(1-cov)^3 + CC,
 # whose cubed term collapses above ~90% coverage, so in this repo it degenerates
 # into cyclomatic complexity and no band on it separates a complex well-tested
-# function from an undertested one; `truth/tasks/sweep-crap-scores-into-tasks.typ`
+# function from an undertested one; `truth/tasks/2026-08/sweep-crap-scores-into-tasks.typ`
 # measured that and was cancelled on it. `cargo crap --format json` is still the
 # right source — nothing else here reports `cyclomatic` and `coverage` per
 # function — and reading those two fields is not banding on the score printed

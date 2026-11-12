@@ -2,7 +2,7 @@
 //! whether it may, before it writes it.
 //!
 //! `mt add` opened this seam for one file
-//! (`truth/tasks/mt-add-writes-an-invalid-task-before-it-validates-one.typ`);
+//! (`truth/tasks/2026-09/mt-add-writes-an-invalid-task-before-it-validates-one.typ`);
 //! this module is the shape the other writers need, and the reason they could
 //! not simply call [`mindtape::check_candidate`] one file at a time:
 //!

@@ -42,7 +42,7 @@
 //! - `verbs.rs` — the status shortcut verbs a completion run sees.
 //! - `cmd/ls/interactive/tests.rs`, `sources_tests.rs` — the table's coverage tests.
 //!
-//! Refs: `truth/tasks/emit-shell-completions-from-the-binary-that-answers-them.typ`
+//! Refs: `truth/tasks/2026-09/emit-shell-completions-from-the-binary-that-answers-them.typ`
 
 use clap::builder::ValueHint;
 use clap::{Arg, Command, CommandFactory};

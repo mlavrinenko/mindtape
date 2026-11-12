@@ -18,7 +18,7 @@ test-support = ["dep:tempfile"]
 # (every recur date computation takes its reference date from the caller), plus
 # `clock` for the one clock read in the tree: `crates/mindtape/src/date/mod.rs`
 # resolves "today" as the machine's LOCAL calendar date (`Local::now()`), not
-# UTC — see `truth/tasks/decide-whether-today-is-utc-or-local.typ`. `clock`
+# UTC — see `truth/tasks/2026-07/decide-whether-today-is-utc-or-local.typ`. `clock`
 # adds `iana-time-zone`; chrono resolves the zone itself (no `localtime_r`), so
 # there is no multithreaded-soundness hazard.
 chrono = { version = "0.4", default-features = false, features = [

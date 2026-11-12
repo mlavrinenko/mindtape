@@ -18,7 +18,7 @@ fn unknown_status_does_not_touch_file() {
 }
 
 // --- suggest wiring for the unknown-status / shortcut-verb-miss messages
-// (`truth/tasks/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`) --
+// (`truth/tasks/2026-09/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`) --
 
 #[test]
 fn unknown_status_near_miss_offers_a_suggestion() {

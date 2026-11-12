@@ -22,8 +22,8 @@
 //! declares for its own subtree (`mt explain --json`), which rides on that
 //! node so the docs show the flag where it is typed.
 //!
-//! Refs: `truth/tasks/structured-cli-reference-from-command-dump.typ`,
-//! `truth/tasks/gate-the-cqrs-split-against-the-command-tree.typ`.
+//! Refs: `truth/tasks/2026-07/structured-cli-reference-from-command-dump.typ`,
+//! `truth/tasks/2026-08/gate-the-cqrs-split-against-the-command-tree.typ`.
 
 use crate::diag::Result;
 use clap::{Arg, ArgAction, Command, CommandFactory};

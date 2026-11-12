@@ -239,7 +239,7 @@ fn contains_fields_accepts_a_narrowed_list() {
 }
 
 // --- suggest wiring for `import-views` / `@view` references
-// (`truth/tasks/suggest-a-nearest-match-on-an-unknown-view-name.typ`) -------
+// (`truth/tasks/2026-09/suggest-a-nearest-match-on-an-unknown-view-name.typ`) -------
 
 /// Validate a single `import-views` entry against the one declared view
 /// `release`, for the near-miss / far-miss pair below.
@@ -301,7 +301,7 @@ fn unknown_contains_field_is_rejected_at_load() {
 }
 
 // --- suggest wiring for unknown `[ls]` column names
-// (`truth/tasks/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`) --
+// (`truth/tasks/2026-09/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`) --
 
 /// Validate a single `[[ls.rules]]` `columns` entry, for the near-miss /
 /// far-miss pair below.

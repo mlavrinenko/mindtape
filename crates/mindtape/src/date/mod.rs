@@ -2,14 +2,14 @@
 //! predicate, and a configurable display formatter.
 //!
 //! "Today" is the machine's LOCAL calendar date, not UTC (see
-//! `truth/tasks/decide-whether-today-is-utc-or-local.typ`): a task filed at
+//! `truth/tasks/2026-07/decide-whether-today-is-utc-or-local.typ`): a task filed at
 //! 01:00 on the 29th is stamped the 29th, whatever the offset. Only
 //! [`local_epoch_days`] knows about zones — everything downstream is a plain
 //! `YYYY-MM-DD` civil date with no offset attached, and every comparison is
 //! date-to-date within that one calendar.
 //!
 //! "Today" is pinnable for reproducible output (see
-//! `truth/tasks/pinnable-clock-for-reproducible-output.typ`):
+//! `truth/tasks/2026-07/pinnable-clock-for-reproducible-output.typ`):
 //! [`crate::init_pinned_today`] (re-exported at the crate root, backed by
 //! `crate::date_pin`) resolves `$MINDTAPE_NOW` once per process and caches the
 //! result; `today_epoch_days`, below, is the single point every helper here

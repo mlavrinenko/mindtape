@@ -1,6 +1,6 @@
 //! A commit made with `git commit --amend` replaces `HEAD`, so the
 //! `commit-msg` check judges it against `HEAD^`
-//! (`truth/tasks/judge-an-amended-commit-against-its-parent-in-the-commit-msg-check.typ`).
+//! (`truth/tasks/2026-10/judge-an-amended-commit-against-its-parent-in-the-commit-msg-check.typ`).
 //! These tests run real `git commit` with a real hook, because the check has
 //! to find out from git's own process that the commit is an amend.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]

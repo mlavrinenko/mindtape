@@ -1,8 +1,8 @@
 //! End-to-end tests for the clock `mt` reads: the pinnable override
 //! (`$MINDTAPE_NOW`, see
-//! `truth/tasks/pinnable-clock-for-reproducible-output.typ`) and, unpinned,
+//! `truth/tasks/2026-07/pinnable-clock-for-reproducible-output.typ`) and, unpinned,
 //! the local calendar date it falls back to (see
-//! `truth/tasks/decide-whether-today-is-utc-or-local.typ`).
+//! `truth/tasks/2026-07/decide-whether-today-is-utc-or-local.typ`).
 //!
 //! These shell out to the compiled `mt` binary (like `recur_e2e.rs`) rather
 //! than calling `mindtape::date` directly: the override is resolved once into
@@ -52,7 +52,7 @@ fn ls_ids(dir: &Path, filter: &str, env: &[(&str, &str)]) -> Vec<String> {
     let output = cmd.assert().success().get_output().stdout.clone();
     let parsed: serde_json::Value = serde_json::from_slice(&output).unwrap();
     // `mt ls --json` wraps the task array in an `{"tasks": [...], "applied":
-    // {...}}` envelope (`truth/tasks/conditional-ls-rules.typ`).
+    // {...}}` envelope (`truth/tasks/2026-07/conditional-ls-rules.typ`).
     parsed
         .get("tasks")
         .and_then(serde_json::Value::as_array)

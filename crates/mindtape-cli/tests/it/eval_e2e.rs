@@ -6,7 +6,7 @@
 //! in `crates/mindtape/src/config/defaults.toml` as a `when` expression, the choice
 //! decides whether anything renders: `Config::default()` bypasses the floor, so
 //! it describes no column and prints a header-less blank
-//! (`truth/tasks/collapse-column-visibility-onto-a-single-when-expression.typ`).
+//! (`truth/tasks/2026-09/collapse-column-visibility-onto-a-single-when-expression.typ`).
 //! `mt eval` reads the floor instead, and these pin that from the outside —
 //! stdout, not a resolved column list.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]

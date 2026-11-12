@@ -4,7 +4,7 @@
 // cannot: what the crate is for. `just docs::facts` fails naming any
 // crate-map.json entry with no matching key here.
 //
-// Refs: truth/tasks/derive-the-drift-prone-doc-facts-from-their-sources.typ
+// Refs: truth/tasks/2026-08/derive-the-drift-prone-doc-facts-from-their-sources.typ
 
 #let crate-notes = (
   "mindtape": [The domain library, with the config, the task model, the

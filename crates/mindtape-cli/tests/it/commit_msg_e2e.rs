@@ -1,5 +1,5 @@
 //! End-to-end tests for `mt check --commit-msg <file>`
-//! (`truth/tasks/check-commit-messages-against-commit-rules.typ`): the
+//! (`truth/tasks/2026-09/check-commit-messages-against-commit-rules.typ`): the
 //! `[[commits.rules]]` a `commit-msg` hook runs over the message being
 //! written and the index it is about to commit.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]

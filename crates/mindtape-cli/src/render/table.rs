@@ -221,7 +221,7 @@ fn group_columns(
 }
 
 /// Whether `id` is one of the two columns OSC 8 wraps. Fixed by design (see
-/// `truth/tasks/hyperlink-the-handle-column.typ`) — there is no per-column
+/// `truth/tasks/2026-07/hyperlink-the-handle-column.typ`) — there is no per-column
 /// `link` key to consult.
 fn is_linked_column(id: ColumnId) -> bool {
     matches!(id, ColumnId::StemHash | ColumnId::File)

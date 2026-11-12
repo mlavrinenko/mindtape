@@ -1,8 +1,8 @@
 //! Regression test for the read/write separation (CQRS) principle: read
 //! commands must never mutate the working tree.
 //!
-//! See `truth/tasks/command-semantics-cqrs.typ`,
-//! `truth/tasks/gate-the-cqrs-split-against-the-command-tree.typ`, and the
+//! See `truth/tasks/2026-07/command-semantics-cqrs.typ`,
+//! `truth/tasks/2026-08/gate-the-cqrs-split-against-the-command-tree.typ`, and the
 //! "Command Semantics (read/write separation)" section of `CONTRIBUTING.md`.
 //! Each test builds a link-free fixture task tree, hashes it, runs a single
 //! read command, hashes it again, and asserts the two digests match —
@@ -51,7 +51,7 @@ fn build_fixture() -> tempfile::TempDir {
 
 /// A fixture holding one recurring task (`recur: every(weeks: 1)`), proving a
 /// read command spawns/advances nothing even when a recurrence is present —
-/// the CQRS invariant `truth/tasks/recurring-tasks.typ` depends on: `mt recur`
+/// the CQRS invariant `truth/tasks/2026-07/recurring-tasks.typ` depends on: `mt recur`
 /// is the only recurrence writer, so `mt ls`/`mt check` must leave a
 /// recurring task's tree exactly as untouched as any other.
 fn build_recurring_fixture() -> tempfile::TempDir {

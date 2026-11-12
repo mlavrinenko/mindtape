@@ -357,7 +357,7 @@ import-views = ["ghost"]
     );
     // "ghost" is far from the only view the embedded floor supplies
     // ("default"), so the hint says where to list views instead of guessing
-    // (`truth/tasks/suggest-a-nearest-match-on-an-unknown-view-name.typ`).
+    // (`truth/tasks/2026-09/suggest-a-nearest-match-on-an-unknown-view-name.typ`).
     let err = resolve_bare(&project).unwrap_err();
     let msg = crate::diag::plain(&err);
     assert_eq!(

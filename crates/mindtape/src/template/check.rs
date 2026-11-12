@@ -1,5 +1,5 @@
 //! What `mt check` makes of a template
-//! (`truth/tasks/check-templates-file-healthy-tasks.typ`).
+//! (`truth/tasks/2026-10/check-templates-file-healthy-tasks.typ`).
 //!
 //! A template is checked as the task it files when every slot holds its
 //! `example`, else its `default` ([`crate::fill_examples`]), and every breach

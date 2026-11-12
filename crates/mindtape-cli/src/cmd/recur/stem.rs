@@ -16,7 +16,7 @@ use crate::util::Project;
 /// Built-in fallback stem template `mt recur` spawn uses when
 /// `[tasks.naming] stem` is unset, so spawned occurrence stems stay unique
 /// while the original authored file keeps its bare stem (see
-/// `truth/tasks/configurable-task-stem-naming.typ`).
+/// `truth/tasks/2026-07/configurable-task-stem-naming.typ`).
 const RECUR_FALLBACK_STEM_TEMPLATE: &str = "{slug}-{date}";
 
 /// Guard bound for walking a `recurred-from` chain (pathological/cyclic data

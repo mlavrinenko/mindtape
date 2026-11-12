@@ -1,5 +1,5 @@
 //! End-to-end proof that an estimate unit takes a manual count plus file
-//! queries (`truth/tasks/resolve-an-estimate-from-a-manual-count-plus-file-queries.typ`).
+//! queries (`truth/tasks/2026-10/resolve-an-estimate-from-a-manual-count-plus-file-queries.typ`).
 //!
 //! Drives a real git working copy and the real prelude, so `count(...)`,
 //! `grep(...)` and `glob(...)` go through the constructors a task file calls,

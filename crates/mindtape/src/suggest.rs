@@ -1,5 +1,5 @@
 //! Nearest-name suggestion for an unknown identifier against a known set
-//! (`truth/tasks/suggest-a-nearest-match-on-an-unknown-view-name.typ`).
+//! (`truth/tasks/2026-09/suggest-a-nearest-match-on-an-unknown-view-name.typ`).
 //!
 //! [`nearest`] finds the closest known name by edit distance above a
 //! similarity floor, and [`nearest_few`] the closest few, for a word a

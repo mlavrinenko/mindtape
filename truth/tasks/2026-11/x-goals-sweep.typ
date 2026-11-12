@@ -1,0 +1,61 @@
+#import "@local/mindtape:0.3.0": *
+#import "/truth/lib.typ": *
+
+#show: task.with(
+  title: "Rewrite the task x-goals blocks with `verdicts`",
+  priority: ice(
+    impact: 5,
+    confidence: 0.9,
+    ease: 9,
+  ),
+  difficulty: 2,
+  kind: "refactor",
+  tags: ("mt", "stateless"),
+  estimate: (src-files: 0),
+  x-goals: (
+    product: verdicts(
+      (
+        readable-tasks: helps[one x-goals form across the backlog],
+      ),
+      "implementable-tasks",
+      "enforced-practice",
+      "cheap-adoption",
+      "typst-over-markdown",
+      "plain-files",
+    ),
+    process: verdicts(
+      (:),
+      "sound-codebase",
+      "docs-match-code",
+    ),
+  ),
+  assignee: "agent",
+  status: done(2026, 11, 2),
+  links: depends-on("as-is-sweep.typ", "verdicts-templates.typ"),
+)
+
+
+== AS-IS
+
++ Run `rg -l '^\s*x-goals:' truth/tasks` and count the files.
++ 🔴 Every block lists eight verdicts, and the backlog keeps the long form after the helper lands.
++ 🔴 A reader sees two forms for one field.
+
+== TO-BE
+
+- 🟢 Every current-shape task uses `verdicts` and keeps its verdicts.
+- 🟢 `mt ls --json` returns the same `x-goals` for each task.
+- 🟢 `mt check` stays green.
+
+== Changes
+
+- `truth/tasks/*.typ`: the `x-goals` block in the current-shape files, open tasks included.
+- `contrib/rewrite-x-goals.py`: the scanner that rewrites a block or refuses it.
+
+== Out of scope
+
+- The prelude in `prelude-verdicts`, the templates in `verdicts-templates` and the docs in `verdicts-docs`.
+
+== Dogfood
+
+Not applicable: a mechanical rewrite changes no feature this repo uses.

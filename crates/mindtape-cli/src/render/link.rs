@@ -11,7 +11,7 @@
 //! heuristic rather than a detection, and the default is `never` rather than
 //! `auto`: an unsupported terminal renders the escape payload as visible
 //! garbage instead of degrading to nothing the way colour does
-//! (`truth/tasks/hyperlink-the-file-column-with-osc-8.typ`).
+//! (`truth/tasks/2026-07/hyperlink-the-file-column-with-osc-8.typ`).
 
 use std::fmt;
 use std::io::IsTerminal;
