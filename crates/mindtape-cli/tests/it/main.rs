@@ -16,6 +16,7 @@ mod add_guard_e2e;
 mod add_hooks_alias_e2e;
 mod add_hooks_derive_e2e;
 mod add_hooks_e2e;
+mod add_hooks_filing_e2e;
 mod add_hooks_support;
 mod add_inherited_choices_e2e;
 mod add_links_e2e;

@@ -1,12 +1,10 @@
 //! End-to-end tests for `[[tasks.rules]]`
-//! (`truth/tasks/2026-09/validate-every-task-against-config-declared-rules.typ`): a
-//! project-declared assertion in the filter language, evaluated inside the
+//! (`truth/tasks/2026-09/validate-every-task-against-config-declared-rules.typ`):
+//! a project-declared assertion in the filter language, evaluated inside the
 //! validation pass every command shares.
 //!
-//! The seam is what these tests are about. A rule that only fired in
-//! `mt check` would be a convention nobody keeps — so `mt add` is asserted
-//! here too, refusing an error-severity breach *before* anything is written
-//! and letting a warn-severity one through with its warning printed.
+//! The seam matters: a rule that fired only in `mt check` would be a
+//! convention nobody keeps, so `mt add` is asserted here too.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use mindtape::test_support::write_file;
@@ -17,9 +15,8 @@ use crate::support;
 use support::{mt, scaffold_project};
 
 /// The repo root, derived from this crate's manifest dir
-/// (`crates/mindtape-cli` -> `../..`), so a test finds the root's own
-/// `.mindtape/config.toml` regardless of the working directory `cargo test`
-/// runs from.
+/// (`crates/mindtape-cli` -> `../..`), so a test finds its own
+/// `.mindtape/config.toml` whatever directory `cargo test` runs from.
 fn repo_root() -> PathBuf {
     mindtape::canonical(&Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")).unwrap()
 }
@@ -145,6 +142,32 @@ fn when_excludes_the_offending_task() {
     );
 }
 
+/// One `matches(dir, …)` rule accepts a month folder and refuses the root.
+#[test]
+fn a_matches_dir_rule_holds_a_task_to_its_month_folder() {
+    let rule = "[[tasks.rules]]\n\
+                name = \"file-tasks-by-month\"\n\
+                assert = 'matches(dir, \"^tasks/[0-9]{4}-[0-9]{2}$\")'\n\
+                message = \"file a task in a month folder\"\n\
+                severity = \"error\"\n";
+    let flat = project(rule, "Refactor the loader");
+    let (ok, text) = check(flat.path());
+    assert!(!ok, "a task at the root must be refused: {text}");
+    assert!(
+        text.contains(&shown("tasks/subject.typ:3: rules.file-tasks-by-month")),
+        "a breach names the file and the rule: {text}"
+    );
+
+    let nested = scaffold_project(&format!("[tasks]\nroots = [\"tasks\"]\n\n{rule}"));
+    write_file(
+        nested.path(),
+        "tasks/2026-11/subject.typ",
+        "#import \"@local/mindtape:0.4.0\": *\n\n#show: task.with(\n  title: \"Refactor the loader\",\n  status: wip(2026, 6, 1),\n)\n",
+    );
+    let (ok, text) = check(nested.path());
+    assert!(ok, "a task in a month folder must pass: {text}");
+}
+
 #[test]
 fn a_rule_reaches_a_project_dict() {
     let rules = "[dicts.verbs]\n\
@@ -256,9 +279,8 @@ fn mt_flip_refuses_a_write_that_breaches_an_error_rule() {
     );
 }
 
-/// The mirror of the refusal: a warn-severity rule says its piece and the
-/// flip still lands. The post-write revalidation must not turn that warning
-/// back into the failure the `warning:` prefix says it is not.
+/// The mirror of the refusal: a warn rule says its piece and the flip still
+/// lands, and post-write revalidation keeps that warning a warning.
 #[test]
 fn mt_flip_lets_a_warn_rule_through() {
     let dir = project(&imperative_rule("warn"), "Loader refactoring");
@@ -281,13 +303,12 @@ fn mt_flip_lets_a_warn_rule_through() {
     );
 }
 
-/// The mechanism above is proven against a synthetic project. This checks the
+/// The mechanism above is proven on a synthetic project. This checks the
 /// ADOPTION itself
 /// (truth/tasks/2026-09/enforce-an-imperative-verb-at-the-start-of-task-titles.typ):
-/// that `start-title-with-verb` reaches this repo's own backlog at `error`. It loads
-/// the committed config rather than re-deriving it from a scaffold, so a config
-/// edit that drops the rule or loosens its severity fails here even though the
-/// mechanism itself still works.
+/// that `start-title-with-verb` reaches this repo's own backlog at `error`,
+/// loading the committed config rather than a scaffold, so a config edit that
+/// drops the rule or loosens its severity fails here too.
 fn find_imperative_title_rule(config: &mindtape::Config) -> &mindtape::RuleSpec {
     config
         .tasks

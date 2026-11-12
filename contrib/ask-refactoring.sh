@@ -154,8 +154,9 @@ stem_for() {
 file_finding() {
     local arm="$1" stem="$2" summary="$3" advice="$4"
     shift 4
-    # Every batch lands in one folder, so `mt ls swept` lists it.
-    set -- "$@" --dir truth/tasks/swept
+    # The `swept` tag is the whole destination: the repo's `[[on.add]]` hook
+    # files a swept task in `truth/tasks/swept/`, so one batch stays one
+    # removable folder and the script names no path.
     if [ "$WRITE" -eq 1 ]; then
         local out outcome dest
         out="$("$MT" "$@" --dedup skip --format json)"

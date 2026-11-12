@@ -43,18 +43,18 @@ with #just.land().
 
 #mindtape is a file-based task tracker. Each task is one Typst file
 (`#show: task.with(...)`), named by its filename stem. Every `mt` command
-evaluates the task files under the configured roots through the Typst compiler
-crates, with no daemon or database. A content-hash cache in `.mindtape/cache/`
-skips a file whose bytes are unchanged.
+evaluates the task files under its roots through the Typst compiler crates,
+with no daemon or database. A content-hash cache in `.mindtape/cache/` skips
+unchanged files.
 
 = Repo map
 
 - `lib/prelude.typ`: the `@local/mindtape` package, which defines the task
   DSL.
-- `crates/mindtape/src/loader/preludes/`: one immutable snapshot per prelude
-  version this binary reads, `0.2.0`, `0.3.0` and `0.4.0` today.
-- `truth/tasks/`: #mindtape's own backlog, one folder per filing month plus
-  the `swept/` inbox, read with the in-tree `lib/`.
+- `crates/mindtape/src/loader/preludes/`: an immutable snapshot of each
+  prelude version this binary reads, `0.2.0`, `0.3.0` and `0.4.0`.
+- `truth/tasks/`: #mindtape's own backlog, one folder per filing month plus a
+  `swept/` inbox, read with the in-tree `lib/`.
   Change a task with `mt` commands, as `skills/mindtape/SKILL.md` says, and
   run `mt explain` for the rules, tags, views and dictionaries this repo
   declares. Edit the file by hand only for the body, a framework priority,
@@ -67,7 +67,7 @@ skips a file whose bytes are unchanged.
   SKILL.md and the `docs/contributing/*.md` deep dives.
 - `skills/mindtape/`: the agent skill for driving `mt`, with its references
   and evals.
-- `examples/`: fixture projects. Every other example backs one docs page.
+- `examples/`: fixture projects backing one docs page each.
   - `api-service`: a sample backend backlog that feeds the docs and the
     skill's evals.
   - `minimal`: the smallest config.
@@ -77,7 +77,7 @@ skips a file whose bytes are unchanged.
   - `nix-adopter`: a flake that takes `mt` into its dev shell, which
     #just.smoke-flake() locks against the working tree.
 
-Before writing about a feature, read the `www/content/` page for it:
+Before writing about a feature, read its `www/content/` page:
 #page-src("dsl") for task fields, edge kinds and `recur`,
 #page-src("templates") for `mt add` and slots, #page-src("hooks") for hooks,
 #page-src("derived-tags"),
