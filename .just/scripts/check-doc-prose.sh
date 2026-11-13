@@ -22,8 +22,9 @@
 # schema/at.schema.json too, because those texts reach the docs site and
 # editors, and a hit there names the key path. The help strings of
 # `mt _cli --json` are read the same way, labelled `cli.json:` and the command
-# path. The rules it enforces, with examples, are in
-# docs/src/contributing/documentation.typ under "Plain prose".
+# path. The rules it enforces are listed in
+# docs/src/contributing/documentation.typ under "Plain prose"; the Typst prose
+# arm of those rules lives in the Vale style under `.config/vale/styles/Prose/`.
 #
 # One rule applies only to text a reader sees on the site, in an editor or in
 # `--help`: an em dash is a hit in the rendered prose and string literals of

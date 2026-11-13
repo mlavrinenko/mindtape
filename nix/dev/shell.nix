@@ -37,9 +37,12 @@
             inputs.qahq.packages.${system}.linecop
             inputs.qahq.packages.${system}.outdatty
             inputs.tola.packages.${system}.default
-            # The prose gate: Vale reads `.typ` through `typst2vast`, and
-            # neither binary is in the pinned nixpkgs.
-            (pkgs.callPackage ./vale.nix { buildGoModule = pkgs.buildGoModule.override { go = pkgs.go_1_26; }; })
+            # The prose gate: Vale reads `.typ` through `typst2vast`. The
+            # pinned nixpkgs has no `typst2vast` and only Vale 3.14, which
+            # predates Typst support, so the shell builds both here.
+            (pkgs.callPackage ./vale.nix {
+              buildGoModule = pkgs.buildGoModule.override { go = pkgs.go_1_26; };
+            })
             (pkgs.callPackage ./typst2vast.nix { })
             pkgs-tombi.tombi
             # `wt` forks and lands worktrees: `just fork` and `just land` run

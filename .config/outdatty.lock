@@ -361,7 +361,7 @@ groups:
       Justfile: f1ad21cb7d652e76a1eafaa7ac9f4eb74e768c6a74634f6e289ca7f07753b8c2
       flake.nix: 325112feb8cc629198bd6721f88d54efc933a1aebbf80d9a2e32f5f5ffc3cbc0
       nix/dev/flake.nix: 4272c7e414ff67f94e9ed6917f7b9155beecdcbcb0adc0b1f563e7641a0fd30b
-      nix/dev/shell.nix: 21cc3115a45241aefcb0b6549ee59461f51530656549ae8fe1249aa960257acc
+      nix/dev/shell.nix: 8b84707ce133d6754c73809f607c33f71d61dba940fc36c7371273c88323d915
       nix/dev/typst2vast.nix: bb7f1223d483e31fc74b9d60b595dbff4e6f7d4fcac59e8cda787f0a96a91359
       nix/dev/vale.nix: 81aea241ac2c1c09020609c048a00489a5ca04c9762289ee732ab1b39d31384c
     dependents:
@@ -394,14 +394,14 @@ groups:
       .just/scripts/check-doc-coverage.sh: 53d59ca20009df201bb0336f5723671e06a901f6d3eca7240217be0d3906bb46
       .just/scripts/check-doc-facts.sh: dfba4a6322799338f1a132fc448279f7c26065bf795314feaf4637741389ef84
       .just/scripts/check-doc-prose.awk: d2bcb8ad4e59d6a0af6164a0f06d7959237450843b51e0cf6b14e45198688fe1
-      .just/scripts/check-doc-prose.sh: 18bf2d5353420529fc58dc3805ed9814205ba6e34804f0192c70e670d8feaf21
+      .just/scripts/check-doc-prose.sh: 643e54ed908756175e08683bba7e91c979e53813c1aae14a16f94fcc7c4d5dd3
       .just/scripts/check-doc-recipes.sh: 16b6391dfd3673c5a56053269affe591eb385d60490584662c0d11f5104f4010
       .just/scripts/check-doc-spans.jq: 41528a59d42cc6f3721798ecc4547ea559bbfbddfdf6103edaf449294da3bd84
       .just/scripts/check-doc-spans.sh: 746b4f2c77eef7d3db280b7d0fb842c054aabfcddd5879e94bd2ed31b2df132c
       .just/scripts/docs-md-check.sh: 06b5b942d9a14fa00134ec4de64b4f2e706ae49bf1b55206b2afd54c2d87791f
     dependents:
-      docs/src/contributing/documentation.typ: a5287b1b2d1c80780fdf7790a358d2fed9eebb3d2d0ebb04851b615e84291cb5
-      docs/src/contributing/generated-docs.typ: ed3149b795ce74c5da3b1d3452ed03e34a7e77d04fcc74aee02735256ab273c3
+      docs/src/contributing/documentation.typ: 3f029fb701428c220be01405dd6406910f73722ab2e9f3651ac8b96383441d40
+      docs/src/contributing/generated-docs.typ: a14280ad5a3330abc9b2c8bb00fe0a00cfc90e65070cd2bb72a73922d021d96b
   filter-docs:
     source:
       crates/mindtape/src/filter/aggregate.rs: c781da697621b135445c41f5dd2f5baf80f538397725888aba3851cb580d8f68
@@ -454,7 +454,7 @@ groups:
     source:
       .githooks/commit-msg: ecaf43984bbefd17cbc968cbc805c9f7b3db77f40f742f46213797d9b2c2df71
       .githooks/local-paths: 3fed9f65a80f886ec6fa219ac250234b875faa01a6aab6ecc229cc83264e205e
-      .githooks/pre-commit: 3dc043791ea4c410fc490104243f694461f63cfddef7b2f4c072157bbeba9ce5
+      .githooks/pre-commit: 66285d7df185f895d0b3bc3bc25db76f99092f65eb604cd272f9271cb24a4ecf
       .just/scripts/outdatty-review-trailer.sh: 091bd9a4e7d90059a71e4863c80c90af4eda0bb216ab96db13b1ca07a542d456
     dependents:
       docs/src/contributing.typ: 72fe5b5848940707a8754e218b5388d6a5108bd98a85dd077800d36b04872ded

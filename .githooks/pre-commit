@@ -38,5 +38,10 @@ elif git diff --cached --name-only | grep -qv '^truth/tasks/'; then
 fi
 "$root/.githooks/local-paths"
 direnv exec "$root" typstyle --check truth
-direnv exec "$root" vale --no-global --config=.config/vale.ini truth/tasks
+# A pass prints only its summary, which the hook hides; a failure keeps the
+# alerts that name the file and line.
+if ! vale_out=$(direnv exec "$root" vale --no-global --config=.config/vale.ini truth/tasks 2>&1); then
+    printf '%s\n' "$vale_out"
+    exit 1
+fi
 exec direnv exec "$root" cargo run -q -p mindtape-cli --bin mt --target-dir target/mt-dev -- check -q
