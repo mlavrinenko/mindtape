@@ -75,7 +75,7 @@ fn ice_inputs(impact: f64, confidence: f64, ease: f64) -> BTreeMap<String, serde
     ])
 }
 
-// --- priority ----------------------------------------------------------
+// priority
 
 #[test]
 fn framework_priority_is_preserved_with_converted_inputs() {
@@ -135,7 +135,7 @@ fn strict_framework_project_rejects_scalar_priority() {
     assert_violated_with(&mapped, "priority", "manual");
 }
 
-// --- difficulty ----------------------------------------------------------
+// difficulty
 
 #[test]
 fn difficulty_out_of_scale_is_reported_but_kept() {
@@ -154,7 +154,7 @@ fn difficulty_in_scale_is_clean() {
     assert!(!mapped.report.has_violations());
 }
 
-// --- tags ----------------------------------------------------------
+// tags
 
 #[test]
 fn out_of_allowlist_tag_is_reported_and_kept_by_default() {
@@ -187,7 +187,7 @@ fn out_of_allowlist_tag_is_dropped_with_option() {
     );
 }
 
-// --- kind ----------------------------------------------------------
+// kind
 
 #[test]
 fn kind_out_of_enum_is_reported_but_kept() {
@@ -206,7 +206,7 @@ fn kind_in_enum_is_clean() {
     assert!(!mapped.report.has_violations());
 }
 
-// --- body ----------------------------------------------------------
+// body
 
 #[test]
 fn empty_body_synthesizes_summary_when_required() {
@@ -239,7 +239,7 @@ fn nonempty_body_passes_through_untouched() {
     assert!(!mapped.report.entries.iter().any(|e| e.field == "body"));
 }
 
-// --- extras ----------------------------------------------------------
+// extras
 
 #[test]
 fn extras_carry_x_ns_keys_through() {
@@ -268,7 +268,7 @@ fn extras_reject_keys_missing_the_x_prefix() {
     assert_violated(&mapped, "extras");
 }
 
-// --- links / identity ----------------------------------------------------
+// links / identity
 
 #[test]
 fn links_carry_through_unchanged() {
@@ -333,7 +333,7 @@ fn mapped_task_carries_the_canonical_id_with_a_placeholder_path() {
     assert_eq!(mapped.task.file, std::path::PathBuf::new());
 }
 
-// --- stem/slug ----------------------------------------------------------
+// stem/slug
 
 #[test]
 fn slug_from_title_lowercases_and_collapses() {

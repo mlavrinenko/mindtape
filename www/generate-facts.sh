@@ -69,7 +69,7 @@ mkdir -p target
 # with the other www/generated/ writers, see www/facts-lib.sh.
 source "$SCRIPT_DIR/facts-lib.sh"
 
-# --- crate-map.json ---------------------------------------------------------
+# crate-map.json
 # The derivation itself lives in www/crate-map.jq (argued in place there,
 # alongside its gates.jq and sweep-flags.jq siblings); what stays here is the
 # metadata call and the handful of facts that jq program cannot read for
@@ -113,7 +113,7 @@ jq -f "$SCRIPT_DIR/crate-map.jq" \
    --arg typst_lib_version "$TYPST_LIB_VERSION" \
    <<<"$META" | emit crate-map.json
 
-# --- dsl-fields.json ---------------------------------------------------------
+# dsl-fields.json
 # lib/prelude.typ's `task` function names every core field as a parameter, and
 # emits their names+defaults verbatim into the `<mindtape>` marker's `fields`
 # dict — so the field list is read back off that marker rather than mirrored
@@ -143,7 +143,7 @@ jq -n --argjson fields "$fields_dict" --argjson statuses "$statuses" \
   | emit dsl-fields.json
 rm -rf "$tmp"
 
-# --- frameworks.json ---------------------------------------------------------
+# frameworks.json
 # The baked-in priority frameworks and the two scales they land on, off the
 # TOML that declares them: names, typed inputs, score formulas, category
 # labels, bands and anchors. `tomlq` is the same yq package linecop-caps.json
@@ -154,37 +154,37 @@ SCALES="$(tomlq -c '.tasks | {priority, difficulty}' crates/mindtape/src/config/
 tomlq -f "$SCRIPT_DIR/frameworks.jq" --argjson scales "$SCALES" \
   crates/mindtape/src/framework/frameworks.toml | emit frameworks.json
 
-# --- filter-functions.json ----------------------------------------------------
+# filter-functions.json
 # The filter language's predicates and functions with their arities, off the
 # registry in crates/mindtape/src/filter/eval.rs that dispatches them. cli.json
 # is `mt _cli --json`, which www/generate.sh writes before this script runs.
 jq '{functions: .filter_functions}' "$OUT/cli.json" | emit filter-functions.json
 
-# --- date-tokens.json ---------------------------------------------------------
+# date-tokens.json
 # The `{date:FMT}` tokens with their descriptions, off the DATE_TOKENS table in
 # crates/mindtape/src/date/mod.rs that `format_iso` matches against, so the
 # config page holds no token by hand.
 jq '{tokens: .date_tokens}' "$OUT/cli.json" | emit date-tokens.json
 
-# --- slot-kinds.json ----------------------------------------------------------
+# slot-kinds.json
 # The kinds a template's `slot(kind: ...)` accepts, off `SlotKind::ALL` in
 # crates/mindtape/src/template/mod.rs that `parse` and the refusals read, so
 # the templates page holds no kind by hand.
 jq '{kinds: .slot_kinds}' "$OUT/cli.json" | emit slot-kinds.json
 
-# --- filter-fields.json -------------------------------------------------------
+# filter-fields.json
 # The fields a filter compares, each marked sortable, off `FIELDS` in
 # crates/mindtape/src/model/fields.rs and `is_sort_field` in sort.rs, so the
 # filters page holds no field name or sort exception by hand.
 jq '{fields: .fields}' "$OUT/cli.json" | emit filter-fields.json
 
-# --- link-kinds.json ----------------------------------------------------------
+# link-kinds.json
 # The built-in link kinds, each with its `max`, `blocking` and `acyclic` rule,
 # off `BUILTIN_KINDS` in crates/mindtape/src/link/mod.rs, so the links page
 # holds no kind name or count by hand.
 jq '{kinds: .link_kinds}' "$OUT/cli.json" | emit link-kinds.json
 
-# --- set-commands.json --------------------------------------------------------
+# set-commands.json
 # The flattened path of every leaf command marked `runs_on_set`, in `mt --help`
 # order, off `CLASSIFICATION` in crates/mindtape-cli/src/cli/command_class.rs,
 # the mark `main` refuses a set by. The sets page and the skill list these
@@ -205,7 +205,7 @@ jq '
 # full page compile — www/generate.sh's captures, not just this script's. The
 # header above carries what that costs this script's callers.
 
-# --- gates.json --------------------------------------------------------------
+# gates.json
 # Gate list + row order from the Justfile's `[group("gate")]` tags and
 # `check`'s own dependency list (also the cross-check the two are read against
 # each other for) — see www/gates.jq's header for why row order reads that list
@@ -218,7 +218,7 @@ jq '
 JUST_DUMP="$(just --dump --dump-format json)"
 jq -f "$SCRIPT_DIR/gates.jq" <<<"$JUST_DUMP" | emit gates.json
 
-# --- just.typ ------------------------------------------------------------
+# just.typ
 # Reuses $JUST_DUMP above — one `just --dump` shell-out, two artifacts. The
 # module and its functions are explained in JUST_TYP_HEADER below, which
 # ships verbatim inside the artifact itself so that explanation travels with
@@ -281,13 +281,13 @@ jq -r --arg header "$JUST_TYP_HEADER" '
     end
 ' <<<"$JUST_DUMP" | emit_raw just.typ
 
-# --- sweep-flags.json ---------------------------------------------------------
+# sweep-flags.json
 # `ask-refactoring`'s six `[arg(...)]` parameters, off the same $JUST_DUMP —
 # the signal sweep's thresholds and their defaults, in one place, rendered by
 # docs/contributing/signal-sweep.md. Argued in www/sweep-flags.jq.
 jq -f "$SCRIPT_DIR/sweep-flags.jq" <<<"$JUST_DUMP" | emit sweep-flags.json
 
-# --- linecop-caps.json --------------------------------------------------------
+# linecop-caps.json
 # The exact `limits`/`overrides` .config/linecop.yaml carries — the source
 # CONTRIBUTING.md quotes caps from. yq is the same jq-over-YAML wrapper generate.sh uses for the
 # release workflow, so this stays consistent with the rest of the docs tooling.

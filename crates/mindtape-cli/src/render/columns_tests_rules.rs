@@ -64,7 +64,7 @@ fn titled(id: &str, title: &str) -> Task {
     task
 }
 
-// --- the shipped floor ------------------------------------------------------
+// the shipped floor
 //
 // These read the real embedded floor rather than a fixture: the shipped
 // expression is the thing under test, and a fixture restating it would pass
@@ -112,7 +112,7 @@ fn a_project_when_replaces_the_floor_s() {
     assert!(!captured(config, &[titled("t", "T")], ColumnId::File));
 }
 
-// --- what an absent `when` means --------------------------------------------
+// what an absent `when` means
 
 /// A column the config does not describe never renders: nothing falls back to
 /// a built-in policy in Rust, so a config that never merged the floor resolves
@@ -148,7 +148,7 @@ fn an_unevaluable_when_names_the_column() {
     );
 }
 
-// --- the listing predicates, against real rows ------------------------------
+// the listing predicates, against real rows
 
 /// `nonempty()` reads this column's own cells.
 #[test]

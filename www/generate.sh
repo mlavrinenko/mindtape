@@ -110,7 +110,7 @@ fi
 rm -rf "$OUT"
 mkdir -p "$OUT"
 
-# --- version + structured command tree ------------------------------------
+# version + structured command tree
 "$MT" --version >"$OUT/version.txt"
 # The command tree as JSON (clap reflection via the hidden `_cli`). cli.typ
 # renders it into the styled CLI reference — grouped commands and flag tables,
@@ -132,7 +132,7 @@ mkdir -p "$OUT"
 # it to the structs.
 cp "$REPO/schema/at.schema.json" "$OUT/at-schema.json"
 
-# --- release workflow: prebuilt targets + published crates ----------------
+# release workflow: prebuilt targets + published crates
 # Derived from .github/workflows/release.yml by generate-release-targets.sh
 # (its own file, so this one clears the Shell cap); the call sits here, ahead
 # of the read-command captures below, because the install page it feeds is not

@@ -224,7 +224,7 @@ fn shortcut_parses_note_flag() {
     assert_eq!(parsed.args.tasks, vec!["1b"]);
 }
 
-// --- transition graph -----------------------------------------------------
+// transition graph
 
 fn status(name: &str) -> mindtape::Status {
     mindtape::Status {

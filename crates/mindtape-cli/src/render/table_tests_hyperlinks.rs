@@ -31,7 +31,7 @@ fn plain_cell(text: &str) -> CellSpec {
     }
 }
 
-// --- build_columns: the shared per-row target -------------------------------
+// build_columns: the shared per-row target
 
 /// The task this exists to pin: `slug#` and `file` must carry the identical
 /// per-row target for a given row, because it is the same file. Built once
@@ -85,7 +85,7 @@ fn columns_without_link_uris_are_never_wrapped() {
     );
 }
 
-// --- render_grid: width accounting ------------------------------------------
+// render_grid: width accounting
 
 /// The width-accounting trap this task exists to pin: rendering with
 /// hyperlinks on must lay out identically to rendering with them off, once
@@ -147,7 +147,7 @@ fn hyperlink_wrap_does_not_disturb_column_layout() {
     );
 }
 
-// --- highlight + link composition (the interactive risk) -------------------
+// highlight + link composition (the interactive risk)
 
 /// The real risk this task exists to guard against: `apply_highlight` colours
 /// the slug# cell reverse-video for `mt ls -i`, and the same cell now also
@@ -198,7 +198,7 @@ fn highlighted_handle_cell_still_links_and_keeps_its_shape() {
     );
 }
 
-// --- render_groups: per-listing hyperlinks -----------------------------------
+// render_groups: per-listing hyperlinks
 
 /// A set's table joins listings that each decided hyperlinks for their own
 /// project: the rows of the one that turned them off stay unwrapped.

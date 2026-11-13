@@ -10,7 +10,7 @@
 
 reach_sh=$PWD/.just/scripts/_script-reach.sh
 
-# arm 1 ----------------------------------------------------------------------
+# arm 1
 
 # toml_drift <root>: print each missing/extra path, exit 1 on any.
 toml_drift() {
@@ -27,7 +27,7 @@ toml_drift() {
     return 1
 }
 
-# arm 2 ----------------------------------------------------------------------
+# arm 2
 
 # Stdin `where<TAB>line` -> one `where<TAB>reason<TAB>line` per cargo
 # build/run of mindtape-cli that would write target/debug/mt without --tests.

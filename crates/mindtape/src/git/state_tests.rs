@@ -15,7 +15,7 @@ fn paths(status: &GitStatus, spec: &str) -> Vec<String> {
     status.paths(set).map(str::to_owned).collect()
 }
 
-// --- state names -----------------------------------------------------------
+// state names
 
 #[test]
 fn a_state_set_parses_each_name_and_their_join() {
@@ -36,7 +36,7 @@ fn an_unknown_or_empty_state_is_refused_naming_the_known_ones() {
     assert!(StateSet::parse("staged+").is_err());
 }
 
-// --- porcelain parsing per state -------------------------------------------
+// porcelain parsing per state
 
 #[test]
 fn porcelain_splits_each_path_by_the_state_it_changed_in() {
@@ -91,7 +91,7 @@ fn a_record_too_short_to_carry_a_path_is_dropped() {
     assert_eq!(paths(&status, "worktree"), ["ok.rs"]);
 }
 
-// --- include and `!` globs -------------------------------------------------
+// include and `!` globs
 
 #[test]
 fn no_glob_admits_every_path() {
@@ -136,7 +136,7 @@ fn a_rename_source_is_not_counted_beside_its_destination() {
     assert_eq!(filter.count(paths, &["src/old.rs".to_owned()]), 2);
 }
 
-// --- against a real repository ---------------------------------------------
+// against a real repository
 
 #[test]
 fn reading_a_real_repository_separates_staged_from_worktree() {

@@ -9,7 +9,7 @@ use regex::Regex;
 
 use super::{density_subject, density_violation, push_trimmed, snippet, split_sentences};
 
-// --- density_subject ---------------------------------------------------
+// density_subject
 
 #[test]
 fn density_subject_names_the_section_for_section_units() {
@@ -35,7 +35,7 @@ fn density_subject_names_a_sentence_by_ordinal_and_snippet() {
     );
 }
 
-// --- snippet -----------------------------------------------------------
+// snippet
 
 #[test]
 fn snippet_returns_short_text_verbatim() {
@@ -52,7 +52,7 @@ fn snippet_elides_past_six_words() {
     assert_eq!(snippet("a b c d e f g"), "a b c d e f…");
 }
 
-// --- split_sentences ---------------------------------------------------
+// split_sentences
 
 /// The sentences `split_sentences` finds in `text` taken as one paragraph.
 fn sentences(text: &str) -> Vec<&str> {
@@ -95,7 +95,7 @@ fn split_sentences_drops_whitespace_only_fragments() {
     assert!(sentences("   \n  ").is_empty());
 }
 
-// --- push_trimmed ------------------------------------------------------
+// push_trimmed
 
 #[test]
 fn push_trimmed_pushes_the_trimmed_range_shifted_by_the_offset() {
@@ -111,7 +111,7 @@ fn push_trimmed_ignores_whitespace_only() {
     assert!(sentences.is_empty());
 }
 
-// --- inline code -------------------------------------------------------
+// inline code
 
 /// The open-question pattern, counted per sentence with no match allowed.
 fn question(content: &str) -> Option<String> {

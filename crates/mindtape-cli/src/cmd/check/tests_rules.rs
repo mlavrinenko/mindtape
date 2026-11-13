@@ -55,7 +55,7 @@ fn header_require_rule_fails_when_heading_absent() {
     );
 }
 
-// --- `[tasks.body.content]` section-content rules -------------------------
+// `[tasks.body.content]` section-content rules
 
 const TASK_WITH_EMPTY_SUMMARY: &str = "#metadata((
   marker: \"mindtape.task\",

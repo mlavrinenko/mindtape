@@ -1,6 +1,6 @@
 /* Mindtape docs — components: hero, its panels, terminal, language server, cards, pills. */
 
-/* Hero -------------------------------------------------------------------- */
+/* Hero */
 .hero { padding: 1.2rem 0 0.5rem; }
 /* The lede takes the hero's full width. main.home already caps the hero at
    60rem, the width of the panels and tables below it, so the lede's lines stay
@@ -58,7 +58,7 @@
 }
 .terminal code { background: none; border: none; color: inherit; }
 
-/* Callouts ---------------------------------------------------------------- */
+/* Callouts */
 .callout {
   border: 1px solid var(--border); border-left: 3px solid var(--accent);
   background: var(--bg-soft); border-radius: 0 10px 10px 0;
@@ -70,7 +70,7 @@
 .callout-warn { border-left-color: #d98b00; }
 .callout-note { border-left-color: var(--muted); }
 
-/* Diagrams ---------------------------------------------------------------- */
+/* Diagrams */
 /* An inline Graphviz SVG (diagram() in ui.typ), scaled to the text column.
    Graphviz writes its default colour as "black" and leaves the fill off text
    in that colour, so those take the theme's colours. A colour `mt graph` chose
@@ -85,7 +85,7 @@
 .diagram .node:has(> [fill]:not([fill="none"])) text:not([fill]) { fill: #1f2328; }
 .diagram figcaption { text-align: center; color: var(--muted); font-size: 0.9rem; margin-top: 0.4rem; }
 
-/* Language server --------------------------------------------------------- */
+/* Language server */
 /* What tinymist returned on a task file (lsp-demo in ui.typ). The listings
    keep the light code paper in both themes, because Typst bakes the highlight
    colours. The frame, the menu and the problems take the theme. --lsp-column
@@ -145,7 +145,7 @@
 .lsp-message { flex: 1 1 18rem; }
 .lsp-where { font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); }
 
-/* Native Typst tables ----------------------------------------------------- */
+/* Native Typst tables */
 main table { border-collapse: collapse; width: 100%; margin: 0 0 1.3rem; font-size: 0.9rem; }
 main th, main td { border: 1px solid var(--border); padding: 0.42rem 0.62rem; text-align: left; vertical-align: top; }
 main thead th { background: var(--bg-soft); font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.02em; }
@@ -185,7 +185,7 @@ main td code { font-size: 0.82em; }
 }
 .matrix thead th:first-child { position: sticky; left: 0; z-index: 2; }
 
-/* Capability heatmap tokens -------------------------------------------------
+/* Capability heatmap tokens
    Pastel, low-saturation fills for the comparison matrix's objectively-
    scoreable rows (comparison.typ's `cap()`): green = has the capability /
    strong, amber = partial or indirect, grey = none — the SAME rubric for
@@ -211,7 +211,7 @@ main td code { font-size: 0.82em; }
   --cap-grey-fg: #b7c0c7;
 }
 
-/* Capability heatmap cells ---------------------------------------------
+/* Capability heatmap cells
    Typst's HTML export bakes `text(fill:)`/`table.cell(fill:)` as one static
    colour that cannot react to `[data-theme="dark"]`, so `cap()` instead wraps
    the cell body in a classed <span>, and this stylesheet paints the `<td>`
@@ -220,7 +220,7 @@ main td code { font-size: 0.82em; }
 .matrix td:has(> .cap-amber) { background: var(--cap-amber-bg); color: var(--cap-amber-fg); }
 .matrix td:has(> .cap-grey) { background: var(--cap-grey-bg); color: var(--cap-grey-fg); }
 
-/* Floating header clone for the comparison matrix -------------------------
+/* Floating header clone for the comparison matrix
    `.matrix` is a horizontal scroll container, which stops a plain CSS
    `position: sticky` on `thead th` from working for vertical scroll (a
    scroll-container ancestor clips block-axis sticky). A small script in
@@ -249,7 +249,7 @@ main td code { font-size: 0.82em; }
   letter-spacing: 0.02em;
 }
 
-/* Search (Pagefind UI) ----------------------------------------------------
+/* Search (Pagefind UI)
    A header-mounted search input whose results render as a floating popup.
    Pagefind ships pagefind-ui.css; the --pagefind-ui-* custom properties re-skin
    it to the site tokens (dark mode inherited, since they reference theme vars).
@@ -301,7 +301,7 @@ main td code { font-size: 0.82em; }
   #search { order: 3; width: 100%; }
 }
 
-/* Lede paragraph under an h1 --------------------------------------------- */
+/* Lede paragraph under an h1 */
 .lede { font-size: 1.12rem; color: var(--muted); margin-bottom: 1.6rem; }
 
 /* Copy page as Markdown: an icon button beside the page title, its tooltip drawn
@@ -330,7 +330,7 @@ main td code { font-size: 0.82em; }
 }
 .md-copy:hover::after, .md-copy:focus-visible::after, .md-copy.md-copy-said::after { opacity: 1; }
 
-/* Nothing widens a narrow page ------------------------------------------
+/* Nothing widens a narrow page
    In prose a code span or a URL may break anywhere, and a wrapped span draws
    its chip on each line. In a table cell it breaks only when the token alone
    is wider than the cell: `break-word` keeps a column's minimum width at its

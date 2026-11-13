@@ -1,11 +1,9 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing, unsafe_code)]
 
-// ---------------------------------------------------------------------------
 // Mutation-regression tests: each targets a specific cargo-mutants survivor in
 // cmd/rm/mod.rs.  A test passes on the real code and FAILS under the listed mutation.
 // All tests use assert_cmd (subprocess) so they are isolated from the
 // OnceLock-based worktree override and avoid unsafe code.
-// ---------------------------------------------------------------------------
 
 use mindtape::test_support::write_file;
 use std::path::{Path, PathBuf};

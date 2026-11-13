@@ -30,7 +30,7 @@ capture_init
 # A commit in a capture copy, with a fixed author and no signing.
 COMMIT='git -c user.name=docs -c user.email=docs@example.com -c commit.gpgsign=false commit -q'
 
-# --- the home page hero and /filters/ -----------------------------------------
+# the home page hero and /filters/
 capture hero-ls "$API" 'mt ls'
 capture filters-open "$API" "mt ls '!terminal'"
 capture filters-operators "$API" "mt ls 'kind == \"fix\" || (kind == \"feat\" && count_paths(derived.changes, \"@source\") <= 2)'"
@@ -75,7 +75,7 @@ git --no-pager log -1 --format=%B
 mt ls 'touches("src/auth/session.rs")'
 EOF
 
-# --- /named-sets/ -------------------------------------------------------------
+# /named-sets/
 capture_lines named-sets-views "$SETS" <<'EOF'
 mt explain views
 mt explain views waiting
@@ -87,11 +87,11 @@ mt explain dicts areas
 EOF
 capture --exit 1 --expect 'is not an allowed tag' named-sets-allowed "$SETS" 'mt set fix-the-refund-rounding tags+=payments'
 
-# --- /priority/ ---------------------------------------------------------------
+# /priority/
 capture priority-ls "$REPO/examples/priority" 'mt ls --columns title,priority --sort priority:desc'
 capture --exit 1 --expect 'allow-manual = false' priority-strict "$REPO/examples/priority" 'mt set fix-the-signup-email-typo priority=8'
 
-# --- /estimates/ --------------------------------------------------------------
+# /estimates/
 # A rule reading changed() needs a git repository, so the copy gets one.
 capture_copy P examples/estimates
 capture_prep "$P" "git init -q && git add -A && $COMMIT -m fixture"
@@ -102,7 +102,7 @@ capture --exit 1 --expect 'rules\.judgment-stays-small' estimates-cap "$P" 'mt s
 capture_prep "$P" 'mt wip rewrite-loader && mkdir -p src && for f in a b c d e; do echo x >src/$f.rs; done'
 capture estimates-budget "$P" 'mt check'
 
-# --- /read-many-projects/ -----------------------------------------------------
+# /read-many-projects/
 # The copy is `$HOME` and holds the at.toml under .config/, so `~/projects` is the
 # copy's projects/. shop gets a git repository and one linked worktree, the
 # fork that the `forks` key keeps out or lets in. The runs start outside every

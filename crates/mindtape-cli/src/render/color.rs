@@ -51,7 +51,7 @@ pub fn no_color_set() -> bool {
     std::env::var_os("NO_COLOR").is_some()
 }
 
-// --- Process-global colour state -----------------------------------------
+// Process-global colour state
 
 static COLOR_ENABLED: OnceLock<bool> = OnceLock::new();
 static STDERR_COLOR_ENABLED: OnceLock<bool> = OnceLock::new();

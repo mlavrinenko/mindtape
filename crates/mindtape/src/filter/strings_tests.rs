@@ -36,7 +36,7 @@ fn cased_config() -> Config {
     .unwrap()
 }
 
-// --- word() ----------------------------------------------------------------
+// word()
 
 #[test]
 fn word_is_one_based() {
@@ -135,7 +135,7 @@ fn word_reads_a_string_literal_too() {
     ));
 }
 
-// --- in_dict() -------------------------------------------------------------
+// in_dict()
 
 #[test]
 fn in_dict_reads_the_first_word_of_the_title() {
@@ -210,7 +210,7 @@ fn an_unknown_dict_name_errors_and_names_the_known_ones() {
     assert!(unknown.names.iter().any(|known| known == "mindtape-verbs"));
 }
 
-// --- matches() -------------------------------------------------------------
+// matches()
 
 #[test]
 fn matches_runs_a_regex_over_a_string_field() {
@@ -254,7 +254,7 @@ fn an_invalid_regex_errors_naming_the_pattern() {
     assert!(rendered.contains("'['"), "{rendered}");
 }
 
-// --- error discipline ------------------------------------------------------
+// error discipline
 
 #[test]
 fn a_numeric_field_in_string_position_errors() {
@@ -379,7 +379,7 @@ fn in_dict_composes_with_the_rest_of_the_language() {
     assert!(!hit("@verbed", &titled("Gateway auth"), &cfg));
 }
 
-// --- dict_miss() -----------------------------------------------------------
+// dict_miss()
 
 /// The miss `expr` reports for a task titled `title`, under [`cased_config`].
 fn miss(expr: &str, title: &str) -> Option<DictMiss> {

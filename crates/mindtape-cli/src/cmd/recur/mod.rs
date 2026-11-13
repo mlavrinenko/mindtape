@@ -206,7 +206,7 @@ pub(super) fn parent_dir(abs: &Path) -> Result<&Path> {
     })
 }
 
-// ---- spawn: write the next instance as a new file --------------------
+// spawn: write the next instance as a new file
 
 fn do_spawn(
     project: &Project,
@@ -324,7 +324,7 @@ fn land(
     Ok(verbs[1])
 }
 
-// ---- mutate: refresh the same file in place ---------------------------
+// mutate: refresh the same file in place
 
 fn do_mutate(
     project: &Project,
@@ -358,7 +358,7 @@ fn do_mutate(
     Ok(())
 }
 
-// ---- skip: advance the anchor/count, materialize nothing --------------
+// skip: advance the anchor/count, materialize nothing
 
 fn do_skip(project: &Project, task: &Task, abs: &Path, recur: &Recur, dry_run: bool) -> Result<()> {
     let (next, due, start, source) = plan_and_read(project, task, abs, recur)?;

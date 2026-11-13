@@ -99,7 +99,7 @@ fn run_visible(dir: &Path, config_text: &str, target: &str) -> (HookOutcome, Str
     run(dir, config_text, target, true, false)
 }
 
-// --- show --------------------------------------------------------------
+// show
 
 const SHOW_HOOK: &str = "[[on.flip]]\nwhen = 'into(\"wip\")'\n\
                          actions = [{ show = \"pick one thing\" }]\n";
@@ -129,7 +129,7 @@ fn a_non_matching_transition_runs_nothing() {
     assert_eq!(out, "");
 }
 
-// --- list --------------------------------------------------------------
+// list
 
 const LIST_HOOK: &str = "[[on.flip]]\nwhen = 'into(\"wip\")'\n\
      actions = [{ list = 'status == \"wip\"', title = \"Already in flight\" }]\n";
@@ -172,7 +172,7 @@ fn view_sort_follows_a_bare_view_reference() {
     assert!(view_sort(&project, "status == \"wip\"").is_empty());
 }
 
-// --- run and gates -----------------------------------------------------
+// run and gates
 
 /// A gate on the way into a terminal status, spelled with a command that fails.
 /// `&&` chains in both `sh` and `cmd`, where `;` does not.
@@ -296,7 +296,7 @@ fn a_command_receives_the_task_path_and_stem() {
     assert!(printed.contains("alpha/done"), "{printed}");
 }
 
-// --- run-less gates ------------------------------------------------------
+// run-less gates
 
 /// A gate with no `run`: `when` alone decides, unconditionally.
 const RUNLESS_GATE: &str = "[[on.flip]]\nwhen = 'into(\"done\")'\n\

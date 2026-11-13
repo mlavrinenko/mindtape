@@ -259,7 +259,7 @@ fn ls_args(format: OutputFormat) -> LsArgs {
     }
 }
 
-// --- guard / run ----------------------------------------------------------
+// guard / run
 
 /// The format check runs before the TTY check, so a non-table format is
 /// refused even on a real terminal.
@@ -331,7 +331,7 @@ fn run_fails_on_non_table() {
     assert!(run(&ls_args(OutputFormat::Json), p).is_err());
 }
 
-// --- classify ctrl --------------------------------------------------------
+// classify ctrl
 
 #[test]
 fn classify_plain_c_no_ctrl_is_a_hash_digit() {
@@ -341,14 +341,14 @@ fn classify_plain_c_no_ctrl_is_a_hash_digit() {
     );
 }
 
-// --- collect_first --------------------------------------------------------
+// collect_first
 
 #[test]
 fn collect_first_match_returns_correct_index() {
     assert_eq!(collect_first(&state(10, &hash_at(10, 2))), vec![2]);
 }
 
-// --- State::paths ---------------------------------------------------------
+// State::paths
 
 #[test]
 fn paths_returns_absolute_task_paths() {
@@ -358,7 +358,7 @@ fn paths_returns_absolute_task_paths() {
     );
 }
 
-// --- State::refresh -------------------------------------------------------
+// State::refresh
 
 const CHILD: &str = "_MT_LS_INTERACTIVE_CHILD";
 

@@ -255,7 +255,7 @@ groups:
       www/content/agents.typ: d90135e96c8142555a5751a10aed9ed67fb34f7c63a1694bbfdcd701364ea825
   cli-recur-docs:
     source:
-      crates/mindtape-cli/src/cmd/recur/mod.rs: e9717360ff770f12f3035fad9899a62f11c8ab8ea8c3c1370f86744ff0cc848b
+      crates/mindtape-cli/src/cmd/recur/mod.rs: 80af8f87d1c0320d3928f218b085805247c89aa65b51706e33aac61ca2310086
     dependents:
       www/content/cli/recur.typ: 3ecb656f80f3f1c6b762ac59e5b0549804eb82ab8ca72a04ff288c9024885c1d
       www/content/recurring.typ: f6a37be3bc49fc3b07ebd55d8d84465d40c44158ef2e108b8d5e4b15ed00dec8
@@ -428,7 +428,7 @@ groups:
       www/content/quickstart.typ: e648924e5f5d9ce48a89e75a4ef846310072e141cf699af29f6dc5c4ae9df3ec
   gate-scripts-docs:
     source:
-      .just/scripts/_gate-drift-lib.sh: 1bb8330b8f836cb7bcef23399c394694de57754ee1bc3eec73d72b1e0c95dc74
+      .just/scripts/_gate-drift-lib.sh: 4fbd1923b0aa5dd173fb4844ca6ed531f34b7b266e05e590ad3c500162e5999d
       .just/scripts/_script-graph-lib.sh: ecc9f2eb1fdc764804c9d3dac61cd94f9e5288d41ac32a2e91bd4613fa0814c8
       .just/scripts/_script-graph.sh: 3956d990fd68bbd6bc943507f730650991cd662e7c04274a330e5fe3c51ef9e9
       .just/scripts/_script-reach.sh: 667647246522252c3b13ce000dadb39f7fda7bee663a9db54497b3919d1a1e85
@@ -447,7 +447,7 @@ groups:
       .just/scripts/site-pages-fixture-check.sh: ceb62190de1412ec102237ceac60536633e4c27fafa32e888366b0cb6403b1e7
       .just/scripts/size-fixture-check.sh: 9ce5b092925dc75114b57cabc3423719dd556411b4e8a3b1a28e428e2aecb858
     dependents:
-      docs/src/contributing/gates.typ: ba77fb07445b62e6143695f0c2f6c75f4c55cf38c6a21104853b6bb6bcb90c89
+      docs/src/contributing/gates.typ: c313dcc6c5dab34407e16925cb0db58a23eff59aca33c85b2d281f19c35182ec
   githooks-docs:
     source:
       .githooks/commit-msg: ecaf43984bbefd17cbc968cbc805c9f7b3db77f40f742f46213797d9b2c2df71

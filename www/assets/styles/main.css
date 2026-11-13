@@ -58,7 +58,7 @@ body {
 a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
 a:hover { color: var(--accent-strong); }
 
-/* Header ------------------------------------------------------------------ */
+/* Header */
 .site-header {
   position: sticky;
   top: 0;
@@ -130,7 +130,7 @@ a:hover { color: var(--accent-strong); }
 [data-theme="dark"] .theme-switch .theme-moon { display: block; }
 @media (prefers-reduced-motion: reduce) { .theme-knob { transition: none; } }
 
-/* Shell: sidebar + main --------------------------------------------------- */
+/* Shell: sidebar + main */
 .shell {
   display: grid;
   grid-template-columns: var(--sidebar) minmax(0, 1fr);
@@ -180,7 +180,7 @@ a:hover { color: var(--accent-strong); }
 }
 .sidebar .nav-nested ul a { font-family: var(--font-mono); font-size: 0.85rem; }
 
-/* Main -------------------------------------------------------------------- */
+/* Main */
 main { padding: 2.2rem 0 5rem; max-width: var(--max); min-width: 0; }
 main.home { max-width: 60rem; }
 
@@ -206,7 +206,7 @@ blockquote {
   color: var(--muted); background: var(--bg-soft); border-radius: 0 8px 8px 0;
 }
 
-/* Inline + block code (Typst-highlighted listings on light paper) --------- */
+/* Inline + block code (Typst-highlighted listings on light paper) */
 code {
   font-family: var(--font-mono); font-size: 0.86em;
   /* Code surfaces stay on light "paper" in both themes (see --code-bg), so pin
@@ -226,7 +226,7 @@ pre {
 pre code { background: none; border: none; padding: 0; font-size: inherit; }
 [data-theme="dark"] pre { box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03); }
 
-/* On-this-page index (see the _toc-script in layout.typ) ------------------ */
+/* On-this-page index (see the _toc-script in layout.typ) */
 .page-toc {
   margin: 0 0 1.8rem;
   border: 1px solid var(--border);
@@ -248,7 +248,7 @@ pre code { background: none; border: none; padding: 0; font-size: inherit; }
 .page-toc li { margin: 0.2rem 0; }
 .page-toc a { font-size: 0.92rem; }
 
-/* Footer ------------------------------------------------------------------ */
+/* Footer */
 .site-footer {
   border-top: 1px solid var(--border); margin-top: 3rem;
   padding: 2rem clamp(1rem, 4vw, 2rem); text-align: center;
@@ -256,7 +256,7 @@ pre code { background: none; border: none; padding: 0; font-size: inherit; }
 }
 .site-footer p { margin: 0; }
 
-/* Responsive -------------------------------------------------------------- */
+/* Responsive */
 /* Narrow screens put the page first. Without script the sidebar follows the
    page as a wrapped list. With it, the sidebar is a drawer under the header
    that the menu button opens (see _nav-script in layout.typ), which sets

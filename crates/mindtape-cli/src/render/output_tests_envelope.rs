@@ -122,7 +122,7 @@ fn json_with_no_rule_matched_reports_null_rule() {
     assert_eq!(value["applied"]["facets"]["filter"]["from"], "match-all");
 }
 
-// --- truncation (`truth/tasks/2026-08/ls-limit-flag.typ`) --------------------------
+// truncation (`truth/tasks/2026-08/ls-limit-flag.typ`)
 
 /// [`json_value`] for a listing cut by `truncated`.
 fn json_with_cut(truncated: Option<Truncation>) -> serde_json::Value {

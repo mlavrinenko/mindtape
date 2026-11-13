@@ -222,7 +222,7 @@ fn dedup_flag_overrides_the_config_default() {
         .failure();
 }
 
-// -- templated-stem counterparts: the regression matrix ----------------------
+// -- templated-stem counterparts: the regression matrix
 
 /// Counterpart of `dedup_fail_is_the_default_and_errors_on_collision` /
 /// `dedup_fail_flag_is_explicit_too`: before this fix, `output_stem` minted

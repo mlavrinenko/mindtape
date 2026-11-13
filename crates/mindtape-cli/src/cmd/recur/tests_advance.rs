@@ -34,7 +34,7 @@ fn setup(files: &[(&str, &str)], config_text: &str) -> (tempfile::TempDir, Proje
     crate::test_util::make_project_with_lib(PRELUDE, files, config_text)
 }
 
-// === check_advance_preconditions ============================================
+// check_advance_preconditions
 // These functions are pure (no file I/O) so the tests use minimal in-memory
 // Project setup without task files.
 
@@ -126,7 +126,7 @@ fn advance_fixture() -> (tempfile::TempDir, Project, Task, PathBuf, Recur) {
     (dir, project, task, abs, recur)
 }
 
-// === do_skip (survivor 1) ===================================================
+// do_skip (survivor 1)
 // Pins replace do_skip -> Result<()> with Ok(()).
 
 #[test]
@@ -164,7 +164,7 @@ fn do_skip_dry_run_writes_nothing() {
     assert_eq!(original, content, "dry-run must not write the file");
 }
 
-// === do_advance (survivor 2) ================================================
+// do_advance (survivor 2)
 // Pins replace do_advance -> Result<()> with Ok(()).
 
 #[test]
@@ -198,7 +198,7 @@ fn do_advance_spawns_files() {
     );
 }
 
-// === build_advance_chain ====================================================
+// build_advance_chain
 // These set up a minimal project manually (file on disk, in-memory outcome)
 // to avoid the full Typst-eval path — build_advance_chain only reads the raw
 // source text and works on the parse plane.
@@ -358,7 +358,7 @@ fn build_advance_chain_disambiguates_against_stems_claimed_in_flight() {
     assert_eq!(stems, ["chore-2", "chore-3", "chore-4"], "{stems:?}");
 }
 
-// === write_advance_chain ====================================================
+// write_advance_chain
 
 #[test]
 fn write_advance_chain_writes_files() {

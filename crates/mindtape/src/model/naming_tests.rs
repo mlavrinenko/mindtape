@@ -40,7 +40,7 @@ fn template_configured_returns_stem() {
     assert_eq!(cfg.template(), "{slug}-{date}");
 }
 
-// -- DedupMode: `[tasks.naming] dedup` deserialize + default -----------------
+// -- DedupMode: `[tasks.naming] dedup` deserialize + default
 
 #[test]
 fn dedup_field_default_is_unset() {
@@ -179,7 +179,7 @@ fn literal_braces_pass_through_untouched_text() {
     assert_eq!(out, "shopping/milk");
 }
 
-// -- disambiguate: fs-free collision guard -----------------------------------
+// -- disambiguate: fs-free collision guard
 
 #[test]
 fn disambiguate_keeps_free_stem() {
@@ -230,7 +230,7 @@ fn disambiguate_exhausts_ceiling_when_every_candidate_is_taken() {
     );
 }
 
-// -- reuse shape: a simulated `mt recur` spawn -------------------------------
+// -- reuse shape: a simulated `mt recur` spawn
 //
 // `mt recur` (a later wave) mints occurrence stems by building its own
 // `MintContext` with the occurrence's anchor date and index — never today's

@@ -294,7 +294,7 @@ fn invalid_header_rule_regex_fails_with_config_error() {
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }
 
-// --- `[tasks.comments]` review-comment policy ----------------------------
+// `[tasks.comments]` review-comment policy
 //
 // Parse-plane precision (a `//` inside a string literal or a raw block is not
 // a comment) is pinned in `typst_cst`'s own tests and again over

@@ -239,7 +239,7 @@ fn contains_fields_accepts_a_narrowed_list() {
 }
 
 // --- suggest wiring for `import-views` / `@view` references
-// (`truth/tasks/2026-09/suggest-a-nearest-match-on-an-unknown-view-name.typ`) -------
+// (`truth/tasks/2026-09/suggest-a-nearest-match-on-an-unknown-view-name.typ`)
 
 /// Validate a single `import-views` entry against the one declared view
 /// `release`, for the near-miss / far-miss pair below.

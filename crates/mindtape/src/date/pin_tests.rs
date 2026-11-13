@@ -43,7 +43,7 @@ fn mindtape_now_extra_date_segments_are_malformed() {
     assert!(resolve(Some("2026-06-18-01")).is_err());
 }
 
-// --- The process-global cache --------------------------------------------
+// The process-global cache
 //
 // `init_pinned_today` sets a `OnceLock` once per process, so neither its
 // caching nor `pinned_epoch_days`'s read of the cache can be asserted from a

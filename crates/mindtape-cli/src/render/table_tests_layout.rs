@@ -42,7 +42,7 @@ fn slug_and_title_columns() -> Vec<Column> {
     ]
 }
 
-// --- apply_highlight --------------------------------------------------------
+// apply_highlight
 
 #[test]
 fn apply_highlight_inverts_handle_cell() {
@@ -101,7 +101,7 @@ fn apply_highlight_skips_when_none_flagged() {
     );
 }
 
-// --- flex_columns -----------------------------------------------------------
+// flex_columns
 
 #[test]
 fn flex_columns_trims_title_to_fit_terminal() {
@@ -247,7 +247,7 @@ fn flex_columns_uses_multiplication_for_gaps() {
     assert_eq!(cols[2].width, 40);
 }
 
-// --- render_grid -----------------------------------------------------------
+// render_grid
 
 #[test]
 fn render_grid_single_column_shows_header_then_content() {
@@ -271,7 +271,7 @@ fn render_grid_single_column_shows_header_then_content() {
 // the sibling `table_tests_hyperlinks.rs` — kept out of this file so it stays
 // well clear of the size gate.
 
-// --- render_unpadded -------------------------------------------------------
+// render_unpadded
 
 #[test]
 fn render_unpadded_truncates_when_over_width() {
@@ -296,7 +296,7 @@ fn render_unpadded_returns_content_as_is_when_fits() {
     assert_eq!(out, "hi", "must not add trailing padding");
 }
 
-// --- glyph_mode ------------------------------------------------------------
+// glyph_mode
 
 /// Both arms of the rule, with the input supplied rather than read from the
 /// harness. Re-deriving the expectation from `is_terminal()` made the test

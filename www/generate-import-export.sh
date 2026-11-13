@@ -28,7 +28,7 @@ capture_init
 # heredoc keeps a multi-line command exactly as the reader sees it.
 capture_one() { capture "$1" "$2" "$(cat)"; }
 
-# --- imports from other trackers ----------------------------------------------
+# imports from other trackers
 capture_scratch P
 capture_prep "$P" 'mt init --no-input'
 mkdir -p "$P/contrib/jq"
@@ -44,7 +44,7 @@ jq -R -s 'split("\n") | map(select(length > 0))' todo.txt \
   | jq -f contrib/jq/todo.txt.jq | mt import
 EOF
 
-# --- the round trip -----------------------------------------------------------
+# the round trip
 capture_copy SRC examples/round-trip
 NEW="$(dirname "$SRC")/new-project"
 mkdir "$NEW"
@@ -59,7 +59,7 @@ mt ls ''
 EOF
 capture_prep "$NEW" "diff <(jq -S '.tasks | sort_by(.id)' ../round-trip/tasks.json) <(mt ls '' --json | jq -S '.tasks | sort_by(.id)')"
 
-# --- exports to other formats -------------------------------------------------
+# exports to other formats
 capture_one export-todotxt "$SRC" <<'EOF'
 mt ls '' --json | jq -r '.tasks[] | select(.status.name != "cancelled")
   | (.priority | if type == "object" then .score else . end) as $p
@@ -85,7 +85,7 @@ mt ls '' --json | jq '[.tasks[] | {
   } | with_entries(select(.value != null))]'
 EOF
 
-# --- /schema/ -----------------------------------------------------------------
+# /schema/
 # The output index, one full record, the two shapes of `priority` from
 # examples/dsl/, which configures the ICE framework, and the envelope with its
 # records counted. www/generate.sh pins MINDTAPE_SCHEMA_BASE empty, so the

@@ -9,7 +9,7 @@ use super::tests::{assert_violated, canonical, config};
 use super::{EntryKind, MapOptions, map_canonical};
 use crate::model::canonical::CanonicalStatus;
 
-// --- status ----------------------------------------------------------
+// status
 
 #[test]
 fn missing_status_defaults_to_initial_legend_value() {

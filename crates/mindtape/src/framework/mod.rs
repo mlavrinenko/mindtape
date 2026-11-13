@@ -264,7 +264,7 @@ fn check_input_value(name: &str, input: &Input, value: &InputValue, out: &mut Ve
     }
 }
 
-// --- Built-in framework layer ------------------------------------------------
+// Built-in framework layer
 
 /// Deep-merge the baked-in built-in frameworks under any user-declared ones at
 /// `[tasks.priority.frameworks]`, mutating the parsed config document in place.

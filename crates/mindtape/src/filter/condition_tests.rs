@@ -274,7 +274,7 @@ fn binary_op_with_wrong_arity_is_invalid_at_match_time() {
     );
 }
 
-// --- the listing predicates -------------------------------------------------
+// the listing predicates
 
 /// Every `ColumnFacts` field set, so a predicate reading the wrong one still
 /// answers `true` and the per-field tests below are what separate them.

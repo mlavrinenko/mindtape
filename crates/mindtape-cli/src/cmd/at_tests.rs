@@ -192,7 +192,7 @@ fn unknown_name_omits_suggestion_on_a_far_miss() {
     assert!(!msg.contains("did you mean"), "{msg}");
 }
 
-// ===== Subprocess tests (stdout / env isolation) =====
+// Subprocess tests (stdout / env isolation)
 //
 // Each test spawns itself as a child process with `$MINDTAPE_CONFIG_HOME`
 // pointing at a temp directory and a sentinel env var set. The child

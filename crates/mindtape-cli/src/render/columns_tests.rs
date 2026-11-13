@@ -415,7 +415,7 @@ fn children_text_renders_the_count_for_a_parent() {
     assert_eq!(children_text(&task), "3");
 }
 
-// --- a set's PROJECT column and joined columns -------------------------------
+// a set's PROJECT column and joined columns
 
 #[test]
 fn union_order_slots_a_new_column_after_the_one_it_follows() {

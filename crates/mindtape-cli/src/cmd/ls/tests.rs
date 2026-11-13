@@ -326,7 +326,7 @@ fn skip_beyond_the_match_count_yields_an_empty_page() {
     assert!(listing.truncated.is_none());
 }
 
-// --- next-command hint -------------------------------------------------
+// next-command hint
 
 #[test]
 fn next_command_hint_reproduces_the_filter_and_appends_skip() {

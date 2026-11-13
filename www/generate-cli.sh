@@ -29,7 +29,7 @@ init_scratch() {
     capture_prep "${!1}" 'mt init --no-input'
 }
 
-# --- read commands, in place ------------------------------------------------
+# read commands, in place
 capture version "$FIX" 'mt --version'
 capture ls "$FIX" 'mt ls'
 capture explain "$FIX" 'mt explain'
@@ -86,7 +86,7 @@ mt graph                                # every task, Graphviz DOT
 mt graph '!terminal' --format mermaid   # the open tasks as a Mermaid flowchart
 EOF
 
-# --- commands that write, each session in its own project -------------------
+# commands that write, each session in its own project
 init_scratch P
 capture_lines add "$P" <<'EOF'
 mt add fix the login bug

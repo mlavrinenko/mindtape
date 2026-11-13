@@ -19,7 +19,7 @@ use super::color::Painter;
 use super::glyph::GlyphMode;
 use super::width::{display_width, pad_to_width, truncate_to_width};
 
-// --- CellSpec ----------------------------------------------------------------
+// CellSpec
 
 /// A field value resolved into its displayable parts.
 ///
@@ -38,7 +38,7 @@ pub struct CellSpec {
     pub color: Option<Style>,
 }
 
-// --- DensityMode -------------------------------------------------------------
+// DensityMode
 
 /// How much information to render into a column cell.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -51,7 +51,7 @@ pub enum DensityMode {
     GlyphOnly,
 }
 
-// --- render_cell -------------------------------------------------------------
+// render_cell
 
 /// Lay out a [`CellSpec`] into a string of exactly `column_width` display
 /// cells.
@@ -132,7 +132,7 @@ pub fn content_width(spec: &CellSpec, glyph_mode: GlyphMode, density: DensityMod
     display_width(&build_content(spec, glyph_mode, density))
 }
 
-// --- Field trait -------------------------------------------------------------
+// Field trait
 
 /// The seam every displayable task field renders through.
 ///
@@ -164,7 +164,7 @@ pub trait Field {
     }
 }
 
-// --- Tests -------------------------------------------------------------------
+// Tests
 
 #[cfg(test)]
 #[path = "field_tests.rs"]

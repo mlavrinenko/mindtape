@@ -9,7 +9,7 @@ use super::tests::{Mode, run_in};
 use super::{HookOutcome, note_with_overrides};
 use crate::diag::plain;
 
-// --- the override marker -----------------------------------------------
+// the override marker
 
 #[test]
 fn note_is_untouched_when_no_gate_was_waived() {
@@ -44,7 +44,7 @@ fn a_waived_gate_stands_alone_without_a_note() {
     );
 }
 
-// --- approval ----------------------------------------------------------
+// approval
 
 const MARK_GATE: &str = "[[on.flip]]\nwhen = 'into(\"done\")'\n\
      actions = [{ run = 'touch mark', gate = true }]\n";

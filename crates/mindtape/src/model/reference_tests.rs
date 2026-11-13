@@ -188,7 +188,7 @@ fn only_a_path_shaped_reference_is_a_path() {
     assert!(!is_path_ref("alpha"));
 }
 
-// --- a `links:` target, read from the linking file ---------------------------
+// a `links:` target, read from the linking file
 
 #[test]
 fn a_target_path_reads_from_the_linking_file_without_the_disk() {

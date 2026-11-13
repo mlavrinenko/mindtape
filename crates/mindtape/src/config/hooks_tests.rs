@@ -128,7 +128,7 @@ fn into_targets_collects_every_name_in_order() {
     assert_eq!(into_targets(expr), vec!["done", "cancelled"]);
 }
 
-// --- action kinds ------------------------------------------------------
+// action kinds
 
 fn action(toml: &str) -> FlipAction {
     toml::from_str(toml).unwrap()
@@ -241,7 +241,7 @@ fn modifiers_belonging_to_another_kind_are_rejected() {
     }
 }
 
-// --- selection ---------------------------------------------------------
+// selection
 
 const TWO_HOOKS: &str = r#"
 [[on.flip]]
@@ -314,7 +314,7 @@ fn no_hooks_means_nothing_fires() {
     assert!(fired.unwrap().is_empty());
 }
 
-// --- load-time validation ----------------------------------------------
+// load-time validation
 
 /// Every problem `validate_flip_hooks` reports, each from a config that is
 /// otherwise well-formed.
