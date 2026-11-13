@@ -105,6 +105,13 @@ budget on the work in progress never fires on a template. A problem the
 template can fix counts, and the error names the template file and the line
 of the field:
 #capture-line("check-template-stale", "^error: .*bug.typ").
+
+With `[templates] check-defaults = true`, it also fills each template with
+every slot's `default`, falling back to its `example` for a slot with no
+default. A default that falls behind its example then fails the check too,
+before `mt add` files it. The option is off by default because a template may
+leave a goal `neutral` so `mt add` refuses a task that helps no goal until the
+caller answers one. A breach both variants share is reported once.
 A problem about the backlog or the file's place doesn't count: a `count()` cap,
 a rule on `ready`, `blocked`, `path` or `dir`, a link cycle, or a link to a
 task that isn't there.

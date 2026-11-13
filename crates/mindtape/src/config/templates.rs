@@ -18,6 +18,11 @@ pub struct TemplatesConfig {
     /// falls back to when no template dir holds `task.typ`. A project's own
     /// templates always report errors.
     pub fallback_severity: FallbackSeverity,
+    /// Whether `mt check` also files each template with its defaults, not only
+    /// with its examples. Off by default: a template may leave a goal at
+    /// `neutral` so `mt add` refuses a task that helps no goal until the caller
+    /// answers one.
+    pub check_defaults: bool,
 }
 
 /// How severely a breach of the built-in template is reported.
@@ -41,6 +46,7 @@ impl Default for TemplatesConfig {
             dirs: vec![".mindtape/templates".to_owned()],
             default: BUILTIN_TEMPLATE.to_owned(),
             fallback_severity: FallbackSeverity::Warning,
+            check_defaults: false,
         }
     }
 }

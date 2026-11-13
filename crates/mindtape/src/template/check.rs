@@ -2,12 +2,15 @@
 //! (`truth/tasks/2026-10/check-templates-file-healthy-tasks.typ`).
 //!
 //! A template is checked as the task it files when every slot holds its
-//! `example`, else its `default` ([`crate::fill_examples`]), and every breach
-//! of that task is the template's. A slot with neither cannot be filled, so it
-//! is a breach of its own ([`unfillable_slots`]) and the template goes
-//! unchecked until it has one. A `text` slot whose example shows markup is a
-//! breach too ([`code_span_examples`]): `mt add` escapes what a caller types
-//! there, so the example would teach input that files as backslashes.
+//! `example`, else its `default` ([`crate::fill_examples`]). Under
+//! `[templates] check-defaults` it is also checked as the task every slot's
+//! `default` files ([`crate::fill_defaults`]), so a default that falls behind
+//! its example fails too. Every breach of either task is the template's. A
+//! slot with neither cannot be filled, so it is a breach of its own
+//! ([`unfillable_slots`]) and the template goes unchecked until it has one. A
+//! `text` slot whose example shows markup is a breach too
+//! ([`code_span_examples`]): `mt add` escapes what a caller types there, so
+//! the example would teach input that files as backslashes.
 //!
 //! The candidate validation itself is [`crate::check_candidate`]; the CLI
 //! splices the config-required slots and the add-owned header in between,

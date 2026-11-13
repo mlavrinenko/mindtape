@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   as `[tasks.naming] stem`, so `dir = "tasks/{date:YYYY}-{date:MM}"` files a new
   task in its month folder. An unknown macro, or a format that expands to a path
   separator, is still refused.
+- **`[templates] check-defaults` checks the task each template files with its
+  defaults.** Off by default, because a template may leave a goal `neutral` so
+  `mt add` refuses an unrated task. On, a default that a rule refuses fails
+  `mt check` even when the example beside it passes, so a goal added to a
+  project's goal list fails every template that has not rated it yet.
 
 ## [0.6.0] - 2026-11-12
 

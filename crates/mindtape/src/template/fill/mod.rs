@@ -199,20 +199,43 @@ fn literal_replacement(
     }
 }
 
+/// Fill every slot in `source` with its `default`, else its `example`: the
+/// task `mt add` files when the caller takes every default. A slot with no
+/// default is one `mt add` has to ask for, so its example fills it and the
+/// task is complete.
+///
+/// # Errors
+/// Returns [`FillError::Missing`] naming each slot with neither, and
+/// [`FillError::UnknownKind`] for a slot whose kind names nothing.
+pub fn fill_defaults(source: &str) -> Result<String, FillError> {
+    fill_slots(source, |spec| {
+        default_replacement(spec).or_else(|| example_replacement(spec))
+    })
+}
+
 /// Fill every slot in `source` with its `example`, else its `default`: the
-/// task a template files when every slot holds the value its author showed,
-/// which is what `mt check` validates.
+/// task a template files when every slot holds the value its author showed.
 ///
 /// # Errors
 /// Returns [`FillError::Missing`] naming each slot with neither, and
 /// [`FillError::UnknownKind`] for a slot whose kind names nothing.
 pub fn fill_examples(source: &str) -> Result<String, FillError> {
+    fill_slots(source, |spec| {
+        example_replacement(spec).or_else(|| default_replacement(spec))
+    })
+}
+
+/// Fill each slot with `replacement`, naming every slot it cannot fill.
+fn fill_slots(
+    source: &str,
+    replacement: impl Fn(&SlotSpec) -> Option<String>,
+) -> Result<String, FillError> {
     let specs = discover_slots(source);
     reject_unknown_kind(&specs)?;
     let mut edits = Vec::new();
     let mut missing = Vec::new();
     for spec in &specs {
-        match example_replacement(spec).or_else(|| default_replacement(spec)) {
+        match replacement(spec) {
             Some(text) => edits.push(Edit::new(edit_range(spec, source), text)),
             None => missing.push(spec.name.clone()),
         }

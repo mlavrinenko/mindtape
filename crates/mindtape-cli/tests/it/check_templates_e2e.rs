@@ -39,41 +39,78 @@ fn template(kind: &str) -> String {
     )
 }
 
+/// The template's `kind` is `slot` source, and a check fails naming `wanted`.
+fn assert_kind_slot_fails(slot: &str, wanted: &str) {
+    assert_kind_slot_fails_with(CONFIG, slot, wanted);
+}
+
+/// The same, in a project whose config is `config`.
+fn assert_kind_slot_fails_with(config: &str, slot: &str, wanted: &str) {
+    let dir = scaffold_with(config, &template(slot));
+    support::assert_check_fails(dir.path(), wanted);
+}
+
 #[test]
 fn a_stale_literal_fails_naming_the_template_line() {
-    let dir = scaffold(&template("\"bug\""));
-    support::assert_check_fails(
-        dir.path(),
+    assert_kind_slot_fails(
+        "\"bug\"",
         &shown("error: .mindtape/templates/bug.typ:4: kind: `bug` is not an allowed value"),
     );
 }
 
 #[test]
 fn a_stale_example_fails() {
-    let dir = scaffold(&template("slot(\"kind\", example: \"bug\")"));
-    support::assert_check_fails(
-        dir.path(),
+    assert_kind_slot_fails(
+        "slot(\"kind\", example: \"bug\")",
         &shown(".mindtape/templates/bug.typ:4: kind: `bug` is not an allowed value"),
     );
 }
 
 #[test]
 fn a_stale_default_fails() {
-    let dir = scaffold(&template("slot(\"kind\", default: \"bug\")"));
-    support::assert_check_fails(
-        dir.path(),
+    assert_kind_slot_fails(
+        "slot(\"kind\", default: \"bug\")",
         &shown(".mindtape/templates/bug.typ:4: kind: `bug` is not an allowed value"),
     );
 }
 
-/// The example wins over the default, so a stale default behind a good
-/// example is not what the check files.
+/// Under `[templates] check-defaults`, both values are filed, so the example's
+/// `bug` fails even with a good default beside it, and the default's `bug`
+/// fails even with a good example.
 #[test]
-fn the_example_fills_before_the_default() {
-    let dir = scaffold(&template(
+fn both_the_example_and_the_default_are_filed() {
+    let config = format!("{CONFIG}[templates]\ncheck-defaults = true\n");
+    for slot in [
         "slot(\"kind\", default: \"fix\", example: \"bug\")",
-    ));
-    support::assert_check_fails(dir.path(), "`bug` is not an allowed value");
+        "slot(\"kind\", default: \"bug\", example: \"fix\")",
+    ] {
+        assert_kind_slot_fails_with(&config, slot, "`bug` is not an allowed value");
+    }
+}
+
+/// A template's defaults are a task `mt add` files, so a default a rule
+/// refuses fails under `[templates] check-defaults` even when the example
+/// beside it passes. Off by default, the same template passes, because a
+/// template may leave a goal neutral for `mt add` to refuse.
+#[test]
+fn defaults_are_filed_only_under_check_defaults() {
+    let body = "#import \"@local/mindtape:0.4.0\": *\n#show: task.with(\n  \
+         title: slot(\"title\", example: \"Fix the crash on save\"),\n  kind: \"fix\",\n  \
+         x-machine: slot(\"x-machine\", kind: \"list\", default: (\"beta\",), \
+         example: (\"alpha\",)),\n)\n";
+    let machine = "[tasks.fields.x-machine]\nvalues = [\"alpha\", \"beta\"]\n\
+         multiple = true\n[[tasks.rules]]\nname = \"names-alpha\"\n\
+         assert = 'has(x-machine, \"alpha\")'\nseverity = \"error\"\n";
+    let off = scaffold_with(&format!("{CONFIG}{machine}"), body);
+    support::check_ok(off.path());
+    let on = scaffold_with(
+        &format!("{CONFIG}[templates]\ncheck-defaults = true\n{machine}"),
+        body,
+    );
+    support::assert_check_fails(
+        on.path(),
+        &shown(".mindtape/templates/bug.typ:2: rules.names-alpha"),
+    );
 }
 
 #[test]

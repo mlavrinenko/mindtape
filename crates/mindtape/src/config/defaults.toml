@@ -117,6 +117,10 @@ color = "red"
 dirs = [".mindtape/templates"]
 default = "task"
 fallback-severity = "warning"
+# Also file each template with its defaults, not only its examples. Off by
+# default: a template may leave a goal neutral so `mt add` refuses an unrated
+# task until the caller answers.
+check-defaults = false
 
 [rm]
 default-filter = "terminal"

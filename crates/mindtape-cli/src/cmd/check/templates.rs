@@ -1,8 +1,9 @@
 //! `mt check`'s template pass: every template `mt add --list` lists is filed
 //! the way `mt add` files it — config-required slots spliced, the status
-//! stamped — with each slot holding its `example`, else its `default`, and
-//! validated as a candidate at the path `mt add` would write it to. Every
-//! breach is reported at the template's file and line.
+//! stamped — with each slot's `example`, else its `default`, and with its
+//! `default`, else its example, when `[templates] check-defaults` asks for
+//! both. Each result is validated as a candidate at the path `mt add` would
+//! write it to. Every breach is reported at the template's file and line.
 //!
 //! Each template is checked alone, against an empty backlog, at the stem
 //! `mt add` would mint from its example title: the backlog's state, and a task
@@ -39,8 +40,9 @@ struct Filed {
     rel: PathBuf,
     /// The template as authored.
     authored: String,
-    /// The task source filed from the template, or its own breaches.
-    filed: Result<String, Vec<Violation>>,
+    /// The task source filed from the template's examples, plus its defaults
+    /// under `[templates] check-defaults`; or its own breaches.
+    filled: Result<Vec<String>, Vec<Violation>>,
 }
 
 impl Filed {
@@ -55,6 +57,10 @@ impl Filed {
 /// A template's load failure, with the one diagnostic a repeated prelude
 /// failure folds into: a key that groups the repeats, and the replacement.
 type Failure = (Option<(String, Diag)>, Diag);
+
+/// One fill pass over a template's spliced source: its examples, or its
+/// defaults.
+type Fill = fn(&str) -> Result<String, mindtape::FillError>;
 
 /// What the template pass found: the breaches of every listed template, in
 /// template order, and the templates that did not load at all, each already a
@@ -102,9 +108,9 @@ pub(crate) fn breaches(project: &Project, body_rules: BodyRules<'_>) -> Result<F
             file,
             name,
             authored,
-            filed: Ok(String::new()),
+            filled: Ok(Vec::new()),
         };
-        template.filed = file_examples(project, template.home(), &template.authored);
+        template.filled = file_variants(project, template.home(), &template.authored);
         templates.push(template);
     }
     let fallback = project.config.templates.fallback_severity;
@@ -185,10 +191,10 @@ fn candidate_stem(project: &Project, name: &str, authored: &str) -> Result<Strin
     minted_stem(&values, &project.config).or_else(|_| Ok(name.to_owned()))
 }
 
-/// Each template's breaches: its own, or its filed task's checked alone against
-/// no other task, less the breaches that read the whole task set. A template
-/// that did not evaluate is a load failure instead, tagged with the message
-/// when it names the missing prelude.
+/// Each template's breaches: its own, or each filed task's checked alone
+/// against no other task, less the breaches that read the whole task set. A
+/// template that did not evaluate is a load failure instead, tagged with the
+/// message when it names the missing prelude.
 fn judge(
     project: &Project,
     templates: &[Filed],
@@ -196,20 +202,53 @@ fn judge(
 ) -> (Vec<Vec<Violation>>, Vec<Failure>) {
     let mut failures = Vec::new();
     let judged = (templates.iter())
-        .map(|template| match &template.filed {
-            Err(own) => own.clone(),
-            Ok(checked) => match check_alone(project, template, checked, body_rules) {
-                Ok(found) => found,
-                Err(err) => {
-                    let kind = failure_kind(template, project.config.templates.fallback_severity);
-                    let fold = prelude_failure(template, &err, kind);
-                    failures.push((fold, load_failure(template, checked, &err, kind)));
-                    Vec::new()
-                }
-            },
+        .map(|template| {
+            let (found, failure) = judge_template(project, template, body_rules);
+            if let Some(failure) = failure {
+                failures.push(failure);
+            }
+            found
         })
         .collect();
     (judged, failures)
+}
+
+/// One template's breaches, and its load failure when a filed variant did not
+/// evaluate. The same breach from both variants is reported once.
+fn judge_template(
+    project: &Project,
+    template: &Filed,
+    body_rules: BodyRules<'_>,
+) -> (Vec<Violation>, Option<Failure>) {
+    let sources = match &template.filled {
+        Err(own) => return (own.clone(), None),
+        Ok(sources) => sources,
+    };
+    let mut found = Vec::new();
+    let mut failure = None;
+    for source in sources {
+        match check_alone(project, template, source, body_rules) {
+            Ok(breaches) => push_unique(&mut found, breaches),
+            Err(err) => {
+                if failure.is_none() {
+                    let fallback = project.config.templates.fallback_severity;
+                    let kind = failure_kind(template, fallback);
+                    let fold = prelude_failure(template, &err, kind);
+                    failure = Some((fold, load_failure(template, source, &err, kind)));
+                }
+            }
+        }
+    }
+    (found, failure)
+}
+
+/// Append each of `breaches` `found` does not already hold.
+fn push_unique(found: &mut Vec<Violation>, breaches: Vec<Violation>) {
+    for violation in breaches {
+        if !found.contains(&violation) {
+            found.push(violation);
+        }
+    }
 }
 
 /// How a template that did not evaluate counts: a failure, but a warning for a
@@ -315,14 +354,16 @@ fn at_severity(found: Vec<Violation>, builtin: bool, fallback: FallbackSeverity)
         .collect()
 }
 
-/// The task source `mt add` would write from `authored` with every slot
-/// holding its example, else its default; or the template's breaches when it
-/// cannot be filed.
-fn file_examples(
+/// The task sources `mt add` would write from `authored`: one with every slot
+/// holding its example, else its default, and, under `[templates]
+/// check-defaults`, one with every slot holding its default, else its example.
+/// Identical variants are filed once. A template that cannot be filed is its
+/// own breaches instead.
+fn file_variants(
     project: &Project,
     home: TemplateHome<'_>,
     authored: &str,
-) -> Result<String, Vec<Violation>> {
+) -> Result<Vec<String>, Vec<Violation>> {
     let fail = |err: String| vec![template_failure(home, authored, err)];
     let config = &project.config;
     let status = filing_status(config, authored, None);
@@ -332,8 +373,19 @@ fn file_examples(
     if !unfillable.is_empty() {
         return Err(unfillable);
     }
-    let filled = mindtape::fill_examples(&spliced).map_err(|err| fail(err.to_string()))?;
-    let filled = inject_header(&filled, config, status.as_deref())
-        .map_err(|err| fail(format!("{err:#}")))?;
-    Ok(util::canonical_source(config, filled))
+    let mut fills: Vec<Fill> = vec![mindtape::fill_examples];
+    if config.templates.check_defaults {
+        fills.push(mindtape::fill_defaults);
+    }
+    let mut sources = Vec::new();
+    for fill in fills {
+        let filled = fill(&spliced).map_err(|err| fail(err.to_string()))?;
+        let filled = inject_header(&filled, config, status.as_deref())
+            .map_err(|err| fail(format!("{err:#}")))?;
+        let source = util::canonical_source(config, filled);
+        if !sources.contains(&source) {
+            sources.push(source);
+        }
+    }
+    Ok(sources)
 }

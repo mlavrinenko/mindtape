@@ -120,9 +120,10 @@ sample task when it loads the config. So a rule that names an unknown field,
 #link(u("/named-sets/"))[view or dictionary] gives you one config error, not
 one breach per task.
 
-`mt check` also files each #link(u("/templates/"))[template] with its example
-and checks the result as a task. A filled example is not a task file, though,
-so two kinds of rule have no answer for it. A rule that reads the whole set,
+`mt check` also files each #link(u("/templates/"))[template] with its
+examples, and with its defaults under `[templates] check-defaults`, and
+checks each result as a task. A filled template is not a task file, though, so
+two kinds of rule have no answer for it. A rule that reads the whole set,
 such as a `count(...)` cap, and a rule that reads where the file lives, through
 `path` or `dir`, are left out of the template report. A rule about the
 template's own fields still reports, so a stale template cannot slip through.

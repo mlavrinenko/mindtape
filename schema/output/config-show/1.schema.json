@@ -2774,6 +2774,11 @@
       "additionalProperties": false,
       "description": "Where `mt add` finds task templates.",
       "properties": {
+        "check-defaults": {
+          "default": false,
+          "description": "Whether `mt check` also files each template with its defaults, not only\nwith its examples. Off by default: a template may leave a goal at\n`neutral` so `mt add` refuses a task that helps no goal until the caller\nanswers one.",
+          "type": "boolean"
+        },
         "default": {
           "default": "task",
           "description": "Template stem `mt add` uses when none is named.",

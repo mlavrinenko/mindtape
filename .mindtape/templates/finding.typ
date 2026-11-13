@@ -56,14 +56,16 @@
       slot(
         "product-goals",
         kind: "raw",
-        default: (:),
-        example: "(enforced-practice: helps[a quiet gate leaves its failures readable],)",
+        default: (
+          readable-tasks: helps[the finding states the observation and the change it asks for],
+          enforced-practice: neutral,
+        ),
+        example: "(enforced-practice: helps[a quiet gate leaves its failures readable], readable-tasks: neutral,)",
       ),
       ..slot(
         "product-neutral",
         kind: "list",
         default: (
-          "readable-tasks",
           "implementable-tasks",
           "cheap-adoption",
           "typst-over-markdown",

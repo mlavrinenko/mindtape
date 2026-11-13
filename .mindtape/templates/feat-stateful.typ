@@ -24,7 +24,9 @@
       slot(
         "product-goals",
         kind: "raw",
-        default: (:),
+        default: (
+          readable-tasks: helps[the template asks for AS-IS and TO-BE, so the task reads at a glance],
+        ),
         example: "(readable-tasks: helps[a listing sorted by due shows what is due first],)",
       ),
       ..slot(

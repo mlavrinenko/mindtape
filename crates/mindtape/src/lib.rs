@@ -148,8 +148,8 @@ pub use template::check::{
     unfillable_slots,
 };
 pub use template::{
-    FillError, LinkValue, RawValue, SlotKind, SlotSpec, discover_slots, fill, fill_examples,
-    fill_partial, parse_string_array,
+    FillError, LinkValue, RawValue, SlotKind, SlotSpec, discover_slots, fill, fill_defaults,
+    fill_examples, fill_partial, parse_string_array,
 };
 pub use validate::candidate::{
     Candidate, Checked, check_candidate, check_candidates, harvest_candidate, reads_set_breach,
