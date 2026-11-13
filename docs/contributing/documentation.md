@@ -82,11 +82,11 @@ Write for a busy engineer who reads each sentence once. The rules apply to comme
 The Vale style in `.config/vale/styles/Prose/` checks the mechanical part of Typst prose:
 
 - `Prose.History` finds the history words `now`, `used to`, `no longer`, `anymore` and `formerly`.
-- `Prose.Shouting` finds an all-caps word outside the acronym list in `Shouting.yml`.
+- `Prose.Shouting` finds an all-caps word outside the exception list in `Shouting.yml`.
 - `Prose.EmDash` finds an em dash.
 - `Prose.ProductName` finds the product’s name typed out in a docs source, which writes `#mindtape` instead.
 
-`just docs vale-prose` runs those rules over `docs/src`, `www/content` and `www/utils`. A task body runs `Shouting` and `EmDash` only, because a task records a change: `now` and `no longer` name its AS-IS and TO-BE, and a task has no `#mindtape` constant.
+`just docs vale-prose` runs those rules over `docs/src`, `www/content` and `www/utils`. `just docs vale-tasks` runs `Shouting` and `EmDash` over a task body, because a task records a change: `now` and `no longer` name its AS-IS and TO-BE, and a task has no `#mindtape` constant. That arm carries no `gate` tag, since `mt flip` writes the task file it would read.
 
 `just docs prose` keeps the same four rules for Markdown, the full-line comments of every tracked shell script, YAML file and Justfile, both schema descriptions and every `mt _cli --json` help string. It also checks a shell constant, written as `$NAME`, `${NAME}` or `NAME=`, and a lone capital beside an all-caps word. A quoted example passes in both gates. The word lists are in `.just/scripts/_doc-prose-lib.sh`, and what the scan skips is argued in `.just/scripts/check-doc-prose.sh`.
 

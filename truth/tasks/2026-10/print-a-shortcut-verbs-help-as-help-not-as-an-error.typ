@@ -61,7 +61,7 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape-cli/tests/flip_e2e.rs`: red test first — `mt done --help` exits 0 and names `mt done`.
+- `crates/mindtape-cli/tests/flip_e2e.rs`: red test first, `mt done --help` exits 0 and names `mt done`.
 - `crates/mindtape-cli/src/flip.rs`: give `Shortcut` a user-facing `about` and the verb as its name, and let a help or version request print and exit instead of becoming an error.
 
 

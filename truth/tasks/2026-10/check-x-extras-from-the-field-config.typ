@@ -71,7 +71,7 @@
 
 == Changes
 
-- `crates/mindtape/src/validate_tests_fields.rs`: red tests first — a declared `x-` extra that is missing, one outside `values`, an `@dict`-expanded list, an unknown or core field name refused at load, and a required extra spliced as an `mt add` slot.
+- `crates/mindtape/src/validate_tests_fields.rs`: red tests first: a declared `x-` extra that is missing, one outside `values`, an `@dict`-expanded list, an unknown or core field name refused at load, and a required extra spliced as an `mt add` slot.
 
 - `crates/mindtape/src/validate.rs`: `check_enum_field` reads an `x-<ns>` name from `task.extras`, compares an `HVal::Str` against `values`, and reports the `required` miss like a core field; a non-string extra with `values` set is a breach.
 

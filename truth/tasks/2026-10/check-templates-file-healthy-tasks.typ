@@ -63,7 +63,7 @@
 
 == Changes
 
-- `crates/mindtape-cli/tests/check_templates_e2e.rs`: red tests first — a stale literal, example and default, a slot with neither, a rule breach on an example, the fallback severity.
+- `crates/mindtape-cli/tests/check_templates_e2e.rs`: red tests first: a stale literal, example and default, a slot with neither, a rule breach on an example, the fallback severity.
 
 - `crates/mindtape/src/template_fill.rs`: `fill_examples` fills each slot with its example, else its default.
 

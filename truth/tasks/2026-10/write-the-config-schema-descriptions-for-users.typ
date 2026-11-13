@@ -37,7 +37,7 @@
 == AS-IS
 
 + Run `rg -c 'crate::' schema/config.schema.json`.
-+ 🔴 It prints `5`. One description reads `` [`crate::config_packs`] — so this field always reads back as whichever layer ... ``.
++ 🔴 It prints `5`. One description reads `` [`crate::config_packs`], so this field always reads back as whichever layer ... ``.
 + Editors show these descriptions on hover over `.mindtape/config.toml`, and the /config/ Sections table prints them through `www/utils/config-ref.typ`. Both surfaces show Rust intra-doc links to users.
 
 

@@ -172,16 +172,17 @@ Typst prose:
 
 - `Prose.History` finds the history words `now`, `used to`, `no longer`,
   `anymore` and `formerly`.
-- `Prose.Shouting` finds an all-caps word outside the acronym list in
+- `Prose.Shouting` finds an all-caps word outside the exception list in
   `Shouting.yml`.
 - `Prose.EmDash` finds an em dash.
 - `Prose.ProductName` finds the product's name typed out in a docs source,
   which writes `#mindtape` instead.
 
 #just.docs-vale-prose() runs those rules over `docs/src`, `www/content` and
-`www/utils`. A task body runs `Shouting` and `EmDash` only, because a task
-records a change: `now` and `no longer` name its AS-IS and TO-BE, and a task
-has no `#mindtape` constant.
+`www/utils`. #just.docs-vale-tasks() runs `Shouting` and `EmDash` over a task
+body, because a task records a change: `now` and `no longer` name its AS-IS and
+TO-BE, and a task has no `#mindtape` constant. That arm carries no `gate` tag,
+since `mt flip` writes the task file it would read.
 
 #just.docs-prose() keeps the same four rules for Markdown, the full-line
 comments of every tracked shell script, YAML file and Justfile, both schema

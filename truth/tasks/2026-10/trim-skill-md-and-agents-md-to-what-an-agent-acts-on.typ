@@ -49,7 +49,7 @@
 == TO-BE
 
 - 🟢 SKILL.md states each rule once and keeps what an agent acts on. The filter field and helper list moves to a reference file the skill links.
-- 🟢 AGENTS.md says what MindTape is and where things live, with no versions or build notes.
+- 🟢 AGENTS.md says what Mindtape is and where things live, with no versions or build notes.
 - 🟢 Both follow the plain-prose rules.
 
 

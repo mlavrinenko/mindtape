@@ -71,7 +71,7 @@
 
 == Changes
 
-- `crates/mindtape/src/template_tests.rs`: red tests first — a scalar example, a raw-block example and default dedented, an example never filed.
+- `crates/mindtape/src/template_tests.rs`: red tests first: a scalar example, a raw-block example and default dedented, an example never filed.
 
 - `crates/mindtape/src/template.rs`: `SlotSpec` carries `example`, and slot discovery reads a raw block as a `default` or `example` literal.
 

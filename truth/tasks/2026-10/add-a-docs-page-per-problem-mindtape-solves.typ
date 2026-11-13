@@ -2,7 +2,7 @@
 #import "/truth/lib.typ": *
 
 #show: task.with(
-  title: "Add a docs page per problem MindTape solves",
+  title: "Add a docs page per problem Mindtape solves",
   kind: "docs",
   priority: ice(
     impact: 8,

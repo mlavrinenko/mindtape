@@ -65,8 +65,12 @@ $ vale /tmp/t.typ
 - `.config/vale.ini`: map `[*.typ]` to the `Prose` style and skip a quoted example.
 - `.config/vale/styles/Prose/`: the history, shouting, em-dash and typed-name rules.
 - `.just/docs.just`: `docs::vale-prose` for the docs and `docs::vale-tasks` for a task body.
-- `Justfile` and `.mmz/config.yaml`: run the docs arm in `just check` with its inputs.
+- `Justfile` and `.mmz/config.yaml`: run both arms in `just check` with their inputs. The task arm carries no `gate` tag, so `mt flip` writing the task file cannot stale its record.
+- `.githooks/pre-commit`: run the task prose through Vale, since a commit that stages only a task file skips the freshness assertion.
+- `.config/outdatty.yaml`: the `vale-docs` group, which ties the styles and config to the two pages that state them.
 - `docs/src/contributing/documentation.typ`: list the rule codes and keep only the judgment rules in prose.
+- `docs/src/contributing/gates.typ`: say why the close predicate skips the task arm.
+- `truth/tasks/2026-10/`: the 20 em dashes Vale reported, and the `MindTape` spelling, both cleaned.
 
 
 == Alternatives

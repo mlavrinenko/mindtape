@@ -72,7 +72,7 @@
 
 == Changes
 
-- `crates/mindtape/src/validate_tests_extras.rs`: red tests first — a list with every element allowed passes; one unknown element, one non-string element, an empty list and a repeated element each breach.
+- `crates/mindtape/src/validate_tests_extras.rs`: red tests first: a list with every element allowed passes; one unknown element, one non-string element, an empty list and a repeated element each breach.
 
 - `crates/mindtape/src/validate.rs`: `check_enum_field` accepts `HVal::Array` and checks each element, keeping the scalar path.
 
@@ -85,10 +85,10 @@
 
 == Alternatives
 
-- Keep string-only and let each project ship a Typst check: rejected — the filter already reads list extras, and config is the declared-field path.
-- Accept any element type: rejected — `values` is a string set; a number cannot match an entry.
-- Allow a repeated element: rejected — a set names each value once, and a duplicate is a typo or a bad merge.
-- Allow an empty list: rejected — it satisfies `required` while naming no value, and every `has(field, value)` is false.
+- Keep string-only and let each project ship a Typst check: rejected (the filter already reads list extras, and config is the declared-field path).
+- Accept any element type: rejected (`values` is a string set; a number cannot match an entry).
+- Allow a repeated element: rejected (a set names each value once, and a duplicate is a typo or a bad merge).
+- Allow an empty list: rejected (it satisfies `required` while naming no value, and every `has(field, value)` is false).
 
 
 == Out of scope

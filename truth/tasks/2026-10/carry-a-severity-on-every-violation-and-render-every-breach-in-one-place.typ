@@ -60,7 +60,7 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape/src/violation.rs`: make `severity` non-optional; fix the doc that says MindTape's own checks print bare.
+- `crates/mindtape/src/violation.rs`: make `severity` non-optional; fix the doc that says Mindtape's own checks print bare.
 - `crates/mindtape/src/config_comments.rs`: set the severity from the policy.
 - `crates/mindtape-cli/src/check.rs`: move `breach_at` into one renderer and treat comments like every other breach.
 - `crates/mindtape-cli/src/pre_write.rs`: keep `Violation`s in `Verdict` and drop `qualify`.

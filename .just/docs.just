@@ -77,6 +77,7 @@ vale-prose:
     vale --no-global --config=.config/vale.ini docs/src www/content www/utils
 
 [doc("Lint a task body with Vale: shouting and an em dash")]
+[group("gate")]
 vale-tasks:
     vale --no-global --config=.config/vale.ini truth/tasks
 

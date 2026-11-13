@@ -39,7 +39,7 @@
 
 == AS-IS
 
-+ Run `mt config schema | jq '[.. | objects | .description? | strings | select(test("—"))] | length'`.
++ Run `mt config schema | jq '[.. | objects | .description? | strings | select(test("\u2014"))] | length'`.
 + 🔴 It prints `59`. Descriptions such as "`[add]` — interactive editor fill settings." reach the `/config/` Sections table and `mt config schema` in a register the site's own pages don't use.
 + 🔴 `www/utils/` puts 8 more on the site, such as the `mindtape` crate note "The domain library — config, the task model, …". `.just/scripts/check-doc-prose.sh` reads every schema description and has no em-dash rule.
 

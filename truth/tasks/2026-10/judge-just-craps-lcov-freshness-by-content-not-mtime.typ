@@ -38,7 +38,9 @@
 + fixing the same mtime rule in the sweep (j5g)
 + 🔴 #raw(".just/scripts/_lcov-stale-reason.sh"): just crap refuses after a checkout because the cover gate hits by content and leaves the lcov older than touched sources
 
-just crap: target/coverage/lcov.info predates crates/mindtape/src/lib.rs — run `just cover` first
+```
+just crap::check: target/coverage/lcov.info predates crates/mindtape/src/lib.rs — run `just cover` first
+```
 
 This fell outside the task that surfaced it, so it is filed here rather than
 left in a closing report no one rereads. It belongs in

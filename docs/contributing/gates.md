@@ -15,7 +15,7 @@ just --list --list-submodules  # every gate under [gate], with what it checks
 mmz --status --tag gate        # which gates are fresh, stale or failed
 ```
 
-Each arm is `just mmz <gate>`, which runs `mmz just <gate>`, so mmz caches each gate under the recipe’s name. mmz skips an arm whose declared inputs haven’t changed since its last pass. `.mmz/config.yaml` declares the inputs and tags every gate `gate`. Then `mmz --is-fresh --tag gate` asserts that every gate passed against the current tree, without running any of them. The pre-commit hook asserts it, and so does `mt flip` into a terminal status, through an `[[on.flip]]` hook.
+Each arm is `just mmz <gate>`, which runs `mmz just <gate>`, so mmz caches each gate under the recipe’s name. mmz skips an arm whose declared inputs haven’t changed since its last pass. `.mmz/config.yaml` declares the inputs, and tags a rule `gate` when its own writes cannot stale its record. Then `mmz --is-fresh --tag gate` asserts that every tagged rule passed against the current tree, without running any of them. The pre-commit hook asserts it, and so does `mt flip` into a terminal status, through an `[[on.flip]]` hook. One arm, `just docs vale-tasks`, carries no tag, and “Inputs a plain glob can’t name” below says why.
 
 A passing `just check` prints one line, such as `check: <n> gates passed (<ran> run, <cached> cached)`. An agent usually reads the output once the run ends, and every line costs it context. For a reader that only sees the final output, a gate’s progress lines and clean-tree report add nothing to the pass summary. A failing run prints the full log of each failed gate, then a verdict naming them, such as `check: 1 of <n> gates failed: just clippy`, and exits non-zero. The verdict ends with `(10 not run)` when a red stage stopped the run before later stages.
 
@@ -27,7 +27,9 @@ Every rule reads the `gates-meta` scope, which includes every justfile, so a jus
 
 `just crap check` reads `target/coverage/lcov.info`, which git ignores. mmz drops ignored paths from a scope, so the `lcov` scope sets `gitignore: false`. With the lcov in its inputs, the arm re-runs when `just cover` writes a new one.
 
-`just lint secrets` scans the tree, but no gate may name `truth/tasks/**`. `mt flip` writes the task file it gates, so such an input would make the gate stale in the middle of the flip. So the `secrets-tree` scope is `**` with `exclude: ["truth/tasks"]`. The scan still reads the task files. A change to one doesn’t re-run the arm.
+`just lint secrets` scans the tree, but no gate-tagged rule may name `truth/tasks/**`. `mt flip` writes the task file it gates, so such an input would make the rule stale in the middle of the flip. So the `secrets-tree` scope is `**` with `exclude: ["truth/tasks"]`. The scan still reads the task files. A change to one doesn’t re-run the arm.
+
+`just docs vale-tasks` names `truth/tasks/**` and carries no `gate` tag. It is the one arm whose inputs name a task file: `just check` runs it, so a task body with a shouted word or an em dash fails the build, while the close predicate, `mmz --is-fresh --tag gate`, skips it. `mt flip` stamps the status into the file the arm reads, so a tagged record would go stale on the close that writes it, and the close could never pass. The price is that a close makes no claim about the task prose. The arm’s last `just check` does.
 
 ### Arms must not read what another arm writes
 
@@ -62,10 +64,10 @@ just’s `--fmt` flag alone formats the root `Justfile` and skips every `mod` fi
 
 ## What the pre-commit hook asserts
 
-`.githooks/pre-commit` runs `mmz --is-fresh --tag gate`, then `.githooks/local-paths`, `typstyle --check truth` and `mt check`. It refuses the commit when any of them fails.
+`.githooks/pre-commit` runs `mmz --is-fresh --tag gate`, then `.githooks/local-paths`, `typstyle --check truth`, `vale` over `truth/tasks` and `mt check`. It refuses the commit when any of them fails.
 
 `.githooks/local-paths` refuses a staged file that names your `$HOME`, the checkout or the primary checkout. Such a path arrives in a pasted error or log, and it is local only to your machine, so no gate in CI can catch it. Write `<repo>`, `<worktree>` or `~` in its place. `.githooks/commit-msg` runs the same scan over the message.
 
-`MINDTAPE_GATE_SCOPE=<reason>` skips the first assertion only. The other three still run, and `.githooks/commit-msg` refuses the commit unless its message has a matching `Gate-Scope: <reason>` trailer. So `git log` shows which commits skipped the gate. CONTRIBUTING.md says when you may use it.
+`MINDTAPE_GATE_SCOPE=<reason>` skips the first assertion only. The other four still run, and `.githooks/commit-msg` refuses the commit unless its message has a matching `Gate-Scope: <reason>` trailer. So `git log` shows which commits skipped the gate. CONTRIBUTING.md says when you may use it.
 
-A commit that stages only files under `truth/tasks/` skips the first assertion too, with no trailer. No gate reads those files. So the assertion could only fail where the gates never ran, such as a fresh `just fork` filing its task.
+A commit that stages only files under `truth/tasks/` skips the first assertion too, with no trailer. No gate-tagged rule reads those files, and the Vale assertion reads their prose. So the freshness assertion could only fail where the gates never ran, such as a fresh `just fork` filing its task.

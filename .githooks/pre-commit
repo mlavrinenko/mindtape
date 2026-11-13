@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pre-commit: four cheap assertions, no heavy work.
+# Pre-commit: five cheap assertions, no heavy work.
 #
 # 1. The memoized close gate already passed against this worktree. `just
 #    check` records every sub-gate through mmz; `mmz --is-fresh --tag gate`
@@ -9,22 +9,26 @@
 #    MINDTAPE_GATE_SCOPE=<reason> skips only this one assertion — the escape
 #    hatch for a delegated worktree whose full aggregate (cold Rust build +
 #    Typst docs site + Pagefind index) runs at integration, not per commit
-#    (see CONTRIBUTING.md, Quality Gates). It never touches assertions 2-4
+#    (see CONTRIBUTING.md, Quality Gates). It never touches assertions 2-5
 #    below, and `.githooks/commit-msg` refuses the commit unless the message
 #    carries a matching `Gate-Scope: <reason>` trailer, so a scoped commit
 #    can never look identical to a fully gated one in `git log`.
 #
-#    A commit that stages only `truth/tasks/**` skips it too: no gate reads
-#    those files (see 3), so the assertion could only fail on a fresh fork
-#    whose gates have never run, which blocks filing a task there.
+#    A commit that stages only `truth/tasks/**` skips it too: no gate-tagged
+#    rule reads those files (see 3), and assertion 5 reads their prose, so the
+#    assertion could only fail on a fresh fork whose gates have never run,
+#    which blocks filing a task there.
 # 2. No staged file names this machine's $HOME or checkout
 #    (.githooks/local-paths says why only a hook can catch it).
-# 3. Typst formatting under `truth/`. `truth/tasks/**` is deliberately outside
-#    every mmz scope (.mmz/config.yaml: NOTE ON SCOPE — the close gate must
-#    survive `mt flip`'s own writes), so a mis-formatted task file busts
+# 3. Typst formatting under `truth/`. `truth/tasks/**` is outside every
+#    gate-tagged rule's inputs (.mmz/config.yaml: NOTE ON SCOPE, the close gate
+#    must survive `mt flip`'s own writes), so a mis-formatted task file busts
 #    nothing. The shared `truth/*.typ` files every task imports sit beside it.
 #    The tree is small, so check all of it directly.
 # 4. Task structure — the close gate delegates this here by policy.
+# 5. Task prose through Vale, with the config the `docs::vale-tasks` arm reads.
+#    That arm is untagged, so a `truth/tasks/**`-only commit skips assertion 1
+#    and this is the run that sees the file.
 set -eo pipefail
 root="$(git rev-parse --show-toplevel)"
 if [[ -n "${MINDTAPE_GATE_SCOPE:-}" ]]; then
@@ -34,4 +38,5 @@ elif git diff --cached --name-only | grep -qv '^truth/tasks/'; then
 fi
 "$root/.githooks/local-paths"
 direnv exec "$root" typstyle --check truth
+direnv exec "$root" vale --no-global --config=.config/vale.ini truth/tasks
 exec direnv exec "$root" cargo run -q -p mindtape-cli --bin mt --target-dir target/mt-dev -- check -q

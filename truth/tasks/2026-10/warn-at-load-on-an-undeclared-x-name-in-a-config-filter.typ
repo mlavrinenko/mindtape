@@ -61,7 +61,7 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape/src/config_tests.rs`: red test first — a rule naming `x-machnie` beside a declared `x-machine` warns.
+- `crates/mindtape/src/config_tests.rs`: red test first, a rule naming `x-machnie` beside a declared `x-machine` warns.
 - `crates/mindtape/src/filter.rs`: `expr_problem` reports undeclared `x-` names as a warning with `suggest::hint`.
 
 

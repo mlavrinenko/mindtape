@@ -70,7 +70,7 @@
 
 == Changes
 
-- `crates/mindtape-cli/tests/add_inherited_choices_e2e.rs`: red tests first — a template's own `kind` slot refuses a value outside config and lists the choices; `--describe` shows them. `add_config_scaffold_e2e.rs` sits at its line cap, so they get a file of their own.
+- `crates/mindtape-cli/tests/add_inherited_choices_e2e.rs`: red tests first: a template's own `kind` slot refuses a value outside config and lists the choices; `--describe` shows them. `add_config_scaffold_e2e.rs` sits at its line cap, so they get a file of their own.
 
 - `crates/mindtape/src/add_slots.rs`: `inherit_field_choices` resolves the field a slot sits in and inherits the field's config values as its choices.
 

@@ -50,7 +50,7 @@
 
 - 🟢 A scalar value compares like a core field: `x-machine == "alpha"`, `!=`, `<`, `>`, `matches(...)`, `in_dict(...)`, `--sort`.
 
-- 🟢 A list value is membership through `has(x-machine, "alpha")` — true when the list holds the element, a scalar equals it, a dict has the key.
+- 🟢 A list value is membership through `has(x-machine, "alpha")`: true when the list holds the element, a scalar equals it, a dict has the key.
 
 - 🟢 `==` against a list is false: `x-machine == "alpha"` selects alpha-only, `has(x-machine, "alpha")` every task touching alpha.
 
@@ -71,7 +71,7 @@
 
 == Changes
 
-- `crates/mindtape/src/filter_extras_tests.rs`, a child of `filter_tests.rs` to keep that file under its linecop cap: red tests first — scalar extra equality, list membership through `has`, a missing extra under `!=`, a dict extra presence-only, `--sort x-machine`.
+- `crates/mindtape/src/filter_extras_tests.rs`, a child of `filter_tests.rs` to keep that file under its linecop cap: red tests first: scalar extra equality, list membership through `has`, a missing extra under `!=`, a dict extra presence-only, `--sort x-machine`.
 
 - `crates/mindtape/src/filter.rs`: `field_value` resolves an `x-<ns>` name from `task.extras`, and the module doc stops saying presence-only.
 
@@ -90,7 +90,7 @@
 
 == Alternatives
 
-- Infix `"alpha" in x-machine`: evalexpr 12.0.3 has no `in`, and a pre-lex rewrite needs operand boundaries, a mini expression parser — rejected for one operator.
+- Infix `"alpha" in x-machine`: evalexpr 12.0.3 has no `in`, and a pre-lex rewrite needs operand boundaries, a mini expression parser (rejected for one operator).
 - `==` as membership for a list: `==` would mean two things by value shape; the exact `==` / membership `has` split is kept.
 - Declared-only readability: `[tasks.fields.x-<ns>]` gates validation, not reading; `has()` already reads undeclared names.
 - `contains("alpha", x-machine)` as membership: substring, not exact; left to a separate decision.
@@ -106,5 +106,5 @@
 
 == Dogfood
 
-The `.nix` backlog drops its jq workaround and filters `x-machine`; MindTape's own `x-goals` stays presence-only because it is a dict.
+The `.nix` backlog drops its jq workaround and filters `x-machine`; Mindtape's own `x-goals` stays presence-only because it is a dict.
 

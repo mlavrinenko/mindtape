@@ -40,7 +40,7 @@
 + Append `[taks]` and `x=1` to `.mindtape/config.toml`, then run `mt ls`.
 + 🔴 It prints ``unknown field `taks`, expected one of …`` twice, as cause 0 and cause 1, and names no line.
 + Run `mt ls` outside any project.
-+ 🔴 It prints `not inside a MindTape project (no .mindtape/ directory found)` and names neither `mt init` nor `-w`.
++ 🔴 It prints `not inside a Mindtape project (no .mindtape/ directory found)` and names neither `mt init` nor `-w`.
 
 
 == Environment

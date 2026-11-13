@@ -56,7 +56,7 @@
 
 == Changes
 
-- `crates/mindtape-cli/src/link_plan_tests.rs`: red tests first — a cross-folder bare stem stages `../cli/x.typ`; a shared stem is refused naming both paths.
+- `crates/mindtape-cli/src/link_plan_tests.rs`: red tests first: a cross-folder bare stem stages `../cli/x.typ`; a shared stem is refused naming both paths.
 - `crates/mindtape-cli/src/link_plan.rs`: `settle_targets` looks a bare stem up among the loaded tasks when no sibling carries it; `target_problem` names the candidates of an ambiguous stem.
 - `crates/mindtape-cli/src/util.rs`: hosts `relative_target`, moved from `crates/mindtape-cli/src/rm_gitless.rs` so both callers share it.
 - `crates/mindtape-cli/src/link_cmd.rs`: the `targets` help says how a bare stem resolves.

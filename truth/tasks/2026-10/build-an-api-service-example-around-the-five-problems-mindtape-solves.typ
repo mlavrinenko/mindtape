@@ -2,7 +2,7 @@
 #import "/truth/lib.typ": *
 
 #show: task.with(
-  title: "Build an api-service example around the five problems MindTape solves",
+  title: "Build an api-service example around the five problems Mindtape solves",
   kind: "dev",
   priority: ice(
     impact: 9,
@@ -40,7 +40,7 @@
 == AS-IS
 
 + Read `examples/`.
-+ 🔴 The project that feeds the docs captures and the skill evals is `learn-piano`, a piano practice backlog. MindTape is aimed at software engineers, and the piano tasks show none of the problems they would adopt it for.
++ 🔴 The project that feeds the docs captures and the skill evals is `learn-piano`, a piano practice backlog. Mindtape is aimed at software engineers, and the piano tasks show none of the problems they would adopt it for.
 + Those problems are spread over this repo's own `.mindtape/config.toml` and single-subject fixtures (`examples/estimates`, `examples/links`). No project shows them together, so no page can quote one.
 + The five that matter most to an engineer: a size cap forces a big task to be split; `mt add` refuses a task without the required sections; `mt done` runs the project's tests; one task is in progress at a time, in dependency order; every commit names its task.
 

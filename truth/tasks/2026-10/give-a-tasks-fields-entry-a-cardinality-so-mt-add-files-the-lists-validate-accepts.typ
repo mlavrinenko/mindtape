@@ -63,7 +63,7 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape-cli/tests/add_inherited_choices_e2e.rs`: red tests first — a list filed through a spliced and an inherited slot.
+- `crates/mindtape-cli/tests/add_inherited_choices_e2e.rs`: red tests first, a list filed through a spliced and an inherited slot.
 - `crates/mindtape/src/config_tasks.rs`: `FieldConfig.multiple`.
 - `crates/mindtape/src/template_fill.rs`, `crates/mindtape/src/template.rs`: a multi-choice slot kind.
 - `crates/mindtape/src/add_slots.rs`, `crates/mindtape/src/validate.rs`: read `multiple`.

@@ -349,7 +349,7 @@ groups:
       .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
       .just/bench.just: 537461a4aecca375d05e7cd460ec36d1eaaff5167e5a698f065a9c8f61e976c1
       .just/crap.just: bbd5c5afd5c0949810cb7647c8dc495836f5b3ea3edd1d2ddba77703317caa6c
-      .just/docs.just: a866a4b7ff985a3939481736b19c2a30b5c09067c58818ba9095f9f96a125137
+      .just/docs.just: 7f9b1c906a505b6c7a7198eb5391a5150c7aa90455b2dcd2e7cf8c74a4b070b7
       .just/install.just: d5b6fa1381014bf12de6551f5356a832667bd0d107998cbe86c03ce7eee16989
       .just/lint.just: 99732adbfd2bc38839d1152d5e958b2715f50a69c4514f295281c1564ac56797
       .just/meta.just: 17f3c67395d11fe1ed06ad6067c77a2e0939fdf7f95706df3bbed76d3e59a368
@@ -358,7 +358,7 @@ groups:
       .just/scripts/check-examples.sh: c35573a106d22c9168c8182f4ff689a6a84bd9dd70a0fa70d787f4407a4e4856
       .just/scripts/clippy.sh: d586661b1bca816bcdf145d4fdd785125624d5b79e78f493b65811c66fb87df4
       .just/scripts/wt-carry-lcov.sh: a4d4b96d24cee1d76f8d19ddcc10b6f4b99a1cb9f7c8ec3143cf487f2bb9861c
-      Justfile: 42732238406e0f363d927cd8373fbda5bbfb5a85921d78ee41140c317549eecb
+      Justfile: f1ad21cb7d652e76a1eafaa7ac9f4eb74e768c6a74634f6e289ca7f07753b8c2
       flake.nix: 325112feb8cc629198bd6721f88d54efc933a1aebbf80d9a2e32f5f5ffc3cbc0
       nix/dev/flake.nix: 4272c7e414ff67f94e9ed6917f7b9155beecdcbcb0adc0b1f563e7641a0fd30b
       nix/dev/shell.nix: 21cc3115a45241aefcb0b6549ee59461f51530656549ae8fe1249aa960257acc
@@ -370,9 +370,9 @@ groups:
       docs/src/contributing/coverage-crap.typ: 99083836fd299023aee51504a8eadf3b610c25083c89695465e32da35b7987a8
       docs/src/contributing/crap-baseline.typ: 47b261527cc3f8311ac91857162385b2b3bf6ab1d0ba85f214fbabd0f6c220a1
       docs/src/contributing/docs-site-build.typ: e2b04abdf3e32e8ecfd9dff0b4c6c2c0f172c4ed6863f49562f4a0c2636b8f0e
-      docs/src/contributing/documentation.typ: f736d99c8d194315e711264eeef70729760b056b8cc0c052a30c268f83c798b6
+      docs/src/contributing/documentation.typ: 3f029fb701428c220be01405dd6406910f73722ab2e9f3651ac8b96383441d40
       docs/src/contributing/example-projects.typ: f2be6fc1fb614aeae0133b4dc809574da293662f6d981b8b82fb9894cb6a7a04
-      docs/src/contributing/gates.typ: c313dcc6c5dab34407e16925cb0db58a23eff59aca33c85b2d281f19c35182ec
+      docs/src/contributing/gates.typ: 6d817d1ec468ee3e3807d34eb77957690e11684ff2e964a560846cd29991af28
       docs/src/contributing/mutation-testing.typ: 4921e1fc49e5b9b2415746b79889e3eea675bb5ea8346532cf64037fd38a3f83
       docs/src/contributing/signal-sweep.typ: 39f9e4679964b636a89a3146911b593395570f86127123b2f7a0b9956ce1e01f
       docs/src/contributing/windows.typ: d6d52acad9556c456ec278d33444580636b483ab155714546b24233899c50fd2
@@ -454,12 +454,12 @@ groups:
     source:
       .githooks/commit-msg: ecaf43984bbefd17cbc968cbc805c9f7b3db77f40f742f46213797d9b2c2df71
       .githooks/local-paths: 3fed9f65a80f886ec6fa219ac250234b875faa01a6aab6ecc229cc83264e205e
-      .githooks/pre-commit: 1c90991ad20b8c1ee1134ff32bc187821b14dc9855a107c56b4d1c9fe2212737
+      .githooks/pre-commit: 3dc043791ea4c410fc490104243f694461f63cfddef7b2f4c072157bbeba9ce5
       .just/scripts/outdatty-review-trailer.sh: 091bd9a4e7d90059a71e4863c80c90af4eda0bb216ab96db13b1ca07a542d456
     dependents:
-      docs/src/contributing.typ: a8a8e429a01de4f56b40b8eac2270d8faa52c47b79e33d992c0d7253c7d7d927
-      docs/src/contributing/commit-messages.typ: 0699a2b8c6b58e5d5c56e99e595dfd3cb837d8b6030da2b332a722cf4da7e87e
-      docs/src/contributing/gates.typ: ba77fb07445b62e6143695f0c2f6c75f4c55cf38c6a21104853b6bb6bcb90c89
+      docs/src/contributing.typ: 72fe5b5848940707a8754e218b5388d6a5108bd98a85dd077800d36b04872ded
+      docs/src/contributing/commit-messages.typ: 6ee2ac2d334084ba367d72750fd0b7cadc0b30153e774d89d4987ba26a94e339
+      docs/src/contributing/gates.typ: 6d817d1ec468ee3e3807d34eb77957690e11684ff2e964a560846cd29991af28
   link-kinds-docs:
     source:
       crates/mindtape/src/link/mod.rs: 06f509c4bf8b98e5085ba92ec59c5bbb15e9310155c9ec4013c7d9a96b98d94b
