@@ -7,7 +7,8 @@ The doc gates catch mechanical errors:
 - `just docs check` finds a dead link.
 - `just docs facts` finds a derived fact with no entry.
 - `just docs recipes` finds a hand-typed recipe name.
-- `just docs prose` finds history words, shouting, an em dash in text a reader sees and a typed name.
+- `just docs vale-prose` finds history words, shouting, an em dash or a typed name in Typst prose.
+- `just docs prose` finds the same four in Markdown, comments, schema descriptions and help text, where Vale does not read.
 - `just docs blocks` finds a hand-typed code block.
 
 No gate finds duplicated prose or a page that doesn’t help its reader. The rules below cover what the gates can’t.
@@ -78,47 +79,28 @@ Each kind of reader gets its own register:
 
 Write for a busy engineer who reads each sentence once. The rules apply to comments in doc sources too: a comment says what the code does and why, in as few lines as it takes.
 
-1. **State the rule and its reason.** A reader who knows the reason can apply the rule to a case it doesn’t name.
-   - Bad: “Keep the recipe and the mmz `examples` scope in step.”
-   - Good: “Keep the recipe and the mmz `examples` scope in step, because mmz re-runs this gate only when a file in that scope changes.”
-2. **Leave out history.** The reader needs today’s behavior, and `git log` records how it got there.
-   - Bad: “the word-splitting that `[positional-arguments]` used to guard that recipe against, refused at dispatch now instead.”
-   - Good: “a value containing a space, which the pattern refuses at dispatch, so the recipe never word-splits it.”
-3. **Use the literal word.** A reader has to translate a figure of speech, and two readers translate it differently.
-   - Bad: “`.just/docs.just`’s currently userless one is load-bearing and cannot be tidied away”
-   - Good: “`.just/docs.just` keeps its own even though none of its recipes uses it yet”
-   - Bad: “The first line lands in `why`.”
-   - Good: “The first line becomes the `why` value.”
-4. **Make the actor the subject.** Files, fields and values don’t know, want or own anything. Name the program or person that acts.
-   - Bad: “against what git knows”
-   - Good: “against the TOML files git lists, tracked or not yet added”
-5. **Drop the “not Y” half when no reader asked about Y.** It makes the reader remember Y only to discard it.
-   - Bad: “this recipe is only the enforcement point, not a separate lint surface.”
-   - Good: “this recipe runs them.”
-6. **Put one idea in each sentence.** A reader takes in one idea at a time, so split a sentence at its semicolons and at a colon that announces a claim.
-   - Bad: “Editing any source stales the lcov, so it skips on the commits that matter; it catches the free case only.”
-   - Good: “It runs only against a fresh lcov. Editing any source makes the lcov stale, so it skips on the commits that matter.”
-7. **Don’t shout.** All-caps words and adverbs like “crucially” add emphasis. Emphasis on many lines teaches the reader to skip it.
-   - Bad: “An unknown bare name is refused naming what IS available”
-   - Good: “An unknown bare name is refused with a list of the available packs”
-8. **Open with the fact.** A question, a preview or a staged scene makes the reader wait for the point. Start with the rule, the command or the result.
-   - Bad: “Wondering how statuses work? Imagine a task that moves from proposed to done.”
-   - Good: “`mt` moves a task between the statuses your legend allows.”
-9. **Keep the fact at its real size.** Cut claims that one part is the whole thing, the only part or the most important part. Name what it does and let the reader judge.
-   - Bad: “The baseline is the whole gate.”
-   - Good: “The baseline catches a score that rose.”
-10. **Stop when the point is made.** A closing sentence that restates the section adds nothing. End on the last rule, command or consequence.
-11. **Use a list for parallel cases.** Three or more cases in one sentence are harder to scan than a list.
+The Vale style in `.config/vale/styles/Prose/` checks the mechanical part of Typst prose:
 
-`just docs prose` enforces two of these rules and two of its own. It fails on the history words `now`, `used to`, `no longer`, `anymore` and `formerly`, on an all-caps word outside its acronym list, on an em dash in text a reader sees, and on the product’s name typed out.
+- `Prose.History` finds the history words `now`, `used to`, `no longer`, `anymore` and `formerly`.
+- `Prose.Shouting` finds an all-caps word outside the acronym list in `Shouting.yml`.
+- `Prose.EmDash` finds an em dash.
+- `Prose.ProductName` finds the product’s name typed out in a docs source, which writes `#mindtape` instead.
 
-- A Typst source writes the name as `#mindtape`, which `www/utils/site.typ` reads from the site title in `www/tola.toml`, so a typed name fails anywhere in the file, raw spans and comments included. A Markdown source can’t reach the constant, so there only the old CamelCase spelling fails.
-- A shell constant passes only as `$NAME`, `${NAME}` or `NAME=`. A lone capital beside an all-caps word counts as shouting, so wrap a constant’s bare name in backticks.
-- An em dash fails in the rendered prose and the string literals of `www/content` and `www/utils`, in every schema `description` and in every help string of `mt _cli --json`, and the hit names the file and line, or the key path. A code comment, AGENTS.md, the skill and the page build errors in `www/utils/page.typ` and `site.typ` are not that text, so they may keep one. Split the sentence, or use a comma, a colon in a list or parentheses.
-- It skips raw spans, fenced blocks and double-quoted text, so a quoted bad example passes.
-- It applies the same rules to the full-line `#` comments of every shell script, YAML file, Justfile and `.just` module that git lists, tracked or not yet added, and to every `description` in `schema/config.schema.json` and `schema/at.schema.json`. So it reads a new script the day it is added, and a new violation fails the gate outright.
+`just docs vale-prose` runs those rules over `docs/src`, `www/content` and `www/utils`. A task body runs `Shouting` and `EmDash` only, because a task records a change: `now` and `no longer` name its AS-IS and TO-BE, and a task has no `#mindtape` constant.
 
-The word lists are in `.just/scripts/_doc-prose-lib.sh`, and what the scan skips is argued in `.just/scripts/check-doc-prose.sh`.
+`just docs prose` keeps the same four rules for Markdown, the full-line comments of every tracked shell script, YAML file and Justfile, both schema descriptions and every `mt _cli --json` help string. It also checks a shell constant, written as `$NAME`, `${NAME}` or `NAME=`, and a lone capital beside an all-caps word. A quoted example passes in both gates. The word lists are in `.just/scripts/_doc-prose-lib.sh`, and what the scan skips is argued in `.just/scripts/check-doc-prose.sh`.
+
+The rest needs a reader’s judgment:
+
+1. State the rule and its reason, so a reader can apply it to a case it doesn’t name.
+2. Use the literal word: a figure of speech reads differently to each reader.
+3. Make the actor the subject: name the program or person that acts, not the file or field.
+4. Drop the “not Y” half when no reader asked about Y.
+5. Put one idea in each sentence: split at a semicolon or a colon that announces a claim.
+6. Open with the fact, not a question or a staged scene.
+7. Keep the fact at its real size: name what a thing does, not that it is the whole gate.
+8. Stop when the point is made; a closing sentence that restates the section adds nothing.
+9. Use a list for parallel cases: three or more cases in one sentence are hard to scan.
 
 ## The duplicate-prose audit
 

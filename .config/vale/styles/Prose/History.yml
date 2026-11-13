@@ -1,0 +1,10 @@
+extends: existence
+message: "Leave out history: '%s'. Say what the behavior is today."
+level: error
+ignorecase: true
+tokens:
+  - now
+  - anymore
+  - formerly
+  - used to
+  - no longer

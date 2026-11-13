@@ -717,6 +717,8 @@ groups:
       - flake.nix
       - nix/dev/flake.nix
       - nix/dev/shell.nix
+      - nix/dev/typst2vast.nix
+      - nix/dev/vale.nix
       - Justfile
       - .config/nextest.toml
       - .config/wt.toml
@@ -825,6 +827,16 @@ groups:
       - .gitattributes
     dependents:
       - docs/src/contributing.typ
+
+  # Vale's Typst prose rules, which documentation.typ lists by rule code and
+  # gates.typ says how the non-gate task arm runs.
+  - name: vale-docs
+    source:
+      - .config/vale.ini
+      - .config/vale/styles/Prose/*.yml
+    dependents:
+      - docs/src/contributing/documentation.typ
+      - docs/src/contributing/gates.typ
 
   # The doc gates, whose rules documentation.typ states, and the render check
   # generated-docs.typ describes.

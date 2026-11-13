@@ -8,7 +8,7 @@
     confidence: 0.8,
     ease: 5,
   ),
-  difficulty: 3,
+  difficulty: 2,
   tags: ("tooling", "docs", "gating", "stateless"),
   x-goals: (
     product: verdicts(
@@ -28,7 +28,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 13),
+  status: wip(2026, 11, 13),
 )
 
 == AS-IS
@@ -45,9 +45,10 @@ $ vale www/content/index.typ
 
 == TO-BE
 
-- 🟢 `typst2vast` comes from the dev shell, built from the `jdkato/typst2vast` source.
+- 🟢 `typst2vast` and Vale 3.26 come from the dev shell, built from their tagged sources.
 - 🟢 Vale reads `*.typ` as prose: headings, lists, quotes and `[content]` blocks.
 - 🟢 Code, math, raw spans and comments stay out of the prose rules.
+- 🟢 The docs run the history, shouting, em-dash and typed-name rules; a task body runs shouting and the em-dash rule, because a task records a change.
 
 ```
 $ printf '= Title\n\nThis is a sentence.\n' > /tmp/t.typ
@@ -59,9 +60,13 @@ $ vale /tmp/t.typ
 == Changes
 
 - `nix/dev/typst2vast.nix`: build the `typst2vast` binary with `buildRustPackage`.
-- `nix/dev/shell.nix`: add `typst2vast` to the dev shell.
-- `.config/vale.ini`: add `[*.typ]` and the prose styles.
-- `.just/docs.just`: a `vale-prose` arm beside `prose`, once the styles match its rules.
+- `nix/dev/vale.nix`: build Vale 3.26 with the dev shell's Go 1.26.
+- `nix/dev/shell.nix`: add both binaries to the dev shell.
+- `.config/vale.ini`: map `[*.typ]` to the `Prose` style and skip a quoted example.
+- `.config/vale/styles/Prose/`: the history, shouting, em-dash and typed-name rules.
+- `.just/docs.just`: `docs::vale-prose` for the docs and `docs::vale-tasks` for a task body.
+- `Justfile` and `.mmz/config.yaml`: run the docs arm in `just check` with its inputs.
+- `docs/src/contributing/documentation.typ`: list the rule codes and keep only the judgment rules in prose.
 
 
 == Alternatives
@@ -78,5 +83,7 @@ $ vale /tmp/t.typ
 
 == Dogfood
 
-This repo's `docs/src` and `www/content` prose runs through Vale once the styles land.
+This repo's `docs/src`, `www/content` and `truth/tasks` prose runs through Vale
+once the styles land. The task arm starts at the month the rule lands, and a
+backfill task widens it to the older months.
 

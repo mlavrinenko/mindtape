@@ -307,6 +307,8 @@ scopes:
   # the rule already takes.
   outdatty-sources:
     - ".config/wt.toml"
+    - ".config/vale.ini"
+    - ".config/vale/styles/**"
     - ".gitattributes"
     - ".githooks/commit-msg"
     - ".githooks/local-paths"
@@ -347,6 +349,11 @@ scopes:
   comment-sources:
     - ".github/**"
     - "examples/large/generate.sh"
+
+  # Vale's config and styles: an edit changes what `docs::vale-prose` finds.
+  vale-config:
+    - ".config/vale.ini"
+    - ".config/vale/styles/**"
 
   # The scripts outside .just/scripts/ that a `just check` arm can reach, for
   # `just meta::gate-drift`, which follows the call graph out of `check` and
@@ -681,6 +688,13 @@ commands:
   - name: just docs::prose
     tags: [gate]
     inputs: [rust, docs, gates-meta, mmz-config, outdatty-config, file-size-config, policy, scripts-all, comment-sources, script-check-doc-prose, script-doc-prose-lib, script-doc-blocks-lib]
+
+  # Reads the Typst doc sources (`docs`) through typst2vast, which the dev
+  # shell pins (`gates-meta`), with the styles and config in `vale-config`.
+  # Vale skips comments, raw spans and code, so this arm needs no `rust` input.
+  - name: just docs::vale-prose
+    tags: [gate]
+    inputs: [docs, vale-config, gates-meta]
 
   # Parses www/content, www/utils and docs/src (`docs`) with typstyle, which
   # the dev shell pins (`gates-meta`), and runs its control over synthetic
