@@ -45,7 +45,7 @@ signals are siblings.
 - Re-run guard: the sweep refuses to file while the view `ask-refactoring` is
   non-empty. A sprint then empties before the next one starts. Add
   `[views.ask-refactoring]` filtering on the provenance tag and non-terminal
-  status, and add the tags to `[tasks.tags] allowed`: a shared provenance tag
+  status, and add the tags to `[tasks.tags] allowed`, one shared provenance tag
   plus one per signal.
 - Idempotency comes from the signal, not from a ledger of earlier filings. A
   closed task whose condition still holds should be re-filed, because the work

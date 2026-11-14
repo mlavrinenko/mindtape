@@ -28,9 +28,9 @@
 
 == Summary
 
-A task's assignee is the actor currently working it. The field is orthogonal to
-status: a task keeps the same assignee through proposed/accepted/wip/done, and a
-blocked task still belongs to whoever unblocks and finishes it. It is not
+A task's assignee is the actor currently working it. The field stays orthogonal
+to status. A task keeps the same assignee through proposed/accepted/wip/done,
+and a blocked task still belongs to whoever unblocks and finishes it. It is not
 ownership, because the worker is mutable and can ping-pong between actors.
 Saying who works it carries no statement about who else may help, which is a
 routing decision for the reader, not a facet of the field. An unset

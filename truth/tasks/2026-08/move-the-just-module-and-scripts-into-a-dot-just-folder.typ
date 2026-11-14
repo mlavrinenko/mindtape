@@ -51,8 +51,8 @@ What does *not* work, also verified: `#[working-directory(source_directory() /
 
 == Scope
 
-- `mod docs '.just/docs.just'` in the root Justfile. The explicit path is
-  required once the file leaves the root.
+- `mod docs '.just/docs.just'` in the root Justfile. The explicit path
+  becomes necessary once the file leaves the root.
 - `set working-directory := '..'` in the moved file, with a comment stating the
   `cwd` rule above. This is exactly the "execution knowledge" that belongs in
   the file rather than in prose elsewhere.
@@ -62,8 +62,8 @@ What does *not* work, also verified: `#[working-directory(source_directory() /
   That group's own comment already argues the principle: a recipe body moving
   out of the Justfile must not escape the drift gate. The same reasoning applies
   to `.just/scripts/*.sh` as they arrive.
-- Any Justfile edit busts `dev-docs`, whose seven `docs/src/` dependents must be
-  reviewed and re-confirmed with `just outdatty-update` in the same commit.
+- Any Justfile edit busts `dev-docs`, whose seven `docs/src/` dependents need a
+  review and a re-confirm with `just outdatty-update` in the same commit.
 - Sweep for references to the old path: `.mmz/config.yaml`, the GitHub
   workflows, `flake.nix`, `contrib/`. Recipe *names* do not change here, so most
   references should stay unaffected. Confirm rather than assume.

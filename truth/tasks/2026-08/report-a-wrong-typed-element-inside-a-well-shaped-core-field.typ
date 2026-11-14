@@ -29,8 +29,8 @@
     + related(
       "a-wrong-typed-required-field-is-reported-twice-the-second-time-as-missing.typ",
     )[
-      the loud half this leaves open: a field that reports an error still
-      degrades to absent, so a required one also reports as missing on top.
+      the loud half this leaves open. A field that reports an error still
+      degrades to absent, and a required one also reports as missing on top.
     ],
 )
 

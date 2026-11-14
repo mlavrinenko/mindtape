@@ -19,7 +19,7 @@
 == Summary
 
 `check-crap` is the one `just check` arm that runs unwrapped, because a
-memoized verdict would outlive the lcov it could not measure. Once mmz can name
+memoized verdict would outlive the lcov it could not measure. Once mmz can take
 a git-ignored path in a scope, that reason disappears. Give the rule an `lcov`
 scope holding `target/coverage/lcov.info` with `gitignore: false`, wrap the arm
 in mmz like every other, and delete the exception from the docs.

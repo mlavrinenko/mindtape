@@ -50,6 +50,6 @@ Revert these four signatures to their pre-branch form:
 == Verification
 
 Re-sweep each touched file with `cargo mutants -f <file>` *without* `--iterate`.
-A mutant that is truly unobservable after the revert goes to
-`.cargo/mutants.toml` with its reason: an honest exclusion beats a dishonest
+A mutant that stays truly unobservable after the revert goes to
+`.cargo/mutants.toml` with its reason. An honest exclusion beats a dishonest
 signature.

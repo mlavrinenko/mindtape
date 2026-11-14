@@ -16,8 +16,8 @@
 
 == Summary
 
-Give every `www/content/*.typ` page the metadata block the manifest will be
-derived from, before anything reads it. Fifteen files, one shape:
+Give every `www/content/*.typ` page the metadata block that the manifest
+derives from, before anything reads it. Fifteen files, one shape:
 
 ```typ
 #metadata((

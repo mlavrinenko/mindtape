@@ -80,7 +80,7 @@ commit classification reads only paths inside the project.
 
 Outside a Git work tree, or on a machine without `git`, `mt` walks each root
 on disk with the same extension, reserved-name and template rules. The walk
-consults no ignore rules and does not follow a directory symlink. Any other
+skips the ignore rules and does not follow a directory symlink. Any other
 Git failure stops the load with an error about the root.
 
 Four examples.
@@ -155,7 +155,7 @@ refuses a value it can't hold, like a status note that isn't a content block.
 `mt check` checks everything else against the project's config: the
 #link(u("/statuses/"))[status legend], the priority and difficulty scales,
 `kind`, required fields, links, recurrence and the type of every value. It
-names the field and shows where the wrong value is, such as `tags[1]`.
+states the field and shows where the wrong value is, such as `tags[1]`.
 
 = Configuration
 

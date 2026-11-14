@@ -46,7 +46,7 @@ replaced. Undo the damage and split the files properly.
   the burn-down deleted `pinned_epoch_days_is_none_before_init_runs` and replaced it with
   `init_pinned_today_caches_env_value`, which sets the process-global `OnceLock`
   in-binary, exactly what the deleted test's comment warned against. The
-  The self-respawn shape is acceptable. The redundancy with
+  self-respawn shape is acceptable. The redundancy with
   `crates/mindtape-cli/tests/date_pin_e2e.rs` is not. Keep one.
 - `crates/mindtape/src/date.rs` `today_epoch_days_brackets_the_system_clock`
   reads the real clock twice and races UTC midnight. Pin it against a single

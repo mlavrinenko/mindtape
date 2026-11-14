@@ -24,7 +24,7 @@ built-in packs: `mindtape:tasks`, `mindtape:dogfood`, `mindtape:flow`,
 
 = Adopt a pack
 
-`extends` in any #link(u("/config/#layers"))[config layer] names the packs
+`extends` in any #link(u("/config/#layers"))[config layer] declares the packs
 that layer adopts. If the layer declares a rule with the same `name` as a
 pack's rule, it replaces that rule where the pack put it. #mindtape's own
 `.mindtape/config.toml` adopts `mindtape:tasks` and, after it,
@@ -93,8 +93,8 @@ Linux. `mt` refuses a missing file and prints the path it resolved.
 Your team's packs can be in a git repository of their own. Declare it as
 `[pack-sources.<name>]` in the project's `.mindtape/config.toml`, with `git`
 for the repository and `ref` for a tag, branch or commit, and adopt a pack
-from it as `<name>:<pack>`. Only the project config declares a source or adopts
-a pack from one. A clone then resolves the same packs on every machine. `mt`
+from it as `<name>:<pack>`. A pack from a git source comes only from the
+project config. A clone then resolves the same packs on every machine. `mt`
 reserves the name `mindtape`.
 
 `.mindtape/packs.lock` pins each source to the commit its `ref` named and a
@@ -119,7 +119,7 @@ before you commit it, since the new commit is the config every clone gets.
 
 Under each source it moves, `mt packs update` prints what the move changes,
 compared as parsed TOML. A reformatted pack reads as unchanged. Each line
-names a pack, a key, a rule or another array entry, marked `+` for added,
+gives a pack, a key, a rule or another array entry, marked `+` for added,
 `~` for changed and `-` for removed. Every new `run` or `editor` line prints
 in full under its entry, and it still runs only once you `mt allow` it. Any
 other file of the source, such as a template or a check module, prints as
@@ -414,9 +414,9 @@ the working tree has changed more files than the task in progress plans.
 
 #rule-table(budget.tasks.rules)
 
-The pack also sets `[tasks.estimate] units = ["src-files"]`, so a task filed
-with an `estimate.src-files` stays valid, and a `[dicts.source]` of `**`, so
-every file counts. An array replaces it, so a `[dicts.source]` of yours with
+The pack also sets `[tasks.estimate] units = ["src-files"]`, which keeps a task
+filed with an `estimate.src-files` valid, and a `[dicts.source]` of `**`, which
+counts every file. An array replaces it, so a `[dicts.source]` of yours with
 `!` globs for docs and generated files replaces the pack's `**`, as
 #mindtape's own does. A parameter reaches expressions only, never the unit, so
 a project that sizes in `files` overrides both rules by name.

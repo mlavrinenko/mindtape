@@ -45,7 +45,7 @@ than hours. `[tasks.estimate] units` lists the unit names you allow, and
 `required` says which tasks must have an estimate. An estimate is optional
 when `required` is false, as this repo and `examples/api-service` set it:
 their size rules read the paths a task's Changes section names.
-#link(u("/split-oversized-tasks/"))[Split oversized tasks] shows the rule. `mt` checks `units` on open tasks only, so a finished task
+#link(u("/split-oversized-tasks/"))[Split oversized tasks] shows the rule. `mt` checks `units` on open tasks only. A finished task
 keeps its unit after you drop it from the list.
 
 `mt` doesn't check any quantity on its own. A cap or a budget is a
@@ -91,8 +91,8 @@ Two queries build the count:
 - `glob(pattern)` matches the files whose path matches `pattern`.
 
 A file that more than one query matches counts once. When queries overlap, the breakdown
-adds a `distinct across all queries` row counting the files the unit adds, so
-the total reads as the manual part plus that row. Queries read the files git
+adds a `distinct across all queries` row counting the files the unit adds. The
+total then reads as the manual part plus that row. Queries read the files git
 lists:
 tracked ones and untracked ones `.gitignore` doesn't hide, with paths relative
 to the repository root, as `changed()` reads them. `mt` matches them itself
@@ -103,8 +103,8 @@ with no `[tasks.estimate.queries]` entry takes a plain number only, and
 == Structural matching
 
 `ast_grep(language, pattern, glob?)` matches code structure rather than text.
-It distinguishes a call from a definition, a comment or a string, and it sees
-no code a macro expands to. This build supports `rust` (alias `rs`), and a
+It distinguishes a call from a definition, a comment or a string, and it
+ignores code a macro expands to. This build supports `rust` (alias `rs`), and a
 query reads only `.rs` files. Write the pattern in
 #link("https://ast-grep.github.io/guide/pattern-syntax.html")[ast-grep syntax],
 as a raw block, where a backslash doesn't need an escape. The optional glob or

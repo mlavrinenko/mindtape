@@ -717,9 +717,8 @@ commands:
     inputs: [docs, vale-config, gates-meta]
 
   # Reads the task bodies (`tasks`) through the same typst2vast reader and
-  # `vale-config` styles as the docs arm, with the `[truth/tasks/*/*.typ]`
-  # section leaving `Prose.History` and `Prose.ProductName` off. Not
-  # gate-tagged: `mt flip` writes the task file it is gating, so a gate-tagged
+  # `vale-config` styles as the docs arm. Not gate-tagged: `mt flip` writes
+  # the task file it is gating, so a gate-tagged
   # rule over `truth/tasks/**` goes stale mid-command and could never pass a
   # close. `just check` runs this arm anyway, so a task-prose error still fails
   # the gate, and the close predicate is the one place the arm is absent.

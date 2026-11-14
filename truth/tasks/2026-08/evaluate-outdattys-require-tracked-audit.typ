@@ -25,8 +25,8 @@ any scope of it is worth turning back on.
 - Measure first: `outdatty check` lists every uncovered file. 581 today: 276
   crate sources, 235 task artifacts, and the rest split across www/, docs/,
   contrib/.
-- The audit targets one failure this repo has already had: a new source or doc
-  page that no group tracks, so it rots with nothing reacting. `cli-docs` lists
+- The audit targets one failure this repo has already had. A new source or doc
+  page can go untracked by every group, and then nothing reacts. `cli-docs` lists
   its command modules one by one for exactly that reason, and
   `just check-doc-coverage` only closes the half of the gap about CLI verbs.
 - Decide per surface, not repo-wide. A candidate scope like

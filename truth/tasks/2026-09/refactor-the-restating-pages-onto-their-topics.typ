@@ -68,7 +68,7 @@
 - The topic pages each already carry the fact `config.typ` and
   `cli.typ` restate.
 - `www/utils/site.typ`: the NAV comment on why the grouping is a judgement
-  no page owns.
+  that spans every page.
 
 == Changes
 

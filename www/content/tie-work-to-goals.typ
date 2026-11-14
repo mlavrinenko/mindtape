@@ -46,7 +46,7 @@ says how it helps:
 every problem at once. #link(u("/self-validating-tasks/"))[Self-validating
   tasks] covers check functions and `x-` fields.
 
-The #link(REPO + "/blob/main/examples/api-service/.mindtape/templates/milestone.typ")[milestone template] asks for one rating per goal. Add a goal, and
+The #link(REPO + "/blob/main/examples/api-service/.mindtape/templates/milestone.typ")[milestone template] holds one rating slot per goal. Add a goal, and
 `mt check` names every open milestone that doesn't rate it yet.
 
 This repo rates every open task against its product and process goals in

@@ -8,7 +8,7 @@ Why `just cover` and `just crap check` work the way they do. Read this before yo
 
 `just cover` runs the suite under `cargo-llvm-cov` in the last stage of `just check`, after every other gate passed. llvm-cov merges the profile of every process, so the end-to-end tests that spawn `mt` count toward the command code they run. The recipe writes `target/coverage/lcov.info` for `just crap check` and fails below 90% of lines. The recipe excludes `main.rs`, so keep it thin.
 
-The workspace total can stay green while one file’s coverage drops, so the recipe also gates each production file. It fails a file below 88% line coverage that has 5 or more uncovered lines, and names it with its percentage and its unreached line count. Test files don’t count as production. The recipe reads each record’s `LF` and `LH` from the lcov. It doesn’t read `cargo llvm-cov report --json`, whose summary counts a line once per compiled copy of the `mt` crate and shows a fully covered file at 75%.
+The workspace total can stay green while one file’s coverage drops. The recipe also gates each production file. It fails a file below 88% line coverage that has 5 or more uncovered lines, and names it with its percentage and its unreached line count. Test files don’t count as production. The recipe reads each record’s `LF` and `LH` from the lcov. It doesn’t read `cargo llvm-cov report --json`, whose summary counts a line once per compiled copy of the `mt` crate and shows a fully covered file at 75%.
 
 88% is about 1.5 standard deviations below the per-file mean (95.97%, sd 5.32 over 125 files when measured). That flags the files far below the mean, while a file a point or two under the average passes. The 5-line minimum keeps a small file out of the gate when 3 lines of tty or stdio wiring lower its percentage. The fix is a test. If a test can’t reach the lines, add the file to `ignore` in `.just/scripts/cover.sh` with the reason beside it.
 
@@ -20,7 +20,7 @@ The workspace total can stay green while one file’s coverage drops, so the rec
 
 ## Why cover starts clean
 
-`just cover` starts with `cargo llvm-cov clean --workspace`, so every run pays for a full instrumented rebuild of about a minute. Without the clean, `report` merges every profile left since the last `cargo clean`, from other feature sets and other commits. It then reports coverage the current source can’t produce. cargo-llvm-cov documents the clean as the precondition for merging runs.
+`just cover` starts with `cargo llvm-cov clean --workspace`. Every run then pays for a full instrumented rebuild of about a minute. Without the clean, `report` merges every profile left since the last `cargo clean`, from other feature sets and other commits. It then reports coverage the current source can’t produce. cargo-llvm-cov documents the clean as the precondition for merging runs.
 
 Inflated coverage hides the functions `just crap check` and the sweep’s undertested arm look for. Measured here, a session’s leftover profiles put a function that no test can call at 84% covered. A baseline minted from such an lcov fails dozens of functions on the next clean run. Don’t remove the clean to save time.
 
@@ -46,7 +46,7 @@ A CRAP band below 30 would flag the wrong functions. Of the 15 functions here th
 
 ## Why both run in every check
 
-`just check` runs `just cover` and then `just crap check` as its last stage, so the pre-commit hook refuses a commit whose coverage or CRAP score was never measured. A CRAP gate that skipped on a stale lcov would skip on nearly every commit that changes code, and the baseline would drift unseen. The stage costs an instrumented clean rebuild, about two minutes, and runs only after the faster stages pass.
+`just check` runs `just cover` and then `just crap check` as its last stage. The pre-commit hook then refuses a commit whose coverage or CRAP score was never measured. A CRAP gate that skipped on a stale lcov would skip on nearly every commit that changes code, and the baseline would drift unseen. The stage costs an instrumented clean rebuild, about two minutes, and runs only after the faster stages pass.
 
 ## Tool sources
 

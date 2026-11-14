@@ -30,8 +30,8 @@ placeholder actor, `ada`, copied from the docs example. It had no
 `[tasks.assignee]` section at all, and no task under `truth/tasks/` set the
 field. So the backlog could not answer the question that comes up every session:
 which open tasks need a human, and which can an agent take.
-`verify-the-generated-readme-header-renders-on-github.typ` is the shape of the
-problem: a task no gate and no agent can ever close, sitting in the same
+`verify-the-generated-readme-header-renders-on-github.typ` shows the problem: a
+task no gate and no agent can ever close, sitting in the same
 undifferentiated listing as work an agent should just pick up.
 
 This adopts the field with two actors and two views: `mt ls @owner` is what waits
@@ -71,7 +71,7 @@ A loud error costs one flag and cannot mis-attribute.
 For the same reason the variable is not exported anywhere in the repo. That
 includes `.envrc` and the flake `devShell`, both of which the maintainer's
 interactive shell and an agent's tool calls share. An agent passes `--set assignee=agent`. A
-harness that wants it silent sets the variable in its own agent-only config.
+The harness that needs silence sets the variable in its own agent-only config.
 
 == Docs placement
 

@@ -36,8 +36,8 @@ repo already uses for `check-doc-coverage`:
   the per-command read tests generated from the read array rather than written
   out.
 - An assertion that the union of the two arrays equals `mt _cli --json`'s
-  visible command list. A new command then fails the suite until it is
-  classified. `go` needs a home: a third array, or an explicit exemption with a
+  visible command list. A new command then fails the suite until someone
+  classifies it. `go` needs a home: a third array, or an explicit exemption with a
   reason.
 - CONTRIBUTING.md's two bullets rendered from that classification rather than
   retyped, once it has a machine-readable form.

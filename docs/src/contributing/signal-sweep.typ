@@ -49,8 +49,7 @@ and defaults none, and just's `--usage` flag prints the same set.
 
 The sweep has #num-word(thresholds.len()) thresholds, one per measurement,
 because a flag shared by two arms would change both at once. The undertested
-arm takes two: it files a task only for a function that is both complex and
-undertested. Each number's argument sits beside its constant in the arm
+arm files a task only for a function that is both complex and undertested. Each number's argument sits beside its constant in the arm
 script that applies it.
 
 The repeats arm reads jscpd's clone classes at 15 tokens, each a snippet with
@@ -77,8 +76,8 @@ ETA.
 shared `stem_for` and the driver. Each arm is one file under
 `contrib/ask-refactoring/` that defines `score_<arm>`, `signal_<arm>` and
 `emit_<arm>`. To add an arm, add a file there, its name in `ARMS`, and a
-`.mindtape/templates/sweep-*.typ` template. The tags and the guard are
-declared already, so it doesn't need a config change.
+`.mindtape/templates/sweep-*.typ` template. The config already declares the
+tags and the guard. A new arm then needs only its template and arm file.
 
 The templates have the same structure, and the `sweep-templates` outdatty group
 keeps them in step. They don't share it through a Typst `#import`. The import

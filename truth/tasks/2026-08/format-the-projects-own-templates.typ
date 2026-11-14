@@ -29,8 +29,8 @@ repo except one. `.mindtape/templates`, the project's own templates, is not in
 either list.
 
 So the example project's templates get formatting and the real ones do not.
-`typstyle --check .mindtape/templates` reports all four files today. No edit
-there breaks, but one sits silently outside the formatter. The omission reads as
+`typstyle --check .mindtape/templates` reports all four files today. Each file
+still parses, but one sits silently outside the formatter. The omission reads as
 deliberate when it probably comes from copying the learn-piano path without its
 sibling.
 

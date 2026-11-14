@@ -18,7 +18,7 @@
 
 `crates/mindtape-cli/src/ls_rules.rs:110-116` routes any filter argument to
 `explicit_bundle`, which skips rule matching entirely. The docs state that
-intent for the filter facet: an explicit filter should win over an
+intent for the filter facet. An explicit filter should win over an
 auto-activating rule. It also silently takes the rule's `sort` and
 `columns` down with it, which is a different question. A rule saying "on
 branch X, show these columns" stops applying the moment the caller types a
@@ -54,16 +54,16 @@ narrowed. A bare `@view` argument still overrides every facet that view sets:
 naming a view is choosing a reading, not just a set of rows.
 
 Splitting proved free. `Applied` was already per-facet
-and `trailer` already grouped by source. So two sources on one listing needed
-no new shape. It did need a label. Previously, a rule's own
+and `trailer` already grouped by source. Two sources on one listing then fit
+the existing shape. It did need a label. Previously, a rule's own
 overrides went to `manual`, which is also the CLI's label. A filter from the
 command line and a sort from a rule override would then have grouped into one
 `manual (filter, sort)`. A rule's overrides carry the rule's label, and
-`rule_label` falls back to `rule` rather than the empty string, which is no
-longer printable as a source.
+`rule_label` falls back to `rule` rather than the empty string, which is not
+printable as a source.
 
-The open question answers itself from the same principle: a flag suppresses
-its own facet only, which is what `apply_cli_overrides` already did.
+The same principle resolves the open question. A flag suppresses its own facet
+only, which is what `apply_cli_overrides` already did.
 
 The tool sets `Applied::rule` whenever a rule matched, contribution or not, and
 `rule_superseded` records that everything it gave was overridden: the trailer

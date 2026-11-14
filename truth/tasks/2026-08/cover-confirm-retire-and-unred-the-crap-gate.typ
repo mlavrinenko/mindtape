@@ -41,8 +41,8 @@ The cause is the shape of the tests, not an oversight in the file.
 
 == Scope
 
-- Add an e2e test that drives `mt rm` down the retire path without `-y`, so the test
-  reaches the prompt. The fixture is not the cost: `rm_e2e.rs` already holds
+- Add an e2e test that drives `mt rm` down the retire path without `-y`. The test
+  then reaches the prompt. The fixture is not the cost: `rm_e2e.rs` already holds
   `RETIRE_CONFIG`, `RETIRE_STATUS_CONFIG` and `RETIRE_ARCHIVE_CONFIG` (lines
   23-27), and every existing retire test passes `-y` to skip the prompt. The
   delete path's 15 hits on `confirm_answer` come from tests that omit `-y` and

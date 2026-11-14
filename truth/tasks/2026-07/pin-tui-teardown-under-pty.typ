@@ -23,7 +23,7 @@
 Two `exclude_re` entries claim the TUI teardown is unobservable: `Tui::drop`
 "calls leave_screen which Err-s without a TTY", and `leave_screen` "succeeds
 without a TTY, same as returning Ok(())". Both reasons assume no terminal. The
-The repo has had one since `tests/tty_e2e.rs`: `script(1)` from util-linux, already
+repo has had one since `tests/tty_e2e.rs`: `script(1)` from util-linux, already
 in the `devShell`. Under a PTY, `leave_screen` writes `LeaveAlternateScreen` and
 `cursor::Show` to a real terminal, which is directly observable in the captured
 transcript. That is the same stale-assumption class already corrected six times

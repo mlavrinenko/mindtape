@@ -152,9 +152,9 @@ Each kind of reader gets its own register:
 - *`--help` text* says in one or two sentences what the flag does, from the
   user's side. It leaves out internals such as config tables the user never
   sees.
-- *An error message* names what failed, quotes the value that failed, and says
-  what to try next on a `hint:` line when there's an obvious next step. It's
-  one line that starts with `error:`. Build it with the `Diag` builder in
+- *An error message* states what failed, quotes the value that failed, and gives
+  the next step on a `hint:` line when there's an obvious one. It's one line
+  that starts with `error:`. Build it with the `Diag` builder in
   `crates/mindtape-cli/src/diag/`, whose module docs hold the format.
 - *AGENTS.md, SKILL.md and the skill's references* target any agent, not one
   vendor's. They're imperative: one situation, one action,
@@ -163,8 +163,8 @@ Each kind of reader gets its own register:
 
 = Plain prose
 
-Write for a busy engineer who reads each sentence once. The voice rules apply
-to comments in doc sources too: a comment says what the code does and why, in
+Write for a busy engineer who reads each sentence once. The voice rules cover
+comments in doc sources too. A comment states what the code does and why, in
 as few lines as it takes.
 
 == The Vale gate
@@ -177,10 +177,8 @@ gate. The rules come from Microsoft, Google and write-good, from the ai-tells
 package, and from this repo. The repo keeps its own rules and vocabulary under
 `.config/vale/local/`, and the flake fetches the rest.
 
-The prose gates call `vale-prose`, a 3.26 pin. Vale 3.27 joins a wrapped
-paragraph into one sentence, which exposes alerts in prose written for the old
-reader. A backfill task cleans them, and the prose gates then call `vale` with
-the code-comment gate.
+The prose gates and the code-comment gate call `vale` 3.27. One binary reads
+comments and Typst prose, and `nix/dev/shell.nix` builds it.
 
 A new rule starts at `warning`. Clear its alerts over the docs, then move its
 level to `error` in `.config/vale.ini`. The level lives in the config, not in
@@ -313,8 +311,7 @@ tag, since `mt flip` writes the task file it would read.
 
 == Code comments
 
-#just.lint-banners() runs `vale`, the 3.27 pin, over every tracked Rust, Shell
-and CSS file. Vale reads a comment through its tree-sitter grammar. The rule sees the comment
+#just.lint-banners() runs `vale` over every tracked Rust, Shell and CSS file. Vale reads a comment through its tree-sitter grammar. The rule sees the comment
 and never the code around it. `Sep.Banner` fails a comment whose text ends in
 five or more `-`, `=`, `*`, `_`, `~` or `#` characters. Delete the run and keep
 any label it frames. The grammars come from the same pinned release as Vale,

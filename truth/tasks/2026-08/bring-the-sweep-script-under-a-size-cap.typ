@@ -50,5 +50,5 @@ unable to see itself.
   the slot-filling moves into per-arm files, they are what the group must track,
   not the entry script.
 - A cap on shell also puts `www/generate.sh` and the `.githooks/` scripts in
-  scope. Check what else it would report before picking the number, so the cap
+  scope. Check what else it would report before picking the number. The cap then
   lands as one deliberate decision rather than a surprise on the next sweep.

@@ -199,8 +199,8 @@ value, counting from 1, with punctuation trimmed from both ends, so
 appears as an argument. `matches(value, "regex")` matches a Rust `regex`
 pattern anywhere in the text. `in_dict("name", text)` matches when the text
 is in the named #link(u("/named-sets/"))[dictionary]. Like `contains()`,
-`matches()` and `in_dict()` also read `body`, `note` and `tags`, so the last
-example finds a task that still has a template's placeholder line:
+`matches()` and `in_dict()` also read `body`, `note` and `tags`. The last
+example then finds a task that still has a template's placeholder line:
 
 #commands("filters-strings")
 
@@ -214,7 +214,7 @@ as its first word, so the last example above lets `matches()` accept it.
 
 `matches()` and `in_dict()` don't match a value that isn't there, such as a
 missing field or a word past the end of the title. That's how `==` reads one,
-so `!matches(...)` does match it. Anything else wrong is an error that names
+so `!matches(...)` does match it. Anything else wrong is an error that states
 the problem, such as an unknown dictionary, a pattern `regex` refuses, a
 number where text belongs, or a wrong argument count. `mt ls` exits
 #exit-code("filters-unknown-dict"):
@@ -347,6 +347,6 @@ Required fields use the same language. See
 #link(u("/rules/"))[Required fields].
 
 #callout("note")[
-  `mt` parses a filter and walks the parse tree itself. Nothing in a filter
-  runs as code.
+  `mt` parses a filter and walks the parse tree itself. A filter never runs as
+  code.
 ]

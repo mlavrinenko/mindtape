@@ -32,8 +32,8 @@ Error: 1 validation issue(s) as filled; nothing was written
 
 Only the trailing `Error:` line says which of the two happened. A write
 that lands omits that line. A reader scanning the per-issue
-lines then misses every signal. The prefix predates the rules work (`6a21382`). What
-the rules work added is a second, real meaning for it.
+lines then misses every signal. The prefix predates the rules work (`6a21382`). The
+rules work added a second, real meaning for it.
 
 
 == Scope

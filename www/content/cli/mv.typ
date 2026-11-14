@@ -4,7 +4,7 @@
 
 A task's id is its file stem, so renaming the file renames the task. Rename it
 by hand and every `links:` edge to it breaks. `mt mv` renames it
-and rewrites those edges in the same checked write, so `mt check` finds no
-broken edge afterwards. To change the `title:` field, use `mt set`.
+and rewrites those edges in the same checked write. `mt check` then finds
+every edge intact. To change the `title:` field, use `mt set`.
 
 #cli-command("mv")

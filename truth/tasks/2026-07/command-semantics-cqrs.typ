@@ -14,8 +14,8 @@
 == Summary
 
 Codify a strict read/write split across the `mt` surface: read commands never
-mutate the working tree. Only explicit write commands do. Recurrence, in
-particular, never materializes as a side effect of a read. This is the single
+mutate the working tree. Only explicit write commands do. Recurrence
+never materializes as a side effect of a read. This is the single
 structural lesson from Taskwarrior, whose recurrence generates instances lazily
 as a side effect of running a report (`task list`). That habit is the root of
 its `mask` drift, multi-client duplicate races, and single-writer-client workaround. A

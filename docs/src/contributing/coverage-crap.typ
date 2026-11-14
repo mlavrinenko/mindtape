@@ -25,7 +25,7 @@ command code they run. The recipe writes `target/coverage/lcov.info` for
 #just.crap-check() and fails below 90% of lines. The recipe excludes `main.rs`,
 so keep it thin.
 
-The workspace total can stay green while one file's coverage drops, so the
+The workspace total can stay green while one file's coverage drops. The
 recipe also gates each production file. It fails a file below 88% line
 coverage that has 5 or more uncovered lines, and names it with its percentage
 and its unreached line count. Test files don't count as production. The recipe
@@ -58,7 +58,7 @@ way.
 
 = Why cover starts clean
 
-#just.cover() starts with `cargo llvm-cov clean --workspace`, so every run
+#just.cover() starts with `cargo llvm-cov clean --workspace`. Every run then
 pays for a full instrumented rebuild of about a minute. Without the clean,
 `report` merges every profile left since the last `cargo clean`, from other
 feature sets and other commits. It then reports coverage the current source
@@ -122,8 +122,8 @@ CRAP arm.
 
 = Why both run in every check
 
-#just.check() runs #just.cover() and then #just.crap-check() as its last stage, so
-the pre-commit hook refuses a commit whose coverage or CRAP score was never
+#just.check() runs #just.cover() and then #just.crap-check() as its last stage.
+The pre-commit hook then refuses a commit whose coverage or CRAP score was never
 measured. A CRAP gate that skipped on a stale lcov would skip on nearly every
 commit that changes code, and the baseline would drift unseen. The stage
 costs an instrumented clean rebuild, about two minutes, and runs only after

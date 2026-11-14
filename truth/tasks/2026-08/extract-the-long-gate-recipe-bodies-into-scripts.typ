@@ -59,8 +59,8 @@ these multi-line shebang bodies into one-liners like `bash .just/scripts/check-d
 which would newly *qualify* and replace the doc string with a script path.
 
 A script path is less informative than the doc string in that column. Teach
-`gate_command` to return `null` for a body that is a bare script invocation, so
-the fallback keeps applying and CONTRIBUTING.md renders unchanged. A rendered
+`gate_command` to return `null` for a body that is a bare script invocation. The
+fallback then keeps applying and CONTRIBUTING.md renders unchanged. A rendered
 diff in that table signals a missed case.
 
 == Scope

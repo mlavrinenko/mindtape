@@ -200,7 +200,7 @@ is `mt explain dicts <name> --json`. The rest take their command's name: `ls`,
 A released binary names
 `https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/...`,
 so the URL always resolves to the newest published copy. A working-tree build
-names its checkout through `MINDTAPE_SCHEMA_BASE`, which the dev shell sets to
+points at its checkout through `MINDTAPE_SCHEMA_BASE`, which the dev shell sets to
 `file://$mt_root/schema/output`. `mt install` writes the same files under the
 config directory, `~/.config/mindtape/schema/output/...` (or
 `$MINDTAPE_CONFIG_HOME/mindtape/...`), so an offline editor can use the

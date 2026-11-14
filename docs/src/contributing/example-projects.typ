@@ -39,6 +39,6 @@ So each example's config points the import at this checkout's `lib/` with a
 `[[typst.local-packages]]` entry. The recipe also sets `MINDTAPE_DATA_HOME`
 to an empty value, which `mt` reads as no directory, so no machine-wide
 package resolves at all. An example that lost its entry then reads the prelude
-built into `mt`. A test keeps that prelude equal to `lib/`, so the example
+built into `mt`. A test keeps that prelude equal to `lib/`. The example then
 never reads another checkout's. `XDG_DATA_HOME` wouldn't work, because `dirs`
 reads it on Linux only.

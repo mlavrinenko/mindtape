@@ -66,8 +66,8 @@
 == Changes
 
 - `.just/docs.just`: `build` and `check` pass `--clean` to `tola build`,
-  with the reason above each: tola does not track a `json()` dependency, so
-  an incremental build serves HTML the current facts did not produce. Leave
+  with the reason above each: tola does not track a `json()` dependency. An
+  incremental build then serves HTML the current facts did not produce. Leave
   `serve` alone, which is a watch loop and not a gate.
 - `docs/src/contributing/generated-docs.typ`: state the full rebuild and what
   buys it. The cost then reads as a decision rather than an oversight.

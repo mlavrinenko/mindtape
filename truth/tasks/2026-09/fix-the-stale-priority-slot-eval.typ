@@ -46,7 +46,7 @@ the Postgres driver" --set priority=8 --print` → exit 1, `Error: unknown
 
 == TO-BE
 
-- 🟢 The eval expects the loud refusal: a non-zero exit that reports the unknown key
+- 🟢 The eval expects the loud refusal. A non-zero exit reports the unknown key
   and the known slots. It grades the recovery: drop the flag, file the task,
   get `priority: 8` onto it (a hand edit is the sanctioned path), run `mt check`.
 - 🟢 The assertions test that recovery rather than the silent drop.

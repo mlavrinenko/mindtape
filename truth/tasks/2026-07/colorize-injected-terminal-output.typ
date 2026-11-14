@@ -26,8 +26,8 @@ through the generator and every render through `terminal(read(...))`.
 
 == Constraint (discovered)
 
-The original two-seam plan (ANSI → HTML `<span>`, injected raw) is not
-possible. tola / Typst HTML export lacks a raw-HTML-string escape hatch
+The original two-seam plan (ANSI → HTML `<span>`, injected raw) is
+impossible. tola / Typst HTML export lacks a raw-HTML-string escape hatch
 (`html.elem` escapes its text), and `text(fill: …)` colours disappear in HTML
 export. The one colour-carrying path is `html.frame(content)`, which renders
 native Typst content to inline `<svg>`. The terminal panel background is

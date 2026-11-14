@@ -78,5 +78,5 @@
 
 == Dogfood
 
-The exception paragraph and the audit run against each other: a finding it
+The exception paragraph and the audit run against each other. A finding it
 names stops being a finding.

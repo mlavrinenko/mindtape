@@ -53,8 +53,8 @@
   spelling rather than inventing a second one.
 - 🟢 The command refuses an unknown field by name and lists the writable fields, the
   way it does an unknown `--set` key.
-- 🟢 A value the config rejects fails before the file changes, so a refused
-  write leaves nothing to repair.
+- 🟢 A value the config rejects fails before the file changes. A refused write
+  then leaves nothing to repair.
 
 
 == Changes

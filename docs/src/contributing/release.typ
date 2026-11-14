@@ -44,7 +44,7 @@ Before a release bumps the prelude, archive the outgoing current. Copy
 `<old-version>` to `PRELUDE_SUPPORTED` in
 `crates/mindtape/src/loader/embedded.rs`, and keep a fixture that loads it.
 Then bump both `PRELUDE_VERSION` and `lib/typst.toml` to the new version. The
-snapshot is immutable: a checksum test pins an archived copy, and a test
+snapshot stays immutable. A checksum test pins an archived copy, and a test
 keeps the current snapshot equal to `lib/prelude.typ`.
 
 A release drops a version on purpose by removing it from `PRELUDE_SUPPORTED`

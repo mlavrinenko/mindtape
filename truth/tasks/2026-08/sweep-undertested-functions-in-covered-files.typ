@@ -67,7 +67,7 @@ Confidence is 0.7 because that overlap is the open question, not the thresholds.
   coverage is not a split.
 - One task per function, so the stem must carry the function name. `stem_for`
   namespaces by signal already. The mutants arm's stem rule is the precedent:
-  derive from what identifies the finding, never a line number, so the stem
+  derive from what identifies the finding, never a line number. The stem then
   survives edits above it.
 - Cancelling this is still a real outcome. Data cancelled its predecessor, and
   the same standard applies. If the deduplication question does not have a clean

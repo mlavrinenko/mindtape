@@ -29,8 +29,8 @@ unexpectedly green, not from any gate.
 
 == Scope
 
-- Add the per-command argument modules to the `cli-docs` group's sources, so a
-  flag change forces the same dependent review a command change already does.
+- Add the per-command argument modules to the `cli-docs` group's sources. A
+  flag change then forces the same dependent review a command change already does.
 - The new `check-doc-coverage` gate closes the missing-command hole. This is the
   missing-flag hole beside it, and neither covers the other.
 - Weigh listing the modules explicitly against a glob. An explicit list rots

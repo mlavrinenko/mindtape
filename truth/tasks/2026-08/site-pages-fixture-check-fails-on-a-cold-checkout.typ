@@ -26,8 +26,8 @@ The first `just check` in a freshly forked worktree fails on
 correctly re-ran the recipe directly and got a pass.
 
 The gate replicates `www/` with `cp -r` and runs the copy's own
-`generate-site-pages.sh`. That producer needs `www/generated/*.json`, which is
-gitignored (`www/.gitignore`) and produced by the `docs-gen` arm. `just check`
+`generate-site-pages.sh`. That producer needs `www/generated/*.json`, which
+`www/.gitignore` hides and the `docs-gen` arm produces. `just check`
 runs its arms in parallel, so `docs-gen` can run alongside. The script's
 own header states the assumption it breaks on:
 
@@ -37,8 +37,8 @@ own header states the assumption it breaks on:
 ]
 
 That holds in a warm checkout, where an earlier run left the directory behind,
-and only there. `just fork` warms no build cache by design, so a delegated
-worktree hits this every time, and a fresh clone does too.
+and only there. `just fork` warms no build cache by design. A delegated
+worktree then hits this every time, and a fresh clone does too.
 
 == The cost
 

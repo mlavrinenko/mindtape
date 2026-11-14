@@ -86,5 +86,5 @@ on it and no consumer can observe the difference.
 
 This repo runs many delegated worktrees at once on purpose, so the
 concurrent case is the normal case here. The next parallel wave is the
-test: a red arm must mean a real break.
+test. A red arm must mean a real break.
 

@@ -26,7 +26,8 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 14),
+  status: done(2026, 11, 14),
+  reviewed: on(2026, 11, 14),
 )
 
 == AS-IS
@@ -48,6 +49,7 @@ $ vale --no-global --config=.config/vale.ini --output=line truth/tasks | wc -l
 - 🟢 The change deletes `nix/dev/vale-prose.nix` and drops `valeProse` from the shell. One binary runs the docs, the task bodies and the code comments.
 - 🟢 The full gate passes over the docs, the site sources and the backlog with a single Vale version.
 - 🟢 `docs/src/contributing/documentation.typ` states one Vale version, and the generated pages match.
+- 🟢 The `docs::vale-tasks` comment in `.mmz/config.yaml` describes the rule set `.config/vale.ini` holds.
 
 ```
 $ vale --no-global --config=.config/vale.ini --output=line docs/src www/content www/utils truth/tasks | wc -l
@@ -60,9 +62,9 @@ $ vale --no-global --config=.config/vale.ini --output=line docs/src www/content 
 - `docs/src/*.typ`, `www/content/*.typ` and `www/utils/*.typ`: clear the 48 alerts, led by `Prose.ConsequenceClause` (15) and `Prose.PassiveVoice` (9).
 - `truth/tasks/*/*.typ`: clear the 99 alerts, led by `Prose.PassiveVoice` (27), `Prose.ServesAsDodge` (21) and `Prose.ConsequenceClause` (19).
 - `.githooks/pre-commit`: call `vale` for the task prose.
-- `nix/dev/shell.nix`: drop the `valeProse` build and the comment above `vale`.
-- `nix/dev/vale-prose.nix`: delete the 3.26 pin.
+- `nix/dev/shell.nix`: drop the `valeProse` build and the comment above `vale`, and delete `nix/dev/vale-prose.nix`.
 - `.config/outdatty.yaml`: remove `nix/dev/vale-prose.nix` from the two Vale groups.
+- `.mmz/config.yaml`: drop the `[truth/tasks/*/*.typ]` clause from the `docs::vale-tasks` comment.
 - `docs/src/contributing/documentation.typ`: state one Vale version and drop the pin paragraph.
 - `docs/src/contributing/gates.typ`: give the pre-commit list the `vale` call.
 

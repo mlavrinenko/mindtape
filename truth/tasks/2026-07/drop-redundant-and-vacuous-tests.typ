@@ -31,9 +31,9 @@ Delete or merge:
 
 - `crates/mindtape/src/naming_tests.rs`:
   `disambiguate_line_155_not_deletion_regression` is byte-equivalent to
-  `disambiguate_appends_dash_two_on_first_collision`, and the latter was
-  *rewritten* into that duplicate, so single-collision → `foo-2` is
-  uncovered and the name is a lie. Restore the original body, drop the
+  `disambiguate_appends_dash_two_on_first_collision`, and a rewrite turned the
+  latter into that duplicate. Single-collision → `foo-2` is then uncovered and
+  the name is a lie. Restore the original body, drop the
   duplicate.
 - `crates/mindtape-cli/src/rm_cli_tests.rs`: `confirm_rejects_n` and
   `run_aborts_on_declined_confirm` are the same test with different comments,

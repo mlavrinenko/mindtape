@@ -88,7 +88,7 @@ Every command that takes a `<task>` accepts a stem hash, and so does each
 `mt link` target. A path or an exact stem wins, and `mt` tries the input as a stem hash only when no stem matches.
 `mt rm` also takes filters, so it reads a filter word such as `ready`, a
 field, a view or a status as a filter before it tries a stem hash. `mt`
-refuses a stem hash that more than one task shares, and the refusal names
+refuses a stem hash that more than one task shares, and the refusal gives
 each task's stem and hash.
 
 `file` is the task's path, relative to the working directory and in your

@@ -17,15 +17,15 @@
 Replace `[ls] default-filter` with a `default-view`. `default-filter` names only
 a filter, so the default `mt ls` listing cannot set sort or columns. A view
 can. Without a filter, `mt ls` resolves the default listing from a view:
-`[ls] default-view` (a view name) if set, else `[views.default]` if that view is
-declared, else match-all. Drop `default-filter`.
+`[ls] default-view` (a view name) when you set it, else a declared
+`[views.default]`, else match-all. Drop `default-filter`.
 
 == Scope
 
 - Add `[ls] default-view: Option<String>` (`crates/mindtape/src/config_ls.rs`).
   Validate at config load that it resolves to a declared view.
-- Implicit fallback: a view literally named `default` (`[views.default]`) serves
-  as the default listing when `default-view` is unset.
+- Implicit fallback: a view literally named `default` (`[views.default]`) is
+  the default listing when `default-view` is unset.
 - Drop `LsConfig.default_filter` and its use in the `mt ls` command. The
   resolution above replaces it.
 - Migrate this repo's `.mindtape/config.toml`: define `[views.default]` with the

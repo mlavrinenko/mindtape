@@ -26,7 +26,7 @@
 
 Every constraint mindtape enforces today is one the tool knows by name: a
 status legend, a numeric scale, a tag allow-list, a heading path. A project
-that wants to hold any other convention has nowhere to put it.
+with any other convention has nowhere to put it.
 
 `[[tasks.rules]]` is the general form: an assertion written in the filter
 language that must hold for every task the rule selects. It constrains no

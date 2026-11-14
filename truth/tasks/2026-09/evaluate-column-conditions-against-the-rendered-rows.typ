@@ -21,8 +21,8 @@
 
 == Summary
 
-A column's `auto` visibility means three different things, and all three are
-buried in a Rust match (`crates/mindtape-cli/src/render/columns.rs`,
+A column's `auto` visibility means three different things, and all three sit
+inside a Rust match (`crates/mindtape-cli/src/render/columns.rs`,
 `auto_significant`): `file` means "was the column named explicitly",
 `assignee` means "do the rows disagree", everything else means "does any
 cell have text". Making those expressible as condition predicates is what
@@ -55,10 +55,10 @@ ambient environment threaded in as well and gains a `Result`. Both the table
 and CSV renderers call it, which is what keeps them agreeing on the column
 set.
 
-`Condition::parse` dry-runs against `ConditionEnv::probe`, so the probe
+`Condition::parse` dry-runs against `ConditionEnv::probe`. The probe then
 grows fixed answers for the new predicates exactly as it already carries a
 placeholder date. That is what keeps a typo like `nonemtpy()` a load-time
-error naming the column rather than a column that silently never renders.
+error that states the column rather than a column that silently never renders.
 
 = Watch for
 

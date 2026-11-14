@@ -56,5 +56,5 @@ See `mt-rm-should-not-suggest-committing-without-git.typ`.
 - Same project inside a git repo: unreferenced task still deletes directly.
 - Scratch project where a survivor links to the removed task: `mt rm` rewires
   the edge to the tombstone as before (git path unchanged).
-- `mt rm --dry-run` outside a git repo: prints the deletion plan and writes
-  nothing.
+- `mt rm --dry-run` outside a git repo: prints the deletion plan and leaves the
+  tree untouched.

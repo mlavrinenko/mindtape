@@ -135,7 +135,7 @@
     [#cap("green")[Filters and fuzzy search. JSON.]],
 
     [#link(u("/templates/"))[Templates]],
-    [#cap("green")[Templates with typed slots.]],
+    [#cap("green")[Typed slots in a task template.]],
     [#cap("amber")[New tasks copy a template task.]],
     [#cap("grey")[No.]],
     [#cap("grey")[No.]],
@@ -219,8 +219,8 @@
   Typst functions. `mt check` applies them in CI, and every command that writes
   a task applies them first.
 - #strong[Priority from inputs.] ICE, RICE, WSJF, Eisenhower and MoSCoW compute
-  the priority (#link(u("/priority/"))[Priority]). Taskwarrior's urgency is
-  computed too, from the due date, tags, age and your own attributes, with
+  the priority (#link(u("/priority/"))[Priority]). Taskwarrior computes its
+  urgency too, from the due date, tags, age and your own attributes, with
   coefficients you tune.
 - #strong[A task is Typst.] It can import a shared module and call your own
   functions. See #link(u("/self-validating-tasks/"))[Self-validating tasks].

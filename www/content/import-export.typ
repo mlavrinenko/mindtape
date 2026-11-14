@@ -139,8 +139,8 @@ For other columns, build the rows in `jq` and format them with `@csv`:
 
 #terminal("export-csv-jq")
 
-A priority from a framework such as `ice` is an object, which `@csv` refuses,
-so the recipe takes its `score`.
+A priority from a framework such as `ice` is an object, which `@csv` refuses.
+The recipe then takes its `score`.
 
 == To Taskwarrior
 

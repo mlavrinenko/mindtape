@@ -42,8 +42,8 @@ variable falls through to the normal sources exactly as today.
 - Discovery reads the environment on the parse plane alongside the other slot
   options (`typst-edit`, no eval). A template then previews without running the
   variable.
-- An unset or unreadable variable is not a fill failure. It falls through, so
-  the same template works in a bare shell and under a harness that sets it.
+- An unset or unreadable variable is not a fill failure. It falls through. The
+  same template then works in a bare shell and under a harness that sets it.
 - Tests: a slot with `env` fills silently from a set variable, and the
   interactive scaffold skips it. An unset variable leaves the slot to the next source.
 - Consumer-blind like the rest of `add_slots`: the reading is generic, and any

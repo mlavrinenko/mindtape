@@ -26,8 +26,8 @@ A `text` slot escapes every markup character on the way in (`escape_markup` in
 `crates/mindtape/src/status_value.rs`, applied by `add.rs::markup_safe` to
 every `Text` slot). A filled body carrying an inline code span then lands
 as a literal backslash-backtick pair and renders as visible punctuation instead
-of code. That is deliberate and safe as a default, since a fill value is
-untrusted input and splicing it raw would let any `--set` inject arbitrary
+of code. That is deliberate and safe as a default, since a fill value comes
+from an untrusted caller and splicing it raw would let any `--set` inject arbitrary
 Typst. It still cannot fill a slot with markup meant as markup.
 
 The escaping is already documented, and that task explicitly deferred the
@@ -41,9 +41,9 @@ scales with exactly the automation this backlog is building.
 == Scope
 
 - Add a `typst` slot kind that splices its value verbatim, with no escaping.
-  The choice belongs to the template author, not the caller: a template is
-  trusted repo content, a `--set` value is not, so `kind: "typst"` is the
-  template asserting trust in this slot's filler.
+  The choice belongs to the template author, not the caller: a template comes
+  from trusted repo content, a `--set` value does not, so `kind: "typst"` is
+  the template asserting trust in this slot's filler.
 - `text` keeps today's escaping and stays the default. A template that says
   nothing must not change behaviour.
 - Validate what lands. `mt add` already evaluates the written file

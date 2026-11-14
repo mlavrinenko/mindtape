@@ -114,8 +114,8 @@ such as one you declare in config, use `edge("<kind>", ...)`:
 
 Each task gets two computed fields from the `parent` edges that target it.
 `children` counts those tasks. `progress` is the share of them in a
-#link(u("/statuses/#the-default-legend"))[terminal] status, so a cancelled
-child counts as finished. In the table, the `progress` column shows the
+#link(u("/statuses/#the-default-legend"))[terminal] status. A cancelled child
+then counts as finished. In the table, the `progress` column shows the
 counts:
 
 #terminal("links-progress")

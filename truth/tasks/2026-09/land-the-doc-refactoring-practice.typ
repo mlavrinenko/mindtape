@@ -49,8 +49,8 @@
 
 == TO-BE
 
-- 🟢 `CONTRIBUTING.md` states the documentation rule. When a doc file is
-  touched, the writer rewrites it whole against its reader job. Caps never justify a
+- 🟢 `CONTRIBUTING.md` states the documentation rule. When a writer touches a
+  doc file, that writer rewrites it whole against its reader job. Caps never justify a
   patch. A deleted fact moves to its one home or dies with a reason. A real
   example under a checked example root beats a paragraph describing it.
 - 🟢 The arguments live in `docs/contributing/documentation.md`, with the
@@ -72,7 +72,7 @@
 - `contrib/ask-refactoring.sh`: the advisory-tool precedent, which reports and never
   gates.
 - `www/content/dsl.typ`'s "Task links" section: the worked example of the
-  preferred shape: a real annotated code block over prose.
+  preferred shape. A real annotated code block beats prose.
 
 == Changes
 

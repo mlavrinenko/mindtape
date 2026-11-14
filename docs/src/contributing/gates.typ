@@ -162,7 +162,7 @@ drifted modules and a clean one that sorts last.
 = Pre-commit assertions
 
 `.githooks/pre-commit` runs `mmz --is-fresh --tag gate`, then
-`.githooks/local-paths`, `typstyle --check truth`, `vale-prose` over
+`.githooks/local-paths`, `typstyle --check truth`, `vale` over
 `truth/tasks` and `mt check`. It refuses the commit when any of them fails.
 
 `.githooks/local-paths` refuses a staged file that names your `$HOME`, the

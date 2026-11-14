@@ -43,6 +43,6 @@ one boundary does not see a truncation at another.
 == Scope
 
 - Restore both lines verbatim from git history, not from memory.
-- Confirm `just --fmt --check` stays green afterwards: add the blank line the
-  formatter wants rather than re-introducing the truncation.
+- Confirm `just --fmt --check` stays green afterwards. Add the blank line the
+  formatter expects rather than re-introducing the truncation.
 - Leave every other comment alone in this task.

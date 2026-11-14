@@ -67,8 +67,8 @@
 
 == Out of scope
 
-- Slicing fixture config halves and deriving the built-in tables. Those are
-  filed separately.
+- Slicing fixture config halves and deriving the built-in tables. Separate
+  tasks cover those.
 
 == Dogfood
 

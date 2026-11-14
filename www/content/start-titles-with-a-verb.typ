@@ -30,9 +30,9 @@ tells you what to do before you open anything.
 
 = Behavior
 
-`sections.yaml` contains the `AS-IS` and the other sections the template asks
-for, so only the title changes. `mt add` refuses a title that starts with no
-verb, names the nearest verbs, and doesn't write a file. It files the ones that
+`sections.yaml` contains the `AS-IS` and the other sections the template
+needs. Only the title then changes. `mt add` refuses a title that doesn't start
+with a verb, states the nearest verbs, and doesn't write a file. It files the ones that
 start with a verb:
 
 #terminal("start-titles-with-a-verb")

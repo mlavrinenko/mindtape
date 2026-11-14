@@ -62,8 +62,8 @@ The prelude has a constructor for each of these statuses:
 
 Each takes the year, month and day of the setting, then an optional note
 as a trailing content block, like `wip` in the sketch above. Your project's
-#link(u("/statuses/"))[status legend], its list of allowed statuses, can name
-a status with no constructor. Write that one with `status(...)`.
+#link(u("/statuses/"))[status legend], its list of allowed statuses, can
+declare a status with no constructor. Write that one with `status(...)`.
 
 You can type the status and its date yourself, or let `mt flip` and the status
 commands such as `mt wip` write the field for you.

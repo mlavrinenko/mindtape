@@ -27,15 +27,15 @@ What has to stop is spilling them into prose.
 == Scope
 
 Edit \`docs/src/skill.typ\`. \`just docs-md\` generates \`skills/mindtape/SKILL.md\` from it,
-and nobody edits the output by hand. Today the skill teaches the
+and nobody edits the output by hand. Today the skill presents the
 handle first and offers the stem only as a fallback "for any second
 operation". That framing is what puts handles in reports.
 
 State the rule as absolute. An agent gets a conditional rule wrong on the
 run that matters. Use handles freely for the
 agent's own immediate follow-up call, and never write one into text a human
-reads. Cite the task as a Markdown link whose target is the task file path,
-so the reader clicks through instead of resolving anything.
+reads. Cite the task as a Markdown link whose target is the task file path.
+The reader then clicks through instead of resolving anything.
 
 Re-run \`just docs-md\` and commit the regenerated Markdown in the same
 commit, so \`docs-md-check\` stays green.

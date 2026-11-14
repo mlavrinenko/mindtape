@@ -37,8 +37,8 @@ secrets walk has no such bound.
 
 == Scope
 
-- reproduce by running \`just check\` against a cold \`www/generated\`, which is
-  gitignored and so absent on a fresh checkout. That is the widest window.
+- reproduce by running \`just check\` against a cold \`www/generated\`, which
+  \`www/.gitignore\` hides and a fresh checkout lacks. That is the widest window.
 - bound the gitleaks walk away from the generated/asset trees another arm
   owns. Or serialise the two arms, or make the walk tolerate a vanishing
   entry without changing what it would report about a tracked file.

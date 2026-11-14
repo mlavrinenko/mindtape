@@ -151,8 +151,8 @@ all math and date arithmetic.
 
 == Mechanism, not policy
 
-Rust provides mechanisms, and projects write policy as config expressions. Name
-no estimate unit, status, tag, path or threshold in Rust code. Write a new
+Rust provides mechanisms, and projects write policy as config. Rust code
+doesn't state an estimate unit, status, tag, path or threshold. Write a new
 check as a `[[tasks.rules]]` entry. When the filter language cannot express
 it, extend the language with a field, predicate, aggregate or git state, never
 a config table or checker of its own. Put built-in defaults in the rule packs

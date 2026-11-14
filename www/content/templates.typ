@@ -83,8 +83,8 @@ names the slot:
 
 #terminal("add-text-slot-span")
 
-Only the backtick warns. A path's `_` or a plain `a < b` is literal text, and is
-written without a warning.
+Only the backtick warns. A path's `_` or a plain `a < b` is literal text, and
+`mt add` writes it without a warning.
 
 The `default` and `example` of a `text` or `raw` slot can be a raw block as
 well as a string, so a body section's example reads as markup, as in the

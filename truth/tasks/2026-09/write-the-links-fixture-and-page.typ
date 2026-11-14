@@ -92,4 +92,4 @@
 == Dogfood
 
 The page comes from the derived slices alone, with the cross-links the
-documentation rule asks for, and `just dup-prose` runs before and after.
+documentation rule requires, and `just dup-prose` runs before and after.

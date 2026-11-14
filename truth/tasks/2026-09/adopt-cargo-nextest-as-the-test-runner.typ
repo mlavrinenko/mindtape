@@ -31,8 +31,8 @@ same run is seven lines. mindtape has been on plain `cargo test` while
 `cratemplate` and `kimmable` both moved. This adopts the same shape.
 
 `just test`, `just count-tests`, `just check-rrule` and `just cover` all move
-to nextest, so one runner is both gated and measured. nextest runs no
-doc tests. The tree has none (`cargo test --doc` reports 0 in both crates, and
+to nextest, so one runner is both gated and measured. nextest skips doc
+tests. The tree has none (`cargo test --doc` reports 0 in both crates, and
 no code-fenced doc comment exists), so skip the separate pass: the
 `cratemplate` fallback stays off. A doc test added later must come with a
 pass of its own. CI's Windows job installs the same runner via `taiki-e/install-action`,

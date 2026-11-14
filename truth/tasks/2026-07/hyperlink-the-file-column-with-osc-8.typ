@@ -22,8 +22,8 @@ and the way to make a cell clickable is the OSC 8 hyperlink sequence:
 `ESC ] 8 ; ; <uri> ST <text> ESC ] 8 ; ; ST`.
 
 Support stays a guess: the protocol lacks a capability query, so the tool cannot
-ask the terminal. That is why
-the feature is opt-in rather than automatic.
+detect the terminal. The feature is opt-in rather than automatic for that
+reason.
 
 One trap worth recording, since it costs an hour to rediscover: the target must
 be a URI with a scheme. A bare relative path is not one, and every terminal
@@ -55,7 +55,7 @@ full support.
 - `cli.rs` flag, `main.rs` init, `[ls] hyperlinks` and `[ls] hyperlink-target`
   in `config_ls.rs`, and a regenerated `schema/config.schema.json`.
 - Column widths must measure the visible text, never the escape payload. The
-  The table already computes widths before the painter styles a cell. Confirm the
+  table already computes widths before the painter styles a cell. Confirm the
   hyperlink wrap sits on the same side of that boundary. Pin it with a test that
   renders a linked cell and asserts the layout is byte-identical to the unlinked
   one.
@@ -86,7 +86,7 @@ The estimate was wrong, and in a way worth recording rather than editing away:
 13 files declared, 26 touched. The overrun is entirely the documentation
 reconcile, which covered three features because `cli.rs` is a `cli-docs`
 outdatty source and this was the first commit in the sequence to touch it. The
-The lesson is not that the 15-file ceiling is too tight: it caught a truly
+lesson is not that the 15-file ceiling is too tight: it caught a truly
 oversized change, which is its job. A doc reconcile forced by a drift group
 belongs in its own task, sized on its own. It should not ride along with the
 feature that happens to trip the gate.

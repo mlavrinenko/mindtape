@@ -23,7 +23,7 @@
 A handle's check character is `fnv1a(task.id) % 26`, one base-26 letter. A
 wrong handle passes the guard roughly once in 26. That is thin for a token
 whose entire job is to catch a listing that renumbered under the caller. It is
-thinner still in the case that actually bites: a second `mt flip` on a task
+thinner still in the case that actually bites. A second `mt flip` on a task
 the first flip re-sorted resolves a different task's ordinal. Only the check
 letter stands between that and flipping the wrong task.
 

@@ -72,8 +72,8 @@ leave it in a closing report no one rereads. It belongs in
 
 == Rollback
 
-Revert both files. Both changes stop at these files, and the lock is
-unaffected.
+Revert both files. Both changes stop at these files, and the lock stays
+untouched.
 
 
 == Out of scope

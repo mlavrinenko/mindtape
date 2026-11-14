@@ -20,8 +20,8 @@
 
 == Summary
 
-`mt add` renders the template to disk and validates afterwards, so a rejected
-add leaves the broken file behind, and the error says so: "was kept on disk
+`mt add` renders the template to disk and validates afterwards. A rejected add
+then leaves the broken file behind, and the error says so: "was kept on disk
 exactly as written; fix or delete it before the next command". Every subsequent
 `mt` invocation then fails on that file until someone removes it by hand, which
 means one mistyped slot costs a repair rather than a retry.
@@ -71,7 +71,7 @@ writers can adopt the same path without a second implementation, and
   follow-up task] carries them. The follow-up leaves them out deliberately. `mt recur`'s
 spawn is the same defect and a mechanical port, but `mt flip` and `mt review`
 rewrite a file that was already valid. There, decide whether a rejected
-rewrite is *restored* rather than whether it gets written, a different decision,
+rewrite gets *restored* rather than whether it gets written, a different decision,
 not this one applied twice.
 
 Two seams keep the old order, both because they cannot have the new one.

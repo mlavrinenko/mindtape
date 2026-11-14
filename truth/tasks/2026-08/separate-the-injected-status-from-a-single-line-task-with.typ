@@ -46,8 +46,8 @@ someone to write. The shape goes untested rather than unsupported.
 
 - `crates/mindtape-cli/src/task_edit.rs`: `upsert_named_arg` (or whichever of
   the injection helpers owns the seam) emits a separator when the existing
-  argument list does not end in one. The fix belongs where the comma is
-  decided, not in a post-hoc string patch of the rendered call.
+  argument list does not end in one. The fix belongs where the comma decision
+  lives, not in a post-hoc string patch of the rendered call.
 - A regression test over the one-line-no-trailing-comma template, beside the
   existing injection tests. The multi-line shape is already covered, which is
   precisely why this got through. The new test's whole value is being the other

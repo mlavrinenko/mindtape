@@ -38,8 +38,8 @@ validate-before-land discipline.
   `--status <NAME>` default for records missing one, and the mapping overrides
   from the mapping layer (`--map k=v`, `--drop-unmapped`, or equivalent). No
   `--from`/`--via` source selector: sources are jq, upstream of the pipe.
-- Per record: map -> emit -> write to `<root>/<slug>.typ` (dedupe stems, for
-  example a `-2` suffix or skip-with-report. Pick and document.) -> validate with
+- Per record: map -> emit -> write to `<root>/<slug>.typ` (dedupe stems, with a
+  `-2` suffix or skip-with-report. Pick and document.) -> validate with
   the same gate `mt add` uses. On any validation failure, fail that record and
   report. `--dry-run` never writes.
 - Summary report to stderr: N filed, M skipped, unmapped/dropped fields per task.
@@ -56,8 +56,8 @@ validate-before-land discipline.
   `mt import --into <tmp-root>` reproduces the backlog field-for-field including
   `body` (modulo `file`/`derived_tags`/computed `score`). Prefer an in-process
   test over a shell pipe.
-- Tests: stdin and file input. Bare-array and enveloped input. `--dry-run` writes
-  nothing. A record that fails validation gets a report, not a half-written file.
+- Tests: stdin and file input. Bare-array and enveloped input. `--dry-run`
+  leaves the tree untouched. A record that fails validation gets a report, not a half-written file.
 - Commit `Refs: truth/tasks/mt-import-command.typ`.
 
 == Scope

@@ -34,9 +34,9 @@ read it through the one registry that already backs every other field.
 == Scope
 
 - Add `status.name`, `status.date`, `status.note`, and `status.index` to
-  `crates/mindtape/src/fields.rs`. Bare `status` keeps the split it has today:
-  a comparison reads the lifecycle name, an ordering reads the legend
-  position, so `status == "wip"` keeps working unchanged.
+  `crates/mindtape/src/fields.rs`. Bare `status` keeps today's split. A
+  comparison reads the lifecycle name, an ordering reads the legend position,
+  and `status == "wip"` keeps working unchanged.
 - Derive `--sort`'s accepted vocabulary from the registry plus `ready`
   instead of the parallel `SORT_FIELDS` constant. A field or property added to
   the registry is then sortable by construction, and no second list has to
@@ -73,7 +73,7 @@ bare `status` still reads the lifecycle name.
   `SORT_FIELDS` list and the test that policed it. `role` stays filter-only:
   it has no value a comparator could order.
 - `status.index` is `Missing` for an unset status or a name the legend does
-  not carry. It is not the `usize::MAX` sentinel `sort::status_index` uses: a
+  not carry. It is not the `usize::MAX` sentinel `sort::status_index` uses. A
   filter must never compare against a sentinel number, and a missing value
   already sorts last.
 - Every task field keeps its shape. Collections (`links`, `estimate`, `tags`)

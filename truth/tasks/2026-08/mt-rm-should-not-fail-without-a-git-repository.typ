@@ -24,8 +24,8 @@
 `mt rm` retires a task and rewrites every inbound `links:` edge onto a git-pinned
 SWHID tombstone before deleting the file. That rewiring is impossible when the
 task tree is not a git repository, and today `mt rm 1f` fails outright at
-`git::toplevel(&root)?` (`crates/mindtape-cli/src/rm.rs:110`) before anything is
-planned:
+`git::toplevel(&root)?` (`crates/mindtape-cli/src/rm.rs:110`) before `mt rm`
+plans anything:
 
 ```
 Error: git: Could not find a git repository in '<tasks-root>' or in any of its parents

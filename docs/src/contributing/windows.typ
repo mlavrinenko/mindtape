@@ -67,8 +67,8 @@ for users. In code, a path turns into text through one of the two helpers in
 any other way. A path that stays a path, such as a template directory the
 config passes on, keeps its own form through `to_string_lossy`.
 
-A test that pins how a path reads passes `--path-separator` a `\`, so a Linux
-run formats the path the way Windows does by default. A test about something
+A test that pins how a path reads passes `--path-separator` a `\`. A Linux
+run then formats the path the way Windows does by default. A test about something
 else that prints a path wraps the expected path in `support::native`, which
 writes the platform's separator.
 

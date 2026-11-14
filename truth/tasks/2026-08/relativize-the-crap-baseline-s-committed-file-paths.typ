@@ -56,8 +56,8 @@ The first relative mint pairs 1056 of 1058 entries as `unchanged` against an
 absolute current report. The two that do not are one file's two same-named
 `fake_editor` functions (`add_interactive_tests_editor.rs`), ambiguous by suffix
 and already unpaired under CI's root. A baseline entry doctored downward still
-fails the gate and reports the function (`unlink_edits`, +5.0), so the ratchet
-reads deltas exactly as before.
+fails the gate and reports the function (`unlink_edits`, +5.0). The ratchet
+then reads deltas exactly as before.
 
 The mint also absorbed two regressions that had sat un-minted since the baseline
 was last written on 2026-08-09. They are `command_json` (`cli_dump.rs`, CRAP

@@ -23,8 +23,8 @@ them. The warning then fires at four against a truthful estimate of two.
 
 Nobody hand-edits a generated file, because `docs::md-check` fails the build if
 anyone tries. Counting them turns an estimate into a number an author has to
-inflate to keep quiet, which is precisely the failure the `files` unit was
-chosen to avoid.
+inflate to keep quiet, which is precisely the failure that drove the `files`
+unit.
 
 == Scope
 

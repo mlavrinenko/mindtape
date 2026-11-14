@@ -22,8 +22,8 @@ The size sweep splits findings two ways, test module or production, and hands th
 production branch prose about carving a Rust file along a seam and not leaving
 "an arbitrary bottom half moved into a `_more.rs`". linecop also caps Markdown,
 so `CONTRIBUTING.md` and `skills/mindtape/SKILL.md` land on that branch and get
-advice about Rust modules. At the default `--baseline 90` no Markdown is
-reported today, so the bug is latent. A machine-filed task that talks about the
+advice about Rust modules. At the default `--baseline 90`, no Markdown reaches
+the report today. The bug is latent. A machine-filed task that talks about the
 wrong language is exactly the detail that persuades a reader to distrust the
 rest, the one failure this sweep cannot afford.
 

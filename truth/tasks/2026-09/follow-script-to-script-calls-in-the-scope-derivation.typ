@@ -36,6 +36,6 @@ site-pages-fixture-check`, plus `_gitleaks-bound-check.sh` and
 - the same read `check-crap`'s nested `just crap` needs, which is the other
   standing exemption in that script's header. Decide whether one derivation
   covers both shapes or they stay separate.
-- a wrong answer here fails a correct manifest, so the current arm
-  claims only direct invocation. The new arm needs its own control.
+- a wrong answer here fails a correct manifest. The current arm then claims
+  only direct invocation. The new arm needs its own control.
 

@@ -31,8 +31,8 @@ it `rm -rf`s the directory on entry.
 
 Two costs, one of them a race:
 
-- the replica pays a multi-megabyte copy per variant for a directory no page
-  compile reads
+- the replica pays a multi-megabyte copy per variant for a directory outside
+  every page compile
 - `cp -r` walking a tree another process is deleting can exit non-zero on a file
   that vanished mid-walk. The gate then fails for a reason that has nothing to
   do with what it pins

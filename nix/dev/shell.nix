@@ -19,13 +19,9 @@
       # Vale reads `.typ` through `typst2vast` and code comments through
       # tree-sitter grammars. Both binaries come from source pins here, since
       # the main nixpkgs carries neither a `typst2vast` nor a Vale new enough
-      # for either reader. The prose gates call the 3.26 pin until the wrapped
-      # line alerts it never saw are cleaned; vale-prose.nix has the reason.
+      # for either reader.
       vale = pkgs-tombi.callPackage ./vale.nix {
         buildGoModule = pkgs-tombi.buildGoModule.override { go = pkgs-tombi.go_1_27; };
-      };
-      valeProse = pkgs.callPackage ./vale-prose.nix {
-        buildGoModule = pkgs.buildGoModule.override { go = pkgs.go_1_26; };
       };
       valeGrammars = pkgs.callPackage ./vale-grammars.nix { inherit vale; };
 
@@ -63,7 +59,6 @@
             inputs.qahq.packages.${system}.outdatty
             inputs.tola.packages.${system}.default
             vale
-            valeProse
             (pkgs.callPackage ./typst2vast.nix { })
             valeStyles
             pkgs-tombi.tombi

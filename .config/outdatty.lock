@@ -349,7 +349,7 @@ groups:
       .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
       .just/bench.just: 537461a4aecca375d05e7cd460ec36d1eaaff5167e5a698f065a9c8f61e976c1
       .just/crap.just: bbd5c5afd5c0949810cb7647c8dc495836f5b3ea3edd1d2ddba77703317caa6c
-      .just/docs.just: 986d0ffa29e5f4ef4e0046baff537674667d1ead9189dd5106f547ac49d972b3
+      .just/docs.just: 37f84ad9f74d182a4aa586df6ecad7c94d22c1ae554b062d1968ec19ed031418
       .just/install.just: d5b6fa1381014bf12de6551f5356a832667bd0d107998cbe86c03ce7eee16989
       .just/lint.just: e822d0272c99d5921afdc5b53e25c829caeda68b8da7e980844d4e0ada0a6bd0
       .just/meta.just: 17f3c67395d11fe1ed06ad6067c77a2e0939fdf7f95706df3bbed76d3e59a368
@@ -361,23 +361,22 @@ groups:
       Justfile: 11befad9423330bd37168af5c670cf2c3944f64ac19b905a3febd55aeef36018
       flake.nix: 325112feb8cc629198bd6721f88d54efc933a1aebbf80d9a2e32f5f5ffc3cbc0
       nix/dev/flake.nix: 7dc39578b41326c6c8c2e129756bcdfea195de702f7ac254a7649bec47467734
-      nix/dev/shell.nix: 1a6bf71c4bfc3c834363a274e4148dc078fb21f8ce58b319a41f18b861514b50
+      nix/dev/shell.nix: 0e37bebe4625c54a116137d688cfaa082a6ac10a7b9bafff9e7a39c5f48219fb
       nix/dev/typst2vast.nix: bb7f1223d483e31fc74b9d60b595dbff4e6f7d4fcac59e8cda787f0a96a91359
       nix/dev/vale-grammars.nix: 1d7d01f2702db43df232857473c49762e28772a6f7d63a511c261187dce7b4de
-      nix/dev/vale-prose.nix: ba4e5688df96d8192defbc3bdaa4dd561463642e115519c979b61242ffd1940b
       nix/dev/vale.nix: 86aa6e042b719684294a2533b6f2f7dcd0b1bdd53906e58ebacbe6bf0f285bac
     dependents:
-      docs/src/agents.typ: 5e922561dc734ce8c98c0687172e3255f73cbb9beae73a07771a689c13790e9f
+      docs/src/agents.typ: f1bf703185d8963bde8a6fb65ff29ff9397c563a4af08962dfc6ec4af4ca0cf3
       docs/src/contributing.typ: 5bdcac0e3446070384f63e40a67b0dc65e9e6d942a47723416aa1ace608b70bb
-      docs/src/contributing/coverage-crap.typ: c4e809f14523f241190bc0d7684ae0f28ca83a6a4d7ea09da7913176a4d1b0d8
+      docs/src/contributing/coverage-crap.typ: dfd3234c064a7403e05bac07755428caa51e21d49d084eff17a9a2eee6d93243
       docs/src/contributing/crap-baseline.typ: 07406188acce4909e9a893d47453e4b54547f0a98035e8ec37955420be958c61
       docs/src/contributing/docs-site-build.typ: 6dee8629cb4d56d1eebb8b47f07c33859d4a00f1f6855f2f067383e0fd61d918
-      docs/src/contributing/documentation.typ: 82ef7513724dd57cdf76e1e15c95ea542f68f737592d6464de9702a514f527e8
-      docs/src/contributing/example-projects.typ: ea12a8a93ac900912ef1fad437fc6727b7dc10233c5f3d1ae04687eaf28ac264
-      docs/src/contributing/gates.typ: 72d37bb040865441f0b1604c3d1c159d85c9ad467ac7a696c08f7db84c7b63f6
+      docs/src/contributing/documentation.typ: 9c9d09bc4ac152db8dfc2baab6000650c5909223ad7d2add9b389b50beb7fe8d
+      docs/src/contributing/example-projects.typ: 952534459fb3f06fe43736e8949beffdc296319a3c8ad2a979587f2fcd887ca0
+      docs/src/contributing/gates.typ: 085f219a061c85977265725521e885fc15a45537c798143fc6e5e3057f76dd72
       docs/src/contributing/mutation-testing.typ: fd3b81fd022bbfbfd8161cdebc1b2fa65fcd0a9979ba455a384ca6a2b0e5dfb5
-      docs/src/contributing/signal-sweep.typ: 526ee365344240fa05b5035b8b3644c92a7cd0a490a988e7a2d1b2fc41e74f12
-      docs/src/contributing/windows.typ: 07a0c6c5821031a886959ef415a8348e2d0d6d4aebf8e7affb419de710709ab2
+      docs/src/contributing/signal-sweep.typ: ee308da314f2396880c7b0802719c8b02e05d7bb562ec0e0b6ea106179728c04
+      docs/src/contributing/windows.typ: d19d7853f501ffaaf49f885c87f657d517d4e475f6683e532983c51441a47022
   dict-words-docs:
     source:
       crates/mindtape/src/dicts/dev-verbs.txt: 1d44018123133b9cd533d473d9f9df0f24a44131e77961178424f7311782d648
@@ -456,12 +455,12 @@ groups:
     source:
       .githooks/commit-msg: ecaf43984bbefd17cbc968cbc805c9f7b3db77f40f742f46213797d9b2c2df71
       .githooks/local-paths: 3fed9f65a80f886ec6fa219ac250234b875faa01a6aab6ecc229cc83264e205e
-      .githooks/pre-commit: 27d19c197981dac3561d6f033ffbc47fb2757a7bae17a0890ec880bc7f1951b6
+      .githooks/pre-commit: 66285d7df185f895d0b3bc3bc25db76f99092f65eb604cd272f9271cb24a4ecf
       .just/scripts/outdatty-review-trailer.sh: 091bd9a4e7d90059a71e4863c80c90af4eda0bb216ab96db13b1ca07a542d456
     dependents:
       docs/src/contributing.typ: 5bdcac0e3446070384f63e40a67b0dc65e9e6d942a47723416aa1ace608b70bb
       docs/src/contributing/commit-messages.typ: 4a8a1d7277310fd1c54d7bf866d3263021c07e4d9fac70f307a3f6ae37e31b4f
-      docs/src/contributing/gates.typ: 72d37bb040865441f0b1604c3d1c159d85c9ad467ac7a696c08f7db84c7b63f6
+      docs/src/contributing/gates.typ: 085f219a061c85977265725521e885fc15a45537c798143fc6e5e3057f76dd72
   link-kinds-docs:
     source:
       crates/mindtape/src/link/mod.rs: 06f509c4bf8b98e5085ba92ec59c5bbb15e9310155c9ec4013c7d9a96b98d94b
@@ -664,13 +663,12 @@ groups:
       .config/vale/local/config/vocabularies/Prose/reject.txt: cdfdcde6963710e94fbec497007690991983c01ab5e10caea8cb376a9ed71eb3
       nix/dev/flake.lock: fd22c22f17ee7d0f926de24231a428d89f821025de4177a0348e84050aace0d5
       nix/dev/flake.nix: 7dc39578b41326c6c8c2e129756bcdfea195de702f7ac254a7649bec47467734
-      nix/dev/shell.nix: 1a6bf71c4bfc3c834363a274e4148dc078fb21f8ce58b319a41f18b861514b50
+      nix/dev/shell.nix: 0e37bebe4625c54a116137d688cfaa082a6ac10a7b9bafff9e7a39c5f48219fb
       nix/dev/vale-grammars.nix: 1d7d01f2702db43df232857473c49762e28772a6f7d63a511c261187dce7b4de
-      nix/dev/vale-prose.nix: ba4e5688df96d8192defbc3bdaa4dd561463642e115519c979b61242ffd1940b
       nix/dev/vale-styles.nix: 7cb50df8be993a283ceefacdd53fc48e33d422a3e95fe821c6067221cc6cb071
     dependents:
-      docs/src/contributing/documentation.typ: 82ef7513724dd57cdf76e1e15c95ea542f68f737592d6464de9702a514f527e8
-      docs/src/contributing/gates.typ: 72d37bb040865441f0b1604c3d1c159d85c9ad467ac7a696c08f7db84c7b63f6
+      docs/src/contributing/documentation.typ: 9c9d09bc4ac152db8dfc2baab6000650c5909223ad7d2add9b389b50beb7fe8d
+      docs/src/contributing/gates.typ: 085f219a061c85977265725521e885fc15a45537c798143fc6e5e3057f76dd72
   waits-docs:
     source:
       crates/mindtape/src/graph/ready.rs: 9e712ad6a7783c09428bcd8f8516e81d7f66454b534405c75ddb2f3d65f4d7d1

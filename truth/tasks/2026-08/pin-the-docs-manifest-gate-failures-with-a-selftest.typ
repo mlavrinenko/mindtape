@@ -42,7 +42,7 @@ real.
 A temp copy works and has a proof: `cp -r www <tmp>/www` then
 `typst query --root <tmp>/www …` resolves, because `site.typ` reads its own
 paths relative to itself rather than to the root (verified during the umbrella's
-feasibility probe). `generate-site-pages.sh` lives under `www/`, so a copied tree
+feasibility probe). `generate-site-pages.sh` lives under `www/`. A copied tree
 gives it a copied `REPO` too, and it globs `$REPO/www/content/*.typ`. Copy
 `www/generated/` along and the producer works without regenerated captures.
 

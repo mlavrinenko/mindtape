@@ -65,8 +65,8 @@ template authors, not a path parser, and nothing in Rust needs to learn it.
   token, and it is the shortest form for the commonest case.
 - Docs: `www/content/templates.typ`, `docs/src/skill.typ` and
   `skills/mindtape/references/add-slots.md` all state the `[]=` rule as the
-  only way to fill a list. All three are `cli-surface` dependents, so the
-  group needs re-recording with `just outdatty-update cli-surface`.
+  only way to fill a list. All three are `cli-surface` dependents. The group
+  then needs re-recording with `just outdatty-update cli-surface`.
 - The skill's evals (`skills/mindtape/evals/evals.json`) assert the `[]=`
   spelling. They move with it.
 

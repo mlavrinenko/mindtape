@@ -63,7 +63,7 @@
   ],
   "repeat-gain": [
     Tokens an extraction removes, net of the helper and its calls. The same
-    threshold covers both copy count and size: a big block clears it with two
+    threshold covers both copy count and size. A big block clears it with two
     copies, and a one-liner clears it only at many copies. A count or a size
     alone would file the common short call and miss the pasted setup. The
     threshold keeps a batch small enough to work through before the next sweep.

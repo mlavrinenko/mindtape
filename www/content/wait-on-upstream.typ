@@ -14,7 +14,7 @@
 #show: page.with(..meta)
 
 Your code has a workaround for a bug in an external library, and the fix lands
-in the next release. The task that drops the workaround looks ready, so an
+in the next release. The task that drops the workaround looks ready. An
 agent picks it up, finds the old version still locked and wastes an hour
 proving it. Or the workaround stays for a year after the library maintainers fix the bug.
 
@@ -45,8 +45,8 @@ means the task still waits. Any other exit means `mt` can't tell, and the task
 stays blocked. The first line the command prints becomes the `why` value. Add
 an entry with `mt set <task> waits-on+=locked:acme-pay@2.4.0`.
 
-Every command that reads readiness runs checkers, `mt ls` included. So a
-checker answers from local state, and fast. `mt` runs each distinct command
+Every command that reads readiness runs checkers, `mt ls` included. A checker
+takes its answer from local state, and fast. `mt` runs each distinct command
 line once per call and skips closed tasks. Fetching news over the network is
 the tool's own job, on its own schedule, such as a timer, a recipe or the bot
 that bumps your lockfile.

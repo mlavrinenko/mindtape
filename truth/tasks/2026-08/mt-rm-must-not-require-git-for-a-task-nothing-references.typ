@@ -26,7 +26,7 @@ has nothing to rewire, so `mt rm` can do without git entirely: no `toplevel`
 discovery, no tombstone mint, no committed-clean guard. Yet the git requirement
 is unconditional: `run` calls `git::toplevel` and plans every
 removal through `typst_cleanup::plan`, which mints a tombstone per eligible
-task (`crates/mindtape-cli/src/rm.rs:110-118`). A task that no survivor
+task (`crates/mindtape-cli/src/rm.rs:110-118`). A task with zero inbound
 references should delete directly, with zero git involvement.
 
 == Scope

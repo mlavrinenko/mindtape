@@ -36,8 +36,8 @@ A task's `priority` holds a number on a scale. `mt` labels each number with the
 band it falls in, and sorts and filters by the number. You can set the number
 by hand, such as `priority: 7`, or let a framework compute it from inputs like
 impact and effort. A hand-set number takes seconds. A framework takes more
-input, but it scores every task on the same scale, so their scores can be
-compared.
+input, but it scores every task on the same scale. You can then compare their
+scores.
 
 = Scale and bands
 

@@ -29,8 +29,7 @@
       #link(u("/config/"))[`[tasks.naming] dedup`]. If it doesn't, the default
       is `add-suffix` when you set a `stem` template and `fail` otherwise.
       `--format` prints the result as `text`, `path`, `path0` or `json`, and
-      `--json` is the shorthand for `--format json` and wins when both are
-      given. The JSON says whether `mt` wrote, skipped or suffixed the task,
+      `--json` is the shorthand for `--format json` and wins when you give both. The JSON says whether `mt` wrote, skipped or suffixed the task,
       and opens with the URL of its schema. A `text`
       report ends on `next: mt eval <slug>`, the command that reads the task it
       named. The other formats contain no prose. `mt`
@@ -51,8 +50,8 @@
       moving it to another folder would change its
       #link(u("/derived-tags/"))[derived tags]. Before it renames anything, it
       refuses a stem another task already has, or a file that already exists.
-      Inside a git repository it renames with `git mv`, so the rename is
-      staged and git keeps the file's history. Outside git, or for an
+      Inside a git repository it renames with `git mv`. That stages the rename
+      and git keeps the file's history. Outside git, or for an
       untracked file, it renames the file directly. `mt mv` rewrites every
       edge that points at the task in the same pass, and each edge keeps its
       relative prefix: `../sub/old.typ` becomes `../sub/new.typ`. `mt` checks
@@ -144,8 +143,8 @@
       kind and target isn't added twice, so running either again writes
       nothing new. With `--apply`, `--replace` uses the map as the edge set
       of each stem in the map. `mt` checks the kind and the target before it
-      writes. A kind that requires a note, such as the built-in `related`, is
-      refused without one. When one entry fails, `mt` reports it and writes
+      writes. `mt` refuses a kind that requires a note, such as the built-in
+      `related`, when the edge has none. When one entry fails, `mt` reports it and writes
       the rest. `--dry-run` prints the plan instead.],
     outputs: ("link",),
   ),

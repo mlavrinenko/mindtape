@@ -60,6 +60,6 @@ Silent is the problem, not the syntax. An error would have cost one attempt.
 
 == Notes
 
-Hit while filing the first tasks in a new project. Two of four tasks were
-authored with array-form links, and `mt check` passed. The mistake surfaced
+Hit while filing the first tasks in a new project. Two of four tasks used
+array-form links, and `mt check` passed. The mistake surfaced
 only because `mt ls blocked` came back empty when it should have listed both.

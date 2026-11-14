@@ -55,8 +55,8 @@ If you don't declare `[[tasks.status]]`, you get this legend from the
     .flatten(),
 )
 
-A terminal status ends a task. A field required with `!terminal` stops being
-required there. `mt rm` with no filter retires every task in a terminal
+A terminal status ends a task. A field required with `!terminal` stops
+applying there. `mt rm` with no filter retires every task in a terminal
 status.
 
 Declaring `[[tasks.status]]` replaces the whole list, because an array
@@ -160,8 +160,8 @@ dependant there. Set `unblocked` on the statuses where work starts or ends,
 like `wip` and `done`. Leave it off statuses that blocked work must still
 reach, like `cancelled`.
 
-On a status that's also terminal, `unblocked` requires every child to be
-finished: every task whose `parent` edge names this one. A child in a terminal
+On a status that's also terminal, `unblocked` requires every child to finish:
+every task whose `parent` edge names this one. A child in a terminal
 status counts as finished. `mt flip` names each unfinished child, `--force`
 overrides, and `mt check` warns about a parent already closed over an
 unfinished child. A status that's `unblocked` but not terminal, like `wip`,

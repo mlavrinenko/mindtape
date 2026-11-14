@@ -60,7 +60,7 @@
 - `crates/mindtape-cli/Cargo.toml`: `clap_complete` with its runtime engine.
 - `crates/mindtape-cli/src/completion.rs`: value sources per argument,
   resolved against the loaded project, each falling back to no candidates
-  when loading fails. Write the red test first: a completion over
+  when loading fails. Write the red test first. A completion over
   `examples/minimal` offers that legend and not `learn-piano`'s.
 - `crates/mindtape-cli/src/cli.rs`: attach a completer to every argument
   whose values the project defines.
@@ -73,9 +73,9 @@
 
 == Alternatives
 
-- `clap_complete::generate` writing four committed scripts. Rejected for
-  exactly the reason this was never done: a static script cannot supply a stem
-  or a status, which is the half that matters.
+- `clap_complete::generate` writing four committed scripts. Rejected for one
+  reason. A static script cannot supply a stem or a status, which is the half
+  that matters.
 - A hand-written bash function shelling out to `mt ls --format path`.
   Rejected because it duplicates the parser, and drifts the first time a flag
   changes name.

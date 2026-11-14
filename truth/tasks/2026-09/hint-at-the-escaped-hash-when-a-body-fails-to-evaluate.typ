@@ -39,8 +39,8 @@ author who trips over the same wall.
   `unknown variable: N`, one whose message merely contains the phrase mid-text,
   and the existing prelude-path case proving both hints can coexist.
 - Docs: one note in the writing-tasks documentation (quickstart or the task
-  DSL page): `#` starts an inline expression, so literal hashes in prose are
-  written `\#`.
+  DSL page): `#` starts an inline expression, so you write literal hashes in prose
+  as `\#`.
 
 == Out of scope
 

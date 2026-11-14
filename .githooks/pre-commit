@@ -40,7 +40,7 @@ fi
 direnv exec "$root" typstyle --check truth
 # A pass prints only its summary, which the hook hides; a failure keeps the
 # alerts that name the file and line.
-if ! vale_out=$(direnv exec "$root" vale-prose --no-global --config=.config/vale.ini truth/tasks 2>&1); then
+if ! vale_out=$(direnv exec "$root" vale --no-global --config=.config/vale.ini truth/tasks 2>&1); then
     printf '%s\n' "$vale_out"
     exit 1
 fi

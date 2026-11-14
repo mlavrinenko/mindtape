@@ -52,8 +52,8 @@ glued text. The one line a reader would act on is the line that is fiction.
 == Hole: nothing couples a new gate script to dev-docs
 
 `outdatty.yaml`'s `dev-docs` group lists `.just/scripts/*.sh` one by one, and
-outdatty reacts only to files it lists. A gate script never added to that list is
-coupled to no dependent and reported by nothing. The `script-scope-check` first
+outdatty reacts only to files it lists. The list couples a gate script to its
+dependent, and a script that never joins it goes unreported. The `script-scope-check` first
 arm restores that arriving-is-enough property for `.mmz` scopes, but this group
 has no equivalent. Same failure shape, one file over.
 
@@ -65,8 +65,8 @@ has no equivalent. Same failure shape, one file over.
   sources, failing with the line to add. `script-scope-check` already walks that
   directory for the same class of question and is the natural home, as an arm
   rather than a new gate
-- out of scope: a `just new-gate <name>` scaffold. Generation cannot be
-  forgotten, which beats any check, but it would have to write six files in four
+- out of scope: a `just new-gate <name>` scaffold. A generator cannot forget a
+  file, which beats any check, but it would have to write six files in four
   formats and would rot against every one of them. The two checks above make a
   half-wired arm fail by itself, which is the property we want
 - out of scope, explicitly: a CONTRIBUTING.md checklist. A wiring step that a

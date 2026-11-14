@@ -59,8 +59,8 @@ at any absolute level, which is precisely what the band could not say.
   may flag it as a regression. Re-run `just cover` twice without touching a
   source and measure the spread before choosing.
 - Decide and document how a legitimate increase lands. Adding a branch to a
-  function is normal. The answer is a baseline refresh in the same commit, so
-  the recipe needs a `crap-baseline` (or equivalent) update verb, and
+  function is normal. The answer is a baseline refresh in the same commit. The
+  recipe then needs a `crap-baseline` (or equivalent) update verb, and
   CONTRIBUTING has to say when to run it. A ratchet with no documented release
   valve gets bypassed instead of refreshed.
 - Consider tracking the baseline as an `outdatty` dependent of the sources it

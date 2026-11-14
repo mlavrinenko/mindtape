@@ -34,8 +34,8 @@ against the manifest, so it never reads `active:`. Point `www/content/cli.typ` a
 `<meta name="description">` and sidebar highlight while the gate stays green.
 
 Invert it. Each page carries its own
-`#metadata((route, label, title, summary)) <page-meta>` block, and the manifest is
-built from the fifteen pages with `typst query`. `site.typ` keeps only what no
+`#metadata((route, label, title, summary)) <page-meta>` block, and `typst query`
+builds the manifest from the fifteen pages. `site.typ` keeps only what no
 single page owns: the group names and the reading order.
 
 == Feasibility, measured

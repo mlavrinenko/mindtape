@@ -52,8 +52,8 @@ place, the page. Its route appears once instead of twice.
   existed to stop a second copy growing beside the manifest, and the page is the
   manifest after this.
 - `www/utils/site.typ`: `NAV` keeps the group titles and the reading order,
-  referencing the generated entries. `PAGES` and `page-meta` go. Nothing in this
-  file restates a label, a title or a summary afterwards.
+  referencing the generated entries. `PAGES` and `page-meta` go. The generated
+  entries carry the label, title and summary afterwards.
 - `www/templates/layout.typ`: follow whatever `NAV`'s new shape needs.
 - `.just/scripts/check-doc-facts.sh`: the pages arm becomes three-way: filename
   stem, the route the page declares, and nav membership. A page whose
@@ -76,6 +76,6 @@ Two, and both must fail before the fix:
 == Out of scope
 
 The fifteen page edits (the sibling leaf) and the reading order itself. Group
-names and page order stay hand-written in `site.typ`: that is the one fact no
-single page owns. Spreading it across fifteen files as `order:` integers would
+names and page order stay hand-written in `site.typ`: that is the one fact that
+spans every page. Spreading it across fifteen files as `order:` integers would
 make the sidebar's shape invisible and let two pages claim one slot.

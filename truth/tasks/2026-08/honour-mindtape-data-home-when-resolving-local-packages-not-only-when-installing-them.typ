@@ -25,8 +25,8 @@
 `$MINDTAPE_DATA_HOME` moves where `mt install` writes the `@local/mindtape`
 package (`crates/mindtape/src/app_dirs.rs` → `init.rs`), but not where the
 loader reads it. Resolution happens inside `typst-world`'s `resolve_package`,
-which hardcodes `dirs::data_local_dir()` and ignores the variable. That knob is
-documented as working on every platform, and its whole reason for existing is
+which hardcodes `dirs::data_local_dir()` and ignores the variable. The docs
+describe that knob as working on every platform, and its whole reason for existing is
 that `dirs` ignores the environment on Windows. Yet it isolates an install but
 not a load. Point it at a temporary directory and `mt install`
 fills that directory while `mt ls` keeps reading your real package directory.
@@ -39,9 +39,9 @@ fills that directory while `mt ls` keeps reading your real package directory.
   `data_home()` when the variable has a value. The first is the honest fix,
   because the variable's contract is about a directory, not about one package
   name.
-- `app_dirs.rs` and `typst-world` both use `dirs::data_local_dir()`, so the
-  platform paths agree today. Only the environment override diverges, so
-  nothing has ever failed over it.
+- `app_dirs.rs` and `typst-world` both use `dirs::data_local_dir()`. The
+  platform paths agree today. Only the environment override diverges. Every
+  failure so far has come from another source.
 - Found while making the example fixtures resolve their prelude from the
   checkout. `just check-examples` empties the global package directory so a
   fixture's `[[typst.local-packages]]` entry cannot silently rot back, and it

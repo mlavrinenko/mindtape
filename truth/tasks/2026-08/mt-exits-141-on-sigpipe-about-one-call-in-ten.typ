@@ -34,8 +34,8 @@ caught because the emptiness was implausible.
 It is worst for anything filing in a loop. The `kimmable`
 `just ask-refactoring` makes ~25 `mt` calls per sweep. Three consecutive runs
 died at finding 1, finding 13 and finding 1. Each left a half-filled board that
-the sweep's own re-run guard then refused to let anyone finish: a wedged backlog
-from a signal that was perfectly good. It carries
+the sweep's own re-run guard then refused to let anyone finish. The signal was
+perfectly good, and the backlog stayed wedged. It carries
 `contrib/ask-refactoring/mt.sh`, which retries on 141 and nothing else. That
 workaround should not need to exist.
 

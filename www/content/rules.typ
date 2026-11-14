@@ -85,7 +85,7 @@ the tasks it matches. You can set it on `[tasks.priority]`, `[tasks.difficulty]`
 
 #terminal("rules-required")
 
-`mt` parses each expression once, when it loads the config, so a broken one
+`mt` parses each expression once, when it loads the config. A broken one then
 gives you one error that reports the field.
 
 = Assertions
@@ -202,8 +202,8 @@ rule bound a file count the way it bounds a Changes list:
 
 The query's optional `glob`, a glob or `@name` path set, narrows the files it
 reads. Without one, it reads every file of that language git lists. Paths are
-relative to the repository root, as `changed()` reads them, so a nested project
-prefixes its directory, as in `sub/src/**`. A file query needs a git working
+relative to the repository root, as `changed()` reads them. A nested project
+then prefixes its directory, as in `sub/src/**`. A file query needs a git working
 tree. Outside one, `mt check` reports the collector problem, and the error
 reports `git init` as the fix. A file counts once however many matches it
 contains. The rule then bounds a file count, not a call-site count.

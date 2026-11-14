@@ -8,7 +8,7 @@ How `docs/src/*.typ` becomes README.md, AGENTS.md, CONTRIBUTING.md, `skills/mind
 
 The root docs repeat facts that have a machine-readable source: the crate map, the DSL fields, the gate table and the linecop caps, all written to `www/generated/*.json` by `www/generate-facts.sh`. A Markdown file can’t read JSON, and a Typst source can. Each fact then lives in one place, and every doc reads it from the same file.
 
-`docs/generate-md.sh` runs `mmz just docs::gen` before it renders, so a source never depends on another recipe having run first. On a changed tree that costs a debug build of `mt`, because `www/generate.sh` captures real `mt` output. `www/generate-facts.sh` alone isn’t enough, because `www/generate-site-pages.sh` compiles every site page to build the page manifest, and the pages read those captures. Inside `just check` the four gates that read `www/generated/` share one run: the first to take the lock regenerates, and mmz finds the record fresh for the rest.
+`docs/generate-md.sh` runs `mmz just docs::gen` before it renders. A source then never depends on another recipe having run first. On a changed tree that costs a debug build of `mt`, because `www/generate.sh` captures real `mt` output. `www/generate-facts.sh` alone isn’t enough, because `www/generate-site-pages.sh` compiles every site page to build the page manifest, and the pages read those captures. Inside `just check` the four gates that read `www/generated/` share one run: the first to take the lock regenerates, and mmz finds the record fresh for the rest.
 
 `docs/generate-md.sh` renders each source with typlite, from nixpkgs’ `tinymist` package.
 

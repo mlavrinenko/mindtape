@@ -55,7 +55,7 @@ must be derivable without `www/generate.sh`'s captures. Evaluating a
 `site.typ` rather than the pages for that reason.
 
 Do not touch `www/content/*.typ` here at all. `page` keeps accepting `title:`
-and `summary:` as optional overrides that default to the manifest, so every page
-still builds unchanged. The three prose tasks strip the redundant arguments from
+and `summary:` as optional overrides that default to the manifest. Every page
+then still builds unchanged. The three prose tasks strip the redundant arguments from
 the pages they own, and the umbrella's close removes the override parameters once
 no page passes them.

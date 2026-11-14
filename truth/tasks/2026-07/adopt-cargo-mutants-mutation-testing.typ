@@ -134,8 +134,8 @@ to be one of three shapes, and only one was a plain assertion gap:
 - Unbounded loops (4, all `TIMEOUT`): `naming.rs` `disambiguate` and
   `recur_dates.rs`'s due-anchor catch-up. Both bounded, as described below.
 - Provably equivalent (1): `config_views.rs` `dfs`, `delete match arm DONE`.
-  The black-node check is pure memoization: a node reaches `DONE` only after its
-  whole subtree came back cycle-free, so re-walking it can only return `None`
+  The black-node check is pure memoization. A node reaches `DONE` only after its
+  whole subtree came back cycle-free. Re-walking it then can only return `None`
   again. Deleting the arm costs exponential time, never correctness.
 
 == Three lessons that changed the code, not the exclude list
@@ -153,9 +153,9 @@ to be one of three shapes, and only one was a plain assertion gap:
   the `rrule` feature moved into one stub module (`recur_rrule_off.rs`, selected
   by `#[path]`), so `recur.rs` and `recur_dates.rs` hold one always-compiled
   function each. The whole stub file is one `exclude_globs` entry.
-+ "Untestable environment boundary" was wrong five times over. `no_color_set`,
-  `terminal_width`, `apply_flex`, `guard`'s `||` and `event_loop`'s `!=` were
-  excluded as needing a real terminal. But the repo already had a PTY harness
++ "Untestable environment boundary" was wrong five times over. The exclude list
+  named `no_color_set`, `terminal_width`, `apply_flex`, `guard`'s `||` and
+  `event_loop`'s `!=` as needing a real terminal. But the repo already had a PTY harness
   (`script(1)`, util-linux in the `devShell`) from the interactive e2e test.
   `tests/tty_e2e.rs` runs `mt ls` under a pty with `stty cols 40` vs `200`
   (pinning the flex column), and with `NO_COLOR` set vs unset (pinning the
